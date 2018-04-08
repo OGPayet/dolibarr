@@ -1,0 +1,294 @@
+# en_US lang file for module ticketsup
+# Copyright (C) 2013  Jean-François FERRY <jfefe@aternatik.fr>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#
+# Generic
+#
+
+Module110120Name = Tickets (Service Portal)
+Module110120Desc = Ticket system for incident, service and enquiries' management
+
+Permission110121=See tickets
+Permission110122=Modify tickets
+Permission110123=Delete tickets
+Permission110124=Manage tickets
+Permission110125=See tickets of all 3ʳᵈ parties (not effective for external users, always be limited to the 3ʳᵈ party they depend on)
+
+TicketsupDictType=Service Type
+TicketsupDictCategory=Service Portal Service Categories
+TicketsupDictSeverity=Service Portal Urgency Levels
+TicketTypeShortBUGSOFT=Dysfonctionnement logiciel
+TicketTypeShortBUGHARD=Dysfonctionnement matériel
+TicketTypeShortCOM=Sales Enquiry
+TicketTypeShortINCIDENT=Faulty Product
+TicketTypeShortPROJET=Project
+TicketTypeShortOTHER=Other
+
+TicketSeverityShortLOW=Low
+TicketSeverityShortNORMAL=Normal
+TicketSeverityShortLOWHIGH=Important
+TicketSeverityShortHIGH=Critical (time limited)
+
+ErrorBadEmailAddress=Field '%s' incorrect
+MenuTicketsupMyAssign=My Requests
+MenuTicketsupMyAssignNonClosed=My Requests (Open)
+MenuListNonClosed=Open Requests
+
+TypeContact_ticketsup_internal_CONTRIBUTOR=Staff
+TypeContact_ticketsup_internal_SUPPORTTEC=Assigned Staff
+TypeContact_ticketsup_external_SUPPORTCLI=Customer Contact
+TypeContact_ticketsup_external_CONTRIBUTOR=Service Partner
+
+Notify_TICKETMESSAGE_SENTBYMAIL=Send Service Request response by e-mail
+
+# Status
+NotRead=Unread
+Read=Read
+Answered=Answered
+Assigned=Assigned
+InProgress=In progress
+Waiting=Pending
+Closed=Closed
+Deleted=Deleted
+
+# Dict
+Type=Type
+Category=Category
+Severity=Urgency
+
+# Email templates
+MailToSendTicketsupMessage = To send e-mail from Service Request
+
+#
+# Admin page
+#
+TicketsupSetup = Service Portal Setup
+TicketSupSettings = Settings
+TicketsupSetupPage Service Portal Setup
+TicketsupPublicAccess = A public interface requiring no identification is available at the following URL
+TicketsupSetupDictionaries = The type of application categories and urgency levels are configurable from dictionaries
+TicketParamModule=Module Variables
+TicketParamMail=E-mails
+TicketEmailNotificationFrom = Notification e-mail FROM
+TicketEmailNotificationFromHelp = Used into ticket message answer by example
+TicketEmailNotificationTo = Notifications e-mail TO
+TicketEmailNotificationToHelp = Send email notifications to this address.
+TicketNewEmailBodyLabel=Text message sent after creating a ticket (public interface)
+TicketNewEmailBodyHelp=The text specified here will be inserted into the email confirming the creation of a new ticket from the public interface. Information on the consultation of the ticket are automatically added.
+TicketParamPublicInterface=Public Interface
+TicketsEmailMustExist=Require an existing email address to create a ticket
+TicketsEmailMustExistHelp=In the public interface, the email address should already be filled in the database to create a new ticket.
+PublicInterface=Public Interface
+TicketUrlPublicInterfaceLabelAdmin=Public Interface URL
+TicketUrlPublicInterfaceHelpAdmin=It is possible to define an alias to the web server and thus make available the public interface to another IP address.
+TicketPublicInterfaceTextHomeLabelAdmin=Welcome text of the public interface
+TicketPublicInterfaceTextHome=You can create a support ticket or view existing from its identifier tracking ticket.
+TicketPublicInterfaceTextHomeHelpAdmin=The text defined here will appear on the home page of the public interface.
+TicketPublicInterfaceTopicLabelAdmin=Interface Title
+TicketPublicInterfaceTopicHelp=This text will appear as the title of the public interface.
+TicketPublicInterfaceTextHelpMessageLabelAdmin=Help text to the message entry
+TicketPublicInterfaceTextHelpMessageHelpAdmin=This text will appear above the message input area of the user.
+ExtraFieldsTicketSup=Extra Fields
+TicketSupCkEditorEmailNotActivated=HTML editor is not activated. Please put FCKEDITOR_ENABLE_MAIL contant equal to 1
+TicketsDisableEmail=Do not send ticket creation or message send emails
+TicketsDisableEmailHelp=By default, emails are sent when new tickets or messages created. Enable this option to disable *all* email notifications
+TicketsLogEnableEmail=Enable log by email
+TicketsLogEnableEmailHelp=At each change, an email will be sent **to each contact** associated with the ticket.
+TicketParams=Parameters
+TicketsShowModuleLogo=Display the logo of the module in the public interface
+TicketsShowModuleLogoHelp=Enable this option to hide the logo module in the pages of the public interface
+TicketsEmailAlsoSendToMainAddress=Also send notification to main email address
+TicketsEmailAlsoSendToMainAddressHelp=Enable this option to send an email to "Notification email from" address (see setup below)
+TicketsShowExtrafieldsIntoPublicArea=Show Extras fields in the public interface
+TicketsShowExtrafieldsIntoPublicAreaHelp=When this option is enabled, additional attributes defined on the tickets will be shown in the public interface of ticket creation.
+TicketsLimitViewAssignedOnly=Restrict the display to tickets assigned to the current user (not effective for external users, always be limited to the thirdparty they depend on)
+TicketsLimitViewAssignedOnlyHelp=Only tickets assigned to the current user will be visible. Does not apply to a user with tickets management rights.
+TicketsActivatePublicInterface=Activate public interface
+TicketsActivatePublicInterfaceHelp=Public interface allow any visitors to create tickets.
+TicketsAutoAssignTicket=Automatically assign the user who created the ticket
+TicketsAutoAssignTicketHelp=When creating a ticket, the user can be automatically assigned to the ticket.
+TicketSupNumberingModules=Tickets Numbering Module
+
+#
+# About page
+#
+About = About
+TicketSupAbout = About ticket module
+TicketSupAboutModule = The development of this module has been initiated by the company aternatik.
+TicketSupAboutModuleHelp=You can get help by using the contact form on the website <a href="http://www.aternatik.fr">www.aternatik.fr</a>
+TicketSupAboutModuleImprove=Feel free to suggest improvements! Please visit <a href="https://doliforge.org/projects/Ticketsup/">the project page</a> on Doliforge website to report bugs and add tasks.
+TicketSupAboutModuleThanks=Thanks to <a href="http://sayatnowa.com">nwa</a> who creates icons for this module.
+
+#
+# Index & list page
+#
+TicketsIndex=Service Portal
+TicketList=Service Requests List
+TicketAssignedToMeInfos=This page displays any service requests assigned to the current user
+NoTicketsFound=No service request found
+TicketViewAllTickets=View All Requests
+TicketViewNonClosedOnly=Open Requests
+TicketStatByStatus=Requests by Status
+
+#
+# Ticket card
+#
+Ticketsup=Service Request
+TicketCard=Request Summary
+CreateTicket=+ New Service Request
+EditTicket=Edit SR
+TicketsManagement=Service Requests Management
+CreatedBy=Created by
+NewTicket=Create Service Request
+SubjectAnswerToTicket=Response
+TicketTypeRequest=Request Type
+TicketCategory=Category
+SeeTicket=View SR
+TicketMarkedAsRead=SR has been marked as read
+TicketReadOn=Read on
+TicketCloseOn=Closed on
+UserAssignedTo=Staff Assigned
+MarkAsRead=Mark SR as read
+TicketMarkedAsReadButLogActionNotSaved=SR marked as closed but no actions saved
+TicketHistory=SR History
+AssignUser=Assign to staff
+TicketAssigned=SR is now assigned
+TicketChangeType=Change Type
+TicketChangeCategory=Change Category
+TicketChangeSeverity=Change Urgency
+TicketAddMessage=Add a message
+TicketEditProperties=Edit properties
+AddMessage=Add a message
+MessageSuccessfullyAdded=Service Request added
+TicketMessageSuccessfullyAdded=Message successfully added
+TicketMessagesList=Service List
+NoMsgForThisTicket=No message for this SR
+Properties=Classification
+LastNewTickets=Last %s newest SRs (Unread)
+TicketSeverity=Urgency
+ShowTicket=View Service Request
+RelatedTickets=Related Service Requests
+TicketAddIntervention=Create intervention
+CloseTicket=Close SR
+CloseATicket=Close a Service Request
+ConfirmCloseAticket=Please confirm
+ConfirmDeleteTicket=Please confirm
+TicketDeletedSuccess=SR deleted successfully
+TicketMarkedAsClosed=SR marked as closed
+TicketMarkedAsClosedButLogActionNotSaved=SR marked as closed but no log saved
+TicketDurationAuto=Calculated Duration
+TicketDurationAutoInfos=Duration calculated automatically from intervention related
+TicketUpdated=SR updated
+SendMessageByEmail=Send update by e-mail
+TicketNewMessage=New Update
+ErrorMailRecipientIsEmptyForSendTicketMessage=Recipient is empty. No e-mail was sent
+TicketGoIntoContactTab=Please go into "Contacts" tab to select them
+TicketMessageMailIntro=Introduction
+TicketMessageMailIntroHelp=This text is added only at the beginning of the email and will not be saved.
+TicketMessageMailIntroLabelAdmin=Introduction to the message when sending email
+TicketMessageMailIntroText=<p> Hello </ p> A new response was sent on your Service Request. Here is the update: </ p>
+TicketMessageMailIntroHelpAdmin=This text will be inserted before the text of the response to a ticket.
+TicketMessageMailSignature=Signature
+TicketMessageMailSignatureHelp=This text is added only at the end of the email and will not be saved.
+TicketMessageMailSignatureText=<p>Regards,</p><p>--</p>
+TicketMessageMailSignatureLabelAdmin=Signature of response email
+TicketMessageMailSignatureHelpAdmin=This text will be inserted after the response message.
+TicketMessageHelp=Only this text will be saved in the message list on ticket card.
+TicketMessageSubstitutionReplacedByGenericValues=Substitutions variables are replaced by generic values.
+TicketTimeToRead=Time elapsed before SR read
+TicketContacts=SR Contacts
+TicketDocumentsLinked=Documents linked to Service Request
+ConfirmReOpenTicket=Confirm reopen this SR ?
+TicketMessageMailIntroAutoNewPublicMessage=A new message was added to the Service Request with the subject %s :
+TicketAssignedToYou=SR assigned
+TicketAssignedEmailBody=You have been assigned the SR #%s by %s
+MarkMessageAsPrivate=Mark message as private
+TicketMessagePrivateHelp=This message will not display to external users
+TicketEmailOriginIssuer=Issuer at origin of the tickets
+InitialMessage=Initial Message
+LinkToAContract=Link to a contract
+TicketSupPleaseSelectAContract=Select a contract
+UnableToCreateInterIfNoSocid=Can not create a response file without defining a 3ʳᵈ party
+TicketMailExchanges=Mail Exchanges
+TicketInitialMessageModified=Initial message modified
+TicketMessageSuccesfullyUpdated=Message successfully updated
+TicketChangeStatus=Change Status
+TicketConfirmChangeStatus=Confirm the status change : %s ?
+TicketLogStatusChanged=Status changed : %s to %s
+
+#
+# Logs
+#
+TicketLogMesgReadBy=SR read by %s
+NoLogForThisTicket=No log for this SR yet
+TicketLogAssignedTo=SR assigned to %s
+TicketAssignedButLogActionNotSaved=SR assigned but no log saved !
+TicketLogPropertyChanged=Change classification : from %s to %s
+TicketLogClosedBy=SR closed by %s
+TicketLogProgressSetTo=Progress change to %s percent
+TicketLogReopen=SR re-opened
+
+#
+# Public pages
+#
+TicketSystem=Service Portal
+ShowTicketWithTrackId=Track Existing Service Request
+TicketPublicDesc=You can create a new Service Request or follow up an existing one.
+YourTicketSuccessfullySaved=Your Service Request has been successfully saved
+MesgInfosPublicTicketCreatedWithTrackId=A new Service Request has been created with reference %s.
+PleaseRememberThisId=Please keep a note of the reference.
+TicketNewEmailSubject=Service Request Confirmation
+TicketNewEmailSubjectCustomer=New Service Request
+TicketNewEmailBody=This is an automatic e-mail to confirm you have registered a new Service Request.
+TicketNewEmailBodyCustomer=This is an automatic e-mail to confirm a new Service Request has just been created for you.
+TicketNewEmailBodyInfosTicket=Information for monitoring the Service Request
+TicketNewEmailBodyInfosTrackId=SR Reference (for tracking) : %s
+TicketNewEmailBodyInfosTrackUrl=You can view the progress of the Service Request by clicking the link above.
+TicketNewEmailBodyInfosTrackUrlCustomer=You can view the progress of the Service Request in the Service Portal by clicking on the following link
+TicketEmailPleaseDoNotReplyToThisEmail=Please do not reply directly to this e-mail. Use the link to reply directly into the Service Portal.
+TicketPublicInfoCreateTicket=This form allows you to record a Service Request (SR) in our Service Portal. We aim to respond to all enquiries within 3 working days.
+TicketPublicPleaseBeAccuratelyDescribe=Provide as much information possible to allow us to correctly identify and handle your request.
+TicketPublicMsgViewLogIn=Please enter the details below.
+TicketTrackId=Tracking Reference
+ErrorTicketNotFound=SR with tracking reference %s not found.  Please call us.
+Subject=Topic
+ViewTicket=View Service Request
+ErrorEmailMustExistToCreateTicket=Error : E-mail address not found in our Service Portal
+TicketNewEmailSubjectAdmin=New Service Request Created
+TicketNewEmailBodyAdmin=<p>A Service Request has just been created with reference #%s :</p>
+SeeThisTicketIntomanagementInterface=View the Service Request in the management interface
+TicketPublicInterfaceForbidden=Forbidden access. Sorry.
+
+# notifications
+TicketNotificationEmailSubject=SR %s updated
+TicketNotificationEmailBody=This is an automatic message to notify you that SR %s has just been updated
+TicketNotificationRecipient=Notification recipient
+TicketNotificationLogMessage=Log message
+TicketNotificationEmailBodyInfosTrackUrlinternal=View Service Request in Service Portal
+TicketNotificationNumberEmailSent=Notification e-mail sent : %s
+
+
+#
+# Boxes
+#
+BoxLastTicketsup=Recent SRs
+BoxLastTicketsupDescription=Last %s SRs Created
+BoxLastTicketsupContent=
+BoxLastTicketsupNoRecordedTickets=No recently unread SRs
+BoxLastModifiedTicketsup=Recently modified SRs
+BoxLastModifiedTicketsupDescription=Last %s SRs Modified
+BoxLastModifiedTicketsupContent=
+BoxLastModifiedTicketsupNoRecordedTickets=No recently modified SRs

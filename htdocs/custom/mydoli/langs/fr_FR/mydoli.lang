@@ -1,0 +1,5 @@
+myDoliModule = Module myDoli
+myDoliAboutPage = A propos du module myDoli
+myDoliAbout = A propos
+myDoliDescription = Module de communication pour l'application mobile myDoli
+myDoliLongDescription = Ce module permet de communiquer avec les applications mobiles myDoli.<br>Pour pouvoir utiliser ce module vous devez télécharger l'application <b>myDoli pour Dolibarr</b> sur votre téléphone ou votre tablette.<br><br>L'application myDoli est disponible pour iOS et Android.<br><br>Rendez-vous sur la <a href="http://www.mydoli-for-dolibarr.com" target=_blank><u>page de téléchargement</u></a>.<br><br><br>myDoli Application mobile pour Dolibarr<br><br>Grâce à myDoli, vous pourrez consulter, modifier, créer des :<br><br>- Clients, Fournisseurs<br>- Produits, services<br>- Gérer l'agenda de Dolibarr<br>- Commandes, Bulletin de livraison, Devis, Interventions<br>- Factures<br><br>Mais également faire signer vos clients directement sur votre mobile .<br><br>Vous ne pourrez plus vous en passer !<br><br><br>

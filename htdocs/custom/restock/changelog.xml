@@ -1,0 +1,107 @@
+<changelog>
+	<Version Number="3.5.+1.0.3">
+		<change type='fix'> hearder forwarding correct issue </change>
+	</Version>
+	<Version Number="3.5.+1.0.4">
+		<change type='add'>separate customer to fournish order</change>
+	</Version>
+	<Version Number="3.5.+1.0.5">
+		<change type='add'>customer adress is joined on the fournish order</change>
+		<change type='add'>pdf_muscadet_restock with additionnal adress</change>
+		<change type='add'>restock product on open draft fournish order</change>
+	</Version>
+	<Version Number="3.5.+1.0.6">
+		<change type='fix'> if weighting coef element = 0, collect is not made, if all of it for an element is null, no cols display</change>
+	</Version>
+	<Version Number="3.6. + 1.1.0">
+		<change type='add'>factory link feature</change>
+		<change type='add'>bill paied menu</change>
+	</Version>
+	<Version Number="3.6. + 1.1.1">
+		<change type='add'>setting choice of method for calculating replenishment</change>
+	</Version>
+	<Version Number="3.6. + 1.1.2">
+		<change type='chg'> custom folder feature</change>
+		<change type='fix'> some bugs fixes</change>
+	</Version>
+	<Version Number="3.6. + 1.1.3">
+		<change type='fix'> use remise fourn on unit price</change>
+		<change type='fix'> remove var_dump track</change>
+	</Version>
+	<Version Number="3.7.+1.2.0">
+		<change type='fix'> 3.7 compatbility</change>
+	</Version>
+	<Version Number="3.8.+1.3.0" MonthVersion="2015-10">
+		<change type='fix'> negative value on main page correction</change>
+		<change type='fix'> link between customer and fournish order inverted with factory link</change>
+	</Version>
+	<Version Number="3.8.+1.3.1" MonthVersion="2015-11">
+		<change type='add'>allow create customer order by database link</change>
+		<change type='fix'> bad origin on commande (commdande)</change>
+	</Version>
+	<Version Number="3.8.+1.3.2" MonthVersion="2016-02">
+		<change type='fix'> bad tab management on order (duplicate)</change>
+		<change type='fix'> negative value on main screen</change>
+		<change type='add'>if fournish order from customer order exist we prevent new restock</change>
+	</Version>
+	<Version Number="3.9.+1.4.0" MonthVersion="2016-03">
+		<change type='chg'>3.9 compatibility</change>
+		<change type='chg'>custom folder compatibility</change>
+	</Version>
+	<Version Number="3.9.+1.4.1" MonthVersion="2016-05">
+		<change type='fix'>bad object on create order fourn</change>
+		<change type='add'>more setting on order fournish </change>
+	</Version>
+	<Version Number="3.9.+1.4.2" MonthVersion="2016-07">
+		<change type='add'>changelog new formating and display format</change>
+	</Version>
+	<Version Number="3.9.+1.4.3" MonthVersion="2016-08">
+		<change type='chg'>virtual product seach component even if factory enabled </change>
+	</Version>
+	<Version Number="4.0.+2.0.0" MonthVersion="2016-09">
+		<change type='chg'>Order Customer and order fournish linked by line (MAJOR feature)</change>
+		<change type='add'>link button between order by project</change>
+		<change type='chg'>virtual product seach component even if factory enabled </change>
+		<change type='chg'>rename admin/restock.php to admin/setup.php</change>
+	</Version>
+	<Version Number="4.0.+2.0.1" MonthVersion="2016-10">
+		<change type='add'>Dispatch pdf Edition</change>
+		<change type='add'>add customer order ref in fournish order private note</change>
+	</Version>
+	<Version Number="4.0.+2.0.2" MonthVersion="2016-11">
+		<change type='fix'>SQL Error on order Create</change>
+		<change type='add'>display supplier reputation if present</change>
+	</Version>
+	<Version Number="4.0.+2.0.3" MonthVersion="2016-11">
+		<change type='fix'>error product selection multiple composition</change>
+	</Version>
+	<Version Number="5.0.+2.1.0" MonthVersion="2017-02">
+		<change type='fix'>5.0 compatibility</change>
+		<change type='add'>restock order from project</change>
+		<change type='add'>use remise_percent on fourn price</change>
+		<change type='add'>new look on admin about page</change>
+		<change type='add'>information version on admin setup page</change>
+	</Version>
+	<Version Number="5.0.+2.1.1" MonthVersion="2017-03">
+		<change type='fix'>Class object not found on new tabs</change>
+	</Version>
+	<Version Number="5.0.+2.1.2" MonthVersion="2017-04">
+		<change type='fix'>restock on product + project standardisation code and feature</change>
+		<change type='fix'>bad calculation of total price on add qty in a line</change>
+	</Version>
+	<Version Number="5.0.+2.1.3" MonthVersion="2017-05">
+		<change type='fix'>type rights only on 1 chars</change>
+		<change type='fix'>getlocaltax warning on muscadet print</change>
+	</Version>
+	<Version Number="5.0.+2.1.4" MonthVersion="2017-07">
+		<change type='add'>add filter on date on restock customer order page</change>
+		<change type='add'>add type of product choice if booth enabled</change>
+	</Version>
+	<Version Number="6.0.+2.2.0" MonthVersion="2017-09">
+		<change type='inf'>6.0 compatibility</change>
+		<change type='add'>type of product choice generalised at all restock page</change>
+	</Version>
+
+	<!-- Remplir le undocumented.xml ? -->
+	<Dolibarr minVersion="3.8.0"/>
+</changelog>

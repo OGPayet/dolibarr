@@ -1,0 +1,158 @@
+<changelog>
+<Version Number="3.6.+1.4.0" MonthVersion="2015-01">
+	<change type='add'>factory feature</change>
+	<change type='add'>add equipement event link to project</change>
+	<change type='add'>add admin tabs 'about' with changelog feature</change>
+</Version>
+<Version Number="3.6.+1.4.1" MonthVersion="2015-01">
+	<change type='fix'>transfert serial to bill error</change>
+	<change type='add'>extrafields on equipement event</change>
+	<change type='fix'>extrafields error on equipement ($value instead $Value... stupid)</change>
+</Version>
+<Version Number="3.6.+1.4.2" MonthVersion="2015-02">
+	<change type='add'>display description of product (jquery trick)</change>
+	<change type='fix'>sending document error with note_public empty</change>
+</Version>
+<Version Number="3.6.+1.4.3" MonthVersion="2015-04">
+	<change type='fix'>document delete wrong, using template now</change>
+	<change type='fix'>export query error (left a . )</change>
+	<change type='fix'>admin setting error</change>
+</Version>
+<Version Number="3.6.+1.4.4" MonthVersion="2015-04">
+	<change type='add'>better access right management</change>
+</Version>
+<Version Number="3.7.+1.5.0" MonthVersion="2015-05">
+	<change type='fix'>better line management for sending document </change>
+	<change type='fix'>Extrafields compatibility</change>
+	<change type='fix'>myField compatibility</change>
+	<change type='chg'>equipement event in a dedicaced tabs </change>
+	<change type='fix'>no update event button if fichintet not enabled</change>
+</Version>
+<Version Number="3.7.+1.5.1" MonthVersion="2015-06">
+	<change type='fix'>delete equipment errors</change>
+	<change type='fix'>access of details button after create</change>
+	<change type='fix'>after cut equipement no button</change>
+</Version>
+<Version Number="3.7.+1.5.2" MonthVersion="2015-06">
+	<change type='chg'>Admin Changelog new tabs</change>
+	<change type='add'>AddEvents on multiple Equipment</change>
+	<change type='add'>Export of csv List of Equipment</change>
+	<change type='add'>mass update Warehouse and condition of equipment</change>
+</Version>
+<Version Number="3.7.+1.5.2" MonthVersion="2015-07">
+	<change type='add'>import serial use carriage return as __N__ and tabs as __B__</change>
+	<change type='fix'>bad fields (facnumber instead ref in facture_fourn) on list </change>
+</Version>
+<Version Number="3.8.+1.6.0" MonthVersion="2015-08">
+	<change type='fix'>some little bug on list</change>
+	<change type='add'>number of event in badge on tabs</change>
+	<change type='fix'>postgres sql compatibility correction</change>
+</Version>
+
+<Version Number="3.9.+2.0.0" MonthVersion="2016-04">
+	<change type='fix'>update fields don't hide bottom page button</change>
+	<change type='add'>use of ajax search box (wait 3.9.1 patch)</change>
+	<change type='add'>stock movement enabled</change>
+	<change type='add'>stock movement checkbox near warehouse dropdownbox</change>
+	<change type='add'>introduce "batch serial" for lot management</change>
+	<change type='add'>badge number on note</change>
+</Version>
+<Version Number="3.9.+2.0.1" MonthVersion="2016-05">
+	<change type='fix'>extrafields date use tpl > 3.7</change>
+	<change type='chg'>new rouget model document more rows</change>
+	<change type='fix'>export problems (. left)</change>
+	<change type='fix'>equipement association better managed on expedition</change>
+	<change type='fix'>list of customer who have equipement in product tabs</change>
+	<change type='add'>predefined event feature on product tabs</change>
+	<change type='fix'>abbes some little return...</change>
+	<change type='fix'>bad url event on index page</change>
+	<change type='add'>hookmanager adding 4 rmindr feature</change>
+</Version>
+<Version Number="3.9.+2.0.2" MonthVersion="2016-06">
+	<change type='add'>display old search form if MAIN_USE_OLD_SEARCH_FORM enabled</change>
+	<change type='fix'>entrepot move on list mass change</change>
+	<change type='add'>xml version changelog feature</change>
+	<change type='fix'>search button size</change>
+</Version>
+<Version Number="3.9.+2.0.3" MonthVersion="2016-07">
+	<change type='fix'>bad document link on custom folder</change>
+	<change type='add'>xml Dolibarr MinVersion changelog feature</change>
+	<change type='add'>customTooltip hook compatibility</change>
+	<change type='fix'>export sql format error</change>
+</Version>
+<Version Number="3.9.+2.0.4" MonthVersion="2016-08">
+	<change type='fix'>error on qty stock mvt</change>
+	<change type='chg'>Comsumtion feature</change>
+</Version>
+<Version Number="4.0.+2.1.0" MonthVersion="2016-09">
+	<change type='fix'>bad carriage return on pdf sending rouget equipement</change>
+	<change type='fix'>document template folder change for 4.0 compatibility</change>
+	<change type='chg'>increase size of number mask</change>
+	<change type='chg'>add button to transfert equipement to inteventionnal publicnote</change>
+	<change type='fix'>bad stock mvt in cut equipement</change>
+</Version>
+<Version Number="4.0.+2.1.1" MonthVersion="2016-09">
+	<change type='add'>Agenda Event Feature</change>
+	<change type='chg'>Event editable only on the good company</change>
+	<change type='chg'>direct link to event card on listevent</change>
+	<change type='fix'>create equipement on factory tabs, bad statut</change>
+	<change type='chg'>equipement / factory, better link management</change>
+</Version>
+<Version Number="4.0.+2.1.2" MonthVersion="2016-10">
+	<change type='add'>Mass Equipment change enhancement</change>
+	<change type='fix'>Export SQL error</change>
+	<change type='add'>colored list of type event</change>
+</Version>
+<Version Number="4.0.+2.1.3" MonthVersion="2016-11">
+	<change type='add'>Extrafields on Import/Export native feature</change>
+	<change type='add'>consumption stock movement if stock different</change>
+	<change type='add'>add multiple qty in consumption </change>
+</Version>
+
+<Version Number="4.0.+2.1.4" MonthVersion="2016-12">
+	<change type='fix'>Bad Url in composition page</change>
+	<change type='chg'>color on week-end for agenda event</change>
+	<change type='fix'>storage error on mass change list</change>
+</Version>
+
+<Version Number="5.0.+2.2.0" MonthVersion="2017-01">
+	<change type='add'>Welcome DLUO, fuck batch/lot</change>
+	<change type='add'>5.0 Compatibility</change>
+	<change type='chg'>Better Italian Translation (thanks claudio)</change>
+	<change type='fix'>free product must not appear on expeditiontabs equipement selection</change>
+	<change type='add'>new look on admin about page</change>
+	<change type='add'>information version on admin setup page</change>
+</Version>
+<Version Number="5.0.+2.2.1" MonthVersion="2017-02">
+	<change type='add'>default serial method choice feature</change>
+	<change type='fix'>main stabilisation and enhancing</change>
+</Version>
+<Version Number="5.0.+2.2.2" MonthVersion="2017-04">
+	<change type='add'>add ref product on export standard</change>
+	<change type='fix'>rouget_expedition pdf some enhances and bug fix</change>
+</Version>
+<Version Number="5.0.+2.2.3" MonthVersion="2017-05">
+	<change type='fix'>allow empty customer on google search listbox</change>
+	<change type='add'>add label product on standard search fields </change>
+</Version>
+<Version Number="5.0.+2.2.4" MonthVersion="2017-06">
+	<change type='chg'>jenkins optimisation</change>
+	<change type='add'>mass change on date start and date end</change>
+	<change type='fix'>No full header in pdf except first page</change>
+</Version>
+<Version Number="6.0.+2.3.0" MonthVersion="2017-08">
+	<change type='chg'>V6 comptability</change>
+	<change type='fix'>Error on first pdf generation</change>
+	<change type='add'>new list page (V5 style) and mass change correction</change>
+</Version>
+<Version Number="6.0.+2.3.1" MonthVersion="2017-09">
+	<change type='fix'>Fix create error from tabs products</change>
+	<change type='fix'>Unable to change storage on Equipement</change>
+</Version>
+<Version Number="6.0.+2.3.2" MonthVersion="2017-10">
+	<change type='fix'>Serial type error from factory </change>
+	<change type='fix'>bug on create on note change</change>
+</Version>
+
+<Dolibarr minVersion="3.6.0"/>
+</changelog>

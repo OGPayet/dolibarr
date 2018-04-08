@@ -1,0 +1,336 @@
+# Dolibarr language file - fr_FR - Equipements
+CHARSET=UTF-8
+
+##ADMIN
+NothingToSetup=Activez le module pour accéder à la page de configuration
+GeneralSetup=Paramètres généraux
+GeneralSetting=Paramètres généraux
+PatasTools=Outils Patas-M
+PatasToolsNews=Retrouvez ici les informations de patas-monkey.com (nécessite une connexion à internet)
+PatasMonkeyPresent=Ce module est une création des patas-monkey, une documentation de celui-ci est disponible sur notre site
+MoreModulesLink=Vous pouvez trouver tous nos développements sur le dolistore
+SettingIsOnToolsMenu=Le module ne nécessite pas de paramétrage particulier. <br/>Ses fonctionnalités sont accessibles depuis le menu principal 'Outils Patas-M'.
+BackToModuleList=Retour à la liste des modules
+NewVersionAviable=Une nouvelle version du module est disponible
+NumberVersion=Version
+MonthVersion=Mois de publication
+ChangesVersion=Principales modifications apportées
+
+##ABOUT
+About=À propos
+Slogan=Développement, support et formation pour Dolibarr
+LienModules=Nos modules
+LienServices=Nos services
+LienDoc=Nos documentations
+LienDolistore=Retrouvez nos autres modules
+Changelog=ChangeLog du module
+SupportModuleInformation=Informations techniques
+SupportModuleInformationDesc=<br/><em>Note : Ces informations sont utiles et pourront vous être demandées si vous rencontrez un bug dans le fonctionnement du module.</em>
+DolibarrVersion=Version de Dolibarr
+ModuleVersion=Version du module
+PHPVersion=Version de PHP
+DatabaseVersion=Version de la base de données
+WebServerVersion=Version du serveur web
+
+##EXTRAFIELDS
+Extrafield=Attribut supplémentaire
+Extrafields=Attributs supplémentaires
+DefaultSerialMode=Mode de sérialisation suggéré par défaut
+## PERMISSIONS
+Permission160071=Voir les équipements
+Permission160072=Créer/modifier des équipements
+Permission160073=Supprimer des équipements
+Permission160074=Exporter des équipements
+Permission160075=Modifier les numéros de série
+
+Equipementcomposant=Numéro de série
+Equipement=Equipement
+EquipementEvent=Evènement
+ProductUsed=Produit
+EquipementsArea=Espace équipements et évènements
+Equipements=Equipements
+EquipementEtatRepart=Répartition des états des équipements
+EquipementEvtTypeRepart=Répartition par type d'évènements
+EquipementCard=Equipement
+NewEquipement=Nouvel équipement
+AddEquipementSelectProduct=Créer équipement - Sélection du produit
+AddEquipementSelectBatchLot=Créer équipement - Sélection du Batch/Lot
+AddEquipement=Créer équipement
+DocumentEquipementModelStandard=Modèle de document standard de l'équipement
+ValidExpedition=Valider l'expédition de l'équipement
+ListOfEquipements=Liste des équipements
+ListOfEquipEvents=Liste des évènements
+EditEquipement=Editer
+EventsAdd=Joindre un équipement
+ActionsOnEquipement=Événements sur l'équipement
+AllEquipements=Toutes les Equipements
+CreateDraftEquipement=Créer brouillon
+CustomerDoesNotHavePrefix=Le client n'a pas de préfixe de défini
+DeleteEquipement=Supprimer équipement
+ValidateEquipement=Valider équipement
+ModifyEquipement=Modifier équipement
+DeleteEquipementLine=Supprimer ligne d'évènement
+ConfirmDeleteEquipement=Êtes-vous sûr de vouloir effacer cet équipement ?
+ConfirmValidateEquipement=Êtes-vous sûr de vouloir valider cet équipement ?
+ConfirmModifyEquipement=Êtes-vous sûr de vouloir modifier cet équipement ?
+ConfirmDeleteEquipementLine=Êtes-vous sûr de vouloir effacer cette ligne ?
+NameAndSignatureOfInternalContact=Nom et signature de l'intervenant :
+NameAndSignatureOfExternalContact=Nom et signature du client :
+EquipementCardsAndEquipementLines=Fiches Equipements et lignes d'évènements
+EquipId=Id Equipement
+EquipRef=Réf. Equipement
+EquipDateCreation=Date création
+EquipDuration=Durée totale
+EquipStatus=Statut
+EquipNote=Description
+EquipLine=Ligne évènement
+EquipLineId=Id ligne évènement
+EquipLineDate=Date évènement
+EquipLineDuration=Durée évènement
+EquipLineDesc=Description évènement
+DocumentModelStandard=Modèle de fiche d'Equipement standard
+RelatedEquipements=Equipements rattachées
+ShowEquipement=Afficher Equipement
+YouCanAddMultipleSerialWithSeparator=Vous pouvez saisir plusieurs numéro d'équipement fournisseur en les séparant pas un ;
+IfFournSerialKeyedNotUsed=Si il y a saisie de numéro de série fournisseur, cette valeur n'est pas utilisée.
+RefStart=Numéro d'équipement de départ
+nbEquipementToCreate=Nombre d'équipement à créer
+CalendarEvent=Calendrier événements
+StatEquipement=Statistiques équipements
+StatisticsEvent=Statistiques événements
+RefProduit=Produit
+RefFournisseur=Numéro de série fournisseur
+RefFactFourn=Facture fourn.
+CompanyClient=Client
+CompanyFournish=Fournisseur
+RefFactClient=Facture client
+DateDluo=Date de DLUO
+Datee=Date de fin
+Dateo=Date de début
+DateeLong=Date de mise au rebut (virer translate)
+DateoLong=Date de début (virer translate)
+VersionNumber=N° version
+UnitWeight=Poids unitaire
+EntrepotStock=Entrepôt
+NumImmoCompta=N° d'immobilisation comptable
+EquipementMassChange=Modification en masse des équipements
+EtatEquip=Condition
+AssociatedWith=Associable avec
+AssociedWith=Associé avec
+NoExpeditionsFind=Pas d'expédition
+NoFichintersFind=Pas d'intervention
+NoContractsFind=Pas de contrat
+ThirdPartyContactsFourn=Contacts Tiers Fournisseurs
+ThirdPartyContactsClient=Contacts Tiers Clients
+EventOnFullDay=Sur la journée entière
+SearchInsideEquipement=Rechercher d'un équipement de composition
+EquipementChildAssociationList=Liste des équipements composant cet équipement
+EquipementParentAssociation=Equipement contenant ce composant
+NoEquipementsFind=Pas d'équipement(s) trouvé(s)
+NoSupplierSelected=Pas de fournisseurs sélectionnés
+EmptyCustomer=Effacer le client
+ListEquipementToAdd=Liste des équipements à ajouter
+CutSerial=Décomposer le lot
+CutEquipment=Décomposition du lot en deux sous-lots
+NewRefForCutEquipment=Nouvelle référence de l'équipement
+QuantitytoCut=Quantité à décomposer
+CloneContentEquipment=Récupérer les évènements de l'équipement?
+ConfirmcutEquipement=Confirmation de la décomposition du lot
+SeparatorList=Séparateur pour les numéros de séries externe
+BeginKeySerialList=position de début des numéros de séries externe
+NewEquipementOfProduct=Créer un équipement à partir de ce produit
+fillinvoice=Ajouter les numéros d'équipement aux détail du produit de la facture
+FillInvoiceFromSending=Associer les équipements de l'expédition à la facture
+SerialLineInInvoice=<br>S/N : %s
+SerialLineInIntervention=Produit %s - S/N : %s
+NoEquipementLink=Pas d'équipement associé
+EquipementQty=Qté. Unitaire
+EquipementQty=Qté. Stock
+EquipementLot=Lot d'équipement
+EquipementUnitaire=Equipement unique
+NoLotForThisEquipement=Pas de lot pour cet équipement
+NoUnitEquipementLeft=Pas assez d'équipement unitaire
+QtyEquipementNeed=Nb d'équipements à joindre
+ErrorQuantityMustLower=La quantité saisie pour le lot '%s' doit être inférieure à '%s'
+RelatedEquipement=Equipement associé
+EquipementAdded=Equipement(s) ajouté(s)
+ExtraFieldsEquip=Attributs supplémentaires (équipements)
+ExtraFieldsEvt=Attributs supplémentaires (évènements)
+NewEvents=Nouveaux évènements
+AddEquipementEvents=Création de nouveaux évènements à de multiples équipements
+ListEquipementToAddEvents=Equipements associés à l'événement
+ShowRefEquipement=Récupérer la liste des équipements
+CompanyClientFactCli=Client / Fact. Client
+FournisseurFactFourn=Fournisseur / Fact. Fourn.
+CheckboxStockMovementDefaultChecked=Le mouvement de stock est par défaut coché
+CreateStockMovement=Créer le mouvement de stock correspondant
+EquipementMoveIn=Mouvement entrant d'équipement
+EquipementMoveOut=Mouvement sortant d'équipement
+Event=Évènements
+
+##Facture
+SelectEquipementStorage=Entrepot de départ
+SelectEntrepot=Sélection de l'entrepot
+ManualListEquipementToAdd=Ajout d'équipement par saisie manuel
+SelectedListEquipementToAdd=Ajout d'équipement par sélection
+AviableEquipement=Liste des équipements disponibles
+NoEquipementInEntrepot=Pas d'équipement disponible
+SelectAndCut=Sélection et découpage (si besoin)
+
+###comsumption function
+Consumption=Consommation
+ConsumptionProductList=Liste des consommations
+AddConsumptionProduct=Ajouter une consommation
+MainInformation=informations principales
+AdditionnalInfo=Autres informations
+DateCons=Date de consommation
+DeleteConsumptionLine=Supprimer consommation de produit
+ConfirmDeleteconsumptionLine=Êtes-vous sûr de vouloir supprimer cette consommation ?<br>Pensez à corriger le stock du produit si besoin
+EquipementConsumptionIn=Mouvement entrant en consommation d'équipement
+EquipementConsumptionOut=Mouvement sortant en consommation d'équipement
+
+###Batch/Lot
+NoSelectBatchLot=Ne pas sélectionner de Lot
+BatchLabel=Numéro de batch/lot
+DateEatBy=Date limite de consommation
+DateSellBy=	Date de péremption
+DateEndSelected= Date de fin choisie
+
+# BOXES
+LastEquipement=Les %s derniers équipements modifiés
+LastEquipementEvent=Les %s derniers évènements modifiés
+BoxTitleLastModifiedEquipement=Les %s derniers équipements modifiés
+BoxTitleLastModifiedEquipementEvt=Les %s derniers évènements d'équipements modifiés
+
+### ETAT EQUIPEMENT
+BrandNew=Neuf
+Demo=En démonstration
+InSetup=En installation
+Lease=En location
+InRepair=En réparation
+ToMaintain= A réviser
+InUse=En utilisation
+Broken=En panne
+ForSale=En vente
+OutofOrder=Hors Service
+### TYPE EVENEMENT
+TypeofEquipementEvent=Type d'évènement
+TypeEvent=Type
+Warranty=Sous Garantie
+Repair=Réparation
+Maintain=Maintenance
+Delivery=En transit
+OnSale=Mandat de vente
+Stock=Mouvement de Stock
+
+NoProjectsFind=Pas de projet
+ErrorBadValueForParamNotAString=Sans
+
+##### Types de contacts #####
+TypeContact_equipement_internal_EQUIPREPFOLL=Responsable suivi de l'Equipement
+TypeContact_equipement_internal_INTERVENING=Intervenant
+TypeContact_equipement_external_BILLING=Contact client facturation Equipement
+TypeContact_equipement_external_CUSTOMER=Contact client suivi de l'Equipement
+# Modele numérotation
+EquipementSetup=Configuration du module Equipement
+GeneralSetup=Paramètres généraux
+
+ArcticNumRefModelDesc1=Modèle de numérotation générique
+ArcticNumRefModelError=Activation impossible
+PacificNumRefModelDesc1=Renvoie le numéro sous la forme %syymm-nnnn où yy est l'année, mm le mois et nnnn un compteur séquentiel sans rupture et sans remise à 0
+PacificNumRefModelError=Un Equipement commençant par $syymm existe en base et est incompatible avec cette numérotation. Supprimez la ou renommez la pour activer ce module.
+SendEquipementByMail=Envoi de la fiche d'Equipement par mail
+SendEquipementRef=Envoi Equipement %s
+EquipementsNumberingModule=Modèle de numérotation des équipements
+EquipementsPDFModules=Modèle de document des équipements
+ListOfSubEquipement=Equipement composant
+EquipmentSerialMethod=Mode de sérialisation de l'équipement
+InternalSerial=Sérialisation Automatique (Interne)
+ExternalSerial=Sérialisation Saisie (Externe)
+SeriesMode=Gestion par lot d'équipement
+ShowAdditionnalInfoSelling=Afficher les infos supplémentaires de l'équipement lors de l'expédition
+FournishOptions=Paramètres numéros de séries fournisseurs
+GetEquipmentFromShipping=Ajouter les équipements de l'expédition
+FillInvoiceFromEquipment=Ajouter les équipements sur le détail de la facture
+AssociatedEquipement=Équipements Associés
+ProductSociete=Clients Possesseurs
+AssociatedEquipement=Clients Associés
+
+##Export Addin
+DateOpen=Date début
+FullDayEvent=Jour entier
+EquipementLineTotalHT=Total HT
+EquipementAskedBy=Équipements enregistrées par
+EquipementDoneBy=Équipements validées par
+EntrepotDefault=Entrepôt d'affectation par défaut
+# Stat EQUIPEMENT
+EquipementStatistics=Statistiques des équipements
+NbOfEquipement=Nombre d'équipements
+NbOfEvenement=Nombre d'événement
+NbOfEquipementsByMonth=Nombre d'équipements Mensuels
+NbOfEvenementsByMonth=Nombre d'événements Mensuels
+# Exportation
+EquipementList=Équipements et événements
+# MoveEquipement
+EquipementInStock=En Stock
+EntrepotAdd=Placer dans l'entrepôt
+EntrepotMoveOut=Transfert depuis l'entrepôt
+EntrepotMovein=Réceptionner
+EntrepotMoveList=Historique des mouvements
+
+PrefinedEvent=Évènements prédéfinis
+ListOfEquipementEvt=Liste d'événements des équipements
+Install=En installation
+En location=En location
+Maintenance=En maintenance
+MoveBroken=Détérioré
+NotRecept=Non reçu
+Recept=Reçu
+Réparation=En réparation
+Trash=Mis au rebut
+Uninstall=Désinstallé
+NumVersion=N° de version
+equipementevt=Événements des équipements
+DocumentModelEquipementSimple=Modèle de document d'équipement simple
+DocumentModelCompositionSimple=Modèle de document de composition factory
+NextValueForEquipement=Prochain compteur d'équipement
+Height=Hauteur
+SelAll=Sel.
+ConfirmCut=Options de découpage du lot d'équipements
+
+CalendarEvents=Agenda évènements
+PeriodEventAAAAMM=Période d'évènements (AAAAMM)
+PleaseSelectEquipementStatut=Sélectionner une condition d'équipement
+FillInterventionFromEquipment=Afficher l'équipement sur la fiche d'intervention
+PleaseSelectEquipementStatut=Sélectionner une condition d'équipement
+Empty=Aucun équipement sélectionné
+FillInterventionFromEquipment=Afficher l'équipement sur la fiche d'intervention
+UseDLUODate=Utiliser la date de DLUO sur les équipements
+
+# Commun/Adbout
+Slogan=Développement, support et formation <br/>autour de Dolibarr ERP/CRM
+LienDolistore=Retrouvez nos autres modules sur
+LienModules=Modules
+LienServices=Services
+LienDoc=Guides utilisateurs
+
+FactoryDateEndPlanned=Date de fin planifiée
+FactoryDateStartPlanned=Date de début planifiée
+QtyOrdered=Quantité commandée
+entrepot=Entrepôt
+Project=Projet
+DatecDdate de début
+PredefinedEvent=Événements prédéfinis :
+
+
+RepProduct=Produit
+LalelProduct=Libellé
+VersionName=N° version
+Warehouse=Entrepôt
+SupplierName=Fournisseur
+SupplierInvoiceRef=Fact. Fourn.
+CustomerName=Client
+FacNumber=Fact. Client
+DateCreate=Création
+EquipementStatut=Condition
+Dated=DLUO

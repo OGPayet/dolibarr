@@ -1,0 +1,256 @@
+#############################################
+#
+#
+# Ticket management for Dolibarr ERP/CRM
+#
+#
+#
+#############################################
+
+Version 1.3.5
+FIX : avoid PHP error with log level
+Update translations
+Use standard class for linked files number badge into tab
+FIX bug when using separator extrafield
+Use standard code for extrafield
+Text editor review
+Add option for company logo display on public interface
+
+Version 1.3.4
+FIX #20 #24 : bad permission after uploading file from public area
+
+Version 1.3.3
+FIX #17 - lost extrafield after ticket creation
+
+Version 1.3.2
+FIX #16 : filter list by subject was broken
+Fix : missing translations
+Fix : fetch user and contact to display rights information into tooltip
+Fix : thirdparty email was not used when sending message from a ticket
+
+Version 1.3.1
+New : improve display of ticket message and history with a timeline
+New : can use email templates for messages
+New : more filters into ticket list
+Qual : add more unit tests
+
+
+Version 1.3 for Dolibarr 4+
+FIX : Add missing ref into webservice
+NEW : REST API
+NEW : unit tests
+FIX : trigger review (Dolibarr 4 compat)
+NEW : Italian translation (Thanks to :DICIANNOVE:: http://19.coop/ )
+NEW : composer management
+QUAL : refactor some methods to match PSR-2
+NEW : add build tools
+
+Version 1.2.6
+Fix : closing a ticket by public interface was broken
+FIX : progression display into public interface
+FIX : documents upload (3.9 changes)
+FIX : documents upload (3.9 changes)
+
+Version 1.2.5
+Fix for webservices
+
+Version 1.2.4
+Fix #4 : retrieve email for company and not only contacts
+Fix #6 : missing phone numbers
+Tabs review for external modules compatibility (thanks @patas_monkeys)
+
+Version 1.2.3
+Fix : remove multiselect to avoid javascript error (and hide editor)
+Fix : reduce filter level on text for messages
+New : allow add files into public area
+New : display project info into ticket card
+New : TICKETS_NOTIFICATION_EMAIL_TO configuration variable
+Fix : several improvment to use module with external users
+QUAL : use PHP fmt to format code
+
+Version 1.2.2
+Fix: bad variable name for company into creation form
+
+Version 1.2.1
+Fix #2 : missing $user param causes a blank page into public area
+Fix : missing parameter to filter list
+Fix : bad hour was displayed on last ticket
+
+Version 1.2.0 (for Dolibarr 3.7)
+3.7 compatibility
+New : add ticket reference field with auto and mask numbering
+Fix [#1] : PHP error when adding extrafields on ticket object
+
+
+Version 1.1.18
+Transifex usage
+Fix : view only thirdpaties user linked on
+Fix : lost pagination
+Review of module menu and add link to non closed tickets view
+New : can view non closed tickets list
+New : add constant TICKETSUP_DISABLE_ALL_MAILS to disable all mail send
+Fix : pagination was lost
+Fix : bad filter for status into tickets list
+Fix for theme oblyon
+New : show contact phone number into ticket card
+Fix: bad test for filter
+New : add filter by status into ticket list
+Fix : bad test into navbar with links to set ticket status
+Fix : inversed names for author and assigned user, into tickets list
+
+Version 1.1.17
+Maintenance version - released for bug fix
+
+Version 1.1.16
+New : show history logs into separate page with specific tab
+New : navbar which allow to change ticket status
+New : Add more statuses label
+New : add option to automatically assign user who created the ticket
+Improve tickets messages and logs display
+Fix : Review of permission system
+New :Add an option to restrict ticket display only to assigned user
+Fix : add company name into internal emails when creating ticket
+tasks_ticketsup #1842 - Add option to manage extrafields
+Move mark as read button into action bar
+Disable ficheinter creation button if no thirdparty defined on ticket
+Fix : missing socid filter for external users
+
+Version 1.1.15
+Fix: missing parameter
+
+Version 1.1.14
+Move initial message into messages list
+Translation review for dictionary
+Fix : Missing origin_email into webservices
+New : Add a box to display last modified tickets
+
+Version 1.1.13
+Fix : missing customer email notification
+
+Version 1.1.12
+Fix : page was not displayed after a message sent without email
+
+Version 1.1.11
+Fix : page was not displayed after a message sent without email
+
+Version 1.1.11
+Fix : send notification also to origin email
+
+Version 1.1.10
+Dolidroid display compatibility
+
+Version 1.1.9
+Fix : impossible to link document when sending a message from public interface (existing ticket)
+
+Version 1.1.8
+New : send documents from public interface (tasks_ticketsup #1585)
+New : can link ticket to a project (tasks_ticketsup #1111)
+
+Version 1.1.7
+Fix : send notification email into text format
+
+Version 1.1.6
+Fix : better contact management when sending emails
+Add option to also send notifications to main emil address defined into module setup
+Add more information about customer into internal emails
+
+Version 1.1.5
+New : add an option to show/hide module logo into public interface
+Improve admin page
+Add option to send log by email or not
+Fix : bad filename for inclusion
+Fix : show left menu for external users
+Missing labels for contact role
+Qual : remove ?> at end of files
+New : send log message by email to all linked contact
+New : send email to customer when create a new ticket by internal user
+Fix : allow public interface access also with customer email
+
+Version 1.1.4
+Fix : missing lib loading into admin page
+
+Version 1.1.3
+Fix : bad character into sql table definition
+Fix : ticket can be assigned even if not read
+
+Version 1.1.2
+New : add multiselect support into recipient message list (need activate MAIN_USE_JQUERY_MULTISELECT constant)
+Uniformize HTML editor calls
+New : support for external users view
+Fix : When add message set status to "answered" if not set yet, but only for internal users
+New : send an email to internal email when ticket created by public interface
+New : tasks_ticketsup #1375 send notification email to assigned user
+New : tasks_ticketsup #1316 - Have internal message
+Fix bugs #1299 - Edit extrafields into ticket card
+Fix bugs #1302 : closing ticket by public interface
+
+Version 1.1.1
+Add JS into message form to show/hide email fields
+
+Version 1.1.0
+Fix : compatibility with Dolibarr 3.5
+Add linked documents number into tab
+Add Italian language
+
+Version 1.0.10
+Fix : bug when delete linked document
+Add ES_es translation
+
+Version 1.0.9
+Maintenance version : bugfixe when include main.inc.php
+
+Version 1.0.8
+tasks_ticketsup #1088 : add link to close ticket into public interface
+tasks_ticketsup #1176 : add documents support / save also documents joined into a message
+New : can re-open a ticket / new permission to manage tickets
+Fix : can edit subject of ticket
+
+
+Version 1.0.7
+New : add extrafields support (tasks_ticketsup #1052)
+New : customise confirmation email of creating ticket (tasks_ticketsup #1147)
+Fix : bug when creating a ticket by an internal user (not admin)
+
+
+Version 1.0.6
+Fix : set 100% progress when closing ticket
+Add an option to require an existant email address when creating ticket by public interface
+ Fix : public view with only origin_email
+ Add email text setup
+
+Version 1.0.5
+Fix: table prefix in sql queries
+New : add box into homepage to show last tickets data (task #1053)
+New : Aad filters into ticket list (task #1066)
+New : contact management for ticket
+New : send response message by email to ticket contacts (task #1087)
+New : add calculation of time elapsed before read ticket
+Various bugfixes and UI improvement
+* Public interface
+add email verification to view ticket
+auto assign contact searched by mail after ticket creation
+
+Version 1.0.4
+New : ticket duration calculated automatically from linked intervention
+Fix : multicompany support
+
+Version 1.0.3
+Task #1056 : add email recognition to link to thirdparty when ticket created by public interface
+New : can modify customer ticket
+Fix : can edit ticket progression / log on change
+New : add webservices
+
+Version 1.0.2
+Fix: avoid errors when dictionnaries are blank
+
+Version 1.0.1
+Add field fk_soc into tickets table
+Rename field 'status' into 'fk_statut'
+Add link to create an intervention card linked to ticket
+Add a tab to view ticket list on thirdparty card
+Add fk_soc field for ticket linking with thirdparty
+Add navbar between tickets
+Add permissions
+Add html editor for messages
+
+Version 1.0 - initial version
