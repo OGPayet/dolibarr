@@ -1,0 +1,117 @@
+# Dolibarr language file - fr_FR - myField
+CHARSET=UTF-8
+##ADMIN
+NothingToSetup=Activez le module pour accéder à la page de configuration
+GeneralSetup=Paramètres généraux
+GeneralSetting=Paramètres généraux
+PatasTools=Outils Patas-M
+PatasToolsNews=Retrouvez ici les informations de patas-monkey.com (nécessite une connexion à internet)
+PatasMonkeyPresent=Ce module est une création des patas-monkey, une documentation de celui-ci est disponible sur notre site
+MoreModulesLink=Vous pouvez trouver tous nos développements sur le dolistore
+SettingIsOnToolsMenu=Le module ne nécessite pas de paramétrage particulier. <br/>Ses fonctionnalités sont accessibles depuis le menu principal 'Outils Patas-M'.
+BackToModuleList=Retour à la liste des modules
+NewVersionAviable=Une nouvelle version du module est disponible
+NumberVersion=Version
+MonthVersion=Mois de publication
+ChangesVersion=Principales modifications apportées
+
+##ABOUT
+About=À propos
+Slogan=Développement, support et formation pour Dolibarr
+LienModules=Nos modules
+LienServices=Nos services
+LienDoc=Nos documentations
+LienDolistore=Retrouvez nos autres modules
+Changelog=ChangeLog du module
+SupportModuleInformation=Informations techniques
+SupportModuleInformationDesc=<br/><em>Note : Ces informations sont utiles et pourront vous être demandées si vous rencontrez un bug dans le fonctionnement du module.</em>
+DolibarrVersion=Version de Dolibarr
+ModuleVersion=Version du module
+PHPVersion=Version de PHP
+DatabaseVersion=Version de la base de données
+WebServerVersion=Version du serveur web
+
+##EXTRAFIELDS
+Extrafield=Champs supplémentaires
+Extrafields=Champs supplémentaires
+
+Module160211Name=myField
+Module160211Desc=Personnalisation des champs, onglets et menus
+TypeOfMyField=Type de myField
+Field=Champ d'une fiche
+Tabs=Onglet d'une fiche
+Menu=Menu Dolibarr
+myfield=MyField
+replacement=Remplacer par :
+author=Auteur
+## Admin
+EnableContextView=Activer l'affichage du contexte
+InfoEnableContextView=Afficher les contextes actifs sur une page
+AdminAllAccessRight=L'administrateur est au dessus des règles d'accès
+InfoAdminAllAccessRight=Permet de désactiver les droits d'accès aux myFields pour l'administrateur
+NewField=Nouveau myfield, tab ou menu
+mfdatatabledict=langs/fr_FR/datatables.lang
+MyFieldSetup=Configuration du module myField
+myFieldsettingValue=Paramétrage du module myField
+PatasMonkeyPresent=Ce module est une création des patas-monkey, une documentation de celui-ci est disponible sur notre site
+
+MoreModules=Autres Modules
+MoreModulesLink=D'autres modules que nous avons développés sont disponibles sur le Dolistore
+GeneralSetting=Configuration générale
+myfieldGeneralSetting=Paramètres généraux
+NumberVersion=Version
+MonthVersion=Publication
+ChangesVersion=Modifications apportées
+Changelog=ChangeLog du module
+
+Permission1602111=Lire les myFields, tabs et menus
+Permission1602112= Administrer les myFields, tabs et menus
+Permission1602113=Créer les myFields, tabs et menus
+Permission1602114=Supprimer les myFields, tabs et menus
+Permission1602115=Import/export XML des myFields, tabs et menus
+
+NewmyField=Nouveau myField
+NewmyMenu=Nouveau myMenu
+NewmyTab=Nouveau myTab
+ListOfFields=Liste
+ImportXML=Import XML
+DeleteField=Supprimer
+MyfieldList=Liste
+GroupRight=Droits d'accès aux éléments
+myFieldLabel=Libellé natif
+context=Contexte d'activation
+Context=Contexte d'activation
+activeMode=Mode d'activation
+ActiveFieldMode=Affichage
+Color=Couleur
+InitValue=Valeur par défaut
+BGColor=Couleur de fond
+Compulsory=Obligatoire
+SizeField=Taille du champ de saisie
+MoveField=Déplacement
+FormatField=Masque de saisie
+FormatFieldInfo='a' représente les caractères (A-Z,a-z), '9' les numériques (0-9) et '*' les alphanumériques (A-Z,a-z,0-9)
+Replacement=Texte de remplacement
+myFieldsDBCloseOrderingError=Erreur Ordonnancement db->close et printCommonFooter, revoir le codage la page
+PatasToolsNews=Retrouvez ici les informations de patas-monkey.com (nécessite une connexion à internet)
+PatasTools=Outils Patas-M
+PatasMonkeyTools=Espace des Outils Patas-Monkey
+PatasMonkeyPresent=Ce module est une création des patas-monkey, une documentation de celui-ci est disponible sur notre site
+MoreModulesLink=Vous pouvez trouver tous nos développements sur le dolistore
+PatasToolsDesc=Cet espace est dédié aux outils des patas-monkey.<br><br>La liste de ces outils est accessible par le menu sur le côté.
+ThinkOfGroupRight=<div align="center">Pensez à affecter le MyField aux groupes d'utilisateurs depuis le menu secondaire <b>MyField</b> > Droits d'accès aux éléments</div>
+DoFilter=Filtrer
+ExportField=Export
+NewmyField=Nouveau myField - Champ d'une fiche
+RedirectURL=URL de redirection
+TypeMenu=Type de menu
+MainMenu=Menu principal
+LeftMenu=Menu secondaire
+SubLeftMenu=Entrée de menu secondaire
+ImportMyfields=Import d'un myField, tab ou menu
+FillImportExportData=Collez dans la zone ci-dessous le code XML d'import d'un myField et cliquez sur le bouton <b>Importer</b>.
+LaunchImport=Importer
+ErasePreviousMyldields=Écraser les données précédentes
+ErasePreviousMyFields=Écraser les données précédentes
+ExportMyfields=Export MyField
+ShowXMLExportData=Fichier XML d'exportation

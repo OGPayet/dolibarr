@@ -1,0 +1,120 @@
+<changelog >
+	<Version Number="3.7.+1.0.0" MonthVersion="2015-05">
+		<change type='inf'>Initial version </change>
+	</Version>
+
+	<Version Number="3.7.+1.0.1" MonthVersion="2015-05">
+		<change type='add'>compulsory feature</change>
+	</Version>
+
+	<Version Number="3.7.+1.0.2" MonthVersion="2015-05">
+		<change type='add'>change fields size feature</change>
+	</Version>
+
+	<Version Number="3.7.+1.0.3" MonthVersion="2015-06">
+		<change type='add'>Masked input format feature</change>
+		<change type='fix'>error on create myfield : new field bad formated </change>
+		<change type='add'>English Language Field OK</change>
+		<change type='fix'>error on update myfield : new field bad formated (same...)</change>
+		<change type='fix'>group access right</change>
+		<change type='fix'>hide error on input fields key-in</change>
+		<change type='fix'>cancel on create myfield are wrong</change>
+	</Version>
+
+	<Version Number="3.7.+1.0.4" MonthVersion="2015-06">
+		<change type='fix'>better context management</change>
+		<change type='fix'>new const MYFIELDS_CONTEXT_VIEW to display context on debug mode</change>
+	</Version>
+
+	<Version Number="3.7.+1.0.5" MonthVersion="2015-07">
+		<change type='fix'>context bad formating query</change>
+	</Version>
+
+	<Version Number="3.7.+1.0.6" MonthVersion="2015-08">
+		<change type='add'>Allow tmenu, vmenu and vsmenu context change</change>
+		<change type='add'>placing trigger on botton of page</change>
+	</Version>
+
+	<Version Number="3.8.+1.1.0" MonthVersion="2015-12">
+		<change type='chg'>card.php restricted access change</change>
+		<change type='chg'>better select management (part of tr is changed)</change>
+		<change type='chg'>hidden tabs</change>
+	</Version>
+
+	<Version Number="3.8.+1.1.1" MonthVersion="2016-01">
+		<change type='fix'>main menu icon (bad css)</change>
+		<change type='add'>display Error Message when dbclose and pagefooter ordering is inversed</change>
+	</Version>
+
+	<Version Number="3.8.+1.1.2" MonthVersion="2016-01">
+		<change type='fix'>user group access</change>
+		<change type='add'>display show/hide only if field present to hide</change>
+		<change type='chg'>refactoring jquery for better management and performance</change>
+		<change type='fix'>habilitation error by group </change>
+	</Version>
+
+	<Version Number="3.9.+1.2.0" MonthVersion="2016-02">
+		<change type='fix'>bad remplacement ''</change>
+		<change type='add'>use $conf->global->MAIN_SIZE_LISTE_LIMIT as list default limit</change>
+		<change type='chg'>refactoring menu management</change>
+	</Version>
+
+	<Version Number="3.9.+1.2.1" MonthVersion="2016-03">
+		<change type='chg'>3.9 comptatibility</change>
+		<change type='fix'>custom folder compatibility</change>
+	</Version>
+
+	<Version Number="3.9.+1.2.2" MonthVersion="2016-04">
+		<change type='chg'>reorder group right page for better management</change>
+		<change type='chg'>better fields selection</change>
+		<change type='add'>reminder about group right</change>
+	</Version>
+
+	<Version Number="3.9.+1.2.3" MonthVersion="2016-06">
+		<change type='fix'>error on rename main menu</change>
+		<change type='chg'>move module on "Patas-Tools" section</change>
+		<change type='add'>xml version changelog feature</change>
+	</Version>
+
+	<Version Number="3.9.+1.2.4" MonthVersion="2016-08">
+		<change type='fix'>default value initialisation</change>
+		<change type='add'>xml version changelog feature</change>
+		<change type='add'>UPPERCASE and LOWERCASE formatfield function</change>
+	</Version>
+
+	<Version Number="4.0.+1.3.0" MonthVersion="2016-09">
+		<change type='inf'>4.0 compatibility</change>
+	</Version>
+	<Version Number="4.0.+1.3.1" MonthVersion="2016-11">
+		<change type='fix'>problem with ' in fieldname</change>
+	</Version>
+	<Version Number="5.0.+1.4.0" MonthVersion="2016-12">
+		<change type='inf'>5.0 compatibility</change>
+		<change type='fix'>right access feature on select field too</change>
+		<change type='add'>new MYFIELD_ADMIN_ALL_RIGHT constant for usergroup right</change>
+	</Version>
+	<Version Number="5.0.+2.0.0" MonthVersion="2017-01">
+		<change type='add'>can hide, change url and bgcolor on tab, mainmenu, menu and submenu</change>
+		<change type='add'>can move (up, down, left, right) all elements</change>
+		<change type='fix'>Required fields work fine now (thanks html5)</change>
+		<change type='add'>new look on admin about page</change>
+		<change type='add'>information version on admin setup page</change>
+	</Version>
+	<Version Number="5.0.+2.0.1" MonthVersion="2017-02">
+		<change type='add'>Ambigus submenu managed with menu/submenu syntax</change>
+		<change type='fix'>bad external url on submenu</change>
+	</Version>
+	<Version Number="5.0.+2.0.2" MonthVersion="2017-05">
+		<change type='fix'>XML Import/export now work fine even with only one myfield</change>
+		<change type='fix'>Ambigus submenu is managed with menu#submenu '/' may cause problem</change>
+	</Version>
+	<Version Number="5.0.+2.0.3" MonthVersion="2017-07">
+		<change type='fix'>usergroup right error on insert</change>
+	</Version>
+	<Version Number="6.0.+2.1.0" MonthVersion="2017-08">
+		<change type='inf'>6.0 compatibility</change>
+	</Version>
+
+	<!-- Remplir le undocumented.xml ? -->
+	<Dolibarr minVersion="3.7.0"/>
+</changelog>
