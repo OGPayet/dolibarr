@@ -1,0 +1,23 @@
+# Dolibarr language file - fr_FR - massupdaterights
+CHARSET=UTF-8
+Module163001Name=Mass Update Rights
+Module163001Desc=Modification en masse des droits (groupes supportés)
+
+MassUpdateRightsSetup=Configuration du module Mass Update Rights
+
+MASSUPDATERIGHTS_CSV_SEPARATOR_TO_USE=Séparateur de champ utilisé dans le fichier CSV
+MASSUPDATERIGHTS_CSV_ENCLOSURE_TO_USE=Caractère d'encadrement de texte utilisé dans le fichier CSV
+MASSUPDATERIGHTS_CSV_ESCAPE_TO_USE=Caractère d'échappement utilisé dans le fichier CSV
+
+MassUpdateRightsLeftMenu=Mise à jour des droits
+MassUpdateRightsTitle=Mise à jour en masse des droits (groupes supportés)
+MassUpdateRightsErrNoFile=Fichier non fournit
+MassUpdateRightsExportCSV=Export en CSV
+MassUpdateRightsImportCSV=Import en CSV
+MassUpdateRightsImported=Droits des groupes importés
+MassUpdateRightsBadColumnGroup=Mauvais nom de groupe pour la colonne %s (groupe attendu: %s)
+MassUpdateRightsRightNotDefined=Groupe '%s' - module '%s': Le droit 'ID:%s' n'est pas définie (droit supprimé par défaut)
+
+MassUpdateRightsRightId=ID
+MassUpdateRightsRightModule=Module
+MassUpdateRightsRightLabel=Droit

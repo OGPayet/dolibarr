@@ -1,0 +1,30 @@
+.ouvrageProductServiceContainer ul {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+.ouvrageProductServiceContainer li {
+    list-style: none;
+    margin-bottom: 5px;
+    padding: 5px;
+}
+.ouvrageProductServiceContainer span.ui-icon {
+    display: inline-block;
+    margin-right: 10px;
+    position: relative;
+    top: 3px;
+}
+.ouvrageProductServiceContainer span.icon-drag-drop {
+    display: inline-block;
+    margin-right: 10px;
+    position: relative;
+    top: 6px;
+}
+.ouvrageProductServiceContainer input {
+    width: 40px;
+    margin-left: 20px;
+}
+.ouvrageProductServiceContainer li a.delete {
+ float: right;
+ position: relative;
+    top: 5px;
+}

@@ -1,0 +1,23 @@
+# Dolibarr language file - en_US - massupdaterights
+CHARSET=UTF-8
+Module163001Name=Mass Update Rights
+Module163001Desc=Mass update of rights (groups supported)
+
+MassUpdateRightsSetup=Configuration of the module Mass Update Rights
+
+MASSUPDATERIGHTS_CSV_SEPARATOR_TO_USE=Field delimiter used into the CSV file 'built/codenaf.csv'
+MASSUPDATERIGHTS_CSV_ENCLOSURE_TO_USE=Field enclosure character used into the CSV file 'built/codenaf.csv'
+MASSUPDATERIGHTS_CSV_ESCAPE_TO_USE=Escape character used into the CSV file 'built/codenaf.csv'
+
+MassUpdateRightsLeftMenu=Mass update rights
+MassUpdateRightsTitle=Mass update rights (groups supported)
+MassUpdateRightsErrNoFile=File not provided
+MassUpdateRightsExportCSV=CSV Export
+MassUpdateRightsImportCSV=CSV Import
+MassUpdateRightsImported=Groups rights imported
+MassUpdateRightsBadColumnGroup=Bad name group for column %s (expected group: %s)
+MassUpdateRightsRightNotDefined=Group '%s' - module '%s': Right 'ID:%s' is not defined (right removed by default)
+
+MassUpdateRightsRightId=ID
+MassUpdateRightsRightModule=Module
+MassUpdateRightsRightLabel=Right

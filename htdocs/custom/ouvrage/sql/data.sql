@@ -1,0 +1,6 @@
+INSERT IGNORE INTO llx_const (name, value, type, note, visible, entity) VALUES ('OUVRAGE_TYPE','BTP_','chaine','Type ouvrage',0,1);
+INSERT IGNORE INTO llx_const (name, value, type, note, visible, entity) VALUES ('OUVRAGE_HIDE_PRODUCT_DETAIL',0,'chaine','Ouvrage masquer détail produit dans PDF',0,1);
+INSERT IGNORE INTO llx_const (name, value, type, note, visible, entity) VALUES ('OUVRAGE_HIDE_PRODUCT_DESCRIPTION',0,'chaine','Ouvrage masquer description produit dans PDF',0,1);
+INSERT IGNORE INTO llx_const (name, value, type, note, visible, entity) VALUES ('OUVRAGE_HIDE_MONTANT',0,'chaine','Ouvrage masquer montant dans PDF',0,1);
+CREATE TABLE IF NOT EXISTS llx_works ( rowid INT NOT NULL AUTO_INCREMENT , ref VARCHAR(255) NOT NULL, label VARCHAR(255) NOT NULL, `entity` INT NOT NULL, `desc` TEXT NULL , fk_tva FLOAT NULL , PRIMARY KEY (rowid));
+CREATE TABLE llx_works_det ( rowid INT NOT NULL AUTO_INCREMENT, fk_works INT NOT NULL , fk_product INT NOT NULL , `order` INT NOT NULL , qty INT NULL , unit INT NULL , fk_workschild INT NULL , PRIMARY KEY (rowid));

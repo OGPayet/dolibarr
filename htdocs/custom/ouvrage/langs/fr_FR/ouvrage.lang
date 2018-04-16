@@ -1,0 +1,101 @@
+# Ouvrage
+# Copyright (C) 2017       Inovea-conseil.com     <info@inovea-conseil.com>
+#
+
+#
+# Générique
+#
+
+Module432406Name = Ouvrages/Forfaits
+Module432406Desc = Créer et enregistrer des forfaits/ouvrages composés des produits/services de votre catalogue (avec quantité définie pour chacun)
+
+#
+# Page d'administration
+#
+Settings = Réglages
+ouvrageSetup = Paramètrage du module
+
+PDFOptions = Options de génération de PDF par défaut
+
+OUVRAGE_HIDE_PRODUCT_DETAIL = Afficher uniquement l'ouvrage/forfait
+OUVRAGE_HIDE_PRODUCT_DESCRIPTION = Cacher les détails des produits/services
+OUVRAGE_HIDE_MONTANT = Cacher le montant des ouvrages/forfaits
+
+BTP_CHOICE = BTP (ouvrage)
+SERVICE_CHOICE = Service (forfait)
+
+#
+# Menu Ouvrage
+#
+SERVICE_OUVRAGES = Forfaits
+SERVICE_OUVRAGE = Forfait
+SERVICE_NEW_OUVRAGE = Nouveau forfait
+SERVICE_LISTE_OUVRAGE = Liste
+SERVICE_ = Forfaits
+BTP_OUVRAGES = Ouvrages
+BTP_OUVRAGE = Ouvrage
+BTP_NEW_OUVRAGE = Nouvel ouvrage
+BTP_LISTE_OUVRAGE = Liste
+BTP_ = Ouvrages
+OUVRAGES = Ouvrages
+NEW_OUVRAGE = Nouvel ouvrage
+LISTE_OUVRAGES = Liste
+
+#
+# Ouvrage card
+#
+AddProduct = Ajouter un produit
+AddService = Ajouter un service
+
+#
+# Liste Ouvrage
+#
+BTP_LISTINGOUVRAGE = Liste ouvrages
+SERVICE_LISTINGOUVRAGE = Liste forfaits
+ProductAndService = Produits et services
+
+#
+# Fiche Ouvrage
+#
+BTP_FICHEOUVRAGE = Fiche ouvrage
+SERVICE_FICHEOUVRAGE = Fiche forfait
+
+#
+# Edit ouvrage
+#
+BTP_EDITOUVRAGE = Modifier ouvrage
+SERVICE_EDITOUVRAGE = Modifier forfait
+
+#
+# Suppression ouvrage
+#
+BTP_DeleteOuvrage = Suppression ouvrage
+SERVICE_DeleteOuvrage = Suppression forfait
+BTP_DeleteOuvrageConfirmation = Voulez-vous vraiment supprimer cet ouvrage ?
+SERVICE_DeleteOuvrageConfirmation = Voulez-vous vraiment supprimer ce forfait ?
+BTP_OUVRAGEDELETED = L'ouvrage a bien été supprimé
+SERVICE_OUVRAGEDELETED = Le forfait a bien été supprimé
+
+#
+# Ajout ouvrage
+#
+SERVICE_ADDOUVRAGE = Ajouter un forfait
+BTP_ADDOUVRAGE = Ajouter un ouvrage
+SERVICE_OUVRAGE_IMPOSSIBLEUPDATE = Impossible de modifier le prix du forfait (Ce prix dépend des produits composant le forfait)
+BTP_OUVRAGE_IMPOSSIBLEUPDATE = Impossible de modifier le prix de l'ouvrage (Ce prix dépend des produits composant l'ouvrage)
+SERVICE_ErrorOuvrageAlreadyExists = Un forfait avec la même référence existe déjà
+BTP_ErrorOuvrageAlreadyExists = Un ouvrage avec la même référence existe déjà
+
+#
+# Cloner ouvrage
+#
+SERVICE_Clone = Cloner forfait
+SERVICE_ConfirmClone = Voulez-vous vraiment cloner ce forfait ?
+BTP_Clone = Cloner ouvrage
+BTP_ConfirmClone = Voulez-vous vraiment cloner cet ouvrage ?
+
+# Droits utilisateurs
+RightsO1 = Affichage des ouvrages/forfaits
+RightsO11 = Afficher
+RightsO2 = Ajout/Suppression ouvrage/forfait
+RightsO21 = Ecrire

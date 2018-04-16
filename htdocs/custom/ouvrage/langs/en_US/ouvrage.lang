@@ -1,0 +1,101 @@
+# Ouvrage
+# Copyright (C) 2017       Inovea-conseil.com     <info@inovea-conseil.com>
+#
+
+#
+# Générique
+#
+
+Module432406Name = Packages
+Module432406Desc = Create packages/bundles in your catalog for using in proposal/order/invoice
+
+#
+# Page d'administration
+#
+Settings = Settings
+ouvrageSetup = Module settings
+
+PDFOptions = Default options for PDF creation
+
+OUVRAGE_HIDE_PRODUCT_DETAIL = Display only the package (not the products/services)
+OUVRAGE_HIDE_PRODUCT_DESCRIPTION = Hide the details of the products/services
+OUVRAGE_HIDE_MONTANT = Hide the price of the package
+
+BTP_CHOICE = Construction (package "construction work")
+SERVICE_CHOICE = Service (package "bundle")
+
+#
+# Menu Ouvrage
+#
+SERVICE_OUVRAGES = Packages
+SERVICE_OUVRAGE = Package
+SERVICE_NEW_OUVRAGE = New Package
+SERVICE_LISTE_OUVRAGE = List
+SERVICE_ = Packages
+BTP_OUVRAGES = Packages
+BTP_OUVRAGE = Package
+BTP_NEW_OUVRAGE = New package
+BTP_LISTE_OUVRAGE = List
+BTP_ = Packages
+OUVRAGES = Packages
+NEW_OUVRAGE = New package
+LISTE_OUVRAGES = List
+
+#
+# Ouvrage card
+#
+AddProduct = Add a product
+AddService = Add a service
+
+#
+# Liste Ouvrage
+#
+BTP_LISTINGOUVRAGE = Packages List
+SERVICE_LISTINGOUVRAGE = Packages List
+ProductAndService = Products and services
+
+#
+# Fiche Ouvrage
+#
+BTP_FICHEOUVRAGE = Package Card
+SERVICE_FICHEOUVRAGE = Package Card
+
+#
+# Edit ouvrage
+#
+BTP_EDITOUVRAGE = Modify package
+SERVICE_EDITOUVRAGE = Modify package
+
+#
+# Suppression ouvrage
+#
+BTP_DeleteOuvrage = Delete package
+SERVICE_DeleteOuvrage = Delete package
+BTP_DeleteOuvrageConfirmation = Are you sure you want to elete this package ?
+SERVICE_DeleteOuvrageConfirmation = Are you sure you want to elete this package ?
+BTP_OUVRAGEDELETED = Package deleted
+SERVICE_OUVRAGEDELETED = Package deleted
+
+#
+# Ajout ouvrage
+#
+SERVICE_ADDOUVRAGE = Add a package
+BTP_ADDOUVRAGE = Add a package
+SERVICE_OUVRAGE_IMPOSSIBLEUPDATE = You can't modify the package's price (This price depends on the products and services inside)
+BTP_OUVRAGE_IMPOSSIBLEUPDATE = You can't modify the package's price (This price depends on the products and services inside)
+SERVICE_ErrorOuvrageAlreadyExists = A package with the same reference already exists
+BTP_ErrorOuvrageAlreadyExists = A package with the same reference already exists
+
+#
+# Cloner ouvrage
+#
+SERVICE_Clone = Clone package
+SERVICE_ConfirmClone = Are you sure you want to clone this package ?
+BTP_Clone = Clone package
+BTP_ConfirmClone = Are you sure you want to clone this package ?
+
+# Droits utilisateurs
+RightsO1 = Display of packages
+RightsO11 = read
+RightsO2 = Add/Delete packages
+RightsO21 = write
