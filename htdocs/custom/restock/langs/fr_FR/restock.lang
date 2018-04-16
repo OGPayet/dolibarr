@@ -154,3 +154,6 @@ InfoTypeOfProduct=Utiliser les fonctionnalité de reStock seulement sur les prod
 ProductAndService=Produits et Services
 OnlyProduct=Seulement les produits
 OnlyService=Seulement les services
+
+#### OpenDSI ####
+EmptyContact=Veuillez ajouter un contact de livraison à la commande avant de restock

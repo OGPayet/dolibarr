@@ -167,6 +167,19 @@ if ($action!="createrestock") {
 	}
 }
 if ($action=="") {
+	$liste_contact = $object->liste_contact();
+	$contact_shipping = false;
+	if($liste_contact) {
+		foreach($liste_contact as $contact) {
+			if($contact['code'] == 'SHIPPING'){
+				$contact_shipping = true;
+			}
+		}
+	}
+	if($contact_shipping == false) {
+		setEventMessages($langs->trans('EmptyContact'),null,'errors');
+	}
+
 	// premiere étape : la détermination des quantité à commander
 	print '<form action="restockCmdClient.php" method="post" name="formulaire">';
 	print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
@@ -623,6 +636,8 @@ if ($action=="") {
 			$sql.= ' AND fk_commande = '. $id;
 			$resqlupdate = $db->query($sql);
 		}
+
+		$restock_static->add_contact_delivery_client($id,$idCmdFourn);
 	}
 
 

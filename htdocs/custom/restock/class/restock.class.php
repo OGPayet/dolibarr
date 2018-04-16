@@ -367,21 +367,36 @@ class Restock
 	{
 		global $conf;
 
-		$sql='select fk_socpeople from '.MAIN_DB_PREFIX.'element_contact';
-		$sql.=" where fk_c_type_contact=102 and element_id=".$cmdeClientid;
+		$sql='select * from '.MAIN_DB_PREFIX.'element_contact';
+		$sql.=" where element_id=".$cmdeClientid;
 
 		dol_syslog(get_class($this)."::add_contact_delivery_client sql=".$sql);
 		//print $sql;
 		$resql = $this->db->query($sql);
 		if ($resql) {
-			$objp = $this->db->fetch_object($resql);
-			$fk_socpeople=$objp->fk_socpeople;
-			// on ajoute le contact de livraison client à la commande fournisseur
-			$sql= "Insert into ".MAIN_DB_PREFIX."element_contact";
-			$sql.= " ( statut, fk_c_type_contact, element_id, fk_socpeople)";
-			$sql.= " values (4, 145, ".$cmdeFournId.", ".$fk_socpeople.")";
-			dol_syslog(get_class($this)."::add_contact_delivery_client insert sql=".$sql);
-			$resqlinsert = $this->db->query($sql);
+			$i=0;
+			$num = $this->db->num_rows($resql);
+			while ($i < $num) {
+				$objp = $this->db->fetch_object($resql);
+				$fk_socpeople=$objp->fk_socpeople;
+				$type_contact=$objp->fk_c_type_contact;
+				if($type_contact == 91) {
+					$type_contact_supplier = 140;
+				} else if($type_contact == 100) {
+					$type_contact_supplier = 142;
+				} else if($type_contact == 101) {
+					$type_contact_supplier = 143;
+				} else if($type_contact == 102) {
+					$type_contact_supplier = 145;
+				}
+				// on ajoute le contact de livraison client à la commande fournisseur
+				$sql= "Insert into ".MAIN_DB_PREFIX."element_contact";
+				$sql.= " ( statut, fk_c_type_contact, element_id, fk_socpeople)";
+				$sql.= " values (4, '".$type_contact_supplier."', ".$cmdeFournId.", ".$fk_socpeople.")";
+				dol_syslog(get_class($this)."::add_contact_delivery_client insert sql=".$sql);
+				$resqlinsert = $this->db->query($sql);
+				$i++;
+			}
 			return 1;
 		}
 		return 0;
