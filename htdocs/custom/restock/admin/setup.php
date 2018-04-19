@@ -77,27 +77,15 @@ if ($action == 'setvalue') {
 	);
 
 	// activation du mode chargement des commandes fournisseurs brouillon
-	dolibarr_set_const(
-					$db, "RESTOCK_FILL_ORDER_DRAFT", GETPOST('fillOrderDraft', 'int'),
-					'chaine', 0, '', $conf->entity
-	);
+	dolibarr_set_const($db, "RESTOCK_FILL_ORDER_DRAFT", GETPOST('fillOrderDraft', 'int'), 'chaine', 0, '', $conf->entity);
 
 	// select le type de produit sélectionné
-	dolibarr_set_const(
-					$db, "RESTOCK_PRODUCT_TYPE_SELECT", GETPOST('producttypeselect', 'int'),
-					'chaine', 0, '', $conf->entity
-	);
+	dolibarr_set_const($db, "RESTOCK_PRODUCT_TYPE_SELECT", GETPOST('producttypeselect', 'int'), 'chaine', 0, '', $conf->entity);
 
 	// Gestion de la création automatique des commandes clients
 	dolibarr_set_const($db, "RESTOCK_DBNAME_FOURNISH", GETPOST('dbnamefournish'), 'chaine', 0, '', $conf->entity);
-	dolibarr_set_const(
-					$db, "RESTOCK_PREFIXTABLE_FOURNISH", GETPOST('prefixtablefournish'),
-					'chaine', 0, '', $conf->entity
-	);
-	dolibarr_set_const(
-					$db, "RESTOCK_CUSTOMID_FOURNISH", GETPOST('customidfournish'),
-					'chaine', 0, '', $conf->entity
-	);
+	dolibarr_set_const($db, "RESTOCK_PREFIXTABLE_FOURNISH", GETPOST('prefixtablefournish'), 'chaine', 0, '', $conf->entity);
+	dolibarr_set_const($db, "RESTOCK_CUSTOMID_FOURNISH", GETPOST('customidfournish'), 'chaine', 0, '', $conf->entity);
 	dolibarr_set_const($db, "RESTOCK_RECURSIVITY_DEEP", GETPOST('recursivitedeep'), 'chaine', 0, '', $conf->entity);
 
 	$mesg = "<font class='ok'>".$langs->trans("SetupSaved")."</font>";
@@ -193,10 +181,7 @@ print '<tr >';
 print '<td>'.$langs->trans("Bill").'</td>';
 print checkvalue('select0factures', $select0factures, $generic_status->LibStatut(0, 0, 1, -1));
 print checkvalue('select1factures', $select1factures, $generic_status->LibStatut(0, 1, 1, -1));
-print checkvalue(
-				'select2factures', $select2factures,
-				$generic_status->LibStatut(0, 3, 1, 1)." ".$langs->trans("Partial")
-);
+print checkvalue('select2factures', $select2factures, $generic_status->LibStatut(0, 3, 1,  1)." ".$langs->trans("Partial"));
 print '</tr>'."\n";
 
 print '</table><br>';
@@ -222,12 +207,9 @@ print '<tr ><td valign=top>'.$langs->trans("ReassortMode").'</td>';
 print '<td  valign=top>'.$langs->trans("InfoReassortMode").'</td>';
 print '<td  align=right valign=top><select name="reassortMode">';
 	print '<option value="0" >'.$langs->trans("All").'</option>';
-	print '<option value="1" '.($reassortMode==1?' selected ':'').'>';
-	print $langs->trans("ReassortModeWithoutStock").'</option>';
-	print '<option value="2" '.($reassortMode==2?' selected ':'').'>';
-	print $langs->trans("ReassortModeWithoutOrder").'</option>';
-	print '<option value="3" '.($reassortMode==3?' selected ':'').'>';
-	print $langs->trans("ReassortModeWithoutAll").'</option>';
+	print '<option value="1" '.($reassortMode==1?' selected ':'').'>'.$langs->trans("ReassortModeWithoutStock").'</option>';
+	print '<option value="2" '.($reassortMode==2?' selected ':'').'>'.$langs->trans("ReassortModeWithoutOrder").'</option>';
+	print '<option value="3" '.($reassortMode==3?' selected ':'').'>'.$langs->trans("ReassortModeWithoutAll").'</option>';
 print '</select></td>';
 print '</tr>'."\n";
 
@@ -239,8 +221,7 @@ print '<option value="0" >'.$langs->trans("Disabled").'</option>';
 print '<option value="1" '.($fillOrderDraft==1?' selected ':'').'>'.$langs->trans("FillDraft").'</option>';
 print '<option value="3" '.($fillOrderDraft==3?' selected ':'').'>'.$langs->trans("FillDraftGather").'</option>';
 print '<option value="2" '.($fillOrderDraft==2?' selected ':'').'>'.$langs->trans("FillDraftByUser").'</option>';
-print '<option value="4" '.($fillOrderDraft==4?' selected ':'').'>';
-print $langs->trans("FillDraftByUserGather").'</option>';
+print '<option value="4" '.($fillOrderDraft==4?' selected ':'').'>'.$langs->trans("FillDraftByUserGather").'</option>';
 
 print '</select></td>';
 print '</tr></table><br>'."\n";
@@ -273,13 +254,11 @@ print '<tr>';
 print '<td>'.$langs->trans("CustomerOrderRefInPrivateNote").'</td>';
 print '<td>'.$langs->trans("InfoCustomerOrderRefInPrivateNote").'</td>';
 print '<td>';
-if ($customerOrderRefInPrivateNote == 1) {
-	print '<a href="'.$_SERVER["PHP_SELF"].'?action=CustomerOrderRefInPrivateNote&value=0">';
-	print img_picto($langs->trans("Enabled"), 'switch_on').'</a>';
-} else {
-	print '<a href="'.$_SERVER["PHP_SELF"].'?action=CustomerOrderRefInPrivateNote&value=1">';
-	print img_picto($langs->trans("Disabled"), 'switch_off').'</a>';
-}
+if ($customerOrderRefInPrivateNote == 1)
+	print '<a href="'.$_SERVER["PHP_SELF"].'?action=CustomerOrderRefInPrivateNote&value=0">'.img_picto($langs->trans("Enabled"), 'switch_on').'</a>';
+else
+	print '<a href="'.$_SERVER["PHP_SELF"].'?action=CustomerOrderRefInPrivateNote&value=1">'.img_picto($langs->trans("Disabled"), 'switch_off').'</a>';
+
 print '</td></tr>';
 
 //print '<tr ><td colspan=3><hr></td></tr>';

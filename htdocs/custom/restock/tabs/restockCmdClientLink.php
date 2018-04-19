@@ -182,7 +182,7 @@ if ($result) {
 	$i = 0;
 
 	print '<table class="noborder noshadow" width="100%">';
-	print "<tr class='liste_titre'>";
+	print "<tr class=\"liste_titre\">";
 	print '<td class="liste_titre" align="Left" width=100px >'.$langs->trans("Product").'</td>';
 	print '<td class="liste_titre" align="right" width=50px >'.$langs->trans("Qty").'</td>';
 

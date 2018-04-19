@@ -356,10 +356,7 @@ if ($action == "") {
 
 	foreach ($tblRestock as $lgnRestock) {
 		// on affiche que les produits commandable à un fournisseur
-		if (($lgnRestock->onBuyProduct == 1 )
-		&& ($conf->global->RESTOCK_PRODUCT_TYPE_SELECT ==1 && $lgnRestock->fk_product_type=="0"
-		|| $conf->global->RESTOCK_PRODUCT_TYPE_SELECT ==2 && $lgnRestock->fk_product_type=="1"
-		|| $conf->global->RESTOCK_PRODUCT_TYPE_SELECT ==0)) {
+		if ($lgnRestock->OnBuyProduct == 1 && $lgnRestock->fk_product_type == 0) {
 			$var=!$var;
 			print "<tr ".$bc[$var].">";
 			$cmdedetlist.=$lgnRestock->fk_commandedet."-";
@@ -390,30 +387,30 @@ if ($action == "") {
 
 			// pour gérer le bon stock
 			$product_static->load_stock();
-			$lgnRestock->stockQty = $product_static->stock_reel;
+			$lgnRestock->StockQty = $product_static->stock_reel;
 			print '</td>';
 
 			print '<td align="left">'.$lgnRestock->libproduct.'</td>';
-			print '<td align="right">'.price($lgnRestock->prixVenteHT).'</td>';
-			print '<td align="right">'.price($lgnRestock->prixAchatHT).'</td>';
+			print '<td align="right">'.price($lgnRestock->PrixVenteHT).'</td>';
+			print '<td align="right">'.price($lgnRestock->PrixAchatHT).'</td>';
 			print '<td align="right">'.$lgnRestock->qty.'</td>';
-			print '<td align="right">'.$lgnRestock->stockQty.'</td>';
-			print '<td align="right">'.$lgnRestock->stockQtyAlert.'</td>';
+			print '<td align="right">'.$lgnRestock->StockQty.'</td>';
+			print '<td align="right">'.$lgnRestock->StockQtyAlert.'</td>';
 			print '<td align="right">'.$lgnRestock->nbCmdFourn.'</td>';
 
 			$estimedNeed = $lgnRestock->qty;
 
 			// si on travail en réassort, on ne prend pas en compte le stock et les commandes en cours
 			if ($conf->global->RESTOCK_REASSORT_MODE != 1 && $conf->global->RESTOCK_REASSORT_MODE != 3)
-				$estimedNeed-= $lgnRestock->stockQty ;
+				$estimedNeed-= $lgnRestock->StockQty ;
 
 			if ($conf->global->RESTOCK_REASSORT_MODE != 2 && $conf->global->RESTOCK_REASSORT_MODE != 3)
 				$estimedNeed-= $lgnRestock->nbCmdFourn;
 
 			// si il y a encore du besoin, (on a vidé toute le stock et les commandes)
 			if ($conf->global->RESTOCK_REASSORT_MODE != 1 && $conf->global->RESTOCK_REASSORT_MODE != 3)
-				if (($estimedNeed > 0) && ($lgnRestock->stockQtyAlert > 0))
-					$estimedNeed+=  $lgnRestock->stockQtyAlert;
+				if (($estimedNeed > 0) && ($lgnRestock->StockQtyAlert > 0))
+					$estimedNeed+=  $lgnRestock->StockQtyAlert;
 
 			if ($estimedNeed < 0)  // si le besoin est négatif cela signifie que l'on a assez , pas besoin de commander
 				$estimedNeed = 0;
@@ -508,22 +505,21 @@ if ($action == "") {
 					$presel=false;
 					if ($nbprod < $productfourn->fourn_qty) {
 						// si on est or seuil de quantité on désactive le choix
-						print '<td>'.img_picto('disabled', 'disable');
+						print '<td>'.img_picto('disabled', 'disable') ;
 					} else {
-						$fourndet=$productfourn->fourn_id.'-'.$productfourn->product_fourn_price_id.'-'.$productfourn->fourn_tva_tx.'-'.$productfourn->fourn_remise_percent;
 						// on mémorise à la fois l'id du fournisseur et l'id du produit du fournisseur
 						if (count($product_fourn_list) > 1) {
 							// on revient sur l'écran avec une préselection
 							$checked="";
-							if (GETPOST("fourn-".$idcmdedet) == $fourndet){
+							if (GETPOST("fourn-".$idcmdedet) == $productfourn->fourn_id.'-'.$productfourn->product_fourn_price_id.'-'.$productfourn->fourn_tva_tx.'-'.$productfourn->fourn_remise_percent){
 								$presel=true;
 								$checked = " checked=true ";
 							}
-							print '<td><input type=radio '.$checked.' name="fourn-'.$idcmdedet.'" value="'.$fourndet.'">&nbsp;';
+							print '<td><input type=radio '.$checked.' name="fourn-'.$idcmdedet.'" value="'.$productfourn->fourn_id.'-'.$productfourn->product_fourn_price_id.'-'.$productfourn->fourn_tva_tx.'-'.$productfourn->fourn_remise_percent.'">&nbsp;';
 						} else	 {
 							// si il n'y a qu'un fournisseur il est sélectionné par défaut
 							$presel=true;
-							print '<td><input type=radio checked=true name="fourn-'.$idcmdedet.'" value="'.$fourndet.'">&nbsp;';
+							print '<td><input type=radio checked=true name="fourn-'.$idcmdedet.'" value="'.$productfourn->fourn_id.'-'.$productfourn->product_fourn_price_id.'-'.$productfourn->fourn_tva_tx.'-'.$productfourn->fourn_remise_percent.'">&nbsp;';
 						}
 					}
 					print $productfourn->getSocNomUrl(1, 'supplier').'</td>';
@@ -559,17 +555,12 @@ if ($action == "") {
 
 					// Unit Charges ???
 					if (! empty($conf->margin->enabled)) {
-						if ($productfourn->fourn_unitcharges)
-							$unitcharge=price($productfourn->fourn_unitcharges) ;
-						elseif ($productfourn->fourn_qty)
-							$unitcharge=price($productfourn->fourn_charges/$productfourn->fourn_qty);
-						else
-							$unitcharge="&nbsp;";
+						$unitcharge=($productfourn->fourn_unitcharges?price($productfourn->fourn_unitcharges) : ($productfourn->fourn_qty?price($productfourn->fourn_charges/$productfourn->fourn_qty):"&nbsp;"));
 					}
 					if ($nbprod < $productfourn->fourn_qty)
 						$nbprod = $productfourn->fourn_qty;
 
-					$estimatedFournCost=$nbprod*$productfourn->fourn_unitprice+($unitcharge!="&nbsp;" ? $unitcharge : 0);
+					$estimatedFournCost=$nbprod*$productfourn->fourn_unitprice+($unitcharge!="&nbsp;"?$unitcharge:0);
 
 					print '<td align=right><b>'.price($estimatedFournCost).'<b></td>';
 					if ($productfourn->fourn_tva_tx)
@@ -668,13 +659,13 @@ if ($action == "") {
 		// 3 tx de tva
 
 	// on va maintenant créer les commandes fournisseurs
-	foreach ($tblCmdeFourn as $cmdeFourn) {
+	foreach ($tblCmdeFourn as $CmdeFourn) {
 		$idCmdFourn = 0;
 		// si il on charge les commandes fournisseurs brouillons
 		if ($conf->global->RESTOCK_FILL_ORDER_DRAFT > 0) {
 			// on vérifie qu'il n'y a pas une commande fournisseur déjà active
 			$sql = 'SELECT rowid  FROM '.MAIN_DB_PREFIX.'commande_fournisseur';
-			$sql.= ' WHERE fk_soc='.$cmdeFourn[0];
+			$sql.= ' WHERE fk_soc='.$CmdeFourn[0];
 			$sql.= ' AND fk_project ='.$object->id;
 			$sql.= ' AND fk_statut=0';
 			$sql.= ' AND entity='.$conf->entity;
@@ -695,11 +686,11 @@ if ($action == "") {
 		// si pas de commande fournisseur séléctionnée , on en crée une
 		if ($idCmdFourn == 0) {
 			$objectfournisseur = new Fournisseur($db);
-			$objectfournisseur->fetch($cmdeFourn[0]);
+			$objectfournisseur->fetch($CmdeFourn[0]);
 
 			$objectcf = new CommandeFournisseur($db);
 			$objectcf->ref_supplier		= GETPOST("reforderfourn");
-			$objectcf->socid			= $cmdeFourn[0];
+			$objectcf->socid			= $CmdeFourn[0];
 			$objectcf->fk_project		= $object->id;
 			$objectcf->note_private		= '';
 			$objectcf->note_public		= '';
@@ -718,12 +709,13 @@ if ($action == "") {
 		// 4 % de remise
 
 		// ensuite on boucle sur les lignes de commandes
-		foreach ($cmdeFourn[1] as $lgnCmdeFourn) {
+		foreach ($CmdeFourn[1] as $lgnCmdeFourn) {
 
 			$restockcmde_static->fetchdet($lgnCmdeFourn[0], $lgnCmdeFourn[1]);
 
 			//var_dump($lgnCmdeFourn);
 			//$desc, $pu_ht, $qty, $txtva, $txlocaltax1=0, $txlocaltax2=0, $fk_product=0,
+			//$fk_prod_fourn_price=0, $fourn_ref='', $remise_percent=0, $price_base_type='HT', $pu_ttc=0, $type=0, $info_bits=0, $notrigger=false)
 			$result=$objectcf->addline(
 							'', 0,
 							$lgnCmdeFourn[1],					// $qty
@@ -813,7 +805,7 @@ $db->close();
  */
 function select_fournisseur($fournlist, $selected=0, $htmlname='search_fourn', $showempty=1)
 {
-	global $conf ; //, $langs;
+	global $conf, $langs;
 
 	$nodatarole = '';
 	// Enhance with select2
@@ -824,10 +816,9 @@ function select_fournisseur($fournlist, $selected=0, $htmlname='search_fourn', $
 		$nodatarole=($comboenhancement?' data-role="none"':'');
 	}
 	// Print a select with each of them
-	$moreforfilter.='<select class="flat minwidth100" id="select_fournisseur_'.$htmlname.'"';
-	$moreforfilter.=' name="'.$htmlname.'"'.$nodatarole.'>';
+	$moreforfilter.='<select class="flat minwidth100" id="select_fournisseur_'.$htmlname.'" name="'.$htmlname.'"'.$nodatarole.'>';
 	if ($showempty)
-		$moreforfilter.='<option value="0">&nbsp;</option>';	// Should use -1 to say nothing
+		$moreforfilter.='<option value="0">&nbsp;</option>';		   // Should use -1 to say nothing
 
 	if (is_array($fournlist)) {
 		foreach ($fournlist as $key => $value) {

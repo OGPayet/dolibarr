@@ -231,12 +231,6 @@ class modRestock extends DolibarrModules
 		return $this->_load_tables('/restock/sql/');
 	}
 
-	function getChangeLog()
-	{
-		// Libraries
-		dol_include_once("/".$this->name."/core/lib/patasmonkey.lib.php");
-		return getChangeLog($this->name);
-	}
 
 	function getVersion($translated = 1)
 	{

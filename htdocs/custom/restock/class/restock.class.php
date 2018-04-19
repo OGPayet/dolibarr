@@ -29,12 +29,12 @@ class Restock
 	var $id;
 	var $ref_product;
 	var $libproduct;
-	var $prixAchatHT;			// upercase
-	var $prixVenteHT;			// upercase
-	var $prixVenteCmdeHT;		// pour les commandes clients
-	var $composedProduct;		// upercase
-	var $onBuyProduct;			// upercase
-	var $stockQty=0;			// upercase
+	var $PrixAchatHT;
+	var $PrixVenteHT;
+	var $PrixVenteCmdeHT;		// pour les commandes clients
+	var $ComposedProduct;
+	var $OnBuyProduct;
+	var $StockQty=0;
 	var $nbBillDraft=0;
 	var $nbBillValidate=0;
 	var $nbBillpartial=0;
@@ -43,7 +43,7 @@ class Restock
 	var $nbCmdeValidate=0;
 	var $nbCmdepartial=0;
 	var $nbCmdeClient=0;
-	var $MntCmdeClient=0;		// upercase
+	var $MntCmdeClient=0;
 	var $nbPropDraft=0;
 	var $nbPropValidate=0;
 	var $nbPropSigned=0;
@@ -370,6 +370,7 @@ class Restock
 		$sql='select * from '.MAIN_DB_PREFIX.'element_contact';
 		$sql.=" where element_id=".$cmdeClientid;
 
+
 		dol_syslog(get_class($this)."::add_contact_delivery_client sql=".$sql);
 		//print $sql;
 		$resql = $this->db->query($sql);
@@ -389,7 +390,7 @@ class Restock
 				} else if($type_contact == 102) {
 					$type_contact_supplier = 145;
 				}
-				// on ajoute le contact de livraison client à la commande fournisseur
+				// on ajoute le contact de livraison client  la commande fournisseur
 				$sql= "Insert into ".MAIN_DB_PREFIX."element_contact";
 				$sql.= " ( statut, fk_c_type_contact, element_id, fk_socpeople)";
 				$sql.= " values (4, '".$type_contact_supplier."', ".$cmdeFournId.", ".$fk_socpeople.")";
@@ -397,6 +398,7 @@ class Restock
 				$resqlinsert = $this->db->query($sql);
 				$i++;
 			}
+
 			return 1;
 		}
 		return 0;
@@ -499,15 +501,15 @@ class Restock
 
 				$tblRestock[$i]->ref_product=	$objp->ref;
 				$tblRestock[$i]->libproduct=	$objp->label;
-				$tblRestock[$i]->prixVenteHT=	$objp->price;
-				$tblRestock[$i]->prixAchatHT=	$objp->minsellprice;
-				$tblRestock[$i]->onBuyProduct=	$objp->tobuy;
+				$tblRestock[$i]->PrixVenteHT=	$objp->price;
+				$tblRestock[$i]->PrixAchatHT=	$objp->minsellprice;
+				$tblRestock[$i]->OnBuyProduct=	$objp->tobuy;
 				$tblRestock[$i]->fk_product_type=	$objp->fk_product_type;
-				$tblRestock[$i]->stockQty= 		$objp->stock;
-				$tblRestock[$i]->stockQtyAlert=	$objp->seuil_stock_alerte;
+				$tblRestock[$i]->StockQty= 		$objp->stock;
+				$tblRestock[$i]->StockQtyAlert=	$objp->seuil_stock_alerte;
 				// on calcul ici le prix de vente unitaire réel
 				if ($tblRestock[$i]->nbCmdeClient > 0)
-					$tblRestock[$i]->prixVenteCmdeHT = $tblRestock[$i]->MntCmdeClient/$tblRestock[$i]->nbCmdeClient;
+					$tblRestock[$i]->PrixVenteCmdeHT = $tblRestock[$i]->MntCmdeClient/$tblRestock[$i]->nbCmdeClient;
 			}
 
 			// on regarde si il n'y pas de commande fournisseur en cours
@@ -663,12 +665,12 @@ class RestockCmde
 	var $qty;
 	var $ref_product;
 	var $libproduct;
-	var $prixVenteHT;
-	var $prixAchatHT;
-	var $onBuyProduct;
+	var $PrixVenteHT;
+	var $PrixAchatHT;
+	var $OnBuyProduct;
 	var $fk_product_type;
-	var $stockQty;
-	var $stockQtyAlert;
+	var $StockQty;
+	var $StockQtyAlert;
 	var $nbCmdFourn;
 
 
@@ -783,15 +785,15 @@ class RestockCmde
 
 				$tblRestock[$i]->ref_product=	$objp->ref;
 				$tblRestock[$i]->libproduct=	$objp->label;
-				$tblRestock[$i]->prixVenteHT=	$objp->price;
-				$tblRestock[$i]->prixAchatHT=	$objp->minsellprice;
-				$tblRestock[$i]->onBuyProduct=	$objp->tobuy;
+				$tblRestock[$i]->PrixVenteHT=	$objp->price;
+				$tblRestock[$i]->PrixAchatHT=	$objp->minsellprice;
+				$tblRestock[$i]->OnBuyProduct=	$objp->tobuy;
 				$tblRestock[$i]->fk_product_type=	$objp->fk_product_type;
-				$tblRestock[$i]->stockQty= 		$objp->stock;
-				$tblRestock[$i]->stockQtyAlert=	$objp->seuil_stock_alerte;
+				$tblRestock[$i]->StockQty= 		$objp->stock;
+				$tblRestock[$i]->StockQtyAlert=	$objp->seuil_stock_alerte;
 				// on calcul ici le prix de vente unitaire réel
 //				if ($tblRestock[$i]->nbCmdeClient > 0)
-//					$tblRestock[$i]->prixVenteCmdeHT = $tblRestock[$i]->MntCmdeClient/$tblRestock[$i]->nbCmdeClient;
+//					$tblRestock[$i]->PrixVenteCmdeHT = $tblRestock[$i]->MntCmdeClient/$tblRestock[$i]->nbCmdeClient;
 			}
 
 			// on regarde si il n'y pas de commande fournisseur en cours
@@ -849,12 +851,12 @@ class RestockCmde
 
 				$this->ref_product=	$objp->ref;
 				$this->libproduct=	$objp->label;
-				$this->prixVenteHT=	$objp->price;
-				$this->prixAchatHT=	$objp->minsellprice;
-				$this->onBuyProduct=	$objp->tobuy;
+				$this->PrixVenteHT=	$objp->price;
+				$this->PrixAchatHT=	$objp->minsellprice;
+				$this->OnBuyProduct=	$objp->tobuy;
 				$this->fk_product_type=	$objp->fk_product_type;
-				$this->stockQty= 		$objp->stock;
-				$this->stockQtyAlert=	$objp->seuil_stock_alerte;
+				$this->StockQty= 		$objp->stock;
+				$this->StockQtyAlert=	$objp->seuil_stock_alerte;
 			}
 		}
 	}

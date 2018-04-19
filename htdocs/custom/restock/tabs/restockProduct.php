@@ -27,15 +27,14 @@ if (! $res && file_exists("../../main.inc.php"))
 	$res=@include("../../main.inc.php");		// For root directory
 if (! $res && file_exists("../../../main.inc.php"))
 	$res=@include("../../../main.inc.php");	// For "custom" directory
-
 require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
-dol_include_once('/restock/class/restock.class.php');
 
 require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 require_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.product.class.php';
 require_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.commande.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
 
+dol_include_once('/restock/class/restock.class.php');
 
 $langs->load("products");
 $langs->load("stocks");
@@ -99,7 +98,7 @@ if ( isset($_POST['reload']) ) $action = 'restock';
 if ($action!="createrestock") {
 	$title=$langs->trans("RestockProduct");
 
-	llxHeader('', $title, 'EN:Customers_Orders|FR:Commandes_Clients|ES:Pedidos de clientes', '');
+	llxHeader('', $title,'EN:Customers_Orders|FR:Commandes_Clients|ES:Pedidos de clientes', '');
 	$head = product_prepare_head($object, $user);
 	dol_fiche_head($head, 'restock', $langs->trans("CardProduct".$object->type), 0, 'product');
 
@@ -200,11 +199,7 @@ if ($action=="") {
 	$product_static=new Product($db);
 	foreach ($tblRestock as $lgnRestock) {
 		// on affiche que les produits commandable à un fournisseur ?
-		if (($lgnRestock->onBuyProduct == 1 )
-		&& ($conf->global->RESTOCK_PRODUCT_TYPE_SELECT ==1 && $lgnRestock->fk_product_type=="0"
-		|| $conf->global->RESTOCK_PRODUCT_TYPE_SELECT ==2 && $lgnRestock->fk_product_type=="1"
-		|| $conf->global->RESTOCK_PRODUCT_TYPE_SELECT ==0)) {
-
+		if ($lgnRestock->OnBuyProduct == 1 && $lgnRestock->fk_product_type == 0) {
 			$var=!$var;
 			print "<tr ".$bc[$var].">";
 			$idprodlist.=$lgnRestock->id."-";
@@ -215,10 +210,10 @@ if ($action=="") {
 			print $product_static->getNomUrl(1, '', 24);
 			print '</td>';
 			print '<td align="left">'.$lgnRestock->libproduct.'</td>';
-			print '<td align="right">'.price($lgnRestock->prixVenteHT).'</td>';
-			print '<td align="right">'.price($lgnRestock->prixAchatHT).'</td>';
-			print '<td align="right">'.$lgnRestock->stockQty.'</td>';
-			print '<td align="right">'.$lgnRestock->stockQtyAlert.'</td>';
+			print '<td align="right">'.price($lgnRestock->PrixVenteHT).'</td>';
+			print '<td align="right">'.price($lgnRestock->PrixAchatHT).'</td>';
+			print '<td align="right">'.$lgnRestock->StockQty.'</td>';
+			print '<td align="right">'.$lgnRestock->StockQtyAlert.'</td>';
 			print '<td align="right">'.$lgnRestock->nbCmdFourn.'</td>';
 			$product_fourn = new ProductFournisseur($db);
 			$product_fourn_list = $product_fourn->list_product_fournisseur_price($product_static->id, "", "");
@@ -227,15 +222,15 @@ if ($action=="") {
 				$estimedNeed=$lgnRestock->nbCmdeClient;
 				// si on travail en réassort, on ne prend pas en compte le stock et les commandes en cours
 				if ($conf->global->RESTOCK_REASSORT_MODE != 1 && $conf->global->RESTOCK_REASSORT_MODE != 3)
-					$estimedNeed-= $lgnRestock->stockQty;
+					$estimedNeed-= $lgnRestock->StockQty;
 
 				if ($conf->global->RESTOCK_REASSORT_MODE != 2 && $conf->global->RESTOCK_REASSORT_MODE != 3)
 					$estimedNeed-= $lgnRestock->nbCmdFourn;
 
 				// si il y a encore du besoin, (on a vidé toute le stock et les commandes)
 				if ($conf->global->RESTOCK_REASSORT_MODE != 1 && $conf->global->RESTOCK_REASSORT_MODE != 3)
-					if (($estimedNeed > 0) && ($lgnRestock->stockQtyAlert > 0))
-						$estimedNeed+= $lgnRestock->stockQtyAlert;
+					if (($estimedNeed > 0) && ($lgnRestock->StockQtyAlert > 0))
+						$estimedNeed+= $lgnRestock->StockQtyAlert;
 
 				// si le besoin est négatif cela signifie que l'on a assez , pas besoin de commander
 				if ($estimedNeed < 0)
@@ -329,21 +324,19 @@ if ($action=="") {
 						// si on est or seuil de quantité on désactive le choix
 						print '<td>'.img_picto('disabled', 'disable');
 					} else {
-						$fournidproduct =$productfourn->fourn_id.'-'.$productfourn->product_fourn_price_id;
-						$fournidproduct.='-'.$productfourn->fourn_tva_tx.'-'.$productfourn->fourn_remise_percent;
 						// on mémorise à la fois l'id du fournisseur et l'id du produit du fournisseur
 						if (count($product_fourn_list) > 1) {
 							// on revient sur l'écran avec une préselection
 							$checked="";
-							if (GETPOST("fourn-".$idproduct) == $fournidproduct) {
+							if (GETPOST("fourn-".$idproduct) == $productfourn->fourn_id.'-'.$productfourn->product_fourn_price_id.'-'.$productfourn->fourn_tva_tx.'-'.$productfourn->fourn_remise_percent) {
 								$presel=true;
 								$checked = " checked=true ";
 							}
-							print '<td><input type=radio '.$checked.' name="fourn-'.$idproduct.'" value="'.$fournidproduct.'">&nbsp;';
+							print '<td><input type=radio '.$checked.' name="fourn-'.$idproduct.'" value="'.$productfourn->fourn_id.'-'.$productfourn->product_fourn_price_id.'-'.$productfourn->fourn_tva_tx.'-'.$productfourn->fourn_remise_percent.'">&nbsp;';
 						} else {
 							// si il n'y a qu'un fournisseur il est sélectionné par défaut
 							$presel=true;
-							print '<td><input type=radio checked=true name="fourn-'.$idproduct.'" value="'.$fournidproduct.'">&nbsp;';
+							print '<td><input type=radio checked=true name="fourn-'.$idproduct.'" value="'.$productfourn->fourn_id.'-'.$productfourn->product_fourn_price_id.'-'.$productfourn->fourn_tva_tx.'-'.$productfourn->fourn_remise_percent.'">&nbsp;';
 						}
 					}
 
@@ -383,14 +376,9 @@ if ($action=="") {
 					print '</td>';
 
 					// Unit Charges ???
-					if (! empty($conf->margin->enabled))
-						if ($productfourn->fourn_unitcharges)
-							$unitcharge=price($productfourn->fourn_unitcharges);
-						elseif ($productfourn->fourn_qty)
-							$unitcharge=price($productfourn->fourn_charges/$productfourn->fourn_qty);
-						else
-							$unitcharge="&nbsp;";
-
+					if (! empty($conf->margin->enabled)) {
+						$unitcharge=($productfourn->fourn_unitcharges?price($productfourn->fourn_unitcharges) : ($productfourn->fourn_qty?price($productfourn->fourn_charges/$productfourn->fourn_qty):"&nbsp;"));
+					}
 					if ($nbprod < $productfourn->fourn_qty)
 						$nbprod = $productfourn->fourn_qty;
 					$estimatedFournCost=$nbprod*$unitprice+($unitcharge!="&nbsp;"?$unitcharge:0);
@@ -432,10 +420,9 @@ if ($action=="") {
 	print '<div class="tabsAction">';
 	print '<table width=75%><tr><td width=110px align=right>'.$langs->trans('ReferenceOfOrder').' :</td><td align=left>';
 	// on mémorise la référence du de la facture client sur la commande fournisseur
-	print '<input type=text size=30 name=reforderfourn value="'.$langs->trans('RestockofProduct').'&nbsp;'.$object->ref.'">';
-	print '</td><td align=right>';
-	print '<input type="submit" class="button" name="bouton" value="'.$langs->trans('CreateFournOrder').'">';
-	print '</td></tr></table>';
+	print '<input type=text size=30 name=reforderfourn value="'.$langs->trans('RestockofProduct').'&nbsp;'.$object->ref.'"></td>';
+	print '<td align=right><input type="submit" class="button" name="bouton" value="'.$langs->trans('CreateFournOrder').'"></td>';
+	print '</tr></table>';
 	print '</div >';
 	print '</form >';
 } elseif ($action=="createrestock") {
@@ -459,11 +446,7 @@ if ($action=="") {
 				// si le fournisseur n'est pas déja dans le tableau des fournisseurs
 				if ($lineoffourn == -1) {
 					$tblCmdeFourn[$numlines][0] = $tblfourn[0];
-					$tblCmdeFourn[$numlines][1] = array(array(
-									$idproduct,
-									GETPOST("prd-".$idproduct),
-									$tblfourn[1], $tblfourn[2], $tblfourn[3]
-					));
+					$tblCmdeFourn[$numlines][1] = array(array($idproduct, GETPOST("prd-".$idproduct), $tblfourn[1], $tblfourn[2], $tblfourn[3]));
 				} else {
 					$tblCmdeFourn[$lineoffourn][1] = array_merge(
 									$tblCmdeFourn[$lineoffourn][1],
@@ -475,13 +458,13 @@ if ($action=="") {
 	}
 
 	// on va maintenant créer les commandes fournisseurs
-	foreach ($tblCmdeFourn as $cmdeFourn) {
+	foreach ($tblCmdeFourn as $CmdeFourn) {
 		$idCmdFourn = 0;
 		// si il on charge les commandes fournisseurs brouillons
 		if ($conf->global->RESTOCK_FILL_ORDER_DRAFT > 0) {
 			// on vérifie qu'il n'y a pas une commande fournisseur déjà active
 			$sql = 'SELECT rowid  FROM '.MAIN_DB_PREFIX.'commande_fournisseur as cof';
-			$sql.= ' WHERE fk_soc='.$cmdeFourn[0];
+			$sql.= ' WHERE fk_soc='.$CmdeFourn[0];
 			$sql.= ' AND fk_statut=0';
 			$sql.= ' AND entity='.$conf->entity;
 			if  (	$conf->global->RESTOCK_FILL_ORDER_DRAFT == 2
@@ -500,11 +483,11 @@ if ($action=="") {
 		// en création
 		if ($idCmdFourn == 0) {
 			$objectfournisseur = new Fournisseur($db);
-			$objectfournisseur->fetch($cmdeFourn[0]);
+			$objectfournisseur->fetch($CmdeFourn[0]);
 
 			$objectcf = new CommandeFournisseur($db);
 			$objectcf->ref_supplier  	= GETPOST("reforderfourn");
-			$objectcf->socid		 	= $cmdeFourn[0];
+			$objectcf->socid		 	= $CmdeFourn[0];
 			$objectcf->note_private	= '';
 			$objectcf->note_public   	= '';
 			$objectcf->origin_id = 0; // GETPOST("id");
@@ -518,7 +501,7 @@ if ($action=="") {
 		}
 
 		// ensuite on boucle sur les lignes de commandes
-		foreach ($cmdeFourn[1] as $lgnCmdeFourn) {
+		foreach ($CmdeFourn[1] as $lgnCmdeFourn) {
 			$idlgnFourn = 0;
 			// on vérifie qu'il n'y a pas déjà une ligne de commande pour ce produit
 			$sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'commande_fournisseurdet as cofd';
@@ -549,8 +532,7 @@ if ($action=="") {
 			} else {
 				$tmpcmdeligncmdefourn= new CommandeFournisseurLigne($db);
 				$tmpcmdeligncmdefourn->fetch($idlgnFourn);
-				$result=$objectcf->updateline(
-								$idlgnFourn,
+				$result=$objectcf->updateline($idlgnFourn,
 								$tmpcmdeligncmdefourn->desc,
 								$tmpcmdeligncmdefourn->subprice,
 								$tmpcmdeligncmdefourn->qty + $lgnCmdeFourn[1],

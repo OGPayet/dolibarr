@@ -97,10 +97,6 @@
 		<change type='add'>add filter on date on restock customer order page</change>
 		<change type='add'>add type of product choice if booth enabled</change>
 	</Version>
-	<Version Number="6.0.+2.2.0" MonthVersion="2017-09">
-		<change type='inf'>6.0 compatibility</change>
-		<change type='add'>type of product choice generalised at all restock page</change>
-	</Version>
 
 	<!-- Remplir le undocumented.xml ? -->
 	<Dolibarr minVersion="3.8.0"/>

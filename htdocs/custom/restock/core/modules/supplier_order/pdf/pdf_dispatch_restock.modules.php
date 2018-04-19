@@ -180,7 +180,7 @@ class pdf_dispatch_restock extends ModelePDFSuppliersOrders
 				$heightforfreetext= (isset($conf->global->MAIN_PDF_FREETEXT_HEIGHT)?$conf->global->MAIN_PDF_FREETEXT_HEIGHT:5);
 				// Height reserved to output the footer (value include bottom margin)
 				$heightforfooter = $this->marge_basse + 8;
-				$pdf->SetAutoPageBreak(1, 0);
+				$pdf->SetAutoPageBreak(1,0);
 
 				if (class_exists('TCPDF')) {
 					$pdf->setPrintHeader(false);
@@ -235,8 +235,11 @@ class pdf_dispatch_restock extends ModelePDFSuppliersOrders
 
 					$tab_height = $tab_height - $height_note;
 					$tab_top = $nexY+6;
-				} else
+				}
+				else
+				{
 					$height_note=0;
+				}
 
 				$iniY = $tab_top + 7;
 				$curY = $tab_top + 7;
@@ -325,7 +328,7 @@ class pdf_dispatch_restock extends ModelePDFSuppliersOrders
 						foreach ($pdir as $midir) {
 							if (! $arephoto) {
 								$dir = $conf->product->dir_output.'/'.$midir;
-								foreach ($objphoto->liste_photos($dir, 1) as $key => $obj) {
+								foreach ($objphoto->liste_photos($dir,1) as $key => $obj) {
 									// If CAT_HIGH_QUALITY_IMAGES not defined,
 									// we use thumb if defined and then original photo
 									if (empty($conf->global->CAT_HIGH_QUALITY_IMAGES)) {
@@ -425,7 +428,7 @@ class pdf_dispatch_restock extends ModelePDFSuppliersOrders
 				return 0;
 			}
 		} else {
-			$this->error=$langs->trans("ErrorConstantNotDefined", "SUPPLIER_OUTPUTDIR");
+			$this->error=$langs->trans("ErrorConstantNotDefined","SUPPLIER_OUTPUTDIR");
 			return 0;
 		}
 		$this->error=$langs->trans("ErrorUnknown");
@@ -561,7 +564,7 @@ class pdf_dispatch_restock extends ModelePDFSuppliersOrders
 
 		$pdf->SetFont('', 'B', $default_font_size + 3);
 		$pdf->SetXY($posx, $posy);
-		$pdf->SetTextColor(0, 0, 60);
+		$pdf->SetTextColor(0,0,60);
 		$title=$outputlangs->transnoentities("DispatchFournish");
 		$pdf->MultiCell(100, 3, $title, '', 'R');
 
@@ -582,11 +585,11 @@ class pdf_dispatch_restock extends ModelePDFSuppliersOrders
 			$pdf->SetTextColor(0, 0, 60);
 			$textpdf = $outputlangs->transnoentities("RefSupplier")." : ";
 			$textpdf.= $outputlangs->convToOutputCharset($object->ref_supplier);
-			$pdf->MultiCell( 100, 3, $textpdf, '', 'R');
+			$pdf->MultiCell( 100, 3, $textpdf, '', 'R' );
 		}
 
 		$posy+=2;
-		$pdf->SetFont('', '', $default_font_size -1);
+		$pdf->SetFont('','', $default_font_size -1);
 
 		$posy+=5;
 		$pdf->SetXY($posx, $posy);
@@ -606,7 +609,7 @@ class pdf_dispatch_restock extends ModelePDFSuppliersOrders
 		}
 
 		$posy+=2;
-		$pdf->SetTextColor(0, 0, 60);
+		$pdf->SetTextColor(0,0,60);
 
 		// pas utile : on a les infos dans le dispatch
 //		$posy = pdf_writeLinkedObjects($pdf, $object, $outputlangs, $posx, $posy, 100, 3, 'R', $default_font_size);
@@ -623,14 +626,14 @@ class pdf_dispatch_restock extends ModelePDFSuppliersOrders
 			$hautcadre=40;
 
 			// Show sender frame
-			$pdf->SetTextColor(0, 0, 0);
-			$pdf->SetFont('', '', $default_font_size - 2);
+			$pdf->SetTextColor(0,0,0);
+			$pdf->SetFont('','', $default_font_size - 2);
 			$pdf->SetXY($posx, $posy-5);
 			$pdf->MultiCell(66, 5, $outputlangs->transnoentities("BillFrom").":", 0, 'L');
 			$pdf->SetXY($posx, $posy);
 			$pdf->SetFillColor(240, 240, 240);
 			$pdf->MultiCell(62, $hautcadre, "", 0, 'R', 1);
-			$pdf->SetTextColor(0, 0, 60);
+			$pdf->SetTextColor(0,0,60);
 
 			// Show sender name
 			$pdf->SetXY($posx+2, $posy+3);
@@ -750,7 +753,7 @@ class pdf_dispatch_restock extends ModelePDFSuppliersOrders
 	function _pagefoot(&$pdf, $object, $outputlangs, $hidefreetext=0)
 	{
 		return pdf_pagefoot(
-						$pdf, $outputlangs, 'SUPPLIER_INVOICE_FREE_TEXT',
+						$pdf, $outputlangs,'SUPPLIER_INVOICE_FREE_TEXT',
 						$this->emetteur, $this->marge_basse, $this->marge_gauche, $this->page_hauteur,
 						$object, 0, $hidefreetext
 		);

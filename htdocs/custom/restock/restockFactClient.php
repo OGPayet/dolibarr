@@ -211,11 +211,8 @@ if ($action=="") {
 	$product_static=new Product($db);
 	foreach ($tblRestock as $lgnRestock) {
 
-		if (($lgnRestock->onBuyProduct == 1 )
-		&& ($conf->global->RESTOCK_PRODUCT_TYPE_SELECT ==1 && $lgnRestock->fk_product_type=="0"
-		|| $conf->global->RESTOCK_PRODUCT_TYPE_SELECT ==2 && $lgnRestock->fk_product_type=="1"
-		|| $conf->global->RESTOCK_PRODUCT_TYPE_SELECT ==0)) {
-
+		// on affiche que les produits commandable à un fournisseur
+		if ($lgnRestock->OnBuyProduct == 1 && $lgnRestock->fk_product_type == 0) {
 			$var=!$var;
 			print "<tr ".$bc[$var].">";
 			$idprodlist.=$lgnRestock->id."-";
@@ -227,30 +224,30 @@ if ($action=="") {
 
 			// pour gérer le bon stock
 			$product_static->load_stock();
-			$lgnRestock->stockQty = $product_static->stock_reel;
+			$lgnRestock->StockQty = $product_static->stock_reel;
 
 			print '</td>';
 			print '<td align="left">'.$lgnRestock->libproduct.'</td>';
-			print '<td align="right">'.price($lgnRestock->prixVenteHT).'</td>';
-			print '<td align="right">'.price($lgnRestock->prixAchatHT).'</td>';
+			print '<td align="right">'.price($lgnRestock->PrixVenteHT).'</td>';
+			print '<td align="right">'.price($lgnRestock->PrixAchatHT).'</td>';
 			print '<td align="right">'.$lgnRestock->nbBillpaye.'</td>';
-			print '<td align="right">'.$lgnRestock->stockQty.'</td>';
-			print '<td align="right">'.$lgnRestock->stockQtyAlert.'</td>';
+			print '<td align="right">'.$lgnRestock->StockQty.'</td>';
+			print '<td align="right">'.$lgnRestock->StockQtyAlert.'</td>';
 			print '<td align="right">'.$lgnRestock->nbCmdFourn.'</td>';
 
 			$estimedNeed = $lgnRestock->nbBillpaye;
 
 			// si on travail en réassort, on ne prend pas en compte le stock et les commandes en cours
 			if ($conf->global->RESTOCK_REASSORT_MODE != 1 && $conf->global->RESTOCK_REASSORT_MODE != 3)
-				$estimedNeed-= $lgnRestock->stockQty ;
+				$estimedNeed-= $lgnRestock->StockQty ;
 
 			if ($conf->global->RESTOCK_REASSORT_MODE != 2 && $conf->global->RESTOCK_REASSORT_MODE != 3)
 				$estimedNeed-= $lgnRestock->nbCmdFourn;
 
 			// si il y a encore du besoin, (on a vidé toute le stock et les commandes)
 			if ($conf->global->RESTOCK_REASSORT_MODE != 1 && $conf->global->RESTOCK_REASSORT_MODE != 3)
-				if (($estimedNeed > 0) && ($lgnRestock->stockQtyAlert > 0))
-					$estimedNeed+=  $lgnRestock->stockQtyAlert;
+				if (($estimedNeed > 0) && ($lgnRestock->StockQtyAlert > 0))
+					$estimedNeed+=  $lgnRestock->StockQtyAlert;
 
 			if ($estimedNeed < 0)  // si le besoin est négatif cela signifie que l'on a assez , pas besoin de commander
 				$estimedNeed = 0;

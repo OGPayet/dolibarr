@@ -268,11 +268,51 @@ if ($action=="") {
 	$product_static=new Product($db);
 	foreach ($tblRestock as $lgnRestock) {
 
-		if (($lgnRestock->onBuyProduct == 1 )
-		&& ($conf->global->RESTOCK_PRODUCT_TYPE_SELECT ==1 && $lgnRestock->fk_product_type=="0"
+	if ($conf->global->RESTOCK_PRODUCT_TYPE_SELECT ==1 && $lgnRestock->fk_product_type=="0"
 		|| $conf->global->RESTOCK_PRODUCT_TYPE_SELECT ==2 && $lgnRestock->fk_product_type=="1"
-		|| $conf->global->RESTOCK_PRODUCT_TYPE_SELECT ==0)) {
+		|| $conf->global->RESTOCK_PRODUCT_TYPE_SELECT ==0) {
 
+		$product_fourn = new ProductFournisseur($db);
+		$product_fourn_list = $product_fourn->list_product_fournisseur_price($product_static->id, "", "");
+		if (count($product_fourn_list) > 0) {
+			$estimedNeed=0;
+			$estimedNeed+=$lgnRestock->nbPropDraft*$select0propals/100;
+			$estimedNeed+=$lgnRestock->nbPropValidate*$select1propals/100;;
+			$estimedNeed+=$lgnRestock->nbPropSigned*$select2propals/100;;
+			$estimedNeed+=$lgnRestock->nbCmdeDraft*$select0commandes/100;
+			$estimedNeed+=$lgnRestock->nbCmdeValidate*$select1commandes/100;
+			$estimedNeed+=$lgnRestock->nbCmdePartial*$select2commandes/100;
+			$estimedNeed+=$lgnRestock->nbBillDraft*$select0factures/100;
+			$estimedNeed+=$lgnRestock->nbBillValidate*$select1factures/100;
+			$estimedNeed+=$lgnRestock->nbBillpartial*$select2factures/100;
+			$var=!$var;
+			print "<tr ".$bc[$var].">";
+			$idprodlist.=$lgnRestock->id."-";
+			print '<td class="nowrap">';
+			$product_static->fetch($lgnRestock->id);
+			print $product_static->getNomUrl(1, '', 24);
+			print '</td>';
+			print '<td align="left">'.$lgnRestock->libproduct.'</td>';
+			print '<td align="right">'.price($lgnRestock->PrixVenteHT).'</td>';
+			print '<td align="right">'.price($lgnRestock->PrixAchatHT).'</td>';
+			if ($select0propals+$select1propals+$select2propals > 0) {
+				print '<td align="right" class="border">'.$lgnRestock->nbPropDraft.'</td>';
+				print '<td align="right" class="border">'.$lgnRestock->nbPropValidate.'</td>';
+				print '<td align="right" class="border">'.$lgnRestock->nbPropSigned.'</td>';
+			}
+			if ($select0commandes+$select1commandes+$select2commandes > 0) {
+				print '<td align="right" class="border">'.$lgnRestock->nbCmdeDraft.'</td>';
+				print '<td align="right" class="border">'.$lgnRestock->nbCmdeValidate.'</td>';
+				print '<td align="right" class="border">'.$lgnRestock->nbCmdePartial.'</td>';
+			}
+			if ($select0factures+$select1factures+$select2factures > 0) {
+				print '<td align="right" class="border">'.$lgnRestock->nbBillDraft.'</td>';
+				print '<td align="right" class="border">'.$lgnRestock->nbBillValidate.'</td>';
+				print '<td align="right" class="border">'.$lgnRestock->nbBillPartial.'</td>';
+			}
+			print '<td align="right">'.$lgnRestock->StockQty.'</td>';
+			print '<td align="right">'.$lgnRestock->StockQtyAlert.'</td>';
+			print '<td align="right">'.$lgnRestock->nbCmdFourn.'</td>';
 			$product_fourn = new ProductFournisseur($db);
 			$product_fourn_list = $product_fourn->list_product_fournisseur_price($product_static->id, "", "");
 			if (count($product_fourn_list) > 0) {
@@ -286,78 +326,37 @@ if ($action=="") {
 				$estimedNeed+=$lgnRestock->nbBillDraft*$select0factures/100;
 				$estimedNeed+=$lgnRestock->nbBillValidate*$select1factures/100;
 				$estimedNeed+=$lgnRestock->nbBillpartial*$select2factures/100;
-				$var=!$var;
-				print "<tr ".$bc[$var].">";
-				$idprodlist.=$lgnRestock->id."-";
-				print '<td class="nowrap">';
-				$product_static->fetch($lgnRestock->id);
-				print $product_static->getNomUrl(1, '', 24);
+
+				// si on travail en réassort, on ne prend pas en compte le stock et les commandes en cours
+				if ($conf->global->RESTOCK_REASSORT_MODE != 1 && $conf->global->RESTOCK_REASSORT_MODE != 3)
+					$estimedNeed-= $lgnRestock->StockQty ;
+
+				if ($conf->global->RESTOCK_REASSORT_MODE != 2 && $conf->global->RESTOCK_REASSORT_MODE != 3)
+					$estimedNeed-= $lgnRestock->nbCmdFourn;
+
+				// si le besoin est négatif cela signifie que l'on a assez , pas besoin de commander
+				if ($estimedNeed < 0)
+					$estimedNeed = 0;
+
+				print '<td align="right">';
+				print '<input type=text size=5 name="prd-'.$lgnRestock->id.'" value="'.round($estimedNeed).'">';
+				print "</td>\n";
+
+			} else {
+				print '<td align="right">';
+				print $langs->trans("NoFournish");
 				print '</td>';
-				print '<td align="left">'.$lgnRestock->libproduct.'</td>';
-				print '<td align="right">'.price($lgnRestock->prixVenteHT).'</td>';
-				print '<td align="right">'.price($lgnRestock->prixAchatHT).'</td>';
-				if ($select0propals+$select1propals+$select2propals > 0) {
-					print '<td align="right" class="border">'.$lgnRestock->nbPropDraft.'</td>';
-					print '<td align="right" class="border">'.$lgnRestock->nbPropValidate.'</td>';
-					print '<td align="right" class="border">'.$lgnRestock->nbPropSigned.'</td>';
-				}
-				if ($select0commandes+$select1commandes+$select2commandes > 0) {
-					print '<td align="right" class="border">'.$lgnRestock->nbCmdeDraft.'</td>';
-					print '<td align="right" class="border">'.$lgnRestock->nbCmdeValidate.'</td>';
-					print '<td align="right" class="border">'.$lgnRestock->nbCmdePartial.'</td>';
-				}
-				if ($select0factures+$select1factures+$select2factures > 0) {
-					print '<td align="right" class="border">'.$lgnRestock->nbBillDraft.'</td>';
-					print '<td align="right" class="border">'.$lgnRestock->nbBillValidate.'</td>';
-					print '<td align="right" class="border">'.$lgnRestock->nbBillPartial.'</td>';
-				}
-				print '<td align="right">'.$lgnRestock->stockQty.'</td>';
-				print '<td align="right">'.$lgnRestock->stockQtyAlert.'</td>';
-				print '<td align="right">'.$lgnRestock->nbCmdFourn.'</td>';
-				$product_fourn = new ProductFournisseur($db);
-				$product_fourn_list = $product_fourn->list_product_fournisseur_price($product_static->id, "", "");
-				if (count($product_fourn_list) > 0) {
-					$estimedNeed=0;
-					$estimedNeed+=$lgnRestock->nbPropDraft*$select0propals/100;
-					$estimedNeed+=$lgnRestock->nbPropValidate*$select1propals/100;;
-					$estimedNeed+=$lgnRestock->nbPropSigned*$select2propals/100;;
-					$estimedNeed+=$lgnRestock->nbCmdeDraft*$select0commandes/100;
-					$estimedNeed+=$lgnRestock->nbCmdeValidate*$select1commandes/100;
-					$estimedNeed+=$lgnRestock->nbCmdePartial*$select2commandes/100;
-					$estimedNeed+=$lgnRestock->nbBillDraft*$select0factures/100;
-					$estimedNeed+=$lgnRestock->nbBillValidate*$select1factures/100;
-					$estimedNeed+=$lgnRestock->nbBillpartial*$select2factures/100;
-
-					// si on travail en réassort, on ne prend pas en compte le stock et les commandes en cours
-					if ($conf->global->RESTOCK_REASSORT_MODE != 1 && $conf->global->RESTOCK_REASSORT_MODE != 3)
-						$estimedNeed-= $lgnRestock->stockQty ;
-
-					if ($conf->global->RESTOCK_REASSORT_MODE != 2 && $conf->global->RESTOCK_REASSORT_MODE != 3)
-						$estimedNeed-= $lgnRestock->nbCmdFourn;
-
-					// si le besoin est négatif cela signifie que l'on a assez , pas besoin de commander
-					if ($estimedNeed < 0)
-						$estimedNeed = 0;
-
-					print '<td align="right">';
-					print '<input type=text size=5 name="prd-'.$lgnRestock->id.'" value="'.round($estimedNeed).'">';
-					print "</td>\n";
-
-				} else {
-					print '<td align="right">';
-					print $langs->trans("NoFournish");
-					print '</td>';
-				}
-
-	//			//si il y a encore du besoin, (on a vidé toute le stock et les commandes)
-	//			if ($conf->global->RESTOCK_REASSORT_MODE != 1 && $conf->global->RESTOCK_REASSORT_MODE != 3)
-	//				if (($estimedNeed > 0) && ($lgnRestock->stockQtyAlert > 0))
-	//					$estimedNeed+= $lgnRestock->stockQtyAlert;
-	//
-	//			if ($estimedNeed < 0)  // si le besoin est négatif cela signifie que l'on a assez , pas besoin de commander
-	//				$estimedNeed = 0;
 			}
+
+//			//si il y a encore du besoin, (on a vidé toute le stock et les commandes)
+//			if ($conf->global->RESTOCK_REASSORT_MODE != 1 && $conf->global->RESTOCK_REASSORT_MODE != 3)
+//				if (($estimedNeed > 0) && ($lgnRestock->StockQtyAlert > 0))
+//					$estimedNeed+= $lgnRestock->StockQtyAlert;
+//
+//			if ($estimedNeed < 0)  // si le besoin est négatif cela signifie que l'on a assez , pas besoin de commander
+//				$estimedNeed = 0;
 		}
+	}
 	}
 	print '</table>';
 	// pour mémoriser les produits à réstockvisionner
