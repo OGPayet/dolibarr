@@ -50,10 +50,20 @@ function retourproduits_prepare_head($object)
             $objectsrc->fetch($object->origin_id);
         }
         $nbContact = count($objectsrc->liste_contact(-1,'internal')) + count($objectsrc->liste_contact(-1,'external'));
-        $head[$h][0] = DOL_URL_ROOT."/custom/retourproduits/contact.php?id=".$object->id;
+        $head[$h][0] = dol_buildpath('/retourproduits/contact.php?id=', 1).$object->id;
         $head[$h][1] = $langs->trans("ContactsAddresses");
         if ($nbContact > 0) $head[$h][1].= ' <span class="badge">'.$nbContact.'</span>';
         $head[$h][2] = 'contact';
+        $h++;
+    }
+
+    if (empty($conf->global->MAIN_DISABLE_NOTES_TAB)) {
+        $head[$h][0] = dol_buildpath('/retourproduits/note.php', 1).'?id='.$object->id;
+        $head[$h][1] = $langs->trans('Notes');
+        $nbNotes = ($object->note_private?1:0);
+        $nbNotes+= ($object->note_public?1:0);
+        if ($nbNotes > 0) $head[$h][1].= ' <span class="badge">'.$nbNotes.'</span>';
+        $head[$h][2] = 'note';
         $h++;
     }
 

@@ -1437,7 +1437,8 @@ else if ($id || $ref)
 		}
 
 		// Shipment card
-		$linkback = '<a href="'.DOL_URL_ROOT.'/custom/retourproduits/list.php">'.$langs->trans("BackToList").'</a>';
+		$linkback = '<a href="'. dol_buildpath('/retourproduits/list.php', 1).'">'.$langs->trans("BackToList").'</a>';
+
 		$morehtmlref='<div class="refidno">';
 		// Ref customer shipment
 		$morehtmlref.=$form->editfieldkey("RefCustomer", 'ref_customer', $object->ref_customer, $object, $user->rights->expedition->creer, 'string', '', 0, 1);

@@ -77,7 +77,7 @@ class ActionsRetourProduits // extends CommonObject
 			}
 			//die() ;
 			$retourId = $rpds->create($user);
-			header('Location: '.DOL_URL_ROOT.'/custom/retourproduits/card.php?id='.$retourId);
+			header('Location: '.dol_buildpath('/retourproduits/card.php?id=', 1).$retourId);
 			exit;
 		}
 	}
@@ -89,7 +89,7 @@ class ActionsRetourProduits // extends CommonObject
 		global $formconfirm ;
 
 		$langs->load("retourproduits@retourproduits");
-		require_once(DOL_DOCUMENT_ROOT.'/custom/retourproduits/form/html.form.class.php');
+		require_once(dol_buildpath('/retourproduits/form/html.form.class.php');
 
 		$formreturnproducts = new FormRetourProduits($db);
 		$form = new Form($db);
@@ -209,5 +209,4 @@ class ActionsRetourProduits // extends CommonObject
 			return 1 ;
 		}
 	}
-
 }

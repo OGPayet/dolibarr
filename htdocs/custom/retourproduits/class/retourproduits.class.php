@@ -1414,7 +1414,7 @@ class RetourProduits extends CommonObject
         $label .= '<br><b>' . $langs->trans('Ref') . ':</b> '.$this->ref;
         $label .= '<br><b>'.$langs->trans('RefCustomer').':</b> '.($this->ref_customer ? $this->ref_customer : $this->ref_client);
 
-		$url = DOL_URL_ROOT.'/custom/retourproduits/card.php?id='.$this->id;
+		$url = dol_buildpath('/retourproduits/card.php?id=',1).$this->id;
 
 		if ($short) return $url;
 

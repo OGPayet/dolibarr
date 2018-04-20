@@ -43,11 +43,11 @@ class modRetourProduits extends DolibarrModules
         global $langs,$conf;
 
         $this->db = $db;
-		$this->numero = 500000;		// TODO Go on page http://wiki.dolibarr.org/index.php/List_of_modules_id to reserve id number for your module
+		$this->numero = 5170612;		// TODO Go on page http://wiki.dolibarr.org/index.php/List_of_modules_id to reserve id number for your module
 		$this->rights_class = 'retourproduits';
 
 		$this->family = "crm";
-		$this->name = preg_replace('/^mod/i','',get_class($this));
+		$this->name = 'retourproduits';
 		$this->description = "Gestion des retours produits";
 		$this->version = '6.0.*';
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
@@ -75,7 +75,8 @@ class modRetourProduits extends DolibarrModules
 		//                        );
 		$this->module_parts = array(
 			'models' => 1,
-			'hooks' => array('ordercard'));
+			'hooks' => array('ordercard')
+			);
 
 		// Data directories to create when module is enabled.
 		// Example: this->dirs = array("/mymodule/temp");
@@ -172,6 +173,21 @@ class modRetourProduits extends DolibarrModules
 		$this->rights = array();		// Permission array used by this module
 		$r=0;
 
+		$this->rights_class = $this->name;
+
+		$r++;
+		$this->rights[$r][0] = $this->numero + $r;
+		$this->rights[$r][1] = 'Lire des Retour Produits';
+		$this->rights[$r][2] = 'r';
+		$this->rights[$r][3] = 1;
+		$this->rights[$r][4] = 'lire';
+
+		$r++;
+		$this->rights[$r][0] = $this->numero + $r;
+		$this->rights[$r][1] = 'Créer/modifier des des Retour Produits';
+		$this->rights[$r][2] = 'w';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'creer';
 		// Add here list of permission defined by an id, a label, a boolean and two constant strings.
 		// Example:
 		// $this->rights[$r][0] = $this->numero + $r;	// Permission id (must not be already used)
