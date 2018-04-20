@@ -1,0 +1,17 @@
+# Dolibarr language file - fr_FR - retourproduits
+CHARSET=UTF-8
+returnProducts=Retour Produits
+RetourProduitsSetUp=Configuration du module "Retour Produits"
+CreateReturnProducts=Créer un retour produits
+SelectProductsToReturn=Selectionnez le (ou les) produit(s) à retourner
+NewReturnProducts=Nouveau Retour Produits
+ListOfReturnProducts=Liste des retours produits
+Draft=Brouillon
+SerialNumber=Numéro de Série
+QtyToReturn=Qté à Ré-expédier
+WarehouseDest=Entrepôt destinataire
+ConfirmValidateReturn=Êtes-vous sûr de vouloir valider ce Retour Produit sous la référence <b>%s</b> ?
+ReturnValidatedInDolibarr=Retour Produits <b>%s</b>validé
+ReturnClassifyClosedInDolibarr=Retour Produits <b>%s</b>cloturé
+ReturnUnClassifyCloseddInDolibarr=Retour Produits <b>%s</b>ré-ouvert
+ListOfReturnProducts=Liste des Retours Produits

@@ -1,0 +1,65 @@
+<?php
+/* <one line to give the program's name and a brief idea of what it does.>
+ * Copyright (C) 2013-2016    Jean-François FERRY    <jfefe@aternatik.fr>
+ *                  2016        Christophe Battarel <christophe@altairis.fr>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
+
+/**
+ *        \file       htdocs/hosting/lib/hosting.lib.php
+ *        \brief      Ensemble de fonctions de base pour le module hosting
+ *      \ingroup    business
+ *      \version    $Id$
+ */
+
+function retourproduits_prepare_head($object)
+{
+
+    global $db, $langs, $conf, $user;
+
+    $langs->load("retourproduits");
+    $object->fetch($object->id);
+    $h = 0;
+    $head = array();
+    $head[$h][0] = dol_buildpath('/retourproduits/card.php', 1) . '?action=view&id=' . $object->id;
+    $head[$h][1] = $langs->trans("Card");
+    $head[$h][2] = 'tabTicketsup';
+    $h++;
+
+
+    if (empty($conf->global->MAIN_DISABLE_CONTACTS_TAB))
+    {
+        $objectsrc = $object;
+        if ($object->origin == 'commande' && $object->origin_id > 0)
+        {
+            $objectsrc = new Commande($db);
+            $objectsrc->fetch($object->origin_id);
+        }
+        $nbContact = count($objectsrc->liste_contact(-1,'internal')) + count($objectsrc->liste_contact(-1,'external'));
+        $head[$h][0] = DOL_URL_ROOT."/custom/retourproduits/contact.php?id=".$object->id;
+        $head[$h][1] = $langs->trans("ContactsAddresses");
+        if ($nbContact > 0) $head[$h][1].= ' <span class="badge">'.$nbContact.'</span>';
+        $head[$h][2] = 'contact';
+        $h++;
+    }
+
+    complete_head_from_modules($conf, $langs, $object, $head, $h, 'retourproduits');
+
+
+
+    return $head;
+}
