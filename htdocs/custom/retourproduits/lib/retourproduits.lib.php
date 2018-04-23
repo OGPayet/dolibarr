@@ -73,3 +73,36 @@ function retourproduits_prepare_head($object)
 
     return $head;
 }
+
+function retourproduits_admin_prepare_head($object=null)
+{
+	global $langs, $conf;
+
+	$h = 0;
+	$head = array();
+
+	$head[$h][0] = dol_buildpath("/retourproduits/admin/retourproduits_conf.php", 1);
+	$head[$h][1] = $langs->trans('Parameters');
+	$head[$h][2] = 'general';
+	$h++;
+
+	// Show more tabs from modules
+	// Entries must be declared in modules descriptor with line
+	// $this->tabs = array('entity:+tabname:Title:@mymodule:/mymodule/mypage.php?id=__ID__');   to add new tab
+	// $this->tabs = array('entity:-tabname);   												to remove a tab
+	complete_head_from_modules($conf, $langs, $object, $head, $h, 'retourproduits_admin');
+
+	$head[$h][0] = dol_buildpath('/retourproduits/admin/retourproduits_extrafields.php', 1);
+	$head[$h][1] = $langs->trans("ExtraFieldsRetProd");
+	$head[$h][2] = 'attributes';
+	$h++;
+
+	$head[$h][0] = dol_buildpath('/retourproduits/admin/retourproduitsdet_extrafields.php', 1);
+	$head[$h][1] = $langs->trans("ExtraFieldsRetProdDet");
+	$head[$h][2] = 'attributesdet';
+	$h++;
+
+	complete_head_from_modules($conf, $langs, $object, $head, $h, 'retourproduits_admin', 'remove');
+
+	return $head;
+}

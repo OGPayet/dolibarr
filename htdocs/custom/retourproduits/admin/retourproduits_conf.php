@@ -27,6 +27,7 @@ $res=@include("../../main.inc.php");					// For root directory
 if (! $res) $res=@include("../../../main.inc.php");		// For "custom" directory
 
 require_once(DOL_DOCUMENT_ROOT."/core/lib/admin.lib.php");
+dol_include_once('/retourproduits/lib/retourproduits.lib.php');
 
 $langs->load("admin");
 $langs->load("products");
@@ -44,6 +45,9 @@ llxHeader('',$langs->trans("ProductSetup"));
 
 $linkback='<a href="'.DOL_URL_ROOT.'/admin/modules.php">'.$langs->trans("BackToModuleList").'</a>';
 print_fiche_titre($langs->trans("RetourProduitsSetUp"),$linkback,'setup');
+
+$head = retourproduits_admin_prepare_head();
+dol_fiche_head($head, 'general', $tab, 0, 'retourproduits@retourproduits');
 
 $html = new Form($db);
 $var = true;

@@ -49,7 +49,7 @@ class ActionsRetourProduits // extends CommonObject
 		if ($action == 'create_return' ) {
 			dol_include_once('/retourproduits/class/retourproduits.class.php');
 
-			// ici faire la création si tout est OK
+			// ici faire la crï¿½ation si tout est OK
 			$commandeid = GETPOST('id', 'int') ;
 			$commande = new Commande($db);
 			$rpds = new RetourProduits($db);
@@ -59,7 +59,7 @@ class ActionsRetourProduits // extends CommonObject
 			$rpds->origin_id = $commandeid ;
 			//$retourId = $rpds->create($user);
 
-			// puis crcéation ligne-détail sur chancun des numéro de série
+			// puis crcï¿½ation ligne-dï¿½tail sur chancun des numï¿½ro de sï¿½rie
 
 			foreach ($_GET['line'] as $key => $value) {
 				$line = new RetourProduitsLigne($this->db);
@@ -89,13 +89,13 @@ class ActionsRetourProduits // extends CommonObject
 		global $formconfirm ;
 
 		$langs->load("retourproduits@retourproduits");
-		require_once(dol_buildpath('/retourproduits/form/html.form.class.php');
+		require_once(dol_buildpath('/retourproduits/form/html.form.class.php'));
 
 		$formreturnproducts = new FormRetourProduits($db);
 		$form = new Form($db);
 
 		if ($action == 'returnproducts') {
-			// liste des produits sur cette commande  / Numéro de série / Quantité / Entrepots
+			// liste des produits sur cette commande  / Numï¿½ro de sï¿½rie / Quantitï¿½ / Entrepots
 			$formquestion = $formreturnproducts->select_return_products($object->id) ;
 			$formconfirm = $formreturnproducts->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('CreateReturnProducts'), $langs->trans('SelectProductsToReturn'),'create_return', $formquestion, 0, 2, 400,600);
 		}

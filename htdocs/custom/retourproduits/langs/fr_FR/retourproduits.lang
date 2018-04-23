@@ -15,3 +15,7 @@ ReturnValidatedInDolibarr=Retour Produits <b>%s</b>validé
 ReturnClassifyClosedInDolibarr=Retour Produits <b>%s</b>cloturé
 ReturnUnClassifyCloseddInDolibarr=Retour Produits <b>%s</b>ré-ouvert
 ListOfReturnProducts=Liste des Retours Produits
+ExtraFieldsRetProd=Attributs supplémentaires (retour produits)
+ExtraFieldsRetProdDet=Attributs supplémentaires (détail)
+RetourProduitsDet=Détail Retour Produits
+RetourProduits= Retour Produits
