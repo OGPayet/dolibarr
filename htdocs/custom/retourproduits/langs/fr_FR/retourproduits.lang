@@ -18,4 +18,5 @@ ListOfReturnProducts=Liste des Retours Produits
 ExtraFieldsRetProd=Attributs supplémentaires (retour produits)
 ExtraFieldsRetProdDet=Attributs supplémentaires (détail)
 RetourProduitsDet=Détail Retour Produits
-RetourProduits= Retour Produits
+RetourProduits=Retour Produits
+QtyOrdered=Qté Commandée

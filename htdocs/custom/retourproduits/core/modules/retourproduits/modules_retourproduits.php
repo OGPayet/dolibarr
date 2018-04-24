@@ -24,7 +24,35 @@
  *                  and parent class for projects numbering models
  */
 
+require_once DOL_DOCUMENT_ROOT."/core/class/commondocgenerator.class.php";
+/**
+ *	Parent class of sending receipts models
+ */
+abstract class ModeleRetourProduits extends CommonDocGenerator
+{
+    var $error='';
 
+
+	/**
+	 *  Return list of active generation modules
+	 *
+     *  @param	DoliDB	$db     			Database handler
+     *  @param  integer	$maxfilenamelength  Max length of value to show
+     *  @return	array						List of templates
+	 */
+	static function liste_modeles($db,$maxfilenamelength=0)
+	{
+		global $conf;
+
+		$type='retourproduits';
+		$liste=array();
+
+		include_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
+		$liste=getListOfModels($db,$type,$maxfilenamelength);
+
+		return $liste;
+	}
+}
 
 /**
  *  Classe mere des modeles de numerotation des references de projets

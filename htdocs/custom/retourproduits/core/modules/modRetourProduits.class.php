@@ -80,7 +80,7 @@ class modRetourProduits extends DolibarrModules
 
 		// Data directories to create when module is enabled.
 		// Example: this->dirs = array("/mymodule/temp");
-		$this->dirs = array();
+		$this->dirs = array("/retourproduits/temp");
 
 		// Config pages. Put here list of php page, stored into mymodule/admin directory, to use to setup module.
 		$this->config_page_url = array("retourproduits_conf.php@retourproduits");
@@ -100,7 +100,8 @@ class modRetourProduits extends DolibarrModules
 		//                             1=>array('MYMODULE_MYNEWCONST2','chaine','myvalue','This is another constant to add',0, 'current', 1)
 		// );
 		$this->const = array();
-        $this->const[1] = array('RETURNPRODUCTS_ADDON_NUMBER', 'chaine', 'mod_retourproduits_simple', 'Retour Produits ref number');
+                $this->const[1] = array('RETURNPRODUCTS_ADDON_NUMBER', 'chaine', 'mod_retourproduits_simple', 'Retour Produits ref number');
+                $this->const[2] = array('RETURNPRODUCTS_ADDON_PDF', 'chaine', 'soleil', 1);
 
 
 		// Array to add new pages in new tabs
@@ -298,6 +299,9 @@ class modRetourProduits extends DolibarrModules
 		$sql = array();
 
 		$this->_load_tables('/retourproduits/sql/');
+
+        $sql = array('INSERT IGNORE INTO '.MAIN_DB_PREFIX.'document_model (nom ,entity ,type) VALUES (\'rouget\', \'1\', \'retourproduits\');',
+		);
 
 		return $this->_init($sql, $options);
 	}

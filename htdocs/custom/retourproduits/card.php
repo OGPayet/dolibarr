@@ -94,7 +94,6 @@ $cancel     = GETPOST('cancel','alpha');
 
 $object = new RetourProduits($db);
 
-
 // fetch optionals attributes and labels
 //$extralabels = $extrafields->fetch_name_optionals_label($object->table_element);
 $extralabels = false;
@@ -461,7 +460,7 @@ if (empty($reshook))
 				$outputlangs = new Translate("", $conf);
 				$outputlangs->setDefaultLang($newlang);
 			}
-			$model=$object->modelpdf;
+			$model=$object->model_pdf;
 			$ret = $object->fetch($id); // Reload to get new records
 
 			$result=$object->generateDocument($model, $outputlangs, $hidedetails, $hidedesc, $hideref);
@@ -559,10 +558,10 @@ if (empty($reshook))
 	        $outputlangs = new Translate("",$conf);
 	        $outputlangs->setDefaultLang($newlang);
 	    }
-		$result = $object->generateDocument($object->modelpdf, $outputlangs, $hidedetails, $hidedesc, $hideref);
-	    if ($result <= 0)
+		$result = $object->generateDocument($object->model_pdf, $outputlangs, $hidedetails, $hidedesc, $hideref);
+            if ($result <= 0)
 	    {
-			setEventMessages($object->error, $object->errors, 'errors');
+		setEventMessages($object->error, $object->errors, 'errors');
 	        $action='';
 	    }
 	}
@@ -572,7 +571,7 @@ if (empty($reshook))
 	{
 		require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
 
-		$upload_dir =	$conf->expedition->dir_output . "/sending";
+		$upload_dir =	$conf->retourproduits->dir_output;
 		$file =	$upload_dir	. '/' .	GETPOST('file');
 		$ret=dol_delete_file($file,0,0,0,$object);
 		if ($ret) setEventMessages($langs->trans("FileWasRemoved", GETPOST('urlfile')), null, 'mesgs');
@@ -602,12 +601,12 @@ if (empty($reshook))
 	include DOL_DOCUMENT_ROOT.'/core/actions_printing.inc.php';
 
 	// Actions to send emails
-	if (empty($id)) $id=$facid;
-	$trigger_name='SHIPPING_SENTBYMAIL';
-	$paramname='id';
-	$mode='emailfromshipment';
-	$trackid='shi'.$object->id;
-	include DOL_DOCUMENT_ROOT.'/core/actions_sendmails.inc.php';
+//	if (empty($id)) $id=$facid;
+//	$trigger_name='SHIPPING_SENTBYMAIL';
+//	$paramname='id';
+//	$mode='emailfromshipment';
+//	$trackid='shi'.$object->id;
+//	include DOL_DOCUMENT_ROOT.'/core/actions_sendmails.inc.php';
 }
 
 
@@ -2038,21 +2037,20 @@ else if ($id || $ref)
 	{
         print '<div class="fichecenter"><div class="fichehalfleft">';
 
-        $objectref = dol_sanitizeFileName($object->ref);
-		$filedir = $conf->expedition->dir_output . "/sending/" .$objectref;
+        $filename=dol_sanitizeFileName($object->ref);
+        $filedir = $conf->retourproduits->dir_output .'/'.$filename;
 
-		$urlsource = $_SERVER["PHP_SELF"]."?id=".$object->id;
+	$urlsource = $_SERVER["PHP_SELF"]."?id=".$object->id;
 
-		$genallowed=$user->rights->expedition->lire;
-		$delallowed=$user->rights->expedition->creer;
+	$genallowed=$user->rights->retourproduits->lire;
+	$delallowed=$user->rights->retourproduits->creer;
 
-		print $formfile->showdocuments('expedition',$objectref,$filedir,$urlsource,$genallowed,$delallowed,$object->modelpdf,1,0,0,28,0,'','','',$soc->default_lang);
 
+		print $formfile->showdocuments('retourproduits',$object->ref,$filedir,$urlsource,$genallowed,$delallowed,$object->modelpdf,1,0,0,28,0,'','','',$soc->default_lang);
 
 		// Show links to link elements
 		//$linktoelem = $form->showLinkToObjectBlock($object, null, array('order'));
 		$somethingshown = $form->showLinkedObjectBlock($object, '');
-
 
 		print '</div><div class="fichehalfright"><div class="ficheaddleft">';
 

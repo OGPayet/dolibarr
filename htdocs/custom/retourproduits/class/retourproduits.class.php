@@ -112,6 +112,7 @@ class RetourProduits extends CommonObject
 		$this->lines = array();
 		$this->products = array();
 
+                $this->model_pdf = 'retourproduits_rouget';
 		// List of long language codes for status
 		$this->statuts = array();
 		$this->statuts[-1] = 'StatusSendingCanceled';
@@ -2106,16 +2107,16 @@ class RetourProduits extends CommonObject
 
 		if (! dol_strlen($modele)) {
 
-			$modele = 'rouget';
+			$modele = 'retourproduits_rouget';
 
 			if ($this->modelpdf) {
 				$modele = $this->modelpdf;
-			} elseif (! empty($conf->global->EXPEDITION_ADDON_PDF)) {
-				$modele = $conf->global->EXPEDITION_ADDON_PDF;
+			} elseif (! empty($conf->global->RETURNPRODUCTS_ADDON_PDF)) {
+				$modele = $conf->global->RETURNPRODUCTS_ADDON_PDF;
 			}
 		}
 
-		$modelpath = "core/modules/expedition/doc/";
+		$modelpath = "core/modules/retourproduits/doc/";
 
 		$this->fetch_origin();
 
