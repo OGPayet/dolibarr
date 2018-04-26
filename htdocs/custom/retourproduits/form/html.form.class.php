@@ -296,8 +296,7 @@ class FormRetourProduits extends Form
                                 });
                             }
                             var urljump=pageno + (pageno.indexOf("?") < 0 ? "?" : "") + options;
-
-                            alert(urljump);
+                            //alert(urljump);
                             if (pageno.length > 0) { location.href = urljump; }
                             $(this).dialog("close");
                         }
