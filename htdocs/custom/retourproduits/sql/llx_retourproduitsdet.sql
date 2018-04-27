@@ -21,7 +21,7 @@ CREATE TABLE llx_retourproduitsdet (
   fk_retourproduits int(11) NOT NULL,
   fk_origin_line int(11) DEFAULT NULL,
   fk_product int(11) DEFAULT NULL,
-  fk_equipementevt int(11) DEFAULT NULL,
+  fk_equipement int(11) DEFAULT NULL,
   fk_entrepot_dest int(11) DEFAULT NULL,
   qty double DEFAULT NULL,
   rang int(11) DEFAULT '0'

@@ -296,14 +296,12 @@ class modRetourProduits extends DolibarrModules
 	 */
 	public function init($options='')
 	{
-		$sql = array();
+            $sql = array();
+            $this->_load_tables('/retourproduits/sql/');
+            $sql = array('INSERT IGNORE INTO '.MAIN_DB_PREFIX.'document_model (nom ,entity ,type) VALUES (\'rouget\', \'1\', \'retourproduits\');'
+            );
 
-		$this->_load_tables('/retourproduits/sql/');
-
-        $sql = array('INSERT IGNORE INTO '.MAIN_DB_PREFIX.'document_model (nom ,entity ,type) VALUES (\'rouget\', \'1\', \'retourproduits\');',
-		);
-
-		return $this->_init($sql, $options);
+            return $this->_init($sql, $options);
 	}
 
 	/**

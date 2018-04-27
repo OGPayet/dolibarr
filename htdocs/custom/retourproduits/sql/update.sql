@@ -1,0 +1,1 @@
+ALTER TABLE llx_retourproduitsdet CHANGE fk_equipementevt fk_equipement INT(11) NULL DEFAULT NULL;
