@@ -1,0 +1,83 @@
+# Dolibarr language file - en_US - multicompany
+CHARSET=UTF-8
+Module5000Name=Multi-Empresa
+Module5000Desc=Gestió de Multiempresa en una instal·lació simple
+
+MasterEntity=Entitat mestra
+MasterEntityDesc=Entitat mestra, no pot ser eliminada
+SwitchToAnotherEntity=Canviar d'entitat
+SelectAnEntity=Seleccionar una entitat
+AllEntities=Totes les entitas
+
+# Admin parameters tab
+AddAll=Tot
+RemoveAll=Buidar
+ItemsCount=Selecció(ns)
+EntitiesManagement=Gestió d'entitats
+ListOfEntities=Llistat d'entitats
+AddEntity=Afegir entitat
+EditEntity=Editar entitat
+EntityName=nom de l'entitat
+DefaultLanguageShort=Idioma per defecte
+CommonParameters=Paràmetres comuns d'accions
+ReferringEntity=Entitat de referència per als valors de configuració
+DeleteAnEntity=Eliminar una entitat
+ConfirmDeleteEntity=Esteu segur de voler eliminar aquesta entitat?
+ConfirmedEntityDeleted=L'entitat ha estat eliminada.
+MulticompanyMoreModules=D'autres modules du même auteur sont disponibles sur iNodbox.com...
+MultiCompanyUpgradeIsNeeded=You use a new version of MULTICOMPANY module, please deactivate and reactivate the module to apply the update.
+
+THIRDPARTYSharing=Sharing thirdparties and contacts
+THIRDPARTYSharingDescription=Selection of entities that share their database thirdparties/contacts with the entity.
+PRODUCTSharing=Share of products/services
+PRODUCTSharingDescription=Selection of entities that share their database products/services with this entity.
+PRODUCTPRICESharing=Share prices of products/services
+PRODUCTPRICESharingDescription=Selection of entities that share prices of products/services with this entity.
+CATEGORYSharing=Sharing categories
+CATEGORYSharingDescription=Selection of entities that share categories with this entity.
+AGENDASharing=Calendar sharing
+AGENDASharingDescription=Selection of entities that share the calendar with this entity.
+STOCKSharing=Stock sharing
+STOCKSharingDescription=Selection of entities that share products stock with this entity.
+BANKACCOUNTSharing=Bank account sharing
+BANKACCOUNTSharingDescription=Selection of entities that share bank accounts with this entity.
+INVOICENUMBERSharing=Invoice number sharing
+INVOICENUMBERSharingDescription=Selection of entities that share invoice number with this entity.
+EXPENSEREPORTSharing=Expense report sharing
+EXPENSEREPORTSharingDescription=Selection of entities that share the expense report with this entity.
+PROJECTSharing=Project sharing
+PROJECTSharingDescription=Selection of entities that share projects with this entity.
+MEMBERSharing=Member sharing
+MEMBERSharingDescription=Selection of entities that share members with this entity.
+
+# Admin options tab
+Options=Opcions
+ActivatingShares=Activating shares
+GroupModeTransversal=Enable centralized management of users and groups on the primary entity
+GroupModeTransversalTitle=Enable centralized management of users and groups
+GroupModeTransversalInfo=By default each entity is autonomous with its own user management. This option makes it possible to centralize the management of users and groups on the main entity by assigning rights to them relative to a group and to an entity.
+GroupModeTransversalInfoFull=By default each entity is autonomous with its own user management. This option makes it possible to centralize the management of users and groups on the main entity by assigning rights to them relative to a group and to an entity. Creating user groups is required to manage entity access rights.
+HideLoginCombobox=Ocultar la selecció de l'entitat a la pàgina d'inici
+EnableGlobalSharings=Activar les funcions d'intercanvi entre entitats
+ShareProductsAndServices=Activar l'intercanvi de productes/serveis
+ShareProductsAndServicesPrices=Activar l'intercanvi de preus de productes/serveis
+ShareThirdpartiesAndContacts=Activar l'intercanvi de tercers i contactes
+ShareCategories=Activar l'intercanvi de preus de categories
+ShareAgenda=Activar l'intercanvi de l'agenda
+ShareStock=Activar l'intercanvi de stocks
+ShareBank=Activar l'intercanvi de comptes bancaris
+ShareInvoicesNumber=Activar l'intercanvi de numeració de factures
+ShareExpenseReport=Enable sharing of expenses reports
+ShareProject=Enable sharing of projects
+ShareMembers=Enable sharing of members
+GlobalSharings=Sharing features
+GlobalSharingsInfo=After sharing options are activated, it will be necessary to configure each entity in the "Environments" tab to allow the shares between entities.
+ActivatingDictsShares=Customizing dictionaries
+DictsSharingsInfo=By default, all entities use the dictionaries of the main entity.<br>You can activate the customization of a dictionary in order to have a different version by entity.
+ShareC_paiement=Enable customization of payment methods by entity (llx_c_paiement)
+ShareC_payment_term=Enable customization of payment terms by entity (llx_c_payment_term)
+
+# Errors
+ErrorEntityLabelAlreadyExist=L'etiqueta d'aquesta entitat ja existeix.
+ErrorEntityIsNotValid=Aquesta entitat no és vàlida.
+ErrorNotDeleteMasterEntity=No es pot eliminar l'entitat mestra.
