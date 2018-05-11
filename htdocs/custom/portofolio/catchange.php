@@ -604,9 +604,9 @@ if ($resqlline) {
 	print '</tr>';
 	$var=true;
 	$resqldata = $db->query($sqlbis);
-	// si c'est le premier accès et plus de 200 lignes, on n'affiche que les 200 premières lignes
+	// si c'est le premier accès et plus de 2000 lignes, on n'affiche que les 200 premières lignes
 	if ($showall=="")
-		$numshow = min(array($num, 200));
+		$numshow = min(array($num, 2000));
 	else
 		$numshow = $num; // après filtrage on ouvre toute les vannes
 	$i = 0;
