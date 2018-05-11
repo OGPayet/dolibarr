@@ -1,0 +1,83 @@
+# Dolibarr language file - en_US - multicompany
+CHARSET=UTF-8
+Module5000Name=Multi Compañía
+Module5000Desc=Administración de multi compañía en una instalación individual
+
+MasterEntity=Entidad maestra
+MasterEntityDesc=Entidad maestra, no puede ser eliminada
+SwitchToAnotherEntity=Cambiar de entidad
+SelectAnEntity=Seleccionar una entidad
+AllEntities=Todas las entidades
+
+# Admin parameters tab
+AddAll=Todo
+RemoveAll=Vaciar
+ItemsCount=Seleccionados
+EntitiesManagement=Gestión de entidades
+ListOfEntities=Listado de entidades
+AddEntity=Añadir entidad
+EditEntity=Editar entidad
+EntityName=nombre de la entidad
+DefaultLanguageShort=Idioma por defecto
+CommonParameters=Parámetros comunes de acciones
+ReferringEntity=Entidad de referencia para los valores de configuración
+DeleteAnEntity=Eliminar una entidad
+ConfirmDeleteEntity=¿Está seguro de querer eliminar esta entidad?
+ConfirmedEntityDeleted=La entidad ha sido eliminada.
+MulticompanyMoreModules=D'autres modules du même auteur sont disponibles sur iNodbox.com...
+MultiCompanyUpgradeIsNeeded=You use a new version of MULTICOMPANY module, please deactivate and reactivate the module to apply the update.
+
+THIRDPARTYSharing=Intercambiar terceros y contactos
+THIRDPARTYSharingDescription=Selección de entidades que intercambian sus terceros/contactos con esta entidad.
+PRODUCTSharing=Intercambiar productos/servicios
+PRODUCTSharingDescription=Selección de entidades que intercambian sus productos/servicios con esta entidad.
+PRODUCTPRICESharing=Compartir precio de productos/servicios
+PRODUCTPRICESharingDescription=Entidades que comparten precios de productos/servicios con esta entidad
+CATEGORYSharing=Intercambiar categorías
+CATEGORYSharingDescription=Selección de entidades que intercambian sus categorías con esta entidad.
+AGENDASharing=Intercambiar agendas
+AGENDASharingDescription=Selección de entidades que intercambian su agenda con esta entidad.
+STOCKSharing=Stock sharing
+STOCKSharingDescription=Selection of entities that share products stock with this entity.
+BANKACCOUNTSharing=Intercambiar cuentas bancarias
+BANKACCOUNTSharingDescription=Selección de entidades que intercambian sus cuentas bancarias con esta entidad
+INVOICENUMBERSharing=Invoice number sharing
+INVOICENUMBERSharingDescription=Selection of entities that share invoice number with this entity.
+EXPENSEREPORTSharing=Expense report sharing
+EXPENSEREPORTSharingDescription=Selection of entities that share the expense report with this entity.
+PROJECTSharing=Project sharing
+PROJECTSharingDescription=Selection of entities that share projects with this entity.
+MEMBERSharing=Member sharing
+MEMBERSharingDescription=Selection of entities that share members with this entity.
+
+# Admin options tab
+Options=Opciones
+ActivatingShares=Activating shares
+GroupModeTransversal=Enable centralized management of users and groups on the primary entity
+GroupModeTransversalTitle=Enable centralized management of users and groups
+GroupModeTransversalInfo=By default each entity is autonomous with its own user management. This option makes it possible to centralize the management of users and groups on the main entity by assigning rights to them relative to a group and to an entity.
+GroupModeTransversalInfoFull=By default each entity is autonomous with its own user management. This option makes it possible to centralize the management of users and groups on the main entity by assigning rights to them relative to a group and to an entity. Creating user groups is required to manage entity access rights.
+HideLoginCombobox=Ocultar la selección de la entidad en la página de inicio
+EnableGlobalSharings=Activar las funciones de intercambio entre entidades
+ShareProductsAndServices=Activar el intercambio de productos/servicios
+ShareProductsAndServicesPrices=Activar el intercambio de precios de productos/servicios
+ShareThirdpartiesAndContacts=Activar el intercambio de terceros y contactos
+ShareCategories=Activar el intercambio de categorías
+ShareAgenda=Activar el intercambio de la agenda
+ShareStock=Activar el intercambio de stocks
+ShareBank=Activar el intercambio de cuentas bancarias
+ShareInvoicesNumber=Habilitar intercambio del número de facturas
+ShareExpenseReport=Enable sharing of expenses reports
+ShareProject=Enable sharing of projects
+ShareMembers=Enable sharing of members
+GlobalSharings=Características de intercambio
+GlobalSharingsInfo=After sharing options are activated, it will be necessary to configure each entity in the "Environments" tab to allow the shares between entities.
+ActivatingDictsShares=Customizing dictionaries
+DictsSharingsInfo=By default, all entities use the dictionaries of the main entity.<br>You can activate the customization of a dictionary in order to have a different version by entity.
+ShareC_paiement=Enable customization of payment methods by entity (llx_c_paiement)
+ShareC_payment_term=Enable customization of payment terms by entity (llx_c_payment_term)
+
+# Errors
+ErrorEntityLabelAlreadyExist=La etiqueta de esta entidad ya existe.
+ErrorEntityIsNotValid=Esta entidad no es valida.
+ErrorNotDeleteMasterEntity=No se puede eliminar la entidad maestra.

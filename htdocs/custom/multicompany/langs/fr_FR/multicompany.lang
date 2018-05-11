@@ -1,0 +1,83 @@
+# Dolibarr language file - en_US - multicompany
+CHARSET=UTF-8
+Module5000Name=Multi-Société
+Module5000Desc=Gestion multi-société sur une même installation
+
+MasterEntity=Entité maître
+MasterEntityDesc=Entité maître, ne peut pas être supprimée
+SwitchToAnotherEntity=Changer d'entité
+SelectAnEntity=Sélectionner une entité
+AllEntities=Toutes les entités
+
+# Admin parameters tab
+AddAll=Tout
+RemoveAll=Vider
+ItemsCount=Sélection(s)
+EntitiesManagement=Gestion des entités
+ListOfEntities=Liste des entités
+AddEntity=Ajout d'une entité
+EditEntity=Edition d'une entité
+EntityName=nom de l'entité
+DefaultLanguageShort=Langue par défaut
+CommonParameters=Paramètres communs des partages
+ReferringEntity=Entité référente pour les valeurs de configuration
+DeleteAnEntity=Supprimer une entité
+ConfirmDeleteEntity=Êtes vous certain de vouloir supprimer cette entité ?
+ConfirmedEntityDeleted=L'entité a été supprimée.
+MulticompanyMoreModules=D'autres modules du même auteur sont disponibles sur iNodbox.com...
+MultiCompanyUpgradeIsNeeded=Vous utilisez une nouvelle version du module MULTICOMPANY, désactivez et réactivez le module pour appliquer la mise à jour.
+
+THIRDPARTYSharing=Partage des tiers et des contacts
+THIRDPARTYSharingDescription=Sélection des entités qui partagerons leur base tiers/contacts avec cette entité.
+PRODUCTSharing=Partage des produits/services
+PRODUCTSharingDescription=Sélection des entités qui partagerons leur base produits/services avec cette entité.
+PRODUCTPRICESharing=Partage des prix des produits/services
+PRODUCTPRICESharingDescription=Sélection des entités qui partagerons les prix des produits/services avec cette entité.
+CATEGORYSharing=Partage des catégories
+CATEGORYSharingDescription=Sélection des entités qui partagerons leur base catégories avec cette entité.
+AGENDASharing=Partage des agendas
+AGENDASharingDescription=Sélection des entités qui partagerons leur base agenda avec cette entité.
+STOCKSharing=Partage des stocks
+STOCKSharingDescription=Sélection des entités qui partagerons leur stock de produits avec cette entité.
+BANKACCOUNTSharing=Partage des comptes bancaires
+BANKACCOUNTSharingDescription=Sélection des entités qui partagerons leurs comptes bancaires avec cette entité.
+INVOICENUMBERSharing=Partage des numéros de facture
+INVOICENUMBERSharingDescription=Sélection des entités qui partagerons leur numéros de facture avec cette entité.
+EXPENSEREPORTSharing=Partage des notes de frais
+EXPENSEREPORTSharingDescription=Sélection des entités qui partagerons leur notes de frais avec cette entité.
+PROJECTSharing=Partage des projets
+PROJECTSharingDescription=Sélection des entités qui partagerons leur projects avec cette entité.
+MEMBERSharing=Partage des adhérents
+MEMBERSharingDescription=Sélection des entités qui partagerons leur adhérents avec cette entité.
+
+# Admin options tab
+Options=Options
+ActivatingShares=Activation des partages
+GroupModeTransversal=Activer la gestion centralisée des utilisateurs et des groupes sur l'entité principale
+GroupModeTransversalTitle=Activer la gestion centralisée des utilisateurs et des groupes
+GroupModeTransversalInfo=Par défaut chaque entité est autonome avec sa propre gestion d'utilisateurs. Cette option permet de centraliser la gestion des utilisateurs et des groupes sur l'entité principale en leur attribuant des droits par rapport à un groupe et à une entité.
+GroupModeTransversalInfoFull=Par défaut chaque entité est autonome avec sa propre gestion d'utilisateurs. Cette option permet de centraliser la gestion des utilisateurs et des groupes sur l'entité principale en leur attribuant des droits par rapport à un groupe et à une entité. La création de groupes d'utilisateurs est obligatoire pour gérés les droits d'accès aux entités.
+HideLoginCombobox=Masquer le choix de l'entité dans la page de login
+EnableGlobalSharings=Activer les fonctionnalités de partages entre entités
+ShareProductsAndServices=Activer le partage des produits/services
+ShareProductsAndServicesPrices=Activer le partage des prix des produits/services
+ShareThirdpartiesAndContacts=Activer le partage des tiers et des contacts
+ShareCategories=Activer le partage des catégories
+ShareAgenda=Activer le partage des agendas
+ShareStock=Activer le partage des stocks
+ShareBank=Activer le partages des comptes bancaires
+ShareInvoicesNumber=Activer le partage de la numérotation des factures
+ShareExpenseReport=Activer le partage des notes de frais
+ShareProject=Activer le partage des projects
+ShareMembers=Activer le partage des adhérents
+GlobalSharings=Fonctionnalités de partages
+GlobalSharingsInfo=Une fois les options de partages activées, il sera nécessaire de configurer chaque entité<br>dans l'onglet "Environnements" pour autoriser les partages entre entités.
+ActivatingDictsShares=Personnalisation des dictionnaires
+DictsSharingsInfo=Par défaut, toutes les entités utilisent les dictionnaires de l'entité principale.<br>Vous pouvez activer la personnalisation d'un dictionnaire pour avoir une version différente par entité.
+ShareC_paiement=Activer la personnalisation des modes de paiements par entité (llx_c_paiement)
+ShareC_payment_term=Activer la personnalisation des conditions de paiements par entité (llx_c_payment_term)
+
+# Errors
+ErrorEntityLabelAlreadyExist=Le libellé de cette entité existe déjà.
+ErrorEntityIsNotValid=Cette entité n'est pas valide.
+ErrorNotDeleteMasterEntity=On ne peut pas supprimer l'entité maître.
