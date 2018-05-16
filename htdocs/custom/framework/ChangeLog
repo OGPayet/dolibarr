@@ -1,0 +1,222 @@
+--------------------------------------------------------------
+English Dolibarr FrameWork Mod ChangeLog
+--------------------------------------------------------------
+
+
+
+[Tracker/Bug](http://support.oscss-shop.fr/roadmap/proj15)
+
+TODO
+-----------
+- Complet languages
+
+v 1.4.2 (stable)
+---------
+- implement contract tabs
+- Fix error in php 7.0.1
+
+
+v 1.4.1 (stable)
+---------
+- Fix load Greffon in dynamical config and structured page config
+- implement group tabs
+
+v 1.4.0 (stable)
+---------
+- FS#116 - PHP Fatal error: Cannot redeclare dol_banner_tab()
+- Fix link in Datatables
+- Fix lib.greffon error for check state greffon enabled
+- FS#119 Warning in admin page
+- FS#120 - warning function loadbox dans dolmodexts.class.php
+- FS#114 - page config greffon les champs de recherche ne renvoi pas sur la bonne page
+
+v 1.3.12 (unstable)
+---------
+
+v 1.3.11 (unstable)
+---------
+- Fix submodule for tab  in admin module
+
+v 1.3.10 (unstable)
+---------
+- Fix Error in subgreffon class required var $db
+
+v 1.3.09 (unstable)
+---------
+- add method for choose user in list
+
+v 1.3.08 (unstable)
+---------
+- add class compatibilty dol 5.xx
+
+v 1.3.07 (unstable)
+---------
+- Fix error for calulate lib complet for funciton missing
+
+v 1.3.06 (unstable)
+---------
+- Add lib for support olds dolibarrr in function missing
+- fix for dolibarr 3.8
+
+v 1.3.05 (unstable)
+---------
+- add support greffon for dol 3.8
+- add class html.form for support hook , greffon on other module
+- add support two paralm in loadClass function for precise name of file (html.form for class form)
+
+v 1.3.04 (unstable)
+---------
+- Fix warning php 7
+- Fix warning get file if not found
+- Fix test of presence var in loop hook and link to greffon
+- Add item not defined in lang
+
+v 1.3.03 (unstable)
+---------
+- Fix warning php
+
+v 1.3.02 (unstable)
+---------
+- Add fixversion for 4.0 in bordereau_cheque table col ref <> bordereau
+- Add dir for 5.0 in support class because 6.0 is published
+- Fix error notice
+
+v 1.3.01 (unstable)
+---------
+- Fix error in greffon
+- Comment framework section other module
+- Fix hookgreffon in usage and in definition
+- Fix framework hook for correctly support greffon
+
+v 1.3.00 (unstable)
+---------
+- Fix num de version in two number for test
+
+v 1.1.14 (unstable)
+---------
+- Fix menu in config framework
+
+v 1.1.14 (unstable)
+---------
+- correctly usage of build file for greffon
+
+v 1.1.13 (unstable)
+---------
+- add lib for collect fucntion used for linked greffon
+
+v 1.1.12 (unstable)
+---------
+- Implements Greffon base of manupulate and configure
+- Add hook in framework, and add class hookgreffon for replace hookmanager
+- next clean and simplify usage of autotabs
+- add mecanical for autorise config by subdynamical in greffon mode
+- next time passed in simplify greffon mode
+- add hook in framework and implements greffon and hookgreffon
+- delete old file
+- add methode for config in html.dolmodexts
+
+v 1.1.11
+---------
+- Fix autotabs
+- fix class generictabsbanner
+- clean tabs specific societe
+- clean dir img
+
+v 1.2.0 (stable)
+---------
+- tags
+
+v 1.1.10
+---------
+- Fix selected tabs in autotabs
+
+v 1.1.9
+---------
+- Next dev in section autotabs for fix preocess and use minimal params in declare
+- add generic model for support other type of ressource for display tabs in section. Impreative clean normalise (filename, name function, object and methode, cf dolibarr developement) code in your other module
+- add class normative called for diplay segment banner of type in card section
+
+v 1.1.8
+---------
+- Fix autotabs
+- Implemnt version testing / stable in update
+- clean code
+- Fix dolmodexts
+- add supprort type tabs
+- add fixversion type
+
+v 1.1.7
+---------
+- Fix compatibilty modebuilder dolibarr core module for view suffix .md
+- Fix link in admin section all modules
+- Add Cst in framework for modified Hidden dolibarr option
+
+v 1.1.6
+---------
+- Fix mecanical of subbscription in api editor
+- Fix display
+
+v 1.1.5
+---------
+- Fix bug in dolmodexts
+
+v 1.1.4
+---------
+- Fix bug
+- Fix error in last tags reported
+- add support option for extrafileds and add specifical extrafields by type is table_element coupled in two modules (Not Clean code, not use)
+- fix descriptor
+
+v 1.1.3
+---------
+- add config in framework for put choose level version of module
+
+v 1.1.2
+---------
+- Fix build.json file not found, force use file on framework module; this is specific for module producted by oscss-shop
+- Implement hook dynamical in framework for engine in other context by submodule
+
+v 1.1.1
+---------
+- developped Fixversion class for manage typeobject vs class name
+
+v 1.1.0
+---------
+- Add nex method in constructot Admin section for module
+- Add new class for form in framework admin section
+- Force load descriptor of module in all section admin specific module page
+- Add new params in module_partys descriptor specific in framework engine
+- Fix extends param in descriptor for specific usage framework
+- Clean code
+
+v 1.0.2
+---------
+- Implement centralise params, config and display for extrafileds in other modules
+- Normalise component for dynamical display segment of config (add modele type, numero, etc..)
+
+v 1.0.1
+---------
+- add support for multiple editor use this module
+- change mecanical and add registration section for manage linking and subscribition in editor api
+
+
+v 1.0.0
+---------
+- Add Class for noramilse /admin dir in submodule and reduces the amount of code in submodule
+- Add support for cron job ; descriptor in sub module and class for install in activate sub module
+- Add params in function Display for precise javascript function for comportment on click in line
+- Fix path of image in markdown
+- Fix path for use oscimmods in custom dir
+- adjust version of Datatables
+- add image for Datatables
+- Check for 3.8.3 dolibarr version
+- Fix path for custom dir in descriptor, in context link admin page current mod
+- Add Php Class for use Database.js + listing in page
+- Centralise ressoucre used by other modules developped by OscssShopExts
+- Add PHP Markdown
+- Add Base Datatables extends jquery plugins
+- Add class for support change name table or column in sql
+- add support of descriptor of mofule for developped by OscssShop
+- add mecanism for support info version and auto update module
+- Fix
+- Complet this descriptor module for specific group and familly

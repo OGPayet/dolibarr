@@ -1,0 +1,49 @@
+# Copyright (C)  SuperAdmin
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#
+# Générique
+#
+
+# Module label 'Modulesynergies_tech_contratName'
+Modulesynergies_tech_contratName = Synergies Tech
+synergies_tech_contrat = Synergies Tech
+# Module description 'Modulesynergies_tech_contratDesc'
+synergies_tech_contratDesc = Contrat avancé
+
+#
+# Page d'administration
+#
+synergies_tech_contratSetup = Configuration du module mon module
+Settings = Réglages
+synergies_tech_contratSetupPage = Page de réglage de mon module
+
+#
+# Page À propos
+#
+About = À propos
+synergies_tech_contratAbout = À propos de mon module
+synergies_tech_contratAboutPage = Page à propos de mon module
+
+#
+# Page d'exemple
+#
+MyPageName = Nom de ma page
+
+#
+# Box d'exemple
+#
+MyWidget = Mon widget
+MyWidgetDescription = Description de mon widget

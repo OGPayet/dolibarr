@@ -1,0 +1,39 @@
+<?php
+
+/* Copyright (C) 2016		 Oscss-Shop       <support@oscss-shop.fr>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * or see http://www.gnu.org/
+ */
+
+
+
+// class OSEContact extends Contact {
+
+
+namespace CORE;
+dol_include_once('/contact/class/contact.class.php');
+
+
+namespace CORE\FRAMEWORK;
+use \CORE\FRAMEWORK\Contact as Contact ;
+
+
+
+class Contact
+	extends \Contact{
+
+    public $OSE_loaded_version = 4;
+
+}

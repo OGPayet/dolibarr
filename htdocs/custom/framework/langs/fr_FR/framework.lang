@@ -1,0 +1,52 @@
+# Copyright (C) 2013 Oscim <support@oscim.fr>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+CHARSET=UTF-8
+
+# Module label 'ModuleXXXName'
+# (where XXX is value of numeric property 'numero' of module)
+# Module description 'ModuleXXXDesc'
+# (where XXX is value of numeric property 'numero' of module)
+FrameworkConfigTitle= Framework
+othermods=Autre modules
+MakeModule= Créer des paquetages de module
+editorframework= Framework Editeur
+
+FilesInCustom= Voici la liste des répertoires trouvés dans le dossier /custom/ , Cliquez sur celui que vous voulez packager
+Step=Étape
+AddCoreFiles=Ajouter des fichiers en dehors du module :
+Packager=Créer un paquetage
+Download= Télécharger
+UpdateTo= Mettre à jour vers %s
+
+Registration= Enregistrement
+RegistrationMasterKey= Clef Principale
+RegistrationApiKey= Clef
+RegistrationModActivated= Enregistrement des modules
+RegistrationListActivateModule= Listes des modules déjà enregistrés
+RegistrationModName=Nom
+RegistrationModDateRegistered= Date enregistrement
+RegistrationthisModActivated= Entregistrement de ce module
+RegistrationApiNewMod=Nom de ce module
+FrameworkapikeyApiKeyRegisterNotOk= Echec de l'enregistrement sur l'api de l'editeur %s
+FrameworkapikeyApiKeyRegisterNotOk= Succès de l'enregistrement sur l'api de l'editeur %s
+
+GreffonAddInModule=Vous pouvez ajouter ce greffon %s à ce module %s; Rendez vous sur l'admin de ce module dans la section greffon
+
+UseLevelOfFeaturesToShow
+MainMailUseMultiPart= Forge email content using an alternate text part (for 5.0.2+). By default with 6.0+
+ThirdpartyNotsupplierBydefault=Do not set status "Supplier" to "on" when creating a new third party from menu "New third party".
+MainDirectStatusUpdate=Allows you to change the status of the product (for sale/not for sale for purchase/not for purchase) directly on the product page via a on/off switch button. This can be convenient for those who need to quickly disable certain statuses of products without having to go through the editing product page individually. Also can be very useful if used as a filter on the product and product search list. v4.0+
+SupplierOrderDisableStockDispatchWhenTotalReached=Disable stock dispatch when total expected was already received.

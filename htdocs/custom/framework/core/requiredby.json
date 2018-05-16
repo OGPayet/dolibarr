@@ -1,0 +1,88 @@
+{
+    "depends": [
+    ],
+    "requiredby": [
+        {
+            "module": "dolmessage",
+            "titre": "DolMessage: Gestion d'email avancé",
+            "url": "https://www.dolistore.com/fr/crm-gestion-relation-client/605-DolMessage---Webmail-avanc--.html?search_query=dolmessage&results=1",
+            "id": "121000"
+        },
+        {
+            "module": "lcr",
+            "titre": "LCR: Gestion de traite",
+            "url": "https://www.dolistore.com/fr/modules/712-Pr--l--vement-par-traite---lettre-de-Change-Relev--e--LCR-.html",
+            "id": "121001"
+        },
+        {
+            "module": "oscssshopexts",
+            "titre": "Brique logiciel d'Oscss-Shop",
+            "url":"https://www.dolistore.com/fr/autres/727-oscssshopexts.html",
+            "id": "121002"
+        },
+        {
+            "module": "Edi",
+            "titre": "EDI: Échange de données informatisées ",
+            "url": "https://www.dolistore.com/fr/modules/728-D--mat--rialisation-de-factures-EDI----change-de-donn--es-informatis---.html",
+            "id": "121003"
+        },
+        {
+            "module": "sepavirement",
+            "titre": "SepaVirement: gerer vos virement en SEPA",
+            "id": "121004"
+        },
+        {
+            "module": "dashboard",
+            "titre": "Dashboard: repensez tous vos tableaux de bord",
+            "id": "121005"
+        },
+        {
+            "module": "DolistoreFree",
+            "titre": "DolistoreFree: Accedez à tout le catalogue de modules dans votre Dolibarr",
+            "url":"https://www.dolistore.com/fr/modules/747-DolistoreFree.html",
+            "id": "121006"
+        },
+        {
+            "module": "Kpi",
+            "titre": "KPI: suivez les indices de performance de votre entreprise",
+            "id": "121007"
+        },
+        {
+            "module": "Supervision",
+            "titre": "Supervision: Suivi avancée des objets avec une timeline(Tiers, factures, commandes ...)",
+            "url":"https://www.dolistore.com/fr/modules/761-Supervision.html",
+            "id": "121008"
+        },
+        {
+            "module": "User2O",
+            "titre": "User2O: rattacher vos utilisateur à un lieux de production/exploitation; ajuster vos documents(pdf) tel, adresse à un lieux de production/exploitation; pré-selectionner votre entrepots à un lieux de production/exploitation  ",
+            "id": "121009"
+        },
+        {
+            "module": "multipayment",
+            "titre": "multipayment",
+            "id": "121010"
+        },
+        {
+            "module": "fourn2O",
+            "titre": "fourn2O api fournisseur",
+            "id": "121011"
+        },
+        {
+            "module": "odsfourn",
+            "titre": "odsfourn: amelioration gestion prix produit fournisseur, ajout d'historique à vos prix fournisseur, ajout de statistique fournisseur (total d'achat, delai de paiement moyen, tendance )",
+            "id": "121012"
+        },
+        {
+            "module": "masterlink",
+            "titre": "masterlink: remplacer des onglets ou page dans dolibarr, et permettre ainsi d'assurer la liaison sur tous les liens déjà existant",
+            "id": "121013"
+        },
+        {
+            "module": "Savecontent",
+            "titre": "Savecontent: ",
+            "id": "1210016"
+        }
+
+    ]
+}
