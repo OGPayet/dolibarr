@@ -1,0 +1,29 @@
+/*
+ * Copyright (C) 2014-2016 ATM Consulting <support@atm-consulting.fr>
+ *
+ * This program and files/directory inner it is free software: you can
+ * redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+I. PDF generation
+
+   1. To transform and send dashboard by mail you'll need WKHTMLTOPDF.
+		a. Use the lib/wkhtmltox-0.12.2.1_linux-wheezy-amd64.deb or retrieve the good one from http://wkhtmltopdf.org/downloads.html
+		b. in terminal, install it as root with "dpkg -i wkhtmltox-0.12.2.1_linux-wheezy-amd64.deb" and "apt-get install -f"
+		c. don't use wkhtmltopdf from repository of debian, it can't run headless (because of a bug)
+		d. configure your cron to call the mail-dashboard.php from commande line with argument 1 (DAY,WEEK,MONTH) and argument 2 (step 1 or 2)
+
+
+	2. To export list as custom list with ODT or ODS template you'll need libreoffice
+		a. in terminal, install it as root with "apt-get install libreoffice-writer". It's normally sufficient

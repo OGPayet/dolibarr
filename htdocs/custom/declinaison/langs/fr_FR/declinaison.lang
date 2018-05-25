@@ -1,0 +1,22 @@
+Module104080Name = Déclinaison
+Module104080Desc = Permet de gérer facilement des déclinaisons produit
+Declinaison = Déclinaison
+DeclinaisonSetup = Configuration du module Déclinaison
+DeclinaisonAbout = A propos du module Déclinaison
+NewDeclinaison = Nouvelle déclinaison
+AbricotNotFound=Le module complémentaire gratuit Abricot ne semble pas installé dans votre environnement mais est nécessaire pour utiliser ce module. Merci de le télécharger à l'adresse suivante
+MirrorPrice=Maintenir les prix à jour avec le parent ?
+MirrorPriceMore=Montant supplémentaire par rapport au parent
+MirrorPricePercent=Pourcentage supplémentaire par rapport au parent
+CreateNewDeclinaison=Créer une nouvelle déclinaison
+CreateNewDeclinaisonWithExistantProduct = Créer à partir d'un produit existant
+DeclinaisonWithExistantProducts = Autoriser la création de déclinaisons à partir de produits pré-existants
+DeleteLink=Supprimer le lien
+
+declinaison_error_fk_parent_or_declinaison_is_missing=Erreur : identifiant du produit parent ou enfant manquant
+declinaison_error_fk_parent_and_declinaison_cant_be_same=Erreur : l'identifiant du produit enfant ne peut être le produit lui même
+DECLINAISON_CONCAT_WITHOUT_SPACE=Ne pas insérer d'espace dans la référence lors de la création d'une déclinaison
+DECLINAISON_COPY_TAGS_CATEGORIES=Copier les tags/catégories du parent vers l'enfant
+
+DECLINAISON_SHOW_PARENT_INSTEAD_OF_CHILD_INTO_PDF=Afficher le parent du produit à la place de ce dernier dans les PDF
+DECLINAISON_COMPACT_LINES=Regrouper les lignes de mêmes produits

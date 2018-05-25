@@ -1,0 +1,72 @@
+#selected_tables div.fields, #selected_tables div.jointure , div.selected_fields{
+
+	width : 300px;
+	border-color: #bbb #aaa #aaa;
+    border-style: solid;
+    border-width: 1px;
+    box-shadow: 3px 3px 4px #ddd;
+    float: left;
+    margin: 0 5px 14px;
+
+
+}
+.fieldName {
+	margin-top:10px;
+	font-weight: bold;
+	padding:5px 20px;
+	font-size:14px;
+	color : white;
+	background-color: #66b2ff;
+	border-radius: 10px;
+
+}
+
+.fieldName label {
+	width:30%;
+	display:inline-block;
+}
+
+div.selected_fields{
+	width:800px;
+	/*display:none;*/
+}
+#selected_tables div.fields {
+	max-height:300px;
+    overflow-y: auto;
+}
+.no-max-height {
+	max-height:none;
+}
+
+#selected_tables table.jointure td[rel] {
+	background-color: #eeffee;
+}
+
+div#results {
+	float:left;
+	width:500px;
+
+}
+
+div#results textarea {
+	width:100%;
+}
+
+
+div.query {
+
+	border-color: #bbb #aaa #aaa;
+    border-style: solid;
+    border-width: 1px;
+    box-shadow: 3px 3px 4px #ddd;
+    border-radius:15px;
+	padding:20px;
+	background-color: #EEFFEE;
+}
+div#fieldsview div.field {
+	border-bottom: 1px solid #eee;
+
+}
+div#fieldsview div.ui-sortable-handle {
+	cursor:move;
+}

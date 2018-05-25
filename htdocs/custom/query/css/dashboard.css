@@ -1,0 +1,22 @@
+.gridster li {
+
+	background-color: #eee;
+	border:1px dashed #333;
+	list-style: none;
+
+	overflow-y: auto;
+	overflow-x: hidden;
+}
+li table.searchbox {
+
+	display:none;
+	position:absolute;
+	top:0;
+	left:0;
+	z-index: 999;
+
+	background-color:#DDDDDD;
+}
+li:hover table.searchbox {
+	display:block;
+}

@@ -1,0 +1,50 @@
+Module104778Name = Query
+Module104778Desc = Requester and graphical dashboard
+
+ATMAbout = Developped By <a href="http://www.atm-consulting.fr" target="_blank">ATM Consulting</a><br>Documentation here <a href="http://wiki.atm-consulting.fr/index.php/Accueil" target="_blank">wiki</a><br><br>Pour toute question technique ou retour, contactez-nous sur <a href="mailto:support@atm-consulting.fr">support@atm-consulting.fr</a><br><br>Pour toute question commerciale, contactez-nous sur <a href="mailto:contact@atm-consulting.fr">contact@atm-consulting.fr</a> ou au +33 9 77 19 50 70<br><br>Other modules <a href="http://www.dolistore.com/search.php?orderby=position&orderway=desc&search_query=atm&submit_search=Rechercher" target="_blank">Dolistore</a>
+
+querySetup = Setup
+queryAbout = About
+
+AddThisTable=Add table
+SaveQuery=Save query
+InvalidQuery=Not valid query
+AddOneOfThisTables=Add one of this table
+Fields=Fields
+Where=Where
+setExpertMode=Set expert mode
+unsetExpertMode=Unset expert mode
+FieldsOrder=Fields parameters
+FieldsView=Fields view
+set_QUERY_GRAPH_PIEHOLE=Pie hole size
+set_QUERY_GRAPH_LINESTYLE=Line style
+PleaseFindYourReportHasAttachement=Hello, find report below
+Download=Download
+set_ABRICOT_WKHTMLTOPDF_CMD=Command to generate dashboard into PDF (WkHTMLtoPDF has to be installed on server http://wkhtmltopdf.org/)
+set_ABRICOT_CONVERTPDF_CMD=Command to transform ODT/ODS models into PDF (libreoffice has to be installed on server)
+AbricotMustBeUpdate=Your abricot module version was to old, please download lastest
+AbricotNotFound=Please, download complementary module abricot
+set_QUERY_SHOW_PDF_TRANSFORM=Show buttons to transform into PDF (please show configuration below)
+QueryDashBoard=Select a dashboard (module Query)
+cloneQuery=Clone query
+AfterWhere=After condition Where (Group, etc)
+Free=Free
+setExpertFreeMode=Mode Free Expert
+Query=Query
+MainMenu=Main menu
+LeftMenu=Left menu
+ConfirmDeleteMessage=Are you sure ?
+DeleteSuccess=Successfully Removed
+ShowThisInCard=Show dashboard into card
+TabsObject=Tab
+TypeMenu=Menu type
+Tab=Tab
+SaveDashboard=Save Dashboard
+LimitAccessToThisGroup=Limit access to this group
+SendByMailToThisGroup=Send by mail to this group
+DeleteQuery=Delete ?
+RefreshDashboard=Automatically refresh the dashboard (minutes)
+
+set_ABRICOT_NB_MAX_RESULT_SQL=Results count into query (if LIMIT not in)
+CountOf=Count of
+TotalGroup=Total Group by column

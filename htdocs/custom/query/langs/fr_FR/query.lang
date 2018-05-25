@@ -1,0 +1,82 @@
+Module104778Name = Query
+Module104778Desc = Requeteur et tableau de bord graphique
+
+ATMAbout = Ce module a été développé par <a href="http://www.atm-consulting.fr" target="_blank">ATM Consulting</a><br>Vous pouvez retrouver la documentation sur notre <a href="http://wiki.atm-consulting.fr/index.php/Accueil" target="_blank">wiki</a><br><br>Pour toute question technique ou retour, contactez-nous sur <a href="mailto:support@atm-consulting.fr">support@atm-consulting.fr</a><br><br>Pour toute question commerciale, contactez-nous sur <a href="mailto:contact@atm-consulting.fr">contact@atm-consulting.fr</a> ou au +33 9 77 19 50 70<br><br>Retrouvez nos autres modules sur <a href="http://www.dolistore.com/search.php?orderby=position&orderway=desc&search_query=atm&submit_search=Rechercher" target="_blank">Dolistore</a>
+
+querySetup = Configuration du module Query
+queryAbout = A propos du module Query
+
+AddThisTable=Ajouter cette table
+SaveQuery=Enregistrer requête
+InvalidQuery=Requête non valide
+AddOneOfThisTables=Ajouter l'une de ces tables
+Fields=Champs
+Where=Condition
+setExpertMode=Passer en mode expert
+unsetExpertMode=Passer en mode assisté
+FieldsOrder=Paramètres des champs
+FieldsView=Affichage des champs
+set_QUERY_GRAPH_PIEHOLE=Largeur du trou dans les camemberts
+set_QUERY_GRAPH_LINESTYLE=Style de ligne pour les graphiques
+set_QUERY_SET_TIME_LIMIT=Modifier le temps maximum d'exécution de la page (à exprimer en secondes, indiquer 0 pour temps illimité)
+PleaseFindYourReportHasAttachement=Bonjour, veuillez trouver ci-joint le rapport
+Download=Télécharger
+set_ABRICOT_WKHTMLTOPDF_CMD=Commande pour la génération PDF des panneaux (WkHTMLtoPDF doit être installé sur le serveur http://wkhtmltopdf.org/)
+set_ABRICOT_CONVERTPDF_CMD=Commande pour transformer des modèle ODT/ODS en PDF (libreoffice doit être installé sur le serveur)
+AbricotMustBeUpdate=Votre version du module Abricot n'est pas à jour, merci de télécharger la dernière version
+AbricotNotFound=Merci de télécharger le module complémentaire Abricot
+set_QUERY_SHOW_PDF_TRANSFORM=Voir les boutons pour transformer en PDF (attention nécessite la configuration ci-après)
+QueryDashBoard=Sélectionnez le panneau (module Query)
+cloneQuery=Dupliquer cette requête
+QueryCloned=Requête dupliquée
+AfterWhere=Après la condition (Groupement, etc)
+Free=Libre
+setExpertFreeMode=Mode expert libre
+Query=Requête
+MainMenu=Menu principal
+LeftMenu=Sous menu
+ConfirmDeleteMessage=Êtes vous sûre de vouloir supprimer cette entrée ?
+DeleteSuccess=Requête ou panneau supprimé avec succès
+ShowThisInCard=Voir ce panneau dans un fiche
+TabsObject=Onglet
+TypeMenu=Type de menu
+Tab=Onglet
+SaveDashboard=Sauvegarder
+LimitAccessToThisGroup=Limiter l'accès à ce groupe
+SendByMailToThisGroup=Envoyer par mail à ce groupe
+DeleteQuery=Supprimer ?
+RefreshDashboard=Rafraichissement automatique du dashboard (minutes)
+AddThisQuery=Ajouter cette requête
+
+set_ABRICOT_NB_MAX_RESULT_SQL=Nombre de résultats dans la requête (si mot-clef LIMIT absent de la requête)
+CountOf=Nombre de
+TotalGroup=Total groupé sur colonne
+UseAsLandingPage=Et utiliser comme page d'accueil
+Round2dec=Arrondit 2 déc.
+YearMonth=Année/Mois
+getNomUrl=Lien vers la fiche
+getLibStatut=Statut de l'objet
+getNomUrlAndLibStatus=Lien et statut
+YesAllowTestOnNull=Autoriser test sur null
+ShowGraphAsList=Voir en liste
+ShowGraphNormal=Voir le graphique
+ExportCSV=Export CSV
+ExportTXT=Export Texte
+ViewDashboard=Consulter les panneaux
+
+ExportQuery=Exporter la requête
+QueryToUpload=Sélectionner le fichier query à charger
+UploadQuery=Charger
+QueryUploadSuccess=Requête " %s " chargée avec succès
+QueryAsJSON=Résultat de la requête en JSON (interrogeable)
+UseOtherDB=Utiliser des bases de données externes
+
+DatabaseAccessAdminer=Accès base de données
+AddDataBaseAccess=Ajouter un accès
+
+Host=Hôte
+DBName=Base de données
+Charset=Encodage
+DBType=Type
+
+set_QUERY_HOME_SELECTOR = Afficher le selecteur de panneaux sur la page d'acceuil de Dolibarr

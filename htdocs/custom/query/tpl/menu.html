@@ -1,0 +1,68 @@
+<table class="border" width="100%">
+	<tr>
+		<td width="20%">[view.langs.transnoentities(TypeMenu)]</td>
+		<td>[menu.type_menu; strconv=no]</td>
+	</tr>
+	<tr rel="type_menu">
+		<td>[view.langs.transnoentities(MainMenu)]</td>
+		<td>[menu.mainmenu; strconv=no]</td>
+	</tr>
+	<tr rel="type_menu">
+		<td>[view.langs.transnoentities(LeftMenu)]</td>
+		<td>[menu.leftmenu; strconv=no]</td>
+	</tr>
+	<tr rel="type_tab">
+		<td>[view.langs.transnoentities(TabsObject)]</td>
+		<td>[menu.tab_object; strconv=no]</td>
+	</tr>
+	<tr>
+		<td>[view.langs.transnoentities(Query)]</td>
+		<td>[menu.fk_query; strconv=no]</td>
+	</tr>
+	<tr>
+		<td>[view.langs.transnoentities(Or)] [view.langs.transnoentities(Dashboard)]</td>
+		<td>[menu.fk_dashboard; strconv=no]</td>
+	</tr>
+	<tr>
+		<td>[view.langs.transnoentities(Title)]</td>
+		<td>[menu.title; strconv=no]</td>
+	</tr>
+	<tr>
+		<td>[view.langs.transnoentities(Permission)]</td>
+		<td>[menu.perms; strconv=no]</td>
+	</tr>
+</table>
+<script type="text/javascript">
+	$('#fk_query').change(function() {
+		$('#title').val( $(this).find(':selected').text() );
+		$('#fk_dashboard').val(0);
+	});
+
+	$('#fk_dashboard').change(function() {
+		$('#title').val( $(this).find(':selected').text() );
+		$('#fk_query').val(0);
+	});
+
+	$('#type_menu').change(function() {
+
+		_switch_type_menu();
+
+	});
+
+	function _switch_type_menu() {
+		if($('#type_menu').val() == 'MENU') {
+			$('tr[rel=type_menu]').show();
+			$('tr[rel=type_tab]').hide();
+		}
+		else{
+			$('tr[rel=type_menu]').hide();
+			$('tr[rel=type_tab]').show();
+		}
+
+	}
+
+	_switch_type_menu();
+</script>
+<p align="center">
+	[view.buttons; strconv=no]
+</p>
