@@ -1,5 +1,5 @@
 -- ========================================================================
--- Copyright (C) 2012      charles-fr Benke  <charles.fr@benke.fr>
+-- Copyright (C) 2012-2017      charlie Benke  <charlie@patas-monkey.com>
 --
 -- This program is free software; you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@ create table llx_c_equipementevt_type
   code     varchar(16)        NOT NULL,
   entity   integer  DEFAULT 1 NOT NULL,	-- multi company id
   libelle  varchar(50)        NOT NULL,
-  coder    varchar(16)        NULL,
+  coder    varchar(16) DEFAULT '' NOT NULL,
   active   integer  DEFAULT 1 NOT NULL
 
 )ENGINE=innodb;

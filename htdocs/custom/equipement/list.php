@@ -271,6 +271,9 @@ $sql.= $db->plimit($limit+1, $offset);
 //print $sql;
 $result=$db->query($sql);
 
+$form = new Form($db);
+
+
 if ($result) {
 	$num = $db->num_rows($result);
 
@@ -741,8 +744,6 @@ if ($result) {
 	print img_picto("", "edit_add")."&nbsp;".$langs->trans("ShowRefEquipement")."</label><br>";
 	print '<textarea cols="80" id="reflist" style="display:none;" rows="'.ROWS_6.'">'.$reflist.'</textarea>';
 	print '<br>';
-
-	$form = new Form($db);
 
 	print_fiche_titre($langs->trans("EquipementMassChange"));
 	print '<br>';

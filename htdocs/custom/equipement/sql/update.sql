@@ -1,3 +1,5 @@
+ALTER TABLE `llx_c_equipement_etat` CHANGE `coder` `coder` VARCHAR(16) NULL DEFAULT NULL;
+ALTER TABLE `llx_c_equipementevt_type` CHANGE `coder` `coder` VARCHAR(16) NULL DEFAULT NULL;
 
 ALTER TABLE `llx_equipement` 			ADD `fk_user_modif` 		INT(11) NULL 	AFTER `fk_user_valid`;
 ALTER TABLE  `llx_equipement`			ADD	`fk_commande_fourn`		integer		NULL		DEFAULT  NULL;

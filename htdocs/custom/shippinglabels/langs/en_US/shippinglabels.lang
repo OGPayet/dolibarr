@@ -1,0 +1,157 @@
+# dolibarr language file en_US shippinglabels
+CHARSET=UTF-8
+
+AskForHelp=Ask For Help
+UpdateLabel= Update
+getLabelShipping=Get the shipping label
+labelAlreadyExist=Shipping Label Already Exists
+ShippingMethodNotFilled= Shipping Method Not Filled
+LogistiqueRecap=Abstract
+Action=Action
+Avancemen=Progress
+ExpMeth=Méthode expédition
+HeaderAdmin=Admin Module
+HeaderUPS=Conf UPS
+HeaderColissimo=Conf SoColissimo
+LogistikSetupSaved=Settings saved
+ParYesNo=Yes/No
+countryNotFilled= Country not filled
+phoneNotFilled=Phone number not filled
+phoneTooLong= Customer's number is too long
+shipperPhoneTooLong= Shipper's number is too long
+shipperPhoneNotFilled=Shipper's phone not filled
+addressNotFilled=customer's address not filled
+lastNameNotFilled=customer's last name not filled
+firstNameNotFilled=customer's first name not filled
+zipCodeNotFilled= customer's zip code not filled
+mailNotFilled= customer's mail not filled
+noContactLinked=No contact linked to the shipment
+shipperFirmNotFilled= Shipper's firm not filled
+shipperAddressNotFilled = shipper's address not filled
+shipperTownNotFilled = shipper's town not filled
+shipperZipCodeNotFilled= shipper's zip code not filled
+invalidZipCode=Recipient's zipcode invalid !
+invalidWeight=Weight must not be more than 99.99 Kg (%s KG found)
+invalidCountryCode=Recipient's country code invalid !
+
+#Général
+ShipperInfos=Informations about the shipper for the shipping label
+Shipaddress=Address
+DefShipaddress=Shipper's Address
+Shipzip=Zip Code
+DefShipzip= Shipper's Zip Code
+Shiptown=Town
+DefShiptown=Shipper's Zip
+Shipstate= Department
+DefShipstate= Shipper's department
+Shipphone=Shipper's Phone
+DefShipphone=Phone number ( <15 digit )
+Shipphonext=Phone Code
+DefShipphonext=Shipper's phone code
+Shipattention=Last Name
+DefShipattention=Shipper's last name
+Shipattention2=First Name
+DefShipattention2=Shipper's first name
+Shipcountry=Shipper's country
+DefShipcountry= Shipping country
+Shipdesc=Description
+DefShipdesc=Shipping Description
+DefShipmail=Shipper's email address
+Shipmail=Shipper's email
+DefShipformat=Tranporter's label file extension
+Shipformat=File extension
+ShipCivility=Civilité
+DefShipCivility=Définir M, Mme
+GeneralSetup=General settings
+
+#SOCOLISSIMO
+ParSOCOUserId=Colissimo Login
+ParSOCODefUserId=Contract Number
+ParSOCOPwd=Password
+ParSOCODefPwd=Colissimo Password
+ParSOCOEndpoint=Colissimo's webservice URL
+ParSOCODefEndpoint= Colissimo's webservices URL (https://ws.colissimo.fr/soap.shippingclpV2/services/WSColiPosteLetterService)
+SOCOSetup=Colissimo settings
+
+#GLS
+ConfGLS=GLS
+GLSSetup=GLS account settings
+ParGLSEndpoint=GLS service URL
+ParGLSDefEndpoint=GLS service URL (http://www.gls-france.com/cgi-bin/glsboxGI.cgi)
+ParGLSDepot=Shipper's GLS Depot
+ParGLSDefDepot=Your GLS Depot
+ParGLSClient=GLS Client code
+ParGLSDefClient=Your GLS Client code
+ParGLSContactId=GLS Contact ID
+ParGLSDefContactId=Your GLS Contact ID
+ParGLSCountryCode=Country ISO Code
+ParGLSDefCountryCode=Your country ISO code (ISO 3166)
+
+#DPD
+ConfDPD=DPD
+DPDSetup=DPD account settings
+ParDPDAccess=DPD Access ID
+ParDPDDefAccess=Fill by your DPD's access ID
+ParDPDUserId=DPD Login
+ParDPDDefUserId=Your DPD Login
+ParDPDShipnumber=Customer Number
+ParDPDDefShipnumber=Your DPD Customer number("Customer number")
+ParDPDCenternumber=Center Number
+ParDPDDefCenternumber=Your DPD Center number ("Center number")
+ParDPDPwd=Password
+ParDPDDefPwd=DPD Password
+ParDPDEndpoint=DPD webservice URL
+ParDPDDefEndpoint=DPD webservice URL (http://www.cargonet.software)
+ParDPDWSDL=DPD WSDL Url
+ParDPDDefWSDL=DPD WSDL File description Url (https://e-station.cargonet.software/dpd-eprintwebservice/eprintwebservice.asmx?WSDL)
+
+#UPS
+UPSSetup=UPS settings
+ParUPSAccess=UPS's access code
+ParUPSDefAccess=Fill by your UPS's access code
+ParUPSUserId=UPS Login
+ParUPSDefUserId=UPS Login
+ParUPSShipnumber=Shipper Number
+ParUPSDefShipnumber=Shipper number
+ParUPSPwd=Password
+ParUPSDefPwd=UPS password
+ParUPSEndpoint=UPS's Webservices URL
+ParUPSDefEndpoint=UPS webservices URL (https://wwwcie.ups.com/webservices/Ship)
+ParUPSTaxnumber=Tax login
+ParUPSDefTaxnumber=Tax login
+ParUPSDefShipcharge=Shipments settlement Code (01)
+ParUPSServicecode=Service Code
+ParUPSDefServicecode=Service Code (11)
+ParUPSPackagingcode=Packaging Code
+ParUPSDefPackagingcode= Packaging Code (02)
+
+
+#Chronopost
+ParCHRONOPOSTUserId=Chronopost Login
+ParCHRONOPOSTDefUserId=Chronopost Login
+ParCHRONOPOSTPwd=Password
+ParCHRONOPOSTDefPwd=Chronopost Password
+ParCHRONOPOSTEndpoint=Chronopost Webservices URL
+ParCHRONOPOSTDefEndpoint=Chronopost webservices URL (https://www.chronopost.fr/shipping-cxf/ShippingServiceWS?wsdl)
+
+#TNT
+ParTNTUserId=TNT Login
+ParTNTDefUserId=TNT Login
+ParTNTAccess=Contract number
+ParTNTDefAccess=Contract Number
+ParTNTPwd=Password
+ParTNTDefPwd=TNT Password
+ParTNTEndpoint=TNT Webservices URL
+ParTNTDefEndpoint=TNT webservices URL (http://www.tnt.fr/service/?wsdl)
+
+#MR
+ParMRUserId=Mondial Relay Login
+ParMRDefUserId=Mondial Relay Login
+ParMRPwd=Password
+ParMRDefPwd= Mondial Relay Password
+ParMREndpoint=MR Webservices URL
+ParMRDefEndpoint=Mondial Relay webservices URL (https://www.MR.fr/shipping-cxf/ShippingServiceWS?wsdl)
+ParMRModeCollecte=Collect mode
+ParMRDefModeCollecte=Collect Method (CCC / CDR / CDS / REL)
+ParMRModeLivraison=Delivery mode
+ParMRDefModeLivraison=Delivery Methode (LCC / LD1 / LDS / 24R / 24L /24X / DRI)

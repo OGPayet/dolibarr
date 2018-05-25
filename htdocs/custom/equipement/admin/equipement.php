@@ -451,7 +451,7 @@ foreach ($dirmodels as $reldir) {
 								}
 
 								// Defaut
-								print "<td align=\"center\">";
+								print "<td align='center'>";
 								if ($conf->global->EQUIPEMENT_ADDON_PDF == "$name")
 									print img_picto($langs->trans("Default"), 'on');
 								else

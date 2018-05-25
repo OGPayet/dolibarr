@@ -55,7 +55,11 @@ $id=GETPOST('id', 'int');
 $action = GETPOST('action', 'alpha');
 // Security check
 if ($user->societe_id) $socid=$user->societe_id;
-$result = restrictedArea($user, 'fournisseur', $id, '', 'commande');
+
+/* ----- OpenDSI - Access rights on equipements in supplier order - Begin ----- */
+//$result = restrictedArea($user, 'fournisseur', $id, '', 'commande');
+$result = restrictedArea($user, 'fournisseur', $id, 'commande_fournisseur', 'commande');
+/* ----- OpenDSI - Access rights on equipements in supplier order - End ----- */
 
 /*
  *	View
@@ -78,7 +82,7 @@ if ($action  == 'addequipement') {
 		$line =	$object->lines[$nbligneorder];
 		// only recept on serial product
 		if ($line->fk_product > 0) {
-			// on regarde si il y a des équipement à créer (qty > O)
+			// on regarde si il y a des ï¿½quipement ï¿½ crï¿½er (qty > O)
 			if (GETPOST('quantity-'.$line->id)) {
 				$objectequipement->fk_product		= $line->fk_product;
 				$objectequipement->fk_soc_fourn 	= $object->thirdparty->id;
@@ -101,15 +105,15 @@ if ($action  == 'addequipement') {
 								$_POST["dateo-".$line->id."year"]
 				);
 				$objectequipement->dateo			= $dateo;
-				// selon le mode de sérialisation de l'équipement
+				// selon le mode de sï¿½rialisation de l'ï¿½quipement
 				switch(GETPOST('SerialMethod-'.$line->id, 'int')) {
-					case 1 : // en mode génération auto, on crée des numéros série interne
+					case 1 : // en mode gï¿½nï¿½ration auto, on crï¿½e des numï¿½ros sï¿½rie interne
 						$objectequipement->quantity 		= 1;
 						$objectequipement->nbAddEquipement	= GETPOST('quantity-'.$line->id, 'int');;
 						break;
-					case 2 : // en mode génération à partir de la liste on détermine en fonction de la saisie
+					case 2 : // en mode gï¿½nï¿½ration ï¿½ partir de la liste on dï¿½termine en fonction de la saisie
 						$objectequipement->quantity 		= 1;
-						$objectequipement->nbAddEquipement	= 0; // sera calculé en fonction
+						$objectequipement->nbAddEquipement	= 0; // sera calculï¿½ en fonction
 						break;
 					case 3 : // en mode gestion de lot
 						$objectequipement->quantity 		= GETPOST('quantity-'.$line->id, 'int');
@@ -170,7 +174,7 @@ print "</table>";
 
 dol_fiche_end();
 
-// on récupère les produit associé à la commande fournisseur
+// on rï¿½cupï¿½re les produit associï¿½ ï¿½ la commande fournisseur
 print '<form name="equipement" action="'.$_SERVER['PHP_SELF'].'" method="POST">';
 print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
 print '<input type="hidden" name="action" value="addequipement">';

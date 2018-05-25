@@ -31,7 +31,7 @@ if (! $res && file_exists("../../../main.inc.php"))
 
 // Libraries
 dol_include_once("/equipement/core/lib/equipement.lib.php");
-dol_include_once("/badgelio/core/lib/patasmonkey.lib.php");
+dol_include_once("/equipement/core/lib/patasmonkey.lib.php");
 
 // Translations
 $langs->load("equipement@equipement");

@@ -1,0 +1,862 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions targetNamespace="http://ws.retour.coliposte.telintrans.fr" xmlns:apachesoap="http://xml.apache.org/xml-soap" xmlns:impl="http://ws.retour.coliposte.telintrans.fr" xmlns:intf="http://ws.retour.coliposte.telintrans.fr" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsdlsoap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<!--WSDL created by Apache Axis version: 1.4
+Built on Apr 22, 2006 (06:55:48 PDT)-->
+ <wsdl:types>
+  <schema elementFormDefault="qualified" targetNamespace="http://ws.retour.coliposte.telintrans.fr" xmlns="http://www.w3.org/2001/XMLSchema">
+   <element name="getLetter">
+    <complexType>
+     <sequence>
+      <element name="letter" type="impl:LetterVO"/>
+     </sequence>
+    </complexType>
+   </element>
+   <simpleType name="RequestTypeVO">
+    <restriction base="xsd:string">
+     <enumeration value="CreatePDFFile"/>
+     <enumeration value="ReturnPDFInResponse"/>
+     <enumeration value="ReturnNoPDFInResponse"/>
+     <enumeration value="SendPDFByMail"/>
+     <enumeration value="SendPDFLinkByMail"/>
+    </restriction>
+   </simpleType>
+   <complexType name="ServiceCallContextVO">
+    <sequence>
+     <element maxOccurs="1" minOccurs="0" name="heureLimiteDepot" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="dateDeposite" nillable="true" type="xsd:dateTime"/>
+     <element maxOccurs="1" minOccurs="0" name="dateValidation" type="xsd:dateTime"/>
+     <element name="returnType" nillable="true" type="impl:RequestTypeVO"/>
+     <element maxOccurs="1" minOccurs="0" name="removalDateBAL" nillable="true" type="xsd:dateTime"/>
+     <element name="removalBAL" nillable="true" type="xsd:boolean"/>
+     <element maxOccurs="1" minOccurs="0" name="serviceType" type="xsd:string"/>
+     <element name="crbt" type="xsd:boolean"/>
+     <element maxOccurs="1" minOccurs="0" name="crbtAmount" type="xsd:int"/>
+     <element maxOccurs="1" minOccurs="0" name="VATCode" type="xsd:int"/>
+     <element maxOccurs="1" minOccurs="0" name="VATPercentage" type="xsd:int"/>
+     <element maxOccurs="1" minOccurs="0" name="VATAmount" type="xsd:int"/>
+     <element maxOccurs="1" minOccurs="0" name="transportationAmount" type="xsd:int"/>
+     <element maxOccurs="1" minOccurs="0" name="totalAmount" type="xsd:int"/>
+     <element maxOccurs="1" minOccurs="0" name="portPaye" type="xsd:boolean"/>
+     <element maxOccurs="1" minOccurs="0" name="FTD" type="xsd:boolean"/>
+     <element maxOccurs="1" minOccurs="0" name="FTDAmount" type="xsd:int"/>
+     <element maxOccurs="1" minOccurs="0" name="returnOption" type="xsd:boolean"/>
+     <element maxOccurs="1" minOccurs="0" name="returnOptionAmmount" type="xsd:int"/>
+    </sequence>
+   </complexType>
+   <complexType name="ServiceCallContextV2">
+    <complexContent>
+     <extension base="impl:ServiceCallContextVO">
+      <sequence>
+       <element maxOccurs="1" minOccurs="0" name="commandNumber" type="xsd:string"/>
+       <element maxOccurs="1" minOccurs="0" name="motiveBack" type="xsd:string"/>
+       <element maxOccurs="1" minOccurs="0" name="logo-co-brande" nillable="true" type="xsd:hexBinary"/>
+       <element maxOccurs="1" minOccurs="0" name="commercialName" type="xsd:string"/>
+       <element maxOccurs="1" minOccurs="0" name="partnerNetworkCode" nillable="true" type="xsd:string"/>
+       <element maxOccurs="1" minOccurs="0" name="languageConsignor" nillable="true" type="xsd:string"/>
+       <element maxOccurs="1" minOccurs="0" name="languageConsignee" nillable="true" type="xsd:string"/>
+      </sequence>
+     </extension>
+    </complexContent>
+   </complexType>
+   <simpleType name="DeliveryModeVO">
+    <restriction base="xsd:string">
+     <enumeration value="DOM"/>
+     <enumeration value="RDV"/>
+     <enumeration value="BPR"/>
+     <enumeration value="ACP"/>
+     <enumeration value="CDI"/>
+     <enumeration value="A2P"/>
+     <enumeration value="MRL"/>
+     <enumeration value="CIT"/>
+     <enumeration value="DOS"/>
+     <enumeration value="BDP"/>
+     <enumeration value="CMT"/>
+    </restriction>
+   </simpleType>
+   <complexType name="ArticleVO">
+    <sequence>
+     <element name="description" type="xsd:string"/>
+     <element name="quantite" type="xsd:int"/>
+     <element name="poids" type="xsd:float"/>
+     <element name="valeur" type="xsd:float"/>
+     <element maxOccurs="1" minOccurs="0" name="numTarifaire" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="paysOrigine" type="xsd:string"/>
+    </sequence>
+   </complexType>
+   <simpleType name="CategorieVO">
+    <restriction base="xsd:int">
+     <enumeration value="1"/>
+     <enumeration value="2"/>
+     <enumeration value="3"/>
+     <enumeration value="4"/>
+     <enumeration value="5"/>
+     <enumeration value="6"/>
+    </restriction>
+   </simpleType>
+   <complexType name="ContentsVO">
+    <sequence>
+     <element maxOccurs="unbounded" name="article" type="impl:ArticleVO"/>
+     <element name="categorie" type="impl:CategorieVO"/>
+    </sequence>
+   </complexType>
+   <complexType name="ParcelVO">
+    <sequence>
+     <element maxOccurs="1" minOccurs="0" name="insuranceRange" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="typeGamme" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="parcelNumber" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="returnTypeChoice" type="xsd:int"/>
+     <element maxOccurs="1" minOccurs="0" name="insuranceAmount" type="xsd:int"/>
+     <element maxOccurs="1" minOccurs="0" name="insuranceValue" type="xsd:int"/>
+     <element maxOccurs="1" minOccurs="0" name="recommendationLevel" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="RecommendationAmount" nillable="true" type="xsd:int"/>
+     <element maxOccurs="1" minOccurs="0" name="weight" type="xsd:float"/>
+     <element name="horsGabarit" type="xsd:boolean"/>
+     <element maxOccurs="1" minOccurs="0" name="HorsGabaritAmount" nillable="true" type="xsd:int"/>
+     <element maxOccurs="1" minOccurs="0" name="DeliveryMode" nillable="true" type="impl:DeliveryModeVO"/>
+     <element maxOccurs="1" minOccurs="0" name="ReturnReceipt" nillable="true" type="xsd:boolean"/>
+     <element maxOccurs="1" minOccurs="0" name="Recommendation" nillable="true" type="xsd:boolean"/>
+     <element maxOccurs="1" minOccurs="0" name="Instructions" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="RegateCode" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="contents" type="impl:ContentsVO"/>
+    </sequence>
+   </complexType>
+   <simpleType name="AlertTypeVO">
+    <restriction base="xsd:string">
+     <enumeration value="none"/>
+     <enumeration value="SMS"/>
+     <enumeration value="Mail"/>
+     <enumeration value="all"/>
+    </restriction>
+   </simpleType>
+   <complexType name="AddressVO">
+    <sequence>
+     <element maxOccurs="1" minOccurs="0" name="companyName" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="Civility" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="Name" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="Surname" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="line0" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="line1" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="line2" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="line3" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="phone" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="MobileNumber" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="DoorCode1" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="DoorCode2" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="Interphone" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="country" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="countryCode" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="city" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="email" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="postalCode" nillable="true" type="xsd:string"/>
+    </sequence>
+   </complexType>
+   <complexType name="DestEnvVO">
+    <sequence>
+     <element maxOccurs="1" minOccurs="0" name="ref" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="alert" nillable="true" type="impl:AlertTypeVO"/>
+     <element name="addressVO" type="impl:AddressVO"/>
+     <element name="codeBarForreference" type="xsd:boolean"/>
+     <element maxOccurs="1" minOccurs="0" name="deliveryError" type="xsd:boolean"/>
+     <element maxOccurs="1" minOccurs="0" name="deliveryInfoLine1" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="deliveryInfoLine2" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="serviceInfo" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="promotionCode" type="xsd:string"/>
+    </sequence>
+   </complexType>
+   <complexType name="ExpEnvVO">
+    <sequence>
+     <element maxOccurs="1" minOccurs="0" name="ref" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="alert" nillable="true" type="impl:AlertTypeVO"/>
+     <element name="addressVO" type="impl:AddressVO"/>
+    </sequence>
+   </complexType>
+   <complexType name="LetterVO">
+    <sequence>
+     <element name="password" type="xsd:string"/>
+     <element name="contractNumber" type="xsd:int"/>
+     <element maxOccurs="1" minOccurs="0" name="profil" type="xsd:string"/>
+     <element name="service" type="impl:ServiceCallContextVO"/>
+     <element name="parcel" type="impl:ParcelVO"/>
+     <element name="dest" type="impl:DestEnvVO"/>
+     <element name="exp" type="impl:ExpEnvVO"/>
+    </sequence>
+   </complexType>
+   <element name="getLetterResponse">
+    <complexType>
+     <sequence>
+      <element name="getLetterReturn" type="impl:ReturnLetterVO"/>
+     </sequence>
+    </complexType>
+   </element>
+   <complexType name="ReturnLetterVO">
+    <sequence>
+     <element maxOccurs="1" minOccurs="0" name="file" nillable="true" type="xsd:base64Binary"/>
+     <element maxOccurs="1" minOccurs="0" name="parcelNumber" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="parcelNumberPartner" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="PdfUrl" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="retourBal" nillable="true" type="xsd:boolean"/>
+     <element maxOccurs="1" minOccurs="0" name="errorID" type="xsd:int"/>
+     <element maxOccurs="1" minOccurs="0" name="error" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="signature" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="dateCreation" type="xsd:dateTime"/>
+    </sequence>
+   </complexType>
+   <element name="getLetterOROS">
+    <complexType>
+     <sequence>
+      <element name="letter" type="impl:LetterOROS"/>
+     </sequence>
+    </complexType>
+   </element>
+   <complexType name="LetterOROS">
+    <sequence>
+     <element name="password" type="xsd:string"/>
+     <element name="contractNumber" type="xsd:int"/>
+     <element name="service" type="impl:ServiceCallContextV2"/>
+     <element name="parcel" type="impl:ParcelVO"/>
+     <element name="dest" type="impl:DestEnvVO"/>
+     <element name="exp" type="impl:ExpEnvVO"/>
+    </sequence>
+   </complexType>
+   <element name="getLetterOROSResponse">
+    <complexType>
+     <sequence>
+      <element name="getLetterReturn" type="impl:ReturnLetterVO"/>
+     </sequence>
+    </complexType>
+   </element>
+   <element name="getLetterColissimo">
+    <complexType>
+     <sequence>
+      <element name="letter" type="impl:Letter"/>
+     </sequence>
+    </complexType>
+   </element>
+   <complexType name="Coordinate">
+    <sequence>
+     <element name="x" type="xsd:float"/>
+     <element name="y" type="xsd:float"/>
+    </sequence>
+   </complexType>
+   <complexType name="Letter">
+    <sequence>
+     <element name="password" type="xsd:string"/>
+     <element name="contractNumber" type="xsd:int"/>
+     <element maxOccurs="1" minOccurs="0" name="profil" type="xsd:string"/>
+     <element name="coordinate" nillable="true" type="impl:Coordinate"/>
+     <element name="service" type="impl:ServiceCallContextV2"/>
+     <element name="parcel" type="impl:ParcelVO"/>
+     <element name="dest" type="impl:DestEnvVO"/>
+     <element name="exp" type="impl:ExpEnvVO"/>
+    </sequence>
+   </complexType>
+   <element name="getLetterColissimoResponse">
+    <complexType>
+     <sequence>
+      <element name="getLetterColissimoReturn" type="impl:ReturnLetterVO"/>
+     </sequence>
+    </complexType>
+   </element>
+   <element name="getLetterColissimoFile">
+    <complexType>
+     <sequence>
+      <element name="getLetterReturn" type="impl:ReturnLetterVO"/>
+     </sequence>
+    </complexType>
+   </element>
+   <element name="getLetterColissimoFileResponse">
+    <complexType>
+     <sequence>
+      <element name="getLetterColissimoFileReturn" type="impl:ReturnLetterVO"/>
+     </sequence>
+    </complexType>
+   </element>
+   <element name="getProduitsByGammeOptionsDestination">
+    <complexType>
+     <sequence>
+      <element name="letter" type="impl:Letter"/>
+     </sequence>
+    </complexType>
+   </element>
+   <element name="getProduitsByGammeOptionsDestinationResponse">
+    <complexType>
+     <sequence>
+      <element name="produitResponse" type="impl:ProduitResponse"/>
+     </sequence>
+    </complexType>
+   </element>
+   <complexType name="Message">
+    <sequence>
+     <element maxOccurs="1" minOccurs="0" name="id" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="type" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="libelle" type="xsd:string"/>
+    </sequence>
+   </complexType>
+   <complexType name="ProduitResponse">
+    <sequence>
+     <element maxOccurs="1" minOccurs="0" name="partnerType" type="xsd:string"/>
+     <element maxOccurs="unbounded" minOccurs="0" name="produits" type="xsd:string"/>
+     <element maxOccurs="unbounded" minOccurs="0" name="message" type="impl:Message"/>
+    </sequence>
+   </complexType>
+   <element name="genererEtiquetteBIC3">
+    <complexType>
+     <sequence>
+      <element name="letter" type="impl:Letter"/>
+     </sequence>
+    </complexType>
+   </element>
+   <element name="genererEtiquetteBIC3Response">
+    <complexType>
+     <sequence>
+      <element name="genererEtiquetteBic3Response" type="impl:GenererEtiquetteBic3Response"/>
+     </sequence>
+    </complexType>
+   </element>
+   <complexType name="Site">
+    <sequence>
+     <element maxOccurs="1" minOccurs="0" name="codeRegate" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="rDepot" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="libelle" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="adresse" nillable="true" type="impl:AddressVO"/>
+    </sequence>
+   </complexType>
+   <complexType name="Routing">
+    <sequence>
+     <element maxOccurs="1" minOccurs="0" name="destinationCountry" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="serviceName" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="depotDest" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="serviceMark" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="sortOrigin" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="groupingPriorityLabel" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="sortDest" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="barcodeId" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="routingVersion" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="destinationCountryText" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="partnerType" nillable="true" type="xsd:string"/>
+    </sequence>
+   </complexType>
+   <complexType name="ZoneInfosRoutage">
+    <sequence>
+     <element maxOccurs="1" minOccurs="0" name="rDepot" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="numeroSuiviCABRoutage" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="cleControleNumeroSuivi" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="typeServiceLivraison" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="identificationDestination1" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="identificationDestination2" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="triExport" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="triImport" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="identificationDimension" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="dateImpression" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="heureImpression" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="routingVersion" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="numeroVersionWS" nillable="true" type="xsd:string"/>
+    </sequence>
+   </complexType>
+   <complexType name="ZoneCABRoutage">
+    <sequence>
+     <element maxOccurs="1" minOccurs="0" name="codeBarreRoutage" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="numeroColisRoutage" nillable="true" type="xsd:string"/>
+    </sequence>
+   </complexType>
+   <complexType name="ZoneRoutage">
+    <sequence>
+     <element maxOccurs="1" minOccurs="0" name="zoneInfosRoutage" type="impl:ZoneInfosRoutage"/>
+     <element maxOccurs="1" minOccurs="0" name="zoneCABRoutage" type="impl:ZoneCABRoutage"/>
+    </sequence>
+   </complexType>
+   <complexType name="CodeVas">
+    <sequence>
+     <element maxOccurs="1" minOccurs="0" name="mention" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="livraison" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="reserve" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="signature" nillable="true" type="xsd:string"/>
+    </sequence>
+   </complexType>
+   <complexType name="AdresseRetourBelgique">
+    <sequence>
+     <element maxOccurs="1" minOccurs="0" name="mention" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="adresse1" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="adresse2" nillable="true" type="xsd:string"/>
+    </sequence>
+   </complexType>
+   <complexType name="EtiquetteBelgique">
+    <sequence>
+     <element maxOccurs="1" minOccurs="0" name="numeroColisBelge" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="identification" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="codeBarre" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="codeVAS" nillable="true" type="impl:CodeVas"/>
+     <element maxOccurs="1" minOccurs="0" name="adresseRetourBelgique" nillable="true" type="impl:AdresseRetourBelgique"/>
+    </sequence>
+   </complexType>
+   <complexType name="XMLResponse">
+    <sequence>
+     <element name="contractNumber" type="xsd:int"/>
+     <element maxOccurs="1" minOccurs="0" name="sitePCH" nillable="true" type="impl:Site"/>
+     <element maxOccurs="1" minOccurs="0" name="pointRetrait" nillable="true" type="impl:Site"/>
+     <element maxOccurs="1" minOccurs="0" name="expediteur" nillable="true" type="impl:ExpEnvVO"/>
+     <element maxOccurs="1" minOccurs="0" name="destinataire" nillable="true" type="impl:DestEnvVO"/>
+     <element maxOccurs="1" minOccurs="0" name="parcelNumber" nillable="true" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="routing" nillable="true" type="impl:Routing"/>
+     <element maxOccurs="1" minOccurs="0" name="zoneRoutage" nillable="true" type="impl:ZoneRoutage"/>
+     <element maxOccurs="1" minOccurs="0" name="etiquetteBelgique" nillable="true" type="impl:EtiquetteBelgique"/>
+    </sequence>
+   </complexType>
+   <complexType name="Response">
+    <sequence>
+     <element maxOccurs="1" minOccurs="0" name="file" nillable="true" type="xsd:base64Binary"/>
+     <element maxOccurs="unbounded" minOccurs="0" name="message" nillable="true" type="impl:Message"/>
+     <element maxOccurs="1" minOccurs="0" name="xmlResponse" nillable="true" type="impl:XMLResponse"/>
+    </sequence>
+   </complexType>
+   <complexType name="GenererEtiquetteBic3Response">
+    <complexContent>
+     <extension base="impl:Response">
+      <sequence>
+       <element maxOccurs="1" minOccurs="0" name="parcelNumber" type="xsd:string"/>
+       <element maxOccurs="1" minOccurs="0" name="parcelNumberPartenaire" type="xsd:string"/>
+      </sequence>
+     </extension>
+    </complexContent>
+   </complexType>
+   <element name="removalBAL">
+    <complexType>
+     <sequence>
+      <element name="contractNumber" type="xsd:int"/>
+      <element name="password" type="xsd:string"/>
+      <element name="sender" type="impl:AddressVO"/>
+      <element name="parcelNumber" type="xsd:string"/>
+      <element name="removalDateBAL" type="xsd:dateTime"/>
+     </sequence>
+    </complexType>
+   </element>
+   <element name="removalBALResponse">
+    <complexType>
+     <sequence>
+      <element name="removalBALResponse" type="impl:removalBALResponse"/>
+     </sequence>
+    </complexType>
+   </element>
+   <complexType name="removalBALResponse">
+    <sequence>
+     <element maxOccurs="1" minOccurs="0" name="id" type="xsd:int"/>
+     <element maxOccurs="1" minOccurs="0" name="message" type="xsd:string"/>
+    </sequence>
+   </complexType>
+   <element name="getListDateRemovalBAL">
+    <complexType>
+     <sequence>
+      <element name="contractNumber" type="xsd:int"/>
+      <element name="password" type="xsd:string"/>
+      <element name="sender" type="impl:AddressVO"/>
+     </sequence>
+    </complexType>
+   </element>
+   <element name="getListDateRemovalBALResponse">
+    <complexType>
+     <sequence>
+      <element name="getListDateRemovalBALResponse" type="impl:getListDateRemovalBALResponse"/>
+     </sequence>
+    </complexType>
+   </element>
+   <complexType name="getListDateRemovalBALResponse">
+    <sequence>
+     <element maxOccurs="1" minOccurs="0" name="id" type="xsd:int"/>
+     <element maxOccurs="1" minOccurs="0" name="message" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="removalLimitHourBAL" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="validityTimeBAL" type="xsd:string"/>
+     <element maxOccurs="unbounded" minOccurs="0" name="removalDateBAL" type="xsd:dateTime"/>
+    </sequence>
+   </complexType>
+  </schema>
+ </wsdl:types>
+
+   <wsdl:message name="getLetterColissimoRequest">
+
+      <wsdl:part element="impl:getLetterColissimo" name="parameters">
+
+      </wsdl:part>
+
+   </wsdl:message>
+
+   <wsdl:message name="genererEtiquetteBIC3Request">
+
+      <wsdl:part element="impl:genererEtiquetteBIC3" name="parameters">
+
+      </wsdl:part>
+
+   </wsdl:message>
+
+   <wsdl:message name="getProduitsByGammeOptionsDestinationRequest">
+
+      <wsdl:part element="impl:getProduitsByGammeOptionsDestination" name="parameters">
+
+      </wsdl:part>
+
+   </wsdl:message>
+
+   <wsdl:message name="getProduitsByGammeOptionsDestinationResponse">
+
+      <wsdl:part element="impl:getProduitsByGammeOptionsDestinationResponse" name="parameters">
+
+      </wsdl:part>
+
+   </wsdl:message>
+
+   <wsdl:message name="getListDateRemovalBALResponse">
+
+      <wsdl:part element="impl:getListDateRemovalBALResponse" name="parameters">
+
+      </wsdl:part>
+
+   </wsdl:message>
+
+   <wsdl:message name="getLetterOROSResponse">
+
+      <wsdl:part element="impl:getLetterOROSResponse" name="parameters">
+
+      </wsdl:part>
+
+   </wsdl:message>
+
+   <wsdl:message name="genererEtiquetteBIC3Response">
+
+      <wsdl:part element="impl:genererEtiquetteBIC3Response" name="parameters">
+
+      </wsdl:part>
+
+   </wsdl:message>
+
+   <wsdl:message name="getLetterRequest">
+
+      <wsdl:part element="impl:getLetter" name="parameters">
+
+      </wsdl:part>
+
+   </wsdl:message>
+
+   <wsdl:message name="getLetterOROSRequest">
+
+      <wsdl:part element="impl:getLetterOROS" name="parameters">
+
+      </wsdl:part>
+
+   </wsdl:message>
+
+   <wsdl:message name="removalBALResponse">
+
+      <wsdl:part element="impl:removalBALResponse" name="parameters">
+
+      </wsdl:part>
+
+   </wsdl:message>
+
+   <wsdl:message name="getLetterColissimoResponse">
+
+      <wsdl:part element="impl:getLetterColissimoResponse" name="parameters">
+
+      </wsdl:part>
+
+   </wsdl:message>
+
+   <wsdl:message name="getLetterColissimoFileRequest">
+
+      <wsdl:part element="impl:getLetterColissimoFile" name="parameters">
+
+      </wsdl:part>
+
+   </wsdl:message>
+
+   <wsdl:message name="getLetterColissimoFileResponse">
+
+      <wsdl:part element="impl:getLetterColissimoFileResponse" name="parameters">
+
+      </wsdl:part>
+
+   </wsdl:message>
+
+   <wsdl:message name="getListDateRemovalBALRequest">
+
+      <wsdl:part element="impl:getListDateRemovalBAL" name="parameters">
+
+      </wsdl:part>
+
+   </wsdl:message>
+
+   <wsdl:message name="getLetterResponse">
+
+      <wsdl:part element="impl:getLetterResponse" name="parameters">
+
+      </wsdl:part>
+
+   </wsdl:message>
+
+   <wsdl:message name="removalBALRequest">
+
+      <wsdl:part element="impl:removalBAL" name="parameters">
+
+      </wsdl:part>
+
+   </wsdl:message>
+
+   <wsdl:portType name="WSColiPosteLetterService">
+
+      <wsdl:operation name="getLetter">
+
+         <wsdl:input message="impl:getLetterRequest" name="getLetterRequest">
+
+       </wsdl:input>
+
+         <wsdl:output message="impl:getLetterResponse" name="getLetterResponse">
+
+       </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="getLetterOROS">
+
+         <wsdl:input message="impl:getLetterOROSRequest" name="getLetterOROSRequest">
+
+       </wsdl:input>
+
+         <wsdl:output message="impl:getLetterOROSResponse" name="getLetterOROSResponse">
+
+       </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="getLetterColissimo">
+
+         <wsdl:input message="impl:getLetterColissimoRequest" name="getLetterColissimoRequest">
+
+       </wsdl:input>
+
+         <wsdl:output message="impl:getLetterColissimoResponse" name="getLetterColissimoResponse">
+
+       </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="getLetterColissimoFile">
+
+         <wsdl:input message="impl:getLetterColissimoFileRequest" name="getLetterColissimoFileRequest">
+
+       </wsdl:input>
+
+         <wsdl:output message="impl:getLetterColissimoFileResponse" name="getLetterColissimoFileResponse">
+
+       </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="getProduitsByGammeOptionsDestination">
+
+         <wsdl:input message="impl:getProduitsByGammeOptionsDestinationRequest" name="getProduitsByGammeOptionsDestinationRequest">
+
+       </wsdl:input>
+
+         <wsdl:output message="impl:getProduitsByGammeOptionsDestinationResponse" name="getProduitsByGammeOptionsDestinationResponse">
+
+       </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="genererEtiquetteBIC3">
+
+         <wsdl:input message="impl:genererEtiquetteBIC3Request" name="genererEtiquetteBIC3Request">
+
+       </wsdl:input>
+
+         <wsdl:output message="impl:genererEtiquetteBIC3Response" name="genererEtiquetteBIC3Response">
+
+       </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="removalBAL">
+
+         <wsdl:input message="impl:removalBALRequest" name="removalBALRequest">
+
+       </wsdl:input>
+
+         <wsdl:output message="impl:removalBALResponse" name="removalBALResponse">
+
+       </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="getListDateRemovalBAL">
+
+         <wsdl:input message="impl:getListDateRemovalBALRequest" name="getListDateRemovalBALRequest">
+
+       </wsdl:input>
+
+         <wsdl:output message="impl:getListDateRemovalBALResponse" name="getListDateRemovalBALResponse">
+
+       </wsdl:output>
+
+      </wsdl:operation>
+
+   </wsdl:portType>
+
+   <wsdl:binding name="WSColiPosteLetterServiceSoapBinding" type="impl:WSColiPosteLetterService">
+
+      <wsdlsoap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+
+      <wsdl:operation name="getLetter">
+
+         <wsdlsoap:operation soapAction="getLetter"/>
+
+         <wsdl:input name="getLetterRequest">
+
+            <wsdlsoap:body use="literal"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="getLetterResponse">
+
+            <wsdlsoap:body use="literal"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="getLetterOROS">
+
+         <wsdlsoap:operation soapAction="http://ws.retour.coliposte.telintrans.fr/getLetterOROS"/>
+
+         <wsdl:input name="getLetterOROSRequest">
+
+            <wsdlsoap:body use="literal"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="getLetterOROSResponse">
+
+            <wsdlsoap:body use="literal"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="getLetterColissimo">
+
+         <wsdlsoap:operation soapAction="http://ws.retour.coliposte.telintrans.fr/getLetterColissimo"/>
+
+         <wsdl:input name="getLetterColissimoRequest">
+
+            <wsdlsoap:body use="literal"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="getLetterColissimoResponse">
+
+            <wsdlsoap:body use="literal"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="getLetterColissimoFile">
+
+         <wsdlsoap:operation soapAction="http://ws.retour.coliposte.telintrans.fr/getLetterColissimoFile"/>
+
+         <wsdl:input name="getLetterColissimoFileRequest">
+
+            <wsdlsoap:body use="literal"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="getLetterColissimoFileResponse">
+
+            <wsdlsoap:body use="literal"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="getProduitsByGammeOptionsDestination">
+
+         <wsdlsoap:operation soapAction="http://ws.retour.coliposte.telintrans.fr/getProduitsByGammeOptionsDestination"/>
+
+         <wsdl:input name="getProduitsByGammeOptionsDestinationRequest">
+
+            <wsdlsoap:body use="literal"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="getProduitsByGammeOptionsDestinationResponse">
+
+            <wsdlsoap:body use="literal"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="genererEtiquetteBIC3">
+
+         <wsdlsoap:operation soapAction="http://ws.retour.coliposte.telintrans.fr/genererEtiquetteBIC3"/>
+
+         <wsdl:input name="genererEtiquetteBIC3Request">
+
+            <wsdlsoap:body use="literal"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="genererEtiquetteBIC3Response">
+
+            <wsdlsoap:body use="literal"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="removalBAL">
+
+         <wsdlsoap:operation soapAction="http://ws.retour.coliposte.telintrans.fr/removalBAL"/>
+
+         <wsdl:input name="removalBALRequest">
+
+            <wsdlsoap:body use="literal"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="removalBALResponse">
+
+            <wsdlsoap:body use="literal"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="getListDateRemovalBAL">
+
+         <wsdlsoap:operation soapAction="http://ws.retour.coliposte.telintrans.fr/getListDateRemovalBAL"/>
+
+         <wsdl:input name="getListDateRemovalBALRequest">
+
+            <wsdlsoap:body use="literal"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="getListDateRemovalBALResponse">
+
+            <wsdlsoap:body use="literal"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+   </wsdl:binding>
+
+   <wsdl:service name="WSColiPosteLetterService">
+
+      <wsdl:port binding="impl:WSColiPosteLetterServiceSoapBinding" name="WSColiPosteLetterService">
+
+         <wsdlsoap:address location="https://ws.colissimo.fr/soap.shippingclpV2/services/WSColiPosteLetterService"/>
+
+      </wsdl:port>
+
+   </wsdl:service>
+
+</wsdl:definitions>
