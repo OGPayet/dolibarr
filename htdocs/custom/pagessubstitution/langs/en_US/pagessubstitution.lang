@@ -1,0 +1,10 @@
+# Dolibarr language file - en_US - pagessubstitution
+CHARSET=UTF-8
+Module163009Name=Pages Substitution
+Module163009Desc=Substitution of pages
+
+PagesSubstitutionSetup=Configuration of module Pages Substitution
+PagesSubstitutionSubstitutionFiles=List of substitutable files
+PagesSubstitutionSubstitutionPagesRootPath=You must put the pages to substitute in this directory '%s' keeping the same tree (eg: 'societe/soc.php').<br>To be taken into account you must replace the line including the file 'main.inc.php' (eg: "require '../main.inc.php';") by:<br><br>
+PAGESSUBSTITUTION_HOOK_TEST=Display of pages supported for substitution (and disables substitution during testing).<br>Note: For AJAX pages, the notification appears the next time a page is loaded.
+PagesSubstitutionSubstitutionPagesSupported=Supported page for substitution: '%s'
