@@ -1,0 +1,183 @@
+<changelog >
+<Version Number="3.4.+1.1.5" >
+	<change type='add'>add delete myList feature</change>
+</Version>
+
+<Version Number="3.5.+1.2.1">
+	<change type='fix'>fix some bug</change>
+	<change type='chg'>limit max = 100 by default</change>
+</Version>
+
+<Version Number="3.5.+1.2.2">
+	<change type='fix'>some Xml import error </change>
+	<change type='add'>Improvement of array of fields managment</change>
+</Version>
+
+<Version Number="3.5.+1.2.3">
+	<change type='fix'>filter error when name of fields have space</change>
+	<change type='fix'>better managment of bill statut</change>
+</Version>
+
+<Version Number="3.5.+1.2.4" >
+	<change type='fix'>ORDER BY in sql query work</change>
+	<change type='add'>add "with" on fields columns</change>
+	<change type='fix'>0-key error after delete fields</change>
+	<change type='add'>default display length is changeable in admin module</change>
+</Version>
+
+<Version Number="3.6.+1.3.0" >
+	<change type='add'>new commun top menu with other patas-tools</change>
+</Version>
+
+<Version Number="3.6.+1.3.1">
+	<change type='add'>new percent type of fields</change>
+	<change type='add'>add currency for price type</change>
+	<change type='ad'>add category (product and society) tabs feature</change>
+</Version>
+
+<Version Number="3.6.+1.3.2" MonthVersion="2015-01">
+	<change type='fix'>error on null element (leftjoin)</change>
+</Version>
+
+<Version Number="3.6.+1.3.3" MonthVersion="2015-03">
+	<change type='fix'>actioncomm module use id instead of rowid</change>
+</Version>
+
+<Version Number="3.7.+1.4.0" MonthVersion="2015-06">
+	<change type='fix'>better menuid management</change>
+</Version>
+
+<Version Number="3.8.+2.0.0" MonthVersion="2015-10">
+	<change type='inf'>Major version</change>
+	<change type='chg'>rename liste.php -> list.php and fiche.php -> card.php</change>
+	<change type='chg'>use mylistdet table instead array on unique field</change>
+	<change type='chg'>remove flash button remplace by trigger</change>
+</Version>
+
+<Version Number="3.8.+2.0.1" MonthVersion="2015-10">
+	<change type='chg'>import export compatibility with old mylist version</change>
+	<change type='add'>better management of position of new field</change>
+	<change type='fix'>some little bugfix</change>
+	<change type='chg'>mylist sample are not in database but in xmlsample folder</change>
+	<change type='chg'>error on list element</change>
+</Version>
+
+<Version Number="3.8.+2.0.2" MonthVersion="2015-11">
+	<change type='add'>mylistmore print plugin enhancement</change>
+	<change type='chg'>new fields widthpdf on mylistdet</change>
+	<change type='add'>better compatibility with myField</change>
+</Version>
+
+<Version Number="3.8.+2.0.3" MonthVersion="2015-12">
+	<change type='fix'>auguria menu compatibility</change>
+	<change type='add'>more order statut added (billed)</change>
+</Version>
+
+<Version Number="3.8.+2.0.4" MonthVersion="2016-01">
+	<change type='fix'>forceall feature to show all line</change>
+</Version>
+
+<Version Number="3.9.+2.1.0" MonthVersion="2016-04">
+	<change type='chg'>3.9 compatibility</change>
+	<change type='add'>custom folder compatibility</change>
+	<change type='fix'>bad redirection on champ (custom)</change>
+</Version>
+
+<Version Number="3.9.+2.1.1" MonthVersion="2016-05">
+	<change type='chg'>some problem with export feature</change>
+	<change type='fix'>bad id for society tab (socid instead)</change>
+	<change type='fix'>grid lose for colpositionning</change>
+	<change type='fix'>export problem change</change>
+</Version>
+<Version Number="3.9.+2.1.2" MonthVersion="2016-06">
+	<change type='add'>new tag #ENTITY# and #USERGROUP# on query</change>
+	<change type='fix'>multicompany menu better management</change>
+	<change type='chg'>better size of input filter</change>
+</Version>
+<Version Number="3.9.+2.1.3" MonthVersion="2016-07">
+	<change type='chg'>move module on "Patas-Tools" section</change>
+	<change type='add'>xml version changelog feature</change>
+	<change type='fix'>code field may crash on some mysql version</change>
+</Version>
+<Version Number="3.9.+2.1.4" MonthVersion="2016-08">
+	<change type='add'>New tooltiplistfeature</change>
+	<change type='fix'>xml import error on visible filter</change>
+</Version>
+<Version Number="4.0.+2.2.0" MonthVersion="2016-09">
+	<change type='fix'>4.0.0 compatibility</change>
+</Version>
+<Version Number="4.0.+2.2.1" MonthVersion="2016-10">
+	<change type='fix'>Fix some export problems</change>
+	<change type='fix'>ajax sort column error (last)</change>
+</Version>
+<Version Number="4.0.+2.2.2" MonthVersion="2016-11">
+	<change type='chg'>GetnomUrl based on param, not of type</change>
+	<change type='fix'>idreftabs bad initialised</change>
+</Version>
+<Version Number="4.0.+2.2.3" MonthVersion="2016-12">
+	<change type='add'>Project Tabs </change>
+	<change type='fix'>tabs pagination</change>
+	<change type='fix'>bad filter init field getpost</change>
+	<change type='fix'>bad filter #USERGROUP# if user has no group</change>
+	<change type='fix'>duplicate header on tabs mode</change>
+</Version>
+<Version Number="5.0.+3.0.0" MonthVersion="2017-02">
+	<change type='chg'>MAJOR VERTSION 5.0 compatibility</change>
+	<change type='add'>new look on admin about page</change>
+	<change type='add'>information version on admin setup page</change>
+	<change type='fix'>Export feature better managed</change>
+	<change type='add'>New "Categories Filter" Type Fields </change>
+</Version>
+<Version Number="5.0.+3.0.1" MonthVersion="2017-04">
+	<change type='add'>actived pdf is default selected if none selected before</change>
+	<change type='fix'>UTF-8 export Format OK</change>
+	<change type='fix'>personnalised field not aligned on mylistdt </change>
+</Version>
+
+<Version Number="5.0.+3.0.2" MonthVersion="2017-05">
+	<change type='add'>if withpdf=-1 the column field is not print in pdf</change>
+	<change type='fix'>exotic charset better managed on pdf</change>
+	<change type='fix'>align header field on datatable</change>
+	<change type='fix'>not selected field on classic if , on field</change>
+	<change type='fix'>Better management of filter fields</change>
+	<change type='add'>corechange menu need for customers_bills menu</change>
+	<change type='fix'>better presentation of pdf (landscape + portrait)</change>
+	<change type='fix'>landscape header not diplayed error finally solved YEAAAHH</change>
+</Version>
+
+<Version Number="5.0.+3.0.3" MonthVersion="2017-06">
+	<change type='fix'>better tabs management</change>
+	<change type='fix'>bad filter on prefedined value</change>
+</Version>
+
+<Version Number="5.0.+3.0.4" MonthVersion="2017-07">
+	<change type='fix'>better pdf presentation</change>
+	<change type='add'>duration type field</change>
+	<change type='add'>had filter #ENTITY# for multientity </change>
+</Version>
+<Version Number="6.0.+3.1.0" MonthVersion="2017-08">
+	<change type='chg'>6.0 compatibility</change>
+</Version>
+<Version Number="6.0.+3.1.1" MonthVersion="2017-09">
+	<change type='add'>datetime and time type field format are now implemented</change>
+	<change type='add'>check and mass change return on mylist</change>
+	<change type='fix'>exotic char best managed on pdf</change>
+</Version>
+<Version Number="6.0.+3.1.2" MonthVersion="2017-10">
+	<change type='add'>Description of myList displayed on mylist header page</change>
+	<change type='add'>mass change sample added on mylist</change>
+</Version>
+<Version Number="6.0.+3.1.3" MonthVersion="2018-01">
+	<change type='fix'>xls export error if selectlist </change>
+	<change type='fix'>better export separator management</change>
+	<change type='fix'>group by error management</change>
+</Version>
+<Version Number="7.0.+3.2.0" MonthVersion="2018-02">
+	<change type='fix'>PHP V7 error on pdf sum</change>
+	<change type='fix'>#SEL# on query more managed</change>
+	<change type='fix'>export not limited to 25 rows</change>
+</Version>
+
+	<!-- Remplir le undocumented.xml ? -->
+	<Dolibarr minVersion="3.9.0"/>
+</changelog>

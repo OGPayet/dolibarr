@@ -1,0 +1,149 @@
+<?xml version='1.0' encoding='ISO-8859-1'?><mylist>
+<label>Liste Propositions pour épuration</label>
+<titlemenu>Liste Epuration</titlemenu>
+<mainmenu>commercial</mainmenu>
+<leftmenu>propals</leftmenu>
+<elementtab></elementtab>
+<perms>$user->rights->propal->lire</perms>
+<datatable>false</datatable>
+<langs></langs>
+<export>0</export>
+<model_pdf></model_pdf>
+<author>Netlogic</author>
+<querylist>
+FROM llx_societe as s, llx_propal as p
+WHERE s.rowid = p.fk_soc
+AND date_format(datep, '%Y%m%d') &lt; date_format('2017/09/16', '%Y%m%d')
+AND fk_statut = 1
+
+</querylist>
+<fieldinit>
+
+</fieldinit>
+<querydo>
+UPDATE 'llx_propal'
+SET fk_statut=3
+WHERE rowid=#ROWID#
+</querydo>
+<fields>
+	<field >
+		<name>Client</name>
+		<field>s.rowid</field>
+		<alias>rowid</alias>
+		<type>List</type>
+		<pos>1</pos>
+		<param>Societe::societe:nom</param>
+		<align>left</align>
+		<enabled>1</enabled>
+		<sumreport>0</sumreport>
+		<avgreport>0</avgreport>
+		<visible>1</visible>
+		<filter>0</filter>
+		<width>100</width>
+		<widthpdf>0</widthpdf>
+		<filterinit></filterinit>
+	</field>
+	<field >
+		<name>Ref</name>
+		<field>p.ref</field>
+		<alias>ref</alias>
+		<type>Text</type>
+		<pos>1</pos>
+		<param></param>
+		<align>left</align>
+		<enabled>1</enabled>
+		<sumreport>0</sumreport>
+		<avgreport>0</avgreport>
+		<visible>1</visible>
+		<filter>0</filter>
+		<width>100</width>
+		<widthpdf>0</widthpdf>
+		<filterinit></filterinit>
+	</field>
+	<field >
+		<name>Ref client</name>
+		<field>p.ref_client</field>
+		<alias>ref_client</alias>
+		<type>Text</type>
+		<pos>1</pos>
+		<param></param>
+		<align>left</align>
+		<enabled>1</enabled>
+		<sumreport>0</sumreport>
+		<avgreport>0</avgreport>
+		<visible>1</visible>
+		<filter>1</filter>
+		<width>100</width>
+		<widthpdf>0</widthpdf>
+		<filterinit></filterinit>
+	</field>
+	<field >
+		<name>date</name>
+		<field>p.datep</field>
+		<alias>datep</alias>
+		<type>Date</type>
+		<pos>1</pos>
+		<param></param>
+		<align>left</align>
+		<enabled>1</enabled>
+		<sumreport>0</sumreport>
+		<avgreport>0</avgreport>
+		<visible>1</visible>
+		<filter>0</filter>
+		<width>100</width>
+		<widthpdf>0</widthpdf>
+		<filterinit></filterinit>
+	</field>
+	<field >
+		<name>Fin validité</name>
+		<field>p.fin_validite</field>
+		<alias>fin_validite</alias>
+		<type>Date</type>
+		<pos>1</pos>
+		<param></param>
+		<align>left</align>
+		<enabled>1</enabled>
+		<sumreport>0</sumreport>
+		<avgreport>0</avgreport>
+		<visible>1</visible>
+		<filter>0</filter>
+		<width>100</width>
+		<widthpdf>0</widthpdf>
+		<filterinit></filterinit>
+	</field>
+	<field >
+		<name>Etat</name>
+		<field>p.fk_statut</field>
+		<alias>fk_statut</alias>
+		<type>Statut</type>
+		<pos>1</pos>
+		<param>Propal:/comm/propal/class/propal.class.php:#1</param>
+		<align>left</align>
+		<enabled>1</enabled>
+		<sumreport>0</sumreport>
+		<avgreport>0</avgreport>
+		<visible>1</visible>
+		<filter>1</filter>
+		<width>100</width>
+		<widthpdf>0</widthpdf>
+		<filterinit></filterinit>
+	</field>
+	<field >
+		<name>tcheck</name>
+		<field>p.rowid</field>
+		<alias></alias>
+		<type>Check</type>
+		<pos>1</pos>
+		<param></param>
+		<align>left</align>
+		<enabled>1</enabled>
+		<sumreport>0</sumreport>
+		<avgreport>0</avgreport>
+		<visible>1</visible>
+		<filter>1</filter>
+		<width>100</width>
+		<widthpdf>0</widthpdf>
+		<filterinit></filterinit>
+	</field>
+</fields>
+</mylist>
