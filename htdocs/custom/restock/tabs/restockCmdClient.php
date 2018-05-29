@@ -378,6 +378,9 @@ if($action == 'confirm_direct') {
 	$db->begin();
 
 	$objectexp = new Expedition($db);
+	$extrafieldsexp = new ExtraFields($db);
+	$extralabelsexp = $extrafieldsexp->fetch_name_optionals_label($objectexp->table_element);
+
 	$objectexp->origin				= 'commande';
 	$objectexp->origin_id			= $id;
 	$objectexp->weight				= GETPOST('weight','int')==''?"NULL":GETPOST('weight','int');
@@ -389,6 +392,12 @@ if($action == 'confirm_direct') {
 
 	$objectsrc = new Commande($db);
 	$objectsrc->fetch($objectexp->origin_id);
+	$extrafieldssrc = new ExtraFields($db);
+	$extralabelssrc = $extrafieldssrc->fetch_name_optionals_label($objectsrc->table_element);
+	$ret = $extrafieldssrc->setOptionalsFromPost($extralabelssrc, $objectsrc);
+	if ($ret < 0) $error++;
+	$objectsrc->update($user);
+	$db->commit();
 
 	$objectexp->socid					= $objectsrc->socid;
 	$objectexp->fk_delivery_address	= $objectsrc->fk_delivery_address;
@@ -465,6 +474,11 @@ if($action == 'confirm_direct') {
 				}
 			}
 		}
+
+		// Fill array 'array_options' with data from add form
+		$ret = $extrafieldsexp->setOptionalsFromPost($extralabelsexp, $objectexp);
+		if ($ret < 0) $error++;
+
 		if (! $error)
 		{
 			$ret=$objectexp->create($user);		// This create shipment (like Odoo picking) and line of shipments. Stock movement will when validating shipment.
@@ -731,7 +745,8 @@ if ($action == 'direct') {
 							array('type' => 'text', 'name' => 'shipping_comment', 'label' => $langs->trans("Comment"), 'value' =>  GETPOST('comment'))
 						),
 						array(
-							array('type' => 'hidden', 'name' => 'fournid', 'value' => implode(",",$array_fourn))
+							array('type' => 'hidden', 'name' => 'fournid', 'value' => implode(",",$array_fourn)),
+							array('type' => 'hidden', 'name' => 'options_expd', 'value' => 1)
 						),
 						array(
 							'text' => "<b>".$langs->trans("DispatchOrder")."</b>",
