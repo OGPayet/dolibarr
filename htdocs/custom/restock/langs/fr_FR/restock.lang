@@ -157,3 +157,10 @@ OnlyService=Seulement les services
 
 #### OpenDSI ####
 EmptyContact=Veuillez ajouter un contact de livraison à la commande avant de restock
+DirectShipping=Livraison direct
+ConfirmDirect=Veuillez choisir vos options pour la commande fournisseur et la livraison :
+PassationOrder=Passation de la commande :
+ReceptionOrder=Réception de la commande :
+PopTitle=Complément d'informations
+PopQuestion=Êtes-vous sûr de vouloir faire une livraison directe avec cette commande <b>%s</b> ?
+DispatchOrder=Ventilation des commandes fournisseurs :

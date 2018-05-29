@@ -652,6 +652,572 @@ class Restock
 
 		return $components;
 	}
+
+	/** OpenDSI **/
+	function selectInputMethodRestock($selected='',$htmlname='source_id',$addempty=0)
+	{
+		global $langs;
+
+        $listofmethods=array();
+
+		$sql = "SELECT rowid, code, libelle as label";
+		$sql.= " FROM ".MAIN_DB_PREFIX."c_input_method";
+		$sql.= " WHERE active = 1";
+
+		dol_syslog(get_class($this)."::selectInputMethod", LOG_DEBUG);
+		$resql=$this->db->query($sql);
+
+		if (!$resql) {
+			dol_print_error($this->db);
+			return -1;
+		}
+
+		while ($obj = $this->db->fetch_object($resql)) {
+			$listofmethods[$obj->rowid] = $langs->trans($obj->code) != $obj->code ? $langs->trans($obj->code) : $obj->label;
+		}
+
+
+		return $listofmethods;
+	}
+
+
+    /**
+     *     Show a confirmation HTML form or AJAX popup.
+     *     Easiest way to use this is with useajax=1.
+     *     If you use useajax='xxx', you must also add jquery code to trigger opening of box (with correct parameters)
+     *     just after calling this method. For example:
+     *       print '<script type="text/javascript">'."\n";
+     *       print 'jQuery(document).ready(function() {'."\n";
+     *       print 'jQuery(".xxxlink").click(function(e) { jQuery("#aparamid").val(jQuery(this).attr("rel")); jQuery("#dialog-confirm-xxx").dialog("open"); return false; });'."\n";
+     *       print '});'."\n";
+     *       print '</script>'."\n";
+     *
+     *     @param  	string		$page        	   	Url of page to call if confirmation is OK
+     *     @param	string		$title       	   	Title
+     *     @param	string		$question    	   	Question
+     *     @param 	string		$action      	   	Action
+     *	   @param  	array		$formquestion	   	An array with complementary inputs to add into forms: array(array('label'=> ,'type'=> , ))
+     * 	   @param  	string		$selectedchoice  	"" or "no" or "yes"
+     * 	   @param  	int			$useajax		   	0=No, 1=Yes, 2=Yes but submit page with &confirm=no if choice is No, 'xxx'=Yes and preoutput confirm box with div id=dialog-confirm-xxx
+     *     @param  	int			$height          	Force height of box
+     *     @param	int			$width				Force width of box ('999' or '90%'). Ignored and forced to 90% on smartphones.
+     *     @return 	string      	    			HTML ajax code if a confirm ajax popup is required, Pure HTML code if it's an html form
+     */
+    function formconfirmRestock($page, $title, $question, $action, $formquestions='', $selectedchoice="", $useajax=0, $height=200, $width=500)
+    {
+        global $langs,$conf;
+        global $useglobalvars;
+
+        $more='';
+        $formconfirm='';
+        $inputok=array();
+        $inputko=array();
+		$form=new Form($this->db);
+
+        // Clean parameters
+        $newselectedchoice=empty($selectedchoice)?"no":$selectedchoice;
+        if ($conf->browser->layout == 'phone') $width='95%';
+
+        if (is_array($formquestions) && ! empty($formquestions))
+        {
+		// First add hidden fields and value
+			foreach($formquestions as $formquestion) {
+				foreach ($formquestion as $key => $input)
+				{
+					if (is_array($input) && ! empty($input))
+					{
+						if ($input['type'] == 'hidden')
+						{
+							$more.='<input type="hidden" id="'.$input['name'].'" name="'.$input['name'].'" value="'.dol_escape_htmltag($input['value']).'">'."\n";
+						}
+					}
+				}
+			}
+
+		// Now add questions
+            $more.='<table class="paddingtopbottomonly" width="100%">'."\n";
+			foreach($formquestions as $formquestion) {
+				$more.='<tr><td colspan="3">'.(! empty($formquestion['text'])?$formquestion['text']:'').'</td></tr>'."\n";
+				foreach ($formquestion as $key => $input)
+				{
+					if (is_array($input) && ! empty($input))
+					{
+						$size=(! empty($input['size'])?' size="'.$input['size'].'"':'');
+
+						if ($input['type'] == 'text')
+						{
+							$more.='<tr><td>'.$input['label'].'</td><td colspan="2" align="left"><input type="text" class="flat" id="'.$input['name'].'" name="'.$input['name'].'"'.$size.' value="'.$input['value'].'" /></td></tr>'."\n";
+						}
+						else if ($input['type'] == 'password')
+						{
+							$more.='<tr><td>'.$input['label'].'</td><td colspan="2" align="left"><input type="password" class="flat" id="'.$input['name'].'" name="'.$input['name'].'"'.$size.' value="'.$input['value'].'" /></td></tr>'."\n";
+						}
+						else if ($input['type'] == 'select')
+						{
+							$more.='<tr><td>';
+							if (! empty($input['label'])) $more.=$input['label'].'</td><td valign="top" colspan="2" align="left">';
+							$more.=$form->selectarray($input['name'],$input['values'],$input['default'],1);
+							$more.='</td></tr>'."\n";
+						}
+						else if ($input['type'] == 'checkbox')
+						{
+							$more.='<tr>';
+							$more.='<td>'.$input['label'].' </td><td align="left">';
+							$more.='<input type="checkbox" class="flat" id="'.$input['name'].'" name="'.$input['name'].'"';
+							if (! is_bool($input['value']) && $input['value'] != 'false') $more.=' checked';
+							if (is_bool($input['value']) && $input['value']) $more.=' checked';
+							if (isset($input['disabled'])) $more.=' disabled';
+							$more.=' /></td>';
+							$more.='<td align="left">&nbsp;</td>';
+							$more.='</tr>'."\n";
+						}
+						else if ($input['type'] == 'radio')
+						{
+							$i=0;
+							foreach($input['values'] as $selkey => $selval)
+							{
+								$more.='<tr>';
+								if ($i==0) $more.='<td class="tdtop">'.$input['label'].'</td>';
+								else $more.='<td>&nbsp;</td>';
+								$more.='<td width="20"><input type="radio" class="flat" id="'.$input['name'].'" name="'.$input['name'].'" value="'.$selkey.'"';
+								if ($input['disabled']) $more.=' disabled';
+								$more.=' /></td>';
+								$more.='<td align="left">';
+								$more.=$selval;
+								$more.='</td></tr>'."\n";
+								$i++;
+							}
+						}
+						else if ($input['type'] == 'date')
+						{
+							$more.='<tr><td>'.$input['label'].'</td>';
+							$more.='<td colspan="2" align="left">';
+							$more.=$form->select_date($input['value'],$input['name'],1,1,0,'',1,1,1);
+							$more.='</td></tr>'."\n";
+							$formquestion[] = array('name'=>$input['name'].'day');
+							$formquestion[] = array('name'=>$input['name'].'month');
+							$formquestion[] = array('name'=>$input['name'].'year');
+							$formquestion[] = array('name'=>$input['name'].'hour');
+							$formquestion[] = array('name'=>$input['name'].'min');
+						}
+						else if ($input['type'] == 'other')
+						{
+							$more.='<tr><td>';
+							if (! empty($input['label'])) $more.=$input['label'].'</td><td colspan="2" align="left">';
+							$more.=$input['value'];
+							$more.='</td></tr>'."\n";
+						}
+						else if ($input['type'] == 'dispatch') {
+							$more.='<table class="noborder" width="100%">';
+							$order_fourn_list = explode(',',$input['value']);
+							foreach($order_fourn_list as $order_fourn) {
+								$object = new CommandeFournisseur($this->db);
+								$object->fetch($order_fourn);
+
+								$entrepot = new Entrepot($this->db);
+								$listwarehouses = $entrepot->list_array(1);
+
+								$formproduct = new FormProduct($this->db);
+
+								// Set $products_dispatched with qty dispatched for each product id
+								$products_dispatched = array();
+								$sql = "SELECT l.rowid, cfd.fk_product, sum(cfd.qty) as qty";
+								$sql .= " FROM " . MAIN_DB_PREFIX . "commande_fournisseur_dispatch as cfd";
+								$sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "commande_fournisseurdet as l on l.rowid = cfd.fk_commandefourndet";
+								$sql .= " WHERE cfd.fk_commande = " . $object->id;
+								$sql .= " GROUP BY l.rowid, cfd.fk_product";
+
+								$resql = $this->db->query($sql);
+								if ($resql) {
+									$num = $this->db->num_rows($resql);
+									$i = 0;
+
+									if ($num) {
+										while ( $i < $num ) {
+											$objd = $this->db->fetch_object($resql);
+											$products_dispatched[$objd->rowid] = price2num($objd->qty, 5);
+											$i++;
+										}
+									}
+									$this->db->free($resql);
+								}
+
+								$sql = "SELECT l.rowid, l.fk_product, l.subprice, l.remise_percent, SUM(l.qty) as qty,";
+								$sql .= " p.ref, p.label, p.tobatch";
+								$sql .= " FROM " . MAIN_DB_PREFIX . "commande_fournisseurdet as l";
+								$sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "product as p ON l.fk_product=p.rowid";
+								$sql .= " WHERE l.fk_commande = " . $object->id;
+								if (empty($conf->global->STOCK_SUPPORTS_SERVICES))
+									$sql .= " AND l.product_type = 0";
+								$sql .= " GROUP BY p.ref, p.label, p.tobatch, l.rowid, l.fk_product, l.subprice, l.remise_percent"; // Calculation of amount dispatched is done per fk_product so we must group by fk_product
+								$sql .= " ORDER BY p.ref, p.label";
+
+								$resql = $this->db->query($sql);
+								if ($resql) {
+									$num = $this->db->num_rows($resql);
+									$i = 0;
+
+									if ($num) {
+										$more.= '<tr class="liste_titre">';
+
+										$more.= '<td>' . $langs->trans("Description") . '</td>';
+										$more.= '<td></td>';
+										$more.= '<td></td>';
+										$more.= '<td></td>';
+										$more.= '<td align="right">' . $langs->trans("QtyOrdered") . '</td>';
+										$more.= '<td align="right">' . $langs->trans("QtyDispatchedShort") . '</td>';
+										$more.= '<td align="right">' . $langs->trans("QtyToDispatchShort") . '</td>';
+										$more.= '<td width="32"></td>';
+										$more.= '<td align="right">' . $langs->trans("Warehouse") . '</td>';
+										$more.= "</tr>\n";
+
+										if (! empty($conf->productbatch->enabled)) {
+											$more.= '<tr class="liste_titre">';
+											$more.= '<td></td>';
+											$more.= '<td>' . $langs->trans("batch_number") . '</td>';
+											$more.= '<td>' . $langs->trans("EatByDate") . '</td>';
+											$more.= '<td>' . $langs->trans("SellByDate") . '</td>';
+											$more.= '<td colspan="5">&nbsp;</td>';
+											$more.= "</tr>\n";
+										}
+									}
+
+									$nbfreeproduct = 0;		// Nb of lins of free products/services
+									$nbproduct = 0;			// Nb of predefined product lines to dispatch (already done or not) if SUPPLIER_ORDER_DISABLE_STOCK_DISPATCH_WHEN_TOTAL_REACHED is off (default)
+															// or nb of line that remain to dispatch if SUPPLIER_ORDER_DISABLE_STOCK_DISPATCH_WHEN_TOTAL_REACHED is on.
+
+									$var = false;
+									while ( $i < $num ) {
+										$objp = $this->db->fetch_object($resql);
+
+										// On n'affiche pas les produits libres
+										if (! $objp->fk_product > 0) {
+											$nbfreeproduct++;
+										} else {
+											$remaintodispatch = price2num($objp->qty - (( float ) $products_dispatched[$objp->rowid]), 5); // Calculation of dispatched
+											if ($remaintodispatch < 0)
+												$remaintodispatch = 0;
+
+											if ($remaintodispatch || empty($conf->global->SUPPLIER_ORDER_DISABLE_STOCK_DISPATCH_WHEN_TOTAL_REACHED)) {
+												$nbproduct++;
+
+												// To show detail cref and description value, we must make calculation by cref
+												// $more.= ($objp->cref?' ('.$objp->cref.')':'');
+												// if ($objp->description) $more.= '<br>'.nl2br($objp->description);
+												$suffix = '_'.$order_fourn.'_' . $i;
+
+												$more.= "\n";
+												$more.= '<!-- Line to dispatch ' . $suffix . ' -->' . "\n";
+												$more.= '<tr class="oddeven">';
+
+												$linktoprod = '<a href="' . DOL_URL_ROOT . '/product/fournisseurs.php?id=' . $objp->fk_product . '">' . img_object($langs->trans("ShowProduct"), 'product') . ' ' . $objp->ref . '</a>';
+												$linktoprod .= ' - ' . $objp->label . "\n";
+
+												if (! empty($conf->productbatch->enabled)) {
+													if ($objp->tobatch) {
+														$more.= '<td colspan="4">';
+														$more.= $linktoprod;
+														$more.= "</td>";
+													} else {
+														$more.= '<td>';
+														$more.= $linktoprod;
+														$more.= "</td>";
+														$more.= '<td colspan="3">';
+														$more.= $langs->trans("ProductDoesNotUseBatchSerial");
+														$more.= '</td>';
+													}
+												} else {
+													$more.= '<td colspan="4">';
+													$more.= $linktoprod;
+													$more.= "</td>";
+												}
+
+												// Define unit price for PMP calculation
+												$up_ht_disc = $objp->subprice;
+												if (! empty($objp->remise_percent) && empty($conf->global->STOCK_EXCLUDE_DISCOUNT_FOR_PMP))
+													$up_ht_disc = price2num($up_ht_disc * (100 - $objp->remise_percent) / 100, 'MU');
+
+												// Qty ordered
+												$more.= '<td align="right">' . $objp->qty . '</td>';
+
+												// Already dispatched
+												$more.= '<td align="right">' . $products_dispatched[$objp->rowid] . '</td>';
+
+												if (! empty($conf->productbatch->enabled) && $objp->tobatch == 1) {
+													$type = 'batch';
+													$more.= '<td align="right">';
+													$more.= '</td>';     // Qty to dispatch
+													$more.= '<td>';
+													//$more.= img_picto($langs->trans('AddDispatchBatchLine'), 'split.png', 'onClick="addDispatchLine(' . $i . ',\'' . $type . '\')"');
+													$more.= '</td>';     // Dispatch column
+													$more.= '<td></td>'; // Warehouse column
+													$more.= '</tr>';
+
+													$more.= '<tr class="oddeven" name="' . $type . $suffix . '">';
+													$more.= '<td>';
+													$more.= '<input name="fk_commandefourndet' . $suffix . '" type="hidden" value="' . $objp->rowid . '">';
+													$more.= '<input name="product_batch' . $suffix . '" type="hidden" value="' . $objp->fk_product . '">';
+
+													$more.= '<!-- This is a up (may include discount or not depending on STOCK_EXCLUDE_DISCOUNT_FOR_PMP. will be used for PMP calculation) -->';
+													if (! empty($conf->global->SUPPLIER_ORDER_EDIT_BUYINGPRICE_DURING_RECEIPT)) // Not tested !
+													{
+														$more.= $langs->trans("BuyingPrice").': <input class="maxwidth75" name="pu' . $suffix . '" type="text" value="' . price2num($up_ht_disc, 'MU') . '">';
+													}
+													else
+													{
+														$more.= '<input class="maxwidth75" name="pu' . $suffix . '" type="hidden" value="' . price2num($up_ht_disc, 'MU') . '">';
+													}
+
+													// hidden fields for js function
+													$more.= '<input id="qty_ordered' . $suffix . '" type="hidden" value="' . $objp->qty . '">';
+													$more.= '<input id="qty_dispatched' . $suffix . '" type="hidden" value="' . ( float ) $products_dispatched[$objp->rowid] . '">';
+													$more.= '</td>';
+
+													$more.= '<td>';
+													$more.= '<input type="text" class="inputlotnumber" id="lot_number' . $suffix . '" name="lot_number' . $suffix . '" size="40" value="' . GETPOST('lot_number' . $suffix) . '">';
+													$more.= '</td>';
+													$more.= '<td>';
+													$dlcdatesuffix = dol_mktime(0, 0, 0, GETPOST('dlc' . $suffix . 'month'), GETPOST('dlc' . $suffix . 'day'), GETPOST('dlc' . $suffix . 'year'));
+													$form->select_date($dlcdatesuffix, 'dlc' . $suffix, '', '', 1, "");
+													$more.= '</td>';
+													$more.= '<td>';
+													$dluodatesuffix = dol_mktime(0, 0, 0, GETPOST('dluo' . $suffix . 'month'), GETPOST('dluo' . $suffix . 'day'), GETPOST('dluo' . $suffix . 'year'));
+													$form->select_date($dluodatesuffix, 'dluo' . $suffix, '', '', 1, "");
+													$more.= '</td>';
+													$more.= '<td colspan="2">&nbsp</td>'; // Qty ordered + qty already dispatached
+												} else {
+													$type = 'dispatch';
+													$more.= '<td align="right">';
+													$more.= '</td>';     // Qty to dispatch
+													$more.= '<td>';
+													//$more.= img_picto($langs->trans('AddStockLocationLine'), 'split.png', 'onClick="addDispatchLine(' . $i . ',\'' . $type . '\')"');
+													$more.= '</td>';      // Dispatch column
+													$more.= '<td></td>'; // Warehouse column
+													$more.= '</tr>';
+
+													$more.= '<tr class="oddeven" name="' . $type . $suffix . '">';
+													$more.= '<td colspan="6">';
+													$more.= '<input name="fk_commandefourndet' . $suffix . '" type="hidden" value="' . $objp->rowid . '">';
+													$more.= '<input name="product' . $suffix . '" type="hidden" value="' . $objp->fk_product . '">';
+
+													$more.= '<!-- This is a up (may include discount or not depending on STOCK_EXCLUDE_DISCOUNT_FOR_PMP. will be used for PMP calculation) -->';
+													if (! empty($conf->global->SUPPLIER_ORDER_EDIT_BUYINGPRICE_DURING_RECEIPT)) // Not tested !
+													{
+														$more.= $langs->trans("BuyingPrice").': <input class="maxwidth75" name="pu' . $suffix . '" type="text" value="' . price2num($up_ht_disc, 'MU') . '">';
+													}
+													else
+													{
+														$more.= '<input class="maxwidth75" name="pu' . $suffix . '" type="hidden" value="' . price2num($up_ht_disc, 'MU') . '">';
+													}
+
+													// hidden fields for js function
+													$more.= '<input id="qty_ordered' . $suffix . '" type="hidden" value="' . $objp->qty . '">';
+													$more.= '<input id="qty_dispatched' . $suffix . '" type="hidden" value="' . ( float ) $products_dispatched[$objp->rowid] . '">';
+													$more.= '</td>';
+												}
+
+												// Qty to dispatch
+												$more.= '<td align="right">';
+												$more.= '<input id="qty' . $suffix . '" name="qty' . $suffix . '" type="text" size="8" value="' . (GETPOST('qty' . $suffix) != '' ? GETPOST('qty' . $suffix) : $remaintodispatch) . '">';
+												$more.= '</td>';
+
+												$more.= '<td>';
+												if (! empty($conf->productbatch->enabled) && $objp->tobatch == 1) {
+													$type = 'batch';
+													//$more.= img_picto($langs->trans('AddDispatchBatchLine'), 'split.png', 'class="splitbutton" onClick="addDispatchLine(' . $i . ',\'' . $type . '\')"');
+													$more.= img_picto($langs->trans('AddStockLocationLine'), 'split.png', 'class="splitbutton" onClick="addDispatchLine(' . $i . ',\'' . $type . '\')"');
+												}
+												else
+												{
+													$type = 'dispatch';
+													$more.= img_picto($langs->trans('AddStockLocationLine'), 'split.png', 'class="splitbutton" onClick="addDispatchLine(' . $i . ',\'' . $type . '\')"');
+												}
+
+												$more.= '</td>';
+
+												// Warehouse
+												$more.= '<td align="right">';
+												if (count($listwarehouses) > 1) {
+													$more.= $formproduct->selectWarehouses(GETPOST("entrepot" . $suffix), "entrepot" . $suffix, '', 1, 0, $objp->fk_product, '', 1);
+												} elseif (count($listwarehouses) == 1) {
+													$more.= $formproduct->selectWarehouses(GETPOST("entrepot" . $suffix), "entrepot" . $suffix, '', 0, 0, $objp->fk_product, '', 1);
+												} else {
+													$langs->load("errors");
+													$more.= $langs->trans("ErrorNoWarehouseDefined");
+												}
+												$more.= "</td>\n";
+
+												$more.= "</tr>\n";
+											}
+										}
+										$i++;
+									}
+									$this->db->free($resql);
+								} else {
+									dol_print_error($this->db);
+								}
+							}
+							$more.='</table>';
+						}
+					}
+				}
+			}
+            $more.='</table>'."\n";
+        }
+
+		// JQUI method dialog is broken with jmobile, we use standard HTML.
+		// Note: When using dol_use_jmobile or no js, you must also check code for button use a GET url with action=xxx and check that you also output the confirm code when action=xxx
+		// See page product/card.php for example
+        if (! empty($conf->dol_use_jmobile)) $useajax=0;
+		if (empty($conf->use_javascript_ajax)) $useajax=0;
+
+        if ($useajax)
+        {
+            $autoOpen=true;
+            $dialogconfirm='dialog-confirm';
+            $button='';
+            if (! is_numeric($useajax))
+            {
+                $button=$useajax;
+                $useajax=1;
+                $autoOpen=false;
+                $dialogconfirm.='-'.$button;
+            }
+            $pageyes=$page.(preg_match('/\?/',$page)?'&':'?').'action='.$action.'&confirm=yes';
+            $pageno=($useajax == 2 ? $page.(preg_match('/\?/',$page)?'&':'?').'confirm=no':'');
+            // Add input fields into list of fields to read during submit (inputok and inputko)
+            if (is_array($formquestions))
+            {
+				foreach($formquestions as $formquestion) {
+					foreach ($formquestion as $key => $input)
+					{
+						//print "xx ".$key." rr ".is_array($input)."<br>\n";
+						if (is_array($input) && isset($input['name'])) array_push($inputok,$input['name']);
+						if (isset($input['inputko']) && $input['inputko'] == 1) array_push($inputko,$input['name']);
+					}
+				}
+            }
+			// Show JQuery confirm box. Note that global var $useglobalvars is used inside this template
+            $formconfirm.= '<div id="'.$dialogconfirm.'" title="'.dol_escape_htmltag($title).'" style="display: none;">';
+            if (! empty($more)) {
+		$formconfirm.= '<div class="confirmquestions">'.$more.'</div>';
+            }
+            $formconfirm.= ($question ? '<div class="confirmmessage">'.img_help('','').' '.$question . '</div>': '');
+            $formconfirm.= '</div>'."\n";
+
+            $formconfirm.= "\n<!-- begin ajax form_confirm page=".$page." -->\n";
+            $formconfirm.= '<script type="text/javascript">'."\n";
+            $formconfirm.= 'jQuery(document).ready(function() {
+            $(function() {
+		$( "#'.$dialogconfirm.'" ).dialog(
+		{
+                    autoOpen: '.($autoOpen ? "true" : "false").',';
+			if ($newselectedchoice == 'no')
+			{
+						$formconfirm.='
+						open: function() {
+					$(this).parent().find("button.ui-button:eq(2)").focus();
+						},';
+			}
+				$formconfirm.='
+                    resizable: false,
+                    height: "'.$height.'",
+                    width: "'.$width.'",
+                    modal: true,
+                    closeOnEscape: false,
+                    buttons: {
+                        "'.dol_escape_js($langs->transnoentities("Yes")).'": function() {
+				var options="";
+				var inputok = '.json_encode($inputok).';
+				var pageyes = "'.dol_escape_js(! empty($pageyes)?$pageyes:'').'";
+				if (inputok.length>0) {
+					$.each(inputok, function(i, inputname) {
+						var more = "";
+						if ($("#" + inputname).attr("type") == "checkbox") { more = ":checked"; }
+					    if ($("#" + inputname).attr("type") == "radio") { more = ":checked"; }
+						var inputvalue = $("#" + inputname + more).val();
+						if (typeof inputvalue == "undefined") { inputvalue=""; }
+						options += "&" + inputname + "=" + inputvalue;
+					});
+				}
+				var urljump = pageyes + (pageyes.indexOf("?") < 0 ? "?" : "") + options;
+				//alert(urljump);
+					if (pageyes.length > 0) { location.href = urljump; }
+                            $(this).dialog("close");
+                        },
+                        "'.dol_escape_js($langs->transnoentities("No")).'": function() {
+				var options = "";
+				var inputko = '.json_encode($inputko).';
+				var pageno="'.dol_escape_js(! empty($pageno)?$pageno:'').'";
+				if (inputko.length>0) {
+					$.each(inputko, function(i, inputname) {
+						var more = "";
+						if ($("#" + inputname).attr("type") == "checkbox") { more = ":checked"; }
+						var inputvalue = $("#" + inputname + more).val();
+						if (typeof inputvalue == "undefined") { inputvalue=""; }
+						options += "&" + inputname + "=" + inputvalue;
+					});
+				}
+				var urljump=pageno + (pageno.indexOf("?") < 0 ? "?" : "") + options;
+				//alert(urljump);
+					if (pageno.length > 0) { location.href = urljump; }
+                            $(this).dialog("close");
+                        }
+                    }
+                }
+                );
+
+		var button = "'.$button.'";
+		if (button.length > 0) {
+			$( "#" + button ).click(function() {
+				$("#'.$dialogconfirm.'").dialog("open");
+				});
+                }
+            });
+            });
+            </script>';
+            $formconfirm.= "<!-- end ajax form_confirm -->\n";
+        }
+        else
+        {
+		$formconfirm.= "\n<!-- begin form_confirm page=".$page." -->\n";
+
+            $formconfirm.= '<form method="POST" action="'.$page.'" class="notoptoleftroright">'."\n";
+            $formconfirm.= '<input type="hidden" name="action" value="'.$action.'">'."\n";
+            $formconfirm.= '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">'."\n";
+
+            $formconfirm.= '<table width="100%" class="valid">'."\n";
+
+            // Line title
+            $formconfirm.= '<tr class="validtitre"><td class="validtitre" colspan="3">'.img_picto('','recent').' '.$title.'</td></tr>'."\n";
+
+            // Line form fields
+            if ($more)
+            {
+                $formconfirm.='<tr class="valid"><td class="valid" colspan="3">'."\n";
+                $formconfirm.=$more;
+                $formconfirm.='</td></tr>'."\n";
+            }
+
+            // Line with question
+            $formconfirm.= '<tr class="valid">';
+            $formconfirm.= '<td class="valid">'.$question.'</td>';
+            $formconfirm.= '<td class="valid">';
+            $formconfirm.= $form->selectyesno("confirm",$newselectedchoice);
+            $formconfirm.= '</td>';
+            $formconfirm.= '<td class="valid" align="center"><input class="button valignmiddle" type="submit" value="'.$langs->trans("Validate").'"></td>';
+            $formconfirm.= '</tr>'."\n";
+
+            $formconfirm.= '</table>'."\n";
+
+            $formconfirm.= "</form>\n";
+            $formconfirm.= '<br>';
+
+            $formconfirm.= "<!-- end form_confirm -->\n";
+        }
+
+        return $formconfirm;
+    }
 }
 
 
