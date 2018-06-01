@@ -267,7 +267,7 @@ if($action == 'confirm_direct') {
 				$pu = "pu_" . $reg[1] . '_' . $reg[2]; // This is unit price including discount
 				$fk_commandefourndet = "fk_commandefourndet_" . $reg[1] . '_' . $reg[2];
 
-				$sql = "SELECT rowid FROM dolibarr.llx_commandedet WHERE fk_commande = ".$id." and fk_product = ".GETPOST($prod, 'int');
+				$sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."commandedet WHERE fk_commande = ".$id." and fk_product = ".GETPOST($prod, 'int');
 				$resql=$db->query($sql);
 				if ($resql)	{
 					$obj = $db->fetch_object($resql);
