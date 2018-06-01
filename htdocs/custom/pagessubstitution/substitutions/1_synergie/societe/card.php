@@ -2034,12 +2034,17 @@ else
 		$return = "";
 		if(!empty($list_contract)) {
 			foreach($list_contract as $contract) {
-				$return = "<a href='".DOL_URL_ROOT."/contrat/card.id=".$contract->id."'> ".$contract->ref."</a> ";
+				$extrafields = new ExtraFields($db);
+				$extralabels=$extrafields->fetch_name_optionals_label($contract->table_element);
+				$contract->fetch($rowid);
+				$contract->fetch_optionals($rowid,$extralabels);
+				$return = "<a href='".DOL_URL_ROOT."/contrat/card.php?id=".$contract->id."'> ".$contract->array_options ['options_formule']." - " . $contract->ref."</a> ";
 			}
-			print '<h2 style="color:green;">Avec contrat : '.$return.'</h2>';
+			print '<h1 style="color:green;text-align:center;font-size: 4em;">Avec contrat : '.$return.'</h1>';
+
 
 		} else {
-			print '<h2 style="color:red;">Sans contrat</h2>';
+			print '<h1 style="color:red;text-align:center;font-size: 4em;">Sans contrat</h1>';
 		}
 
         print '<div class="fichecenter">';
