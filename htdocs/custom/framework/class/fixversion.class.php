@@ -167,6 +167,18 @@ class Fixversion{
 
 						'lang'=>'contract'
 						),
+					'stock'=>array(
+						'name'=>"Stock",
+						'title'=>"StockTitle",
+						'class'=>'Entrepot',
+						'table'=>'entrepot',
+						'datefieldname'=>'datec',
+						'path'=>'product/stock/',
+						// tabs
+						'nameid'=>'id',
+						'tabs'=>'stock',
+						'lang'=>'entrepot'
+						),
 // 'intervention'=>array(
 // 	'name'=>"Interventions",
 // 	'title'=>"ListFichinterAssociatedQualityreport",

@@ -561,7 +561,7 @@ class DolModExts extends DolibarrModules
 								 $sr.='+';
 								 $sr.=$this->code.'tabs'.$cl.':';
 								 $sr.=$this->name.'Tabs'.ucwords($cl).':';
-								 $sr.=$this->code.'@:'.$this->code.':';
+								 $sr.=$this->code.'@'.$this->code.':'.$this->code.':';
 								 $sr.='/framework/tabs/generic.php?mod='.$this->code.'&tab='.$cl.'&'.(string)$this->FV->GetNameidByType($cl).'=__ID__';
 
 
