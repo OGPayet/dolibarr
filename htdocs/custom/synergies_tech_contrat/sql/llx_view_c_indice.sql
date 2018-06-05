@@ -1,4 +1,4 @@
-DROP VIEW `llx_view_c_indice`;
+-- DROP VIEW `llx_view_c_indice`;
 CREATE VIEW `llx_view_c_indice` AS
     SELECT
             concat(`i`.`rowid`, '_Insee') AS `rowid`,

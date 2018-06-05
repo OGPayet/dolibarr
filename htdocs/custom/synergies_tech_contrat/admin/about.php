@@ -18,8 +18,8 @@
 
 /**
  * \file    admin/about.php
- * \ingroup synergies_tech_contrat
- * \brief   About page of module synergies_tech_contrat.
+ * \ingroup synergiestechcontrat
+ * \brief   About page of module synergiestechcontrat.
  */
 
 // Load Dolibarr environment
@@ -39,12 +39,12 @@ if (! $res) die("Include of main fails");
 // Libraries
 require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
-require_once '../lib/synergies_tech_contrat.lib.php';
+require_once '../lib/synergiestechcontrat.lib.php';
 
 // Translations
 $langs->load("errors");
 $langs->load("admin");
-$langs->load("synergies_tech_contrat@synergies_tech_contrat");
+$langs->load("synergiestechcontrat@synergiestechcontrat");
 
 // Access control
 if (! $user->admin) {
@@ -68,7 +68,7 @@ $action = GETPOST('action', 'alpha');
 
 $form = new Form($db);
 
-$page_name = "synergies_tech_contratAbout";
+$page_name = "synergiestechcontratAbout";
 llxHeader('', $langs->trans($page_name));
 
 // Subheader
@@ -77,22 +77,22 @@ $linkback = '<a href="' . DOL_URL_ROOT . '/admin/modules.php">'
 print load_fiche_titre($langs->trans($page_name), $linkback);
 
 // Configuration header
-$head = synergies_tech_contratAdminPrepareHead();
+$head = synergiestechcontratAdminPrepareHead();
 dol_fiche_head(
 	$head,
 	'about',
-	$langs->trans("synergies_tech_contratName"),
+	$langs->trans("synergiestechcontratName"),
 	0,
-	'synergies_tech_contrat@synergies_tech_contrat'
+	'synergiestechcontrat@synergiestechcontrat'
 );
 
 // About page goes here
-echo $langs->trans("synergies_tech_contratAboutPage");
+echo $langs->trans("synergiestechcontratAboutPage");
 
 echo '<br>';
 
-dol_include_once('/synergies_tech_contrat/core/modules/modsynergies_tech_contrat.class.php');
-$tmpmodule = new modsynergies_tech_contrat($db);
+dol_include_once('/synergiestechcontrat/core/modules/modsynergiestechcontrat.class.php');
+$tmpmodule = new modsynergiestechcontrat($db);
 print $tmpmodule->getDescLong();
 
 // Page end

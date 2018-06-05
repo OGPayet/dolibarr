@@ -1,7 +1,7 @@
-# SYNERGIES_TECH_CONTRAT FOR DOLIBARR ERP CRM
+# SYNERGIESTECHCONTRAT FOR DOLIBARR ERP CRM
 
 ## Features
-synergies_tech_contratDescription
+synergiestechcontratDescription
 
 Other modules are available on <a href="https://www.dolistore.com" target="_new">Dolistore.com</a>.
 
@@ -58,10 +58,10 @@ Install
 
     For more information about the ```conf.php``` file take a look at the conf.php.example file.
 
-- Clone the repository in ```$dolibarr_main_document_root_alt/synergies_tech_contrat```
+- Clone the repository in ```$dolibarr_main_document_root_alt/synergiestechcontrat```
 
 ```sh
-git clone git@github.com:Dolibarr/dolibarr-module-template.git synergies_tech_contrat
+git clone git@github.com:Dolibarr/dolibarr-module-template.git synergiestechcontrat
 ```
 
 ### <a name="final_steps"></a>Final steps

@@ -18,8 +18,8 @@
 
 /**
  * \file    admin/setup.php
- * \ingroup synergies_tech_contrat
- * \brief   synergies_tech_contrat setup page.
+ * \ingroup synergiestechcontrat
+ * \brief   synergiestechcontrat setup page.
  */
 
 // Load Dolibarr environment
@@ -40,10 +40,10 @@ global $langs, $user;
 
 // Libraries
 require_once DOL_DOCUMENT_ROOT . "/core/lib/admin.lib.php";
-require_once '../lib/synergies_tech_contrat.lib.php';
+require_once '../lib/synergiestechcontrat.lib.php';
 //require_once "../class/myclass.class.php";
 // Translations
-$langs->load("synergies_tech_contrat@synergies_tech_contrat");
+$langs->load("synergiestechcontrat@synergiestechcontrat");
 
 // Access control
 if (! $user->admin) accessforbidden();
@@ -63,7 +63,7 @@ include DOL_DOCUMENT_ROOT.'/core/actions_setmoduleoptions.inc.php';
  * View
  */
 
-$page_name = "synergies_tech_contratSetup";
+$page_name = "synergiestechcontratSetup";
 llxHeader('', $langs->trans($page_name));
 
 // Subheader
@@ -72,17 +72,17 @@ $linkback = '<a href="' . DOL_URL_ROOT . '/admin/modules.php">' . $langs->trans(
 print load_fiche_titre($langs->trans($page_name), $linkback);
 
 // Configuration header
-$head = synergies_tech_contratAdminPrepareHead();
+$head = synergiestechcontratAdminPrepareHead();
 dol_fiche_head(
 	$head,
 	'settings',
 	$langs->trans("Module500000Name"),
 	0,
-	"synergies_tech_contrat@synergies_tech_contrat"
+	"synergiestechcontrat@synergiestechcontrat"
 );
 
 // Setup page goes here
-echo $langs->trans("synergies_tech_contratSetupPage");
+echo $langs->trans("synergiestechcontratSetupPage");
 
 // Page end
 dol_fiche_end();

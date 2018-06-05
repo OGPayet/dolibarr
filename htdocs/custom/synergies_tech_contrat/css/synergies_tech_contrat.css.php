@@ -16,9 +16,9 @@
  */
 
 /**
- * \file    css/synergies_tech_contrat.css.php
- * \ingroup synergies_tech_contrat
- * \brief   CSS file for module synergies_tech_contrat.
+ * \file    css/synergiestechcontrat.css.php
+ * \ingroup synergiestechcontrat
+ * \brief   CSS file for module synergiestechcontrat.
  */
 
 //if (! defined('NOREQUIREUSER')) define('NOREQUIREUSER','1');	// Not disabled because need to load personalized language

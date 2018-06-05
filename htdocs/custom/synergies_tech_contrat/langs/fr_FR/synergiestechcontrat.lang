@@ -14,35 +14,36 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #
-# Generic
+# Générique
 #
 
 # Module label 'ModulesynergiestechcontratName'
-ModulesynergiestechcontratName = synergiestechcontrat
+ModulesynergiestechcontratName = Synergies Tech
+synergiestechcontrat = Synergies Tech
 # Module description 'ModulesynergiestechcontratDesc'
-ModulesynergiestechcontratDesc = synergiestechcontrat description
+synergiestechcontratDesc = Contrat avancé et modèles PDF
 
 #
-# Admin page
+# Page d'administration
 #
-synergiestechcontratSetup = synergiestechcontrat setup
-Settings = Settings
-synergiestechcontratSetupPage = synergiestechcontrat setup page
+synergiestechcontratSetup = Configuration du module mon module
+Settings = Réglages
+synergiestechcontratSetupPage = Page de réglage de mon module
 
 #
-# About page
+# Page À propos
 #
-About = About
-synergiestechcontratAbout = About my module
-synergiestechcontratAboutPage = synergiestechcontrat about page
+About = À propos
+synergiestechcontratAbout = À propos de mon module
+synergiestechcontratAboutPage = Page à propos de mon module
 
 #
-# Sample page
+# Page d'exemple
 #
-MyPageName = My page name
+MyPageName = Nom de ma page
 
 #
-# Sample box
+# Box d'exemple
 #
-MyWidget = My widget
-MyWidgetDescription = My widget description
+MyWidget = Mon widget
+MyWidgetDescription = Description de mon widget

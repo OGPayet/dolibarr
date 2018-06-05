@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <phpdoc>
-    <title>synergies_tech_contrat</title>
+    <title>synergiestechcontrat</title>
     <parser>
         <target>build/phpdoc</target>
         <encoding>utf8</encoding>

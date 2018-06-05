@@ -19,9 +19,9 @@
  */
 
 /**
- *	\file       htdocs/synergies_tech_contrat/template/synergies_tech_contratindex.php
- *	\ingroup    synergies_tech_contrat
- *	\brief      Home page of synergies_tech_contrat top menu
+ *	\file       htdocs/synergiestechcontrat/template/synergiestechcontratindex.php
+ *	\ingroup    synergiestechcontrat
+ *	\brief      Home page of synergiestechcontrat top menu
  */
 
 // Load Dolibarr environment
@@ -37,13 +37,14 @@ if (! $res && $i > 0 && file_exists(dirname(substr($tmp, 0, ($i+1)))."/main.inc.
 if (! $res && file_exists("../main.inc.php")) $res=@include("../main.inc.php");
 if (! $res && file_exists("../../main.inc.php")) $res=@include("../../main.inc.php");
 if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php");
+if (! $res && file_exists("../../../../main.inc.php")) $res=@include("../../../../main.inc.php");
 if (! $res) die("Include of main fails");
 
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
 
-if (! $user->rights->synergies_tech_contrat->read) accessforbidden();
+if (! $user->rights->synergiestechcontrat->read) accessforbidden();
 
-$langs->load("synergies_tech_contrat@synergies_tech_contrat");
+$langs->load("synergiestechcontrat@synergiestechcontrat");
 
 $action=GETPOST('action', 'alpha');
 
@@ -73,16 +74,16 @@ $now=dol_now();
 $form = new Form($db);
 $formfile = new FormFile($db);
 
-llxHeader("",$langs->trans("synergies_tech_contratArea"));
+llxHeader("",$langs->trans("synergiestechcontratArea"));
 
-print load_fiche_titre($langs->trans("synergies_tech_contratArea"),'','synergies_tech_contrat.png@synergies_tech_contrat');
+print load_fiche_titre($langs->trans("synergiestechcontratArea"),'','synergiestechcontrat.png@synergiestechcontrat');
 
 print '<div class="fichecenter"><div class="fichethirdleft">';
 
 
 /* BEGIN MODULEBUILDER DRAFT MYOBJECT
 // Draft MyObject
-if (! empty($conf->synergies_tech_contrat->enabled) && $user->rights->synergies_tech_contrat->read)
+if (! empty($conf->synergiestechcontrat->enabled) && $user->rights->synergiestechcontrat->read)
 {
 	$langs->load("orders");
 
@@ -168,7 +169,7 @@ $max=3;
 
 /* BEGIN MODULEBUILDER LASTMODIFIED MYOBJECT
 // Last modified myobject
-if (! empty($conf->synergies_tech_contrat->enabled) && $user->rights->synergies_tech_contrat->read)
+if (! empty($conf->synergiestechcontrat->enabled) && $user->rights->synergiestechcontrat->read)
 {
 	$sql = "SELECT s.rowid, s.nom as name, s.client, s.datec, s.tms, s.canvas";
     $sql.= ", s.code_client";

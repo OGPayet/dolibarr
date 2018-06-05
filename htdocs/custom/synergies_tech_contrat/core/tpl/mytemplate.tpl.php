@@ -17,7 +17,7 @@
 
 /**
  * \file    core/tpl/mytemplate.tpl.php
- * \ingroup synergies_tech_contrat
+ * \ingroup synergiestechcontrat
  * \brief   Example template.
  *
  * Put detailed description here.

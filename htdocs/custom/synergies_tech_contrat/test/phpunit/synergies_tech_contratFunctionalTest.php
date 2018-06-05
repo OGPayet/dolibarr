@@ -17,8 +17,8 @@
  */
 
 /**
- * \file    test/functional/synergies_tech_contratFunctionalTest.php
- * \ingroup synergies_tech_contrat
+ * \file    test/functional/synergiestechcontratFunctionalTest.php
+ * \ingroup synergiestechcontrat
  * \brief   Example Selenium test.
  *
  * Put detailed description here.
@@ -29,7 +29,7 @@ namespace test\functional;
 use PHPUnit_Extensions_Selenium2TestCase_WebDriverException;
 
 /**
- * Class synergies_tech_contratFunctionalTest
+ * Class synergiestechcontratFunctionalTest
  *
  * Requires chromedriver for Google Chrome
  * Requires geckodriver for Mozilla Firefox
@@ -39,9 +39,9 @@ use PHPUnit_Extensions_Selenium2TestCase_WebDriverException;
  * @todo Windows support (IE, Google Chrome, Mozilla Firefox, Safari)
  * @todo OSX support (Safari, Google Chrome, Mozilla Firefox)
  *
- * @package Testsynergies_tech_contrat
+ * @package Testsynergiestechcontrat
  */
-class synergies_tech_contratFunctionalTest extends \PHPUnit_Extensions_Selenium2TestCase
+class synergiestechcontratFunctionalTest extends \PHPUnit_Extensions_Selenium2TestCase
 {
 	// TODO: move to a global configuration file?
 	/** @var string Base URL of the webserver under test */
@@ -170,12 +170,12 @@ class synergies_tech_contratFunctionalTest extends \PHPUnit_Extensions_Selenium2
 		$module_status_image = $this->byXPath($module_status_image_path);
 		if (strstr($module_status_image->attribute('src'), 'switch_off.png')) {
 			// Enable the module
-			$this->byHref('modsynergies_tech_contrat')->click();
+			$this->byHref('modsynergiestechcontrat')->click();
 		} else {
 			// Disable the module
-			$this->byHref('modsynergies_tech_contrat')->click();
+			$this->byHref('modsynergiestechcontrat')->click();
 			// Reenable the module
-			$this->byHref('modsynergies_tech_contrat')->click();
+			$this->byHref('modsynergiestechcontrat')->click();
 		}
 		// Page reloaded, we need a new Xpath
 		$module_status_image = $this->byXPath($module_status_image_path);
@@ -189,9 +189,9 @@ class synergies_tech_contratFunctionalTest extends \PHPUnit_Extensions_Selenium2
 	 */
 	public function testConfigurationPage()
 	{
-		$this->url('/custom/synergies_tech_contrat/admin/setup.php');
+		$this->url('/custom/synergiestechcontrat/admin/setup.php');
 		$this->authenticate();
-		return $this->assertContains('synergies_tech_contrat/admin/setup.php', $this->url(), 'Configuration page');
+		return $this->assertContains('synergiestechcontrat/admin/setup.php', $this->url(), 'Configuration page');
 	}
 
 	/**
@@ -201,9 +201,9 @@ class synergies_tech_contratFunctionalTest extends \PHPUnit_Extensions_Selenium2
 	 */
 	public function testAboutPage()
 	{
-		$this->url('/custom/synergies_tech_contrat/admin/about.php');
+		$this->url('/custom/synergiestechcontrat/admin/about.php');
 		$this->authenticate();
-		return $this->assertContains('synergies_tech_contrat/admin/about.php', $this->url(), 'About page');
+		return $this->assertContains('synergiestechcontrat/admin/about.php', $this->url(), 'About page');
 	}
 
 	/**
@@ -213,7 +213,7 @@ class synergies_tech_contratFunctionalTest extends \PHPUnit_Extensions_Selenium2
 	 */
 	public function testAboutPageRendersMarkdownReadme()
 	{
-		$this->url('/custom/synergies_tech_contrat/admin/about.php');
+		$this->url('/custom/synergiestechcontrat/admin/about.php');
 		$this->authenticate();
 		return $this->assertEquals(
 			'Dolibarr Module Template (aka My Module)',
@@ -231,7 +231,7 @@ class synergies_tech_contratFunctionalTest extends \PHPUnit_Extensions_Selenium2
 	{
 		$this->url('/admin/boxes.php');
 		$this->authenticate();
-		return $this->assertContains('synergies_tech_contratwidget1', $this->source(), "Box enabled");
+		return $this->assertContains('synergiestechcontratwidget1', $this->source(), "Box enabled");
 	}
 
 	/**
@@ -244,7 +244,7 @@ class synergies_tech_contratFunctionalTest extends \PHPUnit_Extensions_Selenium2
 		$this->url('/admin/triggers.php');
 		$this->authenticate();
 		return $this->assertContains(
-			'interface_99_modsynergies_tech_contrat_synergies_tech_contratTriggers.class.php',
+			'interface_99_modsynergiestechcontrat_synergiestechcontratTriggers.class.php',
 			$this->byTag('body')->text(),
 			"Trigger declared"
 		);
@@ -261,7 +261,7 @@ class synergies_tech_contratFunctionalTest extends \PHPUnit_Extensions_Selenium2
 		$this->authenticate();
 		return $this->assertContains(
 			'tick.png',
-			$this->byXPath('//td[text()="interface_99_modsynergies_tech_contrat_MyTrigger.class.php"]/following::img')->attribute('src'),
+			$this->byXPath('//td[text()="interface_99_modsynergiestechcontrat_MyTrigger.class.php"]/following::img')->attribute('src'),
 			"Trigger enabled"
 		);
 	}

@@ -1,0 +1,17 @@
+InvoiceMAJ=FACTURE
+PropalMAJ=DEVIS
+NumberInvoice=Numéro
+NumberPropal=Numéro
+Numberexpedition=Numéro
+ObjetFAC=Objet
+sentToMAJ=À L’ATTENTION DE
+description=Description
+pageNB=Page
+TotalHTST=SOUS TOTAL (HT)
+TotalVATST=TVA
+TotalTTCST=TOTAL TTC
+MeanOP=MOYENS DE PAIEMENT
+DateFinDevis=Date de fin de validité
+DateDebutDevis=Date d’émission
+DateLivraison=Date de livraison prévue
+expeditionMAJ=BON DE LIVRAISON

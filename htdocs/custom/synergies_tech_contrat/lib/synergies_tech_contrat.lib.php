@@ -16,8 +16,8 @@
  */
 
 /**
- * \file    lib/synergies_tech_contrat.lib.php
- * \ingroup synergies_tech_contrat
+ * \file    lib/synergiestechcontrat.lib.php
+ * \ingroup synergiestechcontrat
  * \brief   Example module library.
  *
  * Put detailed description here.
@@ -28,20 +28,20 @@
  *
  * @return array
  */
-function synergies_tech_contratAdminPrepareHead()
+function synergiestechcontratAdminPrepareHead()
 {
 	global $langs, $conf;
 
-	$langs->load("synergies_tech_contrat@synergies_tech_contrat");
+	$langs->load("synergiestechcontrat@synergiestechcontrat");
 
 	$h = 0;
 	$head = array();
 
-	$head[$h][0] = dol_buildpath("/synergies_tech_contrat/admin/setup.php", 1);
+	$head[$h][0] = dol_buildpath("/synergiestechcontrat/admin/setup.php", 1);
 	$head[$h][1] = $langs->trans("Settings");
 	$head[$h][2] = 'settings';
 	$h++;
-	$head[$h][0] = dol_buildpath("/synergies_tech_contrat/admin/about.php", 1);
+	$head[$h][0] = dol_buildpath("/synergiestechcontrat/admin/about.php", 1);
 	$head[$h][1] = $langs->trans("About");
 	$head[$h][2] = 'about';
 	$h++;
@@ -49,12 +49,12 @@ function synergies_tech_contratAdminPrepareHead()
 	// Show more tabs from modules
 	// Entries must be declared in modules descriptor with line
 	//$this->tabs = array(
-	//	'entity:+tabname:Title:@synergies_tech_contrat:/synergies_tech_contrat/mypage.php?id=__ID__'
+	//	'entity:+tabname:Title:@synergiestechcontrat:/synergiestechcontrat/mypage.php?id=__ID__'
 	//); // to add new tab
 	//$this->tabs = array(
-	//	'entity:-tabname:Title:@synergies_tech_contrat:/synergies_tech_contrat/mypage.php?id=__ID__'
+	//	'entity:-tabname:Title:@synergiestechcontrat:/synergiestechcontrat/mypage.php?id=__ID__'
 	//); // to remove a tab
-	complete_head_from_modules($conf, $langs, $object, $head, $h, 'synergies_tech_contrat');
+	complete_head_from_modules($conf, $langs, $object, $head, $h, 'synergiestechcontrat');
 
 	return $head;
 }

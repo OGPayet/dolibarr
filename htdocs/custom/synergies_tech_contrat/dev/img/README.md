@@ -15,7 +15,7 @@ These resides in the [/img](../../img) directory.
 Required.
 Name must begin by ```object_```.
 
-- Sample:  ![object_synergies_tech_contrat.png](../../img/object_synergies_tech_contrat.png) [object_synergies_tech_contrat.png](../../img/object_synergies_tech_contrat.png)
+- Sample:  ![object_synergiestechcontrat.png](../../img/object_synergiestechcontrat.png) [object_synergiestechcontrat.png](../../img/object_synergiestechcontrat.png)
 - Size: 14×14 pixels
 - Type: PNG
 
@@ -23,7 +23,7 @@ Name must begin by ```object_```.
 
 Optional.
 
-- Sample: ![synergies_tech_contrat.png](../../img/synergies_tech_contrat.png) [synergies_tech_contrat.png](../../img/synergies_tech_contrat.png)
+- Sample: ![synergiestechcontrat.png](../../img/synergiestechcontrat.png) [synergiestechcontrat.png](../../img/synergiestechcontrat.png)
 - Size: 32×32 pixels
 - Type: PNG
 

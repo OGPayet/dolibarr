@@ -30,9 +30,9 @@ if (!defined('NOREQUIREAJAX'))  define('NOREQUIREAJAX','1');
 
 
 /**
- * \file    js/synergies_tech_contrat.js.php
- * \ingroup synergies_tech_contrat
- * \brief   JavaScript file for module synergies_tech_contrat.
+ * \file    js/synergiestechcontrat.js.php
+ * \ingroup synergiestechcontrat
+ * \brief   JavaScript file for module synergiestechcontrat.
  */
 
 // Load Dolibarr environment
@@ -57,4 +57,6 @@ if (empty($dolibarr_nocache)) header('Cache-Control: max-age=3600, public, must-
 else header('Cache-Control: no-cache');
 ?>
 
-/* Javascript library of module synergies_tech_contrat */
+/* Javascript library of module synergiestechcontrat */
+
+
