@@ -118,7 +118,7 @@ if (DOL_VERSION >= "5.0.0") {
 			$extralabels=$extrafields->fetch_name_optionals_label($contract->table_element);
 			$contract->fetch($rowid);
 			$contract->fetch_optionals($rowid,$extralabels);
-			$return = "<a href='".DOL_URL_ROOT."/contrat/card.php?id=".$contract->id."'> ".$contract->array_options ['options_formule']." - " . $contract->ref."</a> ";
+			$return = "<a href='".DOL_URL_ROOT."/contrat/card.php?id=".$contract->id."'> ".$extrafields->showOutputField('formule',$contract->array_options['options_formule'])." - " . $contract->ref."</a> ";
 		}
 		print '<h1 style="color:green;text-align:center;font-size: 4em;">Avec contrat : '.$return.'</h1>';
 
