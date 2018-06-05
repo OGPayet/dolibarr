@@ -48,7 +48,11 @@ $langs->load("companies");
 $langs->load("equipement@equipement");
 
 // Security check
-$socid = GETPOST('id', 'int');
+if(!empty(GETPOST('id', 'int'))) {
+	$socid = GETPOST('id', 'int');
+} else {
+	$socid = GETPOST('socid', 'int');
+}
 
 if ($user->societe_id) $socid=$user->societe_id;
 $result = restrictedArea($user, 'equipement', $equipementid, 'equipement');
