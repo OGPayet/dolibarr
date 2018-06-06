@@ -1,0 +1,187 @@
+<changelog>
+	<Version Number="3.5.+1.0.0">
+		<change type='inf'>Initial version </change>
+	</Version>
+	<Version Number="3.5.+1.0.1">
+		<change type='fix'>bugs on declination, and add categories choice on setup (root, variant, catalog) </change>
+		<change type='fix'>icon on box error fixed </change>
+		<change type='fix'>add extrafields feature</change>
+		<change type='fix'>access error with multicompany module enabled</change>
+		<change type='fix'>include categorie class left on projecttask.php</change>
+	</Version>
+	<Version Number="3.6.+1.1.0">
+		<change type='add'>object link template (tpl)</change>
+		<change type='fix'>document tabs error</change>
+	</Version>
+	<Version Number="3.6.+1.1.1">
+		<change type='add'>multicompany feature</change>
+		<change type='fix'>declination enhancement</change>
+		<change type='fix'>pmp not well calculated</change>
+	</Version>
+	<Version Number="3.6.+1.1.2">
+		<change type='chg'>component stock movement are now made during validation of the OF (not create draft)</change>
+	</Version>
+	<Version Number="3.6.+1.1.3"  MonthVersion="2015-01">
+		<change type='fix'>create OF : hours locked</change>
+	</Version>
+	<Version Number="3.6.+1.1.4"  MonthVersion="2015-03">
+		<change type='add'>change price depending on composed product</change>
+	</Version>
+	<Version Number="3.6.+1.1.5"  MonthVersion="2015-04">
+		<change type='add'>description on component</change>
+		<change type='add'>Qty used on Global</change>
+		<change type='add'>image preview of product </change>
+		<change type='add'>CRLF on descriptionQty used on Global</change>
+		<change type='fix'>some debugging</change>
+		<change type='fix'>send mail warning error</change>
+		<change type='fix'>update storage and qty planned on OF draft</change>
+	</Version>
+
+	<Version Number="3.7.+1.2.0"  MonthVersion="2015-05">
+		<change type='fix'>Extrafields compatibility</change>
+		<change type='add'>myfields compatibility</change>
+	</Version>
+
+	<Version Number="3.7.+1.2.1"  MonthVersion="2015-08">
+		<change type='add'>checkbox to select product in composition</change>
+		<change type='add'>use extrafields product for description composition</change>
+		<change type='add'>create multiple OF on customer order</change>
+		<change type='add'>XML import / export feature</change>
+		<change type='add'>if on report qty build = 0 then status is canceled</change>
+		<change type='add'>get list of contact of warehouse for mailing OF</change>
+		<change type='chg'>increase size of 1 column of OF pdf</change>
+		<change type='fix'>documents folder wrong</change>
+		<change type='chg'>this->statut instead this->fk_statut for compatibility</change>
+	</Version>
+
+	<Version Number="3.7.+1.2.2" MonthVersion="2015-09">
+		<change type='add'>add stock qty and desired on factory ordertabs</change>
+	</Version>
+
+	<Version Number="3.8.+1.3.0" MonthVersion="2015-09">
+		<change type='add'>Contact associate on OF</change>
+		<change type='fix'>better english translation</change>
+	</Version>
+
+	<Version Number="3.8.+1.3.1" MonthVersion="2015-10">
+		<change type='add'>filter statut on list</change>
+		<change type='add'>New factory area (with stat soon)</change>
+		<change type='chg'>rename fiche.php to card.php</change>
+	</Version>
+
+	<Version Number="3.8.+1.3.2" MonthVersion="2015-10">
+		<change type='add'>german translation</change>
+		<change type='chg'>english correction</change>
+		<change type='fix'>bad pmp send to stock</change>
+		<change type='add'>trigger on create and close OF</change>
+		<change type='add'>origin id on movement</change>
+		<change type='fix'>loosed product are returned on stock (qty error)</change>
+		<change type='fix'>duplicate mouvement on report when F5 pressed...</change>
+		<change type='add'>New stock movement tabs</change>
+	</Version>
+
+	<Version Number="3.8.+1.3.3" MonthVersion="2015-11">
+		<change type='add'>add ref on class before call trigger on create</change>
+		<change type='chg'>minor change on pdf document models, better comming soon</change>
+		<change type='chg'>best management on factory area</change>
+		<change type='fix'>change definition on class for additionnal documents models</change>
+		<change type='add'>product extrafield infos fill composed product too (before only used product as component)</change>
+		<change type='fix'>bug if free product on order</change>
+	</Version>
+
+	<Version Number="3.8.+1.3.4" MonthVersion="2016-02">
+		<change type='fix'>document module part error</change>
+		<change type='fix'>bad langage file in es_ES (german version inverted)</change>
+		<change type='add'>resources used linked to OF</change>
+		<change type='chg'>reorder cols of select component list (better ergonomy)</change>
+		<change type='fix'>bad pmp value on direct build</change>
+		<change type='chg'>declinaison refactoring for better perf</change>
+		<change type='fix'>pb with composition validation (with fourn enabled)</change>
+		<change type='fix'>bad composition in customer order generation</change>
+	</Version>
+
+	<Version Number="3.8.+1.3.5" MonthVersion="2016-03">
+		<change type='fix'>Qty used automaticely compute varing qte made</change>
+		<change type='add'>Cloning feature</change>
+	</Version>
+
+	<Version Number="3.9.+1.4.0" MonthVersion="2016-04">
+		<change type='add'>new search feature (3.9)</change>
+		<change type='chg'>access on declinaison and changeprice not only to admin</change>
+		<change type='chg'>3.9 compatibility</change>
+		<change type='chg'>custom folder compatibility</change>
+	</Version>
+
+	<Version Number="3.9.+1.4.1" MonthVersion="2016-05">
+		<change type='add'>cost price feature (3.9)</change>
+		<change type='add'>batch/lot compatibility</change>
+		<change type='fix'>element link target is 'factory' </change>
+	</Version>
+
+	<Version Number="3.9.+1.4.2" MonthVersion="2016-06">
+		<change type='add'>search feature 3.9 in classic mode</change>
+		<change type='add'>allow mass line change</change>
+		<change type='add'>xml version changelog feature</change>
+		<change type='fix'>hookmanager addmorebutton suppressed on report page (conflict)</change>
+		<change type='fix'>value inversion on index page</change>
+	</Version>
+
+	<Version Number="3.9.+1.4.3" MonthVersion="2016-07">
+		<change type='add'>xml min version of dolibarr feature</change>
+		<change type='fix'>add description on project movement</change>
+	</Version>
+
+	<Version Number="3.9.+1.4.4" MonthVersion="2016-08">
+		<change type='fix'>error on OF price if Qty = 0</change>
+	</Version>
+	<Version Number="4.0.+1.5.0" MonthVersion="2016-09">
+		<change type='fix'>bad url on factorybox</change>
+		<change type='fix'>document template folder change 4.0 compatibility</change>
+		<change type='fix'>increase size of OF number mask</change>
+	</Version>
+	<Version Number="4.0.+1.5.1" MonthVersion="2016-10">
+		<change type='add'>create OF's from Orders, restock mode like</change>
+		<change type='fix'>global quantity not well managed</change>
+		<change type='fix'>cost price feature OK</change>
+	</Version>
+	<Version Number="4.0.+1.5.2" MonthVersion="2016-11">
+		<change type='fix'>costprice used in project too</change>
+		<change type='add'>Export OF, export and import components</change>
+		<change type='add'>different component price selection</change>
+	</Version>
+
+	<Version Number="4.0.+1.5.3" MonthVersion="2016-12">
+		<change type='fix'>Import OF, add import_key field</change>
+		<change type='fix'>select_entrepot function remplaced by select_entrepot_list</change>
+	</Version>
+	<Version Number="5.0.+1.6.0" MonthVersion="2017-01">
+		<change type='add'>5.0 compatibility</change>
+		<change type='fix'>Deleted product not movemented on stock</change>
+	</Version>
+	<Version Number="5.0.+1.6.1" MonthVersion="2017-02">
+		<change type='add'>Factory Direct allowed even with no stock (setting)</change>
+		<change type='add'>new tabs on factory product card (composed list of OF)</change>
+		<change type='add'>new look on admin about page</change>
+		<change type='add'>information version on admin setup page</change>
+		<change type='fix'>Import OF, add import_key field in good table (product_factory)</change>
+	</Version>
+	<Version Number="5.0.+1.6.2" MonthVersion="2017-03">
+		<change type='add'>cost price origin may differ for product and service</change>
+		<change type='fix'>bad statut filter on draft</change>
+		<change type='fix'>error on class project not found</change>
+		<change type='fix'>button not present on final V5</change>
+		<change type='fix'>multiple capucin doc on setting page</change>
+	</Version>
+	<Version Number="5.0.+1.6.3" MonthVersion="2017-04">
+		<change type='fix'>button not present on final V5</change>
+		<change type='fix'>multiple capucin doc on setting page</change>
+		<change type='fix'>qty unit on equipement used is factorydet, not product_factory</change>
+	</Version>
+	<Version Number="5.0.+1.6.4" MonthVersion="2017-07">
+		<change type='fix'>some change for multicompany compatibility</change>
+		<change type='add'>update price feature on OF card</change>
+	</Version>
+
+	<Dolibarr minVersion="3.7.0"/>
+	<!-- Remplir le undocumented.xml ? -->
+</changelog>
