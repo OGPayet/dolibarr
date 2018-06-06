@@ -243,130 +243,86 @@ if($action == 'confirm_direct') {
 	    {
 		    setEventMessages($langs->trans("ErrorFieldRequired", $langs->transnoentities("Delivery")), null, 'errors');
 	    }
+	}
 
-		/*
-		 * Dispatch product
-		 */
-		$error = 0;
+	/*
+	 * Dispatch product
+	 */
+	$error = 0;
 
-		$db->begin();
+	$db->begin();
 
-		$pos = 0;
-		foreach ($_POST as $key => $value)
+	$pos = 0;
+	foreach ($_POST as $key => $value)
+	{
+		// without batch module enabled
+		if (preg_match('/^product_([0-9]+)_([0-9]+)$/i', $key, $reg))
 		{
-			// without batch module enabled
-			if (preg_match('/^product_([0-9]+)_([0-9]+)$/i', $key, $reg))
-			{
-				$pos ++;
+			$pos ++;
 
-				// $numline=$reg[2] + 1; // line of product
-				$numline = $pos;
-				$prod = "product_" . $reg[1] . '_' . $reg[2];
-				$qty = "qty_" . $reg[1] . '_' . $reg[2];
-				$ent = "entrepot_" . $reg[1] . '_' . $reg[2];
-				$pu = "pu_" . $reg[1] . '_' . $reg[2]; // This is unit price including discount
-				$fk_commandefourndet = "fk_commandefourndet_" . $reg[1] . '_' . $reg[2];
+			// $numline=$reg[2] + 1; // line of product
+			$numline = $pos;
+			$prod = "product_" . $reg[1] . '_' . $reg[2];
+			$qty = "qty_" . $reg[1] . '_' . $reg[2];
+			$ent = "entrepot_" . $reg[1] . '_' . $reg[2];
+			$pu = "pu_" . $reg[1] . '_' . $reg[2]; // This is unit price including discount
+			$fk_commandefourndet = "fk_commandefourndet_" . $reg[1] . '_' . $reg[2];
 
-				$sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."commandedet WHERE fk_commande = ".$id." and fk_product = ".GETPOST($prod, 'int');
-				$resql=$db->query($sql);
-				if ($resql)	{
-					$obj = $db->fetch_object($resql);
+			$sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."commandedet WHERE fk_commande = ".$id." and fk_product = ".GETPOST($prod, 'int');
+			$resql=$db->query($sql);
+			if ($resql)	{
+				$obj = $db->fetch_object($resql);
 
-					$expedition["idl".$pos] =  $obj->rowid;
-					$expedition["ent1".$pos] =  GETPOST($ent, 'int');
-					$expedition["qtyl".$pos] =  GETPOST($qty, 'int');
-				}
-
-				// We ask to move a qty
-				if (GETPOST($qty) > 0) {
-					if (! (GETPOST($ent, 'int') > 0)) {
-						dol_syslog('No dispatch for line ' . $key . ' as no warehouse choosed');
-						$text = $langs->transnoentities('Warehouse') . ', ' . $langs->transnoentities('Line') . ' ' . ($numline);
-						setEventMessages($langs->trans('ErrorFieldRequired', $text), null, 'errors');
-						$error ++;
-					}
-
-					if (! $error) {
-						$result = $object->dispatchProduct($user, GETPOST($prod, 'int'), GETPOST($qty), GETPOST($ent, 'int'), GETPOST($pu), GETPOST('comment'), '', '', '', GETPOST($fk_commandefourndet, 'int'), $notrigger);
-						if ($result < 0) {
-							setEventMessages($object->error, $object->errors, 'errors');
-							$error ++;
-						}
-					}
-				}
+				$expedition["idl".$pos] =  $obj->rowid;
+				$expedition["ent1".$pos] =  GETPOST($ent, 'int');
+				$expedition["qtyl".$pos] =  GETPOST($qty, 'int');
 			}
-			// with batch module enabled
-			if (preg_match('/^product_batch_([0-9]+)_([0-9]+)$/i', $key, $reg))
-			{
-				$pos ++;
 
-				// eat-by date dispatch
-				// $numline=$reg[2] + 1; // line of product
-				$numline = $pos;
-				$prod = 'product_batch_' . $reg[1] . '_' . $reg[2];
-				$qty = 'qty_' . $reg[1] . '_' . $reg[2];
-				$ent = 'entrepot_' . $reg[1] . '_' . $reg[2];
-				$pu = 'pu_' . $reg[1] . '_' . $reg[2];
-				$fk_commandefourndet = 'fk_commandefourndet_' . $reg[1] . '_' . $reg[2];
-				$lot = 'lot_number_' . $reg[1] . '_' . $reg[2];
-				$dDLUO = dol_mktime(12, 0, 0, $_POST['dluo_' . $reg[1] . '_' . $reg[2] . 'month'], $_POST['dluo_' . $reg[1] . '_' . $reg[2] . 'day'], $_POST['dluo_' . $reg[1] . '_' . $reg[2] . 'year']);
-				$dDLC = dol_mktime(12, 0, 0, $_POST['dlc_' . $reg[1] . '_' . $reg[2] . 'month'], $_POST['dlc_' . $reg[1] . '_' . $reg[2] . 'day'], $_POST['dlc_' . $reg[1] . '_' . $reg[2] . 'year']);
+			// We ask to move a qty
+			if (GETPOST($qty) > 0) {
+				if (! (GETPOST($ent, 'int') > 0)) {
+					dol_syslog('No dispatch for line ' . $key . ' as no warehouse choosed');
+					$text = $langs->transnoentities('Warehouse') . ', ' . $langs->transnoentities('Line') . ' ' . ($numline);
+					setEventMessages($langs->trans('ErrorFieldRequired', $text), null, 'errors');
+					$error ++;
+				}
 
-				$fk_commandefourndet = 'fk_commandefourndet_' . $reg[1] . '_' . $reg[2];
-
-				// We ask to move a qty
-				if (GETPOST($qty) > 0) {
-					if (! (GETPOST($ent, 'int') > 0)) {
-						dol_syslog('No dispatch for line ' . $key . ' as no warehouse choosed');
-						$text = $langs->transnoentities('Warehouse') . ', ' . $langs->transnoentities('Line') . ' ' . ($numline) . '-' . ($reg[1] + 1);
-						setEventMessages($langs->trans('ErrorFieldRequired', $text), null, 'errors');
+				if (! $error) {
+					$result = $object->dispatchProduct($user, GETPOST($prod, 'int'), GETPOST($qty), GETPOST($ent, 'int'), GETPOST($pu), GETPOST('comment'), '', '', '', GETPOST($fk_commandefourndet, 'int'), $notrigger);
+					if ($result < 0) {
+						setEventMessages($object->error, $object->errors, 'errors');
 						$error ++;
-					}
-
-					if (! (GETPOST($lot, 'alpha') || $dDLUO || $dDLC)) {
-						dol_syslog('No dispatch for line ' . $key . ' as serial/eat-by/sellby date are not set');
-						$text = $langs->transnoentities('atleast1batchfield') . ', ' . $langs->transnoentities('Line') . ' ' . ($numline) . '-' . ($reg[1] + 1);
-						setEventMessages($langs->trans('ErrorFieldRequired', $text), null, 'errors');
-						$error ++;
-					}
-
-					if (! $error) {
-						$result = $object->dispatchProduct($user, GETPOST($prod, 'int'), GETPOST($qty), GETPOST($ent, 'int'), GETPOST($pu), GETPOST('comment'), $dDLC, $dDLUO, GETPOST($lot, 'alpha'), GETPOST($fk_commandefourndet, 'int'), $notrigger);
-						if ($result < 0) {
-							setEventMessages($object->error, $object->errors, 'errors');
-							$error ++;
-						}
 					}
 				}
 			}
 		}
+	}
 
-		if (! $error) {
-			$result = $object->calcAndSetStatusDispatch($user, GETPOST('closeopenorder')?1:0, GETPOST('comment'));
-			if ($result < 0) {
-				setEventMessages($object->error, $object->errors, 'errors');
-				$error ++;
-			}
+	if (! $error) {
+		$result = $object->calcAndSetStatusDispatch($user, GETPOST('closeopenorder')?1:0, GETPOST('comment'));
+		if ($result < 0) {
+			setEventMessages($object->error, $object->errors, 'errors');
+			$error ++;
 		}
+	}
 
-		if (! $notrigger && ! $error) {
-			global $conf, $langs, $user;
-			// Call trigger
+	if (! $notrigger && ! $error) {
+		global $conf, $langs, $user;
+		// Call trigger
 
-			$result = $object->call_trigger('ORDER_SUPPLIER_DISPATCH', $user);
-			// End call triggers
+		$result = $object->call_trigger('ORDER_SUPPLIER_DISPATCH', $user);
+		// End call triggers
 
-			if ($result < 0) {
-				setEventMessages($object->error, $object->errors, 'errors');
-				$error ++;
-			}
+		if ($result < 0) {
+			setEventMessages($object->error, $object->errors, 'errors');
+			$error ++;
 		}
+	}
 
-		if ($result >= 0 && ! $error) {
-			$db->commit();
-		} else {
-			$db->rollback();
-		}
+	if ($result >= 0 && ! $error) {
+		$db->commit();
+	} else {
+		$db->rollback();
 	}
 
 	/*
