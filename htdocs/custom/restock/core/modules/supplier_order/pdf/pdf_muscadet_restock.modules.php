@@ -977,7 +977,7 @@ class pdf_muscadet_restock extends ModelePDFSuppliersOrders
 		$posy+=2;
 		$pdf->SetFont('', '', $default_font_size -1);
 
-		$posy+=5;
+		$posy+=2;
 		$pdf->SetXY($posx, $posy);
 		if ($object->date_commande) {
 			$pdf->SetTextColor(0, 0, 60);
@@ -988,7 +988,7 @@ class pdf_muscadet_restock extends ModelePDFSuppliersOrders
 			$pdf->MultiCell(100, 3, strtolower($outputlangs->transnoentities("OrderToProcess")), '', 'R');
 		}
 
-		$posy+=2;
+		$posy+=5;
 		$pdf->SetTextColor(0, 0, 60);
 
 		// Show list of linked objects
@@ -1048,7 +1048,7 @@ class pdf_muscadet_restock extends ModelePDFSuppliersOrders
 			}
 
 			$carac_client=pdf_build_address(
-							$outputlangs, $this->emetteur, $object->client,
+							$outputlangs, $this->emetteur, $object->thirdparty,
 							($usecontact?$object->contact:''),
 							$usecontact, 'target'
 			);
