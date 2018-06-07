@@ -547,7 +547,7 @@ class pdf_muscadet_restock extends ModelePDFSuppliersOrders
 	 */
 	function _tableau_info(&$pdf, $object, $posy, $outputlangs)
 	{
-//ß		global $conf;
+//ï¿½		global $conf;
 		$default_font_size = pdf_getPDFFontSize($outputlangs);
 
 		// If France, show VAT mention if not applicable
@@ -1087,10 +1087,11 @@ class pdf_muscadet_restock extends ModelePDFSuppliersOrders
 
 			$usecontact=false;
 			$arrayidcontact=$object->getIdContact('external', 'SHIPPING');
+
 			if (count($arrayidcontact) > 0) {
 				$usecontact=true;
 				$result=$object->fetch_contact($arrayidcontact[0]);
-				// pour récupérer l'adresse de la société du client (si
+				// pour rï¿½cupï¿½rer l'adresse de la sociï¿½tï¿½ du client (si
 				$object->contact->fetch_thirdparty();
 				$carac_client_name=$outputlangs->convToOutputCharset($object->contact->socname);
 				$carac_destinataire=pdf_build_address(
