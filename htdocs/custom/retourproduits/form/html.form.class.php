@@ -88,6 +88,7 @@ class FormRetourProduits extends Form
                 $resultat = $this->db->fetch_object($result);
                 $out[]= array('product' => $resultat->ref . ' - ' . $resultat->label,
                                'cd_qty' => $resultat->cd_qty ,
+                               'exp_qty' => $resultat->exp_qty ,
                                'entrepot' => $resultat->fk_entrepot,
                                'expedition' => $resultat->fk_expedition ,
                                'produit_id' => $resultat->fk_product ,
@@ -122,7 +123,7 @@ class FormRetourProduits extends Form
                 } else {
                     $liste[] = array('product' => $out[$key]['product'] ,
                                 'eq_id'=> false ,
-                                'qty'=> $out[$key]['cd_qty'],
+                                'qty'=> $out[$key]['exp_qty'],
                                 'entrepot'=> $out[$key]['entrepot'],
                                 'produit_id'=> $out[$key]['produit_id'],
                                 'origin_line_id'=> $out[$key]['origin_line_id']);
@@ -278,7 +279,7 @@ class FormRetourProduits extends Form
                                 });
                             }
                             var urljump = pageyes + (pageyes.indexOf("?") < 0 ? "?" : "") + options;
-                            //alert(options);
+                            //alert(urljump);
                             if (pageyes.length > 0) { location.href = urljump; }
                             $(this).dialog("close");
                         },

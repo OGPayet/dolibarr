@@ -405,7 +405,6 @@ class RetourProduits extends CommonObject
 				$error++;
 			}
 		}
-
 		if (! $error) return $line_id;
 		else return -1;
 	}
@@ -1314,7 +1313,7 @@ class RetourProduits extends CommonObject
 		global $conf, $mysoc;
 		// TODO: recuperer les champs du document associe a part
 
-		$sql= "SELECT rp.rowid as line_id, rp.qty as qty_return, rp.fk_product, rp.fk_entrepot_dest, rp.fk_equipement, rp.fk_origin_line";
+		$sql= "SELECT DISTINCT(rp.rowid) as line_id, rp.qty as qty_return, rp.fk_product, rp.fk_entrepot_dest, rp.fk_equipement, rp.fk_origin_line";
 		$sql.= ", exp.fk_entrepot";
 		$sql.= ", p.ref as product_ref, p.label as product_label, p.fk_product_type, cd.qty as qty_asked";
 		$sql.= ", p.weight, p.weight_units, p.length, p.length_units, p.surface, p.surface_units, p.volume, p.volume_units, p.tobatch as product_tobatch";
@@ -1325,6 +1324,7 @@ class RetourProduits extends CommonObject
 		$sql.= " WHERE rp.fk_retourproduits = ".$this->id;
 		$sql.= " AND rp.fk_origin_line = cd.rowid" ;
 		$sql.= " AND rp.fk_origin_line = exp.fk_origin_line" ;
+		$sql.= " GROUP BY rp.rowid";
 		$sql.= " ORDER BY rp.rang, rp.fk_equipement";
 
 		dol_syslog(get_class($this)."::fetch_lines", LOG_DEBUG);

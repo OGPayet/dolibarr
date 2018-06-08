@@ -60,7 +60,6 @@ class ActionsRetourProduits // extends CommonObject
 			//$retourId = $rpds->create($user);
 
 			// puis crc�ation ligne-d�tail sur chancun des num�ro de s�rie
-
 			foreach ($_GET['line'] as $key => $value) {
 				$line = new RetourProduitsLigne($this->db);
 				$line->fk_product = $_GET['pd'][$key] ;
@@ -73,9 +72,9 @@ class ActionsRetourProduits // extends CommonObject
 				$line->qty = $_GET['qty'][$key] ;
 				$line->fk_origin_line = $_GET['line'][$key] ;
 				$rpds->lines[$key] = $line ;
-				//$rpds->create_line($_GET['pd'][$key],$value,$_GET['wh'][$key],$_GET['qty'][$key],$_GET['line'][$key]);
+				$rpds->create_line($_GET['pd'][$key],$value,$_GET['wh'][$key],$_GET['qty'][$key],$_GET['line'][$key]);
 			}
-			//die() ;
+
 			$retourId = $rpds->create($user);
 			header('Location: '.dol_buildpath('/retourproduits/card.php?id=', 1).$retourId);
 			exit;
