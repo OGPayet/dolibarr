@@ -712,6 +712,26 @@ if ($action == 'direct') {
 	// Paiement incomplet. On demande si motif = escompte ou autre
 	$formconfirm = $restock_static->formconfirmRestock($_SERVER["PHP_SELF"].'?id='.$object->id, $langs->trans('PopTitle'), $langs->trans('PopQuestion', $object->ref), 'confirm_direct', $formquestion, 'yes', 0, 500, 800);
 	print $formconfirm;
+
+	print '<script>
+				$(document).ready(function() {
+					 $("form").submit(function(e){
+						var error = "";
+						if(!$("#shipping_methode").val() || $("#shipping_methode").val() == "-1") {
+							error += "'.$langs->trans("ErrorSelectShipping").'<br/>";
+						}
+						$("[id^=entrepot_]").each(function() {
+							if(!$(this).val() || $(this).val() == "-1") {
+								error += "'.$langs->trans("ErrorSelectDispatch").'<br/>";
+							}
+						});
+						if(error != "") {
+							e.preventDefault();
+							$.jnotify(error, "error");
+						}
+					});
+				});
+			</script>';
 }
 if ($action=="") {
 	$liste_contact = $object->liste_contact();

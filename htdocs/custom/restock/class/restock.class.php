@@ -870,16 +870,6 @@ class Restock
 										$more.= '<td width="32"></td>';
 										$more.= '<td align="right">' . $langs->trans("Warehouse") . '</td>';
 										$more.= "</tr>\n";
-
-										if (! empty($conf->productbatch->enabled)) {
-											$more.= '<tr class="liste_titre">';
-											$more.= '<td></td>';
-											$more.= '<td>' . $langs->trans("batch_number") . '</td>';
-											$more.= '<td>' . $langs->trans("EatByDate") . '</td>';
-											$more.= '<td>' . $langs->trans("SellByDate") . '</td>';
-											$more.= '<td colspan="5">&nbsp;</td>';
-											$more.= "</tr>\n";
-										}
 									}
 
 									$nbfreeproduct = 0;		// Nb of lins of free products/services
@@ -942,79 +932,34 @@ class Restock
 
 												// Already dispatched
 												$more.= '<td align="right">' . $products_dispatched[$objp->rowid] . '</td>';
+												$type = 'dispatch';
+												$more.= '<td align="right">';
+												$more.= '</td>';     // Qty to dispatch
+												$more.= '<td>';
+												//$more.= img_picto($langs->trans('AddStockLocationLine'), 'split.png', 'onClick="addDispatchLine(' . $i . ',\'' . $type . '\')"');
+												$more.= '</td>';      // Dispatch column
+												$more.= '<td></td>'; // Warehouse column
+												$more.= '</tr>';
 
-												if (! empty($conf->productbatch->enabled) && $objp->tobatch == 1) {
-													$type = 'batch';
-													$more.= '<td align="right">';
-													$more.= '</td>';     // Qty to dispatch
-													$more.= '<td>';
-													//$more.= img_picto($langs->trans('AddDispatchBatchLine'), 'split.png', 'onClick="addDispatchLine(' . $i . ',\'' . $type . '\')"');
-													$more.= '</td>';     // Dispatch column
-													$more.= '<td></td>'; // Warehouse column
-													$more.= '</tr>';
+												$more.= '<tr class="oddeven" name="' . $type . $suffix . '">';
+												$more.= '<td colspan="6">';
+												$more.= '<input name="fk_commandefourndet' . $suffix . '" type="hidden" value="' . $objp->rowid . '">';
+												$more.= '<input name="product' . $suffix . '" type="hidden" value="' . $objp->fk_product . '">';
 
-													$more.= '<tr class="oddeven" name="' . $type . $suffix . '">';
-													$more.= '<td>';
-													$more.= '<input name="fk_commandefourndet' . $suffix . '" type="hidden" value="' . $objp->rowid . '">';
-													$more.= '<input name="product_batch' . $suffix . '" type="hidden" value="' . $objp->fk_product . '">';
-
-													$more.= '<!-- This is a up (may include discount or not depending on STOCK_EXCLUDE_DISCOUNT_FOR_PMP. will be used for PMP calculation) -->';
-													if (! empty($conf->global->SUPPLIER_ORDER_EDIT_BUYINGPRICE_DURING_RECEIPT)) // Not tested !
-													{
-														$more.= $langs->trans("BuyingPrice").': <input class="maxwidth75" name="pu' . $suffix . '" type="text" value="' . price2num($up_ht_disc, 'MU') . '">';
-													}
-													else
-													{
-														$more.= '<input class="maxwidth75" name="pu' . $suffix . '" type="hidden" value="' . price2num($up_ht_disc, 'MU') . '">';
-													}
-
-													// hidden fields for js function
-													$more.= '<input id="qty_ordered' . $suffix . '" type="hidden" value="' . $objp->qty . '">';
-													$more.= '<input id="qty_dispatched' . $suffix . '" type="hidden" value="' . ( float ) $products_dispatched[$objp->rowid] . '">';
-													$more.= '</td>';
-
-													$more.= '<td>';
-													$more.= '<input type="text" class="inputlotnumber" id="lot_number' . $suffix . '" name="lot_number' . $suffix . '" size="40" value="' . GETPOST('lot_number' . $suffix) . '">';
-													$more.= '</td>';
-													$more.= '<td>';
-													$dlcdatesuffix = dol_mktime(0, 0, 0, GETPOST('dlc' . $suffix . 'month'), GETPOST('dlc' . $suffix . 'day'), GETPOST('dlc' . $suffix . 'year'));
-													$form->select_date($dlcdatesuffix, 'dlc' . $suffix, '', '', 1, "");
-													$more.= '</td>';
-													$more.= '<td>';
-													$dluodatesuffix = dol_mktime(0, 0, 0, GETPOST('dluo' . $suffix . 'month'), GETPOST('dluo' . $suffix . 'day'), GETPOST('dluo' . $suffix . 'year'));
-													$form->select_date($dluodatesuffix, 'dluo' . $suffix, '', '', 1, "");
-													$more.= '</td>';
-													$more.= '<td colspan="2">&nbsp</td>'; // Qty ordered + qty already dispatached
-												} else {
-													$type = 'dispatch';
-													$more.= '<td align="right">';
-													$more.= '</td>';     // Qty to dispatch
-													$more.= '<td>';
-													//$more.= img_picto($langs->trans('AddStockLocationLine'), 'split.png', 'onClick="addDispatchLine(' . $i . ',\'' . $type . '\')"');
-													$more.= '</td>';      // Dispatch column
-													$more.= '<td></td>'; // Warehouse column
-													$more.= '</tr>';
-
-													$more.= '<tr class="oddeven" name="' . $type . $suffix . '">';
-													$more.= '<td colspan="6">';
-													$more.= '<input name="fk_commandefourndet' . $suffix . '" type="hidden" value="' . $objp->rowid . '">';
-													$more.= '<input name="product' . $suffix . '" type="hidden" value="' . $objp->fk_product . '">';
-
-													$more.= '<!-- This is a up (may include discount or not depending on STOCK_EXCLUDE_DISCOUNT_FOR_PMP. will be used for PMP calculation) -->';
-													if (! empty($conf->global->SUPPLIER_ORDER_EDIT_BUYINGPRICE_DURING_RECEIPT)) // Not tested !
-													{
-														$more.= $langs->trans("BuyingPrice").': <input class="maxwidth75" name="pu' . $suffix . '" type="text" value="' . price2num($up_ht_disc, 'MU') . '">';
-													}
-													else
-													{
-														$more.= '<input class="maxwidth75" name="pu' . $suffix . '" type="hidden" value="' . price2num($up_ht_disc, 'MU') . '">';
-													}
-
-													// hidden fields for js function
-													$more.= '<input id="qty_ordered' . $suffix . '" type="hidden" value="' . $objp->qty . '">';
-													$more.= '<input id="qty_dispatched' . $suffix . '" type="hidden" value="' . ( float ) $products_dispatched[$objp->rowid] . '">';
-													$more.= '</td>';
+												$more.= '<!-- This is a up (may include discount or not depending on STOCK_EXCLUDE_DISCOUNT_FOR_PMP. will be used for PMP calculation) -->';
+												if (! empty($conf->global->SUPPLIER_ORDER_EDIT_BUYINGPRICE_DURING_RECEIPT)) // Not tested !
+												{
+													$more.= $langs->trans("BuyingPrice").': <input class="maxwidth75" name="pu' . $suffix . '" type="text" value="' . price2num($up_ht_disc, 'MU') . '">';
 												}
+												else
+												{
+													$more.= '<input class="maxwidth75" name="pu' . $suffix . '" type="hidden" value="' . price2num($up_ht_disc, 'MU') . '">';
+												}
+
+												// hidden fields for js function
+												$more.= '<input id="qty_ordered' . $suffix . '" type="hidden" value="' . $objp->qty . '">';
+												$more.= '<input id="qty_dispatched' . $suffix . '" type="hidden" value="' . ( float ) $products_dispatched[$objp->rowid] . '">';
+												$more.= '</td>';
 
 												// Qty to dispatch
 												$more.= '<td align="right">';
@@ -1022,16 +967,9 @@ class Restock
 												$more.= '</td>';
 
 												$more.= '<td>';
-												if (! empty($conf->productbatch->enabled) && $objp->tobatch == 1) {
-													$type = 'batch';
-													//$more.= img_picto($langs->trans('AddDispatchBatchLine'), 'split.png', 'class="splitbutton" onClick="addDispatchLine(' . $i . ',\'' . $type . '\')"');
-													$more.= img_picto($langs->trans('AddStockLocationLine'), 'split.png', 'class="splitbutton" onClick="addDispatchLine(' . $i . ',\'' . $type . '\')"');
-												}
-												else
-												{
-													$type = 'dispatch';
-													$more.= img_picto($langs->trans('AddStockLocationLine'), 'split.png', 'class="splitbutton" onClick="addDispatchLine(' . $i . ',\'' . $type . '\')"');
-												}
+
+												$type = 'dispatch';
+												$more.= img_picto($langs->trans('AddStockLocationLine'), 'split.png', 'class="splitbutton" onClick="addDispatchLine(' . $i . ',\'' . $type . '\')"');
 
 												$more.= '</td>';
 
