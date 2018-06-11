@@ -100,53 +100,52 @@ $restock_static=new Restock($db);
 if ( isset($_POST['reload']) ) $action = 'restock';
 
 if($action == 'confirm_direct') {
-	$fournids = explode(",",GETPOST('fournid'));
+	if($user->rights->commande->order_advance->send && $user->rights->expedition->creer && $user->rights->fournisseur->commande->creer && $user->rights->fournisseur->supplier_order_advance->validate && $user->rights->fournisseur->commande->commander && $user->rights->fournisseur->commande->receptionner) {
+		$fournids = explode(",",GETPOST('fournid'));
 
-	$expedition = array();
+		$expedition = array();
 
-	foreach($fournids as $fournid) {
-		/*
-		 * Validation
-		 */
-		$object = new CommandeFournisseur($db);
+		foreach($fournids as $fournid) {
+			/*
+			 * Validation
+			 */
+			$object = new CommandeFournisseur($db);
 
-		$ret = $object->fetch($fournid);
-		if ($ret < 0) dol_print_error($db,$object->error);
-		$ret = $object->fetch_thirdparty();
-		if ($ret < 0) dol_print_error($db,$object->error);
+			$ret = $object->fetch($fournid);
+			if ($ret < 0) dol_print_error($db,$object->error);
+			$ret = $object->fetch_thirdparty();
+			if ($ret < 0) dol_print_error($db,$object->error);
 
-		$object->date_commande=dol_now();
-		$result = $object->valid($user);
-		if ($result	>= 0)
-		{
-			// Define output language
-			if (empty($conf->global->MAIN_DISABLE_PDF_AUTOUPDATE))
+			$object->date_commande=dol_now();
+			$result = $object->valid($user);
+			if ($result	>= 0)
 			{
-				$outputlangs = $langs;
-				$newlang = '';
-				if ($conf->global->MAIN_MULTILANGS && empty($newlang) && GETPOST('lang_id','aZ09')) $newlang = GETPOST('lang_id','aZ09');
-				if ($conf->global->MAIN_MULTILANGS && empty($newlang))	$newlang = $object->thirdparty->default_lang;
-				if (! empty($newlang)) {
-					$outputlangs = new Translate("", $conf);
-					$outputlangs->setDefaultLang($newlang);
-				}
-				$model=$object->modelpdf;
-				$ret = $object->fetch($fournid); // Reload to get new records
+				// Define output language
+				if (empty($conf->global->MAIN_DISABLE_PDF_AUTOUPDATE))
+				{
+					$outputlangs = $langs;
+					$newlang = '';
+					if ($conf->global->MAIN_MULTILANGS && empty($newlang) && GETPOST('lang_id','aZ09')) $newlang = GETPOST('lang_id','aZ09');
+					if ($conf->global->MAIN_MULTILANGS && empty($newlang))	$newlang = $object->thirdparty->default_lang;
+					if (! empty($newlang)) {
+						$outputlangs = new Translate("", $conf);
+						$outputlangs->setDefaultLang($newlang);
+					}
+					$model=$object->modelpdf;
+					$ret = $object->fetch($fournid); // Reload to get new records
 
-				$result=$object->generateDocument($model, $outputlangs, $hidedetails, $hidedesc, $hideref);
-				if ($result < 0) dol_print_error($db,$result);
+					$result=$object->generateDocument($model, $outputlangs, $hidedetails, $hidedesc, $hideref);
+					if ($result < 0) dol_print_error($db,$result);
+				}
 			}
-		}
-		else
-		{
-			setEventMessages($object->error, $object->errors, 'errors');
-		}
-		/*
-		 * Approbation
-		 */
-	    if (empty($conf->global->SUPPLIER_ORDER_NO_DIRECT_APPROVE) && $user->rights->fournisseur->commande->approuver && ! (! empty($conf->global->STOCK_CALCULATE_ON_SUPPLIER_VALIDATE_ORDER) && $object->hasProductsOrServices(1)))
-	    {
-	       $idwarehouse=GETPOST('idwarehouse', 'int');
+			else
+			{
+				setEventMessages($object->error, $object->errors, 'errors');
+			}
+			/*
+			 * Approbation
+			 */
+		   $idwarehouse=GETPOST('idwarehouse', 'int');
 
 			$qualified_for_stock_change=0;
 			if (empty($conf->global->STOCK_SUPPORTS_SERVICES))
@@ -191,269 +190,269 @@ if($action == 'confirm_direct') {
 					setEventMessages($object->error, $object->errors, 'errors');
 				}
 			}
-	    }
 
-		/*
-		 * Passage en commande
-		 */
-		$result = $object->commande($user, GETPOST("order_date"),	GETPOST("order_methode"), GETPOST('order_comment'));
-	    if ($result > 0)
-	    {
-	        if (empty($conf->global->MAIN_DISABLE_PDF_AUTOUPDATE))
-	        {
-	            $outputlangs = $langs;
-	            $newlang = '';
-	            if ($conf->global->MAIN_MULTILANGS && empty($newlang) && GETPOST('lang_id','aZ09')) $newlang = GETPOST('lang_id','aZ09');
-	            if ($conf->global->MAIN_MULTILANGS && empty($newlang))	$newlang = $object->thirdparty->default_lang;
-	            if (! empty($newlang)) {
-	                $outputlangs = new Translate("", $conf);
-	                $outputlangs->setDefaultLang($newlang);
-	            }
-		        $object->generateDocument($object->modelpdf, $outputlangs, $hidedetails, $hidedesc, $hideref);
-	        }
-            $action = '';
-        }
-	    else
-	    {
-            setEventMessages($object->error, $object->errors, 'errors');
-	    }
-
-		/*
-		 * Reception des commandes
-		 */
-		if (GETPOST("shipping_methode") != '')
-	    {
-	        $result = $object->Livraison($user, GETPOST("shipping_date"), GETPOST("shipping_methode"), GETPOST("shipping_comment"));   // GETPOST("type") is 'tot', 'par', 'nev', 'can'
-	        if ($result > 0)
-	        {
-	            $langs->load("deliveries");
-                setEventMessages($langs->trans("DeliveryStateSaved"), null);
-                $action = '';
-            }
-	        else if($result == -3)
-	        {
-                setEventMessages($object->error, $object->errors, 'errors');
-	        }
-	        else
-	        {
-	            setEventMessages($object->error, $object->errors, 'errors');
-	        }
-	    }
-	    else
-	    {
-		    setEventMessages($langs->trans("ErrorFieldRequired", $langs->transnoentities("Delivery")), null, 'errors');
-	    }
-	}
-
-	/*
-	 * Dispatch product
-	 */
-	$error = 0;
-
-	$db->begin();
-
-	$pos = 0;
-	foreach ($_POST as $key => $value)
-	{
-		// without batch module enabled
-		if (preg_match('/^product_([0-9]+)_([0-9]+)$/i', $key, $reg))
-		{
-			$pos ++;
-
-			// $numline=$reg[2] + 1; // line of product
-			$numline = $pos;
-			$prod = "product_" . $reg[1] . '_' . $reg[2];
-			$qty = "qty_" . $reg[1] . '_' . $reg[2];
-			$ent = "entrepot_" . $reg[1] . '_' . $reg[2];
-			$pu = "pu_" . $reg[1] . '_' . $reg[2]; // This is unit price including discount
-			$fk_commandefourndet = "fk_commandefourndet_" . $reg[1] . '_' . $reg[2];
-
-			$sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."commandedet WHERE fk_commande = ".$id." and fk_product = ".GETPOST($prod, 'int');
-			$resql=$db->query($sql);
-			if ($resql)	{
-				$obj = $db->fetch_object($resql);
-
-				$expedition["idl".$pos] =  $obj->rowid;
-				$expedition["ent1".$pos] =  GETPOST($ent, 'int');
-				$expedition["qtyl".$pos] =  GETPOST($qty, 'int');
-			}
-
-			// We ask to move a qty
-			if (GETPOST($qty) > 0) {
-				if (! (GETPOST($ent, 'int') > 0)) {
-					dol_syslog('No dispatch for line ' . $key . ' as no warehouse choosed');
-					$text = $langs->transnoentities('Warehouse') . ', ' . $langs->transnoentities('Line') . ' ' . ($numline);
-					setEventMessages($langs->trans('ErrorFieldRequired', $text), null, 'errors');
-					$error ++;
-				}
-
-				if (! $error) {
-					$result = $object->dispatchProduct($user, GETPOST($prod, 'int'), GETPOST($qty), GETPOST($ent, 'int'), GETPOST($pu), GETPOST('comment'), '', '', '', GETPOST($fk_commandefourndet, 'int'), $notrigger);
-					if ($result < 0) {
-						setEventMessages($object->error, $object->errors, 'errors');
-						$error ++;
-					}
-				}
-			}
-		}
-	}
-
-	if (! $error) {
-		$result = $object->calcAndSetStatusDispatch($user, GETPOST('closeopenorder')?1:0, GETPOST('comment'));
-		if ($result < 0) {
-			setEventMessages($object->error, $object->errors, 'errors');
-			$error ++;
-		}
-	}
-
-	if (! $notrigger && ! $error) {
-		global $conf, $langs, $user;
-		// Call trigger
-
-		$result = $object->call_trigger('ORDER_SUPPLIER_DISPATCH', $user);
-		// End call triggers
-
-		if ($result < 0) {
-			setEventMessages($object->error, $object->errors, 'errors');
-			$error ++;
-		}
-	}
-
-	if ($result >= 0 && ! $error) {
-		$db->commit();
-	} else {
-		$db->rollback();
-	}
-
-	/*
-	 * Creation des expéditions
-	 */
-	$error=0;
-	$predef='';
-
-	$db->begin();
-
-	$objectexp = new Expedition($db);
-	$extrafieldsexp = new ExtraFields($db);
-	$extralabelsexp = $extrafieldsexp->fetch_name_optionals_label($objectexp->table_element);
-
-	$objectexp->origin				= 'commande';
-	$objectexp->origin_id			= $id;
-	$objectexp->weight				= GETPOST('weight','int')==''?"NULL":GETPOST('weight','int');
-	$objectexp->sizeH				= GETPOST('sizeH','int')==''?"NULL":GETPOST('sizeH','int');
-	$objectexp->sizeW				= GETPOST('sizeW','int')==''?"NULL":GETPOST('sizeW','int');
-	$objectexp->sizeS				= GETPOST('sizeS','int')==''?"NULL":GETPOST('sizeS','int');
-	$objectexp->size_units			= 0;
-	$objectexp->weight_units		= 0;
-
-	$objectsrc = new Commande($db);
-	$objectsrc->fetch($objectexp->origin_id);
-	$extrafieldssrc = new ExtraFields($db);
-	$extralabelssrc = $extrafieldssrc->fetch_name_optionals_label($objectsrc->table_element);
-	$ret = $extrafieldssrc->setOptionalsFromPost($extralabelssrc, $objectsrc);
-	if ($ret < 0) $error++;
-	$objectsrc->update($user);
-	$db->commit();
-
-	$objectexp->socid					= $objectsrc->socid;
-	$objectexp->fk_delivery_address	= $objectsrc->fk_delivery_address;
-
-	$stockLine = array();
-
-	$num=count($objectsrc->lines);
-	$totalqty=0;
-
-	for ($i = 1; $i <= $num; $i++)
-	{
-		$idl="idl".$i;
-
-		$sub_qty=array();
-		$subtotalqty=0;
-
-		$stockLocation="ent1".$i;
-		$qty = "qtyl".$i;
-
-		if (isset($expedition[$stockLocation]))
-		{
-			// save sub line of warehouse
-			$stockLine[$i]['qty']=$expedition[$qty];
-			$stockLine[$i]['warehouse_id']=$expedition[$stockLocation];
-			$stockLine[$i]['ix_l']=$expedition[$idl];
-
-			$totalqty+=$expedition[$qty];
-		}
-		else
-		{
-			//var_dump(GETPOST($qty,'int')); var_dump($_POST); var_dump($batch);exit;
-			//shipment line for product with no batch management and no multiple stock location
-			if ($expedition[$qty] > 0) $totalqty+$expedition[$qty];
-		}
-	}
-
-	if ($totalqty > 0)		// There is at least one thing to ship
-	{
-		for ($i = 1; $i <= $num; $i++)
-		{
-			$qty = "qtyl".$i;
-			// not batch mode
-			if (isset($stockLine[$i]))
+			/*
+			 * Passage en commande
+			 */
+			$result = $object->commande($user, GETPOST("order_date"),	GETPOST("order_methode"), GETPOST('order_comment'));
+			if ($result > 0)
 			{
-				if ($stockLine[$i]['qty']>0)
+				if (empty($conf->global->MAIN_DISABLE_PDF_AUTOUPDATE))
 				{
-					$ret=$objectexp->addline($stockLine[$i]['warehouse_id'], $stockLine[$i]['ix_l'], $stockLine[$i]['qty'], $array_options[$i]);
-					$objectexp->fetch_lines();
-					$db->commit();
-					if ($ret < 0)
-					{
-						setEventMessages($objectexp->error, $objectexp->errors, 'errors');
-						$error++;
+					$outputlangs = $langs;
+					$newlang = '';
+					if ($conf->global->MAIN_MULTILANGS && empty($newlang) && GETPOST('lang_id','aZ09')) $newlang = GETPOST('lang_id','aZ09');
+					if ($conf->global->MAIN_MULTILANGS && empty($newlang))	$newlang = $object->thirdparty->default_lang;
+					if (! empty($newlang)) {
+						$outputlangs = new Translate("", $conf);
+						$outputlangs->setDefaultLang($newlang);
 					}
+					$object->generateDocument("muscadet_restock", $outputlangs, $hidedetails, $hidedesc, $hideref);
+				}
+				$action = '';
+			}
+			else
+			{
+				setEventMessages($object->error, $object->errors, 'errors');
+			}
+
+			/*
+			 * Reception des commandes
+			 */
+			if (GETPOST("shipping_methode") != '')
+			{
+				$result = $object->Livraison($user, GETPOST("shipping_date"), GETPOST("shipping_methode"), GETPOST("shipping_comment"));   // GETPOST("type") is 'tot', 'par', 'nev', 'can'
+				if ($result > 0)
+				{
+					$langs->load("deliveries");
+					setEventMessages($langs->trans("DeliveryStateSaved"), null);
+					$action = '';
+				}
+				else if($result == -3)
+				{
+					setEventMessages($object->error, $object->errors, 'errors');
+				}
+				else
+				{
+					setEventMessages($object->error, $object->errors, 'errors');
 				}
 			}
 			else
 			{
-				if ($expedition[$qty] > 0 || ($expedition[$qty] == 0 && $conf->global->SHIPMENT_GETS_ALL_ORDER_PRODUCTS))
-				{
-					$ent = "entl".$i;
-					$idl = "idl".$i;
-					$entrepot_id = is_numeric($expedition[$ent])?$expedition[$ent]:GETPOST('entrepot_id','int');
-					if ($entrepot_id < 0) $entrepot_id='';
-					if (! ($objectsrc->lines[$i]->fk_product > 0)) $entrepot_id = 0;
+				setEventMessages($langs->trans("ErrorFieldRequired", $langs->transnoentities("Delivery")), null, 'errors');
+			}
+		}
 
-					$ret=$objectexp->addline($entrepot_id, $expedition[$idl], $expedition[$qty], $array_options[$i]);
-					$db->commit();
-					if ($ret < 0)
-					{
-						setEventMessages($objectexp->error, $objectexp->errors, 'errors');
-						$error++;
+		/*
+		 * Dispatch product
+		 */
+		$error = 0;
+
+		$db->begin();
+
+		$pos = 0;
+		foreach ($_POST as $key => $value)
+		{
+			// without batch module enabled
+			if (preg_match('/^product_([0-9]+)_([0-9]+)$/i', $key, $reg))
+			{
+				$pos ++;
+
+				// $numline=$reg[2] + 1; // line of product
+				$numline = $pos;
+				$prod = "product_" . $reg[1] . '_' . $reg[2];
+				$qty = "qty_" . $reg[1] . '_' . $reg[2];
+				$ent = "entrepot_" . $reg[1] . '_' . $reg[2];
+				$pu = "pu_" . $reg[1] . '_' . $reg[2]; // This is unit price including discount
+				$fk_commandefourndet = "fk_commandefourndet_" . $reg[1] . '_' . $reg[2];
+
+				$sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."commandedet WHERE fk_commande = ".$id." and fk_product = ".GETPOST($prod, 'int');
+				$resql=$db->query($sql);
+				if ($resql)	{
+					$obj = $db->fetch_object($resql);
+
+					$expedition["idl".$pos] =  $obj->rowid;
+					$expedition["ent1".$pos] =  GETPOST($ent, 'int');
+					$expedition["qtyl".$pos] =  GETPOST($qty, 'int');
+				}
+
+				// We ask to move a qty
+				if (GETPOST($qty) > 0) {
+					if (! (GETPOST($ent, 'int') > 0)) {
+						dol_syslog('No dispatch for line ' . $key . ' as no warehouse choosed');
+						$text = $langs->transnoentities('Warehouse') . ', ' . $langs->transnoentities('Line') . ' ' . ($numline);
+						setEventMessages($langs->trans('ErrorFieldRequired', $text), null, 'errors');
+						$error ++;
+					}
+
+					if (! $error) {
+						$result = $object->dispatchProduct($user, GETPOST($prod, 'int'), GETPOST($qty), GETPOST($ent, 'int'), GETPOST($pu), GETPOST('comment'), '', '', '', GETPOST($fk_commandefourndet, 'int'), $notrigger);
+						if ($result < 0) {
+							setEventMessages($object->error, $object->errors, 'errors');
+							$error ++;
+						}
 					}
 				}
 			}
 		}
 
-		// Fill array 'array_options' with data from add form
-		$ret = $extrafieldsexp->setOptionalsFromPost($extralabelsexp, $objectexp);
-		if ($ret < 0) $error++;
-
-		if (! $error)
-		{
-			$ret=$objectexp->create($user);		// This create shipment (like Odoo picking) and line of shipments. Stock movement will when validating shipment.
-			$db->commit();
-			if ($ret <= 0)
-			{
-				setEventMessages($objectexp->error, $objectexp->errors, 'errors');
-				$error++;
+		if (! $error) {
+			$result = $object->calcAndSetStatusDispatch($user, GETPOST('closeopenorder')?1:0, GETPOST('comment'));
+			if ($result < 0) {
+				setEventMessages($object->error, $object->errors, 'errors');
+				$error ++;
 			}
 		}
-	}
-	else
-	{
-		setEventMessages($langs->trans("ErrorFieldRequired",$langs->transnoentitiesnoconv("QtyToShip").'/'.$langs->transnoentitiesnoconv("Warehouse")), null, 'errors');
-		$error++;
-	}
 
-	header("Location: ".$_SERVER["PHP_SELF"]."?id=".$id);
-	exit;
+		if (! $notrigger && ! $error) {
+			global $conf, $langs, $user;
+			// Call trigger
+
+			$result = $object->call_trigger('ORDER_SUPPLIER_DISPATCH', $user);
+			// End call triggers
+
+			if ($result < 0) {
+				setEventMessages($object->error, $object->errors, 'errors');
+				$error ++;
+			}
+		}
+
+		if ($result >= 0 && ! $error) {
+			$db->commit();
+		} else {
+			$db->rollback();
+		}
+
+		/*
+		 * Creation des expéditions
+		 */
+		$error=0;
+		$predef='';
+
+		$db->begin();
+
+		$objectexp = new Expedition($db);
+		$extrafieldsexp = new ExtraFields($db);
+		$extralabelsexp = $extrafieldsexp->fetch_name_optionals_label($objectexp->table_element);
+
+		$objectexp->origin				= 'commande';
+		$objectexp->origin_id			= $id;
+		$objectexp->weight				= GETPOST('weight','int')==''?"NULL":GETPOST('weight','int');
+		$objectexp->sizeH				= GETPOST('sizeH','int')==''?"NULL":GETPOST('sizeH','int');
+		$objectexp->sizeW				= GETPOST('sizeW','int')==''?"NULL":GETPOST('sizeW','int');
+		$objectexp->sizeS				= GETPOST('sizeS','int')==''?"NULL":GETPOST('sizeS','int');
+		$objectexp->size_units			= 0;
+		$objectexp->weight_units		= 0;
+
+		$objectsrc = new Commande($db);
+		$objectsrc->fetch($objectexp->origin_id);
+		$extrafieldssrc = new ExtraFields($db);
+		$extralabelssrc = $extrafieldssrc->fetch_name_optionals_label($objectsrc->table_element);
+		$ret = $extrafieldssrc->setOptionalsFromPost($extralabelssrc, $objectsrc);
+		if ($ret < 0) $error++;
+		$objectsrc->update($user);
+		$db->commit();
+
+		$objectexp->socid					= $objectsrc->socid;
+		$objectexp->fk_delivery_address	= $objectsrc->fk_delivery_address;
+
+		$stockLine = array();
+
+		$num=count($objectsrc->lines);
+		$totalqty=0;
+
+		for ($i = 1; $i <= $num; $i++)
+		{
+			$idl="idl".$i;
+
+			$sub_qty=array();
+			$subtotalqty=0;
+
+			$stockLocation="ent1".$i;
+			$qty = "qtyl".$i;
+
+			if (isset($expedition[$stockLocation]))
+			{
+				// save sub line of warehouse
+				$stockLine[$i]['qty']=$expedition[$qty];
+				$stockLine[$i]['warehouse_id']=$expedition[$stockLocation];
+				$stockLine[$i]['ix_l']=$expedition[$idl];
+
+				$totalqty+=$expedition[$qty];
+			}
+			else
+			{
+				//var_dump(GETPOST($qty,'int')); var_dump($_POST); var_dump($batch);exit;
+				//shipment line for product with no batch management and no multiple stock location
+				if ($expedition[$qty] > 0) $totalqty+$expedition[$qty];
+			}
+		}
+
+		if ($totalqty > 0)		// There is at least one thing to ship
+		{
+			for ($i = 1; $i <= $num; $i++)
+			{
+				$qty = "qtyl".$i;
+				// not batch mode
+				if (isset($stockLine[$i]))
+				{
+					if ($stockLine[$i]['qty']>0)
+					{
+						$ret=$objectexp->addline($stockLine[$i]['warehouse_id'], $stockLine[$i]['ix_l'], $stockLine[$i]['qty'], $array_options[$i]);
+						$objectexp->fetch_lines();
+						$db->commit();
+						if ($ret < 0)
+						{
+							setEventMessages($objectexp->error, $objectexp->errors, 'errors');
+							$error++;
+						}
+					}
+				}
+				else
+				{
+					if ($expedition[$qty] > 0 || ($expedition[$qty] == 0 && $conf->global->SHIPMENT_GETS_ALL_ORDER_PRODUCTS))
+					{
+						$ent = "entl".$i;
+						$idl = "idl".$i;
+						$entrepot_id = is_numeric($expedition[$ent])?$expedition[$ent]:GETPOST('entrepot_id','int');
+						if ($entrepot_id < 0) $entrepot_id='';
+						if (! ($objectsrc->lines[$i]->fk_product > 0)) $entrepot_id = 0;
+
+						$ret=$objectexp->addline($entrepot_id, $expedition[$idl], $expedition[$qty], $array_options[$i]);
+						$db->commit();
+						if ($ret < 0)
+						{
+							setEventMessages($objectexp->error, $objectexp->errors, 'errors');
+							$error++;
+						}
+					}
+				}
+			}
+
+			// Fill array 'array_options' with data from add form
+			$ret = $extrafieldsexp->setOptionalsFromPost($extralabelsexp, $objectexp);
+			if ($ret < 0) $error++;
+
+			if (! $error)
+			{
+				$ret=$objectexp->create($user);		// This create shipment (like Odoo picking) and line of shipments. Stock movement will when validating shipment.
+				$db->commit();
+				if ($ret <= 0)
+				{
+					setEventMessages($objectexp->error, $objectexp->errors, 'errors');
+					$error++;
+				}
+			}
+		}
+		else
+		{
+			setEventMessages($langs->trans("ErrorFieldRequired",$langs->transnoentitiesnoconv("QtyToShip").'/'.$langs->transnoentitiesnoconv("Warehouse")), null, 'errors');
+			$error++;
+		}
+
+		header("Location: ".$_SERVER["PHP_SELF"]."?id=".$id);
+		exit;
+	}
 }
 
 // header forwarding issue
@@ -524,214 +523,216 @@ if ($action!="createrestock") {
 }
 // Direct shipping
 if ($action == 'direct') {
-// dernière étape : la création des commandes fournisseurs
-	// on récupère la liste des produits à commander
-	$tblproduct=explode("-", GETPOST("prodlist"));
+	if($user->rights->commande->order_advance->send && $user->rights->expedition->creer && $user->rights->fournisseur->commande->creer && $user->rights->fournisseur->supplier_order_advance->validate && $user->rights->fournisseur->commande->commander && $user->rights->fournisseur->commande->receptionner) {
+		// dernière étape : la création des commandes fournisseurs
+		// on récupère la liste des produits à commander
+		$tblproduct=explode("-", GETPOST("prodlist"));
 
-	// on va utiliser un tableau pour stocker les commandes fournisseurs
-	$tblCmdeFourn=array();
-	// on parcourt les produits pour récupérer les fournisseurs, les produits et les quantités
-	foreach ($tblproduct as $idproduct) {
-		$numlines=count($tblCmdeFourn);
-		$lineoffourn = -1;
-		if (GETPOST("fourn-".$idproduct)) {
-			$tblfourn=explode("-", GETPOST("fourn-".$idproduct));
-			if ($tblfourn[0]) {
-				for ($j = 0 ; $j < $numlines ; $j++)
-					if ($tblCmdeFourn[$j][0] == $tblfourn[0])
-						$lineoffourn =$j;
+		// on va utiliser un tableau pour stocker les commandes fournisseurs
+		$tblCmdeFourn=array();
+		// on parcourt les produits pour récupérer les fournisseurs, les produits et les quantités
+		foreach ($tblproduct as $idproduct) {
+			$numlines=count($tblCmdeFourn);
+			$lineoffourn = -1;
+			if (GETPOST("fourn-".$idproduct)) {
+				$tblfourn=explode("-", GETPOST("fourn-".$idproduct));
+				if ($tblfourn[0]) {
+					for ($j = 0 ; $j < $numlines ; $j++)
+						if ($tblCmdeFourn[$j][0] == $tblfourn[0])
+							$lineoffourn =$j;
 
-				// si le fournisseur n'est pas déja dans le tableau des fournisseurs
-				if ($lineoffourn == -1) {
-					$tblCmdeFourn[$numlines][0] = $tblfourn[0];
-					$tblCmdeFourn[$numlines][1] = array(array($idproduct, GETPOST("prd-".$idproduct),
-									$tblfourn[1], $tblfourn[2], $tblfourn[3]));
-				} else {
-					$tblCmdeFourn[$lineoffourn][1] = array_merge(
-									$tblCmdeFourn[$lineoffourn][1],
-									array(array($idproduct, GETPOST("prd-".$idproduct),
-									$tblfourn[1], $tblfourn[2], $tblfourn[3]))
-					);
+					// si le fournisseur n'est pas déja dans le tableau des fournisseurs
+					if ($lineoffourn == -1) {
+						$tblCmdeFourn[$numlines][0] = $tblfourn[0];
+						$tblCmdeFourn[$numlines][1] = array(array($idproduct, GETPOST("prd-".$idproduct),
+										$tblfourn[1], $tblfourn[2], $tblfourn[3]));
+					} else {
+						$tblCmdeFourn[$lineoffourn][1] = array_merge(
+										$tblCmdeFourn[$lineoffourn][1],
+										array(array($idproduct, GETPOST("prd-".$idproduct),
+										$tblfourn[1], $tblfourn[2], $tblfourn[3]))
+						);
+					}
 				}
 			}
 		}
-	}
 
-	$tblIdCmdFourn = array();
-	// on va maintenant créer les commandes fournisseurs
-	foreach ($tblCmdeFourn as $CmdeFourn) {
-		$idCmdFourn = 0;
-		// si il on charge les commandes fournisseurs brouillons
-		if ($conf->global->RESTOCK_FILL_ORDER_DRAFT > 0) {
-			// on vérifie qu'il n'y a pas une commande fournisseur déjà active
-			$sql = 'SELECT rowid  FROM '.MAIN_DB_PREFIX.'commande_fournisseur as cof';
-			$sql.= ' WHERE fk_soc='.$CmdeFourn[0];
-			$sql.= ' AND fk_statut=0';
-			$sql.= ' AND entity='.$conf->entity;
-			if  (	$conf->global->RESTOCK_FILL_ORDER_DRAFT == 2
-				||	$conf->global->RESTOCK_FILL_ORDER_DRAFT == 4)
-				$sql.= ' AND fk_user_author='.$user->id;
+		$tblIdCmdFourn = array();
+		// on va maintenant créer les commandes fournisseurs
+		foreach ($tblCmdeFourn as $CmdeFourn) {
+			$idCmdFourn = 0;
+			// si il on charge les commandes fournisseurs brouillons
+			if ($conf->global->RESTOCK_FILL_ORDER_DRAFT > 0) {
+				// on vérifie qu'il n'y a pas une commande fournisseur déjà active
+				$sql = 'SELECT rowid  FROM '.MAIN_DB_PREFIX.'commande_fournisseur as cof';
+				$sql.= ' WHERE fk_soc='.$CmdeFourn[0];
+				$sql.= ' AND fk_statut=0';
+				$sql.= ' AND entity='.$conf->entity;
+				if  (	$conf->global->RESTOCK_FILL_ORDER_DRAFT == 2
+					||	$conf->global->RESTOCK_FILL_ORDER_DRAFT == 4)
+					$sql.= ' AND fk_user_author='.$user->id;
 
-			$resql = $db->query($sql);
-			if ($resql) {
-				$objp = $db->fetch_object($resql);
-				$idCmdFourn = $objp->rowid;
-			}
-			$objectcf = new CommandeFournisseur($db);
-			$objectcf->origin = "commande";
-			$objectcf->origin_id = GETPOST("id");
-			$objectcf->fetch($idCmdFourn);
-			// on ajoute le lien
-			$ret = $objectcf->add_object_linked();
-		}
-
-		// en création
-		if ($idCmdFourn == 0) {
-			$objectfournisseur = new Fournisseur($db);
-			$objectfournisseur->fetch($CmdeFourn[0]);
-
-			$objectcf = new CommandeFournisseur($db);
-			$objectcf->ref_supplier  	= GETPOST("reforderfourn");
-			$objectcf->socid		 	= $CmdeFourn[0];
-			$objectcf->note_private	= '';
-			$objectcf->note_public   	= '';
-			$objectcf->origin_id = GETPOST("id");
-
-			$objectcf->cond_reglement_id =$objectfournisseur->cond_reglement_supplier_id;
-			$objectcf->mode_reglement_id =$objectfournisseur->mode_reglement_supplier_id;
-
-			$objectcf->origin = "commande";
-			$objectcf->linked_objects[$objectcf->origin] = $objectcf->origin_id;
-			$idCmdFourn = $objectcf->create($user);
-		}
-
-		// ensuite on boucle sur les lignes de commandes
-		foreach ($CmdeFourn[1] as $lgnCmdeFourn) {
-			$idlgnFourn = 0;
-			// on vérifie qu'il n'y a pas déjà une ligne de commande pour ce produit
-			$sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'commande_fournisseurdet as cofd';
-			$sql.= ' WHERE fk_commande='.$idCmdFourn;
-			$sql.= ' AND fk_product='.$lgnCmdeFourn[0];
-			$resql = $db->query($sql);
-			if ($resql) {
-				$objp = $db->fetch_object($resql);
-				$idlgnFourn = ($objp->rowid?$objp->rowid:0);
-			}
-
-			// si pas de ligne existante ou création d'une ligne à chaque fois
-			if ($idlgnFourn == 0 || $conf->global->RESTOCK_FILL_ORDER_DRAFT <= 2) {
-				// on cree la commande fournisseur
-				$result=$objectcf->addline(
-								'', 0,
-								$lgnCmdeFourn[1],	// $qty
-								$lgnCmdeFourn[3],	// TxTVA
-								0, 0,
-								$lgnCmdeFourn[0],	// $fk_product
-								$lgnCmdeFourn[2],	// $fk_prod_fourn_price
-								0, 					// $fourn_ref
-								$lgnCmdeFourn[4],	// $remise_percent
-								'HT',				// $price_base_type
-								0, 0				// type
-				);
-
-				// récup de l'id de la que l'on vient de créer
-				$sql = 'SELECT rowid from '.MAIN_DB_PREFIX.'commande_fournisseurdet';
-				$sql.= ' WHERE fk_commande = '.$idCmdFourn;
-				$sql.= ' ORDER BY rowid desc';
 				$resql = $db->query($sql);
-
 				if ($resql) {
-					$objcf = $db->fetch_object($resql);
-					$idlgnFourn = $objcf->rowid;
+					$objp = $db->fetch_object($resql);
+					$idCmdFourn = $objp->rowid;
 				}
-			} else {
-				$tmpcmdeligncmdefourn= new CommandeFournisseurLigne($db);
-				$tmpcmdeligncmdefourn->fetch($idlgnFourn);
-				$result=$objectcf->updateline(
-								$idlgnFourn,
-								$tmpcmdeligncmdefourn->desc,
-								$tmpcmdeligncmdefourn->subprice,
-								$tmpcmdeligncmdefourn->qty + $lgnCmdeFourn[1],
-								$tmpcmdeligncmdefourn->remise_percent,
-								$tmpcmdeligncmdefourn->tva_tx,
-								$tmpcmdeligncmdefourn->localtax1_tx=0,
-								$tmpcmdeligncmdefourn->localtax2_tx=0,
-								'HT', 0, 0
-				);
+				$objectcf = new CommandeFournisseur($db);
+				$objectcf->origin = "commande";
+				$objectcf->origin_id = GETPOST("id");
+				$objectcf->fetch($idCmdFourn);
+				// on ajoute le lien
+				$ret = $objectcf->add_object_linked();
 			}
 
-			// on enregistre l'id pour la ligne de la commande client
-			// attention, si le produit est sur deux ligne dans la commande client cela déconne
+			// en création
+			if ($idCmdFourn == 0) {
+				$objectfournisseur = new Fournisseur($db);
+				$objectfournisseur->fetch($CmdeFourn[0]);
 
-			$sql = 'UPDATE '.MAIN_DB_PREFIX.'commandedet';
-			$sql.= ' SET fk_commandefourndet = '.$idlgnFourn;
-			$sql.= ' WHERE fk_product = '.$lgnCmdeFourn[0];
-			$sql.= ' AND fk_commande = '. $id;
-			$resqlupdate = $db->query($sql);
-		}
-		$restock_static->add_contact_delivery_client($id,$idCmdFourn);
+				$objectcf = new CommandeFournisseur($db);
+				$objectcf->ref_supplier  	= GETPOST("reforderfourn");
+				$objectcf->socid		 	= $CmdeFourn[0];
+				$objectcf->note_private	= '';
+				$objectcf->note_public   	= '';
+				$objectcf->origin_id = GETPOST("id");
 
-		$tblIdCmdFourn[] = $idCmdFourn;
-	}
+				$objectcf->cond_reglement_id =$objectfournisseur->cond_reglement_supplier_id;
+				$objectcf->mode_reglement_id =$objectfournisseur->mode_reglement_supplier_id;
 
-	$array_fourn = array();
-	foreach ($tblIdCmdFourn as $CmdeFourn) {
-		$array_fourn[] = $CmdeFourn;
-	}
+				$objectcf->origin = "commande";
+				$objectcf->linked_objects[$objectcf->origin] = $objectcf->origin_id;
+				$idCmdFourn = $objectcf->create($user);
+			}
 
-	// Create an array for form
-	$restock_static=new Restock($db);
-	$liv = array();
-	$liv[''] = '&nbsp;';
-	$liv['tot']	= $langs->trans("CompleteOrNoMoreReceptionExpected");
-	$liv['par']	= $langs->trans("PartialWoman");
-	$liv['nev']	= $langs->trans("NeverReceived");
-	$liv['can']	= $langs->trans("Canceled");
-	$formquestion = array(
-						array(
-							'text' => "<b>".$langs->trans("PassationOrder")."</b>",
-							array('type' => 'date', 'name' => 'order_date', 'label' => $langs->trans("OrderDate"), 'value' => dol_mktime(0, 0, 0, GETPOST('remonth'), GETPOST('reday'), GETPOST('reyear'))),
-							array('type' => 'select', 'name' => 'order_methode', 'label' => $langs->trans("OrderMode"), 'values' =>  $restock_static->selectInputMethodRestock(GETPOST('methodecommande'), "methodecommande", 1)),
-							array('type' => 'text', 'name' => 'order_comment', 'label' => $langs->trans("Comment"), 'value' =>  GETPOST('comment'))
-						),
-						array(
-							'text' => "<b>".$langs->trans("ReceptionOrder")."</b>",
-							array('type' => 'date', 'name' => 'shipping_date', 'label' => $langs->trans("DeliveryDate"), 'value' => dol_mktime(0, 0, 0,GETPOST('remonth'), GETPOST('reday'), GETPOST('reyear'))),
-							array('type' => 'select', 'name' => 'shipping_methode', 'label' => $langs->trans("Delivery"), 'values' => $liv),
-							array('type' => 'text', 'name' => 'shipping_comment', 'label' => $langs->trans("Comment"), 'value' =>  GETPOST('comment'))
-						),
-						array(
-							array('type' => 'hidden', 'name' => 'fournid', 'value' => implode(",",$array_fourn)),
-							array('type' => 'hidden', 'name' => 'options_expd', 'value' => 1)
-						),
-						array(
-							'text' => "<b>".$langs->trans("DispatchOrder")."</b>",
-							array('type' => 'dispatch', 'name' => 'dispatch', 'value' => implode(",",$array_fourn))
-						)
+			// ensuite on boucle sur les lignes de commandes
+			foreach ($CmdeFourn[1] as $lgnCmdeFourn) {
+				$idlgnFourn = 0;
+				// on vérifie qu'il n'y a pas déjà une ligne de commande pour ce produit
+				$sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'commande_fournisseurdet as cofd';
+				$sql.= ' WHERE fk_commande='.$idCmdFourn;
+				$sql.= ' AND fk_product='.$lgnCmdeFourn[0];
+				$resql = $db->query($sql);
+				if ($resql) {
+					$objp = $db->fetch_object($resql);
+					$idlgnFourn = ($objp->rowid?$objp->rowid:0);
+				}
+
+				// si pas de ligne existante ou création d'une ligne à chaque fois
+				if ($idlgnFourn == 0 || $conf->global->RESTOCK_FILL_ORDER_DRAFT <= 2) {
+					// on cree la commande fournisseur
+					$result=$objectcf->addline(
+									'', 0,
+									$lgnCmdeFourn[1],	// $qty
+									$lgnCmdeFourn[3],	// TxTVA
+									0, 0,
+									$lgnCmdeFourn[0],	// $fk_product
+									$lgnCmdeFourn[2],	// $fk_prod_fourn_price
+									0, 					// $fourn_ref
+									$lgnCmdeFourn[4],	// $remise_percent
+									'HT',				// $price_base_type
+									0, 0				// type
 					);
-	// Paiement incomplet. On demande si motif = escompte ou autre
-	$formconfirm = $restock_static->formconfirmRestock($_SERVER["PHP_SELF"].'?id='.$object->id, $langs->trans('PopTitle'), $langs->trans('PopQuestion', $object->ref), 'confirm_direct', $formquestion, 'yes', 0, 500, 800);
-	print $formconfirm;
 
-	print '<script>
-				$(document).ready(function() {
-					 $("form").submit(function(e){
-						var error = "";
-						if(!$("#shipping_methode").val() || $("#shipping_methode").val() == "-1") {
-							error += "'.$langs->trans("ErrorSelectShipping").'<br/>";
-						}
-						$("[id^=entrepot_]").each(function() {
-							if(!$(this).val() || $(this).val() == "-1") {
-								error += "'.$langs->trans("ErrorSelectDispatch").'<br/>";
+					// récup de l'id de la que l'on vient de créer
+					$sql = 'SELECT rowid from '.MAIN_DB_PREFIX.'commande_fournisseurdet';
+					$sql.= ' WHERE fk_commande = '.$idCmdFourn;
+					$sql.= ' ORDER BY rowid desc';
+					$resql = $db->query($sql);
+
+					if ($resql) {
+						$objcf = $db->fetch_object($resql);
+						$idlgnFourn = $objcf->rowid;
+					}
+				} else {
+					$tmpcmdeligncmdefourn= new CommandeFournisseurLigne($db);
+					$tmpcmdeligncmdefourn->fetch($idlgnFourn);
+					$result=$objectcf->updateline(
+									$idlgnFourn,
+									$tmpcmdeligncmdefourn->desc,
+									$tmpcmdeligncmdefourn->subprice,
+									$tmpcmdeligncmdefourn->qty + $lgnCmdeFourn[1],
+									$tmpcmdeligncmdefourn->remise_percent,
+									$tmpcmdeligncmdefourn->tva_tx,
+									$tmpcmdeligncmdefourn->localtax1_tx=0,
+									$tmpcmdeligncmdefourn->localtax2_tx=0,
+									'HT', 0, 0
+					);
+				}
+
+				// on enregistre l'id pour la ligne de la commande client
+				// attention, si le produit est sur deux ligne dans la commande client cela déconne
+
+				$sql = 'UPDATE '.MAIN_DB_PREFIX.'commandedet';
+				$sql.= ' SET fk_commandefourndet = '.$idlgnFourn;
+				$sql.= ' WHERE fk_product = '.$lgnCmdeFourn[0];
+				$sql.= ' AND fk_commande = '. $id;
+				$resqlupdate = $db->query($sql);
+			}
+			$restock_static->add_contact_delivery_client($id,$idCmdFourn);
+
+			$tblIdCmdFourn[] = $idCmdFourn;
+		}
+
+		$array_fourn = array();
+		foreach ($tblIdCmdFourn as $CmdeFourn) {
+			$array_fourn[] = $CmdeFourn;
+		}
+
+		// Create an array for form
+		$restock_static=new Restock($db);
+		$liv = array();
+		$liv[''] = '&nbsp;';
+		$liv['tot']	= $langs->trans("CompleteOrNoMoreReceptionExpected");
+		$liv['par']	= $langs->trans("PartialWoman");
+		$liv['nev']	= $langs->trans("NeverReceived");
+		$liv['can']	= $langs->trans("Canceled");
+		$formquestion = array(
+							array(
+								'text' => "<b>".$langs->trans("PassationOrder")."</b>",
+								array('type' => 'date', 'name' => 'order_date', 'label' => $langs->trans("OrderDate"), 'value' => dol_mktime(0, 0, 0, GETPOST('remonth'), GETPOST('reday'), GETPOST('reyear'))),
+								array('type' => 'select', 'name' => 'order_methode', 'label' => $langs->trans("OrderMode"), 'values' =>  $restock_static->selectInputMethodRestock(GETPOST('methodecommande'), "methodecommande", 1)),
+								array('type' => 'text', 'name' => 'order_comment', 'label' => $langs->trans("Comment"), 'value' =>  GETPOST('comment'))
+							),
+							array(
+								'text' => "<b>".$langs->trans("ReceptionOrder")."</b>",
+								array('type' => 'date', 'name' => 'shipping_date', 'label' => $langs->trans("DeliveryDate"), 'value' => dol_mktime(0, 0, 0,GETPOST('remonth'), GETPOST('reday'), GETPOST('reyear'))),
+								array('type' => 'select', 'name' => 'shipping_methode', 'label' => $langs->trans("Delivery"), 'values' => $liv),
+								array('type' => 'text', 'name' => 'shipping_comment', 'label' => $langs->trans("Comment"), 'value' =>  GETPOST('comment'))
+							),
+							array(
+								array('type' => 'hidden', 'name' => 'fournid', 'value' => implode(",",$array_fourn)),
+								array('type' => 'hidden', 'name' => 'options_expd', 'value' => 1)
+							),
+							array(
+								'text' => "<b>".$langs->trans("DispatchOrder")."</b>",
+								array('type' => 'dispatch', 'name' => 'dispatch', 'value' => implode(",",$array_fourn))
+							)
+						);
+		// Paiement incomplet. On demande si motif = escompte ou autre
+		$formconfirm = $restock_static->formconfirmRestock($_SERVER["PHP_SELF"].'?id='.$object->id, $langs->trans('PopTitle'), $langs->trans('PopQuestion', $object->ref), 'confirm_direct', $formquestion, 'yes', 0, 500, 800);
+		print $formconfirm;
+
+		print '<script>
+					$(document).ready(function() {
+						 $("form").submit(function(e){
+							var error = "";
+							if(!$("#shipping_methode").val() || $("#shipping_methode").val() == "-1") {
+								error += "'.$langs->trans("ErrorSelectShipping").'<br/>";
+							}
+							$("[id^=entrepot_]").each(function() {
+								if(!$(this).val() || $(this).val() == "-1") {
+									error += "'.$langs->trans("ErrorSelectDispatch").'<br/>";
+								}
+							});
+							if(error != "") {
+								e.preventDefault();
+								$.jnotify(error, "error");
 							}
 						});
-						if(error != "") {
-							e.preventDefault();
-							$.jnotify(error, "error");
-						}
 					});
-				});
-			</script>';
+				</script>';
+	}
 }
 if ($action=="") {
 	$liste_contact = $object->liste_contact();
@@ -1040,7 +1041,9 @@ if ($action=="") {
 	// on mémorise la référence du de la facture client sur la commande fournisseur
 	print '<input type=text size=30 name=reforderfourn value="'.$langs->trans('RestockofCmdeClient').'&nbsp;'.$object->ref.'"></td>';
 	print '<td align=right><input type="submit" class="button" name="bouton" value="'.$langs->trans('CreateFournOrder').'">   ';
-	print '<button type="button" id="direct" class="button">'.$langs->trans('DirectShipping').'</button></td>';
+	if($user->rights->commande->order_advance->send && $user->rights->expedition->creer && $user->rights->fournisseur->commande->creer && $user->rights->fournisseur->supplier_order_advance->validate && $user->rights->fournisseur->commande->commander && $user->rights->fournisseur->commande->receptionner) {
+		print '<button type="button" id="direct" class="button">'.$langs->trans('DirectShipping').'</button></td>';
+	}
 	print '</tr></table>';
 	print '</div >';
 	print '</form >';
