@@ -98,7 +98,9 @@ class Factory extends CommonObject
 		$sql.= $this->db->escape($this->description).'"';
 		$sql.= ', "'.($this->date_start_planned?$this->db->idate($this->date_start_planned):'null').'", "';
 		$sql.= ($this->date_end_planned?$this->db->idate($this->date_end_planned):'null').'"';
-		$sql.= ', '.($this->duration_planned?$this->duration_planned:'null').', '.$this->qty_planned.', '.$user->id.' )';
+		$sql.= ', '.($this->duration_planned?$this->duration_planned:'null');
+		$sql.= ', '.($this->qty_planned?$this->qty_planned:'null').', '.$user->id.' )';
+
 		if (! $this->db->query($sql)) {
 			dol_print_error($this->db);
 			$this->db->rollback();
@@ -110,11 +112,11 @@ class Factory extends CommonObject
 			$tmpid = $this->id;
 
 			if ($this->context['createfromclone'] == 'createfromclone') {
-				// on récupère la composition de l'of Cloné
+				// on rï¿½cupï¿½re la composition de l'of Clonï¿½
 				$prods_arbo =$this->getChildsOF($orig->id);
 			} else {
-				// sinon c'est ceux du produit associé à l'OF
-				// on mémorise les composants utilisé pour la fabrication
+				// sinon c'est ceux du produit associï¿½ ï¿½ l'OF
+				// on mï¿½morise les composants utilisï¿½ pour la fabrication
 				//$prodsfather = $this->getFather(); //Parent Products
 				$this->get_sousproduits_arbo($factoryid);
 				$prods_arbo = $this->get_arbo_each_prod();
@@ -126,12 +128,12 @@ class Factory extends CommonObject
 			// List of subproducts
 
 			if (count($prods_arbo) > 0) {
-				// on boucle sur les composants	pour créer les lignes de détail
+				// on boucle sur les composants	pour crï¿½er les lignes de dï¿½tail
 				foreach ($prods_arbo as $value)
 					$this->createof_component($factoryid, $this->qty_planned, $value, 0);
 			}
 
-			// les extrafields sont a associé à l'of pas au produit
+			// les extrafields sont a associï¿½ ï¿½ l'of pas au produit
 			$this->id = $factoryid;
 			$result=$this->insertExtraFields();
 			if ($result < 0) {
@@ -155,7 +157,7 @@ class Factory extends CommonObject
 	{
 		$sql = 'INSERT INTO '.MAIN_DB_PREFIX.'factorydet (fk_factory, fk_product, qty_unit, qty_planned, pmp, price,';
 		$sql .= ' fk_mvtstockplanned, globalqty, description)';
-		// pour gérer les quantités
+		// pour gï¿½rer les quantitï¿½s
 		if ($valuearray['globalqty'] == 0)
 			$qty_planned=$qty_build * $valuearray['nb'];
 		else
@@ -352,7 +354,7 @@ class Factory extends CommonObject
 	}
 
 	/**
-	 *  Lie un produit associe à une tache
+	 *  Lie un produit associe ï¿½ une tache
 	 *
 	 *  @param	  int	$id_pere	Id du produit auquel sera lie le produit a lier
 	 *  @param	  int	$id_fils	Id du produit a lier
@@ -487,7 +489,7 @@ class Factory extends CommonObject
 	 *  Retire le lien entre un sousproduit et un produit/service
 	 *
 	 *  @param	  int	$fk_parent		Id du produit auquel ne sera plus lie le produit lie
-	 *  @param	  int	$fk_child		Id du produit a ne plus lier, 0 si tous les délier
+	 *  @param	  int	$fk_child		Id du produit a ne plus lier, 0 si tous les dï¿½lier
 	 *  @return	 int					< 0 si erreur, > 0 si ok
 	 */
 	function del_component($fk_parent, $fk_child=0)
@@ -548,7 +550,7 @@ class Factory extends CommonObject
 		return 1;
 	}
 
-	// récupération du nombre de produit en cours de fabrication
+	// rï¿½cupï¿½ration du nombre de produit en cours de fabrication
 	function getQtylink ($orderid, $fk_product)
 	{
 		$sql = "SELECT sum(qty_planned) as total_planned, sum(qty_made) as total_made";
@@ -703,7 +705,7 @@ class Factory extends CommonObject
 					if ($product->stock_warehouse[1]->real < $this->seuil_stock_alerte)
 						$img=img_warning($langs->trans("StockTooLow"));
 
-					// si en quantité global on ne gère pas de la même façon les quantités
+					// si en quantitï¿½ global on ne gï¿½re pas de la mï¿½me faï¿½on les quantitï¿½s
 					if ($globalqty == 0)
 						$nb*$multiply;
 					else
@@ -838,7 +840,7 @@ class Factory extends CommonObject
 	 */
 	function getParent()
 	{
-		// si on se base sur la structure par défaut de l'of
+		// si on se base sur la structure par dï¿½faut de l'of
 		$sql = "SELECT p.label as label, p.rowid as id";
 		$sql.= " FROM ".MAIN_DB_PREFIX."product as p";
 		$sql.= " WHERE p.rowid = ".$this->id;
@@ -885,7 +887,7 @@ class Factory extends CommonObject
 	{
 		$tmp.="<?xml version='1.0' encoding='ISO-8859-1'?>\n";
 		$tmp.="<FactoryComposition>\n";
-		// récupération des champs associés au customtabs
+		// rï¿½cupï¿½ration des champs associï¿½s au customtabs
 		$tmp.="<FactoryCompositionLines>\n";
 		foreach ($tblCompositionLine as $key => $value) {
 			$tmp.="\t".'<FactoryCompositionLine>'."\n";
@@ -905,7 +907,7 @@ class Factory extends CommonObject
 
 	function importComposition($xml)
 	{
-		// on récupère le fichier et on le parse
+		// on rï¿½cupï¿½re le fichier et on le parse
 		libxml_use_internal_errors(true);
 		$sxe = simplexml_load_string($xml);
 		if ($sxe === false) {
@@ -917,7 +919,7 @@ class Factory extends CommonObject
 		else
 			$arraydata = json_decode(json_encode($sxe), TRUE);
 
-		// on vire la précédente composition
+		// on vire la prï¿½cï¿½dente composition
 		$this->del_component($this->id);
 		$tblfields=$arraydata['FactoryCompositionLines'];
 		$tblfields=$tblfields['FactoryCompositionLine'];
@@ -946,7 +948,7 @@ class Factory extends CommonObject
 		$tmp.="<fk_entrepot>".$this->fk_entrepot."</fk_entrepot>\n";
 		$tmp.="<duration_planned>".$this->duration_planned."</duration_planned>\n";
 
-		// récupération des champs associés au customtabs
+		// rï¿½cupï¿½ration des champs associï¿½s au customtabs
 		$tmp.="<FactoryOFLines>\n";
 		$tblOFLine = $this->getChildsOF($id);
 
@@ -976,7 +978,7 @@ class Factory extends CommonObject
 
 	function importCompositionOF($xml)
 	{
-		// on récupère le fichier et on le parse
+		// on rï¿½cupï¿½re le fichier et on le parse
 		libxml_use_internal_errors(true);
 		$sxe = simplexml_load_string($xml);
 		if ($sxe === false) {
@@ -987,7 +989,7 @@ class Factory extends CommonObject
 		} else
 			$arraydata = json_decode(json_encode($sxe), TRUE);
 
-		// on vire la précédente composition
+		// on vire la prï¿½cï¿½dente composition
 		$this->del_componentOF($this->id);
 		$tblfields=$arraydata['FactoryOFLines']['FactoryOFLine'];
 
@@ -1168,7 +1170,7 @@ class Factory extends CommonObject
 		$result='';
 		$tmpproduct->fetch($id);
 		if ($tmpproduct->is_photo_available($conf->product->multidir_output [$tmpproduct->entity])) {
-			// pour gérer le cas d'une même photo sur un meme document
+			// pour gï¿½rer le cas d'une mï¿½me photo sur un meme document
 			if ($idsecond)
 				$id.="-".$idsecond;
 			$result='<a id="trigger'.$id.'" >'.img_down().'</a>';
@@ -1221,17 +1223,35 @@ class Factory extends CommonObject
 	 * 	@param		int		$fk_parent	Id of product to search childs of
 	 *  @return	 array	   		Prod
 	 */
-	function getChildsArbo($fk_parent )
+	function getChildsArbo($fk_parent, $fk_factory =0, $maxlevel=0)
 	{
-		$sql = "SELECT p.rowid, p.label as label, p.fk_product_type,";
-		$sql.= " pf.qty as qty, pf.pmp as pmp, pf.price as price, pf.fk_product_children as id,";
-		$sql.= " pf.globalqty as globalqty, pf.description as description, pf.ordercomponent";
-		$sql.= " FROM ".MAIN_DB_PREFIX."product as p";
-		$sql.= ", ".MAIN_DB_PREFIX."product_factory as pf";
-		$sql.= " WHERE p.rowid = pf.fk_product_children";
-		$sql.= " AND pf.fk_product_father = ".$fk_parent;
-		$sql.= " ORDER by pf.ordercomponent, p.ref";
+	    global $langs;
 
+		// si on est pas dans trop loin dans la rï¿½cursivitï¿½,
+		if ($maxlevel > 1) {
+            dol_syslog(get_class($this)."::getChildsArbo : ".$langs->trans("RecursivityLimitReached", $fk_parent), LOG_DEBUG);
+			return array();
+		}
+
+		if ($fk_parent > 0) {
+			$sql = "SELECT p.rowid, p.label as label, p.fk_product_type,";
+			$sql.= " pf.qty as qty, pf.pmp as pmp, pf.price as price, pf.fk_product_children as id,";
+			$sql.= " pf.globalqty as globalqty, pf.description as description, pf.ordercomponent";
+			$sql.= " FROM ".MAIN_DB_PREFIX."product as p";
+			$sql.= ", ".MAIN_DB_PREFIX."product_factory as pf";
+			$sql.= " WHERE p.rowid = pf.fk_product_children";
+			$sql.= " AND pf.fk_product_father = ".$fk_parent;
+			$sql.= " ORDER by pf.ordercomponent, p.ref";
+		} else {
+			$sql = "SELECT p.rowid, p.label as label, p.fk_product_type,";
+			$sql.= " fd.qty_unit as qty, fd.pmp as pmp, fd.price as price, fd.fk_product as id,";
+			$sql.= " fd.globalqty as globalqty, fd.description as description, 1 as ordercomponent";
+			$sql.= " FROM ".MAIN_DB_PREFIX."product as p";
+			$sql.= ", ".MAIN_DB_PREFIX."factorydet as fd";
+			$sql.= " WHERE p.rowid = fd.fk_product";
+			$sql.= " AND fd.fk_factory = ".$fk_factory ;
+			$sql.= " ORDER by p.ref";
+		}
 
 		$res  = $this->db->query($sql);
 		if ($res) {
@@ -1248,7 +1268,7 @@ class Factory extends CommonObject
 								8=>$rec['ordercomponent'],
 								9=>array()			// pour stocker les enfants sans fiche le basard
 							);
-				$listofchilds=$this->getChildsArbo($rec['id']);
+				$listofchilds=$this->getChildsArbo($rec['id'], 0, $maxlevel++);
 				foreach ($listofchilds as $keyChild => $valueChild)
 					$prods[$rec['rowid']][9] = $valueChild;  // on stock les enfants dans le 6e tableau
 			}
@@ -1396,7 +1416,7 @@ class Factory extends CommonObject
 				}
 			}
 
-			// à la fin du transfert on supprime le paramétrage du produit virtuel
+			// ï¿½ la fin du transfert on supprime le paramï¿½trage du produit virtuel
 			$sql = "DELETE FROM ".MAIN_DB_PREFIX."product_association as pa";
 			$sql.= " WHERE pa.fk_product_pere = ".$this->id;
 			$res  = $this->db->query($sql);
@@ -1546,7 +1566,7 @@ class Factory extends CommonObject
 					case 'fournishless':
 						if ($selpricemode == 'fournishmore')
 							$sql = "SELECT MAX(price) AS pricefourn";
-						else	// récup du prix fournisseur le plus haut
+						else	// rï¿½cup du prix fournisseur le plus haut
 							$sql = "SELECT MIN(price) AS pricefourn";
 						$sql.= " FROM ".MAIN_DB_PREFIX."product_fournisseur_price ";
 						$sql.= " WHERE quantity=1 AND fk_product=".$rec['rowid'];
@@ -1614,10 +1634,10 @@ class Factory extends CommonObject
 						break;
 					case 'fournishmore':
 					case 'fournishless':
-						// récup du prix fournisseur le plus haut
+						// rï¿½cup du prix fournisseur le plus haut
 						if ($selpricemode == 'fournishmore')
 							$sql = "SELECT MAX(price) AS pricefourn";
-						else	// récup du prix fournisseur le plus bas
+						else	// rï¿½cup du prix fournisseur le plus bas
 							$sql = "SELECT MIN(price) AS pricefourn";
 						$sql.= " FROM ".MAIN_DB_PREFIX."product_fournisseur_price ";
 						$sql.= " WHERE quantity=1 AND fk_product=".$rec['rowid'];
@@ -1790,7 +1810,7 @@ class Factory extends CommonObject
 	{
 		global $conf, $langs;
 
-		// c'est lors de la première validation que l'on effectue les mouvements de stocks des composants
+		// c'est lors de la premiï¿½re validation que l'on effectue les mouvements de stocks des composants
 		if ($user->rights->factory->creer) {
 			$sql = "UPDATE ".MAIN_DB_PREFIX."factory ";
 			$sql.= " SET date_start_made = ".($datestartmade ? $this->db->idate($datestartmade) :'null');
@@ -1804,7 +1824,7 @@ class Factory extends CommonObject
 				else
 					$this->statut  = 0;
 
-				// on récupère les composants et on mouvemente le stock si cela n'est pas encore fait (idmvt à 0)
+				// on rï¿½cupï¿½re les composants et on mouvemente le stock si cela n'est pas encore fait (idmvt ï¿½ 0)
 				$sql = "select * from ".MAIN_DB_PREFIX."factorydet where fk_factory=".$this->id;
 				$sql.= " and fk_mvtstockplanned=0";
 
@@ -1822,9 +1842,9 @@ class Factory extends CommonObject
 										$rec['qty_planned'], $rec['price'],
 										$langs->trans("UsedforFactory", $this->ref), $this->date_start_made
 						);
-						// on indique que l'on a mouvementé le produit
+						// on indique que l'on a mouvementï¿½ le produit
 						if ($idmv > 0 ) {
-							// on mémorise que l'on a fait le mouvement de stock (pour ne pas le faire plusieurs fois)
+							// on mï¿½morise que l'on a fait le mouvement de stock (pour ne pas le faire plusieurs fois)
 							$sql = "update ".MAIN_DB_PREFIX."factorydet set fk_mvtstockplanned=".$idmv;
 							$sql.= " where rowid=".$rec['rowid'];
 							$this->db->query($sql);
@@ -1943,7 +1963,7 @@ class Factory extends CommonObject
 
 		if ($user->rights->factory->creer) {
 			$sql = "UPDATE ".MAIN_DB_PREFIX."factory ";
-			$sql.= " SET qty_planned = ".$qty_planned;
+			$sql.= " SET qty_planned = ".($qty_planned?$qty_planned:'null');
 			$sql.= " WHERE rowid = ".$this->id;
 
 			if ($this->db->query($sql)) {
@@ -1967,7 +1987,7 @@ class Factory extends CommonObject
 	{
 		$contact_property = array();
 
-		// récupération des contacts société associé à l'entrepot
+		// rï¿½cupï¿½ration des contacts sociï¿½tï¿½ associï¿½ ï¿½ l'entrepot
 		$sql = "SELECT s.rowid, s.email, s.statut, s.lastname, s.firstname";
 		$sql.= " FROM ".MAIN_DB_PREFIX."socpeople as s";
 		$sql.= " ,".MAIN_DB_PREFIX."element_contact as ec";
@@ -1997,7 +2017,7 @@ class Factory extends CommonObject
 		} else
 			dol_print_error($this->db);
 
-		// récupération des contacts interne
+		// rï¿½cupï¿½ration des contacts interne
 		$sql = "SELECT s.rowid, s.email, s.statut, s.lastname, s.firstname";
 		$sql.= " FROM ".MAIN_DB_PREFIX."user as s";
 		$sql.= " ,".MAIN_DB_PREFIX."element_contact as ec";
@@ -2037,7 +2057,7 @@ class Factory extends CommonObject
 		$pmp=0;
 		$price=0;
 
-		// on récupère le pmp et le price pour une utilisation juste des prix
+		// on rï¿½cupï¿½re le pmp et le price pour une utilisation juste des prix
 		$sql = "SELECT p.rowid, p.pmp, p.price";
 		$sql.= " FROM ".MAIN_DB_PREFIX."product as p";
 		$sql.= " WHERE p.rowid=".$productid;
@@ -2054,7 +2074,7 @@ class Factory extends CommonObject
 		$sql.= " (fk_project, fk_product, fk_entrepot, qty_from_stock, date_creation, fk_user_author,";
 		$sql.= " pmp, price, fk_product_stock)";
 		$sql.= " values (".$projectid.", ".$productid.", ".$entrepotid.", ".$qtylefted;
-		$sql.= ", '".$this->db->idate(dol_now())."'"; // date de création alimenté automatiquement
+		$sql.= ", '".$this->db->idate(dol_now())."'"; // date de crï¿½ation alimentï¿½ automatiquement
 		$sql.= ", ".$user->id;
 		$sql.= ", ".$pmp.", ".$price.", ".$idmvt.")";
 		//print $sql;
@@ -2066,8 +2086,8 @@ class Factory extends CommonObject
 	{
 		$tblof = array();
 
-		// les commandes factorisable sont celle validé non traité (statut à 1)
-		// qui n'on pas été associé à un OF
+		// les commandes factorisable sont celle validï¿½ non traitï¿½ (statut ï¿½ 1)
+		// qui n'on pas ï¿½tï¿½ associï¿½ ï¿½ un OF
 		$sql = 'SELECT cd.rowid, cd.fk_commande, cd.fk_product, cd.qty';
 		$sql.= ' FROM '.MAIN_DB_PREFIX.'commande as c, '.MAIN_DB_PREFIX.'commandedet as cd';
 		$sql.= ' WHERE c.fk_statut = 1 AND cd.fk_product > 0 AND cd.product_type = 0 AND c.rowid=cd.fk_commande';
@@ -2079,13 +2099,13 @@ class Factory extends CommonObject
 		if ($resql) {
 			$num = $this->db->num_rows($resql);
 
-			// on constitue la liste des produits à fabriquer
+			// on constitue la liste des produits ï¿½ fabriquer
 			$i = 0;
 			while ($i < $num) {
 				$obj = $this->db->fetch_object($resql);
 				// si le produit est fabricable
 				if ($this->is_FactoryProduct($obj->fk_product) > 0) {
-					// on ajoute au tableau ( la ligne de la commande est la clée unique)
+					// on ajoute au tableau ( la ligne de la commande est la clï¿½e unique)
 					$tblof[] = array ('fk_product' => $obj->fk_product,
 												'fk_commande' => $obj->fk_commande,
 												'qty' => $obj->qty);

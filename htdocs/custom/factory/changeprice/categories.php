@@ -1,5 +1,5 @@
 <?php
-/* Copyright (C) 2015-2016	Charlie BENKE	<charlie@patas-monkey.com>
+/* Copyright (C) 2015-2017	Charlie BENKE	<charlie@patas-monkey.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -82,7 +82,7 @@ if ($action == 'setvalue') {
 		for ($i=1; $i <= $conf->global->PRODUIT_MULTIPRICES_LIMIT; $i++) {
 			// récupération des variables
 			$initPrice[$i]=GETPOST("initPrice".$i);
-			$computeValue[$i]=GETPOST("computeValue".$i);
+			$computeValue[$i]=(GETPOST("computeValue".$i)?GETPOST("computeValue".$i):0);
 			$computeMode[$i]=GETPOST("computeMode".$i);
 			$multiplyBy[$i]=GETPOST("multiplyBy".$i);
 
@@ -112,7 +112,7 @@ if ($action == 'setvalue') {
 		$sql="INSERT INTO ".MAIN_DB_PREFIX."factory_categ_changeprice";
 		$sql.= " (fk_categories, price_level, init_price, computemode, computevalue, multiplyby)";
 		$sql.= " VALUES ( ".$id.", 1, '".GETPOST("initPrice")."', '".GETPOST("computeMode")."', ";
-		$sql.= price2num(GETPOST("computeValue")).", '".GETPOST("multiplyBy")."')";
+		$sql.= price2num((GETPOST("computeValue")?GETPOST("computeValue"):0)).", '".GETPOST("multiplyBy")."')";
 		$result = $db->query($sql);
 
 	}
@@ -243,6 +243,12 @@ if ($conf->global->PRODUCT_PRICE_UNIQ) {
 	print '<td align=left><select name="initPrice" >';
 	print '<option value=sellprice '.($initPrice=='sellprice'?' selected ':'').'>'.$langs->trans("SellPrice").'</option>';
 	print '<option value=pmpprice '.($initPrice=='pmpprice'?' selected ':'').'>'.$langs->trans("PmpPrice").'</option>';
+	if (DOL_VERSION >= "3.9.0")
+		print '<option value=costprice '.($initPrice[$i]=='costprice'?' selected ':'').'>'.$langs->trans("CostPrice").'</option>';
+	if (! empty($conf->fournisseur->enabled)) {
+		print '<option value=fournishless '.($initPrice[$i]=='fournishless'?' selected ':'').'>'.$langs->trans("FournishLess").'</option>';
+		print '<option value=fournishmore '.($initPrice[$i]=='fournishmore'?' selected ':'').'>'.$langs->trans("FournishMore").'</option>';
+	}
 	print '</select></td>';
 	print '<td align=center><select name="computeMode" >';
 	print '<option value=add '.($computeMode=='add'?' selected ':'').'>'.$langs->trans("Add").'</option>';

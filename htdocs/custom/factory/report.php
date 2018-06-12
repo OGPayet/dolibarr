@@ -35,6 +35,7 @@ if (! $res) $res=@include("../../main.inc.php");		// For "custom" directory
 require_once DOL_DOCUMENT_ROOT."/core/lib/product.lib.php";
 require_once DOL_DOCUMENT_ROOT."/product/class/product.class.php";
 require_once DOL_DOCUMENT_ROOT."/product/stock/class/entrepot.class.php";
+require_once DOL_DOCUMENT_ROOT."/product/stock/class/mouvementstock.class.php";
 require_once DOL_DOCUMENT_ROOT."/categories/class/categorie.class.php";
 
 require_once DOL_DOCUMENT_ROOT."/core/class/html.formfile.class.php";
@@ -122,7 +123,7 @@ if (empty($reshook)) {
 		if ($db->query($sql)) {
 			// on boucle sur les lignes de l'OF
 			$prods_arbo =$factory->getChildsOF($id);
-			$product_chidren = $factory->getChildsArbo($factory->fk_product);
+			$product_chidren = $factory->getChildsArbo(0, $id);
 			require_once DOL_DOCUMENT_ROOT.'/product/stock/class/mouvementstock.class.php';
 			$mouvP = new MouvementStock($db);
 			$mouvP->origin = new Factory($db);
@@ -131,9 +132,12 @@ if (empty($reshook)) {
 			if (count($prods_arbo) > 0) {
 				$totprixfabrication =0;
 				foreach ($prods_arbo as $value) {
+
+
 					// on détermine la quantité utilisé à partir de la quantité fabriquée
 					$qtyusedcomponent=0;
 					foreach ($product_chidren as $valuechildren) {
+
 						if ($value['id'] == $valuechildren[0]) {
 							if ($valuechildren[6] == 1)
 								$qtyusedcomponent=$valuechildren[1];
@@ -155,7 +159,8 @@ if (empty($reshook)) {
 							if (GETPOST("qtydeleted_".$value['id']) > 0)
 								$idmv=$mouvP->livraison($user, $value['id'], $factory->fk_entrepot,
 											GETPOST("qtydeleted_".$value['id']), 0, // le prix est à 0 pour ne pas impacter le pmp
-											$langs->trans("DeletedFactory", $factory->ref), $factory->date_end_made);
+											$langs->trans("DeletedFactory", $factory->ref), $factory->date_end_made
+								);
 
 							// on calcul si il y a du retour en stock (dans un sens ou l'autre
 							// on n'enleve pas les quantité supprimé du stock
@@ -218,7 +223,7 @@ if (empty($reshook)) {
 $form = new Form($db);
 $formfile = new FormFile($db);
 
-llxHeader("","", $langs->trans("CardFactory"));
+llxHeader("", "", $langs->trans("CardFactory"));
 
 dol_htmloutput_mesg($mesg);
 
@@ -302,7 +307,7 @@ print '<tr><td valign=top>'.$langs->trans('Description').'</td><td colspan=3>';
 if ($factory->statut == 1)
 	print '<textarea name="description" wrap="soft" cols="120" rows="'.ROWS_4.'">'.$factory->description.'</textarea>';
 else
-	print str_replace(array("\r\n","\n"),"<br>", $factory->description);
+	print str_replace(array("\r\n", "\n"), "<br>", $factory->description);
 print '</td></tr>';
 print '</table>';
 print '<br>';
@@ -377,7 +382,7 @@ if (count($prods_arbo) > 0) {
 	print '<td class="liste_titre" width=100px align="left">'.$langs->trans("Ref").'</td>';
 	print '<td class="liste_titre" width=200px align="left">'.$langs->trans("Label").'</td>';
 	print '<td class="liste_titre" width=50px align="center">'.$langs->trans("QtyUnitNeed").'</td>';
-	print '<td class="liste_titre" width=50px align="center">'.$langs->trans("QtyFactoryNeed").'</td>';
+	print '<td class="liste_titre" width=50px align="center">'.$langs->trans("FactoryQtyPlanned").'</td>';
 	print '<td class="liste_titre" width=50px align="center">'.$langs->trans("QtyConsummed").'</td>';
 	print '<td class="liste_titre" width=50px align="center">'.$langs->trans("QtyLosed").'</td>';
 	print '<td class="liste_titre" width=50px align="center">'.$langs->trans("QtyUsed").'</td>';
@@ -444,6 +449,88 @@ if ($action == '') {
 		print '<input type=submit class="butAction" value="'.$langs->trans("CloseFactory").'">';
 	print '</div>';
 }
+
 print '</form>';
+
+
+print '<br><hr><br>';
+print_fiche_titre($langs->trans("FactoryMovement"), '', '');
+// list des mouvements associés à l'of
+
+$productstatic=new Product($db);
+$movement=new MouvementStock($db);
+$form=new Form($db);
+
+$sql = "SELECT p.rowid, p.ref as product_ref, p.label as produit, p.fk_product_type as type,";
+$sql.= " e.label as stock, e.rowid as entrepot_id, e.lieu,";
+$sql.= " m.rowid as mid, m.value, m.datem, m.label, m.fk_origin, m.origintype";
+//$sql.= ", m.inventorycode, m.batch, m.eatby, m.sellby";
+$sql.= " FROM (".MAIN_DB_PREFIX."entrepot as e,";
+$sql.= " ".MAIN_DB_PREFIX."product as p,";
+$sql.= " ".MAIN_DB_PREFIX."stock_mouvement as m)";
+$sql.= " WHERE m.fk_product = p.rowid";
+$sql.= " AND m.fk_entrepot = e.rowid";
+$sql.= " AND e.entity IN (".getEntity('stock', 1).")";
+if (empty($conf->global->STOCK_SUPPORTS_SERVICES)) $sql.= " AND p.fk_product_type = 0";
+$sql.= " AND m.fk_origin = ".$id;
+$sql.= " AND m.origintype = 'factory'";
+
+$sql.= $db->order($sortfield, $sortorder);
+
+//print $sql;
+
+$resql = $db->query($sql);
+if ($resql) {
+	$num = $db->num_rows($resql);
+
+	$param='';
+	if ($id) $param.='&id='.$id;
+	print '<table class="noborder" width="100%">';
+	print "<tr class='liste_titre'>";
+	print_liste_field_titre($langs->trans("Date"), $_SERVER["PHP_SELF"], "m.datem", "", $param, "", $sortfield, $sortorder);
+	print_liste_field_titre($langs->trans("ProductRef"), $_SERVER["PHP_SELF"], "p.ref", "", $param, "", $sortfield, $sortorder);
+	print_liste_field_titre($langs->trans("ProductLabel"), $_SERVER["PHP_SELF"], "p.ref", "", $param, "", $sortfield, $sortorder);
+	print_liste_field_titre($langs->trans("LabelMovement"), $_SERVER["PHP_SELF"], "m.label", "", $param, "", $sortfield, $sortorder);
+	print_liste_field_titre($langs->trans("Units"), $_SERVER["PHP_SELF"], "m.value", "", $param, 'align="right"', $sortfield, $sortorder);
+	print "</tr>\n";
+
+	$arrayofuniqueproduct=array();
+
+	$var=True;
+	$i=0;
+	while ($i < $num) {
+		$objp = $db->fetch_object($resql);
+
+		$var=!$var;
+		print "<tr ".$bc[$var].">";
+		print '<td>'.dol_print_date($db->jdate($objp->datem), 'dayhour').'</td>';
+		// Product ref
+		print '<td>';
+		$productstatic->id=$objp->rowid;
+		$productstatic->ref=$objp->product_ref;
+		$productstatic->label=$objp->produit;
+		$productstatic->type=$objp->type;
+		print $productstatic->getNomUrl(1, '', 16);
+		print "</td>\n";
+		// Product label
+		print '<td>';
+		$productstatic->id=$objp->rowid;
+		$productstatic->ref=$objp->produit;
+		$productstatic->type=$objp->type;
+		print $productstatic->getNomUrl(1, '', 16);
+		print "</td>\n";
+		// Label of movement
+		print '<td>'.$objp->label.'</td>';
+		// Value
+		print '<td align="right">';
+		if ($objp->value > 0) print '+';
+		print $objp->value.'</td>';
+		print "</tr>\n";
+		$i++;
+	}
+	$db->free($resql);
+	print "</table></form><br>";
+}
+
 llxFooter();
 $db->close();

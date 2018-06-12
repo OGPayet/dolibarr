@@ -1,3 +1,6 @@
+ALTER TABLE  `llx_product_factory`			ADD  `import_key`				VARCHAR( 14 ) NULL DEFAULT NULL;
+ALTER TABLE  `llx_product_factory`			ADD  `extraparams`				VARCHAR(255);
+
 ALTER TABLE  `llx_factory`			ADD  `import_key`				VARCHAR( 14 ) NULL DEFAULT NULL;
 ALTER TABLE  `llx_factory`			ADD  `extraparams`				VARCHAR(255);
 

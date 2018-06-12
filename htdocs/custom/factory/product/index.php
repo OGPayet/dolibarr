@@ -89,7 +89,7 @@ if ( $action == 'add_prod' && $cancel <> $langs->trans("Cancel")
 							$id, $_POST["prod_id_".$i], $_POST["prod_qty_".$i],
 							0, 0, $_POST["prod_id_globalchk".$i],
 							$_POST["descComposant".$i], $_POST["prod_order_".$i]
-				) > 0)
+			) > 0)
 				$action = 'edit';
 			else {
 				$error++;
@@ -410,7 +410,7 @@ if ($id || $ref) {
 				print '<th class="liste_titre" width=200px align="left">'.$langs->trans("Label").'</th>';
 				print '<th class="liste_titre" width=50px align="center">'.$langs->trans("QtyNeed").'</th>';
 				// on affiche la colonne stock même si cette fonction n'est pas active
-				print '<th class="liste_titre" width=50px align="center">'.$langs->trans("Stock").'</th>';
+				print '<th class="liste_titre" width=50px align="center">'.$langs->trans("QtyStock").'</th>';
 				print '<th class="liste_titre" width=100px align="center">'.$langs->trans("QtyOrder").'</th>';
 				if ($conf->stock->enabled) { 	// we display vwap titles
 					print '<th class="liste_titre" width=100px align="right">'.$langs->trans("UnitPmp").'</th>';

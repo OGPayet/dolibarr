@@ -46,7 +46,7 @@
 		<change type='add'>checkbox to select product in composition</change>
 		<change type='add'>use extrafields product for description composition</change>
 		<change type='add'>create multiple OF on customer order</change>
-		<change type='add'>XML import / export feature</change>
+		<change type='add'>XML import / export feature (Experimental)</change>
 		<change type='add'>if on report qty build = 0 then status is canceled</change>
 		<change type='add'>get list of contact of warehouse for mailing OF</change>
 		<change type='chg'>increase size of 1 column of OF pdf</change>
@@ -181,7 +181,19 @@
 		<change type='fix'>some change for multicompany compatibility</change>
 		<change type='add'>update price feature on OF card</change>
 	</Version>
+	<Version Number="5.0.+1.6.5" MonthVersion="2017-08">
+		<change type='fix'>Stock Movement good if OF qty product modifiy</change>
+		<change type='chg'>merge movement and rapport tab</change>
+		<change type='chg'>increase list and harmonisation of terms</change>
+		<change type='chg'>label on declinaison product creation</change>
+	</Version>
+	<Version Number="6.0.+1.7.0" MonthVersion="2017-09">
+		<change type='chg'>6.0 Compatibility</change>
+	</Version>
+	<Version Number="6.0.+1.7.1" MonthVersion="2017-12">
+		<change type='fix'>French error on translation</change>
+	</Version>
 
-	<Dolibarr minVersion="3.7.0"/>
+	<Dolibarr minVersion="3.8.0"/>
 	<!-- Remplir le undocumented.xml ? -->
 </changelog>

@@ -80,12 +80,13 @@ $sall=GETPOST("contactname");
 $sortfield = GETPOST('sortfield', 'alpha');
 $sortorder = GETPOST('sortorder', 'alpha');
 $page = GETPOST('page', 'int');
-$userid=GETPOST('userid','int');
+$userid=GETPOST('userid', 'int');
 $begin=GETPOST('begin');
 
 if (! $sortorder) $sortorder="DESC";
 if (! $sortfield) $sortfield="f.date_end_planned";
-if ($page < 0) { $page = 0; }
+if ($page < 0)
+	$page = 0;
 $limit = $conf->liste_limit;
 $offset = $limit * $page;
 
@@ -155,7 +156,7 @@ if ($id || $ref) {
 
 		// Country
 		print '<tr><td>'.$langs->trans('Country').'</td><td colspan="3">';
-		if (! empty($object->country_code))  {
+		if (! empty($object->country_code)) {
 			$img=picto_from_langcode($object->country_code);
 			print ($img?$img.' ':'');
 		}
@@ -198,14 +199,17 @@ dol_syslog("factory/product/list.php sql=".$sql);
 $result = $db->query($sql);
 //print $sql;
 if ($result) {
-	$param ='&begin='.urlencode($begin).'&view='.urlencode($view).'&userid='.urlencode($userid).'&contactname='.urlencode($sall);
-	$param.='&type='.urlencode($type).'&view='.urlencode($view).'&search_lastname='.urlencode($search_lastname).'&search_firstname='.urlencode($search_firstname).'&search_societe='.urlencode($search_societe).'&search_email='.urlencode($search_email);
-	if (!empty($search_categ)) $param.='&search_categ='.$search_categ;
-	if ($search_status != '') $param.='&amp;search_status='.$search_status;
+	$param ='&begin='.urlencode($begin).'&view='.urlencode($view).'&userid='.urlencode($userid);
+	$param.='&contactname='.urlencode($sall).'&type='.urlencode($type).'&view='.urlencode($view);
+	$param.='&search_lastname='.urlencode($search_lastname).'&search_firstname='.urlencode($search_firstname);
+	$param.='&search_societe='.urlencode($search_societe).'&search_email='.urlencode($search_email);
+	if (!empty($search_categ))
+		$param.='&search_categ='.$search_categ;
+	if ($search_status != '')
+		$param.='&search_status='.$search_status;
 
 	$num = $db->num_rows($result);
 	$i = 0;
-
 
 	print '<form method="post" action="'.$_SERVER["PHP_SELF"].'">';
 	print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
@@ -217,21 +221,52 @@ if ($result) {
 
 	// Ligne des titres
 	print '<tr class="liste_titre">';
-	print_liste_field_titre($langs->trans("Ref"), $_SERVER["PHP_SELF"], "p.lastname", $begin, $param, '', $sortfield, $sortorder);
-	print_liste_field_titre($langs->trans("Product"), $_SERVER["PHP_SELF"], "p.firstname", $begin, $param, '', $sortfield, $sortorder);
+	print_liste_field_titre(
+					$langs->trans("Ref"), $_SERVER["PHP_SELF"], "p.lastname",
+					$begin, $param, '', $sortfield, $sortorder
+	);
+	print_liste_field_titre(
+					$langs->trans("Product"), $_SERVER["PHP_SELF"], "p.firstname",
+					$begin, $param, '', $sortfield, $sortorder
+	);
 
-	print_liste_field_titre($langs->trans("FactoryDateStartPlannedShort"), $_SERVER["PHP_SELF"], "f.date_start_planned", $begin, $param, 'align=center', $sortfield, $sortorder);
-	print_liste_field_titre($langs->trans("QuantityPlannedShort"), $_SERVER["PHP_SELF"], "f.qty_planned", $begin, $param, 'align=right', $sortfield, $sortorder);
-	print_liste_field_titre($langs->trans("DurationPlannedShort"), $_SERVER["PHP_SELF"], "f.duration_planned", $begin, $param, 'align=center', $sortfield, $sortorder);
-	print_liste_field_titre($langs->trans("DateEndPlannedShort"), $_SERVER["PHP_SELF"], "f.date_end_planned", $begin, $param, 'align=center', $sortfield, $sortorder);
+	print_liste_field_titre(
+					$langs->trans("FactoryDateStartPlannedShort"), $_SERVER["PHP_SELF"], "f.date_start_planned",
+					$begin, $param, 'align=center', $sortfield, $sortorder
+	);
+	print_liste_field_titre(
+					$langs->trans("QuantityPlannedShort"), $_SERVER["PHP_SELF"], "f.qty_planned",
+					$begin, $param, 'align=right', $sortfield, $sortorder
+	);
+	print_liste_field_titre(
+					$langs->trans("DurationPlannedShort"), $_SERVER["PHP_SELF"], "f.duration_planned",
+					$begin, $param, 'align=center', $sortfield, $sortorder
+	);
+	print_liste_field_titre(
+					$langs->trans("DateEndPlannedShort"), $_SERVER["PHP_SELF"], "f.date_end_planned",
+					$begin, $param, 'align=center', $sortfield, $sortorder
+	);
 
-	print_liste_field_titre($langs->trans("DateStartMadeShort"), $_SERVER["PHP_SELF"], "f.date_start_made", $begin, $param, 'align=right', $sortfield, $sortorder);
-	print_liste_field_titre($langs->trans("QuantityMadeShort"), $_SERVER["PHP_SELF"], "f.qty_made", $begin, $param, 'align=right', $sortfield, $sortorder);
-	print_liste_field_titre($langs->trans("DurationMadeShort"), $_SERVER["PHP_SELF"], "f.duration_made", $begin, $param, 'align=center', $sortfield, $sortorder);
-	print_liste_field_titre($langs->trans("DateEndMadeShort"), $_SERVER["PHP_SELF"], "f.date_end_made", $begin, $param, 'align=center', $sortfield, $sortorder);
-	print_liste_field_titre($langs->trans("Status"), $_SERVER["PHP_SELF"], "f.fk_statut", $begin, $param, 'align=right', $sortfield, $sortorder);
-
-
+	print_liste_field_titre(
+					$langs->trans("DateStartMadeShort"), $_SERVER["PHP_SELF"], "f.date_start_made",
+					$begin, $param, 'align=right', $sortfield, $sortorder
+	);
+	print_liste_field_titre(
+					$langs->trans("QuantityMadeShort"), $_SERVER["PHP_SELF"], "f.qty_made",
+					$begin, $param, 'align=right', $sortfield, $sortorder
+	);
+	print_liste_field_titre(
+					$langs->trans("DurationMadeShort"), $_SERVER["PHP_SELF"], "f.duration_made",
+					$begin, $param, 'align=center', $sortfield, $sortorder
+	);
+	print_liste_field_titre(
+					$langs->trans("DateEndMadeShort"), $_SERVER["PHP_SELF"], "f.date_end_made",
+					$begin, $param, 'align=center', $sortfield, $sortorder
+	);
+	print_liste_field_titre(
+					$langs->trans("Status"), $_SERVER["PHP_SELF"], "f.fk_statut",
+					$begin, $param, 'align=right', $sortfield, $sortorder
+	);
 
 	print "</tr>\n";
 
@@ -241,14 +276,20 @@ if ($result) {
 	print '<input class="flat" type="text" name="search_ref" size="5" value="'.$search_lastname.'">';
 	print '</td>';
 	print '<td class="liste_titre">';
-	print select_entrepot_list(GETPOST("entrepotid"),"entrepotid",1,1);
+	print select_entrepot_list(GETPOST("entrepotid"), "entrepotid", 1, 1);
 	print '</td>';
 	print '<td class="liste_titre">&nbsp;</td>';
 	print '<td class="liste_titre" colspan=7 align="center"></td>';
 	print '<td class="liste_titre" align="right">';
-	print '<input type="image" value="button_search" class="liste_titre" src="'.img_picto($langs->trans("Search"), 'search.png', '', '', 1).'" value="'.dol_escape_htmltag($langs->trans("Search")).'" title="'.dol_escape_htmltag($langs->trans("Search")).'">';
+	print '<input type="image" value="button_search" class="liste_titre"';
+	print ' src="'.img_picto($langs->trans("Search"), 'search.png', '', '', 1).'"';
+	print ' value="'.dol_escape_htmltag($langs->trans("Search")).'"';
+	print ' title="'.dol_escape_htmltag($langs->trans("Search")).'">';
 	print '&nbsp; ';
-	print '<input type="image" value="button_removefilter" class="liste_titre" src="'.img_picto($langs->trans("Search"),'searchclear.png', '', '', 1).'" value="'.dol_escape_htmltag($langs->trans("RemoveFilter")).'" title="'.dol_escape_htmltag($langs->trans("RemoveFilter")).'">';
+	print '<input type="image" value="button_removefilter" class="liste_titre"';
+	print ' src="'.img_picto($langs->trans("Search"),'searchclear.png', '', '', 1).'"';
+	print ' value="'.dol_escape_htmltag($langs->trans("RemoveFilter")).'"';
+	print ' title="'.dol_escape_htmltag($langs->trans("RemoveFilter")).'">';
 	print '</td>';
 	print '</tr>';
 
@@ -290,7 +331,11 @@ if ($result) {
 	print '</form>';
 
 	if ($num > $limit)
-		print_barre_liste('', $page, $_SERVER["PHP_SELF"], '&amp;begin='.$begin.'&amp;view='.$view.'&amp;userid='.$userid, $sortfield, $sortorder, '', $num, $nbtotalofrecords, '');
+		print_barre_liste(
+						'', $page, $_SERVER["PHP_SELF"],
+						'&amp;begin='.$begin.'&amp;view='.$view.'&amp;userid='.$userid,
+						$sortfield, $sortorder, '', $num, $nbtotalofrecords, ''
+		);
 
 	$db->free($result);
 } else

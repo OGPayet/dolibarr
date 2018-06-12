@@ -403,7 +403,7 @@ if ($id || $ref) {
 							GETPOST('plannedstartyear', 'int')
 			);
 			print $form->select_date(
-							(GETPOST("plannedstart")? $plannedstart:-1), 'plannedstart',
+							(GETPOST("plannedstart")? $plannedstart:''), 'plannedstart',
 							1, 1, '', "plannedstart"
 			);
 			print '</td></tr>';
@@ -411,12 +411,12 @@ if ($id || $ref) {
 			print '<tr><td>'.$langs->trans("FactoryDateEndBuildPlanned").'</td>';
 			print '<td >';
 			$plannedend=dol_mktime(
-							GETPOST('plannedendhour','int'), GETPOST('plannedendmin', 'int'), 0,
+							GETPOST('plannedendhour', 'int'), GETPOST('plannedendmin', 'int'), 0,
 							GETPOST('plannedendmonth', 'int'), GETPOST('plannedendday', 'int'),
 							GETPOST('plannedendyear', 'int')
 			);
 			print $form->select_date(
-							(GETPOST("plannedend")? $plannedend:-1), 'plannedend',
+							(GETPOST("plannedend")? $plannedend:''), 'plannedend',
 							1, 1, '', "plannedend"
 			);
 			print '</td></tr>';
@@ -570,8 +570,8 @@ else {
 				if ($compositionpresente) {
 					print '<a class="butAction" href="fiche.php?action=build&amp;id='.$productid.'">';
 					print $langs->trans("LaunchCreateOF").'</a>';
-			} else
-				print $langs->trans("NeedNotBuyProductAndStockEnabled");
+				} else
+					print $langs->trans("NeedNotBuyProductAndStockEnabled");
 		}
 	}
 }

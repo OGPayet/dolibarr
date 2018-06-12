@@ -76,7 +76,11 @@ $langs->load("products");
 $langs->load("factory@factory");
 $langs->load("stocks");
 
+$search_ref = GETPOST("search_ref", 'alpha');
+$search_entrepot = GETPOST("search_entrepot", 'int');
 $search_status = GETPOST("fk_status", 'int');
+
+if ($search_entrepot < 0) $search_entrepot = '';
 
 $sall=GETPOST("contactname");
 $sortfield = GETPOST('sortfield', 'alpha');
@@ -283,8 +287,10 @@ switch ($search_status) {
 		$sql .= " AND f.date_end_made is not null";
 		break;
 }
-if ($fk_entrepot != "")		// filtre sur l'entrepot
-	$sql .= " AND f.fk_entrepot =".$fk_entrepot;
+if ($search_entrepot != "")		// filtre sur l'entrepot
+	$sql .= " AND f.fk_entrepot =".$search_entrepot;
+if ($search_ref != "")		// filtre sur la ref
+	$sql .= natural_search("f.ref", $search_ref);
 
 
 // Count total nb of records
@@ -302,6 +308,7 @@ if ($result) {
 	$param.='&contactname='.urlencode($sall).'&search_email='.urlencode($search_email);
 	$param.='&type='.urlencode($type).'&view='.urlencode($view).'&search_ref='.urlencode($search_ref);
 	$param.='&search_entrepot='.urlencode($search_entrepot).'&search_societe='.urlencode($search_societe);
+	$param.='&id='.$id;
 
 	if (!empty($search_categ))
 		$param.='&search_categ='.$search_categ;
@@ -315,14 +322,15 @@ if ($result) {
 	print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
 	print '<input type="hidden" name="view" value="'.$view.'">';
 	print '<input type="hidden" name="sortfield" value="'.$sortfield.'">';
-	print '<input type="hidden" name="sortorder" value="'.$sortorder.'">';
+    print '<input type="hidden" name="sortorder" value="'.$sortorder.'">';
+    print '<input type="hidden" name="id" value="'.$id.'">';
 
 	print '<table class="liste" width="100%">';
 
 	// Ligne des titres
 	print '<tr class="liste_titre">';
 	print_liste_field_titre(
-					$langs->trans("Ref"), $_SERVER["PHP_SELF"], "p.ref",
+					$langs->trans("Ref"), $_SERVER["PHP_SELF"], "f.ref",
 					$begin, $param, '', $sortfield, $sortorder
 	);
 	print_liste_field_titre(
@@ -377,7 +385,7 @@ if ($result) {
 	print '<input class="flat" type="text" name="search_ref" size="5" value="'.$search_ref.'">';
 	print '</td>';
 	print '<td class="liste_titre">';
-	print select_entrepot_list(GETPOST("entrepotid"), "entrepotid", 1, 1);
+	print select_entrepot_list(GETPOST("search_entrepot"), "search_entrepot", 1, 1);
 	print '</td>';
 	print '<td class="liste_titre">&nbsp;</td>';
 	print '<td class="liste_titre" colspan=7 align="center"></td>';

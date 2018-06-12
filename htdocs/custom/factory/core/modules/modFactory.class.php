@@ -66,9 +66,9 @@ class modfactory extends DolibarrModules
 			0 => array(
 				'FACTORY_ADDON',
 				'chaine',
-				'mandril',
+				'mod_mandril',
 				'Numbering Factory rule',
-				0,
+				1,
 				'allentities',
 				1
 			),
@@ -375,6 +375,13 @@ class modfactory extends DolibarrModules
 	function load_tables()
 	{
 		return $this->_load_tables('/factory/sql/');
+	}
+
+	function getChangeLog()
+	{
+		// Libraries
+		dol_include_once("/".$this->name."/core/lib/patasmonkey.lib.php");
+		return getChangeLog($this->name);
 	}
 
 	function getVersion($translated = 1)

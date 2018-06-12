@@ -177,46 +177,22 @@ if ($result) {
 	);
 
 	print_liste_field_titre(
-					$langs->trans("FactoryDateStartPlannedShort"), $_SERVER["PHP_SELF"], "f.date_start_planned",
-					$begin, $param, 'align=center', $sortfield, $sortorder
+					$langs->trans("DataPlannified"), $_SERVER["PHP_SELF"], "",
+					$begin, $param, 'align=center colspan=4', $sortfield, $sortorder
 	);
 
 	print_liste_field_titre(
-					$langs->trans("QuantityPlannedShort"), $_SERVER["PHP_SELF"], "f.qty_planned",
-					$begin, $param, 'align=right', $sortfield, $sortorder
+					$langs->trans("DataRealised"), $_SERVER["PHP_SELF"], "",
+					$begin, $param, 'align=center colspan=4', $sortfield, $sortorder
 	);
 
-	print_liste_field_titre(
-					$langs->trans("DurationPlannedShort"), $_SERVER["PHP_SELF"], "f.duration_planned",
-					$begin, $param, 'align=center', $sortfield, $sortorder
-	);
-	print_liste_field_titre(
-					$langs->trans("DateEndPlannedShort"), $_SERVER["PHP_SELF"], "f.date_end_planned",
-					$begin, $param, 'align=center', $sortfield, $sortorder
-	);
-	print_liste_field_titre(
-					$langs->trans("DateStartMadeShort"), $_SERVER["PHP_SELF"], "f.date_start_made",
-					$begin, $param, 'align=right', $sortfield, $sortorder
-	);
-	print_liste_field_titre(
-					$langs->trans("QuantityMadeShort"), $_SERVER["PHP_SELF"], "f.qty_made",
-					$begin, $param, 'align=right', $sortfield, $sortorder
-	);
-	print_liste_field_titre(
-					$langs->trans("DurationMadeShort"), $_SERVER["PHP_SELF"], "f.duration_made",
-					$begin, $param, 'align=center', $sortfield, $sortorder
-	);
-	print_liste_field_titre(
-					$langs->trans("DateEndMadeShort"), $_SERVER["PHP_SELF"], "f.date_end_made",
-					$begin, $param, 'align=center', $sortfield, $sortorder
-	);
 
 	print_liste_field_titre(
 					$langs->trans("Status"), $_SERVER["PHP_SELF"], "f.fk_statut",
 					$begin, $param, 'align=right', $sortfield, $sortorder
 	);
 
-	print '<td class="liste_titre" align="right">';
+	print '<th class="liste_titre" align="right">';
 	print '<input type="image" name="button_removefilter" class="liste_titre"';
 	print ' src="'.img_picto($langs->trans("Search"), 'searchclear.png', '', '', 1).'"';
 	print ' value="'.dol_escape_htmltag($langs->trans("RemoveFilter")).'"';
@@ -227,18 +203,52 @@ if ($result) {
 
 	// Ligne des champs de filtres
 	print '<tr class="liste_titre">';
-	print '<td class="liste_titre">';
+	print '<th class="liste_titre">';
 	print '<input class="flat" type="text" name="search_OF" size="5" value="'.$search_OF.'">';
-	print '</td>';
-	print '<td class="liste_titre">';
+	print '</th>';
+	print '<th class="liste_titre">';
 	print '<input class="flat" type="text" name="search_product" size="5" value="'.$search_product.'">';
-	print '</td>';
-	print '<td class="liste_titre">';
+	print '</th>';
+	print '<th class="liste_titre">';
 	print select_entrepot_list($search_entrepot, "entrepotid", 1, 1);
-	print '</td>';
-	print '<td class="liste_titre">&nbsp;</td>';
-	print '<td class="liste_titre" colspan=7 align="center"></td>';
-	print '<td class="liste_titre" align="right">';
+	print '</th>';
+
+	print_liste_field_titre(
+					$langs->trans("DateStart"), $_SERVER["PHP_SELF"], "f.date_start_planned",
+					$begin, $param, 'align=center', $sortfield, $sortorder
+	);
+
+	print_liste_field_titre(
+					$langs->trans("Quantity"), $_SERVER["PHP_SELF"], "f.qty_planned",
+					$begin, $param, 'align=right', $sortfield, $sortorder
+	);
+
+	print_liste_field_titre(
+					$langs->trans("Duration"), $_SERVER["PHP_SELF"], "f.duration_planned",
+					$begin, $param, 'align=center', $sortfield, $sortorder
+	);
+	print_liste_field_titre(
+					$langs->trans("DateEnd"), $_SERVER["PHP_SELF"], "f.date_end_planned",
+					$begin, $param, 'align=center', $sortfield, $sortorder
+	);
+	print_liste_field_titre(
+					$langs->trans("DateStart"), $_SERVER["PHP_SELF"], "f.date_start_made",
+					$begin, $param, 'align=right', $sortfield, $sortorder
+	);
+	print_liste_field_titre(
+					$langs->trans("Quantity"), $_SERVER["PHP_SELF"], "f.qty_made",
+					$begin, $param, 'align=right', $sortfield, $sortorder
+	);
+	print_liste_field_titre(
+					$langs->trans("Duration"), $_SERVER["PHP_SELF"], "f.duration_made",
+					$begin, $param, 'align=center', $sortfield, $sortorder
+	);
+	print_liste_field_titre(
+					$langs->trans("DateEnd"), $_SERVER["PHP_SELF"], "f.date_end_made",
+					$begin, $param, 'align=center', $sortfield, $sortorder
+	);
+
+	print '<th class="liste_titre" align="right">';
 	$liststatut=array(
 					'0'=>$langs->trans("Draft"),
 					'1'=>$langs->trans("Activated"),
@@ -246,13 +256,13 @@ if ($result) {
 					'3'=>$langs->trans("Canceled")
 	);
 	print $form->selectarray('search_statut', $liststatut, $search_statut, 1);
-	print '</td>';
-	print '<td class="liste_titre" align="right">';
+	print '</th>';
+	print '<th class="liste_titre" align="right">';
 	print '<input type="image" value="button_search" class="liste_titre"';
 	print ' src="'.img_picto($langs->trans("Search"), 'search.png', '', '', 1).'"';
 	print ' value="'.dol_escape_htmltag($langs->trans("Search")).'"';
 	print ' title="'.dol_escape_htmltag($langs->trans("Search")).'">';
-	print '</td>';
+	print '</th>';
 	print '</tr>';
 
 	$var=True;

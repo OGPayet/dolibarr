@@ -21,10 +21,11 @@
  * 	\brief	  Fichier de la classe des actions/hooks des customlink
  */
 
-class ActionsFactory {
+class ActionsFactory
+{
 		/** Overloading the doActions function : replacing the parent's function with the one below
 	 *  @param	  parameters  meta datas of the hook (context, etc...)
-	 *  @param	  object			 the object you want to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+	 *  @param	  object			 the object you want to process
 	 *  @param	  action			 current action (if set). Generally create or edit or null
 	 *  @return	   void
 	 */
@@ -32,15 +33,14 @@ class ActionsFactory {
 	{
 		global $conf, $langs;
 
-		if (DOL_VERSION < "3.9.1" || $conf->global->MAIN_USE_OLD_SEARCH_FORM == 1)
-		{
+		if (DOL_VERSION < "3.9.1" || $conf->global->MAIN_USE_OLD_SEARCH_FORM == 1) {
 			$langs->load("factory@factory");
-			$title = img_object('','factory@factory').' '.$langs->trans("Factory");
+			$title = img_object('', 'factory@factory').' '.$langs->trans("Factory");
 			$ret='';
-			$ret.='<form action="'.dol_buildpath('/factory/list.php',1).'" method="post">';
+			$ret.='<form action="'.dol_buildpath('/factory/list.php', 1).'" method="post">';
 			$ret.='<div class="menu_titre menu_titre_search">';
 			$ret.='<label for="tag">';
-			$ret.='<a class="vsmenu" href="'.dol_buildpath('/factory/list.php',1).'">';
+			$ret.='<a class="vsmenu" href="'.dol_buildpath('/factory/list.php', 1).'">';
 			$ret.=$title.'</a>';
 			$ret.='</label>';
 			$ret.='</div>';
@@ -55,7 +55,9 @@ class ActionsFactory {
 			$ret.=($accesskey?' accesskey="'.$accesskey.'"':'');
 
 			$ret.=' name="tag" size="10" />&nbsp;';
-			$ret.='<input type="submit" class="button" style="padding-top: 4px; padding-bottom: 4px; padding-left: 6px; padding-right: 6px" value="'.$langs->trans("Go").'">';
+			$ret.='<input type="submit" class="button" ';
+			$ret.=' style="padding-top: 4px; padding-bottom: 4px; padding-left: 6px; padding-right: 6px"';
+			$ret.=' value="'.$langs->trans("Go").'">';
 			$ret.="</form>\n";
 			$this->resprints=$ret;
 		}
@@ -66,7 +68,10 @@ class ActionsFactory {
 	{
 		global $confg, $langs;
 		$resArray=array();
-		$resArray['searchintofactory']=array('text'=>img_picto('','object_factory@factory').' '.$langs->trans("Factory", GETPOST('q')), 'url'=>dol_buildpath('/factory/list.php?sall='.urlencode(GETPOST('q')),1));
+		$resArray['searchintofactory']=array(
+						'text'=>img_picto('','object_factory@factory').' '.$langs->trans("Factory", GETPOST('q')),
+						'url'=>dol_buildpath('/factory/list.php?sall='.urlencode(GETPOST('q')), 1)
+		);
 		$this->results = $resArray;
 		return 0;
 	}
@@ -78,10 +83,9 @@ class ActionsFactory {
 		$element = $parameters['element'];
 		$element_id = $parameters['element_id'];
 
-		if ($element == 'factory')
-		{
-			dol_include_once ('/factory/class/factory.class.php');
-			dol_include_once ('/factory/core/lib/factory.lib.php');
+		if ($element == 'factory') {
+			dol_include_once('/factory/class/factory.class.php');
+			dol_include_once('/factory/core/lib/factory.lib.php');
 
 			$factorystatic = new Factory($db);
 			$factorystatic->fetch($element_id);
@@ -92,7 +96,7 @@ class ActionsFactory {
 			$head = factory_prepare_head($factorystatic);
 			dol_fiche_head($head, 'resource', $langs->trans("Factory"), 0, 'factory@factory');
 			print '<table class="border" width="100%">';
-			$linkback = '<a href="'.dol_buildpath('/factory/list.php',1).'">'.$langs->trans("BackToList").'</a>';
+			$linkback = '<a href="'.dol_buildpath('/factory/list.php', 1).'">'.$langs->trans("BackToList").'</a>';
 
 			// Ref
 			print '<tr><td width="30%">'.$langs->trans('Ref').'</td><td colspan="3">';
@@ -108,4 +112,3 @@ class ActionsFactory {
 		return 0;
 	}
 }
-?>

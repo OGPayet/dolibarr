@@ -316,9 +316,13 @@ foreach ($dirmodels as $reldir) {
 							//print "> ".$conf->global->FACTORY_ADDON." - ".$file;
 							if ($conf->global->FACTORY_ADDON == $file || $conf->global->FACTORY_ADDON.'.php' == $file)
 								print img_picto($langs->trans("Activated"), 'switch_on');
-							else
-								print '<a href="'.$_SERVER["PHP_SELF"].'?action=setmod&value='.preg_replace('/\.php$/', '', $file).'&scandir='.$module->scandir.'&label='.urlencode($module->name).'" alt="'.$langs->trans("Default").'">'.img_picto($langs->trans("Disabled"), 'switch_off').'</a>';
-
+							else {
+								print '<a href="'.$_SERVER["PHP_SELF"].'?action=setmod';
+								print '&value='.preg_replace('/\.php$/', '', $file);
+								print '&scandir='.$module->scandir;
+								print '&label='.urlencode($module->name).'" alt="'.$langs->trans("Default").'">';
+								print img_picto($langs->trans("Disabled"), 'switch_off').'</a>';
+							}
 							print '</td>';
 
 							$factory=new Factory($db);
@@ -341,7 +345,7 @@ foreach ($dirmodels as $reldir) {
 
 							if ($conf->global->FACTORY_ADDON.'.php' == $file)  // If module is the one used, we show existing errors
 								if (! empty($module->error))
-									dol_htmloutput_mesg($module->error,'','error',1);
+									dol_htmloutput_mesg($module->error, '', 'error', 1);
 
 							print '</td>';
 							print "</tr>\n";
@@ -423,7 +427,7 @@ foreach ($dirmodels as $reldir) {
 								print '<tr '.$bc[$var].'><td width="100">';
 								print (empty($module->name)?$name:$module->name);
 								print "</td><td>\n";
-								if (method_exists($module,'info'))
+								if (method_exists($module, 'info'))
 									print $module->info($langs);
 								else
 									print $module->description;
@@ -438,7 +442,8 @@ foreach ($dirmodels as $reldir) {
 									print '</td>';
 								} else {
 									print "<td align='center'>\n";
-									print '<a href="'.$_SERVER["PHP_SELF"].'?action=set&value='.$name.'&scandir='.$module->scandir.'&label='.urlencode($module->name).'">';
+									print '<a href="'.$_SERVER["PHP_SELF"].'?action=set&value='.$name;
+									print '&scandir='.$module->scandir.'&label='.urlencode($module->name).'">';
 									print img_picto($langs->trans("Disabled"), 'switch_off').'</a>';
 									print "</td>";
 								}
@@ -448,7 +453,9 @@ foreach ($dirmodels as $reldir) {
 								if ($conf->global->FACTORY_ADDON_PDF == "$name")
 									print img_picto($langs->trans("Default"), 'on');
 								else {
-									print '<a href="'.$_SERVER["PHP_SELF"].'?action=setdoc&value='.$name.'&scandir='.$module->scandir.'&label='.urlencode($module->name).'" alt="'.$langs->trans("Default").'">';
+									print '<a href="'.$_SERVER["PHP_SELF"].'?action=setdoc&value='.$name;
+									print '&scandir='.$module->scandir.'&label='.urlencode($module->name).'"';
+									print ' alt="'.$langs->trans("Default").'">';
 									print img_picto($langs->trans("Disabled"), 'off').'</a>';
 								}
 								print '</td>';
@@ -456,9 +463,10 @@ foreach ($dirmodels as $reldir) {
 								// Info
 								$htmltooltip =	''.$langs->trans("Name").': '.$module->name;
 								$htmltooltip.='<br>'.$langs->trans("Type").': '.($module->type?$module->type:$langs->trans("Unknown"));
-								if ($module->type == 'pdf')
-									$htmltooltip.='<br>'.$langs->trans("Width").'/'.$langs->trans("Height").': '.$module->page_largeur.'/'.$module->page_hauteur;
-
+								if ($module->type == 'pdf') {
+									$htmltooltip.='<br>'.$langs->trans("Width").'/'.$langs->trans("Height");
+									$htmltooltip.=': '.$module->page_largeur.'/'.$module->page_hauteur;
+								}
 								print '<td align="center">';
 								print $form->textwithpicto('', $htmltooltip, 1, 0);
 								print '</td>';
@@ -502,8 +510,14 @@ if (DOL_VERSION >= "3.9.0")
 					array("costprice" => $langs->trans("UseCostPrice"))
 	);
 if (! empty($conf->fournisseur->enabled)) {
-	$tblArraychoice = array_merge($tblArraychoice, array("fournishless" => $langs->trans("UseFournishPriceLess")));
-	$tblArraychoice = array_merge($tblArraychoice, array("fournishmore" => $langs->trans("UseFournishPriceMore")));
+	$tblArraychoice = array_merge(
+					$tblArraychoice,
+					array("fournishless" => $langs->trans("UseFournishPriceLess"))
+	);
+	$tblArraychoice = array_merge(
+					$tblArraychoice,
+					array("fournishmore" => $langs->trans("UseFournishPriceMore"))
+	);
 }
 
 if ($componentprice == '')
@@ -583,10 +597,13 @@ if (! empty($conf->categorie->enabled)) {
 	print '<tr>';
 	print '<td>'.$langs->trans("ChangePriceSetting").'</td>';
 	print '<td>';
-	if ( $changePriceSetting ==1)
-		print '<a href="'.$_SERVER["PHP_SELF"].'?action=ChangePriceSetting&value=0">'.img_picto($langs->trans("Enabled"), 'switch_on').'</a>';
-	else
-		print '<a href="'.$_SERVER["PHP_SELF"].'?action=ChangePriceSetting&value=1">'.img_picto($langs->trans("Disabled"), 'switch_off').'</a>';
+	if ( $changePriceSetting ==1) {
+		print '<a href="'.$_SERVER["PHP_SELF"].'?action=ChangePriceSetting&value=0">';
+		print img_picto($langs->trans("Enabled"), 'switch_on').'</a>';
+	} else {
+		print '<a href="'.$_SERVER["PHP_SELF"].'?action=ChangePriceSetting&value=1">';
+		print img_picto($langs->trans("Disabled"), 'switch_off').'</a>';
+	}
 	print '</td></tr>';
 } else {
 	print '<tr >';
@@ -612,22 +629,25 @@ if (! empty($conf->categorie->enabled)) {
 	print '<tr '.$bc[$var].'>';
 	print '<td>'.$langs->trans("RootCategorie").'</td>';
 	print '<td>'.$langs->trans("InfoRootCategorie").'</td>';
-	print '<td nowrap>'.$htmlother->select_categories(0, $conf->global->FACTORY_CATEGORIE_ROOT, 'root_categ', 1).'</td>';
-	print '</tr>'."\n";
+	print '<td nowrap>';
+	print $htmlother->select_categories(0, $conf->global->FACTORY_CATEGORIE_ROOT, 'root_categ', 1);
+	print '</td></tr>'."\n";
 
 	$var = !$var;
 	print '<tr '.$bc[$var].'>';
 	print '<td>'.$langs->trans("VariantCategorie").'</td>';
 	print '<td>'.$langs->trans("InfoVariantCategorie").'</td>';
-	print '<td nowrap>'.$htmlother->select_categories(0, $conf->global->FACTORY_CATEGORIE_VARIANT, 'variant_categ', 1).'</td>';
-	print '</tr>'."\n";
+	print '<td nowrap>';
+	print $htmlother->select_categories(0, $conf->global->FACTORY_CATEGORIE_VARIANT, 'variant_categ', 1);
+	print '</td></tr>'."\n";
 
 	$var = !$var;
 	print '<tr '.$bc[$var].'>';
 	print '<td>'.$langs->trans("CatalogCategorie").'</td>';
 	print '<td>'.$langs->trans("InfoCatalogCategorie").'</td>';
-	print '<td nowrap>'.$htmlother->select_categories(0, $conf->global->FACTORY_CATEGORIE_CATALOG, 'catalog_categ', 1).'</td>';
-	print '</tr>'."\n";
+	print '<td nowrap>';
+	print $htmlother->select_categories(0, $conf->global->FACTORY_CATEGORIE_CATALOG, 'catalog_categ', 1);
+	print '</td></tr>'."\n";
 
 	$var = !$var;
 	print '<tr '.$bc[$var].'>';
@@ -648,7 +668,7 @@ print '<br>';
  */
 print '<br>';
 libxml_use_internal_errors(true);
-$sxe = simplexml_load_string(nl2br (file_get_contents('../changelog.xml')));
+$sxe = simplexml_load_string(nl2br(file_get_contents('../changelog.xml')));
 if ($sxe === false) {
 	echo "Erreur lors du chargement du XML\n";
 	foreach (libxml_get_errors() as $error)
@@ -668,8 +688,10 @@ print '<tr '.$bc[false].'><td >'.$langs->trans("DolibarrVersion").'</td><td>'.DO
 print '<tr '.$bc[true].'><td >'.$langs->trans("ModuleVersion").'</td>';
 print '<td>'.$currentversion->attributes()->Number." (".$currentversion->attributes()->MonthVersion.')</td></tr>'."\n";
 print '<tr '.$bc[false].'><td >'.$langs->trans("PHPVersion").'</td><td>'.version_php().'</td></tr>'."\n";
-print '<tr '.$bc[true].'><td >'.$langs->trans("DatabaseVersion").'</td><td>'.$db::LABEL." ".$db->getVersion().'</td></tr>'."\n";
-print '<tr '.$bc[false].'><td >'.$langs->trans("WebServerVersion").'</td><td>'.$_SERVER["SERVER_SOFTWARE"].'</td></tr>'."\n";
+print '<tr '.$bc[true].'><td >'.$langs->trans("DatabaseVersion").'</td>';
+print '<td>'.$db::LABEL." ".$db->getVersion().'</td></tr>'."\n";
+print '<tr '.$bc[false].'><td >'.$langs->trans("WebServerVersion").'</td>';
+print '<td>'.$_SERVER["SERVER_SOFTWARE"].'</td></tr>'."\n";
 print '<tr>'."\n";
 print '<td colspan="2">'.$langs->trans("SupportModuleInformationDesc").'</td></tr>'."\n";
 print "</table>\n";

@@ -123,11 +123,6 @@ function factory_prepare_head($object, $user=0)
 	$head[$h][2] = 'factoryreport';
 	$h++;
 
-	$head[$h][0] = dol_buildpath("/factory/movement.php?id=".$object->id, 1);
-	$head[$h][1] = $langs->trans("FactoryMovement");
-	$head[$h][2] = 'factorymovement';
-	$h++;
-
 	require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
 	$upload_dir = $conf->factory->dir_output . "/" . dol_sanitizeFileName($object->ref);
 	$nbFiles = count(dol_dir_list($upload_dir, 'files', 0, '', '(\.meta|_preview\.png)$'));
@@ -187,7 +182,8 @@ function select_entrepot_list($selected='', $htmlname='entrepotid', $showempty=0
 	// boucle sur les entrepots
 	$sql = "SELECT rowid, label, zip";
 	$sql.= " FROM ".MAIN_DB_PREFIX."entrepot";
-	//$sql.= " WHERE statut = 1";
+    $sql.= " WHERE entity IN (".getEntity('stock').")";
+	//$sql.= " AND statut = 1";
 	$sql.= " ORDER BY zip, rowid ASC";
 
 	dol_syslog("factory.lib::select_entrepot_list sql=".$sql);
@@ -221,7 +217,7 @@ function select_entrepot_list($selected='', $htmlname='entrepotid', $showempty=0
 			}
 			$res.='</select>';
 		} else {
-			// si pas de liste, on positionne un hidden à vide
+			// si pas de liste, on positionne un hidden ï¿½ vide
 			$res.='<input type="hidden" name="'.$htmlname.'" value=-1>';
 		}
 	}

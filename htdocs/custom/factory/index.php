@@ -103,8 +103,8 @@ while ($objp = $db->fetch_object($result)) {
 }
 print $statProducts;
 print '<tr class="liste_total"><td>'.$langs->trans("Total").'</td>';
-print '<td align="right">'.price($totalmade,0,'',0,0,0).'</td>';
-print '<td align="right">'.price($total,0,'',0,0,0).'</td>';
+print '<td align="right">'.price($totalmade, 0, '', 0, 0, 0).'</td>';
+print '<td align="right">'.price($total, 0, '', 0, 0, 0).'</td>';
 print '</tr></table>';
 print '<br>';
 
@@ -124,7 +124,7 @@ $sql.= ' WHERE f.entity IN ('.getEntity($product_static->element, 1).')';
 $sql.= ' AND f.fk_product = p.rowid';
 $sql.= " GROUP BY f.fk_product, p.ref";
 $sql.= ' order by total desc';
-$sql.= $db->plimit($max,0);
+$sql.= $db->plimit($max, 0);
 
 $result = $db->query($sql);
 
@@ -163,7 +163,7 @@ $sql.= ' WHERE f.entity IN ('.getEntity($product_static->element, 1).')';
 $sql.= ' AND f.fk_entrepot = e.rowid';
 $sql.= " GROUP BY f.fk_entrepot, e.label";
 $sql.= ' order by total desc';
-$sql.= $db->plimit($max,0);
+$sql.= $db->plimit($max, 0);
 
 
 $result = $db->query($sql);
@@ -199,8 +199,8 @@ $sql.= " f.tms as datem, f.fk_statut";
 $sql.= " FROM ".MAIN_DB_PREFIX."factory as f";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product as p on f.fk_product = p.rowid";
 $sql.= " WHERE f.entity IN (".getEntity($product_static->element, 1).")";
-$sql.= $db->order("f.tms","DESC");
-$sql.= $db->plimit($max,0);
+$sql.= $db->order("f.tms", "DESC");
+$sql.= $db->plimit($max, 0);
 
 //print $sql;
 $result = $db->query($sql);
@@ -208,10 +208,10 @@ if ($result) {
 	$num = $db->num_rows($result);
 	$i = 0;
 	if ($num > 0) {
-		$LastModifiedFactory = $langs->trans("LastFactory", $max);
+		$lastModifiedFactory = $langs->trans("LastFactory", $max);
 		print '<table class="noborder" width="100%">';
 		$colnb=5;
-		print '<tr class="liste_titre"><td colspan="'.$colnb.'">'.$LastModifiedFactory.'</td></tr>';
+		print '<tr class="liste_titre"><td colspan="'.$colnb.'">'.$lastModifiedFactory.'</td></tr>';
 		$var=True;
 
 		while ($i < $num) {

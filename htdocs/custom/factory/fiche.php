@@ -361,9 +361,9 @@ if (empty($reshook)) {
 		}
 		$action="";
 	} elseif ($action == 'getdefaultprice') {
-	$factory->getdefaultprice(1);  // mode factorydet
-	$action="";
-}
+		$factory->getdefaultprice(1);  // mode factorydet
+		$action="";
+	}
 
 
 	// Clone confirmation
@@ -686,8 +686,8 @@ if (count($prods_arbo) > 0) {
 			print '<td class="liste_titre" width=100px align="center">'.$langs->trans("UnitHA").'</td>';
 			print '<td class="liste_titre" width=100px align="center">'.$langs->trans("CostHA").'</td>';
 		}
-		print '<td class="liste_titre" width=100px align="right">'.$langs->trans("UnitPriceHT").'</td>';
-		print '<td class="liste_titre" width=100px align="right">'.$langs->trans("SellingPriceHT").'</td>';
+		print '<td class="liste_titre" width=100px align="right">'.$langs->trans("SellPrice").'</td>';
+		print '<td class="liste_titre" width=100px align="right">'.$langs->trans("FactorySellingPriceHT").'</td>';
 		print '<td class="liste_titre" width=100px align="right">'.$langs->trans("UnitProfitAmount").'</td>';
 		print '<td class="liste_titre" width=100px align="right">'.$langs->trans("ProfitAmount").'</td>';
 	}
@@ -753,7 +753,7 @@ if (count($prods_arbo) > 0) {
 			print '<td align="right">'.price($value['pmp'], 0, '', 1, 2, 2).'</td>';
 			$qtyvalue=($value['globalqty']==1? 1 :$factory->qty_planned);
 			print '<td align="right">'.price($value['pmp']*$value['nb']*$qtyvalue, 0, '', 1, 2, 2).'</td>';
-			print '<td align="right">'.price($value['price'],0,'',1,2,2).'</td>';
+			print '<td align="right">'.price($value['price'], 0, '', 1, 2, 2).'</td>';
 			print '<td align="right">'.price($value['price']*$value['nb']*$qtyvalue, 0, '', 1, 2, 2).'</td>';
 			print '<td align="right">'.price(($value['price']-$value['pmp'])*$value['nb'], 0, '', 1, 2, 2).'</td>';
 			print '<td align="right">'.price(($value['price']-$value['pmp'])*$value['nb']*$qtyvalue, 0, '', 1, 2, 2).'</td>';
@@ -835,7 +835,7 @@ if ($conf->categorie->enabled)
 
 if ($action == 'edit' || $action == 'search' || $action == 're-edit' ) {
 	print '<br>';
-	print_fiche_titre($langs->trans("ProductToAddSearch"),'','');
+	print_fiche_titre($langs->trans("ProductToAddSearch"), '', '');
 	print '<form action="fiche.php?id='.$id.'" method="post">';
 	print '<table class="border" width="50%"><tr><td>';
 	print '<table class="nobordernopadding" width="100%">';
@@ -916,8 +916,6 @@ if ($action == 'edit' || $action == 'search' || $action == 're-edit' ) {
 				print '<td align="right">'.price($objp->pmp).'</td>';
 				print '<td align="right">'.price($objp->price).'</td>';
 
-				//print '<td align="left"><input type="text" size="5" name="prod_pmp_'.$i.'" value="'.price2num($objp->pmp).'">';
-				//print '<td align="left"><input type="text" size="5" name="prod_price_'.$i.'" value="'.price2num($objp->price).'">';
 				print '<td align="center"><input type="hidden" name="prod_id_'.$i.'" value="'.$objp->rowid.'">';
 				print '<input type="checkbox" '.$addchecked.'name="prod_id_chk'.$i.'" value="'.$objp->rowid.'"></td>';
 				print '<td align="right"><input type="text" size="3" name="prod_qty_'.$i.'" value="'.$qty.'">';
@@ -941,7 +939,8 @@ if ($action == 'edit' || $action == 'search' || $action == 're-edit' ) {
 		print '<input type="hidden" name="max_prod" value="'.$i.'">';
 
 		if ($num > 0) {
-			print '<br><center><input type="submit" class="button" value="'.$langs->trans("Add").'/'.$langs->trans("Update").'">';
+			print '<br><center>';
+			print '<input type="submit" class="button" value="'.$langs->trans("Add").'/'.$langs->trans("Update").'">';
 			print ' &nbsp; &nbsp; <input type="submit" name="cancel" class="button" value="'.$langs->trans("Cancel").'">';
 			print '</center>';
 		}
@@ -960,12 +959,11 @@ if ($action == '' ) {
 	$reshook = $hookmanager->executeHooks('addMoreActionsButtons', $parameters, $factory, $action);
 	// modified by hook
 	if (empty($reshook)) {
-		//print '<a class="butAction" href="'.DOL_URL_ROOT.'/factory/fiche.php?action=validate&id='.$id.'">'.$langs->trans("LaunchOF").'</a>';
 
 		if ($user->rights->factory->creer && $factory->statut == 0) {
 			print '<a class="butAction" href="fiche.php?action=edit&id='.$id.'">'.$langs->trans("ChangeGlobalQtyFactory").'</a>';
-			print '<a class="butAction" href="fiche.php?action=getdefaultprice&amp;id='.$id.'">'.$langs->trans("GetDefaultPrice").'</a>';
-			print '<a class="butAction" href="fiche.php?action=adjustprice&amp;id='.$id.'">'.$langs->trans("AdjustPrice").'</a>';
+			print '<a class="butAction" href="fiche.php?action=getdefaultprice&id='.$id.'">'.$langs->trans("GetDefaultPrice").'</a>';
+			print '<a class="butAction" href="fiche.php?action=adjustprice&id='.$id.'">'.$langs->trans("AdjustPrice").'</a>';
 			print '<br>';
 		}
 
@@ -1016,14 +1014,14 @@ if ($action == '' ) {
 		// List of actions on element
 		include_once DOL_DOCUMENT_ROOT.'/core/class/html.formactions.class.php';
 		$formactions=new FormActions($db);
-		$somethingshown=$formactions->showactions($factory,'factory', $socid);
+		$somethingshown=$formactions->showactions($factory, 'factory', $socid);
 
 		print '</div></div>';
 	}
 	print '</div>';
 } elseif ($action == 'adjustprice') {
 	print '<br>';
-	print_fiche_titre($langs->trans("AdjustPrice"),'','');
+	print_fiche_titre($langs->trans("AdjustPrice"), '', '');
 
 	print '<form action="fiche.php?id='.$id.'" method="post">';
 	print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
@@ -1177,16 +1175,20 @@ if ($action == 'send'  && ! GETPOST('addfile')  && ! GETPOST('removedfile')  && 
 
 				// Send mail
 				require_once DOL_DOCUMENT_ROOT.'/core/class/CMailFile.class.php';
-				$mailfile = new CMailFile($subject, $sendto, $from, $message, $filepath, $mimetype, $filename, $sendtocc, '', $deliveryreceipt, -1);
+				$mailfile = new CMailFile(
+								$subject, $sendto, $from, $message, $filepath,
+								$mimetype, $filename, $sendtocc, '', $deliveryreceipt, -1
+				);
 				if ($mailfile->error)
 					$mesg='<div class="error">'.$mailfile->error.'</div>';
 				else {
 					$result = $mailfile->sendfile();
 					if ($result) {
-						$mesg = $langs->trans('MailSuccessfulySent',
-								$mailfile->getValidAddress($from, 2),
-								$mailfile->getValidAddress($sendto, 2)
-							);	// Must not contains "
+						$mesg = $langs->trans(
+										'MailSuccessfulySent',
+										$mailfile->getValidAddress($from, 2),
+										$mailfile->getValidAddress($sendto, 2)
+						);	// Must not contains "
 						$error=0;
 
 						// Initialisation donnees
@@ -1255,7 +1257,7 @@ dol_htmloutput_mesg($mesg);
 if ($action == 'presend') {
 	$ref = dol_sanitizeFileName($factory->ref);
 
-	$fileparams = dol_most_recent_file($conf->factory->dir_output . '/' . $ref , preg_quote($ref,'/'));
+	$fileparams = dol_most_recent_file($conf->factory->dir_output . '/' . $ref, preg_quote($ref, '/'));
 	$file=$fileparams['fullname'];
 
 	// Build document if it not exists
@@ -1272,7 +1274,7 @@ if ($action == 'presend') {
 		}
 
 		$result=factory_create($db, $factory, $factory->modelpdf, $outputlangs, $hidedetails, $hidedesc, $hideref);
-		//$result=factory_create($db, $factory, GETPOST('model')?GETPOST('model'):$factory->modelpdf, $outputlangs, $hidedetails, $hidedesc, $hideref);
+
 		if ($result <= 0) {
 			dol_print_error($db, $result);
 			exit;

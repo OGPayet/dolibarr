@@ -220,13 +220,16 @@ function factory_create($db, $object, $modele, $outputlangs, $hidedetails=0, $hi
 			include_once(DOL_DOCUMENT_ROOT . "/core/class/interfaces.class.php");
 			$interface=new Interfaces($db);
 			$result=$interface->run_triggers('FACTORY_BUILDDOC', $object, $user, $langs, $conf);
-			if ($result < 0) { $error++; $this->errors=$interface->errors; }
+			if ($result < 0) {
+				$error++;
+				$this->errors=$interface->errors;
+			}
 			// Fin appel triggers
 
 			return 1;
 		} else {
 			$outputlangs->charset_output=$sav_charset_output;
-			dol_print_error($db,"factory_pdf_create Error: ".$obj->error);
+			dol_print_error($db, "factory_pdf_create Error: ".$obj->error);
 			return 0;
 		}
 	} else {
