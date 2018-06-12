@@ -37,7 +37,7 @@ function retourproduits_prepare_head($object)
     $head = array();
     $head[$h][0] = dol_buildpath('/retourproduits/card.php', 1) . '?action=view&id=' . $object->id;
     $head[$h][1] = $langs->trans("Card");
-    $head[$h][2] = 'tabTicketsup';
+    $head[$h][2] = 'retourproduits';
     $h++;
 
 
@@ -105,4 +105,62 @@ function retourproduits_admin_prepare_head($object=null)
 	complete_head_from_modules($conf, $langs, $object, $head, $h, 'retourproduits_admin', 'remove');
 
 	return $head;
+}
+
+/**
+ *	Get all products sent for a order ID with equipments availables
+ *
+ * @param	DoliDB		$db             Database handler
+ * @param	int		    $order_id       Id of the order
+ *
+ * @return array                        List of products sent for a order ID with equipments availables
+ */
+function retourproduits_get_product_list($db, $order_id)
+{
+    $lines = array();
+
+    // Get nb sent for each product
+    $sql = "SELECT cd.rowid, p.rowid as product_id, p.ref, p.label, SUM(exp.qty) as qty_sent";
+    $sql .= " FROM " . MAIN_DB_PREFIX . "commande as c, " . MAIN_DB_PREFIX . "product as p, ";
+    $sql .= MAIN_DB_PREFIX . "commandedet as cd, " . MAIN_DB_PREFIX . "expeditiondet as exp";
+    $sql .= " WHERE c.rowid = cd.fk_commande";
+    $sql .= " AND p.rowid = cd.fk_product";
+    $sql .= " AND cd.rowid = exp.fk_origin_line";
+    $sql .= " AND c.rowid = " . $order_id;
+    $sql .= " GROUP BY cd.rowid";
+    $sql .= " ORDER BY cd.rang, cd.rowid";
+    $resql = $db->query($sql);
+    if ($resql) {
+        while ($obj = $db->fetch_object($resql)) {
+            $lines[$obj->rowid] = array(
+                'produit_id' => $obj->product_id,
+                'product' => $obj->ref . ' - ' . $obj->label,
+                'qty_sent' => $obj->qty_sent,
+                'equipments' => array(),
+            );
+        }
+    }
+
+    // Get list of available serial numbers for each product
+    if (!empty($lines)) {
+        $sql = "SELECT DISTINCT cd.rowid, e.rowid as equipment_id, e.ref, e.fk_product";
+        $sql .= " FROM " . MAIN_DB_PREFIX . "commande as c";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "commandedet as cd ON cd.fk_commande = c.rowid";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "expeditiondet as ed ON ed.fk_origin_line = cd.rowid";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "equipementevt AS ee ON ee.fk_expedition = ed.fk_expedition";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "equipement AS e ON e.rowid = ee.fk_equipement";
+        $sql .= " WHERE c.rowid = " . $order_id;
+        $sql .= " AND e.fk_soc_client = c.fk_soc";
+        $sql .= " AND e.fk_entrepot IS NULL";
+        $resql = $db->query($sql);
+        if ($resql) {
+            while ($obj = $db->fetch_object($resql)) {
+                if (isset($lines[$obj->rowid])) {
+                    $lines[$obj->rowid]['equipments'][$obj->equipment_id] = $obj->ref;
+                }
+            }
+        }
+    }
+
+    return $lines;
 }

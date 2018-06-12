@@ -59,6 +59,7 @@ if (! empty($conf->projet->enabled)) {
 require_once 'lib/retourproduits.lib.php';
 require_once 'class/retourproduits.class.php';
 //dol_include_once('/retourproduits/class/retourproduits.class.php');
+dol_include_once('/equipement/class/equipement.class.php');
 
 $langs->load("retourproduits@retourproduits");
 $langs->load("sendings");
@@ -94,13 +95,16 @@ $cancel     = GETPOST('cancel','alpha');
 
 $object = new RetourProduits($db);
 
+$extrafields = new ExtraFields($db);
+$extrafieldsline = new ExtraFields($db);
+
 // fetch optionals attributes and labels
-//$extralabels = $extrafields->fetch_name_optionals_label($object->table_element);
-$extralabels = false;
+$extralabels = $extrafields->fetch_name_optionals_label($object->table_element);
+//$extralabels = false;
 
 // fetch optionals attributes lines and labels
-//$extralabelslines=$extrafieldsline->fetch_name_optionals_label($object->table_element_line);
-$extralabelslines=false;
+$extralabelslines=$extrafieldsline->fetch_name_optionals_label($object->table_element_line);
+//$extralabelslines=false;
 
 
 // Load object. Make an object->fetch
@@ -415,25 +419,7 @@ if (empty($reshook))
 	        $action='create';
 	    }
 	}
-
-	/*
-	 * Build a receiving receipt
-	 */
-	else if ($action == 'create_delivery' && $conf->livraison_bon->enabled && $user->rights->expedition->livraison->creer)
-	{
-	    $result = $object->create_delivery($user);
-	    if ($result > 0)
-	    {
-	        header("Location: ".DOL_URL_ROOT.'/livraison/card.php?action=create_delivery&id='.$result);
-	        exit;
-	    }
-	    else
-	    {
-	        setEventMessages($object->error, $object->errors, 'errors');
-	    }
-	}
-
-	else if ($action == 'confirm_valid' && $confirm == 'yes' &&
+    else if ($action == 'confirm_valid' && $confirm == 'yes' &&
         ((empty($conf->global->MAIN_USE_ADVANCED_PERMS) && ! empty($user->rights->expedition->creer))
 	|| (! empty($conf->global->MAIN_USE_ADVANCED_PERMS) && ! empty($user->rights->expedition->shipping_advance->validate)))
 	)
@@ -576,16 +562,6 @@ if (empty($reshook))
 		$ret=dol_delete_file($file,0,0,0,$object);
 		if ($ret) setEventMessages($langs->trans("FileWasRemoved", GETPOST('urlfile')), null, 'mesgs');
 		else setEventMessages($langs->trans("ErrorFailToDeleteFile", GETPOST('urlfile')), null, 'errors');
-	}
-
-	elseif ($action == 'classifybilled')
-	{
-	    $object->fetch($id);
-	    $result = $object->set_billed();
-	    if($result >= 0) {
-		header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
-		exit();
-	    }
 	}
 
 	elseif ($action == 'classifyclosed')
@@ -1740,10 +1716,6 @@ else if ($id || $ref)
 
 		if (! empty($conf->stock->enabled))
 		{
-			print '<td align="left">'.$langs->trans("WarehouseSource").'</td>';
-		}
-		if (! empty($conf->stock->enabled))
-		{
 			print '<td align="left">'.$langs->trans("WarehouseDest").'</td>';
 		}
 
@@ -1812,6 +1784,8 @@ else if ($id || $ref)
 		//var_dump($alreadysent);
 		}*/
 
+        $equipement_static = new Equipement($db);
+
 		// Loop on each product to send/sent
 		for ($i = 0 ; $i < $num_prod ; $i++)
 		{
@@ -1871,7 +1845,13 @@ else if ($id || $ref)
 				print "</td>\n";
 			}
 			// Numéro de Série
-			print '<td>' . $lines[$i]->equipement_ref . '</td>';
+			print '<td>';
+            if ($lines[$i]->fk_equipement > 0) {
+                $equipement_static->id = $lines[$i]->fk_equipement;
+                $equipement_static->ref = $lines[$i]->equipement_ref;
+                print $equipement_static->getNomUrl(1);
+            }
+            print '</td>';
 			// Qty ordered
 			print '<td align="center">'.$lines[$i]->qty_asked.'</td>';
 
@@ -1897,19 +1877,7 @@ else if ($id || $ref)
 			// Size
 			print '<td align="center">'.$lines[$i]->volume*$lines[$i]->qty_shipped.' '.measuring_units_string($lines[$i]->volume_units,"volume").'</td>';
 
-			// Warehouse source
-			if (! empty($conf->stock->enabled))
-			{
-				print '<td align="left">';
-				if ($lines[$i]->entrepot_id > 0)
-				{
-					$entrepot = new Entrepot($db);
-					$entrepot->fetch($lines[$i]->entrepot_id);
-					print $entrepot->getNomUrl(1);
-				}
-				print '</td>';
-			}
-
+			// Todo Supprimer completement la gestion de $lines[$i]->entrepot_id (db, classe, ...) (Entrepot source)
 
 			// Warehouse Destination
 			if (! empty($conf->stock->enabled))
@@ -1996,27 +1964,11 @@ else if ($id || $ref)
 				else print '<a class="butActionRefused" href="#">'.$langs->trans('SendByMail').'</a>';
 			}
 
-
-			// This is just to generate a delivery receipt
-			if ($conf->livraison_bon->enabled && ($object->statut == 1 || $object->statut == 2) && $user->rights->expedition->livraison->creer && count($object->linkedObjectsIds['delivery']) == 0)
-			{
-				print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=create_delivery">'.$langs->trans("CreateDeliveryOrder").'</a>';
-			}
 			// Close
-			if ( $object->statut > 0)
-			{
-				if ($user->rights->expedition->creer && $object->statut > 0 && ! $object->billed)
-				{
-					$label="Close"; $paramaction='classifyclosed';       // = Transferred/Received
-					// Label here should be "Close" or "ClassifyBilled" if we decided to make bill on shipments instead of orders
-					if (! empty($conf->global->WORKFLOW_BILL_ON_SHIPMENT))  // TODO Quand l'option est on, il faut avoir le bouton en plus et non en remplacement du Close.
-					{
-					    $label="ClassifyBilled";
-					    $paramaction='classifybilled';
-					}
-					print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action='.$paramaction.'">'.$langs->trans($label).'</a>';
-				}
-			}
+            if ($user->rights->expedition->creer && $object->statut > 0 && ! $object->billed)
+            {
+                print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=classifyclosed">'.$langs->trans("Close").'</a>';
+            }
 
 			if ($user->rights->expedition->supprimer)
 			{
@@ -2055,9 +2007,9 @@ else if ($id || $ref)
 		print '</div><div class="fichehalfright"><div class="ficheaddleft">';
 
 		// List of actions on element
-		include_once DOL_DOCUMENT_ROOT.'/core/class/html.formactions.class.php';
+	/*	include_once DOL_DOCUMENT_ROOT.'/core/class/html.formactions.class.php';
 		$formactions=new FormActions($db);
-		$somethingshown=$formactions->showactions($object,'shipping',$socid);
+		$somethingshown=$formactions->showactions($object,'retourproduits',$socid);*/
 
 		print '</div></div></div>';
 	}
@@ -2075,7 +2027,7 @@ else if ($id || $ref)
 	{
 		$ref = dol_sanitizeFileName($object->ref);
 		include_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
-		$fileparams = dol_most_recent_file($conf->expedition->dir_output . '/sending/' . $ref, preg_quote($ref, '/').'[^\-]+');
+		$fileparams = dol_most_recent_file($conf->retourproduits->dir_output . '/' . $ref, preg_quote($ref, '/').'[^\-]+');
 		$file=$fileparams['fullname'];
 
 		// Define output language
@@ -2102,7 +2054,7 @@ else if ($id || $ref)
 				dol_print_error($db,$object->error,$object->errors);
 				exit;
 			}
-			$fileparams = dol_most_recent_file($conf->expedition->dir_output . '/sending/' . $ref, preg_quote($ref, '/').'[^\-]+');
+			$fileparams = dol_most_recent_file($conf->retourproduits->dir_output . '/' . $ref, preg_quote($ref, '/').'[^\-]+');
 			$file=$fileparams['fullname'];
 		}
 

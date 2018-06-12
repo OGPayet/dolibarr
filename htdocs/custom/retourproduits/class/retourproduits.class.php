@@ -546,7 +546,7 @@ class RetourProduits extends CommonObject
 
 				if ($this->statut == 0) $this->brouillon = 1;
 
-				$file = $conf->expedition->dir_output . "/" .get_exdir($this->id, 2, 0, 0, $this, 'shipment') . "/" . $this->id.".pdf";
+				$file = $conf->retourproduits->dir_output . '/' .get_exdir($this->id, 2, 0, 0, $this, 'shipment') . "/" . $this->id.".pdf";
 				$this->pdf_filename = $file;
 
 				// Tracking url
@@ -661,7 +661,7 @@ class RetourProduits extends CommonObject
 		}
 
 		// If stock increment is done on sending (recommanded choice)
-		if (! $error && ! empty($conf->stock->enabled) && ! empty($conf->global->STOCK_CALCULATE_ON_SHIPMENT))
+		if (! $error && ! empty($conf->stock->enabled))
 		{
 			require_once DOL_DOCUMENT_ROOT.'/product/stock/class/mouvementstock.class.php';
 
@@ -738,6 +738,49 @@ class RetourProduits extends CommonObject
 			}
 
 		}
+
+		if (! $error) {
+		    $this->fetch_lines();
+		    dol_include_once('/equipement/class/equipement.class.php');
+
+            $fk_equipementevt_type = dol_getIdFromCode($this->db, 'RETURN', 'c_equipementevt_type', 'code', 'rowid');
+            $now = dol_now();
+
+		    foreach ($this->lines as $line) {
+		        if ($line->fk_equipement > 0) {
+                    $equipement = new Equipement($this->db);
+                    $equipement->fetch($line->fk_equipement);
+
+                    // Set warehouse
+                    $result = $equipement->set_entrepot($user, $line->fk_entrepot_dest);
+                    if ($result > 0) {
+                        // Add event
+                        $result = $equipement->addline(
+                            $equipement->id,
+                            $fk_equipementevt_type,
+                            $langs->trans('RetourProduits') . ' - ' . $numref,
+                            $now,
+                            $now,
+                            '',
+                            '',
+                            '',
+                            '',
+                            '',
+                            '',
+                            '',
+                            ''
+                        );
+                    }
+
+                    if ($result < 0) {
+                        $this->db->rollback();
+                        $this->error=$equipement->error;
+                        return -1;
+                    }
+                }
+            }
+        }
+
 		// Change status of order to "shipment in process"
 		//$ret = $this->setStatut(Commande::STATUS_SHIPMENTONPROCESS, $this->origin_id, $this->origin);
 
@@ -765,8 +808,8 @@ class RetourProduits extends CommonObject
 				// in order not to lose the attached files
 				$oldref = dol_sanitizeFileName($this->ref);
 				$newref = dol_sanitizeFileName($numref);
-				$dirsource = $conf->expedition->dir_output.'/sending/'.$oldref;
-				$dirdest = $conf->expedition->dir_output.'/sending/'.$newref;
+				$dirsource = $conf->retourproduits->dir_output . '/'.$oldref;
+				$dirdest = $conf->retourproduits->dir_output . '/'.$newref;
 				if (file_exists($dirsource))
 				{
 					dol_syslog(get_class($this)."::valid rename dir ".$dirsource." into ".$dirdest);
@@ -775,7 +818,7 @@ class RetourProduits extends CommonObject
 					{
 					    dol_syslog("Rename ok");
                         // Rename docs starting with $oldref with $newref
-                        $listoffiles=dol_dir_list($conf->expedition->dir_output.'/sending/'.$newref, 'files', 1, '^'.preg_quote($oldref,'/'));
+                        $listoffiles=dol_dir_list($conf->retourproduits->dir_output . '/'.$newref, 'files', 1, '^'.preg_quote($oldref,'/'));
                         foreach($listoffiles as $fileentry)
                         {
 				$dirsource=$fileentry['name'];
@@ -1245,9 +1288,9 @@ class RetourProduits extends CommonObject
 
 							// We delete PDFs
 							$ref = dol_sanitizeFileName($this->ref);
-							if (! empty($conf->expedition->dir_output))
+							if (! empty($conf->retourproduits->dir_output))
 							{
-								$dir = $conf->expedition->dir_output . '/sending/' . $ref ;
+								$dir = $conf->retourproduits->dir_output . '/' . $ref ;
 								$file = $dir . '/' . $ref . '.pdf';
 								if (file_exists($file))
 								{
@@ -1317,10 +1360,12 @@ class RetourProduits extends CommonObject
 		$sql.= ", exp.fk_entrepot";
 		$sql.= ", p.ref as product_ref, p.label as product_label, p.fk_product_type, cd.qty as qty_asked";
 		$sql.= ", p.weight, p.weight_units, p.length, p.length_units, p.surface, p.surface_units, p.volume, p.volume_units, p.tobatch as product_tobatch";
+        $sql.= ", e.ref as equipement_ref";
 		$sql.= " FROM (".MAIN_DB_PREFIX."retourproduitsdet as rp,";
 		$sql.= " ".MAIN_DB_PREFIX."commandedet as cd,";
 		$sql.= " ".MAIN_DB_PREFIX."expeditiondet as exp)";
-		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product as p ON p.rowid = rp.fk_product";
+        $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product as p ON p.rowid = rp.fk_product";
+        $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."equipement as e ON e.rowid = rp.fk_equipement";
 		$sql.= " WHERE rp.fk_retourproduits = ".$this->id;
 		$sql.= " AND rp.fk_origin_line = cd.rowid" ;
 		$sql.= " AND rp.fk_origin_line = exp.fk_origin_line" ;
@@ -1371,7 +1416,8 @@ class RetourProduits extends CommonObject
 				$line->volume_units   	= $obj->volume_units;
 				$line->fk_entrepot_dest = $obj->fk_entrepot_dest;
 				$line->qty_return       = $obj->qty_return ;
-				$line->equipement_ref   = $obj->equipement_ref ;
+                $line->fk_equipement    = $obj->fk_equipement ;
+                $line->equipement_ref   = $obj->equipement_ref ;
 				// Quantité commandé dans la commande origine
 				$line->qty_asked      	= $obj->qty_asked;
 				$line->qty_shipped      = $obj->qty_shipped;

@@ -1,5 +1,6 @@
 # Dolibarr language file - fr_FR - retourproduits
 CHARSET=UTF-8
+
 returnProducts=Retour Produits
 RetourProduitsSetUp=Configuration du module "Retour Produits"
 CreateReturnProducts=Créer un retour produits
@@ -20,3 +21,7 @@ ExtraFieldsRetProdDet=Attributs supplémentaires (détail)
 RetourProduitsDet=Détail Retour Produits
 RetourProduits=Retour Produits
 QtyOrdered=Qté Commandée
+
+RetourProduitsErrorNoProductSent            = Il n'y a pas de produits à retourner
+RetourProduitsErrorNoProductSelected        = Il n'y a pas de produits selectionnés
+RetourProduitsErrorTooManyEquipmentSelected = Il y a trop d'équipements selectionnés

@@ -207,7 +207,7 @@ class modRetourProduits extends DolibarrModules
 					'titre'=>'Retours Produits',
 					'mainmenu'=>'products',
 					'leftmenu'=>'retourproduits',
-					'url'=>'/retourproduits/index.php?leftmenu=retourproduits',
+					'url'=>'/retourproduits/list.php',
 					'langs'=>'retourproduits@retourproduits',
 					'position'=>120, 'enabled'=>'1',
 					'perms'=>'1',
@@ -298,7 +298,9 @@ class modRetourProduits extends DolibarrModules
 	{
             $sql = array();
             $this->_load_tables('/retourproduits/sql/');
-            $sql = array('INSERT IGNORE INTO '.MAIN_DB_PREFIX.'document_model (nom ,entity ,type) VALUES (\'rouget\', \'1\', \'retourproduits\');'
+            $sql = array(
+                'INSERT IGNORE INTO '.MAIN_DB_PREFIX.'document_model (nom ,entity ,type) VALUES (\'rouget\', \'1\', \'retourproduits\');',
+                'INSERT IGNORE INTO '.MAIN_DB_PREFIX.'c_equipementevt_type (code, libelle) VALUES (\'RETURN\', \'Retour produits\');',
             );
 
             return $this->_init($sql, $options);

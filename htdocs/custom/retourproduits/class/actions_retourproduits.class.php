@@ -44,65 +44,170 @@ class ActionsRetourProduits // extends CommonObject
 	}
 
 	function doActions ($parameters, &$object, &$action) {
-		global $conf, $langs, $db;
-		global $user;
+		global $langs, $db, $user;
+
 		if ($action == 'create_return' ) {
-			dol_include_once('/retourproduits/class/retourproduits.class.php');
+            $id = GETPOST('id', 'int');
+            if ($id > 0) {
+		    $ret = $object->fetch($id);
+		    $object->fetch_thirdparty();
+            }
 
-			// ici faire la cr�ation si tout est OK
-			$commandeid = GETPOST('id', 'int') ;
-			$commande = new Commande($db);
-			$rpds = new RetourProduits($db);
-			$commande->fetch($commandeid);
-			$rpds->socid = $commande->socid ;
-			$rpds->origin = 'commande';
-			$rpds->origin_id = $commandeid ;
-			//$retourId = $rpds->create($user);
+			if ($object->id > 0) {
+                $langs->load("retourproduits@retourproduits");
 
-			// puis crc�ation ligne-d�tail sur chancun des num�ro de s�rie
-			foreach ($_GET['line'] as $key => $value) {
-				$line = new RetourProduitsLigne($this->db);
-				$line->fk_product = $_GET['pd'][$key] ;
-				if ($_GET['serie'][$key] != '') {
-					$line->fk_equipement = $_GET['serie'][$key] ;
-				} else {
-					$line->fk_equipement = -1 ;
-				}
-				$line->fk_entrepot_dest = $_GET['wh'][$key] ;
-				$line->qty = $_GET['qty'][$key] ;
-				$line->fk_origin_line = $_GET['line'][$key] ;
-				$rpds->lines[$key] = $line ;
-				$rpds->create_line($_GET['pd'][$key],$value,$_GET['wh'][$key],$_GET['qty'][$key],$_GET['line'][$key]);
-			}
+                dol_include_once('/retourproduits/lib/retourproduits.lib.php');
+                $lines = retourproduits_get_product_list($db, $object->id);
 
-			$retourId = $rpds->create($user);
-			header('Location: '.dol_buildpath('/retourproduits/card.php?id=', 1).$retourId);
-			exit;
+                // Get selected lines
+                $selectedLines = array();
+                foreach ($lines as $line_id => $line) {
+                    if ($line_id == GETPOST('s-' . $line_id, 'int')) {
+                        $selectedLines[$line_id] = $line_id;
+                    }
+                }
+
+                if (!empty($selectedLines)) {
+                    $langs->load('errors');
+                    $langs->load("equipement@equipement");
+                    $error = 0;
+                    $db->begin();
+
+                    // Create RetourProduits object
+                    dol_include_once('/retourproduits/class/retourproduits.class.php');
+                    $rpds = new RetourProduits($db);
+
+                    // Set variables
+                    $rpds->socid = $object->socid;
+                    $rpds->origin = 'commande';
+                    $rpds->origin_id = $object->id;
+
+                    // Add lines
+                    $idx = 0;
+                    foreach ($selectedLines as $line_id) {
+
+                        $fk_product = GETPOST('p-' . $line_id, 'int');
+                        $qty = GETPOST('q-' . $line_id, 'int');
+                        $fk_entrepot_dest = GETPOST('w-' . $line_id, 'int');
+
+                        // Test variables
+                        if ($qty <= 0) {
+                            setEventMessages($lines[$line_id]['product'].': '.$langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("Qty")), null, 'errors');
+                            $error++;
+                        }
+                        if ($qty <= 0 || $qty > $lines[$line_id]['qty_sent']) {
+                            setEventMessages($lines[$line_id]['product'].': '.$langs->trans("ErrorBadValueForParameter", $qty, $langs->transnoentitiesnoconv("Qty")), null, 'errors');
+                            $error++;
+                        }
+                        if ($fk_entrepot_dest <= 0) {
+                            setEventMessages($lines[$line_id]['product'].': '.$langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("Warehouse")), null, 'errors');
+                            $error++;
+                        }
+
+                        $equipments = explode(',', GETPOST('e-' . $line_id, 'alpha'));
+                        if (!empty($equipments)) {
+                            if (count($equipments) > min($qty, $lines[$line_id]['qty_sent'])) {
+                                setEventMessages($lines[$line_id]['product'].': '.$langs->trans("RetourProduitsErrorTooManyEquipmentSelected"), null, 'errors');
+                                $error++;
+                            }
+
+                            foreach ($equipments as $equipment_id) {
+                                $line = new RetourProduitsLigne($db);
+                                $line->fk_product = $fk_product;
+                                $line->qty = 1;
+                                $line->fk_entrepot_dest = $fk_entrepot_dest;
+                                $line->fk_origin_line = $line_id;
+                                $line->fk_equipement = $equipment_id;
+
+                                $qty--;
+                                $rpds->lines[] = $line;
+                            }
+                        }
+
+                        if ($qty > 0) {
+                            $line = new RetourProduitsLigne($db);
+                            $line->fk_product = $fk_product;
+                            $line->qty = $qty;
+                            $line->fk_entrepot_dest = $fk_entrepot_dest;
+                            $line->fk_origin_line = $line_id;
+                            $line->fk_equipement = -1;
+                            $rpds->lines[] = $line;
+                        }
+                    }
+
+                    if (!$error) {
+                        $retourId = $rpds->create($user);
+                        if ($retourId < 0) {
+                            $error++;
+                            setEventMessages($rpds->error, $rpds->errors, 'errors');
+                        }
+                    }
+
+                    if (!$error) {
+                        $db->commit();
+                        header('Location: ' . dol_buildpath('/retourproduits/card.php', 1) . '?id=' . $retourId);
+                        exit;
+                    } else {
+                        $db->rollback();
+                        $action = "returnproducts";
+                    }
+                } else {
+                    setEventMessage($langs->trans('RetourProduitsErrorNoProductSelected'), 'errors');
+                    $action = "returnproducts";
+                }
+            }
 		}
 	}
 
-
 	function formConfirm($parameters, $object, $action)	{
-		global $conf, $langs, $db;
-		global $user;
-		global $formconfirm ;
+		global $conf, $langs, $db, $user;
+		global $form ;
 
-		$langs->load("retourproduits@retourproduits");
-		require_once(dol_buildpath('/retourproduits/form/html.form.class.php'));
+        if ($object->element == 'commande' && $action == 'returnproducts') {
+            $langs->load("retourproduits@retourproduits");
+            $langs->load("equipement@equipement");
 
-		$formreturnproducts = new FormRetourProduits($db);
-		$form = new Form($db);
+            dol_include_once('/retourproduits/lib/retourproduits.lib.php');
+            $lines = retourproduits_get_product_list($db, $object->id);
 
-		if ($action == 'returnproducts') {
-			// liste des produits sur cette commande  / Num�ro de s�rie / Quantit� / Entrepots
-			$formquestion = $formreturnproducts->select_return_products($object->id) ;
-			$formconfirm = $formreturnproducts->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('CreateReturnProducts'), $langs->trans('SelectProductsToReturn'),'create_return', $formquestion, 0, 2, 400,600);
-		}
+            if (empty($lines)) {
+                setEventMessage($langs->trans('RetourProduitsErrorNoProductSent'), 'errors');
+                return 0;
+            }
+
+            require_once DOL_DOCUMENT_ROOT . '/product/class/html.formproduct.class.php';
+            $formproduct = new FormProduct($db);
+
+            $formquestion = array();
+            foreach ($lines as $line_id => $line) {
+                $product_id = GETPOST('p-' . $line_id, 'int');
+                $selected = $product_id > 0 && GETPOST('s-' . $line_id, 'int') > 0 ? ' checked' : '';
+                $qty = $product_id > 0 ? GETPOST('q-' . $line_id, 'int') : $line['qty_sent'];
+                $warehouse = $product_id > 0 ? GETPOST('w-' . $line_id, 'int') : '';
+                $equipments = $product_id > 0 ? GETPOST('e-' . $line_id, 'int') : array();
+
+                $formquestion[] = array(
+                    'type' => 'other',
+                    'label' => '<input type="checkbox" id="s-' . $line_id . '" name="s-' . $line_id . '" value="' . $line_id . '"'.$selected.'> ' . $line['product'],
+                    'name' => array('s-' . $line_id, 'p-' . $line_id, 'q-' . $line_id, 'w-' . $line_id, 'e-' . $line_id),
+                    'value' => '<input type="hidden" id="p-' . $line_id . '" name="p-' . $line_id . '" value="' . $line['produit_id'] . '">' .
+                        $langs->trans('Qty').': <input type="number" id="q-' . $line_id . '" name="q-' . $line_id . '" value="' . $qty . '" min="1" max="' . $line['qty_sent'] . '"> ' .
+                        ' '.$langs->trans('Warehouse').': '.$formproduct->selectWarehouses($warehouse, 'w-' . $line_id, 'warehouseopen,warehouseinternal', 1) . ' ' .
+                        '<br>'.$langs->trans('Equipements').': '.$form->multiselectarray('e-' . $line_id, $line['equipments'], $equipments, 0, 0, '', 0, 0, 'style="min-width:300px"')
+                );
+            }
+
+            // Create the confirm form
+            $this->resprints = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('CreateReturnProducts'), $langs->trans('SelectProductsToReturn'), 'create_return', $formquestion, 'yes', 1, 400, 700);
+
+            return 1;
+        }
 	}
 
 	function showLinkedObjectBlock($parameters,$object,$action){
 		if ($object->element == 'commande') {
 			global $conf, $langs, $db;
+            $morehtmlright = '';
 		$nbofdifferenttypes = count($object->linkedObjects);
 
 		print '<br><!-- showLinkedObjectBlock -->';
