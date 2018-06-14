@@ -1,0 +1,60 @@
+# Copyright (C)  SuperAdmin
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#
+# Générique
+#
+
+# Module label 'ModulesynergiestechcontratName'
+ModulesynergiestechcontratName = Synergies Tech
+synergiestechcontrat = Synergies Tech
+# Module description 'ModulesynergiestechcontratDesc'
+synergiestechcontratDesc = Contrat avancé et modèles PDF
+
+#
+# Page d'administration
+#
+synergiestechcontratSetup = Configuration du module mon module
+Settings = Réglages
+synergiestechcontratSetupPage = Page de réglage de mon module
+
+#
+# Page À propos
+#
+About = À propos
+synergiestechcontratAbout = À propos de mon module
+synergiestechcontratAboutPage = Page à propos de mon module
+
+#
+# Page d'exemple
+#
+MyPageName = Nom de ma page
+
+#
+# Box d'exemple
+#
+MyWidget = Mon widget
+MyWidgetDescription = Description de mon widget
+
+
+FactureRec=Modèle de facture
+ListOfContractsToFacturerec=Facturation des contrats
+FactureContracts=Facturation des contrats
+AddModelFactureRec=Générer facture modèle
+AddFacture=Facturer ces contrats
+
+ModelesGeneres= %s modèle de facture générés
+ModeleGenere=Modèle de facture généré
+FacturationContrat=Facturation contrat
