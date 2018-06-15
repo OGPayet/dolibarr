@@ -53,14 +53,10 @@ if (!$error && $massaction == 'facturerec') {
         $result = $objecttmp->fetch($toselectid);
         if ($result > 0) {
             //print'<pre>';var_dump($objecttmp->array_options);die();
-            $nbFactAn     = array(0, 12, 4, 2, 1); // mensuel, trimestre ....
             $initialvalue = $objecttmp->array_options['options_initialvalue'];
             $fixedamount  = $objecttmp->array_options['options_fixedamount'];
+            $nbFactAn     = array(0, 12, 4, 2, 1); // mensuel, trimestre ....
             $invoicedates = $nbFactAn[$objecttmp->array_options['options_invoicedates']]; //periode
-            $initialvalue = $objecttmp->array_options['options_initialvalue'];
-            $initialvalue = $objecttmp->array_options['options_initialvalue'];
-            $initialvalue = $objecttmp->array_options['options_initialvalue'];
-            $initialvalue = $objecttmp->array_options['options_initialvalue'];
 //            if (in_array($objecttmp->element, array('societe','member'))) $result = $objecttmp->delete($objecttmp->id, $user, 1);
 //            else $result = $objecttmp->delete($user);
             $result       = 1;
@@ -135,11 +131,11 @@ if (!$error && $massaction == 'facturerec') {
                     // TODO Is this really what we want ? Yes if source if template invoice but what if proposal or order ?
                     $localtax1_tx = get_localtax($tva_tx, 1, $facture->thirdparty);
                     $localtax2_tx = get_localtax($tva_tx, 2, $facture->thirdparty);
-
-                    $resultat = $facture->addline($desc, $lines[$i]->subprice / $invoicedates, $lines[$i]->qty, $tva_tx, $localtax1_tx, $localtax2_tx, $lines[$i]->fk_product,
-                        $lines[$i]->remise_percent, $date_start, $date_end, 0, $lines[$i]->info_bits, $lines[$i]->fk_remise_except, 'HT', 0, $product_type, $lines[$i]->rang, $lines[$i]->special_code,
-                        $facture->origin, $lines[$i]->rowid, $fk_parent_line, $lines[$i]->fk_fournprice, $lines[$i]->pa_ht / $invoicedates, $label, $array_options, $lines[$i]->situation_percent,
-                        $lines[$i]->fk_prev_id, $lines[$i]->fk_unit);
+                    $qty          = 1;
+                    $resultat     = $facture->addline($desc, $initialvalue / $invoicedates, $qty, $tva_tx, $localtax1_tx, $localtax2_tx, $lines[$i]->fk_product, $lines[$i]->remise_percent,
+                        $date_start, $date_end, 0, $lines[$i]->info_bits, $lines[$i]->fk_remise_except, 'HT', 0, $product_type, $lines[$i]->rang, $lines[$i]->special_code, $facture->origin,
+                        $lines[$i]->rowid, $fk_parent_line, $lines[$i]->fk_fournprice, $initialvalue / $invoicedates, $label, $array_options, $lines[$i]->situation_percent, $lines[$i]->fk_prev_id,
+                        $lines[$i]->fk_unit);
 
                     if ($resultat > 0) {
                         $lineid = $resultat;
@@ -192,7 +188,7 @@ if (!$error && $massaction == 'facturerec') {
 
 // facture model
 if (!$error && $massaction == 'facture') {
-    //$db->begin();
+    $db->begin();
 
     $objecttmp = new $objectclass($db);
     $nbok      = 0;
@@ -200,50 +196,119 @@ if (!$error && $massaction == 'facture') {
         $result = $objecttmp->fetch($toselectid);
         if ($result > 0) {
             //print'<pre>';var_dump($objecttmp->array_options);die();
-            $nbFactAn        = array(0, 12, 4, 2, 1); // mensuel, trimestre ....
-            $initialvalue    = $objecttmp->array_options['options_initialvalue'];
-            $fixedamount     = $objecttmp->array_options['options_fixedamount'];
-            $invoicedates    = $nbFactAn[$objecttmp->array_options['options_invoicedates']]; //periode
+            $initialvalue = $objecttmp->array_options['options_initialvalue'];
+            $fixedamount  = $objecttmp->array_options['options_fixedamount'];
+            if ($fixedamount === null) {
+                $fixedamount = 0;
+            }
+            $nbFactAn           = array(0, 12, 4, 2, 1); // mensuel, trimestre ....
+            $invoicedates       = $nbFactAn[$objecttmp->array_options['options_invoicedates']]; //periode
             // dates
-            $startdate       = strtotime($objecttmp->array_options['options_startdate']);
-            $duration        = $objecttmp->array_options['options_duration'];
-            $enddate         = strtotime($objecttmp->array_options['options_startdate']." +$duration month");
-            $tacitagreement  = $objecttmp->array_options['options_tacitagreement'];
-            $invoicetype     = $objecttmp->array_options['options_invoicetype'];
-            $firstdayofmonth = strtotime(date('Y-m-01 00:00:00'));
-            $now             = time();
-            $daysinmonth     = date("t");
-            $tstamptoday     = 60 * 60 * 24;
-            //
-            $initialvalue    = $objecttmp->array_options['options_initialvalue'];
-            $initialvalue    = $objecttmp->array_options['options_initialvalue'];
+            $startdate          = strtotime($objecttmp->array_options['options_startdate']);
+            $duration           = $objecttmp->array_options['options_duration'];
+            $enddate            = strtotime($objecttmp->array_options['options_startdate']." +$duration month");
+            $tacitagreement     = $objecttmp->array_options['options_tacitagreement'];
+            $invoicetype        = $objecttmp->array_options['options_invoicetype'];
+            $firstdaysofperiods = array(
+                1 => strtotime(date('Y-m-01 00:00:00')), //month
+                2 => firstDayOf(3), // trimestre
+                3 => firstDayOf(6), // semestre
+                4 => strtotime(date('Y-01-01 00:00:00')) //year
+            );
+            $firstdayofperiod   = $firstdaysofperiods[$objecttmp->array_options['options_invoicedates']];
+            $now                = time();
+            $daysinperiods      = array(
+                1 => date("t"),
+                2 => ceil(365 / 4),
+                3 => ceil(365 / 2),
+                4 => 365
+            );
+            $daysinperiod       = $daysinperiods[$objecttmp->array_options['options_invoicedates']];
+            $oneday             = 60 * 60 * 24;
+            $lastdayofperiod    = $firstdayofperiod + $oneday * $daysinperiod - 1; // 1 seconde avant le début de la période suivante
+            if ($invoicetype == '1') { //on facture la période suivante
+                $firstdayofperiod += $oneday * $daysinperiod;
+                $lastdayofperiod  += $oneday * $daysinperiod;
+                $now              += $oneday * $daysinperiod;
+            }
+            //revalorisation
+            $prohibitdecrease             = $objecttmp->array_options['options_prohibitdecrease'];
+            $dates_ravalo                 = array(
+                1 => get_next_birthday($objecttmp->array_options['options_startdate']),
+                2 => strtotime(date('Y-01-01 00:00:00')),
+                3 => strtotime(date('Y-04-01 00:00:00')),
+                4 => strtotime(date('Y-07-01 00:00:00')),
+                5 => strtotime(date('Y-09-01 00:00:00'))
+            );
+            $revalorisationperiod         = $objecttmp->array_options['options_revalorisationperiod'];
+            $reindexmethod                = $objecttmp->array_options['options_reindexmethod'];
+            $oldindicemonth               = $objecttmp->array_options['options_oldindicemonth'];
+            $newindicemonth               = $objecttmp->array_options['options_newindicemonth'];
+            $revalorisationdate           = $dates_ravalo[$revalorisationperiod];
+            $revalorisationactivationdate = strtotime($objecttmp->array_options['options_revalorisationactivationdate']);
 //            if (in_array($objecttmp->element, array('societe','member'))) $result = $objecttmp->delete($objecttmp->id, $user, 1);
 //            else $result = $objecttmp->delete($user);
-            $result          = 1;
+            $result                       = 1;
             // load facturerecS linked
             $objecttmp->fetchObjectLinked();
             if (isset($objecttmp->linkedObjects["facturerec"])) {
                 // most recent facturerec
-
                 foreach ($objecttmp->linkedObjects["facturerec"] as $idref => $obj) {
+                    $desc = '';
                     if ($startdate < $now && $now < $enddate) { // le contrat est en cour
                         $fac          = new Facture($db);
                         $fac->fac_rec = $obj->id;
                         $fac->socid   = $fac->fk_soc  = $obj->socid;
                         $fac->date    = dol_now();
-                        $fac->create($user);
-                        if ($firstdayofmonth < $startdate) { // prorata de début
-                            $prorata = ($startdate - $firstdayofmonth) / $tstamptoday / $daysinmonth;
-//                            print '<pre>';var_dump($fac->lines);die();
-//                            foreach ($fac->lines as $key => $value) {
-//
-//                            }
+                        $fac->create($user, 1);
+                        $ratio        = 1; // periode partielle
+                        $majoration   = 0; // majoration indice
+                        $desc         .= ' '.dol_print_date($firstdayofperiod, 'day').' => '.dol_print_date($lastdayofperiod, 'day');
+
+                        if ($firstdayofperiod < $startdate) { // prorata de début
+                            $ratio *= 1 - ($startdate - $firstdayofperiod) / $oneday / $daysinperiod;
+                        } // end prorata début
+
+                        if ($lastdayofperiod > $enddate && $tacitagreement != '1') { // prorata de fin
+                            $ratio *= 1 - ($startdate - $lastdayofperiod) / $oneday / $daysinperiod;
+                        } // end prorata fin
+
+                        if ($lastdayofperiod > $revalorisationactivationdate && $lastdayofperiod > $revalorisationdate) { // on doit revaloriser
+                            //$nbjouravant          = max($revalorisationactivationdate - $firstdayofperiod, 0) / $oneday;
+                            $nbdaysafter          = max($lastdayofperiod - $revalorisationactivationdate, 0) / $oneday;
+                            //P1 = P0 x (S1 / S0)
+                            $montantrevalorisable = $nbdaysafter / $daysinperiod * ($initialvalue - $fixedamount) / $invoicedates; //P0
+                            $indice0              = getIndice($reindexmethod, null, null, $oldindicemonth); //S0
+                            $indice1              = getIndice($reindexmethod, date('Y'), $newindicemonth);  //S1
+                            if ($indice0 === false) {
+                                setEventMessages($langs->trans("NoIndice0", $objecttmp->getNomUrl(1)), 0, 'errors');
+                                $error++; // die('indice0 OR indice1 not provided');
+                            }
+                            if ($indice1 === false) {
+                                setEventMessages($langs->trans("NoIndice1", $objecttmp->getNomUrl(1))." $reindexmethod ".$newindicemonth.'/'.date('Y'), 0, 'errors');
+                                $error++;  //die('indice0 OR indice1 not provided');
+                            }
+                            setEventMessages($objecttmp->getNomUrl(1)." Indice0: $indice0 , Indice1: $indice1", null, 'mesgs');
+                            if ($prohibitdecrease == '1' && $indice1 < $indice0) {
+                                $indice0 = 1;
+                                $indice1 = 1;
+                            }
+                            //P1 = P0 x (S1 / S0)
+                            $majoration += $montantrevalorisable * $indice1 / $indice0 - $montantrevalorisable;
+                            //die($ratio.' '.$nbdaysafter.' '.$montantrevalorisable.' '.$majoration);
+                        } // end revalorisation
+                        if (!$error) { // on met à jour la facture
+                            foreach ($fac->lines as &$line) {
+                                //print '<pre>';var_dump($fac->line);die();
+                                $fac->updateline(
+                                    $line->id, $line->desc.$desc, $line->multicurrency_subprice * $ratio + $majoration, $line->qty, $line->remise_percent, $line->date_start, $line->date_end,
+                                    $fac->txtva
+                                );
+                            }
                         }
                     }
                 }
             }
-
-
             //$db->commit();
             //die();
             if ($result <= 0) {
@@ -260,12 +325,13 @@ if (!$error && $massaction == 'facture') {
     }
 
     if (!$error) {
-        if ($nbok > 1) setEventMessages($langs->trans("ModelesGeneres", $nbok), null, 'mesgs');
-        else setEventMessages($langs->trans("ModeleGenere", $nbok), null, 'mesgs');
-        //$db->commit();
+        if ($nbok > 1) setEventMessages($langs->trans("FacturesGeneres", $nbok), null, 'mesgs');
+        else setEventMessages($langs->trans("FactureGenere", $nbok), null, 'mesgs');
+        $db->commit();
+        //header('Location: '.dol_buildpath('/compta/facture/list.php?leftmenu=customers_bills_draft&search_status=0', 2));
     }
     else {
-        //$db->rollback();
+        $db->rollback();
     }
     //var_dump($listofobjectthirdparties);exit;
 }
@@ -275,3 +341,57 @@ $parameters['uploaddir'] = $uploaddir;
 
 $reshook = $hookmanager->executeHooks('doMassActions', $parameters, $object, $action);    // Note that $action and $object may have been modified by some hooks
 if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+
+function get_next_birthday($birthday)
+{
+    $date = new DateTime($birthday);
+    $date->modify('+'.date('Y') - $date->format('Y').' years');
+    if ($date < new DateTime()) {
+        $date->modify('+1 year');
+    }
+
+    return $date->format('Y-m-d');
+}
+
+// return timestamp
+function firstDayOf($period = 3)
+{
+    $moisActuel = date("n");
+    $mois       = ceil($moisActuel / $period) * $period;
+    return strtotime(date("Y-$mois-01 00:00:00"));
+}
+
+function getIndice($source = 'Syntec', $year = null, $month = null, $id = null)
+{
+    global $db;
+    $table = MAIN_DB_PREFIX.'c_indice_'.strtolower($source);
+    if ($id !== null) {
+        $where = " `rowid` = ".(1 * $id);
+    } else {
+        if ($month == null || $year == null) {
+            $month = date('n');
+            $year  = date('Y');
+        }
+        $where = " `year_indice` = ".(1 * $year)." AND `month_indice` = ".(1 * $month);
+    }
+    $sql    = "SELECT indice FROM `$table` WHERE ".$where." LIMIT 1";
+    //var_dump($sql);
+    $result = $db->query($sql);
+    if ($result) {
+        if ($db->num_rows($result) === 1) {
+            $obj = $db->fetch_object($result);
+            return $obj->indice;
+        } elseif ($id === null) {
+            $sql    = "SELECT indice FROM `$table` WHERE `year_indice` = ".(1 * $year)." ORDER BY `month_indice` DESC LIMIT 1";
+            //var_dump($sql);
+            $result = $db->query($sql);
+            if ($result) {
+                if ($db->num_rows($result) === 1) {
+                    $obj = $db->fetch_object($result);
+                    return $obj->indice;
+                }
+            }
+        }
+    }
+    return false;
+}

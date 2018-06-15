@@ -58,3 +58,7 @@ AddFacture=Facturer ces contrats
 ModelesGeneres= %s modèle de facture générés
 ModeleGenere=Modèle de facture généré
 FacturationContrat=Facturation contrat
+FacturesGeneres=%s factures générées
+FactureGenere=Facture générée
+NoIndice0= %s Indice de référence non fournit
+NoIndice1= %s Indice courant non disponible
