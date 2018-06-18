@@ -1,0 +1,16 @@
+Module104090Name = Storico proposte commerciali
+Module104090Desc = Modulo per la storicizzazione delle diverse versioni delle proposte commerciali
+HistoryVersionSuccessfullDelete=Versione della proposta rimossa con successo
+HistoryVersionSuccessfullArchived=Versione della proposta archiviata correttamente
+HistoryVersionSuccessfullRestored=Versione della proposta recuperata correttamente
+AbricotNotFound=Il modulo necessita dell'installazione del modulo Abricot per il corretto funzionamento. Prego scaricare il modulo Abricot
+
+PropalHistory=Storico proposte commerciali
+AutoArchive=Archiviare automaticamente una proposta commerciale alla sua validazione
+PROPALEHISTORY_SHOW_VERSION_PDF=Visualizza il numero di versione sul file PDF (a partire dalla versione 2)
+
+Visualiser=Visualizza
+PropaleHistoryArchiver=Archivia
+Supprimer=Elimina
+Restaurer=Recupera
+ReturnInitialVersion=Ritorna versione corrente

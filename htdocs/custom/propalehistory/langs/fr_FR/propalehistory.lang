@@ -1,0 +1,26 @@
+Module104090Name = Propale-Historique
+Module104090Desc = Module permettant d'historiser les différentes versions de propositions faites à un client
+HistoryVersionSuccessfullDelete=Version historisée supprimée avec succès
+HistoryVersionSuccessfullArchived=Version de proposition archivée avec succès
+HistoryVersionSuccessfullRestored=Version de proposition restaurée avec succès
+AbricotNotFound=Le module complémentaire gratuit Abricot ne semble pas installé dans votre environnement mais est nécessaire pour utiliser ce module. Merci de le télécharger à l'adresse suivante
+
+
+AutoArchive=Archiver automatiquement une proposition commerciale lors de sa validation
+PROPALEHISTORY_SHOW_VERSION_PDF=Afficher le numéro de version sur le PDF (à partir de la 2e)
+
+ArchiveProposal=Archive proposition
+ArchiveProposalCheckboxLabel=Archiver la proposition ?
+ConfirmModifyProposal=Confirmer la modification de la proposition
+PROPALEHISTORY_ARCHIVE_ON_MODIFY = Demander l'archivage à la modification d'une proposition
+PropalHistoryAutoArchiveAndArchiveOnModifyCantBeUsedBoth=L'archivage à la validation et la modification ne peuvent être utilisés en même temps.
+
+PROPALEHISTORY_ARCHIVE_PDF_TOO=Archiver aussi le PDF
+PROPALEHISTORY_HIDE_VERSION_ON_TABS=Masquer le numéro de version dans les onglets
+
+ReturnInitialVersion=Retour version courante
+PropaleHistoryArchiver=Archiver
+Visualiser=Visualiser
+Restaurer=Restaurer
+
+PROPALEHISTORY_USE_COMPRESS_ARCHIVE=Compression des données en base

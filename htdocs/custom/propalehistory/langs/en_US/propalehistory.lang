@@ -1,0 +1,24 @@
+Module104090Name = Propale-History
+Module104090Desc = This module allows you to historize versions of proposals
+HistoryVersionSuccessfullDelete = Version was deleted successfully
+HistoryVersionSuccessfullArchived = Version proposal archived successfully
+HistoryVersionSuccessfullRestored = Version proposal successfully restored
+AbricotNotFound=Free module Abricot needed here. Please download
+
+
+AutoArchive=Automatically archive a proposal when it is validate
+PROPALEHISTORY_SHOW_VERSION_PDF=Show the version number on the PDF (from page 2 and next)
+
+ArchiveProposal=Archive proposal
+ArchiveProposalCheckboxLabel=Archiver the proposal?
+ConfirmModifyProposal=Confirm the modification of proposal
+PROPALEHISTORY_ARCHIVE_ON_MODIFY=Ask archiving when modifying a proposal
+PropalHistoryAutoArchiveAndArchiveOnModifyCantBeUsedBoth=Archiving at validation and modification can not be used at the same time.
+
+PROPALEHISTORY_ARCHIVE_PDF_TOO=Archive the PDF too
+PROPALEHISTORY_HIDE_VERSION_ON_TABS=Hide version number in tabs
+
+ReturnInitialVersion=Return initial version
+PropaleHistoryArchiver=Archive
+Visualiser=Show
+Restaurer=Restore
