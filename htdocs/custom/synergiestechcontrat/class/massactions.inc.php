@@ -398,8 +398,6 @@ function getIndice($source = 'Syntec', $year = null, $month = null, $id = null)
                 }
             }
         }
-    } else {
-        die('EROR '.$sql);
     }
     return false;
 }
