@@ -45,7 +45,7 @@ if (!$error && count($toselect) > $maxformassaction) {
 
 // facture model
 if (!$error && $massaction == 'facturerec') {
-    //$db->begin();
+    $db->begin();
 
     $objecttmp = new $objectclass($db);
     $nbok      = 0;
@@ -153,7 +153,7 @@ if (!$error && $massaction == 'facturerec') {
             }
             // secondly facturerec
             $facturerec                            = new FactureRec($db);
-            $facturerec->titre                     = $facture->thirdparty->nom." ($facture->id)";
+            $facturerec->titre                     = $db->escape($facture->thirdparty->nom." ($facture->id)");
             $facturerec->linked_objects            = array();
             $facturerec->linked_objects['contrat'] = $toselectid;
             $facturerec->create($user, $facture->id);
@@ -178,10 +178,10 @@ if (!$error && $massaction == 'facturerec') {
     if (!$error) {
         if ($nbok > 1) setEventMessages($langs->trans("ModelesGeneres", $nbok), null, 'mesgs');
         else setEventMessages($langs->trans("ModeleGenere", $nbok), null, 'mesgs');
-        //$db->commit();
+        $db->commit();
     }
     else {
-        //$db->rollback();
+        $db->rollback();
     }
     //var_dump($listofobjectthirdparties);exit;
 }
@@ -225,8 +225,8 @@ if (!$error && $massaction == 'facture') {
             );
             $daysinperiod       = $daysinperiods[$objecttmp->array_options['options_invoicedates']];
             $oneday             = 60 * 60 * 24;
-            $lastdayofperiod    = $firstdayofperiod + $oneday * $daysinperiod - 1; // 1 seconde avant le dÃ©but de la pÃ©riode suivante
-            if ($invoicetype == '1') { //on facture la pÃ©riode suivante
+            $lastdayofperiod    = $firstdayofperiod + $oneday * $daysinperiod - 1; // 1 seconde avant le début de la période suivante
+            if ($invoicetype == '1') { //on facture la période suivante
                 $firstdayofperiod += $oneday * $daysinperiod;
                 $lastdayofperiod  += $oneday * $daysinperiod;
                 $now              += $oneday * $daysinperiod;
@@ -265,9 +265,9 @@ if (!$error && $massaction == 'facture') {
                         $majoration   = 0; // majoration indice
                         $desc         .= ' '.dol_print_date($firstdayofperiod, 'day').' => '.dol_print_date($lastdayofperiod, 'day');
 
-                        if ($firstdayofperiod < $startdate) { // prorata de dÃ©but
+                        if ($firstdayofperiod < $startdate) { // prorata de début
                             $ratio *= 1 - ($startdate - $firstdayofperiod) / $oneday / $daysinperiod;
-                        } // end prorata dÃ©but
+                        } // end prorata début
 
                         if ($lastdayofperiod > $enddate && $tacitagreement != '1') { // prorata de fin
                             $ratio *= 1 - ($startdate - $lastdayofperiod) / $oneday / $daysinperiod;
@@ -297,7 +297,7 @@ if (!$error && $massaction == 'facture') {
                             $majoration += $montantrevalorisable * $indice1 / $indice0 - $montantrevalorisable;
                             //die($ratio.' '.$nbdaysafter.' '.$montantrevalorisable.' '.$majoration);
                         } // end revalorisation
-                        if (!$error) { // on met Ã  jour la facture
+                        if (!$error) { // on met à jour la facture
                             foreach ($fac->lines as &$line) {
                                 //print '<pre>';var_dump($fac->line);die();
                                 $fac->updateline(
@@ -374,7 +374,7 @@ function getIndice($source = 'Syntec', $year = null, $month = null, $id = null)
         }
         $where = " `year_indice` = ".(1 * $year)." AND `month_indice` = ".(1 * $month);
     }
-    $sql    = "SELECT indice FROM `$table` WHERE ".$where." LIMIT 1";
+    $sql    = "SELECT indice FROM `$table` WHERE (".$where.") AND indice !=0 LIMIT 1";
     //var_dump($sql);
     $result = $db->query($sql);
     if ($result) {
@@ -382,7 +382,7 @@ function getIndice($source = 'Syntec', $year = null, $month = null, $id = null)
             $obj = $db->fetch_object($result);
             return $obj->indice;
         } elseif ($id === null) {
-            $sql    = "SELECT indice FROM `$table` WHERE `year_indice` = ".(1 * $year)." ORDER BY `month_indice` DESC LIMIT 1";
+            $sql    = "SELECT indice FROM `$table` WHERE indice !=0 AND `year_indice` = ".(1 * $year)." ORDER BY `month_indice` DESC LIMIT 1";
             //var_dump($sql);
             $result = $db->query($sql);
             if ($result) {
