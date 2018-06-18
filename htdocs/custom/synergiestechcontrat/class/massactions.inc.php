@@ -225,8 +225,8 @@ if (!$error && $massaction == 'facture') {
             );
             $daysinperiod       = $daysinperiods[$objecttmp->array_options['options_invoicedates']];
             $oneday             = 60 * 60 * 24;
-            $lastdayofperiod    = $firstdayofperiod + $oneday * $daysinperiod - 1; // 1 seconde avant le début de la période suivante
-            if ($invoicetype == '1') { //on facture la période suivante
+            $lastdayofperiod    = $firstdayofperiod + $oneday * $daysinperiod - 1; // 1 seconde avant le d?but de la p?riode suivante
+            if ($invoicetype == '1') { //on facture la p?riode suivante
                 $firstdayofperiod += $oneday * $daysinperiod;
                 $lastdayofperiod  += $oneday * $daysinperiod;
                 $now              += $oneday * $daysinperiod;
@@ -246,9 +246,11 @@ if (!$error && $massaction == 'facture') {
             $newindicemonth               = $objecttmp->array_options['options_newindicemonth'];
             $revalorisationdate           = $dates_ravalo[$revalorisationperiod];
             $revalorisationactivationdate = strtotime($objecttmp->array_options['options_revalorisationactivationdate']);
+            if ($revalorisationactivationdate == false) $revalorisationactivationdate = 0;
+
 //            if (in_array($objecttmp->element, array('societe','member'))) $result = $objecttmp->delete($objecttmp->id, $user, 1);
 //            else $result = $objecttmp->delete($user);
-            $result                       = 1;
+            $result = 1;
             // load facturerecS linked
             $objecttmp->fetchObjectLinked();
             if (isset($objecttmp->linkedObjects["facturerec"])) {
@@ -265,9 +267,9 @@ if (!$error && $massaction == 'facture') {
                         $majoration   = 0; // majoration indice
                         $desc         .= ' '.dol_print_date($firstdayofperiod, 'day').' => '.dol_print_date($lastdayofperiod, 'day');
 
-                        if ($firstdayofperiod < $startdate) { // prorata de début
+                        if ($firstdayofperiod < $startdate) { // prorata de d?but
                             $ratio *= 1 - ($startdate - $firstdayofperiod) / $oneday / $daysinperiod;
-                        } // end prorata début
+                        } // end prorata d?but
 
                         if ($lastdayofperiod > $enddate && $tacitagreement != '1') { // prorata de fin
                             $ratio *= 1 - ($startdate - $lastdayofperiod) / $oneday / $daysinperiod;
@@ -297,7 +299,7 @@ if (!$error && $massaction == 'facture') {
                             $majoration += $montantrevalorisable * $indice1 / $indice0 - $montantrevalorisable;
                             //die($ratio.' '.$nbdaysafter.' '.$montantrevalorisable.' '.$majoration);
                         } // end revalorisation
-                        if (!$error) { // on met à jour la facture
+                        if (!$error) { // on met ? jour la facture
                             foreach ($fac->lines as &$line) {
                                 //print '<pre>';var_dump($fac->line);die();
                                 $fac->updateline(
@@ -364,6 +366,10 @@ function firstDayOf($period = 3)
 function getIndice($source = 'Syntec', $year = null, $month = null, $id = null)
 {
     global $db;
+    if ((string) (int) $source == $source) { //la source est un numéro chez ST
+        $assoc  = array(2 => 'Syntec', 3 => 'Insee');
+        $source = $assoc[$source];
+    }
     $table = MAIN_DB_PREFIX.'c_indice_'.strtolower($source);
     if ($id !== null) {
         $where = " `rowid` = ".(1 * $id);
@@ -374,7 +380,7 @@ function getIndice($source = 'Syntec', $year = null, $month = null, $id = null)
         }
         $where = " `year_indice` = ".(1 * $year)." AND `month_indice` = ".(1 * $month);
     }
-    $sql    = "SELECT indice FROM `$table` WHERE (".$where.") AND indice !=0 LIMIT 1";
+    $sql    = "SELECT indice FROM `$table` WHERE (".$where.") AND indice !=0 AND active= 1 LIMIT 1";
     //var_dump($sql);
     $result = $db->query($sql);
     if ($result) {
@@ -382,7 +388,7 @@ function getIndice($source = 'Syntec', $year = null, $month = null, $id = null)
             $obj = $db->fetch_object($result);
             return $obj->indice;
         } elseif ($id === null) {
-            $sql    = "SELECT indice FROM `$table` WHERE indice !=0 AND `year_indice` = ".(1 * $year)." ORDER BY `month_indice` DESC LIMIT 1";
+            $sql    = "SELECT indice FROM `$table` WHERE indice !=0 AND active= 1  AND `year_indice` = ".(1 * $year)." ORDER BY `month_indice` DESC LIMIT 1";
             //var_dump($sql);
             $result = $db->query($sql);
             if ($result) {
@@ -392,6 +398,8 @@ function getIndice($source = 'Syntec', $year = null, $month = null, $id = null)
                 }
             }
         }
+    } else {
+        die('EROR '.$sql);
     }
     return false;
 }
