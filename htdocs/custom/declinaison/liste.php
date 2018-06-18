@@ -576,7 +576,7 @@ else
 		print '<td class="liste_titre" align="left">';
 		print '<input class="flat" type="text" name="sref" size="8" value="'.$sref.'">';
 		print '</td>';
-		print '<td class="liste_titre" align="left">';
+		print '<td class="liste_titre" style="width:300px;" align="left">';
 		print '<input class="flat" type="text" name="snom" size="12" value="'.$snom.'">';
 		print '</td>';
 		if (! empty($conf->barcode->enabled))

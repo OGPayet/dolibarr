@@ -35,10 +35,6 @@ class SeedObject extends CommonObject
 	 */
 	protected $fields=array();
 
-	protected $fk_element='';
-
-	protected $childtable=array();
-
 	/**
 	 *  Constructor
 	 *
@@ -286,7 +282,9 @@ class SeedObject extends CommonObject
         $res = $this->updateCommon($user);
         if ($res)
         {
-           $this->saveChild($user);
+            $result = $this->call_trigger(strtoupper($this->element). '_UPDATE', $user);
+            if ($result < 0) $error++;
+            else $this->saveChild($user);
         }
         else
         {
@@ -324,8 +322,11 @@ class SeedObject extends CommonObject
         $res = $this->createCommon($user);
 		if($res)
 		{
+			$this->id = $this->db->last_insert_id($this->table_element);
 
-			$this->saveChild($user);
+			$result = $this->call_trigger(strtoupper($this->element). '_CREATE', $user);
+            if ($result < 0) $error++;
+            else $this->saveChild($user);
 		}
 		else
         {
@@ -359,8 +360,12 @@ class SeedObject extends CommonObject
         $error = 0;
         $this->db->begin();
 
-        if ($this->deleteCommon($user)>0)
+        $result = $this->call_trigger(strtoupper($this->element). '_DELETE', $user);
+        if ($result < 0) $error++;
+
+        if (!$error)
         {
+            $this->deleteCommon($user);
             if($this->withChild && !empty($this->childtables))
             {
                 foreach($this->childtables as $className => &$childTable)

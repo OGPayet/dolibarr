@@ -1,0 +1,10 @@
+diff a/htdocs/custom/synergiestechcontrat/class/massactions.inc.php b/htdocs/custom/synergiestechcontrat/class/massactions.inc.php	(rejected hunks)
+@@ -153,7 +153,7 @@ if (!$error && $massaction == 'facturerec') {
+             }
+             // secondly facturerec
+             $facturerec                            = new FactureRec($db);
+-            $facturerec->titre                     = $facture->thirdparty->nom." ($facture->id)";
++            $facturerec->titre                     = $db->escape($facture->thirdparty->nom." ($facture->id)");
+             $facturerec->linked_objects            = array();
+             $facturerec->linked_objects['contrat'] = $toselectid;
+             $facturerec->create($user, $facture->id);
