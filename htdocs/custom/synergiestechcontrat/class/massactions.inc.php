@@ -198,7 +198,8 @@ if (!$error && $massaction == 'facture') {
             //print'<pre>';var_dump($objecttmp->array_options);die();
             $initialvalue = $objecttmp->array_options['options_initialvalue'];
             $fixedamount  = $objecttmp->array_options['options_fixedamount'];
-            if ($fixedamount === null) {
+            //var_dump($fixedamount);die();
+            if ($fixedamount === null || $fixedamount === '') {
                 $fixedamount = 0;
             }
             $nbFactAn           = array(0, 12, 4, 2, 1); // mensuel, trimestre ....
@@ -216,6 +217,7 @@ if (!$error && $massaction == 'facture') {
                 4 => strtotime(date('Y-01-01 00:00:00')) //year
             );
             $firstdayofperiod   = $firstdaysofperiods[$objecttmp->array_options['options_invoicedates']];
+            //var_dump($firstdayofperiod);die();
             $now                = time();
             $daysinperiods      = array(
                 1 => date("t"),
@@ -238,7 +240,7 @@ if (!$error && $massaction == 'facture') {
                 2 => strtotime(date('Y-01-01 00:00:00')),
                 3 => strtotime(date('Y-04-01 00:00:00')),
                 4 => strtotime(date('Y-07-01 00:00:00')),
-                5 => strtotime(date('Y-09-01 00:00:00'))
+                5 => strtotime(date('Y-10-01 00:00:00'))
             );
             $revalorisationperiod         = $objecttmp->array_options['options_revalorisationperiod'];
             $reindexmethod                = $objecttmp->array_options['options_reindexmethod'];
@@ -257,12 +259,13 @@ if (!$error && $massaction == 'facture') {
                 // most recent facturerec
                 foreach ($objecttmp->linkedObjects["facturerec"] as $idref => $obj) {
                     $desc = '';
-                    if ($startdate < $now && $now < $enddate) { // le contrat est en cour
+                    if ($startdate < $now && $now < $enddate || $tacitagreement && $now > $enddate) { // le contrat est en cour
                         $fac          = new Facture($db);
                         $fac->fac_rec = $obj->id;
                         $fac->socid   = $fac->fk_soc  = $obj->socid;
                         $fac->date    = dol_now();
                         $fac->create($user, 1);
+                        //var_dump($fac);die();
                         $ratio        = 1; // periode partielle
                         $majoration   = 0; // majoration indice
                         $desc         .= ' '.dol_print_date($firstdayofperiod, 'day').' => '.dol_print_date($lastdayofperiod, 'day');
@@ -277,11 +280,14 @@ if (!$error && $massaction == 'facture') {
 
                         if ($lastdayofperiod > $revalorisationactivationdate && $lastdayofperiod > $revalorisationdate) { // on doit revaloriser
                             //$nbjouravant          = max($revalorisationactivationdate - $firstdayofperiod, 0) / $oneday;
+                            if ($revalorisationactivationdate == 0) {
+                                $revalorisationactivationdate = $firstdayofperiod;
+                            }
                             $nbdaysafter          = max($lastdayofperiod - $revalorisationactivationdate, 0) / $oneday;
                             //P1 = P0 x (S1 / S0)
                             $montantrevalorisable = $nbdaysafter / $daysinperiod * ($initialvalue - $fixedamount) / $invoicedates; //P0
                             $indice0              = getIndice($reindexmethod, null, null, $oldindicemonth); //S0
-                            $indice1              = getIndice($reindexmethod, date('Y'), $newindicemonth);  //S1
+                            $indice1              = getIndice($reindexmethod, null, $newindicemonth);  //S1
                             if ($indice0 === false) {
                                 setEventMessages($langs->trans("NoIndice0", $objecttmp->getNomUrl(1)), 0, 'errors');
                                 $error++; // die('indice0 OR indice1 not provided');
@@ -290,21 +296,28 @@ if (!$error && $massaction == 'facture') {
                                 setEventMessages($langs->trans("NoIndice1", $objecttmp->getNomUrl(1))." $reindexmethod ".$newindicemonth.'/'.date('Y'), 0, 'errors');
                                 $error++;  //die('indice0 OR indice1 not provided');
                             }
-                            setEventMessages($objecttmp->getNomUrl(1)." Indice0: $indice0 , Indice1: $indice1", null, 'mesgs');
-                            if ($prohibitdecrease == '1' && $indice1 < $indice0) {
-                                $indice0 = 1;
-                                $indice1 = 1;
+                            if ($indice0->year_indice >= $indice1->year_indice || $indice0->year_indice >= $indice1->year_indice && $indice0->month_indice >= $indice1->month_indice) { // pas de taux dans le futur
+                                $indice0->indice = 1;
+                                $indice1->indice = 1;
+                            } else {
+                                setEventMessages($objecttmp->getNomUrl(1)." Indice0: $indice0->indice $indice0->month_indice/$indice0->year_indice , Indice1: $indice1->indice $indice1->month_indice/$indice1->year_indice",
+                                    null, 'mesgs');
+                            }
+                            if ($prohibitdecrease == '1' && $indice1->indice < $indice0->indice) { // pas de dépression
+                                $indice0->indice = 1;
+                                $indice1->indice = 1;
                             }
                             //P1 = P0 x (S1 / S0)
-                            $majoration += $montantrevalorisable * $indice1 / $indice0 - $montantrevalorisable;
-                            //die($ratio.' '.$nbdaysafter.' '.$montantrevalorisable.' '.$majoration);
+                            $majoration += $montantrevalorisable * $indice1->indice / $indice0->indice - $montantrevalorisable;
+//                            var_dump($majoration,$montantrevalorisable, $indice1 , $indice0 , $montantrevalorisable);
+//                            die($ratio.' '.$nbdaysafter.' '.$montantrevalorisable.' '.$majoration);
                         } // end revalorisation
                         if (!$error) { // on met ? jour la facture
                             foreach ($fac->lines as &$line) {
-                                //print '<pre>';var_dump($fac->line);die();
+                                //print '<pre>';var_dump($fac->tva_tx);die();
                                 $fac->updateline(
                                     $line->id, $line->desc.$desc, $line->multicurrency_subprice * $ratio + $majoration, $line->qty, $line->remise_percent, $line->date_start, $line->date_end,
-                                    $fac->txtva
+                                    $line->tva_tx
                                 );
                             }
                         }
@@ -359,7 +372,7 @@ function get_next_birthday($birthday)
 function firstDayOf($period = 3)
 {
     $moisActuel = date("n");
-    $mois       = ceil($moisActuel / $period) * $period;
+    $mois       = ceil($moisActuel / $period) * $period - 2;
     return strtotime(date("Y-$mois-01 00:00:00"));
 }
 
@@ -374,30 +387,36 @@ function getIndice($source = 'Syntec', $year = null, $month = null, $id = null)
     if ($id !== null) {
         $where = " `rowid` = ".(1 * $id);
     } else {
-        if ($month == null || $year == null) {
+        if ($month == null && $year == null) {
             $month = date('n');
             $year  = date('Y');
+            $where = " `year_indice` = ".(1 * $year)." AND `month_indice` = ".(1 * $month);
+        } elseif ($year == null && $month != null) {
+            $where = " `month_indice` = ".(1 * $month);
+        } else {
+            $where = " `year_indice` = ".(1 * $year)." AND `month_indice` = ".(1 * $month);
         }
-        $where = " `year_indice` = ".(1 * $year)." AND `month_indice` = ".(1 * $month);
     }
-    $sql    = "SELECT indice FROM `$table` WHERE (".$where.") AND indice !=0 AND active= 1 LIMIT 1";
+    $sql    = "SELECT indice, year_indice, month_indice FROM `$table` WHERE (".$where.") AND indice !=0 AND active= 1 ORDER BY `year_indice` DESC, `month_indice` DESC LIMIT 1";
     //var_dump($sql);
     $result = $db->query($sql);
     if ($result) {
         if ($db->num_rows($result) === 1) {
             $obj = $db->fetch_object($result);
-            return $obj->indice;
+            return $obj;
         } elseif ($id === null) {
-            $sql    = "SELECT indice FROM `$table` WHERE indice !=0 AND active= 1  AND `year_indice` = ".(1 * $year)." ORDER BY `month_indice` DESC LIMIT 1";
+            $sql    = "SELECT indice, year_indice, month_indice FROM `$table` WHERE indice !=0 AND active= 1  AND `year_indice` = ".(1 * $year)." ORDER BY `year_indice` DESC, `month_indice` DESC LIMIT 1";
             //var_dump($sql);
             $result = $db->query($sql);
             if ($result) {
                 if ($db->num_rows($result) === 1) {
                     $obj = $db->fetch_object($result);
-                    return $obj->indice;
+                    return $obj;
                 }
             }
         }
+    } else {
+        die('EROR '.$sql);
     }
     return false;
 }
