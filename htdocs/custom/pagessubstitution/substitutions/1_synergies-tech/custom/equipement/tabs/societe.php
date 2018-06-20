@@ -114,11 +114,11 @@ if (DOL_VERSION >= "5.0.0") {
 	$return = "";
 	if(!empty($list_contract)) {
 		foreach($list_contract as $contract) {
-			$extrafields = new ExtraFields($db);
-			$extralabels=$extrafields->fetch_name_optionals_label($contract->table_element);
+			$extrafields1 = new ExtraFields($db);
+			$extralabels1=$extrafields1->fetch_name_optionals_label($contract->table_element);
 			$contract->fetch($rowid);
-			$contract->fetch_optionals($rowid,$extralabels);
-			$return = "<a href='".DOL_URL_ROOT."/contrat/card.php?id=".$contract->id."'> ".$extrafields->showOutputField('formule',$contract->array_options['options_formule'])." - " . $contract->ref."</a> ";
+			$contract->fetch_optionals($rowid,$extralabels1);
+			$return = "<a href='".DOL_URL_ROOT."/contrat/card.php?id=".$contract->id."'> ".$extrafields1->showOutputField('formule',$contract->array_options['options_formule'])." - " . $contract->ref."</a> ";
 		}
 		print '<h1 style="color:green;text-align:center;font-size: 4em;">Avec contrat : '.$return.'</h1>';
 
