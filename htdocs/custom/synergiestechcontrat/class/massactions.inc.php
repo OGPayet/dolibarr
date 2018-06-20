@@ -244,19 +244,20 @@ if (!$error && $massaction == 'facture') {
             $lastdayofnextperiod    = $lastdaysofnextperiods[$periodsetter];
             //var_dump($firstdayofperiod);die();
             $now                    = time();
-            $daysinperiods          = array(
-                1 => date("t"),
-                2 => ceil(365 / 4),
-                3 => ceil(365 / 2),
-                4 => 365
-            );
-            $daysinperiod           = $daysinperiods[$objecttmp->array_options['options_invoicedates']];
+//            $daysinperiods          = array(
+//                1 => date("t"),
+//                2 => ceil(365 / 4),
+//                3 => ceil(365 / 2),
+//                4 => 365
+//            );
+//            $daysinperiod           = $daysinperiods[$objecttmp->array_options['options_invoicedates']];
             $lastdayofperiod        = $firstdayofperiod + $oneday * $daysinperiod - 1; // 1 seconde avant le d?but de la p?riode suivante
             if ($invoicetype == '1') { //on facture la p?riode suivante
                 $firstdayofperiod = $firstdayofnextperiod;
                 $lastdayofperiod  = $lastdayofnextperiod;
                 $now              += $oneday * $daysinperiod;
             }
+            $daysinperiod                 = ($lastdayofperiod - $firstdayofperiod) / $oneday;
             //revalorisation
             $prohibitdecrease             = $objecttmp->array_options['options_prohibitdecrease'];
             $dates_ravalo                 = array(
@@ -335,7 +336,7 @@ if (!$error && $massaction == 'facture') {
                             }
                             //P1 = P0 x (S1 / S0)
                             $majoration += $montantrevalorisable * $indice1->indice / $indice0->indice - $montantrevalorisable;
-//                            var_dump($majoration,$montantrevalorisable, $indice1 , $indice0 , $montantrevalorisable);
+//                            var_dump($majoration, $montantrevalorisable, $indice1, $indice0, $montantrevalorisable);
 //                            die($ratio.' '.$nbdaysafter.' '.$montantrevalorisable.' '.$majoration);
                         } // end revalorisation
                         if (!$error) { // on met ? jour la facture
