@@ -287,7 +287,9 @@ if (!$error && $massaction == 'facture') {
                         $fac          = new Facture($db);
                         $fac->fac_rec = $obj->id;
                         $fac->socid   = $fac->fk_soc  = $obj->socid;
-                        $fac->date    = $firstdayofnextperiod;
+                        //Commenté par Alexis L - 1531-20062018
+						//$fac->date    = $firstdayofnextperiod;
+						$fac->date    = dol_now();
                         $fac->create($user, 1);
                         //var_dump($fac);die();
                         $ratio        = 1; // periode partielle
