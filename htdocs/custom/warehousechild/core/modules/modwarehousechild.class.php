@@ -361,6 +361,18 @@ class modwarehousechild extends DolibarrModuleswarehousechild
         $ml->custom   = '/warehousechild/masterlink/product/stock/list.php';
         $ml->active   = 1;
         $ml->create($user);
+        $ml->original = '/product/stock/product.php';
+        $ml->custom   = '/warehousechild/masterlink/product/stock/product.php';
+        $ml->active   = 1;
+        $ml->create($user);
+        $ml->original = '/product/card.php';
+        $ml->custom   = '/warehousechild/masterlink/product/card.php';
+        $ml->active   = 1;
+        $ml->create($user);
+        $ml->original = '/fourn/commande/dispatch.php';
+        $ml->custom   = '/warehousechild/masterlink/fourn/commande/dispatch.php';
+        $ml->active   = 1;
+        $ml->create($user);
         return $this->_init($sql, $options);
     }
 
@@ -379,8 +391,11 @@ class modwarehousechild extends DolibarrModuleswarehousechild
 
         $ml = new masterlink($db);
 
+        $ml->delete(0, '/product/stock/product.php', '/warehousechild/masterlink/product/stock/product.php');
         $ml->delete(0, '/product/stock/card.php', '/warehousechild/masterlink/product/stock/card.php');
         $ml->delete(0, '/product/stock/list.php', '/warehousechild/masterlink/product/stock/list.php');
+        $ml->delete(0, '/product/card.php', '/warehousechild/masterlink/product/card.php');
+        $ml->delete(0, '/fourn/commande/dispatch.php', '/warehousechild/masterlink/fourn/commande/dispatch.php');
 
         $sql = array();
 

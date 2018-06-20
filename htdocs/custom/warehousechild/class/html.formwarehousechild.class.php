@@ -18,6 +18,7 @@
 
 class WarehouseschildForm extends Form
 {
+    public $predefinedSubdivide;
 
     public function __construct($db)
     {
@@ -95,5 +96,36 @@ class WarehouseschildForm extends Form
         print '</label><br/><br />';
         print '<input class="butAction" type="submit" value="Créer les entrepots enfants" />';
         print '</form>';
+    }
+
+    function productFavoriteWC($object)
+    {
+        $sql   = "SELECT fk_target FROM	".MAIN_DB_PREFIX."element_element WHERE	fk_source = $object->id AND sourcetype = 'product' AND targettype = 'stock'";
+        //var_dump($sql);
+        $resql = $this->db->query($sql);
+        print '<table summary="" class="centpercent notopnoleftnoright" style="margin-bottom: 2px;"><tbody><tr><td class="nobordernopadding" valign="middle"><div class="titre">Entrepôt par défaut</div></td></tr></tbody></table>';
+        print '<div class="div-table-responsive-no-min">
+    <table class="liste formdoc noborder" summary="listofdocumentstable" width="100%"><tbody>
+    <tr class="liste_titre">
+    <th colspan="5" class="formdoc liste_titre maxwidthonsmartphone" align="center">&nbsp;</th></tr>';
+        if ($resql) {
+            require_once DOL_DOCUMENT_ROOT.'/product/stock/class/entrepot.class.php';
+            $staticEntrepot = new Entrepot($this->db);
+            $num            = $this->db->num_rows($resql);
+            $i              = 0;
+            while ($i < $num) {
+                $obj = $this->db->fetch_object($resql);
+                $fetch = $staticEntrepot->fetch($obj->fk_target);
+                if($fetch==1) {//pas supprimé
+                    print '<tr class="oddeven"><td colspan="3" class="">';
+                    print $staticEntrepot->getNomUrl(1, '', 1);
+                    print '</td></tr>';
+                }
+                $i++;
+            }
+        } else {
+            print '<tr class="oddeven"><td colspan="3" class="opacitymedium">Aucun</td></tr>';
+        }
+        print '</tbody></table></div>';
     }
 }
