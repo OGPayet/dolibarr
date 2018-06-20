@@ -70,12 +70,21 @@ if (!$error && $massaction == 'facturerec') {
             }
             // create Facture Rec
             //  first facture brouillon
-            $facture         = new Facture($db);
-            $facture->socid  = $facture->fk_soc = $objecttmp->socid;
+            $facture                    = new Facture($db);
+            $cl                         = new Client($db);
+            $cl->fetch($objecttmp->socid);
+            $facture->socid             = $facture->fk_soc            = $objecttmp->socid;
             $facture->fetch_thirdparty();
-            $facture->date   = dol_now();
+            $facture->date              = dol_now();
+            $facture->mode_reglement_id = $cl->mode_reglement_id;
+            $facture->cond_reglement_id = $cl->cond_reglement_id;
+            $facture->cond_reglement    = $cl->cond_reglement;
+            $facture->fk_account        = $cl->fk_account;
             $facture->create($user);
-            $lines           = $objecttmp->lines;
+//            echo '<pre>';
+//            var_dump($cl, $facture);
+//            die();
+            $lines                      = $objecttmp->lines;
             if (empty($lines) && method_exists($objecttmp, 'fetch_lines')) {
                 $srcobject->fetch_lines();
                 $lines = $objecttmp->lines;
@@ -202,35 +211,50 @@ if (!$error && $massaction == 'facture') {
             if ($fixedamount === null || $fixedamount === '') {
                 $fixedamount = 0;
             }
-            $nbFactAn           = array(0, 12, 4, 2, 1); // mensuel, trimestre ....
-            $invoicedates       = $nbFactAn[$objecttmp->array_options['options_invoicedates']]; //periode
+            $oneday                 = 60 * 60 * 24;
+            $nbFactAn               = array(0, 12, 4, 2, 1); // mensuel, trimestre ....
+            $invoicedates           = $nbFactAn[$objecttmp->array_options['options_invoicedates']]; //periode
             // dates
-            $startdate          = strtotime($objecttmp->array_options['options_startdate']);
-            $duration           = $objecttmp->array_options['options_duration'];
-            $enddate            = strtotime($objecttmp->array_options['options_startdate']." +$duration month");
-            $tacitagreement     = $objecttmp->array_options['options_tacitagreement'];
-            $invoicetype        = $objecttmp->array_options['options_invoicetype'];
-            $firstdaysofperiods = array(
+            $startdate              = strtotime($objecttmp->array_options['options_startdate']);
+            $duration               = $objecttmp->array_options['options_duration'];
+            $enddate                = strtotime($objecttmp->array_options['options_startdate']." +$duration month");
+            $tacitagreement         = $objecttmp->array_options['options_tacitagreement'];
+            $invoicetype            = $objecttmp->array_options['options_invoicetype'];
+            $firstdaysofperiods     = array(
                 1 => strtotime(date('Y-m-01 00:00:00')), //month
                 2 => firstDayOf(3), // trimestre
                 3 => firstDayOf(6), // semestre
                 4 => strtotime(date('Y-01-01 00:00:00')) //year
             );
-            $firstdayofperiod   = $firstdaysofperiods[$objecttmp->array_options['options_invoicedates']];
+            $firstdaysofnextperiods = array(
+                1 => firstDayOf(1, 1), //month
+                2 => firstDayOf(3, 1), // trimestre
+                3 => firstDayOf(6, 1), // semestre
+                4 => firstDayOf(12, 1) //year
+            );
+            $lastdaysofnextperiods  = array(
+                1 => firstDayOf(1, 2) - $oneday, //month
+                2 => firstDayOf(3, 2) - $oneday, // trimestre
+                3 => firstDayOf(6, 2) - $oneday, // semestre
+                4 => firstDayOf(12, 2) - $oneday //year
+            );
+            $periodsetter           = $objecttmp->array_options['options_invoicedates'];
+            $firstdayofperiod       = $firstdaysofperiods[$periodsetter];
+            $firstdayofnextperiod   = $firstdaysofnextperiods[$periodsetter];
+            $lastdayofnextperiod    = $lastdaysofnextperiods[$periodsetter];
             //var_dump($firstdayofperiod);die();
-            $now                = time();
-            $daysinperiods      = array(
+            $now                    = time();
+            $daysinperiods          = array(
                 1 => date("t"),
                 2 => ceil(365 / 4),
                 3 => ceil(365 / 2),
                 4 => 365
             );
-            $daysinperiod       = $daysinperiods[$objecttmp->array_options['options_invoicedates']];
-            $oneday             = 60 * 60 * 24;
-            $lastdayofperiod    = $firstdayofperiod + $oneday * $daysinperiod - 1; // 1 seconde avant le d?but de la p?riode suivante
+            $daysinperiod           = $daysinperiods[$objecttmp->array_options['options_invoicedates']];
+            $lastdayofperiod        = $firstdayofperiod + $oneday * $daysinperiod - 1; // 1 seconde avant le d?but de la p?riode suivante
             if ($invoicetype == '1') { //on facture la p?riode suivante
-                $firstdayofperiod += $oneday * $daysinperiod;
-                $lastdayofperiod  += $oneday * $daysinperiod;
+                $firstdayofperiod = $firstdayofnextperiod;
+                $lastdayofperiod  = $lastdayofnextperiod;
                 $now              += $oneday * $daysinperiod;
             }
             //revalorisation
@@ -263,12 +287,12 @@ if (!$error && $massaction == 'facture') {
                         $fac          = new Facture($db);
                         $fac->fac_rec = $obj->id;
                         $fac->socid   = $fac->fk_soc  = $obj->socid;
-                        $fac->date    = dol_now();
+                        $fac->date    = $firstdayofnextperiod;
                         $fac->create($user, 1);
                         //var_dump($fac);die();
                         $ratio        = 1; // periode partielle
                         $majoration   = 0; // majoration indice
-                        //$desc         .= ' '.dol_print_date($firstdayofperiod, 'day').' => '.dol_print_date($lastdayofperiod, 'day');
+                        $desc         .= ' '.dol_print_date($firstdayofperiod, 'day').' => '.dol_print_date($lastdayofperiod, 'day');
 
                         if ($firstdayofperiod < $startdate) { // prorata de d?but
                             $ratio *= 1 - ($startdate - $firstdayofperiod) / $oneday / $daysinperiod;
@@ -369,10 +393,10 @@ function get_next_birthday($birthday)
 }
 
 // return timestamp
-function firstDayOf($period = 3)
+function firstDayOf($period = 3, $next = 0)
 {
-    $moisActuel = date("n");
-    $mois       = ceil($moisActuel / $period) * $period - 2;
+    $moisActuel = date("n", time() + 2592000 * $next * $period);
+    $mois       = ceil($moisActuel / $period) * $period - $period + 1;
     return strtotime(date("Y-$mois-01 00:00:00"));
 }
 
