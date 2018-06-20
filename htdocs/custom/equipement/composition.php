@@ -129,7 +129,7 @@ if (count($tblParent) > 0) {
 
 $factory->id=$object->fk_product;
 
-// un OF est-il lié à l'équipement (factory)?
+// un OF est-il liï¿½ ï¿½ l'ï¿½quipement (factory)?
 $factoryid = $factory->get_equipement_linked($id);
 if ($factoryid >0 )
 	$factory->get_sousproduits_factory_arbo($factoryid);
@@ -143,10 +143,16 @@ if ($action == 'save' && $user->rights->equipement->creer) {
 	if (count($prods_arbo) > 0) {
 		foreach ($prods_arbo as $value) {
 			if ($value['type']==0) {
-				// on boucle sur le nombre d'équipement saisie
+				// on boucle sur le nombre d'ï¿½quipement saisie
 				for ($i=0; $i < $value['nb']; $i++) {
-					// on enregistre ce qui a été saisie
-					$object->set_component($id, $value['id'], $i, GETPOST('ref_'.$value['id'].'_'.$i));
+				    $refComponent = GETPOST('ref_'.$value['id'].'_'.$i);
+					// on enregistre ce qui a ï¿½tï¿½ saisie
+					$object->set_component($id, $value['id'], $i, $refComponent);
+                    if ($refComponent) {
+                        $componentstatic=new Equipement($db);
+                        $componentstatic->fetch('', $refComponent);
+                        $componentstatic->update_note(GETPOST('note_'.$value['id'].'_'.$i), '_private');
+                    }
 				}
 			}
 		}
@@ -161,11 +167,12 @@ if (count($prods_arbo) > 0) {
 	print '<b>'.$langs->trans("EquipementChildAssociationList").'</b><BR>';
 	print '<form action="'.dol_buildpath('/equipement', 1).'/composition.php?id='.$id.'" method="post">';
 	print '<input type="hidden" name="action" value="save">';
-	print '<table class="border" >';
+	print '<table class="border" width="100%">';
 	print '<tr class="liste_titre">';
 	print '<td class="liste_titre" width=100px align="left">'.$langs->trans("Ref").'</td>';
 	print '<td class="liste_titre" width=200px align="left">'.$langs->trans("Label").'</td>';
-	print '<td class="liste_titre" width=150px align="center">'.$langs->trans("Equipementcomposant").'</td>';
+    print '<td class="liste_titre" width=150px align="left">'.$langs->trans("Equipementcomposant").'</td>';
+    print '<td class="liste_titre" width=150px align="center">'.$langs->trans("Note").'</td>';
 	print '</tr>';
 
 	foreach ($prods_arbo as $value) {
@@ -175,24 +182,31 @@ if (count($prods_arbo) > 0) {
 		$productstatic->type=$value['type'];
 
 		if ($value['type']==0) {
-			// on boucle sur le nombre d'équipement à saisir
+			// on boucle sur le nombre d'ï¿½quipement ï¿½ saisir
 			for ($i=0; $i < $value['nb']; $i++) {
 				print '<tr>';
-				print '<td width=150px align="left">'.$productstatic->getNomUrl(1, 'composition').'</td>';
+				print '<td width=100px align="left">'.$productstatic->getNomUrl(1, 'composition').'</td>';
 				print '<td width=200px align="left">'.$productstatic->label.'</td>';
 				$componentstatic=new Equipement($db);
+
 				$refComponent=$componentstatic->get_component($id, $value['id'], $i);
-				print '<td width=300px align="left">';
+				print '<td width=150px align="left">';
 				if ($refComponent) {
 					$componentstatic->fetch('', $refComponent);
 					print $componentstatic->getNomUrl(2);
 					print "&nbsp;&nbsp;";
 				}
 				print '<input type="text" name="ref_'.$value['id'].'_'.$i.'" value="'.$refComponent.'">';
+                print '<td align="left">';
+                require_once DOL_DOCUMENT_ROOT.'/core/class/doleditor.class.php';
+                $doleditor = new DolEditor('note_'.$value['id'].'_'.$i, dol_escape_htmltag($componentstatic->note_private), '', '100', 'dolibarr_notes', 'In', 0, true, true, 20, '100');
+                print $doleditor->Create(1);
+               // print '<input type="text" name="note_'.$value['id'].'_'.$i.'" value="'..'">';
+                print '</td>';
 				print '</td></tr>';
 			}
 		} else {
-			// pas de numéro de série à saisir sur la main-d'oeuvre
+			// pas de numï¿½ro de sï¿½rie ï¿½ saisir sur la main-d'oeuvre
 			print '<tr>';
 			print '<td align="left">'.$productstatic->getNomUrl(1, 'composition').'</td>';
 			print '<td align="left">'.$productstatic->label.'</td>';

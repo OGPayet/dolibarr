@@ -1,0 +1,27 @@
+# Dolibarr language file - en_US - synergiestech
+CHARSET=UTF-8
+Module500100Name = Synergies-Tech
+Module500100Desc = Specific module for Synergies-Tech
+
+#######################################################################
+# Configuration admin
+#######################################################################
+SynergiesTechSetup                                                  = Configuration of the module Synergies-Tech
+
+SynergiesTechEnabledWorkflowShippingCreatedToAttachEquipments       = Active la redirection vers l'écran de saisie des équipements si un produit a le statut sérialisable lors de la création d'une expédition
+SynergiesTechForceAttachEquipmentsAfterShippingCreated              = Force la rentrer des numéros de séries des produits sérialisables après la création d'une expédition
+
+SynergiesTechEnabledWorkflowOrderSupplierDispatchToSetEquipments    = Active la redirection vers l'écran de saisie des équipements si un produit a le statut sérialisable lors de la réceptions de marchandise d'une commande fournisseur
+SynergiesTechForceSetEquipmentsAfterOrderSupplierDispatch           = Force la rentrer des numéros de séries des produits sérialisables après la réceptions de marchandise d'une commande fournisseur
+
+#######################################################################
+# Extrafields
+#######################################################################
+SynergiesTechSerializable   = To serialize
+
+#######################################################################
+# Force redirection
+#######################################################################
+SynergiesTechShippingHasEquipmentToSerialize         = Shipping has equipment to attach.
+SynergiesTechShippingHasEquipmentToValidate          = Shipping has equipment to validate.
+SynergiesTechOrderSupplierHasEquipmentToSerialize    = Order supplier has equipment to serialize.

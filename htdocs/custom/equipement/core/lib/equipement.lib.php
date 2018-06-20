@@ -322,7 +322,7 @@ function select_entrepot($selected='', $htmlname='entrepotid', $showempty=0, $hi
 
 function select_equipements($selected='', $filterproduct='', $filterentrepot='', $htmlname='equipementid', $showempty=0, $hidetext=0, $showadditionnalinfo=0)
 {
-	global $db, $langs; //, $user, $conf;
+	global $db, $langs, $conf; //, $user;
 	if (empty($hidetext)) print $langs->trans("Equipement").': ';
 
 	// boucle sur les �quipements valides
@@ -593,6 +593,46 @@ function select_factfourn($selected='', $fournid, $htmlname='fk_factfourn', $sho
 				print '<option value="'.$obj->rowid.'"';
 				if ($obj->rowid == $selected) print ' selected="selected"';
 				print ">".$obj->ref." - ".dol_print_date($obj->datef, 'day')." - ".price($obj->total_ttc)."</option>";
+				$i++;
+			}
+			print '</select>';
+		}
+		else	// si pas de liste, on positionne un hidden � vide
+			print '<input type="hidden" name="'.$htmlname.'" value=-1>';
+	}
+}
+
+function select_commfourn($selected='', $fournid, $htmlname='fk_commande_fourn', $showempty=0, $hidetext=0)
+{
+	global $db, $langs; //, $user, $conf;
+
+	if (empty($hidetext)) print $langs->trans("RefCommFourn").': ';
+
+	// boucle sur les factures fournisseurs
+	$sql = "SELECT rowid, ref, date_commande, total_ttc";
+	$sql.= " FROM ".MAIN_DB_PREFIX."commande_fournisseur";
+	$sql.= " where fk_soc=".$fournid ;
+	//$sql.= " and statut >= 1";
+	$sql.= " ORDER BY date_commande desc";
+
+	dol_syslog("Equipement.Lib::select_factfourn sql=".$sql);
+
+	$resql=$db->query($sql);
+	if ($resql) {
+		$num = $db->num_rows($resql);
+		$i = 0;
+		if ($num) {
+			print '<select class="flat" name="'.$htmlname.'">';
+			if ($showempty) {
+				print '<option value="-1"';
+				if ($selected == -1) print ' selected="selected"';
+				print '>&nbsp;</option>';
+			}
+			while ($i < $num) {
+				$obj = $db->fetch_object($resql);
+				print '<option value="'.$obj->rowid.'"';
+				if ($obj->rowid == $selected) print ' selected="selected"';
+				print ">".$obj->ref." - ".dol_print_date($obj->date_commande, 'day')." - ".price($obj->total_ttc)."</option>";
 				$i++;
 			}
 			print '</select>';

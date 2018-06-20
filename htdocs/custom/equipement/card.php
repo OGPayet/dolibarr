@@ -28,6 +28,7 @@ if (! $res) $res=@include("../../main.inc.php");		// For "custom" directory
 
 require_once DOL_DOCUMENT_ROOT."/product/class/product.class.php";
 require_once DOL_DOCUMENT_ROOT."/compta/facture/class/facture.class.php";
+require_once DOL_DOCUMENT_ROOT."/fourn/class/fournisseur.commande.class.php";
 require_once DOL_DOCUMENT_ROOT."/fourn/class/fournisseur.facture.class.php";
 require_once DOL_DOCUMENT_ROOT."/product/stock/class/entrepot.class.php";
 require_once DOL_DOCUMENT_ROOT."/contrat/class/contrat.class.php";
@@ -315,6 +316,10 @@ elseif ((substr($action, 0, 7) == 'setExFi' || $action == 'update_extras') && $u
 	$action="";
 } else if ($action == 'setfactfourn' && $user->rights->equipement->creer) {
 	$result=$object->set_fact_fourn($user, GETPOST('fk_facture_fourn'));
+	if ($result < 0) dol_print_error($db, $object->error);
+	$action="";
+} else if ($action == 'setcommandefourn' && $user->rights->equipement->creer) {
+	$result=$object->set_commande_fourn($user, GETPOST('fk_commande_fourn'));
 	if ($result < 0) dol_print_error($db, $object->error);
 	$action="";
 } else if ($action == 'setdatee') {
@@ -898,6 +903,39 @@ if ($action == 'create') {
 		print $soc->getNomUrl(1);
 	}
 	print '</td></tr>';
+
+    // commande fournisseur
+	if ($user->rights->fournisseur->commande->lire) {
+		print '<tr><td><table class="nobordernopadding" width="100%">';
+		print '<tr><td>'.$langs->trans("RefCommFourn").'</td>';
+		// la commande fournisseur est modifiable si il y a un founisseur de s�lectionn�
+		if ($action != 'editcommfourn' && $object->statut == 0)
+			if ( $object->fk_soc_fourn > 0) {
+				print '<td align="right"><a href="'.$_SERVER["PHP_SELF"].'?action=editfactfourn&id='.$object->id.'">';
+				print img_edit($langs->trans('Modify'), 1).'</a></td>';
+			} else
+				print '<td align="right">'.img_info($langs->trans('NoSupplierSelected'), 1).'</td>';
+
+		print '</tr></table></td><td colspan="3">';
+		if ($action == 'editcommfourn') {
+			print '<form name="editfactfourn" action="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'" method="post">';
+			print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+			print '<input type="hidden" name="action" value="setfactfourn">';
+			// liste des commmandes fournisseurs disponible
+			print select_commfourn($object->fk_commande_fourn, $object->fk_soc_fourn, 'fk_commande_fourn', 1, 1);
+
+			print '<input type="submit" class="button" value="'.$langs->trans('Modify').'">';
+			print '</form>';
+		} else {
+			if ($object->fk_commande_fourn) {
+				$commfournstatic = new CommandeFournisseur($db);
+                $commfournstatic->fetch($object->fk_commande_fourn);
+				print $commfournstatic->getNomUrl(1).' - '.dol_print_date($commfournstatic->date_commande, 'day');
+				print ' - '.price($commfournstatic->total_ttc);
+			}
+		}
+		print '</td></tr>';
+	}
 
 	// facture fournisseur
 	if ($user->rights->facture->lire) {

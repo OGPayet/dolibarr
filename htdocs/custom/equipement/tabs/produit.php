@@ -28,6 +28,7 @@ if (! $res) $res=@include("../../../main.inc.php");		// For "custom" directory
 require_once(DOL_DOCUMENT_ROOT."/product/stock/class/entrepot.class.php");
 require_once(DOL_DOCUMENT_ROOT."/product/class/product.class.php");
 require_once(DOL_DOCUMENT_ROOT."/compta/facture/class/facture.class.php");
+require_once DOL_DOCUMENT_ROOT."/fourn/class/fournisseur.commande.class.php";
 require_once(DOL_DOCUMENT_ROOT."/fourn/class/fournisseur.facture.class.php");
 require_once(DOL_DOCUMENT_ROOT."/core/class/html.formfile.class.php");
 require_once(DOL_DOCUMENT_ROOT."/core/lib/date.lib.php");
@@ -41,7 +42,7 @@ $langs->load("product");
 $langs->load("equipement@equipement");
 
 $productid=GETPOST('id', 'int');
-
+$action=GETPOST('action','alpha');
 
 
 if ($user->societe_id) $socid=$user->societe_id;
@@ -65,6 +66,7 @@ $limit = $conf->liste_limit;
 $search_ref=GETPOST('search_ref', 'alpha');
 $search_numversion=GETPOST('search_numversion', 'alpha');
 $search_company_fourn=GETPOST('search_company_fourn', 'alpha');
+$search_refcomm_fourn=GETPOST('search_refcomm_fourn', 'alpha');
 $search_reffact_fourn=GETPOST('search_reffact_fourn', 'alpha');
 $search_company_client=GETPOST('search_company_client', 'alpha');
 $search_reffact_client=GETPOST('search_reffact_client', 'alpha');
@@ -72,21 +74,93 @@ $search_entrepot=GETPOST('search_entrepot', 'alpha');
 $search_etatequipement=GETPOST('search_etatequipement');
 
 
-$form = new Form($db);
-llxHeader();
-
 $object = new Product($db);
 
 $refproduct=GETPOST('ref', 'alpha');
 $result = $object->fetch($productid, $refproduct);
 if ($refproduct) $productid = $object->id;
 
+/************************************************
+ * Action
+ ************************************************/
+
+if ($action == 'reassignsn' && $object->id > 0) {
+    $error = 0;
+
+    $reassignsn = GETPOST('equipmentsn', 'alpha');
+
+    if (empty($reassignsn)) {
+        setEventMessages($langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("Equipementcomposant")), null, 'errors');
+        $error++;
+    }
+
+    if (!$error) {
+        $equipment = new Equipement($db);
+        if ($equipment->fetch('', $reassignsn) > 0) {
+            if ($equipment->fk_product != $object->id) {
+                $db->begin();
+
+                $sql = "UPDATE " . MAIN_DB_PREFIX . "equipement";
+                $sql .= " SET fk_product = " . $object->id;
+                $sql .= " WHERE rowid = " . $equipment->id;
+
+                $resql = $db->query($sql);
+                if ($resql) {
+                    $fk_equipementevt_type = dol_getIdFromCode($db, 'REASSIGN', 'c_equipementevt_type', 'code', 'rowid');
+                    $now = dol_now();
+                    $product_static = new Product($db);
+                    $product_static->fetch($equipment->fk_product);
+
+                    $result = $equipment->addline(
+                        $equipment->id,
+                        $fk_equipementevt_type,
+                        $langs->trans('ReassignEquipmentProduct', $product_static->getNomUrl(1), $object->getNomUrl(1)),
+                        $now,
+                        $now,
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        ''
+                    );
+                    if ($result < 0) {
+                        setEventMessage($equipment->errorsToString(), 'errors');
+                        $error++;
+                    }
+                } else {
+                    setEventMessage($db->lasterror(), 'errors');
+                    $error++;
+                }
+
+                if (!$error) {
+                    setEventMessage($langs->trans('EquipmentReassigned'));
+                    $db->commit();
+                } else {
+                    $db->rollback();
+                }
+            } else {
+                setEventMessage($langs->trans('EquipmentAlreadyAssignedToThisProduct'));
+            }
+        } else {
+            setEventMessage($langs->trans('EquipmentNotFound'), 'errors');
+        }
+    }
+}
+
+/************************************************
+ * View
+ ************************************************/
+
+$form = new Form($db);
+llxHeader();
+
 $head = product_prepare_head($object, $user);
 $titre=$langs->trans("CardProduct".$object->type);
 $picto=($object->type==1?'service':'product');
 dol_fiche_head($head, 'equipement', $titre, 0, $picto);
-
-
 
 print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
 print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
@@ -142,9 +216,18 @@ print '<input type="submit" class="button" value="'.$langs->trans("CreateDraftEq
 print '</td></tr>';
 print '</table></form><br>';
 
+// bouton de cr�ation d'un �quipement � partir du produit
+print '<form name="equipement" action="'.$_SERVER['PHP_SELF'].'?id='.$productid.'" method="POST">';
+print '<input type="hidden" name="action" value="reassignsn">';
+print $langs->trans("ReassignEquipmentOfProductLeft");
+print '&nbsp;<input type="text" name="equipmentsn" value="">&nbsp;';
+print $langs->trans("ReassignEquipmentOfProductRigth");
+print '&nbsp;<input type="submit" class="button" value="'.$langs->trans("ReassignEquipment").'">';
+print '</form><br>';
+
 $sql = "SELECT";
 $sql.= " e.ref, e.rowid, e.fk_statut, e.fk_product, p.ref as refproduit, e.fk_entrepot, ent.label,";
-$sql.= " e.fk_soc_fourn, sfou.nom as CompanyFourn, e.fk_facture_fourn, ff.ref as refFactureFourn,";
+$sql.= " e.fk_soc_fourn, sfou.nom as CompanyFourn, e.fk_commande_fourn, cf.ref as refCommFourn, e.fk_facture_fourn, ff.ref as refFactureFourn,";
 $sql.= " e.fk_soc_client, scli.nom as CompanyClient, e.fk_facture, f.facnumber as refFacture,";
 $sql.= " e.datee, e.dateo, ee.libelle as etatequiplibelle, e.numversion";
 
@@ -154,6 +237,7 @@ $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as sfou on e.fk_soc_fourn = sfou.ro
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."entrepot as ent on e.fk_entrepot = ent.rowid";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as scli on e.fk_soc_client = scli.rowid";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture as f on e.fk_facture = f.rowid";
+$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."commande_fournisseur as cf on e.fk_commande_fourn = cf.rowid";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture_fourn as ff on e.fk_facture_fourn = ff.rowid";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product as p on e.fk_product = p.rowid";
 $sql.= " WHERE e.entity = ".$conf->entity;
@@ -162,6 +246,7 @@ $sql.= " AND e.fk_product = ".$productid;
 if ($search_ref)			$sql .= " AND e.ref like '%".$db->escape($search_ref)."%'";
 if ($search_numversion)		$sql .= " AND e.numversion like '%".$db->escape($search_numversion)."%'";
 if ($search_company_fourn)	$sql .= " AND sfou.nom like '%".$db->escape($search_company_fourn)."%'";
+if ($search_refcomm_fourn)	$sql .= " AND cf.ref like '%".$db->escape($search_refcomm_fourn)."%'";
 if ($search_reffact_fourn)	$sql .= " AND ff.ref like '%".$db->escape($search_reffact_fourn)."%'";
 if ($search_entrepot)		$sql .= " AND ent.label like '%".$db->escape($search_entrepot)."%'";
 if ($search_company_client)	$sql .= " AND scli.nom like '%".$db->escape($search_company_client)."%'";
@@ -180,7 +265,8 @@ if ($result) {
 	if ($search_ref)				$urlparam .= "&amp;search_ref=".$db->escape($search_ref);
 	if ($search_numversion)			$urlparam .= "&amp;search_numversion=".$db->escape($search_numversion);
 	if ($search_company_fourn)		$urlparam .= "&amp;search_company_fourn=".$db->escape($search_company_fourn);
-	if ($search_reffact_fourn)		$urlparam .= "&amp;search_reffact_fourn=".$db->escape($search_reffact_fourn);
+	if ($search_refcomm_fourn)		$urlparam .= "&amp;search_refcomm_fourn=".$db->escape($search_refcomm_fourn);
+    if ($search_reffact_fourn)		$urlparam .= "&amp;search_reffact_fourn=".$db->escape($search_reffact_fourn);
 	if ($search_entrepot)			$urlparam .= "&amp;search_entrepot=".$db->escape($search_entrepot);
 	if ($search_company_client)		$urlparam .= "&amp;search_company_client=".$db->escape($search_company_client);
 	if ($search_reffact_client)		$urlparam .= "&amp;search_reffact_client=".$db->escape($search_reffact_client);
@@ -209,6 +295,10 @@ if ($result) {
 					"", $urlparam, '', $sortfield, $sortorder
 	);
 	print_liste_field_titre(
+					$langs->trans("RefCommFourn"), $_SERVER["PHP_SELF"], "cf.ref",
+					"", $urlparam, '', $sortfield, $sortorder
+	);
+    print_liste_field_titre(
 					$langs->trans("RefFactFourn"), $_SERVER["PHP_SELF"], "ff.facnumber",
 					"", $urlparam, '', $sortfield, $sortorder
 	);
@@ -250,6 +340,8 @@ if ($result) {
 	print '<td class="liste_titre">';
 	print '<input type="text" class="flat" name="search_company_fourn" value="'.$search_company_fourn.'" size="10"></td>';
 	print '<td class="liste_titre">';
+	print '<input type="text" class="flat" name="search_refcomm_fourn" value="'.$search_refcomm_fourn.'" size="10"></td>';
+    print '<td class="liste_titre">';
 	print '<input type="text" class="flat" name="search_reffact_fourn" value="'.$search_reffact_fourn.'" size="10"></td>';
 	print '<td class="liste_titre">';
 	print '<input type="text" class="flat" name="search_entrepot" value="'.$search_entrepot.'" size="10"></td>';
@@ -320,13 +412,21 @@ if ($result) {
 		}
 		print '</td>';
 
-		print "<td>";
-		if ($objp->fk_facture_fourn) {
-			$factfournstatic = new FactureFournisseur($db);
-			$factfournstatic->fetch($objp->fk_facture_fourn);
-			print $factfournstatic ->getNomUrl(1);
-		}
-		print '</td>';
+        print "<td>";
+        if ($objp->fk_commande_fourn) {
+            $commfournstatic = new CommandeFournisseur($db);
+            $commfournstatic->fetch($objp->fk_commande_fourn);
+            print $commfournstatic ->getNomUrl(1);
+        }
+        print '</td>';
+
+        print "<td>";
+        if ($objp->fk_facture_fourn) {
+            $factfournstatic = new FactureFournisseur($db);
+            $factfournstatic->fetch($objp->fk_facture_fourn);
+            print $factfournstatic ->getNomUrl(1);
+        }
+        print '</td>';
 
 		// entrepot
 		print "<td>";
@@ -345,13 +445,13 @@ if ($result) {
 		}
 		print '</td>';
 
-		print "<td>";
-		if ($objp->fk_facture) {
-			$facturestatic=new Facture($db);
-			$facturestatic->fetch($objp->fk_facture);
-			print $facturestatic ->getNomUrl(1);
-		}
-		print '</td>';
+        print "<td>";
+        if ($objp->fk_facture) {
+            $facturestatic=new Facture($db);
+            $facturestatic->fetch($objp->fk_facture);
+            print $facturestatic ->getNomUrl(1);
+        }
+        print '</td>';
 		print "<td nowrap align='center'>".dol_print_date($db->jdate($objp->dateo), 'day')."</td>\n";
 		print "<td nowrap align='center'>".dol_print_date($db->jdate($objp->datee), 'day')."</td>\n";
 		print '<td align="right">'.($objp->etatequiplibelle ? $langs->trans($objp->etatequiplibelle):'').'</td>';

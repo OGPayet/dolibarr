@@ -61,6 +61,32 @@ if ($user->societe_id) $socid=$user->societe_id;
 $result = restrictedArea($user, 'fournisseur', $id, 'commande_fournisseur', 'commande');
 /* ----- OpenDSI - Access rights on equipements in supplier order - End ----- */
 
+
+$sortfield = GETPOST('sortfield', 'alpha');
+$sortorder = GETPOST('sortorder', 'alpha');
+$page = GETPOST('page', 'int');
+if ($page == -1) {
+	$page = 0;
+}
+$offset = $conf->liste_limit * $page;
+$pageprev = $page - 1;
+$pagenext = $page + 1;
+
+if (! $sortorder) $sortorder="DESC";
+if (! $sortfield) $sortfield="e.datec";
+
+$limit = $conf->liste_limit;
+
+$search_ref=GETPOST('search_ref', 'alpha');
+$search_refProduct=GETPOST('search_refProduct', 'alpha');
+$search_company_fourn=GETPOST('search_company_fourn', 'alpha');
+$search_company_client=GETPOST('search_company_client', 'alpha');
+$search_entrepot=GETPOST('search_entrepot', 'alpha');
+
+$search_equipevttype=GETPOST('search_equipevttype', 'alpha');
+if ($search_equipevttype=="-1") $search_equipevttype="";
+
+
 /*
  *	View
  */
@@ -91,6 +117,7 @@ if ($action  == 'addequipement') {
 				$objectequipement->description		= $langs->trans("SupplierOrder").":".$object->ref;
 //				$objectequipement->ref				= $ref;
 				$objectequipement->fk_entrepot		= GETPOST('fk_entrepot-'.$line->id, 'alpha');
+                $objectequipement->fk_commande_fourn = $object->id;
 				$datee = dol_mktime(
 								'23', '59', '59',
 								$_POST["datee-".$line->id."month"],
@@ -263,6 +290,212 @@ print '<div class="tabsAction">';
 print '<input type="submit" class="button" value="'.$langs->trans("AddEquipement").'">';
 print '</div>';
 print '</form>';
+
+
+$sql = "SELECT";
+$sql.= " e.ref, e.rowid, e.fk_statut, e.fk_product, p.ref as refproduit, e.fk_entrepot, ent.label,";
+$sql.= " e.unitweight, e.quantity,";
+$sql.= " e.fk_soc_client, scli.nom as CompanyClient, e.fk_etatequipement, et.libelle as etatequiplibelle,";
+$sql.= " ee.rowid as eerowid, ee.datee, ee.dateo, eet.libelle as equipevttypelibelle, ee.fk_equipementevt_type,";
+$sql.= " ee.fk_fichinter, fi.ref as reffichinter, ee.fk_contrat, co.ref as refcontrat,";
+$sql.= " ee.fk_expedition, exp.ref as refexpedition ";
+
+$sql.= " FROM ".MAIN_DB_PREFIX."equipement as e";
+$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."c_equipement_etat as et on e.fk_etatequipement = et.rowid";
+$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."entrepot as ent on e.fk_entrepot = ent.rowid";
+$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as scli on e.fk_soc_client = scli.rowid";
+$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product as p on e.fk_product = p.rowid";
+$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."equipementevt as ee ON e.rowid=ee.fk_equipement";
+$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."c_equipementevt_type as eet on ee.fk_equipementevt_type = eet.rowid";
+$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fichinter as fi on ee.fk_fichinter = fi.rowid";
+$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."contrat as co on ee.fk_contrat = co.rowid";
+$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."expedition as exp on ee.fk_expedition = exp.rowid";
+
+$sql.= " WHERE e.entity = ".$conf->entity;
+$sql.= " and e.fk_commande_fourn=".$id;
+
+if ($search_ref)			$sql .= " AND e.ref like '%".$db->escape($search_ref)."%'";
+if ($search_refProduct)		$sql .= " AND p.ref like '%".$db->escape($search_refProduct)."%'";
+if ($search_entrepot)		$sql .= " AND ent.label like '%".$db->escape($search_entrepot)."%'";
+if ($search_company_client)	$sql .= " AND scli.nom like '%".$db->escape($search_company_client)."%'";
+if ($search_etatequipement)	$sql .= " AND e.fk_etatequipement =".$search_etatequipement;
+if ($search_equipevttype)	$sql .= " AND ee.fk_equipementevt_type =".$search_equipevttype;
+
+$sql.= " ORDER BY ".$sortfield." ".$sortorder;
+$sql.= $db->plimit($limit+1, $offset);
+
+$result=$db->query($sql);
+if ($result) {
+	$num = $db->num_rows($result);
+
+	$equipementstatic=new Equipement($db);
+
+	$urlparam="&amp;id=".$id;
+	if ($search_ref)				$urlparam .= "&amp;search_ref=".$db->escape($search_ref);
+	if ($search_refProduct)			$urlparam .= "&amp;search_refProduct=".$db->escape($search_refProduct);
+	if ($search_entrepot)			$urlparam .= "&amp;search_entrepot=".$db->escape($search_entrepot);
+	if ($search_company_client)		$urlparam .= "&amp;search_company_client=".$db->escape($search_company_client);
+	if ($search_etatequipement>=0)	$urlparam .= "&amp;search_etatequipement=".$search_etatequipement;
+	if ($search_equipevttype>=0)	$urlparam .= "&amp;search_equipevttype=".$search_equipevttype;
+
+	print_barre_liste(
+					$langs->trans("ListOfEquipements").' ('.$num.')', $page, "expedition.php",
+					$urlparam, $sortfield, $sortorder, '', $num
+	);
+
+	print '<form method="get" action="'.$_SERVER["PHP_SELF"].'">'."\n";
+	print '<input type="hidden" class="flat" name="id" value="'.$id.'">';
+	print '<table class="noborder" width="100%">';
+
+	print "<tr class='liste_titre'>";
+	print_liste_field_titre(
+					$langs->trans("Ref"), $_SERVER["PHP_SELF"], "e.ref",
+					"", $urlparam, '', $sortfield, $sortorder
+	);
+	print_liste_field_titre(
+					$langs->trans("RefProduit"), $_SERVER["PHP_SELF"], "p.ref",
+					"", $urlparam, '', $sortfield, $sortorder
+	);
+	print_liste_field_titre(
+					$langs->trans("Entrepot"), $_SERVER["PHP_SELF"], "ent.label",
+					"", $urlparam, '', $sortfield, $sortorder
+	);
+	print_liste_field_titre($langs->trans("Dateo"), $_SERVER["PHP_SELF"], "e.dateo", "", $urlparam, '', $sortfield, $sortorder);
+	print_liste_field_titre($langs->trans("Datee"), $_SERVER["PHP_SELF"], "e.datee", "", $urlparam, '', $sortfield, $sortorder);
+	print_liste_field_titre($langs->trans("UnitWeight"), $_SERVER["PHP_SELF"], "e.unitweight", "", $urlparam, '', $sortfield, $sortorder);
+	print_liste_field_titre($langs->trans("Contrat"), $_SERVER["PHP_SELF"], "co.ref", "", $urlparam, '', $sortfield, $sortorder);
+	print_liste_field_titre($langs->trans("Expedition"), $_SERVER["PHP_SELF"], "exp.ref", "", $urlparam, '', $sortfield, $sortorder);
+	print_liste_field_titre($langs->trans("EtatEquip"), $_SERVER["PHP_SELF"], "e.fk_equipementetat", "", $urlparam, '', $sortfield, $sortorder);
+	print_liste_field_titre(
+					$langs->trans("TypeofEquipementEvent"), $_SERVER["PHP_SELF"], "ee.fk_equipementevt_type",
+					"", $urlparam, ' colspan=2 ', $sortfield, $sortorder
+	);
+	print "</tr>\n";
+
+	print '<tr class="liste_titre">';
+	print '<td class="liste_titre"><input type="text" class="flat" name="search_ref" value="'.$search_ref.'" size="8"></td>';
+	print '<td class="liste_titre"><input type="text" class="flat" name="search_refProduct" value="'.$search_refProduct.'" size="8"></td>';
+	print '<td class="liste_titre">';
+	print '<input type="text" class="flat" name="search_entrepot" value="'.$search_entrepot.'" size="10"></td>';
+
+
+	print '<td class="liste_titre" colspan="1" align="right">';
+	print '<input class="flat" type="text" size="1" maxlength="2" name="monthdatee" value="'.$monthdatee.'">';
+	$syear = $yeardatee;
+	if ($syear == '') $syear = date("Y");
+	print '&nbsp;/&nbsp;<input class="flat" type="text" size="1" maxlength="4" name="yeardatee" value="'.$syear.'">';
+	print '</td>';
+
+	print '<td class="liste_titre" colspan="1" align="right">';
+	print '<input class="flat" type="text" size="1" maxlength="2" name="monthdateo" value="'.$monthdateo.'">';
+	$syear = $yeardateo;
+	if ($syear == '') $syear = date("Y");
+	print '&nbsp;/&nbsp;<input class="flat" type="text" size="1" maxlength="4" name="yeardateo" value="'.$syear.'">';
+	print '</td>';
+	print '<td></td>';
+	print '<td class="liste_titre"><input type="text" class="flat" name="search_refcontrat" value="'.$search_refcontrat.'" size="10"></td>';
+	print '<td class="liste_titre"><input type="text" class="flat" name="search_refexpedition" value="'.$search_refexpedition.'" size="10"></td>';
+
+	// liste des �tat des �quipements
+	print '<td class="liste_titre" align="right">';
+	print select_equipement_etat($search_etatequipement, 'search_etatequipement', 1, 1);
+	print '</td>';
+
+	print '<td class="liste_titre" align="right">';
+	print select_equipementevt_type($search_equipevttype, 'search_equipevttype', 1, 1);
+	print '</td><td>';
+	print '<input class="liste_titre" type="image" src="'.DOL_URL_ROOT.'/theme/'.$conf->theme.'/img/search.png"';
+	print ' value="'.dol_escape_htmltag($langs->trans("Search")).'"';
+	print ' title="'.dol_escape_htmltag($langs->trans("Search")).'">';
+	print '</td>';
+	print "</tr>\n";
+
+
+	$var=True;
+	$total = 0;
+	$totalWeight=0;
+	$i = 0;
+	while ($i < min($num, $limit)) {
+		$objp = $db->fetch_object($result);
+		$var=!$var;
+		print "<tr $bc[$var]>";
+		print "<td>";
+		$equipementstatic->id=$objp->rowid;
+		$equipementstatic->ref=$objp->ref;
+		print $equipementstatic->getNomUrl(1);
+		print "</td>";
+
+		print '<td>';
+		if ($objp->fk_product) {
+			$productstatic=new Product($db);
+			$productstatic->fetch($objp->fk_product);
+			print $productstatic->getNomUrl(1);
+		}
+		print '</td>';
+
+		// entrepot
+
+		print "<td>";
+		if ($objp->fk_entrepot>0) {
+			$entrepotstatic = new Entrepot($db);
+			$entrepotstatic->fetch($objp->fk_entrepot);
+			print $entrepotstatic->getNomUrl(1);
+		}
+		print '</td>';
+
+
+
+		print '</td>';
+		print "<td nowrap align='center'>".dol_print_date($db->jdate($objp->dateo), 'day')."</td>\n";
+		print "<td nowrap align='center'>".dol_print_date($db->jdate($objp->datee), 'day')."</td>\n";
+
+		print "<td nowrap align='right'>".price($objp->unitweight)."</td>\n";
+		$totalWeight+= ($objp->unitweight*$objp->quantity);
+
+		print "<td>";
+		if ($objp->fk_contrat>0) {
+			$contrat = new Contrat($db);
+			$contrat->fetch($objp->fk_contrat);
+			print $contrat->getNomUrl(1);
+			if ($objp->fk_soc_client != $contrat->socid) {
+				$soc = new Societe($db);
+				$soc->fetch($contrat->socid);
+				print "<br>".$soc->getNomUrl(1);
+			}
+		}
+		print '</td>';
+
+		print "<td>";
+		if ($objp->fk_fichinter>0) {
+			$fichinter = new Fichinter($db);
+			$fichinter->fetch($objp->fk_fichinter);
+			print $fichinter->getNomUrl(1);
+			if ($objp->fk_soc_client != $fichinter->socid) {
+				$soc = new Societe($db);
+				$soc->fetch($fichinter->socid);
+				print "<br>".$soc->getNomUrl(1);
+			}
+		}
+		print '</td>';
+
+		print '<td align="right">'.($objp->etatequiplibelle ? $langs->trans($objp->etatequiplibelle):'').'</td>';
+		print '<td align="right">'.($objp->equipevttypelibelle ? $langs->trans($objp->equipevttypelibelle):'').'</td>';
+		print '<td align="right">';
+        print '</td>';
+		print "</tr>\n";
+
+		$i++;
+	}
+	print '<tr class="liste_total"><td colspan="4" align=right class="liste_total"><b>'.$langs->trans("Total").'</b></td>';
+	print '<td align="right" nowrap="nowrap" class="liste_total">'.$i.'</td>';
+	print '<td align="right" nowrap="nowrap" class="liste_total">'.price($totalWeight).'</td><td colspan=5>&nbsp;</td>';
+	print '</tr>';
+
+	print '</table>';
+	print "</form>\n";
+	$db->free($result);
+} else
+	dol_print_error($db);
 
 llxFooter();
 $db->close();

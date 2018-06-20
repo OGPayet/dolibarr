@@ -28,6 +28,7 @@ if (! $res) $res=@include("../../main.inc.php");		// For "custom" directory
 require_once DOL_DOCUMENT_ROOT."/product/class/product.class.php";
 require_once DOL_DOCUMENT_ROOT."/product/stock/class/entrepot.class.php";
 require_once DOL_DOCUMENT_ROOT."/compta/facture/class/facture.class.php";
+require_once DOL_DOCUMENT_ROOT."/fourn/class/fournisseur.commande.class.php";
 require_once DOL_DOCUMENT_ROOT."/fourn/class/fournisseur.facture.class.php";
 require_once DOL_DOCUMENT_ROOT."/core/lib/date.lib.php";
 require_once DOL_DOCUMENT_ROOT."/core/class/html.form.class.php";
@@ -73,8 +74,10 @@ $search_labelProduct=GETPOST('search_labelProduct', 'alpha');
 $search_numversion=GETPOST('search_numversion', 'alpha');
 $search_company_fourn=GETPOST('search_company_fourn', 'alpha');
 $search_reffact_fourn=GETPOST('search_reffact_fourn', 'alpha');
+$search_reforder_fourn=GETPOST('search_reforder_fourn', 'alpha');
 $search_company_client=GETPOST('search_company_client', 'alpha');
 $search_reffact_client=GETPOST('search_reffact_client', 'alpha');
+$search_note_private=GETPOST('search_note_private', 'alpha');
 $search_entrepot=GETPOST('search_entrepot', 'alpha');
 if ($search_entrepot=="") $search_entrepot="-1";
 $search_etatequipement=GETPOST('search_etatequipement', 'alpha');
@@ -91,7 +94,7 @@ $equipementstatic=new Equipement($db);
 if (GETPOST("updatecheck") == $langs->trans("Update")) {
 
 	$separatorlist=$conf->global->EQUIPEMENT_SEPARATORLIST;
-	if (!isset($separatorlist)) // Si non saisie on utilise le ; par défaut
+	if (!isset($separatorlist)) // Si non saisie on utilise le ; par dï¿½faut
 		$separatorlist=";";
 	if ($separatorlist == "__N__")
 		$separatorlist="\n";
@@ -103,9 +106,9 @@ if (GETPOST("updatecheck") == $langs->trans("Update")) {
 	foreach ($idlist as $key) {
 		if (GETPOST(trim("chk-".$key))) {
 
-			// on récupère les anciennes valeurs
+			// on rï¿½cupï¿½re les anciennes valeurs
 			$equipementstatic->fetch($key);
-			// on met à jours que si la case est cochée
+			// on met ï¿½ jours que si la case est cochï¿½e
 
 			if (GETPOST("chk_statut"))
 				$equipementstatic->fk_statut = GETPOST("update_statut");
@@ -151,25 +154,26 @@ if (GETPOST("updatecheck") == $langs->trans("Update")) {
 
 
 //var_dump($equipementstatic);
-			// on met à jour l'équipement
+			// on met ï¿½ jour l'ï¿½quipement
 			$equipementstatic->updateInfos($user, GETPOST("update_entrepotmove"));
 		}
 	}
 }
 
 $fieldstosearchall = array(
-				'e.ref'=>'Ref',
-				'p.ref'=>'RefProduct',
-				'p.label'=>'ProductDescription',
-				'sfou.nom'=>"SupplierName",
-				'scli.nom'=>'CustomerName',
-				'f.facnumber'=>'CustomerInvoiceRef',
-				'ff.ref'=>'SupplierInvoiceRef',
-				'e.datec'=>'DateCreate',
-				'e.dateo'=>'DateOpen',
-				'e.datee'=>'DateClose',
-				'e.dated'=>'DateDluo',
+    'e.ref'=>'Ref',
+      'p.ref'=>'RefProduct',
+      'p.label'=>'ProductDescription',
+      'sfou.nom'=>"SupplierName",
+      'scli.nom'=>'CustomerName',
+      'f.facnumber'=>'CustomerInvoiceRef',
+      'ff.ref'=>'SupplierInvoiceRef',
+      'e.datec'=>'DateCreate',
+      'e.dateo'=>'DateOpen',
+      'e.datee'=>'DateClose',
+      'e.dated'=>'DateDluo',
 );
+if (empty($user->socid)) $fieldstosearchall["e.note_private"]="NotePrivate";
 
 
 // construction de la structure des champs
@@ -188,7 +192,8 @@ $arrayfields=array(
 	'ent.label'=>array('label'=>$langs->trans("Warehouse"), 'checked'=>1),
 
 	'sfou.nom'=>array('label'=>$langs->trans("SupplierName"), 'checked'=>0),
-	'ff.ref'=>array('label'=>$langs->trans("SupplierInvoiceRef"), 'checked'=>1),
+  'cf.ref'=>array('label'=>$langs->trans("SupplierOrderRef"), 'checked'=>1),
+  'ff.ref'=>array('label'=>$langs->trans("SupplierInvoiceRef"), 'checked'=>1),
 
 	'scli.nom'=>array('label'=>$langs->trans("CustomerName"), 'checked'=>0),
 	'f.facnumber'=>array('label'=>$langs->trans("FacNumber"), 'checked'=>1),
@@ -198,6 +203,8 @@ $arrayfields=array(
 	'e.datee'=>array('label'=>$langs->trans("DateEnd"), 'checked'=>0, 'position'=>500),
 	'e.dated'=>array('label'=>$langs->trans("Dated"), 'checked'=>0, 'position'=>500),
 	'ee.libelle'=>array('label'=>$langs->trans("EquipementStatut"), 'checked'=>0, 'position'=>500),
+
+  'e.note_private'=>array('label'=>$langs->trans("NotePrivate"), 'checked'=>0, 'position'=>500),
 
 	'e.tms'=>array('label'=>$langs->trans("DateModificationShort"), 'checked'=>0, 'position'=>500),
 	'e.fk_statut'=>array('label'=>$langs->trans("Status"), 'checked'=>1, 'position'=>1000),
@@ -225,8 +232,8 @@ llxHeader();
 
 $sql = "SELECT";
 $sql.= " e.ref, e.rowid as equipementid, e.fk_statut, e.fk_product, p.ref as refproduit, p.label as labelproduit,";
-$sql.= " e.fk_entrepot, e.quantity, e.tms, e.numversion, e.description,";
-$sql.= " e.fk_soc_fourn, sfou.nom as CompanyFourn, e.fk_facture_fourn, ff.ref as refFactureFourn,";
+$sql.= " e.fk_entrepot, e.quantity, e.tms, e.numversion, e.description, e.note_private,";
+$sql.= " e.fk_soc_fourn, sfou.nom as CompanyFourn, e.fk_commande_fourn, cf.ref as refCommFourn, e.fk_facture_fourn, ff.ref as refFactureFourn,";
 $sql.= " e.fk_soc_client, scli.nom as CompanyClient, e.fk_facture, f.facnumber as refFacture,";
 $sql.= " e.datec, e.datee, e.dateo, e.dated, ee.libelle as etatequiplibelle, ef.* ";
 
@@ -238,20 +245,13 @@ $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as sfou on e.fk_soc_fourn = sfou.ro
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."entrepot as ent on e.fk_entrepot = ent.rowid";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as scli on e.fk_soc_client = scli.rowid";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture as f on e.fk_facture = f.rowid";
+$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."commande_fournisseur as cf on e.fk_commande_fourn = cf.rowid";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture_fourn as ff on e.fk_facture_fourn = ff.rowid";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product as p on e.fk_product = p.rowid";
 $sql.= " WHERE e.entity = ".$conf->entity;
 
 if ($sall) {
-	$sql .= " AND (e.ref like '%".$db->escape($sall)."%'";
-	$sql .= " OR p.ref like '%".$db->escape($sall)."%'";
-	$sql .= " OR p.label like '%".$db->escape($sall)."%'";
-	$sql .= " OR e.numversion like '%".$db->escape($sall)."%'";
-	$sql .= " OR sfou.nom like '%".$db->escape($sall)."%'";
-	$sql .= " OR ff.ref like '%".$db->escape($sall)."%'";
-	$sql .= " OR scli.nom like '%".$db->escape($sall)."%'";
-	$sql .= " OR f.facnumber like '%".$db->escape($sall)."%'";
-	$sql .= " )";
+    $sql .= natural_search(array_keys($fieldstosearchall), $sall);
 } else {
 	if ($search_ref)				$sql .= " AND e.ref like '%".$db->escape($search_ref)."%'";
 	if ($search_labelProduct)		$sql .= " AND p.label like '%".$db->escape($search_labelProduct)."%'";
@@ -259,8 +259,10 @@ if ($sall) {
 	if ($search_numversion)			$sql .= " AND e.numversion like '%".$db->escape($search_numversion)."%'";
 	if ($search_company_fourn)		$sql .= " AND sfou.nom like '%".$db->escape($search_company_fourn)."%'";
 	if ($search_reffact_fourn)		$sql .= " AND ff.ref like '%".$db->escape($search_reffact_fourn)."%'";
+	if ($search_reforder_fourn)		$sql .= " AND cf.ref like '%".$db->escape($search_reforder_fourn)."%'";
 	if ($search_company_client)		$sql .= " AND scli.nom like '%".$db->escape($search_company_client)."%'";
-	if ($search_reffact_client)		$sql .= " AND f.facnumber like '%".$db->escape($search_reffact_client)."%'";
+  if ($search_reffact_client)		$sql .= " AND f.facnumber like '%".$db->escape($search_reffact_client)."%'";
+  if ($search_note_private)		$sql .= " AND e.note_private like '%".$db->escape($search_note_private)."%'";
 }
 if ($search_entrepot >=0)		$sql .= " AND ent.rowid =".$search_entrepot;
 if ($search_etatequipement>=0)	$sql .= " AND e.fk_etatequipement =".$search_etatequipement;
@@ -291,9 +293,11 @@ if ($result) {
 	if ($search_numversion)			$urlparam .= "&search_numversion=".$db->escape($search_numversion);
 	if ($search_company_fourn)		$urlparam .= "&search_company_fourn=".$db->escape($search_company_fourn);
 	if ($search_reffact_fourn)		$urlparam .= "&search_reffact_fourn=".$db->escape($search_reffact_fourn);
+  if ($search_reforder_fourn)		$urlparam .= "&search_reforder_fourn=".$db->escape($search_reforder_fourn);
 	if ($search_entrepot)			$urlparam .= "&search_entrepot=".$search_entrepot;
 	if ($search_company_client)		$urlparam .= "&search_company_client=".$db->escape($search_company_client);
 	if ($search_reffact_client)		$urlparam .= "&search_reffact_client=".$db->escape($search_reffact_client);
+  if ($search_note_private)		$urlparam .= "&search_note_private=".$db->escape($search_note_private);
 	if ($search_etatequipement>=0)	$urlparam .= "&search_etatequipement=".$search_etatequipement;
 	if ($viewstatut >=0)			$urlparam .= "&viewstatut=".$viewstatut;
 
@@ -305,6 +309,11 @@ if ($result) {
 
 	$varpage=empty($contextpage)?$_SERVER["PHP_SELF"]:$contextpage;
 
+  if ($sall)
+  {
+     foreach($fieldstosearchall as $key => $val) $fieldstosearchall[$key]=$langs->trans($val);
+     print $langs->trans("FilterOnInto", $sall) . join(', ',$fieldstosearchall);
+  }
 
 	// This also change content of $arrayfields
 	$selectedfields=$form->multiSelectArrayWithCheckbox('selectedfields', $arrayfields, $varpage);
@@ -370,12 +379,18 @@ if ($result) {
 						$urlparam, '', $sortfield, $sortorder
 		);
 	}
-	if (! empty($arrayfields['ff.ref']['checked'])) {
+	if (! empty($arrayfields['cf.ref']['checked'])) {
 		print_liste_field_titre(
-						$arrayfields['ff.ref']['label'], $_SERVER["PHP_SELF"], "ff.ref", "",
+						$arrayfields['cf.ref']['label'], $_SERVER["PHP_SELF"], "cf.ref", "",
 						$urlparam, '', $sortfield, $sortorder
 		);
 	}
+  if (! empty($arrayfields['ff.ref']['checked'])) {
+    print_liste_field_titre(
+            $arrayfields['ff.ref']['label'], $_SERVER["PHP_SELF"], "ff.ref", "",
+            $urlparam, '', $sortfield, $sortorder
+    );
+  }
 	if (! empty($arrayfields['scli.nom']['checked'])) {
 		print_liste_field_titre(
 						$arrayfields['scli.nom']['label'], $_SERVER["PHP_SELF"], "scli.nom", "",
@@ -418,6 +433,12 @@ if ($result) {
 						$urlparam, '', $sortfield, $sortorder
 		);
 	}
+  if (! empty($arrayfields['e.note_private']['checked'])) {
+    print_liste_field_titre(
+            $arrayfields['e.note_private']['label'], $_SERVER["PHP_SELF"], "e.note_private", "",
+            $urlparam, '', $sortfield, $sortorder
+    );
+  }
 	if (! empty($arrayfields['e.tms']['checked'])) {
 		print_liste_field_titre(
 						$arrayfields['e.tms']['label'], $_SERVER["PHP_SELF"], "e.tms", "",
@@ -451,7 +472,7 @@ if ($result) {
 
 	print "</tr>\n";
 
-	// Filters lines à placer plus haut dans un truc qui se replie
+	// Filters lines ï¿½ placer plus haut dans un truc qui se replie
 	print '<tr class="liste_titre">';
 
 	if (! empty($arrayfields['e.ref']['checked'])) {
@@ -494,11 +515,16 @@ if ($result) {
 		print '<input type="text" class="flat" name="search_company_fourn" value="'.$search_company_fourn.'" size="10">';
 		print '</td>';
 	}
-	if (! empty($arrayfields['ff.ref']['checked'])) {
+	if (! empty($arrayfields['cf.ref']['checked'])) {
 		print '<td class="liste_titre" valign=top>';
-		print '<input type="text" class="flat" name="search_reffact_fourn" value="'.$search_reffact_fourn.'" size="8">';
+		print '<input type="text" class="flat" name="search_reforder_fourn" value="'.$search_reforder_fourn.'" size="8">';
 		print '</td>';
 	}
+  if (! empty($arrayfields['ff.ref']['checked'])) {
+    print '<td class="liste_titre" valign=top>';
+    print '<input type="text" class="flat" name="search_reffact_fourn" value="'.$search_reffact_fourn.'" size="8">';
+    print '</td>';
+  }
 
 	if (! empty($arrayfields['scli.nom']['checked'])) {
 		print '<td class="liste_titre" valign=top>';
@@ -537,6 +563,12 @@ if ($result) {
 		print select_equipement_etat($search_etatequipement, 'search_etatequipement', 1, 1);
 		print '</td>';
 	}
+
+  if (! empty($arrayfields['e.note_private']['checked'])) {
+    print '<td class="liste_titre" valign=top>';
+    print '<input class="flat" type="text" size="10" name="search_note_private" value="'.$search_note_private.'">';
+    print '</td>';
+  }
 
 	if (! empty($arrayfields['e.tms']['checked']))
 		print '<td class="liste_titre" align="right"></td>';
@@ -607,7 +639,7 @@ if ($result) {
 		}
 
 		if (! empty($arrayfields['p.ref']['checked'])) {
-			// toujours un produit associé à un équipement // cela va changer
+			// toujours un produit associï¿½ ï¿½ un ï¿½quipement // cela va changer
 			print '<td >';
 			if ($objp->fk_product > 0) {
 				$productstatic=new Product($db);
@@ -618,7 +650,7 @@ if ($result) {
 		}
 
 		if (! empty($arrayfields['p.label']['checked'])) {
-			// toujours un produit associé à un équipement
+			// toujours un produit associï¿½ ï¿½ un ï¿½quipement
 			print '<td >';
 
 			print $objp->labelproduit;
@@ -668,16 +700,27 @@ if ($result) {
 			print '</td>';
 		}
 
-		if (! empty($arrayfields['ff.ref']['checked'])) {
+		if (! empty($arrayfields['cf.ref']['checked'])) {
 			print "<td align=left>";
-			if ( $objp->fk_facture_fourn > 0
-				&& $user->rights->facture->lire) {
-				$factfournstatic = new FactureFournisseur($db);
-				$factfournstatic->fetch($objp->fk_facture_fourn);
-				print $factfournstatic ->getNomUrl(1);
+			if ( $objp->fk_commande_fourn > 0
+				&& $user->rights->fournisseur->commande->lire) {
+				$commfournstatic = new CommandeFournisseur($db);
+          $commfournstatic->fetch($objp->fk_commande_fourn);
+				print $commfournstatic ->getNomUrl(1);
 			}
 			print '</td>';
 		}
+
+    if (! empty($arrayfields['ff.ref']['checked'])) {
+      print "<td align=left>";
+      if ( $objp->fk_facture_fourn > 0
+        && $user->rights->facture->lire) {
+        $factfournstatic = new FactureFournisseur($db);
+        $factfournstatic->fetch($objp->fk_facture_fourn);
+        print $factfournstatic ->getNomUrl(1);
+      }
+      print '</td>';
+    }
 
 
 		if (! empty($arrayfields['scli.nom']['checked'])) {
@@ -717,8 +760,23 @@ if ($result) {
 			print '</td>';
 		}
 
-		if (! empty($arrayfields['e.tms']['checked']))
-			print "<td nowrap align='center'>".dol_print_date($db->jdate($objp->tms), 'day')."</td>\n";
+		if (! empty($arrayfields['e.note_private']['checked'])) {
+        print "<td align='left'>";
+        $tmpcontent=dol_htmlentitiesbr($objp->note_private);
+        if (! empty($conf->global->MAIN_DISABLE_NOTES_TAB))
+        {
+            $firstline=preg_replace('/<br>.*/','',$tmpcontent);
+            $firstline=preg_replace('/[\n\r].*/','',$firstline);
+            $tmpcontent=$firstline.((strlen($firstline) != strlen($tmpcontent))?'...':'');
+        }
+        print $tmpcontent;
+        print "</td>\n";
+
+    }
+
+
+    if (! empty($arrayfields['e.tms']['checked']))
+        print "<td nowrap align='center'>".dol_print_date($db->jdate($objp->tms), 'day')."</td>\n";
 
 
 		if (! empty($arrayfields['e.fk_statut']['checked'])) {

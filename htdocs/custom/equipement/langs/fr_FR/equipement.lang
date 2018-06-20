@@ -334,3 +334,15 @@ FacNumber=Fact. Client
 DateCreate=Création
 EquipementStatut=Condition
 Dated=DLUO
+
+RefCommFourn=Commande fourn.
+SupplierOrderRef=Comm. Fourn.
+ReassignEquipmentOfProductLeft=Réaffecter un équipement ayant le numéro de série
+ReassignEquipmentOfProductRigth=avec ce produit
+ReassignEquipment=Réaffecter l'équipement
+EquipmentNotFound=Équipement non trouvé
+EquipmentReassigned=L'équipement a été réaffecter.
+EquipmentAlreadyAssignedToThisProduct=L'équipement est déjà affecter à ce produit.
+ReassignEquipmentProduct=Le produit %s à été échangé par %s
+EquipmentAddEquipmentToComposition=Ajout de l'équipement %s à la composition
+EquipmentDeleteEquipmentToComposition=Suppression de l'équipement %s à la composition

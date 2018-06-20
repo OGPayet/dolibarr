@@ -1,0 +1,33 @@
+# Dolibarr language file - fr_FR - synergiestech
+CHARSET=UTF-8
+Module500100Name = Synergies-Tech
+Module500100Desc = Module spécifique pour Synergies-Tech
+
+#######################################################################
+# Configuration admin
+#######################################################################
+SynergiesTechSetup                                                  = Configuration du module Synergies-Tech
+
+SynergiesTechEnabledWorkflowShippingCreatedToAttachEquipments       = Active la redirection vers l'écran de saisie des équipements si un produit à le statut sérialisable lors de la création d'une expédition
+SynergiesTechForceAttachEquipmentsAfterShippingCreated              = Force la rentrer des numéros de séries des produits sérialisables après la création d'une expédition
+
+SynergiesTechEnabledWorkflowOrderSupplierDispatchToSetEquipments    = Active la redirection vers l'écran de saisie des équipements si un produit à le statut sérialisable lors de la réceptions de marchandise d'une commande fournisseur
+SynergiesTechForceSetEquipmentsAfterOrderSupplierDispatch           = Force la rentrer des numéros de séries des produits sérialisables après la réceptions de marchandise d'une commande fournisseur
+
+#######################################################################
+# Extrafields
+#######################################################################
+SynergiesTechSerializable   = À sérialiser
+
+#######################################################################
+# Force redirection
+#######################################################################
+SynergiesTechShippingHasEquipmentToSerialize         = L'expédition à des équipements à joindre.
+SynergiesTechShippingHasEquipmentToValidate          = L'expédition à des équipements à valider.
+SynergiesTechOrderSupplierHasEquipmentToSerialize    = La commande fournisseur à des équipements à sérialiser.
+
+#######################################################################
+# Mass action invoices list
+#######################################################################
+SynergiesTechNotSupportStockCalculateOnBill = Ne support pas le calcul du stock à la validation d'une facture
+SynergiesTechInvoiceMassValidate            = %s factures ont été validées.

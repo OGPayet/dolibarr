@@ -51,3 +51,6 @@ insert into llx_c_equipementevt_type ( code, libelle, active) values ('MOVE', 'S
 insert into llx_c_equipementevt_type ( code, libelle, active) values ('RECEPT', 'Recept',  1);
 insert into llx_c_equipementevt_type ( code, libelle, active) values ('LOOSED', 'NotRecept',  1);
 insert into llx_c_equipementevt_type ( code, libelle, active) values ('BROKEN', 'MoveBroken',  1);
+-- Ajout 2018-06-19 - Open-Dsi
+insert into llx_c_equipementevt_type ( code, libelle, active) values ('COMPO', 'Composition',  1);
+insert into llx_c_equipementevt_type ( code, libelle, active) values ('REASSIGN', 'Réaffectation',  1);

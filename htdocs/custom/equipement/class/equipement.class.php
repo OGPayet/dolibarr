@@ -18,7 +18,7 @@
 /**
  * 	\file	   htdocs/equipement/class/equipement.class.php
  * 	\ingroup	equipement
- * 	\brief	  Fichier de la classe des gestion des équipements
+ * 	\brief	  Fichier de la classe des gestion des ï¿½quipements
  */
 require_once(DOL_DOCUMENT_ROOT ."/core/class/commonobject.class.php");
 
@@ -33,35 +33,36 @@ class Equipement extends CommonObject
 	public $fk_element='fk_equipement';
 	public $table_element_line='equipementevt';
 
-	var $id;					// ID de l'équipement
-	var $ref;					// numéro de série unique pour l'équipement
+	var $id;					// ID de l'ï¿½quipement
+	var $ref;					// numï¿½ro de sï¿½rie unique pour l'ï¿½quipement
 	var $fk_product;			// ID du produit
-	var $fk_product_batch;		// numéro de lot
-	var $numimmocompta;			// numéro de compte immo pour les recherches
-	var $numversion; 			// numéro de version associé au produit
+	var $fk_product_batch;		// numï¿½ro de lot
+	var $numimmocompta;			// numï¿½ro de compte immo pour les recherches
+	var $numversion; 			// numï¿½ro de version associï¿½ au produit
 	var $fk_soc_fourn;			// ID du fournisseur du produit
-	var $fk_fact_fourn;			// ID fact fournisseur du produit
-	var $ref_fourn;				// référence produit du fournisseur (non stockée en base, juste pour la génération multiple)
+	var $fk_commande_fourn;		// ID commande fournisseur du produit
+    var $fk_fact_fourn;			// ID fact fournisseur du produit
+	var $ref_fourn;				// rï¿½fï¿½rence produit du fournisseur (non stockï¿½e en base, juste pour la gï¿½nï¿½ration multiple)
 	var $fk_soc_client;			// Id client du produit
 	var $fk_fact_client;		// ID fact client du produit
-	var $fk_contact;			// contact à qui est rattaché l'équipement si besoin (sert accessoirement à sa localisation)
+	var $fk_contact;			// contact ï¿½ qui est rattachï¿½ l'ï¿½quipement si besoin (sert accessoirement ï¿½ sa localisation)
 	var $client;				// Objet societe client (a charger par fetch_client)
-	var $fk_etatequipement;		// état de l'équipement
-	var $etatequiplibelle;		// état de l'équipement (libéllé
-	var $fk_entrepot;			// entrepot de l'équipement chez soit
+	var $fk_etatequipement;		// ï¿½tat de l'ï¿½quipement
+	var $etatequiplibelle;		// ï¿½tat de l'ï¿½quipement (libï¿½llï¿½
+	var $fk_entrepot;			// entrepot de l'ï¿½quipement chez soit
 	var $isentrepotmove;		// on effectue un mouvement de stock oui/non
 
-	var $unitweight;			// poids unitaire de l'équipement
-	var $SerialMethod;			// Méthode de génération des numéros de série
-	var $quantity;				// Quantité de produit en cas de gestion par lot
-	var $nbCreateEquipement; 	// nombre d'équipement à créer
+	var $unitweight;			// poids unitaire de l'ï¿½quipement
+	var $SerialMethod;			// Mï¿½thode de gï¿½nï¿½ration des numï¿½ros de sï¿½rie
+	var $quantity;				// Quantitï¿½ de produit en cas de gestion par lot
+	var $nbCreateEquipement; 	// nombre d'ï¿½quipement ï¿½ crï¿½er
 	var $fk_factory;			// ID de la fabrication
 
 	var $author;
-	var $datec;		// date création de l'équipement
-	var $dateo;		// date de début de l'équipement
-	var $datee;		// date de fin de l'équipement
-	var $dated;		// date de DLUO de l'équipement
+	var $datec;		// date crï¿½ation de l'ï¿½quipement
+	var $dateo;		// date de dï¿½but de l'ï¿½quipement
+	var $datee;		// date de fin de l'ï¿½quipement
+	var $dated;		// date de DLUO de l'ï¿½quipement
 
 	var $barcode;				// value
 	var $barcode_type;			// id
@@ -123,7 +124,7 @@ class Equipement extends CommonObject
 
 		$now=dol_now();
 
-		// en mode sérialisation externe, on détermine le nombre de numéro de série transmi
+		// en mode sï¿½rialisation externe, on dï¿½termine le nombre de numï¿½ro de sï¿½rie transmi
 		if ($this->SerialMethod == 2) {
 			$separatorlist=$conf->global->EQUIPEMENT_SEPARATORLIST;
 			$separatorlist =($separatorlist ? $separatorlist : ";");
@@ -135,35 +136,35 @@ class Equipement extends CommonObject
 			$tblSerial=explode($separatorlist, $this->SerialFourn);
 
 			$nbCreateSerial=count($tblSerial);
-			// si on a des ref, on détermine le nombre d'équipement à créer
+			// si on a des ref, on dï¿½termine le nombre d'ï¿½quipement ï¿½ crï¿½er
 			$this->nbAddEquipement = $nbCreateSerial;
 			dol_syslog(get_class($this)."::Addmethod2 nb2create =".$nbCreateSerial);
 		}
 
 		$i=0;
-		// boucle sur les numéros de série pour créer autant d'équipement
+		// boucle sur les numï¿½ros de sï¿½rie pour crï¿½er autant d'ï¿½quipement
 		while ($this->nbAddEquipement > $i) {
-			// récup de la ref suivante
+			// rï¿½cup de la ref suivante
 			$this->date = dol_now();
 
 			// si on est en mode code fournisseur
 			switch($this->SerialMethod) {
-				case 1 : // en mode génération auto, on crée des numéros série interne
+				case 1 : // en mode gï¿½nï¿½ration auto, on crï¿½e des numï¿½ros sï¿½rie interne
 					$obj = $conf->global->EQUIPEMENT_ADDON;
 					$modequipement = new $obj;
 					$numpr = $modequipement->getNextValue($soc, $this);
 					break;
 
-				case 2 :	// on récupère le numéro de série dans la liste fournis
-					// attention on peut ne récupérer qu'un bout du numéro
+				case 2 :	// on rï¿½cupï¿½re le numï¿½ro de sï¿½rie dans la liste fournis
+					// attention on peut ne rï¿½cupï¿½rer qu'un bout du numï¿½ro
 					if ($conf->global->EQUIPEMENT_BEGINKEYSERIALLIST != 0)
 						$numpr=substr($tblSerial[$i], $conf->global->EQUIPEMENT_BEGINKEYSERIALLIST);
 					else
 						$numpr=$tblSerial[$i];
 					break;
 
-				case 3 :  // en mode série par lot, on reprend le numéro de lot comme numéro de série
-					// si en mode découpage on récupère la ref, en création on récupère le numéro de lot
+				case 3 :  // en mode sï¿½rie par lot, on reprend le numï¿½ro de lot comme numï¿½ro de sï¿½rie
+					// si en mode dï¿½coupage on rï¿½cupï¿½re la ref, en crï¿½ation on rï¿½cupï¿½re le numï¿½ro de lot
 					if ($this->ref)
 						$numpr=$this->ref;
 					else
@@ -171,7 +172,7 @@ class Equipement extends CommonObject
 					break;
 			}
 
-			// si il a un soucis avec la ref, on ne cré pas l'équipement
+			// si il a un soucis avec la ref, on ne crï¿½ pas l'ï¿½quipement
 			if ($numpr) {
 				$this->db->begin();
 
@@ -179,7 +180,8 @@ class Equipement extends CommonObject
 				$sql.= "fk_product";
 				$sql.= ", fk_soc_client";
 				$sql.= ", fk_soc_fourn";
-				$sql.= ", fk_facture_fourn";
+				$sql.= ", fk_commande_fourn";
+                $sql.= ", fk_facture_fourn";
 				$sql.= ", datec";
 				$sql.= ", datee";
 				$sql.= ", dated";
@@ -202,7 +204,8 @@ class Equipement extends CommonObject
 				$sql.= " VALUES ( ".$this->fk_product;
 				$sql.= ", ".($this->fk_soc_client?$this->db->escape($this->fk_soc_client):"null");
 				$sql.= ", ".($this->fk_soc_fourn?$this->db->escape($this->fk_soc_fourn):"null");
-				$sql.= ", ".($this->fk_facture_fourn?$this->db->escape($this->fk_facture_fourn):"null");
+				$sql.= ", ".($this->fk_commande_fourn?$this->db->escape($this->fk_commande_fourn):"null");
+                $sql.= ", ".($this->fk_facture_fourn?$this->db->escape($this->fk_facture_fourn):"null");
 				$sql.= ", '".$this->db->idate($now)."'";
 				$sql.= ", ".($this->datee?"'".$this->db->idate($this->datee)."'":"null");
 				$sql.= ", ".($this->dated?"'".$this->db->idate($this->dated)."'":"null");
@@ -217,7 +220,7 @@ class Equipement extends CommonObject
 				$sql.= ", ".($this->fk_product_batch?$this->db->escape($this->fk_product_batch):"null");
 				$sql.= ", ".($this->description?"'".$this->db->escape($this->description)."'":"null");
 				$sql.= ", ".($this->fk_etatequipement?$this->db->escape($this->fk_etatequipement):"null");
-				$sql.= ", ".($this->fk_entrepot>0?"1":"0"); // si il y a un entrepot de sélectionné on active ou non l'équipement
+				$sql.= ", ".($this->fk_entrepot>0?"1":"0"); // si il y a un entrepot de sï¿½lectionnï¿½ on active ou non l'ï¿½quipement
 				$sql.= ", ".($this->note_private?"'".$this->db->escape($this->note_private)."'":"null");
 				$sql.= ", ".($this->note_public?"'".$this->db->escape($this->note_public)."'":"null");
 				$sql.= ", ".($this->model_pdf?"'".$this->db->escape($this->model_pdf)."'":"null");
@@ -229,7 +232,7 @@ class Equipement extends CommonObject
 					$i++;
 					$this->id=$this->db->last_insert_id(MAIN_DB_PREFIX."equipement");
 
-					// si on veut faire un mouvement correspondant à la création
+					// si on veut faire un mouvement correspondant ï¿½ la crï¿½ation
 					// et que l'on utilise pas product batch
 					if ($this->isentrepotmove
 						&& $this->fk_entrepot > 0
@@ -266,24 +269,24 @@ class Equipement extends CommonObject
 					break;
 				}
 
-				// si factory est présent on vérifie si il est nécessaire de créer la liaison
+				// si factory est prï¿½sent on vï¿½rifie si il est nï¿½cessaire de crï¿½er la liaison
 				if ($conf->global->MAIN_MODULE_FACTORY && $this->fk_factory > 0 ) {
 					// on ajoute la liaison avec l'of
 					$sql = "INSERT INTO ".MAIN_DB_PREFIX."equipement_factory (fk_equipement, fk_factory) ";
 					$sql.= " values (".$this->id.", ".$this->fk_factory.")";
 					$result=$this->db->query($sql);
 
-					// on crée le lien vers l'of
+					// on crï¿½e le lien vers l'of
 					$this->add_object_linked('factory', $this->fk_factory);
 				}
 			}
 		}
 
-		// si on est allé jusqu'à la fin des création
-		if ($this->nbAddEquipement == $i) // on se positionne sur le dernier crée en modif
+		// si on est allï¿½ jusqu'ï¿½ la fin des crï¿½ation
+		if ($this->nbAddEquipement == $i) // on se positionne sur le dernier crï¿½e en modif
 			return $this->id;
 		else
-			return -1; // sinon on revient à la case départ
+			return -1; // sinon on revient ï¿½ la case dï¿½part
 	}
 
 	/**
@@ -295,7 +298,7 @@ class Equipement extends CommonObject
 	 */
 	function fetch($rowid, $ref='')
 	{
-		$sql = "SELECT e.rowid, e.ref, e.description, e.fk_soc_fourn, e.fk_facture_fourn, e.fk_statut, e.fk_entrepot,";
+		$sql = "SELECT e.rowid, e.ref, e.description, e.fk_soc_fourn, e.fk_commande_fourn, e.fk_facture_fourn, e.fk_statut, e.fk_entrepot,";
 		$sql.= " e.numversion, e.numimmocompta, e.fk_etatequipement, ee.libelle as etatequiplibelle, e.quantity,";
 		$sql.= " e.datec, e.datev, e.datee, e.dateo, e.dated, e.tms as datem, e.unitweight, e.fk_product_batch,";
 		$sql.= " e.fk_product, e.fk_soc_client, e.fk_facture,";
@@ -328,7 +331,8 @@ class Equipement extends CommonObject
 				$this->datem			= $this->db->jdate($obj->datem);
 				$this->fk_product		= $obj->fk_product;
 				$this->fk_soc_fourn		= $obj->fk_soc_fourn;
-				$this->fk_fact_fourn	= $obj->fk_facture_fourn;
+				$this->fk_commande_fourn = $obj->fk_commande_fourn;
+                $this->fk_fact_fourn	= $obj->fk_facture_fourn;
 				$this->fk_soc_client	= $obj->fk_soc_client;
 				$this->fk_fact_client	= $obj->fk_facture;
 				$this->fk_entrepot		= $obj->fk_entrepot;
@@ -346,7 +350,7 @@ class Equipement extends CommonObject
 					$this->brouillon = 1;
 
 				/*
-				 * récupération des Lines
+				 * rï¿½cupï¿½ration des Lines
 				 */
 				$result=$this->fetch_lines();
 				if ($result < 0)
@@ -447,7 +451,7 @@ class Equipement extends CommonObject
 			$updtSep=" ,";
 		}
 
-		// gestion de l'entrepot à part (inclut les mouvements)
+		// gestion de l'entrepot ï¿½ part (inclut les mouvements)
 		if ($this->fk_etatentrepot > 0)
 			$this->set_entrepot($user, $this->fk_etatentrepot, $bmoveentrepot);
 
@@ -456,13 +460,13 @@ class Equipement extends CommonObject
 
 		if ($this->fk_statut != -1) {
 			$sql.= $updtSep." fk_statut=".$this->fk_statut;
-			$updtSep=" ,"; // pour gérer la mise à jour
+			$updtSep=" ,"; // pour gï¿½rer la mise ï¿½ jour
 		}
 
 		$sql.= " WHERE rowid = ".$this->id;
 		$sql.= " AND entity = ".$conf->entity;
 
-		// si on a fait une mise à jour
+		// si on a fait une mise ï¿½ jour
 		if ($updtSep != " SET") {
 			dol_syslog(get_class($this)."::updateInfos sql=".$sql);
 			$resql=$this->db->query($sql);
@@ -809,14 +813,14 @@ class Equipement extends CommonObject
 //print "===".$sql."<br>";
 			if ($this->db->query($sql)) {
 				$this->fk_entrepot = $fk_entrepot;
-				// si on a changé d'entrepot et on veut faire un mouvement
+				// si on a changï¿½ d'entrepot et on veut faire un mouvement
 				if ($bmoveentrepot==1 && $oldentrepot != $fk_entrepot) {
 					require_once DOL_DOCUMENT_ROOT.'/product/stock/class/mouvementstock.class.php';
 					$mouvP = new MouvementStock($this->db);
 					$mouvP->origin = $this;
 					$mouvP->origin->id = $this->id;
 
-					// le prix est à 0 pour ne pas impacter le pmp
+					// le prix est ï¿½ 0 pour ne pas impacter le pmp
 					if ( $oldentrepot > 0 ) // si il y avait un ancien entrepot
 						$idmv=$mouvP->livraison(
 										$user, $this->fk_product, $oldentrepot, $this->quantity, 0,
@@ -848,7 +852,7 @@ class Equipement extends CommonObject
 						$sql.= " WHERE rowid = ".$objp->fk_equipement_fils;
 						$sql.= " AND entity = ".$conf->entity;
 						if ($this->db->query($sql)) {
-							// si on a changé d'entrepot et on veut faire un mouvement
+							// si on a changï¿½ d'entrepot et on veut faire un mouvement
 							if ($bmoveentrepot && $oldentrepot != $fk_entrepot) {
 //								$tmpequipement = new Equipement($this->db);
 								$mouvP->origin->id = $objp->fk_equipement_fils;
@@ -1010,8 +1014,8 @@ class Equipement extends CommonObject
 
 			if ($this->db->query($sql)) {
 				$this->fk_soc_client = ($fk_soc_client!=-1? $fk_soc_client:"null");
-				// on gère récursivement l'héritage des enfants
-				$tblenfant=$this->get_Childs($fk_equipementparent);
+				// on gï¿½re rï¿½cursivement l'hï¿½ritage des enfants
+				$tblenfant=$this->get_Childs();
 
 				foreach ($tblenfant as $key => $value) {
 					$equipementChilds = new equipement($this->db);
@@ -1065,6 +1069,27 @@ class Equipement extends CommonObject
 			} else {
 				$this->error=$this->db->error();
 				dol_syslog("Equipement::set_fact_client Erreur SQL");
+				return -1;
+			}
+		}
+	}
+
+    function set_commande_fourn($user, $fk_commande_fourn)
+	{
+		global $conf;
+
+		if ($user->rights->equipement->creer) {
+			$sql = "UPDATE ".MAIN_DB_PREFIX."equipement ";
+			$sql.= " SET fk_commande_fourn = ".($fk_commande_fourn>0? $fk_commande_fourn:"null");
+			$sql.= " WHERE rowid = ".$this->id;
+			$sql.= " AND entity = ".$conf->entity;
+
+			if ($this->db->query($sql)) {
+				$this->fk_commande_fourn = $fk_commande_fourn;
+				return 1;
+			} else {
+				$this->error=$this->db->error();
+				dol_syslog("Equipement::set_commande_fourn Erreur SQL");
 				return -1;
 			}
 		}
@@ -1217,7 +1242,7 @@ class Equipement extends CommonObject
 	 *	@param		string	$desc					Line description
 	 *	@param	  date	$date_evenement			Intervention date
 	 *	@param	  int		$duration				Intervention duration
-	 *	@param	  int		$duration				Prix de l'évènement
+	 *	@param	  int		$duration				Prix de l'ï¿½vï¿½nement
 	 *	@return		int			 				>0 if ok, <0 if ko
 	 */
 	function addline($equipementid, $fk_equipementevt_type, $desc, $dateo, $datee, $fulldayevent, $fk_contrat, $fk_fichinter, $fk_expedition, $fk_project, $fk_user_author, $total_ht=0, $array_option=0)
@@ -1264,7 +1289,7 @@ class Equipement extends CommonObject
 	 *	@param		string	$desc					Line description
 	 *	@param	  date	$date_evenement			Intervention date
 	 *	@param	  int		$duration				Intervention duration
-	 *	@param	  int		$duration				Prix de l'évènement
+	 *	@param	  int		$duration				Prix de l'ï¿½vï¿½nement
 	 *	@return		int			 				>0 if ok, <0 if ko
 	 */
 	function addconsumption($equipementid, $fk_product, $desc, $datecons, $fk_entrepot, $fk_entrepotmove, $fk_user_author, $qty=1)
@@ -1282,7 +1307,7 @@ class Equipement extends CommonObject
 		$line->price					= $product->subprice;
 		$line->fk_entrepot				= $fk_entrepot;
 		$line->fk_entrepotmove			= $fk_entrepotmove;
-		// l'entrepot de l'équipement devient l'entrepot du consommé
+		// l'entrepot de l'ï¿½quipement devient l'entrepot du consommï¿½
 		$line->fk_entrepot_dest			= $this->fk_entrepot;
 		$line->fk_user_author			= $fk_user_author;
 
@@ -1467,7 +1492,7 @@ class Equipement extends CommonObject
 	{
 		$tblrep=array();
 		$sql = "SELECT fk_equipement_fils FROM ".MAIN_DB_PREFIX."equipementassociation ";
-		$sql.= " WHERE fk_equipement_pere=".$thid-id;
+		$sql.= " WHERE fk_equipement_pere=".$this->id;
 
 		dol_syslog(get_class($this)."::get_Parent sql=".$sql, LOG_DEBUG);
 		$resql=$this->db->query($sql);
@@ -1535,12 +1560,24 @@ class Equipement extends CommonObject
 	 */
 	function set_component($fk_parent, $fk_product, $position, $ref_child)
 	{
-		// on récupère l'id du composant à partir de sa ref
+	    global $langs;
+        $langs->load('equipement@equipement');
+
+		// on rï¿½cupï¿½re l'id du composant ï¿½ partir de sa ref
 		$this->id='';
 		$this->fetch('', $ref_child);
 
+        $fk_equipementevt_type = dol_getIdFromCode($this->db, 'COMPO', 'c_equipementevt_type', 'code', 'rowid');
+        $now = dol_now();
+
+        $equipment_statitc = new Equipement($this->db);
+        $equipment_statitc->fetch($fk_parent);
+
+		$error = 0;
+		$this->db->begin();
+
 		if ($this->fk_product==$fk_product) {
-			// si on a trouvé le composant
+			// si on a trouvï¿½ le composant
 			$fk_equipement_fils=$this->id;
 
 			$sql = "delete FROM ".MAIN_DB_PREFIX."equipementassociation ";
@@ -1556,23 +1593,71 @@ class Equipement extends CommonObject
 			$sql.= " values (".$fk_equipement_fils.", ".$fk_parent.", ".$fk_product.", ".$position.")";
 			dol_syslog(get_class($this)."::set_component trt sql=".$sql, LOG_DEBUG);
 
+            $result = $equipment_statitc->addline(
+                $equipment_statitc->id,
+                $fk_equipementevt_type,
+                $langs->trans('EquipmentAddEquipmentToComposition', $this->getNomUrl(1)),
+                $now,
+                $now,
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                ''
+            );
+			if ($result < 0) {
+                $error++;
+            }
 		} else {
 			$sql = "delete FROM ".MAIN_DB_PREFIX."equipementassociation ";
 			$sql.= " WHERE fk_equipement_pere=".$fk_parent;
 			$sql.= " and fk_product=".$fk_product;
 			$sql.= " and position=".$position;
 
+            $result = $equipment_statitc->addline(
+                $equipment_statitc->id,
+                $fk_equipementevt_type,
+                $langs->trans('EquipmentDeleteEquipmentToComposition', $this->getNomUrl(1)),
+                $now,
+                $now,
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                ''
+            );
+			if ($result < 0) {
+                $error++;
+            }
 		}
-		$this->db->query($sql);
+
+		if (!$error) {
+            $resql = $this->db->query($sql);
+            if (!$resql) {
+                $error++;
+            }
+        }
+
+        if (!$error) {
+		    $this->db->commit();
+        } else {
+            $this->db->rollback();
+        }
 	}
 
 	/**
-	 *	cut an équipement
+	 *	cut an ï¿½quipement
 	 *
-	 *	@param  	string	$ref_new			reférence du nouveau lot
-	 *	@param  	int		$quantiynew			quantité du nouveau lot
-	 *	@param  	boolean	$cloneevent			top pour reprendre les évènements du lot ou pas
-	 *  @return 	int		$fk_iddest			Id de l'évènement crée
+	 *	@param  	string	$ref_new			refï¿½rence du nouveau lot
+	 *	@param  	int		$quantiynew			quantitï¿½ du nouveau lot
+	 *	@param  	boolean	$cloneevent			top pour reprendre les ï¿½vï¿½nements du lot ou pas
+	 *  @return 	int		$fk_iddest			Id de l'ï¿½vï¿½nement crï¿½e
 	 */
 	function cut_equipement($ref_new, $quantitynew, $cloneevent)
 	{
@@ -1612,22 +1697,22 @@ class Equipement extends CommonObject
 		$cloned->model_pdf			= $this->model_pdf;
 		$cloned->fulldayevent 		= $this->fulldayevent;
 
-		// pas de mouvement de stock sur le découpage (les quantité restent les mêmes dans le même entrepot)
+		// pas de mouvement de stock sur le dï¿½coupage (les quantitï¿½ restent les mï¿½mes dans le mï¿½me entrepot)
 		$cloned->isentrepotmove=0;
 
 		$fk_iddest=$cloned->create();
 
-		// si la création c'est bien passé on met à jour la quantité d'origine
+		// si la crï¿½ation c'est bien passï¿½ on met ï¿½ jour la quantitï¿½ d'origine
 		if ($fk_iddest > 0 ) {
 			//print "cloned";
 			$this->set_quantity($user, $this->quantity - $quantitynew);
 
 			// TODO clone des extrafields
 
-			// pas de clonage des compositions, aucune utilité sur un lot
+			// pas de clonage des compositions, aucune utilitï¿½ sur un lot
 
 
-			// ensuite on clone les évènements de l'équipement
+			// ensuite on clone les ï¿½vï¿½nements de l'ï¿½quipement
 			if ($cloneevent) {
 				$sql = 'SELECT ee.rowid, ee.description, ee.fk_equipement, ee.fk_equipementevt_type, ee.total_ht, ee.fulldayevent,';
 				$sql.= ' ee.datec, ee.fk_user_author, ee.dateo, ee.datee, ee.fk_fichinter, ee.fk_contrat, ee.fk_expedition';
@@ -1656,7 +1741,7 @@ class Equipement extends CommonObject
 						$i++;
 					}
 
-				// on ajoute un évènement de clonage???
+				// on ajoute un ï¿½vï¿½nement de clonage???
 				}
 			}
 		}
@@ -1667,7 +1752,7 @@ class Equipement extends CommonObject
 	function fillinvoice($numfacture)
 	{
 		global $langs;
-		// on récupère les numéro équipements associé à la facture, pour les afficher dans le détails de la facture
+		// on rï¿½cupï¿½re les numï¿½ro ï¿½quipements associï¿½ ï¿½ la facture, pour les afficher dans le dï¿½tails de la facture
 		$sql = "SELECT e.rowid, e.ref, e.description, e.fk_soc_fourn, e.fk_facture_fourn, e.fk_statut, e.fk_entrepot,";
 		$sql.= " e.numversion, e.numimmocompta, e.fk_etatequipement, e.quantity,";
 		$sql.= " e.datec, e.datev, e.datee, e.dated, e.dateo, e.tms as datem,";
@@ -1678,7 +1763,7 @@ class Equipement extends CommonObject
 		$sql.= " ORDER BY fk_product";
 		dol_syslog(get_class($this)."::fillinvoice sql=".$sql, LOG_DEBUG);
 		$resql=$this->db->query($sql);
-		if ($resql) {	// on boucle sur les équipements
+		if ($resql) {	// on boucle sur les ï¿½quipements
 			$num = $this->db->num_rows($resql);
 			$i=0;
 			while ($i < $num) {
@@ -1687,7 +1772,7 @@ class Equipement extends CommonObject
 				if ($obj->quantity >1)
 					$SerialLineInInvoice.="(".$obj->quantity.")";
 
-				// on ajoute les numéros d'équipements à la suite
+				// on ajoute les numï¿½ros d'ï¿½quipements ï¿½ la suite
 				$sql = "UPDATE ".MAIN_DB_PREFIX."facturedet";
 				$sql.= " SET description =concat(description,'".$serialLineInInvoice."')";
 				$sql.= " WHERE fk_facture=".$numfacture;
@@ -1701,7 +1786,7 @@ class Equipement extends CommonObject
 	function fillintervention($numintervention)
 	{
 		global $langs;
-		// on récupère les numéro équipements associé à la facture, pour les afficher dans le détails de la facture
+		// on rï¿½cupï¿½re les numï¿½ro ï¿½quipements associï¿½ ï¿½ la facture, pour les afficher dans le dï¿½tails de la facture
 		$sql = "SELECT e.ref as refequipement, p.ref as refproduct";
 		$sql.= " FROM ".MAIN_DB_PREFIX."equipement as e, ".MAIN_DB_PREFIX."equipementevt as ee";
 		$sql.= " , ".MAIN_DB_PREFIX."product as p";
@@ -1714,7 +1799,7 @@ class Equipement extends CommonObject
 
 		$resql=$this->db->query($sql);
 		$serialLineInIntervention="";
-		if ($resql) {	// on boucle sur les équipements
+		if ($resql) {	// on boucle sur les ï¿½quipements
 			$num = $this->db->num_rows($resql);
 			$i=0;
 			while ($i < $num) {
@@ -1723,7 +1808,7 @@ class Equipement extends CommonObject
 								"SerialLineInIntervention", $obj->refproduct, $obj->refequipement
 				);
 
-				// on ajoute les numéros d'équipements à la suite
+				// on ajoute les numï¿½ros d'ï¿½quipements ï¿½ la suite
 				$sql = "UPDATE ".MAIN_DB_PREFIX."fichinter";
 				$sql.= " SET note_public = concat_ws('<br>',note_public,'".$serialLineInIntervention."')";
 				$sql.= " WHERE rowid=".$numintervention;
@@ -1735,7 +1820,7 @@ class Equipement extends CommonObject
 	}
 
 
-	// détermination du nombre d'équipement déjà associé à l'expédition
+	// dï¿½termination du nombre d'ï¿½quipement dï¿½jï¿½ associï¿½ ï¿½ l'expï¿½dition
 	function get_nbEquipementProductExpedition($fk_product, $fk_expedition)
 	{
 		$sql = "SELECT sum(e.quantity) as nb ";
@@ -1769,13 +1854,13 @@ class Equipement extends CommonObject
 		if ($resql) {
 			dol_syslog(get_class($this)."::GetEquipementFromShipping sql=".$sql, LOG_DEBUG);
 			$resql=$this->db->query($sql);
-			if ($resql) {	// on boucle sur les équipements
+			if ($resql) {	// on boucle sur les ï¿½quipements
 				$num = $this->db->num_rows($resql);
 				$i=0;
 				while ($i < $num) {
 					$serialLineInInvoice=$langs->trans("SerialLineInInvoice", $obj->ref);
 					$obj = $this->db->fetch_object($resql);
-					// on ajoute les numéros d'équipements à la suite
+					// on ajoute les numï¿½ros d'ï¿½quipements ï¿½ la suite
 					$sql = "UPDATE ".MAIN_DB_PREFIX."equipement";
 					$sql.= " SET fk_facture =".$fk_facture;
 					$sql.= " WHERE rowid=".$obj->rowid;
@@ -1791,7 +1876,7 @@ class Equipement extends CommonObject
 
 /**
  *	\class	  EquipementLigne
- *	\brief	  Classe permettant la gestion des lignes d'évènement intervention
+ *	\brief	  Classe permettant la gestion des lignes d'ï¿½vï¿½nement intervention
  */
 class Equipementevt extends CommonObject
 {
@@ -1811,7 +1896,7 @@ class Equipementevt extends CommonObject
 	var $fk_project;
 	var $fk_expedition;
 	var $fk_user_author;
-	// pour éviter de se taper une recherche pour chaque ligne
+	// pour ï¿½viter de se taper une recherche pour chaque ligne
 	var $ref_fichinter;
 	var $ref_contrat;
 	var $ref_expedition;
@@ -1822,7 +1907,7 @@ class Equipementevt extends CommonObject
 	var $dateo;					// Date debut de l'evenement
 	var $datee;					// Date fin de l'evenement
 	var $fulldayevent;
-	var $total_ht=0;			//montant total de l'évènèment (pour information)
+	var $total_ht=0;			//montant total de l'ï¿½vï¿½nï¿½ment (pour information)
 
 	/**
 	 *	Constructor
@@ -1884,8 +1969,9 @@ class Equipementevt extends CommonObject
 	 *
 	 *	@return		int		<0 if ko, >0 if ok
 	 */
-	function insert()
+	function insert($notrigger=0)
 	{
+	    global $conf, $user;
 		dol_syslog(get_class($this)."::insert rang=".$this->rang);
 
 		$now=dol_now();
@@ -1903,7 +1989,7 @@ class Equipementevt extends CommonObject
 		$sql.= " ".($this->fk_contrat?$this->fk_contrat:"null").",";
 		$sql.= " ".($this->fk_expedition?$this->fk_expedition:"null").",";
 		$sql.= " ".($this->fk_project?$this->fk_project:"null").",";
-		$sql.= " '".$this->db->idate($now)."',"; // date de création alimenté automatiquement
+		$sql.= " '".$this->db->idate($now)."',"; // date de crï¿½ation alimentï¿½ automatiquement
 		$sql.= " '".$this->db->idate($this->dateo)."',";
 		$sql.= " '".$this->db->idate($this->datee)."',";
 		$sql.= ' '.($this->total_ht?price2num($this->total_ht):"null").",";
@@ -1913,16 +1999,26 @@ class Equipementevt extends CommonObject
 		dol_syslog(get_class($this)."::insert sql=".$sql);
 		$resql=$this->db->query($sql);
 		if ($resql) {
-			// on gère les extra fields
+			// on gï¿½re les extra fields
 			$this->rowid=$this->db->last_insert_id(MAIN_DB_PREFIX.'equipementevt');
 
 			if (empty($conf->global->MAIN_EXTRAFIELDS_DISABLED)) {
 				$this->id=$this->rowid;
 				$result=$this->insertExtraFields();
 				if ($result < 0)
-					$error++;
+                    return -1;
 			}
-			return $resql;
+
+            if (! $notrigger) {
+                // Call trigger
+                $result = $this->call_trigger('LINEEQUIPEMENTEVT_INSERT', $user);
+                if ($result < 0) {
+                    return -1;
+                }
+                // End call triggers
+            }
+
+			return $this->rowid;
 		} else {
 			$this->error=$this->db->error()." sql=".$sql;
 			dol_syslog(get_class($this)."::insert Error ".$this->error, LOG_ERR);
@@ -1936,11 +2032,24 @@ class Equipementevt extends CommonObject
 	 *
 	 *	@return	 int		>0 if ok, <0 if ko
 	 */
-	function deleteline()
+	function deleteline($notrigger=0)
 	{
+	    global $conf, $user;
+
 		if ($this->statut == 0) {
 			dol_syslog(get_class($this)."::deleteline lineid=".$this->rowid);
 			$this->db->begin();
+
+            if (! $notrigger) {
+                // Call trigger
+                $result = $this->call_trigger('LINEEQUIPEMENTEVT_DELETE', $user);
+                if ($result < 0) {
+                    dol_syslog(get_class($this)."::delete error -3 ".$this->error, LOG_ERR);
+                    $this->db->rollback();
+                    return -3;
+                }
+                // End call triggers
+            }
 
 			$sql = "DELETE FROM ".MAIN_DB_PREFIX."equipementevt WHERE rowid = ".$this->rowid;
 			$resql = $this->db->query($sql);
@@ -1948,16 +2057,18 @@ class Equipementevt extends CommonObject
 
 			if ($resql) {
 				// Remove extrafields
-				if ((! $error) && (empty($conf->global->MAIN_EXTRAFIELDS_DISABLED))) {
+				if (empty($conf->global->MAIN_EXTRAFIELDS_DISABLED)) {
 					$this->id=$this->rowid;
 					$result=$this->deleteExtraFields();
 					if ($result < 0) {
-						$error++;
 						dol_syslog(get_class($this)."::delete error -4 ".$this->error, LOG_ERR);
+                        $this->db->rollback();
+                        return -4;
 					}
 				}
+
 				$this->db->commit();
-				return $resql;
+				return 1;
 			} else {
 				$this->error=$this->db->error()." sql=".$sql;
 				dol_syslog(get_class($this)."::deleteline Error ".$this->error, LOG_ERR);
@@ -1968,8 +2079,9 @@ class Equipementevt extends CommonObject
 			return -2;
 	}
 
-	function update()
+	function update($notrigger=0)
 	{
+	    global $conf, $user;
 		$this->db->begin();
 
 		// Mise a jour ligne en base
@@ -1994,11 +2106,23 @@ class Equipementevt extends CommonObject
 			if (empty($conf->global->MAIN_EXTRAFIELDS_DISABLED)) {
 				$this->id=$this->rowid;
 				$result=$this->insertExtraFields();
-				if ($result < 0)
-					$error++;
+				if ($result < 0) {
+                    $this->db->rollback();
+				return -1;
+                }
 			}
+            if (! $notrigger) {
+                // Call trigger
+                $result = $this->call_trigger('LINEEQUIPEMENTEVT_UPDATE', $user);
+                if ($result < 0) {
+                    dol_syslog(get_class($this)."::delete error -3 ".$this->error, LOG_ERR);
+                    $this->db->rollback();
+                    return -3;
+                }
+                // End call triggers
+            }
 			$this->db->commit();
-			return $resql;
+			return 1;
 		} else {
 			$this->error=$this->db->lasterror();
 			dol_syslog(get_class($this)."::update Error ".$this->error, LOG_ERR);
@@ -2010,7 +2134,7 @@ class Equipementevt extends CommonObject
 
 /**
  *	\class	  EquipementLigne
- *	\brief	  Classe permettant la gestion des lignes d'évènement intervention
+ *	\brief	  Classe permettant la gestion des lignes d'ï¿½vï¿½nement intervention
  */
 class Equipementconsumption extends CommonObject
 {
@@ -2114,7 +2238,7 @@ class Equipementconsumption extends CommonObject
 		$resql=$this->db->query($sql);
 		if ($resql) {
 			$newconso = $this->db->last_insert_id(MAIN_DB_PREFIX.'equipementconsumption');
-			// si les entrepots sont différent on crèe un mouvement
+			// si les entrepots sont diffï¿½rent on crï¿½e un mouvement
 			if ($this->fk_entrepotmove==1  && $this->fk_entrepot_dest != $this->fk_entrepot) {
 				require_once DOL_DOCUMENT_ROOT.'/product/stock/class/mouvementstock.class.php';
 				$equipementConsommant = new Equipement($this->db);
@@ -2123,7 +2247,7 @@ class Equipementconsumption extends CommonObject
 				$mouvP->origin = $equipementConsommant;
 				$mouvP->origin->id = $this->fk_equipementcons;
 
-				// le prix est à 0 pour ne pas impacter le pmp
+				// le prix est ï¿½ 0 pour ne pas impacter le pmp
 				if ( $this->fk_entrepot > 0 ) // si il y avait un ancien entrepot
 					$idmv=$mouvP->livraison(
 									$user, $this->fk_product, $this->fk_entrepot, 1, 0,
@@ -2200,7 +2324,7 @@ class Equipementconsumption extends CommonObject
 				$mouvP->origin = $equipementConsommant;
 				$mouvP->origin->id = $this->fk_equipementcons;
 
-				// le prix est à 0 pour ne pas impacter le pmp
+				// le prix est ï¿½ 0 pour ne pas impacter le pmp
 				if ( $this->fk_entrepot > 0 ) // si il y avait un ancien entrepot
 					$idmv=$mouvP->livraison(
 									$user, $this->fk_product, $this->fk_entrepot, 1, 0,
