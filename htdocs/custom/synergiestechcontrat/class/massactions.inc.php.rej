@@ -1,10 +1,12 @@
 diff a/htdocs/custom/synergiestechcontrat/class/massactions.inc.php b/htdocs/custom/synergiestechcontrat/class/massactions.inc.php	(rejected hunks)
-@@ -153,7 +153,7 @@ if (!$error && $massaction == 'facturerec') {
-             }
-             // secondly facturerec
-             $facturerec                            = new FactureRec($db);
--            $facturerec->titre                     = $facture->thirdparty->nom." ($facture->id)";
-+            $facturerec->titre                     = $db->escape($facture->thirdparty->nom." ($facture->id)");
-             $facturerec->linked_objects            = array();
-             $facturerec->linked_objects['contrat'] = $toselectid;
-             $facturerec->create($user, $facture->id);
+@@ -287,7 +287,9 @@ if (!$error && $massaction == 'facture') {
+                         $fac          = new Facture($db);
+                         $fac->fac_rec = $obj->id;
+                         $fac->socid   = $fac->fk_soc  = $obj->socid;
+-                        $fac->date    = $firstdayofnextperiod;
++                        //Commenté par Alexis L - 1531-20062018
++						//$fac->date    = $firstdayofnextperiod;
++						$fac->date    = dol_now();
+                         $fac->create($user, 1);
+                         //var_dump($fac);die();
+                         $ratio        = 1; // periode partielle
