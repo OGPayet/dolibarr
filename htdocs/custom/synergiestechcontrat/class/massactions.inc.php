@@ -268,7 +268,7 @@ if (!$error && $massaction == 'facture') {
                         //var_dump($fac);die();
                         $ratio        = 1; // periode partielle
                         $majoration   = 0; // majoration indice
-                        $desc         .= ' '.dol_print_date($firstdayofperiod, 'day').' => '.dol_print_date($lastdayofperiod, 'day');
+                        //$desc         .= ' '.dol_print_date($firstdayofperiod, 'day').' => '.dol_print_date($lastdayofperiod, 'day');
 
                         if ($firstdayofperiod < $startdate) { // prorata de d?but
                             $ratio *= 1 - ($startdate - $firstdayofperiod) / $oneday / $daysinperiod;
