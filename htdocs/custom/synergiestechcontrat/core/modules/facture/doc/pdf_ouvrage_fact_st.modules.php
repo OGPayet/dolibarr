@@ -1575,7 +1575,7 @@ class pdf_ouvrage_fact_st extends ModelePDFFactures
                 $thirdparty = $object->thirdparty;
             }
 
-            $carac_client_name = pdfBuildThirdpartyName($thirdparty, $outputlangs);
+            $carac_client_name = pdfBuildThirdpartyName($thirdparty, $outputlangs, 1);
 
             $carac_client = pdf_build_address($outputlangs, $this->emetteur, $object->thirdparty, ($usecontact ? $object->contact : ''), $usecontact, 'target', $object);
 
@@ -1583,8 +1583,9 @@ class pdf_ouvrage_fact_st extends ModelePDFFactures
             $widthrecbox = !empty($conf->global->MAIN_PDF_USE_ISO_LOCATION) ? 92 : 100;
             if ($this->page_largeur < 210) $widthrecbox = 84; // To work with US executive format
 
+            $widthrecbox -= 20;
             $posy = $this->marge_haute + 5;
-            $posx = $this->page_largeur - $this->marge_droite - $widthrecbox + 20;
+            $posx = $this->page_largeur - $this->marge_droite - $widthrecbox;
             if (!empty($conf->global->MAIN_INVERT_SENDER_RECIPIENT)) $posx = $this->marge_gauche;
 
             // Show recipient frame
