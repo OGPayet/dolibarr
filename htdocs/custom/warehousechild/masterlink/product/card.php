@@ -35,6 +35,9 @@
  *  \ingroup    product
  *  \brief      Page to show product
  */
+
+namespace CORE;
+
 // Load Dolibarr environment
 $res  = 0;
 // Try main.inc.php into web root known defined into CONTEXT_DOCUMENT_ROOT (not always defined)
@@ -69,8 +72,6 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/categories/class/categorie.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/modules/product/modules_product.php';
 
-dol_include_once('/warehousechild/class/html.formwarehousechild.class.php');
-
 if (!empty($conf->propal->enabled)) require_once DOL_DOCUMENT_ROOT.'/comm/propal/class/propal.class.php';
 if (!empty($conf->facture->enabled)) require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
 if (!empty($conf->commande->enabled)) require_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';
@@ -78,11 +79,26 @@ if (!empty($conf->accounting->enabled)) require_once DOL_DOCUMENT_ROOT.'/core/li
 if (!empty($conf->accounting->enabled)) require_once DOL_DOCUMENT_ROOT.'/core/class/html.formaccounting.class.php';
 if (!empty($conf->accounting->enabled)) require_once DOL_DOCUMENT_ROOT.'/accountancy/class/accountingaccount.class.php';
 
+namespace CORE\WAREHOUSECHILD;
+
+dol_include_once('/warehousechild/class/html.formwarehousechild.class.php');
+dol_include_once('/warehousechild/class/product.class.php');
+
+use CORE\WAREHOUSECHILD\Product as Product;
+use \WarehouseschildForm as WarehouseschildForm;
+use \ExtraFields as ExtraFields;
+use \Form as Form;
+use \FormFile as FormFile;
+use \FormAccounting as FormAccounting;
+use \AccountingAccount as AccountingAccount;
+
 $langs->load("products");
 $langs->load("other");
 if (!empty($conf->stock->enabled)) $langs->load("stocks");
 if (!empty($conf->facture->enabled)) $langs->load("bills");
 if (!empty($conf->productbatch->enabled)) $langs->load("productbatch");
+
+$langs->load('warehousechild@warehousechild');
 
 $mesg   = '';
 $error  = 0;
@@ -99,6 +115,7 @@ $confirm        = GETPOST('confirm', 'alpha');
 $socid          = GETPOST('socid', 'int');
 $duration_value = GETPOST('duration_value');
 $duration_unit  = GETPOST('duration_unit');
+$fav            = GETPOST('fav', 'int');
 if (!empty($user->societe_id)) $socid          = $user->societe_id;
 
 $object      = new Product($db);
@@ -157,6 +174,16 @@ $reshook    = $hookmanager->executeHooks('doActions', $parameters, $object, $act
 if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
 
 if (empty($reshook)) {
+
+    if ($action == 'addFav' && ($user->rights->produit->creer)) {
+        $object->addFav($fav);
+        header("Location: ".$_SERVER['PHP_SELF']."?id=".$object->id);
+    }
+    if ($action == 'delFav' && ($user->rights->produit->creer)) {
+        $object->delFav($fav);
+        header("Location: ".$_SERVER['PHP_SELF']."?id=".$object->id);
+    }
+
     // Type
     if ($action == 'setfk_product_type' && $user->rights->produit->creer) {
         $result = $object->setValueFrom('fk_product_type', GETPOST('fk_product_type'), '', null, 'text', '', $user, 'PRODUCT_MODIFY');
@@ -1810,7 +1837,7 @@ if ($action != 'create' && $action != 'edit' && $action != 'delete') {
     print '</div><div class="fichehalfright"><div class="ficheaddleft">';
 
     // ADD oscss
-    $formWC->productFavoriteWC($object);
+    if ($object->type == 0) $formWC->productFavoriteWC($object);
     // ADD oscss
 
     print '</div></div></div>';

@@ -16,6 +16,8 @@
  * or see http://www.gnu.org/
  */
 
+dol_include_once('/warehousechild/class/html.formproduct.class.php');
+
 class WarehouseschildForm extends Form
 {
     public $predefinedSubdivide;
@@ -100,10 +102,18 @@ class WarehouseschildForm extends Form
 
     function productFavoriteWC($object)
     {
-        $sql   = "SELECT fk_target FROM	".MAIN_DB_PREFIX."element_element WHERE	fk_source = $object->id AND sourcetype = 'product' AND targettype = 'stock'";
+        $sql         = "SELECT fk_target FROM	".MAIN_DB_PREFIX."element_element WHERE	fk_source = $object->id AND sourcetype = 'product' AND targettype = 'stock'";
         //var_dump($sql);
-        $resql = $this->db->query($sql);
-        print '<table summary="" class="centpercent notopnoleftnoright" style="margin-bottom: 2px;"><tbody><tr><td class="nobordernopadding" valign="middle"><div class="titre">Entrepôt par défaut</div></td></tr></tbody></table>';
+        $resql       = $this->db->query($sql);
+        print '<form method="POST">';
+        print '<input name="action" type="hidden" value="addFav" />';
+        print '<table summary="" class="centpercent notopnoleftnoright" style="margin-bottom: 2px;"><tbody><tr><td class="nobordernopadding" valign="middle"><div class="titre">Entrepôts favoris</div></td>';
+        $FormProduct = new CORE\WAREHOUSECHILD\FormProduct($this->db);
+        print '<td class="nobordernopadding titre_right" align="right" valign="middle"><span style="width: 75%;display: inline-block;max-width: 400px;">';
+        print $FormProduct->selectWarehouses('','fav','',0,0,$object->id);
+        print '</span> <input type="submit" value="Ajouter" class="butAction">';
+        print '</td>';
+        print '</tr></tbody></table></form>';
         print '<div class="div-table-responsive-no-min">
     <table class="liste formdoc noborder" summary="listofdocumentstable" width="100%"><tbody>
     <tr class="liste_titre">
@@ -114,12 +124,14 @@ class WarehouseschildForm extends Form
             $num            = $this->db->num_rows($resql);
             $i              = 0;
             while ($i < $num) {
-                $obj = $this->db->fetch_object($resql);
+                $obj   = $this->db->fetch_object($resql);
                 $fetch = $staticEntrepot->fetch($obj->fk_target);
-                if($fetch==1) {//pas supprimé
-                    print '<tr class="oddeven"><td colspan="3" class="">';
+                if ($fetch == 1) {//pas supprimé
+                    print '<tr class="oddeven"><td colspan="2" class="">';
                     print $staticEntrepot->getNomUrl(1, '', 1);
-                    print '</td></tr>';
+                    print '</td><td><a href="'.$_SERVER['PHP_SELF'].'?action=delFav&id='.$object->id.'&fav='.$obj->fk_target.'">';
+                    print img_delete();
+                    print    '</a></td></tr>';
                 }
                 $i++;
             }
