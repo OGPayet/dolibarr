@@ -111,10 +111,10 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
 		$this->posxdesc=$this->marge_gauche+1;
 		if($conf->global->PRODUCT_USE_UNITS)
 		{
-			$this->posxtva=99;
-			$this->posxup=114;
-			$this->posxqty=130;
-			$this->posxunit=147;
+			$this->posxtva=109;
+			$this->posxup=123;
+			$this->posxqty=145;
+			$this->posxunit=154;
 		}
 		else
 		{
@@ -122,8 +122,8 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
 			$this->posxup=123;
 			$this->posxqty=145;
 		}
-		$this->posxdiscount=162;
-		$this->postotalht=174;
+		$this->posxdiscount=172;
+		$this->postotalht=184;
 		if (! empty($conf->global->MAIN_GENERATE_DOCUMENTS_WITHOUT_VAT)) $this->posxtva=$this->posxup;
 		$this->posxpicture=$this->posxtva - (empty($conf->global->MAIN_DOCUMENTS_WITH_PICTURE_WIDTH)?20:$conf->global->MAIN_DOCUMENTS_WITH_PICTURE_WIDTH);	// width of images
 		if ($this->page_largeur < 210) // To work with US executive format
@@ -1291,6 +1291,9 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
 	{
 		global $conf;
 
+		$outputlangs->load("products");
+
+
 		// Force to disable hidetop and hidebottom
 		$hidebottom=0;
 		if ($hidetop) $hidetop=-1;
@@ -1383,9 +1386,8 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
 		if($conf->global->PRODUCT_USE_UNITS) {
 			$pdf->line($this->posxunit - 1, $tab_top, $this->posxunit - 1, $tab_top + $tab_height);
 			if (empty($hidetop)) {
-				$pdf->SetXY($this->posxunit - 1, $tab_top + 1);
-				$pdf->MultiCell($this->posxdiscount - $this->posxunit - 1, 2, $outputlangs->transnoentities("Unit"), '',
-					'C');
+				$pdf->SetXY($this->posxunit - 1, $tab_top - 8.5);
+				$pdf->MultiCell($this->posxdiscount - $this->posxunit - 1, 2, $outputlangs->transnoentities("Unit"), '','C');
 			}
 		}
 
@@ -1405,7 +1407,7 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
 		if (empty($hidetop))
 		{
 			$pdf->SetXY($this->postotalht-1, $tab_top - 8.5);
-			$pdf->MultiCell(30,2, $outputlangs->transnoentities("TotalHT"),'','C');
+			$pdf->MultiCell(20,2, $outputlangs->transnoentities("TotalHT"),'','C');
 		}
 	}
 
@@ -1874,7 +1876,7 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
 	{
 		$default_font_size = pdf_getPDFFontSize($outputlangs);
 		$tab_top = $posy + 4;
-		$tab_hl = 4;
+		$tab_hl = 8;
 
 		$posx = 120;
 		$largcol = ($this->page_largeur - $this->marge_droite - $posx);
