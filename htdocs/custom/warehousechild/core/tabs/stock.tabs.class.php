@@ -20,37 +20,45 @@
  * 	\ingroup    propal
  * 	\brief      Fiche d'information sur une proposition commerciale
  */
-// namespace CORE\QUALITYREPORT;
-use \Form;
-use \Formother;
-use \FormFile;
-use \FormQualityReport;
-use \UserGroup;
-use \User;
-use \ExtraFields;
-// use \Propal;
-// use \ExtraFields;
-use \CORE\FRAMEWORK\Entrepot as Entrepot;
-use \CORE\FRAMEWORK\AutoTabs as AutoTabs;
-use \CORE\FRAMEWORK\AutoTabsRequired as AutoTabsRequired;
+//namespace CORE;
+
+
+require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
+require_once DOL_DOCUMENT_ROOT.'/core/class/discount.class.php';
+require_once DOL_DOCUMENT_ROOT.'/core/lib/invoice.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
+require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
+
+
+//namespace CORE\WAREHOUSECHILD;
+
 //
-// use \QualityReport;
-use \Task;
 
 // use \AutoTabsRequired;
 // use \dolmessage;
 
 
 dol_include_once('/warehousechild/class/warehousechild.class.php');
+dol_include_once('/warehousechild/class/product.class.php');
 dol_include_once('/warehousechild/class/html.formwarehousechild.class.php');
 dol_include_once('/warehousechild/core/lib/warehousechild.lib.php');
 dol_include_once('/framework/core/lib/framework.lib.php');
 
-require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
-require_once DOL_DOCUMENT_ROOT.'/core/class/discount.class.php';
-require_once DOL_DOCUMENT_ROOT.'/core/lib/invoice.lib.php';
-require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
-require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
+
+use \Form as Form;
+use \Formother as Formother;
+use \FormFile as FormFile;
+use \UserGroup as UserGroup;
+use \User as User;
+use \ExtraFields as ExtraFields;
+use \Product as Product;
+use \FormProduct as FormProduct;
+// use \Propal;
+// use \ExtraFields;
+use \CORE\FRAMEWORK\Entrepot as Entrepot;
+use \CORE\FRAMEWORK\AutoTabs as AutoTabs;
+use \CORE\FRAMEWORK\AutoTabsRequired as AutoTabsRequired;
 
 $langs->load('propal');
 $langs->load('compta');
@@ -169,7 +177,7 @@ AutoTabsRequired
         print '<div class="fichecenter">';
         print '<div class="underbanner clearboth"></div>';
 
-        if (!$this->warehousechild->has_child($this->GetParams('id')) && $user->rights->stock->creer || GETPOST('force','alpha')==='1') {
+        if (!$this->warehousechild->has_child($this->GetParams('id')) && $user->rights->stock->creer || GETPOST('force', 'alpha') === '1') {
 
             $formfile = new WarehouseschildForm($this->db);
 
@@ -184,8 +192,8 @@ AutoTabsRequired
                 , (string) $this->FV->GetLangByType($this->type)
                 , 'warehousechild'
             );
-$path='/framework/tabs/generic.php?mod=warehousechild&tab=stock&force=1&id='.$this->GetParams('id');
-            print '<div class="tabsAction"><a class="butAction" href="'.dol_buildpath($path,2).'">';
+            $path = '/framework/tabs/generic.php?mod=warehousechild&tab=stock&force=1&id='.$this->GetParams('id');
+            print '<div class="tabsAction"><a class="butAction" href="'.dol_buildpath($path, 2).'">';
             print 'Créer d\'autres entrepots enfants';
             print'</a></div>';
         }

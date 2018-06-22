@@ -18,6 +18,7 @@
 
 namespace CORE\WAREHOUSECHILD;
 
+require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 dol_include_once('/warehousechild/class/warehousechild.class.php');
 
 use \warehousechild as warehousechild;
