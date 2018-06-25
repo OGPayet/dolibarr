@@ -37,6 +37,7 @@ class WarehouseschildForm extends Form
         $this->predefinedSubdivide[] = array('name' => 'Alvéole');
         $this->predefinedSubdivide[] = array('name' => '');
         $this->predefinedSubdivide[] = array('name' => '');
+        $this->predefinedSubdivide[] = array('name' => '');
     }
 
     function displayForm()
@@ -47,7 +48,9 @@ class WarehouseschildForm extends Form
 
         print '<table class="border liste">';
         print '<thead><th>';
-        print 'Nom<sup>*</sup>';
+        print 'Utilisé';
+        print '</th><th>';
+        print 'Nom';
         print '</th><th>';
         print 'Abréviation';
         print '</th><th>';
@@ -64,7 +67,10 @@ class WarehouseschildForm extends Form
         $i = 0;
         foreach ($this->predefinedSubdivide as $level) {
             print '<tr><td>';
-            print '<input type="text" class="center" name="name['.$i.']" value="'.$level['name'].'" placeholder="non utilisé" />';
+            print '<input type="checkbox" class="center" name="used['.$i.']" value="1" '.((strlen($level['name'])>0)?'checked':'').' />';
+
+            print '</td><td>';
+            print '<input type="text" class="center" name="name['.$i.']" value="'.$level['name'].'" placeholder="..." />';
 
             print '</td><td>';
             print '<input type="text" class="center" name="abb['.$i.']" value="'.substr($level['name'], 0, 3).'" />';

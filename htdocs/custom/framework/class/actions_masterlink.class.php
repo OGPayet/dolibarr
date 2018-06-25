@@ -40,11 +40,14 @@ class ActionsMasterlink
                 $ml = new Masterlink($db);
 
                 $location = false;
-                if (isset($_SERVER['SCRIPT_URL']) && !empty($_SERVER['SCRIPT_URL'])) $url      = $_SERVER['SCRIPT_URL'];
-                else $url      = $_SERVER['PHP_SELF'];
+                if (isset($_SERVER['SCRIPT_URL']) && !empty($_SERVER['SCRIPT_URL'])) {
+                    $path = substr($_SERVER['SCRIPT_URL'], strlen(DOL_URL_ROOT));
+                } else {
+                    $path = $_SERVER['PHP_SELF'];
+                }
 
-                $path     = substr($_SERVER['SCRIPT_URL'], strlen(DOL_URL_ROOT));
-                if ($path !== '' && $ml->fetch(0, $path) === 0 && $path != $ml->custom
+                if (
+                    $ml->fetch(0, $path) === 0 && $path != $ml->custom
                 ) $location = dol_buildPath($ml->custom, 2);
 
                 if ($location) {

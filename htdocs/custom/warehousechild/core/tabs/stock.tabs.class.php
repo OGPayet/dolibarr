@@ -32,9 +32,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
 
 
 //namespace CORE\WAREHOUSECHILD;
-
 //
-
 // use \AutoTabsRequired;
 // use \dolmessage;
 
@@ -44,7 +42,6 @@ dol_include_once('/warehousechild/class/product.class.php');
 dol_include_once('/warehousechild/class/html.formwarehousechild.class.php');
 dol_include_once('/warehousechild/core/lib/warehousechild.lib.php');
 dol_include_once('/framework/core/lib/framework.lib.php');
-
 
 use \Form as Form;
 use \Formother as Formother;
@@ -141,21 +138,20 @@ AutoTabsRequired
         $i       = 0;
         $args    = array();
 
-        foreach (GETPOST('name', 'array') as $nom) {
-            if (!empty($nom)) {
-                $tmp               = array();
-                $tmp['name']       = ''.$nom;
-                $tmp['abb']        = GETPOST('abb')[$i];
-                $tmp['start']      = (int) GETPOST('start')[$i];
-                $tmp['qty']        = (int) GETPOST('qty')[$i];
-                $tmp['setup']      = GETPOST('setup')[$i];
-                $tmp['separator']  = GETPOST('separator')[$i];
-                $tmp['separator2'] = GETPOST('separator2')[$i];
-                $args[]            = $tmp;
-            }
+        foreach (GETPOST('used', 'array') as $used) {
+            $tmp               = array();
+            $tmp['name']       = GETPOST('name', 'array')[$i];
+            $tmp['abb']        = GETPOST('abb')[$i];
+            $tmp['start']      = (int) GETPOST('start')[$i];
+            $tmp['qty']        = (int) GETPOST('qty')[$i];
+            $tmp['setup']      = GETPOST('setup')[$i];
+            $tmp['separator']  = GETPOST('separator')[$i];
+            $tmp['separator2'] = GETPOST('separator2')[$i];
+            $tmp['used']       = GETPOST('used')[$i];
+            $args[]            = $tmp;
             $i++;
         }
-        if (count($args) > 1) {
+        if (count($args) > 0) {
 //            echo'<pre>';
 //            var_dump($args);
             $this->warehousechild->createChildren($args, $this->GetParams('id'));
