@@ -44,8 +44,12 @@ class ActionsMasterlink
                     $path = substr($_SERVER['SCRIPT_URL'], strlen(DOL_URL_ROOT));
                 } else {
                     $path = $_SERVER['PHP_SELF'];
+                    $url  = $this->_getServerUrl().$_SERVER['REQUEST_URI'];
+                    $path = str_replace(DOL_MAIN_URL_ROOT, '', $url);
+                    if (strpos($path, '?') !== false) {
+                        $path = substr($path, 0, strpos($path, '?'));
+                    }
                 }
-
                 if (
                     $ml->fetch(0, $path) === 0 && $path != $ml->custom
                 ) $location = dol_buildPath($ml->custom, 2);
@@ -58,11 +62,53 @@ class ActionsMasterlink
                     header('location: '.$location.'?'.$_SERVER['QUERY_STRING'].$res);
                     exit;
                 }
-
                 break;
         }
-
-
         return 0; // or return 1 to replace standard code
+    }
+
+    /**
+     * Try to figure out the server URL with possible Proxys / Ports etc.
+     *
+     * @return string Server URL with domain:port
+     */
+    function _getServerUrl()
+    {
+        $server_url = '';
+        if (!empty($_SERVER['HTTP_X_FORWARDED_HOST'])) {
+// explode the host list separated by comma and use the first host
+            $hosts      = explode(',', $_SERVER['HTTP_X_FORWARDED_HOST']);
+            $server_url = $hosts[0];
+        } else if (!empty($_SERVER['HTTP_X_FORWARDED_SERVER'])) {
+            $server_url = $_SERVER['HTTP_X_FORWARDED_SERVER'];
+        } else {
+            if (empty($_SERVER['SERVER_NAME'])) {
+                $server_url = $_SERVER['HTTP_HOST'];
+            } else {
+                $server_url = $_SERVER['SERVER_NAME'];
+            }
+        }
+        if (!strpos($server_url, ':')) {
+            if (($this->_isHttps() && $_SERVER['SERVER_PORT'] != 443) || (!$this->_isHttps() && $_SERVER['SERVER_PORT'] != 80)
+            ) {
+                $server_url .= ':';
+                $server_url .= $_SERVER['SERVER_PORT'];
+            }
+        }
+        return ($this->_isHttps() ? 'https://' : 'http://').$server_url;
+    }
+
+    /**
+     * This method checks to see if the request is secured via HTTPS
+     *
+     * @return bool true if https, false otherwise
+     */
+    private function _isHttps()
+    {
+        if (isset($_SERVER['HTTPS']) && !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') {
+            return true;
+        } else {
+            return false;
+        }
     }
 }
