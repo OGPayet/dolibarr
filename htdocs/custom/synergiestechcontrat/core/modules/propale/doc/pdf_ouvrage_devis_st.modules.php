@@ -111,10 +111,10 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
 		$this->posxdesc=$this->marge_gauche+1;
 		if($conf->global->PRODUCT_USE_UNITS)
 		{
-			$this->posxtva=109;
-			$this->posxup=123;
-			$this->posxqty=145;
-			$this->posxunit=154;
+			$this->posxtva=122;
+			$this->posxup=134;
+			$this->posxqty=155;
+			$this->posxunit=166;
 		}
 		else
 		{
@@ -122,7 +122,7 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
 			$this->posxup=123;
 			$this->posxqty=145;
 		}
-		$this->posxdiscount=172;
+		$this->posxdiscount=180;
 		$this->postotalht=184;
 		if (! empty($conf->global->MAIN_GENERATE_DOCUMENTS_WITHOUT_VAT)) $this->posxtva=$this->posxup;
 		$this->posxpicture=$this->posxtva - (empty($conf->global->MAIN_DOCUMENTS_WITH_PICTURE_WIDTH)?20:$conf->global->MAIN_DOCUMENTS_WITH_PICTURE_WIDTH);	// width of images
@@ -521,8 +521,8 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
                     if($up_excl_tax && $up_excl_tax !=' '){
                         $up_excl_tax.=' €';
                     }
-					$pdf->SetXY($this->posxup, $curY);
-					$pdf->MultiCell($this->posxqty-$this->posxup-0.8, 3, $up_excl_tax, 0, 'R', 0);
+					$pdf->SetXY($this->posxup-1.6, $curY);
+					$pdf->MultiCell($this->posxqty-$this->posxup+1.2, 4, $up_excl_tax, 0, 'R', 0);
 
 					// Quantity
 					$qty = pdf_getlineqty($object, $i, $outputlangs, $hidedetails);
@@ -559,8 +559,8 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
                     if($total_excl_tax && $total_excl_tax !=' '){
                         $total_excl_tax.=' €';
                     }
-					$pdf->SetXY($this->postotalht, $curY);
-					$pdf->MultiCell($this->page_largeur-$this->marge_droite-$this->postotalht, 3, $total_excl_tax, 0, 'R', 0);
+					$pdf->SetXY($this->postotalht-8, $curY);
+					$pdf->MultiCell($this->page_largeur-$this->marge_droite-$this->postotalht+8, 3, $total_excl_tax, 0, 'R', 0);
 
 					// Collecte des totaux par valeur de tva dans $this->tva["taux"]=total_tva
 					if ($conf->multicurrency->enabled && $object->multicurrency_tx != 1) $tvaligne=$object->lines[$i]->multicurrency_total_tva;
@@ -1387,7 +1387,7 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
 			$pdf->line($this->posxunit - 1, $tab_top, $this->posxunit - 1, $tab_top + $tab_height);
 			if (empty($hidetop)) {
 				$pdf->SetXY($this->posxunit - 1, $tab_top - 8.5);
-				$pdf->MultiCell($this->posxdiscount - $this->posxunit - 1, 2, $outputlangs->transnoentities("Unit"), '','C');
+				$pdf->MultiCell($this->posxdiscount - $this->posxunit - 1, 2, $outputlangs->transnoentities("U"), '','C');
 			}
 		}
 
@@ -1713,7 +1713,7 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
                 $thirdparty = $object->thirdparty;
             }
 
-            $carac_client_name = pdfBuildThirdpartyName($thirdparty, $outputlangs);
+            $carac_client_name = pdfBuildThirdpartyName($thirdparty, $outputlangs, 1);
 
             $carac_client = pdf_build_address($outputlangs, $this->emetteur, $object->thirdparty, ($usecontact ? $object->contact : ''), $usecontact, 'target', $object);
 
@@ -1722,7 +1722,7 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
             if ($this->page_largeur < 210) $widthrecbox = 84; // To work with US executive format
 
             $posy = $this->marge_haute + 5;
-            $posx = $this->page_largeur - $this->marge_droite - $widthrecbox + 20;
+            $posx = $this->page_largeur - $this->marge_droite - $widthrecbox;
             if (!empty($conf->global->MAIN_INVERT_SENDER_RECIPIENT)) $posx = $this->marge_gauche;
 
             // Show recipient frame
@@ -1813,7 +1813,7 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
 //				$thirdparty = $object->thirdparty;
 //			}
 //
-//			$carac_client_name= pdfBuildThirdpartyName($thirdparty, $outputlangs);
+//			$carac_client_name= pdfBuildThirdpartyName($thirdparty, $outputlangs, 1);
 //
 //			$carac_client=pdf_build_address($outputlangs,$this->emetteur,$object->thirdparty,($usecontact?$object->contact:''),$usecontact,'target',$object);
 //
@@ -1876,7 +1876,7 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
 	{
 		$default_font_size = pdf_getPDFFontSize($outputlangs);
 		$tab_top = $posy + 4;
-		$tab_hl = 8;
+		$tab_hl = 7;
 
 		$posx = 120;
 		$largcol = ($this->page_largeur - $this->marge_droite - $posx);
