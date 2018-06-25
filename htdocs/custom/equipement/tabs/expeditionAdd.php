@@ -84,19 +84,19 @@ if (!empty($object->origin)) {
 	$object->fetch_origin();
 }
 if ($action == 'joindre' && $user->rights->equipement->creer) {
-	// récupération des équipements de type lot à joindre
+	// rï¿½cupï¿½ration des ï¿½quipements de type lot ï¿½ joindre
 	$listLot= GETPOST('lotEquipement');
 	if (!empty($listLot)) {
 		foreach ($listLot as $fk_product => $lotproduct) {
 			//print $fk_product."<br>";
 			foreach ($lotproduct as $idlot => $qtyequipement) {
 				//print "prod=".$fk_product." Lot=".$idlot." Qty=".$qtyequipement."<br>";
-				// si on a des choses à envoyer depuis ce lot
+				// si on a des choses ï¿½ envoyer depuis ce lot
 				if ($qtyequipement > 0) {
-					// récupération de la quantité du lot
+					// rï¿½cupï¿½ration de la quantitï¿½ du lot
 					$tblLot=explode("-", $idlot);
 
-					if ($qtyequipement > $tblLot[1]) {	// erreur sur les quantités saisie sur le lots
+					if ($qtyequipement > $tblLot[1]) {	// erreur sur les quantitï¿½s saisie sur le lots
 						$mesg='<div class="error">'.$langs->trans("ErrorQuantityMustLower", $qtyequipement, $tblLot[1]).'</div>';
 						$error++;
 						setEventMessage($mesg);
@@ -104,24 +104,24 @@ if ($action == 'joindre' && $user->rights->equipement->creer) {
 						exit;
 					}
 
-					// on ajoute tous le lot à l'expédition
+					// on ajoute tous le lot ï¿½ l'expï¿½dition
 					$equipementstatic=new Equipement($db);
 					$ret=$equipementstatic->fetch($tblLot[0]);
 					$equipementstatic->fetch_thirdparty();
 
-					if ($qtyequipement < $tblLot[1]) {	// ON découpe le lot en deux parties et on associe le nouveau
-						// la réf de du lot
+					if ($qtyequipement < $tblLot[1]) {	// ON dï¿½coupe le lot en deux parties et on associe le nouveau
+						// la rï¿½f de du lot
 
 						$newequipid = $equipementstatic->cut_equipement($equipementstatic->ref."-".$object->ref, $qtyequipement, 1);
-						// on se positionne sur l'équipement nouvellement crée
+						// on se positionne sur l'ï¿½quipement nouvellement crï¿½e
 						$ret=$equipementstatic->fetch($newequipid);
 						$equipementstatic->fetch_thirdparty();
 					}
 
-					// on affecte l'équipement à expédier au client à qui on l'envoie
+					// on affecte l'ï¿½quipement ï¿½ expï¿½dier au client ï¿½ qui on l'envoie
 					$equipementstatic->set_client($user, $object->socid);
 
-					// on enlève l'équipement du stock
+					// on enlï¿½ve l'ï¿½quipement du stock
 					$equipementstatic->set_entrepot($user, -1);
 
 					// on cree enfin un evenement
@@ -162,14 +162,14 @@ if ($action == 'joindre' && $user->rights->equipement->creer) {
 				}
 			}
 		}
-		// on redirige sur l'onglet à coté
+		// on redirige sur l'onglet ï¿½ cotï¿½
 		Header('Location: expedition.php?id='.$id);
 		exit;
 	}
 
-	// récupération des équipements unitaires
+	// rï¿½cupï¿½ration des ï¿½quipements unitaires
 	$listEquip= GETPOST('chkequipement');
-	// on boucle sur les équipements sélectionnés si il y en a
+	// on boucle sur les ï¿½quipements sï¿½lectionnï¿½s si il y en a
 	if ($listEquip !="" ) {
 		foreach ($listEquip as $equipID) {
 			//print "==".$equipID."<br>";
@@ -177,10 +177,10 @@ if ($action == 'joindre' && $user->rights->equipement->creer) {
 			$ret=$equipementstatic->fetch($equipID);
 			$equipementstatic->fetch_thirdparty();
 
-			// on affecte l'équipement à expédier au client à qui on l'envoie
+			// on affecte l'ï¿½quipement ï¿½ expï¿½dier au client ï¿½ qui on l'envoie
 			$equipementstatic->set_client($user, $object->socid);
 
-			// on enlève l'équipement du stock
+			// on enlï¿½ve l'ï¿½quipement du stock
 			//$equipementstatic->set_entrepot($user, -1);
 
 			$desc=GETPOST('np_desc', 'alpha');
@@ -250,6 +250,9 @@ if ($action == 'joindre' && $user->rights->equipement->creer) {
 			}
 		}
 	}
+
+  header('Location: '.$_SERVER["PHP_SELF"].'?id='.$object->id);
+  exit;
 }
 
 
@@ -311,7 +314,7 @@ print "</table><br>";
 
 
 
-// on récupère les produits à expédier et l'entrepot associé
+// on rï¿½cupï¿½re les produits ï¿½ expï¿½dier et l'entrepot associï¿½
 $object = new Expedition($db);
 $result = $object->fetch($id, $ref);
 
@@ -367,7 +370,7 @@ if ($result) {
 	for ($i = 0 ; $i < $num_prod ; $i++) {
 		// seulement si produit non libre
 		if (!empty($lines[$i]->fk_product)) {
-			// détermination du nombre d'équipement à transmettre
+			// dï¿½termination du nombre d'ï¿½quipement ï¿½ transmettre
 			$nbequipement = $lines[$i]->qty_shipped;
 			$nbequipement-= $equipementstatic->get_nbEquipementProductExpedition($lines[$i]->fk_product, $id);
 
@@ -405,13 +408,13 @@ if ($result) {
 			print '<td valign=top align="center">'.$lines[$i]->qty_shipped.'</td>';
 			print '<td valign=top align="center">'.$nbequipement.'</td>';
 
-			// équipement correspondant au produit et à l'entrepot d'expédition
+			// ï¿½quipement correspondant au produit et ï¿½ l'entrepot d'expï¿½dition
 			print '<td align="left" valign=top>';
 			// si il y a des lots
 			print_lotequipement($lines[$i]->fk_product, $lines[$i]->entrepot_id, $nbequipement);
 			print '</td>';
 			print '<td align="left" valign=top>';
-			// on affiche le nombre d'équipement dispo à cocher
+			// on affiche le nombre d'ï¿½quipement dispo ï¿½ cocher
 			print_equipementdispo($lines[$i]->fk_product, $lines[$i]->entrepot_id, $nbequipement);
 
 			print '</td>';
@@ -435,10 +438,10 @@ if ($result) {
 	print '<tr '.$bc[$var].">\n";
 	print '<td width=100px>'.$langs->trans('TypeofEquipementEvent').'</td><td>';
 	print select_equipementevt_type('', 'fk_equipementevt_type', 1, 1);
-	// type d'évènement
+	// type d'ï¿½vï¿½nement
 	print '</td>';
 
-	// Date evenement début
+	// Date evenement dï¿½but
 	print '<td align="center" rowspan=2>';
 	$timearray=dol_getdate(mktime());
 	if (!GETPOST('deoday', 'int'))
@@ -476,7 +479,7 @@ if ($result) {
 	print '</td></tr>';
 
 	print '<tr '.$bc[$var].">\n";
-	// description de l'évènement de l'équipement
+	// description de l'ï¿½vï¿½nement de l'ï¿½quipement
 	print '<td rowspan=2 colspan=2>';
 	// editeur wysiwyg
 	require_once(DOL_DOCUMENT_ROOT."/core/class/doleditor.class.php");
@@ -535,7 +538,7 @@ $(document).ready(function(){
 
 // gestion de la selection des references
 $('#filterchk').keyup(function() {
-	// on nettoie les case à cocher
+	// on nettoie les case ï¿½ cocher
 	$('input[type=checkbox]').each(function()
 	{
 		// si la zone est a vide on decoche tous

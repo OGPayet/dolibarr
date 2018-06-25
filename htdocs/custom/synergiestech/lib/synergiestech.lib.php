@@ -128,7 +128,7 @@ function synergiestech_has_shipping_equipment_to_validate($db, $shipping_id)
 function synergiestech_has_dispatching_equipment_to_serialize($db, $supplier_order_id) {
     $sql = "SELECT IF(IFNULL(ts.nb, 0) != IFNULL(s.nb, 0), 1, 0) AS result
             FROM (
-              SELECT SUM(cfd.qty) as nb, cfd.fk_product FROM " . MAIN_DB_PREFIX . "commande_fournisseurdet AS cfd
+              SELECT SUM(cfd.qty) as nb, cfd.fk_product FROM " . MAIN_DB_PREFIX . "commande_fournisseur_dispatch as cfd
               LEFT JOIN " . MAIN_DB_PREFIX . "product_extrafields AS pe ON pe.fk_object = cfd.fk_product
               WHERE cfd.fk_commande = " . $supplier_order_id ."
               AND cfd.qty > 0

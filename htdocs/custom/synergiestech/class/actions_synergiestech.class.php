@@ -307,7 +307,8 @@ class ActionsSynergiesTech
                 $query = parse_url($_SERVER["HTTP_REFERER"], PHP_URL_QUERY);
                 parse_str($query, $params);
 
-                if (isset($params['id']) && $params['id'] > 0 && synergiestech_has_shipping_equipment_to_serialize($this->db, $params['id'])) {
+                if (isset($params['id']) && $params['id'] > 0 && !synergiestech_has_shipping_equipment_to_validate($this->db, $params['id']) &&
+                    synergiestech_has_shipping_equipment_to_serialize($this->db, $params['id'])) {
                     $langs->load('synergiestech@synergiestech');
                     setEventMessage($langs->trans('SynergiesTechShippingHasEquipmentToSerialize'), 'errors');
                     header("Location: " . $_SERVER["HTTP_REFERER"]);
@@ -324,6 +325,15 @@ class ActionsSynergiesTech
                     $langs->load('synergiestech@synergiestech');
                     setEventMessage($langs->trans('SynergiesTechShippingHasEquipmentToValidate'), 'errors');
                     header("Location: " . $_SERVER["HTTP_REFERER"]);
+                    exit;
+                }
+            } elseif (preg_match('/\/equipement\/tabs\/expedition\.php/i', $_SERVER["PHP_SELF"])) {
+                dol_include_once('/synergiestech/lib/synergiestech.lib.php');
+                $shipping_id = GETPOST('id');
+
+                if ($shipping_id > 0 && !synergiestech_has_shipping_equipment_to_validate($this->db, $shipping_id) &&
+                    synergiestech_has_shipping_equipment_to_serialize($this->db, $shipping_id)) {
+                    header("Location: " . dol_buildpath('/equipement/tabs/expeditionAdd.php', 2) . '?id=' . $shipping_id);
                     exit;
                 }
             }
