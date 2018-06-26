@@ -189,8 +189,11 @@ AutoTabsRequired
                 , 'warehousechild'
             );
             $path = '/framework/tabs/generic.php?mod=warehousechild&tab=stock&force=1&id='.$this->GetParams('id');
-            print '<div class="tabsAction"><a class="butAction" href="'.dol_buildpath($path, 2).'">';
-            print 'CrÃ©er d\'autres entrepots enfants';
+            $path2 = '/product/stock/list.php?fk_parent='.$this->GetParams('id');
+            print '<div class="tabsAction"><a class="butAction" href="'.dol_buildpath($path2, 2).'">';
+            print 'Liste des enfants immediats';
+            print'</a><a class="butAction" href="'.dol_buildpath($path, 2).'">';
+            print 'Créer d\'autres entrepots enfants';
             print'</a></div>';
         }
 

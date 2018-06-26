@@ -2,14 +2,14 @@
 /* Copyright (C) 2001-2006  Rodolphe Quiedeville    <rodolphe@quiedeville.org>
  * Copyright (C) 2004-2016  Laurent Destailleur     <eldy@users.sourceforge.net>
  * Copyright (C) 2005-2012  Regis Houssin           <regis.houssin@capnetworks.com>
- * Copyright (C) 2012-2016  Marcos GarcÃ­a           <marcosgdf@gmail.com>
+ * Copyright (C) 2012-2016  Marcos García           <marcosgdf@gmail.com>
  * Copyright (C) 2013-2016	Juanjo Menent           <jmenent@2byte.es>
- * Copyright (C) 2013-2015  RaphaÃ«l Doursenaud      <rdoursenaud@gpcsolutions.fr>
+ * Copyright (C) 2013-2015  Raphaël Doursenaud      <rdoursenaud@gpcsolutions.fr>
  * Copyright (C) 2013       Jean Heimburger         <jean@tiaris.info>
- * Copyright (C) 2013       CÃ©dric Salvador         <csalvador@gpcsolutions.fr>
+ * Copyright (C) 2013       Cédric Salvador         <csalvador@gpcsolutions.fr>
  * Copyright (C) 2013       Florian Henry           <florian.henry@open-concept.pro>
  * Copyright (C) 2013       Adolfo segura           <adolfo.segura@gmail.com>
- * Copyright (C) 2015       Jean-FranÃ§ois Ferry     <jfefe@aternatik.fr>
+ * Copyright (C) 2015       Jean-François Ferry     <jfefe@aternatik.fr>
  * Copyright (C) 2016       Ferran Marcet		    <fmarcet@2byte.es>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -96,6 +96,7 @@ $search_accountancy_code_sell = GETPOST("search_accountancy_code_sell", 'alpha')
 $search_accountancy_code_buy  = GETPOST("search_accountancy_code_buy", 'alpha');
 $optioncss                    = GETPOST('optioncss', 'alpha');
 $type                         = GETPOST("type", "int");
+$fk_parent                    = GETPOST("fk_parent", "int");
 
 //Show/hide child products. Hidden by default
 if (!$_POST) {
@@ -342,6 +343,8 @@ if (is_object($objcanvas) && $objcanvas->displayCanvasExists($action)) {
     if ($search_tobatch != '' && $search_tobatch >= 0) $sql .= " AND e.tobatch = ".$db->escape($search_tobatch);
     if ($search_accountancy_code_sell) $sql .= natural_search('e.accountancy_code_sell', $search_accountancy_code_sell);
     if ($search_accountancy_code_buy) $sql .= natural_search('e.accountancy_code_buy', $search_accountancy_code_buy);
+
+    if($fk_parent)$sql .= " AND e.fk_parent = ".$fk_parent;
     // Add where from extra fields
 
     if (!empty($conf->variants->enabled) && $search_hidechildproducts && ($search_type === 0)) {
@@ -386,7 +389,6 @@ if (is_object($objcanvas) && $objcanvas->displayCanvasExists($action)) {
         $nbtotalofrecords = $db->num_rows($result);
     }
     $sql .= $db->plimit($limit + 1, $offset);
-
     $resql = $db->query($sql);
     if ($resql) {
         $num = $db->num_rows($resql);
