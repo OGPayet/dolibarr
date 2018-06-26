@@ -947,7 +947,7 @@ if (is_object($objcanvas) && $objcanvas->displayCanvasExists($action)) {
                         $product_static->element='entrepot';
                         print ajax_object_onoff($product_static, 'statut', 'statut', 'ProductStatusOnSell', 'ProductStatusNotOnSell');
                     } else {
-                        print $product_static->LibStatut($obj->tosell, 5, 0);
+                        print $product_static->LibStatut($obj->statut, 5, 0);
                     }
                     print '</td>';
                     if (!$i) $totalarray['nbfield'] ++;
