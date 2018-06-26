@@ -27,14 +27,14 @@ class WarehouseschildForm extends Form
         parent::__construct($db);
 
         $this->predefinedSubdivide   = array();
-        $this->predefinedSubdivide[] = array('name' => 'Batiment');
-        $this->predefinedSubdivide[] = array('name' => 'Etage');
-        $this->predefinedSubdivide[] = array('name' => 'Salle');
-        $this->predefinedSubdivide[] = array('name' => 'Allée');
-        $this->predefinedSubdivide[] = array('name' => 'Armoire');
-        $this->predefinedSubdivide[] = array('name' => 'Rayon');
-        $this->predefinedSubdivide[] = array('name' => 'Tiroir');
-        $this->predefinedSubdivide[] = array('name' => 'Alvéole');
+        $this->predefinedSubdivide[] = array('name' => '');
+        $this->predefinedSubdivide[] = array('name' => '');
+        $this->predefinedSubdivide[] = array('name' => '');
+        $this->predefinedSubdivide[] = array('name' => '');
+        $this->predefinedSubdivide[] = array('name' => '');
+        $this->predefinedSubdivide[] = array('name' => '');
+        $this->predefinedSubdivide[] = array('name' => '');
+        $this->predefinedSubdivide[] = array('name' => '');
         $this->predefinedSubdivide[] = array('name' => '');
         $this->predefinedSubdivide[] = array('name' => '');
         $this->predefinedSubdivide[] = array('name' => '');
@@ -86,20 +86,20 @@ class WarehouseschildForm extends Form
             print ' / <label><input type="radio" name="setup['.$i.']" value="letter" /> lettres</label>';
 
             print '</td><td align="center">';
-            print '<input type="text" class="center" name="separator['.$i.']" value=" - " size="3" />';
+            print '<input type="text" class="center" name="separator['.$i.']" value="" size="3" />';
 
             print '</td><td align="center">';
-            print '<input type="text" class="center" name="separator2['.$i.']" value="_" size="3" />';
+            print '<input type="text" class="center" name="separator2['.$i.']" value="" size="3" />';
 
             print '</td></tr>';
             $i++;
         }
         print '</table>';
-        print '<br /><label><input type="radio" name="childwh" value="true" checked/> ';
+        print '<br /><label><input type="radio" name="childwh" value="true" /> ';
         print '    Créer un entrepot pour chaque niveau';
         print '</label><br />';
         print 'ou';
-        print '<br /><label><input type="radio" name="childwh" value="false"  /> ';
+        print '<br /><label><input type="radio" name="childwh" value="false"  checked/> ';
         print 'Créer un entrepot uniquement pour le dernier niveau en reprenant les noms des parents';
         print '</label><br/><br />';
         print '<input class="butAction" type="submit" value="Créer les entrepots enfants" />';
