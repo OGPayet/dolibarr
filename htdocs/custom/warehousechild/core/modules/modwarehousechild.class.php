@@ -333,7 +333,7 @@ class modwarehousechild extends DolibarrModuleswarehousechild
     {
         global $user, $db;
         $sql = array(
-            array('ignoreerror' => true, 'sql' => "ALTER TABLE ".MAIN_DB_PREFIX."entrepot ADD `fk_user_modif` INT(11) NULL DEFAULT '0' AFTER `fk_user_modif`"),
+            array('ignoreerror' => true, 'sql' => "ALTER TABLE ".MAIN_DB_PREFIX."entrepot ADD `fk_user_modif` INT(11) NULL DEFAULT '0'"),
             array('ignoreerror' => true, 'sql' => "ALTER TABLE ".MAIN_DB_PREFIX."entrepot DROP INDEX uk_entrepot_label"),
             array('ignoreerror' => true, 'sql' => "ALTER TABLE ".MAIN_DB_PREFIX."entrepot ADD UNIQUE INDEX uk_entrepot_ref_fk_parent (ref, entity, fk_parent)")
         );
