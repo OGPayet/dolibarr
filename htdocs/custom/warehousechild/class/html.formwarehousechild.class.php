@@ -48,7 +48,7 @@ class WarehouseschildForm extends Form
 
         print '<table class="border liste">';
         print '<thead><th>';
-        print 'Utilisé';
+        print 'Utilisé ?';
         print '</th><th>';
         print 'Nom';
         print '</th><th>';
