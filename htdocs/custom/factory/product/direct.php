@@ -300,7 +300,7 @@ if ($id || $ref) {
 
 		dol_fiche_end();
 
-		// indique si on a déjà une composition de présente ou pas
+		// indique si on a dï¿½jï¿½ une composition de prï¿½sente ou pas
 		$compositionpresente=0;
 
 		$head=factory_product_prepare_head($object, $user);
@@ -320,159 +320,200 @@ if ($id || $ref) {
 
 		// List of subproducts
 		if (count($prods_arbo) > 0) {
-			$compositionpresente=1;
-			print '<b>'.$langs->trans("FactoryTableInfo").'</b><BR>';
-			print '<table class="border" >';
-			print '<tr class="liste_titre">';
-			print '<td class="liste_titre" width=100px align="left">'.$langs->trans("Ref").'</td>';
-			print '<td class="liste_titre" width=200px align="left">'.$langs->trans("Label").'</td>';
-			print '<td class="liste_titre" width=50px align="center">'.$langs->trans("QtyNeed").'</td>';
-			// on affiche la colonne stock même si cette fonction n'est pas active
-			print '<td class="liste_titre" width=50px align="center">'.$langs->trans("Stock").'</td>';
-			print '<td class="liste_titre" width=100px align="center">'.$langs->trans("QtyOrder").'</td>';
-			if ($conf->stock->enabled) { 	// we display vwap titles
-				print '<td class="liste_titre" width=100px align="right">'.$langs->trans("UnitPmp").'</td>';
-				print '<td class="liste_titre" width=100px align="right">'.$langs->trans("CostPmpHT").'</td>';
-			} else { 	// we display price as latest purchasing unit price title
-				print '<td class="liste_titre" width=100px align="right">'.$langs->trans("UnitHA").'</td>';
-				print '<td class="liste_titre" width=100px align="right">'.$langs->trans("CostHA").'</td>';
-			}
-			print '<td class="liste_titre" width=100px align="right">'.$langs->trans("FactoryUnitPriceHT").'</td>';
-			print '<td class="liste_titre" width=100px align="right">'.$langs->trans("SellingPriceHT").'</td>';
-			print '<td class="liste_titre" width=100px align="right">'.$langs->trans("ProfitAmount").'</td>';
+            $compositionpresente = 1;
+            print '<b>' . $langs->trans("FactoryTableInfo") . '</b><BR>';
+            print '<table class="border" >';
+            print '<tr class="liste_titre">';
+            print '<td class="liste_titre" width=100px align="left">' . $langs->trans("Ref") . '</td>';
+            print '<td class="liste_titre" width=200px align="left">' . $langs->trans("Label") . '</td>';
+            print '<td class="liste_titre" width=50px align="center">' . $langs->trans("QtyNeed") . '</td>';
+            // on affiche la colonne stock mï¿½me si cette fonction n'est pas active
+            print '<td class="liste_titre" width=50px align="center">' . $langs->trans("Stock") . '</td>';
+            print '<td class="liste_titre" width=100px align="center">' . $langs->trans("QtyOrder") . '</td>';
+            if ($conf->stock->enabled) {    // we display vwap titles
+                print '<td class="liste_titre" width=100px align="right">' . $langs->trans("UnitPmp") . '</td>';
+                print '<td class="liste_titre" width=100px align="right">' . $langs->trans("CostPmpHT") . '</td>';
+            } else {    // we display price as latest purchasing unit price title
+                print '<td class="liste_titre" width=100px align="right">' . $langs->trans("UnitHA") . '</td>';
+                print '<td class="liste_titre" width=100px align="right">' . $langs->trans("CostHA") . '</td>';
+            }
+            print '<td class="liste_titre" width=100px align="right">' . $langs->trans("FactoryUnitPriceHT") . '</td>';
+            print '<td class="liste_titre" width=100px align="right">' . $langs->trans("SellingPriceHT") . '</td>';
+            print '<td class="liste_titre" width=100px align="right">' . $langs->trans("ProfitAmount") . '</td>';
 
-			print '</tr>';
-			$mntTot=0;
-			$pmpTot=0;
-			$bAllService=true;
+            print '</tr>';
+            $mntTot = 0;
+            $pmpTot = 0;
+            $bAllService = true;
 
-			foreach ($prods_arbo as $value) {
-				// verify if product have child then display it after the product name
-				$tmpChildArbo=$factory->getChildsArbo($value['id']);
-				$nbChildArbo="";
-				if (count($tmpChildArbo) > 0)
-					$nbChildArbo=" (".count($tmpChildArbo).")";
+            foreach ($prods_arbo as $value) {
+                // verify if product have child then display it after the product name
+                $tmpChildArbo = $factory->getChildsArbo($value['id']);
+                $nbChildArbo = "";
+                if (count($tmpChildArbo) > 0)
+                    $nbChildArbo = " (" . count($tmpChildArbo) . ")";
 
-				print '<tr>';
-				print '<td align="left">'.$factory->getNomUrlFactory($value['id'], 1,'direct').$nbChildArbo;
-				print $factory->PopupProduct($value['id']);
-				print '</td>';
+                print '<tr>';
+                print '<td align="left">' . $factory->getNomUrlFactory($value['id'], 1, 'direct') . $nbChildArbo;
+                print $factory->PopupProduct($value['id']);
+                print '</td>';
 
-				print '<td align="left" title="'.$value['description'].'">';
-				print $value['label'].'</td>';
-				print '<td align="center">'.$value['nb'];
-				if ($value['globalqty'] == 1)
-					print "&nbsp;G";
-				print '</td>';
+                print '<td align="left" title="' . $value['description'] . '">';
+                print $value['label'] . '</td>';
+                print '<td align="center">' . $value['nb'];
+                if ($value['globalqty'] == 1)
+                    print "&nbsp;G";
+                print '</td>';
 
-				if ($conf->stock->enabled) {
-					// we store vwap in variable pmp and display stock
-					$productstatic->fetch($value['id']);
-					$price=$value['price'];
-					$pmp=$value['pmp'];
-					if ($value['fk_product_type']==0) {
-						// if product
-						$bAllService=false;
-						$productstatic->load_stock();
-						print '<td align=center>'.$factory->getUrlStock($value['id'], 1, $productstatic->stock_reel).'</td>';
-						// on regarde si il n'y pas de commande fournisseur en cours
-						$sql = 'SELECT DISTINCT sum(cofd.qty) as nbCmdFourn';
-						$sql.= " FROM ".MAIN_DB_PREFIX."commande_fournisseurdet as cofd";
-						$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."commande_fournisseur as cof ON cof.rowid = cofd.fk_commande";
-						$sql.= " WHERE cof.entity = ".$conf->entity;
-						$sql.= " AND cof.fk_statut = 3";
-						$sql.= " and cofd.fk_product=".$value['id'];
-						//print $sql;
-						$resql = $db->query($sql);
-						if ($resql) {
-							$objp = $db->fetch_object($resql);
-							if ($objp->nbCmdFourn)
-								$nbcmde=$objp->nbCmdFourn;
-						}
-						print '<td align=right>'.$nbcmde.'</td>';
-					} else
-						print '<td></td>'; // no stock management for services
-				} else
-					print '<td></td>'; // no stock management for services
+                if ($conf->stock->enabled) {
+                    // we store vwap in variable pmp and display stock
+                    $productstatic->fetch($value['id']);
+                    $price = $value['price'];
+                    $pmp = $value['pmp'];
+                    if ($value['fk_product_type'] == 0) {
+                        // if product
+                        $bAllService = false;
+                        $productstatic->load_stock();
+                        print '<td align=center>' . $factory->getUrlStock($value['id'], 1, $productstatic->stock_reel) . '</td>';
+                        // on regarde si il n'y pas de commande fournisseur en cours
+                        $sql = 'SELECT DISTINCT sum(cofd.qty) as nbCmdFourn';
+                        $sql .= " FROM " . MAIN_DB_PREFIX . "commande_fournisseurdet as cofd";
+                        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "commande_fournisseur as cof ON cof.rowid = cofd.fk_commande";
+                        $sql .= " WHERE cof.entity = " . $conf->entity;
+                        $sql .= " AND cof.fk_statut = 3";
+                        $sql .= " and cofd.fk_product=" . $value['id'];
+                        //print $sql;
+                        $resql = $db->query($sql);
+                        if ($resql) {
+                            $objp = $db->fetch_object($resql);
+                            if ($objp->nbCmdFourn)
+                                $nbcmde = $objp->nbCmdFourn;
+                        }
+                        print '<td align=right>' . $nbcmde . '</td>';
+                    } else
+                        print '<td></td>'; // no stock management for services
+                } else
+                    print '<td></td>'; // no stock management for services
 
-				print '<td align="right">'.price($pmp).'</td>'; // display else vwap or else latest purchasing price
-				print '<td align="right">'.price($pmp*$value['nb']).'</td>'; // display total line
-				print '<td align="right">'.price($price).'</td>';
-				print '<td align="right">'.price($price*$value['nb']).'</td>';
-				print '<td align="right">'.price(($price-$pmp)*$value['nb']).'</td>';
+                print '<td align="right">' . price($pmp) . '</td>'; // display else vwap or else latest purchasing price
+                print '<td align="right">' . price($pmp * $value['nb']) . '</td>'; // display total line
+                print '<td align="right">' . price($price) . '</td>';
+                print '<td align="right">' . price($price * $value['nb']) . '</td>';
+                print '<td align="right">' . price(($price - $pmp) * $value['nb']) . '</td>';
 
-				$mntTot=$mntTot+$price*$value['nb'];
-				$pmpTot=$pmpTot+$pmp*$value['nb']; // sub total calculation
+                $mntTot = $mntTot + $price * $value['nb'];
+                $pmpTot = $pmpTot + $pmp * $value['nb']; // sub total calculation
 
-				print '</tr>';
+                print '</tr>';
 
-				//var_dump($value);
-				//print '<pre>'.$productstatic->ref.'</pre>';
-				//print $productstatic->getNomUrl(1).'<br>';
-				//print $value[0];	// This contains a tr line.
+                //var_dump($value);
+                //print '<pre>'.$productstatic->ref.'</pre>';
+                //print $productstatic->getNomUrl(1).'<br>';
+                //print $value[0];	// This contains a tr line.
 
-			}
-			print '<tr class="liste_total">';
-			print '<td colspan=6 align=right >'.$langs->trans("Total").'</td>';
-			print '<td align="right" >'.price($pmpTot).'</td>';
-			print '<td ></td>';
-			print '<td align="right" >'.price($mntTot).'</td>';
-			print '<td align="right" >'.price($mntTot-$pmpTot).'</td>';
-			print '</tr>';
-			print '</table>';
+            }
+            print '<tr class="liste_total">';
+            print '<td colspan=6 align=right >' . $langs->trans("Total") . '</td>';
+            print '<td align="right" >' . price($pmpTot) . '</td>';
+            print '<td ></td>';
+            print '<td align="right" >' . price($mntTot) . '</td>';
+            print '<td align="right" >' . price($mntTot - $pmpTot) . '</td>';
+            print '</tr>';
+            print '</table>';
 
-			// Display the list of store with buildable product
-			print '<br>';
-			print_fiche_titre($langs->trans("Building"), '', '');
-			print '<b>'.$langs->trans("BuildindListInfo").'</b><br>';
-			print '<form action="direct.php?id='.$id.'" method="post">';
-			print '<input type="hidden" name="action" value="buildit">';
-			print '<table class="border" width="35%">';
+            // Display the list of store with buildable product
+            print '<br>';
+            print_fiche_titre($langs->trans("Building"), '', '');
+            print '<b>' . $langs->trans("BuildindListInfo") . '</b><br>';
+            print '<form action="direct.php?id=' . $id . '" method="post">';
+            print '<input type="hidden" name="action" value="buildit">';
+            print '<table class="border" width="35%">';
 
-			// loop on the store
-			$sql = "SELECT rowid, lieu, zip";
-			$sql.= " FROM ".MAIN_DB_PREFIX."entrepot";
-			$sql.= " WHERE statut = 1";
-			$sql.= " ORDER BY zip ASC";
+            //-------------------------------------
+            // Modification - OpenDSI - Begin
+            //-------------------------------------
+            // loop on the store
+            $sql = "SELECT e.rowid, e.lieu, e.zip, IF(ee.rowid IS NULL, 0, 1) as favorite";
+            $sql .= " FROM " . MAIN_DB_PREFIX . "entrepot as e";
+            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "element_element as ee";
+            $sql .= " ON (ee.fk_source = " . $productid . " AND ee.sourcetype = 'product' AND ee.targettype = 'stock' AND ee.fk_target = e.rowid)";
+            $sql .= " WHERE e.statut = 1";
+            $sql .= " ORDER BY e.zip ASC";
 
-			dol_syslog("/factory/product/direct.php::Build composed product sql=".$sql);
-			$resql=$db->query($sql);
-			$totFabricable=0;
-			if ($resql) {
-				$num = $db->num_rows($resql);
+            dol_syslog("/factory/product/direct.php::Build composed product sql=" . $sql);
+            $resql = $db->query($sql);
+            $totFabricable = 0;
+            $listNbToBuild = array();
+            if ($resql) {
+                $num = $db->num_rows($resql);
 
-				$i = 0;
-				if ($num) {
-					while ($i < $num) {
-						$obj = $db->fetch_object($resql);
-						// get the number of product buidable on the store
-						$fabricable=$factory->getNbProductBuildable($obj->rowid, $id);
-						if ($fabricable < 0)
-							$fabricable=0; // il ne sert à rien d'afficher un montant négatif
-						$totFabricable+=$fabricable;
-						print "<tr><td>".$obj->lieu." (".$obj->zip.")</td>";
-						print '<td align=right >';
-						print '<input style="text-align:right;" type="text" name="nbToBuild'.$obj->rowid.'" size=5 value="'.$fabricable.'">';
-						print '</td></tr>';
-						$i++;
-					}
-				}
-			}
-			print '<tr>';
-			// si il y a du fabricable ou les composants ne sont que des services
-			if ($totFabricable > 0 || $bAllService) {
-				print '<td colspan=3 align=right>';
-				print '<input type="submit" class="button" value="'.$langs->trans("BuildIt").'">';
-			} else {
-				print '<td colspan=3 align=left>';
-				print $langs->trans("NotEnoughStockForBuildIt");
-			}
-			print '</td>';
-			print '</tr>';
+                $i = 0;
+                if ($num) {
+                    while ($i < $num) {
+                        $obj = $db->fetch_object($resql);
+                        // get the number of product buidable on the store
+                        $fabricable = $factory->getNbProductBuildable($obj->rowid, $id);
+                        if ($fabricable < 0)
+                            $fabricable = 0; // il ne sert ï¿½ rien d'afficher un montant nï¿½gatif
+                        $totFabricable += $fabricable;
+                        $listNbToBuild[$obj->favorite . '_' . $fabricable . '_' . $obj->rowid] = $obj->lieu . (!empty($obj->zip) ? " (" . $obj->zip . ")" : "") . " => " . $fabricable;
+                        /*print "<tr><td>".$obj->lieu." (".$obj->zip.")</td>";
+                        print '<td align=right >';
+                        print '<input style="text-align:right;" type="text" name="nbToBuild'.$obj->rowid.'" size=5 value="'.$fabricable.'">';
+                        print '</td></tr>';*/
+                        $i++;
+                    }
 
-			print '</table>';
-			print '</form>';
-		}
+                    krsort($listNbToBuild);
+                }
+            }
+
+            if ($totFabricable > 0 || $bAllService) {
+                print '<tr><td>';
+                print $form->selectarray('nbtobuild_warehouse', $listNbToBuild, GETPOST('nbToBuild', 'alpha'));
+                print '</td><td align=right >';
+                print '<input style="text-align:right;" type="text" id="nb_to_build" size=5 value="">';
+                print '</td></tr>';
+                print <<<SCRIPT
+    <script type="text/javascript" language="javascript">
+        $(document).ready(function () {
+            function setDefaultNbToBuild()
+            {
+                var select = $('#nbtobuild_warehouse').val();
+                var tmp = select.split('_');
+                var nb_build = tmp[1];
+                var id = tmp[2];
+
+                $('#nb_to_build').val(nb_build).attr('name', 'nbToBuild'+id);
+            }
+
+            setDefaultNbToBuild();
+            $('#nbtobuild_warehouse').on('change', function() {
+                setDefaultNbToBuild();
+            })
+        });
+    </script>
+SCRIPT;
+            }
+            //-------------------------------------
+            // Modification - OpenDSI - End
+            //-------------------------------------
+
+            print '<tr>';
+            // si il y a du fabricable ou les composants ne sont que des services
+            if ($totFabricable > 0 || $bAllService) {
+                print '<td colspan=3 align=right>';
+                print '<input type="submit" class="button" value="' . $langs->trans("BuildIt") . '">';
+            } else {
+                print '<td colspan=3 align=left>';
+                print $langs->trans("NotEnoughStockForBuildIt");
+            }
+            print '</td>';
+            print '</tr>';
+
+            print '</table>';
+            print '</form>';
+        }
 		else
 			print_fiche_titre("<br>".$langs->trans("NothingtoBuild")."<br><br>", '', '');
 	}
