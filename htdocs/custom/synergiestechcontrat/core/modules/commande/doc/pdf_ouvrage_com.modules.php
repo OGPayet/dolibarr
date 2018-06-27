@@ -109,10 +109,10 @@ class pdf_ouvrage_com extends ModelePDFCommandes
 		$this->posxdesc=$this->marge_gauche+1;
 		if($conf->global->PRODUCT_USE_UNITS)
 		{
-			$this->posxtva=99;
-			$this->posxup=114;
-			$this->posxqty=130;
-			$this->posxunit=147;
+			$this->posxtva=118;
+			$this->posxup=130;
+			$this->posxqty=151;
+			$this->posxunit=162;
 		}
 		else
 		{
@@ -120,8 +120,8 @@ class pdf_ouvrage_com extends ModelePDFCommandes
 			$this->posxup=126;
 			$this->posxqty=145;
 		}
-		$this->posxdiscount=162;
-		$this->postotalht=174;
+		$this->posxdiscount=170;
+		$this->postotalht=180;
 		if (! empty($conf->global->MAIN_GENERATE_DOCUMENTS_WITHOUT_VAT)) $this->posxtva=$this->posxup;
 		$this->posxpicture=$this->posxtva - (empty($conf->global->MAIN_DOCUMENTS_WITH_PICTURE_WIDTH)?20:$conf->global->MAIN_DOCUMENTS_WITH_PICTURE_WIDTH);	// width of images
 		if ($this->page_largeur < 210) // To work with US executive format
@@ -413,8 +413,11 @@ class pdf_ouvrage_com extends ModelePDFCommandes
 
 					// Unit price before discount
 					$up_excl_tax = pdf_getlineupexcltax($object, $i, $outputlangs, $hidedetails);
-					$pdf->SetXY($this->posxup, $curY);
-					$pdf->MultiCell($this->posxqty-$this->posxup-0.8, 3, $up_excl_tax, 0, 'R', 0);
+                    if($up_excl_tax && $up_excl_tax !=' '){
+                        $up_excl_tax.=' €';
+                    }
+					$pdf->SetXY($this->posxup-1.6, $curY);
+					$pdf->MultiCell($this->posxqty-$this->posxup+1.2, 4, $up_excl_tax, 0, 'R', 0);
 
 					// Quantity
 					$qty = pdf_getlineqty($object, $i, $outputlangs, $hidedetails);
@@ -448,8 +451,11 @@ class pdf_ouvrage_com extends ModelePDFCommandes
 
 					// Total HT line
 					$total_excl_tax = pdf_getlinetotalexcltax($object, $i, $outputlangs, $hidedetails);
-					$pdf->SetXY($this->postotalht, $curY);
-					$pdf->MultiCell($this->page_largeur-$this->marge_droite-$this->postotalht, 3, $total_excl_tax, 0, 'R', 0);
+                    if($total_excl_tax && $total_excl_tax !=' '){
+                        $total_excl_tax.=' €';
+                    }
+					$pdf->SetXY($this->postotalht-8, $curY);
+					$pdf->MultiCell($this->page_largeur-$this->marge_droite-$this->postotalht+8, 3, $total_excl_tax, 0, 'R', 0);
 
 					// Collecte des totaux par valeur de tva dans $this->tva["taux"]=total_tva
 					if ($conf->multicurrency->enabled && $object->multicurrency_tx != 1) $tvaligne=$object->lines[$i]->multicurrency_total_tva;
@@ -547,7 +553,7 @@ class pdf_ouvrage_com extends ModelePDFCommandes
 					$this->_tableau($pdf, $tab_top_newpage, $this->page_hauteur - $tab_top_newpage - $heightforinfotot - $heightforfreetext - $heightforfooter, 0, $outputlangs, 1, 0, $object->multicurrency_code);
 					$bottomlasttab=$this->page_hauteur - $heightforinfotot - $heightforfreetext - $heightforfooter + 1;
 				}
-
+				$bottomlasttab+=2;
 				// Affiche zone infos
 				$posy=$this->_tableau_info($pdf, $object, $bottomlasttab, $outputlangs);
 
@@ -1141,7 +1147,7 @@ class pdf_ouvrage_com extends ModelePDFCommandes
 			$pdf->line($this->posxunit - 1, $tab_top, $this->posxunit - 1, $tab_top + $tab_height);
 			if (empty($hidetop)) {
 				$pdf->SetXY($this->posxunit - 1, $tab_top + 1);
-				$pdf->MultiCell($this->posxdiscount - $this->posxunit - 1, 2, $outputlangs->transnoentities("Unit"), '',
+				$pdf->MultiCell($this->posxdiscount - $this->posxunit - 1, 2, $outputlangs->transnoentities("U"), '',
 					'C');
 			}
 		}
@@ -1152,7 +1158,7 @@ class pdf_ouvrage_com extends ModelePDFCommandes
 			if ($this->atleastonediscount)
 			{
 				$pdf->SetXY($this->posxdiscount-1, $tab_top+1);
-				$pdf->MultiCell($this->postotalht-$this->posxdiscount+1,2, $outputlangs->transnoentities("ReductionShort"),'','C');
+				$pdf->MultiCell($this->postotalht-$this->posxdiscount+1,2, $outputlangs->transnoentities("Redu"),'','C');
 			}
 		}
 
@@ -1163,7 +1169,7 @@ class pdf_ouvrage_com extends ModelePDFCommandes
 		if (empty($hidetop))
 		{
 			$pdf->SetXY($this->postotalht-1, $tab_top+1);
-			$pdf->MultiCell(30,2, $outputlangs->transnoentities("TotalHT"),'','C');
+			$pdf->MultiCell(20,2, $outputlangs->transnoentities("TotalHT"),'','C');
 		}
 	}
 
@@ -1274,7 +1280,7 @@ class pdf_ouvrage_com extends ModelePDFCommandes
 		$posy+=2;
 
 		// Show list of linked objects
-		$posy = pdf_writeLinkedObjects($pdf, $object, $outputlangs, $posx, $posy, 100, 3, 'R', $default_font_size);
+		// $posy = pdf_writeLinkedObjects($pdf, $object, $outputlangs, $posx, $posy, 100, 3, 'R', $default_font_size);
 
 		if ($showaddress)
 		{
@@ -1327,12 +1333,12 @@ class pdf_ouvrage_com extends ModelePDFCommandes
 				$thirdparty = $object->thirdparty;
 			}
 
-			$carac_client_name= pdfBuildThirdpartyName($thirdparty, $outputlangs);
+			$carac_client_name= pdfBuildThirdpartyName($thirdparty, $outputlangs, 1);
 
 			$carac_client=pdf_build_address($outputlangs,$this->emetteur,$object->thirdparty,($usecontact?$object->contact:''),$usecontact,'target', $object);
 
 			// Show recipient
-			$widthrecbox=100;
+            $widthrecbox = !empty($conf->global->MAIN_PDF_USE_ISO_LOCATION) ? 92 : 100;
 			if ($this->page_largeur < 210) $widthrecbox=84;	// To work with US executive format
 			$posy=42;
 			$posx=$this->page_largeur-$this->marge_droite-$widthrecbox;

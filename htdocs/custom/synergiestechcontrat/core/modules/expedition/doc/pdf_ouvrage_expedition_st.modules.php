@@ -111,10 +111,10 @@ class pdf_ouvrage_expedition_st extends ModelePdfExpedition
 		$this->posxdesc=$this->marge_gauche+1;
 		if($conf->global->PRODUCT_USE_UNITS)
 		{
-			$this->posxtva=99;
-			$this->posxup=114;
-			$this->posxqty=174;
-			$this->posxunit=147;
+			$this->posxtva=118;
+			$this->posxup=130;
+			$this->posxqty=151;
+			$this->posxunit=162;
 		}
 		else
 		{
@@ -122,8 +122,8 @@ class pdf_ouvrage_expedition_st extends ModelePdfExpedition
 			$this->posxup=123;
 			$this->posxqty=174;
 		}
-		$this->posxdiscount=162;
-		$this->postotalht=174;
+		$this->posxdiscount=170;
+		$this->postotalht=180;
 		if (! empty($conf->global->MAIN_GENERATE_DOCUMENTS_WITHOUT_VAT)) $this->posxtva=$this->posxup;
 		$this->posxpicture=$this->posxtva - (empty($conf->global->MAIN_DOCUMENTS_WITH_PICTURE_WIDTH)?20:$conf->global->MAIN_DOCUMENTS_WITH_PICTURE_WIDTH);	// width of images
 		if ($this->page_largeur < 210) // To work with US executive format
@@ -466,7 +466,7 @@ class pdf_ouvrage_expedition_st extends ModelePdfExpedition
 					if (isset($imglinesize['width']) && isset($imglinesize['height']))
 					{
 						$curX = $this->posxpicture-1;
-						$pdf->Image($realpatharray[$i], $curX + (($this->posxtva-$this->posxpicture-$imglinesize['width'])/2), $curY, $imglinesize['width'], $imglinesize['height'], '', '', '', 2, 300);	// Use 300 dpi
+						$pdf->Image($realpatharray[$i], $curX+10 + (($this->posxtva-$this->posxpicture-$imglinesize['width'])/2), $curY, $imglinesize['width'], $imglinesize['height'], '', '', '', 2, 300);	// Use 300 dpi
 						// $pdf->Image does not increase value return by getY, so we save it manually
 						$posYAfterImage=$curY+$imglinesize['height'];
 					}
@@ -539,6 +539,8 @@ class pdf_ouvrage_expedition_st extends ModelePdfExpedition
 //                    if($up_excl_tax){
 //                        $up_excl_tax.=' €';
 //                    }
+//					$pdf->SetXY($this->posxup, $curY);
+//					$pdf->MultiCell($this->posxqty-$this->posxup-0.8, 3, $up_excl_tax, 0, 'R', 0);
 //					$pdf->SetXY($this->posxup, $curY);
 //					$pdf->MultiCell($this->posxqty-$this->posxup-0.8, 3, $up_excl_tax, 0, 'R', 0);
 
@@ -678,7 +680,7 @@ class pdf_ouvrage_expedition_st extends ModelePdfExpedition
 					$this->_tableau($pdf, $tab_top_newpage, $this->page_hauteur - $tab_top_newpage - $heightforinfotot - $heightforfreetext - $heightforsignature - $heightforfooter, 0, $outputlangs, 1, 0, $object->multicurrency_code);
 					$bottomlasttab=$this->page_hauteur - $heightforinfotot - $heightforfreetext - $heightforsignature - $heightforfooter + 1;
 				}
-                $bottomlasttab+=10;
+                $bottomlasttab+=2;
 
 //				// Affiche zone infos
 //				$posy=$this->_tableau_info($pdf, $object, $bottomlasttab, $outputlangs);
@@ -1403,7 +1405,7 @@ class pdf_ouvrage_expedition_st extends ModelePdfExpedition
 			$pdf->line($this->posxunit - 1, $tab_top, $this->posxunit - 1, $tab_top + $tab_height);
 			if (empty($hidetop)) {
 				$pdf->SetXY($this->posxunit - 1, $tab_top + 1);
-				$pdf->MultiCell($this->posxdiscount - $this->posxunit - 1, 2, $outputlangs->transnoentities("Unit"), '',
+				$pdf->MultiCell($this->posxdiscount - $this->posxunit - 1, 2, $outputlangs->transnoentities("U"), '',
 					'C');
 			}
 		}
@@ -1414,7 +1416,7 @@ class pdf_ouvrage_expedition_st extends ModelePdfExpedition
 //			if ($this->atleastonediscount)
 //			{
 //				$pdf->SetXY($this->posxdiscount-1, $tab_top - 8.5);
-//				$pdf->MultiCell($this->postotalht-$this->posxdiscount+1,2, $outputlangs->transnoentities("ReductionShort"),'','C');
+//				$pdf->MultiCell($this->postotalht-$this->posxdiscount+1,2, $outputlangs->transnoentities("Redu"),'','C');
 //			}
 //		}
 //		if ($this->atleastonediscount)
@@ -1708,7 +1710,7 @@ class pdf_ouvrage_expedition_st extends ModelePdfExpedition
             $posy += 1;
 
             // Show list of linked objects
-            $posy = pdf_writeLinkedObjects($pdf, $object, $outputlangs, $posx, $posy, $w, 3, 'R', $default_font_size);
+            // $posy = pdf_writeLinkedObjects($pdf, $object, $outputlangs, $posx, $posy, $w, 3, 'R', $default_font_size);
 
 
 
@@ -1730,7 +1732,7 @@ class pdf_ouvrage_expedition_st extends ModelePdfExpedition
                 $thirdparty = $object->thirdparty;
             }
 
-            $carac_client_name = pdfBuildThirdpartyName($thirdparty, $outputlangs);
+            $carac_client_name = pdfBuildThirdpartyName($thirdparty, $outputlangs, 1);
 
             $carac_client = pdf_build_address($outputlangs, $this->emetteur, $object->thirdparty, ($usecontact ? $object->contact : ''), $usecontact, 'target', $object);
 
@@ -1739,7 +1741,7 @@ class pdf_ouvrage_expedition_st extends ModelePdfExpedition
             if ($this->page_largeur < 210) $widthrecbox = 84; // To work with US executive format
 
             $posy = $this->marge_haute + 5;
-            $posx = $this->page_largeur - $this->marge_droite - $widthrecbox + 20;
+            $posx = $this->page_largeur - $this->marge_droite - $widthrecbox;
             if (!empty($conf->global->MAIN_INVERT_SENDER_RECIPIENT)) $posx = $this->marge_gauche;
 
             // Show recipient frame
@@ -1830,7 +1832,7 @@ class pdf_ouvrage_expedition_st extends ModelePdfExpedition
 //				$thirdparty = $object->thirdparty;
 //			}
 //
-//			$carac_client_name= pdfBuildThirdpartyName($thirdparty, $outputlangs);
+//			$carac_client_name= pdfBuildThirdpartyName($thirdparty, $outputlangs, 1);
 //
 //			$carac_client=pdf_build_address($outputlangs,$this->emetteur,$object->thirdparty,($usecontact?$object->contact:''),$usecontact,'target',$object);
 //
@@ -1893,7 +1895,13 @@ class pdf_ouvrage_expedition_st extends ModelePdfExpedition
 	{
 		$default_font_size = pdf_getPDFFontSize($outputlangs);
 		$tab_top = $posy + 4;
-		$tab_hl = 4;
+		if($posy > 241 && $posy < 247) {
+			$tab_hl = 6;
+		} else if($posy > 241 && $posy > 247)  {
+			$tab_hl = 5;
+		} else {
+			$tab_hl = 7;
+		}
 
 		$posx = 120;
 		$largcol = ($this->page_largeur - $this->marge_droite - $posx);

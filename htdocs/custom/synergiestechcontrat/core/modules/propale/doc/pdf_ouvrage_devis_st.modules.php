@@ -1722,7 +1722,7 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
             if ($this->page_largeur < 210) $widthrecbox = 84; // To work with US executive format
 
             $posy = $this->marge_haute + 5;
-            $posx = $this->page_largeur - $this->marge_droite - $widthrecbox + 20;
+            $posx = $this->page_largeur - $this->marge_droite - $widthrecbox;
             if (!empty($conf->global->MAIN_INVERT_SENDER_RECIPIENT)) $posx = $this->marge_gauche;
 
             // Show recipient frame

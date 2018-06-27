@@ -116,18 +116,18 @@ class pdf_ouvrage_fact_st extends ModelePDFFactures
 // Define position of columns
         $this->posxdesc = $this->marge_gauche + 1;
         if ($conf->global->PRODUCT_USE_UNITS) {
-            $this->posxtva  = 99;
-            $this->posxup   = 114;
-            $this->posxqty  = 130;
-            $this->posxunit = 147;
+			$this->posxtva=118;
+			$this->posxup=130;
+			$this->posxqty=151;
+			$this->posxunit=162;
         } else {
             $this->posxtva = 109;
             $this->posxup  = 123;
             $this->posxqty = 145;
         }
-        $this->posxdiscount = 162;
         $this->posxprogress = 126; // Only displayed for situation invoices
-        $this->postotalht   = 174;
+		$this->posxdiscount=170;
+		$this->postotalht=180;
         if (!empty($conf->global->MAIN_GENERATE_DOCUMENTS_WITHOUT_VAT)) $this->posxtva      = $this->posxup;
         $this->posxpicture  = $this->posxtva - (empty($conf->global->MAIN_DOCUMENTS_WITH_PICTURE_WIDTH) ? 20 : $conf->global->MAIN_DOCUMENTS_WITH_PICTURE_WIDTH); // width of images
         if ($this->page_largeur < 210) { // To work with US executive format
@@ -403,7 +403,7 @@ class pdf_ouvrage_fact_st extends ModelePDFFactures
 
                     if (isset($imglinesize['width']) && isset($imglinesize['height'])) {
                         $curX           = $this->posxpicture - 1;
-                        $pdf->Image($realpatharray[$i], $curX + (($this->posxtva - $this->posxpicture - $imglinesize['width']) / 2), $curY, $imglinesize['width'], $imglinesize['height'], '', '', '',
+                        $pdf->Image($realpatharray[$i], $curX + 10 + (($this->posxtva - $this->posxpicture - $imglinesize['width']) / 2), $curY, $imglinesize['width'], $imglinesize['height'], '', '', '',
                             2, 300); // Use 300 dpi
                         // $pdf->Image does not increase value return by getY, so we save it manually
                         $posYAfterImage = $curY + $imglinesize['height'];
@@ -460,13 +460,13 @@ class pdf_ouvrage_fact_st extends ModelePDFFactures
                         $pdf->MultiCell($this->posxup - $this->posxtva - 0.8, 3, $vat_rate, 0, 'R');
                     }
 
-                    // Unit price before discount
-                    $up_excl_tax = pdf_getlineupexcltax($object, $i, $outputlangs, $hidedetails);
+					// Unit price before discount
+					$up_excl_tax = pdf_getlineupexcltax($object, $i, $outputlangs, $hidedetails);
                     if($up_excl_tax && $up_excl_tax !=' '){
                         $up_excl_tax.=' €';
                     }
-                    $pdf->SetXY($this->posxup, $curY);
-                    $pdf->MultiCell($this->posxqty - $this->posxup - 0.8, 3, $up_excl_tax, 0, 'R', 0);
+					$pdf->SetXY($this->posxup-1.6, $curY);
+					$pdf->MultiCell($this->posxqty-$this->posxup+1.2, 4, $up_excl_tax, 0, 'R', 0);
 
                     // Quantity
                     $qty = pdf_getlineqty($object, $i, $outputlangs, $hidedetails);
@@ -509,12 +509,12 @@ class pdf_ouvrage_fact_st extends ModelePDFFactures
                     }
 
                     // Total HT line
-                    $total_excl_tax = pdf_getlinetotalexcltax($object, $i, $outputlangs, $hidedetails);
+					$total_excl_tax = pdf_getlinetotalexcltax($object, $i, $outputlangs, $hidedetails);
                     if($total_excl_tax && $total_excl_tax !=' '){
                         $total_excl_tax.=' €';
                     }
-                    $pdf->SetXY($this->postotalht, $curY);
-                    $pdf->MultiCell($this->page_largeur - $this->marge_droite - $this->postotalht, 3, $total_excl_tax, 0, 'R', 0);
+					$pdf->SetXY($this->postotalht-8, $curY);
+					$pdf->MultiCell($this->page_largeur-$this->marge_droite-$this->postotalht+8, 3, $total_excl_tax, 0, 'R', 0);
 
 
                     $sign          = 1;
@@ -609,7 +609,7 @@ class pdf_ouvrage_fact_st extends ModelePDFFactures
                         $object->multicurrency_code);
                     $bottomlasttab = $this->page_hauteur - $heightforinfotot - $heightforfreetext - $heightforfooter + 1;
                 }
-                $bottomlasttab+=10;
+                $bottomlasttab+=2;
 
                 // Affiche zone infos
                 $posy = $this->_tableau_info($pdf, $object, $bottomlasttab, $outputlangs);
@@ -1326,7 +1326,7 @@ class pdf_ouvrage_fact_st extends ModelePDFFactures
             $pdf->line($this->posxunit - 1, $tab_top, $this->posxunit - 1, $tab_top + $tab_height);
             if (empty($hidetop)) {
                 $pdf->SetXY($this->posxunit - 1, $tab_top - 8.5);
-                $pdf->MultiCell($this->posxdiscount - $this->posxunit - 1, 2, $outputlangs->transnoentities("Unit"), '', 'C');
+                $pdf->MultiCell($this->posxdiscount - $this->posxunit - 1, 2, $outputlangs->transnoentities("U"), '', 'C');
             }
         }
 
@@ -1334,7 +1334,7 @@ class pdf_ouvrage_fact_st extends ModelePDFFactures
         if (empty($hidetop)) {
             if ($this->atleastonediscount) {
                 $pdf->SetXY($this->posxdiscount - 1, $tab_top - 8.5);
-                $pdf->MultiCell($this->postotalht - $this->posxdiscount + 1, 2, $outputlangs->transnoentities("ReductionShort"), '', 'C');
+                $pdf->MultiCell($this->postotalht - $this->posxdiscount + 1, 2, $outputlangs->transnoentities("Redu"), '', 'C');
             }
         }
         if ($this->atleastonediscount) {
@@ -1342,7 +1342,7 @@ class pdf_ouvrage_fact_st extends ModelePDFFactures
         }
         if (empty($hidetop)) {
             $pdf->SetXY($this->postotalht - 1, $tab_top - 8.5);
-            $pdf->MultiCell(30, 2, $outputlangs->transnoentities("TotalHT"), '', 'C');
+            $pdf->MultiCell(20, 2, $outputlangs->transnoentities("TotalHT"), '', 'C');
         }
     }
 
@@ -1583,7 +1583,6 @@ class pdf_ouvrage_fact_st extends ModelePDFFactures
             $widthrecbox = !empty($conf->global->MAIN_PDF_USE_ISO_LOCATION) ? 92 : 100;
             if ($this->page_largeur < 210) $widthrecbox = 84; // To work with US executive format
 
-            $widthrecbox -= 20;
             $posy = $this->marge_haute + 5;
             $posx = $this->page_largeur - $this->marge_droite - $widthrecbox;
             if (!empty($conf->global->MAIN_INVERT_SENDER_RECIPIENT)) $posx = $this->marge_gauche;
