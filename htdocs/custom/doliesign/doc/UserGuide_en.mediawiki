@@ -1,0 +1,101 @@
+[[Category:Complementary modules]]
+{{TemplateDocDevEn}}
+{{TemplateDocUser}}
+= Informations =
+{{TemplateModuleInfo
+|modulename=PHPSysInfo
+|editor=[https://www.netlogic.fr NetLogic]
+|web=[https://www.netlogic.fr NetLogic]
+|webbuy=[https://www.dolistore.com www.dolistore.com]
+|status=stable
+|prerequisites=
+|minversion=5.0
+|note=6.0 Recommended
+}}
+
+= Features =
+DoliEsign permits you to create legally valid digital signed PDF documents.
+With the DoiEsign module you can have your commercial documents digital signed by your contacts. The documents will be signed by the Yousign (c) signing services. Yousign will deliver legally valid signed documents.
+
+= Installation =
+{{InstallModuleDoliStoreEn}}
+
+= Configuration =
+{{ActivationModuleEn}}
+
+= Usage =
+
+== Setup ==
+All services of this module use the Yousign API. So you must have an Yousign (www.yousign.com) account.
+
+Go on Dolibarr module setup, DoliEsign setup, tab "Settings", and add your account credentials:
+
+<pre>
+* Yousign login
+* Yousign password
+* Yousign API key
+* Default authentication mode for the document signers, default is 'sms'
+</pre>
+
+You can change the default authentication mode into 'mail', the document signer will now have to validate his signature with an email instead of an sms.
+You can still change the authentication mode when sending the signing request.
+
+In your user permission page you can set rights for reading, creating and deleting the electronic signatures.
+
+== Configuration ==
+Goto tools->DoliEsign->Configuration List
+
+<div class="divforimgcentpercent">
+[[File:DoliEsign_configuration_list.png]]
+</div>
+
+Click on the configuration number you want to modify and click the modify button.
+
+<div class="divforimgcentpercent">
+[[File:DoliEsign_configuration_modify.png]]
+</div>
+
+You can change following configurations depending on the type of document to sign.
+* The status of the configuration defines if signing for this type of document is available or not. It's advised only to enable signing when required.
+* The default contact type who needs to sign the document.
+* The location of the signature on the pdf document. On the configuration card there is a link to a tool to calculate the location coordinates.
+
+If you have multiple configurations for a document, you will have multiple signers of the document. Like the default for interventions.
+
+== Request email configuration ==
+In the dolibarr email setup page you can configure the email templates used for sending and confirming the electronic signing requests.
+The emails are send by the Yousign service but the content can be defined in the email templates configuration.
+
+<div class="divforimgcentpercent">
+[[File:DoliEsign_email_template_list.png]]
+</div>
+
+The template must contain a field called {yousignUrl}, this field will be replaced by the document signing link.
+Also the other standard substitution field for email templates can be used.
+There is also a __LOGO__ substitution field which will be replaced by you company logo to deliver professional looking emails that seem to send by you and not by the Yousign service.
+
+<div class="divforimgcentpercent">
+[[File:DoliEsign_email_template.png]]
+</div>
+
+== Request for digital a document ==
+* Go into card of a validated Proposal or intervention.
+* Add the contact who has to sign the document in the contact/address tab. The default type contact is the contact to follow up the proposal. You can change the default type in the DoliEsign configuration page.
+* Click on the DoliEsign signing button for sending the signing request.
+
+<div class="divforimgcentpercent">
+[[File:DoliEsign_signing_request.png]]
+</div>
+
+== Get digital signed document ==
+* When the request is send, the signing button is replaced by a synchronisation button, to fetch the signing results from the Yousign service.
+* The signing result are also fetch when opening the list of proposals, signing status is visible in list.
+* If the document is signed the status of the proposal will set to signed and the button will changed to a download button for fetching the signed document.
+* Downloading the signed document will replace the non signed pdf with the signed pdf.
+* The signed can be downloaded again.
+
+= Development =
+{{TemplateModNetLogicEn}}
+
+= Support =
+Contact editor for support on the module.

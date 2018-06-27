@@ -1,0 +1,113 @@
+# Copyright (C) 2018 		Netlogic			<info@netlogic.fr>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#
+# Generic
+#
+
+# Module label 'ModuleDoliEsignName'
+ModuleDoliEsignName = DoliEsign
+# Module description 'ModuleDoliEsignDesc'
+ModuleDoliEsignDesc = This module permits you to create legally valid digital signed PDF document.
+ModuleDoliEsignDescLong = With the DoiEsign module you can have your commercial documents digital signed by your contacts. The documents will be signed by the Yousign (c) signing services. Yousign will deliver legally valid signed documents.
+#
+# Admin page
+#
+DoliEsignSetup = DoliEsign setup
+Settings = Settings
+DoliEsignSetupPage = DoliEsign setup page
+DOLIESIGN_AUTHENTICATION_MODE = Default authentication mode
+DOLIESIGN_AUTHENTICATION_MODETooltip = Default authentication mode for sign the document. The signer will receive a validation code for signing the document, possible values are sms and mail.
+DOLIESIGN_LOGIN=Yousign login
+DOLIESIGN_LOGINTooltip=Login name of your Yousign account.
+DOLIESIGN_PASSWORD=Yousign login password
+DOLIESIGN_PASSWORDTooltip=Password of your Yousign account.
+DOLIESIGN_API_KEY=Yousign login api key
+DOLIESIGN_API_KEYTooltip=Api key generated when creating your Yousign account. Double-click on the API key to copy in your Yousign account configuration page.
+
+
+#
+# About page
+#
+About = About
+DoliEsignAbout = About DoliEsign
+DoliEsignAboutPage = DoliEsign about page
+
+#
+# Sample page
+#
+ConfirmDoliEsign = Are you sure to send a request for electronic signing the document.
+ConfirmDoliEsignFetch = Are you sure to download the electronic signed the document.
+DoliEsignInitPropalTemplate = To send a proposal and asking for an electronic signature
+DoliEsignEndPropalTemplate = DoliEsign confirmation mail when the propasal is signed
+DoliEsignInitInterventionTemplate = To send an intervention and asking for an electronic signature
+DoliEsignEndInterventionTemplate = DoliEsign confirmation mail when the intervention is signed
+DoliEsignSync = Synchronize DoliEsign
+DoliEsign = DoliEsign
+DoliEsignAgain = DoliEsign Again
+DoliEsignStatus = Status DoliEsign
+NoDoliEsign = None
+WaitingDoliEsign = Waiting
+SignedDoliEsign = Signed
+CancelledDoliEsign = Cancelled
+ErrorDoliEsign = Sign error
+FetchedDoliEsign = Signed Doc
+DoliEsignFetch = Download Signed doc
+DoliEsignCanceled = DoliEsign Cancelled
+ReadDoliEsign = Read signings
+CreateUpdateDoliEsign = Request signings
+DeleteDoliEsign = Cancel signings
+DoliEsignConnectError = Error connecting to Yousign service.
+DoliEsignApiError = Api Error Yousign service.
+DoliEsignContactEmailMissing = Contact email missing.
+DoliEsignContactPhoneMobileMissing = Contact mobile phone number missing for sending signing SMS.
+DoliEsignUserEmailMissing = User email missing.
+DoliEsignUserPhoneMobileMissing = User mobile phone number missing for sending signing SMS.
+DoliEsignUserPhoneMobileWrongFormat = User mobile phone number needs to be in international format (ex: +33612345678).
+DoliEsignContactPhoneMobileWrongFormat = Contact mobile phone number needs to be in international format (ex: +33612345678).
+DoliEsignContactMissing = No contact assigned for signing.
+DoliEsignCreateFileError = Error storing Signed document.
+DoliEsignFileMissing = No generated document available.
+DoliEsignInvalidCoordinates = Invalid signing coordinates format (ex: 12,34,56,78)
+SignRequestSuccessful = Successful sending of request for signing document.
+URLtoDefineCoordinates = Define position coordinates for the signature on the document.
+AuthentificationMode = Authentication mode for signing the document.
+AuthentificationSms = Sms
+AuthentificationEmail = Email
+DoliEsignSignedNoModify = You can't modify a signed document.
+DoliEsignSignedNoDelete = You can't delete a signed document.
+DoliEsignSendInitDefaultEnUs = No request template found for your language, english template used.
+DoliEsignSendInitDefaultYousign = No request template found, default Yousign template used.
+DoliEsignSendEndDefaultEnUs = No confirmation template found for your language, english template used.
+DoliEsignSendEndDefaultYousign = No confirmation template found, default Yousign template used.
+SignedByDoliEsign = Signed by DoliEsign
+DoliEsignDocumentFetched = You can now find the Signed document in your linked files section.
+ConfirmDeleteConfig = Do you really want to delete this DoliEsign configuration.
+TypeContact = Contact type for signing document
+SignCoordinate = Position coordinates for signature
+DoliEsignConfig = DoliEsign
+NewConfig = New setting
+DoliEsignConfigList = Settings list
+DoliEsignList = List of Signings
+ObjectId = Object reference
+ObjectType = Object Type
+SignStatus = Sign status
+ContactSignId = Signing contact
+UserSignId = Signing user
+DateSign = Signing date
+# Sample widget
+#
+MyWidget = My widget
+MyWidgetDescription = My widget description

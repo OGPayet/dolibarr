@@ -1,0 +1,114 @@
+# Copyright (C) 2018 		Netlogic			<info@netlogic.fr>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#
+# Generic
+#
+
+# Module label 'ModuleDoliEsignName'
+ModuleDoliEsignName = DoliEsign
+# Module description 'ModuleDoliEsignDesc'
+ModuleDoliEsignDesc = Signez vos documents en ligne, à distance, dans un cloud 100% français, de manière légale et sécurisée.
+Module202110Desc=Signez vos documents en ligne, à distance, dans un cloud 100 pourcent français, de manière légale et sécurisée.
+ModuleDoliEsignDescLong = Signez seul, à plusieurs ou faites signer d’autres personnes, en ligne. Vérifiez l'identité d'un signataire par SMS. Horodatez et scellez votre document avec les informations des signataires.
+#
+# Admin page
+#
+DoliEsignSetup = Configuration de DoliEsign
+Settings = Paramètres
+DoliEsignSetupPage = Page de configuration de DoliEsign
+DOLIESIGN_AUTHENTICATION_MODE = Mode d'authentification par défaut
+DOLIESIGN_AUTHENTICATION_MODETooltip = Mode d'authentification par défaut pour signer le document. Le signataire recevra un code de validation permettant de signer le document; les choix sont: sms et mail.
+DOLIESIGN_LOGIN=Login Yousign
+DOLIESIGN_LOGINTooltip=Login de votre compte Yousign.
+DOLIESIGN_PASSWORD=Mot de passe Yousign.
+DOLIESIGN_PASSWORDTooltip=Mot de passe de votre compte Yousign.
+DOLIESIGN_API_KEY=Clé API Yousign
+DOLIESIGN_API_KEYTooltip=Clé API générée lors de la création de votre compte Yousign.
+
+
+#
+# About page
+#
+About = About
+DoliEsignAbout=A propos de DoliEsign
+DoliEsignAboutPage=Page à propos de DoliEsign
+
+#
+# Sample page
+#
+ConfirmDoliEsign = Etes vous certain de vouloir envoyer une demande de signature électronique de document.
+ConfirmDoliEsignFetch = Etes vous certain de vouloir télécharger le document signé électroniquement.
+DoliEsignInitPropalTemplate = Pour l'envoi d'une proposition pour signature électronique
+DoliEsignEndPropalTemplate = Mail de confirmation DoliEsign au signataire d’une proposition
+DoliEsignInitInterventionTemplate = Pour l'envoi d'une intervention pour signature électronique
+DoliEsignEndInterventionTemplate = Mail de confirmation DoliEsign au signataire d’une intervention
+DoliEsignSync = Synchronisation DoliEsign
+DoliEsign = DoliEsign
+DoliEsignAgain = Encore DoliEsign
+DoliEsignStatus = Statut DoliEsign
+NoDoliEsign = Aucun
+WaitingDoliEsign = En attente
+SignedDoliEsign = Signé
+CancelledDoliEsign = Supprimé
+ErrorDoliEsign = Error de signature
+FetchedDoliEsign = Doc signé
+DoliEsignFetch = Télécharger le doc signé
+DoliEsignCanceled = DoliEsign annulé
+ReadDoliEsign = Lire les signatures
+CreateUpdateDoliEsign = Demander Signatures
+DeleteDoliEsign = Annuler Signatures
+DoliEsignConnectError = Erreur de connexion au service Yousign.
+DoliEsignApiError = Erreur Api service Yousign.
+DoliEsignContactEmailMissing = Email du Contact manquant.
+DoliEsignContactPhoneMobileMissing = Numéro de téléphone mobile du contact manquant pour l'envoi sms du code de confirmation de signature.
+DoliEsignUserEmailMissing = Email de l'utilisateur manquant.
+DoliEsignUserPhoneMobileMissing = Numéro de téléphone mobile de l'utilisateur manquant pour l'envoi sms du code de confirmation de signature.
+DoliEsignUserPhoneMobileWrongFormat = Le numéro de téléphone mobile de l'utilisateur doit être  au format international (ex: +33612345678).
+DoliEsignContactPhoneMobileWrongFormat = Le numéro de téléphone mobile du contact doit être  au format international (ex: +33612345678).
+DoliEsignContactMissing = Aucun contact désigné pour la signature.
+DoliEsignCreateFileError = Erreur en enregistrant le document signé.
+DoliEsignFileMissing = Aucun document généré disponible.
+DoliEsignInvalidCoordinates = Format des coordonnées de signature invalide (ex: 12,34,56,78)
+SignRequestSuccessful = Demande de signature de document envoyée avec succès.
+URLtoDefineCoordinates = Definit les coordonnées de la signature sur le document.
+AuthentificationMode = Mode d'authentication pour signer le document.
+AuthentificationSms = Sms
+AuthentificationEmail = Email
+DoliEsignSignedNoModify = Vous ne pouvez pas modifier un document signé.
+DoliEsignSignedNoDelete = Vous ne pouvez pas supprimer un document signé.
+DoliEsignSendInitDefaultEnUs = Aucun modèle de demande trouvé pour votre langue, le modèle français est utilisé.
+DoliEsignSendInitDefaultYousign = Aucun modèle de demande trouvé, le modèle par défaut de Yousign est utilisé.
+DoliEsignSendEndDefaultEnUs = Aucun modèle de confirmation trouvé pour votre langue, le modèle français est utilisé.
+DoliEsignSendEndDefaultYousign = Aucun modèle de confirmation trouvé, le modèle par défaut de Yousign est utilisé.
+SignedByDoliEsign = Signé grâce à DoliEsign
+DoliEsignDocumentFetched = Vous pouvez désormais trouver le document signé dans la rubrique Fichiers joints.
+ConfirmDeleteConfig = Etes vous certain de supprimer la configuration.
+TypeContact = Type contact pour signer le document
+SignCoordinate = Position du coordinates signature
+DoliEsignConfig = DoliEsign
+NewConfig = Nouvelle configuration
+DoliEsignConfigList = Liste des cofigurations
+DoliEsignList = Liste des signatures
+ObjectId = Ref pièce
+ObjectType = Type pièce
+SignStatus = Statut
+ContactSignId = Contact signature
+UserSignId = Utilisteur signature
+DateSign = Date signature
+# Sample widget
+#
+MyWidget = My widget
+MyWidgetDescription = My widget description
