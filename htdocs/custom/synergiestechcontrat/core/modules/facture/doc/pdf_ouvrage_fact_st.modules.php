@@ -403,8 +403,11 @@ class pdf_ouvrage_fact_st extends ModelePDFFactures
 
                     if (isset($imglinesize['width']) && isset($imglinesize['height'])) {
                         $curX           = $this->posxpicture - 1;
-                        $pdf->Image($realpatharray[$i], $curX + 10 + (($this->posxtva - $this->posxpicture - $imglinesize['width']) / 2), $curY, $imglinesize['width'], $imglinesize['height'], '', '', '',
-                            2, 300); // Use 300 dpi
+						if (! empty($conf->global->MAIN_GENERATE_DOCUMENTS_WITHOUT_VAT)) {
+							$pdf->Image($realpatharray[$i], $curX+10 + (($this->posxtva-$this->posxpicture-$imglinesize['width'])/2) - 1, $curY+6, $imglinesize['width'], $imglinesize['height'], '', '', '', 2, 300);	// Use 300 dpi
+						} else {
+							$pdf->Image($realpatharray[$i], $curX + (($this->posxtva-$this->posxpicture-$imglinesize['width'])/2) - 1, $curY+6, $imglinesize['width'], $imglinesize['height'], '', '', '', 2, 300);	// Use 300 dpi
+						}
                         // $pdf->Image does not increase value return by getY, so we save it manually
                         $posYAfterImage = $curY + $imglinesize['height'];
                     }
@@ -420,7 +423,7 @@ class pdf_ouvrage_fact_st extends ModelePDFFactures
                         $pageposafter = $pageposbefore;
                         //print $pageposafter.'-'.$pageposbefore;exit;
                         $pdf->setPageOrientation('', 1, $heightforfooter); // The only function to edit the bottom margin of current page to set it.
-                        pdf_writelinedesc($pdf, $object, $i, $outputlangs, $this->posxpicture - $curX, 3, $curX, $curY, $hideref, $hidedesc);
+                        pdf_writelinedesc($pdf, $object, $i, $outputlangs, $this->posxpicture - $curX, 3, $curX, $curY+6, $hideref, $hidedesc);
                         $pageposafter = $pdf->getPage();
                         $posyafter    = $pdf->GetY();
                         //var_dump($posyafter); var_dump(($this->page_hauteur - ($heightforfooter+$heightforfreetext+$heightforinfotot))); exit;
@@ -1584,7 +1587,7 @@ class pdf_ouvrage_fact_st extends ModelePDFFactures
             if ($this->page_largeur < 210) $widthrecbox = 84; // To work with US executive format
 
             $posy = $this->marge_haute + 5;
-            $posx = $this->page_largeur - $this->marge_droite - $widthrecbox;
+            $posx = $this->page_largeur - $this->marge_droite - $widthrecbox + 20;
             if (!empty($conf->global->MAIN_INVERT_SENDER_RECIPIENT)) $posx = $this->marge_gauche;
 
             // Show recipient frame
