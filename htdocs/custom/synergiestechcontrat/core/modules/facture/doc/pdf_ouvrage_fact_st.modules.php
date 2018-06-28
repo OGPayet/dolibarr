@@ -403,10 +403,10 @@ class pdf_ouvrage_fact_st extends ModelePDFFactures
 
                     if (isset($imglinesize['width']) && isset($imglinesize['height'])) {
                         $curX           = $this->posxpicture - 1;
-						if (! empty($conf->global->MAIN_GENERATE_DOCUMENTS_WITHOUT_VAT)) {
-							$pdf->Image($realpatharray[$i], $curX+10 + (($this->posxtva-$this->posxpicture-$imglinesize['width'])/2) - 1, $curY+6, $imglinesize['width'], $imglinesize['height'], '', '', '', 2, 300);	// Use 300 dpi
+						if (! empty($conf->global->MAIN_GENERATE_DOCUMENTS_WITHOUT_VAT) || !empty($conf->global->MAIN_GENERATE_DOCUMENTS_WITHOUT_VAT_COLUMN)) {
+							$pdf->Image($realpatharray[$i], $curX + (($this->posxtva-$this->posxpicture-$imglinesize['width'])/2) + 10, $curY+3, $imglinesize['width'], $imglinesize['height'], '', '', '', 2, 300);	// Use 300 dpi
 						} else {
-							$pdf->Image($realpatharray[$i], $curX + (($this->posxtva-$this->posxpicture-$imglinesize['width'])/2) - 1, $curY+6, $imglinesize['width'], $imglinesize['height'], '', '', '', 2, 300);	// Use 300 dpi
+							$pdf->Image($realpatharray[$i], $curX + (($this->posxtva-$this->posxpicture-$imglinesize['width'])/2) - 1, $curY+3, $imglinesize['width'], $imglinesize['height'], '', '', '', 2, 300);	// Use 300 dpi
 						}
                         // $pdf->Image does not increase value return by getY, so we save it manually
                         $posYAfterImage = $curY + $imglinesize['height'];
@@ -418,12 +418,14 @@ class pdf_ouvrage_fact_st extends ModelePDFFactures
                     $pdf->startTransaction();
                     pdf_writelinedesc($pdf, $object, $i, $outputlangs, $this->posxpicture - $curX - $progress_width, 3, $curX, $curY, $hideref, $hidedesc);
                     $pageposafter = $pdf->getPage();
+					$breakpage = 0;
                     if ($pageposafter > $pageposbefore) { // There is a pagebreak
+						$breakpage = 6;
                         $pdf->rollbackTransaction(true);
                         $pageposafter = $pageposbefore;
                         //print $pageposafter.'-'.$pageposbefore;exit;
                         $pdf->setPageOrientation('', 1, $heightforfooter); // The only function to edit the bottom margin of current page to set it.
-                        pdf_writelinedesc($pdf, $object, $i, $outputlangs, $this->posxpicture - $curX, 3, $curX, $curY+6, $hideref, $hidedesc);
+                        pdf_writelinedesc($pdf, $object, $i, $outputlangs, $this->posxpicture - $curX, 3, $curX, $curY+$breakpage, $hideref, $hidedesc);
                         $pageposafter = $pdf->getPage();
                         $posyafter    = $pdf->GetY();
                         //var_dump($posyafter); var_dump(($this->page_hauteur - ($heightforfooter+$heightforfreetext+$heightforinfotot))); exit;
@@ -460,7 +462,7 @@ class pdf_ouvrage_fact_st extends ModelePDFFactures
                     if (empty($conf->global->MAIN_GENERATE_DOCUMENTS_WITHOUT_VAT) && empty($conf->global->MAIN_GENERATE_DOCUMENTS_WITHOUT_VAT_COLUMN)) {
                         $vat_rate = pdf_getlinevatrate($object, $i, $outputlangs, $hidedetails);
                         $pdf->SetXY($this->posxtva, $curY);
-                        $pdf->MultiCell($this->posxup - $this->posxtva - 0.8, 3, $vat_rate, 0, 'R');
+                        $pdf->MultiCell($this->posxup - $this->posxtva - 0.8, 3+$breakpage, $vat_rate, 0, 'R');
                     }
 
 					// Unit price before discount
@@ -469,19 +471,19 @@ class pdf_ouvrage_fact_st extends ModelePDFFactures
                         $up_excl_tax.=' €';
                     }
 					$pdf->SetXY($this->posxup-1.6, $curY);
-					$pdf->MultiCell($this->posxqty-$this->posxup+1.2, 4, $up_excl_tax, 0, 'R', 0);
+					$pdf->MultiCell($this->posxqty-$this->posxup+1.2, 4+$breakpage, $up_excl_tax, 0, 'R', 0);
 
                     // Quantity
                     $qty = pdf_getlineqty($object, $i, $outputlangs, $hidedetails);
-                    $pdf->SetXY($this->posxqty, $curY);
+                    $pdf->SetXY($this->posxqty, $curY+$breakpage);
                     // Enough for 6 chars
 
                     if ($this->situationinvoice) {
-                        $pdf->MultiCell($this->posxprogress - $this->posxqty - 0.8, 4, $qty, 0, 'R');
+                        $pdf->MultiCell($this->posxprogress - $this->posxqty - 0.8, 4+$breakpage, $qty, 0, 'R');
                     } else if ($conf->global->PRODUCT_USE_UNITS) {
-                        $pdf->MultiCell($this->posxunit - $this->posxqty - 0.8, 4, $qty, 0, 'R');
+                        $pdf->MultiCell($this->posxunit - $this->posxqty - 0.8, 4+$breakpage, $qty, 0, 'R');
                     } else {
-                        $pdf->MultiCell($this->posxdiscount - $this->posxqty - 0.8, 4, $qty, 0, 'R');
+                        $pdf->MultiCell($this->posxdiscount - $this->posxqty - 0.8, 4+$breakpage, $qty, 0, 'R');
                     }
 
                     // Situation progress
@@ -489,11 +491,11 @@ class pdf_ouvrage_fact_st extends ModelePDFFactures
                         $progress = pdf_getlineprogress($object, $i, $outputlangs, $hidedetails);
                         $pdf->SetXY($this->posxprogress, $curY);
                         if ($conf->global->PRODUCT_USE_UNITS) {
-                            $pdf->MultiCell($this->posxunit - $this->posxprogress - 1, 3, $progress, 0, 'R');
+                            $pdf->MultiCell($this->posxunit - $this->posxprogress - 1, 3+$breakpage, $progress, 0, 'R');
                         } else if ($this->atleastonediscount) {
-                            $pdf->MultiCell($this->posxdiscount - $this->posxprogress - 1, 3, $progress, 0, 'R');
+                            $pdf->MultiCell($this->posxdiscount - $this->posxprogress - 1, 3+$breakpage, $progress, 0, 'R');
                         } else {
-                            $pdf->MultiCell($this->postotalht - $this->posxprogress - 1, 3, $progress, 0, 'R');
+                            $pdf->MultiCell($this->postotalht - $this->posxprogress - 1, 3+$breakpage, $progress, 0, 'R');
                         }
                     }
 
@@ -501,14 +503,14 @@ class pdf_ouvrage_fact_st extends ModelePDFFactures
                     if ($conf->global->PRODUCT_USE_UNITS) {
                         $unit = pdf_getlineunit($object, $i, $outputlangs, $hidedetails, $hookmanager);
                         $pdf->SetXY($this->posxunit, $curY);
-                        $pdf->MultiCell($this->posxdiscount - $this->posxunit - 0.8, 4, $unit, 0, 'L');
+                        $pdf->MultiCell($this->posxdiscount - $this->posxunit - 0.8, 4+$breakpage, $unit, 0, 'L');
                     }
 
                     // Discount on line
                     if ($object->lines[$i]->remise_percent) {
                         $pdf->SetXY($this->posxdiscount - 2, $curY);
                         $remise_percent = pdf_getlineremisepercent($object, $i, $outputlangs, $hidedetails);
-                        $pdf->MultiCell($this->postotalht - $this->posxdiscount + 2, 3, $remise_percent, 0, 'R');
+                        $pdf->MultiCell($this->postotalht - $this->posxdiscount + 2, 3+$breakpage, $remise_percent, 0, 'R');
                     }
 
                     // Total HT line
@@ -517,7 +519,7 @@ class pdf_ouvrage_fact_st extends ModelePDFFactures
                         $total_excl_tax.=' €';
                     }
 					$pdf->SetXY($this->postotalht-8, $curY);
-					$pdf->MultiCell($this->page_largeur-$this->marge_droite-$this->postotalht+8, 3, $total_excl_tax, 0, 'R', 0);
+					$pdf->MultiCell($this->page_largeur-$this->marge_droite-$this->postotalht+8, 3+$breakpage, $total_excl_tax, 0, 'R', 0);
 
 
                     $sign          = 1;
@@ -1586,8 +1588,9 @@ class pdf_ouvrage_fact_st extends ModelePDFFactures
             $widthrecbox = !empty($conf->global->MAIN_PDF_USE_ISO_LOCATION) ? 92 : 100;
             if ($this->page_largeur < 210) $widthrecbox = 84; // To work with US executive format
 
+			$widthrecbox -= 20;
             $posy = $this->marge_haute + 5;
-            $posx = $this->page_largeur - $this->marge_droite - $widthrecbox + 20;
+            $posx = $this->page_largeur - $this->marge_droite - $widthrecbox;
             if (!empty($conf->global->MAIN_INVERT_SENDER_RECIPIENT)) $posx = $this->marge_gauche;
 
             // Show recipient frame

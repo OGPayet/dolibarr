@@ -360,13 +360,15 @@ class pdf_ouvrage_com extends ModelePDFCommandes
 					$pdf->startTransaction();
 					pdf_writelinedesc($pdf,$object,$i,$outputlangs,$this->posxtva-$curX,3,$curX,$curY,$hideref,$hidedesc);
 					$pageposafter=$pdf->getPage();
+					$breakpage = 0;
 					if ($pageposafter > $pageposbefore)	// There is a pagebreak
 					{
+						$breakpage = 6;
 						$pdf->rollbackTransaction(true);
 						$pageposafter=$pageposbefore;
 						//print $pageposafter.'-'.$pageposbefore;exit;
 						$pdf->setPageOrientation('', 1, $heightforfooter);	// The only function to edit the bottom margin of current page to set it.
-						pdf_writelinedesc($pdf,$object,$i,$outputlangs,$this->posxtva-$curX,4,$curX,$curY+6,$hideref,$hidedesc);
+						pdf_writelinedesc($pdf,$object,$i,$outputlangs,$this->posxtva-$curX,4,$curX,$curY+$breakpage,$hideref,$hidedesc);
 						$pageposafter=$pdf->getPage();
 						$posyafter=$pdf->GetY();
 						if ($posyafter > ($this->page_hauteur - ($heightforfooter+$heightforfreetext+$heightforinfotot)))	// There is no space left for total+free text
@@ -408,7 +410,7 @@ class pdf_ouvrage_com extends ModelePDFCommandes
 					{
 						$vat_rate = pdf_getlinevatrate($object, $i, $outputlangs, $hidedetails);
 						$pdf->SetXY($this->posxtva, $curY);
-						$pdf->MultiCell($this->posxup-$this->posxtva-0.8, 3, $vat_rate, 0, 'R');
+						$pdf->MultiCell($this->posxup-$this->posxtva-0.8, 3+$breakpage, $vat_rate, 0, 'R');
 					}
 
 					// Unit price before discount
@@ -417,7 +419,7 @@ class pdf_ouvrage_com extends ModelePDFCommandes
                         $up_excl_tax.=' €';
                     }
 					$pdf->SetXY($this->posxup-1.6, $curY);
-					$pdf->MultiCell($this->posxqty-$this->posxup+1.2, 4, $up_excl_tax, 0, 'R', 0);
+					$pdf->MultiCell($this->posxqty-$this->posxup+1.2, 4+$breakpage, $up_excl_tax, 0, 'R', 0);
 
 					// Quantity
 					$qty = pdf_getlineqty($object, $i, $outputlangs, $hidedetails);
@@ -425,11 +427,11 @@ class pdf_ouvrage_com extends ModelePDFCommandes
 					// Enough for 6 chars
 					if($conf->global->PRODUCT_USE_UNITS)
 					{
-						$pdf->MultiCell($this->posxunit-$this->posxqty-0.8, 4, $qty, 0, 'R');
+						$pdf->MultiCell($this->posxunit-$this->posxqty-0.8, 4+$breakpage, $qty, 0, 'R');
 					}
 					else
 					{
-						$pdf->MultiCell($this->posxdiscount-$this->posxqty-0.8, 4, $qty, 0, 'R');
+						$pdf->MultiCell($this->posxdiscount-$this->posxqty-0.8, 4+$breakpage, $qty, 0, 'R');
 					}
 
 					// Unit
@@ -437,7 +439,7 @@ class pdf_ouvrage_com extends ModelePDFCommandes
 					{
 						$unit = pdf_getlineunit($object, $i, $outputlangs, $hidedetails, $hookmanager);
 						$pdf->SetXY($this->posxunit, $curY);
-						$pdf->MultiCell($this->posxdiscount-$this->posxunit-0.8, 4, $unit, 0, 'L');
+						$pdf->MultiCell($this->posxdiscount-$this->posxunit-0.8, 4+$breakpage, $unit, 0, 'L');
 					}
 
 					// Discount on line
@@ -446,7 +448,7 @@ class pdf_ouvrage_com extends ModelePDFCommandes
 					{
 						$pdf->SetXY($this->posxdiscount-2, $curY);
 						$remise_percent = pdf_getlineremisepercent($object, $i, $outputlangs, $hidedetails);
-						$pdf->MultiCell($this->postotalht-$this->posxdiscount+2, 3, $remise_percent, 0, 'R');
+						$pdf->MultiCell($this->postotalht-$this->posxdiscount+2, 3+$breakpage, $remise_percent, 0, 'R');
 					}
 
 					// Total HT line
@@ -455,7 +457,7 @@ class pdf_ouvrage_com extends ModelePDFCommandes
                         $total_excl_tax.=' €';
                     }
 					$pdf->SetXY($this->postotalht-8, $curY);
-					$pdf->MultiCell($this->page_largeur-$this->marge_droite-$this->postotalht+8, 3, $total_excl_tax, 0, 'R', 0);
+					$pdf->MultiCell($this->page_largeur-$this->marge_droite-$this->postotalht+8, 3+$breakpage, $total_excl_tax, 0, 'R', 0);
 
 					// Collecte des totaux par valeur de tva dans $this->tva["taux"]=total_tva
 					if ($conf->multicurrency->enabled && $object->multicurrency_tx != 1) $tvaligne=$object->lines[$i]->multicurrency_total_tva;
@@ -1340,8 +1342,10 @@ class pdf_ouvrage_com extends ModelePDFCommandes
 			// Show recipient
             $widthrecbox = !empty($conf->global->MAIN_PDF_USE_ISO_LOCATION) ? 92 : 100;
 			if ($this->page_largeur < 210) $widthrecbox=84;	// To work with US executive format
+
+			$widthrecbox -= 20;
 			$posy=42;
-			$posx=$this->page_largeur-$this->marge_droite-$widthrecbox + 20;
+			$posx=$this->page_largeur-$this->marge_droite-$widthrecbox;
 			if (! empty($conf->global->MAIN_INVERT_SENDER_RECIPIENT)) $posx=$this->marge_gauche;
 
 			// Show recipient frame
