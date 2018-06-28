@@ -102,6 +102,7 @@ class modSynergiesTech extends DolibarrModules
 		//							'workflow' => array('WORKFLOW_MODULE1_YOURACTIONTYPE_MODULE2'=>array('enabled'=>'! empty($conf->module1->enabled) && ! empty($conf->module2->enabled)', 'picto'=>'yourpicto@mymodule')) // Set here all workflow context managed by module
 		//                        );
 		$this->module_parts = array(
+            'tpl' => 1,
             'triggers' => 1,
             'hooks' => array('invoicelist', 'main'),
         );

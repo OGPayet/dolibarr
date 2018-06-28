@@ -41,6 +41,7 @@ class Equipement extends CommonObject
 	var $numversion; 			// num�ro de version associ� au produit
 	var $fk_soc_fourn;			// ID du fournisseur du produit
 	var $fk_commande_fourn;		// ID commande fournisseur du produit
+    var $fk_commande_fournisseur_dispatch;		// ID commande fournisseur dispatch du produit
     var $fk_fact_fourn;			// ID fact fournisseur du produit
 	var $ref_fourn;				// r�f�rence produit du fournisseur (non stock�e en base, juste pour la g�n�ration multiple)
 	var $fk_soc_client;			// Id client du produit
@@ -181,6 +182,7 @@ class Equipement extends CommonObject
 				$sql.= ", fk_soc_client";
 				$sql.= ", fk_soc_fourn";
 				$sql.= ", fk_commande_fourn";
+                $sql.= ", fk_commande_fournisseur_dispatch";
                 $sql.= ", fk_facture_fourn";
 				$sql.= ", datec";
 				$sql.= ", datee";
@@ -205,6 +207,7 @@ class Equipement extends CommonObject
 				$sql.= ", ".($this->fk_soc_client?$this->db->escape($this->fk_soc_client):"null");
 				$sql.= ", ".($this->fk_soc_fourn?$this->db->escape($this->fk_soc_fourn):"null");
 				$sql.= ", ".($this->fk_commande_fourn?$this->db->escape($this->fk_commande_fourn):"null");
+                $sql.= ", ".($this->fk_commande_fournisseur_dispatch?$this->db->escape($this->fk_commande_fournisseur_dispatch):"null");
                 $sql.= ", ".($this->fk_facture_fourn?$this->db->escape($this->fk_facture_fourn):"null");
 				$sql.= ", '".$this->db->idate($now)."'";
 				$sql.= ", ".($this->datee?"'".$this->db->idate($this->datee)."'":"null");
@@ -298,7 +301,7 @@ class Equipement extends CommonObject
 	 */
 	function fetch($rowid, $ref='')
 	{
-		$sql = "SELECT e.rowid, e.ref, e.description, e.fk_soc_fourn, e.fk_commande_fourn, e.fk_facture_fourn, e.fk_statut, e.fk_entrepot,";
+		$sql = "SELECT e.rowid, e.ref, e.description, e.fk_soc_fourn, e.fk_commande_fourn, e.fk_commande_fournisseur_dispatch, e.fk_facture_fourn, e.fk_statut, e.fk_entrepot,";
 		$sql.= " e.numversion, e.numimmocompta, e.fk_etatequipement, ee.libelle as etatequiplibelle, e.quantity,";
 		$sql.= " e.datec, e.datev, e.datee, e.dateo, e.dated, e.tms as datem, e.unitweight, e.fk_product_batch,";
 		$sql.= " e.fk_product, e.fk_soc_client, e.fk_facture,";
@@ -332,6 +335,7 @@ class Equipement extends CommonObject
 				$this->fk_product		= $obj->fk_product;
 				$this->fk_soc_fourn		= $obj->fk_soc_fourn;
 				$this->fk_commande_fourn = $obj->fk_commande_fourn;
+                $this->fk_commande_fournisseur_dispatch = $obj->fk_commande_fournisseur_dispatch;
                 $this->fk_fact_fourn	= $obj->fk_facture_fourn;
 				$this->fk_soc_client	= $obj->fk_soc_client;
 				$this->fk_fact_client	= $obj->fk_facture;

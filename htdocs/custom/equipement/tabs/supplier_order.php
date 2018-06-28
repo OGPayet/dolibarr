@@ -87,6 +87,9 @@ $search_equipevttype=GETPOST('search_equipevttype', 'alpha');
 if ($search_equipevttype=="-1") $search_equipevttype="";
 
 
+// Initialize technical object to manage hooks of thirdparties. Note that conf->hooks_modules contains array array
+$hookmanager->initHooks(array('tab_supplier_order'));
+
 /*
  *	View
  */
@@ -94,77 +97,117 @@ if ($search_equipevttype=="-1") $search_equipevttype="";
 $form = new Form($db);
 llxHeader();
 
-
 $object = new CommandeFournisseur($db);
 $result = $object->fetch($id);
 $object->fetch_thirdparty();
 
 
-if ($action  == 'addequipement') {
-	$objectequipement = new equipement($db);
-	$num = count($object->lines);
-	$nbligneorder = 0;
-	while ($nbligneorder <	$num) {
-		$line =	$object->lines[$nbligneorder];
-		// only recept on serial product
-		if ($line->fk_product > 0) {
-			// on regarde si il y a des �quipement � cr�er (qty > O)
-			if (GETPOST('quantity-'.$line->id)) {
-				$objectequipement->fk_product		= $line->fk_product;
-				$objectequipement->fk_soc_fourn 	= $object->thirdparty->id;
-				$objectequipement->fk_soc_client 	= $idMeteoOmnium;
-				$objectequipement->author			= $user->id;
-				$objectequipement->description		= $langs->trans("SupplierOrder").":".$object->ref;
-//				$objectequipement->ref				= $ref;
-				$objectequipement->fk_entrepot		= GETPOST('fk_entrepot-'.$line->id, 'alpha');
-                $objectequipement->fk_commande_fourn = $object->id;
-				$datee = dol_mktime(
-								'23', '59', '59',
-								$_POST["datee-".$line->id."month"],
-								$_POST["datee-".$line->id."day"],
-								$_POST["datee-".$line->id."year"]
-				);
-				$objectequipement->datee			= $datee;
-				$dateo = dol_mktime(
-								'23', '59', '59',
-								$_POST["dateo-".$line->id."month"],
-								$_POST["dateo-".$line->id."day"],
-								$_POST["dateo-".$line->id."year"]
-				);
-				$objectequipement->dateo			= $dateo;
-				// selon le mode de s�rialisation de l'�quipement
-				switch(GETPOST('SerialMethod-'.$line->id, 'int')) {
-					case 1 : // en mode g�n�ration auto, on cr�e des num�ros s�rie interne
-						$objectequipement->quantity 		= 1;
-						$objectequipement->nbAddEquipement	= GETPOST('quantity-'.$line->id, 'int');;
-						break;
-					case 2 : // en mode g�n�ration � partir de la liste on d�termine en fonction de la saisie
-						$objectequipement->quantity 		= 1;
-						$objectequipement->nbAddEquipement	= 0; // sera calcul� en fonction
-						break;
-					case 3 : // en mode gestion de lot
-						$objectequipement->quantity 		= GETPOST('quantity-'.$line->id, 'int');
-						$objectequipement->nbAddEquipement	= 1;
-						break;
-				}
+// List of lines to serialize
+$dispatched_sql = "SELECT p.ref, p.label, p.description, p.fk_product_type, SUM(IFNULL(eq.quantity, 0)) as nb_serialized,";
+$dispatched_sql .= " e.rowid as warehouse_id, e.label as entrepot,";
+$dispatched_sql .= " cfd.rowid as dispatchlineid, cfd.fk_product, cfd.qty, cfd.eatby, cfd.sellby, cfd.batch, cfd.comment, cfd.status";
+$dispatched_sql .= " FROM " . MAIN_DB_PREFIX . "product as p,";
+$dispatched_sql .= " " . MAIN_DB_PREFIX . "commande_fournisseur_dispatch as cfd";
+$dispatched_sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "equipement AS eq ON eq.fk_commande_fournisseur_dispatch = cfd.rowid";
+$dispatched_sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "entrepot as e ON cfd.fk_entrepot = e.rowid";
+$dispatched_sql .= " WHERE cfd.fk_commande = " . $object->id;
+$dispatched_sql .= " AND cfd.fk_product = p.rowid";
+$dispatched_sql .= " GROUP BY cfd.rowid";
+$dispatched_sql .= " ORDER BY cfd.rowid ASC";
+// modified by hook
+$parameters = array();
+$reshook = $hookmanager->executeHooks('sqlLinesToSerialize', $parameters, $object, $action);
+if (!empty($hookmanager->resPrint)) $dispatched_sql = $hookmanager->resPrint;
 
-				$objectequipement->SerialMethod 	= GETPOST('SerialMethod-'.$line->id, 'int');
-				$objectequipement->SerialFourn		= GETPOST('SerialFourn-'.$line->id, 'alpha');
-				$objectequipement->numversion		= GETPOST('numversion-'.$line->id, 'alpha');
-				//var_dump($objectequipement);
-				$result = $objectequipement->create();
-			}
-		}
-		$nbligneorder++;
-	}
-	$mesg='<div class="ok">'.$langs->trans("EquipementAdded").'</div>';
-	$action="";
+$nb_to_serialize = 0;
+$dispatched_lines = array();
+$resql = $db->query($dispatched_sql);
+if ($resql) {
+    while ($objp = $db->fetch_object($resql)) {
+        $remains_serialized = $objp->qty - $objp->nb_serialized;
+        $nb_to_serialize += ($remains_serialized > 0 ? $remains_serialized : 0);
+        $dispatched_lines[] = $objp;
+    }
+}
+
+
+if ($action  == 'addequipement') {
+    $objectequipement = new equipement($db);
+    foreach ($dispatched_lines as $line) {
+        // only recept on serial product
+        if ($line->fk_product > 0) {
+            // on regarde si il y a des �quipement � cr�er (qty > O)
+            $qty = GETPOST('quantity-' . $line->dispatchlineid, 'int');
+            if (0 < $qty && $qty <= ($line->qty - $line->nb_serialized)) {
+                $objectequipement->fk_product = $line->fk_product;
+                $objectequipement->fk_soc_fourn = $object->thirdparty->id;
+                $objectequipement->fk_soc_client = $idMeteoOmnium;
+                $objectequipement->author = $user->id;
+                $objectequipement->description = $langs->trans("SupplierOrder") . ":" . $object->ref;
+                //$objectequipement->ref				= $ref;
+                $objectequipement->fk_entrepot = GETPOST('fk_entrepot-' . $line->dispatchlineid, 'alpha');
+                $objectequipement->fk_commande_fourn = $object->id;
+                $objectequipement->fk_commande_fournisseur_dispatch = $line->dispatchlineid;
+                $datee = dol_mktime(
+                    '23', '59', '59',
+                    $_POST["datee-" . $line->dispatchlineid . "month"],
+                    $_POST["datee-" . $line->dispatchlineid . "day"],
+                    $_POST["datee-" . $line->dispatchlineid . "year"]
+                );
+                $objectequipement->datee = $datee;
+                $dateo = dol_mktime(
+                    '23', '59', '59',
+                    $_POST["dateo-" . $line->dispatchlineid . "month"],
+                    $_POST["dateo-" . $line->dispatchlineid . "day"],
+                    $_POST["dateo-" . $line->dispatchlineid . "year"]
+                );
+                $objectequipement->dateo = $dateo;
+                // selon le mode de s�rialisation de l'�quipement
+                switch (GETPOST('SerialMethod-' . $line->dispatchlineid, 'int')) {
+                    case 1 : // en mode g�n�ration auto, on cr�e des num�ros s�rie interne
+                        $objectequipement->quantity = 1;
+                        $objectequipement->nbAddEquipement = $qty;
+                        break;
+                    case 2 : // en mode g�n�ration � partir de la liste on d�termine en fonction de la saisie
+                        $objectequipement->quantity = 1;
+                        $objectequipement->nbAddEquipement = 0; // sera calcul� en fonction
+                        break;
+                    case 3 : // en mode gestion de lot
+                        $objectequipement->quantity = $qty;
+                        $objectequipement->nbAddEquipement = 1;
+                        break;
+                }
+
+                $objectequipement->SerialMethod = GETPOST('SerialMethod-' . $line->dispatchlineid, 'int');
+                $objectequipement->SerialFourn = GETPOST('SerialFourn-' . $line->dispatchlineid, 'alpha');
+                $objectequipement->numversion = GETPOST('numversion-' . $line->dispatchlineid, 'alpha');
+                //var_dump($objectequipement);
+                $result = $objectequipement->create();
+            }
+        }
+    }
+    $mesg = '<div class="ok">' . $langs->trans("EquipementAdded") . '</div>';
+    $action = "";
+
+    // Maj dispatched lines
+    $nb_to_serialize = 0;
+    $dispatched_lines = array();
+    $resql = $db->query($dispatched_sql);
+    if ($resql) {
+        while ($objp = $db->fetch_object($resql)) {
+            $remains_serialized = $objp->qty - $objp->nb_serialized;
+            $nb_to_serialize += ($remains_serialized > 0 ? $remains_serialized : 0);
+            $dispatched_lines[] = $objp;
+        }
+    }
 }
 
 
 $head = ordersupplier_prepare_head($object);
 dol_fiche_head($head, 'equipement', $langs->trans("SupplierOrder"), 0, 'order');
 dol_htmloutput_mesg($mesg);
+
+
 print '<table class="border" width="100%">';
 
 $linkback = '<a href="'.DOL_URL_ROOT.'/fourn/commande/list.php'.(! empty($socid)?'?socid='.$socid:'').'">';
@@ -183,12 +226,10 @@ print '<td colspan="2">';
 print $object->ref_supplier;
 print '</td></tr>';
 
-
 // Fournisseur
 print '<tr><td>'.$langs->trans("Supplier")."</td>";
 print '<td colspan="2">'.$object->thirdparty->getNomUrl(1, 'supplier').'</td>';
 print '</tr>';
-
 
 // Statut
 print '<tr>';
@@ -198,98 +239,125 @@ print $object->getLibStatut(4);
 print "</td></tr>";
 print "</table>";
 
-
 dol_fiche_end();
 
-// on r�cup�re les produit associ� � la commande fournisseur
-print '<form name="equipement" action="'.$_SERVER['PHP_SELF'].'" method="POST">';
-print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+
+print '<form name="equipement" action="' . $_SERVER['PHP_SELF'] . '" method="POST">';
+print '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '">';
 print '<input type="hidden" name="action" value="addequipement">';
-print '<input type="hidden" name="id" value="'.$id.'">';
+print '<input type="hidden" name="id" value="' . $id . '">';
+
 print '<table id="tablelines" class="noborder noshadow" width="100%">';
 
-$num = count($object->lines);
-$i = 0;	$total = 0;
+print '<tr class="liste_titre">';
+print '<td align="left" width="200">' . $langs->trans('Label') . '</td>';
+print '<td align="right" width="75">' . $langs->trans('Qty') . '</td>';
+print '<td align="center" width="150">' . $langs->trans('EquipmentSerialMethod') . '</td>';
+print '<td align="left" width="250">' . $langs->trans('ExternalSerial') . '</td>';
+print '<td align="left" width="50">' . $langs->trans('Quantity') . '</td>';
+print '<td align="left" width="100">' . $langs->trans('VersionNumber') . '</td>';
+print '<td align="left" width="100">' . $langs->trans('EntrepotStock') . '</td>';
+print '<td align="right" width="100">' . $langs->trans('Dateo') . '</td>';
+print '<td align="right" width="100">' . $langs->trans('Datee') . '</td>';
+print "</tr>\n";
 
-if ($num) {
-	print '<tr class="liste_titre">';
-	print '<td align="left" width="200">'.$langs->trans('Label').'</td>';
-	print '<td align="right" width="75">'.$langs->trans('Qty').'</td>';
-	print '<td align="center" width="150">'.$langs->trans('EquipmentSerialMethod').'</td>';
-	print '<td align="left" width="250">'.$langs->trans('ExternalSerial').'</td>';
-	print '<td align="left" width="50">'.$langs->trans('Quantity').'</td>';
-	print '<td align="left" width="100">'.$langs->trans('VersionNumber').'</td>';
-	print '<td align="left" width="100">'.$langs->trans('EntrepotStock').'</td>';
-	print '<td align="right" width="100">'.$langs->trans('Dateo').'</td>';
-	print '<td align="right" width="100">'.$langs->trans('Datee').'</td>';
-	print "</tr>\n";
-}
-$var=true;
-while ($i <	$num) {
-	$line =	$object->lines[$i];
-	// only recept on serial product
-	if ($line->fk_product > 0) {
-		$var=!$var;
-		// Show product and description
-		$type=(! empty($line->product_type)?$line->product_type:(! empty($line->fk_product_type)?$line->fk_product_type:0));
-		print '<tr '.$bc[$var].'>';
-		// Show product and description
-		print '<td valign=top>';
+$var = false;
+if ($nb_to_serialize) {
+    foreach ($dispatched_lines as $line) {
+        $remains_serialized = $line->qty - $line->nb_serialized;
 
-		print '<input type=hidden name="fk_product['.$line->id.']" value="'.$line->fk_product.'">';
-		$product_static=new ProductFournisseur($db);
-		$product_static->fetch($line->fk_product);
-		$text=$product_static->getNomUrl(1, 'supplier');
-		$text.= ' - '.$product_static->libelle;
-		$description=($conf->global->PRODUIT_DESC_IN_FORM?'':dol_htmlentitiesbr($line->description));
-		print $form->textwithtooltip($text, $description, 3, '', '', $i);
+        // only recept on serial product
+        if ($line->fk_product > 0 && $remains_serialized > 0) {
+            print "<tr " . $bc[$var] . ">";
 
-		// Show range
-		print_date_range($date_start, $date_end);
+            // Show product and description
+            print '<td valign=top>';
 
-		// Add description in form
-		if (! empty($conf->global->PRODUIT_DESC_IN_FORM))
-			print ($line->description && $line->description!=$product_static->libelle)?'<br>'.dol_htmlentitiesbr($line->description):'';
+            print '<input type=hidden name="fk_product[' . $line->dispatchlineid . ']" value="' . $line->fk_product . '">';
+            $product_static = new ProductFournisseur($db);
+            $product_static->fetch($line->fk_product);
+            $text = $product_static->getNomUrl(1, 'supplier');
+            $text .= ' - ' . $product_static->libelle;
+            $description = ($conf->global->PRODUIT_DESC_IN_FORM ? '' : dol_htmlentitiesbr($line->description));
+            print $form->textwithtooltip($text, $description, 3, '', '', $i);
 
-		print '<td  valign=top align="right" class="nowrap">'.$line->qty.'</td>';
-		print '<td  valign=top align="center" >';
-		$arraySerialMethod=array(
-						'1'=>$langs->trans("InternalSerial"),
-						'2'=>$langs->trans("ExternalSerial"),
-						'3'=>$langs->trans("SeriesMode")
-		);
-		print $form->selectarray("SerialMethod-".$line->id, $arraySerialMethod, $conf->global->EQUIPEMENT_DEFAULTSERIALMODE);
-		print '</td>';
-		print '<td>';
-		print '<textarea name="SerialFourn-'.$line->id.'" cols="50" rows="'.ROWS_3.'"></textarea>';
-		print '</td>';
-		print '<td  valign=top><input type=text name="quantity-'.$line->id.'" size=2 value="'.$line->qty.'"></td>';
+            // Show range
+            print_date_range($date_start, $date_end);
 
-		print '<td  valign=top><input type=text name="numversion-'.$line->id.'" value=""></td>';
-		print '<td  valign=top>';
-		print select_entrepot("", 'fk_entrepot-'.$line->id, 1, 1).'</td>';
+            // Add description in form
+            if (!empty($conf->global->PRODUIT_DESC_IN_FORM))
+                print ($line->description && $line->description != $product_static->libelle) ? '<br>' . dol_htmlentitiesbr($line->description) : '';
 
-		// Date open
-		print '<td  valign=top align=right>';
-		print $form->select_date(
-						'', 'dateo-'.$line->id, 0, 0, '', 'dateo['.$line->id.']'
-		).'</td>'."\n";
+            print '<td  valign=top align="right" class="nowrap">' . $line->qty . '</td>';
+            print '<td  valign=top align="center" >';
+            $arraySerialMethod = array(
+                '1' => $langs->trans("InternalSerial"),
+                '2' => $langs->trans("ExternalSerial"),
+                '3' => $langs->trans("SeriesMode")
+            );
+            print $form->selectarray("SerialMethod-" . $line->dispatchlineid, $arraySerialMethod, $conf->global->EQUIPEMENT_DEFAULTSERIALMODE);
+            print '</td>';
+            print '<td>';
+            print '<textarea name="SerialFourn-' . $line->dispatchlineid . '" cols="50" rows="' . ROWS_3 . '"></textarea>';
+            print '</td>';
+            print '<td  valign=top><input type="number" name="quantity-' . $line->dispatchlineid . '" min="0" max="'.$remains_serialized.'" size="2" value="' . $remains_serialized . '"'.($remains_serialized > 0 ? '' : ' disabled') .'></td>';
 
-		// Date end
-		print '<td  valign=top	align=right>';
-		print $form->select_date(
-						'', 'datee-'.$line->id, 0, 0, 1, 'datee['.$line->id.']'
-		).'</td>'."\n";
-		print '</tr>';
-	}
-	$i++;
+            print '<td  valign=top><input type="text" name="numversion-' . $line->dispatchlineid . '" value=""></td>';
+            print '<td  valign=top>';
+            select_entrepot($line->warehouse_id, 'fk_entrepot-' . $line->dispatchlineid, 1, 1, 0, 1, '', 0, $line->fk_product, '', 1);
+            print '</td>';
+
+            // Date open
+            print '<td  valign=top align=right>';
+            print $form->select_date(
+                    '', 'dateo-' . $line->dispatchlineid, 0, 0, '', 'dateo[' . $line->dispatchlineid . ']'
+                ) . '</td>' . "\n";
+
+            // Date end
+            print '<td  valign=top	align=right>';
+            print $form->select_date(
+                    '', 'datee-' . $line->dispatchlineid, 0, 0, 1, 'datee[' . $line->dispatchlineid . ']'
+                ) . '</td>' . "\n";
+            print '</tr>';
+
+            $var = !$var;
+        }
+    }
+
+    print <<<SCRIPT
+    <script>
+        $(document).ready(function(){
+            function check_quantity(object) {
+                var val = parseFloat(object.val());
+                var min = parseFloat(object.attr('min'));
+                var max = parseFloat(object.attr('max'));
+
+                if (val <= min) object.val(min);
+                else if (val > max) object.val(max);
+            }
+            $('input[name^="quantity-"]').on('input', function() {
+                check_quantity($(this));
+            })
+        });
+    </script>
+SCRIPT;
+
+    $db->free($resql);
+} else {
+    print "<tr " . $bc[$var] . ">";
+    print '<td align="left" colspan="9">' . $langs->trans('EquipmentNoMoreProductToSerialize') . '</td>';
+    print "</tr>\n";
 }
 print '</table>';
 
-print '<div class="tabsAction">';
-print '<input type="submit" class="button" value="'.$langs->trans("AddEquipement").'">';
-print '</div>';
+if ($nb_to_serialize) {
+    // Button
+    print '<div class="tabsAction">';
+    print '<input type="submit" class="button" value="' . $langs->trans("AddEquipement") . '">';
+    print '</div>';
+}
 print '</form>';
+print '<br>';
 
 
 $sql = "SELECT";

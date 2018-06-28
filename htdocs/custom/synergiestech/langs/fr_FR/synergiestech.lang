@@ -14,6 +14,8 @@ SynergiesTechForceAttachEquipmentsAfterShippingCreated              = Force la r
 SynergiesTechEnabledWorkflowOrderSupplierDispatchToSetEquipments    = Active la redirection vers l'écran de saisie des équipements si un produit à le statut sérialisable lors de la réceptions de marchandise d'une commande fournisseur
 SynergiesTechForceSetEquipmentsAfterOrderSupplierDispatch           = Force la rentrer des numéros de séries des produits sérialisables après la réceptions de marchandise d'une commande fournisseur
 
+SynergiesTechProductCategoryForContractFormule                      = Catégorie des produits servant de base aux formules des contrats
+
 #######################################################################
 # Extrafields
 #######################################################################
@@ -31,3 +33,11 @@ SynergiesTechOrderSupplierHasEquipmentToSerialize    = La commande fournisseur �
 #######################################################################
 SynergiesTechNotSupportStockCalculateOnBill = Ne support pas le calcul du stock à la validation d'une facture
 SynergiesTechInvoiceMassValidate            = %s factures ont été validées.
+
+#######################################################################
+# Custom order
+#######################################################################
+SynergiesTechOnlyProductIncludeIntoContract                 = Liste des produits inclus dans les contrats du client
+SynergiesTechFormules                                       = Formules
+SynergiesTechErrorFormulesNotFoundIntoCategories            = Formules dont la catégorie associée n'est pas trouvée
+SynergiesTechErrorProductCategoryForFomuleContratNotDefined = La catégorie des produits servant de base aux formules des contrats na pas été parametrée dans le module Synergies-Tech.

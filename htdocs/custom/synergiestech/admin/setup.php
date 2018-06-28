@@ -28,6 +28,7 @@ if (! $res && file_exists("../../main.inc.php")) $res=@include '../../main.inc.p
 if (! $res && file_exists("../../../main.inc.php")) $res=@include '../../../main.inc.php';		// to work if your module directory is into a subdir of root htdocs directory
 if (! $res) die("Include of main fails");
 require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
 dol_include_once('/synergiestech/lib/synergiestech.lib.php');
 
 $langs->load("admin");
@@ -104,12 +105,26 @@ if (preg_match('/set_(.*)/',$action,$reg))
     {
         dol_print_error($db);
     }
+} elseif ($action == 'set') {
+    $error = 0;
+
+    if (dolibarr_set_const($db, 'SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE', GETPOST('SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE', 'int'), 'chaine', 0, '', $conf->entity) <= 0) {
+        $error++;
+    }
+
+    if (!$error) {
+        Header("Location: " . $_SERVER["PHP_SELF"]);
+        exit;
+    } else {
+        dol_print_error($db);
+    }
 }
 
 /*
  *	View
  */
 
+$formother = new FormOther($db);
 
 llxHeader();
 
@@ -188,9 +203,16 @@ if (empty($conf->global->SYNERGIESTECH_FORCE_SET_EQUIPMENTS_AFTER_ORDER_SUPPLIER
 }
 print '</td></tr>' . "\n";
 
-print '</table>';
+// SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>' . $langs->trans("SynergiesTechProductCategoryForContractFormule") . '</td>' . "\n";
+print '<td align="center">&nbsp;</td>' . "\n";
+print '<td align="right">' . "\n";
+print $formother->select_categories('product', $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE, 'SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE', 0 ,1);
+print '</td></tr>' . "\n";
 
-dol_fiche_end();
+print '</table>';
 
 print '<br>';
 print '<div align="center">';
@@ -198,6 +220,8 @@ print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">'
 print '</div>';
 
 print '</form>';
+
+dol_fiche_end();
 
 llxFooter();
 

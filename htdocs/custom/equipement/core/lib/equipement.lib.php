@@ -268,56 +268,64 @@ function equipement_event_prepare_head($object)
 // * 	@param	int		$hidetext		Do not show label before combo box
 // *  @return	void
 // */
-function select_entrepot($selected='', $htmlname='entrepotid', $showempty=0, $hidetext=0, $size=0, $addchkbox=1)
+function select_entrepot($selected='', $htmlname='entrepotid', $showempty=0, $hidetext=0, $size=0, $addchkbox=1, $filterstatus='',
+                         $disabled=0, $fk_product=0, $empty_label='', $showstock=0, $forcecombo=0, $events=array(), $morecss='minwidth200', $exclude='', $showfullpath=1, $noprint=0)
 {
-	global $db, $langs; //, $user, $conf;
+    global $conf, $db, $langs; //, $user;
 
-	if (empty($hidetext)) print $langs->trans("EntrepotStock").': ';
+    dol_syslog("Equipement.Lib::select_entrepot $selected, $htmlname, $showempty, $hidetext, $size, $addchkbox, $filterstatus, $disabled, $fk_product, $empty_label, $showstock, $forcecombo, $events, $morecss, $exclude, $showfullpath", LOG_DEBUG);
 
-	// boucle sur les entrepots
-	$sql = "SELECT rowid, label, zip, statut";
-	$sql.= " FROM ".MAIN_DB_PREFIX."entrepot";
-	//$sql.= " WHERE statut = 1";
-	$sql.= " ORDER BY zip ASC";
+    require_once DOL_DOCUMENT_ROOT . '/product/class/html.formproduct.class.php';
+    $formproduct = new FormProduct($db);
 
-	dol_syslog("Equipement.Lib::select_entrepot sql=".$sql);
+    $out = '';
+    if (empty($conf->global->ENTREPOT_EXTRA_STATUS)) $filterstatus = '';
+    $formproduct->loadWarehouses($fk_product, '', $filterstatus, true, $exclude);
+    $nbofwarehouses = count($formproduct->cache_warehouses);
 
-	$resql=$db->query($sql);
-	if ($resql) {
-		$num = $db->num_rows($resql);
-		$i = 0;
-		if ($num) {
-			if ($size == 0)
-				print '<select class="flat" name="'.$htmlname.'">';
-			else
-				print '<select class="flat" size='.$size.' name="'.$htmlname.'">';
-			if ($showempty) {
-				print '<option value="-1"';
-				if ($selected == -1) print ' selected="selected"';
-				print '>&nbsp;</option>';
-			}
-			while ($i < $num) {
-				$obj = $db->fetch_object($resql);
-				print '<option value="'.$obj->rowid.'"';
-				if ($obj->rowid == $selected) print ' selected="selected"';
-				print ">".$obj->label."(".$obj->zip.")";
-				// ajouter l'info que l'entrepot est clot
-				print "</option>";
-				$i++;
-			}
-			print '</select>';
-			if ($addchkbox) {
-				if ($conf->global->EQUIPEMENT_CHKBOXSTOCKMVTON =="1")
-					$checked = "checked";
-				print '&nbsp;&nbsp;<input type="checkbox" name="'.$htmlname.'move" '.$checked.' value=1>';
-				print '&nbsp;'.$langs->trans("CreateStockMovement");
-			}
-		} else {
-			// si pas de liste, on positionne un hidden � vide
-			print '<input type="hidden" name="'.$htmlname.'" value=-1>';
-			print '<input type="hidden" name="'.$htmlname.'move" value=-1>';
-		}
-	}
+    if (empty($hidetext)) print $langs->trans("EntrepotStock") . ': ';
+
+    if ($nbofwarehouses > 0) {
+        $nodatarole = '';
+        if ($conf->use_javascript_ajax && !$forcecombo) {
+            include_once DOL_DOCUMENT_ROOT . '/core/lib/ajax.lib.php';
+            $comboenhancement = ajax_combobox($htmlname, $events);
+            $out .= $comboenhancement;
+            $nodatarole = ($comboenhancement ? ' data-role="none"' : '');
+        }
+
+        $out .= '<select class="flat' . ($morecss ? ' ' . $morecss : '') . '"' . ($disabled ? ' disabled' : '') . ' id="' . $htmlname . '" name="' . ($htmlname . ($disabled ? '_disabled' : '')) . '"' . $nodatarole . (!empty($size) ? ' size="' . $size . '"' : '') . '>';
+        if ($showempty) $out .= '<option value="-1">' . ($empty_label ? $empty_label : '&nbsp;') . '</option>';
+        foreach ($formproduct->cache_warehouses as $id => $arraytypes) {
+            $out .= '<option value="' . $id . '"';
+            if ($selected == $id || ($selected == 'ifone' && $nbofwarehouses == 1)) $out .= ' selected';
+            $out .= '>';
+            if ($showfullpath) $out .= $arraytypes['full_label'];
+            else $out .= $arraytypes['label'];
+            if (($fk_product || ($showstock > 0)) && ($arraytypes['stock'] != 0 || ($showstock > 0))) $out .= ' (' . $langs->trans("Stock") . ':' . $arraytypes['stock'] . ')';
+            if ($arraytypes['zip'])
+                $out .= '</option>';
+        }
+        $out .= '</select>';
+        if ($disabled) $out .= '<input type="hidden" name="' . $htmlname . '" value="' . (($selected > 0) ? $selected : '') . '">';
+
+        if ($addchkbox) {
+            $out .= '&nbsp;&nbsp;<input type="checkbox" name="' . $htmlname . 'move"' . (!empty($conf->global->EQUIPEMENT_CHKBOXSTOCKMVTON) ? ' checked' : '') . ' value=1>';
+            $out .= '&nbsp;' . $langs->trans("CreateStockMovement");
+        }
+    } else {
+        // si pas de liste, on positionne un hidden à vide
+        $out .= '<input type="hidden" name="' . $htmlname . '" value=-1>';
+        $out .= '<input type="hidden" name="' . $htmlname . 'move" value=-1>';
+        $langs->load("errors");
+        $out .= $langs->trans("ErrorNoWarehouseDefined");
+    }
+
+    if ($noprint) {
+        return $out;
+    } else {
+        print $out;
+    }
 }
 
 function select_equipements($selected='', $filterproduct='', $filterentrepot='', $htmlname='equipementid', $showempty=0, $hidetext=0, $showadditionnalinfo=0)

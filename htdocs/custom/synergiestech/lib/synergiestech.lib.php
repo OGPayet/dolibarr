@@ -128,18 +128,18 @@ function synergiestech_has_shipping_equipment_to_validate($db, $shipping_id)
 function synergiestech_has_dispatching_equipment_to_serialize($db, $supplier_order_id) {
     $sql = "SELECT IF(IFNULL(ts.nb, 0) != IFNULL(s.nb, 0), 1, 0) AS result
             FROM (
-              SELECT SUM(cfd.qty) as nb, cfd.fk_product FROM " . MAIN_DB_PREFIX . "commande_fournisseur_dispatch as cfd
+              SELECT SUM(cfd.qty) as nb, cfd.rowid as fk_commande_fournisseur_dispatch FROM " . MAIN_DB_PREFIX . "commande_fournisseur_dispatch as cfd
               LEFT JOIN " . MAIN_DB_PREFIX . "product_extrafields AS pe ON pe.fk_object = cfd.fk_product
               WHERE cfd.fk_commande = " . $supplier_order_id ."
               AND cfd.qty > 0
               AND pe.synergiestech_to_serialize = 1
-              GROUP BY cfd.fk_product
+              GROUP BY cfd.rowid
             ) AS ts
             LEFT JOIN (
-              SELECT count(e.quantity) as nb, e.fk_product FROM " . MAIN_DB_PREFIX . "equipement AS e
+              SELECT SUM(e.quantity) as nb, e.fk_commande_fournisseur_dispatch FROM " . MAIN_DB_PREFIX . "equipement AS e
               WHERE e.fk_commande_fourn = " . $supplier_order_id . "
-              GROUP BY e.fk_product
-           ) AS s ON ts.fk_product = s.fk_product";
+              GROUP BY e.fk_commande_fournisseur_dispatch
+            ) AS s ON ts.fk_commande_fournisseur_dispatch = s.fk_commande_fournisseur_dispatch";
 
     $resql = $db->query($sql);
     if ($resql) {

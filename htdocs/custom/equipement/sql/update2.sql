@@ -1,0 +1,1 @@
+ALTER TABLE `llx_equipement`  ADD `fk_commande_fournisseur_dispatch` INT NULL  AFTER `fk_commande_fourn`;

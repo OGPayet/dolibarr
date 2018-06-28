@@ -118,6 +118,43 @@ class ActionsSynergiesTech
     }*/
 
     /**
+	 * Overloading the sqlLinesToSerialize function : replacing the parent's function with the one below
+	 *
+	 * @param   array() $parameters Hook metadatas (context, etc...)
+	 * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+	 * @param   string &$action Current action (if set). Generally create or edit or null
+	 * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
+	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+	 */
+	function sqlLinesToSerialize($parameters, &$object, &$action, $hookmanager)
+    {
+        global $conf, $user, $langs;
+
+        $contexts = explode(':',$parameters['context']);
+
+        if (in_array('tab_supplier_order', $contexts)) {
+            // List of lines to serialize
+            $dispatched_sql = "SELECT p.ref, p.label, p.description, p.fk_product_type, SUM(IFNULL(eq.quantity, 0)) as nb_serialized,";
+            $dispatched_sql .= " e.rowid as warehouse_id, e.label as entrepot,";
+            $dispatched_sql .= " cfd.rowid as dispatchlineid, cfd.fk_product, cfd.qty, cfd.eatby, cfd.sellby, cfd.batch, cfd.comment, cfd.status";
+            $dispatched_sql .= " FROM " . MAIN_DB_PREFIX . "product as p,";
+            $dispatched_sql .= " " . MAIN_DB_PREFIX . "commande_fournisseur_dispatch as cfd";
+            $dispatched_sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "product_extrafields AS pe ON pe.fk_object = cfd.fk_product";
+            $dispatched_sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "equipement AS eq ON eq.fk_commande_fournisseur_dispatch = cfd.rowid";
+            $dispatched_sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "entrepot as e ON cfd.fk_entrepot = e.rowid";
+            $dispatched_sql .= " WHERE cfd.fk_commande = " . $object->id;
+            $dispatched_sql .= " AND cfd.fk_product = p.rowid";
+            $dispatched_sql .= " AND pe.synergiestech_to_serialize = 1";
+            $dispatched_sql .= " GROUP BY cfd.rowid";
+            $dispatched_sql .= " ORDER BY cfd.rowid ASC";
+
+            $this->resprints = $dispatched_sql;
+        }
+
+        return 0;
+    }
+
+    /**
 	 * Overloading the addMoreMassActions function : replacing the parent's function with the one below
 	 *
 	 * @param   array() $parameters Hook metadatas (context, etc...)
