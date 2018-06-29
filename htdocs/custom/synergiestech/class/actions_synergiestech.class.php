@@ -155,6 +155,44 @@ class ActionsSynergiesTech
     }
 
     /**
+	 * Overloading the sqlLinesToAttach function : replacing the parent's function with the one below
+	 *
+	 * @param   array() $parameters Hook metadatas (context, etc...)
+	 * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+	 * @param   string &$action Current action (if set). Generally create or edit or null
+	 * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
+	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+	 */
+	function sqlLinesToAttach($parameters, &$object, &$action, $hookmanager)
+    {
+        global $conf, $user, $langs;
+
+        $contexts = explode(':',$parameters['context']);
+
+        if (in_array('tab_expedition_add', $contexts)) {
+            // List of lines to attach
+            $attached_sql = "SELECT p.label as product_label, SUM(IFNULL(eq.quantity, 0)) as nb_attached,";
+            $attached_sql .= " e.rowid as entrepot_id, ed.rowid as lineid, cd.fk_product, ed.qty as qty_shipped";
+            $attached_sql .= " FROM " . MAIN_DB_PREFIX . "product as p,";
+            $attached_sql .= " " . MAIN_DB_PREFIX . "expeditiondet as ed";
+            $attached_sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "commandedet as cd ON ed.fk_origin_line = cd.rowid";
+            $attached_sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "product_extrafields AS pe ON pe.fk_object = cd.fk_product";
+            $attached_sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "equipementevt AS ee ON ee.fk_expeditiondet = ed.rowid";
+            $attached_sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "equipement AS eq ON eq.rowid = ee.fk_equipement";
+            $attached_sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "entrepot as e ON ed.fk_entrepot = e.rowid";
+            $attached_sql .= " WHERE ed.fk_expedition = " . $object->id;
+            $attached_sql .= " AND cd.fk_product = p.rowid";
+            $attached_sql .= " AND pe.synergiestech_to_serialize = 1";
+            $attached_sql .= " GROUP BY ed.rowid";
+            $attached_sql .= " ORDER BY ed.rowid ASC";
+
+            $this->resprints = $attached_sql;
+        }
+
+        return 0;
+    }
+
+    /**
 	 * Overloading the addMoreMassActions function : replacing the parent's function with the one below
 	 *
 	 * @param   array() $parameters Hook metadatas (context, etc...)

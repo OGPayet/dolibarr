@@ -104,7 +104,7 @@ class modSynergiesTech extends DolibarrModules
 		$this->module_parts = array(
             'tpl' => 1,
             'triggers' => 1,
-            'hooks' => array('invoicelist', 'main'),
+            'hooks' => array('tab_supplier_order', 'tab_expedition_add', 'invoicelist', 'main'),
         );
 
 		// Data directories to create when module is enabled.

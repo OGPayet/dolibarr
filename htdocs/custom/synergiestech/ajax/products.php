@@ -199,7 +199,7 @@ else
 	if (empty($mode) || $mode == 1) {  // mode=1: customer
         dol_include_once('/synergiestech/class/html.formsynergiestech.class.php');
         $formsynergiestech = new FormSynergiesTech($db);
-		$arrayresult = $formsynergiestech->select_produits_list("", $htmlname, $type, $include_categories, 0, $price_level, $searchkey, $status, $finished, $outjson, $socid, '1', 0, '', 0, $warehouseStatus);
+		$arrayresult = $formsynergiestech->select_produits_list("", $htmlname, $type, $include_categories, 1, 0, $price_level, $searchkey, $status, $finished, $outjson, $socid, '1', 0, '', 0, $warehouseStatus);
 	} elseif ($mode == 2) {            // mode=2: supplier
 		$arrayresult = $form->select_produits_fournisseurs_list($socid, "", $htmlname, $type, "", $searchkey, $status, $outjson, 0, $alsoproductwithnosupplierprice);
 	}

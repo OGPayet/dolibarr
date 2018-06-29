@@ -1,0 +1,1 @@
+ALTER TABLE `llx_equipementevt`  ADD `fk_expeditiondet` INT NULL  AFTER `fk_expedition`;

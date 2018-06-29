@@ -1249,7 +1249,7 @@ class Equipement extends CommonObject
 	 *	@param	  int		$duration				Prix de l'�v�nement
 	 *	@return		int			 				>0 if ok, <0 if ko
 	 */
-	function addline($equipementid, $fk_equipementevt_type, $desc, $dateo, $datee, $fulldayevent, $fk_contrat, $fk_fichinter, $fk_expedition, $fk_project, $fk_user_author, $total_ht=0, $array_option=0)
+	function addline($equipementid, $fk_equipementevt_type, $desc, $dateo, $datee, $fulldayevent, $fk_contrat, $fk_fichinter, $fk_expedition, $fk_project, $fk_user_author, $total_ht=0, $array_option=0, $fk_expeditiondet=0)
 	{
 
 		$this->db->begin();
@@ -1268,6 +1268,7 @@ class Equipement extends CommonObject
 		$line->fk_contrat				= $fk_contrat;
 		$line->fk_project				= $fk_project;
 		$line->fk_expedition			= $fk_expedition;
+        $line->fk_expeditiondet			= $fk_expeditiondet;
 		$line->fk_user_author			= $fk_user_author;
 		$line->datec					= dol_now();
 
@@ -1975,6 +1976,7 @@ class Equipementevt extends CommonObject
 	var $fk_contrat;
 	var $fk_project;
 	var $fk_expedition;
+    var $fk_expeditiondet;
 	var $fk_user_author;
 	// pour �viter de se taper une recherche pour chaque ligne
 	var $ref_fichinter;
@@ -2009,7 +2011,7 @@ class Equipementevt extends CommonObject
 	{
 		$sql = 'SELECT ee.rowid, ee.fk_equipement, ee.description, ee.datec, ee.fk_equipementevt_type, ';
 		$sql.= ' eet.libelle as equipeventlib, ee.datee, ee.dateo, ee.fulldayevent, ee.total_ht, ';
-		$sql.= ' ee.fk_user_author, ee.fk_fichinter, ee.fk_contrat, ee.fk_expedition, ee.fk_project ';
+		$sql.= ' ee.fk_user_author, ee.fk_fichinter, ee.fk_contrat, ee.fk_expedition, ee.fk_expeditiondet, ee.fk_project ';
 		$sql.= ' FROM '.MAIN_DB_PREFIX.'equipementevt as ee';
 		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."c_equipementevt_type as eet on ee.fk_equipementevt_type = eet.rowid";
 		$sql.= ' WHERE ee.rowid = '.$rowid;
@@ -2032,6 +2034,7 @@ class Equipementevt extends CommonObject
 			$this->fk_fichinter				= $objp->fk_fichinter;
 			$this->fk_contrat				= $objp->fk_contrat;
 			$this->fk_expedition			= $objp->fk_expedition;
+            $this->fk_expeditiondet			= $objp->fk_expeditiondet;
 			$this->fk_project				= $objp->fk_project;
 			$this->fk_user_author			= $objp->fk_user_author;
 
@@ -2059,7 +2062,7 @@ class Equipementevt extends CommonObject
 		// Insertion dans base de la ligne
 		$sql = 'INSERT INTO '.MAIN_DB_PREFIX.'equipementevt';
 		$sql.= ' (fk_equipement, fk_equipementevt_type, description,';
-		$sql.= ' fulldayevent, fk_fichinter, fk_contrat, fk_expedition, fk_project,';
+		$sql.= ' fulldayevent, fk_fichinter, fk_contrat, fk_expedition, fk_expeditiondet, fk_project,';
 		$sql.= ' datec, dateo, datee, total_ht, fk_user_author)';
 		$sql.= " VALUES (".$this->fk_equipement.",";
 		$sql.= " ".($this->fk_equipementevt_type?$this->fk_equipementevt_type:"null").",";
@@ -2068,6 +2071,7 @@ class Equipementevt extends CommonObject
 		$sql.= " ".($this->fk_fichinter?$this->fk_fichinter:"null").",";
 		$sql.= " ".($this->fk_contrat?$this->fk_contrat:"null").",";
 		$sql.= " ".($this->fk_expedition?$this->fk_expedition:"null").",";
+        $sql.= " ".($this->fk_expeditiondet?$this->fk_expeditiondet:"null").",";
 		$sql.= " ".($this->fk_project?$this->fk_project:"null").",";
 		$sql.= " '".$this->db->idate($now)."',"; // date de cr�ation aliment� automatiquement
 		$sql.= " '".$this->db->idate($this->dateo)."',";
@@ -2175,6 +2179,7 @@ class Equipementevt extends CommonObject
 		$sql.= ", 	fk_fichinter=".($this->fk_fichinter?$this->fk_fichinter:"null");
 		$sql.= ", 	fk_contrat=".($this->fk_contrat?$this->fk_contrat:"null");
 		$sql.= ", 	fk_expedition=".($this->fk_expedition?$this->fk_expedition:"null");
+        $sql.= ", 	fk_expeditiondet=".($this->fk_expeditiondet?$this->fk_expeditiondet:"null");
 		$sql.= ", 	fk_project=".($this->fk_project?$this->fk_project:"null");
 		$sql.= ", 	fk_user_author=".($this->fk_user_author?$this->fk_user_author:"null");
 

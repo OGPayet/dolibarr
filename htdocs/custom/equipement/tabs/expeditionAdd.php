@@ -73,6 +73,10 @@ $search_entrepot=GETPOST('search_entrepot', 'alpha');
 $search_equipevttype=GETPOST('search_equipevttype', 'alpha');
 if ($search_equipevttype=="-1") $search_equipevttype="";
 
+
+// Initialize technical object to manage hooks of thirdparties. Note that conf->hooks_modules contains array array
+$hookmanager->initHooks(array('tab_expedition_add'));
+
 $object = new Expedition($db);
 $result = $object->fetch($id, $ref);
 if (!$id) $id=$object->id;
@@ -83,176 +87,189 @@ if (!empty($object->origin)) {
 	$origin = $object->origin;
 	$object->fetch_origin();
 }
+
 if ($action == 'joindre' && $user->rights->equipement->creer) {
-	// r�cup�ration des �quipements de type lot � joindre
-	$listLot= GETPOST('lotEquipement');
-	if (!empty($listLot)) {
-		foreach ($listLot as $fk_product => $lotproduct) {
-			//print $fk_product."<br>";
-			foreach ($lotproduct as $idlot => $qtyequipement) {
-				//print "prod=".$fk_product." Lot=".$idlot." Qty=".$qtyequipement."<br>";
-				// si on a des choses � envoyer depuis ce lot
-				if ($qtyequipement > 0) {
-					// r�cup�ration de la quantit� du lot
-					$tblLot=explode("-", $idlot);
+    // r�cup�ration des �quipements de type lot � joindre
+    $listLot = GETPOST('lotEquipement');
+    if (!empty($listLot)) {
+        foreach ($listLot as $lineid_fk_product => $lotproduct) {
+            $tmp = explode("-", $lineid_fk_product);
+            $lineid = $tmp[0];
+            $fk_product = $tmp[1];
+            //print $fk_product."<br>";
+            foreach ($lotproduct as $idlot => $qtyequipement) {
+                //print "prod=".$fk_product." Lot=".$idlot." Qty=".$qtyequipement."<br>";
+                // si on a des choses � envoyer depuis ce lot
+                if ($qtyequipement > 0) {
+                    // r�cup�ration de la quantit� du lot
+                    $tblLot = explode("-", $idlot);
 
-					if ($qtyequipement > $tblLot[1]) {	// erreur sur les quantit�s saisie sur le lots
-						$mesg='<div class="error">'.$langs->trans("ErrorQuantityMustLower", $qtyequipement, $tblLot[1]).'</div>';
-						$error++;
-						setEventMessage($mesg);
-						header('Location: '.$_SERVER["PHP_SELF"].'?id='.$object->id);
-						exit;
-					}
+                    if ($qtyequipement > $tblLot[1]) {  // erreur sur les quantit�s saisie sur le lots
+                        $mesg = '<div class="error">' . $langs->trans("ErrorQuantityMustLower", $qtyequipement, $tblLot[1]) . '</div>';
+                        $error++;
+                        setEventMessage($mesg);
+                        header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
+                        exit;
+                    }
 
-					// on ajoute tous le lot � l'exp�dition
-					$equipementstatic=new Equipement($db);
-					$ret=$equipementstatic->fetch($tblLot[0]);
-					$equipementstatic->fetch_thirdparty();
+                    // on ajoute tous le lot � l'exp�dition
+                    $equipementstatic = new Equipement($db);
+                    $ret = $equipementstatic->fetch($tblLot[0]);
+                    $equipementstatic->fetch_thirdparty();
 
-					if ($qtyequipement < $tblLot[1]) {	// ON d�coupe le lot en deux parties et on associe le nouveau
-						// la r�f de du lot
+                    if ($qtyequipement < $tblLot[1]) {  // ON d�coupe le lot en deux parties et on associe le nouveau
+                        // la r�f de du lot
 
-						$newequipid = $equipementstatic->cut_equipement($equipementstatic->ref."-".$object->ref, $qtyequipement, 1);
-						// on se positionne sur l'�quipement nouvellement cr�e
-						$ret=$equipementstatic->fetch($newequipid);
-						$equipementstatic->fetch_thirdparty();
-					}
+                        $newequipid = $equipementstatic->cut_equipement($equipementstatic->ref . "-" . $object->ref, $qtyequipement, 1);
+                        // on se positionne sur l'�quipement nouvellement cr�e
+                        $ret = $equipementstatic->fetch($newequipid);
+                        $equipementstatic->fetch_thirdparty();
+                    }
 
-					// on affecte l'�quipement � exp�dier au client � qui on l'envoie
-					$equipementstatic->set_client($user, $object->socid);
+                    // on affecte l'�quipement � exp�dier au client � qui on l'envoie
+                    $equipementstatic->set_client($user, $object->socid);
 
-					// on enl�ve l'�quipement du stock
-					$equipementstatic->set_entrepot($user, -1);
+                    // on enl�ve l'�quipement du stock
+                    $equipementstatic->set_entrepot($user, -1);
 
-					// on cree enfin un evenement
-					$desc=GETPOST('np_desc', 'alpha');
-					$dateo = dol_mktime(
-									GETPOST('deohour', 'int'), GETPOST('deomin', 'int'), 0,
-									GETPOST('deomonth', 'int'), GETPOST('deoday', 'int'), GETPOST('deoyear', 'int')
-					);
-					$datee = dol_mktime(
-									GETPOST('deehour', 'int'), GETPOST('deemin', 'int'), 0,
-									GETPOST('deemonth', 'int'), GETPOST('deeday', 'int'), GETPOST('deeyear', 'int')
-					);
-					$fulldayevent =GETPOST('fulldayevent');
-					$fk_equipementevt_type =GETPOST('fk_equipementevt_type');
+                    // on cree enfin un evenement
+                    $desc = GETPOST('np_desc', 'alpha');
+                    $dateo = dol_mktime(
+                        GETPOST('deohour', 'int'), GETPOST('deomin', 'int'), 0,
+                        GETPOST('deomonth', 'int'), GETPOST('deoday', 'int'), GETPOST('deoyear', 'int')
+                    );
+                    $datee = dol_mktime(
+                        GETPOST('deehour', 'int'), GETPOST('deemin', 'int'), 0,
+                        GETPOST('deemonth', 'int'), GETPOST('deeday', 'int'), GETPOST('deeyear', 'int')
+                    );
+                    $fulldayevent = GETPOST('fulldayevent');
+                    $fk_equipementevt_type = GETPOST('fk_equipementevt_type');
 
-					$fk_contrat = GETPOST('fk_contrat');
-					$fk_fichinter = GETPOST('fk_fichinter');
-					$fk_project =GETPOST('fk_project');
-					$fk_user_author= $user->id;
-					$fk_expedition = $id;
+                    $fk_contrat = GETPOST('fk_contrat');
+                    $fk_fichinter = GETPOST('fk_fichinter');
+                    $fk_project = GETPOST('fk_project');
+                    $fk_user_author = $user->id;
+                    $fk_expedition = $id;
 
-					$total_ht =GETPOST('total_ht');
+                    $total_ht = GETPOST('total_ht');
 
-					$result=$equipementstatic->addline(
-									$newequipid,
-									$fk_equipementevt_type,
-									$desc,
-									$dateo,
-									$datee,
-									$fulldayevent,
-									$fk_contrat,
-									$fk_fichinter,
-									$fk_expedition,
-									$fk_project,
-									$fk_user_author,
-									$total_ht
-					);
-				}
-			}
-		}
-		// on redirige sur l'onglet � cot�
-		Header('Location: expedition.php?id='.$id);
-		exit;
-	}
+                    $result = $equipementstatic->addline(
+                        $newequipid,
+                        $fk_equipementevt_type,
+                        $desc,
+                        $dateo,
+                        $datee,
+                        $fulldayevent,
+                        $fk_contrat,
+                        $fk_fichinter,
+                        $fk_expedition,
+                        $fk_project,
+                        $fk_user_author,
+                        $total_ht,
+                        array(),
+                        $lineid
+                    );
+                }
+            }
+        }
+        // on redirige sur l'onglet � cot�
+        Header('Location: expedition.php?id=' . $id);
+        exit;
+    }
 
-	// r�cup�ration des �quipements unitaires
-	$listEquip= GETPOST('chkequipement');
-	// on boucle sur les �quipements s�lectionn�s si il y en a
-	if ($listEquip !="" ) {
-		foreach ($listEquip as $equipID) {
-			//print "==".$equipID."<br>";
-			$equipementstatic=new Equipement($db);
-			$ret=$equipementstatic->fetch($equipID);
-			$equipementstatic->fetch_thirdparty();
+    // r�cup�ration des �quipements unitaires
+    $listEquip = GETPOST('chkequipement');
+    // on boucle sur les �quipements s�lectionn�s si il y en a
+    if ($listEquip != "") {
+        foreach ($listEquip as $lineid_equipID => $equipID) {
+            $tmp = explode("-", $lineid_equipID);
+            $lineid = $tmp[0];
 
-			// on affecte l'�quipement � exp�dier au client � qui on l'envoie
-			$equipementstatic->set_client($user, $object->socid);
+            //print "==".$equipID."<br>";
+            $equipementstatic = new Equipement($db);
+            $ret = $equipementstatic->fetch($equipID);
+            $equipementstatic->fetch_thirdparty();
 
-			// on enl�ve l'�quipement du stock
-			//$equipementstatic->set_entrepot($user, -1);
+            // on affecte l'�quipement � exp�dier au client � qui on l'envoie
+            $equipementstatic->set_client($user, $object->socid);
 
-			$desc=GETPOST('np_desc', 'alpha');
-			$dateo = dol_mktime(
-							GETPOST('deohour', 'int'), GETPOST('deomin', 'int'), 0,
-							GETPOST('deomonth', 'int'), GETPOST('deoday', 'int'), GETPOST('deoyear', 'int')
-			);
-			$datee = dol_mktime(
-							GETPOST('deehour', 'int'), GETPOST('deemin', 'int'), 0,
-							GETPOST('deemonth', 'int'), GETPOST('deeday', 'int'), GETPOST('deeyear', 'int')
-			);
-			$fulldayevent =GETPOST('fulldayevent');
-			$fk_equipementevt_type =GETPOST('fk_equipementevt_type');
+            // on enl�ve l'�quipement du stock
+            //$equipementstatic->set_entrepot($user, -1);
 
-			$fk_contrat = GETPOST('fk_contrat');
-			$fk_fichinter = GETPOST('fk_fichinter');
-			$fk_project = GETPOST('fk_project');
-			$fk_user_author = $user->id;
-			$fk_expedition = $id;
+            $desc = GETPOST('np_desc', 'alpha');
+            $dateo = dol_mktime(
+                GETPOST('deohour', 'int'), GETPOST('deomin', 'int'), 0,
+                GETPOST('deomonth', 'int'), GETPOST('deoday', 'int'), GETPOST('deoyear', 'int')
+            );
+            $datee = dol_mktime(
+                GETPOST('deehour', 'int'), GETPOST('deemin', 'int'), 0,
+                GETPOST('deemonth', 'int'), GETPOST('deeday', 'int'), GETPOST('deeyear', 'int')
+            );
+            $fulldayevent = GETPOST('fulldayevent');
+            $fk_equipementevt_type = GETPOST('fk_equipementevt_type');
 
-			$total_ht = GETPOST('total_ht');
+            $fk_contrat = GETPOST('fk_contrat');
+            $fk_fichinter = GETPOST('fk_fichinter');
+            $fk_project = GETPOST('fk_project');
+            $fk_user_author = $user->id;
+            $fk_expedition = $id;
 
-			$result=$equipementstatic->addline(
-							$equipID,
-							$fk_equipementevt_type,
-							$desc,
-							$dateo,
-							$datee,
-							$fulldayevent,
-							$fk_contrat,
-							$fk_fichinter,
-							$fk_expedition,
-							$fk_project,
-							$fk_user_author,
-							$total_ht
-			);
+            $total_ht = GETPOST('total_ht');
 
-			//  gestion des sous composant si il y en a
-			$sql = "SELECT fk_equipement_fils FROM ".MAIN_DB_PREFIX."equipementassociation ";
-			$sql.= " WHERE fk_equipement_pere=".$equipID;
+            $result = $equipementstatic->addline(
+                $equipID,
+                $fk_equipementevt_type,
+                $desc,
+                $dateo,
+                $datee,
+                $fulldayevent,
+                $fk_contrat,
+                $fk_fichinter,
+                $fk_expedition,
+                $fk_project,
+                $fk_user_author,
+                $total_ht,
+                array(),
+                $lineid
+            );
 
-			dol_syslog("Equipement/expeditionadd sql=".$sql, LOG_DEBUG);
-			$resql=$db->query($sql);
-			if ($resql) {
-				$num = $db->num_rows($resql);
-				$i = 0;
-				$tblrep=array();
-				while ($i < $num) {
-					$objp = $db->fetch_object($resql);
+            //  gestion des sous composant si il y en a
+            $sql = "SELECT fk_equipement_fils FROM " . MAIN_DB_PREFIX . "equipementassociation ";
+            $sql .= " WHERE fk_equipement_pere=" . $equipID;
 
-					$result=$equipementstatic->addline(
-									$objp->fk_equipement_fils,
-									$fk_equipementevt_type,
-									$desc,
-									$dateo,
-									$datee,
-									$fulldayevent,
-									$fk_contrat,
-									$fk_fichinter,
-									$fk_expedition,
-									$fk_project,
-									$fk_user_author,
-									0		// seul le prix du parent compte
-					);
-					$i++;
-				}
-			}
-		}
-	}
+            dol_syslog("Equipement/expeditionadd sql=" . $sql, LOG_DEBUG);
+            $resql = $db->query($sql);
+            if ($resql) {
+                $num = $db->num_rows($resql);
+                $i = 0;
+                $tblrep = array();
+                while ($i < $num) {
+                    $objp = $db->fetch_object($resql);
 
-  header('Location: '.$_SERVER["PHP_SELF"].'?id='.$object->id);
-  exit;
+                    $result = $equipementstatic->addline(
+                        $objp->fk_equipement_fils,
+                        $fk_equipementevt_type,
+                        $desc,
+                        $dateo,
+                        $datee,
+                        $fulldayevent,
+                        $fk_contrat,
+                        $fk_fichinter,
+                        $fk_expedition,
+                        $fk_project,
+                        $fk_user_author,
+                        0,    // seul le prix du parent compte
+                        array(),
+                        $lineid
+                    );
+                    $i++;
+                }
+            }
+        }
+    }
+
+    header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
+    exit;
 }
 
 
@@ -313,224 +330,254 @@ print '</tr>';
 print "</table><br>";
 
 
+// List of lines to attach
+$attached_sql = "SELECT p.label as product_label, SUM(IFNULL(eq.quantity, 0)) as nb_attached,";
+$attached_sql .= " e.rowid as entrepot_id, ed.rowid as lineid, cd.fk_product, ed.qty as qty_shipped";
+$attached_sql .= " FROM " . MAIN_DB_PREFIX . "product as p,";
+$attached_sql .= " " . MAIN_DB_PREFIX . "expeditiondet as ed";
+$attached_sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "commandedet as cd ON ed.fk_origin_line = cd.rowid";
+$attached_sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "equipementevt AS ee ON ee.fk_expeditiondet = ed.rowid";
+$attached_sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "equipement AS eq ON eq.rowid = ee.fk_equipement";
+$attached_sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "entrepot as e ON ed.fk_entrepot = e.rowid";
+$attached_sql .= " WHERE ed.fk_expedition = " . $object->id;
+$attached_sql .= " AND cd.fk_product = p.rowid";
+$attached_sql .= " GROUP BY ed.rowid";
+$attached_sql .= " ORDER BY ed.rowid ASC";
+// modified by hook
+$parameters = array();
+$reshook = $hookmanager->executeHooks('sqlLinesToAttach', $parameters, $object, $action);
+if (!empty($hookmanager->resPrint)) $attached_sql = $hookmanager->resPrint;
 
-// on r�cup�re les produits � exp�dier et l'entrepot associ�
-$object = new Expedition($db);
-$result = $object->fetch($id, $ref);
-
-if ($result) {
-	$lines = $object->lines;
-	$num_prod = count($lines);
-
-	$equipementstatic=new Equipement($db);
-
-	$urlparam="&amp;id=".$id;
-
-	print '<form method="get" action="'.$_SERVER["PHP_SELF"].'">'."\n";
-	print '<input type="hidden" name="action" value="joindre">';
-	print '<input type="hidden" class="flat" name="id" value="'.$id.'">';
-	print '<table class="noborder" width="100%">';
-
-	print "<tr class='liste_titre'>";
-	if (! empty($conf->global->MAIN_VIEW_LINE_NUMBER)) {
-		print '<td align="center"></td>';
-	}
-	print_liste_field_titre(
-					$langs->trans("RefProduit"), $_SERVER["PHP_SELF"], "p.ref", "",
-					$urlparam, '', $sortfield, $sortorder
-	);
-	// Entrepot source
-	if ($conf->stock->enabled)
-		print_liste_field_titre(
-						$langs->trans("entrepot"), $_SERVER["PHP_SELF"], "sfou.nom",
-						"", $urlparam, '', $sortfield, $sortorder
-		);
-
-	print_liste_field_titre(
-					$langs->trans("QtyOrdered"), $_SERVER["PHP_SELF"], "", "",
-					$urlparam, '', $sortfield, $sortorder
-	);
-	print_liste_field_titre(
-					$langs->trans("QtyEquipementNeed"), $_SERVER["PHP_SELF"], "", "",
-					$urlparam, '', $sortfield, $sortorder
-	);
-
-	print_liste_field_titre(
-					$langs->trans("EquipementLot"), $_SERVER["PHP_SELF"], "", " align=left ",
-					$urlparam, '', $sortfield, $sortorder
-	);
-
-	print_liste_field_titre(
-					$langs->trans("EquipementUnitaire"), $_SERVER["PHP_SELF"], "", " align=left ",
-					$urlparam, '', $sortfield, $sortorder
-	);
-	print '<td class="liste_titre" ></td>';
-	print "</tr>\n";
-
-	for ($i = 0 ; $i < $num_prod ; $i++) {
-		// seulement si produit non libre
-		if (!empty($lines[$i]->fk_product)) {
-			// d�termination du nombre d'�quipement � transmettre
-			$nbequipement = $lines[$i]->qty_shipped;
-			$nbequipement-= $equipementstatic->get_nbEquipementProductExpedition($lines[$i]->fk_product, $id);
-
-			print "<tr ".$bc[$var].">";
-			if (! empty($conf->global->MAIN_VIEW_LINE_NUMBER))
-				print '<td valign=top align="center">'.($i+1).'</td>';
-
-			$prod = new Product($db);
-			$prod->fetch($lines[$i]->fk_product);
-
-			// Define output language
-			$label =  $lines[$i]->product_label;
-			if (! empty($conf->global->MAIN_MULTILANGS)
-				&& ! empty($conf->global->PRODUIT_TEXTS_IN_THIRDPARTY_LANGUAGE)) {
-				$prod = new Product($db);
-				$prod->fetch($lines[$i]->fk_product);
-				if ( ! empty($prod->multilangs[$outputlangs->defaultlang]["libelle"]))
-					$label = $prod->multilangs[$outputlangs->defaultlang]["libelle"];
-			}
-			print '<td valign=top>';
-			print $prod->getNomUrl(2)." - ".$label ;
-			print '</td>';
-
-			// Entrepot source
-			if ($conf->stock->enabled) {
-				print '<td valign=top align="left">';
-				if ($lines[$i]->entrepot_id > 0) {
-					$entrepot = new Entrepot($db);
-					$entrepot->fetch($lines[$i]->entrepot_id);
-					print $entrepot->getNomUrl(1)." - ".$entrepot->lieu." (".$entrepot->cp.")";
-				}
-				print '</td>';
-			}
-
-			print '<td valign=top align="center">'.$lines[$i]->qty_shipped.'</td>';
-			print '<td valign=top align="center">'.$nbequipement.'</td>';
-
-			// �quipement correspondant au produit et � l'entrepot d'exp�dition
-			print '<td align="left" valign=top>';
-			// si il y a des lots
-			print_lotequipement($lines[$i]->fk_product, $lines[$i]->entrepot_id, $nbequipement);
-			print '</td>';
-			print '<td align="left" valign=top>';
-			// on affiche le nombre d'�quipement dispo � cocher
-			print_equipementdispo($lines[$i]->fk_product, $lines[$i]->entrepot_id, $nbequipement);
-
-			print '</td>';
-			print '</tr>';
-		}
-		$var=!$var;
-	}
-
-	print '</table>';
-	print '<br><br>';
-	print '<table class="noborder" width="100%">';
-
-	print '<tr class="liste_titre">';
-	print '<td colspan=2 width=180px><a name="add"></a>'.$langs->trans('Description').'</td>'; // ancre
-	print '<td width=120px align="center">'.$langs->trans('Dateo').'</td>';
-	print '<td width=120px align="center" >'.$langs->trans('Datee').'</td>';
-	print '<td align="left" colspan=2>'.$langs->trans('AssociatedWith').'</td>';
-	print '<td colspan=2 align="right">'.$langs->trans('EquipementLineTotalHT').'</td>';
-
-	print "</tr>\n";
-	print '<tr '.$bc[$var].">\n";
-	print '<td width=100px>'.$langs->trans('TypeofEquipementEvent').'</td><td>';
-	print select_equipementevt_type('', 'fk_equipementevt_type', 1, 1);
-	// type d'�v�nement
-	print '</td>';
-
-	// Date evenement d�but
-	print '<td align="center" rowspan=2>';
-	$timearray=dol_getdate(mktime());
-	if (!GETPOST('deoday', 'int'))
-		$timewithnohour=dol_mktime(0, 0, 0, $timearray['mon'], $timearray['mday'], $timearray['year']);
-	else
-		$timewithnohour=dol_mktime(
-						GETPOST('deohour', 'int'), GETPOST('deomin', 'int'), 0,
-						GETPOST('deomonth', 'int'), GETPOST('deoday', 'int'), GETPOST('deoyear', 'int')
-		);
-	$form->select_date($timewithnohour, 'deo', 1, 1, 0, "addequipevt");
-	print '</td>';
-	// Date evenement fin
-	print '<td align="center" rowspan=2>';
-	$timearray=dol_getdate(mktime());
-	if (!GETPOST('deeday', 'int'))
-		$timewithnohour=dol_mktime(0, 0, 0, $timearray['mon'], $timearray['mday'], $timearray['year']);
-	else
-		$timewithnohour=dol_mktime(
-						GETPOST('deehour', 'int'), GETPOST('deemin', 'int'), 0,
-						GETPOST('deemonth', 'int'), GETPOST('deeday', 'int'), GETPOST('deeyear', 'int')
-		);
-	$form->select_date($timewithnohour, 'dee', 1, 1, 0, "addequipevt");
-	print '</td>';
-
-	//
-	print '<td align="left">';
-	print $langs->trans("Contrats");
-	print '</td>';
-	print '<td align="left">';
-	print select_contracts('', $object->fk_soc_client, 'fk_contrat', 1, 1);
-	print '</td>';
-
-	print '<td align="center" valign="middle" >';
-	print '<input type="text" name="total_ht" size="5" value="">';
-	print '</td></tr>';
-
-	print '<tr '.$bc[$var].">\n";
-	// description de l'�v�nement de l'�quipement
-	print '<td rowspan=2 colspan=2>';
-	// editeur wysiwyg
-	require_once(DOL_DOCUMENT_ROOT."/core/class/doleditor.class.php");
-	$doleditor=new DolEditor(
-					'np_desc', GETPOST('np_desc', 'alpha'), '', 100,
-					'dolibarr_details', '', false, true, $conf->global->FCKEDITOR_ENABLE_DETAILS,
-					ROWS_3, 60
-	);
-	$doleditor->Create();
-	print '</td>';
-
-	//
-	print '<td align="left">';
-	print $langs->trans("Interventions");
-	print '</td>';
-	print '<td align="left">';
-	print select_interventions('', $object->fk_soc_client, 'fk_fichinter', 1, 1);
-	print '</td>';
-
-	if ($object->fk_statut !=2) {
-		print '<td align="center" rowspan=2>';
-		print '<input type="submit" class="button" value="'.$langs->trans('Joindre').'" name="addline">';
-		print '</td>';
-	} else
-		print '<td align="center" rowspan=2></td>';
-
-	print '</tr>';
-
-	// fullday event
-	print '<tr '.$bc[$var].">\n";
-	print '<td align="center" colspan=2>';
-	print '<input type="checkbox" id="fulldayevent" value=1 name="fulldayevent" >';
-	print "&nbsp;".$langs->trans("EventOnFullDay");
-	print '</td>';
-
-	print '<td align="left">';
-	print $langs->trans("Project");
-	print '</td>';
-	print '<td align="left">';
-	print select_projects('', $object->fk_soc_client, 'fk_project', 1, 1);
-	print '</td>';
-
-
-	print '</tr>';
-	print '</table>';
-
-	print '</table>';
-	print "</form>\n";
-	$db->free($result);
+$nb_to_attach = 0;
+$attached_lines = array();
+$resql = $db->query($attached_sql);
+if ($resql) {
+    while ($objp = $db->fetch_object($resql)) {
+        $remains_to_attach = $objp->qty_shipped - $objp->nb_attached;
+        $nb_to_attach += ($remains_to_attach > 0 ? $remains_to_attach : 0);
+        $attached_lines[] = $objp;
+    }
 } else
 	dol_print_error($db);
+
+$equipementstatic=new Equipement($db);
+
+$urlparam="&amp;id=".$id;
+
+print '<form method="get" action="'.$_SERVER["PHP_SELF"].'">'."\n";
+print '<input type="hidden" name="action" value="joindre">';
+print '<input type="hidden" class="flat" name="id" value="'.$id.'">';
+print '<table class="noborder" width="100%">';
+
+print "<tr class='liste_titre'>";
+if (! empty($conf->global->MAIN_VIEW_LINE_NUMBER)) {
+  print '<td align="center"></td>';
+}
+print_liste_field_titre(
+        $langs->trans("RefProduit"), $_SERVER["PHP_SELF"], "p.ref", "",
+        $urlparam, '', $sortfield, $sortorder
+);
+// Entrepot source
+if ($conf->stock->enabled)
+  print_liste_field_titre(
+          $langs->trans("entrepot"), $_SERVER["PHP_SELF"], "sfou.nom",
+          "", $urlparam, '', $sortfield, $sortorder
+  );
+
+print_liste_field_titre(
+        $langs->trans("QtyOrdered"), $_SERVER["PHP_SELF"], "", "",
+        $urlparam, '', $sortfield, $sortorder
+);
+print_liste_field_titre(
+        $langs->trans("QtyEquipementNeed"), $_SERVER["PHP_SELF"], "", "",
+        $urlparam, '', $sortfield, $sortorder
+);
+
+print_liste_field_titre(
+        $langs->trans("EquipementLot"), $_SERVER["PHP_SELF"], "", " align=left ",
+        $urlparam, '', $sortfield, $sortorder
+);
+
+print_liste_field_titre(
+        $langs->trans("EquipementUnitaire"), $_SERVER["PHP_SELF"], "", " align=left ",
+        $urlparam, '', $sortfield, $sortorder
+);
+print '<td class="liste_titre" ></td>';
+print "</tr>\n";
+
+if ($nb_to_attach > 0) {
+    $i = 0;
+    foreach ($attached_lines as $line) {
+        $nbequipement = $line->qty_shipped - $line->nb_attached;
+        // seulement si produit non libre
+        if (!empty($line->fk_product) && $nbequipement > 0) {
+            print "<tr " . $bc[$var] . ">";
+            if (!empty($conf->global->MAIN_VIEW_LINE_NUMBER))
+                print '<td valign=top align="center">' . ($i + 1) . '</td>';
+
+            $prod = new Product($db);
+            $prod->fetch($line->fk_product);
+
+            // Define output language
+            $label = $line->product_label;
+            if (!empty($conf->global->MAIN_MULTILANGS)
+                && !empty($conf->global->PRODUIT_TEXTS_IN_THIRDPARTY_LANGUAGE)
+            ) {
+                $prod = new Product($db);
+                $prod->fetch($line->fk_product);
+                if (!empty($prod->multilangs[$outputlangs->defaultlang]["libelle"]))
+                    $label = $prod->multilangs[$outputlangs->defaultlang]["libelle"];
+            }
+            print '<td valign=top>';
+            print $prod->getNomUrl(2) . " - " . $label;
+            print '</td>';
+
+            // Entrepot source
+            if ($conf->stock->enabled) {
+                print '<td valign=top align="left">';
+                if ($line->entrepot_id > 0) {
+                    $entrepot = new Entrepot($db);
+                    $entrepot->fetch($line->entrepot_id);
+                    print $entrepot->getNomUrl(1) . " - " . $entrepot->lieu . " (" . $entrepot->zip . ")";
+                }
+                print '</td>';
+            }
+
+            print '<td valign=top align="center">' . $line->qty_shipped . '</td>';
+            print '<td valign=top align="center">' . $nbequipement . '</td>';
+
+            // �quipement correspondant au produit et � l'entrepot d'exp�dition
+            print '<td align="left" valign=top>';
+            // si il y a des lots
+            print_lotequipement($line->lineid, $line->fk_product, $line->entrepot_id, $nbequipement);
+            print '</td>';
+            print '<td align="left" valign=top>';
+            // on affiche le nombre d'�quipement dispo � cocher
+            print_equipementdispo($line->lineid, $line->fk_product, $line->entrepot_id, $nbequipement);
+
+            print '</td>';
+            print '</tr>';
+        }
+        $i++;
+        $var = !$var;
+    }
+} else {
+    print "<tr " . $bc[$var] . ">";
+    $colspan = 6;
+    if (! empty($conf->global->MAIN_VIEW_LINE_NUMBER)) $colspan++;
+    if ($conf->stock->enabled) $colspan++;
+    print '<td align="left" colspan="'.$colspan.'">' . $langs->trans('EquipmentNoMoreProductToAttach') . '</td>';
+    print "</tr>\n";
+}
+print '</table>';
+
+if ($nb_to_attach > 0) {
+    print '<br><br>';
+    print '<table class="noborder" width="100%">';
+
+    print '<tr class="liste_titre">';
+    print '<td colspan=2 width=180px><a name="add"></a>' . $langs->trans('Description') . '</td>'; // ancre
+    print '<td width=120px align="center">' . $langs->trans('Dateo') . '</td>';
+    print '<td width=120px align="center" >' . $langs->trans('Datee') . '</td>';
+    print '<td align="left" colspan=2>' . $langs->trans('AssociatedWith') . '</td>';
+    print '<td colspan=2 align="right">' . $langs->trans('EquipementLineTotalHT') . '</td>';
+
+    print "</tr>\n";
+    print '<tr ' . $bc[$var] . ">\n";
+    print '<td width=100px>' . $langs->trans('TypeofEquipementEvent') . '</td><td>';
+    select_equipementevt_type('', 'fk_equipementevt_type', 1, 1);
+    // type d'�v�nement
+    print '</td>';
+
+    // Date evenement d�but
+    print '<td align="center" rowspan=2>';
+    $timearray = dol_getdate(mktime());
+    if (!GETPOST('deoday', 'int'))
+        $timewithnohour = dol_mktime(0, 0, 0, $timearray['mon'], $timearray['mday'], $timearray['year']);
+    else
+        $timewithnohour = dol_mktime(
+            GETPOST('deohour', 'int'), GETPOST('deomin', 'int'), 0,
+            GETPOST('deomonth', 'int'), GETPOST('deoday', 'int'), GETPOST('deoyear', 'int')
+        );
+    $form->select_date($timewithnohour, 'deo', 1, 1, 0, "addequipevt");
+    print '</td>';
+    // Date evenement fin
+    print '<td align="center" rowspan=2>';
+    $timearray = dol_getdate(mktime());
+    if (!GETPOST('deeday', 'int'))
+        $timewithnohour = dol_mktime(0, 0, 0, $timearray['mon'], $timearray['mday'], $timearray['year']);
+    else
+        $timewithnohour = dol_mktime(
+            GETPOST('deehour', 'int'), GETPOST('deemin', 'int'), 0,
+            GETPOST('deemonth', 'int'), GETPOST('deeday', 'int'), GETPOST('deeyear', 'int')
+        );
+    $form->select_date($timewithnohour, 'dee', 1, 1, 0, "addequipevt");
+    print '</td>';
+
+    //
+    print '<td align="left">';
+    print $langs->trans("Contrats");
+    print '</td>';
+    print '<td align="left">';
+    select_contracts('', $object->socid, 'fk_contrat', 1, 1);
+    print '</td>';
+
+    print '<td align="center" valign="middle" >';
+    print '<input type="text" name="total_ht" size="5" value="">';
+    print '</td></tr>';
+
+    print '<tr ' . $bc[$var] . ">\n";
+    // description de l'�v�nement de l'�quipement
+    print '<td rowspan=2 colspan=2>';
+    // editeur wysiwyg
+    require_once(DOL_DOCUMENT_ROOT . "/core/class/doleditor.class.php");
+    $doleditor = new DolEditor(
+        'np_desc', GETPOST('np_desc', 'alpha'), '', 100,
+        'dolibarr_details', '', false, true, $conf->global->FCKEDITOR_ENABLE_DETAILS,
+        ROWS_3, 60
+    );
+    $doleditor->Create();
+    print '</td>';
+
+    //
+    print '<td align="left">';
+    print $langs->trans("Interventions");
+    print '</td>';
+    print '<td align="left">';
+    select_interventions('', $object->socid, 'fk_fichinter', 1, 1);
+    print '</td>';
+
+    if ($object->statut != 2) {
+        print '<td align="center" rowspan=2>';
+        print '<input type="submit" class="button" value="' . $langs->trans('Joindre') . '" name="addline">';
+        print '</td>';
+    } else
+        print '<td align="center" rowspan=2></td>';
+
+    print '</tr>';
+
+    // fullday event
+    print '<tr ' . $bc[$var] . ">\n";
+    print '<td align="center" colspan=2>';
+    print '<input type="checkbox" id="fulldayevent" value=1 name="fulldayevent" >';
+    print "&nbsp;" . $langs->trans("EventOnFullDay");
+    print '</td>';
+
+    print '<td align="left">';
+    print $langs->trans("Project");
+    print '</td>';
+    print '<td align="left">';
+    select_projects('', $object->socid, 'fk_project', 1, 1);
+    print '</td>';
+
+
+    print '</tr>';
+    print '</table>';
+
+    print '</table>';
+}
+
+print "</form>\n";
 
 ?>
 <script>

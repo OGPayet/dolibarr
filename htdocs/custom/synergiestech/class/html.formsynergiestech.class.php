@@ -67,6 +67,7 @@ class FormSynergiesTech
      * @param   string  $htmlname                 Name of HTML select field (must be unique in page)
      * @param   int     $filtertype               Filter on product type (''=nofilter, 0=product, 1=service)
      * @param   array   $include_into_categories  If not null only products include into categories
+     * @param   int     $free_into_categories     1=The products include into categories is free
      * @param   int     $limit                    Limit on number of returned lines
      * @param   int     $price_level              Level of price to show
      * @param   int     $status                   -1=Return all products, 0=Products not on sell, 1=Products on sell
@@ -86,9 +87,11 @@ class FormSynergiesTech
      * @param   array   $selected_combinations    Selected combinations. Format: array([attrid] => attrval, [...])
      * @return  void
      */
-    function select_produits($selected = '', $htmlname = 'productid', $filtertype = '', $include_into_categories = array(), $limit = 20, $price_level = 0, $status = 1, $finished = 2, $selected_input_value = '', $hidelabel = 0, $ajaxoptions = array(), $socid = 0, $showempty = '1', $forcecombo = 0, $morecss = '', $hidepriceinlabel = 0, $warehouseStatus = '', $selected_combinations = array())
+    function select_produits($selected = '', $htmlname = 'productid', $filtertype = '', $include_into_categories = array(), $free_into_categories = 0, $limit = 20, $price_level = 0, $status = 1, $finished = 2, $selected_input_value = '', $hidelabel = 0, $ajaxoptions = array(), $socid = 0, $showempty = '1', $forcecombo = 0, $morecss = '', $hidepriceinlabel = 0, $warehouseStatus = '', $selected_combinations = array())
     {
         global $langs, $conf;
+
+        if (empty($include_into_categories)) $free_into_categories = 0;
 
         $price_level = (!empty($price_level) ? $price_level : 0);
 
@@ -197,7 +200,7 @@ class FormSynergiesTech
                 print img_picto($langs->trans("Search"), 'search');
             }
         } else {
-            print $this->select_produits_list($selected, $htmlname, $filtertype, $limit, $include_into_categories, $price_level, '', $status, $finished, 0, $socid, $showempty, $forcecombo, $morecss, $hidepriceinlabel, $warehouseStatus);
+            print $this->select_produits_list($selected, $htmlname, $filtertype, $limit, $include_into_categories, $free_into_categories, $price_level, '', $status, $finished, 0, $socid, $showempty, $forcecombo, $morecss, $hidepriceinlabel, $warehouseStatus);
         }
     }
 
@@ -208,6 +211,7 @@ class FormSynergiesTech
      * @param   string  $htmlname                 Name of select html
      * @param   string  $filtertype               Filter on product type (''=nofilter, 0=product, 1=service)
      * @param   array   $include_into_categories  If not null only products include into categories
+     * @param   int     $free_into_categories     1=The products include into categories is free
      * @param   int     $limit                    Limit on number of returned lines
      * @param   int     $price_level              Level of price to show
      * @param   string  $filterkey                Filter on product
@@ -225,12 +229,14 @@ class FormSynergiesTech
      *                                              'warehouseinternal' = select products from warehouses for internal correct/transfer only
      * @return  array                             Array of keys for json
      */
-    function select_produits_list($selected = '', $htmlname = 'productid', $filtertype = '', $include_into_categories = array(), $limit = 20, $price_level = 0, $filterkey = '', $status = 1, $finished = 2, $outputmode = 0, $socid = 0, $showempty = '1', $forcecombo = 0, $morecss = '', $hidepriceinlabel = 0, $warehouseStatus = '')
+    function select_produits_list($selected = '', $htmlname = 'productid', $filtertype = '', $include_into_categories = array(), $free_into_categories = 0, $limit = 20, $price_level = 0, $filterkey = '', $status = 1, $finished = 2, $outputmode = 0, $socid = 0, $showempty = '1', $forcecombo = 0, $morecss = '', $hidepriceinlabel = 0, $warehouseStatus = '')
     {
         global $langs, $conf, $user, $db;
 
         $out = '';
         $outarray = array();
+
+        if (empty($include_into_categories)) $free_into_categories = 0;
 
         $warehouseStatusArray = array();
         if (!empty($warehouseStatus)) {
@@ -253,6 +259,8 @@ class FormSynergiesTech
         $sql .= $selectFields . $selectFieldsGrouped;
         //Price by customer
         if (!empty($conf->global->PRODUIT_CUSTOMER_PRICES) && !empty($socid)) {
+            $sql .= ' ,pcp.rowid as idprodcustprice, pcp.price as custprice, pcp.price_ttc as custprice_ttc,';
+            $sql .= ' pcp.price_base_type as custprice_base_type, pcp.tva_tx as custtva_tx';
             $sql .= ' ,pcp.rowid as idprodcustprice, pcp.price as custprice, pcp.price_ttc as custprice_ttc,';
             $sql .= ' pcp.price_base_type as custprice_base_type, pcp.tva_tx as custtva_tx';
             $selectFields .= ", idprodcustprice, custprice, custprice_ttc, custprice_base_type, custtva_tx";
@@ -401,7 +409,7 @@ class FormSynergiesTech
                             $objp->remise = $objp2->remise;
                             $objp->price_by_qty_rowid = $objp2->rowid;
 
-                            $this->constructProductListOption($objp, $opt, $optJson, 0, $selected, $hidepriceinlabel);
+                            $this->constructProductListOption($objp, $opt, $optJson, 0, $selected, $hidepriceinlabel, ($free_into_categories ? 100 : null));
 
                             $j++;
 
@@ -426,7 +434,8 @@ class FormSynergiesTech
                             $objp->price_ttc = price2num($objp->price_ttc, 'MU');
                         }
                     }
-                    $this->constructProductListOption($objp, $opt, $optJson, $price_level, $selected, $hidepriceinlabel);
+
+                    $this->constructProductListOption($objp, $opt, $optJson, $price_level, $selected, $hidepriceinlabel, ($free_into_categories ? 100 : null));
                     // Add new entry
                     // "key" value of json key array is used by jQuery automatically as selected value
                     // "label" value of json key array is used by jQuery automatically as text for combo box
@@ -457,9 +466,10 @@ class FormSynergiesTech
      * @param   int         $price_level        Price level
      * @param   string      $selected           Preselected value
      * @param   int         $hidepriceinlabel   Hide price in label
+     * @param   int         $forceDiscount      Force discount pourcent
      * @return  void
      */
-    private function constructProductListOption(&$objp, &$opt, &$optJson, $price_level, $selected, $hidepriceinlabel = 0)
+    private function constructProductListOption(&$objp, &$opt, &$optJson, $price_level, $selected, $hidepriceinlabel = 0, $forceDiscount=null)
     {
         global $langs, $conf, $user, $db;
 
@@ -476,6 +486,10 @@ class FormSynergiesTech
         $outtva_tx = '';
         $outqty = 1;
         $outdiscount = 0;
+        if (isset($forceDiscount)) {
+            $objp->remise_percent = $forceDiscount;
+            $outdiscount = $forceDiscount;
+        }
 
         $maxlengtharticle = (empty($conf->global->PRODUCT_MAX_LENGTH_COMBO) ? 48 : $conf->global->PRODUCT_MAX_LENGTH_COMBO);
 

@@ -346,4 +346,5 @@ EquipmentAlreadyAssignedToThisProduct=L'équipement est déjà affecter à ce pr
 ReassignEquipmentProduct=Le produit %s à été échangé par %s
 EquipmentAddEquipmentToComposition=Ajout de l'équipement %s à la composition
 EquipmentDeleteEquipmentToComposition=Suppression de l'équipement %s à la composition
-EquipmentNoMoreProductToSerialize=Plus de produits à sérialisés
+EquipmentNoMoreProductToSerialize=Plus de produits à sérialiser
+EquipmentNoMoreProductToAttach=Plus de produits à attacher

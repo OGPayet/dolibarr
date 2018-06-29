@@ -787,7 +787,7 @@ function select_equipementevt_type($selected='', $htmlname='fk_equipementevt_typ
 	}
 }
 
-function print_lotequipement($fk_product, $fk_entrepot, $nbsend)
+function print_lotequipement($lineid, $fk_product, $fk_entrepot, $nbsend)
 {
 	global $db; // , $langs;
 
@@ -814,7 +814,7 @@ function print_lotequipement($fk_product, $fk_entrepot, $nbsend)
 				$obj = $db->fetch_object($resql);
 
 				print "<td>".$obj->ref.' - '.dol_print_date($obj->datee, "daytext")."</td>";
-				print "<td><input type=text size=3 name='lotEquipement[".$obj->fk_product."][".$obj->rowid."-".$obj->quantity."]' ";
+				print "<td><input type=text size=3 name='lotEquipement[".$lineid."-".$obj->fk_product."][".$obj->rowid."-".$obj->quantity."]' ";
 				if ($nbexpedition==0) {
 					// si il y en assez � exp�dier, on affiche si on veux ventiler l'envoie selon les lots
 					print " value='0'>";
@@ -837,7 +837,7 @@ function print_lotequipement($fk_product, $fk_entrepot, $nbsend)
 	}
 }
 
-function print_equipementdispo( $fk_product, $fk_entrepot, $nbsend)
+function print_equipementdispo($lineid, $fk_product, $fk_entrepot, $nbsend)
 {
 	global $db, $langs;
 
@@ -900,7 +900,7 @@ function print_equipementdispo( $fk_product, $fk_entrepot, $nbsend)
 									$titleequipement= $langs->trans("UnitWeight").' : '.$obj->unitweight."\n";
 								print "<div style='float: left;background:#E0E0E0;margin:2px;padding:2px;'";
 								print " title='".$titleequipement."'>";
-								print "<input type=checkbox id='".$obj->ref."' name='chkequipement[".$obj->rowid."]' value='".$obj->rowid."'>";
+								print "<input type=checkbox id='".$obj->ref."' name='chkequipement[".$lineid."-".$obj->rowid."]' value='".$obj->rowid."'>";
 								print "&nbsp;".$obj->ref."&nbsp;&nbsp;</div>";
 								if (($j+1) % 10 == 0 ) print '<br>';
 							} else
