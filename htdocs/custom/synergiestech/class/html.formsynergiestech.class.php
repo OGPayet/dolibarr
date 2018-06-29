@@ -91,7 +91,7 @@ class FormSynergiesTech
     {
         global $langs, $conf;
 
-        if (empty($include_into_categories)) $free_into_categories = 0;
+        if (!is_array($include_into_categories) || count($include_into_categories) == 0) $free_into_categories = 0;
 
         $price_level = (!empty($price_level) ? $price_level : 0);
 
@@ -236,7 +236,7 @@ class FormSynergiesTech
         $out = '';
         $outarray = array();
 
-        if (empty($include_into_categories)) $free_into_categories = 0;
+        if (!is_array($include_into_categories) || count($include_into_categories) == 0) $free_into_categories = 0;
 
         $warehouseStatusArray = array();
         if (!empty($warehouseStatus)) {
@@ -290,7 +290,7 @@ class FormSynergiesTech
         }
 
         // Include only product include in the categories
-        if (!empty($include_into_categories)) {
+        if (is_array($include_into_categories) && count($include_into_categories) > 0) {
             $sql .= " LEFT JOIN  " . MAIN_DB_PREFIX . "categorie_product as cp ON cp.fk_product=p.rowid";
         }
 
@@ -317,7 +317,7 @@ class FormSynergiesTech
         }
 
         // Include only product include in the categories
-        if (!empty($include_into_categories)) {
+        if (is_array($include_into_categories) && count($include_into_categories) > 0) {
             $sql .= " AND cp.fk_categorie IN(" . implode(',', $include_into_categories) . ")";
         }
 
