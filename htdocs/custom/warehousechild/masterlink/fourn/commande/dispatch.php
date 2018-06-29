@@ -365,11 +365,15 @@ if ($action == 'dispatch' && $user->rights->fournisseur->commande->receptionner)
 	}
 
 	if ($result >= 0 && ! $error) {
-		$db->commit();
+        $db->commit();
 
-		header("Location: dispatch.php?id=" . $id);
-		exit();
-	} else {
+        // Modification - Open-DSI - Begin - Hack for the redirect to set equipments if has products serializable
+        if (!isset($object->context['workflow_to_serialize'])) {
+            header("Location: dispatch.php?id=" . $id);
+        }
+        // Modification - Open-DSI - End - Hack for the redirect to set equipments if has products serializable
+        exit();
+    } else {
 		$db->rollback();
 	}
 }

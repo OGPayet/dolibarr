@@ -74,7 +74,7 @@ class FormSynergiesTech
      * @param   int     $finished                 2=all, 1=finished, 0=raw material
      * @param   string  $selected_input_value     Value of preselected input text (for use with ajax)
      * @param   int     $hidelabel                Hide label (0=no, 1=yes, 2=show search icon (before) and placeholder, 3 search icon after)
-     * @param   array   $ajaxoptions              Options for ajax_autocompleter
+     * @param   array   $ajaxoptions              Options for synergiestech_ajax_autocompleter
      * @param   int     $socid                    Thirdparty Id (to get also price dedicated to this customer)
      * @param   string  $showempty                '' to not show empty line. Translation key to show an empty line. '1' show empty line with no text.
      * @param   int     $forcecombo               Force to use combo box
@@ -112,7 +112,8 @@ class FormSynergiesTech
             if (!empty($conf->global->PRODUIT_CUSTOMER_PRICES) && !empty($socid)) {
                 $urloption .= '&socid=' . $socid;
             }
-            print ajax_autocompleter($selected, $htmlname, dol_buildpath('/synergiestech/ajax/products.php', 1), $urloption, $conf->global->PRODUIT_USE_SEARCH_TO_SELECT, 0, $ajaxoptions);
+            dol_include_once('/synergiestech/lib/synergiestech.lib.php');
+            print synergiestech_ajax_autocompleter($selected, $htmlname, dol_buildpath('/synergiestech/ajax/products.php', 1), $urloption, $conf->global->PRODUIT_USE_SEARCH_TO_SELECT, 0, $ajaxoptions);
 
             if (!empty($conf->variants->enabled)) {
                 ?>
@@ -266,6 +267,11 @@ class FormSynergiesTech
             $selectFields .= ", idprodcustprice, custprice, custprice_ttc, custprice_base_type, custtva_tx";
         }
 
+        // Include only product include in the categories
+        if (is_array($include_into_categories) && count($include_into_categories) > 0) {
+            $sql .= " , IF(SUM(IF(cp.fk_categorie IN(" . implode(',', $include_into_categories) . "), 1, 0)) > 0, 1, 0) as is_into_categories";
+        }
+
         // Multilang : we add translation
         if (!empty($conf->global->MAIN_MULTILANGS)) {
             $sql .= ", pl.label as label_translated";
@@ -316,11 +322,6 @@ class FormSynergiesTech
             $sql .= " AND pac.rowid IS NULL";
         }
 
-        // Include only product include in the categories
-        if (is_array($include_into_categories) && count($include_into_categories) > 0) {
-            $sql .= " AND cp.fk_categorie IN(" . implode(',', $include_into_categories) . ")";
-        }
-
         if ($finished == 0) {
             $sql .= " AND p.finished = " . $finished;
         } elseif ($finished == 1) {
@@ -349,7 +350,7 @@ class FormSynergiesTech
             if (!empty($conf->barcode->enabled)) $sql .= " OR p.barcode LIKE '" . $db->escape($prefix . $filterkey) . "%'";
             $sql .= ')';
         }
-        if (count($warehouseStatusArray)) {
+        if (count($warehouseStatusArray) || (is_array($include_into_categories) && count($include_into_categories) > 0)) {
             $sql .= ' GROUP BY' . $selectFields;
         }
         $sql .= $db->order("p.ref");
@@ -417,7 +418,9 @@ class FormSynergiesTech
                             // "key" value of json key array is used by jQuery automatically as selected value
                             // "label" value of json key array is used by jQuery automatically as text for combo box
                             $out .= $opt;
-                            array_push($outarray, $optJson);
+                            //if (!isset($objp->is_into_categories) || $objp->is_into_categories == 1) {
+                                array_push($outarray, $optJson);
+                            //}
                         }
                     }
                 } else {
@@ -440,7 +443,9 @@ class FormSynergiesTech
                     // "key" value of json key array is used by jQuery automatically as selected value
                     // "label" value of json key array is used by jQuery automatically as text for combo box
                     $out .= $opt;
-                    array_push($outarray, $optJson);
+                    //if (!isset($objp->is_into_categories) || $objp->is_into_categories == 1) {
+                        array_push($outarray, $optJson);
+                    //}
                 }
 
                 $i++;
@@ -509,6 +514,7 @@ class FormSynergiesTech
 
         $opt = '<option value="' . $objp->rowid . '"';
         $opt .= ($objp->rowid == $selected) ? ' selected' : '';
+        $opt .= (isset($objp->is_into_categories) && $objp->is_into_categories == 0) ? ' disabled' : '';
         $opt .= (!empty($objp->price_by_qty_rowid) && $objp->price_by_qty_rowid > 0) ? ' pbq="' . $objp->price_by_qty_rowid . '"' : '';
         if (!empty($conf->stock->enabled) && $objp->fk_product_type == 0 && isset($objp->stock)) {
             if ($objp->stock > 0) $opt .= ' class="product_line_stock_ok"';
@@ -648,5 +654,9 @@ class FormSynergiesTech
 
         $opt .= "</option>\n";
         $optJson = array('key' => $outkey, 'value' => $outref, 'label' => $outval, 'label2' => $outlabel, 'desc' => $outdesc, 'type' => $outtype, 'price_ht' => $outprice_ht, 'price_ttc' => $outprice_ttc, 'pricebasetype' => $outpricebasetype, 'tva_tx' => $outtva_tx, 'qty' => $outqty, 'discount' => $outdiscount, 'duration_value' => $outdurationvalue, 'duration_unit' => $outdurationunit);
+        if (isset($objp->is_into_categories) && $objp->is_into_categories == 0) {
+            $optJson['opt_disabled'] = true;
+        }
     }
 }
+

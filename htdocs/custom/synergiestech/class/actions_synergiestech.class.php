@@ -193,6 +193,83 @@ class ActionsSynergiesTech
     }
 
     /**
+	 * Overloading the addMoreActionsButtons function : replacing the parent's function with the one below
+	 *
+	 * @param   array() $parameters Hook metadatas (context, etc...)
+	 * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+	 * @param   string &$action Current action (if set). Generally create or edit or null
+	 * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
+	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+	 */
+	function addMoreActionsButtons($parameters, &$object, &$action, $hookmanager)
+    {
+        global $conf, $user, $langs;
+
+        $contexts = explode(':',$parameters['context']);
+
+        if (in_array('advancedticketcard', $contexts)) {
+            if (!empty($conf->propal->enabled) && $user->rights->propal->creer) { // && $object->status == 1) {
+                $langs->load("propal");
+                print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/comm/propal/card.php?originid=' . $object->id . '&origin=' . $object->element . '&socid=' . $object->socid . '&action=create">' . $langs->trans("AddProp") . '</a></div>';
+            }
+
+            if (!empty($conf->commande->enabled) && $user->rights->commande->creer) { // && $object->status == 1) {
+                $langs->load("orders");
+                print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/commande/card.php?originid=' . $object->id . '&origin=' . $object->element . '&socid=' . $object->socid . '&action=create">' . $langs->trans("AddOrder") . '</a></div>';
+            }
+
+            /*if ($user->rights->contrat->creer) { // && $object->status == 1) {
+                $langs->load("contracts");
+                print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/contrat/card.php?originid=' . $object->id . '&origin=' . $object->element . '&socid=' . $object->socid . '&action=create">' . $langs->trans("AddContract") . '</a></div>';
+            }*/
+
+            if (!empty($conf->ficheinter->enabled) && $user->rights->ficheinter->creer) { // && $object->status == 1) {
+                $langs->load("fichinter");
+                print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/fichinter/card.php?originid=' . $object->id . '&origin=' . $object->element . '&socid=' . $object->socid . '&action=create">' . $langs->trans("AddIntervention") . '</a></div>';
+            }
+
+            // Add invoice
+		if ($user->societe_id == 0)
+		{
+			if (! empty($conf->deplacement->enabled) && $object->status==1)
+			{
+				$langs->load("trips");
+				print '<div class="inline-block divButAction"><a class="butAction" href="'.DOL_URL_ROOT.'/compta/deplacement/card.php?socid='.$object->id.'&amp;action=create">'.$langs->trans("AddTrip").'</a></div>';
+			}
+
+			if (! empty($conf->facture->enabled) && $object->status==1)
+			{
+				if (empty($user->rights->facture->creer))
+				{
+				    print '<div class="inline-block divButAction"><a class="butActionRefused" title="'.dol_escape_js($langs->trans("NotAllowed")).'" href="#">'.$langs->trans("AddBill").'</a></div>';
+				}
+				else
+				{
+					$langs->load("bills");
+					$langs->load("orders");
+
+					if (! empty($conf->commande->enabled))
+					{
+					    if ($object->client != 0 && $object->client != 2)
+					    {
+						   if (! empty($orders2invoice) && $orders2invoice > 0) print '<div class="inline-block divButAction"><a class="butAction" href="'.DOL_URL_ROOT.'/commande/orderstoinvoice.php?socid='.$object->id.'">'.$langs->trans("CreateInvoiceForThisCustomer").'</a></div>';
+						   else print '<div class="inline-block divButAction"><a class="butActionRefused" title="'.dol_escape_js($langs->trans("NoOrdersToInvoice")).'" href="#">'.$langs->trans("CreateInvoiceForThisCustomer").'</a></div>';
+					    }
+					    else print '<div class="inline-block divButAction"><a class="butActionRefused" title="'.dol_escape_js($langs->trans("ThirdPartyMustBeEditAsCustomer")).'" href="#">'.$langs->trans("AddBill").'</a></div>';
+					}
+
+					if ($object->client != 0 && $object->client != 2) print '<div class="inline-block divButAction"><a class="butAction" href="'.DOL_URL_ROOT.'/compta/facture/card.php?action=create&socid='.$object->id.'">'.$langs->trans("AddBill").'</a></div>';
+					else print '<div class="inline-block divButAction"><a class="butActionRefused" title="'.dol_escape_js($langs->trans("ThirdPartyMustBeEditAsCustomer")).'" href="#">'.$langs->trans("AddBill").'</a></div>';
+
+				}
+			}
+		}
+        }
+
+        return 0;
+    }
+
+    /**
 	 * Overloading the addMoreMassActions function : replacing the parent's function with the one below
 	 *
 	 * @param   array() $parameters Hook metadatas (context, etc...)
