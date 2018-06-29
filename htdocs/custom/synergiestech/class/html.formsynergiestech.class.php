@@ -200,7 +200,7 @@ class FormSynergiesTech
                 print img_picto($langs->trans("Search"), 'search');
             }
         } else {
-            print $this->select_produits_list($selected, $htmlname, $filtertype, $limit, $include_into_categories, $free_into_categories, $price_level, '', $status, $finished, 0, $socid, $showempty, $forcecombo, $morecss, $hidepriceinlabel, $warehouseStatus);
+            print $this->select_produits_list($selected, $htmlname, $filtertype, $include_into_categories, $free_into_categories, $limit, $price_level, '', $status, $finished, 0, $socid, $showempty, $forcecombo, $morecss, $hidepriceinlabel, $warehouseStatus);
         }
     }
 
