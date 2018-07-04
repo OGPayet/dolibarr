@@ -461,7 +461,7 @@ function hackDefaultWarehouse()
         }
     }
 
-    if (strpos($_SERVER['REQUEST_URI'], '/fourn/commande/dispatch.php') !== false) {
+    if (strpos($_SERVER['REQUEST_URI'], '/fourn/commande/dispatch.php') !== false && GETPOST('action', 'alpha') == '') {
         $shipment = GETPOST('id', 'int');
         if ($shipment) {
             $sql = "SELECT  l.fk_product";
