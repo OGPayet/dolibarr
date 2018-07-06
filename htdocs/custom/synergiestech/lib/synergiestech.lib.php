@@ -338,3 +338,332 @@ function synergiestech_ajax_autocompleter($selected, $htmlname, $url, $urloption
 
 	return $script;
 }
+
+
+/**
+ *	Generate PDF Ticket Report
+ *
+ * @param   DoliDB          $db                 Database handler
+ * @param   int				$contrat_id         ID of contract
+ * @param   int				$date_begin         Begin period date
+ * @param   int				$date_end           End period date
+ * @return  int                                 <0 if not ok, >0 if ok
+ */
+function synergiestech_ticket_generate_report($db, $contrat_id, $date_begin, $date_end)
+{
+    global $conf, $langs;
+
+    $langs->load('synergiestech@synergiestech');
+
+    require_once DOL_DOCUMENT_ROOT.'/contrat/class/contrat.class.php';
+    $contrat = new Contrat($db);
+    $res = $contrat->fetch($contrat_id);
+    if ($res < 0) {
+        setEventMessages($langs->trans('SynergiesTechTicketGenerateReportErrorGetContract', $contrat->errorsToString()), null, 'errors');
+
+        return -1;
+    }
+
+    /**
+     * Liste des services du contrat
+     */
+    $contrat->fetch_thirdparty();
+    $contrat->fetch_lines();
+    $title1 = $langs->trans('SynergiesTechTicketGenerateReportServiceTitle', $contrat->ref, $contrat->thirdparty->getFullName($langs));
+    $content1 = '<bookmark title="'.$title1.'" level="0" ></bookmark>
+    <h1>'.$title1.'</h1>
+    <table style="width: 100%; margin-top:120px">
+        <thead>
+            <tr>
+                <th style="height:50px; width:15% ">'.$langs->trans('SynergiesTechTicketGenerateReportServiceRef').'</th>
+                <th style="height:50px; width:65% ">'.$langs->trans('SynergiesTechTicketGenerateReportServiceDescription').'</th>
+                <th style="height:50px; width:10% ">'.$langs->trans('SynergiesTechTicketGenerateReportDateBegin').'</th>
+                <th style="height:50px; width:10% ">'.$langs->trans('SynergiesTechTicketGenerateReportDateEnd').'</th>
+            </tr>
+        </thead>
+        <tbody>';
+    if (count($contrat->lines) > 0){
+        foreach ($contrat->lines as $line) {
+            $content1 .= '<tr>
+                <td style="height:50px; width:15%;" class="border">' . $line->ref . '</td>
+                <td style="height:50px; width:65%;" class="border">' . strip_tags($line->description, '<br />') . '</td>
+                <td style="height:50px; width:10%;" class="border center">' . (!empty($line->date_ouverture_prevue)?dol_print_date($line->date_ouverture_prevue, 'day'):'') . '</td>
+                <td style="height:50px; width:10%;" class="border center">' . (!empty($line->date_fin_validite)?dol_print_date($line->date_fin_validite, 'day'):'') . '</td>
+            </tr>';
+        }
+    }else{
+        $content1 .= '<tr>
+                <td style="height:50px; width:100%;" colspan="4" class="border center">'.$langs->trans('SynergiesTechAdvancedTicketGenerateNoService').'</td>
+            </tr>';
+    }
+    $content1 .= '</tbody></table>';
+    /**
+     * Fin de la boucle des services du contrat
+     */
+
+    dol_include_once('/advancedticket/class/advancedticket.class.php');
+    $advancedticket_static = new advancedticket($db);
+
+    /**
+     * Liste des tickets en cours
+     */
+    $sql = "SELECT adt.rowid, adt.ref, adt.subject, adt.message, adt.duree, adt.datec, adt.fk_statut
+    FROM ".MAIN_DB_PREFIX."advancedticket AS adt
+    LEFT JOIN ".MAIN_DB_PREFIX."advancedticket_extrafields AS adte ON adt.rowid = adte.fk_object
+    LEFT JOIN ".MAIN_DB_PREFIX."element_element AS ee ON ee.sourcetype = 'contrat' AND ee.targettype = 'advancedticket' AND ee.fk_target = adt.rowid
+    WHERE adt.fk_statut < 8
+    AND ee.fk_source = $contrat_id
+    GROUP BY adt.rowid
+    ORDER BY adt.ref";
+    $resql = $db->query($sql);
+    $title2 = $langs->trans('SynergiesTechTicketGenerateReportTicketInProgressTitle');
+    $content2 = '<bookmark title="'.$title2.'" level="0" ></bookmark>
+    <table style="width: 100%;">
+        <thead>
+            <tr>
+                <th class="mini" style="height:50px;width:9%;">'.$langs->trans('SynergiesTechTicketGenerateReportTicketRef').'</th>
+                <th class="mini" style="height:50px;width:15%;">'.$langs->trans('SynergiesTechTicketGenerateReportTicketTitle').'</th>
+                <th class="mini" style="height:50px;width:53%;">'.$langs->trans('SynergiesTechTicketGenerateReportTicketDescription').'</th>
+                <th class="mini" style="height:50px;width:8%;">'.$langs->trans('SynergiesTechTicketGenerateReportTicketDuration').'</th>
+                <th class="mini" style="height:50px;width:8%;">'.$langs->trans('SynergiesTechTicketGenerateReportTicketDateCreated').'</th>
+                <th class="mini" style="height:50px;width:7%;">'.$langs->trans('SynergiesTechTicketGenerateReportTicketStatus').'</th>
+            </tr>
+        </thead>
+        <tbody>';
+    if ($resql && $db->num_rows($resql) > 0) {
+        while ($obj = $db->fetch_object($resql)) {
+            if ($advancedticket_static->fetch($obj->rowid) > 0) {
+                $content2 .= '<tr>
+                    <td style="height:50px;width:9%;" class="border mini">' . $obj->ref . '</td>
+                    <td style="height:50px;width:15%;" class="border mini">' . strip_tags($obj->subject) . '</td>
+                    <td style="height:50px;width:53%;" class="border mini">' . strip_tags($obj->message, '<br />') . '</td>
+                    <td style="height:50px;width:8%;" class="border mini center">' . $obj->duree . '</td>
+                    <td style="height:50px;width:8%;" class="border mini center">' . (!empty($obj->datec)?dol_print_date($obj->datec, 'day'):'') . '</td>
+                    <td style="height:50px;width:7%;" class="border mini center">' . $advancedticket_static->LibStatut($obj->fk_statut) . '</td>
+                </tr>';
+                // Get public messages
+                $sql2 = "SELECT ts.rowid, ts.ref, ts.subject, ts.message, ts.duree, ts.datec, ts.fk_statut
+                FROM ".MAIN_DB_PREFIX."ticketsup AS ts
+                LEFT JOIN ".MAIN_DB_PREFIX."ticketsup_extrafields AS tse ON ts.rowid = tse.fk_object
+                LEFT JOIN ".MAIN_DB_PREFIX."element_element AS ee ON ee.sourcetype = 'contrat' AND ee.targettype = 'ticketsup' AND ee.fk_target = ts.rowid
+                LEFT JOIN ".MAIN_DB_PREFIX."element_element AS eefi ON eefi.sourcetype = 'ticketsup' AND eefi.targettype = 'fichinter' AND eefi.fk_source = ts.rowid
+                LEFT JOIN ".MAIN_DB_PREFIX."fichinter AS fi ON eefi.fk_target = fi.rowid
+                LEFT JOIN ".MAIN_DB_PREFIX."fichinterdet AS fid ON fi.rowid = fid.fk_fichinter
+                WHERE ts.fk_statut<8
+                AND ee.fk_source = $contrat_id
+                GROUP BY ts.rowid
+                ORDER BY ts.ref";
+                $resql2 = $db->query($sql2);
+                $content2 .= '<table style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th class="mini" style="height:50px;width:9%;">&nbsp;</th>
+                            <th class="mini" style="height:50px;width:15%;">'.$langs->trans('SynergiesTechTicketGenerateReportTicketMessageUser').'</th>
+                            <th class="mini" style="height:50px;width:60%;">'.$langs->trans('SynergiesTechTicketGenerateReportTicketMessageDate').'</th>
+                            <th class="mini" style="height:50px;width:8%;">'.$langs->trans('SynergiesTechTicketGenerateReportTicketMessageText').'</th>
+                            <th class="mini" style="height:50px;width:8%;">'.$langs->trans('SynergiesTechTicketGenerateReportTicketMessageDuration').'</th>
+                        </tr>
+                    </thead>
+                    <tbody>';
+                if ($resql2 && $db->num_rows($resql2) > 0) {
+                    while ($obj2 = $db->fetch_object($resql2)) {
+                        $content2 .= '<tr>
+                            <td style="height:50px;width:9%;" class="border mini">&nbsp;</td>
+                            <td style="height:50px;width:15%;" class="border mini">' . strip_tags($obj2->user) . '</td>
+                            <td style="height:50px;width:60%;" class="border mini">' . (!empty($obj2->datec)?dol_print_date($obj2->datec, 'day'):'') . '</td>
+                            <td style="height:50px;width:8%;" class="border mini center">' . strip_tags($obj2->message, '<br />') . '</td>
+                            <td style="height:50px;width:8%;" class="border mini center">' . $obj2->duree . '</td>
+                        </tr>';
+                    }
+                } else {
+                    $content2 .= '<tr>
+                        <td style="height:50px;width:100%;" colspan="7" class="border center">'.$langs->trans('SynergiesTechAdvancedTicketGenerateNoTicketMessage').'</td>
+                    </tr>';
+                }
+                $content2 .= '</tbody></table>';
+            } else {
+                $content2 .= '<tr>
+                        <td style="height:50px;width:100%;" colspan="4" class="border center">'.$langs->trans('SynergiesTechTicketGenerateReportErrorGetTicket', $obj->ref).'</td>
+                    </tr>';
+            }
+        }
+    } else {
+        $content2 .= '<tr>
+            <td style="height:50px;width:100%;" colspan="7" class="border center">'.$langs->trans('SynergiesTechAdvancedTicketGenerateNoTicketInProgress').'</td>
+        </tr>';
+    }
+    $content2 .= '</tbody></table>';
+    /**
+     * Fin de liste des tickets en cours
+     */
+
+    /**
+     * Tickets cloturés pour la période $periode_begin au $periode_end
+     */
+    $sql = "SELECT ts.ref, ts.subject, ts.message, ts.datec, ts.fk_statut, SUM(CEIL(fid.duree/(60*$ticket_time))) AS ts_consomme, tse.tck_decompt
+    FROM ".MAIN_DB_PREFIX."ticketsup AS ts
+    LEFT JOIN ".MAIN_DB_PREFIX."ticketsup_extrafields AS tse ON ts.rowid = tse.fk_object
+    LEFT JOIN ".MAIN_DB_PREFIX."element_element AS ee ON ee.sourcetype = 'contrat' AND ee.targettype = 'ticketsup' AND ee.fk_target = ts.rowid
+    LEFT JOIN ".MAIN_DB_PREFIX."element_element AS eefi ON eefi.sourcetype = 'ticketsup' AND eefi.targettype = 'fichinter' AND eefi.fk_source = ts.rowid
+    LEFT JOIN ".MAIN_DB_PREFIX."fichinter AS fi ON eefi.fk_target = fi.rowid
+    LEFT JOIN ".MAIN_DB_PREFIX."fichinterdet AS fid ON fi.rowid = fid.fk_fichinter
+    WHERE ts.fk_statut=8
+    AND ee.fk_source = $contrat_id
+    AND ts.date_close >= $periode_begin AND ts.date_close <= $periode_end
+    GROUP BY ts.rowid
+    ORDER BY ts.ref";
+    $resql = $db->query($sql);
+    $title3 = $langs->trans('SynergiesTechTicketGenerateReportTicketClosedTitle', dol_print_date($date_begin, 'day'), dol_print_date($date_end, 'day'));
+    $content3 = '<bookmark title="'.$title3.'" level="0" ></bookmark>
+    <table style="width: 100%;"><thead>
+            <tr>
+                <th class="mini" style="height:50px;width:9%;">'.$langs->trans('SynergiesTechTicketGenerateReportTicketRef').'</th>
+                <th class="mini" style="height:50px;width:15%;">'.$langs->trans('SynergiesTechTicketGenerateReportTicketTitle').'</th>
+                <th class="mini" style="height:50px;width:45%;">'.$langs->trans('SynergiesTechTicketGenerateReportTicketDescription').'</th>
+                <th class="mini" style="height:50px;width:8%;">'.$langs->trans('SynergiesTechTicketGenerateReportTicketDuration').'</th>
+                <th class="mini" style="height:50px;width:8%;">'.$langs->trans('SynergiesTechTicketGenerateReportTicketDateCreated').'</th>
+                <th class="mini" style="height:50px;width:7%;">'.$langs->trans('SynergiesTechTicketGenerateReportTicketStatus').'</th>
+                <th class="mini" style="height:50px;width:7%;">'.$langs->trans('SynergiesTechTicketGenerateReportTicketDateClosed').'</th>
+                <th class="mini" style="height:50px;width:7%;">'.$langs->trans('SynergiesTechTicketGenerateReportTicketUserClosed').'</th>
+            </tr>
+            </thead><tbody>';
+    if ($resql && $db->num_rows($resql) > 0) {
+        while ($obj = $db->fetch_object($resql)) {
+            $content3 .= '<tr>
+                <td style="height:50px;width:9%;" class="border mini">' . $obj->ref . '</td>
+                <td style="height:50px;width:15%;" class="border mini">' . strip_tags($obj->subject) . '</td>
+                <td style="height:50px;width:45%;" class="border mini">' . strip_tags($obj->message, '<br />') . '</td>
+                <td style="height:50px;width:8%;" class="border mini center">' . (!empty($obj->datec)?dol_print_date($obj->datec, 'day'):'') . '</td>
+                <td style="height:50px;width:7%;" class="border mini center">' . $ticketsup->LibStatut($obj->fk_statut) . '</td>
+                <td style="height:50px;width:8%;" class="border mini center">' . round($obj->ts_consomme) . '</td>
+                <td style="height:50px;width:8%;" class="border mini center">' . ($obj->tck_decompt == 1 ? 'Oui' : 'Non') . '</td>
+            </tr>';
+        }
+    } else {
+        $content3 .= '<tr>
+                <td style="height:50px;" colspan="7" class="border center">'.$langs->trans('SynergiesTechAdvancedTicketGenerateNoTicketClosed').'</td>
+            </tr>';
+    }
+    $content3 .= '</tbody></table>';
+    /**
+     * Fin des tickets cloturés pour la période $periode_begin au $periode_end
+     */
+
+    /**
+     * Création du pdf avec les contenus générés
+     */
+    $dir = $conf->contrat->dir_output . "/" . dol_sanitizeFileName($contrat->ref);
+    if (dol_mkdir($dir) < 0) {
+        setEventMessages($langs->trans('OpenDsiGenerateTSResultsErrorCreatePath', $dir), null, 'errors');
+
+        return -1;
+    }
+
+    dol_include_once('/opendsi/class/pdf.class.php');
+    $pdf = new create_pdf();
+    $pdf->add_content($content1, $title1);
+    $pdf->add_content($content2, $title2);
+    $pdf->add_content($content3, $title3);
+    $pdf->output($dir . "/tickets_reports_" . dol_print_date($date_begin, 'dayrfc') . "_".dol_print_date($date_end, 'dayrfc'));
+
+    return 1;
+}
+
+/**
+ * Print confirm form
+ *
+ * @param   string  $formconfirm    Confirm form
+ *
+ * @return  void
+ */
+function synergiestech_print_confirmform($formconfirm)
+{
+    $html = [];
+    $scripts = [];
+    $cursor_pos = 0;
+    while ($begin_script_pos = strpos($formconfirm, '<script', $cursor_pos)) {
+        $html[] = substr($formconfirm, $cursor_pos, $begin_script_pos - $cursor_pos);
+
+        $end_script_pos = strpos($formconfirm, '</script>', $begin_script_pos);
+        $cursor_pos = $end_script_pos + 9;
+        $scripts[] = substr($formconfirm, $begin_script_pos, $cursor_pos - $begin_script_pos);
+    }
+    $html[] = substr($formconfirm, $cursor_pos);
+
+    $confirm = str_replace(["'", "\n"], ["\\'", ""], implode('', $html));
+
+    print '<script type="text/javascript" language="javascript">'."\n";
+    print '$(document).ready(function () {'."\n";
+    print '$("#id-right").append(\''.$confirm.'\');'."\n";
+    print '});';
+    print '</script>'."\n";
+    print implode('', $scripts);
+}
+
+/**
+ * Return list of the product who can be returned for this thirdparty
+ *
+ * @param   DoliDB      $db         Database handler
+ * @param   int         $socid      Thirdparty ID
+ *
+ * @return  array                   array('Product id' => array('product'=>'Product label', 'product_id'=>'Product id', 'qty_sent'=>'Product quantity', 'equipments' => array('Equipment id' => 'Equipment label', ...)), ...)
+ */
+function synergiestech_get_return_products_list($db, $socid)
+{
+    global $langs;
+
+    $lines = array();
+
+    require_once DOL_DOCUMENT_ROOT . '/commande/class/commande.class.php';
+
+    $lineText = $langs->transnoentitiesnoconv('Line');
+    $qtyText = $langs->transnoentitiesnoconv('Qty');
+
+    // Get nb sent for each product
+    $sql = "SELECT cd.rowid, cd.rang, c.rowid as order_id, c.ref as order_ref, p.rowid as product_id, p.ref, p.label, SUM(exp.qty) as qty_sent";
+    $sql .= " FROM " . MAIN_DB_PREFIX . "commande as c, " . MAIN_DB_PREFIX . "product as p, ";
+    $sql .= MAIN_DB_PREFIX . "commandedet as cd, " . MAIN_DB_PREFIX . "expeditiondet as exp";
+    $sql .= " WHERE c.rowid = cd.fk_commande";
+    $sql .= " AND p.rowid = cd.fk_product";
+    $sql .= " AND cd.rowid = exp.fk_origin_line";
+    $sql .= " AND c.fk_soc = " . $socid;
+    $sql .= " AND c.fk_statut > " . Commande::STATUS_DRAFT;
+    $sql .= " GROUP BY cd.rowid";
+    $sql .= " ORDER BY c.rowid, cd.rang, cd.rowid";
+    $resql = $db->query($sql);
+    if ($resql) {
+        while ($obj = $db->fetch_object($resql)) {
+            $lines[$obj->product_id]['product'] = $obj->ref . ' - ' . $obj->label;
+            $lines[$obj->product_id]['orders'][$obj->rowid] = array(
+                'order_id' => $obj->order_id,
+                'label' => $obj->order_ref . ' - ' . $lineText . ': ' . $obj->rang . ' (' . $qtyText . ': ' . $obj->qty_sent . ')',
+                'qty_sent' => $obj->qty_sent,
+                'equipments' => array(),
+            );
+        }
+    }
+
+    // Get list of available serial numbers for each product
+    if (!empty($lines)) {
+        $sql = "SELECT DISTINCT cd.rowid, cd.fk_product as product_id, c.rowid as order_id, e.rowid as equipment_id, e.ref, e.fk_product";
+        $sql .= " FROM " . MAIN_DB_PREFIX . "commande as c";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "commandedet as cd ON cd.fk_commande = c.rowid";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "expeditiondet as ed ON ed.fk_origin_line = cd.rowid";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "equipementevt AS ee ON ee.fk_expedition = ed.fk_expedition";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "equipement AS e ON e.rowid = ee.fk_equipement";
+        $sql .= " WHERE c.fk_soc = " . $socid;
+        $sql .= " AND c.fk_statut > " . Commande::STATUS_DRAFT;
+        $sql .= " AND e.fk_soc_client = c.fk_soc";
+        $sql .= " AND e.fk_entrepot IS NULL";
+        $resql = $db->query($sql);
+        if ($resql) {
+            while ($obj = $db->fetch_object($resql)) {
+                if (isset($lines[$obj->product_id]['orders'][$obj->rowid])) {
+                    $lines[$obj->product_id]['orders'][$obj->rowid]['equipments'][$obj->equipment_id] = $obj->ref;
+                }
+            }
+        }
+    }
+
+    return $lines;
+}

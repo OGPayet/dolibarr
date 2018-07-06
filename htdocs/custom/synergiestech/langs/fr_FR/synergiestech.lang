@@ -4,6 +4,11 @@ Module500100Name = Synergies-Tech
 Module500100Desc = Module spécifique pour Synergies-Tech
 
 #######################################################################
+# Permission
+#######################################################################
+Permission500100    = Générer le bilan des tickets
+
+#######################################################################
 # Configuration admin
 #######################################################################
 SynergiesTechSetup                                                  = Configuration du module Synergies-Tech
@@ -15,6 +20,7 @@ SynergiesTechEnabledWorkflowOrderSupplierDispatchToSetEquipments    = Active la 
 SynergiesTechForceSetEquipmentsAfterOrderSupplierDispatch           = Force la rentrer des numéros de séries des produits sérialisables après la réceptions de marchandise d'une commande fournisseur
 
 SynergiesTechProductCategoryForContractFormule                      = Catégorie des produits servant de base aux formules des contrats
+SynergiesTechProductCategoryForAdvancedTicketEmplacement            = Catégorie des produits servant de base aux emplacements sur les messages des tickets
 
 #######################################################################
 # Extrafields
@@ -41,3 +47,66 @@ SynergiesTechOnlyProductIncludeIntoContract                 = Liste des produits
 SynergiesTechFormules                                       = Formules
 SynergiesTechErrorFormulesNotFoundIntoCategories            = Formules dont la catégorie associée n'est pas trouvée
 SynergiesTechErrorProductCategoryForFomuleContratNotDefined = La catégorie des produits servant de base aux formules des contrats na pas été parametrée dans le module Synergies-Tech.
+SynergiesTechProductOffFormula                              = Forcage de ligne de produits hors contrat
+SynergiesTechConfirmProductOffFormula                       = Êtes-vous sur de vouloir ajouter ce produit hors contrat ?
+SynergiesTechProductOffFormulaEventTitle                    = Forcage de ligne de produits hors contrat dans une commande
+SynergiesTechProductOffFormulaEventMessage                  = L'utilisateur %s à forcé l'enregistrement du produit %s hors contrat ( %s ) dans la commande %s
+
+#######################################################################
+# Dictionaries
+#######################################################################
+SynergiesTechSymptomDictionaryLabel         = Symptômes
+SynergiesTechSymptomDictionaryEmplacement   = Emplacements
+SynergiesTechSymptomDictionaryText          = Texte
+
+#######################################################################
+# Return products
+#######################################################################
+SynergiesTechCreateNbRetourProduitsSuccessed = %s retour produits créés.
+
+#######################################################################
+# Advanced Ticket
+#######################################################################
+SynergiesTechThridPartyNotDefined   = Tiers non définie
+
+#######################################################################
+# Advanced Ticket Report - ConfirmBox, Button, MassAction
+#######################################################################
+SynergiesTechTicketGenerateReport                       = Générer le bilan des tickets
+SynergiesTechTicketGenerateReportConfirm                = Génération du bilan des tickets
+SynergiesTechTicketGenerateReportSuccess                = Génération du bilan des tickets réussie.
+SynergiesTechTicketGenerateReportErrorDatesRequired     = Dates de la période requises
+
+#######################################################################
+# Advanced Ticket Report - PDF
+#######################################################################
+SynergiesTechTicketGenerateReportServiceTitle           = Rapport d'interventions (Contrat: %s, Société: %s)
+SynergiesTechTicketGenerateReportServiceRef             = Réf. service
+SynergiesTechTicketGenerateReportServiceDescription     = Description service
+SynergiesTechTicketGenerateReportDateBegin              = Date de début
+SynergiesTechTicketGenerateReportDateEnd                = Date de fin
+SynergiesTechAdvancedTicketGenerateNoService            = Aucun service
+
+SynergiesTechTicketGenerateReportTicketInProgressTitle  = Tickets en cours
+SynergiesTechTicketGenerateReportTicketRef              = Réf. ticket
+SynergiesTechTicketGenerateReportTicketTitle            = Titre tickets
+SynergiesTechTicketGenerateReportTicketDescription      = Description ticket
+SynergiesTechTicketGenerateReportTicketDuration         = Durée
+SynergiesTechTicketGenerateReportTicketDateCreated      = Ouvert le
+SynergiesTechTicketGenerateReportTicketStatus           = État
+SynergiesTechAdvancedTicketGenerateNoTicketInProgress   = Aucun ticket en cours
+
+SynergiesTechTicketGenerateReportTicketClosedTitle      = Tickets cloturés pour la période %s au %s
+SynergiesTechTicketGenerateReportTicketDateClosed       = Cloturé le
+SynergiesTechTicketGenerateReportTicketUserClosed       = Cloturé par
+SynergiesTechAdvancedTicketGenerateNoTicketClosed               = Aucun ticket cloturé
+
+SynergiesTechTicketGenerateReportTicketMessageUser      = Utilisateur
+SynergiesTechTicketGenerateReportTicketMessageDate      = Date
+SynergiesTechTicketGenerateReportTicketMessageText      = Message
+SynergiesTechTicketGenerateReportTicketMessageDuration  = Durée
+SynergiesTechAdvancedTicketGenerateNoTicketMessage      = Aucun message
+
+SynergiesTechTicketGenerateReportErrorGetContract       = Erreur dans la recupération du contrat : %s
+SynergiesTechTicketGenerateReportErrorGetTicket         = Erreur dans la recupération du ticket : %s
+SynergiesTechTicketGenerateReportErrorCreatePath        = Erreur création du répertoire : %s

@@ -61,6 +61,35 @@ class FormSynergiesTech
     }
 
     /**
+     *  Return list of products categories for the emplacements of the advanced ticket
+     *
+     * @return  array
+     */
+    function advancedticket_emplacments_array()
+    {
+        global $conf;
+
+        $list = array();
+
+        // Get categories who has the contract formule category in the full path (exclude the contract formule category)
+        require_once DOL_DOCUMENT_ROOT . '/categories/class/categorie.class.php';
+        $categorie_static = new Categorie($this->db);
+        $all_categories = $categorie_static->get_full_arbo('product');
+        foreach ($all_categories as $cat) {
+            if ((preg_match('/^' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_ADVANCEDTICKECT_EMPLACEMENT . '$/', $cat['fullpath']) ||
+                    preg_match('/_' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_ADVANCEDTICKECT_EMPLACEMENT . '$/', $cat['fullpath']) ||
+                    preg_match('/^' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_ADVANCEDTICKECT_EMPLACEMENT . '_/', $cat['fullpath']) ||
+                    preg_match('/_' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_ADVANCEDTICKECT_EMPLACEMENT . '_/', $cat['fullpath'])
+                ) && $cat['id'] != $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_ADVANCEDTICKECT_EMPLACEMENT
+            ) {
+                $list[$cat['id']] = $cat['fulllabel'];
+            }
+        }
+
+        return $list;
+    }
+
+    /**
      *  Return list of products for customer in Ajax if Ajax activated or go to select_produits_list
      *
      * @param   int     $selected                 Preselected products
@@ -410,7 +439,7 @@ class FormSynergiesTech
                             $objp->remise = $objp2->remise;
                             $objp->price_by_qty_rowid = $objp2->rowid;
 
-                            $this->constructProductListOption($objp, $opt, $optJson, 0, $selected, $hidepriceinlabel, ($free_into_categories ? 100 : null));
+                            $this->constructProductListOption($objp, $opt, $optJson, 0, $selected, $hidepriceinlabel, ($free_into_categories && $objp->is_into_categories ? 100 : null));
 
                             $j++;
 
@@ -438,7 +467,7 @@ class FormSynergiesTech
                         }
                     }
 
-                    $this->constructProductListOption($objp, $opt, $optJson, $price_level, $selected, $hidepriceinlabel, ($free_into_categories ? 100 : null));
+                    $this->constructProductListOption($objp, $opt, $optJson, $price_level, $selected, $hidepriceinlabel, ($free_into_categories && $objp->is_into_categories ? 100 : null));
                     // Add new entry
                     // "key" value of json key array is used by jQuery automatically as selected value
                     // "label" value of json key array is used by jQuery automatically as text for combo box
@@ -653,10 +682,12 @@ class FormSynergiesTech
         }
 
         $opt .= "</option>\n";
-        $optJson = array('key' => $outkey, 'value' => $outref, 'label' => $outval, 'label2' => $outlabel, 'desc' => $outdesc, 'type' => $outtype, 'price_ht' => $outprice_ht, 'price_ttc' => $outprice_ttc, 'pricebasetype' => $outpricebasetype, 'tva_tx' => $outtva_tx, 'qty' => $outqty, 'discount' => $outdiscount, 'duration_value' => $outdurationvalue, 'duration_unit' => $outdurationunit);
-        if (isset($objp->is_into_categories) && $objp->is_into_categories == 0) {
+
+        $isNotIntoCategories = isset($objp->is_into_categories) && $objp->is_into_categories == 0;
+        $optJson = array('key' => $outkey, 'value' => $outref, 'label' => ($isNotIntoCategories ? '<span style="color: grey;">' : '') . $outval . ($isNotIntoCategories ? '</span>' : ''), 'label2' => $outlabel, 'desc' => $outdesc, 'type' => $outtype, 'price_ht' => $outprice_ht, 'price_ttc' => $outprice_ttc, 'pricebasetype' => $outpricebasetype, 'tva_tx' => $outtva_tx, 'qty' => $outqty, 'discount' => $outdiscount, 'duration_value' => $outdurationvalue, 'duration_unit' => $outdurationunit);
+        /*if ($isNotIntoCategories) {
             $optJson['opt_disabled'] = true;
-        }
+        }*/
     }
 }
 

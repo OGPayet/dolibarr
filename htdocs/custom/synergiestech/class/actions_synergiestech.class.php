@@ -208,62 +208,670 @@ class ActionsSynergiesTech
         $contexts = explode(':',$parameters['context']);
 
         if (in_array('advancedticketcard', $contexts)) {
-            if (!empty($conf->propal->enabled) && $user->rights->propal->creer) { // && $object->status == 1) {
+            $langs->load('synergiestech@synergiestech');
+
+            if (!empty($conf->propal->enabled)) {
                 $langs->load("propal");
-                print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/comm/propal/card.php?originid=' . $object->id . '&origin=' . $object->element . '&socid=' . $object->socid . '&action=create">' . $langs->trans("AddProp") . '</a></div>';
+                if ($user->rights->propal->creer) {
+                    if ($object->socid > 0) {
+                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/comm/propal/card.php?originid=' . $object->id . '&origin=' . $object->element . ($object->socid > 0 ? '&socid=' . $object->socid : '') . '&action=create">' . $langs->trans("AddProp") . '</a></div>';
+                    } else {
+                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("SynergiesTechThridPartyNotDefined")) . '" href="#">' . $langs->trans("AddProp") . '</a></div>';
+                    }
+                } else {
+                    print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddProp") . '</a></div>';
+                }
             }
 
-            if (!empty($conf->commande->enabled) && $user->rights->commande->creer) { // && $object->status == 1) {
+            if (!empty($conf->commande->enabled)) {
                 $langs->load("orders");
-                print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/commande/card.php?originid=' . $object->id . '&origin=' . $object->element . '&socid=' . $object->socid . '&action=create">' . $langs->trans("AddOrder") . '</a></div>';
+                if ($user->rights->commande->creer) {
+                    if ($object->socid > 0) {
+                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/commande/card.php?originid=' . $object->id . '&origin=' . $object->element . ($object->socid > 0 ? '&socid=' . $object->socid : '') . '&action=create">' . $langs->trans("AddOrder") . '</a></div>';
+                    } else {
+                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("SynergiesTechThridPartyNotDefined")) . '" href="#">' . $langs->trans("AddOrder") . '</a></div>';
+                    }
+                } else {
+                    print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddOrder") . '</a></div>';
+                }
             }
 
-            /*if ($user->rights->contrat->creer) { // && $object->status == 1) {
-                $langs->load("contracts");
-                print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/contrat/card.php?originid=' . $object->id . '&origin=' . $object->element . '&socid=' . $object->socid . '&action=create">' . $langs->trans("AddContract") . '</a></div>';
-            }*/
-
-            if (!empty($conf->ficheinter->enabled) && $user->rights->ficheinter->creer) { // && $object->status == 1) {
-                $langs->load("fichinter");
-                print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/fichinter/card.php?originid=' . $object->id . '&origin=' . $object->element . '&socid=' . $object->socid . '&action=create">' . $langs->trans("AddIntervention") . '</a></div>';
+            if (!empty($conf->ficheinter->enabled)) {
+                $langs->load("interventions");
+                if ($user->rights->ficheinter->creer) {
+                    if ($object->socid > 0) {
+                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/fichinter/card.php?originid=' . $object->id . '&origin=' . $object->element . ($object->socid > 0 ? '&socid=' . $object->socid : '') . '&action=create">' . $langs->trans("AddIntervention") . '</a></div>';
+                    } else {
+                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("SynergiesTechThridPartyNotDefined")) . '" href="#">' . $langs->trans("AddIntervention") . '</a></div>';
+                    }
+                } else {
+                    print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddIntervention") . '</a></div>';
+                }
             }
 
             // Add invoice
-		if ($user->societe_id == 0)
-		{
-			if (! empty($conf->deplacement->enabled) && $object->status==1)
-			{
-				$langs->load("trips");
-				print '<div class="inline-block divButAction"><a class="butAction" href="'.DOL_URL_ROOT.'/compta/deplacement/card.php?socid='.$object->id.'&amp;action=create">'.$langs->trans("AddTrip").'</a></div>';
-			}
+            if ($user->societe_id == 0 && !empty($conf->facture->enabled)) {
+                $langs->load("bills");
+                $langs->load("compta");
+                if ($user->rights->facture->creer) {
+                    if ($object->socid > 0) {
+                        $object->fetch_thirdparty();
+                        if ($object->thirdparty->client != 0 && $object->thirdparty->client != 2) {
+                            print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/compta/facture/card.php?originid=' . $object->id . '&origin=' . $object->element . ($object->socid > 0 ? '&socid=' . $object->socid : '') . '&action=create">' . $langs->trans("AddBill") . '</a></div>';
+                        } else {
+                            print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("ThirdPartyMustBeEditAsCustomer")) . '" href="#">' . $langs->trans("AddBill") . '</a></div>';
+                        }
+                    } else {
+                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("SynergiesTechThridPartyNotDefined")) . '" href="#">' . $langs->trans("AddBill") . '</a></div>';
+                    }
+                } else {
+                    print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddBill") . '</a></div>';
+                }
+            }
 
-			if (! empty($conf->facture->enabled) && $object->status==1)
-			{
-				if (empty($user->rights->facture->creer))
-				{
-				    print '<div class="inline-block divButAction"><a class="butActionRefused" title="'.dol_escape_js($langs->trans("NotAllowed")).'" href="#">'.$langs->trans("AddBill").'</a></div>';
-				}
-				else
-				{
-					$langs->load("bills");
-					$langs->load("orders");
+            if (!empty($conf->societe->enabled) && !($object->socid > 0)) {
+                $langs->load("companies");
+                if ($user->rights->societe->creer) {
+                    print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/societe/card.php?action=create&backtopage='.urlencode($_SERVER["PHP_SELF"].'?action=synergiestech_set_thirdparty').'">' . $langs->trans("AddThirdParty") . '</a></div>';
+                } else {
+                    print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddThirdParty") . '</a></div>';
+                }
+            }
 
-					if (! empty($conf->commande->enabled))
-					{
-					    if ($object->client != 0 && $object->client != 2)
-					    {
-						   if (! empty($orders2invoice) && $orders2invoice > 0) print '<div class="inline-block divButAction"><a class="butAction" href="'.DOL_URL_ROOT.'/commande/orderstoinvoice.php?socid='.$object->id.'">'.$langs->trans("CreateInvoiceForThisCustomer").'</a></div>';
-						   else print '<div class="inline-block divButAction"><a class="butActionRefused" title="'.dol_escape_js($langs->trans("NoOrdersToInvoice")).'" href="#">'.$langs->trans("CreateInvoiceForThisCustomer").'</a></div>';
-					    }
-					    else print '<div class="inline-block divButAction"><a class="butActionRefused" title="'.dol_escape_js($langs->trans("ThirdPartyMustBeEditAsCustomer")).'" href="#">'.$langs->trans("AddBill").'</a></div>';
-					}
+            if (!empty($conf->retourproduits->enabled)) {
+                $langs->load("retourproduits@retourproduits");
+                if ($object->socid > 0) {
+                    dol_include_once('/synergiestech/lib/synergiestech.lib.php');
+                    $return_products_list = synergiestech_get_return_products_list($this->db, $object->socid);
+                    if (!empty($return_products_list)) {
+                        print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=synergiestech_returnproducts">' . $langs->trans('returnProducts') . '</a></div>';
+                    } else {
+                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("RetourProduitsErrorNoProductSent")) . '" href="#">' . $langs->trans("returnProducts") . '</a></div>';
+                    }
+                } else {
+                    print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("SynergiesTechThridPartyNotDefined")) . '" href="#">' . $langs->trans("returnProducts") . '</a></div>';
+                }
+            }
+        } elseif (in_array('contractcard', $contexts)) {
+            $langs->load('synergiestech@synergiestech');
+            if ($action == 'synergiestech_generate_ticket_report') {
+                require_once DOL_DOCUMENT_ROOT . '/core/lib/date.lib.php';
+                $now = dol_getdate(dol_now(), true);
+                $prevmonth = dol_get_prev_month($now['mon'], $now['year']);
+                $date_start = dol_get_first_day($prevmonth['year'], $prevmonth['month']);
+                $date_end = dol_get_last_day($prevmonth['year'], $prevmonth['month']);
 
-					if ($object->client != 0 && $object->client != 2) print '<div class="inline-block divButAction"><a class="butAction" href="'.DOL_URL_ROOT.'/compta/facture/card.php?action=create&socid='.$object->id.'">'.$langs->trans("AddBill").'</a></div>';
-					else print '<div class="inline-block divButAction"><a class="butActionRefused" title="'.dol_escape_js($langs->trans("ThirdPartyMustBeEditAsCustomer")).'" href="#">'.$langs->trans("AddBill").'</a></div>';
+                $form = new Form($this->db);
+                $formquestion = array(
+                    array(
+                        'name' => 'synergiestech_generate_ticket_report_date_start',
+                        'label' => $langs->trans('DateStart'),
+                        'type' => 'date',
+                        'value' => $date_start
+                    ),
+                    array(
+                        'name' => 'synergiestech_generate_ticket_report_date_end',
+                        'label' => $langs->trans('DateEnd'),
+                        'type' => 'date',
+                        'value' => $date_end
+                    ),
+                );
 
-				}
-			}
-		}
+                print $form->formconfirm($_SERVER['PHP_SELF'] . "?id=" . $object->id, $langs->trans("SynergiesTechTicketGenerateReportConfirm"), '', 'synergiestech_generate_ticket_report_confirm', $formquestion, 'yes', 1, 200);
+            }
+
+            if ($user->rights->synergiestech->generate->ticket_report)
+                print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=synergiestech_generate_ticket_report">' . $langs->trans("SynergiesTechTicketGenerateReport") . '</a></div>';
+            else
+                print '<div class="inline-block divButAction"><a class="butActionRefused" href="#" title="' . $langs->trans("NotEnoughPermissions") . '">' . $langs->trans("SynergiesTechTicketGenerateReport") . '</a></div>';
+        }
+
+        return 0;
+    }
+
+    /**
+     * Overloading the formConfirm function : replacing the parent's function with the one below
+     *
+     * @param   array()         $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          &$action        Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+    function formConfirm($parameters, &$object, &$action, $hookmanager)
+    {
+        global $conf, $langs, $user;
+        global $form;
+
+        $contexts = explode(':', $parameters['context']);
+
+        if (in_array('advancedticketcard', $contexts)) {
+            if ($action == 'synergiestech_returnproducts') {
+                $langs->load("orders");
+                $langs->load("retourproduits@retourproduits");
+                $langs->load("equipement@equipement");
+
+                dol_include_once('/synergiestech/lib/synergiestech.lib.php');
+                $lines = synergiestech_get_return_products_list($this->db, $object->socid);
+
+                if (empty($lines)) {
+                    setEventMessage($langs->trans('RetourProduitsErrorNoProductSent'), 'errors');
+                    return 0;
+                }
+
+                require_once DOL_DOCUMENT_ROOT . '/product/class/html.formproduct.class.php';
+                $formproduct = new FormProduct($this->db);
+
+                $products_list = array();
+                $orders_list = array();
+                $equipments_list = array();
+                foreach ($lines as $product_id => $line) {
+                    $products_list[$product_id] = $line['product'];
+                    foreach ($line['orders'] as $order_line_id => $order_line) {
+                        $orders_list[$order_line_id] = $order_line['label'];
+                        foreach ($order_line['equipments'] as $equipment_id => $equipment) {
+                            $equipments_list[$equipment_id] = $equipment;
+                        }
+                    }
+                }
+
+                $formquestion = array(array(
+                    'type' => 'other',
+                    'label' => $form->selectarray('synergiestech_product', $products_list,'', 1, 0, 0, '', 0, 0, 0, '', ' minwidth200', 1),
+                    'value' =>
+                        '<table width="100%">'.
+                        '<tr>'.
+                        '<td>'.
+                        $langs->trans('Order') . ' * : '.$form->selectarray('synergiestech_order', array(),'', 1, 0, 0, '', 0, 0, 0, '', ' minwidth200', 1).'<br>' .
+                        $langs->trans('Qty') . ' * : <input type="number" id="synergiestech_qty" min="0" max="0"> ' .
+                        ' ' . $langs->trans('Warehouse') . ' * : ' . $formproduct->selectWarehouses('', 'synergiestech_warehouse', 'warehouseopen,warehouseinternal', 1) .
+                        '<br>' . $langs->trans('Equipements') . ' : ' . $form->multiselectarray('synergiestech_equipments', array(), array(), 0, 0, '', 0, 0, 'style="min-width:300px"') .
+                        '</td>'.
+                        '<td style="vertical-align: middle;" align="center" width="24px"><a href="#" id="synergiestech_add">'.img_edit_add($langs->trans('Add')).'</a></td>'.
+                        '</tr>'.
+                        '<table>'
+                ));
+                $selected_lines = array();
+                foreach ($lines as $product_id => $line) {
+                    foreach ($line['orders'] as $line_id => $order_line) {
+                        if( GETPOST('s-' . $line_id, 'int') == $line_id) {
+                            $selected_lines[$line_id] = array(
+                                'p' => GETPOST('p-' . $line_id, 'int'),
+                                'q' => GETPOST('q-' . $line_id, 'int'),
+                                'w' => GETPOST('w-' . $line_id, 'int'),
+                                'e' => GETPOST('e-' . $line_id, 'alpha'), // Todo check si le multi-select renvoie une liste d'ids séparer par des virgules ou un array d'ids
+                            );
+                        }
+
+                        $formquestion[] = array(
+                            'name' => array('s-' . $line_id, 'p-' . $line_id, 'q-' . $line_id, 'w-' . $line_id, 'e-' . $line_id),
+                        );
+                    }
+                }
+
+                $useAjax = $conf->use_javascript_ajax ? 'true' : 'false';
+                $orderText = str_replace("'", "\\'",$langs->trans('Order') . ': ');
+                $qtyText = str_replace("'", "\\'",$langs->trans('Qty') . ': ');
+                $yesText = str_replace("'", "\\'",$langs->transnoentities("Yes"));
+                $warehouseText = str_replace("'", "\\'",$langs->trans('Warehouse') . ': ');
+                $equipmentsText = str_replace("'", "\\'",$langs->trans('Equipements') . ': ');
+                $del_img = str_replace("'", "\\'", img_edit_remove($langs->trans('Delete')));
+                $lines = json_encode(empty($lines) ? new stdClass() : $lines);
+                $selected_lines = json_encode(empty($selected_lines) ? new stdClass() : $selected_lines);
+                $products_list = json_encode(empty($products_list) ? new stdClass() : $products_list);
+                $orders_list = json_encode(empty($orders_list) ? new stdClass() : $orders_list);
+                $equipments_list = json_encode(empty($equipments_list) ? new stdClass() : $equipments_list);
+                $out = <<<SCRIPT
+    <script>
+        $(document).ready(function() {
+            var synergiestech_products_list = $products_list;
+            var synergiestech_orders_list = $orders_list;
+            var synergiestech_equipments_list = $equipments_list;
+            var synergiestech_returnproducts_list = $lines;
+            var synergiestech_returnproducts_selected_list = $selected_lines;
+            var synergiestech_table = $('#synergiestech_product').closest('tbody');
+            if (synergiestech_table.length == 0) synergiestech_table = $('#synergiestech_product').closest('table');
+
+            // Define function if not exist
+            if(!Object.keys) {
+              Object.keys = function(obj) {
+                return $.map(obj, function(v, k) { return k; });
+              };
+            }
+
+            // Initialization
+            $.map(synergiestech_returnproducts_selected_list, function(line, order_line_id) {
+              synergiestech_add_line(order_line_id, line.p, line.q, line.w, line.e);
+            });
+            synergiestech_update_select_order();
+            synergiestech_update_select_infos();
+
+            // Events
+            $('#synergiestech_product').on('change', function() {
+              synergiestech_update_select_order();
+              synergiestech_update_select_infos();
+            });
+            $('#synergiestech_order').on('change', function() {
+              synergiestech_update_select_infos();
+            });
+            $('#synergiestech_add').on('click', function() {
+              var order_line_id = $('#synergiestech_order').val();
+              var product_id = $('#synergiestech_product').val();
+              var qty = $('#synergiestech_qty').val();
+              var warehouse_id = $('#synergiestech_warehouse').val();
+              var equipments_ids = $('#synergiestech_equipments').val();
+
+              synergiestech_add_line(order_line_id, product_id, qty, warehouse_id, equipments_ids);
+            });
+            $("#dialog-confirm").on("dialogcreate", function() {
+              synergiestech_update_confirm_button();
+            });
+
+            // Functions
+            function synergiestech_update_confirm_button() {
+              if (Object.keys(synergiestech_returnproducts_selected_list).length == 0) {
+                $('div.ui-dialog-buttonset button:contains(\'$yesText\')').addClass('ui-state-disabled');
+              } else {
+                $('div.ui-dialog-buttonset button:contains(\'$yesText\')').removeClass('ui-state-disabled');
+              }
+            }
+            function synergiestech_update_select_product() {
+              $('#synergiestech_product').empty();
+              $('#synergiestech_product').append($('<option>', {
+                value: -1,
+                text: ''
+              }));
+              $('#synergiestech_product').val(-1);
+              if($useAjax) {
+                $('#synergiestech_product').select2().val(-1);
+              }
+
+              $.map(synergiestech_returnproducts_list, function(product, product_id) {
+                var has_order = false;
+
+                if (product_id in synergiestech_returnproducts_list) {
+                  $.map(synergiestech_returnproducts_list[product_id].orders, function(order_line, order_line_id) {
+                    if (!(order_line_id in synergiestech_returnproducts_selected_list)) {
+                      has_order = true;
+                      return false;
+                    }
+                  });
+                }
+
+                if (has_order) {
+                  $('#synergiestech_product').append($('<option>', {
+                    value: product_id,
+                    text: product.product
+                  }));
+                }
+              });
+
+              synergiestech_update_select_order();
+              synergiestech_update_select_infos();
+            }
+            function synergiestech_update_select_order() {
+              var product_id = $('#synergiestech_product').val();
+
+              $('#synergiestech_order').empty();
+              $('#synergiestech_order').append($('<option>', {
+                value: -1,
+                text: ''
+              }));
+              $('#synergiestech_order').val(-1);
+              if($useAjax) {
+                $('#synergiestech_order').select2().val(-1);
+              }
+
+              if (product_id in synergiestech_returnproducts_list) {
+                $.map(synergiestech_returnproducts_list[product_id].orders, function(order_line, order_line_id) {
+                  if (!(order_line_id in synergiestech_returnproducts_selected_list)) {
+                    $('#synergiestech_order').append($('<option>', {
+                      value: order_line_id,
+                      text: order_line.label
+                    }));
+                  }
+                });
+              }
+            }
+            function synergiestech_update_select_infos() {
+              var product_id = $('#synergiestech_product').val();
+              var order_line_id = $('#synergiestech_order').val();
+
+              $('#synergiestech_qty').attr('min', 0).attr('max', 0).val(0);
+              $('#synergiestech_warehouse').val(-1);
+              if($useAjax) {
+                $('#synergiestech_warehouse').select2().val(-1);
+              }
+              $('#synergiestech_equipments').empty();
+
+              if (product_id in synergiestech_returnproducts_list && order_line_id in synergiestech_returnproducts_list[product_id].orders) {
+                  var order_line = synergiestech_returnproducts_list[product_id].orders[order_line_id];
+
+                  $('#synergiestech_qty').attr('min', '1').attr('max', order_line.qty_sent).val(order_line.qty_sent);
+                  $.map(order_line.equipments, function(elem, index) {
+                    $('#synergiestech_order').append($('<option>', {
+                        value: index,
+                        text: elem
+                    }));
+                  });
+
+              }
+            }
+            function synergiestech_add_line(order_line_id, product_id, qty, warehouse_id, equipments_ids) {
+              if (product_id in synergiestech_returnproducts_list && order_line_id in synergiestech_returnproducts_list[product_id].orders && parseFloat(qty) > 0 && parseInt(warehouse_id) > 0) {
+                var order_id = synergiestech_returnproducts_list[product_id].orders[order_line_id].order_id;
+                var equipements_selected = [];
+                $.each(equipments_ids, function(elem) {
+                  equipements_selected.push(synergiestech_equipments_list[parseInt(elem.trim())]);
+                });
+                synergiestech_table.append(
+                  '<tr><td style="vertical-align: middle;">'+
+                  '<input type="hidden" id="s-'+order_line_id+'" name="s-'+order_line_id+'" value="'+order_line_id+'">'+
+                  '<input type="hidden" id="p-'+order_line_id+'" name="p-'+order_line_id+'" value="'+product_id+'">'+
+                  '<input type="hidden" id="q-'+order_line_id+'" name="q-'+order_line_id+'" value="'+qty+'">'+
+                  '<input type="hidden" id="w-'+order_line_id+'" name="w-'+order_line_id+'" value="'+warehouse_id+'">'+
+                  '<input type="hidden" id="e-'+order_line_id+'" name="e-'+order_line_id+'" value="'+equipments_ids+'">'+
+                  synergiestech_products_list[product_id]+
+                  '</td><td colspan="2">'+
+                  '<table width="100%"><tr><td>'+
+                  '$orderText'+synergiestech_orders_list[order_line_id]+'<br>'+
+                  '$qtyText'+qty+'<br>'+
+                  '$warehouseText'+$('#synergiestech_warehouse option[value="'+warehouse_id+'"]').text()+'<br>'+
+                  '$equipmentsText'+equipements_selected.join(", ")+'<br>'+
+                  '</td><td style="vertical-align: middle;" align="center" width="24px"><a href="#" id="synergiestech_del">$del_img</a></td>'+
+                  '</tr><table>'+
+                  '</td></tr>'
+                );
+
+                $('#synergiestech_del').on('click', function() {
+                  $(this).closest('table').closest('tr').remove();
+                  if (order_line_id in synergiestech_returnproducts_selected_list) {
+                    delete synergiestech_returnproducts_selected_list[order_line_id];
+                    synergiestech_update_select_product();
+                    synergiestech_update_confirm_button();
+                  }
+                });
+
+                synergiestech_returnproducts_selected_list[order_line_id] = { p: product_id, q: qty, w: warehouse_id, e: equipments_ids };
+                synergiestech_update_select_product();
+                synergiestech_update_confirm_button();
+              }
+            }
+        });
+    </script>
+SCRIPT;
+                // Create the confirm form
+                $out.= $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('CreateReturnProducts'), $langs->trans('SelectProductsToReturn'), 'synergiestech_create_returnproducts', $formquestion, 'yes', 1, 400, 700);
+
+                $this->resprints = $out;
+
+                return 1;
+            }
+        } elseif (in_array('ordercard', $contexts)) {
+            if ($action == 'synergiestech_addline' && $user->rights->commande->creer) {
+                $langs->load('synergiestech@synergiestech');
+
+                // Create the confirm form
+                $this->resprints = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('SynergiesTechProductOffFormula'), $langs->trans('SynergiesTechConfirmProductOffFormula'), 'confirm_synergiestech_addline', '', 0, 1);
+
+                return 1;
+            }
+        }
+
+
+        return 0;
+    }
+
+    /**
+     * Overloading the doActions function : replacing the parent's function with the one below
+     *
+     * @param   array()         $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          &$action        Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+    function doActions($parameters, &$object, &$action, $hookmanager)
+    {
+        global $conf, $user, $langs;
+
+        $contexts = explode(':', $parameters['context']);
+        $confirm = GETPOST('confirm');
+
+        if (in_array('advancedticketcard', $contexts)) {
+            if ($action == 'synergiestech_set_thirdparty') {
+                $object->socid = GETPOST('socid', 'int');
+                if ($object->updateCommon($user) < 0) {
+                    array_merge($this->errors, $object->errors);
+                    return -1;
+                }
+                header('Location: ' . $_SERVER['PHP_SELF'] . '?id=' . $object->id);
+                exit;
+            } elseif ($action == 'synergiestech_create_returnproducts' && $confirm == 'yes') {
+                $langs->load("retourproduits@retourproduits");
+
+                dol_include_once('/synergiestech/lib/synergiestech.lib.php');
+                $lines = synergiestech_get_return_products_list($this->db, $object->socid);
+
+                // Get selected lines for each order
+                $selected_lines = array();
+                foreach ($lines as $product_id => $line) {
+                    foreach ($line['orders'] as $line_id => $order_line) {
+                        if (GETPOST('s-' . $line_id, 'int') == $line_id) {
+                            $selected_lines[$order_line['order_id']][$line_id] = array(
+                                'p' => GETPOST('p-' . $line_id, 'int'),
+                                'q' => GETPOST('q-' . $line_id, 'int'),
+                                'w' => GETPOST('w-' . $line_id, 'int'),
+                                'e' => GETPOST('e-' . $line_id, 'alpha'), // Todo check si le multi-select renvoie une liste d'ids séparer par des virgules ou un array d'ids
+                                'product' => $line['product'],
+                                'order' => $order_line['label'],
+                                'qty_sent' => $order_line['qty_sent'],
+                                'equipments' => $order_line['equipments'],
+                            );
+                        }
+                    }
+                }
+
+                if (!empty($selected_lines)) {
+                    $langs->load('errors');
+                    $langs->load("equipement@equipement");
+                    $error = 0;
+                    $ndCreated = 0;
+                    $this->db->begin();
+
+                    dol_include_once('/retourproduits/class/retourproduits.class.php');
+
+                    foreach ($selected_lines as $order_id => $order) {
+                        // Create RetourProduits object
+                        $rpds = new RetourProduits($this->db);
+
+                        // Set variables
+                        $rpds->socid = $object->socid;
+                        $rpds->origin = 'commande';
+                        $rpds->origin_id = $order_id;
+                        $rpds->context['synergiestech_create_returnproducts'] = $object->id;
+
+                        // Add lines
+                        foreach ($order as $line_id => $line) {
+                            $fk_product = $line['p'];
+                            $qty = $line['q'];
+                            $fk_entrepot_dest = $line['w'];
+
+                            // Test variables
+                            if ($qty <= 0) {
+                                setEventMessages($line['product'] . ' - ' . $line['order'] . ': ' . $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("Qty")), null, 'errors');
+                                $error++;
+                            }
+                            if ($qty <= 0 || $qty > $line['qty_sent']) {
+                                setEventMessages($line['product'] . ' - ' . $line['order'] . ': ' . $langs->trans("ErrorBadValueForParameter", $qty, $langs->transnoentitiesnoconv("Qty")), null, 'errors');
+                                $error++;
+                            }
+                            if ($fk_entrepot_dest <= 0) {
+                                setEventMessages($line['product'] . ' - ' . $line['order'] . ': ' . $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("Warehouse")), null, 'errors');
+                                $error++;
+                            }
+
+                            $equipments = empty($line['e']) ? array() : explode(',', $line['e']); // Todo check si le multi-select renvoie une liste d'ids séparer par des virgules ou un array d'ids
+                            if (!empty($equipments)) {
+                                if (count($equipments) > min($qty, $line['qty_sent'])) {
+                                    setEventMessages($line['product'] . ' - ' . $line['order'] . ': ' . $langs->trans("RetourProduitsErrorTooManyEquipmentSelected"), null, 'errors');
+                                    $error++;
+                                }
+
+                                foreach ($equipments as $equipment_id) {
+                                    $line = new RetourProduitsLigne($this->db);
+                                    $line->fk_product = $fk_product;
+                                    $line->qty = 1;
+                                    $line->fk_entrepot_dest = $fk_entrepot_dest;
+                                    $line->fk_origin_line = $line_id;
+                                    $line->fk_equipement = $equipment_id;
+
+                                    $qty--;
+                                    $rpds->lines[] = $line;
+                                }
+                            }
+
+                            if ($qty > 0) {
+                                $line = new RetourProduitsLigne($this->db);
+                                $line->fk_product = $fk_product;
+                                $line->qty = $qty;
+                                $line->fk_entrepot_dest = $fk_entrepot_dest;
+                                $line->fk_origin_line = $line_id;
+                                $line->fk_equipement = -1;
+                                $rpds->lines[] = $line;
+                            }
+                        }
+
+                        if (!$error) {
+                            $retourId = $rpds->create($user);
+                            if ($retourId < 0) {
+                                $error++;
+                                setEventMessages($line['product'] . ' - ' . $line['order'] . ': ' . $rpds->error, $rpds->errors, 'errors');
+                            } else {
+                                $ndCreated++;
+                            }
+                        }
+
+                        if ($error) break;
+                    }
+
+                    if (!$error) {
+                        $this->db->commit();
+                        setEventMessage($langs->trans('SynergiesTechCreateNbRetourProduitsSuccessed', $ndCreated));
+                    } else {
+                        $this->db->rollback();
+                        $action = "synergiestech_returnproducts";
+                    }
+                } else {
+                    setEventMessage($langs->trans('RetourProduitsErrorNoProductSelected'), 'errors');
+                    $action = "synergiestech_returnproducts";
+                }
+            }
+        } elseif (in_array('contractcard', $contexts)) {
+            $langs->load('synergiestech@synergiestech');
+            if ($user->rights->synergiestech->generate->ticket_report && $action == 'synergiestech_generate_ticket_report_confirm' && $confirm == 'yes') {
+                if (GETPOST('synergiestech_generate_ticket_report_date_startmonth') && GETPOST('synergiestech_generate_ticket_report_date_startday') && GETPOST('synergiestech_generate_ticket_report_date_startyear') &&
+                    GETPOST('synergiestech_generate_ticket_report_date_endmonth') && GETPOST('synergiestech_generate_ticket_report_date_endday') && GETPOST('synergiestech_generate_ticket_report_date_endyear')
+                ) {
+                    $synergiestech_generate_ticket_report_date_start = dol_mktime(0, 0, 0, GETPOST('synergiestech_generate_ticket_report_date_startmonth'), GETPOST('synergiestech_generate_ticket_report_date_startday'), GETPOST('synergiestech_generate_ticket_report_date_startyear'));
+                    $synergiestech_generate_ticket_report_date_end = dol_mktime(23, 59, 59, GETPOST('synergiestech_generate_ticket_report_date_endmonth'), GETPOST('synergiestech_generate_ticket_report_date_endday'), GETPOST('synergiestech_generate_ticket_report_date_endyear'));
+                    dol_include_once('/synergiestech/lib/synergiestech.lib.php');
+                    $res = synergiestech_ticket_generate_report($this->db, $object->id, $synergiestech_generate_ticket_report_date_start, $synergiestech_generate_ticket_report_date_end);
+                    if ($res > 0) {
+                        setEventMessages($langs->trans('SynergiesTechTicketGenerateReportSuccess'), null);
+                        header('Location: ' . $_SERVER['PHP_SELF'] . '?id=' . $object->id);
+                        exit;
+                    }
+                } else {
+                    $this->errors[] = $langs->trans('SynergiesTechTicketGenerateReportErrorDatesRequired');
+                    return -1;
+                }
+            }
+        } elseif (in_array('ordercard', $contexts)) {
+            if ($action == 'addline' && $user->rights->commande->creer) {
+                $product_id = GETPOST('idprod', 'int');
+
+                if (GETPOST('prod_entry_mode') != 'free' && $product_id > 0) {
+                    $langs->load('synergiestech@synergiestech');
+                    // Gat all contracts of the thirdparty
+                    require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
+                    $contract_static = new Contrat($this->db);
+                    $contract_static->socid = $object->socid;
+                    $list_contract = $contract_static->getListOfContracts();
+
+                    // Get extrafields of the contract
+                    $contract_extrafields = new ExtraFields($this->db);
+                    $contract_extralabels = $contract_extrafields->fetch_name_optionals_label($contract_static->table_element);
+
+                    // Get categories who has the contract formule category in the full path (exclude the contract formule category)
+                    require_once DOL_DOCUMENT_ROOT . '/categories/class/categorie.class.php';
+                    $categorie_static = new Categorie($this->db);
+                    $all_categories = $categorie_static->get_full_arbo('product');
+                    $contract_formule_categories = array();
+                    foreach ($all_categories as $cat) {
+                        if ((preg_match('/^' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '$/', $cat['fullpath']) ||
+                                preg_match('/_' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '$/', $cat['fullpath']) ||
+                                preg_match('/^' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '_/', $cat['fullpath']) ||
+                                preg_match('/_' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '_/', $cat['fullpath'])
+                            ) && $cat['id'] != $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE
+                        ) {
+                            $contract_formule_categories[$cat['label']] = $cat['id'];
+                        }
+                    }
+
+                    // Get product categories for the contract formula
+                    $contract_categories = array();
+                    $contracts_list = array();
+                    $formules_list = array();
+                    $formules_not_found_list = array();
+                    if (!empty($list_contract)) {
+                        foreach ($list_contract as $contract) {
+                            $contract->fetch_optionals();
+                            $formule_id = $contract->array_options['options_formule'];
+                            $formule_label = $contract_extrafields->attribute_param['formule']['options'][$formule_id];
+                            if (!empty($formule_label)) {
+                                $contract_category_id = $contract_formule_categories[$formule_label];
+                                if (isset($contract_category_id)) {
+                                    $formules_list[$formule_id] = $formule_label;
+                                    $contracts_list[] = $contract->getNomUrl(1);
+                                    $contract_categories[$contract_category_id] = $contract_category_id;
+                                } else {
+                                    $formules_not_found_list[$formule_label] = $formule_label;
+                                }
+                            }
+                        }
+                    }
+
+                    if (!empty($contract_categories)) {
+                        // Is product not into the formula
+                        $sql = "SELECT p.rowid";
+                        $sql .= " FROM " . MAIN_DB_PREFIX . "product as p";
+                        $sql .= " LEFT JOIN  " . MAIN_DB_PREFIX . "categorie_product as cp ON cp.fk_product = p.rowid";
+                        $sql .= ' WHERE p.entity IN (' . getEntity('product') . ')';
+                        $sql .= ' AND p.rowid = ' . $product_id;
+                        $sql .= ' AND cp.fk_categorie NOT IN (' . implode(',', $contract_categories) . ')';
+
+                        $resql = $this->db->query($sql);
+                        if ($resql) {
+                            if ($this->db->num_rows($resql) > 0) {
+                                $_SESSION['synergiestech_addline_formulas'] = implode(', ', $contracts_list)
+                                    . ' - ' . $langs->trans('SynergiesTechFormules') . ' : ' . implode(', ', $formules_list);
+                                $_SESSION['synergiestech_addline_get'] = $_GET;
+                                $_SESSION['synergiestech_addline_post'] = $_POST;
+                                $action = 'synergiestech_addline';
+                            }
+                        }
+                    }
+                }
+            } elseif ($action == 'confirm_synergiestech_addline' && $confirm == 'yes' && $user->rights->commande->creer) {
+                $object->context['synergiestech_addline_not_into_formula'] = $_SESSION['synergiestech_addline_formulas'];
+                unset($_SESSION['synergiestech_addline_formulas']);
+                $_GET = $_SESSION['synergiestech_addline_get'];
+                unset($_SESSION['synergiestech_addline_get']);
+                $_POST = $_SESSION['synergiestech_addline_post'];
+                unset($_SESSION['synergiestech_addline_post']);
+                $action = 'addline';
+            }
         }
 
         return 0;
@@ -282,7 +890,7 @@ class ActionsSynergiesTech
     {
         global $conf, $user, $langs;
 
-        $contexts = explode(':',$parameters['context']);
+        $contexts = explode(':', $parameters['context']);
 
         if (in_array('invoicelist', $contexts)) {
             $langs->load('synergiestech@synergiestech');
@@ -292,6 +900,74 @@ class ActionsSynergiesTech
 
             $this->resprints = '<option value="synergiestech_valid"' . (!$enabled ? ' disabled="disabled"' : '') . '>' .
                 $langs->trans("ValidateBill") . '</option>';
+        } elseif (in_array('contractlist', $contexts)) {
+            $langs->load('synergiestech@synergiestech');
+
+            $disabled = !$user->rights->synergiestech->generate->ticket_report;
+            $this->resprints = '<option value="synergiestech_generate_ticket_report"' . ($disabled ? ' disabled="disabled"' : '') . '>' . $langs->trans("SynergiesTechTicketGenerateReport") . '</option>';
+        }
+
+        return 0;
+    }
+
+    /**
+     * Overloading the printFieldListTitle function : replacing the parent's function with the one below
+     *
+     * @param   array()         $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          &$action        Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+    function printFieldListTitle($parameters, &$object, &$action, $hookmanager)
+    {
+        global $user, $langs;
+
+        $contexts = explode(':', $parameters['context']);
+
+        if (in_array('contractlist', $contexts)) {
+            $massaction=GETPOST('massaction','alpha');
+            if ($user->rights->synergiestech->generate->ticket_report && $massaction == 'synergiestech_generate_ticket_report') {
+                require_once DOL_DOCUMENT_ROOT . '/core/lib/date.lib.php';
+                $langs->load('synergiestech@synergiestech');
+                $params = array();
+                $invalid_params = [ 'token', 'confirm', 'formfilteraction', 'selectedfields',
+                    'button_search_y', 'button_search.y', 'button_search',
+                    'button_removefilte_x', 'button_removefilter.x', 'button_removefilter',
+                    'action', 'massaction', 'confirmmassaction', 'checkallactions',
+                ];
+                foreach (array_merge($_POST, $_GET) as $key => $value) {
+                    if (!in_array($key, $invalid_params) && $value != '') {
+                        $params[$key] = $value;
+                    }
+                }
+                $base_url = $_SERVER["PHP_SELF"] . (count($params) ? "?" . http_build_query($params, '', '&') : '');
+                $now = dol_getdate(dol_now(), true);
+                $prevmonth = dol_get_prev_month($now['mon'], $now['year']);
+                $date_start = dol_get_first_day($prevmonth['year'], $prevmonth['month']);
+                $date_end = dol_get_last_day($prevmonth['year'], $prevmonth['month']);
+
+                $form = new Form($this->db);
+                $formquestion = array(
+                    array(
+                        'name' => 'synergiestech_generate_ticket_report_date_start',
+                        'label' => $langs->trans('DateStart'),
+                        'type' => 'date',
+                        'value' => $date_start
+                    ),
+                    array(
+                        'name' => 'synergiestech_generate_ticket_report_date_end',
+                        'label' => $langs->trans('DateEnd'),
+                        'type' => 'date',
+                        'value' => $date_end
+                    ),
+                );
+
+                $formconfirm = $form->formconfirm($base_url, $langs->trans("SynergiesTechTicketGenerateReportConfirm"), '', 'synergiestech_generate_ticket_report_confirm', $formquestion, 'yes', 1, 200);
+
+                dol_include_once('/synergiestech/lib/synergiestech.lib.php');
+                synergiestech_print_confirmform($formconfirm);
+            }
         }
 
         return 0;
@@ -310,7 +986,8 @@ class ActionsSynergiesTech
     {
         global $conf, $user, $langs, $mysoc, $hidedetails, $hidedesc, $hideref;
 
-        $contexts = explode(':',$parameters['context']);
+        $contexts = explode(':', $parameters['context']);
+        $confirm  = GETPOST('confirm');
 
         if (in_array('invoicelist', $contexts)) {
             $massaction = GETPOST('massaction', 'alpha');
@@ -430,6 +1107,30 @@ class ActionsSynergiesTech
 
                 if (!empty($errors)) {
                     $this->errors = $errors;
+                    return -1;
+                }
+            }
+        } elseif (in_array('contractlist', $contexts)) {
+            $langs->load('synergiestech@synergiestech');
+            $action = GETPOST('action', 'alpha');
+            if ($user->rights->synergiestech->generate->ticket_report && $action == 'synergiestech_generate_ticket_report_confirm' && $confirm == 'yes') {
+                if (GETPOST('synergiestech_generate_ticket_report_date_startmonth') && GETPOST('synergiestech_generate_ticket_report_date_startday') && GETPOST('synergiestech_generate_ticket_report_date_startyear') &&
+                    GETPOST('synergiestech_generate_ticket_report_date_endmonth') && GETPOST('synergiestech_generate_ticket_report_date_endday') && GETPOST('synergiestech_generate_ticket_report_date_endyear')) {
+                    $synergiestech_generate_ticket_report_date_start = dol_mktime(0, 0, 0, GETPOST('synergiestech_generate_ticket_report_date_startmonth'), GETPOST('synergiestech_generate_ticket_report_date_startday'), GETPOST('synergiestech_generate_ticket_report_date_startyear'));
+                    $synergiestech_generate_ticket_report_date_end = dol_mktime(23, 59, 59, GETPOST('synergiestech_generate_ticket_report_date_endmonth'), GETPOST('synergiestech_generate_ticket_report_date_endday'), GETPOST('synergiestech_generate_ticket_report_date_endyear'));
+                    $error = 0;
+                    dol_include_once('/synergiestech/lib/synergiestech.lib.php');
+                    foreach ($parameters['toselect'] as $objectid) {
+                        $res = synergiestech_ticket_generate_report($this->db, $objectid, $synergiestech_generate_ticket_report_date_start, $synergiestech_generate_ticket_report_date_end);
+                        if ($res < 0) {
+                            $error++;
+                        }
+                    }
+                    if (!$error) {
+                        setEventMessages($langs->trans('SynergiesTechTicketGenerateReportSuccess'), null);
+                    }
+                } else {
+                    $this->errors[] = $langs->trans('SynergiesTechTicketGenerateReportErrorDatesRequired');
                     return -1;
                 }
             }

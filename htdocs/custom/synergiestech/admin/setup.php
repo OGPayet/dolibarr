@@ -112,6 +112,10 @@ if (preg_match('/set_(.*)/',$action,$reg))
         $error++;
     }
 
+    if (dolibarr_set_const($db, 'SYNERGIESTECH_PRODUCT_CATEGORY_FOR_ADVANCEDTICKECT_EMPLACEMENT', GETPOST('SYNERGIESTECH_PRODUCT_CATEGORY_FOR_ADVANCEDTICKECT_EMPLACEMENT', 'int'), 'chaine', 0, '', $conf->entity) <= 0) {
+        $error++;
+    }
+
     if (!$error) {
         Header("Location: " . $_SERVER["PHP_SELF"]);
         exit;
@@ -210,6 +214,16 @@ print '<td>' . $langs->trans("SynergiesTechProductCategoryForContractFormule") .
 print '<td align="center">&nbsp;</td>' . "\n";
 print '<td align="right">' . "\n";
 print $formother->select_categories('product', $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE, 'SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE', 0 ,1);
+print '</td></tr>' . "\n";
+
+
+// SYNERGIESTECH_PRODUCT_CATEGORY_FOR_ADVANCEDTICKECT_EMPLACEMENT
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>' . $langs->trans("SynergiesTechProductCategoryForAdvancedTicketEmplacement") . '</td>' . "\n";
+print '<td align="center">&nbsp;</td>' . "\n";
+print '<td align="right">' . "\n";
+print $formother->select_categories('product', $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_ADVANCEDTICKECT_EMPLACEMENT, 'SYNERGIESTECH_PRODUCT_CATEGORY_FOR_ADVANCEDTICKECT_EMPLACEMENT', 0 ,1);
 print '</td></tr>' . "\n";
 
 print '</table>';

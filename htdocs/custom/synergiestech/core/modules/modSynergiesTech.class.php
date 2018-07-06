@@ -74,7 +74,7 @@ class modSynergiesTech extends DolibarrModules
 		$this->editor_url = 'http://www.open-dsi.fr';
 
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-		$this->version = '1.0.0';
+		$this->version = '1.0.2';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Name of image file used for this module.
@@ -102,9 +102,10 @@ class modSynergiesTech extends DolibarrModules
 		//							'workflow' => array('WORKFLOW_MODULE1_YOURACTIONTYPE_MODULE2'=>array('enabled'=>'! empty($conf->module1->enabled) && ! empty($conf->module2->enabled)', 'picto'=>'yourpicto@mymodule')) // Set here all workflow context managed by module
 		//                        );
 		$this->module_parts = array(
+            'dictionaries' => 1,
             'tpl' => 1,
             'triggers' => 1,
-            'hooks' => array('tab_supplier_order', 'tab_expedition_add', 'invoicelist', 'main'),
+            'hooks' => array('ordercard', 'contractcard', 'tab_supplier_order', 'tab_expedition_add', 'invoicelist', 'main'),
         );
 
 		// Data directories to create when module is enabled.
@@ -204,6 +205,13 @@ class modSynergiesTech extends DolibarrModules
 		$this->rights = array();		// Permission array used by this module
 		$r=0;
 
+        $this->rights[$r][0] = 500100;
+	$this->rights[$r][1] = 'Generate Ticket Report';
+	$this->rights[$r][3] = 0;
+	$this->rights[$r][4] = 'generate';
+	$this->rights[$r][5] = 'ticket_report';
+	$r++;
+
 		// Add here list of permission defined by an id, a label, a boolean and two constant strings.
 		// Example:
 		// $this->rights[$r][0] = $this->numero + $r;	// Permission id (must not be already used)
@@ -291,6 +299,15 @@ class modSynergiesTech extends DolibarrModules
         $extrafields = new ExtraFields($this->db);
         // Product
         $result=$extrafields->addExtraField('synergiestech_to_serialize', $langs->trans("SynergiesTechSerializable"), 'boolean', 10,  '', 'product',   0, 0, '', '', 1, '', 1, 0, ''); // For >= v7: ", '', 'synergiestech@synergiestech', '$conf->synergiestech->enabled');"
+
+        // Create tables of all dictionaries
+/*        dol_include_once('/framework/class/dictionary.class.php');
+        $dictionaries = Dictionary::fetchAllDictionaries($this->db, 'synergiestech');
+        foreach ($dictionaries as $dictionary) {
+            if ($dictionary->createTables() < 0) {
+                setEventMessage('Error create dictionary table: ' . $dictionary->errorsToString(), 'errors');
+            }
+        }*/
 
         return $this->_init($sql, $options);
 	}
