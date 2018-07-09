@@ -1,0 +1,20 @@
+<changelog>
+<Version Number="5.0.+1.0.0"  MonthVersion="2017-06">
+	<change type='inf'>Initial version </change>
+</Version>
+<Version Number="6.0.+1.1.0"  MonthVersion="2017-09">
+	<change type='chg'>6.0 compatibility </change>
+</Version>
+<Version Number="6.0.+1.1.1"  MonthVersion="2017-10">
+	<change type='fix'>habilitation error on delete rate</change>
+</Version>
+<Version Number="6.0.+1.1.2"  MonthVersion="2018-01">
+	<change type='chg'>better presentation of transporteur box</change>
+</Version>
+<Version Number="7.0.+1.2.0"  MonthVersion="2018-02">
+	<change type='chg'>7.0 compatibility</change>
+	<change type='chg'>Patas monkey Color for additionnal button are orange</change>
+</Version>
+
+<Dolibarr minVersion="4.0.0"/>
+</changelog>

@@ -352,7 +352,7 @@ class L_chronopost extends shipping_class
 	    $shippingWithReservationAndESDWithRefClient['refValue']=$refValue;
 	    $shippingWithReservationAndESDWithRefClient['skybillValue']=$skybillValue;
 	    $shippingWithReservationAndESDWithRefClient['skybillParamsValue']=$skybillParamsValue;
-	    $shippingWithReservationAndESDWithRefClient['password']="255562";
+	    $shippingWithReservationAndESDWithRefClient['password']=$conf->global->CHRONOPOSTPWD;
 	    $shippingWithReservationAndESDWithRefClient['modeRetour']=2;
 	    $shippingWithReservationAndESDWithRefClient['version']=2.0;
 

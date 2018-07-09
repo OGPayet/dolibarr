@@ -1,0 +1,72 @@
+# Dolibarr language file - fr_FR - Transporteur
+CHARSET=UTF-8
+
+# ADMIN/ABOUT
+BackToModuleList=Retour à la liste des modules
+About=À propos
+Settings=Configuration
+CustomLineSetup=Configuration du module CustomLine
+NewVersionAviable=Une nouvelle version du module est disponible
+NumberVersion=Version
+MonthVersion=Mois de publication
+ChangesVersion=Principales modifications apportées
+Extrafield=Attribut supplémentaire
+Extrafields=Attributs supplémentaires
+PatasToolsNews=Retrouvez ici les informations de patas-monkey.com (nécessite une connexion à internet)
+PatasTools=Outils Patas-M
+SupportModuleInformation=Informations techniques
+SupportModuleInformationDesc=<br/><em>Note : Ces informations sont utiles et pourront vous être demandées si vous rencontrez un bug dans le fonctionnement du module.</em>
+DolibarrVersion=Version de Dolibarr
+ModuleVersion=Version du module
+PHPVersion=Version de PHP
+DatabaseVersion=Version de la base de données
+WebServerVersion=Version du serveur web
+Slogan=Développement, support et formation pour Dolibarr
+LienModules=Nos modules
+LienServices=Nos services
+LienDoc=Nos documentations
+LienDolistore=Retrouvez nos autres modules
+GeneralSetup=Paramètres généraux
+Changelog=ChangeLog du module
+
+
+TransPorteur=TransPorteur
+TransPorteurPresentation=Calcul et ajout des couts de transport selon le poid
+
+PatasMonkeyPresent=Ce module est une création des patas-monkey, une documentation de celui-ci est disponible sur notre site
+transporteurGeneralSetting=Paramètres généraux
+TransPorteurSetup=Paramétrage du module TransPorteur
+TransPorteurSettingValue=Définition des valeurs du modules
+MoreModules=Autres Modules
+MoreModulesLink=D'autres modules que nous avons développés sont disponibles sur le Dolistore
+
+# Admin
+
+ServiceAssociatedToTransport=Service associé au transport
+InfoServiceAssociatedToTransport=Sélection du service qui sera ajouté comme frais de transport dans les documents
+TransporteurFranco=Franco de port
+InfoTransporteurFranco=Valeur correspondant au montant de la commande pour offrir les frais de transport (Franco de port)
+TransporteurFrancoText=Texte Franco de port
+InfoTransporteurFrancoText=Texte affiché pour le Franco de port au niveau des documents pdf
+
+UpdateSaved=Mise à jour effectuée
+value=Sélection
+# rate
+Prices=Tarifs
+transporteurRate=Frais de Transport
+WeightMin=Poids mini
+WeightMax=Poids maxi
+WeightUnit=Unités
+Subprice=Coût
+NewRate=Nouveau Frais de port
+NewTransporteurRate=Nouveau Frais de transport
+EditTransporteurRate=Modifier Frais de transport
+DeleteRate=Supprimer ce frais de port
+BackToTransPorteurRateList=Retour à la liste des frais de transport
+NoTransportPriceDefined=Pas de grille de prix définie
+#Main Screen
+AddTransporteur=Ajouter les Frais de ports
+TotalWeight=Poid Total
+EstimedPrice=Coût Estimé
+RestBeforeFranco= %d Restant avant le Franco de port
+FrancoDePortText=Franco de port pour %s KG
