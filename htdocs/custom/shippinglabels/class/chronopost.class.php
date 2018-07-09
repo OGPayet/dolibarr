@@ -277,8 +277,8 @@ class L_chronopost extends shipping_class
 		$customerValue['customerCountryName']=$contact->country;
 		$customerValue['customerEmail']=$contact->email;
 		$customerValue['customerMobilePhone']=$contact->phone_mobile;
-		$customerValue['customerName'];
-		$customerValue['customerName2'];
+		$customerValue['customerName'] = $soc->name;
+		$customerValue['customerName2'] = $soc->name_alias;
 		$customerValue['customerPhone']=$contact->phone_perso;
 		$customerValue['customerPreAlert']=0;
 		$customerValue['customerZipCode']=$contact->zip;
@@ -293,8 +293,8 @@ class L_chronopost extends shipping_class
 		$recipientValue['recipientCountryName']=$contact->country;
 		$recipientValue['recipientEmail']=$contact->email;
 		$recipientValue['recipientMobilePhone']=$contact->phone_mobile;
-		$recipientValue['recipientName'];
-		$recipientValue['recipientName2'];
+		$recipientValue['recipientName']=$soc->name;
+		$recipientValue['recipientName2']=$soc->name_alias;
 		$recipientValue['recipientPhone']=$contact->phone_perso;
 		$recipientValue['recipientPreAlert']=0;
 		$recipientValue['recipientZipCode']=$contact->zip;
