@@ -188,7 +188,7 @@ class L_ups extends shipping_class
 		}
 
 
-	    $shipto['Name'] = $soc->name; // lastname
+	    $shipto['Name'] = $soc->name . ' ' . $soc->name_alias; // lastname
 	    $shipto['AttentionName'] =  $contact->lastname. ' '. $contact->firstname; //
 
 	    $adlines2 = $this->format_address($contact->address);
