@@ -187,8 +187,9 @@ class L_ups extends shipping_class
 			$errorcount++;
 		}
 
-
-	    $shipto['Name'] = $soc->name . ' ' . $soc->name_alias; // lastname
+	    $shipto['Name'] = ($soc->name_alias == NULL ? $soc->name : $soc->name_alias); // lastname
+		echo isset($soc->name_alias);
+		echo $soc->name_alias;
 	    $shipto['AttentionName'] =  $contact->lastname. ' '. $contact->firstname; //
 
 	    $adlines2 = $this->format_address($contact->address);

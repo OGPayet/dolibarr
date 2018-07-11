@@ -272,7 +272,7 @@ class L_chronopost extends shipping_class
 	    $this->errors[]=$langs->trans("NoCivility");
 	    }
 
-		$customerValue['customerContactName']=$contact->firstname.''.$contact->lastname;
+		$customerValue['customerContactName']=$contact->firstname.' '.$contact->lastname;
 		$customerValue['customerCountry']=$contact->country_code;
 		$customerValue['customerCountryName']=$contact->country;
 		$customerValue['customerEmail']=$contact->email;
