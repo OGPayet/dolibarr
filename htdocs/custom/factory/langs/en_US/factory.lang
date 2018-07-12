@@ -352,3 +352,7 @@ InfoSellPrice=Unit selling price HT
 InfoPMP=PMP <br/> unitary HT
 InfoCostPrice=Unit cost price HT
 DateEndPlanned=End date plan
+
+# Direct Factory
+FactoryWarehouse=Factory warehouse for this product
+ErrorNotEnoughtComponentToBuild=Not enough component in this warehouse stock

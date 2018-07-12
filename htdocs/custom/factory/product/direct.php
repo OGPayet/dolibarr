@@ -37,9 +37,11 @@ require_once DOL_DOCUMENT_ROOT."/core/lib/product.lib.php";
 require_once DOL_DOCUMENT_ROOT."/product/class/product.class.php";
 require_once DOL_DOCUMENT_ROOT."/product/stock/class/entrepot.class.php";
 require_once DOL_DOCUMENT_ROOT."/categories/class/categorie.class.php";
+require_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
 
 dol_include_once('/factory/class/factory.class.php');
 dol_include_once('/factory/core/lib/factory.lib.php');
+dol_include_once('/factory/class/html.factoryformproduct.class.php');
 
 $langs->load("bills");
 $langs->load("products");
@@ -76,6 +78,113 @@ if ($id || $ref) {
  */
 
 
+$factoryIdEntrepot = (GETPOST('factory_id_entrepot', 'int')?intval(GETPOST('factory_id_entrepot', 'int')):-1);
+$nbToBuild = (GETPOST('nbToBuild', 'int')?intval(GETPOST('nbToBuild', 'int')):1);
+
+if ($action == 'buildit') {
+
+    $error = 0;
+    $mesg = '';
+
+    // check mandatory fields
+    if ($factoryIdEntrepot <= 0) {
+        $error++;
+        $mesg .= '<div class="error">' . $langs->trans("ErrorFieldRequired", $langs->transnoentities("FactoryWarehouse")) . '</div>';
+    }
+
+    if ($nbToBuild <= 0)
+    {
+        $error++;
+        $mesg .= '<div class="error">' . $langs->trans("ErrorFieldRequired", $langs->trans("NbToBuild")) . '</div>';
+    }
+
+    if (!$error) {
+        $factory->get_sousproduits_arbo();
+        $prods_arbo = $factory->get_arbo_each_prod();
+
+        if (count($prods_arbo) > 0) {
+            $pmpprice = 0;
+            $productTouUseList = array();
+
+            foreach ($prods_arbo as $value) {
+                // only for product
+                if (intval($value['type']) == 0) {
+                    $lineNum = 0;
+                    $productId = $value['id'];
+                    $productNb = intval($value['nb']) * $nbToBuild;
+
+                    // init product stock list by warehouse
+                    $productEntrepotStockNbList = array();
+
+                    // load warehouses stocks of this product
+                    $productstatic = new Product($db);
+                    $productstatic->fetch($productId);
+                    $productstatic->load_stock();
+
+                    for ($productNum = 0; $productNum < $productNb; $productNum++)
+                    {
+                        $productFactoryIdEntrepot = GETPOST('factory_id_entrepot_' . $productId . '_' . $lineNum, 'int');
+                        $productFactoryQtyPost = GETPOST('factory_qty_' . $productId . '_' . $lineNum, 'int');
+                        $productFactoryQty = intval($productFactoryQtyPost);
+
+                        if ($productFactoryQty >= 1) {
+                            if ($productFactoryIdEntrepot <= 0) {
+                                $error++;
+                                $mesg .= '<div class="error">' . $langs->trans('ErrorFieldRequired', $langs->transnoentities('Warehouse')) . '</div>';
+                                break;
+                            }
+
+                            if (!isset($productEntrepotStockNbList[$productFactoryIdEntrepot])) {
+                                $productEntrepotStockNbList[$productFactoryIdEntrepot] = intval($productstatic->stock_warehouse[$productFactoryIdEntrepot]->real);
+                            }
+
+                            // if there is not enough product in the warehouse stock
+                            if (($productEntrepotStockNbList[$productFactoryIdEntrepot] - $productFactoryQty) <= 0) {
+                                // get product warehouse
+                                $productEntrepot = new Entrepot($db);
+                                $productEntrepot->fetch($productFactoryIdEntrepot);
+
+                                $error++;
+                                $mesg .= '<div class="error">' . $productEntrepot->lieu . ' : ' . $langs->trans('ErrorNotEnoughtComponentToBuild') . '</div>';
+                            } else {
+                                // add this product to use list and extract from the warehouse stock
+                                $productTouUseList[] = array('idEntrepot' => $productFactoryIdEntrepot, 'product' => $productstatic, 'qty' => $productFactoryQty);
+                                $productEntrepotStockNbList[$productFactoryIdEntrepot] -= $productFactoryQty;
+                            }
+                        }
+
+                        $lineNum++;
+                    }
+                }
+            }
+
+            // if no errors and we have product component list
+            if (!$error && count($productTouUseList)>0) {
+                $pmpprice = 0;
+
+                // use product components and extract them from warehouse stock
+                foreach ($productTouUseList as $productToUse) {
+                    $productstatic = $productToUse['product'];
+                    $pmpprice += $productToUse['qty'] * $productstatic->pmp;
+
+                    $productstatic->correct_stock($user, $productToUse['idEntrepot'], $productToUse['qty'], 1, $langs->trans("ProductUsedForDirectBuild"), $productstatic->price);
+                    $mesg .= '<div class="ok"> Produit [id=' . $productstatic->id . '] -> ' . $productToUse['qty'] . '</div>';
+                }
+
+                // add the new product to the warehouse
+                $object->correct_stock($user, $factoryIdEntrepot, $nbToBuild, 0, $langs->trans("ProductDirectBuilded"), $pmpprice);
+
+                // little message to inform of the number of builded product
+                $mesg .= '<div class="ok">' . $nbToBuild . ' ' . $langs->trans("ProductBuilded") . '</div>';
+            }
+        }
+
+        // return on the product screen
+        $action = '';
+    }
+}
+
+/*
 // build product on each store
 if ($action == 'buildit') {
 
@@ -157,6 +266,7 @@ if ($action == 'buildit') {
 		$action ="";
 	}
 }
+*/
 
 
 /*
@@ -169,7 +279,8 @@ if ($action == 'buildit') {
 $productstatic = new Product($db);
 $form = new Form($db);
 
-llxHeader("", "", $langs->trans("CardProduct".$product->type));
+//llxHeader("", "", $langs->trans("CardProduct".$product->type));
+llxHeader('', '', $langs->trans("CardProduct".$product->type), '', 0, 0, array('/custom/factory/js/factory_dispatcher.js'));
 
 dol_htmloutput_mesg($mesg);
 
@@ -179,6 +290,7 @@ $picto=('product');
 dol_fiche_head($head, 'factory', $titre, 0, $picto);
 $linkback = '<a href="'.DOL_URL_ROOT.'/product/list.php'.(! empty($socid)?'?socid='.$socid:'').'">'.$langs->trans("BackToList").'</a>';
 if ($id || $ref) {
+
 	if ($result) {
 		if (DOL_VERSION >= "5.0.0"){
 			dol_banner_tab($object, 'ref', $linkback, ($user->societe_id?0:1), 'ref');
@@ -425,14 +537,87 @@ if ($id || $ref) {
             print '<br>';
             print_fiche_titre($langs->trans("Building"), '', '');
             print '<b>' . $langs->trans("BuildindListInfo") . '</b><br>';
-            print '<form action="direct.php?id=' . $id . '" method="post">';
-            print '<input type="hidden" name="action" value="buildit">';
-            print '<table class="border" width="35%">';
+            print '<form action="direct.php?id=' . $id . '" id="factory_form" method="post">';
+            print '<input type="hidden" id="factory_form_action" name="action" value="buildit">';
+            print '<table class="border">';
 
             //-------------------------------------
             // Modification - OpenDSI - Begin
             //-------------------------------------
             // loop on the store
+
+            // select factory warehouse
+            $formproduct = new FactoryFormProduct($db);
+            print '<tr>';
+            print '<td class="fieldrequired">' . $langs->trans("FactoryWarehouse") . '</td>';
+            print '<td>';
+            print $formproduct->selectWarehouses('', 'factory_id_entrepot', 'warehouseopen,warehouseinternal', 0, 0, $object->id, '', 0, 0, null, 'minwidth100');
+            print '</td>';
+            print '<td>';
+            print '<input style="text-align:right;" type="text" id="factory_nbtobuild" name="nbToBuild" size="2" value="' . $nbToBuild . '" />';
+            print '</td>';
+            print '</tr>';
+
+            foreach ($prods_arbo as $value) {
+                // component product
+                $componentProduct = new Product($db);
+                $componentProduct->fetch($value['id']);
+
+                $dispactherList = array('id' => $value['id'], 'name' => 'factory', 'line' => 0, 'nb' => intval($value['nb']) * $nbToBuild, 'btn_nb' => 0);
+
+                // select warehouse where there is enough stock with qty dispatcher
+                print '<tr name="' . $dispactherList['name'] . '_' . $dispactherList['id'] . '_' . $dispactherList['line'] . '">';
+                print '<td class="fieldrequired">' . $componentProduct->ref . '</td>';
+                print '<td>';
+                print $formproduct->selectWarehouses('', $dispactherList['name'] . '_id_entrepot_' . $dispactherList['id'] . '_' . $dispactherList['line'], 'warehouseopen,warehouseinternal', 0, 0, $dispactherList['id'], '', 0, 1, null, 'minwidth100',  '', 1, TRUE);
+                print '</td>';
+
+                print '<td>';
+                print '<select id="' . $dispactherList['name'] . '_qty_' . $dispactherList['id'] . '_' . $dispactherList['line'] . '" name="' . $dispactherList['name'] . '_qty_' . $dispactherList['id'] . '_' . $dispactherList['line'] . '">';
+
+                for ($dispatcherQty = 1; $dispatcherQty <= $dispactherList['nb']; $dispatcherQty++) {
+                    $dispatcherOptionSelected = '';
+                    if ($dispatcherQty === $nbToBuild) {
+                        $dispatcherOptionSelected = ' selected="selected"';
+                    }
+
+                    print '<option value="' . $dispatcherQty . '"' . $dispatcherOptionSelected . '>' . $dispatcherQty . '</option>';
+                }
+
+                print '</select>';
+                print '</td>';
+
+                print '<td name="' . $dispactherList['name'] . '_action_' . $dispactherList['id'] . '_' . $dispactherList['line'] . '">';
+                if ($dispactherList['btn_nb'] === 0 && $dispactherList['nb'] > 1) {
+                    print '&nbsp;&nbsp;' . img_picto($langs->trans('AddDispatchBatchLine'), 'split.png', 'onClick="FactoryDispatcher.addLineFromDispatcher(' . $dispactherList['id'] . ',\'' . $dispactherList['name'] . '\')"') . '';
+                    $dispactherList['btn_nb']++;
+                }
+                print '</td>';
+
+                print '</tr>';
+
+                $dispactherList['line']++;
+            }
+
+            print '<tr>';
+            print '<td colspan="3" align="right">';
+            print '<input type="submit" class="button" value="' . $langs->trans("BuildIt") . '" />';
+            print '</td>';
+            print '</tr>';
+
+            print <<<SCRIPT
+    <script type="text/javascript" language="javascript">
+        jQuery(document).ready(function(){
+            jQuery('#factory_nbtobuild').on('change', function(){
+                jQuery('#factory_form_action').val('prebuildit');
+                jQuery('#factory_form').submit();
+            })
+        });
+    </script>
+SCRIPT;
+
+
+            /*
             $sql = "SELECT e.rowid, e.lieu, e.zip, IF(ee.rowid IS NULL, 0, 1) as favorite";
             $sql .= " FROM " . MAIN_DB_PREFIX . "entrepot as e";
             $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "element_element as ee";
@@ -454,19 +639,20 @@ if ($id || $ref) {
                         // get the number of product buidable on the store
                         $fabricable = $factory->getNbProductBuildable($obj->rowid, $id);
                         if ($fabricable < 0)
-                            $fabricable = 0; // il ne sert � rien d'afficher un montant n�gatif
+                            $fabricable = 0; // il ne sert a rien d'afficher un montant negatif
                         $totFabricable += $fabricable;
                         $listNbToBuild[$obj->favorite . '_' . $fabricable . '_' . $obj->rowid] = $obj->lieu . (!empty($obj->zip) ? " (" . $obj->zip . ")" : "") . " => " . $fabricable;
-                        /*print "<tr><td>".$obj->lieu." (".$obj->zip.")</td>";
-                        print '<td align=right >';
-                        print '<input style="text-align:right;" type="text" name="nbToBuild'.$obj->rowid.'" size=5 value="'.$fabricable.'">';
-                        print '</td></tr>';*/
+                        //print "<tr><td>".$obj->lieu." (".$obj->zip.")</td>";
+                        //print '<td align=right >';
+                        //print '<input style="text-align:right;" type="text" name="nbToBuild'.$obj->rowid.'" size=5 value="'.$fabricable.'">';
+                        //print '</td></tr>';
                         $i++;
                     }
 
                     krsort($listNbToBuild);
                 }
             }
+
 
             if ($totFabricable > 0 || $bAllService) {
                 print '<tr><td>';
@@ -495,21 +681,22 @@ if ($id || $ref) {
     </script>
 SCRIPT;
             }
+            */
             //-------------------------------------
             // Modification - OpenDSI - End
             //-------------------------------------
 
-            print '<tr>';
+            //print '<tr>';
             // si il y a du fabricable ou les composants ne sont que des services
-            if ($totFabricable > 0 || $bAllService) {
-                print '<td colspan=3 align=right>';
-                print '<input type="submit" class="button" value="' . $langs->trans("BuildIt") . '">';
-            } else {
-                print '<td colspan=3 align=left>';
-                print $langs->trans("NotEnoughStockForBuildIt");
-            }
-            print '</td>';
-            print '</tr>';
+            //if ($totFabricable > 0 || $bAllService) {
+            //    print '<td colspan=3 align=right>';
+            //    print '<input type="submit" class="button" value="' . $langs->trans("BuildIt") . '">';
+            //} else {
+            //    print '<td colspan=3 align=left>';
+            //    print $langs->trans("NotEnoughStockForBuildIt");
+            //}
+            //print '</td>';
+            //print '</tr>';
 
             print '</table>';
             print '</form>';

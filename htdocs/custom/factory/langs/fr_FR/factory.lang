@@ -326,3 +326,7 @@ InfoSellPrice=Prix de vente unitaire HT
 InfoPMP=PMP<br/>unitaire HT
 InfoCostPrice=Prix de revient unitaire HT
 DateEndPlanned=Date de fin planifiée
+
+# Direct Factory
+FactoryWarehouse=Entrepôt de fabrication du produit
+ErrorNotEnoughtComponentToBuild=Il n'y a plus assez de composants en stock dans cet entrepôt
