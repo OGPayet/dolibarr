@@ -168,7 +168,6 @@ if ($action == 'buildit') {
                     $pmpprice += $productToUse['qty'] * $productstatic->pmp;
 
                     $productstatic->correct_stock($user, $productToUse['idEntrepot'], $productToUse['qty'], 1, $langs->trans("ProductUsedForDirectBuild"), $productstatic->price);
-                    $mesg .= '<div class="ok"> Produit [id=' . $productstatic->id . '] -> ' . $productToUse['qty'] . '</div>';
                 }
 
                 // add the new product to the warehouse
@@ -176,6 +175,11 @@ if ($action == 'buildit') {
 
                 // little message to inform of the number of builded product
                 $mesg .= '<div class="ok">' . $nbToBuild . ' ' . $langs->trans("ProductBuilded") . '</div>';
+
+                // redirect to equipement tab
+                if ($object->array_options['options_synergiestech_to_serialize']) {
+                    header('Location: ' . dol_buildpath('/equipement/tabs/produit.php?id=' . $object->id, 2));
+                }
             }
         }
 
@@ -183,90 +187,6 @@ if ($action == 'buildit') {
         $action = '';
     }
 }
-
-/*
-// build product on each store
-if ($action == 'buildit') {
-
-	// Loop on each store
-	$sql = "SELECT rowid, lieu, zip";
-	$sql.= " FROM ".MAIN_DB_PREFIX."entrepot";
-	$sql.= " WHERE statut = 1";
-	$sql.= " ORDER BY zip ASC";
-
-	dol_syslog("factory/factory.php::Buildit composed product sql=".$sql);
-
-	$resql=$db->query($sql);
-	if ($resql) {
-		$num = $db->num_rows($resql);
-		$i = 0;
-		if ($num) {
-			$nbTotBuilded=0;
-			// loop on each store
-			while ($i < $num) {
-				$obj = $db->fetch_object($resql);
-				$fk_entrepot=$obj->rowid;
-				$nbToBuild= GETPOST('nbToBuild'.$fk_entrepot, 'int');
-
-				require_once DOL_DOCUMENT_ROOT.'/product/stock/class/mouvementstock.class.php';
-				$mouvP = new MouvementStock($db);
-				$mouvP->origin = new Factory($db);
-				$mouvP->origin->id = $id;
-
-				// number to build on this store
-				if ($nbToBuild > 0) {
-					// How number of product is buildable on this store
-					$nbmaxfabricable=$factory->getNbProductBuildable($fk_entrepot, $id);
-					// verify if the have enough component on the store
-					if ($nbToBuild > $nbmaxfabricable) {
-						//we can't build the quantity needed
-						$error++;
-						$action = 'build';
-						$mesg='<div class="error">'.$obj->lieu." (".$obj->cp.") :".$langs->trans("ErrorNotEnoughtComponentToBuild").'</div>';
-					} else {
-						//print "==".$nbToBuild;
-						// extract from store the component needed
-						$prodsfather = $factory->getFather(); //Parent Products
-						$factory->get_sousproduits_arbo();
-						$prods_arbo = $factory->get_arbo_each_prod();
-						$pmpprice= 0;
-						if (count($prods_arbo) > 0) {
-							// Loop on products to extract to the store
-							foreach ($prods_arbo as $value) {
-								// only product, not the services
-								if ($value['type']==0) {
-									$productstatic = new Product($db);
-									$productstatic->id=$value['id'];
-									$productstatic->fetch($value['id']);
-
-									$nbToUse=$value['nb']*$nbToBuild;
-									$pmpprice+= $value['nb']*$productstatic->pmp;
-									// Extract product of the stock
-									// 1 = build extract to store
-									$productstatic->correct_stock($user, $fk_entrepot, $nbToUse, 1, $langs->trans("ProductUsedForDirectBuild"), $productstatic->price);
-								}
-							}
-						}
-						// At the end we build : add the new products to the store
-						// need to be on the good product
-						$result = $object->fetch($id, $ref);
-						// 0 = build add to store
-						$object->correct_stock($user, $fk_entrepot, $nbToBuild, 0, $langs->trans("ProductDirectBuilded"), $pmpprice);
-						$nbTotBuilded+=$nbToBuild;
-					}
-				}
-				$i++;
-			}
-			// Little message to inform of the number of builded product
-			$mesg='<div class="ok">'.$nbTotBuilded.' '.$langs->trans("ProductBuilded").'</div>';
-		}
-		// return on the product screen
-		$result = $object->fetch($id, $ref);
-		$productid=$object->id;
-		$action ="";
-	}
-}
-*/
 
 
 /*
@@ -616,87 +536,9 @@ if ($id || $ref) {
     </script>
 SCRIPT;
 
-
-            /*
-            $sql = "SELECT e.rowid, e.lieu, e.zip, IF(ee.rowid IS NULL, 0, 1) as favorite";
-            $sql .= " FROM " . MAIN_DB_PREFIX . "entrepot as e";
-            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "element_element as ee";
-            $sql .= " ON (ee.fk_source = " . $productid . " AND ee.sourcetype = 'product' AND ee.targettype = 'stock' AND ee.fk_target = e.rowid)";
-            $sql .= " WHERE e.statut = 1";
-            $sql .= " ORDER BY e.zip ASC";
-
-            dol_syslog("/factory/product/direct.php::Build composed product sql=" . $sql);
-            $resql = $db->query($sql);
-            $totFabricable = 0;
-            $listNbToBuild = array();
-            if ($resql) {
-                $num = $db->num_rows($resql);
-
-                $i = 0;
-                if ($num) {
-                    while ($i < $num) {
-                        $obj = $db->fetch_object($resql);
-                        // get the number of product buidable on the store
-                        $fabricable = $factory->getNbProductBuildable($obj->rowid, $id);
-                        if ($fabricable < 0)
-                            $fabricable = 0; // il ne sert a rien d'afficher un montant negatif
-                        $totFabricable += $fabricable;
-                        $listNbToBuild[$obj->favorite . '_' . $fabricable . '_' . $obj->rowid] = $obj->lieu . (!empty($obj->zip) ? " (" . $obj->zip . ")" : "") . " => " . $fabricable;
-                        //print "<tr><td>".$obj->lieu." (".$obj->zip.")</td>";
-                        //print '<td align=right >';
-                        //print '<input style="text-align:right;" type="text" name="nbToBuild'.$obj->rowid.'" size=5 value="'.$fabricable.'">';
-                        //print '</td></tr>';
-                        $i++;
-                    }
-
-                    krsort($listNbToBuild);
-                }
-            }
-
-
-            if ($totFabricable > 0 || $bAllService) {
-                print '<tr><td>';
-                print $form->selectarray('nbtobuild_warehouse', $listNbToBuild, GETPOST('nbToBuild', 'alpha'));
-                print '</td><td align=right >';
-                print '<input style="text-align:right;" type="text" id="nb_to_build" size=5 value="">';
-                print '</td></tr>';
-                print <<<SCRIPT
-    <script type="text/javascript" language="javascript">
-        $(document).ready(function () {
-            function setDefaultNbToBuild()
-            {
-                var select = $('#nbtobuild_warehouse').val();
-                var tmp = select.split('_');
-                var nb_build = tmp[1];
-                var id = tmp[2];
-
-                $('#nb_to_build').val(nb_build).attr('name', 'nbToBuild'+id);
-            }
-
-            setDefaultNbToBuild();
-            $('#nbtobuild_warehouse').on('change', function() {
-                setDefaultNbToBuild();
-            })
-        });
-    </script>
-SCRIPT;
-            }
-            */
             //-------------------------------------
             // Modification - OpenDSI - End
             //-------------------------------------
-
-            //print '<tr>';
-            // si il y a du fabricable ou les composants ne sont que des services
-            //if ($totFabricable > 0 || $bAllService) {
-            //    print '<td colspan=3 align=right>';
-            //    print '<input type="submit" class="button" value="' . $langs->trans("BuildIt") . '">';
-            //} else {
-            //    print '<td colspan=3 align=left>';
-            //    print $langs->trans("NotEnoughStockForBuildIt");
-            //}
-            //print '</td>';
-            //print '</tr>';
 
             print '</table>';
             print '</form>';
