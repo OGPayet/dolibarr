@@ -328,7 +328,7 @@ class L_ups extends shipping_class
 					dol_syslog(get_class($this)."::".__FUNCTION__."Erreur création image", LOG_ERR);
 				break;
 			case "PDF":
-				$img = imagerotate($img, -90, 0);
+				$img = imagerotate($img, 180, 0);
 				if (imagegif($img, $file.".gif"))
 					dol_syslog(get_class($this)."::".__FUNCTION__."Image créée"." || $file.gif", LOG_DEBUG);
 				else
@@ -339,7 +339,8 @@ class L_ups extends shipping_class
 				$height=pdf_getHeightForLogo($file.".gif");
 				dol_syslog(get_class($this)."::".__FUNCTION__."height for logo: $height", LOG_ERR);
 				$pdf->AddPage();
-				$pdf->Image($file.".gif", 10, 10, 0, 0);    // width=0 (auto)
+
+				$pdf->Image($file.".gif", -5, 12, 200);    // width=0 (auto)
 				$pdf->Close();
 
 				$pdf->Output($file,'F');
