@@ -1554,6 +1554,29 @@ class Equipement extends CommonObject
 	}
 
 
+    /**
+     * Find all equipements in a warehouse
+     *
+     * @param   int         $fkProduct      Id product
+     * @return  resource    SQL resource
+     */
+	public function findAllInWarehouseByFkProduct($fkProduct)
+    {
+        global $conf;
+
+        $sql  = "SELECT e.rowid, e.ref";
+        $sql .= " FROM " . MAIN_DB_PREFIX . "equipement e";
+        $sql .= " WHERE e.fk_product = " . $fkProduct;
+        $sql .= " AND e.fk_entrepot > 0";
+        $sql .= " AND e.quantity > 0";
+        $sql .= " AND e.entity = " . $conf->entity;
+
+        dol_syslog(get_class($this)."::findAllInWarehouseByFkProduct sql=" . $sql, LOG_DEBUG);
+
+        return $this->db->query($sql);
+    }
+
+
 	/**
 	 *	set the id of the equipement child
 	 *

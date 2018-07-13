@@ -1279,6 +1279,39 @@ class Factory extends CommonObject
 		}
 	}
 
+
+    /**
+     * @param $fkProductFather
+     * @param $fkProductChildren
+     * @param int $qty
+     * @param int $pmp
+     * @param int $price
+     * @return int
+     */
+	public function addProduct($fkProductFather, $fkProductChildren, $qty = 0, $pmp = 0, $price = 0)
+    {
+        $sql  = "INSERT INTO " . MAIN_DB_PREFIX . "product_factory(";
+        $sql .= "fk_product_father, fk_product_children, qty, pmp, price";
+        $sql .= ") VALUES (";
+        $sql .= $fkProductFather;
+        $sql .= ", " . $fkProductFather;
+        $sql .= ", " . $fkProductChildren;
+        $sql .= ", '" . $qty . "''";
+        $sql .= ", '" . $pmp . "''";
+        $sql .= ", '" . $price . "''";
+        $sql .= ")";
+
+        $resql = $this->db->query($sql);
+
+        if (!$resql) {
+            dol_print_error($this->db);
+            return -1;
+        } else {
+            return 1;
+        }
+    }
+
+
 	/**
 	 *  Return return true of false depending of product a composed or not
 	 * 	@param		int		$fk_parent	Id of product to search childs of

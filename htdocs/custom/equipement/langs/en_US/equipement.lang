@@ -313,3 +313,13 @@ EquipmentAlreadyAssignedToThisProduct=Equipment already assigned to this product
 ReassignEquipmentProduct=The product %s has been swap by %s
 EquipmentAddEquipmentToComposition=Add equipment %s to composition
 EquipmentDeleteEquipmentToComposition=Delete equipment %s to composition
+
+# Composition
+ErrorEquipementAddProductAlreadyExists=This product is already an component of this equipement
+ErrorEquipementProductNotFound=No product found
+ErrorEquipementWarehouseNotFound=No warehouse found
+ErrorEquipementAddProductNotEnoughStock=Not enough products in the warehouse stock
+ErrorEquipementAddProductCorrectStock=Can't modify stock of this product
+ErrorEquipementAddProductComponent=Can't add this component to this equipement
+SuccessEquipementAddProduct=Add succeeded
+EquipementAddProductLine=Add a component to this equipement

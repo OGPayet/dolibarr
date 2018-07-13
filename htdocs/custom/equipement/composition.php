@@ -29,11 +29,14 @@ if (! $res)
 
 require_once DOL_DOCUMENT_ROOT."/core/lib/functions2.lib.php";
 require_once DOL_DOCUMENT_ROOT."/product/class/product.class.php";
+require_once DOL_DOCUMENT_ROOT."/product/class/product.class.php";
+require_once DOL_DOCUMENT_ROOT."/core/class/html.form.class.php";
 
 dol_include_once('/equipement/class/equipement.class.php');
 dol_include_once('/equipement/core/lib/equipement.lib.php');
 
 dol_include_once('/factory/class/factory.class.php');
+dol_include_once('/factory/class/html.factoryformproduct.class.php');
 
 $langs->load('companies');
 $langs->load("equipement@equipement");
@@ -42,6 +45,8 @@ $id 	= GETPOST('id', 'int');
 $ref	= GETPOST('ref', 'alpha');
 $action	= GETPOST('action');
 
+$addProductId = (GETPOST('add_product_id')?GETPOST('add_product_id', 'int'):-1);
+$addProductEntropotId = (GETPOST('add_product_entrepot_id')?GETPOST('add_product_entrepot_id', 'int'):-1);
 
 $object = new Equipement($db);
 $object->fetch($id, $ref);
@@ -53,6 +58,113 @@ if ($id == 0)
 if ($user->societe_id)
 	$socid=$user->societe_id;
 $result = restrictedArea($user, 'equipement', $id, 'equipement', '', 'fk_soc_client');
+
+
+/*
+*	Action
+*/
+
+if ($action == 'addproductline')
+{
+    $error = 0;
+    $msgs = '';
+
+    $addProductQty = 1;
+
+    if ($addProductId <= 0) {
+        $error++;
+        $msgs .= $langs->trans('ErrorFieldRequired', $langs->transnoentities('Ref') ) . '<br />';
+    }
+
+    if ($addProductEntropotId <= 0) {
+        $error++;
+        $msgs .= $langs->trans('ErrorFieldRequired', $langs->transnoentities('Warehouse') ) . '<br />';
+    }
+
+    if (!$error) {
+        // add to the factory components
+        $factory = new Factory($db);
+        $addProduct = new Product($db);
+        $addProduct->fetch($addProductId);
+
+        if (!$addProduct->id) {
+            $error++;
+            $msgs .= $langs->trans('ErrorEquipementProductNotFound') . '<br />';
+        }
+
+        // warehouse of product
+        $entrepot = new Entrepot($db);
+        $entrepot->fetch($addProductEntropotId);
+
+        if (!$entrepot->id) {
+            $error++;
+            $msgs .= $langs->trans('ErrorEquipementWarehouseNotFound') . '<br />';
+        }
+
+        if (!$error) {
+
+            // check if this component has not been linked to this equipement yet
+            $addProductFactoryId = -1;
+            $sql  = "SELECT rowid";
+            $sql .= " FROM " . MAIN_DB_PREFIX . "product_factory";
+            $sql .= " WHERE fk_product_father = " . $object->fk_product;
+            $sql .= " AND fk_product_children = " . $addProductId;
+
+            $resql = $db->query($sql);
+            if ($resql) {
+                if ($obj = $db->fetch_object($resql)) {
+                    $addProductFactoryId = $obj->rowid;
+                }
+            }
+
+            // not already this product in compoents of the equipement
+            if ($addProductFactoryId > 0) {
+                $error++;
+                $msgs .= $langs->trans('ErrorEquipementAddProductAlreadyExists') . '<br />';
+            } else {
+                // check if enough stock for this product
+                $addProduct->load_stock();
+
+                $addProductStockQty = intval($addProduct->stock_warehouse[$addProductEntropotId]->real);
+
+                if ($addProductQty > $addProductStockQty) {
+                    // not enough stock
+                    $error++;
+                    $msgs .= $langs->trans('ErrorEquipementAddProductNotEnoughStock') . '<br />';
+                }
+
+                if (!$error) {
+                    // remove product from warehouse stock
+                    $res = $addProduct->correct_stock($user, $addProductEntropotId, $addProductQty, 1, $langs->trans("ProductUsedForDirectBuild"), $addProduct->price);
+
+                    if (!$res) {
+                        $error++;
+                        $msgs .= $langs->trans('ErrorEquipementAddProductCorrectStock') . '<br />';
+                    }
+                }
+
+                if (!$error) {
+                    // add product component in the factory
+                    $res = $factory->add_component($object->fk_product, $addProduct->id, $addProductQty, $addProduct->pmp, $addProduct->price);
+
+                    if (!$res) {
+                        $error++;
+                        $msgs .= $langs->trans('ErrorEquipementAddProductComponent') . '<br />';
+                    }
+                }
+            }
+        }
+    }
+
+    if ($error) {
+        setEventMessage($msgs, 'errors');
+    } else {
+        $msgs = $langs->trans('SuccessEquipementAddProduct') . '<br />';
+        setEventMessage($msgs);
+    }
+
+    $action = '';
+}
 
 
 /*
@@ -196,8 +308,31 @@ if (count($prods_arbo) > 0) {
 					print $componentstatic->getNomUrl(2);
 					print "&nbsp;&nbsp;";
 				}
-				print '<input type="text" name="ref_'.$value['id'].'_'.$i.'" value="'.$refComponent.'">';
-                print '<td align="left">';
+
+				// serial number field
+				$refFieldName = 'ref_'.$value['id'].'_'.$i;
+
+                $resql = $componentstatic->findAllInWarehouseByFkProduct($productstatic->id);
+				if (!$resql || $resql->num_rows<=0) {
+                    print '<input type="text" name="'.$refFieldName.'" value="'.$refComponent.'">';
+                } else {
+                    print '<select name="'.$refFieldName.'">';
+                    print '<option value=""></option>';
+
+                    while ($obj = $db->fetch_object($resql)) {
+                        $optionSelected = '';
+
+                        if ($obj->ref == $refComponent) {
+                            $optionSelected = ' selected="selected"';
+                        }
+
+                        print '<option value="'. $obj->ref .'"' . $optionSelected .'>' . $obj->ref . '</option>';
+                    }
+
+                    print '</select>';
+                }
+
+				print '<td align="left">';
                 require_once DOL_DOCUMENT_ROOT.'/core/class/doleditor.class.php';
                 $doleditor = new DolEditor('note_'.$value['id'].'_'.$i, dol_escape_htmltag($componentstatic->note_private), '', '100', 'dolibarr_notes', 'In', 0, true, true, 20, '100');
                 print $doleditor->Create(1);
@@ -222,6 +357,53 @@ if (count($prods_arbo) > 0) {
 	print '</table>';
 	print '</form>';
 }
+
+// form to add product line
+$form = new Form($db);
+$factoryformproduct = new FactoryFormProduct($db);
+
+print '<br />';
+print '<b>'.$langs->trans("EquipementAddProductLine").'</b><BR>';
+print '<form action="'.dol_buildpath('/equipement', 1).'/composition.php?id='.$id.'" method="post">';
+print '<input type="hidden" name="action" value="addproductline">';
+print '<table class="border" width="50%">';
+
+// product
+$events = array();
+$events[] = array('action' => 'getWarehouses', 'url' => dol_buildpath('/equipement/ajax/warehouses.php', 1), 'htmlname' => 'add_product_entrepot_id', 'params' => array());
+print '<tr>';
+print '<td width="50%">';
+print $langs->trans("Product");
+print '</td>';
+print '<td>';
+$form->select_produits($addProductId, 'add_product_id', '', 20,0,1,2,'', 0);
+print '</td>';
+print '</tr>';
+
+// warehouse (select the warehouse from product ref)
+print '<tr>';
+print '<td>';
+print $langs->trans("Warehouse");
+print '</td>';
+print '<td>';
+print $factoryformproduct->selectWarehouses('', 'add_product_entrepot_id', 'warehouseopen,warehouseinternal', 0, 0, $addProductId, '', 0, 0, null, '', '', 1, TRUE);
+print '</td>';
+print '</tr>';
+
+// add javascript code for ajax auto completion of warehouse
+print $factoryformproduct->add_select_events('add_product_id', $events);
+
+// action add
+print '<tr>';
+print '<td>';
+print '</td>';
+print '<td align="right">';
+print '<input type="submit" class="button" value="'.$langs->trans("Add").'" />';
+print '</td>';
+print '</tr>';
+
+print '</table>';
+print '</form>';
 
 print '</div>';
 

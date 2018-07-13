@@ -37,7 +37,6 @@ require_once DOL_DOCUMENT_ROOT."/core/lib/product.lib.php";
 require_once DOL_DOCUMENT_ROOT."/product/class/product.class.php";
 require_once DOL_DOCUMENT_ROOT."/product/stock/class/entrepot.class.php";
 require_once DOL_DOCUMENT_ROOT."/categories/class/categorie.class.php";
-require_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
 
 dol_include_once('/factory/class/factory.class.php');
 dol_include_once('/factory/core/lib/factory.lib.php');
@@ -139,7 +138,7 @@ if ($action == 'buildit') {
                             }
 
                             // if there is not enough product in the warehouse stock
-                            if (($productEntrepotStockNbList[$productFactoryIdEntrepot] - $productFactoryQty) <= 0) {
+                            if (($productEntrepotStockNbList[$productFactoryIdEntrepot] - $productFactoryQty) < 0) {
                                 // get product warehouse
                                 $productEntrepot = new Entrepot($db);
                                 $productEntrepot->fetch($productFactoryIdEntrepot);

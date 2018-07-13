@@ -1,7 +1,39 @@
 <?php
+/* Copyright (C) 2001-2007	Rodolphe Quiedeville	<rodolphe@quiedeville.org>
+ * Copyright (C) 2004-2011	Laurent Destailleur		<eldy@users.sourceforge.net>
+ * Copyright (C) 2005		Eric Seigne				<eric.seigne@ryxeo.com>
+ * Copyright (C) 2005-2012	Regis Houssin			<regis.houssin@capnetworks.com>
+ * Copyright (C) 2006		Andre Cianfarani		<acianfa@free.fr>
+ * Copyright (C) 2011		Juanjo Menent			<jmenent@2byte.es>
+ * Copyright (C) 2013-2017	Charlie BENKE			<charlie@patas-monkey.com>
+ * Copyright (C) 2017       Open-DSI                <support@open-dsi.fr>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 
 
+/**
+ * 	\file       htdocs/factory/class/html.factoryformproduct.class.php
+ * 	\ingroup    factory
+ * 	\brief      Fichier de classe FactoryFormProduct
+ */
+require_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
 
+
+/**
+ * Class FactoryFormProduct
+ */
 class FactoryFormProduct extends FormProduct
 {
     /**
@@ -23,6 +55,7 @@ class FactoryFormProduct extends FormProduct
 	 *  @param  string  $morecss        Add more css classes to HTML select
 	 *  @param	array	$exclude		Warehouses ids to exclude
 	 *  @param  int     $showfullpath   1=Show full path of name (parent ref into label), 0=Show only ref of current warehouse
+     *  @param  int     $onlyStock      [=FALSE] to show all or TRUE to filter only warehouses whose have stock
 	 * 	@return	string					HTML select
 	 */
 	function selectWarehouses($selected='', $htmlname='idwarehouse', $filterstatus='', $empty=0, $disabled=0, $fk_product=0, $empty_label='', $showstock=0, $forcecombo=0, $events=array(), $morecss='minwidth200', $exclude='', $showfullpath=1, $onlyStock = FALSE)
@@ -78,6 +111,7 @@ class FactoryFormProduct extends FormProduct
 	 *										'warehouseinternal' = select products from warehouses for internal correct/transfer only
 	 * @param	boolean	$sumStock		    sum total stock of a warehouse, default true
 	 * @param	array	$exclude		    warehouses ids to exclude
+     * @param  int     $onlyStock          [=FALSE] to show all or TRUE to filter only warehouses whose have stock
 	 * @return  int  		    		    Nb of loaded lines, 0 if already loaded, <0 if KO
 	 */
 	function loadWarehouses($fk_product=0, $batch = '', $status='', $sumStock = true, $exclude='', $onlyStock = false)
@@ -218,6 +252,105 @@ class FactoryFormProduct extends FormProduct
 		}
 
 		return $final_label;
-
 	}
+
+
+    /**
+     * Return list of labels (translated) of education
+     *
+     * @param	string	$htmlname	Name of html select field ('myid' or '.myclass')
+     * @param	array	$events		Event options. Example: array(array('action'=>'getContacts', 'url'=>dol_buildpath('/core/ajax/contacts.php',1), 'htmlname'=>'contactid', 'done_action'=>array('disabled' => array('add-customer-contact'))))
+     *                                  'url':          string,  Url of the Ajax script
+     *                                  'action':       string,  Action name for the Ajax script
+     *                                  'params':       array(), Others parameters send for Ajax script (exclude name: id, action, htmlname), if value = '{{selector}}' get value of the 'selector' input
+     *                                  'htmlname':     string,  Id of the select updated with new options from Ajax script
+     *                                  'done_action':  array(), List of action done when new options get successfully
+     *                                      'empty_select': array(), List of html ID of select to empty
+     *                                      'disabled'    : array(), List of html ID to disable if no options
+     * @return  string
+     */
+    function add_select_events($htmlname, $events)
+    {
+        global $conf;
+
+        $out = '';
+        if (!empty($conf->use_javascript_ajax)) {
+            $out .= '<script type="text/javascript">
+            $(document).ready(function () {
+                jQuery("#'.$htmlname.'").change(function () {
+                    var obj = '.json_encode($events).';
+                    $.each(obj, function(key,values) {
+                        if (values.action.length) {
+                            runJsCodeForEvent'.$htmlname.'(values);
+                        }
+                    });
+                });
+
+                function runJsCodeForEvent'.$htmlname.'(obj) {
+                    console.log("Run runJsCodeForEvent'.$htmlname.'");
+                    var id = $("#'.$htmlname.'").val();
+                    var action = obj.action;
+                    var url = obj.url;
+                    var htmlname = obj.htmlname;
+                    var datas = {
+                        action: action,
+                        id: id,
+                        htmlname: htmlname,
+                    };
+                    var selector_regex = new RegExp("^\\{\\{(.*)\\}\\}$", "i");
+                    $.each(obj.params, function(key, value) {
+                        var match = null;
+                        if ($.type(value) === "string") match = value.match(selector_regex);
+                        if (match) {
+                            datas[key] = $(match[1]).val();
+                        } else {
+                            datas[key] = value;
+                        }
+                    });
+                    var input = $("select#" + htmlname);
+                    var inputautocomplete = $("#inputautocomplete"+htmlname);
+                    $.getJSON(url, datas,
+                        function(response) {
+                            input.html(response.value);
+                            if (response.num) {
+                                var selecthtml_dom = $.parseHTML(response.value);
+                                inputautocomplete.val(selecthtml_dom.innerHTML);
+                            } else {
+                                inputautocomplete.val("");
+                            }
+
+                            var num = response.num;
+                            $.each(obj.done_action, function(key, action) {
+                                switch (key) {
+                                    case "empty_select":
+                                        $.each(action, function(id) {
+                                            $("select#" + id).html("");
+                                        });
+                                        break;
+                                    case "disabled":
+                                        $.each(action, function(id) {
+                                            if (num > 0) {
+                                                $("#" + id).removeAttr("disabled");
+                                            } else {
+                                                $("#" + id).attr("disabled", "disabled");
+                                            }
+                                        });
+                                        break;
+                                }
+                            });
+
+                            input.change();	/* Trigger event change */
+
+                            if (response.num < 0) {
+                                console.error(response.error);
+                            }
+                        }
+                    );
+                }
+            });
+            </script>';
+        }
+
+        return $out;
+    }
 }

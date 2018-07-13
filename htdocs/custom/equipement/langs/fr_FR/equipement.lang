@@ -348,3 +348,13 @@ EquipmentAddEquipmentToComposition=Ajout de l'équipement %s à la composition
 EquipmentDeleteEquipmentToComposition=Suppression de l'équipement %s à la composition
 EquipmentNoMoreProductToSerialize=Plus de produits à sérialiser
 EquipmentNoMoreProductToAttach=Plus de produits à attacher
+
+# Composition
+ErrorEquipementAddProductAlreadyExists=Ce produit est déjà composant de cet équipement
+ErrorEquipementProductNotFound=Aucun produit trouvé
+ErrorEquipementWarehouseNotFound=Aucun entrepôt trouvé
+ErrorEquipementAddProductNotEnoughStock=Plus assez de produits en stock dans l'entrepôt
+ErrorEquipementAddProductCorrectStock=Impossible de modifier le stock du produit
+ErrorEquipementAddProductComponent=Impossible d'ajouter ce composat à cet équipement
+SuccessEquipementAddProduct=Ajout réalisé avec succès
+EquipementAddProductLine=Ajouter un composant à cet équipement
