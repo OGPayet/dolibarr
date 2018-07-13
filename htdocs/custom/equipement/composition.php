@@ -101,7 +101,7 @@ if ($action == 'addproductline')
             $msgs .= $langs->trans('ErrorEquipementWarehouseNotFound') . '<br />';
         }
 
-        if (!$error) {
+         if (!$error) {
 
             // check if this component has not been linked to this equipement yet
             $addProductFactoryId = -1;
@@ -117,40 +117,43 @@ if ($action == 'addproductline')
                 }
             }
 
-            // not already this product in compoents of the equipement
-            if ($addProductFactoryId > 0) {
+            // check if enough stock for this product
+            $addProduct->load_stock();
+
+            $addProductStockQty = intval($addProduct->stock_warehouse[$addProductEntropotId]->real);
+
+            if ($addProductQty > $addProductStockQty) {
+                // not enough stock
                 $error++;
-                $msgs .= $langs->trans('ErrorEquipementAddProductAlreadyExists') . '<br />';
-            } else {
-                // check if enough stock for this product
-                $addProduct->load_stock();
+                $msgs .= $langs->trans('ErrorEquipementAddProductNotEnoughStock') . '<br />';
+            }
 
-                $addProductStockQty = intval($addProduct->stock_warehouse[$addProductEntropotId]->real);
+            if (!$error) {
+                // remove product from warehouse stock
+                $res = $addProduct->correct_stock($user, $addProductEntropotId, $addProductQty, 1, $langs->trans("ProductUsedForDirectBuild"), $addProduct->price);
 
-                if ($addProductQty > $addProductStockQty) {
-                    // not enough stock
+                if (!$res) {
                     $error++;
-                    $msgs .= $langs->trans('ErrorEquipementAddProductNotEnoughStock') . '<br />';
+                    $msgs .= $langs->trans('ErrorEquipementAddProductCorrectStock') . '<br />';
                 }
+            }
 
-                if (!$error) {
-                    // remove product from warehouse stock
-                    $res = $addProduct->correct_stock($user, $addProductEntropotId, $addProductQty, 1, $langs->trans("ProductUsedForDirectBuild"), $addProduct->price);
-
-                    if (!$res) {
-                        $error++;
-                        $msgs .= $langs->trans('ErrorEquipementAddProductCorrectStock') . '<br />';
-                    }
-                }
-
-                if (!$error) {
+            if (!$error) {
+                // if this product has not been a component of this equipement
+                if ($addProductFactoryId <= 0) {
                     // add product component in the factory
                     $res = $factory->add_component($object->fk_product, $addProduct->id, $addProductQty, $addProduct->pmp, $addProduct->price);
+                } else {
+                    $sql  = "UPDATE " . MAIN_DB_PREFIX . "product_factory";
+                    $sql .= " SET qty = qty + " . $addProductQty;
+                    $sql .= " WHERE rowid = " . $addProductFactoryId;
 
-                    if (!$res) {
-                        $error++;
-                        $msgs .= $langs->trans('ErrorEquipementAddProductComponent') . '<br />';
-                    }
+                    $res = $db->query($sql);
+                }
+
+                if (!$res) {
+                    $error++;
+                    $msgs .= $langs->trans('ErrorEquipementAddProductComponent') . '<br />';
                 }
             }
         }

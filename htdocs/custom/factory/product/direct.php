@@ -177,6 +177,7 @@ if ($action == 'buildit') {
 
                 // redirect to equipement tab
                 if ($object->array_options['options_synergiestech_to_serialize']) {
+                    //header('Location: ' . dol_buildpath('/equipement/tabs/produit.php?id=' . $object->id, 2));
                     header('Location: ' . dol_buildpath('/equipement/tabs/produit.php?id=' . $object->id, 2));
                 }
             }
