@@ -329,4 +329,5 @@ DateEndPlanned=Date de fin planifiée
 
 # Direct Factory
 FactoryWarehouse=Entrepôt de fabrication du produit
-ErrorNotEnoughtComponentToBuild=Il n'y a plus assez de composants en stock dans cet entrepôt
+ErrorNotEnoughComponentToBuild=Il n'y a plus assez de composants en stock dans cet entrepôt
+ErrorNotEnoughComponentQtySelected=Vous n'avez pas sélectionné assez de quantités pour fabriquer ce produit

@@ -355,4 +355,5 @@ DateEndPlanned=End date plan
 
 # Direct Factory
 FactoryWarehouse=Factory warehouse for this product
-ErrorNotEnoughtComponentToBuild=Not enough component in this warehouse stock
+ErrorNotEnoughComponentToBuild=Not enough component in this warehouse stock
+ErrorNotEnoughComponentQtySelected=You have not selected enough qty to build this product

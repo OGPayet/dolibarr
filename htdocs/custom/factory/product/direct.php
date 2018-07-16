@@ -111,6 +111,8 @@ if ($action == 'buildit') {
                     $lineNum = 0;
                     $productId = $value['id'];
                     $productNb = intval($value['nb']) * $nbToBuild;
+                    $productFactoryTotQty = 0;
+
 
                     // init product stock list by warehouse
                     $productEntrepotStockNbList = array();
@@ -144,15 +146,21 @@ if ($action == 'buildit') {
                                 $productEntrepot->fetch($productFactoryIdEntrepot);
 
                                 $error++;
-                                $mesg .= '<div class="error">' . $productEntrepot->lieu . ' : ' . $langs->trans('ErrorNotEnoughtComponentToBuild') . '</div>';
+                                $mesg .= '<div class="error">' . $productEntrepot->lieu . ' : ' . $langs->trans('ErrorNotEnoughComponentToBuild') . '</div>';
                             } else {
                                 // add this product to use list and extract from the warehouse stock
                                 $productTouUseList[] = array('idEntrepot' => $productFactoryIdEntrepot, 'product' => $productstatic, 'qty' => $productFactoryQty);
                                 $productEntrepotStockNbList[$productFactoryIdEntrepot] -= $productFactoryQty;
+                                $productFactoryTotQty += $productFactoryQty;
                             }
                         }
 
                         $lineNum++;
+                    }
+
+                    if ($productFactoryTotQty < $productNb) {
+                        $error++;
+                        $mesg .= '<div class="error">' . $langs->trans('ErrorNotEnoughComponentQtySelected') . '</div>';
                     }
                 }
             }
@@ -177,8 +185,8 @@ if ($action == 'buildit') {
 
                 // redirect to equipement tab
                 if ($object->array_options['options_synergiestech_to_serialize']) {
-                    //header('Location: ' . dol_buildpath('/equipement/tabs/produit.php?id=' . $object->id, 2));
-                    header('Location: ' . dol_buildpath('/equipement/tabs/produit.php?id=' . $object->id, 2));
+                    //header('Location: ' . dol_buildpath('/equipement/card.php?productid=' . $object->id . '&action=create&serialMethod=1&fk_entrepot=' . $factoryIdEntrepot . '&qtyEquipement=' . $nbToBuild, 2));
+                    header('Location: ' . dol_buildpath('/equipement/card.php?productid=' . $object->id . '&action=create&serialMethod=1&fk_entrepot=' . $factoryIdEntrepot, 2));
                 }
             }
         }
@@ -497,7 +505,7 @@ if ($id || $ref) {
 
                 for ($dispatcherQty = 1; $dispatcherQty <= $dispactherList['nb']; $dispatcherQty++) {
                     $dispatcherOptionSelected = '';
-                    if ($dispatcherQty === $nbToBuild) {
+                    if ($dispatcherQty === $dispactherList['nb']) {
                         $dispatcherOptionSelected = ' selected="selected"';
                     }
 

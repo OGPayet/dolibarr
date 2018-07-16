@@ -370,6 +370,141 @@ class Equipement extends CommonObject
 		}
 	}
 
+
+    /**
+     * Find a product added to component list
+     *
+     * @param   int         $fkProduct        Id product
+     * @return  resource    Resource SQL
+     */
+    public function findProductAdd($fkProduct)
+    {
+        $sql  = "SELECT rowid";
+        $sql .= " FROM " . MAIN_DB_PREFIX . "equipement_productadd";
+        $sql .= " WHERE fk_equipement = " . $this->id;
+        $sql .= " AND fk_product = " . $fkProduct;
+
+        return $this->db->query($sql);
+    }
+
+
+    /**
+     * Find a product added to component list
+     *
+     * @return  resource    Resource SQL
+     */
+    public function findAllProductAdd()
+    {
+        $sql  = "SELECT rowid, fk_product, qty";
+        $sql .= " FROM " . MAIN_DB_PREFIX . "equipement_productadd";
+        $sql .= " WHERE fk_equipement = " . $this->id;
+
+        return $this->db->query($sql);
+    }
+
+
+    /**
+     * Get a list of added products (uses the same structure as prodsArbo)
+     *
+     * @return  array   List of added products
+     */
+    private function _getAllProductAddListForProdsArbo()
+    {
+        $productAddList = array();
+
+        $res = $this->findAllProductAdd();
+
+        if ($res) {
+            while ($productAdd = $this->db->fetch_object($res)) {
+                $productAddList[] = array('id' => $productAdd->fk_product, 'type' => 0, 'nb' => $productAdd->qty);
+            }
+        }
+
+        return $productAddList;
+    }
+
+
+    /**
+     * Merge prods arbo with added products list of the quipement
+     *
+     * @param   array   $prodsArbo      Prods arbo list
+     * @return  array   List of prods arbo with added products
+     */
+    public function mergeProdsArboWithProductAddList($prodsArbo)
+    {
+        $prodsArboWithProductAddList = $prodsArbo;
+
+        $productAddList = $this->_getAllProductAddListForProdsArbo();
+
+        foreach ($productAddList as $keyProductAdd => $productAdd) {
+            $isFound = 0;
+
+            foreach ($prodsArbo as $keyProdsArbo => $value) {
+                // product id found
+                if ($productAdd['id'] == $value['id']) {
+                    $isFound = 1;
+                    $prodsArboWithProductAddList[$keyProdsArbo]['nb'] += $productAdd['nb'];
+                    break;
+                }
+            }
+
+            // product id not found
+            if ($isFound === 0) {
+                $prodsArboWithProductAddList[] = $productAddList[$keyProductAdd];
+            }
+        }
+
+        return $prodsArboWithProductAddList;
+    }
+
+
+    /**
+     * Insert product to component list (product add)
+     *
+     * @param   int     $fk_product                 Id product
+     * @param   int     $qty                        Quantity
+     * @return  int     < 0 if KO, > 0 if OK
+     */
+    public function createProductAdd($fkProduct, $qty)
+    {
+        $sql  = "INSERT INTO " . MAIN_DB_PREFIX . "equipement_productadd (";
+        $sql .= "fk_equipement, fk_product, qty";
+        $sql .= ") VALUES (";
+        $sql .= $this->id;
+        $sql .= ", " . $fkProduct;
+        $sql .= ", " . $qty;
+        $sql .= ")";
+
+        if (!$this->db->query($sql)) {
+            return -1;
+        } else {
+            return 1;
+        }
+    }
+
+
+    /**
+     * Update product qty to component list (product add)
+     *
+     * @param   int     $fk_product                 Id product
+     * @param   int     $qty                        Quantity
+     * @return  int     < 0 if KO, > 0 if OK
+     */
+    public function updateProductAdd($fkProduct, $qty)
+    {
+        $sql  = "UPDATE " . MAIN_DB_PREFIX . "equipement_productadd";
+        $sql .= " SET qty = qty + " . $qty;
+        $sql .= " WHERE fk_equipement = " . $this->id;
+        $sql .= " AND fk_product = " . $fkProduct;
+
+        if (!$this->db->query($sql)) {
+            return -1;
+        } else {
+            return 1;
+        }
+    }
+
+
 	/**
 	 *	Set status to draft
 	 *

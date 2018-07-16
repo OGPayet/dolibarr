@@ -101,19 +101,13 @@ if ($action == 'addproductline')
             $msgs .= $langs->trans('ErrorEquipementWarehouseNotFound') . '<br />';
         }
 
-         if (!$error) {
-
+        if (!$error) {
             // check if this component has not been linked to this equipement yet
-            $addProductFactoryId = -1;
-            $sql  = "SELECT rowid";
-            $sql .= " FROM " . MAIN_DB_PREFIX . "product_factory";
-            $sql .= " WHERE fk_product_father = " . $object->fk_product;
-            $sql .= " AND fk_product_children = " . $addProductId;
-
-            $resql = $db->query($sql);
+            $addProductExistsId = -1;
+            $resql = $object->findProductAdd($addProductId);
             if ($resql) {
                 if ($obj = $db->fetch_object($resql)) {
-                    $addProductFactoryId = $obj->rowid;
+                    $addProductExistsId = $obj->rowid;
                 }
             }
 
@@ -140,15 +134,11 @@ if ($action == 'addproductline')
 
             if (!$error) {
                 // if this product has not been a component of this equipement
-                if ($addProductFactoryId <= 0) {
+                if ($addProductExistsId <= 0) {
                     // add product component in the factory
-                    $res = $factory->add_component($object->fk_product, $addProduct->id, $addProductQty, $addProduct->pmp, $addProduct->price);
+                    $res = $object->createProductAdd($addProduct->id, $addProductQty);
                 } else {
-                    $sql  = "UPDATE " . MAIN_DB_PREFIX . "product_factory";
-                    $sql .= " SET qty = qty + " . $addProductQty;
-                    $sql .= " WHERE rowid = " . $addProductFactoryId;
-
-                    $res = $db->query($sql);
+                    $res = $object->updateProductAdd($addProduct->id, $addProductQty);
                 }
 
                 if (!$res) {
@@ -256,6 +246,10 @@ $prods_arbo = $factory->get_arbo_each_prod();
 // save the equipement component
 if ($action == 'save' && $user->rights->equipement->creer) {
 	if (count($prods_arbo) > 0) {
+
+	    // products to add to component list
+        $prods_arbo = $object->mergeProdsArboWithProductAddList($prods_arbo);
+
 		foreach ($prods_arbo as $value) {
 			if ($value['type']==0) {
 				// on boucle sur le nombre d'�quipement saisie
@@ -279,7 +273,7 @@ if ($action == 'save' && $user->rights->equipement->creer) {
 
 // List of subproducts
 if (count($prods_arbo) > 0) {
-	print '<b>'.$langs->trans("EquipementChildAssociationList").'</b><BR>';
+	print '<b>'.$langs->trans("EquipementChildAssociationList").'</b><br />';
 	print '<form action="'.dol_buildpath('/equipement', 1).'/composition.php?id='.$id.'" method="post">';
 	print '<input type="hidden" name="action" value="save">';
 	print '<table class="border" width="100%">';
@@ -289,6 +283,9 @@ if (count($prods_arbo) > 0) {
     print '<td class="liste_titre" width=150px align="left">'.$langs->trans("Equipementcomposant").'</td>';
     print '<td class="liste_titre" width=150px align="center">'.$langs->trans("Note").'</td>';
 	print '</tr>';
+
+    // products to add to component list
+    $prods_arbo = $object->mergeProdsArboWithProductAddList($prods_arbo);
 
 	foreach ($prods_arbo as $value) {
 		$productstatic=new Product($db);
@@ -366,7 +363,8 @@ $form = new Form($db);
 $factoryformproduct = new FactoryFormProduct($db);
 
 print '<br />';
-print '<b>'.$langs->trans("EquipementAddProductLine").'</b><BR>';
+print load_fiche_titre($langs->trans("EquipementAddProductLine"));
+
 print '<form action="'.dol_buildpath('/equipement', 1).'/composition.php?id='.$id.'" method="post">';
 print '<input type="hidden" name="action" value="addproductline">';
 print '<table class="border" width="50%">';
