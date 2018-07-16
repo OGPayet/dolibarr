@@ -207,78 +207,11 @@ class ActionsSynergiesTech
 
         $contexts = explode(':',$parameters['context']);
 
-        if (in_array('advancedticketcard', $contexts)) {
+        if (in_array('requestmanagercard', $contexts)) {
             $langs->load('synergiestech@synergiestech');
 
-            if (!empty($conf->propal->enabled)) {
-                $langs->load("propal");
-                if ($user->rights->propal->creer) {
-                    if ($object->socid > 0) {
-                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/comm/propal/card.php?originid=' . $object->id . '&origin=' . $object->element . ($object->socid > 0 ? '&socid=' . $object->socid : '') . '&action=create">' . $langs->trans("AddProp") . '</a></div>';
-                    } else {
-                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("SynergiesTechThridPartyNotDefined")) . '" href="#">' . $langs->trans("AddProp") . '</a></div>';
-                    }
-                } else {
-                    print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddProp") . '</a></div>';
-                }
-            }
-
-            if (!empty($conf->commande->enabled)) {
-                $langs->load("orders");
-                if ($user->rights->commande->creer) {
-                    if ($object->socid > 0) {
-                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/commande/card.php?originid=' . $object->id . '&origin=' . $object->element . ($object->socid > 0 ? '&socid=' . $object->socid : '') . '&action=create">' . $langs->trans("AddOrder") . '</a></div>';
-                    } else {
-                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("SynergiesTechThridPartyNotDefined")) . '" href="#">' . $langs->trans("AddOrder") . '</a></div>';
-                    }
-                } else {
-                    print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddOrder") . '</a></div>';
-                }
-            }
-
-            if (!empty($conf->ficheinter->enabled)) {
-                $langs->load("interventions");
-                if ($user->rights->ficheinter->creer) {
-                    if ($object->socid > 0) {
-                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/fichinter/card.php?originid=' . $object->id . '&origin=' . $object->element . ($object->socid > 0 ? '&socid=' . $object->socid : '') . '&action=create">' . $langs->trans("AddIntervention") . '</a></div>';
-                    } else {
-                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("SynergiesTechThridPartyNotDefined")) . '" href="#">' . $langs->trans("AddIntervention") . '</a></div>';
-                    }
-                } else {
-                    print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddIntervention") . '</a></div>';
-                }
-            }
-
-            // Add invoice
-            if ($user->societe_id == 0 && !empty($conf->facture->enabled)) {
-                $langs->load("bills");
-                $langs->load("compta");
-                if ($user->rights->facture->creer) {
-                    if ($object->socid > 0) {
-                        $object->fetch_thirdparty();
-                        if ($object->thirdparty->client != 0 && $object->thirdparty->client != 2) {
-                            print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/compta/facture/card.php?originid=' . $object->id . '&origin=' . $object->element . ($object->socid > 0 ? '&socid=' . $object->socid : '') . '&action=create">' . $langs->trans("AddBill") . '</a></div>';
-                        } else {
-                            print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("ThirdPartyMustBeEditAsCustomer")) . '" href="#">' . $langs->trans("AddBill") . '</a></div>';
-                        }
-                    } else {
-                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("SynergiesTechThridPartyNotDefined")) . '" href="#">' . $langs->trans("AddBill") . '</a></div>';
-                    }
-                } else {
-                    print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddBill") . '</a></div>';
-                }
-            }
-
-            if (!empty($conf->societe->enabled) && !($object->socid > 0)) {
-                $langs->load("companies");
-                if ($user->rights->societe->creer) {
-                    print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/societe/card.php?action=create&backtopage='.urlencode($_SERVER["PHP_SELF"].'?action=synergiestech_set_thirdparty').'">' . $langs->trans("AddThirdParty") . '</a></div>';
-                } else {
-                    print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddThirdParty") . '</a></div>';
-                }
-            }
-
-            if (!empty($conf->retourproduits->enabled)) {
+            dol_include_once('/requestmanager/class/requestmanager.class.php');
+            if ($object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS && !empty($conf->retourproduits->enabled)) {
                 $langs->load("retourproduits@retourproduits");
                 if ($object->socid > 0) {
                     dol_include_once('/synergiestech/lib/synergiestech.lib.php');

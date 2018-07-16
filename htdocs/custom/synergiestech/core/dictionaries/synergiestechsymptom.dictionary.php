@@ -21,7 +21,7 @@
  * \brief       Class of the dictionary Symptom
  */
 
-dol_include_once('/framework/class/dictionary.class.php');
+dol_include_once('/advancedictionaries/class/dictionary.class.php');
 
 /**
  * Class for AdvancedTicketRequestTypeDictionary
@@ -36,12 +36,12 @@ class synergiestechsymptomDictionary extends Dictionary
     /**
      * @var string      Family name of which this dictionary belongs
      */
-    public $family = 'advancedticket';
+    public $family = 'requestmanager';
 
     /**
      * @var string      Family label for show in the list, translated if key found
      */
-    public $familyLabel = 'ModuleadvancedticketName';
+    public $familyLabel = 'Module163018Name';
 
     /**
      * @var int         Position of the dictionary into the family
@@ -111,7 +111,7 @@ class synergiestechsymptomDictionary extends Dictionary
      *   ),
      *   'is_not_addable'    => bool,    // Set at true if this field is not addable
      *   'is_not_editable'   => bool,    // Set at true if this field is not editable
-     *   'td_intput'         => array (
+     *   'td_input'         => array (
      *      'moreClasses'    => string,  // Add more classes in the input balise td
      *      'moreAttributes' => string,  // Add more attributes in the input balise td
      *      'align'          => string,  // Overwrirte the align by default
@@ -183,7 +183,7 @@ class synergiestechsymptomDictionary extends Dictionary
         dol_include_once('/synergiestech/class/html.formsynergiestech.class.php');
         $formsynergiestech = new FormSynergiesTech($this->db);
 
-        $categories = $formsynergiestech->advancedticket_emplacments_array();
+        $categories = $formsynergiestech->requestmanager_emplacments_array();
 
         $this->fields['emplacement'] = array(
             'name' => 'emplacement',
@@ -193,7 +193,7 @@ class synergiestechsymptomDictionary extends Dictionary
             'td_output' => array(
                 'moreAttributes' => 'width="20%"',
             ),
-            'td_intput' => array(
+            'td_input' => array(
                 'moreAttributes' => 'width="20%"',
             ),
             'is_require' => true,

@@ -102,10 +102,10 @@ class modSynergiesTech extends DolibarrModules
 		//							'workflow' => array('WORKFLOW_MODULE1_YOURACTIONTYPE_MODULE2'=>array('enabled'=>'! empty($conf->module1->enabled) && ! empty($conf->module2->enabled)', 'picto'=>'yourpicto@mymodule')) // Set here all workflow context managed by module
 		//                        );
 		$this->module_parts = array(
-            'dictionaries' => 1,
+        //    'dictionaries' => 1,
             'tpl' => 1,
             'triggers' => 1,
-            'hooks' => array('ordercard', 'contractcard', 'tab_supplier_order', 'tab_expedition_add', 'invoicelist', 'main'),
+            'hooks' => array('requestmanagercard', 'ordercard', 'contractcard', 'tab_supplier_order', 'tab_expedition_add', 'invoicelist', 'main'),
         );
 
 		// Data directories to create when module is enabled.
@@ -301,7 +301,7 @@ class modSynergiesTech extends DolibarrModules
         $result=$extrafields->addExtraField('synergiestech_to_serialize', $langs->trans("SynergiesTechSerializable"), 'boolean', 10,  '', 'product',   0, 0, '', '', 1, '', 1, 0, ''); // For >= v7: ", '', 'synergiestech@synergiestech', '$conf->synergiestech->enabled');"
 
         // Create tables of all dictionaries
-/*        dol_include_once('/framework/class/dictionary.class.php');
+/*        dol_include_once('/advancedictionaries/class/dictionary.class.php');
         $dictionaries = Dictionary::fetchAllDictionaries($this->db, 'synergiestech');
         foreach ($dictionaries as $dictionary) {
             if ($dictionary->createTables() < 0) {

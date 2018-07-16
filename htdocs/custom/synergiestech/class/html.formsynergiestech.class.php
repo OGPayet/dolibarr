@@ -65,7 +65,7 @@ class FormSynergiesTech
      *
      * @return  array
      */
-    function advancedticket_emplacments_array()
+    function requestmanager_emplacments_array()
     {
         global $conf;
 
