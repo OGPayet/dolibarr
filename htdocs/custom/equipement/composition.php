@@ -46,6 +46,7 @@ $ref	= GETPOST('ref', 'alpha');
 $action	= GETPOST('action');
 
 $addProductId = (GETPOST('add_product_id')?GETPOST('add_product_id', 'int'):-1);
+$addProductRef = (GETPOST('search_add_product_id')?GETPOST('search_add_product_id'):''); // correct tabulation event on product selection that removes input hidden add_product_id
 $addProductEntropotId = (GETPOST('add_product_entrepot_id')?GETPOST('add_product_entrepot_id', 'int'):-1);
 
 $object = new Equipement($db);
@@ -71,7 +72,7 @@ if ($action == 'addproductline')
 
     $addProductQty = 1;
 
-    if ($addProductId <= 0) {
+    if ($addProductId <= 0 && !$addProductRef) {
         $error++;
         $msgs .= $langs->trans('ErrorFieldRequired', $langs->transnoentities('Ref') ) . '<br />';
     }
@@ -85,7 +86,12 @@ if ($action == 'addproductline')
         // add to the factory components
         $factory = new Factory($db);
         $addProduct = new Product($db);
-        $addProduct->fetch($addProductId);
+
+        if ($addProductId > 0) {
+            $addProduct->fetch($addProductId);
+        } else {
+            $addProduct->fetch('', $addProductRef);
+        }
 
         if (!$addProduct->id) {
             $error++;
