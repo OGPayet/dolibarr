@@ -1,0 +1,965 @@
+<?php
+/* Copyright (C) 2018      Open-DSI              <support@open-dsi.fr>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/**
+ *	\file       	htdocs/requestmanager/list.php
+ *	\ingroup    	requestmanager
+ *	\brief      	Page of request manager list
+ */
+
+// Change this following line to use the correct relative path (../, ../../, etc)
+$res=0;
+if (! $res && file_exists("../main.inc.php")) $res=@include '../main.inc.php';					// to work if your module directory is into dolibarr root htdocs directory
+if (! $res && file_exists("../../main.inc.php")) $res=@include '../../main.inc.php';			// to work if your module directory is into a subdir of root htdocs directory
+if (! $res && file_exists("../../../dolibarr/htdocs/main.inc.php")) $res=@include '../../../dolibarr/htdocs/main.inc.php';     // Used on dev env only
+if (! $res && file_exists("../../../../dolibarr/htdocs/main.inc.php")) $res=@include '../../../../dolibarr/htdocs/main.inc.php';   // Used on dev env only
+if (! $res) die("Include of main fails");
+require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/user/class/user.class.php';
+require_once DOL_DOCUMENT_ROOT.'/user/class/usergroup.class.php';
+require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
+dol_include_once('/requestmanager/class/requestmanager.class.php');
+dol_include_once('/requestmanager/class/html.formrequestmanager.class.php');
+dol_include_once('/requestmanager/lib/requestmanager.lib.php');
+
+$langs->load('requestmanager@requestmanager');
+
+$action=GETPOST('action','alpha');
+$massaction=GETPOST('massaction','alpha');
+$confirm=GETPOST('confirm','alpha');
+$toselect = GETPOST('toselect', 'array');
+
+$sall=GETPOST('sall', 'alphanohtml');
+$search_ref=GETPOST('search_ref','alpha');
+$search_ref_ext=GETPOST('search_ref_ext','alpha');
+$search_type=GETPOST('search_type','alpha');
+$search_category=GETPOST('search_category','alpha');
+$search_label=GETPOST('search_label','alpha');
+$search_thridparty=GETPOST('search_thridparty','alpha');
+$search_source=GETPOST('search_source','alpha');
+$search_urgency=GETPOST('search_urgency','alpha');
+$search_impact=GETPOST('search_impact','alpha');
+$search_priority=GETPOST('search_priority','alpha');
+$search_duration=GETPOST('search_duration','alpha');
+$search_date_deadline=GETPOST('search_date_deadline','alpha');
+$search_notify_requester_by_email=GETPOST('search_notify_requester_by_email','int');
+$search_notify_watcher_by_email=GETPOST('search_notify_watcher_by_email','int');
+$search_assigned_user=GETPOST('search_assigned_user','alpha');
+$search_assigned_usergroup=GETPOST('search_assigned_usergroup','alpha');
+$search_notify_assigned_by_email=GETPOST('search_notify_assigned_by_email','int');
+$search_description=GETPOST('search_description','alpha');
+$search_date_resolved=GETPOST('search_date_resolved','alpha');
+$search_date_cloture=GETPOST('search_date_cloture','alpha');
+$search_user_resolved=GETPOST('search_user_resolved','alpha');
+$search_user_cloture=GETPOST('search_user_cloture','alpha');
+$search_date_creation=GETPOST('search_date_creation','alpha');
+$search_date_modification=GETPOST('search_date_modification','alpha');
+$search_user_author=GETPOST('search_user_author','alpha');
+$search_user_modification=GETPOST('search_user_modification','alpha');
+$my_list=GETPOST('mylist','int');
+$not_assigned=GETPOST('notassigned','int');
+$status_type=GETPOST('status_type','int');
+$optioncss = GETPOST('optioncss','alpha');
+
+$limit = GETPOST('limit')?GETPOST('limit','int'):$conf->liste_limit;
+$sortfield = GETPOST("sortfield",'alpha');
+$sortorder = GETPOST("sortorder",'alpha');
+$page = GETPOST("page",'int');
+if (empty($page) || $page == -1) { $page = 0; }     // If $page is not defined, or '' or -1
+$offset = $limit * $page;
+$pageprev = $page - 1;
+$pagenext = $page + 1;
+if (! $sortfield) $sortfield='rm.ref';
+if (! $sortorder) $sortorder='DESC';
+
+// Initialize technical object to manage hooks of page. Note that conf->hooks_modules contains array of hook context
+$contextpage='requestmanagerlist';
+
+// Security check
+$socid = 0;
+if (! empty($user->societe_id))	$socid=$user->societe_id;
+if (! empty($socid)) {
+    $result = restrictedArea($user, 'societe', $socid, '&societe');
+}
+$result = restrictedArea($user, 'requestmanager', '', '');
+
+// Initialize technical object to manage hooks of page. Note that conf->hooks_modules contains array of hook context
+$hookmanager->initHooks(array($contextpage));
+$extrafields = new ExtraFields($db);
+
+// fetch optionals attributes and labels
+$extralabels = $extrafields->fetch_name_optionals_label('requestmanager');
+$search_array_options=$extrafields->getOptionalsFromPost($extralabels,'','search_');
+
+// List of fields to search into when doing a "search in all"
+$fieldstosearchall = array(
+    'rm.ref'=>'Ref',
+    'rm.ref_ext'=>'RequestManagerExternalReference',
+    's.nom'=>"RequestManagerThirdParty",
+    'rm.label'=>'RequestManagerLabel',
+);
+
+$arrayfields = array(
+    'rm.ref' => array('label' => $langs->trans("Ref"), 'checked' => 1),
+    'rm.ref_ext' => array('label' => $langs->trans("RequestManagerExternalReferenceShort"), 'checked' => 1),
+    'rm.fk_type' => array('label' => $langs->trans("RequestManagerType"), 'checked' => 1),
+    'rm.fk_category' => array('label' => $langs->trans("RequestManagerCategory"), 'checked' => 1),
+    'rm.label' => array('label' => $langs->trans("RequestManagerLabel"), 'checked' => 1),
+    'rm.fk_soc' => array('label' => $langs->trans("RequestManagerThirdParty"), 'checked' => 1),
+    'rm.description' => array('label' => $langs->trans("RequestManagerDescription"), 'checked' => 0),
+    'rm.fk_source' => array('label' => $langs->trans("RequestManagerSource"), 'checked' => 0),
+    'rm.fk_urgency' => array('label' => $langs->trans("RequestManagerUrgency"), 'checked' => 0),
+    'rm.fk_impact' => array('label' => $langs->trans("RequestManagerImpact"), 'checked' => 0),
+    'rm.fk_priority' => array('label' => $langs->trans("RequestManagerPriority"), 'checked' => 0),
+    'rm.duration' => array('label' => $langs->trans("RequestManagerDuration"), 'checked' => 0),
+    'rm.date_deadline' => array('label' => $langs->trans("RequestManagerDeadline"), 'checked' => 0),
+    'rm.notify_requester_by_email' => array('label' => $langs->trans("RequestManagerRequesterNotification"), 'checked' => 0),
+    'rm.notify_watcher_by_email' => array('label' => $langs->trans("RequestManagerWatcherNotification"), 'checked' => 0),
+    'rm.fk_assigned_user' => array('label' => $langs->trans("RequestManagerAssignedUser"), 'checked' => 1),
+    'rm.fk_assigned_usergroup' => array('label' => $langs->trans("RequestManagerAssignedUserGroup"), 'checked' => 1),
+    'rm.notify_assigned_by_email' => array('label' => $langs->trans("RequestManagerAssignedNotification"), 'checked' => 0),
+    'rm.fk_user_resolved' => array('label' => $langs->trans("RequestManagerResolvedBy"), 'checked' => 0, 'position' => 10),
+    'rm.fk_user_closed' => array('label' => $langs->trans("ClosedBy"), 'checked' => 0, 'position' => 10),
+    'rm.date_resolved' => array('label' => $langs->trans("RequestManagerDateResolved"), 'checked' => 0, 'position' => 10),
+    'rm.date_cloture' => array('label' => $langs->trans("DateClosing"), 'checked' => 0, 'position' => 10),
+    'rm.fk_user_author' => array('label' => $langs->trans("Author"), 'checked' => 0, 'position' => 10),
+    'rm.fk_user_modif' => array('label' => $langs->trans("ModifiedBy"), 'checked' => 0, 'position' => 10),
+    'rm.datec' => array('label' => $langs->trans("DateCreation"), 'checked' => 1, 'position' => 500),
+    'rm.tms' => array('label' => $langs->trans("DateModificationShort"), 'checked' => 0, 'position' => 500),
+    'rm.fk_status' => array('label' => $langs->trans("Status"), 'checked' => 1, 'position' => 1000),
+);
+// Extra fields
+if (is_array($extrafields->attribute_label) && count($extrafields->attribute_label))
+{
+    foreach($extrafields->attribute_label as $key => $val)
+    {
+        $arrayfields["ef.".$key]=array('label'=>$extrafields->attribute_label[$key], 'checked'=>$extrafields->attribute_list[$key], 'position'=>$extrafields->attribute_pos[$key], 'enabled'=>$extrafields->attribute_perms[$key]);
+    }
+}
+
+$object = new RequestManager($db);	// To be passed as parameter of executeHooks that need
+
+
+/*
+ * Actions
+ */
+
+if (GETPOST('cancel')) { $action='list'; $massaction=''; }
+if (! GETPOST('confirmmassaction') && $massaction != 'presend' && $massaction != 'confirm_presend') { $massaction=''; }
+
+$parameters=array('socid'=>$socid);
+$reshook=$hookmanager->executeHooks('doActions',$parameters,$object,$action);    // Note that $action and $object may have been modified by some hooks
+if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+
+include DOL_DOCUMENT_ROOT.'/core/actions_changeselectedfields.inc.php';
+
+// Do we click on purge search criteria ?
+if (GETPOST('button_removefilter_x','alpha') || GETPOST('button_removefilter.x','alpha') || GETPOST('button_removefilter','alpha')) // All tests are required to be compatible with all browsers
+{
+    $search_ref='';
+    $search_ref_ext='';
+    $search_type='';
+    $search_category='';
+    $search_label='';
+    $search_thridparty='';
+    $search_source='';
+    $search_urgency='';
+    $search_impact='';
+    $search_priority='';
+    $search_duration='';
+    $search_date_deadline='';
+    $search_notify_requester_by_email=-1;
+    $search_notify_watcher_by_email=-1;
+    $search_assigned_user='';
+    $search_assigned_usergroup='';
+    $search_notify_assigned_by_email=-1;
+    $search_description='';
+    $search_date_resolved='';
+    $search_date_cloture='';
+    $search_user_resolved='';
+    $search_user_cloture='';
+    $search_date_creation='';
+    $search_date_modification='';
+    $search_user_author='';
+    $search_user_modification='';
+    $status_type=-1;
+	$toselect='';
+    $search_array_options=array();
+}
+if ($search_notify_requester_by_email == '') $search_notify_requester_by_email = -1;
+if ($search_notify_watcher_by_email == '') $search_notify_watcher_by_email = -1;
+if ($search_notify_assigned_by_email == '') $search_notify_assigned_by_email = -1;
+if ($status_type == '') $status_type = -1;
+
+if (empty($reshook))
+{
+    $objectclass='RequestManager';
+    $objectlabel='RequestManagerRequests';
+    $permtoread = $user->rights->requestmanager->lire;
+    $permtodelete = $user->rights->requestmanager->supprimer;
+    $uploaddir = $conf->requestmanager->dir_output;
+	include DOL_DOCUMENT_ROOT.'/core/actions_massactions.inc.php';
+}
+
+
+
+/*
+ * View
+ */
+
+$now=dol_now();
+
+$form = new Form($db);
+$formrequestmanager = new FormRequestManager($db);
+$usergroup_static = new UserGroup($db);
+
+$help_url='EN:RequestManager_En|FR:RequestManager_Fr|ES:RequestManager_Es';
+llxHeader('',$langs->trans('RequestManagerResquest'),$help_url);
+
+$sql = 'SELECT';
+if ($sall) $sql = 'SELECT DISTINCT';
+$sql .= ' rm.rowid, rm.ref, rm.ref_ext,';
+$sql .= ' rm.fk_soc, s.nom as soc_name, s.client as soc_client, s.fournisseur as soc_fournisseur, s.code_client as soc_code_client, s.code_fournisseur as soc_code_fournisseur,';
+$sql .= ' rm.label, rm.description,';
+$sql .= ' rm.fk_type, crmrt.label as type_label,';
+$sql .= ' rm.fk_category, crmc.label as category_label,';
+$sql .= ' rm.fk_source, crms.label as source_label,';
+$sql .= ' rm.fk_urgency, crmu.label as urgency_label,';
+$sql .= ' rm.fk_impact, crmi.label as impact_label,';
+$sql .= ' rm.fk_priority, crmp.label as priority_label,';
+$sql .= ' rm.notify_requester_by_email, rm.notify_watcher_by_email, rm.notify_assigned_by_email,';
+$sql .= ' rm.fk_assigned_user, uas.firstname as userassignedfirstname, uas.lastname as userassignedlastname, uas.email as userassignedemail,';
+$sql .= ' rm.fk_assigned_usergroup, uga.nom as usergroupassignedname,';
+$sql .= ' rm.duration, rm.date_deadline, rm.date_resolved, rm.date_closed,';
+$sql .= ' rm.fk_user_resolved, ur.firstname as userresolvedfirstname, ur.lastname as userresolvedlastname, ur.email as userresolvedemail,';
+$sql .= ' rm.fk_user_closed, uc.firstname as userclosedfirstname, uc.lastname as userclosedlastname, uc.email as userclosedemail,';
+$sql .= ' rm.fk_status,';
+$sql .= ' rm.datec, rm.tms,';
+$sql .= ' rm.fk_user_author, ua.firstname as userauthorfirstname, ua.lastname as userauthorlastname, ua.email as userauthoremail,';
+$sql .= ' rm.fk_user_modif, um.firstname as usermodiffirstname, um.lastname as usermodiflastname, um.email as usermodifemail';
+// Add fields from extrafields
+foreach ($extrafields->attribute_label as $key => $val) $sql.=($extrafields->attribute_type[$key] != 'separate' ? ",ef.".$key.' as options_'.$key : '');
+// Add fields from hooks
+$parameters=array();
+$reshook=$hookmanager->executeHooks('printFieldListSelect',$parameters);    // Note that $action and $object may have been modified by hook
+$sql.=$hookmanager->resPrint;
+$sql.= ' FROM '.MAIN_DB_PREFIX.'requestmanager as rm';
+$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."c_requestmanager_request_type as crmrt on (crmrt.rowid = rm.fk_type)";
+$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."c_requestmanager_category as crmc on (crmc.rowid = rm.fk_category)";
+$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."c_requestmanager_source as crms on (crms.rowid = rm.fk_source)";
+$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."c_requestmanager_urgency as crmu on (crmu.rowid = rm.fk_urgency)";
+$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."c_requestmanager_impact as crmi on (crmi.rowid = rm.fk_impact)";
+$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."c_requestmanager_priority as crmp on (crmp.rowid = rm.fk_priority)";
+$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."c_requestmanager_status as crmst on (crmst.rowid = rm.fk_status)";
+$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as s on (s.rowid = rm.fk_soc)";
+if (is_array($extrafields->attribute_label) && count($extrafields->attribute_label)) $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."requestmanager_extrafields as ef on (rm.rowid = ef.fk_object)";
+$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'user as uas ON uas.rowid = rm.fk_assigned_user';
+$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'usergroup as uga ON uga.rowid = rm.fk_assigned_usergroup';
+$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'user as ur ON ur.rowid = rm.fk_user_resolved';
+$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'user as uc ON uc.rowid = rm.fk_user_closed';
+$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'user as ua ON ua.rowid = rm.fk_user_author';
+$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'user as um ON um.rowid = rm.fk_user_modif';
+$sql.= ' WHERE rm.entity IN ('.getEntity('requestmanager').')';
+if ($search_ref)  $sql.= natural_search('rm.ref', $search_ref);
+if ($search_ref_ext)  $sql.= natural_search('rm.ref_ext', $search_ref_ext);
+if ($search_type)  $sql.= natural_search('crmrt.label', $search_type);
+if ($search_category)  $sql.= natural_search('crmc.label', $search_category);
+if ($search_label)  $sql.= natural_search('rm.label', $search_label);
+if ($search_thridparty)  $sql.= natural_search('s.nom', $search_thridparty);
+if ($search_source)  $sql.= natural_search('crms.label', $search_source);
+if ($search_urgency)  $sql.= natural_search('crmu.label', $search_urgency);
+if ($search_impact)  $sql.= natural_search('crmi.label', $search_impact);
+if ($search_priority)  $sql.= natural_search('crmp.label', $search_priority);
+if ($search_duration)  $sql.= natural_search('rm.duration', $search_duration, 1);
+if ($search_date_deadline)  $sql.= natural_search('rm.date_deadline', $search_date_deadline, 1);
+if ($search_notify_requester_by_email >= 0) $sql.= ' AND rm.notify_requester_by_email = ' . $search_notify_requester_by_email;
+if ($search_notify_watcher_by_email >= 0) $sql.= ' AND rm.notify_watcher_by_email = ' . $search_notify_watcher_by_email;
+if ($search_notify_assigned_by_email >= 0) $sql.= ' AND rm.notify_assigned_by_email = ' . $search_notify_assigned_by_email;
+if ($search_assigned_user)  $sql.= natural_search(array('uas.firstname', 'uas.lastname'), $search_assigned_user);
+if ($search_assigned_usergroup)  $sql.= natural_search('uga.nom', $search_assigned_usergroup);
+if ($search_description)  $sql.= natural_search('rm.description', $search_description);
+if ($search_date_resolved)  $sql.= natural_search('rm.date_resolved', $search_date_resolved, 1);
+if ($search_date_cloture)  $sql.= natural_search('rm.date_closed', $search_date_cloture, 1);
+if ($search_user_resolved)  $sql.= natural_search(array('ur.firstname', 'ur.lastname'), $search_user_resolved);
+if ($search_user_cloture)  $sql.= natural_search(array('uc.firstname', 'uc.lastname'), $search_user_cloture);
+if ($search_date_creation)  $sql.= natural_search('rm.datec', $search_date_creation, 1);
+if ($search_date_modification)  $sql.= natural_search('rm.tms', $search_date_modification, 1);
+if ($search_user_author)  $sql.= natural_search(array('ua.firstname', 'ua.lastname'), $search_user_author);
+if ($search_user_modification)  $sql.= natural_search(array('um.firstname', 'um.lastname'), $search_user_modification);
+if ($my_list) {
+    $groupslist = $usergroup_static->listGroupsForUser($user->id);
+    $sql .= ' AND (rm.fk_assigned_user = ' . $user->id;
+    if (!empty($groupslist)) {
+        $sql .= ' OR rm.fk_assigned_usergroup IN (' . implode(',', array_keys($groupslist)) . ')';
+    }
+    $sql .= ')';
+}
+if ($not_assigned)  $sql.= ' AND (rm.fk_assigned_user IS NULL OR rm.fk_assigned_user = 0) AND (rm.fk_assigned_usergroup IS NULL OR rm.fk_assigned_usergroup = 0)';
+if ($status_type > 0)  $sql.= ' AND crmst.type = ' . $status_type;
+elseif ($status_type == -2)  $sql.= ' AND crmst.type IN (' . RequestManager::STATUS_TYPE_INITIAL . ', ' . RequestManager::STATUS_TYPE_IN_PROGRESS . ')';
+if ($sall) {
+    $sql .= natural_search(array_keys($fieldstosearchall), $sall);
+}
+// Add where from extra fields
+foreach ($search_array_options as $key => $val)
+{
+    $crit=$val;
+    $tmpkey=preg_replace('/search_options_/','',$key);
+    $typ=$extrafields->attribute_type[$tmpkey];
+    $mode=0;
+    if (in_array($typ, array('int','double','real'))) $mode=1;    							// Search on a numeric
+    if (in_array($typ, array('sellist')) && $crit != '0' && $crit != '-1') $mode=2;    		// Search on a foreign key int
+    if ($crit != '' && (! in_array($typ, array('select','sellist')) || $crit != '0'))
+    {
+        $sql .= natural_search('ef.'.$tmpkey, $crit, $mode);
+    }
+}
+// Add where from hooks
+$parameters=array();
+$reshook=$hookmanager->executeHooks('printFieldListWhere',$parameters);    // Note that $action and $object may have been modified by hook
+$sql.=$hookmanager->resPrint;
+
+$sql.= $db->order($sortfield,$sortorder);
+
+// Count total nb of records
+$nbtotalofrecords = '';
+if (empty($conf->global->MAIN_DISABLE_FULL_SCANLIST))
+{
+    $result = $db->query($sql);
+    $nbtotalofrecords = $db->num_rows($result);
+}
+
+$sql.= $db->plimit($limit+1, $offset);
+
+$resql=$db->query($sql);
+if ($resql) {
+    $objectstatic = new RequestManager($db);
+    $userstatic = new User($db);
+    $societestatic = new Societe($db);
+
+    $title = $langs->trans('RequestManagerListOfRequests');
+    if ($my_list) $title .= ' (' . $langs->trans('RequestManagerMyRequest') . ')';
+    if ($not_assigned) $title .= ' (' . $langs->trans('RequestManagerNotAssigned') . ')';
+
+    $num = $db->num_rows($resql);
+
+    $arrayofselected = is_array($toselect) ? $toselect : array();
+
+    $param = '';
+    if (!empty($contextpage) && $contextpage != $_SERVER["PHP_SELF"]) $param .= '&contextpage=' . urlencode($contextpage);
+    if ($limit > 0 && $limit != $conf->liste_limit) $param .= '&limit=' . urlencode($limit);
+    if ($sall) $param .= '&sall=' . urlencode($sall);
+    if ($search_ref) $param .= '&search_ref=' . urlencode($search_ref);
+    if ($search_ref_ext) $param .= '&search_ref_ext=' . urlencode($search_ref_ext);
+    if ($search_type) $param .= '&search_type=' . urlencode($search_type);
+    if ($search_category) $param .= '&search_category=' . urlencode($search_category);
+    if ($search_label) $param .= '&search_label=' . urlencode($search_label);
+    if ($search_thridparty) $param .= '&search_thridparty=' . urlencode($search_thridparty);
+    if ($search_source) $param .= '&search_source=' . urlencode($search_source);
+    if ($search_urgency) $param .= '&search_urgency=' . urlencode($search_urgency);
+    if ($search_impact) $param .= '&search_impact=' . urlencode($search_impact);
+    if ($search_priority) $param .= '&search_priority=' . urlencode($search_priority);
+    if ($search_duration) $param .= '&search_duration=' . urlencode($search_duration);
+    if ($search_date_deadline) $param .= '&search_date_deadline=' . urlencode($search_date_deadline);
+    if ($search_notify_requester_by_email >= 0) $param .= '&search_notify_requester_by_email=' . urlencode($search_notify_requester_by_email);
+    if ($search_notify_watcher_by_email >= 0) $param .= '&search_notify_watcher_by_email=' . urlencode($search_notify_watcher_by_email);
+    if ($search_assigned_user) $param .= '&search_assigned_user=' . urlencode($search_assigned_user);
+    if ($search_assigned_usergroup) $param .= '&search_assigned_usergroup=' . urlencode($search_assigned_usergroup);
+    if ($search_notify_assigned_by_email >= 0) $param .= '&search_notify_assigned_by_email=' . urlencode($search_notify_assigned_by_email);
+    if ($search_description) $param .= '&search_description=' . urlencode($search_description);
+    if ($search_date_resolved) $param .= '&search_date_resolved=' . urlencode($search_date_resolved);
+    if ($search_date_cloture) $param .= '&search_date_cloture=' . urlencode($search_date_cloture);
+    if ($search_user_resolved) $param .= '&search_user_resolved=' . urlencode($search_user_resolved);
+    if ($search_user_cloture) $param .= '&search_user_cloture=' . urlencode($search_user_cloture);
+    if ($search_date_creation) $param .= '&search_date_creation=' . urlencode($search_date_creation);
+    if ($search_date_modification) $param .= '&search_date_modification=' . urlencode($search_date_modification);
+    if ($search_user_author) $param .= '&search_user_author=' . urlencode($search_user_author);
+    if ($search_user_modification) $param .= '&search_user_modification=' . urlencode($search_user_modification);
+    if ($my_list) $param .= '&my_list=' . urlencode($my_list);
+    if ($not_assigned) $param .= '&not_assigned=' . urlencode($not_assigned);
+    if ($status_type != '' && $status_type != -1) $param .= '&status_type=' . urlencode($status_type);
+    if ($optioncss != '') $param .= '&optioncss=' . urlencode($optioncss);
+
+    // Add $param from extra fields
+    foreach ($search_array_options as $key => $val) {
+        $crit = $val;
+        $tmpkey = preg_replace('/search_options_/', '', $key);
+        if ($val != '') $param .= '&search_options_' . $tmpkey . '=' . urlencode($val);
+    }
+
+    // List of mass actions available
+    $arrayofmassactions = array();
+    if ($user->rights->requestmanager->supprimer) $arrayofmassactions['delete'] = $langs->trans("Delete");
+    $massactionbutton = $form->selectMassAction('', $arrayofmassactions);
+
+    // Lignes des champs de filtre
+    print '<form method="POST" id="searchFormList" action="' . $_SERVER["PHP_SELF"] . '">';
+    if ($optioncss != '') print '<input type="hidden" name="optioncss" value="' . $optioncss . '">';
+    print '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '">';
+    print '<input type="hidden" name="formfilteraction" id="formfilteraction" value="list">';
+    print '<input type="hidden" name="action" value="list">';
+    print '<input type="hidden" name="sortfield" value="' . $sortfield . '">';
+    print '<input type="hidden" name="sortorder" value="' . $sortorder . '">';
+    print '<input type="hidden" name="page" value="' . $page . '">';
+    if ($my_list) print '<input type="hidden" name="my_list" value="' . dol_escape_htmltag($my_list) . '">';
+    if ($not_assigned) print '<input type="hidden" name="not_assigned" value="' . dol_escape_htmltag($not_assigned) . '">';
+    if ($status_type != '' && $status_type != -1) print '<input type="hidden" name="status_type" value="' . dol_escape_htmltag($status_type) . '">';
+
+    print_barre_liste($title, $page, $_SERVER["PHP_SELF"], $param, $sortfield, $sortorder, $massactionbutton, $num, $nbtotalofrecords, 'requestmanager@requestmanager', 0, '', '', $limit);
+
+    if ($sall) {
+        foreach ($fieldstosearchall as $key => $val) $fieldstosearchall[$key] = $langs->trans($val);
+        print $langs->trans("FilterOnInto", $sall) . join(', ', $fieldstosearchall);
+    }
+
+    $i = 0;
+
+    $moreforfilter = '';
+
+    //$moreforfilter.='<div class="divsearchfield">';
+    //$moreforfilter.=$langs->trans('RequestManagerType'). ': ';
+    //$moreforfilter.=$formrequestmanager->select_type(null,  $search_type, 'search_type', 1, 0, array(), 0, 0, ' minwidth200', ' multiple');
+    //$moreforfilter.='</div>';
+
+    $parameters = array();
+    $reshook = $hookmanager->executeHooks('printFieldPreListTitle', $parameters);    // Note that $action and $object may have been modified by hook
+    if (empty($reshook)) $moreforfilter .= $hookmanager->resPrint;
+    else $moreforfilter = $hookmanager->resPrint;
+
+    if (!empty($moreforfilter)) {
+        print '<div class="liste_titre liste_titre_bydiv centpercent">';
+        print $moreforfilter;
+        print '</div>';
+    }
+
+    $varpage = empty($contextpage) ? $_SERVER["PHP_SELF"] : $contextpage;
+    $selectedfields = $form->multiSelectArrayWithCheckbox('selectedfields', $arrayfields, $varpage);    // This also change content of $arrayfields
+    if ($massactionbutton) $selectedfields .= $form->showCheckAddButtons('checkforselect', 1);
+
+    print '<div class="div-table-responsive">';
+    print '<table class="tagtable liste' . ($moreforfilter ? " listwithfilterbefore" : "") . '">' . "\n";
+
+    print '<tr class="liste_titre_filter">';
+    // Ref
+    if (!empty($arrayfields['rm.ref']['checked'])) {
+        print '<td class="liste_titre">';
+        print '<input class="flat" size="6" type="text" name="search_ref" value="' . dol_escape_htmltag($search_ref) . '">';
+        print '</td>';
+    }
+    //External Ref
+    if (!empty($arrayfields['rm.ref_ext']['checked'])) {
+        print '<td class="liste_titre">';
+        print '<input class="flat" size="6" type="text" name="search_ref_ext" value="' . dol_escape_htmltag($search_ref_ext) . '">';
+        print '</td>';
+    }
+    // Type
+    if (!empty($arrayfields['rm.fk_type']['checked'])) {
+        print '<td class="liste_titre">';
+        print '<input class="flat" size="6" type="text" name="search_type" value="' . dol_escape_htmltag($search_type) . '">';
+        print '</td>';
+    }
+    // Category
+    if (!empty($arrayfields['rm.fk_category']['checked'])) {
+        print '<td class="liste_titre">';
+        print '<input class="flat" size="6" type="text" name="search_category" value="' . dol_escape_htmltag($search_category) . '">';
+        print '</td>';
+    }
+    // Label
+    if (!empty($arrayfields['rm.label']['checked'])) {
+        print '<td class="liste_titre">';
+        print '<input class="flat" size="6" type="text" name="search_label" value="' . dol_escape_htmltag($search_label) . '">';
+        print '</td>';
+    }
+    // Thridparty
+    if (!empty($arrayfields['rm.fk_soc']['checked'])) {
+        print '<td class="liste_titre">';
+        print '<input class="flat" size="6" type="text" name="search_thridparty" value="' . dol_escape_htmltag($search_thridparty) . '">';
+        print '</td>';
+    }
+    // Description
+    if (!empty($arrayfields['rm.description']['checked'])) {
+        print '<td class="liste_titre">';
+        print '<input class="flat" size="6" type="text" name="search_description" value="' . dol_escape_htmltag($search_description) . '">';
+        print '</td>';
+    }
+    // Source
+    if (!empty($arrayfields['rm.fk_source']['checked'])) {
+        print '<td class="liste_titre">';
+        print '<input class="flat" size="6" type="text" name="search_source" value="' . dol_escape_htmltag($search_source) . '">';
+        print '</td>';
+    }
+    // Urgency
+    if (!empty($arrayfields['rm.fk_urgency']['checked'])) {
+        print '<td class="liste_titre">';
+        print '<input class="flat" size="6" type="text" name="search_urgency" value="' . dol_escape_htmltag($search_urgency) . '">';
+        print '</td>';
+    }
+    // Impact
+    if (!empty($arrayfields['rm.fk_impact']['checked'])) {
+        print '<td class="liste_titre">';
+        print '<input class="flat" size="6" type="text" name="search_impact" value="' . dol_escape_htmltag($search_impact) . '">';
+        print '</td>';
+    }
+    // Priority
+    if (!empty($arrayfields['rm.fk_priority']['checked'])) {
+        print '<td class="liste_titre">';
+        print '<input class="flat" size="6" type="text" name="search_priority" value="' . dol_escape_htmltag($search_priority) . '">';
+        print '</td>';
+    }
+    // Duration
+    if (!empty($arrayfields['rm.duration']['checked'])) {
+        print '<td class="liste_titre">';
+        print '<input class="flat" size="6" type="text" name="search_duration" value="' . dol_escape_htmltag($search_duration) . '">';
+        print '</td>';
+    }
+    // Date Deadline
+    if (!empty($arrayfields['rm.date_deadline']['checked'])) {
+        print '<td class="liste_titre" align="center">';
+        print '<input class="flat" size="6" type="text" name="search_date_deadline" value="' . dol_escape_htmltag($search_date_deadline) . '">';
+        print '</td>';
+    }
+    // Notification requesters
+    if (!empty($arrayfields['rm.notify_requester_by_email']['checked'])) {
+        print '<td class="liste_titre" align="center">';
+        print $form->selectyesno('search_notify_assigned_by_email', $search_notify_assigned_by_email, 1, 0, 1);
+        print '</td>';
+    }
+    // Notification watchers
+    if (!empty($arrayfields['rm.notify_watcher_by_email']['checked'])) {
+        print '<td class="liste_titre" align="center">';
+        print $form->selectyesno('search_notify_assigned_by_email', $search_notify_assigned_by_email, 1, 0, 1);
+        print '</td>';
+    }
+    // Assigned user
+    if (!empty($arrayfields['rm.fk_assigned_user']['checked'])) {
+        print '<td class="liste_titre">';
+        print '<input class="flat" size="6" type="text" name="search_assigned_user" value="' . dol_escape_htmltag($search_assigned_user) . '">';
+        print '</td>';
+    }
+    // Assigned usergroup
+    if (!empty($arrayfields['rm.fk_assigned_usergroup']['checked'])) {
+        print '<td class="liste_titre">';
+        print '<input class="flat" size="6" type="text" name="search_assigned_usergroup" value="' . dol_escape_htmltag($search_assigned_usergroup) . '">';
+        print '</td>';
+    }
+    // Notification assigned
+    if (!empty($arrayfields['rm.notify_assigned_by_email']['checked'])) {
+        print '<td class="liste_titre" align="center">';
+        print $form->selectyesno('search_notify_assigned_by_email', $search_notify_assigned_by_email, 1, 0, 1);
+        print '</td>';
+    }
+    // User resolved
+    if (!empty($arrayfields['rm.fk_user_resolved']['checked'])) {
+        print '<td class="liste_titre">';
+        print '<input class="flat" size="6" type="text" name="search_user_resolved" value="' . dol_escape_htmltag($search_user_resolved) . '">';
+        print '</td>';
+    }
+    // User closed
+    if (!empty($arrayfields['rm.fk_user_closed']['checked'])) {
+        print '<td class="liste_titre">';
+        print '<input class="flat" size="6" type="text" name="search_user_cloture" value="' . dol_escape_htmltag($search_user_cloture) . '">';
+        print '</td>';
+    }
+    // Date resolved
+    if (!empty($arrayfields['rm.date_resolved']['checked'])) {
+        print '<td class="liste_titre" align="center">';
+        print '<input class="flat" size="6" type="text" name="search_date_resolved" value="' . dol_escape_htmltag($search_date_resolved) . '">';
+        print '</td>';
+    }
+    // Date closed
+    if (!empty($arrayfields['rm.date_cloture']['checked'])) {
+        print '<td class="liste_titre" align="center">';
+        print '<input class="flat" size="6" type="text" name="search_date_cloture" value="' . dol_escape_htmltag($search_date_cloture) . '">';
+        print '</td>';
+    }
+    // Author
+    if (!empty($arrayfields['rm.fk_user_author']['checked'])) {
+        print '<td class="liste_titre">';
+        print '<input class="flat" size="6" type="text" name="search_user_author" value="' . dol_escape_htmltag($search_user_author) . '">';
+        print '</td>';
+    }
+    // Modified by
+    if (!empty($arrayfields['rm.fk_user_modif']['checked'])) {
+        print '<td class="liste_titre">';
+        print '<input class="flat" size="6" type="text" name="search_user_modification" value="' . dol_escape_htmltag($search_user_modification) . '">';
+        print '</td>';
+    }
+    // Extra fields
+    if (is_array($extrafields->attribute_label) && count($extrafields->attribute_label)) {
+        foreach ($extrafields->attribute_label as $key => $val) {
+            if (!empty($arrayfields["ef." . $key]['checked'])) {
+                $align = $extrafields->getAlignFlag($key);
+                $typeofextrafield = $extrafields->attribute_type[$key];
+                print '<td class="liste_titre' . ($align ? ' ' . $align : '') . '">';
+                if (in_array($typeofextrafield, array('varchar', 'int', 'double', 'select'))) {
+                    $crit = $val;
+                    $tmpkey = preg_replace('/search_options_/', '', $key);
+                    $searchclass = '';
+                    if (in_array($typeofextrafield, array('varchar', 'select'))) $searchclass = 'searchstring';
+                    if (in_array($typeofextrafield, array('int', 'double'))) $searchclass = 'searchnum';
+                    print '<input class="flat' . ($searchclass ? ' ' . $searchclass : '') . '" size="4" type="text" name="search_options_' . $tmpkey . '" value="' . dol_escape_htmltag($search_array_options['search_options_' . $tmpkey]) . '">';
+                }
+                print '</td>';
+            }
+        }
+    }
+    // Fields from hook
+    $parameters = array('arrayfields' => $arrayfields);
+    $reshook = $hookmanager->executeHooks('printFieldListOption', $parameters);    // Note that $action and $object may have been modified by hook
+    print $hookmanager->resPrint;
+    // Date creation
+    if (!empty($arrayfields['rm.datec']['checked'])) {
+        print '<td class="liste_titre" align="center">';
+        print '<input class="flat" size="6" type="text" name="search_date_creation" value="' . dol_escape_htmltag($search_date_creation) . '">';
+        print '</td>';
+    }
+    // Date modification
+    if (!empty($arrayfields['rm.tms']['checked'])) {
+        print '<td class="liste_titre" align="center">';
+        print '<input class="flat" size="6" type="text" name="search_date_modification" value="' . dol_escape_htmltag($search_date_modification) . '">';
+        print '</td>';
+    }
+    // Status
+    if (!empty($arrayfields['rm.fk_status']['checked'])) {
+        print '<td class="liste_titre maxwidthonsmartphone" align="right">';
+        print $form->selectarray('status_type', array(-2 => $langs->trans('RequestManagerTypeNotResolved'), RequestManager::STATUS_TYPE_INITIAL => $langs->trans('RequestManagerTypeInitial'), RequestManager::STATUS_TYPE_IN_PROGRESS => $langs->trans('RequestManagerTypeInProgress'), RequestManager::STATUS_TYPE_RESOLVED => $langs->trans('RequestManagerTypeResolved'), RequestManager::STATUS_TYPE_CLOSED => $langs->trans('RequestManagerTypeClosed')), $status_type, 1);
+        print '</td>';
+    }
+    // Action column
+    print '<td class="liste_titre" align="middle">';
+    $searchpicto = $form->showFilterButtons();
+    print $searchpicto;
+    print '</td>';
+
+    print "</tr>\n";
+
+
+    // Fields title
+    print '<tr class="liste_titre">';
+    if (!empty($arrayfields['rm.ref']['checked'])) print_liste_field_titre($arrayfields['rm.ref']['label'], $_SERVER["PHP_SELF"], 'rm.ref', '', $param, '', $sortfield, $sortorder);
+    if (!empty($arrayfields['rm.ref_ext']['checked'])) print_liste_field_titre($arrayfields['rm.ref_ext']['label'], $_SERVER["PHP_SELF"], 'rm.ref_ext', '', $param, '', $sortfield, $sortorder);
+    if (!empty($arrayfields['rm.fk_type']['checked'])) print_liste_field_titre($arrayfields['rm.fk_type']['label'], $_SERVER["PHP_SELF"], 'crmrt.label', '', $param, '', $sortfield, $sortorder);
+    if (!empty($arrayfields['rm.fk_category']['checked'])) print_liste_field_titre($arrayfields['rm.fk_category']['label'], $_SERVER["PHP_SELF"], 'crmc.label', '', $param, '', $sortfield, $sortorder);
+    if (!empty($arrayfields['rm.label']['checked'])) print_liste_field_titre($arrayfields['rm.label']['label'], $_SERVER["PHP_SELF"], 'rm.label', '', $param, '', $sortfield, $sortorder);
+    if (!empty($arrayfields['rm.fk_soc']['checked'])) print_liste_field_titre($arrayfields['rm.fk_soc']['label'], $_SERVER["PHP_SELF"], 's.nom', '', $param, '', $sortfield, $sortorder);
+    if (!empty($arrayfields['rm.description']['checked'])) print_liste_field_titre($arrayfields['rm.description']['label'], $_SERVER["PHP_SELF"], 'rm.description', '', $param, '', $sortfield, $sortorder);
+    if (!empty($arrayfields['rm.fk_source']['checked'])) print_liste_field_titre($arrayfields['rm.fk_source']['label'], $_SERVER["PHP_SELF"], 'crms.label', '', $param, '', $sortfield, $sortorder);
+    if (!empty($arrayfields['rm.fk_urgency']['checked'])) print_liste_field_titre($arrayfields['rm.fk_urgency']['label'], $_SERVER["PHP_SELF"], 'crmu.label', '', $param, '', $sortfield, $sortorder);
+    if (!empty($arrayfields['rm.fk_impact']['checked'])) print_liste_field_titre($arrayfields['rm.fk_impact']['label'], $_SERVER["PHP_SELF"], 'crmi.label', '', $param, '', $sortfield, $sortorder);
+    if (!empty($arrayfields['rm.fk_priority']['checked'])) print_liste_field_titre($arrayfields['rm.fk_priority']['label'], $_SERVER["PHP_SELF"], 'crmp.label', '', $param, '', $sortfield, $sortorder);
+    if (!empty($arrayfields['rm.duration']['checked'])) print_liste_field_titre($arrayfields['rm.duration']['label'], $_SERVER["PHP_SELF"], 'rm.duration', '', $param, '', $sortfield, $sortorder);
+    if (!empty($arrayfields['rm.date_deadline']['checked'])) print_liste_field_titre($arrayfields['rm.date_deadline']['label'], $_SERVER["PHP_SELF"], 'rm.date_deadline', 'align="center"', $param, '', $sortfield, $sortorder);
+    if (!empty($arrayfields['rm.notify_requester_by_email']['checked'])) print_liste_field_titre($arrayfields['rm.notify_requester_by_email']['label'], $_SERVER["PHP_SELF"], 'rm.notify_requester_by_email', 'align="center"', $param, '', $sortfield, $sortorder);
+    if (!empty($arrayfields['rm.notify_watcher_by_email']['checked'])) print_liste_field_titre($arrayfields['rm.notify_watcher_by_email']['label'], $_SERVER["PHP_SELF"], 'rm.notify_watcher_by_email', 'align="center"', $param, '', $sortfield, $sortorder);
+    if (!empty($arrayfields['rm.fk_assigned_user']['checked'])) print_liste_field_titre($arrayfields['rm.fk_assigned_user']['label'], $_SERVER["PHP_SELF"], 'uas.lastname', '', $param, '', $sortfield, $sortorder);
+    if (!empty($arrayfields['rm.fk_assigned_usergroup']['checked'])) print_liste_field_titre($arrayfields['rm.fk_assigned_usergroup']['label'], $_SERVER["PHP_SELF"], 'uga.nom', '', $param, '', $sortfield, $sortorder);
+    if (!empty($arrayfields['rm.notify_assigned_by_email']['checked'])) print_liste_field_titre($arrayfields['rm.notify_assigned_by_email']['label'], $_SERVER["PHP_SELF"], 'rm.notify_assigned_by_email', 'align="center"', $param, '', $sortfield, $sortorder);
+    if (!empty($arrayfields['rm.fk_user_resolved']['checked'])) print_liste_field_titre($arrayfields['rm.fk_user_resolved']['label'], $_SERVER["PHP_SELF"], 'ur.lastname', '', $param, '', $sortfield, $sortorder);
+    if (!empty($arrayfields['rm.fk_user_closed']['checked'])) print_liste_field_titre($arrayfields['rm.fk_user_closed']['label'], $_SERVER["PHP_SELF"], 'uc.lastname', '', $param, '', $sortfield, $sortorder);
+    if (!empty($arrayfields['rm.date_resolved']['checked'])) print_liste_field_titre($arrayfields['rm.date_resolved']['label'], $_SERVER["PHP_SELF"], 'rm.date_resolved', 'align="center"', $param, '', $sortfield, $sortorder);
+    if (!empty($arrayfields['rm.date_cloture']['checked'])) print_liste_field_titre($arrayfields['rm.date_cloture']['label'], $_SERVER["PHP_SELF"], 'rm.date_cloture', 'align="center"', $param, '', $sortfield, $sortorder);
+    if (!empty($arrayfields['rm.fk_user_author']['checked'])) print_liste_field_titre($arrayfields['rm.fk_user_author']['label'], $_SERVER["PHP_SELF"], 'ua.lastname', '', $param, '', $sortfield, $sortorder);
+    if (!empty($arrayfields['rm.fk_user_modif']['checked'])) print_liste_field_titre($arrayfields['rm.fk_user_modif']['label'], $_SERVER["PHP_SELF"], 'um.lastname', '', $param, '', $sortfield, $sortorder);
+    // Extra fields
+    if (is_array($extrafields->attribute_label) && count($extrafields->attribute_label)) {
+        foreach ($extrafields->attribute_label as $key => $val) {
+            if (!empty($arrayfields["ef." . $key]['checked'])) {
+                $align = $extrafields->getAlignFlag($key);
+                $sortonfield = "ef." . $key;
+                if (!empty($extrafields->attribute_computed[$key])) $sortonfield = '';
+                print_liste_field_titre($extralabels[$key], $_SERVER["PHP_SELF"], $sortonfield, "", $param, ($align ? 'align="' . $align . '"' : ''), $sortfield, $sortorder);
+            }
+        }
+    }
+    // Hook fields
+    $parameters = array('arrayfields' => $arrayfields);
+    $reshook = $hookmanager->executeHooks('printFieldListTitle', $parameters);    // Note that $action and $object may have been modified by hook
+    print $hookmanager->resPrint;
+    if (!empty($arrayfields['rm.datec']['checked'])) print_liste_field_titre($arrayfields['rm.datec']['label'], $_SERVER["PHP_SELF"], "rm.datec", "", $param, 'align="center" class="nowrap"', $sortfield, $sortorder);
+    if (!empty($arrayfields['rm.tms']['checked'])) print_liste_field_titre($arrayfields['rm.tms']['label'], $_SERVER["PHP_SELF"], "rm.tms", "", $param, 'align="center" class="nowrap"', $sortfield, $sortorder);
+    if (!empty($arrayfields['rm.fk_status']['checked'])) print_liste_field_titre($arrayfields['rm.fk_status']['label'], $_SERVER["PHP_SELF"], "crmst.label", "", $param, 'align="right"', $sortfield, $sortorder);
+    print_liste_field_titre($selectedfields, $_SERVER["PHP_SELF"], "", '', '', 'align="center"', $sortfield, $sortorder, 'maxwidthsearch ');
+    print '</tr>' . "\n";
+
+    $now = dol_now();
+    $i = 0;
+    $totalarray = array();
+    while ($i < min($num, $limit)) {
+        $obj = $db->fetch_object($resql);
+
+        $societestatic->id = $obj->fk_soc;
+        $societestatic->name = $obj->soc_name;
+        $societestatic->client = $obj->soc_client;
+        $societestatic->fournisseur = $obj->soc_fournisseur;
+        $societestatic->code_client = $obj->soc_code_client;
+        $societestatic->code_fournisseur = $obj->soc_code_fournisseur;
+
+        $objectstatic->id = $obj->rowid;
+        $objectstatic->ref = $obj->ref;
+        $objectstatic->ref_ext = $obj->ref_ext;
+        $objectstatic->fk_type = $obj->fk_type;
+        $objectstatic->label = $obj->label;
+        $objectstatic->socid = $obj->fk_soc;
+        $objectstatic->thirdparty = $societestatic;
+
+        print '<tr class="oddeven">';
+
+        // Ref
+        if (!empty($arrayfields['rm.ref']['checked'])) {
+            print '<td class="nowrap">';
+            print $objectstatic->getNomUrl(1);
+            print '</td>';
+        }
+        //External Ref
+        if (!empty($arrayfields['rm.ref_ext']['checked'])) {
+            print '<td class="nowrap">';
+            print $obj->ref_ext;
+            print '</td>';
+        }
+        // Type
+        if (!empty($arrayfields['rm.fk_type']['checked'])) {
+            print '<td class="nowrap">';
+            print $obj->type_label;
+            print '</td>';
+        }
+        // Category
+        if (!empty($arrayfields['rm.fk_category']['checked'])) {
+            print '<td class="nowrap">';
+            print $obj->category_label;
+            print '</td>';
+        }
+        // Label
+        if (!empty($arrayfields['rm.label']['checked'])) {
+            print '<td class="nowrap">';
+            print $obj->label;
+            print '</td>';
+        }
+        // Thridparty
+        if (!empty($arrayfields['rm.fk_soc']['checked'])) {
+            print '<td class="nowrap">';
+            print $societestatic->getNomUrl(1);
+            print '</td>';
+        }
+        // Description
+        if (!empty($arrayfields['rm.description']['checked'])) {
+            print '<td class="nowrap">';
+            print $obj->description;
+            print '</td>';
+        }
+        // Source
+        if (!empty($arrayfields['rm.fk_source']['checked'])) {
+            print '<td class="nowrap">';
+            print $obj->source_label;
+            print '</td>';
+        }
+        // Urgency
+        if (!empty($arrayfields['rm.fk_urgency']['checked'])) {
+            print '<td class="nowrap">';
+            print $obj->urgency_label;
+            print '</td>';
+        }
+        // Impact
+        if (!empty($arrayfields['rm.fk_impact']['checked'])) {
+            print '<td class="nowrap">';
+            print $obj->impact_label;
+            print '</td>';
+        }
+        // Priority
+        if (!empty($arrayfields['rm.fk_priority']['checked'])) {
+            print '<td class="nowrap">';
+            print $obj->priority_label;
+            print '</td>';
+        }
+        // Duration
+        if (!empty($arrayfields['rm.duration']['checked'])) {
+            print '<td class="nowrap">';
+            if ($obj->duration > 0) print requestmanager_print_duration($obj->duration);
+            print '</td>';
+        }
+        // Date Deadline
+        if (!empty($arrayfields['rm.date_deadline']['checked'])) {
+            print '<td class="nowrap" align="center">';
+            if ($obj->date_deadline > 0) print dol_print_date($db->jdate($obj->date_deadline), 'dayhour');
+            print '</td>';
+        }
+        // Notification requesters
+        if (!empty($arrayfields['rm.notify_requester_by_email']['checked'])) {
+            print '<td class="nowrap" align="center">';
+            print yn($obj->notify_requester_by_email);
+            print '</td>';
+        }
+        // Notification watchers
+        if (!empty($arrayfields['rm.notify_watcher_by_email']['checked'])) {
+            print '<td class="nowrap" align="center">';
+            print yn($obj->notify_watcher_by_email);
+            print '</td>';
+        }
+        // Assigned user
+        if (!empty($arrayfields['rm.fk_assigned_user']['checked'])) {
+            print '<td class="nowrap">';
+            if ($obj->fk_assigned_user > 0) {
+                $userstatic->id = $obj->fk_assigned_user;
+                $userstatic->firstname = $obj->userassignedfirstname;
+                $userstatic->lastname = $obj->userassignedlastname;
+                $userstatic->email = $obj->userassignedemail;
+                print $userstatic->getNomUrl(1);
+            }
+            print '</td>';
+        }
+        // Assigned usergroup
+        if (!empty($arrayfields['rm.fk_assigned_usergroup']['checked'])) {
+            print '<td class="nowrap">';
+            print $obj->usergroupassignedname;
+            print '</td>';
+        }
+        // Notification assigned
+        if (!empty($arrayfields['rm.notify_assigned_by_email']['checked'])) {
+            print '<td class="nowrap" align="center">';
+            print yn($obj->notify_assigned_by_email);
+            print '</td>';
+        }
+        // User resolved
+        if (!empty($arrayfields['rm.fk_user_resolved']['checked'])) {
+            print '<td class="nowrap">';
+            if ($obj->fk_user_resolved > 0) {
+                $userstatic->id = $obj->fk_user_resolved;
+                $userstatic->firstname = $obj->userresolvedfirstname;
+                $userstatic->lastname = $obj->userresolvedlastname;
+                $userstatic->email = $obj->userresolvedemail;
+                print $userstatic->getNomUrl(1);
+            }
+            print '</td>';
+        }
+        // User closed
+        if (!empty($arrayfields['rm.fk_user_closed']['checked'])) {
+            print '<td class="nowrap">';
+            if ($obj->fk_user_closed > 0) {
+                $userstatic->id = $obj->fk_user_closed;
+                $userstatic->firstname = $obj->userclosedfirstname;
+                $userstatic->lastname = $obj->userclosedlastname;
+                $userstatic->email = $obj->userclosedemail;
+                print $userstatic->getNomUrl(1);
+            }
+            print '</td>';
+        }
+        // Date resolved
+        if (!empty($arrayfields['rm.date_resolved']['checked'])) {
+            print '<td class="nowrap" align="center">';
+            if ($obj->date_resolved > 0) print dol_print_date($db->jdate($obj->date_resolved), 'dayhour');
+            print '</td>';
+        }
+        // Date closed
+        if (!empty($arrayfields['rm.date_cloture']['checked'])) {
+            print '<td class="nowrap" align="center">';
+            if ($obj->date_closed > 0) print dol_print_date($db->jdate($obj->date_closed), 'dayhour');
+            print '</td>';
+        }
+        // Author
+        if (!empty($arrayfields['rm.fk_user_author']['checked'])) {
+            print '<td class="nowrap">';
+            if ($obj->fk_user_author > 0) {
+                $userstatic->id = $obj->fk_user_author;
+                $userstatic->firstname = $obj->userauthorfirstname;
+                $userstatic->lastname = $obj->userauthorlastname;
+                $userstatic->email = $obj->userauthoremail;
+                print $userstatic->getNomUrl(1);
+            }
+            print '</td>';
+        }
+        // Modified by
+        if (!empty($arrayfields['rm.fk_user_modif']['checked'])) {
+            print '<td class="nowrap">';
+            if ($obj->fk_user_modif > 0) {
+                $userstatic->id = $obj->fk_user_modif;
+                $userstatic->firstname = $obj->usermodiffirstname;
+                $userstatic->lastname = $obj->usermodiflastname;
+                $userstatic->email = $obj->usermodifemail;
+                print $userstatic->getNomUrl(1);
+            }
+            print '</td>';
+        }
+
+        // Extra fields
+        if (is_array($extrafields->attribute_label) && count($extrafields->attribute_label)) {
+            foreach ($extrafields->attribute_label as $key => $val) {
+                if (!empty($arrayfields["ef." . $key]['checked'])) {
+                    print '<td';
+                    $align = $extrafields->getAlignFlag($key);
+                    if ($align) print ' align="' . $align . '"';
+                    print '>';
+                    $tmpkey = 'options_' . $key;
+                    print $extrafields->showOutputField($key, $obj->$tmpkey, '', 1);
+                    print '</td>';
+                }
+            }
+        }
+        // Fields from hook
+        $parameters = array('arrayfields' => $arrayfields, 'obj' => $obj);
+        $reshook = $hookmanager->executeHooks('printFieldListValue', $parameters);    // Note that $action and $object may have been modified by hook
+        print $hookmanager->resPrint;
+
+        // Date creation
+        if (!empty($arrayfields['rm.datec']['checked'])) {
+            print '<td align="center" class="nowrap">';
+            print dol_print_date($db->jdate($obj->datec), 'dayhour');
+            print '</td>';
+        }
+        // Date modification
+        if (!empty($arrayfields['rm.tms']['checked'])) {
+            print '<td align="center" class="nowrap">';
+            print dol_print_date($db->jdate($obj->tms), 'dayhour');
+            print '</td>';
+        }
+        // Status
+        if (!empty($arrayfields['rm.fk_status']['checked'])) {
+            print '<td align="right" class="nowrap">' . $objectstatic->LibStatut($obj->fk_status, 5) . '</td>';
+        }
+
+        // Action column
+        print '<td class="nowrap" align="center">';
+        if ($massactionbutton || $massaction)   // If we are in select mode (massactionbutton defined) or if we have already selected and sent an action ($massaction) defined
+        {
+            $selected = 0;
+            if (in_array($obj->rowid, $arrayofselected)) $selected = 1;
+            print '<input id="cb' . $obj->rowid . '" class="flat checkforselect" type="checkbox" name="toselect[]" value="' . $obj->rowid . '"' . ($selected ? ' checked="checked"' : '') . '>';
+        }
+        print '</td>';
+
+        print "</tr>\n";
+
+        $i++;
+    }
+
+    $db->free($resql);
+
+    $parameters = array('arrayfields' => $arrayfields, 'sql' => $sql);
+    $reshook = $hookmanager->executeHooks('printFieldListFooter', $parameters);    // Note that $action and $object may have been modified by hook
+    print $hookmanager->resPrint;
+
+    print '</table>' . "\n";
+    print '</div>' . "\n";
+
+    print '</form>' . "\n";
+}
+else
+{
+	dol_print_error($db);
+}
+
+// End of page
+llxFooter();
+$db->close();

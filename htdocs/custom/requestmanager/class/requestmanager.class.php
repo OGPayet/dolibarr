@@ -1,0 +1,1719 @@
+<?php
+/* Copyright (C) 2007-2012  Laurent Destailleur <eldy@users.sourceforge.net>
+ * Copyright (C) 2014       Juanjo Menent       <jmenent@2byte.es>
+ * Copyright (C) 2015       Florian Henry       <florian.henry@open-concept.pro>
+ * Copyright (C) 2015       Raphaël Doursenaud  <rdoursenaud@gpcsolutions.fr>
+ * Copyright (C) 2018       Open-DSI            <support@open-dsi.fr>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/**
+ * \file    requestmanager/class/requestmanager.class.php
+ * \ingroup requestmanager
+ * \brief
+ */
+
+require_once DOL_DOCUMENT_ROOT . '/core/class/commonobject.class.php';
+
+/**
+ * Class RequestManager
+ *
+ * Put here description of your class
+ * @see CommonObject
+ */
+class RequestManager extends CommonObject
+{
+	public $element = 'requestmanager';
+	public $table_element = 'requestmanager';
+    protected $ismultientitymanaged = 1;	// 0=No test on entity, 1=Test with field entity, 2=Test with link by societe
+
+    /**
+     * Cache of type list
+     * @var DictionaryLine[]
+     */
+    static public $type_list;
+    /**
+     * Cache of category list
+     * @var DictionaryLine[]
+     */
+    static public $category_list;
+    /**
+     * Cache of source list
+     * @var DictionaryLine[]
+     */
+    static public $source_list;
+    /**
+     * Cache of urgency list
+     * @var DictionaryLine[]
+     */
+    static public $urgency_list;
+    /**
+     * Cache of impact list
+     * @var DictionaryLine[]
+     */
+    static public $impact_list;
+    /**
+     * Cache of priority list
+     * @var DictionaryLine[]
+     */
+    static public $priority_list;
+    /**
+     * Cache of status list
+     * @var DictionaryLine[]
+     */
+    static public $status_list;
+
+    /**
+     * Error message
+     * @var string
+     */
+    public $error;
+    /**
+     * List of error message
+     * @var array
+     */
+    public $errors;
+    /**
+     * Old request object before update
+     * @var RequestManager
+     */
+    public $oldcopy;
+
+    /**
+     * ID of the request
+     * @var int
+     */
+    public $id;
+
+    /**
+     * Ref of the request
+     * @var string
+     */
+    public $ref;
+    /**
+     * Ref external of the request
+     * @var string
+     */
+    public $ref_ext;
+    /**
+     * ID of the thirdparty
+     * @var int
+     */
+    public $socid;
+
+    /**
+     * Label of the request
+     * @var string
+     */
+    public $label;
+    /**
+     * Description of the request
+     * @var string
+     */
+    public $description;
+
+    /**
+     * Type of the request
+     * @var int
+     */
+    public $fk_type;
+    /**
+     * Category of the request
+     * @var int
+     */
+    public $fk_category;
+    /**
+     * Source of the request
+     * @var int
+     */
+    public $fk_source;
+    /**
+     * Urgency of the request
+     * @var int
+     */
+    public $fk_urgency;
+    /**
+     * Impact of the request
+     * @var int
+     */
+    public $fk_impact;
+    /**
+     * Priority of the request
+     * @var int
+     */
+    public $fk_priority;
+    /**
+     * Duration of the request in second
+     * @var int
+     */
+    public $duration;
+
+    /**
+     * List requester contact ID (uID for User or cID for Contact)
+     * @var string[]
+     */
+    public $requester_ids;
+    /**
+     * List requester object (User or Contact)
+     * @var User[]|Contact[]
+     */
+    public $requester_list;
+    /**
+     * Notify requester by email the request (0 / 1)
+     * @var int
+     */
+    public $notify_requester_by_email;
+    /**
+     * List watcher contact ID (uID for User or cID for Contact)
+     * @var string[]
+     */
+    public $watcher_ids;
+    /**
+     * List watcher object (User or Contact)
+     * @var User[]|Contact[]
+     */
+    public $watcher_list;
+    /**
+     * Notify watcher by email the request (0 / 1)
+     * @var int
+     */
+    public $notify_watcher_by_email;
+    /**
+     * Id of the User who is assigned to this request
+     * @var int
+     */
+    public $assigned_user_id;
+    /**
+     * User who is assigned to this request
+     * @var User
+     */
+    public $assigned_user;
+    /**
+     * Id of the UserGroup who is assigned to this request
+     * @var int
+     */
+    public $assigned_usergroup_id;
+    /**
+     * UserGroup who is assigned to this request
+     * @var UserGroup
+     */
+    public $assigned_usergroup;
+    /**
+     * Notify assigned by email the request (0 / 1)
+     * @var int
+     */
+    public $notify_assigned_by_email;
+
+    /**
+     * Date deadline of the request
+     * @var int
+     */
+    public $date_deadline;
+    /**
+     * Date resolved of the request
+     * @var int
+     */
+    public $date_resolved;
+    /**
+     * Date closed of the request
+     * @var int
+     */
+    public $date_cloture;
+    /**
+     * Id of the user who resolved the request
+     * @var int
+     */
+    public $user_resolved_id;
+    /**
+     * User who resolved the request
+     * @var User
+     */
+    public $user_resolved;
+    /**
+     * Id of the user who closed the request
+     * @var int
+     */
+    public $user_cloture_id;
+    /**
+     * User who closed the request
+     * @var User
+     */
+    public $user_cloture;
+
+    /**
+     * Status of the request
+     * @var int
+     */
+    public $statut;
+    /**
+     * New status of the request when set_status() is called
+     * @var int
+     */
+    public $new_statut;
+    /**
+     * Save status of the request when hack dolibarr (extrafields permission, ...)
+     * @var int
+     */
+    public $save_status;
+    /**
+     * Type of the status of the request (initial, in progress, resolved, closed)
+     * @var int
+     */
+    public $statut_type;
+    /**
+     * Entity of the request
+     * @var int
+     */
+    public $entity;
+    /**
+     * Date created of the request
+     * @var int
+     */
+    public $date_creation;
+    /**
+     * Date modified of the request
+     * @var int
+     */
+    public $date_modification;
+    /**
+     * Id of the user who created the request
+     * @var int
+     */
+    public $user_creation_id;
+    /**
+     * User who created the request
+     * @var User
+     */
+    public $user_creation;
+    /**
+     * Id of the user who modified the request
+     * @var int
+     */
+    public $user_modification_id;
+    /**
+     * User who modified the request
+     * @var User
+     */
+    public $user_modification;
+
+    const STATUS_TYPE_INITIAL = 0;
+    const STATUS_TYPE_IN_PROGRESS = 1;
+    const STATUS_TYPE_RESOLVED = 2;
+    const STATUS_TYPE_CLOSED = 3;
+
+    /**
+	 * Constructor
+	 *
+	 * @param   DoliDb      $db     Database handler
+	 */
+	public function __construct(DoliDB $db)
+	{
+		$this->db = $db;
+	}
+
+	/**
+	 *  Create request into database
+	 *
+	 * @param   User    $user           User that creates
+	 * @param   bool    $notrigger      false=launch triggers after, true=disable triggers
+	 * @return  int                     <0 if KO, Id of created object if OK
+	 */
+	public function create(User $user, $notrigger = false)
+    {
+        global $conf, $langs, $hookmanager;
+        $error = 0;
+        $this->errors = array();
+        $now = dol_now();
+        $langs->load("requestmanager@requestmanager");
+
+        dol_syslog(__METHOD__ . " user_id=" . $user->id, LOG_DEBUG);
+
+        dol_include_once('/advancedictionaries/class/dictionary.class.php');
+        $requestManagerStatusDictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagerstatus');
+        $status = $requestManagerStatusDictionary->getCodeFromFilter('{{rowid}}', array('type' => array(self::STATUS_TYPE_INITIAL), 'request_type'=> array($this->fk_type)));
+        if ($status === -2) {
+            array_merge($this->errors, $requestManagerStatusDictionary->errors);
+            $error++;
+        }
+
+        // Clean parameters
+        $this->socid = $this->socid > 0 ? $this->socid : 0;
+        $this->label = trim($this->label);
+        $this->description = trim($this->description);
+        $this->fk_type = $this->fk_type > 0 ? $this->fk_type : 0;
+        $this->fk_category = $this->fk_category > 0 ? $this->fk_category : 0;
+        $this->fk_source = $this->fk_source > 0 ? $this->fk_source : 0;
+        $this->fk_urgency = $this->fk_urgency > 0 ? $this->fk_urgency : 0;
+        $this->fk_impact = $this->fk_impact > 0 ? $this->fk_impact : 0;
+        $this->fk_priority = $this->fk_priority > 0 ? $this->fk_priority : 0;
+        $this->notify_requester_by_email = !empty($this->notify_requester_by_email) ? 1 : 0;
+        $this->notify_watcher_by_email = !empty($this->notify_watcher_by_email) ? 1 : 0;
+        $this->assigned_user_id = $this->assigned_user_id > 0 ? $this->assigned_user_id : 0;
+        $this->assigned_usergroup_id = $this->assigned_usergroup_id > 0 ? $this->assigned_usergroup_id : 0;
+        $this->notify_assigned_by_email = !empty($this->notify_assigned_by_email) ? 1 : 0;
+        $this->date_deadline = $this->date_deadline > 0 ? $this->date_deadline : 0;
+        $this->statut = $status > 0 ? $status : 0;
+        $this->entity = empty($this->entity) ? $conf->entity : $this->entity;
+        $this->date_creation = $now;
+        $this->user_creation_id = $user->id;
+        $this->requester_ids = empty($this->requester_ids) ? array() : (is_string($this->requester_ids) ? explode(',', $this->requester_ids) : $this->requester_ids);
+        $this->watcher_ids = empty($this->watcher_ids) ? array() : (is_string($this->watcher_ids) ? explode(',', $this->watcher_ids) : $this->watcher_ids);
+
+        // Check parameters
+        if (empty($this->socid)) {
+            $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("RequestManagerThirdParty"));
+            $error++;
+        }
+        if (empty($this->fk_type)) {
+            $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("RequestManagerType"));
+            $error++;
+        }
+        if (!empty($this->fk_category)) {
+            $requestManagerRequestTypeDictionaryLine = Dictionary::getDictionaryLine($this->db, 'requestmanager', 'requestmanagerrequesttype');
+            $res = $requestManagerRequestTypeDictionaryLine->fetch($this->fk_type);
+            if ($res == 0) {
+                $this->errors[] = $langs->trans('RequestManagerErrorRequestTypeNotFound');
+                $error++;
+            } elseif ($res < 0) {
+                array_merge($this->errors, $requestManagerRequestTypeDictionaryLine->errors);
+                $error++;
+            } else {
+                $cat = explode(',', $requestManagerRequestTypeDictionaryLine->fields['category']);
+                if (!in_array($this->fk_category, $cat)) {
+                    $this->errors[] = $langs->trans("RequestManagerErrorFieldCategoryNotInThisRequestType");
+                    $error++;
+                }
+            }
+        }
+        if (empty($this->label)) {
+            $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("RequestManagerLabel"));
+            $error++;
+        }
+        if (empty($this->description)) {
+            $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("RequestManagerDescription"));
+            $error++;
+        }
+        if ($this->date_deadline > 0 && $this->date_deadline < $now) {
+            $this->errors[] = $langs->trans("RequestManagerErrorDeadlineDateInferiorAtCreateDate");
+            $error++;
+        }
+        if (empty($this->statut)) {
+            $this->errors[] = $langs->trans("RequestManagerErrorInitStatusNotFound");
+            $error++;
+        }
+        if (!is_array($this->requester_ids)) {
+            $this->errors[] = $langs->trans("ErrorBadParameters") . ': ' . $langs->trans("RequestManagerRequester");
+            $error++;
+        }
+        if (!is_array($this->watcher_ids)) {
+            $this->errors[] = $langs->trans("ErrorBadParameters") . ': ' . $langs->trans("RequestManagerWatcher");
+            $error++;
+        }
+        if ($error) {
+            dol_syslog(__METHOD__ . " Errors check parameters: " . $this->errorsToString(), LOG_ERR);
+            return -3;
+        }
+
+        // Numbering module definition
+        $soc = new Societe($this->db);
+        $soc->fetch($this->socid);
+
+        // Generate refs
+        $this->ref = $this->getNextNumRef($soc);
+        $this->ref_ext = $this->getNextNumRefExt($soc);
+        if (empty($this->ref)) {
+            $error++;
+        }
+        if (empty($this->ref_ext)) {
+            $error++;
+        }
+        if ($error) {
+            dol_syslog(__METHOD__ . " Errors generate refs: " . $this->errorsToString(), LOG_ERR);
+            return -3;
+        }
+
+        // Insert request
+        $sql = "INSERT INTO " . MAIN_DB_PREFIX . $this->table_element . " (";
+        $sql .= " ref";
+        $sql .= ", ref_ext";
+        $sql .= ", fk_soc";
+        $sql .= ", label";
+        $sql .= ", description";
+        $sql .= ", fk_type";
+        $sql .= ", fk_category";
+        $sql .= ", fk_source";
+        $sql .= ", fk_urgency";
+        $sql .= ", fk_impact";
+        $sql .= ", fk_priority";
+        $sql .= ", notify_requester_by_email";
+        $sql .= ", notify_watcher_by_email";
+        $sql .= ", fk_assigned_user";
+        $sql .= ", fk_assigned_usergroup";
+        $sql .= ", notify_assigned_by_email";
+        $sql .= ", date_deadline";
+        $sql .= ", fk_status";
+        $sql .= ", entity";
+        $sql .= ", datec";
+        $sql .= ", fk_user_author";
+        $sql .= ")";
+        $sql .= " VALUES (";
+        $sql .= " '" . $this->db->escape($this->ref) . "'";
+        $sql .= ", '" . $this->db->escape($this->ref_ext) . "'";
+        $sql .= ", " . $this->socid;
+        $sql .= ", '" . $this->db->escape($this->label) . "'";
+        $sql .= ", '" . $this->db->escape($this->description) . "'";
+        $sql .= ", " . $this->fk_type;
+        $sql .= ", " . ($this->fk_category > 0 ? $this->fk_category : 'NULL');
+        $sql .= ", " . ($this->fk_source > 0 ? $this->fk_source : 'NULL');
+        $sql .= ", " . ($this->fk_urgency > 0 ? $this->fk_urgency : 'NULL');
+        $sql .= ", " . ($this->fk_impact > 0 ? $this->fk_impact : 'NULL');
+        $sql .= ", " . ($this->fk_priority > 0 ? $this->fk_priority : 'NULL');
+        $sql .= ", " . ($this->notify_requester_by_email > 0 ? $this->notify_requester_by_email : 'NULL');
+        $sql .= ", " . ($this->notify_watcher_by_email > 0 ? $this->notify_watcher_by_email : 'NULL');
+        $sql .= ", " . ($this->assigned_user_id > 0 ? $this->assigned_user_id : 'NULL');
+        $sql .= ", " . ($this->assigned_usergroup_id > 0 ? $this->assigned_usergroup_id : 'NULL');
+        $sql .= ", " . ($this->notify_assigned_by_email > 0 ? $this->notify_assigned_by_email : 'NULL');
+        $sql .= ", " . ($this->date_deadline > 0 ? "'" . $this->db->idate($this->date_deadline) . "'" : 'NULL');
+        $sql .= ", " . $this->statut;
+        $sql .= ", " . $this->entity;
+        $sql .= ", '" . $this->db->idate($this->date_creation) . "'";
+        $sql .= ", " . $this->user_creation_id;
+        $sql .= ")";
+
+        $this->db->begin();
+
+        $resql = $this->db->query($sql);
+        if (!$resql) {
+            $error++;
+            $this->errors[] = 'Error ' . $this->db->lasterror();
+            dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $this->db->lasterror(), LOG_ERR);
+        }
+
+        if (!$error) {
+            $this->id = $this->db->last_insert_id(MAIN_DB_PREFIX . $this->table_element);
+
+            // Add object linked
+            if (is_array($this->linkedObjectsIds) && !empty($this->linkedObjectsIds)) {
+                foreach ($this->linkedObjectsIds as $origin => $tmp_origin_id) {
+                    if (is_array($tmp_origin_id)) {       // New behaviour, if linkedObjectsIds can have several links per type, so is something like array('contract'=>array(id1, id2, ...))
+                        foreach ($tmp_origin_id as $origin_id) {
+                            $ret = $this->add_object_linked($origin, $origin_id);
+                            if (!$ret) {
+                                $this->errors[] = $this->db->lasterror();
+                                $error++;
+                            }
+                        }
+                    } else {                               // Old behaviour, if linkedObjectsIds has only one link per type, so is something like array('contract'=>id1))
+                        $origin_id = $tmp_origin_id;
+                        $ret = $this->add_object_linked($origin, $origin_id);
+                        if (!$ret) {
+                            $this->errors[] = $this->db->lasterror();
+                            $error++;
+                        }
+                    }
+                }
+            }
+
+            if (!$error && !empty($this->requester_ids)) {
+                // Set requester contacts
+                foreach ($this->requester_ids as $requester) {
+                    if (preg_match('/(u|c)(\d+)/i', $requester, $matches)) {
+                        $this->add_contact($matches[2], 'REQUESTER', $matches[1] == 'u' ? 'internal' : 'external');
+                    }
+                }
+            }
+
+            if (!$error && !empty($this->watcher_ids)) {
+                // Set watcher contacts
+                foreach ($this->watcher_ids as $watcher) {
+                    if (preg_match('/(u|c)(\d+)/i', $watcher, $matches)) {
+                        $this->add_contact($matches[2], 'WATCHER', $matches[1] == 'u' ? 'internal' : 'external');
+                    }
+                }
+            }
+
+            if (!$error) {
+                // Actions on extra fields (by external module or standard code)
+                // TODO le hook fait double emploi avec le trigger !!
+                $hookmanager->initHooks(array('requestmanagerdao'));
+                $parameters = array();
+                $reshook = $hookmanager->executeHooks('insertExtraFields', $parameters, $this, $action);    // Note that $action and $object may have been modified by some hooks
+                if (empty($reshook)) {
+                    if (empty($conf->global->MAIN_EXTRAFIELDS_DISABLED)) // For avoid conflicts if trigger used
+                    {
+                        $result = $this->insertExtraFields();
+                        if ($result < 0) {
+                            $error++;
+                            dol_syslog(__METHOD__ . " Errors insert extra fields: " . $this->errorsToString(), LOG_ERR);
+                        }
+                    }
+                } else if ($reshook < 0) {
+                    $error++;
+                    dol_syslog(__METHOD__ . " Errors hook insertExtraFields: " . $hookmanager->error . (is_array($hookmanager->errors) ? (($hookmanager->error != '' ? ', ' : '') . join(', ', $hookmanager->errors)) : ''), LOG_ERR);
+                }
+            }
+
+            if (!$error && !$notrigger) {
+                // Call trigger
+                $result = $this->call_trigger('REQUESTMANAGER_CREATE', $user);
+                if ($result < 0) {
+                    $error++;
+                    dol_syslog(__METHOD__ . " Errors call trigger: " . $this->errorsToString(), LOG_ERR);
+                }
+                // End call triggers
+            }
+        }
+
+        // Commit or rollback
+        if ($error) {
+            $this->db->rollback();
+            return -1 * $error;
+        } else {
+            $this->db->commit();
+            dol_syslog(__METHOD__ . " success", LOG_DEBUG);
+            return $this->id;
+        }
+    }
+
+    /**
+     *  Returns the reference to the following non used request used depending on the active numbering module
+     *  defined into REQUESTMANAGER_REF_ADDON
+     *
+     * @param   Societe     $soc        Object thirdparty
+     * @return  string                  Reference for request
+     */
+    function getNextNumRef($soc)
+    {
+        global $conf, $langs;
+        $langs->load("requestmanager@requestmanager");
+
+        if (!empty($conf->global->REQUESTMANAGER_REF_ADDON)) {
+            $mybool = false;
+
+            $file = $conf->global->REQUESTMANAGER_REF_ADDON . ".php";
+            $classname = $conf->global->REQUESTMANAGER_REF_ADDON;
+
+            // Include file with class
+            $dirmodels = array_merge(array('/requestmanager/'), (array)$conf->modules_parts['models']);
+            foreach ($dirmodels as $reldir) {
+
+                $dir = dol_buildpath($reldir . "core/modules/requestmanager/");
+
+                // Load file with numbering class (if found)
+                $mybool |= @include_once $dir . $file;
+            }
+
+            if (!$mybool) {
+                dol_print_error('', "Failed to include file " . $file);
+                return '';
+            }
+
+            $obj = new $classname();
+            $numref = $obj->getNextValue($soc, $this);
+
+            if ($numref != "") {
+                return $numref;
+            } else {
+                $this->error = $obj->error;
+                return "";
+            }
+        } else {
+            $langs->load("errors");
+            print $langs->trans("Error") . " " . $langs->trans("ErrorModuleSetupNotComplete");
+            return "";
+        }
+    }
+
+    /**
+     *  Returns the external reference to the following non used request used depending on the active numbering module
+     *  defined into REQUESTMANAGER_REFEXT_ADDON
+     *
+     * @param   Societe     $soc        Object thirdparty
+     * @return  string                  External reference for request
+     */
+    function getNextNumRefExt($soc)
+    {
+        global $conf, $langs;
+        $langs->load("requestmanager@requestmanager");
+
+        if (!empty($conf->global->REQUESTMANAGER_REFEXT_ADDON)) {
+            $mybool = false;
+
+            $file = $conf->global->REQUESTMANAGER_REFEXT_ADDON . ".php";
+            $classname = $conf->global->REQUESTMANAGER_REFEXT_ADDON;
+
+            // Include file with class
+            $dirmodels = array_merge(array('/requestmanager/'), (array)$conf->modules_parts['models']);
+            foreach ($dirmodels as $reldir) {
+
+                $dir = dol_buildpath($reldir . "core/modules/requestmanager/");
+
+                // Load file with numbering class (if found)
+                $mybool |= @include_once $dir . $file;
+            }
+
+            if (!$mybool) {
+                dol_print_error('', "Failed to include file " . $file);
+                return '';
+            }
+
+            $obj = new $classname();
+            $numref = $obj->getNextValue($soc, $this);
+
+            if ($numref != "") {
+                return $numref;
+            } else {
+                $this->error = $obj->error;
+                return "";
+            }
+        } else {
+            $langs->load("errors");
+            print $langs->trans("Error") . " " . $langs->trans("ErrorModuleSetupNotComplete");
+            return "";
+        }
+    }
+
+	/**
+	 *  Load request in memory from the database
+	 *
+     * @param   int     $id         Id object
+     * @param   string	$ref		Reference of request
+     * @param   string	$refext		External reference of request
+     * @param   int     $entity     Force entity (list id separate by coma)
+	 * @return  int                 <0 if KO, 0 if not found, >0 if OK
+	 */
+	public function fetch($id, $ref='', $refext='', $entity=0)
+    {
+        global $langs;
+        $this->errors = array();
+        $langs->load("requestmanager@requestmanager");
+
+        dol_syslog(__METHOD__ . " id=" . $id . " ref=" . $ref . " refext=" . $refext, LOG_DEBUG);
+
+        $sql = 'SELECT';
+        $sql .= ' t.rowid,';
+        $sql .= ' t.ref,';
+        $sql .= ' t.ref_ext,';
+        $sql .= ' t.fk_soc,';
+        $sql .= ' t.label,';
+        $sql .= ' t.description,';
+        $sql .= ' t.fk_type,';
+        $sql .= ' t.fk_category,';
+        $sql .= ' t.fk_source,';
+        $sql .= ' t.fk_urgency,';
+        $sql .= ' t.fk_impact,';
+        $sql .= ' t.fk_priority,';
+        $sql .= ' t.notify_requester_by_email,';
+        $sql .= ' t.notify_watcher_by_email,';
+        $sql .= ' t.fk_assigned_user,';
+        $sql .= ' t.fk_assigned_usergroup,';
+        $sql .= ' t.notify_assigned_by_email,';
+        $sql .= ' t.duration,';
+        $sql .= ' t.date_deadline,';
+        $sql .= ' t.date_resolved,';
+        $sql .= ' t.date_closed,';
+        $sql .= ' t.fk_user_resolved,';
+        $sql .= ' t.fk_user_closed,';
+        $sql .= ' t.fk_status,';
+        $sql .= ' t.entity,';
+        $sql .= ' t.datec,';
+        $sql .= ' t.tms,';
+        $sql .= ' t.fk_user_author,';
+        $sql .= ' t.fk_user_modif';
+        $sql .= ' FROM ' . MAIN_DB_PREFIX . $this->table_element . ' as t';
+        $sql .= ' WHERE t.entity IN (' . (!empty($entity) ? $entity : getEntity($this->element)) . ')';
+        if ($id) $sql .= ' AND t.rowid = ' . $id;
+        else if ($ref) $sql .= " AND t.ref = '".$this->db->escape($ref)."'";
+        else if ($refext) $sql .= " AND t.ref_ext = '".$this->db->escape($refext)."'";
+
+        $resql = $this->db->query($sql);
+        if ($resql) {
+            $numrows = $this->db->num_rows($resql);
+            if ($numrows) {
+                $obj = $this->db->fetch_object($resql);
+
+                dol_include_once('/advancedictionaries/class/dictionary.class.php');
+                $requestManagerStatusDictionaryLine = Dictionary::getDictionaryLine($this->db, 'requestmanager', 'requestmanagerstatus');
+                $res = $requestManagerStatusDictionaryLine->fetch($obj->fk_status);
+                if ($res == 0) {
+                    $this->errors[] = $langs->trans('RequestManagerErrorStatusNotFound');
+                    return -1;
+                } elseif ($res < 0) {
+                    array_merge($this->errors, $requestManagerStatusDictionaryLine->errors);
+                    return -1;
+                }
+                $this->statut_type                  = $requestManagerStatusDictionaryLine->fields['type'];
+
+                $this->id                           = $obj->rowid;
+                $this->ref                          = $obj->ref;
+                $this->ref_ext                      = $obj->ref_ext;
+                $this->socid                        = $obj->fk_soc;
+                $this->label                        = $obj->label;
+                $this->description                  = $obj->description;
+                $this->fk_type                      = $obj->fk_type;
+                $this->fk_category                  = $obj->fk_category;
+                $this->fk_source                    = $obj->fk_source;
+                $this->fk_urgency                   = $obj->fk_urgency;
+                $this->fk_impact                    = $obj->fk_impact;
+                $this->fk_priority                  = $obj->fk_priority;
+                $this->notify_requester_by_email    = empty($obj->notify_requester_by_email) ? 0 : 1;
+                $this->notify_watcher_by_email      = empty($obj->notify_watcher_by_email) ? 0 : 1;
+                $this->assigned_user_id             = $obj->fk_assigned_user;
+                $this->assigned_usergroup_id        = $obj->fk_assigned_usergroup;
+                $this->notify_assigned_by_email     = empty($obj->notify_assigned_by_email) ? 0 : 1;
+                $this->duration                     = $obj->duration;
+                $this->date_deadline                = $this->db->jdate($obj->date_deadline);
+                $this->date_resolved                = $this->db->jdate($obj->date_resolved);
+                $this->date_cloture                 = $this->db->jdate($obj->date_closed);
+                $this->user_resolved_id             = $obj->fk_user_resolved;
+                $this->user_cloture_id              = $obj->fk_user_closed;
+                $this->statut                       = $obj->fk_status;
+                $this->entity                       = $obj->entity;
+                $this->date_creation                = $this->db->jdate($obj->datec);
+                $this->date_modification            = $this->db->jdate($obj->tms);
+                $this->user_creation_id             = $obj->fk_user_author;
+                $this->user_modification_id         = $obj->fk_user_modif;
+
+                $this->fetch_requester();
+                $this->fetch_watcher();
+            }
+            $this->db->free($resql);
+
+            if ($numrows) {
+                return 1;
+            } else {
+                return 0;
+            }
+        } else {
+            $this->errors[] = 'Error ' . $this->db->lasterror();
+            dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $this->db->lasterror(), LOG_ERR);
+
+            return -1;
+        }
+    }
+
+    /**
+     *  Load the requester contacts
+     *
+     * @param   int     $with_object    Load also the object
+     * @return  int                     <0 if KO, >0 if OK
+     */
+    function fetch_requester($with_object=0)
+    {
+        // Get users
+        $users = $this->liste_contact(-1, 'internal', 1, 'REQUESTER');
+        if (!is_array($users))
+            return -1;
+
+        require_once DOL_DOCUMENT_ROOT . '/user/class/user.class.php';
+        $ids_users = array();
+        $object_users = array();
+        foreach ($users as $user_id) {
+            $ids_users['u'.$user_id] = $user_id;
+            if ($with_object) {
+                $user = new User($this->db);
+                $user->fetch($user_id);
+                $object_users['u'.$user_id] = $user;
+            }
+        }
+
+        // Get contacts
+        $contacts = $this->liste_contact(-1, 'external', 1, 'REQUESTER');
+        if (!is_array($users))
+            return -1;
+
+        require_once DOL_DOCUMENT_ROOT . '/contact/class/contact.class.php';
+        $ids_contacts = array();
+        $object_contacts = array();
+        foreach ($contacts as $contact_id) {
+            $ids_contacts['c'.$contact_id] = $contact_id;
+            if ($with_object) {
+                $contact = new Contact($this->db);
+                $contact->fetch($contact_id);
+                $object_contacts['c'.$contact_id] = $contact;
+            }
+        }
+
+        $this->requester_ids = array_merge($ids_users, $ids_contacts);
+        $this->requester_list = array_merge($object_users, $object_contacts);
+    }
+
+    /**
+     *  Load the watcher contacts
+     *
+     * @param   int     $with_object    Load also the object
+     * @return  int                     <0 if KO, >0 if OK
+     */
+    function fetch_watcher($with_object=0)
+    {
+        // Get users
+        $users = $this->liste_contact(-1, 'internal', 1, 'WATCHER');
+        if (!is_array($users))
+            return -1;
+
+        require_once DOL_DOCUMENT_ROOT . '/user/class/user.class.php';
+        $ids_users = array();
+        $object_users = array();
+        foreach ($users as $user_id) {
+            $ids_users['u'.$user_id] = $user_id;
+            if ($with_object) {
+                $user = new User($this->db);
+                $user->fetch($user_id);
+                $object_users['u'.$user_id] = $user;
+            }
+        }
+
+        // Get contacts
+        $contacts = $this->liste_contact(-1, 'external', 1, 'WATCHER');
+        if (!is_array($users))
+            return -1;
+
+        require_once DOL_DOCUMENT_ROOT . '/contact/class/contact.class.php';
+        $ids_contacts = array();
+        $object_contacts = array();
+        foreach ($contacts as $contact_id) {
+            $ids_contacts['c'.$contact_id] = $contact_id;
+            if ($with_object) {
+                $contact = new Contact($this->db);
+                $contact->fetch($contact_id);
+                $object_contacts['c'.$contact_id] = $contact;
+            }
+        }
+
+        $this->watcher_ids = array_merge($ids_users, $ids_contacts);
+        $this->watcher_list = array_merge($object_users, $object_contacts);
+    }
+
+    /**
+	 *  Update request into database
+	 *
+	 * @param   User    $user           User that modifies
+	 * @param   bool    $notrigger      false=launch triggers after, true=disable triggers
+	 * @return  int                     <0 if KO, >0 if OK
+	 */
+	public function update(User $user, $notrigger = false)
+	{
+        global $conf, $langs, $hookmanager;
+        $error = 0;
+        $this->errors = array();
+        $langs->load("requestmanager@requestmanager");
+
+        dol_syslog(__METHOD__ . " user_id=" . $user->id . " id=" . $this->id, LOG_DEBUG);
+
+        // Clean parameters
+        $this->socid = $this->socid > 0 ? $this->socid : 0;
+        $this->label = trim($this->label);
+        $this->description = trim($this->description);
+        $this->fk_type = $this->fk_type > 0 ? $this->fk_type : 0;
+        $this->fk_category = $this->fk_category > 0 ? $this->fk_category : 0;
+        $this->fk_source = $this->fk_source > 0 ? $this->fk_source : 0;
+        $this->fk_urgency = $this->fk_urgency > 0 ? $this->fk_urgency : 0;
+        $this->fk_impact = $this->fk_impact > 0 ? $this->fk_impact : 0;
+        $this->fk_priority = $this->fk_priority > 0 ? $this->fk_priority : 0;
+        $this->notify_requester_by_email = !empty($this->notify_requester_by_email) ? 1 : 0;
+        $this->notify_watcher_by_email = !empty($this->notify_watcher_by_email) ? 1 : 0;
+        $this->assigned_user_id = $this->assigned_user_id > 0 ? $this->assigned_user_id : 0;
+        $this->assigned_usergroup_id = $this->assigned_usergroup_id > 0 ? $this->assigned_usergroup_id : 0;
+        $this->notify_assigned_by_email = !empty($this->notify_assigned_by_email) ? 1 : 0;
+        $this->date_deadline = $this->date_deadline > 0 ? $this->date_deadline : 0;
+        $this->duration = $this->duration > 0 ? $this->duration : 0;
+        $this->user_modification_id = $user->id;
+        $this->requester_ids = empty($this->requester_ids) ? array() : (is_string($this->requester_ids) ? explode(',', $this->requester_ids) : $this->requester_ids);
+        $this->watcher_ids = empty($this->watcher_ids) ? array() : (is_string($this->watcher_ids) ? explode(',', $this->watcher_ids) : $this->watcher_ids);
+
+        // Check parameters
+        if (!($this->id > 0)) {
+            $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("TechnicalID"));
+            $error++;
+        }
+        if (empty($this->socid)) {
+            $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("RequestManagerThirdParty"));
+            $error++;
+        }
+        if (empty($this->fk_type)) {
+            $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("RequestManagerType"));
+            $error++;
+        }
+        if (!empty($this->fk_category)) {
+            dol_include_once('/advancedictionaries/class/dictionary.class.php');
+            $requestManagerRequestTypeDictionaryLine = Dictionary::getDictionaryLine($this->db, 'requestmanager', 'requestmanagerrequesttype');
+            $res = $requestManagerRequestTypeDictionaryLine->fetch($this->fk_type);
+            if ($res == 0) {
+                $this->errors[] = $langs->trans('RequestManagerErrorRequestTypeNotFound');
+                $error++;
+            } elseif ($res < 0) {
+                array_merge($this->errors, $requestManagerRequestTypeDictionaryLine->errors);
+                $error++;
+            } else {
+                $cat = explode(',', $requestManagerRequestTypeDictionaryLine->fields['category']);
+                if (!in_array($this->fk_category, $cat)) {
+                    $this->errors[] = $langs->trans("RequestManagerErrorFieldCategoryNotInThisRequestType");
+                    $error++;
+                }
+            }
+        }
+        if (empty($this->label)) {
+            $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("RequestManagerLabel"));
+            $error++;
+        }
+        if (empty($this->description)) {
+            $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("RequestManagerDescription"));
+            $error++;
+        }
+        if ($this->date_deadline > 0 && $this->date_deadline < $this->date_creation) {
+            $this->errors[] = $langs->trans("RequestManagerErrorDeadlineDateInferiorAtCreateDate");
+            $error++;
+        }
+        if (!is_array($this->requester_ids)) {
+            $this->errors[] = $langs->trans("ErrorBadParameters") . ': ' . $langs->trans("RequestManagerRequester");
+            $error++;
+        }
+        if (!is_array($this->watcher_ids)) {
+            $this->errors[] = $langs->trans("ErrorBadParameters") . ': ' . $langs->trans("RequestManagerWatcher");
+            $error++;
+        }
+        if ($error) {
+            dol_syslog(__METHOD__ . " Errors check parameters: " . $this->errorsToString(), LOG_ERR);
+            return -3;
+        }
+
+		// Update request
+		$sql = 'UPDATE ' . MAIN_DB_PREFIX . $this->table_element . ' SET';
+        $sql .= " fk_soc = " . $this->socid;
+        $sql .= ", label = '" . $this->db->escape($this->label) . "'";
+        $sql .= ", description = '" . $this->db->escape($this->description) . "'";
+        $sql .= ", fk_type = " . $this->fk_type;
+        $sql .= ", fk_category = " . ($this->fk_category > 0 ? $this->fk_category : 'NULL');
+        $sql .= ", fk_source = " . ($this->fk_source > 0 ? $this->fk_source : 'NULL');
+        $sql .= ", fk_urgency = " . ($this->fk_urgency > 0 ? $this->fk_urgency : 'NULL');
+        $sql .= ", fk_impact = " . ($this->fk_impact > 0 ? $this->fk_impact : 'NULL');
+        $sql .= ", fk_priority = " . ($this->fk_priority > 0 ? $this->fk_priority : 'NULL');
+        $sql .= ", notify_requester_by_email = " . ($this->notify_requester_by_email > 0 ? $this->notify_requester_by_email : 'NULL');
+        $sql .= ", notify_watcher_by_email = " . ($this->notify_watcher_by_email > 0 ? $this->notify_watcher_by_email : 'NULL');
+        $sql .= ", fk_assigned_user = " . ($this->assigned_user_id > 0 ? $this->assigned_user_id : 'NULL');
+        $sql .= ", fk_assigned_usergroup = " . ($this->assigned_usergroup_id > 0 ? $this->assigned_usergroup_id : 'NULL');
+        $sql .= ", notify_assigned_by_email = " . ($this->notify_assigned_by_email > 0 ? $this->notify_assigned_by_email : 'NULL');
+        $sql .= ", duration = " . $this->duration;
+        $sql .= ", date_deadline = " . ($this->date_deadline > 0 ? "'" . $this->db->idate($this->date_deadline) . "'" : 'NULL');
+        $sql .= ", fk_user_modif = " . $this->user_modification_id;
+        $sql .= ' WHERE rowid = '.$this->id;
+
+		$this->db->begin();
+
+        $resql = $this->db->query($sql);
+        if (!$resql) {
+            $error++;
+            $this->errors[] = 'Error ' . $this->db->lasterror();
+            dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $this->db->lasterror(), LOG_ERR);
+        }
+
+        if (!$error && !empty($this->requester_ids)) {
+            $new_contact = array();
+            $current_contact['u'] = $this->oldcopy->getIdContact('internal', 'REQUESTER');
+            $current_contact['c'] = $this->oldcopy->getIdContact('external', 'REQUESTER');
+            $current_contact_list['u'] = $this->oldcopy->liste_contact(-1, 'internal', 0, 'REQUESTER');
+            $current_contact_list['c'] = $this->oldcopy->liste_contact(-1, 'external', 0, 'REQUESTER');
+
+            // Set requester contacts
+            foreach ($this->requester_ids as $requester) {
+                if (preg_match('/(u|c)(\d+)/i', $requester, $matches)) {
+                    $new_contact[$matches[1]][] = $matches[2];
+
+                    if (!in_array($matches[2], $current_contact[$matches[1]])) {
+                        $this->add_contact($matches[2], 'REQUESTER', $matches[1] == 'u' ? 'internal' : 'external');
+                    }
+                }
+            }
+
+            // Remove requester contacts
+            foreach ($current_contact_list as $type => $contact_list) {
+                foreach ($contact_list as $contact) {
+                    if (!in_array($contact['id'], $new_contact[$type])) {
+                        $this->delete_contact($contact['rowid']);
+                    }
+                }
+            }
+        }
+
+        if (!$error && !empty($this->watcher_ids)) {
+            $new_contact = array();
+            $current_contact['u'] = $this->oldcopy->getIdContact('internal', 'WATCHER');
+            $current_contact['c'] = $this->oldcopy->getIdContact('external', 'WATCHER');
+            $current_contact_list['u'] = $this->oldcopy->liste_contact(-1, 'internal', 0, 'WATCHER');
+            $current_contact_list['c'] = $this->oldcopy->liste_contact(-1, 'external', 0, 'WATCHER');
+
+            // Set watcher contacts
+            foreach ($this->requester_ids as $requester) {
+                if (preg_match('/(u|c)(\d+)/i', $requester, $matches)) {
+                    $new_contact[$matches[1]][] = $matches[2];
+
+                    if (!in_array($matches[2], $current_contact[$matches[1]])) {
+                        $this->add_contact($matches[2], 'WATCHER', $matches[1] == 'u' ? 'internal' : 'external');
+                    }
+                }
+            }
+
+            // Remove watcher contacts
+            foreach ($current_contact_list as $type => $contact_list) {
+                foreach ($contact_list as $contact) {
+                    if (!in_array($contact['id'], $new_contact[$type])) {
+                        $this->delete_contact($contact['rowid']);
+                    }
+                }
+            }
+        }
+
+        if (!$error) {
+            // Actions on extra fields (by external module or standard code)
+            // TODO le hook fait double emploi avec le trigger !!
+            $hookmanager->initHooks(array('requestmanagerdao'));
+            $parameters = array();
+            $reshook = $hookmanager->executeHooks('insertExtraFields', $parameters, $this, $action);    // Note that $action and $object may have been modified by some hooks
+            if (empty($reshook)) {
+                if (empty($conf->global->MAIN_EXTRAFIELDS_DISABLED)) { // For avoid conflicts if trigger used
+                    $result = $this->insertExtraFields();
+                    if ($result < 0) {
+                        $error++;
+                        dol_syslog(__METHOD__ . " Errors insert extra fields: " . $this->errorsToString(), LOG_ERR);
+                    }
+                }
+            } else if ($reshook < 0) {
+                $error++;
+                dol_syslog(__METHOD__ . " Errors hook insertExtraFields: " . $hookmanager->error . (is_array($hookmanager->errors) ? (($hookmanager->error != '' ? ', ' : '') . join(', ', $hookmanager->errors)) : ''), LOG_ERR);
+            }
+        }
+
+        if (!$error && !$notrigger) {
+            // Call trigger
+            $result = $this->call_trigger('REQUESTMANAGER_MODIFY', $user);
+            if ($result < 0) {
+                $error++;
+                dol_syslog(__METHOD__ . " Errors call trigger: " . $this->errorsToString(), LOG_ERR);
+            }
+            // End call triggers
+        }
+
+		// Commit or rollback
+		if ($error) {
+			$this->db->rollback();
+
+			return - 1 * $error;
+		} else {
+			$this->db->commit();
+            dol_syslog(__METHOD__ . " success", LOG_DEBUG);
+
+			return 1;
+		}
+	}
+
+	/**
+	 *  Delete request in database
+	 *
+     * @param   User    $user           User that deletes
+	 * @param   bool    $notrigger      false=launch triggers after, true=disable triggers
+	 * @return  int                     <0 if KO, >0 if OK
+	 */
+	public function delete(User $user, $notrigger = false)
+    {
+        global $conf, $langs;
+        $error = 0;
+        $this->errors = array();
+        $langs->load("requestmanager@requestmanager");
+
+        dol_syslog(__METHOD__ . " user_id=" . $user->id . " id=" . $this->id, LOG_DEBUG);
+
+        // Check parameters
+        if (!($this->id > 0)) {
+            $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("TechnicalID"));
+            $error++;
+        }
+        if (!isset($this->statut_type) && $this->id > 0) {
+            $this->fetch($this->id);
+        }
+        if (!isset($this->statut_type) || $this->statut_type != self::STATUS_TYPE_INITIAL) {
+            $this->errors[] = $langs->trans("RequestManagerErrorFieldStatusMustBeOfInitialType");
+            $error++;
+        }
+        if ($error) {
+            dol_syslog(__METHOD__ . " Errors check parameters: " . $this->errorsToString(), LOG_ERR);
+            return -3;
+        }
+
+        $this->db->begin();
+
+        // User is mandatory for trigger call
+        if (!$notrigger) {
+            // Call trigger
+            $result = $this->call_trigger('REQUESTMANAGER_DELETE', $user);
+            if ($result < 0) {
+                $error++;
+                dol_syslog(__METHOD__ . " Errors call trigger: " . $this->errorsToString(), LOG_ERR);
+            }
+            // End call triggers
+        }
+
+        // Delete linked object
+        if (!$error) {
+            $res = $this->deleteObjectLinked();
+            if ($res < 0) {
+                $error++;
+                dol_syslog(__METHOD__ . " Errors delete linked object: " . $this->errorsToString(), LOG_ERR);
+            }
+        }
+
+        // Delete linked contacts
+        if (!$error) {
+            $res = $this->delete_linked_contact();
+            if ($res < 0) {
+                $error++;
+                dol_syslog(__METHOD__ . " Errors delete linked contacts: " . $this->errorsToString(), LOG_ERR);
+            }
+        }
+
+        // Removed extrafields
+        if (!$error && empty($conf->global->MAIN_EXTRAFIELDS_DISABLED)) { // For avoid conflicts if trigger used
+            $result = $this->deleteExtraFields();
+            if ($result < 0) {
+                $error++;
+                dol_syslog(__METHOD__ . " Errors delete extra fields: " . $this->errorsToString(), LOG_ERR);
+            }
+        }
+
+        // Remove request
+        if (!$error) {
+            $sql = "DELETE FROM " . MAIN_DB_PREFIX . $this->table_element;
+            $sql .= ' WHERE rowid = ' . $this->id;
+
+            $resql = $this->db->query($sql);
+            if (!$resql) {
+                $error++;
+                $this->errors[] = 'Error ' . $this->db->lasterror();
+                dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $this->db->lasterror(), LOG_ERR);
+            }
+        }
+
+        if (!$error) {
+            $this->db->commit();
+            dol_syslog(__METHOD__ . " success", LOG_DEBUG);
+
+            return 1;
+        } else {
+            $this->db->rollback();
+
+            return -1;
+        }
+    }
+
+    /**
+	 *  Set status request into database
+	 *
+     * @param   int     $status         New status
+     * @param   int     $status         New status type (initial, first in progress, resolved or closed)
+     * @param   User    $user           User that modifies
+	 * @param   bool    $notrigger      false=launch triggers after, true=disable triggers
+     * @param   int     $forcereload    Force reload of the cache
+	 * @return  int                     <0 if KO, >0 if OK
+	 */
+	public function set_status($status=0, $status_type=-1, User $user, $notrigger = false, $forcereload = 0)
+	{
+        global $langs;
+        $error = 0;
+        $this->errors = array();
+        $langs->load("requestmanager@requestmanager");
+
+        dol_syslog(__METHOD__ . " user_id=" . $user->id . " id=" . $this->id . " status=" . $status, LOG_DEBUG);
+
+        // Clean parameters
+        $status = $status > 0 ? $status : 0;
+        $status_type = $status_type == self::STATUS_TYPE_INITIAL || $status_type == self::STATUS_TYPE_IN_PROGRESS || $status_type == self::STATUS_TYPE_RESOLVED || $status_type == self::STATUS_TYPE_CLOSED ? $status_type : -1;
+
+        if (empty(self::$status_list) || $forcereload) {
+            dol_include_once('/advancedictionaries/class/dictionary.class.php');
+            $dictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagerstatus');
+            $dictionary->fetch_lines(1, array(), array('type' => 'ASC', 'position' => 'ASC'));
+            self::$status_list = $dictionary->lines;
+        }
+
+        // Check parameters
+        if ($status_type >= 0) {
+            $found = false;
+            foreach (self::$status_list as $s) {
+                if ($status_type == $s->fields['type']) {
+                    $found = true;
+                    $status = $s->id;
+                }
+            }
+            if (!$found) {
+                $this->errors[] = $langs->trans('RequestManagerErrorStatusNotFound');
+                $error++;
+            }
+        } elseif ($status > 0) {
+            if (!isset(self::$status_list[$status])) {
+                $this->errors[] = $langs->trans('RequestManagerErrorStatusNotFound');
+                $error++;
+            }
+        } else {
+            $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("Status"));
+            $error++;
+        }
+        if ($error) {
+            dol_syslog(__METHOD__ . " Errors check parameters: " . $this->errorsToString(), LOG_ERR);
+            return -3;
+        }
+
+        $this->new_statut = $status;
+
+		// Update request
+		$sql = 'UPDATE ' . MAIN_DB_PREFIX . $this->table_element . ' SET';
+        $sql .= " fk_status = " . $status;
+        $sql .= ' WHERE rowid = '.$this->id;
+
+		$this->db->begin();
+
+        $resql = $this->db->query($sql);
+        if (!$resql) {
+            $error++;
+            $this->errors[] = 'Error ' . $this->db->lasterror();
+            dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $this->db->lasterror(), LOG_ERR);
+        }
+
+        if (!$error && !$notrigger) {
+            // Call trigger
+            $result = $this->call_trigger('REQUESTMANAGER_STATUS_MODIFY', $user);
+            if ($result < 0) {
+                $error++;
+                dol_syslog(__METHOD__ . " Errors call trigger: " . $this->errorsToString(), LOG_ERR);
+            }
+            // End call triggers
+        }
+
+		// Commit or rollback
+		if ($error) {
+			$this->db->rollback();
+
+			return - 1 * $error;
+		} else {
+			$this->db->commit();
+			$this->statut = $status;
+            $this->statut_type = self::$status_list[$status]->fields['type'];
+            dol_syslog(__METHOD__ . " success", LOG_DEBUG);
+
+			return 1;
+		}
+	}
+
+    /**
+     *  Return label of type
+     *
+     * @param   int         $mode       0=libelle, 1=code, 2=code - libelle
+     * @return  string                  Label
+     */
+    function getLibType($mode=0)
+    {
+        return $this->LibType($this->fk_type, $mode);
+    }
+
+    /**
+     *  Return label of type provides
+     *
+     * @param   int         $id             Id
+     * @param   int         $mode           0=libelle, 1=code, 2=code - libelle
+     * @param   int         $forcereload    Force reload of the cache
+     * @return  string                      Label
+     */
+    function LibType($id,$mode=0,$forcereload=0)
+    {
+        global $langs;
+
+        if (!($id > 0))
+            return '';
+
+        $langs->load("requestmanager@requestmanager");
+
+        if (empty(self::$type_list) || $forcereload) {
+            dol_include_once('/advancedictionaries/class/dictionary.class.php');
+            $dictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagerrequesttype');
+            $dictionary->fetch_lines(1, array(), array('label' => 'ASC'));
+            self::$type_list = $dictionary->lines;
+        }
+
+        if (!isset(self::$type_list[$id])) {
+            return $langs->trans('RequestManagerErrorNotFound');
+        }
+
+        $typeInfos = self::$type_list[$id];
+
+        if ($mode == 0) return $typeInfos->fields['label'];
+        if ($mode == 1) return $typeInfos->fields['code'];
+        if ($mode == 2) return $typeInfos->fields['code'] . ' - ' . $typeInfos->fields['label'];
+    }
+
+    /**
+     *  Return label of category
+     *
+     * @param   int         $mode       0=libelle, 1=code, 2=code - libelle
+     * @return  string                  Label
+     */
+    function getLibCategory($mode=0)
+    {
+        return $this->LibCategory($this->fk_category, $mode);
+    }
+
+    /**
+     *  Return label of category provides
+     *
+     * @param   int         $id             Id
+     * @param   int         $mode           0=libelle, 1=code, 2=code - libelle
+     * @param   int         $forcereload    Force reload of the cache
+     * @return  string                      Label
+     */
+    function LibCategory($id,$mode=0,$forcereload=0)
+    {
+        global $langs;
+
+        if (!($id > 0))
+            return '';
+
+        $langs->load("requestmanager@requestmanager");
+
+        if (empty(self::$category_list) || $forcereload) {
+            dol_include_once('/advancedictionaries/class/dictionary.class.php');
+            $dictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagercategory');
+            $dictionary->fetch_lines(1, array(), array('label' => 'ASC'));
+            self::$category_list = $dictionary->lines;
+        }
+
+        if (!isset(self::$category_list[$id])) {
+            return $langs->trans('RequestManagerErrorNotFound');
+        }
+
+        $categoryInfos = self::$category_list[$id];
+
+        if ($mode == 0) return $categoryInfos->fields['label'];
+        if ($mode == 1) return $categoryInfos->fields['code'];
+        if ($mode == 2) return $categoryInfos->fields['code'] . ' - ' . $categoryInfos->fields['label'];
+    }
+
+    /**
+     *  Return label of source
+     *
+     * @param   int         $mode       0=libelle, 1=code, 2=code - libelle
+     * @return  string                  Label
+     */
+    function getLibSource($mode=0)
+    {
+        return $this->LibSource($this->fk_source, $mode);
+    }
+
+    /**
+     *  Return label of source provides
+     *
+     * @param   int         $id             Id
+     * @param   int         $mode           0=libelle, 1=code, 2=code - libelle
+     * @param   int         $forcereload    Force reload of the cache
+     * @return  string                      Label
+     */
+    function LibSource($id,$mode=0,$forcereload=0)
+    {
+        global $langs;
+
+        if (!($id > 0))
+            return '';
+
+        $langs->load("requestmanager@requestmanager");
+
+        if (empty(self::$source_list) || $forcereload) {
+            dol_include_once('/advancedictionaries/class/dictionary.class.php');
+            $dictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagersource');
+            $dictionary->fetch_lines(1, array(), array('label' => 'ASC'));
+            self::$source_list = $dictionary->lines;
+        }
+
+        if (!isset(self::$source_list[$id])) {
+            return $langs->trans('RequestManagerErrorNotFound');
+        }
+
+        $sourceInfos = self::$source_list[$id];
+
+        if ($mode == 0) return $sourceInfos->fields['label'];
+        if ($mode == 1) return $sourceInfos->fields['code'];
+        if ($mode == 2) return $sourceInfos->fields['code'] . ' - ' . $sourceInfos->fields['label'];
+    }
+
+    /**
+     *  Return label of urgency
+     *
+     * @param   int         $mode       0=libelle, 1=code, 2=code - libelle
+     * @return  string                  Label
+     */
+    function getLibUrgency($mode=0)
+    {
+        return $this->LibUrgency($this->fk_urgency, $mode);
+    }
+
+    /**
+     *  Return label of urgency provides
+     *
+     * @param   int         $id             Id
+     * @param   int         $mode           0=libelle, 1=code, 2=code - libelle
+     * @param   int         $forcereload    Force reload of the cache
+     * @return  string                      Label
+     */
+    function LibUrgency($id,$mode=0,$forcereload=0)
+    {
+        global $langs;
+
+        if (!($id > 0))
+            return '';
+
+        $langs->load("requestmanager@requestmanager");
+
+        if (empty(self::$urgency_list) || $forcereload) {
+            dol_include_once('/advancedictionaries/class/dictionary.class.php');
+            $dictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagerurgency');
+            $dictionary->fetch_lines(1, array(), array('label' => 'ASC'));
+            self::$urgency_list = $dictionary->lines;
+        }
+
+        if (!isset(self::$urgency_list[$id])) {
+            return $langs->trans('RequestManagerErrorNotFound');
+        }
+
+        $urgencyInfos = self::$urgency_list[$id];
+
+        if ($mode == 0) return $urgencyInfos->fields['label'];
+        if ($mode == 1) return $urgencyInfos->fields['code'];
+        if ($mode == 2) return $urgencyInfos->fields['code'] . ' - ' . $urgencyInfos->fields['label'];
+    }
+
+    /**
+     *  Return label of impact
+     *
+     * @param   int         $mode       0=libelle, 1=code, 2=code - libelle
+     * @return  string                  Label
+     */
+    function getLibImpact($mode=0)
+    {
+        return $this->LibImpact($this->fk_impact, $mode);
+    }
+
+    /**
+     *  Return label of impact provides
+     *
+     * @param   int         $id             Id
+     * @param   int         $mode           0=libelle, 1=code, 2=code - libelle
+     * @param   int         $forcereload    Force reload of the cache
+     * @return  string                      Label
+     */
+    function LibImpact($id,$mode=0,$forcereload=0)
+    {
+        global $langs;
+
+        if (!($id > 0))
+            return '';
+
+        $langs->load("requestmanager@requestmanager");
+
+        if (empty(self::$impact_list) || $forcereload) {
+            dol_include_once('/advancedictionaries/class/dictionary.class.php');
+            $dictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagerimpact');
+            $dictionary->fetch_lines(1, array(), array('label' => 'ASC'));
+            self::$impact_list = $dictionary->lines;
+        }
+
+        if (!isset(self::$impact_list[$id])) {
+            return $langs->trans('RequestManagerErrorNotFound');
+        }
+
+        $impactInfos = self::$impact_list[$id];
+
+        if ($mode == 0) return $impactInfos->fields['label'];
+        if ($mode == 1) return $impactInfos->fields['code'];
+        if ($mode == 2) return $impactInfos->fields['code'] . ' - ' . $impactInfos->fields['label'];
+    }
+
+    /**
+     *  Return label of priority
+     *
+     * @param   int         $mode       0=libelle, 1=code, 2=code - libelle
+     * @return  string                  Label
+     */
+    function getLibPriority($mode=0)
+    {
+        return $this->LibPriority($this->fk_priority, $mode);
+    }
+
+    /**
+     *  Return label of priority provides
+     *
+     * @param   int         $id             Id
+     * @param   int         $mode           0=libelle, 1=code, 2=code - libelle
+     * @param   int         $forcereload    Force reload of the cache
+     * @return  string                      Label
+     */
+    function LibPriority($id,$mode=0,$forcereload=0)
+    {
+        global $langs;
+
+        if (!($id > 0))
+            return '';
+
+        $langs->load("requestmanager@requestmanager");
+
+        if (empty(self::$priority_list) || $forcereload) {
+            dol_include_once('/advancedictionaries/class/dictionary.class.php');
+            $dictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagerpriority');
+            $dictionary->fetch_lines(1, array(), array('label' => 'ASC'));
+            self::$priority_list = $dictionary->lines;
+        }
+
+        if (!isset(self::$priority_list[$id])) {
+            return $langs->trans('RequestManagerErrorNotFound');
+        }
+
+        $priorityInfos = self::$priority_list[$id];
+
+        if ($mode == 0) return $priorityInfos->fields['label'];
+        if ($mode == 1) return $priorityInfos->fields['code'];
+        if ($mode == 2) return $priorityInfos->fields['code'] . ' - ' . $priorityInfos->fields['label'];
+    }
+
+    /**
+     *  Return label of status
+     *
+     * @param   int         $mode       0=libelle long, 1=libelle court, 2=Picto + Libelle court, 3=Picto, 4=Picto + Libelle long
+     * @return  string                  Libelle
+     */
+    function getLibStatut($mode=0)
+    {
+        return $this->LibStatut($this->statut, $mode);
+    }
+
+    /**
+     *  Return label of status provides
+     *
+     * @param   int         $statut         Id statut
+     * @param   int         $mode           0=libelle long, 1=libelle court, 2=Picto + Libelle court, 3=Picto, 4=Picto + Libelle long, 5=Picto + Libelle court + Status type picto
+     * @param   int         $forcereload    Force reload of the cache
+     * @return  string                      Libelle du statut
+     */
+    function LibStatut($statut,$mode=0,$forcereload=0)
+    {
+        global $langs;
+
+        if (!($statut > 0))
+            return '';
+
+        $langs->load("requestmanager@requestmanager");
+
+        if (empty(self::$status_list) || $forcereload) {
+            dol_include_once('/advancedictionaries/class/dictionary.class.php');
+            $dictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagerstatus');
+            $dictionary->fetch_lines(1, array(), array('type' => 'ASC', 'position' => 'ASC'));
+            self::$status_list = $dictionary->lines;
+        }
+
+        if (!isset(self::$status_list[$statut])) {
+            return $langs->trans('RequestManagerErrorStatusNotFound');
+        }
+
+        $statutInfos = self::$status_list[$statut];
+
+        $type = $statutInfos->fields['type'];
+        $label_short = $label = $statutInfos->fields['label'];
+        $picto = $statutInfos->fields['picto'];
+
+        $statuttypepicto = '';
+        $statuttypetext = '';
+        if ($type == self::STATUS_TYPE_INITIAL) { $statuttypepicto = 'statut0'; $statuttypetext = $langs->trans('RequestManagerTypeInitial'); }
+        if ($type == self::STATUS_TYPE_IN_PROGRESS) { $statuttypepicto = 'statut1'; $statuttypetext = $langs->trans('RequestManagerTypeInProgress'); }
+        if ($type == self::STATUS_TYPE_RESOLVED) { $statuttypepicto = 'statut3'; $statuttypetext = $langs->trans('RequestManagerTypeResolved'); }
+        if ($type == self::STATUS_TYPE_CLOSED) { $statuttypepicto = 'statut4'; $statuttypetext = $langs->trans('RequestManagerTypeClosed'); }
+        if ($mode >= 7 && !empty($picto)) { $statuttypepicto = $picto; }
+        if ($mode >= 9 && !empty($picto)) { $statuttypetext = $label; }
+
+        if ($mode == 0) return $label;
+        if ($mode == 1) return $label_short;
+        if ($mode == 2) return img_picto($label_short, $picto) . ' ' . $label_short;
+        if ($mode == 3) return img_picto($label, $statuttypepicto);
+        if ($mode == 4) return img_picto($label, $picto) . ' ' . $label;
+        if ($mode == 5) return img_picto($label, $picto) . ' ' . '<span class="hideonsmartphone">' . $label_short . ' </span>' . img_picto($langs->trans($statuttypetext), $statuttypepicto);
+        if ($mode == 6) return img_picto($label, $picto) . ' ' . '<span class="hideonsmartphone">' . $label . ' </span>' . img_picto($langs->trans($statuttypetext), $statuttypepicto);
+        if ($mode == 7) return img_picto($label, $statuttypepicto) . ' ' . '<span class="hideonsmartphone">' . $label_short . ' </span>';
+        if ($mode == 8) return img_picto($label, $statuttypepicto) . ' ' . '<span class="hideonsmartphone">' . $label . ' </span>';
+        if ($mode == 9) return img_picto($statuttypetext, $statuttypepicto) . ' ' . $label_short;
+        if ($mode == 10) return img_picto($statuttypetext, $statuttypepicto) . ' ' . $label;
+    }
+
+    /**
+     *  Return a link on thirdparty (with picto)
+     *
+     * @param   int         $withpicto                  Add picto into link (0=No picto, 1=Include picto with link, 2=Picto only)
+     * @param   string      $option                     Target of link ('', 'customer', 'prospect', 'supplier', 'project')
+     * @param   int         $maxlen                     Max length of name
+     * @param   int         $notooltip                  1=Disable tooltip
+     * @param   int         $save_lastsearch_value      -1=Auto, 0=No save of lastsearch_values when clicking, 1=Save lastsearch_values whenclicking
+     * @return  string                                  String with URL
+     */
+    function getNomUrl($withpicto=0, $option='', $maxlen=0, $notooltip=0, $save_lastsearch_value=-1)
+    {
+        global $langs, $conf, $user;
+
+        if (!empty($conf->dol_no_mouse_hover)) $notooltip = 1;   // Force disable tooltips
+
+        $result = '';
+        $label = '';
+        $url = '';
+
+        if ($user->rights->requestmanager->lire) {
+            $this->fetch_thirdparty();
+            $label = '<u>' . $langs->trans("RequestManagerShowRequest") . '</u>';
+            $label .= '<br><b>' . $langs->trans('Ref') . ':</b> ' . $this->ref;
+            $label .= '<br><b>' . $langs->trans('RequestManagerExternalReference') . ':</b> ' . $this->ref_ext;
+            $label .= '<br><b>' . $langs->trans('RequestManagerRequestType') . ':</b> ' . $this->getLibType();
+            $label .= '<br><b>' . $langs->trans('RequestManagerThirdParty') . ':</b> ' . $this->thirdparty->getFullName($langs);
+            $label .= '<br><b>' . $langs->trans('RequestManagerLabel') . ':</b> ' . $this->label;
+            if ($option == '') {
+                $url = dol_buildpath('/requestmanager/card.php', 2) . '?id=' . $this->id;
+            }
+
+            if ($option != 'nolink') {
+                // Add param to save lastsearch_values or not
+                $add_save_lastsearch_values = ($save_lastsearch_value == 1 ? 1 : 0);
+                if ($save_lastsearch_value == -1 && preg_match('/list\.php/', $_SERVER["PHP_SELF"])) $add_save_lastsearch_values = 1;
+                if ($add_save_lastsearch_values) $url .= '&save_lastsearch_values=1';
+            }
+        }
+
+        $linkclose = '';
+        if (empty($notooltip) && $user->rights->requestmanager->lire) {
+            if (!empty($conf->global->MAIN_OPTIMIZEFORTEXTBROWSER)) {
+                $label = $langs->trans("RequestManagerShowRequest");
+                $linkclose .= ' alt="' . dol_escape_htmltag($label, 1) . '"';
+            }
+            $linkclose .= ' title="' . dol_escape_htmltag($label, 1) . '"';
+            $linkclose .= ' class="classfortooltip"';
+        }
+
+        $linkstart = '<a href="' . $url . '"';
+        $linkstart .= $linkclose . '>';
+        $linkend = '</a>';
+
+        if ($withpicto) $result.=($linkstart.img_object(($notooltip?'':$label), 'requestmanager@requestmanager', ($notooltip?'':'class="classfortooltip valigntextbottom"'), 0, 0, $notooltip?0:1).$linkend);
+        if ($withpicto && $withpicto != 2) $result.=' ';
+        if ($withpicto != 2) $result.=$linkstart.($maxlen?dol_trunc($this->ref,$maxlen):$this->ref).$linkend;
+        return $result;
+    }
+}

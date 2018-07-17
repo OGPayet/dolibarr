@@ -1,0 +1,37 @@
+# Dolibarr language file - fr_FR - extendedemail
+CHARSET=UTF-8
+Module163006Name = Extended E-Mail
+Module163006Desc = Extension de la gestion des destinataires des e-mails aux utilisateurs internes
+
+############################################################
+### Admin setup
+############################################################
+ExtendedEmailSetup                                  = Configuration du module Extended E-Mail
+ExtendedEmailAddUserToSendto                        = Permettre la sélection des utilisateurs internes en tant que "Destinataire(s)"
+ExtendedEmailAddUserToSendtocc                      = Permettre la sélection des utilisateurs internes en "Copie à"
+ExtendedEmailAddUserToSendtoccc                     = Permettre la sélection des utilisateurs internes en "Copie cachée à"
+ExtendedEmailHideNoEmail                            = Cacher les destinataires sans courriel
+ExtendedEmailMaxLineHideList                        = Nombre maximum de destinataires affichés dans la liste
+ExtendedEmailAddContactsThirdpartyParentToSendto    = Permettre la sélection des contacts des sociétés mères en tant que "Destinataire(s)" (depuis les fiches standards de Dolibarr)
+ExtendedEmailAddContactsThirdpartyParentToSendtocc  = Permettre la sélection des contacts des sociétés mères en "Copie à" (depuis les fiches standards de Dolibarr)
+ExtendedEmailAddContactsThirdpartyParentToSendtoccc = Permettre la sélection des contacts des sociétés mères en "Copie cachée à" (depuis les fiches standards de Dolibarr)
+
+############################################################
+### Dictionnaire
+############################################################
+ExtendedEmailGenericEmailDictionary = Liste des adresses emails génériques
+
+############################################################
+### Tab page
+############################################################
+ExtendedEmailGenericEmailTab       = Emails génériques
+ExtendedEmailListOfGenericEmail    = Liste des emails génériques pour cet utilisateur
+ExtendedEmailGenericEmail          = Emails génériques
+ExtendedEmailNoGenericEmailDefined = Pas d'email générique défini
+
+############################################################
+### Interface
+############################################################
+ExtendedEmailPlaceholder=Choisissez un destinataire ...
+ExtendedEmailAdd=Ajouter
+ExtendedEmailInvalidEmail=Adresse de courriel incorrect

@@ -1,0 +1,185 @@
+# Dolibarr language file - fr_FR - requestmanager
+CHARSET          = UTF-8
+Module163018Name = Request Manager
+Module163018Desc = Gestionnaire de demandes
+
+############################################################
+### Permissions
+############################################################
+Permission163032 = Consulter les demandes
+Permission163033 = Créer/modifier les demandes
+Permission163034 = Supprimer les demandes
+Permission163035 = Réouvrir les demandes cloturées
+Permission163036 = Voir les documents des demandes
+
+############################################################
+### Admin setup
+############################################################
+RequestManagerSetup                         = Configuration du module Request Manager
+RequestManagerExtraFields                   = Attributs supplémentaires (Demande)
+RequestManagerMessageExtraFields            = Attributs supplémentaires (Message)
+RequestManagerRefNumberingModules           = Modèles de numérotation des références interne des demandes
+RequestManagerExternalRefNumberingModules   = Modèles de numérotation des références externe des demandes
+
+############################################################
+### Contact
+############################################################
+TypeContact_project_internal_REQUESTER  = Utilisateur demandeur
+TypeContact_project_external_REQUESTER  = Contact demandeur
+TypeContact_project_internal_WATCHER    = Utilisateur observateur
+TypeContact_project_external_WATCHER    = Contact observateur
+
+############################################################
+### Actions
+############################################################
+ActionAC_RM_IN      = Message de demande entrant
+ActionAC_RM_OUT     = Message de demande sortant
+ActionAC_RM_PRIV    = Message de demande privé
+
+############################################################
+### Global search
+############################################################
+RequestManagerSearchIntoRequests    = Demandes
+
+############################################################
+### Menu
+############################################################
+RequestManagerMenuTop                   = Demandes
+RequestManagerMenuLeftTitle             = Demandes
+RequestManagerMenuLeftNewRequest        = Nouvelle demande
+RequestManagerMenuLeftList              = Liste
+RequestManagerMenuLeftMyList            = Mes demandes
+RequestManagerMenuLeftListNotAssigned   = Demandes non attribuées
+RequestManagerMenuLeftListNotResolved   = Demandes non résolues
+RequestManagerMenuLeftListClosed        = Demandes clôturées
+
+############################################################
+### Tabulation
+############################################################
+RequestManagerRequestTab                = Demande
+
+############################################################
+### Card
+############################################################
+RequestManagerRequest                   = Demande
+RequestManagerShowRequest               = Afficher demande
+RequestManagerCard                      = Demande
+RequestManagerNewRequest                = Nouvelle demande
+RequestManagerExternalReference         = Référence externe
+RequestManagerRequestType               = Type de demande
+RequestManagerCategory                  = Catégorie
+RequestManagerLabel                     = Titre
+RequestManagerThirdParty                = Demandeur
+RequestManagerSource                    = Source
+RequestManagerUrgency                   = Urgence
+RequestManagerImpact                    = Impact
+RequestManagerPriority                  = Priorité
+RequestManagerDuration                  = Durée
+RequestManagerDeadline                  = Date d'écheance
+RequestManagerRequesterContacts         = Contacts demandeur
+RequestManagerRequesterNotification     = Notifier les demandeurs
+RequestManagerWatcherContacts           = Contacts observateur
+RequestManagerWatcherNotification       = Notifier les observateurs
+RequestManagerAssignedUserGroup         = Assigné au groupe d'utilisateur
+RequestManagerAssignedUser              = Assigné à l'utilisateur
+RequestManagerAssignedNotification      = Notifier les assignés
+RequestManagerDescription               = Description
+RequestManagerAddRequest                = Créer demande
+RequestManagerAddMessage                = Ajouter un message
+RequestManagerNoNotifications           = Pas de notifications
+RequestManagerSetCategory               = Définir la catégorie
+RequestManagerSetLabel                  = Définir le titre
+RequestManagerSetThirdParty             = Définir le demandeur
+RequestManagerSetSource                 = Définir la source
+RequestManagerSetUrgency                = Définir l'urgence
+RequestManagerSetImpact                 = Définir l'impact
+RequestManagerSetPriority               = Définir la priorité
+RequestManagerSetDuration               = Définir la durée
+RequestManagerSetDeadline               = Définir la date d'écheance
+RequestManagerSetRequesterContacts      = Définir les contacts demandeur
+RequestManagerSetWatcherContacts        = Définir les contacts observateur
+RequestManagerSetAssignedUserGroup      = Définir le groupe d'utilisateur assigné
+RequestManagerSetAssignedUser           = Définir l'utilisateur assigné
+RequestManagerSetAssignedNotification   = Définir la notification des assignés
+RequestManagerSetDescription            = Définir la description
+
+############################################################
+### List
+############################################################
+RequestManagerListOfRequests            = Liste des demandes
+RequestManagerNotAssigned               = Non attribuées
+RequestManagerMyRequest                 = Mes demandes
+RequestManagerTypeNotResolved           = Non résolue
+RequestManagerExternalReferenceShort    = Réf. externe
+RequestManagerResolvedBy                = Résolu par
+RequestManagerDateResolved              = Date Résolu
+
+############################################################
+### Message form
+############################################################
+RequestManagerSelectTemplate                = Choisir modèle de message
+RequestManagerNoTemplateDefined             = Pas de modèle défini
+RequestManagerMessageOriginCustomer         = Message provenant du client ?
+RequestManagerMessageOriginCustomerContact  = Provenant du contact client
+RequestManagerMessageSubstitutionValues     = Variables de substitution disponiblent
+RequestManagerMessageSubject                = Sujet
+RequestManagerMessageFile                   = Fichiers joints
+RequestManagerMessage                       = Message
+
+############################################################
+### Confirm box
+############################################################
+RequestManagerResolveRequest                = Résoudre demande
+RequestManagerConfirmResolveRequest         = Êtes-vous sûr de vouloir résoudre cette demande ?
+RequestManagerCloseRequest                  = Clôturer demande
+RequestManagerConfirmCloseRequest           = Êtes-vous sûr de vouloir cloturer cette demande ?
+RequestManagerNotResolvedRequest            = Réouvrir demande
+RequestManagerConfirmNotResolvedRequest     = Êtes-vous sûr de vouloir rouvrir cette demande ?
+RequestManagerReOpenRequest                 = Réouvrir demande
+RequestManagerConfirmReOpenRequest          = Êtes-vous sûr de vouloir rouvrir cette demande ?
+RequestManagerDeleteRequest                 = Supprimer demande
+RequestManagerConfirmDeleteRequest          = Êtes-vous sûr de vouloir supprimer cette demande ?
+
+############################################################
+### Events list on card
+############################################################
+RequestManagerListOfEvents      = Liste des événements
+RequestManagerListMode          = Vue Liste
+RequestManagerBlocMode          = Vue bloc
+
+######################################################################
+# Dictionaries
+######################################################################
+RequestManagerRequestTypeDictionaryLabel            = Type des demandes
+RequestManagerStatusDictionaryLabel                 = Statut des demandes
+RequestManagerCategoryDictionaryLabel               = Catégorie des demandes
+RequestManagerSourceDictionaryLabel                 = Source des demandes
+RequestManagerUrgencyDictionaryLabel                = Urgence des demandes
+RequestManagerImpactDictionaryLabel                 = Impact des demandes
+RequestManagerPriorityDictionaryLabel               = Priorité des demandes
+RequestManagerMessageTemplateDictionaryLabel        = Modèles de messages / Notifications
+RequestManagerRequestType                           = Types de demande
+RequestManagerType                                  = Type
+RequestManagerTypeInitial                           = Initial
+RequestManagerTypeInProgress                        = En cours
+RequestManagerTypeResolved                          = Résolu
+RequestManagerTypeClosed                            = Clôt
+RequestManagerStatusDictionaryPicto                 = Icône
+RequestManagerStatusDictionaryPictoHelp             = Nom de l'icone au format dolibarr ('image.png' si mise dans le répertoire '%s', 'image.png@nom_du_module' si mise dans le repertoire /img/ d'un module)
+RequestManagerTemplateTypeNotifyStatusModified      = Notification d'un changement de statut
+RequestManagerTemplateTypeNotifyInputMessageAdded   = Notification d'un ajout de message entrant
+RequestManagerTemplateTypeNotifyOutputMessageAdded  = Notification d'un ajout de message sortant
+RequestManagerTemplateTypeMessageTemplateUser       = Modèle de message
+RequestManagerTemplateForType                       = Ce modèle est dédié à quoi ?
+RequestManagerTemplateForRequestType                = Ce modèle est dédié pour quel type de demande
+
+############################################################
+### Errors
+############################################################
+RequestManagerErrorFieldStatusMustBeOfInitialType               = La demande doit être à un statut de type 'Initial'
+RequestManagerErrorRequestTypeNotFound                          = Type de demande non trouvé
+RequestManagerErrorDeadlineDateMustBeGreaterThanCreateDate      = La date d'échéance doit être supérieure à la date de création
+RequestManagerErrorInitStatusNotFound                           = Statut de type 'Initial' non trouvé pour ce type de demande
+RequestManagerErrorStatusNotFound                               = Statut non trouvé
+RequestManagerErrorOnlyOneStatusForThisTypeForEachRequestType   = Il ne peut y avoir qu'un statut de ce type par "Type de demande"
+RequestManagerErrorOnlyOneTemplateForThisTypeForEachRequestType = Il ne peut y avoir qu'un modèle de ce type par "Type de demande"

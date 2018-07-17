@@ -1,0 +1,29 @@
+# Dolibarr language file - en_US - quicklist
+CHARSET=UTF-8
+Module163011Name=Quick List
+Module163011Desc=Module to manage custom filters on lists
+
+QuickListSetup=Configuration of the module "Quick List"
+
+QuickListHelp=Additional options
+QuickListAddFilter=Add a filter
+QuickListSearch=Search...
+QuickListEditFilter=Edit filter
+QuickListDeleteFilter=Remove filter
+
+QuickListScopePrivate=Private
+QuickListScopeUserGroup=User Groups
+QuickListScopePublic=Public
+
+QuickListFilterName=Filter name :
+QuickListFilterScope=Filter visibility :
+QuickListFilterScopeUserGroup=Selection of user groups :
+QuickListFilterMenu=Create an associated menu ?
+QuickListFilterUpdateUrl=Update the filter url ?
+
+QuickListConfirmDeleteFilter=Are you sure you want to remove the filter "%s" ?
+
+QuickListFilterSaved=Saved filter.
+QuickListFilterSavedError=Error saving the filter: %s.
+QuickListFilterDeleted=Filter deleted.
+QuickListFilterDeletedError=Error removing the filter: %s.

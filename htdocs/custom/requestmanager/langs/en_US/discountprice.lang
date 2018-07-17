@@ -1,0 +1,55 @@
+# Dolibarr language file - en_US - discountprice
+CHARSET          = UTF-8
+Module163013Name = Discount Price
+Module163013Desc = Module for planning product discount
+
+############################################################
+### Permissions
+############################################################
+Permission163000 = Read discount
+Permission163001 = Create/modify discount
+Permission163002 = Delete discount
+
+############################################################
+### Globals
+############################################################
+ErrorTimeline     = Date timeline error: %s
+ErrorValueBetween = The value of the %s field must be between %s and %s
+
+############################################################
+### Admin setup
+############################################################
+DiscountPriceSetup                                    = Discount Price module setup
+DiscountPriceBasePriceDiscountName                    = Type de prix
+DiscountPriceBasePriceDiscountDesc                    = Type de prix renseigné pour les promos
+DiscountPriceDisabledDiscountWhenHasCustomerPriceName = Désactivé quand prix client
+DiscountPriceDisabledDiscountWhenHasCustomerPriceDesc = Désactive la promo si un prix client est renseigné
+DiscountPriceCalculationModeWithExistingDiscountName  = Mode de calcul
+DiscountPriceCalculationModeWithExistingDiscountDesc  = Mode de calcul avec une remise existante
+DiscountPriceCalculationModeReplace                   = Remplace
+DiscountPriceCalculationModeCascade                   = Cascade
+DiscountPriceDiscountRoundPrecisionName               = Nombre de décimales
+DiscountPriceDiscountRoundPrecisionDesc               = Nombre de décimales maximum pour le calcul du pourcentage de la remise du produit
+
+############################################################
+### Discount price
+############################################################
+DiscountPriceDeactivated = Deactivate
+DiscountPriceActivated   = Activate
+
+############################################################
+### Tab page
+############################################################
+DiscountPriceDiscountTab                              = Discount
+DiscountPriceMaximumDiscount                          = Remise maximale
+DiscountPriceMaximumDiscountWithoutThirdpartyDiscount = (hors remise applicable à un tiers)
+DiscountPriceMinimumPrice                             = Prix Promo minimum
+DiscountPriceMaximumPrice                             = Prix Promo maximum
+DiscountPriceDiscountPriceHT                          = Prix Promo HT
+DiscountPriceDiscountPriceTTC                         = Prix Promo TTC
+
+############################################################
+### Table
+############################################################
+DiscountPriceDiscountList              = List of discount
+DiscountPriceErrorDiscountConflictList = List of discount whose period conflicts with the discount

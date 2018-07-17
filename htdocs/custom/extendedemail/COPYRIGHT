@@ -1,0 +1,20 @@
+License
+-------
+
+This module is released under the terms of the GNU General Public License as
+published by the Free Software Foundation; either version 3 of the License,
+or (at your option) any later version (GPL-3+).
+More information: http://www.gnu.org/licenses/gpl-3.0.txt
+
+Copyright
+---------
+
+Copyright (C) 2017
+- Open-DSI <support@open-dsi.fr>
+
+This module uses some external libraries released under different licenses. This is compatibility summary:
+
+Component              Version       License                     GPL Compatible  Usage
+-------------------------------------------------------------------------------------
+JS libraries:
+Selectize.js           0.12.4        Apache Software License 2.0 Yes             Selectize is the hybrid of a textbox and <select> box. It's jQuery-based and it's useful for tagging, contact lists, country selectors, and so on. (https://selectize.github.io/selectize.js/)
