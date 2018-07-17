@@ -460,38 +460,4 @@ function hackDefaultWarehouse()
             }
         }
     }
-
-    if (strpos($_SERVER['REQUEST_URI'], '/fourn/commande/dispatch.php') !== false && GETPOST('action', 'alpha') == '') {
-        $shipment = GETPOST('id', 'int');
-        if ($shipment) {
-            $sql = "SELECT  l.fk_product";
-            $sql .= " FROM ".MAIN_DB_PREFIX."commande_fournisseurdet as l";
-            $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."product as p ON l.fk_product=p.rowid";
-            $sql .= " WHERE l.fk_commande = ".$shipment;
-            if (empty($conf->global->STOCK_SUPPORTS_SERVICES)) $sql .= " AND l.product_type = 0";
-            $sql .= " GROUP BY p.ref, p.label, p.tobatch, l.rowid, l.fk_product, l.subprice, l.remise_percent"; // Calculation of amount dispatched is done per fk_product so we must group by fk_product
-            $sql .= " ORDER BY p.ref, p.label";
-
-            $resql = $db->query($sql);
-            if ($resql) {
-                $i   = 0;
-                while ($res = $db->fetch_object($resql)) {
-                    $id_prod = $res->fk_product;
-
-                    $sql    = "SELECT `fk_target` FROM `".MAIN_DB_PREFIX."element_element` WHERE `fk_source` = $id_prod AND `sourcetype` = 'product' AND `targettype` = 'stock' ";
-                    $$result2 = $db->query($sql);
-                    if ($$result2) {
-                        $obj = $db->fetch_object($$result2);
-                        //var_dump($sql);
-                        $obj->fk_target;
-                        if (!isset($_GET['id_entrepot_0_'.$i])) {
-                            $_GET['entrepot_0_'.$i] = 1;
-                        }
-                        $db->free($$result2);
-                    }
-                    $i++;
-                }
-            }
-        }
-    }
 }

@@ -723,9 +723,7 @@ if ($id > 0 || ! empty($ref)) {
 
 						// Warehouse
 						print '<td align="right">';
-						if (count($listwarehouses) > 1) {
-							print $formproduct->selectWarehouses(GETPOST("entrepot" . $suffix), "entrepot" . $suffix, '', 1, 0, $objp->fk_product, '', 1);
-						} elseif (count($listwarehouses) == 1) {
+						if (count($listwarehouses) >= 1) {
 							print $formproduct->selectWarehouses(GETPOST("entrepot" . $suffix), "entrepot" . $suffix, '', 0, 0, $objp->fk_product, '', 1);
 						} else {
 							$langs->load("errors");
