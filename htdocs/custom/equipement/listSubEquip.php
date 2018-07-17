@@ -364,14 +364,22 @@ if ($result) {
 		print "<td nowrap align='center'>".dol_print_date($db->jdate($objp->dateo), 'day')."</td>\n";
 		print "<td nowrap align='center'>".dol_print_date($db->jdate($objp->datee), 'day')."</td>\n";
 
+<<<<<<< HEAD
         print '<td align="right">';
+=======
+		print '<td align="right">';
+>>>>>>> Module Equipement : correction de la liste des equipements composant
         if($objp->etatequiplibelle)
         {
             print $langs->trans($objp->etatequiplibelle);
         }
         print '</td>';
 
+<<<<<<< HEAD
 		print '<td align="right">'.$equipementstatic->LibStatut($objp->fk_statut, 5).'</td>';
+=======
+        print '<td align="right">'.$equipementstatic->LibStatut($objp->fk_statut, 5).'</td>';
+>>>>>>> Module Equipement : correction de la liste des equipements composant
 		print "</tr>\n";
 		$i++;
 	}
