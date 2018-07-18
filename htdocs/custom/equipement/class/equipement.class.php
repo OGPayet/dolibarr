@@ -1699,11 +1699,17 @@ class Equipement extends CommonObject
     {
         global $conf;
 
+        $sqlNotInEquipementUsed  = "SELECT ea.fk_equipement_fils";
+        $sqlNotInEquipementUsed .= " FROM " . MAIN_DB_PREFIX . "equipementassociation ea";
+        $sqlNotInEquipementUsed .= " WHERE ea.fk_product = " . $fkProduct;
+
         $sql  = "SELECT e.rowid, e.ref";
         $sql .= " FROM " . MAIN_DB_PREFIX . "equipement e";
         $sql .= " WHERE e.fk_product = " . $fkProduct;
         $sql .= " AND e.fk_entrepot > 0";
         $sql .= " AND e.quantity > 0";
+        // not a component linked to another equipement
+        $sql .= " AND e.rowid NOT IN (" . $sqlNotInEquipementUsed . ")";
         $sql .= " AND e.entity = " . $conf->entity;
 
         dol_syslog(get_class($this)."::findAllInWarehouseByFkProduct sql=" . $sql, LOG_DEBUG);
