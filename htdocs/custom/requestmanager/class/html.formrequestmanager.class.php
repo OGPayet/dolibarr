@@ -21,6 +21,8 @@
  *	\brief      File of class with all html predefined components for request manager
  */
 
+require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
+dol_include_once('/requestmanager/class/requestmanager.class.php');
 dol_include_once('/advancedictionaries/class/html.formdictionary.class.php');
 
 /**
@@ -33,10 +35,18 @@ class FormRequestManager
     public $db;
     public $error;
     public $num;
+
+    /**
+     * @var Form  Instance of the form
+     */
+    public $form;
+
     /**
      * @var FormDictionary  Instance of the form form dictionaries
      */
     public $formdictionary;
+
+
 
     /**
      * Constructor
@@ -46,6 +56,7 @@ class FormRequestManager
     public function __construct($db)
     {
         $this->db = $db;
+        $this->form = new Form($this->db);
         $this->formdictionary = new FormDictionary($this->db);
     }
 
@@ -236,4 +247,36 @@ class FormRequestManager
         dol_include_once('/requestmanager/class/requestmanager.class.php');
         return $this->formdictionary->select_dictionary('requestmanager', 'requestmanagerstatus', $selected, $htmlname, 'rowid', '{{label}}', array('request_type'=>array($request_type), 'type'=>array(RequestManager::STATUS_TYPE_IN_PROGRESS)), $showempty, $forcecombo, $events, $usesearchtoselect, $limit, $morecss, $moreparam, $selected_input_value, $hidelabel, $selectlabel, $autofocus, $ajaxoptions, $options_only);
     }
+
+
+    /**
+     * Print contact add form
+     *
+     * @param   RequestManager  $requestManager     Request manager object
+     * @param   int             $idContactType      Id of contact type
+     * @return  void            Print contact add form
+     */
+    function form_add_contact(RequestManager $requestManager, $idContactType)
+    {
+        global $langs;
+
+        $contactTypeCodeHtmlName = RequestManager::getContactTypeCodeHtmlNameById($idContactType);
+
+        // form to add requester contact
+        print '<form name="form_add_contact_' . $contactTypeCodeHtmlName . '" action="' . $_SERVER["PHP_SELF"] . '" method="post">';
+        print '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '">';
+        print '<input type="hidden" name="action" value="add_contact">';
+        print '<input type="hidden" name="id" value="' . $requestManager->id . '">';
+        print '<input type="hidden" name="add_contact_type_id" value="' . $idContactType . '">';
+        print '<table class="nobordernopadding" width="100%">';
+        print '<tr>';
+        print '<td>';
+        $this->form->select_contacts($requestManager->socid, '', $contactTypeCodeHtmlName . '_fk_socpeople');
+        print '&nbsp;<input type="submit" class="button" value="' . $langs->trans('Add') . '">';
+        print '</td>';
+        print '</tr>';
+        print '</table>';
+        print '</form>';
+    }
 }
+

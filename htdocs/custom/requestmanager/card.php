@@ -442,6 +442,12 @@ if (empty($reshook)) {
     } // Add message
     elseif ($action == 'addmessage' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
     }
+    else if ($action == 'add_contact' && $user->rights->requestmanager->creer) {
+        $object->add_contact_action(intval(GETPOST('add_contact_type_id')));
+    }
+    else if ($action == 'del_contact' && $user->rights->requestmanager->creer) {
+        $object->del_contact_action(intval(GETPOST('del_contact_type_id')));
+    }
 
 
     // Actions to send emails
@@ -1037,7 +1043,7 @@ if ($action == 'create')
     print '<tr><td>';
     if ($action == 'edit_requesters' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
         print '<form name="editdate" action="' . $_SERVER["PHP_SELF"] . '" method="post">';
-        print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
+        print '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '">';
         print '<input type="hidden" name="action" value="set_requesters">';
         print '<input type="hidden" name="id" value="' . $object->id . '">';
         print '<table class="nobordernopadding" width="100%">';
@@ -1053,23 +1059,12 @@ if ($action == 'create')
         print '</table>';
         print '</form>';
     } else {
-        print '<table class="nobordernopadding" width="100%">';
-        $object->fetch_requester(1);
-        foreach ($object->requester_list as $requester) {
-            print '<tr><td class="titlefield">' . $requester->getNomUrl(1) . '</td><td>';
-            $requester->fetch_thirdparty();
-            if ($requester->thirdparty->id > 0) print $requester->thirdparty->getNomUrl(1);
-            print '</td><td>';
-            $phones = array();
-            if (!empty($requester->office_phone)) $phones[] = dol_print_phone($requester->office_phone, $requester->country_code, $requester->contact_id, $requester->socid, 'AC_TEL', '&nbsp;', 'phone', $langs->trans("PhonePro"));
-            if (!empty($requester->user_mobile)) $phones[] = dol_print_phone($requester->user_mobile, $requester->country_code, $requester->contact_id, $requester->socid, 'AC_TEL', '&nbsp;', 'mobile', $langs->trans("PhoneMobile"));
-            if (!empty($requester->phone_pro)) $phones[] = dol_print_phone($requester->phone_pro, $requester->country_code, $requester->id, $requester->socid, 'AC_TEL', '&nbsp;', 'phone', $langs->trans("PhonePro"));
-            if (!empty($requester->phone_mobile)) $phones[] = dol_print_phone($requester->phone_mobile, $requester->country_code, $requester->id, $requester->socid, 'AC_TEL', '&nbsp;', 'mobile', $langs->trans("PhoneMobile"));
-            if (!empty($requester->phone_perso)) $phones[] = dol_print_phone($requester->phone_perso, $requester->country_code, $requester->id, $requester->socid, 'AC_TEL', '&nbsp;', 'phone', $langs->trans("PhonePerso"));
-            print implode(', ', $phones);
-            print '</td></tr>';
+        if ($user->rights->requestmanager->creer) {
+            // form to add requester contact
+            $formrequestmanager->form_add_contact($object, RequestManager::CONTACT_TYPE_ID_REQUEST);
         }
-        print '</table>';
+
+        $object->show_contact_list(RequestManager::CONTACT_TYPE_ID_REQUEST);
     }
     print '</td></tr>';
 
@@ -1102,23 +1097,12 @@ if ($action == 'create')
         print '</table>';
         print '</form>';
     } else {
-        print '<table class="nobordernopadding" width="100%">';
-        $object->fetch_watcher(1);
-        foreach ($object->watcher_list as $watcher) {
-            print '<tr><td class="titlefield">' . $watcher->getNomUrl(1) . '</td><td>';
-            $watcher->fetch_thirdparty();
-            if ($watcher->thirdparty->id > 0) print $watcher->thirdparty->getNomUrl(1);
-            print '</td><td>';
-            $phones = array();
-            if (!empty($watcher->office_phone)) $phones[] = dol_print_phone($watcher->office_phone, $watcher->country_code, $watcher->contact_id, $watcher->socid, 'AC_TEL', '&nbsp;', 'phone', $langs->trans("PhonePro"));
-            if (!empty($watcher->user_mobile)) $phones[] = dol_print_phone($watcher->user_mobile, $watcher->country_code, $watcher->contact_id, $watcher->socid, 'AC_TEL', '&nbsp;', 'mobile', $langs->trans("PhoneMobile"));
-            if (!empty($watcher->phone_pro)) $phones[] = dol_print_phone($watcher->phone_pro, $watcher->country_code, $watcher->id, $watcher->socid, 'AC_TEL', '&nbsp;', 'phone', $langs->trans("PhonePro"));
-            if (!empty($watcher->phone_mobile)) $phones[] = dol_print_phone($watcher->phone_mobile, $watcher->country_code, $watcher->id, $watcher->socid, 'AC_TEL', '&nbsp;', 'mobile', $langs->trans("PhoneMobile"));
-            if (!empty($watcher->phone_perso)) $phones[] = dol_print_phone($watcher->phone_perso, $watcher->country_code, $watcher->id, $watcher->socid, 'AC_TEL', '&nbsp;', 'phone', $langs->trans("PhonePerso"));
-            print implode(', ', $phones);
-            print '</td></tr>';
+        if ($user->rights->requestmanager->creer) {
+            // form to add requester contact
+            $formrequestmanager->form_add_contact($object, RequestManager::CONTACT_TYPE_ID_WATCHER);
         }
-        print '</table>';
+
+        $object->show_contact_list(RequestManager::CONTACT_TYPE_ID_WATCHER);
     }
     print '</td></tr>';
 

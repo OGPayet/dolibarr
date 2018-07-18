@@ -314,6 +314,14 @@ class RequestManager extends CommonObject
     const STATUS_TYPE_CLOSED = 3;
 
     /**
+     * Contact types
+     */
+    const CONTACT_TYPE_ID_REQUEST = 0;
+    const CONTACT_TYPE_ID_WATCHER = 1;
+    private static $_contactTypeCodeList = array(self::CONTACT_TYPE_ID_REQUEST => 'REQUESTER', self::CONTACT_TYPE_ID_WATCHER => 'WATCHER');
+
+
+    /**
 	 * Constructor
 	 *
 	 * @param   DoliDb      $db     Database handler
@@ -588,6 +596,45 @@ class RequestManager extends CommonObject
     }
 
     /**
+     * Get the contact code name in HTML pages
+     *
+     * @param   string  $contactTypeCode    Contact type code
+     * @return  string  Contact type code for HTML pages
+     */
+    public static function getContactTypeCodeHtmlNameById($idContactType)
+    {
+        return strtolower(self::getContactTypeCodeById($idContactType));
+    }
+
+
+    /**
+     * Get contact type code from constant Id contact type
+     *
+     * @param   int     $idContactType      Constant id contact type (ex : CONTACT_TYPE_ID_REQUEST)
+     * @return  string  Contact type code
+     */
+    public static function getContactTypeCodeById($idContactType)
+    {
+        if (isset(self::$_contactTypeCodeList[$idContactType])) {
+            return self::$_contactTypeCodeList[$idContactType];
+        } else {
+            return '';
+        }
+    }
+
+
+    /**
+     * Get contact type code list
+     *
+     * @return  array   List of contact type codes
+     */
+    public function getContactTypeCodeList()
+    {
+        return self::$_contactTypeCodeList;
+    }
+
+
+    /**
      *  Returns the reference to the following non used request used depending on the active numbering module
      *  defined into REQUESTMANAGER_REF_ADDON
      *
@@ -684,6 +731,7 @@ class RequestManager extends CommonObject
             return "";
         }
     }
+
 
 	/**
 	 *  Load request in memory from the database
@@ -1715,5 +1763,121 @@ class RequestManager extends CommonObject
         if ($withpicto && $withpicto != 2) $result.=' ';
         if ($withpicto != 2) $result.=$linkstart.($maxlen?dol_trunc($this->ref,$maxlen):$this->ref).$linkend;
         return $result;
+    }
+
+
+    /**
+     * Delete contact by id and type
+     *
+     * @param   int     $fkSocpeople            Id of soc people
+     * @param   int     $idContactType          Id contact type
+     * @return  int     <0 if KO, >0 if OK
+     */
+    private function _deleteContactByFkSocpeopleAndIdContactType($fkSocpeople, $idContactType)
+    {
+        $sql   = "DELETE ec.* FROM " . MAIN_DB_PREFIX . "element_contact as ec";
+        $sql .= " INNER JOIN " . MAIN_DB_PREFIX . "c_type_contact as ctc ON ctc.rowid = ec.fk_c_type_contact";
+        $sql .= " WHERE ec.element_id = " . $this->id;
+        $sql .= " AND ctc.code = '" . $this->db->escape(self::getContactTypeCodeById($idContactType)) . "'";
+        $sql .= " AND fk_socpeople = " . $fkSocpeople;
+
+        $resql = $this->db->query($sql);
+        if (!$resql) {
+            return -1;
+        } else {
+            return 1;
+        }
+    }
+
+
+    /**
+     * Action to add contact
+     *
+     * @param   int         $idContactType      Id contact type
+     * @return  void        Action execute
+     */
+    public function add_contact_action($idContactType)
+    {
+        $contactTypeCodeHtml = self::getContactTypeCodeHtmlNameById($idContactType);
+        $fkSocpeople = intval(GETPOST($contactTypeCodeHtml . '_fk_socpeople' , 'int'));
+
+        $result = $this->add_contact($fkSocpeople, self::getContactTypeCodeById($idContactType));
+        if ($result < 0) {
+            setEventMessages($this->error, $this->errors, 'errors');
+        } else {
+            header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $this->id);
+            exit();
+        }
+    }
+
+
+    /**
+     * Action to delete contact
+     *
+     * @param   int         $idContactType      Id contact type
+     * @return  void        Action execute
+     */
+    public function del_contact_action($idContactType)
+    {
+        $fkSocpeople = intval(GETPOST('fk_socpeople' , 'int'));
+
+        $result = $this->_deleteContactByFkSocpeopleAndIdContactType($fkSocpeople, $idContactType);
+        if ($result < 0) {
+            setEventMessages($this->error, $this->errors, 'errors');
+        } else {
+            header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $this->id);
+            exit();
+        }
+    }
+
+    /**
+     * Show contact list
+     *
+     * @param   int         $idContactType      Id contact type
+     * @return  void        Print contact list
+     */
+    public function show_contact_list($idContactType)
+    {
+        global $langs;
+
+        if ($idContactType == self::CONTACT_TYPE_ID_REQUEST) {
+            $this->fetch_requester(1);
+            $contactList = $this->requester_list;
+        } else if ($idContactType == self::CONTACT_TYPE_ID_WATCHER) {
+            $this->fetch_watcher(1);
+            $contactList = $this->watcher_list;
+        }
+
+        if (count($contactList) > 0) {
+            print '<table class="nobordernopadding" width="100%">';
+            print '<tr class="liste_titre">';
+            print '<td align="left">' . $langs->trans("Name") . '</td>';
+            print '<td align="center">' . $langs->trans("Phone") . '</td>';
+            print '<td></td>';
+            print '</tr>';
+
+            foreach ($contactList as $contact) {
+                print '<tr>';
+
+                // contact name
+                print '<td class="titlefield">' . $contact->getNomUrl(1) . '</td>';
+
+                // contact phone
+                print '<td align="center">';
+                $phones = array();
+                if (!empty($contact->office_phone)) $phones[] = dol_print_phone($contact->office_phone, $contact->country_code, $contact->contact_id, $contact->socid, 'AC_TEL', '&nbsp;', 'phone', $langs->trans("PhonePro"));
+                if (!empty($contact->user_mobile)) $phones[] = dol_print_phone($contact->user_mobile, $contact->country_code, $contact->contact_id, $contact->socid, 'AC_TEL', '&nbsp;', 'mobile', $langs->trans("PhoneMobile"));
+                if (!empty($contact->phone_pro)) $phones[] = dol_print_phone($contact->phone_pro, $contact->country_code, $contact->id, $contact->socid, 'AC_TEL', '&nbsp;', 'phone', $langs->trans("PhonePro"));
+                if (!empty($contact->phone_mobile)) $phones[] = dol_print_phone($contact->phone_mobile, $contact->country_code, $contact->id, $contact->socid, 'AC_TEL', '&nbsp;', 'mobile', $langs->trans("PhoneMobile"));
+                if (!empty($contact->phone_perso)) $phones[] = dol_print_phone($contact->phone_perso, $contact->country_code, $contact->id, $contact->socid, 'AC_TEL', '&nbsp;', 'phone', $langs->trans("PhonePerso"));
+                print implode(', ', $phones);
+                print '</td>';
+
+                // contact actions
+                print '<td align="right"><a href="' . $_SERVER["PHP_SELF"] . '?id=' . $this->id . '&action=del_contact&del_contact_type_id=' . $idContactType . '&fk_socpeople=' . $contact->id . '">' . img_delete($langs->transnoentitiesnoconv("RemoveContact")) . '</a></td>';
+                print '</tr>';
+            }
+            print '</table>';
+        }
     }
 }
