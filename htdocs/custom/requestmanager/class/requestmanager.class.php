@@ -1758,15 +1758,22 @@ class RequestManager extends CommonObject
      */
     public function add_contact_action($idContactType)
     {
+        global $langs;
+
         $contactTypeCodeHtml = self::getContactTypeCodeHtmlNameById($idContactType);
         $fkSocpeople = intval(GETPOST($contactTypeCodeHtml . '_fk_socpeople' , 'int'));
 
-        $result = $this->add_contact($fkSocpeople, self::getContactTypeCodeById($idContactType));
-        if ($result < 0) {
+        if ($fkSocpeople <= 0) {
+            $this->error = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("Contact"));
             setEventMessages($this->error, $this->errors, 'errors');
         } else {
-            header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $this->id);
-            exit();
+            $result = $this->add_contact($fkSocpeople, self::getContactTypeCodeById($idContactType));
+            if ($result < 0) {
+                setEventMessages($this->error, $this->errors, 'errors');
+            } else {
+                header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $this->id);
+                exit();
+            }
         }
     }
 
@@ -1798,7 +1805,13 @@ class RequestManager extends CommonObject
      */
     public function show_contact_list($idContactType)
     {
-        global $langs;
+        global $langs, $user;
+
+        // authorised action list
+        $actionList = array();
+        if ($user->rights->requestmanager->creer && $this->statut_type != self::STATUS_TYPE_CLOSED && $this->statut_type != self::STATUS_TYPE_RESOLVED) {
+            $actionList[] = 'delete';
+        }
 
         if ($idContactType == self::CONTACT_TYPE_ID_REQUEST) {
             $this->fetch_requester(1);
@@ -1813,7 +1826,9 @@ class RequestManager extends CommonObject
             print '<tr class="liste_titre">';
             print '<td align="left">' . $langs->trans("Name") . '</td>';
             print '<td align="center">' . $langs->trans("Phone") . '</td>';
-            print '<td></td>';
+            if (count($actionList) > 0) {
+                print '<td></td>';
+            }
             print '</tr>';
 
             foreach ($contactList as $contact) {
@@ -1834,7 +1849,16 @@ class RequestManager extends CommonObject
                 print '</td>';
 
                 // contact actions
-                print '<td align="right"><a href="' . $_SERVER["PHP_SELF"] . '?id=' . $this->id . '&action=del_contact&del_contact_type_id=' . $idContactType . '&fk_socpeople=' . $contact->id . '">' . img_delete($langs->transnoentitiesnoconv("RemoveContact")) . '</a></td>';
+                if (count($actionList) > 0) {
+                    print '<td align="right">';
+                    foreach ($actionList as $actionName) {
+                        if ($actionName === 'delete') {
+                            print '<a href="' . $_SERVER["PHP_SELF"] . '?id=' . $this->id . '&action=del_contact&del_contact_type_id=' . $idContactType . '&fk_socpeople=' . $contact->id . '">' . img_delete($langs->transnoentitiesnoconv("RemoveContact")) . '</a>';
+                        }
+                    }
+                    print '</td>';
+                }
+
                 print '</tr>';
             }
             print '</table>';

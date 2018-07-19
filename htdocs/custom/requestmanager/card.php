@@ -442,10 +442,10 @@ if (empty($reshook)) {
     } // Add message
     elseif ($action == 'addmessage' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
     }
-    else if ($action == 'add_contact' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+    else if ($action == 'add_contact' && $user->rights->requestmanager->creer && $object->statut_type != RequestManager::STATUS_TYPE_CLOSED && $object->statut_type != selfRequestManagerSTATUS_TYPE_RESOLVED) {
         $object->add_contact_action(intval(GETPOST('add_contact_type_id')));
     }
-    else if ($action == 'del_contact' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+    else if ($action == 'del_contact' && $user->rights->requestmanager->creer && $object->statut_type != RequestManager::STATUS_TYPE_CLOSED && $object->statut_type != selfRequestManagerSTATUS_TYPE_RESOLVED) {
         $object->del_contact_action(intval(GETPOST('del_contact_type_id')));
     }
 
@@ -1059,7 +1059,7 @@ if ($action == 'create')
         print '</table>';
         print '</form>';
     } else {
-        if ($user->rights->requestmanager->creer) {
+        if ($user->rights->requestmanager->creer && $object->statut_type != RequestManager::STATUS_TYPE_CLOSED && $object->statut_type != RequestManager::STATUS_TYPE_RESOLVED) {
             // form to add requester contact
             $formrequestmanager->form_add_contact($object, RequestManager::CONTACT_TYPE_ID_REQUEST);
         }
@@ -1097,7 +1097,7 @@ if ($action == 'create')
         print '</table>';
         print '</form>';
     } else {
-        if ($user->rights->requestmanager->creer) {
+        if ($user->rights->requestmanager->creer && $object->statut_type != RequestManager::STATUS_TYPE_CLOSED && $object->statut_type != RequestManager::STATUS_TYPE_RESOLVED) {
             // form to add requester contact
             $formrequestmanager->form_add_contact($object, RequestManager::CONTACT_TYPE_ID_WATCHER);
         }
