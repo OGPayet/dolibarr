@@ -1067,62 +1067,6 @@ class RequestManager extends CommonObject
             dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $this->db->lasterror(), LOG_ERR);
         }
 
-        if (!$error && !empty($this->requester_ids)) {
-            $new_contact = array();
-            $current_contact['u'] = $this->oldcopy->getIdContact('internal', 'REQUESTER');
-            $current_contact['c'] = $this->oldcopy->getIdContact('external', 'REQUESTER');
-            $current_contact_list['u'] = $this->oldcopy->liste_contact(-1, 'internal', 0, 'REQUESTER');
-            $current_contact_list['c'] = $this->oldcopy->liste_contact(-1, 'external', 0, 'REQUESTER');
-
-            // Set requester contacts
-            foreach ($this->requester_ids as $requester) {
-                if (preg_match('/(u|c)(\d+)/i', $requester, $matches)) {
-                    $new_contact[$matches[1]][] = $matches[2];
-
-                    if (!in_array($matches[2], $current_contact[$matches[1]])) {
-                        $this->add_contact($matches[2], 'REQUESTER', $matches[1] == 'u' ? 'internal' : 'external');
-                    }
-                }
-            }
-
-            // Remove requester contacts
-            foreach ($current_contact_list as $type => $contact_list) {
-                foreach ($contact_list as $contact) {
-                    if (!in_array($contact['id'], $new_contact[$type])) {
-                        $this->delete_contact($contact['rowid']);
-                    }
-                }
-            }
-        }
-
-        if (!$error && !empty($this->watcher_ids)) {
-            $new_contact = array();
-            $current_contact['u'] = $this->oldcopy->getIdContact('internal', 'WATCHER');
-            $current_contact['c'] = $this->oldcopy->getIdContact('external', 'WATCHER');
-            $current_contact_list['u'] = $this->oldcopy->liste_contact(-1, 'internal', 0, 'WATCHER');
-            $current_contact_list['c'] = $this->oldcopy->liste_contact(-1, 'external', 0, 'WATCHER');
-
-            // Set watcher contacts
-            foreach ($this->requester_ids as $requester) {
-                if (preg_match('/(u|c)(\d+)/i', $requester, $matches)) {
-                    $new_contact[$matches[1]][] = $matches[2];
-
-                    if (!in_array($matches[2], $current_contact[$matches[1]])) {
-                        $this->add_contact($matches[2], 'WATCHER', $matches[1] == 'u' ? 'internal' : 'external');
-                    }
-                }
-            }
-
-            // Remove watcher contacts
-            foreach ($current_contact_list as $type => $contact_list) {
-                foreach ($contact_list as $contact) {
-                    if (!in_array($contact['id'], $new_contact[$type])) {
-                        $this->delete_contact($contact['rowid']);
-                    }
-                }
-            }
-        }
-
         if (!$error) {
             // Actions on extra fields (by external module or standard code)
             // TODO le hook fait double emploi avec le trigger !!
@@ -1771,21 +1715,37 @@ class RequestManager extends CommonObject
      *
      * @param   int     $fkSocpeople            Id of soc people
      * @param   int     $idContactType          Id contact type
+     * @param	int		$notrigger		        Disable all triggers
      * @return  int     <0 if KO, >0 if OK
      */
-    private function _deleteContactByFkSocpeopleAndIdContactType($fkSocpeople, $idContactType)
+    private function _deleteContactByFkSocpeopleAndIdContactType($fkSocpeople, $idContactType, $notrigger = 0)
     {
+        global $user;
+
+        $this->db->begin();
+
         $sql   = "DELETE ec.* FROM " . MAIN_DB_PREFIX . "element_contact as ec";
         $sql .= " INNER JOIN " . MAIN_DB_PREFIX . "c_type_contact as ctc ON ctc.rowid = ec.fk_c_type_contact";
         $sql .= " WHERE ec.element_id = " . $this->id;
         $sql .= " AND ctc.code = '" . $this->db->escape(self::getContactTypeCodeById($idContactType)) . "'";
         $sql .= " AND fk_socpeople = " . $fkSocpeople;
 
-        $resql = $this->db->query($sql);
-        if (!$resql) {
-            return -1;
-        } else {
+        dol_syslog(get_class($this)."::_deleteContactByFkSocpeopleAndIdContactType", LOG_DEBUG);
+        if ($this->db->query($sql)) {
+            if (!$notrigger) {
+                $result = $this->call_trigger(strtoupper($this->element).'_DELETE_CONTACT', $user);
+                if ($result < 0) {
+                    $this->db->rollback();
+                    return -1;
+                }
+            }
+
+            $this->db->commit();
             return 1;
+        } else {
+            $this->error = $this->db->lasterror();
+            $this->db->rollback();
+            return -1;
         }
     }
 

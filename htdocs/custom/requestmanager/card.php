@@ -442,10 +442,10 @@ if (empty($reshook)) {
     } // Add message
     elseif ($action == 'addmessage' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
     }
-    else if ($action == 'add_contact' && $user->rights->requestmanager->creer) {
+    else if ($action == 'add_contact' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
         $object->add_contact_action(intval(GETPOST('add_contact_type_id')));
     }
-    else if ($action == 'del_contact' && $user->rights->requestmanager->creer) {
+    else if ($action == 'del_contact' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
         $object->del_contact_action(intval(GETPOST('del_contact_type_id')));
     }
 
