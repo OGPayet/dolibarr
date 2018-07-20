@@ -100,6 +100,7 @@ class modRequestManager extends DolibarrModules
             'dictionaries' => 1,
             'css' => array('/requestmanager/css/requestmanager.css.php'),
             'hooks' => array('searchform', 'thirdpartycard', 'propalcard', 'ordercard', 'invoicecard', 'interventioncard', 'contractcard'),
+            'triggers' => 1
         );
 
         // Data directories to create when module is enabled.

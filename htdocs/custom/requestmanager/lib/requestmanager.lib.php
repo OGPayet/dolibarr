@@ -1521,3 +1521,43 @@ function requestmanager_print_duration($timestamp, $day = 1, $hour_minute = 1, $
 
     return trim($text);
 }
+
+
+/**
+ * Modify the status of request manager and notify by email different contacts
+ */
+function requestmanager_notification($requestManager)
+{
+    global $conf, $langs, $db;
+
+    dol_include_once('/requestmanager/class/requestmanager.class.php');
+    dol_include_once('/requestmanager/class/requestmanagernotification.class.php');
+
+    // contacts assigned, requesters and watchers
+    $contactList = $requestManager->getContactToNotifyList(1);
+
+    // create new event
+    $idActionComm = $requestManager->createActionComm();
+    if ($idActionComm < 0) {
+        setEventMessages($requestManager->error, $requestManager->errors, 'errors');
+        return -1;
+    }
+
+    // save in database
+    $requestManagerNotification = new RequestManagerNotification($db);
+    $requestManagerNotification->contactList = $contactList;
+    $result = $requestManagerNotification->notify($idActionComm);
+    if ($result < 0) {
+        setEventMessages($requestManagerNotification->error, $requestManagerNotification->errors, 'errors');
+        return -1;
+    }
+
+    // retrieve mail template for type of demand and send by mail to all contacts
+    $result = $requestManagerNotification->notifyByMail($requestManager);
+    if ($result < 0) {
+        setEventMessages($requestManagerNotification->error, $requestManagerNotification->errors, 'errors');
+        return -1;
+    }
+
+    return 1;
+}

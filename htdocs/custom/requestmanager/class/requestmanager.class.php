@@ -856,41 +856,50 @@ class RequestManager extends CommonObject
      *  Load the requester contacts
      *
      * @param   int     $with_object    Load also the object
+     * @param   string  $sourceFilter   [=''] for all, internal for users, external for soc people
      * @return  int                     <0 if KO, >0 if OK
      */
-    function fetch_requester($with_object=0)
+    function fetch_requester($with_object=0, $sourceFilter='')
     {
-        // Get users
-        $users = $this->liste_contact(-1, 'internal', 1, 'REQUESTER');
-        if (!is_array($users))
-            return -1;
-
-        require_once DOL_DOCUMENT_ROOT . '/user/class/user.class.php';
         $ids_users = array();
         $object_users = array();
-        foreach ($users as $user_id) {
-            $ids_users['u'.$user_id] = $user_id;
-            if ($with_object) {
-                $user = new User($this->db);
-                $user->fetch($user_id);
-                $object_users['u'.$user_id] = $user;
+
+        $ids_contacts = array();
+        $object_contacts = array();
+
+        if ($sourceFilter == '' || $sourceFilter == 'internal') {
+            require_once DOL_DOCUMENT_ROOT . '/user/class/user.class.php';
+
+            // Get users
+            $users = $this->liste_contact(-1, 'internal', 1, 'REQUESTER');
+            if (!is_array($users))
+                return -1;
+
+            foreach ($users as $user_id) {
+                $ids_users['u' . $user_id] = $user_id;
+                if ($with_object) {
+                    $user = new User($this->db);
+                    $user->fetch($user_id);
+                    $object_users['u' . $user_id] = $user;
+                }
             }
         }
 
-        // Get contacts
-        $contacts = $this->liste_contact(-1, 'external', 1, 'REQUESTER');
-        if (!is_array($users))
-            return -1;
+        if ($sourceFilter == '' || $sourceFilter == 'external') {
+            require_once DOL_DOCUMENT_ROOT . '/contact/class/contact.class.php';
 
-        require_once DOL_DOCUMENT_ROOT . '/contact/class/contact.class.php';
-        $ids_contacts = array();
-        $object_contacts = array();
-        foreach ($contacts as $contact_id) {
-            $ids_contacts['c'.$contact_id] = $contact_id;
-            if ($with_object) {
-                $contact = new Contact($this->db);
-                $contact->fetch($contact_id);
-                $object_contacts['c'.$contact_id] = $contact;
+            // Get contacts
+            $contacts = $this->liste_contact(-1, 'external', 1, 'REQUESTER');
+            if (!is_array($users))
+                return -1;
+
+            foreach ($contacts as $contact_id) {
+                $ids_contacts['c' . $contact_id] = $contact_id;
+                if ($with_object) {
+                    $contact = new Contact($this->db);
+                    $contact->fetch($contact_id);
+                    $object_contacts['c' . $contact_id] = $contact;
+                }
             }
         }
 
@@ -902,41 +911,52 @@ class RequestManager extends CommonObject
      *  Load the watcher contacts
      *
      * @param   int     $with_object    Load also the object
+     * @param   string  $sourceFilter   [=''] for all, internal for users, external for soc people
      * @return  int                     <0 if KO, >0 if OK
      */
-    function fetch_watcher($with_object=0)
+    function fetch_watcher($with_object=0, $sourceFilter='')
     {
-        // Get users
-        $users = $this->liste_contact(-1, 'internal', 1, 'WATCHER');
-        if (!is_array($users))
-            return -1;
-
-        require_once DOL_DOCUMENT_ROOT . '/user/class/user.class.php';
         $ids_users = array();
         $object_users = array();
-        foreach ($users as $user_id) {
-            $ids_users['u'.$user_id] = $user_id;
-            if ($with_object) {
-                $user = new User($this->db);
-                $user->fetch($user_id);
-                $object_users['u'.$user_id] = $user;
+
+        $ids_contacts = array();
+        $object_contacts = array();
+
+        if ($sourceFilter == '' || $sourceFilter == 'internal') {
+            require_once DOL_DOCUMENT_ROOT . '/user/class/user.class.php';
+            // Get users
+            $users = $this->liste_contact(-1, 'internal', 1, 'WATCHER');
+            if (!is_array($users))
+                return -1;
+
+
+            $ids_users = array();
+            $object_users = array();
+            foreach ($users as $user_id) {
+                $ids_users['u' . $user_id] = $user_id;
+                if ($with_object) {
+                    $user = new User($this->db);
+                    $user->fetch($user_id);
+                    $object_users['u' . $user_id] = $user;
+                }
             }
         }
 
-        // Get contacts
-        $contacts = $this->liste_contact(-1, 'external', 1, 'WATCHER');
-        if (!is_array($users))
-            return -1;
+        if ($sourceFilter == '' || $sourceFilter == 'external') {
+            require_once DOL_DOCUMENT_ROOT . '/contact/class/contact.class.php';
 
-        require_once DOL_DOCUMENT_ROOT . '/contact/class/contact.class.php';
-        $ids_contacts = array();
-        $object_contacts = array();
-        foreach ($contacts as $contact_id) {
-            $ids_contacts['c'.$contact_id] = $contact_id;
-            if ($with_object) {
-                $contact = new Contact($this->db);
-                $contact->fetch($contact_id);
-                $object_contacts['c'.$contact_id] = $contact;
+            // Get contacts
+            $contacts = $this->liste_contact(-1, 'external', 1, 'WATCHER');
+            if (!is_array($users))
+                return -1;
+
+            foreach ($contacts as $contact_id) {
+                $ids_contacts['c' . $contact_id] = $contact_id;
+                if ($with_object) {
+                    $contact = new Contact($this->db);
+                    $contact->fetch($contact_id);
+                    $object_contacts['c' . $contact_id] = $contact;
+                }
             }
         }
 
@@ -1863,5 +1883,116 @@ class RequestManager extends CommonObject
             }
             print '</table>';
         }
+    }
+
+
+    /**
+     * Get contact list to notify
+     *
+     * @param   int     $withObject     Load also the object
+     * @param   string  $sourceFilter   [=''] for all, internal for users, external for soc people
+     * @return  array   Contact list
+     */
+    public function getContactToNotifyList($withObject = 0, $sourceFilter = '')
+    {
+        $contactList = array();
+
+        if ($sourceFilter == '' || $sourceFilter == 'internal') {
+            // assigned users
+            if ($this->notify_assigned_by_email == TRUE) {
+                if ($this->assigned_user_id > 0) {
+                    if ($withObject == 1) {
+                        $userstatic = new User($this->db);
+                        $userstatic->fetch($this->assigned_user_id);
+                        $contactList['u' . $this->assigned_user_id] = $userstatic;
+                    } else {
+                        $contactList['u' . $this->assigned_user_id] = $this->assigned_user_id;
+                    }
+                } else if ($this->assigned_usergroup_id > 0) {
+                    // retrieve all user ids belongs to this group
+                    $groupstatic = new UserGroup($this->db);
+                    $groupstatic->fetch($this->assigned_usergroup_id);
+                    $userGroupList = $groupstatic->listUsersForGroup();
+                    foreach ($userGroupList as $userGroup) {
+                        if ($withObject == 1) {
+                            $contactList['u' . $userGroup->id] = $userGroup;
+                        } else {
+                            $contactList['u' . $userGroup->id] = $userGroup->id;
+                        }
+                    }
+                }
+            }
+        }
+
+        // contact requesters
+        if ($this->notify_requester_by_email == TRUE) {
+            $this->fetch_requester($withObject, $sourceFilter);
+            $contactList = array_merge($contactList, $this->requester_list);
+        }
+
+        // contact watchers
+        if ($this->notify_watcher_by_email == TRUE) {
+            $this->fetch_watcher($withObject,  $sourceFilter);
+            $contactList = array_merge($contactList, $this->watcher_list);
+        }
+
+        return $contactList;
+    }
+
+
+    /**
+     * Create new event in actioncomm
+     *
+     * @return  int     <0 if KO, >0 if OK (idAction)
+     */
+    public function createActionComm()
+    {
+        global $langs, $user;
+
+        require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
+
+        $langs->load('requestmanager@requestmanager');
+
+        // title : "Demande [REF] passée en statut [NEW_STATUS]
+        $actionCom = new ActionComm($this->db);
+        $actionCom->type_code = 'AC_RM_OUT';
+        $actionCom->label = $langs->trans('RequestManagerNotificationStatusModify', $langs->transnoentitiesnoconv($this->ref), $this->getLibStatut());
+        $actionCom->note = $langs->trans('RequestManagerNotificationStatusModify', $langs->transnoentitiesnoconv($this->ref), $this->getLibStatut());
+        $actionCom->datep = dol_now();
+        $actionCom->datef = dol_now();
+        $actionCom->socid = $this->socid;
+        $actionCom->fk_element = $this->id;
+        $actionCom->elementtype = $this->element;
+        $actionCom->userownerid = $user->id;
+        $actionCom->percentage = -1;
+        // assigned users
+        /*
+        $contactUserIdList = $this->getContactToNotifyList(0, 'internal');
+        foreach($contactUserIdList as $contactUserId) {
+            $actionCom->userassigned[$contactUserId] = array('id' => $contactUserId);
+        }
+        */
+
+        $idActionComm = $actionCom->create($user);
+        if ($idActionComm > 0) {
+            if ($actionCom->error) {
+                $langs->load("errors");
+                $this->error = $actionCom->error;
+                $this->errors = $actionCom->errors;
+                dol_syslog(get_class($this) . "::createActionComm Error create: " . $this->error, LOG_ERR);
+                return -1;
+            }
+
+            // linked object
+            $actionCom->id = $idActionComm;
+            $actionCom->add_object_linked($this->element, $this->id);
+        } else {
+            $this->error = $actionCom->error;
+            $this->errors = $actionCom->errors;
+            dol_syslog(get_class($this) . "::createActionComm Error create: " . $this->error, LOG_ERR);
+            return -1;
+        }
+
+        return $idActionComm;
     }
 }

@@ -183,3 +183,9 @@ RequestManagerErrorInitStatusNotFound                           = Statut de type
 RequestManagerErrorStatusNotFound                               = Statut non trouvé
 RequestManagerErrorOnlyOneStatusForThisTypeForEachRequestType   = Il ne peut y avoir qu'un statut de ce type par "Type de demande"
 RequestManagerErrorOnlyOneTemplateForThisTypeForEachRequestType = Il ne peut y avoir qu'un modèle de ce type par "Type de demande"
+
+
+############################################################
+### Notification
+############################################################
+RequestManagerNotificationStatusModify = Demande "%s" passée en statut "%s"
