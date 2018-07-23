@@ -1525,8 +1525,12 @@ function requestmanager_print_duration($timestamp, $day = 1, $hour_minute = 1, $
 
 /**
  * Modify the status of request manager and notify by email different contacts
+ *
+ * @param   RequestManager      $requestManager
+ * @param   string              $templateType
+ * @return  int                 <0 if KO, >0 if OK
  */
-function requestmanager_notification($requestManager)
+function requestmanager_notification($requestManager, $templateType)
 {
     global $conf, $langs, $db;
 
@@ -1553,7 +1557,7 @@ function requestmanager_notification($requestManager)
     }
 
     // retrieve mail template for type of demand and send by mail to all contacts
-    $result = $requestManagerNotification->notifyByMail($requestManager);
+    $result = $requestManagerNotification->notifyByMail($requestManager, $templateType);
     if ($result < 0) {
         setEventMessages($requestManagerNotification->error, $requestManagerNotification->errors, 'errors');
         return -1;

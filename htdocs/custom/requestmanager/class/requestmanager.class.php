@@ -1731,6 +1731,30 @@ class RequestManager extends CommonObject
 
 
     /**
+     * Find first template for Email notification
+     *
+     * @param   string      Template type
+     * @return  resource    SQL resource
+     */
+    public function findNotificationEmailTemplate($templateType)
+    {
+        global $conf;
+
+        $sql  = "SELECT crmt.subject, crmt.boby";
+        $sql .= " FROM " . MAIN_DB_PREFIX . "c_requestmanager_message_template crmt";
+        $sql .= " INNER JOIN " . MAIN_DB_PREFIX . "c_requestmanager_message_template_cbl_request_type as crmtcrt ON crmtcrt.fk_line = crmt.rowid";
+        $sql .= " WHERE crmt.template_type = '" . $this->db->escape($templateType) ."'";
+        $sql .= " AND crmt.active = 1";
+        $sql .= " AND crmt.entity = " . $conf->entity;
+        $sql .= " AND crmtcrt.fk_target = " . $this->fk_type;
+        $sql .= " ORDER BY crmt.position ASC";
+        $sql .= " LIMIT 1";
+
+        return $this->db->query($sql);
+    }
+
+
+    /**
      * Delete contact by id and type
      *
      * @param   int     $fkSocpeople            Id of soc people

@@ -104,12 +104,30 @@ class RequestManagerNotification extends CommonObject
     /**
      * Create a notification in database
      *
+     * @param   int     $fkActionComm       Id of ActionComm
+     * @param   int     $fkUser             Id of user
      * @return  int     <0 if KO, >0 if OK
      */
-    public function create()
+    public function create($fkActionComm, $fkUser)
     {
+        $status = self::STATUS_NOT_READ;
+
+        $sql = "INSERT INTO " . MAIN_DB_PREFIX . $this->table_element . " (";
+        $sql .= " fk_actioncomm, fk_user, status";
+        $sql .= " ) VALUES (";
+        $sql .= $fkActionComm . ", " . $fkUser . ", " . $status;
+        $sql .= ")";
+
+        $resql = $this->db->query($sql);
+
+        if (!$resql) {
+            dol_syslog( __METHOD__ . " Error sql=" . $sql, LOG_ERR);
+            return -1;
+        }
+
         return 1;
     }
+
 
     /**
      * Update a notification in database
@@ -153,15 +171,11 @@ class RequestManagerNotification extends CommonObject
         {
             // only users
             if ($key[0] == 'u') {
-                $sql = "INSERT INTO " . MAIN_DB_PREFIX . "requestmanager_notification (";
-                $sql .= " fk_actioncomm, fk_user, status";
-                $sql .= " ) VALUES (";
-                $sql .= $fkActionComm . ", " . $contact->id . ", " . self::STATUS_NOT_READ;
-                $sql .= ")";
 
-                $resql = $this->db->query($sql);
+                // create notification
+                $res = $this->create($fkActionComm, $contact->id);
 
-                if (!$resql) {
+                if (!$res) {
                     return -1;
                 }
             }
@@ -175,9 +189,10 @@ class RequestManagerNotification extends CommonObject
      * Notify all contact by email
      *
      * @param   RequestManager      $requestManager
+     * @param   string      Template type
      * @return  int     <0 if KO, >0 if OK
      */
-    public function notifyByMail($requestManager)
+    public function notifyByMail($requestManager, $templateType)
     {
         global $conf;
 
@@ -185,26 +200,16 @@ class RequestManagerNotification extends CommonObject
 
         $contactList = $this->contactList;
 
-        $formRequestManagerMessage = new FormRequestManagerMessage($this->db, $requestManager);
-        $substitutionarray = $formRequestManagerMessage->getAvailableSubstitKey($requestManager);
-
-        $sql  = "SELECT crmt.subject, crmt.boby";
-        $sql .= " FROM " . MAIN_DB_PREFIX . "c_requestmanager_message_template crmt";
-        $sql .= " INNER JOIN " . MAIN_DB_PREFIX . "c_requestmanager_message_template_cbl_request_type as crmtcrt ON crmtcrt.fk_line = crmt.rowid";
-        $sql .= " WHERE crmt.template_type = 'notify_status_modified'";
-        $sql .= " AND crmt.active = 1";
-        $sql .= " AND crmt.entity = " . $conf->entity;
-        $sql .= " AND crmtcrt.fk_target = " . $requestManager->fk_type;
-        $sql .= " ORDER BY crmt.position ASC";
-        $sql .= " LIMIT 1";
-
-        $resql = $this->db->query($sql);
+        $resql = $requestManager->findNotificationEmailTemplate($templateType);
         if (!$resql) {
             $this->error = $this->db->lasterror();
             return -1;
         }
 
         if ($this->db->num_rows() > 0) {
+            $formRequestManagerMessage = new FormRequestManagerMessage($this->db, $requestManager);
+            $substitutionarray = $formRequestManagerMessage->getAvailableSubstitKey($requestManager);
+
             $obj = $this->db->fetch_object($resql);
             $sendFrom = (!empty($conf->global->MAIN_MAIL_EMAIL_FROM) ? $conf->global->MAIN_MAIL_EMAIL_FROM : '');
             $subject = make_substitutions($obj->subject, $substitutionarray);
@@ -225,7 +230,11 @@ class RequestManagerNotification extends CommonObject
                 if ($result < 0) {
                     return -1;
                 }
+            } else {
+                dol_syslog( __METHOD__ . " Request[" . $requestManager->id . "] : Nobody to contact by email", LOG_DEBUG);
             }
+        } else {
+            dol_syslog( __METHOD__ . " Request[" . $requestManager->id . "] : No message template in dictionnary configuration for this type of request", LOG_DEBUG);
         }
 
         return 1;
@@ -249,10 +258,10 @@ class RequestManagerNotification extends CommonObject
 
         if (!$result) {
             $this->error = $cMailFile->error;
-            dol_syslog( __CLASS__ . ":sendMail Error send email", LOG_ERR);
+            dol_syslog( __CLASS__ . ":mailSend Error send email", LOG_ERR);
             return -1;
         } else {
-            dol_syslog( __CLASS__ . ":sendMail email envoye", LOG_ERR);
+            dol_syslog( __CLASS__ . ":mailSend email envoye", LOG_DEBUG);
             return 1;
         }
     }
