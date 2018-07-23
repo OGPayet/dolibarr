@@ -320,6 +320,12 @@ class RequestManager extends CommonObject
     const CONTACT_TYPE_ID_WATCHER = 1;
     private static $_contactTypeCodeList = array(self::CONTACT_TYPE_ID_REQUEST => 'REQUESTER', self::CONTACT_TYPE_ID_WATCHER => 'WATCHER');
 
+    /**
+     * ActionComm code types
+     */
+    const ACTIONCOMM_TYPE_CODE_IN = 'AC_RM_IN';
+    const ACTIONCOMM_TYPE_CODE_OUT = 'AC_RM_OUT';
+
 
     /**
 	 * Constructor
@@ -1911,6 +1917,65 @@ class RequestManager extends CommonObject
 
 
     /**
+     * Get contact list to notify for in messages
+     *
+     * @param   int         $withObject     Load also the object
+     * @param   string      $sourceFilter   [=''] for all, internal for users, external for soc people
+     * @return  array       Contact list
+     */
+    public function getContactToNotifyListForMessageIn($withObject = 0, $sourceFilter = '')
+    {
+        global $user;
+
+        $contactList = array();
+
+        if ($sourceFilter == '' || $sourceFilter == 'internal') {
+            if ($this->notify_assigned_by_email == TRUE) {
+                // assigned users
+                if ($this->assigned_user_id > 0 && $user->id != $this->assigned_user_id) {
+                    if ($withObject == 1) {
+                        $userstatic = new User($this->db);
+                        $userstatic->fetch($this->assigned_user_id);
+                        $contactList['u' . $this->assigned_user_id] = $userstatic;
+                    } else {
+                        $contactList['u' . $this->assigned_user_id] = $this->assigned_user_id;
+                    }
+                }
+            }
+        }
+
+        return $contactList;
+    }
+
+
+    /**
+     * Get contact list to notify for out messages
+     *
+     * @param   int     $withObject     Load also the object
+     * @param   string  $sourceFilter   [=''] for all, internal for users, external for soc people
+     * @return  array
+     */
+    public function getContactToNotifyListForMessageOut($withObject = 0, $sourceFilter = '')
+    {
+        $contactList = array();
+
+        // contact requesters
+        if ($this->notify_requester_by_email == TRUE) {
+            $this->fetch_requester($withObject, $sourceFilter);
+            $contactList = array_merge($contactList, $this->requester_list);
+        }
+
+        // contact watchers
+        if ($this->notify_watcher_by_email == TRUE) {
+            $this->fetch_watcher($withObject,  $sourceFilter);
+            $contactList = array_merge($contactList, $this->watcher_list);
+        }
+
+        return $contactList;
+    }
+
+
+    /**
      * Get contact list to notify
      *
      * @param   int     $withObject     Load also the object
@@ -1965,23 +2030,25 @@ class RequestManager extends CommonObject
 
 
     /**
-     * Create new event in actioncomm
+     * Create new event in actioncomm for all type of messages
      *
+     * @param   int     $typeCode   Code of message type (AC_RM_OUT, AC_RM_IN, etc)
+     * @param   string  $label      Message label
+     * @param   string  $note       Message note
      * @return  int     <0 if KO, >0 if OK (idAction)
      */
-    public function createActionComm()
+    public function createActionComm($typeCode, $label, $note)
     {
         global $langs, $user;
 
         require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
 
-        $langs->load('requestmanager@requestmanager');
-
         // title : "Demande [REF] passée en statut [NEW_STATUS]
         $actionCom = new ActionComm($this->db);
-        $actionCom->type_code = 'AC_RM_OUT';
-        $actionCom->label = $langs->trans('RequestManagerNotificationStatusModify', $langs->transnoentitiesnoconv($this->ref), $this->getLibStatut());
-        $actionCom->note = $langs->trans('RequestManagerNotificationStatusModify', $langs->transnoentitiesnoconv($this->ref), $this->getLibStatut());
+        //$actionCom->type_code = 'AC_RM_OUT';
+        $actionCom->type_code = $typeCode;
+        $actionCom->label = $label;
+        $actionCom->note = $note;
         $actionCom->datep = dol_now();
         $actionCom->datef = dol_now();
         $actionCom->socid = $this->socid;

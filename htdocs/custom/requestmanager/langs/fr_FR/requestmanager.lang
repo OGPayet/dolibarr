@@ -121,10 +121,14 @@ RequestManagerSelectTemplate                = Choisir modèle de message
 RequestManagerNoTemplateDefined             = Pas de modèle défini
 RequestManagerMessageOriginCustomer         = Message provenant du client ?
 RequestManagerMessageOriginCustomerContact  = Provenant du contact client
-RequestManagerMessageSubstitutionValues     = Variables de substitution disponiblent
+RequestManagerMessageSubstitutionValues     = Variables de substitution disponibles
 RequestManagerMessageSubject                = Sujet
 RequestManagerMessageFile                   = Fichiers joints
 RequestManagerMessage                       = Message
+RequestManagerMessageNotifyByMail           = Notifier par mail
+RequestManagerMessageDirection              = Sens du message
+RequestManagerMessageDirectionIn            = Entrant
+RequestManagerMessageDirectionOut           = Sortant
 
 ############################################################
 ### Confirm box
@@ -189,3 +193,5 @@ RequestManagerErrorOnlyOneTemplateForThisTypeForEachRequestType = Il ne peut y a
 ### Notification
 ############################################################
 RequestManagerNotificationStatusModify = Demande "%s" passée en statut "%s"
+RequestManagerNotificationMessageIn = Un message entrant a été ajouté sur la demande "%s"
+RequestManagerNotificationMessageOut = Un message sortant a été ajouté sur la demande "%s"

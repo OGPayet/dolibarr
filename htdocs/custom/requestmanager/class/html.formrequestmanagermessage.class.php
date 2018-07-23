@@ -195,13 +195,13 @@ class FormRequestManagerMessage
         $hookmanager->initHooks(array('formrequestmanagermessage'));
 
         $parameters = array(
-            'actioncomm' => &$actioncomm,
-            'actionurl' => &$actionurl,
-            'type_template' => &$type_template,
-            'template_id' => &$template_id,
-            'parameters' => &$parameters,
-            'addfileaction' => &$addfileaction,
-            'removefileaction' => &$removefileaction,
+            'actioncomm' => $actioncomm,
+            'actionurl' => $actionurl,
+            'type_template' => $type_template,
+            'template_id' => $template_id,
+            'parameters' => $parameters,
+            'addfileaction' => $addfileaction,
+            'removefileaction' => $removefileaction,
         );
         $reshook = $hookmanager->executeHooks('getFormMail', $parameters, $this);
         if (!empty($reshook)) {
@@ -221,11 +221,17 @@ class FormRequestManagerMessage
 
         $out .= "\n" . '<!-- Begin form mail --><div id="requestmanagermessageformdiv"></div>' . "\n";
         $out .= '<form method="POST" name="requestmanagermessageform" id="requestmanagermessageform" enctype="multipart/form-data" action="' . $actionurl . '#formrequestmanagermessage">' . "\n";
-        $out .= '<input style="display:none" type="submit" id="addmessage" name="addmessage">';
+        //$out .= '<input style="display:none" type="submit" id="addmessage" name="addmessage">';
         $out .= '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '" />';
         $out .= '<a id="formrequestmanagermessage" name="formrequestmanagermessage"></a>';
         foreach ($parameters as $key => $value) {
-            $out .= '<input type="hidden" id="' . $key . '" name="' . $key . '" value="' . $value . '" />' . "\n";
+            if (is_array($value)) {
+                foreach ($value as $arrKey => $arrValue) {
+                    $out .= '<input type="hidden" id="' . $arrKey . '" name="' . $arrKey . '" value="' . $arrValue . '" />' . "\n";
+                }
+            } else {
+                $out .= '<input type="hidden" id="' . $key . '" name="' . $key . '" value="' . $value . '" />' . "\n";
+            }
         }
 
         // Select template
@@ -241,25 +247,46 @@ class FormRequestManagerMessage
         $out .= '<div class="center" style="padding: 0px 0 12px 0">' . "\n";
         $out .= $langs->trans('RequestManagerSelectTemplate') . ': ';
         if (count($template_array) > 0) {
-            $out .= $form->selectarray('message_template_selected', $template_array, 0, 1);
+            $out .= $form->selectarray('message_template_selected', $template_array, $template_id, 1);
         } else {
             $out .= '<select name="modelmailselected" disabled="disabled"><option value="none">' . $langs->trans("RequestManagerNoTemplateDefined") . '</option></select>';
         }
         if ($user->admin) $out .= info_admin($langs->trans("YouCanChangeValuesForThisListFrom", $langs->transnoentitiesnoconv('Setup') . ' - ' . $langs->transnoentitiesnoconv('Module163018Name')), 1);
         $out .= ' &nbsp; ';
-        $out .= '<input class="button" type="submit" value="' . $langs->trans('Apply') . '" name="template_selected" id="template_selected"' . (count($template_array) > 0 ? '' : ' disabled="disabled"') . '>';
+        $out .= '<input class="button" type="button" value="' . $langs->trans('Apply') . '" name="template_selected" id="template_selected"' . (count($template_array) > 0 ? '' : ' disabled="disabled"') . '>';
         $out .= ' &nbsp; ';
         $out .= '</div>';
+        $out .= '<script type="text/javascript" language="javascript">';
+        $out .= 'jQuery(document).ready(function () {';
+        $out .= '    jQuery("#template_selected").click(function() {';
+        $out .= '        jQuery("#action").val("premessage");';
+        $out .= '        jQuery("#actioncomm").val("message_template_apply");';
+        $out .= '        jQuery("#requestmanagermessageform").submit();';
+        $out .= '    });';
+        $out .= '})';
+        $out .= '</script>' . "\n";
 
         $out .= '<table class="border" width="100%">' . "\n";
 
-        // Origin customer
-        //-----------------
-        $origin_customer = GETPOST('message_origin_customer', 'int', 2);
+        // Notification by mail
+        $messageNotifyByMail = GETPOST('message_notify_by_mail', 'int', 2)?1:0;
+        $messageNotifyByMailChecked = '';
+        if ($messageNotifyByMail) $messageNotifyByMailChecked = ' checked="checked"';
         $out .= '<tr>';
-        $out .= '<td class="fieldrequired" width="180">' . $langs->trans("RequestManagerMessageOriginCustomer") . '</td>';
+        $out .= '<td class="fieldrequired">';
+        $out .= '<input type="checkbox" id="message_notify_by_mail" name="message_notify_by_mail" value="1"' . $messageNotifyByMailChecked .' /> ' . $langs->trans("RequestManagerMessageNotifyByMail");
+        $out .= "</td></tr>\n";
+
+        // Direction
+        //-----------------
+        $messageDirection = GETPOST('message_direction', 'int', 2)?intval(GETPOST('message_direction', 'int', 2)):2;
+        $messageDirectionCheckedList = array(1 => '', 2 => '');
+        $messageDirectionCheckedList[$messageDirection] .= ' checked="checked"';
+        $out .= '<tr>';
+        $out .= '<td class="fieldrequired" width="180">' . $langs->trans("RequestManagerMessageDirection") . '</td>';
         $out .= '<td>';
-        // Todo radio input No/Yes (No by default)
+        $out .= '<input type="radio" id="message_direction" name="message_direction" value="1"' . $messageDirectionCheckedList[1] . '/> ' . $langs->trans("RequestManagerMessageDirectionIn");
+        $out .= '&nbsp;&nbsp;<input type="radio" id="message_direction" name="message_direction" value="2"' . $messageDirectionCheckedList[2] . '/> ' . $langs->trans("RequestManagerMessageDirectionOut");
         $out .= "</td></tr>\n";
 
         // Other attributes
@@ -291,11 +318,14 @@ class FormRequestManagerMessage
 
         // Get message template
         $default_message = $this->getEMailTemplate($template_id);
+        $this->setSubstitFromObject($this->requestmanager);
 
         // Subject
         //-----------------
-        $default_subject = !empty($default_message['subject']) ? make_substitutions($default_message['subject'], $this->substit) : "";
-        $subject = !empty($default_subject) ? $default_subject : GETPOST('message_subject', 'alpha', 2);
+        $subject = GETPOST('message_subject', 'alpha', 2) ? GETPOST('message_subject', 'alpha', 2) : '';
+        if (empty($subject)) {
+            $subject = !empty($default_message['subject']) ? make_substitutions($default_message['subject'], $this->substit) : '';
+        }
         $out .= '<tr>';
         $out .= '<td class="fieldrequired" width="180">' . $langs->trans("RequestManagerMessageSubject") . '</td>';
         $out .= '<td>';
@@ -333,13 +363,15 @@ class FormRequestManagerMessage
 
         // Message
         //-----------------
-        $default_body = !empty($default_message['body']) ? $default_message['body'] : '';
-        $message_body = !empty($default_body) ? $default_body : GETPOST('message_body', 'alpha', 2);
-        $message_body = make_substitutions($message_body, $this->substit);
-        // Clean first \n and br (to avoid empty line when CONTACTCIVNAME is empty)
-        $message_body = preg_replace("/^(<br>)+/", "", $message_body);
-        $message_body = preg_replace("/^\n+/", "", $message_body);
-
+        $message_body = GETPOST('message_body', 'alpha', 2) ? GETPOST('message_body', 'alpha', 2) : '';
+        if (empty($message_body)) {
+            $message_body = !empty($default_message['boby']) ? make_substitutions($default_message['boby'], $this->substit) : '';
+        }
+        if (!empty($message_body)) {
+            // Clean first \n and br (to avoid empty line when CONTACTCIVNAME is empty)
+            $message_body = preg_replace("/^(<br>)+/", "", $message_body);
+            $message_body = preg_replace("/^\n+/", "", $message_body);
+        }
         $out .= '<tr>';
         $out .= '<td class="fieldrequired" width="180" valign="top">' . $langs->trans("RequestManagerMessage") . '</td>';
         $out .= '<td>';
@@ -359,6 +391,15 @@ class FormRequestManagerMessage
         $out .= ' &nbsp; &nbsp; ';
         $out .= '<input class="button" type="submit" id="cancel" name="cancel" value="' . $langs->trans("Cancel") . '" />';
         $out .= '</div>' . "\n";
+        $out .= '<script type="text/javascript" language="javascript">';
+        $out .= 'jQuery(document).ready(function () {';
+        $out .= '    jQuery("#addmessage").click(function() {';
+        $out .= '        jQuery("#action").val("addmessage");';
+        $out .= '        jQuery("#actioncomm").val("message_add_validate");';
+        $out .= '        jQuery("#requestmanagermessageform").submit();';
+        $out .= '    });';
+        $out .= '})';
+        $out .= '</script>' . "\n";
 
         $out .= '</form>' . "\n";
 

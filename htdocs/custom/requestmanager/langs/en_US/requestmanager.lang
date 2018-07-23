@@ -4,6 +4,16 @@ Module163018Name = Request Manager
 Module163018Desc = Request Manager
 
 ############################################################
+### Message form
+############################################################
+RequestManagerMessageNotifyByMail           = Notify by mail
+RequestManagerMessageDirection              = Message direction
+RequestManagerMessageDirectionIn            = Input
+RequestManagerMessageDirectionOut           = Output
+
+############################################################
 ### Notification
 ############################################################
 RequestManagerNotificationStatusModify = Request "%s" changed to "%s" status
+RequestManagerNotificationMessageIn = A new input message for request "%s"
+RequestManagerNotificationMessageOut = A new output message for request "%s"

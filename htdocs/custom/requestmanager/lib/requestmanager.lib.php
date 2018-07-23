@@ -1532,7 +1532,7 @@ function requestmanager_print_duration($timestamp, $day = 1, $hour_minute = 1, $
  */
 function requestmanager_notification($requestManager, $templateType)
 {
-    global $conf, $langs, $db;
+    global $langs, $db;
 
     dol_include_once('/requestmanager/class/requestmanager.class.php');
     dol_include_once('/requestmanager/class/requestmanagernotification.class.php');
@@ -1541,7 +1541,10 @@ function requestmanager_notification($requestManager, $templateType)
     $contactList = $requestManager->getContactToNotifyList(1);
 
     // create new event
-    $idActionComm = $requestManager->createActionComm();
+    $langs->load('requestmanager@requestmanager');
+    $actionCommLabel = $langs->trans('RequestManagerNotificationStatusModify', $langs->transnoentitiesnoconv($requestManager->ref), $requestManager->getLibStatut());
+    $actionCommNote = $langs->trans('RequestManagerNotificationStatusModify', $langs->transnoentitiesnoconv($requestManager->ref), $requestManager->getLibStatut());
+    $idActionComm = $requestManager->createActionComm(RequestManager::ACTIONCOMM_TYPE_CODE_OUT, $actionCommLabel, $actionCommNote);
     if ($idActionComm < 0) {
         setEventMessages($requestManager->error, $requestManager->errors, 'errors');
         return -1;
@@ -1557,7 +1560,7 @@ function requestmanager_notification($requestManager, $templateType)
     }
 
     // retrieve mail template for type of demand and send by mail to all contacts
-    $result = $requestManagerNotification->notifyByMail($requestManager, $templateType);
+    $result = $requestManagerNotification->notifyByMailFromTemplateType($requestManager, $templateType);
     if ($result < 0) {
         setEventMessages($requestManagerNotification->error, $requestManagerNotification->errors, 'errors');
         return -1;

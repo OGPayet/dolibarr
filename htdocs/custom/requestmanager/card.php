@@ -39,6 +39,7 @@ require_once DOL_DOCUMENT_ROOT . '/user/class/usergroup.class.php';
 require_once DOL_DOCUMENT_ROOT . '/contact/class/contact.class.php';
 dol_include_once('/advancedictionaries/class/dictionary.class.php');
 dol_include_once('/requestmanager/class/requestmanager.class.php');
+dol_include_once('/requestmanager/class/requestmanagernotification.class.php');
 dol_include_once('/requestmanager/class/html.formrequestmanager.class.php');
 dol_include_once('/requestmanager/lib/requestmanager.lib.php');
 
@@ -439,8 +440,87 @@ if (empty($reshook)) {
             }
         }
         if ($error) $action = 'edit_extras';
-    } // Add message
+    }
+    // Add message
     elseif ($action == 'addmessage' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+        $messageNotifyByMail = GETPOST('message_notify_by_mail', 'int')?1:0;
+        $messageDirection = GETPOST('message_direction', 'int')?intval(GETPOST('message_direction', 'int')):0;
+        $messageSubject = GETPOST('message_subject')?GETPOST('message_subject'):'';
+        $messageBody = GETPOST('message_body')?GETPOST('message_body'):'';
+
+        if (!$messageSubject) {
+            $error++;
+            $object->error = $langs->trans('ErrorRequiredField', $langs->transnoentitiesnoconv('MessageSubject'));
+        }
+
+        $actionCommTypeCode = '';
+        $actionCommLabel = '';
+        $actionCommNote = '';
+        $contactToNotifyList = array();
+        $contactCcToNotifyList = array();
+        if ($messageDirection === 1) {
+            // message in
+            $actionCommTypeCode = RequestManager::ACTIONCOMM_TYPE_CODE_IN;
+            $actionCommLabel = $langs->trans('RequestManagerNotificationMessageIn', $langs->transnoentitiesnoconv($object->ref));
+            $actionCommNote = $langs->trans('RequestManagerNotificationMessageIn', $langs->transnoentitiesnoconv($object->ref));
+            $contactToNotifyList = $object->getContactToNotifyListForMessageIn(1);
+        } else if ($messageDirection === 2) {
+            // message out
+            $actionCommTypeCode = RequestManager::ACTIONCOMM_TYPE_CODE_OUT;
+            $actionCommLabel = $langs->trans('RequestManagerNotificationMessageOut', $langs->transnoentitiesnoconv($object->ref));
+            $actionCommNote = $langs->trans('RequestManagerNotificationMessageOut', $langs->transnoentitiesnoconv($object->ref));
+            $contactToNotifyList = $object->getContactToNotifyListForMessageOut(1);
+
+            // add a specific copy mail to the assigned user if not the user
+            $contactCcToNotifyList = array();
+            if ($object->assigned_user_id > 0 && $user->id != $object->assigned_user_id) {
+                // if the user is not the assigned user and is not in contact list to notify
+                if (!array_keys_exists('u' . $object->assigned_user_id, $contactToNotifyList)) {
+                    $contactCcToNotifyList['u' . $object->assigned_user_id] = $object->assigned_user_id;
+                }
+            }
+        } else {
+            $error++;
+            $object->error = $langs->trans('ErrorRequiredField', $langs->transnoentitiesnoconv('MessageDirection'));
+        }
+
+        if (!$error) {
+            // create new event
+            $langs->load('requestmanager@requestmanager');
+
+            $idActionComm = $object->createActionComm($actionCommTypeCode, $actionCommLabel, $actionCommNote);
+            if ($idActionComm < 0) {
+                $error++;
+            } else {
+                // only if we want to notify
+                if ($messageNotifyByMail === 1) {
+                    // save in database
+                    $requestManagerNotification = new RequestManagerNotification($db);
+                    $requestManagerNotification->contactList = $contactToNotifyList;
+                    $result = $requestManagerNotification->notify($idActionComm);
+                    if ($result < 0) {
+                        $error++;
+                        $object->error = $requestManagerNotification->error;
+                    }
+
+                    // notify by mail
+                    $result = $requestManagerNotification->notifyByMailForMessageInAndOut($messageSubject, $messageBody);
+                    if ($result < 0) {
+                        $error++;
+                        $object->error = $requestManagerNotification->error;
+                    }
+                }
+            }
+        }
+
+        if ($error) {
+            setEventMessages($object->error, $object->errors, 'errors');
+        } else {
+            header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
+            exit();
+        }
+
+        $action = '';
     }
     else if ($action == 'add_contact' && $user->rights->requestmanager->creer && $object->statut_type != RequestManager::STATUS_TYPE_CLOSED && $object->statut_type != selfRequestManagerSTATUS_TYPE_RESOLVED) {
         $object->add_contact_action(intval(GETPOST('add_contact_type_id')));
@@ -1355,8 +1435,13 @@ if ($action == 'create')
             $formrequestmanagermessage->add_attached_files($file, basename($file), dol_mimetype($file));
         }
 
+        $actioncomm = GETPOST('actioncomm')?GETPOST('actioncomm'):'';
+        $actionurl = (GETPOST('actionurl')?GETPOST('actionurl'):$_SERVER["PHP_SELF"] . '?id=' . $object->id);
+        $templateType = GETPOST('type_template')?GETPOST('type_template'):'message_template_user';
+        $templateId = GETPOST('message_template_selected')?GETPOST('message_template_selected'):0;
+
         // Show form
-        print $formrequestmanagermessage->get_message_form();
+        print $formrequestmanagermessage->get_message_form($actioncomm, $actionurl, $templateType, $templateId, $formmail->param);
 
         dol_fiche_end();
     }
