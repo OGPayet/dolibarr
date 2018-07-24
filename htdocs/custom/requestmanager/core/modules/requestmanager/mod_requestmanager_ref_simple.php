@@ -101,7 +101,7 @@ class mod_requestmanager_ref_simple extends ModeleNumRefRequestManager
      * @param    Object $object Object we need next value for
      * @return string                Next value
      */
-    function getNextValue($objsoc, $object)
+    function getNextValue($objsoc = null, $object = null)
     {
         global $db, $conf;
 
