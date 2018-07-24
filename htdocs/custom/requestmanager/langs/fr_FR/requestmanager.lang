@@ -20,6 +20,8 @@ RequestManagerExtraFields                   = Attributs supplémentaires (Demand
 RequestManagerMessageExtraFields            = Attributs supplémentaires (Message)
 RequestManagerRefNumberingModules           = Modèles de numérotation des références interne des demandes
 RequestManagerExternalRefNumberingModules   = Modèles de numérotation des références externe des demandes
+RequestManagerNotificationByMailName        = Notification par mail
+RequestManagerNotificationByMailDesc        = Notifier par mail les utilisateurs
 
 ############################################################
 ### Contact

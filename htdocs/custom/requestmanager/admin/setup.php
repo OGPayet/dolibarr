@@ -350,7 +350,7 @@ print "</tr>\n";
 $var = !$var;
 print '<tr ' . $bc[$var] . '>' . "\n";
 print '<td>'.$langs->trans("RequestManagerNotificationByMailName").'</td>'."\n";
-print '<td>'.$langs->trans("RequestManagerNotificationByMailName").'</td>'."\n";
+print '<td>'.$langs->trans("RequestManagerNotificationByMailDesc").'</td>'."\n";
 print '<td align="right">' . "\n";
 if (!empty($conf->global->REQUESTMANAGER_NOTIFICATION_BY_MAIL)) {
     print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_REQUESTMANAGER_NOTIFICATION_BY_MAIL&REQUESTMANAGER_NOTIFICATION_BY_MAIL=0">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';

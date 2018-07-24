@@ -4,6 +4,12 @@ Module163018Name = Request Manager
 Module163018Desc = Request Manager
 
 ############################################################
+### Admin setup
+############################################################
+RequestManagerNotificationByMailName        = Notify by mail
+RequestManagerNotificationByMailDesc        = Notify users by mail
+
+############################################################
 ### Message form
 ############################################################
 RequestManagerMessageNotifyByMail           = Send by mail to requesters and watchers contacts
