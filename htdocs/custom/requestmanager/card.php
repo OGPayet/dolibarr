@@ -1114,76 +1114,51 @@ if ($action == 'create')
     // Requesters
     print '<tr><td align="center">';
 	print $langs->trans('RequestManagerRequesterContacts');
-	if ($action != 'edit_requesters' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
-        print '&nbsp;' . img_object($langs->trans($object->notify_requester_by_email ? "Notifications" : "RequestManagerNoNotifications"),
-                $object->notify_requester_by_email ? 'email' : 'no_email@requestmanager');
-        print '&nbsp;<a href="' . $_SERVER["PHP_SELF"] . '?action=edit_requesters&id=' . $object->id . '">' . img_edit($langs->trans('RequestManagerSetRequesterContacts')) . '</a>';
+    $notificationUrl = "#";
+	if ($user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+        if ($object->notify_requester_by_email) {
+            $notificationChangeTo = '0';
+        } else {
+            $notificationChangeTo = '1';
+        }
+        $notificationUrl = $_SERVER['PHP_SELF'] . '?id=' . $object->id. '&action=set_requesters&requester_notification=' . $notificationChangeTo;
     }
+    print '&nbsp;';
+    print '<a href="' . $notificationUrl . '">';
+    print img_object($langs->trans($object->notify_requester_by_email ? "Notifications" : "RequestManagerNoNotifications"), $object->notify_requester_by_email ? 'email' : 'no_email@requestmanager');
+    print '</a>';
     print '</td></tr>';
     print '<tr><td>';
-    if ($action == 'edit_requesters' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
-        print '<form name="editdate" action="' . $_SERVER["PHP_SELF"] . '" method="post">';
-        print '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '">';
-        print '<input type="hidden" name="action" value="set_requesters">';
-        print '<input type="hidden" name="id" value="' . $object->id . '">';
-        print '<table class="nobordernopadding" width="100%">';
-        // Requester Contacts
-        print '<tr><td colspan="2">';
-        //print $formrequestmanager->multiselect_contacts($object->requester_ids, 'requester_contacts'); // get ajax multiselect contacts, users search on thirdparty/contact or login/user
-        print '</td></tr>';
-        // Requester Notification
-        print '<tr><td>' . $langs->trans('RequestManagerRequesterNotification') . '</td><td>';
-        print '<input type="checkbox" name="requester_notification" value="1"' . ($object->notify_requester_by_email ? ' checked' : '') . ' />';
-        print '</td></tr>';
-        print '<tr><td colspan="2" align="center"><input type="submit" class="button" value="' . $langs->trans('Modify') . '"></td></tr>';
-        print '</table>';
-        print '</form>';
-    } else {
-        if ($user->rights->requestmanager->creer && $object->statut_type != RequestManager::STATUS_TYPE_CLOSED && $object->statut_type != RequestManager::STATUS_TYPE_RESOLVED) {
-            // form to add requester contact
-            $formrequestmanager->form_add_contact($object, RequestManager::CONTACT_TYPE_ID_REQUEST);
-        }
-
-        $object->show_contact_list(RequestManager::CONTACT_TYPE_ID_REQUEST);
+    if ($user->rights->requestmanager->creer && $object->statut_type != RequestManager::STATUS_TYPE_CLOSED && $object->statut_type != RequestManager::STATUS_TYPE_RESOLVED) {
+        // form to add requester contact
+        $formrequestmanager->form_add_contact($object, RequestManager::CONTACT_TYPE_ID_REQUEST);
     }
+    $object->show_contact_list(RequestManager::CONTACT_TYPE_ID_REQUEST);
     print '</td></tr>';
 
     // Watchers
     print '<tr><td align="center">';
 	print $langs->trans('RequestManagerWatcherContacts');
-	if ($action != 'edit_watchers' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
-        print '&nbsp;' . img_object($langs->trans($object->notify_watcher_by_email ? "Notifications" : "RequestManagerNoNotifications"),
-                $object->notify_watcher_by_email ? 'email' : 'no_email@requestmanager');
-        print '&nbsp;<a href="' . $_SERVER["PHP_SELF"] . '?action=edit_watchers&id=' . $object->id . '">' . img_edit($langs->trans('RequestManagerSetWatcherContacts')) . '</a>';
+    $notificationUrl = "#";
+    if ($user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+        if ($object->notify_watcher_by_email) {
+            $notificationChangeTo = '0';
+        } else {
+            $notificationChangeTo = '1';
+        }
+        $notificationUrl = $_SERVER['PHP_SELF'] . '?id=' . $object->id. '&action=set_watchers&watcher_notification=' . $notificationChangeTo;
     }
+    print '&nbsp;';
+    print '<a href="' . $notificationUrl . '">';
+    print img_object($langs->trans($object->notify_watcher_by_email ? "Notifications" : "RequestManagerNoNotifications"), $object->notify_watcher_by_email ? 'email' : 'no_email@requestmanager');
+    print '</a>';
     print '</td></tr>';
     print '<tr><td>';
-    if ($action == 'edit_watchers' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
-        print '<form name="editdate" action="' . $_SERVER["PHP_SELF"] . '" method="post">';
-        print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
-        print '<input type="hidden" name="action" value="set_watchers">';
-        print '<input type="hidden" name="id" value="' . $object->id . '">';
-        print '<table class="nobordernopadding" width="100%">';
-        // Watcher Contacts
-        print '<tr><td colspan="2">';
-
-        //print $formrequestmanager->multiselect_contacts($object->watcher_ids, 'watcher_contacts'); // get ajax multiselect contacts, users search on thirdparty/contact or login/user
-        print '</td></tr>';
-        // Watcher Notification
-        print '<tr><td>' . $langs->trans('RequestManagerWatcherNotification') . '</td><td>';
-        print '<input type="checkbox" name="watcher_notification" value="1"' . ($object->notify_watcher_by_email ? ' checked' : '') . ' />';
-        print '</td></tr>';
-        print '<tr><td colspan="2" align="center"><input type="submit" class="button" value="' . $langs->trans('Modify') . '"></td></tr>';
-        print '</table>';
-        print '</form>';
-    } else {
-        if ($user->rights->requestmanager->creer && $object->statut_type != RequestManager::STATUS_TYPE_CLOSED && $object->statut_type != RequestManager::STATUS_TYPE_RESOLVED) {
-            // form to add requester contact
-            $formrequestmanager->form_add_contact($object, RequestManager::CONTACT_TYPE_ID_WATCHER);
-        }
-
-        $object->show_contact_list(RequestManager::CONTACT_TYPE_ID_WATCHER);
+    if ($user->rights->requestmanager->creer && $object->statut_type != RequestManager::STATUS_TYPE_CLOSED && $object->statut_type != RequestManager::STATUS_TYPE_RESOLVED) {
+        // form to add requester contact
+        $formrequestmanager->form_add_contact($object, RequestManager::CONTACT_TYPE_ID_WATCHER);
     }
+    $object->show_contact_list(RequestManager::CONTACT_TYPE_ID_WATCHER);
     print '</td></tr>';
 
     // Linked Objects

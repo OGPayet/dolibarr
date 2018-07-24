@@ -6,7 +6,7 @@ Module163018Desc = Request Manager
 ############################################################
 ### Message form
 ############################################################
-RequestManagerMessageNotifyByMail           = Notify by mail
+RequestManagerMessageNotifyByMail           = Send by mail to requesters and watchers contacts
 RequestManagerMessageDirection              = Message direction
 RequestManagerMessageDirectionIn            = Input
 RequestManagerMessageDirectionOut           = Output

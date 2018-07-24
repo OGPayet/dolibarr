@@ -257,7 +257,7 @@ class FormRequestManagerMessage
         $out .= ' &nbsp; ';
         $out .= '</div>';
         $out .= '<script type="text/javascript" language="javascript">';
-        $out .= 'jQuery(document).ready(function () {';
+        $out .= 'jQuery(document).ready(function() {';
         $out .= '    jQuery("#template_selected").click(function() {';
         $out .= '        jQuery("#action").val("premessage");';
         $out .= '        jQuery("#actioncomm").val("message_template_apply");';
@@ -273,9 +273,21 @@ class FormRequestManagerMessage
         $messageNotifyByMailChecked = '';
         if ($messageNotifyByMail) $messageNotifyByMailChecked = ' checked="checked"';
         $out .= '<tr>';
-        $out .= '<td class="fieldrequired">';
+        $out .= '<td class="fieldrequired" colspan="2">';
         $out .= '<input type="checkbox" id="message_notify_by_mail" name="message_notify_by_mail" value="1"' . $messageNotifyByMailChecked .' /> ' . $langs->trans("RequestManagerMessageNotifyByMail");
         $out .= "</td></tr>\n";
+        $out .= '<script type="text/javascript" language="javascript">';
+        $out .= 'jQuery(document).ready(function() {';
+        $out .= '   jQuery("#message_notify_by_mail").change(function() {';
+        $out .= '       if(jQuery(this).is(":checked")) {';
+        $out .= '           jQuery("#message_direction2").prop("checked", true);';
+        $out .= '           jQuery(".cb_message_direction").prop("disabled", true);';
+        $out .= '       } else {';
+        $out .= '           jQuery(".cb_message_direction").prop("disabled", false);';
+        $out .= '       }';
+        $out .= '   });';
+        $out .= '});';
+        $out .= '</script>' . "\n";
 
         // Direction
         //-----------------
@@ -285,8 +297,8 @@ class FormRequestManagerMessage
         $out .= '<tr>';
         $out .= '<td class="fieldrequired" width="180">' . $langs->trans("RequestManagerMessageDirection") . '</td>';
         $out .= '<td>';
-        $out .= '<input type="radio" id="message_direction" name="message_direction" value="1"' . $messageDirectionCheckedList[1] . '/> ' . $langs->trans("RequestManagerMessageDirectionIn");
-        $out .= '&nbsp;&nbsp;<input type="radio" id="message_direction" name="message_direction" value="2"' . $messageDirectionCheckedList[2] . '/> ' . $langs->trans("RequestManagerMessageDirectionOut");
+        $out .= '<input type="radio" id="message_direction1" class="cb_message_direction" name="message_direction" value="1"' . $messageDirectionCheckedList[1] . '/> ' . $langs->trans("RequestManagerMessageDirectionIn");
+        $out .= '&nbsp;&nbsp;<input type="radio" id="message_direction2" class="cb_message_direction" name="message_direction" value="2"' . $messageDirectionCheckedList[2] . '/> ' . $langs->trans("RequestManagerMessageDirectionOut");
         $out .= "</td></tr>\n";
 
         // Other attributes
@@ -307,14 +319,6 @@ class FormRequestManagerMessage
 	if (empty($reshook) && ! empty($extrafields->attribute_label)) {
             $out .= $actioncomm->showOptionals($extrafields, 'edit');
 	}
-
-        // Substitution
-        //-----------------
-        $out .= '<tr><td colspan="2">';
-        $tmp = self::getAvailableSubstitKey($this->requestmanager);
-        $helpSubstitution = $langs->trans("AvailableVariables") . ':<br>' . implode('<br>', array_keys($tmp));
-        $out .= $form->textwithpicto($langs->trans("RequestManagerMessageSubstitutionValues"), $helpSubstitution, 1, 'help', '', 0, 2, 'substitution');
-        $out .= "</td></tr>\n";
 
         // Get message template
         $default_message = $this->getEMailTemplate($template_id);
@@ -344,7 +348,7 @@ class FormRequestManagerMessage
         $out .= '    jQuery(".removedfile").click(function() {';
         $out .= '        jQuery(".removedfilehidden").val(jQuery(this).val());';
         $out .= '    });';
-        $out .= '})';
+        $out .= '});';
         $out .= '</script>' . "\n";
         if (count($listofpaths)) {
             foreach ($listofpaths as $key => $val) {
@@ -398,7 +402,7 @@ class FormRequestManagerMessage
         $out .= '        jQuery("#actioncomm").val("message_add_validate");';
         $out .= '        jQuery("#requestmanagermessageform").submit();';
         $out .= '    });';
-        $out .= '})';
+        $out .= '});';
         $out .= '</script>' . "\n";
 
         $out .= '</form>' . "\n";
