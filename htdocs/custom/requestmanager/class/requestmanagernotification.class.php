@@ -36,6 +36,20 @@ require_once DOL_DOCUMENT_ROOT . '/core/class/CMailFile.class.php';
  */
 class RequestManagerNotification extends CommonObject
 {
+    /**
+     * Messages directions ids
+     */
+    const MESSAGE_DIRECTION_ID_IN = 1;
+    const MESSAGE_DIRECTION_ID_OUT = 2;
+
+
+    /**
+     * Status constants
+     */
+    const STATUS_NOT_READ = 0;
+    const STATUS_READ = 1;
+
+
     public $element = 'requestmanager_notification';
     public $table_element = 'requestmanager_notification';
     protected $ismultientitymanaged = 1;	// 0=No test on entity, 1=Test with field entity, 2=Test with link by societe
@@ -96,10 +110,168 @@ class RequestManagerNotification extends CommonObject
 
 
     /**
-     * Status constants
+     * Get the sender of the message
+     *
+     * @return  string   From contact
      */
-    const STATUS_NOT_READ = 0;
-    const STATUS_READ = 1;
+    private static function _getSendFrom()
+    {
+        global $conf;
+
+        $sendFrom = (!empty($conf->global->MAIN_MAIL_EMAIL_FROM) ? $conf->global->MAIN_MAIL_EMAIL_FROM : '');
+
+        return $sendFrom;
+    }
+
+
+    /**
+     * Send a separate mail
+     *
+     * @param   string      $subject    Subject of the mail
+     * @param   string      $message    [=''] Message of the mail (HTML format)
+     * @param   int         $isHtml     [=-1] plain text or HTML message
+     * @return  int         <0 if KO, >0 if OK
+     */
+    private function _mailSendSeparate($subject, $message = '', $isHtml = -1)
+    {
+        // from
+        $sendFrom = self::_getSendFrom();
+        if (!$sendFrom) {
+            $this->error = "No paramater sendFrom";
+            dol_syslog(__METHOD__ . " Error : no parameter sendFrom", LOG_ERR);
+            return -1;
+        }
+
+        // send to list (with unique email)
+        $sendToList = self::_makeEmailUniqueListFromContactList($this->contactList);
+        if (count($sendToList) <= 0) {
+            dol_syslog( __METHOD__ . " Nobody to notify by mail", LOG_ERR);
+            return -1;
+        }
+
+        // subject
+        if (!$subject) {
+            $this->error = "No parameter subject";
+            dol_syslog(__METHOD__ . " Error : no parameter subject", LOG_ERR);
+            return -1;
+        }
+
+        foreach($sendToList as $sendTo) {
+            $cMailFile = new CMailFile($subject, $sendTo, $sendFrom, $message, array(), array(), array(), '', '', 0, $isHtml);
+            $result = $cMailFile->sendfile();
+
+            if (!$result) {
+                $this->error = $cMailFile->error;
+                dol_syslog(__METHOD__ . " Error : mail not sent", LOG_ERR);
+            } else {
+                dol_syslog(__METHOD__ . " mail sent", LOG_DEBUG);
+            }
+        }
+
+        return 1;
+    }
+
+
+    /**
+     * Send a unique mail with copy carbone and blind copy carbone list
+     *
+     * @param   string      $subject    Subject of the mail
+     * @param   string      $message    [=''] Message of the mail (HTML format)
+     * @param   int         $isHtml     [=-1] plain text or HTML message
+     * @return  int         <0 if KO, >0 if OK
+     */
+    private function _mailSendUnique($subject, $message = '', $isHtml = -1)
+    {
+        // from
+        $sendFrom = self::_getSendFrom();
+        if (!$sendFrom) {
+            $this->error = "No paramater sendFrom";
+            dol_syslog(__METHOD__ . " Error : no parameter sendFrom", LOG_ERR);
+            return -1;
+        }
+
+        // send to list (with unique email)
+        $sendToList = self::_makeEmailUniqueListFromContactList($this->contactList);
+        if (count($sendToList) <= 0) {
+            dol_syslog( __METHOD__ . " Nobody to notify by mail", LOG_ERR);
+            return -1;
+        }
+        $sendTo = implode(' ,', $sendToList);
+
+        // subject
+        if (!$subject) {
+            $this->error = "No parameter subject";
+            dol_syslog(__METHOD__ . " Error : no parameter subject", LOG_ERR);
+            return -1;
+        }
+
+        // copy carbone list (with unique email)
+        $addrCc = '';
+        $addrCcList = self::_makeEmailUniqueListFromContactList($this->contactCcList, $sendToList);
+        if (count($addrCcList) > 0) {
+            $addrCc = implode(' ,', $addrCcList);
+        }
+
+        // blind copy carbone list (with unique email)
+        $addrBcc = '';
+        $addrBccList = self::_makeEmailUniqueListFromContactList($this->contactBccList, array_merge($addrCcList, $sendToList));
+        if (count($addrBccList) > 0) {
+            $addrBcc = implode(' ,', $addrBccList);
+        }
+
+        $cMailFile = new CMailFile($subject, $sendTo, $sendFrom, $message, array(), array(), array(), $addrCc, $addrBcc, 0, $isHtml);
+        $result = $cMailFile->sendfile();
+
+        if (!$result) {
+            $this->error = $cMailFile->error;
+            dol_syslog(__METHOD__ . " Error : mail not sent", LOG_ERR);
+            return -1;
+        } else {
+            dol_syslog(__METHOD__ . " mail sent", LOG_DEBUG);
+            return 1;
+        }
+    }
+
+
+    /**
+     * Make contact email unique list
+     *
+     * @param   array   $contactList        Contact list
+     * @param   array   $notInEmailList     Not in email list
+     * @return  array   Contact unique email list
+     */
+    private static function _makeEmailUniqueListFromContactList($contactList, $notInEmailList = array())
+    {
+        $emailUniqueList = array();
+
+        // unique email list
+        foreach ($contactList as $contact) {
+            if ($contact->email && !in_array($contact->email, $emailUniqueList) && !in_array($contact->email, $notInEmailList)) {
+                $emailUniqueList[] = $contact->email;
+            }
+        }
+
+        return $emailUniqueList;
+    }
+
+
+    /**
+     * Make a contact string for recipients of the message
+     *
+     * @param   array       $contactList        Contact list
+     * @return  string      Contact string for recipients of the message
+     */
+    private static function _makeEmailUniqueStringFromContactList($contactList)
+    {
+        $emailUniqueString = '';
+
+        $emailUniqueList = self::_makeEmailUniqueListFromContactList($contactList);
+        if (count($emailUniqueList) > 0) {
+            $emailUniqueString = implode(', ', $emailUniqueList);
+        }
+
+        return $emailUniqueString;
+    }
 
 
     /**
@@ -142,30 +314,13 @@ class RequestManagerNotification extends CommonObject
 
 
     /**
-     * Update a notification in database
+     * Get the default direction id
      *
-     * @return  int     <0 if KO, >0 if OK
+     * @return  int     Default message direction id
      */
-    public function update()
+    public static function getMessageDirectionIdDefault()
     {
-        return 1;
-    }
-
-
-    /**
-     * Save a notification in database
-     *
-     * @return  int     <0 if KO, >0 if OK
-     */
-    public function save()
-    {
-        if ($this->id > 0) {
-
-        } else {
-
-        }
-
-        return 1;
+        return self::MESSAGE_DIRECTION_ID_OUT;
     }
 
 
@@ -198,68 +353,33 @@ class RequestManagerNotification extends CommonObject
 
 
     /**
-     * Get the sender of the message
+     * Notify by mail for input and output messages
      *
-     * @return  string   From contact
+     * @param   string      $subject            Subject of message
+     * @param   string      $message            Message content
+     * @param   int         $separated          [=0] Send a unique mail, 1 = Send a mail for each recipient (send to)
+     * @return  int         <0 if KO, >0 if OK
      */
-    private static function _getSendFrom()
+    public function notifyByMailForMessageInAndOut($subject, $message, $separated = 0)
     {
-        global $conf;
-
-        $sendFrom = (!empty($conf->global->MAIN_MAIL_EMAIL_FROM) ? $conf->global->MAIN_MAIL_EMAIL_FROM : '');
-
-        return $sendFrom;
-    }
-
-
-    /**
-     * Make contact email unique list
-     *
-     * @param   array   $contactList        Contact list
-     * @return  array   Contact unique email list
-     */
-    private static function _makeEmailUniqueListFromContactList($contactList)
-    {
-        $emailUniqueList = array();
-
-        // unique email list
-        foreach ($contactList as $contact) {
-            if ($contact->email && !in_array($contact->email, $emailUniqueList)) {
-                $emailUniqueList[] = $contact->email;
-            }
+        if ($separated === 0) {
+            $result = $this->_mailSendUnique($subject, $message, 1);
+        } else {
+            $result = $this->_mailSendSeparate($subject, $message, 1);
         }
 
-        return $emailUniqueList;
+        return $result;
     }
-
-
-    /**
-     * Make a contact string for recipients of the message
-     *
-     * @param   array       $contactList        Contact list
-     * @return  string      Contact string for recipients of the message
-     */
-    private static function _makeEmailUniqueStringFromContactList($contactList)
-    {
-        $emailUniqueString = '';
-
-        $emailUniqueList = self::_makeEmailUniqueListFromContactList($contactList);
-        if (count($emailUniqueList) > 0) {
-            $emailUniqueString = implode(', ', $emailUniqueList);
-        }
-
-        return $emailUniqueString;
-    }
-
 
     /**
      * Notify all contact by email
      *
      * @param   RequestManager      $requestManager     RequestManager object
      * @param   string              $templateType       Template type
+     * @param   int         $separated          [=0] Send a unique mail, 1 = Send a mail for each recipient (send to)
      * @return  int                 <0 if KO, >0 if OK
      */
-    public function notifyByMailFromTemplateType($requestManager, $templateType)
+    public function notifyByMailFromTemplateType($requestManager, $templateType, $separated = 0)
     {
         dol_include_once('/requestmanager/class/html.formrequestmanagermessage.class.php');
 
@@ -278,7 +398,11 @@ class RequestManagerNotification extends CommonObject
             $message = make_substitutions($obj->boby, $substitutionarray);
 
             // send mail
-            $result = $this->_mailSend($subject, $message, 1);
+            if ($separated === 0) {
+                $result = $this->_mailSendUnique($subject, $message, 1);
+            } else {
+                $result = $this->_mailSendSeparate($subject, $message, 1);
+            }
 
             return $result;
         } else {
@@ -290,70 +414,29 @@ class RequestManagerNotification extends CommonObject
 
 
     /**
-     * Notify by mail for input and output messages
+     * Save a notification in database
      *
-     * @param   string      $subject            Subject of message
-     * @param   string      $message            Message content
-     * @return  int         <0 if KO, >0 if OK
+     * @return  int     <0 if KO, >0 if OK
      */
-    public function notifyByMailForMessageInAndOut($subject, $message)
+    public function save()
     {
-        $result = $this->_mailSend($subject, $message, 1);
+        if ($this->id > 0) {
 
-        return $result;
+        } else {
+
+        }
+
+        return 1;
     }
 
 
     /**
-     * Send a mail
+     * Update a notification in database
      *
-     * @param   string      sendFrom    Sender of the maim
-     * @param   string      $sendTo     Receipient of the mail
-     * @param   string      $subject    Subject of the mail
-     * @param   string      $message    [=''] Message of the mail (HTML format)
-     * @param   int         $isHtml     [=-1] plain text or HTML message
-     * @return  int         <0 if KO, >0 if OK
+     * @return  int     <0 if KO, >0 if OK
      */
-    private function _mailSend($subject, $message = '', $isHtml = -1)
+    public function update()
     {
-        // from
-        $sendFrom = self::_getSendFrom();
-        if (!$sendFrom) {
-            $this->error = "No paramater sendFrom";
-            dol_syslog(__METHOD__ . " Error : no parameter sendFrom", LOG_ERR);
-            return -1;
-        }
-
-        // send to (with unique email)
-        $sendTo = self::_makeEmailUniqueStringFromContactList($this->contactList);
-        if (!$sendTo) {
-            dol_syslog( __METHOD__ . " Nobody to notify by mail", LOG_ERR);
-            return -1;
-        }
-
-        // subject
-        if (!$subject) {
-            $this->error = "No parameter subject";
-            dol_syslog(__METHOD__ . " Error : no parameter subject", LOG_ERR);
-            return -1;
-        }
-
-        // copy carbone (with unique email)
-        $addrCc = self::_makeEmailUniqueStringFromContactList($this->contactCcList);
-
-        // blind copy carbone (with unique email)
-        $addrBcc = self::_makeEmailUniqueStringFromContactList($this->contactBccList);
-
-        $cMailFile = new CMailFile($subject, $sendTo, $sendFrom, $message, array(), array(), array(), $addrCc, $addrBcc, 0, $isHtml);
-        $result = $cMailFile->sendfile();
-
-        if (!$result) {
-            $this->error = $cMailFile->error;
-            dol_syslog(__METHOD__ . " Error : mail not sent", LOG_ERR);
-            return -1;
-        } else {
-            dol_syslog(__METHOD__ . " mail sent", LOG_DEBUG);
-            return 1;
-        }
+        return 1;
     }
 }

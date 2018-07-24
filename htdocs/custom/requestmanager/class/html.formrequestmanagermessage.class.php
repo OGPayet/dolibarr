@@ -291,14 +291,15 @@ class FormRequestManagerMessage
 
         // Direction
         //-----------------
-        $messageDirection = GETPOST('message_direction', 'int', 2)?intval(GETPOST('message_direction', 'int', 2)):2;
-        $messageDirectionCheckedList = array(1 => '', 2 => '');
+        dol_include_once('/requestmanager/class/requestmanagernotification.class.php');
+        $messageDirection = GETPOST('message_direction', 'int', 2)?intval(GETPOST('message_direction', 'int', 2)):RequestManagerNotification::getMessageDirectionIdDefault();
+        $messageDirectionCheckedList = array(RequestManagerNotification::MESSAGE_DIRECTION_ID_IN => '', RequestManagerNotification::MESSAGE_DIRECTION_ID_OUT => '');
         $messageDirectionCheckedList[$messageDirection] .= ' checked="checked"';
         $out .= '<tr>';
         $out .= '<td class="fieldrequired" width="180">' . $langs->trans("RequestManagerMessageDirection") . '</td>';
         $out .= '<td>';
-        $out .= '<input type="radio" id="message_direction1" class="cb_message_direction" name="message_direction" value="1"' . $messageDirectionCheckedList[1] . '/> ' . $langs->trans("RequestManagerMessageDirectionIn");
-        $out .= '&nbsp;&nbsp;<input type="radio" id="message_direction2" class="cb_message_direction" name="message_direction" value="2"' . $messageDirectionCheckedList[2] . '/> ' . $langs->trans("RequestManagerMessageDirectionOut");
+        $out .= '<input type="radio" id="message_direction1" class="cb_message_direction" name="message_direction" value="' . RequestManagerNotification::MESSAGE_DIRECTION_ID_IN . '"' . $messageDirectionCheckedList[RequestManagerNotification::MESSAGE_DIRECTION_ID_IN] . '/> ' . $langs->trans("RequestManagerMessageDirectionIn");
+        $out .= '&nbsp;&nbsp;<input type="radio" id="message_direction2" class="cb_message_direction" name="message_direction" value="' . RequestManagerNotification::MESSAGE_DIRECTION_ID_OUT . '"' . $messageDirectionCheckedList[RequestManagerNotification::MESSAGE_DIRECTION_ID_OUT] . '/> ' . $langs->trans("RequestManagerMessageDirectionOut");
         $out .= "</td></tr>\n";
 
         // Other attributes

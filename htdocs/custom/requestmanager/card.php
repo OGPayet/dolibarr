@@ -41,6 +41,7 @@ dol_include_once('/advancedictionaries/class/dictionary.class.php');
 dol_include_once('/requestmanager/class/requestmanager.class.php');
 dol_include_once('/requestmanager/class/requestmanagernotification.class.php');
 dol_include_once('/requestmanager/class/html.formrequestmanager.class.php');
+dol_include_once('/requestmanager/class/html.formrequestmanagermessage.class.php');
 dol_include_once('/requestmanager/lib/requestmanager.lib.php');
 
 $langs->load('mails');
@@ -444,70 +445,68 @@ if (empty($reshook)) {
     // Add message
     elseif ($action == 'addmessage' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
         $messageNotifyByMail = GETPOST('message_notify_by_mail', 'int')?1:0;
-        $messageDirection = GETPOST('message_direction', 'int')?intval(GETPOST('message_direction', 'int')):0;
+        $messageDirection = GETPOST('message_direction', 'int')?intval(GETPOST('message_direction', 'int')):RequestManagerNotification::getMessageDirectionIdDefault();
         $messageSubject = GETPOST('message_subject')?GETPOST('message_subject'):'';
         $messageBody = GETPOST('message_body')?GETPOST('message_body'):'';
 
         if (!$messageSubject) {
             $error++;
-            $object->error = $langs->trans('ErrorRequiredField', $langs->transnoentitiesnoconv('MessageSubject'));
+            $object->error = $langs->trans('ErrorFieldRequired', $langs->transnoentitiesnoconv('MessageSubject'));
         }
 
         $actionCommTypeCode = '';
         $actionCommLabel = '';
         $actionCommNote = '';
-        $contactToNotifyList = array();
-        $contactCcToNotifyList = array();
-        if ($messageDirection === 1) {
+        if ($messageDirection === RequestManagerNotification::MESSAGE_DIRECTION_ID_IN) {
             // message in
             $actionCommTypeCode = RequestManager::ACTIONCOMM_TYPE_CODE_IN;
             $actionCommLabel = $langs->trans('RequestManagerNotificationMessageIn', $langs->transnoentitiesnoconv($object->ref));
             $actionCommNote = $langs->trans('RequestManagerNotificationMessageIn', $langs->transnoentitiesnoconv($object->ref));
-            $contactToNotifyList = $object->getContactToNotifyListForMessageIn(1);
-        } else if ($messageDirection === 2) {
+
+            // TODO : get a message template from dictionnary
+            //$template = $object->findNotificationMessageTemplate('notify_status_modified');
+        } else if ($messageDirection === RequestManagerNotification::MESSAGE_DIRECTION_ID_OUT) {
             // message out
             $actionCommTypeCode = RequestManager::ACTIONCOMM_TYPE_CODE_OUT;
             $actionCommLabel = $langs->trans('RequestManagerNotificationMessageOut', $langs->transnoentitiesnoconv($object->ref));
             $actionCommNote = $langs->trans('RequestManagerNotificationMessageOut', $langs->transnoentitiesnoconv($object->ref));
-            $contactToNotifyList = $object->getContactToNotifyListForMessageOut(1);
 
-            // add a specific copy mail to the assigned user if not the user
-            $contactCcToNotifyList = array();
-            if ($object->assigned_user_id > 0 && $user->id != $object->assigned_user_id) {
-                // if the user is not the assigned user and is not in contact list to notify
-                if (!array_keys_exists('u' . $object->assigned_user_id, $contactToNotifyList)) {
-                    $contactCcToNotifyList['u' . $object->assigned_user_id] = $object->assigned_user_id;
-                }
-            }
+            // TODO : get a message template from dictionnary
+            //$template = $object->findNotificationMessageTemplate('notify_status_modified');
         } else {
             $error++;
-            $object->error = $langs->trans('ErrorRequiredField', $langs->transnoentitiesnoconv('MessageDirection'));
+            $object->error = $langs->trans('ErrorFieldRequired', $langs->transnoentitiesnoconv('MessageDirection'));
         }
 
         if (!$error) {
             // create new event
             $langs->load('requestmanager@requestmanager');
-
             $idActionComm = $object->createActionComm($actionCommTypeCode, $actionCommLabel, $actionCommNote);
             if ($idActionComm < 0) {
                 $error++;
             } else {
-                // only if we want to notify
-                if ($messageNotifyByMail === 1) {
-                    // save in database
-                    $requestManagerNotification = new RequestManagerNotification($db);
-                    $requestManagerNotification->contactList = $contactToNotifyList;
+                // user or group assigned to notify (save in database)
+                $requestManagerNotification = new RequestManagerNotification($db);
+                $requestManagerNotification->contactList = $object->getUserToNotifyList(1);
+
+                if (count($requestManagerNotification->contactList) > 0) {
+                    // notify the assigned user if different of user (only save in database)
                     $result = $requestManagerNotification->notify($idActionComm);
-                    if ($result < 0) {
-                        $error++;
-                        $object->error = $requestManagerNotification->error;
+                }
+
+                // send by mail
+                if ($messageNotifyByMail === 1 && $messageDirection === RequestManagerNotification::MESSAGE_DIRECTION_ID_OUT) {
+                    // if notification by mail is activated and have user to notify
+                    if (!empty($conf->global->REQUESTMANAGER_NOTIFICATION_BY_MAIL) && count($requestManagerNotification->contactList)>0) {
+                        // notify by mail
+                        $result = $requestManagerNotification->notifyByMailForMessageInAndOut($messageSubject, $messageBody, 1);
                     }
 
-                    // notify by mail
-                    $result = $requestManagerNotification->notifyByMailForMessageInAndOut($messageSubject, $messageBody);
-                    if ($result < 0) {
-                        $error++;
-                        $object->error = $requestManagerNotification->error;
+                    // send to requesters (sendto) and watchers (copy carbone) if notification activated
+                    $requestManagerNotification->contactList = $object->getContactRequestersToNotifyList(1);
+                    if (count($requestManagerNotification->contactList) > 0) {
+                        $requestManagerNotification->contactCcList = $object->getContactWatchersToNotifyList(1);
+                        $result = $requestManagerNotification->notifyByMailForMessageInAndOut($messageSubject, $messageBody);
                     }
                 }
             }
@@ -1395,7 +1394,6 @@ if ($action == 'create')
         dol_fiche_head();
 
         // Cree l'objet formulaire message
-        dol_include_once('/requestmanager/class/html.formrequestmanagermessage.class.php');
         $formrequestmanagermessage = new FormRequestManagerMessage($db, $object);
 
         // Tableau des parametres complementaires du post

@@ -325,6 +325,7 @@ class RequestManager extends CommonObject
      */
     const ACTIONCOMM_TYPE_CODE_IN = 'AC_RM_IN';
     const ACTIONCOMM_TYPE_CODE_OUT = 'AC_RM_OUT';
+    const ACTIONCOMM_TYPE_CODE_STAT = 'AC_RM_STAT';
 
 
     /**
@@ -1761,6 +1762,31 @@ class RequestManager extends CommonObject
 
 
     /**
+     * Find first template for email notification
+     *
+     * @param   string      $templateType   Template type
+     * @param   int         $id             Id of template
+     * @return array|int
+     */
+    public function findNotificationMessageTemplate($templateType)
+    {
+        dol_include_once('/advancedictionaries/class/dictionary.class.php');
+
+        $template = array();
+
+        $dictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagermessagetemplate');
+        $lines = $dictionary->fetch_lines(1, array('template_type' => array($templateType), 'request_type' => array($this->fk_type)), array('position' => 'ASC'), 0, 1, false, true);
+        if ($lines < 0) {
+            $this->error = $dictionary->errorsToString();
+        } else {
+            $template = current($lines)->fields;
+        }
+
+        return $template;
+    }
+
+
+    /**
      * Delete contact by id and type
      *
      * @param   int     $fkSocpeople            Id of soc people
@@ -1917,13 +1943,13 @@ class RequestManager extends CommonObject
 
 
     /**
-     * Get contact list to notify for in messages
+     * Get user list to notify
      *
      * @param   int         $withObject     Load also the object
      * @param   string      $sourceFilter   [=''] for all, internal for users, external for soc people
      * @return  array       Contact list
      */
-    public function getContactToNotifyListForMessageIn($withObject = 0, $sourceFilter = '')
+    public function getUserToNotifyList($withObject = 0, $sourceFilter = '')
     {
         global $user;
 
@@ -1932,73 +1958,18 @@ class RequestManager extends CommonObject
         if ($sourceFilter == '' || $sourceFilter == 'internal') {
             if ($this->notify_assigned_by_email == TRUE) {
                 // assigned users
-                if ($this->assigned_user_id > 0 && $user->id != $this->assigned_user_id) {
-                    if ($withObject == 1) {
-                        $userstatic = new User($this->db);
-                        $userstatic->fetch($this->assigned_user_id);
-                        $contactList['u' . $this->assigned_user_id] = $userstatic;
-                    } else {
-                        $contactList['u' . $this->assigned_user_id] = $this->assigned_user_id;
-                    }
-                }
-            }
-        }
-
-        return $contactList;
-    }
-
-
-    /**
-     * Get contact list to notify for out messages
-     *
-     * @param   int     $withObject     Load also the object
-     * @param   string  $sourceFilter   [=''] for all, internal for users, external for soc people
-     * @return  array
-     */
-    public function getContactToNotifyListForMessageOut($withObject = 0, $sourceFilter = '')
-    {
-        $contactList = array();
-
-        // contact requesters
-        if ($this->notify_requester_by_email == TRUE) {
-            $this->fetch_requester($withObject, $sourceFilter);
-            $contactList = array_merge($contactList, $this->requester_list);
-        }
-
-        // contact watchers
-        if ($this->notify_watcher_by_email == TRUE) {
-            $this->fetch_watcher($withObject,  $sourceFilter);
-            $contactList = array_merge($contactList, $this->watcher_list);
-        }
-
-        return $contactList;
-    }
-
-
-    /**
-     * Get contact list to notify
-     *
-     * @param   int     $withObject     Load also the object
-     * @param   string  $sourceFilter   [=''] for all, internal for users, external for soc people
-     * @return  array   Contact list
-     */
-    public function getContactToNotifyList($withObject = 0, $sourceFilter = '')
-    {
-        $contactList = array();
-
-        if ($sourceFilter == '' || $sourceFilter == 'internal') {
-            // assigned users
-            if ($this->notify_assigned_by_email == TRUE) {
                 if ($this->assigned_user_id > 0) {
-                    if ($withObject == 1) {
-                        $userstatic = new User($this->db);
-                        $userstatic->fetch($this->assigned_user_id);
-                        $contactList['u' . $this->assigned_user_id] = $userstatic;
-                    } else {
-                        $contactList['u' . $this->assigned_user_id] = $this->assigned_user_id;
+                    if ($user->id != $this->assigned_user_id) {
+                        if ($withObject == 1) {
+                            $userstatic = new User($this->db);
+                            $userstatic->fetch($this->assigned_user_id);
+                            $contactList['u' . $this->assigned_user_id] = $userstatic;
+                        } else {
+                            $contactList['u' . $this->assigned_user_id] = $this->assigned_user_id;
+                        }
                     }
                 } else if ($this->assigned_usergroup_id > 0) {
-                    // retrieve all user ids belongs to this group
+                    // assigned group
                     $groupstatic = new UserGroup($this->db);
                     $groupstatic->fetch($this->assigned_usergroup_id);
                     $userGroupList = $groupstatic->listUsersForGroup();
@@ -2013,17 +1984,73 @@ class RequestManager extends CommonObject
             }
         }
 
+        return $contactList;
+    }
+
+
+    /**
+     * Get contact requesters list to notify
+     *
+     * @param   int     $withObject     Load also the object
+     * @param   string  $sourceFilter   [=''] for all, internal for users, external for soc people
+     * @return  array   Contact list
+     */
+    public function getContactRequestersToNotifyList($withObject = 0, $sourceFilter = '')
+    {
+        $contactList = array();
+
         // contact requesters
         if ($this->notify_requester_by_email == TRUE) {
             $this->fetch_requester($withObject, $sourceFilter);
             $contactList = array_merge($contactList, $this->requester_list);
         }
 
-        // contact watchers
-        if ($this->notify_watcher_by_email == TRUE) {
-            $this->fetch_watcher($withObject,  $sourceFilter);
-            $contactList = array_merge($contactList, $this->watcher_list);
+        return $contactList;
+    }
+
+
+    /**
+     * Get contact watchers list to notify
+     *
+     * @param   int     $withObject     Load also the object
+     * @param   string  $sourceFilter   [=''] for all, internal for users, external for soc people
+     * @return  array   Contact list
+     */
+    public function getContactWatchersToNotifyList($withObject = 0, $sourceFilter = '')
+    {
+        $contactList = array();
+
+        // contact requesters
+        if ($this->notify_requester_by_email == TRUE) {
+            $this->fetch_requester($withObject, $sourceFilter);
+            $contactList = array_merge($contactList, $this->requester_list);
         }
+
+        return $contactList;
+    }
+
+
+    /**
+     * Get contact list to notify (all : assigned, requesters and watchers)
+     *
+     * @param   int     $withObject     Load also the object
+     * @param   string  $sourceFilter   [=''] for all, internal for users, external for soc people
+     * @return  array   Contact list
+     */
+    public function getContactToNotifyList($withObject = 0, $sourceFilter = '')
+    {
+        $contactList = array();
+
+        // assigned users (or group)
+        if ($sourceFilter == '' || $sourceFilter == 'internal') {
+            $contactList = $this->getUserToNotifyList($withObject, $sourceFilter);
+        }
+
+        // contact requesters
+        $contactList = array_merge($contactList, $this->getContactRequestersToNotifyList($withObject, $sourceFilter));
+
+        // contact watchers
+        $contactList = array_merge($contactList, $this->getContactWatchersToNotifyList($withObject, $sourceFilter));
 
         return $contactList;
     }
@@ -2043,9 +2070,7 @@ class RequestManager extends CommonObject
 
         require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
 
-        // title : "Demande [REF] passée en statut [NEW_STATUS]
         $actionCom = new ActionComm($this->db);
-        //$actionCom->type_code = 'AC_RM_OUT';
         $actionCom->type_code = $typeCode;
         $actionCom->label = $label;
         $actionCom->note = $note;

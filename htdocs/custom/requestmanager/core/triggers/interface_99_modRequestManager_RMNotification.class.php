@@ -53,7 +53,7 @@ class InterfaceRMNotification extends DolibarrTriggers
 
             dol_include_once('/requestmanager/lib/requestmanager.lib.php');
 
-            $result = requestmanager_notification($object, 'notify_status_modified');
+            $result = requestmanager_notification_status_modify($object, 'notify_status_modified');
 
             dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
 	        return $result;
