@@ -2043,10 +2043,10 @@ class RequestManager extends CommonObject
     {
         $contactList = array();
 
-        // contact requesters
-        if ($this->notify_requester_by_email == TRUE) {
-            $this->fetch_requester($withObject, $sourceFilter);
-            $contactList = array_merge($contactList, $this->requester_list);
+        // contact watchers
+        if ($this->notify_watcher_by_email == TRUE) {
+            $this->fetch_watcher($withObject, $sourceFilter);
+            $contactList = array_merge($contactList, $this->watcher_list);
         }
 
         return $contactList;

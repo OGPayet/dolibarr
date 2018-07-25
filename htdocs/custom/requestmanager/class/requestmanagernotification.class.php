@@ -144,8 +144,8 @@ class RequestManagerNotification extends CommonObject
         // send to list (with unique email)
         $sendToList = self::_makeEmailUniqueListFromContactList($this->contactList);
         if (count($sendToList) <= 0) {
-            dol_syslog( __METHOD__ . " Nobody to notify by mail", LOG_ERR);
-            return -1;
+            dol_syslog( __METHOD__ . " Nobody to notify by mail", LOG_WARNING);
+            return 1;
         }
 
         // subject
@@ -192,8 +192,8 @@ class RequestManagerNotification extends CommonObject
         // send to list (with unique email)
         $sendToList = self::_makeEmailUniqueListFromContactList($this->contactList);
         if (count($sendToList) <= 0) {
-            dol_syslog( __METHOD__ . " Nobody to notify by mail", LOG_ERR);
-            return -1;
+            dol_syslog( __METHOD__ . " Nobody to notify by mail", LOG_WARNING);
+            return 1;
         }
         $sendTo = implode(' ,', $sendToList);
 
@@ -246,7 +246,9 @@ class RequestManagerNotification extends CommonObject
         // unique email list
         foreach ($contactList as $contact) {
             if ($contact->email && !in_array($contact->email, $emailUniqueList) && !in_array($contact->email, $notInEmailList)) {
-                $emailUniqueList[] = $contact->email;
+                if ($contact->email) {
+                    $emailUniqueList[] = $contact->email;
+                }
             }
         }
 
