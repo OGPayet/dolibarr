@@ -1577,9 +1577,18 @@ function requestmanager_notification_status_modify($requestManager)
     }
 
     // requesters and watchers contacts : retrieve mail template for type of demand and send by mail
+    $atLeastOneContactToNotify = FALSE;
     $requestManagerNotification->contactList = $requestManager->getContactRequestersToNotifyList(1);
     if (count($requestManagerNotification->contactList) > 0) {
+        $atLeastOneContactToNotify = TRUE;
         $requestManagerNotification->contactCcList = $requestManager->getContactWatchersToNotifyList(1);
+    } else {
+        $requestManagerNotification->contactList = $requestManager->getContactWatchersToNotifyList(1);
+        if (count($requestManagerNotification->contactList) > 0) {
+            $atLeastOneContactToNotify = TRUE;
+        }
+    }
+    if ($atLeastOneContactToNotify) {
         $result = $requestManagerNotification->notifyByMail($substituteList['subject'], $substituteList['boby']);
         if ($result < 0) {
             setEventMessages($requestManagerNotification->error, $requestManagerNotification->errors, 'errors');

@@ -511,9 +511,19 @@ if (empty($reshook)) {
                 // notify by mail
                 if ($messageNotifyByMail === 1 && $messageDirection === RequestManagerNotification::MESSAGE_DIRECTION_ID_OUT) {
                     // send to requesters (sendto) and watchers (copy carbone) to notify
+                    $atLeastOneContactToNotify = FALSE;
                     $requestManagerNotification->contactList = $object->getContactRequestersToNotifyList(1);
                     if (count($requestManagerNotification->contactList) > 0) {
+                        $atLeastOneContactToNotify = TRUE;
                         $requestManagerNotification->contactCcList = $object->getContactWatchersToNotifyList(1);
+                    } else {
+                        $requestManagerNotification->contactList = $object->getContactWatchersToNotifyList(1);
+                        if (count($requestManagerNotification->contactList) > 0) {
+                            $atLeastOneContactToNotify = TRUE;
+                        }
+                    }
+
+                    if ($atLeastOneContactToNotify) {
                         $result = $requestManagerNotification->notifyByMail($messageSubject, $messageBody);
                     }
                 }
