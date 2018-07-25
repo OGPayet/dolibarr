@@ -6,8 +6,10 @@ Module163018Desc = Request Manager
 ############################################################
 ### Admin setup
 ############################################################
-RequestManagerNotificationByMailName        = Notify by mail
-RequestManagerNotificationByMailDesc        = Notify users by mail
+RequestManagerNotificationByMailName            = Notify by mail
+RequestManagerNotificationByMailDesc            = Notify users by mail
+RequestManagerContractSearchInParentCompanyName = Search contracts of the parent company
+RequestManagerContractSearchInParentCompanyDesc = Search contracts linked to the third of the request in the parent company
 
 ############################################################
 ### Actions

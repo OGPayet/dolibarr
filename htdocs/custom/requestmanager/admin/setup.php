@@ -359,6 +359,18 @@ if (empty($conf->global->REQUESTMANAGER_NOTIFICATION_BY_MAIL)) {
 }
 print '</td></tr>' . "\n";
 
+// REQUESTMANAGER_CONTRACT_SEARCH_IN_PARENT_COMPANY
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>'.$langs->trans("RequestManagerContractSearchInParentCompanyName").'</td>'."\n";
+print '<td>'.$langs->trans("RequestManagerContractSearchInParentCompanyDesc").'</td>'."\n";
+print '<td align="right">' . "\n";
+if (empty($conf->global->REQUESTMANAGER_CONTRACT_SEARCH_IN_PARENT_COMPANY)) {
+    print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_REQUESTMANAGER_CONTRACT_SEARCH_IN_PARENT_COMPANY&REQUESTMANAGER_CONTRACT_SEARCH_IN_PARENT_COMPANY=1">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+} else {
+    print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_REQUESTMANAGER_CONTRACT_SEARCH_IN_PARENT_COMPANY&REQUESTMANAGER_CONTRACT_SEARCH_IN_PARENT_COMPANY=0">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+}
+print '</td></tr>' . "\n";
 
 /*
 // requestmanager_BASE_PRICE_DISCOUNT

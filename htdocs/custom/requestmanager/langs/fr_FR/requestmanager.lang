@@ -15,13 +15,15 @@ Permission163036 = Voir les documents des demandes
 ############################################################
 ### Admin setup
 ############################################################
-RequestManagerSetup                         = Configuration du module Request Manager
-RequestManagerExtraFields                   = Attributs supplémentaires (Demande)
-RequestManagerMessageExtraFields            = Attributs supplémentaires (Message)
-RequestManagerRefNumberingModules           = Modèles de numérotation des références interne des demandes
-RequestManagerExternalRefNumberingModules   = Modèles de numérotation des références externe des demandes
-RequestManagerNotificationByMailName        = Notification par mail
-RequestManagerNotificationByMailDesc        = Notifier par mail les utilisateurs
+RequestManagerSetup                             = Configuration du module Request Manager
+RequestManagerExtraFields                       = Attributs supplémentaires (Demande)
+RequestManagerMessageExtraFields                = Attributs supplémentaires (Message)
+RequestManagerRefNumberingModules               = Modèles de numérotation des références interne des demandes
+RequestManagerExternalRefNumberingModules       = Modèles de numérotation des références externe des demandes
+RequestManagerNotificationByMailName            = Notification par mail
+RequestManagerNotificationByMailDesc            = Notifier par mail les utilisateurs
+RequestManagerContractSearchInParentCompanyName = Rechercher les contrats de la maison mère
+RequestManagerContractSearchInParentCompanyDesc = Rechercher les contrats liés au tiers de la demande dans la maison mère
 
 ############################################################
 ### Contact
