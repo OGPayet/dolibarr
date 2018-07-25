@@ -37,6 +37,7 @@ TypeContact_project_external_WATCHER    = Contact observateur
 ActionAC_RM_IN      = Message de demande entrant
 ActionAC_RM_OUT     = Message de demande sortant
 ActionAC_RM_PRIV    = Message de demande privé
+ActionAC_RM_STAT    = Changement de statut
 
 ############################################################
 ### Global search

@@ -10,6 +10,14 @@ RequestManagerNotificationByMailName        = Notify by mail
 RequestManagerNotificationByMailDesc        = Notify users by mail
 
 ############################################################
+### Actions
+############################################################
+ActionAC_RM_IN      = Input request message
+ActionAC_RM_OUT     = Output request message
+ActionAC_RM_PRIV    = Private request message
+ActionAC_RM_STAT    = Status change
+
+############################################################
 ### Message form
 ############################################################
 RequestManagerMessageNotifyByMail           = Send by mail to requesters and watchers contacts
