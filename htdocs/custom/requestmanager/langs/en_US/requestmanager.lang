@@ -18,8 +18,7 @@ RequestManagerMessageDirectionIn            = Input
 RequestManagerMessageDirectionOut           = Output
 
 ############################################################
-### Notification
+### Errors
 ############################################################
-RequestManagerNotificationStatusModify = Request "%s" changed to "%s" status
-RequestManagerNotificationMessageIn = A new input message for request "%s"
-RequestManagerNotificationMessageOut = A new output message for request "%s"
+RequestManagerErrorNoTemplateLines                              = No mesage template found in configuration for this type of request
+RequestManagerErrorMissingFieldsInTemplate                      = Missing fields in configuration of message template

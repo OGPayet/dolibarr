@@ -460,19 +460,27 @@ if (empty($reshook)) {
         if ($messageDirection === RequestManagerNotification::MESSAGE_DIRECTION_ID_IN) {
             // message in
             $actionCommTypeCode = RequestManager::ACTIONCOMM_TYPE_CODE_IN;
-            $actionCommLabel = $langs->trans('RequestManagerNotificationMessageIn', $langs->transnoentitiesnoconv($object->ref));
-            $actionCommNote = $langs->trans('RequestManagerNotificationMessageIn', $langs->transnoentitiesnoconv($object->ref));
 
-            // TODO : get a message template from dictionnary
-            //$template = $object->findNotificationMessageTemplate('notify_status_modified');
+            // get substitute values in input message template
+            $substituteList = $object->substituteNotificationMessageTemplate(RequestManager::TEMPLATE_TYPE_NOTIFY_INPUT_MESSAGE_ADDED);
+            if ($object->error) {
+                $error++;
+            } else {
+                $actionCommLabel = $substituteList['subject'];
+                $actionCommNote = $substituteList['boby'];
+            }
         } else if ($messageDirection === RequestManagerNotification::MESSAGE_DIRECTION_ID_OUT) {
             // message out
             $actionCommTypeCode = RequestManager::ACTIONCOMM_TYPE_CODE_OUT;
-            $actionCommLabel = $langs->trans('RequestManagerNotificationMessageOut', $langs->transnoentitiesnoconv($object->ref));
-            $actionCommNote = $langs->trans('RequestManagerNotificationMessageOut', $langs->transnoentitiesnoconv($object->ref));
 
-            // TODO : get a message template from dictionnary
-            //$template = $object->findNotificationMessageTemplate('notify_status_modified');
+            // get substitute values in input message template
+            $substituteList = $object->substituteNotificationMessageTemplate(RequestManager::TEMPLATE_TYPE_NOTIFY_OUTPUT_MESSAGE_ADDED);
+            if ($object->error) {
+                $error++;
+            } else {
+                $actionCommLabel = $substituteList['subject'];
+                $actionCommNote = $substituteList['boby'];
+            }
         } else {
             $error++;
             $object->error = $langs->trans('ErrorFieldRequired', $langs->transnoentitiesnoconv('MessageDirection'));
@@ -489,24 +497,24 @@ if (empty($reshook)) {
                 $requestManagerNotification = new RequestManagerNotification($db);
                 $requestManagerNotification->contactList = $object->getUserToNotifyList(1);
 
+                // if we have at least one user to notify
                 if (count($requestManagerNotification->contactList) > 0) {
-                    // notify the assigned user if different of user (only save in database)
+                    // notify the assigned user if different of user (save in database)
                     $result = $requestManagerNotification->notify($idActionComm);
+
+                    if (!empty($conf->global->REQUESTMANAGER_NOTIFICATION_BY_MAIL)) {
+                        // send a mail
+                        $result = $requestManagerNotification->notifyByMail($messageSubject, $messageBody, 1);
+                    }
                 }
 
-                // send by mail
+                // notify by mail
                 if ($messageNotifyByMail === 1 && $messageDirection === RequestManagerNotification::MESSAGE_DIRECTION_ID_OUT) {
-                    // if notification by mail is activated and have user to notify
-                    if (!empty($conf->global->REQUESTMANAGER_NOTIFICATION_BY_MAIL) && count($requestManagerNotification->contactList)>0) {
-                        // notify by mail
-                        $result = $requestManagerNotification->notifyByMailForMessageInAndOut($messageSubject, $messageBody, 1);
-                    }
-
-                    // send to requesters (sendto) and watchers (copy carbone) if notification activated
+                    // send to requesters (sendto) and watchers (copy carbone) to notify
                     $requestManagerNotification->contactList = $object->getContactRequestersToNotifyList(1);
                     if (count($requestManagerNotification->contactList) > 0) {
                         $requestManagerNotification->contactCcList = $object->getContactWatchersToNotifyList(1);
-                        $result = $requestManagerNotification->notifyByMailForMessageInAndOut($messageSubject, $messageBody);
+                        $result = $requestManagerNotification->notifyByMail($messageSubject, $messageBody);
                     }
                 }
             }

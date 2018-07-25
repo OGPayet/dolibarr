@@ -1527,20 +1527,30 @@ function requestmanager_print_duration($timestamp, $day = 1, $hour_minute = 1, $
  * Modify the status of request manager and notify by email different contacts
  *
  * @param   RequestManager      $requestManager
- * @param   string              $templateType
  * @return  int                 <0 if KO, >0 if OK
  */
-function requestmanager_notification_status_modify($requestManager, $templateType)
+function requestmanager_notification_status_modify($requestManager)
 {
     global $langs, $conf, $db;
 
     dol_include_once('/requestmanager/class/requestmanager.class.php');
     dol_include_once('/requestmanager/class/requestmanagernotification.class.php');
 
-    // create new event
     $langs->load('requestmanager@requestmanager');
-    $actionCommLabel = $langs->trans('RequestManagerNotificationStatusModify', $langs->transnoentitiesnoconv($requestManager->ref), $requestManager->getLibStatut());
-    $actionCommNote = $langs->trans('RequestManagerNotificationStatusModify', $langs->transnoentitiesnoconv($requestManager->ref), $requestManager->getLibStatut());
+    //$actionCommLabel = $langs->trans('RequestManagerNotificationStatusModify', $langs->transnoentitiesnoconv($requestManager->ref), $requestManager->getLibStatut());
+    //$actionCommNote = $langs->trans('RequestManagerNotificationStatusModify', $langs->transnoentitiesnoconv($requestManager->ref), $requestManager->getLibStatut());
+
+    // get substitute values in input message template
+    $substituteList = $requestManager->substituteNotificationMessageTemplate(RequestManager::TEMPLATE_TYPE_NOTIFY_STATUS_MODIFIED);
+    if ($requestManager->error) {
+        setEventMessages($requestManager->error, $requestManager->errors, 'errors');
+        return -1;
+    } else {
+        $actionCommLabel = $substituteList['subject'];
+        $actionCommNote = $substituteList['subject'];
+    }
+
+    // create new event
     $idActionComm = $requestManager->createActionComm(RequestManager::ACTIONCOMM_TYPE_CODE_STAT, $actionCommLabel, $actionCommNote);
     if ($idActionComm < 0) {
         setEventMessages($requestManager->error, $requestManager->errors, 'errors');
@@ -1549,10 +1559,8 @@ function requestmanager_notification_status_modify($requestManager, $templateTyp
 
     // assigned users or group : save in database and send by mail (if not disabled in configuration)
     $requestManagerNotification = new RequestManagerNotification($db);
-    $userToNotifyList = $requestManager->getUserToNotifyList(1);
-    if (count($userToNotifyList) > 0) {
-        $requestManagerNotification->contactList = $userToNotifyList;
-
+    $requestManagerNotification->contactList = $requestManager->getUserToNotifyList(1);
+    if (count($requestManagerNotification->contactList) > 0) {
         // save notification in database
         $result = $requestManagerNotification->notify($idActionComm);
         if ($result < 0) {
@@ -1562,7 +1570,7 @@ function requestmanager_notification_status_modify($requestManager, $templateTyp
 
         if (!empty($conf->global->REQUESTMANAGER_NOTIFICATION_BY_MAIL)) {
             // send a separate mail for all assigned users or group
-            $result = $requestManagerNotification->notifyByMailFromTemplateType($requestManager, $templateType, 1);
+            $result = $requestManagerNotification->notifyByMail($substituteList['subject'],  $substituteList['boby'], 1);
             if ($result < 0) {
                 setEventMessages($requestManagerNotification->error, $requestManagerNotification->errors, 'errors');
                 return -1;
@@ -1572,11 +1580,13 @@ function requestmanager_notification_status_modify($requestManager, $templateTyp
 
     // requesters and watchers contacts : retrieve mail template for type of demand and send by mail
     $requestManagerNotification->contactList = $requestManager->getContactRequestersToNotifyList(1);
-    $requestManagerNotification->contactCcList = $requestManager->getContactWatchersToNotifyList(1);
-    $result = $requestManagerNotification->notifyByMailFromTemplateType($requestManager, $templateType);
-    if ($result < 0) {
-        setEventMessages($requestManagerNotification->error, $requestManagerNotification->errors, 'errors');
-        return -1;
+    if (count($requestManagerNotification->contactList) > 0) {
+        $requestManagerNotification->contactCcList = $requestManager->getContactWatchersToNotifyList(1);
+        $result = $requestManagerNotification->notifyByMail($substituteList['subject'], $substituteList['boby']);
+        if ($result < 0) {
+            setEventMessages($requestManagerNotification->error, $requestManagerNotification->errors, 'errors');
+            return -1;
+        }
     }
 
     return 1;

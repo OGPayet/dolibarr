@@ -42,7 +42,6 @@ class RequestManagerNotification extends CommonObject
     const MESSAGE_DIRECTION_ID_IN = 1;
     const MESSAGE_DIRECTION_ID_OUT = 2;
 
-
     /**
      * Status constants
      */
@@ -360,7 +359,7 @@ class RequestManagerNotification extends CommonObject
      * @param   int         $separated          [=0] Send a unique mail, 1 = Send a mail for each recipient (send to)
      * @return  int         <0 if KO, >0 if OK
      */
-    public function notifyByMailForMessageInAndOut($subject, $message, $separated = 0)
+    public function notifyByMail($subject, $message, $separated = 0)
     {
         if ($separated === 0) {
             $result = $this->_mailSendUnique($subject, $message, 1);
@@ -369,74 +368,5 @@ class RequestManagerNotification extends CommonObject
         }
 
         return $result;
-    }
-
-    /**
-     * Notify all contact by email
-     *
-     * @param   RequestManager      $requestManager     RequestManager object
-     * @param   string              $templateType       Template type
-     * @param   int         $separated          [=0] Send a unique mail, 1 = Send a mail for each recipient (send to)
-     * @return  int                 <0 if KO, >0 if OK
-     */
-    public function notifyByMailFromTemplateType($requestManager, $templateType, $separated = 0)
-    {
-        dol_include_once('/requestmanager/class/html.formrequestmanagermessage.class.php');
-
-        $resql = $requestManager->findNotificationEmailTemplate($templateType);
-        if (!$resql) {
-            $this->error = $this->db->lasterror();
-            return -1;
-        }
-
-        if ($this->db->num_rows($resql) > 0) {
-            $formRequestManagerMessage = new FormRequestManagerMessage($this->db, $requestManager);
-            $substitutionarray = $formRequestManagerMessage->getAvailableSubstitKey($requestManager);
-
-            $obj = $this->db->fetch_object($resql);
-            $subject = make_substitutions($obj->subject, $substitutionarray);
-            $message = make_substitutions($obj->boby, $substitutionarray);
-
-            // send mail
-            if ($separated === 0) {
-                $result = $this->_mailSendUnique($subject, $message, 1);
-            } else {
-                $result = $this->_mailSendSeparate($subject, $message, 1);
-            }
-
-            return $result;
-        } else {
-            dol_syslog( __METHOD__ . " Request[" . $requestManager->id . "] : No message template in dictionnary configuration for this type of request", LOG_DEBUG);
-        }
-
-        return 1;
-    }
-
-
-    /**
-     * Save a notification in database
-     *
-     * @return  int     <0 if KO, >0 if OK
-     */
-    public function save()
-    {
-        if ($this->id > 0) {
-
-        } else {
-
-        }
-
-        return 1;
-    }
-
-
-    /**
-     * Update a notification in database
-     *
-     * @return  int     <0 if KO, >0 if OK
-     */
-    public function update()
-    {
-        return 1;
     }
 }

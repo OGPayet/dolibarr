@@ -327,6 +327,14 @@ class RequestManager extends CommonObject
     const ACTIONCOMM_TYPE_CODE_OUT = 'AC_RM_OUT';
     const ACTIONCOMM_TYPE_CODE_STAT = 'AC_RM_STAT';
 
+    /**
+     * Templates types
+     */
+    const TEMPLATE_TYPE_NOTIFY_INPUT_MESSAGE_ADDED = 'notify_input_message_added';
+    const TEMPLATE_TYPE_NOTIFY_OUTPUT_MESSAGE_ADDED = 'notify_output_message_added';
+    const TEMPLATE_TYPE_NOTIFY_STATUS_MODIFIED = 'notify_status_modified';
+    const TEMPLATE_TYPE_MESSAGE_TEMPLATE_USER = 'message_template_user';
+
 
     /**
 	 * Constructor
@@ -1738,38 +1746,15 @@ class RequestManager extends CommonObject
 
 
     /**
-     * Find first template for Email notification
-     *
-     * @param   string      Template type
-     * @return  resource    SQL resource
-     */
-    public function findNotificationEmailTemplate($templateType)
-    {
-        global $conf;
-
-        $sql  = "SELECT crmt.subject, crmt.boby";
-        $sql .= " FROM " . MAIN_DB_PREFIX . "c_requestmanager_message_template crmt";
-        $sql .= " INNER JOIN " . MAIN_DB_PREFIX . "c_requestmanager_message_template_cbl_request_type as crmtcrt ON crmtcrt.fk_line = crmt.rowid";
-        $sql .= " WHERE crmt.template_type = '" . $this->db->escape($templateType) ."'";
-        $sql .= " AND crmt.active = 1";
-        $sql .= " AND crmt.entity = " . $conf->entity;
-        $sql .= " AND crmtcrt.fk_target = " . $this->fk_type;
-        $sql .= " ORDER BY crmt.position ASC";
-        $sql .= " LIMIT 1";
-
-        return $this->db->query($sql);
-    }
-
-
-    /**
      * Find first template for email notification
      *
      * @param   string      $templateType   Template type
-     * @param   int         $id             Id of template
-     * @return array|int
+     * @return  array       Template
      */
-    public function findNotificationMessageTemplate($templateType)
+    private function _findNotificationMessageTemplate($templateType)
     {
+        global $langs;
+
         dol_include_once('/advancedictionaries/class/dictionary.class.php');
 
         $template = array();
@@ -1778,11 +1763,49 @@ class RequestManager extends CommonObject
         $lines = $dictionary->fetch_lines(1, array('template_type' => array($templateType), 'request_type' => array($this->fk_type)), array('position' => 'ASC'), 0, 1, false, true);
         if ($lines < 0) {
             $this->error = $dictionary->errorsToString();
+            dol_syslog(__METHOD__ . " Error : No template [" . $templateType . "] for this type of request [" . $this->fk_type. "]", LOG_ERR);
         } else {
-            $template = current($lines)->fields;
+            if (count($lines) <= 0) {
+                $this->error = $langs->trans("RequestManagerErrorNoTemplateLines");
+                dol_syslog(__METHOD__ . " Error : No template lines [" . $templateType . "] for this type of request [" . $this->fk_type. "]", LOG_ERR);
+            } else {
+                $template = current($lines)->fields;
+            }
         }
 
         return $template;
+    }
+
+
+    /**
+     * Substitute values in a template
+     *
+     * @param   string      $templateType   Template type
+     * @return  array       Subsitued templated
+     */
+    public function substituteNotificationMessageTemplate($templateType)
+    {
+        global $langs;
+
+        dol_include_once('/requestmanager/class/html.formrequestmanagermessage.class.php');
+
+        $substituteList = array();
+
+        $template = $this->_findNotificationMessageTemplate($templateType);
+
+        if (count($template) > 0) {
+            if (isset($template['subject']) && isset($template['boby'])) {
+                $formRequestManagerMessage = new FormRequestManagerMessage($this->db, $this);
+                $formRequestManagerMessage->setSubstitFromObject($this);
+                $substituteList['subject'] = make_substitutions($template['subject'], $formRequestManagerMessage->substit);
+                $substituteList['boby']    = make_substitutions($template['boby'], $formRequestManagerMessage->substit);
+            } else {
+                $this->error = $langs->trans("RequestManagerErrorMissingFieldsInTemplate");
+                dol_syslog(__METHOD__ . " Error : Missing fields in this template", LOG_ERR);
+            }
+        }
+
+        return $substituteList;
     }
 
 
