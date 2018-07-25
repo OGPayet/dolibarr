@@ -1537,8 +1537,6 @@ function requestmanager_notification_status_modify($requestManager)
     dol_include_once('/requestmanager/class/requestmanagernotification.class.php');
 
     $langs->load('requestmanager@requestmanager');
-    //$actionCommLabel = $langs->trans('RequestManagerNotificationStatusModify', $langs->transnoentitiesnoconv($requestManager->ref), $requestManager->getLibStatut());
-    //$actionCommNote = $langs->trans('RequestManagerNotificationStatusModify', $langs->transnoentitiesnoconv($requestManager->ref), $requestManager->getLibStatut());
 
     // get substitute values in input message template
     $substituteList = $requestManager->substituteNotificationMessageTemplate(RequestManager::TEMPLATE_TYPE_NOTIFY_STATUS_MODIFIED);
@@ -1547,7 +1545,7 @@ function requestmanager_notification_status_modify($requestManager)
         return -1;
     } else {
         $actionCommLabel = $substituteList['subject'];
-        $actionCommNote = $substituteList['subject'];
+        $actionCommNote = $substituteList['boby'];
     }
 
     // create new event
