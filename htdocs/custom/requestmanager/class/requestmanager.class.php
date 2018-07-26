@@ -1965,6 +1965,8 @@ class RequestManager extends CommonObject
     {
         global $langs, $user;
 
+        require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
+
         // authorised action list
         $actionList = array();
         if ($user->rights->requestmanager->creer && $this->statut_type != self::STATUS_TYPE_CLOSED && $this->statut_type != self::STATUS_TYPE_RESOLVED) {
@@ -1982,6 +1984,7 @@ class RequestManager extends CommonObject
         if (count($contactList) > 0) {
             print '<table class="nobordernopadding" width="100%">';
             print '<tr class="liste_titre">';
+            print '<td align="left">' . $langs->trans("Company") . '</td>';
             print '<td align="left">' . $langs->trans("Name") . '</td>';
             print '<td align="center">' . $langs->trans("Phone") . '</td>';
             if (count($actionList) > 0) {
@@ -1991,6 +1994,11 @@ class RequestManager extends CommonObject
 
             foreach ($contactList as $contact) {
                 print '<tr>';
+
+                // company name
+                $societe = new Societe($this->db);
+                $societe->fetch($contact->socid);
+                print '<td class="titlefield">' . $societe->getNomUrl(1) . '</td>';
 
                 // contact name
                 print '<td class="titlefield">' . $contact->getNomUrl(1) . '</td>';

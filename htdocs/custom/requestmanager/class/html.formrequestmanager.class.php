@@ -244,7 +244,6 @@ class FormRequestManager
      */
     function select_status($request_type, $selected = '', $htmlname = 'type', $showempty = '', $forcecombo = 0, $events = array(), $usesearchtoselect=0, $limit = 0, $morecss = 'minwidth100', $moreparam = '', $selected_input_value = '', $hidelabel = 1, $selectlabel = '', $autofocus=0, $ajaxoptions = array(), $options_only=false)
     {
-        dol_include_once('/requestmanager/class/requestmanager.class.php');
         return $this->formdictionary->select_dictionary('requestmanager', 'requestmanagerstatus', $selected, $htmlname, 'rowid', '{{label}}', array('request_type'=>array($request_type), 'type'=>array(RequestManager::STATUS_TYPE_IN_PROGRESS)), $showempty, $forcecombo, $events, $usesearchtoselect, $limit, $morecss, $moreparam, $selected_input_value, $hidelabel, $selectlabel, $autofocus, $ajaxoptions, $options_only);
     }
 
@@ -260,6 +259,12 @@ class FormRequestManager
     {
         global $langs;
 
+        $formCompany = NULL;
+        if ($idContactType === RequestManager::CONTACT_TYPE_ID_WATCHER) {
+            require_once DOL_DOCUMENT_ROOT . '/core/class/html.formcompany.class.php';
+            $formCompany = new FormCompany($this->db);
+        }
+        $newCompanyId = $requestManager->socid;
         $contactTypeCodeHtmlName = RequestManager::getContactTypeCodeHtmlNameById($idContactType);
 
         // form to add requester contact
@@ -271,7 +276,12 @@ class FormRequestManager
         print '<table class="nobordernopadding" width="100%">';
         print '<tr>';
         print '<td>';
-        $this->form->select_contacts($requestManager->socid, '', $contactTypeCodeHtmlName . '_fk_socpeople');
+        if ($formCompany !== NULL) {
+            $selectCompaniesHtmlName = $contactTypeCodeHtmlName . '_newcompany';
+            $newCompanyId = intval(GETPOST($selectCompaniesHtmlName, 'int')?GETPOST($selectCompaniesHtmlName, 'int'):$requestManager->socid);
+            $formCompany->selectCompaniesForNewContact($requestManager,'id', $newCompanyId, $selectCompaniesHtmlName);
+        }
+        $this->form->select_contacts($newCompanyId, '', $contactTypeCodeHtmlName . '_fk_socpeople', 1);
         print '&nbsp;<input type="submit" class="button" value="' . $langs->trans('Add') . '">';
         print '</td>';
         print '</tr>';
