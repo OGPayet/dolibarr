@@ -6,6 +6,10 @@ Module163018Desc = Request Manager
 ############################################################
 ### Admin setup
 ############################################################
+RequestManagerNotificationSendFromName          = Sender email address
+RequestManagerNotificationSendFromDesc          = Sender email address uses to notify
+RequestManagerNotificationUsersName             = Notify users
+RequestManagerNotificationUsersDesc             = Notify internal users (save in database)
 RequestManagerNotificationByMailName            = Notify by mail
 RequestManagerNotificationByMailDesc            = Notify users by mail
 RequestManagerContractSearchInParentCompanyName = Search contracts of the parent company

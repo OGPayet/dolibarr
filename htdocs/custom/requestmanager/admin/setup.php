@@ -88,6 +88,12 @@ if ($action == 'updateMask') {
         setEventMessages($langs->trans("Error"), $errors, 'errors');
     }
 } elseif ($action == 'set') {
+    $res = dolibarr_set_const($db, 'REQUESTMANAGER_NOTIFICATION_SEND_FROM', GETPOST('REQUESTMANAGER_NOTIFICATION_SEND_FROM'), 'chaine', 0, '', $conf->entity);
+    if (!$res > 0) {
+        $errors[] = $db->lasterror();
+        $error++;
+    }
+
     /*$res = dolibarr_set_const($db, 'requestmanager_BASE_PRICE_DISCOUNT', GETPOST('requestmanager_BASE_PRICE_DISCOUNT', "alpha"), 'chaine', 0, '', $conf->entity);
     if (!$res > 0) {
         $errors[] = $db->lasterror();
@@ -346,6 +352,28 @@ print '<td>'.$langs->trans("Description").'</td>'."\n";
 print '<td align="right">'.$langs->trans("Value").'</td>'."\n";
 print "</tr>\n";
 
+// REQUESTMANAGER_NOTIFICATION_SEND_FROM
+$var=!$var;
+print '<tr '.$bc[$var].'>'."\n";
+print '<td>'.$langs->trans("RequestManagerNotificationSendFromName").'</td>'."\n";
+print '<td>'.$langs->trans("RequestManagerNotificationSendFromDesc").'</td>'."\n";
+print '<td align="right">'."\n";
+print '<input type="text" name="REQUESTMANAGER_NOTIFICATION_SEND_FROM" value="'.$conf->global->REQUESTMANAGER_NOTIFICATION_SEND_FROM.'">';
+print '</td></tr>'."\n";
+
+// REQUESTMANAGER_NOTIFICATION_USERS_IN_DB
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>'.$langs->trans("RequestManagerNotificationUsersName").'</td>'."\n";
+print '<td>'.$langs->trans("RequestManagerNotificationUsersDesc").'</td>'."\n";
+print '<td align="right">' . "\n";
+if (empty($conf->global->REQUESTMANAGER_NOTIFICATION_USERS_IN_DB)) {
+    print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_REQUESTMANAGER_NOTIFICATION_USERS_IN_DB&REQUESTMANAGER_NOTIFICATION_USERS_IN_DB=1">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+} else {
+    print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_REQUESTMANAGER_NOTIFICATION_USERS_IN_DB&REQUESTMANAGER_NOTIFICATION_USERS_IN_DB=0">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+}
+print '</td></tr>' . "\n";
+
 // REQUESTMANAGER_NOTIFICATION_BY_MAIL
 $var = !$var;
 print '<tr ' . $bc[$var] . '>' . "\n";
@@ -426,10 +454,10 @@ print '</table>';
 
 dol_fiche_end();
 
-/*print '<br>';
+print '<br>';
 print '<div align="center">';
 print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
-print '</div>';*/
+print '</div>';
 
 print '</form>';
 

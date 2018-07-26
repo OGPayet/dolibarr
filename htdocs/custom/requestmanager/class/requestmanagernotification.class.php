@@ -117,7 +117,12 @@ class RequestManagerNotification extends CommonObject
     {
         global $conf;
 
-        $sendFrom = (!empty($conf->global->MAIN_MAIL_EMAIL_FROM) ? $conf->global->MAIN_MAIL_EMAIL_FROM : '');
+        $sendFrom = (!empty($conf->global->REQUESTMANAGER_NOTIFICATION_SEND_FROM) ? $conf->global->REQUESTMANAGER_NOTIFICATION_SEND_FROM : '');
+        /*
+        if (!$sendFrom && !empty($conf->global->MAIN_MAIL_EMAIL_FROM)) {
+            $sendFrom = $conf->global->MAIN_MAIL_EMAIL_FROM;
+        }
+        */
 
         return $sendFrom;
     }
@@ -306,6 +311,7 @@ class RequestManagerNotification extends CommonObject
         $resql = $this->db->query($sql);
 
         if (!$resql) {
+            $this->error = $this->db->lasterror();
             dol_syslog( __METHOD__ . " Error sql=" . $sql, LOG_ERR);
             return -1;
         }
@@ -331,22 +337,29 @@ class RequestManagerNotification extends CommonObject
      * @param   int     $fkActionComm        Id of ActionComm
      * @return  int     <0 if KO, >0 if OK
      */
-    public function notify($fkActionComm)
+    public function notify($fkActionComm, $noTransaction = FALSE)
     {
         $contactList = $this->contactList;
 
-        foreach($contactList as $key => $contact)
-        {
-            // only users
-            if ($key[0] == 'u') {
+        if (count($contactList) > 0) {
 
-                // create notification
-                $res = $this->create($fkActionComm, $contact->id);
+            if (!$noTransaction)    $this->db->begin();
 
-                if (!$res) {
-                    return -1;
+            foreach($contactList as $key => $contact) {
+                // only users
+                if ($key[0] == 'u') {
+
+                    // create notification
+                    $res = $this->create($fkActionComm, $contact->id);
+
+                    if (!$res) {
+                        if (!$noTransaction)    $this->db->rollback();
+                        return -1;
+                    }
                 }
             }
+
+            if (!$noTransaction)    $this->db->commit();
         }
 
         return 1;

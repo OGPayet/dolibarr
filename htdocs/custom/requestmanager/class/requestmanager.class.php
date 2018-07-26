@@ -2141,12 +2141,13 @@ class RequestManager extends CommonObject
     /**
      * Create new event in actioncomm for all type of messages
      *
-     * @param   int     $typeCode   Code of message type (AC_RM_OUT, AC_RM_IN, etc)
-     * @param   string  $label      Message label
-     * @param   string  $note       Message note
+     * @param   int     $typeCode       Code of message type (AC_RM_OUT, AC_RM_IN, etc)
+     * @param   string  $label          Label of event
+     * @param   string  $note           Note of event
+     * @param   bool    $noTransaction  [=FALSE] Use transaction in SQL requests, TRUE to desactivate transaction (ex :for triggers calls)
      * @return  int     <0 if KO, >0 if OK (idAction)
      */
-    public function createActionComm($typeCode, $label, $note)
+    private function _createActionComm($typeCode, $label, $note, $noTransaction = FALSE)
     {
         global $langs, $user;
 
@@ -2171,6 +2172,7 @@ class RequestManager extends CommonObject
         }
         */
 
+        if (!$noTransaction)    $this->db->begin();
         $idActionComm = $actionCom->create($user);
         if ($idActionComm > 0) {
             if ($actionCom->error) {
@@ -2178,6 +2180,7 @@ class RequestManager extends CommonObject
                 $this->error = $actionCom->error;
                 $this->errors = $actionCom->errors;
                 dol_syslog(get_class($this) . "::createActionComm Error create: " . $this->error, LOG_ERR);
+                if (!$noTransaction)    $this->db->rollback();
                 return -1;
             }
 
@@ -2188,9 +2191,102 @@ class RequestManager extends CommonObject
             $this->error = $actionCom->error;
             $this->errors = $actionCom->errors;
             dol_syslog(get_class($this) . "::createActionComm Error create: " . $this->error, LOG_ERR);
+            if (!$noTransaction)    $this->db->rollback();
             return -1;
         }
 
+        if (!$noTransaction)    $this->db->commit();
         return $idActionComm;
+    }
+
+
+    /**
+     * Create new event in actioncomm for all type of messages and notify users, requesters and watchers
+     * @param   int     $actionCommTypeCode     Code of message type (AC_RM_OUT, AC_RM_IN, etc)
+     * @param   string  $actionCommLabel        Label of event
+     * @param   string  $actionCommNote         Note (description) of event
+     * @param   int     $messageNotifyByMail    If send a mail to contacts requesters and watchers
+     * @param   string  $messageSubject         Mail subject
+     * @param   string  $messageBody            Mail content
+     * @param   bool    $noTransaction          [=FALSE] Use transaction in SQL requests, TRUE to desactivate transaction (ex :for triggers calls)
+     * @return  int     <0 if KO, >0 if OK
+     */
+    public function createActionCommAndNotify($actionCommTypeCode, $actionCommLabel, $actionCommNote, $messageNotifyByMail, $messageSubject, $messageBody, $noTransaction = FALSE)
+    {
+        global $langs, $conf;
+
+        dol_include_once('/requestmanager/class/requestmanagernotification.class.php');
+
+        $error = 0;
+
+        // create new event
+        $langs->load('requestmanager@requestmanager');
+        if (!$noTransaction)    $this->db->begin();
+        $idActionComm = $this->_createActionComm($actionCommTypeCode, $actionCommLabel, $actionCommNote, $noTransaction);
+        if ($idActionComm < 0) {
+            $error++;
+        }
+
+        if (!$error) {
+            // user or group assigned to notify (save in database)
+            $requestManagerNotification = new RequestManagerNotification($this->db);
+            $requestManagerNotification->contactList = $this->getUserToNotifyList(1);
+
+            // if we have at least one user to notify
+            if (count($requestManagerNotification->contactList) > 0) {
+                if (!empty($conf->global->REQUESTMANAGER_NOTIFICATION_USERS_IN_DB)) {
+                    // notify the assigned user if different of user (save in database)
+                    $result = $requestManagerNotification->notify($idActionComm, $noTransaction);
+                    if ($result < 0) {
+                        $error++;
+                        $this->error = $requestManagerNotification->error;
+                        $this->errors[] = $this->error;
+                    }
+                }
+
+                if (!empty($conf->global->REQUESTMANAGER_NOTIFICATION_BY_MAIL)) {
+                    // send a mail
+                    $result = $requestManagerNotification->notifyByMail($messageSubject, $messageBody, 1);
+                    if ($result < 0) {
+                        $error++;
+                        $this->error = $requestManagerNotification->error;
+                        $this->errors[] = $this->error;
+                    }
+                }
+            }
+
+            // notify by mail
+            if (!$error && $messageNotifyByMail === 1) {
+                // send to requesters (sendto) and watchers (copy carbone) to notify
+                $atLeastOneContactToNotify = FALSE;
+                $requestManagerNotification->contactList = $this->getContactRequestersToNotifyList(1);
+                if (count($requestManagerNotification->contactList) > 0) {
+                    $atLeastOneContactToNotify = TRUE;
+                    $requestManagerNotification->contactCcList = $this->getContactWatchersToNotifyList(1);
+                } else {
+                    $requestManagerNotification->contactList = $this->getContactWatchersToNotifyList(1);
+                    if (count($requestManagerNotification->contactList) > 0) {
+                        $atLeastOneContactToNotify = TRUE;
+                    }
+                }
+
+                if ($atLeastOneContactToNotify) {
+                    $result = $requestManagerNotification->notifyByMail($messageSubject, $messageBody);
+                    if ($result < 0) {
+                        $error++;
+                        $this->error = $requestManagerNotification->error;
+                        $this->errors[] = $this->error;
+                    }
+                }
+            }
+        }
+
+        if ($error) {
+            if (!$noTransaction)    $this->db->rollback();
+            return -1;
+        }
+
+        if (!$noTransaction)    $this->db->commit();
+        return 1;
     }
 }

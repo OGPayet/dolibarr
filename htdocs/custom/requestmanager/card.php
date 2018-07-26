@@ -452,6 +452,7 @@ if (empty($reshook)) {
         if (!$messageSubject) {
             $error++;
             $object->error = $langs->trans('ErrorFieldRequired', $langs->transnoentitiesnoconv('MessageSubject'));
+            $object->errors[] = $object->error;
         }
 
         $actionCommTypeCode = '';
@@ -484,49 +485,14 @@ if (empty($reshook)) {
         } else {
             $error++;
             $object->error = $langs->trans('ErrorFieldRequired', $langs->transnoentitiesnoconv('MessageDirection'));
+            $object->errors[] = $object->error;
         }
 
         if (!$error) {
-            // create new event
-            $langs->load('requestmanager@requestmanager');
-            $idActionComm = $object->createActionComm($actionCommTypeCode, $actionCommLabel, $actionCommNote);
-            if ($idActionComm < 0) {
+            // create event and notify users and send mail to contacts requesters and watchers (if notified)
+            $result = $object->createActionCommAndNotify($actionCommTypeCode, $actionCommLabel, $actionCommNote, $messageNotifyByMail, $messageSubject, $messageBody);
+            if ($result < 0) {
                 $error++;
-            } else {
-                // user or group assigned to notify (save in database)
-                $requestManagerNotification = new RequestManagerNotification($db);
-                $requestManagerNotification->contactList = $object->getUserToNotifyList(1);
-
-                // if we have at least one user to notify
-                if (count($requestManagerNotification->contactList) > 0) {
-                    // notify the assigned user if different of user (save in database)
-                    $result = $requestManagerNotification->notify($idActionComm);
-
-                    if (!empty($conf->global->REQUESTMANAGER_NOTIFICATION_BY_MAIL)) {
-                        // send a mail
-                        $result = $requestManagerNotification->notifyByMail($messageSubject, $messageBody, 1);
-                    }
-                }
-
-                // notify by mail
-                if ($messageNotifyByMail === 1 && $messageDirection === RequestManagerNotification::MESSAGE_DIRECTION_ID_OUT) {
-                    // send to requesters (sendto) and watchers (copy carbone) to notify
-                    $atLeastOneContactToNotify = FALSE;
-                    $requestManagerNotification->contactList = $object->getContactRequestersToNotifyList(1);
-                    if (count($requestManagerNotification->contactList) > 0) {
-                        $atLeastOneContactToNotify = TRUE;
-                        $requestManagerNotification->contactCcList = $object->getContactWatchersToNotifyList(1);
-                    } else {
-                        $requestManagerNotification->contactList = $object->getContactWatchersToNotifyList(1);
-                        if (count($requestManagerNotification->contactList) > 0) {
-                            $atLeastOneContactToNotify = TRUE;
-                        }
-                    }
-
-                    if ($atLeastOneContactToNotify) {
-                        $result = $requestManagerNotification->notifyByMail($messageSubject, $messageBody);
-                    }
-                }
             }
         }
 
