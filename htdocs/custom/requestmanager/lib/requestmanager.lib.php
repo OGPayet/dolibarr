@@ -1521,37 +1521,3 @@ function requestmanager_print_duration($timestamp, $day = 1, $hour_minute = 1, $
 
     return trim($text);
 }
-
-
-/**
- * Modify the status of request manager and notify by email different contacts
- *
- * @param   RequestManager      $requestManager
- * @return  int                 <0 if KO, >0 if OK
- */
-function requestmanager_notification_status_modify($requestManager)
-{
-    global $langs, $conf, $db;
-
-    dol_include_once('/requestmanager/class/requestmanager.class.php');
-    dol_include_once('/requestmanager/class/requestmanagernotification.class.php');
-
-    $langs->load('requestmanager@requestmanager');
-
-    // get substitute values in input message template
-    $substituteList = $requestManager->substituteNotificationMessageTemplate(RequestManager::TEMPLATE_TYPE_NOTIFY_STATUS_MODIFIED);
-    if ($requestManager->error) {
-        setEventMessages($requestManager->error, $requestManager->errors, 'errors');
-        return -1;
-    }
-
-    // create event and notify users and send mail to contacts requesters and watchers (if notified)
-    $result = $requestManager->createActionCommAndNotify(RequestManager::ACTIONCOMM_TYPE_CODE_STAT, $substituteList['subject'], $substituteList['boby'], 1, $substituteList['subject'], $substituteList['boby'], TRUE);
-    if ($result < 0) {
-        // message already sent in object and called in trigger
-        // setEventMessages($requestManager->error, $requestManager->errors, 'errors');
-        return -1;
-    }
-
-    return 1;
-}

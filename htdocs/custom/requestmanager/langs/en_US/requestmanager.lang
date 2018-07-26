@@ -18,6 +18,7 @@ RequestManagerContractSearchInParentCompanyDesc = Search contracts linked to the
 ############################################################
 ### Actions
 ############################################################
+ActionAC_RM_ASSUSR  = Assigned users change
 ActionAC_RM_IN      = Input request message
 ActionAC_RM_OUT     = Output request message
 ActionAC_RM_PRIV    = Private request message
@@ -30,6 +31,11 @@ RequestManagerMessageNotifyByMail           = Send by mail to requesters and wat
 RequestManagerMessageDirection              = Message direction
 RequestManagerMessageDirectionIn            = Input
 RequestManagerMessageDirectionOut           = Output
+
+######################################################################
+# Dictionaries
+######################################################################
+RequestManagerTemplateTypeNotifyAssignedUsersModified = Notification of an assigned user change
 
 ############################################################
 ### Errors

@@ -323,6 +323,7 @@ class RequestManager extends CommonObject
     /**
      * ActionComm code types
      */
+    const ACTIONCOMM_TYPE_CODE_ASSUSR = 'AC_RM_ASSUSR';
     const ACTIONCOMM_TYPE_CODE_IN = 'AC_RM_IN';
     const ACTIONCOMM_TYPE_CODE_OUT = 'AC_RM_OUT';
     const ACTIONCOMM_TYPE_CODE_STAT = 'AC_RM_STAT';
@@ -330,6 +331,7 @@ class RequestManager extends CommonObject
     /**
      * Templates types
      */
+    const TEMPLATE_TYPE_NOTIFY_ASSIGNED_USERS_MODIFIED = 'notify_assigned_users_modified';
     const TEMPLATE_TYPE_NOTIFY_INPUT_MESSAGE_ADDED = 'notify_input_message_added';
     const TEMPLATE_TYPE_NOTIFY_OUTPUT_MESSAGE_ADDED = 'notify_output_message_added';
     const TEMPLATE_TYPE_NOTIFY_STATUS_MODIFIED = 'notify_status_modified';
@@ -1804,68 +1806,7 @@ class RequestManager extends CommonObject
     }
 
 
-    /**
-     * Find first template for email notification
-     *
-     * @param   string      $templateType   Template type
-     * @return  array       Template
-     */
-    private function _findNotificationMessageTemplate($templateType)
-    {
-        global $langs;
 
-        dol_include_once('/advancedictionaries/class/dictionary.class.php');
-
-        $template = array();
-
-        $dictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagermessagetemplate');
-        $lines = $dictionary->fetch_lines(1, array('template_type' => array($templateType), 'request_type' => array($this->fk_type)), array('position' => 'ASC'), 0, 1, false, true);
-        if ($lines < 0) {
-            $this->error = $dictionary->errorsToString();
-            dol_syslog(__METHOD__ . " Error : No template [" . $templateType . "] for this type of request [" . $this->fk_type. "]", LOG_ERR);
-        } else {
-            if (count($lines) <= 0) {
-                $this->error = $langs->trans("RequestManagerErrorNoTemplateLines");
-                dol_syslog(__METHOD__ . " Error : No template lines [" . $templateType . "] for this type of request [" . $this->fk_type. "]", LOG_ERR);
-            } else {
-                $template = current($lines)->fields;
-            }
-        }
-
-        return $template;
-    }
-
-
-    /**
-     * Substitute values in a template
-     *
-     * @param   string      $templateType   Template type
-     * @return  array       Subsitued templated
-     */
-    public function substituteNotificationMessageTemplate($templateType)
-    {
-        global $langs;
-
-        dol_include_once('/requestmanager/class/html.formrequestmanagermessage.class.php');
-
-        $substituteList = array();
-
-        $template = $this->_findNotificationMessageTemplate($templateType);
-
-        if (count($template) > 0) {
-            if (isset($template['subject']) && isset($template['boby'])) {
-                $formRequestManagerMessage = new FormRequestManagerMessage($this->db, $this);
-                $formRequestManagerMessage->setSubstitFromObject($this);
-                $substituteList['subject'] = make_substitutions($template['subject'], $formRequestManagerMessage->substit);
-                $substituteList['boby']    = make_substitutions($template['boby'], $formRequestManagerMessage->substit);
-            } else {
-                $this->error = $langs->trans("RequestManagerErrorMissingFieldsInTemplate");
-                dol_syslog(__METHOD__ . " Error : Missing fields in this template", LOG_ERR);
-            }
-        }
-
-        return $substituteList;
-    }
 
 
     /**
@@ -2219,7 +2160,7 @@ class RequestManager extends CommonObject
      * @param   bool    $noTransaction          [=FALSE] Use transaction in SQL requests, TRUE to desactivate transaction (ex :for triggers calls)
      * @return  int     <0 if KO, >0 if OK
      */
-    public function createActionCommAndNotify($actionCommTypeCode, $actionCommLabel, $actionCommNote, $messageNotifyByMail, $messageSubject, $messageBody, $noTransaction = FALSE)
+    private function _createActionCommAndNotify($actionCommTypeCode, $actionCommLabel, $actionCommNote, $messageNotifyByMail, $messageSubject, $messageBody, $noTransaction = FALSE)
     {
         global $langs, $conf;
 
@@ -2295,6 +2236,125 @@ class RequestManager extends CommonObject
         }
 
         if (!$noTransaction)    $this->db->commit();
+        return 1;
+    }
+
+
+    /**
+     * Find first template for email notification
+     *
+     * @param   string      $templateType   Template type
+     * @return  array       Template
+     */
+    private function _findNotificationMessageTemplate($templateType)
+    {
+        global $langs;
+
+        dol_include_once('/advancedictionaries/class/dictionary.class.php');
+
+        $template = array();
+
+        $dictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagermessagetemplate');
+        $lines = $dictionary->fetch_lines(1, array('template_type' => array($templateType), 'request_type' => array($this->fk_type)), array('position' => 'ASC'), 0, 1, false, true);
+        if ($lines < 0) {
+            $this->error = $dictionary->errorsToString();
+            dol_syslog(__METHOD__ . " Error : No template [" . $templateType . "] for this type of request [" . $this->fk_type. "]", LOG_ERR);
+        } else {
+            if (count($lines) <= 0) {
+                $this->error = $langs->trans("RequestManagerErrorNoTemplateLines");
+                dol_syslog(__METHOD__ . " Error : No template lines [" . $templateType . "] for this type of request [" . $this->fk_type. "]", LOG_ERR);
+            } else {
+                $template = current($lines)->fields;
+            }
+        }
+
+        return $template;
+    }
+
+
+    /**
+     * Substitute values in a template
+     *
+     * @param   string      $templateType   Template type
+     * @return  array       Subsitued templated
+     */
+    private function _substituteNotificationMessageTemplate($templateType)
+    {
+        global $langs;
+
+        dol_include_once('/requestmanager/class/html.formrequestmanagermessage.class.php');
+
+        $substituteList = array();
+
+        $template = $this->_findNotificationMessageTemplate($templateType);
+
+        if (count($template) > 0) {
+            if (isset($template['subject']) && isset($template['boby'])) {
+                $formRequestManagerMessage = new FormRequestManagerMessage($this->db, $this);
+                $formRequestManagerMessage->setSubstitFromObject($this);
+                $substituteList['subject'] = make_substitutions($template['subject'], $formRequestManagerMessage->substit);
+                $substituteList['boby']    = make_substitutions($template['boby'], $formRequestManagerMessage->substit);
+            } else {
+                $this->error = $langs->trans("RequestManagerErrorMissingFieldsInTemplate");
+                dol_syslog(__METHOD__ . " Error : Missing fields in this template", LOG_ERR);
+            }
+        }
+
+        return $substituteList;
+    }
+
+
+    /**
+     * Create new event in actioncomm for all type of messages and notify users, requesters and watchers from a message template
+     *
+     * @param   string      $templateType           Template type (ex : RequestManager::TEMPLATE_TYPE_NOTIFY_STATUS_MODIFIED)
+     * @param   string      $actionCommTypeCode     Code of message type (AC_RM_OUT, AC_RM_IN, etc)
+     * @param   bool        $noTransaction          [=FALSE] Use transaction in SQL requests, TRUE to desactivate transaction (ex :for triggers calls)
+     * @return  int         <0 if KO, >0 if OK
+     */
+    public function createActionCommAndNotifyFromTemplateType($templateType, $actionCommTypeCode, $noTransaction = FALSE)
+    {
+        // get substitute values in input message template
+        $substituteList = $this->_substituteNotificationMessageTemplate($templateType);
+        if ($this->error) {
+            return -1;
+        }
+
+        // create event and notify users and send mail to contacts requesters and watchers (if notified)
+        $result = $this->_createActionCommAndNotify($actionCommTypeCode, $substituteList['subject'], $substituteList['boby'], 1, $substituteList['subject'], $substituteList['boby'], $noTransaction);
+        if ($result < 0) {
+            return -1;
+        }
+
+        return 1;
+    }
+
+
+    /**
+     * Create new event in actioncomm for all type of messages and notify users, requesters and watchers from a message template for notification and with a specific message for mail
+     *
+     * @param   string      $templateType           Template type (ex : RequestManager::TEMPLATE_TYPE_NOTIFY_STATUS_MODIFIED)
+     * @param   string      $actionCommTypeCode     Code of message type (AC_RM_OUT, AC_RM_IN, etc)
+     * @param   int         $messageNotifyByMail    If send a mail to contacts requesters and watchers
+     * @param   string      $messageSubject         Mail subject
+     * @param   string      $messageBody            Mail content
+     * @param   bool        $noTransaction          [=FALSE] Use transaction in SQL requests, TRUE to desactivate transaction (ex :for triggers calls)
+     * @return  int         <0 if KO, >0 if OK
+     */
+    public function createActionCommAndNotifyFromTemplateTypeWithMessage($templateType, $actionCommTypeCode,  $messageNotifyByMail, $messageSubject, $messageBody, $noTransaction = FALSE)
+    {
+        // get substitute values in input message template
+        $substituteList = $this->_substituteNotificationMessageTemplate($templateType);
+        if ($this->error) {
+            return -1;
+        }
+
+        // create event and notify users and send mail to contacts requesters and watchers (if notified)
+        $result = $this->_createActionCommAndNotify($actionCommTypeCode, $substituteList['subject'], $substituteList['boby'], $messageNotifyByMail, $messageSubject, $messageBody, $noTransaction);
+        if ($result < 0) {
+            return -1;
+        }
+
         return 1;
     }
 }

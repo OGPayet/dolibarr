@@ -40,3 +40,5 @@ INSERT INTO `llx_c_actioncomm` (`id`, `code`, `type`, `libelle`, `module`, `acti
 
 INSERT INTO `llx_c_actioncomm` (`id`, `code`, `type`, `libelle`, `module`, `active`, `todo`, `color`, `picto`, `position`) VALUES
 (163021, 'AC_RM_STAT', 'systemauto', 'Status message (automatically inserted events)', 'requestmanager', 1, NULL, NULL, NULL, 20);
+INSERT INTO `llx_c_actioncomm` (`id`, `code`, `type`, `libelle`, `module`, `active`, `todo`, `color`, `picto`, `position`) VALUES
+(163022, 'AC_RM_ASSUSR', 'systemauto', 'Assigned users message (automatically inserted)', 'requestmanager', 1, NULL, NULL, NULL, 20);

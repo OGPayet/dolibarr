@@ -306,8 +306,26 @@ if (empty($reshook)) {
     elseif ($action == 'set_assigned_usergroup' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
         $object->oldcopy = clone $object;
         $object->assigned_usergroup_id = GETPOST('assigned_usergroup', 'int');
-        $result = $object->update($user);
-        if ($result < 0) {
+
+        // if assigned group changed
+        if ($object->oldcopy->assigned_usergroup_id != $object->assigned_usergroup_id) {
+            // create new event and notify assigned users and contacts
+            $result = $object->createActionCommAndNotifyFromTemplateType(RequestManager::TEMPLATE_TYPE_NOTIFY_ASSIGNED_USERS_MODIFIED, RequestManager::ACTIONCOMM_TYPE_CODE_ASSUSR);
+            if ($result < 0) {
+                $error++;
+            }
+        }
+
+        if (!$error) {
+            // change user assigned and update
+            $object->assigned_user_id = 0;
+            $result = $object->update($user);
+            if ($result < 0) {
+                $error++;
+            }
+        }
+
+        if ($error) {
             setEventMessages($object->error, $object->errors, 'errors');
             $action = 'edit_assigned_usergroup';
         } else {
@@ -318,8 +336,24 @@ if (empty($reshook)) {
     elseif ($action == 'set_assigned_user' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
         $object->oldcopy = clone $object;
         $object->assigned_user_id = GETPOST('assigned_user', 'int');
-        $result = $object->update($user);
-        if ($result < 0) {
+
+        // if assigned user changed
+        if ($object->oldcopy->assigned_user_id != $object->assigned_user_id) {
+            // create new event and notify assigned users and contacts
+            $result = $object->createActionCommAndNotifyFromTemplateType(RequestManager::TEMPLATE_TYPE_NOTIFY_ASSIGNED_USERS_MODIFIED, RequestManager::ACTIONCOMM_TYPE_CODE_ASSUSR);
+            if ($result < 0) {
+                $error++;
+            }
+        }
+
+        if (!$error) {
+            $result = $object->update($user);
+            if ($result < 0) {
+                $error++;
+            }
+        }
+
+        if ($error) {
             setEventMessages($object->error, $object->errors, 'errors');
             $action = 'edit_assigned_user';
         } else {
@@ -461,27 +495,11 @@ if (empty($reshook)) {
         if ($messageDirection === RequestManagerNotification::MESSAGE_DIRECTION_ID_IN) {
             // message in
             $actionCommTypeCode = RequestManager::ACTIONCOMM_TYPE_CODE_IN;
-
-            // get substitute values in input message template
-            $substituteList = $object->substituteNotificationMessageTemplate(RequestManager::TEMPLATE_TYPE_NOTIFY_INPUT_MESSAGE_ADDED);
-            if ($object->error) {
-                $error++;
-            } else {
-                $actionCommLabel = $substituteList['subject'];
-                $actionCommNote = $substituteList['boby'];
-            }
+            $templateType = RequestManager::TEMPLATE_TYPE_NOTIFY_INPUT_MESSAGE_ADDED;
         } else if ($messageDirection === RequestManagerNotification::MESSAGE_DIRECTION_ID_OUT) {
             // message out
             $actionCommTypeCode = RequestManager::ACTIONCOMM_TYPE_CODE_OUT;
-
-            // get substitute values in input message template
-            $substituteList = $object->substituteNotificationMessageTemplate(RequestManager::TEMPLATE_TYPE_NOTIFY_OUTPUT_MESSAGE_ADDED);
-            if ($object->error) {
-                $error++;
-            } else {
-                $actionCommLabel = $substituteList['subject'];
-                $actionCommNote = $substituteList['boby'];
-            }
+            $templateType = RequestManager::TEMPLATE_TYPE_NOTIFY_OUTPUT_MESSAGE_ADDED;
         } else {
             $error++;
             $object->error = $langs->trans('ErrorFieldRequired', $langs->transnoentitiesnoconv('MessageDirection'));
@@ -490,7 +508,7 @@ if (empty($reshook)) {
 
         if (!$error) {
             // create event and notify users and send mail to contacts requesters and watchers (if notified)
-            $result = $object->createActionCommAndNotify($actionCommTypeCode, $actionCommLabel, $actionCommNote, $messageNotifyByMail, $messageSubject, $messageBody);
+            $result = $object->createActionCommAndNotifyFromTemplateTypeWithMessage($templateType, $actionCommTypeCode, $messageNotifyByMail, $messageSubject, $messageBody);
             if ($result < 0) {
                 $error++;
             }
