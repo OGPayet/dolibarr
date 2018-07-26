@@ -1021,7 +1021,7 @@ class RequestManager extends CommonObject
 
             // Get contacts
             $contacts = $this->liste_contact(-1, 'external', 1, 'WATCHER');
-            if (!is_array($users))
+            if (!is_array($contacts))
                 return -1;
 
             foreach ($contacts as $contact_id) {
