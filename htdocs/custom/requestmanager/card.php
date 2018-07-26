@@ -106,7 +106,7 @@ if (empty($reshook)) {
         $object->fk_urgency = GETPOST('urgency', 'int');
         $object->fk_impact = GETPOST('impact', 'int');
         $object->fk_priority = GETPOST('priority', 'int');
-        $object->date_deadline = dol_mktime(GETPOST('deadline_hour', 'int'), GETPOST('deadline_minute', 'int'), 0, GETPOST('deadline_month', 'int'), GETPOST('deadline_day', 'int'), GETPOST('deadline_year', 'int'));
+        $object->date_deadline = dol_mktime(GETPOST('deadline_hour', 'int'), GETPOST('deadline_min', 'int'), 0, GETPOST('deadline_month', 'int'), GETPOST('deadline_day', 'int'), GETPOST('deadline_year', 'int'));
         $object->requester_ids = GETPOST('requester_contacts', 'array');
         $object->notify_requester_by_email = GETPOST('requester_notification', 'int');
         $object->watcher_ids = GETPOST('watcher_contacts', 'array');
@@ -578,7 +578,12 @@ if ($action == 'create')
     $object->fk_urgency = GETPOST('urgency', 'int');
     $object->fk_impact = GETPOST('impact', 'int');
     $object->fk_priority = GETPOST('priority', 'int');
-    $object->date_deadline = dol_mktime(GETPOST('deadline_hour', 'int'), GETPOST('deadline_minute', 'int'), 0, GETPOST('deadline_month', 'int'), GETPOST('deadline_day', 'int'), GETPOST('deadline_year', 'int'));
+    if (!GETPOST('deadline_') && !GETPOST('deadline_hour', 'int') && !GETPOST('deadline_min', 'int')) {
+        // calculate deadline date from default deadline time in seconds and now
+        $object->date_deadline = dol_now() + intval($conf->global->REQUESTMANAGER_DEADLINE_TIME_DEFAULT);
+    } else {
+        $object->date_deadline = dol_mktime(GETPOST('deadline_hour', 'int'), GETPOST('deadline_min', 'int'), 0, GETPOST('deadline_month', 'int'), GETPOST('deadline_day', 'int'), GETPOST('deadline_year', 'int'));
+    }
     $object->requester_ids = GETPOST('requester_contacts', 'array');
     $object->notify_requester_by_email = isset($_POST['requester_notification']) ? GETPOST('requester_notification', 'int') : 1;
     $object->watcher_ids = GETPOST('watcher_contacts', 'array');

@@ -28,6 +28,8 @@ RequestManagerNotificationByMailName            = Notification par mail
 RequestManagerNotificationByMailDesc            = Notifier par mail les utilisateurs
 RequestManagerContractSearchInParentCompanyName = Rechercher les contrats de la maison mère
 RequestManagerContractSearchInParentCompanyDesc = Rechercher les contrats liés au tiers de la demande dans la maison mère
+RequestManagerDeadlineTimeDefaultName           = Temps pour date d'échéance
+RequestManagerDeadlineTimeDefaultDesc           = Temps par défaut pour la date d'échéance de la demande
 
 ############################################################
 ### Contact

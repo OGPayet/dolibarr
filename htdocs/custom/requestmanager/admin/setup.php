@@ -94,6 +94,14 @@ if ($action == 'updateMask') {
         $error++;
     }
 
+    // deadline time default in seconds
+    $deadlineTimeDefault = GETPOST('REQUESTMANAGER_DEADLINE_TIME_DEFAULT')?intval(GETPOST('REQUESTMANAGER_DEADLINE_TIME_DEFAULT'))*3600:0;
+    $res = dolibarr_set_const($db, 'REQUESTMANAGER_DEADLINE_TIME_DEFAULT', $deadlineTimeDefault, 'chaine', 0, '', $conf->entity);
+    if (!$res > 0) {
+        $errors[] = $db->lasterror();
+        $error++;
+    }
+
     /*$res = dolibarr_set_const($db, 'requestmanager_BASE_PRICE_DISCOUNT', GETPOST('requestmanager_BASE_PRICE_DISCOUNT', "alpha"), 'chaine', 0, '', $conf->entity);
     if (!$res > 0) {
         $errors[] = $db->lasterror();
@@ -399,6 +407,16 @@ if (empty($conf->global->REQUESTMANAGER_CONTRACT_SEARCH_IN_PARENT_COMPANY)) {
     print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_REQUESTMANAGER_CONTRACT_SEARCH_IN_PARENT_COMPANY&REQUESTMANAGER_CONTRACT_SEARCH_IN_PARENT_COMPANY=0">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
 }
 print '</td></tr>' . "\n";
+
+// REQUESTMANAGER_DEADLINE_TIME_DEFAULT
+$var=!$var;
+print '<tr '.$bc[$var].'>'."\n";
+print '<td>' . $langs->trans("RequestManagerDeadlineTimeDefaultName") . '</td>'."\n";
+print '<td>' . $langs->trans("RequestManagerDeadlineTimeDefaultDesc") . '</td>'."\n";
+print '<td align="right">'."\n";
+print '<input type="number" name="REQUESTMANAGER_DEADLINE_TIME_DEFAULT" min="0" value="' . intval($conf->global->REQUESTMANAGER_DEADLINE_TIME_DEFAULT/3600) . '">';
+print ' ' . $langs->trans("Hours");
+print '</td></tr>'."\n";
 
 /*
 // requestmanager_BASE_PRICE_DISCOUNT
