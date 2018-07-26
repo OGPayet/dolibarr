@@ -118,11 +118,9 @@ class RequestManagerNotification extends CommonObject
         global $conf;
 
         $sendFrom = (!empty($conf->global->REQUESTMANAGER_NOTIFICATION_SEND_FROM) ? $conf->global->REQUESTMANAGER_NOTIFICATION_SEND_FROM : '');
-        /*
         if (!$sendFrom && !empty($conf->global->MAIN_MAIL_EMAIL_FROM)) {
             $sendFrom = $conf->global->MAIN_MAIL_EMAIL_FROM;
         }
-        */
 
         return $sendFrom;
     }
@@ -141,15 +139,15 @@ class RequestManagerNotification extends CommonObject
         // from
         $sendFrom = self::_getSendFrom();
         if (!$sendFrom) {
-            $this->error = "No paramater sendFrom";
-            dol_syslog(__METHOD__ . " Error : no parameter sendFrom", LOG_ERR);
+            $this->error = "No paramater sendFrom in configuration of RequestManager";
+            dol_syslog(__METHOD__ . " Error : no parameter sendFrom in configuration of RequestManager", LOG_ERR);
             return -1;
         }
 
         // send to list (with unique email)
         $sendToList = self::_makeEmailUniqueListFromContactList($this->contactList);
         if (count($sendToList) <= 0) {
-            dol_syslog( __METHOD__ . " Nobody to notify by mail", LOG_WARNING);
+            dol_syslog( __METHOD__ . " Warning : Nobody to notify by mail", LOG_WARNING);
             return 1;
         }
 
