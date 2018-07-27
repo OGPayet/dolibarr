@@ -257,7 +257,7 @@ class FormRequestManager
      */
     function form_add_contact(RequestManager $requestManager, $idContactType)
     {
-        global $langs;
+        global $conf, $langs, $user;
 
         $formCompany = NULL;
         if ($idContactType === RequestManager::CONTACT_TYPE_ID_WATCHER) {
@@ -283,6 +283,18 @@ class FormRequestManager
         }
         $this->form->select_contacts($newCompanyId, '', $contactTypeCodeHtmlName . '_fk_socpeople', 1);
         print '&nbsp;<input type="submit" class="button" value="' . $langs->trans('Add') . '">';
+
+        // button create contact (only for requesters)
+        if ($idContactType === RequestManager::CONTACT_TYPE_ID_REQUEST && $user->rights->societe->contact->creer)
+        {
+            $backToPage = $_SERVER["PHP_SELF"] . '?id=' . $requestManager->id;
+            $btnCreateContactLabel = (!empty($conf->global->SOCIETE_ADDRESSES_MANAGEMENT) ? $langs->trans("AddContact") : $langs->trans("AddContactAddress"));
+            $btnCreateContact = '<a class="addnewrecord" href="'.DOL_URL_ROOT.'/contact/card.php?socid='.$requestManager->socid.'&amp;action=create&amp;backtopage=' . urlencode($backToPage) . '">' . $btnCreateContactLabel;
+            if (empty($conf->dol_optimize_smallscreen)) $btnCreateContact .= ' ' . img_picto($btnCreateContactLabel, 'filenew');
+            $btnCreateContact .= '</a>'."\n";
+            print '&nbsp;&nbsp;' . $btnCreateContact;
+        }
+
         print '</td>';
         print '</tr>';
         print '</table>';
