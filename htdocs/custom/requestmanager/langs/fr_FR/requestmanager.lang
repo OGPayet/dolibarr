@@ -114,6 +114,7 @@ RequestManagerSetAssignedUserGroup      = Définir le groupe d'utilisateur assig
 RequestManagerSetAssignedUser           = Définir l'utilisateur assigné
 RequestManagerSetAssignedNotification   = Définir la notification des assignés
 RequestManagerSetDescription            = Définir la description
+RequestManagerAssignToMe                = M'assigner
 
 ############################################################
 ### List

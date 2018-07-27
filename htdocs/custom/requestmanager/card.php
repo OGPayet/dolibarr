@@ -1048,6 +1048,9 @@ if ($action == 'create')
             print $user_static->getNomUrl(1);
         }
 	}
+    if ($action != 'edit_assigned_user' && $user->id != $object->assigned_user_id && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+	    print '&nbsp;&nbsp;<a href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=set_assigned_user&assigned_user=' . $user->id . '" class="button" style="color: #3c3c3c;" title="' . $langs->trans("RequestManagerAssignToMe") . '">' . $langs->trans("RequestManagerAssignToMe") .'</a>';
+    }
     print '</td></tr>';
 
     // Assigned Notification

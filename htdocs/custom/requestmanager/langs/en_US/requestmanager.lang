@@ -27,6 +27,11 @@ ActionAC_RM_PRIV    = Private request message
 ActionAC_RM_STAT    = Status change
 
 ############################################################
+### Card
+############################################################
+RequestManagerAssignToMe                = Assign to me
+
+############################################################
 ### Message form
 ############################################################
 RequestManagerMessageNotifyByMail           = Send by mail to requesters and watchers contacts
