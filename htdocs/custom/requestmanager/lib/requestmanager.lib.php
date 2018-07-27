@@ -96,6 +96,7 @@ function requestmanager_prepare_head(RequestManager $object)
     // $this->tabs = array('entity:-tabname:Title:@mymodule:/mymodule/mypage.php?id=__ID__');   to remove a tab
     complete_head_from_modules($conf, $langs, $object, $head, $h, 'requestmanager');
 
+    /* TODO : Tab "Fichiers joints" temporary removed
     if ($user->societe_id == 0) {
         // Attached files
         require_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
@@ -112,7 +113,9 @@ function requestmanager_prepare_head(RequestManager $object)
             $h++;
         }
     }
+    */
 
+    /* TODO : Tab "Events/Agenda" temporary removed
     $head[$h][0] = dol_buildpath('/requestmanager/agenda.php', 1) . '?id=' . $object->id;
     $head[$h][1] .= $langs->trans("Events");
     if (!empty($conf->agenda->enabled) && (!empty($user->rights->agenda->myactions->read) || !empty($user->rights->agenda->allactions->read))) {
@@ -121,6 +124,7 @@ function requestmanager_prepare_head(RequestManager $object)
     }
     $head[$h][2] = 'agenda';
     $h++;
+    */
 
     complete_head_from_modules($conf, $langs, $object, $head, $h, 'requestmanager', 'remove');
 
