@@ -317,8 +317,6 @@ if (empty($reshook)) {
         }
 
         if (!$error) {
-            // change user assigned and update
-            $object->assigned_user_id = 0;
             $result = $object->update($user);
             if ($result < 0) {
                 $error++;
