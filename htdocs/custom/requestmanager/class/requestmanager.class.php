@@ -1806,7 +1806,51 @@ class RequestManager extends CommonObject
     }
 
 
+    /**
+     * Count all assigned requests for connected user
+     *
+     * @param   array   $statusTypeList         Liste des types de statut
+     * @return  int     Nb assigned requests
+     */
+    public function countMyAssignedRequests($statusTypeList = array())
+    {
+        global $user;
 
+        $nb = 0;
+
+        // get all groups for user
+        $userGroup = new UserGroup($this->db);
+        $userGroupList = $userGroup->listGroupsForUser($user->id);
+
+        // TODO : filter status
+        // self::STATUS_TYPE_INITIAL
+        // self::STATUS_TYPE_IN_PROGRESS
+
+        // count all assigned requests for user
+        $sql  = "SELECT COUNT(rm.rowid) as nb";
+        $sql .= " FROM " . MAIN_DB_PREFIX . $this->table_element . " as rm";
+        if (count($statusTypeList) > 0) {
+            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_requestmanager_status as crmst ON crmst.rowid = rm.fk_status";
+        }
+        $sql .= " WHERE rm.entity IN (" . getEntity('requestmanager') . ")";
+        $sql .= " AND (rm.fk_assigned_user = " . $user->id;
+        if (count($userGroupList) > 0) {
+            $sql .= " OR rm.fk_assigned_usergroup IN (" . implode(',', array_keys($userGroupList)) . ")";
+        }
+        $sql .= ")";
+        if (count($statusTypeList) > 0) {
+            $sql.= " AND crmst.type IN (" . implode(',', $statusTypeList) . ")";
+        }
+
+        $resql = $this->db->query($sql);
+        if ($resql) {
+            if ($obj = $this->db->fetch_object($resql)) {
+                $nb = intval($obj->nb);
+            }
+        }
+
+        return $nb;
+    }
 
 
     /**

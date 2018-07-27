@@ -56,14 +56,15 @@ RequestManagerSearchIntoRequests    = Demandes
 ############################################################
 ### Menu
 ############################################################
-RequestManagerMenuTop                   = Demandes
-RequestManagerMenuLeftTitle             = Demandes
-RequestManagerMenuLeftNewRequest        = Nouvelle demande
-RequestManagerMenuLeftList              = Liste
-RequestManagerMenuLeftMyList            = Mes demandes
-RequestManagerMenuLeftListNotAssigned   = Demandes non attribuées
-RequestManagerMenuLeftListNotResolved   = Demandes non résolues
-RequestManagerMenuLeftListClosed        = Demandes clôturées
+RequestManagerMenuTop                      = Demandes
+RequestManagerMenuLeftTitle                = Demandes
+RequestManagerMenuLeftNewRequest           = Nouvelle demande
+RequestManagerMenuLeftList                 = Liste
+RequestManagerMenuLeftMyList               = Mes demandes
+RequestManagerMenuLeftListNotAssigned      = Demandes non attribuées
+RequestManagerMenuLeftListNotResolved      = Demandes non résolues
+RequestManagerMenuLeftListClosed           = Demandes clôturées
+RequestManagerMenuTopMyRequestsNotResolved = Mes demandes non résolues
 
 ############################################################
 ### Tabulation

@@ -128,6 +128,60 @@ class ActionsRequestManager
         return 0;
     }
 
+
+    /**
+     * 	Show my assigned requests button (with nb or +)
+     */
+    private function _printMyAssignedRequestsButton()
+    {
+        global $langs;
+
+        require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
+        dol_include_once('/requestmanager/class/requestmanager.class.php');
+
+        $out = '';
+
+        // nb requests assigned to me
+        $nbRequestsLimit = 9;
+        $statusType = -2;
+        $requestManager = new RequestManager($this->db);
+        $nbRequests = $requestManager->countMyAssignedRequests(array(RequestManager::STATUS_TYPE_INITIAL, RequestManager::STATUS_TYPE_IN_PROGRESS));
+        $nbRequestsLabel = $nbRequests<=$nbRequestsLimit ? $nbRequests : $nbRequestsLimit.'+';
+
+        $text  = '<a href="' . dol_buildpath('/requestmanager/list.php?mylist=1&status_type=' . $statusType, 1) . '" style="background-color: #ffffff; border-radius: 4px;">';
+        $text .= '<span style="color: #770000; font-size: 12px; font-weight: bold;">&nbsp;' . $nbRequestsLabel . '&nbsp;</span>';
+        //$text .= img_picto('', 'object_requestmanager@requestmanager', 'id="myassignedrequests"');
+        $text .= '</a>';
+
+        $htmltext  = '<u>' . $langs->trans("RequestManagerMenuTopMyRequestsNotResolved") . '</u>' . "\n";
+        $htmltext .= '<br /><b>' . $langs->trans("Total") . '</b> : ' . $nbRequests . "\n";
+        $out .= Form::textwithtooltip('', $htmltext,2,1, $text,'login_block_elem',2);
+
+        $this->resprints = $out;
+    }
+
+
+    /**
+     * Print a specific button in top right menu (to show my assigned requests)
+     *
+     * @param   array    $parameters     Parameters
+     * @return  int
+     */
+    function printTopRightMenu($parameters, &$object, &$action, $hookmanager)
+    {
+        global $user;
+
+        if (in_array('toprightmenu', explode(':', $parameters['context']))) {
+            if ($user->rights->requestmanager->lire) {
+                // show my assigned requests button
+                print $this->_printMyAssignedRequestsButton();
+            }
+        }
+
+        return 0;
+    }
+
+
     /**
      * Overloading the updateSession function : replacing the parent's function with the one below
      *
