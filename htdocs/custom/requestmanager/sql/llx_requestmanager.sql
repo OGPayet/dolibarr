@@ -52,5 +52,17 @@ create table llx_requestmanager
   datec					            datetime NOT NULL,						  -- date creation
   tms					              timestamp,						          -- date creation/modification
   fk_user_author		        integer NOT NULL, 			        -- user who created the request
-  fk_user_modif			        integer 						            -- user who modified the request
+  fk_user_modif			        integer,						            -- user who modified the request
+
+  total_ht				          double(24,8) DEFAULT 0,	    		-- montant total ht apres remise globale
+  tva					              double(24,8) DEFAULT 0,		    	-- montant total tva apres remise globale
+  localtax1				          double(24,8) DEFAULT 0,		    	-- amount total localtax1
+  localtax2				          double(24,8) DEFAULT 0,		    	-- amount total localtax2
+  total_ttc					        double(24,8) DEFAULT 0,			    -- montant total ttc apres remise globale
+  fk_multicurrency			    integer,
+  multicurrency_code			  varchar(255),
+  multicurrency_tx			    double(24,8) DEFAULT 1,
+  multicurrency_total_ht		double(24,8) DEFAULT 0,
+  multicurrency_total_tva	  double(24,8) DEFAULT 0,
+  multicurrency_total_ttc	  double(24,8) DEFAULT 0
 )ENGINE=innodb;

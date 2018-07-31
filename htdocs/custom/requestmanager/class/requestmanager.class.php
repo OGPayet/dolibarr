@@ -26,17 +26,20 @@
  */
 
 require_once DOL_DOCUMENT_ROOT . '/core/class/commonobject.class.php';
+require_once DOL_DOCUMENT_ROOT . '/core/class/commonobjectline.class.php';
+require_once DOL_DOCUMENT_ROOT . '/product/class/product.class.php';
+require_once DOL_DOCUMENT_ROOT . '/margin/lib/margins.lib.php';
+require_once DOL_DOCUMENT_ROOT . '/multicurrency/class/multicurrency.class.php';
 
 /**
  * Class RequestManager
- *
- * Put here description of your class
- * @see CommonObject
  */
 class RequestManager extends CommonObject
 {
 	public $element = 'requestmanager';
 	public $table_element = 'requestmanager';
+    public $table_element_line = 'requestmanagerdet';
+    public $fk_element = 'fk_requestmanager';
     protected $ismultientitymanaged = 1;	// 0=No test on entity, 1=Test with field entity, 2=Test with link by societe
 
     /**
@@ -307,6 +310,26 @@ class RequestManager extends CommonObject
      * @var User
      */
     public $user_modification;
+
+    //public $total_ht;
+    //public $tva;
+    //public $localtax1;
+    //public $localtax2;
+    //public $total_ttc;
+
+    // Multicurrency
+    public $fk_multicurrency;
+    public $multicurrency_code;
+    public $multicurrency_tx;
+    public $multicurrency_total_ht;
+    public $multicurrency_total_tva;
+    public $multicurrency_total_ttc;
+
+    /**
+     * @var RequestManagerLine[]
+     */
+    public $lines = array();
+
 
     const STATUS_TYPE_INITIAL = 0;
     const STATUS_TYPE_IN_PROGRESS = 1;
@@ -2400,5 +2423,1139 @@ class RequestManager extends CommonObject
         }
 
         return 1;
+    }
+
+
+    //
+    // RequestManagerLine
+    //
+
+    /**
+     * 	Create an array of order lines
+     *
+     * 	@return int		>0 if OK, <0 if KO
+     */
+    function getLinesArray()
+    {
+        return $this->fetch_lines();
+    }
+
+
+    /**
+     *	Load array lines
+     *
+     *	@param		int		$only_product	[=0] Return only physical products
+     *	@return		int						<0 if KO, >0 if OK
+     */
+    function fetch_lines($only_product=0)
+    {
+        $this->lines = array();
+
+        $sql  = "SELECT";
+        $sql .= " l.rowid, l.fk_requestmanager, l.fk_parent_line, l.fk_product, l.label as custom_label, l.description";
+        $sql .= ", l.vat_src_code, l.tva_tx, l.localtax1_tx, l.localtax1_type, l.localtax2_tx, l.localtax2_type";
+        $sql .= ", l.qty, l.remise_percent, l.fk_remise_except, l.subprice";
+        $sql .= ", l.total_ht, l.total_tva, l.total_localtax1, l.total_localtax2, l.total_ttc";
+        $sql .= ", l.product_type";
+        $sql .= ", l.date_start, l.date_end";
+        $sql .= ", l.info_bits, l.buy_price_ht as pa_ht, l.fk_product_fournisseur_price as fk_fournprice, l.special_code, l.rang, l.fk_unit";
+        $sql .= ", l.fk_multicurrency, l.multicurrency_code, l.multicurrency_subprice, l.multicurrency_total_ht, l.multicurrency_total_tva, l.multicurrency_total_ttc";
+        $sql .= ", p.ref as product_ref, p.description as product_desc, p.fk_product_type, p.label as product_label, p.tobatch as product_tobatch";
+        $sql .= " FROM " . MAIN_DB_PREFIX . $this->table_element_line . " as l";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "product as p ON (p.rowid = l.fk_product)";
+        $sql .= " WHERE l.fk_requestmanager = " . $this->id;
+        if ($only_product) $sql .= " AND p.fk_product_type = 0";
+        $sql .= " ORDER BY l.rang, l.rowid";
+
+        dol_syslog(__METHOD__, LOG_DEBUG);
+        $result = $this->db->query($sql);
+        if ($result)
+        {
+            $num = $this->db->num_rows($result);
+
+            $i = 0;
+            while ($i < $num)
+            {
+                $objp = $this->db->fetch_object($result);
+
+                $line = new RequestManagerLine($this->db);
+
+                $line->id                      = $objp->rowid;
+                $line->rowid                   = $objp->rowid;
+                $line->fk_requestmanager       = $objp->fk_requestmanager;
+                $line->fk_parent_line	       = $objp->fk_parent_line;
+                $line->fk_product              = $objp->fk_product;
+                $line->label                   = $objp->custom_label;
+                $line->desc                    = $objp->description;
+                $line->description             = $objp->description;		// Description line
+                $line->vat_src_code            = $objp->vat_src_code;
+                $line->tva_tx                  = $objp->tva_tx;
+                $line->localtax1_tx            = $objp->localtax1_tx;
+                $line->localtax1_type	       = $objp->localtax1_type;
+                $line->localtax2_tx            = $objp->localtax2_tx;
+                $line->localtax2_type	       = $objp->localtax2_type;
+                $line->qty                     = $objp->qty;
+                $line->remise_percent          = $objp->remise_percent;
+                $line->fk_remise_except        = $objp->fk_remise_except;
+                $line->subprice                = $objp->subprice;
+                $line->total_ht                = $objp->total_ht;
+                $line->total_tva               = $objp->total_tva;
+                $line->total_localtax1         = $objp->total_localtax1;
+                $line->total_localtax2         = $objp->total_localtax2;
+                $line->total_ttc               = $objp->total_ttc;
+                $line->product_type            = $objp->product_type;
+                $line->date_start              = $this->db->jdate($objp->date_start);
+                $line->date_end                = $this->db->jdate($objp->date_end);
+                $line->info_bits               = $objp->info_bits;
+                $line->fk_fournprice 	       = $objp->fk_fournprice; // fk_product_fournisseur_price
+                $line->special_code		       = $objp->special_code;
+                $line->rang                    = $objp->rang;
+                $line->fk_unit                 = $objp->fk_unit;
+                $marginInfos			       = getMarginInfos($objp->subprice, $objp->remise_percent, $objp->tva_tx, $objp->localtax1_tx, $objp->localtax2_tx, $line->fk_fournprice, $objp->pa_ht);
+                $line->pa_ht 			       = $marginInfos[0];
+                $line->marge_tx			       = $marginInfos[1];
+                $line->marque_tx		       = $marginInfos[2];
+                // Multicurrency
+                $line->fk_multicurrency        = $objp->fk_multicurrency;
+                $line->multicurrency_code      = $objp->multicurrency_code;
+                $line->multicurrency_subprice  = $objp->multicurrency_subprice;
+                $line->multicurrency_total_ht  = $objp->multicurrency_total_ht;
+                $line->multicurrency_total_tva = $objp->multicurrency_total_tva;
+                $line->multicurrency_total_ttc = $objp->multicurrency_total_ttc;
+
+                $line->ref				       = $objp->product_ref; // deprecated
+                $line->product_ref		       = $objp->product_ref;
+                $line->libelle			       = $objp->product_label;
+                $line->product_label	       = $objp->product_label;
+                $line->product_desc            = $objp->product_desc;
+                $line->product_tobatch         = $objp->product_tobatch;
+                $line->fk_product_type         = $objp->fk_product_type;	// Produit ou service
+
+                $this->lines[$i] = $line;
+
+                $i++;
+            }
+
+            $this->db->free($result);
+
+            return 1;
+        }
+        else
+        {
+            $this->error = $this->db->error();
+            return -3;
+        }
+    }
+
+
+    /**
+     *	Add an requestmanager line into database (linked to product/service or not)
+     *
+     *	@param      string			$desc            	Description of line
+     *	@param      float			$pu_ht    	        Unit price (without tax)
+     *	@param      float			$qty             	Quantite
+     * 	@param    	float			$txtva           	Force Vat rate, -1 for auto (Can contain the vat_src_code too with syntax '9.9 (CODE)')
+     * 	@param		float			$txlocaltax1		Local tax 1 rate (deprecated, use instead txtva with code inside)
+     * 	@param		float			$txlocaltax2		Local tax 2 rate (deprecated, use instead txtva with code inside)
+     *	@param      int				$fk_product      	Id of product
+     *	@param      float			$remise_percent  	Pourcentage de remise de la ligne
+     *	@param      int				$info_bits			Bits de type de lignes
+     *	@param      int				$fk_remise_except	Id remise
+     *	@param      string			$price_base_type	HT or TTC
+     *	@param      float			$pu_ttc    		    Prix unitaire TTC
+     *	@param      int				$date_start       	Start date of the line
+     *	@param      int				$date_end         	End date of the line
+     *	@param      int				$type				Type of line (0=product, 1=service). Not used if fk_product is defined, the type of product is used.
+     *	@param      int				$rang             	Position of line
+     *	@param		int				$special_code		Special code (also used by externals modules!)
+     *	@param		int				$fk_parent_line		Parent line
+     *  @param		int				$fk_fournprice		Id supplier price
+     *  @param		int				$pa_ht				Buying price (without tax)
+     *  @param		string			$label				Label
+     *  @param		array			$array_options		extrafields array. Example array('options_codeforfield1'=>'valueforfield1', 'options_codeforfield2'=>'valueforfield2', ...)
+     * 	@param 		string			$fk_unit 			Code of the unit to use. Null to use the default one
+     * 	@param		string		    $origin				Object class 'order', ...
+     *  @param		int			    $origin_id			Id of origin object
+     * 	@param		double			$pu_ht_devise		Unit price in currency
+     *	@return     int             					>0 if OK, <0 if KO
+     *
+     *	@see        add_product
+     *
+     *	Les parametres sont deja cense etre juste et avec valeurs finales a l'appel
+     *	de cette methode. Aussi, pour le taux tva, il doit deja avoir ete defini
+     *	par l'appelant par la methode get_default_tva(societe_vendeuse,societe_acheteuse,produit)
+     *	et le desc doit deja avoir la bonne valeur (a l'appelant de gerer le multilangue)
+     */
+    function addline($desc, $pu_ht, $qty, $txtva, $txlocaltax1=0, $txlocaltax2=0, $fk_product=0, $remise_percent=0, $info_bits=0, $fk_remise_except=0, $price_base_type='HT', $pu_ttc=0, $date_start='', $date_end='', $type=0, $rang=-1, $special_code=0, $fk_parent_line=0, $fk_fournprice=null, $pa_ht=0, $label='',$array_options=0, $fk_unit=null, $origin='', $origin_id=0, $pu_ht_devise=0)
+    {
+        global $mysoc, $conf, $langs, $user;
+
+        dol_syslog(__METHOD__ . " requestmanager id=$this->id, desc=$desc, pu_ht=$pu_ht, qty=$qty, txtva=$txtva, fk_product=$fk_product, remise_percent=$remise_percent, info_bits=$info_bits, fk_remise_except=$fk_remise_except, price_base_type=$price_base_type, pu_ttc=$pu_ttc, date_start=$date_start, date_end=$date_end, type=$type special_code=$special_code, fk_unit=$fk_unit", LOG_DEBUG);
+
+        include_once DOL_DOCUMENT_ROOT . '/core/lib/price.lib.php';
+
+        // Clean parameters
+        if (empty($fk_parent_line) || $fk_parent_line < 0) $fk_parent_line=0;
+        if (empty($txtva)) $txtva=0;
+        if (empty($txlocaltax1)) $txlocaltax1=0;
+        if (empty($txlocaltax2)) $txlocaltax2=0;
+        if (empty($qty)) $qty=0;
+        if (empty($remise_percent)) $remise_percent=0;
+        if (empty($info_bits)) $info_bits=0;
+        if (empty($rang)) $rang=0;
+        if (empty($this->fk_multicurrency)) $this->fk_multicurrency=0;
+
+        $label = trim($label);
+        $desc = trim($desc);
+        $txtva = price2num($txtva);
+        $txlocaltax1 = price2num($txlocaltax1);
+        $txlocaltax2 = price2num($txlocaltax2);
+        $qty = price2num($qty);
+        $remise_percent = price2num($remise_percent);
+        $pu_ht = price2num($pu_ht);
+        $pu_ttc = price2num($pu_ttc);
+        $pa_ht = price2num($pa_ht);
+        if ($price_base_type == 'HT') {
+            $pu = $pu_ht;
+        } else {
+            $pu = $pu_ttc;
+        }
+
+        // Check parameters
+        if ($type < 0) return -1;
+
+        if ($this->statut_type == self::STATUS_TYPE_INITIAL || $this->statut_type == self::STATUS_TYPE_IN_PROGRESS)
+        {
+            $this->db->begin();
+
+            $product_type = $type;
+            if (!empty($fk_product))
+            {
+                $product = new Product($this->db);
+                $product->fetch($fk_product);
+                $product_type = $product->type;
+
+                if (!empty($conf->global->STOCK_MUST_BE_ENOUGH_FOR_REQUESTMANAGER) && $product_type==0 && $product->stock_reel<$qty)
+                {
+                    $langs->load("errors");
+                    $this->error = $langs->trans('ErrorStockIsNotEnoughToAddProductOnRequestManager', $product->ref);
+                    dol_syslog(__METHOD__ . " error=Product ".$product->ref.": ".$this->error, LOG_ERR);
+                    $this->db->rollback();
+                    //return self::STOCK_NOT_ENOUGH_FOR_REQUESTMANAGER;
+                    return -3;
+                }
+            }
+            // Calcul du total TTC et de la TVA pour la ligne a partir de
+            // qty, pu, remise_percent et txtva
+            // TRES IMPORTANT: C'est au moment de l'insertion ligne qu'on doit stocker
+            // la part ht, tva et ttc, et ce au niveau de la ligne qui a son propre taux tva.
+
+            $localtaxes_type = getLocalTaxesFromRate($txtva, 0, $this->thirdparty, $mysoc);
+
+            // Clean vat code
+            $vat_src_code = '';
+            if (preg_match('/\((.*)\)/', $txtva, $reg))
+            {
+                $vat_src_code = $reg[1];
+                $txtva = preg_replace('/\s*\(.*\)/', '', $txtva);    // Remove code into vatrate.
+            }
+
+            $tabprice = calcul_price_total($qty, $pu, $remise_percent, $txtva, $txlocaltax1, $txlocaltax2, 0, $price_base_type, $info_bits, $product_type, $mysoc, $localtaxes_type, 100, $this->multicurrency_tx, $pu_ht_devise);
+
+            $total_ht        = $tabprice[0];
+            $total_tva       = $tabprice[1];
+            $total_localtax1 = $tabprice[9];
+            $total_localtax2 = $tabprice[10];
+            $total_ttc       = $tabprice[2];
+            $pu_ht           = $tabprice[3];
+
+            // MultiCurrency
+            $multicurrency_total_ht  = $tabprice[16];
+            $multicurrency_total_tva = $tabprice[17];
+            $multicurrency_total_ttc = $tabprice[18];
+            $pu_ht_devise            = $tabprice[19];
+
+            // Rang to use
+            $rangtouse = $rang;
+            if ($rangtouse == -1)
+            {
+                $rangmax = $this->line_max($fk_parent_line);
+                $rangtouse = $rangmax + 1;
+            }
+
+            // Insert line
+            $this->line = new RequestManagerLine($this->db);
+
+            $this->line->context                 = $this->context;
+            $this->line->origin                  = $origin;
+            $this->line->origin_id               = $origin_id;
+
+            $this->line->fk_requestmanager       = $this->id;
+            $this->line->fk_parent_line          = $fk_parent_line;
+            $this->line->fk_product              = $fk_product;
+            $this->line->label                   = $label;
+            $this->line->desc                    = $desc;
+            $this->line->vat_src_code            = $vat_src_code;
+            $this->line->tva_tx                  = $txtva;
+            $this->line->localtax1_tx            = $localtaxes_type[1];
+            $this->line->localtax1_type          = $localtaxes_type[0];
+            $this->line->localtax2_tx            = $localtaxes_type[3];
+            $this->line->localtax2_type          = $localtaxes_type[2];
+            $this->line->qty                     = $qty;
+            $this->line->remise_percent          = $remise_percent;
+            $this->line->fk_remise_except        = $fk_remise_except;
+            $this->line->subprice                = $pu_ht;
+            $this->line->total_ht                = $total_ht;
+            $this->line->total_tva               = $total_tva;
+            $this->line->total_localtax1         = $total_localtax1;
+            $this->line->total_localtax2         = $total_localtax2;
+            $this->line->total_ttc               = $total_ttc;
+            $this->line->product_type            = $product_type;
+            $this->line->date_start              = $date_start;
+            $this->line->date_end                = $date_end;
+            $this->line->info_bits               = $info_bits;
+            $this->line->pa_ht                   = $pa_ht;
+            $this->line->fk_fournprice           = $fk_fournprice;
+            $this->line->special_code            = $special_code;
+            $this->line->rang                    = $rangtouse;
+            $this->line->fk_unit                 = $fk_unit;
+            // Multicurrency
+            $this->line->fk_multicurrency        = $this->fk_multicurrency;
+            $this->line->multicurrency_code      = $this->multicurrency_code;
+            $this->line->multicurrency_subprice  = $pu_ht_devise;
+            $this->line->multicurrency_total_ht  = $multicurrency_total_ht;
+            $this->line->multicurrency_total_tva = $multicurrency_total_tva;
+            $this->line->multicurrency_total_ttc = $multicurrency_total_ttc;
+
+            if (is_array($array_options) && count($array_options)>0) {
+                $this->line->array_options = $array_options;
+            }
+
+            $result = $this->line->insert();
+            if ($result > 0)
+            {
+                // Reorder if child line
+                if (! empty($fk_parent_line)) $this->line_order(true,'DESC');
+
+                // Mise a jour informations denormalisees au niveau de l'objet meme
+                // ex : UPDATE llx_requestmanager SET total_ht, tva, localtax1, localtax2, total_ttc, multicurrency_total_ht, multicurrency_total_tva, multicurrency_total_ttc WHERE rowid = object->id
+                $result = $this->update_price(1,'auto',0, $mysoc);	// This method is designed to add line from user input so total calculation must be done using 'auto' mode.
+                if ($result > 0)
+                {
+                    $this->db->commit();
+                    return $this->line->rowid;
+                }
+                else
+                {
+                    $this->db->rollback();
+                    return -1;
+                }
+            }
+            else
+            {
+                $this->error = $this->line->error;
+                dol_syslog(__METHOD__ . " error=" . $this->error, LOG_ERR);
+                $this->db->rollback();
+                return -2;
+            }
+        }
+        else
+        {
+            dol_syslog(__METHOD__ . " status of requestmanager must be in progress to allow use of ->addline()", LOG_ERR);
+            return -3;
+        }
+    }
+
+
+    /**
+     *  Delete detail line
+     *
+     *  @param		int		$lineid			Id of line to delete
+     *  @return     int         			>0 if OK, <0 if KO
+     */
+    function deleteline($lineid)
+    {
+        if ($this->statut_type == self::STATUS_TYPE_INITIAL || $this->statut_type == self::STATUS_TYPE_IN_PROGRESS)
+        {
+            $line = new RequestManagerLine($this->db);
+
+            // For triggers
+            $line->fetch($lineid);
+
+            if ($line->delete() > 0)
+            {
+                $this->update_price(1);
+
+                return 1;
+            }
+            else
+            {
+                return -1;
+            }
+        }
+        else
+        {
+            return -2;
+        }
+    }
+
+
+    /**
+     *  Update a line in database
+     *
+     *  @param    	int				$rowid            	Id of line to update
+     *  @param    	string			$desc             	Description of line
+     *  @param    	float			$pu               	Unit price
+     *  @param    	float			$qty              	Quantity
+     *  @param    	float			$remise_percent   	Percent of discount
+     *  @param    	float			$txtva           	Taux TVA
+     * 	@param		float			$txlocaltax1		Local tax 1 rate
+     *  @param		float			$txlocaltax2		Local tax 2 rate
+     *  @param    	string			$price_base_type	HT or TTC
+     *  @param    	int				$info_bits        	Miscellaneous informations on line
+     *  @param    	int				$date_start        	Start date of the line
+     *  @param    	int				$date_end          	End date of the line
+     * 	@param		int				$type				Type of line (0=product, 1=service)
+     * 	@param		int				$fk_parent_line		Id of parent line (0 in most cases, used by modules adding sublevels into lines).
+     * 	@param		int				$skip_update_total	Keep fields total_xxx to 0 (used for special lines by some modules)
+     *  @param		int				$fk_fournprice		Id of origin supplier price
+     *  @param		int				$pa_ht				Price (without tax) of product when it was bought
+     *  @param		string			$label				Label
+     *  @param		int				$special_code		Special code (also used by externals modules!)
+     *  @param		array			$array_options		extrafields array
+     * 	@param 		string			$fk_unit 			Code of the unit to use. Null to use the default one
+     *  @param		double			$pu_ht_devise		Amount in currency
+     * 	@param		int				$notrigger			disable line update trigger
+     *  @return   	int              					< 0 if KO, > 0 if OK
+     */
+    function updateline($rowid, $desc, $pu, $qty, $remise_percent, $txtva, $txlocaltax1=0.0, $txlocaltax2=0.0, $price_base_type='HT', $info_bits=0, $date_start='', $date_end='', $type=0, $fk_parent_line=0, $skip_update_total=0, $fk_fournprice=null, $pa_ht=0, $label='', $special_code=0, $array_options=0, $fk_unit=null, $pu_ht_devise=0, $notrigger=0)
+    {
+        global $conf, $mysoc, $langs, $user;
+
+        dol_syslog(__METHOD__ . " id=$rowid, desc=$desc, pu=$pu, qty=$qty, remise_percent=$remise_percent, txtva=$txtva, txlocaltax1=$txlocaltax1, txlocaltax2=$txlocaltax2, price_base_type=$price_base_type, info_bits=$info_bits, date_start=$date_start, date_end=$date_end, type=$type, fk_parent_line=$fk_parent_line, pa_ht=$pa_ht, special_code=$special_code");
+        include_once DOL_DOCUMENT_ROOT . '/core/lib/price.lib.php';
+
+        if ($this->statut_type == self::STATUS_TYPE_INITIAL || $this->statut_type == self::STATUS_TYPE_IN_PROGRESS)
+        {
+            $this->db->begin();
+
+            // Clean parameters
+            if (empty($txtva)) $txtva=0;
+            if (empty($txlocaltax1)) $txlocaltax1=0;
+            if (empty($txlocaltax2)) $txlocaltax2=0;
+            if (empty($qty)) $qty=0;
+            if (empty($remise_percent)) $remise_percent=0;
+            if (empty($info_bits)) $info_bits=0;
+            if (empty($special_code) || $special_code == 3) $special_code=0;
+
+            $txtva=price2num($txtva);
+            $txlocaltax1=price2num($txlocaltax1);
+            $txlocaltax2=price2num($txlocaltax2);
+            $qty=price2num($qty);
+            $remise_percent=price2num($remise_percent);
+            $pu = price2num($pu);
+            $pa_ht=price2num($pa_ht);
+
+            // Calcul du total TTC et de la TVA pour la ligne a partir de
+            // qty, pu, remise_percent et txtva
+            // TRES IMPORTANT: C'est au moment de l'insertion ligne qu'on doit stocker
+            // la part ht, tva et ttc, et ce au niveau de la ligne qui a son propre taux tva.
+
+            $localtaxes_type = getLocalTaxesFromRate($txtva,0,$this->thirdparty, $mysoc);
+
+            // Clean vat code
+            $vat_src_code = '';
+            if (preg_match('/\((.*)\)/', $txtva, $reg))
+            {
+                $vat_src_code = $reg[1];
+                $txtva = preg_replace('/\s*\(.*\)/', '', $txtva);    // Remove code into vatrate.
+            }
+
+            $tabprice = calcul_price_total($qty, $pu, $remise_percent, $txtva, $txlocaltax1, $txlocaltax2, 0, $price_base_type, $info_bits, $type, $mysoc, $localtaxes_type, 100, $this->multicurrency_tx, $pu_ht_devise);
+
+            $total_ht  = $tabprice[0];
+            $total_tva = $tabprice[1];
+            $total_ttc = $tabprice[2];
+            $total_localtax1 = $tabprice[9];
+            $total_localtax2 = $tabprice[10];
+            $pu_ht  = $tabprice[3];
+            $pu_ttc = $tabprice[5];
+
+            // MultiCurrency
+            $multicurrency_total_ht  = $tabprice[16];
+            $multicurrency_total_tva = $tabprice[17];
+            $multicurrency_total_ttc = $tabprice[18];
+            $pu_ht_devise = $tabprice[19];
+
+            // Anciens indicateurs: $price, $subprice, $remise (a ne plus utiliser)
+            if ($price_base_type == 'TTC')
+            {
+                $subprice = $pu_ttc;
+            }
+            else
+            {
+                $subprice = $pu_ht;
+            }
+
+            //Fetch current line from the database and then clone the object and set it in $oldline property
+            $line = new RequestManagerLine($this->db);
+            $line->fetch($rowid);
+
+            $staticline = clone $line;
+
+            $line->oldline = $staticline;
+            $this->line = $line;
+            $this->line->context = $this->context;
+
+            // Reorder if fk_parent_line change
+            if (! empty($fk_parent_line) && ! empty($staticline->fk_parent_line) && $fk_parent_line != $staticline->fk_parent_line)
+            {
+                $rangmax = $this->line_max($fk_parent_line);
+                $this->line->rang = $rangmax + 1;
+            }
+
+            $this->line->rowid                   = $rowid;
+            $this->line->fk_parent_line          = $fk_parent_line;
+            $this->line->label                   = $label;
+            $this->line->desc                    = $desc;
+            $this->line->vat_src_code	         = $vat_src_code;
+            $this->line->tva_tx                  = $txtva;
+            $this->line->localtax1_tx            = $txlocaltax1;
+            $this->line->localtax1_type          = $localtaxes_type[0];
+            $this->line->localtax2_tx            = $txlocaltax2;
+            $this->line->localtax2_type          = $localtaxes_type[2];
+            $this->line->qty                     = $qty;
+            $this->line->remise_percent          = $remise_percent;
+            $this->line->subprice                = $subprice;
+            $this->line->total_ht                = $total_ht;
+            $this->line->total_tva               = $total_tva;
+            $this->line->total_localtax1         = $total_localtax1;
+            $this->line->total_localtax2         = $total_localtax2;
+            $this->line->total_ttc               = $total_ttc;
+            $this->line->product_type            = $type;
+            $this->line->date_start              = $date_start;
+            $this->line->date_end                = $date_end;
+            $this->line->info_bits               = $info_bits;
+            $this->line->pa_ht                   = $pa_ht;
+            $this->line->fk_fournprice           = $fk_fournprice;
+            $this->line->special_code            = $special_code;
+            $this->line->fk_unit                 = $fk_unit;
+            $this->line->skip_update_total       = $skip_update_total;
+            // Multicurrency
+            $this->line->multicurrency_subprice	 = $pu_ht_devise;
+            $this->line->multicurrency_total_ht  = $multicurrency_total_ht;
+            $this->line->multicurrency_total_tva = $multicurrency_total_tva;
+            $this->line->multicurrency_total_ttc = $multicurrency_total_ttc;
+
+            if (is_array($array_options) && count($array_options)>0) {
+                $this->line->array_options = $array_options;
+            }
+
+            $result = $this->line->update($notrigger);
+            if ($result > 0)
+            {
+                // Reorder if child line
+                if (! empty($fk_parent_line)) $this->line_order(true,'DESC');
+
+                // Mise a jour info denormalisees
+                $this->update_price(1);
+
+                $this->db->commit();
+                return $result;
+            }
+            else
+            {
+                $this->error = $this->line->error;
+                $this->db->rollback();
+                return -1;
+            }
+        }
+        else
+        {
+            $this->error = __METHOD__ . " RequestManager status makes operation forbidden";
+            return -2;
+        }
+    }
+}
+
+
+/**
+ *  Class to manage requestmanager lines
+ */
+class RequestManagerLine extends CommonObjectLine
+{
+    public $element = 'requestmanagerdet';
+    public $table_element = 'requestmanagerdet';
+
+    var $oldline;
+
+    /**
+     * Id of parent requestmanager
+     * @var int
+     */
+    public $fk_requestmanager;
+
+    // From llx_requestmanangerdet
+    var $fk_parent_line;
+    var $fk_product;
+    var $label;
+    var $desc;
+    var $description;
+    var $vat_src_code;
+    var $tva_tx;
+    var $localtax1_tx;		// Local tax 1
+    var $localtax1_type;	// Local tax 1 type
+    var $localtax2_tx;		// Local tax 2
+    var $localtax2_type;	// Local tax 2 type
+    var $qty;
+    var $remise_percent;
+    var $fk_remise_except;
+    var $subprice;
+    var $product_type = Product::TYPE_PRODUCT;
+
+    // Start and end date of the line
+    var $date_start;
+    var $date_end;
+    var $info_bits = 0;	// Liste d'options cumulables:
+    // Bit 0: 	0 si TVA normal - 1 si TVA NPR
+    // Bit 1:	0 ligne normale - 1 si ligne de remise fixe
+
+    /**
+     * Buy price without taxes
+     * @var float
+     */
+    var $pa_ht;
+    var $fk_fournprice;     // fk_product_fournisseur_price
+    var $marge_tx;
+    var $marque_tx;
+
+    var $special_code;	// Tag for special lines (exlusive tags)
+    // 1: frais de port
+    // 2: ecotaxe
+    // 3: option line (when qty = 0)
+    var $rang = 0;
+    //var $fk_unit; // see CommonObjectLine
+
+    // Multicurrency
+    var $fk_multicurrency;
+    var $multicurrency_code;
+    var $multicurrency_subprice;
+    var $multicurrency_total_ht;
+    var $multicurrency_total_tva;
+    var $multicurrency_total_ttc;
+
+
+    // From llx_product
+    /**
+     * @deprecated
+     * @see product_ref
+     */
+    var $ref;
+    /**
+     * Product reference
+     * @var string
+     */
+    public $product_ref;
+    /**
+     * @deprecated
+     * @see product_label
+     */
+    var $libelle;
+    /**
+     *  Product label
+     * @var string
+     */
+    public $product_label;
+    /**
+     * Product description
+     * @var string
+     */
+    public $product_desc;
+    /**
+     * Product type
+     * @var int
+     * @see Product::TYPE_PRODUCT, Product::TYPE_SERVICE
+     */
+    var $fk_product_type;
+    /**
+     * Product to batch
+     * @var int
+     */
+    var $product_tobatch;
+
+
+    var $skip_update_total; // Skip update price total for special lines
+
+
+    /**
+     *      Constructor
+     *
+     *      @param     DoliDB	$db      handler d'acces base de donnee
+     */
+    function __construct($db)
+    {
+        $this->db= $db;
+    }
+
+
+    /**
+     * 	Delete line in database
+     *
+     *  @param      int		$notrigger	    0=launch triggers after, 1=disable triggers
+     *	@return     int     <0 si ko, >0 si ok
+     */
+    function delete($notrigger=0)
+    {
+        global $conf, $user;
+
+        $error=0;
+
+        $this->db->begin();
+
+        $sql = "DELETE FROM " . MAIN_DB_PREFIX . $this->table_element . " WHERE rowid=" . $this->rowid;
+
+        dol_syslog(__METHOD__, LOG_DEBUG);
+        $resql = $this->db->query($sql);
+        if ($resql)
+        {
+            // Remove extrafields
+            if ((! $error) && (empty($conf->global->MAIN_EXTRAFIELDS_DISABLED))) // For avoid conflicts if trigger used
+            {
+                $this->id=$this->rowid;
+                $result = $this->deleteExtraFields();
+                if ($result < 0)
+                {
+                    $error++;
+                    dol_syslog(__METHOD__ . " error -4 ".$this->error, LOG_ERR);
+                }
+            }
+
+            if (! $error && ! $notrigger)
+            {
+                // Call trigger
+                $result=$this->call_trigger('LINEREQUESTMANAGER_DELETE', $user);
+                if ($result < 0) $error++;
+                // End call triggers
+            }
+
+            if (!$error) {
+                $this->db->commit();
+                return 1;
+            }
+
+            foreach($this->errors as $errmsg)
+            {
+                dol_syslog(__METHOD__ . " " . $errmsg, LOG_ERR);
+                $this->error .= ($this->error?', '.$errmsg:$errmsg);
+            }
+            $this->db->rollback();
+            return -1*$error;
+        }
+        else
+        {
+            $this->error = $this->db->lasterror();
+            return -1;
+        }
+    }
+
+
+    /**
+     *  Load line requestmanager
+     *
+     *  @param  int		$rowid          Id line order
+     *  @return	int						<0 if KO, >0 if OK
+     */
+    function fetch($rowid)
+    {
+        $sql  = "SELECT";
+        $sql .= " l.rowid, l.fk_requestmanager, l.fk_parent_line, l.fk_product, l.label as custom_label, l.description";
+        $sql .= ", l.vat_src_code, l.tva_tx, l.localtax1_tx, l.localtax1_type, l.localtax2_tx, l.localtax2_type";
+        $sql .= ", l.qty, l.remise_percent, l.fk_remise_except, l.subprice";
+        $sql .= ", l.total_ht, l.total_tva, l.total_localtax1, l.total_localtax2, l.total_ttc";
+        $sql .= ", l.product_type";
+        $sql .= ", l.date_start, l.date_end";
+        $sql .= ", l.info_bits, l.buy_price_ht as pa_ht, l.fk_product_fournisseur_price as fk_fournprice, l.special_code, l.rang, l.fk_unit";
+        $sql .= ", l.fk_multicurrency, l.multicurrency_code, l.multicurrency_subprice, l.multicurrency_total_ht, l.multicurrency_total_tva, l.multicurrency_total_ttc";
+        $sql .= ", p.ref as product_ref, p.description as product_desc, p.fk_product_type, p.label as product_label, p.tobatch as product_tobatch";
+        $sql .= " FROM " . MAIN_DB_PREFIX . $this->table_element . " as l";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "product as p ON (p.rowid = l.fk_product)";
+        $sql .= " WHERE l.rowid = " . $rowid;
+
+        $result = $this->db->query($sql);
+        if ($result)
+        {
+            $objp = $this->db->fetch_object($result);
+
+            $this->id                      = $objp->rowid;
+            $this->rowid                   = $objp->rowid;
+            $this->fk_requestmanager       = $objp->fk_requestmanager;
+            $this->fk_parent_line	       = $objp->fk_parent_line;
+            $this->fk_product              = $objp->fk_product;
+            $this->label                   = $objp->custom_label;
+            $this->desc                    = $objp->description;
+            $this->description             = $objp->description;		// Description line
+            $this->vat_src_code            = $objp->vat_src_code;
+            $this->tva_tx                  = $objp->tva_tx;
+            $this->localtax1_tx            = $objp->localtax1_tx;
+            $this->localtax1_type	       = $objp->localtax1_type;
+            $this->localtax2_tx            = $objp->localtax2_tx;
+            $this->localtax2_type	       = $objp->localtax2_type;
+            $this->qty                     = $objp->qty;
+            $this->remise_percent          = $objp->remise_percent;
+            $this->fk_remise_except        = $objp->fk_remise_except;
+            $this->subprice                = $objp->subprice;
+            $this->total_ht                = $objp->total_ht;
+            $this->total_tva               = $objp->total_tva;
+            $this->total_localtax1         = $objp->total_localtax1;
+            $this->total_localtax2         = $objp->total_localtax2;
+            $this->total_ttc               = $objp->total_ttc;
+            $this->product_type            = $objp->product_type;
+            $this->date_start              = $this->db->jdate($objp->date_start);
+            $this->date_end                = $this->db->jdate($objp->date_end);
+            $this->info_bits               = $objp->info_bits;
+            $this->fk_fournprice 	       = $objp->fk_fournprice; // fk_product_fournisseur_price
+            $this->special_code		       = $objp->special_code;
+            $this->rang                    = $objp->rang;
+            $this->fk_unit                 = $objp->fk_unit;
+            $marginInfos			       = getMarginInfos($objp->subprice, $objp->remise_percent, $objp->tva_tx, $objp->localtax1_tx, $objp->localtax2_tx, $this->fk_fournprice, $objp->pa_ht);
+            $this->pa_ht 			       = $marginInfos[0];
+            $this->marge_tx			       = $marginInfos[1];
+            $this->marque_tx		       = $marginInfos[2];
+            // Multicurrency
+            $this->fk_multicurrency        = $objp->fk_multicurrency;
+            $this->multicurrency_code      = $objp->multicurrency_code;
+            $this->multicurrency_subprice  = $objp->multicurrency_subprice;
+            $this->multicurrency_total_ht  = $objp->multicurrency_total_ht;
+            $this->multicurrency_total_tva = $objp->multicurrency_total_tva;
+            $this->multicurrency_total_ttc = $objp->multicurrency_total_ttc;
+
+            $this->ref				       = $objp->product_ref; // deprecated
+            $this->product_ref		       = $objp->product_ref;
+            $this->libelle			       = $objp->product_label;
+            $this->product_label	       = $objp->product_label;
+            $this->product_desc            = $objp->product_desc;
+            $this->product_tobatch         = $objp->product_tobatch;
+            $this->fk_product_type         = $objp->fk_product_type;	// Produit ou service
+
+            $this->db->free($result);
+
+            return 1;
+        }
+        else
+        {
+            $this->error = $this->db->lasterror();
+            return -1;
+        }
+    }
+
+
+    /**
+     *  Insert object line requestmanager in database
+     *
+     *	@param		int		$notrigger		1=Does not execute triggers, 0= execute triggers
+     *	@return		int						<0 if KO, >0 if OK
+     */
+    function insert($notrigger=0)
+    {
+        global $conf,$user;
+
+        $error = 0;
+
+        dol_syslog(__METHOD__ . " rang=" . $this->rang);
+
+        $pa_ht_isemptystring = (empty($this->pa_ht) && $this->pa_ht == ''); // If true, we can use a default value. If this->pa_ht = '0', we must use '0'.
+
+        // Clean parameters
+        if (empty($this->fk_parent_line)) $this->fk_parent_line=0;
+        if (empty($this->tva_tx)) $this->tva_tx=0;
+        if (empty($this->localtax1_tx)) $this->localtax1_tx=0;
+        if (empty($this->localtax1_type)) $this->localtax1_type=0;
+        if (empty($this->localtax2_tx)) $this->localtax2_tx=0;
+        if (empty($this->localtax2_type)) $this->localtax2_type=0;
+        if (!is_numeric($this->qty)) $this->qty=0;
+        if (empty($this->remise_percent) || ! is_numeric($this->remise_percent)) $this->remise_percent=0;
+        if (empty($this->total_localtax1)) $this->total_localtax1=0;
+        if (empty($this->total_localtax2)) $this->total_localtax2=0;
+        if (empty($this->info_bits)) $this->info_bits=0;
+        if (empty($this->pa_ht)) $this->pa_ht=0;
+        if (empty($this->fk_fournprice)) $this->fk_fournprice=0;
+        if (empty($this->special_code)) $this->special_code=0;
+        if (empty($this->rang)) $this->rang=0;
+        if (empty($this->multicurrency_subprice))  $this->multicurrency_subprice=0;
+        if (empty($this->multicurrency_total_ht))  $this->multicurrency_total_ht=0;
+        if (empty($this->multicurrency_total_tva)) $this->multicurrency_total_tva=0;
+        if (empty($this->multicurrency_total_ttc)) $this->multicurrency_total_ttc=0;
+
+        // if buy price not defined, define buyprice as configured in margin admin
+        if ($this->pa_ht == 0 && $pa_ht_isemptystring)
+        {
+            if (($result = $this->defineBuyPrice($this->subprice, $this->remise_percent, $this->fk_product)) < 0)
+            {
+                return $result;
+            }
+            else
+            {
+                $this->pa_ht = $result;
+            }
+        }
+
+        // Check parameters
+        if ($this->product_type < 0) return -1;
+
+        $this->db->begin();
+
+        // Insert line into database
+        $sql  = "INSERT INTO " . MAIN_DB_PREFIX . $this->table_element . " (";
+        $sql .= "fk_requestmanager, fk_parent_line, fk_product, label, description";
+        $sql .= ", vat_src_code, tva_tx, localtax1_tx, localtax1_type, localtax2_tx, localtax2_type";
+        $sql .= ", qty, remise_percent, fk_remise_except, subprice";
+        $sql .= ", total_ht, total_tva, total_localtax1, total_localtax2, total_ttc";
+        $sql .= ", product_type";
+        $sql .= ", date_start, date_end";
+        $sql .= ", info_bits, buy_price_ht, fk_product_fournisseur_price, special_code, rang, fk_unit";
+        $sql .= ", fk_multicurrency, multicurrency_code, multicurrency_subprice, multicurrency_total_ht, multicurrency_total_tva, multicurrency_total_ttc";
+        $sql .= ") VALUES (";
+        $sql .= $this->fk_requestmanager;
+        $sql .= ", " . ($this->fk_parent_line>0 ? "'".$this->fk_parent_line."'" : "null");
+        $sql .= ", " . ($this->fk_product?"'".$this->fk_product."'":"null");
+        $sql .= ", " . (!empty($this->label) ? "'".$this->db->escape($this->label)."'" : "null");
+        $sql .= ", '" . $this->db->escape($this->desc) . "'";
+        $sql .= ", " . (empty($this->vat_src_code) ? "''" : "'".$this->vat_src_code."'");
+        $sql .= ", " . price2num($this->tva_tx);
+        $sql .= ", " . price2num($this->localtax1_tx);
+        $sql .= ", '" . $this->localtax1_type . "'";
+        $sql .= ", " . price2num($this->localtax2_tx);
+        $sql .= ", '" . $this->localtax2_type . "'";
+        $sql .= ", " . price2num($this->qty);
+        $sql .= ", " . price2num($this->remise_percent);
+        $sql .= ", " . ($this->fk_remise_except ? "'".$this->fk_remise_except."'" : "null");
+        $sql .= ", " . ($this->subprice?price2num($this->subprice):"null");
+        $sql .= ", " . price2num($this->total_ht);
+        $sql .= ", " . price2num($this->total_tva);
+        $sql .= ", " . price2num($this->total_localtax1);
+        $sql .= ", " . price2num($this->total_localtax2);
+        $sql .= ", " . price2num($this->total_ttc);
+        $sql .= ", '" . $this->product_type . "'";
+        $sql .= ", " . (!empty($this->date_start) ? "'".$this->db->idate($this->date_start)."'" : "null");
+        $sql .= ", " . (!empty($this->date_end) ? "'".$this->db->idate($this->date_end)."'" : "null");
+        $sql .= ", " . (isset($this->info_bits) ? "'".$this->info_bits."'" : "null");
+        $sql .= ", " . (isset($this->pa_ht) ? "'".price2num($this->pa_ht)."'" : "null");
+        $sql .= ", " . (!empty($this->fk_fournprice) ? "'".$this->fk_fournprice."'" : "null");
+        $sql .= ", " . $this->special_code;
+        $sql .= ", " . $this->rang;
+        $sql .= ", " . (!$this->fk_unit ? 'NULL' : $this->fk_unit);
+        $sql .= ", " . ($this->fk_multicurrency>0 ? $this->fk_multicurrency : 'null');
+        $sql .= ", '" . $this->db->escape($this->multicurrency_code) . "'";
+        $sql .= ", " . $this->multicurrency_subprice;
+        $sql .= ", " . $this->multicurrency_total_ht;
+        $sql .= ", " . $this->multicurrency_total_tva;
+        $sql .= ", " . $this->multicurrency_total_ttc;
+        $sql .= ")";
+
+        dol_syslog(__METHOD__, LOG_DEBUG);
+        $resql=$this->db->query($sql);
+        if ($resql)
+        {
+            $this->rowid = $this->db->last_insert_id(MAIN_DB_PREFIX . $this->table_element);
+
+            if (empty($conf->global->MAIN_EXTRAFIELDS_DISABLED)) // For avoid conflicts if trigger used
+            {
+                $this->id = $this->rowid;
+                $result = $this->insertExtraFields();
+                if ($result < 0)
+                {
+                    $error++;
+                }
+            }
+
+            if (!$notrigger)
+            {
+                // Call trigger
+                $result = $this->call_trigger('LINEREQUESTMANAGER_INSERT', $user);
+                if ($result < 0)
+                {
+                    $this->db->rollback();
+                    return -1;
+                }
+                // End call triggers
+            }
+
+            $this->db->commit();
+            return 1;
+        }
+        else
+        {
+            $this->error = $this->db->error() . " sql=" . $sql;
+            $this->db->rollback();
+            return -1;
+        }
+    }
+
+
+    /**
+     *	Update the line object into db
+     *
+     *	@param      User	$user        	User that modify
+     *	@param      int		$notrigger		1 = disable triggers
+     *	@return		int		<0 si ko, >0 si ok
+     */
+    function update($user=null, $notrigger=0)
+    {
+        global $conf;
+
+        $error=0;
+
+        $pa_ht_isemptystring = (empty($this->pa_ht) && $this->pa_ht == ''); // If true, we can use a default value. If this->pa_ht = '0', we must use '0'.
+
+        // Clean parameters
+        if (empty($this->fk_parent_line)) $this->fk_parent_line=0;
+        if (empty($this->tva_tx)) $this->tva_tx=0;
+        if (empty($this->localtax1_tx)) $this->localtax1_tx=0;
+        if (empty($this->localtax1_type)) $this->localtax1_type=0;
+        if (empty($this->localtax2_tx)) $this->localtax2_tx=0;
+        if (empty($this->localtax2_type)) $this->localtax2_type=0;
+        if (empty($this->qty)) $this->qty=0;
+        if (empty($this->remise_percent)) $this->remise_percent=0;
+        if (empty($this->total_localtax1)) $this->total_localtax1=0;
+        if (empty($this->total_localtax2)) $this->total_localtax2=0;
+        if (empty($this->product_type)) $this->product_type=0;
+        if (empty($this->info_bits)) $this->info_bits=0;
+        if (empty($this->pa_ht)) $this->pa_ht=0;
+        if (empty($this->special_code)) $this->special_code=0;
+        if (empty($this->marge_tx)) $this->marge_tx=0;
+        if (empty($this->marque_tx)) $this->marque_tx=0;
+
+        // if buy price not defined, define buyprice as configured in margin admin
+        if ($this->pa_ht == 0 && $pa_ht_isemptystring)
+        {
+            if (($result = $this->defineBuyPrice($this->subprice, $this->remise_percent, $this->fk_product)) < 0)
+            {
+                return $result;
+            }
+            else
+            {
+                $this->pa_ht = $result;
+            }
+        }
+
+        $this->db->begin();
+
+        // Mise a jour ligne en base
+        $sql  = "UPDATE " . MAIN_DB_PREFIX . $this->table_element . " SET";
+        $sql .= " fk_parent_line=".(! empty($this->fk_parent_line)?$this->fk_parent_line:"null");
+        $sql .= ", label=".(! empty($this->label)?"'".$this->db->escape($this->label)."'":"null");
+        $sql .= ", description='".$this->db->escape($this->desc)."'";
+        $sql .= ", vat_src_code=".(! empty($this->vat_src_code)?"'".$this->db->escape($this->vat_src_code)."'":"''");
+        $sql .= ", tva_tx=".price2num($this->tva_tx);
+        $sql .= ", localtax1_tx=".price2num($this->localtax1_tx);
+        $sql .= ", localtax1_type='".$this->db->escape($this->localtax1_type)."'";
+        $sql .= ", localtax2_tx=".price2num($this->localtax2_tx);
+        $sql .= ", localtax2_type='".$this->db->escape($this->localtax2_type)."'";
+        $sql .= ", qty=".price2num($this->qty);
+        $sql .= ", remise_percent=".price2num($this->remise_percent)."";
+        $sql .= ", subprice=".price2num($this->subprice)."";
+        if (empty($this->skip_update_total))
+        {
+            $sql .= ", total_ht=".price2num($this->total_ht)."";
+            $sql .= ", total_tva=".price2num($this->total_tva)."";
+            $sql .= ", total_localtax1=".price2num($this->total_localtax1);
+            $sql .= ", total_localtax2=".price2num($this->total_localtax2);
+            $sql .= ", total_ttc=".price2num($this->total_ttc)."";
+        }
+        $sql .= ", product_type=".$this->product_type;
+        $sql .= ", date_start=".(! empty($this->date_start)?"'".$this->db->idate($this->date_start)."'":"null");
+        $sql .= ", date_end=".(! empty($this->date_end)?"'".$this->db->idate($this->date_end)."'":"null");
+        $sql .= ", info_bits=".$this->info_bits;
+        $sql .= ", buy_price_ht='".price2num($this->pa_ht)."'";
+        $sql .= ", fk_product_fournisseur_price=".(! empty($this->fk_fournprice)?$this->fk_fournprice:"null");
+        $sql .= ", special_code=".$this->special_code;
+        if (! empty($this->rang)) $sql.= ", rang=".$this->rang;
+        $sql .= ", fk_unit=".(!$this->fk_unit ? 'NULL' : $this->fk_unit);
+        // Multicurrency
+        $sql .= ", multicurrency_subprice=".price2num($this->multicurrency_subprice)."";
+        $sql .= ", multicurrency_total_ht=".price2num($this->multicurrency_total_ht)."";
+        $sql .= ", multicurrency_total_tva=".price2num($this->multicurrency_total_tva)."";
+        $sql .= ", multicurrency_total_ttc=".price2num($this->multicurrency_total_ttc)."";
+        $sql .= " WHERE rowid = ".$this->rowid;
+
+        dol_syslog(__METHOD__, LOG_DEBUG);
+        $resql = $this->db->query($sql);
+        if ($resql)
+        {
+            if (empty($conf->global->MAIN_EXTRAFIELDS_DISABLED)) // For avoid conflicts if trigger used
+            {
+                $this->id = $this->rowid;
+                $result=$this->insertExtraFields();
+                if ($result < 0)
+                {
+                    $error++;
+                }
+            }
+
+            if (! $notrigger)
+            {
+                // Call trigger
+                $result = $this->call_trigger('LINEREQUESTMANAGER_UPDATE',$user);
+                if ($result < 0) $error++;
+                // End call triggers
+            }
+
+            if (!$error) {
+                $this->db->commit();
+                return 1;
+            }
+
+            foreach($this->errors as $errmsg)
+            {
+                dol_syslog(__METHOD__ . " " . $errmsg, LOG_ERR);
+                $this->error .= ($this->error?', '.$errmsg:$errmsg);
+            }
+            $this->db->rollback();
+            return -1*$error;
+        }
+        else
+        {
+            $this->error = $this->db->error();
+            $this->db->rollback();
+            return -2;
+        }
+    }
+
+
+    /**
+     *	Update totals of requestmanager into database
+     *
+     *	@return		int		<0 if ko, >0 if ok
+     */
+    function update_total()
+    {
+        $this->db->begin();
+
+        // Clean parameters
+        if (empty($this->total_localtax1)) $this->total_localtax1=0;
+        if (empty($this->total_localtax2)) $this->total_localtax2=0;
+
+        // Mise a jour ligne en base
+        $sql  = "UPDATE " . MAIN_DB_PREFIX . $this->element . " SET";
+        $sql .= "total_ht='" . price2num($this->total_ht) . "'";
+        $sql .= ", total_tva='" . price2num($this->total_tva) . "'";
+        $sql .= ", total_localtax1='" . price2num($this->total_localtax1) . "'";
+        $sql .= ", total_localtax2='" . price2num($this->total_localtax2) . "'";
+        $sql .= ", total_ttc='" . price2num($this->total_ttc) . "'";
+        $sql .= " WHERE rowid = " . $this->rowid;
+
+        dol_syslog(__METHOD__, LOG_DEBUG);
+        $resql = $this->db->query($sql);
+        if ($resql)
+        {
+            $this->db->commit();
+            return 1;
+        }
+        else
+        {
+            $this->error = $this->db->error();
+            $this->db->rollback();
+            return -2;
+        }
     }
 }
