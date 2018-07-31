@@ -1710,9 +1710,6 @@ if ($action == 'create')
     /*
     * Lines
     */
-    $statut = $object->statut;
-    $object->statut = 0;
-
     $langs->load('bills');
     $result = $object->getLinesArray();
     print '<br />';
@@ -1730,7 +1727,12 @@ if ($action == 'create')
     print '<table id="tablelines" class="noborder noshadow" width="100%">';
     // Show object lines
     if (!empty($object->lines)) {
+        // TODO : probleme de statut initial qui vaut 1 et non 0 (et ne permet pas de modifier ou supprimer une ligne)
+        //$statut = $object->statut;
+        //$object->statut = 0;
         $ret = $object->printObjectLines($action, $mysoc,  $object->thirdparty, $lineid, 1);
+        // TODO : probleme de statut initial qui vaut 1 et non 0 (et ne permet pas de modifier ou supprimer une ligne)
+        //$object->statut = $statut;
     }
 
     $numlines = count($object->lines);
@@ -1753,9 +1755,6 @@ if ($action == 'create')
     print '</div>';
 
     print "</form>\n";
-
-    $object->statut = $statut;
-
 
 
     /*
