@@ -776,17 +776,18 @@ SCRIPT;
                     }
 
                     if (!empty($contract_categories)) {
-                        // Is product not into the formula
+                        // if product is into the formula
                         $sql = "SELECT p.rowid";
                         $sql .= " FROM " . MAIN_DB_PREFIX . "product as p";
                         $sql .= " LEFT JOIN  " . MAIN_DB_PREFIX . "categorie_product as cp ON cp.fk_product = p.rowid";
                         $sql .= ' WHERE p.entity IN (' . getEntity('product') . ')';
                         $sql .= ' AND p.rowid = ' . $product_id;
-                        $sql .= ' AND cp.fk_categorie NOT IN (' . implode(',', $contract_categories) . ')';
+                        $sql .= ' AND cp.fk_categorie IN (' . implode(',', $contract_categories) . ')';
 
                         $resql = $this->db->query($sql);
                         if ($resql) {
-                            if ($this->db->num_rows($resql) > 0) {
+                            // if product is not into the formula
+                            if ($this->db->num_rows($resql) <= 0) {
                                 $_SESSION['synergiestech_addline_formulas'] = implode(', ', $contracts_list)
                                     . ' - ' . $langs->trans('SynergiesTechFormules') . ' : ' . implode(', ', $formules_list);
                                 $_SESSION['synergiestech_addline_get'] = $_GET;

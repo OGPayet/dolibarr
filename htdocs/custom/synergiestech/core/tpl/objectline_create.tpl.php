@@ -205,7 +205,7 @@ else {
 
 		if (empty($senderissupplier))
 		{
-		  if ($object->element == 'commande' && ! empty($conf->contrat->enabled)) {
+		  if (($object->element == 'commande' || $object->element == 'requestmanager') && ! empty($conf->contrat->enabled)) {
           $langs->load('synergiestech@synergiestech');
 
           if ($conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE > 0) {
