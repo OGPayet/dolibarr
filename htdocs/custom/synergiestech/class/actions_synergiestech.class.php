@@ -540,7 +540,7 @@ SCRIPT;
 
                 return 1;
             }
-        } elseif (in_array('ordercard', $contexts)) {
+        } elseif (in_array('ordercard', $contexts) || in_array('requestmanagercard', $contexts)) {
             if ($action == 'synergiestech_addline' && $user->rights->commande->creer) {
                 $langs->load('synergiestech@synergiestech');
 
@@ -720,7 +720,7 @@ SCRIPT;
                     return -1;
                 }
             }
-        } elseif (in_array('ordercard', $contexts)) {
+        } elseif (in_array('ordercard', $contexts) || in_array('requestmanagercard', $contexts)) {
             if ($action == 'addline' && $user->rights->commande->creer) {
                 $product_id = GETPOST('idprod', 'int');
 
