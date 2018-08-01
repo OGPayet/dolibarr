@@ -477,7 +477,7 @@ if (empty($reshook)) {
         if ($error) $action = 'edit_extras';
     }
     // Add a new line
-    else if ($action == 'addline' && $user->rights->requestmanager->creer && ($object->statut_type == RequestManager::STATUS_TYPE_INITIAL || $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) && (empty($conf->synergiestech->enabled) || $confirm=='yes'))
+    else if ($action == 'addline' && $user->rights->requestmanager->creer && ($object->statut_type == RequestManager::STATUS_TYPE_INITIAL || $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS))
     {
         require_once DOL_DOCUMENT_ROOT . '/product/class/product.class.php';
         if (!empty($conf->variants->enabled)) {
@@ -784,13 +784,12 @@ if (empty($reshook)) {
                     unset($_POST['date_endday']);
                     unset($_POST['date_endmonth']);
                     unset($_POST['date_endyear']);
-
-                    $action = '';
                 } else {
                     setEventMessages($object->error, $object->errors, 'errors');
                 }
             }
         }
+        $action = '';
     }
     // Update a line
     else if ($action == 'updateline' && $user->rights->requestmanager->creer && ($object->statut_type == RequestManager::STATUS_TYPE_INITIAL || $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) && GETPOST('save'))
@@ -1727,12 +1726,15 @@ if ($action == 'create')
     print '<table id="tablelines" class="noborder noshadow" width="100%">';
     // Show object lines
     if (!empty($object->lines)) {
-        // TODO : probleme de statut initial qui vaut 1 et non 0 (et ne permet pas de modifier ou supprimer une ligne)
-        //$statut = $object->statut;
-        //$object->statut = 0;
+        // probleme de statut initial qui vaut 1 et non 0 (et ne permet pas de modifier ou supprimer une ligne)
+        $requestManagerStatut = $object->statut;
+        if ($user->rights->requestmanager->creer && ($object->statut_type == RequestManager::STATUS_TYPE_INITIAL || $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS)) {
+            $object->statut = 0;
+        }
+
         $ret = $object->printObjectLines($action, $mysoc,  $object->thirdparty, $lineid, 1);
-        // TODO : probleme de statut initial qui vaut 1 et non 0 (et ne permet pas de modifier ou supprimer une ligne)
-        //$object->statut = $statut;
+
+        $object->statut = $requestManagerStatut;
     }
 
     $numlines = count($object->lines);
