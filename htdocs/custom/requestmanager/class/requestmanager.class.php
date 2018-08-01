@@ -1845,10 +1845,6 @@ class RequestManager extends CommonObject
         $userGroup = new UserGroup($this->db);
         $userGroupList = $userGroup->listGroupsForUser($user->id);
 
-        // TODO : filter status
-        // self::STATUS_TYPE_INITIAL
-        // self::STATUS_TYPE_IN_PROGRESS
-
         // count all assigned requests for user
         $sql  = "SELECT COUNT(rm.rowid) as nb";
         $sql .= " FROM " . MAIN_DB_PREFIX . $this->table_element . " as rm";
@@ -1873,6 +1869,65 @@ class RequestManager extends CommonObject
         }
 
         return $nb;
+    }
+
+
+    /**
+     * Sets object to supplied categories.
+     *
+     * Deletes object from existing categories not supplied.
+     * Adds it to non existing supplied categories.
+     * Existing categories are left untouch.
+     *
+     * @param int[]|int $categories Category or categories IDs
+     * @return  int     <0 if KO, >0 if OK
+     */
+    public function setCategories($categories)
+    {
+        $result = 1;
+
+        dol_include_once('/requestmanager/class/categorierequestmanager.class.php');
+
+        // Handle single category
+        if (! is_array($categories)) {
+            $categories = array($categories);
+        }
+
+        // Get current categories
+        $categorie = new CategorieRequestManager($this->db);
+        $existing = $categorie->containing($this->id, CategorieRequestManager::TYPE_REQUESTMANAGER, 'id');
+
+        // Diff
+        if (is_array($existing)) {
+            $to_del = array_diff($existing, $categories);
+            $to_add = array_diff($categories, $existing);
+        } else {
+            $to_del = array(); // Nothing to delete
+            $to_add = $categories;
+        }
+
+        // Process
+        foreach($to_del as $del) {
+            if ($categorie->fetch($del) > 0) {
+                $result = $categorie->del_type($this, CategorieRequestManager::TYPE_REQUESTMANAGER);
+                if ($result < 0) {
+                    $this->error = $categorie->error;
+                    break;
+                }
+            }
+        }
+        foreach ($to_add as $add) {
+            if ($categorie->fetch($add) > 0) {
+                $result = $categorie->add_type($this, CategorieRequestManager::TYPE_REQUESTMANAGER);
+
+                if ($result < 0) {
+                    $this->error = $categorie->error;
+                    break;
+                }
+            }
+        }
+
+        return $result;
     }
 
 

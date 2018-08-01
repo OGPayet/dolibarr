@@ -16,7 +16,7 @@
  */
 
 /**
- *	\file       requestmanager/core/class/html.formrequestmanager.class.php
+ *	\file       requestmanager/class/html.formrequestmanager.class.php
  *  \ingroup    requestmanager
  *	\brief      File of class with all html predefined components for request manager
  */
@@ -299,6 +299,60 @@ class FormRequestManager
         print '</tr>';
         print '</table>';
         print '</form>';
+    }
+
+
+    /**
+     * 	Render list of categories linked to object with id $id and type $type
+     *
+     * 	@param		int		$id				Id of object
+     * 	@param		string	$type			Type of category ('member', 'customer', 'supplier', 'product', 'contact', 'requestmanager')
+     *  @param		int		$rendermode		0=Default, use multiselect. 1=Emulate multiselect (recommended)
+     *  @param		int		$editMode		[=FALSE] for view mode, TRUE for edit mode (with rendermode=0 only)
+     * 	@return		string					String with categories
+     */
+    function showCategories($id, $type, $rendermode=0, $editMode=FALSE)
+    {
+        global $db;
+
+        dol_include_once('/requestmanager/class/categorierequestmanager.class.php');
+
+        $cat = new CategorieRequestManager($db);
+        $categories = $cat->containing($id, $type);
+
+        if ($rendermode == 1)
+        {
+            $toprint = array();
+            foreach($categories as $c)
+            {
+                $ways = $c->print_all_ways();       // $ways[0] = "ccc2 >> ccc2a >> ccc2a1" with html formated text
+                foreach($ways as $way)
+                {
+                    $toprint[] = '<li class="select2-search-choice-dolibarr noborderoncategories"'.($c->color?' style="background: #'.$c->color.';"':' style="background: #aaa"').'>'.img_object('','category').' '.$way.'</li>';
+                }
+            }
+            return '<div class="select2-container-multi-dolibarr" style="width: 90%;"><ul class="select2-choices-dolibarr">'.implode(' ', $toprint).'</ul></div>';
+        }
+
+        if ($rendermode == 0)
+        {
+            $arrayselected = array();
+            $cate_arbo = $this->form->select_all_categories(Categorie::TYPE_PRODUCT, '', 'parent', 64, 0, 1);
+            foreach($categories as $c) {
+                $arrayselected[] = $c->id;
+            }
+
+            $selectMoreAttrib = 'disabled';
+            $selectElementType = 'category';
+            if ($editMode === TRUE) {
+                $selectMoreAttrib = '';
+                $selectElementType = '';
+            }
+
+            return $this->form->multiselectarray('categories', $cate_arbo, $arrayselected, '', 0, '', 0, '100%', $selectMoreAttrib, $selectElementType);
+        }
+
+        return 'ErrorBadValueForParameterRenderMode';	// Should not happened
     }
 }
 

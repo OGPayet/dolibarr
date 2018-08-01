@@ -16,7 +16,7 @@
  */
 
 /**
- * \file 		htdocs/comm/requestmanager/card.php
+ * \file 		htdocs/requestmanager/card.php
  * \ingroup 	requestmanager
  * \brief 		Page of Request card
  */
@@ -37,6 +37,12 @@ require_once DOL_DOCUMENT_ROOT . '/core/class/doleditor.class.php';
 require_once DOL_DOCUMENT_ROOT . '/user/class/user.class.php';
 require_once DOL_DOCUMENT_ROOT . '/user/class/usergroup.class.php';
 require_once DOL_DOCUMENT_ROOT . '/contact/class/contact.class.php';
+
+if (!empty($conf->categorie->enabled)) {
+    require_once DOL_DOCUMENT_ROOT . '/categories/class/categorie.class.php';
+    dol_include_once('/requestmanager/class/categorierequestmanager.class.php');
+}
+
 dol_include_once('/advancedictionaries/class/dictionary.class.php');
 dol_include_once('/requestmanager/class/requestmanager.class.php');
 dol_include_once('/requestmanager/class/requestmanagernotification.class.php');
@@ -140,6 +146,15 @@ if (empty($reshook)) {
             $id = $object->create($user);
             if ($id < 0) {
                 setEventMessages($object->error, $object->errors, 'errors');
+                $error++;
+            }
+        }
+
+        if (!$error) {
+            // Category association
+            $categories = GETPOST('categories');
+            $result = $object->setCategories($categories);
+            if ($result < 0) {
                 $error++;
             }
         }
@@ -380,6 +395,18 @@ if (empty($reshook)) {
         if ($result < 0) {
             setEventMessages($object->error, $object->errors, 'errors');
             $action = 'edit_description';
+        } else {
+            header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
+            exit();
+        }
+    } // Set categories
+    elseif ($action == 'set_categories' && $user->rights->requestmanager->creer && ($object->statut_type == RequestManager::STATUS_TYPE_INITIAL || $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS)) {
+        // Category association
+        $categories = GETPOST('categories');
+        $result = $object->setCategories($categories);
+        if ($result < 0) {
+            setEventMessages($object->error, $object->errors, 'errors');
+            $action = 'edit_categories';
         } else {
             header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
             exit();
@@ -1046,7 +1073,7 @@ $contact_static = new Contact($db);
 
 $now = dol_now();
 
-if ($action == 'create')
+if ($action == 'create' && $user->rights->requestmanager->creer)
 {
     /*
      *  Creation
@@ -1195,6 +1222,14 @@ if ($action == 'create')
     $doleditor = new DolEditor('description', $object->description, '', 200, 'dolibarr_notes', 'In', 0, false, true, ROWS_3, '90%');
     print $doleditor->Create(1);
     print '</td></tr>';
+
+    // Categories
+    if ($conf->categorie->enabled) {
+        print '<tr><td>' . $langs->trans("Categories") . '</td><td colspan="3">';
+        $cate_arbo = $form->select_all_categories(Categorie::TYPE_PRODUCT, '', 'parent', 64, 0, 1);
+        print $form->multiselectarray('categories', $cate_arbo, array(), '', 0, '', 0, '100%');
+        print "</td></tr>";
+    }
 
 	print "</table>\n";
 
@@ -1599,6 +1634,29 @@ if ($action == 'create')
     print '</td></tr>';
     if ($action == 'edit_description' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
         print '</form>';
+    }
+
+    // Categories
+    if ($conf->categorie->enabled) {
+        print '<tr><td>';
+        print '<table class="nobordernopadding" width="100%"><tr><td>';
+        print $langs->trans('Categories');
+        print '</td>';
+        if ($action != 'edit_categories' && $user->rights->requestmanager->creer && ($object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS || $object->statut_type == RequestManager::STATUS_TYPE_INITIAL))
+            print '<td align="right"><a href="' . $_SERVER["PHP_SELF"] . '?action=edit_categories&id=' . $object->id . '">' . img_edit($langs->trans('RequestManagerSetCategories'), 1) . '</a></td>';
+        print '</tr></table>';
+        print '</td><td>';
+        if ($action == 'edit_categories' && $user->rights->requestmanager->creer && ($object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS || $object->statut_type == RequestManager::STATUS_TYPE_INITIAL)) {
+            print '<form name="editcategries" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
+            print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
+            print '<input type="hidden" name="action" value="set_categories">';
+            print $formrequestmanager->showCategories($object->id, CategorieRequestManager::TYPE_REQUESTMANAGER, 0, TRUE);
+            print '<input type="submit" class="button" value="' . $langs->trans('Modify') . '">';
+            print '</form>';
+        } else {
+            print $formrequestmanager->showCategories($object->id, CategorieRequestManager::TYPE_REQUESTMANAGER, 1);
+        }
+        print '</td></tr>';
     }
 
 	print '</table>';
