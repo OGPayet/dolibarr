@@ -1531,7 +1531,7 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
     print '</td></tr>';
 
     // Assigned usergroup
-	print '<tr><td>';
+    print '<tr><td>';
 	print '<table class="nobordernopadding" width="100%"><tr><td>';
 	print $langs->trans('RequestManagerAssignedUserGroup');
 	print '</td>';
@@ -1547,7 +1547,7 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
 		print '<input type="submit" class="button" value="' . $langs->trans('Modify') . '">';
 		print '</form>';
 	} else {
-        if ($usergroup_static->fetch($object->assigned_usergroup_id) > 0) {
+        if ($object->assigned_usergroup_id > 0 && $usergroup_static->fetch($object->assigned_usergroup_id) > 0) {
             print $usergroup_static->getFullName($langs);
         }
 	}
@@ -1570,7 +1570,7 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
 		print '<input type="submit" class="button" value="' . $langs->trans('Modify') . '">';
 		print '</form>';
 	} else {
-        if ($user_static->fetch($object->assigned_user_id) > 0) {
+        if ($object->assigned_user_id > 0 && $user_static->fetch($object->assigned_user_id) > 0) {
             print $user_static->getNomUrl(1);
         }
 	}

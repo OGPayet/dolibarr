@@ -29,35 +29,13 @@ require_once DOL_DOCUMENT_ROOT . '/categories/class/categorie.class.php';
  */
 class CategorieRequestManager extends Categorie
 {
+    /**
+     * Category type
+     */
     const TYPE_REQUESTMANAGER = 'requestmanager';
 
-    /**
-     * @var array ID mapping from type string
-     *
-     * @note This array should be remove in future, once previous constants are moved to the string value.
-     */
-    private $MAP_ID = array(
-        self::TYPE_REQUESTMANAGER  => 163018
-    );
-
-
-    /**
-     * @var array Foreign keys mapping from type string
-     *
-     * @note Move to const array when PHP 5.6 will be our minimum target
-     */
-    private $MAP_CAT_FK = array(
-        self::TYPE_REQUESTMANAGER  => 'requestmanager'
-    );
-
-    /**
-     * @var array Category tables mapping from type string
-     *
-     * @note Move to const array when PHP 5.6 will be our minimum target
-     */
-    private $MAP_CAT_TABLE = array(
-        self::TYPE_REQUESTMANAGER  => 'requestmanager'
-    );
+    public $parent_table_elemement = 'categorie';
+    public $table_element = 'categorie_' . self::TYPE_REQUESTMANAGER;
 
 
     /**
@@ -86,9 +64,9 @@ class CategorieRequestManager extends Categorie
         $cats = array();
 
         $sql  = "SELECT ct.fk_categorie, c.label, c.rowid";
-        $sql .= " FROM " . MAIN_DB_PREFIX . $this->table_element . "_" . $this->MAP_CAT_TABLE[$type] . " as ct";
-        $sql .= " INNER JOIN " . MAIN_DB_PREFIX .  $this->table_element . " as c ON c.rowid = ct.fk_categorie";
-        $sql .= " AND ct.fk_" . $this->MAP_CAT_FK[$type] . "=" . $id;
+        $sql .= " FROM " . MAIN_DB_PREFIX . $this->table_element . " as ct";
+        $sql .= " INNER JOIN " . MAIN_DB_PREFIX .  $this->parent_table_elemement . " as c ON c.rowid = ct.fk_categorie";
+        $sql .= " AND ct.fk_" . $type . "=" . $id;
         $sql .= " AND c.entity IN (" . getEntity( 'category', 1 ) . ")";
 
         $res = $this->db->query($sql);
@@ -128,8 +106,8 @@ class CategorieRequestManager extends Categorie
      */
     function containsObject($type, $object_id)
     {
-        $sql  = "SELECT COUNT(*) as nb FROM " . MAIN_DB_PREFIX . $this->table_element . "_" . $this->MAP_CAT_TABLE[$type];
-        $sql .= " WHERE fk_categorie = " . $this->id . " AND fk_" . $this->MAP_CAT_FK[$type] . "=" . $object_id;
+        $sql  = "SELECT COUNT(*) as nb FROM " . MAIN_DB_PREFIX . $this->table_element;
+        $sql .= " WHERE fk_categorie=" . $this->id . " AND fk_" . $type . "=" . $object_id;
         dol_syslog(__METHOD__, LOG_DEBUG);
         $resql = $this->db->query($sql);
         if ($resql) {
@@ -159,8 +137,8 @@ class CategorieRequestManager extends Categorie
 
         $this->db->begin();
 
-        $sql = "INSERT INTO " . MAIN_DB_PREFIX . $this->table_element . "_" . $this->MAP_CAT_TABLE[$type];
-        $sql .= " (fk_categorie, fk_" . $this->MAP_CAT_FK[$type] . ")";
+        $sql = "INSERT INTO " . MAIN_DB_PREFIX . $this->table_element;
+        $sql .= " (fk_categorie, fk_" . $type . ")";
         $sql .= " VALUES (" . $this->id . ", " . $obj->id . ")";
 
         dol_syslog(__METHOD__, LOG_DEBUG);
@@ -168,7 +146,7 @@ class CategorieRequestManager extends Categorie
         {
             if (! empty($conf->global->CATEGORIE_RECURSIV_ADD))
             {
-                $sql  = "SELECT fk_parent FROM " . $this->table_element;
+                $sql  = "SELECT fk_parent FROM " . $this->parent_table_element;
                 $sql .= " WHERE rowid = ".$this->id;
 
                 dol_syslog(__METHOD__, LOG_DEBUG);
@@ -259,9 +237,9 @@ class CategorieRequestManager extends Categorie
 
         $this->db->begin();
 
-        $sql = "DELETE FROM " . MAIN_DB_PREFIX . $this->table_element . "_" . $this->MAP_CAT_TABLE[$type];
+        $sql  = "DELETE FROM " . MAIN_DB_PREFIX . $this->table_element;
         $sql .= " WHERE fk_categorie = " . $this->id;
-        $sql .= " AND fk_" . $this->MAP_CAT_FK[$type] . "=" . $obj->id;
+        $sql .= " AND fk_" . $type . "=" . $obj->id;
 
         dol_syslog(__METHOD__, LOG_DEBUG);
         if ($this->db->query($sql))
@@ -270,7 +248,7 @@ class CategorieRequestManager extends Categorie
             $this->unlinkoff = $obj;
 
             // Call trigger
-            $result=$this->call_trigger('CATEGORYREQUESTMANAGER_UNLINK',$user);
+            $result=$this->call_trigger('CATEGORYREQUESTMANAGER_UNLINK', $user);
             if ($result < 0) { $error++; }
             // End call triggers
 
@@ -303,7 +281,7 @@ class CategorieRequestManager extends Categorie
     {
         $parents = array();
 
-        $sql = "SELECT fk_parent FROM " . MAIN_DB_PREFIX . $this->table_element;
+        $sql = "SELECT fk_parent FROM " . MAIN_DB_PREFIX . $this->parent_table_element;
         $sql.= " WHERE rowid = ".$this->id;
 
         $res  = $this->db->query($sql);
@@ -344,7 +322,7 @@ class CategorieRequestManager extends Categorie
         {
             foreach ($parents as $parent)
             {
-                $allways=$parent->get_all_ways();
+                $allways = $parent->get_all_ways();
                 foreach ($allways as $way)
                 {
                     $w		= $way;
