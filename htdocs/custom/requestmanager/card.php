@@ -1785,14 +1785,12 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
     // Show object lines
     if (!empty($object->lines)) {
         // probleme de statut initial qui vaut 1 et non 0 (et ne permet pas de modifier ou supprimer une ligne)
-        $requestManagerStatut = $object->statut;
+        $object->save_status = $object->statut;
         if ($user->rights->requestmanager->creer && ($object->statut_type == RequestManager::STATUS_TYPE_INITIAL || $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS)) {
             $object->statut = 0;
         }
-
         $ret = $object->printObjectLines($action, $mysoc,  $object->thirdparty, $lineid, 1);
-
-        $object->statut = $requestManagerStatut;
+        $object->statut = $object->save_status;
     }
 
     $numlines = count($object->lines);
