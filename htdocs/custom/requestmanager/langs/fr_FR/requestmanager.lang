@@ -116,6 +116,7 @@ RequestManagerSetAssignedUser           = Définir l'utilisateur assigné
 RequestManagerSetAssignedNotification   = Définir la notification des assignés
 RequestManagerSetDescription            = Définir la description
 RequestManagerAssignToMe                = M'assigner
+RequestManagerSetCategories             = Définir les tags/catégories
 
 ############################################################
 ### List

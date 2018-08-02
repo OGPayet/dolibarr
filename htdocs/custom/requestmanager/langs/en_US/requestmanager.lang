@@ -43,6 +43,7 @@ RequestManagerMenuTopMyRequestsNotResolved = My requests not resolved
 ### Card
 ############################################################
 RequestManagerAssignToMe                = Assign to me
+RequestManagerSetCategories             = Set tags/categories
 
 ############################################################
 ### List
