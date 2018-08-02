@@ -110,3 +110,8 @@ SynergiesTechAdvancedTicketGenerateNoTicketMessage      = Aucun message
 SynergiesTechTicketGenerateReportErrorGetContract       = Erreur dans la recupération du contrat : %s
 SynergiesTechTicketGenerateReportErrorGetTicket         = Erreur dans la recupération du ticket : %s
 SynergiesTechTicketGenerateReportErrorCreatePath        = Erreur création du répertoire : %s
+
+############################################################
+### Actions
+############################################################
+ActionAC_SYN_AUTO = Message inséré automatiquement

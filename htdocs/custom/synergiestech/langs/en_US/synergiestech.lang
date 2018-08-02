@@ -25,3 +25,8 @@ SynergiesTechSerializable   = To serialize
 SynergiesTechShippingHasEquipmentToSerialize         = Shipping has equipment to attach.
 SynergiesTechShippingHasEquipmentToValidate          = Shipping has equipment to validate.
 SynergiesTechOrderSupplierHasEquipmentToSerialize    = Order supplier has equipment to serialize.
+
+############################################################
+### Actions
+############################################################
+ActionAC_SYN_AUTO = Automatically inserted message
