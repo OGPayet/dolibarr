@@ -132,11 +132,9 @@ RequestManagerDateResolved              = Date Résolu
 ############################################################
 ### Message form
 ############################################################
+RequestManagerSelectKnowledgeBase           = Choisir une base de connaissance
 RequestManagerSelectTemplate                = Choisir modèle de message
 RequestManagerNoTemplateDefined             = Pas de modèle défini
-RequestManagerMessageOriginCustomer         = Message provenant du client ?
-RequestManagerMessageOriginCustomerContact  = Provenant du contact client
-RequestManagerMessageSubstitutionValues     = Variables de substitution disponibles
 RequestManagerMessageSubject                = Sujet
 RequestManagerMessageFile                   = Fichiers joints
 RequestManagerMessage                       = Message
@@ -177,6 +175,7 @@ RequestManagerUrgencyDictionaryLabel                  = Urgence des demandes
 RequestManagerImpactDictionaryLabel                   = Impact des demandes
 RequestManagerPriorityDictionaryLabel                 = Priorité des demandes
 RequestManagerMessageTemplateDictionaryLabel          = Modèles de messages / Notifications
+RequestManagerKnowledgeBaseDictionaryLabel            = Base de connaissance
 RequestManagerRequestType                             = Types de demande
 RequestManagerType                                    = Type
 RequestManagerTypeInitial                             = Initial

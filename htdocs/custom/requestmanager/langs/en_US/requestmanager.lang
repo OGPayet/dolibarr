@@ -59,6 +59,12 @@ RequestManagerDateResolved              = Resolved date
 ############################################################
 ### Message form
 ############################################################
+RequestManagerSelectKnowledgeBase           = Choose a knowledge base
+RequestManagerSelectTemplate                = Choose a message model
+RequestManagerNoTemplateDefined             = No defined model
+RequestManagerMessageSubject                = Subject
+RequestManagerMessageFile                   = Attachments
+RequestManagerMessage                       = Message
 RequestManagerMessageNotifyByMail           = Send by mail to requesters and watchers contacts
 RequestManagerMessageDirection              = Message direction
 RequestManagerMessageDirectionIn            = Input
@@ -67,7 +73,28 @@ RequestManagerMessageDirectionOut           = Output
 ######################################################################
 # Dictionaries
 ######################################################################
+RequestManagerRequestTypeDictionaryLabel              = Requests types
+RequestManagerStatusDictionaryLabel                   = Requests status
+RequestManagerCategoryDictionaryLabel                 = Requests categories
+RequestManagerSourceDictionaryLabel                   = Requests origin
+RequestManagerUrgencyDictionaryLabel                  = Requests emergency
+RequestManagerImpactDictionaryLabel                   = Requests impact
+RequestManagerPriorityDictionaryLabel                 = Requests priority
+RequestManagerMessageTemplateDictionaryLabel          = Messages / notification models
+RequestManagerKnowledgeBaseDictionaryLabel            = Knowledge base
+RequestManagerRequestType                             = Requests types
+RequestManagerType                                    = Type
+RequestManagerTypeInitial                             = Initial
+RequestManagerTypeInProgress                          = In progress
+RequestManagerTypeResolved                            = Resolved
+RequestManagerTypeClosed                              = Closed
+RequestManagerStatusDictionaryPicto                   = Icon
+RequestManagerStatusDictionaryPictoHelp               = Dolibarr icon name format ('image.png' if icon is in the directory path '%s', 'image.png@nom_du_module' else if icon is in the module directory path /img/)
 RequestManagerTemplateTypeNotifyAssignedUsersModified = Notification of an assigned user change
+RequestManagerTemplateTypeNotifyStatusModified        = Notification of a status change
+RequestManagerTemplateTypeNotifyInputMessageAdded     = Notification of a new input message
+RequestManagerTemplateTypeNotifyOutputMessageAdded    = Notification of a new output message
+RequestManagerTemplateTypeMessageTemplateUser         = Message model
 
 ############################################################
 ### Errors

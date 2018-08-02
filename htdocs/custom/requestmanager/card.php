@@ -1031,7 +1031,7 @@ if (empty($reshook)) {
             exit();
         }
 
-        $action = '';
+        $action = 'premessage';
     }
     else if ($action == 'add_contact' && $user->rights->requestmanager->creer && $object->statut_type != RequestManager::STATUS_TYPE_CLOSED && $object->statut_type != selfRequestManagerSTATUS_TYPE_RESOLVED) {
         $object->add_contact_action(intval(GETPOST('add_contact_type_id')));

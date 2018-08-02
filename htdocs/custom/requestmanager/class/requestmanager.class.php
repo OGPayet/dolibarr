@@ -1873,6 +1873,35 @@ class RequestManager extends CommonObject
 
 
     /**
+     *  Load all dictionary lines from knwoladge base
+     *
+     * @param	int		    $categorie          [-1] for all categories or Id of the categorie
+     * @return	array       Dictionary lines
+     */
+    public function fetchAllDictionaryLinesForKnowledgeBase($categorie = -1)
+    {
+        $lines = array();
+
+        dol_include_once('/advancedictionaries/class/dictionary.class.php');
+
+        $dictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagerknowledgebase');
+
+        $filters = array();
+        $filters['request_type'] = array($this->fk_type);
+        if ($categorie >= 0) {
+            $filters['categorie'] = array($categorie);
+        }
+        $resultLines = $dictionary->fetch_lines(1, $filters, array('position' => 'ASC'), 0, 0, false, true);
+
+        if (is_array($resultLines)) {
+            $lines = $resultLines;
+        }
+
+        return $lines;
+    }
+
+
+    /**
      * Sets object to supplied categories.
      *
      * Deletes object from existing categories not supplied.

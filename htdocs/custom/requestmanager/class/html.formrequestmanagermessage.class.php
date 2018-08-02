@@ -186,7 +186,7 @@ class FormRequestManagerMessage
      */
     function get_message_form($actioncomm, $actionurl, $type_template='message_template_user', $template_id=0, $parameters=array(), $addfileaction='addfile', $removefileaction='removefile')
     {
-        global $conf, $langs, $user, $hookmanager, $form;
+        global $langs, $user, $hookmanager, $form;
 
         if (!is_object($form)) $form = new Form($this->db);
 
@@ -195,13 +195,13 @@ class FormRequestManagerMessage
         $hookmanager->initHooks(array('formrequestmanagermessage'));
 
         $parameters = array(
-            'actioncomm' => $actioncomm,
-            'actionurl' => $actionurl,
-            'type_template' => $type_template,
-            'template_id' => $template_id,
+            'actioncomm' => &$actioncomm,
+            'actionurl' => &$actionurl,
+            'type_template' => &$type_template,
+            'template_id' => &$template_id,
             'parameters' => $parameters,
-            'addfileaction' => $addfileaction,
-            'removefileaction' => $removefileaction,
+            'addfileaction' => &$addfileaction,
+            'removefileaction' => &$removefileaction,
         );
         $reshook = $hookmanager->executeHooks('getFormMail', $parameters, $this);
         if (!empty($reshook)) {
@@ -234,6 +234,28 @@ class FormRequestManagerMessage
             }
         }
 
+
+        $out .= '<div class="center" style="padding: 0px 0 12px 0">' . "\n";
+        // Select knowledge base
+        //----------------------
+        // TODO : order first requestmanager tags/categories in dictionary and then position
+        // first retrieve all tags/categories in request (fk_categorie from categorie_requestmanager on fk_requestmaner = $this->requestmanager->id) -- ex : 8 = DREAMTEC
+        // get fk_target = fk_categorie from c_requestmanager_knowledge_base_cbl_categorie (use dictionary)
+        $knowledgeBaseSelectedId = GETPOST('knowledge_base_selected', 'int')?GETPOST('knowledge_base_selected', 'int'):0;
+        $knowledgeBaseLineList   = array();
+        $knowledgeBaseSelectList = array();
+        $knowledgeBaseLines      = $this->requestmanager->fetchAllDictionaryLinesForKnowledgeBase();
+        foreach ($knowledgeBaseLines as $knowledgeBaseLine) {
+            $knowledgeBaseLineList[$knowledgeBaseLine->id]   = $knowledgeBaseLine->fields;
+            $knowledgeBaseSelectList[$knowledgeBaseLine->id] = $knowledgeBaseLine->fields['title'];
+        }
+        $out .= $langs->trans('RequestManagerSelectKnowledgeBase') . ': ';
+        if (count($knowledgeBaseSelectList) > 0) {
+            $out .= $form->selectarray('knowledge_base_selected', $knowledgeBaseSelectList, $knowledgeBaseSelectedId, 1);
+        } else {
+            $out .= '<select name="modelmailselected" disabled="disabled"><option value="none">' . $langs->trans("RequestManagerNoTemplateDefined") . '</option></select>';
+        }
+
         // Select template
         //-----------------
         $result = $this->fetchAllTemplate($this->requestmanager->fk_type, $type_template);
@@ -244,7 +266,7 @@ class FormRequestManagerMessage
         foreach ($this->templates_list as $line) {
             $template_array[$line->id] = $line->fields['label'];
         }
-        $out .= '<div class="center" style="padding: 0px 0 12px 0">' . "\n";
+        $out .= '&nbsp;&nbsp;-&nbsp;&nbsp;';
         $out .= $langs->trans('RequestManagerSelectTemplate') . ': ';
         if (count($template_array) > 0) {
             $out .= $form->selectarray('message_template_selected', $template_array, $template_id, 1);
@@ -252,15 +274,21 @@ class FormRequestManagerMessage
             $out .= '<select name="modelmailselected" disabled="disabled"><option value="none">' . $langs->trans("RequestManagerNoTemplateDefined") . '</option></select>';
         }
         if ($user->admin) $out .= info_admin($langs->trans("YouCanChangeValuesForThisListFrom", $langs->transnoentitiesnoconv('Setup') . ' - ' . $langs->transnoentitiesnoconv('Module163018Name')), 1);
-        $out .= ' &nbsp; ';
-        $out .= '<input class="button" type="button" value="' . $langs->trans('Apply') . '" name="template_selected" id="template_selected"' . (count($template_array) > 0 ? '' : ' disabled="disabled"') . '>';
+
+        // btn apply
+        $out .= '&nbsp;&nbsp;';
+        $out .= '<input class="button" type="button" value="' . $langs->trans('Apply') . '" id="btn_apply" name="btn_apply" ' . (count($template_array) > 0 ? '' : ' disabled="disabled"') . '>';
         $out .= ' &nbsp; ';
         $out .= '</div>';
         $out .= '<script type="text/javascript" language="javascript">';
         $out .= 'jQuery(document).ready(function() {';
-        $out .= '    jQuery("#template_selected").click(function() {';
+        $out .= '    jQuery("#btn_apply").click(function() {';
         $out .= '        jQuery("#action").val("premessage");';
-        $out .= '        jQuery("#actioncomm").val("message_template_apply");';
+        $out .= '        if (jQuery("#knowledge_base_selected").val()!==undefined && jQuery("#knowledge_base_selected").val()>0) {';
+        $out .= '           jQuery("#actioncomm").val("knowledge_base_apply");';
+        $out .= '        } else {';
+        $out .= '           jQuery("#actioncomm").val("message_template_apply");';
+        $out .= '        }';
         $out .= '        jQuery("#requestmanagermessageform").submit();';
         $out .= '    });';
         $out .= '})';
@@ -322,14 +350,22 @@ class FormRequestManagerMessage
 	}
 
         // Get message template
-        $default_message = $this->getEMailTemplate($template_id);
+        $default_message['subject'] = '';
+        $default_message['boby']    = '';
+        if ($knowledgeBaseSelectedId > 0) {
+            $default_message['subject'] = $knowledgeBaseLineList[$knowledgeBaseSelectedId]['title'];
+            $default_message['boby'] = $knowledgeBaseLineList[$knowledgeBaseSelectedId]['description'];
+        } else if ($template_id > 0) {
+            $default_message = $this->getEMailTemplate($template_id);
+        }
         $this->setSubstitFromObject($this->requestmanager);
 
         // Subject
         //-----------------
-        $subject = GETPOST('message_subject', 'alpha', 2) ? GETPOST('message_subject', 'alpha', 2) : '';
-        if (empty($subject)) {
-            $subject = !empty($default_message['subject']) ? make_substitutions($default_message['subject'], $this->substit) : '';
+        if (!empty($default_message['subject'])) {
+            $subject = make_substitutions($default_message['subject'], $this->substit);
+        } else {
+            $subject = GETPOST('message_subject', 'alpha', 2) ? GETPOST('message_subject', 'alpha', 2) : '';
         }
         $out .= '<tr>';
         $out .= '<td class="fieldrequired" width="180">' . $langs->trans("RequestManagerMessageSubject") . '</td>';
@@ -368,9 +404,10 @@ class FormRequestManagerMessage
 
         // Message
         //-----------------
-        $message_body = GETPOST('message_body', 'alpha', 2) ? GETPOST('message_body', 'alpha', 2) : '';
-        if (empty($message_body)) {
-            $message_body = !empty($default_message['boby']) ? make_substitutions($default_message['boby'], $this->substit) : '';
+        if (!empty($default_message['boby'])) {
+            $message_body = make_substitutions($default_message['boby'], $this->substit);
+        } else {
+            $message_body = GETPOST('message_body', 'alpha', 2) ? GETPOST('message_body', 'alpha', 2) : '';
         }
         if (!empty($message_body)) {
             // Clean first \n and br (to avoid empty line when CONTACTCIVNAME is empty)
