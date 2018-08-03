@@ -237,15 +237,22 @@ class FormRequestManagerMessage
         $out .= '<div class="center" style="padding: 0px 0 12px 0">' . "\n";
         // Select knowledge base
         //----------------------
-        $knowledgeBaseSelectedId  = GETPOST('knowledge_base_selected', 'int');
+        $knowledgeBaseSelectedId  = strlen(GETPOST('knowledge_base_selected')) ? GETPOST('knowledge_base_selected', 'int') : -1;
         $knowledgeBaseOrderedList = $this->requestmanager->fetchAllDictionaryLinesForKnowledgeBaseAndOrderBy(array('nb_categorie' => SORT_DESC));
         $knowledgeBaseSelectList  = array_column($knowledgeBaseOrderedList, 'title');
-        $out .= $langs->trans('RequestManagerSelectKnowledgeBase') . ': ';
-        if (count($knowledgeBaseSelectList) > 0) {
+        $out .= $langs->trans('RequestManagerSelectKnowledgeBase') . ' : ';
+        if ($nbKnowledgeBase = count($knowledgeBaseSelectList) > 0) {
             $out .= $form->selectarray('knowledge_base_selected', $knowledgeBaseSelectList, $knowledgeBaseSelectedId, 1);
         } else {
             $out .= '<select name="modelmailselected" disabled="disabled"><option value="-1">' . $langs->trans("RequestManagerNoTemplateDefined") . '</option></select>';
         }
+        $out .= '<script type="text/javascript" language="javascript">';
+        $out .= 'jQuery(document).ready(function() {';
+        $out .= '   jQuery("#knowledge_base_selected").change(function() {';
+        $out .= '       jQuery("#message_template_selected").val("-1");';
+        $out .= '   });';
+        $out .= '});';
+        $out .= '</script>' . "\n";
 
         // Select template
         //-----------------
@@ -257,18 +264,25 @@ class FormRequestManagerMessage
         foreach ($this->templates_list as $line) {
             $template_array[$line->id] = $line->fields['label'];
         }
-        $out .= '&nbsp;&nbsp;-&nbsp;&nbsp;';
-        $out .= $langs->trans('RequestManagerSelectTemplate') . ': ';
-        if (count($template_array) > 0) {
+        $out .= '&nbsp;&nbsp;|&nbsp;&nbsp;';
+        $out .= $langs->trans('RequestManagerSelectTemplate') . ' : ';
+        if ($nTemplate = count($template_array) > 0) {
             $out .= $form->selectarray('message_template_selected', $template_array, $template_id, 1);
         } else {
             $out .= '<select name="modelmailselected" disabled="disabled"><option value="-1">' . $langs->trans("RequestManagerNoTemplateDefined") . '</option></select>';
         }
         if ($user->admin) $out .= info_admin($langs->trans("YouCanChangeValuesForThisListFrom", $langs->transnoentitiesnoconv('Setup') . ' - ' . $langs->transnoentitiesnoconv('Module163018Name')), 1);
+        $out .= '<script type="text/javascript" language="javascript">';
+        $out .= 'jQuery(document).ready(function() {';
+        $out .= '   jQuery("#message_template_selected").change(function() {';
+        $out .= '       jQuery("#knowledge_base_selected").val("-1");';
+        $out .= '   });';
+        $out .= '});';
+        $out .= '</script>' . "\n";
 
         // btn apply
         $out .= '&nbsp;&nbsp;';
-        $out .= '<input class="button" type="button" value="' . $langs->trans('Apply') . '" id="btn_apply" name="btn_apply" ' . (count($template_array) > 0 ? '' : ' disabled="disabled"') . '>';
+        $out .= '<input class="button" type="button" value="' . $langs->trans('Apply') . '" id="btn_apply" name="btn_apply" ' . ($nbKnowledgeBase || $nTemplate > 0 ? '' : ' disabled="disabled"') . '>';
         $out .= ' &nbsp; ';
         $out .= '</div>';
         $out .= '<script type="text/javascript" language="javascript">';
