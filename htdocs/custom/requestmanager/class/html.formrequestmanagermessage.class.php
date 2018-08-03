@@ -234,26 +234,17 @@ class FormRequestManagerMessage
             }
         }
 
-
         $out .= '<div class="center" style="padding: 0px 0 12px 0">' . "\n";
         // Select knowledge base
         //----------------------
-        // TODO : order first requestmanager tags/categories in dictionary and then position
-        // first retrieve all tags/categories in request (fk_categorie from categorie_requestmanager on fk_requestmaner = $this->requestmanager->id) -- ex : 8 = DREAMTEC
-        // get fk_target = fk_categorie from c_requestmanager_knowledge_base_cbl_categorie (use dictionary)
-        $knowledgeBaseSelectedId = GETPOST('knowledge_base_selected', 'int')?GETPOST('knowledge_base_selected', 'int'):0;
-        $knowledgeBaseLineList   = array();
-        $knowledgeBaseSelectList = array();
-        $knowledgeBaseLines      = $this->requestmanager->fetchAllDictionaryLinesForKnowledgeBase();
-        foreach ($knowledgeBaseLines as $knowledgeBaseLine) {
-            $knowledgeBaseLineList[$knowledgeBaseLine->id]   = $knowledgeBaseLine->fields;
-            $knowledgeBaseSelectList[$knowledgeBaseLine->id] = $knowledgeBaseLine->fields['title'];
-        }
+        $knowledgeBaseSelectedId  = GETPOST('knowledge_base_selected', 'int');
+        $knowledgeBaseOrderedList = $this->requestmanager->fetchAllDictionaryLinesForKnowledgeBaseAndOrderBy(array('nb_categorie' => SORT_DESC));
+        $knowledgeBaseSelectList  = array_column($knowledgeBaseOrderedList, 'title');
         $out .= $langs->trans('RequestManagerSelectKnowledgeBase') . ': ';
         if (count($knowledgeBaseSelectList) > 0) {
             $out .= $form->selectarray('knowledge_base_selected', $knowledgeBaseSelectList, $knowledgeBaseSelectedId, 1);
         } else {
-            $out .= '<select name="modelmailselected" disabled="disabled"><option value="none">' . $langs->trans("RequestManagerNoTemplateDefined") . '</option></select>';
+            $out .= '<select name="modelmailselected" disabled="disabled"><option value="-1">' . $langs->trans("RequestManagerNoTemplateDefined") . '</option></select>';
         }
 
         // Select template
@@ -271,7 +262,7 @@ class FormRequestManagerMessage
         if (count($template_array) > 0) {
             $out .= $form->selectarray('message_template_selected', $template_array, $template_id, 1);
         } else {
-            $out .= '<select name="modelmailselected" disabled="disabled"><option value="none">' . $langs->trans("RequestManagerNoTemplateDefined") . '</option></select>';
+            $out .= '<select name="modelmailselected" disabled="disabled"><option value="-1">' . $langs->trans("RequestManagerNoTemplateDefined") . '</option></select>';
         }
         if ($user->admin) $out .= info_admin($langs->trans("YouCanChangeValuesForThisListFrom", $langs->transnoentitiesnoconv('Setup') . ' - ' . $langs->transnoentitiesnoconv('Module163018Name')), 1);
 
@@ -284,7 +275,7 @@ class FormRequestManagerMessage
         $out .= 'jQuery(document).ready(function() {';
         $out .= '    jQuery("#btn_apply").click(function() {';
         $out .= '        jQuery("#action").val("premessage");';
-        $out .= '        if (jQuery("#knowledge_base_selected").val()!==undefined && jQuery("#knowledge_base_selected").val()>0) {';
+        $out .= '        if (jQuery("#knowledge_base_selected").val()!==undefined && jQuery("#knowledge_base_selected").val()>=0) {';
         $out .= '           jQuery("#actioncomm").val("knowledge_base_apply");';
         $out .= '        } else {';
         $out .= '           jQuery("#actioncomm").val("message_template_apply");';
@@ -352,9 +343,9 @@ class FormRequestManagerMessage
         // Get message template
         $default_message['subject'] = '';
         $default_message['boby']    = '';
-        if ($knowledgeBaseSelectedId > 0) {
-            $default_message['subject'] = $knowledgeBaseLineList[$knowledgeBaseSelectedId]['title'];
-            $default_message['boby'] = $knowledgeBaseLineList[$knowledgeBaseSelectedId]['description'];
+        if ($knowledgeBaseSelectedId >= 0) {
+            $default_message['subject'] = $knowledgeBaseOrderedList[$knowledgeBaseSelectedId]['title'];
+            $default_message['boby']    = $knowledgeBaseOrderedList[$knowledgeBaseSelectedId]['description'];
         } else if ($template_id > 0) {
             $default_message = $this->getEMailTemplate($template_id);
         }

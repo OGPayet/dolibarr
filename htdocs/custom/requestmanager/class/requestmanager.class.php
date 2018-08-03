@@ -1873,12 +1873,11 @@ class RequestManager extends CommonObject
 
 
     /**
-     *  Load all dictionary lines from knwoladge base
+     *  Load all dictionary lines from knwoladge base dictionary
      *
-     * @param	int		    $categorie          [-1] for all categories or Id of the categorie
      * @return	array       Dictionary lines
      */
-    public function fetchAllDictionaryLinesForKnowledgeBase($categorie = -1)
+    public function fetchAllDictionaryLinesForKnowledgeBase()
     {
         $lines = array();
 
@@ -1888,9 +1887,6 @@ class RequestManager extends CommonObject
 
         $filters = array();
         $filters['request_type'] = array($this->fk_type);
-        if ($categorie >= 0) {
-            $filters['categorie'] = array($categorie);
-        }
         $resultLines = $dictionary->fetch_lines(1, $filters, array('position' => 'ASC'), 0, 0, false, true);
 
         if (is_array($resultLines)) {
@@ -1898,6 +1894,79 @@ class RequestManager extends CommonObject
         }
 
         return $lines;
+    }
+
+    /**
+     * Load all ordered dictionary lines with fields from knowledge base dictionary
+     *
+     * @param   array   $orderByList    Order by (ex : array('nb_categorie' => SORT_DESC, 'position' => SORT_ASC))
+     * @return  array   Ordered list lines with fields of this dictionary
+     */
+    public function fetchAllDictionaryLinesForKnowledgeBaseAndOrderBy($orderByList = array())
+    {
+        $knowledgeBaseOrderedList = array();
+
+        // load dictionary lines of the type of request (order by position)
+        $knowledgeBaseLines = $this->fetchAllDictionaryLinesForKnowledgeBase();
+
+        if (count($knowledgeBaseLines) > 0) {
+            $countCategories = FALSE;
+            if (key_exists('nb_categorie', $orderByList)) {
+                $countCategories = TRUE;
+                // load categories id list in the request
+                $categorieRequestIdList = $this->loadCategorieList('id');
+            }
+
+            foreach ($knowledgeBaseLines as $knowledgeBaseLine) {
+                $nbCategorieRequestInKnowledgeBase = 0;
+                if ($countCategories === TRUE) {
+                    // count categories of the request that are in dictionary lines
+                    $knowledgeBaseCategorieIdList = explode(',', $knowledgeBaseLine->fields['categorie']);
+                    foreach ($categorieRequestIdList as $categorieId) {
+                        if (in_array($categorieId, $knowledgeBaseCategorieIdList)) {
+                            $nbCategorieRequestInKnowledgeBase++;
+                        }
+                    }
+                }
+
+                $knowledgeBaseOrderedList[] = array('id' => $knowledgeBaseLine->id, 'code' => $knowledgeBaseLine->fields['code'], 'title' => $knowledgeBaseLine->fields['title'], 'position' => $knowledgeBaseLine->fields['position'], 'description' => $knowledgeBaseLine->fields['description'], 'nb_categorie' => $nbCategorieRequestInKnowledgeBase);
+            }
+
+            if (count($orderByList) > 0) {
+                $eval = 'array_multisort(';
+                foreach ($orderByList as $field => $orderBy) {
+                    $eval .= 'array_column($knowledgeBaseOrderedList, "' . $field . '"), ' . $orderBy . ', ';
+                }
+                $eval .= '$knowledgeBaseOrderedList);';
+                eval($eval);
+            }
+        }
+
+        return $knowledgeBaseOrderedList;
+    }
+
+
+    /**
+     * Load categories list
+     *
+     * @param   string  $mode   [='object'] Get array of fetched category instances, 'id'=Get array of category ids, 'label'=Get array of category labels
+     * @return  array   List of categories
+     */
+    public function loadCategorieList($mode='object')
+    {
+        $categorieList = array();
+
+        dol_include_once('/requestmanager/class/categorierequestmanager.class.php');
+
+        $categorieRequestManager = new CategorieRequestManager($this->db);
+
+        $resultList = $categorieRequestManager->containing($this->id, CategorieRequestManager::TYPE_REQUESTMANAGER, $mode);
+
+        if (is_array($resultList)) {
+            $categorieList = $resultList;
+        }
+
+        return $categorieList;
     }
 
 
