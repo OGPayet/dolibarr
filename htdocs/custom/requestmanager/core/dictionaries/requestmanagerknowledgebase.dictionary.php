@@ -219,7 +219,7 @@ class RequestManagerKnowledgeBaseDictionary extends Dictionary
             'td_input' => array(
                 'moreAttributes' => 'width="20%"'
             ),
-            'is_require' => true
+            'is_require' => false
         );
 
         $this->fields['request_type'] = array(
