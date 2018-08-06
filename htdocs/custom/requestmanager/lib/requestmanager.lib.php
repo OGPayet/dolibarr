@@ -1385,9 +1385,9 @@ function requestmanager_get_elements_infos()
             'picto' => '',
         ),
         'propal' => array(
-            'label' => '',
-            'langs' => array(),
-            'picto' => '',
+            'label' => 'Propal',
+            'langs' => array('propal'),
+            'picto' => 'object_propal',
         ),
         'propal_merge_pdf_product' => array(
             'label' => '',
