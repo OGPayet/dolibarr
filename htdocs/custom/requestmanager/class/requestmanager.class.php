@@ -574,6 +574,13 @@ class RequestManager extends CommonObject
                 }
             }
 
+            // Add linked contracts
+            $ret = $this->addContract();
+            if ($ret < 0) {
+                $this->errors[] = $this->db->lasterror();
+                $error++;
+            }
+
             if (!$error && !empty($this->requester_ids)) {
                 // Set requester contacts
                 foreach ($this->requester_ids as $requester) {
@@ -894,60 +901,77 @@ class RequestManager extends CommonObject
 
 
     /**
-     *	Fetch array of objects linked to current object. Links are loaded into this->linkedObjects array and this->linkedObjectsIds
-     *  Possible usage for parameters:
-     *  - all parameters empty -> we look all link to current object (current object can be source or target)
-     *  - source id+type -> will get target list linked to source
-     *  - target id+type -> will get source list linked to target
-     *  - source id+type + target type -> will get target list of the type
-     *  - target id+type + target source -> will get source list of the type
+     * Add contracts of thirdparty and thirdparty parent (if set in module configuration)
      *
-     *	@param	int		$sourceid		Object source id (if not defined, id of object)
-     *	@param  string	$sourcetype		Object source type (if not defined, element name of object)
-     *	@param  int		$targetid		Object target id (if not defined, id of object)
-     *	@param  string	$targettype		Object target type (if not defined, elemennt name of object)
-     *	@param  string	$clause			'OR' or 'AND' clause used when both source id and target id are provided
-     *  @param	int		$alsosametype	0=Return only links to object that differs from source. 1=Include also link to objects of same type.
-     *	@return	void
-     *  @see	add_object_linked, updateObjectLinked, deleteObjectLinked
+     * @param   int     $socId          [=0] Id of request thirdparty or specific thirdparty if > 0
+     * @param   bool    $confChecked    [=FALSE] if configuration not checked yet, TRUE if configuration already checked
+     * @return  int     <0 if KO,       <0 if KO, 0 if nothing to link, >0 Id of the last contract linked if OK
      */
-    public function fetchObjectLinked($sourceid=null, $sourcetype='', $targetid=null, $targettype='', $clause='OR', $alsosametype=1)
+    public function addContract($socId=0, $confChecked=FALSE)
     {
         global $conf;
 
-        parent::fetchObjectLinked($sourceid, $sourcetype, $targetid, $targettype, $clause, $alsosametype);
+        if ($confChecked===FALSE && empty($conf->contrat->enabled)) {
+            return 0;
+        }
 
-        // add contract objects
-        if ($conf->contrat->enabled) {
-            require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
-            require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
+        require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
 
-            $societe = new Societe($this->db);
-            $societe->fetch($this->socid);
+        $contractId = 0;
+        if (!($socId > 0)) {
+            $socId = $this->socid;
+        }
 
-            $sql  = "SELECT c.rowid, c.ref";
-            $sql .= " FROM " . MAIN_DB_PREFIX . "contrat as c";
-            $sql .= " INNER JOIN " . MAIN_DB_PREFIX . "societe as s ON s.rowid = c.fk_soc";
-            $sql .= " WHERE c.entity = " . $conf->entity;
-            if (empty($conf->global->REQUESTMANAGER_CONTRACT_SEARCH_IN_PARENT_COMPANY)) {
-                $sql .= " AND s.rowid = " . $this->socid;
-            } else {
-                // add search in parent company
-                $sql .= " AND (s.rowid = " . $this->socid . " OR s.rowid = " . $societe->parent . ")";
-            }
-            $sql .= " ORDER BY c.rowid DESC";
+        $contrat = new Contrat($this->db);
+        $contrat->socid = $socId;
+        $list = $contrat->getListOfContracts();
+        if ($list < 0) {
+            return -1;
+        }
 
-            $resql = $this->db->query($sql);
-            if ($resql) {
-                while($obj = $this->db->fetch_object($resql)) {
-                    $contrat = new Contrat($this->db);
-                    $contrat->fetch($obj->rowid);
-                    $this->linkedObjects['contrat'][] = $contrat;
+        foreach ($list as $contract) {
+            if ($contract->statut == 1) { // draft(0) validated(1) and closed(2)
+                $contractId = $contract->id;
+                $result = $this->setContract($contract->id);
+                if ($result < 0) {
+                    return -1;
                 }
             }
         }
 
-        // TODO : add equipement objects
+        if (!empty($conf->global->REQUESTMANAGER_CONTRACT_SEARCH_IN_PARENT_COMPANY)) {
+            require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
+            $thirdparty = new Societe($this->db);
+            $thirdparty->fetch($socId);
+            if ($thirdparty->parent > 0) {
+                $contractId = $this->addContract($thirdparty->parent, TRUE);
+                if ($contractId < 0) {
+                    return -1;
+                }
+            }
+        }
+
+        return $contractId;
+    }
+
+
+    /**
+     * Link element with a contract
+     *
+     * @param  int      $contractId             Contract id to link element to
+     * @return int      <0 if KO, >0 if OK
+     */
+    public function setContract($contractId)
+    {
+        $result = $this->add_object_linked('contrat', $contractId);
+
+        if ($result <= 0) {
+            dol_syslog(__METHOD__, LOG_ERR);
+            return -1;
+        } else {
+            $this->fk_contract = $contractId;
+            return 1;
+        }
     }
 
 
