@@ -26,8 +26,8 @@ $db = $GLOBALS['db'];
 $linkedObjectBlock = $GLOBALS['linkedObjectBlock'];
 
 $langs->load("equipement@equipement");
-echo '<br>';
-print_titre($langs->trans('RelatedEquipement'));
+//echo '<br />';
+//print_titre($langs->trans('RelatedEquipement'));
 
 ?>
 <table class="noborder allwidth">
