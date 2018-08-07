@@ -52,7 +52,7 @@ class InterfaceRMNotification extends DolibarrTriggers
 	    if ($action == 'REQUESTMANAGER_STATUS_MODIFY') {
             dol_include_once('/requestmanager/class/requestmanager.class.php');
 
-            $result = $object->createActionCommAndNotifyFromTemplateType(RequestManager::TEMPLATE_TYPE_NOTIFY_STATUS_MODIFIED, RequestManager::ACTIONCOMM_TYPE_CODE_STAT, TRUE);
+            $result = $object->createActionCommAndNotifyFromTemplateType(RequestManager::TEMPLATE_TYPE_NOTIFY_STATUS_MODIFIED, RequestManager::ACTIONCOMM_TYPE_CODE_STAT);
 
             dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
 	        return $result;

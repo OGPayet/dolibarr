@@ -27,6 +27,7 @@
 
 require_once DOL_DOCUMENT_ROOT . '/core/class/commonobject.class.php';
 require_once DOL_DOCUMENT_ROOT . '/core/class/CMailFile.class.php';
+dol_include_once('/requestmanager/class/requestmanager.class.php');
 
 /**
  * Class RequestManagerNotification
@@ -53,17 +54,6 @@ class RequestManagerNotification extends CommonObject
     public $table_element = 'requestmanager_notification';
     protected $ismultientitymanaged = 1;	// 0=No test on entity, 1=Test with field entity, 2=Test with link by societe
 
-    /**
-     * Error message
-     * @var string
-     */
-    public $error;
-
-    /**
-     * List of error message
-     * @var array
-     */
-    public $errors;
 
     /**
      * ID of the notification
@@ -113,7 +103,7 @@ class RequestManagerNotification extends CommonObject
      *
      * @return  string   From contact
      */
-    private static function _getSendFrom()
+    public static function getSendFrom()
     {
         global $conf;
 
@@ -129,23 +119,28 @@ class RequestManagerNotification extends CommonObject
     /**
      * Send a separate mail
      *
-     * @param   string      $subject    Subject of the mail
-     * @param   string      $message    [=''] Message of the mail (HTML format)
-     * @param   int         $isHtml     [=-1] plain text or HTML message
+     * @param   string      $subject        Subject of the mail
+     * @param   string      $message        [=''] Message of the mail (HTML format)
+     * @param   int         $isHtml         [=-1] plain text or HTML message
+     * @param   bool        $uniqueEmail    [=FALSE] Not Create unique mail list, TRUE to create unique email list
      * @return  int         <0 if KO, >0 if OK
      */
-    private function _mailSendSeparate($subject, $message = '', $isHtml = -1)
+    private function _mailSendSeparate($subject, $message = '', $isHtml = -1, $uniqueEmail = FALSE)
     {
         // from
-        $sendFrom = self::_getSendFrom();
+        $sendFrom = self::getSendFrom();
         if (!$sendFrom) {
-            $this->error = "No paramater sendFrom in configuration of RequestManager";
+            $this->errors[] = "No paramater sendFrom in configuration of RequestManager";
             dol_syslog(__METHOD__ . " Error : no parameter sendFrom in configuration of RequestManager", LOG_ERR);
             return -1;
         }
 
-        // send to list (with unique email)
-        $sendToList = self::_makeEmailUniqueListFromContactList($this->contactList);
+        // send to list
+        if ($uniqueEmail === FALSE) {
+            $sendToList = $this->contactList;
+        } else {
+            $sendToList = RequestManager::makeEmailUniqueListFromContactList($this->contactList);
+        }
         if (count($sendToList) <= 0) {
             dol_syslog( __METHOD__ . " Warning : Nobody to notify by mail", LOG_WARNING);
             return 1;
@@ -153,7 +148,7 @@ class RequestManagerNotification extends CommonObject
 
         // subject
         if (!$subject) {
-            $this->error = "No parameter subject";
+            $this->errors[] = "No parameter subject";
             dol_syslog(__METHOD__ . " Error : no parameter subject", LOG_ERR);
             return -1;
         }
@@ -163,11 +158,15 @@ class RequestManagerNotification extends CommonObject
             $result = $cMailFile->sendfile();
 
             if (!$result) {
-                $this->error = $cMailFile->error;
+                $this->errors[] = $cMailFile->error;
                 dol_syslog(__METHOD__ . " Error : mail not sent", LOG_ERR);
             } else {
                 dol_syslog(__METHOD__ . " mail sent", LOG_DEBUG);
             }
+        }
+
+        if (count($this->errors) > 0) {
+            return -1;
         }
 
         return 1;
@@ -177,23 +176,28 @@ class RequestManagerNotification extends CommonObject
     /**
      * Send a unique mail with copy carbone and blind copy carbone list
      *
-     * @param   string      $subject    Subject of the mail
-     * @param   string      $message    [=''] Message of the mail (HTML format)
-     * @param   int         $isHtml     [=-1] plain text or HTML message
+     * @param   string      $subject        Subject of the mail
+     * @param   string      $message        [=''] Message of the mail (HTML format)
+     * @param   int         $isHtml         [=-1] plain text or HTML message
+     * @param   bool        $uniqueEmail    [=FALSE] Not Create unique mail list, TRUE to create unique email list
      * @return  int         <0 if KO, >0 if OK
      */
-    private function _mailSendUnique($subject, $message = '', $isHtml = -1)
+    private function _mailSendUnique($subject, $message = '', $isHtml = -1, $uniqueEmail = FALSE)
     {
         // from
-        $sendFrom = self::_getSendFrom();
+        $sendFrom = self::getSendFrom();
         if (!$sendFrom) {
-            $this->error = "No paramater sendFrom";
+            $this->errors[] = "No paramater sendFrom";
             dol_syslog(__METHOD__ . " Error : no parameter sendFrom", LOG_ERR);
             return -1;
         }
 
-        // send to list (with unique email)
-        $sendToList = self::_makeEmailUniqueListFromContactList($this->contactList);
+        // send to list
+        if ($uniqueEmail === FALSE) {
+            $sendToList = $this->contactList;
+        } else {
+            $sendToList = RequestManager::makeEmailUniqueListFromContactList($this->contactList);
+        }
         if (count($sendToList) <= 0) {
             dol_syslog( __METHOD__ . " Nobody to notify by mail", LOG_WARNING);
             return 1;
@@ -202,21 +206,29 @@ class RequestManagerNotification extends CommonObject
 
         // subject
         if (!$subject) {
-            $this->error = "No parameter subject";
+            $this->errors[] = "No parameter subject";
             dol_syslog(__METHOD__ . " Error : no parameter subject", LOG_ERR);
             return -1;
         }
 
-        // copy carbone list (with unique email)
+        // copy carbone list
         $addrCc = '';
-        $addrCcList = self::_makeEmailUniqueListFromContactList($this->contactCcList, $sendToList);
+        if ($uniqueEmail === FALSE) {
+            $addrCcList = $this->contactCcList;
+        } else {
+            $addrCcList = RequestManager::makeEmailUniqueListFromContactList($this->contactCcList, $sendToList);
+        }
         if (count($addrCcList) > 0) {
             $addrCc = implode(' ,', $addrCcList);
         }
 
-        // blind copy carbone list (with unique email)
+        // blind copy carbone list
         $addrBcc = '';
-        $addrBccList = self::_makeEmailUniqueListFromContactList($this->contactBccList, array_merge($addrCcList, $sendToList));
+        if ($uniqueEmail === FALSE) {
+            $addrBccList = $this->contactBccList;
+        } else {
+            $addrBccList = RequestManager::makeEmailUniqueListFromContactList($this->contactBccList, array_merge($addrCcList, $sendToList));
+        }
         if (count($addrBccList) > 0) {
             $addrBcc = implode(' ,', $addrBccList);
         }
@@ -225,56 +237,13 @@ class RequestManagerNotification extends CommonObject
         $result = $cMailFile->sendfile();
 
         if (!$result) {
-            $this->error = $cMailFile->error;
+            $this->errors[] = $cMailFile->error;
             dol_syslog(__METHOD__ . " Error : mail not sent", LOG_ERR);
             return -1;
         } else {
             dol_syslog(__METHOD__ . " mail sent", LOG_DEBUG);
             return 1;
         }
-    }
-
-
-    /**
-     * Make contact email unique list
-     *
-     * @param   array   $contactList        Contact list
-     * @param   array   $notInEmailList     Not in email list
-     * @return  array   Contact unique email list
-     */
-    private static function _makeEmailUniqueListFromContactList($contactList, $notInEmailList = array())
-    {
-        $emailUniqueList = array();
-
-        // unique email list
-        foreach ($contactList as $contact) {
-            if ($contact->email && !in_array($contact->email, $emailUniqueList) && !in_array($contact->email, $notInEmailList)) {
-                if ($contact->email) {
-                    $emailUniqueList[] = $contact->email;
-                }
-            }
-        }
-
-        return $emailUniqueList;
-    }
-
-
-    /**
-     * Make a contact string for recipients of the message
-     *
-     * @param   array       $contactList        Contact list
-     * @return  string      Contact string for recipients of the message
-     */
-    private static function _makeEmailUniqueStringFromContactList($contactList)
-    {
-        $emailUniqueString = '';
-
-        $emailUniqueList = self::_makeEmailUniqueListFromContactList($contactList);
-        if (count($emailUniqueList) > 0) {
-            $emailUniqueString = implode(', ', $emailUniqueList);
-        }
-
-        return $emailUniqueString;
     }
 
 
@@ -306,13 +275,18 @@ class RequestManagerNotification extends CommonObject
         $sql .= $fkActionComm . ", " . $fkUser . ", " . $status;
         $sql .= ")";
 
+        $this->db->begin();
+
         $resql = $this->db->query($sql);
 
         if (!$resql) {
-            $this->error = $this->db->lasterror();
+            $this->errors[] = $this->db->lasterror();
             dol_syslog( __METHOD__ . " Error sql=" . $sql, LOG_ERR);
+            $this->db->rollback();
             return -1;
         }
+
+        $this->db->commit();
 
         return 1;
     }
@@ -335,13 +309,13 @@ class RequestManagerNotification extends CommonObject
      * @param   int     $fkActionComm        Id of ActionComm
      * @return  int     <0 if KO, >0 if OK
      */
-    public function notify($fkActionComm, $noTransaction = FALSE)
+    public function notify($fkActionComm)
     {
         $contactList = $this->contactList;
 
         if (count($contactList) > 0) {
 
-            if (!$noTransaction)    $this->db->begin();
+            $this->db->begin();
 
             foreach($contactList as $key => $contact) {
                 // only users
@@ -350,14 +324,14 @@ class RequestManagerNotification extends CommonObject
                     // create notification
                     $res = $this->create($fkActionComm, $contact->id);
 
-                    if (!$res) {
-                        if (!$noTransaction)    $this->db->rollback();
+                    if ($res < 0) {
+                        $this->db->rollback();
                         return -1;
                     }
                 }
             }
 
-            if (!$noTransaction)    $this->db->commit();
+            $this->db->commit();
         }
 
         return 1;
@@ -370,14 +344,15 @@ class RequestManagerNotification extends CommonObject
      * @param   string      $subject            Subject of message
      * @param   string      $message            Message content
      * @param   int         $separated          [=0] Send a unique mail, 1 = Send a mail for each recipient (send to)
+     * @param   bool        $uniqueEmail        [=FALSE] Not Create unique mail list, TRUE to create unique email list
      * @return  int         <0 if KO, >0 if OK
      */
-    public function notifyByMail($subject, $message, $separated = 0)
+    public function notifyByMail($subject, $message, $separated = 0, $uniqueEmail = FALSE)
     {
         if ($separated === 0) {
-            $result = $this->_mailSendUnique($subject, $message, 1);
+            $result = $this->_mailSendUnique($subject, $message, 1, $uniqueEmail);
         } else {
-            $result = $this->_mailSendSeparate($subject, $message, 1);
+            $result = $this->_mailSendSeparate($subject, $message, 1, $uniqueEmail);
         }
 
         return $result;

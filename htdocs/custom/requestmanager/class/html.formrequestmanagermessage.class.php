@@ -637,6 +637,13 @@ SCRIPT;
             $vars['__DATE_MODIFICATION__'] = '';
             $vars['__USER_CREATION_NAME__'] = '';
             $vars['__USER_MODIFICATION_NAME__'] = '';
+        } else {
+            // Mail
+            $substitutList = self::getAvailableSubstitKeyForMail();
+            foreach($substitutList as $key => $value)
+            {
+                $vars[$key] = $value;
+            }
         }
 
         $tmparray = getCommonSubstitutionArray($langs, 1, array('objectamount'));
@@ -655,5 +662,49 @@ SCRIPT;
         }
 
         return $vars;
+    }
+
+
+    /**
+     * Get subtitute list for mail
+     *
+     * @return  array
+     */
+    public static function getAvailableSubstitKeyForMail()
+    {
+        $substitList = array(
+            '__MAIL_FROM__'    => '',
+            '__MAIL_TO__'      => '',
+            '__MAIL_SUBJECT__' => '',
+            '__MAIL_CONTENT__' => '',
+            '__MAIL_CC_TO__'   => '',
+            '__MAIL_BCC_TO__'  => ''
+        );
+
+        return $substitList;
+    }
+
+
+    /**
+     * Set substitute keys for mail
+     *
+     * @param   $from           Sender email address
+     * @param   $to             Recipient email address
+     * @param   $subject        Subject of mail
+     * @param   $content        [=''] Content of mail
+     * @param   $ccTo           [=''] Copy carbone email address
+     * @param   $bccTo          [=''] Blind copy carbone email address
+     * @return  array
+     */
+    public static function setAvailableSubstitKeyForMail($from, $to, $subject, $content = '', $ccTo = '', $bccTo = '')
+    {
+        $substitList['__MAIL_FROM__']    = $from;
+        $substitList['__MAIL_TO__']      = $to;
+        $substitList['__MAIL_SUBJECT__'] = $subject;
+        $substitList['__MAIL_CONTENT__'] = $content;
+        $substitList['__MAIL_CC_TO__']   = $ccTo;
+        $substitList['__MAIL_BCC_TO__']  = $bccTo;
+
+        return $substitList;
     }
 }

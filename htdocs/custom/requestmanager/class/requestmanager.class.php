@@ -2332,15 +2332,38 @@ class RequestManager extends CommonObject
 
 
     /**
+     * Make contact email unique list
+     *
+     * @param   array   $contactList        Contact list
+     * @param   array   $notInEmailList     Not in email list
+     * @return  array   Contact unique email list
+     */
+    public static function makeEmailUniqueListFromContactList($contactList, $notInEmailList = array())
+    {
+        $emailUniqueList = array();
+
+        // unique email list
+        foreach ($contactList as $contact) {
+            if ($contact->email && !in_array($contact->email, $emailUniqueList) && !in_array($contact->email, $notInEmailList)) {
+                if ($contact->email) {
+                    $emailUniqueList[] = $contact->email;
+                }
+            }
+        }
+
+        return $emailUniqueList;
+    }
+
+
+    /**
      * Create new event in actioncomm for all type of messages
      *
      * @param   int     $typeCode       Code of message type (AC_RM_OUT, AC_RM_IN, etc)
      * @param   string  $label          Label of event
      * @param   string  $note           Note of event
-     * @param   bool    $noTransaction  [=FALSE] Use transaction in SQL requests, TRUE to desactivate transaction (ex :for triggers calls)
      * @return  int     <0 if KO, >0 if OK (idAction)
      */
-    private function _createActionComm($typeCode, $label, $note, $noTransaction = FALSE)
+    private function _createActionComm($typeCode, $label, $note)
     {
         global $langs, $user;
 
@@ -2365,15 +2388,15 @@ class RequestManager extends CommonObject
         }
         */
 
-        if (!$noTransaction)    $this->db->begin();
+        $this->db->begin();
         $idActionComm = $actionCom->create($user);
         if ($idActionComm > 0) {
             if ($actionCom->error) {
                 $langs->load("errors");
                 $this->error = $actionCom->error;
                 $this->errors = $actionCom->errors;
-                dol_syslog(get_class($this) . "::createActionComm Error create: " . $this->error, LOG_ERR);
-                if (!$noTransaction)    $this->db->rollback();
+                dol_syslog(__METHOD__ . " Error create: " . $this->error, LOG_ERR);
+                $this->db->rollback();
                 return -1;
             }
 
@@ -2383,12 +2406,12 @@ class RequestManager extends CommonObject
         } else {
             $this->error = $actionCom->error;
             $this->errors = $actionCom->errors;
-            dol_syslog(get_class($this) . "::createActionComm Error create: " . $this->error, LOG_ERR);
-            if (!$noTransaction)    $this->db->rollback();
+            dol_syslog(__METHOD__ . " Error create: " . $this->error, LOG_ERR);
+            $this->db->rollback();
             return -1;
         }
 
-        if (!$noTransaction)    $this->db->commit();
+        $this->db->commit();
         return $idActionComm;
     }
 
@@ -2401,10 +2424,10 @@ class RequestManager extends CommonObject
      * @param   int     $messageNotifyByMail    If send a mail to contacts requesters and watchers
      * @param   string  $messageSubject         Mail subject
      * @param   string  $messageBody            Mail content
-     * @param   bool    $noTransaction          [=FALSE] Use transaction in SQL requests, TRUE to desactivate transaction (ex :for triggers calls)
+     * @param   bool    $mailSubstitut          [=FALSE] not to subtitute mail variables, TRUE to substitute mail variables
      * @return  int     <0 if KO, >0 if OK
      */
-    private function _createActionCommAndNotify($actionCommTypeCode, $actionCommLabel, $actionCommNote, $messageNotifyByMail, $messageSubject, $messageBody, $noTransaction = FALSE)
+    private function _createActionCommAndNotify($actionCommTypeCode, $actionCommLabel, $actionCommNote, $messageNotifyByMail, $messageSubject, $messageBody, $mailSubstitut = FALSE)
     {
         global $langs, $conf;
 
@@ -2412,10 +2435,33 @@ class RequestManager extends CommonObject
 
         $error = 0;
 
-        // create new event
         $langs->load('requestmanager@requestmanager');
-        if (!$noTransaction)    $this->db->begin();
-        $idActionComm = $this->_createActionComm($actionCommTypeCode, $actionCommLabel, $actionCommNote, $noTransaction);
+
+        // make contact list to notify by mail
+        $contactToNotifyByMailList   = array();
+        $contactCcToNotifyByMailList = array();
+        if ($messageNotifyByMail === 1) {
+            $contactToNotifyByMailList = self::makeEmailUniqueListFromContactList($this->getContactRequestersToNotifyList(1));
+            if (count($contactToNotifyByMailList) > 0) {
+                $contactCcToNotifyByMailList = self::makeEmailUniqueListFromContactList($this->getContactWatchersToNotifyList(1), $contactToNotifyByMailList);
+            } else {
+                $contactToNotifyByMailList = self::makeEmailUniqueListFromContactList($this->getContactWatchersToNotifyList(1));
+            }
+        }
+
+        // substitute mail variables
+        if ($mailSubstitut === TRUE)
+        {
+            $mailTo          = implode(', ', $contactToNotifyByMailList);
+            $mailCcTo        = implode(', ', $contactCcToNotifyByMailList);
+            $substitut       = FormRequestManagerMessage::setAvailableSubstitKeyForMail(RequestManagerNotification::getSendFrom(), $mailTo, $messageSubject, $messageBody, $mailCcTo);
+            $actionCommLabel = make_substitutions($actionCommLabel, $substitut);
+            $actionCommNote  = make_substitutions($actionCommNote, $substitut);
+        }
+
+        // create new event
+        $this->db->begin();
+        $idActionComm = $this->_createActionComm($actionCommTypeCode, $actionCommLabel, $actionCommNote);
         if ($idActionComm < 0) {
             $error++;
         }
@@ -2423,63 +2469,50 @@ class RequestManager extends CommonObject
         if (!$error) {
             // user or group assigned to notify (save in database)
             $requestManagerNotification = new RequestManagerNotification($this->db);
-            $requestManagerNotification->contactList = $this->getUserToNotifyList(1);
+            $contactToNotifyList = $this->getUserToNotifyList(1);
+            $requestManagerNotification->contactList = $contactToNotifyList;
 
             // if we have at least one user to notify
             if (count($requestManagerNotification->contactList) > 0) {
                 if (!empty($conf->global->REQUESTMANAGER_NOTIFICATION_USERS_IN_DB)) {
                     // notify the assigned user if different of user (save in database)
-                    $result = $requestManagerNotification->notify($idActionComm, $noTransaction);
+                    $result = $requestManagerNotification->notify($idActionComm);
                     if ($result < 0) {
                         $error++;
-                        $this->error = $requestManagerNotification->error;
-                        $this->errors[] = $this->error;
+                        $this->errors = $requestManagerNotification->errors;
                     }
                 }
 
                 if (!empty($conf->global->REQUESTMANAGER_NOTIFICATION_BY_MAIL)) {
                     // send a mail
+                    $requestManagerNotification->contactList = self::makeEmailUniqueListFromContactList($contactToNotifyList);
                     $result = $requestManagerNotification->notifyByMail($messageSubject, $messageBody, 1);
                     if ($result < 0) {
                         $error++;
-                        $this->error = $requestManagerNotification->error;
-                        $this->errors[] = $this->error;
+                        $this->errors = $requestManagerNotification->errors;
                     }
                 }
             }
 
             // notify by mail
-            if (!$error && $messageNotifyByMail === 1) {
+            if (!$error && count($contactToNotifyByMailList)>0) {
                 // send to requesters (sendto) and watchers (copy carbone) to notify
-                $atLeastOneContactToNotify = FALSE;
-                $requestManagerNotification->contactList = $this->getContactRequestersToNotifyList(1);
-                if (count($requestManagerNotification->contactList) > 0) {
-                    $atLeastOneContactToNotify = TRUE;
-                    $requestManagerNotification->contactCcList = $this->getContactWatchersToNotifyList(1);
-                } else {
-                    $requestManagerNotification->contactList = $this->getContactWatchersToNotifyList(1);
-                    if (count($requestManagerNotification->contactList) > 0) {
-                        $atLeastOneContactToNotify = TRUE;
-                    }
-                }
-
-                if ($atLeastOneContactToNotify) {
-                    $result = $requestManagerNotification->notifyByMail($messageSubject, $messageBody);
-                    if ($result < 0) {
-                        $error++;
-                        $this->error = $requestManagerNotification->error;
-                        $this->errors[] = $this->error;
-                    }
+                $requestManagerNotification->contactList   = $contactToNotifyByMailList;
+                $requestManagerNotification->contactCcList = $contactCcToNotifyByMailList;
+                $result = $requestManagerNotification->notifyByMail($messageSubject, $messageBody);
+                if ($result < 0) {
+                    $error++;
+                    $this->errors[] = $requestManagerNotification->errors;
                 }
             }
         }
 
         if ($error) {
-            if (!$noTransaction)    $this->db->rollback();
+            $this->db->rollback();
             return -1;
         }
 
-        if (!$noTransaction)    $this->db->commit();
+        $this->db->commit();
         return 1;
     }
 
@@ -2553,10 +2586,9 @@ class RequestManager extends CommonObject
      *
      * @param   string      $templateType           Template type (ex : RequestManager::TEMPLATE_TYPE_NOTIFY_STATUS_MODIFIED)
      * @param   string      $actionCommTypeCode     Code of message type (AC_RM_OUT, AC_RM_IN, etc)
-     * @param   bool        $noTransaction          [=FALSE] Use transaction in SQL requests, TRUE to desactivate transaction (ex :for triggers calls)
      * @return  int         <0 if KO, >0 if OK
      */
-    public function createActionCommAndNotifyFromTemplateType($templateType, $actionCommTypeCode, $noTransaction = FALSE)
+    public function createActionCommAndNotifyFromTemplateType($templateType, $actionCommTypeCode)
     {
         // get substitute values in input message template
         $substituteList = $this->_substituteNotificationMessageTemplate($templateType);
@@ -2565,7 +2597,7 @@ class RequestManager extends CommonObject
         }
 
         // create event and notify users and send mail to contacts requesters and watchers (if notified)
-        $result = $this->_createActionCommAndNotify($actionCommTypeCode, $substituteList['subject'], $substituteList['boby'], 1, $substituteList['subject'], $substituteList['boby'], $noTransaction);
+        $result = $this->_createActionCommAndNotify($actionCommTypeCode, $substituteList['subject'], $substituteList['boby'], 1, $substituteList['subject'], $substituteList['boby']);
         if ($result < 0) {
             return -1;
         }
@@ -2582,10 +2614,9 @@ class RequestManager extends CommonObject
      * @param   int         $messageNotifyByMail    If send a mail to contacts requesters and watchers
      * @param   string      $messageSubject         Mail subject
      * @param   string      $messageBody            Mail content
-     * @param   bool        $noTransaction          [=FALSE] Use transaction in SQL requests, TRUE to desactivate transaction (ex :for triggers calls)
      * @return  int         <0 if KO, >0 if OK
      */
-    public function createActionCommAndNotifyFromTemplateTypeWithMessage($templateType, $actionCommTypeCode,  $messageNotifyByMail, $messageSubject, $messageBody, $noTransaction = FALSE)
+    public function createActionCommAndNotifyFromTemplateTypeWithMessage($templateType, $actionCommTypeCode,  $messageNotifyByMail, $messageSubject, $messageBody)
     {
         // get substitute values in input message template
         $substituteList = $this->_substituteNotificationMessageTemplate($templateType);
@@ -2594,7 +2625,7 @@ class RequestManager extends CommonObject
         }
 
         // create event and notify users and send mail to contacts requesters and watchers (if notified)
-        $result = $this->_createActionCommAndNotify($actionCommTypeCode, $substituteList['subject'], $substituteList['boby'], $messageNotifyByMail, $messageSubject, $messageBody, $noTransaction);
+        $result = $this->_createActionCommAndNotify($actionCommTypeCode, $substituteList['subject'], $substituteList['boby'], $messageNotifyByMail, $messageSubject, $messageBody, TRUE);
         if ($result < 0) {
             return -1;
         }
