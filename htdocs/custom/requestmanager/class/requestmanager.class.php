@@ -581,6 +581,13 @@ class RequestManager extends CommonObject
                 $error++;
             }
 
+            // Add linked equipement
+            $ret = $this->addEquipement();
+            if ($ret < 0) {
+                $error++;
+            }
+
+
             if (!$error && !empty($this->requester_ids)) {
                 // Set requester contacts
                 foreach ($this->requester_ids as $requester) {
@@ -969,9 +976,68 @@ class RequestManager extends CommonObject
             dol_syslog(__METHOD__, LOG_ERR);
             return -1;
         } else {
-            $this->fk_contract = $contractId;
             return 1;
         }
+    }
+
+
+    /**
+     * Find all equipement for a thirdparty
+     *
+     * @param   int         $fkSoc      Id of thirdparty
+     * @return  resource    SQL resource
+     */
+    private function _findAllEquipemenByFkSoc($fkSoc)
+    {
+        global $conf;
+
+        $sql  = "SELECT";
+        $sql .= " e.rowid";
+        $sql .= " FROM " . MAIN_DB_PREFIX . "equipement as e";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe as sfou on e.fk_soc_fourn = sfou.rowid";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe as scli on e.fk_soc_client = scli.rowid";
+        $sql .= " WHERE e.entity = " . $conf->entity;
+        $sql .= " AND (e.fk_soc_fourn = ". $fkSoc . " OR e.fk_soc_client = " . $fkSoc . ")";
+
+        return $this->db->query($sql);
+    }
+
+
+    /**
+     * Add equipement of thirdparty
+     *
+     * @param   bool    $confChecked
+     * @return  int     <0 if KO,  0 if nothing to link, >0 if OK
+     */
+    public function addEquipement($confChecked=FALSE)
+    {
+        global $conf;
+
+        if ($confChecked===FALSE && empty($conf->equipement->enabled)) {
+            return 0;
+        }
+
+        // find all equipement linked to the thirdpaty
+        if ($this->socid > 0) {
+            $resql = $this->_findAllEquipemenByFkSoc($this->socid);
+            if (!$resql) {
+                $this->errors[] = $this->db->lasterror();
+                return -1;
+            } else {
+                while ($obj = $this->db->fetch_object($resql)) {
+                    $result = $this->add_object_linked('equipement', $obj->rowid);
+                    if ($result <= 0) {
+                        $this->errors[] = $this->db->lasterror();
+                        dol_syslog(__METHOD__, LOG_ERR);
+                        return -1;
+                    }
+                }
+            }
+
+            return 1;
+        }
+
+        return 0;
     }
 
 
@@ -980,7 +1046,7 @@ class RequestManager extends CommonObject
      *
      * @param   int     $with_object    Load also the object
      * @param   string  $sourceFilter   [=''] for all, internal for users, external for soc people
-     * @return  int                     <0 if KO, >0 if OK
+     * @return  int     <0 if KO, >0 if OK
      */
     function fetch_requester($with_object=0, $sourceFilter='')
     {
@@ -1035,7 +1101,7 @@ class RequestManager extends CommonObject
      *
      * @param   int     $with_object    Load also the object
      * @param   string  $sourceFilter   [=''] for all, internal for users, external for soc people
-     * @return  int                     <0 if KO, >0 if OK
+     * @return  int     <0 if KO, >0 if OK
      */
     function fetch_watcher($with_object=0, $sourceFilter='')
     {
