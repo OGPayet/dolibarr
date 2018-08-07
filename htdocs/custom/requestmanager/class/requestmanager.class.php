@@ -984,7 +984,7 @@ class RequestManager extends CommonObject
     /**
      * Find all equipement for a thirdparty
      *
-     * @param   int         $fkSoc      Id of thirdparty
+     * @param   int         $fkSoc          Id of thirdparty
      * @return  resource    SQL resource
      */
     private function _findAllEquipemenByFkSoc($fkSoc)
@@ -1006,8 +1006,8 @@ class RequestManager extends CommonObject
     /**
      * Add equipement of thirdparty
      *
-     * @param   bool    $confChecked
-     * @return  int     <0 if KO,  0 if nothing to link, >0 if OK
+     * @param   bool    $confChecked    [=FALSE] if configuration not checked yet, TRUE if configuration already checked
+     * @return  int     <0 if KO, 0 if nothing to link, >0 if OK
      */
     public function addEquipement($confChecked=FALSE)
     {

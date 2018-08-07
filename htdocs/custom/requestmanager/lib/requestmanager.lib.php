@@ -1219,6 +1219,11 @@ function requestmanager_get_elements_infos()
             'langs' => array(),
             'picto' => '',
         ),
+        'equipement' => array(
+            'label' => 'Equipement',
+            'langs' => array('equipement@equipement'),
+            'picto' => 'object_equipement@equipement',
+        ),
         'establishment' => array(
             'label' => '',
             'langs' => array(),
