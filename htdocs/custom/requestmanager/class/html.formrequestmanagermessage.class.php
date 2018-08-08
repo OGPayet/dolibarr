@@ -242,8 +242,10 @@ class FormRequestManagerMessage
         $knowledgeBaseSelectList  = array_column($knowledgeBaseOrderedList, 'title');
         $out .= $langs->trans('RequestManagerSelectKnowledgeBase') . ' : ';
         if ($nbKnowledgeBase = count($knowledgeBaseSelectList) > 0) {
+            $out .= '<input type="hidden" name="id_knowledge_base" value="' . $knowledgeBaseOrderedList[$knowledgeBaseSelectedId]['id'] . '" />' . "\n";
             $out .= $form->selectarray('knowledge_base_selected', $knowledgeBaseSelectList, $knowledgeBaseSelectedId, 1);
         } else {
+            $out .= '<input type="hidden" name="id_knowledge_base" value="' . $knowledgeBaseOrderedList[$knowledgeBaseSelectedId]['id'] . '" />' . "\n";
             $out .= '<select name="modelmailselected" disabled="disabled"><option value="-1">' . $langs->trans("RequestManagerNoTemplateDefined") . '</option></select>';
         }
         $out .= '<script type="text/javascript" language="javascript">';

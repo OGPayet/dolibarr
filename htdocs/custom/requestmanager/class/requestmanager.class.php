@@ -2424,12 +2424,13 @@ class RequestManager extends CommonObject
     /**
      * Create new event in actioncomm for all type of messages
      *
-     * @param   int     $typeCode       Code of message type (AC_RM_OUT, AC_RM_IN, etc)
-     * @param   string  $label          Label of event
-     * @param   string  $note           Note of event
+     * @param   int     $typeCode               Code of message type (AC_RM_OUT, AC_RM_IN, etc)
+     * @param   string  $label                  Label of event
+     * @param   string  $note                   Note of event
+     * @param   int     $fkKnowledgeBase        [=0] Id of knowledge base
      * @return  int     <0 if KO, >0 if OK (idAction)
      */
-    private function _createActionComm($typeCode, $label, $note)
+    private function _createActionComm($typeCode, $label, $note, $fkKnowledgeBase=0)
     {
         global $langs, $user;
 
@@ -2491,12 +2492,14 @@ class RequestManager extends CommonObject
      * @param   string  $messageSubject         Mail subject
      * @param   string  $messageBody            Mail content
      * @param   bool    $mailSubstitut          [=FALSE] not to subtitute mail variables, TRUE to substitute mail variables
+     * @param   int     $fkKnowledgeBase        [=0] Id of knowledge base
      * @return  int     <0 if KO, >0 if OK
      */
-    private function _createActionCommAndNotify($actionCommTypeCode, $actionCommLabel, $actionCommNote, $messageNotifyByMail, $messageSubject, $messageBody, $mailSubstitut = FALSE)
+    private function _createActionCommAndNotify($actionCommTypeCode, $actionCommLabel, $actionCommNote, $messageNotifyByMail, $messageSubject, $messageBody, $mailSubstitut=FALSE, $fkKnowledgeBase=0)
     {
         global $langs, $conf;
 
+        dol_include_once('/requestmanager/class/requestmanagermessage.class.php');
         dol_include_once('/requestmanager/class/requestmanagernotification.class.php');
 
         $error = 0;
@@ -2527,9 +2530,19 @@ class RequestManager extends CommonObject
 
         // create new event
         $this->db->begin();
-        $idActionComm = $this->_createActionComm($actionCommTypeCode, $actionCommLabel, $actionCommNote);
+        $idActionComm = $this->_createActionComm($actionCommTypeCode, $actionCommLabel, $actionCommNote, $fkKnowledgeBase);
         if ($idActionComm < 0) {
             $error++;
+        }
+
+        if (!$error) {
+            // create a link between id of event and id of knowledge base
+            $requestManagerMessage = new RequestManagerMessage($this->db);
+            $result = $requestManagerMessage->create($idActionComm, $fkKnowledgeBase);
+            if ($result < 0) {
+                $error++;
+                $this->errors[] = $requestManagerMessage->errorsToString();
+            }
         }
 
         if (!$error) {
@@ -2680,9 +2693,10 @@ class RequestManager extends CommonObject
      * @param   int         $messageNotifyByMail    If send a mail to contacts requesters and watchers
      * @param   string      $messageSubject         Mail subject
      * @param   string      $messageBody            Mail content
+     * @param   int         $fkKnowledgeBase        [=0] Id of knowledge base
      * @return  int         <0 if KO, >0 if OK
      */
-    public function createActionCommAndNotifyFromTemplateTypeWithMessage($templateType, $actionCommTypeCode,  $messageNotifyByMail, $messageSubject, $messageBody)
+    public function createActionCommAndNotifyFromTemplateTypeWithMessage($templateType, $actionCommTypeCode, $messageNotifyByMail, $messageSubject, $messageBody, $fkKnowledgeBase=0)
     {
         // get substitute values in input message template
         $substituteList = $this->_substituteNotificationMessageTemplate($templateType);
@@ -2691,7 +2705,7 @@ class RequestManager extends CommonObject
         }
 
         // create event and notify users and send mail to contacts requesters and watchers (if notified)
-        $result = $this->_createActionCommAndNotify($actionCommTypeCode, $substituteList['subject'], $substituteList['boby'], $messageNotifyByMail, $messageSubject, $messageBody, TRUE);
+        $result = $this->_createActionCommAndNotify($actionCommTypeCode, $substituteList['subject'], $substituteList['boby'], $messageNotifyByMail, $messageSubject, $messageBody, TRUE, $fkKnowledgeBase);
         if ($result < 0) {
             return -1;
         }

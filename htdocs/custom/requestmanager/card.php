@@ -988,20 +988,25 @@ if (empty($reshook)) {
     }
     // Add message
     elseif ($action == 'addmessage' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+        $idKnowledgeBas      = GETPOST('id_knowledge_base')?GETPOST('id_knowledge_base'):'';
         $messageNotifyByMail = GETPOST('message_notify_by_mail', 'int')?1:0;
-        $messageDirection = GETPOST('message_direction', 'int')?intval(GETPOST('message_direction', 'int')):RequestManagerNotification::getMessageDirectionIdDefault();
-        $messageSubject = GETPOST('message_subject')?GETPOST('message_subject'):'';
-        $messageBody = GETPOST('message_body')?GETPOST('message_body'):'';
+        $messageDirection    = GETPOST('message_direction', 'int')?intval(GETPOST('message_direction', 'int')):RequestManagerNotification::getMessageDirectionIdDefault();
+        $messageSubject      = GETPOST('message_subject')?GETPOST('message_subject'):'';
+        $messageBody         = GETPOST('message_body')?GETPOST('message_body'):'';
 
         if (!$messageSubject) {
             $error++;
-            $object->error = $langs->trans('ErrorFieldRequired', $langs->transnoentitiesnoconv('MessageSubject'));
-            $object->errors[] = $object->error;
+            $object->errors[] = $langs->trans('ErrorFieldRequired', $langs->transnoentitiesnoconv('MessageSubject'));
+        }
+
+        if (!$messageBody) {
+            $error++;
+            $object->errors[] = $langs->trans('ErrorFieldRequired', $langs->transnoentitiesnoconv('MessageBody'));
         }
 
         $actionCommTypeCode = '';
-        $actionCommLabel = '';
-        $actionCommNote = '';
+        $actionCommLabel    = '';
+        $actionCommNote     = '';
         if ($messageDirection === RequestManagerNotification::MESSAGE_DIRECTION_ID_IN) {
             // message in
             $actionCommTypeCode = RequestManager::ACTIONCOMM_TYPE_CODE_IN;
@@ -1012,13 +1017,12 @@ if (empty($reshook)) {
             $templateType = RequestManager::TEMPLATE_TYPE_NOTIFY_OUTPUT_MESSAGE_ADDED;
         } else {
             $error++;
-            $object->error = $langs->trans('ErrorFieldRequired', $langs->transnoentitiesnoconv('MessageDirection'));
-            $object->errors[] = $object->error;
+            $object->errors[] = $langs->trans('ErrorFieldRequired', $langs->transnoentitiesnoconv('MessageDirection'));
         }
 
         if (!$error) {
             // create event and notify users and send mail to contacts requesters and watchers (if notified)
-            $result = $object->createActionCommAndNotifyFromTemplateTypeWithMessage($templateType, $actionCommTypeCode, $messageNotifyByMail, $messageSubject, $messageBody);
+            $result = $object->createActionCommAndNotifyFromTemplateTypeWithMessage($templateType, $actionCommTypeCode, $messageNotifyByMail, $messageSubject, $messageBody, $idKnowledgeBas);
             if ($result < 0) {
                 $error++;
             }
