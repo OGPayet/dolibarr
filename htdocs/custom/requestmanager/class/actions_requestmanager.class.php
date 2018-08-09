@@ -194,6 +194,56 @@ class ActionsRequestManager
 
 
     /**
+     * Overloading the formObjectOptions function : replacing the parent's function with the one below
+     *
+     * @param   array           $parameters     meta datas of the hook (context, etc...)
+     * @param   CommonObject    $object         the object you want to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          $action         current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    current hook manager
+     * @return  void
+     */
+    function formObjectOptions($parameters, &$object, &$action, $hookmanager)
+    {
+        global $db, $langs;
+
+        $contexts = explode(':', $parameters['context']);
+
+        if (in_array('actioncard', $contexts)) {
+            dol_include_once('/requestmanager/class/requestmanager.class.php');
+            dol_include_once('/requestmanager/class/requestmanagermessage.class.php');
+
+            $out = '';
+
+            $requestManagerMessage = new RequestManagerMessage($db);
+            if ($object->code == RequestManager::ACTIONCOMM_TYPE_CODE_IN || $object->code == RequestManager::ACTIONCOMM_TYPE_CODE_OUT) {
+                $requestManagerMessage->loadByFkAction($object->id, TRUE);
+                if ($requestManagerMessage->knowledgeBase) {
+                    $out .= '<tr>';
+                    $out .= '<td class="nowrap" class="titlefield">' . $langs->trans("RequestManagerKnowledgeBaseDictionaryLabel") . '</td>';
+                    $out .= '<td colspan="3">' . $requestManagerMessage->knowledgeBase->code . ' - ' . $requestManagerMessage->knowledgeBase->title . '</td>';
+                    $out .= '</tr>';
+                }
+            } else {
+                $requestManagerMessage->loadByFkAction($object->id, FALSE);
+            }
+
+            if($requestManagerMessage->id > 0)
+            {
+                // Other attributes
+                require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
+                $extrafields = new ExtraFields($db);
+                $extralabels = $extrafields->fetch_name_optionals_label('requestmanager_message');
+                $out .= $requestManagerMessage->showOptionals($extrafields);
+            }
+
+            $this->resprints = $out;
+        }
+
+        return 0;
+    }
+
+
+    /**
      * 	Show my assigned requests button (with nb or +)
      */
     private function _outMyAssignedRequestsButton()

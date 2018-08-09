@@ -988,7 +988,7 @@ if (empty($reshook)) {
     }
     // Add message
     elseif ($action == 'addmessage' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
-        $idKnowledgeBas      = GETPOST('id_knowledge_base')?GETPOST('id_knowledge_base'):'';
+        $idKnowledgeBase     = GETPOST('id_knowledge_base')?GETPOST('id_knowledge_base'):0;
         $messageNotifyByMail = GETPOST('message_notify_by_mail', 'int')?1:0;
         $messageDirection    = GETPOST('message_direction', 'int')?intval(GETPOST('message_direction', 'int')):RequestManagerNotification::getMessageDirectionIdDefault();
         $messageSubject      = GETPOST('message_subject')?GETPOST('message_subject'):'';
@@ -1022,7 +1022,7 @@ if (empty($reshook)) {
 
         if (!$error) {
             // create event and notify users and send mail to contacts requesters and watchers (if notified)
-            $result = $object->createActionCommAndNotifyFromTemplateTypeWithMessage($templateType, $actionCommTypeCode, $messageNotifyByMail, $messageSubject, $messageBody, $idKnowledgeBas);
+            $result = $object->createActionCommAndNotifyFromTemplateTypeWithMessage($templateType, $actionCommTypeCode, $messageNotifyByMail, $messageSubject, $messageBody, $idKnowledgeBase);
             if ($result < 0) {
                 $error++;
             }

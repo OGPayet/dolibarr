@@ -248,24 +248,13 @@ class RequestManagerNotification extends CommonObject
 
 
     /**
-     * Constructor
-     *
-     * @param   DoliDb      $db     Database handler
-     */
-    public function __construct(DoliDB $db)
-    {
-        $this->db = $db;
-    }
-
-
-    /**
-     * Create a notification in database
+     * Insert a notification in database
      *
      * @param   int     $fkActionComm       Id of ActionComm
      * @param   int     $fkUser             Id of user
      * @return  int     <0 if KO, >0 if OK
      */
-    public function create($fkActionComm, $fkUser)
+    private function _sqlInsert($fkActionComm, $fkUser)
     {
         $status = self::STATUS_NOT_READ;
 
@@ -289,6 +278,17 @@ class RequestManagerNotification extends CommonObject
         $this->db->commit();
 
         return 1;
+    }
+
+
+    /**
+     * Constructor
+     *
+     * @param   DoliDb      $db     Database handler
+     */
+    public function __construct(DoliDB $db)
+    {
+        $this->db = $db;
     }
 
 
@@ -322,7 +322,7 @@ class RequestManagerNotification extends CommonObject
                 if ($key[0] == 'u') {
 
                     // create notification
-                    $res = $this->create($fkActionComm, $contact->id);
+                    $res = $this->_sqlInsert($fkActionComm, $contact->id);
 
                     if ($res < 0) {
                         $this->db->rollback();

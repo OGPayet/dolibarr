@@ -2497,7 +2497,7 @@ class RequestManager extends CommonObject
      */
     private function _createActionCommAndNotify($actionCommTypeCode, $actionCommLabel, $actionCommNote, $messageNotifyByMail, $messageSubject, $messageBody, $mailSubstitut=FALSE, $fkKnowledgeBase=0)
     {
-        global $langs, $conf;
+        global $conf, $langs, $user;
 
         dol_include_once('/requestmanager/class/requestmanagermessage.class.php');
         dol_include_once('/requestmanager/class/requestmanagernotification.class.php');
@@ -2535,10 +2535,12 @@ class RequestManager extends CommonObject
             $error++;
         }
 
-        if (!$error) {
+        if (!$error && $fkKnowledgeBase > 0) {
             // create a link between id of event and id of knowledge base
             $requestManagerMessage = new RequestManagerMessage($this->db);
-            $result = $requestManagerMessage->create($idActionComm, $fkKnowledgeBase);
+            $requestManagerMessage->fk_actioncomm     = $idActionComm;
+            $requestManagerMessage->fk_knowledge_base = $fkKnowledgeBase;
+            $result = $requestManagerMessage->create($user);
             if ($result < 0) {
                 $error++;
                 $this->errors[] = $requestManagerMessage->errorsToString();
