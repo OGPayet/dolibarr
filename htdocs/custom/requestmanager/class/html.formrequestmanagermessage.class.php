@@ -357,6 +357,7 @@ class FormRequestManagerMessage
 	}
 
         // Get message template
+        $actionCommPost = GETPOST('actioncomm')?GETPOST('actioncomm'):'';
         $default_message['subject'] = '';
         $default_message['boby']    = '';
         if ($knowledgeBaseSelectedId >= 0) {
@@ -369,10 +370,17 @@ class FormRequestManagerMessage
 
         // Subject
         //-----------------
-        if (!empty($default_message['subject'])) {
-            $subject = make_substitutions($default_message['subject'], $this->substit);
-        } else {
+        if ($actionCommPost == 'knowledge_base_apply') {
             $subject = GETPOST('message_subject', 'alpha', 2) ? GETPOST('message_subject', 'alpha', 2) : '';
+            if (!$subject && $default_message['subject']) {
+                $subject = make_substitutions($default_message['subject'], $this->substit);
+            }
+        } else {
+            if (!empty($default_message['subject'])) {
+                $subject = make_substitutions($default_message['subject'], $this->substit);
+            } else {
+                $subject = GETPOST('message_subject', 'alpha', 2) ? GETPOST('message_subject', 'alpha', 2) : '';
+            }
         }
         $out .= '<tr>';
         $out .= '<td class="fieldrequired" width="180">' . $langs->trans("RequestManagerMessageSubject") . '</td>';
@@ -411,10 +419,20 @@ class FormRequestManagerMessage
 
         // Message
         //-----------------
-        if (!empty($default_message['boby'])) {
-            $message_body = make_substitutions($default_message['boby'], $this->substit);
-        } else {
+        if ($actionCommPost == 'knowledge_base_apply') {
             $message_body = GETPOST('message_body', 'alpha', 2) ? GETPOST('message_body', 'alpha', 2) : '';
+            if ($default_message['boby']) {
+                if (!empty($message_body)) {
+                    $message_body .= '<br />';
+                }
+                $message_body .= make_substitutions($default_message['boby'], $this->substit);
+            }
+        } else {
+            if (!empty($default_message['boby'])) {
+                $message_body = make_substitutions($default_message['boby'], $this->substit);
+            } else {
+                $message_body = GETPOST('message_body', 'alpha', 2) ? GETPOST('message_body', 'alpha', 2) : '';
+            }
         }
         if (!empty($message_body)) {
             // Clean first \n and br (to avoid empty line when CONTACTCIVNAME is empty)
