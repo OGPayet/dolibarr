@@ -3106,7 +3106,11 @@ class DictionaryLine extends CommonObjectLine
                     if (is_array($value)) {
                         $value_arr = $value;
                     } else {
-                        $value_arr = explode(',', (string)$value);
+                        if ($value === NULL) {
+                            $value_arr = array('NULL');
+                        } else {
+                            $value_arr = explode(',', (string)$value);
+                        }
                     }
 
                     // 0 : tableName
@@ -3135,9 +3139,9 @@ class DictionaryLine extends CommonObjectLine
                     if (strpos($InfoFieldList[4], 'extra') !== false) {
                         $sql .= ' as main';
                     }
-                    $sql .= " WHERE " . $selectkey . " IN(" . implode(',', $value_arr) . ")";
+                    $sql .= " WHERE " . $selectkey . " IN (" . implode(',', $value_arr) . ")";
 
-                    dol_syslog(__METHOD__ . ':showOutputField:$type=chkbxlst', LOG_DEBUG);
+                    dol_syslog(__METHOD__ . ':$type=chkbxlst', LOG_DEBUG);
                     $resql = $this->db->query($sql);
                     if ($resql) {
                         $value = ''; // value was used, so now we reste it to use it to build final output
@@ -3175,7 +3179,7 @@ class DictionaryLine extends CommonObjectLine
                         $value = '<div class="select2-container-multi-dolibarr" style="width: 90%;"><ul class="select2-choices-dolibarr">' . implode(' ', $toprint) . '</ul></div>';
 
                     } else {
-                        dol_syslog(__METHOD__ . '::showOutputField error ' . $this->db->lasterror(), LOG_WARNING);
+                        dol_syslog(__METHOD__ . ' error ' . $this->db->lasterror(), LOG_WARNING);
                     }
                     break;
                 case 'int':
