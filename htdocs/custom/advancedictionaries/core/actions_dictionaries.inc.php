@@ -44,7 +44,7 @@ $canRead = $user->rights->advancedictionaries->read;
 $canCreate = $user->rights->advancedictionaries->create;
 $canUpdate = $user->rights->advancedictionaries->create;
 $canDelete = $user->rights->advancedictionaries->delete;
-$canDisable = $user->rights->advancedictionaries->disable;
+$canDisable = $user->rights->advancedictionaries->disabled;
 
 if (!$canRead) accessforbidden();
 
