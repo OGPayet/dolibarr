@@ -1074,6 +1074,62 @@ SCRIPT;
     }
 
     /**
+	 * Overloading the formObjectOptions function : replacing the parent's function with the one below
+	 *
+	 * @param   array()         $parameters     Hook metadatas (context, etc...)
+	 * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+	 * @param   string          &$action        Current action (if set). Generally create or edit or null
+	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+	 */
+	function formObjectOptions($parameters, &$object, &$action, $hookmanager)
+    {
+        $action=GETPOST('action','alpha');
+        $origin=GETPOST('origin','alpha');
+        $originid=GETPOST('originid','int');
+
+        if ($action == 'create' && !empty($origin) && !empty($originid)) {
+            // Parse element/subelement (ex: project_task)
+            $element = $subelement = $origin;
+            if (preg_match('/^([^_]+)_([^_]+)/i', $origin, $regs)) {
+                $element = $regs [1];
+                $subelement = $regs [2];
+            }
+
+            // For compatibility
+            if ($element == 'order' || $element == 'commande') {
+                $element = $subelement = 'commande';
+            }
+            if ($element == 'propal') {
+                $element = 'comm/propal';
+                $subelement = 'propal';
+            }
+            if ($element == 'contract') {
+                $element = $subelement = 'contrat';
+            }
+
+            dol_include_once('/' . $element . '/class/' . $subelement . '.class.php');
+
+            $classname = ucfirst($subelement);
+            $objectsrc = new $classname($this->db);
+            $objectsrc->fetch($originid);
+
+            $ref_client = !empty($objectsrc->ref_client) ? str_replace('"', '\\"', $objectsrc->ref_client) : (!empty($objectsrc->ref_customer) ? str_replace('"', '\\"', $objectsrc->ref_customer) : '');
+
+            print <<<SCRIPT
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('input[name="ref_client"]').val("$ref_client");
+        $('input[name="ref_customer"]').val("$ref_client");
+    });
+</script>
+SCRIPT;
+        }
+
+        return 0;
+    }
+
+    /**
      * _redirection function
      *
      * @param   array() $parameters Hook metadatas (context, etc...)
