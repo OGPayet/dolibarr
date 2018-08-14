@@ -155,6 +155,7 @@ if (empty($reshook)) {
             $categories = GETPOST('categories');
             $result = $object->setCategories($categories);
             if ($result < 0) {
+                setEventMessages($object->error, $object->errors, 'errors');
                 $error++;
             }
         }

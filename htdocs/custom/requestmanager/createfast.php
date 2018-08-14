@@ -28,15 +28,8 @@ if (! $res && file_exists("../../main.inc.php")) $res=@include '../../main.inc.p
 if (! $res && file_exists("../../../dolibarr/htdocs/main.inc.php")) $res=@include '../../../dolibarr/htdocs/main.inc.php';     // Used on dev env only
 if (! $res && file_exists("../../../../dolibarr/htdocs/main.inc.php")) $res=@include '../../../../dolibarr/htdocs/main.inc.php';   // Used on dev env only
 if (! $res) die("Include of main fails");
-//require_once DOL_DOCUMENT_ROOT . '/core/class/html.formother.class.php';
-//require_once DOL_DOCUMENT_ROOT . '/core/class/html.formfile.class.php';
-//require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
-//require_once DOL_DOCUMENT_ROOT . '/core/lib/functions2.lib.php';
-//require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
-//require_once DOL_DOCUMENT_ROOT . '/core/class/doleditor.class.php';
-//require_once DOL_DOCUMENT_ROOT . '/user/class/user.class.php';
+require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
 require_once DOL_DOCUMENT_ROOT . '/user/class/usergroup.class.php';
-//require_once DOL_DOCUMENT_ROOT . '/contact/class/contact.class.php';
 
 if (!empty($conf->categorie->enabled)) {
     require_once DOL_DOCUMENT_ROOT . '/categories/class/categorie.class.php';
@@ -45,7 +38,6 @@ if (!empty($conf->categorie->enabled)) {
 
 dol_include_once('/requestmanager/class/requestmanager.class.php');
 dol_include_once('/requestmanager/class/html.formrequestmanager.class.php');
-//dol_include_once('/requestmanager/class/html.formrequestmanagermessage.class.php');
 
 $langs->load('requestmanager@requestmanager');
 
@@ -67,33 +59,19 @@ if (empty($reshook)) {
 
     // Create request
     if ($action == 'addfast' && $user->rights->requestmanager->creer) {
-        $object->fk_type = GETPOST('type', 'int');
-        //$object->fk_category = GETPOST('category', 'int');
-        $object->label = GETPOST('label', 'alpha');
-        $object->socid = GETPOST('socid', 'int');
-        $object->fk_source = GETPOST('source', 'int');
-        $object->fk_urgency = GETPOST('urgency', 'int');
-        //$object->fk_impact = GETPOST('impact', 'int');
-        //$object->fk_priority = GETPOST('priority', 'int');
-        //$object->date_deadline = dol_mktime(GETPOST('deadline_hour', 'int'), GETPOST('deadline_min', 'int'), 0, GETPOST('deadline_month', 'int'), GETPOST('deadline_day', 'int'), GETPOST('deadline_year', 'int'));
-        //$object->requester_ids = GETPOST('requester_contacts', 'array');
-        //$object->notify_requester_by_email = GETPOST('requester_notification', 'int');
-        //$object->watcher_ids = GETPOST('watcher_contacts', 'array');
-        //$object->notify_watcher_by_email = GETPOST('watcher_notification', 'int');
-        //$object->assigned_usergroup_id = GETPOST('assigned_usergroup', 'int');
-        //$object->assigned_user_id = GETPOST('assigned_user', 'int');
-        //$object->notify_assigned_by_email = GETPOST('assigned_notification', 'int');
-        $object->description = GETPOST('description');
+        $object->fk_type      = GETPOST('type', 'int');
+        $object->label        = GETPOST('label', 'alpha');
+        $object->socid        = GETPOST('socid', 'int');
+        $object->fk_source    = GETPOST('source', 'int');
+        $object->fk_urgency   = GETPOST('urgency', 'int');
+        $object->description  = GETPOST('description');
+        $selectedActionCommId = GETPOST('actioncomm_id')?GETPOST('actioncomm_id'):-1;
 
-        // Possibility to add external linked objects with hooks
-        //$object->origin = GETPOST('origin', 'alpha');
-        //$object->origin_id = GETPOST('originid', 'int');
-        //if ($object->origin && $object->origin_id) {
-        //    $object->linkedObjectsIds[$object->origin] = $object->origin_id;
-        //    if (is_array($_POST['other_linked_objects']) && !empty($_POST['other_linked_objects'])) {
-        //        $object->linkedObjectsIds = array_merge($object->linkedObjectsIds, $_POST['other_linked_objects']);
-        //    }
-        //}
+        if ($selectedActionCommId <= 0) {
+            $object->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("RequestManagerCreateFastActionCommLabel"));
+            setEventMessages($object->error, $object->errors, 'errors');
+            $error++;
+        }
 
         if (!$error) {
             $db->begin();
@@ -110,6 +88,20 @@ if (empty($reshook)) {
             $categories = GETPOST('categories');
             $result = $object->setCategories($categories);
             if ($result < 0) {
+                setEventMessages($object->error, $object->errors, 'errors');
+                $error++;
+            }
+        }
+
+        if (!$error) {
+            // Link event to this request
+            $actionComm = new ActionComm($db);
+            $actionComm->fetch($selectedActionCommId);
+            $actionComm->fk_element  = $object->id;
+            $actionComm->elementtype = $object->element;
+            $result = $actionComm->update($user);
+            if ($result < 0) {
+                setEventMessages($actionComm->error, $actionComm->errors, 'errors');
                 $error++;
             }
         }
@@ -158,7 +150,7 @@ if ($action == 'createfast' && $user->rights->requestmanager->creer)
 	print load_fiche_titre($langs->trans("RequestManagerCreateFastTitle"), '', 'requestmanager@requestmanager');
 
 	print '<form name="addpropfast" action="' . $_SERVER["PHP_SELF"] . '" method="POST">';
-	print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
+	print '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '">';
 	print '<input type="hidden" name="action" value="addfast">';
 
 	dol_fiche_head();
