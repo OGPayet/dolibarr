@@ -276,6 +276,28 @@ class ActionsRequestManager
 
 
     /**
+     * 	Show request create fast
+     */
+    private function _outCreateFast()
+    {
+        global $langs;
+
+        require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
+
+        $out = '';
+
+        $text  = '<a href="' . dol_buildpath('/requestmanager/createfast.php?action=createfast', 1) . '">';
+        $text .= img_picto('', 'object_requestmanager@requestmanager', 'id="requestmanager_createfast"');
+        $text .= '</a>';
+
+        $htmltext  = '<u>' . $langs->trans("RequestManagerMenuTopCreateFast") . '</u>' . "\n";
+        $out .= Form::textwithtooltip('', $htmltext,2,1, $text,'login_block_elem',2);
+
+        return $out;
+    }
+
+
+    /**
      * Print a specific button in top right menu (to show my assigned requests)
      *
      * @param   array    $parameters     Parameters
@@ -288,7 +310,9 @@ class ActionsRequestManager
         if (in_array('toprightmenu', explode(':', $parameters['context']))) {
             if ($user->rights->requestmanager->lire) {
                 // show my assigned requests button
-                $this->resprints = $this->_outMyAssignedRequestsButton();
+                $out  = $this->_outMyAssignedRequestsButton();
+                $out .= $this->_outCreateFast();
+                $this->resprints = $out;
             }
         }
 

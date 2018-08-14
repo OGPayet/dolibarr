@@ -984,20 +984,23 @@ class RequestManager extends CommonObject
     /**
      * Find all equipement for a thirdparty
      *
-     * @param   int         $fkSoc          Id of thirdparty
+     * @param   int         $fkSoc          [=0] Id of thirdparty, -1 for all
      * @return  resource    SQL resource
      */
-    private function _findAllEquipemenByFkSoc($fkSoc)
+    public function findAllEquipemenByFkSoc($fkSoc=0)
     {
         global $conf;
 
         $sql  = "SELECT";
         $sql .= " e.rowid";
+        $sql .= ", e.ref";
         $sql .= " FROM " . MAIN_DB_PREFIX . "equipement as e";
-        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe as sfou on e.fk_soc_fourn = sfou.rowid";
-        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe as scli on e.fk_soc_client = scli.rowid";
+        //$sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe as sfou on e.fk_soc_fourn = sfou.rowid";
+        //$sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe as scli on e.fk_soc_client = scli.rowid";
         $sql .= " WHERE e.entity = " . $conf->entity;
-        $sql .= " AND (e.fk_soc_fourn = ". $fkSoc . " OR e.fk_soc_client = " . $fkSoc . ")";
+        if ($fkSoc >= 0) {
+            $sql .= " AND (e.fk_soc_fourn = ". $fkSoc . " OR e.fk_soc_client = " . $fkSoc . ")";
+        }
 
         return $this->db->query($sql);
     }
@@ -1019,7 +1022,7 @@ class RequestManager extends CommonObject
 
         // find all equipement linked to the thirdpaty
         if ($this->socid > 0) {
-            $resql = $this->_findAllEquipemenByFkSoc($this->socid);
+            $resql = $this->findAllEquipemenByFkSoc($this->socid);
             if (!$resql) {
                 $this->errors[] = $this->db->lasterror();
                 return -1;
@@ -1038,6 +1041,115 @@ class RequestManager extends CommonObject
         }
 
         return 0;
+    }
+
+
+    /**
+     * Load all contracts of thirdparty and thirdparty parent (if set in module configuration)
+     *
+     * @param   int     $socId          [=0] Id of thirdparty
+     * @param   bool    $confChecked    [=FALSE] if configuration not checked yet, TRUE if configuration already checked
+     * @return  int     <0 if KO,       <0 if KO, 0 if nothing to link, >0 Id of the last contract linked if OK
+     */
+    public function loadAllContract($socId=0, $confChecked=FALSE, &$contractList=array())
+    {
+        global $conf;
+
+        if ($confChecked===FALSE && empty($conf->contrat->enabled)) {
+            return 0;
+        }
+
+        require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
+
+        if ($socId <= 0) {
+            return 0;
+        }
+
+        $contrat = new Contrat($this->db);
+        $contrat->socid = $socId;
+        $thirdPartyContractList = $contrat->getListOfContracts();
+        if (!is_array($thirdPartyContractList)) {
+            return -1;
+        } else {
+            $contractList = array_merge($contractList, $thirdPartyContractList);
+        }
+
+        if (!empty($conf->global->REQUESTMANAGER_CONTRACT_SEARCH_IN_PARENT_COMPANY)) {
+            require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
+            $thirdparty = new Societe($this->db);
+            $thirdparty->fetch($socId);
+            if ($thirdparty->parent > 0) {
+                $result = $this->loadAllContract($thirdparty->parent, TRUE, $contractList);
+                if ($result < 0) {
+                    return -1;
+                }
+            }
+        }
+
+        return 1;
+    }
+
+
+    /**
+     * Load all equipement linked to third party
+     *
+     * @param   int     $fkSoc        [=0] Id of thirdparty
+     * @return  array   List of equipement
+     */
+    public function loadAllEquipementByFkSoc($fkSoc=0)
+    {
+        $equipementList = array();
+
+        dol_include_once('/equipement/class/equipement.class.php');
+
+        $resql = $this->findAllEquipemenByFkSoc($fkSoc);
+
+        if ($resql) {
+            while ($obj = $this->db->fetch_object($resql)) {
+                $equipement = new Equipement($this->db);
+                $equipement->fetch($obj->rowid);
+                $equipementList[] = $equipement;
+            }
+        }
+
+        return $equipementList;
+    }
+
+
+    /**
+     * Load all avents linked to third party
+     *
+     * @param   int     $fkSoc      [=0] Id of thirdparty
+     * @param   int     $limit      [=0] Limit to load, 0 to load nothing, -1 to load all
+     * @return  array   List of ActionCom
+     */
+    public function loadAllLastEventByFkSoc($fkSoc=0, $limit=0)
+    {
+        $lastEventList = array();
+
+        $sql  = "SELECT";
+        $sql .= " ac.id";
+        $sql .= " FROM " . MAIN_DB_PREFIX . "actioncomm ac";
+        $sql .= " WHERE ac.entity IN (" . getEntity('agenda') . ")";
+        if ($fkSoc >= 0) {
+            $sql .= " AND ac.fk_soc= " . $fkSoc;
+        }
+        $sql .= " ORDER BY ac.datep DESC";
+        if ($limit > 0) {
+            $sql .= " LIMIT " . $limit;
+        }
+
+        $resql = $this->db->query($sql);
+
+        if ($resql) {
+            while ($obj = $this->db->fetch_object($resql)) {
+                $actionComm = new ActionComm($this->db);
+                $actionComm->fetch($obj->id);
+                $lastEventList[] = $actionComm;
+            }
+        }
+
+        return $lastEventList;
     }
 
 
@@ -2713,6 +2825,199 @@ class RequestManager extends CommonObject
         }
 
         return 1;
+    }
+
+
+    /**
+     * Load object from SQL resource
+     *
+     * @param   Object  $obj    SQL object from resource
+     * @return  int
+     */
+    private function _loadFromDbObject($obj)
+    {
+        $this->id                           = $obj->rowid;
+        $this->ref                          = $obj->ref;
+        $this->ref_ext                      = $obj->ref_ext;
+        $this->socid                        = $obj->fk_soc;
+        $this->label                        = $obj->label;
+        $this->description                  = $obj->description;
+        $this->fk_type                      = $obj->fk_type;
+        $this->fk_category                  = $obj->fk_category;
+        $this->fk_source                    = $obj->fk_source;
+        $this->fk_urgency                   = $obj->fk_urgency;
+        $this->fk_impact                    = $obj->fk_impact;
+        $this->fk_priority                  = $obj->fk_priority;
+        $this->notify_requester_by_email    = empty($obj->notify_requester_by_email) ? 0 : 1;
+        $this->notify_watcher_by_email      = empty($obj->notify_watcher_by_email) ? 0 : 1;
+        $this->assigned_user_id             = $obj->fk_assigned_user;
+        $this->assigned_usergroup_id        = $obj->fk_assigned_usergroup;
+        $this->notify_assigned_by_email     = empty($obj->notify_assigned_by_email) ? 0 : 1;
+        $this->duration                     = $obj->duration;
+        $this->date_deadline                = $this->db->jdate($obj->date_deadline);
+        $this->date_resolved                = $this->db->jdate($obj->date_resolved);
+        $this->date_cloture                 = $this->db->jdate($obj->date_closed);
+        $this->user_resolved_id             = $obj->fk_user_resolved;
+        $this->user_cloture_id              = $obj->fk_user_closed;
+        $this->statut                       = $obj->fk_status;
+        $this->entity                       = $obj->entity;
+        $this->date_creation                = $this->db->jdate($obj->datec);
+        $this->date_modification            = $this->db->jdate($obj->tms);
+        $this->user_creation_id             = $obj->fk_user_author;
+        $this->user_modification_id         = $obj->fk_user_modif;
+    }
+
+    /**
+     * Load status type from SQL resource
+     *
+     * @param   Object  $obj    SQL object from resource
+     * @return  int     <0 if KO, >0 if OK
+     */
+    private function _loadStatutTypeFromDbObject($obj)
+    {
+        global $langs;
+
+        dol_include_once('/advancedictionaries/class/dictionary.class.php');
+        $requestManagerStatusDictionaryLine = Dictionary::getDictionaryLine($this->db, 'requestmanager', 'requestmanagerstatus');
+        $res = $requestManagerStatusDictionaryLine->fetch($obj->fk_status);
+        if ($res == 0) {
+            $this->errors[] = $langs->trans('RequestManagerErrorStatusNotFound');
+            return -1;
+        } elseif ($res < 0) {
+            array_merge($this->errors, $requestManagerStatusDictionaryLine->errors);
+            return -1;
+        }
+
+        $this->statut_type = $requestManagerStatusDictionaryLine->fields['type'];
+
+        return 1;
+    }
+
+
+    /**
+     * Prepare SQL request to find all for a company
+     *
+     * @param   int     $fkSoc              [=0] Id of company
+     * @param   array   $statusList         [=array()] List of status
+     * @param   int     $categorieList      [=array()] List of categories
+     * @param   int     $equipementId       [=0] Id of equipement
+     * @return  string  SQL request
+     */
+    private function _sqlFindAllByFkSoc($fkSoc=0, $statusList=array(), $categorieList=array(), $equipementId=0)
+    {
+        $sql  = $this->_sqlSelectAllFromTableElement();
+        if (count($categorieList)) {
+            $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'categorie_requestmanager as cr ON cr.fk_requestmanager = t.rowid';
+        }
+        if ($equipementId > 0) {
+            $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'element_element as ee ON ee.fk_target = t.rowid AND ee.targettype = "' . $this->db->escape($this->element) . '" AND ee.sourcetype = "equipement"';
+        }
+        $sql .= ' WHERE t.entity IN (' . getEntity($this->element) . ')';
+        if ($fkSoc > 0) {
+            $sql .= ' AND t.fk_soc = ' . $fkSoc;
+        }
+        if (count($statusList)) {
+            $sql .= ' AND t.fk_status IN (' . implode(',', $statusList) . ')';
+        }
+        if (count($categorieList)) {
+            $sql .= ' AND cr.fk_categorie IN (' . implode(',', $categorieList) . ')';
+        }
+        if ($equipementId > 0) {
+            $sql .= ' AND ee.fk_source = ' . $equipementId;
+        }
+
+        return $sql;
+    }
+
+
+    /**
+     * Prepare SQL request
+     *
+     * @return string   SQL request
+     */
+    private function _sqlSelectAllFromTableElement()
+    {
+        $sql = 'SELECT';
+        $sql .= ' t.rowid,';
+        $sql .= ' t.ref,';
+        $sql .= ' t.ref_ext,';
+        $sql .= ' t.fk_soc,';
+        $sql .= ' t.label,';
+        $sql .= ' t.description,';
+        $sql .= ' t.fk_type,';
+        $sql .= ' t.fk_category,';
+        $sql .= ' t.fk_source,';
+        $sql .= ' t.fk_urgency,';
+        $sql .= ' t.fk_impact,';
+        $sql .= ' t.fk_priority,';
+        $sql .= ' t.notify_requester_by_email,';
+        $sql .= ' t.notify_watcher_by_email,';
+        $sql .= ' t.fk_assigned_user,';
+        $sql .= ' t.fk_assigned_usergroup,';
+        $sql .= ' t.notify_assigned_by_email,';
+        $sql .= ' t.duration,';
+        $sql .= ' t.date_deadline,';
+        $sql .= ' t.date_resolved,';
+        $sql .= ' t.date_closed,';
+        $sql .= ' t.fk_user_resolved,';
+        $sql .= ' t.fk_user_closed,';
+        $sql .= ' t.fk_status,';
+        $sql .= ' t.entity,';
+        $sql .= ' t.datec,';
+        $sql .= ' t.tms,';
+        $sql .= ' t.fk_user_author,';
+        $sql .= ' t.fk_user_modif';
+        $sql .= ' FROM ' . MAIN_DB_PREFIX . $this->table_element . ' as t';
+
+        return $sql;
+    }
+
+
+    /**
+     * Load all filter for a company
+     *
+     * @param   int     $fkSoc              [=0] Id of company
+     * @param   array   $statusList         [=array()] List of status
+     * @param   int     $categorieList      [=array()] List of categories
+     * @param   int     $equipementId       [=0] Id of equipement
+     * @return  int     <0 if KO, 0 if not found, >0 if OK
+     */
+    public function loadAllByFkSoc($fkSoc=0, $statusList=array(), $categorieList=array(), $equipementId=0)
+    {
+        global $langs;
+
+        $objectList = array();
+
+        $this->errors = array();
+        $langs->load("requestmanager@requestmanager");
+
+        dol_syslog(__METHOD__ . " fkSoc=" . $fkSoc, LOG_DEBUG);
+
+        $sql = $this->_sqlFindAllByFkSoc($fkSoc, $statusList, $categorieList, $equipementId);
+
+        $resql = $this->db->query($sql);
+        if (!$resql) {
+            $this->errors[] = 'Error ' . $this->db->lasterror();
+            dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $this->db->lasterror(), LOG_ERR);
+        } else {
+            $numrows = $this->db->num_rows($resql);
+            if ($numrows) {
+                while ($obj = $this->db->fetch_object($resql)) {
+                    $requestmanagerStatic = new self($this->db);
+
+                    $res = $requestmanagerStatic->_loadStatutTypeFromDbObject($obj);
+                    if ($res < 0)   return $objectList;
+                    $requestmanagerStatic->_loadFromDbObject($obj);
+                    //$requestmanagerStatic->fetch_requester();
+                    //$requestmanagerStatic->fetch_watcher();
+
+                    $objectList[] = $requestmanagerStatic;
+                }
+            }
+            $this->db->free($resql);
+        }
+
+        return $objectList;
     }
 
 
