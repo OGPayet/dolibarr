@@ -286,7 +286,7 @@ class ActionsRequestManager
 
         $out = '';
 
-        $text  = '<a href="' . dol_buildpath('/requestmanager/createfast.php?action=createfast', 1) . '">';
+        $text  = '<a href="' . dol_buildpath('/requestmanager/createfast.php?action=createfast', 1) . '" target="_blank">';
         $text .= img_picto('', 'object_requestmanager@requestmanager', 'id="requestmanager_createfast"');
         $text .= '</a>';
 
