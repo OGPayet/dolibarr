@@ -109,8 +109,13 @@ if (empty($reshook)) {
                 }
             } else if ($btnAction == 'associate') {
                 $associateList = GETPOST('associate_list', 'array')?GETPOST('associate_list', 'array'):array();
+                if (count($associateList) <= 0) {
+                    $object->errors[] = $langs->trans("RequestManagerCreateFastErrorNoRequestSelected");
+                    setEventMessages($object->error, $object->errors, 'errors');
+                    $error++;
+                }
 
-                if (count($associateList) > 0) {
+                if (!$error) {
                     $object->fetch(intval($associateList[0]));
 
                     // link event to this request
@@ -127,6 +132,8 @@ if (empty($reshook)) {
             $db->commit();
             if ($object->id > 0) {
                 header('Location: ' . dol_buildpath('/requestmanager/card.php', 1). '?id=' . $object->id);
+            } else {
+                header('Location: ' . dol_buildpath('/requestmanager/list.php', 1));
             }
             exit();
         } else {
