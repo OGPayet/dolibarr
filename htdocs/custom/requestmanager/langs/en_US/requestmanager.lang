@@ -60,11 +60,12 @@ RequestManagerDateResolved              = Resolved date
 ############################################################
 ### Create fast
 ############################################################
-RequestManagerCreateFastAction          = Create request
-RequestManagerCreateFastTitle           = Create fast request
-RequestManagerCreateFastActionCommLabel = Unprocessed events
-RequestManagerCreateFastContractFormula = Formula
-RequestManagerLastEvents                = Last events
+RequestManagerCreateFastTitle             = Create fast request
+RequestManagerCreateFastActionCommLabel   = Unprocessed events
+RequestManagerCreateFastBtnCreateLabel    = Create request
+RequestManagerCreateFastBtnAssociateLabel = Link to request
+RequestManagerCreateFastContractFormula   = Formula
+RequestManagerLastEvents                  = Last events
 
 ############################################################
 ### Message form

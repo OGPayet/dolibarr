@@ -216,34 +216,49 @@ if ($zone === 2) {
     $selectedEquipementId = GETPOST('equipement_id', 'int')?intval(GETPOST('equipement_id', 'int')):-1;
     $selectedSocId        = GETPOST('socid', 'int')?intval(GETPOST('socid', 'int')):-1;
 
-    $requestManager = new RequestManager($db);
-    $objectList = $requestManager->loadAllByFkSoc($selectedSocId, array(RequestManager::STATUS_TYPE_INITIAL, RequestManager::STATUS_TYPE_IN_PROGRESS), $selectedCategories, $selectedEquipementId);
+    $requestManagerStatic = new RequestManager($db);
+    $requestManagerList = $requestManagerStatic->loadAllByFkSoc($selectedSocId, array(RequestManager::STATUS_TYPE_INITIAL, RequestManager::STATUS_TYPE_IN_PROGRESS), $selectedCategories, $selectedEquipementId);
 
-    print '<br />';
     print '<table class="nobordernopadding" width="100%">';
-    print '<tr class="liste_titre">';
-    print '<td align="left">' . $langs->trans("RequestManagerType") . '</td>';
-    print '<td align="left">' . $langs->trans("Ref") . '</td>';
-    print '<td align="left">' . $langs->trans("RequestManagerLabel") . '</td>';
-    print '<td align="left">' . $langs->trans("DateCreation") . '</td>';
-    print '</tr>';
-
-    foreach ($objectList as $object) {
-        print '<tr class="liste">';
-        print '<td align="left">' . $object->getLibType() . '</td>';
-        print '<td align="left"><a href="' . dol_buildpath('/requestmanager/card.php', 1) . '?id=' . $object->id . '" target="_blank">'. $object->ref . '</a></td>';
-        print '<td align="left">' . $object->label  . '</td>';
-        print '<td align="left">' . dol_print_date($object->date_creation, 'dayhour') . '</td>';
-        print '</tr>';
-    }
-
+    // btn create
     print '<tr>';
-    print '<td align="right" colspan="4">';
-    print '<input type="submit" class="button" value="' . $langs->trans('RequestManagerCreateFastAction') . '"/>';
+    print '<td align="right">';
+    print '<input type="submit" class="button" name="btn_create" value="' . $langs->trans('RequestManagerCreateFastBtnCreateLabel') . '"/>';
     print '</td>';
-    print '<tr>';
-
+    print '</tr>';
     print '</table>';
+
+    if (count($requestManagerList) > 0) {
+        print '<br />';
+        print '<table class="nobordernopadding" width="100%">';
+        print '<tr class="liste_titre">';
+        print '<td align="left"></td>';
+        print '<td align="left">' . $langs->trans("RequestManagerType") . '</td>';
+        print '<td align="left">' . $langs->trans("Ref") . '</td>';
+        print '<td align="left">' . $langs->trans("RequestManagerLabel") . '</td>';
+        print '<td align="left">' . $langs->trans("DateCreation") . '</td>';
+        print '</tr>';
+
+        foreach ($requestManagerList as $requestManager) {
+            print '<tr class="liste">';
+            print '<td align="center">';
+            print '<input type="radio" name="associate_list[]" value="' . $requestManager->id . '" />';
+            print '</td>';
+            print '<td align="left">' . $requestManager->getLibType() . '</td>';
+            print '<td align="left"><a href="' . dol_buildpath('/requestmanager/card.php', 1) . '?id=' . $requestManager->id . '" target="_blank">' . $requestManager->ref . '</a></td>';
+            print '<td align="left">' . $requestManager->label . '</td>';
+            print '<td align="left">' . dol_print_date($requestManager->date_creation, 'dayhour') . '</td>';
+            print '</tr>';
+        }
+
+        // btn associate
+        print '<tr>';
+        print '<td align="right" colspan="5">';
+        print '<input type="submit" class="button" name="btn_associate" value="' . $langs->trans('RequestManagerCreateFastBtnAssociateLabel') . '"/>';
+        print '</td>';
+        print '</tr>';
+        print '</table>';
+    }
 }
 
 ?>

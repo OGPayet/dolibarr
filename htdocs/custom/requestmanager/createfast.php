@@ -67,48 +67,67 @@ if (empty($reshook)) {
         $object->description  = GETPOST('description');
         $selectedActionCommId = GETPOST('actioncomm_id')?GETPOST('actioncomm_id'):-1;
 
+        $btnAction = '';
+        if (GETPOST('btn_create')) {
+            $btnAction = 'create';
+        } else if (GETPOST('btn_associate')) {
+            $btnAction = 'associate';
+        }
+
         if ($selectedActionCommId <= 0) {
             $object->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("RequestManagerCreateFastActionCommLabel"));
             setEventMessages($object->error, $object->errors, 'errors');
             $error++;
         }
 
+        $db->begin();
         if (!$error) {
-            $db->begin();
+            if ($btnAction == 'create') {
+                $id = $object->create($user);
+                if ($id < 0) {
+                    setEventMessages($object->error, $object->errors, 'errors');
+                    $error++;
+                }
 
-            $id = $object->create($user);
-            if ($id < 0) {
-                setEventMessages($object->error, $object->errors, 'errors');
-                $error++;
-            }
-        }
+                if (!$error) {
+                    // Category association
+                    $categories = GETPOST('categories');
+                    $result = $object->setCategories($categories);
+                    if ($result < 0) {
+                        setEventMessages($object->error, $object->errors, 'errors');
+                        $error++;
+                    }
+                }
 
-        if (!$error) {
-            // Category association
-            $categories = GETPOST('categories');
-            $result = $object->setCategories($categories);
-            if ($result < 0) {
-                setEventMessages($object->error, $object->errors, 'errors');
-                $error++;
-            }
-        }
+                if (!$error) {
+                    // link event to this request
+                    $result = $object->linkToActionComm($selectedActionCommId);
+                    if ($result < 0) {
+                        setEventMessages($object->error, $object->errors, 'errors');
+                        $error++;
+                    }
+                }
+            } else if ($btnAction == 'associate') {
+                $associateList = GETPOST('associate_list', 'array')?GETPOST('associate_list', 'array'):array();
 
-        if (!$error) {
-            // Link event to this request
-            $actionComm = new ActionComm($db);
-            $actionComm->fetch($selectedActionCommId);
-            $actionComm->fk_element  = $object->id;
-            $actionComm->elementtype = $object->element;
-            $result = $actionComm->update($user);
-            if ($result < 0) {
-                setEventMessages($actionComm->error, $actionComm->errors, 'errors');
-                $error++;
+                if (count($associateList) > 0) {
+                    $object->fetch(intval($associateList[0]));
+
+                    // link event to this request
+                    $result = $object->linkToActionComm($selectedActionCommId);
+                    if ($result < 0) {
+                        setEventMessages($object->error, $object->errors, 'errors');
+                        $error++;
+                    }
+                }
             }
         }
 
         if (!$error) {
             $db->commit();
-            header('Location: ' . dol_buildpath('/requestmanager/card.php', 1). '?id=' . $id);
+            if ($object->id > 0) {
+                header('Location: ' . dol_buildpath('/requestmanager/card.php', 1). '?id=' . $object->id);
+            }
             exit();
         } else {
             $db->rollback();

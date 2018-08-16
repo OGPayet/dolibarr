@@ -133,11 +133,12 @@ RequestManagerDateResolved              = Date Résolu
 ############################################################
 ### Create fast
 ############################################################
-RequestManagerCreateFastAction          = Créer demande
-RequestManagerCreateFastTitle           = Création demande rapide
-RequestManagerCreateFastActionCommLabel = Evénement(s) non traité(s)
-RequestManagerCreateFastContractFormula = Formule
-RequestManagerLastEvents                = Derniers evénements
+RequestManagerCreateFastTitle             = Création demande rapide
+RequestManagerCreateFastActionCommLabel   = Evénement(s) non traité(s)
+RequestManagerCreateFastBtnCreateLabel    = Créer demande
+RequestManagerCreateFastBtnAssociateLabel = Associer demande
+RequestManagerCreateFastContractFormula   = Formule
+RequestManagerLastEvents                  = Derniers evénements
 
 ############################################################
 ### Message form

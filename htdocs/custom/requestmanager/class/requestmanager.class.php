@@ -3021,6 +3021,32 @@ class RequestManager extends CommonObject
     }
 
 
+    /**
+     * Link to actioncomm
+     *
+     * @param   int     $actionCommId       Id of actioncomm
+     * @return  int     <0 if KO, >0 if OK
+     */
+    public function linkToActionComm($actionCommId)
+    {
+        global $user;
+
+        // link to actioncomm
+        $actionComm = new ActionComm($this->db);
+        $actionComm->fetch($actionCommId);
+        $actionComm->fk_element  = $this->id;
+        $actionComm->elementtype = $this->element;
+        $result = $actionComm->update($user);
+
+        if ($result < 0) {
+            $this->errors[] = $actionComm->errorsToString();
+            return -1;
+        }
+
+        return 1;
+    }
+
+
     //
     // RequestManagerLine
     //
