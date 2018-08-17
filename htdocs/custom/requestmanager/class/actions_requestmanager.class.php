@@ -248,27 +248,45 @@ class ActionsRequestManager
      */
     private function _outMyAssignedRequestsButton()
     {
-        global $langs;
+        global $langs, $user;
 
         require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
         dol_include_once('/requestmanager/class/requestmanager.class.php');
 
         $out = '';
 
+        // last view date
+        if (isset($_SESSION['rm_lists_follow_last_date'])) {
+            $lastViewDate = $_SESSION['rm_lists_follow_last_date'];
+        } else if ($user->datepreviouslogin) {
+            $lastViewDate = $user->datepreviouslogin;
+        } else {
+            $lastViewDate = '';
+        }
+
         // nb requests assigned to me
-        $nbRequestsLimit = 9;
-        $statusType = -2;
-        $requestManager = new RequestManager($this->db);
-        $nbRequests = $requestManager->countMyAssignedRequests(array(RequestManager::STATUS_TYPE_INITIAL, RequestManager::STATUS_TYPE_IN_PROGRESS));
+        $nbRequestsLimit  = 9;
+
+        $requestManager        = new RequestManager($this->db);
+        $isListsFollowModified = $requestManager->isListsFollowModified($lastViewDate);
+        if ($isListsFollowModified === TRUE) {
+            $linkStyleBgColor = '#fff000';
+        } else {
+            $linkStyleBgColor = '#ffffff';
+        }
+        $nbRequests      = $requestManager->countMyAssignedRequests(array(RequestManager::STATUS_TYPE_INITIAL, RequestManager::STATUS_TYPE_IN_PROGRESS));
         $nbRequestsLabel = $nbRequests<=$nbRequestsLimit ? $nbRequests : $nbRequestsLimit.'+';
 
-        $text  = '<a href="' . dol_buildpath('/requestmanager/lists_follow.php', 1) . '" style="background-color: #ffffff; border-radius: 4px;">';
+        $text  = '<a href="' . dol_buildpath('/requestmanager/lists_follow.php', 1) . '" style="background-color: ' . $linkStyleBgColor . '; border-radius: 4px;">';
         $text .= '<span style="color: #770000; font-size: 12px; font-weight: bold;">&nbsp;' . $nbRequestsLabel . '&nbsp;</span>';
         //$text .= img_picto('', 'object_requestmanager@requestmanager', 'id="myassignedrequests"');
         $text .= '</a>';
 
         $htmltext  = '<u>' . $langs->trans("RequestManagerMenuTopRequestsFollow") . '</u>' . "\n";
         $htmltext .= '<br /><b>' . $langs->trans("Total") . '</b> : ' . $nbRequests . "\n";
+        if ($lastViewDate) {
+            $htmltext .= '<br /><b>' . $langs->trans("RequestManagerMenuTopDateLastView") . '</b> : ' . dol_print_date($lastViewDate, 'dayhour') . "\n";
+        }
         $out .= Form::textwithtooltip('', $htmltext,2,1, $text,'login_block_elem',2);
 
         return $out;

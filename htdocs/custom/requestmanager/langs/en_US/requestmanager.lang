@@ -38,6 +38,7 @@ RequestManagerMenuLeftListNotAssigned      = Requests not assigned
 RequestManagerMenuLeftListNotResolved      = Requests not resolved
 RequestManagerMenuLeftListClosed           = Requests closed
 RequestManagerMenuTopRequestsFollow        = Follow of requests
+RequestManagerMenuTopDateLastView          = Last access date
 RequestManagerMenuTopCreateFast            = Create fast request
 
 ############################################################

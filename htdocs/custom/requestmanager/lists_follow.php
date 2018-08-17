@@ -126,6 +126,9 @@ if ($search_notify_assigned_by_email == '') $search_notify_assigned_by_email = -
 
 $now = dol_now();
 
+// save last view date of this page
+$_SESSION['rm_lists_follow_last_date'] = $now;
+
 $form             = new Form($db);
 $usergroup_static = new UserGroup($db);
 

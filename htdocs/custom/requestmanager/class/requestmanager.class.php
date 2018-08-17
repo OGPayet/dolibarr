@@ -2041,6 +2041,8 @@ class RequestManager extends CommonObject
     {
         global $user;
 
+        require_once DOL_DOCUMENT_ROOT . '/user/class/usergroup.class.php';
+
         $nb = 0;
 
         // get all groups for user
@@ -2071,6 +2073,64 @@ class RequestManager extends CommonObject
         }
 
         return $nb;
+    }
+
+
+    /**
+     * Determine if lists to follow has been modified since last view
+     *
+     * @param   string      $lastViewDate     Date of last view
+     * @return  bool        TRUE If modified, else FALSE
+     */
+    public function isListsFollowModified($lastViewDate)
+    {
+        global $user;
+
+        require_once DOL_DOCUMENT_ROOT . '/user/class/usergroup.class.php';
+
+        $isModified = FALSE;
+
+        // get all groups for user
+        $userGroup = new UserGroup($this->db);
+        $userGroupList = $userGroup->listGroupsForUser($user->id);
+
+        // different filters for all lists
+        $sqlFilterInProgress            = 'crmst.type IN (' . self::STATUS_TYPE_INITIAL . ', ' . self::STATUS_TYPE_IN_PROGRESS . ')';
+        $sqlFilterInFuture              = 'rm.datec IS NOT NULL AND rm.datec > NOW()';
+        $sqlFilterInProgressOrFuture    = '((' . $sqlFilterInProgress . ') OR (' . $sqlFilterInFuture . '))';
+        $sqlFilterAssignedToMeOrMyGroup = '(rm.fk_assigned_user = ' . $user->id;
+        if (count($userGroupList) > 0) {
+            $sqlFilterAssignedToMeOrMyGroup .= ' OR rm.fk_assigned_usergroup IN (' . implode(',', array_keys($userGroupList)) . ')';
+        }
+        $sqlFilterAssignedToMeOrMyGroup .= ')';
+        $sqlFilterActionCommAssignedToMe = 'ac.fk_user_action = ' . $user->id;
+
+        $sql  = 'SELECT';
+        $sql .= ' rm.rowid';
+        $sql .= ' FROM ' . MAIN_DB_PREFIX . 'requestmanager as rm';
+        $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'c_requestmanager_status as crmst on (crmst.rowid = rm.fk_status)';
+        $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'actioncomm as ac ON ac.elementtype="requestmanager" AND ac.fk_element=rm.rowid';
+        $sql .= ' WHERE rm.entity IN (' . getEntity('requestmanager') . ')';
+        $sql .= ' AND (';
+        $sql .= ' (' . $sqlFilterInProgressOrFuture . ' AND ' . $sqlFilterAssignedToMeOrMyGroup . ')';
+        $sql .= ' OR (' . $sqlFilterInProgress . ' AND ' . $sqlFilterActionCommAssignedToMe . ')';
+        $sql .= ')';
+        if ($lastViewDate) {
+            $sql .= ' AND UNIX_TIMESTAMP(rm.tms) > ' . $lastViewDate;
+        }
+        $sql .= ' ORDER BY rm.tms DESC';
+
+        $resql = $this->db->query($sql);
+        if (!$resql) {
+            dol_syslog(__METHOD__, LOG_ERR);
+        } else {
+            $num = $this->db->num_rows($resql);
+            if ($num > 0) {
+                $isModified = TRUE;
+            }
+        }
+
+        return $isModified;
     }
 
 
