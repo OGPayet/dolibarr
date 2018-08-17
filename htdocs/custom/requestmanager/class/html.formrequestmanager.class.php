@@ -545,5 +545,381 @@ class FormRequestManager
 
         return 'ErrorBadValueForParameterRenderMode';	// Should not happened
     }
+
+
+    /**
+     * Prepare SQL request for lists to follow
+     *
+     * @param   DoliDB  $db             Doli DB object
+     * @param   string  $filter         Filter condition where in SQL
+     * @param   string  $sortfield      List of sort fields, separated by comma. Example: 't1.fielda, t2.fieldb'
+     * @param	string  $sortorder      List of sort order seprated by comma ('ASC'|'DESC')
+     * @return  string  SQL request
+     */
+    private static function _listsFollowSqlPrepare(DoliDB $db, $filter='', $sortfield='', $sortorder='')
+    {
+        $sql  = 'SELECT';
+        $sql .= ' rm.rowid, rm.ref, rm.ref_ext,';
+        $sql .= ' rm.fk_soc, s.nom as soc_name, s.client as soc_client, s.fournisseur as soc_fournisseur, s.code_client as soc_code_client, s.code_fournisseur as soc_code_fournisseur,';
+        $sql .= ' rm.label, rm.description,';
+        $sql .= ' rm.fk_type, crmrt.label as type_label,';
+        $sql .= ' rm.fk_category, crmc.label as category_label,';
+        $sql .= ' rm.fk_source, crms.label as source_label,';
+        $sql .= ' rm.fk_urgency, crmu.label as urgency_label,';
+        $sql .= ' rm.fk_impact, crmi.label as impact_label,';
+        $sql .= ' rm.fk_priority, crmp.label as priority_label,';
+        $sql .= ' rm.notify_requester_by_email, rm.notify_watcher_by_email, rm.notify_assigned_by_email,';
+        $sql .= ' rm.fk_assigned_user, uas.firstname as userassignedfirstname, uas.lastname as userassignedlastname, uas.email as userassignedemail,';
+        $sql .= ' rm.fk_assigned_usergroup, uga.nom as usergroupassignedname,';
+        $sql .= ' rm.duration, rm.date_deadline, rm.date_resolved, rm.date_closed,';
+        $sql .= ' rm.fk_user_resolved, ur.firstname as userresolvedfirstname, ur.lastname as userresolvedlastname, ur.email as userresolvedemail,';
+        $sql .= ' rm.fk_user_closed, uc.firstname as userclosedfirstname, uc.lastname as userclosedlastname, uc.email as userclosedemail,';
+        $sql .= ' rm.fk_status,';
+        $sql .= ' rm.datec, rm.tms,';
+        $sql .= ' rm.fk_user_author, ua.firstname as userauthorfirstname, ua.lastname as userauthorlastname, ua.email as userauthoremail,';
+        $sql .= ' rm.fk_user_modif, um.firstname as usermodiffirstname, um.lastname as usermodiflastname, um.email as usermodifemail';
+        $sql .= ' FROM ' . MAIN_DB_PREFIX . 'requestmanager as rm';
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_requestmanager_request_type as crmrt on (crmrt.rowid = rm.fk_type)";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_requestmanager_category as crmc on (crmc.rowid = rm.fk_category)";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_requestmanager_source as crms on (crms.rowid = rm.fk_source)";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_requestmanager_urgency as crmu on (crmu.rowid = rm.fk_urgency)";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_requestmanager_impact as crmi on (crmi.rowid = rm.fk_impact)";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_requestmanager_priority as crmp on (crmp.rowid = rm.fk_priority)";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_requestmanager_status as crmst on (crmst.rowid = rm.fk_status)";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe as s on (s.rowid = rm.fk_soc)";
+        $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'user as uas ON uas.rowid = rm.fk_assigned_user';
+        $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'usergroup as uga ON uga.rowid = rm.fk_assigned_usergroup';
+        $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'user as ur ON ur.rowid = rm.fk_user_resolved';
+        $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'user as uc ON uc.rowid = rm.fk_user_closed';
+        $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'user as ua ON ua.rowid = rm.fk_user_author';
+        $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'user as um ON um.rowid = rm.fk_user_modif';
+        $sql .= ' WHERE rm.entity IN (' . getEntity('requestmanager') . ')';
+        $sql .= $filter;
+        $sql .= $db->order($sortfield, $sortorder);
+
+        return $sql;
+    }
+
+
+    /**
+     * Print a line for lists to follow
+     *
+     * @param   DoliDB          $db                     Doli DB object
+     * @param   array           $arrayfields            Array of fields to show
+     * @param   stdClass        $obj                    Standard object from db
+     * @param   RequestManager  $requestmanagerstatic   RequestManager object
+     * @param   Societe         $societestatic          Societe object
+     * @param   User            $userstatic             User object
+     */
+    private static function _listsFollowPrintLineFrom(DoliDB $db, $arrayfields, $obj, RequestManager $requestmanagerstatic, Societe $societestatic, User $userstatic)
+    {
+        global $langs;
+
+        $now = dol_now();
+
+        // societe
+        $societestatic->id               = $obj->fk_soc;
+        $societestatic->name             = $obj->soc_name;
+        $societestatic->client           = $obj->soc_client;
+        $societestatic->fournisseur      = $obj->soc_fournisseur;
+        $societestatic->code_client      = $obj->soc_code_client;
+        $societestatic->code_fournisseur = $obj->soc_code_fournisseur;
+
+        // requestmanager
+        $requestmanagerstatic->id            = $obj->rowid;
+        $requestmanagerstatic->ref           = $obj->ref;
+        $requestmanagerstatic->ref_ext       = $obj->ref_ext;
+        $requestmanagerstatic->fk_type       = $obj->fk_type;
+        $requestmanagerstatic->label         = $obj->label;
+        $requestmanagerstatic->socid         = $obj->fk_soc;
+        //$requestmanagerstatic->date_deadline = $obj->date_deadline;
+        $requestmanagerstatic->thirdparty    = $societestatic;
+
+        // picto warning for deadline
+        $pictoWarning = '';
+        if ($obj->date_deadline) {
+            $tmsDeadLine = strtotime($obj->date_deadline);
+            if ($tmsDeadLine < $now) {
+                // alert time is up
+                $pictoWarning = img_warning($langs->trans("Late"));
+            }
+        }
+
+        print '<tr class="oddeven">';
+
+        // Ref
+        if (!empty($arrayfields['rm.ref']['checked'])) {
+            print '<td class="nowrap">';
+            print $requestmanagerstatic->getNomUrl(1) . ' ' . $pictoWarning;
+            print '</td>';
+        }
+
+        //External Ref
+        if (!empty($arrayfields['rm.ref_ext']['checked'])) {
+            print '<td class="nowrap">';
+            print $obj->ref_ext;
+            print '</td>';
+        }
+
+        // Type
+        if (!empty($arrayfields['rm.fk_type']['checked'])) {
+            print '<td class="nowrap">';
+            print $obj->type_label;
+            print '</td>';
+        }
+
+        // Category
+        if (!empty($arrayfields['rm.fk_category']['checked'])) {
+            print '<td class="nowrap">';
+            print $obj->category_label;
+            print '</td>';
+        }
+
+        // Label
+        if (!empty($arrayfields['rm.label']['checked'])) {
+            print '<td class="nowrap">';
+            print $obj->label;
+            print '</td>';
+        }
+
+        // Thridparty
+        if (!empty($arrayfields['rm.fk_soc']['checked'])) {
+            print '<td class="nowrap">';
+            print $societestatic->getNomUrl(1);
+            print '</td>';
+        }
+
+        // Description
+        if (!empty($arrayfields['rm.description']['checked'])) {
+            print '<td class="nowrap">';
+            print $obj->description;
+            print '</td>';
+        }
+
+        // Source
+        if (!empty($arrayfields['rm.fk_source']['checked'])) {
+            print '<td class="nowrap">';
+            print $obj->source_label;
+            print '</td>';
+        }
+
+        // Urgency
+        if (!empty($arrayfields['rm.fk_urgency']['checked'])) {
+            print '<td class="nowrap">';
+            print $obj->urgency_label;
+            print '</td>';
+        }
+
+        // Impact
+        if (!empty($arrayfields['rm.fk_impact']['checked'])) {
+            print '<td class="nowrap">';
+            print $obj->impact_label;
+            print '</td>';
+        }
+
+        // Priority
+        if (!empty($arrayfields['rm.fk_priority']['checked'])) {
+            print '<td class="nowrap">';
+            print $obj->priority_label;
+            print '</td>';
+        }
+
+        // Duration
+        if (!empty($arrayfields['rm.duration']['checked'])) {
+            print '<td class="nowrap">';
+            if ($obj->duration > 0) print requestmanager_print_duration($obj->duration);
+            print '</td>';
+        }
+
+        // Date Deadline
+        if (!empty($arrayfields['rm.date_deadline']['checked'])) {
+            print '<td class="nowrap" align="center">';
+            if ($obj->date_deadline > 0) print dol_print_date($db->jdate($obj->date_deadline), 'dayhour');
+            print '</td>';
+        }
+
+        // Notification requesters
+        if (!empty($arrayfields['rm.notify_requester_by_email']['checked'])) {
+            print '<td class="nowrap" align="center">';
+            print yn($obj->notify_requester_by_email);
+            print '</td>';
+        }
+
+        // Notification watchers
+        if (!empty($arrayfields['rm.notify_watcher_by_email']['checked'])) {
+            print '<td class="nowrap" align="center">';
+            print yn($obj->notify_watcher_by_email);
+            print '</td>';
+        }
+
+        // Assigned user
+        if (!empty($arrayfields['rm.fk_assigned_user']['checked'])) {
+            print '<td class="nowrap">';
+            if ($obj->fk_assigned_user > 0) {
+                $userstatic->id = $obj->fk_assigned_user;
+                $userstatic->firstname = $obj->userassignedfirstname;
+                $userstatic->lastname = $obj->userassignedlastname;
+                $userstatic->email = $obj->userassignedemail;
+                print $userstatic->getNomUrl(1);
+            }
+            print '</td>';
+        }
+
+        // Assigned usergroup
+        if (!empty($arrayfields['rm.fk_assigned_usergroup']['checked'])) {
+            print '<td class="nowrap">';
+            print $obj->usergroupassignedname;
+            print '</td>';
+        }
+
+        // Notification assigned
+        if (!empty($arrayfields['rm.notify_assigned_by_email']['checked'])) {
+            print '<td class="nowrap" align="center">';
+            print yn($obj->notify_assigned_by_email);
+            print '</td>';
+        }
+
+        // User resolved
+        if (!empty($arrayfields['rm.fk_user_resolved']['checked'])) {
+            print '<td class="nowrap">';
+            if ($obj->fk_user_resolved > 0) {
+                $userstatic->id = $obj->fk_user_resolved;
+                $userstatic->firstname = $obj->userresolvedfirstname;
+                $userstatic->lastname = $obj->userresolvedlastname;
+                $userstatic->email = $obj->userresolvedemail;
+                print $userstatic->getNomUrl(1);
+            }
+            print '</td>';
+        }
+
+        // User closed
+        if (!empty($arrayfields['rm.fk_user_closed']['checked'])) {
+            print '<td class="nowrap">';
+            if ($obj->fk_user_closed > 0) {
+                $userstatic->id = $obj->fk_user_closed;
+                $userstatic->firstname = $obj->userclosedfirstname;
+                $userstatic->lastname = $obj->userclosedlastname;
+                $userstatic->email = $obj->userclosedemail;
+                print $userstatic->getNomUrl(1);
+            }
+            print '</td>';
+        }
+
+        // Date resolved
+        if (!empty($arrayfields['rm.date_resolved']['checked'])) {
+            print '<td class="nowrap" align="center">';
+            if ($obj->date_resolved > 0) print dol_print_date($db->jdate($obj->date_resolved), 'dayhour');
+            print '</td>';
+        }
+
+        // Date closed
+        if (!empty($arrayfields['rm.date_cloture']['checked'])) {
+            print '<td class="nowrap" align="center">';
+            if ($obj->date_closed > 0) print dol_print_date($db->jdate($obj->date_closed), 'dayhour');
+            print '</td>';
+        }
+
+        // Author
+        if (!empty($arrayfields['rm.fk_user_author']['checked'])) {
+            print '<td class="nowrap">';
+            if ($obj->fk_user_author > 0) {
+                $userstatic->id = $obj->fk_user_author;
+                $userstatic->firstname = $obj->userauthorfirstname;
+                $userstatic->lastname = $obj->userauthorlastname;
+                $userstatic->email = $obj->userauthoremail;
+                print $userstatic->getNomUrl(1);
+            }
+            print '</td>';
+        }
+
+        // Modified by
+        if (!empty($arrayfields['rm.fk_user_modif']['checked'])) {
+            print '<td class="nowrap">';
+            if ($obj->fk_user_modif > 0) {
+                $userstatic->id = $obj->fk_user_modif;
+                $userstatic->firstname = $obj->usermodiffirstname;
+                $userstatic->lastname = $obj->usermodiflastname;
+                $userstatic->email = $obj->usermodifemail;
+                print $userstatic->getNomUrl(1);
+            }
+            print '</td>';
+        }
+
+        // Date creation
+        if (!empty($arrayfields['rm.datec']['checked'])) {
+            print '<td align="center" class="nowrap">';
+            print dol_print_date($db->jdate($obj->datec), 'dayhour');
+            print '</td>';
+        }
+
+        // Date modification
+        if (!empty($arrayfields['rm.tms']['checked'])) {
+            print '<td align="center" class="nowrap">';
+            print dol_print_date($db->jdate($obj->tms), 'dayhour');
+            print '</td>';
+        }
+
+        // Status
+        if (!empty($arrayfields['rm.fk_status']['checked'])) {
+            print '<td align="right" class="nowrap">' . $requestmanagerstatic->LibStatut($obj->fk_status, 5) . '</td>';
+        }
+
+        print '<td></td>';
+
+        print "</tr>\n";
+    }
+
+
+    /**
+     * Print a list to follow
+     *
+     * @param   DoliDB          $db                     Doli DB object
+     * @param   array           $arrayfields            Array of fields to show
+     * @param   stdClass        $obj                    Standard object from db
+     * @param   RequestManager  $requestmanagerstatic   RequestManager object
+     * @param   Societe         $societestatic          Societe object
+     * @param   User            $userstatic             User object
+     * @param   string          $filter                 [=''] Filter condition where in SQL
+     * @param   string          $sortfield              [=''] List of sort fields, separated by comma. Example: 't1.fielda, t2.fieldb'
+     * @param	string          $sortorder              [=''] List of sort order seprated by comma ('ASC'|'DESC')
+     * @param   string          $titleKey               [=''] Traduction key for title of this list
+     * @param   int             $nbCol                  [=1] Nb column to show
+     */
+    public static function listsFollowPrintListFrom(DoliDB $db, $arrayfields, RequestManager $requestmanagerstatic, Societe $societestatic, User $userstatic, $filter='', $sortfield='', $sortorder='', $titleKey='', $nbCol=1)
+    {
+        global $langs;
+
+        $sql = self::_listsFollowSqlPrepare($db, $filter, $sortfield, $sortorder);
+
+        $resql = $db->query($sql);
+        if ($resql) {
+            print '<tr class="liste_titre">';
+            print '<td colspan="' . $nbCol . '">' . $langs->trans($titleKey) . '</td>';
+            print '</tr>';
+
+            $i = 0;
+            $num = $db->num_rows($resql);
+            while ($i < $num) {
+                $obj = $db->fetch_object($resql);
+
+                // print a line
+                self::_listsFollowPrintLineFrom($db, $arrayfields, $obj, $requestmanagerstatic, $societestatic, $userstatic);
+
+                $i++;
+            }
+
+            print '<tr>';
+            print '<td colspan="' . $nbCol . '" align="center">';
+            if ($i <= 0) {
+                print $langs->trans('NoRecordFound');
+            }
+            print '</td>';
+            print '</tr>';
+
+            $db->free($resql);
+        } else {
+            dol_print_error($db);
+        }
+    }
 }
 

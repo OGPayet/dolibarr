@@ -262,12 +262,12 @@ class ActionsRequestManager
         $nbRequests = $requestManager->countMyAssignedRequests(array(RequestManager::STATUS_TYPE_INITIAL, RequestManager::STATUS_TYPE_IN_PROGRESS));
         $nbRequestsLabel = $nbRequests<=$nbRequestsLimit ? $nbRequests : $nbRequestsLimit.'+';
 
-        $text  = '<a href="' . dol_buildpath('/requestmanager/list.php?mylist=1&status_type=' . $statusType, 1) . '" style="background-color: #ffffff; border-radius: 4px;">';
+        $text  = '<a href="' . dol_buildpath('/requestmanager/lists_follow.php', 1) . '" style="background-color: #ffffff; border-radius: 4px;">';
         $text .= '<span style="color: #770000; font-size: 12px; font-weight: bold;">&nbsp;' . $nbRequestsLabel . '&nbsp;</span>';
         //$text .= img_picto('', 'object_requestmanager@requestmanager', 'id="myassignedrequests"');
         $text .= '</a>';
 
-        $htmltext  = '<u>' . $langs->trans("RequestManagerMenuTopMyRequestsNotResolved") . '</u>' . "\n";
+        $htmltext  = '<u>' . $langs->trans("RequestManagerMenuTopRequestsFollow") . '</u>' . "\n";
         $htmltext .= '<br /><b>' . $langs->trans("Total") . '</b> : ' . $nbRequests . "\n";
         $out .= Form::textwithtooltip('', $htmltext,2,1, $text,'login_block_elem',2);
 

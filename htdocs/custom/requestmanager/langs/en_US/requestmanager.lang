@@ -37,7 +37,7 @@ RequestManagerMenuLeftMyList               = My requests
 RequestManagerMenuLeftListNotAssigned      = Requests not assigned
 RequestManagerMenuLeftListNotResolved      = Requests not resolved
 RequestManagerMenuLeftListClosed           = Requests closed
-RequestManagerMenuTopMyRequestsNotResolved = My requests not resolved
+RequestManagerMenuTopRequestsFollow        = Follow of requests
 RequestManagerMenuTopCreateFast            = Create fast request
 
 ############################################################
@@ -56,6 +56,16 @@ RequestManagerTypeNotResolved           = Not resolved
 RequestManagerExternalReferenceShort    = External reference
 RequestManagerResolvedBy                = Resolved by
 RequestManagerDateResolved              = Resolved date
+
+############################################################
+### Lists follow
+############################################################
+RequestManagerListsFollowTitle                = Follow requests
+RequestManagerListsFollowMyRequest            = My requests
+RequestManagerListsFollowMyGroupRequest       = My group requests
+RequestManagerListsFollowLinkToMyEvent        = My reuqests to follow
+RequestManagerListsFollowMyFutureRequest      = My future requests
+RequestManagerListsFollowMyFutureGroupRequest = Future requests to my group
 
 ############################################################
 ### Create fast
