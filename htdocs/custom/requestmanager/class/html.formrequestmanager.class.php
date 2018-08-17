@@ -551,14 +551,15 @@ class FormRequestManager
      * Prepare SQL request for lists to follow
      *
      * @param   DoliDB  $db             Doli DB object
-     * @param   string  $filter         Filter condition where in SQL
-     * @param   string  $sortfield      List of sort fields, separated by comma. Example: 't1.fielda, t2.fieldb'
-     * @param	string  $sortorder      List of sort order seprated by comma ('ASC'|'DESC')
+     * @param   string  $join           [=''] Join condition in SQL
+     * @param   string  $filter         [=''] Filter condition where in SQL
+     * @param   string  $sortfield      [=''] List of sort fields, separated by comma. Example: 't1.fielda, t2.fieldb'
+     * @param	string  $sortorder      [=''] List of sort order seprated by comma ('ASC'|'DESC')
      * @return  string  SQL request
      */
-    private static function _listsFollowSqlPrepare(DoliDB $db, $filter='', $sortfield='', $sortorder='')
+    private static function _listsFollowSqlPrepare(DoliDB $db, $join='', $filter='', $sortfield='', $sortorder='')
     {
-        $sql  = 'SELECT';
+        $sql  = 'SELECT DISTINCT';
         $sql .= ' rm.rowid, rm.ref, rm.ref_ext,';
         $sql .= ' rm.fk_soc, s.nom as soc_name, s.client as soc_client, s.fournisseur as soc_fournisseur, s.code_client as soc_code_client, s.code_fournisseur as soc_code_fournisseur,';
         $sql .= ' rm.label, rm.description,';
@@ -579,20 +580,21 @@ class FormRequestManager
         $sql .= ' rm.fk_user_author, ua.firstname as userauthorfirstname, ua.lastname as userauthorlastname, ua.email as userauthoremail,';
         $sql .= ' rm.fk_user_modif, um.firstname as usermodiffirstname, um.lastname as usermodiflastname, um.email as usermodifemail';
         $sql .= ' FROM ' . MAIN_DB_PREFIX . 'requestmanager as rm';
-        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_requestmanager_request_type as crmrt on (crmrt.rowid = rm.fk_type)";
-        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_requestmanager_category as crmc on (crmc.rowid = rm.fk_category)";
-        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_requestmanager_source as crms on (crms.rowid = rm.fk_source)";
-        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_requestmanager_urgency as crmu on (crmu.rowid = rm.fk_urgency)";
-        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_requestmanager_impact as crmi on (crmi.rowid = rm.fk_impact)";
-        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_requestmanager_priority as crmp on (crmp.rowid = rm.fk_priority)";
-        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_requestmanager_status as crmst on (crmst.rowid = rm.fk_status)";
-        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe as s on (s.rowid = rm.fk_soc)";
+        $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'c_requestmanager_request_type as crmrt on (crmrt.rowid = rm.fk_type)';
+        $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'c_requestmanager_category as crmc on (crmc.rowid = rm.fk_category)';
+        $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'c_requestmanager_source as crms on (crms.rowid = rm.fk_source)';
+        $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'c_requestmanager_urgency as crmu on (crmu.rowid = rm.fk_urgency)';
+        $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'c_requestmanager_impact as crmi on (crmi.rowid = rm.fk_impact)';
+        $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'c_requestmanager_priority as crmp on (crmp.rowid = rm.fk_priority)';
+        $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'c_requestmanager_status as crmst on (crmst.rowid = rm.fk_status)';
+        $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'societe as s on (s.rowid = rm.fk_soc)';
         $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'user as uas ON uas.rowid = rm.fk_assigned_user';
         $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'usergroup as uga ON uga.rowid = rm.fk_assigned_usergroup';
         $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'user as ur ON ur.rowid = rm.fk_user_resolved';
         $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'user as uc ON uc.rowid = rm.fk_user_closed';
         $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'user as ua ON ua.rowid = rm.fk_user_author';
         $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'user as um ON um.rowid = rm.fk_user_modif';
+        $sql .= $join;
         $sql .= ' WHERE rm.entity IN (' . getEntity('requestmanager') . ')';
         $sql .= $filter;
         $sql .= $db->order($sortfield, $sortorder);
@@ -879,17 +881,18 @@ class FormRequestManager
      * @param   RequestManager  $requestmanagerstatic   RequestManager object
      * @param   Societe         $societestatic          Societe object
      * @param   User            $userstatic             User object
+     * @param   string          $join                   [=''] Join condition where in SQL
      * @param   string          $filter                 [=''] Filter condition where in SQL
      * @param   string          $sortfield              [=''] List of sort fields, separated by comma. Example: 't1.fielda, t2.fieldb'
      * @param	string          $sortorder              [=''] List of sort order seprated by comma ('ASC'|'DESC')
      * @param   string          $titleKey               [=''] Traduction key for title of this list
      * @param   int             $nbCol                  [=1] Nb column to show
      */
-    public static function listsFollowPrintListFrom(DoliDB $db, $arrayfields, RequestManager $requestmanagerstatic, Societe $societestatic, User $userstatic, $filter='', $sortfield='', $sortorder='', $titleKey='', $nbCol=1)
+    public static function listsFollowPrintListFrom(DoliDB $db, $arrayfields, RequestManager $requestmanagerstatic, Societe $societestatic, User $userstatic, $join='', $filter='', $sortfield='', $sortorder='', $titleKey='', $nbCol=1)
     {
         global $langs;
 
-        $sql = self::_listsFollowSqlPrepare($db, $filter, $sortfield, $sortorder);
+        $sql = self::_listsFollowSqlPrepare($db, $join, $filter, $sortfield, $sortorder);
 
         $resql = $db->query($sql);
         if ($resql) {
