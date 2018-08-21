@@ -1,0 +1,24 @@
+diff a/htdocs/custom/advancedictionaries/core/actions_dictionaries.inc.php b/htdocs/custom/advancedictionaries/core/actions_dictionaries.inc.php	(rejected hunks)
+@@ -40,22 +40,8 @@ dol_include_once('/advancedictionaries/class/dictionary.class.php');
+ 
+ $langs->load("advancedictionaries@advancedictionaries");
+ 
+-$canRead = $user->rights->advancedictionaries->read;
+-$canCreate = $user->rights->advancedictionaries->create;
+-$canUpdate = $user->rights->advancedictionaries->create;
+-$canDelete = $user->rights->advancedictionaries->delete;
+-$canDisable = $user->rights->advancedictionaries->disable;
+-
+ if (!$canRead) accessforbidden();
+ 
+-$action      = GETPOST('action', 'alpha');
+-$confirm     = GETPOST('confirm', 'alpha');
+-$id          = GETPOST('id', 'int');
+-$rowid       = GETPOST('rowid', 'int');
+-$prevrowid   = GETPOST('prevrowid', 'int');
+-$module      = GETPOST('module', 'alpha');
+-$name        = GETPOST('name', 'alpha');
+-
+ // Select current dictionary informations
+ $dictionary = null;
+ if ($id > 0 || (!empty($module) && !empty($name))) {

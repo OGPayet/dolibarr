@@ -35,6 +35,19 @@ $langs->load("admin");
 $langs->load("requestmanager@requestmanager");
 $langs->load("opendsi@requestmanager");
 
+$action      = GETPOST('action', 'alpha');
+$confirm     = GETPOST('confirm', 'alpha');
+$id          = GETPOST('id', 'int');
+$rowid       = GETPOST('rowid', 'int');
+$prevrowid   = GETPOST('prevrowid', 'int');
+$module      = GETPOST('module', 'alpha');
+$name        = GETPOST('name', 'alpha');
+
+$canRead = $user->rights->advancedictionaries->read;
+$canCreate = $user->rights->advancedictionaries->create;
+$canUpdate = $user->rights->advancedictionaries->create;
+$canDelete = $user->rights->advancedictionaries->delete;
+$canDisable = $user->rights->advancedictionaries->disable;
 
 include dol_buildpath('/advancedictionaries/core/actions_dictionaries.inc.php');
 

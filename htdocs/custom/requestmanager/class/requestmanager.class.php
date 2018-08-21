@@ -1408,6 +1408,24 @@ class RequestManager extends CommonObject
             }
         }
 
+        // if assigned user changed
+        if (!$error && $this->oldcopy->assigned_user_id != $this->assigned_user_id) {
+            // create new event and notify assigned users and contacts
+            $result = $this->createActionCommAndNotifyFromTemplateType(self::TEMPLATE_TYPE_NOTIFY_ASSIGNED_USERS_MODIFIED, self::ACTIONCOMM_TYPE_CODE_ASSUSR);
+            if ($result < 0) {
+                $error++;
+            }
+        }
+
+        // if assigned group changed
+        if (!$error && $this->oldcopy->assigned_usergroup_id != $this->assigned_usergroup_id) {
+            // create new event and notify assigned users and contacts
+            $result = $this->createActionCommAndNotifyFromTemplateType(self::TEMPLATE_TYPE_NOTIFY_ASSIGNED_USERS_MODIFIED, self::ACTIONCOMM_TYPE_CODE_ASSUSR);
+            if ($result < 0) {
+                $error++;
+            }
+        }
+
         if (!$error && !$notrigger) {
             // Call trigger
             $result = $this->call_trigger('REQUESTMANAGER_MODIFY', $user);
@@ -1540,7 +1558,7 @@ class RequestManager extends CommonObject
 	 * @return  int                     <0 if KO, >0 if OK
 	 */
 	public function set_status($status=0, $status_type=-1, User $user, $notrigger = false, $forcereload = 0)
-	{
+    {
         global $langs;
         $error = 0;
         $this->errors = array();
@@ -1588,18 +1606,46 @@ class RequestManager extends CommonObject
 
         $this->new_statut = $status;
 
-		// Update request
-		$sql = 'UPDATE ' . MAIN_DB_PREFIX . $this->table_element . ' SET';
+        // Update request
+        $sql = 'UPDATE ' . MAIN_DB_PREFIX . $this->table_element . ' SET';
         $sql .= " fk_status = " . $status;
-        $sql .= ' WHERE rowid = '.$this->id;
+        $sql .= ' WHERE rowid = ' . $this->id;
 
-		$this->db->begin();
+        $this->db->begin();
 
         $resql = $this->db->query($sql);
         if (!$resql) {
             $error++;
             $this->errors[] = 'Error ' . $this->db->lasterror();
             dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $this->db->lasterror(), LOG_ERR);
+        }
+
+        if (!$error) {
+            $status_infos = self::$status_list[$status];
+            $assigned_user = !empty($status_infos->fields['assigned_user']) ? $status_infos->fields['assigned_user'] : $this->assigned_user_id;
+            $assigned_usergroup = !empty($status_infos->fields['assigned_usergroup']) ? $status_infos->fields['assigned_usergroup'] : $this->assigned_usergroup_id;
+            $date_deadline = null;
+            if (isset($status_infos->fields['deadline'])) {
+                if ($status_infos->fields['deadline'] > 0) {
+                    require_once DOL_DOCUMENT_ROOT . '/core/lib/date.lib.php';
+                    $now = dol_now();
+                    $date_deadline = dol_time_plus_duree($now, $status_infos->fields['deadline'] / 60, 'h');
+                } elseif ($status_infos->fields['deadline'] == -1) {
+                    $date_deadline = $this->date_deadline;
+                }
+            }
+
+            if ($assigned_user != $this->assigned_user_id || $assigned_usergroup != $this->assigned_usergroup_id || $date_deadline != $this->date_deadline) {
+                $this->fetch($this->id);
+                $this->oldcopy = clone $this;
+                $this->assigned_user_id = $assigned_user;
+                $this->assigned_usergroup_id = $assigned_usergroup;
+                $this->date_deadline = $date_deadline;
+                $result = $this->update($user, 1);
+                if ($result < 0) {
+                    $error++;
+                }
+            }
         }
 
         if (!$error && !$notrigger) {

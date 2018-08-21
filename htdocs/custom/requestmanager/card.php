@@ -324,24 +324,8 @@ if (empty($reshook)) {
     elseif ($action == 'set_assigned_usergroup' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
         $object->oldcopy = clone $object;
         $object->assigned_usergroup_id = GETPOST('assigned_usergroup', 'int');
-
-        // if assigned group changed
-        if ($object->oldcopy->assigned_usergroup_id != $object->assigned_usergroup_id) {
-            // create new event and notify assigned users and contacts
-            $result = $object->createActionCommAndNotifyFromTemplateType(RequestManager::TEMPLATE_TYPE_NOTIFY_ASSIGNED_USERS_MODIFIED, RequestManager::ACTIONCOMM_TYPE_CODE_ASSUSR);
-            if ($result < 0) {
-                $error++;
-            }
-        }
-
-        if (!$error) {
-            $result = $object->update($user);
-            if ($result < 0) {
-                $error++;
-            }
-        }
-
-        if ($error) {
+        $result = $object->update($user);
+        if ($result < 0) {
             setEventMessages($object->error, $object->errors, 'errors');
             $action = 'edit_assigned_usergroup';
         } else {
@@ -352,24 +336,8 @@ if (empty($reshook)) {
     elseif ($action == 'set_assigned_user' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
         $object->oldcopy = clone $object;
         $object->assigned_user_id = GETPOST('assigned_user', 'int');
-
-        // if assigned user changed
-        if ($object->oldcopy->assigned_user_id != $object->assigned_user_id) {
-            // create new event and notify assigned users and contacts
-            $result = $object->createActionCommAndNotifyFromTemplateType(RequestManager::TEMPLATE_TYPE_NOTIFY_ASSIGNED_USERS_MODIFIED, RequestManager::ACTIONCOMM_TYPE_CODE_ASSUSR);
-            if ($result < 0) {
-                $error++;
-            }
-        }
-
-        if (!$error) {
-            $result = $object->update($user);
-            if ($result < 0) {
-                $error++;
-            }
-        }
-
-        if ($error) {
+        $result = $object->update($user);
+        if ($result < 0) {
             setEventMessages($object->error, $object->errors, 'errors');
             $action = 'edit_assigned_user';
         } else {
@@ -1095,7 +1063,7 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
     $object->fk_priority = GETPOST('priority', 'int');
     if (!GETPOST('deadline_') && !GETPOST('deadline_hour', 'int') && !GETPOST('deadline_min', 'int')) {
         // calculate deadline date from default deadline time in seconds and now
-        $object->date_deadline = dol_now() + intval($conf->global->REQUESTMANAGER_DEADLINE_TIME_DEFAULT);
+        $object->date_deadline = !empty($conf->global->REQUESTMANAGER_DEADLINE_TIME_DEFAULT) ? dol_now() + intval($conf->global->REQUESTMANAGER_DEADLINE_TIME_DEFAULT) : -1;
     } else {
         $object->date_deadline = dol_mktime(GETPOST('deadline_hour', 'int'), GETPOST('deadline_min', 'int'), 0, GETPOST('deadline_month', 'int'), GETPOST('deadline_day', 'int'), GETPOST('deadline_year', 'int'));
     }
@@ -1824,11 +1792,15 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
 	 * Boutons status
 	 */
     if ($user->rights->requestmanager->creer) {
-        print '<div class="tabsAction noMarginBottom">';
+        print '<div class="tabsStatusAction">';
         dol_include_once('/advancedictionaries/class/dictionary.class.php');
         $requestManagerStatusDictionary = Dictionary::getDictionary($db, 'requestmanager', 'requestmanagerstatus');
 
-        if ($object->statut_type == RequestManager::STATUS_TYPE_INITIAL || $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+        // Get current status infos
+        $requestManagerStatusDictionaryLine = $requestManagerStatusDictionary->getNewDictionaryLine();
+        $requestManagerStatusDictionaryLine->fetch($object->statut);
+
+        /*if ($object->statut_type == RequestManager::STATUS_TYPE_INITIAL || $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
             $filter_type = array(RequestManager::STATUS_TYPE_IN_PROGRESS, RequestManager::STATUS_TYPE_RESOLVED);
         } else {
             $filter_type = array(RequestManager::STATUS_TYPE_CLOSED);
@@ -1838,23 +1810,33 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
         $requestManagerStatusDictionary->fetch_lines(1,
             array('request_type' => array($object->fk_type), 'type' => $filter_type),
             array('type' => 'ASC', 'position' => 'ASC')
-        );
-        foreach ($requestManagerStatusDictionary->lines as $line) {
-            if ($line->id == $object->statut ||
-                ($line->fields['type'] == RequestManager::STATUS_TYPE_CLOSED && !empty($conf->global->REQUESTMANAGER_AUTO_CLOSE_REQUEST))) continue;
-            print '<div class="inline-block divButAction noMarginBottom">';
-            $options_url = '';
-            if ($line->fields['type'] == RequestManager::STATUS_TYPE_IN_PROGRESS) {
-                $options_url = '&action=set_status&status=' . $line->id;
-            } elseif ($line->fields['type'] == RequestManager::STATUS_TYPE_RESOLVED) {
-                $options_url = '&action=resolve';
-            } elseif ($line->fields['type'] == RequestManager::STATUS_TYPE_CLOSED) {
-                $options_url = '&action=close';
+        );*/
+        // Get lines
+        $requestManagerStatusDictionary->fetch_lines(1, array('request_type' => array($object->fk_type)));
+        $next_status = explode(',', $requestManagerStatusDictionaryLine->fields['next_status']);
+        if (is_array($next_status) && count($next_status) > 0) {
+            foreach ($next_status as $line_id) {
+                $line = $requestManagerStatusDictionary->lines[$line_id];
+
+                if (isset($line)) {
+                    if ($line->id == $object->statut ||
+                        ($line->fields['type'] == RequestManager::STATUS_TYPE_CLOSED && !empty($conf->global->REQUESTMANAGER_AUTO_CLOSE_REQUEST))
+                    ) continue;
+                    print '<div class="inline-block divButAction noMarginBottom">';
+                    $options_url = '';
+                    if ($line->fields['type'] == RequestManager::STATUS_TYPE_INITIAL || $line->fields['type'] == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+                        $options_url = '&action=set_status&status=' . $line->id;
+                    } elseif ($line->fields['type'] == RequestManager::STATUS_TYPE_RESOLVED) {
+                        $options_url = '&action=resolve';
+                    } elseif ($line->fields['type'] == RequestManager::STATUS_TYPE_CLOSED) {
+                        $options_url = '&action=close';
+                    }
+                    print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . $options_url . '">';
+                    print $object->LibStatut($line->id, 10);
+                    print '</a>';
+                    print '</div>';
+                }
             }
-            print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . $options_url . '">';
-            print $object->LibStatut($line->id, 10);
-            print '</a>';
-            print '</div>';
         }
 
         print '</div>';

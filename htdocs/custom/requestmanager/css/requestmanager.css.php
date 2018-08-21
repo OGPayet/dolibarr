@@ -52,3 +52,8 @@ div.mainmenu.requestmanager {
 .noMarginBottom {
   margin-bottom: 0px !important;
 }
+
+.tabsStatusAction {
+  margin-top: 10px;
+  text-align: right;
+}

@@ -155,7 +155,7 @@ class RequestManagerImpactDictionary extends Dictionary
      * )
      */
     public $indexes = array(
-        array(
+        0 => array(
             'fields'    => array('code'),
             'is_unique' => true,
         ),

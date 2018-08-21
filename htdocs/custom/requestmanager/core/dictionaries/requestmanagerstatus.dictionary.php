@@ -29,6 +29,11 @@ dol_include_once('/advancedictionaries/class/dictionary.class.php');
 class RequestManagerStatusDictionary extends Dictionary
 {
     /**
+     * @var int         Version of this dictionary
+     */
+    public $version = 1;
+
+    /**
      * @var array       List of languages to load
      */
     public $langs = array('requestmanager@requestmanager');
@@ -152,7 +157,7 @@ class RequestManagerStatusDictionary extends Dictionary
             'database'   => array(
               'length'   => 255,
             ),
-            'is_require' => true,
+//            'is_require' => true,
         ),
         'position' => array(
             'name'       => 'position',
@@ -173,10 +178,47 @@ class RequestManagerStatusDictionary extends Dictionary
             'td_input'  => array (
                 'align'  => 'left',
             ),
-            'is_require' => true,
+//            'is_require' => true,
         ),
         'type' => array(),
         'request_type' => array(),
+        'assigned_user' => array(),
+        'assigned_usergroup' => array(),
+        'deadline' => array(
+            'name'       => 'deadline',
+            'label'      => 'RequestManagerStatusDictionaryDeadLine',
+            'help'       => 'RequestManagerStatusDictionaryDeadLineHelp',
+            'type'       => 'int',
+            'database'   => array(
+              'length'   => 11,
+            ),
+            'td_title'  => array (
+                'align'  => 'left',
+            ),
+            'td_output'  => array (
+                'align'  => 'left',
+            ),
+            'td_search'  => array (
+                'align'  => 'left',
+            ),
+            'td_input'  => array (
+                'align'  => 'left',
+                'positionLine' => 2,
+            ),
+        ),
+        'next_trigger' => array(
+            'name'       => 'next_trigger',
+            'label'      => 'RequestManagerStatusDictionaryNextTrigger',
+            'help'       => 'RequestManagerStatusDictionaryNextTriggerHelp',
+            'type'       => 'varchar',
+            'database'   => array(
+              'length'   => 255,
+            ),
+            'td_input' => array(
+                'positionLine' => 2,
+            ),
+        ),
+        'next_status' => array(),
     );
 
     /**
@@ -187,9 +229,30 @@ class RequestManagerStatusDictionary extends Dictionary
      * )
      */
     public $indexes = array(
-        array(
+        0 => array(
             'fields'    => array('code'),
             'is_unique' => true,
+        ),
+    );
+
+    /**
+     * @var array  List of fields/indexes added, updated or deleted for a version
+     * array(
+     *   'version' => array(
+     *     'fields' => array('field_name'=>'a', 'field_name'=>'u', 'field_name'=>'d', ...), // List of field name who is added(a) or updated(u) or deleted(d) for a version
+     *     'indexes' => array('idx_number'=>'a', 'idx_number'=>'u', 'idx_number'=>'d', ...), // List of indexes number who is added(a) or updated(u) or deleted(d) for a version
+     *   ),
+     * )
+     */
+    public $updates = array(
+        1 => array(
+            'fields' => array(
+                'assigned_user' => 'a',
+                'assigned_usergroup' => 'a',
+                'deadline' => 'a',
+                'next_trigger' => 'a',
+                'next_status' => 'a',
+            )
         ),
     );
 
@@ -199,13 +262,48 @@ class RequestManagerStatusDictionary extends Dictionary
     public $is_multi_entity = true;
 
     /**
+     * @var Dictionary    Cache of the list of the request type for next_status show output
+     */
+    public $request_type_cache = null;
+    /**
+     * @var Dictionary    Cache of the list of the status for next_status show output
+     */
+    public $status_cache = null;
+
+    /**
+	 * Load the cache of the list of the request type for next_status show output
+	 *
+     * @return  void
+	 */
+    public function load_request_type()
+    {
+        if (!isset($this->request_type_cache)) {
+            $this->request_type_cache = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagerrequesttype');
+            $this->request_type_cache->fetch_lines();
+        }
+    }
+
+    /**
+	 * Load the cache of the list of the status for next_status show output
+	 *
+     * @return  void
+	 */
+    public function load_status()
+    {
+        if (!isset($this->status_cache)) {
+            $this->status_cache = new RequestManagerStatusDictionary($this->db);
+            $this->status_cache->fetch_lines();
+        }
+    }
+
+    /**
 	 * Initialize the dictionary
 	 *
      * @return  void
 	 */
 	protected function initialize()
     {
-        global $conf, $langs;
+        global $conf, $langs, $user;
 
         $langs->load('requestmanager@requestmanager');
 
@@ -243,6 +341,67 @@ class RequestManagerStatusDictionary extends Dictionary
             ),
             'is_require' => true,
         );
+
+        require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
+        $dol_sup_v6 = versioncompare(explode('.', DOL_VERSION), explode('.', '6.0.0')) >= 0;
+
+        if ($dol_sup_v6) {
+            if (!empty($conf->multicompany->enabled) && $conf->entity == 1 && ($conf->global->MULTICOMPANY_TRANSVERSE_MODE || ($user->admin && !$user->entity))) {
+                $entity_filter = "entity IS NOT NULL";
+            } else {
+                $entity_filter = "entity IN (0," . $conf->entity . ")";
+            }
+        } else {
+            if (!empty($conf->multicompany->enabled) && !empty($conf->multicompany->transverse_mode)) {
+                $entity_filter = "entity IN (0,1)";
+            } else {
+                $entity_filter = "entity = " . $conf->entity;
+            }
+        }
+
+        $this->fields['assigned_usergroup'] = array(
+            'name' => 'assigned_usergroup',
+            'label' => 'RequestManagerStatusDictionaryAssignedUserGroup',
+            'type' => 'chkbxlst',
+            'options' => 'usergroup:nom:rowid::' . $entity_filter,
+            'td_output' => array(
+                'moreAttributes' => 'width="20%"',
+            ),
+            'td_input' => array(
+                'moreAttributes' => 'width="20%"',
+                'positionLine' => 1,
+            ),
+        );
+
+        $this->fields['assigned_user'] = array(
+            'name' => 'assigned_user',
+            'label' => 'RequestManagerStatusDictionaryAssignedUser',
+            'type' => 'chkbxlst',
+            'options' => 'user:firstname|lastname:rowid::' . $entity_filter,
+            'td_output' => array(
+                'moreAttributes' => 'width="20%"',
+            ),
+            'td_input' => array(
+                'moreAttributes' => 'width="20%"',
+                'positionLine' => 1,
+                'colspan' => 3,
+            ),
+        );
+
+        $this->fields['next_status'] = array(
+            'name' => 'next_status',
+            'label' => 'RequestManagerStatusDictionaryNextStatus',
+            'type' => 'chkbxlst',
+            'options' => 'c_requestmanager_status:code|label:rowid::active=1 and entity IN (' . getEntity('dictionary', 1) . ')',
+            'label_separator' => ' - ',
+            'td_output' => array(
+                'moreAttributes' => 'width="20%"',
+            ),
+            'td_input' => array(
+                'moreAttributes' => 'width="20%"',
+                'positionLine' => 2,
+            ),
+        );
     }
 }
 
@@ -266,10 +425,213 @@ class RequestManagerStatusDictionaryLine extends DictionaryLine
                 $this->errors[] = $langs->trans('RequestManagerErrorOnlyOneStatusForThisTypeForEachRequestType');
                 return -1;
             } elseif ($status == -2) {
+                $this->errors[] = $this->dictionary->error;
                 return $status;
             }
         }
 
+        if ($this->id > 0 && in_array($this->id, explode(',', $fieldsValue['next_status']))) {
+            $this->errors[] = $langs->trans('RequestManagerStatusDictionaryNextStatusCanNotBeItself');
+            return -1;
+        }
+
         return $result;
+    }
+
+    /**
+     * Return HTML string to put an output field into a page
+     *
+     * @param   string	$fieldName      Name of the field
+     * @param   string	$value          Value to show
+     * @return	string					Formatted value
+     */
+    function showOutputField($fieldName, $value = null)
+    {
+        global $langs;
+
+        if ($fieldName == 'next_status') {
+            if (isset($this->dictionary->fields[$fieldName])) {
+                // Load status and request type infos into cache
+                $this->dictionary->load_request_type();
+                $this->dictionary->load_status();
+
+                $field = $this->dictionary->fields[$fieldName];
+
+                if ($value === null) $value = $this->fields[$fieldName];
+
+                if (is_array($value)) {
+                    $value_arr = $value;
+                } else {
+                    $value_arr = explode(',', (string)$value);
+                }
+
+                // 0 : tableName
+                // 1 : label field name
+                // 2 : key fields name (if differ of rowid)
+                // 3 : key field parent (for dependent lists)
+                // 4 : where clause filter on column or table extrafield, syntax field='value' or extra.field=value
+                $InfoFieldList = explode(":", (string)$field['options']);
+
+                $selectkey = "rowid";
+                $keyList = 'rowid';
+
+                if (count($InfoFieldList) >= 3) {
+                    $selectkey = $InfoFieldList[2];
+                    $keyList = $InfoFieldList[2] . ' as rowid';
+                }
+
+                $fields_label = explode('|', $InfoFieldList[1]);
+                if (is_array($fields_label)) {
+                    $keyList .= ', ';
+                    $keyList .= implode(', ', $fields_label);
+                }
+
+                $sql = 'SELECT ' . $keyList;
+                $sql .= ' FROM ' . MAIN_DB_PREFIX . $InfoFieldList[0];
+                if (strpos($InfoFieldList[4], 'extra') !== false) {
+                    $sql .= ' as main';
+                }
+                $sql .= " WHERE " . $selectkey . " IN(" . implode(',', $value_arr) . ")";
+
+                dol_syslog(__METHOD__ . ':showOutputField:$type=chkbxlst next_status', LOG_DEBUG);
+                $resql = $this->db->query($sql);
+                if ($resql) {
+                    $value = ''; // value was used, so now we reste it to use it to build final output
+                    $toprint = array();
+                    $current_status_type = $this->fields['type'];
+                    dol_include_once('/requestmanager/class/requestmanager.class.php');
+
+                    while ($obj = $this->db->fetch_object($resql)) {
+                        // Several field into label (eq table:code|libelle:rowid)
+                        $fields_label = explode('|', $InfoFieldList[1]);
+                        if (is_array($value_arr) && in_array($obj->rowid, $value_arr)) {
+                            // Test if status is defined for the request type of this line
+                            $request_type_cache = $this->dictionary->request_type_cache;
+                            $status_cache = $this->dictionary->status_cache;
+                            $status_title = array();
+
+                            $status_not_in_request_type = array();
+                            foreach (explode(',', $this->fields['request_type']) as $request_type) {
+                                if (!in_array($request_type, explode(',', $status_cache->lines[$obj->rowid]->fields['request_type']))) {
+                                    $status_not_in_request_type[] = '"' . $request_type_cache->lines[$request_type]->fields['label'] . '"';
+                                }
+                            }
+                            if (count($status_not_in_request_type) > 0) {
+                                $status_title[] = $langs->trans('RequestManagerStatusDictionaryStatusNotIntoRequestType', implode(", ", $status_not_in_request_type));
+                            }
+
+                            $status_type = $status_cache->lines[$obj->rowid]->fields['type'];
+                            if (($current_status_type == RequestManager::STATUS_TYPE_INITIAL || $current_status_type == RequestManager::STATUS_TYPE_IN_PROGRESS) &&
+                                $status_type != RequestManager::STATUS_TYPE_IN_PROGRESS && $status_type != RequestManager::STATUS_TYPE_RESOLVED) {
+                                $status_title[] = $langs->trans('RequestManagerStatusDictionaryCanOnlyHaveInProgressAndResolvedForNextStatus');
+                            } elseif ($current_status_type == RequestManager::STATUS_TYPE_RESOLVED && $status_type != RequestManager::STATUS_TYPE_CLOSED) {
+                                $status_title[] = $langs->trans('RequestManagerStatusDictionaryCanOnlyHaveClosedForNextStatus');
+                            }
+
+                            if (count($status_title) > 0) {
+                                $status_color_background = ' style="background: #caa"';
+                                $status_title .= ' title="' . dol_escape_htmltag(implode("; ", $status_title)) . '"';
+                            } else {
+                                $status_color_background = ' style="background: #aaa"';
+                                $status_title = '';
+                            }
+
+                            if (is_array($fields_label) && count($fields_label) > 1) {
+                                $label_separator = isset($field['label_separator']) ? $field['label_separator'] : ' ';
+                                $labelstoshow = array();
+                                foreach ($fields_label as $field_toshow) {
+                                    $translabel = $langs->trans($obj->$field_toshow);
+                                    if ($translabel != $obj->$field_toshow) {
+                                        $labelstoshow[] = dol_trunc($translabel, 18);
+                                    } else {
+                                        $labelstoshow[] = dol_trunc($obj->$field_toshow, 18);
+                                    }
+                                }
+                                $toprint[] = '<li class="select2-search-choice-dolibarr noborderoncategories"'.$status_color_background.$status_title.'>' . implode($label_separator, $labelstoshow) . '</li>';
+                            } else {
+                                $translabel = '';
+                                if (!empty($obj->{$InfoFieldList[1]})) {
+                                    $translabel = $langs->trans($obj->{$InfoFieldList[1]});
+                                }
+                                if ($translabel != $obj->{$InfoFieldList[1]}) {
+                                    $toprint[] = '<li class="select2-search-choice-dolibarr noborderoncategories"'.$status_color_background.$status_title.'>' . dol_trunc($translabel, 18) . '</li>';
+                                } else {
+                                    $toprint[] = '<li class="select2-search-choice-dolibarr noborderoncategories"'.$status_color_background.$status_title.'>' . $obj->{$InfoFieldList[1]} . '</li>';
+                                }
+                            }
+                        }
+                    }
+                    $value = '<div class="select2-container-multi-dolibarr" style="width: 90%;"><ul class="select2-choices-dolibarr">' . implode(' ', $toprint) . '</ul></div>';
+
+                } else {
+                    dol_syslog(__METHOD__ . '::showOutputField error next_status' . $this->db->lasterror(), LOG_WARNING);
+                }
+                return $value;
+            }
+        }
+
+        return parent::showOutputField($fieldName, $value);
+    }
+
+    /**
+	 * Return HTML string to put an input field into a page
+	 *
+	 * @param  string  $fieldName      Name of the field
+	 * @param  string  $value          Preselected value to show (for date type it must be in timestamp format, for amount or price it must be a php numeric value)
+	 * @param  string  $keyprefix      Prefix string to add into name and id of field (can be used to avoid duplicate names)
+	 * @param  string  $keysuffix      Suffix string to add into name and id of field (can be used to avoid duplicate names)
+	 * @param  int     $objectid       Current object id
+	 * @return string
+	 */
+	function showInputField($fieldName, $value=null, $keyprefix='', $keysuffix='', $objectid=0)
+    {
+        if ($fieldName == 'next_status') {
+            dol_include_once('/requestmanager/class/requestmanager.class.php');
+            $fieldHtmlName = $keyprefix . $fieldName . $keysuffix;
+            $typeFieldHtmlName = $keyprefix . 'type' . $keysuffix;
+            $triggerFieldHtmlName = $keyprefix . 'next_trigger' . $keysuffix;
+            $nextStatusFieldHtmlName = $keyprefix . 'next_status' . $keysuffix;
+            $updateTriggerFunctionName = 'update_' . $keyprefix . 'next_trigger' . $keysuffix;
+            $updateNextStatusFunctionName = 'update_' . $keyprefix . 'next_status' . $keysuffix;
+            $closed_status = RequestManager::STATUS_TYPE_CLOSED;
+
+            print <<<SCRIPT
+            <input type="hidden" id="h_$triggerFieldHtmlName" name="$triggerFieldHtmlName" value="" disabled="disabled">
+            <input type="hidden" id="h_$nextStatusFieldHtmlName" name="$nextStatusFieldHtmlName" value="" disabled="disabled">
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        $updateTriggerFunctionName($('#$fieldHtmlName').val().length > 1 || $('#$typeFieldHtmlName').val() == $closed_status);
+        $updateNextStatusFunctionName($('#$typeFieldHtmlName').val() == $closed_status);
+
+        $('#$fieldHtmlName').on('change', function() {
+            $updateTriggerFunctionName($('#$fieldHtmlName').val().length > 1);
+        });
+        $('#$typeFieldHtmlName').on('change', function() {
+            var status = $('#$typeFieldHtmlName').val() == $closed_status;
+            $updateNextStatusFunctionName(status);
+            $updateTriggerFunctionName(status);
+        });
+
+        function $updateTriggerFunctionName(status) {
+            $('#$triggerFieldHtmlName').prop('disabled', status);
+            $('#h_$triggerFieldHtmlName').prop('disabled', !status);
+            if (status) {
+                $('#$triggerFieldHtmlName').val('');
+            }
+        }
+        function $updateNextStatusFunctionName(status) {
+            $('#$nextStatusFieldHtmlName').prop('disabled', status);
+            $('#h_$nextStatusFieldHtmlName').prop('disabled', !status);
+            if (status) {
+                $('#$nextStatusFieldHtmlName').val(null).trigger('change');
+            }
+        }
+    });
+</script>
+SCRIPT;
+        }
+
+        return parent::showInputField($fieldName, $value, $keyprefix, $keysuffix, $objectid);
     }
 }

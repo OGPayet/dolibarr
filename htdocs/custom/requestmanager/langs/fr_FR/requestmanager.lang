@@ -189,30 +189,41 @@ RequestManagerBlocMode          = Vue bloc
 ######################################################################
 # Dictionaries
 ######################################################################
-RequestManagerRequestTypeDictionaryLabel              = Type des demandes
-RequestManagerStatusDictionaryLabel                   = Statut des demandes
-RequestManagerCategoryDictionaryLabel                 = Catégorie des demandes
-RequestManagerSourceDictionaryLabel                   = Source des demandes
-RequestManagerUrgencyDictionaryLabel                  = Urgence des demandes
-RequestManagerImpactDictionaryLabel                   = Impact des demandes
-RequestManagerPriorityDictionaryLabel                 = Priorité des demandes
-RequestManagerMessageTemplateDictionaryLabel          = Modèles de messages / Notifications
-RequestManagerKnowledgeBaseDictionaryLabel            = Base de connaissance
-RequestManagerRequestType                             = Types de demande
-RequestManagerType                                    = Type
-RequestManagerTypeInitial                             = Initial
-RequestManagerTypeInProgress                          = En cours
-RequestManagerTypeResolved                            = Résolu
-RequestManagerTypeClosed                              = Clôt
-RequestManagerStatusDictionaryPicto                   = Icône
-RequestManagerStatusDictionaryPictoHelp               = Nom de l'icone au format dolibarr ('image.png' si mise dans le répertoire '%s', 'image.png@nom_du_module' si mise dans le repertoire /img/ d'un module)
-RequestManagerTemplateTypeNotifyAssignedUsersModified = Notification d'un changement d'utilisateur assigné
-RequestManagerTemplateTypeNotifyStatusModified        = Notification d'un changement de statut
-RequestManagerTemplateTypeNotifyInputMessageAdded     = Notification d'un ajout de message entrant
-RequestManagerTemplateTypeNotifyOutputMessageAdded    = Notification d'un ajout de message sortant
-RequestManagerTemplateTypeMessageTemplateUser         = Modèle de message
-RequestManagerTemplateForType                         = Ce modèle est dédié à quoi ?
-RequestManagerTemplateForRequestType                  = Ce modèle est dédié pour quel type de demande
+RequestManagerRequestTypeDictionaryLabel                                    = Type des demandes
+RequestManagerStatusDictionaryLabel                                         = Statut des demandes
+RequestManagerCategoryDictionaryLabel                                       = Catégorie des demandes
+RequestManagerSourceDictionaryLabel                                         = Source des demandes
+RequestManagerUrgencyDictionaryLabel                                        = Urgence des demandes
+RequestManagerImpactDictionaryLabel                                         = Impact des demandes
+RequestManagerPriorityDictionaryLabel                                       = Priorité des demandes
+RequestManagerMessageTemplateDictionaryLabel                                = Modèles de messages / Notifications
+RequestManagerKnowledgeBaseDictionaryLabel                                  = Base de connaissance
+RequestManagerRequestType                                                   = Types de demande
+RequestManagerType                                                          = Type
+RequestManagerTypeInitial                                                   = Initial
+RequestManagerTypeInProgress                                                = En cours
+RequestManagerTypeResolved                                                  = Résolu
+RequestManagerTypeClosed                                                    = Clôt
+RequestManagerStatusDictionaryPicto                                         = Icône
+RequestManagerStatusDictionaryPictoHelp                                     = Nom de l'icone au format dolibarr ('image.png' si mise dans le répertoire '%s', 'image.png@nom_du_module' si mise dans le repertoire /img/ d'un module)
+RequestManagerStatusDictionaryAssignedUser                                  = Utilisateur assigné
+RequestManagerStatusDictionaryAssignedUserGroup                             = Groupe d'utilisateurs assigné
+RequestManagerStatusDictionaryDeadLine                                      = Durée d'échéance
+RequestManagerStatusDictionaryDeadLineHelp                                  = En minutes, Date d'échéance calculé à partir de la date où la demande est passé à ce statut<br>-1 si la date d'échéance ne change pas, 0 ou non renseigné si il n'y en a pas
+RequestManagerStatusDictionaryNextTrigger                                   = Trigger
+RequestManagerStatusDictionaryNextTriggerHelp                               = Passage automatique au statut suivant lors du déclanchement du trigger<br>Liste non exhaustive à l'adresse: https://wiki.dolibarr.org/index.php/Triggers
+RequestManagerStatusDictionaryNextStatus                                    = Statut(s) suivant(s)
+RequestManagerStatusDictionaryStatusNotIntoRequestType                      = Ce statut suivant n'est pas dans le(s) type(s) de demande: %s
+RequestManagerStatusDictionaryNextStatusCanNotBeItself                      = Le statut suivant ne peut être lui-même
+RequestManagerStatusDictionaryCanOnlyHaveInProgressAndResolvedForNextStatus = Le statut suivant ne peut pas être que de type 'En cours' ou 'Résolu'
+RequestManagerStatusDictionaryCanOnlyHaveClosedForNextStatus                = Le statut suivant ne peut pas être que de type 'Clôt'
+RequestManagerTemplateTypeNotifyAssignedUsersModified                       = Notification d'un changement d'utilisateur assigné
+RequestManagerTemplateTypeNotifyStatusModified                              = Notification d'un changement de statut
+RequestManagerTemplateTypeNotifyInputMessageAdded                           = Notification d'un ajout de message entrant
+RequestManagerTemplateTypeNotifyOutputMessageAdded                          = Notification d'un ajout de message sortant
+RequestManagerTemplateTypeMessageTemplateUser                               = Modèle de message
+RequestManagerTemplateForType                                               = Ce modèle est dédié à quoi ?
+RequestManagerTemplateForRequestType                                        = Ce modèle est dédié pour quel type de demande
 
 ############################################################
 ### Errors
