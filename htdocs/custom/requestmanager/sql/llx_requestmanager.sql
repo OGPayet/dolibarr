@@ -36,11 +36,10 @@ create table llx_requestmanager
   fk_priority               integer,		                    -- id of the request priority
   notify_requester_by_email integer(1),                     -- Notify requester by email
   notify_watcher_by_email   integer(1),                     -- Notify watcher by email
-  fk_assigned_user			    integer, 						            -- user who is assigned to the request
-  fk_assigned_usergroup			integer, 						            -- usergroup who is assigned to the request
   notify_assigned_by_email  integer(1),                     -- Notify assigned by email
   duration                  integer DEFAULT 0 NOT NULL,      -- duration of the request
 
+  date_operation  	        datetime,						            -- date operation
   date_deadline			        datetime,						            -- date deadline
   date_resolved			        datetime,						            -- date resolved
   date_closed				        datetime,						            -- date closed

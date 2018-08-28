@@ -26,8 +26,6 @@ ALTER TABLE llx_requestmanager ADD INDEX idx_requestmanager_fk_source (fk_source
 ALTER TABLE llx_requestmanager ADD INDEX idx_requestmanager_fk_urgency (fk_urgency);
 ALTER TABLE llx_requestmanager ADD INDEX idx_requestmanager_fk_impact (fk_impact);
 ALTER TABLE llx_requestmanager ADD INDEX idx_requestmanager_fk_priority (fk_priority);
-ALTER TABLE llx_requestmanager ADD INDEX idx_requestmanager_fk_assigned_user (fk_assigned_user);
-ALTER TABLE llx_requestmanager ADD INDEX idx_requestmanager_fk_assigned_usergroup (fk_assigned_usergroup);
 ALTER TABLE llx_requestmanager ADD INDEX idx_requestmanager_fk_status (fk_status);
 ALTER TABLE llx_requestmanager ADD INDEX idx_requestmanager_fk_user_resolved (fk_user_resolved);
 ALTER TABLE llx_requestmanager ADD INDEX idx_requestmanager_fk_user_closed (fk_user_closed);
@@ -41,8 +39,6 @@ ALTER TABLE llx_requestmanager ADD CONSTRAINT fk_requestmanager_fk_source       
 ALTER TABLE llx_requestmanager ADD CONSTRAINT fk_requestmanager_fk_urgency            FOREIGN KEY (fk_urgency) REFERENCES llx_c_requestmanager_urgency (rowid);
 ALTER TABLE llx_requestmanager ADD CONSTRAINT fk_requestmanager_fk_impact             FOREIGN KEY (fk_impact) REFERENCES llx_c_requestmanager_impact (rowid);
 ALTER TABLE llx_requestmanager ADD CONSTRAINT fk_requestmanager_fk_priority           FOREIGN KEY (fk_priority) REFERENCES llx_c_requestmanager_priority (rowid);
-ALTER TABLE llx_requestmanager ADD CONSTRAINT fk_requestmanager_fk_assigned_user      FOREIGN KEY (fk_assigned_user) REFERENCES llx_user (rowid);
-ALTER TABLE llx_requestmanager ADD CONSTRAINT fk_requestmanager_fk_assigned_usergroup FOREIGN KEY (fk_assigned_usergroup) REFERENCES llx_usergroup (rowid);
 ALTER TABLE llx_requestmanager ADD CONSTRAINT fk_requestmanager_fk_status             FOREIGN KEY (fk_status) REFERENCES llx_c_requestmanager_status (rowid);
 ALTER TABLE llx_requestmanager ADD CONSTRAINT fk_requestmanager_fk_user_resolved      FOREIGN KEY (fk_user_resolved) REFERENCES llx_user (rowid);
 ALTER TABLE llx_requestmanager ADD CONSTRAINT fk_requestmanager_fk_user_closed        FOREIGN KEY (fk_user_closed) REFERENCES llx_user (rowid);

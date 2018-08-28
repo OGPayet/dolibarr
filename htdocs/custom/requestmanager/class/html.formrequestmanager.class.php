@@ -247,6 +247,178 @@ class FormRequestManager
         return $this->formdictionary->select_dictionary('requestmanager', 'requestmanagerstatus', $selected, $htmlname, 'rowid', '{{label}}', array('request_type'=>array($request_type), 'type'=>array(RequestManager::STATUS_TYPE_IN_PROGRESS)), $showempty, $forcecombo, $events, $usesearchtoselect, $limit, $morecss, $moreparam, $selected_input_value, $hidelabel, $selectlabel, $autofocus, $ajaxoptions, $options_only);
     }
 
+    /**
+     *	Return multiselect list of all contacts (for a third party or all)
+     *
+     *	@param	int		$socid      	Id ot third party or 0 for all
+     *	@param  array	$selected   	List of ID contact pre-selectionne
+     *	@param  string	$htmlname  	    Name of HTML field ('none' for a not editable field)
+     *	@param  string	$exclude        List of contacts id to exclude
+     *	@param	string	$limitto		Disable answers that are not id in this array list
+     *	@param	integer	$showfunction   Add function into label
+     *	@param	string	$moreclass		Add more class to class style
+     *	@param	bool	$options_only	Return options only (for ajax treatment)
+     *	@param	integer	$showsoc	    Add company into label
+     * 	@param	int		$forcecombo		Force to use combo box
+     *  @param	array	$events			Event options. Example: array(array('method'=>'getContacts', 'url'=>dol_buildpath('/core/ajax/contacts.php',1), 'htmlname'=>'contactid', 'params'=>array('add-customer-contact'=>'disabled')))
+     *	@return	 int					<0 if KO, Nb of contact in list if OK
+     */
+    function multiselect_contacts($socid, $selected=array(), $htmlname='contactid', $exclude='', $limitto='', $showfunction=0, $moreclass='', $options_only=false, $showsoc=0, $forcecombo=0, $events=array())
+    {
+        global $conf;
+
+        $out = '';
+
+        $out .= $this->multiselect_javascript_code($selected, $htmlname);
+
+        $save_conf = $conf->use_javascript_ajax;
+        $conf->use_javascript_ajax = 0;
+        $out .= $this->form->selectcontacts($socid,'',$htmlname,0,$exclude,$limitto,$showfunction, $moreclass, $options_only, $showsoc, $forcecombo, $events);
+        $conf->use_javascript_ajax = $save_conf;
+
+        return $out;
+    }
+
+    /**
+     *	Return multiselect list of groups
+     *
+     *  @param	array	$selected       List of ID group preselected
+     *  @param  string	$htmlname       Field name in form
+     *  @param  string	$exclude        Array list of groups id to exclude
+     * 	@param	int		$disabled		If select list must be disabled
+     *  @param  string	$include        Array list of groups id to include
+     * 	@param	int		$enableonly		Array list of groups id to be enabled. All other must be disabled
+     * 	@param	int		$force_entity	0 or Id of environment to force
+     *  @return	string
+     *  @see select_dolusers
+     */
+    function multiselect_dolgroups($selected=array(), $htmlname='groupid', $exclude='', $disabled=0, $include='', $enableonly=0, $force_entity=0)
+    {
+        global $conf;
+
+        $out = '';
+
+        $out .= $this->multiselect_javascript_code($selected, $htmlname);
+
+        $save_conf = $conf->use_javascript_ajax;
+        $conf->use_javascript_ajax = 0;
+        $out .= $this->form->select_dolgroups('', $htmlname, 0, $exclude, $disabled, $include, $enableonly, $force_entity);
+        $conf->use_javascript_ajax = $save_conf;
+
+        return $out;
+    }
+
+    /**
+     *	Return multiselect list of users
+     *
+     *  @param	array|int	    $selected       List of user id or user object of user preselected. If -1, we use id of current user.
+     *  @param  string	        $htmlname       Field name in form
+     *  @param  array	        $exclude        Array list of users id to exclude
+     * 	@param	int		        $disabled		If select list must be disabled
+     *  @param  array|string	$include        Array list of users id to include or 'hierarchy' to have only supervised users or 'hierarchyme' to have supervised + me
+     * 	@param	array	        $enableonly		Array list of users id to be enabled. All other must be disabled
+     *  @param	int		        $force_entity	0 or Id of environment to force
+     *  @param	int		        $maxlength		Maximum length of string into list (0=no limit)
+     *  @param	int		        $showstatus		0=show user status only if status is disabled, 1=always show user status into label, -1=never show user status
+     *  @param	string	        $morefilter		Add more filters into sql request
+     *  @param	integer	        $show_every		0=default list, 1=add also a value "Everybody" at beginning of list
+     *  @param	string	        $enableonlytext	If option $enableonlytext is set, we use this text to explain into label why record is disabled. Not used if enableonly is empty.
+     *  @param	string	        $morecss		More css
+     *  @param  int             $noactive       Show only active users (this will also happened whatever is this option if USER_HIDE_INACTIVE_IN_COMBOBOX is on).
+     *  @param  int             $showexternal   Show external active users
+     * 	@return	string					        HTML select string
+     *  @see select_dolgroups
+     */
+    function multiselect_dolusers($selected=array(), $htmlname='userid', $exclude=null, $disabled=0, $include='', $enableonly=array(), $force_entity=0, $maxlength=0, $showstatus=0, $morefilter='', $show_every=0, $enableonlytext='', $morecss='', $noactive=0, $showexternal=1)
+    {
+        global $conf, $user;
+
+        $out = '';
+
+        $selected_values = array();
+        if (is_array($selected)) {
+            foreach ($selected as $u) {
+                $selected_values[] = is_object($u) ? $u->id : $u;
+            }
+        } elseif ($selected == -1) {
+            $selected_values[] = $user->id;
+        }
+
+        $out .= $this->multiselect_javascript_code($selected_values, $htmlname);
+
+        $save_conf = $conf->use_javascript_ajax;
+        $conf->use_javascript_ajax = 0;
+        $out .= $this->form->select_dolusers('', $htmlname, 0, $exclude, $disabled, $include, $enableonly, $force_entity, $maxlength, $showstatus, $morefilter, $show_every, $enableonlytext, $morecss, $noactive, $showexternal);
+        $conf->use_javascript_ajax = $save_conf;
+
+        return $out;
+    }
+
+    /**
+     *	Return multiselect javascript code
+     *
+     *  @param	array	$selected       Preselected values
+     *  @param  string	$htmlname       Field name in form
+     *  @param	string	$elemtype		Type of element we show ('category', ...)
+     *  @return	string
+     */
+    function multiselect_javascript_code($selected, $htmlname, $elemtype='')
+    {
+        global $conf;
+
+        $out = '';
+
+        // Add code for jquery to use multiselect
+	if (! empty($conf->global->MAIN_USE_JQUERY_MULTISELECT) || defined('REQUIRE_JQUERY_MULTISELECT'))
+	{
+		$tmpplugin=empty($conf->global->MAIN_USE_JQUERY_MULTISELECT)?constant('REQUIRE_JQUERY_MULTISELECT'):$conf->global->MAIN_USE_JQUERY_MULTISELECT;
+			$out.='<!-- JS CODE TO ENABLE '.$tmpplugin.' for id '.$htmlname.' -->
+			<script type="text/javascript">
+				function formatResult(record) {'."\n";
+						if ($elemtype == 'category')
+						{
+							$out.='	//return \'<span><img src="'.DOL_URL_ROOT.'/theme/eldy/img/object_category.png'.'"> <a href="'.DOL_URL_ROOT.'/categories/viewcat.php?type=0&id=\'+record.id+\'">\'+record.text+\'</a></span>\';
+									return \'<span><img src="'.DOL_URL_ROOT.'/theme/eldy/img/object_category.png'.'"> \'+record.text+\'</span>\';';
+						}
+						else
+						{
+							$out.='return record.text;';
+						}
+			$out.= '	};
+				function formatSelection(record) {'."\n";
+						if ($elemtype == 'category')
+						{
+							$out.='	//return \'<span><img src="'.DOL_URL_ROOT.'/theme/eldy/img/object_category.png'.'"> <a href="'.DOL_URL_ROOT.'/categories/viewcat.php?type=0&id=\'+record.id+\'">\'+record.text+\'</a></span>\';
+									return \'<span><img src="'.DOL_URL_ROOT.'/theme/eldy/img/object_category.png'.'"> \'+record.text+\'</span>\';';
+						}
+						else
+						{
+							$out.='return record.text;';
+						}
+			$out.= '	};
+				$(document).ready(function () {
+				    $(\'#'.$htmlname.'\').attr("name", "'.$htmlname.'[]");
+				    $(\'#'.$htmlname.'\').attr("multiple", "multiple");
+				    //$.map('.json_encode($selected).', function(val, i) {
+				        $(\'#'.$htmlname.'\').val('.json_encode($selected).');
+				    //});
+
+					$(\'#'.$htmlname.'\').'.$tmpplugin.'({
+						dir: \'ltr\',
+							// Specify format function for dropdown item
+							formatResult: formatResult,
+						templateResult: formatResult,		/* For 4.0 */
+							// Specify format function for selected item
+							formatSelection: formatSelection,
+						templateResult: formatSelection		/* For 4.0 */
+					});
+				});
+			</script>';
+	}
+
+	return $out;
+    }
+
 
     /**
      *  Output html form to select a actioncomm
@@ -454,6 +626,9 @@ class FormRequestManager
         if ($idContactType === RequestManager::CONTACT_TYPE_ID_WATCHER) {
             require_once DOL_DOCUMENT_ROOT . '/core/class/html.formcompany.class.php';
             $formCompany = new FormCompany($this->db);
+            $excludes_contact = $requestManager->watcher_ids;
+        } else {
+            $excludes_contact = $requestManager->requester_ids;
         }
         $newCompanyId = $requestManager->socid;
         $contactTypeCodeHtmlName = RequestManager::getContactTypeCodeHtmlNameById($idContactType);
@@ -472,7 +647,7 @@ class FormRequestManager
             $newCompanyId = intval(GETPOST($selectCompaniesHtmlName, 'int')?GETPOST($selectCompaniesHtmlName, 'int'):$requestManager->socid);
             $formCompany->selectCompaniesForNewContact($requestManager,'id', $newCompanyId, $selectCompaniesHtmlName);
         }
-        $this->form->select_contacts($newCompanyId, '', $contactTypeCodeHtmlName . '_fk_socpeople', 1);
+        $this->form->select_contacts($newCompanyId, '', $contactTypeCodeHtmlName . '_fk_socpeople', 1, $excludes_contact);
         print '&nbsp;<input type="submit" class="button" value="' . $langs->trans('Add') . '">';
 
         // button create contact (only for requesters)
@@ -559,7 +734,7 @@ class FormRequestManager
      */
     private static function _listsFollowSqlPrepare(DoliDB $db, $join='', $filter='', $sortfield='', $sortorder='')
     {
-        $sql  = 'SELECT DISTINCT';
+        $sql = 'SELECT DISTINCT';
         $sql .= ' rm.rowid, rm.ref, rm.ref_ext,';
         $sql .= ' rm.fk_soc, s.nom as soc_name, s.client as soc_client, s.fournisseur as soc_fournisseur, s.code_client as soc_code_client, s.code_fournisseur as soc_code_fournisseur,';
         $sql .= ' rm.label, rm.description,';
@@ -570,9 +745,9 @@ class FormRequestManager
         $sql .= ' rm.fk_impact, crmi.label as impact_label,';
         $sql .= ' rm.fk_priority, crmp.label as priority_label,';
         $sql .= ' rm.notify_requester_by_email, rm.notify_watcher_by_email, rm.notify_assigned_by_email,';
-        $sql .= ' rm.fk_assigned_user, uas.firstname as userassignedfirstname, uas.lastname as userassignedlastname, uas.email as userassignedemail,';
-        $sql .= ' rm.fk_assigned_usergroup, uga.nom as usergroupassignedname,';
-        $sql .= ' rm.duration, rm.date_deadline, rm.date_resolved, rm.date_closed,';
+        $sql .= ' GROUP_CONCAT(DISTINCT rmau.fk_user SEPARATOR \',\') as assigned_users,';
+        $sql .= ' GROUP_CONCAT(DISTINCT rmaug.fk_usergroup SEPARATOR \',\') as assigned_usergroups,';
+        $sql .= ' rm.duration, rm.date_operation, rm.date_deadline, rm.date_resolved, rm.date_closed,';
         $sql .= ' rm.fk_user_resolved, ur.firstname as userresolvedfirstname, ur.lastname as userresolvedlastname, ur.email as userresolvedemail,';
         $sql .= ' rm.fk_user_closed, uc.firstname as userclosedfirstname, uc.lastname as userclosedlastname, uc.email as userclosedemail,';
         $sql .= ' rm.fk_status,';
@@ -588,15 +763,16 @@ class FormRequestManager
         $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'c_requestmanager_priority as crmp on (crmp.rowid = rm.fk_priority)';
         $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'c_requestmanager_status as crmst on (crmst.rowid = rm.fk_status)';
         $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'societe as s on (s.rowid = rm.fk_soc)';
-        $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'user as uas ON uas.rowid = rm.fk_assigned_user';
-        $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'usergroup as uga ON uga.rowid = rm.fk_assigned_usergroup';
         $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'user as ur ON ur.rowid = rm.fk_user_resolved';
         $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'user as uc ON uc.rowid = rm.fk_user_closed';
         $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'user as ua ON ua.rowid = rm.fk_user_author';
         $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'user as um ON um.rowid = rm.fk_user_modif';
+        $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'requestmanager_assigned_user as rmau ON rmau.fk_requestmanager = rm.rowid';
+        $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'requestmanager_assigned_usergroup as rmaug ON rmaug.fk_requestmanager = rm.rowid';
         $sql .= $join;
         $sql .= ' WHERE rm.entity IN (' . getEntity('requestmanager') . ')';
         $sql .= $filter;
+        $sql .= ' GROUP BY rm.rowid';
         $sql .= $db->order($sortfield, $sortorder);
 
         return $sql;
@@ -616,6 +792,11 @@ class FormRequestManager
     private static function _listsFollowPrintLineFrom(DoliDB $db, $arrayfields, $obj, RequestManager $requestmanagerstatic, Societe $societestatic, User $userstatic)
     {
         global $langs;
+
+        require_once DOL_DOCUMENT_ROOT . '/user/class/user.class.php';
+        require_once DOL_DOCUMENT_ROOT . '/user/class/usergroup.class.php';
+        $users_cache = array();
+        $usergroups_cache = array();
 
         $now = dol_now();
 
@@ -733,6 +914,13 @@ class FormRequestManager
             print '</td>';
         }
 
+        // Date Operation
+        if (!empty($arrayfields['rm.date_operation']['checked'])) {
+            print '<td class="nowrap" align="center">';
+            if ($obj->date_operation > 0) print dol_print_date($db->jdate($obj->date_operation), 'dayhour');
+            print '</td>';
+        }
+
         // Date Deadline
         if (!empty($arrayfields['rm.date_deadline']['checked'])) {
             print '<td class="nowrap" align="center">';
@@ -755,22 +943,42 @@ class FormRequestManager
         }
 
         // Assigned user
-        if (!empty($arrayfields['rm.fk_assigned_user']['checked'])) {
+        if (!empty($arrayfields['assigned_users']['checked'])) {
             print '<td class="nowrap">';
-            if ($obj->fk_assigned_user > 0) {
-                $userstatic->id = $obj->fk_assigned_user;
-                $userstatic->firstname = $obj->userassignedfirstname;
-                $userstatic->lastname = $obj->userassignedlastname;
-                $userstatic->email = $obj->userassignedemail;
-                print $userstatic->getNomUrl(1);
+            $assigned_users = explode(',', $obj->assigned_users);
+            if (is_array($assigned_users) && count($assigned_users) > 0) {
+                $toprint = array();
+                foreach ($assigned_users as $user_id) {
+                    if ($user_id > 0) {
+                        if (!isset($users_cache[$user_id])) {
+                            $assigned_user = new User($db);
+                            $assigned_user->fetch($user_id);
+                            $users_cache[$user_id] = $assigned_user;
+                        }
+                        $toprint[] = $users_cache[$user_id]->getNomUrl(1);
+                    }
+                }
+                print implode(', ', $toprint);
             }
             print '</td>';
         }
 
         // Assigned usergroup
-        if (!empty($arrayfields['rm.fk_assigned_usergroup']['checked'])) {
+        if (!empty($arrayfields['assigned_usergroups']['checked'])) {
             print '<td class="nowrap">';
-            print $obj->usergroupassignedname;
+            $assigned_usergroups = explode(',', $obj->assigned_usergroups);
+            if (is_array($assigned_usergroups) && count($assigned_usergroups) > 0) {
+                $toprint = array();
+                foreach ($assigned_usergroups as $usergroup_id) {
+                    if (!isset($usergroups_cache[$usergroup_id])) {
+                        $assigned_usergroup = new UserGroup($db);
+                        $assigned_usergroup->fetch($usergroup_id);
+                        $usergroups_cache[$usergroup_id] = $assigned_usergroup;
+                    }
+                    $toprint[] = $usergroups_cache[$usergroup_id]->getFullName($langs);
+                }
+                print implode(', ', $toprint);
+            }
             print '</td>';
         }
 

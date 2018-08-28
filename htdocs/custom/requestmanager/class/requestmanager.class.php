@@ -164,13 +164,13 @@ class RequestManager extends CommonObject
     public $duration;
 
     /**
-     * List requester contact ID (uID for User or cID for Contact)
+     * List requester contact ID
      * @var string[]
      */
     public $requester_ids;
     /**
-     * List requester object (User or Contact)
-     * @var User[]|Contact[]
+     * List requester contact object
+     * @var Contact[]
      */
     public $requester_list;
     /**
@@ -179,13 +179,13 @@ class RequestManager extends CommonObject
      */
     public $notify_requester_by_email;
     /**
-     * List watcher contact ID (uID for User or cID for Contact)
+     * List watcher contact ID
      * @var string[]
      */
     public $watcher_ids;
     /**
-     * List watcher object (User or Contact)
-     * @var User[]|Contact[]
+     * List watcher contact object
+     * @var Contact[]
      */
     public $watcher_list;
     /**
@@ -194,31 +194,57 @@ class RequestManager extends CommonObject
      */
     public $notify_watcher_by_email;
     /**
-     * Id of the User who is assigned to this request
-     * @var int
+     * List of user ID who is assigned to this request
+     * @var string[]
      */
-    public $assigned_user_id;
+    public $assigned_user_ids;
     /**
-     * User who is assigned to this request
-     * @var User
+     * List of user who is assigned to this request
+     * @var User[]
      */
-    public $assigned_user;
+    public $assigned_user_list;
     /**
-     * Id of the UserGroup who is assigned to this request
-     * @var int
+     * List of usergroup ID who is assigned to this request
+     * @var string[]
      */
-    public $assigned_usergroup_id;
+    public $assigned_usergroup_ids;
     /**
-     * UserGroup who is assigned to this request
-     * @var UserGroup
+     * List of usergroup who is assigned to this request
+     * @var UserGroup[]
      */
-    public $assigned_usergroup;
+    public $assigned_usergroup_list;
     /**
      * Notify assigned by email the request (0 / 1)
      * @var int
      */
     public $notify_assigned_by_email;
 
+    /**
+     * List of assigned user ID added when the function set_assigned() is called for infos into triggers
+     * @var string[]
+     */
+    public $assigned_user_added_ids;
+    /**
+     * List of assigned usergroup ID added when the function set_assigned() is called for infos into triggers
+     * @var string[]
+     */
+    public $assigned_usergroup_added_ids;
+    /**
+     * List of assigned user ID deleted when the function set_assigned() is called for infos into triggers
+     * @var string[]
+     */
+    public $assigned_user_deleted_ids;
+    /**
+     * List of assigned usergroup ID deleted when the function set_assigned() is called for infos into triggers
+     * @var string[]
+     */
+    public $assigned_usergroup_deleted_ids;
+
+    /**
+     * Date operation of the request
+     * @var int
+     */
+    public $date_operation;
     /**
      * Date deadline of the request
      * @var int
@@ -408,16 +434,16 @@ class RequestManager extends CommonObject
         $this->fk_priority = $this->fk_priority > 0 ? $this->fk_priority : 0;
         $this->notify_requester_by_email = !empty($this->notify_requester_by_email) ? 1 : 0;
         $this->notify_watcher_by_email = !empty($this->notify_watcher_by_email) ? 1 : 0;
-        $this->assigned_user_id = $this->assigned_user_id > 0 ? $this->assigned_user_id : 0;
-        $this->assigned_usergroup_id = $this->assigned_usergroup_id > 0 ? $this->assigned_usergroup_id : 0;
+        $this->assigned_user_ids = empty($this->assigned_user_ids) ? array() : (is_string($this->assigned_user_ids) ? explode(',', $this->assigned_user_ids) : $this->assigned_user_ids);
+        $this->assigned_usergroup_ids = empty($this->assigned_usergroup_ids) ? array() : (is_string($this->assigned_usergroup_ids) ? explode(',', $this->assigned_usergroup_ids) : $this->assigned_usergroup_ids);
         $this->notify_assigned_by_email = !empty($this->notify_assigned_by_email) ? 1 : 0;
+        $this->date_operation = $this->date_operation > 0 ? $this->date_operation : 0;
         $this->date_deadline = $this->date_deadline > 0 ? $this->date_deadline : 0;
         $this->statut = $status > 0 ? $status : 0;
         $this->entity = empty($this->entity) ? $conf->entity : $this->entity;
         $this->date_creation = $now;
         $this->user_creation_id = $user->id;
         $this->requester_ids = empty($this->requester_ids) ? array() : (is_string($this->requester_ids) ? explode(',', $this->requester_ids) : $this->requester_ids);
-        $this->watcher_ids = empty($this->watcher_ids) ? array() : (is_string($this->watcher_ids) ? explode(',', $this->watcher_ids) : $this->watcher_ids);
 
         // Check parameters
         if (empty($this->socid)) {
@@ -507,9 +533,8 @@ class RequestManager extends CommonObject
         $sql .= ", fk_priority";
         $sql .= ", notify_requester_by_email";
         $sql .= ", notify_watcher_by_email";
-        $sql .= ", fk_assigned_user";
-        $sql .= ", fk_assigned_usergroup";
         $sql .= ", notify_assigned_by_email";
+        $sql .= ", date_operation";
         $sql .= ", date_deadline";
         $sql .= ", fk_status";
         $sql .= ", entity";
@@ -530,9 +555,8 @@ class RequestManager extends CommonObject
         $sql .= ", " . ($this->fk_priority > 0 ? $this->fk_priority : 'NULL');
         $sql .= ", " . ($this->notify_requester_by_email > 0 ? $this->notify_requester_by_email : 'NULL');
         $sql .= ", " . ($this->notify_watcher_by_email > 0 ? $this->notify_watcher_by_email : 'NULL');
-        $sql .= ", " . ($this->assigned_user_id > 0 ? $this->assigned_user_id : 'NULL');
-        $sql .= ", " . ($this->assigned_usergroup_id > 0 ? $this->assigned_usergroup_id : 'NULL');
         $sql .= ", " . ($this->notify_assigned_by_email > 0 ? $this->notify_assigned_by_email : 'NULL');
+        $sql .= ", " . ($this->date_operation > 0 ? "'" . $this->db->idate($this->date_operation) . "'" : 'NULL');
         $sql .= ", " . ($this->date_deadline > 0 ? "'" . $this->db->idate($this->date_deadline) . "'" : 'NULL');
         $sql .= ", " . $this->statut;
         $sql .= ", " . $this->entity;
@@ -574,35 +598,35 @@ class RequestManager extends CommonObject
                 }
             }
 
-            // Add linked contracts
-            $ret = $this->addContract();
-            if ($ret < 0) {
-                $this->errors[] = $this->db->lasterror();
-                $error++;
-            }
-
-            // Add linked equipement
-            $ret = $this->addEquipement();
-            if ($ret < 0) {
-                $error++;
-            }
-
-
-            if (!$error && !empty($this->requester_ids)) {
-                // Set requester contacts
-                foreach ($this->requester_ids as $requester) {
-                    if (preg_match('/(u|c)(\d+)/i', $requester, $matches)) {
-                        $this->add_contact($matches[2], 'REQUESTER', $matches[1] == 'u' ? 'internal' : 'external');
-                    }
+            // Set assigned
+            if (!$error && (!empty($this->assigned_user_ids) || !empty($this->assigned_usergroup_ids))) {
+                $result = $this->set_assigned($this->assigned_user_ids, $this->assigned_usergroup_ids);
+                if ($result < 0) {
+                    $error++;
                 }
             }
 
-            if (!$error && !empty($this->watcher_ids)) {
-                // Set watcher contacts
-                foreach ($this->watcher_ids as $watcher) {
-                    if (preg_match('/(u|c)(\d+)/i', $watcher, $matches)) {
-                        $this->add_contact($matches[2], 'WATCHER', $matches[1] == 'u' ? 'internal' : 'external');
-                    }
+            // Add linked contracts
+            if (!$error) {
+                $ret = $this->addContract();
+                if ($ret < 0) {
+                    $this->errors[] = $this->db->lasterror();
+                    $error++;
+                }
+            }
+
+            // Add linked equipement
+            if (!$error) {
+                $ret = $this->addEquipement();
+                if ($ret < 0) {
+                    $error++;
+                }
+            }
+
+            // Set requester contacts
+            if (!$error && !empty($this->requester_ids)) {
+                foreach ($this->requester_ids as $requester_id) {
+                    $this->add_contact($requester_id, 'REQUESTER', 'external');
                 }
             }
 
@@ -819,10 +843,9 @@ class RequestManager extends CommonObject
         $sql .= ' t.fk_priority,';
         $sql .= ' t.notify_requester_by_email,';
         $sql .= ' t.notify_watcher_by_email,';
-        $sql .= ' t.fk_assigned_user,';
-        $sql .= ' t.fk_assigned_usergroup,';
         $sql .= ' t.notify_assigned_by_email,';
         $sql .= ' t.duration,';
+        $sql .= ' t.date_operation,';
         $sql .= ' t.date_deadline,';
         $sql .= ' t.date_resolved,';
         $sql .= ' t.date_closed,';
@@ -872,10 +895,9 @@ class RequestManager extends CommonObject
                 $this->fk_priority                  = $obj->fk_priority;
                 $this->notify_requester_by_email    = empty($obj->notify_requester_by_email) ? 0 : 1;
                 $this->notify_watcher_by_email      = empty($obj->notify_watcher_by_email) ? 0 : 1;
-                $this->assigned_user_id             = $obj->fk_assigned_user;
-                $this->assigned_usergroup_id        = $obj->fk_assigned_usergroup;
                 $this->notify_assigned_by_email     = empty($obj->notify_assigned_by_email) ? 0 : 1;
                 $this->duration                     = $obj->duration;
+                $this->date_operation               = $this->db->jdate($obj->date_operation);
                 $this->date_deadline                = $this->db->jdate($obj->date_deadline);
                 $this->date_resolved                = $this->db->jdate($obj->date_resolved);
                 $this->date_cloture                 = $this->db->jdate($obj->date_closed);
@@ -888,6 +910,7 @@ class RequestManager extends CommonObject
                 $this->user_creation_id             = $obj->fk_user_author;
                 $this->user_modification_id         = $obj->fk_user_modif;
 
+                $this->fetch_assigned();
                 $this->fetch_requester();
                 $this->fetch_watcher();
             }
@@ -1154,115 +1177,109 @@ class RequestManager extends CommonObject
 
 
     /**
+     *  Load the assigned users and usergroups
+     *
+     * @param   int     $with_object    Load also the object
+     * @return  int     <0 if KO, >0 if OK
+     */
+    function fetch_assigned($with_object=0)
+    {
+        require_once DOL_DOCUMENT_ROOT . '/user/class/user.class.php';
+        require_once DOL_DOCUMENT_ROOT . '/user/class/usergroup.class.php';
+
+        // Get assigned users
+        $this->assigned_user_ids = array();
+        $this->assigned_user_list = array();
+        if ($this->id > 0) {
+            $sql = 'SELECT fk_user FROM '.MAIN_DB_PREFIX.'requestmanager_assigned_user WHERE fk_requestmanager = '.$this->id;
+            $resql = $this->db->query($sql);
+            if ($resql) {
+                while ($obj = $this->db->fetch_object($resql)) {
+                    $this->assigned_user_ids[] = $obj->fk_user;
+                    if ($with_object) {
+                        $user = new User($this->db);
+                        $user->fetch($obj->fk_user);
+                        $this->assigned_user_list[$obj->fk_user] = $user;
+                    }
+                }
+                $this->db->free($resql);
+            }
+        }
+
+        // Get assigned users
+        $this->assigned_usergroup_ids = array();
+        $this->assigned_usergroup_list = array();
+        if ($this->id > 0) {
+            $sql = 'SELECT fk_usergroup FROM '.MAIN_DB_PREFIX.'requestmanager_assigned_usergroup WHERE fk_requestmanager = '.$this->id;
+            $resql = $this->db->query($sql);
+            if ($resql) {
+                while ($obj = $this->db->fetch_object($resql)) {
+                    $this->assigned_usergroup_ids[] = $obj->fk_usergroup;
+                    if ($with_object) {
+                        $usergroup = new UserGroup($this->db);
+                        $usergroup->fetch($obj->fk_user);
+                        $this->assigned_usergroup_list[$obj->fk_usergroup] = $usergroup;
+                    }
+                }
+                $this->db->free($resql);
+            }
+        }
+    }
+
+    /**
      *  Load the requester contacts
      *
      * @param   int     $with_object    Load also the object
-     * @param   string  $sourceFilter   [=''] for all, internal for users, external for soc people
      * @return  int     <0 if KO, >0 if OK
      */
-    function fetch_requester($with_object=0, $sourceFilter='')
+    function fetch_requester($with_object=0)
     {
-        $ids_users = array();
-        $object_users = array();
+        $this->requester_ids = array();
+        $this->requester_list = array();
 
-        $ids_contacts = array();
-        $object_contacts = array();
+        require_once DOL_DOCUMENT_ROOT . '/contact/class/contact.class.php';
 
-        if ($sourceFilter == '' || $sourceFilter == 'internal') {
-            require_once DOL_DOCUMENT_ROOT . '/user/class/user.class.php';
+        // Get contacts
+        $contacts = $this->liste_contact(-1, 'external', 1, 'REQUESTER');
+        if (!is_array($contacts))
+            return -1;
 
-            // Get users
-            $users = $this->liste_contact(-1, 'internal', 1, 'REQUESTER');
-            if (!is_array($users))
-                return -1;
-
-            foreach ($users as $user_id) {
-                $ids_users['u' . $user_id] = $user_id;
-                if ($with_object) {
-                    $user = new User($this->db);
-                    $user->fetch($user_id);
-                    $object_users['u' . $user_id] = $user;
-                }
+        foreach ($contacts as $contact_id) {
+            $this->requester_ids[$contact_id] = $contact_id;
+            if ($with_object) {
+                $contact = new Contact($this->db);
+                $contact->fetch($contact_id);
+                $this->requester_list[$contact_id] = $contact;
             }
         }
-
-        if ($sourceFilter == '' || $sourceFilter == 'external') {
-            require_once DOL_DOCUMENT_ROOT . '/contact/class/contact.class.php';
-
-            // Get contacts
-            $contacts = $this->liste_contact(-1, 'external', 1, 'REQUESTER');
-            if (!is_array($users))
-                return -1;
-
-            foreach ($contacts as $contact_id) {
-                $ids_contacts['c' . $contact_id] = $contact_id;
-                if ($with_object) {
-                    $contact = new Contact($this->db);
-                    $contact->fetch($contact_id);
-                    $object_contacts['c' . $contact_id] = $contact;
-                }
-            }
-        }
-
-        $this->requester_ids = array_merge($ids_users, $ids_contacts);
-        $this->requester_list = array_merge($object_users, $object_contacts);
     }
 
     /**
      *  Load the watcher contacts
      *
      * @param   int     $with_object    Load also the object
-     * @param   string  $sourceFilter   [=''] for all, internal for users, external for soc people
      * @return  int     <0 if KO, >0 if OK
      */
-    function fetch_watcher($with_object=0, $sourceFilter='')
+    function fetch_watcher($with_object=0)
     {
-        $ids_users = array();
-        $object_users = array();
+        $this->watcher_ids = array();
+        $this->watcher_list = array();
 
-        $ids_contacts = array();
-        $object_contacts = array();
+        require_once DOL_DOCUMENT_ROOT . '/contact/class/contact.class.php';
 
-        if ($sourceFilter == '' || $sourceFilter == 'internal') {
-            require_once DOL_DOCUMENT_ROOT . '/user/class/user.class.php';
-            // Get users
-            $users = $this->liste_contact(-1, 'internal', 1, 'WATCHER');
-            if (!is_array($users))
-                return -1;
+        // Get contacts
+        $contacts = $this->liste_contact(-1, 'external', 1, 'WATCHER');
+        if (!is_array($contacts))
+            return -1;
 
-
-            $ids_users = array();
-            $object_users = array();
-            foreach ($users as $user_id) {
-                $ids_users['u' . $user_id] = $user_id;
-                if ($with_object) {
-                    $user = new User($this->db);
-                    $user->fetch($user_id);
-                    $object_users['u' . $user_id] = $user;
-                }
+        foreach ($contacts as $contact_id) {
+            $this->watcher_ids[$contact_id] = $contact_id;
+            if ($with_object) {
+                $contact = new Contact($this->db);
+                $contact->fetch($contact_id);
+                $this->watcher_list[$contact_id] = $contact;
             }
         }
-
-        if ($sourceFilter == '' || $sourceFilter == 'external') {
-            require_once DOL_DOCUMENT_ROOT . '/contact/class/contact.class.php';
-
-            // Get contacts
-            $contacts = $this->liste_contact(-1, 'external', 1, 'WATCHER');
-            if (!is_array($contacts))
-                return -1;
-
-            foreach ($contacts as $contact_id) {
-                $ids_contacts['c' . $contact_id] = $contact_id;
-                if ($with_object) {
-                    $contact = new Contact($this->db);
-                    $contact->fetch($contact_id);
-                    $object_contacts['c' . $contact_id] = $contact;
-                }
-            }
-        }
-
-        $this->watcher_ids = array_merge($ids_users, $ids_contacts);
-        $this->watcher_list = array_merge($object_users, $object_contacts);
     }
 
     /**
@@ -1293,14 +1310,15 @@ class RequestManager extends CommonObject
         $this->fk_priority = $this->fk_priority > 0 ? $this->fk_priority : 0;
         $this->notify_requester_by_email = !empty($this->notify_requester_by_email) ? 1 : 0;
         $this->notify_watcher_by_email = !empty($this->notify_watcher_by_email) ? 1 : 0;
-        $this->assigned_user_id = $this->assigned_user_id > 0 ? $this->assigned_user_id : 0;
-        $this->assigned_usergroup_id = $this->assigned_usergroup_id > 0 ? $this->assigned_usergroup_id : 0;
+        $this->assigned_user_ids = empty($this->assigned_user_ids) ? array() : (is_string($this->assigned_user_ids) ? explode(',', $this->assigned_user_ids) : $this->assigned_user_ids);
+        $this->assigned_usergroup_ids = empty($this->assigned_usergroup_ids) ? array() : (is_string($this->assigned_usergroup_ids) ? explode(',', $this->assigned_usergroup_ids) : $this->assigned_usergroup_ids);
         $this->notify_assigned_by_email = !empty($this->notify_assigned_by_email) ? 1 : 0;
+        $this->date_operation = $this->date_operation > 0 ? $this->date_operation : 0;
         $this->date_deadline = $this->date_deadline > 0 ? $this->date_deadline : 0;
         $this->duration = $this->duration > 0 ? $this->duration : 0;
         $this->user_modification_id = $user->id;
-        $this->requester_ids = empty($this->requester_ids) ? array() : (is_string($this->requester_ids) ? explode(',', $this->requester_ids) : $this->requester_ids);
-        $this->watcher_ids = empty($this->watcher_ids) ? array() : (is_string($this->watcher_ids) ? explode(',', $this->watcher_ids) : $this->watcher_ids);
+        //$this->requester_ids = empty($this->requester_ids) ? array() : (is_string($this->requester_ids) ? explode(',', $this->requester_ids) : $this->requester_ids);
+        //$this->watcher_ids = empty($this->watcher_ids) ? array() : (is_string($this->watcher_ids) ? explode(',', $this->watcher_ids) : $this->watcher_ids);
 
         // Check parameters
         if (!($this->id > 0)) {
@@ -1371,10 +1389,9 @@ class RequestManager extends CommonObject
         $sql .= ", fk_priority = " . ($this->fk_priority > 0 ? $this->fk_priority : 'NULL');
         $sql .= ", notify_requester_by_email = " . ($this->notify_requester_by_email > 0 ? $this->notify_requester_by_email : 'NULL');
         $sql .= ", notify_watcher_by_email = " . ($this->notify_watcher_by_email > 0 ? $this->notify_watcher_by_email : 'NULL');
-        $sql .= ", fk_assigned_user = " . ($this->assigned_user_id > 0 ? $this->assigned_user_id : 'NULL');
-        $sql .= ", fk_assigned_usergroup = " . ($this->assigned_usergroup_id > 0 ? $this->assigned_usergroup_id : 'NULL');
         $sql .= ", notify_assigned_by_email = " . ($this->notify_assigned_by_email > 0 ? $this->notify_assigned_by_email : 'NULL');
         $sql .= ", duration = " . $this->duration;
+        $sql .= ", date_operation = " . ($this->date_operation > 0 ? "'" . $this->db->idate($this->date_operation) . "'" : 'NULL');
         $sql .= ", date_deadline = " . ($this->date_deadline > 0 ? "'" . $this->db->idate($this->date_deadline) . "'" : 'NULL');
         $sql .= ", fk_user_modif = " . $this->user_modification_id;
         $sql .= ' WHERE rowid = '.$this->id;
@@ -1408,19 +1425,9 @@ class RequestManager extends CommonObject
             }
         }
 
-        // if assigned user changed
-        if (!$error && $this->oldcopy->assigned_user_id != $this->assigned_user_id) {
-            // create new event and notify assigned users and contacts
-            $result = $this->createActionCommAndNotifyFromTemplateType(self::TEMPLATE_TYPE_NOTIFY_ASSIGNED_USERS_MODIFIED, self::ACTIONCOMM_TYPE_CODE_ASSUSR);
-            if ($result < 0) {
-                $error++;
-            }
-        }
-
-        // if assigned group changed
-        if (!$error && $this->oldcopy->assigned_usergroup_id != $this->assigned_usergroup_id) {
-            // create new event and notify assigned users and contacts
-            $result = $this->createActionCommAndNotifyFromTemplateType(self::TEMPLATE_TYPE_NOTIFY_ASSIGNED_USERS_MODIFIED, self::ACTIONCOMM_TYPE_CODE_ASSUSR);
+        // Set assigned
+        if (!$error && (!empty($this->assigned_user_ids) || !empty($this->assigned_usergroup_ids))) {
+            $result = $this->set_assigned($this->assigned_user_ids, $this->assigned_usergroup_ids);
             if ($result < 0) {
                 $error++;
             }
@@ -1495,6 +1502,15 @@ class RequestManager extends CommonObject
             // End call triggers
         }
 
+        // Delete assigned
+        if (!$error) {
+            $res = $this->set_assigned(array(), array(), 1);
+            if ($res < 0) {
+                $error++;
+                dol_syslog(__METHOD__ . " Errors delete assigned: " . $this->errorsToString(), LOG_ERR);
+            }
+        }
+
         // Delete linked object
         if (!$error) {
             $res = $this->deleteObjectLinked();
@@ -1544,6 +1560,164 @@ class RequestManager extends CommonObject
             $this->db->rollback();
 
             return -1;
+        }
+    }
+
+    /**
+     *  Set assigned to the request
+     *
+     *  @param	array	$assigned_user_ids          List of user ID assigned to the request
+     *  @param 	array   $assigned_usergroup_ids 	List of usergroup ID assigned to the request
+     *  @param  int		$notrigger			        Disable all triggers
+     *  @return int                 		        <0 if KO, >0 if OK
+     */
+    public function set_assigned($assigned_user_ids, $assigned_usergroup_ids, $notrigger=0)
+    {
+        global $user;
+
+        dol_syslog(get_class($this)."::set_assigned assigned_user_ids:".implode(', ', $assigned_user_ids).", assigned_usergroup_ids:".implode(', ', $assigned_usergroup_ids).", notrigger:$notrigger");
+
+        $error = 0;
+        $this->errors = array();
+        $sql = '';
+
+        // Get old assigned
+        $old = clone $this;
+        $old->fetch_assigned();
+
+        // Get assigned user added
+        $this->assigned_user_added_ids = array();
+        foreach ($assigned_user_ids as $assigned_user_id) {
+            if (!in_array($assigned_user_id, $old->assigned_user_ids))
+                $this->assigned_user_added_ids[] = $assigned_user_id;
+        }
+
+        // Get assigned usergroup added
+        $this->assigned_usergroup_added_ids = array();
+        foreach ($assigned_usergroup_ids as $assigned_usergroup_id) {
+            if (!in_array($assigned_usergroup_id, $old->assigned_usergroup_ids))
+                $this->assigned_usergroup_added_ids[] = $assigned_usergroup_id;
+        }
+
+        // Get assigned user deleted
+        $this->assigned_user_deleted_ids = array();
+        foreach ($old->assigned_user_ids as $assigned_user_id) {
+            if (!in_array($assigned_user_id, $assigned_user_ids))
+                $this->assigned_user_deleted_ids[] = $assigned_user_id;
+        }
+
+        // Get assigned usergroup deleted
+        $this->assigned_usergroup_deleted_ids = array();
+        foreach ($old->assigned_usergroup_ids as $assigned_usergroup_id) {
+            if (!in_array($assigned_usergroup_id, $assigned_usergroup_ids))
+                $this->assigned_usergroup_deleted_ids[] = $assigned_usergroup_id;
+        }
+
+        $this->db->begin();
+
+        // Delete assigned user into database
+        if (count($this->assigned_user_deleted_ids) > 0) {
+            $sql = "DELETE FROM " . MAIN_DB_PREFIX . "requestmanager_assigned_user WHERE fk_requestmanager = " . $this->id . " AND fk_user IN (" . implode(',', $this->assigned_user_deleted_ids) . ")";
+            $resql = $this->db->query($sql);
+            if (!$resql) {
+                $error++;
+            }
+        }
+
+        // Delete assigned usergroup into database
+        if (!$error && count($this->assigned_usergroup_deleted_ids) > 0) {
+            $sql = "DELETE FROM " . MAIN_DB_PREFIX . "requestmanager_assigned_usergroup WHERE fk_requestmanager = " . $this->id . " AND fk_usergroup IN (" . implode(',', $this->assigned_usergroup_deleted_ids) . ")";
+            $resql = $this->db->query($sql);
+            if (!$resql) {
+                $error++;
+            }
+        }
+
+        // Add assigned user into database
+        if (!$error && count($this->assigned_user_added_ids) > 0) {
+            $requests = array();
+            $values = array();
+            $idx = 0;
+            foreach ($this->assigned_user_added_ids as $user_id) {
+                $idx++;
+                if ($idx % 100 == 0) {
+                    $requests[] = "INSERT INTO " . MAIN_DB_PREFIX . "requestmanager_assigned_user (fk_requestmanager, fk_user) VALUES " . implode(',', $values);
+                    $values = array();
+                }
+                $values[] = "(" . $this->id . ", " . $user_id . ")";
+            }
+            if (count($values) > 0) {
+                $requests[] = "INSERT INTO " . MAIN_DB_PREFIX . "requestmanager_assigned_user (fk_requestmanager, fk_user) VALUES " . implode(',', $values);
+            }
+
+            foreach ($requests as $request) {
+                $sql = $request;
+                $resql = $this->db->query($sql);
+                if (!$resql) {
+                    $error++;
+                    break;
+                }
+            }
+        }
+
+        // Add assigned usergroup into database
+        if (!$error && count($this->assigned_usergroup_added_ids) > 0) {
+            $requests = array();
+            $values = array();
+            $idx = 0;
+            foreach ($this->assigned_usergroup_added_ids as $usergroup_id) {
+                $idx++;
+                if ($idx % 100 == 0) {
+                    $requests[] = "INSERT INTO " . MAIN_DB_PREFIX . "requestmanager_assigned_usergroup (fk_requestmanager, fk_usergroup) VALUES " . implode(',', $values);
+                    $values = array();
+                }
+                $values[] = "(" . $this->id . ", " . $usergroup_id . ")";
+            }
+            if (count($values) > 0) {
+                $requests[] = "INSERT INTO " . MAIN_DB_PREFIX . "requestmanager_assigned_usergroup (fk_requestmanager, fk_usergroup) VALUES " . implode(',', $values);
+            }
+
+            foreach ($requests as $request) {
+                $sql = $request;
+                $resql = $this->db->query($sql);
+                if (!$resql) {
+                    $error++;
+                    break;
+                }
+            }
+        }
+
+        if (!$error && !$notrigger && (count($this->assigned_user_deleted_ids) > 0 || count($this->assigned_usergroup_deleted_ids) > 0 || count($this->assigned_user_added_ids) > 0 || count($this->assigned_usergroup_added_ids) > 0)) {
+            $old_assigned_user_ids = $this->assigned_user_ids;
+            $old_assigned_usergroup_ids = $this->assigned_usergroup_ids;
+            $this->assigned_user_ids = $assigned_user_ids;
+            $this->assigned_usergroup_ids = $assigned_usergroup_ids;
+            $result = $this->call_trigger('REQUESTMANAGER_SET_ASSIGNED', $user);
+            if ($result < 0) {
+                $error++;
+                $this->assigned_user_ids = $old_assigned_user_ids;
+                $this->assigned_usergroup_ids = $old_assigned_usergroup_ids;
+            }
+        }
+
+        // if assigned user or usergroup changed
+        if (!$error && (count($this->assigned_user_added_ids) > 0 || count($this->assigned_user_deleted_ids) > 0 || count($this->assigned_usergroup_added_ids) > 0 || count($this->assigned_usergroup_deleted_ids) > 0)) {
+            // create new event and notify assigned users and contacts
+            $result = $this->createActionCommAndNotifyFromTemplateType(self::TEMPLATE_TYPE_NOTIFY_ASSIGNED_USERS_MODIFIED, self::ACTIONCOMM_TYPE_CODE_ASSUSR);
+            if ($result < 0) {
+                $error++;
+            }
+        }
+
+        if ($error) {
+            $this->errors[] = 'Error ' . $this->db->lasterror();
+            dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $this->db->lasterror(), LOG_ERR);
+
+            $this->db->rollback();
+            return -1;
+        } else {
+            $this->db->commit();
+            return 1;
         }
     }
 
@@ -1621,25 +1795,35 @@ class RequestManager extends CommonObject
         }
 
         if (!$error) {
+            $now = dol_now();
             $status_infos = self::$status_list[$status];
-            $assigned_user = !empty($status_infos->fields['assigned_user']) ? $status_infos->fields['assigned_user'] : $this->assigned_user_id;
-            $assigned_usergroup = !empty($status_infos->fields['assigned_usergroup']) ? $status_infos->fields['assigned_usergroup'] : $this->assigned_usergroup_id;
+            $assigned_users = !empty($status_infos->fields['assigned_user']) ? (is_string($status_infos->fields['assigned_user']) ? explode(',', $status_infos->fields['assigned_user']) : $status_infos->fields['assigned_user']) : $this->assigned_user_ids;
+            $assigned_usergroups = !empty($status_infos->fields['assigned_usergroup']) ? (is_string($status_infos->fields['assigned_usergroup']) ? explode(',', $status_infos->fields['assigned_usergroup']) : $status_infos->fields['assigned_usergroup']) : $this->assigned_usergroup_ids;
+            $date_operation = null;
+            if (isset($status_infos->fields['operation'])) {
+                if ($status_infos->fields['operation'] > 0) {
+                    require_once DOL_DOCUMENT_ROOT . '/core/lib/date.lib.php';
+                    $date_operation = dol_time_plus_duree($now, $status_infos->fields['operation'] / 60, 'h');
+                } elseif ($status_infos->fields['operation'] == -1) {
+                    $date_operation = $this->date_operation;
+                }
+            }
             $date_deadline = null;
             if (isset($status_infos->fields['deadline'])) {
                 if ($status_infos->fields['deadline'] > 0) {
                     require_once DOL_DOCUMENT_ROOT . '/core/lib/date.lib.php';
-                    $now = dol_now();
                     $date_deadline = dol_time_plus_duree($now, $status_infos->fields['deadline'] / 60, 'h');
                 } elseif ($status_infos->fields['deadline'] == -1) {
                     $date_deadline = $this->date_deadline;
                 }
             }
 
-            if ($assigned_user != $this->assigned_user_id || $assigned_usergroup != $this->assigned_usergroup_id || $date_deadline != $this->date_deadline) {
+            if (count(array_diff($assigned_users, $this->assigned_user_ids)) || count(array_diff($assigned_usergroups, $this->assigned_usergroup_ids)) || $date_operation != $this->date_operation || $date_deadline != $this->date_deadline) {
                 $this->fetch($this->id);
                 $this->oldcopy = clone $this;
-                $this->assigned_user_id = $assigned_user;
-                $this->assigned_usergroup_id = $assigned_usergroup;
+                $this->assigned_user_ids = $assigned_users;
+                $this->assigned_usergroup_ids = $assigned_usergroups;
+                $this->date_operation = $date_operation;
                 $this->date_deadline = $date_deadline;
                 $result = $this->update($user, 1);
                 if ($result < 0) {
@@ -2014,6 +2198,8 @@ class RequestManager extends CommonObject
         if ($mode == 8) return img_picto($label, $statuttypepicto) . ' ' . '<span class="hideonsmartphone">' . $label . ' </span>';
         if ($mode == 9) return img_picto($statuttypetext, $statuttypepicto) . ' ' . $label_short;
         if ($mode == 10) return img_picto($statuttypetext, $statuttypepicto) . ' ' . $label;
+        if ($mode == 11) return img_picto($statuttypetext, $statuttypepicto) . ' ' . $statuttypetext;
+        if ($mode == 12) return $statuttypetext;
     }
 
     /**

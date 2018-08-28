@@ -318,8 +318,8 @@ function requestmanager_show_events(&$requestmanager)
     $reshook = $hookmanager->executeHooks('printFieldListSelect', $parameters);    // Note that $action and $object may have been modified by hook
     $sql .= $hookmanager->resPrint;
     $sql .= " FROM " . MAIN_DB_PREFIX . "actioncomm as ac ";
-    if (is_array($extrafields->attribute_label) && count($extrafields->attribute_label)) $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "actioncomm_extrafields as ef on (ac.rowid = ef.fk_object)";
-    if (is_array($extrafields_message->attribute_label) && count($extrafields_message->attribute_label)) $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "requestmanager_message_extrafields as efm on (ac.rowid = efm.fk_object)";
+    if (is_array($extrafields->attribute_label) && count($extrafields->attribute_label)) $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "actioncomm_extrafields as ef on (ac.id = ef.fk_object)";
+    if (is_array($extrafields_message->attribute_label) && count($extrafields_message->attribute_label)) $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "requestmanager_message_extrafields as efm on (ac.id = efm.fk_object)";
     $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_actioncomm as cac ON cac.id = ac.fk_action";
     $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "user as uo on uo.rowid = ac.fk_user_action";
     $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "user as ud on ud.rowid = ac.fk_user_done";
@@ -1006,7 +1006,7 @@ SCRIPT;
                 }
                 // Status
                 if (!empty($arrayfields['ac.percent']['checked'])) {
-                    print '<td align="right" class="nowrap"'.$tdcolor.'>' . $actioncomm_static->LibStatut($actioncomm_static->percentage, 3, 0, $actioncomm_static->datep) . '</td>';
+                    print '<td align="right" class="nowrap"'.$tdcolor.'>' . $actioncomm_static->getLibStatut(3) . '</td>';
                 }
                 // Action column
                 print '<td class="nowrap" align="center"'.$tdcolor.'>';

@@ -49,6 +49,7 @@ $search_urgency                   = GETPOST('search_urgency','alpha');
 $search_impact                    = GETPOST('search_impact','alpha');
 $search_priority                  = GETPOST('search_priority','alpha');
 $search_duration                  = GETPOST('search_duration','alpha');
+$search_date_operation            = GETPOST('search_date_operation','alpha');
 $search_date_deadline             = GETPOST('search_date_deadline','alpha');
 $search_notify_requester_by_email = GETPOST('search_notify_requester_by_email','int');
 $search_notify_watcher_by_email   = GETPOST('search_notify_watcher_by_email','int');
@@ -91,11 +92,12 @@ $arrayfields = array(
     'rm.fk_impact'                 => array('label' => $langs->trans("RequestManagerImpact"), 'checked' => 0),
     'rm.fk_priority'               => array('label' => $langs->trans("RequestManagerPriority"), 'checked' => 0),
     'rm.duration'                  => array('label' => $langs->trans("RequestManagerDuration"), 'checked' => 0),
+    'rm.date_operation'            => array('label' => $langs->trans("RequestManagerOperation"), 'checked' => 1),
     'rm.date_deadline'             => array('label' => $langs->trans("RequestManagerDeadline"), 'checked' => 1),
     'rm.notify_requester_by_email' => array('label' => $langs->trans("RequestManagerRequesterNotification"), 'checked' => 0),
     'rm.notify_watcher_by_email'   => array('label' => $langs->trans("RequestManagerWatcherNotification"), 'checked' => 0),
-    'rm.fk_assigned_user'          => array('label' => $langs->trans("RequestManagerAssignedUser"), 'checked' => 1),
-    'rm.fk_assigned_usergroup'     => array('label' => $langs->trans("RequestManagerAssignedUserGroup"), 'checked' => 1),
+    'assigned_users'               => array('label' => $langs->trans("RequestManagerAssignedUsers"), 'checked' => 1),
+    'assigned_usergroups'          => array('label' => $langs->trans("RequestManagerAssignedUserGroups"), 'checked' => 1),
     'rm.notify_assigned_by_email'  => array('label' => $langs->trans("RequestManagerAssignedNotification"), 'checked' => 0),
     'rm.fk_user_resolved'          => array('label' => $langs->trans("RequestManagerResolvedBy"), 'checked' => 0, 'position' => 10),
     'rm.fk_user_closed'            => array('label' => $langs->trans("ClosedBy"), 'checked' => 0, 'position' => 10),
@@ -149,6 +151,7 @@ if ($search_urgency) $param .= '&search_urgency=' . urlencode($search_urgency);
 if ($search_impact) $param .= '&search_impact=' . urlencode($search_impact);
 if ($search_priority) $param .= '&search_priority=' . urlencode($search_priority);
 if ($search_duration) $param .= '&search_duration=' . urlencode($search_duration);
+if ($search_date_operation) $param .= '&search_date_operation=' . urlencode($search_date_operation);
 if ($search_date_deadline) $param .= '&search_date_deadline=' . urlencode($search_date_deadline);
 if ($search_notify_requester_by_email >= 0) $param .= '&search_notify_requester_by_email=' . urlencode($search_notify_requester_by_email);
 if ($search_notify_watcher_by_email >= 0) $param .= '&search_notify_watcher_by_email=' . urlencode($search_notify_watcher_by_email);
@@ -200,11 +203,12 @@ if (!empty($arrayfields['rm.fk_urgency']['checked'])) print_liste_field_titre($a
 if (!empty($arrayfields['rm.fk_impact']['checked'])) print_liste_field_titre($arrayfields['rm.fk_impact']['label'], $_SERVER["PHP_SELF"], 'crmi.label', '', $param, '', $sortfield, $sortorder); $nbCol++;
 if (!empty($arrayfields['rm.fk_priority']['checked'])) print_liste_field_titre($arrayfields['rm.fk_priority']['label'], $_SERVER["PHP_SELF"], 'crmp.label', '', $param, '', $sortfield, $sortorder); $nbCol++;
 if (!empty($arrayfields['rm.duration']['checked'])) print_liste_field_titre($arrayfields['rm.duration']['label'], $_SERVER["PHP_SELF"], 'rm.duration', '', $param, '', $sortfield, $sortorder); $nbCol++;
+if (!empty($arrayfields['rm.date_operation']['checked'])) print_liste_field_titre($arrayfields['rm.date_operation']['label'], $_SERVER["PHP_SELF"], 'rm.date_operation', 'align="center"', $param, '', $sortfield, $sortorder); $nbCol++;
 if (!empty($arrayfields['rm.date_deadline']['checked'])) print_liste_field_titre($arrayfields['rm.date_deadline']['label'], $_SERVER["PHP_SELF"], 'rm.date_deadline', 'align="center"', $param, '', $sortfield, $sortorder); $nbCol++;
 if (!empty($arrayfields['rm.notify_requester_by_email']['checked'])) print_liste_field_titre($arrayfields['rm.notify_requester_by_email']['label'], $_SERVER["PHP_SELF"], 'rm.notify_requester_by_email', 'align="center"', $param, '', $sortfield, $sortorder); $nbCol++;
 if (!empty($arrayfields['rm.notify_watcher_by_email']['checked'])) print_liste_field_titre($arrayfields['rm.notify_watcher_by_email']['label'], $_SERVER["PHP_SELF"], 'rm.notify_watcher_by_email', 'align="center"', $param, '', $sortfield, $sortorder); $nbCol++;
-if (!empty($arrayfields['rm.fk_assigned_user']['checked'])) print_liste_field_titre($arrayfields['rm.fk_assigned_user']['label'], $_SERVER["PHP_SELF"], 'uas.lastname', '', $param, '', $sortfield, $sortorder); $nbCol++;
-if (!empty($arrayfields['rm.fk_assigned_usergroup']['checked'])) print_liste_field_titre($arrayfields['rm.fk_assigned_usergroup']['label'], $_SERVER["PHP_SELF"], 'uga.nom', '', $param, '', $sortfield, $sortorder); $nbCol++;
+if (!empty($arrayfields['assigned_users']['checked'])) print_liste_field_titre($arrayfields['assigned_users']['label'], $_SERVER["PHP_SELF"], '', '', $param, '', $sortfield, $sortorder); $nbCol++;
+if (!empty($arrayfields['assigned_usergroups']['checked'])) print_liste_field_titre($arrayfields['assigned_usergroups']['label'], $_SERVER["PHP_SELF"], '', '', $param, '', $sortfield, $sortorder); $nbCol++;
 if (!empty($arrayfields['rm.notify_assigned_by_email']['checked'])) print_liste_field_titre($arrayfields['rm.notify_assigned_by_email']['label'], $_SERVER["PHP_SELF"], 'rm.notify_assigned_by_email', 'align="center"', $param, '', $sortfield, $sortorder); $nbCol++;
 if (!empty($arrayfields['rm.fk_user_resolved']['checked'])) print_liste_field_titre($arrayfields['rm.fk_user_resolved']['label'], $_SERVER["PHP_SELF"], 'ur.lastname', '', $param, '', $sortfield, $sortorder); $nbCol++;
 if (!empty($arrayfields['rm.fk_user_closed']['checked'])) print_liste_field_titre($arrayfields['rm.fk_user_closed']['label'], $_SERVER["PHP_SELF"], 'uc.lastname', '', $param, '', $sortfield, $sortorder); $nbCol++;
@@ -220,35 +224,47 @@ print '</tr>' . "\n";
 
 // Join conditions
 $sqlJoinActionComm = ' LEFT JOIN ' . MAIN_DB_PREFIX . 'actioncomm as ac ON ac.elementtype="requestmanager" AND ac.fk_element=rm.rowid';
+$sqlJoinAssignedFilterBegin = ' INNER JOIN (' .
+    ' SELECT rm.rowid' .
+    ' FROM ' . MAIN_DB_PREFIX . 'requestmanager as rm' .
+    ' LEFT JOIN ' . MAIN_DB_PREFIX . 'requestmanager_assigned_user as rmau ON rmau.fk_requestmanager = rm.rowid' .
+    ' LEFT JOIN ' . MAIN_DB_PREFIX . 'requestmanager_assigned_usergroup as rmaug ON rmaug.fk_requestmanager = rm.rowid' .
+    ' LEFT JOIN ' . MAIN_DB_PREFIX . 'user as uas ON uas.rowid = rmau.fk_user' .
+    ' LEFT JOIN ' . MAIN_DB_PREFIX . 'usergroup as uga ON uga.rowid = rmaug.fk_usergroup' .
+    ' WHERE rm.entity IN (' . getEntity('requestmanager') . ')';
+$sqlJoinAssignedFilterEnd = ' GROUP BY rm.rowid' .
+    ' ) as assigned ON assigned.rowid = rm.rowid';
 
 // Different filters for all lists
 $sqlFilterInProgress         = ' AND crmst.type IN (' . RequestManager::STATUS_TYPE_INITIAL . ', ' . RequestManager::STATUS_TYPE_IN_PROGRESS . ')';
-$sqlFilterInFuture           = ' AND rm.datec IS NOT NULL AND rm.datec > NOW()';
-$sqlFilterAssignedToMe       = ' AND rm.fk_assigned_user = ' . $user->id;
-$sqlFilterNotAssignedToMe    = ' AND rm.fk_assigned_user != ' . $user->id;
+$sqlFilterNotInFuture        = ' AND (rm.date_operation IS NULL OR rm.date_operation <= NOW())';
+$sqlFilterInFuture           = ' AND rm.date_operation IS NOT NULL AND rm.date_operation > NOW()';
+$sqlFilterAssignedToMe       = ' AND rmau.fk_user = ' . $user->id;
+$sqlFilterNotAssignedToMe    = ' AND rmau.fk_user != ' . $user->id;
 $sqlFilterAssignedToMyGroups = '';
+$sqlFilterNotAssignedToMyGroups = '';
 $groupslist = $usergroup_static->listGroupsForUser($user->id);
 if (!empty($groupslist)) {
     $myGroups = implode(',', array_keys($groupslist));
-    $sqlFilterAssignedToMyGroups = ' AND rm.fk_assigned_usergroup IN (' . $myGroups . ')';
-    $sqlFilterNotAssignedToMyGroups = ' AND rm.fk_assigned_usergroup NOT IN (' . $myGroups . ')';
+    $sqlFilterAssignedToMyGroups = ' AND rmaug.fk_usergroup IN (' . $myGroups . ')';
+    $sqlFilterNotAssignedToMyGroups = ' AND rmaug.fk_usergroup NOT IN (' . $myGroups . ')';
 }
 $sqlFilterActionCommAssignedToMe = ' AND ac.fk_user_action = ' . $user->id;
 
 // 1 - List of requests in progress assigned to me
-FormRequestManager::listsFollowPrintListFrom($db, $arrayfields, $objectstatic, $societestatic, $userstatic, '', $sqlFilterInProgress . $sqlFilterAssignedToMe, $sortfield, $sortorder, 'RequestManagerListsFollowMyRequest', $nbCol);
+FormRequestManager::listsFollowPrintListFrom($db, $arrayfields, $objectstatic, $societestatic, $userstatic, $sqlJoinAssignedFilterBegin . $sqlFilterAssignedToMe . $sqlJoinAssignedFilterEnd, $sqlFilterInProgress . $sqlFilterNotInFuture, $sortfield, $sortorder, 'RequestManagerListsFollowMyRequest', $nbCol);
 
 // 2 - List of requests in progress assigned to my group(s) and not to me
-FormRequestManager::listsFollowPrintListFrom($db, $arrayfields, $objectstatic, $societestatic, $userstatic, '', $sqlFilterInProgress . $sqlFilterAssignedToMyGroups . $sqlFilterNotAssignedToMe, $sortfield, $sortorder, 'RequestManagerListsFollowMyGroupRequest', $nbCol);
+FormRequestManager::listsFollowPrintListFrom($db, $arrayfields, $objectstatic, $societestatic, $userstatic, $sqlJoinAssignedFilterBegin . $sqlFilterAssignedToMyGroups . $sqlFilterNotAssignedToMe . $sqlJoinAssignedFilterEnd, $sqlFilterInProgress, $sortfield, $sortorder, 'RequestManagerListsFollowMyGroupRequest', $nbCol);
 
 // 3 - List of requests in progress not assigned to my group(s) and not assigned to me
-FormRequestManager::listsFollowPrintListFrom($db, $arrayfields, $objectstatic, $societestatic, $userstatic, $sqlJoinActionComm, $sqlFilterInProgress . $sqlFilterNotAssignedToMyGroups . $sqlFilterNotAssignedToMe . $sqlFilterActionCommAssignedToMe, $sortfield, $sortorder, 'RequestManagerListsFollowLinkToMyEvent', $nbCol);
+FormRequestManager::listsFollowPrintListFrom($db, $arrayfields, $objectstatic, $societestatic, $userstatic, $sqlJoinActionComm . $sqlJoinAssignedFilterBegin . $sqlFilterNotAssignedToMyGroups . $sqlFilterNotAssignedToMe . $sqlJoinAssignedFilterEnd, $sqlFilterInProgress . $sqlFilterActionCommAssignedToMe, $sortfield, $sortorder, 'RequestManagerListsFollowLinkToMyEvent', $nbCol);
 
 // 4 - List of requests in future assigned to me
-FormRequestManager::listsFollowPrintListFrom($db, $arrayfields, $objectstatic, $societestatic, $userstatic, '', $sqlFilterInFuture . $sqlFilterAssignedToMe, $sortfield, $sortorder, 'RequestManagerListsFollowMyFutureRequest', $nbCol);
+FormRequestManager::listsFollowPrintListFrom($db, $arrayfields, $objectstatic, $societestatic, $userstatic, $sqlJoinAssignedFilterBegin . $sqlFilterAssignedToMe . $sqlJoinAssignedFilterEnd, $sqlFilterInFuture, $sortfield, $sortorder, 'RequestManagerListsFollowMyFutureRequest', $nbCol);
 
 // 5 - List request in future assigned to my group(s) and not to me
-FormRequestManager::listsFollowPrintListFrom($db, $arrayfields, $objectstatic, $societestatic, $userstatic, '', $sqlFilterInFuture . $sqlFilterAssignedToMyGroups . $sqlFilterNotAssignedToMe, $sortfield, $sortorder, 'RequestManagerListsFollowMyFutureGroupRequest', $nbCol);
+FormRequestManager::listsFollowPrintListFrom($db, $arrayfields, $objectstatic, $societestatic, $userstatic, $sqlJoinAssignedFilterBegin . $sqlFilterAssignedToMyGroups . $sqlFilterNotAssignedToMe . $sqlJoinAssignedFilterEnd, $sqlFilterInFuture, $sortfield, $sortorder, 'RequestManagerListsFollowMyFutureGroupRequest', $nbCol);
 
 
 print '</table>' . "\n";

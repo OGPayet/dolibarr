@@ -31,7 +31,7 @@ class RequestManagerStatusDictionary extends Dictionary
     /**
      * @var int         Version of this dictionary
      */
-    public $version = 1;
+    public $version = 2;
 
     /**
      * @var array       List of languages to load
@@ -184,6 +184,28 @@ class RequestManagerStatusDictionary extends Dictionary
         'request_type' => array(),
         'assigned_user' => array(),
         'assigned_usergroup' => array(),
+        'operation' => array(
+            'name'       => 'operation',
+            'label'      => 'RequestManagerStatusDictionaryOperation',
+            'help'       => 'RequestManagerStatusDictionaryOperationHelp',
+            'type'       => 'int',
+            'database'   => array(
+              'length'   => 11,
+            ),
+            'td_title'  => array (
+                'align'  => 'left',
+            ),
+            'td_output'  => array (
+                'align'  => 'left',
+            ),
+            'td_search'  => array (
+                'align'  => 'left',
+            ),
+            'td_input'  => array (
+                'align'  => 'left',
+                'positionLine' => 2,
+            ),
+        ),
         'deadline' => array(
             'name'       => 'deadline',
             'label'      => 'RequestManagerStatusDictionaryDeadLine',
@@ -252,6 +274,11 @@ class RequestManagerStatusDictionary extends Dictionary
                 'deadline' => 'a',
                 'next_trigger' => 'a',
                 'next_status' => 'a',
+            )
+        ),
+        2 => array(
+            'fields' => array(
+                'operation' => 'a',
             )
         ),
     );
@@ -368,8 +395,9 @@ class RequestManagerStatusDictionary extends Dictionary
                 'moreAttributes' => 'width="20%"',
             ),
             'td_input' => array(
-                'moreAttributes' => 'width="20%"',
+                'moreAttributes' => 'width="50%"',
                 'positionLine' => 1,
+                'colspan' => 3,
             ),
         );
 
@@ -382,7 +410,7 @@ class RequestManagerStatusDictionary extends Dictionary
                 'moreAttributes' => 'width="20%"',
             ),
             'td_input' => array(
-                'moreAttributes' => 'width="20%"',
+                'moreAttributes' => 'width="50%"',
                 'positionLine' => 1,
                 'colspan' => 3,
             ),
@@ -400,6 +428,7 @@ class RequestManagerStatusDictionary extends Dictionary
             'td_input' => array(
                 'moreAttributes' => 'width="20%"',
                 'positionLine' => 2,
+                'colspan' => 3,
             ),
         );
     }

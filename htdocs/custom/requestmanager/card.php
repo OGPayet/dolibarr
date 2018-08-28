@@ -45,6 +45,7 @@ if (!empty($conf->categorie->enabled)) {
 
 dol_include_once('/advancedictionaries/class/dictionary.class.php');
 dol_include_once('/requestmanager/class/requestmanager.class.php');
+dol_include_once('/requestmanager/class/requestmanagermessage.class.php');
 dol_include_once('/requestmanager/class/requestmanagernotification.class.php');
 dol_include_once('/requestmanager/class/html.formrequestmanager.class.php');
 dol_include_once('/requestmanager/class/html.formrequestmanagermessage.class.php');
@@ -67,6 +68,7 @@ $lineid = GETPOST('lineid', 'int');
 $result = restrictedArea($user, 'requestmanager', $id);
 
 $object = new RequestManager($db);
+$mysoc = 0;
 $extrafields = new ExtraFields($db);
 
 // fetch optionals attributes and labels
@@ -78,6 +80,7 @@ if ($id > 0 || !empty($ref)) {
     if ($ret > 0) {
         $ret = $object->fetch_thirdparty();
         $ret = $object->fetch_optionals();
+        $mysoc = $object->socid;
     } elseif ($ret < 0) {
         dol_print_error('', $object->error);
     } else {
@@ -114,13 +117,14 @@ if (empty($reshook)) {
         $object->fk_urgency = GETPOST('urgency', 'int');
         $object->fk_impact = GETPOST('impact', 'int');
         $object->fk_priority = GETPOST('priority', 'int');
+        $object->date_operation = dol_mktime(GETPOST('operation_hour', 'int'), GETPOST('operation_minute', 'int'), 0, GETPOST('operation_month', 'int'), GETPOST('operation_day', 'int'), GETPOST('operation_year', 'int'));
         $object->date_deadline = dol_mktime(GETPOST('deadline_hour', 'int'), GETPOST('deadline_min', 'int'), 0, GETPOST('deadline_month', 'int'), GETPOST('deadline_day', 'int'), GETPOST('deadline_year', 'int'));
         $object->requester_ids = GETPOST('requester_contacts', 'array');
         $object->notify_requester_by_email = GETPOST('requester_notification', 'int');
         $object->watcher_ids = GETPOST('watcher_contacts', 'array');
         $object->notify_watcher_by_email = GETPOST('watcher_notification', 'int');
-        $object->assigned_usergroup_id = GETPOST('assigned_usergroup', 'int');
-        $object->assigned_user_id = GETPOST('assigned_user', 'int');
+        $object->assigned_usergroup_ids = GETPOST('assigned_usergroups', 'array');
+        $object->assigned_user_ids = GETPOST('assigned_users', 'array');
         $object->notify_assigned_by_email = GETPOST('assigned_notification', 'int');
         $object->description = GETPOST('description');
 
@@ -308,6 +312,18 @@ if (empty($reshook)) {
             header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
             exit();
         }
+    } // Set Date Operation
+    elseif ($action == 'set_date_operation' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+        $object->oldcopy = clone $object;
+        $object->date_operation = dol_mktime(GETPOST('operation_hour', 'int'), GETPOST('operation_minute', 'int'), 0, GETPOST('operation_month', 'int'), GETPOST('operation_day', 'int'), GETPOST('operation_year', 'int'));
+        $result = $object->update($user);
+        if ($result < 0) {
+            setEventMessages($object->error, $object->errors, 'errors');
+            $action = 'edit_date_operation';
+        } else {
+            header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
+            exit();
+        }
     } // Set Date Deadline
     elseif ($action == 'set_date_deadline' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
         $object->oldcopy = clone $object;
@@ -320,26 +336,37 @@ if (empty($reshook)) {
             header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
             exit();
         }
-    } // Set Assigned usergroup
-    elseif ($action == 'set_assigned_usergroup' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+    } // Set Assigned usergroups
+    elseif ($action == 'set_assigned_usergroups' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
         $object->oldcopy = clone $object;
-        $object->assigned_usergroup_id = GETPOST('assigned_usergroup', 'int');
+        $object->assigned_usergroup_ids = GETPOST('assigned_usergroups', 'array');
         $result = $object->update($user);
         if ($result < 0) {
             setEventMessages($object->error, $object->errors, 'errors');
-            $action = 'edit_assigned_usergroup';
+            $action = 'edit_assigned_usergroups';
         } else {
             header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
             exit();
         }
-    } // Set Assigned user
-    elseif ($action == 'set_assigned_user' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+    } // Set Assigned users
+    elseif ($action == 'set_assigned_users' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
         $object->oldcopy = clone $object;
-        $object->assigned_user_id = GETPOST('assigned_user', 'int');
+        $object->assigned_user_ids = GETPOST('assigned_users', 'array');
         $result = $object->update($user);
         if ($result < 0) {
             setEventMessages($object->error, $object->errors, 'errors');
-            $action = 'edit_assigned_user';
+            $action = 'edit_assigned_users';
+        } else {
+            header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
+            exit();
+        }
+    } // Set myself in Assigned users
+    elseif ($action == 'set_myself_assigned_user' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+        $object->oldcopy = clone $object;
+        $object->assigned_user_ids[] = $user->id;
+        $result = $object->update($user);
+        if ($result < 0) {
+            setEventMessages($object->error, $object->errors, 'errors');
         } else {
             header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
             exit();
@@ -383,7 +410,7 @@ if (empty($reshook)) {
     } // Set Requesters
     elseif ($action == 'set_requesters' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
         $object->oldcopy = clone $object;
-        $object->requester_ids = GETPOST('requester_contacts', 'array');
+        //$object->requester_ids = GETPOST('requester_contacts', 'array');
         $object->notify_requester_by_email = GETPOST('requester_notification', 'int');
         $result = $object->update($user);
         if ($result < 0) {
@@ -396,7 +423,7 @@ if (empty($reshook)) {
     } // Set Watchers
     elseif ($action == 'set_watchers' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
         $object->oldcopy = clone $object;
-        $object->watcher_ids = GETPOST('watcher_contacts', 'array');
+        //$object->watcher_ids = GETPOST('watcher_contacts', 'array');
         $object->notify_watcher_by_email = GETPOST('watcher_notification', 'int');
         $result = $object->update($user);
         if ($result < 0) {
@@ -1006,10 +1033,10 @@ if (empty($reshook)) {
 
         $action = 'premessage';
     }
-    else if ($action == 'add_contact' && $user->rights->requestmanager->creer && $object->statut_type != RequestManager::STATUS_TYPE_CLOSED && $object->statut_type != selfRequestManagerSTATUS_TYPE_RESOLVED) {
+    else if ($action == 'add_contact' && $user->rights->requestmanager->creer && $object->statut_type != RequestManager::STATUS_TYPE_CLOSED && $object->statut_type != RequestManager::STATUS_TYPE_RESOLVED) {
         $object->add_contact_action(intval(GETPOST('add_contact_type_id')));
     }
-    else if ($action == 'del_contact' && $user->rights->requestmanager->creer && $object->statut_type != RequestManager::STATUS_TYPE_CLOSED && $object->statut_type != selfRequestManagerSTATUS_TYPE_RESOLVED) {
+    else if ($action == 'del_contact' && $user->rights->requestmanager->creer && $object->statut_type != RequestManager::STATUS_TYPE_CLOSED && $object->statut_type != RequestManager::STATUS_TYPE_RESOLVED) {
         $object->del_contact_action(intval(GETPOST('del_contact_type_id')));
     }
 
@@ -1061,6 +1088,7 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
     $object->fk_urgency = GETPOST('urgency', 'int');
     $object->fk_impact = GETPOST('impact', 'int');
     $object->fk_priority = GETPOST('priority', 'int');
+    $object->date_operation = dol_mktime(GETPOST('operation_hour', 'int'), GETPOST('operation_min', 'int'), 0, GETPOST('operation_month', 'int'), GETPOST('operation_day', 'int'), GETPOST('operation_year', 'int'));
     if (!GETPOST('deadline_') && !GETPOST('deadline_hour', 'int') && !GETPOST('deadline_min', 'int')) {
         // calculate deadline date from default deadline time in seconds and now
         $object->date_deadline = !empty($conf->global->REQUESTMANAGER_DEADLINE_TIME_DEFAULT) ? dol_now() + intval($conf->global->REQUESTMANAGER_DEADLINE_TIME_DEFAULT) : -1;
@@ -1069,10 +1097,9 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
     }
     $object->requester_ids = GETPOST('requester_contacts', 'array');
     $object->notify_requester_by_email = isset($_POST['requester_notification']) ? GETPOST('requester_notification', 'int') : 1;
-    $object->watcher_ids = GETPOST('watcher_contacts', 'array');
     $object->notify_watcher_by_email = isset($_POST['watcher_notification']) ? GETPOST('watcher_notification', 'int') : 1;
-    $object->assigned_usergroup_id = GETPOST('assigned_usergroup', 'int');
-    $object->assigned_user_id = GETPOST('assigned_user', 'int');
+    $object->assigned_usergroup_ids = GETPOST('assigned_usergroups', 'array');
+    $object->assigned_user_ids = GETPOST('assigned_users', 'array');
     $object->notify_assigned_by_email = isset($_POST['assigned_notification']) ? GETPOST('assigned_notification', 'int') : 1;
     $object->description = GETPOST('description');
 
@@ -1107,10 +1134,21 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
 
     // ThirdParty
     print '<tr><td class="fieldrequired">' . $langs->trans('RequestManagerThirdParty') . '</td><td>';
-    print $form->select_company($object->socid, 'socid', '(s.client = 1 OR s.client = 2 OR s.client = 3) AND status=1', 'SelectThirdParty', 0, 0, null, 0, 'minwidth300');
-    if (!empty($conf->societe->enabled) &&  $user->rights->societe->creer) {
+    $events[] = array('method' => 'getContacts', 'url' => dol_buildpath('/core/ajax/contacts.php', 1), 'htmlname' => 'requester_contacts', 'params' => array('add-customer-contact' => 'disabled'));
+    print $form->select_company($object->socid, 'socid', '(s.client = 1 OR s.client = 2 OR s.client = 3) AND status=1', 'SelectThirdParty', 0, 0, $events, 0, 'minwidth300');
+    if (!empty($conf->societe->enabled) && $user->rights->societe->creer) {
         print ' <a id="new_thridparty" href="' . DOL_URL_ROOT . '/societe/card.php?action=create&client=3&fournisseur=0&backtopage=' . urlencode($_SERVER["PHP_SELF"] . '?action=create' . ($object->fk_type ? '&type=' . $object->fk_type : '')) . '">' . $langs->trans("AddThirdParty") . '</a>';
     }
+    print '</td></tr>';
+
+    // Requester Contacts
+	print '<tr><td>' . $langs->trans('RequestManagerRequesterContacts') . '</td><td>';
+    print $formrequestmanager->multiselect_contacts($object->socid, $object->requester_ids, 'requester_contacts', '', '', 0, 'minwidth300');
+    print '</td></tr>';
+
+    // Requester Notification
+	print '<tr><td>' . $langs->trans('RequestManagerRequesterNotification') . '</td><td>';
+    print '<input type="checkbox" name="requester_notification" value="1"' . ($object->notify_requester_by_email ? ' checked' : '') . ' />';
     print '</td></tr>';
 
     // Source
@@ -1133,44 +1171,34 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
     print $formrequestmanager->select_priority($object->fk_priority, 'priority', 1, 0, array(), 0, 0, 'minwidth300');
     print '</td></tr>';
 
+    // Date Operation
+	print '<tr><td>' . $langs->trans('RequestManagerOperation') . '</td><td>';
+	$form->select_date($object->date_operation, 'operation_', 1, 1, 1, '', 1);
+	print '</td></tr>';
+
     // Date Deadline
 	print '<tr><td>' . $langs->trans('RequestManagerDeadline') . '</td><td>';
 	$form->select_date($object->date_deadline, 'deadline_', 1, 1, 1, '', 1);
 	print '</td></tr>';
 
-    // Requester Contacts
-	print '<tr><td>' . $langs->trans('RequestManagerRequesterContacts') . '</td><td>';
-    //print $formrequestmanager->multiselect_contacts($object->requester_ids, 'requester_contacts'); // get ajax multiselect contacts, users search on thirdparty/contact or login/user
+    // Assigned usergroups
+    print "<tr><td>" . $langs->trans("RequestManagerAssignedUserGroups") . '</td><td>';
+    print $formrequestmanager->multiselect_dolgroups($object->assigned_usergroup_ids,'assigned_usergroups');
     print '</td></tr>';
 
-    // Requester Notification
-	print '<tr><td>' . $langs->trans('RequestManagerRequesterNotification') . '</td><td>';
-    print '<input type="checkbox" name="requester_notification" value="1"' . ($object->notify_requester_by_email ? ' checked' : '') . ' />';
-    print '</td></tr>';
-
-    // Watcher Contacts
-	print '<tr><td>' . $langs->trans('RequestManagerWatcherContacts') . '</td><td>';
-    //print $formrequestmanager->multiselect_contacts($object->watcher_ids, 'watcher_contacts');
-    print '</td></tr>';
-
-    // Watcher Notification
-	print '<tr><td>' . $langs->trans('RequestManagerWatcherNotification') . '</td><td>';
-    print '<input type="checkbox" name="watcher_notification" value="1"' . ($object->notify_watcher_by_email ? ' checked' : '') . ' />';
-    print '</td></tr>';
-
-    // Assigned usergroup
-    print "<tr><td>" . $langs->trans("RequestManagerAssignedUserGroup") . '</td><td>';
-    print $form->select_dolgroups($object->assigned_usergroup_id,'assigned_usergroup',1);
-    print '</td></tr>';
-
-    // Assigned user
-    print "<tr><td>" . $langs->trans("RequestManagerAssignedUser") . '</td><td>';
-    print $form->select_dolusers($object->assigned_user_id,'assigned_user',1, null, 0, '', '', 0, 0, 0, '', 0, '', '', 1, 0);
+    // Assigned users
+    print "<tr><td>" . $langs->trans("RequestManagerAssignedUsers") . '</td><td>';
+    print $formrequestmanager->multiselect_dolusers($object->assigned_user_ids,'assigned_users', null, 0, '', '', 0, 0, 0, '', 0, '', '', 1, 0);
     print '</td></tr>';
 
     // Assigned Notification
 	print '<tr><td>' . $langs->trans('RequestManagerAssignedNotification') . '</td><td>';
     print '<input type="checkbox" name="assigned_notification" value="1"' . ($object->notify_assigned_by_email ? ' checked' : '') . ' />';
+    print '</td></tr>';
+
+    // Watcher Notification
+	print '<tr><td>' . $langs->trans('RequestManagerWatcherNotification') . '</td><td>';
+    print '<input type="checkbox" name="watcher_notification" value="1"' . ($object->notify_watcher_by_email ? ' checked' : '') . ' />';
     print '</td></tr>';
 
     // Other attributes
@@ -1482,6 +1510,27 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
     }
     print '</td></tr>';
 
+    // Date Operation
+    print '<tr><td>';
+	print '<table class="nobordernopadding" width="100%"><tr><td>';
+	print $langs->trans('RequestManagerOperation');
+	print '</td>';
+	if ($action != 'edit_date_operation' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS)
+		print '<td align="right"><a href="' . $_SERVER["PHP_SELF"] . '?action=edit_date_operation&id=' . $object->id . '">' . img_edit($langs->trans('RequestManagerSetOperation'), 1) . '</a></td>';
+	print '</tr></table>';
+	print '</td><td>';
+	if ($action == 'edit_date_operation' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+		print '<form name="editecheance" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
+		print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
+		print '<input type="hidden" name="action" value="set_date_operation">';
+        $form->select_date($object->date_operation, 'operation_', 1, 1, 1, '', 1);
+		print '<input type="submit" class="button" value="' . $langs->trans('Modify') . '">';
+		print '</form>';
+	} else {
+        print $object->date_operation > 0 ? dol_print_date($object->date_operation, 'dayhour') : '';
+	}
+    print '</td></tr>';
+
     // Date Deadline
     print '<tr><td>';
 	print '<table class="nobordernopadding" width="100%"><tr><td>';
@@ -1503,53 +1552,59 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
 	}
     print '</td></tr>';
 
-    // Assigned usergroup
+    // Assigned usergroups
     print '<tr><td>';
 	print '<table class="nobordernopadding" width="100%"><tr><td>';
-	print $langs->trans('RequestManagerAssignedUserGroup');
+	print $langs->trans('RequestManagerAssignedUserGroups');
 	print '</td>';
-	if ($action != 'edit_assigned_usergroup' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS)
-		print '<td align="right"><a href="' . $_SERVER["PHP_SELF"] . '?action=edit_assigned_usergroup&id=' . $object->id . '">' . img_edit($langs->trans('RequestManagerSetAssignedUserGroup'), 1) . '</a></td>';
+	if ($action != 'edit_assigned_usergroups' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS)
+		print '<td align="right"><a href="' . $_SERVER["PHP_SELF"] . '?action=edit_assigned_usergroups&id=' . $object->id . '">' . img_edit($langs->trans('RequestManagerSetAssignedUserGroups'), 1) . '</a></td>';
 	print '</tr></table>';
 	print '</td><td>';
-	if ($action == 'edit_assigned_usergroup' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+	if ($action == 'edit_assigned_usergroups' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
 		print '<form name="editecheance" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
 		print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
-		print '<input type="hidden" name="action" value="set_assigned_usergroup">';
-        print $form->select_dolgroups($object->assigned_usergroup_id, 'assigned_usergroup', 1);
+		print '<input type="hidden" name="action" value="set_assigned_usergroups">';
+        print $formrequestmanager->multiselect_dolgroups($object->assigned_usergroup_ids, 'assigned_usergroups');
 		print '<input type="submit" class="button" value="' . $langs->trans('Modify') . '">';
 		print '</form>';
 	} else {
-        if ($object->assigned_usergroup_id > 0 && $usergroup_static->fetch($object->assigned_usergroup_id) > 0) {
-            print $usergroup_static->getFullName($langs);
+        $toprint = array();
+        foreach ($object->assigned_usergroup_ids as $assigned_usergroup_id) {
+            $usergroup_static->fetch($assigned_usergroup_id);
+            $toprint[] = $usergroup_static->getFullName($langs);
         }
+        print implode(', ', $toprint);
 	}
     print '</td></tr>';
 
-    // Assigned user
+    // Assigned users
     print '<tr><td>';
 	print '<table class="nobordernopadding" width="100%"><tr><td>';
-	print $langs->trans('RequestManagerAssignedUser');
+	print $langs->trans('RequestManagerAssignedUsers');
 	print '</td>';
-	if ($action != 'edit_assigned_user' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS)
-		print '<td align="right"><a href="' . $_SERVER["PHP_SELF"] . '?action=edit_assigned_user&id=' . $object->id . '">' . img_edit($langs->trans('RequestManagerSetAssignedUser'), 1) . '</a></td>';
+	if ($action != 'edit_assigned_users' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS)
+		print '<td align="right"><a href="' . $_SERVER["PHP_SELF"] . '?action=edit_assigned_users&id=' . $object->id . '">' . img_edit($langs->trans('RequestManagerSetAssignedUsers'), 1) . '</a></td>';
 	print '</tr></table>';
 	print '</td><td>';
-	if ($action == 'edit_assigned_user' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+	if ($action == 'edit_assigned_users' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
 		print '<form name="editecheance" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
 		print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
-		print '<input type="hidden" name="action" value="set_assigned_user">';
-        print $form->select_dolusers($object->assigned_user_id,'assigned_user',1, null, 0, '', '', 0, 0, 0, '', 0, '', '', 1, 0);
+		print '<input type="hidden" name="action" value="set_assigned_users">';
+        print $formrequestmanager->multiselect_dolusers($object->assigned_user_ids,'assigned_users', null, 0, '', '', 0, 0, 0, '', 0, '', '', 1, 0);
 		print '<input type="submit" class="button" value="' . $langs->trans('Modify') . '">';
 		print '</form>';
 	} else {
-        if ($object->assigned_user_id > 0 && $user_static->fetch($object->assigned_user_id) > 0) {
-            print $user_static->getNomUrl(1);
+        $toprint = array();
+        foreach ($object->assigned_user_ids as $assigned_user_id) {
+            $user_static->fetch($assigned_user_id);
+            $toprint[] = $user_static->getNomUrl(1);
+        }
+        print implode(', ', $toprint);
+        if (!in_array($user->id, $object->assigned_user_ids) && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+	    print '&nbsp;&nbsp;<a href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=set_myself_assigned_user" class="button" style="color: #3c3c3c;" title="' . $langs->trans("RequestManagerAssignToMe") . '">' . $langs->trans("RequestManagerAssignToMe") .'</a>';
         }
 	}
-    if ($action != 'edit_assigned_user' && $user->id != $object->assigned_user_id && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
-	    print '&nbsp;&nbsp;<a href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=set_assigned_user&assigned_user=' . $user->id . '" class="button" style="color: #3c3c3c;" title="' . $langs->trans("RequestManagerAssignToMe") . '">' . $langs->trans("RequestManagerAssignToMe") .'</a>';
-    }
     print '</td></tr>';
 
     // Assigned Notification
@@ -1762,7 +1817,7 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
         if ($user->rights->requestmanager->creer && ($object->statut_type == RequestManager::STATUS_TYPE_INITIAL || $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS)) {
             $object->statut = 0;
         }
-        $ret = $object->printObjectLines($action, $mysoc,  $object->thirdparty, $lineid, 1);
+        $object->printObjectLines($action, $mysoc,  $object->thirdparty, $lineid, 1);
         $object->statut = $object->save_status;
     }
 
@@ -1989,8 +2044,11 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
 
         dol_fiche_head();
 
+        // Message
+        $message = new RequestManagerMessage($db);
+
         // Cree l'objet formulaire message
-        $formrequestmanagermessage = new FormRequestManagerMessage($db, $object);
+        $formrequestmanagermessage = new FormRequestManagerMessage($db, $object, $message);
 
         // Tableau des parametres complementaires du post
         $formmail->param['action'] = $action;

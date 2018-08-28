@@ -40,7 +40,12 @@ class FormRequestManagerMessage
     /**
      * @var RequestManager  Instance of the RequestManager
      */
-    public $object;
+    public $requestmanager;
+
+    /**
+     * @var RequestManagerMessage      Instance of the RequestManagerMessage
+     */
+    public $requestmanager_message;
 
     /**
      * @var string  Key of the session for the path list of attached files
@@ -68,13 +73,15 @@ class FormRequestManagerMessage
     /**
      * Constructor
      *
-     * @param   RequestManager  $object     Request manager object
-     * @param   DoliDB          $db         Database handler
+     * @param   RequestManager          $object     Request manager object
+     * @param   RequestManagerMessage   $message    Request manager message object
+     * @param   DoliDB                  $db         Database handler
      */
-    public function __construct($db, &$object)
+    public function __construct($db, &$object, &$message)
     {
         $this->db = $db;
         $this->requestmanager = $object;
+        $this->requestmanager_message = $message;
         $this->formdictionary = new FormDictionary($this->db);
 
         $this->key_list_of_paths = "requestmanagerlop" . $this->requestmanager->ref_ext;
@@ -175,7 +182,7 @@ class FormRequestManagerMessage
     /**
      *  Output html form to send a message
      *
-     * @param  	ActionComm	$actioncomm         Event message
+     * @param  	string	    $actioncomm         Event message
      * @param  	string	    $actionurl          Key in file array (0, 1, 2, ...)
      * @param  	string	    $type_template      Key in file array (0, 1, 2, ...)
      * @param  	int	        $template_id        Key in file array (0, 1, 2, ...)
@@ -308,7 +315,7 @@ class FormRequestManagerMessage
         $messageNotifyByMailChecked = '';
         if ($messageNotifyByMail) $messageNotifyByMailChecked = ' checked="checked"';
         $out .= '<tr>';
-        $out .= '<td class="fieldrequired" colspan="2">';
+        $out .= '<td colspan="2">';
         $out .= '<input type="checkbox" id="message_notify_by_mail" name="message_notify_by_mail" value="1"' . $messageNotifyByMailChecked .' /> ' . $langs->trans("RequestManagerMessageNotifyByMail");
         $out .= "</td></tr>\n";
         $out .= '<script type="text/javascript" language="javascript">';
@@ -353,7 +360,7 @@ class FormRequestManagerMessage
 	$reshook = $hookmanager->executeHooks('formObjectOptions', $parameters, $this); // Note that $action and $object may have been modified by hook
         $out .= $hookmanager->resPrint;
 	if (empty($reshook) && ! empty($extrafields->attribute_label)) {
-            $out .= $actioncomm->showOptionals($extrafields, 'edit');
+            $out .= $this->requestmanager_message->showOptionals($extrafields, 'edit');
 	}
 
         // Get message template
@@ -565,7 +572,7 @@ SCRIPT;
 	 */
 	static function getAvailableSubstitKey($object, $keyonly=1)
     {
-        global $langs;
+        global $langs, $db;
 
         $vars = array(
             // Request
@@ -594,16 +601,25 @@ SCRIPT;
             '__PRIORITY_ID__' => $object->fk_priority,
             '__PRIORITY_CODE__' => '',
             '__PRIORITY_LABEL__' => '',
-            '__NOTIFY_ASSIGNED_BY_EMAIL__' => $object->notify_assigned_by_email,
-            '__ASSIGNED_USER_ID__' => $object->assigned_user_id,
-            '__ASSIGNED_USER_NAME__' => '',
-            '__ASSIGNED_USERGROUP_ID__' => $object->assigned_usergroup_id,
-            '__ASSIGNED_USERGROUP_NAME__' => '',
-            '__NOTIFY_REQUESTER_BY_EMAIL__' => $object->notify_requester_by_email,
+            '__NOTIFY_ASSIGNED_BY_EMAIL__' => yn($object->notify_assigned_by_email),
+            '__ASSIGNED_USERS_ID__' => implode(', ', $object->assigned_user_ids),
+            '__ASSIGNED_USERS_NAME__' => '',
+            '__ASSIGNED_USERS_ID_ADDED__' => implode(', ', $object->assigned_user_added_ids),
+            '__ASSIGNED_USERS_NAME_ADDED__' => '',
+            '__ASSIGNED_USERS_ID_DELETED__' => implode(', ', $object->assigned_user_deleted_ids),
+            '__ASSIGNED_USERS_NAME_DELETED__' => '',
+            '__ASSIGNED_USERGROUPS_ID__' => implode(', ', $object->assigned_usergroup_ids),
+            '__ASSIGNED_USERGROUPS_NAME__' => '',
+            '__ASSIGNED_USERGROUPS_ID_ADDED__' => implode(', ', $object->assigned_usergroup_added_ids),
+            '__ASSIGNED_USERGROUPS_NAME_ADDED__' => '',
+            '__ASSIGNED_USERGROUPS_ID_DELETED__' => implode(', ', $object->assigned_usergroup_deleted_ids),
+            '__ASSIGNED_USERGROUPS_NAME_DELETED__' => '',
+            '__NOTIFY_REQUESTER_BY_EMAIL__' => yn($object->notify_requester_by_email),
             '__REQUESTERS_NAME__' => '',
-            '__NOTIFY_WATCHER_BY_EMAIL__' => $object->notify_watcher_by_email,
+            '__NOTIFY_WATCHER_BY_EMAIL__' => yn($object->notify_watcher_by_email),
             '__WATCHERS_NAME__' => '',
-            //'__DURATION__' => '',
+            '__DURATION__' => '',
+            '__DATE_OPERATION__' => '',
             '__DATE_DEADLINE__' => '',
             '__DATE_RESOLVED__' => '',
             '__DATE_CLOTURE__' => '',
@@ -627,36 +643,121 @@ SCRIPT;
         );
 
         if (!$keyonly) {
+            require_once DOL_DOCUMENT_ROOT . '/user/class/user.class.php';
+            require_once DOL_DOCUMENT_ROOT . '/user/class/usergroup.class.php';
+            $users_cache = array();
+            $usergroups_cache = array();
+
             // Request
-            $vars['__THIRDPARTY_NAME__'] = '';
-            $vars['__TYPE_CODE__'] = '';
-            $vars['__TYPE_LABEL__'] = '';
-            $vars['__CATEGORY_CODE__'] = '';
-            $vars['__CATEGORY_LABEL__'] = '';
-            $vars['__SOURCE_CODE__'] = '';
-            $vars['__SOURCE_LABEL__'] = '';
-            $vars['__URGENCY_CODE__'] = '';
-            $vars['__URGENCY_LABEL__'] = '';
-            $vars['__IMPACT_CODE__'] = '';
-            $vars['__IMPACT_LABEL__'] = '';
-            $vars['__PRIORITY_CODE__'] = '';
-            $vars['__PRIORITY_LABEL__'] = '';
-            $vars['__ASSIGNED_USER_NAME__'] = '';
-            $vars['__ASSIGNED_USERGROUP_NAME__'] = '';
-            $vars['__REQUESTERS_NAME__'] = '';
-            $vars['__WATCHERS_NAME__'] = '';
-            //$vars['__DURATION__'] = '';
-            $vars['__DATE_DEADLINE__'] = '';
-            $vars['__DATE_RESOLVED__'] = '';
-            $vars['__DATE_CLOTURE__'] = '';
-            $vars['__USER_RESOLVED_NAME__'] = '';
-            $vars['__USER_CLOTURE_NAME__'] = '';
-            $vars['__STATUT_LABEL__'] = '';
-            $vars['__STATUT_TYPE_LABEL__'] = '';
-            $vars['__DATE_CREATION__'] = '';
-            $vars['__DATE_MODIFICATION__'] = '';
-            $vars['__USER_CREATION_NAME__'] = '';
-            $vars['__USER_MODIFICATION_NAME__'] = '';
+            $object->fetch_thirdparty();
+            $vars['__THIRDPARTY_NAME__'] = $object->thirdparty->getFullName($langs);
+            $vars['__TYPE_CODE__'] = $object->getLibType(1);
+            $vars['__TYPE_LABEL__'] = $object->getLibType(0);
+            $vars['__CATEGORY_CODE__'] = $object->getLibCategory(1);
+            $vars['__CATEGORY_LABEL__'] = $object->getLibCategory(0);
+            $vars['__SOURCE_CODE__'] = $object->getLibSource(1);
+            $vars['__SOURCE_LABEL__'] = $object->getLibSource(0);
+            $vars['__URGENCY_CODE__'] = $object->getLibUrgency(1);
+            $vars['__URGENCY_LABEL__'] = $object->getLibUrgency(0);
+            $vars['__IMPACT_CODE__'] = $object->getLibImpact(1);
+            $vars['__IMPACT_LABEL__'] = $object->getLibImpact(0);
+            $vars['__PRIORITY_CODE__'] = $object->getLibPriority(1);
+            $vars['__PRIORITY_LABEL__'] = $object->getLibPriority(0);
+            $user_names = array();
+            foreach ($object->assigned_user_ids as $user_id) {
+                if (!isset($users_cache[$user_id])) {
+                    $user = new User($db);
+                    $users_cache[$user_id] = $user;
+                }
+                $user_names[] = $users_cache[$user_id]->getFullName($langs);
+            }
+            $vars['__ASSIGNED_USERS_NAME__'] = implode(', ', $user_names);
+            $user_names = array();
+            foreach ($object->assigned_user_added_ids as $user_id) {
+                if (!isset($users_cache[$user_id])) {
+                    $user = new User($db);
+                    $users_cache[$user_id] = $user;
+                }
+                $user_names[] = $users_cache[$user_id]->getFullName($langs);
+            }
+            $vars['__ASSIGNED_USERS_NAME_ADDED__'] = implode(', ', $user_names);
+            $user_names = array();
+            foreach ($object->assigned_user_deleted_ids as $user_id) {
+                if (!isset($users_cache[$user_id])) {
+                    $user = new User($db);
+                    $users_cache[$user_id] = $user;
+                }
+                $user_names[] = $users_cache[$user_id]->getFullName($langs);
+            }
+            $vars['__ASSIGNED_USERS_NAME_DELETED__'] = implode(', ', $user_names);
+            $usergroup_names = array();
+            foreach ($object->assigned_usergroup_ids as $usergroup_id) {
+                if (!isset($usergroups_cache[$usergroup_id])) {
+                    $usergroup = new UserGroup($db);
+                    $usergroups_cache[$usergroup_id] = $usergroup;
+                }
+                $usergroup_names[] = $usergroups_cache[$usergroup_id]->name;
+            }
+            $vars['__ASSIGNED_USERGROUPS_NAME__'] = implode(', ', $usergroup_names);
+            $usergroup_names = array();
+            foreach ($object->assigned_usergroup_added_ids as $usergroup_id) {
+                if (!isset($usergroups_cache[$usergroup_id])) {
+                    $usergroup = new UserGroup($db);
+                    $usergroups_cache[$usergroup_id] = $usergroup;
+                }
+                $usergroup_names[] = $usergroups_cache[$usergroup_id]->name;
+            }
+            $vars['__ASSIGNED_USERGROUPS_NAME_ADDED__'] = implode(', ', $usergroup_names);
+            $usergroup_names = array();
+            foreach ($object->assigned_usergroup_deleted_ids as $usergroup_id) {
+                if (!isset($usergroups_cache[$usergroup_id])) {
+                    $usergroup = new UserGroup($db);
+                    $usergroups_cache[$usergroup_id] = $usergroup;
+                }
+                $usergroup_names[] = $usergroups_cache[$usergroup_id]->name;
+            }
+            $vars['__ASSIGNED_USERGROUPS_NAME_DELETED__'] = implode(', ', $usergroup_names);
+            $object->fetch_requester(1);
+            $contact_names = array();
+            foreach ($object->requester_list as $requester) {
+                $contact_names[] = $requester->getFullName($langs);
+            }
+            $vars['__REQUESTERS_NAME__'] = implode(', ', $contact_names);
+            $object->fetch_watcher(1);
+            $contact_names = array();
+            foreach ($object->watcher_list as $watcher) {
+                $contact_names[] = $watcher->getFullName($langs);
+            }
+            $vars['__WATCHERS_NAME__'] = implode(', ', $contact_names);
+            $vars['__DURATION__'] = $object->duration;
+            $vars['__DATE_OPERATION__'] = dol_print_date($object->date_operation, 'dayhour');
+            $vars['__DATE_DEADLINE__'] = dol_print_date($object->date_deadline, 'dayhour');
+            $vars['__DATE_RESOLVED__'] = dol_print_date($object->date_resolved, 'dayhour');
+            $vars['__DATE_CLOTURE__'] = dol_print_date($object->date_cloture, 'dayhour');
+            if (!isset($users_cache[$object->user_resolved_id])) {
+                $user = new User($db);
+                $users_cache[$object->user_resolved_id] = $user;
+            }
+            $vars['__USER_RESOLVED_NAME__'] = $users_cache[$object->user_resolved_id]->getFullName($langs);
+            if (!isset($users_cache[$object->user_cloture_id])) {
+                $user = new User($db);
+                $users_cache[$object->user_cloture_id] = $user;
+            }
+            $vars['__USER_CLOTURE_NAME__'] = $users_cache[$object->user_cloture_id]->getFullName($langs);
+            $vars['__STATUT_LABEL__'] = $object->getLibStatut(0);
+            $vars['__STATUT_TYPE_LABEL__'] = $object->getLibStatut(12);
+            $vars['__DATE_CREATION__'] = dol_print_date($object->date_creation, 'dayhour');
+            $vars['__DATE_MODIFICATION__'] = dol_print_date($object->date_modification, 'dayhour');
+            if (!isset($users_cache[$object->user_creation_id])) {
+                $user = new User($db);
+                $users_cache[$object->user_creation_id] = $user;
+            }
+            $vars['__USER_CREATION_NAME__'] = $users_cache[$object->user_creation_id]->getFullName($langs);
+            if (!isset($users_cache[$object->user_modification_id])) {
+                $user = new User($db);
+                $users_cache[$object->user_modification_id] = $user;
+            }
+            $vars['__USER_MODIFICATION_NAME__'] = $users_cache[$object->user_modification_id]->getFullName($langs);
         } else {
             // Mail
             $substitutList = self::getAvailableSubstitKeyForMail();

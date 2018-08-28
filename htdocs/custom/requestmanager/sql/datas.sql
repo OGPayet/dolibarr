@@ -28,10 +28,8 @@
 
 
 INSERT INTO `llx_c_type_contact` (`rowid`, `element`, `source`, `code`, `libelle`, `active`, `module`) VALUES
-(163018, 'requestmanager', 'internal', 'REQUESTER', 'Requester', 1, 'requestmanager'),
-(163019, 'requestmanager', 'internal', 'WATCHER', 'Watcher', 1, 'requestmanager'),
-(163020, 'requestmanager', 'external', 'REQUESTER', 'Requester', 1, 'requestmanager'),
-(163021, 'requestmanager', 'external', 'WATCHER', 'Watcher', 1, 'requestmanager');
+(163018, 'requestmanager', 'external', 'REQUESTER', 'Requester', 1, 'requestmanager'),
+(163019, 'requestmanager', 'external', 'WATCHER', 'Watcher', 1, 'requestmanager');
 
 INSERT INTO `llx_c_actioncomm` (`id`, `code`, `type`, `libelle`, `module`, `active`, `todo`, `color`, `picto`, `position`) VALUES
 (163018, 'AC_RM_IN', 'systemauto', 'Input message (automatically inserted events)', 'requestmanager', 1, NULL, NULL, NULL, 20),

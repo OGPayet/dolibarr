@@ -55,6 +55,7 @@ $search_urgency=GETPOST('search_urgency','alpha');
 $search_impact=GETPOST('search_impact','alpha');
 $search_priority=GETPOST('search_priority','alpha');
 $search_duration=GETPOST('search_duration','alpha');
+$search_date_operation=GETPOST('search_date_operation','alpha');
 $search_date_deadline=GETPOST('search_date_deadline','alpha');
 $search_notify_requester_by_email=GETPOST('search_notify_requester_by_email','int');
 $search_notify_watcher_by_email=GETPOST('search_notify_watcher_by_email','int');
@@ -126,11 +127,12 @@ $arrayfields = array(
     'rm.fk_impact' => array('label' => $langs->trans("RequestManagerImpact"), 'checked' => 0),
     'rm.fk_priority' => array('label' => $langs->trans("RequestManagerPriority"), 'checked' => 0),
     'rm.duration' => array('label' => $langs->trans("RequestManagerDuration"), 'checked' => 0),
+    'rm.date_operation' => array('label' => $langs->trans("RequestManagerOperation"), 'checked' => 0),
     'rm.date_deadline' => array('label' => $langs->trans("RequestManagerDeadline"), 'checked' => 0),
     'rm.notify_requester_by_email' => array('label' => $langs->trans("RequestManagerRequesterNotification"), 'checked' => 0),
     'rm.notify_watcher_by_email' => array('label' => $langs->trans("RequestManagerWatcherNotification"), 'checked' => 0),
-    'rm.fk_assigned_user' => array('label' => $langs->trans("RequestManagerAssignedUser"), 'checked' => 1),
-    'rm.fk_assigned_usergroup' => array('label' => $langs->trans("RequestManagerAssignedUserGroup"), 'checked' => 1),
+    'assigned_users' => array('label' => $langs->trans("RequestManagerAssignedUsers"), 'checked' => 1),
+    'assigned_usergroups' => array('label' => $langs->trans("RequestManagerAssignedUserGroups"), 'checked' => 1),
     'rm.notify_assigned_by_email' => array('label' => $langs->trans("RequestManagerAssignedNotification"), 'checked' => 0),
     'rm.fk_user_resolved' => array('label' => $langs->trans("RequestManagerResolvedBy"), 'checked' => 0, 'position' => 10),
     'rm.fk_user_closed' => array('label' => $langs->trans("ClosedBy"), 'checked' => 0, 'position' => 10),
@@ -181,6 +183,7 @@ if (GETPOST('button_removefilter_x','alpha') || GETPOST('button_removefilter.x',
     $search_impact='';
     $search_priority='';
     $search_duration='';
+    $search_date_operation='';
     $search_date_deadline='';
     $search_notify_requester_by_email=-1;
     $search_notify_watcher_by_email=-1;
@@ -242,9 +245,9 @@ $sql .= ' rm.fk_urgency, crmu.label as urgency_label,';
 $sql .= ' rm.fk_impact, crmi.label as impact_label,';
 $sql .= ' rm.fk_priority, crmp.label as priority_label,';
 $sql .= ' rm.notify_requester_by_email, rm.notify_watcher_by_email, rm.notify_assigned_by_email,';
-$sql .= ' rm.fk_assigned_user, uas.firstname as userassignedfirstname, uas.lastname as userassignedlastname, uas.email as userassignedemail,';
-$sql .= ' rm.fk_assigned_usergroup, uga.nom as usergroupassignedname,';
-$sql .= ' rm.duration, rm.date_deadline, rm.date_resolved, rm.date_closed,';
+$sql .= ' GROUP_CONCAT(DISTINCT rmau.fk_user SEPARATOR \',\') as assigned_users,';
+$sql .= ' GROUP_CONCAT(DISTINCT rmaug.fk_usergroup SEPARATOR \',\') as assigned_usergroups,';
+$sql .= ' rm.duration, rm.date_operation, rm.date_deadline, rm.date_resolved, rm.date_closed,';
 $sql .= ' rm.fk_user_resolved, ur.firstname as userresolvedfirstname, ur.lastname as userresolvedlastname, ur.email as userresolvedemail,';
 $sql .= ' rm.fk_user_closed, uc.firstname as userclosedfirstname, uc.lastname as userclosedlastname, uc.email as userclosedemail,';
 $sql .= ' rm.fk_status,';
@@ -267,12 +270,35 @@ $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."c_requestmanager_priority as crmp on (crmp.
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."c_requestmanager_status as crmst on (crmst.rowid = rm.fk_status)";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as s on (s.rowid = rm.fk_soc)";
 if (is_array($extrafields->attribute_label) && count($extrafields->attribute_label)) $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."requestmanager_extrafields as ef on (rm.rowid = ef.fk_object)";
-$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'user as uas ON uas.rowid = rm.fk_assigned_user';
-$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'usergroup as uga ON uga.rowid = rm.fk_assigned_usergroup';
 $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'user as ur ON ur.rowid = rm.fk_user_resolved';
 $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'user as uc ON uc.rowid = rm.fk_user_closed';
 $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'user as ua ON ua.rowid = rm.fk_user_author';
 $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'user as um ON um.rowid = rm.fk_user_modif';
+$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'requestmanager_assigned_user as rmau ON rmau.fk_requestmanager = rm.rowid';
+$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'requestmanager_assigned_usergroup as rmaug ON rmaug.fk_requestmanager = rm.rowid';
+if ($search_assigned_user || $search_assigned_usergroup || $my_list || $not_assigned) {
+    $sql .= ' INNER JOIN (';
+    $sql .= '   SELECT rm.rowid';
+    $sql .= '   FROM ' . MAIN_DB_PREFIX . 'requestmanager as rm';
+    $sql .= '   LEFT JOIN ' . MAIN_DB_PREFIX . 'requestmanager_assigned_user as rmau ON rmau.fk_requestmanager = rm.rowid';
+    $sql .= '   LEFT JOIN ' . MAIN_DB_PREFIX . 'requestmanager_assigned_usergroup as rmaug ON rmaug.fk_requestmanager = rm.rowid';
+    $sql .= '   LEFT JOIN ' . MAIN_DB_PREFIX . 'user as uas ON uas.rowid = rmau.fk_user';
+    $sql .= '   LEFT JOIN ' . MAIN_DB_PREFIX . 'usergroup as uga ON uga.rowid = rmaug.fk_usergroup';
+    $sql .= '   WHERE rm.entity IN (' . getEntity('requestmanager') . ')';
+    if ($search_assigned_user) $sql .= natural_search(array('uas.firstname', 'uas.lastname'), $search_assigned_user);
+    if ($search_assigned_usergroup) $sql .= natural_search('uga.nom', $search_assigned_usergroup);
+    if ($my_list) {
+        $groupslist = $usergroup_static->listGroupsForUser($user->id);
+        $sql .= ' AND (rmau.fk_user = ' . $user->id;
+        if (!empty($groupslist)) {
+            $sql .= ' OR rmaug.fk_usergroup IN (' . implode(',', array_keys($groupslist)) . ')';
+        }
+        $sql .= ')';
+    }
+    if ($not_assigned) $sql .= ' AND (rmau.fk_user IS NULL OR rmau.fk_user = 0) AND (rmaug.fk_usergroup IS NULL OR rmaug.fk_usergroup = 0)';
+    $sql .= '   GROUP BY rm.rowid';
+    $sql .= ' ) as assigned ON assigned.rowid = rm.rowid';
+}
 $sql.= ' WHERE rm.entity IN ('.getEntity('requestmanager').')';
 if ($search_ref)  $sql.= natural_search('rm.ref', $search_ref);
 if ($search_ref_ext)  $sql.= natural_search('rm.ref_ext', $search_ref_ext);
@@ -285,12 +311,11 @@ if ($search_urgency)  $sql.= natural_search('crmu.label', $search_urgency);
 if ($search_impact)  $sql.= natural_search('crmi.label', $search_impact);
 if ($search_priority)  $sql.= natural_search('crmp.label', $search_priority);
 if ($search_duration)  $sql.= natural_search('rm.duration', $search_duration, 1);
+if ($search_date_operation)  $sql.= natural_search('rm.date_operation', $search_date_operation, 1);
 if ($search_date_deadline)  $sql.= natural_search('rm.date_deadline', $search_date_deadline, 1);
 if ($search_notify_requester_by_email >= 0) $sql.= ' AND rm.notify_requester_by_email = ' . $search_notify_requester_by_email;
 if ($search_notify_watcher_by_email >= 0) $sql.= ' AND rm.notify_watcher_by_email = ' . $search_notify_watcher_by_email;
 if ($search_notify_assigned_by_email >= 0) $sql.= ' AND rm.notify_assigned_by_email = ' . $search_notify_assigned_by_email;
-if ($search_assigned_user)  $sql.= natural_search(array('uas.firstname', 'uas.lastname'), $search_assigned_user);
-if ($search_assigned_usergroup)  $sql.= natural_search('uga.nom', $search_assigned_usergroup);
 if ($search_description)  $sql.= natural_search('rm.description', $search_description);
 if ($search_date_resolved)  $sql.= natural_search('rm.date_resolved', $search_date_resolved, 1);
 if ($search_date_cloture)  $sql.= natural_search('rm.date_closed', $search_date_cloture, 1);
@@ -300,15 +325,6 @@ if ($search_date_creation)  $sql.= natural_search('rm.datec', $search_date_creat
 if ($search_date_modification)  $sql.= natural_search('rm.tms', $search_date_modification, 1);
 if ($search_user_author)  $sql.= natural_search(array('ua.firstname', 'ua.lastname'), $search_user_author);
 if ($search_user_modification)  $sql.= natural_search(array('um.firstname', 'um.lastname'), $search_user_modification);
-if ($my_list) {
-    $groupslist = $usergroup_static->listGroupsForUser($user->id);
-    $sql .= ' AND (rm.fk_assigned_user = ' . $user->id;
-    if (!empty($groupslist)) {
-        $sql .= ' OR rm.fk_assigned_usergroup IN (' . implode(',', array_keys($groupslist)) . ')';
-    }
-    $sql .= ')';
-}
-if ($not_assigned)  $sql.= ' AND (rm.fk_assigned_user IS NULL OR rm.fk_assigned_user = 0) AND (rm.fk_assigned_usergroup IS NULL OR rm.fk_assigned_usergroup = 0)';
 if ($status_type > 0)  $sql.= ' AND crmst.type = ' . $status_type;
 elseif ($status_type == -2)  $sql.= ' AND crmst.type IN (' . RequestManager::STATUS_TYPE_INITIAL . ', ' . RequestManager::STATUS_TYPE_IN_PROGRESS . ')';
 if ($sall) {
@@ -333,6 +349,7 @@ $parameters=array();
 $reshook=$hookmanager->executeHooks('printFieldListWhere',$parameters);    // Note that $action and $object may have been modified by hook
 $sql.=$hookmanager->resPrint;
 
+$sql.= ' GROUP BY rm.rowid';
 $sql.= $db->order($sortfield,$sortorder);
 
 // Count total nb of records
@@ -374,6 +391,7 @@ if ($resql) {
     if ($search_impact) $param .= '&search_impact=' . urlencode($search_impact);
     if ($search_priority) $param .= '&search_priority=' . urlencode($search_priority);
     if ($search_duration) $param .= '&search_duration=' . urlencode($search_duration);
+    if ($search_date_operation) $param .= '&search_date_operation=' . urlencode($search_date_operation);
     if ($search_date_deadline) $param .= '&search_date_deadline=' . urlencode($search_date_deadline);
     if ($search_notify_requester_by_email >= 0) $param .= '&search_notify_requester_by_email=' . urlencode($search_notify_requester_by_email);
     if ($search_notify_watcher_by_email >= 0) $param .= '&search_notify_watcher_by_email=' . urlencode($search_notify_watcher_by_email);
@@ -526,6 +544,12 @@ if ($resql) {
         print '<input class="flat" size="6" type="text" name="search_duration" value="' . dol_escape_htmltag($search_duration) . '">';
         print '</td>';
     }
+    // Date Operation
+    if (!empty($arrayfields['rm.date_operation']['checked'])) {
+        print '<td class="liste_titre" align="center">';
+        print '<input class="flat" size="6" type="text" name="search_date_operation" value="' . dol_escape_htmltag($search_date_operation) . '">';
+        print '</td>';
+    }
     // Date Deadline
     if (!empty($arrayfields['rm.date_deadline']['checked'])) {
         print '<td class="liste_titre" align="center">';
@@ -545,13 +569,13 @@ if ($resql) {
         print '</td>';
     }
     // Assigned user
-    if (!empty($arrayfields['rm.fk_assigned_user']['checked'])) {
+    if (!empty($arrayfields['assigned_users']['checked'])) {
         print '<td class="liste_titre">';
         print '<input class="flat" size="6" type="text" name="search_assigned_user" value="' . dol_escape_htmltag($search_assigned_user) . '">';
         print '</td>';
     }
     // Assigned usergroup
-    if (!empty($arrayfields['rm.fk_assigned_usergroup']['checked'])) {
+    if (!empty($arrayfields['assigned_usergroups']['checked'])) {
         print '<td class="liste_titre">';
         print '<input class="flat" size="6" type="text" name="search_assigned_usergroup" value="' . dol_escape_htmltag($search_assigned_usergroup) . '">';
         print '</td>';
@@ -647,7 +671,6 @@ if ($resql) {
 
     print "</tr>\n";
 
-
     // Fields title
     print '<tr class="liste_titre">';
     if (!empty($arrayfields['rm.ref']['checked'])) print_liste_field_titre($arrayfields['rm.ref']['label'], $_SERVER["PHP_SELF"], 'rm.ref', '', $param, '', $sortfield, $sortorder);
@@ -662,11 +685,12 @@ if ($resql) {
     if (!empty($arrayfields['rm.fk_impact']['checked'])) print_liste_field_titre($arrayfields['rm.fk_impact']['label'], $_SERVER["PHP_SELF"], 'crmi.label', '', $param, '', $sortfield, $sortorder);
     if (!empty($arrayfields['rm.fk_priority']['checked'])) print_liste_field_titre($arrayfields['rm.fk_priority']['label'], $_SERVER["PHP_SELF"], 'crmp.label', '', $param, '', $sortfield, $sortorder);
     if (!empty($arrayfields['rm.duration']['checked'])) print_liste_field_titre($arrayfields['rm.duration']['label'], $_SERVER["PHP_SELF"], 'rm.duration', '', $param, '', $sortfield, $sortorder);
+    if (!empty($arrayfields['rm.date_operation']['checked'])) print_liste_field_titre($arrayfields['rm.date_operation']['label'], $_SERVER["PHP_SELF"], 'rm.date_operation', 'align="center"', $param, '', $sortfield, $sortorder);
     if (!empty($arrayfields['rm.date_deadline']['checked'])) print_liste_field_titre($arrayfields['rm.date_deadline']['label'], $_SERVER["PHP_SELF"], 'rm.date_deadline', 'align="center"', $param, '', $sortfield, $sortorder);
     if (!empty($arrayfields['rm.notify_requester_by_email']['checked'])) print_liste_field_titre($arrayfields['rm.notify_requester_by_email']['label'], $_SERVER["PHP_SELF"], 'rm.notify_requester_by_email', 'align="center"', $param, '', $sortfield, $sortorder);
     if (!empty($arrayfields['rm.notify_watcher_by_email']['checked'])) print_liste_field_titre($arrayfields['rm.notify_watcher_by_email']['label'], $_SERVER["PHP_SELF"], 'rm.notify_watcher_by_email', 'align="center"', $param, '', $sortfield, $sortorder);
-    if (!empty($arrayfields['rm.fk_assigned_user']['checked'])) print_liste_field_titre($arrayfields['rm.fk_assigned_user']['label'], $_SERVER["PHP_SELF"], 'uas.lastname', '', $param, '', $sortfield, $sortorder);
-    if (!empty($arrayfields['rm.fk_assigned_usergroup']['checked'])) print_liste_field_titre($arrayfields['rm.fk_assigned_usergroup']['label'], $_SERVER["PHP_SELF"], 'uga.nom', '', $param, '', $sortfield, $sortorder);
+    if (!empty($arrayfields['assigned_users']['checked'])) print_liste_field_titre($arrayfields['assigned_users']['label'], $_SERVER["PHP_SELF"], '', '', $param, '', $sortfield, $sortorder);
+    if (!empty($arrayfields['assigned_usergroups']['checked'])) print_liste_field_titre($arrayfields['assigned_usergroups']['label'], $_SERVER["PHP_SELF"], '', '', $param, '', $sortfield, $sortorder);
     if (!empty($arrayfields['rm.notify_assigned_by_email']['checked'])) print_liste_field_titre($arrayfields['rm.notify_assigned_by_email']['label'], $_SERVER["PHP_SELF"], 'rm.notify_assigned_by_email', 'align="center"', $param, '', $sortfield, $sortorder);
     if (!empty($arrayfields['rm.fk_user_resolved']['checked'])) print_liste_field_titre($arrayfields['rm.fk_user_resolved']['label'], $_SERVER["PHP_SELF"], 'ur.lastname', '', $param, '', $sortfield, $sortorder);
     if (!empty($arrayfields['rm.fk_user_closed']['checked'])) print_liste_field_titre($arrayfields['rm.fk_user_closed']['label'], $_SERVER["PHP_SELF"], 'uc.lastname', '', $param, '', $sortfield, $sortorder);
@@ -694,6 +718,9 @@ if ($resql) {
     if (!empty($arrayfields['rm.fk_status']['checked'])) print_liste_field_titre($arrayfields['rm.fk_status']['label'], $_SERVER["PHP_SELF"], "crmst.label", "", $param, 'align="right"', $sortfield, $sortorder);
     print_liste_field_titre($selectedfields, $_SERVER["PHP_SELF"], "", '', '', 'align="center"', $sortfield, $sortorder, 'maxwidthsearch ');
     print '</tr>' . "\n";
+
+    $users_cache = array();
+    $usergroups_cache = array();
 
     $now = dol_now();
     $i = 0;
@@ -790,6 +817,12 @@ if ($resql) {
             if ($obj->duration > 0) print requestmanager_print_duration($obj->duration);
             print '</td>';
         }
+        // Date Operation
+        if (!empty($arrayfields['rm.date_operation']['checked'])) {
+            print '<td class="nowrap" align="center">';
+            if ($obj->date_operation > 0) print dol_print_date($db->jdate($obj->date_operation), 'dayhour');
+            print '</td>';
+        }
         // Date Deadline
         if (!empty($arrayfields['rm.date_deadline']['checked'])) {
             print '<td class="nowrap" align="center">';
@@ -809,21 +842,41 @@ if ($resql) {
             print '</td>';
         }
         // Assigned user
-        if (!empty($arrayfields['rm.fk_assigned_user']['checked'])) {
+        if (!empty($arrayfields['assigned_users']['checked'])) {
             print '<td class="nowrap">';
-            if ($obj->fk_assigned_user > 0) {
-                $userstatic->id = $obj->fk_assigned_user;
-                $userstatic->firstname = $obj->userassignedfirstname;
-                $userstatic->lastname = $obj->userassignedlastname;
-                $userstatic->email = $obj->userassignedemail;
-                print $userstatic->getNomUrl(1);
+            $assigned_users = explode(',', $obj->assigned_users);
+            if (is_array($assigned_users) && count($assigned_users) > 0) {
+                $toprint = array();
+                foreach ($assigned_users as $user_id) {
+                    if ($user_id > 0) {
+                        if (!isset($users_cache[$user_id])) {
+                            $assigned_user = new User($db);
+                            $assigned_user->fetch($user_id);
+                            $users_cache[$user_id] = $assigned_user;
+                        }
+                        $toprint[] = $users_cache[$user_id]->getNomUrl(1);
+                    }
+                }
+                print implode(', ', $toprint);
             }
             print '</td>';
         }
         // Assigned usergroup
-        if (!empty($arrayfields['rm.fk_assigned_usergroup']['checked'])) {
+        if (!empty($arrayfields['assigned_usergroups']['checked'])) {
             print '<td class="nowrap">';
-            print $obj->usergroupassignedname;
+            $assigned_usergroups = explode(',', $obj->assigned_usergroups);
+            if (is_array($assigned_usergroups) && count($assigned_usergroups) > 0) {
+                $toprint = array();
+                foreach ($assigned_usergroups as $usergroup_id) {
+                    if (!isset($usergroups_cache[$usergroup_id])) {
+                        $assigned_usergroup = new UserGroup($db);
+                        $assigned_usergroup->fetch($usergroup_id);
+                        $usergroups_cache[$usergroup_id] = $assigned_usergroup;
+                    }
+                    $toprint[] = $usergroups_cache[$usergroup_id]->getFullName($langs);
+                }
+                print implode(', ', $toprint);
+            }
             print '</td>';
         }
         // Notification assigned
