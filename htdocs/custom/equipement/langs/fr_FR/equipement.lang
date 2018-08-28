@@ -358,3 +358,6 @@ ErrorEquipementAddProductCorrectStock=Impossible de modifier le stock du produit
 ErrorEquipementAddProductComponent=Impossible d'ajouter ce composat à cet équipement
 SuccessEquipementAddProduct=Ajout réalisé avec succès
 EquipementAddProductLine=Ajouter un composant à cet équipement
+
+
+LinkToEquipement=Lier à un équipement

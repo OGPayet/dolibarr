@@ -28,18 +28,14 @@ if (! $res && file_exists("../../main.inc.php")) $res=@include '../../main.inc.p
 if (! $res && file_exists("../../../dolibarr/htdocs/main.inc.php")) $res=@include '../../../dolibarr/htdocs/main.inc.php';     // Used on dev env only
 if (! $res && file_exists("../../../../dolibarr/htdocs/main.inc.php")) $res=@include '../../../../dolibarr/htdocs/main.inc.php';   // Used on dev env only
 if (! $res) die("Include of main fails");
-require_once DOL_DOCUMENT_ROOT.'/comm/propal/class/propal.class.php';
-require_once DOL_DOCUMENT_ROOT.'/core/lib/propal.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/images.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
-if (! empty($conf->projet->enabled)) {
-	require_once DOL_DOCUMENT_ROOT . '/projet/class/project.class.php';
-}
+dol_include_once('/requestmanager/class/requestmanager.class.php');
+dol_include_once('/requestmanager/lib/requestmanager.lib.php');
 
-$langs->load('compta');
 $langs->load('other');
-$langs->load('companies');
+$langs->load('requestmanager@requestmanager');
 
 $action		= GETPOST('action','alpha');
 $confirm	= GETPOST('confirm','alpha');
@@ -62,8 +58,18 @@ $pagenext = $page + 1;
 if (! $sortorder) $sortorder="ASC";
 if (! $sortfield) $sortfield="name";
 
-$object = new Propal($db);
-$object->fetch($id,$ref);
+$object = new RequestManager($db);
+// Load object
+if ($id > 0 || !empty($ref)) {
+	$ret = $object->fetch($id, $ref);
+    if ($ret > 0) {
+    } elseif ($ret < 0) {
+        dol_print_error('', $object->error);
+    } else {
+        print $langs->trans('NoRecordFound');
+        exit();
+    }
+}
 
 
 /*
@@ -73,7 +79,7 @@ $object->fetch($id,$ref);
 if ($object->id > 0)
 {
     $object->fetch_thirdparty();
-    $upload_dir = $conf->propal->dir_output.'/'.dol_sanitizeFileName($object->ref);
+    $upload_dir = $conf->requestmanager->multidir_output[$object->entity].'/'.dol_sanitizeFileName($object->ref);
     include_once DOL_DOCUMENT_ROOT . '/core/actions_linkedfiles.inc.php';
 }
 
@@ -82,16 +88,16 @@ if ($object->id > 0)
  * View
  */
 
-llxHeader('',$langs->trans('Proposal'),'EN:Commercial_Proposals|FR:Proposition_commerciale|ES:Presupuestos');
+llxHeader('', $langs->trans('RequestManagerRequest'), 'EN:Request_Manager_En|FR:Request_Manager_Fr|ES:Request_Manager_Es');
 
 $form = new Form($db);
 
 if ($object->id > 0)
 {
-	$upload_dir = $conf->propal->dir_output.'/'.dol_sanitizeFileName($object->ref);
+	$upload_dir = $conf->requestmanager->multidir_output[$object->entity].'/'.dol_sanitizeFileName($object->ref);
 
-	$head = propal_prepare_head($object);
-	dol_fiche_head($head, 'document', $langs->trans('Proposal'), -1, 'propal');
+    $head = requestmanager_prepare_head($object);
+	dol_fiche_head($head, 'document', $langs->trans('RequestManagerCard'), -1, 'requestmanager@requestmanager');
 
 	// Construit liste des fichiers
 	$filearray=dol_dir_list($upload_dir,"files",0,'','(\.meta|_preview.*\.png)$',$sortfield,(strtolower($sortorder)=='desc'?SORT_DESC:SORT_ASC),1);
@@ -104,49 +110,12 @@ if ($object->id > 0)
 
 	// Proposal card
 
-	$linkback = '<a href="' . DOL_URL_ROOT . '/comm/propal/list.php?restore_lastsearch_values=1' . (! empty($socid) ? '&socid=' . $socid : '') . '">' . $langs->trans("BackToList") . '</a>';
-
+    $linkback = '<a href="' . dol_buildpath('/requestmanager/list.php', 1) . '?restore_lastsearch_values=1">' . $langs->trans("BackToList") . '</a>';
 
 	$morehtmlref='<div class="refidno">';
-	// Ref customer
-	$morehtmlref.=$form->editfieldkey("RefCustomer", 'ref_client', $object->ref_client, $object, 0, 'string', '', 0, 1);
-	$morehtmlref.=$form->editfieldval("RefCustomer", 'ref_client', $object->ref_client, $object, 0, 'string', '', null, null, '', 1);
-	// Thirdparty
-	$morehtmlref.='<br>'.$langs->trans('ThirdParty') . ' : ' . $object->thirdparty->getNomUrl(1);
-	// Project
-	if (! empty($conf->projet->enabled))
-	{
-	    $langs->load("projects");
-	    $morehtmlref.='<br>'.$langs->trans('Project') . ' ';
-	    if ($user->rights->propal->creer)
-	    {
-	        if ($action != 'classify')
-	            //$morehtmlref.='<a href="' . $_SERVER['PHP_SELF'] . '?action=classify&amp;id=' . $object->id . '">' . img_edit($langs->transnoentitiesnoconv('SetProject')) . '</a>';
-	            $morehtmlref.=' : ';
-	            if ($action == 'classify') {
-	                //$morehtmlref.=$form->form_project($_SERVER['PHP_SELF'] . '?id=' . $object->id, $object->socid, $object->fk_project, 'projectid', 0, 0, 1, 1);
-	                $morehtmlref.='<form method="post" action="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'">';
-	                $morehtmlref.='<input type="hidden" name="action" value="classin">';
-	                $morehtmlref.='<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-	                $morehtmlref.=$formproject->select_projects($object->socid, $object->fk_project, 'projectid', $maxlength, 0, 1, 0, 1, 0, 0, '', 1);
-	                $morehtmlref.='<input type="submit" class="button valignmiddle" value="'.$langs->trans("Modify").'">';
-	                $morehtmlref.='</form>';
-	            } else {
-	                $morehtmlref.=$form->form_project($_SERVER['PHP_SELF'] . '?id=' . $object->id, $object->socid, $object->fk_project, 'none', 0, 0, 0, 1);
-	            }
-	    } else {
-	        if (! empty($object->fk_project)) {
-	            $proj = new Project($db);
-	            $proj->fetch($object->fk_project);
-	            $morehtmlref.='<a href="'.DOL_URL_ROOT.'/projet/card.php?id=' . $object->fk_project . '" title="' . $langs->trans('ShowProject') . '">';
-	            $morehtmlref.=$proj->ref;
-	            $morehtmlref.='</a>';
-	        } else {
-	            $morehtmlref.='';
-	        }
-	    }
-	}
-	$morehtmlref.='</div>';
+	// External Reference
+    $morehtmlref.='<br>'.$langs->trans('RequestManagerExternalReference') . ' : ' . $object->ref_ext;
+    $morehtmlref.='</div>';
 
 	dol_banner_tab($object, 'ref', $linkback, 1, 'ref', 'ref', $morehtmlref);
 
@@ -167,9 +136,9 @@ if ($object->id > 0)
 
 	dol_fiche_end();
 
-	$modulepart = 'propal';
-	$permission = $user->rights->propal->creer;
-	$permtoedit = $user->rights->propal->creer;
+	$modulepart = 'requestmanager';
+	$permission = $user->rights->requestmanager->creer;
+	$permtoedit = $user->rights->requestmanager->creer;
 	$param = '&id=' . $object->id;
 	include_once DOL_DOCUMENT_ROOT . '/core/tpl/document_actions_post_headers.tpl.php';
 }

@@ -130,6 +130,8 @@ class modRequestManager extends DolibarrModules
             1 => array('REQUESTMANAGER_REF_UNIVERSAL_MASK','chaine','RI{yy}{mm}-{000000}','','current',0),
             2 => array('REQUESTMANAGER_REFEXT_ADDON','chaine','mod_requestmanager_refext_simple','','current',0),
             3 => array('REQUESTMANAGER_REFEXT_UNIVERSAL_MASK','chaine','RE{yy}{mm}-{000000}','','current',0),
+            4 => array('REQUESTMANAGER_POSITION_BLOC_OBJECT_LINKED','chaine','top','','current',0),
+            5 => array('REQUESTMANAGER_POSITION_LINK_NEW_OBJECT_LINKED','chaine','top','','current',0),
         );
 
         // Array to add new pages in new tabs
@@ -231,6 +233,34 @@ class modRequestManager extends DolibarrModules
         $this->rights[$r][3] = 0;
         $this->rights[$r][4] = 'read_file';
         $r++;
+
+        /*$this->rights[$r][0] = 163037;
+        $this->rights[$r][1] = 'Voir les prix des lignes de produits';
+        $this->rights[$r][3] = 0;
+        $this->rights[$r][4] = 'product_line_price';
+        $this->rights[$r][5] = 'lire';
+        $r++;
+
+        $this->rights[$r][0] = 163038;
+        $this->rights[$r][1] = 'Editer les prix des lignes de produits';
+        $this->rights[$r][3] = 0;
+        $this->rights[$r][4] = 'product_line_price';
+        $this->rights[$r][5] = 'creer';
+        $r++;
+
+        $this->rights[$r][0] = 163039;
+        $this->rights[$r][1] = 'Voir les remises des lignes de produits';
+        $this->rights[$r][3] = 0;
+        $this->rights[$r][4] = 'product_line_discount';
+        $this->rights[$r][5] = 'lire';
+        $r++;
+
+        $this->rights[$r][0] = 163040;
+        $this->rights[$r][1] = 'Editer les remises des lignes de produits';
+        $this->rights[$r][3] = 0;
+        $this->rights[$r][4] = 'product_line_discount';
+        $this->rights[$r][5] = 'creer';
+        $r++;*/
 
         // Add here list of permission defined by an id, a label, a boolean and two constant strings.
         // Example:

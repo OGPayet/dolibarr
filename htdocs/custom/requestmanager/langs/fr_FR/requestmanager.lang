@@ -28,8 +28,18 @@ RequestManagerNotificationByMailName            = Notification par mail
 RequestManagerNotificationByMailDesc            = Notifier par mail les utilisateurs
 RequestManagerContractSearchInParentCompanyName = Rechercher les contrats de la maison mère
 RequestManagerContractSearchInParentCompanyDesc = Rechercher les contrats liés au tiers de la demande dans la maison mère
-RequestManagerDeadlineTimeDefaultName           = Temps pour date d'échéance
-RequestManagerDeadlineTimeDefaultDesc           = Temps par défaut pour la date d'échéance de la demande
+RequestManagerOperationTimeDefaultName          = Décalage de temps pour date d'opération
+RequestManagerOperationTimeDefaultDesc          = Décalage de temps depuis la création d'une demande pour la date d'opération par défaut (en minutes)
+RequestManagerDeadlineTimeDefaultName           = Décalage de temps pour date d'échéance
+RequestManagerDeadlineTimeDefaultDesc           = Décalage de temps depuis la date d'opération lors de la création d'une demande pour la date d'échéance par défaut (en minutes)
+RequestManagerRootProductCategoriesName         = Racine des catégories de produits
+RequestManagerRootProductCategoriesDesc         = Racine des catégories de produits accessiblent sur la demande
+RequestManagerRootProductCategoryIncludeName    = Inclure la racine
+RequestManagerRootProductCategoryIncludeDesc    = Inclure la racine dans la liste des catégories de produits
+RequestManagerPositionBlocObjectLinkedName      = Position des Objets Liés
+RequestManagerPositionBlocObjectLinkedDesc      = Position du bloc de la liste des objets liés
+RequestManagerPositionLinkNewObjectLinkedName   = Position du lien 'Lier à ...'
+RequestManagerPositionLinkNewObjectLinkedDesc   = Position du lien 'Lier à ...' des objets liés (si Position des Objets Liés est sur 'Haut' ce paramètre est inutile)
 
 ############################################################
 ### Contact
@@ -121,6 +131,7 @@ RequestManagerSetAssignedNotification   = Définir la notification des assignés
 RequestManagerSetDescription            = Définir la description
 RequestManagerAssignToMe                = M'assigner
 RequestManagerSetCategories             = Définir les tags/catégories
+RequestManagerRecalculateDeadLineDate   = Recalculer la date d'échéance
 
 ############################################################
 ### List
@@ -184,9 +195,11 @@ RequestManagerConfirmDeleteRequest          = Êtes-vous sûr de vouloir supprim
 ############################################################
 ### Events list on card
 ############################################################
-RequestManagerListOfEvents      = Liste des événements
-RequestManagerListMode          = Vue Liste
-RequestManagerBlocMode          = Vue bloc
+RequestManagerListOfEvents                  = Liste des événements
+RequestManagerListMode                      = Vue Liste
+RequestManagerBlocMode                      = Vue bloc
+RequestManagerOnlyLinkedObjectToThisRequest = Ne voir que les événements liés à cette demande
+RequestManagerIncludeEventOfOtherRequest    = Voir aussi les événements des autres demandes (si voir tous)
 
 ######################################################################
 # Dictionaries

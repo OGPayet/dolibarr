@@ -26,7 +26,8 @@ $res=0;
 if (! $res && file_exists("../../main.inc.php")) $res=@include '../../main.inc.php';			// to work if your module directory is into a subdir of root htdocs directory
 if (! $res && file_exists("../../../main.inc.php")) $res=@include '../../../main.inc.php';		// to work if your module directory is into a subdir of root htdocs directory
 if (! $res) die("Include of main fails");
-require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
+require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
+require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
 dol_include_once('/requestmanager/lib/requestmanager.lib.php');
 dol_include_once('/requestmanager/class/requestmanager.class.php');
 
@@ -94,9 +95,39 @@ if ($action == 'updateMask') {
         $error++;
     }
 
-    // deadline time default in seconds
-    $deadlineTimeDefault = GETPOST('REQUESTMANAGER_DEADLINE_TIME_DEFAULT')?intval(GETPOST('REQUESTMANAGER_DEADLINE_TIME_DEFAULT'))*3600:0;
+    // operation time default in minute
+    $operationTimeDefault = GETPOST('REQUESTMANAGER_OPERATION_TIME_DEFAULT', 'int') ? GETPOST('REQUESTMANAGER_OPERATION_TIME_DEFAULT', 'int') : 0;
+    $res = dolibarr_set_const($db, 'REQUESTMANAGER_OPERATION_TIME_DEFAULT', $operationTimeDefault, 'chaine', 0, '', $conf->entity);
+    if (!$res > 0) {
+        $errors[] = $db->lasterror();
+        $error++;
+    }
+
+    // deadline time default in minute
+    $deadlineTimeDefault = GETPOST('REQUESTMANAGER_DEADLINE_TIME_DEFAULT', 'int') ? GETPOST('REQUESTMANAGER_DEADLINE_TIME_DEFAULT', 'int') : 0;
     $res = dolibarr_set_const($db, 'REQUESTMANAGER_DEADLINE_TIME_DEFAULT', $deadlineTimeDefault, 'chaine', 0, '', $conf->entity);
+    if (!$res > 0) {
+        $errors[] = $db->lasterror();
+        $error++;
+    }
+
+    // root product categories
+    $rootProductCategories = GETPOST('REQUESTMANAGER_ROOT_PRODUCT_CATEGORIES', 'int') > 0 ? GETPOST('REQUESTMANAGER_ROOT_PRODUCT_CATEGORIES', 'int') : '';
+    $res = dolibarr_set_const($db, 'REQUESTMANAGER_ROOT_PRODUCT_CATEGORIES', $rootProductCategories, 'chaine', 0, '', $conf->entity);
+    if (!$res > 0) {
+        $errors[] = $db->lasterror();
+        $error++;
+    }
+
+    // Position bloc linked objects
+    $res = dolibarr_set_const($db, 'REQUESTMANAGER_POSITION_BLOC_OBJECT_LINKED', GETPOST('REQUESTMANAGER_POSITION_BLOC_OBJECT_LINKED', 'alpha'), 'chaine', 0, '', $conf->entity);
+    if (!$res > 0) {
+        $errors[] = $db->lasterror();
+        $error++;
+    }
+
+    // Position link new linked object
+    $res = dolibarr_set_const($db, 'REQUESTMANAGER_POSITION_LINK_NEW_OBJECT_LINKED', GETPOST('REQUESTMANAGER_POSITION_LINK_NEW_OBJECT_LINKED', 'alpha'), 'chaine', 0, '', $conf->entity);
     if (!$res > 0) {
         $errors[] = $db->lasterror();
         $error++;
@@ -133,6 +164,8 @@ if ($action == 'updateMask') {
  */
 
 llxHeader();
+
+$form = new Form($db);
 
 $linkback='<a href="'.DOL_URL_ROOT.'/admin/modules.php">'.$langs->trans("BackToModuleList").'</a>';
 print load_fiche_titre($langs->trans("RequestManagerSetup"),$linkback,'title_setup');
@@ -408,14 +441,69 @@ if (empty($conf->global->REQUESTMANAGER_CONTRACT_SEARCH_IN_PARENT_COMPANY)) {
 }
 print '</td></tr>' . "\n";
 
+// REQUESTMANAGER_OPERATION_TIME_DEFAULT
+$var=!$var;
+print '<tr '.$bc[$var].'>'."\n";
+print '<td>' . $langs->trans("RequestManagerOperationTimeDefaultName") . '</td>'."\n";
+print '<td>' . $langs->trans("RequestManagerOperationTimeDefaultDesc") . '</td>'."\n";
+print '<td align="right">'."\n";
+print '<input type="number" name="REQUESTMANAGER_OPERATION_TIME_DEFAULT" min="0" value="' . intval($conf->global->REQUESTMANAGER_OPERATION_TIME_DEFAULT) . '">';
+print ' ' . $langs->trans("Minutes");
+print '</td></tr>'."\n";
+
 // REQUESTMANAGER_DEADLINE_TIME_DEFAULT
 $var=!$var;
 print '<tr '.$bc[$var].'>'."\n";
 print '<td>' . $langs->trans("RequestManagerDeadlineTimeDefaultName") . '</td>'."\n";
 print '<td>' . $langs->trans("RequestManagerDeadlineTimeDefaultDesc") . '</td>'."\n";
 print '<td align="right">'."\n";
-print '<input type="number" name="REQUESTMANAGER_DEADLINE_TIME_DEFAULT" min="0" value="' . intval($conf->global->REQUESTMANAGER_DEADLINE_TIME_DEFAULT/3600) . '">';
-print ' ' . $langs->trans("Hours");
+print '<input type="number" name="REQUESTMANAGER_DEADLINE_TIME_DEFAULT" min="0" value="' . intval($conf->global->REQUESTMANAGER_DEADLINE_TIME_DEFAULT) . '">';
+print ' ' . $langs->trans("Minutes");
+print '</td></tr>'."\n";
+
+// REQUESTMANAGER_ROOT_PRODUCT_CATEGORIES
+$var=!$var;
+print '<tr '.$bc[$var].'>'."\n";
+print '<td>' . $langs->trans("RequestManagerRootProductCategoriesName") . '</td>'."\n";
+print '<td>' . $langs->trans("RequestManagerRootProductCategoriesDesc") . '</td>'."\n";
+print '<td align="right">'."\n";
+print $form->select_all_categories('product', $conf->global->REQUESTMANAGER_ROOT_PRODUCT_CATEGORIES, "REQUESTMANAGER_ROOT_PRODUCT_CATEGORIES");
+print '</td></tr>'."\n";
+
+// REQUESTMANAGER_ROOT_PRODUCT_CATEGORY_INCLUDE
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>'.$langs->trans("RequestManagerRootProductCategoryIncludeName").'</td>'."\n";
+print '<td>'.$langs->trans("RequestManagerRootProductCategoryIncludeDesc").'</td>'."\n";
+print '<td align="right">' . "\n";
+if (!empty($conf->use_javascript_ajax)) {
+    print ajax_constantonoff('REQUESTMANAGER_ROOT_PRODUCT_CATEGORY_INCLUDE');
+} else {
+    if (empty($conf->global->REQUESTMANAGER_ROOT_PRODUCT_CATEGORY_INCLUDE)) {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_REQUESTMANAGER_ROOT_PRODUCT_CATEGORY_INCLUDE">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+    } else {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_REQUESTMANAGER_ROOT_PRODUCT_CATEGORY_INCLUDE">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+    }
+}
+print '</td></tr>' . "\n";
+
+$position_array = array('top'=>$langs->trans('Top'), 'bottom'=>$langs->trans('Bottom'));
+// REQUESTMANAGER_POSITION_BLOC_OBJECT_LINKED
+$var=!$var;
+print '<tr '.$bc[$var].'>'."\n";
+print '<td>' . $langs->trans("RequestManagerPositionBlocObjectLinkedName") . '</td>'."\n";
+print '<td>' . $langs->trans("RequestManagerPositionBlocObjectLinkedDesc") . '</td>'."\n";
+print '<td align="right">'."\n";
+print $form->selectarray("REQUESTMANAGER_POSITION_BLOC_OBJECT_LINKED", $position_array, $conf->global->REQUESTMANAGER_POSITION_BLOC_OBJECT_LINKED);
+print '</td></tr>'."\n";
+
+// REQUESTMANAGER_POSITION_LINK_NEW_OBJECT_LINKED
+$var=!$var;
+print '<tr '.$bc[$var].'>'."\n";
+print '<td>' . $langs->trans("RequestManagerPositionLinkNewObjectLinkedName") . '</td>'."\n";
+print '<td>' . $langs->trans("RequestManagerPositionLinkNewObjectLinkedDesc") . '</td>'."\n";
+print '<td align="right">'."\n";
+print $form->selectarray("REQUESTMANAGER_POSITION_LINK_NEW_OBJECT_LINKED", $position_array, $conf->global->REQUESTMANAGER_POSITION_LINK_NEW_OBJECT_LINKED);
 print '</td></tr>'."\n";
 
 /*

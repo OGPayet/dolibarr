@@ -31,7 +31,7 @@ class RequestManagerStatusDictionary extends Dictionary
     /**
      * @var int         Version of this dictionary
      */
-    public $version = 2;
+    public $version = 3;
 
     /**
      * @var array       List of languages to load
@@ -279,6 +279,12 @@ class RequestManagerStatusDictionary extends Dictionary
         2 => array(
             'fields' => array(
                 'operation' => 'a',
+            )
+        ),
+        3 => array(
+            'fields' => array(
+                'picto' => 'u',
+                'position' => 'u',
             )
         ),
     );

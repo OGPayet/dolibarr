@@ -18,7 +18,7 @@
 /**
  * 	\file	   htdocs/equipement/class/actions_equipement.class.php
  * 	\ingroup	equipement
- * 	\brief	  Fichier de la classe des actions/hooks des équipements
+ * 	\brief	  Fichier de la classe des actions/hooks des ï¿½quipements
  */
 
 class ActionsEquipement // extends CommonObject
@@ -34,7 +34,7 @@ class ActionsEquipement // extends CommonObject
 	{
 		global $conf, $langs;
 
-		// pour les anciennes version ou si on a activé l'ancienne recherche
+		// pour les anciennes version ou si on a activï¿½ l'ancienne recherche
 		if (DOL_VERSION < "3.9.1" || $conf->global->MAIN_USE_OLD_SEARCH_FORM == 1) {
 			$langs->load("equipement@equipement");
 			$title = img_object('', 'equipement@equipement').' '.$langs->trans("Equipements");
@@ -70,4 +70,45 @@ class ActionsEquipement // extends CommonObject
 		$this->results = $resArray;
 		return 0;
 	}
+
+    /**
+	 * Overloading the showLinkToObjectBlock function : replacing the parent's function with the one below
+	 *
+	 * @param   array() $parameters Hook metadatas (context, etc...)
+	 * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+	 * @param   string &$action Current action (if set). Generally create or edit or null
+	 * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
+	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+	 */
+	function showLinkToObjectBlock($parameters, &$object, &$action, $hookmanager)
+    {
+        global $conf, $langs;
+
+        // pour les anciennes version ou si on a activï¿½ l'ancienne recherche
+        if (DOL_VERSION >= "6.0") {
+            if (!is_object($object->thirdparty)) $object->fetch_thirdparty();
+
+            if (is_object($object->thirdparty) && !empty($object->thirdparty->id) && $object->thirdparty->id > 0) {
+                $listofidcompanytoscan = $object->thirdparty->id;
+                if (($object->thirdparty->parent > 0) && !empty($conf->global->THIRDPARTY_INCLUDE_PARENT_IN_LINKTO)) $listofidcompanytoscan .= ',' . $object->thirdparty->parent;
+                if (($object->fk_project > 0) && !empty($conf->global->THIRDPARTY_INCLUDE_PROJECT_THIRDPARY_IN_LINKTO)) {
+                    include_once DOL_DOCUMENT_ROOT . '/projet/class/project.class.php';
+                    $tmpproject = new Project($this->db);
+                    $tmpproject->fetch($object->fk_project);
+                    if ($tmpproject->socid > 0 && ($tmpproject->socid != $object->thirdparty->id)) $listofidcompanytoscan .= ',' . $tmpproject->socid;
+                    unset($tmpproject);
+                }
+
+                $langs->load('equipement@equipement');
+
+                $possiblelinks = array(
+                    'equipement' => array('enabled' => $conf->equipement->enabled, 'perms' => 1, 'label' => 'LinkToEquipement', 'sql' => "SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref FROM " . MAIN_DB_PREFIX . "societe as s, " . MAIN_DB_PREFIX . "equipement as t WHERE t.fk_soc_client = s.rowid AND t.fk_soc_client IN (" . $listofidcompanytoscan . ') AND t.entity IN (' . getEntity('equipement') . ')'),
+                );
+
+                $this->results = $possiblelinks;
+            }
+        }
+
+        return 0;
+    }
 }

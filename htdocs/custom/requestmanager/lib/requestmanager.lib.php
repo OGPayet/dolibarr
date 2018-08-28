@@ -96,7 +96,6 @@ function requestmanager_prepare_head(RequestManager $object)
     // $this->tabs = array('entity:-tabname:Title:@mymodule:/mymodule/mypage.php?id=__ID__');   to remove a tab
     complete_head_from_modules($conf, $langs, $object, $head, $h, 'requestmanager');
 
-    /* TODO : Tab "Fichiers joints" temporary removed
     if ($user->societe_id == 0) {
         // Attached files
         require_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
@@ -113,18 +112,6 @@ function requestmanager_prepare_head(RequestManager $object)
             $h++;
         }
     }
-    */
-
-    /* TODO : Tab "Events/Agenda" temporary removed
-    $head[$h][0] = dol_buildpath('/requestmanager/agenda.php', 1) . '?id=' . $object->id;
-    $head[$h][1] .= $langs->trans("Events");
-    if (!empty($conf->agenda->enabled) && (!empty($user->rights->agenda->myactions->read) || !empty($user->rights->agenda->allactions->read))) {
-        $head[$h][1] .= '/';
-        $head[$h][1] .= $langs->trans("Agenda");
-    }
-    $head[$h][2] = 'agenda';
-    $h++;
-    */
 
     complete_head_from_modules($conf, $langs, $object, $head, $h, 'requestmanager', 'remove');
 
@@ -157,6 +144,8 @@ function requestmanager_show_events(&$requestmanager)
     if (!$sortfield) $sortfield = 'ac.datep';
     if (!$sortorder) $sortorder = 'DESC';
 
+    $search_only_linked_to_request = GETPOST('search_ref', 'int');
+    $search_include_event_other_request = GETPOST('search_include_event_other_request', 'int');
     $search_ref = GETPOST('search_ref', 'alpha');
     $search_origin = GETPOST('search_origin', 'array');
     $search_type = GETPOST('search_type', 'array');
@@ -241,7 +230,7 @@ function requestmanager_show_events(&$requestmanager)
      */
 
     $parameters = array('requestmanager' => &$requestmanager);
-    $reshook = $hookmanager->executeHooks('doActions', $parameters, $formactions, $action);    // Note that $action and $object may have been modified by some hooks
+    $reshook = $hookmanager->executeHooks('doActions', $parameters, $actioncomm, $action);    // Note that $action and $object may have been modified by some hooks
     if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
 
     include DOL_DOCUMENT_ROOT . '/core/actions_changeselectedfields.inc.php';
@@ -249,6 +238,8 @@ function requestmanager_show_events(&$requestmanager)
     // Do we click on purge search criteria ?
     if (GETPOST('button_removefilter_x', 'alpha') || GETPOST('button_removefilter.x', 'alpha') || GETPOST('button_removefilter', 'alpha')) // All tests are required to be compatible with all browsers
     {
+        $search_only_linked_to_request = 1;
+        $search_include_event_other_request = 0;
         $search_ref = '';
         $search_origin = array();
         $search_type = array();
@@ -270,6 +261,8 @@ function requestmanager_show_events(&$requestmanager)
         $search_status = '';
         $search_array_options = array();
     }
+    if ($search_only_linked_to_request === '') $search_only_linked_to_request = 1;
+    if ($search_include_event_other_request === '') $search_include_event_other_request = 0;
 
 
     /*
@@ -331,6 +324,12 @@ function requestmanager_show_events(&$requestmanager)
     $reshook = $hookmanager->executeHooks('printFieldListFrom', $parameters);    // Note that $action and $object may have been modified by hook
     $sql .= ' WHERE ac.fk_soc = ' . $requestmanager->socid;
     $sql .= ' AND ac.entity IN (' . getEntity('agenda') . ')';
+    if ($search_only_linked_to_request) {
+        //$sql .= ' AND ac.fk_element = ' . $requestmanager->id;
+    }
+    if ($search_include_event_other_request) {
+
+    }
     if ($search_ref) $sql .= natural_search('ac.id', $search_ref);
     if (!empty($search_origin)) $sql .= " AND ac.elementtype IN ('" . implode("','", $search_origin) . "')";
     if (!empty($search_type)) {
@@ -433,6 +432,8 @@ function requestmanager_show_events(&$requestmanager)
 
         $param = '&id=' . urlencode($requestmanager->id);
         if ($limit > 0 && $limit != $conf->liste_limit) $param .= '&limit=' . urlencode($limit);
+        if ($search_only_linked_to_request) $param .= '&search_only_linked_to_request=' . urlencode($search_only_linked_to_request);
+        if ($search_include_event_other_request) $param .= '&search_include_event_other_request=' . urlencode($search_include_event_other_request);
         if ($search_ref) $param .= '&search_ref=' . urlencode($search_ref);
         if (!empty($search_origin)) $param .= '&search_origin=' . urlencode($search_origin);
         if ($search_type) $param .= '&search_type=' . urlencode($search_type);
@@ -467,7 +468,8 @@ function requestmanager_show_events(&$requestmanager)
         }
 
         // Button for change the view mode of the list
-        /*$morehtml = '<a class="' . (empty($mode) ? 'butActionRefused' : 'butAction') . '" href="' . $_SERVER['PHP_SELF'] . '?mode=0&sortfield=' . urlencode($sortfield) . '&sortorder=' . urlencode($sortorder) . '&page=' . urlencode($page) . $param . '">';
+        $morehtml = '';
+        /*$morehtml .= '<a class="' . (empty($mode) ? 'butActionRefused' : 'butAction') . '" href="' . $_SERVER['PHP_SELF'] . '?mode=0&sortfield=' . urlencode($sortfield) . '&sortorder=' . urlencode($sortorder) . '&page=' . urlencode($page) . $param . '">';
         $morehtml .= $langs->trans("RequestManagerListMode");
         $morehtml .= '</a>';
         $morehtml .= '<a class="' . (!empty($mode) ? 'butActionRefused' : 'butAction') . '" href="' . $_SERVER['PHP_SELF'] . '?mode=1&sortfield=' . urlencode($sortfield) . '&sortorder=' . urlencode($sortorder) . '&page=' . urlencode($page) . $param . '">';
@@ -515,6 +517,18 @@ function requestmanager_show_events(&$requestmanager)
         });
     </script>
 SCRIPT;
+        $moreforfilter .= '</div>';
+
+        // Filter: include only event linked to the request
+        $moreforfilter .= '<div class="divsearchfield">';
+        $moreforfilter .= $langs->trans('RequestManagerOnlyLinkedObjectToThisRequest') . ' : ';
+        $moreforfilter .= $form->selectyesno('search_only_linked_to_request', $search_only_linked_to_request, 1);
+        $moreforfilter .= '</div>';
+
+        // Filter: include event of other request
+        $moreforfilter .= '<div class="divsearchfield">';
+        $moreforfilter .= $langs->trans('RequestManagerIncludeEventOfOtherRequest') . ' : ';
+        $moreforfilter .= $form->selectyesno('search_include_event_other_request', $search_include_event_other_request, 1);
         $moreforfilter .= '</div>';
 
         $parameters = array();

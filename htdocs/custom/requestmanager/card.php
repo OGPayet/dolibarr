@@ -68,7 +68,6 @@ $lineid = GETPOST('lineid', 'int');
 $result = restrictedArea($user, 'requestmanager', $id);
 
 $object = new RequestManager($db);
-$mysoc = 0;
 $extrafields = new ExtraFields($db);
 
 // fetch optionals attributes and labels
@@ -80,7 +79,7 @@ if ($id > 0 || !empty($ref)) {
     if ($ret > 0) {
         $ret = $object->fetch_thirdparty();
         $ret = $object->fetch_optionals();
-        $mysoc = $object->socid;
+        //$mysoc = $object->socid;
     } elseif ($ret < 0) {
         dol_print_error('', $object->error);
     } else {
@@ -316,13 +315,36 @@ if (empty($reshook)) {
     elseif ($action == 'set_date_operation' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
         $object->oldcopy = clone $object;
         $object->date_operation = dol_mktime(GETPOST('operation_hour', 'int'), GETPOST('operation_minute', 'int'), 0, GETPOST('operation_month', 'int'), GETPOST('operation_day', 'int'), GETPOST('operation_year', 'int'));
-        $result = $object->update($user);
-        if ($result < 0) {
-            setEventMessages($object->error, $object->errors, 'errors');
-            $action = 'edit_date_operation';
-        } else {
-            header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
-            exit();
+
+        // calculate deadline date with operation date or now and the offset deadline time in minutes
+        if (GETPOST('recalculate_date_deadline', 'int') == 1) {
+            dol_include_once('/advancedictionaries/class/dictionary.class.php');
+            $requestManagerStatusDictionaryLine = Dictionary::getDictionaryLine($this->db, 'requestmanager', 'requestmanagerstatus');
+            $res = $requestManagerStatusDictionaryLine->fetch($object->statut);
+            if ($res > 0) {
+                $deadline_offset = $requestManagerStatusDictionaryLine->fields['deadline'];
+                $now = dol_now();
+                if (isset($deadline_offset) && $deadline_offset > 0) {
+                    $object->date_deadline = ($object->date_operation > 0 ? $object->date_operation : $now) + ($deadline_offset * 60);
+                } elseif (intval($conf->global->REQUESTMANAGER_DEADLINE_TIME_DEFAULT) > 0) {
+                    $object->date_deadline = ($object->date_operation > 0 ? $object->date_operation : $now) + (intval($conf->global->REQUESTMANAGER_DEADLINE_TIME_DEFAULT) * 60);
+                }
+            } else {
+                setEventMessages($requestManagerStatusDictionaryLine->error, $requestManagerStatusDictionaryLine->errors, 'errors');
+                $action = 'edit_date_operation';
+                $error++;
+            }
+        }
+
+        if (!$error) {
+            $result = $object->update($user);
+            if ($result < 0) {
+                setEventMessages($object->error, $object->errors, 'errors');
+                $action = 'edit_date_operation';
+            } else {
+                header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
+                exit();
+            }
         }
     } // Set Date Deadline
     elseif ($action == 'set_date_deadline' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
@@ -1050,8 +1072,8 @@ if (empty($reshook)) {
     //include DOL_DOCUMENT_ROOT.'/core/actions_sendmails.inc.php';
 
     // Actions to build doc
-    //$upload_dir = $conf->propal->dir_output;
-    //$permissioncreate=$user->rights->propal->creer;
+    //$upload_dir = $conf->requestmanager->multidir_output[$object->entity];
+    //$permissioncreate=$user->rights->requestmanager->creer;
     //include DOL_DOCUMENT_ROOT.'/core/actions_builddoc.inc.php';
 }
 
@@ -1088,10 +1110,15 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
     $object->fk_urgency = GETPOST('urgency', 'int');
     $object->fk_impact = GETPOST('impact', 'int');
     $object->fk_priority = GETPOST('priority', 'int');
-    $object->date_operation = dol_mktime(GETPOST('operation_hour', 'int'), GETPOST('operation_min', 'int'), 0, GETPOST('operation_month', 'int'), GETPOST('operation_day', 'int'), GETPOST('operation_year', 'int'));
+    if (!GETPOST('operation_') && !GETPOST('operation_hour', 'int') && !GETPOST('operation_min', 'int')) {
+        // calculate operation date from default operation time in minutes and now
+        $object->date_operation = intval($conf->global->REQUESTMANAGER_OPERATION_TIME_DEFAULT) > 0 ? $now + (intval($conf->global->REQUESTMANAGER_OPERATION_TIME_DEFAULT) * 60) : -1;
+    } else {
+        $object->date_operation = dol_mktime(GETPOST('operation_hour', 'int'), GETPOST('operation_min', 'int'), 0, GETPOST('operation_month', 'int'), GETPOST('operation_day', 'int'), GETPOST('operation_year', 'int'));
+    }
     if (!GETPOST('deadline_') && !GETPOST('deadline_hour', 'int') && !GETPOST('deadline_min', 'int')) {
-        // calculate deadline date from default deadline time in seconds and now
-        $object->date_deadline = !empty($conf->global->REQUESTMANAGER_DEADLINE_TIME_DEFAULT) ? dol_now() + intval($conf->global->REQUESTMANAGER_DEADLINE_TIME_DEFAULT) : -1;
+        // calculate deadline date from default deadline time in minutes and operation date
+        $object->date_deadline = intval($conf->global->REQUESTMANAGER_DEADLINE_TIME_DEFAULT) > 0 ? $object->date_operation + (intval($conf->global->REQUESTMANAGER_DEADLINE_TIME_DEFAULT) * 60) : -1;
     } else {
         $object->date_deadline = dol_mktime(GETPOST('deadline_hour', 'int'), GETPOST('deadline_min', 'int'), 0, GETPOST('deadline_month', 'int'), GETPOST('deadline_day', 'int'), GETPOST('deadline_year', 'int'));
     }
@@ -1105,6 +1132,8 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
 
     $object->origin = GETPOST('origin', 'alpha');
     $object->origin_id = GETPOST('originid', 'int');
+
+    $categories = GETPOST('categories', 'array');
 
 	print '<form name="addprop" action="' . $_SERVER["PHP_SELF"] . '" method="POST">';
 	print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
@@ -1218,19 +1247,18 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
         print '</td></tr>';
     }
 
+    // Categories
+    if ($conf->categorie->enabled) {
+        print '<tr><td>' . $langs->trans("Categories") . '</td><td colspan="3">';
+        print $formrequestmanager->multiselect_categories($categories, 'categories', '', 0, '', 0, '100%');
+        print "</td></tr>";
+    }
+
     // Description
     print '<tr><td class="tdtop fieldrequired">' . $langs->trans('RequestManagerDescription') . '</td><td valign="top">';
     $doleditor = new DolEditor('description', $object->description, '', 200, 'dolibarr_notes', 'In', 0, false, true, ROWS_3, '90%');
     print $doleditor->Create(1);
     print '</td></tr>';
-
-    // Categories
-    if ($conf->categorie->enabled) {
-        print '<tr><td>' . $langs->trans("Categories") . '</td><td colspan="3">';
-        $cate_arbo = $form->select_all_categories(Categorie::TYPE_PRODUCT, '', 'parent', 64, 0, 1);
-        print $form->multiselectarray('categories', $cate_arbo, array(), '', 0, '', 0, '100%');
-        print "</td></tr>";
-    }
 
 	print "</table>\n";
 
@@ -1524,6 +1552,7 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
 		print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
 		print '<input type="hidden" name="action" value="set_date_operation">';
         $form->select_date($object->date_operation, 'operation_', 1, 1, 1, '', 1);
+        print ' <input type="checkbox" name="recalculate_date_deadline" value="1" checked="checked"> '.$langs->trans('RequestManagerRecalculateDeadLineDate');
 		print '<input type="submit" class="button" value="' . $langs->trans('Modify') . '">';
 		print '</form>';
 	} else {
@@ -1634,6 +1663,29 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
 	include DOL_DOCUMENT_ROOT . '/core/tpl/extrafields_view.tpl.php';
     $object->statut = $object->save_status;
 
+    // Categories
+    if ($conf->categorie->enabled) {
+        print '<tr><td>';
+        print '<table class="nobordernopadding" width="100%"><tr><td>';
+        print $langs->trans('Categories');
+        print '</td>';
+        if ($action != 'edit_categories' && $user->rights->requestmanager->creer && ($object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS || $object->statut_type == RequestManager::STATUS_TYPE_INITIAL))
+            print '<td align="right"><a href="' . $_SERVER["PHP_SELF"] . '?action=edit_categories&id=' . $object->id . '">' . img_edit($langs->trans('RequestManagerSetCategories'), 1) . '</a></td>';
+        print '</tr></table>';
+        print '</td><td>';
+        if ($action == 'edit_categories' && $user->rights->requestmanager->creer && ($object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS || $object->statut_type == RequestManager::STATUS_TYPE_INITIAL)) {
+            print '<form name="editcategries" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
+            print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
+            print '<input type="hidden" name="action" value="set_categories">';
+            print $formrequestmanager->showCategories($object->id, CategorieRequestManager::TYPE_REQUESTMANAGER, 0, TRUE);
+            print '<input type="submit" class="button" value="' . $langs->trans('Modify') . '">';
+            print '</form>';
+        } else {
+            print $formrequestmanager->showCategories($object->id, CategorieRequestManager::TYPE_REQUESTMANAGER, 1);
+        }
+        print '</td></tr>';
+    }
+
     // Description
     if ($action == 'edit_description' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
         print '<form name="editecheance" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
@@ -1662,29 +1714,6 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
     print '</td></tr>';
     if ($action == 'edit_description' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
         print '</form>';
-    }
-
-    // Categories
-    if ($conf->categorie->enabled) {
-        print '<tr><td>';
-        print '<table class="nobordernopadding" width="100%"><tr><td>';
-        print $langs->trans('Categories');
-        print '</td>';
-        if ($action != 'edit_categories' && $user->rights->requestmanager->creer && ($object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS || $object->statut_type == RequestManager::STATUS_TYPE_INITIAL))
-            print '<td align="right"><a href="' . $_SERVER["PHP_SELF"] . '?action=edit_categories&id=' . $object->id . '">' . img_edit($langs->trans('RequestManagerSetCategories'), 1) . '</a></td>';
-        print '</tr></table>';
-        print '</td><td>';
-        if ($action == 'edit_categories' && $user->rights->requestmanager->creer && ($object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS || $object->statut_type == RequestManager::STATUS_TYPE_INITIAL)) {
-            print '<form name="editcategries" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
-            print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
-            print '<input type="hidden" name="action" value="set_categories">';
-            print $formrequestmanager->showCategories($object->id, CategorieRequestManager::TYPE_REQUESTMANAGER, 0, TRUE);
-            print '<input type="submit" class="button" value="' . $langs->trans('Modify') . '">';
-            print '</form>';
-        } else {
-            print $formrequestmanager->showCategories($object->id, CategorieRequestManager::TYPE_REQUESTMANAGER, 1);
-        }
-        print '</td></tr>';
     }
 
 	print '</table>';
@@ -1746,31 +1775,42 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
     print '</td></tr>';
 
     // Linked Objects
-    print '<tr><td align="center">';
-    print '<a href="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'#linked_objects_list">' . $langs->trans('RelatedObjects') . '</a>';
-    // Do not add 2 times
-    //$linktoelem = $form->showLinkToObjectBlock($object, null, array('requestmanager'));
-    //print ' ( ' . $linktoelem . ' )';
-    print '</td></tr>';
-    $object->fetchObjectLinked();
-    $element_infos = requestmanager_get_elements_infos();
-    $linked_objects_list = array();
-    foreach($object->linkedObjects as $objecttype => $objects) {
-        // Do not show if module disabled
-        if ($objecttype == 'facture' && empty($conf->facture->enabled)) continue;
-        elseif ($objecttype == 'facturerec' && empty($conf->facture->enabled)) continue;
-        elseif ($objecttype == 'propal' && empty($conf->propal->enabled)) continue;
-        elseif ($objecttype == 'supplier_proposal' && empty($conf->supplier_proposal->enabled)) continue;
-        elseif (($objecttype == 'shipping' || $objecttype == 'shipment') && empty($conf->expedition->enabled)) continue;
-        elseif ($objecttype == 'delivery' && empty($conf->expedition->enabled)) continue;
+    if ($conf->global->REQUESTMANAGER_POSITION_BLOC_OBJECT_LINKED == 'bottom') {
+        print '<tr><td align="center">';
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '#linked_objects_list">' . $langs->trans('RelatedObjects') . '</a>';
+        if ($conf->global->REQUESTMANAGER_POSITION_LINK_NEW_OBJECT_LINKED == 'top') {
+            $linktoelem = $form->showLinkToObjectBlock($object, null, array('requestmanager'));
+            print ' ( ' . $linktoelem . ' )';
+        }
+        print '</td></tr>';
+        $object->fetchObjectLinked();
+        $element_infos = requestmanager_get_elements_infos();
+        $linked_objects_list = array();
+        foreach ($object->linkedObjects as $objecttype => $objects) {
+            // Do not show if module disabled
+            if ($objecttype == 'facture' && empty($conf->facture->enabled)) continue;
+            elseif ($objecttype == 'facturerec' && empty($conf->facture->enabled)) continue;
+            elseif ($objecttype == 'propal' && empty($conf->propal->enabled)) continue;
+            elseif ($objecttype == 'supplier_proposal' && empty($conf->supplier_proposal->enabled)) continue;
+            elseif (($objecttype == 'shipping' || $objecttype == 'shipment') && empty($conf->expedition->enabled)) continue;
+            elseif ($objecttype == 'delivery' && empty($conf->expedition->enabled)) continue;
 
-        if (isset($element_infos[$objecttype]['langs'])) $langs->loadLangs($element_infos[$objecttype]['langs']);
-        $label = $langs->trans(isset($element_infos[$objecttype]['label']) ? $element_infos[$objecttype]['label'] : 'Unknown');
-        $icon = isset($element_infos[$objecttype]['picto']) ? $element_infos[$objecttype]['picto'] : '';
+            if (isset($element_infos[$objecttype]['langs'])) $langs->loadLangs($element_infos[$objecttype]['langs']);
+            $label = $langs->trans(isset($element_infos[$objecttype]['label']) ? $element_infos[$objecttype]['label'] : 'Unknown');
+            $icon = isset($element_infos[$objecttype]['picto']) ? $element_infos[$objecttype]['picto'] : '';
 
-        $linked_objects_list[] = img_picto($label, $icon) . ' ' . $label . ' (' . count($objects) .')';
+            $linked_objects_list[] = img_picto($label, $icon) . ' ' . $label . ' (' . count($objects) . ')';
+        }
+        print '<tr><td>' . implode(', ', $linked_objects_list) . '</td></tr>';
+    } else {
+        print '<tr><td>';
+        // Show links to link elements
+        print '<div id="linked_objects_list">';
+        $linktoelem = $form->showLinkToObjectBlock($object, null, array('requestmanager'));
+        $somethingshown = $form->showLinkedObjectBlock($object, $linktoelem);
+        print '</div>';
+        print '</td></tr>';
     }
-    print '<tr><td>' . implode(', ', $linked_objects_list) . '</td></tr>';
 
 	print '</table>';
 
@@ -2023,11 +2063,16 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
 
         print '<div class="fichecenter"><div class="fichehalfleft">';
 
-        // Show links to link elements
-        print '<div id="linked_objects_list">';
-        $linktoelem = $form->showLinkToObjectBlock($object, null, array('requestmanager'));
-        $somethingshown = $form->showLinkedObjectBlock($object, $linktoelem);
-        print '</div>';
+        if ($conf->global->REQUESTMANAGER_POSITION_BLOC_OBJECT_LINKED == 'bottom') {
+            // Show links to link elements
+            print '<div id="linked_objects_list">';
+            $linktoelem = '';
+            if ($conf->global->REQUESTMANAGER_POSITION_LINK_NEW_OBJECT_LINKED == 'bottom') {
+                $linktoelem = $form->showLinkToObjectBlock($object, null, array('requestmanager'));
+            }
+            $somethingshown = $form->showLinkedObjectBlock($object, $linktoelem);
+            print '</div>';
+        }
 
         print '</div><div class="fichehalfright"><div class="ficheaddleft">';
 

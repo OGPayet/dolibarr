@@ -156,8 +156,7 @@ if ($zone === 1) {
     if ($conf->categorie->enabled) {
         print '<td>' . $langs->trans("Categories") . '</td>';
         print '<td>';
-        $cate_arbo = $form->select_all_categories(Categorie::TYPE_PRODUCT, '', 'parent', 64, 0, 1);
-        print $form->multiselectarray('categories', $cate_arbo, $selectedCategories, '', 0, '', 0, '100%');
+        print $formrequestmanager->multiselect_categories($selectedCategories, 'categories',  '', 0, '', 0, '100%');
         print '</td>';
     }
     print '</tr>';

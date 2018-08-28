@@ -491,10 +491,6 @@ class RequestManager extends CommonObject
             $this->errors[] = $langs->trans("ErrorBadParameters") . ': ' . $langs->trans("RequestManagerRequester");
             $error++;
         }
-        if (!is_array($this->watcher_ids)) {
-            $this->errors[] = $langs->trans("ErrorBadParameters") . ': ' . $langs->trans("RequestManagerWatcher");
-            $error++;
-        }
         if ($error) {
             dol_syslog(__METHOD__ . " Errors check parameters: " . $this->errorsToString(), LOG_ERR);
             return -3;
@@ -1802,18 +1798,16 @@ class RequestManager extends CommonObject
             $date_operation = null;
             if (isset($status_infos->fields['operation'])) {
                 if ($status_infos->fields['operation'] > 0) {
-                    require_once DOL_DOCUMENT_ROOT . '/core/lib/date.lib.php';
-                    $date_operation = dol_time_plus_duree($now, $status_infos->fields['operation'] / 60, 'h');
-                } elseif ($status_infos->fields['operation'] == -1) {
+                    $date_operation = $now + ($status_infos->fields['operation'] * 60);
+                } elseif ($status_infos->fields['operation'] == -1 || $status_infos->fields['type'] == self::STATUS_TYPE_INITIAL) {
                     $date_operation = $this->date_operation;
                 }
             }
             $date_deadline = null;
             if (isset($status_infos->fields['deadline'])) {
                 if ($status_infos->fields['deadline'] > 0) {
-                    require_once DOL_DOCUMENT_ROOT . '/core/lib/date.lib.php';
-                    $date_deadline = dol_time_plus_duree($now, $status_infos->fields['deadline'] / 60, 'h');
-                } elseif ($status_infos->fields['deadline'] == -1) {
+                    $date_deadline = (isset($date_operation) ? $date_operation : $now) + ($status_infos->fields['deadline'] * 60);
+                } elseif ($status_infos->fields['deadline'] == -1 || $status_infos->fields['type'] == self::STATUS_TYPE_INITIAL) {
                     $date_deadline = $this->date_deadline;
                 }
             }
@@ -3142,8 +3136,8 @@ class RequestManager extends CommonObject
         $this->fk_priority                  = $obj->fk_priority;
         $this->notify_requester_by_email    = empty($obj->notify_requester_by_email) ? 0 : 1;
         $this->notify_watcher_by_email      = empty($obj->notify_watcher_by_email) ? 0 : 1;
-        $this->assigned_user_id             = $obj->fk_assigned_user;
-        $this->assigned_usergroup_id        = $obj->fk_assigned_usergroup;
+        //$this->assigned_user_id             = $obj->fk_assigned_user;
+        //$this->assigned_usergroup_id        = $obj->fk_assigned_usergroup;
         $this->notify_assigned_by_email     = empty($obj->notify_assigned_by_email) ? 0 : 1;
         $this->duration                     = $obj->duration;
         $this->date_deadline                = $this->db->jdate($obj->date_deadline);
@@ -3244,8 +3238,8 @@ class RequestManager extends CommonObject
         $sql .= ' t.fk_priority,';
         $sql .= ' t.notify_requester_by_email,';
         $sql .= ' t.notify_watcher_by_email,';
-        $sql .= ' t.fk_assigned_user,';
-        $sql .= ' t.fk_assigned_usergroup,';
+        //$sql .= ' t.fk_assigned_user,';
+        //$sql .= ' t.fk_assigned_usergroup,';
         $sql .= ' t.notify_assigned_by_email,';
         $sql .= ' t.duration,';
         $sql .= ' t.date_deadline,';

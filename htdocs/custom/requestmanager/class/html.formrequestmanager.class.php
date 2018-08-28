@@ -248,6 +248,47 @@ class FormRequestManager
     }
 
     /**
+     *	Return multiselect list of product categories
+     *
+     *	@param	string	$htmlname		Name of select
+     *	@param	array	$selected		Array with key+value preselected
+     *	@param	int		$key_in_label   1 pour afficher la key dans la valeur "[key] value"
+     *	@param	int		$value_as_key   1 to use value as key
+     *	@param  string	$morecss        Add more css style
+     *	@param  int		$translate		Translate and encode value
+     *  @param	int		$width			Force width of select box. May be used only when using jquery couch. Example: 250, 95%
+     *  @param	string	$moreattrib		Add more options on select component. Example: 'disabled'
+     *  @param	string	$elemtype		Type of element we show ('category', ...)
+     *	@return	string					HTML multiselect string
+     *  @see selectarray
+     */
+    function multiselect_categories($selected=array(), $htmlname='categories', $key_in_label=0, $value_as_key=0, $morecss='', $translate=0, $width=0, $moreattrib='',$elemtype='')
+    {
+        global $conf;
+
+        include_once DOL_DOCUMENT_ROOT . '/categories/class/categorie.class.php';
+
+        $cat = new Categorie($this->db);
+        $cate_arbo = $cat->get_full_arbo(Categorie::TYPE_PRODUCT);
+
+        $list = array();
+        foreach ($cate_arbo as $k => $cat) {
+            if (((preg_match('/^'.$conf->global->REQUESTMANAGER_ROOT_PRODUCT_CATEGORIES.'$/', $cat['fullpath']) ||
+                preg_match('/_'.$conf->global->REQUESTMANAGER_ROOT_PRODUCT_CATEGORIES.'$/', $cat['fullpath'])) && $conf->global->REQUESTMANAGER_ROOT_PRODUCT_CATEGORY_INCLUDE) ||
+                preg_match('/^'.$conf->global->REQUESTMANAGER_ROOT_PRODUCT_CATEGORIES.'_/', $cat['fullpath']) ||
+                preg_match('/_'.$conf->global->REQUESTMANAGER_ROOT_PRODUCT_CATEGORIES.'_/', $cat['fullpath'])) {
+                $list[$cat['id']] = $cat['fulllabel'];
+            }
+        }
+
+        $out = '';
+
+        $out .= $this->form->multiselectarray($htmlname, $list, $selected, $key_in_label, $value_as_key, $morecss, $translate, $width, $moreattrib, $elemtype);
+
+        return $out;
+    }
+
+    /**
      *	Return multiselect list of all contacts (for a third party or all)
      *
      *	@param	int		$socid      	Id ot third party or 0 for all
@@ -703,7 +744,6 @@ class FormRequestManager
         if ($rendermode == 0)
         {
             $arrayselected = array();
-            $cate_arbo = $this->form->select_all_categories(Categorie::TYPE_PRODUCT, '', 'parent', 64, 0, 1);
             foreach($categories as $c) {
                 $arrayselected[] = $c->id;
             }
@@ -715,7 +755,7 @@ class FormRequestManager
                 $selectElementType = '';
             }
 
-            return $this->form->multiselectarray('categories', $cate_arbo, $arrayselected, '', 0, '', 0, '100%', $selectMoreAttrib, $selectElementType);
+            return $this->multiselect_categories($arrayselected,'categories', '', 0, '', 0, '100%', $selectMoreAttrib, $selectElementType);
         }
 
         return 'ErrorBadValueForParameterRenderMode';	// Should not happened

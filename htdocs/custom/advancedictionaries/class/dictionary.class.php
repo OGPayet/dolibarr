@@ -2620,17 +2620,20 @@ class DictionaryLine extends CommonObjectLine
                                 $insert_values = array();
                                 if (is_array($value)) {
                                     $value_arr = $value;
-                                } else {
+                                } elseif (!empty($value)) {
                                     $value_arr = explode(',', (string)$value);
                                 }
                                 foreach ($value_arr as $value_id) {
                                     $insert_values[] = '(' . $this->id . ', ' . $value_id . ')';
                                 }
-                                $sql = 'INSERT INTO ' . MAIN_DB_PREFIX . $this->dictionary->table_name . '_cbl_' . $fieldName . '(fk_line, fk_target) VALUES' . implode(',', $insert_values);
-                                $resql = $this->db->query($sql);
-                                if (!$resql) {
-                                    $error++;
-                                    $errors[] = $this->db->lasterror();
+
+                                if (count($insert_values) > 0) {
+                                    $sql = 'INSERT INTO ' . MAIN_DB_PREFIX . $this->dictionary->table_name . '_cbl_' . $fieldName . '(fk_line, fk_target) VALUES' . implode(',', $insert_values);
+                                    $resql = $this->db->query($sql);
+                                    if (!$resql) {
+                                        $error++;
+                                        $errors[] = $this->db->lasterror();
+                                    }
                                 }
                             }
                             break;
@@ -2740,17 +2743,19 @@ class DictionaryLine extends CommonObjectLine
                                 $insert_values = array();
                                 if (is_array($value)) {
                                     $value_arr = $value;
-                                } else {
+                                } elseif (!empty($value)) {
                                     $value_arr = explode(',', (string)$value);
                                 }
                                 foreach ($value_arr as $value_id) {
                                     $insert_values[] = '(' . $this->id . ', ' . $value_id . ')';
                                 }
-                                $sql = 'INSERT INTO ' . MAIN_DB_PREFIX . $this->dictionary->table_name . '_cbl_' . $fieldName . '(fk_line, fk_target) VALUES' . implode(',', $insert_values);
-                                $resql = $this->db->query($sql);
-                                if (!$resql) {
-                                    $error++;
-                                    $errors[] = $this->db->lasterror();
+                                if (count($insert_values) > 0) {
+                                    $sql = 'INSERT INTO ' . MAIN_DB_PREFIX . $this->dictionary->table_name . '_cbl_' . $fieldName . '(fk_line, fk_target) VALUES' . implode(',', $insert_values);
+                                    $resql = $this->db->query($sql);
+                                    if (!$resql) {
+                                        $error++;
+                                        $errors[] = $this->db->lasterror();
+                                    }
                                 }
                             }
                             break;
