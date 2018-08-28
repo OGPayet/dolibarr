@@ -23,8 +23,7 @@ use Luracast\Restler\RestException;
  * @access protected
  * @class  DolibarrApiAccess {@requires user,external}
  */
-class Requestmanager extends DolibarrApi
-{
+class Requestmanager extends DolibarrApi {
     /**
      * @var array   $FIELDS     Mandatory fields, checked when create and update object
      */
@@ -53,8 +52,7 @@ class Requestmanager extends DolibarrApi
     /**
      * Constructor
      */
-    function __construct()
-    {
+    function __construct() {
         global $db, $conf;
         $this->db = $db;
 
@@ -70,8 +68,395 @@ class Requestmanager extends DolibarrApi
 		require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
 		$this->actioncomm = new ActionComm($this->db);
 
+		$this->request = new RequestManager($this->db);
 
     }
+
+	/**
+	 * Get properties of a request manager object
+	 *
+	 * Return an array with request informations
+	 *
+	 * @param       int         $id         ID of request
+	 * @return 	array|mixed data without useless information
+	 *
+	 * @throws 	RestException
+	 */
+	function get($id) {
+		if(! DolibarrApiAccess::$user->rights->requestmanager->lire) {
+			throw new RestException(401);
+		}
+
+		$result = $this->request->fetch($id);
+		if( ! $result ) {
+			throw new RestException(200);
+		}
+
+		return $this->_cleanObjectDatas($this->request);
+	}
+
+	/**
+	 * List requests
+	 *
+	 * Get a list of requests
+	 *
+	 * @param string	$sortfield	        Sort field
+	 * @param string	$sortorder	        Sort order
+	 * @param int		$limit		        Limit for list
+	 * @param int		$page		        Page number
+	 * @param string   	$thirdparty_ids	    Thirdparty ids to filter requests. {@example '1' or '1,2,3'} {@pattern /^[0-9,]*$/i}
+	 * @param string    $sqlfilters         Other criteria to filter answers separated by a comma. Syntax example "(t.ref:like:'SO-%') and (t.datec:<:'20160101')"
+	 * @return  array                       Array of order objects
+	 */
+	function index($sortfield = "t.rowid", $sortorder = 'ASC', $limit = 100, $page = 0, $thirdparty_ids = '', $sqlfilters = '') {
+		global $db, $conf;
+
+		$obj_ret = array();
+
+		if(! DolibarrApiAccess::$user->rights->requestmanager->lire) {
+			throw new RestException(401);
+		}
+
+		// If the internal user must only see his customers, force searching by him
+		$search_sale = 0;
+		if (! DolibarrApiAccess::$user->rights->societe->client->voir) $search_sale = DolibarrApiAccess::$user->id;
+
+		$sql = "SELECT t.rowid";
+		$sql.= " FROM ".MAIN_DB_PREFIX."requestmanager as t";
+
+		if ((!DolibarrApiAccess::$user->rights->societe->client->voir) || $search_sale > 0) $sql.= ", ".MAIN_DB_PREFIX."societe_commerciaux as sc"; // We need this table joined to the select in order to filter by sale
+
+		$sql.= ' WHERE (t.entity IN ('.getEntity('requestmanager').')';
+		if ((!DolibarrApiAccess::$user->rights->societe->client->voir) || $search_sale > 0) $sql.= " AND t.fk_soc = sc.fk_soc";
+		if ($search_sale > 0) $sql.= " AND t.fk_soc = sc.fk_soc";		// Join for the needed table to filter by sale
+		// Insert sale filter
+		if ($search_sale > 0) {
+			$sql .= " AND sc.fk_user = ".$search_sale;
+		}
+		$sql.= ")";
+
+		// case of external user, $thirdparty_ids param is ignored and replaced by user's socid
+		$socids = DolibarrApiAccess::$user->societe_id ? DolibarrApiAccess::$user->societe_id : $thirdparty_ids;
+		if ($socids) {
+			$sql.= ' OR (t.entity IN ('.getEntity('societe').')';
+			$sql.= " AND t.fk_soc IN (".$socids."))";
+		}
+		$sql.= " GROUP BY rowid";
+
+		// Add sql filters
+		if ($sqlfilters) {
+			if (! DolibarrApi::_checkFilters($sqlfilters)) {
+				throw new RestException(503, 'Error when validating parameter sqlfilters '.$sqlfilters);
+			}
+			$regexstring='\(([^:\'\(\)]+:[^:\'\(\)]+:[^:\(\)]+)\)';
+			$sql.=" AND (".preg_replace_callback('/'.$regexstring.'/', 'DolibarrApi::_forge_criteria_callback', $sqlfilters).")";
+		}
+
+		$sql.= $db->order($sortfield, $sortorder);
+		if ($limit)	{
+			if ($page < 0) {
+				$page = 0;
+			}
+			$offset = $limit * $page;
+
+			$sql.= $db->plimit($limit + 1, $offset);
+		}
+
+        dol_syslog("API Rest request");
+		$result = $db->query($sql);
+
+		if ($result) {
+			$num = $db->num_rows($result);
+			$min = min($num, ($limit <= 0 ? $num : $limit));
+			$i = 0;
+			while ($i < $min) {
+				$obj = $db->fetch_object($result);
+				$request_static = new RequestManager($db);
+				if($request_static->fetch($obj->rowid)) {
+					$obj_ret[] = $this->_cleanObjectDatas($request_static);
+				}
+				$i++;
+			}
+		} else {
+			throw new RestException(503, 'Error when retrieve request list : '.$db->lasterror());
+		}
+		if( ! count($obj_ret)) {
+			return [];
+		}
+		return $obj_ret;
+	}
+
+	/**
+	 * Create request object
+	 *
+	 * @param   array   $request_data   Request data
+	 * @return  int     ID of proposal
+	 */
+	function post($request_data = null) {
+		if(! DolibarrApiAccess::$user->rights->requestmanager->creer) {
+			throw new RestException(401, "Insuffisant rights");
+		}
+		// Check mandatory fields
+		$result = $this->_validate($request_data);
+
+		foreach($request_data as $field => $value) {
+			$this->request->$field = $value;
+		}
+
+		if ($this->request->create(DolibarrApiAccess::$user) < 0) {
+			throw new RestException(500, "Error creating request", array_merge(array($this->request->error), $this->request->errors));
+		}
+
+		return $this->request->id;
+	}
+
+	/**
+	 * Update request general fields
+	 *
+	 * @param int   $id             Id of request to update
+	 * @param array $request_data   Datas
+	 *
+	 * @return int
+	 */
+	function put($id, $request_data = null) {
+		if(! DolibarrApiAccess::$user->rights->requestmanager->creer) {
+			throw new RestException(401);
+		}
+
+		$result = $this->request->fetch($id);
+		if( ! $result ) {
+			return [];
+		}
+
+		foreach($request_data as $field => $value) {
+			if ($field == 'id') continue;
+			$this->request->$field = $value;
+		}
+
+		if ($this->request->update(DolibarrApiAccess::$user) > 0) {
+			return $this->get($id);
+		} else {
+			throw new RestException(500, $this->request->error);
+		}
+	}
+
+	/**
+	 * Delete request
+	 *
+	 * @param   int     $id         Request ID
+	 *
+	 * @return  array
+	 */
+	function delete($id) {
+		if(! DolibarrApiAccess::$user->rights->requestmanager->supprimer) {
+			throw new RestException(401);
+		}
+		$result = $this->request->fetch($id);
+		if( ! $result ) {
+			return [];
+		}
+
+		if( ! $this->request->delete(DolibarrApiAccess::$user)) {
+			throw new RestException(500, 'Error when delete Request : '.$this->request->error);
+		}
+
+		return array(
+			'success' => array(
+				'code' => 200,
+				'message' => 'Request deleted'
+			)
+		);
+
+	}
+
+	/**
+	 * Add a line to given request
+	 *
+	 * @param int   $id             Id of request to update
+	 * @param array $request_data   Request line data
+	 *
+	 * @url	POST {id}/lines
+	 *
+	 * @return int
+	 */
+	function postLine($id, $request_data = null) {
+		if(! DolibarrApiAccess::$user->rights->requestmanager->creer) {
+			throw new RestException(401);
+		}
+
+		$result = $this->request->fetch($id);
+		if (! $result) {
+		   return [];
+		}
+
+		$request_data = (object) $request_data;
+
+	$updateRes = $this->request->addline(
+                        $request_data->desc,
+                        $request_data->pu_ht,
+                        $request_data->qty,
+                        $request_data->tva_tx,
+                        $request_data->localtax1_tx,
+                        $request_data->localtax2_tx,
+                        $request_data->idprod,
+                        $request_data->remise_percent,
+                        $request_data->info_bits,
+                        0,
+                        $request_data->price_base_type,
+                        $request_data->pu_ttc,
+                        $request_data->date_start,
+                        $request_data->date_end,
+						-1,
+						0,
+                        $request_data->fk_parent_line,
+                        $request_data->fournprice,
+                        $request_data->buyingprice,
+                        $request_data->label,
+                        $request_data->array_options,
+                        $request_data->fk_unit,
+                        '',
+						0,
+                        $request_data->pu_ht_devise
+		);
+
+		if ($updateRes > 0) {
+			return $updateRes;
+		} else {
+			throw new RestException(400, $this->request->error);
+		}
+	}
+
+	/**
+	 * Update a line of given request
+	 *
+	 * @param int   $id             Id of request to update
+	 * @param int   $lineid         Id of line to update
+	 * @param array $request_data   Request line data
+	 *
+	 * @url	PUT {id}/lines/{lineid}
+	 *
+	 * @return object
+	 */
+	function putLine($id, $lineid, $request_data = null) {
+		if(! DolibarrApiAccess::$user->rights->requestmanager->creer) {
+			throw new RestException(401);
+		}
+
+		$result = $this->request->fetch($id);
+		if($result <= 0) {
+			return [];
+		}
+
+		$request_data = (object) $request_data;
+
+		$requestline = new RequestManagerLine($this->db);
+		$result = $requestline->fetch($lineid);
+		if ($result <= 0) {
+			return [];
+		}
+
+		$updateRes = $this->request->updateline(
+						$lineid,
+						isset($request_data->desc)?$request_data->desc:$requestline->desc,
+						isset($request_data->pu_ht)?$request_data->pu_ht:$requestline->pu_ht,
+						isset($request_data->qty)?$request_data->qty:$requestline->qty,
+						isset($request_data->remise_percent)?$request_data->remise_percent:$requestline->remise_percent,
+						isset($request_data->tva_tx)?$request_data->tva_tx:$requestline->tva_tx,
+						isset($request_data->localtax1_tx)?$request_data->localtax1_tx:$requestline->localtax1_tx,
+						isset($request_data->localtax2_tx)?$request_data->localtax2_tx:$requestline->localtax2_tx,
+						'HT',
+						isset($request_data->info_bits)?$request_data->info_bits:$requestline->info_bits,
+						isset($request_data->date_start)?$request_data->date_start:$requestline->date_start,
+						isset($request_data->date_end)?$request_data->date_end:$requestline->date_end,
+						isset($request_data->type)?$request_data->type:$requestline->type,
+						isset($request_data->fk_parent_line)?$request_data->fk_parent_line:$requestline->fk_parent_line,
+						0,
+						isset($request_data->fournprice)?$request_data->fournprice:$requestline->fournprice,
+						isset($request_data->buyingprice)?$request_data->buyingprice:$requestline->buyingprice,
+						isset($request_data->label)?$request_data->label:$requestline->label,
+						isset($request_data->special_code)?$request_data->special_code:$requestline->special_code,
+						isset($request_data->array_options)?$request_data->array_options:$requestline->array_options,
+						isset($request_data->fk_unit)?$request_data->fk_unit:$requestline->fk_unit,
+						isset($request_data->pu_ht_devise)?$request_data->pu_ht_devise:$requestline->pu_ht_devise
+		);
+
+		if ($updateRes > 0) {
+			$result = $this->get($id);
+			unset($result->line);
+			return $this->_cleanObjectDatas($result);
+		}
+	  return false;
+	}
+
+	/**
+	 * Delete a line of given request
+	 *
+	 *
+	 * @param int   $id             Id of request to update
+	 * @param int   $lineid         Id of line to delete
+	 *
+	 * @url	DELETE {id}/lines/{lineid}
+	 *
+	 * @return int
+     * @throws 401
+     * @throws 404
+	 */
+	function deleteLine($id, $lineid) {
+		if(! DolibarrApiAccess::$user->rights->requestmanager->creer) {
+			throw new RestException(401);
+		}
+
+		$result = $this->request->fetch($id);
+		if( ! $result ) {
+			return [];
+		}
+
+		$updateRes = $this->request->deleteline($lineid);
+		if ($updateRes > 0) {
+			return $this->get($id);
+		} else {
+			throw new RestException(405, $this->request->error);
+		}
+	}
+
+	/**
+	 * Validate fields before create or update object
+	 *
+	 * @param   array           $data   Array with data to verify
+	 * @return  array
+	 * @throws  RestException
+	 */
+	function _validate($data) {
+		$request = array();
+		foreach (Requestmanager::$FIELDS as $field) {
+			if (!isset($data[$field]))
+				throw new RestException(400, "$field field missing");
+			$request[$field] = $data[$field];
+
+		}
+		return $request;
+	}
+
+	/**
+	 * Clean sensible object datas
+	 *
+	 * @param   object  $object    Object to clean
+	 * @return    array    Array of cleaned object properties
+	 */
+	function _cleanObjectDatas($object) {
+
+		$object = parent::_cleanObjectDatas($object);
+
+        unset($object->note);
+		unset($object->name);
+		unset($object->lastname);
+		unset($object->firstname);
+		unset($object->civility_id);
+		unset($object->address);
+
+		return $object;
+	}
+
 
 	/**
 	 * Add an event following a phone call
@@ -83,8 +468,7 @@ class Requestmanager extends DolibarrApi
 	 *
 	 * @return  RestException
 	 */
-	function getCall($from_num, $target_num)
-	{
+	function getCall($from_num, $target_num) {
 		global $db, $conf;
 
 		$from_num = trim($from_num);
