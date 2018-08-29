@@ -1297,9 +1297,9 @@ function requestmanager_get_elements_infos()
             'picto' => '',
         ),
         'fichinter' => array(
-            'label' => '',
-            'langs' => array(),
-            'picto' => '',
+            'label' => 'Intervention',
+            'langs' => array('interventions'),
+            'picto' => 'object_intervention',
         ),
         'fiscalyear' => array(
             'label' => '',
@@ -1317,9 +1317,9 @@ function requestmanager_get_elements_infos()
             'picto' => '',
         ),
         'invoice_supplier' => array(
-            'label' => '',
-            'langs' => array(),
-            'picto' => '',
+            'label' => 'SupplierInvoice',
+            'langs' => array('bills'),
+            'picto' => 'object_bill',
         ),
         'link' => array(
             'label' => '',
@@ -1362,9 +1362,9 @@ function requestmanager_get_elements_infos()
             'picto' => '',
         ),
         'order_supplier' => array(
-            'label' => '',
-            'langs' => array(),
-            'picto' => '',
+            'label' => 'SupplierOrder',
+            'langs' => array('orders'),
+            'picto' => 'object_order',
         ),
         'paiementcharge' => array(
             'label' => '',
@@ -1462,9 +1462,9 @@ function requestmanager_get_elements_infos()
             'picto' => '',
         ),
         'supplier_proposal' => array(
-            'label' => '',
-            'langs' => array(),
-            'picto' => '',
+            'label' => 'SupplierProposal',
+            'langs' => array('supplier_proposal'),
+            'picto' => 'object_supplier_proposal',
         ),
         'user' => array(
             'label' => '',

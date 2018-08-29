@@ -2285,19 +2285,26 @@ class RequestManager extends CommonObject
         $userGroupList = $userGroup->listGroupsForUser($user->id);
 
         // count all assigned requests for user
-        $sql  = "SELECT COUNT(rm.rowid) as nb";
+        $sql = "SELECT COUNT(rm.rowid) as nb";
         $sql .= " FROM " . MAIN_DB_PREFIX . $this->table_element . " as rm";
+        $sql .= ' INNER JOIN (';
+        $sql .= ' SELECT DISTINCT rm.rowid';
+        $sql .= ' FROM ' . MAIN_DB_PREFIX . 'requestmanager as rm';
+        $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'requestmanager_assigned_user as rmau ON rmau.fk_requestmanager = rm.rowid';
+        $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'requestmanager_assigned_usergroup as rmaug ON rmaug.fk_requestmanager = rm.rowid';
+        $sql .= ' WHERE rm.entity IN (' . getEntity('requestmanager') . ')';
+        $sql .= " AND (rmau.fk_user = " . $user->id;
+        if (count($userGroupList) > 0) {
+            $sql .= " OR rmaug.fk_usergroup IN (" . implode(',', array_keys($userGroupList)) . ")";
+        }
+        $sql .= ")";
+        $sql .= ' ) as assigned ON assigned.rowid = rm.rowid';
         if (count($statusTypeList) > 0) {
             $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_requestmanager_status as crmst ON crmst.rowid = rm.fk_status";
         }
         $sql .= " WHERE rm.entity IN (" . getEntity('requestmanager') . ")";
-        $sql .= " AND (rm.fk_assigned_user = " . $user->id;
-        if (count($userGroupList) > 0) {
-            $sql .= " OR rm.fk_assigned_usergroup IN (" . implode(',', array_keys($userGroupList)) . ")";
-        }
-        $sql .= ")";
         if (count($statusTypeList) > 0) {
-            $sql.= " AND crmst.type IN (" . implode(',', $statusTypeList) . ")";
+            $sql .= " AND crmst.type IN (" . implode(',', $statusTypeList) . ")";
         }
 
         $resql = $this->db->query($sql);

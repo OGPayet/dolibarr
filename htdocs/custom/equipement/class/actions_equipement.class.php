@@ -109,8 +109,8 @@ class ActionsEquipement // extends CommonObject
                         'sql' => "SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref FROM " . MAIN_DB_PREFIX . "societe as s" .
                             " INNER JOIN  " . MAIN_DB_PREFIX . "equipement as t ON t.fk_soc_client = s.rowid" .
                             " LEFT JOIN  " . MAIN_DB_PREFIX . "element_element as ee" .
-                            "   ON (ee.sourcetype = 'equipement' AND ee.fk_source = t.rowid AND ee.targettype = 'requestmanager' AND ee.fk_target = ".$object->id.")" .
-                            "   OR (ee.targettype = 'equipement' AND ee.fk_target = t.rowid AND ee.sourcetype = 'requestmanager' AND ee.fk_source = ".$object->id.")" .
+                            "   ON (ee.sourcetype = 'equipement' AND ee.fk_source = t.rowid AND ee.targettype = '".$object->element."' AND ee.fk_target = ".$object->id.")" .
+                            "   OR (ee.targettype = 'equipement' AND ee.fk_target = t.rowid AND ee.sourcetype = '".$object->element."' AND ee.fk_source = ".$object->id.")" .
                             " WHERE t.fk_soc_client IN (" . $listofidcompanytoscan . ') AND t.entity IN (' . getEntity('equipement') . ')' .
                             ' AND ee.rowid IS NULL' .
                             ' GROUP BY t.rowid, s.rowid'

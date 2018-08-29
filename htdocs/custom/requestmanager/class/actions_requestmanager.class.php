@@ -351,4 +351,147 @@ class ActionsRequestManager
     {
         return 0;
     }
+
+    /**
+	 * Overloading the showLinkToObjectBlock function : replacing the parent's function with the one below
+	 *
+	 * @param   array() $parameters Hook metadatas (context, etc...)
+	 * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+	 * @param   string &$action Current action (if set). Generally create or edit or null
+	 * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
+	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+	 */
+	function showLinkToObjectBlock($parameters, &$object, &$action, $hookmanager)
+    {
+        global $conf, $langs;
+
+        $contexts = explode(':',$parameters['context']);
+
+        if (in_array('requestmanagercard', $contexts)) {
+            if (!is_object($object->thirdparty)) $object->fetch_thirdparty();
+
+            if (is_object($object->thirdparty) && !empty($object->thirdparty->id) && $object->thirdparty->id > 0) {
+                $listofidcompanytoscan = $object->thirdparty->id;
+                if (($object->thirdparty->parent > 0) && !empty($conf->global->THIRDPARTY_INCLUDE_PARENT_IN_LINKTO)) $listofidcompanytoscan .= ',' . $object->thirdparty->parent;
+                if (($object->fk_project > 0) && !empty($conf->global->THIRDPARTY_INCLUDE_PROJECT_THIRDPARY_IN_LINKTO)) {
+                    include_once DOL_DOCUMENT_ROOT . '/projet/class/project.class.php';
+                    $tmpproject = new Project($this->db);
+                    $tmpproject->fetch($object->fk_project);
+                    if ($tmpproject->socid > 0 && ($tmpproject->socid != $object->thirdparty->id)) $listofidcompanytoscan .= ',' . $tmpproject->socid;
+                    unset($tmpproject);
+                }
+
+                $possiblelinks = array(
+                    'propal' => array(
+                        'enabled' => $conf->propal->enabled,
+                        'perms' => 1,
+                        'label' => 'LinkToProposal',
+                        'sql' => "SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref, t.ref_client, t.total_ht FROM " . MAIN_DB_PREFIX . "societe as s" .
+                            " INNER JOIN  " . MAIN_DB_PREFIX . "propal as t ON t.fk_soc = s.rowid" .
+                            " LEFT JOIN  " . MAIN_DB_PREFIX . "element_element as ee" .
+                            "   ON (ee.sourcetype = 'propal' AND ee.fk_source = t.rowid AND ee.targettype = '".$object->element."' AND ee.fk_target = " . $object->id . ")" .
+                            "   OR (ee.targettype = 'propal' AND ee.fk_target = t.rowid AND ee.sourcetype = '".$object->element."' AND ee.fk_source = " . $object->id . ")" .
+                            " WHERE t.fk_soc IN (" . $listofidcompanytoscan . ') AND t.entity IN (' . getEntity('propal') . ')' .
+                            ' AND ee.rowid IS NULL' .
+                            ' GROUP BY t.rowid, s.rowid',
+                    ),
+                    'order' => array(
+                        'enabled' => $conf->commande->enabled,
+                        'perms' => 1,
+                        'label' => 'LinkToOrder',
+                        'sql' => "SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref, t.ref_client, t.total_ht FROM " . MAIN_DB_PREFIX . "societe as s" .
+                            " INNER JOIN  " . MAIN_DB_PREFIX . "commande as t ON t.fk_soc = s.rowid" .
+                            " LEFT JOIN  " . MAIN_DB_PREFIX . "element_element as ee" .
+                            "   ON (ee.sourcetype = 'commande' AND ee.fk_source = t.rowid AND ee.targettype = '".$object->element."' AND ee.fk_target = " . $object->id . ")" .
+                            "   OR (ee.targettype = 'commande' AND ee.fk_target = t.rowid AND ee.sourcetype = '".$object->element."' AND ee.fk_source = " . $object->id . ")" .
+                            " WHERE t.fk_soc IN (" . $listofidcompanytoscan . ') AND t.entity IN (' . getEntity('commande') . ')' .
+                            ' AND ee.rowid IS NULL' .
+                            ' GROUP BY t.rowid, s.rowid',
+                    ),
+                    'invoice' => array(
+                        'enabled' => $conf->facture->enabled,
+                        'perms' => 1,
+                        'label' => 'LinkToInvoice',
+                        'sql' => "SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.facnumber as ref, t.ref_client, t.total as total_ht FROM " . MAIN_DB_PREFIX . "societe as s" .
+                            " INNER JOIN  " . MAIN_DB_PREFIX . "facture as t ON t.fk_soc = s.rowid" .
+                            " LEFT JOIN  " . MAIN_DB_PREFIX . "element_element as ee" .
+                            "   ON (ee.sourcetype = 'facture' AND ee.fk_source = t.rowid AND ee.targettype = '".$object->element."' AND ee.fk_target = " . $object->id . ")" .
+                            "   OR (ee.targettype = 'facture' AND ee.fk_target = t.rowid AND ee.sourcetype = '".$object->element."' AND ee.fk_source = " . $object->id . ")" .
+                            " WHERE t.fk_soc IN (" . $listofidcompanytoscan . ') AND t.entity IN (' . getEntity('facture') . ')' .
+                            ' AND ee.rowid IS NULL' .
+                            ' GROUP BY t.rowid, s.rowid',
+                    ),
+                    'contrat' => array(
+                        'enabled' => $conf->contrat->enabled,
+                        'perms' => 1,
+                        'label' => 'LinkToContract',
+                        'sql' => "SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref, t.ref_supplier, '' as total_ht FROM " . MAIN_DB_PREFIX . "societe as s" .
+                            " INNER JOIN  " . MAIN_DB_PREFIX . "contrat as t ON t.fk_soc = s.rowid" .
+                            " LEFT JOIN  " . MAIN_DB_PREFIX . "element_element as ee" .
+                            "   ON (ee.sourcetype = 'contrat' AND ee.fk_source = t.rowid AND ee.targettype = '".$object->element."' AND ee.fk_target = " . $object->id . ")" .
+                            "   OR (ee.targettype = 'contrat' AND ee.fk_target = t.rowid AND ee.sourcetype = '".$object->element."' AND ee.fk_source = " . $object->id . ")" .
+                            " WHERE t.fk_soc IN (" . $listofidcompanytoscan . ') AND t.entity IN (' . getEntity('contract') . ')' .
+                            ' AND ee.rowid IS NULL' .
+                            ' GROUP BY t.rowid, s.rowid',
+                    ),
+                    'fichinter' => array(
+                        'enabled' => $conf->ficheinter->enabled,
+                        'perms' => 1,
+                        'label' => 'LinkToIntervention',
+                        'sql' => "SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref FROM " . MAIN_DB_PREFIX . "societe as s" .
+                            " INNER JOIN  " . MAIN_DB_PREFIX . "fichinter as t ON t.fk_soc = s.rowid" .
+                            " LEFT JOIN  " . MAIN_DB_PREFIX . "element_element as ee" .
+                            "   ON (ee.sourcetype = 'fichinter' AND ee.fk_source = t.rowid AND ee.targettype = '".$object->element."' AND ee.fk_target = " . $object->id . ")" .
+                            "   OR (ee.targettype = 'fichinter' AND ee.fk_target = t.rowid AND ee.sourcetype = '".$object->element."' AND ee.fk_source = " . $object->id . ")" .
+                            " WHERE t.fk_soc IN (" . $listofidcompanytoscan . ') AND t.entity IN (' . getEntity('intervention') . ')' .
+                            ' AND ee.rowid IS NULL' .
+                            ' GROUP BY t.rowid, s.rowid',
+                    ),
+                    'supplier_proposal' => array(
+                        'enabled' => $conf->supplier_proposal->enabled,
+                        'perms' => 1,
+                        'label' => 'LinkToSupplierProposal',
+                        'sql' => "SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref, '' as ref_supplier, t.total_ht FROM " . MAIN_DB_PREFIX . "societe as s" .
+                            " INNER JOIN  " . MAIN_DB_PREFIX . "supplier_proposal as t ON t.fk_soc = s.rowid" .
+                            " LEFT JOIN  " . MAIN_DB_PREFIX . "element_element as ee" .
+                            "   ON (ee.sourcetype = 'supplier_proposal' AND ee.fk_source = t.rowid AND ee.targettype = '".$object->element."' AND ee.fk_target = " . $object->id . ")" .
+                            "   OR (ee.targettype = 'supplier_proposal' AND ee.fk_target = t.rowid AND ee.sourcetype = '".$object->element."' AND ee.fk_source = " . $object->id . ")" .
+                            " WHERE t.fk_soc IN (" . $listofidcompanytoscan . ') AND t.entity IN (' . getEntity('supplier_proposal') . ')' .
+                            ' AND ee.rowid IS NULL' .
+                            ' GROUP BY t.rowid, s.rowid',
+                    ),
+                    'order_supplier' => array(
+                        'enabled' => $conf->supplier_order->enabled,
+                        'perms' => 1,
+                        'label' => 'LinkToSupplierOrder',
+                        'sql' => "SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref, t.ref_supplier, t.total_ht FROM " . MAIN_DB_PREFIX . "societe as s" .
+                            " INNER JOIN  " . MAIN_DB_PREFIX . "commande_fournisseur as t ON t.fk_soc = s.rowid" .
+                            " LEFT JOIN  " . MAIN_DB_PREFIX . "element_element as ee" .
+                            "   ON (ee.sourcetype = 'order_supplier' AND ee.fk_source = t.rowid AND ee.targettype = '".$object->element."' AND ee.fk_target = " . $object->id . ")" .
+                            "   OR (ee.targettype = 'order_supplier' AND ee.fk_target = t.rowid AND ee.sourcetype = '".$object->element."' AND ee.fk_source = " . $object->id . ")" .
+                            " WHERE t.fk_soc IN (" . $listofidcompanytoscan . ') AND t.entity IN (' . getEntity('commande_fournisseur') . ')' .
+                            ' AND ee.rowid IS NULL' .
+                            ' GROUP BY t.rowid, s.rowid',
+                    ),
+                    'invoice_supplier' => array(
+                        'enabled' => $conf->supplier_invoice->enabled,
+                        'perms' => 1,
+                        'label' => 'LinkToSupplierInvoice',
+                        'sql' => "SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref, t.ref_supplier, t.total_ht FROM " . MAIN_DB_PREFIX . "societe as s" .
+                            " INNER JOIN  " . MAIN_DB_PREFIX . "facture_fourn as t ON t.fk_soc = s.rowid" .
+                            " LEFT JOIN  " . MAIN_DB_PREFIX . "element_element as ee" .
+                            "   ON (ee.sourcetype = 'invoice_supplier' AND ee.fk_source = t.rowid AND ee.targettype = '".$object->element."' AND ee.fk_target = " . $object->id . ")" .
+                            "   OR (ee.targettype = 'invoice_supplier' AND ee.fk_target = t.rowid AND ee.sourcetype = '".$object->element."' AND ee.fk_source = " . $object->id . ")" .
+                            " WHERE t.fk_soc IN (" . $listofidcompanytoscan . ') AND t.entity IN (' . getEntity('facture_fourn') . ')' .
+                            ' AND ee.rowid IS NULL' .
+                            ' GROUP BY t.rowid, s.rowid',
+                    ),
+                );
+
+                $this->results = $possiblelinks;
+            }
+        }
+
+        return 1;
+    }
 }
