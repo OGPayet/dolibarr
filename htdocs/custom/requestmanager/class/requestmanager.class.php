@@ -4481,4 +4481,50 @@ class RequestManagerLine extends CommonObjectLine
             return -2;
         }
     }
+
+    /**
+     *	Create event call from API
+     *
+     *	@return		int		<0 if ko, >0 if ok
+     */
+    function create_event_api($actioncomm_object)
+    {
+        global $conf,$user;
+
+        require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
+		$actioncomm = new ActionComm($this->db);
+		$actioncomm = $actioncomm_object;
+
+		$this->db->begin();
+
+		if ($actioncomm->create($user) < 0) {
+			return 0;
+		} else {
+			$this->db->commit();
+			return 1;
+		}
+    }
+
+    /**
+     *	Update event call from API
+     *
+     *	@return		int		<0 if ko, >0 if ok
+     */
+    function update_event_api($actioncomm_object)
+    {
+        global $conf,$user;
+
+        require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
+		$actioncomm = new ActionComm($this->db);
+		$actioncomm = $actioncomm_object;
+
+		$this->db->begin();
+
+		if ($actioncomm->update($user) < 0) {
+			return 0;
+		} else {
+			$this->db->commit();
+			return 1;
+		}
+    }
 }

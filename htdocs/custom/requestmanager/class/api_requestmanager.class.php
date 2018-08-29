@@ -459,17 +459,29 @@ class Requestmanager extends DolibarrApi {
 
 
 	/**
-	 * Add an event following a phone call
+	 * Add an event following a phone call begin
 	 *
 	 * @param string   $from_num     Caller's number
 	 * @param string   $target_num   Called number
+	 * @param string   $type         Sens de l'appel : entrant, sortant, transfert interne
+	 * @param integer  $id_IPBX      Id interne à l'IPBX de l'appel
+	 * @param string   $hour         Heure de début de l'appel (renseigné par l'IPBX, si non renseigné fait par dolibarr)
+	 * @param float    $poste        Poste ayant décroché/émis l'appel
+	 * @param string   $name_post    Nom du compte associé au poste
+	 * @param string   $groupe       Groupe de réponse à l'origine de l'appel
+	 * @param string   $source       Appel source : id interne IPBX
 	 *
+	 * @url	POST /call
 	 * @url	GET /call
 	 *
 	 * @return  RestException
 	 */
-	function getCall($from_num, $target_num) {
-		global $db, $conf;
+	function CallBegin($from_num, $target_num, $type, $id_IPBX, $hour='', $poste=NULL, $name_post='', $groupe='', $source=NULL) {
+		global $db, $conf, $langs;
+
+		$now=dol_now();
+
+		$langs->load('requestmanager@requestmanager');
 
 		$from_num = trim($from_num);
 		$from_num = preg_replace("/\s/","",$from_num);
@@ -487,6 +499,8 @@ class Requestmanager extends DolibarrApi {
 		$sql.= " FROM ".MAIN_DB_PREFIX."socpeople";
 		$sql.= " WHERE phone = '".$target_num_space."' OR phone_perso = '".$target_num_space."' OR phone_mobile = '".$target_num_space."'";
 		$sql.= " OR phone = '".$target_num."' OR phone_perso = '".$target_num."' OR phone_mobile = '".$target_num."'";
+		$sql.= " OR phone = '".$from_num_space."' OR phone_perso = '".$from_num_space."' OR phone_mobile = '".$from_num_space."'";
+		$sql.= " OR phone = '".$from_num."' OR phone_perso = '".$from_num."' OR phone_mobile = '".$from_num."'";
 
 		$result = $db->query($sql);
 
@@ -506,6 +520,7 @@ class Requestmanager extends DolibarrApi {
 			$sql = "SELECT rowid";
 			$sql.= " FROM ".MAIN_DB_PREFIX."societe";
 			$sql.= " WHERE phone = '".$target_num_space."' OR phone = '".$target_num."'";
+			$sql.= " OR phone = '".$from_num_space."' OR phone = '".$from_num."'";
 
 			$result = $db->query($sql);
 			if ($result) {
@@ -524,29 +539,100 @@ class Requestmanager extends DolibarrApi {
 		$sql.= " FROM ".MAIN_DB_PREFIX."user";
 		$sql.= " WHERE office_phone = '".$from_num_space."' OR user_mobile = '".$from_num_space."'";
 		$sql.= " OR office_phone = '".$from_num."' OR user_mobile = '".$from_num."'";
+		$sql.= " OR office_phone = '".$target_num_space."' OR user_mobile = '".$target_num_space."'";
+		$sql.= " OR office_phone = '".$target_num."' OR user_mobile = '".$target_num."'";
+
+		$result = $db->query($sql);
+		$num = $db->num_rows($result);
+		$userassigned = array();
+		if ($result) {
+			$i=0;
+			while ($i < $num) {
+				$obj = $db->fetch_object($result);
+				$this->user_static->fetch($obj->rowid);
+
+				$userassigned[] = $this->user_static->id;
+
+				$i++;
+			}
+		}
+		$this->actioncomm->userassigned = $userassigned;
+		$this->actioncomm->userownerid = DolibarrApiAccess::$user->id;
+
+		$this->actioncomm->datep = dol_now();
+		$this->actioncomm->type_id = 1;
+		$this->actioncomm->type_code = "AC_TEL";
+		$this->actioncomm->note = "";
+		if(!empty($hour)) {
+			$this->actioncomm->note .= $langs->trans('API_hour').$hour."<br/>";
+		} else {
+			$this->actioncomm->note .= $langs->trans('API_hour').$db->idate($now)."<br/>";
+		}
+
+		$this->actioncomm->note .= $langs->trans('API_poste').$poste."<br/>";
+		$this->actioncomm->note .= $langs->trans('API_name_post').$name_post."<br/>";
+		$this->actioncomm->note .= $langs->trans('API_id_IPBX').$id_IPBX."<br/>";
+		$this->actioncomm->note .= $langs->trans('API_groupe').$groupe."<br/>";
+		$this->actioncomm->note .= $langs->trans('API_type').$type."<br/>";
+		$this->actioncomm->note .= $langs->trans('API_source').$source."<br/>";
+		$this->actioncomm->array_options = array("[options_ipbx]" => $id_IPBX);
+
+		// if ($this->request->create_event_api($this->actioncomm) < 0) {
+			// throw new RestException(500, "Error creating event", array_merge(array($this->actioncomm->error), $this->actioncomm->errors));
+		// }
+
+		return $this->actioncomm;
+	}
+
+	/**
+	 * Update an event following a phone call end
+	 *
+	 * @param int      $id_IPBX        Id interne à l'IPBX de l'appel
+	 * @param string   $state          État de l'appel : Décroché, non décroché, messagerie
+	 * @param string   $hour           Heure de fin de l'appel  (renseigné par l'IPBX, si non renseigné fait par dolibarr)
+	 * @param string   $during         Durée de la communication
+	 * @param int      $messagerie     Si messagerie, id interne à l'IPBX du message
+	 *
+	 * @url	POST /call
+	 * @url	GET /call
+	 *
+	 * @return  RestException
+	 */
+	function CallEnding($id_IPBX, $state, $hour='', $during=0, $messagerie=NULL) {
+		global $db, $conf, $langs;
+
+		$now=dol_now();
+
+		$langs->load('requestmanager@requestmanager');
+
+		//Search event
+		$sql = "SELECT rowid";
+		$sql.= " FROM ".MAIN_DB_PREFIX."actioncomm AS a";
+		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."actioncomm_extrafields AS ex ON ex.fk_object = a.rowid";
+		$sql.= " WHERE ex.ipbx = ".$id_IPBX;
 
 		$result = $db->query($sql);
 
 		if ($result) {
 			$obj = $db->fetch_object($result);
-			$this->user_static->fetch($obj->rowid);
+			$this->actioncomm->fetch($obj->rowid);
 
-			$this->actioncomm->userassigned = $this->user_static->id;
-			$this->actioncomm->userownerid = $this->user_static->id;
+			$this->actioncomm->note .= $langs->trans('API_state').$state."<br/>";
+			if(!empty($hour)) {
+				$this->actioncomm->note .= $langs->trans('API_hour_end').$hour."<br/>";
+			} else {
+				$this->actioncomm->note .= $langs->trans('API_hour_end').$db->idate($now)."<br/>";
+			}
+			$this->actioncomm->note .= $langs->trans('API_during').$during."<br/>";$
+			if(!empty($messagerie)) {
+				$this->actioncomm->note .= $langs->trans('API_messagerie').$messagerie."<br/>";
+			}
+
+			// if ($this->request->update_event_api($this->actioncomm) < 0) {
+				// throw new RestException(500, "Error creating event", array_merge(array($this->actioncomm->error), $this->actioncomm->errors));
+			// }
+
+			return $this->actioncomm;
 		}
-
-		if(empty($this->actioncomm->userownerid)) {
-			$this->actioncomm->userownerid = DolibarrApiAccess::$user->id;
-		}
-
-		$this->actioncomm->datep = dol_now();
-		$this->actioncomm->type_id = 1;
-		$this->actioncomm->type_code = "AC_TEL";
-
-		// if ($this->actioncomm->create(DolibarrApiAccess::$user) < 0) {
-			// throw new RestException(500, "Error creating event", array_merge(array($this->actioncomm->error), $this->actioncomm->errors));
-		// }
-
-		return $this->actioncomm;
 	}
 }

@@ -519,7 +519,7 @@ class modRequestManager extends DolibarrModules
 
         // activate event type in modAgenda
         dolibarr_set_const($this->db, 'AGENDA_USE_EVENT_TYPE', 1, 'chaine', 0, '', $conf->entity);
-
+		$result=$extrafields->addExtraField('ipbx', "IPBX", 'int', 1,  10, 'actioncomm',   0, 0, '', array('options'=>array()), 1, '', 0, 0, '', '');
         return $this->_init($sql, $options);
 	}
 
