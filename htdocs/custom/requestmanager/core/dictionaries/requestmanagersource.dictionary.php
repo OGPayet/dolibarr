@@ -29,6 +29,11 @@ dol_include_once('/advancedictionaries/class/dictionary.class.php');
 class RequestManagerSourceDictionary extends Dictionary
 {
     /**
+     * @var int         Version of this dictionary
+     */
+    public $version = 1;
+
+    /**
      * @var array       List of languages to load
      */
     public $langs = array('requestmanager@requestmanager');
@@ -145,6 +150,7 @@ class RequestManagerSourceDictionary extends Dictionary
             ),
             'is_require' => true,
         ),
+        'event_type' => array(),
     );
 
     /**
@@ -162,7 +168,47 @@ class RequestManagerSourceDictionary extends Dictionary
     );
 
     /**
+     * @var array  List of fields/indexes added, updated or deleted for a version
+     * array(
+     *   'version' => array(
+     *     'fields' => array('field_name'=>'a', 'field_name'=>'u', 'field_name'=>'d', ...), // List of field name who is added(a) or updated(u) or deleted(d) for a version
+     *     'indexes' => array('idx_number'=>'a', 'idx_number'=>'u', 'idx_number'=>'d', ...), // List of indexes number who is added(a) or updated(u) or deleted(d) for a version
+     *   ),
+     * )
+     */
+    public $updates = array(
+        1 => array(
+            'fields' => array(
+                'event_type' => 'a',
+            )
+        ),
+    );
+
+    /**
      * @var bool    Is multi entity (false = partaged, true = by entity)
      */
     public $is_multi_entity = true;
+
+    /**
+	 * Initialize the dictionary
+	 *
+     * @return  void
+	 */
+	protected function initialize()
+    {
+        $this->fields['event_type'] = array(
+            'name' => 'event_type',
+            'label' => 'RequestManagerSourceDictionaryEventType',
+            'type' => 'chkbxlst',
+            'options' => 'c_actioncomm:libelle:id::active=1',
+            'td_output' => array(
+                'moreAttributes' => 'width="20%"',
+            ),
+            'td_input' => array(
+                'moreAttributes' => 'width="20%"',
+            ),
+            'is_require' => true,
+        );
+    }
 }
+

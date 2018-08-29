@@ -224,47 +224,66 @@ print '</tr>' . "\n";
 
 // Join conditions
 $sqlJoinActionComm = ' LEFT JOIN ' . MAIN_DB_PREFIX . 'actioncomm as ac ON ac.elementtype="requestmanager" AND ac.fk_element=rm.rowid';
-$sqlJoinAssignedFilterBegin = ' INNER JOIN (' .
-    ' SELECT rm.rowid' .
+
+$sqlAssignedSubSelectBegin =
+    ' SELECT DISTINCT rm.rowid' .
     ' FROM ' . MAIN_DB_PREFIX . 'requestmanager as rm' .
     ' LEFT JOIN ' . MAIN_DB_PREFIX . 'requestmanager_assigned_user as rmau ON rmau.fk_requestmanager = rm.rowid' .
     ' LEFT JOIN ' . MAIN_DB_PREFIX . 'requestmanager_assigned_usergroup as rmaug ON rmaug.fk_requestmanager = rm.rowid' .
     ' LEFT JOIN ' . MAIN_DB_PREFIX . 'user as uas ON uas.rowid = rmau.fk_user' .
     ' LEFT JOIN ' . MAIN_DB_PREFIX . 'usergroup as uga ON uga.rowid = rmaug.fk_usergroup' .
     ' WHERE rm.entity IN (' . getEntity('requestmanager') . ')';
-$sqlJoinAssignedFilterEnd = ' GROUP BY rm.rowid' .
-    ' ) as assigned ON assigned.rowid = rm.rowid';
-
-// Different filters for all lists
-$sqlFilterInProgress         = ' AND crmst.type IN (' . RequestManager::STATUS_TYPE_INITIAL . ', ' . RequestManager::STATUS_TYPE_IN_PROGRESS . ')';
-$sqlFilterNotInFuture        = ' AND (rm.date_operation IS NULL OR rm.date_operation <= NOW())';
-$sqlFilterInFuture           = ' AND rm.date_operation IS NOT NULL AND rm.date_operation > NOW()';
 $sqlFilterAssignedToMe       = ' AND rmau.fk_user = ' . $user->id;
-$sqlFilterNotAssignedToMe    = ' AND rmau.fk_user != ' . $user->id;
 $sqlFilterAssignedToMyGroups = '';
-$sqlFilterNotAssignedToMyGroups = '';
 $groupslist = $usergroup_static->listGroupsForUser($user->id);
 if (!empty($groupslist)) {
     $myGroups = implode(',', array_keys($groupslist));
     $sqlFilterAssignedToMyGroups = ' AND rmaug.fk_usergroup IN (' . $myGroups . ')';
-    $sqlFilterNotAssignedToMyGroups = ' AND rmaug.fk_usergroup NOT IN (' . $myGroups . ')';
 }
+
+$sqlJoinAssignedFilterBegin = ' INNER JOIN (';
+$sqlJoinAssignedFilterEnd = ' ) as assigned ON assigned.rowid = rm.rowid';
+$sqlJoinNotAssignedFilterBegin = ', (';
+$sqlJoinNotAssignedFilterEnd = ' ) as not_assigned';
+
+// Different filters for all lists
+$sqlFilterInProgress             = ' AND crmst.type IN (' . RequestManager::STATUS_TYPE_INITIAL . ', ' . RequestManager::STATUS_TYPE_IN_PROGRESS . ')';
+$sqlFilterNotInFuture            = ' AND (rm.date_operation IS NULL OR rm.date_operation <= NOW())';
+$sqlFilterInFuture               = ' AND rm.date_operation IS NOT NULL AND rm.date_operation > NOW()';
+$sqlFilterNotAssigned            = ' AND (not_assigned.rowid IS NULL OR rm.rowid IS NULL)';
 $sqlFilterActionCommAssignedToMe = ' AND ac.fk_user_action = ' . $user->id;
 
 // 1 - List of requests in progress assigned to me
-FormRequestManager::listsFollowPrintListFrom($db, $arrayfields, $objectstatic, $societestatic, $userstatic, $sqlJoinAssignedFilterBegin . $sqlFilterAssignedToMe . $sqlJoinAssignedFilterEnd, $sqlFilterInProgress . $sqlFilterNotInFuture, $sortfield, $sortorder, 'RequestManagerListsFollowMyRequest', $nbCol);
+FormRequestManager::listsFollowPrintListFrom($db, $arrayfields, $objectstatic, $societestatic, $userstatic,
+    $sqlJoinAssignedFilterBegin . $sqlAssignedSubSelectBegin . $sqlFilterAssignedToMe . $sqlJoinAssignedFilterEnd,
+    $sqlFilterInProgress . $sqlFilterNotInFuture,
+    $sortfield, $sortorder, 'RequestManagerListsFollowMyRequest', $nbCol);
 
 // 2 - List of requests in progress assigned to my group(s) and not to me
-FormRequestManager::listsFollowPrintListFrom($db, $arrayfields, $objectstatic, $societestatic, $userstatic, $sqlJoinAssignedFilterBegin . $sqlFilterAssignedToMyGroups . $sqlFilterNotAssignedToMe . $sqlJoinAssignedFilterEnd, $sqlFilterInProgress, $sortfield, $sortorder, 'RequestManagerListsFollowMyGroupRequest', $nbCol);
+FormRequestManager::listsFollowPrintListFrom($db, $arrayfields, $objectstatic, $societestatic, $userstatic,
+    $sqlJoinAssignedFilterBegin . $sqlAssignedSubSelectBegin . $sqlFilterAssignedToMyGroups . $sqlJoinAssignedFilterEnd .
+    $sqlJoinNotAssignedFilterBegin . $sqlAssignedSubSelectBegin . $sqlFilterAssignedToMe . $sqlJoinNotAssignedFilterEnd,
+    $sqlFilterInProgress . $sqlFilterNotInFuture . $sqlFilterNotAssigned,
+    $sortfield, $sortorder, 'RequestManagerListsFollowMyGroupRequest', $nbCol);
 
 // 3 - List of requests in progress not assigned to my group(s) and not assigned to me
-FormRequestManager::listsFollowPrintListFrom($db, $arrayfields, $objectstatic, $societestatic, $userstatic, $sqlJoinActionComm . $sqlJoinAssignedFilterBegin . $sqlFilterNotAssignedToMyGroups . $sqlFilterNotAssignedToMe . $sqlJoinAssignedFilterEnd, $sqlFilterInProgress . $sqlFilterActionCommAssignedToMe, $sortfield, $sortorder, 'RequestManagerListsFollowLinkToMyEvent', $nbCol);
+FormRequestManager::listsFollowPrintListFrom($db, $arrayfields, $objectstatic, $societestatic, $userstatic,
+    $sqlJoinActionComm . $sqlJoinNotAssignedFilterBegin . $sqlAssignedSubSelectBegin . $sqlFilterAssignedToMe . $sqlFilterAssignedToMyGroups . $sqlJoinNotAssignedFilterEnd,
+    $sqlFilterInProgress . $sqlFilterActionCommAssignedToMe . $sqlFilterNotAssigned,
+    $sortfield, $sortorder, 'RequestManagerListsFollowLinkToMyEvent', $nbCol);
 
 // 4 - List of requests in future assigned to me
-FormRequestManager::listsFollowPrintListFrom($db, $arrayfields, $objectstatic, $societestatic, $userstatic, $sqlJoinAssignedFilterBegin . $sqlFilterAssignedToMe . $sqlJoinAssignedFilterEnd, $sqlFilterInFuture, $sortfield, $sortorder, 'RequestManagerListsFollowMyFutureRequest', $nbCol);
+FormRequestManager::listsFollowPrintListFrom($db, $arrayfields, $objectstatic, $societestatic, $userstatic,
+    $sqlJoinAssignedFilterBegin . $sqlAssignedSubSelectBegin . $sqlFilterAssignedToMe . $sqlJoinAssignedFilterEnd,
+    $sqlFilterInProgress . $sqlFilterInFuture,
+    $sortfield, $sortorder, 'RequestManagerListsFollowMyFutureRequest', $nbCol);
 
 // 5 - List request in future assigned to my group(s) and not to me
-FormRequestManager::listsFollowPrintListFrom($db, $arrayfields, $objectstatic, $societestatic, $userstatic, $sqlJoinAssignedFilterBegin . $sqlFilterAssignedToMyGroups . $sqlFilterNotAssignedToMe . $sqlJoinAssignedFilterEnd, $sqlFilterInFuture, $sortfield, $sortorder, 'RequestManagerListsFollowMyFutureGroupRequest', $nbCol);
+FormRequestManager::listsFollowPrintListFrom($db, $arrayfields, $objectstatic, $societestatic, $userstatic,
+    $sqlJoinAssignedFilterBegin . $sqlAssignedSubSelectBegin . $sqlFilterAssignedToMyGroups . $sqlJoinAssignedFilterEnd .
+        $sqlJoinNotAssignedFilterBegin . $sqlAssignedSubSelectBegin . $sqlFilterAssignedToMe . $sqlJoinNotAssignedFilterEnd,
+    $sqlFilterInProgress . $sqlFilterInFuture . $sqlFilterNotAssigned,
+    $sortfield, $sortorder, 'RequestManagerListsFollowMyFutureGroupRequest', $nbCol);
 
 
 print '</table>' . "\n";

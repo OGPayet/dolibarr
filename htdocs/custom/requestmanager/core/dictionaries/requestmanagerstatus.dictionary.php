@@ -31,7 +31,7 @@ class RequestManagerStatusDictionary extends Dictionary
     /**
      * @var int         Version of this dictionary
      */
-    public $version = 3;
+    public $version = 4;
 
     /**
      * @var array       List of languages to load
@@ -157,7 +157,6 @@ class RequestManagerStatusDictionary extends Dictionary
             'database'   => array(
               'length'   => 255,
             ),
-//            'is_require' => true,
         ),
         'position' => array(
             'name'       => 'position',
@@ -178,12 +177,29 @@ class RequestManagerStatusDictionary extends Dictionary
             'td_input'  => array (
                 'align'  => 'left',
             ),
-//            'is_require' => true,
         ),
         'type' => array(),
         'request_type' => array(),
         'assigned_user' => array(),
+        'assigned_user_replaced' => array(
+            'name'       => 'assigned_user_replaced',
+            'label'      => 'RequestManagerStatusDictionaryAssignedUserReplaced',
+            'help'       => 'RequestManagerStatusDictionaryAssignedUserReplacedHelp',
+            'type'       => 'boolean',
+            'td_input' => array(
+                'positionLine' => 1,
+            ),
+        ),
         'assigned_usergroup' => array(),
+        'assigned_usergroup_replaced' => array(
+            'name'       => 'assigned_usergroup_replaced',
+            'label'      => 'RequestManagerStatusDictionaryAssignedUserGroupReplaced',
+            'help'       => 'RequestManagerStatusDictionaryAssignedUserGroupReplacedHelp',
+            'type'       => 'boolean',
+            'td_input' => array(
+                'positionLine' => 1,
+            ),
+        ),
         'operation' => array(
             'name'       => 'operation',
             'label'      => 'RequestManagerStatusDictionaryOperation',
@@ -287,12 +303,23 @@ class RequestManagerStatusDictionary extends Dictionary
                 'position' => 'u',
             )
         ),
+        4 => array(
+            'fields' => array(
+                'assigned_user_replaced' => 'a',
+                'assigned_usergroup_replaced' => 'a',
+            )
+        ),
     );
 
     /**
      * @var bool    Is multi entity (false = partaged, true = by entity)
      */
     public $is_multi_entity = true;
+
+    /**
+     * @var bool    Edit in the add form
+     */
+    public $edit_in_add_form = true;
 
     /**
      * @var Dictionary    Cache of the list of the request type for next_status show output
@@ -401,9 +428,9 @@ class RequestManagerStatusDictionary extends Dictionary
                 'moreAttributes' => 'width="20%"',
             ),
             'td_input' => array(
-                'moreAttributes' => 'width="50%"',
+                'moreAttributes' => 'width="36%"',
                 'positionLine' => 1,
-                'colspan' => 3,
+                'colspan' => 2,
             ),
         );
 
@@ -416,9 +443,9 @@ class RequestManagerStatusDictionary extends Dictionary
                 'moreAttributes' => 'width="20%"',
             ),
             'td_input' => array(
-                'moreAttributes' => 'width="50%"',
+                'moreAttributes' => 'width="36%"',
                 'positionLine' => 1,
-                'colspan' => 3,
+                'colspan' => 2,
             ),
         );
 

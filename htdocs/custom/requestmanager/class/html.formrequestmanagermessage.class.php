@@ -667,6 +667,7 @@ SCRIPT;
             foreach ($object->assigned_user_ids as $user_id) {
                 if (!isset($users_cache[$user_id])) {
                     $user = new User($db);
+                    $user->fetch($user_id);
                     $users_cache[$user_id] = $user;
                 }
                 $user_names[] = $users_cache[$user_id]->getFullName($langs);
@@ -676,6 +677,7 @@ SCRIPT;
             foreach ($object->assigned_user_added_ids as $user_id) {
                 if (!isset($users_cache[$user_id])) {
                     $user = new User($db);
+                    $user->fetch($user_id);
                     $users_cache[$user_id] = $user;
                 }
                 $user_names[] = $users_cache[$user_id]->getFullName($langs);
@@ -685,6 +687,7 @@ SCRIPT;
             foreach ($object->assigned_user_deleted_ids as $user_id) {
                 if (!isset($users_cache[$user_id])) {
                     $user = new User($db);
+                    $user->fetch($user_id);
                     $users_cache[$user_id] = $user;
                 }
                 $user_names[] = $users_cache[$user_id]->getFullName($langs);
@@ -694,6 +697,7 @@ SCRIPT;
             foreach ($object->assigned_usergroup_ids as $usergroup_id) {
                 if (!isset($usergroups_cache[$usergroup_id])) {
                     $usergroup = new UserGroup($db);
+                    $usergroup->fetch($usergroup_id);
                     $usergroups_cache[$usergroup_id] = $usergroup;
                 }
                 $usergroup_names[] = $usergroups_cache[$usergroup_id]->name;
@@ -703,6 +707,7 @@ SCRIPT;
             foreach ($object->assigned_usergroup_added_ids as $usergroup_id) {
                 if (!isset($usergroups_cache[$usergroup_id])) {
                     $usergroup = new UserGroup($db);
+                    $usergroup->fetch($usergroup_id);
                     $usergroups_cache[$usergroup_id] = $usergroup;
                 }
                 $usergroup_names[] = $usergroups_cache[$usergroup_id]->name;
@@ -712,6 +717,7 @@ SCRIPT;
             foreach ($object->assigned_usergroup_deleted_ids as $usergroup_id) {
                 if (!isset($usergroups_cache[$usergroup_id])) {
                     $usergroup = new UserGroup($db);
+                    $usergroup->fetch($usergroup_id);
                     $usergroups_cache[$usergroup_id] = $usergroup;
                 }
                 $usergroup_names[] = $usergroups_cache[$usergroup_id]->name;
@@ -736,11 +742,13 @@ SCRIPT;
             $vars['__DATE_CLOTURE__'] = dol_print_date($object->date_cloture, 'dayhour');
             if (!isset($users_cache[$object->user_resolved_id])) {
                 $user = new User($db);
+                $user->fetch($user_id);
                 $users_cache[$object->user_resolved_id] = $user;
             }
             $vars['__USER_RESOLVED_NAME__'] = $users_cache[$object->user_resolved_id]->getFullName($langs);
             if (!isset($users_cache[$object->user_cloture_id])) {
                 $user = new User($db);
+                $user->fetch($user_id);
                 $users_cache[$object->user_cloture_id] = $user;
             }
             $vars['__USER_CLOTURE_NAME__'] = $users_cache[$object->user_cloture_id]->getFullName($langs);
@@ -750,11 +758,13 @@ SCRIPT;
             $vars['__DATE_MODIFICATION__'] = dol_print_date($object->date_modification, 'dayhour');
             if (!isset($users_cache[$object->user_creation_id])) {
                 $user = new User($db);
+                $user->fetch($user_id);
                 $users_cache[$object->user_creation_id] = $user;
             }
             $vars['__USER_CREATION_NAME__'] = $users_cache[$object->user_creation_id]->getFullName($langs);
             if (!isset($users_cache[$object->user_modification_id])) {
                 $user = new User($db);
+                $user->fetch($user_id);
                 $users_cache[$object->user_modification_id] = $user;
             }
             $vars['__USER_MODIFICATION_NAME__'] = $users_cache[$object->user_modification_id]->getFullName($langs);

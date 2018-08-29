@@ -383,15 +383,17 @@ if (empty($reshook)) {
             exit();
         }
     } // Set myself in Assigned users
-    elseif ($action == 'set_myself_assigned_user' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+    elseif (($action == 'set_myself_assigned_user' || ($action == 'confirm_set_myself_assigned_user' && $confirm == 'yes')) && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
         $object->oldcopy = clone $object;
-        $object->assigned_user_ids[] = $user->id;
-        $result = $object->update($user);
-        if ($result < 0) {
-            setEventMessages($object->error, $object->errors, 'errors');
-        } else {
-            header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
-            exit();
+        if (count($object->assigned_user_ids) == 0 || $action == 'confirm_set_myself_assigned_user') {
+            $object->assigned_user_ids[] = $user->id;
+            $result = $object->update($user);
+            if ($result < 0) {
+                setEventMessages($object->error, $object->errors, 'errors');
+            } else {
+                header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
+                exit();
+            }
         }
     } // Set Assigned Notification
     elseif ($action == 'set_assigned_notification' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
@@ -1311,6 +1313,12 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
     if ($action == 'ask_deleteline')
     {
         $formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id . '&lineid=' . $lineid, $langs->trans('DeleteProductLine'), $langs->trans('ConfirmDeleteProductLine'), 'confirm_deleteline', '', 0, 1);
+    }
+
+    // Confirmation to assign myself
+    if ($action == 'set_myself_assigned_user')
+    {
+        $formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('RequestManagerAssignMySelf'), $langs->trans('RequestManagerConfirmAssignMySelf', $object->ref), 'confirm_set_myself_assigned_user', '', 0, 1);
     }
 
 	// Hook

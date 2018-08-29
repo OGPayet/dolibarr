@@ -594,14 +594,6 @@ class RequestManager extends CommonObject
                 }
             }
 
-            // Set assigned
-            if (!$error && (!empty($this->assigned_user_ids) || !empty($this->assigned_usergroup_ids))) {
-                $result = $this->set_assigned($this->assigned_user_ids, $this->assigned_usergroup_ids);
-                if ($result < 0) {
-                    $error++;
-                }
-            }
-
             // Add linked contracts
             if (!$error) {
                 $ret = $this->addContract();
@@ -623,6 +615,14 @@ class RequestManager extends CommonObject
             if (!$error && !empty($this->requester_ids)) {
                 foreach ($this->requester_ids as $requester_id) {
                     $this->add_contact($requester_id, 'REQUESTER', 'external');
+                }
+            }
+
+            // Set status
+            if (!$error) {
+                $ret = $this->set_status($this->statut, -1, $user, 1);
+                if ($ret < 0) {
+                    $error++;
                 }
             }
 
@@ -1283,9 +1283,10 @@ class RequestManager extends CommonObject
 	 *
 	 * @param   User    $user           User that modifies
 	 * @param   bool    $notrigger      false=launch triggers after, true=disable triggers
+     * @param   int		$nonotify		Disable notification of assigned changed
 	 * @return  int                     <0 if KO, >0 if OK
 	 */
-	public function update(User $user, $notrigger = false)
+	public function update(User $user, $notrigger = false, $nonotify=0)
 	{
         global $conf, $langs, $hookmanager;
         $error = 0;
@@ -1423,7 +1424,7 @@ class RequestManager extends CommonObject
 
         // Set assigned
         if (!$error && (!empty($this->assigned_user_ids) || !empty($this->assigned_usergroup_ids))) {
-            $result = $this->set_assigned($this->assigned_user_ids, $this->assigned_usergroup_ids);
+            $result = $this->set_assigned($this->assigned_user_ids, $this->assigned_usergroup_ids, $nonotify);
             if ($result < 0) {
                 $error++;
             }
@@ -1565,9 +1566,10 @@ class RequestManager extends CommonObject
      *  @param	array	$assigned_user_ids          List of user ID assigned to the request
      *  @param 	array   $assigned_usergroup_ids 	List of usergroup ID assigned to the request
      *  @param  int		$notrigger			        Disable all triggers
+     *  @param  int		$nonotify			        Disable notification of assigned changed
      *  @return int                 		        <0 if KO, >0 if OK
      */
-    public function set_assigned($assigned_user_ids, $assigned_usergroup_ids, $notrigger=0)
+    public function set_assigned($assigned_user_ids, $assigned_usergroup_ids, $notrigger=0, $nonotify=0)
     {
         global $user;
 
@@ -1697,7 +1699,7 @@ class RequestManager extends CommonObject
         }
 
         // if assigned user or usergroup changed
-        if (!$error && (count($this->assigned_user_added_ids) > 0 || count($this->assigned_user_deleted_ids) > 0 || count($this->assigned_usergroup_added_ids) > 0 || count($this->assigned_usergroup_deleted_ids) > 0)) {
+        if (!$error && !$nonotify && (count($this->assigned_user_added_ids) > 0 || count($this->assigned_user_deleted_ids) > 0 || count($this->assigned_usergroup_added_ids) > 0 || count($this->assigned_usergroup_deleted_ids) > 0)) {
             // create new event and notify assigned users and contacts
             $result = $this->createActionCommAndNotifyFromTemplateType(self::TEMPLATE_TYPE_NOTIFY_ASSIGNED_USERS_MODIFIED, self::ACTIONCOMM_TYPE_CODE_ASSUSR);
             if ($result < 0) {
@@ -1725,9 +1727,10 @@ class RequestManager extends CommonObject
      * @param   User    $user           User that modifies
 	 * @param   bool    $notrigger      false=launch triggers after, true=disable triggers
      * @param   int     $forcereload    Force reload of the cache
+     * @param   int		$nonotify		Disable notification of assigned changed
 	 * @return  int                     <0 if KO, >0 if OK
 	 */
-	public function set_status($status=0, $status_type=-1, User $user, $notrigger = false, $forcereload = 0)
+	public function set_status($status=0, $status_type=-1, User $user, $notrigger = false, $forcereload = 0, $nonotify = 0)
     {
         global $langs;
         $error = 0;
@@ -1795,6 +1798,12 @@ class RequestManager extends CommonObject
             $status_infos = self::$status_list[$status];
             $assigned_users = !empty($status_infos->fields['assigned_user']) ? (is_string($status_infos->fields['assigned_user']) ? explode(',', $status_infos->fields['assigned_user']) : $status_infos->fields['assigned_user']) : $this->assigned_user_ids;
             $assigned_usergroups = !empty($status_infos->fields['assigned_usergroup']) ? (is_string($status_infos->fields['assigned_usergroup']) ? explode(',', $status_infos->fields['assigned_usergroup']) : $status_infos->fields['assigned_usergroup']) : $this->assigned_usergroup_ids;
+            if (!isset($status_infos->fields['assigned_user_replaced']) || !$status_infos->fields['assigned_user_replaced']) {
+                $assigned_users = array_merge($assigned_users, $this->assigned_user_ids);
+            }
+            if (!isset($status_infos->fields['assigned_usergroup_replaced']) || !$status_infos->fields['assigned_usergroup_replaced']) {
+                $assigned_usergroups = array_merge($assigned_usergroups, $this->assigned_usergroup_ids);
+            }
             $date_operation = null;
             if (isset($status_infos->fields['operation'])) {
                 if ($status_infos->fields['operation'] > 0) {
@@ -1819,7 +1828,7 @@ class RequestManager extends CommonObject
                 $this->assigned_usergroup_ids = $assigned_usergroups;
                 $this->date_operation = $date_operation;
                 $this->date_deadline = $date_deadline;
-                $result = $this->update($user, 1);
+                $result = $this->update($user, 1, $nonotify);
                 if ($result < 0) {
                     $error++;
                 }

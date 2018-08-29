@@ -191,6 +191,8 @@ RequestManagerReOpenRequest                 = Réouvrir demande
 RequestManagerConfirmReOpenRequest          = Êtes-vous sûr de vouloir rouvrir cette demande ?
 RequestManagerDeleteRequest                 = Supprimer demande
 RequestManagerConfirmDeleteRequest          = Êtes-vous sûr de vouloir supprimer cette demande ?
+RequestManagerAssignMySelf                  = M'assigner à la demande
+RequestManagerConfirmAssignMySelf           = Une ou des personnes sont déja assignées à cette demande.<br>Êtes-vous sûr de vouloir vous assigner à cette demande ?
 
 ############################################################
 ### Events list on card
@@ -222,6 +224,10 @@ RequestManagerTypeClosed                                                    = Cl
 RequestManagerStatusDictionaryPicto                                         = Icône
 RequestManagerStatusDictionaryPictoHelp                                     = Nom de l'icone au format dolibarr ('image.png' si mise dans le répertoire '%s', 'image.png@nom_du_module' si mise dans le repertoire /img/ d'un module)
 RequestManagerStatusDictionaryAssignedUser                                  = Utilisateur assigné
+RequestManagerStatusDictionaryAssignedUserReplaced                          = Remplacer
+RequestManagerStatusDictionaryAssignedUserReplacedHelp                      = Remplace les utilsateurs assignés lors du passage à ce statut par ceux renseignés (sinon ils seront ajoutés)
+RequestManagerStatusDictionaryAssignedUserGroupReplaced                     = Remplacer
+RequestManagerStatusDictionaryAssignedUserGroupReplacedHelp                 = Remplace les groupes d'utilsateurs assignés lors du passage à ce statut par ceux renseignés (sinon ils seront ajoutés)
 RequestManagerStatusDictionaryAssignedUserGroup                             = Groupe d'utilisateurs assigné
 RequestManagerStatusDictionaryDeadLine                                      = Durée d'échéance
 RequestManagerStatusDictionaryDeadLineHelp                                  = En minutes, Date d'échéance calculé à partir de la date où la demande est passé à ce statut<br>-1 si la date d'échéance ne change pas, 0 ou non renseigné si il n'y en a pas
@@ -241,6 +247,7 @@ RequestManagerTemplateForType                                               = Ce
 RequestManagerTemplateForRequestType                                        = Ce modèle est dédié pour quel type de demande
 RequestManagerStatusDictionaryOperation                                     = Durée d'opération
 RequestManagerStatusDictionaryOperationHelp                                 = En minutes, Date d'opération calculé à partir de la date où la demande est passé à ce statut<br>-1 si la date d'opération ne change pas, 0 ou non renseigné si il n'y en a pas
+RequestManagerSourceDictionaryEventType                                     = Type d'évenement
 
 ############################################################
 ### Errors

@@ -144,7 +144,7 @@ function requestmanager_show_events(&$requestmanager)
     if (!$sortfield) $sortfield = 'ac.datep';
     if (!$sortorder) $sortorder = 'DESC';
 
-    $search_only_linked_to_request = GETPOST('search_ref', 'int');
+    $search_only_linked_to_request = GETPOST('search_only_linked_to_request', 'int');
     $search_include_event_other_request = GETPOST('search_include_event_other_request', 'int');
     $search_ref = GETPOST('search_ref', 'alpha');
     $search_origin = GETPOST('search_origin', 'array');
@@ -314,21 +314,38 @@ function requestmanager_show_events(&$requestmanager)
     if (is_array($extrafields->attribute_label) && count($extrafields->attribute_label)) $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "actioncomm_extrafields as ef on (ac.id = ef.fk_object)";
     if (is_array($extrafields_message->attribute_label) && count($extrafields_message->attribute_label)) $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "requestmanager_message_extrafields as efm on (ac.id = efm.fk_object)";
     $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_actioncomm as cac ON cac.id = ac.fk_action";
-    $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "user as uo on uo.rowid = ac.fk_user_action";
-    $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "user as ud on ud.rowid = ac.fk_user_done";
-    $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "user as ua on ua.rowid = ac.fk_user_author";
-    $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "user as um on um.rowid = ac.fk_user_mod";
-    $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "projet as p on p.rowid = ac.fk_project";
+    $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "user as uo ON uo.rowid = ac.fk_user_action";
+    $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "user as ud ON ud.rowid = ac.fk_user_done";
+    $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "user as ua ON ua.rowid = ac.fk_user_author";
+    $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "user as um ON um.rowid = ac.fk_user_mod";
+    $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "projet as p ON p.rowid = ac.fk_project";
+    if ($search_only_linked_to_request) {
+        // Todo a completer si il y a d'autres correspondances
+        $element_correspondance = "(".
+            "IF(ac.elementtype = 'contract', 'contrat', ".
+            " IF(ac.elementtype = 'invoice', 'facture', ".
+            "  IF(ac.elementtype = 'order', 'commande', ".
+            "   ac.elementtype)))".
+            ")";
+
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "element_element as ee";
+        $sql .= " ON (ee.targettype = 'requestmanager' AND ee.fk_target = " . $requestmanager->id . " AND ee.sourcetype = " . $element_correspondance . " AND ee.fk_source = ac.fk_element)";
+        $sql .= " OR (ee.sourcetype = 'requestmanager' AND ee.fk_source = " . $requestmanager->id . " AND ee.targettype = " . $element_correspondance . " AND ee.fk_target = ac.fk_element)";
+    }
     // Add 'from' from hooks
     $parameters = array();
     $reshook = $hookmanager->executeHooks('printFieldListFrom', $parameters);    // Note that $action and $object may have been modified by hook
     $sql .= ' WHERE ac.fk_soc = ' . $requestmanager->socid;
     $sql .= ' AND ac.entity IN (' . getEntity('agenda') . ')';
     if ($search_only_linked_to_request) {
-        //$sql .= ' AND ac.fk_element = ' . $requestmanager->id;
-    }
-    if ($search_include_event_other_request) {
-
+        $sql .= " AND (";
+        $sql .= "   (ac.elementtype = 'requestmanager' AND ac.fk_element = " . $requestmanager->id . ")";
+        $sql .= "   OR ee.rowid IS NOT NULL";
+        $sql .= " )";
+    } else {
+        if (!$search_include_event_other_request) {
+            $sql .= " AND NOT (ac.fk_element != " . $requestmanager->id . " AND ac.elementtype = 'requestmanager')";
+        }
     }
     if ($search_ref) $sql .= natural_search('ac.id', $search_ref);
     if (!empty($search_origin)) $sql .= " AND ac.elementtype IN ('" . implode("','", $search_origin) . "')";
@@ -413,6 +430,7 @@ function requestmanager_show_events(&$requestmanager)
     $reshook = $hookmanager->executeHooks('printFieldListWhere', $parameters);    // Note that $action and $object may have been modified by hook
     $sql .= $hookmanager->resPrint;
 
+    $sql .= " GROUP BY ac.id";
     $sql .= $db->order($sortfield, $sortorder);
 
     // Count total nb of records
@@ -1184,6 +1202,11 @@ function requestmanager_get_elements_infos()
             'picto' => 'object_contact',
         ),
         'contrat' => array(
+            'label' => 'Contract',
+            'langs' => array('contracts'),
+            'picto' => 'object_contract',
+        ),
+        'contract' => array(
             'label' => 'Contract',
             'langs' => array('contracts'),
             'picto' => 'object_contract',
