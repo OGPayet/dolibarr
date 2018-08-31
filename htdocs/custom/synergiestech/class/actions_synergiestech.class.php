@@ -278,7 +278,7 @@ class ActionsSynergiesTech
 
         $contexts = explode(':', $parameters['context']);
 
-        if (in_array('advancedticketcard', $contexts)) {
+        if (in_array('requestmanagercard', $contexts)) {
             if ($action == 'synergiestech_returnproducts') {
                 $langs->load("orders");
                 $langs->load("retourproduits@retourproduits");
@@ -571,7 +571,7 @@ SCRIPT;
         $contexts = explode(':', $parameters['context']);
         $confirm = GETPOST('confirm');
 
-        if (in_array('advancedticketcard', $contexts)) {
+        if (in_array('requestmanagercard', $contexts)) {
             if ($action == 'synergiestech_set_thirdparty') {
                 $object->socid = GETPOST('socid', 'int');
                 if ($object->updateCommon($user) < 0) {
