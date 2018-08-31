@@ -31,7 +31,7 @@ class RequestManagerStatusDictionary extends Dictionary
     /**
      * @var int         Version of this dictionary
      */
-    public $version = 4;
+    public $version = 5;
 
     /**
      * @var array       List of languages to load
@@ -180,26 +180,6 @@ class RequestManagerStatusDictionary extends Dictionary
         ),
         'type' => array(),
         'request_type' => array(),
-        'assigned_user' => array(),
-        'assigned_user_replaced' => array(
-            'name'       => 'assigned_user_replaced',
-            'label'      => 'RequestManagerStatusDictionaryAssignedUserReplaced',
-            'help'       => 'RequestManagerStatusDictionaryAssignedUserReplacedHelp',
-            'type'       => 'boolean',
-            'td_input' => array(
-                'positionLine' => 1,
-            ),
-        ),
-        'assigned_usergroup' => array(),
-        'assigned_usergroup_replaced' => array(
-            'name'       => 'assigned_usergroup_replaced',
-            'label'      => 'RequestManagerStatusDictionaryAssignedUserGroupReplaced',
-            'help'       => 'RequestManagerStatusDictionaryAssignedUserGroupReplacedHelp',
-            'type'       => 'boolean',
-            'td_input' => array(
-                'positionLine' => 1,
-            ),
-        ),
         'operation' => array(
             'name'       => 'operation',
             'label'      => 'RequestManagerStatusDictionaryOperation',
@@ -219,7 +199,6 @@ class RequestManagerStatusDictionary extends Dictionary
             ),
             'td_input'  => array (
                 'align'  => 'left',
-                'positionLine' => 2,
             ),
         ),
         'deadline' => array(
@@ -241,9 +220,29 @@ class RequestManagerStatusDictionary extends Dictionary
             ),
             'td_input'  => array (
                 'align'  => 'left',
-                'positionLine' => 2,
             ),
         ),
+        'assigned_user' => array(),
+        'assigned_user_replaced' => array(
+            'name'       => 'assigned_user_replaced',
+            'label'      => 'RequestManagerStatusDictionaryAssignedUserReplaced',
+            'help'       => 'RequestManagerStatusDictionaryAssignedUserReplacedHelp',
+            'type'       => 'boolean',
+            'td_input' => array(
+                'positionLine' => 1,
+            ),
+        ),
+        'assigned_usergroup' => array(),
+        'assigned_usergroup_replaced' => array(
+            'name'       => 'assigned_usergroup_replaced',
+            'label'      => 'RequestManagerStatusDictionaryAssignedUserGroupReplaced',
+            'help'       => 'RequestManagerStatusDictionaryAssignedUserGroupReplacedHelp',
+            'type'       => 'boolean',
+            'td_input' => array(
+                'positionLine' => 1,
+            ),
+        ),
+        'new_request_type' => array(),
         'next_trigger' => array(
             'name'       => 'next_trigger',
             'label'      => 'RequestManagerStatusDictionaryNextTrigger',
@@ -307,6 +306,11 @@ class RequestManagerStatusDictionary extends Dictionary
             'fields' => array(
                 'assigned_user_replaced' => 'a',
                 'assigned_usergroup_replaced' => 'a',
+            )
+        ),
+        5 => array(
+            'fields' => array(
+                'new_request_type' => 'a',
             )
         ),
     );
@@ -430,7 +434,7 @@ class RequestManagerStatusDictionary extends Dictionary
             'td_input' => array(
                 'moreAttributes' => 'width="36%"',
                 'positionLine' => 1,
-                'colspan' => 2,
+                'colspan' => 3,
             ),
         );
 
@@ -445,7 +449,23 @@ class RequestManagerStatusDictionary extends Dictionary
             'td_input' => array(
                 'moreAttributes' => 'width="36%"',
                 'positionLine' => 1,
-                'colspan' => 2,
+                'colspan' => 3,
+            ),
+        );
+
+        $this->fields['new_request_type'] = array(
+            'name' => 'new_request_type',
+            'label' => 'RequestManagerStatusDictionaryNewRequestType',
+            'help' => 'RequestManagerStatusDictionaryNewRequestTypeHelp',
+            'type' => 'chkbxlst',
+            'options' => 'c_requestmanager_request_type:label:rowid::active=1 and entity IN (' . getEntity('dictionary', 1) . ')',
+            'td_output' => array(
+                'moreAttributes' => 'width="20%"',
+            ),
+            'td_input' => array(
+                'moreAttributes' => 'width="20%"',
+                'positionLine' => 2,
+                'colspan' => 3,
             ),
         );
 
@@ -461,7 +481,7 @@ class RequestManagerStatusDictionary extends Dictionary
             'td_input' => array(
                 'moreAttributes' => 'width="20%"',
                 'positionLine' => 2,
-                'colspan' => 3,
+                'colspan' => 4,
             ),
         );
     }
@@ -492,7 +512,7 @@ class RequestManagerStatusDictionaryLine extends DictionaryLine
             }
         }
 
-        if ($this->id > 0 && in_array($this->id, explode(',', $fieldsValue['next_status']))) {
+        if ($this->id > 0 && !empty($fieldsValue['next_status']) && in_array($this->id, explode(',', $fieldsValue['next_status']))) {
             $this->errors[] = $langs->trans('RequestManagerStatusDictionaryNextStatusCanNotBeItself');
             return -1;
         }
@@ -649,40 +669,58 @@ class RequestManagerStatusDictionaryLine extends DictionaryLine
     {
         if ($fieldName == 'next_status') {
             dol_include_once('/requestmanager/class/requestmanager.class.php');
-            $fieldHtmlName = $keyprefix . $fieldName . $keysuffix;
             $typeFieldHtmlName = $keyprefix . 'type' . $keysuffix;
-            $triggerFieldHtmlName = $keyprefix . 'next_trigger' . $keysuffix;
+            $newRequestTypeFieldHtmlName = $keyprefix . 'new_request_type' . $keysuffix;
+            $nextTriggerFieldHtmlName = $keyprefix . 'next_trigger' . $keysuffix;
             $nextStatusFieldHtmlName = $keyprefix . 'next_status' . $keysuffix;
-            $updateTriggerFunctionName = 'update_' . $keyprefix . 'next_trigger' . $keysuffix;
-            $updateNextStatusFunctionName = 'update_' . $keyprefix . 'next_status' . $keysuffix;
+            $updateNewRequestTypeFunctionName = 'update_' . $newRequestTypeFieldHtmlName;
+            $updateNextTriggerFunctionName = 'update_' . $nextTriggerFieldHtmlName;
+            $updateNextStatusFunctionName = 'update_' . $nextStatusFieldHtmlName;
             $closed_status = RequestManager::STATUS_TYPE_CLOSED;
 
             print <<<SCRIPT
-            <input type="hidden" id="h_$triggerFieldHtmlName" name="$triggerFieldHtmlName" value="" disabled="disabled">
+            <input type="hidden" id="h_$newRequestTypeFieldHtmlName" name="$newRequestTypeFieldHtmlName" value="" disabled="disabled">
+            <input type="hidden" id="h_$nextTriggerFieldHtmlName" name="$nextTriggerFieldHtmlName" value="" disabled="disabled">
             <input type="hidden" id="h_$nextStatusFieldHtmlName" name="$nextStatusFieldHtmlName" value="" disabled="disabled">
 
 <script type="text/javascript">
     $(document).ready(function() {
-        $updateTriggerFunctionName($('#$fieldHtmlName').val().length > 1 || $('#$typeFieldHtmlName').val() == $closed_status);
+        $updateNewRequestTypeFunctionName($('#$nextStatusFieldHtmlName').val().length > 1 || $('#$nextTriggerFieldHtmlName').val().length > 0 || $('#$typeFieldHtmlName').val() == $closed_status);
+        $updateNextTriggerFunctionName($('#$nextStatusFieldHtmlName').val().length > 1 || $('#$newRequestTypeFieldHtmlName').val().length > 0 || $('#$typeFieldHtmlName').val() == $closed_status);
         $updateNextStatusFunctionName($('#$typeFieldHtmlName').val() == $closed_status);
 
-        $('#$fieldHtmlName').on('change', function() {
-            $updateTriggerFunctionName($('#$fieldHtmlName').val().length > 1);
+        $('#$newRequestTypeFieldHtmlName').on('change', function() {
+            $updateNextTriggerFunctionName($('#$newRequestTypeFieldHtmlName').val().length > 0);
+        });
+        $('#$nextTriggerFieldHtmlName').on('keyup change', function() {
+            $updateNewRequestTypeFunctionName($('#$nextTriggerFieldHtmlName').val().length > 0);
+        });
+        $('#$nextStatusFieldHtmlName').on('change', function() {
+            $updateNewRequestTypeFunctionName($('#$nextStatusFieldHtmlName').val().length > 1);
+            $updateNextTriggerFunctionName($('#$nextStatusFieldHtmlName').val().length > 1);
         });
         $('#$typeFieldHtmlName').on('change', function() {
-            var status = $('#$typeFieldHtmlName').val() == $closed_status;
-            $updateNextStatusFunctionName(status);
-            $updateTriggerFunctionName(status);
+            $updateNewRequestTypeFunctionName($('#$nextStatusFieldHtmlName').val().length > 1 || $('#$nextTriggerFieldHtmlName').val().length > 0 || $('#$typeFieldHtmlName').val() == $closed_status);
+            $updateNextTriggerFunctionName($('#$nextStatusFieldHtmlName').val().length > 1 || $('#$newRequestTypeFieldHtmlName').val().length > 0 || $('#$typeFieldHtmlName').val() == $closed_status);
+            $updateNextStatusFunctionName($('#$typeFieldHtmlName').val() == $closed_status);
         });
 
-        function $updateTriggerFunctionName(status) {
-            $('#$triggerFieldHtmlName').prop('disabled', status);
-            $('#h_$triggerFieldHtmlName').prop('disabled', !status);
+        function $updateNewRequestTypeFunctionName(status) {
+            $('#$newRequestTypeFieldHtmlName').prop('disabled', status);
+            $('#h_$newRequestTypeFieldHtmlName').prop('disabled', !status);
             if (status) {
-                $('#$triggerFieldHtmlName').val('');
+                $('#$newRequestTypeFieldHtmlName').val(null).trigger('change');
+            }
+        }
+        function $updateNextTriggerFunctionName(status) {
+            $('#$nextTriggerFieldHtmlName').prop('disabled', status);
+            $('#h_$nextTriggerFieldHtmlName').prop('disabled', !status);
+            if (status) {
+                $('#$nextTriggerFieldHtmlName').val('');
             }
         }
         function $updateNextStatusFunctionName(status) {
+            status = status &&
             $('#$nextStatusFieldHtmlName').prop('disabled', status);
             $('#h_$nextStatusFieldHtmlName').prop('disabled', !status);
             if (status) {
