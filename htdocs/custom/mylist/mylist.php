@@ -490,6 +490,7 @@ if ($result) {
 
 	// en mode standard on affiche la limite au max
 	$limit=min($num, $limit);
+
 	while ($i < $limit) {
 		$objp = $db->fetch_object($result);
 		$var=!$var;

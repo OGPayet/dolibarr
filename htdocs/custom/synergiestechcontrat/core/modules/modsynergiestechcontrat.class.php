@@ -177,7 +177,9 @@ class modsynergiestechcontrat extends DolibarrModulessynergiestechcontrat
 		// 'stock'            to add a tab in stock view
 		// 'thirdparty'       to add a tab in third party view
 		// 'user'             to add a tab in user view
-//         $this->tabs = array();
+        $this->tabs = array(
+			'contract:+invoice:Invoice:@synergiestechcontrat:/custom/synergiestechcontrat/tabs/invoice.php?id=__ID__',
+		);
 
 //		if (! isset($conf->synergiestechcontrat) || ! isset($conf->synergiestechcontrat->enabled))
 //        {

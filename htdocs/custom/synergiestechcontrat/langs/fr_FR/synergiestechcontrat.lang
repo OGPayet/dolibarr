@@ -62,3 +62,6 @@ FacturesGeneres=%s factures générées
 FactureGenere=Facture générée
 NoIndice0= %s Indice de référence non fournit
 NoIndice1= %s Indice courant non disponible
+
+Invoice=Factures
+ListOfInvoices=Liste des factures
