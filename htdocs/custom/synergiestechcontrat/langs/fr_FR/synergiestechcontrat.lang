@@ -60,6 +60,8 @@ ModeleGenere=Modèle de facture généré
 FacturationContrat=Facturation contrat
 FacturesGeneres=%s factures générées
 FactureGenere=Facture générée
+FacturesAlreadys=%s factures déjà facturées
+FacturesAlready=Facture déjà facturée
 NoIndice0= %s Indice de référence non fournit
 NoIndice1= %s Indice courant non disponible
 

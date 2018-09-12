@@ -50,6 +50,7 @@ if (!$error && $massaction == 'facture') {
 
     $objecttmp = new $objectclass($db);
     $nbok      = 0;
+	$nbalready = 0;
     foreach ($toselect as $toselectid) {
         $result = $objecttmp->fetch($toselectid);
         if ($result > 0) {
@@ -125,88 +126,103 @@ if (!$error && $massaction == 'facture') {
             $result = 1;
             // load facturerecS linked
             $objecttmp->fetchObjectLinked();
-            if (isset($objecttmp->linkedObjects["facturerec"])) {
-                // most recent facturerec
-                foreach ($objecttmp->linkedObjects["facturerec"] as $idref => $obj) {
-                    $desc = '';
-                    if ($startdate < $now && $now < $enddate || $tacitagreement && $now > $enddate) { // le contrat est en cour
-                        $fac          = new Facture($db);
-                        $fac->fac_rec = $obj->id;
-                        $fac->socid   = $fac->fk_soc  = $obj->socid;
-						$fac->fetch_thirdparty();
-						$fac->date    = dol_now();
-						$fac->array_options['options_datedeb'] = $firstdayofperiod;
-						$fac->array_options['options_datefin'] = $lastdayofperiod;
-                        $fac->create($user, 1);
 
-                        $ratio        = 1; // periode partielle
-                        $majoration   = 0; // majoration indice
-                        $desc         .= ' '.dol_print_date($firstdayofperiod, 'day').' => '.dol_print_date($lastdayofperiod, 'day');
-
-                        if ($firstdayofperiod < $startdate) { // prorata de d?but
-                            $ratio *= 1 - ($startdate - $firstdayofperiod) / $oneday / $daysinperiod;
-                        } // end prorata d?but
-
-                        if ($lastdayofperiod > $enddate && $tacitagreement != '1') { // prorata de fin
-                            $ratio *= 1 - ($startdate - $lastdayofperiod) / $oneday / $daysinperiod;
-                        } // end prorata fin
-
-                        /*if ($lastdayofperiod > $revalorisationactivationdate && $lastdayofperiod > $revalorisationdate) { // on doit revaloriser
-                            //$nbjouravant          = max($revalorisationactivationdate - $firstdayofperiod, 0) / $oneday;
-                            if ($revalorisationactivationdate == 0) {
-                                $revalorisationactivationdate = $firstdayofperiod;
-                            }
-                            $nbdaysafter          = max($lastdayofperiod - $revalorisationactivationdate, 0) / $oneday;
-                            //P1 = P0 x (S1 / S0)
-                            $montantrevalorisable = $nbdaysafter / $daysinperiod * ($initialvalue - $fixedamount) / $invoicedates; //P0
-                            $indice0              = getIndice($reindexmethod, null, null, $oldindicemonth); //S0
-                            $indice1              = getIndice($reindexmethod, null, $newindicemonth);  //S1
-                            if ($indice0 === false) {
-                                setEventMessages($langs->trans("NoIndice0", $objecttmp->getNomUrl(1)), 0, 'errors');
-                                $error++; // die('indice0 OR indice1 not provided');
-                            }
-                            if ($indice1 === false) {
-                                setEventMessages($langs->trans("NoIndice1", $objecttmp->getNomUrl(1))." $reindexmethod ".$newindicemonth.'/'.date('Y'), 0, 'errors');
-                                $error++;  //die('indice0 OR indice1 not provided');
-                            }
-                            if ($indice0->year_indice >= $indice1->year_indice || $indice0->year_indice >= $indice1->year_indice && $indice0->month_indice >= $indice1->month_indice) { // pas de taux dans le futur
-                                $indice0->indice = 1;
-                                $indice1->indice = 1;
-                            } else {
-                                setEventMessages($objecttmp->getNomUrl(1)." Indice0: $indice0->indice $indice0->month_indice/$indice0->year_indice , Indice1: $indice1->indice $indice1->month_indice/$indice1->year_indice",
-                                    null, 'mesgs');
-                            }
-                            if ($prohibitdecrease == '1' && $indice1->indice < $indice0->indice) { // pas de dépression
-                                $indice0->indice = 1;
-                                $indice1->indice = 1;
-                            }
-                            //P1 = P0 x (S1 / S0)
-                            $majoration += $montantrevalorisable * $indice1->indice / $indice0->indice - $montantrevalorisable;
-//                            var_dump($majoration, $montantrevalorisable, $indice1, $indice0, $montantrevalorisable);
-//                            die($ratio.' '.$nbdaysafter.' '.$montantrevalorisable.' '.$majoration);
-                        } // end revalorisation*/
-                        if (!$error) { // on met ? jour la facture
-                            foreach ($fac->lines as &$line) {
-                                //print '<pre>';var_dump($fac->tva_tx);die();
-                                $fac->updateline(
-                                    $line->id, $desc, $line->multicurrency_subprice * $ratio + $majoration, $line->qty, $line->remise_percent, $line->date_start, $line->date_end,
-                                    $line->tva_tx
-                                );
-
-                            }
-                        }
-                    }
+			//Check if this period is not already invoiced
+			$already_invoice = false;
+			if (isset($objecttmp->linkedObjects["facture"])) { // delete facture rec
+                //Suppression des factures modèles
+                foreach ($objecttmp->linkedObjects["facture"] as $obj) {
+					if(($firstdayofperiod <= strtotime($obj->array_options['options_datedeb'])) ||
+					($firstdayofperiod > strtotime($obj->array_options['options_datedeb']) && $firstdayofperiod <= strtotime($obj->array_options['options_datefin'])) ||
+					($lastdayofperiod <= strtotime($obj->array_options['options_datefin']))) {
+						$already_invoice = true;
+					}
                 }
             }
-            //$db->commit();
-            //die();
-            if ($result <= 0) {
-                setEventMessages($objecttmp->error, $objecttmp->errors, 'errors');
-                $error++;
-                break;
-            } else $nbok++;
-        }
-        else {
+			if($already_invoice == false) {
+				if (isset($objecttmp->linkedObjects["facturerec"])) {
+					// most recent facturerec
+					foreach ($objecttmp->linkedObjects["facturerec"] as $idref => $obj) {
+						$desc = '';
+						if ($startdate < $now && $now < $enddate || $tacitagreement && $now > $enddate) { // le contrat est en cour
+							$fac          = new Facture($db);
+							$fac->fac_rec = $obj->id;
+							$fac->socid   = $fac->fk_soc  = $obj->socid;
+							$fac->fetch_thirdparty();
+							$fac->date    = dol_now();
+							$fac->remise_percent    = 20;
+							$fac->array_options['options_datedeb'] = $firstdayofperiod;
+							$fac->array_options['options_datefin'] = $lastdayofperiod;
+							$fac->create($user, 1);
+
+							$ratio        = 1; // periode partielle
+							$majoration   = 0; // majoration indice
+							$desc         .= ' '.dol_print_date($firstdayofperiod, 'day').' => '.dol_print_date($lastdayofperiod, 'day');
+
+							if ($firstdayofperiod < $startdate) { // prorata de d?but
+								$ratio *= 1 - ($startdate - $firstdayofperiod) / $oneday / $daysinperiod;
+							} // end prorata d?but
+
+							if ($lastdayofperiod > $enddate && $tacitagreement != '1') { // prorata de fin
+								$ratio *= 1 - ($startdate - $lastdayofperiod) / $oneday / $daysinperiod;
+							} // end prorata fin
+
+							/*if ($lastdayofperiod > $revalorisationactivationdate && $lastdayofperiod > $revalorisationdate) { // on doit revaloriser
+								//$nbjouravant          = max($revalorisationactivationdate - $firstdayofperiod, 0) / $oneday;
+								if ($revalorisationactivationdate == 0) {
+									$revalorisationactivationdate = $firstdayofperiod;
+								}
+								$nbdaysafter          = max($lastdayofperiod - $revalorisationactivationdate, 0) / $oneday;
+								//P1 = P0 x (S1 / S0)
+								$montantrevalorisable = $nbdaysafter / $daysinperiod * ($initialvalue - $fixedamount) / $invoicedates; //P0
+								$indice0              = getIndice($reindexmethod, null, null, $oldindicemonth); //S0
+								$indice1              = getIndice($reindexmethod, null, $newindicemonth);  //S1
+								if ($indice0 === false) {
+									setEventMessages($langs->trans("NoIndice0", $objecttmp->getNomUrl(1)), 0, 'errors');
+									$error++; // die('indice0 OR indice1 not provided');
+								}
+								if ($indice1 === false) {
+									setEventMessages($langs->trans("NoIndice1", $objecttmp->getNomUrl(1))." $reindexmethod ".$newindicemonth.'/'.date('Y'), 0, 'errors');
+									$error++;  //die('indice0 OR indice1 not provided');
+								}
+								if ($indice0->year_indice >= $indice1->year_indice || $indice0->year_indice >= $indice1->year_indice && $indice0->month_indice >= $indice1->month_indice) { // pas de taux dans le futur
+									$indice0->indice = 1;
+									$indice1->indice = 1;
+								} else {
+									setEventMessages($objecttmp->getNomUrl(1)." Indice0: $indice0->indice $indice0->month_indice/$indice0->year_indice , Indice1: $indice1->indice $indice1->month_indice/$indice1->year_indice",
+										null, 'mesgs');
+								}
+								if ($prohibitdecrease == '1' && $indice1->indice < $indice0->indice) { // pas de dépression
+									$indice0->indice = 1;
+									$indice1->indice = 1;
+								}
+								//P1 = P0 x (S1 / S0)
+								$majoration += $montantrevalorisable * $indice1->indice / $indice0->indice - $montantrevalorisable;
+	//                            var_dump($majoration, $montantrevalorisable, $indice1, $indice0, $montantrevalorisable);
+	//                            die($ratio.' '.$nbdaysafter.' '.$montantrevalorisable.' '.$majoration);
+							} // end revalorisation*/
+							if (!$error) { // on met ? jour la facture
+								foreach ($fac->lines as &$line) {
+									//print '<pre>';var_dump($fac->tva_tx);die();
+									$fac->updateline(
+										$line->id, $desc, $line->multicurrency_subprice * $ratio + $majoration, $line->qty, $line->remise_percent, $line->date_start, $line->date_end,
+										$line->tva_tx
+									);
+
+								}
+							}
+						}
+					}
+				}
+				if ($result <= 0) {
+					setEventMessages($objecttmp->error, $objecttmp->errors, 'errors');
+					$error++;
+					break;
+				} else $nbok++;
+			} else {
+				$nbalready++;
+			}
+        } else {
             setEventMessages($objecttmp->error, $objecttmp->errors, 'errors');
             $error++;
             break;
@@ -215,14 +231,18 @@ if (!$error && $massaction == 'facture') {
 
     if (!$error) {
         if ($nbok > 1) setEventMessages($langs->trans("FacturesGeneres", $nbok), null, 'mesgs');
-        else setEventMessages($langs->trans("FactureGenere", $nbok), null, 'mesgs');
+        else if ($nbok > 0) setEventMessages($langs->trans("FactureGenere", $nbok), null, 'mesgs');
         $db->commit();
 
 		$massaction = 'facturerec';
-    }
-    else {
+    } else {
         $db->rollback();
     }
+	if($nbalready > 1) {
+		setEventMessages($langs->trans("FacturesAlreadys", $nbalready), null, 'warnings');
+	} else if($nbalready > 0) {
+		setEventMessages($langs->trans("FacturesAlready", $nbalready), null, 'warnings');
+	}
 }
 
 // Facture modèle
@@ -239,7 +259,7 @@ if (!$error && $massaction == 'facturerec') {
             if ($fixedamount === null || $fixedamount === '') {
                 $fixedamount = 0;
             }
-            $oneday                 = 60 * 60 * 24;
+            $oneday       = 60 * 60 * 24;
             $nbFactAn     = array(0, 12, 4, 2, 1); // mensuel, trimestre ....
             $invoicedates = $nbFactAn[$objecttmp->array_options['options_invoicedates']]; //periode
 
@@ -427,7 +447,7 @@ if (!$error && $massaction == 'facturerec') {
 						$localtax1_tx = get_localtax($tva_tx, 1, $facture->thirdparty);
 						$localtax2_tx = get_localtax($tva_tx, 2, $facture->thirdparty);
 						$qty          = 1;
-						$resultat     = $facture->addline($desc, $initialvalue / $invoicedates, $qty, $tva_tx, $localtax1_tx, $localtax2_tx, $lines[$i]->fk_product, $lines[$i]->remise_percent,
+						$resultat     = $facture->addline($desc, $initialvalue / $invoicedates, $qty, $tva_tx, $localtax1_tx, $localtax2_tx, $lines[$i]->fk_product, $cl->remise_percent,
 							$date_start, $date_end, 0, $lines[$i]->info_bits, $lines[$i]->fk_remise_except, 'HT', 0, $product_type, $lines[$i]->rang, $lines[$i]->special_code, $facture->origin,
 							$lines[$i]->rowid, $fk_parent_line, $lines[$i]->fk_fournprice, $initialvalue / $invoicedates, $label, $array_options, $lines[$i]->situation_percent, $lines[$i]->fk_prev_id,
 							$lines[$i]->fk_unit);

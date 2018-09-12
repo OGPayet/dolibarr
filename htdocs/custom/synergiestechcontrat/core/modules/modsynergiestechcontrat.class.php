@@ -352,17 +352,51 @@ class modsynergiestechcontrat extends DolibarrModulessynergiestechcontrat
 	 */
 	public function init($options='')
 	{
+		global $conf, $langs, $db;
 		$sql = array();
 
 		$this->_load_tables('/synergiestechcontrat/sql/');
 
 		// Create extrafields
-		include_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
-		$extrafields = new ExtraFields($this->db);
-		//$result1=$extrafields->addExtraField('myattr1', "New Attr 1 label", 'boolean', 1, 3, 'thirdparty');
-		//$result2=$extrafields->addExtraField('myattr2', "New Attr 2 label", 'string', 1, 10, 'project');
+        include_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
+        $extrafields = new ExtraFields($this->db);
+        // Invoice
+        $result=$extrafields->addExtraField('datedeb', 'datedeb', 'date', 0,  '', 'facture',   0, 0, '', '', 1, '', 0, 0, '');
+        $result=$extrafields->addExtraField('datefin', 'datefin', 'date', 0,  '', 'facture',   0, 0, '', '', 1, '', 0, 0, '');
 
-			//ODT template
+		//Myfield
+		$target_array = array('datedeb','datefin');
+
+		foreach($target_array as $target) {
+			$sql1 = 'SELECT *';
+			$sql1.= ' FROM '.MAIN_DB_PREFIX.'myfield';
+			$sql1.= " WHERE label = '".$target."'";
+
+			$result = $db->query($sql1);
+			if ($result) {
+				$num = $db->num_rows($result);
+				if($num == 0) {
+					$db->begin();
+
+					// Insertion dans base de la ligne
+					$sql2 = 'INSERT INTO '.MAIN_DB_PREFIX.'myfield';
+					$sql2.= ' (label,context,author,active,typefield,movefield,formatfield,color,replacement,initvalue)';
+					$sql2.= " VALUES ('".$target."','','',1,0,0,'','','','')";
+
+					$resql=$db->query($sql2);
+					if ($resql)
+					{
+						$db->commit();
+					}
+					else
+					{
+						$db->rollback();
+					}
+				}
+			}
+		}
+
+		//ODT template
 		$src= dol_buildpath('/synergiestechcontrat/doctemplates/invoices/template_invoice.odt');
 		$dirodt=DOL_DATA_ROOT.'/doctemplates/invoices';
 		$dest=$dirodt.'/template_invoice.odt';
