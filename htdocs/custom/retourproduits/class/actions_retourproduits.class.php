@@ -68,6 +68,9 @@ class ActionsRetourProduits // extends CommonObject
                 }
 
                 if (!empty($selectedLines)) {
+                    require_once DOL_DOCUMENT_ROOT . '/product/class/product.class.php';
+
+
                     $langs->load('errors');
                     $langs->load("equipement@equipement");
                     $error = 0;
@@ -84,11 +87,13 @@ class ActionsRetourProduits // extends CommonObject
 
                     // Add lines
                     $idx = 0;
+                    $productStatic = new Product($db);
                     foreach ($selectedLines as $line_id) {
 
                         $fk_product = GETPOST('p-' . $line_id, 'int');
                         $qty = GETPOST('q-' . $line_id, 'int');
                         $fk_entrepot_dest = GETPOST('w-' . $line_id, 'int');
+                        $equipments = explode(',', GETPOST('e-' . $line_id, 'alpha'));
 
                         // Test variables
                         if ($qty <= 0) {
@@ -103,8 +108,16 @@ class ActionsRetourProduits // extends CommonObject
                             setEventMessages($lines[$line_id]['product'].': '.$langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("Warehouse")), null, 'errors');
                             $error++;
                         }
+                        if ($fk_product > 0) {
+                            $productStatic->fetch($fk_product);
+                            $productSerialize = $productStatic->array_options['options_synergiestech_to_serialize'];
 
-                        $equipments = explode(',', GETPOST('e-' . $line_id, 'alpha'));
+                            if ($productSerialize && count($equipments)>0 && empty($equipments[0])) {
+                                setEventMessages($lines[$line_id]['product'].': '.$langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("Equipement")), null, 'errors');
+                                $error++;
+                            }
+                        }
+
                         if (!empty($equipments)) {
                             if (count($equipments) > min($qty, $lines[$line_id]['qty_sent'])) {
                                 setEventMessages($lines[$line_id]['product'].': '.$langs->trans("RetourProduitsErrorTooManyEquipmentSelected"), null, 'errors');
@@ -112,15 +125,17 @@ class ActionsRetourProduits // extends CommonObject
                             }
 
                             foreach ($equipments as $equipment_id) {
-                                $line = new RetourProduitsLigne($db);
-                                $line->fk_product = $fk_product;
-                                $line->qty = 1;
-                                $line->fk_entrepot_dest = $fk_entrepot_dest;
-                                $line->fk_origin_line = $line_id;
-                                $line->fk_equipement = $equipment_id;
+                                if ($equipment_id) {
+                                    $line = new RetourProduitsLigne($db);
+                                    $line->fk_product = $fk_product;
+                                    $line->qty = 1;
+                                    $line->fk_entrepot_dest = $fk_entrepot_dest;
+                                    $line->fk_origin_line = $line_id;
+                                    $line->fk_equipement = $equipment_id;
 
-                                $qty--;
-                                $rpds->lines[] = $line;
+                                    $qty--;
+                                    $rpds->lines[] = $line;
+                                }
                             }
                         }
 
