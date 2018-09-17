@@ -54,6 +54,9 @@ ListOfContractsToFacturerec=Facturation des contrats
 FactureContracts=Facturation des contrats
 AddModelFactureRec=Générer facture modèle
 AddFacture=Facturer ces contrats
+AddFactureAnterieur=Facturer dans le passé
+
+ExtrafieldOldInvoice=Facturation d'une période passé possible ?
 
 ModelesGeneres= %s modèle de facture générés
 ModeleGenere=Modèle de facture généré
@@ -67,3 +70,9 @@ NoIndice1= %s Indice courant non disponible
 
 Invoice=Factures
 ListOfInvoices=Liste des factures
+Terminate=Résiliation
+TerminateTitle=Résilier ce contrat
+TargetDate=Date souhaitée de résiliation
+RealDate=Date effective de résiliation
+Justificatif=Justificatif de résiliation
+ConfirmTerminate=Résiliation de ce contrat et tous ses services

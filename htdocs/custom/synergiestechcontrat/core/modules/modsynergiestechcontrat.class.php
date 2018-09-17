@@ -91,8 +91,8 @@ class modsynergiestechcontrat extends DolibarrModulessynergiestechcontrat
 									'tpl' => 0,                                      	// Set this to 1 if module overwrite template dir (core/tpl)
 									'barcode' => 0,                                  	// Set this to 1 if module has its own barcode directory (core/modules/barcode)
 									'models' => 0,                                   	// Set this to 1 if module has its own models directory (core/modules/xxx)
-									'css' => array('/synergiestechcontrat/css/synergiestechcontrat.css.php'),	// Set this to relative path of css file if module has its own css file
-									'js' => array('/synergiestechcontrat/js/synergiestechcontrat.js.php'),          // Set this to relative path of js file if module must load a js on all pages
+									'css' => array(),	// Set this to relative path of css file if module has its own css file
+									'js' => array(),          // Set this to relative path of js file if module must load a js on all pages
 									'hooks' => array('odtgeneration','all') 	// Set here all hooks context managed by module. You can also set hook context 'all'
 
 
@@ -179,6 +179,7 @@ class modsynergiestechcontrat extends DolibarrModulessynergiestechcontrat
 		// 'user'             to add a tab in user view
         $this->tabs = array(
 			'contract:+invoice:Invoice:@synergiestechcontrat:/custom/synergiestechcontrat/tabs/invoice.php?id=__ID__',
+			'contract:+terminate:Terminate:@synergiestechcontrat:/custom/synergiestechcontrat/tabs/terminate.php?id=__ID__',
 		);
 
 //		if (! isset($conf->synergiestechcontrat) || ! isset($conf->synergiestechcontrat->enabled))
@@ -363,6 +364,9 @@ class modsynergiestechcontrat extends DolibarrModulessynergiestechcontrat
         // Invoice
         $result=$extrafields->addExtraField('datedeb', 'datedeb', 'date', 0,  '', 'facture',   0, 0, '', '', 1, '', 0, 0, '');
         $result=$extrafields->addExtraField('datefin', 'datefin', 'date', 0,  '', 'facture',   0, 0, '', '', 1, '', 0, 0, '');
+        $result=$extrafields->addExtraField('oldinvoice', $langs->trans('ExtrafieldOldInvoice'), 'boolean', 0,  '', 'contrat',   0, 0, '0', '', 1, '', 0, 0, '');
+        $result=$extrafields->addExtraField('targetdate', $langs->trans('TargetDate'), 'date', 10,  '', 'contrat',   0, 0, '', '', 1, '', 0, 0, '');
+        $result=$extrafields->addExtraField('realdate', $langs->trans('RealDate'), 'date', 11,  '', 'contrat',   0, 0, '', '', 1, '', 0, 0, '');
 
 		//Myfield
 		$target_array = array('datedeb','datefin');

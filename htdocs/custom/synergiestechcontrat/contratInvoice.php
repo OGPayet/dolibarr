@@ -359,6 +359,7 @@ if ($resql)
     $arrayofmassactions =  array(
         'facturerec'=>$langs->trans("AddModelFactureRec"),
         'facture'=>$langs->trans("AddFacture"),
+        'factureanterieur'=>$langs->trans("AddFactureAnterieur"),
     );
     //if ($user->rights->contrat->supprimer) $arrayofmassactions['delete']=$langs->trans("Delete");
     if ($massaction == 'presend') $arrayofmassactions=array();
