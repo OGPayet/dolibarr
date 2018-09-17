@@ -54,6 +54,7 @@ function _search($type, $keyword, $asArray=false) {
 	$complete_label = true;
 	$show_find_field = false;
 	$sql_join = '';
+	$link = '';
 
 	$TResult=array();
 
@@ -61,13 +62,16 @@ function _search($type, $keyword, $asArray=false) {
 		$table = MAIN_DB_PREFIX.'societe';
 		$objname = 'Societe';
 		$complete_label = false;
+		$link='/societe/list.php?sall=';
 	}
 	elseif($type == 'projet') {
 		$table = MAIN_DB_PREFIX.'projet';
 		$objname = 'Project';
+		$link='/projet/list.php?search_all=';
 	}
 	elseif($type == 'task') {
 		$table = MAIN_DB_PREFIX.'projet_task';
+		$link='/projet/tasks/list.php?search_all=';
 
 	}
 	elseif($type == 'event') {
@@ -75,6 +79,7 @@ function _search($type, $keyword, $asArray=false) {
 		$objname = 'ActionComm';
 		$id_field = 'id';
 		$complete_label = false;
+		$link='';
 	}
 	elseif($type == 'order') {
 		$table = array(MAIN_DB_PREFIX.'commande',MAIN_DB_PREFIX.'commande_extrafields',MAIN_DB_PREFIX.'commandedet',MAIN_DB_PREFIX.'commandedet_extrafields');
@@ -84,6 +89,7 @@ function _search($type, $keyword, $asArray=false) {
 		$sql_join.=' LEFT JOIN '.MAIN_DB_PREFIX.'commandedet ON ('.MAIN_DB_PREFIX.'commande.rowid = '.MAIN_DB_PREFIX.'commandedet.fk_commande)';
 		$sql_join.=' LEFT JOIN '.MAIN_DB_PREFIX.'commandedet_extrafields ON ('.MAIN_DB_PREFIX.'commandedet.rowid = '.MAIN_DB_PREFIX.'commandedet_extrafields.fk_object)';
 		$id_field = MAIN_DB_PREFIX.'commande.rowid';
+		$link='/commande/list.php?sall=';
 	}
 	elseif($type == 'propal') {
 		$table = array(MAIN_DB_PREFIX.'propal',MAIN_DB_PREFIX.'propal_extrafields',MAIN_DB_PREFIX.'propaldet',MAIN_DB_PREFIX.'propaldet_extrafields');
@@ -93,6 +99,7 @@ function _search($type, $keyword, $asArray=false) {
 		$sql_join.=' LEFT JOIN '.MAIN_DB_PREFIX.'propaldet ON ('.MAIN_DB_PREFIX.'propal.rowid = '.MAIN_DB_PREFIX.'propaldet.fk_propal)';
 		$sql_join.=' LEFT JOIN '.MAIN_DB_PREFIX.'propaldet_extrafields ON ('.MAIN_DB_PREFIX.'propaldet.rowid = '.MAIN_DB_PREFIX.'propaldet_extrafields.fk_object)';
 		$id_field = MAIN_DB_PREFIX.'propal.rowid';
+		$link='/comm/propal/list.php?sall=';
 	}
 	elseif($type == 'supplier_order') {
 		$table = array(MAIN_DB_PREFIX.'commande_fournisseur',MAIN_DB_PREFIX.'commande_fournisseur_extrafields',MAIN_DB_PREFIX.'commande_fournisseurdet',MAIN_DB_PREFIX.'commande_fournisseurdet_extrafields');
@@ -102,6 +109,7 @@ function _search($type, $keyword, $asArray=false) {
 		$sql_join.=' LEFT JOIN '.MAIN_DB_PREFIX.'commande_fournisseurdet ON ('.MAIN_DB_PREFIX.'commande_fournisseur.rowid = '.MAIN_DB_PREFIX.'commande_fournisseurdet.fk_commande)';
 		$sql_join.=' LEFT JOIN '.MAIN_DB_PREFIX.'commande_fournisseurdet_extrafields ON ('.MAIN_DB_PREFIX.'commande_fournisseurdet.rowid = '.MAIN_DB_PREFIX.'commande_fournisseurdet_extrafields.fk_object)';
 		$id_field = MAIN_DB_PREFIX.'commande_fournisseur.rowid';
+		$link='/fourn/commande/list.php?search_all=';
 	}
 	elseif($type == 'invoice') {
 		$table = array(MAIN_DB_PREFIX.'facture',MAIN_DB_PREFIX.'facture_extrafields',MAIN_DB_PREFIX.'facturedet',MAIN_DB_PREFIX.'facturedet_extrafields');
@@ -111,11 +119,19 @@ function _search($type, $keyword, $asArray=false) {
 		$sql_join.=' LEFT JOIN '.MAIN_DB_PREFIX.'facturedet ON ('.MAIN_DB_PREFIX.'facture.rowid = '.MAIN_DB_PREFIX.'facturedet.fk_facture)';
 		$sql_join.=' LEFT JOIN '.MAIN_DB_PREFIX.'facturedet_extrafields ON ('.MAIN_DB_PREFIX.'facturedet.rowid = '.MAIN_DB_PREFIX.'facturedet_extrafields.fk_object)';
 		$id_field = MAIN_DB_PREFIX.'facture.rowid';
+		$link='/compta/facture/list.php?sall=';
 	}
 	elseif($type == 'contact') {
 		$table = MAIN_DB_PREFIX.'socpeople';
 
 		$complete_label = false;
+		$link='/contact/list.php?sall=';
+	}
+		elseif($type == 'product') {
+		$link='/product/list.php?sall=';
+	}
+	elseif($type == 'expedition') {
+		$link='/expedition/list.php?sall=';
 	}
 
 	$table=(Array)$table;
@@ -167,7 +183,7 @@ function _search($type, $keyword, $asArray=false) {
 	$libelle = ucfirst($objname);
 	if($objname == 'CommandeFournisseur') $libelle = 'SupplierOrder';
 
-	if(!$asArray) print '<table class="border" width="100%"><tr class="liste_titre"><td colspan="2">'.$langs->trans( $libelle ).' <span class="badge">'.$nb_results.'</span></td></tr>';
+	if(!$asArray) print '<table class="border" width="100%"><tr class="liste_titre"><td colspan="2">'. (empty($link) ? ' ' : '<a href="' . $link . $keyword .'">') .$langs->trans( $libelle ).'</a> <span class="badge">'.$nb_results.'</span></td></a></tr>';
 
 	if($nb_results == 0) {
 	    if(!$asArray) 	print '<td colspan="2">Pas de résultat</td>';
