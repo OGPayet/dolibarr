@@ -62,7 +62,7 @@ class modCompanyRelationships extends DolibarrModules
         // Module label (no space allowed), used if translation string 'ModuleXXXName' not found (where XXX is value of numeric property 'numero' of module)
         $this->name = preg_replace('/^mod/i', '', get_class($this));
         // Module description, used if translation string 'ModuleXXXDesc' not found (where XXX is value of numeric property 'numero' of module)
-        $this->description = "Description of module Request Manager";
+        $this->description = "Description of module Company Relationships";
         $this->descriptionlong = "";
         $this->editor_name = 'Open-DSI';
         $this->editor_url = 'http://www.open-dsi.fr';
@@ -197,15 +197,15 @@ class modCompanyRelationships extends DolibarrModules
         $this->rights = array();        // Permission array used by this module
         $r = 0;
 
-        $this->rights[$r][0] = 163033;
+        $this->rights[$r][0] = 163047;
         $this->rights[$r][1] = 'Modifier les mises à disposition sur les relations';
         $this->rights[$r][3] = 0;
         $this->rights[$r][4] = 'update_md';
         $this->rights[$r][5] = 'relationship';
         $r++;
 
-        $this->rights[$r][0] = 163034;
-        $this->rights[$r][1] = 'Modifier les mises à disposition lors d\'une creation d\'un element';
+        $this->rights[$r][0] = 163048;
+        $this->rights[$r][1] = 'Modifier les mises à disposition lors d\'une creation d\'un élément';
         $this->rights[$r][3] = 0;
         $this->rights[$r][4] = 'update_md';
         $this->rights[$r][5] = 'element';

@@ -1,126 +1,59 @@
-# Dolibarr language file - en_US - requestmanager
+# Dolibarr language file - en_US - companyrelationships
 CHARSET          = UTF-8
-Module163018Name = Request Manager
-Module163018Desc = Request Manager
+Module163020Name = Company Relationships
+Module163020Desc = Module to manage relationships between thirdparties
+
+############################################################
+### Permissions
+############################################################
+Permission163047 = Modify availability on relationships
+Permission163048 = Modify availability during element creation
 
 ############################################################
 ### Admin setup
 ############################################################
-RequestManagerNotificationSendFromName          = Sender email address
-RequestManagerNotificationSendFromDesc          = Sender email address uses to notify
-RequestManagerNotificationUsersName             = Notify users
-RequestManagerNotificationUsersDesc             = Notify internal users (save in database)
-RequestManagerNotificationByMailName            = Notify by mail
-RequestManagerNotificationByMailDesc            = Notify users by mail
-RequestManagerContractSearchInParentCompanyName = Search contracts of the parent company
-RequestManagerContractSearchInParentCompanyDesc = Search contracts linked to the third of the request in the parent company
-RequestManagerDeadlineTimeDefaultName           = Time for deadline
-RequestManagerDeadlineTimeDefaultDesc           = Default time for request deadline
+CompanyRelationshipsSetup = Configuration of the module "Company Relationships"
 
 ############################################################
-### Actions
+### Tabulation
 ############################################################
-ActionAC_RM_ASSUSR  = Assigned users change
-ActionAC_RM_IN      = Input request message
-ActionAC_RM_OUT     = Output request message
-ActionAC_RM_PRIV    = Private request message
-ActionAC_RM_STAT    = Status change
+CompanyRelationshipsTab = Contractors / Benefactors
 
 ############################################################
-### Menu
+### Events list on card
 ############################################################
-RequestManagerMenuTop                      = Requests
-RequestManagerMenuLeftTitle                = Requests
-RequestManagerMenuLeftNewRequest           = New request
-RequestManagerMenuLeftList                 = List
-RequestManagerMenuLeftMyList               = My requests
-RequestManagerMenuLeftListNotAssigned      = Requests not assigned
-RequestManagerMenuLeftListNotResolved      = Requests not resolved
-RequestManagerMenuLeftListClosed           = Requests closed
-RequestManagerMenuTopRequestsFollow        = Follow of requests
-RequestManagerMenuTopDateLastView          = Last access date
-RequestManagerMenuTopCreateFast            = Create fast request
-
-############################################################
-### Card
-############################################################
-RequestManagerAssignToMe                = Assign to me
-RequestManagerSetCategories             = Set tags/categories
-
-############################################################
-### List
-############################################################
-RequestManagerListOfRequests            = Requests list
-RequestManagerNotAssigned               = Not assigned
-RequestManagerMyRequest                 = My requests
-RequestManagerTypeNotResolved           = Not resolved
-RequestManagerExternalReferenceShort    = External reference
-RequestManagerResolvedBy                = Resolved by
-RequestManagerDateResolved              = Resolved date
-
-############################################################
-### Lists follow
-############################################################
-RequestManagerListsFollowTitle                = Follow requests
-RequestManagerListsFollowMyRequest            = My requests
-RequestManagerListsFollowMyGroupRequest       = My group requests
-RequestManagerListsFollowLinkToMyEvent        = My reuqests to follow
-RequestManagerListsFollowMyFutureRequest      = My future requests
-RequestManagerListsFollowMyFutureGroupRequest = Future requests to my group
-
-############################################################
-### Create fast
-############################################################
-RequestManagerCreateFastTitle             = Create fast request
-RequestManagerCreateFastActionCommLabel   = Unprocessed events
-RequestManagerCreateFastBtnCreateLabel    = Create request
-RequestManagerCreateFastBtnAssociateLabel = Link to request
-RequestManagerCreateFastContractFormula   = Formula
-RequestManagerLastEvents                  = Last events
-
-############################################################
-### Message form
-############################################################
-RequestManagerSelectKnowledgeBase           = Choose a knowledge base
-RequestManagerSelectTemplate                = Choose a message model
-RequestManagerNoTemplateDefined             = No defined model
-RequestManagerMessageSubject                = Subject
-RequestManagerMessageFile                   = Attachments
-RequestManagerMessage                       = Message
-RequestManagerMessageNotifyByMail           = Send by mail to requesters and watchers contacts
-RequestManagerMessageDirection              = Message direction
-RequestManagerMessageDirectionIn            = Input
-RequestManagerMessageDirectionOut           = Output
+CompanyRelationshipsListOfEvents                              = Events list
+CompanyRelationshipsListMode                                  = View list
+CompanyRelationshipsBlocMode                                  = View block
+CompanyRelationshipsOnlyLinkedObjectToThisRequest             = See only events linked to this order
+CompanyRelationshipsIncludeEventOfOtherRequest                = See events linked to other requests
+CompanyRelationshipsIncludeLinkedEventToChildrenOfThisRequest = See events linked to children requests
 
 ######################################################################
 # Dictionaries
 ######################################################################
-RequestManagerRequestTypeDictionaryLabel              = Requests types
-RequestManagerStatusDictionaryLabel                   = Requests status
-RequestManagerCategoryDictionaryLabel                 = Requests categories
-RequestManagerSourceDictionaryLabel                   = Requests origin
-RequestManagerUrgencyDictionaryLabel                  = Requests emergency
-RequestManagerImpactDictionaryLabel                   = Requests impact
-RequestManagerPriorityDictionaryLabel                 = Requests priority
-RequestManagerMessageTemplateDictionaryLabel          = Messages / notification models
-RequestManagerKnowledgeBaseDictionaryLabel            = Knowledge base
-RequestManagerRequestType                             = Requests types
-RequestManagerType                                    = Type
-RequestManagerTypeInitial                             = Initial
-RequestManagerTypeInProgress                          = In progress
-RequestManagerTypeResolved                            = Resolved
-RequestManagerTypeClosed                              = Closed
-RequestManagerStatusDictionaryPicto                   = Icon
-RequestManagerStatusDictionaryPictoHelp               = Dolibarr icon name format ('image.png' if icon is in the directory path '%s', 'image.png@nom_du_module' else if icon is in the module directory path /img/)
-RequestManagerTemplateTypeNotifyAssignedUsersModified = Notification of an assigned user change
-RequestManagerTemplateTypeNotifyStatusModified        = Notification of a status change
-RequestManagerTemplateTypeNotifyInputMessageAdded     = Notification of a new input message
-RequestManagerTemplateTypeNotifyOutputMessageAdded    = Notification of a new output message
-RequestManagerTemplateTypeMessageTemplateUser         = Message model
+CompanyRelationshipsPublicSpaceAvailabilityDictionaryLabel                  = Public space availability
+CompanyRelationshipsPublicSpaceAvailabilityDictionaryElementHelp            = Write the element name (ex: 'propal' for commercial proposals, 'order' for Order, ...)
+CompanyRelationshipsPublicSpaceAvailabilityDictionaryPrincipalAvailability  = Authorize for the Contractor
+CompanyRelationshipsPublicSpaceAvailabilityDictionaryBenefactorAvailability = Authorize for the Benefactor
+
+############################################################
+### Companies Relationship
+############################################################
+CompanyRelationshipsListOfPrincipalCompanies  = Contractors list
+CompanyRelationshipsListOfBenefactorCompanies = Benefactors list
+CompanyRelationshipsPrincipalCompany          = Contractor
+CompanyRelationshipsBenefactorCompany         = Benefactor
+
+############################################################
+### Companies Relationship : Confirm box
+############################################################
+CompanyRelationshipsEditCompanyRelationships          = Edit thirdparties relationships
+CompanyRelationshipsConfirmEditCompanyRelationships   = Are you sure to edit this thirdparty relationship ?
+CompanyRelationshipsDeleteCompanyRelationships        = Delete thirdparty relationship
+CompanyRelationshipsConfirmDeleteCompanyRelationships = Are you sure to delete this thirdparty relationship ?
 
 ############################################################
 ### Errors
 ############################################################
-RequestManagerErrorNoTemplateLines                              = No mesage template found in configuration for this type of request
-RequestManagerErrorMissingFieldsInTemplate                      = Missing fields in configuration of message template
-RequestManagerCreateFastErrorNoRequestSelected                  = Please select a request
+#CompanyRelationshipsErrorRequestTypeNotFound = Request type not found

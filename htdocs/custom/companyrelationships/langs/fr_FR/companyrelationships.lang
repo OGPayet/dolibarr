@@ -6,8 +6,8 @@ Module163020Desc = Gestionnaire de relations entre tiers
 ############################################################
 ### Permissions
 ############################################################
-Permission163032 = Consulter les demandes
-Permission163033 = Créer/modifier les demandes
+Permission163047 = Modifier les mises à disposition sur les relations
+Permission163048 = Modifier les mises à disposition lors d'une creation d'un élément
 
 ############################################################
 ### Admin setup
@@ -17,7 +17,7 @@ CompanyRelationshipsSetup = Configuration du module "Company Relationships"
 ############################################################
 ### Tabulation
 ############################################################
-CompanyRelationshipsTab  = Donneurs d’ordres / Bénéficiaires
+CompanyRelationshipsTab = Donneurs d’ordres / Bénéficiaires
 
 ############################################################
 ### Events list on card
@@ -34,8 +34,8 @@ CompanyRelationshipsIncludeLinkedEventToChildrenOfThisRequest = Voir aussi les �
 ######################################################################
 CompanyRelationshipsPublicSpaceAvailabilityDictionaryLabel                  = Mise à disposition sur l'espace public
 CompanyRelationshipsPublicSpaceAvailabilityDictionaryElementHelp            = Entre le nom de l'element (ex: 'propal' pour les Proposition Commercial, 'commande' pour Commande, ...)
-CompanyRelationshipsPublicSpaceAvailabilityDictionaryPrincipalAvailability  = Authoriser pour le donneur d'ordre
-CompanyRelationshipsPublicSpaceAvailabilityDictionaryBenefactorAvailability = Authoriser pour le bénéficiaire
+CompanyRelationshipsPublicSpaceAvailabilityDictionaryPrincipalAvailability  = Autoriser pour le donneur d'ordre
+CompanyRelationshipsPublicSpaceAvailabilityDictionaryBenefactorAvailability = Autoriser pour le bénéficiaire
 
 ############################################################
 ### Companies Relationship
@@ -48,13 +48,12 @@ CompanyRelationshipsBenefactorCompany         = Bénéficiaire
 ############################################################
 ### Companies Relationship : Confirm box
 ############################################################
-CompanyRelationshipsEditCompanyRelationships             = Editer relation tiers
-CompanyRelationshipsConfirmEditCompanyRelationships      = Êtes-vous sûr de vouloir d'éditer cette relation tiers ?
-CompanyRelationshipsDeleteCompanyRelationships           = Supprimer relation tiers
-CompanyRelationshipsConfirmDeleteCompanyRelationships    = Êtes-vous sûr de vouloir supprimer cette relation tiers ?
+CompanyRelationshipsEditCompanyRelationships          = Editer relation tiers
+CompanyRelationshipsConfirmEditCompanyRelationships   = Êtes-vous sûr de vouloir d'éditer cette relation tiers ?
+CompanyRelationshipsDeleteCompanyRelationships        = Supprimer relation tiers
+CompanyRelationshipsConfirmDeleteCompanyRelationships = Êtes-vous sûr de vouloir supprimer cette relation tiers ?
 
 ############################################################
 ### Errors
 ############################################################
-CompanyRelationshipsErrorFieldStatusMustBeOfInitialType               = La demande doit être à un statut de type 'Initial'
-CompanyRelationshipsErrorRequestTypeNotFound                          = Type de demande non trouvé
+#CompanyRelationshipsErrorRequestTypeNotFound = Type de demande non trouvé

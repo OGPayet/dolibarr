@@ -156,8 +156,8 @@ class CompanyRelationshipsPublicSpaceAvailabilityDictionary extends Dictionary
             'label'      => 'CompanyRelationshipsPublicSpaceAvailabilityDictionaryPrincipalAvailability',
             'type'       => 'boolean',
         ),
-        'banefacor_availability' => array(
-            'name'       => 'banefacor_availability',
+        'benefactor_availability' => array(
+            'name'       => 'benefactor_availability',
             'label'      => 'CompanyRelationshipsPublicSpaceAvailabilityDictionaryBenefactorAvailability',
             'type'       => 'boolean',
         ),
