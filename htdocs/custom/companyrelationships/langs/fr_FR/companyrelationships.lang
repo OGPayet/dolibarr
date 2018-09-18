@@ -1,0 +1,60 @@
+# Dolibarr language file - fr_FR - companyrelationships
+CHARSET          = UTF-8
+Module163020Name = Company Relationships
+Module163020Desc = Gestionnaire de relations entre tiers
+
+############################################################
+### Permissions
+############################################################
+Permission163032 = Consulter les demandes
+Permission163033 = Créer/modifier les demandes
+
+############################################################
+### Admin setup
+############################################################
+CompanyRelationshipsSetup = Configuration du module "Company Relationships"
+
+############################################################
+### Tabulation
+############################################################
+CompanyRelationshipsTab  = Donneurs d’ordres / Bénéficiaires
+
+############################################################
+### Events list on card
+############################################################
+CompanyRelationshipsListOfEvents                              = Liste des événements
+CompanyRelationshipsListMode                                  = Vue Liste
+CompanyRelationshipsBlocMode                                  = Vue bloc
+CompanyRelationshipsOnlyLinkedObjectToThisRequest             = Ne voir que les événements liés à cette demande
+CompanyRelationshipsIncludeEventOfOtherRequest                = Voir aussi les événements des autres demandes
+CompanyRelationshipsIncludeLinkedEventToChildrenOfThisRequest = Voir aussi les événements des sous demandes
+
+######################################################################
+# Dictionaries
+######################################################################
+CompanyRelationshipsPublicSpaceAvailabilityDictionaryLabel                  = Mise à disposition sur l'espace public
+CompanyRelationshipsPublicSpaceAvailabilityDictionaryElementHelp            = Entre le nom de l'element (ex: 'propal' pour les Proposition Commercial, 'commande' pour Commande, ...)
+CompanyRelationshipsPublicSpaceAvailabilityDictionaryPrincipalAvailability  = Authoriser pour le donneur d'ordre
+CompanyRelationshipsPublicSpaceAvailabilityDictionaryBenefactorAvailability = Authoriser pour le bénéficiaire
+
+############################################################
+### Companies Relationship
+############################################################
+CompanyRelationshipsListOfPrincipalCompanies  = Liste des donneurs d'ordres
+CompanyRelationshipsListOfBenefactorCompanies = Liste des bénéficiaires
+CompanyRelationshipsPrincipalCompany          = Donneur d'ordre
+CompanyRelationshipsBenefactorCompany         = Bénéficiaire
+
+############################################################
+### Companies Relationship : Confirm box
+############################################################
+CompanyRelationshipsEditCompanyRelationships             = Editer relation tiers
+CompanyRelationshipsConfirmEditCompanyRelationships      = Êtes-vous sûr de vouloir d'éditer cette relation tiers ?
+CompanyRelationshipsDeleteCompanyRelationships           = Supprimer relation tiers
+CompanyRelationshipsConfirmDeleteCompanyRelationships    = Êtes-vous sûr de vouloir supprimer cette relation tiers ?
+
+############################################################
+### Errors
+############################################################
+CompanyRelationshipsErrorFieldStatusMustBeOfInitialType               = La demande doit être à un statut de type 'Initial'
+CompanyRelationshipsErrorRequestTypeNotFound                          = Type de demande non trouvé
