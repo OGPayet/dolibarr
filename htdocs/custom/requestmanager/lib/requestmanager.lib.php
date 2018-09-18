@@ -146,6 +146,7 @@ function requestmanager_show_events(&$requestmanager)
 
     $search_only_linked_to_request = GETPOST('search_only_linked_to_request', 'int');
     $search_include_event_other_request = GETPOST('search_include_event_other_request', 'int');
+    $search_include_linked_event_to_children_request = GETPOST('search_include_linked_event_to_children_request', 'int');
     $search_ref = GETPOST('search_ref', 'alpha');
     $search_origin = GETPOST('search_origin', 'array');
     $search_type = GETPOST('search_type', 'array');
@@ -156,7 +157,7 @@ function requestmanager_show_events(&$requestmanager)
     $search_date_end = GETPOST('search_date_end', 'alpha');
     $search_location = GETPOST('search_location', 'alpha');
     $search_owned_by = GETPOST('search_owned_by', 'alpha');
-    $search_assigned_to = GETPOST('search_assigned_to', 'alpha');
+    //$search_assigned_to = GETPOST('search_assigned_to', 'alpha');
     $search_done_by = GETPOST('search_done_by', 'alpha');
     $search_project = GETPOST('search_project', 'alpha');
     $search_priority = GETPOST('search_priority', 'alpha');
@@ -188,6 +189,7 @@ function requestmanager_show_events(&$requestmanager)
     $search_array_options = array_merge($search_array_options, $search_array_options_message);
 
     $arrayfields = array(
+        'fk_request' => array('label' => $langs->trans("RequestManagerRequest"), 'checked' => 1),
         'ac.elementtype' => array('label' => $langs->trans("Origin"), 'checked' => 1),
         'ac.id' => array('label' => $langs->trans("Ref"), 'checked' => 1),
         'ac.fk_action' => array('label' => $langs->trans("Type"), 'checked' => 1),
@@ -240,6 +242,7 @@ function requestmanager_show_events(&$requestmanager)
     {
         $search_only_linked_to_request = 1;
         $search_include_event_other_request = 0;
+        $search_include_linked_event_to_children_request = 1;
         $search_ref = '';
         $search_origin = array();
         $search_type = array();
@@ -263,6 +266,7 @@ function requestmanager_show_events(&$requestmanager)
     }
     if ($search_only_linked_to_request === '') $search_only_linked_to_request = 1;
     if ($search_include_event_other_request === '') $search_include_event_other_request = 0;
+    if ($search_include_linked_event_to_children_request === '') $search_include_linked_event_to_children_request = 1;
 
 
     /*
@@ -284,7 +288,18 @@ function requestmanager_show_events(&$requestmanager)
     //	if (empty($this->userownerid)) $this->userownerid=$obj->fk_element;	// If not defined (should not happened, we fix this)
     //}
 
+    // Get request ids (parent + children)
+    $request_children_ids = $requestmanager->getAllChildrenRequest();
+    if ($search_include_linked_event_to_children_request) {
+        $request_ids = array_merge($request_children_ids, array($requestmanager->id));
+        $request_ids = implode(',', $request_ids);
+    } else {
+        $request_ids = $requestmanager->id;
+    }
+    $request_children_ids = implode(',', $request_children_ids);
+
     $sql = "SELECT ac.id,";
+    $sql .= " IF(ac.elementtype='requestmanager', ac.fk_element, IF(ee.sourcetype='requestmanager', ee.fk_source, IF(ee.targettype='requestmanager', ee.fk_target, NULL))) as fk_request,";
     $sql .= " ac.id as ref,";
     $sql .= " ac.datep,";
     $sql .= " ac.datep2,";
@@ -319,32 +334,27 @@ function requestmanager_show_events(&$requestmanager)
     $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "user as ua ON ua.rowid = ac.fk_user_author";
     $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "user as um ON um.rowid = ac.fk_user_mod";
     $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "projet as p ON p.rowid = ac.fk_project";
-    if ($search_only_linked_to_request) {
-        // Todo a completer si il y a d'autres correspondances
-        $element_correspondance = "(".
-            "IF(ac.elementtype = 'contract', 'contrat', ".
-            " IF(ac.elementtype = 'invoice', 'facture', ".
-            "  IF(ac.elementtype = 'order', 'commande', ".
-            "   ac.elementtype)))".
-            ")";
-
-        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "element_element as ee";
-        $sql .= " ON (ee.targettype = 'requestmanager' AND ee.fk_target = " . $requestmanager->id . " AND ee.sourcetype = " . $element_correspondance . " AND ee.fk_source = ac.fk_element)";
-        $sql .= " OR (ee.sourcetype = 'requestmanager' AND ee.fk_source = " . $requestmanager->id . " AND ee.targettype = " . $element_correspondance . " AND ee.fk_target = ac.fk_element)";
-    }
+    $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "element_element as ee";
+    $element_correspondance = "(". // Todo a completer si il y a d'autres correspondances
+        "IF(ac.elementtype = 'contract', 'contrat', ".
+        " IF(ac.elementtype = 'invoice', 'facture', ".
+        "  IF(ac.elementtype = 'order', 'commande', ".
+        "   ac.elementtype)))".
+        ")";
+    $sql .= " ON (ee.sourcetype = " . $element_correspondance . " AND ee.fk_source = ac.fk_element) OR (ee.targettype = " . $element_correspondance . " AND ee.fk_target = ac.fk_element)";
     // Add 'from' from hooks
     $parameters = array();
     $reshook = $hookmanager->executeHooks('printFieldListFrom', $parameters);    // Note that $action and $object may have been modified by hook
     $sql .= ' WHERE ac.fk_soc = ' . $requestmanager->socid;
     $sql .= ' AND ac.entity IN (' . getEntity('agenda') . ')';
     if ($search_only_linked_to_request) {
-        $sql .= " AND (";
-        $sql .= "   (ac.elementtype = 'requestmanager' AND ac.fk_element = " . $requestmanager->id . ")";
-        $sql .= "   OR ee.rowid IS NOT NULL";
-        $sql .= " )";
+        $sql .= " AND IF(ac.elementtype='requestmanager', ac.fk_element, IF(ee.sourcetype!='requestmanager' AND ee.targettype='requestmanager', ee.fk_target, IF(ee.sourcetype='requestmanager', ee.fk_source, NULL))) IN(" . $request_ids . ")";
     } else {
         if (!$search_include_event_other_request) {
-            $sql .= " AND NOT (ac.fk_element != " . $requestmanager->id . " AND ac.elementtype = 'requestmanager')";
+            $sql .= " AND (ac.elementtype != 'requestmanager' OR ac.fk_element IN (" . $request_ids . "))";
+        }
+        if (!$search_include_linked_event_to_children_request) {
+            $sql .= " AND IF(ac.elementtype='requestmanager', ac.fk_element, IF(ee.sourcetype!='requestmanager' AND ee.targettype='requestmanager', ee.fk_target, IF(ee.sourcetype='requestmanager', ee.fk_source, NULL))) NOT IN (" . $request_children_ids . ")";
         }
     }
     if ($search_ref) $sql .= natural_search('ac.id', $search_ref);
@@ -450,8 +460,9 @@ function requestmanager_show_events(&$requestmanager)
 
         $param = '&id=' . urlencode($requestmanager->id);
         if ($limit > 0 && $limit != $conf->liste_limit) $param .= '&limit=' . urlencode($limit);
-        if ($search_only_linked_to_request) $param .= '&search_only_linked_to_request=' . urlencode($search_only_linked_to_request);
-        if ($search_include_event_other_request) $param .= '&search_include_event_other_request=' . urlencode($search_include_event_other_request);
+        if ($search_only_linked_to_request !== '') $param .= '&search_only_linked_to_request=' . urlencode($search_only_linked_to_request);
+        if ($search_include_event_other_request !== '') $param .= '&search_include_event_other_request=' . urlencode($search_include_event_other_request);
+        if ($search_include_linked_event_to_children_request !== '') $param .= '&search_include_linked_event_to_children_request=' . urlencode($search_include_linked_event_to_children_request);
         if ($search_ref) $param .= '&search_ref=' . urlencode($search_ref);
         if (!empty($search_origin)) $param .= '&search_origin=' . urlencode($search_origin);
         if ($search_type) $param .= '&search_type=' . urlencode($search_type);
@@ -542,9 +553,32 @@ SCRIPT;
         $moreforfilter .= $langs->trans('RequestManagerOnlyLinkedObjectToThisRequest') . ' : ';
         $moreforfilter .= $form->selectyesno('search_only_linked_to_request', $search_only_linked_to_request, 1);
         $moreforfilter .= '</div>';
+        $moreforfilter .= <<<SCRIPT
+    <script type="text/javascript" language="javascript">
+        $(document).ready(function () {
+            update_div_search_include_event_other_request();
+            $('#search_only_linked_to_request').on('change', function() {
+                update_div_search_include_event_other_request();
+            });
+
+            function update_div_search_include_event_other_request() {
+                if ($('#search_only_linked_to_request').val() > 0)
+                    $('#div_search_include_event_other_request').hide();
+                else
+                    $('#div_search_include_event_other_request').show();
+            }
+        });
+    </script>
+SCRIPT;
+
+        // Filter: include event linked to the children request
+        $moreforfilter .= '<div class="divsearchfield">';
+        $moreforfilter .= $langs->trans('RequestManagerIncludeLinkedEventToChildrenOfThisRequest') . ' : ';
+        $moreforfilter .= $form->selectyesno('search_include_linked_event_to_children_request', $search_include_linked_event_to_children_request, 1);
+        $moreforfilter .= '</div>';
 
         // Filter: include event of other request
-        $moreforfilter .= '<div class="divsearchfield">';
+        $moreforfilter .= '<div class="divsearchfield" id="div_search_include_event_other_request">';
         $moreforfilter .= $langs->trans('RequestManagerIncludeEventOfOtherRequest') . ' : ';
         $moreforfilter .= $form->selectyesno('search_include_event_other_request', $search_include_event_other_request, 1);
         $moreforfilter .= '</div>';
@@ -566,6 +600,11 @@ SCRIPT;
         print '<table class="tagtable liste' . ($moreforfilter ? " listwithfilterbefore" : "") . '">' . "\n";
 
         print '<tr class="liste_titre_filter">';
+        // Request
+        if (!empty($arrayfields['fk_request']['checked'])) {
+            print '<td class="liste_titre">';
+            print '</td>';
+        }
         // Origin
         if (!empty($arrayfields['ac.elementtype']['checked'])) {
             print '<td class="liste_titre">';
@@ -735,6 +774,7 @@ SCRIPT;
 
         // Fields title
         print '<tr class="liste_titre">';
+        if (!empty($arrayfields['fk_request']['checked'])) print_liste_field_titre($arrayfields['fk_request']['label'], $_SERVER["PHP_SELF"], '', '', $param, '', $sortfield, $sortorder);
         if (!empty($arrayfields['ac.elementtype']['checked'])) print_liste_field_titre($arrayfields['ac.elementtype']['label'], $_SERVER["PHP_SELF"], 'ac.elementtype', '', $param, '', $sortfield, $sortorder);
         if (!empty($arrayfields['ac.id']['checked'])) print_liste_field_titre($arrayfields['ac.id']['label'], $_SERVER["PHP_SELF"], 'ac.id', '', $param, '', $sortfield, $sortorder);
         if (!empty($arrayfields['ac.fk_action']['checked'])) print_liste_field_titre($arrayfields['ac.fk_action']['label'], $_SERVER["PHP_SELF"], 'cac.libelle', '', $param, '', $sortfield, $sortorder);
@@ -803,6 +843,8 @@ SCRIPT;
         require_once DOL_DOCUMENT_ROOT . '/comm/action/class/cactioncomm.class.php';
         $caction_static = new CActionComm($db);
         $cActionList = $caction_static->liste_array(1, 'code', '', (empty($conf->global->AGENDA_USE_EVENT_TYPE) ? 1 : 0));
+
+        $link_url_cache = array();
 
         $i = 0;
         while ($i < min($num, $limit)) {
@@ -873,7 +915,18 @@ SCRIPT;
 
                 $tdcolor = empty($actioncomm_static->type_color) ? '' : ' style="background-color: #'.ltrim($actioncomm_static->type_color, '#\s').';"';
 
-                // Source
+                // Request Child
+                if (!empty($arrayfields['fk_request']['checked'])) {
+                    print '<td class="nowrap"'.$tdcolor.'>';
+                    if ($obj->fk_request > 0) {
+                        include_once DOL_DOCUMENT_ROOT . '/core/lib/functions2.lib.php';
+                        if (!isset($link_url_cache['requestmanager'][$obj->fk_request]))
+                            $link_url_cache['requestmanager'][$obj->fk_request] = dolGetElementUrl($obj->fk_request, 'requestmanager', 1);
+                        print $link_url_cache['requestmanager'][$obj->fk_request];
+                    }
+                    print '</td>';
+                }
+                // Origin
                 if (!empty($arrayfields['ac.elementtype']['checked'])) {
                     print '<td class="nowrap"'.$tdcolor.'>';
                     if (isset($elements_array[$actioncomm_static->elementtype])) print $elements_array[$actioncomm_static->elementtype];
@@ -901,19 +954,19 @@ SCRIPT;
                     $labeltype = $obj->type_code;
                     if (empty($conf->global->AGENDA_USE_EVENT_TYPE) && empty($cActionList[$labeltype])) $labeltype = 'AC_OTH';
                     if (!empty($cActionList[$labeltype])) $labeltype = $cActionList[$labeltype];
-                    print dol_trunc($labeltype, 28);
+                    print $labeltype;
                     print '</td>';
                 }
                 // Title
                 if (!empty($arrayfields['ac.label']['checked'])) {
                     print '<td class="nowrap"'.$tdcolor.'>';
-                    print dol_trunc($actioncomm_static->label, 50);
+                    print $actioncomm_static->label;
                     print '</td>';
                 }
                 // Description
                 if (!empty($arrayfields['ac.note']['checked'])) {
                     print '<td class="nowrap tdoverflowmax300"'.$tdcolor.'>';
-                    print dol_trunc($actioncomm_static->note, 255);
+                    print $actioncomm_static->note;
                     print '</td>';
                 }
                 // Event On Full Day
@@ -937,7 +990,7 @@ SCRIPT;
                 // Location
                 if (!empty($arrayfields['ac.location']['checked'])) {
                     print '<td class="nowrap"'.$tdcolor.'>';
-                    print dol_trunc($actioncomm_static->location, 50);
+                    print $actioncomm_static->location;
                     print '</td>';
                 }
                 // Linked Object
@@ -945,7 +998,9 @@ SCRIPT;
                     print '<td class="nowrap"'.$tdcolor.'>';
                     if ($actioncomm_static->fk_element > 0 && !empty($actioncomm_static->elementtype)) {
                         include_once DOL_DOCUMENT_ROOT . '/core/lib/functions2.lib.php';
-                        print dolGetElementUrl($actioncomm_static->fk_element, $actioncomm_static->elementtype, 1);
+                        if (!isset($link_url_cache[$actioncomm_static->elementtype][$actioncomm_static->fk_element]))
+                            $link_url_cache[$actioncomm_static->elementtype][$actioncomm_static->fk_element] = dolGetElementUrl($actioncomm_static->fk_element, $actioncomm_static->elementtype, 1);
+                        print $link_url_cache[$actioncomm_static->elementtype][$actioncomm_static->fk_element];
                     }
                     print '</td>';
                 }
@@ -975,7 +1030,7 @@ SCRIPT;
                 // Priority
                 if (!empty($arrayfields['ac.priority']['checked'])) {
                     print '<td class="nowrap"'.$tdcolor.'>';
-                    print dol_trunc($actioncomm_static->priority, 50);
+                    print $actioncomm_static->priority;
                     print '</td>';
                 }
                 // Author
@@ -1499,7 +1554,7 @@ function requestmanager_get_elements_infos()
     );
 
     // Add custom object
-    $hookmanager->initHooks('requestmanagerdao');
+    $hookmanager->initHooks(array('requestmanagerdao'));
     $parameters = array();
     $reshook = $hookmanager->executeHooks('getElementsInfos', $parameters); // Note that $action and $object may have been
     if ($reshook) $elements = array_merge($elements, $hookmanager->resArray);

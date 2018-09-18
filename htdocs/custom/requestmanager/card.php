@@ -111,7 +111,9 @@ if (empty($reshook)) {
         $object->fk_type = GETPOST('type', 'int');
         $object->fk_category = GETPOST('category', 'int');
         $object->label = GETPOST('label', 'alpha');
+        $object->socid_origin = GETPOST('socid_origin', 'int') ? GETPOST('socid_origin', 'int') : GETPOST('socid', 'int');
         $object->socid = GETPOST('socid', 'int');
+        $object->socid_benefactor = GETPOST('socid_benefactor', 'int');
         $object->fk_source = GETPOST('source', 'int');
         $object->fk_urgency = GETPOST('urgency', 'int');
         $object->fk_impact = GETPOST('impact', 'int');
@@ -170,6 +172,17 @@ if (empty($reshook)) {
         } else {
             $db->rollback();
             $action = 'create';
+        }
+    } // Create request child
+    elseif ($action == 'create_request_child' && $user->rights->requestmanager->creer) {
+        $new_request_type = GETPOST('new_request_type', 'int');
+        $id = $object->createSubRequest($new_request_type, $user);
+        if ($id > 0) {
+            header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $id);
+            exit();
+        } else {
+            $langs->load("errors");
+            setEventMessages($object->error, $object->errors, 'errors');
         }
     } // Delete request
     elseif ($action == 'confirm_delete' && $confirm == 'yes' && $user->rights->requestmanager->supprimer) {
@@ -239,7 +252,19 @@ if (empty($reshook)) {
             header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
             exit();
         }
-    } // Set ThirdParty
+    } // Set ThirdParty Origin
+    elseif ($action == 'set_thirdparty_origin' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+        $object->oldcopy = clone $object;
+        $object->socid_origin = GETPOST('socid_origin', 'int');
+        $result = $object->update($user);
+        if ($result < 0) {
+            setEventMessages($object->error, $object->errors, 'errors');
+            $action = 'edit_thirdparty_origin';
+        } else {
+            header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
+            exit();
+        }
+    } // Set ThirdParty Bill
     elseif ($action == 'set_thirdparty' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
         $object->oldcopy = clone $object;
         $object->socid = GETPOST('socid', 'int');
@@ -247,6 +272,18 @@ if (empty($reshook)) {
         if ($result < 0) {
             setEventMessages($object->error, $object->errors, 'errors');
             $action = 'edit_thirdparty';
+        } else {
+            header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
+            exit();
+        }
+    } // Set ThirdParty Benefactor
+    elseif ($action == 'set_thirdparty_benefactor' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+        $object->oldcopy = clone $object;
+        $object->socid_benefactor = GETPOST('socid_benefactor', 'int');
+        $result = $object->update($user);
+        if ($result < 0) {
+            setEventMessages($object->error, $object->errors, 'errors');
+            $action = 'edit_thirdparty_benefactor';
         } else {
             header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
             exit();
@@ -1107,7 +1144,9 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
     $object->fk_type = GETPOST('type', 'int');
     $object->fk_category = GETPOST('category', 'int');
     $object->label = GETPOST('label', 'alpha');
+    $object->socid_origin = GETPOST('socid_origin', 'int');
     $object->socid = GETPOST('socid', 'int');
+    $object->socid_benefactor = GETPOST('socid_benefactor', 'int');
     $object->fk_source = GETPOST('source', 'int');
     $object->fk_urgency = GETPOST('urgency', 'int');
     $object->fk_impact = GETPOST('impact', 'int');
@@ -1163,12 +1202,28 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
 	print '<input class="quatrevingtpercent" type="text" name="label" value="'.dol_escape_htmltag($object->label).'">';
     print '</td></tr>';
 
-    // ThirdParty
-    print '<tr><td class="fieldrequired">' . $langs->trans('RequestManagerThirdParty') . '</td><td>';
+    // ThirdParty Origin
+    print '<tr><td class="fieldrequired">' . $langs->trans('RequestManagerThirdPartyOrigin') . '</td><td>';
     $events[] = array('method' => 'getContacts', 'url' => dol_buildpath('/core/ajax/contacts.php', 1), 'htmlname' => 'requester_contacts', 'params' => array('add-customer-contact' => 'disabled'));
-    print $form->select_company($object->socid, 'socid', '(s.client = 1 OR s.client = 2 OR s.client = 3) AND status=1', 'SelectThirdParty', 0, 0, $events, 0, 'minwidth300');
+    print $form->select_company($object->socid_origin, 'socid_origin', '(s.client = 1 OR s.client = 2 OR s.client = 3) AND status=1', 'SelectThirdParty', 0, 0, $events, 0, 'minwidth300');
     if (!empty($conf->societe->enabled) && $user->rights->societe->creer) {
-        print ' <a id="new_thridparty" href="' . DOL_URL_ROOT . '/societe/card.php?action=create&client=3&fournisseur=0&backtopage=' . urlencode($_SERVER["PHP_SELF"] . '?action=create' . ($object->fk_type ? '&type=' . $object->fk_type : '')) . '">' . $langs->trans("AddThirdParty") . '</a>';
+        print ' <a id="new_thridparty" href="' . DOL_URL_ROOT . '/societe/card.php?action=create&client=3&fournisseur=0&backtopage=' . urlencode($_SERVER["PHP_SELF"] . '?action=create' . ($object->fk_type ? '&type=' . $object->fk_type : '') . ($object->socid ? '&socid=' . $object->socid : '') . ($object->socid_benefactor ? '&socid_benefactor=' . $object->socid_benefactor : '') . '&socid_origin=##SOCID##') . '">' . $langs->trans("AddThirdParty") . '</a>';
+    }
+    print '</td></tr>';
+
+    // ThirdParty Bill
+    print '<tr><td class="fieldrequired">' . $langs->trans('RequestManagerThirdPartyBill') . '</td><td>';
+    print $form->select_company($object->socid, 'socid', '(s.client = 1 OR s.client = 2 OR s.client = 3) AND status=1', 'SelectThirdParty', 0, 0, array(), 0, 'minwidth300');
+    if (!empty($conf->societe->enabled) && $user->rights->societe->creer) {
+        print ' <a id="new_thridparty" href="' . DOL_URL_ROOT . '/societe/card.php?action=create&client=3&fournisseur=0&backtopage=' . urlencode($_SERVER["PHP_SELF"] . '?action=create' . ($object->fk_type ? '&type=' . $object->fk_type : '') . ($object->socid_origin ? '&socid_origin=' . $object->socid_origin : '') . ($object->socid_benefactor ? '&socid_benefactor=' . $object->socid_benefactor : '') . '&socid=##SOCID##') . '">' . $langs->trans("AddThirdParty") . '</a>';
+    }
+    print '</td></tr>';
+
+    // ThirdParty Benefactor
+    print '<tr><td class="fieldrequired">' . $langs->trans('RequestManagerThirdPartyBenefactor') . '</td><td>';
+    print $form->select_company($object->socid_benefactor, 'socid_benefactor', '(s.client = 1 OR s.client = 2 OR s.client = 3) AND status=1', 'SelectThirdParty', 0, 0, array(), 0, 'minwidth300');
+    if (!empty($conf->societe->enabled) && $user->rights->societe->creer) {
+        print ' <a id="new_thridparty" href="' . DOL_URL_ROOT . '/societe/card.php?action=create&client=3&fournisseur=0&backtopage=' . urlencode($_SERVER["PHP_SELF"] . '?action=create' . ($object->fk_type ? '&type=' . $object->fk_type : '') . ($object->socid_origin ? '&socid_origin=' . $object->socid_origin : '') . ($object->socid ? '&socid=' . $object->socid : '') . '&socid_benefactor=##SOCID##') . '">' . $langs->trans("AddThirdParty") . '</a>';
     }
     print '</td></tr>';
 
@@ -1278,7 +1333,9 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
 	 * Show object in view mode
 	 */
 
+    $object->fetch_thirdparty_origin();
     $object->fetch_thirdparty();
+    $object->fetch_thirdparty_benefactor();
 	$head = requestmanager_prepare_head($object);
 	dol_fiche_head($head, 'card', $langs->trans('RequestManagerCard'), 0, 'requestmanager@requestmanager');
 
@@ -1336,6 +1393,10 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
 	$morehtmlref='<div class="refidno">';
 	// External Reference
     $morehtmlref.='<br>'.$langs->trans('RequestManagerExternalReference') . ' : ' . $object->ref_ext;
+    if ($object->fk_parent > 0) {
+        $object->fetch_parent();
+        $morehtmlref.='<br>'.$langs->trans('RequestManagerParentRequest') . ' : ' . $object->parent->getNomUrl(1);
+    }
     $morehtmlref.='</div>';
 
 	dol_banner_tab($object, 'ref', $linkback, 1, 'ref', 'ref', $morehtmlref);
@@ -1356,7 +1417,7 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
 	print '</tr></table>';
 	print '</td><td>';
 	if ($action == 'edit_type' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_INITIAL) {
-		print '<form name="editecheance" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
+		print '<form name="edittype" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
 		print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
 		print '<input type="hidden" name="action" value="set_type">';
         $groupslist = $usergroup_static->listGroupsForUser($user->id);
@@ -1380,7 +1441,7 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
 	print '</td><td>';
 	if ($action == 'edit_category' && $user->rights->requestmanager->creer &&
 	        ($object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS || $object->statut_type == RequestManager::STATUS_TYPE_INITIAL)) {
-        print '<form name="editecheance" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
+        print '<form name="editcategory" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
         print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
         print '<input type="hidden" name="action" value="set_category">';
         print $formrequestmanager->select_category($object->fk_type, $object->fk_category, 'category', 1, 0, array(), 0, 0, 'minwidth300');
@@ -1401,7 +1462,7 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
 	print '</tr></table>';
 	print '</td><td>';
 	if ($action == 'edit_label' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
-		print '<form name="editecheance" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
+		print '<form name="editlabel" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
 		print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
 		print '<input type="hidden" name="action" value="set_label">';
         print '<input type="text" name="label" value="'.dol_escape_htmltag($object->label).'">';
@@ -1412,17 +1473,38 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
 	}
     print '</td></tr>';
 
-    // ThirdParty
+    // ThirdParty Origin
     print '<tr><td>';
 	print '<table class="nobordernopadding" width="100%"><tr><td>';
-	print $langs->trans('RequestManagerThirdParty');
+	print $langs->trans('RequestManagerThirdPartyOrigin');
+	print '</td>';
+	if ($action != 'edit_thirdparty_origin' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS)
+		print '<td align="right"><a href="' . $_SERVER["PHP_SELF"] . '?action=edit_thirdparty_origin&id=' . $object->id . '">' . img_edit($langs->trans('RequestManagerSetThirdPartyOrigin'), 1) . '</a></td>';
+	print '</tr></table>';
+	print '</td><td>';
+	if ($action == 'edit_thirdparty_origin' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+		print '<form name="editthirdpartyorigin" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
+		print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
+		print '<input type="hidden" name="action" value="set_thirdparty_origin">';
+        print $form->select_company($object->socid_origin, 'socid_origin', '(s.client = 1 OR s.client = 2 OR s.client = 3) AND status=1', 'SelectThirdParty', 0, 0, null, 0, 'minwidth300');
+		print '<input type="submit" class="button" value="' . $langs->trans('Modify') . '">';
+		print '</form>';
+	} else {
+        print $object->thirdparty_origin->getNomUrl(1);
+	}
+    print '</td></tr>';
+
+    // ThirdParty Bill
+    print '<tr><td>';
+	print '<table class="nobordernopadding" width="100%"><tr><td>';
+	print $langs->trans('RequestManagerThirdPartyBill');
 	print '</td>';
 	if ($action != 'edit_thirdparty' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS)
-		print '<td align="right"><a href="' . $_SERVER["PHP_SELF"] . '?action=edit_thirdparty&id=' . $object->id . '">' . img_edit($langs->trans('RequestManagerSetThirdParty'), 1) . '</a></td>';
+		print '<td align="right"><a href="' . $_SERVER["PHP_SELF"] . '?action=edit_thirdparty&id=' . $object->id . '">' . img_edit($langs->trans('RequestManagerSetThirdPartyBill'), 1) . '</a></td>';
 	print '</tr></table>';
 	print '</td><td>';
 	if ($action == 'edit_thirdparty' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
-		print '<form name="editecheance" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
+		print '<form name="editthirdparty" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
 		print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
 		print '<input type="hidden" name="action" value="set_thirdparty">';
         print $form->select_company($object->socid, 'socid', '(s.client = 1 OR s.client = 2 OR s.client = 3) AND status=1', 'SelectThirdParty', 0, 0, null, 0, 'minwidth300');
@@ -1430,6 +1512,27 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
 		print '</form>';
 	} else {
         print $object->thirdparty->getNomUrl(1);
+	}
+    print '</td></tr>';
+
+    // ThirdParty Benefactor
+    print '<tr><td>';
+	print '<table class="nobordernopadding" width="100%"><tr><td>';
+	print $langs->trans('RequestManagerThirdPartyBenefactor');
+	print '</td>';
+	if ($action != 'edit_thirdparty_benefactor' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS)
+		print '<td align="right"><a href="' . $_SERVER["PHP_SELF"] . '?action=edit_thirdparty_benefactor&id=' . $object->id . '">' . img_edit($langs->trans('RequestManagerSetThirdPartyBenefactor'), 1) . '</a></td>';
+	print '</tr></table>';
+	print '</td><td>';
+	if ($action == 'edit_thirdparty_benefactor' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+		print '<form name="editthirdpartybenefactor" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
+		print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
+		print '<input type="hidden" name="action" value="set_thirdparty_benefactor">';
+        print $form->select_company($object->socid_benefactor, 'socid_benefactor', '(s.client = 1 OR s.client = 2 OR s.client = 3) AND status=1', 'SelectThirdParty', 0, 0, null, 0, 'minwidth300');
+		print '<input type="submit" class="button" value="' . $langs->trans('Modify') . '">';
+		print '</form>';
+	} else {
+        print $object->thirdparty_benefactor->getNomUrl(1);
 	}
     print '</td></tr>';
 
@@ -1443,7 +1546,7 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
 	print '</tr></table>';
 	print '</td><td>';
 	if ($action == 'edit_source' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
-		print '<form name="editecheance" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
+		print '<form name="editsource" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
 		print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
 		print '<input type="hidden" name="action" value="set_source">';
         print $formrequestmanager->select_source($object->fk_source, 'source', 1, 0, array(), 0, 0, 'minwidth300');
@@ -1464,7 +1567,7 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
 	print '</tr></table>';
 	print '</td><td>';
 	if ($action == 'edit_urgency' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
-		print '<form name="editecheance" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
+		print '<form name="editurgency" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
 		print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
 		print '<input type="hidden" name="action" value="set_urgency">';
         print $formrequestmanager->select_urgency($object->fk_urgency, 'urgency', 1, 0, array(), 0, 0, 'minwidth300');
@@ -1485,7 +1588,7 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
 	print '</tr></table>';
 	print '</td><td>';
 	if ($action == 'edit_impact' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
-		print '<form name="editecheance" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
+		print '<form name="editimpact" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
 		print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
 		print '<input type="hidden" name="action" value="set_impact">';
         print $formrequestmanager->select_impact($object->fk_impact, 'impact', 1, 0, array(), 0, 0, 'minwidth300');
@@ -1506,7 +1609,7 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
 	print '</tr></table>';
 	print '</td><td>';
 	if ($action == 'edit_priority' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
-		print '<form name="editecheance" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
+		print '<form name="editpriority" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
 		print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
 		print '<input type="hidden" name="action" value="set_priority">';
         print $formrequestmanager->select_priority($object->fk_priority, 'priority', 1, 0, array(), 0, 0, 'minwidth300');
@@ -1532,7 +1635,7 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
 	print '</tr></table>';
 	print '</td><td>';
 	if ($action == 'edit_duration' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
-		print '<form name="editecheance" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
+		print '<form name="editduration" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
 		print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
 		print '<input type="hidden" name="action" value="set_duration">';
         $duration_infos = requestmanager_get_duration($object->duration);
@@ -1556,7 +1659,7 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
 	print '</tr></table>';
 	print '</td><td>';
 	if ($action == 'edit_date_operation' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
-		print '<form name="editecheance" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
+		print '<form name="editdateoperation" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
 		print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
 		print '<input type="hidden" name="action" value="set_date_operation">';
         $form->select_date($object->date_operation, 'operation_', 1, 1, 1, '', 1);
@@ -1578,7 +1681,7 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
 	print '</tr></table>';
 	print '</td><td>';
 	if ($action == 'edit_date_deadline' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
-		print '<form name="editecheance" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
+		print '<form name="editdatedeadline" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
 		print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
 		print '<input type="hidden" name="action" value="set_date_deadline">';
         $form->select_date($object->date_deadline, 'deadline_', 1, 1, 1, '', 1);
@@ -1599,7 +1702,7 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
 	print '</tr></table>';
 	print '</td><td>';
 	if ($action == 'edit_assigned_usergroups' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
-		print '<form name="editecheance" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
+		print '<form name="editassignedusergroups" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
 		print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
 		print '<input type="hidden" name="action" value="set_assigned_usergroups">';
         print $formrequestmanager->multiselect_dolgroups($object->assigned_usergroup_ids, 'assigned_usergroups');
@@ -1625,7 +1728,7 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
 	print '</tr></table>';
 	print '</td><td>';
 	if ($action == 'edit_assigned_users' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
-		print '<form name="editecheance" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
+		print '<form name="editassignedusers" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
 		print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
 		print '<input type="hidden" name="action" value="set_assigned_users">';
         print $formrequestmanager->multiselect_dolusers($object->assigned_user_ids,'assigned_users', null, 0, '', '', 0, 0, 0, '', 0, '', '', 1, 0);
@@ -1654,7 +1757,7 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
 	print '</tr></table>';
 	print '</td><td>';
 	if ($action == 'edit_assigned_notification' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
-		print '<form name="editecheance" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
+		print '<form name="editassignednotification" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
 		print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
 		print '<input type="hidden" name="action" value="set_assigned_notification">';
         print '<input type="checkbox" name="assigned_notification" value="1"' . ($object->notify_assigned_by_email ? ' checked' : '') . ' />';
@@ -1682,7 +1785,7 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
         print '</tr></table>';
         print '</td><td>';
         if ($action == 'edit_categories' && $user->rights->requestmanager->creer && ($object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS || $object->statut_type == RequestManager::STATUS_TYPE_INITIAL)) {
-            print '<form name="editcategries" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
+            print '<form name="editcategories" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
             print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
             print '<input type="hidden" name="action" value="set_categories">';
             print $formrequestmanager->showCategories($object->id, CategorieRequestManager::TYPE_REQUESTMANAGER, 0, TRUE);
@@ -1696,7 +1799,7 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
 
     // Description
     if ($action == 'edit_description' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
-        print '<form name="editecheance" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
+        print '<form name="editdescription" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
         print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
         print '<input type="hidden" name="action" value="set_description">';
     }
@@ -1890,54 +1993,50 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
 
     print "</form>\n";
 
+    dol_include_once('/advancedictionaries/class/dictionary.class.php');
+    $requestManagerStatusDictionary = Dictionary::getDictionary($db, 'requestmanager', 'requestmanagerstatus');
+
+    // Get current status infos
+    $requestManagerStatusDictionaryLine = $requestManagerStatusDictionary->getNewDictionaryLine();
+    $requestManagerStatusDictionaryLine->fetch($object->statut);
 
     /*
 	 * Boutons status
 	 */
     if ($user->rights->requestmanager->creer) {
         print '<div class="tabsStatusAction">';
-        dol_include_once('/advancedictionaries/class/dictionary.class.php');
-        $requestManagerStatusDictionary = Dictionary::getDictionary($db, 'requestmanager', 'requestmanagerstatus');
 
-        // Get current status infos
-        $requestManagerStatusDictionaryLine = $requestManagerStatusDictionary->getNewDictionaryLine();
-        $requestManagerStatusDictionaryLine->fetch($object->statut);
+        // Get count children request by status type
+        $children_count = $object->getCountChildrenRequestByStatusType();
 
-        /*if ($object->statut_type == RequestManager::STATUS_TYPE_INITIAL || $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
-            $filter_type = array(RequestManager::STATUS_TYPE_IN_PROGRESS, RequestManager::STATUS_TYPE_RESOLVED);
-        } else {
-            $filter_type = array(RequestManager::STATUS_TYPE_CLOSED);
-        }
+        // Get lines (hide if has new request type in the setting of this status and has none child or all children is not closed)
+        if (empty($requestManagerStatusDictionaryLine->fields['new_request_type']) ||
+            ($children_count[RequestManager::STATUS_TYPE_INITIAL] + $children_count[RequestManager::STATUS_TYPE_IN_PROGRESS] + $children_count[RequestManager::STATUS_TYPE_RESOLVED] == 0 &&
+                $children_count[RequestManager::STATUS_TYPE_CLOSED] > 0)) {
+            $requestManagerStatusDictionary->fetch_lines(1, array('request_type' => array($object->fk_type)));
+            $next_status = explode(',', $requestManagerStatusDictionaryLine->fields['next_status']);
+            if (is_array($next_status) && count($next_status) > 0) {
+                foreach ($next_status as $line_id) {
+                    $line = $requestManagerStatusDictionary->lines[$line_id];
 
-        // Get lines
-        $requestManagerStatusDictionary->fetch_lines(1,
-            array('request_type' => array($object->fk_type), 'type' => $filter_type),
-            array('type' => 'ASC', 'position' => 'ASC')
-        );*/
-        // Get lines
-        $requestManagerStatusDictionary->fetch_lines(1, array('request_type' => array($object->fk_type)));
-        $next_status = explode(',', $requestManagerStatusDictionaryLine->fields['next_status']);
-        if (is_array($next_status) && count($next_status) > 0) {
-            foreach ($next_status as $line_id) {
-                $line = $requestManagerStatusDictionary->lines[$line_id];
-
-                if (isset($line)) {
-                    if ($line->id == $object->statut ||
-                        ($line->fields['type'] == RequestManager::STATUS_TYPE_CLOSED && !empty($conf->global->REQUESTMANAGER_AUTO_CLOSE_REQUEST))
-                    ) continue;
-                    print '<div class="inline-block divButAction noMarginBottom">';
-                    $options_url = '';
-                    if ($line->fields['type'] == RequestManager::STATUS_TYPE_INITIAL || $line->fields['type'] == RequestManager::STATUS_TYPE_IN_PROGRESS) {
-                        $options_url = '&action=set_status&status=' . $line->id;
-                    } elseif ($line->fields['type'] == RequestManager::STATUS_TYPE_RESOLVED) {
-                        $options_url = '&action=resolve';
-                    } elseif ($line->fields['type'] == RequestManager::STATUS_TYPE_CLOSED) {
-                        $options_url = '&action=close';
+                    if (isset($line)) {
+                        if ($line->id == $object->statut ||
+                            ($line->fields['type'] == RequestManager::STATUS_TYPE_CLOSED && !empty($conf->global->REQUESTMANAGER_AUTO_CLOSE_REQUEST))
+                        ) continue;
+                        print '<div class="inline-block divButAction noMarginBottom">';
+                        $options_url = '';
+                        if ($line->fields['type'] == RequestManager::STATUS_TYPE_INITIAL || $line->fields['type'] == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+                            $options_url = '&action=set_status&status=' . $line->id;
+                        } elseif ($line->fields['type'] == RequestManager::STATUS_TYPE_RESOLVED) {
+                            $options_url = '&action=resolve';
+                        } elseif ($line->fields['type'] == RequestManager::STATUS_TYPE_CLOSED) {
+                            $options_url = '&action=close';
+                        }
+                        print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . $options_url . '">';
+                        print $object->LibStatut($line->id, 10);
+                        print '</a>';
+                        print '</div>';
                     }
-                    print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . $options_url . '">';
-                    print $object->LibStatut($line->id, 10);
-                    print '</a>';
-                    print '</div>';
                 }
             }
         }
@@ -1956,11 +2055,27 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
 	 */
         print '<div class="tabsAction">';
 
-        $parameters = array();
+        $parameters = array('status_infos'=>$requestManagerStatusDictionaryLine);
         $reshook = $hookmanager->executeHooks('addMoreActionsButtons', $parameters, $object, $action); // Note that $action and $object may have been
         // modified by hook
         if (empty($reshook)) {
             if ($object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+                $authorizedButtons = !empty($requestManagerStatusDictionaryLine->fields['authorized_buttons']) ? explode(',', $requestManagerStatusDictionaryLine->fields['authorized_buttons']) : array();
+
+                // Add child request
+                if ($user->rights->requestmanager->creer) {
+                    dol_include_once('/advancedictionaries/class/dictionary.class.php');
+                    $requestManagerRequestTypeDictionary = Dictionary::getDictionary($db, 'requestmanager', 'requestmanagerrequesttype');
+                    $requestManagerRequestTypeDictionary->fetch_lines(1);
+
+                    if (!empty($requestManagerStatusDictionaryLine->fields['new_request_type'])) {
+                        foreach (explode(',', $requestManagerStatusDictionaryLine->fields['new_request_type']) as $request_type_id) {
+                            print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=create_request_child&new_request_type='.$request_type_id.'">'
+                                . $langs->trans('RequestManagerCreateRequestChild', $requestManagerRequestTypeDictionary->lines[$request_type_id]->fields['label']) . '</a></div>';
+                        }
+                    }
+                }
+
                 // Add message
                 if ($user->rights->requestmanager->creer) {
                     print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=premessage#formmessagebeforetitle">'
@@ -1968,7 +2083,7 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
                 }
 
                 // Add Propale
-                if (!empty($conf->propal->enabled)) {
+                if (!empty($conf->propal->enabled) && (count($authorizedButtons) == 0 || in_array('create_propal', $authorizedButtons))) {
                     $langs->load("propal");
                     if ($user->rights->propal->creer) {
                         print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/comm/propal/card.php?originid=' . $object->id . '&origin=' . $object->element . ($object->socid > 0 ? '&socid=' . $object->socid : '') . '&action=create">' . $langs->trans("AddProp") . '</a></div>';
@@ -1978,7 +2093,7 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
                 }
 
                 // Add Order
-                if (!empty($conf->commande->enabled)) {
+                if (!empty($conf->commande->enabled) && (count($authorizedButtons) == 0 || in_array('create_order', $authorizedButtons))) {
                     $langs->load("orders");
                     if ($user->rights->commande->creer) {
                         print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/commande/card.php?originid=' . $object->id . '&origin=' . $object->element . ($object->socid > 0 ? '&socid=' . $object->socid : '') . '&action=create">' . $langs->trans("AddOrder") . '</a></div>';
@@ -1988,7 +2103,7 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
                 }
 
                 // Add invoice
-                if ($user->societe_id == 0 && !empty($conf->facture->enabled)) {
+                if ($user->societe_id == 0 && !empty($conf->facture->enabled) && (count($authorizedButtons) == 0 || in_array('create_invoice', $authorizedButtons))) {
                     $langs->load("bills");
                     $langs->load("compta");
                     if ($user->rights->facture->creer) {
@@ -2004,7 +2119,7 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
                 }
 
                 // Add Intervention
-                if (!empty($conf->ficheinter->enabled)) {
+                if (!empty($conf->ficheinter->enabled) && (count($authorizedButtons) == 0 || in_array('create_inter', $authorizedButtons))) {
                     $langs->load("interventions");
                     if ($user->rights->ficheinter->creer) {
                         print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/fichinter/card.php?originid=' . $object->id . '&origin=' . $object->element . ($object->socid > 0 ? '&socid=' . $object->socid : '') . '&action=create">' . $langs->trans("AddIntervention") . '</a></div>';
@@ -2014,7 +2129,7 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
                 }
 
                 // Add Event
-                if (!empty($conf->agenda->enabled)) {
+                if (!empty($conf->agenda->enabled) && (count($authorizedButtons) == 0 || in_array('create_event', $authorizedButtons))) {
                     $langs->load("commercial");
                     if (! empty($user->rights->agenda->myactions->create) || ! empty($user->rights->agenda->allactions->create)) {
                         print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT.'/comm/action/card.php?originid=' . $object->id . '&origin=' . $object->element . ($object->socid > 0 ? '&socid=' . $object->socid : '') . '&action=create">' . $langs->trans("AddAction") . '</a></div>';

@@ -63,20 +63,6 @@ foreach($linkedObjectBlock as $key => $objectlink)
     </tr>
 <?php
 }
-if (count($linkedObjectBlock) > 1)
-{
-    ?>
-    <tr class="liste_total <?php echo (empty($noMoreLinkedObjectBlockAfter)?'liste_sub_total':''); ?>">
-        <td><?php echo $langs->trans("Total"); ?></td>
-        <td></td>
-	<td align="center"></td>
-	<td align="center"></td>
-	<td align="right"><?php echo price($total); ?></td>
-	<td align="right"></td>
-	<td align="right"></td>
-    </tr>
-    <?php
-}
 ?>
 
 <!-- END PHP TEMPLATE -->

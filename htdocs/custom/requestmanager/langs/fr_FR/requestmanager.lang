@@ -44,8 +44,8 @@ RequestManagerPositionLinkNewObjectLinkedDesc   = Position du lien 'Lier à ...'
 ############################################################
 ### Contact
 ############################################################
-TypeContact_project_internal_REQUESTER  = Utilisateur demandeur
-TypeContact_project_external_REQUESTER  = Contact demandeur
+TypeContact_project_internal_REQUESTER  = Utilisateur origine
+TypeContact_project_external_REQUESTER  = Contact origine
 TypeContact_project_internal_WATCHER    = Utilisateur observateur
 TypeContact_project_external_WATCHER    = Contact observateur
 
@@ -82,6 +82,7 @@ RequestManagerMenuTopCreateFast            = Création de demande rapide
 ### Tabulation
 ############################################################
 RequestManagerRequestTab                = Demande
+RequestManagerCompaniesRelationshipTab  = Donneurs d’ordres / Bénéficiaires
 
 ############################################################
 ### Card
@@ -94,7 +95,9 @@ RequestManagerExternalReference         = Référence externe
 RequestManagerRequestType               = Type de demande
 RequestManagerCategory                  = Catégorie
 RequestManagerLabel                     = Titre
-RequestManagerThirdParty                = Demandeur
+RequestManagerThirdPartyOrigin          = Origine
+RequestManagerThirdPartyBill            = Donneur d'ordre
+RequestManagerThirdPartyBenefactor      = Bénéficiaire
 RequestManagerSource                    = Source
 RequestManagerUrgency                   = Urgence
 RequestManagerImpact                    = Impact
@@ -102,8 +105,8 @@ RequestManagerPriority                  = Priorité
 RequestManagerDuration                  = Durée
 RequestManagerOperation                 = Date d'opération
 RequestManagerDeadline                  = Date d'écheance
-RequestManagerRequesterContacts         = Contacts demandeur
-RequestManagerRequesterNotification     = Notifier les demandeurs
+RequestManagerRequesterContacts         = Contacts d'origine
+RequestManagerRequesterNotification     = Notifier les contacts d'origine
 RequestManagerWatcherContacts           = Contacts observateur
 RequestManagerWatcherNotification       = Notifier les observateurs
 RequestManagerAssignedUserGroups        = Assigné aux groupes d'utilisateurs
@@ -112,10 +115,13 @@ RequestManagerAssignedNotification      = Notifier les assignés
 RequestManagerDescription               = Description
 RequestManagerAddRequest                = Créer demande
 RequestManagerAddMessage                = Ajouter un message
+RequestManagerCreateRequestChild        = Créer sous demande: %s
 RequestManagerNoNotifications           = Pas de notifications
 RequestManagerSetCategory               = Définir la catégorie
 RequestManagerSetLabel                  = Définir le titre
-RequestManagerSetThirdParty             = Définir le demandeur
+RequestManagerSetThirdPartyOrigin       = Définir l'origine
+RequestManagerSetThirdPartyBill         = Définir le donneur d'ordre
+RequestManagerSetThirdPartyBenefactor   = Définir le bénéficiaire
 RequestManagerSetSource                 = Définir la source
 RequestManagerSetUrgency                = Définir l'urgence
 RequestManagerSetImpact                 = Définir l'impact
@@ -123,7 +129,7 @@ RequestManagerSetPriority               = Définir la priorité
 RequestManagerSetDuration               = Définir la durée
 RequestManagerSetOperation              = Définir la date d'opération
 RequestManagerSetDeadline               = Définir la date d'écheance
-RequestManagerSetRequesterContacts      = Définir les contacts demandeur
+RequestManagerSetRequesterContacts      = Définir les contacts d'origine
 RequestManagerSetWatcherContacts        = Définir les contacts observateur
 RequestManagerSetAssignedUserGroups     = Définir les groupes d'utilisateurs assignés
 RequestManagerSetAssignedUsers          = Définir les utilisateurs assignés
@@ -132,6 +138,9 @@ RequestManagerSetDescription            = Définir la description
 RequestManagerAssignToMe                = M'assigner
 RequestManagerSetCategories             = Définir les tags/catégories
 RequestManagerRecalculateDeadLineDate   = Recalculer la date d'échéance
+RequestManagerRequestChild              = Sous demande
+RequestManagerRequestChildren           = Sous demandes
+RequestManagerParentRequest             = Demande parente
 
 ############################################################
 ### List
@@ -165,6 +174,12 @@ RequestManagerCreateFastContractFormula   = Formule
 RequestManagerLastEvents                  = Derniers evénements
 
 ############################################################
+### Confirm box : Create fast
+############################################################
+RequestManagerForcePrincipalCompany                = Forcer le choix du donneur d'ordre
+RequestManagerConfirmForcePrincipalCompany         = Êtes-vous sûr de vouloir forcer le choix du donneur d'ordre ?
+
+############################################################
 ### Message form
 ############################################################
 RequestManagerSelectKnowledgeBase           = Choisir une base de connaissance
@@ -173,7 +188,7 @@ RequestManagerNoTemplateDefined             = Pas de modèle défini
 RequestManagerMessageSubject                = Sujet
 RequestManagerMessageFile                   = Fichiers joints
 RequestManagerMessage                       = Message
-RequestManagerMessageNotifyByMail           = Envoyer par mail aux contacts demandeurs et observateurs
+RequestManagerMessageNotifyByMail           = Envoyer par mail aux contacts d'origines et observateurs
 RequestManagerMessageDirection              = Sens du message
 RequestManagerMessageDirectionIn            = Entrant
 RequestManagerMessageDirectionOut           = Sortant
@@ -197,11 +212,12 @@ RequestManagerConfirmAssignMySelf           = Une ou des personnes sont déja as
 ############################################################
 ### Events list on card
 ############################################################
-RequestManagerListOfEvents                  = Liste des événements
-RequestManagerListMode                      = Vue Liste
-RequestManagerBlocMode                      = Vue bloc
-RequestManagerOnlyLinkedObjectToThisRequest = Ne voir que les événements liés à cette demande
-RequestManagerIncludeEventOfOtherRequest    = Voir aussi les événements des autres demandes (si voir tous)
+RequestManagerListOfEvents                              = Liste des événements
+RequestManagerListMode                                  = Vue Liste
+RequestManagerBlocMode                                  = Vue bloc
+RequestManagerOnlyLinkedObjectToThisRequest             = Ne voir que les événements liés à cette demande
+RequestManagerIncludeEventOfOtherRequest                = Voir aussi les événements des autres demandes
+RequestManagerIncludeLinkedEventToChildrenOfThisRequest = Voir aussi les événements des sous demandes
 
 ######################################################################
 # Dictionaries
@@ -249,7 +265,27 @@ RequestManagerStatusDictionaryOperation                                     = Du
 RequestManagerStatusDictionaryOperationHelp                                 = En minutes, Date d'opération calculé à partir de la date où la demande est passé à ce statut<br>-1 si la date d'opération ne change pas, 0 ou non renseigné si il n'y en a pas
 RequestManagerSourceDictionaryEventType                                     = Type d'évenement
 RequestManagerStatusDictionaryNewRequestType                                = Nouvelles demandes
-RequestManagerStatusDictionaryNewRequestTypeHelp                            = Créer les nouvelles demandes lors du passage à ce statut.<br>La demande passe au statut suivant une fois toutes les demandes filles cloturées.
+RequestManagerStatusDictionaryNewRequestTypeHelp                            = Nouvelles demandes disponiblent lors du passage à ce statut.<br>La demande passe au statut suivant une fois toutes les demandes filles cloturées.
+RequestManagerStatusDictionaryNewRequestTypeAuto                            = Création automatique
+RequestManagerStatusDictionaryNewRequestTypeAutoHelp                        = Créer les nouvelles demandes automatiquement lors du passage à ce statut.
+RequestManagerStatusDictionaryAuthorizedButtons                             = Boutons authorisés
+RequestManagerStatusDictionaryAuthorizedButtonsHelp                         = Liste des boutons authorisés à ce status (Tous les boutons si aucun sélectionnés)
+
+############################################################
+### Companies Relationship
+############################################################
+RequestManagerListOfPrincipalCompanies  = Liste des donneurs d'ordres
+RequestManagerListOfBenefactorCompanies = Liste des bénéficiaires
+RequestManagerPrincipalCompany          = Donneur d'ordre
+RequestManagerBenefactorCompany         = Bénéficiaire
+
+############################################################
+### Companies Relationship : Confirm box
+############################################################
+RequestManagerEditCompaniesRelationship             = Editer relation tiers
+RequestManagerConfirmEditCompaniesRelationship      = Êtes-vous sûr de vouloir d'éditer cette relation tiers ?
+RequestManagerDeleteCompaniesRelationship           = Supprimer relation tiers
+RequestManagerConfirmDeleteCompaniesRelationship    = Êtes-vous sûr de vouloir supprimer cette relation tiers ?
 
 ############################################################
 ### Errors

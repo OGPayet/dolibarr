@@ -39,6 +39,7 @@ if (!empty($conf->categorie->enabled)) {
 
 dol_include_once('/requestmanager/class/requestmanager.class.php');
 dol_include_once('/requestmanager/class/html.formrequestmanager.class.php');
+dol_include_once('/companyrelationships/class/companyrelationships.class.php');
 
 
 // Protection to avoid direct call of template
@@ -53,6 +54,7 @@ if (empty($conf) || !is_object($conf) || !isset($_POST['zone']))
 <!-- BEGIN PHP TEMPLATE -->
 <?php
 $langs->load('companies');
+$langs->load('agenda');
 $langs->load('requestmanager@requestmanager');
 
 $zone  = intval(GETPOST('zone' , 'int'));
@@ -63,17 +65,20 @@ $zone  = intval(GETPOST('zone' , 'int'));
 // Zone 1
 //
 if ($zone === 1) {
-    $selectedActionJs     = GETPOST('action_js')?GETPOST('action_js'):'';
-    $selectedActionCommId = GETPOST('actioncomm_id', 'int')?intval(GETPOST('actioncomm_id', 'int')):-1;
-    $selectedCategories   = GETPOST('categories', 'array')?GETPOST('categories', 'array'):array();
-    $selectedContactId    = GETPOST('contactid', 'int')?intval(GETPOST('contactid', 'int')):-1;
-    $selectedDescription  = GETPOST('description', 'alpha')?GETPOST('description', 'alpha'):'';
-    $selectedEquipementId = GETPOST('equipement_id', 'int')?intval(GETPOST('equipement_id', 'int')):-1;
-    $selectedLabel        = GETPOST('label', 'alpha')?GETPOST('label', 'alpha'):'';
-    $selectedSocId        = GETPOST('socid', 'int')?intval(GETPOST('socid', 'int')):-1;
-    $selectedFkSource     = GETPOST('source', 'int')?intval(GETPOST('source', 'int')):-1;
-    $selectedFkType       = GETPOST('type', 'int')?intval(GETPOST('type', 'int')):-1;
-    $selectedFkUrgency    = GETPOST('urgency', 'int')?intval(GETPOST('urgency', 'int')):-1;
+    $selectedActionJs         = GETPOST('action_js')?GETPOST('action_js'):'';
+    $selectedActionCommId     = GETPOST('actioncomm_id', 'int')?intval(GETPOST('actioncomm_id', 'int')):-1;
+    $selectedCategories       = GETPOST('categories', 'array')?GETPOST('categories', 'array'):array();
+    $selectedContacts         = GETPOST('contact_ids', 'array')?GETPOST('contact_ids', 'array'):array();
+//    $selectedContactId        = GETPOST('contactid', 'int')?intval(GETPOST('contactid', 'int')):-1;
+    $selectedDescription      = GETPOST('description', 'alpha')?GETPOST('description', 'alpha'):'';
+    $selectedEquipementId     = GETPOST('equipement_id', 'int')?intval(GETPOST('equipement_id', 'int')):-1;
+    $selectedLabel            = GETPOST('label', 'alpha')?GETPOST('label', 'alpha'):'';
+    $selectedSocIdOrigin      = GETPOST('socid_origin', 'int')?intval(GETPOST('socid_origin', 'int')):-1;
+    $selectedSocId            = GETPOST('socid', 'int')?intval(GETPOST('socid', 'int')):-1;
+    $selectedSocIdBenefactor  = GETPOST('socid_benefactor', 'int')?intval(GETPOST('socid_benefactor', 'int')):-1;
+    $selectedFkSource         = GETPOST('source', 'int')?intval(GETPOST('source', 'int')):-1;
+    $selectedFkType           = GETPOST('type', 'int')?intval(GETPOST('type', 'int')):-1;
+    $selectedFkUrgency        = GETPOST('urgency', 'int')?intval(GETPOST('urgency', 'int')):-1;
 
     // default filters
     $filterSocId = '(s.client = 1 OR s.client = 2 OR s.client = 3) AND status=1';
@@ -90,6 +95,62 @@ if ($zone === 1) {
     $form = new Form($db);
     $formrequestmanager = new FormRequestManager($db);
     $usergroup_static = new UserGroup($db);
+    $companyrelationships = new CompanyRelationships($db);
+
+    $force_set = $selectedActionJs=='change_socid_origin';
+    if ($selectedSocIdOrigin > 0 && ($selectedSocIdBenefactor < 0 || $selectedSocId < 0 || $force_set)) {
+        $originRelationshipType = $companyrelationships->getRelationshipType($selectedSocIdOrigin);
+        if ($originRelationshipType == 0) { // Benefactor company
+            $selectedSocIdBenefactor = $selectedSocIdBenefactor < 0 || $force_set ? $selectedSocIdOrigin : $selectedSocIdBenefactor;
+            $principal_companies_ids = $companyrelationships->getRelationships($selectedSocIdBenefactor, 0);
+            $principal_companies_ids = is_array($principal_companies_ids) ? array_values($principal_companies_ids) : array();
+            $selectedSocId = $selectedSocId < 0 || $force_set ? $principal_companies_ids[0] : $selectedSocId;
+        } elseif ($originRelationshipType > 0) { // Principal company or both
+            $selectedSocId = $selectedSocId < 0 || $force_set ? $selectedSocIdOrigin : $selectedSocId;
+            $benefactor_companies_ids = $companyrelationships->getRelationships($selectedSocId, 1);
+            $benefactor_companies_ids = is_array($benefactor_companies_ids) ? array_values($benefactor_companies_ids) : array();
+            $selectedSocIdBenefactor = $selectedSocIdBenefactor < 0 || $force_set ? $benefactor_companies_ids[0] : $selectedSocIdBenefactor;
+        } else { // None
+            $selectedSocId = $selectedSocId < 0 || $force_set ? $selectedSocIdOrigin : $selectedSocId;
+            $selectedSocIdBenefactor = $selectedSocIdBenefactor < 0 || $force_set ? $selectedSocId : $selectedSocIdBenefactor;
+        }
+    }
+
+    // Get principal companies
+    $principal_companies_ids = $companyrelationships->getRelationships($selectedSocIdBenefactor, 0);
+
+    // Get benefactor companies
+    $benefactor_companies_ids = $companyrelationships->getRelationships($selectedSocId, 1);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /*
+    $benefactor_id = $selectedSocIdBenefactor > 0 ? array($selectedSocIdBenefactor) : array();
+    $principal_id = $selectedSocId > 0 ? array($selectedSocId) : array();
+    $benefactors = is_array($benefactor_companies_ids) ? array_merge($benefactor_companies_ids, $principal_id) : array_merge($principal_id);
+    if (count($benefactors) == 1 && $selectedSocIdBenefactor <= 0) $selectedSocIdBenefactor = array_values($benefactors)[0];
+
+    $benefactor_id = $selectedSocIdBenefactor > 0 ? array($selectedSocIdBenefactor) : array();
+    $principals = is_array($principal_companies_ids) ? array_merge($principal_companies_ids, $benefactor_id) : $benefactor_id;
+    if (count($principal_companies_ids) == 1 && $selectedSocIdBenefactor <= 0) $selectedSocIdBenefactor = array_values($principal_companies_ids)[0];
+    */
 
     print '<table class="border" width="100%">';
     print '<tr>';
@@ -111,7 +172,7 @@ if ($zone === 1) {
     print '<table class="border" width="100%">';
     print '<tr>';
     // ActionComm
-    print '<td class="fieldrequired" width="200px">' . $langs->trans('RequestManagerCreateFastActionCommLabel') . '</td>';
+    print '<td width="200px">' . $langs->trans('RequestManagerCreateFastActionCommLabel') . '</td>';
     print '<td>';
     print $formrequestmanager->select_actioncomm('', array('AC_TEL'), $selectedActionCommId, 'actioncomm_id', 1, 0, null, 0);
     print '</td>';
@@ -119,22 +180,21 @@ if ($zone === 1) {
     print '</table>';
 
     print '<table class="border" width="100%">';
+
     print '<tr>';
-    // Company
-    print '<td class="fieldrequired">' . $langs->trans('ThirdParty') . '</td>';
-    print '<td>';
-    print $form->select_company($selectedSocId, 'socid', $filterSocId, 1, 0, 0, null, 0, 'maxwidth300');
-    if (!empty($conf->societe->enabled) &&  $user->rights->societe->creer) {
-        $backToPage = dol_buildpath('/requestmanager/createfast.php', 1) . '?action=createfast';
+    // ThirdParty Origin
+    print '<td class="fieldrequired">' . $langs->trans('RequestManagerThirdPartyOrigin') . '</td><td>';
+    print $form->select_company($selectedSocIdOrigin, 'socid_origin', $filterSocId, 'SelectThirdParty', 0, 0, array(), 0, 'minwidth300');
+    if (!empty($conf->societe->enabled) && $user->rights->societe->creer) {
+        $backToPage = dol_buildpath('/requestmanager/createfast.php', 1) . '?action=createfast' . ($selectedFkType ? '&type=' . $selectedFkType : '') . ($selectedSocId ? '&socid=' . $selectedSocId : '') . '&socid_origin=##SOCID##';
         print ' <a id="new_thridparty" href="' . DOL_URL_ROOT . '/societe/card.php?action=create&client=3&fournisseur=0&backtopage=' . urlencode($backToPage) . '">' . $langs->trans("AddThirdParty") . '</a>';
     }
     print '</td>';
-    // Contact
-    print '<td>' . $langs->trans('Contact') . '</td>';
-    print '<td>';
-    $form->select_contacts($selectedSocId, $selectedContactId, 'contactid', 1);
+    // Requester Contacts
+	print '<td>' . $langs->trans('RequestManagerRequesterContacts') . '</td><td>';
+    print $formrequestmanager->multiselect_contacts($selectedSocId, $selectedContacts, 'contact_ids', '', '', 0, 'minwidth300');
     if ($selectedSocId > 0 && $user->rights->societe->contact->creer) {
-        $backToPage = dol_buildpath('/requestmanager/createfast.php', 1) . '?action=createfast';
+        $backToPage = dol_buildpath('/requestmanager/createfast.php', 1) . '?action=createfast&socid=' . $selectedSocId;
         $btnCreateContactLabel = (!empty($conf->global->SOCIETE_ADDRESSES_MANAGEMENT) ? $langs->trans("AddContact") : $langs->trans("AddContactAddress"));
         $btnCreateContact = '<a class="addnewrecord" href="' . DOL_URL_ROOT . '/contact/card.php?socid=' . $selectedSocId . '&amp;action=create&amp;backtopage=' . urlencode($backToPage) . '">' . $btnCreateContactLabel;
         if (empty($conf->dol_optimize_smallscreen)) $btnCreateContact .= ' ' . img_picto($btnCreateContactLabel, 'filenew');
@@ -145,11 +205,33 @@ if ($zone === 1) {
     print '</tr>';
 
     print '<tr>';
+    // ThirdParty Bill
+    print '<td>' . $langs->trans('RequestManagerThirdPartyBill') . '</td><td>';
+    print $form->select_company($selectedSocId, 'socid', $filterSocId, 'SelectThirdParty', 0, 0, array(), 0, 'minwidth300');
+    if (!empty($conf->societe->enabled) && $user->rights->societe->creer) {
+        $backToPage = dol_buildpath('/requestmanager/createfast.php', 1) . '?action=createfast' . ($selectedFkType ? '&type=' . $selectedFkType : '') . ($selectedSocIdOrigin ? '&socid_origin=' . $selectedSocIdOrigin : '') . '&socid=##SOCID##';
+        print ' <a id="new_thridparty" href="' . DOL_URL_ROOT . '/societe/card.php?action=create&client=3&fournisseur=0&backtopage=' . urlencode($backToPage) . '">' . $langs->trans("AddThirdParty") . '</a>';
+    }
+    print '</td>';
+    // ThirdParty Benefactor
+    print '<td>' . $langs->trans('RequestManagerThirdPartyBenefactor') . '</td><td>';
+    print $form->select_company($selectedSocIdBenefactor, 'socid_benefactor', $filterSocId, 'SelectThirdParty', 0, 0, array(), 0, 'minwidth300');
+    print '
+    <script type="text/javascript">
+        $(document).ready(function(){
+          move_top_select_options("socid", '.json_encode($principal_companies_ids).');
+          move_top_select_options("socid_benefactor", '.json_encode($benefactor_companies_ids).');
+        });
+    </script>';
+    print '</td>';
+    print '</tr>';
+
+    print '<tr>';
     // Equipement
     if ($conf->equipement->enabled) {
         print '<td>' . $langs->trans("Equipement") . '</td>';
         print '<td>';
-        print $formrequestmanager->select_equipement($selectedSocId, $selectedEquipementId, 'equipement_id', 1, 0, null, 0);
+        print $formrequestmanager->select_benefactor_equipement($selectedSocId, $selectedSocIdBenefactor, $selectedEquipementId, 'equipement_id', 1, 0, null, 0);
         print '</td>';
     }
     // Categories
@@ -180,6 +262,12 @@ if ($zone === 1) {
     print '</td>';
     print '</tr>';
     print '</table>';
+
+    // btn create
+    print '<div align="right">';
+    print '<input type="submit" class="button" name="btn_create" value="' . $langs->trans('RequestManagerCreateFastBtnCreateLabel') . '"/>';
+    print '</div>';
+
     ?>
     <script type="text/javascript">
         jQuery(document).ready(function(){
@@ -197,9 +285,17 @@ if ($zone === 1) {
                 requestManagerLoader.loadZone(1, 'change_equipement_id');
             });
 
-            jQuery('#socid').change(function(){
-                requestManagerLoader.loadZone(1, 'change_socid');
-            });
+          jQuery('#socid_origin').change(function(){
+              requestManagerLoader.loadZone(1, 'change_socid_origin');
+          });
+
+          jQuery('#socid').change(function(){
+              requestManagerLoader.loadZone(1, 'change_socid');
+          });
+
+          jQuery('#socid_benefactor').change(function(){
+              requestManagerLoader.loadZone(1, 'change_socid_benefactor');
+          });
         });
     </script>
     <?php
@@ -218,45 +314,37 @@ if ($zone === 2) {
     $requestManagerStatic = new RequestManager($db);
     $requestManagerList = $requestManagerStatic->loadAllByFkSoc($selectedSocId, array(RequestManager::STATUS_TYPE_INITIAL, RequestManager::STATUS_TYPE_IN_PROGRESS), $selectedCategories, $selectedEquipementId);
 
-    print '<table class="nobordernopadding" width="100%">';
-    // btn create
-    print '<tr>';
-    print '<td align="right">';
-    print '<input type="submit" class="button" name="btn_create" value="' . $langs->trans('RequestManagerCreateFastBtnCreateLabel') . '"/>';
-    print '</td>';
-    print '</tr>';
-    print '</table>';
-
     if (count($requestManagerList) > 0) {
         print '<br />';
-        print '<table class="nobordernopadding" width="100%">';
+        print load_fiche_titre($langs->trans('ListOfActions'), '', '');
+        print '<div class="div-table-responsive-no-min">';
+        print '<table class="noborder allwidth">';
         print '<tr class="liste_titre">';
-        print '<td align="left"></td>';
         print '<td align="left">' . $langs->trans("RequestManagerType") . '</td>';
         print '<td align="left">' . $langs->trans("Ref") . '</td>';
         print '<td align="left">' . $langs->trans("RequestManagerLabel") . '</td>';
         print '<td align="left">' . $langs->trans("DateCreation") . '</td>';
+        print '<td align="left"></td>';
         print '</tr>';
 
         foreach ($requestManagerList as $requestManager) {
             print '<tr class="liste">';
-            print '<td align="center">';
-            print '<input type="radio" name="associate_list[]" value="' . $requestManager->id . '" />';
-            print '</td>';
             print '<td align="left">' . $requestManager->getLibType() . '</td>';
             print '<td align="left"><a href="' . dol_buildpath('/requestmanager/card.php', 1) . '?id=' . $requestManager->id . '" target="_blank">' . $requestManager->ref . '</a></td>';
             print '<td align="left">' . $requestManager->label . '</td>';
             print '<td align="left">' . dol_print_date($requestManager->date_creation, 'dayhour') . '</td>';
+            print '<td align="center">';
+            print '<input type="radio" name="associate_list[]" value="' . $requestManager->id . '" />';
+            print '</td>';
             print '</tr>';
         }
+        print '</table>';
 
         // btn associate
-        print '<tr>';
-        print '<td align="right" colspan="5">';
+        print '<div align="right">';
         print '<input type="submit" class="button" name="btn_associate" value="' . $langs->trans('RequestManagerCreateFastBtnAssociateLabel') . '"/>';
-        print '</td>';
-        print '</tr>';
-        print '</table>';
+        print '</div>';
+        print '</div>';
     }
 }
 
@@ -269,9 +357,10 @@ if ($zone === 2) {
 if ($zone === 3) {
     $langs->load('contracts');
 
-    $selectedCategories   = GETPOST('categories', 'array')?GETPOST('categories', 'array'):array();
-    $selectedEquipementId = GETPOST('equipement_id', 'int')?intval(GETPOST('equipement_id', 'int')):-1;
-    $selectedSocId        = GETPOST('socid', 'int')?intval(GETPOST('socid', 'int')):-1;
+    $selectedCategories       = GETPOST('categories', 'array')?GETPOST('categories', 'array'):array();
+    $selectedEquipementId     = GETPOST('equipement_id', 'int')?intval(GETPOST('equipement_id', 'int')):-1;
+    $selectedSocId            = GETPOST('socid', 'int')?intval(GETPOST('socid', 'int')):-1;
+    $selectedSocIdBenefactor  = GETPOST('socid_benefactor', 'int')?intval(GETPOST('socid_benefactor', 'int')):-1;
 
     $requestManager = new RequestManager($db);
 
@@ -296,6 +385,7 @@ if ($zone === 3) {
             $contractExtraFields = new ExtraFields($db);
             $contractExtraLabels = $contractExtraFields->fetch_name_optionals_label($contractStatic->table_element);
             foreach ($contractList as $contract) {
+                // Todo specific code to get out
                 $formuleId    = $contract->array_options['options_formule'];
                 $formuleLabel = $contractExtraFields->attribute_param['formule']['options'][$formuleId];
                 print '<tr class="liste">';
@@ -311,7 +401,7 @@ if ($zone === 3) {
         if ($conf->equipement->enabled) {
             $langs->load('equipement@equipement');
 
-            $equipementList = $requestManager->loadAllEquipementByFkSoc($selectedSocId);
+            $equipementList = $requestManager->loadAllBenefactorEquipments($selectedSocId, $selectedSocIdBenefactor);
             print '<br />';
             print load_fiche_titre($langs->trans('Equipements'), '', '');
             print '<div class="div-table-responsive-no-min">';

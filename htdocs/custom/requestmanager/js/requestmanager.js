@@ -8,7 +8,6 @@
  *
  */
 
-
 class RequestManagerLoader {
 
     /**
@@ -44,15 +43,18 @@ class RequestManagerLoader {
             ajaxData = {
                 action_js: actionJs,
                 actioncomm_id: jQuery('#actioncomm_id').val(),
-                contactid: jQuery('#contactid').val(),
-                description: jQuery('#description').val(),
                 label: jQuery('#label').val(),
+                socid_origin: jQuery('#socid_origin').val(),
                 socid: jQuery('#socid').val(),
+                socid_benefactor: jQuery('#socid_benefactor').val(),
                 source: jQuery('#source').val(),
                 type: jQuery('#type').val(),
                 urgency: jQuery('#urgency').val(),
                 zone: idZone
             };
+
+            ajaxData.description   = typeof CKEDITOR == "object" && typeof CKEDITOR.instances != "undefined" && "description" in CKEDITOR.instances ? CKEDITOR.instances["description"].getData() : jQuery('#description').val();
+            ajaxData.contact_ids   = jQuery('#contact_ids').val();
             ajaxData.categories    = jQuery('#categories').val();
             ajaxData.equipement_id = jQuery('#equipement_id').val();
         }
@@ -112,4 +114,25 @@ class RequestManagerLoader {
             }
         });
     }
+}
+
+/**
+ *  Move to the top the options of a select
+ *
+ * @param string  select_htmlname   ID of the select
+ * @param array   values_list       List of values of options to move to the top
+ */
+if (typeof move_top_select_options !== "function") {
+  function move_top_select_options(select_htmlname, values_list) {
+    var select = $("#" + select_htmlname);
+    var select2 = $('#s2id_' + select_htmlname + ' span.select2-chosen');
+    $.map(values_list, function (value, key) {
+      var option = select.find("option[value='" + value + "']");
+      var text = option.text();
+      if (text.search(/\s\*$/) == -1) text += " *";
+      option.text(text);
+      option.detach().prependTo(select);
+      if (select.val() == value && select2.length > 0) select2.text(text);
+    });
+  }
 }

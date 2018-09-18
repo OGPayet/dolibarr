@@ -105,7 +105,7 @@ class modSynergiesTech extends DolibarrModules
         //    'dictionaries' => 1,
             'tpl' => 1,
             'triggers' => 1,
-            'hooks' => array('requestmanagercard', 'ordercard', 'contractcard', 'tab_supplier_order', 'tab_expedition_add', 'invoicelist', 'main'),
+            'hooks' => array('requestmanagercard', 'requestmanagerdao', 'ordercard', 'contractcard', 'tab_supplier_order', 'tab_expedition_add', 'invoicelist', 'main'),
         );
 
 		// Data directories to create when module is enabled.

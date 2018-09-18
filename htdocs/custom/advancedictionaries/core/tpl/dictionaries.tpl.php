@@ -102,7 +102,7 @@ if (isset($dictionary)) {
 
             $dictionary_line = $dictionary->getNewDictionaryLine();
             if ($dictionary->edit_in_add_form && $action == 'edit') $dictionary_line->fetch($rowid);
-            $fieldsValue = $dictionary->getFieldsValueFromForm($dictionary->edit_in_add_form && $action == 'edit' ? 'edit_' : 'add_');
+            if ($error) $fieldsValue = $dictionary->getFieldsValueFromForm($dictionary->edit_in_add_form && $action == 'edit' ? 'edit_' : 'add_', '' , $dictionary->edit_in_add_form && $action == 'edit' ? 1 : 0);
 
             $has_required_fields = false;
             $idx = 1;
@@ -284,7 +284,7 @@ if (isset($dictionary)) {
                 $var = !$var;
                 if ($action == 'edit' && !$dictionary->edit_in_add_form && $dictionary->lineCanBeUpdated && $canUpdate && $line->id == $rowid) {
                     $dictionary_line = clone $line;
-                    $fieldsValue = $dictionary->getFieldsValueFromForm('edit_');
+                    if ($error) $fieldsValue = $dictionary->getFieldsValueFromForm('edit_', '' , 1);
 
                     print '<input type="hidden" name="rowid" value="' . $line->id . '">';
 

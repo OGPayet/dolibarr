@@ -43,7 +43,9 @@ $search_ref_ext                   = GETPOST('search_ref_ext','alpha');
 $search_type                      = GETPOST('search_type','alpha');
 $search_category                  = GETPOST('search_category','alpha');
 $search_label                     = GETPOST('search_label','alpha');
+$search_thridparty_origin         = GETPOST('search_thridparty_origin','alpha');
 $search_thridparty                = GETPOST('search_thridparty','alpha');
+$search_thridparty_benefactor     = GETPOST('search_thridparty_benefactor','alpha');
 $search_source                    = GETPOST('search_source','alpha');
 $search_urgency                   = GETPOST('search_urgency','alpha');
 $search_impact                    = GETPOST('search_impact','alpha');
@@ -85,7 +87,9 @@ $arrayfields = array(
     'rm.fk_type'                   => array('label' => $langs->trans("RequestManagerType"), 'checked' => 1),
     'rm.fk_category'               => array('label' => $langs->trans("RequestManagerCategory"), 'checked' => 1),
     'rm.label'                     => array('label' => $langs->trans("RequestManagerLabel"), 'checked' => 1),
-    'rm.fk_soc'                    => array('label' => $langs->trans("RequestManagerThirdParty"), 'checked' => 1),
+    'rm.fk_soc_origin'             => array('label' => $langs->trans("RequestManagerThirdPartyOrigin"), 'checked' => 1),
+    'rm.fk_soc'                    => array('label' => $langs->trans("RequestManagerThirdPartyBill"), 'checked' => 1),
+    'rm.fk_soc_benefactor'         => array('label' => $langs->trans("RequestManagerThirdPartyBenefactor"), 'checked' => 1),
     'rm.description'               => array('label' => $langs->trans("RequestManagerDescription"), 'checked' => 0),
     'rm.fk_source'                 => array('label' => $langs->trans("RequestManagerSource"), 'checked' => 0),
     'rm.fk_urgency'                => array('label' => $langs->trans("RequestManagerUrgency"), 'checked' => 0),
@@ -145,7 +149,9 @@ if ($search_ref_ext) $param .= '&search_ref_ext=' . urlencode($search_ref_ext);
 if ($search_type) $param .= '&search_type=' . urlencode($search_type);
 if ($search_category) $param .= '&search_category=' . urlencode($search_category);
 if ($search_label) $param .= '&search_label=' . urlencode($search_label);
+if ($search_thridparty_origin) $param .= '&search_thridparty_origin=' . urlencode($search_thridparty_origin);
 if ($search_thridparty) $param .= '&search_thridparty=' . urlencode($search_thridparty);
+if ($search_thridparty_benefactor) $param .= '&search_thridparty_benefactor=' . urlencode($search_thridparty_benefactor);
 if ($search_source) $param .= '&search_source=' . urlencode($search_source);
 if ($search_urgency) $param .= '&search_urgency=' . urlencode($search_urgency);
 if ($search_impact) $param .= '&search_impact=' . urlencode($search_impact);
@@ -169,7 +175,9 @@ if ($search_user_author) $param .= '&search_user_author=' . urlencode($search_us
 if ($search_user_modification) $param .= '&search_user_modification=' . urlencode($search_user_modification);
 
 $objectstatic  = new RequestManager($db);
+$societestatic_origin = new Societe($db);
 $societestatic = new Societe($db);
+$societestatic_benefactor = new Societe($db);
 $userstatic    = new User($db);
 
 
@@ -196,7 +204,9 @@ if (!empty($arrayfields['rm.ref_ext']['checked'])) print_liste_field_titre($arra
 if (!empty($arrayfields['rm.fk_type']['checked'])) print_liste_field_titre($arrayfields['rm.fk_type']['label'], $_SERVER["PHP_SELF"], 'crmrt.label', '', $param, '', $sortfield, $sortorder); $nbCol++;
 if (!empty($arrayfields['rm.fk_category']['checked'])) print_liste_field_titre($arrayfields['rm.fk_category']['label'], $_SERVER["PHP_SELF"], 'crmc.label', '', $param, '', $sortfield, $sortorder); $nbCol++;
 if (!empty($arrayfields['rm.label']['checked'])) print_liste_field_titre($arrayfields['rm.label']['label'], $_SERVER["PHP_SELF"], 'rm.label', '', $param, '', $sortfield, $sortorder); $nbCol++;
+if (!empty($arrayfields['rm.fk_soc_origin']['checked'])) print_liste_field_titre($arrayfields['rm.fk_soc_origin']['label'], $_SERVER["PHP_SELF"], 'so.nom', '', $param, '', $sortfield, $sortorder); $nbCol++;
 if (!empty($arrayfields['rm.fk_soc']['checked'])) print_liste_field_titre($arrayfields['rm.fk_soc']['label'], $_SERVER["PHP_SELF"], 's.nom', '', $param, '', $sortfield, $sortorder); $nbCol++;
+if (!empty($arrayfields['rm.fk_soc_benefactor']['checked'])) print_liste_field_titre($arrayfields['rm.fk_soc_benefactor']['label'], $_SERVER["PHP_SELF"], 'sb.nom', '', $param, '', $sortfield, $sortorder); $nbCol++;
 if (!empty($arrayfields['rm.description']['checked'])) print_liste_field_titre($arrayfields['rm.description']['label'], $_SERVER["PHP_SELF"], 'rm.description', '', $param, '', $sortfield, $sortorder); $nbCol++;
 if (!empty($arrayfields['rm.fk_source']['checked'])) print_liste_field_titre($arrayfields['rm.fk_source']['label'], $_SERVER["PHP_SELF"], 'crms.label', '', $param, '', $sortfield, $sortorder); $nbCol++;
 if (!empty($arrayfields['rm.fk_urgency']['checked'])) print_liste_field_titre($arrayfields['rm.fk_urgency']['label'], $_SERVER["PHP_SELF"], 'crmu.label', '', $param, '', $sortfield, $sortorder); $nbCol++;
@@ -254,32 +264,32 @@ $sqlFilterNotAssigned            = ' AND not_assigned.rowid IS NULL';
 $sqlFilterActionCommAssignedToMe = ' AND ac.fk_user_action = ' . $user->id;
 
 // 1 - List of requests in progress assigned to me
-FormRequestManager::listsFollowPrintListFrom($db, $arrayfields, $objectstatic, $societestatic, $userstatic,
+FormRequestManager::listsFollowPrintListFrom($db, $arrayfields, $objectstatic, $societestatic_origin, $societestatic, $societestatic_benefactor, $userstatic,
     $sqlJoinAssignedFilterBegin . $sqlAssignedSubSelectBegin . $sqlFilterAssignedToMe . $sqlJoinAssignedFilterEnd,
     $sqlFilterInProgress . $sqlFilterNotInFuture,
     $sortfield, $sortorder, 'RequestManagerListsFollowMyRequest', $nbCol);
 
 // 2 - List of requests in progress assigned to my group(s) and not to me
-FormRequestManager::listsFollowPrintListFrom($db, $arrayfields, $objectstatic, $societestatic, $userstatic,
+FormRequestManager::listsFollowPrintListFrom($db, $arrayfields, $objectstatic, $societestatic_origin, $societestatic, $societestatic_benefactor, $userstatic,
     $sqlJoinAssignedFilterBegin . $sqlAssignedSubSelectBegin . $sqlFilterAssignedToMyGroups . $sqlJoinAssignedFilterEnd .
     $sqlJoinNotAssignedFilterBegin . $sqlAssignedSubSelectBegin . $sqlFilterAssignedToMe . $sqlJoinNotAssignedFilterEnd,
     $sqlFilterInProgress . $sqlFilterNotInFuture . $sqlFilterNotAssigned,
     $sortfield, $sortorder, 'RequestManagerListsFollowMyGroupRequest', $nbCol);
 
 // 3 - List of requests in progress not assigned to my group(s) and not assigned to me
-FormRequestManager::listsFollowPrintListFrom($db, $arrayfields, $objectstatic, $societestatic, $userstatic,
+FormRequestManager::listsFollowPrintListFrom($db, $arrayfields, $objectstatic, $societestatic_origin, $societestatic, $societestatic_benefactor, $userstatic,
     $sqlJoinActionComm . $sqlJoinNotAssignedFilterBegin . $sqlAssignedSubSelectBegin . $sqlFilterAssignedToMeOrMyGroups . $sqlJoinNotAssignedFilterEnd,
     $sqlFilterInProgress . $sqlFilterActionCommAssignedToMe . $sqlFilterNotAssigned,
     $sortfield, $sortorder, 'RequestManagerListsFollowLinkToMyEvent', $nbCol);
 
 // 4 - List of requests in future assigned to me
-FormRequestManager::listsFollowPrintListFrom($db, $arrayfields, $objectstatic, $societestatic, $userstatic,
+FormRequestManager::listsFollowPrintListFrom($db, $arrayfields, $objectstatic, $societestatic_origin, $societestatic, $societestatic_benefactor, $userstatic,
     $sqlJoinAssignedFilterBegin . $sqlAssignedSubSelectBegin . $sqlFilterAssignedToMe . $sqlJoinAssignedFilterEnd,
     $sqlFilterInProgress . $sqlFilterInFuture,
     $sortfield, $sortorder, 'RequestManagerListsFollowMyFutureRequest', $nbCol);
 
 // 5 - List request in future assigned to my group(s) and not to me
-FormRequestManager::listsFollowPrintListFrom($db, $arrayfields, $objectstatic, $societestatic, $userstatic,
+FormRequestManager::listsFollowPrintListFrom($db, $arrayfields, $objectstatic, $societestatic_origin, $societestatic, $societestatic_benefactor, $userstatic,
     $sqlJoinAssignedFilterBegin . $sqlAssignedSubSelectBegin . $sqlFilterAssignedToMyGroups . $sqlJoinAssignedFilterEnd .
     $sqlJoinNotAssignedFilterBegin . $sqlAssignedSubSelectBegin . $sqlFilterAssignedToMe . $sqlJoinNotAssignedFilterEnd,
     $sqlFilterInProgress . $sqlFilterInFuture . $sqlFilterNotAssigned,

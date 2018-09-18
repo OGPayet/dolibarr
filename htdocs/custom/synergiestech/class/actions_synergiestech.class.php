@@ -193,6 +193,36 @@ class ActionsSynergiesTech
     }
 
     /**
+	 * Overloading the addRequestManagerAuthorizedButton function : replacing the parent's function with the one below
+	 *
+	 * @param   array() $parameters Hook metadatas (context, etc...)
+	 * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+	 * @param   string &$action Current action (if set). Generally create or edit or null
+	 * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
+	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+	 */
+	function addRequestManagerAuthorizedButton($parameters, &$object, &$action, $hookmanager)
+    {
+        global $conf, $user, $langs;
+
+        $contexts = explode(':',$parameters['context']);
+
+        if (in_array('requestmanagerdao', $contexts)) {
+            $langs->load("retourproduits@retourproduits");
+
+            $authorized_buttons_list = array(
+                'retourproduits' => $langs->trans('returnProducts'),
+            );
+
+            $this->results = $authorized_buttons_list;
+
+            return 1;
+        }
+
+        return 0;
+    }
+
+    /**
 	 * Overloading the addMoreActionsButtons function : replacing the parent's function with the one below
 	 *
 	 * @param   array() $parameters Hook metadatas (context, etc...)
@@ -210,8 +240,11 @@ class ActionsSynergiesTech
         if (in_array('requestmanagercard', $contexts)) {
             $langs->load('synergiestech@synergiestech');
 
+            $requestManagerStatusDictionaryLine = $parameters['status_infos'];
+            $authorizedButtons = !empty($requestManagerStatusDictionaryLine->fields['authorized_buttons']) ? explode(',', $requestManagerStatusDictionaryLine->fields['authorized_buttons']) : array();
+
             dol_include_once('/requestmanager/class/requestmanager.class.php');
-            if ($object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS && !empty($conf->retourproduits->enabled)) {
+            if ($object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS && !empty($conf->retourproduits->enabled) && (count($authorizedButtons) == 0 || in_array('retourproduits', $authorizedButtons))) {
                 $langs->load("retourproduits@retourproduits");
                 if ($object->socid > 0) {
                     dol_include_once('/synergiestech/lib/synergiestech.lib.php');
@@ -744,7 +777,7 @@ SCRIPT;
                     foreach ($all_categories as $cat) {
                         if ((preg_match('/^' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '$/', $cat['fullpath']) ||
                                 preg_match('/_' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '$/', $cat['fullpath']) ||
-                                preg_match('/^' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '_/', $cat['fullpath']) ||
+                                preg_match('/^' . $conf->global->lSYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '_/', $cat['fullpath']) ||
                                 preg_match('/_' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '_/', $cat['fullpath'])
                             ) && $cat['id'] != $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE
                         ) {
@@ -1214,6 +1247,131 @@ SCRIPT;
         }
 
         return 0; // or return 1 to replace standard code
+    }
+
+    /**
+	 * Overloading the showLinkToObjectBlock function : replacing the parent's function with the one below
+	 *
+	 * @param   array() $parameters Hook metadatas (context, etc...)
+	 * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+	 * @param   string &$action Current action (if set). Generally create or edit or null
+	 * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
+	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+	 */
+	function showLinkToObjectBlock($parameters, &$object, &$action, $hookmanager)
+    {
+/*        global $conf, $langs;
+
+        $contexts = explode(':',$parameters['context']);
+
+        if (in_array('requestmanagercard', $contexts)) {
+            if (!is_object($object->thirdparty)) $object->fetch_thirdparty();
+
+            if (is_object($object->thirdparty) && !empty($object->thirdparty->id) && $object->thirdparty->id > 0) {
+                $listofidcompanytoscan = $object->thirdparty->id;
+                if (($object->thirdparty->parent > 0) && !empty($conf->global->THIRDPARTY_INCLUDE_PARENT_IN_LINKTO)) $listofidcompanytoscan .= ',' . $object->thirdparty->parent;
+                if (($object->fk_project > 0) && !empty($conf->global->THIRDPARTY_INCLUDE_PROJECT_THIRDPARY_IN_LINKTO)) {
+                    include_once DOL_DOCUMENT_ROOT . '/projet/class/project.class.php';
+                    $tmpproject = new Project($this->db);
+                    $tmpproject->fetch($object->fk_project);
+                    if ($tmpproject->socid > 0 && ($tmpproject->socid != $object->thirdparty->id)) $listofidcompanytoscan .= ',' . $tmpproject->socid;
+                    unset($tmpproject);
+                }
+                $langs->load('equipement@equipement');
+
+                $possiblelinks = array(
+                    'equipement' => array(
+                        'enabled' => $conf->equipement->enabled,
+                        'perms' => 1,
+                        'label' => 'LinkToEquipement',
+                        'sql' => "SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref FROM " . MAIN_DB_PREFIX . "societe as s" .
+                            " INNER JOIN  " . MAIN_DB_PREFIX . "equipement as t ON t.fk_soc_client = s.rowid" .
+                            " LEFT JOIN  " . MAIN_DB_PREFIX . "element_element as ee" .
+                            "   ON (ee.sourcetype = 'equipement' AND ee.fk_source = t.rowid AND ee.targettype = '".$object->element."' AND ee.fk_target = ".$object->id.")" .
+                            "   OR (ee.targettype = 'equipement' AND ee.fk_target = t.rowid AND ee.sourcetype = '".$object->element."' AND ee.fk_source = ".$object->id.")" .
+                            " WHERE t.fk_soc_client IN (" . $listofidcompanytoscan . ') AND t.entity IN (' . getEntity('equipement') . ')' .
+                            ' AND ee.rowid IS NULL' .
+                            ' GROUP BY t.rowid, s.rowid'
+                    ),
+                );
+
+                $this->results = $possiblelinks;
+            }
+        }*/
+
+        return 0;
+    }
+
+    /**
+	 * Overloading the findAllBenefactorEquipmentsSQL function : replacing the parent's function with the one below
+	 *
+	 * @param   array() $parameters Hook metadatas (context, etc...)
+	 * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+	 * @param   string &$action Current action (if set). Generally create or edit or null
+	 * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
+	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+	 */
+	function findAllBenefactorEquipmentsSQL($parameters, &$object, &$action, $hookmanager)
+    {
+        global $conf, $langs;
+
+        $contexts = explode(':', $parameters['context']);
+
+        if (in_array('requestmanagerdao', $contexts)) {
+            $fkSocPrincipal = $parameters['socid_principal'] > 0 ? $parameters['socid_principal'] : 0;
+            $fkSocBenefactor = $parameters['socid_benefactor'] > 0 ? $parameters['socid_benefactor'] : 0;
+
+            // Get contracts of the principal company
+            require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
+            $contract = new Contrat($this->db);
+            $contract->socid = $fkSocPrincipal;
+            $thirdPartyContractList = $contract->getListOfContracts();
+            $thirdPartyContractList = is_array($thirdPartyContractList) ? $thirdPartyContractList : array();
+
+            // Get extrafields of the contract
+            require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
+            $contractExtraFields = new ExtraFields($this->db);
+            $contractExtraLabels = $contractExtraFields->fetch_name_optionals_label($contract->table_element);
+
+            // Get formulas of the principal company contracts
+            $product_category_names = array();
+            foreach ($thirdPartyContractList as $c) {
+                $label_formula = $contractExtraFields->attribute_param['formule']['options'][$c->array_options['options_formule']];
+                $product_category_names[$label_formula] = $label_formula;
+            }
+
+            // Get product categories of the principal company contracts formula
+            $product_categories = array();
+            require_once DOL_DOCUMENT_ROOT . '/categories/class/categorie.class.php';
+            $categorie_static = new Categorie($this->db);
+            $all_categories = $categorie_static->get_full_arbo('product');
+            foreach ($all_categories as $cat) {
+                if (!isset($product_categories[$cat['id']]) &&
+                    (preg_match('/^' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '$/', $cat['fullpath']) ||
+                     preg_match('/_' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '$/', $cat['fullpath']) ||
+                     preg_match('/^' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '_/', $cat['fullpath']) ||
+                     preg_match('/_' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '_/', $cat['fullpath'])) &&
+                    $cat['id'] != $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE &&
+                    in_array($cat['label'], $product_category_names)
+                ) {
+                    $product_categories[$cat['id']] = $cat['id'];
+                }
+            }
+
+            $sql = "SELECT e.rowid , e.ref";
+            $sql .= " FROM " . MAIN_DB_PREFIX . "equipement as e";
+            $sql .= " LEFT JOIN  " . MAIN_DB_PREFIX . "equipement_extrafields as eef ON eef.fk_object = e.rowid";
+            $sql .= " LEFT JOIN  " . MAIN_DB_PREFIX . "categorie_product as cp ON cp.fk_product = e.fk_product";
+            $sql .= " WHERE e.entity IN (" . getEntity('equipement') . ")";
+            $sql .= ' AND cp.fk_categorie IN (' . (count($product_categories) > 0 ? implode(',', $product_categories) : '0') . ')';
+            $sql .= " AND (e.fk_soc_fourn = " . $fkSocBenefactor . " OR e.fk_soc_client = " . $fkSocBenefactor . ")";
+            $sql .= " AND eef.machineclient = 1";
+
+            $this->resprints = $sql;
+            return 1;
+        }
+
+        return 0;
     }
 
     /**

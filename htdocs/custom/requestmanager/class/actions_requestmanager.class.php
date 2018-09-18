@@ -489,9 +489,10 @@ class ActionsRequestManager
                 );
 
                 $this->results = $possiblelinks;
+                return 1;
             }
         }
 
-        return 1;
+        return 0;
     }
 }

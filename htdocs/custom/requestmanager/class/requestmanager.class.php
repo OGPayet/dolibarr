@@ -101,6 +101,17 @@ class RequestManager extends CommonObject
     public $id;
 
     /**
+     * ID of the request parent
+     * @var int
+     */
+    public $fk_parent;
+    /**
+     * Object of the request parent
+     * @var RequestManager
+     */
+    public $parent;
+
+    /**
      * Ref of the request
      * @var string
      */
@@ -110,11 +121,37 @@ class RequestManager extends CommonObject
      * @var string
      */
     public $ref_ext;
+
     /**
-     * ID of the thirdparty
+     * ID of the thirdparty origin
+     * @var int
+     */
+    public $socid_origin;
+    /**
+     * ID of the thirdparty bill
      * @var int
      */
     public $socid;
+    /**
+     * ID of the thirdparty benefactor
+     * @var int
+     */
+    public $socid_benefactor;
+    /**
+	 * @var Societe A related thirdparty origin
+	 * @see fetch_thirdparty_origin()
+	 */
+	public $thirdparty_origin;
+    /**
+	 * @var Societe A related thirdparty bill
+	 * @see fetch_thirdparty()
+	 */
+	public $thirdparty;
+    /**
+	 * @var Societe A related thirdparty benefactor
+	 * @see fetch_thirdparty_benefactor()
+	 */
+	public $thirdparty_benefactor;
 
     /**
      * Label of the request
@@ -219,6 +256,16 @@ class RequestManager extends CommonObject
      */
     public $notify_assigned_by_email;
 
+    /**
+     * List of assigned user ID passed when the function set_assigned() is called for infos into triggers
+     * @var string[]
+     */
+    public $new_assigned_user_ids;
+    /**
+     * List of assigned usergroup ID passed when the function set_assigned() is called for infos into triggers
+     * @var string[]
+     */
+    public $new_assigned_usergroup_ids;
     /**
      * List of assigned user ID added when the function set_assigned() is called for infos into triggers
      * @var string[]
@@ -423,7 +470,10 @@ class RequestManager extends CommonObject
         }
 
         // Clean parameters
-        $this->socid = $this->socid > 0 ? $this->socid : 0;
+        $this->fk_parent = $this->fk_parent > 0 ? $this->fk_parent : 0;
+        $this->socid_origin = $this->socid_origin > 0 ? $this->socid_origin : 0;
+        $this->socid = $this->socid > 0 ? $this->socid : $this->socid_origin;
+        $this->socid_benefactor = $this->socid_benefactor > 0 ? $this->socid_benefactor : $this->socid_origin;
         $this->label = trim($this->label);
         $this->description = trim($this->description);
         $this->fk_type = $this->fk_type > 0 ? $this->fk_type : 0;
@@ -446,8 +496,8 @@ class RequestManager extends CommonObject
         $this->requester_ids = empty($this->requester_ids) ? array() : (is_string($this->requester_ids) ? explode(',', $this->requester_ids) : $this->requester_ids);
 
         // Check parameters
-        if (empty($this->socid)) {
-            $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("RequestManagerThirdParty"));
+        if (empty($this->socid_origin)) {
+            $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("RequestManagerThirdPartyOrigin"));
             $error++;
         }
         if (empty($this->fk_type)) {
@@ -516,9 +566,12 @@ class RequestManager extends CommonObject
 
         // Insert request
         $sql = "INSERT INTO " . MAIN_DB_PREFIX . $this->table_element . " (";
-        $sql .= " ref";
+        $sql .= " fk_parent";
+        $sql .= ", ref";
         $sql .= ", ref_ext";
+        $sql .= ", fk_soc_origin";
         $sql .= ", fk_soc";
+        $sql .= ", fk_soc_benefactor";
         $sql .= ", label";
         $sql .= ", description";
         $sql .= ", fk_type";
@@ -538,9 +591,12 @@ class RequestManager extends CommonObject
         $sql .= ", fk_user_author";
         $sql .= ")";
         $sql .= " VALUES (";
-        $sql .= " '" . $this->db->escape($this->ref) . "'";
+        $sql .= " " . ($this->fk_parent > 0 ? $this->fk_parent : 'NULL');
+        $sql .= ", '" . $this->db->escape($this->ref) . "'";
         $sql .= ", '" . $this->db->escape($this->ref_ext) . "'";
+        $sql .= ", " . $this->socid_origin;
         $sql .= ", " . $this->socid;
+        $sql .= ", " . $this->socid_benefactor;
         $sql .= ", '" . $this->db->escape($this->label) . "'";
         $sql .= ", '" . $this->db->escape($this->description) . "'";
         $sql .= ", " . $this->fk_type;
@@ -826,9 +882,12 @@ class RequestManager extends CommonObject
 
         $sql = 'SELECT';
         $sql .= ' t.rowid,';
+        $sql .= ' t.fk_parent,';
         $sql .= ' t.ref,';
         $sql .= ' t.ref_ext,';
+        $sql .= ' t.fk_soc_origin,';
         $sql .= ' t.fk_soc,';
+        $sql .= ' t.fk_soc_benefactor,';
         $sql .= ' t.label,';
         $sql .= ' t.description,';
         $sql .= ' t.fk_type,';
@@ -878,9 +937,12 @@ class RequestManager extends CommonObject
                 $this->statut_type                  = $requestManagerStatusDictionaryLine->fields['type'];
 
                 $this->id                           = $obj->rowid;
+                $this->fk_parent                    = $obj->fk_parent;
                 $this->ref                          = $obj->ref;
                 $this->ref_ext                      = $obj->ref_ext;
+                $this->socid_origin                 = $obj->fk_soc_origin;
                 $this->socid                        = $obj->fk_soc;
+                $this->socid_benefactor             = $obj->fk_soc_benefactor;
                 $this->label                        = $obj->label;
                 $this->description                  = $obj->description;
                 $this->fk_type                      = $obj->fk_type;
@@ -957,6 +1019,7 @@ class RequestManager extends CommonObject
 
         foreach ($list as $contract) {
             if ($contract->statut == 1) { // draft(0) validated(1) and closed(2)
+                if (is_array($this->linkedObjectsIds['contrat']) && in_array($contract->id, $this->linkedObjectsIds['contrat'])) continue;
                 $contractId = $contract->id;
                 $result = $this->setContract($contract->id);
                 if ($result < 0) {
@@ -1019,6 +1082,34 @@ class RequestManager extends CommonObject
         $sql .= " WHERE e.entity = " . $conf->entity;
         if ($fkSoc >= 0) {
             $sql .= " AND (e.fk_soc_fourn = ". $fkSoc . " OR e.fk_soc_client = " . $fkSoc . ")";
+        }
+
+        return $this->db->query($sql);
+    }
+
+    /**
+     * Find all equipments for a benefactor company with principal company contract
+     *
+     * @param   int         $fkSocPrincipal         Id of principal company
+     * @param   int         $fkSocBenefactor        Id of benefactor company
+     * @return  resource    SQL resource
+     */
+    public function findAllBenefactorEquipments($fkSocPrincipal, $fkSocBenefactor)
+    {
+        global $conf, $hookmanager;
+
+        $hookmanager->initHooks(array('requestmanagerdao'));
+        $parameters = array('socid_principal'=>$fkSocPrincipal, 'socid_benefactor'=>$fkSocBenefactor);
+        $reshook = $hookmanager->executeHooks('findAllBenefactorEquipmentsSQL', $parameters); // Note that $action and $object may have been
+        if ($reshook) {
+            $sql = $hookmanager->resPrint;
+        } else {
+            $sql = "SELECT e.rowid , e.ref";
+            $sql .= " FROM " . MAIN_DB_PREFIX . "equipement as e";
+            $sql .= " WHERE e.entity = " . $conf->entity;
+            if ($fkSocBenefactor >= 0) {
+                $sql .= " AND (e.fk_soc_fourn = " . $fkSocBenefactor . " OR e.fk_soc_client = " . $fkSocBenefactor . ")";
+            }
         }
 
         return $this->db->query($sql);
@@ -1132,6 +1223,30 @@ class RequestManager extends CommonObject
         }
 
         return $equipementList;
+    }
+
+    /**
+     * Load all equipments for a benefactor company with principal company contract
+     *
+     * @param   int         $fkSocPrincipal         Id of principal company
+     * @param   int         $fkSocBenefactor        Id of benefactor company
+     * @return  array                               List of equipments
+     */
+    public function loadAllBenefactorEquipments($fkSocPrincipal, $fkSocBenefactor)
+    {
+        $equipmentList = array();
+
+        $resql = $this->findAllBenefactorEquipments($fkSocPrincipal, $fkSocBenefactor);
+        if ($resql) {
+            dol_include_once('/equipement/class/equipement.class.php');
+            while ($obj = $this->db->fetch_object($resql)) {
+                $equipment = new Equipement($this->db);
+                $equipment->fetch($obj->rowid);
+                $equipmentList[] = $equipment;
+            }
+        }
+
+        return $equipmentList;
     }
 
 
@@ -1279,6 +1394,91 @@ class RequestManager extends CommonObject
     }
 
     /**
+     *  Load the parent request of object, from id $this->fk_parent, into this->parent
+     *
+     * @return		int								<0 if KO, >0 if OK
+     */
+    function fetch_parent()
+    {
+        if (empty($this->fk_parent))
+            return 0;
+
+        $request = new RequestManager($this->db);
+        $result = $request->fetch($this->fk_parent);
+        $this->parent = $request;
+
+        return $result;
+    }
+
+    /**
+     *  Load the third party origin of object, from id $this->socid_origin, into this->thirdparty_origin
+     *
+     * @param		int		$force_thirdparty_id	Force thirdparty id
+     * @return		int								<0 if KO, >0 if OK
+     */
+    function fetch_thirdparty_origin($force_thirdparty_id=0)
+    {
+        global $conf;
+
+        if (empty($this->socid_origin))
+            return 0;
+
+        require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
+
+        $idtofetch = $this->socid_origin;
+        if ($force_thirdparty_id)
+            $idtofetch = $force_thirdparty_id;
+
+        if ($idtofetch) {
+            $thirdparty = new Societe($this->db);
+            $result = $thirdparty->fetch($idtofetch);
+            $this->thirdparty_origin = $thirdparty;
+
+            // Use first price level if level not defined for third party
+            if (!empty($conf->global->PRODUIT_MULTIPRICES) && empty($this->thirdparty_origin->price_level)) {
+                $this->thirdparty_origin->price_level = 1;
+            }
+
+            return $result;
+        } else
+            return -1;
+    }
+
+    /**
+     *  Load the third party benefactor of object, from id $this->socid_benefactor, into this->thirdparty_benefactor
+     *
+     * @param		int		$force_thirdparty_id	Force thirdparty id
+     * @return		int								<0 if KO, >0 if OK
+     */
+    function fetch_thirdparty_benefactor($force_thirdparty_id=0)
+    {
+        global $conf;
+
+        if (empty($this->socid_benefactor))
+            return 0;
+
+        require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
+
+        $idtofetch = $this->socid_benefactor;
+        if ($force_thirdparty_id)
+            $idtofetch = $force_thirdparty_id;
+
+        if ($idtofetch) {
+            $thirdparty = new Societe($this->db);
+            $result = $thirdparty->fetch($idtofetch);
+            $this->thirdparty_benefactor = $thirdparty;
+
+            // Use first price level if level not defined for third party
+            if (!empty($conf->global->PRODUIT_MULTIPRICES) && empty($this->thirdparty_benefactor->price_level)) {
+                $this->thirdparty_benefactor->price_level = 1;
+            }
+
+            return $result;
+        } else
+            return -1;
+    }
+
+    /**
 	 *  Update request into database
 	 *
 	 * @param   User    $user           User that modifies
@@ -1296,7 +1496,10 @@ class RequestManager extends CommonObject
         dol_syslog(__METHOD__ . " user_id=" . $user->id . " id=" . $this->id, LOG_DEBUG);
 
         // Clean parameters
-        $this->socid = $this->socid > 0 ? $this->socid : 0;
+        $this->fk_parent = $this->fk_parent > 0 ? $this->fk_parent : 0;
+        $this->socid_origin = $this->socid_origin > 0 ? $this->socid_origin : 0;
+        $this->socid = $this->socid > 0 ? $this->socid : $this->socid_origin;
+        $this->socid_benefactor = $this->socid_benefactor > 0 ? $this->socid_benefactor : $this->socid_origin;
         $this->label = trim($this->label);
         $this->description = trim($this->description);
         $this->fk_type = $this->fk_type > 0 ? $this->fk_type : 0;
@@ -1322,8 +1525,8 @@ class RequestManager extends CommonObject
             $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("TechnicalID"));
             $error++;
         }
-        if (empty($this->socid)) {
-            $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("RequestManagerThirdParty"));
+        if (empty($this->socid_origin)) {
+            $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("RequestManagerThirdPartyOrigin"));
             $error++;
         }
         if (empty($this->fk_type)) {
@@ -1375,7 +1578,10 @@ class RequestManager extends CommonObject
 
 		// Update request
 		$sql = 'UPDATE ' . MAIN_DB_PREFIX . $this->table_element . ' SET';
-        $sql .= " fk_soc = " . $this->socid;
+        $sql .= " fk_parent = " . ($this->fk_parent > 0 ? $this->fk_parent : 'NULL');
+        $sql .= ", fk_soc_origin = " . $this->socid_origin;
+        $sql .= ", fk_soc = " . $this->socid;
+        $sql .= ", fk_soc_benefactor = " . $this->socid_benefactor;
         $sql .= ", label = '" . $this->db->escape($this->label) . "'";
         $sql .= ", description = '" . $this->db->escape($this->description) . "'";
         $sql .= ", fk_type = " . $this->fk_type;
@@ -1452,6 +1658,100 @@ class RequestManager extends CommonObject
 			return 1;
 		}
 	}
+
+    /**
+     *  Create a sub request
+     *
+     * @param       int	    $new_request_type		Id of new request _type
+     * @param       User    $user                   User that deletes
+	 * @param       bool    $notrigger              false=launch triggers after, true=disable triggers
+     * @return      int	                            New id of sub request
+     */
+    function createSubRequest($new_request_type, User $user, $notrigger = false)
+    {
+        global $langs;
+        $error = 0;
+        $this->errors = array();
+        $langs->load("requestmanager@requestmanager");
+
+        // Clean parameters
+        $new_request_type = $new_request_type > 0 ? $new_request_type : 0;
+
+        // Check parameters
+        if (empty($new_request_type)) {
+            $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("RequestManagerType"));
+            $error++;
+        } else {
+            dol_include_once('/advancedictionaries/class/dictionary.class.php');
+            $requestManagerRequestTypeDictionaryLine = Dictionary::getDictionaryLine($this->db, 'requestmanager', 'requestmanagerrequesttype');
+            $res = $requestManagerRequestTypeDictionaryLine->fetch($new_request_type);
+            if ($res == 0) {
+                $this->errors[] = $langs->trans('RequestManagerErrorRequestTypeNotFound');
+                $error++;
+            } elseif ($res < 0) {
+                $this->errors = array_merge($this->errors, $requestManagerRequestTypeDictionaryLine->errors);
+                $error++;
+            }
+        }
+        if ($error) {
+            dol_syslog(__METHOD__ . " Errors check parameters: " . $this->errorsToString(), LOG_ERR);
+            return -3;
+        }
+
+        $this->db->begin();
+
+        // Clone the current request
+        $requestChild = clone $this;
+
+        $requestChild->fk_parent = $this->id;
+        $requestChild->fk_type = $new_request_type;
+        $requestChild->context['createSubRequest'] = 'createSubRequest';
+
+        // Fetch extrafields
+        $requestChild->fetch_optionals();
+
+        // Fetch lines with extrafields
+        $requestChild->fetch_lines();
+        foreach ($requestChild->lines as $line)
+            $line->fetch_optionals($line->id);
+
+        // Fetch linked objects
+        $requestChild->fetchObjectLinked();
+        $requestChild->linkedObjectsIds[$this->element][] = $this->id;
+        unset($requestChild->linkedObjectsIds['action']); // Todo a enlever une fois la creation des events corrigées
+
+        // Create request child
+        $result = $requestChild->create($user);
+        if ($result < 0) {
+            $this->errors = array_merge($this->errors, $requestChild->errors);
+            $error++;
+        } else {
+            // copy external contacts if same company
+            if ($requestChild->copy_linked_contact($this, 'external') < 0) {
+                $this->errors = array_merge($this->errors, $requestChild->errors);
+                $error++;
+            }
+        }
+
+        if (!$error && !$notrigger) {
+            // Call trigger
+            $result = $requestChild->call_trigger('REQUESTMANAGER_SUBREQUEST_CREATE', $user);
+            if ($result < 0) {
+                $this->errors = array_merge($this->errors, $requestChild->errors);
+                $error++;
+            }
+            // End call triggers
+        }
+
+        // End
+        if (!$error) {
+            $this->db->commit();
+            return $requestChild->id;
+        } else {
+            $this->db->rollback();
+            return -1;
+        }
+    }
 
 	/**
 	 *  Delete request in database
@@ -1573,42 +1873,50 @@ class RequestManager extends CommonObject
     {
         global $user;
 
-        dol_syslog(get_class($this)."::set_assigned assigned_user_ids:".implode(', ', $assigned_user_ids).", assigned_usergroup_ids:".implode(', ', $assigned_usergroup_ids).", notrigger:$notrigger");
+        dol_syslog(get_class($this)."::set_assigned assigned_user_ids:".implode(', ', $assigned_user_ids).", assigned_usergroup_ids:".implode(', ', $assigned_usergroup_ids).", notrigger:$notrigger", LOG_DEBUG);
+
+
+        $this->new_assigned_user_ids = empty($assigned_user_ids) ? array() : (is_string($assigned_user_ids) ? explode(',', $assigned_user_ids) : $assigned_user_ids);
+        $this->new_assigned_usergroup_ids = empty($assigned_usergroup_ids) ? array() : (is_string($assigned_usergroup_ids) ? explode(',', $assigned_usergroup_ids) : $assigned_usergroup_ids);
 
         $error = 0;
         $this->errors = array();
         $sql = '';
 
         // Get old assigned
-        $old = clone $this;
-        $old->fetch_assigned();
+        $this->fetch_assigned();
 
         // Get assigned user added
         $this->assigned_user_added_ids = array();
-        foreach ($assigned_user_ids as $assigned_user_id) {
-            if (!in_array($assigned_user_id, $old->assigned_user_ids))
+        foreach ($this->new_assigned_user_ids as $assigned_user_id) {
+            if (!in_array($assigned_user_id, $this->assigned_user_ids))
                 $this->assigned_user_added_ids[] = $assigned_user_id;
         }
 
         // Get assigned usergroup added
         $this->assigned_usergroup_added_ids = array();
-        foreach ($assigned_usergroup_ids as $assigned_usergroup_id) {
-            if (!in_array($assigned_usergroup_id, $old->assigned_usergroup_ids))
+        foreach ($this->new_assigned_usergroup_ids as $assigned_usergroup_id) {
+            if (!in_array($assigned_usergroup_id, $this->assigned_usergroup_ids))
                 $this->assigned_usergroup_added_ids[] = $assigned_usergroup_id;
         }
 
         // Get assigned user deleted
         $this->assigned_user_deleted_ids = array();
-        foreach ($old->assigned_user_ids as $assigned_user_id) {
-            if (!in_array($assigned_user_id, $assigned_user_ids))
+        foreach ($this->assigned_user_ids as $assigned_user_id) {
+            if (!in_array($assigned_user_id, $this->new_assigned_user_ids))
                 $this->assigned_user_deleted_ids[] = $assigned_user_id;
         }
 
         // Get assigned usergroup deleted
         $this->assigned_usergroup_deleted_ids = array();
-        foreach ($old->assigned_usergroup_ids as $assigned_usergroup_id) {
-            if (!in_array($assigned_usergroup_id, $assigned_usergroup_ids))
+        foreach ($this->assigned_usergroup_ids as $assigned_usergroup_id) {
+            if (!in_array($assigned_usergroup_id, $this->new_assigned_usergroup_ids))
                 $this->assigned_usergroup_deleted_ids[] = $assigned_usergroup_id;
+        }
+
+        if (count($this->assigned_user_added_ids) == 0 && count($this->assigned_user_deleted_ids) == 0 && count($this->assigned_usergroup_added_ids) == 0 && count($this->assigned_usergroup_deleted_ids) == 0) {
+            dol_syslog(get_class($this)."::set_assigned : Assigned users and usergroups not changed", LOG_DEBUG);
+            return 1;
         }
 
         $this->db->begin();
@@ -1685,21 +1993,16 @@ class RequestManager extends CommonObject
             }
         }
 
-        if (!$error && !$notrigger && (count($this->assigned_user_deleted_ids) > 0 || count($this->assigned_usergroup_deleted_ids) > 0 || count($this->assigned_user_added_ids) > 0 || count($this->assigned_usergroup_added_ids) > 0)) {
-            $old_assigned_user_ids = $this->assigned_user_ids;
-            $old_assigned_usergroup_ids = $this->assigned_usergroup_ids;
-            $this->assigned_user_ids = $assigned_user_ids;
-            $this->assigned_usergroup_ids = $assigned_usergroup_ids;
+        if (!$error && !$notrigger) {
             $result = $this->call_trigger('REQUESTMANAGER_SET_ASSIGNED', $user);
             if ($result < 0) {
                 $error++;
-                $this->assigned_user_ids = $old_assigned_user_ids;
-                $this->assigned_usergroup_ids = $old_assigned_usergroup_ids;
             }
         }
 
         // if assigned user or usergroup changed
-        if (!$error && !$nonotify && (count($this->assigned_user_added_ids) > 0 || count($this->assigned_user_deleted_ids) > 0 || count($this->assigned_usergroup_added_ids) > 0 || count($this->assigned_usergroup_deleted_ids) > 0)) {
+        //todo deplacer dans le triger notification
+        if (!$error && !$nonotify) {
             // create new event and notify assigned users and contacts
             $result = $this->createActionCommAndNotifyFromTemplateType(self::TEMPLATE_TYPE_NOTIFY_ASSIGNED_USERS_MODIFIED, self::ACTIONCOMM_TYPE_CODE_ASSUSR);
             if ($result < 0) {
@@ -1714,6 +2017,8 @@ class RequestManager extends CommonObject
             $this->db->rollback();
             return -1;
         } else {
+            $this->assigned_user_ids = $this->new_assigned_user_ids;
+            $this->assigned_usergroup_ids = $this->new_assigned_usergroup_ids;
             $this->db->commit();
             return 1;
         }
@@ -1779,9 +2084,14 @@ class RequestManager extends CommonObject
 
         $this->new_statut = $status;
 
+        if ($this->new_statut == $this->statut) {
+            dol_syslog(__METHOD__ . " : Status not changed", LOG_DEBUG);
+            return 1;
+        }
+
         // Update request
         $sql = 'UPDATE ' . MAIN_DB_PREFIX . $this->table_element . ' SET';
-        $sql .= " fk_status = " . $status;
+        $sql .= " fk_status = " . $this->new_statut;
         $sql .= ' WHERE rowid = ' . $this->id;
 
         $this->db->begin();
@@ -1795,7 +2105,7 @@ class RequestManager extends CommonObject
 
         if (!$error) {
             $now = dol_now();
-            $status_infos = self::$status_list[$status];
+            $status_infos = self::$status_list[$this->new_statut];
             $assigned_users = !empty($status_infos->fields['assigned_user']) ? (is_string($status_infos->fields['assigned_user']) ? explode(',', $status_infos->fields['assigned_user']) : $status_infos->fields['assigned_user']) : $this->assigned_user_ids;
             $assigned_usergroups = !empty($status_infos->fields['assigned_usergroup']) ? (is_string($status_infos->fields['assigned_usergroup']) ? explode(',', $status_infos->fields['assigned_usergroup']) : $status_infos->fields['assigned_usergroup']) : $this->assigned_usergroup_ids;
             if (!isset($status_infos->fields['assigned_user_replaced']) || !$status_infos->fields['assigned_user_replaced']) {
@@ -1833,6 +2143,16 @@ class RequestManager extends CommonObject
                     $error++;
                 }
             }
+
+            if (!$error && !empty($status_infos->fields['new_request_type']) && $status_infos->fields['new_request_type_auto']) {
+                foreach (explode(',', $status_infos->fields['new_request_type']) as $new_request_type_id) {
+                    $id = $this->createSubRequest($new_request_type_id, $user);
+                    if ($id < 0) {
+                        $error++;
+                        break;
+                    }
+                }
+            }
         }
 
         if (!$error && !$notrigger) {
@@ -1852,13 +2172,74 @@ class RequestManager extends CommonObject
 			return - 1 * $error;
 		} else {
 			$this->db->commit();
-			$this->statut = $status;
-            $this->statut_type = self::$status_list[$status]->fields['type'];
+			$this->statut = $this->new_statut;
+            $this->statut_type = self::$status_list[$this->new_statut]->fields['type'];
             dol_syslog(__METHOD__ . " success", LOG_DEBUG);
 
 			return 1;
 		}
 	}
+
+    /**
+     *  Return list of children request ID
+     *
+     * @param   int         $request_id         Id of the parent request
+     * @param   array       $children_ids       List of children request ID already found
+     * @return  array                           List of children request ID
+     */
+    function getAllChildrenRequest($request_id=null, &$children_ids=array())
+    {
+        if (!isset($request_id)) $request_id = $this->id;
+
+        // Get all children request
+        $sql = 'SELECT fk_target as child_id';
+        $sql.= ' FROM '.MAIN_DB_PREFIX.'element_element';
+        $sql.= " WHERE fk_source = '".$request_id."' AND sourcetype = '".$this->element."' AND targettype = '".$this->element."'";
+
+        $resql = $this->db->query($sql);
+        if ($resql) {
+            while ($obj = $this->db->fetch_object($resql)) {
+                $result = $this->getAllChildrenRequest($obj->child_id, $children_ids);
+                $children_ids = array_merge($children_ids, array($obj->child_id), $result);
+            }
+        }
+
+        return $children_ids;
+    }
+
+    /**
+     *  Return count of children request by status type
+     *
+     * @return  array   Count of children request by status type
+     */
+    function getCountChildrenRequestByStatusType()
+    {
+        $children_count = array(
+            self::STATUS_TYPE_INITIAL => 0,
+            self::STATUS_TYPE_IN_PROGRESS => 0,
+            self::STATUS_TYPE_RESOLVED => 0,
+            self::STATUS_TYPE_CLOSED => 0,
+        );
+
+        $children_ids = $this->getAllChildrenRequest();
+        if (count($children_ids) > 0) {
+            // Get all children request
+            $sql = 'SELECT crmst.type AS status_type, count(rm.rowid) AS nb_children';
+            $sql .= ' FROM ' . MAIN_DB_PREFIX . 'requestmanager AS rm';
+            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_requestmanager_status AS crmst ON (crmst.rowid = rm.fk_status)";
+            $sql .= " WHERE rm.rowid IN (" . implode(',', $children_ids) . ")";
+            $sql .= " GROUP BY crmst.type";
+
+            $resql = $this->db->query($sql);
+            if ($resql) {
+                while ($obj = $this->db->fetch_object($resql)) {
+                    $children_count[$obj->status_type] = $obj->nb_children;
+                }
+            }
+        }
+
+        return $children_count;
+    }
 
     /**
      *  Return label of type
@@ -2203,6 +2584,44 @@ class RequestManager extends CommonObject
         if ($mode == 10) return img_picto($statuttypetext, $statuttypepicto) . ' ' . $label;
         if ($mode == 11) return img_picto($statuttypetext, $statuttypepicto) . ' ' . $statuttypetext;
         if ($mode == 12) return $statuttypetext;
+    }
+
+    /**
+     *  Add action : Forced principal company choice
+     *
+     * @return  int                     <0 if KO, >0 if OK
+     */
+    function addActionForcedPrincipalCompany($user)
+    {
+        global $langs;
+
+        $now = dol_now();
+        // Insertion action
+        require_once(DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php');
+        $actioncomm = new ActionComm($this->db);
+        $actioncomm->type_code = 'AC_RM_FPC';
+        $actioncomm->label = $langs->trans('RequestManagerForcedPrincipalCompanyActionLabel');
+        $actioncomm->note = $langs->trans('RequestManagerForcedPrincipalCompanyActionMessage');
+        $actioncomm->datep = $now;
+        $actioncomm->datef = $now;
+        $actioncomm->durationp = 0;
+        $actioncomm->punctual = 1;
+        $actioncomm->percentage = -1; // Not applicable
+        $actioncomm->contactid = 0;
+        $actioncomm->socid = $this->socid;
+        $actioncomm->author = $user; // User saving action
+        // $actioncomm->usertodo = $user; // User affected to action
+        $actioncomm->userdone = $user; // User doing action
+        $actioncomm->fk_element = $this->id;
+        $actioncomm->elementtype = $this->element;
+        $actioncomm->userownerid = $user->id;
+
+        $result = $actioncomm->add($user); // User qui saisit l'action
+        if ($result < 0) {
+            $error = $actioncomm->errorsToString();
+        }
+
+        return $result;
     }
 
     /**
@@ -2880,10 +3299,6 @@ class RequestManager extends CommonObject
                 $this->db->rollback();
                 return -1;
             }
-
-            // linked object
-            $actionCom->id = $idActionComm;
-            $actionCom->add_object_linked($this->element, $this->id);
         } else {
             $this->error = $actionCom->error;
             $this->errors = $actionCom->errors;

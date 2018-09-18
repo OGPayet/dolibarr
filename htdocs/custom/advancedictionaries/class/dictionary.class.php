@@ -1635,10 +1635,11 @@ class Dictionary extends CommonObject
 	 * Get value for each fields of the dictionary sent by a form
 	 *
 	 * @param  string   $keyprefix      Prefix string to add into name and id of field (can be used to avoid duplicate names)
-	 * @param  string   $keysuffix      Suffix string to add into name and id of field (can be used to avoid duplicate names)
+     * @param  string   $keysuffix      Suffix string to add into name and id of field (can be used to avoid duplicate names)
+     * @param  string   $mode           0: Add, 1: Edit
 	 * @return array                    Values of each field
 	 */
-	function getFieldsValueFromForm($keyprefix='', $keysuffix='')
+	function getFieldsValueFromForm($keyprefix='', $keysuffix='', $mode=0)
     {
         $fields = array();
 
@@ -1646,7 +1647,7 @@ class Dictionary extends CommonObject
         foreach ($this->fields as $fieldName => $field) {
             $fieldHtmlName = $keyprefix . $fieldName . $keysuffix;
 
-            if (isset($_GET[$fieldHtmlName]) || isset($_POST[$fieldHtmlName])) {
+            if (($mode == 0 && empty($field['is_not_addable'])) || ($mode == 1 && empty($field['is_not_editable']))) {
                 switch ($field['type']) {
                     case 'varchar':
                     case 'phone':
@@ -3819,7 +3820,6 @@ class DictionaryLine extends CommonObjectLine
                             if (!is_object($form)) $form = new Form($this->db);
 
                             $out = $form->multiselectarray($fieldHtmlName, $data, $value_arr, '', 0, '', 0, '100%');
-
                         } else {
                             $out = 'Error in request ' . $sql . ' ' . $this->db->lasterror() . '. Check setup of field parameters.';
                         }

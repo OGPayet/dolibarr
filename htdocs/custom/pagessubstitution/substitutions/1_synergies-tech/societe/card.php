@@ -604,7 +604,8 @@ if (empty($reshook))
 
 			if (! empty($backtopage))
 			{
-			    if (preg_match('/\?/', $backtopage)) $backtopage.='&socid='.$object->id;
+                        if (strpos($backtopage, '##SOCID##') !== false) $backtopage=str_replace('##SOCID##', $object->id, $backtopage);
+			    elseif (preg_match('/\?/', $backtopage)) $backtopage.='&socid='.$object->id;
 			    header("Location: ".$backtopage);
 			exit;
 			}

@@ -572,7 +572,7 @@ class FormRequestManager
     /**
      *  Output html form to select an equipement
      *
-     * @param   int         $fkSoc                  Id of company (-1 for all, 0 for none)
+     * @param   int         $fkSoc                  Id of company
      * @param   string      $selected               Preselected equipement
      * @param   string      $htmlname               Name of field in form
      * @param   string      $showempty              Add an empty field (Can be '1' or text key to use on empty line like 'SelectThirdParty')
@@ -646,6 +646,82 @@ class FormRequestManager
         }
         else
         {
+            dol_print_error($this->db);
+            return -1;
+        }
+    }
+
+    /**
+     *  Output html form to select an equipement
+     *
+     * @param   int         $fkSocPrincipal         Id of principal company
+     * @param   int         $fkSocBenefactor        Id of benefactor company
+     * @param   string      $selected               Preselected equipement
+     * @param   string      $htmlname               Name of field in form
+     * @param   int|string  $showempty              Add an empty field (Can be '1' or text key to use on empty line like 'SelectThirdParty')
+     * @param   int         $forcecombo             Force to use combo box
+     * @param   array       $events                 Ajax event options to run on change. Example: array(array('method'=>'getContacts', 'url'=>dol_buildpath('/core/ajax/contacts.php',1), 'htmlname'=>'contactid', 'params'=>array('add-customer-contact'=>'disabled')))
+     * @param  	int		    $usesearchtoselect	    Minimum length of input string to start autocomplete
+     * @param   string      $morecss                Add more css styles to the SELECT component
+     * @param   string      $moreparam              Add more parameters onto the select tag. For example 'style="width: 95%"' to avoid select2 component to go over parent container
+     * @param   bool        $options_only           Return options only (for ajax treatment)
+     * @return  string                              HTML string with select box for status.
+     */
+    function select_benefactor_equipement($fkSocPrincipal, $fkSocBenefactor, $selected='', $htmlname='equipement_id', $showempty=0, $forcecombo=0, $events=array(), $usesearchtoselect=0, $morecss='minwidth100', $moreparam='', $options_only=false)
+    {
+        global $conf, $langs;
+
+        $out = '';
+
+        dol_syslog(__METHOD__ . " fkSocPrincipal=" . $fkSocPrincipal . ", fkSocBenefactor=" . $fkSocBenefactor, LOG_DEBUG);
+
+        // search equipement
+        $requestManager = new RequestManager($this->db);
+        $resql = $requestManager->findAllBenefactorEquipments($fkSocPrincipal, $fkSocBenefactor);
+        if ($resql) {
+            if ($conf->use_javascript_ajax && !$forcecombo && !$options_only) {
+                include_once DOL_DOCUMENT_ROOT . '/core/lib/ajax.lib.php';
+                $comboenhancement = ajax_combobox($htmlname, $events, $usesearchtoselect);
+                $out .= $comboenhancement;
+            }
+
+            if (!$options_only) $out .= '<select id="' . $htmlname . '" class="flat' . ($morecss ? ' ' . $morecss : '') . '"' . ($moreparam ? ' ' . $moreparam : '') . ' name="' . $htmlname . '">';
+
+            $textifempty = '';
+            // Do not use textifempty = ' ' or '&nbsp;' here, or search on key will search on ' key'.
+            //if (! empty($conf->use_javascript_ajax) || $forcecombo) $textifempty='';
+            if (!empty($usesearchtoselect)) {
+                if ($showempty && !is_numeric($showempty)) $textifempty = $langs->trans($showempty);
+                else $textifempty .= $langs->trans("All");
+            }
+            if ($showempty) $out .= '<option value="-1">' . $textifempty . '</option>' . "\n";
+
+            $num = $this->db->num_rows($resql);
+            $i = 0;
+            if ($num) {
+                while ($i < $num) {
+                    $obj = $this->db->fetch_object($resql);
+
+                    $out .= '<option value="' . $obj->rowid . '"';
+                    if ($selected && $selected == $obj->rowid) $out .= ' selected';
+                    $out .= '>';
+                    $out .= $obj->ref;
+                    $out .= '</option>';
+                    $i++;
+                }
+            } else {
+                $out .= '<option value="-1" disabled>' . $langs->trans("NoEquipement") . '</option>';
+            }
+
+            if ($options_only) {
+                $out .= '</select>';
+            }
+
+            $this->db->free($resql);
+
+            $this->num = $num;
+            return $out;
+        } else {
             dol_print_error($this->db);
             return -1;
         }
@@ -776,7 +852,9 @@ class FormRequestManager
     {
         $sql = 'SELECT DISTINCT';
         $sql .= ' rm.rowid, rm.ref, rm.ref_ext,';
+        $sql .= ' rm.fk_soc_origin, so.nom as soc_name_origin, so.client as soc_client_origin, so.fournisseur as soc_fournisseur_origin, so.code_client as soc_code_client_origin, so.code_fournisseur as soc_code_fournisseur_origin,';
         $sql .= ' rm.fk_soc, s.nom as soc_name, s.client as soc_client, s.fournisseur as soc_fournisseur, s.code_client as soc_code_client, s.code_fournisseur as soc_code_fournisseur,';
+        $sql .= ' rm.fk_soc_benefactor, sb.nom as soc_name_benefactor, sb.client as soc_client_benefactor, sb.fournisseur as soc_fournisseur_benefactor, sb.code_client as soc_code_client_benefactor, sb.code_fournisseur as soc_code_fournisseur_benefactor,';
         $sql .= ' rm.label, rm.description,';
         $sql .= ' rm.fk_type, crmrt.label as type_label,';
         $sql .= ' rm.fk_category, crmc.label as category_label,';
@@ -802,7 +880,9 @@ class FormRequestManager
         $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'c_requestmanager_impact as crmi on (crmi.rowid = rm.fk_impact)';
         $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'c_requestmanager_priority as crmp on (crmp.rowid = rm.fk_priority)';
         $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'c_requestmanager_status as crmst on (crmst.rowid = rm.fk_status)';
+        $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'societe as so on (so.rowid = rm.fk_soc_origin)';
         $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'societe as s on (s.rowid = rm.fk_soc)';
+        $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'societe as sb on (sb.rowid = rm.fk_soc_benefactor)';
         $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'user as ur ON ur.rowid = rm.fk_user_resolved';
         $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'user as uc ON uc.rowid = rm.fk_user_closed';
         $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'user as ua ON ua.rowid = rm.fk_user_author';
@@ -822,14 +902,16 @@ class FormRequestManager
     /**
      * Print a line for lists to follow
      *
-     * @param   DoliDB          $db                     Doli DB object
-     * @param   array           $arrayfields            Array of fields to show
-     * @param   stdClass        $obj                    Standard object from db
-     * @param   RequestManager  $requestmanagerstatic   RequestManager object
-     * @param   Societe         $societestatic          Societe object
-     * @param   User            $userstatic             User object
+     * @param   DoliDB          $db                         Doli DB object
+     * @param   array           $arrayfields                Array of fields to show
+     * @param   stdClass        $obj                        Standard object from db
+     * @param   RequestManager  $requestmanagerstatic       RequestManager object
+     * @param   Societe         $societestatic_origin       Societe origin object
+     * @param   Societe         $societestatic              Societe bill object
+     * @param   Societe         $societestatic_benefactor   Societe benefactor object
+     * @param   User            $userstatic                 User object
      */
-    private static function _listsFollowPrintLineFrom(DoliDB $db, $arrayfields, $obj, RequestManager $requestmanagerstatic, Societe $societestatic, User $userstatic)
+    private static function _listsFollowPrintLineFrom(DoliDB $db, $arrayfields, $obj, RequestManager $requestmanagerstatic, Societe $societestatic_origin, Societe $societestatic, Societe $societestatic_benefactor, User $userstatic)
     {
         global $langs;
 
@@ -840,7 +922,15 @@ class FormRequestManager
 
         $now = dol_now();
 
-        // societe
+        // societe origin
+        $societestatic_origin->id = $obj->fk_soc_origin;
+        $societestatic_origin->name = $obj->soc_name_origin;
+        $societestatic_origin->client = $obj->soc_client_origin;
+        $societestatic_origin->fournisseur = $obj->soc_fournisseur_origin;
+        $societestatic_origin->code_client = $obj->soc_code_client_origin;
+        $societestatic_origin->code_fournisseur = $obj->soc_code_fournisseur_origin;
+
+        // societe bill
         $societestatic->id               = $obj->fk_soc;
         $societestatic->name             = $obj->soc_name;
         $societestatic->client           = $obj->soc_client;
@@ -848,15 +938,24 @@ class FormRequestManager
         $societestatic->code_client      = $obj->soc_code_client;
         $societestatic->code_fournisseur = $obj->soc_code_fournisseur;
 
+        // societe benefactor
+        $societestatic_benefactor->id = $obj->fk_soc_benefactor;
+        $societestatic_benefactor->name = $obj->soc_name_benefactor;
+        $societestatic_benefactor->client = $obj->soc_client_benefactor;
+        $societestatic_benefactor->fournisseur = $obj->soc_fournisseur_benefactor;
+        $societestatic_benefactor->code_client = $obj->soc_code_client_benefactor;
+        $societestatic_benefactor->code_fournisseur = $obj->soc_code_fournisseur_benefactor;
+
         // requestmanager
-        $requestmanagerstatic->id            = $obj->rowid;
-        $requestmanagerstatic->ref           = $obj->ref;
-        $requestmanagerstatic->ref_ext       = $obj->ref_ext;
-        $requestmanagerstatic->fk_type       = $obj->fk_type;
-        $requestmanagerstatic->label         = $obj->label;
-        $requestmanagerstatic->socid         = $obj->fk_soc;
-        //$requestmanagerstatic->date_deadline = $obj->date_deadline;
-        $requestmanagerstatic->thirdparty    = $societestatic;
+        $requestmanagerstatic->id = $obj->rowid;
+        $requestmanagerstatic->ref = $obj->ref;
+        $requestmanagerstatic->ref_ext = $obj->ref_ext;
+        $requestmanagerstatic->fk_type = $obj->fk_type;
+        $requestmanagerstatic->label = $obj->label;
+        $requestmanagerstatic->socid = $obj->fk_soc;
+        $requestmanagerstatic->thirdparty_origin = $societestatic_origin;
+        $requestmanagerstatic->thirdparty = $societestatic;
+        $requestmanagerstatic->thirdparty_benefactor = $societestatic_benefactor;
 
         // picto warning for deadline
         $pictoWarning = '';
@@ -906,9 +1005,23 @@ class FormRequestManager
         }
 
         // Thridparty
+        if (!empty($arrayfields['rm.fk_soc_origin']['checked'])) {
+            print '<td class="nowrap">';
+            print $societestatic_origin->getNomUrl(1);
+            print '</td>';
+        }
+
+        // Thridparty
         if (!empty($arrayfields['rm.fk_soc']['checked'])) {
             print '<td class="nowrap">';
             print $societestatic->getNomUrl(1);
+            print '</td>';
+        }
+
+        // Thridparty
+        if (!empty($arrayfields['rm.fk_soc_benefactor']['checked'])) {
+            print '<td class="nowrap">';
+            print $societestatic_benefactor->getNomUrl(1);
             print '</td>';
         }
 
@@ -1123,20 +1236,21 @@ class FormRequestManager
     /**
      * Print a list to follow
      *
-     * @param   DoliDB          $db                     Doli DB object
-     * @param   array           $arrayfields            Array of fields to show
-     * @param   stdClass        $obj                    Standard object from db
-     * @param   RequestManager  $requestmanagerstatic   RequestManager object
-     * @param   Societe         $societestatic          Societe object
-     * @param   User            $userstatic             User object
-     * @param   string          $join                   [=''] Join condition where in SQL
-     * @param   string          $filter                 [=''] Filter condition where in SQL
-     * @param   string          $sortfield              [=''] List of sort fields, separated by comma. Example: 't1.fielda, t2.fieldb'
-     * @param	string          $sortorder              [=''] List of sort order seprated by comma ('ASC'|'DESC')
-     * @param   string          $titleKey               [=''] Traduction key for title of this list
-     * @param   int             $nbCol                  [=1] Nb column to show
+     * @param   DoliDB          $db                         Doli DB object
+     * @param   array           $arrayfields                Array of fields to show
+     * @param   RequestManager  $requestmanagerstatic       RequestManager object
+     * @param   Societe         $societestatic_origin       Societe origin object
+     * @param   Societe         $societestatic              Societe bill object
+     * @param   Societe         $societestatic_benefactor   Societe benefactor object
+     * @param   User            $userstatic                 User object
+     * @param   string          $join                       [=''] Join condition where in SQL
+     * @param   string          $filter                     [=''] Filter condition where in SQL
+     * @param   string          $sortfield                  [=''] List of sort fields, separated by comma. Example: 't1.fielda, t2.fieldb'
+     * @param	string          $sortorder                  [=''] List of sort order seprated by comma ('ASC'|'DESC')
+     * @param   string          $titleKey                   [=''] Traduction key for title of this list
+     * @param   int             $nbCol                      [=1] Nb column to show
      */
-    public static function listsFollowPrintListFrom(DoliDB $db, $arrayfields, RequestManager $requestmanagerstatic, Societe $societestatic, User $userstatic, $join='', $filter='', $sortfield='', $sortorder='', $titleKey='', $nbCol=1)
+    public static function listsFollowPrintListFrom(DoliDB $db, $arrayfields, RequestManager $requestmanagerstatic, Societe $societestatic_origin, Societe $societestatic, Societe $societestatic_benefactor, User $userstatic, $join='', $filter='', $sortfield='', $sortorder='', $titleKey='', $nbCol=1)
     {
         global $langs;
 
@@ -1154,7 +1268,7 @@ class FormRequestManager
                 $obj = $db->fetch_object($resql);
 
                 // print a line
-                self::_listsFollowPrintLineFrom($db, $arrayfields, $obj, $requestmanagerstatic, $societestatic, $userstatic);
+                self::_listsFollowPrintLineFrom($db, $arrayfields, $obj, $requestmanagerstatic, $societestatic_origin, $societestatic, $societestatic_benefactor, $userstatic);
 
                 $i++;
             }

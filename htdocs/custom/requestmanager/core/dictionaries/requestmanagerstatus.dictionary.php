@@ -31,7 +31,7 @@ class RequestManagerStatusDictionary extends Dictionary
     /**
      * @var int         Version of this dictionary
      */
-    public $version = 5;
+    public $version = 7;
 
     /**
      * @var array       List of languages to load
@@ -243,6 +243,15 @@ class RequestManagerStatusDictionary extends Dictionary
             ),
         ),
         'new_request_type' => array(),
+        'new_request_type_auto' => array(
+            'name'       => 'new_request_type_auto',
+            'label'      => 'RequestManagerStatusDictionaryNewRequestTypeAuto',
+            'help'       => 'RequestManagerStatusDictionaryNewRequestTypeAutoHelp',
+            'type'       => 'boolean',
+            'td_input' => array(
+                'positionLine' => 2,
+            ),
+        ),
         'next_trigger' => array(
             'name'       => 'next_trigger',
             'label'      => 'RequestManagerStatusDictionaryNextTrigger',
@@ -256,6 +265,7 @@ class RequestManagerStatusDictionary extends Dictionary
             ),
         ),
         'next_status' => array(),
+        'authorized_buttons' => array(),
     );
 
     /**
@@ -313,6 +323,16 @@ class RequestManagerStatusDictionary extends Dictionary
                 'new_request_type' => 'a',
             )
         ),
+        6 => array(
+            'fields' => array(
+                'new_request_type_auto' => 'a',
+            )
+        ),
+        7 => array(
+            'fields' => array(
+                'authorized_buttons' => 'a',
+            )
+        ),
     );
 
     /**
@@ -367,9 +387,9 @@ class RequestManagerStatusDictionary extends Dictionary
 	 */
 	protected function initialize()
     {
-        global $conf, $langs, $user;
+        global $conf, $langs, $user, $hookmanager;
 
-        $langs->load('requestmanager@requestmanager');
+        $langs->loadLangs(array('requestmanager@requestmanager', 'propal', 'orders', 'bills', 'interventions', 'commercial'));
 
         $theme = $conf->theme;
         $path = 'theme/'.$theme;
@@ -465,7 +485,7 @@ class RequestManagerStatusDictionary extends Dictionary
             'td_input' => array(
                 'moreAttributes' => 'width="20%"',
                 'positionLine' => 2,
-                'colspan' => 3,
+                'colspan' => 2,
             ),
         );
 
@@ -482,6 +502,41 @@ class RequestManagerStatusDictionary extends Dictionary
                 'moreAttributes' => 'width="20%"',
                 'positionLine' => 2,
                 'colspan' => 4,
+            ),
+        );
+
+        $authorized_buttons_list = array(
+            'create_propal' => $langs->trans('AddProp'),
+            'create_order' => $langs->trans('AddOrder'),
+            'create_invoice' => $langs->trans('AddBill'),
+            'create_inter' => $langs->trans('AddIntervention'),
+            'create_event' => $langs->trans('AddAction'),
+        );
+
+        // Add custom object
+        $hookmanager->initHooks(array('requestmanagerdao'));
+        $parameters = array();
+        $reshook = $hookmanager->executeHooks('addRequestManagerAuthorizedButton', $parameters); // Note that $action and $object may have been
+        if ($reshook) $authorized_buttons_list = array_merge($authorized_buttons_list, $hookmanager->resArray);
+
+        $this->fields['authorized_buttons'] = array(
+            'name'       => 'authorized_buttons',
+            'label'      => 'RequestManagerStatusDictionaryAuthorizedButtons',
+            'help'       => 'RequestManagerStatusDictionaryAuthorizedButtonsHelp',
+            'type'       => 'checkbox',
+            'options' => $authorized_buttons_list,
+            'td_title'  => array (
+                'align'  => 'left',
+            ),
+            'td_output'  => array (
+                'align'  => 'left',
+            ),
+            'td_search'  => array (
+                'align'  => 'left',
+            ),
+            'td_input'  => array (
+                'align'  => 'left',
+                'positionLine' => 3,
             ),
         );
     }
@@ -671,60 +726,101 @@ class RequestManagerStatusDictionaryLine extends DictionaryLine
             dol_include_once('/requestmanager/class/requestmanager.class.php');
             $typeFieldHtmlName = $keyprefix . 'type' . $keysuffix;
             $newRequestTypeFieldHtmlName = $keyprefix . 'new_request_type' . $keysuffix;
+            $newRequestTypeAutoFieldHtmlName = $keyprefix . 'new_request_type_auto' . $keysuffix;
             $nextTriggerFieldHtmlName = $keyprefix . 'next_trigger' . $keysuffix;
             $nextStatusFieldHtmlName = $keyprefix . 'next_status' . $keysuffix;
+            $authorizedButtonsFieldHtmlName = $keyprefix . 'authorized_buttons' . $keysuffix;
             $updateNewRequestTypeFunctionName = 'update_' . $newRequestTypeFieldHtmlName;
+            $updateNewRequestTypeAutoFunctionName = 'update_' . $newRequestTypeAutoFieldHtmlName;
             $updateNextTriggerFunctionName = 'update_' . $nextTriggerFieldHtmlName;
             $updateNextStatusFunctionName = 'update_' . $nextStatusFieldHtmlName;
+            $updateAuthorizedButtonsFunctionName = 'update_' . $authorizedButtonsFieldHtmlName;
+            $initial_status = RequestManager::STATUS_TYPE_INITIAL;
+            $inprogress_status = RequestManager::STATUS_TYPE_IN_PROGRESS;
+            $resolved_status = RequestManager::STATUS_TYPE_RESOLVED;
             $closed_status = RequestManager::STATUS_TYPE_CLOSED;
 
             print <<<SCRIPT
+            <input type="hidden" id="h_$newRequestTypeAutoFieldHtmlName" name="$newRequestTypeAutoFieldHtmlName" value="" disabled="disabled">
             <input type="hidden" id="h_$newRequestTypeFieldHtmlName" name="$newRequestTypeFieldHtmlName" value="" disabled="disabled">
             <input type="hidden" id="h_$nextTriggerFieldHtmlName" name="$nextTriggerFieldHtmlName" value="" disabled="disabled">
             <input type="hidden" id="h_$nextStatusFieldHtmlName" name="$nextStatusFieldHtmlName" value="" disabled="disabled">
+            <input type="hidden" id="h_$authorizedButtonsFieldHtmlName" name="$authorizedButtonsFieldHtmlName" value="" disabled="disabled">
 
 <script type="text/javascript">
     $(document).ready(function() {
-        $updateNewRequestTypeFunctionName($('#$nextStatusFieldHtmlName').val().length > 1 || $('#$nextTriggerFieldHtmlName').val().length > 0 || $('#$typeFieldHtmlName').val() == $closed_status);
-        $updateNextTriggerFunctionName($('#$nextStatusFieldHtmlName').val().length > 1 || $('#$newRequestTypeFieldHtmlName').val().length > 0 || $('#$typeFieldHtmlName').val() == $closed_status);
-        $updateNextStatusFunctionName($('#$typeFieldHtmlName').val() == $closed_status);
+        $updateNewRequestTypeFunctionName();
+        $updateNewRequestTypeAutoFunctionName();
+        $updateNextTriggerFunctionName();
+        $updateNextStatusFunctionName();
+        $updateAuthorizedButtonsFunctionName();
 
         $('#$newRequestTypeFieldHtmlName').on('change', function() {
-            $updateNextTriggerFunctionName($('#$newRequestTypeFieldHtmlName').val().length > 0);
+            $updateNextTriggerFunctionName();
+            $updateNewRequestTypeAutoFunctionName();
         });
         $('#$nextTriggerFieldHtmlName').on('keyup change', function() {
-            $updateNewRequestTypeFunctionName($('#$nextTriggerFieldHtmlName').val().length > 0);
+            $updateNewRequestTypeFunctionName();
+            $updateNewRequestTypeAutoFunctionName();
         });
         $('#$nextStatusFieldHtmlName').on('change', function() {
-            $updateNewRequestTypeFunctionName($('#$nextStatusFieldHtmlName').val().length > 1);
-            $updateNextTriggerFunctionName($('#$nextStatusFieldHtmlName').val().length > 1);
+            $updateNewRequestTypeFunctionName();
+            $updateNewRequestTypeAutoFunctionName();
+            $updateNextTriggerFunctionName();
         });
         $('#$typeFieldHtmlName').on('change', function() {
-            $updateNewRequestTypeFunctionName($('#$nextStatusFieldHtmlName').val().length > 1 || $('#$nextTriggerFieldHtmlName').val().length > 0 || $('#$typeFieldHtmlName').val() == $closed_status);
-            $updateNextTriggerFunctionName($('#$nextStatusFieldHtmlName').val().length > 1 || $('#$newRequestTypeFieldHtmlName').val().length > 0 || $('#$typeFieldHtmlName').val() == $closed_status);
-            $updateNextStatusFunctionName($('#$typeFieldHtmlName').val() == $closed_status);
+            $updateNewRequestTypeFunctionName();
+            $updateNewRequestTypeAutoFunctionName();
+            $updateNextTriggerFunctionName();
+            $updateNextStatusFunctionName();
+            $updateAuthorizedButtonsFunctionName();
         });
 
-        function $updateNewRequestTypeFunctionName(status) {
-            $('#$newRequestTypeFieldHtmlName').prop('disabled', status);
-            $('#h_$newRequestTypeFieldHtmlName').prop('disabled', !status);
-            if (status) {
+        function $updateNewRequestTypeFunctionName() {
+            var disabled = $('#$nextStatusFieldHtmlName').val().length > 1 || $('#$nextTriggerFieldHtmlName').val().length > 0 || $('#$typeFieldHtmlName').val() != $inprogress_status;
+
+            $('#$newRequestTypeFieldHtmlName').prop('disabled', disabled);
+            $('#h_$newRequestTypeFieldHtmlName').prop('disabled', !disabled);
+            if (disabled) {
                 $('#$newRequestTypeFieldHtmlName').val(null).trigger('change');
             }
         }
-        function $updateNextTriggerFunctionName(status) {
-            $('#$nextTriggerFieldHtmlName').prop('disabled', status);
-            $('#h_$nextTriggerFieldHtmlName').prop('disabled', !status);
-            if (status) {
+        function $updateNewRequestTypeAutoFunctionName() {
+            var disabled = $('#$nextStatusFieldHtmlName').val().length > 1 || $('#$nextTriggerFieldHtmlName').val().length > 0 ||
+                           $('#$newRequestTypeFieldHtmlName').val().length <= 1 || $('#$typeFieldHtmlName').val() != $inprogress_status;
+            var checked = (($('#$newRequestTypeAutoFieldHtmlName').is(':checked') && $('#$newRequestTypeFieldHtmlName').val().length > 0) || $('#$newRequestTypeFieldHtmlName').val().length == 1) &&
+                          $('#$typeFieldHtmlName').val() == $inprogress_status && $('#$nextStatusFieldHtmlName').val().length <= 1 && $('#$nextTriggerFieldHtmlName').val().length == 0;
+
+            $('#$newRequestTypeAutoFieldHtmlName').prop('disabled', disabled);
+            $('#h_$newRequestTypeAutoFieldHtmlName').prop('disabled', !disabled);
+            $('#$newRequestTypeAutoFieldHtmlName').prop('checked', checked);
+            $('#h_$newRequestTypeAutoFieldHtmlName').val(checked ? '1' : '');
+        }
+        function $updateNextTriggerFunctionName() {
+            var disabled = $('#$nextStatusFieldHtmlName').val().length > 1 || $('#$newRequestTypeFieldHtmlName').val().length > 0 || $('#$typeFieldHtmlName').val() == $closed_status;
+
+            $('#$nextTriggerFieldHtmlName').prop('disabled', disabled);
+            $('#h_$nextTriggerFieldHtmlName').prop('disabled', !disabled);
+            if (disabled) {
                 $('#$nextTriggerFieldHtmlName').val('');
             }
         }
-        function $updateNextStatusFunctionName(status) {
-            status = status &&
-            $('#$nextStatusFieldHtmlName').prop('disabled', status);
-            $('#h_$nextStatusFieldHtmlName').prop('disabled', !status);
-            if (status) {
+        function $updateNextStatusFunctionName() {
+            var disabled = $('#$typeFieldHtmlName').val() == $closed_status;
+
+            $('#$nextStatusFieldHtmlName').prop('disabled', disabled);
+            $('#h_$nextStatusFieldHtmlName').prop('disabled', !disabled);
+            if (disabled) {
                 $('#$nextStatusFieldHtmlName').val(null).trigger('change');
+            }
+        }
+        function $updateAuthorizedButtonsFunctionName() {
+            var disabled = $('#$typeFieldHtmlName').val() != $inprogress_status;
+
+            $('#$authorizedButtonsFieldHtmlName').prop('disabled', disabled);
+            $('#h_$authorizedButtonsFieldHtmlName').prop('disabled', !disabled);
+            if (disabled) {
+                $('#$authorizedButtonsFieldHtmlName').val(null).trigger('change');
             }
         }
     });
