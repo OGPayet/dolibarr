@@ -182,4 +182,17 @@ class CompanyRelationshipsPublicSpaceAvailabilityDictionary extends Dictionary
      */
     public $is_multi_entity = true;
 
+    /**
+     * Determine if lines can be disabled or not
+     *
+     * @param  DictionaryLine   $dictionaryLine     Line instance
+     * @return mixed                                =null: Show "Always active" text
+     *                                              =true: Show button
+     *                                              =string: Show the text returned, translated if key found
+     *                                              other: Show disabled button
+     */
+    function isLineCanBeDisabled(&$dictionaryLine)
+    {
+        return null;
+    }
 }
