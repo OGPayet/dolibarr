@@ -1438,9 +1438,12 @@ else {
             print '</td><td colspan="2">';
             if (!empty($conf->accounting->enabled)) {
                 $accountingaccount = new AccountingAccount($db);
-                $accountingaccount->fetch('', $object->accountancy_code_sell, 1);
-
-                print $accountingaccount->getNomUrl(0, 1, 1, '', 1);
+                $res = $accountingaccount->fetch('', $object->accountancy_code_sell, 1);
+                if ($res > 0) {
+                    print $accountingaccount->getNomUrl(0, 1, 1, '', 1);
+                } elseif (!empty($object->accountancy_code_sell)) {
+                    print '<span style="color: red; font-weight: bold;">' . $langs->trans('ErrorWrongValue') . ' : ' . $object->accountancy_code_sell . '</span>';
+                }
             } else {
                 print $object->accountancy_code_sell;
             }
@@ -1452,9 +1455,13 @@ else {
             print '</td><td colspan="2">';
             if (!empty($conf->accounting->enabled)) {
                 $accountingaccount2 = new AccountingAccount($db);
-                $accountingaccount2->fetch('', $object->accountancy_code_buy, 1);
+                $res = $accountingaccount2->fetch('', $object->accountancy_code_buy, 1);
 
-                print $accountingaccount2->getNomUrl(0, 1, 1, '', 1);
+                if ($res > 0) {
+                    print $accountingaccount2->getNomUrl(0, 1, 1, '', 1);
+                } elseif (!empty($object->accountancy_code_buy)) {
+                    print '<span style="color: red; font-weight: bold;">' . $langs->trans('ErrorWrongValue') . ' : ' . $object->accountancy_code_buy . '</span>';
+                }
             } else {
                 print $object->accountancy_code_buy;
             }
