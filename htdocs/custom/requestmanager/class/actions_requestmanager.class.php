@@ -120,7 +120,7 @@ class ActionsRequestManager
             $origin = $object->element != 'societe' ? '&origin=' . urlencode($object->element) . '&originid=' . $object->id : '';
 
             if ($user->rights->requestmanager->creer)
-                print '<div class="inline-block divButAction"><a class="butAction" href="' . dol_buildpath('/requestmanager/card.php', 2) . '?action=create&socid=' . $socid . $origin . '">' . $langs->trans("RequestManagerAddRequest") . '</a></div>';
+                print '<div class="inline-block divButAction"><a class="butAction" href="' . dol_buildpath('/requestmanager/createfast.php', 2) . '?action=createfast&socid=' . $socid . '&socid_origin=' . $socid . $origin . '">' . $langs->trans("RequestManagerAddRequest") . '</a></div>';
             else
                 print '<div class="inline-block divButAction"><a class="butActionRefused" href="#" title="' . $langs->trans("NotEnoughPermissions") . '">' . $langs->trans("RequestManagerAddRequest") . '</a></div>';
         }

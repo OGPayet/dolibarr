@@ -73,6 +73,16 @@ if ($action == 'addfast' && $user->rights->requestmanager->creer) {
     $object->description = GETPOST('description');
     $selectedActionCommId = GETPOST('actioncomm_id') ? GETPOST('actioncomm_id') : -1;
 
+    // Possibility to add external linked objects with hooks
+    $object->origin = GETPOST('origin', 'alpha');
+    $object->origin_id = GETPOST('originid', 'int');
+    if ($object->origin && $object->origin_id) {
+        $object->linkedObjectsIds[$object->origin] = $object->origin_id;
+        if (is_array($_POST['other_linked_objects']) && !empty($_POST['other_linked_objects'])) {
+            $object->linkedObjectsIds = array_merge($object->linkedObjectsIds, $_POST['other_linked_objects']);
+        }
+    }
+
     $btnAction = '';
     if (GETPOST('btn_create')) {
         $btnAction = 'create';
@@ -182,43 +192,50 @@ $usergroup_static = new UserGroup($db);
 $now = dol_now();
 
 if (($action == 'createfast' || $action == 'force_principal_company') && $user->rights->requestmanager->creer) {
-    $selectedActionJs         = GETPOST('action_js')?GETPOST('action_js'):'';
-    $selectedActionCommId     = GETPOST('actioncomm_id', 'int') ? intval(GETPOST('actioncomm_id', 'int')) : -1;
-    $selectedCategories       = GETPOST('categories', 'array') ? GETPOST('categories', 'array') : array();
-    $selectedContacts         = GETPOST('contact_ids', 'array')?GETPOST('contact_ids', 'array'):array();
+    $selectedActionJs = GETPOST('action_js') ? GETPOST('action_js') : '';
+    $selectedActionCommId = GETPOST('actioncomm_id', 'int') ? intval(GETPOST('actioncomm_id', 'int')) : -1;
+    $selectedCategories = GETPOST('categories', 'array') ? GETPOST('categories', 'array') : array();
+    $selectedContacts = GETPOST('contact_ids', 'array') ? GETPOST('contact_ids', 'array') : array();
     //$selectedContactId        = GETPOST('contactid', 'int') ? intval(GETPOST('contactid', 'int')) : -1;
-    $selectedDescription      = GETPOST('description', 'alpha') ? GETPOST('description', 'alpha') : '';
-    $selectedEquipementId     = GETPOST('equipement_id', 'int') ? intval(GETPOST('equipement_id', 'int')) : -1;
-    $selectedLabel            = GETPOST('label', 'alpha') ? GETPOST('label', 'alpha') : '';
-    $selectedSocIdOrigin      = GETPOST('socid_origin', 'int')?intval(GETPOST('socid_origin', 'int')):-1;
-    $selectedSocId            = GETPOST('socid', 'int')?intval(GETPOST('socid', 'int')):-1;
-    $selectedSocIdBenefactor  = GETPOST('socid_benefactor', 'int')?intval(GETPOST('socid_benefactor', 'int')):-1;
-    $selectedFkSource         = GETPOST('source', 'int') ? intval(GETPOST('source', 'int')) : -1;
-    $selectedFkType           = GETPOST('type', 'int') ? intval(GETPOST('type', 'int')) : -1;
-    $selectedFkUrgency        = GETPOST('urgency', 'int') ? intval(GETPOST('urgency', 'int')) : -1;
+    $selectedDescription = GETPOST('description', 'alpha') ? GETPOST('description', 'alpha') : '';
+    $selectedEquipementId = GETPOST('equipement_id', 'int') ? intval(GETPOST('equipement_id', 'int')) : -1;
+    $selectedLabel = GETPOST('label', 'alpha') ? GETPOST('label', 'alpha') : '';
+    $selectedSocIdOrigin = GETPOST('socid_origin', 'int') ? intval(GETPOST('socid_origin', 'int')) : -1;
+    $selectedSocId = GETPOST('socid', 'int') ? intval(GETPOST('socid', 'int')) : -1;
+    $selectedSocIdBenefactor = GETPOST('socid_benefactor', 'int') ? intval(GETPOST('socid_benefactor', 'int')) : -1;
+    $selectedFkSource = GETPOST('source', 'int') ? intval(GETPOST('source', 'int')) : -1;
+    $selectedFkType = GETPOST('type', 'int') ? intval(GETPOST('type', 'int')) : -1;
+    $selectedFkUrgency = GETPOST('urgency', 'int') ? intval(GETPOST('urgency', 'int')) : -1;
+    $origin = GETPOST('origin', 'alpha');
+    $originid = GETPOST('originid', 'int');
 
+    // Set default values
     $force_set = $selectedActionJs=='change_socid_origin';
-    if ($selectedSocIdOrigin > 0 && ($selectedSocIdBenefactor < 0 || $selectedSocId < 0 || $force_set)) {
+    if ($selectedSocIdOrigin > 0) {
         $originRelationshipType = $companyrelationships->getRelationshipType($selectedSocIdOrigin);
         if ($originRelationshipType == 0) { // Benefactor company
             $selectedSocIdBenefactor = $selectedSocIdBenefactor < 0 || $force_set ? $selectedSocIdOrigin : $selectedSocIdBenefactor;
-            $principal_companies_ids = $companyrelationships->getRelationships($selectedSocIdBenefactor, 0);
-            $principal_companies_ids = is_array($principal_companies_ids) ? array_values($principal_companies_ids) : array();
-            $selectedSocId = $selectedSocId < 0 || $force_set ? $principal_companies_ids[0] : $selectedSocId;
         } elseif ($originRelationshipType > 0) { // Principal company or both
             $selectedSocId = $selectedSocId < 0 || $force_set ? $selectedSocIdOrigin : $selectedSocId;
-            $benefactor_companies_ids = $companyrelationships->getRelationships($selectedSocId, 1);
-            $benefactor_companies_ids = is_array($benefactor_companies_ids) ? array_values($benefactor_companies_ids) : array();
-            $selectedSocIdBenefactor = $selectedSocIdBenefactor < 0 || $force_set ? $benefactor_companies_ids[0] : $selectedSocIdBenefactor;
         } else { // None
             $selectedSocId = $selectedSocId < 0 || $force_set ? $selectedSocIdOrigin : $selectedSocId;
             $selectedSocIdBenefactor = $selectedSocIdBenefactor < 0 || $force_set ? $selectedSocId : $selectedSocIdBenefactor;
         }
     }
+    if ($selectedSocId > 0) {
+        $benefactor_companies_ids = $companyrelationships->getRelationships($selectedSocId, 1);
+        $benefactor_companies_ids = is_array($benefactor_companies_ids) ? array_values($benefactor_companies_ids) : array();
+        $selectedSocIdBenefactor = $selectedSocIdBenefactor < 0 || $force_set ? (count($benefactor_companies_ids) > 0 ? $benefactor_companies_ids[0] : $selectedSocId) : $selectedSocIdBenefactor;
+    }
+    if ($selectedSocIdBenefactor > 0) {
+        $principal_companies_ids = $companyrelationships->getRelationships($selectedSocIdBenefactor, 0);
+        $principal_companies_ids = is_array($principal_companies_ids) ? array_values($principal_companies_ids) : array();
+        $selectedSocId = $selectedSocId < 0 || $force_set ? (count($principal_companies_ids) > 0 ? $principal_companies_ids[0] : $selectedSocIdBenefactor) : $selectedSocId;
+    }
 
     // Confirm force principal company
-	if ($action == 'force_principal_company') {
-	    $formquestion = array();
+    if ($action == 'force_principal_company') {
+        $formquestion = array();
         if (!empty($selectedActionJs)) $formquestion[] = array('type' => 'hidden', 'name' => 'action_js', 'value' => $selectedActionJs);
         if (!empty($selectedActionCommId)) $formquestion[] = array('type' => 'hidden', 'name' => 'actioncomm_id', 'value' => $selectedActionCommId);
         if (!empty($selectedCategories)) $formquestion[] = array('type' => 'hidden', 'name' => 'categories', 'value' => $selectedCategories);
@@ -232,18 +249,29 @@ if (($action == 'createfast' || $action == 'force_principal_company') && $user->
         if (!empty($selectedFkSource)) $formquestion[] = array('type' => 'hidden', 'name' => 'source', 'value' => $selectedFkSource);
         if (!empty($selectedFkType)) $formquestion[] = array('type' => 'hidden', 'name' => 'type', 'value' => $selectedFkType);
         if (!empty($selectedFkUrgency)) $formquestion[] = array('type' => 'hidden', 'name' => 'urgency', 'value' => $selectedFkUrgency);
+        if (!empty($origin)) $formquestion[] = array('type' => 'hidden', 'name' => 'origin', 'value' => $origin);
+        if (!empty($originid)) $formquestion[] = array('type' => 'hidden', 'name' => 'originid', 'value' => $originid);
 
-		print $form->formconfirm($_SERVER["PHP_SELF"], $langs->trans('RequestManagerForcePrincipalCompany'), $langs->trans('RequestManagerConfirmForcePrincipalCompany'), 'confirm_force_principal_company', '', 0, 1);
-	}
+        print $form->formconfirm($_SERVER["PHP_SELF"], $langs->trans('RequestManagerForcePrincipalCompany'), $langs->trans('RequestManagerConfirmForcePrincipalCompany'), 'confirm_force_principal_company', $formquestion, 0, 1);
+    }
 
     /*
      *  Creation
      */
-    print load_fiche_titre($langs->trans("RequestManagerCreateFastTitle"), '', 'requestmanager@requestmanager');
-
     print '<form name="addpropfast" action="' . $_SERVER["PHP_SELF"] . '" method="POST">';
     print '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '">';
     print '<input type="hidden" name="action" value="addfast">';
+
+    $origin_title = '';
+    // Origin
+    if (!empty($origin) && !empty($originid)) {
+        require_once DOL_DOCUMENT_ROOT . '/core/lib/functions2.lib.php';
+        $origin_title = ' (' . $langs->trans('Origin') . ' : ' . dolGetElementUrl($originid, $origin, 1) . ')';
+        print '<input type="hidden" name="origin" value="' . dol_escape_htmltag($origin) . '">';
+        print '<input type="hidden" name="originid" value="' . $originid . '">';
+    }
+
+    print load_fiche_titre($langs->trans("RequestManagerCreateFastTitle") . $origin_title, '', 'requestmanager@requestmanager');
 
     dol_fiche_head();
     print '<div id="create_fast_zone1"></div>';

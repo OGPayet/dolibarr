@@ -107,7 +107,7 @@ if (empty($reshook)) {
     include DOL_DOCUMENT_ROOT.'/core/actions_dellink.inc.php';		// Must be include, not include_once
 
     // Create request
-    if ($action == 'add' && $user->rights->requestmanager->creer) {
+    /*if ($action == 'add' && $user->rights->requestmanager->creer) {
         $object->fk_type = GETPOST('type', 'int');
         $object->fk_category = GETPOST('category', 'int');
         $object->label = GETPOST('label', 'alpha');
@@ -174,7 +174,7 @@ if (empty($reshook)) {
             $action = 'create';
         }
     } // Create request child
-    elseif ($action == 'create_request_child' && $user->rights->requestmanager->creer) {
+    else*/if ($action == 'create_request_child' && $user->rights->requestmanager->creer) {
         $new_request_type = GETPOST('new_request_type', 'int');
         $id = $object->createSubRequest($new_request_type, $user);
         if ($id > 0) {
@@ -1134,12 +1134,12 @@ $contact_static = new Contact($db);
 
 $now = dol_now();
 
-if ($action == 'create' && $user->rights->requestmanager->creer)
+/*if ($action == 'create' && $user->rights->requestmanager->creer)
 {
     /*
      *  Creation
      */
-	print load_fiche_titre($langs->trans("RequestManagerNewRequest"), '', 'requestmanager@requestmanager');
+/*	print load_fiche_titre($langs->trans("RequestManagerNewRequest"), '', 'requestmanager@requestmanager');
 
     $object->fk_type = GETPOST('type', 'int');
     $object->fk_category = GETPOST('category', 'int');
@@ -1328,7 +1328,7 @@ if ($action == 'create' && $user->rights->requestmanager->creer)
 	print '</div>';
 
 	print "</form>";
-} elseif ($object->id > 0) {
+} else*/if ($object->id > 0) {
 	/*
 	 * Show object in view mode
 	 */
