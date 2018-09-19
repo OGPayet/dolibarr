@@ -4337,6 +4337,52 @@ class RequestManager extends CommonObject
             return -2;
         }
     }
+
+    /**
+     *	Create event call from API
+     *
+     *	@return		int		<0 if ko, >0 if ok
+     */
+    function create_event_api($actioncomm_object)
+    {
+        global $conf,$user;
+
+        require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
+		$actioncomm = new ActionComm($this->db);
+		$actioncomm = $actioncomm_object;
+
+		$this->db->begin();
+
+		if ($actioncomm->create($user) < 0) {
+			return 0;
+		} else {
+			$this->db->commit();
+			return 1;
+		}
+    }
+
+    /**
+     *	Update event call from API
+     *
+     *	@return		int		<0 if ko, >0 if ok
+     */
+    function update_event_api($actioncomm_object)
+    {
+        global $conf,$user;
+
+        require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
+		$actioncomm = new ActionComm($this->db);
+		$actioncomm = $actioncomm_object;
+
+		$this->db->begin();
+
+		if ($actioncomm->update($user) < 0) {
+			return 0;
+		} else {
+			$this->db->commit();
+			return 1;
+		}
+    }
 }
 
 
@@ -4893,11 +4939,11 @@ class RequestManagerLine extends CommonObjectLine
         $this->db->begin();
 
         // Clean parameters
-        if (empty($this->total_localtax1)) $this->total_localtax1=0;
-        if (empty($this->total_localtax2)) $this->total_localtax2=0;
+        if (empty($this->total_localtax1)) $this->total_localtax1 = 0;
+        if (empty($this->total_localtax2)) $this->total_localtax2 = 0;
 
         // Mise a jour ligne en base
-        $sql  = "UPDATE " . MAIN_DB_PREFIX . $this->element . " SET";
+        $sql = "UPDATE " . MAIN_DB_PREFIX . $this->element . " SET";
         $sql .= "total_ht='" . price2num($this->total_ht) . "'";
         $sql .= ", total_tva='" . price2num($this->total_tva) . "'";
         $sql .= ", total_localtax1='" . price2num($this->total_localtax1) . "'";
@@ -4907,62 +4953,13 @@ class RequestManagerLine extends CommonObjectLine
 
         dol_syslog(__METHOD__, LOG_DEBUG);
         $resql = $this->db->query($sql);
-        if ($resql)
-        {
+        if ($resql) {
             $this->db->commit();
             return 1;
-        }
-        else
-        {
+        } else {
             $this->error = $this->db->error();
             $this->db->rollback();
             return -2;
         }
-    }
-
-    /**
-     *	Create event call from API
-     *
-     *	@return		int		<0 if ko, >0 if ok
-     */
-    function create_event_api($actioncomm_object)
-    {
-        global $conf,$user;
-
-        require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
-		$actioncomm = new ActionComm($this->db);
-		$actioncomm = $actioncomm_object;
-
-		$this->db->begin();
-
-		if ($actioncomm->create($user) < 0) {
-			return 0;
-		} else {
-			$this->db->commit();
-			return 1;
-		}
-    }
-
-    /**
-     *	Update event call from API
-     *
-     *	@return		int		<0 if ko, >0 if ok
-     */
-    function update_event_api($actioncomm_object)
-    {
-        global $conf,$user;
-
-        require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
-		$actioncomm = new ActionComm($this->db);
-		$actioncomm = $actioncomm_object;
-
-		$this->db->begin();
-
-		if ($actioncomm->update($user) < 0) {
-			return 0;
-		} else {
-			$this->db->commit();
-			return 1;
-		}
     }
 }
