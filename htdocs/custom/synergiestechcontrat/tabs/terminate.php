@@ -44,6 +44,7 @@ $action=GETPOST('action','alpha');
 // Security check
 if ($user->societe_id) $socid=$user->societe_id;
 $result=restrictedArea($user, 'contrat', $id);
+if (!$user->rights->contrat->terminate) accessforbidden();
 
 $langs->load("link");
 if (empty($relativepathwithnofile)) $relativepathwithnofile='';
@@ -64,29 +65,48 @@ $result = $object->fetch($id);
 $object->fetch_thirdparty();
 
 if($action == "terminate") {
-	$targetdate='';
-	$realdate='';
-	if (GETPOST('targetdatemonth') && GETPOST('targetdateday') && GETPOST('targetdateyear'))
-	{
-		$targetdate=dol_mktime(GETPOST('targetdatehour'), GETPOST('targetdatemin'), 0, GETPOST('targetdatemonth'), GETPOST('targetdateday'), GETPOST('targetdateyear'));
+	$error = 0;
+	if ( ! empty($_FILES)) {
+		setEventMessages($langs->trans("TerminateFileUploadEmpty"), null, "errors");
+		$error++;
 	}
-	if (GETPOST('realdatemonth') && GETPOST('realdateday') && GETPOST('realdateyear'))
-	{
-		$realdate=dol_mktime(GETPOST('realdatehour'), GETPOST('realdatemin'), 0, GETPOST('realdatemonth'), GETPOST('realdateday'), GETPOST('realdateyear'));
+	if (GETPOST('targetdatemonth') && GETPOST('targetdateday') && GETPOST('targetdateyear')) {
+		setEventMessages($langs->trans("TerminateTargetEmpty"), null, "errors");
+		$error++;
 	}
+	if (GETPOST('realdatemonth') && GETPOST('realdateday') && GETPOST('realdateyear')) {
+		setEventMessages($langs->trans("TerminateRealEmpty"), null, "errors");
+		$error++;
+	}
+	if($error == 0) {
+		$targetdate='';
+		$realdate='';
+		if (GETPOST('targetdatemonth') && GETPOST('targetdateday') && GETPOST('targetdateyear'))
+		{
+			$targetdate=dol_mktime(GETPOST('targetdatehour'), GETPOST('targetdatemin'), 0, GETPOST('targetdatemonth'), GETPOST('targetdateday'), GETPOST('targetdateyear'));
+		}
+		if (GETPOST('realdatemonth') && GETPOST('realdateday') && GETPOST('realdateyear'))
+		{
+			$realdate=dol_mktime(GETPOST('realdatehour'), GETPOST('realdatemin'), 0, GETPOST('realdatemonth'), GETPOST('realdateday'), GETPOST('realdateyear'));
+		}
 
-	$target_dir = $conf->contrat->dir_output.'/'.$object->id.'/';
-	$target_file = $target_dir . basename($_FILES["document"]["name"]);
-	if (move_uploaded_file($_FILES["document"]["tmp_name"], $target_file)) {
-        error_log( "The file ". basename( $_FILES["document"]["name"]). " has been uploaded.");
-    } else {
-        error_log( "Sorry, there was an error uploading your file.");
-    }
+		$target_dir = $conf->contrat->dir_output.'/'.$object->ref.'/';
+		$target_file = $target_dir . $langs->trans('TerminateFile').basename($_FILES["document"]["name"]);
 
-	$object->array_options['options_targetdate'] = $targetdate;
-	$object->array_options['options_realdate'] = $realdate;
+		$result = dol_move($_FILES["document"]["tmp_name"], $target_file, 0, 1, 1);
+		if ($result) {
+			setEventMessages($langs->trans("TerminateFileUpload"), null, "mesgs");
+		} else {
+			setEventMessages($langs->trans("TerminateFileUploadError"), null, "errors");
+		}
 
-	$object->update();
+		$object->array_options['options_targetdate'] = $targetdate;
+		$object->array_options['options_realdate'] = $realdate;
+
+		$object->update();
+
+		$object->cloture($user);
+	}
 }
 
 $head = contract_prepare_head($object);

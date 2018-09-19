@@ -76,3 +76,12 @@ TargetDate=Date souhaitée de résiliation
 RealDate=Date effective de résiliation
 Justificatif=Justificatif de résiliation
 ConfirmTerminate=Résiliation de ce contrat et tous ses services
+TerminateFile=Document_de_resiliation_
+
+TerminateFileUpload=Justificatif de résiliation enregistré avec succès
+TerminateFileUploadError=Problème lors de l'enregistrement du justificatif de résiliation
+TerminateFileUploadEmpty=Veuillez ajouter un document de résiliation pour résilier ce contrat
+TerminateTargetEmpty=Veuillez ajouter une date souhaitée de résiliation pour résilier ce contrat
+TerminateRealEmpty=Veuillez ajouter une date effective de résiliation pour résilier ce contrat
+Renouvellement=Contrat %s renouvellé
+Reconduction=Contrat %s reconduit

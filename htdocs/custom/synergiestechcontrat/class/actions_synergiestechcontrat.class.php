@@ -183,7 +183,7 @@ class ActionsSynergiestechcontrat
 		}
 
 		$element = $object->element;
-		if ($element == 'contrat') {
+		if ($element == 'contrat' && $user->rights->contrat->terminate) {
 	        print '<div class="inline-block divButAction"><a class="butAction" href="'.DOL_URL_ROOT.'/custom/synergiestechcontrat/tabs/terminate.php?id='.$object->id.'">'.$langs->trans('Terminate').'</a></div>';
 		}
         return 0;

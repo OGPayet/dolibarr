@@ -66,6 +66,9 @@ if (!$error && $massaction == 'facture') {
             $startdate              = strtotime($objecttmp->array_options['options_startdate']);
             $duration               = $objecttmp->array_options['options_duration'];
             $enddate                = strtotime($objecttmp->array_options['options_startdate']." +$duration month");
+			if(!empty($objecttmp->array_options['options_realdate']) && strtotime($objecttmp->array_options['options_realdate']) < $enddate) {
+				$enddate = strtotime($objecttmp->array_options['options_realdate']);
+			}
             $tacitagreement         = $objecttmp->array_options['options_tacitagreement'];
             $invoicetype            = $objecttmp->array_options['options_invoicetype'];
             $firstdaysofperiods     = array(
@@ -129,6 +132,7 @@ if (!$error && $massaction == 'facture') {
 
 			//Check if this period is not already invoiced
 			$already_invoice = false;
+			$year_already_invoice = 0;
 			if (isset($objecttmp->linkedObjects["facture"])) { // delete facture rec
                 //Suppression des factures modèles
                 foreach ($objecttmp->linkedObjects["facture"] as $obj) {
@@ -137,6 +141,7 @@ if (!$error && $massaction == 'facture') {
 					($lastdayofperiod <= strtotime($obj->array_options['options_datefin']))) {
 						$already_invoice = true;
 					}
+					$year_already_invoice = max($year_already_invoice, date("Y",strtotime($obj->array_options['options_datefin'])));
                 }
             }
 			if($already_invoice == false) {
@@ -144,13 +149,13 @@ if (!$error && $massaction == 'facture') {
 					// most recent facturerec
 					foreach ($objecttmp->linkedObjects["facturerec"] as $idref => $obj) {
 						$desc = '';
-						if ($startdate < $now && $now < $enddate || $tacitagreement && $now > $enddate) { // le contrat est en cour
+						if (($startdate < $now && $now < $enddate) || ($tacitagreement && $now > $enddate) || (!empty($objecttmp->array_options['options_realdate']))) { // le contrat est en cour
 							$fac          = new Facture($db);
 							$fac->fac_rec = $obj->id;
 							$fac->socid   = $fac->fk_soc  = $obj->socid;
 							$fac->fetch_thirdparty();
 							$fac->date    = dol_now();
-							$fac->remise_percent    = 20;
+							$fac->remise_percent = $fac->thirdparty->remise_percent;
 							$fac->array_options['options_datedeb'] = $firstdayofperiod;
 							$fac->array_options['options_datefin'] = $lastdayofperiod;
 							$fac->create($user, 1);
@@ -210,6 +215,76 @@ if (!$error && $massaction == 'facture') {
 										$line->tva_tx
 									);
 
+								}
+
+								if(!empty($conf->global->AUTOMATIC_VALID_INVOICE_CONTRACT)) {
+									$fac->validate($user);
+								}
+
+								//Renouvellement contrat
+								if($year_already_invoice < date('Y',$lastdayofperiod)) {
+									if(strstr($objecttmp->ref, '/')){
+										$last_number = substr($objecttmp->ref, -1);
+										$last_number++;
+										$objecttmp->ref = substr_replace($objecttmp->ref ,$last_number,-1);
+									} else {
+										$objecttmp->ref = $objecttmp->ref."/1";
+									}
+									$objecttmp->update();
+
+									//Ajout de l'evenement
+									require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
+									require_once DOL_DOCUMENT_ROOT.'/comm/action/class/cactioncomm.class.php';
+
+									$actioncomm = new ActionComm($db);
+
+									$actioncomm->type_id=40;
+									$actioncomm->type_code='AC_OTH_AUTO';
+									$actioncomm->label       = $langs->trans("Renouvellement",$objecttmp->ref);
+									$actioncomm->note        = $langs->trans("Renouvellement",$objecttmp->ref);
+									$actioncomm->fk_project  = 0;
+									$actioncomm->datep       = $now;
+									$actioncomm->datef       = $now;
+									$actioncomm->fulldayevent = 0;
+									$actioncomm->durationp   = 0;
+									$actioncomm->punctual    = 1;
+									$actioncomm->percentage  = -1;   // Not applicable
+									$actioncomm->transparency= 0; // Not applicable
+									$actioncomm->authorid    = $user->id;   // User saving action
+									$actioncomm->userownerid    = $user->id;   // User saving action
+									$actioncomm->elementtype = 'contrat';
+									$actioncomm->fk_element = $objecttmp->id;
+									$actioncomm->fk_soc = $objecttmp->fk_soc;
+
+									$ret = $actioncomm->create($user);
+								}
+
+								//Reconduction contrat
+								if($tacitagreement && $now > $enddate) {
+									require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
+									require_once DOL_DOCUMENT_ROOT.'/comm/action/class/cactioncomm.class.php';
+
+									$actioncomm = new ActionComm($db);
+
+									$actioncomm->type_id=40;
+									$actioncomm->type_code='AC_OTH_AUTO';
+									$actioncomm->label       = $langs->trans("Reconduction",$objecttmp->ref);
+									$actioncomm->note        = $langs->trans("Reconduction",$objecttmp->ref);
+									$actioncomm->fk_project  = 0;
+									$actioncomm->datep       = $now;
+									$actioncomm->datef       = $now;
+									$actioncomm->fulldayevent = 0;
+									$actioncomm->durationp   = 0;
+									$actioncomm->punctual    = 1;
+									$actioncomm->percentage  = -1;   // Not applicable
+									$actioncomm->transparency= 0; // Not applicable
+									$actioncomm->authorid    = $user->id;   // User saving action
+									$actioncomm->userownerid    = $user->id;   // User saving action
+									$actioncomm->elementtype = 'contrat';
+									$actioncomm->fk_element = $objecttmp->id;
+									$actioncomm->fk_soc = $objecttmp->fk_soc;
+
+									$ret = $actioncomm->create($user);
 								}
 							}
 						}
@@ -278,6 +353,9 @@ if (!$error && $massaction == 'facturerec') {
             $startdate              = strtotime($objecttmp->array_options['options_startdate']);
             $duration               = $objecttmp->array_options['options_duration'];
             $enddate                = strtotime($objecttmp->array_options['options_startdate']." +$duration month");
+			if(!empty($objecttmp->array_options['options_realdate']) && strtotime($objecttmp->array_options['options_realdate']) < $enddate) {
+				$enddate = strtotime($objecttmp->array_options['options_realdate']);
+			}
             $tacitagreement         = $objecttmp->array_options['options_tacitagreement'];
             $invoicetype            = $objecttmp->array_options['options_invoicetype'];
 			if($alreadymodel < 1) { //Si c'est la première fois que l'on créé un model alors on prend la période P
@@ -364,13 +442,14 @@ if (!$error && $massaction == 'facturerec') {
 
             $result = 1;
 
-			if ($startdate < $now && $now < $enddate || $tacitagreement && $now > $enddate) { // le contrat est en cour
+			if ($startdate < $now && $now < $enddate || $tacitagreement && $now > $enddate || !empty($objecttmp->array_options['options_realdate'])) { // le contrat est en cour
 				//Création de la facture brouillon permettant de faire la facture modèle
 				$facture                    = new Facture($db);
 				$cl                         = new Client($db);
 				$cl->fetch($objecttmp->socid);
 				$facture->socid             = $facture->fk_soc            = $objecttmp->socid;
 				$facture->fetch_thirdparty();
+				$facture->remise_percent =  $facture->thirdparty->remise_percent;
 				$facture->date              = dol_now();
 				$facture->mode_reglement_id = $cl->mode_reglement_id;
 				$facture->cond_reglement_id = $cl->cond_reglement_id;
@@ -505,7 +584,6 @@ if (!$error && $massaction == 'facturerec') {
 						$line->id, $descupdate, $line->multicurrency_subprice * $ratio + $majoration, $line->qty, $line->remise_percent, $line->date_start, $line->date_end,
 						$line->tva_tx
 					);
-
 				}
 
 				// Création de la nouvelle facture modèle
@@ -566,6 +644,9 @@ if (!$error && $massaction == 'factureanterieur') {
 				$startdate              = strtotime($objecttmp->array_options['options_startdate']);
 				$duration               = $objecttmp->array_options['options_duration'];
 				$enddate                = strtotime($objecttmp->array_options['options_startdate']." +$duration month");
+				if(!empty($objecttmp->array_options['options_realdate']) && strtotime($objecttmp->array_options['options_realdate']) < $enddate) {
+					$enddate = strtotime($objecttmp->array_options['options_realdate']);
+				}
 				$tacitagreement         = $objecttmp->array_options['options_tacitagreement'];
 				$invoicetype            = $objecttmp->array_options['options_invoicetype'];
 				$anterieurdate = $startdate;
@@ -648,13 +729,14 @@ if (!$error && $massaction == 'factureanterieur') {
 						}
 					}
 					if($already_invoice == false) {
-						if ($startdate < $now && $now < $enddate || $tacitagreement && $now > $enddate) { // le contrat est en cour
+						if ($startdate < $now && $now < $enddate || $tacitagreement && $now > $enddate || !empty($objecttmp->array_options['options_realdate'])) { // le contrat est en cour
 							//Création de la facture brouillon permettant de faire la facture modèle
 							$facture                    = new Facture($db);
 							$cl                         = new Client($db);
 							$cl->fetch($objecttmp->socid);
 							$facture->socid             = $facture->fk_soc            = $objecttmp->socid;
 							$facture->fetch_thirdparty();
+							$facture->remise_percent =  $facture->thirdparty->remise_percent;
 							$facture->date              = dol_now();
 							$facture->mode_reglement_id = $cl->mode_reglement_id;
 							$facture->cond_reglement_id = $cl->cond_reglement_id;
@@ -790,6 +872,9 @@ if (!$error && $massaction == 'factureanterieur') {
 									$line->tva_tx
 								);
 
+							}
+							if(!empty($conf->global->AUTOMATIC_VALID_INVOICE_CONTRACT)) {
+								$facture->validate($user);
 							}
 
 							if ($result <= 0) {
