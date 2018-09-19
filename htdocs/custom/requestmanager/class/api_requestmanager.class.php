@@ -623,7 +623,7 @@ class Requestmanager extends DolibarrApi {
 			} else {
 				$this->actioncomm->note .= $langs->trans('API_hour_end').$db->idate($now)."<br/>";
 			}
-			$this->actioncomm->note .= $langs->trans('API_during').$during."<br/>";$
+			$this->actioncomm->note .= $langs->trans('API_during').$during."<br/>";
 			if(!empty($messagerie)) {
 				$this->actioncomm->note .= $langs->trans('API_messagerie').$messagerie."<br/>";
 			}
