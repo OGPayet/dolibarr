@@ -106,6 +106,14 @@ if (empty($reshook)) {
 
     include DOL_DOCUMENT_ROOT.'/core/actions_dellink.inc.php';		// Must be include, not include_once
 
+    // Confirm forcing principal company
+    $force_principal_company = false;
+    $force_principal_company_params = array();
+    if ($action == 'confirm_force_principal_company' && $confirm == "yes" && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+        $action = GETPOST('save_action', 'alpha');
+        $force_principal_company = true;
+    }
+
     // Create request
     /*if ($action == 'add' && $user->rights->requestmanager->creer) {
         $object->fk_type = GETPOST('type', 'int');
@@ -268,25 +276,65 @@ if (empty($reshook)) {
     elseif ($action == 'set_thirdparty' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
         $object->oldcopy = clone $object;
         $object->socid = GETPOST('socid', 'int');
-        $result = $object->update($user);
-        if ($result < 0) {
-            setEventMessages($object->error, $object->errors, 'errors');
-            $action = 'edit_thirdparty';
+
+        dol_include_once('/companyrelationships/class/companyrelationships.class.php');
+        $companyrelationships = new CompanyRelationships($db);
+        $principal_companies_ids = $companyrelationships->getRelationships($object->socid_benefactor, 0);
+        $not_principal_company = !in_array($object->socid, $principal_companies_ids) && $object->socid != $object->socid_benefactor && ($object->oldcopy->socid != $object->socid || $object->oldcopy->socid_benefactor != $object->socid_benefactor);
+        if ($not_principal_company && !$force_principal_company) {
+            $force_principal_company_params = array(
+                'save_action' => $action,
+                'socid' => $object->socid,
+            );
+            $action = 'force_principal_company';
+            $object->socid = $object->oldcopy->socid;
         } else {
-            header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
-            exit();
+            $result = $object->update($user);
+
+            if ($result > 0 && $not_principal_company && $force_principal_company) {
+                // Principal company forced for the benefactor
+                $result = $object->addActionForcedPrincipalCompany($user);
+            }
+
+            if ($result < 0) {
+                setEventMessages($object->error, $object->errors, 'errors');
+                $action = 'edit_thirdparty';
+            } else {
+                header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
+                exit();
+            }
         }
     } // Set ThirdParty Benefactor
     elseif ($action == 'set_thirdparty_benefactor' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
         $object->oldcopy = clone $object;
         $object->socid_benefactor = GETPOST('socid_benefactor', 'int');
-        $result = $object->update($user);
-        if ($result < 0) {
-            setEventMessages($object->error, $object->errors, 'errors');
-            $action = 'edit_thirdparty_benefactor';
+
+        dol_include_once('/companyrelationships/class/companyrelationships.class.php');
+        $companyrelationships = new CompanyRelationships($db);
+        $principal_companies_ids = $companyrelationships->getRelationships($object->socid_benefactor, 0);
+        $not_principal_company = !in_array($object->socid, $principal_companies_ids) && $object->socid != $object->socid_benefactor && ($object->oldcopy->socid != $object->socid || $object->oldcopy->socid_benefactor != $object->socid_benefactor);
+        if ($not_principal_company && !$force_principal_company) {
+            $force_principal_company_params = array(
+                'save_action' => $action,
+                'socid_benefactor' => $object->socid_benefactor,
+            );
+            $action = 'force_principal_company';
+            $object->socid_benefactor = $object->oldcopy->socid_benefactor;
         } else {
-            header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
-            exit();
+            $result = $object->update($user);
+
+            if ($result > 0 && $not_principal_company && $force_principal_company) {
+                // Principal company forced for the benefactor
+                $result = $object->addActionForcedPrincipalCompany($user);
+            }
+
+            if ($result < 0) {
+                setEventMessages($object->error, $object->errors, 'errors');
+                $action = 'edit_thirdparty_benefactor';
+            } else {
+                header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
+                exit();
+            }
         }
     } // Set Source
     elseif ($action == 'set_source' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
@@ -1376,6 +1424,22 @@ $now = dol_now();
     if ($action == 'set_myself_assigned_user')
     {
         $formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('RequestManagerAssignMySelf'), $langs->trans('RequestManagerConfirmAssignMySelf', $object->ref), 'confirm_set_myself_assigned_user', '', 0, 1);
+    }
+
+    // Confirm force principal company
+    if ($action == 'force_principal_company') {
+        $formquestion = array();
+        foreach ($force_principal_company_params as $k => $v) {
+            $formquestion[] = array('type' => 'hidden', 'name' => $k, 'value' => $v);
+        }
+
+        $societe = new Societe($db);
+        $societe->fetch(!empty($force_principal_company_params['socid']) ? $force_principal_company_params['socid'] : $object->socid);
+        $formquestion[] = array('type' => 'other', 'label' => $langs->trans('RequestManagerThirdPartyBill'), 'value' => $societe->getNomUrl(1));
+        $societe->fetch(!empty($force_principal_company_params['socid_benefactor']) ? $force_principal_company_params['socid_benefactor'] : $object->socid_benefactor);
+        $formquestion[] = array('type' => 'other', 'label' => $langs->trans('RequestManagerThirdPartyBenefactor'), 'value' => $societe->getNomUrl(1));
+
+        $formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('RequestManagerForcePrincipalCompany'), $langs->trans('RequestManagerConfirmForcePrincipalCompany'), 'confirm_force_principal_company', $formquestion, 0, 1);
     }
 
 	// Hook

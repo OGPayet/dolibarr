@@ -16,17 +16,6 @@
 --
 -- ===========================================================================
 
---INSERT INTO `llx_c_action_trigger` (`code`, `label`, `description`, `elementtype`, `rang`) VALUES
---('PRICEREQUEST_CREATE', 'Price request created', 'Executed when a price request is created', 'pricerequest', 41),
---('PRICEREQUEST_MODIFY', 'Price request modified', 'Executed when a price request is modified', 'pricerequest', 42),
---('PRICEREQUEST_DELETE', 'Price request deleted', 'Executed when a price request is deleted', 'pricerequest', 43),
---('PRICEREQUEST_NOTIFY', 'Price request notified', 'Executed when a price request is notified', 'pricerequest', 44),
---('PRICEREQUEST_CLOSE_REFUSED', 'Price request refused', 'Executed when a price request is refused', 'pricerequest', 45),
---('PRICEREQUEST_CLOSE_CONVERTED', 'Price request converted', 'Executed when a price request is converted', 'pricerequest', 46),
---('PRICEREQUEST_NOTIFY_SENTBYMAIL', 'Price request notify sent by mail', 'Executed when you send notify email from price request card', 'pricerequest', 47),
---('PRICEREQUEST_REFUSAL_SENTBYMAIL', 'Price request refusal sent by mail', 'Executed when you send refusal email from price request card', 'pricerequest', 48);
-
-
 INSERT INTO `llx_c_type_contact` (`rowid`, `element`, `source`, `code`, `libelle`, `active`, `module`) VALUES
 (163018, 'requestmanager', 'external', 'REQUESTER', 'Requester', 1, 'requestmanager'),
 (163019, 'requestmanager', 'external', 'WATCHER', 'Watcher', 1, 'requestmanager');

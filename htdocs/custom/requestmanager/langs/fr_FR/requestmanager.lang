@@ -57,6 +57,7 @@ ActionAC_RM_IN      = Message de demande entrant
 ActionAC_RM_OUT     = Message de demande sortant
 ActionAC_RM_PRIV    = Message de demande privé
 ActionAC_RM_STAT    = Changement de statut
+ActionAC_RM_FPC     = Forçage du donneur d'ordre
 
 ############################################################
 ### Global search
@@ -178,6 +179,13 @@ RequestManagerLastEvents                  = Derniers evénements
 ############################################################
 RequestManagerForcePrincipalCompany                = Forcer le choix du donneur d'ordre
 RequestManagerConfirmForcePrincipalCompany         = Êtes-vous sûr de vouloir forcer le choix du donneur d'ordre ?
+
+############################################################
+### Events : Create fast
+############################################################
+RequestManagerForcedPrincipalCompanyActionLabel    = Forçage du choix du donneur d'ordre pour la demande "%s"
+RequestManagerThirdPartyBillOld                    = Ancien donneur d'ordre
+RequestManagerThirdPartyBenefactorOld              = Ancien bénéficiaire
 
 ############################################################
 ### Message form

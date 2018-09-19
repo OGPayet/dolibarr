@@ -67,9 +67,8 @@ $zone  = intval(GETPOST('zone' , 'int'));
 if ($zone === 1) {
     $selectedActionJs         = GETPOST('action_js')?GETPOST('action_js'):'';
     $selectedActionCommId     = GETPOST('actioncomm_id', 'int')?intval(GETPOST('actioncomm_id', 'int')):-1;
-    $selectedCategories       = GETPOST('categories', 'array')?GETPOST('categories', 'array'):array();
-    $selectedContacts         = GETPOST('contact_ids', 'array')?GETPOST('contact_ids', 'array'):array();
-//    $selectedContactId        = GETPOST('contactid', 'int')?intval(GETPOST('contactid', 'int')):-1;
+    $selectedCategories       = GETPOST('categories', 'array') ? GETPOST('categories', 'array') : (GETPOST('categories', 'alpha') ? explode(',', GETPOST('categories', 'alpha')) : array());
+    $selectedContacts         = GETPOST('contact_ids', 'array') ? GETPOST('contact_ids', 'array') : (GETPOST('contact_ids', 'alpha') ? explode(',', GETPOST('contact_ids', 'alpha')) : array());
     $selectedDescription      = GETPOST('description', 'alpha')?GETPOST('description', 'alpha'):'';
     $selectedEquipementId     = GETPOST('equipement_id', 'int')?intval(GETPOST('equipement_id', 'int')):-1;
     $selectedLabel            = GETPOST('label', 'alpha')?GETPOST('label', 'alpha'):'';
@@ -166,11 +165,11 @@ if ($zone === 1) {
     print '</td>';
     // Requester Contacts
 	print '<td>' . $langs->trans('RequestManagerRequesterContacts') . '</td><td>';
-    print $formrequestmanager->multiselect_contacts($selectedSocId, $selectedContacts, 'contact_ids', '', '', 0, 'minwidth300');
-    if ($selectedSocId > 0 && $user->rights->societe->contact->creer) {
-        $backToPage = dol_buildpath('/requestmanager/createfast.php', 1) . '?action=createfast&socid=' . $selectedSocId;
+    print $formrequestmanager->multiselect_contacts($selectedSocIdOrigin, $selectedContacts, 'contact_ids', '', '', 0, 'minwidth300');
+    if ($selectedSocIdOrigin > 0 && $user->rights->societe->contact->creer) {
+        $backToPage = dol_buildpath('/requestmanager/createfast.php', 1) . '?action=createfast' . ($selectedFkType ? '&type=' . $selectedFkType : '') . ($selectedSocId ? '&socid=' . $selectedSocId : '') . ($selectedSocIdBenefactor ? '&socid_benefactor=' . $selectedSocIdBenefactor : '') . '&socid_origin=##SOCID##';
         $btnCreateContactLabel = (!empty($conf->global->SOCIETE_ADDRESSES_MANAGEMENT) ? $langs->trans("AddContact") : $langs->trans("AddContactAddress"));
-        $btnCreateContact = '<a class="addnewrecord" href="' . DOL_URL_ROOT . '/contact/card.php?socid=' . $selectedSocId . '&amp;action=create&amp;backtopage=' . urlencode($backToPage) . '">' . $btnCreateContactLabel;
+        $btnCreateContact = '<a class="addnewrecord" href="' . DOL_URL_ROOT . '/contact/card.php?socid=' . $selectedSocIdOrigin . '&amp;action=create&amp;backtopage=' . urlencode($backToPage) . '">' . $btnCreateContactLabel;
         if (empty($conf->dol_optimize_smallscreen)) $btnCreateContact .= ' ' . img_picto($btnCreateContactLabel, 'filenew');
         $btnCreateContact .= '</a>' . "\n";
         print '&nbsp;&nbsp;' . $btnCreateContact;

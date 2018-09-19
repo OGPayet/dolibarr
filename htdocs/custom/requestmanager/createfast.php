@@ -62,12 +62,15 @@ if ($action == 'confirm_force_principal_company' && $confirm == "yes" && $user->
 }
 // Create request
 if ($action == 'addfast' && $user->rights->requestmanager->creer) {
+    $selectedCategories = GETPOST('categories', 'array') ? GETPOST('categories', 'array') : (GETPOST('categories', 'alpha') ? explode(',', GETPOST('categories', 'alpha')) : array());
+    $selectedContacts = GETPOST('contact_ids', 'array') ? GETPOST('contact_ids', 'array') : (GETPOST('contact_ids', 'alpha') ? explode(',', GETPOST('contact_ids', 'alpha')) : array());
+
     $object->fk_type = GETPOST('type', 'int');
     $object->label = GETPOST('label', 'alpha');
     $object->socid_origin = GETPOST('socid_origin', 'int');
     $object->socid = GETPOST('socid', 'int');
     $object->socid_benefactor = GETPOST('socid_benefactor', 'int');
-    $object->requester_ids = GETPOST('contact_ids', 'array');
+    $object->requester_ids = $selectedContacts;
     $object->fk_source = GETPOST('source', 'int');
     $object->fk_urgency = GETPOST('urgency', 'int');
     $object->description = GETPOST('description');
@@ -93,7 +96,8 @@ if ($action == 'addfast' && $user->rights->requestmanager->creer) {
     $db->begin();
     if ($btnAction == 'create' || $force_principal_company) {
         $principal_companies_ids = $companyrelationships->getRelationships($object->socid_benefactor, 0);
-        if (!in_array($object->socid, $principal_companies_ids) && $object->socid != $object->socid_benefactor && !$force_principal_company) {
+        $not_principal_company = !in_array($object->socid, $principal_companies_ids) && $object->socid != $object->socid_benefactor;
+        if ($not_principal_company && !$force_principal_company) {
             $error++;
             $action = 'force_principal_company';
         } else {
@@ -103,7 +107,7 @@ if ($action == 'addfast' && $user->rights->requestmanager->creer) {
                 $error++;
             }
 
-            if (!$error && $force_principal_company) {
+            if (!$error && $not_principal_company && $force_principal_company) {
                 // Principal company forced for the benefactor
                 $result = $object->addActionForcedPrincipalCompany($user);
                 if ($result < 0) {
@@ -114,8 +118,7 @@ if ($action == 'addfast' && $user->rights->requestmanager->creer) {
 
             if (!$error) {
                 // Category association
-                $categories = GETPOST('categories');
-                $result = $object->setCategories($categories);
+                $result = $object->setCategories($selectedCategories);
                 if ($result < 0) {
                     setEventMessages($object->error, $object->errors, 'errors');
                     $error++;
@@ -194,9 +197,8 @@ $now = dol_now();
 if (($action == 'createfast' || $action == 'force_principal_company') && $user->rights->requestmanager->creer) {
     $selectedActionJs = GETPOST('action_js') ? GETPOST('action_js') : '';
     $selectedActionCommId = GETPOST('actioncomm_id', 'int') ? intval(GETPOST('actioncomm_id', 'int')) : -1;
-    $selectedCategories = GETPOST('categories', 'array') ? GETPOST('categories', 'array') : array();
-    $selectedContacts = GETPOST('contact_ids', 'array') ? GETPOST('contact_ids', 'array') : array();
-    //$selectedContactId        = GETPOST('contactid', 'int') ? intval(GETPOST('contactid', 'int')) : -1;
+    $selectedCategories = GETPOST('categories', 'array') ? GETPOST('categories', 'array') : (GETPOST('categories', 'alpha') ? explode(',', GETPOST('categories', 'alpha')) : array());
+    $selectedContacts = GETPOST('contact_ids', 'array') ? GETPOST('contact_ids', 'array') : (GETPOST('contact_ids', 'alpha') ? explode(',', GETPOST('contact_ids', 'alpha')) : array());
     $selectedDescription = GETPOST('description', 'alpha') ? GETPOST('description', 'alpha') : '';
     $selectedEquipementId = GETPOST('equipement_id', 'int') ? intval(GETPOST('equipement_id', 'int')) : -1;
     $selectedLabel = GETPOST('label', 'alpha') ? GETPOST('label', 'alpha') : '';
@@ -238,8 +240,8 @@ if (($action == 'createfast' || $action == 'force_principal_company') && $user->
         $formquestion = array();
         if (!empty($selectedActionJs)) $formquestion[] = array('type' => 'hidden', 'name' => 'action_js', 'value' => $selectedActionJs);
         if (!empty($selectedActionCommId)) $formquestion[] = array('type' => 'hidden', 'name' => 'actioncomm_id', 'value' => $selectedActionCommId);
-        if (!empty($selectedCategories)) $formquestion[] = array('type' => 'hidden', 'name' => 'categories', 'value' => $selectedCategories);
-        if (!empty($selectedContacts)) $formquestion[] = array('type' => 'hidden', 'name' => 'contact_ids', 'value' => $selectedContacts);
+        if (!empty($selectedCategories)) $formquestion[] = array('type' => 'hidden', 'name' => 'categories', 'value' => implode(',', $selectedCategories));
+        if (!empty($selectedContacts)) $formquestion[] = array('type' => 'hidden', 'name' => 'contact_ids', 'value' => implode(',', $selectedContacts));
         if (!empty($selectedDescription)) $formquestion[] = array('type' => 'hidden', 'name' => 'description', 'value' => $selectedDescription);
         if (!empty($selectedEquipementId)) $formquestion[] = array('type' => 'hidden', 'name' => 'equipement_id', 'value' => $selectedEquipementId);
         if (!empty($selectedLabel)) $formquestion[] = array('type' => 'hidden', 'name' => 'label', 'value' => $selectedLabel);
@@ -251,6 +253,12 @@ if (($action == 'createfast' || $action == 'force_principal_company') && $user->
         if (!empty($selectedFkUrgency)) $formquestion[] = array('type' => 'hidden', 'name' => 'urgency', 'value' => $selectedFkUrgency);
         if (!empty($origin)) $formquestion[] = array('type' => 'hidden', 'name' => 'origin', 'value' => $origin);
         if (!empty($originid)) $formquestion[] = array('type' => 'hidden', 'name' => 'originid', 'value' => $originid);
+
+        $societe = new Societe($db);
+        $societe->fetch($selectedSocId);
+        $formquestion[] = array('type' => 'other', 'label' => $langs->trans('RequestManagerThirdPartyBill'), 'value' => $societe->getNomUrl(1));
+        $societe->fetch($selectedSocIdBenefactor);
+        $formquestion[] = array('type' => 'other', 'label' => $langs->trans('RequestManagerThirdPartyBenefactor'), 'value' => $societe->getNomUrl(1));
 
         print $form->formconfirm($_SERVER["PHP_SELF"], $langs->trans('RequestManagerForcePrincipalCompany'), $langs->trans('RequestManagerConfirmForcePrincipalCompany'), 'confirm_force_principal_company', $formquestion, 0, 1);
     }
@@ -289,8 +297,7 @@ if (($action == 'createfast' || $action == 'force_principal_company') && $user->
     if ($conf->categorie->enabled) {
         $out .= '   categories: ' . json_encode($selectedCategories) . ',';
     }
-    $out .= '       contact_ids: ' . $selectedContacts . ',';
-    //$out .= '       contactid: ' . $selectedContactId . ',';
+    $out .= '       contact_ids: ' . json_encode($selectedContacts) . ',';
     if (!empty($selectedDescription)) {
         $out .= '   description: "' . $selectedDescription . '",';
     }

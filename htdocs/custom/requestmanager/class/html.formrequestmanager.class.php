@@ -851,7 +851,7 @@ class FormRequestManager
     private static function _listsFollowSqlPrepare(DoliDB $db, $join='', $filter='', $sortfield='', $sortorder='')
     {
         $sql = 'SELECT DISTINCT';
-        $sql .= ' rm.rowid, rm.ref, rm.ref_ext,';
+        $sql .= ' rm.rowid, rm.ref, rm.ref_ext, rm.fk_parent,';
         $sql .= ' rm.fk_soc_origin, so.nom as soc_name_origin, so.client as soc_client_origin, so.fournisseur as soc_fournisseur_origin, so.code_client as soc_code_client_origin, so.code_fournisseur as soc_code_fournisseur_origin,';
         $sql .= ' rm.fk_soc, s.nom as soc_name, s.client as soc_client, s.fournisseur as soc_fournisseur, s.code_client as soc_code_client, s.code_fournisseur as soc_code_fournisseur,';
         $sql .= ' rm.fk_soc_benefactor, sb.nom as soc_name_benefactor, sb.client as soc_client_benefactor, sb.fournisseur as soc_fournisseur_benefactor, sb.code_client as soc_code_client_benefactor, sb.code_fournisseur as soc_code_fournisseur_benefactor,';
@@ -950,6 +950,7 @@ class FormRequestManager
         $requestmanagerstatic->id = $obj->rowid;
         $requestmanagerstatic->ref = $obj->ref;
         $requestmanagerstatic->ref_ext = $obj->ref_ext;
+        $requestmanagerstatic->fk_parent = $obj->fk_parent;
         $requestmanagerstatic->fk_type = $obj->fk_type;
         $requestmanagerstatic->label = $obj->label;
         $requestmanagerstatic->socid = $obj->fk_soc;
@@ -972,7 +973,7 @@ class FormRequestManager
         // Ref
         if (!empty($arrayfields['rm.ref']['checked'])) {
             print '<td class="nowrap">';
-            print $requestmanagerstatic->getNomUrl(1) . ' ' . $pictoWarning;
+            print $requestmanagerstatic->getNomUrl(1, 'parent_path') . ' ' . $pictoWarning;
             print '</td>';
         }
 

@@ -2589,19 +2589,36 @@ class RequestManager extends CommonObject
     /**
      *  Add action : Forced principal company choice
      *
+     * @param   User    $user           User that modifies
      * @return  int                     <0 if KO, >0 if OK
      */
     function addActionForcedPrincipalCompany($user)
     {
         global $langs;
 
+        $this->fetch_thirdparty();
+        $this->fetch_thirdparty_benefactor();
+        $title = $langs->trans('RequestManagerForcedPrincipalCompanyActionLabel', $this->ref);
+        $msg = $langs->trans('RequestManagerForcedPrincipalCompanyActionLabel', $this->ref) . '<br>';
+        if (isset($this->oldcopy->socid) && $this->socid != $this->oldcopy->socid) {
+            $this->oldcopy->fetch_thirdparty();
+            $msg .= $langs->trans('RequestManagerThirdPartyBillOld') . ' : ' . $this->oldcopy->thirdparty->getNomUrl(1) . '<br>';
+        }
+        if (isset($this->oldcopy->socid_benefactor) && $this->socid_benefactor != $this->oldcopy->socid_benefactor) {
+            $this->oldcopy->fetch_thirdparty_benefactor();
+            $msg .= $langs->trans('RequestManagerThirdPartyBenefactorOld') . ' : ' . $this->oldcopy->thirdparty_benefactor->getNomUrl(1) . '<br>';
+        }
+        $msg .= $langs->trans('RequestManagerThirdPartyBill') . ' : ' . $this->thirdparty->getNomUrl(1) . '<br>';
+        $msg .= $langs->trans('RequestManagerThirdPartyBenefactor') . ' : ' . $this->thirdparty_benefactor->getNomUrl(1) . '<br>';
+        $msg .= $langs->transnoentities("Author") . ': ' . $user->login;
+
         $now = dol_now();
         // Insertion action
         require_once(DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php');
         $actioncomm = new ActionComm($this->db);
         $actioncomm->type_code = 'AC_RM_FPC';
-        $actioncomm->label = $langs->trans('RequestManagerForcedPrincipalCompanyActionLabel');
-        $actioncomm->note = $langs->trans('RequestManagerForcedPrincipalCompanyActionMessage');
+        $actioncomm->label = $title;
+        $actioncomm->note = $msg;
         $actioncomm->datep = $now;
         $actioncomm->datef = $now;
         $actioncomm->durationp = 0;
@@ -2616,9 +2633,10 @@ class RequestManager extends CommonObject
         $actioncomm->elementtype = $this->element;
         $actioncomm->userownerid = $user->id;
 
-        $result = $actioncomm->add($user); // User qui saisit l'action
+        $result = $actioncomm->create($user); // User qui saisit l'action
         if ($result < 0) {
-            $error = $actioncomm->errorsToString();
+            $this->error = $actioncomm->error;
+            $this->errors = $actioncomm->errors;
         }
 
         return $result;
@@ -2681,6 +2699,11 @@ class RequestManager extends CommonObject
         if ($withpicto) $result.=($linkstart.img_object(($notooltip?'':$label), 'requestmanager@requestmanager', ($notooltip?'':'class="classfortooltip valigntextbottom"'), 0, 0, $notooltip?0:1).$linkend);
         if ($withpicto && $withpicto != 2) $result.=' ';
         if ($withpicto != 2) $result.=$linkstart.($maxlen?dol_trunc($this->ref,$maxlen):$this->ref).$linkend;
+
+        if ($option == 'parent_path' && $this->fk_parent > 0) {
+            $this->fetch_parent();
+            $result = $this->parent->getNomUrl($withpicto, $option, $maxlen, $notooltip, $save_lastsearch_value) . ' >> ' . $result;
+        }
         return $result;
     }
 
