@@ -77,7 +77,7 @@ class ActionsCompanyRelationships
         if (!empty($conf->synergiestech->enabled)) {
             $contexts = explode(':', $parameters['context']);
 
-            if (in_array('requestmanagercard', $contexts)) {
+            if (in_array('companyremationshipscard', $contexts)) {
 /*                if ($action == 'addline' && $user->rights->requestmanager->creer) {
                     $langs->load('synergiestech@synergiestech');
 
@@ -127,11 +127,11 @@ class ActionsCompanyRelationships
     /**
      * Overloading the formObjectOptions function : replacing the parent's function with the one below
      *
-     * @param   array           $parameters     meta datas of the hook (context, etc...)
-     * @param   CommonObject    $object         the object you want to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-     * @param   string          $action         current action (if set). Generally create or edit or null
-     * @param   HookManager     $hookmanager    current hook manager
-     * @return  void
+     * @param   array()         $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          &$action        Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
      */
     function formObjectOptions($parameters, &$object, &$action, $hookmanager)
     {
@@ -139,35 +139,18 @@ class ActionsCompanyRelationships
 
         $contexts = explode(':', $parameters['context']);
 
-        if (in_array('actioncard', $contexts)) {
-            /*dol_include_once('/requestmanager/class/requestmanager.class.php');
-            dol_include_once('/requestmanager/class/requestmanagermessage.class.php');
+        if (in_array('propalcard', $contexts)) {
+            dol_include_once('/companyrelationships/class/html.formcompanyrelationships.class.php');
 
             $out = '';
 
-            $requestManagerMessage = new RequestManagerMessage($db);
-            if ($object->code == RequestManager::ACTIONCOMM_TYPE_CODE_IN || $object->code == RequestManager::ACTIONCOMM_TYPE_CODE_OUT) {
-                $requestManagerMessage->loadByFkAction($object->id, TRUE);
-                if ($requestManagerMessage->knowledgeBase) {
-                    $out .= '<tr>';
-                    $out .= '<td class="nowrap" class="titlefield">' . $langs->trans("RequestManagerKnowledgeBaseDictionaryLabel") . '</td>';
-                    $out .= '<td colspan="3">' . $requestManagerMessage->knowledgeBase->code . ' - ' . $requestManagerMessage->knowledgeBase->title . '</td>';
-                    $out .= '</tr>';
-                }
-            } else {
-                $requestManagerMessage->loadByFkAction($object->id, FALSE);
-            }
+            $events = array();
+            $events[] = array('action' => 'getBenefactor', 'url' => dol_buildpath('/companyrelationships/ajax/benefactor.php', 1), 'htmlname' => 'options_companyrelationships_fk_soc_benefactor');
+            $formcompanyrelationships = new FormCompanyRelationships($this->db);
 
-            if($requestManagerMessage->id > 0)
-            {
-                // Other attributes
-                require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
-                $extrafields = new ExtraFields($db);
-                $extralabels = $extrafields->fetch_name_optionals_label('requestmanager_message');
-                $out .= $requestManagerMessage->showOptionals($extrafields);
-            }
+            $out .= $formcompanyrelationships->add_select_events('socid', $events);
 
-            $this->resprints = $out;*/
+            print $out;
         }
 
         return 0;

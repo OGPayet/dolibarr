@@ -59,28 +59,102 @@ class FormCompanyRelationships
         $this->formdictionary = new FormDictionary($this->db);
     }
 
+    /**
+     * Return list of labels (translated) of education
+     *
+     * @param	string	$htmlname	Name of html select field ('myid' or '.myclass')
+     * @param	array	$events		Event options. Example: array(array('action'=>'getContacts', 'url'=>dol_buildpath('/core/ajax/contacts.php',1), 'htmlname'=>'contactid', 'done_action'=>array('disabled' => array('add-customer-contact'))))
+     *                                  'url':          string,  Url of the Ajax script
+     *                                  'action':       string,  Action name for the Ajax script
+     *                                  'params':       array(), Others parameters send for Ajax script (exclude name: id, action, htmlname), if value = '{{selector}}' get value of the 'selector' input
+     *                                  'htmlname':     string,  Id of the select updated with new options from Ajax script
+     *                                  'done_action':  array(), List of action done when new options get successfully
+     *                                      'empty_select': array(), List of html ID of select to empty
+     *                                      'disabled'    : array(), List of html ID to disable if no options
+     * @return  string
+     */
+    function add_select_events($htmlname, $events)
+    {
+        global $conf;
 
-/**
- *  Move to the top the options of a select
- *
- * @param string  select_htmlname   ID of the select
- * @param array   values_list       List of values of options to move to the top
- */
-/*
-if (typeof move_top_select_options !== "function") {
-    function move_top_select_options(select_htmlname, values_list) {
-        var select = $("#" + select_htmlname);
-        var select2 = $('#s2id_' + select_htmlname + ' span.select2-chosen');
-        $.map(values_list, function (value, key) {
-            var option = select.find("option[value='" + value + "']");
-            var text = option.text();
-            if (text.search(/\s\*$/) == -1) text += " *";
-      option.text(text);
-      option.detach().prependTo(select);
-      if (select.val() == value && select2.length > 0) select2.text(text);
-    });
+        $out = '';
+        if (!empty($conf->use_javascript_ajax)) {
+            $out .= '<script type="text/javascript">
+            $(document).ready(function () {
+                jQuery("#'.$htmlname.'").change(function () {
+                    var obj = '.json_encode($events).';
+                    $.each(obj, function(key,values) {
+                        if (values.action.length) {
+                            runJsCodeForEvent'.$htmlname.'(values);
+                        }
+                    });
+                });
+
+                function runJsCodeForEvent'.$htmlname.'(obj) {
+                    console.log("Run runJsCodeForEvent'.$htmlname.'");
+                    var id = $("#'.$htmlname.'").val();
+                    var action = obj.action;
+                    var url = obj.url;
+                    var htmlname = obj.htmlname;
+                    var datas = {
+                        action: action,
+                        id: id,
+                        htmlname: htmlname,
+                    };
+                    var selector_regex = new RegExp("^\\{\\{(.*)\\}\\}$", "i");
+                    $.each(obj.params, function(key, value) {
+                        var match = null;
+                        if ($.type(value) === "string") match = value.match(selector_regex);
+                        if (match) {
+                            datas[key] = $(match[1]).val();
+                        } else {
+                            datas[key] = value;
+                        }
+                    });
+                    var input = $("select#" + htmlname);
+                    var inputautocomplete = $("#inputautocomplete"+htmlname);
+                    $.getJSON(url, datas,
+                        function(response) {
+                            input.html(response.value);
+                            if (response.num) {
+                                var selecthtml_dom = $.parseHTML(response.value);
+                                inputautocomplete.val(selecthtml_dom.innerHTML);
+                            } else {
+                                inputautocomplete.val("");
+                            }
+
+                            var num = response.num;
+                            $.each(obj.done_action, function(key, action) {
+                                switch (key) {
+                                    case "empty_select":
+                                        $.each(action, function(id) {
+                                            $("select#" + id).html("");
+                                        });
+                                        break;
+                                    case "disabled":
+                                        $.each(action, function(id) {
+                                            if (num > 0) {
+                                                $("#" + id).removeAttr("disabled");
+                                            } else {
+                                                $("#" + id).attr("disabled", "disabled");
+                                            }
+                                        });
+                                        break;
+                                }
+                            });
+
+                            input.change();	/* Trigger event change */
+
+                            if (response.num < 0) {
+                                console.error(response.error);
+                            }
+                        }
+                    );
+                }
+            });
+            </script>';
+        }
+
+        return $out;
     }
-}
-*/
-
 }

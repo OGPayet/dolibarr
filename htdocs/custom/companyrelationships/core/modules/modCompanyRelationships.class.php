@@ -316,6 +316,9 @@ class modCompanyRelationships extends DolibarrModules
 	public function init($options='')
 	{
 	    global $langs, $conf;
+
+        $langs->load("companyrelationships@companyrelationships");
+
 		$sql = array();
 
         $this->_load_tables('/companyrelationships/sql/');
@@ -329,8 +332,13 @@ class modCompanyRelationships extends DolibarrModules
             }
         }
 
-        // activate event type in modAgenda
-        dolibarr_set_const($this->db, 'AGENDA_USE_EVENT_TYPE', 1, 'chaine', 0, '', $conf->entity);
+        // TODO : Create extrafields benefactor for each element type ('propal', 'commande', 'facture', 'order_supplier', 'invoice_supplier', 'ficheinter')
+        $publicSpaceAvailibilityElementList = array('propal');
+        include_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
+        $extrafields = new ExtraFields($this->db);
+        foreach($publicSpaceAvailibilityElementList as $elementType) {
+            $result = $extrafields->addExtraField('companyrelationships_fk_soc_benefactor', $langs->trans('CompanyRelationshipsBenefactorCompany'), 'sellist', 30,  '', $elementType,   0, 1, '', array('options'=>array('societe:nom:rowid::status=1'=>null)), 1, '', 0, 0, ''); // For >= v7: ", '', 'companyrelationships@companyrelationships', '$conf->companyrelationships->enabled');"
+        }
 
         return $this->_init($sql, $options);
 	}
