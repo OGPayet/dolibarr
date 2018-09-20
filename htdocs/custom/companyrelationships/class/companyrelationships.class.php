@@ -329,11 +329,11 @@ class CompanyRelationships
                 $publicSpaceAvailability['label']   = $obj->label;
 
                 if ($obj->cra_id > 0) {
-                    $publicSpaceAvailability['principal']  = $obj->cra_principal_availability;
-                    $publicSpaceAvailability['benefactor'] = $obj->cra_benefactor_availability;
+                    $publicSpaceAvailability['principal']  = intval($obj->cra_principal_availability);
+                    $publicSpaceAvailability['benefactor'] = intval($obj->cra_benefactor_availability);
                 } else {
-                    $publicSpaceAvailability['principal']  = $obj->principal_availability;
-                    $publicSpaceAvailability['benefactor'] = $obj->benefactor_availability;
+                    $publicSpaceAvailability['principal']  = intval($obj->principal_availability);
+                    $publicSpaceAvailability['benefactor'] = intval($obj->benefactor_availability);
                 }
 
                 $publicSpaceAvailabilityList[] = $publicSpaceAvailability;

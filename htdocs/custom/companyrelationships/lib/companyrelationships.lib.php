@@ -115,11 +115,12 @@ function companyrelationships_show_companyrelationships($conf, $langs, $db, $obj
             )
         );
 
-        $inputElements = '';
         if ($user->rights->companyrelationships->update_md->relationship) {
             $publicSpaceAvailbilityList = ($mode ? $companyrelationships->getAllPublicSpaceAvailability($object->id, $selected) : $companyrelationships->getAllPublicSpaceAvailability($selected, $object->id));
             if (is_array($publicSpaceAvailbilityList)) {
+                $inputElements = '';
                 $inputElementsNameArray = array();
+
                 foreach ($publicSpaceAvailbilityList as $publicSpaceAvailability) {
                     $inputElementName    = 'publicspaceavailability_' . $publicSpaceAvailability['element'];
                     $inputElementChecked = '';
@@ -136,7 +137,6 @@ function companyrelationships_show_companyrelationships($conf, $langs, $db, $obj
                     'value' => '<div id="publicspaceavailability">' . $inputElements . '</div>'
                 );
             }
-
         }
 
         print $form->formconfirm($_SERVER['PHP_SELF'] . '?socid=' . $object->id . '&list_mode=' . $list_mode . '&rowid=' . $rowid . '&edit_' . $htmlname_main . '=' . $object->id, $langs->trans("CompanyRelationshipsEditCompanyRelationships"), $langs->trans("CompanyRelationshipsConfirmEditCompanyRelationships"), "confirm_update_relationship", $formquestion, 0, 1, 300, 600);
@@ -162,12 +162,9 @@ function companyrelationships_show_companyrelationships($conf, $langs, $db, $obj
             $out .= '           success: function(dataList){';
             $out .= '               var nbElement = dataList.length;';
             $out .= '               if (nbElement > 0) {';
-            //$out .= '                   var inputElements = "";';
             $out .= '                   for (var i=0; i<nbElement; i++) {';
-            //$out .= '                       inputElements += \'<input type="checkbox" id="publicspaceavailability_\' + dataList[i].element + \'" name="publicspaceavailability_\' + dataList[i].element + \'" value="\' + dataList[i].principal + \'" /> \' + dataList[i].label + \'<br />\';';
-            $out .= '                       jQuery("input[name=\'publicspaceavailability[" + dataList[i].rowid + "]\']").attr("checked", dataList[i].' . $modename . ');';
+            $out .= '                       jQuery("#publicspaceavailability_" + dataList[i].element).prop("checked", dataList[i].' . $modename . ');';
             $out .= '                   }';
-            //$out .= '                   jQuery("#publicspaceavailability").html(inputElements);';
             $out .= '               }';
             $out .= '           },';
             $out .= '           error: function(){';
