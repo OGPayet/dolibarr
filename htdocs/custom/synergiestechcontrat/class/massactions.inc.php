@@ -100,14 +100,16 @@ if (!$error && $massaction == 'facture') {
             $lastdayofperiod        = $lastdaysofperiods[$periodsetter];
             $firstdayofnextperiod   = $firstdaysofnextperiods[$periodsetter];
             $lastdayofnextperiod    = $lastdaysofnextperiods[$periodsetter];
-            $now                    = time();
+            $now = strtotime("now");
 
             if ($invoicetype == '1') { //on facture la p?riode suivante
                 $firstdayofperiod = $firstdayofnextperiod;
                 $lastdayofperiod  = $lastdayofnextperiod;
-				$daysinperiod                 = ($lastdayofperiod - $firstdayofperiod) / $oneday;
-                $now              += $oneday * $daysinperiod;
-            }
+				$daysinperiod     = intval($lastdayofperiod - $firstdayofperiod) / $oneday;
+				$now = strtotime("+$daysinperiod days",$now);
+			} else {
+                $now = strtotime("now");
+			}
             $daysinperiod                 = ($lastdayofperiod - $firstdayofperiod) / $oneday;
             //revalorisation
             $prohibitdecrease             = $objecttmp->array_options['options_prohibitdecrease'];
@@ -240,8 +242,8 @@ if (!$error && $massaction == 'facture') {
 
 									$actioncomm->type_id=40;
 									$actioncomm->type_code='AC_OTH_AUTO';
-									$actioncomm->label       = "Contrat ".$objecttmp->ref." renouvellé";
-									$actioncomm->note       = "Contrat ".$objecttmp->ref." renouvellé";
+									$actioncomm->label       = utf8_encode("Contrat ".$objecttmp->ref." renouvellé");
+									$actioncomm->note       = utf8_encode("Contrat ".$objecttmp->ref." renouvellé");
 									$actioncomm->fk_project  = 0;
 									$actioncomm->datep       = $now;
 									$actioncomm->datef       = $now;
@@ -268,8 +270,8 @@ if (!$error && $massaction == 'facture') {
 
 									$actioncomm->type_id=40;
 									$actioncomm->type_code='AC_OTH_AUTO';
-									$actioncomm->label       = "Contrat ".$objecttmp->ref." reconduit";
-									$actioncomm->note        = "Contrat ".$objecttmp->ref." reconduit";
+									$actioncomm->label       = utf8_encode("Contrat ".$objecttmp->ref." reconduit");
+									$actioncomm->note        = utf8_encode("Contrat ".$objecttmp->ref." reconduit");
 									$actioncomm->fk_project  = 0;
 									$actioncomm->datep       = $now;
 									$actioncomm->datef       = $now;
@@ -414,14 +416,16 @@ if (!$error && $massaction == 'facturerec') {
             $lastdayofperiod        = $lastdaysofperiods[$periodsetter];
             $firstdayofnextperiod   = $firstdaysofnextperiods[$periodsetter];
             $lastdayofnextperiod    = $lastdaysofnextperiods[$periodsetter];
-            $now                    = time();
+            $now = strtotime("now");
 
             if ($invoicetype == '1') { //on facture la p?riode suivante
                 $firstdayofperiod = $firstdayofnextperiod;
                 $lastdayofperiod  = $lastdayofnextperiod;
-				$daysinperiod                 = ($lastdayofperiod - $firstdayofperiod) / $oneday;
-                $now              += $oneday * $daysinperiod;
-            }
+				$daysinperiod     = intval($lastdayofperiod - $firstdayofperiod) / $oneday;
+				$now = strtotime("+$daysinperiod days",$now);
+			} else {
+                $now = strtotime("now");
+			}
             $daysinperiod                 = ($lastdayofperiod - $firstdayofperiod) / $oneday;
             //revalorisation
             $prohibitdecrease             = $objecttmp->array_options['options_prohibitdecrease'];
@@ -443,6 +447,7 @@ if (!$error && $massaction == 'facturerec') {
             $result = 1;
 
 			if ($startdate < $now && $now < $enddate || $tacitagreement && $now > $enddate || !empty($objecttmp->array_options['options_realdate'])) { // le contrat est en cour
+
 				//Création de la facture brouillon permettant de faire la facture modèle
 				$facture                    = new Facture($db);
 				$cl                         = new Client($db);
@@ -544,7 +549,7 @@ if (!$error && $massaction == 'facturerec') {
 						}
 					}
 				}
-				if ($lastdayofperiod > $revalorisationactivationdate && $lastdayofperiod > $revalorisationdate) { // on doit revaloriser
+				if ($lastdayofperiod > $revalorisationactivationdate && $lastdayofperiod > $revalorisationdate && !($firstdayofperiod <= $startdate && $startdate <= $lastdayofperiod) && $reindexmethod>0) { // on doit revaloriser
 					//$nbjouravant          = max($revalorisationactivationdate - $firstdayofperiod, 0) / $oneday;
 					if ($revalorisationactivationdate == 0) {
 						$revalorisationactivationdate = $firstdayofperiod;
@@ -566,8 +571,8 @@ if (!$error && $massaction == 'facturerec') {
 						$indice0->indice = 1;
 						$indice1->indice = 1;
 					} else {
-						setEventMessages($objecttmp->getNomUrl(1)." Indice0: $indice0->indice $indice0->month_indice/$indice0->year_indice , Indice1: $indice1->indice $indice1->month_indice/$indice1->year_indice",
-							null, 'mesgs');
+						// setEventMessages($objecttmp->getNomUrl(1)." Indice0: $indice0->indice $indice0->month_indice/$indice0->year_indice , Indice1: $indice1->indice $indice1->month_indice/$indice1->year_indice",
+							// null, 'mesgs');
 					}
 					if ($prohibitdecrease == '1' && $indice1->indice < $indice0->indice) { // pas de dépression
 						$indice0->indice = 1;
@@ -595,9 +600,9 @@ if (!$error && $massaction == 'facturerec') {
 				$facture->delete($user);
 
 				if ($result <= 0) {
-                setEventMessages($objecttmp->error, $objecttmp->errors, 'errors');
-                $error++;
-                break;
+					setEventMessages($objecttmp->error, $objecttmp->errors, 'errors');
+					$error++;
+					break;
 				} else $nbok++;
 			}
 		} else {
@@ -606,7 +611,6 @@ if (!$error && $massaction == 'facturerec') {
             break;
         }
     }
-
     if (!$error) {
         if ($nbok > 1) setEventMessages($langs->trans("ModelesGeneres", $nbok), null, 'mesgs');
         else setEventMessages($langs->trans("ModeleGenere", $nbok), null, 'mesgs');
@@ -691,8 +695,8 @@ if (!$error && $massaction == 'factureanterieur') {
 					if ($invoicetype == '1') { //on facture la p?riode suivante
 						$firstdayofperiod = $firstdayofnextperiod;
 						$lastdayofperiod  = $lastdayofnextperiod;
-						$daysinperiod                 = ($lastdayofperiod - $firstdayofperiod) / $oneday;
-						$now              += $oneday * $daysinperiod;
+						$daysinperiod     = intval($lastdayofperiod - $firstdayofperiod) / $oneday;
+						$now = strtotime("+$daysinperiod days",$now);
 					}
 					$daysinperiod                 = ($lastdayofperiod - $firstdayofperiod) / $oneday;
 					//revalorisation
@@ -939,7 +943,7 @@ function firstDayOf($period = 3, $next = 0, $time=null)
            $year = date("Y", strtotime('+1 years',$time));
         }
     }
-    if($next == 2) {
+    if($next == 2 || $next == 3) {
         if(($period == 1 && $currentmonth == 11 && $currentmonth == 12) || ($period == 3 && $currentmonth >= 07 && $currentmonth <= 12) || ($period == 6)) {
            $year = date("Y", strtotime('+1 years',$time));
         }
@@ -957,7 +961,6 @@ function getIndice($source = 'Syntec', $year = null, $month = null, $id = null)
         $assoc  = array(2 => 'Syntec', 3 => 'Insee');
         $source = $assoc[$source];
     }
-	// print_r($source);die();
     $table = MAIN_DB_PREFIX.'c_indice_'.strtolower($source);
     if ($id !== null) {
         $where = " `rowid` = ".(1 * $id);
