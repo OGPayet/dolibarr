@@ -444,6 +444,18 @@ class RequestManager extends CommonObject
 		$this->db = $db;
 	}
 
+    /**
+     * Get all errors
+     *
+     * @return array    Array of errors
+     */
+	public function getErrors() {
+	    $errors = is_array($this->errors) ? $this->errors : array();
+	    $errors = array_merge($errors, (!empty($this->error) ? array($this->error) : array()));
+
+	    return $errors;
+    }
+
 	/**
 	 *  Create request into database
 	 *
@@ -2028,14 +2040,14 @@ class RequestManager extends CommonObject
 	 *  Set status request into database
 	 *
      * @param   int     $status         New status
-     * @param   int     $status         New status type (initial, first in progress, resolved or closed)
+     * @param   int     $status_type    New status type (initial, first in progress, resolved or closed)
      * @param   User    $user           User that modifies
 	 * @param   bool    $notrigger      false=launch triggers after, true=disable triggers
      * @param   int     $forcereload    Force reload of the cache
      * @param   int		$nonotify		Disable notification of assigned changed
 	 * @return  int                     <0 if KO, >0 if OK
 	 */
-	public function set_status($status=0, $status_type=-1, User $user, $notrigger = false, $forcereload = 0, $nonotify = 0)
+	public function set_status($status, $status_type, User $user, $notrigger = false, $forcereload = 0, $nonotify = 0)
     {
         global $langs;
         $error = 0;
@@ -2599,18 +2611,17 @@ class RequestManager extends CommonObject
         $this->fetch_thirdparty();
         $this->fetch_thirdparty_benefactor();
         $title = $langs->trans('RequestManagerForcedPrincipalCompanyActionLabel', $this->ref);
-        $msg = $langs->trans('RequestManagerForcedPrincipalCompanyActionLabel', $this->ref) . '<br>';
+        $msg = '';
         if (isset($this->oldcopy->socid) && $this->socid != $this->oldcopy->socid) {
             $this->oldcopy->fetch_thirdparty();
             $msg .= $langs->trans('RequestManagerThirdPartyBillOld') . ' : ' . $this->oldcopy->thirdparty->getNomUrl(1) . '<br>';
         }
+        $msg .= $langs->trans('RequestManagerThirdPartyBill') . ' : ' . $this->thirdparty->getNomUrl(1) . '<br>';
         if (isset($this->oldcopy->socid_benefactor) && $this->socid_benefactor != $this->oldcopy->socid_benefactor) {
             $this->oldcopy->fetch_thirdparty_benefactor();
             $msg .= $langs->trans('RequestManagerThirdPartyBenefactorOld') . ' : ' . $this->oldcopy->thirdparty_benefactor->getNomUrl(1) . '<br>';
         }
-        $msg .= $langs->trans('RequestManagerThirdPartyBill') . ' : ' . $this->thirdparty->getNomUrl(1) . '<br>';
         $msg .= $langs->trans('RequestManagerThirdPartyBenefactor') . ' : ' . $this->thirdparty_benefactor->getNomUrl(1) . '<br>';
-        $msg .= $langs->transnoentities("Author") . ': ' . $user->login;
 
         $now = dol_now();
         // Insertion action
@@ -4504,6 +4515,17 @@ class RequestManagerLine extends CommonObjectLine
         $this->db= $db;
     }
 
+    /**
+     * Get all errors
+     *
+     * @return array    Array of errors
+     */
+	public function getErrors() {
+	    $errors = is_array($this->errors) ? $this->errors : array();
+	    $errors = array_merge($errors, (!empty($this->error) ? array($this->error) : array()));
+
+	    return $errors;
+    }
 
     /**
      * 	Delete line in database
