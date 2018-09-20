@@ -70,7 +70,28 @@ if (!$error && $massaction == 'facture') {
 				$enddate = strtotime($objecttmp->array_options['options_realdate']);
 			}
             $tacitagreement         = $objecttmp->array_options['options_tacitagreement'];
+			if(!empty($objecttmp->array_options['options_realdate'])) {
+				$tacitagreement = 0;
+			}
             $invoicetype            = $objecttmp->array_options['options_invoicetype'];
+
+            // load facturerecS linked
+            $objecttmp->fetchObjectLinked();
+
+			//Check if this period is not already invoiced
+			$already_invoice = false;
+			$year_already_invoice = 0;
+			if (isset($objecttmp->linkedObjects["facture"])) { // delete facture rec
+                //Suppression des factures modèles
+                foreach ($objecttmp->linkedObjects["facture"] as $obj) {
+					if(($firstdayofperiod <= strtotime($obj->array_options['options_datedeb'])) ||
+					($firstdayofperiod > strtotime($obj->array_options['options_datedeb']) && $firstdayofperiod <= strtotime($obj->array_options['options_datefin'])) ||
+					($lastdayofperiod <= strtotime($obj->array_options['options_datefin']))) {
+						$already_invoice = true;
+					}
+					$year_already_invoice = max($year_already_invoice, date("Y",strtotime($obj->array_options['options_datefin'])));
+                }
+            }
             $firstdaysofperiods     = array(
                 1 => strtotime(date('Y-m-01 00:00:00')), //month
                 2 => firstDayOf(3), // trimestre
@@ -102,7 +123,7 @@ if (!$error && $massaction == 'facture') {
             $lastdayofnextperiod    = $lastdaysofnextperiods[$periodsetter];
             $now = strtotime("now");
 
-            if ($invoicetype == '1') { //on facture la p?riode suivante
+            if ($invoicetype == '1' && $already_invoice == true) { //on facture la p?riode suivante
                 $firstdayofperiod = $firstdayofnextperiod;
                 $lastdayofperiod  = $lastdayofnextperiod;
 				$daysinperiod     = intval($lastdayofperiod - $firstdayofperiod) / $oneday;
@@ -129,29 +150,13 @@ if (!$error && $massaction == 'facture') {
             if ($revalorisationactivationdate == false) $revalorisationactivationdate = 0;
 
             $result = 1;
-            // load facturerecS linked
-            $objecttmp->fetchObjectLinked();
 
-			//Check if this period is not already invoiced
-			$already_invoice = false;
-			$year_already_invoice = 0;
-			if (isset($objecttmp->linkedObjects["facture"])) { // delete facture rec
-                //Suppression des factures modèles
-                foreach ($objecttmp->linkedObjects["facture"] as $obj) {
-					if(($firstdayofperiod <= strtotime($obj->array_options['options_datedeb'])) ||
-					($firstdayofperiod > strtotime($obj->array_options['options_datedeb']) && $firstdayofperiod <= strtotime($obj->array_options['options_datefin'])) ||
-					($lastdayofperiod <= strtotime($obj->array_options['options_datefin']))) {
-						$already_invoice = true;
-					}
-					$year_already_invoice = max($year_already_invoice, date("Y",strtotime($obj->array_options['options_datefin'])));
-                }
-            }
 			if($already_invoice == false) {
 				if (isset($objecttmp->linkedObjects["facturerec"])) {
 					// most recent facturerec
 					foreach ($objecttmp->linkedObjects["facturerec"] as $idref => $obj) {
 						$desc = '';
-						if (($startdate < $now && $now < $enddate) || ($tacitagreement && $now > $enddate) || (!empty($objecttmp->array_options['options_realdate']))) { // le contrat est en cour
+						if (($startdate < $now && $now < $enddate) || ($tacitagreement && $now > $enddate)) { // le contrat est en cour
 							$fac          = new Facture($db);
 							$fac->fac_rec = $obj->id;
 							$fac->socid   = $fac->fk_soc  = $obj->socid;
@@ -340,16 +345,26 @@ if (!$error && $massaction == 'facturerec') {
             $invoicedates = $nbFactAn[$objecttmp->array_options['options_invoicedates']]; //periode
 
             $result       = 1;
-			$alreadymodel = 0;
             //Chargement des factures modèles
             $objecttmp->fetchObjectLinked();
             if (isset($objecttmp->linkedObjects["facturerec"])) { // delete facture rec
                 //Suppression des factures modèles
                 foreach ($objecttmp->linkedObjects["facturerec"] as $obj) {
-					$alreadymodel++;
                     $obj->delete($user);
                 }
             }
+			//Check if this period is not already invoiced
+			$already_invoice = false;
+			if (isset($objecttmp->linkedObjects["facture"])) { // delete facture rec
+				//Suppression des factures modèles
+				foreach ($objecttmp->linkedObjects["facture"] as $obj) {
+					if(($firstdayofperiod <= strtotime($obj->array_options['options_datedeb'])) ||
+					($firstdayofperiod > strtotime($obj->array_options['options_datedeb']) && $firstdayofperiod <= strtotime($obj->array_options['options_datefin'])) ||
+					($lastdayofperiod <= strtotime($obj->array_options['options_datefin']))) {
+						$already_invoice = true;
+					}
+				}
+			}
 
             // dates
             $startdate              = strtotime($objecttmp->array_options['options_startdate']);
@@ -359,8 +374,11 @@ if (!$error && $massaction == 'facturerec') {
 				$enddate = strtotime($objecttmp->array_options['options_realdate']);
 			}
             $tacitagreement         = $objecttmp->array_options['options_tacitagreement'];
+			if(!empty($objecttmp->array_options['options_realdate'])) {
+				$tacitagreement = 0;
+			}
             $invoicetype            = $objecttmp->array_options['options_invoicetype'];
-			if($alreadymodel < 1) { //Si c'est la première fois que l'on créé un model alors on prend la période P
+			if($already_invoice == false) { //Si c'est la première fois que l'on créé un model alors on prend la période P
 				$firstdaysofperiods     = array(
 					1 => strtotime(date('Y-m-01 00:00:00')), //month
 					2 => firstDayOf(3), // trimestre
@@ -385,7 +403,7 @@ if (!$error && $massaction == 'facturerec') {
 					3 => firstDayOf(6, 2) - $oneday, // semestre
 					4 => firstDayOf(12, 2) - $oneday //year
 				);
-			} else if($alreadymodel >= 1) {  //Si ce n'est pas la première fois que l'on créé un model alors on prend la période P+1
+			} else if($already_invoice == true) {  //Si ce n'est pas la première fois que l'on créé un model alors on prend la période P+1
 				$firstdaysofperiods     = array(
 					1 => firstDayOf(1, 1), //month
 					2 => firstDayOf(3, 1), // trimestre
@@ -418,7 +436,7 @@ if (!$error && $massaction == 'facturerec') {
             $lastdayofnextperiod    = $lastdaysofnextperiods[$periodsetter];
             $now = strtotime("now");
 
-            if ($invoicetype == '1') { //on facture la p?riode suivante
+            if ($invoicetype == '1' && $already_invoice == true) { //on facture la p?riode suivante
                 $firstdayofperiod = $firstdayofnextperiod;
                 $lastdayofperiod  = $lastdayofnextperiod;
 				$daysinperiod     = intval($lastdayofperiod - $firstdayofperiod) / $oneday;
@@ -455,7 +473,7 @@ if (!$error && $massaction == 'facturerec') {
 
             $result = 1;
 
-			if ($startdate < $now && $now < $enddate || $tacitagreement && $now > $enddate || !empty($objecttmp->array_options['options_realdate'])) { // le contrat est en cour
+			if ($startdate < $now && $now < $enddate || $tacitagreement && $now > $enddate) { // le contrat est en cour
 
 				//Création de la facture brouillon permettant de faire la facture modèle
 				$facture                    = new Facture($db);
@@ -662,6 +680,9 @@ if (!$error && $massaction == 'factureanterieur') {
 					$enddate = strtotime($objecttmp->array_options['options_realdate']);
 				}
 				$tacitagreement         = $objecttmp->array_options['options_tacitagreement'];
+				if(!empty($objecttmp->array_options['options_realdate'])) {
+					$tacitagreement = 0;
+				}
 				$invoicetype            = $objecttmp->array_options['options_invoicetype'];
 				$anterieurdate = $startdate;
 				while($anterieurdate < time()) {
@@ -752,7 +773,7 @@ if (!$error && $massaction == 'factureanterieur') {
 						}
 					}
 					if($already_invoice == false) {
-						if ($startdate < $now && $now < $enddate || $tacitagreement && $now > $enddate || !empty($objecttmp->array_options['options_realdate'])) { // le contrat est en cour
+						if ($startdate < $now && $now < $enddate || $tacitagreement && $now > $enddate) { // le contrat est en cour
 							//Création de la facture brouillon permettant de faire la facture modèle
 							$facture                    = new Facture($db);
 							$cl                         = new Client($db);
