@@ -120,11 +120,11 @@ class CompanyRelationshipsAvailability
 
         // Check parameters
         if (empty($this->fk_companyrelationships)) {
-            $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("CompanyRelationships"));
+            $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("CompanyRelationshipsID"));
             $error++;
         }
         if (empty($this->fk_c_companyrelationships_availability)) {
-            $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("CompanyRelationshipsPublicSpaceAvailability"));
+            $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("CompanyRelationshipsPublicSpaceAvailabilityID"));
             $error++;
         }
         if ($error) {
@@ -251,11 +251,11 @@ class CompanyRelationshipsAvailability
             $error++;
         }
         if (empty($this->fk_companyrelationships)) {
-            $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("CompanyRelationships"));
+            $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("CompanyRelationshipsID"));
             $error++;
         }
         if (empty($this->fk_c_companyrelationships_availability)) {
-            $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("CompanyRelationshipsPublicSpaceAvailability"));
+            $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("CompanyRelationshipsPublicSpaceAvailabilityID"));
             $error++;
         }
         if ($error) {

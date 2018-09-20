@@ -38,7 +38,7 @@ CompanyRelationshipsPublicSpaceAvailabilityDictionaryPrincipalAvailability  = Au
 CompanyRelationshipsPublicSpaceAvailabilityDictionaryBenefactorAvailability = Autoriser pour le bénéficiaire
 
 ############################################################
-### Companies Relationship
+### Company Relationships
 ############################################################
 CompanyRelationshipsListOfPrincipalCompanies  = Liste des donneurs d'ordres
 CompanyRelationshipsListOfBenefactorCompanies = Liste des bénéficiaires
@@ -46,12 +46,18 @@ CompanyRelationshipsPrincipalCompany          = Donneur d'ordre
 CompanyRelationshipsBenefactorCompany         = Bénéficiaire
 
 ############################################################
-### Companies Relationship : Confirm box
+### Company Relationships : Confirm box
 ############################################################
 CompanyRelationshipsEditCompanyRelationships          = Editer relation tiers
 CompanyRelationshipsConfirmEditCompanyRelationships   = Êtes-vous sûr de vouloir d'éditer cette relation tiers ?
 CompanyRelationshipsDeleteCompanyRelationships        = Supprimer relation tiers
 CompanyRelationshipsConfirmDeleteCompanyRelationships = Êtes-vous sûr de vouloir supprimer cette relation tiers ?
+
+############################################################
+### Company Relationships Availability
+############################################################
+CompanyRelationshipsID                        = ID de la relation tiers
+CompanyRelationshipsPublicSpaceAvailabilityID = ID de la ligne du dictionnaire des mises à disposition sur l'espace public
 
 ############################################################
 ### Errors

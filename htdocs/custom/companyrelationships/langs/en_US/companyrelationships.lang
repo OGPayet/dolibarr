@@ -38,7 +38,7 @@ CompanyRelationshipsPublicSpaceAvailabilityDictionaryPrincipalAvailability  = Au
 CompanyRelationshipsPublicSpaceAvailabilityDictionaryBenefactorAvailability = Authorize for the Benefactor
 
 ############################################################
-### Companies Relationship
+### Company Relationships
 ############################################################
 CompanyRelationshipsListOfPrincipalCompanies  = Contractors list
 CompanyRelationshipsListOfBenefactorCompanies = Benefactors list
@@ -46,12 +46,18 @@ CompanyRelationshipsPrincipalCompany          = Contractor
 CompanyRelationshipsBenefactorCompany         = Benefactor
 
 ############################################################
-### Companies Relationship : Confirm box
+### Company Relationships : Confirm box
 ############################################################
 CompanyRelationshipsEditCompanyRelationships          = Edit thirdparties relationships
 CompanyRelationshipsConfirmEditCompanyRelationships   = Are you sure to edit this thirdparty relationship ?
 CompanyRelationshipsDeleteCompanyRelationships        = Delete thirdparty relationship
 CompanyRelationshipsConfirmDeleteCompanyRelationships = Are you sure to delete this thirdparty relationship ?
+
+############################################################
+### Company Relationships Availability
+############################################################
+CompanyRelationshipsID                        = ID of company relationship
+CompanyRelationshipsPublicSpaceAvailabilityID = ID of line in public space availability dictionary
 
 ############################################################
 ### Errors
