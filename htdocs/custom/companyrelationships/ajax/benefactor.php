@@ -16,8 +16,8 @@
  */
 
 /**
- *       \file       htdocs/core/ajax/contacts.php
- *       \brief      File to load contacts combobox
+ *       \file       htdocs/companyrelationships/ajax/benefactor.php
+ *       \brief      File to load benefactors combobox
  */
 
 if (! defined('NOTOKENRENEWAL')) define('NOTOKENRENEWAL','1'); // Disables token renewal

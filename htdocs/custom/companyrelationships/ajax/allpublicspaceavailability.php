@@ -16,8 +16,8 @@
  */
 
 /**
- *       \file       htdocs/companyrelationships/ajax/publicspaceavailability.php
- *       \brief      File to load Public Space Availability for the relationships
+ *       \file       htdocs/companyrelationships/ajax/allpublicspaceavailability.php
+ *       \brief      File to load all elements in public space availability for the relationships
  */
 
 if (! defined('NOTOKENRENEWAL')) define('NOTOKENRENEWAL','1'); // Disables token renewal
@@ -33,9 +33,8 @@ if (! $res && file_exists("../../main.inc.php")) $res=@include '../../main.inc.p
 if (! $res && file_exists("../../../main.inc.php")) $res=@include '../../../main.inc.php';		// to work if your module directory is into a subdir of root htdocs directory
 if (! $res) die("Include of main fails");
 
-$socid			  = GETPOST('socid', 'int');
-$socid_benefactor = GETPOST('socid_benefactor', 'int');
-$element          = GETPOST('element', 'alpha');
+$socid			    = GETPOST('socid', 'int');
+$socid_benefactor	= GETPOST('socid_benefactor', 'int');
 
 /*
  * View
@@ -43,15 +42,9 @@ $element          = GETPOST('element', 'alpha');
 
 top_httphead();
 
-
 dol_include_once('/custom/companyrelationships/class/companyrelationships.class.php');
 $companyRelationships = new CompanyRelationships($db);
-$publicSpaceAvailability = $companyRelationships->getPublicSpaceAvailability($socid, $socid_benefactor, $element);
-if (is_array($publicSpaceAvailability)) {
-    $return = array('principal' => $publicSpaceAvailability['principal'], 'benefactor' => $publicSpaceAvailability['benefactor']);
-} else {
-    $return = array('principal' => 0, 'benefactor' => 0);
-}
+$return = $companyRelationships->getAllPublicSpaceAvailability($socid, $socid_benefactor);
 
 echo json_encode($return);
 

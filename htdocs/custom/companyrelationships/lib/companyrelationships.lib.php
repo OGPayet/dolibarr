@@ -158,7 +158,7 @@ function companyrelationships_show_companyrelationships($conf, $langs, $db, $obj
             $out .= '           },';
             $out .= '           dataType: "json",';
             $out .= '           method: "POST",';
-            $out .= '           url: "' . dol_buildpath('/companyrelationships/ajax/publicspaceavailability.php', 1) . '",';
+            $out .= '           url: "' . dol_buildpath('/companyrelationships/ajax/allpublicspaceavailability.php', 1) . '",';
             $out .= '           success: function(dataList){';
             $out .= '               var nbElement = dataList.length;';
             $out .= '               if (nbElement > 0) {';

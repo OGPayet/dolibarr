@@ -260,6 +260,8 @@ class CompanyRelationships
     {
         global $langs;
 
+        dol_syslog(__METHOD__, LOG_DEBUG);
+
         dol_include_once('/advancedictionaries/class/dictionary.class.php');
         $dictionary = Dictionary::getDictionary($this->db, 'companyrelationships', 'companyrelationshipspublicspaceavailability');
 
@@ -288,7 +290,7 @@ class CompanyRelationships
 
 
     /**
-     * Get public space availability for a company relationship
+     * Get all elements in public space availability for a company relationship
      *
      * @param   int         $socid                  Id of principal company
      * @param   innt        $socid_benefactor       Id of benefactor company
@@ -299,6 +301,8 @@ class CompanyRelationships
     public function getAllPublicSpaceAvailability($socid, $socid_benefactor, $element='')
     {
         global $conf;
+
+        dol_syslog(__METHOD__ . " socid=" . $socid . "socid_benefactor=" . $socid_benefactor . "element=" . $element, LOG_DEBUG);
 
         $sql  = "SELECT";
         $sql .= " crpsa.rowid, crpsa.element, crpsa.label, crpsa.principal_availability, crpsa.benefactor_availability";
@@ -340,6 +344,35 @@ class CompanyRelationships
             }
 
             return $publicSpaceAvailabilityList;
+        }
+    }
+
+
+    /**
+     * Get one element in public space availability for a company relationship
+     *
+     * @param   int         $socid                  Id of principal company
+     * @param   innt        $socid_benefactor       Id of benefactor company
+     * @param   string      $element                Element name (ex : propal, commande, etc)
+     * @return  array|int   <0 if KO, array of public space availability if OK
+     * @throws  Exception
+     */
+    public function getPublicSpaceAvailability($socid, $socid_benefactor, $element)
+    {
+        dol_syslog(__METHOD__ . " socid=" . $socid . "socid_benefactor=" . $socid_benefactor . "element=" . $element, LOG_DEBUG);
+
+        $publicSpaceAvailabilityList = $this->getAllPublicSpaceAvailability($socid, $socid_benefactor, $element);
+
+        if (!is_array($publicSpaceAvailabilityList)) {
+            return -1;
+        } else {
+            $publicSpaceAvailability = array();
+
+            if (count($publicSpaceAvailabilityList) > 0) {
+                $publicSpaceAvailability = $publicSpaceAvailabilityList[0];
+            }
+
+            return $publicSpaceAvailability;
         }
     }
 }
