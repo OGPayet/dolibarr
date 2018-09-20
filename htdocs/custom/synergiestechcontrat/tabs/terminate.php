@@ -67,11 +67,11 @@ $object->fetch_thirdparty();
 if($action == "terminate") {
 	$error = 0;
 	if (!GETPOST('targetdatemonth') && !GETPOST('targetdateday') && !GETPOST('targetdateyear')) {
-		setEventMessages($langs->trans("TerminateTargetEmpty"), null, "errors");
+		setEventMessages("Veuillez ajouter une date effective de résiliation pour résilier ce contrat", null, "errors");
 		$error++;
 	}
 	if (!GETPOST('realdatemonth') && !GETPOST('realdateday') && !GETPOST('realdateyear')) {
-		setEventMessages($langs->trans("TerminateRealEmpty"), null, "errors");
+		setEventMessages("Veuillez ajouter une date souhaitée de résiliation pour résilier ce contrat", null, "errors");
 		$error++;
 	}
 	if($error == 0) {
@@ -87,13 +87,13 @@ if($action == "terminate") {
 		}
 
 		$target_dir = $conf->contrat->dir_output.'/'.$object->ref.'/';
-		$target_file = $target_dir . $langs->trans('TerminateFile').basename($_FILES["document"]["name"]);
+		$target_file = $target_dir ."Document_de_resiliation_".basename($_FILES["document"]["name"]);
 
 		$result = dol_move($_FILES["document"]["tmp_name"], $target_file, 0, 1, 1);
 		if ($result) {
-			setEventMessages($langs->trans("TerminateFileUpload"), null, "mesgs");
+			setEventMessages("Justificatif de résiliation enregistré avec succès", null, "mesgs");
 		} else {
-			setEventMessages($langs->trans("TerminateFileUploadError"), null, "errors");
+			setEventMessages("Problème lors de l'enregistrement du justificatif de résiliation", null, "errors");
 			$error++;
 		}
 
@@ -123,7 +123,7 @@ print '</td></tr>';
 print "<tr><td>".$langs->trans("Company")."</td><td>".$object->thirdparty->getNomUrl(1)."</td></tr>";
 print '</table>';
 
-print '<b>'.$langs->trans("ConfirmTerminate").'</b>';
+print '<b>Résiliation de ce contrat et tous ses services</b>';
 
 print '<form name="form_contract" action="'.$_SERVER["PHP_SELF"].'" method="post" enctype="multipart/form-data">';
 print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
@@ -132,19 +132,19 @@ print '<input type="hidden" name="id" value="'.$object->id.'">';
 
 //Target Date
 print '<table class="paddingtopbottomonly" width="100%">';
-print '<tr><td>'.$langs->trans("TargetDate").'</td>';
+print '<tr><td>Date souhaitée de résiliation</td>';
 print '<td colspan="2" align="left">';
 print $form->select_date($object->array_options['options_targetdate'],"targetdate",0,0,0,'',1,0,1);
 print '</td></tr>';
 
 //Real Date
-print '<tr><td>'.$langs->trans("RealDate").'</td>';
+print '<tr><td>Date effective de résiliation</td>';
 print '<td colspan="2" align="left">';
 print $form->select_date($object->array_options['options_realdate'],"realdate",0,0,0,'',1,0,1);
 print '</td></tr>';
 
 //Document
-print '<tr><td>'.$langs->trans("Justificatif").'</td>';
+print '<tr><td>Justificatif de résiliation</td>';
 print '<td colspan="2" align="left">';
 print '<input class="flat minwidth400" type="file" name="document" id="document"/>';
 print '</td></tr>';
@@ -152,7 +152,7 @@ print '</td></tr>';
 print '</table>';
 print '<br/>';
 print '<div class="center">';
-print '<input type="submit" class="button" value="'.$langs->trans("TerminateTitle").'">';
+print '<input type="submit" class="button" value="Résilier ce contrat">';
 print '</div>';
 print '</form>';
 llxFooter();

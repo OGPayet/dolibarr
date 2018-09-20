@@ -240,8 +240,8 @@ if (!$error && $massaction == 'facture') {
 
 									$actioncomm->type_id=40;
 									$actioncomm->type_code='AC_OTH_AUTO';
-									$actioncomm->label       = $langs->trans("Renouvellement",$objecttmp->ref);
-									$actioncomm->note        = $langs->trans("Renouvellement",$objecttmp->ref);
+									$actioncomm->label       = "Contrat ".$objecttmp->ref." renouvellé";
+									$actioncomm->note       = "Contrat ".$objecttmp->ref." renouvellé";
 									$actioncomm->fk_project  = 0;
 									$actioncomm->datep       = $now;
 									$actioncomm->datef       = $now;
@@ -268,8 +268,8 @@ if (!$error && $massaction == 'facture') {
 
 									$actioncomm->type_id=40;
 									$actioncomm->type_code='AC_OTH_AUTO';
-									$actioncomm->label       = $langs->trans("Reconduction",$objecttmp->ref);
-									$actioncomm->note        = $langs->trans("Reconduction",$objecttmp->ref);
+									$actioncomm->label       = "Contrat ".$objecttmp->ref." reconduit";
+									$actioncomm->note        = "Contrat ".$objecttmp->ref." reconduit";
 									$actioncomm->fk_project  = 0;
 									$actioncomm->datep       = $now;
 									$actioncomm->datef       = $now;
@@ -313,9 +313,9 @@ if (!$error && $massaction == 'facture') {
         $db->rollback();
     }
 	if($nbalready > 1) {
-		setEventMessages($langs->trans("FacturesAlreadys", $nbalready), null, 'warnings');
+		setEventMessages($nbalready." factures déjà facturées"), null, 'warnings');
 	} else if($nbalready > 0) {
-		setEventMessages($langs->trans("FacturesAlready", $nbalready), null, 'warnings');
+		setEventMessages("Facture déjà facturée"), null, 'warnings');
 	}
 }
 

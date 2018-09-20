@@ -178,8 +178,8 @@ class modsynergiestechcontrat extends DolibarrModulessynergiestechcontrat
 		// 'thirdparty'       to add a tab in third party view
 		// 'user'             to add a tab in user view
         $this->tabs = array(
-			'contract:+invoice:Invoice:@synergiestechcontrat:/custom/synergiestechcontrat/tabs/invoice.php?id=__ID__',
-			'contract:+terminate:Terminate:@synergiestechcontrat:/custom/synergiestechcontrat/tabs/terminate.php?id=__ID__',
+			'contract:+invoice:Factures:@synergiestechcontrat:/custom/synergiestechcontrat/tabs/invoice.php?id=__ID__',
+			'contract:+terminate:Résiliation:@synergiestechcontrat:/custom/synergiestechcontrat/tabs/terminate.php?id=__ID__',
 		);
 
 //		if (! isset($conf->synergiestechcontrat) || ! isset($conf->synergiestechcontrat->enabled))
@@ -364,9 +364,9 @@ class modsynergiestechcontrat extends DolibarrModulessynergiestechcontrat
         // Invoice
         $result=$extrafields->addExtraField('datedeb', 'datedeb', 'date', 0,  '', 'facture',   0, 0, '', '', 1, '', 0, 0, '');
         $result=$extrafields->addExtraField('datefin', 'datefin', 'date', 0,  '', 'facture',   0, 0, '', '', 1, '', 0, 0, '');
-        $result=$extrafields->addExtraField('oldinvoice', $langs->trans('ExtrafieldOldInvoice'), 'boolean', 0,  '', 'contrat',   0, 0, '0', '', 1, '', 0, 0, '');
-        $result=$extrafields->addExtraField('targetdate', $langs->trans('TargetDate'), 'date', 10,  '', 'contrat',   0, 0, '', '', 1, '', 0, 0, '');
-        $result=$extrafields->addExtraField('realdate', $langs->trans('RealDate'), 'date', 11,  '', 'contrat',   0, 0, '', '', 1, '', 0, 0, '');
+        $result=$extrafields->addExtraField('oldinvoice', "Facturation d'une période passé possible ?", 'boolean', 0,  '', 'contrat',   0, 0, '0', '', 1, '', 0, 0, '');
+        $result=$extrafields->addExtraField('targetdate', "Date souhaitée de résiliation", 'date', 10,  '', 'contrat',   0, 0, '', '', 1, '', 0, 0, '');
+        $result=$extrafields->addExtraField('realdate', "Date effective de résiliation", 'date', 11,  '', 'contrat',   0, 0, '', '', 1, '', 0, 0, '');
 
 		//Myfield
 		$target_array = array('datedeb','datefin');

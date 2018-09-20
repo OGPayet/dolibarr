@@ -103,7 +103,7 @@ if ($result) {
 	$facturestatic=new Facture($db);
 
 
-	print_barre_liste($langs->trans("ListOfInvoices"), $page, "", $urlparam, $sortfield, $sortorder, '', $num);
+	print_barre_liste("Liste des factures", $page, "", $urlparam, $sortfield, $sortorder, '', $num);
 
 	print '<form method="get" action="'.$_SERVER["PHP_SELF"].'">'."\n";
 	print '<input type="hidden" class="flat" name="id" value="'.$id.'">';
