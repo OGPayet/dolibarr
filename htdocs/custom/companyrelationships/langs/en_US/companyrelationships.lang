@@ -56,4 +56,4 @@ CompanyRelationshipsConfirmDeleteCompanyRelationships = Are you sure to delete t
 ############################################################
 ### Errors
 ############################################################
-#CompanyRelationshipsErrorRequestTypeNotFound = Request type not found
+CompanyRelationshipsErrorPublicSpaceAvailabilityDictionaryNoLines = No lines in dictionary public space availability

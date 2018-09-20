@@ -155,11 +155,17 @@ class CompanyRelationshipsPublicSpaceAvailabilityDictionary extends Dictionary
             'name'       => 'principal_availability',
             'label'      => 'CompanyRelationshipsPublicSpaceAvailabilityDictionaryPrincipalAvailability',
             'type'       => 'boolean',
+            'database'   => array(
+                'default'=> '0',
+            ),
         ),
         'benefactor_availability' => array(
             'name'       => 'benefactor_availability',
             'label'      => 'CompanyRelationshipsPublicSpaceAvailabilityDictionaryBenefactorAvailability',
             'type'       => 'boolean',
+            'database'   => array(
+                'default'=> '0',
+            ),
         ),
     );
 

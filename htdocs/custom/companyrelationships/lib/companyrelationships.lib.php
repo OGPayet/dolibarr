@@ -88,6 +88,7 @@ function companyrelationships_show_companyrelationships($conf, $langs, $db, $obj
     dol_include_once('/companyrelationships/class/companyrelationships.class.php');
     $companyrelationships = new CompanyRelationships($db);
 
+    $modename = ($mode ? 'benefactor' : 'principal');
     $htmlname_main = $mode ? 'principal_socid' : 'benefactor_socid';
     $htmlname_choice = $mode ? 'benefactor_socid' : 'principal_socid';
     $label_choice = $langs->trans($mode ? 'CompanyRelationshipsBenefactorCompany' : 'CompanyRelationshipsPrincipalCompany');
@@ -114,7 +115,70 @@ function companyrelationships_show_companyrelationships($conf, $langs, $db, $obj
             )
         );
 
-        print $form->formconfirm($_SERVER['PHP_SELF'] . '?socid=' . $object->id . '&list_mode=' . $list_mode . '&rowid=' . $rowid . '&edit_' . $htmlname_main . '=' . $object->id, $langs->trans("CompanyRelationshipsEditCompanyRelationships"), $langs->trans("CompanyRelationshipsConfirmEditCompanyRelationships"), "confirm_update_relationship", $formquestion, 0, 1);
+        $inputElements = '';
+        if ($user->rights->companyrelationships->update_md->relationship) {
+            $publicSpaceAvailbilityList = ($mode ? $companyrelationships->getAllPublicSpaceAvailability($object->id, $selected) : $companyrelationships->getAllPublicSpaceAvailability($selected, $object->id));
+            if (is_array($publicSpaceAvailbilityList)) {
+                $inputElementsNameArray = array();
+                foreach ($publicSpaceAvailbilityList as $publicSpaceAvailability) {
+                    $inputElementName    = 'publicspaceavailability_' . $publicSpaceAvailability['element'];
+                    $inputElementChecked = '';
+                    if (intval($publicSpaceAvailability[$modename]) > 0) {
+                        $inputElementChecked = 'checked="checked"';
+                    }
+                    $inputElements .= '<input type="checkbox" id="' . $inputElementName .'" ' . 'name="' . $inputElementName . '" value="1" '. $inputElementChecked . ' /> ' . $publicSpaceAvailability['label'] . '<br />';
+                    $inputElementsNameArray[] = $inputElementName;
+                }
+
+                $formquestion[] = array(
+                    'name' => $inputElementsNameArray,
+                    'type' => 'onecolumn',
+                    'value' => '<div id="publicspaceavailability">' . $inputElements . '</div>'
+                );
+            }
+
+        }
+
+        print $form->formconfirm($_SERVER['PHP_SELF'] . '?socid=' . $object->id . '&list_mode=' . $list_mode . '&rowid=' . $rowid . '&edit_' . $htmlname_main . '=' . $object->id, $langs->trans("CompanyRelationshipsEditCompanyRelationships"), $langs->trans("CompanyRelationshipsConfirmEditCompanyRelationships"), "confirm_update_relationship", $formquestion, 0, 1, 300, 600);
+
+        if ($user->rights->companyrelationships->update_md->relationship) {
+            $out = '<script type="text/javascript" language="javascript">';
+            $out .= 'jQuery(document).ready(function(){';
+            $out .= '   jQuery("#edit_' . $htmlname_choice . '").change(function(){';
+            $out .= '       jQuery.ajax({';
+            $out .= '           data: {';
+            if ($mode) {
+                $out .= '       socid: ' . $object->id . ',';
+                $out .= '       socid_benefactor: jQuery("#edit_' . $htmlname_choice . '").val(),';
+            } else {
+                $out .= '       socid: jQuery("#edit_' . $htmlname_choice . '").val(),';
+                $out .= '       socid_benefactor: ' . $object->id . ',';
+            }
+            $out .= '           element: ""';
+            $out .= '           },';
+            $out .= '           dataType: "json",';
+            $out .= '           method: "POST",';
+            $out .= '           url: "' . dol_buildpath('/companyrelationships/ajax/publicspaceavailability.php', 1) . '",';
+            $out .= '           success: function(dataList){';
+            $out .= '               var nbElement = dataList.length;';
+            $out .= '               if (nbElement > 0) {';
+            //$out .= '                   var inputElements = "";';
+            $out .= '                   for (var i=0; i<nbElement; i++) {';
+            //$out .= '                       inputElements += \'<input type="checkbox" id="publicspaceavailability_\' + dataList[i].element + \'" name="publicspaceavailability_\' + dataList[i].element + \'" value="\' + dataList[i].principal + \'" /> \' + dataList[i].label + \'<br />\';';
+            $out .= '                       jQuery("input[name=\'publicspaceavailability[" + dataList[i].rowid + "]\']").attr("checked", dataList[i].' . $modename . ');';
+            $out .= '                   }';
+            //$out .= '                   jQuery("#publicspaceavailability").html(inputElements);';
+            $out .= '               }';
+            $out .= '           },';
+            $out .= '           error: function(){';
+            $out .= '               jQuery("#publicspaceavailability").html("Error");';
+            $out .= '           }';
+            $out .= '       });';
+            $out .= '   });';
+            $out .= '});';
+            $out .= '</script>';
+            print $out;
+        }
     }
 
     // Confirm deleting relationship

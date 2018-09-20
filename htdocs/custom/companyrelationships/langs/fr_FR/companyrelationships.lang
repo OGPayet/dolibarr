@@ -56,4 +56,4 @@ CompanyRelationshipsConfirmDeleteCompanyRelationships = Êtes-vous sûr de voulo
 ############################################################
 ### Errors
 ############################################################
-#CompanyRelationshipsErrorRequestTypeNotFound = Type de demande non trouvé
+CompanyRelationshipsErrorPublicSpaceAvailabilityDictionaryNoLines = Aucune ligne dans le dictionnaire des mises à disposition sur l'espace public

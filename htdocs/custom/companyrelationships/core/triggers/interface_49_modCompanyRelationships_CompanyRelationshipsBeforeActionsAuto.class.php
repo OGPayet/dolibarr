@@ -83,15 +83,15 @@ class InterfaceCompanyRelationshipsBeforeActionsAuto extends DolibarrTriggers
         $fk_element = $object->id;
         $elementtype = $object->element;
 
-        // RequestManager
+        // Company Relationships
         //----------------------------------------
 		/*
-        if ($action == 'REQUESTMANAGER_CREATE') {
+        if ($action == 'COMPANYRELATIONSHIPS_CREATE') {
             $langs->load("other");
-            $langs->load("peepadherent@peep");
+            $langs->load("companyrelationships@companyrelationships");
 
-            if (empty($object->actionmsg2)) $object->actionmsg2 = $langs->transnoentities("PeepNewAdherentToDolibarr", $object->getFullName($langs), $object->code_client);
-            $object->actionmsg = $langs->transnoentities("PeepNewAdherentToDolibarr", $object->getFullName($langs), $object->code_client);
+            if (empty($object->actionmsg2)) $object->actionmsg2 = $langs->transnoentities("CompanyRelationshipsNewAdherentToDolibarr", $object->getFullName($langs), $object->code_client);
+            $object->actionmsg = $langs->transnoentities("CompanyRelationshipsNewAdherentToDolibarr", $object->getFullName($langs), $object->code_client);
 
             $object->sendtoid = 0;
             $object->socid = $object->id;

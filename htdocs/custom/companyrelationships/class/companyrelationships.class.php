@@ -248,4 +248,98 @@ class CompanyRelationships
             return -2;
         }
     }
+
+
+    /**
+     * Get all elements in dictionary public space availability
+     *
+     * @return  array|int   <0 if KO, array of all elements if OK
+     * @throws  Exception
+     */
+    public function getAllPublicSpaceAvailabilityElement()
+    {
+        global $langs;
+
+        dol_include_once('/advancedictionaries/class/dictionary.class.php');
+        $dictionary = Dictionary::getDictionary($this->db, 'companyrelationships', 'companyrelationshipspublicspaceavailability');
+
+        // Get lines
+        $lines = $dictionary->fetch_lines(1, array(), array('rowid' => 'ASC'), 0, 0, false, true);
+
+        if ($lines < 0) {
+            $this->errors[] = $dictionary->errorsToString();
+            dol_syslog(__METHOD__ . " Error : No public space availability in dictionary", LOG_ERR);
+            return -1;
+        } else {
+            $publicSpaceAvailabilityElementList = array();
+
+            if (count($lines) <= 0) {
+                $this->errors[] = $langs->trans("CompanyRelationshipsErrorPublicSpaceAvailabilityDictionaryNoLines");
+                dol_syslog(__METHOD__ . " Error : No lines in dictionary company relationships public space availability", LOG_ERR);
+            } else {
+                foreach ($lines as $line) {
+                    $publicSpaceAvailabilityElementList[$line->id] = $line->fields['element'];
+                }
+            }
+
+            return $publicSpaceAvailabilityElementList;
+        }
+    }
+
+
+    /**
+     * Get public space availability for a company relationship
+     *
+     * @param   int         $socid                  Id of principal company
+     * @param   innt        $socid_benefactor       Id of benefactor company
+     * @param   string      $element                [=''] for all elements, or element name (ex : propal, commande, etc)
+     * @return  array|int   <0 if KO, array of public space availability if OK
+     * @throws  Exception
+     */
+    public function getAllPublicSpaceAvailability($socid, $socid_benefactor, $element='')
+    {
+        global $conf;
+
+        $sql  = "SELECT";
+        $sql .= " crpsa.rowid, crpsa.element, crpsa.label, crpsa.principal_availability, crpsa.benefactor_availability";
+        $sql .= ", cra.rowid as cra_id, cra.fk_companyrelationships, cra.principal_availability as cra_principal_availability, cra.benefactor_availability as cra_benefactor_availability";
+        $sql .= ", cr.rowid as cr_id, cr.fk_soc as cr_fk_fk_soc, cr.fk_soc_benefactor as cr_fk_soc_benefactor";
+        $sql .= " FROM " . MAIN_DB_PREFIX . "c_companyrelationships_publicspaceavailability as crpsa";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "companyrelationships as cr ON cr.fk_soc = " . $socid . " AND cr.fk_soc_benefactor = " . $socid_benefactor;
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "companyrelationships_availability as cra ON cra.fk_companyrelationships = cr.rowid AND cra.fk_c_companyrelationships_availability = crpsa.rowid";
+        $sql .= " WHERE crpsa.entity = " . $conf->entity;
+        $sql .= " AND crpsa.active = 1";
+        if (!empty($element)) {
+            $sql .= " AND crpsa.element = '" . $this->db->escape($element) . "'";
+        }
+        $sql .= " ORDER BY crpsa.rowid ASC";
+
+        $resql = $this->db->query($sql);
+        if (!$resql) {
+            $this->errors[] = 'Error ' . $this->db->lasterror();
+            dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $this->db->lasterror(), LOG_ERR);
+            return -1;
+        } else {
+            $publicSpaceAvailabilityList = array();
+            $publicSpaceAvailability = array();
+
+            while ($obj = $this->db->fetch_object($resql)) {
+                $publicSpaceAvailability['rowid']   = $obj->rowid;
+                $publicSpaceAvailability['element'] = $obj->element;
+                $publicSpaceAvailability['label']   = $obj->label;
+
+                if ($obj->cra_id > 0) {
+                    $publicSpaceAvailability['principal']  = $obj->cra_principal_availability;
+                    $publicSpaceAvailability['benefactor'] = $obj->cra_benefactor_availability;
+                } else {
+                    $publicSpaceAvailability['principal']  = $obj->principal_availability;
+                    $publicSpaceAvailability['benefactor'] = $obj->benefactor_availability;
+                }
+
+                $publicSpaceAvailabilityList[] = $publicSpaceAvailability;
+            }
+
+            return $publicSpaceAvailabilityList;
+        }
+    }
 }
