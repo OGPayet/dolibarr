@@ -441,6 +441,15 @@ if (!$error && $massaction == 'facturerec') {
             $oldindicemonth               = $objecttmp->array_options['options_oldindicemonth'];
             $newindicemonth               = $objecttmp->array_options['options_newindicemonth'];
             $revalorisationdate           = $dates_ravalo[$revalorisationperiod];
+			if(!empty($revalorisationdate)) { //calcul pour la première revalorisation
+				if(date("m-d",$startdate) == date("m-d",$revalorisationdate)) {
+					$firstrevalorisationdate = strtotime("+1 years",strtotime(date("Y",$startdate)."-".date("m-d",$revalorisationdate)));
+				} else if(date("m-d",$startdate) > date("m-d",$revalorisationdate)) {
+					$firstrevalorisationdate = strtotime("+1 years",strtotime(date("Y",$startdate)."-".date("m-d",$revalorisationdate)));
+				} else {
+					$firstrevalorisationdate = strtotime(date("Y",$startdate)."-".date("m-d",$revalorisationdate));
+				}
+			}
             $revalorisationactivationdate = strtotime($objecttmp->array_options['options_revalorisationactivationdate']);
             if ($revalorisationactivationdate == false) $revalorisationactivationdate = 0;
 
@@ -549,7 +558,8 @@ if (!$error && $massaction == 'facturerec') {
 						}
 					}
 				}
-				if ($lastdayofperiod > $revalorisationactivationdate && $lastdayofperiod > $revalorisationdate && !($firstdayofperiod <= $startdate && $startdate <= $lastdayofperiod) && $reindexmethod>0) { // on doit revaloriser
+				$now = strtotime("now");
+				if ($lastdayofperiod > $revalorisationactivationdate && $lastdayofperiod > $revalorisationdate && !($firstdayofperiod <= $startdate && $startdate <= $lastdayofperiod) && $reindexmethod>1 && $now >= $firstrevalorisationdate) { // on doit revaloriser
 					//$nbjouravant          = max($revalorisationactivationdate - $firstdayofperiod, 0) / $oneday;
 					if ($revalorisationactivationdate == 0) {
 						$revalorisationactivationdate = $firstdayofperiod;
@@ -837,7 +847,7 @@ if (!$error && $massaction == 'factureanterieur') {
 									}
 								}
 							}
-							if ($lastdayofperiod > $revalorisationactivationdate && $lastdayofperiod > $revalorisationdate) { // on doit revaloriser
+							if ($lastdayofperiod > $revalorisationactivationdate && $lastdayofperiod > $revalorisationdate && !($firstdayofperiod <= $startdate && $startdate <= $lastdayofperiod) && $reindexmethod>1) { // on doit revaloriser
 								//$nbjouravant          = max($revalorisationactivationdate - $firstdayofperiod, 0) / $oneday;
 								if ($revalorisationactivationdate == 0) {
 									$revalorisationactivationdate = $firstdayofperiod;
