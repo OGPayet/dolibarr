@@ -313,9 +313,9 @@ if (!$error && $massaction == 'facture') {
         $db->rollback();
     }
 	if($nbalready > 1) {
-		setEventMessages($nbalready." factures déjà facturées"), null, 'warnings');
+		setEventMessages($nbalready." factures déjà facturées", null, 'warnings');
 	} else if($nbalready > 0) {
-		setEventMessages("Facture déjà facturée"), null, 'warnings');
+		setEventMessages("Facture déjà facturée", null, 'warnings');
 	}
 }
 
