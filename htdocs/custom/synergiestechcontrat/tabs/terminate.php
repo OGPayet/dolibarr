@@ -66,15 +66,11 @@ $object->fetch_thirdparty();
 
 if($action == "terminate") {
 	$error = 0;
-	if ( ! empty($_FILES)) {
-		setEventMessages($langs->trans("TerminateFileUploadEmpty"), null, "errors");
-		$error++;
-	}
-	if (GETPOST('targetdatemonth') && GETPOST('targetdateday') && GETPOST('targetdateyear')) {
+	if (!GETPOST('targetdatemonth') && !GETPOST('targetdateday') && !GETPOST('targetdateyear')) {
 		setEventMessages($langs->trans("TerminateTargetEmpty"), null, "errors");
 		$error++;
 	}
-	if (GETPOST('realdatemonth') && GETPOST('realdateday') && GETPOST('realdateyear')) {
+	if (!GETPOST('realdatemonth') && !GETPOST('realdateday') && !GETPOST('realdateyear')) {
 		setEventMessages($langs->trans("TerminateRealEmpty"), null, "errors");
 		$error++;
 	}
@@ -98,12 +94,15 @@ if($action == "terminate") {
 			setEventMessages($langs->trans("TerminateFileUpload"), null, "mesgs");
 		} else {
 			setEventMessages($langs->trans("TerminateFileUploadError"), null, "errors");
+			$error++;
 		}
 
 		$object->array_options['options_targetdate'] = $targetdate;
 		$object->array_options['options_realdate'] = $realdate;
 
-		$object->update();
+		if($error == 0) {
+			$object->update();
+		}
 
 		$object->cloture($user);
 	}
