@@ -1334,7 +1334,7 @@ SCRIPT;
     {
         global $conf, $langs;
 
-        /*$contexts = explode(':',$parameters['context']);
+        $contexts = explode(':',$parameters['context']);
 
         if (in_array('requestmanagercard', $contexts)) {
             if (!is_object($object->thirdparty)) $object->fetch_thirdparty();
@@ -1520,7 +1520,7 @@ SCRIPT;
                 $this->results = $possiblelinks;
                 return 1;
             }
-        }*/
+        }
 
         return 0;
     }

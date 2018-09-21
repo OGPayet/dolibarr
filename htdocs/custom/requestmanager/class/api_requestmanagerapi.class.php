@@ -49,7 +49,7 @@ class RequestManagerApi extends DolibarrApi {
      *
      * @param   int             $id                 ID of the request
      *
-     * @return  object|array                        Data without useless information
+     * @return  object|array                        Request data without useless information
      *
      * @throws  401             RestException       Insufficient rights
      * @throws  404             RestException       Request not found
@@ -268,24 +268,57 @@ class RequestManagerApi extends DolibarrApi {
     }
 
     /**
-     *  Set request status
+	 *  Get lines of the given request
+	 *
+     * @url	GET {id}/lines
      *
-     * @url	POST {id}/set_status
+     * @param   int     $id                 Id of the request
+	 *
+	 * @return  array                       List of request line
      *
-     * @param   int     $id             ID of the request
-     * @param   int     $status_id      New status (ID of a status defined into the dictionary)
-     * @param   int     $status_type    New status type (0=Initial, 1=In progress, 2=Resolved, 3=Closed)
-     * @param   int     $no_trigger     1=Does not execute triggers, 0= execute triggers
-     * @param   int     $force_reload   1=Force reload the cache of the list of status
+     * @throws  401     RestException       Insufficient rights
+     * @throws  404     RestException       Request not found
+     * @throws  500     RestException       Error when retrieve request
+	 */
+	function getLines($id)
+    {
+        if (!DolibarrApiAccess::$user->rights->requestmanager->lire) {
+            throw new RestException(401, "Insufficient rights");
+        }
+
+        $requestmanager = new RequestManager(self::$db);
+        $result = $requestmanager->fetch($id);
+        if ($result == 0) {
+            throw new RestException(404, "Request not found");
+        } elseif ($result < 0) {
+            throw new RestException(500, "Error when retrieve request", $requestmanager->getErrors());
+        }
+
+        $requestmanager->getLinesArray();
+        $result = array();
+        foreach ($requestmanager->lines as $line) {
+            array_push($result, $this->_cleanLineObjectDatas($line));
+        }
+
+        return $result;
+    }
+
+    /**
+     *  Add a line to the given request
      *
-     * @return  object                  Request data updated
+     * @url	POST {id}/lines
      *
-     * @throws  401     RestException   Insufficient rights
-     * @throws  404     RestException   Request not found
-     * @throws  500     RestException   Error when retrieve request
-     * @throws  500     RestException   Error while setting the request status
+     * @param   int     $id                 Id of the request
+     * @param   array   $request_data       Request line data
+     *
+     * @return  int                         ID of the request line created
+     *
+     * @throws  401     RestException       Insufficient rights
+     * @throws  404     RestException       Request not found
+     * @throws  500     RestException       Error when retrieve request
+     * @throws  500     RestException       Error while creating the request line
      */
-    function setStatus($id, $status_id=0, $status_type=-1, $no_trigger=0, $force_reload=0)
+    function postLine($id, $request_data = null)
     {
         if (!DolibarrApiAccess::$user->rights->requestmanager->creer) {
             throw new RestException(401, "Insufficient rights");
@@ -299,11 +332,204 @@ class RequestManagerApi extends DolibarrApi {
             throw new RestException(500, "Error when retrieve request", $requestmanager->getErrors());
         }
 
-        if ($requestmanager->set_status($status_id, $status_type, DolibarrApiAccess::$user, $no_trigger, $force_reload, $no_notify) > 0) {
+        $request_data = (object)$request_data;
+
+        $updateRes = $requestmanager->addline(
+            $request_data->desc,
+            $request_data->subprice,
+            $request_data->qty,
+            $request_data->tva_tx,
+            $request_data->localtax1_tx,
+            $request_data->localtax2_tx,
+            $request_data->fk_product,
+            $request_data->remise_percent,
+            $request_data->info_bits,
+            $request_data->fk_remise_except,
+            'HT',
+            0,
+            $request_data->date_start,
+            $request_data->date_end,
+            $request_data->product_type,
+            $request_data->rang,
+            $request_data->special_code,
+            $request_data->fk_parent_line,
+            $request_data->fk_fournprice,
+            $request_data->pa_ht,
+            $request_data->label,
+            $request_data->array_options,
+            $request_data->fk_unit,
+            $request_data->origin,
+            $request_data->origin_id,
+            $request_data->multicurrency_subprice
+        );
+
+        if ($updateRes > 0) {
+            return $updateRes;
+        } else {
+            throw new RestException(500, "Error while creating the request line", $requestmanager->getErrors());
+        }
+    }
+
+    /**
+     *  Update a given request line
+     *
+     * @url	PUT {id}/lines/{line_id}
+     *
+     * @param   int     $id                 Id of request to update
+     * @param   int     $line_id            Id of line to update
+     * @param   array   $request_data       Request line data
+     *
+     * @return  object                      Request data with line updated
+     *
+     * @throws  401     RestException       Insufficient rights
+     * @throws  404     RestException       Request not found
+     * @throws  404     RestException       Request line not found
+     * @throws  500     RestException       Error when retrieve request
+     * @throws  500     RestException       Error when retrieve request line
+     * @throws  500     RestException       Error while updating the request line
+     */
+    function putLine($id, $line_id, $request_data = null)
+    {
+        if (!DolibarrApiAccess::$user->rights->requestmanager->creer) {
+            throw new RestException(401, "Insufficient rights");
+        }
+
+        $requestmanager = new RequestManager(self::$db);
+        $result = $requestmanager->fetch($id);
+        if ($result == 0) {
+            throw new RestException(404, "Request not found");
+        } elseif ($result < 0) {
+            throw new RestException(500, "Error when retrieve request", $requestmanager->getErrors());
+        }
+
+        $requestline = new RequestManagerLine(self::$db);
+        $result = $requestline->fetch($line_id);
+        if ($result == 0 || ($result > 0 && $requestline->fk_requestmanager != $id)) {
+            throw new RestException(404, "Request line not found");
+        } elseif ($result < 0) {
+            throw new RestException(500, "Error when retrieve request line", $requestmanager->getErrors());
+        }
+
+        $request_data = (object)$request_data;
+
+        $updateRes = $requestmanager->updateline(
+            $line_id,
+            isset($request_data->desc) ? $request_data->desc : $requestline->desc,
+            isset($request_data->subprice) ? $request_data->subprice : $requestline->subprice,
+            isset($request_data->qty) ? $request_data->qty : $requestline->qty,
+            isset($request_data->remise_percent) ? $request_data->remise_percent : $requestline->remise_percent,
+            isset($request_data->tva_tx) ? $request_data->tva_tx : $requestline->tva_tx,
+            isset($request_data->localtax1_tx) ? $request_data->localtax1_tx : $requestline->localtax1_tx,
+            isset($request_data->localtax2_tx) ? $request_data->localtax2_tx : $requestline->localtax2_tx,
+            'HT',
+            isset($request_data->info_bits) ? $request_data->info_bits : $requestline->info_bits,
+            isset($request_data->date_start) ? $request_data->date_start : $requestline->date_start,
+            isset($request_data->date_end) ? $request_data->date_end : $requestline->date_end,
+            isset($request_data->product_type) ? $request_data->product_type : $requestline->product_type,
+            isset($request_data->fk_parent_line) ? $request_data->fk_parent_line : $requestline->fk_parent_line,
+            0,
+            isset($request_data->fk_fournprice) ? $request_data->fk_fournprice : $requestline->fk_fournprice,
+            isset($request_data->pa_ht) ? $request_data->pa_ht : $requestline->pa_ht,
+            isset($request_data->label) ? $request_data->label : $requestline->label,
+            isset($request_data->special_code) ? $request_data->special_code : $requestline->special_code,
+            isset($request_data->array_options) ? $request_data->array_options : $requestline->array_options,
+            isset($request_data->fk_unit) ? $request_data->fk_unit : $requestline->fk_unit,
+            isset($request_data->multicurrency_subprice) ? $request_data->multicurrency_subprice : $requestline->subprice
+        );
+
+        if ($updateRes > 0) {
             return $this->get($id);
         } else {
-            throw new RestException(500, "Error while setting the request status", $requestmanager->getErrors());
+            throw new RestException(500, "Error while updating the request line", $requestmanager->getErrors());
         }
+    }
+
+    /**
+     *  Delete a given request line
+     *
+     * @url	DELETE {id}/lines/{line_id}
+     *
+     * @param   int     $id                 Id of request to delete
+     * @param   int     $line_id            Id of line to delete
+     *
+     * @return  object                      Request data with line deleted
+     *
+     * @throws  401     RestException       Insufficient rights
+     * @throws  404     RestException       Request not found
+     * @throws  404     RestException       Request line not found
+     * @throws  500     RestException       Error when retrieve request
+     * @throws  500     RestException       Error when retrieve request line
+     * @throws  500     RestException       Error while deleting the request line
+     */
+    function deleteLine($id, $line_id)
+    {
+        if (!DolibarrApiAccess::$user->rights->requestmanager->creer) {
+            throw new RestException(401, "Insufficient rights");
+        }
+
+        $requestmanager = new RequestManager(self::$db);
+        $result = $requestmanager->fetch($id);
+        if ($result == 0) {
+            throw new RestException(404, "Request not found");
+        } elseif ($result < 0) {
+            throw new RestException(500, "Error when retrieve request", $requestmanager->getErrors());
+        }
+
+        $requestline = new RequestManagerLine(self::$db);
+        $result = $requestline->fetch($line_id);
+        if ($result == 0 || ($result > 0 && $requestline->fk_requestmanager != $id)) {
+            throw new RestException(404, "Request line not found");
+        } elseif ($result < 0) {
+            throw new RestException(500, "Error when retrieve request line", $requestmanager->getErrors());
+        }
+
+        if ($requestmanager->deleteline($line_id) > 0) {
+            return $this->get($id);
+        } else {
+            throw new RestException(500, "Error while deleting the request line", $requestmanager->getErrors());
+        }
+    }
+
+    /**
+     *  Get the request message
+     *
+     * @url	GET {id}/message/{message_id}
+     *
+     * @param   int             $id                 ID of the request
+     * @param   int             $message_id         ID of the request message (event)
+     *
+     * @return  object|array                        Request message data without useless information
+     *
+     * @throws  401             RestException       Insufficient rights
+     * @throws  404             RestException       Request not found
+     * @throws  404             RestException       Request message not found
+     * @throws  500             RestException       Error when retrieve request
+     * @throws  500             RestException       Error when retrieve request message
+     */
+    function getMessage($id, $message_id)
+    {
+        if (!DolibarrApiAccess::$user->rights->requestmanager->lire) {
+            throw new RestException(401, "Insufficient rights");
+        }
+
+        $requestmanager = new RequestManager(self::$db);
+        $result = $requestmanager->fetch($id);
+        if ($result == 0) {
+            throw new RestException(404, "Request not found");
+        } elseif ($result < 0) {
+            throw new RestException(500, "Error when retrieve request", $requestmanager->getErrors());
+        }
+
+        require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
+        $requestmanager_message = new ActionComm(self::$db);
+        $result = $requestmanager_message->fetch($message_id);
+        if ($result == 0 || ($result > 0 && ($requestmanager_message->elementtype != $requestmanager->element || $requestmanager_message->fk_element != $requestmanager->id))) {
+            throw new RestException(404, "Request message not found");
+        } elseif ($result < 0) {
+            throw new RestException(500, "Error when retrieve request message", $requestmanager->getErrors());
+        }
+
+        return $this->_cleanEventObjectDatas($requestmanager_message);
     }
 
     /**
@@ -311,7 +537,7 @@ class RequestManagerApi extends DolibarrApi {
      *
      * @url	POST {id}/message
      *
-     * @param   int     $id             ID of the request
+     * @param   int     $id                 ID of the request
      * @param   array   $request_data       Request message data
      *
      * @return  int                         ID of the request message created
@@ -333,6 +559,8 @@ class RequestManagerApi extends DolibarrApi {
         } elseif ($result < 0) {
             throw new RestException(500, "Error when retrieve request", $requestmanager->getErrors());
         }
+
+        // Todo a faire
 
         return 0;
 
@@ -434,37 +662,41 @@ class RequestManagerApi extends DolibarrApi {
 
         $resql = self::$db->query($sql);
         if ($resql) {
+            require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
             while ($obj = self::$db->fetch_object($resql)) {
-                $requestmanager = new RequestManager(self::$db);
-                if ($requestmanager->fetch($obj->rowid) > 0) {
-                    $obj_ret[] = $this->_cleanObjectDatas($requestmanager);
+                $event = new ActionComm(self::$db);
+                if ($event->fetch($obj->rowid) > 0) {
+                    $obj_ret[] = $this->_cleanEventObjectDatas($event);
                 }
             }
 
             self::$db->free($resql);
         } else {
-            throw new RestException(500, "Error when retrieve request list", self::$db->lasterror());
+            throw new RestException(500, "Error when retrieve request events list", self::$db->lasterror());
         }
 
         return $obj_ret;*/
     }
 
     /**
-     *  Add a line to the given request
+     *  Set request status
      *
-     * @url	POST {id}/lines
+     * @url	POST {id}/set_status
      *
-     * @param   int     $id                 Id of the request
-     * @param   array   $request_data       Request line data
+     * @param   int     $id             ID of the request
+     * @param   int     $status_id      New status (ID of a status defined into the dictionary)
+     * @param   int     $status_type    New status type (0=Initial, 1=In progress, 2=Resolved, 3=Closed)
+     * @param   int     $no_trigger     1=Does not execute triggers, 0= execute triggers
+     * @param   int     $force_reload   1=Force reload the cache of the list of status
      *
-     * @return  int                         ID of the request line created
+     * @return  object                  Request data updated
      *
-     * @throws  401     RestException       Insufficient rights
-     * @throws  404     RestException       Request not found
-     * @throws  500     RestException       Error when retrieve request
-     * @throws  500     RestException       Error while creating the request line
+     * @throws  401     RestException   Insufficient rights
+     * @throws  404     RestException   Request not found
+     * @throws  500     RestException   Error when retrieve request
+     * @throws  500     RestException   Error while setting the request status
      */
-    function postLine($id, $request_data = null)
+    function setStatus($id, $status_id=0, $status_type=-1, $no_trigger=0, $force_reload=0)
     {
         if (!DolibarrApiAccess::$user->rights->requestmanager->creer) {
             throw new RestException(401, "Insufficient rights");
@@ -478,163 +710,12 @@ class RequestManagerApi extends DolibarrApi {
             throw new RestException(500, "Error when retrieve request", $requestmanager->getErrors());
         }
 
-        $request_data = (object)$request_data;
-
-        $updateRes = $requestmanager->addline(
-            $request_data->desc,
-            $request_data->pu_ht,
-            $request_data->qty,
-            $request_data->tva_tx,
-            $request_data->localtax1_tx,
-            $request_data->localtax2_tx,
-            $request_data->idprod,
-            $request_data->remise_percent,
-            $request_data->info_bits,
-            0,
-            $request_data->price_base_type,
-            $request_data->pu_ttc,
-            $request_data->date_start,
-            $request_data->date_end,
-            -1,
-            0,
-            $request_data->fk_parent_line,
-            $request_data->fournprice,
-            $request_data->buyingprice,
-            $request_data->label,
-            $request_data->array_options,
-            $request_data->fk_unit,
-            '',
-            0,
-            $request_data->pu_ht_devise
-        );
-
-        if ($updateRes > 0) {
-            return $updateRes;
-        } else {
-            throw new RestException(500, "Error while creating the request line", $requestmanager->getErrors());
-        }
-    }
-
-    /**
-     *  Update a given request line
-     *
-     * @url	PUT {id}/lines/{line_id}
-     *
-     * @param   int     $id                 Id of request to update
-     * @param   int     $line_id            Id of line to update
-     * @param   array   $request_data       Request line data
-     *
-     * @return  object                      Request data with line updated
-     *
-     * @throws  401     RestException       Insufficient rights
-     * @throws  404     RestException       Request not found
-     * @throws  404     RestException       Request line not found
-     * @throws  500     RestException       Error when retrieve request
-     * @throws  500     RestException       Error when retrieve request line
-     * @throws  500     RestException       Error while updating the request line
-     */
-    function putLine($id, $line_id, $request_data = null)
-    {
-        if (!DolibarrApiAccess::$user->rights->requestmanager->creer) {
-            throw new RestException(401, "Insufficient rights");
-        }
-
-        $requestmanager = new RequestManager(self::$db);
-        $result = $requestmanager->fetch($id);
-        if ($result == 0) {
-            throw new RestException(404, "Request not found");
-        } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve request", $requestmanager->getErrors());
-        }
-
-        $requestline = new RequestManagerLine(self::$db);
-        $result = $requestline->fetch($line_id);
-        if ($result == 0 || ($result > 0 && $requestline->fk_requestmanager != $id)) {
-            throw new RestException(404, "Request line not found");
-        } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve request line", $requestmanager->getErrors());
-        }
-
-        $request_data = (object)$request_data;
-
-        $updateRes = $requestmanager->updateline(
-            $line_id,
-            isset($request_data->desc) ? $request_data->desc : $requestline->desc,
-            isset($request_data->pu_ht) ? $request_data->pu_ht : $requestline->pu_ht,
-            isset($request_data->qty) ? $request_data->qty : $requestline->qty,
-            isset($request_data->remise_percent) ? $request_data->remise_percent : $requestline->remise_percent,
-            isset($request_data->tva_tx) ? $request_data->tva_tx : $requestline->tva_tx,
-            isset($request_data->localtax1_tx) ? $request_data->localtax1_tx : $requestline->localtax1_tx,
-            isset($request_data->localtax2_tx) ? $request_data->localtax2_tx : $requestline->localtax2_tx,
-            'HT',
-            isset($request_data->info_bits) ? $request_data->info_bits : $requestline->info_bits,
-            isset($request_data->date_start) ? $request_data->date_start : $requestline->date_start,
-            isset($request_data->date_end) ? $request_data->date_end : $requestline->date_end,
-            isset($request_data->type) ? $request_data->type : $requestline->type,
-            isset($request_data->fk_parent_line) ? $request_data->fk_parent_line : $requestline->fk_parent_line,
-            0,
-            isset($request_data->fournprice) ? $request_data->fournprice : $requestline->fournprice,
-            isset($request_data->buyingprice) ? $request_data->buyingprice : $requestline->buyingprice,
-            isset($request_data->label) ? $request_data->label : $requestline->label,
-            isset($request_data->special_code) ? $request_data->special_code : $requestline->special_code,
-            isset($request_data->array_options) ? $request_data->array_options : $requestline->array_options,
-            isset($request_data->fk_unit) ? $request_data->fk_unit : $requestline->fk_unit,
-            isset($request_data->pu_ht_devise) ? $request_data->pu_ht_devise : $requestline->pu_ht_devise
-        );
-
-        if ($updateRes > 0) {
+        if ($requestmanager->set_status($status_id, $status_type, DolibarrApiAccess::$user, $no_trigger, $force_reload) > 0) {
             return $this->get($id);
         } else {
-            throw new RestException(500, "Error while updating the request line", $requestmanager->getErrors());
+            throw new RestException(500, "Error while setting the request status", $requestmanager->getErrors());
         }
     }
-
-    /**
-     *  Delete a given request line
-     *
-     * @url	DELETE {id}/lines/{line_id}
-     *
-     * @param   int     $id                 Id of request to delete
-     * @param   int     $line_id            Id of line to delete
-     *
-     * @return  object                      Request data with line deleted
-     *
-     * @throws  401     RestException       Insufficient rights
-     * @throws  404     RestException       Request not found
-     * @throws  404     RestException       Request line not found
-     * @throws  500     RestException       Error when retrieve request
-     * @throws  500     RestException       Error when retrieve request line
-     * @throws  500     RestException       Error while deleting the request line
-     */
-    function deleteLine($id, $line_id)
-    {
-        if (!DolibarrApiAccess::$user->rights->requestmanager->creer) {
-            throw new RestException(401, "Insufficient rights");
-        }
-
-        $requestmanager = new RequestManager(self::$db);
-        $result = $requestmanager->fetch($id);
-        if ($result == 0) {
-            throw new RestException(404, "Request not found");
-        } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve request", $requestmanager->getErrors());
-        }
-
-        $requestline = new RequestManagerLine(self::$db);
-        $result = $requestline->fetch($line_id);
-        if ($result == 0 || ($result > 0 && $requestline->fk_requestmanager != $id)) {
-            throw new RestException(404, "Request line not found");
-        } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve request line", $requestmanager->getErrors());
-        }
-
-        if ($requestmanager->deleteline($line_id) > 0) {
-            return $this->get($id);
-        } else {
-            throw new RestException(500, "Error while deleting the request line", $requestmanager->getErrors());
-        }
-    }
-
     /**
      *  Add an event following a phone call begin
      *
@@ -914,6 +995,111 @@ class RequestManagerApi extends DolibarrApi {
         unset($object->firstname);
         unset($object->civility_id);
         unset($object->address);
+
+        // If object has lines, remove $db property
+        if (isset($object->lines) && is_array($object->lines) && count($object->lines) > 0) {
+            $nboflines = count($object->lines);
+            for ($i = 0; $i < $nboflines; $i++) {
+                $object->lines[$i] = $this->_cleanLineObjectDatas($object->lines[$i]);
+            }
+        }
+
+        return $object;
+    }
+
+    /**
+     *  Clean sensible line object data
+     *
+     * @param   object          $object         Object to clean
+     *
+     * @return  object|array                    Array of cleaned object properties
+     */
+    function _cleanLineObjectDatas($object)
+    {
+        unset($object->contact);
+        unset($object->contact_id);
+        unset($object->country);
+        unset($object->country_id);
+        unset($object->country_code);
+        unset($object->mode_reglement_id);
+        unset($object->mode_reglement_code);
+        unset($object->mode_reglement);
+        unset($object->cond_reglement_id);
+        unset($object->cond_reglement_code);
+        unset($object->cond_reglement);
+        unset($object->fk_delivery_address);
+        unset($object->fk_projet);
+        unset($object->thirdparty);
+        unset($object->user);
+        unset($object->model_pdf);
+        unset($object->modelpdf);
+        unset($object->note_public);
+        unset($object->note_private);
+        unset($object->fk_incoterms);
+        unset($object->libelle_incoterms);
+        unset($object->location_incoterms);
+        unset($object->name);
+        unset($object->lastname);
+        unset($object->firstname);
+        unset($object->civility_id);
+        unset($object->fk_multicurrency);
+        unset($object->multicurrency_code);
+        unset($object->shipping_method_id);
+
+        return $object;
+    }
+
+    /**
+     *  Clean sensible event object data
+     *
+     * @param   object          $object         Object to clean
+     *
+     * @return  object|array                    Array of cleaned object properties
+     */
+    function _cleanEventObjectDatas($object)
+    {
+        $object = parent::_cleanObjectDatas($object);
+
+        unset($object->usermod);
+	unset($object->libelle);
+	unset($object->array_options);
+	unset($object->context);
+	unset($object->canvas);
+	unset($object->contact);
+	unset($object->contact_id);
+	unset($object->thirdparty);
+	unset($object->user);
+	unset($object->origin);
+	unset($object->origin_id);
+	unset($object->ref_ext);
+	unset($object->statut);
+	unset($object->country);
+	unset($object->country_id);
+	unset($object->country_code);
+	unset($object->barcode_type);
+	unset($object->barcode_type_code);
+	unset($object->barcode_type_label);
+	unset($object->barcode_type_coder);
+	unset($object->mode_reglement_id);
+	unset($object->cond_reglement_id);
+	unset($object->cond_reglement);
+	unset($object->fk_delivery_address);
+	unset($object->shipping_method_id);
+	unset($object->fk_account);
+	unset($object->total_ht);
+	unset($object->total_tva);
+	unset($object->total_localtax1);
+	unset($object->total_localtax2);
+	unset($object->total_ttc);
+	unset($object->fk_incoterms);
+	unset($object->libelle_incoterms);
+	unset($object->location_incoterms);
+	unset($object->name);
+	unset($object->lastname);
+	unset($object->firstname);
+	unset($object->civility_id);
+	unset($object->contact);
+	unset($object->societe);
 
         return $object;
     }
