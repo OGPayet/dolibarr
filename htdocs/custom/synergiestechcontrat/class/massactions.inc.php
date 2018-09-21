@@ -158,7 +158,7 @@ if (!$error && $massaction == 'facture') {
 					// most recent facturerec
 					foreach ($objecttmp->linkedObjects["facturerec"] as $idref => $obj) {
 						$desc = '';
-						if (($startdate < $now && $now < $enddate) || ($tacitagreement && $now > $enddate)) { // le contrat est en cour
+						if (($startdate <= $now && $now <= $enddate) || ($tacitagreement && $now > $enddate)) { // le contrat est en cour
 							$fac          = new Facture($db);
 							$fac->fac_rec = $obj->id;
 							$fac->socid   = $fac->fk_soc  = $obj->socid;
@@ -196,6 +196,7 @@ if (!$error && $massaction == 'facture') {
 
 								//Renouvellement contrat
 								if($year_already_invoice < date('Y',$lastdayofperiod)) {
+									$old_ref = $objecttmp->ref;
 									if(strstr($objecttmp->ref, '/')){
 										$last_number = substr($objecttmp->ref, -1);
 										$last_number++;
@@ -203,6 +204,7 @@ if (!$error && $massaction == 'facture') {
 									} else {
 										$objecttmp->ref = $objecttmp->ref."/1";
 									}
+									rename($conf->contrat->dir_output.'/'.$old_ref.'/',$conf->contrat->dir_output.'/'.$object->ref.'/');
 									$objecttmp->update();
 
 									//Ajout de l'evenement
@@ -414,7 +416,7 @@ if (!$error && $massaction == 'facturerec') {
 
             $result = 1;
 
-			if ($startdate < $now && $now < $enddate || $tacitagreement && $now > $enddate) { // le contrat est en cour
+			if ($startdate <= $now && $now <= $enddate || $tacitagreement && $now > $enddate) { // le contrat est en cour
 
 				//Création de la facture brouillon permettant de faire la facture modèle
 				$facture                    = new Facture($db);
@@ -716,7 +718,7 @@ if (!$error && $massaction == 'factureanterieur') {
 						}
 					}
 					if($already_invoice == false) {
-						if ($startdate < $now && $now < $enddate || $tacitagreement && $now > $enddate) { // le contrat est en cour
+						if ($startdate <= $now && $now <= $enddate || $tacitagreement && $now > $enddate) { // le contrat est en cour
 							//Création de la facture brouillon permettant de faire la facture modèle
 							$facture                    = new Facture($db);
 							$cl                         = new Client($db);
