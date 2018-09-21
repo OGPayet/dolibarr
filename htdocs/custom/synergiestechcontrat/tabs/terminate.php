@@ -107,8 +107,6 @@ if($action == "terminate") {
 			$object->update();
 		}
 
-		$object->cloture($user);
-
 		require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
 		require_once DOL_DOCUMENT_ROOT.'/comm/action/class/cactioncomm.class.php';
 
