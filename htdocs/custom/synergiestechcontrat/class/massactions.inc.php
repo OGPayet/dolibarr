@@ -345,58 +345,31 @@ if (!$error && $massaction == 'facturerec') {
 			if(!empty($objecttmp->array_options['options_realdate'])) {
 				$tacitagreement = 0;
 			}
-            $invoicetype            = $objecttmp->array_options['options_invoicetype'];
-			if($already_invoice == false) { //Si c'est la première fois que l'on créé un model alors on prend la période P
-				$firstdaysofperiods     = array(
-					1 => strtotime(date('Y-m-01 00:00:00')), //month
-					2 => firstDayOf(3), // trimestre
-					3 => firstDayOf(6), // semestre
-					4 => strtotime(date('Y-01-01 00:00:00')) //year
-				);
-				$lastdaysofperiods = array(
-					1 => firstDayOf(1, 1) - $oneday, //month
-					2 => firstDayOf(3, 1) - $oneday, // trimestre
-					3 => firstDayOf(6, 1) - $oneday, // semestre
-					4 => firstDayOf(12, 1) - $oneday //year
-				);
-				$firstdaysofnextperiods = array(
-					1 => firstDayOf(1, 1), //month
-					2 => firstDayOf(3, 1), // trimestre
-					3 => firstDayOf(6, 1), // semestre
-					4 => firstDayOf(12, 1) //year
-				);
-				$lastdaysofnextperiods  = array(
-					1 => firstDayOf(1, 2) - $oneday, //month
-					2 => firstDayOf(3, 2) - $oneday, // trimestre
-					3 => firstDayOf(6, 2) - $oneday, // semestre
-					4 => firstDayOf(12, 2) - $oneday //year
-				);
-			} else if($already_invoice == true) {  //Si ce n'est pas la première fois que l'on créé un model alors on prend la période P+1
-				$firstdaysofperiods     = array(
-					1 => firstDayOf(1, 1), //month
-					2 => firstDayOf(3, 1), // trimestre
-					3 => firstDayOf(6, 1), // semestre
-					4 => firstDayOf(12, 1) //year
-				);
-				$lastdaysofperiods = array(
-					1 => firstDayOf(1, 2) - $oneday, //month
-					2 => firstDayOf(3, 2) - $oneday, // trimestre
-					3 => firstDayOf(6, 2) - $oneday, // semestre
-					4 => firstDayOf(12, 2) - $oneday //year
-				);
-				$firstdaysofnextperiods = array(
-					1 => firstDayOf(1, 2), //month
-					2 => firstDayOf(3, 2), // trimestre
-					3 => firstDayOf(6, 2), // semestre
-					4 => firstDayOf(12, 2) //year
-				);
-				$lastdaysofnextperiods  = array(
-					1 => firstDayOf(1, 3) - $oneday, //month
-					2 => firstDayOf(3, 3) - $oneday, // trimestre
-					3 => firstDayOf(6, 3) - $oneday, // semestre
-					4 => firstDayOf(12, 3) - $oneday //year
-				);
-			}
+			$invoicetype            = $objecttmp->array_options['options_invoicetype'];
+			$firstdaysofperiods     = array(
+				1 => strtotime(date('Y-m-01 00:00:00')), //month
+				2 => firstDayOf(3), // trimestre
+				3 => firstDayOf(6), // semestre
+				4 => strtotime(date('Y-01-01 00:00:00')) //year
+			);
+			$lastdaysofperiods = array(
+				1 => firstDayOf(1, 1) - $oneday, //month
+				2 => firstDayOf(3, 1) - $oneday, // trimestre
+				3 => firstDayOf(6, 1) - $oneday, // semestre
+				4 => firstDayOf(12, 1) - $oneday //year
+			);
+			$firstdaysofnextperiods = array(
+				1 => firstDayOf(1, 1), //month
+				2 => firstDayOf(3, 1), // trimestre
+				3 => firstDayOf(6, 1), // semestre
+				4 => firstDayOf(12, 1) //year
+			);
+			$lastdaysofnextperiods  = array(
+				1 => firstDayOf(1, 2) - $oneday, //month
+				2 => firstDayOf(3, 2) - $oneday, // trimestre
+				3 => firstDayOf(6, 2) - $oneday, // semestre
+				4 => firstDayOf(12, 2) - $oneday //year
+			);
             $periodsetter           = $objecttmp->array_options['options_invoicedates'];
             $firstdayofperiod       = $firstdaysofperiods[$periodsetter];
             $lastdayofperiod        = $lastdaysofperiods[$periodsetter];
