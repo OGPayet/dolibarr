@@ -66,10 +66,12 @@ if (!$error && $massaction == 'facture') {
             $startdate              = strtotime($objecttmp->array_options['options_startdate']);
             $duration               = $objecttmp->array_options['options_duration'];
             $enddate                = strtotime($objecttmp->array_options['options_startdate']." +$duration month");
+			//Si le contrat est résilié la date de fin de contrat devient la date de résiliation
 			if(!empty($objecttmp->array_options['options_realdate']) && strtotime($objecttmp->array_options['options_realdate']) < $enddate) {
 				$enddate = strtotime($objecttmp->array_options['options_realdate']);
 			}
             $tacitagreement         = $objecttmp->array_options['options_tacitagreement'];
+			//Si le contrat est résilié la reconduction tacite passe à 0
 			if(!empty($objecttmp->array_options['options_realdate'])) {
 				$tacitagreement = 0;
 			}
@@ -80,7 +82,7 @@ if (!$error && $massaction == 'facture') {
 
 			//Check if this period is not already invoiced
 			$already_invoice = false;
-			$year_already_invoice = 0;
+			$year_already_invoice = date("Y",$startdate); //Cette variable permettra de stocker la dernière année facturée pour le renouvellement
 			if (isset($objecttmp->linkedObjects["facture"])) { // delete facture rec
                 //Suppression des factures modèles
                 foreach ($objecttmp->linkedObjects["facture"] as $obj) {
@@ -123,7 +125,7 @@ if (!$error && $massaction == 'facture') {
             $lastdayofnextperiod    = $lastdaysofnextperiods[$periodsetter];
             $now = strtotime("now");
 
-            if ($invoicetype == '1' && $already_invoice == true) { //on facture la p?riode suivante
+            if ($invoicetype == '1' && $already_invoice == true) { //on facture la p?riode suivante si le contrat est à échoir et a déjà était facturé
                 $firstdayofperiod = $firstdayofnextperiod;
                 $lastdayofperiod  = $lastdayofnextperiod;
 				$daysinperiod     = intval($lastdayofperiod - $firstdayofperiod) / $oneday;
@@ -132,7 +134,7 @@ if (!$error && $massaction == 'facture') {
                 $now = strtotime("now");
 			}
             $daysinperiod                 = ($lastdayofperiod - $firstdayofperiod) / $oneday;
-            //revalorisation
+            //Préparation de la revalorisation
             $prohibitdecrease             = $objecttmp->array_options['options_prohibitdecrease'];
             $dates_ravalo                 = array(
                 1 => get_next_birthday($objecttmp->array_options['options_startdate']),
@@ -151,7 +153,7 @@ if (!$error && $massaction == 'facture') {
 
             $result = 1;
 
-			if($already_invoice == false) {
+			if($already_invoice == false) { //Si le contrat n'a jamais été facturé
 				if (isset($objecttmp->linkedObjects["facturerec"])) {
 					// most recent facturerec
 					foreach ($objecttmp->linkedObjects["facturerec"] as $idref => $obj) {
@@ -179,44 +181,8 @@ if (!$error && $massaction == 'facture') {
 								$ratio *= 1 - ($startdate - $lastdayofperiod) / $oneday / $daysinperiod;
 							} // end prorata fin
 
-							//Inutile de revaloriser, la revalorisation est faite lors de la génération d'une facture modèle
-							/*if ($lastdayofperiod > $revalorisationactivationdate && $lastdayofperiod > $revalorisationdate) { // on doit revaloriser
-								//$nbjouravant          = max($revalorisationactivationdate - $firstdayofperiod, 0) / $oneday;
-								if ($revalorisationactivationdate == 0) {
-									$revalorisationactivationdate = $firstdayofperiod;
-								}
-								$nbdaysafter          = max($lastdayofperiod - $revalorisationactivationdate, 0) / $oneday;
-								//P1 = P0 x (S1 / S0)
-								$montantrevalorisable = $nbdaysafter / $daysinperiod * ($initialvalue - $fixedamount) / $invoicedates; //P0
-								$indice0              = getIndice($reindexmethod, null, null, $oldindicemonth); //S0
-								$indice1              = getIndice($reindexmethod, null, $newindicemonth);  //S1
-								if ($indice0 === false) {
-									setEventMessages($langs->trans("NoIndice0", $objecttmp->getNomUrl(1)), 0, 'errors');
-									$error++; // die('indice0 OR indice1 not provided');
-								}
-								if ($indice1 === false) {
-									setEventMessages($langs->trans("NoIndice1", $objecttmp->getNomUrl(1))." $reindexmethod ".$newindicemonth.'/'.date('Y'), 0, 'errors');
-									$error++;  //die('indice0 OR indice1 not provided');
-								}
-								if ($indice0->year_indice >= $indice1->year_indice || $indice0->year_indice >= $indice1->year_indice && $indice0->month_indice >= $indice1->month_indice) { // pas de taux dans le futur
-									$indice0->indice = 1;
-									$indice1->indice = 1;
-								} else {
-									setEventMessages($objecttmp->getNomUrl(1)." Indice0: $indice0->indice $indice0->month_indice/$indice0->year_indice , Indice1: $indice1->indice $indice1->month_indice/$indice1->year_indice",
-										null, 'mesgs');
-								}
-								if ($prohibitdecrease == '1' && $indice1->indice < $indice0->indice) { // pas de dépression
-									$indice0->indice = 1;
-									$indice1->indice = 1;
-								}
-								//P1 = P0 x (S1 / S0)
-								$majoration += $montantrevalorisable * $indice1->indice / $indice0->indice - $montantrevalorisable;
-	//                            var_dump($majoration, $montantrevalorisable, $indice1, $indice0, $montantrevalorisable);
-	//                            die($ratio.' '.$nbdaysafter.' '.$montantrevalorisable.' '.$majoration);
-							} // end revalorisation*/
 							if (!$error) { // on met ? jour la facture
 								foreach ($fac->lines as &$line) {
-									//print '<pre>';var_dump($fac->tva_tx);die();
 									$fac->updateline(
 										$line->id, $desc, $line->multicurrency_subprice * $ratio + $majoration, $line->qty, $line->remise_percent, $line->date_start, $line->date_end,
 										$line->tva_tx
@@ -370,10 +336,12 @@ if (!$error && $massaction == 'facturerec') {
             $startdate              = strtotime($objecttmp->array_options['options_startdate']);
             $duration               = $objecttmp->array_options['options_duration'];
             $enddate                = strtotime($objecttmp->array_options['options_startdate']." +$duration month");
+			//Si le contrat est résilié la date de fin de contrat devient la date de résiliation
 			if(!empty($objecttmp->array_options['options_realdate']) && strtotime($objecttmp->array_options['options_realdate']) < $enddate) {
 				$enddate = strtotime($objecttmp->array_options['options_realdate']);
 			}
             $tacitagreement         = $objecttmp->array_options['options_tacitagreement'];
+			//Si le contrat est résilié la reconduction tacite passe à 0
 			if(!empty($objecttmp->array_options['options_realdate'])) {
 				$tacitagreement = 0;
 			}
@@ -436,7 +404,7 @@ if (!$error && $massaction == 'facturerec') {
             $lastdayofnextperiod    = $lastdaysofnextperiods[$periodsetter];
             $now = strtotime("now");
 
-            if ($invoicetype == '1' && $already_invoice == true) { //on facture la p?riode suivante
+            if ($invoicetype == '1' && $already_invoice == true) { //on facture la p?riode suivante si le contrat est à échoir et a déjà était facturé
                 $firstdayofperiod = $firstdayofnextperiod;
                 $lastdayofperiod  = $lastdayofnextperiod;
 				$daysinperiod     = intval($lastdayofperiod - $firstdayofperiod) / $oneday;
@@ -676,10 +644,12 @@ if (!$error && $massaction == 'factureanterieur') {
 				$startdate              = strtotime($objecttmp->array_options['options_startdate']);
 				$duration               = $objecttmp->array_options['options_duration'];
 				$enddate                = strtotime($objecttmp->array_options['options_startdate']." +$duration month");
+				//Si le contrat est résilié la date de fin de contrat devient la date de résiliation
 				if(!empty($objecttmp->array_options['options_realdate']) && strtotime($objecttmp->array_options['options_realdate']) < $enddate) {
 					$enddate = strtotime($objecttmp->array_options['options_realdate']);
 				}
 				$tacitagreement         = $objecttmp->array_options['options_tacitagreement'];
+				//Si le contrat est résilié la reconduction tacite passe à 0
 				if(!empty($objecttmp->array_options['options_realdate'])) {
 					$tacitagreement = 0;
 				}
