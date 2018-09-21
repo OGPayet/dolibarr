@@ -128,7 +128,7 @@ if (!$error && $massaction == 'facture') {
             if ($invoicetype == '1') { //on facture la p?riode suivante si le contrat est à échoir
                 $firstdayofperiod = $firstdayofnextperiod;
                 $lastdayofperiod  = $lastdayofnextperiod;
-				$daysinperiod     = intval($lastdayofperiod - $firstdayofperiod) / $oneday;
+				$daysinperiod     = intval(intval($lastdayofperiod - $firstdayofperiod) / $oneday);
 				$now = strtotime("+$daysinperiod days",$now);
 			} else {
                 $now = strtotime("now");
@@ -380,7 +380,7 @@ if (!$error && $massaction == 'facturerec') {
             if ($invoicetype == '1') { //on facture la p?riode suivante si le contrat est à échoir
                 $firstdayofperiod = $firstdayofnextperiod;
                 $lastdayofperiod  = $lastdayofnextperiod;
-				$daysinperiod     = intval($lastdayofperiod - $firstdayofperiod) / $oneday;
+				$daysinperiod     = intval(intval($lastdayofperiod - $firstdayofperiod) / $oneday);
 				$now = strtotime("+$daysinperiod days",$now);
 			} else {
                 $now = strtotime("now");
@@ -669,7 +669,7 @@ if (!$error && $massaction == 'factureanterieur') {
 					if ($invoicetype == '1') { //on facture la p?riode suivante
 						$firstdayofperiod = $firstdayofnextperiod;
 						$lastdayofperiod  = $lastdayofnextperiod;
-						$daysinperiod     = intval($lastdayofperiod - $firstdayofperiod) / $oneday;
+						$daysinperiod     = intval(intval($lastdayofperiod - $firstdayofperiod) / $oneday);
 						$now = strtotime("+$daysinperiod days",$now);
 					}
 					$daysinperiod                 = ($lastdayofperiod - $firstdayofperiod) / $oneday;
