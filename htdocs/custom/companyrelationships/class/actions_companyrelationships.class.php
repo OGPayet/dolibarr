@@ -77,7 +77,8 @@ class ActionsCompanyRelationships
 
         $contexts = explode(':', $parameters['context']);
 
-        if (in_array('propalcard', $contexts)) {
+        if (in_array('companyrelationshipscard', $contexts)) {
+            /*
             if ($action == 'add' && $user->rights->propal->creer) {
                 require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
 
@@ -90,11 +91,8 @@ class ActionsCompanyRelationships
                 // Fill array 'array_options' with data from add form
                 $ret = $extrafields->setOptionalsFromPost($extralabels, $object);
                 $fk_soc_benefactor = $object->array_options['options_companyrelationships_fk_soc_benefactor'];
-
-
-                // create company relationships
-
             }
+            */
         }
 
         return 0;
