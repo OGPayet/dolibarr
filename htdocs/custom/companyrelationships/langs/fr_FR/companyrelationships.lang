@@ -56,11 +56,13 @@ CompanyRelationshipsConfirmDeleteCompanyRelationships = Êtes-vous sûr de voulo
 ############################################################
 ### Company Relationships Availability
 ############################################################
-CompanyRelationshipsID                             = ID de la relation tiers
-CompanyRelationshipsPublicSpaceAvailabilityID      = ID de la ligne du dictionnaire des mises à disposition sur l'espace public
-CompanyRelationshipsPublicSpaceAvailabilityElement = Mise à disposition pour %s
+CompanyRelationshipsID                                = ID de la relation tiers
+CompanyRelationshipsPublicSpaceAvailabilityID         = ID de la ligne du dictionnaire des mises à disposition sur l'espace public
+CompanyRelationshipsPublicSpaceAvailabilityPrincipal  = Mise à disposition pour le Donneur d'ordres
+CompanyRelationshipsPublicSpaceAvailabilityBenefactor = Mise à disposition pour le Bénéficiaire
 
 ############################################################
 ### Errors
 ############################################################
 CompanyRelationshipsErrorPublicSpaceAvailabilityDictionaryNoLines = Aucune ligne dans le dictionnaire des mises à disposition sur l'espace public
+CompanyRelationshipsErrorPublicSpaceAvailabilityElement           = Erreur lors du chargement des mises à disposition

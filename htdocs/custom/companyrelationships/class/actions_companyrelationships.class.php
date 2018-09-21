@@ -61,8 +61,9 @@ class ActionsCompanyRelationships
         $this->db = $db;
     }
 
+
     /**
-     * Overloading the formConfirm function : replacing the parent's function with the one below
+     * Overloading the doActions function : replacing the parent's function with the one below
      *
      * @param   array()         $parameters     Hook metadatas (context, etc...)
      * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
@@ -70,59 +71,35 @@ class ActionsCompanyRelationships
      * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
      * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
      */
-    function formConfirm($parameters, &$object, &$action, $hookmanager)
+    function doActions($parameters, &$object, &$action, $hookmanager)
     {
-        global $conf, $form, $langs, $user;
+        global $conf, $langs, $user;
 
-        if (!empty($conf->synergiestech->enabled)) {
-            $contexts = explode(':', $parameters['context']);
+        $contexts = explode(':', $parameters['context']);
 
-            if (in_array('companyremationshipscard', $contexts)) {
-/*                if ($action == 'addline' && $user->rights->requestmanager->creer) {
-                    $langs->load('synergiestech@synergiestech');
+        if (in_array('propalcard', $contexts)) {
+            if ($action == 'add' && $user->rights->propal->creer) {
+                require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
 
-                    // Create the confirm form
-                    $predef = '';
-                    $inputList = array();
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'product_desc', 'value' => GETPOST('dp_desc'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'price_ht', 'value' => GETPOST('price_ht'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'multicurrency_price_ht', 'value' => GETPOST('multicurrency_price_ht'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'prod_entry_mode', 'value' => GETPOST('prod_entry_mode'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'tva_tx', 'value' => GETPOST('tva_tx'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'idprod', 'value' => GETPOST('idprod'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'qty' . $predef, 'value' => GETPOST('qty' . $predef));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'remise_percent' . $predef, 'value' => GETPOST('remise_percent' . $predef));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'type', 'value' => GETPOST('type'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'date_start' . $predef . 'hour', 'value' => GETPOST('date_start' . $predef . 'hour'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'date_start' . $predef . 'min', 'value' => GETPOST('date_start' . $predef . 'min'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'date_start' . $predef . 'sec', 'value' => GETPOST('date_start' . $predef . 'sec'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'date_start' . $predef . 'month', 'value' => GETPOST('date_start' . $predef . 'month'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'date_start' . $predef . 'day', 'value' => GETPOST('date_start' . $predef . 'day'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'date_start' . $predef . 'year', 'value' => GETPOST('date_start' . $predef . 'year'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'date_end' . $predef . 'hour', 'value' => GETPOST('date_end' . $predef . 'hour'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'date_end' . $predef . 'min', 'value' => GETPOST('date_end' . $predef . 'min'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'date_end' . $predef . 'sec', 'value' => GETPOST('date_end' . $predef . 'sec'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'date_end' . $predef . 'month', 'value' => GETPOST('date_end' . $predef . 'month'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'date_end' . $predef . 'day', 'value' => GETPOST('date_end' . $predef . 'day'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'date_end' . $predef . 'year', 'value' => GETPOST('date_end' . $predef . 'year'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'price_base_type', 'value' => GETPOST('price_base_type'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'product_label', 'value' => GETPOST('product_label'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'price_ttc', 'value' => GETPOST('price_ttc'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'units', 'value' => GETPOST('units'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'fournprice' . $predef, 'value' => GETPOST('fournprice' . $predef));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'buying_price' . $predef, 'value' => GETPOST('buying_price' . $predef));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'fk_parent_line', 'value' => GETPOST('fk_parent_line'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'lang_id', 'value' => GETPOST('lang_id'));
+                $socid      = GETPOST('socid', 'int');
+                $backtopage	= GETPOST('backtopage','alpha');
 
-                    $this->resprints = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('SynergiesTechProductOffFormula'), $langs->trans('SynergiesTechConfirmProductOffFormula'), 'addline', $inputList, '', 1);
+                $extrafields = new ExtraFields($this->db);
+                // fetch optionals attributes and labels
+                $extralabels = $extrafields->fetch_name_optionals_label($object->table_element);
+                // Fill array 'array_options' with data from add form
+                $ret = $extrafields->setOptionalsFromPost($extralabels, $object);
+                $fk_soc_benefactor = $object->array_options['options_companyrelationships_fk_soc_benefactor'];
 
-                    return 1;
-                }*/
+
+                // create company relationships
+
             }
         }
 
         return 0;
     }
+
 
     /**
      * Overloading the formObjectOptions function : replacing the parent's function with the one below
@@ -135,7 +112,7 @@ class ActionsCompanyRelationships
      */
     function formObjectOptions($parameters, &$object, &$action, $hookmanager)
     {
-        global $db, $langs;
+        global $db, $langs, $user;
 
         $contexts = explode(':', $parameters['context']);
 
@@ -149,19 +126,40 @@ class ActionsCompanyRelationships
 
             $events = array();
             $events[] = array('action' => 'getBenefactor', 'url' => dol_buildpath('/companyrelationships/ajax/benefactor.php', 1), 'htmlname' => 'options_companyrelationships_fk_soc_benefactor');
-            //$events[] = array('action' => 'getPublicSpaceAvailability', 'url' => dol_buildpath('/companyrelationships/ajax/publicspaceavailability.php', 1), 'htmlname' => 'options_companyrelationships_fk_soc_benefactor');
             $formcompanyrelationships = new FormCompanyRelationships($this->db);
             $out .= $formcompanyrelationships->add_select_events('socid', $events);
 
             // company relationships availability for this element
-            $out .= '<tr>';
-            $out .= '<td>' . $langs->transnoentities('CompanyRelationshipsPublicSpaceAvailabilityElement', $langs->trans('CompanyRelationshipsPrincipalCompany')) . '</td>';
-            $out .= '<td>' . '<input type="checkbox" id="companyrelationshipsavailability_element_principal" name="companyrelationshipsavailability_element_principal" value="1" />' . '</td>';
-            $out .= '</tr>';
-            $out .= '<tr>';
-            $out .= '<td>' . $langs->transnoentities('CompanyRelationshipsPublicSpaceAvailabilityElement', $langs->trans('CompanyRelationshipsBenefactorCompany')) . '</td>';
-            $out .= '<td>' . '<input type="checkbox" id="companyrelationshipsavailability_element_benefactor" name="companyrelationshipsavailability_element_benefactor" value="1" />' . '</td>';
-            $out .= '</tr>';
+            if ($user->rights->companyrelationships->update_md->element) {
+                $out .= '<script type="text/javascript" language="javascript">';
+                $out .= 'jQuery(document).ready(function(){';
+                $out .= '   jQuery("#options_companyrelationships_fk_soc_benefactor").change(function(){';
+                $out .= '       jQuery.ajax({';
+                $out .= '           data: {';
+                $out .= '           socid: jQuery("#socid").val(),';
+                $out .= '           socid_benefactor: jQuery("#options_companyrelationships_fk_soc_benefactor").val(),';
+                $out .= '           element: "' . $object->element . '"';
+                $out .= '           },';
+                $out .= '           dataType: "json",';
+                $out .= '           method: "POST",';
+                $out .= '           url: "' . dol_buildpath('/companyrelationships/ajax/publicspaceavailability.php', 1) . '",';
+                $out .= '           success: function(data){';
+                $out .= '               if (data.error > 0) {';
+                $out .= '                   console.error("Error : ", "' . dol_buildpath('/companyrelationships/class/actions_companyrelationships.class.php', 1) . '", "in formObjectOptions() on #options_companyrelationships_fk_soc_benefactor.change()");';
+                $out .= '               } else {';
+                $out .= '                   jQuery("input[name=options_companyrelationships_availability_principal]").prop("checked", data.principal);';
+                $out .= '                   jQuery("input[name=options_companyrelationships_availability_benefactor]").prop("checked", data.benefactor);';
+                $out .= '               }';
+                $out .= '           },';
+                $out .= '           error: function(){';
+                $out .= '               console.error("Error : ", "' . dol_buildpath('/companyrelationships/class/actions_companyrelationships.class.php', 1) . '", "in formObjectOptions() on #options_companyrelationships_fk_soc_benefactor.change()");';
+                $out .= '           }';
+                $out .= '       });';
+                $out .= '   });';
+                $out .= '});';
+                $out .= '</script>';
+            }
+
             print $out;
         }
 

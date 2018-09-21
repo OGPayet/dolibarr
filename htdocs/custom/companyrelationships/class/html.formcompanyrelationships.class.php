@@ -60,7 +60,7 @@ class FormCompanyRelationships
     }
 
     /**
-     * Return list of labels (translated) of education
+     * Return list of labels (translated)
      *
      * @param	string	$htmlname	Name of html select field ('myid' or '.myclass')
      * @param	array	$events		Event options. Example: array(array('action'=>'getContacts', 'url'=>dol_buildpath('/core/ajax/contacts.php',1), 'htmlname'=>'contactid', 'done_action'=>array('disabled' => array('add-customer-contact'))))

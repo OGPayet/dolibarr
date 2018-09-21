@@ -56,10 +56,13 @@ CompanyRelationshipsConfirmDeleteCompanyRelationships = Are you sure to delete t
 ############################################################
 ### Company Relationships Availability
 ############################################################
-CompanyRelationshipsID                        = ID of company relationship
-CompanyRelationshipsPublicSpaceAvailabilityID = ID of line in public space availability dictionary
+CompanyRelationshipsID                                = ID of company relationship
+CompanyRelationshipsPublicSpaceAvailabilityID         = ID of line in public space availability dictionary
+CompanyRelationshipsPublicSpaceAvailabilityPrincipal  = Public space availability for the Contractor
+CompanyRelationshipsPublicSpaceAvailabilityBenefactor = Public space availability for the Benefactor
 
 ############################################################
 ### Errors
 ############################################################
 CompanyRelationshipsErrorPublicSpaceAvailabilityDictionaryNoLines = No lines in dictionary public space availability
+CompanyRelationshipsErrorPublicSpaceAvailabilityElement           = Error on loading public space availability

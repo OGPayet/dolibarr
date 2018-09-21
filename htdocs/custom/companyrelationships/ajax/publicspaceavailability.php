@@ -44,15 +44,19 @@ $element          = GETPOST('element', 'alpha');
 top_httphead();
 
 
-dol_include_once('/custom/companyrelationships/class/companyrelationships.class.php');
-$companyRelationships = new CompanyRelationships($db);
-$publicSpaceAvailability = $companyRelationships->getPublicSpaceAvailability($socid, $socid_benefactor, $element);
-if (is_array($publicSpaceAvailability)) {
-    $return = array('principal' => $publicSpaceAvailability['principal'], 'benefactor' => $publicSpaceAvailability['benefactor']);
-} else {
-    $return = array('principal' => 0, 'benefactor' => 0);
+$return = array('principal' => 0, 'benefactor' => 0, 'error' => 0);
+if ($socid>0 && $socid_benefactor>0 && !empty($element))
+{
+    dol_include_once('/custom/companyrelationships/class/companyrelationships.class.php');
+    $companyRelationships = new CompanyRelationships($db);
+    $publicSpaceAvailability = $companyRelationships->getPublicSpaceAvailability($socid, $socid_benefactor, $element);
+    if (is_array($publicSpaceAvailability)) {
+        $return['principal']  = $publicSpaceAvailability['principal'];
+        $retunr['benefactor'] = $publicSpaceAvailability['benefactor'];
+    } else {
+        $return['error'] = 1;
+    }
 }
-
 echo json_encode($return);
 
 $db->close();
