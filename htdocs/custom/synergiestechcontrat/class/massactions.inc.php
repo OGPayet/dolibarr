@@ -72,7 +72,7 @@ if (!$error && $massaction == 'facture') {
 			}
             $tacitagreement         = $objecttmp->array_options['options_tacitagreement'];
 			//Si le contrat est résilié la reconduction tacite passe à 0
-			if(!empty($objecttmp->array_options['options_realdate'])) {
+			if(!empty($objecttmp->array_options['options_realdate']) && strtotime($objecttmp->array_options['options_realdate']) < $enddate) {
 				$tacitagreement = 0;
 			}
             $invoicetype            = $objecttmp->array_options['options_invoicetype'];
@@ -344,7 +344,7 @@ if (!$error && $massaction == 'facturerec') {
 			}
             $tacitagreement         = $objecttmp->array_options['options_tacitagreement'];
 			//Si le contrat est résilié la reconduction tacite passe à 0
-			if(!empty($objecttmp->array_options['options_realdate'])) {
+			if(!empty($objecttmp->array_options['options_realdate']) && strtotime($objecttmp->array_options['options_realdate']) < $enddate) {
 				$tacitagreement = 0;
 			}
 			$invoicetype            = $objecttmp->array_options['options_invoicetype'];
@@ -575,6 +575,8 @@ if (!$error && $massaction == 'facturerec') {
 					$error++;
 					break;
 				} else $nbok++;
+			} else {
+				error_log($objecttmp->ref." ".date("d-m-Y",$startdate)." ".date("d-m-Y",$now)." ".date("d-m-Y",$enddate)." ".$tacitagreement);
 			}
 		} else {
             setEventMessages($objecttmp->error, $objecttmp->errors, 'errors');
@@ -625,7 +627,7 @@ if (!$error && $massaction == 'factureanterieur') {
 				}
 				$tacitagreement         = $objecttmp->array_options['options_tacitagreement'];
 				//Si le contrat est résilié la reconduction tacite passe à 0
-				if(!empty($objecttmp->array_options['options_realdate'])) {
+				if(!empty($objecttmp->array_options['options_realdate']) && strtotime($objecttmp->array_options['options_realdate']) < $enddate) {
 					$tacitagreement = 0;
 				}
 				$invoicetype            = $objecttmp->array_options['options_invoicetype'];
