@@ -125,7 +125,7 @@ if (!$error && $massaction == 'facture') {
             $lastdayofnextperiod    = $lastdaysofnextperiods[$periodsetter];
             $now = strtotime("now");
 
-            if ($invoicetype == '1' && $already_invoice == true) { //on facture la p?riode suivante si le contrat est à échoir et a déjà était facturé
+            if ($invoicetype == '1') { //on facture la p?riode suivante si le contrat est à échoir
                 $firstdayofperiod = $firstdayofnextperiod;
                 $lastdayofperiod  = $lastdayofnextperiod;
 				$daysinperiod     = intval($lastdayofperiod - $firstdayofperiod) / $oneday;
@@ -404,7 +404,7 @@ if (!$error && $massaction == 'facturerec') {
             $lastdayofnextperiod    = $lastdaysofnextperiods[$periodsetter];
             $now = strtotime("now");
 
-            if ($invoicetype == '1' && $already_invoice == true) { //on facture la p?riode suivante si le contrat est à échoir et a déjà était facturé
+            if ($invoicetype == '1') { //on facture la p?riode suivante si le contrat est à échoir
                 $firstdayofperiod = $firstdayofnextperiod;
                 $lastdayofperiod  = $lastdayofnextperiod;
 				$daysinperiod     = intval($lastdayofperiod - $firstdayofperiod) / $oneday;
