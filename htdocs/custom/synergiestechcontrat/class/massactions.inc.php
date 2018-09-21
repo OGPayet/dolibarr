@@ -66,14 +66,13 @@ if (!$error && $massaction == 'facture') {
             $startdate              = strtotime($objecttmp->array_options['options_startdate']);
             $duration               = $objecttmp->array_options['options_duration'];
             $enddate                = strtotime($objecttmp->array_options['options_startdate']." +$duration month");
+			$tacitagreement         = $objecttmp->array_options['options_tacitagreement'];
 			//Si le contrat est résilié la date de fin de contrat devient la date de résiliation
-			if(!empty($objecttmp->array_options['options_realdate']) && strtotime($objecttmp->array_options['options_realdate']) < $enddate) {
-				$enddate = strtotime($objecttmp->array_options['options_realdate']);
-			}
-            $tacitagreement         = $objecttmp->array_options['options_tacitagreement'];
-			//Si le contrat est résilié la reconduction tacite passe à 0
-			if(!empty($objecttmp->array_options['options_realdate']) && strtotime($objecttmp->array_options['options_realdate']) < $enddate) {
-				$tacitagreement = 0;
+			if(!empty($objecttmp->array_options['options_realdate'])) {
+				if(strtotime($objecttmp->array_options['options_realdate']) < $enddate || ($tacitagreement == 1 && strtotime($objecttmp->array_options['options_realdate']) > $enddate)) {
+					$enddate = strtotime($objecttmp->array_options['options_realdate']);
+					$tacitagreement = 0;
+				}
 			}
             $invoicetype            = $objecttmp->array_options['options_invoicetype'];
 
@@ -158,108 +157,110 @@ if (!$error && $massaction == 'facture') {
 					// most recent facturerec
 					foreach ($objecttmp->linkedObjects["facturerec"] as $idref => $obj) {
 						$desc = '';
-						if (($startdate <= $now && $now <= $enddate) || ($tacitagreement && $now > $enddate)) { // le contrat est en cour
-							$fac          = new Facture($db);
-							$fac->fac_rec = $obj->id;
-							$fac->socid   = $fac->fk_soc  = $obj->socid;
-							$fac->fetch_thirdparty();
-							$fac->date    = dol_now();
-							$fac->remise_percent = $fac->thirdparty->remise_percent;
-							$fac->array_options['options_datedeb'] = $firstdayofperiod;
-							$fac->array_options['options_datefin'] = $lastdayofperiod;
-							$fac->create($user, 1);
+						if($obj->total_ht > 0) {
+							if (($startdate <= $now && $now <= $enddate) || ($tacitagreement && $now > $enddate)) { // le contrat est en cour
+								$fac          = new Facture($db);
+								$fac->fac_rec = $obj->id;
+								$fac->socid   = $fac->fk_soc  = $obj->socid;
+								$fac->fetch_thirdparty();
+								$fac->date    = dol_now();
+								$fac->remise_percent = $fac->thirdparty->remise_percent;
+								$fac->array_options['options_datedeb'] = $firstdayofperiod;
+								$fac->array_options['options_datefin'] = $lastdayofperiod;
+								$fac->create($user, 1);
 
-							$ratio        = 1; // periode partielle
-							$majoration   = 0; // majoration indice
-							$desc         .= ' '.dol_print_date($firstdayofperiod, 'day').' => '.dol_print_date($lastdayofperiod, 'day');
+								$ratio        = 1; // periode partielle
+								$majoration   = 0; // majoration indice
+								$desc         .= ' '.dol_print_date($firstdayofperiod, 'day').' => '.dol_print_date($lastdayofperiod, 'day');
 
-							if ($firstdayofperiod < $startdate) { // prorata de d?but
-								$ratio *= 1 - ($startdate - $firstdayofperiod) / $oneday / $daysinperiod;
-							} // end prorata d?but
+								if ($firstdayofperiod < $startdate) { // prorata de d?but
+									$ratio *= 1 - ($startdate - $firstdayofperiod) / $oneday / $daysinperiod;
+								} // end prorata d?but
 
-							if ($lastdayofperiod > $enddate && $tacitagreement != '1') { // prorata de fin
-								$ratio *= 1 - ($startdate - $lastdayofperiod) / $oneday / $daysinperiod;
-							} // end prorata fin
+								if ($lastdayofperiod > $enddate && $tacitagreement != '1') { // prorata de fin
+									$ratio *= 1 - ($startdate - $lastdayofperiod) / $oneday / $daysinperiod;
+								} // end prorata fin
 
-							if (!$error) { // on met ? jour la facture
-								foreach ($fac->lines as &$line) {
-									$fac->updateline(
-										$line->id, $desc, $line->multicurrency_subprice * $ratio + $majoration, $line->qty, $line->remise_percent, $line->date_start, $line->date_end,
-										$line->tva_tx
-									);
+								if (!$error) { // on met ? jour la facture
+									foreach ($fac->lines as &$line) {
+										$fac->updateline(
+											$line->id, $desc, $line->multicurrency_subprice * $ratio + $majoration, $line->qty, $line->remise_percent, $line->date_start, $line->date_end,
+											$line->tva_tx
+										);
 
-								}
-
-								if(!empty($conf->global->AUTOMATIC_VALID_INVOICE_CONTRACT)) {
-									$fac->validate($user);
-								}
-
-								//Renouvellement contrat
-								if($year_already_invoice < date('Y',$lastdayofperiod)) {
-									$old_ref = $objecttmp->ref;
-									if(strstr($objecttmp->ref, '/')){
-										$last_number = substr($objecttmp->ref, -1);
-										$last_number++;
-										$objecttmp->ref = substr_replace($objecttmp->ref ,$last_number,-1);
-									} else {
-										$objecttmp->ref = $objecttmp->ref."/1";
 									}
-									rename($conf->contrat->dir_output.'/'.$old_ref.'/',$conf->contrat->dir_output.'/'.$object->ref.'/');
-									$objecttmp->update();
 
-									//Ajout de l'evenement
-									require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
-									require_once DOL_DOCUMENT_ROOT.'/comm/action/class/cactioncomm.class.php';
+									if(!empty($conf->global->AUTOMATIC_VALID_INVOICE_CONTRACT)) {
+										$fac->validate($user);
+									}
 
-									$actioncomm = new ActionComm($db);
+									//Renouvellement contrat
+									if($year_already_invoice < date('Y',$lastdayofperiod)) {
+										$old_ref = $objecttmp->ref;
+										if(strstr($objecttmp->ref, '_')){
+											$last_number = substr($objecttmp->ref, -1);
+											$last_number++;
+											$objecttmp->ref = substr_replace($objecttmp->ref ,$last_number,-1);
+										} else {
+											$objecttmp->ref = $objecttmp->ref."_1";
+										}
+										rename($conf->contrat->dir_output.'/'.$old_ref,$conf->contrat->dir_output.'/'.$objecttmp->ref);
+										$objecttmp->update();
 
-									$actioncomm->type_id=40;
-									$actioncomm->type_code='AC_OTH_AUTO';
-									$actioncomm->label       = utf8_encode("Contrat ".$objecttmp->ref." renouvellé");
-									$actioncomm->note       = utf8_encode("Contrat ".$objecttmp->ref." renouvellé");
-									$actioncomm->fk_project  = 0;
-									$actioncomm->datep       = $now;
-									$actioncomm->datef       = $now;
-									$actioncomm->fulldayevent = 0;
-									$actioncomm->durationp   = 0;
-									$actioncomm->punctual    = 1;
-									$actioncomm->percentage  = -1;   // Not applicable
-									$actioncomm->transparency= 0; // Not applicable
-									$actioncomm->authorid    = $user->id;   // User saving action
-									$actioncomm->userownerid    = $user->id;   // User saving action
-									$actioncomm->elementtype = 'contrat';
-									$actioncomm->fk_element = $objecttmp->id;
-									$actioncomm->fk_soc = $objecttmp->fk_soc;
+										//Ajout de l'evenement
+										require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
+										require_once DOL_DOCUMENT_ROOT.'/comm/action/class/cactioncomm.class.php';
 
-									$ret = $actioncomm->create($user);
-								}
+										$actioncomm = new ActionComm($db);
 
-								//Reconduction contrat
-								if($tacitagreement && $now > $enddate) {
-									require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
-									require_once DOL_DOCUMENT_ROOT.'/comm/action/class/cactioncomm.class.php';
+										$actioncomm->type_id=40;
+										$actioncomm->type_code='AC_OTH_AUTO';
+										$actioncomm->label       = utf8_encode("Contrat ".$objecttmp->ref." renouvellé");
+										$actioncomm->note       = utf8_encode("Contrat ".$objecttmp->ref." renouvellé");
+										$actioncomm->fk_project  = 0;
+										$actioncomm->datep       = $now;
+										$actioncomm->datef       = $now;
+										$actioncomm->fulldayevent = 0;
+										$actioncomm->durationp   = 0;
+										$actioncomm->punctual    = 1;
+										$actioncomm->percentage  = -1;   // Not applicable
+										$actioncomm->transparency= 0; // Not applicable
+										$actioncomm->authorid    = $user->id;   // User saving action
+										$actioncomm->userownerid    = $user->id;   // User saving action
+										$actioncomm->elementtype = 'contrat';
+										$actioncomm->fk_element = $objecttmp->id;
+										$actioncomm->fk_soc = $objecttmp->fk_soc;
 
-									$actioncomm = new ActionComm($db);
+										$ret = $actioncomm->create($user);
+									}
 
-									$actioncomm->type_id=40;
-									$actioncomm->type_code='AC_OTH_AUTO';
-									$actioncomm->label       = utf8_encode("Contrat ".$objecttmp->ref." reconduit");
-									$actioncomm->note        = utf8_encode("Contrat ".$objecttmp->ref." reconduit");
-									$actioncomm->fk_project  = 0;
-									$actioncomm->datep       = $now;
-									$actioncomm->datef       = $now;
-									$actioncomm->fulldayevent = 0;
-									$actioncomm->durationp   = 0;
-									$actioncomm->punctual    = 1;
-									$actioncomm->percentage  = -1;   // Not applicable
-									$actioncomm->transparency= 0; // Not applicable
-									$actioncomm->authorid    = $user->id;   // User saving action
-									$actioncomm->userownerid    = $user->id;   // User saving action
-									$actioncomm->elementtype = 'contrat';
-									$actioncomm->fk_element = $objecttmp->id;
-									$actioncomm->fk_soc = $objecttmp->fk_soc;
+									//Reconduction contrat
+									if($tacitagreement && $now > $enddate) {
+										require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
+										require_once DOL_DOCUMENT_ROOT.'/comm/action/class/cactioncomm.class.php';
 
-									$ret = $actioncomm->create($user);
+										$actioncomm = new ActionComm($db);
+
+										$actioncomm->type_id=40;
+										$actioncomm->type_code='AC_OTH_AUTO';
+										$actioncomm->label       = utf8_encode("Contrat ".$objecttmp->ref." reconduit");
+										$actioncomm->note        = utf8_encode("Contrat ".$objecttmp->ref." reconduit");
+										$actioncomm->fk_project  = 0;
+										$actioncomm->datep       = $now;
+										$actioncomm->datef       = $now;
+										$actioncomm->fulldayevent = 0;
+										$actioncomm->durationp   = 0;
+										$actioncomm->punctual    = 1;
+										$actioncomm->percentage  = -1;   // Not applicable
+										$actioncomm->transparency= 0; // Not applicable
+										$actioncomm->authorid    = $user->id;   // User saving action
+										$actioncomm->userownerid    = $user->id;   // User saving action
+										$actioncomm->elementtype = 'contrat';
+										$actioncomm->fk_element = $objecttmp->id;
+										$actioncomm->fk_soc = $objecttmp->fk_soc;
+
+										$ret = $actioncomm->create($user);
+									}
 								}
 							}
 						}
@@ -338,14 +339,13 @@ if (!$error && $massaction == 'facturerec') {
             $startdate              = strtotime($objecttmp->array_options['options_startdate']);
             $duration               = $objecttmp->array_options['options_duration'];
             $enddate                = strtotime($objecttmp->array_options['options_startdate']." +$duration month");
+			$tacitagreement         = $objecttmp->array_options['options_tacitagreement'];
 			//Si le contrat est résilié la date de fin de contrat devient la date de résiliation
-			if(!empty($objecttmp->array_options['options_realdate']) && strtotime($objecttmp->array_options['options_realdate']) < $enddate) {
-				$enddate = strtotime($objecttmp->array_options['options_realdate']);
-			}
-            $tacitagreement         = $objecttmp->array_options['options_tacitagreement'];
-			//Si le contrat est résilié la reconduction tacite passe à 0
-			if(!empty($objecttmp->array_options['options_realdate']) && strtotime($objecttmp->array_options['options_realdate']) < $enddate) {
-				$tacitagreement = 0;
+			if(!empty($objecttmp->array_options['options_realdate'])) {
+				if(strtotime($objecttmp->array_options['options_realdate']) < $enddate || ($tacitagreement == 1 && strtotime($objecttmp->array_options['options_realdate']) > $enddate)) {
+					$enddate = strtotime($objecttmp->array_options['options_realdate']);
+					$tacitagreement = 0;
+				}
 			}
 			$invoicetype            = $objecttmp->array_options['options_invoicetype'];
 			$firstdaysofperiods     = array(
@@ -520,7 +520,8 @@ if (!$error && $massaction == 'facturerec') {
 					}
 				}
 				$now = strtotime("now");
-				if ($lastdayofperiod > $revalorisationactivationdate && $lastdayofperiod > $revalorisationdate && !($firstdayofperiod <= $startdate && $startdate <= $lastdayofperiod) && $reindexmethod>1 && $now >= $firstrevalorisationdate) { // on doit revaloriser
+
+				if ($lastdayofperiod > $revalorisationactivationdate && $lastdayofperiod > $revalorisationdate && !($firstdayofperiod <= $startdate && $startdate <= $lastdayofperiod) && $reindexmethod>1 && $firstrevalorisationdate >= $firstdayofperiod && $firstrevalorisationdate <= $lastdayofperiod) { // on doit revaloriser
 					//$nbjouravant          = max($revalorisationactivationdate - $firstdayofperiod, 0) / $oneday;
 					if ($revalorisationactivationdate == 0) {
 						$revalorisationactivationdate = $firstdayofperiod;
@@ -621,13 +622,10 @@ if (!$error && $massaction == 'factureanterieur') {
 				$startdate              = strtotime($objecttmp->array_options['options_startdate']);
 				$duration               = $objecttmp->array_options['options_duration'];
 				$enddate                = strtotime($objecttmp->array_options['options_startdate']." +$duration month");
-				//Si le contrat est résilié la date de fin de contrat devient la date de résiliation
-				if(!empty($objecttmp->array_options['options_realdate']) && strtotime($objecttmp->array_options['options_realdate']) < $enddate) {
-					$enddate = strtotime($objecttmp->array_options['options_realdate']);
-				}
 				$tacitagreement         = $objecttmp->array_options['options_tacitagreement'];
-				//Si le contrat est résilié la reconduction tacite passe à 0
-				if(!empty($objecttmp->array_options['options_realdate']) && strtotime($objecttmp->array_options['options_realdate']) < $enddate) {
+				// Si le contrat est résilié la date de fin de contrat devient la date de résiliation
+				if(!empty($objecttmp->array_options['options_realdate']) && strtotime($objecttmp->array_options['options_realdate']) < $enddate || ($tacitagreement == 1 && strtotime($objecttmp->array_options['options_realdate']) > $enddate)) {
+					$enddate = strtotime($objecttmp->array_options['options_realdate']);
 					$tacitagreement = 0;
 				}
 				$invoicetype            = $objecttmp->array_options['options_invoicetype'];
