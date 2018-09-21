@@ -576,7 +576,7 @@ class Dictionary extends CommonObject
         global $conf, $langs;
 
         $version_variable_name = strtoupper('ADVANCEDICTIONARIES_DICTIONARY_'.$this->name.'_VERSION');
-        $current_version = isset($conf->global->$version_variable_name) ? $conf->global->$version_variable_name : 0;
+        $current_version = isset($conf->global->$version_variable_name) ? $conf->global->$version_variable_name : $this->version;
 
         // TODO prevoir les mise a jour avec les sous tables
 
