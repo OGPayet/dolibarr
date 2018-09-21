@@ -521,7 +521,7 @@ if (!$error && $massaction == 'facturerec') {
 				}
 				$now = strtotime("now");
 
-				if ($lastdayofperiod > $revalorisationactivationdate && $lastdayofperiod > $revalorisationdate && !($firstdayofperiod <= $startdate && $startdate <= $lastdayofperiod) && $reindexmethod>1 && $firstrevalorisationdate >= $firstdayofperiod && $firstrevalorisationdate <= $lastdayofperiod) { // on doit revaloriser
+				if ($lastdayofperiod > $revalorisationactivationdate && $lastdayofperiod > $revalorisationdate && !($firstdayofperiod <= $startdate && $startdate <= $lastdayofperiod) && $reindexmethod>1 && ($now >= $firstrevalorisationdate || ($firstrevalorisationdate >= $firstdayofperiod && $firstrevalorisationdate <= $lastdayofperiod)) ){ // on doit revaloriser
 					//$nbjouravant          = max($revalorisationactivationdate - $firstdayofperiod, 0) / $oneday;
 					if ($revalorisationactivationdate == 0) {
 						$revalorisationactivationdate = $firstdayofperiod;
