@@ -56,8 +56,9 @@ CompanyRelationshipsConfirmDeleteCompanyRelationships = Êtes-vous sûr de voulo
 ############################################################
 ### Company Relationships Availability
 ############################################################
-CompanyRelationshipsID                        = ID de la relation tiers
-CompanyRelationshipsPublicSpaceAvailabilityID = ID de la ligne du dictionnaire des mises à disposition sur l'espace public
+CompanyRelationshipsID                             = ID de la relation tiers
+CompanyRelationshipsPublicSpaceAvailabilityID      = ID de la ligne du dictionnaire des mises à disposition sur l'espace public
+CompanyRelationshipsPublicSpaceAvailabilityElement = Mise à disposition pour %s
 
 ############################################################
 ### Errors

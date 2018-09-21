@@ -140,16 +140,28 @@ class ActionsCompanyRelationships
         $contexts = explode(':', $parameters['context']);
 
         if (in_array('propalcard', $contexts)) {
+            dol_include_once('/companyrelationships/class/html.companyrelationships.class.php');
             dol_include_once('/companyrelationships/class/html.formcompanyrelationships.class.php');
+
+            $langs->load('companyrelationships@companyrelationships');
 
             $out = '';
 
             $events = array();
             $events[] = array('action' => 'getBenefactor', 'url' => dol_buildpath('/companyrelationships/ajax/benefactor.php', 1), 'htmlname' => 'options_companyrelationships_fk_soc_benefactor');
+            //$events[] = array('action' => 'getPublicSpaceAvailability', 'url' => dol_buildpath('/companyrelationships/ajax/publicspaceavailability.php', 1), 'htmlname' => 'options_companyrelationships_fk_soc_benefactor');
             $formcompanyrelationships = new FormCompanyRelationships($this->db);
-
             $out .= $formcompanyrelationships->add_select_events('socid', $events);
 
+            // company relationships availability for this element
+            $out .= '<tr>';
+            $out .= '<td>' . $langs->transnoentities('CompanyRelationshipsPublicSpaceAvailabilityElement', $langs->trans('CompanyRelationshipsPrincipalCompany')) . '</td>';
+            $out .= '<td>' . '<input type="checkbox" id="companyrelationshipsavailability_element_principal" name="companyrelationshipsavailability_element_principal" value="1" />' . '</td>';
+            $out .= '</tr>';
+            $out .= '<tr>';
+            $out .= '<td>' . $langs->transnoentities('CompanyRelationshipsPublicSpaceAvailabilityElement', $langs->trans('CompanyRelationshipsBenefactorCompany')) . '</td>';
+            $out .= '<td>' . '<input type="checkbox" id="companyrelationshipsavailability_element_benefactor" name="companyrelationshipsavailability_element_benefactor" value="1" />' . '</td>';
+            $out .= '</tr>';
             print $out;
         }
 
