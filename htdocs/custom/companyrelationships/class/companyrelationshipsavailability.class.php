@@ -296,6 +296,109 @@ class CompanyRelationshipsAvailability
 
 
     /**
+     *  Delete public space availability in database
+     *
+     * @param   User    $user           User that deletes
+     * @param   bool    $notrigger      [=FALSEl Launch triggers after, TRUE=disable triggers
+     * @return  int                     <0 if KO, >0 if OK
+     */
+    public function delete(User $user, $notrigger=FALSE)
+    {
+        global $conf, $langs;
+        $error = 0;
+        $this->errors = array();
+        $langs->load("companyrelationships@companyrelationships");
+
+        dol_syslog(__METHOD__ . " user_id=" . $user->id . " id=" . $this->id, LOG_DEBUG);
+
+        // Check parameters
+        if (!($this->id > 0)) {
+            $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("TechnicalID"));
+            $error++;
+        }
+        if ($error) {
+            dol_syslog(__METHOD__ . " Errors check parameters: " . $this->errorsToString(), LOG_ERR);
+            return -3;
+        }
+
+        $this->db->begin();
+
+        // remove
+        if (!$error) {
+            $sql  = "DELETE FROM " . MAIN_DB_PREFIX . $this->table_element;
+            $sql .= " WHERE rowid = " . $this->id;
+
+            $resql = $this->db->query($sql);
+            if (!$resql) {
+                $error++;
+                $this->errors[] = 'Error ' . $this->db->lasterror();
+                dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $this->db->lasterror(), LOG_ERR);
+            }
+        }
+
+        if (!$error) {
+            $this->db->commit();
+            dol_syslog(__METHOD__ . " success", LOG_DEBUG);
+
+            return 1;
+        } else {
+            $this->db->rollback();
+
+            return -1;
+        }
+    }
+
+
+    /**
+     * Delete relations thirdparty linked to a contact
+     *
+     * @param   int     $fk_companyrelationships    Contact id in relation
+     * @param   User    $user                       User that deletes
+     * @param   bool    $notrigger                  [=FALSEl Launch triggers after, TRUE=disable triggers
+     * @return  int     <0 if KO, >0 if OK
+     */
+    public function deleteAllByFkCompanyRelationships($fk_companyrelationships, User $user, $notrigger=FALSE)
+    {
+        $error = 0;
+
+        $sql = "SELECT";
+        $sql .= " t.rowid";
+        $sql .= ", t.fk_companyrelationships";
+        $sql .= ", t.fk_c_companyrelationships_availability";
+        $sql .= ", t.principal_availability";
+        $sql .= ", t.benefactor_availability";
+        $sql .= " FROM " . MAIN_DB_PREFIX . $this->table_element . " as t";
+        $sql .= " WHERE t.fk_companyrelationships = " . $fk_companyrelationships;
+
+        $resql = $this->db->query($sql);
+        if (!$resql) {
+            return -1;
+        } else {
+            while ($obj = $this->db->fetch_object($resql)) {
+                $this->id                                     = $obj->rowid;
+                $this->fk_companyrelationships                = $obj->fk_companyrelationships;
+                $this->fk_c_companyrelationships_availability = $obj->fk_c_companyrelationships_availability;
+                $this->principal_availability                 = $obj->principal_availability;
+                $this->benefactor_availability                = $obj->benefactor_availability;
+
+                $ret = $this->delete($user, $notrigger);
+
+                if ($ret < 0) {
+                    $error++;
+                    break;
+                }
+            }
+
+            if ($error) {
+                return -1;
+            } else {
+                return 1;
+            }
+        }
+    }
+
+
+    /**
      * Load a CompanyRelationshipsAvailability object by unique key if exists
      *
      * @param   DoliDB                                  $db                                         Database handler

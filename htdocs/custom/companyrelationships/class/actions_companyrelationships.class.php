@@ -71,6 +71,39 @@ class ActionsCompanyRelationships
      * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
      * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
      */
+    function beforePDFCreation($parameters, &$object, &$action, $hookmanager)
+    {
+        $contexts = explode(':', $parameters['context']);
+
+        if (in_array('propalcard', $contexts)) {
+            dol_include_once('/companyrelationships/class/companyrelationships.class.php');
+
+            $object->fetch_thirdparty();
+
+            // find principal company of this thirdparty
+            $companyRelationships = new CompanyRelationships($this->db);
+            $companies = $companyRelationships->getRelationships($object->thirdparty->id, 0, 1);
+            if (is_array($companies) && count($companies)==1) {
+                $companyRecipient = current($companies);
+                if ($companyRecipient->id > 0) {
+                    $object->thirdparty = $companyRecipient;
+                }
+            }
+        }
+
+        return 0;
+    }
+
+
+    /**
+     * Overloading the doActions function : replacing the parent's function with the one below
+     *
+     * @param   array()         $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          &$action        Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
     function doActions($parameters, &$object, &$action, $hookmanager)
     {
         global $conf, $langs, $user;

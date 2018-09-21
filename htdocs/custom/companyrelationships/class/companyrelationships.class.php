@@ -128,9 +128,23 @@ class CompanyRelationships
      */
     public function deleteRelationships($rowid=0, $socid=0, $socid_benefactor=0)
     {
+        global $user;
+
         $this->errors = array();
 
         dol_syslog(__METHOD__ . " rowid=" . $rowid . " socid=" . $socid . " socid_benefactor=" . $socid_benefactor, LOG_DEBUG);
+
+        if ($rowid > 0) {
+            dol_include_once('/companyrelationships/class/companyrelationshipsavailability.class.php');
+
+            // delete public space availability for this company relationships
+            $companyRelationshipsAvailability = new CompanyRelationshipsAvailability($this->db);
+            $ret = $companyRelationshipsAvailability->deleteAllByFkCompanyRelationships($rowid, $user);
+            if ($ret < 0) {
+                $this->errors = $companyRelationshipsAvailability->errors;
+                return -1;
+            }
+        }
 
         // Delete relationship
         $sql = "DELETE FROM " . MAIN_DB_PREFIX . "companyrelationships WHERE";
