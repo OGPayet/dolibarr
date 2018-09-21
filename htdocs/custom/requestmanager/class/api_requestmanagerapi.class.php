@@ -66,7 +66,7 @@ class RequestManagerApi extends DolibarrApi {
         if ($result == 0) {
             throw new RestException(404, "Request not found");
         } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve request", $requestmanager->getErrors());
+            throw new RestException(500, "Error when retrieve request", $this->_getErrors($requestmanager));
         }
 
         $requestmanager->fetchObjectLinked();
@@ -81,6 +81,7 @@ class RequestManagerApi extends DolibarrApi {
      * @param   int		    $limit		        Limit for list
      * @param   int		    $page		        Page number
      * @param   string      $benefactor_ids	    Force search of benefactor companies ids to filter requests. {@example '1' or '1,2,3'} {@pattern /^[0-9,]*$/i}
+     * @param   int         $only_assigned	    1=Restrict list to the request assigned to this user or his user groups
      * @param   string      $sql_filters        Other criteria to filter answers separated by a comma. Syntax example "(t.ref:like:'SO-%') and (t.datec:<:'20160101')"
      *
      * @return  array                           Array of request objects
@@ -89,7 +90,7 @@ class RequestManagerApi extends DolibarrApi {
      * @throws  401         RestException       Insufficient rights
      * @throws  500         RestException       Error when retrieve request list
      */
-    function index($sort_field="t.rowid", $sort_order='ASC', $limit=100, $page=0, $benefactor_ids='', $sql_filters='')
+    function index($sort_field="t.rowid", $sort_order='ASC', $limit=100, $page=0, $benefactor_ids='', $only_assigned=0, $sql_filters='')
     {
         $obj_ret = array();
 
@@ -110,15 +111,34 @@ class RequestManagerApi extends DolibarrApi {
             $benefactor_companies_ids = explode(',', $benefactor_ids);
         }
 
+        $assignedSQLJoin = '';
+        if (!(DolibarrApiAccess::$user->socid > 0) && $only_assigned) {
+            $sqlFilter = ' AND rmau.fk_user = ' . DolibarrApiAccess::$user->id;
+
+            require_once DOL_DOCUMENT_ROOT . '/user/class/usergroup.class.php';
+            $usergroup_static = new UserGroup(self::$db);
+            $groupslist = $usergroup_static->listGroupsForUser(DolibarrApiAccess::$user->id);
+            if (!empty($groupslist)) {
+                $myGroups = implode(',', array_keys($groupslist));
+                $sqlFilter = ' AND (rmau.fk_user = ' . DolibarrApiAccess::$user->id . ' OR rmaug.fk_usergroup IN (' . $myGroups . '))';
+            }
+
+            $assignedSQLJoin = ' INNER JOIN (' .
+                ' SELECT DISTINCT rm.rowid' .
+                ' FROM ' . MAIN_DB_PREFIX . 'requestmanager as rm' .
+                ' LEFT JOIN ' . MAIN_DB_PREFIX . 'requestmanager_assigned_user as rmau ON rmau.fk_requestmanager = rm.rowid' .
+                ' LEFT JOIN ' . MAIN_DB_PREFIX . 'requestmanager_assigned_usergroup as rmaug ON rmaug.fk_requestmanager = rm.rowid' .
+                ' WHERE rm.entity IN (' . getEntity('requestmanager') . ')' .
+                $sqlFilter .
+                ' ) as assigned ON assigned.rowid = rm.rowid';
+        }
+
         $sql = "SELECT t.rowid";
-        $sql .= " FROM " . MAIN_DB_PREFIX . "requestmanager as t";
+        $sql .= " FROM " . MAIN_DB_PREFIX . "requestmanager as t" . $assignedSQLJoin;
         $sql .= ' WHERE t.entity IN (' . getEntity('requestmanager') . ')';
         // Restrict to the benefactor companies provided
         if (count($benefactor_companies_ids) > 0) {
             $sql .= " AND t.fk_soc_benefactor IN (" . implode(',', $benefactor_companies_ids) . ")";
-        }
-        if (!(DolibarrApiAccess::$user->socid > 0)) {
-            // Todo filter assigned (user/group) if not a external user ?
         }
         // Add sql filters
         if ($sql_filters) {
@@ -128,6 +148,7 @@ class RequestManagerApi extends DolibarrApi {
             $regexstring = '\(([^:\'\(\)]+:[^:\'\(\)]+:[^:\(\)]+)\)';
             $sql .= " AND (" . preg_replace_callback('/' . $regexstring . '/', 'DolibarrApi::_forge_criteria_callback', $sql_filters) . ")";
         }
+        $sql .= " GROUP BY t.rowid";
 
         // Set Order and Limit
         $sql .= self::$db->order($sort_field, $sort_order);
@@ -183,7 +204,7 @@ class RequestManagerApi extends DolibarrApi {
         }
 
         if ($requestmanager->create(DolibarrApiAccess::$user) < 0) {
-            throw new RestException(500, "Error while creating the request", $requestmanager->getErrors());
+            throw new RestException(500, "Error while creating the request", $this->_getErrors($requestmanager));
         }
 
         return $requestmanager->id;
@@ -213,7 +234,7 @@ class RequestManagerApi extends DolibarrApi {
         if ($result == 0) {
             throw new RestException(404, "Request not found");
         } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve request", $requestmanager->getErrors());
+            throw new RestException(500, "Error when retrieve request", $this->_getErrors($requestmanager));
         }
 
         $requestmanager->oldcopy = clone $requestmanager;
@@ -225,7 +246,7 @@ class RequestManagerApi extends DolibarrApi {
         if ($requestmanager->update(DolibarrApiAccess::$user) > 0) {
             return $this->get($id);
         } else {
-            throw new RestException(500, "Error while updating the request", $requestmanager->getErrors());
+            throw new RestException(500, "Error while updating the request", $this->_getErrors($requestmanager));
         }
     }
 
@@ -252,11 +273,11 @@ class RequestManagerApi extends DolibarrApi {
         if ($result == 0) {
             throw new RestException(404, "Request not found");
         } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve request", $requestmanager->getErrors());
+            throw new RestException(500, "Error when retrieve request", $this->_getErrors($requestmanager));
         }
 
         if ($requestmanager->delete(DolibarrApiAccess::$user) < 0) {
-            throw new RestException(500, "Error while deleting the request", $requestmanager->getErrors());
+            throw new RestException(500, "Error while deleting the request", $this->_getErrors($requestmanager));
         }
 
         return array(
@@ -291,7 +312,7 @@ class RequestManagerApi extends DolibarrApi {
         if ($result == 0) {
             throw new RestException(404, "Request not found");
         } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve request", $requestmanager->getErrors());
+            throw new RestException(500, "Error when retrieve request", $this->_getErrors($requestmanager));
         }
 
         $requestmanager->getLinesArray();
@@ -329,7 +350,7 @@ class RequestManagerApi extends DolibarrApi {
         if ($result == 0) {
             throw new RestException(404, "Request not found");
         } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve request", $requestmanager->getErrors());
+            throw new RestException(500, "Error when retrieve request", $this->_getErrors($requestmanager));
         }
 
         $request_data = (object)$request_data;
@@ -366,7 +387,7 @@ class RequestManagerApi extends DolibarrApi {
         if ($updateRes > 0) {
             return $updateRes;
         } else {
-            throw new RestException(500, "Error while creating the request line", $requestmanager->getErrors());
+            throw new RestException(500, "Error while creating the request line", $this->_getErrors($requestmanager));
         }
     }
 
@@ -399,7 +420,7 @@ class RequestManagerApi extends DolibarrApi {
         if ($result == 0) {
             throw new RestException(404, "Request not found");
         } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve request", $requestmanager->getErrors());
+            throw new RestException(500, "Error when retrieve request", $this->_getErrors($requestmanager));
         }
 
         $requestline = new RequestManagerLine(self::$db);
@@ -407,7 +428,7 @@ class RequestManagerApi extends DolibarrApi {
         if ($result == 0 || ($result > 0 && $requestline->fk_requestmanager != $id)) {
             throw new RestException(404, "Request line not found");
         } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve request line", $requestmanager->getErrors());
+            throw new RestException(500, "Error when retrieve request line", $this->_getErrors($requestmanager));
         }
 
         $request_data = (object)$request_data;
@@ -440,7 +461,7 @@ class RequestManagerApi extends DolibarrApi {
         if ($updateRes > 0) {
             return $this->get($id);
         } else {
-            throw new RestException(500, "Error while updating the request line", $requestmanager->getErrors());
+            throw new RestException(500, "Error while updating the request line", $this->_getErrors($requestmanager));
         }
     }
 
@@ -472,7 +493,7 @@ class RequestManagerApi extends DolibarrApi {
         if ($result == 0) {
             throw new RestException(404, "Request not found");
         } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve request", $requestmanager->getErrors());
+            throw new RestException(500, "Error when retrieve request", $this->_getErrors($requestmanager));
         }
 
         $requestline = new RequestManagerLine(self::$db);
@@ -480,13 +501,13 @@ class RequestManagerApi extends DolibarrApi {
         if ($result == 0 || ($result > 0 && $requestline->fk_requestmanager != $id)) {
             throw new RestException(404, "Request line not found");
         } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve request line", $requestmanager->getErrors());
+            throw new RestException(500, "Error when retrieve request line", $this->_getErrors($requestmanager));
         }
 
         if ($requestmanager->deleteline($line_id) > 0) {
             return $this->get($id);
         } else {
-            throw new RestException(500, "Error while deleting the request line", $requestmanager->getErrors());
+            throw new RestException(500, "Error while deleting the request line", $this->_getErrors($requestmanager));
         }
     }
 
@@ -517,7 +538,7 @@ class RequestManagerApi extends DolibarrApi {
         if ($result == 0) {
             throw new RestException(404, "Request not found");
         } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve request", $requestmanager->getErrors());
+            throw new RestException(500, "Error when retrieve request", $this->_getErrors($requestmanager));
         }
 
         require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
@@ -526,7 +547,7 @@ class RequestManagerApi extends DolibarrApi {
         if ($result == 0 || ($result > 0 && ($requestmanager_message->elementtype != $requestmanager->element || $requestmanager_message->fk_element != $requestmanager->id))) {
             throw new RestException(404, "Request message not found");
         } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve request message", $requestmanager->getErrors());
+            throw new RestException(500, "Error when retrieve request message", $this->_getErrors($requestmanager_message));
         }
 
         return $this->_cleanEventObjectDatas($requestmanager_message);
@@ -557,7 +578,7 @@ class RequestManagerApi extends DolibarrApi {
         if ($result == 0) {
             throw new RestException(404, "Request not found");
         } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve request", $requestmanager->getErrors());
+            throw new RestException(500, "Error when retrieve request", $this->_getErrors($requestmanager));
         }
 
         // Todo a faire
@@ -573,7 +594,7 @@ class RequestManagerApi extends DolibarrApi {
         }
 
         if ($requestmanager->create(DolibarrApiAccess::$user) < 0) {
-            throw new RestException(500, "Error while creating the request message", $requestmanager->getErrors());
+            throw new RestException(500, "Error while creating the request message", $this->_getErrors($requestmanager));
         }
 
         return $requestmanager->id;*/
@@ -612,7 +633,7 @@ class RequestManagerApi extends DolibarrApi {
         if ($result == 0) {
             throw new RestException(404, "Request not found");
         } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve request", $requestmanager->getErrors());
+            throw new RestException(500, "Error when retrieve request", $this->_getErrors($requestmanager));
         }
 
         return $obj_ret;
@@ -707,13 +728,13 @@ class RequestManagerApi extends DolibarrApi {
         if ($result == 0) {
             throw new RestException(404, "Request not found");
         } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve request", $requestmanager->getErrors());
+            throw new RestException(500, "Error when retrieve request", $this->_getErrors($requestmanager));
         }
 
         if ($requestmanager->set_status($status_id, $status_type, DolibarrApiAccess::$user, $no_trigger, $force_reload) > 0) {
             return $this->get($id);
         } else {
-            throw new RestException(500, "Error while setting the request status", $requestmanager->getErrors());
+            throw new RestException(500, "Error while setting the request status", $this->_getErrors($requestmanager));
         }
     }
     /**
@@ -1103,4 +1124,18 @@ class RequestManagerApi extends DolibarrApi {
 
         return $object;
     }
+
+    /**
+     * Get all errors
+     *
+     * @param  object   $object     Object
+     * @return array                Array of errors
+     */
+	function _getErrors(&$object) {
+	    $errors = is_array($object->errors) ? $object->errors : array();
+	    $errors = array_merge($errors, (!empty($object->error) ? array($object->error) : array()));
+
+	    return $errors;
+    }
+
 }
