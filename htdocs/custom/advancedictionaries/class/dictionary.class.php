@@ -192,6 +192,11 @@ class Dictionary extends CommonObject
     public $rowid_field = 'rowid';
 
     /**
+     * @var bool    Is rowid auto increment (false: rowid = 'last rowid in the table' + 1)
+     */
+    public $is_rowid_auto_increment = true;
+
+    /**
      * @var string  Name of the active field
      */
     public $active_field = 'active';
@@ -1804,6 +1809,24 @@ class Dictionary extends CommonObject
     }
 
     /**
+     *  Get last row ID of the dictionary
+     *
+     * @return  int              Last row ID
+     */
+    function getNextRowID()
+    {
+        $last_rowid = 0;
+        $sql = 'SELECT MAX(' . $this->rowid_field . ') AS last_rowid FROM ' . MAIN_DB_PREFIX . $this->table_name;
+        $resql = $this->db->query($sql);
+        if ($resql) {
+            if ($obj = $this->db->fetch_object($resql)) {
+                $last_rowid = $obj->last_rowid;
+            }
+        }
+
+        return $last_rowid + 1;
+    }
+    /**
      * Function from wordpress v4.9.6
      *
      * Converts all accent characters to ASCII characters.
@@ -2591,9 +2614,13 @@ class DictionaryLine extends CommonObjectLine
                     $insert_statement[] = $formattedValue;
                 }
             }
-            $sql = 'INSERT INTO ' . MAIN_DB_PREFIX . $this->dictionary->table_name . ' (' . implode(', ', $insert_field) .
+            $sql = 'INSERT INTO ' . MAIN_DB_PREFIX . $this->dictionary->table_name . ' (' .
+                (!$this->dictionary->is_rowid_auto_increment ? $this->dictionary->rowid_field . ', ' : '') .
+                implode(', ', $insert_field) .
                 ', ' . $this->dictionary->active_field . ($this->dictionary->has_entity ? ', ' . $this->dictionary->entity_field : '') .
-                ') VALUES (' . implode(', ', $insert_statement) . ', 1' . ($this->dictionary->has_entity ? ', ' . $conf->entity : '') . ')';
+                ') VALUES (' .
+                (!$this->dictionary->is_rowid_auto_increment ? $this->dictionary->getNextRowID() . ', ' : '') .
+                implode(', ', $insert_statement) . ', 1' . ($this->dictionary->has_entity ? ', ' . $conf->entity : '') . ')';
 
             dol_syslog(__METHOD__ . "::insert", LOG_DEBUG);
             $resql = $this->db->query($sql);
@@ -2619,6 +2646,7 @@ class DictionaryLine extends CommonObjectLine
                             } else {
                                 // Insert association line for the multi-select list
                                 $insert_values = array();
+                                $value_arr = array();
                                 if (is_array($value)) {
                                     $value_arr = $value;
                                 } elseif (!empty($value)) {
@@ -2742,6 +2770,7 @@ class DictionaryLine extends CommonObjectLine
                             } elseif(!empty($value)) {
                                 // Insert association line for the multi-select list
                                 $insert_values = array();
+                                $value_arr = array();
                                 if (is_array($value)) {
                                     $value_arr = $value;
                                 } elseif (!empty($value)) {

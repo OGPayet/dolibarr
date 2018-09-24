@@ -28,6 +28,7 @@ if (! $res && file_exists("../../../main.inc.php")) $res=@include '../../../main
 if (! $res && file_exists("../../../dolibarr/htdocs/main.inc.php")) $res=@include '../../../dolibarr/htdocs/main.inc.php';     // Used on dev env only
 if (! $res && file_exists("../../../../dolibarr/htdocs/main.inc.php")) $res=@include '../../../../dolibarr/htdocs/main.inc.php';   // Used on dev env only
 if (! $res) die("Include of main fails");
+
 require_once DOL_DOCUMENT_ROOT . '/core/class/doleditor.class.php';
 require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
 require_once DOL_DOCUMENT_ROOT . '/user/class/usergroup.class.php';
@@ -47,6 +48,14 @@ if (empty($conf) || !is_object($conf) || !isset($_POST['zone']))
 {
 	print "Error, template page can't be called as URL";
 	exit();
+}
+
+// Load other template instead of this one
+foreach($conf->modules_parts['tpl'] as $reldir) {
+    $res = @include dol_buildpath($reldir . '/rm_createfastzone.tpl.php');
+    if ($res) {
+        exit();
+    }
 }
 
 ?>

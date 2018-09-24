@@ -1262,7 +1262,7 @@ SCRIPT;
     {
         global $conf, $langs;
 
-        $contexts = explode(':', $parameters['context']);
+        /*$contexts = explode(':', $parameters['context']);
 
         if (in_array('requestmanagerdao', $contexts)) {
             $fkSocPrincipal = $parameters['socid_principal'] > 0 ? $parameters['socid_principal'] : 0;
@@ -1316,7 +1316,7 @@ SCRIPT;
 
             $this->resprints = $sql;
             return 1;
-        }
+        }*/
 
         return 0;
     }
@@ -1334,7 +1334,7 @@ SCRIPT;
     {
         global $conf, $langs;
 
-        $contexts = explode(':',$parameters['context']);
+        /*$contexts = explode(':',$parameters['context']);
 
         if (in_array('requestmanagercard', $contexts)) {
             if (!is_object($object->thirdparty)) $object->fetch_thirdparty();
@@ -1458,7 +1458,7 @@ SCRIPT;
                 );
 
                 // Get equipments 'machine' of the benefactor company on contract with the principal company
-                $fkSocPrincipal = $object->socid > 0 ? $object->socid : 0;
+                /*$fkSocPrincipal = $object->socid > 0 ? $object->socid : 0;
                 $fkSocBenefactor = $object->socid_benefactor > 0 ? $object->socid_benefactor : 0;
 
                 // Get contracts of the principal company
@@ -1517,10 +1517,41 @@ SCRIPT;
                         ' GROUP BY e.rowid, s.rowid'
                 );
 
+                if (!is_object($object->thirdparty_benefactor)) $object->fetch_thirdparty_benefactor();
+
+                if (is_object($object->thirdparty_benefactor) && !empty($object->thirdparty_benefactor->id) && $object->thirdparty_benefactor->id > 0) {
+                    $listofidcompanytoscan = $object->thirdparty_benefactor->id;
+                    if (($object->thirdparty_benefactor->parent > 0) && !empty($conf->global->THIRDPARTY_INCLUDE_PARENT_IN_LINKTO)) $listofidcompanytoscan .= ',' . $object->thirdparty_benefactor->parent;
+                    if (($object->fk_project > 0) && !empty($conf->global->THIRDPARTY_INCLUDE_PROJECT_THIRDPARY_IN_LINKTO)) {
+                        include_once DOL_DOCUMENT_ROOT . '/projet/class/project.class.php';
+                        $tmpproject = new Project($this->db);
+                        $tmpproject->fetch($object->fk_project);
+                        if ($tmpproject->socid > 0 && ($tmpproject->socid != $object->thirdparty_benefactor->id)) $listofidcompanytoscan .= ',' . $tmpproject->socid;
+                        unset($tmpproject);
+                    }
+                    $possiblelinks['equipement'] = array(
+                        'enabled' => $conf->equipement->enabled,
+                        'perms' => 1,
+                        'label' => 'LinkToEquipement',
+                        'sql' => "SELECT s.rowid as socid, s.nom as name, s.client, e.rowid, e.ref FROM " . MAIN_DB_PREFIX . "societe as s" .
+                            " INNER JOIN  " . MAIN_DB_PREFIX . "equipement as e ON e.fk_soc_client = s.rowid" .
+                            " LEFT JOIN  " . MAIN_DB_PREFIX . "equipement_extrafields as eef ON eef.fk_object = e.rowid" .
+                            " LEFT JOIN  " . MAIN_DB_PREFIX . "element_element as ee" .
+                            "   ON (ee.sourcetype = 'equipement' AND ee.fk_source = e.rowid AND ee.targettype = '" . $object->element . "' AND ee.fk_target = " . $object->id . ")" .
+                            "   OR (ee.targettype = 'equipement' AND ee.fk_target = e.rowid AND ee.sourcetype = '" . $object->element . "' AND ee.fk_source = " . $object->id . ")" .
+                            " WHERE e.entity IN (" . getEntity('equipement') . ')' .
+                            " AND e.fk_soc_client IN (" . $listofidcompanytoscan . ")" .
+                            " AND eef.machineclient = 1" .
+                            ' AND ee.rowid IS NULL' .
+                            ' GROUP BY e.rowid, s.rowid',
+                    );
+                }
+
                 $this->results = $possiblelinks;
                 return 1;
             }
-        }
+
+        }*/
 
         return 0;
     }

@@ -40,9 +40,6 @@ SynergiesTechOrderSupplierHasEquipmentToSerialize    = La commande fournisseur �
 SynergiesTechNotSupportStockCalculateOnBill = Ne support pas le calcul du stock à la validation d'une facture
 SynergiesTechInvoiceMassValidate            = %s factures ont été validées.
 
-#######################################################################
-# Custom order
-#######################################################################
 SynergiesTechOnlyProductIncludeIntoContract                 = Liste des produits inclus dans les contrats du client
 SynergiesTechFormules                                       = Formules
 SynergiesTechErrorFormulesNotFoundIntoCategories            = Formules dont la catégorie associée n'est pas trouvée
@@ -51,6 +48,16 @@ SynergiesTechProductOffFormula                              = Forcage de ligne d
 SynergiesTechConfirmProductOffFormula                       = Êtes-vous sur de vouloir ajouter ce produit hors contrat ?
 SynergiesTechProductOffFormulaEventTitle                    = Forcage de ligne de produits hors contrat dans une commande
 SynergiesTechProductOffFormulaEventMessage                  = L'utilisateur %s à forcé l'enregistrement du produit %s hors contrat ( %s ) dans la commande %s
+
+#######################################################################
+# Products lines int the Request (RequestManager)
+#######################################################################
+SynergiesTechOnlyProductIncludeIntoContractAndEquipment     = Produits faisant partie de : Gras -> Machines, Normal -> Hors machiches, Noir -> Contrats, Gris -> Hors contrat
+
+#######################################################################
+# Equipment lines into the Request (RequestManager)
+#######################################################################
+SynergiesTechDontHaveContract   = N'as pas de contrats
 
 #######################################################################
 # Dictionaries

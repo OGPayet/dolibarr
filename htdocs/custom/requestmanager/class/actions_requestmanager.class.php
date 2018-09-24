@@ -389,8 +389,8 @@ class ActionsRequestManager
                         'sql' => "SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref, t.ref_client, t.total_ht FROM " . MAIN_DB_PREFIX . "societe as s" .
                             " INNER JOIN  " . MAIN_DB_PREFIX . "propal as t ON t.fk_soc = s.rowid" .
                             " LEFT JOIN  " . MAIN_DB_PREFIX . "element_element as ee" .
-                            "   ON (ee.sourcetype = 'propal' AND ee.fk_source = t.rowid AND ee.targettype = '".$object->element."' AND ee.fk_target = " . $object->id . ")" .
-                            "   OR (ee.targettype = 'propal' AND ee.fk_target = t.rowid AND ee.sourcetype = '".$object->element."' AND ee.fk_source = " . $object->id . ")" .
+                            "   ON (ee.sourcetype = 'propal' AND ee.fk_source = t.rowid AND ee.targettype = '" . $object->element . "' AND ee.fk_target = " . $object->id . ")" .
+                            "   OR (ee.targettype = 'propal' AND ee.fk_target = t.rowid AND ee.sourcetype = '" . $object->element . "' AND ee.fk_source = " . $object->id . ")" .
                             " WHERE t.fk_soc IN (" . $listofidcompanytoscan . ') AND t.entity IN (' . getEntity('propal') . ')' .
                             ' AND ee.rowid IS NULL' .
                             ' GROUP BY t.rowid, s.rowid',
@@ -402,8 +402,8 @@ class ActionsRequestManager
                         'sql' => "SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref, t.ref_client, t.total_ht FROM " . MAIN_DB_PREFIX . "societe as s" .
                             " INNER JOIN  " . MAIN_DB_PREFIX . "commande as t ON t.fk_soc = s.rowid" .
                             " LEFT JOIN  " . MAIN_DB_PREFIX . "element_element as ee" .
-                            "   ON (ee.sourcetype = 'commande' AND ee.fk_source = t.rowid AND ee.targettype = '".$object->element."' AND ee.fk_target = " . $object->id . ")" .
-                            "   OR (ee.targettype = 'commande' AND ee.fk_target = t.rowid AND ee.sourcetype = '".$object->element."' AND ee.fk_source = " . $object->id . ")" .
+                            "   ON (ee.sourcetype = 'commande' AND ee.fk_source = t.rowid AND ee.targettype = '" . $object->element . "' AND ee.fk_target = " . $object->id . ")" .
+                            "   OR (ee.targettype = 'commande' AND ee.fk_target = t.rowid AND ee.sourcetype = '" . $object->element . "' AND ee.fk_source = " . $object->id . ")" .
                             " WHERE t.fk_soc IN (" . $listofidcompanytoscan . ') AND t.entity IN (' . getEntity('commande') . ')' .
                             ' AND ee.rowid IS NULL' .
                             ' GROUP BY t.rowid, s.rowid',
@@ -415,8 +415,8 @@ class ActionsRequestManager
                         'sql' => "SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.facnumber as ref, t.ref_client, t.total as total_ht FROM " . MAIN_DB_PREFIX . "societe as s" .
                             " INNER JOIN  " . MAIN_DB_PREFIX . "facture as t ON t.fk_soc = s.rowid" .
                             " LEFT JOIN  " . MAIN_DB_PREFIX . "element_element as ee" .
-                            "   ON (ee.sourcetype = 'facture' AND ee.fk_source = t.rowid AND ee.targettype = '".$object->element."' AND ee.fk_target = " . $object->id . ")" .
-                            "   OR (ee.targettype = 'facture' AND ee.fk_target = t.rowid AND ee.sourcetype = '".$object->element."' AND ee.fk_source = " . $object->id . ")" .
+                            "   ON (ee.sourcetype = 'facture' AND ee.fk_source = t.rowid AND ee.targettype = '" . $object->element . "' AND ee.fk_target = " . $object->id . ")" .
+                            "   OR (ee.targettype = 'facture' AND ee.fk_target = t.rowid AND ee.sourcetype = '" . $object->element . "' AND ee.fk_source = " . $object->id . ")" .
                             " WHERE t.fk_soc IN (" . $listofidcompanytoscan . ') AND t.entity IN (' . getEntity('facture') . ')' .
                             ' AND ee.rowid IS NULL' .
                             ' GROUP BY t.rowid, s.rowid',
@@ -428,8 +428,8 @@ class ActionsRequestManager
                         'sql' => "SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref, t.ref_supplier, '' as total_ht FROM " . MAIN_DB_PREFIX . "societe as s" .
                             " INNER JOIN  " . MAIN_DB_PREFIX . "contrat as t ON t.fk_soc = s.rowid" .
                             " LEFT JOIN  " . MAIN_DB_PREFIX . "element_element as ee" .
-                            "   ON (ee.sourcetype = 'contrat' AND ee.fk_source = t.rowid AND ee.targettype = '".$object->element."' AND ee.fk_target = " . $object->id . ")" .
-                            "   OR (ee.targettype = 'contrat' AND ee.fk_target = t.rowid AND ee.sourcetype = '".$object->element."' AND ee.fk_source = " . $object->id . ")" .
+                            "   ON (ee.sourcetype = 'contrat' AND ee.fk_source = t.rowid AND ee.targettype = '" . $object->element . "' AND ee.fk_target = " . $object->id . ")" .
+                            "   OR (ee.targettype = 'contrat' AND ee.fk_target = t.rowid AND ee.sourcetype = '" . $object->element . "' AND ee.fk_source = " . $object->id . ")" .
                             " WHERE t.fk_soc IN (" . $listofidcompanytoscan . ') AND t.entity IN (' . getEntity('contract') . ')' .
                             ' AND ee.rowid IS NULL' .
                             ' GROUP BY t.rowid, s.rowid',
@@ -441,8 +441,8 @@ class ActionsRequestManager
                         'sql' => "SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref FROM " . MAIN_DB_PREFIX . "societe as s" .
                             " INNER JOIN  " . MAIN_DB_PREFIX . "fichinter as t ON t.fk_soc = s.rowid" .
                             " LEFT JOIN  " . MAIN_DB_PREFIX . "element_element as ee" .
-                            "   ON (ee.sourcetype = 'fichinter' AND ee.fk_source = t.rowid AND ee.targettype = '".$object->element."' AND ee.fk_target = " . $object->id . ")" .
-                            "   OR (ee.targettype = 'fichinter' AND ee.fk_target = t.rowid AND ee.sourcetype = '".$object->element."' AND ee.fk_source = " . $object->id . ")" .
+                            "   ON (ee.sourcetype = 'fichinter' AND ee.fk_source = t.rowid AND ee.targettype = '" . $object->element . "' AND ee.fk_target = " . $object->id . ")" .
+                            "   OR (ee.targettype = 'fichinter' AND ee.fk_target = t.rowid AND ee.sourcetype = '" . $object->element . "' AND ee.fk_source = " . $object->id . ")" .
                             " WHERE t.fk_soc IN (" . $listofidcompanytoscan . ') AND t.entity IN (' . getEntity('intervention') . ')' .
                             ' AND ee.rowid IS NULL' .
                             ' GROUP BY t.rowid, s.rowid',
@@ -454,8 +454,8 @@ class ActionsRequestManager
                         'sql' => "SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref, '' as ref_supplier, t.total_ht FROM " . MAIN_DB_PREFIX . "societe as s" .
                             " INNER JOIN  " . MAIN_DB_PREFIX . "supplier_proposal as t ON t.fk_soc = s.rowid" .
                             " LEFT JOIN  " . MAIN_DB_PREFIX . "element_element as ee" .
-                            "   ON (ee.sourcetype = 'supplier_proposal' AND ee.fk_source = t.rowid AND ee.targettype = '".$object->element."' AND ee.fk_target = " . $object->id . ")" .
-                            "   OR (ee.targettype = 'supplier_proposal' AND ee.fk_target = t.rowid AND ee.sourcetype = '".$object->element."' AND ee.fk_source = " . $object->id . ")" .
+                            "   ON (ee.sourcetype = 'supplier_proposal' AND ee.fk_source = t.rowid AND ee.targettype = '" . $object->element . "' AND ee.fk_target = " . $object->id . ")" .
+                            "   OR (ee.targettype = 'supplier_proposal' AND ee.fk_target = t.rowid AND ee.sourcetype = '" . $object->element . "' AND ee.fk_source = " . $object->id . ")" .
                             " WHERE t.fk_soc IN (" . $listofidcompanytoscan . ') AND t.entity IN (' . getEntity('supplier_proposal') . ')' .
                             ' AND ee.rowid IS NULL' .
                             ' GROUP BY t.rowid, s.rowid',
@@ -467,8 +467,8 @@ class ActionsRequestManager
                         'sql' => "SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref, t.ref_supplier, t.total_ht FROM " . MAIN_DB_PREFIX . "societe as s" .
                             " INNER JOIN  " . MAIN_DB_PREFIX . "commande_fournisseur as t ON t.fk_soc = s.rowid" .
                             " LEFT JOIN  " . MAIN_DB_PREFIX . "element_element as ee" .
-                            "   ON (ee.sourcetype = 'order_supplier' AND ee.fk_source = t.rowid AND ee.targettype = '".$object->element."' AND ee.fk_target = " . $object->id . ")" .
-                            "   OR (ee.targettype = 'order_supplier' AND ee.fk_target = t.rowid AND ee.sourcetype = '".$object->element."' AND ee.fk_source = " . $object->id . ")" .
+                            "   ON (ee.sourcetype = 'order_supplier' AND ee.fk_source = t.rowid AND ee.targettype = '" . $object->element . "' AND ee.fk_target = " . $object->id . ")" .
+                            "   OR (ee.targettype = 'order_supplier' AND ee.fk_target = t.rowid AND ee.sourcetype = '" . $object->element . "' AND ee.fk_source = " . $object->id . ")" .
                             " WHERE t.fk_soc IN (" . $listofidcompanytoscan . ') AND t.entity IN (' . getEntity('commande_fournisseur') . ')' .
                             ' AND ee.rowid IS NULL' .
                             ' GROUP BY t.rowid, s.rowid',
@@ -480,13 +480,43 @@ class ActionsRequestManager
                         'sql' => "SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref, t.ref_supplier, t.total_ht FROM " . MAIN_DB_PREFIX . "societe as s" .
                             " INNER JOIN  " . MAIN_DB_PREFIX . "facture_fourn as t ON t.fk_soc = s.rowid" .
                             " LEFT JOIN  " . MAIN_DB_PREFIX . "element_element as ee" .
-                            "   ON (ee.sourcetype = 'invoice_supplier' AND ee.fk_source = t.rowid AND ee.targettype = '".$object->element."' AND ee.fk_target = " . $object->id . ")" .
-                            "   OR (ee.targettype = 'invoice_supplier' AND ee.fk_target = t.rowid AND ee.sourcetype = '".$object->element."' AND ee.fk_source = " . $object->id . ")" .
+                            "   ON (ee.sourcetype = 'invoice_supplier' AND ee.fk_source = t.rowid AND ee.targettype = '" . $object->element . "' AND ee.fk_target = " . $object->id . ")" .
+                            "   OR (ee.targettype = 'invoice_supplier' AND ee.fk_target = t.rowid AND ee.sourcetype = '" . $object->element . "' AND ee.fk_source = " . $object->id . ")" .
                             " WHERE t.fk_soc IN (" . $listofidcompanytoscan . ') AND t.entity IN (' . getEntity('facture_fourn') . ')' .
                             ' AND ee.rowid IS NULL' .
                             ' GROUP BY t.rowid, s.rowid',
                     ),
                 );
+
+                if (!is_object($object->thirdparty_benefactor)) $object->fetch_thirdparty_benefactor();
+
+                if (is_object($object->thirdparty_benefactor) && !empty($object->thirdparty_benefactor->id) && $object->thirdparty_benefactor->id > 0) {
+                    $listofidcompanytoscan = $object->thirdparty_benefactor->id;
+                    if (($object->thirdparty_benefactor->parent > 0) && !empty($conf->global->THIRDPARTY_INCLUDE_PARENT_IN_LINKTO)) $listofidcompanytoscan .= ',' . $object->thirdparty_benefactor->parent;
+                    if (($object->fk_project > 0) && !empty($conf->global->THIRDPARTY_INCLUDE_PROJECT_THIRDPARY_IN_LINKTO)) {
+                        include_once DOL_DOCUMENT_ROOT . '/projet/class/project.class.php';
+                        $tmpproject = new Project($this->db);
+                        $tmpproject->fetch($object->fk_project);
+                        if ($tmpproject->socid > 0 && ($tmpproject->socid != $object->thirdparty_benefactor->id)) $listofidcompanytoscan .= ',' . $tmpproject->socid;
+                        unset($tmpproject);
+                    }
+                    $possiblelinks['equipement'] = array(
+                        'enabled' => $conf->equipement->enabled,
+                        'perms' => 1,
+                        'label' => 'LinkToEquipement',
+                        'sql' => "SELECT s.rowid as socid, s.nom as name, s.client, e.rowid, e.ref FROM " . MAIN_DB_PREFIX . "societe as s" .
+                            " INNER JOIN  " . MAIN_DB_PREFIX . "equipement as e ON e.fk_soc_client = s.rowid" .
+                            " LEFT JOIN  " . MAIN_DB_PREFIX . "equipement_extrafields as eef ON eef.fk_object = e.rowid" .
+                            " LEFT JOIN  " . MAIN_DB_PREFIX . "element_element as ee" .
+                            "   ON (ee.sourcetype = 'equipement' AND ee.fk_source = e.rowid AND ee.targettype = '" . $object->element . "' AND ee.fk_target = " . $object->id . ")" .
+                            "   OR (ee.targettype = 'equipement' AND ee.fk_target = e.rowid AND ee.sourcetype = '" . $object->element . "' AND ee.fk_source = " . $object->id . ")" .
+                            " WHERE e.entity IN (" . getEntity('equipement') . ')' .
+                            " AND e.fk_soc_client IN (" . $listofidcompanytoscan . ")" .
+                            " AND eef.machineclient = 1" .
+                            ' AND ee.rowid IS NULL' .
+                            ' GROUP BY e.rowid, s.rowid',
+                    );
+                }
 
                 $this->results = $possiblelinks;
                 return 1;

@@ -36,6 +36,8 @@ if (empty($conf) || ! is_object($conf))
 
 <?php
 
+if ($object->element != 'requestmanager' || $objecttype != 'equipement') return 0;
+
 global $user;
 
 $langs = $GLOBALS['langs'];
@@ -46,6 +48,9 @@ $langs->load("equipement@equipement");
 
 require_once DOL_DOCUMENT_ROOT."/product/class/product.class.php";
 $productlink = new Product($db);
+
+dol_include_once('/synergiestech/class/html.formsynergiestech.class.php');
+$formsynergiestech = new FormSynergiesTech($db);
 
 $total=0; $ilink=0;
 $var=true;
@@ -60,7 +65,11 @@ foreach($linkedObjectBlock as $key => $objectlink)
 ?>
     <tr class="<?php echo $trclass; ?>">
         <td><?php echo $langs->trans("Equipement"); ?></td>
-        <td><?php echo $objectlink->getNomUrl(1); ?></td>
+        <td>
+        <?php
+            echo $objectlink->getNomUrl(1) . ' ' . $formsynergiestech->picto_equipment_has_contract($objectlink->fk_product, $object->id);
+        ?>
+        </td>
 	<td></td>
 	<td align="center"></td>
 	<td align="center"><?php echo $productlink->getNomUrl(1); ?></td>

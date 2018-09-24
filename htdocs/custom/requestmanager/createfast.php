@@ -315,7 +315,7 @@ if (($action == 'createfast' || $action == 'force_principal_company') && $user->
     $out .= '       urgency: ' . $selectedFkUrgency . ',';
     $out .= '       zone: 1';
     $out .= '   };';
-    $out .= '   var requestManagerLoader = new RequestManagerLoader(0, "create_fast_zone", "' . dol_buildpath('/requestmanager/tpl/createfastzone.tpl.php', 1) . '", ajaxData);';
+    $out .= '   var requestManagerLoader = new RequestManagerLoader(0, "create_fast_zone", "' . dol_buildpath('/requestmanager/tpl/rm_createfastzone.tpl.php', 1) . '", ajaxData);';
     if ($selectedSocId > 0) {
         $out .= '   requestManagerLoader.loadZone(1, "load_auto");';
     } else {

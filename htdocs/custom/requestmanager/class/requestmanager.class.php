@@ -1120,7 +1120,7 @@ class RequestManager extends CommonObject
             $sql .= " FROM " . MAIN_DB_PREFIX . "equipement as e";
             $sql .= " WHERE e.entity = " . $conf->entity;
             if ($fkSocBenefactor >= 0) {
-                $sql .= " AND (e.fk_soc_fourn = " . $fkSocBenefactor . " OR e.fk_soc_client = " . $fkSocBenefactor . ")";
+                $sql .= " AND e.fk_soc_client = " . $fkSocBenefactor;
             }
         }
 

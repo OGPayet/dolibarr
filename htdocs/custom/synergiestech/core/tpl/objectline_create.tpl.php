@@ -212,6 +212,10 @@ else {
               dol_include_once('/synergiestech/class/html.formsynergiestech.class.php');
               $formsynergiestech = new FormSynergiesTech($this->db);
 
+              // Get products categories of the contracts list
+              //------------------------------------------------------------
+              $mode = 0; // Show mode for orders lines
+
               // Gat all contracts of the thirdparty
               require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
               $contract_static = new Contrat($this->db);
@@ -261,19 +265,54 @@ else {
                   }
               }
 
+              // Get products categories of the equipments list
+              //------------------------------------------------------------
+              $equipment_categories = array();
+              if ($object->element == 'requestmanager') {
+                  $mode = 1; // Show mode for request manager lines
+
+                  $object->fetchObjectLinked();
+
+                  if (isset($object->linkedObjects['equipement']) && is_array($object->linkedObjects['equipement'])) {
+                      foreach ($object->linkedObjects['equipement'] as $equipment) {
+                          if ($equipment->fk_product > 0) {
+                              $categories = $categorie_static->containing($equipment->fk_product, 'product', 'id');
+                              foreach ($categories as $category_id) {
+                                  if (!isset($equipment_categories[$category_id])) {
+                                      // Get all sub categories of the categories founded
+                                      foreach ($all_categories as $cat) {
+                                          if (preg_match('/^' . $category_id . '$/', $cat['fullpath']) ||
+                                              preg_match('/_' . $category_id . '$/', $cat['fullpath']) ||
+                                              preg_match('/^' . $category_id . '_/', $cat['fullpath']) ||
+                                              preg_match('/_' . $category_id . '_/', $cat['fullpath'])
+                                          ) {
+                                              $equipment_categories[$cat['id']] = $cat['id'];
+                                          }
+                                      }
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
+
               $ajaxoptions=array(
 						'update' => array('remise_percent' => 'discount'),	// html id tags that will be edited with which ajax json response key
 				);
               if ($conf->global->ENTREPOT_EXTRA_STATUS) {
                   // hide products in closed warehouse, but show products for internal transfer
-                  $formsynergiestech->select_produits(GETPOST('idprod'), 'idprod', $filtertype, $contract_categories, 1, $conf->product->limit_size, $buyer->price_level, 1, 2, '', 1, $ajaxoptions, $buyer->id, '1', 0, '', 0, 'warehouseopen,warehouseinternal', GETPOST('combinations', 'array'));
+                  $formsynergiestech->select_produits(GETPOST('idprod'), 'idprod', $filtertype, $contract_categories, 1, $equipment_categories, $mode, $conf->product->limit_size, $buyer->price_level, 1, 2, '', 1, $ajaxoptions, $buyer->id, '1', 0, '', 0, 'warehouseopen,warehouseinternal', GETPOST('combinations', 'array'));
               } else {
-                  $formsynergiestech->select_produits(GETPOST('idprod'), 'idprod', $filtertype, $contract_categories, 1, $conf->product->limit_size, $buyer->price_level, 1, 2, '', 1, $ajaxoptions, $buyer->id, '1', 0, '', 0, '', GETPOST('combinations', 'array'));
+                  $formsynergiestech->select_produits(GETPOST('idprod'), 'idprod', $filtertype, $contract_categories, 1, $equipment_categories, $mode, $conf->product->limit_size, $buyer->price_level, 1, 2, '', 1, $ajaxoptions, $buyer->id, '1', 0, '', 0, '', GETPOST('combinations', 'array'));
               }
 
-              if (!empty($contract_categories)) {
-                  print '&nbsp;( ' . $langs->trans('SynergiesTechOnlyProductIncludeIntoContract') . ' : ' . implode(', ', $contracts_list) . ' - ';
-                  print $langs->trans('SynergiesTechFormules') . ' : ' . implode(', ', $formules_list) . ' )';
+              if ($object->element == 'requestmanager') {
+                  print '&nbsp;' . img_picto($langs->trans('SynergiesTechOnlyProductIncludeIntoContractAndEquipment'), 'info', 'class="hideonsmartphone"');
+              } else {
+                  if (!empty($contract_categories)) {
+                      print '&nbsp;( ' . $langs->trans('SynergiesTechOnlyProductIncludeIntoContract') . ' : ' . implode(', ', $contracts_list) . ' - ';
+                      print $langs->trans('SynergiesTechFormules') . ' : ' . implode(', ', $formules_list) . ' )';
+                  }
               }
               if (!empty($formules_not_found_list)) {
                   print '&nbsp;<span style="color: red;">' . $langs->trans('SynergiesTechErrorFormulesNotFoundIntoCategories') . ' : ' . implode(', ', $formules_not_found_list) . '</span>';

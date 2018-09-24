@@ -50,6 +50,8 @@ class FormSynergiesTech
     var $error;
     var $num;
 
+    var $cache_contracts_ref_list = null;
+
     /**
      * Constructor
      *
@@ -92,35 +94,37 @@ class FormSynergiesTech
     /**
      *  Return list of products for customer in Ajax if Ajax activated or go to select_produits_list
      *
-     * @param   int     $selected                 Preselected products
-     * @param   string  $htmlname                 Name of HTML select field (must be unique in page)
-     * @param   int     $filtertype               Filter on product type (''=nofilter, 0=product, 1=service)
-     * @param   array   $include_into_categories  If not null only products include into categories
-     * @param   int     $free_into_categories     1=The products include into categories is free
-     * @param   int     $limit                    Limit on number of returned lines
-     * @param   int     $price_level              Level of price to show
-     * @param   int     $status                   -1=Return all products, 0=Products not on sell, 1=Products on sell
-     * @param   int     $finished                 2=all, 1=finished, 0=raw material
-     * @param   string  $selected_input_value     Value of preselected input text (for use with ajax)
-     * @param   int     $hidelabel                Hide label (0=no, 1=yes, 2=show search icon (before) and placeholder, 3 search icon after)
-     * @param   array   $ajaxoptions              Options for synergiestech_ajax_autocompleter
-     * @param   int     $socid                    Thirdparty Id (to get also price dedicated to this customer)
-     * @param   string  $showempty                '' to not show empty line. Translation key to show an empty line. '1' show empty line with no text.
-     * @param   int     $forcecombo               Force to use combo box
-     * @param   string  $morecss                  Add more css on select
-     * @param   int     $hidepriceinlabel         1=Hide prices in label
-     * @param   string  $warehouseStatus          warehouse status filter, following comma separated filter options can be used
-     *                                              'warehouseopen' = select products from open warehouses,
-     *                                              'warehouseclosed' = select products from closed warehouses,
-     *                                              'warehouseinternal' = select products from warehouses for internal correct/transfer only
-     * @param   array   $selected_combinations    Selected combinations. Format: array([attrid] => attrval, [...])
+     * @param   int     $selected                           Preselected products
+     * @param   string  $htmlname                           Name of HTML select field (must be unique in page)
+     * @param   int     $filtertype                         Filter on product type (''=nofilter, 0=product, 1=service)
+     * @param   array   $include_into_contract_categories   If not null only products include into categories
+     * @param   int     $free_into_categories               1=The products include into categories is free
+     * @param   array   $include_into_equipment_categories  Bold lines of product include into the equipment categories
+     * @param   int     $show_mode                          Show mode of the options (0=for orders, 1=for request manager: bold/into equipment; normal/not into equipment; black/into contract; gray/not into contract)
+     * @param   int     $limit                              Limit on number of returned lines
+     * @param   int     $price_level                        Level of price to show
+     * @param   int     $status                             -1=Return all products, 0=Products not on sell, 1=Products on sell
+     * @param   int     $finished                           2=all, 1=finished, 0=raw material
+     * @param   string  $selected_input_value               Value of preselected input text (for use with ajax)
+     * @param   int     $hidelabel                          Hide label (0=no, 1=yes, 2=show search icon (before) and placeholder, 3 search icon after)
+     * @param   array   $ajaxoptions                        Options for synergiestech_ajax_autocompleter
+     * @param   int     $socid                              Thirdparty Id (to get also price dedicated to this customer)
+     * @param   string  $showempty                          '' to not show empty line. Translation key to show an empty line. '1' show empty line with no text.
+     * @param   int     $forcecombo                         Force to use combo box
+     * @param   string  $morecss                            Add more css on select
+     * @param   int     $hidepriceinlabel                   1=Hide prices in label
+     * @param   string  $warehouseStatus                    warehouse status filter, following comma separated filter options can be used
+     *                                                        'warehouseopen' = select products from open warehouses,
+     *                                                        'warehouseclosed' = select products from closed warehouses,
+     *                                                        'warehouseinternal' = select products from warehouses for internal correct/transfer only
+     * @param   array   $selected_combinations              Selected combinations. Format: array([attrid] => attrval, [...])
      * @return  void
      */
-    function select_produits($selected = '', $htmlname = 'productid', $filtertype = '', $include_into_categories = array(), $free_into_categories = 0, $limit = 20, $price_level = 0, $status = 1, $finished = 2, $selected_input_value = '', $hidelabel = 0, $ajaxoptions = array(), $socid = 0, $showempty = '1', $forcecombo = 0, $morecss = '', $hidepriceinlabel = 0, $warehouseStatus = '', $selected_combinations = array())
+    function select_produits($selected = '', $htmlname = 'productid', $filtertype = '', $include_into_contract_categories = array(), $free_into_categories = 0, $include_into_equipment_categories=array(), $show_mode=0, $limit = 20, $price_level = 0, $status = 1, $finished = 2, $selected_input_value = '', $hidelabel = 0, $ajaxoptions = array(), $socid = 0, $showempty = '1', $forcecombo = 0, $morecss = '', $hidepriceinlabel = 0, $warehouseStatus = '', $selected_combinations = array())
     {
         global $langs, $conf;
 
-        if (!is_array($include_into_categories) || count($include_into_categories) == 0) $free_into_categories = 0;
+        if (!is_array($include_into_contract_categories) || count($include_into_contract_categories) == 0) $free_into_categories = 0;
 
         $price_level = (!empty($price_level) ? $price_level : 0);
 
@@ -135,7 +139,7 @@ class FormSynergiesTech
                 unset($producttmpselect);
             }
             // mode=1 means customers products
-            $urloptioncat = http_build_query(array('include_categories'=>$include_into_categories));
+            $urloptioncat = http_build_query(array('include_contract_categories'=>$include_into_contract_categories,'include_equipment_categories'=>$include_into_equipment_categories,'show_mode'=>$show_mode));
             $urloption = 'htmlname=' . $htmlname . '&outjson=1&price_level=' . $price_level . '&type=' . $filtertype . '&mode=1&status=' . $status . '&finished=' . $finished . '&warehousestatus=' . $warehouseStatus."&".$urloptioncat;
             //Price by customer
             if (!empty($conf->global->PRODUIT_CUSTOMER_PRICES) && !empty($socid)) {
@@ -230,7 +234,7 @@ class FormSynergiesTech
                 print img_picto($langs->trans("Search"), 'search');
             }
         } else {
-            print $this->select_produits_list($selected, $htmlname, $filtertype, $include_into_categories, $free_into_categories, $limit, $price_level, '', $status, $finished, 0, $socid, $showempty, $forcecombo, $morecss, $hidepriceinlabel, $warehouseStatus);
+            print $this->select_produits_list($selected, $htmlname, $filtertype, $include_into_contract_categories, $free_into_categories, $include_into_equipment_categories, $show_mode, $limit, $price_level, '', $status, $finished, 0, $socid, $showempty, $forcecombo, $morecss, $hidepriceinlabel, $warehouseStatus);
         }
     }
 
@@ -240,8 +244,10 @@ class FormSynergiesTech
      * @param   int     $selected                 Preselected product
      * @param   string  $htmlname                 Name of select html
      * @param   string  $filtertype               Filter on product type (''=nofilter, 0=product, 1=service)
-     * @param   array   $include_into_categories  If not null only products include into categories
+     * @param   array   $include_into_contract_categories  If not null only products include into categories
      * @param   int     $free_into_categories     1=The products include into categories is free
+     * @param   array   $include_into_equipment_categories     Bold lines of product include into the equipment categories
+     * @param   int     $show_mode                Show mode of the options (0=for orders, 1=for request manager: bold/into equipment; normal/not into equipment; black/into contract; gray/not into contract)
      * @param   int     $limit                    Limit on number of returned lines
      * @param   int     $price_level              Level of price to show
      * @param   string  $filterkey                Filter on product
@@ -259,14 +265,14 @@ class FormSynergiesTech
      *                                              'warehouseinternal' = select products from warehouses for internal correct/transfer only
      * @return  array                             Array of keys for json
      */
-    function select_produits_list($selected = '', $htmlname = 'productid', $filtertype = '', $include_into_categories = array(), $free_into_categories = 0, $limit = 20, $price_level = 0, $filterkey = '', $status = 1, $finished = 2, $outputmode = 0, $socid = 0, $showempty = '1', $forcecombo = 0, $morecss = '', $hidepriceinlabel = 0, $warehouseStatus = '')
+    function select_produits_list($selected = '', $htmlname = 'productid', $filtertype = '', $include_into_contract_categories = array(), $free_into_categories = 0, $include_into_equipment_categories=array(), $show_mode=0, $limit = 20, $price_level = 0, $filterkey = '', $status = 1, $finished = 2, $outputmode = 0, $socid = 0, $showempty = '1', $forcecombo = 0, $morecss = '', $hidepriceinlabel = 0, $warehouseStatus = '')
     {
         global $langs, $conf, $user, $db;
 
         $out = '';
         $outarray = array();
 
-        if (!is_array($include_into_categories) || count($include_into_categories) == 0) $free_into_categories = 0;
+        if (!is_array($include_into_contract_categories) || count($include_into_contract_categories) == 0) $free_into_categories = 0;
 
         $warehouseStatusArray = array();
         if (!empty($warehouseStatus)) {
@@ -296,9 +302,14 @@ class FormSynergiesTech
             $selectFields .= ", idprodcustprice, custprice, custprice_ttc, custprice_base_type, custtva_tx";
         }
 
-        // Include only product include in the categories
-        if (is_array($include_into_categories) && count($include_into_categories) > 0) {
-            $sql .= " , IF(SUM(IF(cp.fk_categorie IN(" . implode(',', $include_into_categories) . "), 1, 0)) > 0, 1, 0) as is_into_categories";
+        // Include in the contract categories
+        if (is_array($include_into_contract_categories) && count($include_into_contract_categories) > 0) {
+            $sql .= " , IF(SUM(IF(cp.fk_categorie IN(" . implode(',', $include_into_contract_categories) . "), 1, 0)) > 0, 1, 0) as is_into_contract_categories";
+        }
+
+        // Include in the equipment categories
+        if ($show_mode == 1 && is_array($include_into_equipment_categories) && count($include_into_equipment_categories) > 0) {
+            $sql .= " , IF(SUM(IF(cp.fk_categorie IN(" . implode(',', $include_into_equipment_categories) . "), 1, 0)) > 0, 1, 0) as is_into_equipment_categories";
         }
 
         // Multilang : we add translation
@@ -325,7 +336,7 @@ class FormSynergiesTech
         }
 
         // Include only product include in the categories
-        if (is_array($include_into_categories) && count($include_into_categories) > 0) {
+        if ((is_array($include_into_contract_categories) && count($include_into_contract_categories) > 0) || ($show_mode == 1 && is_array($include_into_equipment_categories) && count($include_into_equipment_categories) > 0)) {
             $sql .= " LEFT JOIN  " . MAIN_DB_PREFIX . "categorie_product as cp ON cp.fk_product=p.rowid";
         }
 
@@ -379,10 +390,14 @@ class FormSynergiesTech
             if (!empty($conf->barcode->enabled)) $sql .= " OR p.barcode LIKE '" . $db->escape($prefix . $filterkey) . "%'";
             $sql .= ')';
         }
-        if (count($warehouseStatusArray) || (is_array($include_into_categories) && count($include_into_categories) > 0)) {
+        if (count($warehouseStatusArray) || (is_array($include_into_contract_categories) && count($include_into_contract_categories) > 0) || ($show_mode == 1 && is_array($include_into_equipment_categories) && count($include_into_equipment_categories) > 0)) {
             $sql .= ' GROUP BY' . $selectFields;
         }
-        $sql .= $db->order("p.ref");
+        if ($show_mode == 1) {
+            $sql .= $db->order('is_into_contract_categories, is_into_equipment_categories, p.ref', 'DESC, DESC, ASC');
+        } else {
+            $sql .= $db->order("p.ref");
+        }
         $sql .= $db->plimit($limit);
 
         // Build output string
@@ -439,7 +454,7 @@ class FormSynergiesTech
                             $objp->remise = $objp2->remise;
                             $objp->price_by_qty_rowid = $objp2->rowid;
 
-                            $this->constructProductListOption($objp, $opt, $optJson, 0, $selected, $hidepriceinlabel, ($free_into_categories && $objp->is_into_categories ? 100 : null));
+                            $this->constructProductListOption($objp, $opt, $optJson, 0, $selected, $hidepriceinlabel, ($free_into_categories && $objp->is_into_contract_categories ? 100 : null), $show_mode);
 
                             $j++;
 
@@ -447,7 +462,7 @@ class FormSynergiesTech
                             // "key" value of json key array is used by jQuery automatically as selected value
                             // "label" value of json key array is used by jQuery automatically as text for combo box
                             $out .= $opt;
-                            //if (!isset($objp->is_into_categories) || $objp->is_into_categories == 1) {
+                            //if (!isset($objp->is_into_contract_categories) || $objp->is_into_contract_categories == 1) {
                                 array_push($outarray, $optJson);
                             //}
                         }
@@ -467,12 +482,12 @@ class FormSynergiesTech
                         }
                     }
 
-                    $this->constructProductListOption($objp, $opt, $optJson, $price_level, $selected, $hidepriceinlabel, ($free_into_categories && $objp->is_into_categories ? 100 : null));
+                    $this->constructProductListOption($objp, $opt, $optJson, $price_level, $selected, $hidepriceinlabel, ($free_into_categories && $objp->is_into_contract_categories ? 100 : null), $show_mode);
                     // Add new entry
                     // "key" value of json key array is used by jQuery automatically as selected value
                     // "label" value of json key array is used by jQuery automatically as text for combo box
                     $out .= $opt;
-                    //if (!isset($objp->is_into_categories) || $objp->is_into_categories == 1) {
+                    //if (!isset($objp->is_into_contract_categories) || $objp->is_into_contract_categories == 1) {
                         array_push($outarray, $optJson);
                     //}
                 }
@@ -501,9 +516,10 @@ class FormSynergiesTech
      * @param   string      $selected           Preselected value
      * @param   int         $hidepriceinlabel   Hide price in label
      * @param   int         $forceDiscount      Force discount pourcent
+     * @param   int         $show_mode          Show mode of the options (0=for orders, 1=for request manager: bold/into equipment; normal/not into equipment; black/into contract; gray/not into contract)
      * @return  void
      */
-    private function constructProductListOption(&$objp, &$opt, &$optJson, $price_level, $selected, $hidepriceinlabel = 0, $forceDiscount=null)
+    private function constructProductListOption(&$objp, &$opt, &$optJson, $price_level, $selected, $hidepriceinlabel = 0, $forceDiscount=null, $show_mode=0)
     {
         global $langs, $conf, $user, $db;
 
@@ -543,7 +559,7 @@ class FormSynergiesTech
 
         $opt = '<option value="' . $objp->rowid . '"';
         $opt .= ($objp->rowid == $selected) ? ' selected' : '';
-        $opt .= (isset($objp->is_into_categories) && $objp->is_into_categories == 0) ? ' disabled' : '';
+        $opt .= (isset($objp->is_into_contract_categories) && $objp->is_into_contract_categories == 0) ? ' disabled' : '';
         $opt .= (!empty($objp->price_by_qty_rowid) && $objp->price_by_qty_rowid > 0) ? ' pbq="' . $objp->price_by_qty_rowid . '"' : '';
         if (!empty($conf->stock->enabled) && $objp->fk_product_type == 0 && isset($objp->stock)) {
             if ($objp->stock > 0) $opt .= ' class="product_line_stock_ok"';
@@ -683,11 +699,89 @@ class FormSynergiesTech
 
         $opt .= "</option>\n";
 
-        $isNotIntoCategories = isset($objp->is_into_categories) && $objp->is_into_categories == 0;
-        $optJson = array('key' => $outkey, 'value' => $outref, 'label' => ($isNotIntoCategories ? '<span style="color: grey;">' : '') . $outval . ($isNotIntoCategories ? '</span>' : ''), 'label2' => $outlabel, 'desc' => $outdesc, 'type' => $outtype, 'price_ht' => $outprice_ht, 'price_ttc' => $outprice_ttc, 'pricebasetype' => $outpricebasetype, 'tva_tx' => $outtva_tx, 'qty' => $outqty, 'discount' => $outdiscount, 'duration_value' => $outdurationvalue, 'duration_unit' => $outdurationunit);
+        $isNotIntoContractCategories = isset($objp->is_into_contract_categories) && $objp->is_into_contract_categories == 0;
+        $isNotIntoEquipmentCategories = $show_mode == 1 && isset($objp->is_into_equipment_categories) && $objp->is_into_equipment_categories == 0;
+        $style = ($isNotIntoContractCategories ? 'color:grey;' : '') . ($isNotIntoEquipmentCategories ? '' : 'font-weight:bolder;');
+        $optJson = array('key' => $outkey, 'value' => $outref, 'label' => (!empty($style) ? '<span style="'.$style.'">' : '') . $outval . (!empty($style) ? '</span>' : ''), 'label2' => $outlabel, 'desc' => $outdesc, 'type' => $outtype, 'price_ht' => $outprice_ht, 'price_ttc' => $outprice_ttc, 'pricebasetype' => $outpricebasetype, 'tva_tx' => $outtva_tx, 'qty' => $outqty, 'discount' => $outdiscount, 'duration_value' => $outdurationvalue, 'duration_unit' => $outdurationunit);
         /*if ($isNotIntoCategories) {
             $optJson['opt_disabled'] = true;
         }*/
+    }
+
+    /**
+     *  Get HTML picto of the state of contract for the equipment
+     *
+     * @param   int     $fk_product       Product ID of the equipment
+     * @param   int     $socid            Check contract with the contract of this company ID
+     * @param   array   $list_contract    Check contract with this list of contract object
+     * @param   int     $reload           Reload cache of contract ref list
+     * @return  string                    HTML picto of the state of contract for the equipment
+     */
+    function picto_equipment_has_contract($fk_product, $socid=0, $list_contract=array(), $reload=0) {
+        global $conf, $langs;
+        $langs->load("synergiestech@synergiestech");
+
+        require_once DOL_DOCUMENT_ROOT . '/categories/class/categorie.class.php';
+        $categorie_static = new Categorie($this->db);
+
+        if (!isset($this->cache_contracts_ref_list) || $reload) {
+            // Gat all contracts of the thirdparty
+            require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
+            $contract_static = new Contrat($this->db);
+
+            if ($socid > 0) {
+                $contract_static->socid = $socid;
+                $list_contract = $contract_static->getListOfContracts();
+            }
+
+            $this->cache_contracts_ref_list = array();
+            if (!empty($list_contract)) {
+                // Get extrafields of the contract
+                $contract_extrafields = new ExtraFields($this->db);
+                $contract_extralabels = $contract_extrafields->fetch_name_optionals_label($contract_static->table_element);
+
+                // Get categories who has the contract formule category in the full path (exclude the contract formule category)
+                $all_categories = $categorie_static->get_full_arbo('product');
+                $contract_formule_categories = array();
+                foreach ($all_categories as $cat) {
+                    if ((preg_match('/^' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '$/', $cat['fullpath']) ||
+                            preg_match('/_' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '$/', $cat['fullpath']) ||
+                            preg_match('/^' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '_/', $cat['fullpath']) ||
+                            preg_match('/_' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '_/', $cat['fullpath'])
+                        ) && $cat['id'] != $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE
+                    ) {
+                        $contract_formule_categories[$cat['label']] = $cat['id'];
+                    }
+                }
+
+                // Match all formules for the contracts of the thirdparty
+                foreach ($list_contract as $contract) {
+                    $contract->fetch_optionals();
+                    $formule_id = $contract->array_options['options_formule'];
+                    $formule_label = $contract_extrafields->attribute_param['formule']['options'][$formule_id];
+                    if (!empty($formule_label)) {
+                        $contract_category_id = $contract_formule_categories[$formule_label];
+                        if (isset($contract_category_id)) {
+                            $this->cache_contracts_ref_list[$contract_category_id][] = $contract->ref;
+                        }
+                    }
+                }
+            }
+        }
+
+        $has_contract = array();
+        $equipment_categories = $categorie_static->containing($fk_product, 'product', 'id');
+        foreach ($equipment_categories as $cat_id) {
+            if (isset($this->cache_contracts_ref_list[$cat_id])) {
+                $has_contract = array_merge($has_contract, $this->cache_contracts_ref_list[$cat_id]);
+            }
+        }
+
+        if (count($has_contract) > 0) {
+            return img_picto(implode('; ', $has_contract), 'status_green.png@synergiestech');
+        } else {
+            return img_picto($langs->trans('SynergiesTechDontHaveContract'), 'status_red.png@synergiestech');
+        }
     }
 }
 
