@@ -73,8 +73,6 @@ class ActionsCompanyRelationships
      */
     function beforePDFCreation($parameters, &$object, &$action, $hookmanager)
     {
-        global $conf;
-
         $contexts = explode(':', $parameters['context']);
 
         if (in_array('globalcard', $contexts)) {
@@ -113,7 +111,7 @@ class ActionsCompanyRelationships
      */
     function formObjectOptions($parameters, &$object, &$action, $hookmanager)
     {
-        global $db, $langs, $user;
+        global $langs, $user;
 
         $contexts = explode(':', $parameters['context']);
 
