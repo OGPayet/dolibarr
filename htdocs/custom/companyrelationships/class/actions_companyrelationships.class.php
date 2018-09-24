@@ -91,18 +91,6 @@ class ActionsCompanyRelationships
                         $companyRecipient->fetch($benefactorId);
 
                         if ($companyRecipient->id > 0) {
-                          $object->thirdparty = $companyRecipient;
-                        }
-                    }
-                } else {
-                    $object->fetch_thirdparty();
-
-                    // find principal company of this thirdparty
-                    $companyRelationships = new CompanyRelationships($this->db);
-                    $companies = $companyRelationships->getRelationships($object->thirdparty->id, 0, 1);
-                    if (is_array($companies) && count($companies) == 1) {
-                        $companyRecipient = current($companies);
-                        if ($companyRecipient->id > 0) {
                             $object->thirdparty = $companyRecipient;
                         }
                     }
