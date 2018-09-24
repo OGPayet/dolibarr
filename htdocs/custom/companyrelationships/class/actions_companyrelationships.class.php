@@ -73,6 +73,8 @@ class ActionsCompanyRelationships
      */
     function beforePDFCreation($parameters, &$object, &$action, $hookmanager)
     {
+        global $conf;
+
         $contexts = explode(':', $parameters['context']);
 
         if (in_array('globalcard', $contexts)) {
@@ -84,7 +86,13 @@ class ActionsCompanyRelationships
                     $benefactorId = $object->array_options['options_companyrelationships_fk_soc_benefactor'];
 
                     if ($benefactorId > 0) {
-                        $object->fetch_thirdparty($benefactorId);
+                        require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
+                        $companyRecipient = new Societe($this->db);
+                        $companyRecipient->fetch($benefactorId);
+
+                        if ($companyRecipient->id > 0) {
+                          $object->thirdparty = $companyRecipient;
+                        }
                     }
                 } else {
                     $object->fetch_thirdparty();
