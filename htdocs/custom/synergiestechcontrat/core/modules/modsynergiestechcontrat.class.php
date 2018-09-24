@@ -291,6 +291,7 @@ class modsynergiestechcontrat extends DolibarrModulessynergiestechcontrat
 								'perms'=>'1',			                // Use 'perms'=>'$user->rights->synergiestechcontrat->level1->level2' if you want your menu with a permission rules
 								'target'=>'',
 								'user'=>2);				                // 0=Menu for internal users, 1=external users, 2=both*/
+
 		$this->menu[$r++]=array(	'fk_menu'=>'fk_mainmenu=accountancy,fk_leftmenu=customers_bills',	    // '' if this is a top menu. For left menu, use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
 								'type'=>'left',			                // This is a Left menu entry
 								'titre'=>'FacturationContrat',
@@ -303,6 +304,22 @@ class modsynergiestechcontrat extends DolibarrModulessynergiestechcontrat
 								'perms'=>'1',			                // Use 'perms'=>'$user->rights->synergiestechcontrat->level1->level2' if you want your menu with a permission rules
 								'target'=>'',
 								'user'=>2);				                // 0=Menu for internal users, 1=external users, 2=both
+        /*
+        $this->menu[$r] = array(
+            'fk_menu' => 'fk_mainmenu=accountancy,fk_leftmenu=customers_bills',
+            'type' => 'left',
+            'titre' => 'STCBillingContracts',
+            'mainmenu' => 'accountancy',
+            'leftmenu' => 'customers_bills',
+            'url' => '/synergiestechcontrat/invoicescontractlist.php',
+            'langs' => 'synergiestechcontrat@synergiestechcontrat',
+            'position' => 1000 + $r,
+            'enabled' => '$conf->synergiestechcontrat->enabled',
+            'perms' => '$user->rights->contrat->lire',
+            'target' => '',
+            'user' => 0
+        );
+        $r++;*/
 		/* END MODULEBUILDER LEFTMENU MYOBJECT */
 
 
@@ -362,8 +379,9 @@ class modsynergiestechcontrat extends DolibarrModulessynergiestechcontrat
         include_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
         $extrafields = new ExtraFields($this->db);
         // Invoice
-        $result=$extrafields->addExtraField('datedeb', 'datedeb', 'date', 0,  '', 'facture',   0, 0, '', '', 1, '', 0, 0, '');
-        $result=$extrafields->addExtraField('datefin', 'datefin', 'date', 0,  '', 'facture',   0, 0, '', '', 1, '', 0, 0, '');
+        $result=$extrafields->addExtraField('datedeb', 'Début de la période de facturation', 'date', 0,  '', 'facture',   0, 0, '', '', 1, '', 0, 0, '');
+        $result=$extrafields->addExtraField('datefin', 'Fin de la période de facturation', 'date', 0,  '', 'facture',   0, 0, '', '', 1, '', 0, 0, '');
+        $result=$extrafields->addExtraField('test', 'Facture de test', 'boolean', 0,  '', 'facture',   0, 0, '', '', 0, '', 0, 1, '');
         $result=$extrafields->addExtraField('oldinvoice', "Facturation d'une période passé possible ?", 'boolean', 0,  '', 'contrat',   0, 0, '0', '', 1, '', 0, 0, '');
         $result=$extrafields->addExtraField('targetdate', "Date souhaitée de résiliation", 'date', 10,  '', 'contrat',   0, 0, '', '', 1, '', 0, 0, '');
         $result=$extrafields->addExtraField('realdate', "Date effective de résiliation", 'date', 11,  '', 'contrat',   0, 0, '', '', 1, '', 0, 0, '');
