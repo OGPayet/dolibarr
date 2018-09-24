@@ -348,13 +348,13 @@ function requestmanager_show_events(&$requestmanager)
     $sql .= ' WHERE ac.fk_soc = ' . $requestmanager->socid;
     $sql .= ' AND ac.entity IN (' . getEntity('agenda') . ')';
     if ($search_only_linked_to_request) {
-        $sql .= " AND IF(ac.elementtype='requestmanager', ac.fk_element, IF(ee.sourcetype!='requestmanager' AND ee.targettype='requestmanager', ee.fk_target, IF(ee.sourcetype='requestmanager', ee.fk_source, NULL))) IN(" . $request_ids . ")";
+        $sql .= " AND IF(ac.elementtype='requestmanager', ac.fk_element, IF(ee.sourcetype!='requestmanager' AND ee.targettype='requestmanager', ee.fk_target, IF(ee.sourcetype='requestmanager', ee.fk_source, NULL))) IN(" . (!empty($request_ids) ? $request_ids : '-1') . ")";
     } else {
         if (!$search_include_event_other_request) {
-            $sql .= " AND (ac.elementtype != 'requestmanager' OR ac.fk_element IN (" . $request_ids . "))";
+            $sql .= " AND (ac.elementtype != 'requestmanager' OR ac.fk_element IN (" . (!empty($request_ids) ? $request_ids : '-1') . "))";
         }
         if (!$search_include_linked_event_to_children_request) {
-            $sql .= " AND IF(ac.elementtype='requestmanager', ac.fk_element, IF(ee.sourcetype!='requestmanager' AND ee.targettype='requestmanager', ee.fk_target, IF(ee.sourcetype='requestmanager', ee.fk_source, NULL))) NOT IN (" . $request_children_ids . ")";
+            $sql .= " AND IF(ac.elementtype='requestmanager', ac.fk_element, IF(ee.sourcetype!='requestmanager' AND ee.targettype='requestmanager', ee.fk_target, IF(ee.sourcetype='requestmanager', ee.fk_source, NULL))) NOT IN (" . (!empty($request_children_ids) ? $request_children_ids : '-1') . ")";
         }
     }
     if ($search_ref) $sql .= natural_search('ac.id', $search_ref);

@@ -58,9 +58,7 @@ if ($zone === 1) {
     if ($selectedActionCommId>0 && $selectedActionJs=='change_actioncomm_id') {
         $actionComm = new ActionComm($db);
         $actionComm->fetch($selectedActionCommId);
-        $actionComm->fetch_thirdparty();
-        $actionCommThirdParty = $actionComm->thirdparty;
-        $selectedSocId = $actionCommThirdParty->id;
+        $selectedSocIdOrigin = $actionComm->socid;
     }
 
     $form = new Form($db);
@@ -139,7 +137,7 @@ if ($zone === 1) {
 	print '<td>' . $langs->trans('RequestManagerRequesterContacts') . '</td><td>';
     print $formrequestmanager->multiselect_contacts($selectedSocIdOrigin, $selectedContacts, 'contact_ids', '', '', 0, 'minwidth300');
     if ($selectedSocIdOrigin > 0 && $user->rights->societe->contact->creer) {
-        $backToPage = dol_buildpath('/requestmanager/createfast.php', 1) . '?action=createfast' . ($selectedFkType ? '&type=' . $selectedFkType : '') . ($selectedSocId ? '&socid=' . $selectedSocId : '') . ($selectedSocIdBenefactor ? '&socid_benefactor=' . $selectedSocIdBenefactor : '') . '&socid_origin=##SOCID##';
+        $backToPage = dol_buildpath('/requestmanager/createfast.php', 1) . '?action=createfast' . ($selectedFkType ? '&type=' . $selectedFkType : '') . ($selectedSocIdOrigin ? '&socid_origin=' . $selectedSocIdOrigin : '') . ($selectedSocId ? '&socid=' . $selectedSocId : '') . ($selectedSocIdBenefactor ? '&socid_benefactor=' . $selectedSocIdBenefactor : '');
         $btnCreateContactLabel = (!empty($conf->global->SOCIETE_ADDRESSES_MANAGEMENT) ? $langs->trans("AddContact") : $langs->trans("AddContactAddress"));
         $btnCreateContact = '<a class="addnewrecord" href="' . DOL_URL_ROOT . '/contact/card.php?socid=' . $selectedSocIdOrigin . '&amp;action=create&amp;backtopage=' . urlencode($backToPage) . '">' . $btnCreateContactLabel;
         if (empty($conf->dol_optimize_smallscreen)) $btnCreateContact .= ' ' . img_picto($btnCreateContactLabel, 'filenew');

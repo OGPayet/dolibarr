@@ -597,8 +597,8 @@ class RequestManager extends CommonObject
         $sql .= ", notify_assigned_by_email";
         $sql .= ", date_operation";
         $sql .= ", date_deadline";
-        $sql .= ", fk_status";
         $sql .= ", entity";
+        $sql .= ", fk_status";
         $sql .= ", datec";
         $sql .= ", fk_user_author";
         $sql .= ")";
@@ -688,7 +688,7 @@ class RequestManager extends CommonObject
 
             // Set status
             if (!$error) {
-                $ret = $this->set_status($this->statut, -1, $user, 1);
+                $ret = $this->set_status($this->statut, -1, $user, 1, 0, 0, 1);
                 if ($ret < 0) {
                     $error++;
                 }
@@ -2045,9 +2045,10 @@ class RequestManager extends CommonObject
 	 * @param   bool    $notrigger      false=launch triggers after, true=disable triggers
      * @param   int     $forcereload    Force reload of the cache
      * @param   int		$nonotify		Disable notification of assigned changed
+     * @param   int		$dont_check		Don't check the old and new status is equal do pass
 	 * @return  int                     <0 if KO, >0 if OK
 	 */
-	public function set_status($status, $status_type, User $user, $notrigger = false, $forcereload = 0, $nonotify = 0)
+	public function set_status($status, $status_type, User $user, $notrigger = false, $forcereload = 0, $nonotify = 0, $dont_check=0)
     {
         global $langs;
         $error = 0;
@@ -2096,7 +2097,7 @@ class RequestManager extends CommonObject
 
         $this->new_statut = $status;
 
-        if ($this->new_statut == $this->statut) {
+        if ($this->new_statut == $this->statut && !$dont_check) {
             dol_syslog(__METHOD__ . " : Status not changed", LOG_DEBUG);
             return 1;
         }
@@ -3785,6 +3786,7 @@ class RequestManager extends CommonObject
         // link to actioncomm
         $actionComm = new ActionComm($this->db);
         $actionComm->fetch($actionCommId);
+        $actionComm->socid  = $this->socid;
         $actionComm->fk_element  = $this->id;
         $actionComm->elementtype = $this->element;
         $result = $actionComm->update($user);

@@ -82,7 +82,14 @@ class FormRequestManager
      */
     function select_type($usergroups, $selected = '', $htmlname = 'type', $showempty = '', $forcecombo = 0, $events = array(), $usesearchtoselect=0, $limit = 0, $morecss = 'minwidth100', $moreparam = '', $selected_input_value = '', $hidelabel = 1, $selectlabel = '', $autofocus=0, $ajaxoptions = array(), $options_only=false)
     {
-        return $this->formdictionary->select_dictionary('requestmanager', 'requestmanagerrequesttype', $selected, $htmlname, 'rowid', '{{label}}', is_array($usergroups) ? array('user_group'=>$usergroups) : array(), $showempty, $forcecombo, $events, $usesearchtoselect, $limit, $morecss, $moreparam, $selected_input_value, $hidelabel, $selectlabel, $autofocus, $ajaxoptions, $options_only);
+        global $langs;
+
+        $out = $this->formdictionary->select_dictionary('requestmanager', 'requestmanagerrequesttype', $selected, $htmlname, 'rowid', '{{label}}', is_array($usergroups) ? array('user_group'=>$usergroups) : array(), $showempty, $forcecombo, $events, $usesearchtoselect, $limit, $morecss, $moreparam, $selected_input_value, $hidelabel, $selectlabel, $autofocus, $ajaxoptions, $options_only);
+        if ($out < 0) {
+            return $langs->trans('RequestManagerDontHaveRequestTypeForYoursGroup');
+        }
+
+        return $out;
     }
 
     /**
@@ -553,7 +560,7 @@ class FormRequestManager
                 $out .= '<option value="-1" disabled>' . $langs->trans("NoActionComm") . '</option>';
             }
 
-            if ($options_only)
+            if (!$options_only)
             {
                 $out .= '</select>';
             }

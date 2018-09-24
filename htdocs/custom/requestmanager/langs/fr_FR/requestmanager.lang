@@ -296,6 +296,11 @@ RequestManagerDeleteCompaniesRelationship           = Supprimer relation tiers
 RequestManagerConfirmDeleteCompaniesRelationship    = Êtes-vous sûr de vouloir supprimer cette relation tiers ?
 
 ############################################################
+### Globales
+############################################################
+RequestManagerDontHaveRequestTypeForYoursGroup      = Vous n'avez pas de type de demande attribuée à vos groupes
+
+############################################################
 ### Errors
 ############################################################
 RequestManagerErrorFieldStatusMustBeOfInitialType               = La demande doit être à un statut de type 'Initial'
