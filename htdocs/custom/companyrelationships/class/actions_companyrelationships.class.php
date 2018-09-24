@@ -75,57 +75,31 @@ class ActionsCompanyRelationships
     {
         $contexts = explode(':', $parameters['context']);
 
-        if (in_array('propalcard', $contexts)) {
+        if (in_array('globalcard', $contexts)) {
             dol_include_once('/companyrelationships/class/companyrelationships.class.php');
 
-            $object->fetch_thirdparty();
+            if (!empty($object->element) && in_array($object->element, CompanyRelationships::$psa_element_list)) {
+                if ($object->element == 'fichinter') {
+                    // get benefactor of this element
+                    $benefactorId = $object->array_options['options_companyrelationships_fk_soc_benefactor'];
 
-            // find principal company of this thirdparty
-            $companyRelationships = new CompanyRelationships($this->db);
-            $companies = $companyRelationships->getRelationships($object->thirdparty->id, 0, 1);
-            if (is_array($companies) && count($companies)==1) {
-                $companyRecipient = current($companies);
-                if ($companyRecipient->id > 0) {
-                    $object->thirdparty = $companyRecipient;
+                    if ($benefactorId > 0) {
+                        $object->fetch_thirdparty($benefactorId);
+                    }
+                } else {
+                    $object->fetch_thirdparty();
+
+                    // find principal company of this thirdparty
+                    $companyRelationships = new CompanyRelationships($this->db);
+                    $companies = $companyRelationships->getRelationships($object->thirdparty->id, 0, 1);
+                    if (is_array($companies) && count($companies) == 1) {
+                        $companyRecipient = current($companies);
+                        if ($companyRecipient->id > 0) {
+                            $object->thirdparty = $companyRecipient;
+                        }
+                    }
                 }
             }
-        }
-
-        return 0;
-    }
-
-
-    /**
-     * Overloading the doActions function : replacing the parent's function with the one below
-     *
-     * @param   array()         $parameters     Hook metadatas (context, etc...)
-     * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-     * @param   string          &$action        Current action (if set). Generally create or edit or null
-     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
-     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
-     */
-    function doActions($parameters, &$object, &$action, $hookmanager)
-    {
-        global $conf, $langs, $user;
-
-        $contexts = explode(':', $parameters['context']);
-
-        if (in_array('companyrelationshipscard', $contexts)) {
-            /*
-            if ($action == 'add' && $user->rights->propal->creer) {
-                require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
-
-                $socid      = GETPOST('socid', 'int');
-                $backtopage	= GETPOST('backtopage','alpha');
-
-                $extrafields = new ExtraFields($this->db);
-                // fetch optionals attributes and labels
-                $extralabels = $extrafields->fetch_name_optionals_label($object->table_element);
-                // Fill array 'array_options' with data from add form
-                $ret = $extrafields->setOptionalsFromPost($extralabels, $object);
-                $fk_soc_benefactor = $object->array_options['options_companyrelationships_fk_soc_benefactor'];
-            }
-            */
         }
 
         return 0;
@@ -147,51 +121,103 @@ class ActionsCompanyRelationships
 
         $contexts = explode(':', $parameters['context']);
 
-        if (in_array('propalcard', $contexts)) {
-            dol_include_once('/companyrelationships/class/html.companyrelationships.class.php');
-            dol_include_once('/companyrelationships/class/html.formcompanyrelationships.class.php');
+        if (in_array('globalcard', $contexts)) {
+            dol_include_once('/companyrelationships/class/companyrelationships.class.php');
 
-            $langs->load('companyrelationships@companyrelationships');
+            if (!empty($object->element) && in_array($object->element, CompanyRelationships::$psa_element_list)) {
+                dol_include_once('/companyrelationships/class/html.formcompanyrelationships.class.php');
 
-            $out = '';
+                $langs->load('companyrelationships@companyrelationships');
 
-            $events = array();
-            $events[] = array('action' => 'getBenefactor', 'url' => dol_buildpath('/companyrelationships/ajax/benefactor.php', 1), 'htmlname' => 'options_companyrelationships_fk_soc_benefactor');
-            $formcompanyrelationships = new FormCompanyRelationships($this->db);
-            $out .= $formcompanyrelationships->add_select_events('socid', $events);
+                $out = '';
 
-            // company relationships availability for this element
-            if ($user->rights->companyrelationships->update_md->element) {
-                $out .= '<script type="text/javascript" language="javascript">';
-                $out .= 'jQuery(document).ready(function(){';
-                $out .= '   jQuery("#options_companyrelationships_fk_soc_benefactor").change(function(){';
-                $out .= '       jQuery.ajax({';
-                $out .= '           data: {';
-                $out .= '           socid: jQuery("#socid").val(),';
-                $out .= '           socid_benefactor: jQuery("#options_companyrelationships_fk_soc_benefactor").val(),';
-                $out .= '           element: "' . $object->element . '"';
-                $out .= '           },';
-                $out .= '           dataType: "json",';
-                $out .= '           method: "POST",';
-                $out .= '           url: "' . dol_buildpath('/companyrelationships/ajax/publicspaceavailability.php', 1) . '",';
-                $out .= '           success: function(data){';
-                $out .= '               if (data.error > 0) {';
-                $out .= '                   console.error("Error : ", "' . dol_buildpath('/companyrelationships/class/actions_companyrelationships.class.php', 1) . '", "in formObjectOptions() on #options_companyrelationships_fk_soc_benefactor.change()");';
-                $out .= '               } else {';
-                $out .= '                   jQuery("input[name=options_companyrelationships_availability_principal]").prop("checked", data.principal);';
-                $out .= '                   jQuery("input[name=options_companyrelationships_availability_benefactor]").prop("checked", data.benefactor);';
-                $out .= '               }';
-                $out .= '           },';
-                $out .= '           error: function(){';
-                $out .= '               console.error("Error : ", "' . dol_buildpath('/companyrelationships/class/actions_companyrelationships.class.php', 1) . '", "in formObjectOptions() on #options_companyrelationships_fk_soc_benefactor.change()");';
-                $out .= '           }';
-                $out .= '       });';
-                $out .= '   });';
-                $out .= '});';
-                $out .= '</script>';
+                if ($object->element == 'fichinter') {
+                    $out .= '<script type="text/javascript" language="javascript">';
+                    $out .= 'jQuery(document).ready(function(){';
+                    $out .= '   var data = {';
+                    $out .= '       action: "getBenefactor",';
+                    $out .= '       id: jQuery("input[name=socid]").val(),';
+                    $out .= '       htmlname: "options_companyrelationships_fk_soc_benefactor"';
+                    $out .= '   };';
+                    $out .= '   var input = jQuery("select#options_companyrelationships_fk_soc_benefactor");';
+                    $out .= '   jQuery.getJSON("' . dol_buildpath('/companyrelationships/ajax/benefactor.php', 1) . '", data,';
+                    $out .= '       function(response) {';
+                    $out .= '           input.html(response.value);';
+                    $out .= '           input.change();';
+                    $out .= '           if (response.num < 0) {';
+                    $out .= '               console.error(response.error);';
+                    $out .= '           }';
+                    $out .= '       }';
+                    $out .= '   );';
+
+                    // company relationships availability for this element
+                    if ($user->rights->companyrelationships->update_md->element) {
+                        $out .= '   jQuery("#options_companyrelationships_fk_soc_benefactor").change(function(){';
+                        $out .= '       jQuery.ajax({';
+                        $out .= '           data: {';
+                        $out .= '           socid: jQuery("input[name=socid]").val(),';
+                        $out .= '           socid_benefactor: jQuery("#options_companyrelationships_fk_soc_benefactor").val(),';
+                        $out .= '           element: "' . $object->element . '"';
+                        $out .= '           },';
+                        $out .= '           dataType: "json",';
+                        $out .= '           method: "POST",';
+                        $out .= '           url: "' . dol_buildpath('/companyrelationships/ajax/publicspaceavailability.php', 1) . '",';
+                        $out .= '           success: function(data){';
+                        $out .= '               if (data.error > 0) {';
+                        $out .= '                   console.error("Error : ", "' . dol_buildpath('/companyrelationships/class/actions_companyrelationships.class.php', 1) . '", "in formObjectOptions() on #options_companyrelationships_fk_soc_benefactor.change()");';
+                        $out .= '               } else {';
+                        $out .= '                   jQuery("input[name=options_companyrelationships_availability_principal]").prop("checked", data.principal);';
+                        $out .= '                   jQuery("input[name=options_companyrelationships_availability_benefactor]").prop("checked", data.benefactor);';
+                        $out .= '               }';
+                        $out .= '           },';
+                        $out .= '           error: function(){';
+                        $out .= '               console.error("Error : ", "' . dol_buildpath('/companyrelationships/class/actions_companyrelationships.class.php', 1) . '", "in formObjectOptions() on #options_companyrelationships_fk_soc_benefactor.change()");';
+                        $out .= '           }';
+                        $out .= '       });';
+                        $out .= '   });';
+                    }
+                    $out .= '});';
+                    $out .= '</script>';
+                } else {
+                    $events = array();
+                    $events[] = array('action' => 'getBenefactor', 'url' => dol_buildpath('/companyrelationships/ajax/benefactor.php', 1), 'htmlname' => 'options_companyrelationships_fk_soc_benefactor');
+                    $formcompanyrelationships = new FormCompanyRelationships($this->db);
+                    $out .= $formcompanyrelationships->add_select_events('socid', $events);
+
+                    // company relationships availability for this element
+                    if ($user->rights->companyrelationships->update_md->element) {
+                        $out .= '<script type="text/javascript" language="javascript">';
+                        $out .= 'jQuery(document).ready(function(){';
+                        $out .= '   jQuery("#options_companyrelationships_fk_soc_benefactor").change(function(){';
+                        $out .= '       jQuery.ajax({';
+                        $out .= '           data: {';
+                        $out .= '           socid: jQuery("#socid").val(),';
+                        $out .= '           socid_benefactor: jQuery("#options_companyrelationships_fk_soc_benefactor").val(),';
+                        $out .= '           element: "' . $object->element . '"';
+                        $out .= '           },';
+                        $out .= '           dataType: "json",';
+                        $out .= '           method: "POST",';
+                        $out .= '           url: "' . dol_buildpath('/companyrelationships/ajax/publicspaceavailability.php', 1) . '",';
+                        $out .= '           success: function(data){';
+                        $out .= '               if (data.error > 0) {';
+                        $out .= '                   console.error("Error : ", "' . dol_buildpath('/companyrelationships/class/actions_companyrelationships.class.php', 1) . '", "in formObjectOptions() on #options_companyrelationships_fk_soc_benefactor.change()");';
+                        $out .= '               } else {';
+                        $out .= '                   jQuery("input[name=options_companyrelationships_availability_principal]").prop("checked", data.principal);';
+                        $out .= '                   jQuery("input[name=options_companyrelationships_availability_benefactor]").prop("checked", data.benefactor);';
+                        $out .= '               }';
+                        $out .= '           },';
+                        $out .= '           error: function(){';
+                        $out .= '               console.error("Error : ", "' . dol_buildpath('/companyrelationships/class/actions_companyrelationships.class.php', 1) . '", "in formObjectOptions() on #options_companyrelationships_fk_soc_benefactor.change()");';
+                        $out .= '           }';
+                        $out .= '       });';
+                        $out .= '   });';
+                        $out .= '});';
+                        $out .= '</script>';
+                    }
+                }
+
+                print $out;
             }
-
-            print $out;
         }
 
         return 0;

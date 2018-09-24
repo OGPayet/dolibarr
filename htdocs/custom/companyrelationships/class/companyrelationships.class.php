@@ -43,6 +43,12 @@ class CompanyRelationships
     public $errors;
 
     /**
+     * Element list of public space availability
+     * @var array ('propal', 'commande', 'facture', 'order_supplier', 'invoice_supplier', 'ficheinter')
+     */
+    public static $psa_element_list = array('propal', 'commande', 'facture', 'order_supplier', 'invoice_supplier', 'fichinter');
+
+    /**
      * Constructor
      *
      * @param   DoliDb $db Database handler

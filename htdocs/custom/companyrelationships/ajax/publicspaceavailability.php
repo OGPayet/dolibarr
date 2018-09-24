@@ -52,7 +52,7 @@ if ($socid>0 && $socid_benefactor>0 && !empty($element))
     $publicSpaceAvailability = $companyRelationships->getPublicSpaceAvailability($socid, $socid_benefactor, $element);
     if (is_array($publicSpaceAvailability)) {
         $return['principal']  = $publicSpaceAvailability['principal'];
-        $retunr['benefactor'] = $publicSpaceAvailability['benefactor'];
+        $return['benefactor'] = $publicSpaceAvailability['benefactor'];
     } else {
         $return['error'] = 1;
     }
