@@ -52,7 +52,7 @@ SynergiesTechProductOffFormulaEventMessage                  = L'utilisateur %s Ã
 #######################################################################
 # Products lines int the Request (RequestManager)
 #######################################################################
-SynergiesTechOnlyProductIncludeIntoContractAndEquipment     = Produits faisant partie de : Gras -> Machines, Normal -> Hors machiches, Noir -> Contrats, Rouge -> Hors contrat
+SynergiesTechOnlyProductIncludeIntoContractAndEquipment     = Produits faisant partie de : Gras -> Machines, Normal -> Hors machiches, Vert -> Contrats, Rouge -> Hors contrat
 
 #######################################################################
 # Equipment lines into the Request (RequestManager)

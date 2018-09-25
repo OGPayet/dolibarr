@@ -306,14 +306,14 @@ class FormSynergiesTech
 
         // Include in the contract categories
         if (is_array($include_into_contract_categories) && count($include_into_contract_categories) > 0) {
-            $sql .= " , IF(SUM(IF(cp.fk_categorie IN(" . implode(',', $include_into_contract_categories) . "), 1, 0)) > 0, 1, 0) as is_into_contract_categories";
+            $sql .= " , IFNULL(itcc.count, 0) as is_into_contract_categories";
         } else {
             $sql .= " , 0 as is_into_contract_categories";
         }
 
         // Include in the tag categories
         if ($show_mode == 1 && is_array($include_into_tag_categories) && count($include_into_tag_categories) > 0) {
-            $sql .= " , IF(SUM(IF(cp.fk_categorie IN(" . implode(',', $include_into_tag_categories) . "), 1, 0)) > 0, 1, 0) as is_into_tag_categories";
+            $sql .= " , IFNULL(ittc.count, 0) as is_into_tag_categories";
         } else {
             $sql .= " , 0 as is_into_tag_categories";
         }
@@ -341,11 +341,27 @@ class FormSynergiesTech
             $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "entrepot as e on ps.fk_entrepot = e.rowid";
         }
 
+        // Include in the contract categories
+        if (is_array($include_into_contract_categories) && count($include_into_contract_categories) > 0) {
+            $sql .= " LEFT JOIN (";
+            $sql .= "   SELECT fk_product, COUNT(*) as count";
+            $sql .= "   FROM " . MAIN_DB_PREFIX . "categorie_product";
+            $sql .= "   WHERE fk_categorie IN (" . implode(',', $include_into_contract_categories) . ")";
+            $sql .= " ) AS itcc ON itcc.fk_product = p.rowid";
+        }
+
+        // Include in the tag categories
+        if ($show_mode == 1 && is_array($include_into_tag_categories) && count($include_into_tag_categories) > 0) {
+            $sql .= " LEFT JOIN (";
+            $sql .= "   SELECT fk_product, COUNT(*) as count";
+            $sql .= "   FROM " . MAIN_DB_PREFIX . "categorie_product";
+            $sql .= "   WHERE fk_categorie IN (" . implode(',', $include_into_tag_categories) . ")";
+            $sql .= " ) AS ittc ON ittc.fk_product = p.rowid";
+        }
+
         // Include only product include in the categories
-        if ((is_array($include_into_contract_categories) && count($include_into_contract_categories) > 0) ||
-            ($show_mode == 1 && is_array($include_into_tag_categories) && count($include_into_tag_categories) > 0) ||
-            (is_array($only_in_categories) && count($only_in_categories) > 0)) {
-            $sql .= " LEFT JOIN  " . MAIN_DB_PREFIX . "categorie_product as cp ON cp.fk_product=p.rowid";
+        if (is_array($only_in_categories) && count($only_in_categories) > 0) {
+            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "categorie_product as cp ON cp.fk_product=p.rowid";
         }
 
         //Price by customer
@@ -713,7 +729,7 @@ class FormSynergiesTech
 
         $opt .= "</option>\n";
 
-        $style = (empty($objp->is_into_tag_categories) ? '' : 'font-weight:bolder;') . (empty($objp->is_into_contract_categories) ? 'color:red;' : '');
+        $style = (empty($objp->is_into_tag_categories) ? '' : 'font-weight:bolder;') . (empty($objp->is_into_contract_categories) ? 'color:red;' : 'color:green;');
         $optJson = array('key' => $outkey, 'value' => $outref, 'label' => (!empty($style) ? '<span style="'.$style.'">' : '') . $outval . (!empty($style) ? '</span>' : ''), 'label2' => $outlabel, 'desc' => $outdesc, 'type' => $outtype, 'price_ht' => $outprice_ht, 'price_ttc' => $outprice_ttc, 'pricebasetype' => $outpricebasetype, 'tva_tx' => $outtva_tx, 'qty' => $outqty, 'discount' => $outdiscount, 'duration_value' => $outdurationvalue, 'duration_unit' => $outdurationunit);
         /*if ($isNotIntoCategories) {
             $optJson['opt_disabled'] = true;
