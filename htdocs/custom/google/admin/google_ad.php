@@ -79,7 +79,7 @@ $formother=new FormOther($db);
 $help_url='EN:Module_Google_EN|FR:Module_Google|ES:Modulo_Google';
 llxHeader('',$langs->trans("GoogleSetup"),$help_url);
 
-$linkback='<a href="'.DOL_URL_ROOT.'/admin/modules.php">'.$langs->trans("BackToModuleList").'</a>';
+$linkback='<a href="'.DOL_URL_ROOT.'/admin/modules.php?restore_lastsearch_values=1">'.$langs->trans("BackToModuleList").'</a>';
 print_fiche_titre($langs->trans("GoogleSetup"),$linkback,'setup');
 print '<br>';
 
@@ -88,8 +88,9 @@ print '<form name="googleconfig" action="'.$_SERVER["PHP_SELF"].'" method="post"
 
 $head=googleadmin_prepare_head();
 
-dol_fiche_head($head, 'tabadsense', $langs->trans("GoogleTools"));
+dol_fiche_head($head, 'tabadsense', $langs->trans("GoogleTools"), -1);
 
+print '<div class="fichecenter">';
 
 print $langs->trans("GoogleAddPubOnLogonPage").'<br>';
 print '<br>';
@@ -140,6 +141,8 @@ print '<td>60</td>';
 print "</tr>";
 
 print "</table>";
+
+print '</div>';
 
 dol_fiche_end();
 

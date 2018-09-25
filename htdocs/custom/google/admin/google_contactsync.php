@@ -57,9 +57,10 @@ $langs->load("admin");
 $langs->load("other");
 
 $def = array();
-$action=GETPOST("action");
+$action=GETPOST("action",'alpha');
 
 $oauthurl='https://accounts.google.com/o/oauth2/auth';
+
 
 /*
  * Actions
@@ -316,6 +317,9 @@ if ($action == 'pushallthirdparties')
 
 		//	$res = GContact::deleteDolibarrContacts();
 		$sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'societe';
+		$sql.= ' WHERE entity IN ('.getEntity('societe').')';
+		$sql.= ' ORDER BY rowid';
+
 		$resql = $db->query($sql);
 		if (! $resql)
 		{
@@ -323,11 +327,24 @@ if ($action == 'pushallthirdparties')
 			exit;
 		}
 
-		$synclimit = 0;	// 0 = all
+		// Sync from $conf->global->GOOGLE_SYNC_FROM_POSITION to $conf->global->GOOGLE_SYNC_TO_POSITION (1 to n)
+		$synclimit = GETPOST('syncto','int')?GETPOST('syncto','int'):(empty($conf->global->GOOGLE_SYNC_TO_POSITION)?0:$conf->global->GOOGLE_SYNC_TO_POSITION);		// 0 = all
 		$i=0;
 		while (($obj = $db->fetch_object($resql)) && ($i < $synclimit || empty($synclimit)))
 		{
-			$gContacts[] = new GContact($obj->rowid,'thirdparty',$gdata);
+			if (! empty($conf->global->GOOGLE_SYNC_FROM_POSITION) || GETPOST('syncfrom','int'))
+			{
+				if (($i + 1) < (GETPOST('syncfrom','int')?GETPOST('syncfrom','int'):$conf->global->GOOGLE_SYNC_FROM_POSITION)) continue;
+			}
+
+			try {
+				$gContacts[] = new GContact($obj->rowid, 'thirdparty', $gdata);
+			}
+			catch(Exception $e)
+			{
+				print "Error in constructor new GContact(".$obj->rowid.", 'thirdparty', ...)";
+			}
+
 			$i++;
 		}
 
@@ -336,7 +353,7 @@ if ($action == 'pushallthirdparties')
 
 		if (is_numeric($result) && $result >= 0)
 		{
-			$mesg = $langs->trans("PushToGoogleSucess",count($gContacts));
+			$mesg = $langs->trans("PushToGoogleSucess", count($gContacts));
 		}
 		else
 		{
@@ -379,6 +396,9 @@ if ($action == 'pushallcontacts')
 
 		//	$res = GContact::deleteDolibarrContacts();
 		$sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'socpeople';
+		$sql.= ' WHERE entity IN ('.getEntity('socpeople').')';
+		$sql.= ' ORDER BY rowid';
+
 		$resql = $db->query($sql);
 		if (! $resql)
 		{
@@ -386,11 +406,24 @@ if ($action == 'pushallcontacts')
 			exit;
 		}
 
-		$synclimit = 0;	// 0 = all
+		$synclimit = GETPOST('syncto','int')?GETPOST('syncto','int'):(empty($conf->global->GOOGLE_SYNC_TO_POSITION)?0:$conf->global->GOOGLE_SYNC_TO_POSITION);		// 0 = all
 		$i=0;
 		while (($obj = $db->fetch_object($resql)) && ($i < $synclimit || empty($synclimit)))
 		{
-			$gContacts[] = new GContact($obj->rowid,'contact',$gdata);
+			if (! empty($conf->global->GOOGLE_SYNC_FROM_POSITION) || GETPOST('syncfrom','int'))
+			{
+				if (($i + 1) < (GETPOST('syncfrom','int')?GETPOST('syncfrom','int'):$conf->global->GOOGLE_SYNC_FROM_POSITION)) continue;
+			}
+
+			try
+			{
+				$gContacts[] = new GContact($obj->rowid, 'contact', $gdata);
+			}
+			catch(Exception $e)
+			{
+				print "Error in constructor new GContact(".$obj->rowid.", 'contact', ...)";
+			}
+
 			$i++;
 		}
 
@@ -441,6 +474,9 @@ if ($action == 'pushallmembers')
 		dol_include_once('/google/class/gcontacts.class.php');
 
 		$sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'adherent';
+		$sql.= ' WHERE entity IN ('.getEntity('adherent').')';
+		$sql.= ' ORDER BY rowid';
+
 		$resql = $db->query($sql);
 		if (! $resql)
 		{
@@ -448,10 +484,15 @@ if ($action == 'pushallmembers')
 			exit;
 		}
 
-		$synclimit = 0;	// 0 = all
+		$synclimit = GETPOST('syncto','int')?GETPOST('syncto','int'):(empty($conf->global->GOOGLE_SYNC_TO_POSITION)?0:$conf->global->GOOGLE_SYNC_TO_POSITION);		// 0 = all
 		$i=0;
 		while (($obj = $db->fetch_object($resql)) && ($i < $synclimit || empty($synclimit)))
 		{
+			if (! empty($conf->global->GOOGLE_SYNC_FROM_POSITION) || GETPOST('syncfrom','int'))
+			{
+				if (($i + 1) < (GETPOST('syncfrom','int')?GETPOST('syncfrom','int'):$conf->global->GOOGLE_SYNC_FROM_POSITION)) continue;
+			}
+
 			$gContacts[] = new GContact($obj->rowid,'member',$gdata);
 			$i++;
 		}
@@ -629,7 +670,7 @@ $arrayofjs=array();
 $arrayofcss=array();
 llxHeader('',$langs->trans("GoogleSetup"),$help_url,'',0,0,$arrayofjs,$arrayofcss);
 
-$linkback='<a href="'.DOL_URL_ROOT.'/admin/modules.php">'.$langs->trans("BackToModuleList").'</a>';
+$linkback='<a href="'.DOL_URL_ROOT.'/admin/modules.php?restore_lastsearch_values=1">'.$langs->trans("BackToModuleList").'</a>';
 print_fiche_titre($langs->trans("GoogleSetup"),$linkback,'setup');
 print '<br>';
 
@@ -643,7 +684,9 @@ print '<input type="hidden" name="action" value="save">';
 
 $head=googleadmin_prepare_head();
 
-dol_fiche_head($head, 'tabcontactsync', $langs->trans("GoogleTools"));
+dol_fiche_head($head, 'tabcontactsync', $langs->trans("GoogleTools"), -1);
+
+print '<div class="fichecenter">';
 
 if ($conf->use_javascript_ajax)
 {
@@ -727,7 +770,7 @@ if ($conf->adherent->enabled)
 	print "</tr>";
 }
 print "</table>";
-print $langs->trans("GoogleContactSyncInfo").'<br>';
+print '<div class="opacitymedium">'.$langs->trans("GoogleContactSyncInfo").'</div><br>';
 
 
 print "<br>";
@@ -752,7 +795,7 @@ print "<td>";
 print '<input class="flat" type="text" size="24" name="GOOGLE_CONTACT_LOGIN" autocomplete="off" value="'.$conf->global->GOOGLE_CONTACT_LOGIN.'">';
 print "</td>";
 print '<td>';
-print $langs->trans("Example").": yourlogin@gmail.com, email@mydomain.com, 'primary'<br>";
+print $langs->trans("Example").": yourlogin@gmail.com, email@mydomain.com<br>";
 //print $langs->trans("GoogleSetupHelp").'<br>';
 //print $langs->trans("KeepEmptyYoUseLoginPassOfEventUser");
 print '</td>';
@@ -884,6 +927,8 @@ print "</table>";
 print info_admin($langs->trans("EnableAPI","https://console.developers.google.com/apis/library/","https://console.developers.google.com/apis/library/","Contact API"));
 
 //print info_admin($langs->trans("ShareContactWithServiceAccount",$conf->global->GOOGLE_API_SERVICEACCOUNT_EMAIL,$langs->transnoentitiesnoconv("GoogleIDContact")));
+
+print '</div>';
 
 print '</div>';
 

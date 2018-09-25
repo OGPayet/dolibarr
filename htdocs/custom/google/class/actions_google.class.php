@@ -44,6 +44,30 @@ class ActionsGoogle
     }
 
 
+    /**
+     * 	set CSP
+     *
+     * @param	array		$parameters		Array of parameters
+     * @param	Object		$object			Object
+     * @param	string		$action			Action string
+     * @param	HookManager	$hookmanager	Object HookManager
+     */
+    function setContentSecurityPolicy($parameters, &$object, &$action, &$hookmanager)
+    {
+	global $conf,$user,$langs;
+
+	$tmp = ($hookmanager->resPrint ? $hookmanager->resPrint : $parameters['contentsecuritypolicy']);
+
+	$tmp = preg_replace('/script-src \'self\'/', 'script-src \'self\' *.googleapis.com *.google.com *.google-analytics.com', $tmp);
+	$tmp = preg_replace('/font-src \'self\'/', 'font-src \'self\' *.google.com', $tmp);
+	$tmp = preg_replace('/connect-src \'self\'/', 'connect-src \'self\' *.google.com', $tmp);
+	$tmp = preg_replace('/frame-src \'self\'/', 'frame-src \'self\' *.google.com', $tmp);
+
+	$hookmanager->resPrint = '';
+
+	$this->resprints = $tmp;
+	return 1;
+    }
 
     /**
      * addCalendarChoice
@@ -122,16 +146,14 @@ class ActionsGoogle
 					}
 			}
 
-
-
 			// HTML output to show into agenda views
+			$langs->load("google");
 			$this->resprints = '<div class="clearboth"></div><div class="googlerefreshcal">';
 			$this->resprints.= '<a href="'.$_SERVER["PHP_SELF"].'?'.$_SERVER['QUERY_STRING'].'&actiongoogle=refresh">';
 			$this->resprints.= $langs->trans("ClickToUpdateWithLastGoogleChanges", $userlogin);
 			$this->resprints.= ' '.dol_print_date($dateminsync, 'dayhour', 'tzserver', $langs);
 			$this->resprints.= $form->textwithtooltip(img_help(),$langs->trans("GoogleLimitBackTime",$notolderforsync));
 			$this->resprints.= '</a></div>';
-
 		}
 	}
 

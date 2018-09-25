@@ -101,6 +101,8 @@ if ($action == 'save')
 	if (! $res > 0) $error++;
 	$res=dolibarr_set_const($db,'GOOGLE_CAL_TZ_FIX',trim($_POST["GOOGLE_CAL_TZ_FIX"]),'chaine',0,'',$conf->entity);
 	if (! $res > 0) $error++;
+	$res=dolibarr_set_const($db,'GOOGLE_CAL_TZ_FIX_G2D',trim($_POST["GOOGLE_CAL_TZ_FIX_G2D"]),'chaine',0,'',$conf->entity);
+	if (! $res > 0) $error++;
 	$res=dolibarr_set_const($db,'GOOGLE_INCLUDE_AUTO_EVENT',trim($_POST["GOOGLE_INCLUDE_AUTO_EVENT"]),'chaine',0,'',$conf->entity);
 	if (! $res > 0) $error++;
 
@@ -444,7 +446,7 @@ $arrayofjs=array();
 $arrayofcss=array();
 llxHeader('',$langs->trans("GoogleSetup"),$help_url,'',0,0,$arrayofjs,$arrayofcss);
 
-$linkback='<a href="'.DOL_URL_ROOT.'/admin/modules.php">'.$langs->trans("BackToModuleList").'</a>';
+$linkback='<a href="'.DOL_URL_ROOT.'/admin/modules.php?restore_lastsearch_values=1">'.$langs->trans("BackToModuleList").'</a>';
 print_fiche_titre($langs->trans("GoogleSetup"),$linkback,'setup');
 print '<br>';
 
@@ -458,7 +460,10 @@ print '<input type="hidden" name="action" value="save">';
 
 $head=googleadmin_prepare_head();
 
-dol_fiche_head($head, 'tabagendasync', $langs->trans("GoogleTools"));
+
+dol_fiche_head($head, 'tabagendasync', $langs->trans("GoogleTools"), -1);
+
+print '<div class="fichecenter">';
 
 if ($conf->use_javascript_ajax)
 {
@@ -490,16 +495,24 @@ print "<tr class=\"liste_titre\">";
 print '<td>'.$langs->trans("Parameter")."</td>";
 print "<td>".$langs->trans("Value")."</td>";
 print "</tr>";
-// Google TZ fix
-print "<tr ".$bc[$var].">";
+// Google TZ fix Dolibarr -> Google
+print '<tr class="oddeven">';
 print '<td>'.$langs->trans("GOOGLE_FIX_TZ")."</td>";
 print "<td>";
 print '<input class="flat" type="text" size="4" name="GOOGLE_CAL_TZ_FIX" value="'.$conf->global->GOOGLE_CAL_TZ_FIX.'">';
 print ' &nbsp; '.$langs->trans("FillThisOnlyIfRequired");
 print "</td>";
 print "</tr>";
+// Google TZ fix Google -> Dolibarr
+print '<tr class="oddeven">';
+print '<td>'.$langs->trans("GOOGLE_FIX_TZ_G2D")."</td>";
+print "<td>";
+print '<input class="flat" type="text" size="4" name="GOOGLE_CAL_TZ_FIX_G2D" value="'.$conf->global->GOOGLE_CAL_TZ_FIX_G2D.'">';
+print ' &nbsp; '.$langs->trans("FillThisOnlyIfRequired");
+print "</td>";
+print "</tr>";
 // Include auto event
-print "<tr ".$bc[$var].">";
+print '<tr class="oddeven">';
 print '<td>'.$langs->trans("GOOGLE_INCLUDE_AUTO_EVENT")."</td>";
 print "<td>";
 print $form->selectyesno("GOOGLE_INCLUDE_AUTO_EVENT", $conf->global->GOOGLE_INCLUDE_AUTO_EVENT, 1);
@@ -529,7 +542,7 @@ print "<td>";
 print '<input class="flat" type="text" size="24" name="GOOGLE_LOGIN" autocomplete="off" value="'.$conf->global->GOOGLE_LOGIN.'">';
 print "</td>";
 print '<td>';
-print $langs->trans("Example").": yourlogin@gmail.com, email@mydomain.com, 'primary'<br>";
+print $langs->trans("Example").": yourlogin@gmail.com, email@mydomain.com<br>";
 print $langs->trans("GoogleSetupHelp").'<br>';
 print $langs->trans("KeepEmptyYoUseLoginPassOfEventUser").'<br>';
 if (empty($conf->global->GOOGLE_LOGIN))
@@ -588,6 +601,8 @@ print "</table>";
 print info_admin($langs->trans("EnableAPI","https://console.developers.google.com/apis/library/","https://console.developers.google.com/apis/library/","Calendar API"));
 
 print info_admin($langs->trans("ShareCalendarWithServiceAccount",$conf->global->GOOGLE_API_SERVICEACCOUNT_EMAIL,$langs->transnoentitiesnoconv("GoogleIDAgenda")));
+
+print '</div>';
 
 print '</div>';
 

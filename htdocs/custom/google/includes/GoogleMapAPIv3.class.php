@@ -456,7 +456,7 @@ class GoogleMapAPI
 			// ajout de la modification des icones en fonction du tiers et de son status
 			if (! empty($conf->global->GOOGLE_CAN_USE_PROSPECT_ICONS))
 			{
-				if ((empty($mode) || $mode == 'company' || $mode == 'thirdparty') and (GOOGLE_ENABLE_GMAPS_TICON == 1))  {
+				if ((empty($mode) || $mode == 'company' || $mode == 'thirdparty') and ($conf->global->GOOGLE_ENABLE_GMAPS_TICON == 1))  {
 					switch ($elem->client) {
 						case 0:
 							$icon = DOL_URL_ROOT.'/custom/google/images/red-dot.png';
@@ -697,7 +697,7 @@ class GoogleMapAPI
 		// We do not use the marker with the shadow, if we do so, we must set position of the sprite we want to extract from the image
 		if (! empty($conf->global->GOOGLE_CAN_USE_PROSPECT_ICONS))
 		{
-			if ((empty($mode) || $mode == 'company' || $mode == 'thirdparty') and (GOOGLE_ENABLE_GMAPS_TICON == 1))  {
+			if ((empty($mode) || $mode == 'company' || $mode == 'thirdparty') and ($conf->global->GOOGLE_ENABLE_GMAPS_TICON == 1))  {
 				//$this->content .= "\t\t\t" . 'icon:  new google.maps.MarkerImage(icon, new google.maps.Size(' . $this->iconWidth . ',' . $this->iconHeight . ')),' . "\n";
 			}
 		}

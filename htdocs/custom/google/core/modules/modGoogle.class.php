@@ -38,7 +38,7 @@ class modGoogle extends DolibarrModules
 
 		// Family can be 'crm','financial','hr','projects','product','technic','other'
 		// It is used to group modules in module setup page
-		$this->family = "projects";
+		$this->family = "interface";
 		// Module label (no space allowed), used if translation string 'ModuleXXXName' not found (where XXX is value of numeric property 'numero' of module)
 		$this->name = preg_replace('/^mod/i','',get_class($this));
 		// Module description used if translation string 'ModuleXXXDesc' not found (XXX is value MyModule)
@@ -46,11 +46,9 @@ class modGoogle extends DolibarrModules
         $this->editor_name = 'NLTechno';
         $this->editor_url = 'https://www.nltechno.com';
 		// Possible values for version are: 'development', 'experimental', 'dolibarr' or version
-		$this->version = '6.0.0';
+		$this->version = '6.0.1';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
-		// Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
-		$this->special = 1;
 		// Name of image file used for this module.
 		// If file is in theme/yourtheme/img directory under name object_pictovalue.png, use this->picto='pictovalue'
 		// If file is in module/img directory under name object_pictovalue.png, use this->picto='pictovalue@module'
@@ -59,7 +57,7 @@ class modGoogle extends DolibarrModules
 		// Defined if the directory /mymodule/inc/triggers/ contains triggers or not
         $this->module_parts = array(
 		'triggers' => 1,
-		'hooks' => array('agenda','agendalist')
+		'hooks' => array('main','agenda','agendalist')
         );
 
 		// Data directories to create when module is enabled
@@ -73,7 +71,7 @@ class modGoogle extends DolibarrModules
 		// Dependencies
 		$this->depends = array();		// List of modules id that must be enabled if this module is enabled
 		$this->requiredby = array();	// List of modules id to disable if this one is disabled
-		$this->phpmin = array(5,1);					// Minimum version of PHP required by module
+		$this->phpmin = array(5,4);					// Minimum version of PHP required by module
 		$this->need_dolibarr_version = array(3,6,3);	// Minimum version of Dolibarr required by module
 		$this->langfiles = array("google@google");
 
