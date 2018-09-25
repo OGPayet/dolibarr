@@ -613,6 +613,17 @@ SCRIPT;
                 }
                 header('Location: ' . $_SERVER['PHP_SELF'] . '?id=' . $object->id);
                 exit;
+            } elseif ($action == 'addlink') {
+                $addlink = GETPOST('addlink', 'alpha');
+                $idtolinkto = GETPOST('idtolinkto', 'int');
+                if ($addlink == 'equipement' && $idtolinkto > 0) {
+                    if ($object->addContractsOfEquipment($idtolinkto) < 0) {
+                        array_merge($this->errors, $object->errors);
+                        return -1;
+                    }
+                }
+                header('Location: ' . $_SERVER['PHP_SELF'] . '?id=' . $object->id);
+                exit;
             } elseif ($action == 'synergiestech_create_returnproducts' && $confirm == 'yes') {
                 $langs->load("retourproduits@retourproduits");
 

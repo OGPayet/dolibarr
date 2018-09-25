@@ -364,7 +364,7 @@ if ($zone === 3) {
                     $productStatic->fetch($equipement->fk_product);
                     print '<tr class="liste">';
                     print '<td align="left"><a href="' . DOL_URL_ROOT . '/product/card.php?id=' . $equipement->fk_product . '" target="_blank">' . $productStatic->label . '</a></td>';
-                    print '<td align="left"><a href="' . dol_buildpath('/equipement/card.php', 1) . '?id=' . $equipement->id . '" target="_blank">' . $equipement->ref . '</a> '. $formsynergiestech->picto_equipment_has_contract($equipement->fk_product, $selectedSocId) . '</td>';
+                    print '<td align="left"><a href="' . dol_buildpath('/equipement/card.php', 1) . '?id=' . $equipement->id . '" target="_blank">' . $equipement->ref . '</a> '. $formsynergiestech->picto_equipment_has_contract($equipement->id) . '</td>';
                     print '<td align="left"></td>';
                     print '<tr>';
                 }

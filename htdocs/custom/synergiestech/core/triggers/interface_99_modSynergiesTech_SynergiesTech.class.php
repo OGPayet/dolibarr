@@ -58,6 +58,26 @@ class InterfaceSynergiesTech extends DolibarrTriggers
     public function runTrigger($action, $object, User $user, Translate $langs, Conf $conf)
     {
 	    switch ($action) {
+            case 'REQUESTMANAGER_CREATE':
+                if (isset($object->linkedObjectsIds['equipement'])) {
+                    if (is_array($object->linkedObjectsIds['equipement'])) {
+                        foreach ($object->linkedObjectsIds['equipement'] as $equipment_id) {
+                            if ($object->addContractsOfEquipment($equipment_id) < 0) {
+                                array_merge($this->errors, $object->errors);
+                                return -1;
+                            }
+                        }
+                    } else {
+                        $equipment_id = $object->linkedObjectsIds['equipement'];
+                        if ($object->addContractsOfEquipment($equipment_id) < 0) {
+                            array_merge($this->errors, $object->errors);
+                            return -1;
+                        }
+                    }
+                }
+
+                dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+                return 0;
             case 'RETURN_CREATE':
                 if (isset($object->context['synergiestech_create_returnproducts']) && $object->context['synergiestech_create_returnproducts'] > 0) {
                     $id = $object->context['synergiestech_create_returnproducts'];

@@ -15,31 +15,35 @@ Permission163036 = Voir les documents des demandes
 ############################################################
 ### Admin setup
 ############################################################
-RequestManagerSetup                             = Configuration du module Request Manager
-RequestManagerExtraFields                       = Attributs supplémentaires (Demande)
-RequestManagerMessageExtraFields                = Attributs supplémentaires (Message)
-RequestManagerRefNumberingModules               = Modèles de numérotation des références interne des demandes
-RequestManagerExternalRefNumberingModules       = Modèles de numérotation des références externe des demandes
-RequestManagerNotificationSendFromName          = Adresse email de l'émetteur
-RequestManagerNotificationSendFromDesc          = Adresse email de l'émetteur pour l'envoi des mails de notification
-RequestManagerNotificationUsersName             = Notifier les utilisateurs
-RequestManagerNotificationUsersDesc             = Notifier les utilisateurs internes (enregistrement en base de données)
-RequestManagerNotificationByMailName            = Notification par mail
-RequestManagerNotificationByMailDesc            = Notifier par mail les utilisateurs
-RequestManagerContractSearchInParentCompanyName = Rechercher les contrats de la maison mère
-RequestManagerContractSearchInParentCompanyDesc = Rechercher les contrats liés au tiers de la demande dans la maison mère
-RequestManagerOperationTimeDefaultName          = Décalage de temps pour date d'opération
-RequestManagerOperationTimeDefaultDesc          = Décalage de temps depuis la création d'une demande pour la date d'opération par défaut (en minutes)
-RequestManagerDeadlineTimeDefaultName           = Décalage de temps pour date d'échéance
-RequestManagerDeadlineTimeDefaultDesc           = Décalage de temps depuis la date d'opération lors de la création d'une demande pour la date d'échéance par défaut (en minutes)
-RequestManagerRootProductCategoriesName         = Racine des catégories de produits
-RequestManagerRootProductCategoriesDesc         = Racine des catégories de produits accessiblent sur la demande
-RequestManagerRootProductCategoryIncludeName    = Inclure la racine
-RequestManagerRootProductCategoryIncludeDesc    = Inclure la racine dans la liste des catégories de produits
-RequestManagerPositionBlocObjectLinkedName      = Position des Objets Liés
-RequestManagerPositionBlocObjectLinkedDesc      = Position du bloc de la liste des objets liés
-RequestManagerPositionLinkNewObjectLinkedName   = Position du lien 'Lier à ...'
-RequestManagerPositionLinkNewObjectLinkedDesc   = Position du lien 'Lier à ...' des objets liés (si Position des Objets Liés est sur 'Haut' ce paramètre est inutile)
+RequestManagerSetup                                     = Configuration du module Request Manager
+RequestManagerExtraFields                               = Attributs supplémentaires (Demande)
+RequestManagerMessageExtraFields                        = Attributs supplémentaires (Message)
+RequestManagerRefNumberingModules                       = Modèles de numérotation des références interne des demandes
+RequestManagerExternalRefNumberingModules               = Modèles de numérotation des références externe des demandes
+RequestManagerNotificationSendFromName                  = Adresse email de l'émetteur
+RequestManagerNotificationSendFromDesc                  = Adresse email de l'émetteur pour l'envoi des mails de notification
+RequestManagerNotificationUsersName                     = Notifier les utilisateurs
+RequestManagerNotificationUsersDesc                     = Notifier les utilisateurs internes (enregistrement en base de données)
+RequestManagerNotificationByMailName                    = Notification par mail
+RequestManagerNotificationByMailDesc                    = Notifier par mail les utilisateurs
+RequestManagerAutoAddContractOfPrincipalCompanyName     = Contrats du donneur d'ordre
+RequestManagerAutoAddContractOfPrincipalCompanyDesc     = Lier automatiquement les contrats du donneur d'ordre à la création de la demande
+RequestManagerAutoAddContractOfBeneficialCompanyName    = Contrats du bénéficiaire
+RequestManagerAutoAddContractOfBeneficialCompanyDesc    = Lier automatiquement les contrats du bénéficiaire à la création de la demande
+RequestManagerContractSearchInParentCompanyName         = Rechercher les contrats de la maison mère
+RequestManagerContractSearchInParentCompanyDesc         = Rechercher les contrats liés au tiers de la demande dans la maison mère
+RequestManagerOperationTimeDefaultName                  = Décalage de temps pour date d'opération
+RequestManagerOperationTimeDefaultDesc                  = Décalage de temps depuis la création d'une demande pour la date d'opération par défaut (en minutes)
+RequestManagerDeadlineTimeDefaultName                   = Décalage de temps pour date d'échéance
+RequestManagerDeadlineTimeDefaultDesc                   = Décalage de temps depuis la date d'opération lors de la création d'une demande pour la date d'échéance par défaut (en minutes)
+RequestManagerRootProductCategoriesName                 = Racine des catégories de produits
+RequestManagerRootProductCategoriesDesc                 = Racine des catégories de produits accessiblent sur la demande
+RequestManagerRootProductCategoryIncludeName            = Inclure la racine
+RequestManagerRootProductCategoryIncludeDesc            = Inclure la racine dans la liste des catégories de produits
+RequestManagerPositionBlocObjectLinkedName              = Position des Objets Liés
+RequestManagerPositionBlocObjectLinkedDesc              = Position du bloc de la liste des objets liés
+RequestManagerPositionLinkNewObjectLinkedName           = Position du lien 'Lier à ...'
+RequestManagerPositionLinkNewObjectLinkedDesc           = Position du lien 'Lier à ...' des objets liés (si Position des Objets Liés est sur 'Haut' ce paramètre est inutile)
 
 ############################################################
 ### Contact

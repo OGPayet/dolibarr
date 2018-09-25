@@ -45,8 +45,9 @@ if (! $res) die("Include of main fails");
 $htmlname = GETPOST('htmlname', 'alpha');
 $socid = GETPOST('socid', 'int');
 $include_contract_categories = GETPOST('include_contract_categories', 'array');
-$include_equipment_categories = GETPOST('include_equipment_categories', 'array');
+$include_tag_categories = GETPOST('include_tag_categories', 'array');
 $show_mode = GETPOST('show_mode', 'int');
+$only_in_categories = GETPOST('only_in_categories', 'array');
 $type = GETPOST('type', 'int');
 $mode = GETPOST('mode', 'int');
 $status = ((GETPOST('status', 'int') >= 0) ? GETPOST('status', 'int') : - 1);
@@ -201,7 +202,7 @@ else
 	if (empty($mode) || $mode == 1) {  // mode=1: customer
         dol_include_once('/synergiestech/class/html.formsynergiestech.class.php');
         $formsynergiestech = new FormSynergiesTech($db);
-		$arrayresult = $formsynergiestech->select_produits_list("", $htmlname, $type, $include_contract_categories, 1, $include_equipment_categories, $show_mode,0, $price_level, $searchkey, $status, $finished, $outjson, $socid, '1', 0, '', 0, $warehouseStatus);
+		$arrayresult = $formsynergiestech->select_produits_list("", $htmlname, $type, $include_contract_categories, 1, $include_tag_categories, $show_mode, $only_in_categories,0, $price_level, $searchkey, $status, $finished, $outjson, $socid, '1', 0, '', 0, $warehouseStatus);
 	} elseif ($mode == 2) {            // mode=2: supplier
 		$arrayresult = $form->select_produits_fournisseurs_list($socid, "", $htmlname, $type, "", $searchkey, $status, $outjson, 0, $alsoproductwithnosupplierprice);
 	}

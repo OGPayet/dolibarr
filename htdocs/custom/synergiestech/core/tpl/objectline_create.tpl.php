@@ -267,6 +267,7 @@ else {
 
               // Get products categories of the equipments list
               //------------------------------------------------------------
+              $tag_categories = array();
               $equipment_categories = array();
               if ($object->element == 'requestmanager') {
                   $mode = 1; // Show mode for request manager lines
@@ -281,10 +282,14 @@ else {
                                   if (!isset($equipment_categories[$category_id])) {
                                       // Get all sub categories of the categories founded
                                       foreach ($all_categories as $cat) {
-                                          if (preg_match('/^' . $category_id . '$/', $cat['fullpath']) ||
-                                              preg_match('/_' . $category_id . '$/', $cat['fullpath']) ||
-                                              preg_match('/^' . $category_id . '_/', $cat['fullpath']) ||
-                                              preg_match('/_' . $category_id . '_/', $cat['fullpath'])
+                                          if ((preg_match('/^' . $category_id . '$/', $cat['fullpath']) ||
+                                                  preg_match('/_' . $category_id . '$/', $cat['fullpath']) ||
+                                                  preg_match('/^' . $category_id . '_/', $cat['fullpath']) ||
+                                                  preg_match('/_' . $category_id . '_/', $cat['fullpath'])) &&
+                                              (preg_match('/^' . $conf->global->REQUESTMANAGER_ROOT_PRODUCT_CATEGORIES . '$/', $cat['fullpath']) ||
+                                                  preg_match('/_' . $conf->global->REQUESTMANAGER_ROOT_PRODUCT_CATEGORIES . '$/', $cat['fullpath']) ||
+                                                  preg_match('/^' . $conf->global->REQUESTMANAGER_ROOT_PRODUCT_CATEGORIES . '_/', $cat['fullpath']) ||
+                                                  preg_match('/_' . $conf->global->REQUESTMANAGER_ROOT_PRODUCT_CATEGORIES . '_/', $cat['fullpath']))
                                           ) {
                                               $equipment_categories[$cat['id']] = $cat['id'];
                                           }
@@ -297,7 +302,7 @@ else {
 
                   $categories = $object->loadCategorieList('id');
                   foreach ($categories as $category_id) {
-                      if (!isset($equipment_categories[$category_id])) {
+                      if (!isset($tag_categories[$category_id])) {
                           // Get all sub categories of the categories founded
                           foreach ($all_categories as $cat) {
                               if (preg_match('/^' . $category_id . '$/', $cat['fullpath']) ||
@@ -305,7 +310,7 @@ else {
                                   preg_match('/^' . $category_id . '_/', $cat['fullpath']) ||
                                   preg_match('/_' . $category_id . '_/', $cat['fullpath'])
                               ) {
-                                  $equipment_categories[$cat['id']] = $cat['id'];
+                                  $tag_categories[$cat['id']] = $cat['id'];
                               }
                           }
                       }
@@ -317,9 +322,9 @@ else {
 				);
               if ($conf->global->ENTREPOT_EXTRA_STATUS) {
                   // hide products in closed warehouse, but show products for internal transfer
-                  $formsynergiestech->select_produits(GETPOST('idprod'), 'idprod', $filtertype, $contract_categories, 1, $equipment_categories, $mode, $conf->product->limit_size, $buyer->price_level, 1, 2, '', 1, $ajaxoptions, $buyer->id, '1', 0, '', 0, 'warehouseopen,warehouseinternal', GETPOST('combinations', 'array'));
+                  $formsynergiestech->select_produits(GETPOST('idprod'), 'idprod', $filtertype, $contract_categories, 1, $tag_categories, $mode, $equipment_categories, $conf->product->limit_size, $buyer->price_level, 1, 2, '', 1, $ajaxoptions, $buyer->id, '1', 0, '', 0, 'warehouseopen,warehouseinternal', GETPOST('combinations', 'array'));
               } else {
-                  $formsynergiestech->select_produits(GETPOST('idprod'), 'idprod', $filtertype, $contract_categories, 1, $equipment_categories, $mode, $conf->product->limit_size, $buyer->price_level, 1, 2, '', 1, $ajaxoptions, $buyer->id, '1', 0, '', 0, '', GETPOST('combinations', 'array'));
+                  $formsynergiestech->select_produits(GETPOST('idprod'), 'idprod', $filtertype, $contract_categories, 1, $tag_categories, $mode, $equipment_categories, $conf->product->limit_size, $buyer->price_level, 1, 2, '', 1, $ajaxoptions, $buyer->id, '1', 0, '', 0, '', GETPOST('combinations', 'array'));
               }
 
               if ($object->element == 'requestmanager') {

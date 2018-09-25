@@ -49,6 +49,70 @@ class InterfaceRMWorkflow extends DolibarrTriggers
 	 */
 	public function runTrigger($action, $object, User $user, Translate $langs, Conf $conf)
     {
+        /**
+         * Propagation of requests links
+         */
+
+        if (!empty($object->origin) && $object->origin_id > 0) {
+            // Parse element/subelement (ex: project_task)
+            $element = $subelement = $object->origin;
+            if (preg_match('/^([^_]+)_([^_]+)/i', $object->origin, $regs)) {
+                $element = $regs [1];
+                $subelement = $regs [2];
+            }
+
+            // For compatibility
+            if ($element == 'order') {
+                $element = $subelement = 'commande';
+            }
+            if ($element == 'propal') {
+                $element = 'comm/propal';
+                $subelement = 'propal';
+            }
+            if ($element == 'contract') {
+                $element = $subelement = 'contrat';
+            }
+            if ($element == 'inter') {
+                $element = $subelement = 'ficheinter';
+            }
+            if ($element == 'shipping') {
+                $element = $subelement = 'expedition';
+            }
+
+            dol_include_once('/' . $element . '/class/' . $subelement . '.class.php');
+            $classname = ucfirst($subelement);
+            $srcobject = new $classname($this->db);
+            $result = $srcobject->fetch($object->origin_id);
+            if ($result > 0) {
+                $srcobject->fetchObjectLinked();
+                $requestmanager_ids = $srcobject->linkedObjectsIds['requestmanager'];
+                if (isset($requestmanager_ids)) {
+                    // Add object linked
+                    if (is_array($requestmanager_ids)) {       // New behaviour, if linkedObjectsIds can have several links per type, so is something like array('contract'=>array(id1, id2, ...))
+                        foreach ($requestmanager_ids as $origin_id) {
+                            $ret = $object->add_object_linked('requestmanager', $origin_id);
+                            if (!$ret && $this->db->lasterrno() != 'DB_ERROR_RECORD_ALREADY_EXISTS') {
+                                $this->errors[] = $this->db->lasterror();
+                                return -1;
+                            }
+                        }
+                    } else {                               // Old behaviour, if linkedObjectsIds has only one link per type, so is something like array('contract'=>id1))
+                        $origin_id = $requestmanager_ids;
+                        $ret = $object->add_object_linked('requestmanager', $origin_id);
+                        if (!$ret && $this->db->lasterrno() != 'DB_ERROR_RECORD_ALREADY_EXISTS') {
+                            $this->errors[] = $this->db->lasterror();
+                            return -1;
+                        }
+                    }
+                }
+            }
+
+            dol_syslog("Trigger '" . $this->name . "' for action '$action' [propagation of requests links] launched by " . __FILE__ . ". id=" . $object->id . " origin=" . $object->origin . " originid=" . $object->origin_id);
+        }
+
+        /**
+         * Auto set next status of the requests
+         */
         if (isset($object->element)) {
             // Get request linked to the object
             $sql = 'SELECT rowid, fk_source, sourcetype, fk_target, targettype';
@@ -89,7 +153,7 @@ class InterfaceRMWorkflow extends DolibarrTriggers
                         }
                     }
 
-                    dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
+                    dol_syslog("Trigger '" . $this->name . "' for action '$action' [auto set next status] launched by " . __FILE__ . ". id=" . $object->id);
                 }
             }
         }

@@ -646,7 +646,7 @@ class RequestManager extends CommonObject
                     if (is_array($tmp_origin_id)) {       // New behaviour, if linkedObjectsIds can have several links per type, so is something like array('contract'=>array(id1, id2, ...))
                         foreach ($tmp_origin_id as $origin_id) {
                             $ret = $this->add_object_linked($origin, $origin_id);
-                            if (!$ret) {
+                            if (!$ret && $this->db->lasterrno() != 'DB_ERROR_RECORD_ALREADY_EXISTS') {
                                 $this->errors[] = $this->db->lasterror();
                                 $error++;
                             }
@@ -654,7 +654,7 @@ class RequestManager extends CommonObject
                     } else {                               // Old behaviour, if linkedObjectsIds has only one link per type, so is something like array('contract'=>id1))
                         $origin_id = $tmp_origin_id;
                         $ret = $this->add_object_linked($origin, $origin_id);
-                        if (!$ret) {
+                        if (!$ret && $this->db->lasterrno() != 'DB_ERROR_RECORD_ALREADY_EXISTS') {
                             $this->errors[] = $this->db->lasterror();
                             $error++;
                         }
@@ -662,12 +662,25 @@ class RequestManager extends CommonObject
                 }
             }
 
-            // Add linked contracts
+            // Add linked contracts of the principal company
             if (!$error) {
-                $ret = $this->addContract();
-                if ($ret < 0) {
-                    $this->errors[] = $this->db->lasterror();
-                    $error++;
+                if (!empty($conf->global->REQUESTMANAGER_AUTO_ADD_CONTRACT_OF_PRINCIPAL_COMPANY)) {
+                    $ret = $this->addContract($this->socid);
+                    if ($ret < 0) {
+                        $this->errors[] = $this->db->lasterror();
+                        $error++;
+                    }
+                }
+            }
+
+            // Add linked contracts of the principal company
+            if (!$error) {
+                if (!empty($conf->global->REQUESTMANAGER_AUTO_ADD_CONTRACT_OF_BENEFACTOR_COMPANY)) {
+                    $ret = $this->addContract($this->socid_benefactor);
+                    if ($ret < 0) {
+                        $this->errors[] = $this->db->lasterror();
+                        $error++;
+                    }
                 }
             }
 
@@ -1034,7 +1047,7 @@ class RequestManager extends CommonObject
                 if (is_array($this->linkedObjectsIds['contrat']) && in_array($contract->id, $this->linkedObjectsIds['contrat'])) continue;
                 $contractId = $contract->id;
                 $result = $this->setContract($contract->id);
-                if ($result < 0) {
+                if ($result < 0 && $this->db->lasterrno() != 'DB_ERROR_RECORD_ALREADY_EXISTS') {
                     return -1;
                 }
             }
@@ -1681,7 +1694,7 @@ class RequestManager extends CommonObject
      */
     function createSubRequest($new_request_type, User $user, $notrigger = false)
     {
-        global $langs;
+        global $conf, $langs;
         $error = 0;
         $this->errors = array();
         $langs->load("requestmanager@requestmanager");
@@ -1723,9 +1736,7 @@ class RequestManager extends CommonObject
         $requestChild->fetch_optionals();
 
         // Fetch lines with extrafields
-        $requestChild->fetch_lines();
-        foreach ($requestChild->lines as $line)
-            $line->fetch_optionals($line->id);
+        $this->fetch_lines();
 
         // Fetch categories
         $categories = $this->loadCategorieList('id');
@@ -1740,6 +1751,67 @@ class RequestManager extends CommonObject
         if ($result < 0) {
             $this->errors = array_merge($this->errors, $requestChild->errors);
             $error++;
+        }
+
+        if (!$error) {
+            $lines = $this->lines;
+            $fk_parent_line = 0;
+            $num = count($lines);
+            for ($i = 0; $i < $num; $i++) {
+                $label = (!empty($lines[$i]->label) ? $lines[$i]->label : '');
+                $desc = (!empty($lines[$i]->desc) ? $lines[$i]->desc : $lines[$i]->libelle);
+
+                // Positive line
+                $product_type = ($lines[$i]->product_type ? $lines[$i]->product_type : 0);
+
+                // Date start
+                $date_start = false;
+                if ($lines[$i]->date_debut_prevue)
+                    $date_start = $lines[$i]->date_debut_prevue;
+                if ($lines[$i]->date_debut_reel)
+                    $date_start = $lines[$i]->date_debut_reel;
+                if ($lines[$i]->date_start)
+                    $date_start = $lines[$i]->date_start;
+
+                // Date end
+                $date_end = false;
+                if ($lines[$i]->date_fin_prevue)
+                    $date_end = $lines[$i]->date_fin_prevue;
+                if ($lines[$i]->date_fin_reel)
+                    $date_end = $lines[$i]->date_fin_reel;
+                if ($lines[$i]->date_end)
+                    $date_end = $lines[$i]->date_end;
+
+                // Reset fk_parent_line for no child products and special product
+                if (($lines[$i]->product_type != 9 && empty($lines[$i]->fk_parent_line)) || $lines[$i]->product_type == 9) {
+                    $fk_parent_line = 0;
+                }
+
+                // Extrafields
+                $array_options = 0;
+                if (empty($conf->global->MAIN_EXTRAFIELDS_DISABLED) && method_exists($lines[$i], 'fetch_optionals')) {
+                    $lines[$i]->fetch_optionals($lines[$i]->rowid);
+                    $array_options = $lines[$i]->array_options;
+                }
+
+                $tva_tx = $lines[$i]->tva_tx;
+                if (!empty($lines[$i]->vat_src_code) && !preg_match('/\(/', $tva_tx)) $tva_tx .= ' (' . $lines[$i]->vat_src_code . ')';
+
+                $result = $requestChild->addline($desc, $lines[$i]->subprice, $lines[$i]->qty, $tva_tx, $lines[$i]->localtax1_tx, $lines[$i]->localtax2_tx, $lines[$i]->fk_product, $lines[$i]->remise_percent, 'HT', 0, $lines[$i]->info_bits, $product_type, $lines[$i]->rang, $lines[$i]->special_code, $fk_parent_line, $lines[$i]->fk_fournprice, $lines[$i]->pa_ht, $label, $date_start, $date_end, $array_options, $lines[$i]->fk_unit);
+
+                if ($result > 0) {
+                    $lineid = $result;
+                } else {
+                    $lineid = 0;
+                    $error++;
+                    break;
+                }
+
+                // Defined the new fk_parent_line
+                if ($result > 0 && $lines[$i]->product_type == 9) {
+                    $fk_parent_line = $result;
+                }
+            }
         }
 
         if (!$error) {
@@ -2676,6 +2748,30 @@ class RequestManager extends CommonObject
         }
 
         return $result;
+    }
+
+    /**
+     *  Add all contract of the equipment
+     *
+     * @param   int         $equipment_id       Equipment ID
+     * @return  int                             <0 if KO, >0 if OK
+     */
+    function addContractsOfEquipment($equipment_id)
+    {
+        $sql = "SELECT DISTINCT fk_contrat FROM " . MAIN_DB_PREFIX . "equipementevt WHERE fk_equipement = " . $equipment_id;
+
+        $resql = $this->db->query($sql);
+        if ($resql) {
+            while ($obj = $this->db->fetch_object($resql)) {
+                $ret = $this->setContract($obj->fk_contrat);
+                if (!$ret && $this->db->lasterrno() != 'DB_ERROR_RECORD_ALREADY_EXISTS') {
+                    $this->errors[] = $this->db->lasterror();
+                    return -1;
+                }
+            }
+        }
+
+        return 1;
     }
 
     /**

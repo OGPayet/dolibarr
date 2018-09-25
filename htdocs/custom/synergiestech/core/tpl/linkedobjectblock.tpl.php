@@ -67,7 +67,7 @@ foreach($linkedObjectBlock as $key => $objectlink)
         <td><?php echo $langs->trans("Equipement"); ?></td>
         <td>
         <?php
-            echo $objectlink->getNomUrl(1) . ' ' . $formsynergiestech->picto_equipment_has_contract($objectlink->fk_product, $object->socid);
+            echo $objectlink->getNomUrl(1) . ' ' . $formsynergiestech->picto_equipment_has_contract($objectlink->id);
         ?>
         </td>
 	<td></td>
