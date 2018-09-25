@@ -105,7 +105,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
     function getProposal($id)
     {
         if(! DolibarrApiAccess::$user->rights->propal->lire) {
-            throw new RestException(401);
+            throw new RestException(401, "Insufficient rights");
         }
 
         $result = $this->propal->fetch($id);
@@ -146,7 +146,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
         $obj_ret = array();
 
         if(! DolibarrApiAccess::$user->rights->propal->lire) {
-            throw new RestException(401);
+            throw new RestException(401, "Insufficient rights");
         }
 
         // If the internal user must only see his customers, force searching by him
@@ -239,7 +239,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
     function postProposal($request_data = null)
     {
         if(! DolibarrApiAccess::$user->rights->propal->creer) {
-            throw new RestException(401, "Insuffisant rights");
+            throw new RestException(401, "Insufficient rights");
         }
         // Check mandatory fields
         $result = $this->_validateProposal($request_data);
@@ -274,7 +274,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
     function getLinesProposal($id)
     {
         if(! DolibarrApiAccess::$user->rights->propal->lire) {
-            throw new RestException(401);
+            throw new RestException(401, "Insufficient rights");
         }
 
         $result = $this->propal->fetch($id);
@@ -308,7 +308,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
     function postLineProposal($id, $request_data = null)
     {
         if(! DolibarrApiAccess::$user->rights->propal->creer) {
-            throw new RestException(401);
+            throw new RestException(401, "Insufficient rights");
         }
 
         $result = $this->propal->fetch($id);
@@ -375,7 +375,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
     function putLineProposal($id, $lineid, $request_data = null)
     {
         if(! DolibarrApiAccess::$user->rights->propal->creer) {
-            throw new RestException(401);
+            throw new RestException(401, "Insufficient rights");
         }
 
         $result = $this->propal->fetch($id);
@@ -443,7 +443,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
     function deleteLineProposal($id, $lineid)
     {
         if(! DolibarrApiAccess::$user->rights->propal->creer) {
-            throw new RestException(401);
+            throw new RestException(401, "Insufficient rights");
         }
 
         $result = $this->propal->fetch($id);
@@ -482,7 +482,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
     function putProposal($id, $request_data = null)
     {
         if(! DolibarrApiAccess::$user->rights->propal->creer) {
-            throw new RestException(401);
+            throw new RestException(401, "Insufficient rights");
         }
 
         $result = $this->propal->fetch($id);
@@ -535,7 +535,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
     function deleteProposal($id)
     {
         if(! DolibarrApiAccess::$user->rights->propal->supprimer) {
-            throw new RestException(401);
+            throw new RestException(401, "Insufficient rights");
         }
         $result = $this->propal->fetch($id);
         if( ! $result ) {
@@ -574,7 +574,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
     function settodraftProposal($id)
     {
         if(! DolibarrApiAccess::$user->rights->propal->creer) {
-            throw new RestException(401);
+            throw new RestException(401, "Insufficient rights");
         }
         $result = $this->propal->fetch($id);
         if( ! $result ) {
@@ -628,7 +628,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
     function validateProposal($id, $notrigger=0)
     {
         if(! DolibarrApiAccess::$user->rights->propal->creer) {
-            throw new RestException(401);
+            throw new RestException(401, "Insufficient rights");
         }
         $result = $this->propal->fetch($id);
         if( ! $result ) {
@@ -679,7 +679,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
     function closeProposal($id, $status, $note_private='', $notrigger=0)
     {
         if(! DolibarrApiAccess::$user->rights->propal->creer) {
-            throw new RestException(401);
+            throw new RestException(401, "Insufficient rights");
         }
         $result = $this->propal->fetch($id);
         if( ! $result ) {
@@ -726,7 +726,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
     function setinvoicedProposal($id)
     {
         if(! DolibarrApiAccess::$user->rights->propal->creer) {
-            throw new RestException(401);
+            throw new RestException(401, "Insufficient rights");
         }
         $result = $this->propal->fetch($id);
         if( ! $result ) {
@@ -818,7 +818,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
     function getOrder($id)
     {
         if(! DolibarrApiAccess::$user->rights->commande->lire) {
-            throw new RestException(401);
+            throw new RestException(401, "Insufficient rights");
         }
 
         $result = $this->commande->fetch($id);
@@ -859,7 +859,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
         $obj_ret = array();
 
         if(! DolibarrApiAccess::$user->rights->commande->lire) {
-            throw new RestException(401);
+            throw new RestException(401, "Insufficient rights");
         }
 
         // If the internal user must only see his customers, force searching by him
@@ -952,7 +952,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
     function postOrder($request_data = null)
     {
         if(! DolibarrApiAccess::$user->rights->commande->creer) {
-            throw new RestException(401, "Insuffisant rights");
+            throw new RestException(401, "Insufficient rights");
         }
         // Check mandatory fields
         $result = $this->_validateOrder($request_data);
@@ -988,7 +988,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
     function getLinesOrder($id)
     {
         if(! DolibarrApiAccess::$user->rights->commande->lire) {
-            throw new RestException(401);
+            throw new RestException(401, "Insufficient rights");
         }
 
         $result = $this->commande->fetch($id);
@@ -1022,7 +1022,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
     function postLineOrder($id, $request_data = null)
     {
         if(! DolibarrApiAccess::$user->rights->commande->creer) {
-            throw new RestException(401);
+            throw new RestException(401, "Insufficient rights");
         }
 
         $result = $this->commande->fetch($id);
@@ -1087,7 +1087,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
     function putLineOrder($id, $lineid, $request_data = null)
     {
         if(! DolibarrApiAccess::$user->rights->commande->creer) {
-            throw new RestException(401);
+            throw new RestException(401, "Insufficient rights");
         }
 
         $result = $this->commande->fetch($id);
@@ -1147,7 +1147,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
     function deleteLineOrder($id, $lineid)
     {
         if(! DolibarrApiAccess::$user->rights->commande->creer) {
-            throw new RestException(401);
+            throw new RestException(401, "Insufficient rights");
         }
 
         $result = $this->commande->fetch($id);
@@ -1187,7 +1187,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
     function putOrder($id, $request_data = null)
     {
         if (! DolibarrApiAccess::$user->rights->commande->creer) {
-            throw new RestException(401);
+            throw new RestException(401, "Insufficient rights");
         }
 
         $result = $this->commande->fetch($id);
@@ -1233,7 +1233,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
     function deleteOrder($id)
     {
         if(! DolibarrApiAccess::$user->rights->commande->supprimer) {
-            throw new RestException(401);
+            throw new RestException(401, "Insufficient rights");
         }
         $result = $this->commande->fetch($id);
         if( ! $result ) {
@@ -1279,7 +1279,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
     function validateOrder($id, $idwarehouse=0, $notrigger=0)
     {
         if(! DolibarrApiAccess::$user->rights->commande->creer) {
-            throw new RestException(401);
+            throw new RestException(401, "Insufficient rights");
         }
         $result = $this->commande->fetch($id);
         if( ! $result ) {
@@ -1329,7 +1329,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
     function reopenOrder($id)
     {
         if(! DolibarrApiAccess::$user->rights->commande->creer) {
-            throw new RestException(401);
+            throw new RestException(401, "Insufficient rights");
         }
         if(empty($id)) {
             throw new RestException(400, 'Order ID is mandatory');
@@ -1363,7 +1363,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
     function setinvoicedOrder($id)
     {
         if(! DolibarrApiAccess::$user->rights->commande->creer) {
-            throw new RestException(401);
+            throw new RestException(401, "Insufficient rights");
         }
         if(empty($id)) {
             throw new RestException(400, 'Order ID is mandatory');
@@ -1408,7 +1408,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
     function closeOrder($id, $notrigger=0)
     {
         if(! DolibarrApiAccess::$user->rights->commande->creer) {
-            throw new RestException(401);
+            throw new RestException(401, "Insufficient rights");
         }
         $result = $this->commande->fetch($id);
         if( ! $result ) {
@@ -1457,7 +1457,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
     function settodraftOrder($id, $idwarehouse=-1)
     {
         if(! DolibarrApiAccess::$user->rights->commande->creer) {
-            throw new RestException(401);
+            throw new RestException(401, "Insufficient rights");
         }
         $result = $this->commande->fetch($id);
         if( ! $result ) {
@@ -1507,10 +1507,10 @@ class CompanyRelationshipsApi extends DolibarrApi {
         require_once DOL_DOCUMENT_ROOT . '/comm/propal/class/propal.class.php';
 
         if(! DolibarrApiAccess::$user->rights->propal->lire) {
-            throw new RestException(401);
+            throw new RestException(401, "Insufficient rights");
         }
         if(! DolibarrApiAccess::$user->rights->commande->creer) {
-            throw new RestException(401);
+            throw new RestException(401, "Insufficient rights");
         }
         if(empty($proposalid)) {
             throw new RestException(400, 'Proposal ID is mandatory');
@@ -1593,7 +1593,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
     function getInvoice($id)
     {
         if(! DolibarrApiAccess::$user->rights->facture->lire) {
-            throw new RestException(401);
+            throw new RestException(401, "Insufficient rights");
         }
 
         $result = $this->invoice->fetch($id);
@@ -1635,7 +1635,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
         $obj_ret = array();
 
         if(! DolibarrApiAccess::$user->rights->facture->lire) {
-            throw new RestException(401);
+            throw new RestException(401, "Insufficient rights");
         }
 
         // case of external user, $thirdparty_ids param is ignored and replaced by user's socid
@@ -1740,7 +1740,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
     function postInvoice($request_data = NULL)
     {
         if(! DolibarrApiAccess::$user->rights->facture->creer) {
-            throw new RestException(401, "Insuffisant rights");
+            throw new RestException(401, "Insufficient rights");
         }
         // Check mandatory fields
         $result = $this->_validateInvoice($request_data);
@@ -1779,7 +1779,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
     function getLinesInvoice($id)
     {
         if(! DolibarrApiAccess::$user->rights->facture->lire) {
-            throw new RestException(401);
+            throw new RestException(401, "Insufficient rights");
         }
 
         $result = $this->invoice->fetch($id);
@@ -1812,7 +1812,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
     function postLineInvoice($id, $request_data = NULL)
     {
         if(! DolibarrApiAccess::$user->rights->facture->creer) {
-            throw new RestException(401);
+            throw new RestException(401, "Insufficient rights");
         }
 
         $result = $this->invoice->fetch($id);
@@ -1878,7 +1878,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
     function putLineInvoice($id, $lineid, $request_data = NULL)
     {
         if(! DolibarrApiAccess::$user->rights->facture->creer) {
-            throw new RestException(401);
+            throw new RestException(401, "Insufficient rights");
         }
 
         $result = $this->invoice->fetch($id);
@@ -1938,7 +1938,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
     function deleteLineInvoice($id, $lineid)
     {
         if(! DolibarrApiAccess::$user->rights->facture->creer) {
-            throw new RestException(401);
+            throw new RestException(401, "Insufficient rights");
         }
 
         $result = $this->invoice->fetch($id);
@@ -1971,7 +1971,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
     function putInvoice($id, $request_data = NULL)
     {
         if(! DolibarrApiAccess::$user->rights->facture->creer) {
-            throw new RestException(401);
+            throw new RestException(401, "Insufficient rights");
         }
 
         $result = $this->invoice->fetch($id);
@@ -2008,7 +2008,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
     function deleteInvoice($id)
     {
         if(! DolibarrApiAccess::$user->rights->facture->supprimer) {
-            throw new RestException(401);
+            throw new RestException(401, "Insufficient rights");
         }
         $result = $this->invoice->fetch($id);
         if( ! $result ) {
@@ -2055,7 +2055,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
     function validateInvoice($id, $idwarehouse=0, $notrigger=0)
     {
         if(! DolibarrApiAccess::$user->rights->facture->creer) {
-            throw new RestException(401);
+            throw new RestException(401, "Insufficient rights");
         }
         $result = $this->invoice->fetch($id);
         if( ! $result ) {
