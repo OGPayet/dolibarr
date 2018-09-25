@@ -1900,9 +1900,11 @@ class RequestManager extends CommonObject
 
         dol_syslog(get_class($this)."::set_assigned assigned_user_ids:".implode(', ', $assigned_user_ids).", assigned_usergroup_ids:".implode(', ', $assigned_usergroup_ids).", notrigger:$notrigger", LOG_DEBUG);
 
-
         $this->new_assigned_user_ids = empty($assigned_user_ids) ? array() : (is_string($assigned_user_ids) ? explode(',', $assigned_user_ids) : $assigned_user_ids);
         $this->new_assigned_usergroup_ids = empty($assigned_usergroup_ids) ? array() : (is_string($assigned_usergroup_ids) ? explode(',', $assigned_usergroup_ids) : $assigned_usergroup_ids);
+
+        $this->new_assigned_user_ids = array_unique($this->new_assigned_user_ids);
+        $this->new_assigned_usergroup_ids = array_unique($this->new_assigned_usergroup_ids);
 
         $error = 0;
         $this->errors = array();
@@ -1951,6 +1953,9 @@ class RequestManager extends CommonObject
             $sql = "DELETE FROM " . MAIN_DB_PREFIX . "requestmanager_assigned_user WHERE fk_requestmanager = " . $this->id . " AND fk_user IN (" . implode(',', $this->assigned_user_deleted_ids) . ")";
             $resql = $this->db->query($sql);
             if (!$resql) {
+                $this->errors[] = 'Error ' . $this->db->lasterror();
+                dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $this->db->lasterror(), LOG_ERR);
+
                 $error++;
             }
         }
@@ -1960,6 +1965,9 @@ class RequestManager extends CommonObject
             $sql = "DELETE FROM " . MAIN_DB_PREFIX . "requestmanager_assigned_usergroup WHERE fk_requestmanager = " . $this->id . " AND fk_usergroup IN (" . implode(',', $this->assigned_usergroup_deleted_ids) . ")";
             $resql = $this->db->query($sql);
             if (!$resql) {
+                $this->errors[] = 'Error ' . $this->db->lasterror();
+                dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $this->db->lasterror(), LOG_ERR);
+
                 $error++;
             }
         }
@@ -1985,6 +1993,9 @@ class RequestManager extends CommonObject
                 $sql = $request;
                 $resql = $this->db->query($sql);
                 if (!$resql) {
+                    $this->errors[] = 'Error ' . $this->db->lasterror();
+                    dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $this->db->lasterror(), LOG_ERR);
+
                     $error++;
                     break;
                 }
@@ -2012,6 +2023,9 @@ class RequestManager extends CommonObject
                 $sql = $request;
                 $resql = $this->db->query($sql);
                 if (!$resql) {
+                    $this->errors[] = 'Error ' . $this->db->lasterror();
+                    dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $this->db->lasterror(), LOG_ERR);
+
                     $error++;
                     break;
                 }
@@ -2036,9 +2050,6 @@ class RequestManager extends CommonObject
         }
 
         if ($error) {
-            $this->errors[] = 'Error ' . $this->db->lasterror();
-            dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $this->db->lasterror(), LOG_ERR);
-
             $this->db->rollback();
             return -1;
         } else {
@@ -2773,6 +2784,7 @@ class RequestManager extends CommonObject
         if (count($statusTypeList) > 0) {
             $sql .= " AND crmst.type IN (" . implode(',', $statusTypeList) . ")";
         }
+        $sql .= " GROUP BY rm.rowid";
 
         $resql = $this->db->query($sql);
         if ($resql) {
@@ -2807,9 +2819,9 @@ class RequestManager extends CommonObject
         $sqlFilterInProgress            = 'crmst.type IN (' . self::STATUS_TYPE_INITIAL . ', ' . self::STATUS_TYPE_IN_PROGRESS . ')';
         $sqlFilterInFuture              = 'rm.datec IS NOT NULL AND rm.datec > NOW()';
         $sqlFilterInProgressOrFuture    = '((' . $sqlFilterInProgress . ') OR (' . $sqlFilterInFuture . '))';
-        $sqlFilterAssignedToMeOrMyGroup = '(rm.fk_assigned_user = ' . $user->id;
+        $sqlFilterAssignedToMeOrMyGroup = '(rmau.fk_user = ' . $user->id;
         if (count($userGroupList) > 0) {
-            $sqlFilterAssignedToMeOrMyGroup .= ' OR rm.fk_assigned_usergroup IN (' . implode(',', array_keys($userGroupList)) . ')';
+            $sqlFilterAssignedToMeOrMyGroup .= ' OR rmaug.fk_usergroup IN (' . implode(',', array_keys($userGroupList)) . ')';
         }
         $sqlFilterAssignedToMeOrMyGroup .= ')';
         $sqlFilterActionCommAssignedToMe = 'ac.fk_user_action = ' . $user->id;
@@ -2817,6 +2829,8 @@ class RequestManager extends CommonObject
         $sql  = 'SELECT';
         $sql .= ' rm.rowid';
         $sql .= ' FROM ' . MAIN_DB_PREFIX . 'requestmanager as rm';
+        $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'requestmanager_assigned_user as rmau ON rmau.fk_requestmanager = rm.rowid';
+        $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'requestmanager_assigned_usergroup as rmaug ON rmaug.fk_requestmanager = rm.rowid';
         $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'c_requestmanager_status as crmst on (crmst.rowid = rm.fk_status)';
         $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'actioncomm as ac ON ac.elementtype="requestmanager" AND ac.fk_element=rm.rowid';
         $sql .= ' WHERE rm.entity IN (' . getEntity('requestmanager') . ')';
@@ -2827,6 +2841,7 @@ class RequestManager extends CommonObject
         if ($lastViewDate) {
             $sql .= ' AND UNIX_TIMESTAMP(rm.tms) > ' . $lastViewDate;
         }
+        $sql .= " GROUP BY rm.rowid";
         $sql .= ' ORDER BY rm.tms DESC';
 
         $resql = $this->db->query($sql);
@@ -3493,10 +3508,12 @@ class RequestManager extends CommonObject
         $lines = $dictionary->fetch_lines(1, array('template_type' => array($templateType), 'request_type' => array($this->fk_type)), array('position' => 'ASC'), 0, 1, false, true);
         if ($lines < 0) {
             $this->error = $dictionary->errorsToString();
+            $this->errors[] = $this->error;
             dol_syslog(__METHOD__ . " Error : No template [" . $templateType . "] for this type of request [" . $this->fk_type. "]", LOG_ERR);
         } else {
             if (count($lines) <= 0) {
                 $this->error = $langs->trans("RequestManagerErrorNoTemplateLines");
+                $this->errors[] = $this->error;
                 dol_syslog(__METHOD__ . " Error : No template lines [" . $templateType . "] for this type of request [" . $this->fk_type. "]", LOG_ERR);
             } else {
                 $template = current($lines)->fields;
@@ -3531,6 +3548,7 @@ class RequestManager extends CommonObject
                 $substituteList['boby']    = make_substitutions($template['boby'], $formRequestManagerMessage->substit);
             } else {
                 $this->error = $langs->trans("RequestManagerErrorMissingFieldsInTemplate");
+                $this->errors[] = $this->error;
                 dol_syslog(__METHOD__ . " Error : Missing fields in this template", LOG_ERR);
             }
         }
@@ -3930,6 +3948,7 @@ class RequestManager extends CommonObject
         else
         {
             $this->error = $this->db->error();
+            $this->errors[] = $this->error;
             return -3;
         }
     }
@@ -4026,6 +4045,7 @@ class RequestManager extends CommonObject
                 {
                     $langs->load("errors");
                     $this->error = $langs->trans('ErrorStockIsNotEnoughToAddProductOnRequestManager', $product->ref);
+                    $this->errors[] = $this->error;
                     dol_syslog(__METHOD__ . " error=Product ".$product->ref.": ".$this->error, LOG_ERR);
                     $this->db->rollback();
                     //return self::STOCK_NOT_ENOUGH_FOR_REQUESTMANAGER;
@@ -4141,6 +4161,7 @@ class RequestManager extends CommonObject
             else
             {
                 $this->error = $this->line->error;
+                $this->errors[] = $this->error;
                 dol_syslog(__METHOD__ . " error=" . $this->error, LOG_ERR);
                 $this->db->rollback();
                 return -2;
@@ -4353,6 +4374,7 @@ class RequestManager extends CommonObject
             else
             {
                 $this->error = $this->line->error;
+                $this->errors[] = $this->error;
                 $this->db->rollback();
                 return -1;
             }
@@ -4360,6 +4382,7 @@ class RequestManager extends CommonObject
         else
         {
             $this->error = __METHOD__ . " RequestManager status makes operation forbidden";
+            $this->errors[] = $this->error;
             return -2;
         }
     }
