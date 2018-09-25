@@ -597,8 +597,8 @@ class RequestManager extends CommonObject
         $sql .= ", notify_assigned_by_email";
         $sql .= ", date_operation";
         $sql .= ", date_deadline";
-        $sql .= ", entity";
         $sql .= ", fk_status";
+        $sql .= ", entity";
         $sql .= ", datec";
         $sql .= ", fk_user_author";
         $sql .= ")";
