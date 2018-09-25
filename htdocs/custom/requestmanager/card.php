@@ -564,7 +564,7 @@ if (empty($reshook)) {
             exit();
         }
     } // Close
-    elseif ($action == 'confirm_close' && $confirm == 'yes' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_RESOLVED &&
+    elseif ($action == 'confirm_close' && $confirm == 'yes' && $user->rights->requestmanager->creer && /*$object->statut_type == RequestManager::STATUS_TYPE_RESOLVED &&*/
         empty($conf->global->REQUESTMANAGER_AUTO_CLOSE_REQUEST)
     ) {
         $result = $object->set_status(0, RequestManager::STATUS_TYPE_CLOSED, $user);
