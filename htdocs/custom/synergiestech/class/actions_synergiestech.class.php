@@ -622,8 +622,6 @@ SCRIPT;
                         return -1;
                     }
                 }
-                header('Location: ' . $_SERVER['PHP_SELF'] . '?id=' . $object->id);
-                exit;
             } elseif ($action == 'synergiestech_create_returnproducts' && $confirm == 'yes') {
                 $langs->load("retourproduits@retourproduits");
 
