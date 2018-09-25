@@ -140,7 +140,7 @@ if (empty($reshook)) {
                 $error++;
             }
         } // Actions edit an entry into a dictionary
-        elseif ($action == 'confirm_edit' && !isset($_POST['actioncancel']) && $dictionary->lineCanBeUpdated && $canUpdate) {
+        elseif ($action == 'confirm_edit' && !empty($_POST['actionedit']) && !isset($_POST['actioncancel']) && $dictionary->lineCanBeUpdated && $canUpdate) {
             $fieldsValue = $dictionary->getFieldsValueFromForm('edit_', '' , 1);
 
             if ($dictionary->updateLine($rowid, $fieldsValue, $user) > 0) {

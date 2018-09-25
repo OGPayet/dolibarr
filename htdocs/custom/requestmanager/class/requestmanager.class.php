@@ -672,12 +672,12 @@ class RequestManager extends CommonObject
             }
 
             // Add linked equipement
-            if (!$error) {
+            /*if (!$error) {
                 $ret = $this->addEquipement();
                 if ($ret < 0) {
                     $error++;
                 }
-            }
+            }*/
 
             // Set requester contacts
             if (!$error && !empty($this->requester_ids)) {
@@ -1727,6 +1727,9 @@ class RequestManager extends CommonObject
         foreach ($requestChild->lines as $line)
             $line->fetch_optionals($line->id);
 
+        // Fetch categories
+        $categories = $this->loadCategorieList('id');
+
         // Fetch linked objects
         $requestChild->fetchObjectLinked();
         $requestChild->linkedObjectsIds[$this->element][] = $this->id;
@@ -1737,9 +1740,19 @@ class RequestManager extends CommonObject
         if ($result < 0) {
             $this->errors = array_merge($this->errors, $requestChild->errors);
             $error++;
-        } else {
+        }
+
+        if (!$error) {
             // copy external contacts if same company
             if ($requestChild->copy_linked_contact($this, 'external') < 0) {
+                $this->errors = array_merge($this->errors, $requestChild->errors);
+                $error++;
+            }
+        }
+
+        if (!$error) {
+            // copy categories
+            if ($requestChild->setCategories($categories) < 0) {
                 $this->errors = array_merge($this->errors, $requestChild->errors);
                 $error++;
             }
@@ -3786,7 +3799,7 @@ class RequestManager extends CommonObject
         // link to actioncomm
         $actionComm = new ActionComm($this->db);
         $actionComm->fetch($actionCommId);
-        $actionComm->socid  = $this->socid;
+        $actionComm->socid  = $this->socid_origin;
         $actionComm->fk_element  = $this->id;
         $actionComm->elementtype = $this->element;
         $result = $actionComm->update($user);

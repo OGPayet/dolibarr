@@ -76,10 +76,16 @@ if ($action == 'addfast' && $user->rights->requestmanager->creer) {
     $object->description = GETPOST('description');
     $selectedActionCommId = GETPOST('actioncomm_id') ? GETPOST('actioncomm_id') : -1;
 
+    // Add equipment links
+    $selectedEquipementId = GETPOST('equipement_id', 'int')?intval(GETPOST('equipement_id', 'int')):-1;
+    if ($selectedEquipementId > 0) {
+        $object->linkedObjectsIds['equipement'][] = $selectedEquipementId;
+    }
+
     // Possibility to add external linked objects with hooks
     $object->origin = GETPOST('origin', 'alpha');
     $object->origin_id = GETPOST('originid', 'int');
-    if ($object->origin && $object->origin_id) {
+    if ($object->origin && $object->origin_id > 0) {
         $object->linkedObjectsIds[$object->origin] = $object->origin_id;
         if (is_array($_POST['other_linked_objects']) && !empty($_POST['other_linked_objects'])) {
             $object->linkedObjectsIds = array_merge($object->linkedObjectsIds, $_POST['other_linked_objects']);

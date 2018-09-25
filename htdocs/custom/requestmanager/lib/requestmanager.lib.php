@@ -149,6 +149,7 @@ function requestmanager_show_events(&$requestmanager)
     $search_include_linked_event_to_children_request = GETPOST('search_include_linked_event_to_children_request', 'int');
     $search_ref = GETPOST('search_ref', 'alpha');
     $search_origin = GETPOST('search_origin', 'array');
+    $search_thirdparty = GETPOST('search_thirdparty', 'alpha');
     $search_type = GETPOST('search_type', 'array');
     $search_title = GETPOST('search_title', 'alpha');
     $search_description = GETPOST('search_description', 'alpha');
@@ -191,6 +192,7 @@ function requestmanager_show_events(&$requestmanager)
     $arrayfields = array(
         'fk_request' => array('label' => $langs->trans("RequestManagerRequest"), 'checked' => 1),
         'ac.elementtype' => array('label' => $langs->trans("Origin"), 'checked' => 1),
+        's.nom' => array('label' => $langs->trans("ThirdParty"), 'checked' => 1),
         'ac.id' => array('label' => $langs->trans("Ref"), 'checked' => 1),
         'ac.fk_action' => array('label' => $langs->trans("Type"), 'checked' => 1),
         'ac.label' => array('label' => $langs->trans("Title"), 'checked' => 1),
@@ -245,6 +247,7 @@ function requestmanager_show_events(&$requestmanager)
         $search_include_linked_event_to_children_request = 1;
         $search_ref = '';
         $search_origin = array();
+        $search_thirdparty = '';
         $search_type = array();
         $search_title = '';
         $search_description = '';
@@ -312,6 +315,7 @@ function requestmanager_show_events(&$requestmanager)
     $sql .= " ac.percent as percentage,";
     $sql .= " ac.fk_element, ac.elementtype,";
     $sql .= " ac.priority, ac.fulldayevent, ac.location,";
+    $sql .= " s.rowid as soc_id, s.client as soc_client, s.nom as soc_name, s.name_alias as soc_name_alias,";
     $sql .= " cac.id as type_id, cac.code as type_code, cac.libelle as type_label, cac.color as type_color, cac.picto as type_picto,";
     $sql .= " uo.firstname as userownerfirstname, uo.lastname as userownerlastname, uo.email as userowneremail,";
     $sql .= " ud.firstname as userdonefirstname, ud.lastname as userdonelastname, ud.email as userdoneemail,";
@@ -329,6 +333,7 @@ function requestmanager_show_events(&$requestmanager)
     if (is_array($extrafields->attribute_label) && count($extrafields->attribute_label)) $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "actioncomm_extrafields as ef on (ac.id = ef.fk_object)";
     if (is_array($extrafields_message->attribute_label) && count($extrafields_message->attribute_label)) $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "requestmanager_message_extrafields as efm on (ac.id = efm.fk_object)";
     $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_actioncomm as cac ON cac.id = ac.fk_action";
+    $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe as s ON s.rowid = ac.fk_soc";
     $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "user as uo ON uo.rowid = ac.fk_user_action";
     $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "user as ud ON ud.rowid = ac.fk_user_done";
     $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "user as ua ON ua.rowid = ac.fk_user_author";
@@ -345,7 +350,8 @@ function requestmanager_show_events(&$requestmanager)
     // Add 'from' from hooks
     $parameters = array();
     $reshook = $hookmanager->executeHooks('printFieldListFrom', $parameters);    // Note that $action and $object may have been modified by hook
-    $sql .= ' WHERE ac.fk_soc = ' . $requestmanager->socid;
+    $soc_ids = array_merge(array($requestmanager->socid_origin), array($requestmanager->socid), array($requestmanager->socid_benefactor));
+    $sql .= ' WHERE ac.fk_soc IN (' . implode(',', $soc_ids) . ')';
     $sql .= ' AND ac.entity IN (' . getEntity('agenda') . ')';
     if ($search_only_linked_to_request) {
         $sql .= " AND IF(ac.elementtype='requestmanager', ac.fk_element, IF(ee.sourcetype!='requestmanager' AND ee.targettype='requestmanager', ee.fk_target, IF(ee.sourcetype='requestmanager', ee.fk_source, NULL))) IN(" . (!empty($request_ids) ? $request_ids : '-1') . ")";
@@ -359,6 +365,7 @@ function requestmanager_show_events(&$requestmanager)
     }
     if ($search_ref) $sql .= natural_search('ac.id', $search_ref);
     if (!empty($search_origin)) $sql .= " AND ac.elementtype IN ('" . implode("','", $search_origin) . "')";
+    if ($search_thirdparty) $sql .= natural_search(array('s.nom', 's.name_alias'), $search_thirdparty);
     if (!empty($search_type)) {
         $search_type_tmp = $search_type;
         if (in_array('AC_NON_AUTO', $search_type_tmp) || in_array('AC_OTH', $search_type_tmp)) {
@@ -465,6 +472,7 @@ function requestmanager_show_events(&$requestmanager)
         if ($search_include_linked_event_to_children_request !== '') $param .= '&search_include_linked_event_to_children_request=' . urlencode($search_include_linked_event_to_children_request);
         if ($search_ref) $param .= '&search_ref=' . urlencode($search_ref);
         if (!empty($search_origin)) $param .= '&search_origin=' . urlencode($search_origin);
+        if ($search_thirdparty) $param .= '&search_thirdparty=' . urlencode($search_thirdparty);
         if ($search_type) $param .= '&search_type=' . urlencode($search_type);
         if ($search_title) $param .= '&search_title=' . urlencode($search_title);
         if ($search_description) $param .= '&search_description=' . urlencode($search_description);
@@ -608,6 +616,12 @@ SCRIPT;
         // Origin
         if (!empty($arrayfields['ac.elementtype']['checked'])) {
             print '<td class="liste_titre">';
+            print '</td>';
+        }
+        // ThirdParty
+        if (!empty($arrayfields['s.nom']['checked'])) {
+            print '<td class="liste_titre">';
+            print '<input class="flat" size="6" type="text" name="search_thirdparty" value="' . dol_escape_htmltag($search_thirdparty) . '">';
             print '</td>';
         }
         // Ref
@@ -776,6 +790,7 @@ SCRIPT;
         print '<tr class="liste_titre">';
         if (!empty($arrayfields['fk_request']['checked'])) print_liste_field_titre($arrayfields['fk_request']['label'], $_SERVER["PHP_SELF"], '', '', $param, '', $sortfield, $sortorder);
         if (!empty($arrayfields['ac.elementtype']['checked'])) print_liste_field_titre($arrayfields['ac.elementtype']['label'], $_SERVER["PHP_SELF"], 'ac.elementtype', '', $param, '', $sortfield, $sortorder);
+        if (!empty($arrayfields['s.nom']['checked'])) print_liste_field_titre($arrayfields['s.nom']['label'], $_SERVER["PHP_SELF"], 's.nom', '', $param, '', $sortfield, $sortorder);
         if (!empty($arrayfields['ac.id']['checked'])) print_liste_field_titre($arrayfields['ac.id']['label'], $_SERVER["PHP_SELF"], 'ac.id', '', $param, '', $sortfield, $sortorder);
         if (!empty($arrayfields['ac.fk_action']['checked'])) print_liste_field_titre($arrayfields['ac.fk_action']['label'], $_SERVER["PHP_SELF"], 'cac.libelle', '', $param, '', $sortfield, $sortorder);
         if (!empty($arrayfields['ac.label']['checked'])) print_liste_field_titre($arrayfields['ac.label']['label'], $_SERVER["PHP_SELF"], 'ac.label', '', $param, '', $sortfield, $sortorder);
@@ -830,6 +845,8 @@ SCRIPT;
         }
 
         $actioncomm_static = new ActionComm($db);
+
+        $societe_static = new Societe($db);
 
         require_once DOL_DOCUMENT_ROOT . '/user/class/user.class.php';
         $userowner_static = new User($db);
@@ -888,6 +905,12 @@ SCRIPT;
             $project_static->statut = $obj->projectstatus;
             $project_static->datee = $db->jdate($obj->projectdatee);
 
+            // ThirdParty
+            $societe_static->id = $obj->soc_id;
+            $societe_static->client = $obj->soc_client;
+            $societe_static->name = $obj->soc_name;
+            $societe_static->name_alias = $obj->soc_name_alias;
+
             // User Owner
             $userowner_static->id = $obj->fk_user_action;
             $userowner_static->firstname = $obj->userownerfirstname;
@@ -933,10 +956,16 @@ SCRIPT;
                     else print $elements_array['societe'];
                     print '</td>';
                 }
+                // ThirdParty
+                if (!empty($arrayfields['s.nom']['checked'])) {
+                    print '<td class="nowrap"'.$tdcolor.'>';
+                    print $societe_static->getNomUrl(1);
+                    print '</td>';
+                }
                 // Ref
                 if (!empty($arrayfields['ac.id']['checked'])) {
                     print '<td class="nowrap"'.$tdcolor.'>';
-                    print $actioncomm_static->getNomUrl(1, -1);
+                    print $actioncomm_static->getNomUrl(1);
                     print '</td>';
                 }
                 // Type

@@ -278,6 +278,7 @@ RequestManagerStatusDictionaryNewRequestTypeAuto                            = Cr
 RequestManagerStatusDictionaryNewRequestTypeAutoHelp                        = Créer les nouvelles demandes automatiquement lors du passage à ce statut.
 RequestManagerStatusDictionaryAuthorizedButtons                             = Boutons authorisés
 RequestManagerStatusDictionaryAuthorizedButtonsHelp                         = Liste des boutons authorisés à ce status (Tous les boutons si aucun sélectionnés)
+RequestManagerStatusDictionaryNoButtons                                     = Aucun boutons
 
 ############################################################
 ### Companies Relationship

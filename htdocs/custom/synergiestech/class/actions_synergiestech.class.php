@@ -244,7 +244,7 @@ class ActionsSynergiesTech
             $authorizedButtons = !empty($requestManagerStatusDictionaryLine->fields['authorized_buttons']) ? explode(',', $requestManagerStatusDictionaryLine->fields['authorized_buttons']) : array();
 
             dol_include_once('/requestmanager/class/requestmanager.class.php');
-            if ($object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS && !empty($conf->retourproduits->enabled) && (count($authorizedButtons) == 0 || in_array('retourproduits', $authorizedButtons))) {
+            if ($object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS && !empty($conf->retourproduits->enabled) && (count($authorizedButtons) == 0 || in_array('retourproduits', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
                 $langs->load("retourproduits@retourproduits");
                 if ($object->socid > 0) {
                     dol_include_once('/synergiestech/lib/synergiestech.lib.php');

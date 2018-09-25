@@ -2147,7 +2147,7 @@ $now = dol_now();
                 }
 
                 // Add Propale
-                if (!empty($conf->propal->enabled) && (count($authorizedButtons) == 0 || in_array('create_propal', $authorizedButtons))) {
+                if (!empty($conf->propal->enabled) && (count($authorizedButtons) == 0 || in_array('create_propal', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
                     $langs->load("propal");
                     if ($user->rights->propal->creer) {
                         print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/comm/propal/card.php?originid=' . $object->id . '&origin=' . $object->element . ($object->socid > 0 ? '&socid=' . $object->socid : '') . '&action=create">' . $langs->trans("AddProp") . '</a></div>';
@@ -2157,7 +2157,7 @@ $now = dol_now();
                 }
 
                 // Add Order
-                if (!empty($conf->commande->enabled) && (count($authorizedButtons) == 0 || in_array('create_order', $authorizedButtons))) {
+                if (!empty($conf->commande->enabled) && (count($authorizedButtons) == 0 || in_array('create_order', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
                     $langs->load("orders");
                     if ($user->rights->commande->creer) {
                         print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/commande/card.php?originid=' . $object->id . '&origin=' . $object->element . ($object->socid > 0 ? '&socid=' . $object->socid : '') . '&action=create">' . $langs->trans("AddOrder") . '</a></div>';
@@ -2167,7 +2167,7 @@ $now = dol_now();
                 }
 
                 // Add invoice
-                if ($user->societe_id == 0 && !empty($conf->facture->enabled) && (count($authorizedButtons) == 0 || in_array('create_invoice', $authorizedButtons))) {
+                if ($user->societe_id == 0 && !empty($conf->facture->enabled) && (count($authorizedButtons) == 0 || in_array('create_invoice', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
                     $langs->load("bills");
                     $langs->load("compta");
                     if ($user->rights->facture->creer) {
@@ -2183,7 +2183,7 @@ $now = dol_now();
                 }
 
                 // Add Intervention
-                if (!empty($conf->ficheinter->enabled) && (count($authorizedButtons) == 0 || in_array('create_inter', $authorizedButtons))) {
+                if (!empty($conf->ficheinter->enabled) && (count($authorizedButtons) == 0 || in_array('create_inter', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
                     $langs->load("interventions");
                     if ($user->rights->ficheinter->creer) {
                         print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/fichinter/card.php?originid=' . $object->id . '&origin=' . $object->element . ($object->socid > 0 ? '&socid=' . $object->socid : '') . '&action=create">' . $langs->trans("AddIntervention") . '</a></div>';
@@ -2193,7 +2193,7 @@ $now = dol_now();
                 }
 
                 // Add Event
-                if (!empty($conf->agenda->enabled) && (count($authorizedButtons) == 0 || in_array('create_event', $authorizedButtons))) {
+                if (!empty($conf->agenda->enabled) && (count($authorizedButtons) == 0 || in_array('create_event', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
                     $langs->load("commercial");
                     if (! empty($user->rights->agenda->myactions->create) || ! empty($user->rights->agenda->allactions->create)) {
                         print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT.'/comm/action/card.php?originid=' . $object->id . '&origin=' . $object->element . ($object->socid > 0 ? '&socid=' . $object->socid : '') . '&action=create">' . $langs->trans("AddAction") . '</a></div>';

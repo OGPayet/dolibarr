@@ -506,6 +506,7 @@ class RequestManagerStatusDictionary extends Dictionary
         );
 
         $authorized_buttons_list = array(
+            'no_buttons' => $langs->trans('RequestManagerStatusDictionaryNoButtons'),
             'create_propal' => $langs->trans('AddProp'),
             'create_order' => $langs->trans('AddOrder'),
             'create_invoice' => $langs->trans('AddBill'),
