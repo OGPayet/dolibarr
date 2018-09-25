@@ -106,31 +106,6 @@ if($action == "terminate") {
 		if($error == 0) {
 			$object->update();
 		}
-
-		require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
-		require_once DOL_DOCUMENT_ROOT.'/comm/action/class/cactioncomm.class.php';
-
-		$actioncomm = new ActionComm($db);
-
-		$actioncomm->type_id=40;
-		$actioncomm->type_code='AC_OTH_AUTO';
-		$actioncomm->label       = utf8_encode("Contrat ".$object->ref." résilié");
-		$actioncomm->note        = utf8_encode("Contrat ".$object->ref." résilié");
-		$actioncomm->fk_project  = 0;
-		$actioncomm->datep       = $now;
-		$actioncomm->datef       = $now;
-		$actioncomm->fulldayevent = 0;
-		$actioncomm->durationp   = 0;
-		$actioncomm->punctual    = 1;
-		$actioncomm->percentage  = -1;   // Not applicable
-		$actioncomm->transparency= 0; // Not applicable
-		$actioncomm->authorid    = $user->id;   // User saving action
-		$actioncomm->userownerid    = $user->id;   // User saving action
-		$actioncomm->elementtype = 'contrat';
-		$actioncomm->fk_element = $object->id;
-		$actioncomm->fk_soc = $object->fk_soc;
-
-		$ret = $actioncomm->create($user);
 	}
 }
 

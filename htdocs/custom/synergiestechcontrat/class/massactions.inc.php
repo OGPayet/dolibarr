@@ -895,6 +895,57 @@ if (!$error && $massaction == 'factureanterieur') {
     }
 }
 
+if($action == "check_terminate") {
+	$now = strtotime("now");
+
+	$db->begin();
+
+	$sql = "SELECT c.rowid";
+	$sql .= " FROM dolibarr.llx_contrat as c";
+	$sql .= " LEFT JOIN llx_contrat_extrafields as cx ON c.rowid = cx.fk_object";
+	$sql .= " WHERE cx.realdate <= now()";
+
+	$result=$db->query($sql);
+	if ($result) {
+		$num = $db->num_rows($result);
+		$i = 0;
+		while ($i < $num) {
+			$objp = $db->fetch_object($result);
+			$contrat = new Contrat($db);
+			$contrat->fetch($objp->rowid);
+			$contrat->fetch_thirdparty();
+
+			$contrat->cloture($user);
+
+			require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
+			require_once DOL_DOCUMENT_ROOT.'/comm/action/class/cactioncomm.class.php';
+
+			$actioncomm = new ActionComm($db);
+
+			$actioncomm->type_id=40;
+			$actioncomm->type_code='AC_OTH_AUTO';
+			$actioncomm->label       = utf8_encode("Contrat ".$contrat->ref." résilié");
+			$actioncomm->note        = utf8_encode("Contrat ".$contrat->ref." résilié");
+			$actioncomm->fk_project  = 0;
+			$actioncomm->datep       = $now;
+			$actioncomm->datef       = $now;
+			$actioncomm->fulldayevent = 0;
+			$actioncomm->durationp   = 0;
+			$actioncomm->punctual    = 1;
+			$actioncomm->percentage  = -1;   // Not applicable
+			$actioncomm->transparency= 0; // Not applicable
+			$actioncomm->authorid    = $user->id;   // User saving action
+			$actioncomm->userownerid    = $user->id;   // User saving action
+			$actioncomm->elementtype = 'contrat';
+			$actioncomm->fk_element = $contrat->id;
+			$actioncomm->fk_soc = $contrat->fk_soc;
+
+			$ret = $actioncomm->create($user);
+			$i++;
+		}
+	}
+}
+
 $parameters['toselect']  = $toselect;
 $parameters['uploaddir'] = $uploaddir;
 
