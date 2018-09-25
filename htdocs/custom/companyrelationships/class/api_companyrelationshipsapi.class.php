@@ -20,6 +20,7 @@ use Luracast\Restler\RestException;
 require_once DOL_DOCUMENT_ROOT . '/comm/propal/class/propal.class.php';
 require_once DOL_DOCUMENT_ROOT . '/commande/class/commande.class.php';
 require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
+require_once DOL_DOCUMENT_ROOT . '/fichinter/class/fichinter.class.php';
 
 /**
  * API class for Company Relationships
@@ -46,10 +47,30 @@ class CompanyRelationshipsApi extends DolibarrApi {
 
     /**
      * Invoices
-     * @var array   $FIELDS     Mandatory fields, checked when create and update object
+     * @var array   $FIELDS_INVOICE     Mandatory fields, checked when create and update object
      */
     static $FIELDS_INVOICE = array(
         'socid'
+    );
+
+    /**
+     * Interventions
+     * @var array   $FIELDS_INTERVENTION     Mandatory fields, checked when create and update object
+     */
+    static $FIELDS_INTERVENTION = array(
+        'socid',
+        'fk_project',
+        'description'
+    );
+
+    /**
+     * Interventions lines
+     * @var array   $FIELDSLINE_INTERVENTION     Mandatory fields, checked when create and update object
+     */
+    static $FIELDSLINE_INTERVENTION = array(
+        'description',
+        'date',
+        'duree'
     );
 
     /**
@@ -68,6 +89,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
     public $invoice;
 
     /**
+     * @var fichinter $fichinter {@type fichinter}
+     */
+    public $fichinter;
+
+    /**
      * Constructor
      */
     function __construct()
@@ -83,6 +109,9 @@ class CompanyRelationshipsApi extends DolibarrApi {
 
         // invoices
         $this->invoice = new Facture($this->db);
+
+        // interventions
+        $this->fichinter = new Fichinter($this->db);
     }
 
 
@@ -302,7 +331,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
      * @param   array   $request_data   Commercial proposal line data
      * @return  int
      *
-     * @throws  400     RestException   Field missing
+     * @throws  400     RestException   Error while creating proposal line
      * @throws  401     RestException   Insufficient rights
      */
     function postLineProposal($id, $request_data = null)
@@ -1016,7 +1045,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
      * @param   array   $request_data   OrderLine data
      * @return  int
      *
-     * @throws  400     RestException   Field missing
+     * @throws  400     RestException   Error while creating order line
      * @throws  401     RestException   Insufficient rights
      */
     function postLineOrder($id, $request_data = null)
@@ -1182,7 +1211,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
      *
      * @throws  400     RestException   Field missing
      * @throws  401     RestException   Insufficient rights
-     * @throws  500     RestException   Error while updating the proposal line
+     * @throws  500     RestException   Error while updating the order
      */
     function putOrder($id, $request_data = null)
     {
@@ -1807,6 +1836,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
      * @param   array $request_data   InvoiceLine data
      * @return  int
      *
+     * @throws  400     RestException   Error while creating invoice line
      * @throws  401     RestException   Insufficient rights
      */
     function postLineInvoice($id, $request_data = NULL)
@@ -2116,5 +2146,574 @@ class CompanyRelationshipsApi extends DolibarrApi {
         }
 
         return $invoice;
+    }
+
+
+    //
+    // API Interventions
+    //
+
+    /**
+     * Get properties of an intervention object
+     *
+     * Return an array with intervention informations
+     *
+     * @url GET interventions/{id}
+     *
+     * @param       int             $id         ID of Expense Report
+     * @return 	    array|mixed                 Data without useless information
+     *
+     * @throws  401     RestException   Insufficient rights
+     */
+    function getIntervention($id)
+    {
+        if(! DolibarrApiAccess::$user->rights->ficheinter->lire) {
+            throw new RestException(401, "Insufficient rights");
+        }
+
+        $result = $this->fichinter->fetch($id);
+        if( ! $result ) {
+            return [];
+        }
+
+        if( ! DolibarrApi::_checkAccessToResource('fichinter',$this->fichinter->id)) {
+            throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
+        }
+
+        $this->fichinter->fetchObjectLinked();
+        return $this->_cleanInterventionObjectDatas($this->fichinter);
+    }
+
+    /**
+     * List of interventions
+     *
+     * Return a list of interventions
+     *
+     * @url GET interventions
+     *
+     * @param   string          $sortfield          Sort field
+     * @param   string          $sortorder          Sort order
+     * @param   int             $limit		        Limit for list
+     * @param   int             $page		        Page number
+     * @param   string          $thirdparty_ids     Thirdparty ids to filter orders of. {@example '1' or '1,2,3'} {@pattern /^[0-9,]*$/i}
+     * @param   string          $sqlfilters         Other criteria to filter answers separated by a comma. Syntax example "(t.ref:like:'SO-%') and (t.date_creation:<:'20160101')"
+     * @return  array           Array of order objects
+     *
+     * @throws  401     RestException   Insufficient rights
+     * @throws  503     RestException   Error when retrieve intervention list
+     */
+    function indexIntervention($sortfield = "t.rowid", $sortorder = 'ASC', $limit = 100, $page = 0, $thirdparty_ids = '', $sqlfilters = '')
+    {
+        global $db, $conf;
+
+        $obj_ret = array();
+
+        if(! DolibarrApiAccess::$user->rights->ficheinter->lire) {
+            throw new RestException(401, "Insufficient rights");
+        }
+
+        // If the internal user must only see his customers, force searching by him
+        $search_sale = 0;
+        if (! DolibarrApiAccess::$user->rights->societe->client->voir) $search_sale = DolibarrApiAccess::$user->id;
+
+        $sql = "SELECT t.rowid";
+        $sql.= " FROM ".MAIN_DB_PREFIX."fichinter as t";
+
+        if ((!DolibarrApiAccess::$user->rights->societe->client->voir) || $search_sale > 0) $sql.= ", ".MAIN_DB_PREFIX."societe_commerciaux as sc"; // We need this table joined to the select in order to filter by sale
+
+        $sql.= ' WHERE (t.entity IN ('.getEntity('intervention').')';
+        if ((!DolibarrApiAccess::$user->rights->societe->client->voir) || $search_sale > 0) $sql.= " AND t.fk_soc = sc.fk_soc";
+        if ($search_sale > 0) $sql.= " AND t.fk_soc = sc.fk_soc";		// Join for the needed table to filter by sale
+        // Insert sale filter
+        if ($search_sale > 0)
+        {
+            $sql .= " AND sc.fk_user = ".$search_sale;
+        }
+        $sql.= ")";
+
+        // case of external user, $thirdparty_ids param is ignored and replaced by user's socid
+        $socids = DolibarrApiAccess::$user->societe_id ? DolibarrApiAccess::$user->societe_id : $thirdparty_ids;
+        if ($socids) {
+            $sql.= ' OR (t.entity IN ('.getEntity('intervention').')';
+            $sql.= " AND t.fk_soc IN (".$socids."))";
+        }
+        $sql.= " GROUP BY rowid";
+
+        // Add sql filters
+        if ($sqlfilters)
+        {
+            if (! DolibarrApi::_checkFilters($sqlfilters))
+            {
+                throw new RestException(503, 'Error when validating parameter sqlfilters '.$sqlfilters);
+            }
+            $regexstring='\(([^:\'\(\)]+:[^:\'\(\)]+:[^:\(\)]+)\)';
+            $sql.=" AND (".preg_replace_callback('/'.$regexstring.'/', 'DolibarrApi::_forge_criteria_callback', $sqlfilters).")";
+        }
+
+        $sql.= $db->order($sortfield, $sortorder);
+        if ($limit)	{
+            if ($page < 0)
+            {
+                $page = 0;
+            }
+            $offset = $limit * $page;
+
+            $sql.= $db->plimit($limit + 1, $offset);
+        }
+
+        dol_syslog("API Rest request");
+        $result = $db->query($sql);
+
+        if ($result)
+        {
+            $num = $db->num_rows($result);
+            $min = min($num, ($limit <= 0 ? $num : $limit));
+            $i = 0;
+            while ($i < $min)
+            {
+                $obj = $db->fetch_object($result);
+                $fichinter_static = new Fichinter($db);
+                if($fichinter_static->fetch($obj->rowid)) {
+                    $obj_ret[] = $this->_cleanInterventionObjectDatas($fichinter_static);
+                }
+                $i++;
+            }
+        }
+        else {
+            throw new RestException(503, 'Error when retrieve fichinter list : '.$db->lasterror());
+        }
+        if( ! count($obj_ret)) {
+            return [];
+        }
+        return $obj_ret;
+    }
+
+    /**
+     * Create intervention object
+     *
+     * @url POST interventions
+     *
+     * @param   array   $request_data   Request data
+     * @return  int     ID of intervention
+     *
+     * @throws  401     RestException   Insufficient rights
+     * @throws  500     RestException   Error when creating intervention
+     */
+    function postIntervention($request_data = null)
+    {
+        if(! DolibarrApiAccess::$user->rights->ficheinter->creer) {
+            throw new RestException(401, "Insufficient rights");
+        }
+        // Check mandatory fields
+        $result = $this->_validateIntervention($request_data);
+        foreach($request_data as $field => $value) {
+            $this->fichinter->$field = $value;
+        }
+
+        if ($this->fichinter->create(DolibarrApiAccess::$user) < 0) {
+            throw new RestException(500, "Error creating fichinter", array_merge(array($this->fichinter->error), $this->fichinter->errors));
+        }
+
+        return $this->fichinter->id;
+    }
+
+    /**
+     * Get lines of an intervention
+     *
+     * @url	GET interventions/{id}/lines
+     *
+     * @param   int   $id             Id of intervention
+     * @return  int
+     *
+     * @throws  401     RestException   Insufficient rights
+     */
+    function getLinesIntervention($id)
+    {
+        if(! DolibarrApiAccess::$user->rights->ficheinter->lire) {
+            throw new RestException(401, "Insufficient rights");
+        }
+
+        $result = $this->fichinter->fetch($id);
+        if( ! $result ) {
+            return [];
+        }
+
+        if( ! DolibarrApi::_checkAccessToResource('fichinter',$this->fichinter->id)) {
+            throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
+        }
+        $this->fichinter->getLinesArray();
+        $result = array();
+        foreach ($this->fichinter->lines as $line) {
+            array_push($result,$this->_cleanInterventionObjectDatas($line));
+        }
+        return $result;
+    }
+
+    /**
+     * Update intervention general fields (won't touch lines of intervention)
+     *
+     * @url PUT interventions/{id}
+     *
+     * @param   int   $id             Id of intervention to update
+     * @param   array $request_data   Datas
+     * @return  int
+     *
+     * @throws  401     RestException   Insufficient rights
+     * @throws  500     RestException   Error while updating the intervention
+     */
+    function putIntervention($id, $request_data = null)
+    {
+        if(! DolibarrApiAccess::$user->rights->ficheinter->creer) {
+            throw new RestException(401, "Insufficient rights");
+        }
+
+        $result = $this->fichinter->fetch($id);
+        if( ! $result ) {
+            return [];
+        }
+
+        if( ! DolibarrApi::_checkAccessToResource('fichinter',$this->fichinter->id)) {
+            throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
+        }
+
+        foreach($request_data as $field => $value) {
+            if ($field == 'id') continue;
+            $this->fichinter->$field = $value;
+        }
+
+        if ($this->fichinter->update(DolibarrApiAccess::$user) > 0)	{
+            return $this->get($id);
+        } else {
+            throw new RestException(500, $this->fichinter->error);
+        }
+    }
+
+    /**
+     * Add a line to given intervention
+     *
+     * @url POST interventions/{id}/lines
+     *
+     * @param 	int   	$id             Id of intervention to update
+     * @param   array   $request_data   Request data
+     * @return  int
+     *
+     * @throws  400     RestException   Error while creating intervention line
+     * @throws  401     RestException   Insufficient rights
+     */
+    function postLineIntervention($id, $request_data = null)
+    {
+        if(! DolibarrApiAccess::$user->rights->ficheinter->creer) {
+            throw new RestException(401, "Insufficient rights");
+        }
+
+        $result = $this->fichinter->fetch($id);
+        if (! $result) {
+            return [];
+        }
+
+        // Check mandatory fields
+        $result = $this->_validateLineIntervention($request_data);
+
+        foreach($request_data as $field => $value) {
+            $this->fichinter->$field = $value;
+        }
+
+
+
+        if( ! $result ) {
+            return [];
+        }
+
+        if( ! DolibarrApi::_checkAccessToResource('fichinter',$this->fichinter->id)) {
+            throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
+        }
+
+        $updateRes = $this->fichinter->addLine(
+            DolibarrApiAccess::$user,
+            $id,
+            $this->fichinter->desc,
+            $this->fichinter->datei,
+            $this->fichinter->duration
+        );
+
+        if ($updateRes > 0) {
+            return $updateRes;
+        }
+        else {
+            throw new RestException(400, $this->fichinter->error);
+        }
+    }
+
+    /**
+     * Update a line of given intervention
+     *
+     * @url	PUT interventions/{id}/lines/{lineid}
+     *
+     * @param   int   $id             Id of intervention to update
+     * @param   int   $lineid         Id of line to update
+     * @param   array $request_data   Intervention line data
+     * @return  array
+     *
+     * @throws  400     RestException   Error while updating intervention line
+     * @throws  401     RestException   Insufficient rights
+     */
+    function putLineIntervention($id, $lineid, $request_data = null)
+    {
+        if(! DolibarrApiAccess::$user->rights->ficheinter->creer) {
+            throw new RestException(401, "Insufficient rights");
+        }
+
+        $result = $this->fichinter->fetch($id);
+        if($result <= 0) {
+            return [];
+        }
+
+        if( ! DolibarrApi::_checkAccessToResource('fichinter',$this->fichinter->id)) {
+            throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
+        }
+
+        $request_data = (object) $request_data;
+
+        $ficheinterline = new FichinterLigne($this->db);
+        $result = $ficheinterline->fetch($lineid);
+        if ($result <= 0) {
+            return [];
+        }
+
+        $updateRes = $this->fichinter->updateline(
+            $lineid,
+            $id,
+            isset($request_data->desc)?$request_data->desc:$ficheinterline->desc,
+            isset($request_data->datei)?$request_data->datei:$ficheinterline->datei,
+            isset($request_data->duration)?$request_data->duration:$ficheinterline->duration
+        );
+
+        if ($updateRes > 0) {
+            $result = $this->getIntervention($id);
+            unset($result->line);
+            return $this->_cleanInterventionObjectDatas($result);
+        } else {
+            throw new RestException(400, $this->fichinter->error);
+        }
+    }
+
+    /**
+     * Delete a line of given intervention
+     *
+     * @url	DELETE interventions/{id}/lines/{lineid}
+     *
+     * @param   int   $id             Id of intervention to update
+     * @param   int   $lineid         Id of line to delete
+     * @return  int
+     *
+     * @throws  401     RestException   Insufficient rights
+     * @throws  405     RestException   Error while deleting the intervention line
+     */
+    function deleteLineIntervention($id, $lineid)
+    {
+        if(! DolibarrApiAccess::$user->rights->ficheinter->creer) {
+            throw new RestException(401, "Insufficient rights");
+        }
+
+        $result = $this->fichinter->fetch($id);
+        if( ! $result ) {
+            return [];
+        }
+
+        if( ! DolibarrApi::_checkAccessToResource('ficheinter',$this->ficheinter->id)) {
+            throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
+        }
+
+        // TODO Check the lineid $lineid is a line of ojbect
+
+        $updateRes = $this->ficheinter->deleteline($lineid);
+        if ($updateRes > 0) {
+            return $this->getIntervention($id);
+        } else {
+            throw new RestException(405, $this->propal->error);
+        }
+    }
+
+    /**
+     * Delete intervention
+     *
+     * @url DELETE interventions/{id}
+     *
+     * @param   int     $id         Intervention ID
+     * @return  array
+     *
+     * @throws  401     RestException   Insufficient rights
+     * @throws  500     RestException   Error while deleting the intervention
+     */
+    function deleteIntervention($id)
+    {
+        if(! DolibarrApiAccess::$user->rights->ficheinter->supprimer) {
+            throw new RestException(401, "Insufficient rights");
+        }
+        $result = $this->fichinter->fetch($id);
+        if( ! $result ) {
+            return [];
+        }
+
+        if( ! DolibarrApi::_checkAccessToResource('commande',$this->fichinter->id)) {
+            throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
+        }
+
+        if( ! $this->fichinter->delete(DolibarrApiAccess::$user)) {
+            throw new RestException(500, 'Error when delete intervention : '.$this->fichinter->error);
+        }
+
+        return array(
+            'success' => array(
+                'code' => 200,
+                'message' => 'Intervention deleted'
+            )
+        );
+
+    }
+
+    /**
+     * Validate an intervention
+     *
+     * If you get a bad value for param notrigger check, provide this in body
+     * {
+     *   "notrigger": 0
+     * }
+     *
+     * @url POST interventions/{id}/validate
+     *
+     * @param   int $id             Intervention ID
+     * @param   int $notrigger      1=Does not execute triggers, 0= execute triggers
+     * @return  array
+     *
+     * @throws  304     RestException   Nothing done
+     * @throws  401     RestException   Insufficient rights
+     * @throws  500     RestException   Error while validating intervention
+     */
+    function validateIntervention($id, $notrigger=0)
+    {
+        if(! DolibarrApiAccess::$user->rights->ficheinter->creer) {
+            throw new RestException(401, "Insufficient rights");
+        }
+        $result = $this->fichinter->fetch($id);
+        if( ! $result ) {
+            return [];
+        }
+
+        if( ! DolibarrApi::_checkAccessToResource('fichinter',$this->fichinter->id)) {
+            throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
+        }
+
+        $result = $this->fichinter->setValid(DolibarrApiAccess::$user, $notrigger);
+        if ($result == 0) {
+            throw new RestException(304, 'Error nothing done. May be object is already validated');
+        }
+        if ($result < 0) {
+            throw new RestException(500, 'Error when validating Intervention: '.$this->commande->error);
+        }
+
+        $this->fichinter->fetchObjectLinked();
+
+        return $this->_cleanInterventionObjectDatas($this->fichinter);
+    }
+
+    /**
+     * Close an intervention
+     *
+     * @url POST interventions/{id}/close
+     *
+     * @param   int 	$id             Intervention ID
+     * @return  array
+     *
+     * @throws  304     RestException   Nothing done
+     * @throws  401     RestException   Insufficient rights
+     * @throws  500     RestException   Error while closing intervention
+     */
+    function closeIntervention($id)
+    {
+        if(! DolibarrApiAccess::$user->rights->ficheinter->creer)
+        {
+            throw new RestException(401, "Insufficient rights");
+        }
+        $result = $this->fichinter->fetch($id);
+        if (! $result) {
+            return [];
+        }
+
+        if (! DolibarrApi::_checkAccessToResource('fichinter',$this->fichinter->id)) {
+            throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
+        }
+
+        $result = $this->fichinter->setStatut(3);
+
+        if ($result == 0) {
+            throw new RestException(304, 'Error nothing done. May be object is already closed');
+        }
+        if ($result < 0) {
+            throw new RestException(500, 'Error when closing Intervention: '.$this->fichinter->error);
+        }
+
+        $this->fichinter->fetchObjectLinked();
+
+        return $this->_cleanInterventionObjectDatas($this->fichinter);
+    }
+
+    /**
+     * Validate fields before create or update object
+     *
+     * @param   array $data   Data to validate
+     * @return  array
+     *
+     * @throws  400     RestException       Field missing
+     */
+    function _validateIntervention($data)
+    {
+        $fichinter = array();
+
+        foreach (self::$FIELDS_INTERVENTION as $field) {
+            if (!isset($data[$field]))
+                throw new RestException(400, "$field field missing");
+            $fichinter[$field] = $data[$field];
+        }
+
+        return $fichinter;
+    }
+
+    /**
+     * Clean sensible object datas
+     *
+     * @param   object  $object    Object to clean
+     * @return  array   Array of cleaned object properties
+     */
+    function _cleanInterventionObjectDatas($object)
+    {
+        $object = parent::_cleanObjectDatas($object);
+
+        unset($object->statuts_short);
+        unset($object->statuts_logo);
+        unset($object->statuts);
+
+        return $object;
+    }
+
+    /**
+     * Validate fields before create or update object
+     *
+     * @param   array $data   Data to validate
+     * @return  array
+     *
+     * @throws  400     RestException       Field missing
+     */
+    function _validateLineIntervention($data)
+    {
+        $fichinter = array();
+
+        foreach (self::$FIELDSLINE_INTERVENTION as $field) {
+            if (!isset($data[$field]))
+                throw new RestException(400, "$field field missing");
+            $fichinter[$field] = $data[$field];
+        }
+
+        return $fichinter;
     }
 }
