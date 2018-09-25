@@ -2706,7 +2706,7 @@ class RequestManager extends CommonObject
             $label .= '<br><b>' . $langs->trans('RequestManagerRequestType') . ':</b> ' . $this->getLibType();
             $label .= '<br><b>' . $langs->trans('RequestManagerThirdParty') . ':</b> ' . $this->thirdparty->getFullName($langs);
             $label .= '<br><b>' . $langs->trans('RequestManagerLabel') . ':</b> ' . $this->label;
-            if ($option == '') {
+            if ($option != 'nolink') {
                 $url = dol_buildpath('/requestmanager/card.php', 2) . '?id=' . $this->id;
             }
 

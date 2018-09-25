@@ -81,7 +81,7 @@ if ($id > 0 || !empty($ref)) {
         $ret = $object->fetch_optionals();
         //$mysoc = $object->socid;
     } elseif ($ret < 0) {
-        dol_print_error('', $object->error);
+        dol_print_error('', $object->errorsToString());
     } else {
         print $langs->trans('NoRecordFound');
         exit();
