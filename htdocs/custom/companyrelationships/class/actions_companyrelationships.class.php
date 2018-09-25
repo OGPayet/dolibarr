@@ -125,12 +125,14 @@ class ActionsCompanyRelationships
 
                 $out = '';
 
-                if ($object->element == 'fichinter') {
+                $socid = GETPOST('socid', 'int');
+
+                if (intval($socid) > 0) {
                     $out .= '<script type="text/javascript" language="javascript">';
                     $out .= 'jQuery(document).ready(function(){';
                     $out .= '   var data = {';
                     $out .= '       action: "getBenefactor",';
-                    $out .= '       id: jQuery("input[name=socid]").val(),';
+                    $out .= '       id: "' . $socid . '",';
                     $out .= '       htmlname: "options_companyrelationships_fk_soc_benefactor"';
                     $out .= '   };';
                     $out .= '   var input = jQuery("select#options_companyrelationships_fk_soc_benefactor");';
@@ -149,7 +151,7 @@ class ActionsCompanyRelationships
                         $out .= '   jQuery("#options_companyrelationships_fk_soc_benefactor").change(function(){';
                         $out .= '       jQuery.ajax({';
                         $out .= '           data: {';
-                        $out .= '           socid: jQuery("input[name=socid]").val(),';
+                        $out .= '           socid: "' . $socid . '",';
                         $out .= '           socid_benefactor: jQuery("#options_companyrelationships_fk_soc_benefactor").val(),';
                         $out .= '           element: "' . $object->element . '"';
                         $out .= '           },';
