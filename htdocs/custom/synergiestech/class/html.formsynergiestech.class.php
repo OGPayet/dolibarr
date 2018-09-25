@@ -393,11 +393,22 @@ class FormSynergiesTech
         if (count($warehouseStatusArray) || (is_array($include_into_contract_categories) && count($include_into_contract_categories) > 0) || ($show_mode == 1 && is_array($include_into_equipment_categories) && count($include_into_equipment_categories) > 0)) {
             $sql .= ' GROUP BY' . $selectFields;
         }
-        if ($show_mode == 1) {
-            $sql .= $db->order('is_into_contract_categories, is_into_equipment_categories, p.ref', 'DESC, DESC, ASC');
-        } else {
-            $sql .= $db->order("p.ref");
+        // Sort
+        $sortfield=array();
+        $sortorder=array();
+        // Include in the contract categories
+        if (is_array($include_into_contract_categories) && count($include_into_contract_categories) > 0) {
+            $sortfield[] = "is_into_contract_categories";
+            $sortorder[] = "DESC";
         }
+        // Include in the equipment categories
+        if ($show_mode == 1 && is_array($include_into_equipment_categories) && count($include_into_equipment_categories) > 0) {
+            $sortfield[] = "is_into_equipment_categories";
+            $sortorder[] = "DESC";
+        }
+        $sortfield[] = "p.ref";
+        $sortorder[] = "ASC";
+        $sql .= $db->order(implode(',', $sortfield), implode(',', $sortorder));
         $sql .= $db->plimit($limit);
 
         // Build output string

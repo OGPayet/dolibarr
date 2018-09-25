@@ -404,7 +404,7 @@ if (empty($reshook)) {
         // calculate deadline date with operation date or now and the offset deadline time in minutes
         if (GETPOST('recalculate_date_deadline', 'int') == 1) {
             dol_include_once('/advancedictionaries/class/dictionary.class.php');
-            $requestManagerStatusDictionaryLine = Dictionary::getDictionaryLine($this->db, 'requestmanager', 'requestmanagerstatus');
+            $requestManagerStatusDictionaryLine = Dictionary::getDictionaryLine($db, 'requestmanager', 'requestmanagerstatus');
             $res = $requestManagerStatusDictionaryLine->fetch($object->statut);
             if ($res > 0) {
                 $deadline_offset = $requestManagerStatusDictionaryLine->fields['deadline'];

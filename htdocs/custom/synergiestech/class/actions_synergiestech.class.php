@@ -1262,14 +1262,14 @@ SCRIPT;
     {
         global $conf, $langs;
 
-        /*$contexts = explode(':', $parameters['context']);
+        $contexts = explode(':', $parameters['context']);
 
         if (in_array('requestmanagerdao', $contexts)) {
             $fkSocPrincipal = $parameters['socid_principal'] > 0 ? $parameters['socid_principal'] : 0;
             $fkSocBenefactor = $parameters['socid_benefactor'] > 0 ? $parameters['socid_benefactor'] : 0;
 
             // Get contracts of the principal company
-            require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
+            /*require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
             $contract = new Contrat($this->db);
             $contract->socid = $fkSocPrincipal;
             $thirdPartyContractList = $contract->getListOfContracts();
@@ -1303,20 +1303,20 @@ SCRIPT;
                 ) {
                     $product_categories[$cat['id']] = $cat['id'];
                 }
-            }
+            }*/
 
             $sql = "SELECT e.rowid , e.ref";
             $sql .= " FROM " . MAIN_DB_PREFIX . "equipement as e";
             $sql .= " LEFT JOIN  " . MAIN_DB_PREFIX . "equipement_extrafields as eef ON eef.fk_object = e.rowid";
-            $sql .= " LEFT JOIN  " . MAIN_DB_PREFIX . "categorie_product as cp ON cp.fk_product = e.fk_product";
+            //$sql .= " LEFT JOIN  " . MAIN_DB_PREFIX . "categorie_product as cp ON cp.fk_product = e.fk_product";
             $sql .= " WHERE e.entity IN (" . getEntity('equipement') . ")";
-            $sql .= ' AND cp.fk_categorie IN (' . (count($product_categories) > 0 ? implode(',', $product_categories) : '0') . ')';
-            $sql .= " AND (e.fk_soc_fourn = " . $fkSocBenefactor . " OR e.fk_soc_client = " . $fkSocBenefactor . ")";
+            //$sql .= ' AND cp.fk_categorie IN (' . (count($product_categories) > 0 ? implode(',', $product_categories) : '0') . ')';
+            $sql .= " AND e.fk_soc_client = " . $fkSocBenefactor;
             $sql .= " AND eef.machineclient = 1";
 
             $this->resprints = $sql;
             return 1;
-        }*/
+        }
 
         return 0;
     }
