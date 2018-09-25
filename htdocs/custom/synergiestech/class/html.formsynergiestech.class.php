@@ -347,6 +347,7 @@ class FormSynergiesTech
             $sql .= "   SELECT fk_product, COUNT(*) as count";
             $sql .= "   FROM " . MAIN_DB_PREFIX . "categorie_product";
             $sql .= "   WHERE fk_categorie IN (" . implode(',', $include_into_contract_categories) . ")";
+            $sql .= "   GROUP BY fk_product";
             $sql .= " ) AS itcc ON itcc.fk_product = p.rowid";
         }
 
@@ -356,6 +357,7 @@ class FormSynergiesTech
             $sql .= "   SELECT fk_product, COUNT(*) as count";
             $sql .= "   FROM " . MAIN_DB_PREFIX . "categorie_product";
             $sql .= "   WHERE fk_categorie IN (" . implode(',', $include_into_tag_categories) . ")";
+            $sql .= "   GROUP BY fk_product";
             $sql .= " ) AS ittc ON ittc.fk_product = p.rowid";
         }
 
