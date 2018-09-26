@@ -322,7 +322,7 @@ class CompanyRelationships
     {
         global $conf;
 
-        dol_syslog(__METHOD__ . " socid=" . $socid . "socid_benefactor=" . $socid_benefactor . "element=" . $element, LOG_DEBUG);
+        dol_syslog(__METHOD__ . " socid=" . $socid . " socid_benefactor=" . $socid_benefactor . " element=" . $element, LOG_DEBUG);
 
         $sql  = "SELECT";
         $sql .= " crpsa.rowid, crpsa.element, crpsa.label, crpsa.principal_availability, crpsa.benefactor_availability";
@@ -379,7 +379,7 @@ class CompanyRelationships
      */
     public function getPublicSpaceAvailability($socid, $socid_benefactor, $element)
     {
-        dol_syslog(__METHOD__ . " socid=" . $socid . "socid_benefactor=" . $socid_benefactor . "element=" . $element, LOG_DEBUG);
+        dol_syslog(__METHOD__ . " socid=" . $socid . " socid_benefactor=" . $socid_benefactor . " element=" . $element, LOG_DEBUG);
 
         $publicSpaceAvailabilityList = $this->getAllPublicSpaceAvailability($socid, $socid_benefactor, $element);
 

@@ -34,7 +34,8 @@ class CompanyRelationshipsApi extends DolibarrApi {
      * @var array   $FIELDS_PROPOSAL     Mandatory fields, checked when create and update object
      */
     static $FIELDS_PROPOSAL = array(
-        'socid'
+        'socid',
+        'array_options' => array('options_companyrelationships_fk_soc_benefactor')
     );
 
     /**
@@ -42,7 +43,8 @@ class CompanyRelationshipsApi extends DolibarrApi {
      * @var array   $FIELDS_ORDER     Mandatory fields, checked when create and update object
      */
     static $FIELDS_ORDER = array(
-        'socid'
+        'socid',
+        'array_options' => array('options_companyrelationships_fk_soc_benefactor')
     );
 
     /**
@@ -50,7 +52,8 @@ class CompanyRelationshipsApi extends DolibarrApi {
      * @var array   $FIELDS_INVOICE     Mandatory fields, checked when create and update object
      */
     static $FIELDS_INVOICE = array(
-        'socid'
+        'socid',
+        'array_options' => array('options_companyrelationships_fk_soc_benefactor')
     );
 
     /**
@@ -60,7 +63,8 @@ class CompanyRelationshipsApi extends DolibarrApi {
     static $FIELDS_INTERVENTION = array(
         'socid',
         'fk_project',
-        'description'
+        'description',
+        'array_options' => array('options_companyrelationships_fk_soc_benefactor')
     );
 
     /**
@@ -93,6 +97,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
      */
     public $fichinter;
 
+
     /**
      * Constructor
      */
@@ -112,6 +117,53 @@ class CompanyRelationshipsApi extends DolibarrApi {
 
         // interventions
         $this->fichinter = new Fichinter($this->db);
+    }
+
+
+    //
+    // Common
+    //
+
+    /**
+     * Check perms for user with public space availability
+     *
+     * @param   Object      $object         Object (propal, commande, invoice, ficheinter)
+     * @return  bool        FALSE to deny user access, TRUE to authorize
+     * @throws  Exception
+     */
+    private function _checkUserPublicSpaceAvailabilityPermOnObject($object)
+    {
+        // get user thirdparty (for external user only)
+        $userSocId = DolibarrApiAccess::$user->societe_id;
+
+        // external user
+        if ($userSocId > 0) {
+            $hasPerm = FALSE;
+
+            // company principal
+            $object->fetch_thirdparty();
+            $companyPrincipalId = $object->thirdparty->id;
+            $companyPrincipalAvailability = intval($object->array_options['options_companyrelationships_availability_principal']);
+
+            // company benefactor
+            $companyBenefactorId = $object->array_options['options_companyrelationships_fk_soc_benefactor'];
+            $companyBenefacorAvailability = intval($object->array_options['options_companyrelationships_availability_benefactor']);
+
+            // user company is principal
+            if ($userSocId==$companyPrincipalId && $companyPrincipalAvailability==1) {
+                $hasPerm = TRUE;
+            }
+            // user company is benefactor
+            else if ($userSocId==$companyBenefactorId && $companyBenefacorAvailability==1) {
+                $hasPerm = TRUE;
+            }
+        }
+        // internal user
+        else {
+            $hasPerm = TRUE;
+        }
+
+        return $hasPerm;
     }
 
 
@@ -144,6 +196,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
 
         if( ! DolibarrApi::_checkAccessToResource('propal',$this->propal->id)) {
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
+        }
+
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->propal);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
         }
 
         $this->propal->fetchObjectLinked();
@@ -240,7 +297,10 @@ class CompanyRelationshipsApi extends DolibarrApi {
                 $obj = $db->fetch_object($result);
                 $proposal_static = new Propal($db);
                 if($proposal_static->fetch($obj->rowid)) {
-                    $obj_ret[] = $this->_cleanProposalObjectDatas($proposal_static);
+                    $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($proposal_static);
+                    if ($hasPerm) {
+                        $obj_ret[] = $this->_cleanProposalObjectDatas($proposal_static);
+                    }
                 }
                 $i++;
             }
@@ -283,6 +343,12 @@ class CompanyRelationshipsApi extends DolibarrApi {
           }
           $this->propal->lines = $lines;
         }*/
+
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->propal);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
+        }
+
         if ($this->propal->create(DolibarrApiAccess::$user) < 0) {
             throw new RestException(500, "Error creating propal", array_merge(array($this->propal->error), $this->propal->errors));
         }
@@ -314,6 +380,12 @@ class CompanyRelationshipsApi extends DolibarrApi {
         if( ! DolibarrApi::_checkAccessToResource('propal',$this->propal->id)) {
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
         }
+
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->propal);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
+        }
+
         $this->propal->getLinesArray();
         $result = array();
         foreach ($this->propal->lines as $line) {
@@ -348,6 +420,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
         if (! DolibarrApi::_checkAccessToResource('propal',$this->propal->id))
         {
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
+        }
+
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->propal);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
         }
 
         $request_data = (object) $request_data;
@@ -414,6 +491,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
 
         if( ! DolibarrApi::_checkAccessToResource('propal',$this->propal->id)) {
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
+        }
+
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->propal);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
         }
 
         $request_data = (object) $request_data;
@@ -484,6 +566,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
         }
 
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->propal);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
+        }
+
         // TODO Check the lineid $lineid is a line of ojbect
 
         $updateRes = $this->propal->deleteline($lineid);
@@ -522,6 +609,12 @@ class CompanyRelationshipsApi extends DolibarrApi {
         if( ! DolibarrApi::_checkAccessToResource('propal',$this->propal->id)) {
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
         }
+
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->propal);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
+        }
+
         foreach($request_data as $field => $value) {
             if ($field == 'id') continue;
             $this->propal->$field = $value;
@@ -575,6 +668,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
         }
 
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->propal);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
+        }
+
         if( ! $this->propal->delete(DolibarrApiAccess::$user)) {
             throw new RestException(500, 'Error when delete Commercial Proposal : '.$this->propal->error);
         }
@@ -612,6 +710,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
 
         if( ! DolibarrApi::_checkAccessToResource('propal',$this->propal->id)) {
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
+        }
+
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->propal);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
         }
 
         $result = $this->propal->set_draft(DolibarrApiAccess::$user);
@@ -668,6 +771,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
         }
 
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->propal);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
+        }
+
         $result = $this->propal->valid(DolibarrApiAccess::$user, $notrigger);
         if ($result == 0) {
             throw new RestException(304, 'Error nothing done. May be object is already validated');
@@ -719,6 +827,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
         }
 
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->propal);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
+        }
+
         $result = $this->propal->cloture(DolibarrApiAccess::$user, $status, $note_private, $notrigger);
         if ($result == 0) {
             throw new RestException(304, 'Error nothing done. May be object is already closed');
@@ -766,6 +879,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
         }
 
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->propal);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
+        }
+
         $result = $this->propal->classifyBilled(DolibarrApiAccess::$user );
         if ($result < 0) {
             throw new RestException(500, 'Error : '.$this->propal->error);
@@ -802,6 +920,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
         unset($object->civility_id);
         unset($object->address);
 
+        if (! DolibarrApiAccess::$user->rights->companyrelationships->update_md->element) {
+            unset($object->array_options['options_companyrelationships_availability_principal']);
+            unset($object->array_options['options_companyrelationships_availability_benefactor']);
+        }
+
         return $object;
     }
 
@@ -817,11 +940,19 @@ class CompanyRelationshipsApi extends DolibarrApi {
     {
         $propal = array();
 
-        foreach (self::$FIELDS_PROPOSAL as $field) {
-            if (!isset($data[$field]))
-                throw new RestException(400, "$field field missing");
-            $propal[$field] = $data[$field];
-
+        foreach (self::$FIELDS_PROPOSAL as $key => $field) {
+            if (is_array($field)) {
+                foreach($field as $fieldValue) {
+                    if (!isset($data[$key][$fieldValue])) {
+                        throw new RestException(400, "$fieldValue field missing");
+                    }
+                }
+                $propal[$key] = $data[$key];
+            } else {
+                if (!isset($data[$field]))
+                    throw new RestException(400, "$field field missing");
+                $propal[$field] = $data[$field];
+            }
         }
 
         return $propal;
@@ -857,6 +988,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
 
         if( ! DolibarrApi::_checkAccessToResource('commande',$this->commande->id)) {
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
+        }
+
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->commande);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
         }
 
         $this->commande->fetchObjectLinked();
@@ -953,7 +1089,10 @@ class CompanyRelationshipsApi extends DolibarrApi {
                 $obj = $db->fetch_object($result);
                 $commande_static = new Commande($db);
                 if($commande_static->fetch($obj->rowid)) {
-                    $obj_ret[] = $this->_cleanOrderObjectDatas($commande_static);
+                    $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($commande_static);
+                    if ($hasPerm) {
+                        $obj_ret[] = $this->_cleanOrderObjectDatas($commande_static);
+                    }
                 }
                 $i++;
             }
@@ -997,6 +1136,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
           $this->commande->lines = $lines;
         }*/
 
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->commande);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
+        }
+
         if ($this->commande->create(DolibarrApiAccess::$user) < 0) {
             throw new RestException(500, "Error creating order", array_merge(array($this->commande->error), $this->commande->errors));
         }
@@ -1028,6 +1172,12 @@ class CompanyRelationshipsApi extends DolibarrApi {
         if( ! DolibarrApi::_checkAccessToResource('commande',$this->commande->id)) {
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
         }
+
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->commande);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
+        }
+
         $this->commande->getLinesArray();
         $result = array();
         foreach ($this->commande->lines as $line) {
@@ -1062,6 +1212,12 @@ class CompanyRelationshipsApi extends DolibarrApi {
         if( ! DolibarrApi::_checkAccessToResource('commande',$this->commande->id)) {
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
         }
+
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->commande);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
+        }
+
         $request_data = (object) $request_data;
         $updateRes = $this->commande->addline(
             $request_data->desc,
@@ -1127,6 +1283,12 @@ class CompanyRelationshipsApi extends DolibarrApi {
         if( ! DolibarrApi::_checkAccessToResource('commande',$this->commande->id)) {
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
         }
+
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->commande);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
+        }
+
         $request_data = (object) $request_data;
         $updateRes = $this->commande->updateline(
             $lineid,
@@ -1188,6 +1350,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
         }
 
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->commande);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
+        }
+
         // TODO Check the lineid $lineid is a line of ojbect
 
         $updateRes = $this->commande->deleteline(DolibarrApiAccess::$user,$lineid);
@@ -1227,6 +1394,12 @@ class CompanyRelationshipsApi extends DolibarrApi {
         if (! DolibarrApi::_checkAccessToResource('commande',$this->commande->id)) {
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
         }
+
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->commande);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
+        }
+
         foreach($request_data as $field => $value) {
             if ($field == 'id') continue;
             $this->commande->$field = $value;
@@ -1273,6 +1446,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
         }
 
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->commande);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
+        }
+
         if( ! $this->commande->delete(DolibarrApiAccess::$user)) {
             throw new RestException(500, 'Error when delete order : '.$this->commande->error);
         }
@@ -1317,6 +1495,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
 
         if( ! DolibarrApi::_checkAccessToResource('commande',$this->commande->id)) {
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
+        }
+
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->commande);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
         }
 
         $result = $this->commande->valid(DolibarrApiAccess::$user, $idwarehouse, $notrigger);
@@ -1368,6 +1551,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
             return [];
         }
 
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->commande);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
+        }
+
         $result = $this->commande->set_reopen(DolibarrApiAccess::$user);
         if( $result < 0) {
             throw new RestException(405, $this->commande->error);
@@ -1400,6 +1588,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
         $result = $this->commande->fetch($id);
         if( ! $result ) {
             return [];
+        }
+
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->commande);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
         }
 
         $result = $this->commande->classifyBilled(DolibarrApiAccess::$user);
@@ -1446,6 +1639,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
 
         if( ! DolibarrApi::_checkAccessToResource('commande',$this->commande->id)) {
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
+        }
+
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->commande);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
         }
 
         $result = $this->commande->cloture(DolibarrApiAccess::$user, $notrigger);
@@ -1495,6 +1693,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
 
         if( ! DolibarrApi::_checkAccessToResource('commande',$this->commande->id)) {
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
+        }
+
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->commande);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
         }
 
         $result = $this->commande->set_draft(DolibarrApiAccess::$user, $idwarehouse);
@@ -1551,6 +1754,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
             return [];
         }
 
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($propal);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
+        }
+
         $result = $this->commande->createFromProposal($propal, DolibarrApiAccess::$user);
         if( $result < 0) {
             throw new RestException(405, $this->commande->error);
@@ -1577,6 +1785,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
         unset($object->barcode_type_label);
         unset($object->barcode_type_coder);
 
+        if (! DolibarrApiAccess::$user->rights->companyrelationships->update_md->element) {
+            unset($object->array_options['options_companyrelationships_availability_principal']);
+            unset($object->array_options['options_companyrelationships_availability_benefactor']);
+        }
+
         return $object;
     }
 
@@ -1592,11 +1805,19 @@ class CompanyRelationshipsApi extends DolibarrApi {
     {
         $commande = array();
 
-        foreach (self::$FIELDS as $field) {
-            if (!isset($data[$field]))
-                throw new RestException(400, "$field field missing");
-            $commande[$field] = $data[$field];
-
+        foreach (self::$FIELDS_ORDER as $key => $field) {
+            if (is_array($field)) {
+                foreach($field as $fieldValue) {
+                    if (!isset($data[$key][$fieldValue])) {
+                        throw new RestException(400, "$fieldValue field missing");
+                    }
+                }
+                $commande[$key] = $data[$key];
+            } else {
+                if (!isset($data[$field]))
+                    throw new RestException(400, "$field field missing");
+                $commande[$field] = $data[$field];
+            }
         }
 
         return $commande;
@@ -1632,6 +1853,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
 
         if( ! DolibarrApi::_checkAccessToResource('facture',$this->invoice->id)) {
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
+        }
+
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->invoice);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
         }
 
         $this->invoice->fetchObjectLinked();
@@ -1741,7 +1967,10 @@ class CompanyRelationshipsApi extends DolibarrApi {
                 $obj = $db->fetch_object($result);
                 $invoice_static = new Facture($db);
                 if($invoice_static->fetch($obj->rowid)) {
-                    $obj_ret[] = $this->_cleanInvoiceObjectDatas($invoice_static);
+                    $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($invoice_static);
+                    if ($hasPerm) {
+                        $obj_ret[] = $this->_cleanInvoiceObjectDatas($invoice_static);
+                    }
                 }
                 $i++;
             }
@@ -1789,6 +2018,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
             $this->invoice->lines = $lines;
         }*/
 
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->invoice);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
+        }
+
         if ($this->invoice->create(DolibarrApiAccess::$user) < 0) {
             throw new RestException(500, "Error creating invoice", array_merge(array($this->invoice->error), $this->invoice->errors));
         }
@@ -1819,6 +2053,12 @@ class CompanyRelationshipsApi extends DolibarrApi {
         if( ! DolibarrApi::_checkAccessToResource('facture',$this->invoice->id)) {
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
         }
+
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->invoice);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
+        }
+
         $this->invoice->getLinesArray();
         $result = array();
         foreach ($this->invoice->lines as $line) {
@@ -1853,6 +2093,12 @@ class CompanyRelationshipsApi extends DolibarrApi {
         if( ! DolibarrApi::_checkAccessToResource('facture',$this->invoice->id)) {
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
         }
+
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->invoice);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
+        }
+
         $request_data = (object) $request_data;
         $updateRes = $this->invoice->addline(
             $request_data->desc,
@@ -1919,6 +2165,12 @@ class CompanyRelationshipsApi extends DolibarrApi {
         if( ! DolibarrApi::_checkAccessToResource('facture',$this->invoice->id)) {
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
         }
+
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->invoice);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
+        }
+
         $request_data = (object) $request_data;
         $updateRes = $this->invoice->updateline(
             $lineid,
@@ -1980,6 +2232,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
         }
 
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->invoice);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
+        }
+
         $updateRes = $this->invoice->deleteline($lineid);
         if ($updateRes > 0) {
             return $this->getInvoice($id);
@@ -2011,6 +2268,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
 
         if( ! DolibarrApi::_checkAccessToResource('facture',$this->invoice->id)) {
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
+        }
+
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->invoice);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
         }
 
         foreach($request_data as $field => $value) {
@@ -2047,6 +2309,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
 
         if( ! DolibarrApi::_checkAccessToResource('facture',$this->invoice->id)) {
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
+        }
+
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->invoice);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
         }
 
         if( $this->invoice->delete($id) < 0)
@@ -2096,6 +2363,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
         }
 
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->invoice);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
+        }
+
         $result = $this->invoice->validate(DolibarrApiAccess::$user, '', $idwarehouse, $notrigger);
         if ($result == 0) {
             throw new RestException(500, 'Error nothing done. May be object is already validated');
@@ -2124,6 +2396,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
 
         unset($object->address);
 
+        if (! DolibarrApiAccess::$user->rights->companyrelationships->update_md->element) {
+            unset($object->array_options['options_companyrelationships_availability_principal']);
+            unset($object->array_options['options_companyrelationships_availability_benefactor']);
+        }
+
         return $object;
     }
 
@@ -2139,10 +2416,19 @@ class CompanyRelationshipsApi extends DolibarrApi {
     {
         $invoice = array();
 
-        foreach (self::$FIELDS_INVOICE as $field) {
-            if (!isset($data[$field]))
-                throw new RestException(400, "$field field missing");
-            $invoice[$field] = $data[$field];
+        foreach (self::$FIELDS_INVOICE as $key => $field) {
+            if (is_array($field)) {
+                foreach($field as $fieldValue) {
+                    if (!isset($data[$key][$fieldValue])) {
+                        throw new RestException(400, "$fieldValue field missing");
+                    }
+                }
+                $invoice[$key] = $data[$key];
+            } else {
+                if (!isset($data[$field]))
+                    throw new RestException(400, "$field field missing");
+                $invoice[$field] = $data[$field];
+            }
         }
 
         return $invoice;
@@ -2178,6 +2464,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
 
         if( ! DolibarrApi::_checkAccessToResource('fichinter',$this->fichinter->id)) {
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
+        }
+
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->fichinter);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
         }
 
         $this->fichinter->fetchObjectLinked();
@@ -2274,7 +2565,10 @@ class CompanyRelationshipsApi extends DolibarrApi {
                 $obj = $db->fetch_object($result);
                 $fichinter_static = new Fichinter($db);
                 if($fichinter_static->fetch($obj->rowid)) {
-                    $obj_ret[] = $this->_cleanInterventionObjectDatas($fichinter_static);
+                    $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($fichinter_static);
+                    if ($hasPerm) {
+                        $obj_ret[] = $this->_cleanInterventionObjectDatas($fichinter_static);
+                    }
                 }
                 $i++;
             }
@@ -2310,6 +2604,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
             $this->fichinter->$field = $value;
         }
 
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->fichinter);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
+        }
+
         if ($this->fichinter->create(DolibarrApiAccess::$user) < 0) {
             throw new RestException(500, "Error creating fichinter", array_merge(array($this->fichinter->error), $this->fichinter->errors));
         }
@@ -2341,6 +2640,12 @@ class CompanyRelationshipsApi extends DolibarrApi {
         if( ! DolibarrApi::_checkAccessToResource('fichinter',$this->fichinter->id)) {
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
         }
+
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->fichinter);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
+        }
+
         $this->fichinter->getLinesArray();
         $result = array();
         foreach ($this->fichinter->lines as $line) {
@@ -2374,6 +2679,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
 
         if( ! DolibarrApi::_checkAccessToResource('fichinter',$this->fichinter->id)) {
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
+        }
+
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->fichinter);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
         }
 
         foreach($request_data as $field => $value) {
@@ -2418,14 +2728,17 @@ class CompanyRelationshipsApi extends DolibarrApi {
             $this->fichinter->$field = $value;
         }
 
-
-
         if( ! $result ) {
             return [];
         }
 
         if( ! DolibarrApi::_checkAccessToResource('fichinter',$this->fichinter->id)) {
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
+        }
+
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->fichinter);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
         }
 
         $updateRes = $this->fichinter->addLine(
@@ -2470,6 +2783,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
 
         if( ! DolibarrApi::_checkAccessToResource('fichinter',$this->fichinter->id)) {
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
+        }
+
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->fichinter);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
         }
 
         $request_data = (object) $request_data;
@@ -2524,6 +2842,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
         }
 
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->fichinter);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
+        }
+
         // TODO Check the lineid $lineid is a line of ojbect
 
         $updateRes = $this->ficheinter->deleteline($lineid);
@@ -2557,6 +2880,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
 
         if( ! DolibarrApi::_checkAccessToResource('commande',$this->fichinter->id)) {
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
+        }
+
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->fichinter);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
         }
 
         if( ! $this->fichinter->delete(DolibarrApiAccess::$user)) {
@@ -2604,6 +2932,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
         }
 
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->fichinter);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
+        }
+
         $result = $this->fichinter->setValid(DolibarrApiAccess::$user, $notrigger);
         if ($result == 0) {
             throw new RestException(304, 'Error nothing done. May be object is already validated');
@@ -2644,6 +2977,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
             throw new RestException(401, 'Access not allowed for login '.DolibarrApiAccess::$user->login);
         }
 
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->fichinter);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access public space availability not allowed for login ' . DolibarrApiAccess::$user->login);
+        }
+
         $result = $this->fichinter->setStatut(3);
 
         if ($result == 0) {
@@ -2670,10 +3008,19 @@ class CompanyRelationshipsApi extends DolibarrApi {
     {
         $fichinter = array();
 
-        foreach (self::$FIELDS_INTERVENTION as $field) {
-            if (!isset($data[$field]))
-                throw new RestException(400, "$field field missing");
-            $fichinter[$field] = $data[$field];
+        foreach (self::$FIELDS_INTERVENTION as $key => $field) {
+            if (is_array($field)) {
+                foreach($field as $fieldValue) {
+                    if (!isset($data[$key][$fieldValue])) {
+                        throw new RestException(400, "$fieldValue field missing");
+                    }
+                }
+                $fichinter[$key] = $data[$key];
+            } else {
+                if (!isset($data[$field]))
+                    throw new RestException(400, "$field field missing");
+                $fichinter[$field] = $data[$field];
+            }
         }
 
         return $fichinter;
@@ -2692,6 +3039,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
         unset($object->statuts_short);
         unset($object->statuts_logo);
         unset($object->statuts);
+
+        if (! DolibarrApiAccess::$user->rights->companyrelationships->update_md->element) {
+            unset($object->array_options['options_companyrelationships_availability_principal']);
+            unset($object->array_options['options_companyrelationships_availability_benefactor']);
+        }
 
         return $object;
     }
