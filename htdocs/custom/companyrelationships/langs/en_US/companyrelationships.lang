@@ -58,6 +58,7 @@ CompanyRelationshipsConfirmDeleteCompanyRelationships = Are you sure to delete t
 ############################################################
 CompanyRelationshipsID                                = ID of company relationship
 CompanyRelationshipsPublicSpaceAvailabilityID         = ID of line in public space availability dictionary
+CompanyRelationshipsPublicSpaceAvailability           = Public space availability
 CompanyRelationshipsPublicSpaceAvailabilityPrincipal  = Public space availability for the Contractor
 CompanyRelationshipsPublicSpaceAvailabilityBenefactor = Public space availability for the Benefactor
 

@@ -88,7 +88,7 @@ function companyrelationships_show_companyrelationships($conf, $langs, $db, $obj
     dol_include_once('/companyrelationships/class/companyrelationships.class.php');
     $companyrelationships = new CompanyRelationships($db);
 
-    $modename = ($mode ? 'benefactor' : 'principal');
+    $modename = $mode ? 'benefactor' : 'principal';
     $htmlname_main = $mode ? 'principal_socid' : 'benefactor_socid';
     $htmlname_choice = $mode ? 'benefactor_socid' : 'principal_socid';
     $label_choice = $langs->trans($mode ? 'CompanyRelationshipsBenefactorCompany' : 'CompanyRelationshipsPrincipalCompany');
@@ -233,6 +233,7 @@ function companyrelationships_show_companyrelationships($conf, $langs, $db, $obj
     print '<tr class="liste_titre">';
     print_liste_field_titre("Name", $_SERVER["PHP_SELF"], "s.nom", "", $param, ' width="30%"', $sortfield, $sortorder);
     print_liste_field_titre($langs->trans("Address") . ' / ' . $langs->trans("Phone") . ' / ' . $langs->trans("Email"), $_SERVER["PHP_SELF"], "", "", $param, '', $sortfield, $sortorder);
+    print_liste_field_titre('CompanyRelationshipsPublicSpaceAvailability');
     print_liste_field_titre("Status", $_SERVER["PHP_SELF"], "s.statut", "", $param, ' width="150px"', $sortfield, $sortorder);
     // Edit
     print_liste_field_titre('', '', '', '', '', ' width="50px" align="right"');
@@ -280,6 +281,9 @@ function companyrelationships_show_companyrelationships($conf, $langs, $db, $obj
         print '<input type="text" class="flat" name="' . $prefix . 'search_addressphone" size="20" value="' . dol_escape_htmltag($search_addressphone) . '">';
         print '</td>';
 
+        // Public space availability
+        print '<td class="liste_titre">&nbsp;</td>';
+
         // Status
         print '<td class="liste_titre maxwidthonsmartphone">';
         print $form->selectarray($prefix . 'search_status', array('-1' => '', '0' => $companystatic->LibStatut(0, 1), '1' => $companystatic->LibStatut(1, 1)), $search_status);
@@ -326,6 +330,23 @@ function companyrelationships_show_companyrelationships($conf, $langs, $db, $obj
             $companystatic->phone = $obj->phone;
             $companystatic->fax = $obj->fax;
 
+            // get public space availability for all elements
+            if ($mode) {
+                // benefactor
+                $publicSpaceAvailabilityList = $companyrelationships->getAllPublicSpaceAvailability($object->id, $companystatic->id);
+            } else {
+                // principal
+                $publicSpaceAvailabilityList = $companyrelationships->getAllPublicSpaceAvailability($companystatic->id, $object->id);
+            }
+            $htmlPublicSpaceAvailability = '';
+            if (is_array($publicSpaceAvailabilityList)) {
+                foreach($publicSpaceAvailabilityList as $publicSpaceAvailability) {
+                    if ($publicSpaceAvailability[$modename]==1) {
+                        $htmlPublicSpaceAvailability .= $publicSpaceAvailability['label'] . '<br />';
+                    }
+                }
+            }
+
             print "<tr>";
 
             // Name
@@ -336,6 +357,11 @@ function companyrelationships_show_companyrelationships($conf, $langs, $db, $obj
             // Address - Phone - Email
             print '<td>';
             print $companystatic->getBannerAddress('societe', $object);
+            print '</td>';
+
+            // Public space availability
+            print '<td>';
+            print $htmlPublicSpaceAvailability;
             print '</td>';
 
             // Status
