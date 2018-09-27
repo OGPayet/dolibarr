@@ -1,0 +1,110 @@
+diff a/htdocs/custom/advancedictionaries/class/dictionary.class.php b/htdocs/custom/advancedictionaries/class/dictionary.class.php	(rejected hunks)
+@@ -191,6 +191,11 @@ class Dictionary extends CommonObject
+      */
+     public $rowid_field = 'rowid';
+ 
++    /**
++     * @var bool    Is rowid auto increment (false: rowid = 'last rowid in the table' + 1)
++     */
++    public $is_rowid_auto_increment = true;
++
+     /**
+      * @var string  Name of the active field
+      */
+@@ -576,7 +581,7 @@ class Dictionary extends CommonObject
+         global $conf, $langs;
+ 
+         $version_variable_name = strtoupper('ADVANCEDICTIONARIES_DICTIONARY_'.$this->name.'_VERSION');
+-        $current_version = isset($conf->global->$version_variable_name) ? $conf->global->$version_variable_name : 0;
++        $current_version = isset($conf->global->$version_variable_name) ? $conf->global->$version_variable_name : $this->version;
+ 
+         // TODO prevoir les mise a jour avec les sous tables
+ 
+@@ -1635,10 +1640,11 @@ class Dictionary extends CommonObject
+    	 * Get value for each fields of the dictionary sent by a form
+    	 *
+    	 * @param  string   $keyprefix      Prefix string to add into name and id of field (can be used to avoid duplicate names)
+-   	 * @param  string   $keysuffix      Suffix string to add into name and id of field (can be used to avoid duplicate names)
++     * @param  string   $keysuffix      Suffix string to add into name and id of field (can be used to avoid duplicate names)
++     * @param  string   $mode           0: Add, 1: Edit
+    	 * @return array                    Values of each field
+    	 */
+-   	function getFieldsValueFromForm($keyprefix='', $keysuffix='')
++   	function getFieldsValueFromForm($keyprefix='', $keysuffix='', $mode=0)
+     {
+         $fields = array();
+ 
+@@ -1646,7 +1652,7 @@ class Dictionary extends CommonObject
+         foreach ($this->fields as $fieldName => $field) {
+             $fieldHtmlName = $keyprefix . $fieldName . $keysuffix;
+ 
+-            if (isset($_GET[$fieldHtmlName]) || isset($_POST[$fieldHtmlName])) {
++            if (($mode == 0 && empty($field['is_not_addable'])) || ($mode == 1 && empty($field['is_not_editable']))) {
+                 switch ($field['type']) {
+                     case 'varchar':
+                     case 'phone':
+@@ -1802,6 +1808,24 @@ class Dictionary extends CommonObject
+         return true;
+     }
+ 
++    /**
++     *  Get last row ID of the dictionary
++     *
++     * @return  int              Last row ID
++     */
++    function getNextRowID()
++    {
++        $last_rowid = 0;
++        $sql = 'SELECT MAX(' . $this->rowid_field . ') AS last_rowid FROM ' . MAIN_DB_PREFIX . $this->table_name;
++        $resql = $this->db->query($sql);
++        if ($resql) {
++            if ($obj = $this->db->fetch_object($resql)) {
++                $last_rowid = $obj->last_rowid;
++            }
++        }
++
++        return $last_rowid + 1;
++    }
+     /**
+      * Function from wordpress v4.9.6
+      *
+@@ -2590,9 +2614,13 @@ class DictionaryLine extends CommonObjectLine
+                     $insert_statement[] = $formattedValue;
+                 }
+             }
+-            $sql = 'INSERT INTO ' . MAIN_DB_PREFIX . $this->dictionary->table_name . ' (' . implode(', ', $insert_field) .
++            $sql = 'INSERT INTO ' . MAIN_DB_PREFIX . $this->dictionary->table_name . ' (' .
++                (!$this->dictionary->is_rowid_auto_increment ? $this->dictionary->rowid_field . ', ' : '') .
++                implode(', ', $insert_field) .
+                 ', ' . $this->dictionary->active_field . ($this->dictionary->has_entity ? ', ' . $this->dictionary->entity_field : '') .
+-                ') VALUES (' . implode(', ', $insert_statement) . ', 1' . ($this->dictionary->has_entity ? ', ' . $conf->entity : '') . ')';
++                ') VALUES (' .
++                (!$this->dictionary->is_rowid_auto_increment ? $this->dictionary->getNextRowID() . ', ' : '') .
++                implode(', ', $insert_statement) . ', 1' . ($this->dictionary->has_entity ? ', ' . $conf->entity : '') . ')';
+ 
+             dol_syslog(__METHOD__ . "::insert", LOG_DEBUG);
+             $resql = $this->db->query($sql);
+@@ -2618,6 +2646,7 @@ class DictionaryLine extends CommonObjectLine
+                             } else {
+                                 // Insert association line for the multi-select list
+                                 $insert_values = array();
++                                $value_arr = array();
+                                 if (is_array($value)) {
+                                     $value_arr = $value;
+                                 } elseif (!empty($value)) {
+@@ -2741,6 +2770,7 @@ class DictionaryLine extends CommonObjectLine
+                             } elseif(!empty($value)) {
+                                 // Insert association line for the multi-select list
+                                 $insert_values = array();
++                                $value_arr = array();
+                                 if (is_array($value)) {
+                                     $value_arr = $value;
+                                 } elseif (!empty($value)) {
+@@ -3819,7 +3849,6 @@ class DictionaryLine extends CommonObjectLine
+                             if (!is_object($form)) $form = new Form($this->db);
+ 
+                             $out = $form->multiselectarray($fieldHtmlName, $data, $value_arr, '', 0, '', 0, '100%');
+-
+                         } else {
+                             $out = 'Error in request ' . $sql . ' ' . $this->db->lasterror() . '. Check setup of field parameters.';
+                         }
