@@ -321,8 +321,6 @@ class modCompanyRelationships extends DolibarrModules
 
 		$sql = array();
 
-        $this->_load_tables('/companyrelationships/sql/');
-
         // Create tables of all dictionaries
         dol_include_once('/advancedictionaries/class/dictionary.class.php');
         $dictionaries = Dictionary::fetchAllDictionaries($this->db, 'companyrelationships');
@@ -331,6 +329,8 @@ class modCompanyRelationships extends DolibarrModules
                 setEventMessage('Error create dictionary table: ' . $dictionary->errorsToString(), 'errors');
             }
         }
+
+        $this->_load_tables('/companyrelationships/sql/');
 
         // create extrafields benefactor for each element type
         dol_include_once('/companyrelationships/class/companyrelationships.class.php');
