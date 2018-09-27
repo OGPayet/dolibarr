@@ -108,22 +108,31 @@ class ActionsRetourProduits // extends CommonObject
                             setEventMessages($lines[$line_id]['product'].': '.$langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("Warehouse")), null, 'errors');
                             $error++;
                         }
+                        $nbEquipments = 0;
                         if ($fk_product > 0) {
                             $productStatic->fetch($fk_product);
                             $productSerialize = $productStatic->array_options['options_synergiestech_to_serialize'];
 
-                            if ($productSerialize && count($equipments)>0 && empty($equipments[0])) {
-                                setEventMessages($lines[$line_id]['product'].': '.$langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("Equipement")), null, 'errors');
-                                $error++;
+                            // check nb equipments with qty selected
+                            if ($productSerialize) {
+                                if (count($equipments)>0 && !empty($equipments[0])) {
+                                    $nbEquipments = count($equipments);
+                                }
+
+                                if ($nbEquipments<=0) {
+                                    setEventMessages($lines[$line_id]['product'] . ': ' . $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("Equipement")), null, 'errors');
+                                    $error++;
+                                } else if ($nbEquipments<$qty) {
+                                    setEventMessages($lines[$line_id]['product'].': ' . $langs->trans("RetourProduitsErrorNotEnoughEquipmentSelected"), null, 'errors');
+                                    $error++;
+                                } else if ($nbEquipments > min($qty, $lines[$line_id]['qty_sent'])) {
+                                    setEventMessages($lines[$line_id]['product'].': ' . $langs->trans("RetourProduitsErrorTooManyEquipmentSelected"), null, 'errors');
+                                    $error++;
+                                }
                             }
                         }
 
-                        if (!empty($equipments)) {
-                            if (count($equipments) > min($qty, $lines[$line_id]['qty_sent'])) {
-                                setEventMessages($lines[$line_id]['product'].': '.$langs->trans("RetourProduitsErrorTooManyEquipmentSelected"), null, 'errors');
-                                $error++;
-                            }
-
+                        if ($nbEquipments > 0) {
                             foreach ($equipments as $equipment_id) {
                                 if ($equipment_id) {
                                     $line = new RetourProduitsLigne($db);

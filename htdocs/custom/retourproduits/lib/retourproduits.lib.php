@@ -150,6 +150,7 @@ function retourproduits_get_product_list($db, $order_id)
         $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "equipementevt AS ee ON ee.fk_expedition = ed.fk_expedition";
         $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "equipement AS e ON e.rowid = ee.fk_equipement";
         $sql .= " WHERE c.rowid = " . $order_id;
+        $sql .= " AND e.fk_product = cd.fk_product";
         $sql .= " AND e.fk_soc_client = c.fk_soc";
         $sql .= " AND e.fk_entrepot IS NULL";
         $resql = $db->query($sql);

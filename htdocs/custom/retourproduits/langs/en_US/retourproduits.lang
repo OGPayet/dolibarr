@@ -22,6 +22,7 @@ RetourProduitsDet=Détail Retour Produits
 RetourProduits=Retour Produits
 QtyOrdered=Qté Commandée
 
-RetourProduitsErrorNoProductSent            = Il n'y a pas de produits à retourner
-RetourProduitsErrorNoProductSelected        = Il n'y a pas de produits selectionnés
-RetourProduitsErrorTooManyEquipmentSelected = Il y a trop d'équipements selectionnés
+RetourProduitsErrorNoProductSent              = Il n'y a pas de produits à retourner
+RetourProduitsErrorNoProductSelected          = Il n'y a pas de produits selectionnés
+RetourProduitsErrorTooManyEquipmentSelected   = Il y a trop d'équipements selectionnés
+RetourProduitsErrorNotEnoughEquipmentSelected = Not enough equipments selected
