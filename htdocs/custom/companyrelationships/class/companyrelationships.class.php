@@ -56,9 +56,10 @@ class CompanyRelationships
 
     /**
      * Element list of public space availability
-     * @var array ('propal', 'commande', 'facture', 'order_supplier', 'invoice_supplier', 'ficheinter')
+     * @var array ('propal', 'commande', 'facture', 'expedition', 'ficheinter')
+     * expedition=shipping in class
      */
-    public static $psa_element_list = array('propal', 'commande', 'facture', 'fichinter');
+    public static $psa_element_list = array('propal', 'commande', 'facture', 'expedition', 'fichinter');
 
 
     /**

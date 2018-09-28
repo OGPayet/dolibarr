@@ -54,7 +54,7 @@ if (! empty($id) && ! empty($action) && ! empty($htmlname))
     $return=array();
     if (empty($showempty)) $showempty=0;
 
-    $companies = $form->select_thirdparty_list('', $htmlname, 'status=1', 1, 0, 0, null, '', 1);
+    $companies = $form->select_thirdparty_list('', $htmlname, '(s.client = 1 OR s.client = 2 OR s.client = 3) AND status=1', 1, 0, 0, null, '', 1);
 
     dol_include_once('/companyrelationships/class/companyrelationships.class.php');
     $companyrelationships = new CompanyRelationships($db);
