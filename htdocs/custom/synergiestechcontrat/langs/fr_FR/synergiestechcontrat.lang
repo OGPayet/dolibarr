@@ -85,3 +85,152 @@ TerminateTargetEmpty=Veuillez ajouter une date souhaitée de résiliation pour r
 TerminateRealEmpty=Veuillez ajouter une date effective de résiliation pour résilier ce contrat
 Renouvellement=Contrat %s renouvellé
 Reconduction=Contrat %s reconduit
+
+########################################################################################################
+# Invoices Contracts List
+########################################################################################################
+STCInvoicesDraft                                = Factures brouillons
+STCTotalInvoicesHT                              = Total factures HT
+STCTotalInvoicesVAT                             = Total factures TVA
+STCTotalInvoicesTTC                             = Total factures TTC
+STCBillingContracts                             = Facturation des contracts (v2)
+STCGenerateInvoicesContracts                    = Génération des factures
+STCValidateInvoicesContracts                    = Validation des factures
+STCListOfContractsToBill                        = Liste des contracts à facturer
+STCGenerateInvoicesContractBeginWatchingDate    = Date de début de la période à facturer
+STCGenerateInvoicesContractEndWatchingDate      = Date de fin de la période à facturer
+STCGenerateInvoicesContractUseCustomerDiscounts = Utiliser les réductions du client
+STCGenerateInvoicesContractTestMode             = <b>Mode Test</b> (seul les fichiers CSV seront générés)
+STCGenerateInvoicesContractDisableRevaluation   = Désactiver la revalorisation en <b>Mode Test</b>
+STCGenerateInvoicesContract                     = Facturation des contracts
+STCConfirmGenerateInvoicesContract              = Êtes-vous sûr de vouloir lancer la facturation de ces contracts ?
+STCInvoicesContractValidated                    = %s facture(s) ont été validées
+STCNoInvoicesContractValidated                  = Aucune facture n'a été validée
+STCInvoicesContractGenerated                    = %s contrat(s) ont été facturés
+STCNoInvoicesContractGenerated                  = Aucune contrat n'a été facturé
+
+########################################################################################################
+# Invoices Contracts Tools Class
+########################################################################################################
+STCTerminationDate                              = Date effective de résiliation
+STCContractAmount                               = Montant du contrat
+STCContractBillingType                          = Type de facturation
+STCContractEffectiveDate                        = Date d'effet
+STCContractFrequencyBilling                     = Périodicité de la facturation
+STCContractMonthForNewRevaluationIndex          = Revalorisation à l’aide de l’indice de
+STCContractRevaluationDate                      = Date de revalorisation
+STCContractRevaluationIndex                     = Indice de revalorisation
+STCContractStartRevaluationDate                 = Activer la possibilité de revaloriser à partir du :
+STCContractLastRevaluationIndexUsed             = 1er indice à utiliser (ou dernier indice utilisé dans un calcul)
+STCErrorBadRevaluationIndexInfo                 = L'indice de revalorisation %s pour le mois %s de l'année %s est incorrect: "%s"
+STCErrorBadWatchingPeriod                       = Mauvais paramètres fournit pour la période à regarder
+STCErrorBadFieldValue                           = Mauvaise valeur pour le champ du contrat "%s": "%s"
+STCErrorBadLastRevaluationIndexValueUsed        = La valeur du précédent indice de revalorisation est incorrect: "%s"
+STCErrorBadContractAmountCalculated             = Le montant du contrat calculé est incorrect: "%s"
+STCErrorCanNotCreateFile                        = N'a pas put créer le fichier: "%s"
+STCErrorLastRevaluationIndexUsedNotFound        = Le dernier indice de revalorisation n'a pas été trouvé pour l'indice "%s" du mois %s de l'année %s
+STCErrorLastRevaluationIndexValueUsedNotFound   = Le dernier indice de revalorisation renseigné sur le contrat n'a pas été trouvé
+STCErrorRevaluationIndexInfoNotFound            = Les informations de l'indice de revalorisation n'a pas été trouvé pour l'indice "%s", du nouveau mois %s ou du mois %s, de l'année %s
+STCErrorNoBillingPeriod                         = Pas de période de facturation trouvé
+STCErrorHaveAlreadyInvoicesOnTheBillingPeriod   = Il y as déjà la ou les facture(s) suivante(s) sur la période de facturation:
+STCErrorInvoiceOnBillingPeriodInfo              = - Facture Réf. %s du %s au %s d'un montant de %s
+STCErrorSQLGetInvoicesOnThePeriod               = Erreur SQL pour récupérer la liste des factures chevauchant la période donnée: %s
+STCErrorSQLGetLastRevaluationIndexValueUsed     = Erreur SQL pour récupérer la valeur du précédent indice de revalorisation: %s
+STCErrorSQLGetRevaluationIndexInfo              = Erreur SQL pour récupérer les informations de l'indice de revalorisation: %s
+STCErrorSQLSetLastRevaluationIndexUsed          = Erreur SQL pour récupérer le précédent indice de revalorisation: %s
+
+########################################################################################################
+# Report headers
+########################################################################################################
+STC_RLH_PARAM_BEGIN_WATCHING_DATE                   = Paramètres : Date de début de la période à facturer
+STC_RLH_PARAM_END_WATCHING_DATE                     = Paramètres : Date de fin de la période à facturer
+STC_RLH_PARAM_PAYMENT_CONDITION_ID                  = Paramètres : Conditions de règlement (ID)
+STC_RLH_PARAM_PAYMENT_DEADLINE_DATE                 = Paramètres : Date limite règlement
+STC_RLH_PARAM_REF_CUSTOMER                          = Paramètres : Réf. client
+STC_RLH_PARAM_USE_CUSTOMER_DISCOUNTS                = Paramètres : Utiliser les réductions du client
+STC_RLH_PARAM_TEST_MODE                             = Paramètres : Mode Test
+STC_RLH_PARAM_DISABLE_REVALUATION                   = Paramètres : Désactiver la revalorisation
+STC_RLH_CONTRACT_ID                                 = Contrat: ID
+STC_RLH_CONTRACT_REF                                = Contrat: Référence
+STC_RLH_WATCHING_DATE                               = Date à regarder
+STC_RLH_WATCHING_PERIOD_BEGIN                       = Début de la période à regarder
+STC_RLH_WATCHING_PERIOD_END                         = Fin de la période à regarder
+STC_RLH_BILLING_PERIOD_BEGIN                        = Début de la période de facturatuion
+STC_RLH_BILLING_PERIOD_END                          = Fin de la période de facturatuion
+STC_RLH_WATCHING_PERIOD_LENGHT                      = Longueur de la période à regarder (jours)
+STC_RLH_CONTRACT_REVALUATION_INDEX                  = Contrat: Indice de revalorisation
+STC_RLH_CONTRACT_REVALUATION_DATE                   = Contrat: Date de revalorisation
+STC_RLH_POTENTIAL_REVALUATION_DATE                  = Date potentiel de revalorisation
+STC_RLH_FIRST_ABSOLUTE_REVALUATION_DATE             = Première date absolue de revalorisation
+STC_RLH_CONTRACT_ENABLE_TO_REVALUATION_DATE         = Contrat: 'Activer la possibilité de revaloriser à partir du :'
+STC_RLH_FIRST_BILLING_PERIOD_BEGIN                  = Début de la première période de facturatuion
+STC_RLH_FIRST_BILLING_PERIOD_END                    = Fin de la première période de facturatuion
+STC_RLH_FIRST_BILLING_PERIOD_LENGHT                 = Longueur de la première période de facturatuion (jours)
+STC_RLH_SECOND_BILLING_PERIOD_BEGIN                 = Début de la deuxième période de facturatuion
+STC_RLH_SECOND_BILLING_PERIOD_END                   = Fin de la deuxième période de facturatuion
+STC_RLH_SECOND_BILLING_PERIOD_LENGHT                = Longueur de la deuxième période de facturatuion (jours)
+STC_RLH_CONTRACT_LAST_REVALUATION_INDEX_VALUE_USED  = Contrat: Valeur du 1er indice à utiliser (ou dernier indice utilisé dans un calcul)
+STC_RLH_REVALUATION_INDEX_INFO_INDEX                = L'indice de la revaluation
+STC_RLH_REVALUATION_INDEX_INFO_INDEX_VALUE          = Valeur de l'indice de la revaluation
+STC_RLH_REVALUATION_INDEX_INFO_MONTH                = Mois de l'indice de la revaluation
+STC_RLH_REVALUATION_INDEX_INFO_YEAR                 = Année de l'indice de la revaluation
+STC_RLH_CONTRACT_UNAUTHORIZED_DEFLATION             = Contrat: 'Déflation non autorisée'
+STC_RLH_CONTRACT_AMOUNT                             = Contrat: montant
+STC_RLH_CONTRACT_NEW_AMOUNT                         = Nouveau montant du contrat
+STC_RLH_CONTRACT_LAST_REVALUATION_INDEX_USED        = Contrat: 1er indice à utiliser (ou dernier indice utilisé dans un calcul)
+STC_RLH_CONTRACT_NEW_LAST_REVALUATION_INDEX_USED    = Nouveau dernier indice utilisé dans un calcul
+STC_RLH_CONTRACT_CURRENT_VALUE_INSTALLATION         = Contrat: Valeur actuelle de l’installation
+STC_RLH_CONTRACT_NEW_CURRENT_VALUE_INSTALLATION     = Nouvelle valeur actuelle de l’installation
+STC_RLH_FIRST_BILLING_PERIOD_AMOUNT                 = Montant de la première période de facturatuion
+STC_RLH_SECOND_BILLING_PERIOD_AMOUNT                = Montant de la deuxième période de facturatuion
+STC_RLH_BILLING_PERIOD_LENGHT                       = Longueur de la période de facturatuion
+STC_RLH_BILLING_PERIOD_AMOUNT                       = Montant de la période de facturatuion
+STC_RLH_INVOICE_ID                                  = Facture: ID
+STC_RLH_INVOICE_REF                                 = Facture: Référence
+STC_RLH_INVOICE_SOC_ID                              = Facture: Tiers ID
+STC_RLH_INVOICE_REF_CUSTOMER                        = Facture: Réf. client
+STC_RLH_INVOICE_MODEL_PDF                           = Facture: Model PDF
+STC_RLH_INVOICE_COND_REGLEMENT_ID                   = Facture: Condition de reglement ID
+STC_RLH_INVOICE_MODE_REGLEMENT_ID                   = Facture: Mode de règlement ID
+STC_RLH_INVOICE_ACCOUNT_ID                          = Facture: Banque ID
+STC_RLH_INVOICE_AMOUNT                              = Facture: Montant
+STC_RLH_INVOICE_REMISE_PERCENT                      = Facture: Pourcentage de remise
+STC_RLH_INVOICE_INCOTERMS_ID                        = Facture: Incotermes ID
+STC_RLH_INVOICE_LOCATION_INCOTERMS                  = Facture: Incotermes de localisation
+STC_RLH_INVOICE_MULTICURRENCY_CODE                  = Facture: Code de multi-devises
+STC_RLH_INVOICE_BILLING_PERIOD_BEGIN                = Facture: Début de la période de facturatuion
+STC_RLH_INVOICE_BILLING_PERIOD_END                  = Facture: Fin de la période de facturatuion
+STC_RLH_INVOICE_VALIDATED                           = Facture: Validée
+
+########################################################################################################
+# Revaluation Event
+########################################################################################################
+STCContractRevaluationEventLabel        = Revalorisation du contrat "%s"
+STCContractRevaluationData              = Paramètres :
+STCWatchingPeriod                       = Période à regarder
+STCBillingPeriod                        = Période à facturer
+STCRevaluationIndex                     = Indice de revalorisation
+STCRevaluationDate                      = Date de revalorisation
+STCPotentialRevaluationDate             = Date potentiel de revalorisation
+STCFirstAbsoluteRevaluationDate         = Première date absolue de revalorisation
+STCEnableToRevaluationDate              = Activer la possibilité de revaloriser à partir du
+STCFirstBillingPeriod                   = Première période à facturer
+STCSecondBillingPeriod                  = Seconde période à facturer
+STCLastRevaluationIndexValueUsed        = Valeur du 1er indice à utiliser (ou dernier indice utilisé dans un calcul)
+STCRevaluationIndexInfo                 = Information sur l'indice de revalorisation
+STCUnauthorizedDeflation                = Déflation non autorisée
+STCContractRevaluationResult            = Résultats :
+STCContractOldContractAmount            = Ancien montant du contrat
+STCContractNewContractAmount            = Nouveau montant du contrat
+STCContractOldLastRevaluationIndexUsed  = Ancien '1er indice à utiliser (ou dernier indice utilisé dans un calcul)'
+STCContractNewLastRevaluationIndexUsed  = Nouveau '1er indice à utiliser (ou dernier indice utilisé dans un calcul)'
+STCContractOldCurrentValueInstallation  = Ancienne valeur actuelle de l’installation
+STCContractNewCurrentValueInstallation  = Nouvelle valeur actuelle de l’installation
+
+############################################################
+### Actions
+############################################################
+ActionAC_STC_REVAL  = Revaluation du contract
+ActionAC_STC_CRENE  = Renouvellement du contract
+ActionAC_STC_RENEC  = Reconduciton du contract
+ActionAC_STC_TERMI  = Résiliation du contract

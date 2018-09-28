@@ -47,15 +47,18 @@ if (! $res) die("Include of main fails");
 
 
 require_once (DOL_DOCUMENT_ROOT."/contrat/class/contrat.class.php");
+require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
 require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
+dol_include_once('/synergiestechcontrat/class/html.formsynergiestechcontract.class.php');
 
 $langs->load("contracts");
 $langs->load("products");
 $langs->load("companies");
 $langs->load("compta");
+$langs->load("bills");
 $langs->load("synergiestechcontrat@synergiestechcontrat");
 
 $action=GETPOST('action','alpha');
@@ -156,13 +159,20 @@ if (is_array($extrafields->attribute_label) && count($extrafields->attribute_lab
     }
 }
 
+$formsynergiestechcontract = new FormSynergiesTechContract($db);
+
+// Get all invoices draft linked to contracts
+$invoices_draft_list = $formsynergiestechcontract->getInvoicesContractsInfo();
+if (!is_array($invoices_draft_list)) {
+    dol_print_error($db);
+}
 
 /*
  * Action
  */
 
 if (GETPOST('cancel')) { $action='list'; $massaction=''; }
-if (! GETPOST('confirmmassaction') && $massaction != 'presend' && $massaction != 'confirm_presend') { $massaction=''; }
+if (! GETPOST('confirmmassaction') && $massaction != 'generate_invoices' && $massaction != 'confirm_generate_invoices') { $massaction=''; }
 
 $parameters=array('socid'=>$socid);
 $reshook=$hookmanager->executeHooks('doActions',$parameters,$object,$action);    // Note that $action and $object may have been modified by some hooks
@@ -210,53 +220,13 @@ if (empty($reshook))
 
 $now=dol_now();
 $form=new Form($db);
+$formfile=new FormFile($db);
 $formother = new FormOther($db);
 $socstatic = new Societe($db);
 $contracttmp = new Contrat($db);
 $facturetmp = new Facture($db);
 
 llxHeader('', $langs->trans('STCBillingContracts'));
-
-// Get all invoices draft linked to contracts
-$has_invoices_draft_test = false;
-$invoices_draft_list = array();
-$sql = "SELECT ee.fk_target AS contract_id, f.rowid, f.facnumber AS ref, f.ref_client, f.type, f.note_private, f.note_public, f.total AS total_ht, f.tva AS total_vat, f.total_ttc, fef.test FROM " . MAIN_DB_PREFIX . "facture AS f" .
-    " LEFT JOIN " . MAIN_DB_PREFIX . "facture_extrafields AS fef ON fef.fk_object = f.rowid" .
-    " LEFT JOIN " . MAIN_DB_PREFIX . "element_element AS ee ON ee.fk_source = f.rowid AND ee.sourcetype = 'contrat' AND ee.targettype = 'facture'" .
-    " WHERE f.fk_statut = 0";
-$resql = $db->query($sql);
-if ($resql) {
-    while ($obj = $db->fetch_object($resql)) {
-        if (!isset($invoices_draft_list[$obj->contract_id])) {
-            $invoices_draft_list[$obj->contract_id] = array(
-                'invoices' => array(),
-                'total_ht' => 0,
-                'total_vat' => 0,
-                'total_ttc' => 0,
-            );
-        }
-        $invoices_draft_list[$obj->contract_id]['invoices'][$obj->rowid] = array(
-            'id' => $obj->rowid,
-            'ref' => $obj->ref,
-            'type' => $obj->type,
-            'ref_client' => $obj->ref_client,
-            'note_private' => $obj->note_private,
-            'note_public' => $obj->note_public,
-            'total_ht' => $obj->total_ht,
-            'total_vat' => $obj->total_vat,
-            'total_ttc' => $obj->total_ttc,
-            'test' => $obj->test,
-        );
-        $invoices_draft_list[$obj->contract_id]['total_ht'] += $obj->total_ht;
-        $invoices_draft_list[$obj->contract_id]['total_vat'] += $obj->total_vat;
-        $invoices_draft_list[$obj->contract_id]['total_ttc'] += $obj->total_ttc;
-
-        if (!empty($obj->test)) $has_invoices_draft_test = true;
-    }
-} else {
-    dol_print_error($db);
-}
-
 
 // Get list of contracts
 $sql = 'SELECT';
@@ -379,6 +349,69 @@ if ($resql)
 		if (empty($search_name)) $search_name = $soc->name;
 	}
 
+    /*
+     * Generating invoices options form
+     */
+    if ($massaction == 'generate_invoices' && $user->rights->facture->creer) {
+        dol_fiche_head(null, '', '');
+
+        $begin_watching_date = dol_mktime(0, 0, 0, GETPOST('begin_watching_datemonth', 'int'), GETPOST('begin_watching_dateday', 'int'), GETPOST('begin_watching_dateyear', 'int'));
+        $end_watching_date = dol_mktime(0, 0, 0, GETPOST('end_watching_datemonth', 'int'), GETPOST('end_watching_dateday', 'int'), GETPOST('end_watching_dateyear', 'int'));
+        $payment_condition_id = GETPOST('payment_condition_id', 'int');
+        $payment_deadline_date = dol_mktime(0, 0, 0, GETPOST('payment_deadline_datemonth', 'int'), GETPOST('payment_deadline_dateday', 'int'), GETPOST('payment_deadline_dateyear', 'int'));
+        $ref_customer = GETPOST('ref_customer', 'alpha');
+        $use_customer_discounts = GETPOST('use_customer_discounts') ? 1 : 0;
+        $test_mode = GETPOST('test_mode') !== "" ? GETPOST('test_mode') : 1;
+        $disable_revaluation = GETPOST('disable_revaluation') ? 1 : 0;
+
+        $now = dol_now();
+        $begin_watching_date = empty($begin_watching_date) ? $now : $begin_watching_date;
+        $end_watching_date = empty($end_watching_date) ? -1 : $end_watching_date;
+        $payment_deadline_date = empty($payment_deadline_date) ? -1 : $payment_deadline_date;
+
+        $formquestion = array(
+            array('type' => 'hidden', 'name' => 'massaction', 'value' => 'confirm_generate_invoices'),
+            array('type' => 'hidden', 'name' => 'formfilteraction', 'value' => 'list'),
+            array('type' => 'hidden', 'name' => 'token', 'value' => $_SESSION['newtoken']),
+        );
+
+        if (!empty($contextpage) && $contextpage != $_SERVER["PHP_SELF"]) $formquestion[] = array('type' => 'hidden', 'name' => 'contextpage', 'value' => $contextpage);
+        if ($limit > 0 && $limit != $conf->liste_limit) $formquestion[] = array('type' => 'hidden', 'name' => 'limit', 'value' => $limit);
+        if ($sall != '') $formquestion[] = array('type' => 'hidden', 'name' => 'sall', 'value' => $sall);
+        if ($search_contract != '') $formquestion[] = array('type' => 'hidden', 'name' => 'search_contract', 'value' => $search_contract);
+        if ($search_name != '') $formquestion[] = array('type' => 'hidden', 'name' => 'search_name', 'value' => $search_name);
+        if ($search_ref_supplier != '') $formquestion[] = array('type' => 'hidden', 'name' => 'search_ref_supplier', 'value' => $search_ref_supplier);
+        if ($search_sale != '') $formquestion[] = array('type' => 'hidden', 'name' => 'search_sale', 'value' => $search_sale);
+        if ($show_files) $formquestion[] = array('type' => 'hidden', 'name' => 'show_files', 'value' => $show_files);
+        if ($sortfield) $formquestion[] = array('type' => 'hidden', 'name' => 'sortfield', 'value' => $sortfield);
+        if ($sortorder) $formquestion[] = array('type' => 'hidden', 'name' => 'sortorder', 'value' => $sortorder);
+        if ($page) $formquestion[] = array('type' => 'hidden', 'name' => 'page', 'value' => $page);
+        if (!empty($toselect)) {
+            foreach ($toselect as $selected) {
+                $formquestion[] = array('type' => 'hidden', 'name' => 'toselect[]', 'value' => $selected);
+            }
+        }
+        if ($optioncss != '') $formquestion[] = array('type' => 'hidden', 'name' => 'optioncss', 'value' => $optioncss);
+        // Add $param from extra fields
+        foreach ($search_array_options as $key => $val) {
+            $crit = $val;
+            $tmpkey = preg_replace('/search_options_/', '', $key);
+            if ($val != '') $formquestion[] = array('type' => 'hidden', 'name' => 'search_options_' . $tmpkey, 'value' => urlencode($val));
+        }
+
+        $formquestion[] = array('type' => 'date', 'name' => 'begin_watching_date', 'label' => '<span class="fieldrequired">' . $langs->trans('STCGenerateInvoicesContractBeginWatchingDate') . '</span>', 'value' => $begin_watching_date);
+        $formquestion[] = array('type' => 'date', 'name' => 'end_watching_date', 'label' => $langs->trans('STCGenerateInvoicesContractEndWatchingDate'), 'value' => $end_watching_date);
+        $formquestion[] = array('type' => 'other', 'name' => 'payment_condition_id', 'label' => $langs->trans('PaymentConditionsShort'), 'value' => $formsynergiestechcontract->select_payment_condition($payment_condition_id, 'payment_condition_id', -1, 1));
+        $formquestion[] = array('type' => 'date', 'name' => 'payment_deadline_date', 'label' => $langs->trans('DateMaxPayment'), 'value' => $payment_deadline_date);
+        $formquestion[] = array('type' => 'text', 'name' => 'ref_customer', 'label' => $langs->trans('RefCustomer'), 'value' => $ref_customer);
+        $formquestion[] = array('type' => 'checkbox', 'name' => 'use_customer_discounts', 'label' => $langs->trans('STCGenerateInvoicesContractUseCustomerDiscounts'), 'value' => $use_customer_discounts);
+        $formquestion[] = array('type' => 'checkbox', 'name' => 'test_mode', 'label' => $langs->trans('STCGenerateInvoicesContractTestMode'), 'value' => $test_mode);
+        $formquestion[] = array('type' => 'checkbox', 'name' => 'disable_revaluation', 'label' => $langs->trans('STCGenerateInvoicesContractDisableRevaluation'), 'value' => $disable_revaluation);
+
+        print $form->formconfirm($_SERVER['PHP_SELF'], $langs->trans('STCGenerateInvoicesContract'), $langs->trans('STCConfirmGenerateInvoicesContract'), "list", $formquestion, 'yes', 0);
+        dol_fiche_end();
+    }
+
     $param='';
     if (! empty($contextpage) && $contextpage != $_SERVER["PHP_SELF"]) $param.='&contextpage='.$contextpage;
     if ($limit > 0 && $limit != $conf->liste_limit) $param.='&limit='.$limit;
@@ -400,17 +433,9 @@ if ($resql)
     // List of mass actions available
     $arrayofmassactions =  array();
     if ($user->rights->facture->creer) $arrayofmassactions['generate_invoices'] = $langs->trans('STCGenerateInvoicesContracts');
-    //if ($user->rights->contrat->supprimer) $arrayofmassactions['delete']=$langs->trans("Delete");
-    if ($massaction == 'presend' || $massaction == 'generate_invoices') $arrayofmassactions=array();
+    if ($user->rights->facture->creer) $arrayofmassactions['validate_invoices'] = $langs->trans('STCValidateInvoicesContracts');
+    if ($massaction == 'generate_invoices') $arrayofmassactions=array();
     $massactionbutton=$form->selectMassAction('', $arrayofmassactions);
-
-    // Button for reset the invoices test generated
-    $resetinvoicestestbutton = '';
-    if ($has_invoices_draft_test && empty($massaction) && $user->rights->facture->creer) {
-        $resetinvoicestestbutton = '<div class="inline-block divButAction"><a class="butActionDelete" href="' . $_SERVER["PHP_SELF"] .
-            '?massaction=delete_invoices_test&formfilteraction=list&sortfield=' . $sortfield . '&sortorder=' . $sortorder . '&page=' . $page . $param . '">' .
-            $langs->trans('STCDeleteInvoicesTest') . '</a></div>';
-    }
 
     print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
     if ($optioncss != '') print '<input type="hidden" name="optioncss" value="'.$optioncss.'">';
@@ -421,27 +446,7 @@ if ($resql)
 	print '<input type="hidden" name="sortorder" value="'.$sortorder.'">';
 	print '<input type="hidden" name="page" value="'.$page.'">';
 
-    print_barre_liste($langs->trans('STCListOfContractsToBill'), $page, $_SERVER["PHP_SELF"], $param, $sortfield, $sortorder, $massactionbutton, $num, $totalnboflines, 'object_invoice', 0, '', $resetinvoicestestbutton, $limit);
-
-    /*
-     * Generating invoices options form
-     */
-    if ($massaction == 'generate_invoices' && $user->rights->facture->creer) {
-        dol_fiche_head(null, '', '');
-        $now = dol_now();
-
-        print '<input type="hidden" name="massaction" value="confirm_generate_invoices">';
-
-        $formquestion = array(
-            array('type'=>'date', 'name'=>'begin_watching_date', 'label'=>$langs->trans('STCGenerateInvoicesContractBeginWatchingDate'), 'value'=>$now),
-            array('type'=>'date', 'name'=>'end_watching_date', 'label'=>$langs->trans('STCGenerateInvoicesContractEndWatchingDate'), 'value'=>$now),
-            array('type'=>'checkbox', 'name'=>'test_mode', 'label'=>$langs->trans('STCGenerateInvoicesContractTestMode'), 'value'=>0),
-            array('type'=>'checkbox', 'name'=>'disable_revaluation', 'label'=>$langs->trans('STCGenerateInvoicesContractDisableRevaluation'), 'value'=>0),
-        );
-
-        print $form->formconfirm($_SERVER['PHP_SELF'], $langs->trans('STCGenerateInvoicesContractOptions'), $langs->trans('STCConfirmGenerateInvoicesContractOptions'), "list", $formquestion, 0, 0);
-        dol_fiche_end();
-    }
+    print_barre_liste($langs->trans('STCListOfContractsToBill'), $page, $_SERVER["PHP_SELF"], $param, $sortfield, $sortorder, $massactionbutton, $num, $totalnboflines, 'object_invoice', 0, '', '', $limit);
 
 	if ($sall)
     {
@@ -826,8 +831,7 @@ if ($resql)
                     $facturetmp->total_ht = $invoice['total_ht'];
                     $facturetmp->total_tva = $invoice['total_vat'];
                     $facturetmp->total_ttc = $invoice['total_ttc'];
-                    $facturetmp->id = $invoice['test'];
-                    $invoices_toprint[] = $facturetmp->getNomUrl(empty($invoice['test']), '', 0, 0, !empty($invoice['test']) ?  '<br><b>' . $langs->trans('STCInvoiceTest') . '</b>' : '');
+                    $invoices_toprint[] = $facturetmp->getNomUrl(1);
                 }
                 print implode(', ', $invoices_toprint);
             }
@@ -975,7 +979,7 @@ if ($resql)
         $genallowed = $user->rights->contrat->lire;
         $delallowed = $user->rights->contrat->creer;
 
-        print $formfile->showdocuments('massfilesarea_invoicescontracts', '', $filedir, $urlsource, 0, $delallowed, '', 1, 1, 0, 48, 1, $param, $title, '');
+        print $formfile->showdocuments('contrat', '/temp/stc_invoicescontract/'.$user->id, $filedir, $urlsource, 0, $delallowed, '', 1, 1, 0, 48, 1, $param, $title, '');
     } else {
         print '<br><a name="show_files"></a><a href="' . $_SERVER["PHP_SELF"] . '?show_files=1' . $param . '#show_files">' . $langs->trans("ShowTempMassFilesArea") . '</a>';
     }
