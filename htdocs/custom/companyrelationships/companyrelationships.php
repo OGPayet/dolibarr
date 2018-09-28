@@ -33,7 +33,6 @@ if (! $res && file_exists("../../../../dolibarr/htdocs/main.inc.php")) $res=@inc
 if (! $res) die("Include of main fails");
 require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
 dol_include_once('/companyrelationships/class/companyrelationships.class.php');
-dol_include_once('/companyrelationships/class/companyrelationshipsavailability.class.php');
 dol_include_once('/companyrelationships/lib/companyrelationships.lib.php');
 
 $langs->load("companies");
@@ -86,10 +85,19 @@ if (empty($reshook)) {
         $principal_socid = GETPOST('add_principal_socid', 'int');
         $benefactor_socid = GETPOST('add_benefactor_socid', 'int');
 
+        $db->begin();
+
+        // create relationship
         $result = $companyrelationships->createRelationship($principal_socid, $benefactor_socid);
         if ($result < 0) {
+            $error++;
+        }
+
+        if ($error) {
+            $db->rollback();
             setEventMessages($companyrelationships->error, $companyrelationships->errors, 'errors');
         } else {
+            $db->commit();
             header('Location: ' . $_SERVER["PHP_SELF"] . '?socid=' . $object->id);
             exit();
         }
@@ -99,61 +107,24 @@ if (empty($reshook)) {
         $principal_socid = GETPOST('edit_principal_socid', 'int');
         $benefactor_socid = GETPOST('edit_benefactor_socid', 'int');
 
-        $db->begin();
+        $list_mode = intval(GETPOST('list_mode', 'int'));
 
-        $result = $companyrelationships->updateRelationship($rowid, $principal_socid, $benefactor_socid);
-        if ($result < 0) {
+        $publicSpaceAvailabilityElementList = $companyrelationships->getAllPublicSpaceAvailabilityByDefault('element');
+        if (!is_array($publicSpaceAvailabilityElementList)) {
             $error++;
         }
 
-        if (!$error && $user->rights->companyrelationships->update_md->relationship) {
-            $publicSpaceAvailabilityElementList = $companyrelationships->getAllPublicSpaceAvailabilityElement();
-            if ($publicSpaceAvailabilityElementList < 0) {
-                $error++;
-            }
+        $publicSpaceAvailabilityArray = array();
+        foreach ($publicSpaceAvailabilityElementList as $psaId => $publicSpaceAvailabilityElement)
+        {
+            $publicSpaceAvailabilityArray[$psaId] = GETPOST('publicspaceavailability_' . $publicSpaceAvailabilityElement, 'int');
+        }
 
-            if (!$error) {
-                $listMode = GETPOST('list_mode', 'int');
-                $publicSpaceAvailabilityArray = array();
-                foreach ($publicSpaceAvailabilityElementList as $psaId => $publicSpaceAvailabilityElement)
-                {
-                    $publicSpaceAvailabilityArray[$psaId] = GETPOST('publicspaceavailability_' . $publicSpaceAvailabilityElement, 'int');
-                }
+        $db->begin();
 
-                if (count($publicSpaceAvailabilityArray) > 0) {
-                    $availabilityFieldName = $listMode ? 'benefactor_availability' : 'principal_availability';
-
-                    foreach($publicSpaceAvailabilityArray as $psaId => $psaAvailability) {
-                        $companyRelationshipsAvailability = CompanyRelationshipsAvailability::loadByUniqueKey($db, $rowid, $psaId);
-                        if ($companyRelationshipsAvailability < 0) {
-                            $error++;
-                            break;
-                        }
-
-                        if (intval($psaAvailability) > 0) {
-                            $companyRelationshipsAvailability->{$availabilityFieldName} = 1;
-                        } else {
-                            $companyRelationshipsAvailability->{$availabilityFieldName} = 0;
-                        }
-
-                        // save public space availability for company relationships
-                        if ($companyRelationshipsAvailability->id > 0) {
-                            $result = $companyRelationshipsAvailability->update($user);
-                        } else {
-                            $result = $companyRelationshipsAvailability->create($user);
-                        }
-                        if ($result < 0) {
-                            $error++;
-                            break;
-                        }
-                    }
-
-                    if ($error) {
-                        $companyrelationships->error  = $companyRelationshipsAvailability->error;
-                        $companyrelationships->errors = $companyRelationshipsAvailability->errors;
-                    }
-                }
-            }
+        $result = $companyrelationships->updateRelationship($rowid, $principal_socid, $benefactor_socid, $publicSpaceAvailabilityArray, $list_mode);
+        if ($result < 0) {
+            $error++;
         }
 
         if ($error) {

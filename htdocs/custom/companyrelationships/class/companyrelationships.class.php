@@ -32,6 +32,12 @@
 class CompanyRelationships
 {
     /**
+     * Database handler
+     * @var DoliDB
+     */
+    public $db;
+
+    /**
      * Error message
      * @var string
      */
@@ -43,10 +49,17 @@ class CompanyRelationships
     public $errors;
 
     /**
+     * Id
+     * @var int
+     */
+    public $id;
+
+    /**
      * Element list of public space availability
      * @var array ('propal', 'commande', 'facture', 'order_supplier', 'invoice_supplier', 'ficheinter')
      */
     public static $psa_element_list = array('propal', 'commande', 'facture', 'fichinter');
+
 
     /**
      * Constructor
@@ -58,67 +71,164 @@ class CompanyRelationships
         $this->db = $db;
     }
 
+
     /**
-     *  Create companies relationship into database
+     * Create companies relationship into database
      *
-     * @param   int $socid                  Main company ID
-     * @param   int $socid_benefactor       Benefactor company ID
-     * @return  int                         <0 if KO, Id of created companies relationship if OK, 0 if already created
+     * @param   int     $socid                  Main company ID
+     * @param   int     $socid_benefactor       Benefactor company ID
+     * @return  int     <0 if KO, Id of created companies relationship if OK, 0 if already created
+     * @throws  Exception
      */
     public function createRelationship($socid, $socid_benefactor)
     {
+        global $user;
+
+        $error = 0;
         $this->errors = array();
 
         dol_syslog(__METHOD__ . " socid=" . $socid . " socid_benefactor=" . $socid_benefactor, LOG_DEBUG);
+
+        dol_include_once('/companyrelationships/class/companyrelationshipsavailability.class.php');
 
         // Insert relationship
         $sql = "INSERT INTO " . MAIN_DB_PREFIX . "companyrelationships (fk_soc, fk_soc_benefactor)";
         $sql .= " VALUES (" . $socid . ", " . $socid_benefactor . ")";
 
+        $this->db->begin();
+
         $resql = $this->db->query($sql);
         if ($resql) {
-            $id = $this->db->last_insert_id(MAIN_DB_PREFIX . "companyrelationships");
+            $this->id = $this->db->last_insert_id(MAIN_DB_PREFIX . "companyrelationships");
 
-            dol_syslog(__METHOD__ . " success", LOG_DEBUG);
-            return $id;
-        } elseif ($this->db->lasterrno() != 'DB_ERROR_RECORD_ALREADY_EXISTS') {
+            if ($this->id > 0) {
+                $publicSpaceAvailabilityDefaultList = $this->getAllPublicSpaceAvailabilityByDefault();
+                if (!is_array($publicSpaceAvailabilityDefaultList)) {
+                    $error++;
+                }
+
+                if (!$error) {
+                    foreach ($publicSpaceAvailabilityDefaultList as $psaId => $psaAvailabilityArray) {
+                        // create public space availability for this relationship
+                        $companyRelationshipsAvailability = new CompanyRelationshipsAvailability($this->db);
+                        $companyRelationshipsAvailability->fk_companyrelationships = $this->id;
+                        $companyRelationshipsAvailability->fk_c_companyrelationships_availability = $psaId;
+                        $companyRelationshipsAvailability->principal_availability = intval($psaAvailabilityArray['principal_availability']);
+                        $companyRelationshipsAvailability->benefactor_availability = intval($psaAvailabilityArray['benefactor_availability']);
+                        $result = $companyRelationshipsAvailability->create($user);
+
+                        if ($result < 0) {
+                            $error++;
+                            $this->error  = $companyRelationshipsAvailability->error;
+                            $this->errors = $companyRelationshipsAvailability->errors;
+                            break;
+                        }
+                    }
+                }
+            }
+        } else if ($this->db->lasterrno() != 'DB_ERROR_RECORD_ALREADY_EXISTS') {
+            $error++;
             $this->errors[] = 'Error ' . $this->db->lasterror();
             dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $this->db->lasterror(), LOG_ERR);
-
-            return -1;
+        } else {
+            $this->db->rollback();
+            return 0;
         }
 
-        return 0;
+        // Commit or rollback
+        if ($error) {
+            $this->db->rollback();
+            return -1;
+        } else {
+            $this->db->commit();
+            dol_syslog(__METHOD__ . " success", LOG_DEBUG);
+            return $this->id;
+        }
     }
 
+
     /**
-     *  Update companies relationship into database
+     * Update companies relationship into database
      *
-     * @param   int $rowid                  ID of the relationship
-     * @param   int $socid                  Main company ID
-     * @param   int $socid_benefactor       Benefactor company ID
-     * @return  int                         <0 if KO, >0 if OK
+     * @param   int     $rowid                          ID of the relationship
+     * @param   int     $socid                          Main company ID
+     * @param   int     $socid_benefactor               Benefactor company ID
+     * @param   array   $publicSpaceAvailabilityArray   Array of public space availability (rowid in public space availability dictionary)
+     * @param   int     $mode
+     * @return  int     <0 if KO, >0 if OK
+     * @throws  Exception
      */
-    public function updateRelationship($rowid, $socid, $socid_benefactor)
+    public function updateRelationship($rowid, $socid, $socid_benefactor, $publicSpaceAvailabilityArray=array(), $mode=0)
     {
+        global $user;
+
+        $error = 0;
         $this->errors = array();
 
         dol_syslog(__METHOD__ . " rowid=" . $rowid . " socid=" . $socid . " socid_benefactor=" . $socid_benefactor, LOG_DEBUG);
+
+        dol_include_once('/companyrelationships/class/companyrelationshipsavailability.class.php');
 
         // Update relationship
         $sql = "UPDATE " . MAIN_DB_PREFIX . "companyrelationships" .
             " SET fk_soc = " . $socid . ", fk_soc_benefactor = " . $socid_benefactor .
             " WHERE rowid = " . $rowid;
 
+        $this->db->begin();
+
         $resql = $this->db->query($sql);
         if (!$resql) {
+            $error++;
             $this->errors[] = 'Error ' . $this->db->lasterror();
             dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $this->db->lasterror(), LOG_ERR);
-
-            return -1;
         }
 
-        return 1;
+        if (!$error && $user->rights->companyrelationships->update_md->relationship) {
+            // update public space availability for this company relationships
+            if (count($publicSpaceAvailabilityArray) > 0) {
+                $availabilityFieldName = $mode ? 'benefactor_availability' : 'principal_availability';
+
+                foreach($publicSpaceAvailabilityArray as $psaId => $psaAvailability) {
+                    $companyRelationshipsAvailability = CompanyRelationshipsAvailability::loadByUniqueKey($this->db, $rowid, $psaId);
+                    if ($companyRelationshipsAvailability < 0) {
+                        $error++;
+                        $this->error  = $companyRelationshipsAvailability->error;
+                        $this->errors = $companyRelationshipsAvailability->errors;
+                        break;
+                    }
+
+                    if (intval($psaAvailability) > 0) {
+                        $companyRelationshipsAvailability->{$availabilityFieldName} = 1;
+                    } else {
+                        $companyRelationshipsAvailability->{$availabilityFieldName} = 0;
+                    }
+
+                    // save public space availability for company relationships
+                    if ($companyRelationshipsAvailability->id > 0) {
+                        $result = $companyRelationshipsAvailability->update($user);
+                    } else {
+                        $result = $companyRelationshipsAvailability->create($user);
+                    }
+
+                    if ($result < 0) {
+                        $error++;
+                        $this->error  = $companyRelationshipsAvailability->error;
+                        $this->errors = $companyRelationshipsAvailability->errors;
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Commit or rollback
+        if ($error) {
+            $this->db->rollback();
+            return -1;
+        } else {
+            $this->db->commit();
+            dol_syslog(__METHOD__ . " success", LOG_DEBUG);
+            return 1;
+        }
     }
 
     /**
@@ -271,12 +381,13 @@ class CompanyRelationships
 
 
     /**
-     * Get all elements in dictionary public space availability
+     * Get all fields of each element in dictionary public space availability
      *
-     * @return  array|int   <0 if KO, array of all elements if OK
+     * @param   string      $fieldName      [=''] All fields or field name in dictionary (ex : element)
+     * @return  array|int   <0 if KO, array of all fields of each element if OK
      * @throws  Exception
      */
-    public function getAllPublicSpaceAvailabilityElement()
+    public function getAllPublicSpaceAvailabilityByDefault($fieldName='')
     {
         global $langs;
 
@@ -293,18 +404,23 @@ class CompanyRelationships
             dol_syslog(__METHOD__ . " Error : No public space availability in dictionary", LOG_ERR);
             return -1;
         } else {
-            $publicSpaceAvailabilityElementList = array();
+            $publicSpaceAvailabilityList = array();
 
             if (count($lines) <= 0) {
                 $this->errors[] = $langs->trans("CompanyRelationshipsErrorPublicSpaceAvailabilityDictionaryNoLines");
                 dol_syslog(__METHOD__ . " Error : No lines in dictionary company relationships public space availability", LOG_ERR);
             } else {
                 foreach ($lines as $line) {
-                    $publicSpaceAvailabilityElementList[$line->id] = $line->fields['element'];
+                    if (!empty($fieldName)) {
+                        $publicSpaceAvailabilityList[$line->id] = $line->fields[$fieldName];
+                    } else {
+                        $publicSpaceAvailabilityList[$line->id] = $line->fields;
+                    }
+
                 }
             }
 
-            return $publicSpaceAvailabilityElementList;
+            return $publicSpaceAvailabilityList;
         }
     }
 

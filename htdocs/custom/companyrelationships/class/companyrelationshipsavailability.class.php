@@ -83,7 +83,6 @@ class CompanyRelationshipsAvailability
     public $benefactor_availability;
 
 
-
     /**
      * Constructor
      *
