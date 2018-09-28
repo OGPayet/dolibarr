@@ -61,8 +61,8 @@ CompanyRelationshipsConfirmPrincipalCompanyChoice     = Choisir un donneur d'ord
 CompanyRelationshipsID                                = ID de la relation tiers
 CompanyRelationshipsPublicSpaceAvailabilityID         = ID de la ligne du dictionnaire des mises à disposition sur l'espace public
 CompanyRelationshipsPublicSpaceAvailability           = Mises à disposition
-CompanyRelationshipsPublicSpaceAvailabilityPrincipal  = Mise à disposition pour le Donneur d'ordres
-CompanyRelationshipsPublicSpaceAvailabilityBenefactor = Mise à disposition pour le Bénéficiaire
+CompanyRelationshipsPublicSpaceAvailabilityPrincipal  = Pièces mises à disposition par défaut pour le donneur d'ordres
+CompanyRelationshipsPublicSpaceAvailabilityBenefactor = Pièces mises à disposition par défaut pour le bénéficiaire
 
 ############################################################
 ### Errors

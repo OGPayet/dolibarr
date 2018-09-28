@@ -76,7 +76,7 @@ if (! empty($id) && ! empty($action) && ! empty($htmlname) && ! empty($urlsrc))
         $formQuestionList[] = array('label' => $langs->trans('CompanyRelationshipsPrincipalCompany'), 'name' => 'companyrelationships_socid', 'type' => 'select', 'values' => $principalCompanySelectArray, 'default' => '');
 
         // form confirm to choose the principal company
-        $out .= $formcompanyrelationships->form->formconfirm($urlsrc, $langs->trans('CompanyRelationshipsConfirmPrincipalCompanyTitle'), $langs->trans('CompanyRelationshipsConfirmPrincipalCompanyChoice'), 'companyrelationships_confirm_socid', $formQuestionList, '', 1, 400, 600);
+        $out .= $formcompanyrelationships->form->formconfirm($urlsrc, $langs->trans('CompanyRelationshipsConfirmPrincipalCompanyTitle'), $langs->trans('CompanyRelationshipsConfirmPrincipalCompanyChoice'), 'companyrelationships_confirm_socid', $formQuestionList, '', 1);
     }
 
     $return['value'] = $out;

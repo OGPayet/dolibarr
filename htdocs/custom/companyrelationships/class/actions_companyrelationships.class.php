@@ -125,12 +125,10 @@ class ActionsCompanyRelationships
                 if ($action == 'companyrelationships_confirm_socid' && $user->rights->{$elementName}->creer) {
                     $langs->load('companyrelationships@companyrelationships');
 
-                    $backtopage	= GETPOST('backtopage','alpha');
                     $socid = GETPOST('companyrelationships_socid', 'int');
 
                     if (intval($socid) > 0) {
-                        if (! empty($backtopage)) $url=$backtopage;
-                        else $url='card.php?action=create&socid='.$socid;
+                        $url='card.php?action=create&socid='.$socid;
                         header('Location: ' . $url);
                         exit();
                     }
@@ -195,7 +193,7 @@ class ActionsCompanyRelationships
                         $formQuestionList[] = array('label' => $langs->trans('CompanyRelationshipsPrincipalCompany'), 'name' => 'companyrelationships_socid', 'type' => 'select', 'values' => $principalCompanySelectArray, 'default' => '');
 
                         // form confirm to choose the principal company
-                        $out .= $formcompanyrelationships->form->formconfirm($_SERVER['PHP_SELF'], $langs->trans('CompanyRelationshipsConfirmPrincipalCompanyTitle'), $langs->trans('CompanyRelationshipsConfirmPrincipalCompanyChoice'), 'companyrelationships_confirm_socid', $formQuestionList, '', 1, 400, 600);
+                        $out .= $formcompanyrelationships->form->formconfirm($_SERVER['PHP_SELF'], $langs->trans('CompanyRelationshipsConfirmPrincipalCompanyTitle'), $langs->trans('CompanyRelationshipsConfirmPrincipalCompanyChoice'), 'companyrelationships_confirm_socid', $formQuestionList, '', 1);
                     }
                 }
                 $out .= '</div>';

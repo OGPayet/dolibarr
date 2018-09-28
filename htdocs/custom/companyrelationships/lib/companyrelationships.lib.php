@@ -233,7 +233,7 @@ function companyrelationships_show_companyrelationships($conf, $langs, $db, $obj
     print '<tr class="liste_titre">';
     print_liste_field_titre("Name", $_SERVER["PHP_SELF"], "s.nom", "", $param, ' width="30%"', $sortfield, $sortorder);
     print_liste_field_titre($langs->trans("Address") . ' / ' . $langs->trans("Phone") . ' / ' . $langs->trans("Email"), $_SERVER["PHP_SELF"], "", "", $param, '', $sortfield, $sortorder);
-    print_liste_field_titre('CompanyRelationshipsPublicSpaceAvailability');
+    print_liste_field_titre('CompanyRelationshipsPublicSpaceAvailability' . ucfirst($modename));
     print_liste_field_titre("Status", $_SERVER["PHP_SELF"], "s.statut", "", $param, ' width="150px"', $sortfield, $sortorder);
     // Edit
     print_liste_field_titre('', '', '', '', '', ' width="50px" align="right"');
