@@ -1,0 +1,25 @@
+# Dolibarr language file - fr_FR - eventconfidentiality
+CHARSET          = UTF-8
+Module163092Name = Confidentialité des évènements
+Module163092Desc = Gestionnaire de confidentialité des évènements
+
+######################################################################
+# Dictionaries
+######################################################################
+EventConfidentialityTagDictionaryLabel                                    = Tag de confidentialité
+EventDefaultConfidentialityDictionaryLabel                                    = Confidentialité par défaut
+EventConfidentialityTypeInterne = Interne
+EventConfidentialityTypeExterne = Externe
+EventConfidentialityLevelShow = Visible
+EventConfidentialityLevelBlurred = Flouté
+EventConfidentialityLevelHidden = Caché
+EventConfidentialityTags = Tag de confidentialité
+EventConfidentialityType = Interne/Externe
+EventConfidentialityLevel = Niveau de confidentialité
+EventConfidentialityTypeAction = Action
+EventConfidentialityElementOrigin = Element
+
+############################################################
+### Admin setup
+############################################################
+EventConfidentialitySetup                             = Configuration du module Event Confidentiality
