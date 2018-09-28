@@ -52,6 +52,8 @@ CompanyRelationshipsEditCompanyRelationships          = Edit thirdparties relati
 CompanyRelationshipsConfirmEditCompanyRelationships   = Are you sure to edit this thirdparty relationship ?
 CompanyRelationshipsDeleteCompanyRelationships        = Delete thirdparty relationship
 CompanyRelationshipsConfirmDeleteCompanyRelationships = Are you sure to delete this thirdparty relationship ?
+CompanyRelationshipsConfirmPrincipalCompanyTitle      = Principal companies of this thirdparty
+CompanyRelationshipsConfirmPrincipalCompanyChoice     = Choose a contactor company if you need or quit
 
 ############################################################
 ### Company Relationships Availability

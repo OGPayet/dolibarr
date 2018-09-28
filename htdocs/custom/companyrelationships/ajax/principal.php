@@ -36,6 +36,7 @@ if (! $res) die("Include of main fails");
 $id			= GETPOST('id','int');
 $action		= GETPOST('action','alpha');
 $htmlname	= GETPOST('htmlname','alpha');
+$urlsrc	    = GETPOST('urlsrc','alpha');
 
 /*
  * View
@@ -46,39 +47,41 @@ top_httphead();
 //print '<!-- Ajax page called with url '.dol_escape_htmltag($_SERVER["PHP_SELF"]).'?'.dol_escape_htmltag($_SERVER["QUERY_STRING"]).' -->'."\n";
 
 // Load original field value
-if (! empty($id) && ! empty($action) && ! empty($htmlname))
+if (! empty($id) && ! empty($action) && ! empty($htmlname) && ! empty($urlsrc))
 {
-    $form = new Form($db);
-
-    $return=array();
-    if (empty($showempty)) $showempty=0;
-
-    $companies = $form->select_thirdparty_list('', $htmlname, 'status=1', 1, 0, 0, null, '', 1);
+    $return = array();
 
     dol_include_once('/companyrelationships/class/companyrelationships.class.php');
-    $companyrelationships = new CompanyRelationships($db);
-    $benefactor_ids = $companyrelationships->getRelationships($id, 1);
-    $benefactor_ids = is_array($benefactor_ids) ? $benefactor_ids : array();
+    dol_include_once('/companyrelationships/class/html.formcompanyrelationships.class.php');
 
-    $arrayresult = [];
-    $others = [];
-    foreach ($companies as $company) {
-        if (in_array($company['key'], $benefactor_ids)) {
-            $arrayresult[] = '<option value="' . $company['key'] . '">'.(preg_match('/\s\*$/',$company['label']) !== false ? $company['label'] . ' *' : $company['label']).'</option>';
-        } else {
-            $selected = '';
-            if ($company['key'] == $id) {
-                $selected = ' selected="seleected"';
-            }
-            $others[] = '<option value="' . $company['key'] . '"' . $selected . '>' . $company['label'] . '</option>';
+    $langs->load('companyrelationships@companyrelationships');
+
+    $out = '';
+
+    $formcompanyrelationships = new FormCompanyRelationships($db);
+
+    // get principal company
+    $companyRelationships = new CompanyRelationships($db);
+    $principalCompanyList = $companyRelationships->getRelationships($id, 0, 1);
+    $principalCompanyList = is_array($principalCompanyList) ? $principalCompanyList : array();
+    if (count($principalCompanyList) > 0) {
+        $principalCompanySelectArray = array();
+
+        // format options in select principal company
+        foreach($principalCompanyList as $companyId => $company) {
+            $principalCompanySelectArray[$companyId] = $company->getFullName($langs);
         }
-    }
-    //$options = array_merge($arrayresult, array('<option value="-1">&nbsp;</option>'), $others);
-    $options = array_merge($arrayresult, array('<option value="0">&nbsp;</option>'), $others);
 
-    $return['value']	= implode('', $options);
-    $return['num']		= $form->result['nbofthirdparties'];
-    $return['error']	= $form->error;
+        $formQuestionList = array();
+        $formQuestionList[] = array('label' => $langs->trans('CompanyRelationshipsPrincipalCompany'), 'name' => 'companyrelationships_socid', 'type' => 'select', 'values' => $principalCompanySelectArray, 'default' => '');
+
+        // form confirm to choose the principal company
+        $out .= $formcompanyrelationships->form->formconfirm($urlsrc, $langs->trans('CompanyRelationshipsConfirmPrincipalCompanyTitle'), $langs->trans('CompanyRelationshipsConfirmPrincipalCompanyChoice'), 'companyrelationships_confirm_socid', $formQuestionList, '', 1, 400, 600);
+    }
+
+    $return['value'] = $out;
+    $return['num']   = $formcompanyrelationships->form->result['nbofthirdparties'];
+    $return['error'] = $formcompanyrelationships->form->error;
 
     echo json_encode($return);
 }

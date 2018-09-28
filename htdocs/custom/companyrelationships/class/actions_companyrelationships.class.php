@@ -101,6 +101,48 @@ class ActionsCompanyRelationships
 
 
     /**
+     * Overloading the doActions function : replacing the parent's function with the one below
+     *
+     * @param   array()         $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          &$action        Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+    function doActions($parameters, &$object, &$action, $hookmanager)
+    {
+        global $langs, $user;
+
+        $contexts = explode(':', $parameters['context']);
+
+        if (in_array('globalcard', $contexts)) {
+            dol_include_once('/companyrelationships/class/companyrelationships.class.php');
+
+            if (!empty($object->element) && in_array($object->element, CompanyRelationships::$psa_element_list)) {
+
+                $elementName = $object->element;
+
+                if ($action == 'companyrelationships_confirm_socid' && $user->rights->{$elementName}->creer) {
+                    $langs->load('companyrelationships@companyrelationships');
+
+                    $backtopage	= GETPOST('backtopage','alpha');
+                    $socid = GETPOST('companyrelationships_socid', 'int');
+
+                    if (intval($socid) > 0) {
+                        if (! empty($backtopage)) $url=$backtopage;
+                        else $url='card.php?action=create&socid='.$socid;
+                        header('Location: ' . $url);
+                        exit();
+                    }
+                }
+            }
+        }
+
+        return 0;
+    }
+
+
+    /**
      * Overloading the formObjectOptions function : replacing the parent's function with the one below
      *
      * @param   array()         $parameters     Hook metadatas (context, etc...)
@@ -125,9 +167,44 @@ class ActionsCompanyRelationships
 
                 $out = '';
 
-                $socid = GETPOST('socid', 'int');
+                $socid = GETPOST('socid', 'int') ? GETPOST('socid', 'int') : 0;
+                $confirm = GETPOST('confirm', 'alpha');
+                if (intval($socid) <= 0) {
+                    $socid = GETPOST('companyrelationships_socid', 'int') ? GETPOST('companyrelationships_socid', 'int') : 0;
+                }
 
-                if (intval($socid) > 0) {
+                $formcompanyrelationships = new FormCompanyRelationships($this->db);
+
+                // form confirm to choose the principal company
+                $out .= '<tr>';
+                $out .= '<td>';
+                $out .= '<div id="companyrelationships_confirm">';
+                if (empty($confirm) && intval($socid)>0) {
+                    $companyRelationships = new CompanyRelationships($this->db);
+                    $principalCompanyList = $companyRelationships->getRelationships($socid, 0, 1);
+                    $principalCompanyList = is_array($principalCompanyList) ? $principalCompanyList : array();
+                    if (count($principalCompanyList) > 0) {
+                        $principalCompanySelectArray = array();
+
+                        // format options in select principal company
+                        foreach ($principalCompanyList as $companyId => $company) {
+                            $principalCompanySelectArray[$companyId] = $company->getFullName($langs);
+                        }
+
+                        $formQuestionList = array();
+                        $formQuestionList[] = array('label' => $langs->trans('CompanyRelationshipsPrincipalCompany'), 'name' => 'companyrelationships_socid', 'type' => 'select', 'values' => $principalCompanySelectArray, 'default' => '');
+
+                        // form confirm to choose the principal company
+                        $out .= $formcompanyrelationships->form->formconfirm($_SERVER['PHP_SELF'], $langs->trans('CompanyRelationshipsConfirmPrincipalCompanyTitle'), $langs->trans('CompanyRelationshipsConfirmPrincipalCompanyChoice'), 'companyrelationships_confirm_socid', $formQuestionList, '', 1, 400, 600);
+                    }
+                }
+                $out .= '</div>';
+                $out .= '</td>';
+                $out .= '</tr>';
+
+                // company id already posted (an input hidden in this form)
+                if (intval($socid) > 0)
+                {
                     $out .= '<script type="text/javascript" language="javascript">';
                     $out .= 'jQuery(document).ready(function(){';
                     $out .= '   var data = {';
@@ -174,10 +251,13 @@ class ActionsCompanyRelationships
                     }
                     $out .= '});';
                     $out .= '</script>';
-                } else {
+                }
+                // no company selected (select options in this form to choose the company)
+                else
+                {
                     $events = array();
+                    $events[] = array('action' => 'getPrincipal', 'url' => dol_buildpath('/companyrelationships/ajax/principal.php', 1), 'urlsrc' => $_SERVER['PHP_SELF'], 'htmlname' => 'companyrelationships_confirm');
                     $events[] = array('action' => 'getBenefactor', 'url' => dol_buildpath('/companyrelationships/ajax/benefactor.php', 1), 'htmlname' => 'options_companyrelationships_fk_soc_benefactor');
-                    $formcompanyrelationships = new FormCompanyRelationships($this->db);
                     $out .= $formcompanyrelationships->add_select_events('socid', $events);
 
                     // company relationships availability for this element

@@ -52,6 +52,8 @@ CompanyRelationshipsEditCompanyRelationships          = Editer relation tiers
 CompanyRelationshipsConfirmEditCompanyRelationships   = Êtes-vous sûr de vouloir d'éditer cette relation tiers ?
 CompanyRelationshipsDeleteCompanyRelationships        = Supprimer relation tiers
 CompanyRelationshipsConfirmDeleteCompanyRelationships = Êtes-vous sûr de vouloir supprimer cette relation tiers ?
+CompanyRelationshipsConfirmPrincipalCompanyTitle      = Donneurs d'ordres du tiers
+CompanyRelationshipsConfirmPrincipalCompanyChoice     = Choisir un donneur d'ordres si besoin ou quitter
 
 ############################################################
 ### Company Relationships Availability

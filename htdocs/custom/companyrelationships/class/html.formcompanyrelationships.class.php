@@ -46,7 +46,6 @@ class FormCompanyRelationships
     public $formdictionary;
 
 
-
     /**
      * Constructor
      *
@@ -58,6 +57,7 @@ class FormCompanyRelationships
         $this->form = new Form($this->db);
         $this->formdictionary = new FormDictionary($this->db);
     }
+
 
     /**
      * Return list of labels (translated)
@@ -81,7 +81,7 @@ class FormCompanyRelationships
         if (!empty($conf->use_javascript_ajax)) {
             $out .= '<script type="text/javascript">
             $(document).ready(function () {
-                jQuery("#'.$htmlname.'").change(function () {
+                jQuery("select#'.$htmlname.'").change(function () {
                     var obj = '.json_encode($events).';
                     $.each(obj, function(key,values) {
                         if (values.action.length) {
@@ -95,11 +95,13 @@ class FormCompanyRelationships
                     var id = $("#'.$htmlname.'").val();
                     var action = obj.action;
                     var url = obj.url;
+                    var urlsrc = obj.urlsrc;
                     var htmlname = obj.htmlname;
                     var datas = {
                         action: action,
                         id: id,
                         htmlname: htmlname,
+                        urlsrc: urlsrc
                     };
                     var selector_regex = new RegExp("^\\{\\{(.*)\\}\\}$", "i");
                     $.each(obj.params, function(key, value) {
@@ -111,7 +113,7 @@ class FormCompanyRelationships
                             datas[key] = value;
                         }
                     });
-                    var input = $("select#" + htmlname);
+                    var input = $("#" + htmlname);
                     var inputautocomplete = $("#inputautocomplete"+htmlname);
                     $.getJSON(url, datas,
                         function(response) {
