@@ -95,13 +95,15 @@ class FormCompanyRelationships
                     var id = $("#'.$htmlname.'").val();
                     var action = obj.action;
                     var url = obj.url;
-                    var urlsrc = obj.urlsrc;
                     var htmlname = obj.htmlname;
+                    var urlsrc = obj.urlsrc;
+                    var fk_soc_benefactor = obj.fk_soc_benefactor;
                     var datas = {
                         action: action,
                         id: id,
                         htmlname: htmlname,
-                        urlsrc: urlsrc
+                        urlsrc: urlsrc,
+                        fk_soc_benefactor: fk_soc_benefactor
                     };
                     var selector_regex = new RegExp("^\\{\\{(.*)\\}\\}$", "i");
                     $.each(obj.params, function(key, value) {

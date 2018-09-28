@@ -125,10 +125,11 @@ class ActionsCompanyRelationships
                 if ($action == 'companyrelationships_confirm_socid' && $user->rights->{$elementName}->creer) {
                     $langs->load('companyrelationships@companyrelationships');
 
+                    $fk_soc_benefactor = GETPOST('companyrelationships_fk_soc_benefactor', 'int');
                     $socid = GETPOST('companyrelationships_socid', 'int');
 
                     if (intval($socid) > 0) {
-                        $url='card.php?action=create&socid='.$socid;
+                        $url = 'card.php?action=create&socid=' . $socid . '&companyrelationships_fk_soc_benefactor=' . $fk_soc_benefactor;
                         header('Location: ' . $url);
                         exit();
                     }
@@ -166,6 +167,7 @@ class ActionsCompanyRelationships
                 $out = '';
 
                 $socid = GETPOST('socid', 'int') ? GETPOST('socid', 'int') : 0;
+                $fk_soc_benefactor = GETPOST('companyrelationships_fk_soc_benefactor', 'int') ? GETPOST('companyrelationships_fk_soc_benefactor', 'int') : 0;
                 $confirm = GETPOST('confirm', 'alpha');
                 if (intval($socid) <= 0) {
                     $socid = GETPOST('companyrelationships_socid', 'int') ? GETPOST('companyrelationships_socid', 'int') : 0;
@@ -190,6 +192,7 @@ class ActionsCompanyRelationships
                         }
 
                         $formQuestionList = array();
+                        $formQuestionList[] = array('name' => 'companyrelationships_fk_soc_benefactor', 'type' => 'hidden', 'value' => GETPOST('socid', 'int'));
                         $formQuestionList[] = array('label' => $langs->trans('CompanyRelationshipsPrincipalCompany'), 'name' => 'companyrelationships_socid', 'type' => 'select', 'values' => $principalCompanySelectArray, 'default' => '');
 
                         // form confirm to choose the principal company
@@ -208,6 +211,7 @@ class ActionsCompanyRelationships
                     $out .= '   var data = {';
                     $out .= '       action: "getBenefactor",';
                     $out .= '       id: "' . $socid . '",';
+                    $out .= '       fk_soc_benefactor: "' . $fk_soc_benefactor . '",';
                     $out .= '       htmlname: "options_companyrelationships_fk_soc_benefactor"';
                     $out .= '   };';
                     $out .= '   var input = jQuery("select#options_companyrelationships_fk_soc_benefactor");';
@@ -254,8 +258,8 @@ class ActionsCompanyRelationships
                 else
                 {
                     $events = array();
-                    $events[] = array('action' => 'getPrincipal', 'url' => dol_buildpath('/companyrelationships/ajax/principal.php', 1), 'urlsrc' => $_SERVER['PHP_SELF'], 'htmlname' => 'companyrelationships_confirm');
-                    $events[] = array('action' => 'getBenefactor', 'url' => dol_buildpath('/companyrelationships/ajax/benefactor.php', 1), 'htmlname' => 'options_companyrelationships_fk_soc_benefactor');
+                    $events[] = array('action' => 'getPrincipal', 'url' => dol_buildpath('/companyrelationships/ajax/principal.php', 1), 'htmlname' => 'companyrelationships_confirm', 'urlsrc' => $_SERVER['PHP_SELF']);
+                    $events[] = array('action' => 'getBenefactor', 'url' => dol_buildpath('/companyrelationships/ajax/benefactor.php', 1), 'htmlname' => 'options_companyrelationships_fk_soc_benefactor', 'fk_soc_benefactor' => $fk_soc_benefactor);
                     $out .= $formcompanyrelationships->add_select_events('socid', $events);
 
                     // company relationships availability for this element

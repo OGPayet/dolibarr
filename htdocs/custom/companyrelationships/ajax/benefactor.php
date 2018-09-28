@@ -33,9 +33,10 @@ if (! $res && file_exists("../../main.inc.php")) $res=@include '../../main.inc.p
 if (! $res && file_exists("../../../main.inc.php")) $res=@include '../../../main.inc.php';		// to work if your module directory is into a subdir of root htdocs directory
 if (! $res) die("Include of main fails");
 
-$id			= GETPOST('id','int');
-$action		= GETPOST('action','alpha');
-$htmlname	= GETPOST('htmlname','alpha');
+$id	               = GETPOST('id','int'); // socid
+$fk_soc_benefactor = GETPOST('fk_soc_benefactor', 'int');
+$action		       = GETPOST('action','alpha');
+$htmlname	       = GETPOST('htmlname','alpha');
 
 /*
  * View
@@ -64,10 +65,15 @@ if (! empty($id) && ! empty($action) && ! empty($htmlname))
     $others = [];
     foreach ($companies as $company) {
         if (in_array($company['key'], $benefactor_ids)) {
-            $arrayresult[] = '<option value="' . $company['key'] . '">'.(preg_match('/\s\*$/',$company['label']) !== false ? $company['label'] . ' *' : $company['label']).'</option>';
+            $selected = '';
+            if ($company['key'] == $fk_soc_benefactor) {
+                $selected = ' selected="seleected"';
+            }
+
+            $arrayresult[] = '<option value="' . $company['key'] . '"' . $selected . '>'.(preg_match('/\s\*$/',$company['label']) !== false ? $company['label'] . ' *' : $company['label']).'</option>';
         } else {
             $selected = '';
-            if ($company['key'] == $id) {
+            if (empty($fk_soc_benefactor) && $company['key'] == $id) {
                 $selected = ' selected="seleected"';
             }
             $others[] = '<option value="' . $company['key'] . '"' . $selected . '>' . $company['label'] . '</option>';

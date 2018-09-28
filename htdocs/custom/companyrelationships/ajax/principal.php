@@ -33,7 +33,7 @@ if (! $res && file_exists("../../main.inc.php")) $res=@include '../../main.inc.p
 if (! $res && file_exists("../../../main.inc.php")) $res=@include '../../../main.inc.php';		// to work if your module directory is into a subdir of root htdocs directory
 if (! $res) die("Include of main fails");
 
-$id			= GETPOST('id','int');
+$id			= GETPOST('id','int'); // socid
 $action		= GETPOST('action','alpha');
 $htmlname	= GETPOST('htmlname','alpha');
 $urlsrc	    = GETPOST('urlsrc','alpha');
@@ -73,6 +73,7 @@ if (! empty($id) && ! empty($action) && ! empty($htmlname) && ! empty($urlsrc))
         }
 
         $formQuestionList = array();
+        $formQuestionList[] = array('name' => 'companyrelationships_fk_soc_benefactor', 'type' => 'hidden', 'value' => $id);
         $formQuestionList[] = array('label' => $langs->trans('CompanyRelationshipsPrincipalCompany'), 'name' => 'companyrelationships_socid', 'type' => 'select', 'values' => $principalCompanySelectArray, 'default' => '');
 
         // form confirm to choose the principal company
