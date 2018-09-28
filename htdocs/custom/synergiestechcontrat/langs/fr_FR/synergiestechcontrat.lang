@@ -93,21 +93,25 @@ STCInvoicesDraft                                = Factures brouillons
 STCTotalInvoicesHT                              = Total factures HT
 STCTotalInvoicesVAT                             = Total factures TVA
 STCTotalInvoicesTTC                             = Total factures TTC
-STCBillingContracts                             = Facturation des contracts (v2)
+STCBillingContracts                             = Facturation des contrats (v2)
 STCGenerateInvoicesContracts                    = Génération des factures
 STCValidateInvoicesContracts                    = Validation des factures
-STCListOfContractsToBill                        = Liste des contracts à facturer
+STCListOfContractsToBill                        = Liste des contrats à facturer
 STCGenerateInvoicesContractBeginWatchingDate    = Date de début de la période à facturer
 STCGenerateInvoicesContractEndWatchingDate      = Date de fin de la période à facturer
 STCGenerateInvoicesContractUseCustomerDiscounts = Utiliser les réductions du client
 STCGenerateInvoicesContractTestMode             = <b>Mode Test</b> (seul les fichiers CSV seront générés)
 STCGenerateInvoicesContractDisableRevaluation   = Désactiver la revalorisation en <b>Mode Test</b>
-STCGenerateInvoicesContract                     = Facturation des contracts
-STCConfirmGenerateInvoicesContract              = Êtes-vous sûr de vouloir lancer la facturation de ces contracts ?
-STCInvoicesContractValidated                    = %s facture(s) ont été validées
+STCGenerateInvoicesContract                     = Facturation des contrats
+STCConfirmGenerateInvoicesContract              = Êtes-vous sûr de vouloir lancer la facturation de ces contrats ?
+STCInvoicesContractValidated                    = %s facture(s) ont été validée(s)
 STCNoInvoicesContractValidated                  = Aucune facture n'a été validée
-STCInvoicesContractGenerated                    = %s contrat(s) ont été facturés
-STCNoInvoicesContractGenerated                  = Aucune contrat n'a été facturé
+STCInvoicesContractGenerated                    = %s contrat(s) ont été facturé(s)
+STCNoInvoicesContractGenerated                  = Aucun contrat n'a été facturé
+STCTerminateContracts                           = Résilier les contrats
+STCNoContractsToTerminate                       = Aucun contrat à résilier
+STCContractTerminated                           = Les %s contrat(s) suivant(s) ont été résilié(s) :
+STCNoContractTerminated                         = Aucun contrat n'a été résilié
 
 ########################################################################################################
 # Invoices Contracts Tools Class
@@ -230,7 +234,7 @@ STCContractNewCurrentValueInstallation  = Nouvelle valeur actuelle de l’instal
 ############################################################
 ### Actions
 ############################################################
-ActionAC_STC_REVAL  = Revaluation du contract
-ActionAC_STC_CRENE  = Renouvellement du contract
-ActionAC_STC_RENEC  = Reconduciton du contract
-ActionAC_STC_TERMI  = Résiliation du contract
+ActionAC_STC_REVAL  = Revaluation du contrat
+ActionAC_STC_CRENE  = Renouvellement du contrat
+ActionAC_STC_RENEC  = Reconduciton du contrat
+ActionAC_STC_TERMI  = Résiliation du contrat

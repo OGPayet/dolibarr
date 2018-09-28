@@ -171,42 +171,117 @@ if (!is_array($invoices_draft_list)) {
  * Action
  */
 
+// Purge search criteria
+if (GETPOST('button_removefilter_x', 'alpha') || GETPOST('button_removefilter.x', 'alpha') || GETPOST('button_removefilter', 'alpha')) // All test are required to be compatible with all browsers
+{
+    $day = '';
+    $month = '';
+    $year = '';
+    $search_name = "";
+    $search_town = '';
+    $search_zip = "";
+    $search_state = "";
+    $search_type = '';
+    $search_country = '';
+    $search_contract = "";
+    $search_ref_supplier = "";
+    $search_user = '';
+    $search_sale = '';
+    $search_product_category = '';
+    $sall = "";
+    $search_status = "";
+    $toselect = '';
+    $search_array_options = array();
+}
+
 if (GETPOST('cancel')) { $action='list'; $massaction=''; }
 if (! GETPOST('confirmmassaction') && $massaction != 'generate_invoices' && $massaction != 'confirm_generate_invoices') { $massaction=''; }
 
 $parameters=array('socid'=>$socid);
 $reshook=$hookmanager->executeHooks('doActions',$parameters,$object,$action);    // Note that $action and $object may have been modified by some hooks
 if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+if (empty($reshook)) {
+    include DOL_DOCUMENT_ROOT . '/core/actions_changeselectedfields.inc.php';
 
-include DOL_DOCUMENT_ROOT.'/core/actions_changeselectedfields.inc.php';
+    // Remove a file from massaction area
+    if ($action == 'remove_file') {
+        require_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
 
-// Purge search criteria
-if (GETPOST('button_removefilter_x','alpha') || GETPOST('button_removefilter.x','alpha') || GETPOST('button_removefilter','alpha')) // All test are required to be compatible with all browsers
-{
-	$day='';
-	$month='';
-	$year='';
-    $search_name="";
-	$search_town='';
-	$search_zip="";
-	$search_state="";
-	$search_type='';
-	$search_country='';
-	$search_contract="";
-	$search_ref_supplier="";
-    $search_user='';
-    $search_sale='';
-    $search_product_category='';
-	$sall="";
-	$search_status="";
-	$toselect='';
-	$search_array_options=array();
-}
+        $fileName = GETPOST('file');
+        $fileName = str_replace('/temp/stc_invoicescontract/' . $user->id . '/', '', $fileName);
 
-if (empty($reshook))
-{
-    $objectclass='Contrat';
-    $objectlabel='Contracts';
+        $langs->load("other");
+        $upload_dir = $diroutputmassaction;
+        $file = $upload_dir . '/' . $fileName;
+        $ret = dol_delete_file($file);
+        if ($ret) setEventMessages($langs->trans("FileWasRemoved", $fileName), null, 'mesgs');
+        else setEventMessages($langs->trans("ErrorFailToDeleteFile", $fileName), null, 'errors');
+        $action = '';
+    }
+    // Terminate contract
+    elseif ($action == "terminate_contract") {
+        $now = dol_now();
+        $nbok = 0;
+        $ref_contracts = array();
+
+        $sql = "SELECT c.rowid FROM " . MAIN_DB_PREFIX . "contrat as c" .
+            " LEFT JOIN " . MAIN_DB_PREFIX . "contratdet as cd ON c.rowid = cd.fk_contrat" .
+            " LEFT JOIN " . MAIN_DB_PREFIX . "contrat_extrafields as cef ON c.rowid = cef.fk_object" .
+            " WHERE cef.realdate <= '" . $db->idate($now) . "'" .
+            " AND cd.statut != 5" .
+            " GROUP BY c.rowid";
+
+        $resql = $db->query($sql);
+        if ($resql) {
+            dol_include_once('/synergiestechcontrat/class/invoicescontracttools.class.php');
+            $invoicescontracttools = new InvoicesContractTools($db);
+
+            while ($obj = $db->fetch_object($resql)) {
+                $error = 0;
+                $db->begin();
+
+                $contract = new Contrat($db);
+                $result = $contract->fetch($obj->rowid);
+                if ($result > 0) {
+                    $contract->fetch_thirdparty();
+
+                    $contract->cloture($user);
+
+                    $label = $langs->trans('STCContractTerminateEventLabel', $contract->ref);
+                    $message = $langs->trans('Author') . ' : ' . $user->login;
+
+                    $result = $invoicescontracttools->addEvent($contract, 'AC_STC_TERMI', $label, $message);
+                    if ($result < 0) {
+                        $error++;
+                        setEventMessages($langs->trans("Contract") . ' : ' . $contract->ref, $invoicescontracttools->errors, 'errors');
+                    } else {
+                        $ref_contracts[] = '- ' . $contract->ref;
+                        $nbok++;
+                    }
+                } elseif ($result == 0) {
+                    $error++;
+                    setEventMessage($langs->trans("ErrorRecordNotFound") . ' : ID:' . $obj->rowid, 'errors');
+                } else {
+                    $error++;
+                    setEventMessages($contract->error, $contract->errors, 'errors');
+                }
+
+                if ($error) {
+                    $db->rollback();
+                } else {
+                    $db->commit();
+                }
+            }
+        }
+
+        if ($nbok > 0)
+            setEventMessages($langs->trans('STCContractTerminated', $nbok), $ref_contracts, 'warnings');
+        else
+            setEventMessage($langs->trans('STCNoContractTerminated'), 'warnings');
+    }
+
+    $objectclass = 'Contrat';
+    $objectlabel = 'Contracts';
     $permtoread = $user->rights->contrat->lire;
     $permtodelete = $user->rights->contrat->supprimer;
     $uploaddir = $conf->contrat->dir_output;
@@ -217,7 +292,6 @@ if (empty($reshook))
 /*
  * View
  */
-
 $now=dol_now();
 $form=new Form($db);
 $formfile=new FormFile($db);
@@ -437,6 +511,18 @@ if ($resql)
     if ($massaction == 'generate_invoices') $arrayofmassactions=array();
     $massactionbutton=$form->selectMassAction('', $arrayofmassactions);
 
+    // Terminate contract button
+    $moreHTML = '';
+    if ($user->rights->contrat->creer) {
+        if ($formsynergiestechcontract->hasContractsToTerminate() > 0) {
+            $moreHTML .= '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?formfilteraction=list&sortfield=' . $sortfield . '&sortorder=' . $sortorder . '&page=' . $page . $param . '&action=terminate_contract">' . $langs->trans("STCTerminateContracts") . '</a></div>';
+        } else {
+            $moreHTML .= '<div class="inline-block divButAction"><a class="butActionRefused" href="#" title="'.$langs->trans("STCNoContractsToTerminate").'">'.$langs->trans("STCTerminateContracts").'</a></div>';
+        }
+    } else {
+        $moreHTML .= '<div class="inline-block divButAction"><a class="butActionRefused" href="#" title="'.$langs->trans("NotEnoughPermissions").'">'.$langs->trans("STCTerminateContracts").'</a></div>';
+    }
+
     print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
     if ($optioncss != '') print '<input type="hidden" name="optioncss" value="'.$optioncss.'">';
 	print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
@@ -446,7 +532,7 @@ if ($resql)
 	print '<input type="hidden" name="sortorder" value="'.$sortorder.'">';
 	print '<input type="hidden" name="page" value="'.$page.'">';
 
-    print_barre_liste($langs->trans('STCListOfContractsToBill'), $page, $_SERVER["PHP_SELF"], $param, $sortfield, $sortorder, $massactionbutton, $num, $totalnboflines, 'object_invoice', 0, '', '', $limit);
+    print_barre_liste($langs->trans('STCListOfContractsToBill'), $page, $_SERVER["PHP_SELF"], $param, $sortfield, $sortorder, $massactionbutton, $num, $totalnboflines, 'object_invoice', 0, $moreHTML, '', $limit);
 
 	if ($sall)
     {

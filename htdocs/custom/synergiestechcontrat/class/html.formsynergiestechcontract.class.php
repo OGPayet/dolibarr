@@ -146,7 +146,7 @@ class FormSynergiesTechContract
     }
 
     /**
-     * Get all invoices draft linked to contracts
+     *  Get all invoices draft linked to contracts
      *
      * @return array|int            List of contracts with all linked draft invoices info
      */
@@ -189,4 +189,29 @@ class FormSynergiesTechContract
 
         return $invoices_draft_list;
     }
+
+    /**
+     *  Has contract to terminate
+     *
+     * @return boolean
+     */
+    function hasContractsToTerminate() {
+        global $db;
+
+        $now = dol_now();
+        $sql = "SELECT c.rowid FROM " . MAIN_DB_PREFIX . "contrat as c" .
+            " LEFT JOIN " . MAIN_DB_PREFIX . "contratdet as cd ON c.rowid = cd.fk_contrat" .
+            " LEFT JOIN " . MAIN_DB_PREFIX . "contrat_extrafields as cef ON c.rowid = cef.fk_object" .
+            " WHERE cef.realdate <= '" . $db->idate($now) . "'" .
+            " AND cd.statut != 5" .
+            " GROUP BY c.rowid";
+
+        $resql = $db->query($sql);
+        if ($resql) {
+            return $db->num_rows($resql) > 0 ? 1 : 0;
+        } else {
+            return -1;
+        }
+    }
 }
+

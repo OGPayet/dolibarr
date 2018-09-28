@@ -31,22 +31,6 @@
 // $toselect may be defined
 // $invoices_draft_list must be defined
 
-// Remove a file from massaction area
-if ($action == 'remove_file') {
-    require_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
-
-    $fileName = GETPOST('file');
-    $fileName = str_replace('/temp/stc_invoicescontract/'.$user->id. '/', '', $fileName);
-
-    $langs->load("other");
-    $upload_dir = $diroutputmassaction;
-    $file = $upload_dir . '/' . $fileName;
-    $ret = dol_delete_file($file);
-    if ($ret) setEventMessages($langs->trans("FileWasRemoved", $fileName), null, 'mesgs');
-    else setEventMessages($langs->trans("ErrorFailToDeleteFile", $fileName), null, 'errors');
-    $action = '';
-}
-
 include DOL_DOCUMENT_ROOT.'/core/actions_massactions.inc.php';
 
 if ($reshook == 0) {
@@ -60,7 +44,6 @@ if ($reshook == 0) {
 
         if (!$error) {
             require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
-            $invoice = new Facture($this->db);
 
             $nbok = 0;
             foreach ($toselect as $toselectid) {
@@ -68,6 +51,7 @@ if ($reshook == 0) {
                     foreach ($invoices_draft_list[$toselectid]['invoices'] as $invoice_infos) {
                         $db->begin();
 
+                        $invoice = new Facture($db);
                         $result = $invoice->fetch($invoice_infos['id']);
                         if ($result > 0) {
                             $result = $invoice->validate($user);
@@ -89,6 +73,12 @@ if ($reshook == 0) {
 
             if ($nbok > 0)
                 setEventMessage($langs->trans('STCInvoicesContractValidated', $nbok));
+
+                // Get all invoices draft linked to contracts
+                $invoices_draft_list = $formsynergiestechcontract->getInvoicesContractsInfo();
+                if (!is_array($invoices_draft_list)) {
+                    setEventMessage('getInvoicesContractsInfo: ' . $db->lasterror(), 'errors');
+                }
             else
                 setEventMessage($langs->trans('STCNoInvoicesContractValidated'), 'warnings');
         }

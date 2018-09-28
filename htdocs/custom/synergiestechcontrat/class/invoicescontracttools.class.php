@@ -535,13 +535,15 @@ class InvoicesContractTools
                         $message.= $langs->trans('STCLastRevaluationIndexValueUsed') . ' : ' . $last_revaluation_index_value_used . '<br>';
                         $message.= $langs->trans('STCRevaluationIndexInfo') . ' : ' . $revaluation_index_info['index'] . ', ' . $langs->trans('value') . ': ' . $revaluation_index_info['index_value'] . ', ' . $langs->trans('month') . ': ' .$revaluation_index_info['month'] . ', ' . $langs->trans('year') . ': ' .$revaluation_index_info['year'] . '<br>';
                         $message.= $langs->trans('STCUnauthorizedDeflation') . ' : ' . yn($unauthorized_deflation) . '<br>';
-                        $message.= $langs->trans('STCContractRevaluationResult') . ' :<br>';
+                        $message.= '<br>' . $langs->trans('STCContractRevaluationResult') . ' :<br>';
                         $message.= $langs->trans('STCContractOldContractAmount') . ' : ' . price($old_contract_amount) . '<br>';
                         $message.= $langs->trans('STCContractNewContractAmount') . ' : ' . price($contract->array_options[self::EF_CONTRACT_AMOUNT]) . '<br>';
                         $message.= $langs->trans('STCContractOldLastRevaluationIndexUsed') . ' : ' . $old_last_revaluation_index_used . '<br>';
                         $message.= $langs->trans('STCContractNewLastRevaluationIndexUsed') . ' : ' . $contract->array_options[self::EF_LAST_REVALUATION_INDEX_USED] . '<br>';
                         $message.= $langs->trans('STCContractOldCurrentValueInstallation') . ' : ' . price($old_current_value_installation) . '<br>';
                         $message.= $langs->trans('STCContractNewCurrentValueInstallation') . ' : ' . price($contract->array_options[self::EF_CURRENT_VALUE_INSTALLATION]);
+                        $message.= '<br>' . $langs->trans('Author') . ' : ' . $user->login;
+
                         $result = $this->addEvent($contract, 'AC_STC_REVAL', $label, $message);
                         if ($result < 0) {
                             $error++;
@@ -729,6 +731,55 @@ class InvoicesContractTools
     }
 
     /**
+     *  Renewal contract
+     *
+     * @param   Contrat     $contract               Contract object
+     * @param   array       $billing_period         Billing period
+     * @param   int         $test_mode              Mode test (don't write in database)
+     *
+     * @return  int                                 >0: OK, -1: Errors
+     */
+    public function renewalContract(&$contract, $billing_period, $test_mode=0) {
+        global $langs, $user;
+
+        if (empty($contract->array_options)) {
+            $contract->fetch_optionals();
+        }
+
+        $error = 1;
+
+        if (!empty($test_mode)) $this->db->begin();
+
+        // Todo to make
+
+        // Create event with all information of this contract renewal (Renouvellement)
+        if (!$error) {
+            $label = $langs->trans('STCContractRenewalEventLabel', $contract->ref);
+            $message = $langs->trans('Author') . ' : ' . $user->login;
+
+            $result = $this->addEvent($contract, 'AC_STC_CRENE', $label, $message);
+            if ($result < 0) {
+                $error++;
+            }
+        }
+
+        // Create event with all information of the renewal of the contract (Reconduction)
+        if (!$error) {
+            $label = $langs->trans('STCRenewalOfTheContractEventLabel', $contract->ref);
+            $message = $langs->trans('Author') . ' : ' . $user->login;
+
+            $result = $this->addEvent($contract, 'AC_STC_RENEC', $label, $message);
+            if ($result < 0) {
+                $error++;
+            }
+        }
+
+        if (!empty($test_mode)) $this->db->rollback();
+
+        return 1;
+    }
+
+    /**
      *  Generate invoice for the contract at the given watching date
      *
      * @param   Contrat     $contract                   Contract object
@@ -800,6 +851,14 @@ class InvoicesContractTools
                         dol_print_date($invoice->array_options['options_datefin'], 'day'),
                         price($invoice->total_ht) . 'HT');
                 }
+                $error++;
+            }
+        }
+
+        // Renewal contract
+        if (!$error && !$pass) {
+            $result = $this->renewalContract($contract, $billing_period, $test_mode);
+            if ($result < 0) {
                 $error++;
             }
         }
