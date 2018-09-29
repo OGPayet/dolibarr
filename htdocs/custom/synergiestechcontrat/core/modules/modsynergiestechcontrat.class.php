@@ -296,7 +296,7 @@ class modsynergiestechcontrat extends DolibarrModulessynergiestechcontrat
 								'type'=>'left',			                // This is a Left menu entry
 								'titre'=>'FacturationContrat',
 								'mainmenu'=>'accountancy',
-								'leftmenu'=>'customers_bills',
+								'leftmenu'=>'contratinvoice',
 								'url'=>'/synergiestechcontrat/contratInvoice.php',
 								'langs'=>'synergiestechcontrat@synergiestechcontrat',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 								'position'=>1000+$r,
@@ -309,7 +309,7 @@ class modsynergiestechcontrat extends DolibarrModulessynergiestechcontrat
             'type' => 'left',
             'titre' => 'STCBillingContracts',
             'mainmenu' => 'accountancy',
-            'leftmenu' => 'customers_bills',
+            'leftmenu' => 'invoicescontractlist',
             'url' => '/synergiestechcontrat/invoicescontractlist.php',
             'langs' => 'synergiestechcontrat@synergiestechcontrat',
             'position' => 1000 + $r,

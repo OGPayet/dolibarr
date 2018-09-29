@@ -533,7 +533,7 @@ class InvoicesContractTools
                         $message.= $langs->trans('STCFirstBillingPeriod') . ' : ' . $first_billing_period_begin->toDateString() . ' ' . $langs->trans('to') . ' ' . $first_billing_period_end->toDateString() . ' (' . $first_billing_period_lenght . ' ' . $langs->trans('days') . ')<br>';
                         $message.= $langs->trans('STCSecondBillingPeriod') . ' : ' . $second_billing_period_begin->toDateString() . ' ' . $langs->trans('to') . ' ' . $second_billing_period_end->toDateString() . ' (' . $second_billing_period_lenght . ' ' . $langs->trans('days') . ')<br>';
                         $message.= $langs->trans('STCLastRevaluationIndexValueUsed') . ' : ' . $last_revaluation_index_value_used . '<br>';
-                        $message.= $langs->trans('STCRevaluationIndexInfo') . ' : ' . $revaluation_index_info['index'] . ', ' . $langs->trans('value') . ': ' . $revaluation_index_info['index_value'] . ', ' . $langs->trans('month') . ': ' .$revaluation_index_info['month'] . ', ' . $langs->trans('year') . ': ' .$revaluation_index_info['year'] . '<br>';
+                        $message.= $langs->trans('STCRevaluationIndexInfo') . ' : ' . $revaluation_index_info['index'] . ', ' . $langs->trans('STCValue') . ': ' . $revaluation_index_info['index_value'] . ', ' . $langs->trans('STCMonth') . ': ' .$revaluation_index_info['month'] . ', ' . $langs->trans('STCYear') . ': ' .$revaluation_index_info['year'] . '<br>';
                         $message.= $langs->trans('STCUnauthorizedDeflation') . ' : ' . yn($unauthorized_deflation) . '<br>';
                         $message.= '<br>' . $langs->trans('STCContractRevaluationResult') . ' :<br>';
                         $message.= $langs->trans('STCContractOldContractAmount') . ' : ' . price($old_contract_amount) . '<br>';
@@ -1329,7 +1329,9 @@ class InvoicesContractTools
 
         if (file_exists($dir)) {
             $now = dol_now();
-            $file_path = $dir . '/report_' . dol_print_date($watching_period_begin, 'dayrfc') . '_to_' . dol_print_date($watching_period_end, 'dayrfc') . '_at_' . dol_print_date($now, 'standard') . '.csv';
+            $file_path = $dir . '/report_' . dol_print_date($watching_period_begin, 'dayrfc') .
+                '_' . $langs->trans('to') . '_' . dol_print_date($watching_period_end, 'dayrfc') .
+                '_' . $langs->trans('at') . '_' . dol_print_date($now, 'standard') . '.csv';
             $this->report_file = @fopen($file_path, "w");
             if ($this->report_file) {
                 // Add headers

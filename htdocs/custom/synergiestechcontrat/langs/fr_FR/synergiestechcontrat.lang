@@ -116,6 +116,9 @@ STCNoContractTerminated                         = Aucun contrat n'a été résil
 ########################################################################################################
 # Invoices Contracts Tools Class
 ########################################################################################################
+STCValue                                        = valeur
+STCMonth                                        = mois
+STCYear                                         = année
 STCTerminationDate                              = Date effective de résiliation
 STCContractAmount                               = Montant du contrat
 STCContractBillingType                          = Type de facturation
@@ -210,7 +213,7 @@ STC_RLH_INVOICE_VALIDATED                           = Facture: Validée
 # Revaluation Event
 ########################################################################################################
 STCContractRevaluationEventLabel        = Revalorisation du contrat "%s"
-STCContractRevaluationData              = Paramètres :
+STCContractRevaluationData              = Paramètres
 STCWatchingPeriod                       = Période à regarder
 STCBillingPeriod                        = Période à facturer
 STCRevaluationIndex                     = Indice de revalorisation
@@ -223,7 +226,7 @@ STCSecondBillingPeriod                  = Seconde période à facturer
 STCLastRevaluationIndexValueUsed        = Valeur du 1er indice à utiliser (ou dernier indice utilisé dans un calcul)
 STCRevaluationIndexInfo                 = Information sur l'indice de revalorisation
 STCUnauthorizedDeflation                = Déflation non autorisée
-STCContractRevaluationResult            = Résultats :
+STCContractRevaluationResult            = Résultats
 STCContractOldContractAmount            = Ancien montant du contrat
 STCContractNewContractAmount            = Nouveau montant du contrat
 STCContractOldLastRevaluationIndexUsed  = Ancien '1er indice à utiliser (ou dernier indice utilisé dans un calcul)'
