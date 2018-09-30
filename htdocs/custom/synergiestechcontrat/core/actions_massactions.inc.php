@@ -154,6 +154,8 @@ if ($reshook == 0) {
 
                 // Save report CSV
                 $invoicescontracttools->closeReportFile();
+
+                $show_files = 1;
             } else {
                 setEventMessages(null, $invoicescontracttools->errors, 'errors');
                 $error++;

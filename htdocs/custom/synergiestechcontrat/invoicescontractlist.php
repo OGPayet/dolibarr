@@ -103,7 +103,8 @@ $id=GETPOST('id','int');
 if ($user->societe_id) $socid=$user->societe_id;
 $result = restrictedArea($user, 'contrat', $id);
 
-$diroutputmassaction=$conf->contrat->dir_output . '/temp/stc_invoicescontract/'.$user->id;
+$subdiroutputmassaction = '/stc_invoices_contract';
+$diroutputmassaction=$conf->contrat->dir_output . $subdiroutputmassaction;
 
 $staticcontrat=new Contrat($db);
 $staticcontratligne=new ContratLigne($db);
@@ -208,7 +209,7 @@ if (empty($reshook)) {
         require_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
 
         $fileName = GETPOST('file');
-        $fileName = str_replace('/temp/stc_invoicescontract/' . $user->id . '/', '', $fileName);
+        $fileName = str_replace($subdiroutputmassaction . '/', '', $fileName);
 
         $langs->load("other");
         $upload_dir = $diroutputmassaction;
@@ -1065,7 +1066,7 @@ if ($resql)
         $genallowed = $user->rights->contrat->lire;
         $delallowed = $user->rights->contrat->creer;
 
-        print $formfile->showdocuments('contrat', '/temp/stc_invoicescontract/'.$user->id, $filedir, $urlsource, 0, $delallowed, '', 1, 1, 0, 48, 1, $param, $title, '');
+        print $formfile->showdocuments('contrat', $subdiroutputmassaction, $filedir, $urlsource, 0, $delallowed, '', 1, 1, 0, 48, 1, $param, $title, '');
     } else {
         print '<br><a name="show_files"></a><a href="' . $_SERVER["PHP_SELF"] . '?show_files=1' . $param . '#show_files">' . $langs->trans("ShowTempMassFilesArea") . '</a>';
     }

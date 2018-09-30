@@ -116,9 +116,6 @@ STCNoContractTerminated                         = Aucun contrat n'a été résil
 ########################################################################################################
 # Invoices Contracts Tools Class
 ########################################################################################################
-STCValue                                        = valeur
-STCMonth                                        = mois
-STCYear                                         = année
 STCTerminationDate                              = Date effective de résiliation
 STCContractAmount                               = Montant du contrat
 STCContractBillingType                          = Type de facturation
@@ -145,6 +142,10 @@ STCErrorSQLGetInvoicesOnThePeriod               = Erreur SQL pour récupérer la
 STCErrorSQLGetLastRevaluationIndexValueUsed     = Erreur SQL pour récupérer la valeur du précédent indice de revalorisation: %s
 STCErrorSQLGetRevaluationIndexInfo              = Erreur SQL pour récupérer les informations de l'indice de revalorisation: %s
 STCErrorSQLSetLastRevaluationIndexUsed          = Erreur SQL pour récupérer le précédent indice de revalorisation: %s
+STCReportFileName                               = Rapport - Facturation du %s%s - Le %s
+STCValue                                        = valeur
+STCMonth                                        = mois
+STCYear                                         = année
 
 ########################################################################################################
 # Report headers
@@ -195,11 +196,13 @@ STC_RLH_BILLING_PERIOD_AMOUNT                       = Montant de la période de 
 STC_RLH_INVOICE_ID                                  = Facture: ID
 STC_RLH_INVOICE_REF                                 = Facture: Référence
 STC_RLH_INVOICE_SOC_ID                              = Facture: Tiers ID
+STC_RLH_INVOICE_SOC_NAME                            = Facture: Nom du tiers
 STC_RLH_INVOICE_REF_CUSTOMER                        = Facture: Réf. client
 STC_RLH_INVOICE_MODEL_PDF                           = Facture: Model PDF
 STC_RLH_INVOICE_COND_REGLEMENT_ID                   = Facture: Condition de reglement ID
 STC_RLH_INVOICE_MODE_REGLEMENT_ID                   = Facture: Mode de règlement ID
 STC_RLH_INVOICE_ACCOUNT_ID                          = Facture: Banque ID
+STC_RLH_INVOICE_ACCOUNT_NAME                        = Facture: Nom de la banque
 STC_RLH_INVOICE_AMOUNT                              = Facture: Montant
 STC_RLH_INVOICE_REMISE_PERCENT                      = Facture: Pourcentage de remise
 STC_RLH_INVOICE_INCOTERMS_ID                        = Facture: Incotermes ID

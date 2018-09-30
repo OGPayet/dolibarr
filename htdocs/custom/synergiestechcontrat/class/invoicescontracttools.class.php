@@ -39,22 +39,39 @@ class InvoicesContractTools
     public $errors = array();
 
     /**
+     * @var Form   Form object
+     */
+    public $form = null;
+    /**
+     * @var ExtraFields   Extra fields object
+     */
+    public $extraFields = null;
+    /**
+     * @var array         List of old month index key/label (EF_LAST_REVALUATION_INDEX_USED)
+     */
+    public $cache_old_month_index = null;
+    /**
+     * @var array         List of account
+     */
+    public $cache_account = null;
+
+    /**
      * Constants of the extra fields code
      */
-    const EF_BILLING_TYPE                       = 'options_invoicetype';
-    const EF_FREQUENCY_BILLING                  = 'options_invoicedates';
-    const EF_TERMINATION_DATE                   = 'options_realdate';
-    const EF_TACIT_RENEWAL                      = 'options_tacitagreement';
-    const EF_CONTRACT_DURATION_MONTHS           = 'options_duration';
-    const EF_CONTRACT_AMOUNT                    = 'options_initialvalue';
-    const EF_REVALUATION_INDEX                  = 'options_reindexmethod';
-    const EF_ENABLE_TO_REVALUATION_DATE         = 'options_revalorisationactivationdate';
-    const EF_UNAUTHORIZED_DEFLATION             = 'options_prohibitdecrease';
-    const EF_CURRENT_VALUE_INSTALLATION         = 'options_equipmentvalue';
-    const EF_EFFECTIVE_DATE                     = 'options_startdate';
-    const EF_REVALUATION_DATE                   = 'options_revalorisationperiod';
-    const EF_LAST_REVALUATION_INDEX_USED        = 'options_oldindicemonth';
-    const EF_MONTH_FOR_NEW_REVALUATION_INDEX    = 'options_newindicemonth';
+    const EF_BILLING_TYPE                       = 'invoicetype';
+    const EF_FREQUENCY_BILLING                  = 'invoicedates';
+    const EF_TERMINATION_DATE                   = 'realdate';
+    const EF_TACIT_RENEWAL                      = 'tacitagreement';
+    const EF_CONTRACT_DURATION_MONTHS           = 'duration';
+    const EF_CONTRACT_AMOUNT                    = 'initialvalue';
+    const EF_REVALUATION_INDEX                  = 'reindexmethod';
+    const EF_ENABLE_TO_REVALUATION_DATE         = 'revalorisationactivationdate';
+    const EF_UNAUTHORIZED_DEFLATION             = 'prohibitdecrease';
+    const EF_CURRENT_VALUE_INSTALLATION         = 'equipmentvalue';
+    const EF_EFFECTIVE_DATE                     = 'startdate';
+    const EF_REVALUATION_DATE                   = 'revalorisationperiod';
+    const EF_LAST_REVALUATION_INDEX_USED        = 'oldindicemonth';
+    const EF_MONTH_FOR_NEW_REVALUATION_INDEX    = 'newindicemonth';
 
     /**
      * @var string      CSV separator to use
@@ -129,19 +146,21 @@ class InvoicesContractTools
     const RLH_INVOICE_ID = 43;
     const RLH_INVOICE_REF = 44;
     const RLH_INVOICE_SOC_ID = 45;
-    const RLH_INVOICE_REF_CUSTOMER = 46;
-    const RLH_INVOICE_MODEL_PDF = 47;
-    const RLH_INVOICE_COND_REGLEMENT_ID = 48;
-    const RLH_INVOICE_MODE_REGLEMENT_ID = 49;
-    const RLH_INVOICE_ACCOUNT_ID = 50;
-    const RLH_INVOICE_AMOUNT = 51;
-    const RLH_INVOICE_REMISE_PERCENT = 52;
-    const RLH_INVOICE_INCOTERMS_ID = 53;
-    const RLH_INVOICE_LOCATION_INCOTERMS = 54;
-    const RLH_INVOICE_MULTICURRENCY_CODE = 55;
-    const RLH_INVOICE_BILLING_PERIOD_BEGIN = 56;
-    const RLH_INVOICE_BILLING_PERIOD_END = 57;
-    const RLH_INVOICE_VALIDATED = 58;
+    const RLH_INVOICE_SOC_NAME = 46;
+    const RLH_INVOICE_REF_CUSTOMER = 47;
+    const RLH_INVOICE_MODEL_PDF = 48;
+    const RLH_INVOICE_COND_REGLEMENT_ID = 49;
+    const RLH_INVOICE_MODE_REGLEMENT_ID = 50;
+    const RLH_INVOICE_ACCOUNT_ID = 51;
+    const RLH_INVOICE_ACCOUNT_NAME = 52;
+    const RLH_INVOICE_AMOUNT = 53;
+    const RLH_INVOICE_REMISE_PERCENT = 54;
+    const RLH_INVOICE_INCOTERMS_ID = 55;
+    const RLH_INVOICE_LOCATION_INCOTERMS = 56;
+    const RLH_INVOICE_MULTICURRENCY_CODE = 57;
+    const RLH_INVOICE_BILLING_PERIOD_BEGIN = 58;
+    const RLH_INVOICE_BILLING_PERIOD_END = 59;
+    const RLH_INVOICE_VALIDATED = 60;
     const RLH_ERRORS = 100;
 
 
@@ -159,6 +178,23 @@ class InvoicesContractTools
         $this->csv_separator = !empty($conf->global->SYNERGIESTECHCONTRAT_CSV_SEPARATOR_TO_USE) ? $conf->global->SYNERGIESTECHCONTRAT_CSV_SEPARATOR_TO_USE : $this->csv_separator;
         $this->csv_enclosure = !empty($conf->global->SYNERGIESTECHCONTRAT_CSV_ENCLOSURE) ? $conf->global->SYNERGIESTECHCONTRAT_CSV_ENCLOSURE : $this->csv_enclosure;
         $this->csv_escape = !empty($conf->global->SYNERGIESTECHCONTRAT_CSV_ESCAPE) ? $conf->global->SYNERGIESTECHCONTRAT_CSV_ESCAPE : $this->csv_escape;
+
+        require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
+        $this->extrafields = new ExtraFields($this->db);
+        $extralabels = $this->extrafields->fetch_name_optionals_label('contrat');
+
+        $this->cache_old_month_index = array();
+        $sql = "SELECT rowid, label FROM ".MAIN_DB_PREFIX."view_c_indice";
+        $resql = $this->db->query($sql);
+        if ($resql) {
+            while($obj = $this->db->fetch_object($resql)) {
+                $this->cache_old_month_index[$obj->rowid] = $obj->label;
+            }
+        }
+
+        require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
+        $this->form = new Form($this->db);
+        $this->cache_account = array();
     }
 
     /**
@@ -178,6 +214,35 @@ class InvoicesContractTools
     }
 
     /**
+     *  Get contract extra fields label
+     *
+     * @param   string      $code       Code of the extra fields
+     * @param   string      $value      Value
+     * @return  string                  Label of the value
+     */
+    public function getContractExtraFieldsLabel($code, $value) {
+        global $langs;
+
+        $label = $this->extrafields->attributes['contrat']['param'][$code]['options'][$value];
+
+        return isset($label) ? $label : $langs->trans('STCValueNotFound');
+    }
+
+    /**
+     *  Get contract old month index label (EF_LAST_REVALUATION_INDEX_USED)
+     *
+     * @param   string      $value      Value
+     * @return  string                  Label of the value
+     */
+    public function getContractOldMonthIndexLabel($value) {
+        global $langs;
+
+        $label = $this->cache_old_month_index[$value];
+
+        return isset($label) ? $label : $langs->trans('STCValueNotFound');
+    }
+
+    /**
      *  Get watching period
      *
      * @param   Contrat     $contract       Contract object
@@ -193,8 +258,8 @@ class InvoicesContractTools
         }
 
         // Get parameters
-        $billing_type = $contract->array_options[self::EF_BILLING_TYPE];
-        $frequency_of_billing = $contract->array_options[self::EF_FREQUENCY_BILLING];
+        $billing_type = $contract->array_options['options_' . self::EF_BILLING_TYPE];
+        $frequency_of_billing = $contract->array_options['options_' . self::EF_FREQUENCY_BILLING];
         $watching_date = Carbon::createFromTimestamp($watching_date);
 
         // Get watching period
@@ -294,7 +359,7 @@ class InvoicesContractTools
 
         // Get end date of the contract
         $contract_end = null;
-        $termination_date = $contract->array_options[self::EF_TERMINATION_DATE];
+        $termination_date = $contract->array_options['options_' . self::EF_TERMINATION_DATE];
         if (!empty($termination_date)) {
             $contract_end = Carbon::createFromFormat('Y-m-d', $termination_date);
             if (!isset($contract_end)) {
@@ -302,10 +367,10 @@ class InvoicesContractTools
                 return null;
             }
         } else {
-            if (!empty($contract->array_options[self::EF_TACIT_RENEWAL])) {
+            if (!empty($contract->array_options['options_' . self::EF_TACIT_RENEWAL])) {
                 $contract_end = Carbon::now()->addCenturies(10);
             } else {
-                $contract_end = $start_date->copy()->addMonths($contract->array_options[self::EF_CONTRACT_DURATION_MONTHS]);
+                $contract_end = $start_date->copy()->addMonths($contract->array_options['options_' . self::EF_CONTRACT_DURATION_MONTHS]);
             }
         }
 
@@ -343,14 +408,14 @@ class InvoicesContractTools
         }
 
         // Get contract amount
-        $contract_amount = $contract->array_options[self::EF_CONTRACT_AMOUNT];
+        $contract_amount = $contract->array_options['options_' . self::EF_CONTRACT_AMOUNT];
         if (!is_numeric($contract_amount) || $contract_amount < 0) {
             $this->errors[] = $langs->trans('STCErrorBadFieldValue', $langs->transnoentitiesnoconv('STCContractAmount'), $contract_amount);
             return null;
         }
 
         // Get number of bill period in a year
-        $frequency_of_billing = $contract->array_options[self::EF_FREQUENCY_BILLING];
+        $frequency_of_billing = $contract->array_options['options_' . self::EF_FREQUENCY_BILLING];
         switch (intval($frequency_of_billing)) {
             // Monthly
             case 1: $number_billing_period_in_year = 12; break;
@@ -378,14 +443,14 @@ class InvoicesContractTools
         $this->setCurrentReportLineValue(self::RLH_WATCHING_PERIOD_LENGHT, $watching_period_lenght);
 
         // Get revaluation index
-        $revaluation_index = $contract->array_options[self::EF_REVALUATION_INDEX];
+        $revaluation_index = $contract->array_options['options_' . self::EF_REVALUATION_INDEX];
         if ($revaluation_index != 1 && $revaluation_index != 2 && $revaluation_index != 3) {
             $this->errors[] = $langs->trans('STCErrorBadFieldValue', $langs->transnoentitiesnoconv('STCContractRevaluationIndex'), $revaluation_index);
             return null;
         }
 
         // Set contract info into the report CSV
-        $this->setCurrentReportLineValue(self::RLH_CONTRACT_REVALUATION_INDEX, $revaluation_index);
+        $this->setCurrentReportLineValue(self::RLH_CONTRACT_REVALUATION_INDEX, $this->getContractExtraFieldsLabel(self::EF_REVALUATION_INDEX, $revaluation_index));
 
         $billing_period_amount = null;
 
@@ -419,7 +484,7 @@ class InvoicesContractTools
 
             // Get the date when enable to revaluation
             $enable_to_revaluation_date = null;
-            $enable_to_revaluation_date_t = $contract->array_options[self::EF_ENABLE_TO_REVALUATION_DATE];
+            $enable_to_revaluation_date_t = $contract->array_options['options_' . self::EF_ENABLE_TO_REVALUATION_DATE];
             if (!empty($enable_to_revaluation_date_t)) {
                 $enable_to_revaluation_date = Carbon::createFromFormat('Y-m-d', $enable_to_revaluation_date_t);
                 if (!isset($enable_to_revaluation_date)) {
@@ -488,25 +553,25 @@ class InvoicesContractTools
                 $this->setCurrentReportLineValue(self::RLH_REVALUATION_INDEX_INFO_YEAR, $revaluation_index_info['year']);
 
                 // Get unauthorized deflation
-                $unauthorized_deflation = $contract->array_options[self::EF_UNAUTHORIZED_DEFLATION];
+                $unauthorized_deflation = $contract->array_options['options_' . self::EF_UNAUTHORIZED_DEFLATION];
 
                 // Set contract info into the report CSV
                 $this->setCurrentReportLineValue(self::RLH_CONTRACT_UNAUTHORIZED_DEFLATION, yn($unauthorized_deflation));
 
                 // Calculate the revaluation
                 if (!($revaluation_index_info['index_value'] < $last_revaluation_index_value_used && !empty($unauthorized_deflation))) {
-                    $old_contract_amount = $contract->array_options[self::EF_CONTRACT_AMOUNT];
-                    $old_last_revaluation_index_used = $contract->array_options[self::EF_LAST_REVALUATION_INDEX_USED];
-                    $old_current_value_installation = $contract->array_options[self::EF_CURRENT_VALUE_INSTALLATION];
+                    $old_contract_amount = $contract->array_options['options_' . self::EF_CONTRACT_AMOUNT];
+                    $old_last_revaluation_index_used = $contract->array_options['options_' . self::EF_LAST_REVALUATION_INDEX_USED];
+                    $old_current_value_installation = $contract->array_options['options_' . self::EF_CURRENT_VALUE_INSTALLATION];
 
                     // Update 'last revaluation index value used' of the contract
                     if ($this->setLastRevaluationIndexUsed($contract, $revaluation_index_info['month'], $revaluation_index_info['year']) < 0)
                         return null;
                     // Update 'contract amount' of the contract
                     $contract_amount = $contract_amount * $revaluation_index_info['index_value'] / $last_revaluation_index_value_used;
-                    $contract->array_options[self::EF_CONTRACT_AMOUNT] = $contract_amount;
+                    $contract->array_options['options_' . self::EF_CONTRACT_AMOUNT] = $contract_amount;
                     // Update 'current value of the installation' of the contract
-                    $contract->array_options[self::EF_CURRENT_VALUE_INSTALLATION] = $contract->array_options[self::EF_CURRENT_VALUE_INSTALLATION] * $revaluation_index_info['index_value'] / $last_revaluation_index_value_used;
+                    $contract->array_options['options_' . self::EF_CURRENT_VALUE_INSTALLATION] = $contract->array_options['options_' . self::EF_CURRENT_VALUE_INSTALLATION] * $revaluation_index_info['index_value'] / $last_revaluation_index_value_used;
 
                     $error = 0;
 
@@ -525,7 +590,7 @@ class InvoicesContractTools
                         $message = $langs->trans('STCContractRevaluationData') . ' :<br>';
                         $message.= $langs->trans('STCWatchingPeriod') . ' : ' . $watching_period_begin->toDateString() . ' ' . $langs->trans('to') . ' ' . $watching_period_end->toDateString() . ' (' . $watching_period_lenght . ' ' . $langs->trans('days') . ')<br>';
                         $message.= $langs->trans('STCBillingPeriod') . ' : ' . $billing_period_begin->toDateString() . ' ' . $langs->trans('to') . ' ' . $billing_period_end->toDateString() . '<br>';
-                        $message.= $langs->trans('STCRevaluationIndex') . ' : ' . $revaluation_index . '<br>';
+                        $message.= $langs->trans('STCRevaluationIndex') . ' : ' . $this->getContractExtraFieldsLabel(self::EF_REVALUATION_INDEX, $revaluation_index) . '<br>';
                         $message.= $langs->trans('STCRevaluationDate') . ' : ' . $revaluation_date->toDateString() . '<br>';
                         $message.= $langs->trans('STCPotentialRevaluationDate') . ' : ' . $potential_revaluation_date->toDateString() . '<br>';
                         $message.= $langs->trans('STCFirstAbsoluteRevaluationDate') . ' : ' . $first_absolute_revaluation_date->toDateString() . '<br>';
@@ -537,11 +602,11 @@ class InvoicesContractTools
                         $message.= $langs->trans('STCUnauthorizedDeflation') . ' : ' . yn($unauthorized_deflation) . '<br>';
                         $message.= '<br>' . $langs->trans('STCContractRevaluationResult') . ' :<br>';
                         $message.= $langs->trans('STCContractOldContractAmount') . ' : ' . price($old_contract_amount) . '<br>';
-                        $message.= $langs->trans('STCContractNewContractAmount') . ' : ' . price($contract->array_options[self::EF_CONTRACT_AMOUNT]) . '<br>';
-                        $message.= $langs->trans('STCContractOldLastRevaluationIndexUsed') . ' : ' . $old_last_revaluation_index_used . '<br>';
-                        $message.= $langs->trans('STCContractNewLastRevaluationIndexUsed') . ' : ' . $contract->array_options[self::EF_LAST_REVALUATION_INDEX_USED] . '<br>';
+                        $message.= $langs->trans('STCContractNewContractAmount') . ' : ' . price($contract->array_options['options_' . self::EF_CONTRACT_AMOUNT]) . '<br>';
+                        $message.= $langs->trans('STCContractOldLastRevaluationIndexUsed') . ' : ' . $this->getContractOldMonthIndexLabel($old_last_revaluation_index_used) . '<br>';
+                        $message.= $langs->trans('STCContractNewLastRevaluationIndexUsed') . ' : ' . $this->getContractOldMonthIndexLabel($contract->array_options['options_' . self::EF_LAST_REVALUATION_INDEX_USED]) . '<br>';
                         $message.= $langs->trans('STCContractOldCurrentValueInstallation') . ' : ' . price($old_current_value_installation) . '<br>';
-                        $message.= $langs->trans('STCContractNewCurrentValueInstallation') . ' : ' . price($contract->array_options[self::EF_CURRENT_VALUE_INSTALLATION]);
+                        $message.= $langs->trans('STCContractNewCurrentValueInstallation') . ' : ' . price($contract->array_options['options_' . self::EF_CURRENT_VALUE_INSTALLATION]) . '<br>';
                         $message.= '<br>' . $langs->trans('Author') . ' : ' . $user->login;
 
                         $result = $this->addEvent($contract, 'AC_STC_REVAL', $label, $message);
@@ -551,9 +616,9 @@ class InvoicesContractTools
                     }
 
                     // Set revaluation contract info into the report CSV
-                    $this->setCurrentReportLineValue(self::RLH_CONTRACT_NEW_AMOUNT, $contract->array_options[self::EF_CONTRACT_AMOUNT]);
-                    $this->setCurrentReportLineValue(self::RLH_CONTRACT_NEW_LAST_REVALUATION_INDEX_USED, $contract->array_options[self::EF_LAST_REVALUATION_INDEX_USED]);
-                    $this->setCurrentReportLineValue(self::RLH_CONTRACT_NEW_CURRENT_VALUE_INSTALLATION, $contract->array_options[self::EF_CURRENT_VALUE_INSTALLATION]);
+                    $this->setCurrentReportLineValue(self::RLH_CONTRACT_NEW_AMOUNT, $contract->array_options['options_' . self::EF_CONTRACT_AMOUNT]);
+                    $this->setCurrentReportLineValue(self::RLH_CONTRACT_NEW_LAST_REVALUATION_INDEX_USED, $this->getContractOldMonthIndexLabel($contract->array_options['options_' . self::EF_LAST_REVALUATION_INDEX_USED]));
+                    $this->setCurrentReportLineValue(self::RLH_CONTRACT_NEW_CURRENT_VALUE_INSTALLATION, $contract->array_options['options_' . self::EF_CURRENT_VALUE_INSTALLATION]);
 
                     if (!empty($test_mode)) $this->db->rollback();
                     if ($error) return null;
@@ -934,7 +999,7 @@ class InvoicesContractTools
         $this->setGeneralContractInfoInCurrentReportLine($contract);
 
         // Get number of bill period in a year
-        $frequency_of_billing = $contract->array_options[self::EF_FREQUENCY_BILLING];
+        $frequency_of_billing = $contract->array_options['options_' . self::EF_FREQUENCY_BILLING];
         switch (intval($frequency_of_billing)) {
             // Monthly
             case 1: $number_billing_period_in_year = 1; break;
@@ -1004,7 +1069,7 @@ class InvoicesContractTools
         }
 
         // Get effective date
-        $effective_date_t = $contract->array_options[self::EF_EFFECTIVE_DATE];
+        $effective_date_t = $contract->array_options['options_' . self::EF_EFFECTIVE_DATE];
         $effective_date = null;
         if (!empty($effective_date_t)) {
             $effective_date = Carbon::createFromFormat('Y-m-d', $effective_date_t);
@@ -1067,7 +1132,7 @@ class InvoicesContractTools
         }
 
         // Get revaluation date
-        $revaluation_date = $contract->array_options[self::EF_REVALUATION_DATE];
+        $revaluation_date = $contract->array_options['options_' . self::EF_REVALUATION_DATE];
         switch (intval($revaluation_date)) {
             // Anniversary date
             case 1: return Carbon::create(0, $effective_date->month, $effective_date->day); break;
@@ -1100,7 +1165,7 @@ class InvoicesContractTools
         }
 
         // Get last revaluation index used
-        $last_revaluation_index_used = $contract->array_options[self::EF_LAST_REVALUATION_INDEX_USED];
+        $last_revaluation_index_used = $contract->array_options['options_' . self::EF_LAST_REVALUATION_INDEX_USED];
         if (empty($last_revaluation_index_used)) {
             $this->errors[] = $langs->trans('STCErrorBadFieldValue', $langs->transnoentitiesnoconv('STCContractLastRevaluationIndexUsed'), $last_revaluation_index_used);
             return -1;
@@ -1150,7 +1215,7 @@ class InvoicesContractTools
         }
 
         // Get revaluation index
-        $revaluation_index = $contract->array_options[self::EF_REVALUATION_INDEX];
+        $revaluation_index = $contract->array_options['options_' . self::EF_REVALUATION_INDEX];
         switch (intval($revaluation_index)) {
             // Syntec
             case 2: $filter = 'Syntec'; break;
@@ -1178,7 +1243,7 @@ class InvoicesContractTools
         $this->db->free($resql);
 
         if ($obj) {
-            $contract->array_options[self::EF_LAST_REVALUATION_INDEX_USED] = $obj->rowid;
+            $contract->array_options['options_' . self::EF_LAST_REVALUATION_INDEX_USED] = $obj->rowid;
             return 1;
         } else {
             $this->errors[] = $langs->trans('STCErrorLastRevaluationIndexUsedNotFound', $filter, $month, $year);
@@ -1202,7 +1267,7 @@ class InvoicesContractTools
         }
 
         // Get month used for get the new revaluation index value
-        $month_for_new_revaluation_index = $contract->array_options[self::EF_MONTH_FOR_NEW_REVALUATION_INDEX];
+        $month_for_new_revaluation_index = $contract->array_options['options_' . self::EF_MONTH_FOR_NEW_REVALUATION_INDEX];
         if (!is_numeric($month_for_new_revaluation_index) ||
             (!empty($month_for_new_revaluation_index) && ($month_for_new_revaluation_index < 1 || 12 < $month_for_new_revaluation_index))) {
             $this->errors[] = $langs->trans('STCErrorBadFieldValue', $langs->transnoentitiesnoconv('STCContractMonthForNewRevaluationIndex'), $month_for_new_revaluation_index);
@@ -1210,7 +1275,7 @@ class InvoicesContractTools
         }
 
         // Get revaluation index
-        $revaluation_index = $contract->array_options[self::EF_REVALUATION_INDEX];
+        $revaluation_index = $contract->array_options['options_' . self::EF_REVALUATION_INDEX];
         switch (intval($revaluation_index)) {
             // Syntec
             case 2: $suffix_table = 'syntec'; break;
@@ -1224,8 +1289,8 @@ class InvoicesContractTools
         // Todo to check for 'month used for get the new revaluation index' and 'potential revaluation date' used in the sql request
         $sql = "SELECT indice, year_indice, month_indice FROM " . MAIN_DB_PREFIX . "c_indice_".$suffix_table .
             " WHERE active = 1" .
-            " AND CONCAT(year_indice, '-', month_indice) <= '" . $this->db->escape($potential_revaluation_date->year . "-" . $month_for_new_revaluation_index) . "'" .
-            " AND CONCAT(year_indice, '-', month_indice) >= '" . $this->db->escape(($potential_revaluation_date->year - 1) . "-" . $potential_revaluation_date->month) . "'" .
+            " AND STR_TO_DATE(CONCAT(year_indice, '-', month_indice), '%Y-%m') <= STR_TO_DATE('" . $this->db->escape($potential_revaluation_date->year . "-" . $month_for_new_revaluation_index) . "', '%Y-%m')" .
+            " AND STR_TO_DATE(CONCAT(year_indice, '-', month_indice), '%Y-%m') >= STR_TO_DATE('" . $this->db->escape(($potential_revaluation_date->year - 1) . "-" . $potential_revaluation_date->month) . "', '%Y-%m')" .
             " ORDER BY year_indice DESC, month_indice DESC" .
             " LIMIT 1";
 
@@ -1329,9 +1394,9 @@ class InvoicesContractTools
 
         if (file_exists($dir)) {
             $now = dol_now();
-            $file_path = $dir . '/report_' . dol_print_date($watching_period_begin, 'dayrfc') .
-                '_' . $langs->trans('to') . '_' . dol_print_date($watching_period_end, 'dayrfc') .
-                '_' . $langs->trans('at') . '_' . dol_print_date($now, 'standard') . '.csv';
+            $to = $watching_period_begin != $watching_period_end ? ' ' . $langs->transnoentitiesnoconv('to') . ' ' . dol_print_date($watching_period_end, 'dayrfc') : '';
+            $fileName = dol_sanitizeFileName($langs->transnoentitiesnoconv('STCReportFileName', dol_print_date($watching_period_begin, 'dayrfc'), $to, dol_print_date($now, 'standard')). '.csv');
+            $file_path = $dir . '/' . $fileName;
             $this->report_file = @fopen($file_path, "w");
             if ($this->report_file) {
                 // Add headers
@@ -1383,11 +1448,13 @@ class InvoicesContractTools
                     self::RLH_INVOICE_ID => $langs->transnoentitiesnoconv('STC_RLH_INVOICE_ID'),
                     self::RLH_INVOICE_REF => $langs->transnoentitiesnoconv('STC_RLH_INVOICE_REF'),
                     self::RLH_INVOICE_SOC_ID => $langs->transnoentitiesnoconv('STC_RLH_INVOICE_SOC_ID'),
+                    self::RLH_INVOICE_SOC_NAME => $langs->transnoentitiesnoconv('STC_RLH_INVOICE_SOC_NAME'),
                     self::RLH_INVOICE_REF_CUSTOMER => $langs->transnoentitiesnoconv('STC_RLH_INVOICE_REF_CUSTOMER'),
                     self::RLH_INVOICE_MODEL_PDF => $langs->transnoentitiesnoconv('STC_RLH_INVOICE_MODEL_PDF'),
                     self::RLH_INVOICE_COND_REGLEMENT_ID => $langs->transnoentitiesnoconv('STC_RLH_INVOICE_COND_REGLEMENT_ID'),
                     self::RLH_INVOICE_MODE_REGLEMENT_ID => $langs->transnoentitiesnoconv('STC_RLH_INVOICE_MODE_REGLEMENT_ID'),
                     self::RLH_INVOICE_ACCOUNT_ID => $langs->transnoentitiesnoconv('STC_RLH_INVOICE_ACCOUNT_ID'),
+                    self::RLH_INVOICE_ACCOUNT_NAME => $langs->transnoentitiesnoconv('STC_RLH_INVOICE_ACCOUNT_NAME'),
                     self::RLH_INVOICE_AMOUNT => $langs->transnoentitiesnoconv('STC_RLH_INVOICE_AMOUNT'),
                     self::RLH_INVOICE_REMISE_PERCENT => $langs->transnoentitiesnoconv('STC_RLH_INVOICE_REMISE_PERCENT'),
                     self::RLH_INVOICE_INCOTERMS_ID => $langs->transnoentitiesnoconv('STC_RLH_INVOICE_INCOTERMS_ID'),
@@ -1423,9 +1490,9 @@ class InvoicesContractTools
 
             $this->current_report_line[self::RLH_CONTRACT_ID] = $contract->id;
             $this->current_report_line[self::RLH_CONTRACT_REF] = $contract->ref;
-            $this->current_report_line[self::RLH_CONTRACT_AMOUNT] = $contract->array_options[self::EF_CONTRACT_AMOUNT];
-            $this->current_report_line[self::RLH_CONTRACT_LAST_REVALUATION_INDEX_USED] = $contract->array_options[self::EF_LAST_REVALUATION_INDEX_USED];
-            $this->current_report_line[self::RLH_CONTRACT_CURRENT_VALUE_INSTALLATION] = $contract->array_options[self::EF_CURRENT_VALUE_INSTALLATION];
+            $this->current_report_line[self::RLH_CONTRACT_AMOUNT] = $contract->array_options['options_' . self::EF_CONTRACT_AMOUNT];
+            $this->current_report_line[self::RLH_CONTRACT_LAST_REVALUATION_INDEX_USED] = $this->getContractOldMonthIndexLabel($contract->array_options['options_' . self::EF_LAST_REVALUATION_INDEX_USED]);
+            $this->current_report_line[self::RLH_CONTRACT_CURRENT_VALUE_INSTALLATION] = $contract->array_options['options_' . self::EF_CURRENT_VALUE_INSTALLATION];
             $this->current_report_line_modified = true;
         }
     }
@@ -1436,17 +1503,34 @@ class InvoicesContractTools
      * @param   Facture     $invoice        Invoice object
      */
     public function setGeneralInvoiceInfoInCurrentReportLine(&$invoice) {
+        global $langs;
+
         if ($this->report_file) {
             if (empty($invoice->array_options)) {
                 $invoice->fetch_optionals();
             }
 
+            $invoice->fetch_thirdparty();
+            $this->form->load_cache_conditions_paiements();
+            $this->form->load_cache_types_paiements();
+            $cond_reglement = dol_html_entity_decode($this->form->cache_conditions_paiements[$invoice->cond_reglement_id]['label'], ENT_QUOTES);
+            $mode_reglement = $this->form->cache_types_paiements[$invoice->mode_reglement_id]['label'];
+
+            if ($invoice->fk_account > 0 && !isset($this->cache_account[$invoice->fk_account])) {
+                require_once DOL_DOCUMENT_ROOT . '/compta/bank/class/account.class.php';
+                $bankstatic = new Account($this->db);
+                $bankstatic->fetch($invoice->fk_account);
+                $this->cache_account[$invoice->fk_account] = $bankstatic;
+            }
+
             $this->current_report_line[self::RLH_INVOICE_SOC_ID] = $invoice->socid;
+            $this->current_report_line[self::RLH_INVOICE_SOC_NAME] = $invoice->thirdparty->getFullName($langs);
             $this->current_report_line[self::RLH_INVOICE_REF_CUSTOMER] = $invoice->ref_client;
             $this->current_report_line[self::RLH_INVOICE_MODEL_PDF] = $invoice->modelpdf;
-            $this->current_report_line[self::RLH_INVOICE_COND_REGLEMENT_ID] = $invoice->cond_reglement_id;
-            $this->current_report_line[self::RLH_INVOICE_MODE_REGLEMENT_ID] = $invoice->mode_reglement_id;
+            $this->current_report_line[self::RLH_INVOICE_COND_REGLEMENT_ID] = isset($cond_reglement) ? $cond_reglement : '';
+            $this->current_report_line[self::RLH_INVOICE_MODE_REGLEMENT_ID] = isset($mode_reglement) ? $mode_reglement : '';
             $this->current_report_line[self::RLH_INVOICE_ACCOUNT_ID] = $invoice->fk_account;
+            $this->current_report_line[self::RLH_INVOICE_ACCOUNT_NAME] = ($invoice->fk_account > 0 ? $this->cache_account[$invoice->fk_account]->getFullName($langs) : '');
             $this->current_report_line[self::RLH_INVOICE_AMOUNT] = $invoice->amount;
             $this->current_report_line[self::RLH_INVOICE_REMISE_PERCENT] = $invoice->remise_percent;
             $this->current_report_line[self::RLH_INVOICE_INCOTERMS_ID] = $invoice->fk_incoterms;
@@ -1510,11 +1594,13 @@ class InvoicesContractTools
             self::RLH_INVOICE_ID => '',
             self::RLH_INVOICE_REF => '',
             self::RLH_INVOICE_SOC_ID => '',
+            self::RLH_INVOICE_SOC_NAME => '',
             self::RLH_INVOICE_REF_CUSTOMER => '',
             self::RLH_INVOICE_MODEL_PDF => '',
             self::RLH_INVOICE_COND_REGLEMENT_ID => '',
             self::RLH_INVOICE_MODE_REGLEMENT_ID => '',
             self::RLH_INVOICE_ACCOUNT_ID => '',
+            self::RLH_INVOICE_ACCOUNT_NAME => '',
             self::RLH_INVOICE_AMOUNT => '',
             self::RLH_INVOICE_REMISE_PERCENT => '',
             self::RLH_INVOICE_INCOTERMS_ID => '',
