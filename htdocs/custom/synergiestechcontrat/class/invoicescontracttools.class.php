@@ -72,6 +72,7 @@ class InvoicesContractTools
     const EF_REVALUATION_DATE                   = 'revalorisationperiod';
     const EF_LAST_REVALUATION_INDEX_USED        = 'oldindicemonth';
     const EF_MONTH_FOR_NEW_REVALUATION_INDEX    = 'newindicemonth';
+    const EF_CONTRACT_DURATION                  = 'duration';
 
     /**
      * @var string      CSV separator to use
@@ -709,6 +710,11 @@ class InvoicesContractTools
         $invoice->multicurrency_tx = '';
         $invoice->linkedObjectsIds[$contract->element] = $contract->id;
 
+        if (empty($invoice->cond_reglement_id)) {
+            $cond_payment_keys = array_keys($this->form->cache_conditions_paiements);
+            $invoice->cond_reglement_id = $cond_payment_keys[0];
+        }
+
         $invoice->array_options['options_datedeb'] = $billing_period_begin;
         $invoice->array_options['options_datefin'] = $billing_period_end;
 
@@ -810,60 +816,139 @@ class InvoicesContractTools
      * @return  int                                 >0: OK, -1: Errors
      */
     public function renewalContract(&$contract, $billing_period, $test_mode=0) {
-        global $langs, $user;
+        global $conf, $langs, $user;
 
         if (empty($contract->array_options)) {
             $contract->fetch_optionals();
         }
 
-        $error = 1;
+        // Get effective date
+        $effective_date = $this->getEffectiveDate($contract);
+        if (is_numeric($effective_date) && $effective_date < 0) {
+            return -1;
+        }
 
+        // Get watching and bill periods
+        $billing_period_begin = $billing_period['begin']->copy();
+        $billing_period_end = $billing_period['end']->copy();
+
+        $error = 0;
         if (!empty($test_mode)) $this->db->begin();
 
-        // Todo to make
-
-        // Create event with all information of this contract renewal (Renouvellement)
+        // Create event with all information of this contract renewal (Renouvèlement)
         if (!$error) {
-            $label = $langs->trans('STCContractRenewalEventLabel', $contract->ref);
-            $message = $langs->trans('Author') . ' : ' . $user->login;
+            $renewed = false;
 
-            $result = $this->addEvent($contract, 'AC_STC_CRENE', $label, $message);
-            if ($result < 0) {
-                $error++;
+            // Check if the contract is renewed into the billing period
+            $birthday_date = $effective_date->copy()->year($billing_period_begin->year);
+            if ($billing_period_begin <= $birthday_date && $birthday_date <= $billing_period_end) {
+                $renewed = true;
+            }
+            if (!$renewed) {
+                $birthday_date = $effective_date->copy()->year($billing_period_end->year);
+                if ($billing_period_begin <= $birthday_date && $birthday_date <= $billing_period_end) {
+                    $renewed = true;
+                }
+            }
+
+            if ($renewed) {
+                $label = $langs->trans('STCContractRenewalEventLabel', $contract->ref);
+                $message = $langs->trans('STCContractRenewalEventDescription', $contract->ref, $birthday_date->toDateString()) . '<br>';
+                $message .= '<br>' . $langs->trans('Author') . ' : ' . $user->login;
+
+                $result = $this->addEvent($contract, 'AC_STC_CRENE', $label, $message);
+                if ($result < 0) {
+                    $error++;
+                }
             }
         }
 
         // Create event with all information of the renewal of the contract (Reconduction)
         if (!$error) {
-            $label = $langs->trans('STCRenewalOfTheContractEventLabel', $contract->ref);
-            $message = $langs->trans('Author') . ' : ' . $user->login;
+            // Get contract duration in number of months
+            $contract_duration = $contract->array_options['options_' . self::EF_CONTRACT_DURATION];
 
-            $result = $this->addEvent($contract, 'AC_STC_RENEC', $label, $message);
-            if ($result < 0) {
-                $error++;
+            // Check if the contract is renewed into the billing period
+            $renewed_date = $effective_date->copy();
+            $renewed = false;
+            $nbPeriod = 0;
+            do {
+                $nbPeriod++;
+                $renewed_date->addMonths($contract_duration);
+                if ($billing_period_begin <= $renewed_date && $renewed_date <= $billing_period_end) {
+                    $renewed = true;
+                    break;
+                }
+            } while ($renewed_date < $billing_period_end);
+
+            if ($renewed) {
+                // Get contract duration in number of months
+                $tacit_renewal = $contract->array_options['options_' . self::EF_TACIT_RENEWAL];
+
+                if ($tacit_renewal) {
+                    $label = $langs->trans('STCRenewalOfTheContractEventLabel', $contract->ref);
+                    $message = $langs->trans('STCRenewalOfTheContractEventDescription', $contract->ref, $renewed_date->addMonths($contract_duration)->toDateString()) . '<br>';
+                    $message .= '<br>' . $langs->trans('Author') . ' : ' . $user->login;
+
+                    // Update ref contract
+                    $old_ref = $contract->ref;
+                    if ($pos = strrpos($contract->ref, '_')) {
+                        $contract->ref = substr($contract->ref, 0, $pos) . '_' . $nbPeriod;
+                    } else {
+                        $contract->ref = $contract->ref . "_1";
+                    }
+                    if ($contract->update() > 0) {
+                        // Rename of contract directory to  not lose the linked files
+                        $old_ref = dol_sanitizeFileName($old_ref);
+                        $new_ref = dol_sanitizeFileName($contract->ref);
+                        if ($old_ref != $new_ref) {
+                            $dirsource = $conf->contrat->dir_output . '/' . $old_ref;
+                            $dirdest = $conf->contrat->dir_output . '/' . $new_ref;
+                            if (file_exists($dirsource)) {
+                                @rename($dirsource, $dirdest);
+                            }
+                        }
+                    } else {
+                        $this->errors = array_merge($this->errors, $this->getObjectErrors($contract));
+                        $error++;
+                    }
+                } else {
+                    $label = $langs->trans('STCRenewalOfTheContractEndedEventLabel', $contract->ref);
+                    $message = $langs->trans('STCRenewalOfTheContractEventEndedDescription', $contract->ref, $renewed_date->toDateString()) . '<br>';
+                    $message .= '<br>' . $langs->trans('Author') . ' : ' . $user->login;
+                }
+
+                $result = $this->addEvent($contract, 'AC_STC_RENEC', $label, $message);
+                if ($result < 0) {
+                    $error++;
+                }
             }
         }
 
         if (!empty($test_mode)) $this->db->rollback();
 
-        return 1;
+        if ($error)
+            return -1;
+        else
+            return 1;
     }
 
     /**
      *  Generate invoice for the contract at the given watching date
      *
-     * @param   Contrat     $contract                   Contract object
-     * @param   int         $watching_date              Watching date
-     * @param   int         $payment_condition          Payment condition
-     * @param   int         $payment_deadline_date      Payment deadline date
-     * @param   string      $ref_customer               Ref customer
-     * @param   int         $use_customer_discounts     Use customer discount
-     * @param   int         $test_mode                  Mode test (don't write in database)
-     * @param   int         $disable_revaluation        Disabled revaluation (option only taken into account in test mode)
+     * @param   Contrat     $contract                           Contract object
+     * @param   int         $watching_date                      Watching date
+     * @param   int         $payment_condition                  Payment condition
+     * @param   int         $payment_deadline_date              Payment deadline date
+     * @param   string      $ref_customer                       Ref customer
+     * @param   int         $use_customer_discounts             Use customer discount
+     * @param   int         $no_closed_contract_in_report       Don't write line of closed contract
+     * @param   int         $test_mode                          Mode test (don't write in database)
+     * @param   int         $disable_revaluation                Disabled revaluation (option only taken into account in test mode)
      *
      * @return  int                                     1: OK, 0: None, -1: Errors
      */
-    public function generateInvoiceForTheContract(&$contract, $watching_date, $payment_condition=0, $payment_deadline_date=0, $ref_customer='', $use_customer_discounts=0, $test_mode=0, $disable_revaluation=0) {
+    public function generateInvoiceForTheContract(&$contract, $watching_date, $payment_condition=0, $payment_deadline_date=0, $ref_customer='', $use_customer_discounts=0, $no_closed_contract_in_report=0, $test_mode=0, $disable_revaluation=0) {
         global $langs;
 
         $error = 0;
@@ -938,6 +1023,9 @@ class InvoicesContractTools
             $invoice_amount = $this->getInvoiceAmount($contract, $watching_period, $billing_period, $test_mode, $disable_revaluation);
             if (!isset($invoice_amount)) {
                 $error++;
+            } elseif (round($invoice_amount, 2) == 0) {
+                $this->setCurrentReportLineValue(self::RLH_ERRORS, $langs->trans('STCErrorNoAmountForThisInvoice'));
+                $pass++;
             }
         }
 
@@ -954,7 +1042,10 @@ class InvoicesContractTools
         }
 
         // Add current report line into the file
-        $this->addCurrentReportLine();
+        if ($no_closed_contract_in_report && $this->isContractClosed($contract->id))
+            $this->clearCurrentReportLineValue();
+        else
+            $this->addCurrentReportLine();
 
         if ($error) {
             return -1;
@@ -996,6 +1087,7 @@ class InvoicesContractTools
         $this->setCurrentReportLineValue(self::RLH_PARAM_PAYMENT_CONDITION_ID, $payment_condition);
         $this->setCurrentReportLineValue(self::RLH_PARAM_PAYMENT_DEADLINE_DATE, dol_print_date($payment_deadline_date, 'day'));
         $this->setCurrentReportLineValue(self::RLH_PARAM_REF_CUSTOMER, $ref_customer);
+        $this->setCurrentReportLineValue(self::RLH_PARAM_USE_CUSTOMER_DISCOUNTS, yn($use_customer_discounts));
         $this->setCurrentReportLineValue(self::RLH_PARAM_USE_CUSTOMER_DISCOUNTS, yn($use_customer_discounts));
         $this->setCurrentReportLineValue(self::RLH_PARAM_TEST_MODE, yn($test_mode));
         $this->setCurrentReportLineValue(self::RLH_PARAM_DISABLE_REVALUATION, yn($disable_revaluation));
@@ -1719,5 +1811,22 @@ class InvoicesContractTools
 	    $errors = array_merge($errors, (!empty($object->error) ? array($object->error) : array()));
 
 	    return $errors;
+    }
+
+    /**
+     *  Is contract closed ?
+     *
+     * @param   int         $contract_id    Contract ID
+     * @return  boolean
+     */
+    public function isContractClosed($contract_id) {
+        $sql = "SELECT cd.rowid FROM " . MAIN_DB_PREFIX . "contratdet as cd WHERE cd.statut != 5 AND cd.fk_contrat = " . $contract_id;
+
+        $resql = $this->db->query($sql);
+        if ($resql) {
+            return $this->db->num_rows($resql) == 0;
+        }
+
+	    return false;
     }
 }

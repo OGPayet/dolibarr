@@ -91,6 +91,7 @@ if ($reshook == 0) {
         $payment_deadline_date = dol_mktime(0, 0, 0, GETPOST('payment_deadline_datemonth', 'int'), GETPOST('payment_deadline_dateday', 'int'), GETPOST('payment_deadline_dateyear', 'int'));
         $ref_customer = GETPOST('ref_customer', 'alpha');
         $use_customer_discounts = GETPOST('use_customer_discounts') ? 1 : 0;
+        $no_closed_contract_in_report = GETPOST('no_closed_contract_in_report') ? 1 : 0;
         $test_mode = GETPOST('test_mode') ? 1 : 0;
         $disable_revaluation = GETPOST('disable_revaluation') ? 1 : 0;
 
@@ -127,13 +128,18 @@ if ($reshook == 0) {
                     $result = $objecttmp->fetch($toselectid);
                     if ($result > 0) {
                         // Generate invoices for the period
-                        $result = $invoicescontracttools->generateInvoicesForTheContractInPeriod($objecttmp, $begin_watching_date, $end_watching_date, $payment_condition_id, $payment_deadline_date, $ref_customer, $use_customer_discounts, $test_mode, $disable_revaluation);
+                        $result = $invoicescontracttools->generateInvoicesForTheContractInPeriod($objecttmp, $begin_watching_date, $end_watching_date, $payment_condition_id,
+                            $payment_deadline_date, $ref_customer, $use_customer_discounts, $no_closed_contract_in_report, $test_mode, $disable_revaluation);
                         if ($result < 0) {
                             setEventMessages($langs->trans('Contract') . ': ' . $objecttmp->ref, $invoicescontracttools->errors, 'errors');
                             $error++;
                         } else {
                             $nbok += $result;
                         }
+
+                        // Don't add line of closed contract
+                        if ($no_closed_contract_in_report && $invoicescontracttools->isContractClosed($toselectid))
+                            $invoicescontracttools->clearCurrentReportLineValue();
                     } else {
                         $invoicescontracttools->setCurrentReportLineValue(InvoicesContractTools::RLH_ERRORS, $objecttmp->errorsToString());
                         setEventMessages($langs->trans('Contract') . ': ID:' . $toselectid . "\n" . $objecttmp->error, $objecttmp->errors, 'errors');

@@ -229,7 +229,7 @@ if (empty($reshook)) {
             " LEFT JOIN " . MAIN_DB_PREFIX . "contratdet as cd ON c.rowid = cd.fk_contrat" .
             " LEFT JOIN " . MAIN_DB_PREFIX . "contrat_extrafields as cef ON c.rowid = cef.fk_object" .
             " WHERE cef.realdate <= '" . $db->idate($now) . "'" .
-            " AND cd.statut != 5" .
+            " AND (cd.statut != 5 OR c.statut != 2)" .
             " GROUP BY c.rowid";
 
         $resql = $db->query($sql);
@@ -436,6 +436,7 @@ if ($resql)
         $payment_deadline_date = dol_mktime(0, 0, 0, GETPOST('payment_deadline_datemonth', 'int'), GETPOST('payment_deadline_dateday', 'int'), GETPOST('payment_deadline_dateyear', 'int'));
         $ref_customer = GETPOST('ref_customer', 'alpha');
         $use_customer_discounts = GETPOST('use_customer_discounts') ? 1 : 0;
+        $no_closed_contract_in_report = GETPOST('no_closed_contract_in_report') ? 1 : 0;
         $test_mode = GETPOST('test_mode') !== "" ? GETPOST('test_mode') : 1;
         $disable_revaluation = GETPOST('disable_revaluation') ? 1 : 0;
 
@@ -480,10 +481,11 @@ if ($resql)
         $formquestion[] = array('type' => 'date', 'name' => 'payment_deadline_date', 'label' => $langs->trans('DateMaxPayment'), 'value' => $payment_deadline_date);
         $formquestion[] = array('type' => 'text', 'name' => 'ref_customer', 'label' => $langs->trans('RefCustomer'), 'value' => $ref_customer);
         $formquestion[] = array('type' => 'checkbox', 'name' => 'use_customer_discounts', 'label' => $langs->trans('STCGenerateInvoicesContractUseCustomerDiscounts'), 'value' => $use_customer_discounts);
+        $formquestion[] = array('type' => 'checkbox', 'name' => 'no_closed_contract_in_report', 'label' => $langs->trans('STCGenerateInvoicesContractNoClosedContractInReport'), 'value' => $no_closed_contract_in_report);
         $formquestion[] = array('type' => 'checkbox', 'name' => 'test_mode', 'label' => $langs->trans('STCGenerateInvoicesContractTestMode'), 'value' => $test_mode);
         $formquestion[] = array('type' => 'checkbox', 'name' => 'disable_revaluation', 'label' => $langs->trans('STCGenerateInvoicesContractDisableRevaluation'), 'value' => $disable_revaluation);
 
-        print $form->formconfirm($_SERVER['PHP_SELF'], $langs->trans('STCGenerateInvoicesContract'), $langs->trans('STCConfirmGenerateInvoicesContract'), "list", $formquestion, 'yes', 0);
+        print $form->formconfirm($_SERVER['PHP_SELF'], $langs->trans('STCGenerateInvoicesContract'), $langs->trans('STCConfirmGenerateInvoicesContract'), "list", $formquestion, 0, 0);
         dol_fiche_end();
     }
 
@@ -973,7 +975,10 @@ if ($resql)
                     $tmpkey='options_'.$key;
                     print $extrafields->showOutputField($key, $obj->$tmpkey, '', 1);
                     print '</td>';
-                    if (! $i) $totalarray['nbfield']++;
+                    if (! $i) $totalarray['extrafieldsfield'][++$totalarray['nbfield']] = $key;
+                    $extrafields_type = $extrafields->attribute_type[$key];
+                    if ($extrafields_type == 'int') $totalarray['totalextrafields'][$key] += $obj->$tmpkey;
+                    elseif ($extrafields_type == 'price' || $extrafields_type == 'double') $totalarray['totalpriceextrafields'][$key] += $obj->$tmpkey;
                 }
             }
         }
@@ -1004,7 +1009,14 @@ if ($resql)
             print '<td align="center">'.($obj->nb_running>0?$obj->nb_running:'').'</td>';
             print '<td align="center">'.($obj->nb_expired>0?$obj->nb_expired:'').'</td>';
             print '<td align="center">'.($obj->nb_closed>0 ?$obj->nb_closed:'').'</td>';
-            if (!$i) $totalarray['nbfield']+=4;
+            $totalarray['totalinitial'] += $obj->nb_initial > 0 ? $obj->nb_initial : 0;
+            $totalarray['totalrunning'] += $obj->nb_running > 0 ? $obj->nb_running : 0;
+            $totalarray['totalexpired'] += $obj->nb_expired > 0 ? $obj->nb_expired : 0;
+            $totalarray['totalclosed'] += $obj->nb_closed > 0 ? $obj->nb_closed : 0;
+            if (!$i) $totalarray['totalinitialfield'] = ++$totalarray['nbfield'];
+            if (!$i) $totalarray['totalrunningfield'] = ++$totalarray['nbfield'];
+            if (!$i) $totalarray['totalexpiredfield'] = ++$totalarray['nbfield'];
+            if (!$i) $totalarray['totalclosedfield'] = ++$totalarray['nbfield'];
         }
 
         // Action column
@@ -1024,10 +1036,13 @@ if ($resql)
 
     // Show total line
     if (isset($totalarray['totalhtfield'])
-       || isset($totalarray['totalvatfield'])
-       || isset($totalarray['totalttcfield'])
-       || isset($totalarray['totalamfield'])
-       || isset($totalarray['totalrtpfield'])
+        || isset($totalarray['totalvatfield'])
+        || isset($totalarray['totalttcfield'])
+        || isset($totalarray['totalinitial'])
+        || isset($totalarray['totalrunning'])
+        || isset($totalarray['totalexpired'])
+        || isset($totalarray['totalclosed'])
+        || (is_array($totalarray['totalextrafields']) && count($totalarray['totalextrafields']) > 0)
        ) {
         print '<tr class="liste_total">';
         $i = 0;
@@ -1036,9 +1051,17 @@ if ($resql)
             if ($i == 1) {
                 if ($num < $limit && empty($offset)) print '<td align="left">' . $langs->trans("Total") . '</td>';
                 else print '<td align="left">' . $langs->trans("Totalforthispage") . '</td>';
-            } elseif ($totalarray['totalhtfield'] == $i) print '<td align="right">' . price($totalarray['totalht']) . '</td>';
+            } elseif (isset($totalarray['extrafieldsfield'][$i])) {
+                $extrafield_key = $totalarray['extrafieldsfield'][$i];
+                print '<td align="right">' . (isset($totalarray['totalpriceextrafields'][$extrafield_key]) ? price($totalarray['totalpriceextrafields'][$extrafield_key]) : $totalarray['totalextrafields'][$extrafield_key]) . '</td>';
+            } elseif (isset($totalarray['extrafieldsfield'][$i])) print '<td align="right">' . price($totalarray['totalht']) . '</td>';
+            elseif ($totalarray['totalhtfield'] == $i) print '<td align="right">' . price($totalarray['totalht']) . '</td>';
             elseif ($totalarray['totalvatfield'] == $i) print '<td align="right">' . price($totalarray['totalvat']) . '</td>';
             elseif ($totalarray['totalttcfield'] == $i) print '<td align="right">' . price($totalarray['totalttc']) . '</td>';
+            elseif ($totalarray['totalinitialfield'] == $i) print '<td align="right">' . $totalarray['totalinitial'] . '</td>';
+            elseif ($totalarray['totalrunningfield'] == $i) print '<td align="right">' . $totalarray['totalrunning'] . '</td>';
+            elseif ($totalarray['totalexpiredfield'] == $i) print '<td align="right">' . $totalarray['totalexpired'] . '</td>';
+            elseif ($totalarray['totalclosedfield'] == $i) print '<td align="right">' . $totalarray['totalclosed'] . '</td>';
             else print '<td></td>';
         }
         print '</tr>';
