@@ -1,0 +1,14 @@
+diff a/htdocs/custom/synergiestechcontrat/langs/fr_FR/synergiestechcontrat.lang b/htdocs/custom/synergiestechcontrat/langs/fr_FR/synergiestechcontrat.lang	(rejected hunks)
+@@ -97,9 +97,9 @@ STCBillingContracts                             = Facturation des contrats (v2)
+ STCGenerateInvoicesContracts                    = Génération des factures
+ STCValidateInvoicesContracts                    = Validation des factures
+ STCListOfContractsToBill                        = Liste des contrats à facturer
+-STCGenerateInvoicesContractBeginWatchingDate    = Date de début de la période à facturer
+-STCGenerateInvoicesContractEndWatchingDate      = Date de fin de la période à facturer
+-STCGenerateInvoicesContractUseCustomerDiscounts = Utiliser les réductions du client
++STCGenerateInvoicesContractBeginWatchingDate    = Où se placer dans le temps pour facturer (Il sera facturé la période strictement suivante pour les facturations à échoir, strictement précédente pour échu) ?
++STCGenerateInvoicesContractEndWatchingDate      = Se déplacer dans le temps jusqu'à cette date, et facturer toutes les périodes possibles qui s'y trouve :
++STCGenerateInvoicesContractUseCustomerDiscounts = Utiliser les réductions et avoirs disponibles du client
+ STCGenerateInvoicesContractTestMode             = <b>Mode Test</b> (seul le rapport CSV sera généré, aucune écriture dans la base)
+ STCGenerateInvoicesContractDisableRevaluation   = Désactiver la revalorisation en <b>Mode Test</b>
+ STCGenerateInvoicesContract                     = Facturation des contrats
