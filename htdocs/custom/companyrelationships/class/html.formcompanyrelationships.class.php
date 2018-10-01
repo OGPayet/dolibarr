@@ -299,8 +299,9 @@ class FormCompanyRelationships
         // JQUI method dialog is broken with jmobile, we use standard HTML.
         // Note: When using dol_use_jmobile or no js, you must also check code for button use a GET url with action=xxx and check that you also output the confirm code when action=xxx
         // See page product/card.php for example
-        if (! empty($conf->dol_use_jmobile)) $useajax=0;
-        if (empty($conf->use_javascript_ajax)) $useajax=0;
+        // ALWAYS USE AJAX
+        //if (! empty($conf->dol_use_jmobile)) $useajax=0;
+        //if (empty($conf->use_javascript_ajax)) $useajax=0;
 
         if ($useajax)
         {

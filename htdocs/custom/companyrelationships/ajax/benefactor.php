@@ -34,9 +34,11 @@ if (! $res && file_exists("../../../main.inc.php")) $res=@include '../../../main
 if (! $res) die("Include of main fails");
 
 $id	               = GETPOST('id','int'); // socid
-$fk_soc_benefactor = GETPOST('fk_soc_benefactor', 'int');
 $action		       = GETPOST('action','alpha');
 $htmlname	       = GETPOST('htmlname','alpha');
+
+// more_data
+$fk_soc_benefactor = GETPOST('fk_soc_benefactor', 'int');
 
 /*
  * View
@@ -61,6 +63,7 @@ if (! empty($id) && ! empty($action) && ! empty($htmlname))
     $benefactor_ids = $companyrelationships->getRelationships($id, 1);
     $benefactor_ids = is_array($benefactor_ids) ? $benefactor_ids : array();
 
+    // determine selected company id by default
     if (!empty($fk_soc_benefactor)) {
         $selectedCompanyId = $fk_soc_benefactor;
     } else {
@@ -70,7 +73,6 @@ if (! empty($id) && ! empty($action) && ! empty($htmlname))
             $selectedCompanyId = $id;
         }
     }
-
 
     $arrayresult = [];
     $others = [];

@@ -179,6 +179,9 @@ class ActionsCompanyRelationships
 
                     // come from confirm_socid dialog box
                     $fk_soc_benefactor = GETPOST('companyrelationships_fk_soc_benefactor', 'int') ? GETPOST('companyrelationships_fk_soc_benefactor', 'int') : 0;
+                    if (!empty($originid) && intval($fk_soc_benefactor)<=0) {
+                        $fk_soc_benefactor = $object->array_options['options_companyrelationships_fk_soc_benefactor'];
+                    }
 
                     $formcompanyrelationships = new FormCompanyRelationships($this->db);
                     $companyRelationships = new CompanyRelationships($this->db);
