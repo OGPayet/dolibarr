@@ -47,7 +47,7 @@ class modEventConfidentiality extends DolibarrModules
 
         // Id for module (must be unique).
         // Use here a free id (See in Home -> System information -> Dolibarr for list of used modules id).
-        $this->numero = 163092;        // TODO Go on page http://wiki.dolibarr.org/index.php/List_of_modules_id to reserve id number for your module
+        $this->numero = 163022;        // TODO Go on page http://wiki.dolibarr.org/index.php/List_of_modules_id to reserve id number for your module
         // Key text used to identify module (for permissions, menus, etc...)
         $this->rights_class = 'eventconfidentiality';
 
@@ -97,7 +97,7 @@ class modEventConfidentiality extends DolibarrModules
         //                        );
         $this->module_parts = array(
             'dictionaries' => 1,
-            'hooks' => array(),
+            'hooks' => array('actioncard'),
             'triggers' => 1
         );
 

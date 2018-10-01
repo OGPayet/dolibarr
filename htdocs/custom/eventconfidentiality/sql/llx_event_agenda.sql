@@ -21,7 +21,7 @@ create table llx_event_agenda
 (
   rowid                     integer AUTO_INCREMENT PRIMARY KEY,
 
-  fk_action                 integer NOT NULL,		            -- id of action
+  fk_object                 integer NOT NULL,		            -- id of action
   fk_dict_tag_confid        integer NOT NULL,		            -- id of tag
 
   interne                   integer(1), 		      -- interne ou externe
