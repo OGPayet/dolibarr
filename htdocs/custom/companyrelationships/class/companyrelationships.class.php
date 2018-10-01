@@ -56,10 +56,10 @@ class CompanyRelationships
 
     /**
      * Element list of public space availability
-     * @var array ('propal', 'commande', 'facture', 'expedition', 'ficheinter')
+     * @var array ('propal', 'commande', 'facture', 'shipping', 'fichinter', 'contrat')
      * expedition=shipping in class
      */
-    public static $psa_element_list = array('propal', 'commande', 'facture', 'expedition', 'fichinter');
+    public static $psa_element_list = array('propal', 'commande', 'facture', 'shipping', 'fichinter', 'contrat');
 
 
     /**
@@ -521,7 +521,7 @@ class CompanyRelationships
      * @param   string      $formAction     [=''] Form action (ex : create)
      * @return string
      */
-    public function getFormNameForElementAndAction($element, $formAction = '')
+    public function getFormNameForElementAndAction($element, $formAction='')
     {
         $formName = '';
 
@@ -537,11 +537,20 @@ class CompanyRelationships
             if ($formAction == 'create') {
                 $formName = 'add';
             }
-        } else if ($element == 'expedition') {
-
+        // not possible for this moment to create without origin
+        /*
+        } else if ($element == 'shipping') {
+            if ($formAction == 'create') {
+                $formName = ':first';
+            }
+        */
         } else if ($element == 'fichinter') {
             if ($formAction == 'create') {
                 $formName = 'fichinter';
+            }
+        } else if ($element == 'contrat') {
+            if ($formAction == 'create') {
+                $formName = 'form_contract';
             }
         }
 

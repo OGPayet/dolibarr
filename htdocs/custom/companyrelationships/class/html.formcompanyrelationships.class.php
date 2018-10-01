@@ -364,7 +364,9 @@ class FormCompanyRelationships
 				var options="";
 				var inputok = '.json_encode($inputok).';
 				var pageyes = "'.dol_escape_js(! empty($pageyes)?$pageyes:'').'";
-				var form = jQuery("form[name=\"' . dol_escape_js($formName) . '\"]");
+				var form_name = "' .  dol_escape_js($formName) . '";
+				//var form = jQuery("form:first");
+				var form = jQuery("form[name=\"" +  form_name + "\"]");
 
 				if (inputok.length > 0) {
 					$.each(inputok, function(i, inputname) {

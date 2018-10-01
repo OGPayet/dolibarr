@@ -139,7 +139,7 @@ function companyrelationships_show_companyrelationships($conf, $langs, $db, $obj
             }
         }
 
-        print $form->formconfirm($_SERVER['PHP_SELF'] . '?socid=' . $object->id . '&list_mode=' . $list_mode . '&rowid=' . $rowid . '&edit_' . $htmlname_main . '=' . $object->id, $langs->trans("CompanyRelationshipsEditCompanyRelationships"), $langs->trans("CompanyRelationshipsConfirmEditCompanyRelationships"), "confirm_update_relationship", $formquestion, 0, 1, 300, 600);
+        print $form->formconfirm($_SERVER['PHP_SELF'] . '?socid=' . $object->id . '&list_mode=' . $list_mode . '&rowid=' . $rowid . '&edit_' . $htmlname_main . '=' . $object->id, $langs->trans("CompanyRelationshipsEditCompanyRelationships"), $langs->trans("CompanyRelationshipsConfirmEditCompanyRelationships"), "confirm_update_relationship", $formquestion, 0, 1, 400, 600);
 
         if ($user->rights->companyrelationships->update_md->relationship) {
             $out = '<script type="text/javascript" language="javascript">';
