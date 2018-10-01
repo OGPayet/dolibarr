@@ -175,12 +175,31 @@ class ActionsCompanyRelationships
 
                     $socid    = GETPOST('socid', 'int') ? GETPOST('socid', 'int') : 0;
                     $confirm  = GETPOST('confirm', 'alpha');
+                    $origin   = GETPOST('origin','alpha');
                     $originid = (GETPOST('originid', 'int') ? GETPOST('originid', 'int') : GETPOST('origin_id', 'int')); // For backward compatibility
 
                     // come from confirm_socid dialog box
                     $fk_soc_benefactor = GETPOST('companyrelationships_fk_soc_benefactor', 'int') ? GETPOST('companyrelationships_fk_soc_benefactor', 'int') : 0;
+
+                    // set default values for socid and fk_soc_benefactor if this element linked to a previous element (origin)
                     if (!empty($originid) && intval($fk_soc_benefactor)<=0) {
-                        $fk_soc_benefactor = $object->array_options['options_companyrelationships_fk_soc_benefactor'];
+                        if (intval($fk_soc_benefactor)<=0) {
+                            $fk_soc_benefactor = $object->array_options['options_companyrelationships_fk_soc_benefactor'];
+                        }
+
+                        if (!empty($origin)) {
+                            $classname = ucfirst($origin);
+                            $objectsrc = new $classname($this->db);
+                            $objectsrc->fetch($originid);
+
+                            if (intval($socid)<=0 && $objectsrc->socid>0) {
+                                $socid = $objectsrc->socid;
+                            }
+
+                            if (intval($fk_soc_benefactor)<=0 && isset($objectsrc->array_options['options_companyrelationships_fk_soc_benefactor'])) {
+                                $fk_soc_benefactor = $objectsrc->array_options['options_companyrelationships_fk_soc_benefactor'];
+                            }
+                        }
                     }
 
                     $formcompanyrelationships = new FormCompanyRelationships($this->db);
@@ -224,7 +243,9 @@ class ActionsCompanyRelationships
                         $out .= '       action: "getBenefactor",';
                         $out .= '       id: "' . $socid . '",';
                         $out .= '       htmlname: "options_companyrelationships_fk_soc_benefactor",';
-                        $out .= '       fk_soc_benefactor: "' . $fk_soc_benefactor . '"';
+                        $out .= '       fk_soc_benefactor: "' . $fk_soc_benefactor . '",';
+                        $out .= '       origin: "' . $origin . '",';
+                        $out .= '       originid: "' . $originid . '"';
                         $out .= '   };';
                         $out .= '   var input = jQuery("select#options_companyrelationships_fk_soc_benefactor");';
                         $out .= '   jQuery.getJSON("' . dol_buildpath('/companyrelationships/ajax/benefactor.php', 1) . '", data,';

@@ -33,12 +33,15 @@ if (! $res && file_exists("../../main.inc.php")) $res=@include '../../main.inc.p
 if (! $res && file_exists("../../../main.inc.php")) $res=@include '../../../main.inc.php';		// to work if your module directory is into a subdir of root htdocs directory
 if (! $res) die("Include of main fails");
 
-$id	               = GETPOST('id','int'); // socid
-$action		       = GETPOST('action','alpha');
-$htmlname	       = GETPOST('htmlname','alpha');
+$id       = GETPOST('id','int'); // socid
+$action   = GETPOST('action','alpha');
+$htmlname = GETPOST('htmlname','alpha');
 
 // more_data
 $fk_soc_benefactor = GETPOST('fk_soc_benefactor', 'int');
+$origin = GETPOST('origin', 'alpha');
+$originid = GETPOST('originid', 'int');
+
 
 /*
  * View
@@ -67,10 +70,14 @@ if (! empty($id) && ! empty($action) && ! empty($htmlname))
     if (!empty($fk_soc_benefactor)) {
         $selectedCompanyId = $fk_soc_benefactor;
     } else {
-        if (count($benefactor_ids) > 0) {
-            $selectedCompanyId = $benefactor_ids[0];
-        } else {
+        if (!empty($origin) && !empty($originid)) {
             $selectedCompanyId = $id;
+        } else {
+            if (count($benefactor_ids) > 0) {
+                $selectedCompanyId = $benefactor_ids[0];
+            } else {
+                $selectedCompanyId = $id;
+            }
         }
     }
 
