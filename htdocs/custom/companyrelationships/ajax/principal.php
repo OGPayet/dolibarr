@@ -33,10 +33,13 @@ if (! $res && file_exists("../../main.inc.php")) $res=@include '../../main.inc.p
 if (! $res && file_exists("../../../main.inc.php")) $res=@include '../../../main.inc.php';		// to work if your module directory is into a subdir of root htdocs directory
 if (! $res) die("Include of main fails");
 
-$id			= GETPOST('id','int'); // socid
-$action		= GETPOST('action','alpha');
-$htmlname	= GETPOST('htmlname','alpha');
-$urlsrc	    = GETPOST('urlsrc','alpha');
+$id       = GETPOST('id','int'); // socid
+$action   = GETPOST('action','alpha');
+$htmlname = GETPOST('htmlname','alpha');
+
+// more data
+$formName = GETPOST('form_name','alpha');
+$urlSrc   = GETPOST('url_src','alpha');
 
 /*
  * View
@@ -47,7 +50,7 @@ top_httphead();
 //print '<!-- Ajax page called with url '.dol_escape_htmltag($_SERVER["PHP_SELF"]).'?'.dol_escape_htmltag($_SERVER["QUERY_STRING"]).' -->'."\n";
 
 // Load original field value
-if (! empty($id) && ! empty($action) && ! empty($htmlname) && ! empty($urlsrc))
+if (! empty($id) && ! empty($action) && ! empty($htmlname) && ! empty($urlSrc))
 {
     $return = array();
 
@@ -77,7 +80,7 @@ if (! empty($id) && ! empty($action) && ! empty($htmlname) && ! empty($urlsrc))
         $formQuestionList[] = array('label' => $langs->trans('CompanyRelationshipsPrincipalCompany'), 'name' => 'companyrelationships_socid', 'type' => 'select', 'values' => $principalCompanySelectArray, 'default' => '');
 
         // form confirm to choose the principal company
-        $out .= $formcompanyrelationships->form->formconfirm($urlsrc, $langs->trans('CompanyRelationshipsConfirmPrincipalCompanyTitle'), $langs->trans('CompanyRelationshipsConfirmPrincipalCompanyChoice'), 'companyrelationships_confirm_socid', $formQuestionList, '', 1);
+        $out .= $formcompanyrelationships->formconfirm_socid($urlSrc, $langs->trans('CompanyRelationshipsConfirmPrincipalCompanyTitle'), $langs->trans('CompanyRelationshipsConfirmPrincipalCompanyChoice'), 'companyrelationships_confirm_socid', $formQuestionList, '', 1, 200, 500, $formName);
     }
 
     $return['value'] = $out;

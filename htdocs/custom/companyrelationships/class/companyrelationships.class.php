@@ -512,4 +512,39 @@ class CompanyRelationships
             return $publicSpaceAvailability;
         }
     }
+
+
+    /**
+     * Get the name of form for an element with his associated action
+     *
+     * @param   string      $element        Element name (ex : propal, commande, etc)
+     * @param   string      $formAction     [=''] Form action (ex : create)
+     * @return string
+     */
+    public function getFormNameForElementAndAction($element, $formAction = '')
+    {
+        $formName = '';
+
+        if ($element == 'propal') {
+            if ($formAction == 'create') {
+                $formName = 'addprop';
+            }
+        } else if ($element == 'commande') {
+            if ($formAction == 'create') {
+                $formName = 'crea_commande';
+            }
+        } else if ($element == 'facture') {
+            if ($formAction == 'create') {
+                $formName = 'add';
+            }
+        } else if ($element == 'expedition') {
+
+        } else if ($element == 'fichinter') {
+            if ($formAction == 'create') {
+                $formName = 'fichinter';
+            }
+        }
+
+        return $formName;
+    }
 }

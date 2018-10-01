@@ -61,19 +61,30 @@ if (! empty($id) && ! empty($action) && ! empty($htmlname))
     $benefactor_ids = $companyrelationships->getRelationships($id, 1);
     $benefactor_ids = is_array($benefactor_ids) ? $benefactor_ids : array();
 
+    if (!empty($fk_soc_benefactor)) {
+        $selectedCompanyId = $fk_soc_benefactor;
+    } else {
+        if (count($benefactor_ids) > 0) {
+            $selectedCompanyId = $benefactor_ids[0];
+        } else {
+            $selectedCompanyId = $id;
+        }
+    }
+
+
     $arrayresult = [];
     $others = [];
     foreach ($companies as $company) {
         if (in_array($company['key'], $benefactor_ids)) {
             $selected = '';
-            if ($company['key'] == $fk_soc_benefactor) {
+            if ($company['key'] == $selectedCompanyId) {
                 $selected = ' selected="seleected"';
             }
 
             $arrayresult[] = '<option value="' . $company['key'] . '"' . $selected . '>'.(preg_match('/\s\*$/',$company['label']) !== false ? $company['label'] . ' *' : $company['label']).'</option>';
         } else {
             $selected = '';
-            if (empty($fk_soc_benefactor) && $company['key'] == $id) {
+            if ($company['key'] == $selectedCompanyId) {
                 $selected = ' selected="seleected"';
             }
             $others[] = '<option value="' . $company['key'] . '"' . $selected . '>' . $company['label'] . '</option>';

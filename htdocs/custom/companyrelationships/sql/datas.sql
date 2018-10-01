@@ -23,4 +23,6 @@ INSERT INTO llx_c_companyrelationships_publicspaceavailability (element, label, 
 ('propal', 'Propositions Commerciales', 1, 0, 1, 1),
 ('commande', 'Commandes', 1, 0, 1, 1),
 ('facture', 'Factures', 1, 0, 1, 1),
+('expedition', 'Expeditions', 1, 0, 1, 1),
 ('fichinter', 'Interventions', 0, 1, 1, 1);
+
