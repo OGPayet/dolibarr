@@ -80,7 +80,6 @@ class RequestManagerApi extends DolibarrApi {
      * @param   string	    $sort_order         Sort order
      * @param   int		    $limit		        Limit for list
      * @param   int		    $page		        Page number
-     * @param   string      $benefactor_ids	    Force search of benefactor companies ids to filter requests. {@example '1' or '1,2,3'} {@pattern /^[0-9,]*$/i}
      * @param   int         $only_assigned	    1=Restrict list to the request assigned to this user or his user groups
      * @param   string      $sql_filters        Other criteria to filter answers separated by a comma. Syntax example "(t.ref:like:'SO-%') and (t.datec:<:'20160101')"
      *
@@ -90,25 +89,12 @@ class RequestManagerApi extends DolibarrApi {
      * @throws  401         RestException       Insufficient rights
      * @throws  500         RestException       Error when retrieve request list
      */
-    function index($sort_field="t.rowid", $sort_order='ASC', $limit=100, $page=0, $benefactor_ids='', $only_assigned=0, $sql_filters='')
+    function index($sort_field="t.rowid", $sort_order='ASC', $limit=100, $page=0, $only_assigned=0, $sql_filters='')
     {
         $obj_ret = array();
 
         if (!DolibarrApiAccess::$user->rights->requestmanager->lire) {
             throw new RestException(401, "Insufficient rights");
-        }
-
-        // Get benefactor companies
-        if (empty($benefactor_ids)) {
-            $benefactor_companies_ids = array();
-            if (DolibarrApiAccess::$user->socid > 0) {
-                dol_include_once('/companyrelationships/class/companyrelationships.class.php');
-                $companyrelationships = new CompanyRelationships(self::$db);
-                $benefactor_companies_ids = $companyrelationships->getRelationships(DolibarrApiAccess::$user->socid, 1);
-                $benefactor_companies_ids = is_array($benefactor_companies_ids) ? array_merge($benefactor_companies_ids, array(DolibarrApiAccess::$user->socid)) : array();
-            }
-        } else {
-            $benefactor_companies_ids = explode(',', $benefactor_ids);
         }
 
         $assignedSQLJoin = '';
@@ -136,9 +122,9 @@ class RequestManagerApi extends DolibarrApi {
         $sql = "SELECT t.rowid";
         $sql .= " FROM " . MAIN_DB_PREFIX . "requestmanager as t" . $assignedSQLJoin;
         $sql .= ' WHERE t.entity IN (' . getEntity('requestmanager') . ')';
-        // Restrict to the benefactor companies provided
-        if (count($benefactor_companies_ids) > 0) {
-            $sql .= " AND t.fk_soc_benefactor IN (" . implode(',', $benefactor_companies_ids) . ")";
+        // Restrict to the company of the user
+        if (DolibarrApiAccess::$user->socid > 0) {
+            $sql .= " AND (t.fk_soc = " . DolibarrApiAccess::$user->socid . " OR t.fk_soc_benefactor = " . DolibarrApiAccess::$user->socid . ")";
         }
         // Add sql filters
         if ($sql_filters) {

@@ -87,73 +87,49 @@ class InterfaceRequestManagerBeforeActionsAuto extends DolibarrTriggers
         //----------------------------------------
 		if ($action == 'REQUESTMANAGER_CREATE') {
             $langs->load("other");
-            $langs->load("peepadherent@peep");
+            $langs->load("requestmanager@requestmanager");
 
-            if (empty($object->actionmsg2)) $object->actionmsg2 = $langs->transnoentities("PeepNewAdherentToDolibarr", $object->getFullName($langs), $object->code_client);
-            $object->actionmsg = $langs->transnoentities("PeepNewAdherentToDolibarr", $object->getFullName($langs), $object->code_client);
+            if (empty($object->actionmsg2)) $object->actionmsg2 = $langs->transnoentities("RequestManagerCreatedInDolibarr", $object->ref);
+            $object->actionmsg = $langs->transnoentities("RequestManagerCreatedInDolibarr", $object->ref);
 
             $object->sendtoid = 0;
-            $object->socid = $object->id;
             $founded = true;
         }
         elseif ($action == 'REQUESTMANAGER_MODIFY') {
             $langs->load("other");
-            $langs->load("peepadherent@peep");
+            $langs->load("requestmanager@requestmanager");
 
-            if (!empty($object->context['merge'])) {
-                $adherentstatic = new PeepAdherent($this->db);
-                $adherentstatic->fetch($object->context['mergefromid']);
-
-                if (empty($object->actionmsg2)) $object->actionmsg2 = $langs->transnoentities("PeepAdherentMergedInDolibarr", $object->getFullName($langs), $object->code_client);
-                $object->actionmsg = $langs->transnoentities("PeepAdherentMergedInDolibarr", $object->getFullName($langs), $object->code_client);
-                $object->actionmsg.= "\n".$langs->transnoentities("PeepAdherentMergedFrom", $adherentstatic->getFullName($langs), $adherentstatic->code_client);
-            } else {
-                if (empty($object->actionmsg2)) $object->actionmsg2 = $langs->transnoentities("PeepAdherentModifiedInDolibarr", $object->getFullName($langs), $object->code_client);
-                $object->actionmsg = $langs->transnoentities("PeepAdherentModifiedInDolibarr", $object->getFullName($langs), $object->code_client);
-            }
+            if (empty($object->actionmsg2)) $object->actionmsg2 = $langs->transnoentities("RequestManagerModifiedInDolibarr", $object->ref);
+            $object->actionmsg = $langs->transnoentities("RequestManagerModifiedInDolibarr", $object->ref);
+            $object->actionmsg.= "\n".$langs->transnoentities("PeepSchoolYear").': '.$school_year;
+            $object->actionmsg.= "\n".$langs->transnoentities("Label").': '.$label;
+            $object->actionmsg.= "\n".$langs->transnoentities("Amount").': '.price($amount,0,'',1,-1,-1,$conf->currency);
+            $object->actionmsg.= "\n".$langs->transnoentities("FinancialAccount").': '.$account->name;
+            $object->actionmsg.= "\n".$langs->transnoentities("PaymentMode").': '.$langs->trans("PaymentTypeShort".$payment_mode);
+            $object->actionmsg.= "\n".$langs->transnoentities("DatePayment").': '.dol_print_date($payment_date, 'day');
+            $object->actionmsg.= "\n".$langs->transnoentities('Numero').' ('.$langs->trans("ChequeOrTransferNumber").') : '.$payment_number;
+            $object->actionmsg.= "\n".$langs->transnoentities('CheckTransmitter').' ('.$langs->trans("ChequeMaker").') '.$payment_issuer;
+            $object->actionmsg.= "\n".$langs->transnoentities('Bank').' ('.$langs->trans("ChequeBank").') '.$payment_bank_issuer;
 
             $object->sendtoid = 0;
-            $object->socid = $object->id;
             $founded = true;
         }
         elseif ($action == 'REQUESTMANAGER_DELETE') {
             $langs->load("other");
-            $langs->load("peepadherent@peep");
+            $langs->load("requestmanager@requestmanager");
 
-            if (empty($object->actionmsg2)) $object->actionmsg2 = $langs->transnoentities("PeepAdherentDeletedInDolibarr", $object->getFullName($langs), $object->code_client);
-            $object->actionmsg = $langs->transnoentities("PeepAdherentDeletedInDolibarr", $object->getFullName($langs), $object->code_client);
+            if (empty($object->actionmsg2)) $object->actionmsg2 = $langs->transnoentities("RequestManagerDeletedInDolibarr", $object->ref);
+            $object->actionmsg = $langs->transnoentities("RequestManagerDeletedInDolibarr", $object->ref);
 
             $object->sendtoid = 0;
-            $object->socid = $object->id;
             $founded = true;
         }
         elseif ($action == 'REQUESTMANAGER_SET_ASSIGNED') {
             $langs->load("other");
-            $langs->load("bills");
-            $langs->load("banks");
-            $langs->load("peepadherent@peep");
+            $langs->load("requestmanager@requestmanager");
 
-            $school_year_id         = $this->context['school_year_id'];
-            $label                  = $this->context['label'];
-            $amount                 = $this->context['amount'];
-            $account_id             = $this->context['account_id'];
-            $payment_mode           = $this->context['payment_mode'];
-            $payment_date           = $this->context['payment_date'];
-            $payment_number         = $this->context['payment_number'];
-            $payment_issuer         = $this->context['payment_issuer'];
-            $payment_bank_issuer    = $this->context['payment_bank_issuer'];
-
-            dol_include_once('/peep/class/html.formpeepadherent.class.php');
-            $formpeepadherent = new FormPeepAdherent($this->db);
-            $school_year_values = $formpeepadherent->school_year_array(0);
-            $school_year = $school_year_values[$school_year_id];
-
-            require_once DOL_DOCUMENT_ROOT.'/compta/bank/class/account.class.php';
-            $account = new Account($this->db);
-            $account->fetch($account_id);
-
-            if (empty($object->actionmsg2)) $object->actionmsg2 = $langs->transnoentities("PeepAdherentMembershipFeeAddedInDolibarr", $object->getFullName($langs), $object->code_client);
-            $object->actionmsg = $langs->transnoentities("PeepAdherentMembershipFeeAddedInDolibarr", $object->getFullName($langs), $object->code_client);
+            if (empty($object->actionmsg2)) $object->actionmsg2 = $langs->transnoentities("RequestManagerAssignedModifiedInDolibarr", $object->ref);
+            $object->actionmsg = $langs->transnoentities("RequestManagerAssignedModifiedInDolibarr", $object->ref);
             $object->actionmsg.= "\n".$langs->transnoentities("PeepSchoolYear").': '.$school_year;
             $object->actionmsg.= "\n".$langs->transnoentities("Label").': '.$label;
             $object->actionmsg.= "\n".$langs->transnoentities("Amount").': '.price($amount,0,'',1,-1,-1,$conf->currency);
@@ -165,36 +141,14 @@ class InterfaceRequestManagerBeforeActionsAuto extends DolibarrTriggers
             $object->actionmsg.= "\n".$langs->transnoentities('Bank').' ('.$langs->trans("ChequeBank").') '.$payment_bank_issuer;
 
             $object->sendtoid = 0;
-            $object->socid = $object->id;
             $founded = true;
         }
         elseif ($action == 'REQUESTMANAGER_STATUS_MODIFY') {
             $langs->load("other");
-            $langs->load("bills");
-            $langs->load("banks");
-            $langs->load("peepadherent@peep");
+            $langs->load("requestmanager@requestmanager");
 
-            $school_year_id         = $this->context['school_year_id'];
-            $label                  = $this->context['label'];
-            $amount                 = $this->context['amount'];
-            $account_id             = $this->context['account_id'];
-            $payment_mode           = $this->context['payment_mode'];
-            $payment_date           = $this->context['payment_date'];
-            $payment_number         = $this->context['payment_number'];
-            $payment_issuer         = $this->context['payment_issuer'];
-            $payment_bank_issuer    = $this->context['payment_bank_issuer'];
-
-            dol_include_once('/peep/class/html.formpeepadherent.class.php');
-            $formpeepadherent = new FormPeepAdherent($this->db);
-            $school_year_values = $formpeepadherent->school_year_array(0);
-            $school_year = $school_year_values[$school_year_id];
-
-            require_once DOL_DOCUMENT_ROOT.'/compta/bank/class/account.class.php';
-            $account = new Account($this->db);
-            $account->fetch($account_id);
-
-            if (empty($object->actionmsg2)) $object->actionmsg2 = $langs->transnoentities("PeepAdherentMembershipFeeAddedInDolibarr", $object->getFullName($langs), $object->code_client);
-            $object->actionmsg = $langs->transnoentities("PeepAdherentMembershipFeeAddedInDolibarr", $object->getFullName($langs), $object->code_client);
+            if (empty($object->actionmsg2)) $object->actionmsg2 = $langs->transnoentities("RequestManagerStatusModifiedInDolibarr", $object->ref);
+            $object->actionmsg = $langs->transnoentities("RequestManagerStatusModifiedInDolibarr", $object->ref);
             $object->actionmsg.= "\n".$langs->transnoentities("PeepSchoolYear").': '.$school_year;
             $object->actionmsg.= "\n".$langs->transnoentities("Label").': '.$label;
             $object->actionmsg.= "\n".$langs->transnoentities("Amount").': '.price($amount,0,'',1,-1,-1,$conf->currency);
@@ -206,51 +160,11 @@ class InterfaceRequestManagerBeforeActionsAuto extends DolibarrTriggers
             $object->actionmsg.= "\n".$langs->transnoentities('Bank').' ('.$langs->trans("ChequeBank").') '.$payment_bank_issuer;
 
             $object->sendtoid = 0;
-            $object->socid = $object->id;
             $founded = true;
         }
 
         // RequestManager Message
         //----------------------------------------
-        elseif ($action == 'REQUESTMANAGERMESSAGE_CREATE') {
-            $langs->load("agenda");
-            $langs->load("other");
-            $langs->load("peepchildren@peep");
-
-            $object->fetch_thirdparty();
-
-            if (empty($object->actionmsg2)) $object->actionmsg2 = $langs->transnoentities("PeepNewChildrenToDolibarr", $object->getFullName($langs), $object->thirdparty->getFullName($langs), $object->thirdparty->code_client);
-            $object->actionmsg = $langs->transnoentities("PeepNewChildrenToDolibarr", $object->getFullName($langs), $object->thirdparty->getFullName($langs), $object->thirdparty->code_client);
-
-            $object->sendtoid = 0;
-            $founded = true;
-        }
-        elseif ($action == 'REQUESTMANAGERMESSAGE_MODIFY') {
-            $langs->load("agenda");
-            $langs->load("other");
-            $langs->load("peepchildren@peep");
-
-            $object->fetch_thirdparty();
-
-            if (empty($object->actionmsg2)) $object->actionmsg2 = $langs->transnoentities("PeepChildrenModifiedInDolibarr", $object->getFullName($langs), $object->thirdparty->getFullName($langs), $object->thirdparty->code_client);
-            $object->actionmsg = $langs->transnoentities("PeepChildrenModifiedInDolibarr", $object->getFullName($langs), $object->thirdparty->getFullName($langs), $object->thirdparty->code_client);
-
-            $object->sendtoid = 0;
-            $founded = true;
-        }
-        elseif ($action == 'REQUESTMANAGERMESSAGE_DELETE') {
-            $langs->load("agenda");
-            $langs->load("other");
-            $langs->load("peepchildren@peep");
-
-            $object->fetch_thirdparty();
-
-            if (empty($object->actionmsg2)) $object->actionmsg2 = $langs->transnoentities("PeepChildrenDeletedInDolibarr", $object->getFullName($langs), $object->thirdparty->getFullName($langs), $object->thirdparty->code_client);
-            $object->actionmsg = $langs->transnoentities("PeepChildrenDeletedInDolibarr", $object->getFullName($langs), $object->thirdparty->getFullName($langs), $object->thirdparty->code_client);
-
-            $object->sendtoid = 0;
-            $founded = true;
-        }
         elseif ($action == 'REQUESTMANAGERMESSAGE_SENTBYMAIL') {
             $langs->load("agenda");
             $langs->load("other");
