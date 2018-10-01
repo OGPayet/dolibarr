@@ -153,14 +153,16 @@ class InvoicesContractTools
     const RLH_INVOICE_MODE_REGLEMENT_ID = 50;
     const RLH_INVOICE_ACCOUNT_ID = 51;
     const RLH_INVOICE_ACCOUNT_NAME = 52;
-    const RLH_INVOICE_AMOUNT = 53;
-    const RLH_INVOICE_REMISE_PERCENT = 54;
-    const RLH_INVOICE_INCOTERMS_ID = 55;
-    const RLH_INVOICE_LOCATION_INCOTERMS = 56;
-    const RLH_INVOICE_MULTICURRENCY_CODE = 57;
-    const RLH_INVOICE_BILLING_PERIOD_BEGIN = 58;
-    const RLH_INVOICE_BILLING_PERIOD_END = 59;
-    const RLH_INVOICE_VALIDATED = 60;
+    const RLH_INVOICE_AMOUNT_HT = 53;
+    const RLH_INVOICE_AMOUNT_VAT = 54;
+    const RLH_INVOICE_AMOUNT_TTC = 55;
+    const RLH_INVOICE_REMISE_PERCENT = 56;
+    const RLH_INVOICE_INCOTERMS_ID = 57;
+    const RLH_INVOICE_LOCATION_INCOTERMS = 58;
+    const RLH_INVOICE_MULTICURRENCY_CODE = 59;
+    const RLH_INVOICE_BILLING_PERIOD_BEGIN = 60;
+    const RLH_INVOICE_BILLING_PERIOD_END = 61;
+    const RLH_INVOICE_VALIDATED = 62;
     const RLH_ERRORS = 100;
 
 
@@ -699,7 +701,6 @@ class InvoicesContractTools
         $invoice->cond_reglement_id = $payment_condition > 0 ? $payment_condition : $invoice->thirdparty->cond_reglement_id;
         $invoice->mode_reglement_id = $invoice->thirdparty->mode_reglement_id;
         $invoice->fk_account = $invoice->thirdparty->fk_account;
-        $invoice->amount = $amount;
         $invoice->remise_absolue = '';
         $invoice->remise_percent = $use_customer_discounts ? $invoice->thirdparty->remise_percent : '';
         $invoice->fk_incoterms = $invoice->thirdparty->fk_incoterms;
@@ -784,6 +785,10 @@ class InvoicesContractTools
                 }
             }
         }
+
+        // Update general invoice info into the report CSV
+        $invoice->fetch($invoice_id);
+        $this->setGeneralInvoiceInfoInCurrentReportLine($invoice);
 
         // Set invoice info into the report CSV
         $this->setCurrentReportLineValue(self::RLH_INVOICE_REF, $invoice->ref);
@@ -1455,7 +1460,9 @@ class InvoicesContractTools
                     self::RLH_INVOICE_MODE_REGLEMENT_ID => $langs->transnoentitiesnoconv('STC_RLH_INVOICE_MODE_REGLEMENT_ID'),
                     self::RLH_INVOICE_ACCOUNT_ID => $langs->transnoentitiesnoconv('STC_RLH_INVOICE_ACCOUNT_ID'),
                     self::RLH_INVOICE_ACCOUNT_NAME => $langs->transnoentitiesnoconv('STC_RLH_INVOICE_ACCOUNT_NAME'),
-                    self::RLH_INVOICE_AMOUNT => $langs->transnoentitiesnoconv('STC_RLH_INVOICE_AMOUNT'),
+                    self::RLH_INVOICE_AMOUNT_HT => $langs->transnoentitiesnoconv('STC_RLH_INVOICE_AMOUNT_HT'),
+                    self::RLH_INVOICE_AMOUNT_VAT => $langs->transnoentitiesnoconv('STC_RLH_INVOICE_AMOUNT_VAT'),
+                    self::RLH_INVOICE_AMOUNT_TTC => $langs->transnoentitiesnoconv('STC_RLH_INVOICE_AMOUNT_TTC'),
                     self::RLH_INVOICE_REMISE_PERCENT => $langs->transnoentitiesnoconv('STC_RLH_INVOICE_REMISE_PERCENT'),
                     self::RLH_INVOICE_INCOTERMS_ID => $langs->transnoentitiesnoconv('STC_RLH_INVOICE_INCOTERMS_ID'),
                     self::RLH_INVOICE_LOCATION_INCOTERMS => $langs->transnoentitiesnoconv('STC_RLH_INVOICE_LOCATION_INCOTERMS'),
@@ -1531,7 +1538,9 @@ class InvoicesContractTools
             $this->current_report_line[self::RLH_INVOICE_MODE_REGLEMENT_ID] = isset($mode_reglement) ? $mode_reglement : '';
             $this->current_report_line[self::RLH_INVOICE_ACCOUNT_ID] = $invoice->fk_account;
             $this->current_report_line[self::RLH_INVOICE_ACCOUNT_NAME] = ($invoice->fk_account > 0 ? $this->cache_account[$invoice->fk_account]->getFullName($langs) : '');
-            $this->current_report_line[self::RLH_INVOICE_AMOUNT] = $invoice->amount;
+            $this->current_report_line[self::RLH_INVOICE_AMOUNT_HT] = $invoice->total_ht;
+            $this->current_report_line[self::RLH_INVOICE_AMOUNT_VAT] = $invoice->total_tva;
+            $this->current_report_line[self::RLH_INVOICE_AMOUNT_TTC] = $invoice->total_ttc;
             $this->current_report_line[self::RLH_INVOICE_REMISE_PERCENT] = $invoice->remise_percent;
             $this->current_report_line[self::RLH_INVOICE_INCOTERMS_ID] = $invoice->fk_incoterms;
             $this->current_report_line[self::RLH_INVOICE_LOCATION_INCOTERMS] = $invoice->location_incoterms;
@@ -1601,7 +1610,9 @@ class InvoicesContractTools
             self::RLH_INVOICE_MODE_REGLEMENT_ID => '',
             self::RLH_INVOICE_ACCOUNT_ID => '',
             self::RLH_INVOICE_ACCOUNT_NAME => '',
-            self::RLH_INVOICE_AMOUNT => '',
+            self::RLH_INVOICE_AMOUNT_HT => '',
+            self::RLH_INVOICE_AMOUNT_VAT => '',
+            self::RLH_INVOICE_AMOUNT_TTC => '',
             self::RLH_INVOICE_REMISE_PERCENT => '',
             self::RLH_INVOICE_INCOTERMS_ID => '',
             self::RLH_INVOICE_LOCATION_INCOTERMS => '',
