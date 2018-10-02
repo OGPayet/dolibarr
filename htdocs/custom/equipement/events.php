@@ -363,6 +363,7 @@ if ($id > 0 || ! empty($ref)) {
 	$sql = 'SELECT ee.rowid, ee.description, ee.fk_equipement, ee.fk_equipementevt_type, ee.total_ht, ';
 	$sql.= ' ee.fulldayevent, ee.dateo, ee.datee, eet.libelle as equipeventlib, ';
 	$sql.= ' ee.fk_fichinter, ee.fk_contrat, ee.fk_expedition, ee.fk_project ';
+    $sql.= ', ee.fk_retourproduits';
 	$sql.= ' FROM '.MAIN_DB_PREFIX.'equipementevt as ee';
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."c_equipementevt_type as eet on ee.fk_equipementevt_type = eet.rowid";
 
@@ -416,7 +417,7 @@ if ($id > 0 || ! empty($ref)) {
 
 				// contrat
 				if ($objp->fk_contrat > 0) {
-					print "<div style='float: left;background:#E0E0E0;margin:2px;padding:2px;'>";
+                    print '<div style="float: left;background:#E0E0E0;margin:2px;padding:2px;">';
 					$contrat = new Contrat($db);
 					$contrat->fetch($objp->fk_contrat);
 					print $contrat->getNomUrl(1);
@@ -434,7 +435,7 @@ if ($id > 0 || ! empty($ref)) {
 
 				// fiche intervention
 				if ($objp->fk_fichinter > 0) {
-					print "<div style='float: left;background:#E0E0E0;margin:2px;padding:2px;'";
+                    print '<div style="float: left;background:#E0E0E0;margin:2px;padding:2px;">';
 					$fichinter = new Fichinter($db);
 					$fichinter->fetch($objp->fk_fichinter);
 					print $fichinter->getNomUrl(1);
@@ -452,7 +453,7 @@ if ($id > 0 || ! empty($ref)) {
 
 				// Expedition
 				if ($objp->fk_expedition > 0) {
-					print "<div style='float: left;background:#E0E0E0;margin:2px;padding:2px;'";
+					print '<div style="float: left;background:#E0E0E0;margin:2px;padding:2px;">';
 					$expedition = new Expedition($db);
 					$expedition->fetch($objp->fk_expedition);
 					print $expedition->getNomUrl(1);
@@ -470,7 +471,7 @@ if ($id > 0 || ! empty($ref)) {
 
 				// project
 				if ($objp->fk_project > 0) {
-					print "<div style='float: left;background:#E0E0E0;margin:2px;padding:2px;'";
+                    print '<div style="float: left;background:#E0E0E0;margin:2px;padding:2px;">';
 					$project = new Project($db);
 					$project->fetch($objp->fk_project);
 					print $project->getNomUrl(1);
@@ -484,6 +485,18 @@ if ($id > 0 || ! empty($ref)) {
 					}
 					print '</div>';
 				}
+
+                // retour produits
+                if ($conf->retourproduits->enabled) {
+                    dol_include_once('/retourproduits/class/retourproduits.class.php');
+                    if ($objp->fk_retourproduits > 0) {
+                        print '<div style="float: left;background:#E0E0E0;margin:2px;padding:2px;">';
+                        $retourProduits = new RetourProduits($db);
+                        $retourProduits->fetch($objp->fk_retourproduits);
+                        print $retourProduits->getNomUrl(1);
+                        print '</div>';
+                    }
+                }
 
 				print '</td>';
 

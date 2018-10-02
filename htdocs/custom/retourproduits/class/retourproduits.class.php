@@ -768,7 +768,9 @@ class RetourProduits extends CommonObject
                             '',
                             '',
                             '',
-                            ''
+                            '',
+                            0,
+                            $this->id
                         );
                     }
 

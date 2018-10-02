@@ -1,0 +1,1 @@
+ALTER TABLE `llx_equipementevt` ADD `fk_retourproduits` INT NULL;

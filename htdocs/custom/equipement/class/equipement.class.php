@@ -1374,17 +1374,30 @@ class Equipement extends CommonObject
 		}
 	}
 
-	/**
-	 *	Adding a line of event into data base
-	 *
-	 *	@param		int		$equipementid			Id of equipement
-	 *	@param		string	$desc					Line description
-	 *	@param	  date	$date_evenement			Intervention date
-	 *	@param	  int		$duration				Intervention duration
-	 *	@param	  int		$duration				Prix de l'�v�nement
-	 *	@return		int			 				>0 if ok, <0 if ko
-	 */
-	function addline($equipementid, $fk_equipementevt_type, $desc, $dateo, $datee, $fulldayevent, $fk_contrat, $fk_fichinter, $fk_expedition, $fk_project, $fk_user_author, $total_ht=0, $array_option=0, $fk_expeditiondet=0)
+
+    /**
+     * Adding a line of event into data base
+     *
+     * @param   int                 $equipementid               Id of equipement
+     * @param   int                 $fk_equipementevt_type      Type of event
+     * @param   string              $desc                       Desc of event
+     * @param   date                $dateo                      Operation date
+     * @param   date                $datee                      Event date
+     * @param   int                 $fulldayevent               Full day event
+     * @param   int                 $fk_contrat                 Id of contract
+     * @param   int                 $fk_fichinter               Id of fichinter
+     * @param   int                 $fk_expedition              Id of shipping
+     * @param   int                 $fk_project                 Id of project
+     * @param   int                 $fk_user_author             Id of author
+     * @param   float               $total_ht                   Total HT
+     * @param   array               $array_option               Array options
+     * @param   int                 $fk_expeditiondet           Id of shipping line
+     * @param   int                 $fk_retourproduits          [=0] Id of product return
+     * @return  int                 >0 if ok, <0 if ko
+     *
+     * @throws  Exception
+     */
+	function addline($equipementid, $fk_equipementevt_type, $desc, $dateo, $datee, $fulldayevent, $fk_contrat, $fk_fichinter, $fk_expedition, $fk_project, $fk_user_author, $total_ht=0, $array_option=0, $fk_expeditiondet=0, $fk_retourproduits=0)
 	{
 
 		$this->db->begin();
@@ -1406,6 +1419,7 @@ class Equipement extends CommonObject
         $line->fk_expeditiondet			= $fk_expeditiondet;
 		$line->fk_user_author			= $fk_user_author;
 		$line->datec					= dol_now();
+		$line->fk_retourproduits        = $fk_retourproduits;
 
 		if (is_array($array_option) && count($array_option)>0)
 			$line->array_options=$array_option;
@@ -2227,7 +2241,8 @@ class Equipementevt extends CommonObject
 		$sql = 'INSERT INTO '.MAIN_DB_PREFIX.'equipementevt';
 		$sql.= ' (fk_equipement, fk_equipementevt_type, description,';
 		$sql.= ' fulldayevent, fk_fichinter, fk_contrat, fk_expedition, fk_expeditiondet, fk_project,';
-		$sql.= ' datec, dateo, datee, total_ht, fk_user_author)';
+		$sql.= ' datec, dateo, datee, total_ht, fk_user_author';
+        $sql.= ", fk_retourproduits)";
 		$sql.= " VALUES (".$this->fk_equipement.",";
 		$sql.= " ".($this->fk_equipementevt_type?$this->fk_equipementevt_type:"null").",";
 		$sql.= " '".($this->desc?$this->db->escape($this->desc):"non saisie")."',";
@@ -2241,7 +2256,8 @@ class Equipementevt extends CommonObject
 		$sql.= " '".$this->db->idate($this->dateo)."',";
 		$sql.= " '".$this->db->idate($this->datee)."',";
 		$sql.= ' '.($this->total_ht?price2num($this->total_ht):"null").",";
-		$sql.= ' '.($this->fk_user_author?$this->fk_user_author:"null");
+		$sql.= ' '.($this->fk_user_author?$this->fk_user_author:"null").",";
+        $sql.= " ".($this->fk_retourproduits?$this->fk_retourproduits:"null");
 		$sql.= ')';
 //print $sql.'<br>';
 		dol_syslog(get_class($this)."::insert sql=".$sql);
