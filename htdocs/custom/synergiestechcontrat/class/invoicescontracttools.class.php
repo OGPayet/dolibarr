@@ -655,6 +655,8 @@ class InvoicesContractTools
             $billing_period_amount = ($billing_period_lenght * $contract_amount) / ($watching_period_lenght * $number_billing_period_in_year);
         }
 
+        $billing_period_amount = price2num($billing_period_amount, 'MU');
+
         // Set info into the report CSV
         $this->setCurrentReportLineValue(self::RLH_BILLING_PERIOD_AMOUNT, $billing_period_amount);
 
@@ -692,46 +694,57 @@ class InvoicesContractTools
         $billing_period_begin = $billing_period['begin']->timestamp;
         $billing_period_end = $billing_period['end']->timestamp;
 
-        // Set values
-        $invoice->socid = $contract->socid;
-        $invoice->fetch_thirdparty();
-        $invoice->type = Facture::TYPE_STANDARD;
-        $invoice->date = $now;
-        $invoice->date_pointoftax = '';
-        $invoice->note_public = '';
-        $invoice->note_private = '';
-        $invoice->ref_client = !empty($ref_customer) ? $ref_customer : '';
-        $invoice->ref_int = '';
-        $invoice->modelpdf = $conf->global->FACTURE_ADDON_PDF;
-        $invoice->fk_project = '';
-        $invoice->cond_reglement_id = $payment_condition > 0 ? $payment_condition : $invoice->thirdparty->cond_reglement_id;
-        $invoice->mode_reglement_id = $invoice->thirdparty->mode_reglement_id;
-        $invoice->fk_account = $invoice->thirdparty->fk_account;
-        $invoice->remise_absolue = '';
-        $invoice->remise_percent = $use_customer_discounts ? $invoice->thirdparty->remise_percent : '';
-        $invoice->fk_incoterms = $invoice->thirdparty->fk_incoterms;
-        $invoice->location_incoterms = $invoice->thirdparty->location_incoterms;
-        $invoice->multicurrency_code = $invoice->thirdparty->multicurrency_code;
-        $invoice->multicurrency_tx = '';
-        $invoice->linkedObjectsIds[$contract->element] = $contract->id;
-
-        if (empty($invoice->cond_reglement_id)) {
-            $cond_payment_keys = array_keys($this->form->cache_conditions_paiements);
-            $invoice->cond_reglement_id = $cond_payment_keys[0];
+        $amount_discount = '';
+        if ($use_customer_discounts) {
+            $amount_discount = $invoice->thirdparty->getAvailableDiscounts();
+            if ($amount_discount < 0) {
+                $this->errors = array_merge($this->errors, $this->getObjectErrors($invoice->thirdparty));
+                $error++;
+            }
         }
 
-        $invoice->array_options['options_datedeb'] = $billing_period_begin;
-        $invoice->array_options['options_datefin'] = $billing_period_end;
+        // Set values
+        if (!$error) {
+            $invoice->socid = $contract->socid;
+            $invoice->fetch_thirdparty();
+            $invoice->type = Facture::TYPE_STANDARD;
+            $invoice->date = $now;
+            $invoice->date_pointoftax = '';
+            $invoice->note_public = '';
+            $invoice->note_private = '';
+            $invoice->ref_client = !empty($ref_customer) ? $ref_customer : '';
+            $invoice->ref_int = '';
+            $invoice->modelpdf = $conf->global->FACTURE_ADDON_PDF;
+            $invoice->fk_project = '';
+            $invoice->cond_reglement_id = $payment_condition > 0 ? $payment_condition : $invoice->thirdparty->cond_reglement_id;
+            $invoice->mode_reglement_id = $invoice->thirdparty->mode_reglement_id;
+            $invoice->fk_account = $invoice->thirdparty->fk_account;
+            $invoice->remise_absolue = $use_customer_discounts ? $amount_discount : '';
+            $invoice->remise_percent = $use_customer_discounts ? $invoice->thirdparty->remise_percent : '';
+            $invoice->fk_incoterms = $invoice->thirdparty->fk_incoterms;
+            $invoice->location_incoterms = $invoice->thirdparty->location_incoterms;
+            $invoice->multicurrency_code = $invoice->thirdparty->multicurrency_code;
+            $invoice->multicurrency_tx = '';
+            $invoice->linkedObjectsIds[$contract->element] = $contract->id;
 
-        // Set general invoice info into the report CSV
-        $this->setGeneralInvoiceInfoInCurrentReportLine($invoice);
+            if (empty($invoice->cond_reglement_id)) {
+                $cond_payment_keys = array_keys($this->form->cache_conditions_paiements);
+                $invoice->cond_reglement_id = $cond_payment_keys[0];
+            }
 
-        if (!empty($test_mode)) $this->db->begin();
+            $invoice->array_options['options_datedeb'] = $billing_period_begin;
+            $invoice->array_options['options_datefin'] = $billing_period_end;
 
-        $invoice_id = $invoice->create($user, 0, $payment_deadline_date);
-        if ($invoice_id < 0) {
-            $this->errors = array_merge($this->errors, $this->getObjectErrors($invoice));
-            $error++;
+            // Set general invoice info into the report CSV
+            $this->setGeneralInvoiceInfoInCurrentReportLine($invoice);
+
+            if (!empty($test_mode)) $this->db->begin();
+
+            $invoice_id = $invoice->create($user, 0, $payment_deadline_date);
+            if ($invoice_id < 0) {
+                $this->errors = array_merge($this->errors, $this->getObjectErrors($invoice));
+                $error++;
+            }
         }
 
         // Insert lines of the contract
@@ -840,25 +853,24 @@ class InvoicesContractTools
         $error = 0;
         if (!empty($test_mode)) $this->db->begin();
 
-        // Create event with all information of this contract renewal (Renouvèlement)
+        // Create event with all information of this contract renewal (Renouvellement)
         if (!$error) {
-            $renewed = false;
-
             // Check if the contract is renewed into the billing period
-            $birthday_date = $effective_date->copy()->year($billing_period_begin->year);
-            if ($billing_period_begin <= $birthday_date && $birthday_date <= $billing_period_end) {
-                $renewed = true;
-            }
-            if (!$renewed) {
-                $birthday_date = $effective_date->copy()->year($billing_period_end->year);
+            $birthday_date = $effective_date->copy();
+            $renewed = false;
+            $nbPeriod = 0;
+            do {
+                $nbPeriod++;
+                $birthday_date->addYear();
                 if ($billing_period_begin <= $birthday_date && $birthday_date <= $billing_period_end) {
                     $renewed = true;
+                    break;
                 }
-            }
+            } while ($birthday_date < $billing_period_end);
 
             if ($renewed) {
                 $label = $langs->trans('STCContractRenewalEventLabel', $contract->ref);
-                $message = $langs->trans('STCContractRenewalEventDescription', $contract->ref, $birthday_date->toDateString()) . '<br>';
+                $message = $langs->trans('STCContractRenewalEventDescription', $contract->ref, $birthday_date->toDateString(), $nbPeriod, $effective_date->toDateString()) . '<br>';
                 $message .= '<br>' . $langs->trans('STCContractExtraFields'). ' :<br>';
                 $message .= $this->getAllExtraFieldsToString($contract);
                 $message .= '<br>' . $langs->trans('Author') . ' : ' . $user->login;

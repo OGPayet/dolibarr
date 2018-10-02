@@ -52,6 +52,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
 require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
+require_once DOL_DOCUMENT_ROOT."/core/class/extrafields.class.php";
 dol_include_once('/synergiestechcontrat/class/html.formsynergiestechcontract.class.php');
 
 $langs->load("contracts");
@@ -88,6 +89,8 @@ $search_invoices_total_ttc=GETPOST('search_invoices_total_ttc','alpha');
 $day=GETPOST("day","int");
 $year=GETPOST("year","int");
 $month=GETPOST("month","int");
+
+if ($search_invoices < 0) $search_invoices = '';
 
 $optioncss = GETPOST('optioncss','alpha');
 
@@ -334,16 +337,13 @@ $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."c_typent as typent on (typent.id = s.fk_typ
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."c_departements as state on (state.rowid = s.fk_departement)";
 if ($search_sale > 0 || (! $user->rights->societe->client->voir && ! $socid)) $sql .= ", ".MAIN_DB_PREFIX."societe_commerciaux as sc";
 $sql.= ", ".MAIN_DB_PREFIX."contrat as c";
+$sql.= (!empty($search_invoices) ? " INNER" : " LEFT") . " JOIN (";
+$sql.= "   SELECT ee.fk_source AS contract_id, f.facnumber AS invoice_ref, f.total AS invoice_total_ht, f.tva AS invoice_total_vat, f.total_ttc as invoice_total_ttc";
+$sql.= "   FROM " . MAIN_DB_PREFIX . "facture AS f";
+$sql.= "   LEFT JOIN " . MAIN_DB_PREFIX . "element_element AS ee ON ee.sourcetype = 'contrat' AND ee.fk_target = f.rowid AND ee.targettype = 'facture'";
+$sql.= "   WHERE f.fk_statut = 0";
+$sql.= " ) as ci ON (ci.contract_id = c.rowid)";
 if ($search_invoices != '' || $search_invoices_total_ht != '' || $search_invoices_total_vat != '' || $search_invoices_total_ttc != '') {
-    $sql.= (!empty($search_invoices) ? " INNER" : " LEFT") . " JOIN (";
-    $sql.= "   SELECT ee.fk_source AS contract_id";
-    $sql.= "   FROM " . MAIN_DB_PREFIX . "facture AS f";
-    $sql.= "   LEFT JOIN " . MAIN_DB_PREFIX . "element_element AS ee ON ee.sourcetype = 'contrat' AND ee.fk_target = f.rowid AND ee.targettype = 'facture'";
-    $sql.= "   WHERE f.fk_statut = 0";
-    if ($search_invoices_total_ht != '') $sql.= natural_search('f.total', $search_invoices_total_ht, 1);
-    if ($search_invoices_total_vat != '') $sql.= natural_search('f.tva', $search_invoices_total_vat, 1);
-    if ($search_invoices_total_ttc != '') $sql.= natural_search('f.total_ttc', $search_invoices_total_ttc, 1);
-    $sql.= " ) as ci ON (ci.contract_id = c.rowid)";
 }
 if (is_array($extrafields->attribute_label) && count($extrafields->attribute_label)) $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."contrat_extrafields as ef on (c.rowid = ef.fk_object)";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."contratdet as cd ON c.rowid = cd.fk_contrat";
@@ -356,6 +356,9 @@ if ($search_user > 0)
 $sql.= " WHERE c.fk_soc = s.rowid ";
 $sql.= ' AND c.entity IN ('.getEntity('contract').')';
 if ($search_invoices != '' && empty($search_invoices)) $sql.= ' AND ci.contract_id IS NULL';
+if ($search_invoices_total_ht != '') $sql.= natural_search('ci.invoice_total_ht', $search_invoices_total_ht, 1);
+if ($search_invoices_total_vat != '') $sql.= natural_search('ci.invoice_total_vat', $search_invoices_total_vat, 1);
+if ($search_invoices_total_ttc != '') $sql.= natural_search('ci.invoice_total_ttc', $search_invoices_total_ttc, 1);
 if ($search_status == "0") $sql.= " AND cd.statut = 0";
 if ($search_status == "4" || $search_status == "41" || $search_status == "42") $sql.= " AND cd.statut = 4";
 if ($search_status == "5") $sql.= " AND cd.statut = 5";
@@ -793,13 +796,13 @@ if ($resql)
     if (! empty($arrayfields['sale_representative']['checked'])) print_liste_field_titre($arrayfields['sale_representative']['label'], $_SERVER["PHP_SELF"], "","","$param",'',$sortfield,$sortorder);
     if (! empty($arrayfields['c.date_contrat']['checked']))      print_liste_field_titre($arrayfields['c.date_contrat']['label'], $_SERVER["PHP_SELF"], "c.date_contrat","","$param",'align="center"',$sortfield,$sortorder);
     // Invoices draft of this contract
-    if (! empty($arrayfields['invoices']['checked']))       print_liste_field_titre($arrayfields['invoices']['label'],$_SERVER["PHP_SELF"],"","",$param,'align="center"',$sortfield,$sortorder);
+    if (! empty($arrayfields['invoices']['checked']))            print_liste_field_titre($arrayfields['invoices']['label'],$_SERVER["PHP_SELF"],"ci.invoice_ref","",$param,'align="center"',$sortfield,$sortorder);
     // Total amount HT of the invoices draft of this contract
-    if (! empty($arrayfields['invoices_total_ht']['checked']))       print_liste_field_titre($arrayfields['invoices_total_ht']['label'],$_SERVER["PHP_SELF"],"","",$param,'align="right"',$sortfield,$sortorder);
+    if (! empty($arrayfields['invoices_total_ht']['checked']))   print_liste_field_titre($arrayfields['invoices_total_ht']['label'],$_SERVER["PHP_SELF"],"ci.invoice_total_ht","",$param,'align="right"',$sortfield,$sortorder);
     // Total amount VAT of the invoices draft of this contract
-    if (! empty($arrayfields['invoices_total_vat']['checked']))       print_liste_field_titre($arrayfields['invoices_total_vat']['label'],$_SERVER["PHP_SELF"],"","",$param,'align="right"',$sortfield,$sortorder);
+    if (! empty($arrayfields['invoices_total_vat']['checked']))  print_liste_field_titre($arrayfields['invoices_total_vat']['label'],$_SERVER["PHP_SELF"],"ci.invoice_total_vat","",$param,'align="right"',$sortfield,$sortorder);
     // Total amount TTC of the invoices draft of this contract
-    if (! empty($arrayfields['invoices_total_ttc']['checked']))       print_liste_field_titre($arrayfields['invoices_total_ttc']['label'],$_SERVER["PHP_SELF"],"","",$param,'align="right"',$sortfield,$sortorder);
+    if (! empty($arrayfields['invoices_total_ttc']['checked']))  print_liste_field_titre($arrayfields['invoices_total_ttc']['label'],$_SERVER["PHP_SELF"],"ci.invoice_total_ttc","",$param,'align="right"',$sortfield,$sortorder);
 	// Extra fields
 	if (is_array($extrafields->attribute_label) && count($extrafields->attribute_label))
 	{

@@ -243,10 +243,10 @@ STCContractOldCurrentValueInstallation  = Ancienne valeur actuelle de l’instal
 STCContractNewCurrentValueInstallation  = Nouvelle valeur actuelle de l’installation
 
 ########################################################################################################
-# Contract Renewal Event (Renouvèlement)
+# Contract Renewal Event (Renouvellement)
 ########################################################################################################
 STCContractRenewalEventLabel        = Contrat %s renouvelé.
-STCContractRenewalEventDescription  = Le contrat %s a été renouvelé le %s pour une durée d'un an.
+STCContractRenewalEventDescription  = Le contrat %s a été renouvelé le %s pour une durée d'un an (%s renouvellement depuis le %s).
 
 ########################################################################################################
 # Renewal of the Contract Event (Reconduction)
@@ -269,3 +269,11 @@ ActionAC_STC_REVAL  = Revaluation du contrat
 ActionAC_STC_CRENE  = Renouvellement du contrat
 ActionAC_STC_RENEC  = Reconduciton du contrat
 ActionAC_STC_TERMI  = Résiliation du contrat
+
+########################################################################################################
+# Others
+########################################################################################################
+STCBillingPeriodBegin       = Début de la période de facturation
+STCBillingPeriodBeginShort  = Début de la période
+STCBillingPeriodEnd         = Fin de la période de facturation
+STCBillingPeriodEndShort    = Fin de la période

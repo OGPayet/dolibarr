@@ -32,8 +32,10 @@ require_once(DOL_DOCUMENT_ROOT."/compta/facture/class/facture.class.php");
 require_once(DOL_DOCUMENT_ROOT."/core/lib/date.lib.php");
 require_once(DOL_DOCUMENT_ROOT."/core/lib/contract.lib.php");
 require_once(DOL_DOCUMENT_ROOT."/core/class/html.formfile.class.php");
+require_once DOL_DOCUMENT_ROOT."/core/class/extrafields.class.php";
 
 $langs->load("companies");
+$langs->load("bills");
 $langs->load("synergiestechcontrat@synergiestechcontrat");
 $langs->load("contracts");
 
@@ -56,6 +58,11 @@ if (! $sortfield) $sortfield="f.datec";
 
 
 $limit = $conf->liste_limit;
+
+$extrafields = new ExtraFields($db);
+
+// fetch optionals attributes and labels
+$extralabels = $extrafields->fetch_name_optionals_label('facture');
 
 /*
  *	View
@@ -113,7 +120,9 @@ if ($result) {
 	print "<th class='liste_titre'>".$langs->trans("Ref")."</th>";
 	print "<th class='liste_titre'>".$langs->trans("RefCustomer")."</th>";
 	print "<th class='liste_titre'>".$langs->trans("Description")."</th>";
-	print "<th class='liste_titre' align='center'>".$langs->trans("DateInvoice")."</th>";
+    print "<th class='liste_titre' align='center'>".$langs->trans("STCBillingPeriodBegin")."</th>";
+    print "<th class='liste_titre' align='center'>".$langs->trans("STCBillingPeriodEnd")."</th>";
+    print "<th class='liste_titre' align='center'>".$langs->trans("DateInvoice")."</th>";
 	print "<th class='liste_titre' align='center'>".$langs->trans("DateDue")."</th>";
 	print "<th class='liste_titre'>".$langs->trans("PaymentMode")."</th>";
 	print "<th class='liste_titre' align='right'>".$langs->trans("AmountHT")."</th>";
@@ -127,6 +136,7 @@ if ($result) {
 		$objp = $db->fetch_object($result);
 
 		$facturestatic->fetch($objp->rowid);
+        $facturestatic->fetch_optionals();
         $paiement = $facturestatic->getSommePaiement();
 		$facturestatic->getLinesArray();
 
@@ -159,10 +169,20 @@ if ($result) {
 		}
 		print '</td>';
 
-		//Date
+		//Date begin
 		print '<td align="center" class="nowrap">';
-		print dol_print_date($facturestatic->date,'day');
+		print $extrafields->showOutputField('datedeb', $facturestatic->array_options['options_datedeb']);
 		print '</td>';
+
+        //Date end
+        print '<td align="center" class="nowrap">';
+        print $extrafields->showOutputField('datefin', $facturestatic->array_options['options_datefin']);
+        print '</td>';
+
+        //Date
+        print '<td align="center" class="nowrap">';
+        print dol_print_date($facturestatic->date,'day');
+        print '</td>';
 
 		// Date limit
 		print '<td align="center" class="nowrap">'.dol_print_date($facturestatic->date_lim_reglement,'day');
@@ -182,7 +202,7 @@ if ($result) {
 
 		//Status
 		print '<td align="right" class="nowrap">';
-		print $facturestatic->LibStatut($facturestatic->paye,$facturestatic->fk_statut,5,$paiement,$facturestatic->type);
+		print $facturestatic->LibStatut($facturestatic->paye,$facturestatic->statut,5,$paiement,$facturestatic->type);
 		print "</td>";
 
 		print "</tr>\n";
