@@ -54,6 +54,10 @@ class InvoicesContractTools
      * @var array         List of account
      */
     public $cache_account = null;
+    /**
+     * @var array         List of extra fields
+     */
+    public $cache_extrafields = null;
 
     /**
      * Constants of the extra fields code
@@ -198,6 +202,7 @@ class InvoicesContractTools
         require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
         $this->form = new Form($this->db);
         $this->cache_account = array();
+        $this->cache_extrafields = array();
     }
 
     /**
@@ -854,6 +859,8 @@ class InvoicesContractTools
             if ($renewed) {
                 $label = $langs->trans('STCContractRenewalEventLabel', $contract->ref);
                 $message = $langs->trans('STCContractRenewalEventDescription', $contract->ref, $birthday_date->toDateString()) . '<br>';
+                $message .= '<br>' . $langs->trans('STCContractExtraFields'). ' :<br>';
+                $message .= $this->getAllExtraFieldsToString($contract);
                 $message .= '<br>' . $langs->trans('Author') . ' : ' . $user->login;
 
                 $result = $this->addEvent($contract, 'AC_STC_CRENE', $label, $message);
@@ -888,6 +895,8 @@ class InvoicesContractTools
                 if ($tacit_renewal) {
                     $label = $langs->trans('STCRenewalOfTheContractEventLabel', $contract->ref);
                     $message = $langs->trans('STCRenewalOfTheContractEventDescription', $contract->ref, $renewed_date->addMonths($contract_duration)->toDateString()) . '<br>';
+                    $message .= '<br>' . $langs->trans('STCContractExtraFields'). ' :<br>';
+                    $message .= $this->getAllExtraFieldsToString($contract);
                     $message .= '<br>' . $langs->trans('Author') . ' : ' . $user->login;
 
                     // Update ref contract
@@ -942,13 +951,12 @@ class InvoicesContractTools
      * @param   int         $payment_deadline_date              Payment deadline date
      * @param   string      $ref_customer                       Ref customer
      * @param   int         $use_customer_discounts             Use customer discount
-     * @param   int         $no_closed_contract_in_report       Don't write line of closed contract
      * @param   int         $test_mode                          Mode test (don't write in database)
      * @param   int         $disable_revaluation                Disabled revaluation (option only taken into account in test mode)
      *
      * @return  int                                     1: OK, 0: None, -1: Errors
      */
-    public function generateInvoiceForTheContract(&$contract, $watching_date, $payment_condition=0, $payment_deadline_date=0, $ref_customer='', $use_customer_discounts=0, $no_closed_contract_in_report=0, $test_mode=0, $disable_revaluation=0) {
+    public function generateInvoiceForTheContract(&$contract, $watching_date, $payment_condition=0, $payment_deadline_date=0, $ref_customer='', $use_customer_discounts=0, $test_mode=0, $disable_revaluation=0) {
         global $langs;
 
         $error = 0;
@@ -1042,10 +1050,7 @@ class InvoicesContractTools
         }
 
         // Add current report line into the file
-        if ($no_closed_contract_in_report && $this->isContractClosed($contract->id))
-            $this->clearCurrentReportLineValue();
-        else
-            $this->addCurrentReportLine();
+        $this->addCurrentReportLine();
 
         if ($error) {
             return -1;
@@ -1087,7 +1092,6 @@ class InvoicesContractTools
         $this->setCurrentReportLineValue(self::RLH_PARAM_PAYMENT_CONDITION_ID, $payment_condition);
         $this->setCurrentReportLineValue(self::RLH_PARAM_PAYMENT_DEADLINE_DATE, dol_print_date($payment_deadline_date, 'day'));
         $this->setCurrentReportLineValue(self::RLH_PARAM_REF_CUSTOMER, $ref_customer);
-        $this->setCurrentReportLineValue(self::RLH_PARAM_USE_CUSTOMER_DISCOUNTS, yn($use_customer_discounts));
         $this->setCurrentReportLineValue(self::RLH_PARAM_USE_CUSTOMER_DISCOUNTS, yn($use_customer_discounts));
         $this->setCurrentReportLineValue(self::RLH_PARAM_TEST_MODE, yn($test_mode));
         $this->setCurrentReportLineValue(self::RLH_PARAM_DISABLE_REVALUATION, yn($disable_revaluation));
@@ -1828,5 +1832,39 @@ class InvoicesContractTools
         }
 
 	    return false;
+    }
+
+    /**
+     *  Get all extra fields label/value to a string
+     *
+     * @param  object   $object     Object
+     * @param  string   $rl         Return line
+     * @return string               List of extra fields label/value of the object
+     */
+    public function getAllExtraFieldsToString(&$object, $rl = '<br>') {
+        global $langs;
+
+        if (!isset($this->cache_extrafields[$object->table_element])) {
+            $this->cache_extrafields[$object->table_element] = new ExtraFields($this->db);
+            $extralabels = $this->cache_extrafields[$object->table_element]->fetch_name_optionals_label($object->table_element);
+        }
+
+        if (empty($object->array_options)) {
+            $object->fetch_optionals();
+        }
+
+        $out = '';
+
+        $extrafields = $this->cache_extrafields[$object->table_element];
+        if (!empty($extrafields->attributes[$object->table_element]['label'])) {
+            foreach ($extrafields->attributes[$object->table_element]['label'] as $key => $label) {
+                $value = $object->array_options["options_" . $key];
+                if ($extrafields->attributes[$object->table_element]['type'][$key] != 'separate' && !empty($extrafields->attributes[$object->table_element]['ishidden'][$key])) {
+                    $out .= $langs->trans($label) . ' : ' . $extrafields->showOutputField($key, $value) . $rl;
+                }
+            }
+        }
+
+        return $out;
     }
 }

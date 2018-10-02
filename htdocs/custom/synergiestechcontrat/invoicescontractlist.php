@@ -76,11 +76,15 @@ $search_type_thirdparty=GETPOST("search_type_thirdparty",'int');
 $search_contract=GETPOST('search_contract');
 $search_ref_supplier=GETPOST('search_ref_supplier','alpha');
 $sall=GETPOST('sall', 'alphanohtml');
-$search_status=GETPOST('search_status');
+$search_status=GETPOST('search_status', 'int');
 $socid=GETPOST('socid');
 $search_user=GETPOST('search_user','int');
 $search_sale=GETPOST('search_sale','int');
 $search_product_category=GETPOST('search_product_category','int');
+$search_invoices=GETPOST('search_invoices','int');
+$search_invoices_total_ht=GETPOST('search_invoices_total_ht','alpha');
+$search_invoices_total_vat=GETPOST('search_invoices_total_vat','alpha');
+$search_invoices_total_ttc=GETPOST('search_invoices_total_ttc','alpha');
 $day=GETPOST("day","int");
 $year=GETPOST("year","int");
 $month=GETPOST("month","int");
@@ -189,6 +193,10 @@ if (GETPOST('button_removefilter_x', 'alpha') || GETPOST('button_removefilter.x'
     $search_user = '';
     $search_sale = '';
     $search_product_category = '';
+    $search_invoices = '';
+    $search_invoices_total_ht = '';
+    $search_invoices_total_vat = '';
+    $search_invoices_total_ttc = '';
     $sall = "";
     $search_status = "";
     $toselect = '';
@@ -326,6 +334,17 @@ $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."c_typent as typent on (typent.id = s.fk_typ
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."c_departements as state on (state.rowid = s.fk_departement)";
 if ($search_sale > 0 || (! $user->rights->societe->client->voir && ! $socid)) $sql .= ", ".MAIN_DB_PREFIX."societe_commerciaux as sc";
 $sql.= ", ".MAIN_DB_PREFIX."contrat as c";
+if ($search_invoices != '' || $search_invoices_total_ht != '' || $search_invoices_total_vat != '' || $search_invoices_total_ttc != '') {
+    $sql.= (!empty($search_invoices) ? " INNER" : " LEFT") . " JOIN (";
+    $sql.= "   SELECT ee.fk_source AS contract_id";
+    $sql.= "   FROM " . MAIN_DB_PREFIX . "facture AS f";
+    $sql.= "   LEFT JOIN " . MAIN_DB_PREFIX . "element_element AS ee ON ee.sourcetype = 'contrat' AND ee.fk_target = f.rowid AND ee.targettype = 'facture'";
+    $sql.= "   WHERE f.fk_statut = 0";
+    if ($search_invoices_total_ht != '') $sql.= natural_search('f.total', $search_invoices_total_ht, 1);
+    if ($search_invoices_total_vat != '') $sql.= natural_search('f.tva', $search_invoices_total_vat, 1);
+    if ($search_invoices_total_ttc != '') $sql.= natural_search('f.total_ttc', $search_invoices_total_ttc, 1);
+    $sql.= " ) as ci ON (ci.contract_id = c.rowid)";
+}
 if (is_array($extrafields->attribute_label) && count($extrafields->attribute_label)) $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."contrat_extrafields as ef on (c.rowid = ef.fk_object)";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."contratdet as cd ON c.rowid = cd.fk_contrat";
 if ($search_product_category > 0) $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'categorie_product as cp ON cp.fk_product=cd.fk_product';
@@ -336,6 +355,13 @@ if ($search_user > 0)
 }
 $sql.= " WHERE c.fk_soc = s.rowid ";
 $sql.= ' AND c.entity IN ('.getEntity('contract').')';
+if ($search_invoices != '' && empty($search_invoices)) $sql.= ' AND ci.contract_id IS NULL';
+if ($search_status == "0") $sql.= " AND cd.statut = 0";
+if ($search_status == "4" || $search_status == "41" || $search_status == "42") $sql.= " AND cd.statut = 4";
+if ($search_status == "5") $sql.= " AND cd.statut = 5";
+if ($search_status == "50") $sql.= " AND cd.statut != 5";
+if ($search_status == "41") $sql.= " AND cd.date_fin_validite >= '".$db->idate($now)."'";   // not expired
+if ($search_status == "42") $sql.= " AND cd.date_fin_validite < '".$db->idate($now)."'";    // expired
 if ($search_product_category > 0) $sql.=" AND cp.fk_categorie = ".$search_product_category;
 if ($socid) $sql.= " AND s.rowid = ".$db->escape($socid);
 if (!$user->rights->societe->client->voir && !$socid) $sql.= " AND s.rowid = sc.fk_soc AND sc.fk_user = " .$user->id;
@@ -436,7 +462,6 @@ if ($resql)
         $payment_deadline_date = dol_mktime(0, 0, 0, GETPOST('payment_deadline_datemonth', 'int'), GETPOST('payment_deadline_dateday', 'int'), GETPOST('payment_deadline_dateyear', 'int'));
         $ref_customer = GETPOST('ref_customer', 'alpha');
         $use_customer_discounts = GETPOST('use_customer_discounts') ? 1 : 0;
-        $no_closed_contract_in_report = GETPOST('no_closed_contract_in_report') ? 1 : 0;
         $test_mode = GETPOST('test_mode') !== "" ? GETPOST('test_mode') : 1;
         $disable_revaluation = GETPOST('disable_revaluation') ? 1 : 0;
 
@@ -458,6 +483,11 @@ if ($resql)
         if ($search_name != '') $formquestion[] = array('type' => 'hidden', 'name' => 'search_name', 'value' => $search_name);
         if ($search_ref_supplier != '') $formquestion[] = array('type' => 'hidden', 'name' => 'search_ref_supplier', 'value' => $search_ref_supplier);
         if ($search_sale != '') $formquestion[] = array('type' => 'hidden', 'name' => 'search_sale', 'value' => $search_sale);
+        if ($search_invoices != '') $formquestion[] = array('type' => 'hidden', 'name' => 'search_invoices', 'value' => $search_invoices);
+        if ($search_invoices_total_ht != '') $formquestion[] = array('type' => 'hidden', 'name' => 'search_invoices_total_ht', 'value' => $search_invoices_total_ht);
+        if ($search_invoices_total_vat != '') $formquestion[] = array('type' => 'hidden', 'name' => 'search_invoices_total_vat', 'value' => $search_invoices_total_vat);
+        if ($search_invoices_total_ttc != '') $formquestion[] = array('type' => 'hidden', 'name' => 'search_invoices_total_ttc', 'value' => $search_invoices_total_ttc);
+        if ($search_status != '') $formquestion[] = array('type' => 'hidden', 'name' => 'search_status', 'value' => $search_status);
         if ($show_files) $formquestion[] = array('type' => 'hidden', 'name' => 'show_files', 'value' => $show_files);
         if ($sortfield) $formquestion[] = array('type' => 'hidden', 'name' => 'sortfield', 'value' => $sortfield);
         if ($sortorder) $formquestion[] = array('type' => 'hidden', 'name' => 'sortorder', 'value' => $sortorder);
@@ -481,7 +511,6 @@ if ($resql)
         $formquestion[] = array('type' => 'date', 'name' => 'payment_deadline_date', 'label' => $langs->trans('DateMaxPayment'), 'value' => $payment_deadline_date);
         $formquestion[] = array('type' => 'text', 'name' => 'ref_customer', 'label' => $langs->trans('RefCustomer'), 'value' => $ref_customer);
         $formquestion[] = array('type' => 'checkbox', 'name' => 'use_customer_discounts', 'label' => $langs->trans('STCGenerateInvoicesContractUseCustomerDiscounts'), 'value' => $use_customer_discounts);
-        $formquestion[] = array('type' => 'checkbox', 'name' => 'no_closed_contract_in_report', 'label' => $langs->trans('STCGenerateInvoicesContractNoClosedContractInReport'), 'value' => $no_closed_contract_in_report);
         $formquestion[] = array('type' => 'checkbox', 'name' => 'test_mode', 'label' => $langs->trans('STCGenerateInvoicesContractTestMode'), 'value' => $test_mode);
         $formquestion[] = array('type' => 'checkbox', 'name' => 'disable_revaluation', 'label' => $langs->trans('STCGenerateInvoicesContractDisableRevaluation'), 'value' => $disable_revaluation);
 
@@ -492,13 +521,18 @@ if ($resql)
     $param='';
     if (! empty($contextpage) && $contextpage != $_SERVER["PHP_SELF"]) $param.='&contextpage='.$contextpage;
     if ($limit > 0 && $limit != $conf->liste_limit) $param.='&limit='.$limit;
-    if ($sall != '')                $param.='&sall='.$sall;
-    if ($search_contract != '')     $param.='&search_contract='.$search_contract;
-    if ($search_name != '')         $param.='&search_name='.$search_name;
-    if ($search_ref_supplier != '') $param.='&search_ref_supplier='.$search_ref_supplier;
-    if ($search_sale != '')         $param.='&search_sale=' .$search_sale;
-    if ($show_files)                $param.='&show_files=' .$show_files;
-    if ($optioncss != '')           $param.='&optioncss='.$optioncss;
+    if ($sall != '')                        $param.='&sall='.$sall;
+    if ($search_contract != '')             $param.='&search_contract='.urlencode($search_contract);
+    if ($search_name != '')                 $param.='&search_name='.urlencode($search_name);
+    if ($search_ref_supplier != '')         $param.='&search_ref_supplier='.urlencode($search_ref_supplier);
+    if ($search_sale != '')                 $param.='&search_sale=' .urlencode($search_sale);
+    if ($search_invoices != '')             $param.='&search_invoices=' .urlencode($search_invoices);
+    if ($search_invoices_total_ht != '')    $param.='&search_invoices_total_ht=' .urlencode($search_invoices_total_ht);
+    if ($search_invoices_total_vat != '')   $param.='&search_invoices_total_vat=' .urlencode($search_invoices_total_vat);
+    if ($search_invoices_total_ttc != '')   $param.='&search_invoices_total_ttc=' .urlencode($search_invoices_total_ttc);
+    if ($search_status != '')               $param.='&search_status=' .$search_status;
+    if ($show_files)                        $param.='&show_files=' .$show_files;
+    if ($optioncss != '')                   $param.='&optioncss='.$optioncss;
     // Add $param from extra fields
     foreach ($search_array_options as $key => $val)
     {
@@ -661,22 +695,30 @@ if ($resql)
     // Invoices draft of this contract
     if (! empty($arrayfields['invoices']['checked']))
     {
-        print '<td class="liste_titre" align="left"></td>';
+        print '<td class="liste_titre" align="center">';
+        print $form->selectyesno('search_invoices', $search_invoices, 1, false, 1);
+        print '</td>';
     }
     // Total amount HT of the invoices draft of this contract
     if (! empty($arrayfields['invoices_total_ht']['checked']))
     {
-        print '<td class="liste_titre" align="left"></td>';
+        print '<td class="liste_titre" align="right">';
+        print '<input class="flat" size="6" type="text" name="search_invoices_total_ht" value="'.dol_escape_htmltag($search_invoices_total_ht).'">';
+        print '</td>';
     }
     // Total amount VAT of the invoices draft of this contract
     if (! empty($arrayfields['invoices_total_vat']['checked']))
     {
-        print '<td class="liste_titre" align="left"></td>';
+        print '<td class="liste_titre" align="right">';
+        print '<input class="flat" size="6" type="text" name="search_invoices_total_vat" value="'.dol_escape_htmltag($search_invoices_total_vat).'">';
+        print '</td>';
     }
     // Total amount TTC of the invoices draft of this contract
     if (! empty($arrayfields['invoices_total_ttc']['checked']))
     {
-        print '<td class="liste_titre" align="left"></td>';
+        print '<td class="liste_titre" align="right">';
+        print '<input class="flat" size="6" type="text" name="search_invoices_total_ttc" value="'.dol_escape_htmltag($search_invoices_total_ttc).'">';
+        print '</td>';
     }
     // Extra fields
     if (is_array($extrafields->attribute_label) && count($extrafields->attribute_label))
@@ -720,7 +762,17 @@ if ($resql)
     // Status
     if (! empty($arrayfields['status']['checked']))
     {
-        print '<td class="liste_titre" colspan="4" align="right"></td>';
+        print '<td class="liste_titre" colspan="4" align="right">';
+        $arrayofstatus=array(
+	    '0'=>$langs->trans("ServiceStatusInitial"),
+	    '4'=>$langs->trans("ServiceStatusRunning"),
+	    '41'=>$langs->trans("ServiceStatusNotLate"),    // not expired
+	    '42'=>$langs->trans("ServiceStatusLate"),       // expired
+            '5'=>$langs->trans("ServiceStatusClosed"),
+            '50'=>$langs->trans("STCServiceStatusNotClosed"),
+	);
+	print $form->selectarray('search_status', $arrayofstatus, (strstr($search_status, ',')?-1:$search_status), 1, 0, '', 0, 0, 0, '', 'maxwidth100onsmartphone');
+        print '</td>';
     }
     print '<td class="liste_titre" align="middle">';
     $searchpicto=$form->showFilterButtons();
@@ -741,13 +793,13 @@ if ($resql)
     if (! empty($arrayfields['sale_representative']['checked'])) print_liste_field_titre($arrayfields['sale_representative']['label'], $_SERVER["PHP_SELF"], "","","$param",'',$sortfield,$sortorder);
     if (! empty($arrayfields['c.date_contrat']['checked']))      print_liste_field_titre($arrayfields['c.date_contrat']['label'], $_SERVER["PHP_SELF"], "c.date_contrat","","$param",'align="center"',$sortfield,$sortorder);
     // Invoices draft of this contract
-    if (! empty($arrayfields['invoices']['checked']))       print_liste_field_titre($arrayfields['invoices']['label'],$_SERVER["PHP_SELF"],"","",$param,'align="center" class="nowrap"',$sortfield,$sortorder);
+    if (! empty($arrayfields['invoices']['checked']))       print_liste_field_titre($arrayfields['invoices']['label'],$_SERVER["PHP_SELF"],"","",$param,'align="center"',$sortfield,$sortorder);
     // Total amount HT of the invoices draft of this contract
-    if (! empty($arrayfields['invoices_total_ht']['checked']))       print_liste_field_titre($arrayfields['invoices_total_ht']['label'],$_SERVER["PHP_SELF"],"","",$param,'align="center" class="nowrap"',$sortfield,$sortorder);
+    if (! empty($arrayfields['invoices_total_ht']['checked']))       print_liste_field_titre($arrayfields['invoices_total_ht']['label'],$_SERVER["PHP_SELF"],"","",$param,'align="right"',$sortfield,$sortorder);
     // Total amount VAT of the invoices draft of this contract
-    if (! empty($arrayfields['invoices_total_vat']['checked']))       print_liste_field_titre($arrayfields['invoices_total_vat']['label'],$_SERVER["PHP_SELF"],"","",$param,'align="center" class="nowrap"',$sortfield,$sortorder);
+    if (! empty($arrayfields['invoices_total_vat']['checked']))       print_liste_field_titre($arrayfields['invoices_total_vat']['label'],$_SERVER["PHP_SELF"],"","",$param,'align="right"',$sortfield,$sortorder);
     // Total amount TTC of the invoices draft of this contract
-    if (! empty($arrayfields['invoices_total_ttc']['checked']))       print_liste_field_titre($arrayfields['invoices_total_ttc']['label'],$_SERVER["PHP_SELF"],"","",$param,'align="center" class="nowrap"',$sortfield,$sortorder);
+    if (! empty($arrayfields['invoices_total_ttc']['checked']))       print_liste_field_titre($arrayfields['invoices_total_ttc']['label'],$_SERVER["PHP_SELF"],"","",$param,'align="right"',$sortfield,$sortorder);
 	// Extra fields
 	if (is_array($extrafields->attribute_label) && count($extrafields->attribute_label))
 	{

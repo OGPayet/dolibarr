@@ -57,6 +57,22 @@ if ($reshook == 0) {
                             $result = $invoice->validate($user);
                             if ($result > 0) {
                                 $nbok++;
+
+                                // Define output language
+                                if (empty($conf->global->MAIN_DISABLE_PDF_AUTOUPDATE)) {
+                                    $outputlangs = $langs;
+                                    $newlang = '';
+                                    $invoice->fetch_thirdparty();
+                                    if ($conf->global->MAIN_MULTILANGS && empty($newlang)) $newlang = $invoice->thirdparty->default_lang;
+                                    if (!empty($newlang)) {
+                                        $outputlangs = new Translate("", $conf);
+                                        $outputlangs->setDefaultLang($newlang);
+                                    }
+                                    $model = $invoice->modelpdf;
+                                    $ret = $invoice->fetch($invoice_infos['id']); // Reload to get new records
+
+                                    $invoice->generateDocument($model, $outputlangs, $hidedetails, $hidedesc, $hideref);
+                                }
                             }
                         }
 
@@ -71,7 +87,7 @@ if ($reshook == 0) {
                 }
             }
 
-            if ($nbok > 0)
+            if ($nbok > 0) {
                 setEventMessage($langs->trans('STCInvoicesContractValidated', $nbok));
 
                 // Get all invoices draft linked to contracts
@@ -79,7 +95,7 @@ if ($reshook == 0) {
                 if (!is_array($invoices_draft_list)) {
                     setEventMessage('getInvoicesContractsInfo: ' . $db->lasterror(), 'errors');
                 }
-            else
+            } else
                 setEventMessage($langs->trans('STCNoInvoicesContractValidated'), 'warnings');
         }
     }
@@ -91,7 +107,6 @@ if ($reshook == 0) {
         $payment_deadline_date = dol_mktime(0, 0, 0, GETPOST('payment_deadline_datemonth', 'int'), GETPOST('payment_deadline_dateday', 'int'), GETPOST('payment_deadline_dateyear', 'int'));
         $ref_customer = GETPOST('ref_customer', 'alpha');
         $use_customer_discounts = GETPOST('use_customer_discounts') ? 1 : 0;
-        $no_closed_contract_in_report = GETPOST('no_closed_contract_in_report') ? 1 : 0;
         $test_mode = GETPOST('test_mode') ? 1 : 0;
         $disable_revaluation = GETPOST('disable_revaluation') ? 1 : 0;
 
@@ -129,17 +144,13 @@ if ($reshook == 0) {
                     if ($result > 0) {
                         // Generate invoices for the period
                         $result = $invoicescontracttools->generateInvoicesForTheContractInPeriod($objecttmp, $begin_watching_date, $end_watching_date, $payment_condition_id,
-                            $payment_deadline_date, $ref_customer, $use_customer_discounts, $no_closed_contract_in_report, $test_mode, $disable_revaluation);
+                            $payment_deadline_date, $ref_customer, $use_customer_discounts, $test_mode, $disable_revaluation);
                         if ($result < 0) {
                             setEventMessages($langs->trans('Contract') . ': ' . $objecttmp->ref, $invoicescontracttools->errors, 'errors');
                             $error++;
                         } else {
                             $nbok += $result;
                         }
-
-                        // Don't add line of closed contract
-                        if ($no_closed_contract_in_report && $invoicescontracttools->isContractClosed($toselectid))
-                            $invoicescontracttools->clearCurrentReportLineValue();
                     } else {
                         $invoicescontracttools->setCurrentReportLineValue(InvoicesContractTools::RLH_ERRORS, $objecttmp->errorsToString());
                         setEventMessages($langs->trans('Contract') . ': ID:' . $toselectid . "\n" . $objecttmp->error, $objecttmp->errors, 'errors');

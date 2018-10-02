@@ -255,6 +255,7 @@ STCRenewalOfTheContractEventLabel               = Contrat %s reconduit.
 STCRenewalOfTheContractEventDescription         = Le contrat %s a été reconduit jusqu'au %s.
 STCRenewalOfTheContractEndedEventLabel          = Contrat %s non reconduit.
 STCRenewalOfTheContractEndedEventDescription    = Le contrat %s n'a pas été reconduit le %s.
+STCContractExtraFields                          = Attributs supplémentaires du contrat
 
 ########################################################################################################
 # Terminate Event
