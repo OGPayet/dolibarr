@@ -183,7 +183,17 @@ class ActionsRetourProduits // extends CommonObject
 		}
 	}
 
-	function formConfirm($parameters, $object, $action)	{
+
+    /**
+     * Overloading the formConfirm function : replacing the parent's function with the one below
+     *
+     * @param   array()         $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          $action         Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+	function formConfirm($parameters, $object, $action, $hookmanager) {
 		global $conf, $langs, $db, $user;
 		global $form ;
 
@@ -208,7 +218,10 @@ class ActionsRetourProduits // extends CommonObject
                 $selected = $product_id > 0 && GETPOST('s-' . $line_id, 'int') > 0 ? ' checked' : '';
                 $qty = $product_id > 0 ? GETPOST('q-' . $line_id, 'int') : $line['qty_sent'];
                 $warehouse = $product_id > 0 ? GETPOST('w-' . $line_id, 'int') : '';
-                $equipments = $product_id > 0 ? GETPOST('e-' . $line_id, 'int') : array();
+                $equipmentsPost = $product_id > 0 ? GETPOST('e-' . $line_id) : '';
+
+                // create an array of equipment ids
+                $equipments = explode(',', $equipmentsPost);
 
                 $formquestion[] = array(
                     'type' => 'other',
@@ -226,7 +239,10 @@ class ActionsRetourProduits // extends CommonObject
 
             return 1;
         }
+
+        return 0;
 	}
+
 
 	function showLinkedObjectBlock($parameters,$object,$action){
 		if ($object->element == 'commande') {
