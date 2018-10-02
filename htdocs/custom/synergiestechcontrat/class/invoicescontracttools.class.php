@@ -1630,9 +1630,9 @@ class InvoicesContractTools
             $this->current_report_line[self::RLH_INVOICE_MODE_REGLEMENT_ID] = isset($mode_reglement) ? $mode_reglement : '';
             $this->current_report_line[self::RLH_INVOICE_ACCOUNT_ID] = $invoice->fk_account;
             $this->current_report_line[self::RLH_INVOICE_ACCOUNT_NAME] = ($invoice->fk_account > 0 ? $this->cache_account[$invoice->fk_account]->getFullName($langs) : '');
-            $this->current_report_line[self::RLH_INVOICE_AMOUNT_HT] = $invoice->total_ht;
-            $this->current_report_line[self::RLH_INVOICE_AMOUNT_VAT] = $invoice->total_tva;
-            $this->current_report_line[self::RLH_INVOICE_AMOUNT_TTC] = $invoice->total_ttc;
+            $this->current_report_line[self::RLH_INVOICE_AMOUNT_HT] = price($invoice->total_ht);
+            $this->current_report_line[self::RLH_INVOICE_AMOUNT_VAT] = price($invoice->total_tva);
+            $this->current_report_line[self::RLH_INVOICE_AMOUNT_TTC] = price($invoice->total_ttc);
             $this->current_report_line[self::RLH_INVOICE_REMISE_PERCENT] = $invoice->remise_percent;
             $this->current_report_line[self::RLH_INVOICE_INCOTERMS_ID] = $invoice->fk_incoterms;
             $this->current_report_line[self::RLH_INVOICE_LOCATION_INCOTERMS] = $invoice->location_incoterms;

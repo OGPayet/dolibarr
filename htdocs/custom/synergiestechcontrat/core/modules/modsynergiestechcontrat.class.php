@@ -292,18 +292,6 @@ class modsynergiestechcontrat extends DolibarrModulessynergiestechcontrat
 								'target'=>'',
 								'user'=>2);				                // 0=Menu for internal users, 1=external users, 2=both*/
 
-		$this->menu[$r++]=array(	'fk_menu'=>'fk_mainmenu=accountancy,fk_leftmenu=customers_bills',	    // '' if this is a top menu. For left menu, use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
-								'type'=>'left',			                // This is a Left menu entry
-								'titre'=>'FacturationContrat',
-								'mainmenu'=>'accountancy',
-								'leftmenu'=>'contratinvoice',
-								'url'=>'/synergiestechcontrat/contratInvoice.php',
-								'langs'=>'synergiestechcontrat@synergiestechcontrat',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
-								'position'=>1000+$r,
-								'enabled'=>'$conf->synergiestechcontrat->enabled',  // Define condition to show or hide menu entry. Use '$conf->synergiestechcontrat->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
-								'perms'=>'1',			                // Use 'perms'=>'$user->rights->synergiestechcontrat->level1->level2' if you want your menu with a permission rules
-								'target'=>'',
-								'user'=>2);				                // 0=Menu for internal users, 1=external users, 2=both
         $this->menu[$r] = array(
             'fk_menu' => 'fk_mainmenu=accountancy,fk_leftmenu=customers_bills',
             'type' => 'left',
