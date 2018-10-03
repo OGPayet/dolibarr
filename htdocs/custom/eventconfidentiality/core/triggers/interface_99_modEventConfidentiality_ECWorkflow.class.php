@@ -49,16 +49,38 @@ class InterfaceECWorkflow extends DolibarrTriggers
 	 */
 	public function runTrigger($action, $object, User $user, Translate $langs, Conf $conf)
 	{
+		dol_include_once('/advancedictionaries/class/dictionary.class.php');
+		dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
+		dol_include_once('/eventconfidentiality/lib/eventconfidentiality.lib.php');
+
+		if(empty($object->elementtype)) { //Gestion des event action qui n'ont pas de type
+			$object->elementtype = 'event';
+		}
+
 	    if ($action == 'ACTION_CREATE') {
 			$tags = GETPOST('add_tag', 'array');
-			$externe = GETPOST('add_external');
-			$mode = GETPOST('add_mode');
+			if(!empty($tags)) {
+				foreach($tags as $tag) {
+					$eventconfidentiality = new EventConfidentiality($this->db);
+					$eventconfidentiality->getDefaultMode($tag, $object->elementtype, $object->type_id, $object->id);
+					$eventconfidentiality->create($user);
+				}
+			} else {
+				$list_event = getDefaultTag($object->elementtype, $object->type_id, $object->id);
+				foreach($list_event as $event) {
+					$eventconfidentiality = new EventConfidentiality($this->db);
+					$eventconfidentiality->fk_object = $event['fk_object'];
+					$eventconfidentiality->fk_dict_tag_confid = $event['fk_dict_tag_confid'];
+					$eventconfidentiality->externe = $event['externe'];
+					$eventconfidentiality->level_confid = $event['level_confid'];
+					$eventconfidentiality->create($user);
+
+				}
+			}
         }
 
 	    if ($action == 'ACTION_MODIFY') {
 			$tags = GETPOST('edit_tag', 'array');
-			$externe = GETPOST('edit_external');
-			$mode = GETPOST('edit_mode');
         }
 
         return 0;

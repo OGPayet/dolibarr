@@ -38,13 +38,18 @@ class EventConfidentiality extends CommonObject
     public $fk_element = 'fk_eventconfidentiality';
     protected $ismultientitymanaged = 1;	// 0=No test on entity, 1=Test with field entity, 2=Test with link by societe
 
+    /**
+     * Id
+     * @var int
+     */
+    var $id;
 
-    const STATUS_INTERNE = 0;
-    const STATUS_EXTERNE = 1;
-
-    const LEVEL_SHOW = 0;
-    const LEVEL_BLURRED = 1;
-    const LEVEL_HIDDEN = 2;
+	var $fk_object;  //Id of the event
+	var $fk_dict_tag_confid; //Id of the tag
+	var $externe;  //Externe/Interne
+	var $level_confid;  //Confidentiality level
+	var $level_label; //Confidentiality level label
+	var $label;  //Label of tag
 
     /**
 	 * Constructor
@@ -55,4 +60,204 @@ class EventConfidentiality extends CommonObject
 	{
 		$this->db = $db;
 	}
+
+
+	/**
+     *    Add an relation event/confidentiality
+     *
+     *    @param	User	$user      		Object user making action
+     *    @return   int 		        	Id of created event, < 0 if KO
+     */
+    public function create(User $user)
+    {
+        global $langs,$conf;
+
+        $error=0;
+        $now=dol_now();
+
+        $this->db->begin();
+        $sql = "INSERT INTO ".MAIN_DB_PREFIX."event_agenda";
+        $sql.= "(fk_object,";
+        $sql.= "fk_dict_tag_confid,";
+        $sql.= "externe,";
+        $sql.= "level_confid";
+        $sql.= ") VALUES (";
+        $sql.= $this->fk_object.",";
+        $sql.= $this->fk_dict_tag_confid.",";
+        $sql.= $this->externe.",";
+        $sql.= $this->level_confid;
+        $sql.= ")";
+
+        dol_syslog(get_class($this)."::add", LOG_DEBUG);
+        $resql=$this->db->query($sql);
+        if ($resql)
+        {
+            $this->id = $this->db->last_insert_id(MAIN_DB_PREFIX."event_agenda","rowid");
+
+            if (! $error)
+            {
+		$this->db->commit();
+		return $this->id;
+            }
+            else
+            {
+			$this->db->rollback();
+			return -1;
+            }
+        }
+        else
+        {
+            $this->db->rollback();
+            $this->error=$this->db->lasterror();
+            return -1;
+        }
+
+    }
+
+	/**
+     *    Load an relation event/confidentiality
+     *
+     *    @param	int		$id     	Id of action to get
+     */
+    function fetch($id)
+    {
+        global $langs;
+
+		$sql = "SELECT";
+		$sql .= " a.rowid, a.fk_object, a.fk_dict_tag_confid, a.externe, a.level_confid, t.label";
+		$sql .= " FROM ".MAIN_DB_PREFIX."event_agenda as a,";
+		$sql .= " ".MAIN_DB_PREFIX."c_eventconfidentiality_tag as t";
+		$sql .= " WHERE a.rowid = ".$id;
+		$sql .= " AND a.fk_dict_tag_confid = t.rowid";
+
+        dol_syslog(get_class($this)."::fetch", LOG_DEBUG);
+		$resql = $this->db->query($sql);
+		if ($resql) {
+			$num=$this->db->num_rows($resql);
+			$i = 0;
+			while($i<$num) {
+				$obj = $this->db->fetch_object($resql);
+
+				$this->id                  = $obj->rowid;
+				$this->fk_object           = $obj->fk_object;
+				$this->fk_dict_tag_confid  = $obj->fk_dict_tag_confid;
+				$this->externe             = $obj->externe;
+				$this->level_confid        = $obj->level_confid;
+				$this->externe             = $obj->externe;
+				$this->level_confid        = $obj->level_confid;
+				if($obj->level_confid == 0) {
+					$this->level_label     = $langs->trans('EventConfidentialityModeVisible');
+				} else if($obj->level_confid == 1) {
+					$this->level_label     = $langs->trans('EventConfidentialityModeBlurred');
+				} else if($obj->level_confid == 2) {
+					$this->level_label     = $langs->trans('EventConfidentialityModeHidden');
+				}
+				$this->label        	   = $obj->label;
+
+				$i++;
+			}
+			$this->db->free($resql);
+		}
+		else
+        {
+            $this->error=$this->db->lasterror();
+            return -1;
+        }
+        return $this;
+    }
+
+	/**
+     *    Update an relation event/confidentiality
+     *
+     *    @param	User	$user      		Object user making action
+     *    @return   int 		        	Id of created event, < 0 if KO
+     */
+    public function update(User $user)
+    {
+        global $langs,$conf;
+
+        $error=0;
+        $now=dol_now();
+
+        $this->db->begin();
+        $sql = "UPDATE ".MAIN_DB_PREFIX."event_agenda";
+        $sql.= " SET";
+        $sql.= " externe = ".$this->externe;
+        $sql.= ", level_confid".$this->level_confid;
+        $sql.= " WHERE fk_object=".$this->fk_object;
+        $sql.= " AND fk_dict_tag_confid=".$this->fk_dict_tag_confid;
+
+        dol_syslog(get_class($this)."::add", LOG_DEBUG);
+        $resql=$this->db->query($sql);
+        if ($resql)
+        {
+            if (! $error)
+            {
+		$this->db->commit();
+		return $this->id;
+            }
+            else
+            {
+			$this->db->rollback();
+			return -1;
+            }
+        }
+        else
+        {
+            $this->db->rollback();
+            $this->error=$this->db->lasterror();
+            return -1;
+        }
+
+    }
+
+	/**
+     *    Get default external and mode for a tag, an action and an origin
+     *
+     *    @param	int		$id     	Id of action to get
+     *    @param	string	$ref    	Ref of action to get
+     *    @param	string	$ref_ext	Ref ext to get
+     *    @return	int					<0 if KO, >0 if OK
+     */
+    function getDefaultMode($id_tag, $elementtype, $type_id, $fk_object)
+    {
+        global $langs;
+
+
+		$sql = "SELECT d.external, d.mode";
+		$sql .= " FROM";
+		$sql .= " ".MAIN_DB_PREFIX."c_eventconfidentiality_default as d,";
+		$sql .= " ".MAIN_DB_PREFIX."c_eventconfidentiality_default_cbl_tags as t,";
+		$sql .= " ".MAIN_DB_PREFIX."c_eventconfidentiality_default_cbl_action_type as a";
+		$sql .= " WHERE t.fk_line = d.rowid";
+		$sql .= " AND a.fk_line = d.rowid";
+		$sql .= " AND d.active = 1";
+		$sql .= " AND d.element_origin LIKE '%".$elementtype."%'"; //Origin
+		$sql .= " AND t.fk_target = ".$id_tag; //Tag id
+		$sql .= " AND a.fk_target = ".$type_id; //Action id
+
+        dol_syslog(get_class($this)."::fetch", LOG_DEBUG);
+		$resql = $this->db->query($sql);
+		if ($resql) {
+			$num=$this->db->num_rows($resql);
+			$i = 0;
+			while($i<$num) {
+				$obj = $this->db->fetch_object($resql);
+
+				$this->fk_object           = $fk_object;
+				$this->fk_dict_tag_confid  = $id_tag;
+				$this->externe             = $obj->external;
+				$this->level_confid        = $obj->mode;
+
+				$i++;
+			}
+			$this->db->free($resql);
+		}
+		else
+        {
+            $this->error=$this->db->lasterror();
+            return -1;
+        }
+        return $this;
+    }
 }

@@ -62,4 +62,95 @@ function eventconfidentiality_admin_prepare_head()
 
     return $head;
 }
+
+/**
+ *    Get default tag, external and mode for an action and an origin
+ *
+ */
+function getDefaultTag($elementtype, $type_id, $fk_object)
+{
+	global $langs, $db, $conf;
+
+	$return = array();
+	$sql = "SELECT t.fk_target, d.external, d.mode";
+	$sql .= " FROM";
+	$sql .= " ".MAIN_DB_PREFIX."c_eventconfidentiality_default as d,";
+	$sql .= " ".MAIN_DB_PREFIX."c_eventconfidentiality_default_cbl_tags as t,";
+	$sql .= " ".MAIN_DB_PREFIX."c_eventconfidentiality_default_cbl_action_type as a";
+	$sql .= " WHERE t.fk_line = d.rowid";
+	$sql .= " AND a.fk_line = d.rowid";
+	$sql .= " AND d.active = 1";
+	$sql .= " AND d.element_origin LIKE '%".$elementtype."%'"; //Origin
+	$sql .= " AND a.fk_target = ".$type_id; //Action id
+
+	$resql = $db->query($sql);
+	if ($resql) {
+		$num=$db->num_rows($resql);
+		$i = 0;
+		while($i<$num) {
+			$obj = $db->fetch_object($resql);
+
+			$object = array();
+			$object['fk_object']           = $fk_object;
+			$object['fk_dict_tag_confid']  = $obj->fk_target;
+			$object['externe']  = $obj->external;
+			$object['level_confid']  = $obj->mode;
+
+			$return[] = $object;
+
+			$i++;
+		}
+		$db->free($resql);
+	}
+	return $return;
+}
+
+/**
+ *    Load all tag for an object
+ *
+ */
+function fetchAllTagForObject($id)
+{
+	global $langs, $db, $conf;
+
+	$list_tag = array();
+	$sql = "SELECT";
+	$sql .= " a.rowid, a.fk_object, a.fk_dict_tag_confid, a.externe, a.level_confid, t.label";
+	$sql .= " FROM ".MAIN_DB_PREFIX."event_agenda as a,";
+	$sql .= " ".MAIN_DB_PREFIX."c_eventconfidentiality_tag as t";
+	$sql .= " WHERE a.fk_object = ".$id;
+	$sql .= " AND a.fk_dict_tag_confid = t.rowid";
+
+	$resql = $db->query($sql);
+	if ($resql) {
+		$num=$db->num_rows($resql);
+		$i = 0;
+		while($i<$num) {
+			$obj = $db->fetch_object($resql);
+
+			$array = array();
+			$array['id']                   = $obj->rowid;
+			$array['fk_object']            = $obj->fk_object;
+			$array['fk_dict_tag_confid']   = $obj->fk_dict_tag_confid;
+			$array['externe']              = $obj->externe;
+			$array['level_confid']         = $obj->level_confid;
+			$array['externe']              = $obj->externe;
+			$array['level_confid']         = $obj->level_confid;
+			if($obj->level_confid == 0) {
+				$array['level_label']      = $langs->trans('EventConfidentialityModeVisible');
+			} else if($obj->level_confid == 1) {
+				$array['level_label']      = $langs->trans('EventConfidentialityModeBlurred');
+			} else if($obj->level_confid == 2) {
+				$array['level_label']     = $langs->trans('EventConfidentialityModeHidden');
+			}
+			$array['label']        	      = $obj->label;
+
+			$list_tag[] = $array;
+
+			$i++;
+		}
+		$db->free($resql);
+	}
+	return $list_tag;
+}
 ?>

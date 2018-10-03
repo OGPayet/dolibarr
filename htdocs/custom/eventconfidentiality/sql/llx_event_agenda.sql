@@ -24,6 +24,6 @@ create table llx_event_agenda
   fk_object                 integer NOT NULL,		            -- id of action
   fk_dict_tag_confid        integer NOT NULL,		            -- id of tag
 
-  interne                   integer(1), 		      -- interne ou externe
+  externe                   integer(1), 		      -- interne ou externe
   level_confid               integer(1)               -- niveau de confidentialité
 )ENGINE=innodb;

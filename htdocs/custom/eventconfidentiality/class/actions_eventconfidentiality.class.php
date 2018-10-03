@@ -75,127 +75,75 @@ class ActionsEventConfidentiality
     {
         global $db, $langs, $form;
 
+		$element = $object->element;
+
+		if($element == 'action') {
+			$langs->load("eventconfidentiality@eventconfidentiality");
+			dol_include_once('/advancedictionaries/class/dictionary.class.php');
+			dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
+			dol_include_once('/eventconfidentiality/lib/eventconfidentiality.lib.php');
+
+			if ($object->id > 0) {
+				$fk_tags = fetchAllTagForObject($object->id);
+				$fk_tags_id = array_column($fk_tags, 'id');
+				if($action == 'edit') {
+					//Tags
+					$array_tags = array();
+					$dictionary = Dictionary::getDictionary($db, 'eventconfidentiality', 'eventconfidentialitytag', 0);
+					$array_tags = $dictionary->fetch_array('rowid', '{{label}}', array(), array('label' => 'ASC'));
+					$out .= '<tr>';
+					$out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityTagLabel") . '</td>';
+					$out .= '<td colspan="3">'.$form->multiselectarray('add_tag', $array_tags, $fk_tags_id, '', 0, '', 0, '100%').'</td>';
+					$out .= '</tr>';
+				} else if($action == '') {
+					//Tags
+					$tags = "";
+					foreach ($fk_tags as $fk_tag) {
+					$tags .= '<li class="select2-search-choice-dolibarr noborderoncategories" style="background: #ff0000;"><img src="/htdocs/theme/owntheme/img/object_category.png" alt="" title="" class="inline-block valigntextbottom">'.$fk_tag['label'].' : '.$fk_tag['level_label'].'</li>';
+					}
+					$out .= '<tr>';
+					$out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityTagLabel") . '</td>';
+					$out .= '<td colspan="3"><div class="select2-container-multi-dolibarr" style="width: 90%;"><ul class="select2-choices-dolibarr" style="list-style:none;">'.$tags.'</ul></div></td>';
+					$out .= '</tr>';
+				}
+			} else {
+				//Tags
+				$array_tags = array();
+				$dictionary = Dictionary::getDictionary($db, 'eventconfidentiality', 'eventconfidentialitytag', 0);
+				$array_tags = $dictionary->fetch_array('rowid', '{{label}}', array(), array('label' => 'ASC'));
+
+				$out .= '<tr>';
+				$out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityTagLabel") . '</td>';
+				$out .= '<td colspan="3">'.$form->multiselectarray('add_tag', $array_tags, array(), '', 0, '', 0, '100%').'</td>';
+				$out .= '</tr>';
+			}
+			$this->resprints = $out;
+		}
+        return 0;
+    }
+
+	/**
+     * Overloading the afterObjectFetch function : replacing the parent's function with the one below
+     *
+     * @param   array           $parameters     meta datas of the hook (context, etc...)
+     * @param   CommonObject    $object         the object you want to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          $action         current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    current hook manager
+     * @return  void
+     */
+    function afterObjectFetch($parameters, &$object, &$action, $hookmanager)
+    {
+        global $db, $langs, $form, $user;
+
+		$element = $object->element;
+
 		$langs->load("eventconfidentiality@eventconfidentiality");
 		dol_include_once('/advancedictionaries/class/dictionary.class.php');
+		dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
+		dol_include_once('/eventconfidentiality/lib/eventconfidentiality.lib.php');
 
-		if ($object->id > 0) {
-			$sql = "SELECT * FROM llx_event_agenda WHERE fk_object = ".$object->id;
-			$resql = $db->query($sql);
-			if ($resql) {
-				$obj = $db->fetch_object($resql);
-			}
-			if($action == 'edit') {
-				//Tags
-				$list_tag = array();
-				if(!empty($obj->fk_dict_tag_confid)) {
-					$list_tag = explode(',',$obj->fk_dict_tag_confid);
-				}
-				$array_tags = array();
-				$dictionary = Dictionary::getDictionary($db, 'eventconfidentiality', 'eventconfidentialitytag', 0);
-				$dictionary->fetch_lines();
-				foreach ($dictionary->lines as $line) {
-					$array_tags[$line->fields[0]] = $line->fields['label'];
-				}
-				$out .= '<tr>';
-				$out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityTagLabel") . '</td>';
-				$out .= '<td colspan="3">'.$form->multiselectarray('add_tag', $array_tags, $list_tag, '', 0, '', 0, '100%').'</td>';
-				$out .= '</tr>';
-
-				//Interne
-				$out .= '<tr>';
-				$out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityExternalLabel") . '</td>';
-				$out .= '<td colspan="3"><input type="checkbox" class="flat maxwidthonsmartphone" id="edit_external" name="edit_external" '.($obj->interne?'checked':'').'></td>';
-				$out .= '</tr>';
-
-				// Level
-				$out .= '<tr>';
-				$out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityModeLabel") . '</td>';
-				$out .= '<td colspan="3">';
-				$out .= '<select class="flat minwidth200 maxwidthonsmartphone" id="add_mode" name="add_mode">';
-				$out .= '<option value="-1" '.($obj->level_confid==""?'selected':'').'>&nbsp;</option>';
-				$out .= '<option value="0" '.($obj->level_confid==0?'selected':'').'>'.$langs->trans('EventConfidentialityModeVisible').'</option>';
-				$out .= '<option value="1" '.($obj->level_confid==1?'selected':'').'>'.$langs->trans('EventConfidentialityModeBlurred').'</option>';
-				$out .= '<option value="2" '.($obj->level_confid==2?'selected':'').'>'.$langs->trans('EventConfidentialityModeHidden').'</option>';
-				$out .= '</td>';
-				$out .= '</tr>';
-			} else if($action == '') {
-				//Tags
-				$list_tag = array();
-				if(!empty($obj->fk_dict_tag_confid)) {
-					$list_tag = explode(',',$obj->fk_dict_tag_confid);
-				}
-				$array_tags = array();
-				$dictionary = Dictionary::getDictionary($db, 'eventconfidentiality', 'eventconfidentialitytag', 0);
-				$dictionary->fetch_lines();
-				foreach ($dictionary->lines as $line) {
-					$array_tags[$line->fields[0]] = $line->fields['label'];
-				}
-				$tags = "";
-				foreach ($dictionary->lines as $line) {
-					if(in_array($line->fields[0],$list_tag)) {
-						$tags .= '<li class="select2-search-choice-dolibarr noborderoncategories" style="background: #ff0000;"><img src="/htdocs/theme/owntheme/img/object_category.png" alt="" title="" class="inline-block valigntextbottom">'.$line->fields['label'].'</li>';
-					}
-				}
-				$out .= '<tr>';
-				$out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityTagLabel") . '</td>';
-				$out .= '<td colspan="3"><div class="select2-container-multi-dolibarr" style="width: 90%;"><ul class="select2-choices-dolibarr" style="list-style:none;">'.$tags.'</ul></div></td>';
-				$out .= '</tr>';
-
-				//Interne
-				$out .= '<tr>';
-				$out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityExternalLabel") . '</td>';
-				$out .= '<td colspan="3"><input type="checkbox" class="flat maxwidthonsmartphone" '.($obj->interne?'checked':'').' disabled></td>';
-				$out .= '</tr>';
-
-				// Level
-				$out .= '<tr>';
-				$out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityModeLabel") . '</td>';
-				$out .= '<td colspan="3">';
-				if($obj->level_confid == 0) {
-					$out .= $langs->trans('EventConfidentialityModeVisible');
-				} else if($obj->level_confid == 1) {
-					$out .= $langs->trans('EventConfidentialityModeBlurred');
-				} else if($obj->level_confid == 2) {
-					$out .= $langs->trans('EventConfidentialityModeHidden');
-				} else {
-					$out .= "";
-				}
-				$out .= '</td>';
-				$out .= '</tr>';
-			}
-		} else {
-			//Tags
-			$array_tags = array();
-			$dictionary = Dictionary::getDictionary($db, 'eventconfidentiality', 'eventconfidentialitytag', 0);
-			$dictionary->fetch_lines();
-			foreach ($dictionary->lines as $line) {
-				$array_tags[$line->fields[0]] = $line->fields['label'];
-			}
-			$out .= '<tr>';
-			$out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityTagLabel") . '</td>';
-			$out .= '<td colspan="3">'.$form->multiselectarray('add_tag', $array_tags, array(), '', 0, '', 0, '100%').'</td>';
-			$out .= '</tr>';
-
-			//Interne
-			$out .= '<tr>';
-			$out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityExternalLabel") . '</td>';
-			$out .= '<td colspan="3"><input type="checkbox" class="flat maxwidthonsmartphone" id="add_external" name="add_external"></td>';
-			$out .= '</tr>';
-
-			//Level
-			$out .= '<tr>';
-			$out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityModeLabel") . '</td>';
-			$out .= '<td colspan="3">';
-			$out .= '<select class="flat minwidth200 maxwidthonsmartphone" id="add_mode" name="add_mode">';
-			$out .= '<option value="-1">&nbsp;</option>';
-			$out .= '<option value="0">'.$langs->trans('EventConfidentialityModeVisible').'</option>';
-			$out .= '<option value="1">'.$langs->trans('EventConfidentialityModeBlurred').'</option>';
-			$out .= '<option value="2">'.$langs->trans('EventConfidentialityModeHidden').'</option>';
-			$out .= '</td>';
-			$out .= '</tr>';
-		}
-		$this->resprints = $out;
-
+		$object->datef = 0;
+		print_r($user->array_options);
         return 0;
     }
 }

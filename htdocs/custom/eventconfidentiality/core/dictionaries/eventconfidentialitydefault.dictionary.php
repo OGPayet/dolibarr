@@ -154,7 +154,6 @@ class EventConfidentialityDefaultDictionary extends Dictionary
             'td_input'  => array (
                 'positionLine' => 1,
             ),
-            'is_require' => true,
         ),
         'mode' => array(),
     );
