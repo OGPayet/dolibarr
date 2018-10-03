@@ -3,8 +3,7 @@
 ## Features
 Digital sign your commercial documents.
 
-With the DoiEsign module you can have your commercial documents digital signed by your contacts.
-The documents will be signed by the Yousign (c) signing services. Yousign will deliver legally valid signed documents.
+With the DoliEsign module you can have your commercial documents digital signed by your contacts.
 
 Other modules are available on <a href="https://www.dolistore.com" target="_new">Dolistore.com</a>.
 

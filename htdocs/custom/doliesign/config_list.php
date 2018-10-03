@@ -77,6 +77,8 @@ $optioncss  = GETPOST('optioncss','aZ');												// Option for the css output
 
 $id			= GETPOST('id','int');
 
+$search = array();
+
 // Load variable for pagination
 $limit = GETPOST('limit','int')?GETPOST('limit','int'):$conf->liste_limit;
 $sortfield = GETPOST('sortfield','alpha');
@@ -109,14 +111,6 @@ foreach($object->fields as $key => $val)
 {
 	// If $val['visible']==0, then we never show the field
 	if (! empty($val['visible'])) $arrayfields['t.'.$key]=array('label'=>$val['label'], 'checked'=>(($val['visible']<0)?0:1), 'enabled'=>$val['enabled']);
-}
-// Extra fields
-if (is_array($extrafields->attribute_label) && count($extrafields->attribute_label))
-{
-	foreach($extrafields->attribute_label as $key => $val)
-	{
-		if (! empty($extrafields->attribute_list[$key])) $arrayfields["ef.".$key]=array('label'=>$extrafields->attribute_label[$key], 'checked'=>(($extrafields->attribute_list[$key]<0)?0:1), 'position'=>$extrafields->attribute_pos[$key], 'enabled'=>(abs($extrafields->attribute_list[$key])!=3 && $extrafields->attribute_perms[$key]));
-	}
 }
 
 /*
@@ -241,15 +235,12 @@ foreach($object->fields as $key => $val)
 {
 	$sql.='t.'.$key.', ';
 }
-// Add fields from extrafields
-foreach ($extrafields->attribute_label as $key => $val) $sql.=($extrafields->attribute_type[$key] != 'separate' ? ", ef.".$key.' as options_'.$key : '');
 // Add fields from hooks
 $parameters=array();
 $reshook=$hookmanager->executeHooks('printFieldListSelect', $parameters, $object);    // Note that $action and $object may have been modified by hook
 $sql.=$hookmanager->resPrint;
 $sql=preg_replace('/, $/','', $sql);
 $sql.= " FROM ".MAIN_DB_PREFIX.$object->table_element." as t";
-if (is_array($extrafields->attribute_label) && count($extrafields->attribute_label)) $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."config_extrafields as ef on (t.rowid = ef.fk_object)";
 if ($object->ismultientitymanaged == 1) $sql.= " WHERE t.entity IN (".getEntity('config').")";
 else $sql.=" WHERE 1 = 1";
 // Add where from hooks
@@ -257,19 +248,6 @@ $parameters=array();
 $reshook=$hookmanager->executeHooks('printFieldListWhere', $parameters, $object);    // Note that $action and $object may have been modified by hook
 $sql.=$hookmanager->resPrint;
 
-/* If a group by is required
-$sql.= " GROUP BY "
-foreach($object->fields as $key => $val)
-{
-    $sql.='t.'.$key.', ';
-}
-// Add fields from extrafields
-foreach ($extrafields->attribute_label as $key => $val) $sql.=($extrafields->attribute_type[$key] != 'separate' ? ",ef.".$key : '');
-// Add where from hooks
-$parameters=array();
-$reshook=$hookmanager->executeHooks('printFieldListGroupBy',$parameters);    // Note that $action and $object may have been modified by hook
-$sql.=$hookmanager->resPrint;
-*/
 
 $sql.=$db->order($sortfield,$sortorder);
 
@@ -401,15 +379,6 @@ if (DoliEsign::checkDolVersion('6.0')) {
 	print getTitleFieldOfList($selectedfields, 0, $_SERVER["PHP_SELF"],'','','','align="center"',$sortfield,$sortorder,'maxwidthsearch ')."\n";
 }
 print '</tr>'."\n";
-
-
-// Detect if we need a fetch on each output line
-$needToFetchEachLine=0;
-foreach ($extrafields->attribute_computed as $key => $val)
-{
-	if (preg_match('/\$object/',$val)) $needToFetchEachLine++;  // There is at least one compute field that use $object
-}
-
 
 // Loop on record
 // --------------------------------------------------------------------

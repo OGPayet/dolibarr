@@ -78,7 +78,7 @@ class DoliEsign extends CommonObject
 		'entity' => array('type'=>'integer', 'label'=>'Entity', 'visible'=>-1, 'enabled'=>1, 'position'=>20, 'notnull'=>1, 'index'=>1,),
 		'label' => array('type'=>'varchar(255)', 'label'=>'Label', 'visible'=>-1, 'enabled'=>1, 'position'=>30, 'notnull'=>-1, 'searchall'=>1, 'help'=>"Help text",),
 		'fk_soc' => array('type'=>'integer:Societe:societe/class/societe.class.php', 'label'=>'ThirdParty', 'visible'=>1, 'enabled'=>1, 'position'=>50, 'notnull'=>-1, 'index'=>1, 'searchall'=>1, 'help'=>"LinkToThirparty",),
-		'description' => array('type'=>'text', 'label'=>'Descrption', 'visible'=>-1, 'enabled'=>1, 'position'=>60, 'notnull'=>-1,),
+		'description' => array('type'=>'text', 'label'=>'Description', 'visible'=>-1, 'enabled'=>1, 'position'=>60, 'notnull'=>-1,),
 		'date_creation' => array('type'=>'datetime', 'label'=>'DateCreation', 'visible'=>1, 'enabled'=>1, 'position'=>500, 'notnull'=>1,),
 		'date_sign' => array('type'=>'datetime', 'label'=>'DateSign', 'visible'=>1, 'enabled'=>1, 'position'=>500, 'notnull'=>-1,),
 		'tms' => array('type'=>'timestamp', 'label'=>'DateModification', 'visible'=>-2, 'enabled'=>1, 'position'=>501, 'notnull'=>1,),
@@ -91,6 +91,7 @@ class DoliEsign extends CommonObject
 		'id_file' => array('type'=>'varchar(14)', 'label'=>'idFile', 'visible'=>-1, 'enabled'=>1, 'position'=>600, 'notnull'=>-1,),
 		'sign_status' => array('type'=>'varchar(128)', 'label'=>'SignStatus', 'visible'=>1, 'enabled'=>1, 'position'=>620, 'notnull'=>-1,),
 		'sign_id' => array('type'=>'varchar(64)', 'label'=>'SignId', 'visible'=>-1, 'enabled'=>1, 'position'=>640, 'notnull'=>-1,),
+		'api_name' => array('type'=>'varchar(64)', 'label'=>'ApiName', 'visible'=>-1, 'enabled'=>1, 'position'=>640, 'notnull'=>-1,),
 		'fk_contact_sign' => array('type'=>'integer', 'label'=>'ContactSignId', 'visible'=>1, 'enabled'=>1, 'position'=>5, 'notnull'=>-1,),
 		'fk_user_sign' => array('type'=>'integer', 'label'=>'UserSignId', 'visible'=>1, 'enabled'=>1, 'position'=>5, 'notnull'=>-1,),
 		'hash_file' => array('type'=>'varchar(255)', 'label'=>'HashFile', 'visible'=>-1, 'enabled'=>1, 'position'=>605, 'notnull'=>-1,),
@@ -114,6 +115,7 @@ class DoliEsign extends CommonObject
 	public $id_file;
 	public $sign_status;
 	public $sign_id;
+	public $api_name;
 	public $fk_contact_sign;
 	public $fk_user_sign;
 	public $hash_file;
@@ -251,7 +253,7 @@ class DoliEsign extends CommonObject
 	}
 
 	/**
-	 * Load list of tokens in memory from the database
+	 * Load list of sign tokens for dolibarr object in memory from the database
 	 *
 	 * @return array         <0 if KO, array of token objects
 	 */
@@ -700,7 +702,13 @@ class DoliEsign extends CommonObject
 			}
 		}
 		elseif ($key == 'sign_status') {
-			if (!empty($value) && ($value == 'COSIGNATURE_FILE_SIGNED' || $value == 'COSIGNATURE_EVENT_OK')) {
+			if (!empty($value) &&
+					(
+						$value == 'COSIGNATURE_FILE_SIGNED' ||
+						$value == 'COSIGNATURE_EVENT_OK' ||
+						$value == 'done'
+					)
+			) {
 				$value = img_picto($langs->trans('SignedDoliEsign'),'statut4');
 			} else {
 				$value = img_picto($langs->trans('WaitingDoliEsign'),'statut5');

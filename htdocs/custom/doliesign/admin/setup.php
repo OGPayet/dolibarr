@@ -59,11 +59,67 @@ if (! $user->admin) accessforbidden();
 $action = GETPOST('action', 'alpha');
 
 $arrayofparameters=array(
-	'DOLIESIGN_LOGIN'=>array('css'=>'minwidth500','type'=>'text'),
-	'DOLIESIGN_PASSWORD'=>array('css'=>'minwidth500','type'=>'password'),
-	'DOLIESIGN_API_KEY'=>array('css'=>'minwidth500','type'=>'text'),
-	'DOLIESIGN_AUTHENTICATION_MODE'=>array('css'=>'minwidth500','type'=>'text')
+	'DOLIESIGN_ENVIRONMENT'=>array('css'=>'minwidth400','type'=>'select','class'=>'yousign-demo yousign-staging-api prod yousign-api universign-prod universign-demo'),
+	'DOLIESIGN_LOGIN'=>array('css'=>'minwidth400','type'=>'text', 'class'=>'yousign-demo yousign-staging-api'),
+	'DOLIESIGN_PASSWORD'=>array('css'=>'minwidth400','type'=>'password', 'class'=>'yousign-demo yousign-staging-api'),
+	'DOLIESIGN_API_KEY'=>array('css'=>'minwidth400','type'=>'text', 'class'=>'yousign-demo yousign-staging-api'),
+	'DOLIESIGN_AUTHENTICATION_MODE'=>array('css'=>'minwidth400','type'=>'text', 'class'=>'yousign-demo yousign-staging-api'),
+	'DOLIESIGN_LOGIN_PROD'=>array('css'=>'minwidth400','type'=>'text', 'class'=>'yousign-prod yousign-api'),
+	'DOLIESIGN_PASSWORD_PROD'=>array('css'=>'minwidth400','type'=>'password', 'class'=>'yousign-prod yousign-api'),
+	'DOLIESIGN_API_KEY_PROD'=>array('css'=>'minwidth400','type'=>'text', 'class'=>'yousign-prod yousign-api'),
+	'DOLIESIGN_AUTHENTICATION_MODE_PROD'=>array('css'=>'minwidth400','type'=>'text', 'class'=>'yousign-prod yousign-api'),
+	'DOLIESIGN_LOGIN_UNIVERSIGN_PROD'=>array('css'=>'minwidth400','type'=>'text', 'class'=>'universign-prod'),
+	'DOLIESIGN_PASSWORD_UNIVERSIGN_PROD'=>array('css'=>'minwidth400','type'=>'password', 'class'=>'universign-prod'),
+	'DOLIESIGN_LOGIN_UNIVERSIGN_DEMO'=>array('css'=>'minwidth400','type'=>'text', 'class'=>'universign-demo'),
+	'DOLIESIGN_PASSWORD_UNIVERSIGN_DEMO'=>array('css'=>'minwidth400','type'=>'password', 'class'=>'universign-demo'),
+	'DOLIESIGN_SEND_MAIL_ALL_UNIVERSIGN'=>array('css'=>'minwidth400','type'=>'select', 'class'=>'universign-prod universign-demo'),
+	'DOLIESIGN_SEND_MAIL_UNIVERSIGN'=>array('css'=>'minwidth400','type'=>'select', 'class'=>'universign-prod universign-demo'),
+	'DOLIESIGN_CERTIFICATE_TYPE_UNIVERSIGN'=>array('css'=>'minwidth400','type'=>'select', 'class'=>'universign-prod universign-demo'),
+	'DOLIESIGN_LANGUAGE_UNIVERSIGN'=>array('css'=>'minwidth400','type'=>'select', 'class'=>'universign-prod universign-demo'),
+	'DOLIESIGN_HANDWRITEN_SIGN_UNIVERSIGN'=>array('css'=>'minwidth400','type'=>'select', 'class'=>'universign-prod universign-demo'),
+	'DOLIESIGN_CGV_REL_PATH'=>array('css'=>'minwidth400','type'=>'text','class'=>'yousign-demo yousign-staging-api yousign-prod yousign-api universign-prod universign-demo'),
+	'DOLIESIGN_CGV_FILENAME'=>array('css'=>'minwidth400','type'=>'text','class'=>'yousign-demo yousign-staging-api yousign-prod yousign-api universign-prod universign-demo'),
 );
+
+$selectSetup = array("DOLIESIGN_ENVIRONMENT" => array(
+						"yousign-demo" => "Yousign SOAP demo",
+						"yousign-prod" => "Yousign SOAP prod",
+						"yousign-staging-api" => "Yousign REST demo",
+						"yousign-api" => "Yousign REST prod",
+						"universign-prod" => "Universign prod",
+						"universign-demo" => "Universign demo",
+						),
+					"DOLIESIGN_CERTIFICATE_TYPE_UNIVERSIGN" => array(
+						"simple" => "Simple",
+						"certified" => "Certifié",
+						),
+					"DOLIESIGN_SEND_MAIL_ALL_UNIVERSIGN" => array(
+						"true" => "Oui",
+						"false" => "Non",
+						),
+					"DOLIESIGN_SEND_MAIL_UNIVERSIGN" => array(
+						"true" => "Oui",
+						"false" => "Non",
+						),
+					"DOLIESIGN_HANDWRITEN_SIGN_UNIVERSIGN" => array(
+						"0" => "Signature standard",
+						"1" => "Signature manuscrite",
+						"2" => "Signature manuscrite uniquement sur tactile",
+						),
+					"DOLIESIGN_LANGUAGE_UNIVERSIGN" => array(
+						"fr" => "Français",
+						"bg" => "Bulgare",
+						"ca" => "Catalan",
+						"de" => "Allemand",
+						"en" => "Anglais",
+						"es" => "Espagnole",
+						"it" => "Italien",
+						"nl" => "Néerlandais",
+						"pl" => "Polonais",
+						"pt" => "Portuguais",
+						"ro" => "Roumain",
+						),
+					);
 
 
 /*
@@ -116,10 +172,6 @@ if ($action == 'setYesNo')
 				{
 					$res = dolibarr_set_const($db,$param,$value,'yesno',0,'',$conf->entity);
 					if (! $res > 0) $error++;
-					if (! $error && $param == 'EMAILTIMESTAMPING_INCLUDE_FILES') {
-						$res=dolibarr_set_const($db,'MAIN_DISABLE_PDF_AUTOUPDATE',$value,'chaine',0,'',$conf->entity);
-						if (! $res > 0) $error++;
-					}
 				}
 			}
 		}
@@ -166,10 +218,17 @@ print '<tr class="liste_titre"><td class="titlefield">'.$langs->trans("Parameter
 
 foreach($arrayofparameters as $key => $val)
 {
+	$display = 'none';
+
+	foreach($selectSetup['DOLIESIGN_ENVIRONMENT'] as $keyEnv => $environment) {
+		if(($conf->global->DOLIESIGN_ENVIRONMENT == $keyEnv && stristr($val['class'], $conf->global->DOLIESIGN_ENVIRONMENT) !== false)) {
+			$display="";
+		}
+	}
 	if ($val['type'] == 'fieldset') {
-		print '<tr class="liste_titre"><td>';
+		print '<tr class="liste_titre" style="display: '. $display .';"><td>';
 	} else {
-		print '<tr class="oddeven"><td>';
+		print '<tr class="oddeven" style="display: '. $display .';"><td>';
 	}
 
 	if ($langs->trans($key.'Tooltip') != $key.'Tooltip') {
@@ -193,6 +252,9 @@ foreach($arrayofparameters as $key => $val)
 		}
 	} else if ($val['type'] == 'fieldset') {
 		print '</td><td></td></tr>';
+	} else if($val['type'] == 'select') {
+		print '</td><td>'. $form->selectarray($key, $selectSetup[$key], $conf->global->$key, 0) .
+		'</td><tr>';
 	} else if (! empty($val['type'])) {
 		print '</td><td><input type="'.$val['type'].'" name="'.$key.'"  class="flat '.(empty($val['css'])?'minwidth200':$val['css']).'" value="' . $conf->global->$key . '"></td></tr>';
 	} else {
@@ -208,6 +270,13 @@ print '</div>';
 
 print '</form>';
 print '<br>';
+
+if (strpos($conf->global->DOLIESIGN_ENVIRONMENT, "universign") !== false) {
+	print '<div>Il est nécessaire de faire l’acquisition de signatures auprès de Universign ici : <a href="https://www.universign.com/fr/tarifs/">https://www.universign.com/fr/tarifs/</a></div>';
+}
+else if (strpos($conf->global->DOLIESIGN_ENVIRONMENT, "yousign") !== false) {
+	print '<div>Il est nécessaire de faire l’acquisition de signatures auprès de Yousign ici : <a href="https://yousign.com/prix/">https://yousign.com/prix/</a></div>';
+}
 
 // Page end
 dol_fiche_end();

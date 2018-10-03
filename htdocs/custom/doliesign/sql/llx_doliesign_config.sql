@@ -27,6 +27,7 @@ CREATE TABLE llx_doliesign_config(
 	status integer NOT NULL,
 	module varchar(64) NOT NULL,
 	fk_c_type_contact integer,
-	sign_coordinate varchar(64) NOT NULL
+	sign_coordinate varchar(64) NOT NULL,
+	cgv_sign_coordinate varchar(64)
 	-- END MODULEBUILDER FIELDS
 ) ENGINE=innodb;

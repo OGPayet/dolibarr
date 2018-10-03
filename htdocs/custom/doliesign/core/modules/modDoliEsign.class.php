@@ -64,15 +64,15 @@ class modDoliEsign extends DolibarrModules
 		// Module label (no space allowed), used if translation string 'ModuleDoliEsignName' not found (MyModue is name of module).
 		$this->name = preg_replace('/^mod/i','',get_class($this));
 		// Module description, used if translation string 'ModuleDoliEsignDesc' not found (MyModue is name of module).
-		$this->description = "Electronic signing of documents using Yousign service.";
+		$this->description = "Electronic signing of documents using Yousign or Universign service.";
 		// Used only if file README.md and README-LL.md not found.
 		$this->descriptionlong = "ModuleDoliEsignDescLong";
 
 		$this->editor_name = '<b>Net Logic</b>';
-		$this->editor_url = 'https://www.netlogic.fr';
+		$this->editor_url = 'http://netlogic.fr';
 
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-		$this->version = '1.0.8';
+		$this->version = '1.4.0';
 		// Key used in llx_const table to save module status enabled/disabled (where DOLIESIGN is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Name of image file used for this module.
@@ -92,10 +92,10 @@ class modDoliEsign extends DolibarrModules
 									'theme' => 0,                                    	// Set this to 1 if module has its own theme directory (theme)
 						'tpl' => 0,                                      	// Set this to 1 if module overwrite template dir (core/tpl)
 									'barcode' => 0,                                  	// Set this to 1 if module has its own barcode directory (core/modules/barcode)
-									'models' => 0,                                   	// Set this to 1 if module has its own models directory (core/modules/xxx)
+									'models' => 1,                                   	// Set this to 1 if module has its own models directory (core/modules/xxx)
 									'css' => array('/doliesign/css/doliesign.css.php'),	// Set this to relative path of css file if module has its own css file
 									'js' => array(''),          // Set this to relative path of js file if module must load a js on all pages
-									'hooks' => array('data'=>array('admin','emailtemplates','propalcard','propallist','interventioncard','interventionlist'), 'entity'=>'0') 	// Set here all hooks context managed by module. To find available hook context, make a "grep -r '>initHooks(' *" on source code. You can also set hook context 'all'
+									'hooks' => array('data'=>array('admin','emailtemplates','propalcard','propallist','interventioncard','interventionlist','ordercard','orderlist','contractcard','contractlist'), 'entity'=>'0') 	// Set here all hooks context managed by module. To find available hook context, make a "grep -r '>initHooks(' *" on source code. You can also set hook context 'all'
 		                        );
 
 		// Data directories to create when module is enabled.
@@ -126,7 +126,8 @@ class modDoliEsign extends DolibarrModules
 		$this->const = array(
 			1=>array('DOLIESIGN_ENVIRONMENT', 'chaine', 'demo', 'Environnements de la l\'API possibles\n - demo: Environnement de démo. Les signatures de cette environnement ne sont pas légales\n - prod: Environnement de production. Les signatures de cette environnement sont légales.', 1, 'allentities', 1),
 			2=>array('DOLIESIGN_ISENCRYPTEDPASSWORD', 'yesno', '1', 'Indique si le mot de passe passé et crypté ou non', 1, 'current', 1),
-			3=>array('DOLIESIGN_AUTHENTICATION_MODE', 'chaine', 'sms', 'Default authentication mode for the signer', 1, 'current', 1)
+			3=>array('DOLIESIGN_AUTHENTICATION_MODE', 'chaine', 'sms', 'Default authentication mode in demo for the signer', 1, 'current', 1),
+			4=>array('DOLIESIGN_AUTHENTICATION_MODE_PROD', 'chaine', 'sms', 'Default authentication mode in production for the signer', 1, 'current', 1),
 		);
 
 		if (! isset($conf->doliesign) || ! isset($conf->doliesign->enabled))
@@ -233,10 +234,30 @@ class modDoliEsign extends DolibarrModules
 
 		// Add here entries to declare new menus
 
-		$this->menu[$r++]=array('fk_menu'=>'fk_mainmenu=tools',			                // '' if this is a top menu. For left menu, use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+		// if ($conf->mailing->enabled || $conf->export->enabled || $conf->import->enabled || $conf->opensurvey->enabled || $conf->resource->enabled) {
+		// 	$mainmenu = 'tools';
+		// } else {
+			$mainmenu = 'netlogicmodules';
+			if (!$this->existNetlogicTopmenu()) {
+				$this->menu[$r++]=array('fk_menu'=>'',			                // '' if this is a top menu. For left menu, use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+									'type'=>'top',			                // This is a Top menu entry
+									'titre'=>'Net-Logic',
+									'mainmenu'=>$mainmenu,
+									'leftmenu'=>'',
+									'url'=>'/doliesign/core/netlogic.php',
+									'langs'=>'other',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+									'position'=>1000+$r,
+									'enabled'=>'1',	//
+									'perms'=>'1',			                // Use 'perms'=>'$user->rights->viralsync->level1->level2' if you want your menu with a permission rules
+									'target'=>'',
+									'user'=>0);                // 0=Menu for internal users, 1=external users, 2=both*/
+			}
+		// }
+
+		$this->menu[$r++]=array('fk_menu'=>'fk_mainmenu='.$mainmenu,			                // '' if this is a top menu. For left menu, use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
 								'type'=>'left',			                // This is a Top menu entry
 								'titre'=>'DoliEsignConfig',
-								'mainmenu'=>'tools',
+								'mainmenu'=>$mainmenu,
 								'leftmenu'=>'doliesign',
 								'url'=>'/doliesign/doliesign_list.php',
 								'langs'=>'doliesign@doliesign',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
@@ -246,10 +267,10 @@ class modDoliEsign extends DolibarrModules
 								'target'=>'',
 								'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
 
-		$this->menu[$r++]=array('fk_menu'=>'fk_mainmenu=tools,fk_leftmenu=doliesign',	    // '' if this is a top menu. For left menu, use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+		$this->menu[$r++]=array('fk_menu'=>'fk_mainmenu='.$mainmenu.',fk_leftmenu=doliesign',	    // '' if this is a top menu. For left menu, use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
 								'type'=>'left',			                // This is a Left menu entry
 								'titre'=>'DoliEsignList',
-								'mainmenu'=>'tools',
+								'mainmenu'=>$mainmenu,
 								'leftmenu'=>'doliesign_config',
 								'url'=>'/doliesign/doliesign_list.php',
 								'langs'=>'doliesign@doliesign',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
@@ -258,10 +279,10 @@ class modDoliEsign extends DolibarrModules
 								'perms'=>'$user->rights->doliesign->read',			                // Use 'perms'=>'$user->rights->doliesign->level1->level2' if you want your menu with a permission rules
 								'target'=>'',
 								'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
-		$this->menu[$r++]=array('fk_menu'=>'fk_mainmenu=tools,fk_leftmenu=doliesign',	    // '' if this is a top menu. For left menu, use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+		$this->menu[$r++]=array('fk_menu'=>'fk_mainmenu='.$mainmenu.',fk_leftmenu=doliesign',	    // '' if this is a top menu. For left menu, use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
 								'type'=>'left',			                // This is a Left menu entry
 								'titre'=>'NewConfig',
-								'mainmenu'=>'tools',
+								'mainmenu'=>$mainmenu,
 								'leftmenu'=>'doliesign_config',
 								'url'=>'/doliesign/config_card.php',
 								'langs'=>'doliesign@doliesign',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
@@ -270,10 +291,10 @@ class modDoliEsign extends DolibarrModules
 								'perms'=>'$user->rights->doliesign->create',			                // Use 'perms'=>'$user->rights->doliesign->level1->level2' if you want your menu with a permission rules
 								'target'=>'',
 								'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
-		$this->menu[$r++]=array('fk_menu'=>'fk_mainmenu=tools,fk_leftmenu=doliesign',	    // '' if this is a top menu. For left menu, use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+		$this->menu[$r++]=array('fk_menu'=>'fk_mainmenu='.$mainmenu.',fk_leftmenu=doliesign',	    // '' if this is a top menu. For left menu, use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
 								'type'=>'left',			                // This is a Left menu entry
 								'titre'=>'DoliEsignConfigList',
-								'mainmenu'=>'tools',
+								'mainmenu'=>$mainmenu,
 								'leftmenu'=>'doliesign_config',
 								'url'=>'/doliesign/config_list.php',
 								'langs'=>'doliesign@doliesign',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
@@ -346,4 +367,20 @@ class modDoliEsign extends DolibarrModules
 		return $this->_remove($sql, $options);
 	}
 
+
+	function existNetlogicTopmenu()
+	{
+		global $conf;
+		return 0;
+		$sql="SELECT rowid FROM ".MAIN_DB_PREFIX."menu";
+		$sql.=" WHERE mainmenu ='netlogicmodules'";
+		$sql.=" AND entity = ".(int) $conf->entity;
+		$sql.=" AND type = 'top'";
+		$resql = $this->db->query($sql);
+		if ($resql)
+		{
+			return $this->db->num_rows($resql);
+		}
+		return 0;
+	}
 }

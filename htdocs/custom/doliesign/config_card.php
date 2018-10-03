@@ -70,12 +70,9 @@ $backtopage = GETPOST('backtopage', 'alpha');
 
 // Initialize technical objects
 $object=new DoliEsignConfig($db);
-$extrafields = new ExtraFields($db);
+
 $diroutputmassaction=$conf->doliesign->dir_output . '/temp/massgeneration/'.$user->id;
 $hookmanager->initHooks(array('doliesignconfigcard'));     // Note that conf->hooks_modules contains array
-// Fetch optionals attributes and labels
-$extralabels = $extrafields->fetch_name_optionals_label('config');
-$search_array_options=$extrafields->getOptionalsFromPost($extralabels,'','search_');
 
 // Initialize array of search criterias
 $search_all=trim(GETPOST("search_all",'alpha'));
@@ -91,9 +88,6 @@ if (empty($action) && empty($id)) $action='create';
 //if ($user->societe_id > 0) access_forbidden();
 //if ($user->societe_id > 0) $socid = $user->societe_id;
 //$result = restrictedArea($user, 'doliesign', $id);
-
-// fetch optionals attributes and labels
-$extralabels = $extrafields->fetch_name_optionals_label($object->table_element);
 
 if ($id > 0) {
 	$tmpCancel = $cancel;
@@ -396,7 +390,6 @@ if ($id && $action == 'edit')
 // Part to show record
 if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'create')))
 {
-    $res = $object->fetch_optionals($object->id, $extralabels);
 
 	$head = configPrepareHead($object);
 	dol_fiche_head($head, 'card', $langs->trans("Config"), -1, 'config@doliesign');

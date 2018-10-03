@@ -63,7 +63,7 @@ You can change following configurations depending on the type of document to sig
 If you have multiple configurations for a document, you will have multiple signers of the document. Like the default for interventions.
 
 == Request email configuration ==
-In the dolibarr email setup page you can configure the email templates used for sending and confirming the electronic signing requests.
+In de dolibarr email setup page you can configure the email templates used for sending and confirming the electronic signing requests.
 The emails are send by the Yousign service but the content can be defined in the email templates configuration.
 
 <div class="divforimgcentpercent">

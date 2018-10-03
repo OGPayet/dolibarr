@@ -120,28 +120,28 @@ class InterfaceDoliEsignTriggers extends DolibarrTriggers
 			//case 'USER_LOGOUT':
 			//case 'USER_UPDATE_SESSION':      // Warning: To increase performances, this action is triggered only if constant MAIN_ACTIVATE_UPDATESESSIONTRIGGER is set to 1.
 
-				// Actions
+			// Actions
 			//case 'ACTION_MODIFY':
 			//case 'ACTION_CREATE':
 			//case 'ACTION_DELETE':
 
-				// Groups
+			// Groups
 			//case 'GROUP_CREATE':
 			//case 'GROUP_MODIFY':
 			//case 'GROUP_DELETE':
 
-				// Companies
+			// Companies
 			//case 'COMPANY_CREATE':
 			//case 'COMPANY_MODIFY':
 			//case 'COMPANY_DELETE':
 
-				// Contacts
+			// Contacts
 			//case 'CONTACT_CREATE':
 			//case 'CONTACT_MODIFY':
 			//case 'CONTACT_DELETE':
 			//case 'CONTACT_ENABLEDISABLE':
 
-				// Products
+			// Products
 			//case 'PRODUCT_CREATE':
 			//case 'PRODUCT_MODIFY':
 			//case 'PRODUCT_DELETE':
@@ -149,28 +149,55 @@ class InterfaceDoliEsignTriggers extends DolibarrTriggers
 			//case 'PRODUCT_SET_MULTILANGS':
 			//case 'PRODUCT_DEL_MULTILANGS':
 
-				//Stock mouvement
+			//Stock mouvement
 			//case 'STOCK_MOVEMENT':
 
-				//MYECMDIR
+			//MYECMDIR
 			//case 'MYECMDIR_DELETE':
 			//case 'MYECMDIR_CREATE':
 			//case 'MYECMDIR_MODIFY':
 
-				// Customer orders
+			// Customer orders
 			//case 'ORDER_CREATE':
 			//case 'ORDER_CLONE':
 			//case 'ORDER_VALIDATE':
-			//case 'ORDER_DELETE':
-			//case 'ORDER_CANCEL':
+			case 'ORDER_DELETE':
+			{
+				$result = $this->cancelDoliEsign($object->id, $object->element, $user, $langs);
+				dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+				break;
+			}
+			case 'ORDER_CANCEL':
+			{
+				$result = $this->cancelDoliEsign($object->id, $object->element, $user, $langs);
+				dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+				break;
+			}
 			//case 'ORDER_SENTBYMAIL':
 			//case 'ORDER_CLASSIFY_BILLED':
-			//case 'ORDER_SETDRAFT':
+			case 'ORDER_SETDRAFT':
+			{
+				$result = $this->cancelDoliEsign($object->id, $object->element, $user, $langs);
+				dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+				break;
+			}
+			case 'ORDER_MODIFY':
+			{
+				$result = $this->cancelDoliEsign($object->id, $object->element, $user, $langs);
+				dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+				break;
+			}
+			case 'ORDER_UNVALIDATE':
+			{
+				$result = $this->cancelDoliEsign($object->id, $object->element, $user, $langs);
+				dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+				break;
+			}
 			//case 'LINEORDER_INSERT':
 			//case 'LINEORDER_UPDATE':
 			//case 'LINEORDER_DELETE':
 
-				// Supplier orders
+			// Supplier orders
 			//case 'ORDER_SUPPLIER_CREATE':
 			//case 'ORDER_SUPPLIER_CLONE':
 			//case 'ORDER_SUPPLIER_VALIDATE':
@@ -184,7 +211,7 @@ class InterfaceDoliEsignTriggers extends DolibarrTriggers
 			//case 'LINEORDER_SUPPLIER_CREATE':
 			//case 'LINEORDER_SUPPLIER_UPDATE':
 
-				// Proposals
+			// Proposals
 			//case 'PROPAL_CREATE':
 			//case 'PROPAL_CLONE':
 			case 'PROPAL_MODIFY':
@@ -212,7 +239,7 @@ class InterfaceDoliEsignTriggers extends DolibarrTriggers
 			//case 'LINEPROPAL_UPDATE':
 			//case 'LINEPROPAL_DELETE':
 
-				// SupplierProposal
+			// SupplierProposal
 			//case 'SUPPLIER_PROPOSAL_CREATE':
 			//case 'SUPPLIER_PROPOSAL_CLONE':
 			//case 'SUPPLIER_PROPOSAL_MODIFY':
@@ -225,7 +252,7 @@ class InterfaceDoliEsignTriggers extends DolibarrTriggers
 			//case 'LINESUPPLIER_PROPOSAL_UPDATE':
 			//case 'LINESUPPLIER_PROPOSAL_DELETE':
 
-				// Contracts
+			// Contracts
 			//case 'CONTRACT_CREATE':
 			//case 'CONTRACT_ACTIVATE':
 			//case 'CONTRACT_CANCEL':
@@ -235,7 +262,7 @@ class InterfaceDoliEsignTriggers extends DolibarrTriggers
 			//case 'LINECONTRACT_UPDATE':
 			//case 'LINECONTRACT_DELETE':
 
-				// Bills
+			// Bills
 			//case 'BILL_CREATE':
 			//case 'BILL_CLONE':
 			//case 'BILL_MODIFY':
@@ -249,7 +276,7 @@ class InterfaceDoliEsignTriggers extends DolibarrTriggers
 			//case 'LINEBILL_UPDATE':
 			//case 'LINEBILL_DELETE':
 
-				//Supplier Bill
+			//Supplier Bill
 			//case 'BILL_SUPPLIER_CREATE':
 			//case 'BILL_SUPPLIER_UPDATE':
 			//case 'BILL_SUPPLIER_DELETE':
@@ -261,23 +288,23 @@ class InterfaceDoliEsignTriggers extends DolibarrTriggers
 			//case 'LINEBILL_SUPPLIER_UPDATE':
 			//case 'LINEBILL_SUPPLIER_DELETE':
 
-				// Payments
+			// Payments
 			//case 'PAYMENT_CUSTOMER_CREATE':
 			//case 'PAYMENT_SUPPLIER_CREATE':
 			//case 'PAYMENT_ADD_TO_BANK':
 			//case 'PAYMENT_DELETE':
 
-				// Online
+			// Online
 			//case 'PAYMENT_PAYBOX_OK':
 			//case 'PAYMENT_PAYPAL_OK':
 			//case 'PAYMENT_STRIPE_OK':
 
-				// Donation
+			// Donation
 			//case 'DON_CREATE':
 			//case 'DON_UPDATE':
 			//case 'DON_DELETE':
 
-				// Interventions
+			// Interventions
 			//case 'FICHINTER_CREATE':
 			case 'FICHINTER_MODIFY':
 			{
@@ -296,7 +323,7 @@ class InterfaceDoliEsignTriggers extends DolibarrTriggers
 			//case 'LINEFICHINTER_UPDATE':
 			//case 'LINEFICHINTER_DELETE':
 
-				// Members
+			// Members
 			//case 'MEMBER_CREATE':
 			//case 'MEMBER_VALIDATE':
 			//case 'MEMBER_SUBSCRIPTION':
@@ -305,28 +332,28 @@ class InterfaceDoliEsignTriggers extends DolibarrTriggers
 			//case 'MEMBER_RESILIATE':
 			//case 'MEMBER_DELETE':
 
-				// Categories
+			// Categories
 			//case 'CATEGORY_CREATE':
 			//case 'CATEGORY_MODIFY':
 			//case 'CATEGORY_DELETE':
 			//case 'CATEGORY_SET_MULTILANGS':
 
-				// Projects
+			// Projects
 			//case 'PROJECT_CREATE':
 			//case 'PROJECT_MODIFY':
 			//case 'PROJECT_DELETE':
 
-				// Project tasks
+			// Project tasks
 			//case 'TASK_CREATE':
 			//case 'TASK_MODIFY':
 			//case 'TASK_DELETE':
 
-				// Task time spent
+			// Task time spent
 			//case 'TASK_TIMESPENT_CREATE':
 			//case 'TASK_TIMESPENT_MODIFY':
 			//case 'TASK_TIMESPENT_DELETE':
 
-				// Shipping
+			// Shipping
 			//case 'SHIPPING_CREATE':
 			//case 'SHIPPING_MODIFY':
 			//case 'SHIPPING_VALIDATE':
@@ -351,17 +378,29 @@ class InterfaceDoliEsignTriggers extends DolibarrTriggers
 	 * @return int -1 NOK, 1 Cancelled, 0 not cancelled
 	 */
 	private function cancelDoliEsign($objectId, $objectType, $user, $langs) {
+		global $conf;
+
 		dol_include_once('/doliesign/lib/doliesign.lib.php');
 		if (!empty($objectId)) {
-			$doliEsign = new DoliEsign($this->db);
+			if (! empty($conf->global->DOLIESIGN_ENVIRONMENT)) $environment = $conf->global->DOLIESIGN_ENVIRONMENT;
+			if ($environment == 'yousign-staging-api' || $environment == 'yousign-api') {
+				dol_include_once('/doliesign/class/yousignrest.class.php');
+				$doliEsign = new YousignRest($this->db);
+			}  elseif ($environment == 'universign-prod' || $environment == 'universign-demo'){
+				dol_include_once('/doliesign/class/universign.class.php');
+				$doliEsign = new Universign($this->db);
+			} else {
+				dol_include_once('/doliesign/class/yousignsoap.class.php');
+				$doliEsign = new YousignSoap($this->db);
+			}
 			$result = $doliEsign->fetch(null, null, $objectId, $objectType);
 			if ($result > 0) {
 				$signStatus = $doliEsign->status;
 				if ($signStatus == DoliEsign::STATUS_WAITING) {
-					$errors = ysCancel($user, $doliEsign);
-					if ($errors != 0) {
-						$this->errors=$errors;
-						if (checkDolVersion('7.0')) {
+					$res = $doliEsign->signCancel($user);
+					if ($res < 0) {
+						$this->errors=$doliEsign->$errors;
+						if (DoliEsign::checkDolVersion('7.0')) {
 							return -1;
 						} else {
 							// workaround for system error iso normal error

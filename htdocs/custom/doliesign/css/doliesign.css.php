@@ -67,6 +67,10 @@ else header('Cache-Control: no-cache');
 
 ?>
 
+div.mainmenu.netlogicmodules {
+	background-image: url('../img/doliesign.png' );
+}
+
 .netlogic-bg {
 	background-color:#324f9b;
 	background-size:cover;

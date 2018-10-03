@@ -20,14 +20,16 @@
 # Module label 'ModuleDoliEsignName'
 ModuleDoliEsignName = DoliEsign
 # Module description 'ModuleDoliEsignDesc'
-ModuleDoliEsignDesc = This module permits you to create legally valid digital signed PDF document.
-ModuleDoliEsignDescLong = With the DoiEsign module you can have your commercial documents digital signed by your contacts. The documents will be signed by the Yousign (c) signing services. Yousign will deliver legally valid signed documents.
+ModuleDoliEsignDesc = This module permits you to create legally valid digital signed PDF documents.
+ModuleDoliEsignDescLong = With the DoiEsign module you can have your commercial documents digital signed by your contacts.
 #
 # Admin page
 #
 DoliEsignSetup = DoliEsign setup
 Settings = Settings
 DoliEsignSetupPage = DoliEsign setup page
+DOLIESIGN_ENVIRONMENT=Signing Environment
+DOLIESIGN_ENVIRONMENTTooltip=Signing Provider environment, to show the options for the new environment you need to save after changing the environment.
 DOLIESIGN_AUTHENTICATION_MODE = Default authentication mode
 DOLIESIGN_AUTHENTICATION_MODETooltip = Default authentication mode for sign the document. The signer will receive a validation code for signing the document, possible values are sms and mail.
 DOLIESIGN_LOGIN=Yousign login
@@ -36,6 +38,36 @@ DOLIESIGN_PASSWORD=Yousign login password
 DOLIESIGN_PASSWORDTooltip=Password of your Yousign account.
 DOLIESIGN_API_KEY=Yousign login api key
 DOLIESIGN_API_KEYTooltip=Api key generated when creating your Yousign account. Double-click on the API key to copy in your Yousign account configuration page.
+DOLIESIGN_AUTHENTICATION_MODE_PROD = Default authentication mode in production
+DOLIESIGN_AUTHENTICATION_MODE_PRODTooltip = Default authentication mode in production for sign the document. The signer will receive a validation code for signing the document, possible values are sms and mail. Pas besoin pour mode Yousign Rest
+DOLIESIGN_LOGIN_PROD=Yousign login in production
+DOLIESIGN_LOGIN_PRODTooltip=Login name of your Yousign account in production.
+DOLIESIGN_PASSWORD_PROD=Yousign login password in production
+DOLIESIGN_PASSWORD_PRODTooltip=Password of your Yousign account in production.
+DOLIESIGN_API_KEY_PROD=Yousign login api key in production
+DOLIESIGN_API_KEY_PRODTooltip=Api key generated when creating your Yousign account in production. Double-click on the API key to copy in your Yousign account configuration page.
+DOLIESIGN_LOGIN_UNIVERSIGN_PROD=Universign production login
+DOLIESIGN_LOGIN_UNIVERSIGN_PRODTooltip=Login of your Universign production account.
+DOLIESIGN_PASSWORD_UNIVERSIGN_PROD=Univesign production password
+DOLIESIGN_PASSWORD_UNIVERSIGN_PRODTooltip=Password of your Universign production account.
+DOLIESIGN_LOGIN_UNIVERSIGN_DEMO=Universign demo login
+DOLIESIGN_LOGIN_UNIVERSIGN_DEMOTooltip=Login of your Universign demo account.
+DOLIESIGN_PASSWORD_UNIVERSIGN_DEMO=Univesign demo password
+DOLIESIGN_PASSWORD_UNIVERSIGN_DEMOTooltip=Password of your Universign demo account.
+DOLIESIGN_SEND_MAIL_ALL_UNIVERSIGN=Send signed to all signer at the end
+DOLIESIGN_SEND_MAIL_ALL_UNIVERSIGNTooltip=Tells whether each signer must receive the signed documents by e-mail when the transaction is completed.
+DOLIESIGN_SEND_MAIL_UNIVERSIGN=Send signed to the requester
+DOLIESIGN_SEND_MAIL_UNIVERSIGNTooltip=Tells if the requester must receive the signed documents by e-mail when the transaction is completed.
+DOLIESIGN_CERTIFICATE_TYPE_UNIVERSIGN=Type of certificate used by Universign
+DOLIESIGN_CERTIFICATE_TYPE_UNIVERSIGNTooltip=This option is used to indicate which certificate type will be used to perform the signature and therefore which type of signature will be performed. The available values are: 'certified' Allows signers to perform a certified signature. 'simple' Allows signers to perform a simple signature.
+DOLIESIGN_LANGUAGE_UNIVERSIGN=Language used by Universign
+DOLIESIGN_LANGUAGE_UNIVERSIGNTooltip=The language for this transaction.
+DOLIESIGN_HANDWRITEN_SIGN_UNIVERSIGN=Handwritten signature mode
+DOLIESIGN_HANDWRITEN_SIGN_UNIVERSIGNTooltip=The mode to enable the handwritten signature.
+DOLIESIGN_CGV_REL_PATH=Path in document folder terms pdf
+DOLIESIGN_CGV_REL_PATHTooltip=Path of terms pdf. If you use RUBIS module this will be '/mycompany/cgv'.
+DOLIESIGN_CGV_FILENAME=Filename of terms pdf
+DOLIESIGN_CGV_FILENAMETooltip=Filename of terms pdf. If you use RUBIS module, this will be 'cgv.pdf'.
 
 
 #
@@ -51,7 +83,9 @@ DoliEsignAboutPage = DoliEsign about page
 ConfirmDoliEsign = Are you sure to send a request for electronic signing the document.
 ConfirmDoliEsignFetch = Are you sure to download the electronic signed the document.
 DoliEsignInitPropalTemplate = To send a proposal and asking for an electronic signature
-DoliEsignEndPropalTemplate = DoliEsign confirmation mail when the propasal is signed
+DoliEsignEndPropalTemplate = DoliEsign confirmation mail when the proposal is signed
+DoliEsignInitCommandeTemplate = To send a customer order and asking for an electronic signature
+DoliEsignEndCommandeTemplate = DoliEsign confirmation mail when the customer order is signed
 DoliEsignInitInterventionTemplate = To send an intervention and asking for an electronic signature
 DoliEsignEndInterventionTemplate = DoliEsign confirmation mail when the intervention is signed
 DoliEsignSync = Synchronize DoliEsign
@@ -69,8 +103,8 @@ DoliEsignCanceled = DoliEsign Cancelled
 ReadDoliEsign = Read signings
 CreateUpdateDoliEsign = Request signings
 DeleteDoliEsign = Cancel signings
-DoliEsignConnectError = Error connecting to Yousign service.
-DoliEsignApiError = Api Error Yousign service.
+DoliEsignConnectError = Error connecting to the API.
+DoliEsignApiError = Api Error.
 DoliEsignContactEmailMissing = Contact email missing.
 DoliEsignContactPhoneMobileMissing = Contact mobile phone number missing for sending signing SMS.
 DoliEsignUserEmailMissing = User email missing.
@@ -86,12 +120,15 @@ URLtoDefineCoordinates = Define position coordinates for the signature on the do
 AuthentificationMode = Authentication mode for signing the document.
 AuthentificationSms = Sms
 AuthentificationEmail = Email
+RedirectionMode = Redirect to the signing page,
+RedirectionFalse = No
+RedirectionTrue = Yes
 DoliEsignSignedNoModify = You can't modify a signed document.
 DoliEsignSignedNoDelete = You can't delete a signed document.
 DoliEsignSendInitDefaultEnUs = No request template found for your language, english template used.
-DoliEsignSendInitDefaultYousign = No request template found, default Yousign template used.
+DoliEsignSendInitDefaultYousign = No request template found, default template used.
 DoliEsignSendEndDefaultEnUs = No confirmation template found for your language, english template used.
-DoliEsignSendEndDefaultYousign = No confirmation template found, default Yousign template used.
+DoliEsignSendEndDefaultYousign = No confirmation template found, default template used.
 SignedByDoliEsign = Signed by DoliEsign
 DoliEsignDocumentFetched = You can now find the Signed document in your linked files section.
 ConfirmDeleteConfig = Do you really want to delete this DoliEsign configuration.
@@ -107,6 +144,9 @@ SignStatus = Sign status
 ContactSignId = Signing contact
 UserSignId = Signing user
 DateSign = Signing date
+DoliEsignInvalidCgvCoordinates = Invalid signing coordinates format (ex: 12,34,56,78) for terms.
+CgvSignCoordinate = Position coordinates for signature on terms.
+DoliEsignSetupError = Error in your DoliEsign setup.
 # Sample widget
 #
 MyWidget = My widget

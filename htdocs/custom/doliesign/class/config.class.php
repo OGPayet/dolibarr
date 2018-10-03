@@ -84,6 +84,7 @@ class DoliEsignConfig extends CommonObject
 		'status' => array('type'=>'integer', 'label'=>'Status', 'visible'=>1, 'enabled'=>1, 'position'=>1000, 'notnull'=>1, 'index'=>1, 'arrayofkeyval'=>array('0'=>'Disable', '1'=>'Enable'), 'default'=>'1'),
 		'fk_c_type_contact' => array('type'=>'integer', 'label'=>'TypeContact', 'visible'=>1, 'enabled'=>1, 'position'=>70, 'notnull'=>-1,),
 		'sign_coordinate' => array('type'=>'varchar(64)', 'label'=>'SignCoordinate', 'visible'=>1, 'enabled'=>1, 'position'=>80, 'notnull'=>1,),
+		'cgv_sign_coordinate' => array('type'=>'varchar(64)', 'label'=>'CgvSignCoordinate', 'visible'=>1, 'enabled'=>1, 'position'=>100, 'notnull'=>-1,)
 	);
 	public $rowid;
 	public $entity;
@@ -97,6 +98,7 @@ class DoliEsignConfig extends CommonObject
 	public $module;
 	public $fk_c_type_contact;
 	public $sign_coordinate;
+	public $cgv_sign_coordinate;
 	// END MODULEBUILDER PROPERTIES
 
 
@@ -154,9 +156,9 @@ class DoliEsignConfig extends CommonObject
 				//'project'           => $langs->trans('Project'),
 				//'project_task'      => $langs->trans('Task'),
 				//'agenda'			=> $langs->trans('Agenda'),
-				//'contrat'           => $langs->trans('Contract'),
+				'contrat'           => $langs->trans('Contract'),
 				'propal'            => $langs->trans('Proposal'),
-				//'commande'          => $langs->trans('Order'),
+				'commande'          => $langs->trans('Order'),
 				//'facture'           => $langs->trans('Bill'),
 				//'resource'           => $langs->trans('Resource'),
 				'fichinter'         => $langs->trans('InterventionCard')
@@ -169,8 +171,16 @@ class DoliEsignConfig extends CommonObject
 
 		$this->defaultFkTypeContact = array(
 			'propal' => 41,
-			'fichinter' => 131
+			'commande' => 101,
+			'fichinter' => 131,
+			'contrat' => 22
 		);
+
+		if (! empty($conf->global->DOLIESIGN_CGV_FILENAME)) {
+			$this->fields['cgv_sign_coordinate']['visible'] = 1;
+		} else {
+			$this->fields['cgv_sign_coordinate']['visible'] = -1;
+		}
 	}
 
 	/**
@@ -289,12 +299,23 @@ class DoliEsignConfig extends CommonObject
 
 	public function validate()
 	{
+		$result = false;
 		if (preg_match('/^[0-9]*,[0-9]*,[0-9]*,[0-9]*/', $this->sign_coordinate)) {
-			return true;
+			$result = true;
 		} else {
 			$this->errors[]="DoliEsignInvalidCoordinates";
-			return false;
+			$result = false;
 		}
+		if (! empty($this->cgv_sign_coordinate)) {
+			if (preg_match('/^[0-9]*,[0-9]*,[0-9]*,[0-9]*/', $this->cgv_sign_coordinate)) {
+				$result = true;
+			} else {
+				$this->errors[]="DoliEsignInvalidCgvCoordinates";
+				$result = false;
+			}
+		}
+
+		return $result;
 	}
 
 	/**
@@ -1601,6 +1622,44 @@ class DoliEsignConfig extends CommonObject
 	}
 
 	/**
+	 *      Return array with list of possible values for type of contacts
+	 *
+	 *      @param	string	$element    L'élément du type de contact
+	 *      @return array       		Array list of type of contacts (id->label if option=0, code->label if option=1)
+	 */
+	function get_source_contact_code($element)
+	{
+		global $langs;
+
+		$tab = array();
+		$sql = "SELECT DISTINCT tc.rowid, tc.source";
+		$sql.= " FROM ".MAIN_DB_PREFIX."c_type_contact as tc";
+		$sql.= " WHERE tc.element='".$this->db->escape($element)."'";
+		$sql.= " AND tc.active=1"; // only the active types
+
+		//print "sql=".$sql;
+		$resql=$this->db->query($sql);
+		if ($resql)
+		{
+			$num=$this->db->num_rows($resql);
+			$i=0;
+			while ($i < $num)
+			{
+				$obj = $this->db->fetch_object($resql);
+				$tab[$obj->rowid]=$obj->source;
+				$i++;
+			}
+			return $tab;
+		}
+		else
+		{
+			$this->error=$this->db->lasterror();
+			//dol_print_error($this->db);
+			return null;
+		}
+	}
+
+	/**
 	* Return Url link of origin object
 	*
 	* @param int $fk_origin  Id origin
@@ -1922,7 +1981,7 @@ class DoliEsignConfig extends CommonObject
 	 * @param string $ref  Ref
 	 * @return int         <0 if KO, 0 if not found, >0 if OK
 	 */
-	public function fetchCommon($id = null)
+	public function fetchCommon($id = null, $ref = null, $morewhere = '')
 	{
 		if (empty($id) && empty($ref)) return false;
 

@@ -66,7 +66,7 @@ class ActionsDoliEsign
 	/**
 	 * Overloading the doActions function : replacing the parent's function with the one below
 	 *
-	 * @param   array()         $parameters     Hook metadatas (context, etc...)
+	 * @param   array           $parameters     Hook metadatas (context, etc...)
 	 * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
 	 * @param   string          $action         Current action (if set). Generally create or edit or null
 	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
@@ -79,72 +79,117 @@ class ActionsDoliEsign
 		$error = 0; // Error counter
 		$errors = array(); // error mesgs
 
-		if (in_array($parameters['currentcontext'], array('propalcard','interventioncard')))		// do something only for the context 'somecontext1' or 'somecontext2'
+		if (in_array($parameters['currentcontext'], array('propalcard','interventioncard','ordercard', 'contractcard')))		// do something only for the context 'somecontext1' or 'somecontext2'
 		{
 			if (!empty($object->id) && !empty($object->element)) {
 				dol_include_once('/doliesign/lib/doliesign.lib.php');
+				if (! empty($conf->global->DOLIESIGN_ENVIRONMENT)) $environment = $conf->global->DOLIESIGN_ENVIRONMENT;
+				if ($environment == 'yousign-staging-api' || $environment == 'yousign-api') {
+					dol_include_once('/doliesign/class/yousignrest.class.php');
+					$doliEsign = new YousignRest($this->db);
+				} elseif ($environment == 'universign-prod' || $environment == 'universign-demo'){
+					dol_include_once('/doliesign/class/universign.class.php');
+					$doliEsign = new Universign($this->db);
+				} else {
+					dol_include_once('/doliesign/class/yousignsoap.class.php');
+					$doliEsign = new YousignSoap($this->db);
+				}
+
 				if ($action == 'confirm_doliesign') {
 					$authmode = GETPOST('authmode','alpha');
 					if ($parameters['currentcontext'] == 'propalcard')	    // sign propals
 					{
 						$filename=dol_sanitizeFileName($object->ref);
 						$dir = $conf->propal->dir_output . "/" . $filename;
-						$errors = ysInit($user, $object, $dir, 'doliesign_init_propal', 'doliesign_end_propal', $authmode);
+						$res = $doliEsign->signInit($user, $object, $dir, 'doliesign_init_propal', 'doliesign_end_propal', $authmode);
 					} elseif ($parameters['currentcontext'] == 'interventioncard')	    // sign intervention
 					{
 						$filename=dol_sanitizeFileName($object->ref);
 						$dir = $conf->ficheinter->dir_output . "/" . $filename;
-						$errors = ysInit($user, $object, $dir, 'doliesign_init_fichinter', 'doliesign_end_fichinter', $authmode);
+						$res = $doliEsign->signInit($user, $object, $dir, 'doliesign_init_fichinter', 'doliesign_end_fichinter', $authmode);
 					}
-					elseif ($parameters['currentcontext'] == 'somecontext2')  // sign something
+					elseif ($parameters['currentcontext'] == 'ordercard')  // sign order
 					{
-
+						$filename=dol_sanitizeFileName($object->ref);
+						$dir = $conf->commande->dir_output . "/" . $filename;
+						$res = $doliEsign->signInit($user, $object, $dir, 'doliesign_init_commande', 'doliesign_end_commande', $authmode);
 					}
-					if ($errors == 0) {
+					elseif ($parameters['currentcontext'] == 'contractcard')
+					{
+						$filename=dol_sanitizeFileName($object->ref);
+						$dir = $conf->contrat->dir_output . "/" . $filename;
+						$res = $doliEsign->signInit($user, $object, $dir, 'doliesign_init_contrat', 'doliesign_end_contrat', $authmode);
+					}
+					if ($res == 0) {
 						setEventMessages("SignRequestSuccessful",null, 'mesgs');
 					} else {
+						$errors = $doliEsign->errors;
 						$error--;
 					}
 				} elseif ($action == 'confirm_doliesignfetch') {
-					$ysResult = ysFetch($user, $object);
-					if (is_array($ysResult)) {
-						$errors[]=$ysResult;
+					$res = $doliEsign->signFetch($user, $object);
+					if ($res < 0) {
+						$errors=$doliEsign->errors;
 						$error--;
-					} elseif ($ysResult > 0) {
+					} else {
 						setEventMessages($langs->trans('DoliEsignDocumentFetched'), null , 'mesgs');
 					}
 				} elseif ($action == 'doliesignsync') {
-					$errors = ysInfo($user, $object, 'sync');
-					if (is_array($ysResult)) {
-						$errors[]=$ysResult;
+					$res = $doliEsign->signInfo($user, $object, 'sync');
+					if ($res < 0) {
+						$errors=$doliEsign->errors;
 						$error--;
 					} else {
+						$signStatus = $res;
 						// for updating status in view
 						$object->fetch($object->id);
+						if ($signStatus == DoliEsign::STATUS_WAITING) {
+							setEventMessages('DoliEsign: ' . $langs->trans('WaitingDoliEsign'), null , 'mesgs');
+						} elseif ($signStatus == DoliEsign::STATUS_SIGNED) {
+							setEventMessages('DoliEsign: ' . $langs->trans('SignedDoliEsign'), null , 'mesgs');
+							$this->resprints = '<td>'.$langs->trans('SignedDoliEsign').'</td>';
+							header("Location: ".$_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=confirm_doliesignfetch');
+						} elseif ($signStatus == DoliEsign::STATUS_CANCELED) {
+							setEventMessages('DoliEsign: ' . $langs->trans('CancelledDoliEsign'), null , 'mesgs');
+							$this->resprints = '<td>'.$langs->trans('CancelledDoliEsign').'</td>';
+						} elseif ($signStatus == DoliEsign::STATUS_ERROR) {
+							setEventMessages('DoliEsign: ' . $langs->trans('ErrorDoliEsign'), null , 'mesgs');
+							$this->resprints = '<td>'.$langs->trans('ErrorDoliEsign').'</td>';
+						}
 					}
-				} elseif ($action == 'modif' || $action == 'modify'|| $action == 'confirm_modify' || $action == 'confirm_reopen') {
-					$doliEsign = new DoliEsign($this->db);
+				} elseif ($action == 'modif' ||
+						$action == 'modify' ||
+						$action == 'confirm_modify' ||
+						$action == 'confirm_modif' ||
+						$action == 'confirm_reopen') {
 					$result = $doliEsign->fetch(null, null, $object->id, $object->element);
 					if ($result > 0) {
 						$signStatus = $doliEsign->status;
-						if ($signStatus == DoliEsign::STATUS_SIGNED) {
-							$errors[]="DoliEsignSignedNoModify";
+						if ($signStatus == DoliEsign::STATUS_SIGNED || $signStatus == DoliEsign::STATUS_FILE_FETCHED) {
+							$errors="DoliEsignSignedNoModify";
 							$error--;
 						}
 					}
 				} elseif ($action == 'confirm_delete') {
-					$doliEsign = new DoliEsign($this->db);
 					$result = $doliEsign->fetch(null, null, $object->id, $object->element);
 					if ($result > 0) {
 						$signStatus = $doliEsign->status;
 						if ($signStatus == DoliEsign::STATUS_SIGNED) {
-							$errors[]="DoliEsignSignedNoDelete";
+							$errors="DoliEsignSignedNoDelete";
 							$error--;
+						}
+					}
+				} else if ($object->element == 'propal' && $object->statut == Propal::STATUS_VALIDATED) {
+					// make sure doliesign status and propal status are aligned
+					$result = $doliEsign->fetch(null, null, $object->id, $object->element);
+					if ($result > 0) {
+						$signStatus = $doliEsign->status;
+						if ($signStatus >= DoliEsign::STATUS_SIGNED) {
+							$object->cloture($user, Propal::STATUS_SIGNED, $langs->trans('SignedByDoliEsign'));
 						}
 					}
 				}
 			}
-
 		}
 
 		if (! $error) {
@@ -158,7 +203,7 @@ class ActionsDoliEsign
 	/**
 	 * Overloading the formConfirm function : replacing the parent's function with the one below
 	 *
-	 * @param   array()         $parameters     Hook metadatas (context, etc...)
+	 * @param   array           $parameters     Hook metadatas (context, etc...)
 	 * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
 	 * @param   string          $action         Current action (if set). Generally create or edit or null
 	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
@@ -171,19 +216,48 @@ class ActionsDoliEsign
 		$error = 0; // Error counter
 		$form = new Form($object->db);
 		if ($action == 'doliesign') {
-			$authMode="sms";
-			if (! empty($conf->global->DOLIESIGN_AUTHENTICATION_MODE)) $authMode=$conf->global->DOLIESIGN_AUTHENTICATION_MODE;
-			$formquestion = [
-				[
-					'type' => 'select',
-					'label' => $langs->trans('AuthentificationMode'),
-					'name' => 'authmode',
-					'values' => [
-						'sms' => $langs->trans('AuthentificationSms'),
-						'mail' => $langs->trans('AuthentificationEmail')],
-					'default' => $authMode
-				]
-			];
+			if (isset($conf->global->DOLIESIGN_ENVIRONMENT) && ($conf->global->DOLIESIGN_ENVIRONMENT == "yousign-demo" || $conf->global->DOLIESIGN_ENVIRONMENT == "yousign-prod")) {
+				$environment="yousign-demo";
+				$authMode="sms";
+				if (! empty($conf->global->DOLIESIGN_ENVIRONMENT)) $environment = $conf->global->DOLIESIGN_ENVIRONMENT;
+				if ($environment == 'yousign-prod') {
+					if (! empty($conf->global->DOLIESIGN_AUTHENTICATION_MODE_PROD)) $authMode=$conf->global->DOLIESIGN_AUTHENTICATION_MODE_PROD;
+				} else if ($environment == 'yousign-demo') {
+					if (! empty($conf->global->DOLIESIGN_AUTHENTICATION_MODE)) $authMode=$conf->global->DOLIESIGN_AUTHENTICATION_MODE;
+				} else {
+					$authMode="";
+				}
+				if (!empty($authMode)) {
+					$formquestion = [
+						[
+							'type' => 'select',
+							'label' => $langs->trans('AuthentificationMode'),
+							'name' => 'authmode',
+							'values' => [
+								'sms' => $langs->trans('AuthentificationSms'),
+								'mail' => $langs->trans('AuthentificationEmail')],
+							'default' => $authMode
+						]
+					];
+				} else {
+					$formquestion = '';
+				}
+			} else if ($conf->global->DOLIESIGN_ENVIRONMENT == "universign-prod" || $conf->global->DOLIESIGN_ENVIRONMENT == "universign-demo"){
+				$redirection = "false";
+				$formquestion = [
+					[
+						'type' => 'select',
+						'label' => $langs->trans('RedirectionMode'),
+						'name' => 'authmode',
+						'values' => [
+							'false' => $langs->trans('RedirectionFalse'),
+							'true' => $langs->trans('RedirectionTrue')],
+						'default' => $redirection
+					]
+				];
+			}
+
+
 			$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('DoliEsign'), $langs->trans('ConfirmDoliEsign', $object->ref), 'confirm_doliesign', $formquestion, 0, 1);
 		} elseif ($action == 'doliesignfetch') {
 			$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('DoliEsign'), $langs->trans('ConfirmDoliEsignFetch', $object->ref), 'confirm_doliesignfetch', '', 0, 1);
@@ -203,7 +277,7 @@ class ActionsDoliEsign
 	/**
 	 * Overloading the emailElementlist function : replacing the parent's function with the one below
 	 *
-	 * @param   array()         $parameters     Hook metadatas (context, etc...)
+	 * @param   array           $parameters     Hook metadatas (context, etc...)
 	 * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
 	 * @param   string          $action         Current action (if set). Generally create or edit or null
 	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
@@ -221,8 +295,12 @@ class ActionsDoliEsign
 			if ($user->rights->doliesign->create) {
 				$this->results['doliesign_init_propal'] = $langs->trans('DoliEsignInitPropalTemplate');
 				$this->results['doliesign_end_propal'] = $langs->trans('DoliEsignEndPropalTemplate');
+				$this->results['doliesign_init_commande'] = $langs->trans('DoliEsignInitCommandeTemplate');
+				$this->results['doliesign_end_commande'] = $langs->trans('DoliEsignEndCommandeTemplate');
 				$this->results['doliesign_init_fichinter'] = $langs->trans('DoliEsignInitInterventionTemplate');
 				$this->results['doliesign_end_fichinter'] = $langs->trans('DoliEsignEndInterventionTemplate');
+				$this->results['doliesign_init_contrat'] = $langs->trans('DoliEsignInitContratTemplate');
+				$this->results['doliesign_end_contrat'] = $langs->trans('DoliEsignEndContratTemplate');
 			} else {
 				$this->resArray = array();
 			}
@@ -237,42 +315,9 @@ class ActionsDoliEsign
 	}
 
 	/**
-	 * Overloading the printFieldListFooter function : replacing the parent's function with the one below
-	 *
-	 * @param   array()         $parameters     Hook metadatas (context, etc...)
-	 * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-	 * @param   string          $action         Current action (if set). Generally create or edit or null
-	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
-	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
-
-	public function printFieldListFooter($parameters, &$object, &$action, $hookmanager)
-	{
-		global $conf, $user, $langs;
-
-	    $error = 0; // Error counter
-
-	    if (in_array($parameters['currentcontext'], array('propallist','somecontext2')))		// do something only for the context 'somecontext1' or 'somecontext2'
-	    {
-			if ($user->rights->doliesign->read) {
-				$this->resprints = '<tr><td><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=doliesignsync">' . $langs->trans('DoliEsignSync') . '</a></td></tr>';
-			} else {
-				$this->resprints = '<tr><td><a class="butActionRefused" href="#">' . $langs->trans('DoliEsignSync') . '</a></td></tr>';
-			}
-	    }
-
-	    if (! $error) {
-	        return 0;                                    // or return 1 to replace standard code
-	    } else {
-	        $this->errors[] = 'Error message';
-	        return -1;
-	    }
-	}*/
-
-
-	/**
 	 * Overloading the printFieldListOption function : replacing the parent's function with the one below
 	 *
-	 * @param   array()         $parameters     Hook metadatas (context, etc...)
+	 * @param   array           $parameters     Hook metadatas (context, etc...)
 	 * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
 	 * @param   string          $action         Current action (if set). Generally create or edit or null
 	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
@@ -285,12 +330,14 @@ class ActionsDoliEsign
 	    $error = 0; // Error counter
 
         /* print_r($parameters); print_r($object); echo "action: " . $action; */
-	    if (in_array($parameters['currentcontext'], array('propallist','interventionlist')))		// do something only for the context 'somecontext1' or 'somecontext2'
+	    if (in_array($parameters['currentcontext'], array('propallist','orderlist','interventionlist','contractlist')))		// do something only for the context 'somecontext1' or 'somecontext2'
 	    {
 			dol_include_once('/doliesign/class/config.class.php');
 			$config = new DoliEsignConfig($this->db);
 			if ($parameters['currentcontext'] == 'propallist' && count($config->fetchListId('propal')) > 0) $active = true;
+			elseif ($parameters['currentcontext'] == 'orderlist' && count($config->fetchListId('commande')) > 0) $active = true;
 			elseif ($parameters['currentcontext'] == 'interventionlist' && count($config->fetchListId('fichinter')) > 0) $active = true;
+			elseif ($parameters['currentcontext'] == 'contractlist' && count($config->fetchListId('contrat')) > 0) $active = true;
 			else $active = false;
 			if ($active && $user->rights->doliesign->read) {
 				$this->resprints = '<td class="liste_titre">'.''.'</td>';
@@ -310,7 +357,7 @@ class ActionsDoliEsign
 	/**
 	 * Overloading the printFieldListTitle function : replacing the parent's function with the one below
 	 *
-	 * @param   array()         $parameters     Hook metadatas (context, etc...)
+	 * @param   array           $parameters     Hook metadatas (context, etc...)
 	 * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
 	 * @param   string          $action         Current action (if set). Generally create or edit or null
 	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
@@ -323,12 +370,14 @@ class ActionsDoliEsign
 	    $error = 0; // Error counter
 
         /* print_r($parameters); print_r($object); echo "action: " . $action; */
-	    if (in_array($parameters['currentcontext'], array('propallist','interventionlist')))		// do something only for the context 'somecontext1' or 'somecontext2'
+	    if (in_array($parameters['currentcontext'], array('propallist','orderlist','interventionlist','contractlist')))		// do something only for the context 'somecontext1' or 'somecontext2'
 	    {
 			dol_include_once('/doliesign/class/config.class.php');
 			$config = new DoliEsignConfig($this->db);
 			if ($parameters['currentcontext'] == 'propallist' && count($config->fetchListId('propal')) > 0) $active = true;
+			elseif ($parameters['currentcontext'] == 'orderlist' && count($config->fetchListId('commande')) > 0) $active = true;
 			elseif ($parameters['currentcontext'] == 'interventionlist' && count($config->fetchListId('fichinter')) > 0) $active = true;
+			elseif ($parameters['currentcontext'] == 'contractlist' && count($config->fetchListId('contrat')) > 0) $active = true;
 			else $active = false;
 			if ($active && $user->rights->doliesign->read) {
 				$this->resprints = '<th class="liste_titre">'.$langs->trans('DoliEsignStatus').'</th>';
@@ -348,7 +397,7 @@ class ActionsDoliEsign
 	/**
 	 * Overloading the printFieldListValue function : replacing the parent's function with the one below
 	 *
-	 * @param   array()         $parameters     Hook metadatas (context, etc...)
+	 * @param   array           $parameters     Hook metadatas (context, etc...)
 	 * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
 	 * @param   string          $action         Current action (if set). Generally create or edit or null
 	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
@@ -367,23 +416,37 @@ class ActionsDoliEsign
 		$dolObject->db = $this->db;
 
         /* print_r($parameters); print_r($object); echo "action: " . $action; */
-	    if (in_array($parameters['currentcontext'], array('propallist','interventionlist')))		// do something only for the context 'somecontext1' or 'somecontext2'
+	    if (in_array($parameters['currentcontext'], array('propallist','orderlist','interventionlist','contractlist')))		// do something only for the context 'somecontext1' or 'somecontext2'
 	    {
 			dol_include_once('/doliesign/lib/doliesign.lib.php');
 			dol_include_once('/doliesign/class/config.class.php');
 			$config = new DoliEsignConfig($this->db);
+			if (! empty($conf->global->DOLIESIGN_ENVIRONMENT)) $environment = $conf->global->DOLIESIGN_ENVIRONMENT;
+			if ($environment == 'yousign-staging-api' || $environment == 'yousign-api') {
+				dol_include_once('/doliesign/class/yousignrest.class.php');
+				$doliEsign = new YousignRest($this->db);
+			} elseif ($environment == 'universign-prod' || $environment == 'universign-demo'){
+				dol_include_once('/doliesign/class/universign.class.php');
+				$doliEsign = new Universign($this->db);
+			} else {
+				dol_include_once('/doliesign/class/yousignsoap.class.php');
+				$doliEsign = new YousignSoap($this->db);
+			}
 			if ($parameters['currentcontext'] == 'propallist' && count($config->fetchListId('propal')) > 0) $dolObject->element = 'propal';
+			elseif ($parameters['currentcontext'] == 'orderlist' && count($config->fetchListId('commande')) > 0)$dolObject->element = 'commande';
 			elseif ($parameters['currentcontext'] == 'interventionlist' && count($config->fetchListId('fichinter')) > 0) $dolObject->element = 'fichinter';
+			elseif ($parameters['currentcontext'] == 'contractlist' && count($config->fetchListId('contrat')) > 0) $dolObject->element = 'contrat';
 			else $dolObject->element = '';
 			$this->resprints = '';
 			$dolObject->id = $parameters['obj']->rowid;
 			if ($user->rights->doliesign->read && !empty($dolObject->id) && !empty($dolObject->element)) {
-				$ysResult = ysInfo($user, $dolObject, 'sync');
-				if (is_array($ysResult)) {
-					$this->errors[]=$ysResult;
+				$res = $doliEsign->signInfo($user, $dolObject, 'sync');
+				if ($res < 0) {
+					$this->errors[]=$doliEsign->errors;
+					$error = $res;
 					$signStatus =  DoliEsign::STATUS_ERROR;
 				} else {
-					$signStatus = $ysResult;
+					$signStatus = $res;
 				}
 				if (! isset($signStatus)) {
 					$this->resprints = '<td>'.$langs->trans('NoDoliEsign').'</td>';
@@ -409,46 +472,11 @@ class ActionsDoliEsign
 	    }
 	}
 
-	/**
-	 * Overloading the doActions function : replacing the parent's function with the one below
-	 *
-	 * @param   array()         $parameters     Hook metadatas (context, etc...)
-	 * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-	 * @param   string          $action         Current action (if set). Generally create or edit or null
-	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
-	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
-	 */
-	public function doMassActions($parameters, &$object, &$action, $hookmanager)
-	{
-	    global $conf, $user, $langs;
-
-	    $error = 0; // Error counter
-
-        /* print_r($parameters); print_r($object); echo "action: " . $action; */
-	    if (in_array($parameters['currentcontext'], array('somecontext1','somecontext2')))		// do something only for the context 'somecontext1' or 'somecontext2'
-	    {
-	        foreach($parameters['toselect'] as $objectid)
-	        {
-	            // Do action on each object id
-
-	        }
-	    }
-
-	    if (! $error) {
-	        $this->results = array('myreturn' => 999);
-	        $this->resprints = 'A text to show';
-	        return 0;                                    // or return 1 to replace standard code
-	    } else {
-	        $this->errors[] = 'Error message';
-	        return -1;
-	    }
-	}
-
 
 	/**
 	 * Overloading the addMoreActionsButtons function : replacing the parent's function with the one below
 	 *
-	 * @param   array()         $parameters     Hook metadatas (context, etc...)
+	 * @param   array           $parameters     Hook metadatas (context, etc...)
 	 * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
 	 * @param   string          $action         Current action (if set). Generally create or edit or null
 	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
@@ -458,18 +486,24 @@ class ActionsDoliEsign
 	{
 	    global $conf, $user, $langs;
 
-	    $error = 0; // Error counter
+		$error = 0; // Error counter
 
         /* print_r($parameters); print_r($object); echo "action: " . $action; */
-	    if (in_array($parameters['currentcontext'], array('propalcard','interventioncard')))		// do something only for the context 'somecontext1' or 'somecontext2'
+	    if (in_array($parameters['currentcontext'], array('propalcard','ordercard','interventioncard','contractcard')))		// do something only for the context 'somecontext1' or 'somecontext2'
 	    {
 			dol_include_once('/doliesign/lib/doliesign.lib.php');
 			dol_include_once('/doliesign/class/config.class.php');
 			$config = new DoliEsignConfig($this->db);
+			$doliEsign = new DoliEsign($this->db);
 			if ($parameters['currentcontext'] == 'propalcard' && count($config->fetchListId('propal')) > 0) {
 				$active = true;
 				$minStatus = Propal::STATUS_VALIDATED;
 				$maxStatus = Propal::STATUS_SIGNED;
+			}
+			elseif ($parameters['currentcontext'] == 'ordercard' && count($config->fetchListId('commande')) > 0) {
+				$active = true;
+				$minStatus = Commande::STATUS_VALIDATED;
+				$maxStatus = Commande::STATUS_SHIPMENTONPROCESS;
 			}
 			elseif ($parameters['currentcontext'] == 'interventioncard' && count($config->fetchListId('fichinter')) > 0) {
 				$active = true;
@@ -481,10 +515,14 @@ class ActionsDoliEsign
 					$maxStatus = 1;
 				}
 			}
+			elseif ($parameters['currentcontext'] == 'contractcard' && count($config->fetchListId('contrat')) > 0) {
+				$active = true;
+				$minStatus = 1;
+				$maxStatus = 1;
+			}
 			else $active = false;
 			if ($active && $object->statut >= $minStatus) {
 				if (!empty($object->id)) {
-					$doliEsign = new DoliEsign($this->db);
 					$result = $doliEsign->fetch(null, null, $object->id, $object->element);
 					if ($result > 0) {
 						$signStatus = $doliEsign->status;
@@ -496,13 +534,15 @@ class ActionsDoliEsign
 							}
 						} elseif ($signStatus == DoliEsign::STATUS_SIGNED || $signStatus == DoliEsign::STATUS_FILE_FETCHED) {
 							if ($user->rights->doliesign->read) {
-								print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=doliesignfetch">' . $langs->trans('DoliEsignFetch') . '</a></div>';
+								if ($parameters['currentcontext'] == 'contractcard') print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=confirm_doliesignfetch">' . $langs->trans('DoliEsignFetch') . '</a></div>';
+								else print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=doliesignfetch">' . $langs->trans('DoliEsignFetch') . '</a></div>';
 							} else {
 								print '<div class="inline-block divButAction"><a class="butActionRefused" href="#">' . $langs->trans('DoliEsignFetch') . '</a></div>';
 							}
 						} elseif ($signStatus == DoliEsign::STATUS_CANCELED  && $object->statut <= $maxStatus) {
 							if ($user->rights->doliesign->create) {
-								print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=doliesign">' . $langs->trans('DoliEsignAgain') . '</a></div>';
+								if ($parameters['currentcontext'] == 'contractcard') print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=confirm_doliesign">' . $langs->trans('DoliEsignAgain') . '</a></div>';
+								else print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=doliesign">' . $langs->trans('DoliEsignAgain') . '</a></div>';
 							} else {
 								print '<div class="inline-block divButAction"><a class="butActionRefused" href="#">' . $langs->trans('DoliEsign') . '</a></div>';
 							}
@@ -511,7 +551,8 @@ class ActionsDoliEsign
 						}
 					} else {
 						if ($user->rights->doliesign->create) {
-							print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=doliesign">' . $langs->trans('DoliEsign') . '</a></div>';
+							if ($parameters['currentcontext'] == 'contractcard') print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=confirm_doliesign">' . $langs->trans('DoliEsign') . '</a></div>';
+							else print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=doliesign">' . $langs->trans('DoliEsign') . '</a></div>';
 						} else {
 							print '<div class="inline-block divButAction"><a class="butActionRefused" href="#">' . $langs->trans('DoliEsign') . '</a></div>';
 						}
@@ -528,66 +569,61 @@ class ActionsDoliEsign
 	    }
 	}
 
-
-
 	/**
-	 * Execute action
+	 * Change the signature area
 	 *
-	 * @param	array	$parameters		Array of parameters
-	 * @param   Object	$object		   	Object output on PDF
-	 * @param   string	$action     	'add', 'update', 'view'
-	 * @return  int 		        	<0 if KO,
-	 *                          		=0 if OK but we want to process standard actions too,
-	 *  	                            >0 if OK and we want to replace standard actions.
+	 * @param   array           $parameters     Hook metadatas (context, etc...)
+	 * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+	 * @param   string          $action         Current action (if set). Generally create or edit or null
+	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+	 * @return  int 							< 0 on error, 0 on success, 1 to replace standard code
 	 */
-	function beforePDFCreation($parameters, &$object, &$action)
+	public function changeSignatureArea($parameters, &$object, &$action, $hookmanager)
 	{
-		global $langs,$conf;
-		global $hookmanager;
+	    global $conf, $user, $langs;
 
-		$outputlangs=$langs;
+		$error = 0; // Error counter
 
-		$ret=0; $deltemp=array();
-		dol_syslog(get_class($this).'::executeHooks action='.$action);
+		$signCount = 0;
 
-		/* print_r($parameters); print_r($object); echo "action: " . $action; */
-		if (in_array($parameters['currentcontext'], array('somecontext1','somecontext2')))		// do something only for the context 'somecontext1' or 'somecontext2'
-		{
+		//Récupération des différentes DoliEsignConfig
+		$config = new DoliEsignConfig($object->db);
+		$configIds = array_reverse($config->fetchListId($object->element));
+		$typeContacts = $config->get_type_contact_code($object->element, $parameters['sourceContact']);
+		$sourceContacts = $config->get_source_contact_code($object->element);
 
+		//Parcourt les ID de configuration
+		foreach($configIds as $configId) {
+			//Récupére les configurations disponible
+			$res = $config->fetch($configId);
+
+			//Si le nombre de configuration est en dessous de 0 retourne une erreur
+			if ($res < 0) {
+				return --$error;
+			}
+
+			//Si il est égal à 0 il n'y a aucune configurations
+			if ($res == 0) {
+				return --$error;
+			}
+
+			//Récupère les informations du contact et de l'utilisateur
+			$contactCode = $typeContacts[$config->fk_c_type_contact];
+			$contactSource = $sourceContacts[$config->fk_c_type_contact];
+			if ($object->getIdContact($contactSource, $contactCode)) {
+				$signCount += count($object->getIdContact($contactSource, $contactCode));
+			}
 		}
 
-		return $ret;
-	}
+		$height = $parameters['tab'] * 3;
 
-	/**
-	 * Execute action
-	 *
-	 * @param	array	$parameters		Array of parameters
-	 * @param   Object	$pdfhandler   	PDF builder handler
-	 * @param   string	$action     	'add', 'update', 'view'
-	 * @return  int 		        	<0 if KO,
-	 *                          		=0 if OK but we want to process standard actions too,
-	 *  	                            >0 if OK and we want to replace standard actions.
-	 */
-	function afterPDFCreation($parameters, &$pdfhandler, &$action)
-	{
-		global $langs,$conf;
-		global $hookmanager;
-
-		$outputlangs=$langs;
-
-		$ret=0; $deltemp=array();
-		dol_syslog(get_class($this).'::executeHooks action='.$action);
-
-		/* print_r($parameters); print_r($object); echo "action: " . $action; */
-		if (in_array($parameters['currentcontext'], array('somecontext1','somecontext2')))		// do something only for the context 'somecontext1' or 'somecontext2'
-		{
-
+		for ($i=0; $i < $signCount; $i++) {
+			$parameters['pdf']->addEmptySignatureAppearance($parameters['posx'], $parameters['posy'] + $parameters['tab'], $parameters['largcol'], $height, -1, 'sign_'.$parameters['sourceContact']);
+			$parameters['pdf']->SetXY($parameters['posx'], $parameters['posy'] + $parameters['tab']);
+			$parameters['pdf']->MultiCell($parameters['largcol'], $height, '', 1, 'R');
+			$parameters['posy'] += $height + 4;
 		}
 
-		return $ret;
+		return $i;
 	}
-
-	/* Add here any other hooked methods... */
-
 }
