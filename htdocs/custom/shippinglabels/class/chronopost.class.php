@@ -257,7 +257,8 @@ class L_chronopost extends shipping_class
 		$customerValue['customerAdress1']=$adlines2[0];
 	    $customerValue['customerAdress2'];
 	    $customerValue['customerCity']=$contact->town;
-	    if($contact->civility_id == 'MR')
+		//Spécifique à la configuration Synergies-Tech
+	    if($contact->civility_id == 'M.')
 	    $customerValue['customerCivility']='M';
 	    else if($contact->civility_id=='MME')
 	    {
@@ -269,7 +270,7 @@ class L_chronopost extends shipping_class
 	    }
 	    else
 	    {
-	    $this->errors[]=$langs->trans("NoCivility");
+	    $customerValue['customerCivility']='M';
 	    }
 
 		$customerValue['customerContactName']=$contact->firstname.' '.$contact->lastname;
