@@ -72,7 +72,10 @@ foreach ($ouvrage->dets as $det) {
             <tr>
                 <td><?php echo $product->label ?></td>
                 <td class="product-tva"><?php echo $ouvrage->tva ?></td>
-                <td class="product-price"><input type="number" size="5" name="ouvrage[product][<?php echo $det['product'] ?>][price_ht]" value="<?php echo round(floatval($product->price), 2) ?>" step="0.01" min="0" style="max-width: 70px;"></td>
+
+				<!--To Do - récuperer la valeur de précision renseigné dans dolibarr pour les prix unitaire, et ajuster la précision/longueur des modificateur de prix en fonction -->
+
+                <td class="product-price"><input type="number" size="5" name="ouvrage[product][<?php echo $det['product'] ?>][price_ht]" value="<?php echo round(floatval($product->price), 3) ?>" step="0.01" min="0" style="max-width: 70px;"></td>
                 <td class="product-qty"><input type="number" data-default="<?php echo $det['qty'] ?>" size="2" name="ouvrage[product][<?php echo $det['product'] ?>][qty]" value="<?php echo $det['qty'] ?>" step="1" min="0"  style="max-width: 70px;" /></td>
                 <td class="product-reduc"><input type="number" name="ouvrage[product][<?php echo $det['product'] ?>][reduc]" size="2" value="0" step="1" min="0" max="100"  style="max-width: 70px;"/>%</td>
                 <?php if (! empty($conf->margin->enabled) && $user->rights->margins->creer) : ?>

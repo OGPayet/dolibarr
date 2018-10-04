@@ -335,7 +335,17 @@ HEREDOC;
         $('#tablelinesouvrage td.product-price-total').each(function(){
            totalOuvrage += parseFloat($(this).text().replace(',','.').replace(' ',''));
         }).promise().done( function(){
-            $('#tablelinesouvrage td.ouvrage-price-total').text(totalOuvrage);
+
+
+			//////////
+			//////////
+			/// To DO : Récupérer la variable globale de paramétrage
+			////////
+			////////
+
+
+
+            $('#tablelinesouvrage td.ouvrage-price-total').text(totalOuvrage.toFixed(2));
         } );
 
 
