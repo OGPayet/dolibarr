@@ -727,10 +727,12 @@ class Universign extends DoliEsign
 				//Si la redirection vers la page de signature automatique est activé on n'envoi pas de mail au premier signataire
 				if ($redirectSign == 'false' || ($redirectSign == 'true' && $key != 0)) {
 					//Création du mail personalisé et envoi de celui ci
+
 					$mailSign = new CMailFile(
 						$initMailSubject,
 						$signer->me['struct']['email']->me['string'],
-						$conf->notification->email_from,
+						//Ajout de la possiblité de forcer un email autre que celui des notifications natives dolibarr
+						empty($conf->global->DOLIESIGN_SEND_MAIL_FROM_ADDRESS) ? $conf->notification->email_from : $conf->global->DOLIESIGN_SEND_MAIL_FROM_ADDRESS,
 						$contentMail,
 						array(),
 						array(),
