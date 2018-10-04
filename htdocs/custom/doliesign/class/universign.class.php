@@ -307,9 +307,12 @@ class Universign extends DoliEsign
 		$chainingMode = "email";
 
 		//Définition de l'url de retour
+
 		$returnUrl = (@$_SERVER["HTTPS"] == "on") ? "https://" : "http://";
 		$returnUrl .= $_SERVER["SERVER_NAME"];
 		$returnUrl .= $_SERVER["SCRIPT_NAME"] . "?id=" . $_REQUEST['id'] . "&action=doliesignsync";
+		// RECUPERATION D'UNE URL forcée
+		if (! empty($conf->global->DOLIESIGN_RETURN_URL_UNIVERSIGN)) $returnUrl=$conf->global->DOLIESIGN_RETURN_URL_UNIVERSIGN;
 
         //Récupération des options de signature dans config
         if (! empty($conf->global->DOLIESIGN_SEND_MAIL_UNIVERSIGN)) $sendMail= $conf->global->DOLIESIGN_SEND_MAIL_UNIVERSIGN;
