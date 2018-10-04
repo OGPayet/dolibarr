@@ -36,20 +36,18 @@ $(function(){
 			$('#zipcode').val(ui.item.zip);
 			$('#town').val(ui.item.town);
 
-			var address = ui.item.name + "\n" + inputAddress2.val();
-			$('#address').val(address);
-
 			return false;
 		},
-		minLength: 5
+		 minLength: 5
 	});
 
 	inputAddress2.keyup(function(){
-		var address = inputAddress.val() + "\n" + inputAddress2.val();
-		$('#address').val(address);
+
 	});
 
 	$('form[name="formsoc"]').submit(function(){
+		var address = inputAddress.val() + "\n" + inputAddress2.val();
+		$('#address').val(address);
 		$('#address').show();
 
 		inputAddress.remove();
