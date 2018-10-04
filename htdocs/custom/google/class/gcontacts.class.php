@@ -257,11 +257,12 @@ class GContact
             throw new Exception($dolContact->$error);
 
         // Fill object with thirdparty infos
-        $this->firstname = $dolContact->firstname;
-        $this->lastname = $dolContact->lastname;
-        $this->name = $dolContact->name;
-        $this->fullName = $dolContact->getFullName($langs);
-        $this->email = $dolContact->email?$dolContact->email:($this->fullName.'@noemail.com');
+		$this->firstname = $dolContact->name_alias;
+        $this->lastname = $dolContact->name;
+        $this->name = empty($dolContact->name_alias)? $dolContact->name:($dolContact->name_alias . " (" .$dolContact->name . ") ");
+        $this->fullName = empty($dolContact->name_alias)? $dolContact->name:($dolContact->name_alias . " (" .$dolContact->name . ") ");
+        $this->email = $dolContact->email?$dolContact->email:("");
+
         if(!(empty($dolContact->address)&&empty($dolContact->zip)&&empty($dolContact->town)&&empty($dolContact->state)&&empty($dolContact->country)))
         {
             $this->addr = new GCaddr();
@@ -369,7 +370,7 @@ class GContact
 	$this->firstname = $dolContact->firstname;
 	$this->lastname = $dolContact->lastname;
         $this->fullName = $dolContact->getFullName($langs);
-	$this->email = ($dolContact->email?$dolContact->email:($this->fullName.'@noemail.com'));
+		$this->email = ($dolContact->email?$dolContact->email:"");
 
 	if(!(empty($dolContact->address)&&empty($dolContact->zip)&&empty($dolContact->town)&&empty($dolContact->state)&&empty($dolContact->country)))
 	{
@@ -396,7 +397,7 @@ class GContact
 		$company = new Societe($db);
 		$result=$company->fetch($dolContact->socid);
 		if ($result <=0) throw new Exception($company->$error);
-		$this->orgName=$company->name;
+		$this->orgName=$company->name_alias . " (" .$company->name . ") ";
 	}
 	$this->poste= $dolContact->poste;
 
@@ -490,7 +491,7 @@ class GContact
 	$this->lastname = $dolContact->lastname;
 	$this->fullName = $dolContact->getFullName($langs);
 	if (empty($this->fullName)) $this->fullName=$dolContact->company;
-	$this->email = ($dolContact->email?$dolContact->email:($this->fullName.'@noemail.com'));
+	$this->email = ($dolContact->email?$dolContact->email:(""));
 	if(!(empty($dolContact->address)&&empty($dolContact->zip)&&empty($dolContact->town)&&empty($dolContact->state)&&empty($dolContact->country)))
 	{
 		$this->addr = new GCaddr();
