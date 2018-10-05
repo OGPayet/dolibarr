@@ -162,12 +162,13 @@ class InvoicesContractTools
     const RLH_INVOICE_AMOUNT_VAT = 54;
     const RLH_INVOICE_AMOUNT_TTC = 55;
     const RLH_INVOICE_REMISE_PERCENT = 56;
-    const RLH_INVOICE_INCOTERMS_ID = 57;
-    const RLH_INVOICE_LOCATION_INCOTERMS = 58;
-    const RLH_INVOICE_MULTICURRENCY_CODE = 59;
-    const RLH_INVOICE_BILLING_PERIOD_BEGIN = 60;
-    const RLH_INVOICE_BILLING_PERIOD_END = 61;
-    const RLH_INVOICE_VALIDATED = 62;
+    const RLH_INVOICE_REMISE_ABSOLUE = 57;
+    const RLH_INVOICE_INCOTERMS_ID = 58;
+    const RLH_INVOICE_LOCATION_INCOTERMS = 59;
+    const RLH_INVOICE_MULTICURRENCY_CODE = 60;
+    const RLH_INVOICE_BILLING_PERIOD_BEGIN = 61;
+    const RLH_INVOICE_BILLING_PERIOD_END = 62;
+    const RLH_INVOICE_VALIDATED = 63;
     const RLH_ERRORS = 100;
 
 
@@ -409,7 +410,7 @@ class InvoicesContractTools
      * @return  double                              Amount of the invoice of the contract for the given billing period, null: Errors
      */
     public function getInvoiceAmount(&$contract, $watching_period, $billing_period, $test_mode=0, $disable_revaluation=0) {
-        global $langs, $user;
+        global $conf, $langs, $user;
 
         if (empty($contract->array_options)) {
             $contract->fetch_optionals();
@@ -655,7 +656,8 @@ class InvoicesContractTools
             $billing_period_amount = ($billing_period_lenght * $contract_amount) / ($watching_period_lenght * $number_billing_period_in_year);
         }
 
-        $billing_period_amount = price2num($billing_period_amount, 'MU');
+        $rounding = !empty($conf->global->SYNERGIESTECHCONTRAT_MAX_DECIMALS_UNIT) ? $conf->global->SYNERGIESTECHCONTRAT_MAX_DECIMALS_UNIT : 'MU';
+        $billing_period_amount = price2num($billing_period_amount, $rounding);
 
         // Set info into the report CSV
         $this->setCurrentReportLineValue(self::RLH_BILLING_PERIOD_AMOUNT, $billing_period_amount);
@@ -666,6 +668,83 @@ class InvoicesContractTools
         }
 
         return $billing_period_amount;
+    }
+
+    /**
+     *  Set absolute discount of a invoice
+     *
+     * @param   Facture     $invoice        Invoice object
+     * @param   int         $test_mode      Mode test (don't write in database)
+     *
+     * @return  int                         1: OK, -1: Errors
+     */
+    public function setAbsoluteDiscountAndCreditNote(&$invoice, $test_mode=0)
+    {
+        global $conf, $langs;
+
+        $remise_absolue = 0;
+
+        if (($invoice->statut == Facture::STATUS_DRAFT && $invoice->type != Facture::TYPE_CREDIT_NOTE && $invoice->type != Facture::TYPE_DEPOSIT) ||
+            ($invoice->statut == Facture::STATUS_VALIDATED && $invoice->type != Facture::TYPE_CREDIT_NOTE)
+        ) {
+            // On recherche les remises
+            $sql = "SELECT re.rowid, re.amount_ht, re.amount_tva, re.amount_ttc, re.description, re.fk_facture_source";
+            $sql .= " FROM " . MAIN_DB_PREFIX . "societe_remise_except as re";
+            $sql .= " WHERE re.fk_soc = " . $invoice->socid;
+            $sql .= " AND re.entity = " . $conf->entity;
+            if (empty($conf->global->FACTURE_DEPOSITS_ARE_JUST_PAYMENTS)) {    // Never use this
+                if ($invoice->statut == Facture::STATUS_DRAFT) { // absolute discount
+                    $sql .= " AND fk_facture_source IS NULL OR (fk_facture_source IS NOT NULL AND (description LIKE '(DEPOSIT)%' AND description NOT LIKE '(EXCESS RECEIVED)%'))";
+                } else { // credit note
+                    $sql .= " AND fk_facture_source IS NOT NULL AND (description NOT LIKE '(DEPOSIT)%' OR description LIKE '(EXCESS RECEIVED)%'))";
+                }
+            }
+            $sql .= " ORDER BY re.description ASC";
+
+            $resql = $this->db->query($sql);
+            if (!$resql) {
+                $this->errors[] = $langs->trans('STCErrorSQLGetAbsoluteDiscountAndCreditNote', $this->db->lasterror());
+                dol_syslog(__METHOD__ . ': Error: SQL: "' . $sql . '", Message: "' . $this->db->lasterror() . '"', LOG_ERR);
+                return -1;
+            }
+
+            if ($invoice->statut == Facture::STATUS_VALIDATED) { // credit note
+                require_once DOL_DOCUMENT_ROOT . '/core/class/discount.class.php';
+                $discount_static = new DiscountAbsolute($this->db);
+            }
+
+            if (!empty($test_mode)) $this->db->begin();
+
+            $total_ttc = $invoice->statut == Facture::STATUS_DRAFT ? $invoice->total_ttc : $invoice->getRemainToPay(0);
+            while ($obj = $this->db->fetch_object($resql)) {
+                if ($invoice->statut == Facture::STATUS_DRAFT) { // absolute discount
+                    if ($obj->amount_ttc <= $total_ttc) {
+                        $result = $invoice->insert_discount($obj->rowid);
+                        if ($result < 0) {
+                            $this->errors = array_merge($this->errors, $this->getObjectErrors($invoice));
+                            return -1;
+                        }
+                        $total_ttc -= $obj->amount_ttc;
+                        $remise_absolue += $obj->amount_ht;
+                    }
+                } else { // credit note
+                    if ($obj->amount_ttc <= $total_ttc) {
+                        $discount_static->id = $obj->rowid;
+                        $result = $discount_static->link_to_invoice(0, $invoice->id);
+                        if ($result < 0) {
+                            $this->errors = array_merge($this->errors, $this->getObjectErrors($invoice));
+                            return -1;
+                        }
+                        $total_ttc -= $obj->amount_ttc;
+                        $remise_absolue += $obj->amount_ht;
+                    }
+                }
+            }
+
+            if (!empty($test_mode)) $this->db->rollback();
+        }
+
+        return price2num($remise_absolue, 'MU');
     }
 
     /**
@@ -694,52 +773,43 @@ class InvoicesContractTools
         $billing_period_begin = $billing_period['begin']->timestamp;
         $billing_period_end = $billing_period['end']->timestamp;
 
-        $amount_discount = '';
-        if ($use_customer_discounts) {
-            $amount_discount = $invoice->thirdparty->getAvailableDiscounts();
-            if ($amount_discount < 0) {
-                $this->errors = array_merge($this->errors, $this->getObjectErrors($invoice->thirdparty));
-                $error++;
-            }
+        // Set values
+        $invoice->socid = $contract->socid;
+        $invoice->fetch_thirdparty();
+        $invoice->type = Facture::TYPE_STANDARD;
+        $invoice->date = $now;
+        $invoice->date_pointoftax = '';
+        $invoice->note_public = '';
+        $invoice->note_private = '';
+        $invoice->ref_client = !empty($ref_customer) ? $ref_customer : '';
+        $invoice->ref_int = '';
+        $invoice->modelpdf = $conf->global->FACTURE_ADDON_PDF;
+        $invoice->fk_project = '';
+        $invoice->cond_reglement_id = $payment_condition > 0 ? $payment_condition : $invoice->thirdparty->cond_reglement_id;
+        $invoice->mode_reglement_id = $invoice->thirdparty->mode_reglement_id;
+        $invoice->fk_account = $invoice->thirdparty->fk_account;
+        $invoice->remise_absolue = '';
+        $invoice->remise_percent = $use_customer_discounts ? $invoice->thirdparty->remise_percent : '';
+        $invoice->fk_incoterms = $invoice->thirdparty->fk_incoterms;
+        $invoice->location_incoterms = $invoice->thirdparty->location_incoterms;
+        $invoice->multicurrency_code = $invoice->thirdparty->multicurrency_code;
+        $invoice->multicurrency_tx = '';
+        $invoice->linkedObjectsIds[$contract->element] = $contract->id;
+
+        if (empty($invoice->cond_reglement_id)) {
+            $cond_payment_keys = array_keys($this->form->cache_conditions_paiements);
+            $invoice->cond_reglement_id = $cond_payment_keys[0];
         }
 
-        // Set values
+        $invoice->array_options['options_datedeb'] = $billing_period_begin;
+        $invoice->array_options['options_datefin'] = $billing_period_end;
+
+        // Set general invoice info into the report CSV
+        $this->setGeneralInvoiceInfoInCurrentReportLine($invoice);
+
+        if (!empty($test_mode)) $this->db->begin();
+
         if (!$error) {
-            $invoice->socid = $contract->socid;
-            $invoice->fetch_thirdparty();
-            $invoice->type = Facture::TYPE_STANDARD;
-            $invoice->date = $now;
-            $invoice->date_pointoftax = '';
-            $invoice->note_public = '';
-            $invoice->note_private = '';
-            $invoice->ref_client = !empty($ref_customer) ? $ref_customer : '';
-            $invoice->ref_int = '';
-            $invoice->modelpdf = $conf->global->FACTURE_ADDON_PDF;
-            $invoice->fk_project = '';
-            $invoice->cond_reglement_id = $payment_condition > 0 ? $payment_condition : $invoice->thirdparty->cond_reglement_id;
-            $invoice->mode_reglement_id = $invoice->thirdparty->mode_reglement_id;
-            $invoice->fk_account = $invoice->thirdparty->fk_account;
-            $invoice->remise_absolue = $use_customer_discounts ? $amount_discount : '';
-            $invoice->remise_percent = $use_customer_discounts ? $invoice->thirdparty->remise_percent : '';
-            $invoice->fk_incoterms = $invoice->thirdparty->fk_incoterms;
-            $invoice->location_incoterms = $invoice->thirdparty->location_incoterms;
-            $invoice->multicurrency_code = $invoice->thirdparty->multicurrency_code;
-            $invoice->multicurrency_tx = '';
-            $invoice->linkedObjectsIds[$contract->element] = $contract->id;
-
-            if (empty($invoice->cond_reglement_id)) {
-                $cond_payment_keys = array_keys($this->form->cache_conditions_paiements);
-                $invoice->cond_reglement_id = $cond_payment_keys[0];
-            }
-
-            $invoice->array_options['options_datedeb'] = $billing_period_begin;
-            $invoice->array_options['options_datefin'] = $billing_period_end;
-
-            // Set general invoice info into the report CSV
-            $this->setGeneralInvoiceInfoInCurrentReportLine($invoice);
-
-            if (!empty($test_mode)) $this->db->begin();
-
             $invoice_id = $invoice->create($user, 0, $payment_deadline_date);
             if ($invoice_id < 0) {
                 $this->errors = array_merge($this->errors, $this->getObjectErrors($invoice));
@@ -796,27 +866,47 @@ class InvoicesContractTools
             }
         }
 
+        $remise_absolue = 0;
+        if (!$error && $use_customer_discounts) {
+            $result = $this->setAbsoluteDiscountAndCreditNote($invoice, $test_mode);
+            if ($result < 0) {
+                $error++;
+            } else {
+                $remise_absolue += $result;
+            }
+        }
+
         // Auto validate
         $validated = 0;
-        if (!$error) {
-            if (!empty($conf->global->AUTOMATIC_VALID_INVOICE_CONTRACT)) {
-                $result = $invoice->validate($user);
-                if ($result < 0) {
-                    $this->errors = array_merge($this->errors, $this->getObjectErrors($invoice));
-                    $error++;
-                } else {
-                    $validated = 1;
+        if (!$error && !empty($conf->global->AUTOMATIC_VALID_INVOICE_CONTRACT)) {
+            $result = $invoice->validate($user);
+            if ($result < 0) {
+                $this->errors = array_merge($this->errors, $this->getObjectErrors($invoice));
+                $error++;
+            } else {
+                $validated = 1;
+
+                if ($use_customer_discounts) {
+                    $result = $this->setAbsoluteDiscountAndCreditNote($invoice, $test_mode);
+                    if ($result < 0) {
+                        $error++;
+                    } else {
+                        $remise_absolue += $result;
+                    }
                 }
             }
         }
 
         // Update general invoice info into the report CSV
-        $invoice->fetch($invoice_id);
-        $this->setGeneralInvoiceInfoInCurrentReportLine($invoice);
+        if (!$error) {
+            $invoice->fetch($invoice_id);
+            $this->setGeneralInvoiceInfoInCurrentReportLine($invoice);
 
-        // Set invoice info into the report CSV
-        $this->setCurrentReportLineValue(self::RLH_INVOICE_REF, $invoice->ref);
-        $this->setCurrentReportLineValue(self::RLH_INVOICE_VALIDATED, yn($validated));
+            // Set invoice info into the report CSV
+            $this->setCurrentReportLineValue(self::RLH_INVOICE_REF, $invoice->ref);
+            $this->setCurrentReportLineValue(self::RLH_INVOICE_VALIDATED, yn($validated));
+            $this->setCurrentReportLineValue(self::RLH_INVOICE_REMISE_ABSOLUE, $remise_absolue);
+        }
 
         if (!empty($test_mode)) $this->db->rollback();
         if ($error) return -1;
@@ -1043,7 +1133,7 @@ class InvoicesContractTools
             $invoice_amount = $this->getInvoiceAmount($contract, $watching_period, $billing_period, $test_mode, $disable_revaluation);
             if (!isset($invoice_amount)) {
                 $error++;
-            } elseif (round($invoice_amount, 2) == 0) {
+            } elseif ($invoice_amount == 0) {
                 $this->setCurrentReportLineValue(self::RLH_ERRORS, $langs->trans('STCErrorNoAmountForThisInvoice'));
                 $pass++;
             }
@@ -1571,6 +1661,7 @@ class InvoicesContractTools
                     self::RLH_INVOICE_AMOUNT_HT => $langs->transnoentitiesnoconv('STC_RLH_INVOICE_AMOUNT_HT'),
                     self::RLH_INVOICE_AMOUNT_VAT => $langs->transnoentitiesnoconv('STC_RLH_INVOICE_AMOUNT_VAT'),
                     self::RLH_INVOICE_AMOUNT_TTC => $langs->transnoentitiesnoconv('STC_RLH_INVOICE_AMOUNT_TTC'),
+                    self::RLH_INVOICE_REMISE_ABSOLUE => $langs->transnoentitiesnoconv('STC_RLH_INVOICE_REMISE_ABSOLUE'),
                     self::RLH_INVOICE_REMISE_PERCENT => $langs->transnoentitiesnoconv('STC_RLH_INVOICE_REMISE_PERCENT'),
                     self::RLH_INVOICE_INCOTERMS_ID => $langs->transnoentitiesnoconv('STC_RLH_INVOICE_INCOTERMS_ID'),
                     self::RLH_INVOICE_LOCATION_INCOTERMS => $langs->transnoentitiesnoconv('STC_RLH_INVOICE_LOCATION_INCOTERMS'),
@@ -1721,6 +1812,7 @@ class InvoicesContractTools
             self::RLH_INVOICE_AMOUNT_HT => '',
             self::RLH_INVOICE_AMOUNT_VAT => '',
             self::RLH_INVOICE_AMOUNT_TTC => '',
+            self::RLH_INVOICE_REMISE_ABSOLUE => '',
             self::RLH_INVOICE_REMISE_PERCENT => '',
             self::RLH_INVOICE_INCOTERMS_ID => '',
             self::RLH_INVOICE_LOCATION_INCOTERMS => '',

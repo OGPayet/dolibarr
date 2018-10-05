@@ -107,9 +107,6 @@ $result=$db->query($sql);
 if ($result) {
 	$num = $db->num_rows($result);
 
-	$facturestatic=new Facture($db);
-
-
 	print_barre_liste("Liste des factures", $page, "", $urlparam, $sortfield, $sortorder, '', $num);
 
 	print '<form method="get" action="'.$_SERVER["PHP_SELF"].'">'."\n";
@@ -135,6 +132,7 @@ if ($result) {
 	while ($i < min($num, $limit)) {
 		$objp = $db->fetch_object($result);
 
+        $facturestatic=new Facture($db);
 		$facturestatic->fetch($objp->rowid);
         $facturestatic->fetch_optionals();
         $paiement = $facturestatic->getSommePaiement();
