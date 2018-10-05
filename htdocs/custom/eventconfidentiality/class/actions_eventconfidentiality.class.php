@@ -142,8 +142,181 @@ class ActionsEventConfidentiality
 		dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
 		dol_include_once('/eventconfidentiality/lib/eventconfidentiality.lib.php');
 
-		$object->datef = 0;
-		print_r($user->array_options);
+		if($object->id > 0) {
+			$mode = 2;
+			$user_tags = explode(",",$user->array_options['options_user_tag']);
+			$fk_tags = fetchAllTagForObject($object->id);
+			$tmp_mode = -1;
+			$externe = (empty($user->socid)?0:1); //Utilisateur interne ou externe
+
+			foreach($fk_tags as $fk_tag) {
+				if(in_array($fk_tag['fk_dict_tag_confid'],$user_tags) && $fk_tag['externe'] == $externe) { //Si on a un tag en commun et que ce tag est interne
+					$tmp_mode = max($tmp_mode,$fk_tag['level_confid']);
+				}
+			}
+			if($tmp_mode > -1) { //Si l'utilisateur un tag en commun avec l'event on considère la visilibité minimal parmi les tags en commun
+				$mode = $tmp_mode;
+			}
+
+			//Gestion du mode
+			if($mode == 2) {
+				// accessforbidden('',0,0,1);
+				unset($object->id);
+				unset($object->ref);
+				unset($object->ref_ext);
+				unset($object->type_id);
+				unset($object->type_code);
+				unset($object->type_color);
+				unset($object->type_picto);
+				unset($object->type);
+				unset($object->code);
+				unset($object->label);
+				unset($object->datep);
+				unset($object->datef);
+				unset($object->durationp);
+				unset($object->datec);
+				unset($object->datem);
+				unset($object->note);
+				unset($object->percentage);
+				unset($object->authorid);
+				unset($object->usermodid);
+				unset($object->author);
+				unset($object->usermod);
+				unset($object->userownerid);
+				unset($object->userdoneid);
+				unset($object->priority);
+				unset($object->fulldayevent);
+				unset($object->location);
+				unset($object->transparency);
+				unset($object->punctual);
+				unset($object->socid);
+				unset($object->contactid);
+				unset($object->fk_project);
+				unset($object->societe);
+				unset($object->contact);
+				unset($object->fk_element);
+				unset($object->elementtype);
+			} elseif($mode == 1) {
+				unset($object->datec);
+				unset($object->datem);
+				unset($object->datep);
+				unset($object->datef);
+				unset($object->type);
+				unset($object->code);
+				unset($object->label);
+			} else {
+				//Do nothing
+			}
+		}
+        return 0;
+    }
+
+	/**
+     * Overloading the afterObjectFetch function : replacing the parent's function with the one below
+     *
+     * @param   array           $parameters     meta datas of the hook (context, etc...)
+     * @param   CommonObject    $object         the object you want to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          $action         current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    current hook manager
+     * @return  void
+     */
+    function afterSQLFetch($parameters, &$object, &$action, $hookmanager)
+    {
+        global $db, $langs, $form, $user;
+
+		$element = $object->element;
+
+		$langs->load("eventconfidentiality@eventconfidentiality");
+		dol_include_once('/advancedictionaries/class/dictionary.class.php');
+		dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
+		dol_include_once('/eventconfidentiality/lib/eventconfidentiality.lib.php');
+
+		if($object->id > 0) {
+			$mode = 2;
+			$user_tags = explode(",",$user->array_options['options_user_tag']);
+			$fk_tags = fetchAllTagForObject($object->id);
+			$tmp_mode = -1;
+			$externe = (empty($user->socid)?0:1); //Utilisateur interne ou externe
+
+			foreach($fk_tags as $fk_tag) {
+				if(in_array($fk_tag['fk_dict_tag_confid'],$user_tags) && $fk_tag['externe'] == $externe) { //Si on a un tag en commun et que ce tag est interne
+					$tmp_mode = max($tmp_mode,$fk_tag['level_confid']);
+				}
+			}
+			if($tmp_mode > -1) { //Si l'utilisateur un tag en commun avec l'event on considère la visilibité minimal parmi les tags en commun
+				$mode = $tmp_mode;
+			}
+
+			//Gestion du mode
+			if($mode == 2) {
+				// accessforbidden('',0,0,1);
+				unset($object->id);
+				unset($object->ref);
+				unset($object->ref_ext);
+				unset($object->type_id);
+				unset($object->type_color);
+				unset($object->type_picto);
+				unset($object->type);
+				unset($object->code);
+				unset($object->label);
+				unset($object->datep);
+				unset($object->datef);
+				unset($object->durationp);
+				unset($object->datec);
+				unset($object->datem);
+				unset($object->note);
+				unset($object->percentage);
+				unset($object->authorid);
+				unset($object->usermodid);
+				unset($object->author);
+				unset($object->usermod);
+				unset($object->userownerid);
+				unset($object->userdoneid);
+				unset($object->priority);
+				unset($object->fulldayevent);
+				unset($object->location);
+				unset($object->transparency);
+				unset($object->punctual);
+				unset($object->socid);
+				unset($object->contactid);
+				unset($object->fk_project);
+				unset($object->societe);
+				unset($object->contact);
+				unset($object->fk_element);
+				unset($object->elementtype);
+				unset($object->date_start_in_calendar);
+				unset($object->date_end_in_calendar);
+				unset($object->client);
+				unset($object->dp);
+				unset($object->dp2);
+				unset($object->fk_user_author);
+				unset($object->fk_user_action);
+				unset($object->fk_contact);
+				unset($object->percent);
+				unset($object->type_code);
+				unset($object->type_label);
+				unset($object->lastname);
+				unset($object->firstname);
+			} elseif($mode == 1) {
+				unset($object->datec);
+				unset($object->datem);
+				unset($object->datep);
+				unset($object->datef);
+				unset($object->type);
+				unset($object->code);
+				unset($object->label);
+				unset($object->date_start_in_calendar);
+				unset($object->date_end_in_calendar);
+				unset($object->type_code);
+				unset($object->type_label);
+				unset($object->dp);
+				unset($object->dp2);
+				unset($object->date_start_in_calendar);
+				unset($object->date_end_in_calendar);
+			} else {
+				//Do nothing
+			}
+		}
         return 0;
     }
 }
