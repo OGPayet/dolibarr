@@ -327,6 +327,15 @@ class Universign extends DoliEsign
 			$chainingMode = 'none';
 		}
 
+		//Constitution de la liste des emails en copie une fois le document signé
+		$lstCCEmail=array("demo@example.fr");
+
+		if (! empty($conf->global->DOLIESIGN_SEND_CC_MAIL_LIST))
+		{
+		$lstCCEmail=array();
+		array_push($lstCCEmail,new xmlrpcval($conf->global->DOLIESIGN_SEND_CC_MAIL_LIST, "string"));
+		}
+
         // Création de la requette avec toutes les informations
         $request = array(
             "documents" => new xmlrpcval($lstFiles, "array"),
@@ -343,6 +352,9 @@ class Universign extends DoliEsign
 
 			//Envoi des dossier par mail à la fin de la signature à tout les signataires
 			"finalDocSent" => new xmlrpcval($sendMailAll,"boolean"),
+
+			//Envoi des fichiers signés via la fonctionnalité cc à la liste des emails
+			"finalDocCCeMails" => new xmlrpcval($lstCCEmail, "array"),
 
             //Type de certificat utilisé
             "certificateType" => new xmlrpcval($certificateType, "string"),
