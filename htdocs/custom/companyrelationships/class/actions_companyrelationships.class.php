@@ -162,28 +162,35 @@ class ActionsCompanyRelationships
         $contexts = explode(':', $parameters['context']);
 
         if (in_array('globalcard', $contexts)) {
+            dol_include_once('/companyrelationships/class/companyrelationships.class.php');
 
-            if ($action == 'create') {
-                dol_include_once('/companyrelationships/class/companyrelationships.class.php');
+            if (!empty($object->table_element) && !empty($object->element) && in_array($object->element, CompanyRelationships::$psa_element_list)) {
 
-                if (!empty($object->element) && in_array($object->element, CompanyRelationships::$psa_element_list)) {
+                if ($object->element == 'fichinter') {
+                    $elementForRights = 'ficheinter';
+                } else {
+                    $elementForRights = $object->table_element;
+                }
+
+                // create
+                if ($action == 'create' && $user->rights->{$elementForRights}->creer) {
                     dol_include_once('/companyrelationships/class/html.formcompanyrelationships.class.php');
 
                     $langs->load('companyrelationships@companyrelationships');
 
                     $out = '';
 
-                    $socid    = GETPOST('socid', 'int') ? GETPOST('socid', 'int') : 0;
-                    $confirm  = GETPOST('confirm', 'alpha');
-                    $origin   = GETPOST('origin','alpha');
+                    $socid = GETPOST('socid', 'int') ? GETPOST('socid', 'int') : 0;
+                    $confirm = GETPOST('confirm', 'alpha');
+                    $origin = GETPOST('origin', 'alpha');
                     $originid = (GETPOST('originid', 'int') ? GETPOST('originid', 'int') : GETPOST('origin_id', 'int')); // For backward compatibility
 
                     // come from confirm_socid dialog box
                     $fk_soc_benefactor = GETPOST('companyrelationships_fk_soc_benefactor', 'int') ? GETPOST('companyrelationships_fk_soc_benefactor', 'int') : 0;
 
                     // set default values for socid and fk_soc_benefactor if this element linked to a previous element (origin)
-                    if (!empty($originid) && intval($fk_soc_benefactor)<=0) {
-                        if (intval($fk_soc_benefactor)<=0) {
+                    if (!empty($originid) && intval($fk_soc_benefactor) <= 0) {
+                        if (intval($fk_soc_benefactor) <= 0) {
                             $fk_soc_benefactor = $object->array_options['options_companyrelationships_fk_soc_benefactor'];
                         }
 
@@ -192,11 +199,11 @@ class ActionsCompanyRelationships
                             $objectsrc = new $classname($this->db);
                             $objectsrc->fetch($originid);
 
-                            if (intval($socid)<=0 && $objectsrc->socid>0) {
+                            if (intval($socid) <= 0 && $objectsrc->socid > 0) {
                                 $socid = $objectsrc->socid;
                             }
 
-                            if (intval($fk_soc_benefactor)<=0 && isset($objectsrc->array_options['options_companyrelationships_fk_soc_benefactor'])) {
+                            if (intval($fk_soc_benefactor) <= 0 && isset($objectsrc->array_options['options_companyrelationships_fk_soc_benefactor'])) {
                                 $fk_soc_benefactor = $objectsrc->array_options['options_companyrelationships_fk_soc_benefactor'];
                             }
                         }
@@ -326,6 +333,47 @@ class ActionsCompanyRelationships
                     }
 
                     print $out;
+                }
+                // edit
+                else if ($action=='edit_extras' && $user->rights->{$elementForRights}->creer) {
+
+                    $attribute = GETPOST('attribute', 'alpha');
+
+                    if (!empty($attribute) && $attribute=='companyrelationships_fk_soc_benefactor') {
+
+                        $langs->load('companyrelationships@companyrelationships');
+
+                        $out = '';
+
+                        $socid = $object->socid;
+                        $fk_soc_benefactor = $object->array_options['options_companyrelationships_fk_soc_benefactor'];
+
+                        // company id already posted (an input hidden in this form)
+                        if (intval($socid)>0) {
+                            $out .= '<script type="text/javascript" language="javascript">';
+                            $out .= 'jQuery(document).ready(function(){';
+                            $out .= '   var data = {';
+                            $out .= '       action: "getBenefactor",';
+                            $out .= '       id: "' . $socid . '",';
+                            $out .= '       htmlname: "options_companyrelationships_fk_soc_benefactor",';
+                            $out .= '       fk_soc_benefactor: "' . $fk_soc_benefactor . '"';
+                            $out .= '   };';
+                            $out .= '   var input = jQuery("select#options_companyrelationships_fk_soc_benefactor");';
+                            $out .= '   jQuery.getJSON("' . dol_buildpath('/companyrelationships/ajax/benefactor.php', 1) . '", data,';
+                            $out .= '       function(response) {';
+                            $out .= '           input.html(response.value);';
+                            $out .= '           input.change();';
+                            $out .= '           if (response.num < 0) {';
+                            $out .= '               console.error(response.error);';
+                            $out .= '           }';
+                            $out .= '       }';
+                            $out .= '   );';
+                            $out .= '});';
+                            $out .= '</script>';
+                        }
+
+                        print $out;
+                    }
                 }
             }
         }

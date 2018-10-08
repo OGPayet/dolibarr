@@ -99,8 +99,8 @@ if (! empty($id) && ! empty($action) && ! empty($htmlname))
             $others[] = '<option value="' . $company['key'] . '"' . $selected . '>' . $company['label'] . '</option>';
         }
     }
-    //$options = array_merge($arrayresult, array('<option value="-1">&nbsp;</option>'), $others);
-    $options = array_merge($arrayresult, array('<option value="0">&nbsp;</option>'), $others);
+    //$options = array_merge($arrayresult, array('<option value="0">&nbsp;</option>'), $others);
+    $options = array_merge($arrayresult, $others);
 
     $return['value']	= implode('', $options);
     $return['num']		= $form->result['nbofthirdparties'];
