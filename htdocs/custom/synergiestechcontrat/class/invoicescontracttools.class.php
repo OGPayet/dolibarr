@@ -828,8 +828,24 @@ class InvoicesContractTools
             $i = 0;
             foreach ($contract->lines as $line) {
                 $label = (!empty($line->label) ? $line->label : '');
-                $desc = (!empty($line->desc) ? $line->desc : $line->libelle);
-                $desc = dol_concatdesc($desc, dol_print_date($billing_period_begin, 'day') . ' => ' . dol_print_date($billing_period_end, 'day'));
+
+				if(!empty($line->label))
+				{
+					$label =$line->label;
+				}
+				elseif (!empty($line->libelle))
+				{
+					$label = $line->libelle;
+				}
+
+                $desc = (!empty($line->desc) ? $line->desc : '');
+
+			$extrafields = new ExtraFields($this->db);
+			$extralabels=$extrafields->fetch_name_optionals_label($contract->table_element);
+			$contract->fetch($rowid);
+			$contract->fetch_optionals($rowid,$extralabels);
+
+                $desc = dol_concatdesc($desc, 'Formule contrat de maintenance : ' . $extrafields->showOutputField('formule',$contract->array_options['options_formule']));
 
                 // Positive line
                 $product_type = ($line->product_type ? $line->product_type : 0);
