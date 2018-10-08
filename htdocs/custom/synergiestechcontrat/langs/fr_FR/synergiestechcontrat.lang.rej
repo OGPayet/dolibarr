@@ -1,9 +1,12 @@
 diff a/htdocs/custom/synergiestechcontrat/langs/fr_FR/synergiestechcontrat.lang b/htdocs/custom/synergiestechcontrat/langs/fr_FR/synergiestechcontrat.lang	(rejected hunks)
-@@ -93,6 +93,7 @@ STCInvoicesDraft                                = Factures brouillons
- STCTotalInvoicesHT                              = Total factures HT
- STCTotalInvoicesVAT                             = Total factures TVA
- STCTotalInvoicesTTC                             = Total factures TTC
-+STCServiceStatusNotClosed                       = Non fermé
- STCBillingContracts                             = Facturation des contrats
- STCGenerateInvoicesContracts                    = Génération des factures
- STCValidateInvoicesContracts                    = Validation des factures
+@@ -101,8 +101,8 @@ STCListOfContractsToBill                        = Liste des contrats à facturer
+ STCGenerateInvoicesContractBeginWatchingDate    = Où se placer dans le temps pour facturer (Il sera facturé la période strictement suivante pour les facturations à échoir, strictement précédente pour échu) ?
+ STCGenerateInvoicesContractEndWatchingDate      = Se déplacer dans le temps jusqu'à cette date, et facturer toutes les périodes possibles qui s'y trouve :
+ STCGenerateInvoicesContractUseCustomerDiscounts = Utiliser les réductions et avoirs disponibles du client
+-STCGenerateInvoicesContractTestMode             = <b>Mode Test</b> (seul le rapport CSV sera généré, aucune écriture dans la base)
+-STCGenerateInvoicesContractDisableRevaluation   = Désactiver la revalorisation en <b>Mode Test</b>
++STCGenerateInvoicesContractTestMode             = <b>Mode Simulation</b> (seul le rapport CSV sera généré, aucune écriture dans la base)
++STCGenerateInvoicesContractDisableRevaluation   = Désactiver la revalorisation en <b>Mode Simulation</b>
+ STCGenerateInvoicesContract                     = Facturation des contrats
+ STCConfirmGenerateInvoicesContract              = Êtes-vous sûr de vouloir lancer la facturation de ces contrats ?
+ STCInvoicesContractValidated                    = %s facture(s) ont été validée(s)
