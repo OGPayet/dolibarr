@@ -308,6 +308,9 @@ class CompanyRelationshipsApi extends DolibarrApi {
             throw new RestException(401, "Insufficient rights");
         }
 
+        // get API user
+        $userSocId = DolibarrApiAccess::$user->societe_id;
+
         // If the internal user must only see his customers, force searching by him
         $search_sale = 0;
         if (! DolibarrApiAccess::$user->rights->societe->client->voir) $search_sale = DolibarrApiAccess::$user->id;
@@ -315,25 +318,38 @@ class CompanyRelationshipsApi extends DolibarrApi {
         $sql = "SELECT t.rowid";
         $sql.= " FROM ".MAIN_DB_PREFIX."propal as t";
 
-        if ((!DolibarrApiAccess::$user->rights->societe->client->voir) || $search_sale > 0) $sql.= ", ".MAIN_DB_PREFIX."societe_commerciaux as sc"; // We need this table joined to the select in order to filter by sale
+        // external
+        if ($userSocId > 0) {
+            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "propal_extrafields as ef ON ef.fk_object = t.rowid";
 
-        $sql.= ' WHERE (t.entity IN ('.getEntity('propal').')';
-        if ((!DolibarrApiAccess::$user->rights->societe->client->voir) || $search_sale > 0) $sql.= " AND t.fk_soc = sc.fk_soc";
-        if ($search_sale > 0) $sql.= " AND t.fk_soc = sc.fk_soc";		// Join for the needed table to filter by sale
-        // Insert sale filter
-        if ($search_sale > 0)
-        {
-            $sql .= " AND sc.fk_user = ".$search_sale;
-        }
-        $sql.= ")";
+            $sqlPrincipal  = "(t.fk_soc = " . $userSocId . " AND ef.companyrelationships_availability_principal = 1)";
+            $sqlBenefactor = "(ef.companyrelationships_fk_soc_benefactor = " . $userSocId . " AND ef.companyrelationships_availability_benefactor = 1)";
 
-        // case of external user, $thirdparty_ids param is ignored and replaced by user's socid
-        $socids = DolibarrApiAccess::$user->societe_id ? DolibarrApiAccess::$user->societe_id : $thirdparty_ids;
-        if ($socids) {
-            $sql.= ' OR (t.entity IN ('.getEntity('societe').')';
-            $sql.= " AND t.fk_soc IN (".$socids."))";
+            $sql .= " WHERE t.entity IN (" . getEntity('propal') . ")";
+            $sql .= " AND  (". $sqlPrincipal . " OR " . $sqlBenefactor . ")";
         }
-        $sql.= " GROUP BY rowid";
+        // internal
+        else {
+            if ((!DolibarrApiAccess::$user->rights->societe->client->voir) || $search_sale > 0) $sql.= ", ".MAIN_DB_PREFIX."societe_commerciaux as sc"; // We need this table joined to the select in order to filter by sale
+
+            $sql.= ' WHERE (t.entity IN ('.getEntity('propal').')';
+            if ((!DolibarrApiAccess::$user->rights->societe->client->voir) || $search_sale > 0) $sql.= " AND t.fk_soc = sc.fk_soc";
+            if ($search_sale > 0) $sql.= " AND t.fk_soc = sc.fk_soc";		// Join for the needed table to filter by sale
+            // Insert sale filter
+            if ($search_sale > 0)
+            {
+                $sql .= " AND sc.fk_user = ".$search_sale;
+            }
+            $sql.= ")";
+
+            // case of external user, $thirdparty_ids param is ignored and replaced by user's socid
+            $socids = DolibarrApiAccess::$user->societe_id ? DolibarrApiAccess::$user->societe_id : $thirdparty_ids;
+            if ($socids) {
+                $sql.= ' OR (t.entity IN ('.getEntity('societe').')';
+                $sql.= " AND t.fk_soc IN (".$socids."))";
+            }
+            $sql.= " GROUP BY rowid";
+        }
 
         // Add sql filters
         if ($sqlfilters)
@@ -370,10 +386,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
                 $obj = $db->fetch_object($result);
                 $proposal_static = new Propal($db);
                 if($proposal_static->fetch($obj->rowid)) {
-                    $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($proposal_static);
-                    if ($hasPerm) {
-                        $obj_ret[] = $this->_cleanProposalObjectDatas($proposal_static);
-                    }
+                    $obj_ret[] = $this->_cleanProposalObjectDatas($proposal_static);
                 }
                 $i++;
             }
@@ -1064,6 +1077,9 @@ class CompanyRelationshipsApi extends DolibarrApi {
             throw new RestException(401, "Insufficient rights");
         }
 
+        // get API user
+        $userSocId = DolibarrApiAccess::$user->societe_id;
+
         // If the internal user must only see his customers, force searching by him
         $search_sale = 0;
         if (! DolibarrApiAccess::$user->rights->societe->client->voir) $search_sale = DolibarrApiAccess::$user->id;
@@ -1071,25 +1087,38 @@ class CompanyRelationshipsApi extends DolibarrApi {
         $sql = "SELECT t.rowid";
         $sql.= " FROM ".MAIN_DB_PREFIX."commande as t";
 
-        if ((!DolibarrApiAccess::$user->rights->societe->client->voir) || $search_sale > 0) $sql.= ", ".MAIN_DB_PREFIX."societe_commerciaux as sc"; // We need this table joined to the select in order to filter by sale
+        // external
+        if ($userSocId > 0) {
+            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "commande_extrafields as ef ON ef.fk_object = t.rowid";
 
-        $sql.= ' WHERE (t.entity IN ('.getEntity('commande').')';
-        if ((!DolibarrApiAccess::$user->rights->societe->client->voir) || $search_sale > 0) $sql.= " AND t.fk_soc = sc.fk_soc";
-        if ($search_sale > 0) $sql.= " AND t.fk_soc = sc.fk_soc";		// Join for the needed table to filter by sale
-        // Insert sale filter
-        if ($search_sale > 0)
-        {
-            $sql .= " AND sc.fk_user = ".$search_sale;
-        }
-        $sql.= ")";
+            $sqlPrincipal  = "(t.fk_soc = " . $userSocId . " AND ef.companyrelationships_availability_principal = 1)";
+            $sqlBenefactor = "(ef.companyrelationships_fk_soc_benefactor = " . $userSocId . " AND ef.companyrelationships_availability_benefactor = 1)";
 
-        // case of external user, $thirdparty_ids param is ignored and replaced by user's socid
-        $socids = DolibarrApiAccess::$user->societe_id ? DolibarrApiAccess::$user->societe_id : $thirdparty_ids;
-        if ($socids) {
-            $sql.= ' OR (t.entity IN ('.getEntity('commande').')';
-            $sql.= " AND t.fk_soc IN (".$socids."))";
+            $sql .= " WHERE t.entity IN (" . getEntity('commande') . ")";
+            $sql .= " AND  (". $sqlPrincipal . " OR " . $sqlBenefactor . ")";
         }
-        $sql.= " GROUP BY rowid";
+        // internal
+        else {
+            if ((!DolibarrApiAccess::$user->rights->societe->client->voir) || $search_sale > 0) $sql.= ", ".MAIN_DB_PREFIX."societe_commerciaux as sc"; // We need this table joined to the select in order to filter by sale
+
+            $sql.= ' WHERE (t.entity IN ('.getEntity('commande').')';
+            if ((!DolibarrApiAccess::$user->rights->societe->client->voir) || $search_sale > 0) $sql.= " AND t.fk_soc = sc.fk_soc";
+            if ($search_sale > 0) $sql.= " AND t.fk_soc = sc.fk_soc";		// Join for the needed table to filter by sale
+            // Insert sale filter
+            if ($search_sale > 0)
+            {
+                $sql .= " AND sc.fk_user = ".$search_sale;
+            }
+            $sql.= ")";
+
+            // case of external user, $thirdparty_ids param is ignored and replaced by user's socid
+            $socids = DolibarrApiAccess::$user->societe_id ? DolibarrApiAccess::$user->societe_id : $thirdparty_ids;
+            if ($socids) {
+                $sql.= ' OR (t.entity IN ('.getEntity('commande').')';
+                $sql.= " AND t.fk_soc IN (".$socids."))";
+            }
+            $sql.= " GROUP BY rowid";
+        }
 
         // Add sql filters
         if ($sqlfilters)
@@ -1126,10 +1155,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
                 $obj = $db->fetch_object($result);
                 $commande_static = new Commande($db);
                 if($commande_static->fetch($obj->rowid)) {
-                    $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($commande_static);
-                    if ($hasPerm) {
-                        $obj_ret[] = $this->_cleanOrderObjectDatas($commande_static);
-                    }
+                    $obj_ret[] = $this->_cleanOrderObjectDatas($commande_static);
                 }
                 $i++;
             }
@@ -1894,6 +1920,9 @@ class CompanyRelationshipsApi extends DolibarrApi {
             throw new RestException(401, "Insufficient rights");
         }
 
+        // get API user
+        $userSocId = DolibarrApiAccess::$user->societe_id;
+
         // case of external user, $thirdparty_ids param is ignored and replaced by user's socid
         $socids = DolibarrApiAccess::$user->societe_id ? DolibarrApiAccess::$user->societe_id : $thirdparty_ids;
 
@@ -1904,46 +1933,56 @@ class CompanyRelationshipsApi extends DolibarrApi {
         $sql = "SELECT t.rowid";
         $sql.= " FROM ".MAIN_DB_PREFIX."facture as t";
 
-        if ((!DolibarrApiAccess::$user->rights->societe->client->voir) || $search_sale > 0) $sql.= ", ".MAIN_DB_PREFIX."societe_commerciaux as sc"; // We need this table joined to the select in order to filter by sale
+        // external
+        if ($userSocId > 0) {
+            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "facture_extrafields as ef ON ef.fk_object = t.rowid";
 
-        $sql.= ' WHERE (t.entity IN ('.getEntity('facture').')';
-        if ((!DolibarrApiAccess::$user->rights->societe->client->voir) || $search_sale > 0) $sql.= " AND t.fk_soc = sc.fk_soc";
-        if ($search_sale > 0) $sql.= " AND t.fk_soc = sc.fk_soc";		// Join for the needed table to filter by sale
+            $sqlPrincipal  = "(t.fk_soc = " . $userSocId . " AND ef.companyrelationships_availability_principal = 1)";
+            $sqlBenefactor = "(ef.companyrelationships_fk_soc_benefactor = " . $userSocId . " AND ef.companyrelationships_availability_benefactor = 1)";
 
-        // Filter by status
-        if ($status == 'draft')     $sql.= " AND t.fk_statut IN (0)";
-        if ($status == 'unpaid')    $sql.= " AND t.fk_statut IN (1)";
-        if ($status == 'paid')      $sql.= " AND t.fk_statut IN (2)";
-        if ($status == 'cancelled') $sql.= " AND t.fk_statut IN (3)";
-        // Insert sale filter
-        if ($search_sale > 0)
-        {
-            $sql .= " AND sc.fk_user = ".$search_sale;
+            $sql .= " WHERE t.entity IN (" . getEntity('facture') . ")";
+            $sql .= " AND  (". $sqlPrincipal . " OR " . $sqlBenefactor . ")";
         }
-        $sql.= ")";
+        // internal
+        else {
+            if ((!DolibarrApiAccess::$user->rights->societe->client->voir) || $search_sale > 0) $sql .= ", " . MAIN_DB_PREFIX . "societe_commerciaux as sc"; // We need this table joined to the select in order to filter by sale
 
-        // case of external user, $thirdparty_ids param is ignored and replaced by user's socid
-        $socids = DolibarrApiAccess::$user->societe_id ? DolibarrApiAccess::$user->societe_id : $thirdparty_ids;
-        if ($socids) {
-            $sql.= ' OR (t.entity IN ('.getEntity('facture').')';
+            $sql .= ' WHERE (t.entity IN (' . getEntity('facture') . ')';
+            if ((!DolibarrApiAccess::$user->rights->societe->client->voir) || $search_sale > 0) $sql .= " AND t.fk_soc = sc.fk_soc";
+            if ($search_sale > 0) $sql .= " AND t.fk_soc = sc.fk_soc";        // Join for the needed table to filter by sale
+
             // Filter by status
-            if ($status == 'draft')     $sql.= " AND t.fk_statut IN (0)";
-            if ($status == 'unpaid')    $sql.= " AND t.fk_statut IN (1)";
-            if ($status == 'paid')      $sql.= " AND t.fk_statut IN (2)";
-            if ($status == 'cancelled') $sql.= " AND t.fk_statut IN (3)";
-            $sql.= " AND t.fk_soc IN (".$socids."))";
+            if ($status == 'draft') $sql .= " AND t.fk_statut IN (0)";
+            if ($status == 'unpaid') $sql .= " AND t.fk_statut IN (1)";
+            if ($status == 'paid') $sql .= " AND t.fk_statut IN (2)";
+            if ($status == 'cancelled') $sql .= " AND t.fk_statut IN (3)";
+            // Insert sale filter
+            if ($search_sale > 0) {
+                $sql .= " AND sc.fk_user = " . $search_sale;
+            }
+            $sql .= ")";
+
+            // case of external user, $thirdparty_ids param is ignored and replaced by user's socid
+            $socids = DolibarrApiAccess::$user->societe_id ? DolibarrApiAccess::$user->societe_id : $thirdparty_ids;
+            if ($socids) {
+                $sql .= ' OR (t.entity IN (' . getEntity('facture') . ')';
+                // Filter by status
+                if ($status == 'draft') $sql .= " AND t.fk_statut IN (0)";
+                if ($status == 'unpaid') $sql .= " AND t.fk_statut IN (1)";
+                if ($status == 'paid') $sql .= " AND t.fk_statut IN (2)";
+                if ($status == 'cancelled') $sql .= " AND t.fk_statut IN (3)";
+                $sql .= " AND t.fk_soc IN (" . $socids . "))";
+            }
+            $sql .= " GROUP BY rowid";
         }
-        $sql.= " GROUP BY rowid";
 
         // Add sql filters
-        if ($sqlfilters)
-        {
-            if (! DolibarrApi::_checkFilters($sqlfilters))
-            {
-                throw new RestException(503, 'Error when validating parameter sqlfilters '.$sqlfilters);
+        if ($sqlfilters) {
+            if (!DolibarrApi::_checkFilters($sqlfilters)) {
+                throw new RestException(503, 'Error when validating parameter sqlfilters ' . $sqlfilters);
             }
-            $regexstring='\(([^:\'\(\)]+:[^:\'\(\)]+:[^:\(\)]+)\)';
-            $sql.=" AND (".preg_replace_callback('/'.$regexstring.'/', 'DolibarrApi::_forge_criteria_callback', $sqlfilters).")";
+            $regexstring = '\(([^:\'\(\)]+:[^:\'\(\)]+:[^:\(\)]+)\)';
+            $sql .= " AND (" . preg_replace_callback('/' . $regexstring . '/', 'DolibarrApi::_forge_criteria_callback', $sqlfilters) . ")";
         }
 
         $sql.= $db->order($sortfield, $sortorder);
@@ -1968,10 +2007,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
                 $obj = $db->fetch_object($result);
                 $invoice_static = new Facture($db);
                 if($invoice_static->fetch($obj->rowid)) {
-                    $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($invoice_static);
-                    if ($hasPerm) {
-                        $obj_ret[] = $this->_cleanInvoiceObjectDatas($invoice_static);
-                    }
+                    $obj_ret[] = $this->_cleanInvoiceObjectDatas($invoice_static);
                 }
                 $i++;
             }
@@ -2472,6 +2508,9 @@ class CompanyRelationshipsApi extends DolibarrApi {
             throw new RestException(401, "Insufficient rights");
         }
 
+        // get API user
+        $userSocId = DolibarrApiAccess::$user->societe_id;
+
         // If the internal user must only see his customers, force searching by him
         $search_sale = 0;
         if (! DolibarrApiAccess::$user->rights->societe->client->voir) $search_sale = DolibarrApiAccess::$user->id;
@@ -2479,35 +2518,45 @@ class CompanyRelationshipsApi extends DolibarrApi {
         $sql = "SELECT t.rowid";
         $sql.= " FROM ".MAIN_DB_PREFIX."fichinter as t";
 
-        if ((!DolibarrApiAccess::$user->rights->societe->client->voir) || $search_sale > 0) $sql.= ", ".MAIN_DB_PREFIX."societe_commerciaux as sc"; // We need this table joined to the select in order to filter by sale
+        // external
+        if ($userSocId > 0) {
+            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "fichinter_extrafields as ef ON ef.fk_object = t.rowid";
 
-        $sql.= ' WHERE (t.entity IN ('.getEntity('intervention').')';
-        if ((!DolibarrApiAccess::$user->rights->societe->client->voir) || $search_sale > 0) $sql.= " AND t.fk_soc = sc.fk_soc";
-        if ($search_sale > 0) $sql.= " AND t.fk_soc = sc.fk_soc";		// Join for the needed table to filter by sale
-        // Insert sale filter
-        if ($search_sale > 0)
-        {
-            $sql .= " AND sc.fk_user = ".$search_sale;
-        }
-        $sql.= ")";
+            $sqlPrincipal  = "(t.fk_soc = " . $userSocId . " AND ef.companyrelationships_availability_principal = 1)";
+            $sqlBenefactor = "(ef.companyrelationships_fk_soc_benefactor = " . $userSocId . " AND ef.companyrelationships_availability_benefactor = 1)";
 
-        // case of external user, $thirdparty_ids param is ignored and replaced by user's socid
-        $socids = DolibarrApiAccess::$user->societe_id ? DolibarrApiAccess::$user->societe_id : $thirdparty_ids;
-        if ($socids) {
-            $sql.= ' OR (t.entity IN ('.getEntity('intervention').')';
-            $sql.= " AND t.fk_soc IN (".$socids."))";
+            $sql .= " WHERE t.entity IN (" . getEntity('fichinter') . ")";
+            $sql .= " AND  (". $sqlPrincipal . " OR " . $sqlBenefactor . ")";
         }
-        $sql.= " GROUP BY rowid";
+        // internal
+        else {
+            if ((!DolibarrApiAccess::$user->rights->societe->client->voir) || $search_sale > 0) $sql .= ", " . MAIN_DB_PREFIX . "societe_commerciaux as sc"; // We need this table joined to the select in order to filter by sale
+
+            $sql .= ' WHERE (t.entity IN (' . getEntity('intervention') . ')';
+            if ((!DolibarrApiAccess::$user->rights->societe->client->voir) || $search_sale > 0) $sql .= " AND t.fk_soc = sc.fk_soc";
+            if ($search_sale > 0) $sql .= " AND t.fk_soc = sc.fk_soc";        // Join for the needed table to filter by sale
+            // Insert sale filter
+            if ($search_sale > 0) {
+                $sql .= " AND sc.fk_user = " . $search_sale;
+            }
+            $sql .= ")";
+
+            // case of external user, $thirdparty_ids param is ignored and replaced by user's socid
+            $socids = DolibarrApiAccess::$user->societe_id ? DolibarrApiAccess::$user->societe_id : $thirdparty_ids;
+            if ($socids) {
+                $sql .= ' OR (t.entity IN (' . getEntity('intervention') . ')';
+                $sql .= " AND t.fk_soc IN (" . $socids . "))";
+            }
+            $sql .= " GROUP BY rowid";
+        }
 
         // Add sql filters
-        if ($sqlfilters)
-        {
-            if (! DolibarrApi::_checkFilters($sqlfilters))
-            {
-                throw new RestException(503, 'Error when validating parameter sqlfilters '.$sqlfilters);
+        if ($sqlfilters) {
+            if (!DolibarrApi::_checkFilters($sqlfilters)) {
+                throw new RestException(503, 'Error when validating parameter sqlfilters ' . $sqlfilters);
             }
-            $regexstring='\(([^:\'\(\)]+:[^:\'\(\)]+:[^:\(\)]+)\)';
-            $sql.=" AND (".preg_replace_callback('/'.$regexstring.'/', 'DolibarrApi::_forge_criteria_callback', $sqlfilters).")";
+            $regexstring = '\(([^:\'\(\)]+:[^:\'\(\)]+:[^:\(\)]+)\)';
+            $sql .= " AND (" . preg_replace_callback('/' . $regexstring . '/', 'DolibarrApi::_forge_criteria_callback', $sqlfilters) . ")";
         }
 
         $sql.= $db->order($sortfield, $sortorder);
@@ -2534,10 +2583,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
                 $obj = $db->fetch_object($result);
                 $fichinter_static = new Fichinter($db);
                 if($fichinter_static->fetch($obj->rowid)) {
-                    $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($fichinter_static);
-                    if ($hasPerm) {
-                        $obj_ret[] = $this->_cleanInterventionObjectDatas($fichinter_static);
-                    }
+                    $obj_ret[] = $this->_cleanInterventionObjectDatas($fichinter_static);
                 }
                 $i++;
             }
@@ -3071,6 +3117,9 @@ class CompanyRelationshipsApi extends DolibarrApi {
             throw new RestException(401, "Insufficient rights");
         }
 
+        // get API user
+        $userSocId = DolibarrApiAccess::$user->societe_id;
+
         // If the internal user must only see his customers, force searching by him
         $search_sale = 0;
         if (! DolibarrApiAccess::$user->rights->societe->client->voir) $search_sale = DolibarrApiAccess::$user->id;
@@ -3078,35 +3127,45 @@ class CompanyRelationshipsApi extends DolibarrApi {
         $sql = "SELECT t.rowid";
         $sql.= " FROM ".MAIN_DB_PREFIX."expedition as t";
 
-        if ((!DolibarrApiAccess::$user->rights->societe->client->voir) || $search_sale > 0) $sql.= ", ".MAIN_DB_PREFIX."societe_commerciaux as sc"; // We need this table joined to the select in order to filter by sale
+        // external
+        if ($userSocId > 0) {
+            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "expedition_extrafields as ef ON ef.fk_object = t.rowid";
 
-        $sql.= ' WHERE (t.entity IN ('.getEntity('expedition').')';
-        if ((!DolibarrApiAccess::$user->rights->societe->client->voir) || $search_sale > 0) $sql.= " AND t.fk_soc = sc.fk_soc";
-        if ($search_sale > 0) $sql.= " AND t.fk_soc = sc.fk_soc";		// Join for the needed table to filter by sale
-        // Insert sale filter
-        if ($search_sale > 0)
-        {
-            $sql .= " AND sc.fk_user = ".$search_sale;
-        }
-        $sql.= ")";
+            $sqlPrincipal  = "(t.fk_soc = " . $userSocId . " AND ef.companyrelationships_availability_principal = 1)";
+            $sqlBenefactor = "(ef.companyrelationships_fk_soc_benefactor = " . $userSocId . " AND ef.companyrelationships_availability_benefactor = 1)";
 
-        // case of external user, $thirdparty_ids param is ignored and replaced by user's socid
-        $socids = DolibarrApiAccess::$user->societe_id ? DolibarrApiAccess::$user->societe_id : $thirdparty_ids;
-        if ($socids) {
-            $sql.= ' OR (t.entity IN ('.getEntity('expedition').')';
-            $sql.= " AND t.fk_soc IN (".$socids."))";
+            $sql .= " WHERE t.entity IN (" . getEntity('expedition') . ")";
+            $sql .= " AND  (". $sqlPrincipal . " OR " . $sqlBenefactor . ")";
         }
-        $sql.= " GROUP BY rowid";
+        // internal
+        else {
+            if ((!DolibarrApiAccess::$user->rights->societe->client->voir) || $search_sale > 0) $sql .= ", " . MAIN_DB_PREFIX . "societe_commerciaux as sc"; // We need this table joined to the select in order to filter by sale
+
+            $sql .= ' WHERE (t.entity IN (' . getEntity('expedition') . ')';
+            if ((!DolibarrApiAccess::$user->rights->societe->client->voir) || $search_sale > 0) $sql .= " AND t.fk_soc = sc.fk_soc";
+            if ($search_sale > 0) $sql .= " AND t.fk_soc = sc.fk_soc";        // Join for the needed table to filter by sale
+            // Insert sale filter
+            if ($search_sale > 0) {
+                $sql .= " AND sc.fk_user = " . $search_sale;
+            }
+            $sql .= ")";
+
+            // case of external user, $thirdparty_ids param is ignored and replaced by user's socid
+            $socids = DolibarrApiAccess::$user->societe_id ? DolibarrApiAccess::$user->societe_id : $thirdparty_ids;
+            if ($socids) {
+                $sql .= ' OR (t.entity IN (' . getEntity('expedition') . ')';
+                $sql .= " AND t.fk_soc IN (" . $socids . "))";
+            }
+            $sql .= " GROUP BY rowid";
+        }
 
         // Add sql filters
-        if ($sqlfilters)
-        {
-            if (! DolibarrApi::_checkFilters($sqlfilters))
-            {
-                throw new RestException(503, 'Error when validating parameter sqlfilters '.$sqlfilters);
+        if ($sqlfilters) {
+            if (!DolibarrApi::_checkFilters($sqlfilters)) {
+                throw new RestException(503, 'Error when validating parameter sqlfilters ' . $sqlfilters);
             }
-            $regexstring='\(([^:\'\(\)]+:[^:\'\(\)]+:[^:\(\)]+)\)';
-            $sql.=" AND (".preg_replace_callback('/'.$regexstring.'/', 'DolibarrApi::_forge_criteria_callback', $sqlfilters).")";
+            $regexstring = '\(([^:\'\(\)]+:[^:\'\(\)]+:[^:\(\)]+)\)';
+            $sql .= " AND (" . preg_replace_callback('/' . $regexstring . '/', 'DolibarrApi::_forge_criteria_callback', $sqlfilters) . ")";
         }
 
         $sql.= $db->order($sortfield, $sortorder);
@@ -3133,10 +3192,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
                 $obj = $db->fetch_object($result);
                 $shipment_static = new Expedition($db);
                 if($shipment_static->fetch($obj->rowid)) {
-                    $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($shipment_static);
-                    if ($hasPerm) {
-                        $obj_ret[] = $this->_cleanShipmentObjectDatas($shipment_static);
-                    }
+                    $obj_ret[] = $this->_cleanShipmentObjectDatas($shipment_static);
                 }
                 $i++;
             }
@@ -3511,6 +3567,9 @@ class CompanyRelationshipsApi extends DolibarrApi {
             throw new RestException(401, "Insufficient rights");
         }
 
+        // get API user
+        $userSocId = DolibarrApiAccess::$user->societe_id;
+
         // If the internal user must only see his customers, force searching by him
         $search_sale = 0;
         if (! DolibarrApiAccess::$user->rights->societe->client->voir) $search_sale = DolibarrApiAccess::$user->id;
@@ -3518,26 +3577,39 @@ class CompanyRelationshipsApi extends DolibarrApi {
         $sql = "SELECT t.rowid";
         $sql.= " FROM ".MAIN_DB_PREFIX."contrat as t";
 
-        if ((!DolibarrApiAccess::$user->rights->societe->client->voir) || $search_sale > 0) $sql.= ", ".MAIN_DB_PREFIX."societe_commerciaux as sc"; // We need this table joined to the select in order to filter by sale
+        // external
+        if ($userSocId > 0) {
+            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "contrat_extrafields as ef ON ef.fk_object = t.rowid";
 
-        $sql.= ' WHERE (t.entity IN ('.getEntity('contrat').')';
-        if ((!DolibarrApiAccess::$user->rights->societe->client->voir) || $search_sale > 0) $sql.= " AND t.fk_soc = sc.fk_soc";
-        if ($search_sale > 0) $sql.= " AND t.fk_soc = sc.fk_soc";		// Join for the needed table to filter by sale
-        // Insert sale filter
-        if ($search_sale > 0)
-        {
-            $sql .= " AND sc.fk_user = ".$search_sale;
+            $sqlPrincipal  = "(t.fk_soc = " . $userSocId . " AND ef.companyrelationships_availability_principal = 1)";
+            $sqlBenefactor = "(ef.companyrelationships_fk_soc_benefactor = " . $userSocId . " AND ef.companyrelationships_availability_benefactor = 1)";
+
+            $sql .= " WHERE t.entity IN (" . getEntity('contrat') . ")";
+            $sql .= " AND  (". $sqlPrincipal . " OR " . $sqlBenefactor . ")";
         }
-        $sql.= ")";
+        // internal
+        else {
+            if ((!DolibarrApiAccess::$user->rights->societe->client->voir) || $search_sale > 0) $sql.= ", ".MAIN_DB_PREFIX."societe_commerciaux as sc"; // We need this table joined to the select in order to filter by sale
+
+            $sql.= ' WHERE (t.entity IN ('.getEntity('contrat').')';
+            if ((!DolibarrApiAccess::$user->rights->societe->client->voir) || $search_sale > 0) $sql.= " AND t.fk_soc = sc.fk_soc";
+            if ($search_sale > 0) $sql.= " AND t.fk_soc = sc.fk_soc";		// Join for the needed table to filter by sale
+            // Insert sale filter
+            if ($search_sale > 0)
+            {
+                $sql .= " AND sc.fk_user = ".$search_sale;
+            }
+            $sql.= ")";
 
 
-        // case of external user, $thirdparty_ids param is ignored and replaced by user's socid
-        $socids = DolibarrApiAccess::$user->societe_id ? DolibarrApiAccess::$user->societe_id : $thirdparty_ids;
-        if ($socids) {
-            $sql.= ' OR (t.entity IN ('.getEntity('contrat').')';
-            $sql.= " AND t.fk_soc IN (".$socids."))";
+            // case of external user, $thirdparty_ids param is ignored and replaced by user's socid
+            $socids = DolibarrApiAccess::$user->societe_id ? DolibarrApiAccess::$user->societe_id : $thirdparty_ids;
+            if ($socids) {
+                $sql.= ' OR (t.entity IN ('.getEntity('contrat').')';
+                $sql.= " AND t.fk_soc IN (".$socids."))";
+            }
+            $sql.= " GROUP BY rowid";
         }
-        $sql.= " GROUP BY rowid";
 
         // Add sql filters
         if ($sqlfilters)
@@ -3574,10 +3646,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
                 $obj = $db->fetch_object($result);
                 $contrat_static = new Contrat($db);
                 if($contrat_static->fetch($obj->rowid)) {
-                    $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($contrat_static);
-                    if ($hasPerm) {
-                        $obj_ret[] = $this->_cleanContractObjectDatas($contrat_static);
-                    }
+                    $obj_ret[] = $this->_cleanContractObjectDatas($contrat_static);
                 }
                 $i++;
             }
