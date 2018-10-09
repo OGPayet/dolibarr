@@ -191,13 +191,14 @@ class CompanyRelationshipsApi extends DolibarrApi {
             $sql .= " FROM " . MAIN_DB_PREFIX . $object->table_element . " as t";
             $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . $object->table_element . "_extrafields as ef ON ef.fk_object = t.rowid";
 
-            if ($search_sale > 0) $sql .=  " LEFT JOIN " . MAIN_DB_PREFIX . "societe_commerciaux as sc ON sc.fk_soc = t.fk_soc AND sc.fk_user = " . $search_sale; // We need this table joined to the select in order to filter by sale
+            if ($search_sale > 0) $sql .=  " LEFT JOIN " . MAIN_DB_PREFIX . "societe_commerciaux as scp ON scp.fk_soc = t.fk_soc AND scp.fk_user = " . $search_sale; // We need this table joined to the select in order to filter by sale
+            if ($search_sale > 0) $sql .=  " LEFT JOIN " . MAIN_DB_PREFIX . "societe_commerciaux as scb ON scb.fk_soc = ef.companyrelationships_fk_soc_benefactor AND scb.fk_user = " . $search_sale; // We need this table joined to the select in order to filter by sale
 
             // search principal company
             $sqlPrincipal  = "(";
             $sqlPrincipal .= "(t.fk_soc = " . $userSocId;
             if ($search_sale > 0) {
-                $sqlPrincipal .= " OR sc.fk_user = " . $search_sale;
+                $sqlPrincipal .= " OR scp.fk_user = " . $search_sale;
             }
             $sqlPrincipal .= ")";
             $sqlPrincipal .= " AND ef.companyrelationships_availability_principal = 1";
@@ -207,7 +208,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
             $sqlBenefactor  = "(";
             $sqlBenefactor .= "(ef.companyrelationships_fk_soc_benefactor = " . $userSocId;
             if ($search_sale > 0) {
-                $sqlBenefactor .= " OR sc.fk_user = " . $search_sale;
+                $sqlBenefactor .= " OR scb.fk_user = " . $search_sale;
             }
             $sqlBenefactor .= ")";
             $sqlBenefactor .= " AND ef.companyrelationships_availability_benefactor = 1";
@@ -353,13 +354,14 @@ class CompanyRelationshipsApi extends DolibarrApi {
         if ($userSocId > 0) {
             $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "propal_extrafields as ef ON ef.fk_object = t.rowid";
 
-            if ($search_sale > 0) $sql .=  " LEFT JOIN " . MAIN_DB_PREFIX . "societe_commerciaux as sc ON sc.fk_soc = t.fk_soc AND sc.fk_user = " . $search_sale; // We need this table joined to the select in order to filter by sale
+            if ($search_sale > 0) $sql .=  " LEFT JOIN " . MAIN_DB_PREFIX . "societe_commerciaux as scp ON scp.fk_soc = t.fk_soc AND scp.fk_user = " . $search_sale; // We need this table joined to the select in order to filter by sale
+            if ($search_sale > 0) $sql .=  " LEFT JOIN " . MAIN_DB_PREFIX . "societe_commerciaux as scb ON scb.fk_soc = ef.companyrelationships_fk_soc_benefactor AND scb.fk_user = " . $search_sale; // We need this table joined to the select in order to filter by sale
 
             // search principal company
             $sqlPrincipal  = "(";
             $sqlPrincipal .= "(t.fk_soc = " . $userSocId;
             if ($search_sale > 0) {
-                $sqlPrincipal .= " OR sc.fk_user = " . $search_sale;
+                $sqlPrincipal .= " OR scp.fk_user = " . $search_sale;
             }
             $sqlPrincipal .= ")";
             $sqlPrincipal .= " AND ef.companyrelationships_availability_principal = 1";
@@ -369,7 +371,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
             $sqlBenefactor  = "(";
             $sqlBenefactor .= "(ef.companyrelationships_fk_soc_benefactor = " . $userSocId;
             if ($search_sale > 0) {
-                $sqlBenefactor .= " OR sc.fk_user = " . $search_sale;
+                $sqlBenefactor .= " OR scb.fk_user = " . $search_sale;
             }
             $sqlBenefactor .= ")";
             $sqlBenefactor .= " AND ef.companyrelationships_availability_benefactor = 1";
@@ -1141,13 +1143,14 @@ class CompanyRelationshipsApi extends DolibarrApi {
         if ($userSocId > 0) {
             $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "commande_extrafields as ef ON ef.fk_object = t.rowid";
 
-            if ($search_sale > 0) $sql .=  " LEFT JOIN " . MAIN_DB_PREFIX . "societe_commerciaux as sc ON sc.fk_soc = t.fk_soc AND sc.fk_user = " . $search_sale; // We need this table joined to the select in order to filter by sale
+            if ($search_sale > 0) $sql .=  " LEFT JOIN " . MAIN_DB_PREFIX . "societe_commerciaux as scp ON scp.fk_soc = t.fk_soc AND scp.fk_user = " . $search_sale; // We need this table joined to the select in order to filter by sale
+            if ($search_sale > 0) $sql .=  " LEFT JOIN " . MAIN_DB_PREFIX . "societe_commerciaux as scb ON scb.fk_soc = ef.companyrelationships_fk_soc_benefactor AND scb.fk_user = " . $search_sale; // We need this table joined to the select in order to filter by sale
 
             // search principal company
             $sqlPrincipal  = "(";
             $sqlPrincipal .= "(t.fk_soc = " . $userSocId;
             if ($search_sale > 0) {
-                $sqlPrincipal .= " OR sc.fk_user = " . $search_sale;
+                $sqlPrincipal .= " OR scp.fk_user = " . $search_sale;
             }
             $sqlPrincipal .= ")";
             $sqlPrincipal .= " AND ef.companyrelationships_availability_principal = 1";
@@ -1157,7 +1160,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
             $sqlBenefactor  = "(";
             $sqlBenefactor .= "(ef.companyrelationships_fk_soc_benefactor = " . $userSocId;
             if ($search_sale > 0) {
-                $sqlBenefactor .= " OR sc.fk_user = " . $search_sale;
+                $sqlBenefactor .= " OR scb.fk_user = " . $search_sale;
             }
             $sqlBenefactor .= ")";
             $sqlBenefactor .= " AND ef.companyrelationships_availability_benefactor = 1";
@@ -2006,13 +2009,14 @@ class CompanyRelationshipsApi extends DolibarrApi {
         if ($userSocId > 0) {
             $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "facture_extrafields as ef ON ef.fk_object = t.rowid";
 
-            if ($search_sale > 0) $sql .=  " LEFT JOIN " . MAIN_DB_PREFIX . "societe_commerciaux as sc ON sc.fk_soc = t.fk_soc AND sc.fk_user = " . $search_sale; // We need this table joined to the select in order to filter by sale
+            if ($search_sale > 0) $sql .=  " LEFT JOIN " . MAIN_DB_PREFIX . "societe_commerciaux as scp ON scp.fk_soc = t.fk_soc AND scp.fk_user = " . $search_sale; // We need this table joined to the select in order to filter by sale
+            if ($search_sale > 0) $sql .=  " LEFT JOIN " . MAIN_DB_PREFIX . "societe_commerciaux as scb ON scb.fk_soc = ef.companyrelationships_fk_soc_benefactor AND scb.fk_user = " . $search_sale; // We need this table joined to the select in order to filter by sale
 
             // search principal company
             $sqlPrincipal  = "(";
             $sqlPrincipal .= "(t.fk_soc = " . $userSocId;
             if ($search_sale > 0) {
-                $sqlPrincipal .= " OR sc.fk_user = " . $search_sale;
+                $sqlPrincipal .= " OR scp.fk_user = " . $search_sale;
             }
             $sqlPrincipal .= ")";
             $sqlPrincipal .= " AND ef.companyrelationships_availability_principal = 1";
@@ -2022,7 +2026,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
             $sqlBenefactor  = "(";
             $sqlBenefactor .= "(ef.companyrelationships_fk_soc_benefactor = " . $userSocId;
             if ($search_sale > 0) {
-                $sqlBenefactor .= " OR sc.fk_user = " . $search_sale;
+                $sqlBenefactor .= " OR scb.fk_user = " . $search_sale;
             }
             $sqlBenefactor .= ")";
             $sqlBenefactor .= " AND ef.companyrelationships_availability_benefactor = 1";
@@ -2610,13 +2614,14 @@ class CompanyRelationshipsApi extends DolibarrApi {
         if ($userSocId > 0) {
             $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "fichinter_extrafields as ef ON ef.fk_object = t.rowid";
 
-            if ($search_sale > 0) $sql .=  " LEFT JOIN " . MAIN_DB_PREFIX . "societe_commerciaux as sc ON sc.fk_soc = t.fk_soc AND sc.fk_user = " . $search_sale; // We need this table joined to the select in order to filter by sale
+            if ($search_sale > 0) $sql .=  " LEFT JOIN " . MAIN_DB_PREFIX . "societe_commerciaux as scp ON scp.fk_soc = t.fk_soc AND scp.fk_user = " . $search_sale; // We need this table joined to the select in order to filter by sale
+            if ($search_sale > 0) $sql .=  " LEFT JOIN " . MAIN_DB_PREFIX . "societe_commerciaux as scb ON scb.fk_soc = ef.companyrelationships_fk_soc_benefactor AND scb.fk_user = " . $search_sale; // We need this table joined to the select in order to filter by sale
 
             // search principal company
             $sqlPrincipal  = "(";
             $sqlPrincipal .= "(t.fk_soc = " . $userSocId;
             if ($search_sale > 0) {
-                $sqlPrincipal .= " OR sc.fk_user = " . $search_sale;
+                $sqlPrincipal .= " OR scp.fk_user = " . $search_sale;
             }
             $sqlPrincipal .= ")";
             $sqlPrincipal .= " AND ef.companyrelationships_availability_principal = 1";
@@ -2626,7 +2631,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
             $sqlBenefactor  = "(";
             $sqlBenefactor .= "(ef.companyrelationships_fk_soc_benefactor = " . $userSocId;
             if ($search_sale > 0) {
-                $sqlBenefactor .= " OR sc.fk_user = " . $search_sale;
+                $sqlBenefactor .= " OR scb.fk_user = " . $search_sale;
             }
             $sqlBenefactor .= ")";
             $sqlBenefactor .= " AND ef.companyrelationships_availability_benefactor = 1";
@@ -3238,13 +3243,14 @@ class CompanyRelationshipsApi extends DolibarrApi {
         if ($userSocId > 0) {
             $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "expedition_extrafields as ef ON ef.fk_object = t.rowid";
 
-            if ($search_sale > 0) $sql .=  " LEFT JOIN " . MAIN_DB_PREFIX . "societe_commerciaux as sc ON sc.fk_soc = t.fk_soc AND sc.fk_user = " . $search_sale; // We need this table joined to the select in order to filter by sale
+            if ($search_sale > 0) $sql .=  " LEFT JOIN " . MAIN_DB_PREFIX . "societe_commerciaux as scp ON scp.fk_soc = t.fk_soc AND scp.fk_user = " . $search_sale; // We need this table joined to the select in order to filter by sale
+            if ($search_sale > 0) $sql .=  " LEFT JOIN " . MAIN_DB_PREFIX . "societe_commerciaux as scb ON scb.fk_soc = ef.companyrelationships_fk_soc_benefactor AND scb.fk_user = " . $search_sale; // We need this table joined to the select in order to filter by sale
 
             // search principal company
             $sqlPrincipal  = "(";
             $sqlPrincipal .= "(t.fk_soc = " . $userSocId;
             if ($search_sale > 0) {
-                $sqlPrincipal .= " OR sc.fk_user = " . $search_sale;
+                $sqlPrincipal .= " OR scp.fk_user = " . $search_sale;
             }
             $sqlPrincipal .= ")";
             $sqlPrincipal .= " AND ef.companyrelationships_availability_principal = 1";
@@ -3254,7 +3260,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
             $sqlBenefactor  = "(";
             $sqlBenefactor .= "(ef.companyrelationships_fk_soc_benefactor = " . $userSocId;
             if ($search_sale > 0) {
-                $sqlBenefactor .= " OR sc.fk_user = " . $search_sale;
+                $sqlBenefactor .= " OR scb.fk_user = " . $search_sale;
             }
             $sqlBenefactor .= ")";
             $sqlBenefactor .= " AND ef.companyrelationships_availability_benefactor = 1";
@@ -3707,13 +3713,14 @@ class CompanyRelationshipsApi extends DolibarrApi {
         if ($userSocId > 0) {
             $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "contrat_extrafields as ef ON ef.fk_object = t.rowid";
 
-            if ($search_sale > 0) $sql .=  " LEFT JOIN " . MAIN_DB_PREFIX . "societe_commerciaux as sc ON sc.fk_soc = t.fk_soc AND sc.fk_user = " . $search_sale; // We need this table joined to the select in order to filter by sale
+            if ($search_sale > 0) $sql .=  " LEFT JOIN " . MAIN_DB_PREFIX . "societe_commerciaux as scp ON scp.fk_soc = t.fk_soc AND scp.fk_user = " . $search_sale; // We need this table joined to the select in order to filter by sale
+            if ($search_sale > 0) $sql .=  " LEFT JOIN " . MAIN_DB_PREFIX . "societe_commerciaux as scb ON scb.fk_soc = ef.companyrelationships_fk_soc_benefactor AND scb.fk_user = " . $search_sale; // We need this table joined to the select in order to filter by sale
 
             // search principal company
             $sqlPrincipal  = "(";
             $sqlPrincipal .= "(t.fk_soc = " . $userSocId;
             if ($search_sale > 0) {
-                $sqlPrincipal .= " OR sc.fk_user = " . $search_sale;
+                $sqlPrincipal .= " OR scp.fk_user = " . $search_sale;
             }
             $sqlPrincipal .= ")";
             $sqlPrincipal .= " AND ef.companyrelationships_availability_principal = 1";
@@ -3723,7 +3730,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
             $sqlBenefactor  = "(";
             $sqlBenefactor .= "(ef.companyrelationships_fk_soc_benefactor = " . $userSocId;
             if ($search_sale > 0) {
-                $sqlBenefactor .= " OR sc.fk_user = " . $search_sale;
+                $sqlBenefactor .= " OR scb.fk_user = " . $search_sale;
             }
             $sqlBenefactor .= ")";
             $sqlBenefactor .= " AND ef.companyrelationships_availability_benefactor = 1";
