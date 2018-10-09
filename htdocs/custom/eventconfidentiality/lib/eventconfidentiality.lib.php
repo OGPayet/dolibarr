@@ -109,7 +109,7 @@ function getDefaultTag($elementtype, $type_id, $fk_object)
  *    Load all tag for an object
  *
  */
-function fetchAllTagForObject($id)
+function fetchAllTagForObject($id, $externe = 0)
 {
 	global $langs, $db, $conf;
 
@@ -120,6 +120,7 @@ function fetchAllTagForObject($id)
 	$sql .= " ".MAIN_DB_PREFIX."c_eventconfidentiality_tag as t";
 	$sql .= " WHERE a.fk_object = ".$id;
 	$sql .= " AND a.fk_dict_tag_confid = t.rowid";
+	$sql .= " AND a.externe = ".$externe;
 
 	$resql = $db->query($sql);
 	if ($resql) {

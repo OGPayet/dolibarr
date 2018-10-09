@@ -73,48 +73,145 @@ class ActionsEventConfidentiality
      */
     function formObjectOptions($parameters, &$object, &$action, $hookmanager)
     {
-        global $db, $langs, $form;
+        global $db, $langs, $form, $user;
 
 		$element = $object->element;
-
-		if($element == 'action') {
+		if($element == 'action' && $user->rights->eventconfidentiality->manage) {
 			$langs->load("eventconfidentiality@eventconfidentiality");
 			dol_include_once('/advancedictionaries/class/dictionary.class.php');
 			dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
 			dol_include_once('/eventconfidentiality/lib/eventconfidentiality.lib.php');
 
 			if ($object->id > 0) {
-				$fk_tags = fetchAllTagForObject($object->id);
-				$fk_tags_id = array_column($fk_tags, 'id');
+				$fk_tags_interne = fetchAllTagForObject($object->id, 0);
+				$fk_tags_interne_id = array_column($fk_tags_interne, 'fk_dict_tag_confid');
+				$fk_tags_externe = fetchAllTagForObject($object->id, 1);
+				$fk_tags_externe_id = array_column($fk_tags_externe, 'fk_dict_tag_confid');
 				if($action == 'edit') {
-					//Tags
+					//Tags interne
 					$array_tags = array();
 					$dictionary = Dictionary::getDictionary($db, 'eventconfidentiality', 'eventconfidentialitytag', 0);
 					$array_tags = $dictionary->fetch_array('rowid', '{{label}}', array(), array('label' => 'ASC'));
 					$out .= '<tr>';
-					$out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityTagLabel") . '</td>';
-					$out .= '<td colspan="3">'.$form->multiselectarray('add_tag', $array_tags, $fk_tags_id, '', 0, '', 0, '100%').'</td>';
+					$out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityTagInterneLabel") . '</td>';
+					$out .= '<td colspan="3"><table class="noborder margintable centpercent">';
+					if(count($fk_tags_interne) > 0) {
+						$out .= '<tr class="liste_titre"><th class="liste_titre">Tags</th><th class="liste_titre">Mode</th><th class="liste_titre"></th><th class="liste_titre"></th></tr>';
+						foreach ($fk_tags_interne as $fk_tag) {
+							if(!empty($lineid = GETPOST('lineid'))) {
+								$out .= '<tr id="'.$fk_tag['id'].'">';
+								$out .= '<td>'.$fk_tag['label'].'</td>';
+								$out .= '<td colspan="3">';
+								$out .= '<form method="POST" action="'.$_SERVER["PHP_SELF"].'?action=editmode&id='.$object->id.'&lineid='.$lineid.'">';
+								$out .= '<input type="hidden" name="action" value="editmode">';
+								$out .= '<input type="hidden" name="lineid" value="'.$lineid.'">';
+								$out .= '<input type="hidden" name="id" value="'.$object->id.'">';
+								$out .= '<select id="editmode" name="editmode">';
+								$out .= '<option value="0" '.($fk_tag['level_confid'] == 0?"selected":"").'>'.$langs->trans('EventConfidentialityModeVisible').'</option>';
+								$out .= '<option value="1" '.($fk_tag['level_confid'] == 1?"selected":"").'>'.$langs->trans('EventConfidentialityModeBlurred').'</option>';
+								$out .= '<option value="2" '.($fk_tag['level_confid'] == 2?"selected":"").'>'.$langs->trans('EventConfidentialityModeHidden').'</option>';
+								$out .= '</select>';
+								$out .= '<input type="submit" class="button valignmiddle" value="Modifier">';
+								$out .= '</form>';
+								$out .= '</td>';
+								$out .= '</tr>';
+							} else {
+								$out .= '<tr id="'.$fk_tag['id'].'">';
+								$out .= '<td>'.$fk_tag['label'].'</td>';
+								$out .= '<td>'.$fk_tag['level_label'].'</td>';
+								$out .= '<td class="linecoledit" align="center"><a href="'.$_SERVER["PHP_SELF"].'?action=edit&id='.$object->id.'&lineid='.$fk_tag['id'].'"><img src="/htdocs/theme/owntheme/img/edit.png" alt="" title="Modifier" class="pictoedit"></a></td>';
+								$out .= '<td class="linecoldelete" align="center"><a href="'.$_SERVER["PHP_SELF"].'?action=ask_deleteline&id='.$object->id.'&lineid='.$fk_tag['id'].'"><img src="/htdocs/theme/owntheme/img/delete.png" alt="" title="Supprimer" class="pictodelete"></a></td>';
+								$out .= '</tr>';
+							}
+						}
+					}
+					$out .= '<tr class="liste_titre"><th colspan="4" class="liste_titre">'.$langs->trans("AddNewTagInterne").'</th></tr>';
+					$out .= '<td colspan="4">'.$form->multiselectarray('edit_tag_interne', $array_tags, array(), '', 0, '', 0, '100%').'</td>';
+					$out .= '</table></td>';
 					$out .= '</tr>';
-				} else if($action == '') {
-					//Tags
+					//Tags externe
+					$array_tags = array();
+					$dictionary = Dictionary::getDictionary($db, 'eventconfidentiality', 'eventconfidentialitytag', 0);
+					$array_tags = $dictionary->fetch_array('rowid', '{{label}}', array(), array('label' => 'ASC'));
+					$out .= '<tr>';
+					$out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityTagExterneLabel") . '</td>';
+					$out .= '<td colspan="3"><table class="noborder margintable centpercent">';
+					if(count($fk_tags_externe) > 0) {
+						$out .= '<tr class="liste_titre"><th class="liste_titre">Tags</th><th class="liste_titre">Mode</th><th class="liste_titre"></th><th class="liste_titre"></th></tr>';
+						foreach ($fk_tags_externe as $fk_tag) {
+							if(!empty($lineid = GETPOST('lineid'))) {
+								$out .= '<tr id="'.$fk_tag['id'].'">';
+								$out .= '<td>'.$fk_tag['label'].'</td>';
+								$out .= '<td colspan="3">';
+								$out .= '<form method="POST" action="'.$_SERVER["PHP_SELF"].'?action=editmode&id='.$object->id.'&lineid='.$lineid.'">';
+								$out .= '<input type="hidden" name="action" value="editmode">';
+								$out .= '<input type="hidden" name="lineid" value="'.$lineid.'">';
+								$out .= '<input type="hidden" name="id" value="'.$object->id.'">';
+								$out .= '<select id="editmode" name="editmode">';
+								$out .= '<option value="0" '.($fk_tag['level_confid'] == 0?"selected":"").'>'.$langs->trans('EventConfidentialityModeVisible').'</option>';
+								$out .= '<option value="1" '.($fk_tag['level_confid'] == 1?"selected":"").'>'.$langs->trans('EventConfidentialityModeBlurred').'</option>';
+								$out .= '<option value="2" '.($fk_tag['level_confid'] == 2?"selected":"").'>'.$langs->trans('EventConfidentialityModeHidden').'</option>';
+								$out .= '</select>';
+								$out .= '<input type="submit" class="button valignmiddle" value="Modifier">';
+								$out .= '</form>';
+								$out .= '</td>';
+								$out .= '</tr>';
+							} else {
+								$out .= '<tr id="'.$fk_tag['id'].'">';
+								$out .= '<td>'.$fk_tag['label'].'</td>';
+								$out .= '<td>'.$fk_tag['level_label'].'</td>';
+								$out .= '<td class="linecoledit" align="center"><a href="'.$_SERVER["PHP_SELF"].'?action=edit&id='.$object->id.'&lineid='.$fk_tag['id'].'"><img src="/htdocs/theme/owntheme/img/edit.png" alt="" title="Modifier" class="pictoedit"></a></td>';
+								$out .= '<td class="linecoldelete" align="center"><a href="'.$_SERVER["PHP_SELF"].'?action=ask_deleteline&id='.$object->id.'&lineid='.$fk_tag['id'].'"><img src="/htdocs/theme/owntheme/img/delete.png" alt="" title="Supprimer" class="pictodelete"></a></td>';
+								$out .= '</tr>';
+							}
+						}
+					}
+					$out .= '<tr class="liste_titre"><th colspan="4" class="liste_titre">'.$langs->trans("AddNewTagExterne").'</th></tr>';
+					$out .= '<td colspan="4">'.$form->multiselectarray('edit_tag_externe', $array_tags, array(), '', 0, '', 0, '100%').'</td>';
+					$out .= '</table></td>';
+					$out .= '</tr>';
+				} else {
+					//Tags interne
 					$tags = "";
-					foreach ($fk_tags as $fk_tag) {
-					$tags .= '<li class="select2-search-choice-dolibarr noborderoncategories" style="background: #ff0000;"><img src="/htdocs/theme/owntheme/img/object_category.png" alt="" title="" class="inline-block valigntextbottom">'.$fk_tag['label'].' : '.$fk_tag['level_label'].'</li>';
+					foreach ($fk_tags_interne as $fk_tag) {
+						$tags .= '<li class="select2-search-choice-dolibarr noborderoncategories" style="background: #ff0000;"><img src="/htdocs/theme/owntheme/img/object_category.png" alt="" title="" class="inline-block valigntextbottom">'.$fk_tag['label'].' : '.$fk_tag['level_label'].'</li>';
 					}
 					$out .= '<tr>';
-					$out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityTagLabel") . '</td>';
+					$out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityTagInterneLabel") . '</td>';
+					$out .= '<td colspan="3"><div class="select2-container-multi-dolibarr" style="width: 90%;"><ul class="select2-choices-dolibarr" style="list-style:none;">'.$tags.'</ul></div></td>';
+					$out .= '</tr>';
+					//Tags externe
+					$tags = "";
+					foreach ($fk_tags_externe as $fk_tag) {
+						$tags .= '<li class="select2-search-choice-dolibarr noborderoncategories" style="background: #ff0000;"><img src="/htdocs/theme/owntheme/img/object_category.png" alt="" title="" class="inline-block valigntextbottom">'.$fk_tag['label'].' : '.$fk_tag['level_label'].'</li>';
+					}
+					$out .= '<tr>';
+					$out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityTagExterneLabel") . '</td>';
 					$out .= '<td colspan="3"><div class="select2-container-multi-dolibarr" style="width: 90%;"><ul class="select2-choices-dolibarr" style="list-style:none;">'.$tags.'</ul></div></td>';
 					$out .= '</tr>';
 				}
+				if ($action == 'ask_deleteline') {
+					print $form->formconfirm("card.php?id=".$object->id."&lineid=".GETPOST("lineid"),$langs->trans("DeleteEventConfidentiality"),$langs->trans("ConfirmDeleteEventConfidentiality"),"confirm_delete_line",'','',1);
+				}
 			} else {
-				//Tags
+				//Tags interne
 				$array_tags = array();
 				$dictionary = Dictionary::getDictionary($db, 'eventconfidentiality', 'eventconfidentialitytag', 0);
 				$array_tags = $dictionary->fetch_array('rowid', '{{label}}', array(), array('label' => 'ASC'));
 
 				$out .= '<tr>';
 				$out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityTagLabel") . '</td>';
-				$out .= '<td colspan="3">'.$form->multiselectarray('add_tag', $array_tags, array(), '', 0, '', 0, '100%').'</td>';
+				$out .= '<td colspan="3">'.$form->multiselectarray('add_tag_interne', $array_tags, array(), '', 0, '', 0, '100%').'</td>';
+				$out .= '</tr>';
+
+				//Tags externe
+				$array_tags = array();
+				$dictionary = Dictionary::getDictionary($db, 'eventconfidentiality', 'eventconfidentialitytag', 0);
+				$array_tags = $dictionary->fetch_array('rowid', '{{label}}', array(), array('label' => 'ASC'));
+
+				$out .= '<tr>';
+				$out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityTagLabel") . '</td>';
+				$out .= '<td colspan="3">'.$form->multiselectarray('add_tag_externe', $array_tags, array(), '', 0, '', 0, '100%').'</td>';
 				$out .= '</tr>';
 			}
 			$this->resprints = $out;
@@ -145,12 +242,11 @@ class ActionsEventConfidentiality
 		if($object->id > 0) {
 			$mode = 2;
 			$user_tags = explode(",",$user->array_options['options_user_tag']);
-			$fk_tags = fetchAllTagForObject($object->id);
 			$tmp_mode = -1;
 			$externe = (empty($user->socid)?0:1); //Utilisateur interne ou externe
-
+			$fk_tags = fetchAllTagForObject($object->id, $externe);
 			foreach($fk_tags as $fk_tag) {
-				if(in_array($fk_tag['fk_dict_tag_confid'],$user_tags) && $fk_tag['externe'] == $externe) { //Si on a un tag en commun et que ce tag est interne
+				if(in_array($fk_tag['fk_dict_tag_confid'],$user_tags)) { //Si on a un tag en commun et que ce tag est interne
 					$tmp_mode = max($tmp_mode,$fk_tag['level_confid']);
 				}
 			}
@@ -234,12 +330,12 @@ class ActionsEventConfidentiality
 		if($object->id > 0) {
 			$mode = 2;
 			$user_tags = explode(",",$user->array_options['options_user_tag']);
-			$fk_tags = fetchAllTagForObject($object->id);
 			$tmp_mode = -1;
 			$externe = (empty($user->socid)?0:1); //Utilisateur interne ou externe
+			$fk_tags = fetchAllTagForObject($object->id, $externe);
 
 			foreach($fk_tags as $fk_tag) {
-				if(in_array($fk_tag['fk_dict_tag_confid'],$user_tags) && $fk_tag['externe'] == $externe) { //Si on a un tag en commun et que ce tag est interne
+				if(in_array($fk_tag['fk_dict_tag_confid'],$user_tags)) { //Si on a un tag en commun et que ce tag est interne
 					$tmp_mode = max($tmp_mode,$fk_tag['level_confid']);
 				}
 			}
@@ -319,4 +415,53 @@ class ActionsEventConfidentiality
 		}
         return 0;
     }
+
+	function doActions($parameters=false, &$object, &$action='') {
+		global $conf,$user,$langs,$mysoc,$soc,$societe,$db;
+
+
+		if (is_array($parameters) && ! empty($parameters)) {
+			foreach($parameters as $key=>$value) {
+				$$key=$value;
+			}
+		}
+		$element = $object->element;
+		$id = GETPOST('id');
+		if($element == 'action' && $user->rights->eventconfidentiality->manage) {
+			dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
+
+			if(!empty($id)) {
+				$object->fetch($id);
+
+				if ($object->id > 0) {
+					if ($action == 'confirm_delete_line') {
+						$lineid = GETPOST("lineid");
+
+						$eventconfidentiality = new EventConfidentiality($db);
+						$eventconfidentiality->fetch($lineid);
+						$result=$eventconfidentiality->delete();
+
+						if ($result >= 0) {
+							header("Location: ".$_SERVER["PHP_SELF"].'?action=edit&id='.$object->id);
+							exit;
+						} else {
+							setEventMessages($object->error,$object->errors,'errors');
+						}
+					}
+					if($action == 'editmode') {
+						$lineid = GETPOST("lineid");
+						$editmode = GETPOST("editmode");
+
+						$eventconfidentiality = new EventConfidentiality($db);
+						$eventconfidentiality->fetch($lineid);
+						$eventconfidentiality->level_confid = $editmode;
+
+						$eventconfidentiality->update($user);
+					}
+				}
+			}
+		}
+
+		return 0;
+	}
 }

@@ -142,6 +142,11 @@ class modEventConfidentiality extends DolibarrModules
         // Permissions
         $this->rights = array();        // Permission array used by this module
         $r = 0;
+		$this->rights[$r][0] = 1630221;
+		$this->rights[$r][1] = 'Gérer les tags';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'manage';
+		$r++;
 
         // Main menu entries
         $this->menu = array();            // List of menus to add

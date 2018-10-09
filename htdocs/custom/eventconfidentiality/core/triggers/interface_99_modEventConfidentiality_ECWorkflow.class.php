@@ -58,7 +58,9 @@ class InterfaceECWorkflow extends DolibarrTriggers
 		}
 
 	    if ($action == 'ACTION_CREATE') {
-			$tags = GETPOST('add_tag', 'array');
+			$tags_interne = GETPOST('add_tag_interne', 'array');
+			$tags_externe = GETPOST('add_tag_externe', 'array');
+			$tags = array_merge($tags_interne, $tags_externe);
 			if(!empty($tags)) {
 				foreach($tags as $tag) {
 					$eventconfidentiality = new EventConfidentiality($this->db);
@@ -80,7 +82,16 @@ class InterfaceECWorkflow extends DolibarrTriggers
         }
 
 	    if ($action == 'ACTION_MODIFY') {
-			$tags = GETPOST('edit_tag', 'array');
+			$tags_interne = GETPOST('edit_tag_interne', 'array');
+			$tags_externe = GETPOST('edit_tag_externe', 'array');
+			$tags = array_merge($tags_interne, $tags_externe);
+			if(!empty($tags)) {
+				foreach($tags as $tag) {
+					$eventconfidentiality = new EventConfidentiality($this->db);
+					$eventconfidentiality->getDefaultMode($tag, $object->elementtype, $object->type_id, $object->id);
+					$eventconfidentiality->create($user);
+				}
+			}
         }
 
         return 0;

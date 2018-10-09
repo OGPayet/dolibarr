@@ -27,6 +27,11 @@ EventConfidentialitySetup = Configuration du module Event Confidentiality
 ############################################################
 ### Form
 ############################################################
-EventConfidentialityTagLabel = Tag de confidentialité
+EventConfidentialityTagInterneLabel = Tag de confidentialité interne
+EventConfidentialityTagExterneLabel = Tag de confidentialité externe
 EventConfidentialityExternalLabel = Externe
 EventConfidentialityModeLabel = Niveau de confidentialité
+DeleteEventConfidentiality = Supprimer le tag de confidentialité
+ConfirmDeleteEventConfidentiality = Êtes-vous sûr de vouloir effacer ce tag de confidentialité ?
+AddNewTagExterne = Ajouter un nouveau tag externe
+AddNewTagInterne = Ajouter un nouveau tag interne

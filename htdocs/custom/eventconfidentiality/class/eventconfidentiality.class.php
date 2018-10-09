@@ -183,7 +183,7 @@ class EventConfidentiality extends CommonObject
         $sql = "UPDATE ".MAIN_DB_PREFIX."event_agenda";
         $sql.= " SET";
         $sql.= " externe = ".$this->externe;
-        $sql.= ", level_confid".$this->level_confid;
+        $sql.= ", level_confid=".$this->level_confid;
         $sql.= " WHERE fk_object=".$this->fk_object;
         $sql.= " AND fk_dict_tag_confid=".$this->fk_dict_tag_confid;
 
@@ -209,6 +209,39 @@ class EventConfidentiality extends CommonObject
             return -1;
         }
 
+    }
+
+    /**
+     *    Delete eventconfidentiality
+     *
+     *    @param    int		$notrigger		1 = disable triggers, 0 = enable triggers
+     *    @return   int 					<0 if KO, >0 if OK
+     */
+    function delete()
+    {
+        global $user,$langs,$conf;
+
+        $error=0;
+
+        $this->db->begin();
+
+        $sql = "DELETE FROM ".MAIN_DB_PREFIX."event_agenda";
+        $sql.= " WHERE rowid=".$this->id;
+
+        dol_syslog(get_class($this)."::delete", LOG_DEBUG);
+        $res=$this->db->query($sql);
+        if ($res < 0) {
+		$this->error=$this->db->lasterror();
+		$error++;
+        }
+
+		if (! $error) {
+			$this->db->commit();
+			return 1;
+		} else	{
+			$this->db->rollback();
+			return -2;
+		}
     }
 
 	/**
