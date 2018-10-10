@@ -111,66 +111,106 @@ class ActionsCompanyRelationships
      */
     function doActions($parameters, &$object, &$action, $hookmanager)
     {
-        global $langs, $user;
-
-        /*
-        $contexts = explode(':', $parameters['context']);
-
-        if (in_array('globalcard', $contexts)) {
-            if ($action == 'create') {
-                dol_include_once('/companyrelationships/class/companyrelationships.class.php');
-
-
-                if (!empty($object->element) && in_array($object->element, CompanyRelationships::$psa_element_list)) {
-
-                    $elementName = $object->element;
-
-                    if ($action == 'companyrelationships_confirm_socid' && $user->rights->{$elementName}->creer) {
-                        $langs->load('companyrelationships@companyrelationships');
-
-                        $fk_soc_benefactor = GETPOST('companyrelationships_fk_soc_benefactor', 'int');
-                        $socid = GETPOST('companyrelationships_socid', 'int');
-
-                        if (intval($socid) > 0) {
-                            $url = 'card.php?action=create&socid=' . $socid . '&companyrelationships_fk_soc_benefactor=' . $fk_soc_benefactor;
-                            header('Location: ' . $url);
-                            exit();
-                        }
-                    }
-                }
-            }
-        }
-        */
-
-        return 0;
-    }
-
-
-    /**
-     * Overloading the addMoreActionsButtons function : replacing the parent's function with the one below
-     *
-     * @param   array()         $parameters     Hook metadatas (context, etc...)
-     * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-     * @param   string          $action         Current action (if set). Generally create or edit or null
-     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
-     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
-     */
-    /*
-    public function addMoreActionsButtons($parameters, &$object, &$action, $hookmanager)
-    {
-        global $conf, $user, $langs;
+        global $conf, $langs, $user;
 
         $contexts = explode(':', $parameters['context']);
 
         if (in_array('globalcard', $contexts)) {
+
             dol_include_once('/companyrelationships/class/companyrelationships.class.php');
 
             if (!empty($object->element) && in_array($object->element, CompanyRelationships::$psa_element_list)) {
 
+                if ($object->element == 'fichinter') {
+                    $elementForRights = 'ficheinter';
+                } else {
+                    $elementForRights = $object->table_element;
+                }
+
+                $confirm = GETPOST('confirm', 'alpha');
+
+                // action confirm principal company on create
+                if ($action == 'companyrelationships_confirm_socid' && $user->rights->{$elementForRights}->creer) {
+                    $langs->load('companyrelationships@companyrelationships');
+
+                    $fk_soc_benefactor = GETPOST('companyrelationships_fk_soc_benefactor', 'int');
+                    $socid = GETPOST('companyrelationships_socid', 'int');
+
+                    if (intval($socid) > 0) {
+                        $url = 'card.php?action=create&socid=' . $socid . '&companyrelationships_fk_soc_benefactor=' . $fk_soc_benefactor;
+                        header('Location: ' . $url);
+                        exit();
+                    }
+                }
+                // action clone object
+                else if ($action == 'confirm_clone' && $confirm == 'yes')
+                {
+                    if (! GETPOST('socid', 'int'))
+                    {
+                        setEventMessages($langs->trans("NoCloneOptionsSpecified"), null, 'errors');
+                    }
+                    else
+                    {
+                        $socid = GETPOST('socid', 'int');
+                        $fk_soc_benefactor = GETPOST('options_companyrelationships_fk_soc_benefactor', 'int');
+
+                        if ($object->id > 0) {
+
+                            // Because createFromClone modifies the object, we must clone it so that we can restore it later
+                            $orig = clone $object;
+
+                            $object->array_options['options_companyrelationships_fk_soc_benefactor'] = $fk_soc_benefactor;
+
+                            // Propal
+                            if ($object->element == "propal") {
+                                if (!empty($conf->global->PROPAL_CLONE_DATE_DELIVERY)) {
+                                    //Get difference between old and new delivery date and change lines according to difference
+                                    $date_delivery = dol_mktime(12, 0, 0,
+                                        GETPOST('date_deliverymonth', 'int'),
+                                        GETPOST('date_deliveryday', 'int'),
+                                        GETPOST('date_deliveryyear', 'int')
+                                    );
+                                    if (!empty($object->date_livraison) && !empty($date_delivery))
+                                    {
+                                        //Attempt to get the date without possible hour rounding errors
+                                        $old_date_delivery = dol_mktime(12, 0, 0,
+                                            dol_print_date($object->date_livraison, '%m'),
+                                            dol_print_date($object->date_livraison, '%d'),
+                                            dol_print_date($object->date_livraison, '%Y')
+                                        );
+                                        //Calculate the difference and apply if necessary
+                                        $difference = $date_delivery - $old_date_delivery;
+                                        if ($difference != 0)
+                                        {
+                                            $object->date_livraison = $date_delivery;
+                                            foreach ($object->lines as $line)
+                                            {
+                                                if (isset($line->date_start)) $line->date_start = $line->date_start + $difference;
+                                                if (isset($line->date_end)) $line->date_end = $line->date_end + $difference;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            $result = $object->createFromClone($socid);
+                            if ($result > 0) {
+                                header("Location: " . $_SERVER['PHP_SELF'] . '?id=' . $result);
+                                exit();
+                            } else {
+                                setEventMessages($object->error, $object->errors, 'errors');
+                                $object = $orig;
+                                $action = '';
+                            }
+                        }
+                    }
+                }
             }
+
         }
+
+        return 0;
     }
-    */
 
 
     /**
@@ -182,20 +222,133 @@ class ActionsCompanyRelationships
      * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
      * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
      */
-    /*
+
     function formConfirm($parameters, &$object, &$action, $hookmanager)
     {
-        global $langs, $user;
+        global $conf, $langs, $user;
 
         $contexts = explode(':', $parameters['context']);
 
 
         if (in_array('globalcard', $contexts)) {
+            dol_include_once('/companyrelationships/class/companyrelationships.class.php');
 
+            if (!empty($object->element) && in_array($object->element, CompanyRelationships::$psa_element_list)) {
 
+                if ($action == 'clone') {
+                    dol_include_once('/companyrelationships/class/html.formcompanyrelationships.class.php');
+
+                    $langs->load('companyrelationships@companyrelationships');
+
+                    $formcompanyrelationships = new FormCompanyRelationships($this->db);
+                    $form = $formcompanyrelationships->form;
+
+                    $out = '';
+
+                    $socid = GETPOST('socid', 'int');
+                    $fk_soc_benefactor = $object->array_options['options_companyrelationships_fk_soc_benefactor'];
+
+                    // events
+                    $events = array();
+                    $events[] = array('action' => 'getBenefactor', 'url' => dol_buildpath('/companyrelationships/ajax/benefactor.php', 1), 'htmlname' => 'options_companyrelationships_fk_soc_benefactor', 'more_data' => array('fk_soc_benefactor' => $fk_soc_benefactor));
+
+                    // Create an array for form
+                    $formquestion = array(
+                        // 'text' => $langs->trans("ConfirmClone"),
+                        // array('type' => 'checkbox', 'name' => 'clone_content', 'label' => $langs->trans("CloneMainAttributes"), 'value' => 1),
+                        // array('type' => 'checkbox', 'name' => 'update_prices', 'label' => $langs->trans("PuttingPricesUpToDate"), 'value' =>
+                        // 1),
+                        array('type' => 'other', 'name' => 'socid', 'label' => $langs->trans("SelectThirdParty"), 'value' => $form->select_company($socid, 'socid', '(s.client=1 OR s.client=2 OR s.client=3) AND status=1', '', 0, 0, null, 0, 'minwidth300'))
+                    );
+                    if ($object->element == "propal") {
+                        if (!empty($conf->global->PROPAL_CLONE_DATE_DELIVERY) && !empty($object->date_livraison)) {
+                            $formquestion[] = array('type' => 'date','name' => 'date_delivery','label' => $langs->trans("DeliveryDate"),'value' => $object->date_livraison);
+                        }
+                    }
+
+                    // add benefactor list
+                    $formquestion[] = array('label' => $langs->trans('CompanyRelationshipsBenefactorCompany'), 'name' => 'options_companyrelationships_fk_soc_benefactor', 'type' => 'select', 'values' => array(), 'default' => '');
+
+                    // form confirm
+                    $fomrConfirmTitle = 'Clone';
+                    if ($object->element == "commande") {
+                        $fomrConfirmTitle .= 'Order';
+                    } else if ($object->element == "facture") {
+                        $fomrConfirmTitle .= 'Invoice';
+                    } else if ($object->element == "fichinter") {
+                        $fomrConfirmTitle .= 'Intervention';
+                    } else if ($object->element == "contrat") {
+                        $fomrConfirmTitle .= 'Contract';
+                    } else {
+                        $fomrConfirmTitle .= ucfirst($object->element);
+                    }
+                    $fomrConfirmQuestion = 'Confirm' . $fomrConfirmTitle;
+                    $formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans($fomrConfirmTitle), $langs->trans($fomrConfirmQuestion, $object->ref), 'confirm_clone', $formquestion, 'yes', 1, 300, 800);
+
+                    $out .= $formconfirm;
+
+                    // add events on select socid change
+                    $out .= $formcompanyrelationships->add_select_events_more_data('socid', $events);
+
+                    $out .= '<script type="text/javascript" language="javascript">';
+                    $out .= 'jQuery(document).ready(function(){';
+                    $out .= '   var data = {';
+                    $out .= '       action: "getBenefactor",';
+                    $out .= '       id: "' . $socid . '",';
+                    $out .= '       htmlname: "options_companyrelationships_fk_soc_benefactor",';
+                    $out .= '       fk_soc_benefactor: "' . $fk_soc_benefactor . '"';
+                    $out .= '   };';
+                    $out .= '   var input = jQuery("select#options_companyrelationships_fk_soc_benefactor");';
+                    $out .= '   jQuery.getJSON("' . dol_buildpath('/companyrelationships/ajax/benefactor.php', 1) . '", data,';
+                    $out .= '       function(response) {';
+                    $out .= '           input.html(response.value);';
+                    $out .= '           input.change();';
+                    $out .= '           if (response.num < 0) {';
+                    $out .= '               console.error(response.error);';
+                    $out .= '           }';
+                    $out .= '       }';
+                    $out .= '   );';
+
+                    // company relationships availability for this element
+                    /*
+                    if ($user->rights->companyrelationships->update_md->element) {
+                        $out .= '   jQuery("#options_companyrelationships_fk_soc_benefactor").change(function(){';
+                        $out .= '       jQuery.ajax({';
+                        $out .= '           data: {';
+                        $out .= '           socid: "' . $socid . '",';
+                        $out .= '           socid_benefactor: jQuery("#options_companyrelationships_fk_soc_benefactor").val(),';
+                        $out .= '           element: "' . $object->element . '"';
+                        $out .= '           },';
+                        $out .= '           dataType: "json",';
+                        $out .= '           method: "POST",';
+                        $out .= '           url: "' . dol_buildpath('/companyrelationships/ajax/publicspaceavailability.php', 1) . '",';
+                        $out .= '           success: function(data){';
+                        $out .= '               if (data.error > 0) {';
+                        $out .= '                   console.error("Error : ", "' . dol_buildpath('/companyrelationships/class/actions_companyrelationships.class.php', 1) . '", "in formObjectOptions() on #options_companyrelationships_fk_soc_benefactor.change()");';
+                        $out .= '               } else {';
+                        $out .= '                   jQuery("input[name=options_companyrelationships_availability_principal]").prop("checked", data.principal);';
+                        $out .= '                   jQuery("input[name=options_companyrelationships_availability_benefactor]").prop("checked", data.benefactor);';
+                        $out .= '               }';
+                        $out .= '           },';
+                        $out .= '           error: function(){';
+                        $out .= '               console.error("Error : ", "' . dol_buildpath('/companyrelationships/class/actions_companyrelationships.class.php', 1) . '", "in formObjectOptions() on #options_companyrelationships_fk_soc_benefactor.change()");';
+                        $out .= '           }';
+                        $out .= '       });';
+                        $out .= '   });';
+                    }
+                    */
+                    $out .= '});';
+                    $out .= '</script>';
+
+                    $this->resprints = $out;
+
+                    return 1;
+                }
+            }
         }
+
+        return 0;
     }
-    */
 
 
     /**
