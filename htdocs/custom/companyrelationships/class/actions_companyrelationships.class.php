@@ -188,6 +188,59 @@ class ActionsCompanyRelationships
                         exit();
                     }
                 }
+                // uodate extra fields
+                else if ($action == 'update_extras' && $user->rights->{$elementForRights}->creer) {
+                    $attribute = GETPOST('attribute', 'alpha');
+
+                    // update benefactor company
+                    if (!empty($attribute) && $attribute=='companyrelationships_fk_soc_benefactor') {
+
+                        require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
+
+                        $langs->load('companyrelationships@companyrelationships');
+
+                        $error = 0;
+
+                        $fk_soc_benefactor = GETPOST('options_companyrelationships_fk_soc_benefactor', 'int');
+
+                        // if benefactor company changed
+                        if (!empty($fk_soc_benefactor) && $fk_soc_benefactor!=$object->array_options['options_companyrelationships_fk_soc_benefactor']) {
+                            // save a copy of this object
+                            $objectClone = clone $object;
+
+                            $companyRelationships    = new CompanyRelationships($this->db);
+                            $publicSpaceAvailability = $companyRelationships->getPublicSpaceAvailability($object->socid, $fk_soc_benefactor, $object->element);
+
+                            if (!is_array($publicSpaceAvailability)) {
+                                $error++;
+                                $object->error = $companyRelationships->error;
+                                $object->errors = $companyRelationships->errors;
+                            }
+
+                            if (! $error) {
+                                // modify options with company relationships default availability
+                                $objectClone->array_options['options_companyrelationships_fk_soc_benefactor']       = $fk_soc_benefactor;
+                                $objectClone->array_options['options_companyrelationships_availability_principal']  = $publicSpaceAvailability['principal'];
+                                $objectClone->array_options['options_companyrelationships_availability_benefactor'] = $publicSpaceAvailability['benefactor'];
+
+                                $result = $objectClone->insertExtraFields();
+                                if ($result < 0) {
+                                    $error++;
+                                    $object->error  = $objectClone->error;
+                                    $object->errors = $objectClone->errors;
+                                }
+                            }
+
+                            if ($error) {
+                                setEventMessages($object->error, $object->errors, 'errors');
+                                $action = 'edit_extras';
+                            } else {
+                                header("Location: " . $_SERVER['PHP_SELF'] . '?id=' . $object->id);
+                                exit();
+                            }
+                        }
+                    }
+                }
                 // action clone object
                 /*
                 else if ($action == 'confirm_clone' && $confirm == 'yes' && $user->rights->{$elementForRights}->creer)
