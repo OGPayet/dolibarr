@@ -65,6 +65,11 @@ CompanyRelationshipsPublicSpaceAvailabilityPrincipal  = Pièces mises à disposi
 CompanyRelationshipsPublicSpaceAvailabilityBenefactor = Pièces mises à disposition par défaut pour le bénéficiaire
 
 ############################################################
+### Company Relationships : Confirm clone box
+############################################################
+CompanysRelationshipsWarningCloneConfirmBenefactor = Attention, pensez à bien vérifier la société bénéficiaire après clonage
+
+############################################################
 ### Errors
 ############################################################
 CompanyRelationshipsErrorPublicSpaceAvailabilityDictionaryNoLines = Aucune ligne dans le dictionnaire des mises à disposition sur l'espace public

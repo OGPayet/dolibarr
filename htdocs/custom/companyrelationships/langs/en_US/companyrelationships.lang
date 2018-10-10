@@ -65,6 +65,11 @@ CompanyRelationshipsPublicSpaceAvailabilityPrincipal  = Public space availabilit
 CompanyRelationshipsPublicSpaceAvailabilityBenefactor = Public space availability for the Benefactor
 
 ############################################################
+### Company Relationships : Confirm clone box
+############################################################
+CompanysRelationshipsWarningCloneConfirmBenefactor = Be careful to verify the benefactor company after cloning
+
+############################################################
 ### Errors
 ############################################################
 CompanyRelationshipsErrorPublicSpaceAvailabilityDictionaryNoLines = No lines in dictionary public space availability

@@ -109,6 +109,52 @@ class ActionsCompanyRelationships
      * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
      * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
      */
+    /*
+    function createFrom($parameters, &$object, &$action, $hookmanager)
+    {
+        global $conf, $langs, $user;
+
+        $contexts = explode(':', $parameters['context']);
+
+        if (in_array('contractcard', $contexts)) {
+            // specific for contract only
+            if ($object->element == "contrat") {
+                if ($object->context['createfromclone'] == 'createfromclone') {
+                    if (isset($parameters['objFrom']) && isset($parameters['clonedObj'])) {
+                        $fk_soc_benefactor = GETPOST('options_companyrelationships_fk_soc_benefactor', 'int');
+
+                        $objFrom  = $parameters['objFrom'];
+                        $cloneObj = $parameters['clonedObj'];
+
+                        // /!\ socid maybe different of fk_soc if cloned
+                        $cloneObj->fk_soc = $cloneObj->socid;
+                        $cloneObj->array_options['options_companyrelationships_fk_soc_benefactor'] = $fk_soc_benefactor;
+
+                        // /!\ update is non common in all objects (socid maybe diiferent of fk_soc)
+                        $result = $cloneObj->update($user, 1);
+                        if ($result < 0) {
+                            $objFrom->errors[] = $cloneObj->errorsToString();
+                            return -1;
+                        }
+                    }
+                }
+            }
+        }
+
+        return 0;
+    }
+    */
+
+
+    /**
+     * Overloading the doActions function : replacing the parent's function with the one below
+     *
+     * @param   array()         $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          &$action        Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
     function doActions($parameters, &$object, &$action, $hookmanager)
     {
         global $conf, $langs, $user;
@@ -143,14 +189,12 @@ class ActionsCompanyRelationships
                     }
                 }
                 // action clone object
+                /*
                 else if ($action == 'confirm_clone' && $confirm == 'yes' && $user->rights->{$elementForRights}->creer)
                 {
-                    if (! GETPOST('socid', 'int'))
-                    {
+                    if (!GETPOST('socid', 'int')) {
                         setEventMessages($langs->trans("NoCloneOptionsSpecified"), null, 'errors');
-                    }
-                    else
-                    {
+                    } else {
                         $socid = GETPOST('socid', 'int');
                         $fk_soc_benefactor = GETPOST('options_companyrelationships_fk_soc_benefactor', 'int');
 
@@ -161,7 +205,7 @@ class ActionsCompanyRelationships
 
                             $object->array_options['options_companyrelationships_fk_soc_benefactor'] = $fk_soc_benefactor;
 
-                            // Propal
+                            // propal only
                             if ($object->element == "propal") {
                                 if (!empty($conf->global->PROPAL_CLONE_DATE_DELIVERY)) {
                                     //Get difference between old and new delivery date and change lines according to difference
@@ -170,8 +214,7 @@ class ActionsCompanyRelationships
                                         GETPOST('date_deliveryday', 'int'),
                                         GETPOST('date_deliveryyear', 'int')
                                     );
-                                    if (!empty($object->date_livraison) && !empty($date_delivery))
-                                    {
+                                    if (!empty($object->date_livraison) && !empty($date_delivery)) {
                                         //Attempt to get the date without possible hour rounding errors
                                         $old_date_delivery = dol_mktime(12, 0, 0,
                                             dol_print_date($object->date_livraison, '%m'),
@@ -180,11 +223,9 @@ class ActionsCompanyRelationships
                                         );
                                         //Calculate the difference and apply if necessary
                                         $difference = $date_delivery - $old_date_delivery;
-                                        if ($difference != 0)
-                                        {
+                                        if ($difference != 0) {
                                             $object->date_livraison = $date_delivery;
-                                            foreach ($object->lines as $line)
-                                            {
+                                            foreach ($object->lines as $line) {
                                                 if (isset($line->date_start)) $line->date_start = $line->date_start + $difference;
                                                 if (isset($line->date_end)) $line->date_end = $line->date_end + $difference;
                                             }
@@ -198,15 +239,16 @@ class ActionsCompanyRelationships
                                 header("Location: " . $_SERVER['PHP_SELF'] . '?id=' . $result);
                                 exit();
                             } else {
-                                setEventMessages($object->error, $object->errors, 'errors');
+                                //setEventMessages($object->error, $object->errors, 'errors');
+                                $object->error = 'New error on clone';
                                 $object = $orig;
                                 $action = '';
                             }
                         }
                     }
                 }
+                */
             }
-
         }
 
         return 0;
@@ -229,7 +271,6 @@ class ActionsCompanyRelationships
 
         $contexts = explode(':', $parameters['context']);
 
-
         if (in_array('globalcard', $contexts)) {
             dol_include_once('/companyrelationships/class/companyrelationships.class.php');
 
@@ -246,11 +287,11 @@ class ActionsCompanyRelationships
                     $out = '';
 
                     $socid = GETPOST('socid', 'int') ? GETPOST('socid', 'int') : $object->socid;
-                    $fk_soc_benefactor = $object->array_options['options_companyrelationships_fk_soc_benefactor'];
+                    //$fk_soc_benefactor = $object->array_options['options_companyrelationships_fk_soc_benefactor'];
 
                     // events
-                    $events = array();
-                    $events[] = array('action' => 'getBenefactor', 'url' => dol_buildpath('/companyrelationships/ajax/benefactor.php', 1), 'htmlname' => 'options_companyrelationships_fk_soc_benefactor', 'more_data' => array('fk_soc_benefactor' => $fk_soc_benefactor));
+                    //$events = array();
+                    //$events[] = array('action' => 'getBenefactor', 'url' => dol_buildpath('/companyrelationships/ajax/benefactor.php', 1), 'htmlname' => 'options_companyrelationships_fk_soc_benefactor', 'more_data' => array('fk_soc_benefactor' => $fk_soc_benefactor));
 
                     // Create an array for form
                     $formquestion = array(
@@ -266,8 +307,11 @@ class ActionsCompanyRelationships
                         }
                     }
 
+                    // add warning
+                    $formquestion[] = array('type' => 'onecolumn', 'value' => '<div style="color: red;">' . $langs->trans('CompanysRelationshipsWarningCloneConfirmBenefactor') . '</div>');
+
                     // add benefactor list
-                    $formquestion[] = array('label' => $langs->trans('CompanyRelationshipsBenefactorCompany'), 'name' => 'options_companyrelationships_fk_soc_benefactor', 'type' => 'select', 'values' => array($fk_soc_benefactor), 'default' => '');
+                    //$formquestion[] = array('label' => $langs->trans('CompanyRelationshipsBenefactorCompany'), 'name' => 'options_companyrelationships_fk_soc_benefactor', 'type' => 'select', 'values' => array($fk_soc_benefactor), 'default' => '');
 
                     // form confirm
                     $fomrConfirmUrlId = 'id=' . $object->id;
@@ -290,8 +334,9 @@ class ActionsCompanyRelationships
                     $out .= $formconfirm;
 
                     // add events on select socid change
-                    $out .= $formcompanyrelationships->add_select_events_more_data('socid', $events);
+                    //$out .= $formcompanyrelationships->add_select_events_more_data('socid', $events);
 
+                    /*
                     $out .= '<script type="text/javascript" language="javascript">';
                     $out .= 'jQuery(document).ready(function(){';
                     $out .= '   var data = {';
@@ -339,6 +384,7 @@ class ActionsCompanyRelationships
                     }
                     $out .= '});';
                     $out .= '</script>';
+                    */
 
                     $this->resprints = $out;
 
