@@ -143,7 +143,7 @@ class ActionsCompanyRelationships
                     }
                 }
                 // action clone object
-                else if ($action == 'confirm_clone' && $confirm == 'yes')
+                else if ($action == 'confirm_clone' && $confirm == 'yes' && $user->rights->{$elementForRights}->creer)
                 {
                     if (! GETPOST('socid', 'int'))
                     {
@@ -245,7 +245,7 @@ class ActionsCompanyRelationships
 
                     $out = '';
 
-                    $socid = GETPOST('socid', 'int');
+                    $socid = GETPOST('socid', 'int') ? GETPOST('socid', 'int') : $object->socid;
                     $fk_soc_benefactor = $object->array_options['options_companyrelationships_fk_soc_benefactor'];
 
                     // events
@@ -267,14 +267,16 @@ class ActionsCompanyRelationships
                     }
 
                     // add benefactor list
-                    $formquestion[] = array('label' => $langs->trans('CompanyRelationshipsBenefactorCompany'), 'name' => 'options_companyrelationships_fk_soc_benefactor', 'type' => 'select', 'values' => array(), 'default' => '');
+                    $formquestion[] = array('label' => $langs->trans('CompanyRelationshipsBenefactorCompany'), 'name' => 'options_companyrelationships_fk_soc_benefactor', 'type' => 'select', 'values' => array($fk_soc_benefactor), 'default' => '');
 
                     // form confirm
+                    $fomrConfirmUrlId = 'id=' . $object->id;
                     $fomrConfirmTitle = 'Clone';
                     if ($object->element == "commande") {
                         $fomrConfirmTitle .= 'Order';
                     } else if ($object->element == "facture") {
                         $fomrConfirmTitle .= 'Invoice';
+                        $fomrConfirmUrlId = 'facid=' . $object->id;
                     } else if ($object->element == "fichinter") {
                         $fomrConfirmTitle .= 'Intervention';
                     } else if ($object->element == "contrat") {
@@ -283,7 +285,7 @@ class ActionsCompanyRelationships
                         $fomrConfirmTitle .= ucfirst($object->element);
                     }
                     $fomrConfirmQuestion = 'Confirm' . $fomrConfirmTitle;
-                    $formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans($fomrConfirmTitle), $langs->trans($fomrConfirmQuestion, $object->ref), 'confirm_clone', $formquestion, 'yes', 1, 300, 800);
+                    $formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?' . $fomrConfirmUrlId, $langs->trans($fomrConfirmTitle), $langs->trans($fomrConfirmQuestion, $object->ref), 'confirm_clone', $formquestion, 'yes', 1, 300, 800);
 
                     $out .= $formconfirm;
 
@@ -310,7 +312,6 @@ class ActionsCompanyRelationships
                     $out .= '   );';
 
                     // company relationships availability for this element
-                    /*
                     if ($user->rights->companyrelationships->update_md->element) {
                         $out .= '   jQuery("#options_companyrelationships_fk_soc_benefactor").change(function(){';
                         $out .= '       jQuery.ajax({';
@@ -336,7 +337,6 @@ class ActionsCompanyRelationships
                         $out .= '       });';
                         $out .= '   });';
                     }
-                    */
                     $out .= '});';
                     $out .= '</script>';
 
