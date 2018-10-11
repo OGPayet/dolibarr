@@ -173,8 +173,6 @@ class ActionsCompanyRelationships
                     $elementForRights = $object->table_element;
                 }
 
-                $confirm = GETPOST('confirm', 'alpha');
-
                 // action confirm principal company on create
                 if ($action == 'companyrelationships_confirm_socid' && $user->rights->{$elementForRights}->creer) {
                     $langs->load('companyrelationships@companyrelationships');
@@ -494,13 +492,15 @@ class ActionsCompanyRelationships
 
                     // set default values for socid and fk_soc_benefactor if this element linked to a previous element (origin)
                     if (!empty($originid) && intval($fk_soc_benefactor) <= 0) {
+
                         if (intval($fk_soc_benefactor) <= 0) {
                             $fk_soc_benefactor = $object->array_options['options_companyrelationships_fk_soc_benefactor'];
                         }
 
-                        if (!empty($origin)) {
-                            $classname = ucfirst($origin);
-                            $objectsrc = new $classname($this->db);
+                        if (isset($parameters['objectsrc']) && is_object($parameters['objectsrc'])) {
+                            $objectsrc = $parameters['objectsrc'];
+
+                            dol_syslog("Try to find source object origin=" . $origin . " originid=" . $originid);
                             $objectsrc->fetch($originid);
 
                             if (intval($socid) <= 0 && $objectsrc->socid > 0) {
