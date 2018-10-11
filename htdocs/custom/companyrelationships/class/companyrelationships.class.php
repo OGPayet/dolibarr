@@ -392,7 +392,7 @@ class CompanyRelationships
     {
         global $langs;
 
-        dol_syslog(__METHOD__, LOG_DEBUG);
+        dol_syslog(__METHOD__ . " fieldName=" . $fieldName, LOG_DEBUG);
 
         dol_include_once('/advancedictionaries/class/dictionary.class.php');
         $dictionary = Dictionary::getDictionary($this->db, 'companyrelationships', 'companyrelationshipspublicspaceavailability');
@@ -430,7 +430,7 @@ class CompanyRelationships
      * Get all elements in public space availability for a company relationship
      *
      * @param   int         $socid                  Id of principal company
-     * @param   innt        $socid_benefactor       Id of benefactor company
+     * @param   int         $socid_benefactor       Id of benefactor company
      * @param   string      $element                [=''] for all elements, or element name (ex : propal, commande, etc)
      * @return  array|int   <0 if KO, array of public space availability if OK
      * @throws  Exception
@@ -489,7 +489,7 @@ class CompanyRelationships
      * Get one element in public space availability for a company relationship
      *
      * @param   int         $socid                  Id of principal company
-     * @param   innt        $socid_benefactor       Id of benefactor company
+     * @param   int         $socid_benefactor       Id of benefactor company
      * @param   string      $element                Element name (ex : propal, commande, etc)
      * @return  array|int   <0 if KO, array of public space availability if OK
      * @throws  Exception

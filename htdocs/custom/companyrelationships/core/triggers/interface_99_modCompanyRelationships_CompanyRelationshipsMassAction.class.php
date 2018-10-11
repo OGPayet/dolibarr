@@ -74,8 +74,8 @@ class InterfaceCompanyRelationshipsMassAction extends DolibarrTriggers
 
             $langs->load('companyrelatioships@companyrelatioships');
 
-            // for mass action from order list ()
-            if ($object->origin=='commande' && $object->origin_id>0) {
+            // for mass action from order list
+            if ($object->socid>0 && $object->origin=='commande' && $object->origin_id>0) {
                 // fetch extrafields of this invoice
                 $object->fetch_optionals();
 
@@ -90,7 +90,11 @@ class InterfaceCompanyRelationshipsMassAction extends DolibarrTriggers
                         $commande = $object->commande;
 
                         // set benefactor company
-                        $object->array_options['options_companyrelationships_fk_soc_benefactor'] = $commande->array_options['options_companyrelationships_fk_soc_benefactor'];
+                        if ($commande->array_options['options_companyrelationships_fk_soc_benefactor']>0) {
+                            $object->array_options['options_companyrelationships_fk_soc_benefactor'] = $commande->array_options['options_companyrelationships_fk_soc_benefactor'];
+                        } else {
+                            $object->array_options['options_companyrelationships_fk_soc_benefactor'] = $object->socid;
+                        }
 
                         $companyRelationships = new CompanyRelationships($this->db);
                         $publicSpaceAvailability = $companyRelationships->getPublicSpaceAvailability($object->socid, $object->array_options['options_companyrelationships_fk_soc_benefactor'], $object->element);
@@ -98,6 +102,7 @@ class InterfaceCompanyRelationshipsMassAction extends DolibarrTriggers
                         if (!is_array($publicSpaceAvailability)) {
                             $object->error = $companyRelationships->error;
                             $object->errors = $companyRelationships->errors;
+                            dol_syslog(__METHOD__ . " Error : " . $object->errorsToString(), LOG_ERR);
                             return -1;
                         }
 
@@ -106,6 +111,7 @@ class InterfaceCompanyRelationshipsMassAction extends DolibarrTriggers
                         $object->array_options['options_companyrelationships_availability_benefactor'] = $publicSpaceAvailability['benefactor'];
                         $ret = $object->insertExtrafields();
                         if ($ret < 0) {
+                            dol_syslog(__METHOD__ . " Error : " . $object->errorsToString(), LOG_ERR);
                             return -1;
                         }
                     }
