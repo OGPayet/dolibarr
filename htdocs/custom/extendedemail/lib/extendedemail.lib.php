@@ -69,6 +69,7 @@ function extendedemail_get_users_email()
     $sql = "SELECT DISTINCT u.rowid";    // Distinct reduce pb with old tables with duplicates
     $sql .= " FROM " . MAIN_DB_PREFIX . "user as u";
     $sql .= " WHERE u.entity IN (" . getEntity('user', 1) . ")";
+	if (! empty($conf->global->FILTER_EXTERNAL))  $sql .= " AND u.fk_soc IS NULL";
 
     $resql = $db->query($sql);
     if ($resql) {
