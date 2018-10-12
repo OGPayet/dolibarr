@@ -186,7 +186,7 @@ if ($zone === 1) {
 
     print '<tr>';
     // ThirdParty Bill
-    print '<td>' . $langs->trans('RequestManagerThirdPartyBill') . '</td><td>';
+    print '<td>' . $langs->trans('RequestManagerThirdPartyPrincipal') . '</td><td>';
     print $form->select_company($selectedSocId, 'socid', $filterSocId, 'SelectThirdParty', 0, 0, array(), 0, 'minwidth300');
     if (!empty($conf->societe->enabled) && $user->rights->societe->creer) {
         $backToPage = dol_buildpath('/requestmanager/createfast.php', 1) . '?action=createfast' . ($selectedFkType ? '&type=' . $selectedFkType : '') . ($selectedSocIdOrigin ? '&socid_origin=' . $selectedSocIdOrigin : '') . ($selectedSocIdBenefactor ? '&socid_benefactor=' . $selectedSocIdBenefactor : '') . '&socid=##SOCID##';

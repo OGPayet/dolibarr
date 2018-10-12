@@ -16,23 +16,19 @@
  */
 
 /**
- * \file        core/dictionaries/requestmanagermessagetemplate.dictionary.php
+ * \file        core/dictionaries/requestmanagernotifytemplate.dictionary.php
  * \ingroup     requestmanager
- * \brief       Class of the dictionary template for the request message
+ * \brief       Class of the dictionary Status
  */
 
 dol_include_once('/advancedictionaries/class/dictionary.class.php');
+dol_include_once('/requestmanager/class/requestmanagernotify.class.php');
 
 /**
- * Class for RequestManagerMessageTemplateDictionary
+ * Class for RequestManagerStatusDictionary
  */
-class RequestManagerMessageTemplateDictionary extends Dictionary
+class RequestManagerNotifyTemplateDictionary extends Dictionary
 {
-    /**
-     * @var int         Version of this dictionary
-     */
-    public $version = 2;
-
     /**
      * @var array       List of languages to load
      */
@@ -66,12 +62,12 @@ class RequestManagerMessageTemplateDictionary extends Dictionary
     /**
      * @var string      Name of this dictionary for show in the list, translated if key found
      */
-    public $nameLabel = 'RequestManagerMessageTemplateDictionaryLabel';
+    public $nameLabel = 'RequestManagerNotifyTemplateDictionaryLabel';
 
     /**
      * @var string      Name of the dictionary table without prefix (ex: c_country)
      */
-    public $table_name = 'c_requestmanager_message_template';
+    public $table_name = 'c_requestmanager_notify_template';
 
     /**
      * @var array  Fields of the dictionary table
@@ -133,41 +129,11 @@ class RequestManagerMessageTemplateDictionary extends Dictionary
      * )
      */
     public $fields = array(
-        'label' => array(
-            'name'       => 'label',
-            'label'      => 'Label',
-            'type'       => 'varchar',
-            'database'   => array(
-              'length'   => 255,
-            ),
-            'show_input' => array(
-                'moreAttributes' => ' style="width:95%;"',
-            ),
-            'is_require' => true,
-        ),
+        'type' => array(),
         'request_type' => array(),
-        'position' => array(
-            'name'       => 'position',
-            'label'      => 'Position',
-            'type'       => 'int',
-            'database'   => array(
-              'length'   => 11,
-            ),
-            'td_title'  => array (
-                'align'  => 'left',
-            ),
-            'td_output'  => array (
-                'align'  => 'left',
-            ),
-            'td_search'  => array (
-                'align'  => 'left',
-            ),
-            'td_input'  => array (
-                'align'  => 'left',
-            ),
-            'help'       => 'PositionIntoComboList',
-        ),
-        'message' => array(),
+        'notify_to' => array(),
+        'subject' => array(),
+        'body' => array(),
     );
 
     /**
@@ -178,45 +144,6 @@ class RequestManagerMessageTemplateDictionary extends Dictionary
      * )
      */
     public $indexes = array();
-
-    /**
-     * @var array  List of fields/indexes added, updated or deleted for a version
-     * array(
-     *   'version' => array(
-     *     'fields' => array('field_name'=>'a', 'field_name'=>'u', ...), // List of field name who is added(a) or updated(u) for a version
-     *     'deleted_fields' => array('field_name'=> array('name', 'type', other_custom_data_required_for_delete), ...), // List of field name who is deleted for a version
-     *     'indexes' => array('idx_number'=>'u', 'idx_number'=>'d', ...), // List of indexes number who is updated(u) or deleted(d) for a version
-     *   ),
-     * )
-     */
-    public $updates = array(
-        1 => array(
-            'fields' => array(
-                'position'      => 'u',
-            ),
-            'delete_fields' => array(
-                'template_type' => array(
-                    'name' => 'template_type',
-                    'type' => 'select',
-                ),
-            ),
-        ),
-        2 => array(
-            'fields' => array(
-                'message'  => 'a',
-            ),
-            'delete_fields' => array(
-                'boby' => array(
-                    'name' => 'boby',
-                    'type' => 'text',
-                ),
-                'subject' => array(
-                    'name' => 'subject',
-                    'type' => 'varchar',
-                ),
-            ),
-        ),
-    );
 
     /**
      * @var bool    Is multi entity (false = partaged, true = by entity)
@@ -235,9 +162,35 @@ class RequestManagerMessageTemplateDictionary extends Dictionary
 	 */
 	protected function initialize()
     {
-        global $langs;
+        global $langs, $hookmanager;
 
         $langs->load('requestmanager@requestmanager');
+
+        // Initialize technical object to manage hooks of page. Note that conf->hooks_modules contains array of hook context
+        $hookmanager->initHooks(array('requestmanagerdao'));
+
+        // Set list of template type
+        $templateTypeList = array(
+            RequestManagerNotify::TYPE_ASSIGNED_MODIFIED => $langs->trans('RequestManagerNotifyTemplateTypeAssignedUsersModified'),
+            RequestManagerNotify::TYPE_STATUS_MODIFIED => $langs->trans('RequestManagerNotifyTemplateTypeStatusModified'),
+            RequestManagerNotify::TYPE_MESSAGE_ADDED => $langs->trans('RequestManagerNotifyTemplateTypeMessageAdded'),
+        );
+
+        $parameters = array('templateTypeList' => $templateTypeList);
+        $reshook = $hookmanager->executeHooks('addNotifyTemplateTypeList', $parameters);    // Note that $action and $object may have been modified by some hooks
+        if ($reshook >= 0) {
+            foreach ($hookmanager->resArray as $item => $value) {
+                $templateTypeList[$item] = $value;
+            }
+        }
+
+        $this->fields['type'] = array(
+            'name' => 'type',
+            'label' => 'RequestManagerNotifyTemplateType',
+            'type' => 'select',
+            'options' => $templateTypeList,
+            'is_require' => true,
+        );
 
         $this->fields['request_type'] = array(
             'name' => 'request_type',
@@ -245,18 +198,50 @@ class RequestManagerMessageTemplateDictionary extends Dictionary
             'type' => 'chkbxlst',
             'options' => 'c_requestmanager_request_type:label:rowid::active=1 and entity IN (' . getEntity('dictionary', 1) . ')',
             'td_output' => array(
-                'moreAttributes' => 'width="20%"',
+                'moreAttributes' => 'width="30%"',
             ),
             'td_input' => array(
-                'moreAttributes' => 'width="50%"',
+                'moreAttributes' => 'width="30%"',
             ),
             'is_require' => true,
             'help' => 'RequestManagerTemplateForRequestType',
         );
 
+        // Set list of notify to
+        $notifyToList = array(
+            RequestManagerNotify::NOTIFY_TO_ASSIGNED => $langs->trans('RequestManagerAssigned'),
+            RequestManagerNotify::NOTIFY_TO_REQUESTERS => $langs->trans('RequestManagerRequesterContacts'),
+            RequestManagerNotify::NOTIFY_TO_WATCHERS => $langs->trans('RequestManagerWatcherContacts'),
+        );
+
+        $parameters = array('notifyToList' => $notifyToList);
+        $reshook = $hookmanager->executeHooks('addNotifyToList', $parameters);    // Note that $action and $object may have been modified by some hooks
+        if ($reshook >= 0) {
+            foreach ($hookmanager->resArray as $item => $value) {
+                $notifyToList[$item] = $value;
+            }
+        }
+
+        $this->fields['notify_to'] = array(
+            'name' => 'notify_to',
+            'label' => 'RequestManagerNotifyTo',
+            'type' => 'checkbox',
+            'options' => $notifyToList,
+            'td_output' => array(
+                'moreAttributes' => 'width="30%"',
+            ),
+            'td_input' => array(
+                'moreAttributes' => 'width="30%"',
+            ),
+            'is_require' => true,
+            'help' => 'RequestManagerNotifyToHelp',
+        );
+
         // List of help for fields
         dol_include_once('/requestmanager/class/requestmanagersubstitutes.class.php');
         $subsitutesKeys = RequestManagerSubstitutes::getAvailableSubstitutesKeyFromRequest($this->db);
+        $subsitutesMessageKeys = RequestManagerSubstitutes::getAvailableSubstitutesKeyFromRequestMessage($this->db);
+        $subsitutesKeys = array_merge($subsitutesKeys, $subsitutesMessageKeys);
         $helpSubstitution = $langs->trans("AvailableVariables") . ':<br>';
         $helpSubstitution .= "<div style='display: block; overflow: auto; height: 700px;'><table class='nobordernopadding'>";
         foreach ($subsitutesKeys as $key => $label) {
@@ -264,15 +249,33 @@ class RequestManagerMessageTemplateDictionary extends Dictionary
         }
         $helpSubstitution .= '</table></div>';
 
-        $this->fields['message'] = array(
-            'name' => 'message',
+        $this->fields['subject'] = array(
+            'name' => 'subject',
+            'label' => 'Topic',
+            'type' => 'varchar',
+            'database' => array(
+                'length' => 255,
+            ),
+            'td_output' => array(
+                'moreAttributes' => 'width="100%"',
+            ),
+            'td_input' => array(
+                'moreAttributes' => 'width="100%"',
+            ),
+            'show_input' => array(
+                'moreAttributes' => ' style="width:100%;"',
+            ),
+            'is_require' => true,
+            'help_button' => $helpSubstitution,
+        );
+
+        $this->fields['body'] = array(
+            'name' => 'body',
             'label' => 'Content',
             'type' => 'text',
             'is_require' => true,
+            'is_not_show' => true,
             'help_button' => $helpSubstitution,
-            'td_output' => array(
-                'moreAttributes' => 'width="50%"',
-            ),
             'td_input' => array(
                 'positionLine' => 1,
             ),
@@ -280,7 +283,7 @@ class RequestManagerMessageTemplateDictionary extends Dictionary
     }
 }
 
-class RequestManagerMessageTemplateDictionaryLine extends DictionaryLine
+class RequestManagerNotifyTemplateDictionaryLine extends DictionaryLine
 {
     public function checkFieldsValues($fieldsValue)
     {
@@ -291,14 +294,14 @@ class RequestManagerMessageTemplateDictionaryLine extends DictionaryLine
             return $result;
         }
 
-        $result = $this->dictionary->fetch_lines(-1, array('request_type' => array($fieldsValue['request_type']), 'label'=> '^' . $fieldsValue['label'] . '$'));
+        $result = $this->dictionary->fetch_lines(-1, array('type' => array($fieldsValue['type']), 'request_type' => array($fieldsValue['request_type']), 'notify_to' => array($fieldsValue['notify_to'])));
         if ($result < 0) {
             return $result;
         }
 
         $nbLines = count($this->dictionary->lines);
         if ($nbLines > 0 && ($nbLines > 1 || !isset($this->dictionary->lines[$this->id]))) {
-            $this->errors[] = $langs->trans('RequestManagerErrorOnlyOneTemplateNameForEachRequestType');
+            $this->errors[] = $langs->trans('RequestManagerErrorOnlyOneNotifyTemplateTypeForEachRequestTypeAndNotifyTo');
             return -1;
         }
 

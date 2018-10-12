@@ -1088,7 +1088,6 @@ SCRIPT;
             }
         } elseif (in_array('contractlist', $contexts)) {
             $langs->load('synergiestech@synergiestech');
-            $action = GETPOST('action', 'alpha');
             if ($user->rights->synergiestech->generate->ticket_report && $action == 'synergiestech_generate_ticket_report_confirm' && $confirm == 'yes') {
                 if (GETPOST('synergiestech_generate_ticket_report_date_startmonth') && GETPOST('synergiestech_generate_ticket_report_date_startday') && GETPOST('synergiestech_generate_ticket_report_date_startyear') &&
                     GETPOST('synergiestech_generate_ticket_report_date_endmonth') && GETPOST('synergiestech_generate_ticket_report_date_endday') && GETPOST('synergiestech_generate_ticket_report_date_endyear')) {
@@ -1126,7 +1125,6 @@ SCRIPT;
 	 */
 	function formObjectOptions($parameters, &$object, &$action, $hookmanager)
     {
-        $action=GETPOST('action','alpha');
         $origin=GETPOST('origin','alpha');
         $originid=GETPOST('originid','int');
 

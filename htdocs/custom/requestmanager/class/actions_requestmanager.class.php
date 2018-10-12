@@ -64,10 +64,10 @@ class ActionsRequestManager
     /**
      * Overloading the addSearchEntry function : replacing the parent's function with the one below
      *
-     * @param   array() $parameters Hook metadatas (context, etc...)
-     * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-     * @param   string &$action Current action (if set). Generally create or edit or null
-     * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
+     * @param   array()         $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          &$action        Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
      * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
      */
     function addSearchEntry($parameters, &$object, &$action, $hookmanager)
@@ -93,14 +93,14 @@ class ActionsRequestManager
     }
 
     /**
-	 * Overloading the addMoreActionsButtons function : replacing the parent's function with the one below
-	 *
-	 * @param   array() $parameters Hook metadatas (context, etc...)
-	 * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-	 * @param   string &$action Current action (if set). Generally create or edit or null
-	 * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
-	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
-	 */
+     * Overloading the addMoreActionsButtons function : replacing the parent's function with the one below
+     *
+     * @param   array()         $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          &$action        Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
 	function addMoreActionsButtons($parameters, &$object, &$action, $hookmanager)
     {
         global $user, $langs;
@@ -128,9 +128,8 @@ class ActionsRequestManager
         return 0;
     }
 
-
     /**
-     * Overloading the formConfirm function : replacing the parent's function with the one below
+     * Overloading the doActions function : replacing the parent's function with the one below
      *
      * @param   array()         $parameters     Hook metadatas (context, etc...)
      * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
@@ -138,52 +137,176 @@ class ActionsRequestManager
      * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
      * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
      */
-    function formConfirm($parameters, &$object, &$action, $hookmanager)
+	function doActions($parameters, &$object, &$action, $hookmanager)
     {
-        global $conf, $form, $langs, $user;
+        global $conf, $user, $langs;
 
-        if (!empty($conf->synergiestech->enabled)) {
-            $contexts = explode(':', $parameters['context']);
+        $contexts = explode(':', $parameters['context']);
 
-            if (in_array('requestmanagercard', $contexts)) {
-                if ($action == 'addline' && $user->rights->requestmanager->creer) {
-                    $langs->load('synergiestech@synergiestech');
+        if (in_array('actioncard', $contexts)) {
+            $id = GETPOST('id', 'int');
+            $object->fetch($id);
 
-                    // Create the confirm form
-                    $predef = '';
-                    $inputList = array();
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'product_desc', 'value' => GETPOST('dp_desc'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'price_ht', 'value' => GETPOST('price_ht'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'multicurrency_price_ht', 'value' => GETPOST('multicurrency_price_ht'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'prod_entry_mode', 'value' => GETPOST('prod_entry_mode'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'tva_tx', 'value' => GETPOST('tva_tx'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'idprod', 'value' => GETPOST('idprod'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'qty' . $predef, 'value' => GETPOST('qty' . $predef));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'remise_percent' . $predef, 'value' => GETPOST('remise_percent' . $predef));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'type', 'value' => GETPOST('type'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'date_start' . $predef . 'hour', 'value' => GETPOST('date_start' . $predef . 'hour'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'date_start' . $predef . 'min', 'value' => GETPOST('date_start' . $predef . 'min'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'date_start' . $predef . 'sec', 'value' => GETPOST('date_start' . $predef . 'sec'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'date_start' . $predef . 'month', 'value' => GETPOST('date_start' . $predef . 'month'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'date_start' . $predef . 'day', 'value' => GETPOST('date_start' . $predef . 'day'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'date_start' . $predef . 'year', 'value' => GETPOST('date_start' . $predef . 'year'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'date_end' . $predef . 'hour', 'value' => GETPOST('date_end' . $predef . 'hour'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'date_end' . $predef . 'min', 'value' => GETPOST('date_end' . $predef . 'min'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'date_end' . $predef . 'sec', 'value' => GETPOST('date_end' . $predef . 'sec'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'date_end' . $predef . 'month', 'value' => GETPOST('date_end' . $predef . 'month'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'date_end' . $predef . 'day', 'value' => GETPOST('date_end' . $predef . 'day'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'date_end' . $predef . 'year', 'value' => GETPOST('date_end' . $predef . 'year'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'price_base_type', 'value' => GETPOST('price_base_type'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'product_label', 'value' => GETPOST('product_label'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'price_ttc', 'value' => GETPOST('price_ttc'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'units', 'value' => GETPOST('units'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'fournprice' . $predef, 'value' => GETPOST('fournprice' . $predef));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'buying_price' . $predef, 'value' => GETPOST('buying_price' . $predef));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'fk_parent_line', 'value' => GETPOST('fk_parent_line'));
-                    $inputList[] = array('type' => 'hidden', 'name'=> 'lang_id', 'value' => GETPOST('lang_id'));
+            if ($object->type_code == 'AC_RM_OUT' || $object->type_code == 'AC_RM_PRIV' || $object->type_code == 'AC_RM_IN') {
+                $langs->load('requestmanager@requestmanager');
 
-                    $this->resprints = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('SynergiesTechProductOffFormula'), $langs->trans('SynergiesTechConfirmProductOffFormula'), 'addline', $inputList, '', 1);
+                if ($action == 'create' || $action == 'add') {
+                    $this->errors[] = $langs->trans('RequestManagerErrorCanOnlyCreateMessageFromRequest');
+                    $action = '';
+                    return -1;
+                } elseif ($action == 'edit' || $action == 'update') {
+                    $this->errors[] = $langs->trans('RequestManagerErrorMessageCanNotBeModified');
+                    $action = '';
+                    return -1;
+                    /*$error = 0;
+                    $cancel = GETPOST('cancel', 'alpha');
+                    if (empty($cancel) && $user->rights->requestmanager->creer) {
+                        dol_include_once('/requestmanager/class/requestmanagermessage.class.php');
+                        $requestmanagermessage = new RequestManagerMessage($this->db);
 
+                        require_once DOL_DOCUMENT_ROOT . '/comm/action/class/cactioncomm.class.php';
+                        $cactioncomm = new CActionComm($this->db);
+
+                        $backtopage = GETPOST('backtopage', 'alpha');
+
+                        $fulldayevent = GETPOST('fullday');
+                        $aphour = GETPOST('aphour');
+                        $apmin = GETPOST('apmin');
+                        $p2hour = GETPOST('p2hour');
+                        $p2min = GETPOST('p2min');
+                        $percentage = in_array(GETPOST('status'), array(-1, 100)) ? GETPOST('status') : (in_array(GETPOST('complete'), array(-1, 100)) ? GETPOST('complete') : GETPOST("percentage"));    // If status is -1 or 100, percentage is not defined and we must use status
+
+                        // Clean parameters
+                        if ($aphour == -1) $aphour = '0';
+                        if ($apmin == -1) $apmin = '0';
+                        if ($p2hour == -1) $p2hour = '0';
+                        if ($p2min == -1) $p2min = '0';
+
+                        $requestmanagermessage->fetch($id);
+                        $requestmanagermessage->fetch_userassigned();
+
+                        $datep = dol_mktime($fulldayevent ? '00' : $aphour, $fulldayevent ? '00' : $apmin, 0, $_POST["apmonth"], $_POST["apday"], $_POST["apyear"]);
+                        $datef = dol_mktime($fulldayevent ? '23' : $p2hour, $fulldayevent ? '59' : $p2min, $fulldayevent ? '59' : '0', $_POST["p2month"], $_POST["p2day"], $_POST["p2year"]);
+
+                        $requestmanagermessage->fk_action = dol_getIdFromCode($this->db, GETPOST("actioncode"), 'c_actioncomm');
+                        $requestmanagermessage->label = GETPOST("label");
+                        $requestmanagermessage->datep = $datep;
+                        $requestmanagermessage->datef = $datef;
+                        $requestmanagermessage->percentage = $percentage;
+                        $requestmanagermessage->priority = GETPOST("priority");
+                        $requestmanagermessage->fulldayevent = GETPOST("fullday") ? 1 : 0;
+                        $requestmanagermessage->location = GETPOST('location');
+                        $requestmanagermessage->socid = GETPOST("socid");
+                        $requestmanagermessage->contactid = GETPOST("contactid", 'int');
+                        //$requestmanagermessage->societe->id = $_POST["socid"];			// deprecated
+                        //$requestmanagermessage->contact->id = $_POST["contactid"];		// deprecated
+                        $requestmanagermessage->fk_project = GETPOST("projectid", 'int');
+                        $requestmanagermessage->note = GETPOST("note");
+                        $requestmanagermessage->pnote = GETPOST("note");
+                        $requestmanagermessage->fk_element = GETPOST("fk_element");
+                        $requestmanagermessage->elementtype = GETPOST("elementtype");
+
+                        if (!$datef && $percentage == 100) {
+                            $error++;
+                            $donotclearsession = 1;
+                            setEventMessages($langs->transnoentitiesnoconv("ErrorFieldRequired", $langs->transnoentitiesnoconv("DateEnd")), $requestmanagermessage->errors, 'errors');
+                            $action = 'edit';
+                        }
+
+                        $transparency = (GETPOST("transparency") == 'on' ? 1 : 0);
+
+                        // Users
+                        $listofuserid = array();
+                        if (!empty($_SESSION['assignedtouser']))    // Now concat assigned users
+                        {
+                            // Restore array with key with same value than param 'id'
+                            $tmplist1 = json_decode($_SESSION['assignedtouser'], true);
+                            $tmplist2 = array();
+                            foreach ($tmplist1 as $key => $val) {
+                                if ($val['id'] > 0 && $val['id'] != $assignedtouser) $listofuserid[$val['id']] = $val;
+                            }
+                        } else {
+                            $assignedtouser = (!empty($requestmanagermessage->userownerid) && $requestmanagermessage->userownerid > 0 ? $requestmanagermessage->userownerid : 0);
+                            if ($assignedtouser) $listofuserid[$assignedtouser] = array('id' => $assignedtouser, 'mandatory' => 0, 'transparency' => ($user->id == $assignedtouser ? $transparency : ''));    // Owner first
+                        }
+
+                        $requestmanagermessage->userassigned = array();
+                        $requestmanagermessage->userownerid = 0; // Clear old content
+                        $i = 0;
+                        foreach ($listofuserid as $key => $val) {
+                            if ($i == 0) $requestmanagermessage->userownerid = $val['id'];
+                            $requestmanagermessage->userassigned[$val['id']] = array('id' => $val['id'], 'mandatory' => 0, 'transparency' => ($user->id == $val['id'] ? $transparency : ''));
+                            $i++;
+                        }
+
+                        $requestmanagermessage->transparency = $transparency;        // We set transparency on event (even if we can also store it on each user, standard says this property is for event)
+
+                        if (!empty($conf->global->AGENDA_ENABLE_DONEBY)) {
+                            if (GETPOST("doneby")) $requestmanagermessage->userdoneid = GETPOST("doneby", "int");
+                        }
+
+                        // Check parameters
+                        if (!GETPOST('actioncode') > 0) {
+                            $error++;
+                            $donotclearsession = 1;
+                            $action = 'edit';
+                            setEventMessages($langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("Type")), null, 'errors');
+                        } else {
+                            $result = $cactioncomm->fetch(GETPOST('actioncode'));
+                        }
+                        if (empty($requestmanagermessage->userownerid)) {
+                            $error++;
+                            $donotclearsession = 1;
+                            $action = 'edit';
+                            setEventMessages($langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("ActionsOwnedBy")), null, 'errors');
+                        }
+
+                        // Fill array 'array_options' with data from add form
+                        $extrafields = new ExtraFields($this->db);
+                        $extralabels = $extrafields->fetch_name_optionals_label($requestmanagermessage->table_element);
+                        $ret = $extrafields->setOptionalsFromPost($extralabels, $requestmanagermessage);
+                        if ($ret < 0) $error++;
+
+                        if (!$error) {
+                            $this->db->begin();
+
+                            $result = $requestmanagermessage->update($user);
+
+                            if ($result > 0) {
+                                unset($_SESSION['assignedtouser']);
+
+                                $this->db->commit();
+                            } else {
+                                setEventMessages($requestmanagermessage->error, $requestmanagermessage->errors, 'errors');
+                                $this->db->rollback();
+                            }
+                        }
+                    }
+
+                    if (!$error) {
+                        if (!empty($backtopage)) {
+                            unset($_SESSION['assignedtouser']);
+                            header("Location: " . $backtopage);
+                            exit;
+                        }
+                    }
+
+                    return 1;*/
+                } elseif ($action == 'confirm_delete' && GETPOST("confirm") == 'yes' && $user->rights->requestmanager->creer) {
+                    dol_include_once('/requestmanager/class/requestmanagermessage.class.php');
+                    $requestmanagermessage = new RequestManagerMessage($this->db);
+
+                    $id = GETPOST('id', 'int');
+                    $requestmanagermessage->fetch($id);
+
+                    $result = $requestmanagermessage->delete();
+
+                    if ($result >= 0) {
+                        header("Location: index.php");
+                        exit;
+                    } else {
+                        setEventMessages($requestmanagermessage->error, $requestmanagermessage->errors, 'errors');
+                    }
                     return 1;
                 }
             }
@@ -192,134 +315,79 @@ class ActionsRequestManager
         return 0;
     }
 
-
     /**
-     * Overloading the formObjectOptions function : replacing the parent's function with the one below
+     * Overloading the addMoreActionsButtons function : replacing the parent's function with the one below
      *
-     * @param   array           $parameters     meta datas of the hook (context, etc...)
-     * @param   CommonObject    $object         the object you want to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-     * @param   string          $action         current action (if set). Generally create or edit or null
-     * @param   HookManager     $hookmanager    current hook manager
-     * @return  void
+     * @param   array()         $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          &$action        Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
      */
     function formObjectOptions($parameters, &$object, &$action, $hookmanager)
     {
-        global $db, $langs;
+        global $langs;
 
         $contexts = explode(':', $parameters['context']);
 
-        if (in_array('actioncard', $contexts)) {
-            dol_include_once('/requestmanager/class/requestmanager.class.php');
+        if (in_array('actioncard', $contexts) &&
+            ($object->type_code == 'AC_RM_OUT' || $object->type_code == 'AC_RM_PRIV' || $object->type_code == 'AC_RM_IN') &&
+            $action != "create" && empty($object->context['requestmanager_hook'])
+        ) {
+            $langs->load('requestmanager@requestmanager');
+
             dol_include_once('/requestmanager/class/requestmanagermessage.class.php');
+            $requestManagerMessage = new RequestManagerMessage($this->db);
+            $requestManagerMessage->fetch($object->id);
+            $requestManagerMessage->fetch_optionals();
 
-            $out = '';
+            require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
+            $extrafields = new ExtraFields($this->db);
+            $extralabels = $extrafields->fetch_name_optionals_label($requestManagerMessage->table_element);
 
-            $requestManagerMessage = new RequestManagerMessage($db);
-            if ($object->code == RequestManager::ACTIONCOMM_TYPE_CODE_IN || $object->code == RequestManager::ACTIONCOMM_TYPE_CODE_OUT) {
-                $requestManagerMessage->loadByFkAction($object->id, TRUE);
-                if ($requestManagerMessage->knowledgeBase) {
-                    $out .= '<tr>';
-                    $out .= '<td class="nowrap" class="titlefield">' . $langs->trans("RequestManagerKnowledgeBaseDictionaryLabel") . '</td>';
-                    $out .= '<td colspan="3">' . $requestManagerMessage->knowledgeBase->code . ' - ' . $requestManagerMessage->knowledgeBase->title . '</td>';
-                    $out .= '</tr>';
-                }
+            $requestManagerMessage->fetch_knowledge_base(1);
+            print '<tr><td class="nowrap" class="titlefield">' . $langs->trans("RequestManagerMessageKnowledgeBase") . '</td>';
+            print ($action == "edit" ? '<td>' : '<td colspan="3">');
+            $toprint = array();
+            foreach($requestManagerMessage->knowledge_base_list as $knowledge_base) {
+                $toprint[] = '<li class="select2-search-choice-dolibarr noborderoncategories style="background: #aaa">' . $knowledge_base->fields['code'] . ' - ' . $knowledge_base->fields['title'] . '</li>';
+            }
+            print '<div class="select2-container-multi-dolibarr" style="width: 90%;"><ul class="select2-choices-dolibarr">'.implode(' ', $toprint).'</ul></div>';
+            print '</tr>';
+
+            print '<tr><td class="nowrap" class="titlefield">' . $langs->trans("RequestManagerMessageNotify") . '</td>';
+            print ($action == "edit" ? '<td>' : '<td colspan="3">');
+            print '<input type="checkbox" id="notify_assigned" name="notify_assigned" value="1"' . (!empty($requestManagerMessage->notify_assigned) ? ' checked="checked"' : '') . ' disabled="disabled" />';
+            print '&nbsp;' . $langs->trans("RequestManagerAssigned");
+            print ' &nbsp; ';
+            print '<input type="checkbox" id="notify_requesters" name="notify_requesters" value="1"' . (!empty($requestManagerMessage->notify_requester) ? ' checked="checked"' : '') . ' disabled="disabled" />';
+            print '&nbsp;' . $langs->trans("RequestManagerRequesterContacts");
+            print ' &nbsp; ';
+            print '<input type="checkbox" id="notify_watchers" name="notify_watchers" value="1"' . (!empty($requestManagerMessage->notify_watcher) ? ' checked="checked"' : '') . ' disabled="disabled" />';
+            print '&nbsp;' . $langs->trans("RequestManagerWatcherContacts");
+            print "</td></tr>";
+
+            // Other attributes
+            if ($action == "edit") {
+                print $requestManagerMessage->showOptionals($extrafields);
             } else {
-                $requestManagerMessage->loadByFkAction($object->id, FALSE);
+                print $requestManagerMessage->showOptionals($extrafields, 'view', array('colspan'=>3));
             }
 
-            if($requestManagerMessage->id > 0)
-            {
-                // Other attributes
-                require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
-                $extrafields = new ExtraFields($db);
-                $extralabels = $extrafields->fetch_name_optionals_label('requestmanager_message');
-                $out .= $requestManagerMessage->showOptionals($extrafields);
-            }
-
-            $this->resprints = $out;
+            return 1;
         }
 
         return 0;
     }
 
-
     /**
-     * 	Show my assigned requests button (with nb or +)
-     */
-    private function _outMyAssignedRequestsButton()
-    {
-        global $langs, $user;
-
-        require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
-        dol_include_once('/requestmanager/class/requestmanager.class.php');
-
-        $out = '';
-
-        // last view date
-        if (isset($_SESSION['rm_lists_follow_last_date'])) {
-            $lastViewDate = $_SESSION['rm_lists_follow_last_date'];
-        } else if ($user->datepreviouslogin) {
-            $lastViewDate = $user->datepreviouslogin;
-        } else {
-            $lastViewDate = '';
-        }
-
-        // nb requests assigned to me
-        $nbRequestsLimit  = 9;
-
-        $requestManager        = new RequestManager($this->db);
-        $isListsFollowModified = $requestManager->isListsFollowModified($lastViewDate);
-        if ($isListsFollowModified === TRUE) {
-            $linkStyleBgColor = '#fff000';
-        } else {
-            $linkStyleBgColor = '#ffffff';
-        }
-        $nbRequests      = $requestManager->countMyAssignedRequests(array(RequestManager::STATUS_TYPE_INITIAL, RequestManager::STATUS_TYPE_IN_PROGRESS));
-        $nbRequestsLabel = $nbRequests<=$nbRequestsLimit ? $nbRequests : $nbRequestsLimit.'+';
-
-        $text  = '<a href="' . dol_buildpath('/requestmanager/lists_follow.php', 1) . '" style="background-color: ' . $linkStyleBgColor . '; border-radius: 4px;">';
-        $text .= '<span style="color: #770000; font-size: 12px; font-weight: bold;">&nbsp;' . $nbRequestsLabel . '&nbsp;</span>';
-        //$text .= img_picto('', 'object_requestmanager@requestmanager', 'id="myassignedrequests"');
-        $text .= '</a>';
-
-        $htmltext  = '<u>' . $langs->trans("RequestManagerMenuTopRequestsFollow") . '</u>' . "\n";
-        $htmltext .= '<br /><b>' . $langs->trans("Total") . '</b> : ' . $nbRequests . "\n";
-        if ($lastViewDate) {
-            $htmltext .= '<br /><b>' . $langs->trans("RequestManagerMenuTopDateLastView") . '</b> : ' . dol_print_date($lastViewDate, 'dayhour') . "\n";
-        }
-        $out .= Form::textwithtooltip('', $htmltext,2,1, $text,'login_block_elem',2);
-
-        return $out;
-    }
-
-
-    /**
-     * 	Show request create fast
-     */
-    private function _outCreateFast()
-    {
-        global $langs;
-
-        require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
-
-        $out = '';
-
-        $text  = '<a href="' . dol_buildpath('/requestmanager/createfast.php?action=createfast', 1) . '" target="_blank">';
-        $text .= img_picto('', 'object_requestmanager@requestmanager', 'id="requestmanager_createfast"');
-        $text .= '</a>';
-
-        $htmltext  = '<u>' . $langs->trans("RequestManagerMenuTopCreateFast") . '</u>' . "\n";
-        $out .= Form::textwithtooltip('', $htmltext,2,1, $text,'login_block_elem',2);
-
-        return $out;
-    }
-
-
-    /**
-     * Print a specific button in top right menu (to show my assigned requests)
+     * Overloading the addMoreActionsButtons function : replacing the parent's function with the one below
      *
-     * @param   array    $parameters     Parameters
-     * @return  int
+     * @param   array()         $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          &$action        Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
      */
     function printTopRightMenu($parameters, &$object, &$action, $hookmanager)
     {
@@ -337,30 +405,15 @@ class ActionsRequestManager
         return 0;
     }
 
-
     /**
-     * Overloading the updateSession function : replacing the parent's function with the one below
+     * Overloading the addMoreActionsButtons function : replacing the parent's function with the one below
      *
-     * @param   array() $parameters Hook metadatas (context, etc...)
-     * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-     * @param   string &$action Current action (if set). Generally create or edit or null
-     * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
+     * @param   array()         $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          &$action        Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
      * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
      */
-    function updateSession($parameters, &$object, &$action, $hookmanager)
-    {
-        return 0;
-    }
-
-    /**
-	 * Overloading the showLinkToObjectBlock function : replacing the parent's function with the one below
-	 *
-	 * @param   array() $parameters Hook metadatas (context, etc...)
-	 * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-	 * @param   string &$action Current action (if set). Generally create or edit or null
-	 * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
-	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
-	 */
 	function showLinkToObjectBlock($parameters, &$object, &$action, $hookmanager)
     {
         global $conf, $langs;
@@ -525,4 +578,137 @@ class ActionsRequestManager
 
         return 0;
     }
+
+    /**
+     * 	Show my assigned requests button (with nb or +)
+     */
+    private function _outMyAssignedRequestsButton()
+    {
+        global $langs, $user;
+
+        require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
+        dol_include_once('/requestmanager/class/requestmanager.class.php');
+
+        $out = '';
+
+        // last view date
+        if (isset($_SESSION['rm_lists_follow_last_date'])) {
+            $lastViewDate = $_SESSION['rm_lists_follow_last_date'];
+        } else if ($user->datepreviouslogin) {
+            $lastViewDate = $user->datepreviouslogin;
+        } else {
+            $lastViewDate = '';
+        }
+
+        // nb requests assigned to me
+        $nbRequestsLimit  = 9;
+
+        $requestManager        = new RequestManager($this->db);
+        $isListsFollowModified = $requestManager->isListsFollowModified($lastViewDate);
+        if ($isListsFollowModified === TRUE) {
+            $linkStyleBgColor = '#fff000';
+        } else {
+            $linkStyleBgColor = '#ffffff';
+        }
+        $nbRequests      = $requestManager->countMyAssignedRequests(array(RequestManager::STATUS_TYPE_INITIAL, RequestManager::STATUS_TYPE_IN_PROGRESS));
+        $nbRequestsLabel = $nbRequests<=$nbRequestsLimit ? $nbRequests : $nbRequestsLimit.'+';
+
+        $text  = '<a href="' . dol_buildpath('/requestmanager/lists_follow.php', 1) . '" style="background-color: ' . $linkStyleBgColor . '; border-radius: 4px;">';
+        $text .= '<span style="color: #770000; font-size: 12px; font-weight: bold;">&nbsp;' . $nbRequestsLabel . '&nbsp;</span>';
+        //$text .= img_picto('', 'object_requestmanager@requestmanager', 'id="myassignedrequests"');
+        $text .= '</a>';
+
+        $htmltext  = '<u>' . $langs->trans("RequestManagerMenuTopRequestsFollow") . '</u>' . "\n";
+        $htmltext .= '<br /><b>' . $langs->trans("Total") . '</b> : ' . $nbRequests . "\n";
+        if ($lastViewDate) {
+            $htmltext .= '<br /><b>' . $langs->trans("RequestManagerMenuTopDateLastView") . '</b> : ' . dol_print_date($lastViewDate, 'dayhour') . "\n";
+        }
+        $out .= Form::textwithtooltip('', $htmltext,2,1, $text,'login_block_elem',2);
+
+        return $out;
+    }
+
+    /**
+     * 	Show request create fast
+     */
+    private function _outCreateFast()
+    {
+        global $langs;
+
+        require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
+
+        $out = '';
+
+        $text  = '<a href="' . dol_buildpath('/requestmanager/createfast.php?action=createfast', 1) . '" target="_blank">';
+        $text .= img_picto('', 'object_requestmanager@requestmanager', 'id="requestmanager_createfast"');
+        $text .= '</a>';
+
+        $htmltext  = '<u>' . $langs->trans("RequestManagerMenuTopCreateFast") . '</u>' . "\n";
+        $out .= Form::textwithtooltip('', $htmltext,2,1, $text,'login_block_elem',2);
+
+        return $out;
+    }
+
+    /**
+     * Overloading the addMoreActionsButtons function : replacing the parent's function with the one below
+     *
+     * @param   array()         $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          &$action        Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+    /*function formConfirm($parameters, &$object, &$action, $hookmanager)
+    {
+        global $conf, $form, $langs, $user;
+
+        if (!empty($conf->synergiestech->enabled)) {
+            $contexts = explode(':', $parameters['context']);
+
+            if (in_array('requestmanagercard', $contexts)) {
+                if ($action == 'addline' && $user->rights->requestmanager->creer) {
+                    $langs->load('synergiestech@synergiestech');
+
+                    // Create the confirm form
+                    $predef = '';
+                    $inputList = array();
+                    $inputList[] = array('type' => 'hidden', 'name'=> 'product_desc', 'value' => GETPOST('dp_desc'));
+                    $inputList[] = array('type' => 'hidden', 'name'=> 'price_ht', 'value' => GETPOST('price_ht'));
+                    $inputList[] = array('type' => 'hidden', 'name'=> 'multicurrency_price_ht', 'value' => GETPOST('multicurrency_price_ht'));
+                    $inputList[] = array('type' => 'hidden', 'name'=> 'prod_entry_mode', 'value' => GETPOST('prod_entry_mode'));
+                    $inputList[] = array('type' => 'hidden', 'name'=> 'tva_tx', 'value' => GETPOST('tva_tx'));
+                    $inputList[] = array('type' => 'hidden', 'name'=> 'idprod', 'value' => GETPOST('idprod'));
+                    $inputList[] = array('type' => 'hidden', 'name'=> 'qty' . $predef, 'value' => GETPOST('qty' . $predef));
+                    $inputList[] = array('type' => 'hidden', 'name'=> 'remise_percent' . $predef, 'value' => GETPOST('remise_percent' . $predef));
+                    $inputList[] = array('type' => 'hidden', 'name'=> 'type', 'value' => GETPOST('type'));
+                    $inputList[] = array('type' => 'hidden', 'name'=> 'date_start' . $predef . 'hour', 'value' => GETPOST('date_start' . $predef . 'hour'));
+                    $inputList[] = array('type' => 'hidden', 'name'=> 'date_start' . $predef . 'min', 'value' => GETPOST('date_start' . $predef . 'min'));
+                    $inputList[] = array('type' => 'hidden', 'name'=> 'date_start' . $predef . 'sec', 'value' => GETPOST('date_start' . $predef . 'sec'));
+                    $inputList[] = array('type' => 'hidden', 'name'=> 'date_start' . $predef . 'month', 'value' => GETPOST('date_start' . $predef . 'month'));
+                    $inputList[] = array('type' => 'hidden', 'name'=> 'date_start' . $predef . 'day', 'value' => GETPOST('date_start' . $predef . 'day'));
+                    $inputList[] = array('type' => 'hidden', 'name'=> 'date_start' . $predef . 'year', 'value' => GETPOST('date_start' . $predef . 'year'));
+                    $inputList[] = array('type' => 'hidden', 'name'=> 'date_end' . $predef . 'hour', 'value' => GETPOST('date_end' . $predef . 'hour'));
+                    $inputList[] = array('type' => 'hidden', 'name'=> 'date_end' . $predef . 'min', 'value' => GETPOST('date_end' . $predef . 'min'));
+                    $inputList[] = array('type' => 'hidden', 'name'=> 'date_end' . $predef . 'sec', 'value' => GETPOST('date_end' . $predef . 'sec'));
+                    $inputList[] = array('type' => 'hidden', 'name'=> 'date_end' . $predef . 'month', 'value' => GETPOST('date_end' . $predef . 'month'));
+                    $inputList[] = array('type' => 'hidden', 'name'=> 'date_end' . $predef . 'day', 'value' => GETPOST('date_end' . $predef . 'day'));
+                    $inputList[] = array('type' => 'hidden', 'name'=> 'date_end' . $predef . 'year', 'value' => GETPOST('date_end' . $predef . 'year'));
+                    $inputList[] = array('type' => 'hidden', 'name'=> 'price_base_type', 'value' => GETPOST('price_base_type'));
+                    $inputList[] = array('type' => 'hidden', 'name'=> 'product_label', 'value' => GETPOST('product_label'));
+                    $inputList[] = array('type' => 'hidden', 'name'=> 'price_ttc', 'value' => GETPOST('price_ttc'));
+                    $inputList[] = array('type' => 'hidden', 'name'=> 'units', 'value' => GETPOST('units'));
+                    $inputList[] = array('type' => 'hidden', 'name'=> 'fournprice' . $predef, 'value' => GETPOST('fournprice' . $predef));
+                    $inputList[] = array('type' => 'hidden', 'name'=> 'buying_price' . $predef, 'value' => GETPOST('buying_price' . $predef));
+                    $inputList[] = array('type' => 'hidden', 'name'=> 'fk_parent_line', 'value' => GETPOST('fk_parent_line'));
+                    $inputList[] = array('type' => 'hidden', 'name'=> 'lang_id', 'value' => GETPOST('lang_id'));
+
+                    $this->resprints = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('SynergiesTechProductOffFormula'), $langs->trans('SynergiesTechConfirmProductOffFormula'), 'addline', $inputList, '', 1);
+
+                    return 1;
+                }
+            }
+        }
+
+        return 0;
+    }*/
 }

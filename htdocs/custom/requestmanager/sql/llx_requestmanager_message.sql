@@ -17,9 +17,11 @@
 -- Table of journals for accountancy
 -- ============================================================================
 
-CREATE TABLE IF NOT EXISTS llx_requestmanager_message
+CREATE TABLE llx_requestmanager_message
 (
   rowid               integer AUTO_INCREMENT PRIMARY KEY,
-  fk_actioncomm       integer NOT NULL,	          -- id of the actioncomm
-  fk_knowledge_base   integer NOT NULL DEFAULT 0	-- id of dictionary of requestmanager knowledge base (c_requestmanager_knowledge_base)
+  fk_actioncomm       integer NOT NULL,	  -- id of the actioncomm
+  notify_assigned     integer(1) NULL,  	-- notify assigned
+  notify_requesters   integer(1) NULL,  	-- notify requesters
+  notify_watchers     integer(1) NULL  	  -- notify watchers
 ) ENGINE=innodb;

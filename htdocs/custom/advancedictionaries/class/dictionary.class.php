@@ -179,8 +179,9 @@ class Dictionary extends CommonObject
      * @var array  List of fields/indexes added, updated or deleted for a version
      * array(
      *   'version' => array(
-     *     'fields' => array('field_name'=>'a', 'field_name'=>'u', 'field_name'=>'d', ...), // List of field name who is added(a) or updated(u) or deleted(d) for a version
-     *     'indexes' => array('idx_number'=>'a', 'idx_number'=>'u', 'idx_number'=>'d', ...), // List of indexes number who is added(a) or updated(u) or deleted(d) for a version
+     *     'fields' => array('field_name'=>'u', ...), // List of field name who is updated(u) for a version
+     *     'deleted_fields' => array('field_name'=> array('name', 'type', other_custom_data_required_for_delete), ...), // List of field name who is deleted for a version
+     *     'indexes' => array('idx_number'=>'u', 'idx_number'=>'d', ...), // List of indexes number who is updated(u) or deleted(d) for a version
      *   ),
      * )
      */
@@ -361,7 +362,7 @@ class Dictionary extends CommonObject
             $typedb = isset($field['database']['type']) ? $field['database']['type'] : $typedb;
             $lengthdb = isset($field['database']['length']) ? $field['database']['length'] : $lengthdb;
             $nulldb = !empty($field['is_require']) ? ' NOT NULL' : ' NULL';
-            $defaultdb = !empty($field['database']['default']) ? " DEFAULT '" . $this->db->escape($field['database']['default']) . "'" : '';
+            $defaultdb = isset($field['database']['default']) ? " DEFAULT '" . $this->db->escape($field['database']['default']) . "'" : '';
 
             return $field['name'] . ' ' . $typedb . (!empty($lengthdb) ? '('.$lengthdb.')' : '') . $nulldb . $defaultdb;
         }
@@ -607,6 +608,11 @@ class Dictionary extends CommonObject
                                         $this->error = $this->db->lasterror();
                                         return -1;
                                     }
+                                } else {
+                                    $result = $this->createSubTable($field);
+                                    if ($result < 0) {
+                                        return -1;
+                                    }
                                 }
                                 break;
                             case 'u':
@@ -626,23 +632,26 @@ class Dictionary extends CommonObject
                                     }
                                 }
                                 break;
-                            case 'd':
-                                // Delete column of dictionary table
-                                $instructionSQL = $this->definitionTableFieldInstructionSQL($this->fields[$field_name]);
-                                if (!empty($instructionSQL)) {
-                                    $sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' DROP COLUMN ' . $field_name;
-                                    $resql = $this->db->query($sql);
-                                    if (!$resql) {
-                                        $this->error = $this->db->lasterror();
-                                        return -1;
-                                    }
-                                } else {
-                                    $result = $this->deleteSubTable($this->fields[$field_name]);
-                                    if ($result < 0) {
-                                        return -1;
-                                    }
-                                }
-                                break;
+                        }
+                    }
+                }
+                // Delete fields
+                if (is_array($datas['delete_fields'])) {
+                    foreach ($datas['delete_fields'] as $field_name => $field) {
+                        // Delete column of dictionary table
+                        $instructionSQL = $this->definitionTableFieldInstructionSQL($field);
+                        if (!empty($instructionSQL)) {
+                            $sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' DROP COLUMN ' . $field_name;
+                            $resql = $this->db->query($sql);
+                            if (!$resql) {
+                                $this->error = $this->db->lasterror();
+                                return -1;
+                            }
+                        } else {
+                            $result = $this->deleteSubTable($field);
+                            if ($result < 0) {
+                                return -1;
+                            }
                         }
                     }
                 }
@@ -734,7 +743,7 @@ class Dictionary extends CommonObject
             switch ($field['type']) {
                 case 'chkbxlst':
                     // Delete association table for the multi-select list
-                    $sql = 'DELETE TABLE ' . MAIN_DB_PREFIX . $this->table_name . '_cbl_' . $field['name'];
+                    $sql = 'DROP TABLE ' . MAIN_DB_PREFIX . $this->table_name . '_cbl_' . $field['name'];
                     $resql = $this->db->query($sql);
                     if (!$resql) {
                         $this->error = $this->db->lasterror();
@@ -1136,16 +1145,16 @@ class Dictionary extends CommonObject
     /**
 	 *  Load array lines with filters, orders and limit
 	 *
-     * @param   int             $filter_active                  Filter on the active field (-1: all, 0: inactive, 1:active)
-     * @param   array           $filters                        List of filters: array(fieldName => value), value is a array search a list of rowid
-     * @param   array           $orders                         Order by: array(fieldName => order, ...)
-     * @param   int             $offset                         Offset of the limit
-     * @param   int             $limit                          Length of the limit
-     * @param   bool            $nb_lines                       Return only the nb line of the request if ok
-     * @param   bool            $return_array                   Return a array
-     * @param   string          $additionalWhereStatement       Additionnal lines of statement for where statement, [[fieldName]] replaced by this field name in the request, {{ }} if for the field id of multi-select field
-     * @param   string          $additionalHavingStatement      Additionnal lines of statement for having statement, [[fieldName]] replaced by this field name in the request, {{ }} if for the field id of multi-select field
-	 * @return  int|array                                       <0 if KO, >0 if OK
+     * @param   int                     $filter_active                  Filter on the active field (-1: all, 0: inactive, 1:active)
+     * @param   array                   $filters                        List of filters: array(fieldName => value), value is a array search a list of rowid
+     * @param   array                   $orders                         Order by: array(fieldName => order, ...)
+     * @param   int                     $offset                         Offset of the limit
+     * @param   int                     $limit                          Length of the limit
+     * @param   bool                    $nb_lines                       Return only the nb line of the request if ok
+     * @param   bool                    $return_array                   Return a array
+     * @param   string                  $additionalWhereStatement       Additionnal lines of statement for where statement, [[fieldName]] replaced by this field name in the request, {{ }} if for the field id of multi-select field
+     * @param   string                  $additionalHavingStatement      Additionnal lines of statement for having statement, [[fieldName]] replaced by this field name in the request, {{ }} if for the field id of multi-select field
+	 * @return  int|DictionaryLine[]                                    <0 if KO, >0 if OK
 	 */
 	function fetch_lines($filter_active=-1, $filters=array(), $orders=array(), $offset=0, $limit=0, $nb_lines=false, $return_array=false, $additionalWhereStatement='', $additionalHavingStatement='')
     {
@@ -1602,8 +1611,6 @@ class Dictionary extends CommonObject
             $field = $this->fields[$fieldName];
 
             switch ($field['type']) {
-                case 'radio':
-                case 'checkbox':
                 case 'boolean':
                 case 'date':
                 case 'datetime':
@@ -2526,24 +2533,27 @@ class DictionaryLine extends CommonObjectLine
                         case 'mail':
                         case 'url':
                         case 'password':
-                        case 'link':
-                        case 'radio':
+                            if (empty($value))
+                                $checkField = false;
+                            break;
                         case 'checkbox':
                         case 'chkbxlst':
-                        if (empty($value))
-                            $checkField = false;
-                        break;
+                            if (trim($value) === '')
+                                $checkField = false;
+                            break;
                         case 'int':
                         case 'double':
                         case 'price':
-                        if ($value === '' || (isset($field['min']) && $value < $field['min']) || (isset($field['max']) && $value > $field['max']))
-                            $checkField = false;
-                        break;
+                            if ($value === '' || (isset($field['min']) && $value < $field['min']) || (isset($field['max']) && $value > $field['max']))
+                                $checkField = false;
+                            break;
                         case 'date':
                         case 'datetime':
                             if (empty($value))
                                 $checkField = false;
                             break;
+                        case 'link':
+                        case 'radio':
                         case 'select':
                         case 'sellist':
                         case 'boolean':

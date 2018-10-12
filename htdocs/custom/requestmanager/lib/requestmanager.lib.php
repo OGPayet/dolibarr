@@ -256,7 +256,7 @@ function requestmanager_show_events(&$requestmanager)
         $search_date_end = '';
         $search_location = '';
         $search_owned_by = '';
-        $search_assigned_to = '';
+        //$search_assigned_to = '';
         $search_done_by = '';
         $search_project = '';
         $search_priority = '';
@@ -354,13 +354,13 @@ function requestmanager_show_events(&$requestmanager)
     $sql .= ' WHERE ac.fk_soc IN (' . implode(',', $soc_ids) . ')';
     $sql .= ' AND ac.entity IN (' . getEntity('agenda') . ')';
     if ($search_only_linked_to_request) {
-        $sql .= " AND IF(ac.elementtype='requestmanager', ac.fk_element, IF(ee.sourcetype!='requestmanager' AND ee.targettype='requestmanager', ee.fk_target, IF(ee.sourcetype='requestmanager', ee.fk_source, NULL))) IN(" . (!empty($request_ids) ? $request_ids : '-1') . ")";
+        $sql .= " AND IF(ac.elementtype='requestmanager', ac.fk_element, IF(ee.targettype='requestmanager', ee.fk_target, IF(ee.sourcetype='requestmanager', ee.fk_source, NULL))) IN(" . (!empty($request_ids) ? $request_ids : '-1') . ")";
     } else {
         if (!$search_include_event_other_request) {
             $sql .= " AND (ac.elementtype != 'requestmanager' OR ac.fk_element IN (" . (!empty($request_ids) ? $request_ids : '-1') . "))";
         }
         if (!$search_include_linked_event_to_children_request) {
-            $sql .= " AND IF(ac.elementtype='requestmanager', ac.fk_element, IF(ee.sourcetype!='requestmanager' AND ee.targettype='requestmanager', ee.fk_target, IF(ee.sourcetype='requestmanager', ee.fk_source, NULL))) NOT IN (" . (!empty($request_children_ids) ? $request_children_ids : '-1') . ")";
+            $sql .= " AND IF(ac.elementtype='requestmanager', ac.fk_element, IF(ee.targettype='requestmanager', ee.fk_target, IF(ee.sourcetype='requestmanager', ee.fk_source, NULL))) NOT IN (" . (!empty($request_children_ids) ? $request_children_ids : '-1') . ")";
         }
     }
     if ($search_ref) $sql .= natural_search('ac.id', $search_ref);
@@ -481,7 +481,7 @@ function requestmanager_show_events(&$requestmanager)
         if ($search_date_end) $param .= '&search_date_end=' . urlencode($search_date_end);
         if ($search_location) $param .= '&search_location=' . urlencode($search_location);
         if ($search_owned_by) $param .= '&search_owned_by=' . urlencode($search_owned_by);
-        if ($search_assigned_to) $param .= '&search_assigned_to=' . urlencode($search_assigned_to);
+        //if ($search_assigned_to) $param .= '&search_assigned_to=' . urlencode($search_assigned_to);
         if ($search_done_by) $param .= '&search_done_by=' . urlencode($search_done_by);
         if ($search_project) $param .= '&search_project=' . urlencode($search_project);
         if ($search_priority) $param .= '&search_priority=' . urlencode($search_priority);

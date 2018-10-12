@@ -32,6 +32,8 @@ dol_include_once('/requestmanager/lib/requestmanager.lib.php');
 dol_include_once('/requestmanager/class/requestmanager.class.php');
 
 $langs->load("admin");
+$langs->load("errors");
+$langs->load("mails");
 $langs->load("requestmanager@requestmanager");
 $langs->load("opendsi@requestmanager");
 
@@ -47,69 +49,61 @@ $action = GETPOST('action','alpha');
 $errors = [];
 $error = 0;
 
-if ($action == 'updateMask') {
-    $maskconst = GETPOST('maskconst', 'alpha');
-    $maskvalue = GETPOST('maskvalue', 'alpha');
-    if ($maskconst) $res = dolibarr_set_const($db, $maskconst, $maskvalue, 'chaine', 0, '', $conf->entity);
-
-    if (!$res > 0) $error++;
-
-    if (!$error) {
-        setEventMessages($langs->trans("SetupSaved"), null, 'mesgs');
-    } else {
-        setEventMessages($langs->trans("Error"), null, 'errors');
+if ($action == 'set_notification_assigned_options') {
+    $email_address = $email = GETPOST('REQUESTMANAGER_ASSIGNED_NOTIFICATION_SEND_FROM', "alpha");
+    if (preg_match('/<([^>]+)>/i', $email, $matches)) $email_address = $matches[1];
+    if (empty($email) || isValidEmail($email_address)) {
+        $res = dolibarr_set_const($db, 'REQUESTMANAGER_ASSIGNED_NOTIFICATION_SEND_FROM', $email, 'chaine', 0, '', $conf->entity);
+        if (!$res > 0) {
+            $errors[] = $db->lasterror();
+            $error++;
+        }
+    } elseif (!empty($email)) {
+        $errors[] = $langs->trans('BadEMail') . ': ' . dol_htmlentities($email);
+        $error++;
     }
-} else if ($action == 'setrefmod') {
-    // TODO Verifier si module numerotation choisi peut etre active
-    // par appel methode canBeActivated
-
-    dolibarr_set_const($db, "REQUESTMANAGER_REF_ADDON", $value, 'chaine', 0, '', $conf->entity);
-} else if ($action == 'setrefextmod') {
-    // TODO Verifier si module numerotation choisi peut etre active
-    // par appel methode canBeActivated
-
-    dolibarr_set_const($db, "REQUESTMANAGER_REFEXT_ADDON", $value, 'chaine', 0, '', $conf->entity);
-} elseif (preg_match('/set_(.*)/',$action,$reg)) {
-    $code = $reg[1];
-    $value = (GETPOST($code) ? GETPOST($code) : 1);
-    if (dolibarr_set_const($db, $code, $value, 'chaine', 0, '', $conf->entity) > 0) {
-        Header("Location: " . $_SERVER["PHP_SELF"]);
-        exit;
-    } else {
-        $errors[] = $db->lasterror();
-        setEventMessages($langs->trans("Error"), $errors, 'errors');
+} elseif ($action == 'set_notification_requester_options') {
+    $email_address = $email = GETPOST('REQUESTMANAGER_REQUESTER_NOTIFICATION_SEND_FROM', "alpha");
+    if (preg_match('/<([^>]+)>/i', $email, $matches)) $email_address = $matches[1];
+    if (empty($email) || isValidEmail($email_address)) {
+        $res = dolibarr_set_const($db, 'REQUESTMANAGER_REQUESTER_NOTIFICATION_SEND_FROM', $email, 'chaine', 0, '', $conf->entity);
+        if (!$res > 0) {
+            $errors[] = $db->lasterror();
+            $error++;
+        }
+    } elseif (!empty($email)) {
+        $errors[] = $langs->trans('BadEMail') . ': ' . dol_htmlentities($email);
+        $error++;
     }
-} elseif (preg_match('/del_(.*)/',$action,$reg)) {
-    $code = $reg[1];
-    if (dolibarr_del_const($db, $code, $conf->entity) > 0) {
-        Header("Location: " . $_SERVER["PHP_SELF"]);
-        exit;
-    } else {
-        $errors[] = $db->lasterror();
-        setEventMessages($langs->trans("Error"), $errors, 'errors');
+} elseif ($action == 'set_notification_watchers_options') {
+    $email_address = $email = GETPOST('REQUESTMANAGER_WATCHERS_NOTIFICATION_SEND_FROM', "alpha");
+    if (preg_match('/<([^>]+)>/i', $email, $matches)) $email_address = $matches[1];
+    if (empty($email) || isValidEmail($email_address)) {
+        $res = dolibarr_set_const($db, 'REQUESTMANAGER_WATCHERS_NOTIFICATION_SEND_FROM', $email, 'chaine', 0, '', $conf->entity);
+        if (!$res > 0) {
+            $errors[] = $db->lasterror();
+            $error++;
+        }
+    } elseif (!empty($email)) {
+        $errors[] = $langs->trans('BadEMail') . ': ' . dol_htmlentities($email);
+        $error++;
     }
 } elseif ($action == 'set') {
-    $res = dolibarr_set_const($db, 'REQUESTMANAGER_NOTIFICATION_SEND_FROM', GETPOST('REQUESTMANAGER_NOTIFICATION_SEND_FROM'), 'chaine', 0, '', $conf->entity);
-    if (!$res > 0) {
-        $errors[] = $db->lasterror();
-        $error++;
-    }
-
-    // operation time default in minute
-    $operationTimeDefault = GETPOST('REQUESTMANAGER_OPERATION_TIME_DEFAULT', 'int') ? GETPOST('REQUESTMANAGER_OPERATION_TIME_DEFAULT', 'int') : 0;
-    $res = dolibarr_set_const($db, 'REQUESTMANAGER_OPERATION_TIME_DEFAULT', $operationTimeDefault, 'chaine', 0, '', $conf->entity);
-    if (!$res > 0) {
-        $errors[] = $db->lasterror();
-        $error++;
-    }
-
-    // deadline time default in minute
-    $deadlineTimeDefault = GETPOST('REQUESTMANAGER_DEADLINE_TIME_DEFAULT', 'int') ? GETPOST('REQUESTMANAGER_DEADLINE_TIME_DEFAULT', 'int') : 0;
-    $res = dolibarr_set_const($db, 'REQUESTMANAGER_DEADLINE_TIME_DEFAULT', $deadlineTimeDefault, 'chaine', 0, '', $conf->entity);
-    if (!$res > 0) {
-        $errors[] = $db->lasterror();
-        $error++;
-    }
+//    // operation time default in minute
+//    $operationTimeDefault = GETPOST('REQUESTMANAGER_OPERATION_TIME_DEFAULT', 'int') ? GETPOST('REQUESTMANAGER_OPERATION_TIME_DEFAULT', 'int') : 0;
+//    $res = dolibarr_set_const($db, 'REQUESTMANAGER_OPERATION_TIME_DEFAULT', $operationTimeDefault, 'chaine', 0, '', $conf->entity);
+//    if (!$res > 0) {
+//        $errors[] = $db->lasterror();
+//        $error++;
+//    }
+//
+//    // deadline time default in minute
+//    $deadlineTimeDefault = GETPOST('REQUESTMANAGER_DEADLINE_TIME_DEFAULT', 'int') ? GETPOST('REQUESTMANAGER_DEADLINE_TIME_DEFAULT', 'int') : 0;
+//    $res = dolibarr_set_const($db, 'REQUESTMANAGER_DEADLINE_TIME_DEFAULT', $deadlineTimeDefault, 'chaine', 0, '', $conf->entity);
+//    if (!$res > 0) {
+//        $errors[] = $db->lasterror();
+//        $error++;
+//    }
 
     // root product categories
     $rootProductCategories = GETPOST('REQUESTMANAGER_ROOT_PRODUCT_CATEGORIES', 'int') > 0 ? GETPOST('REQUESTMANAGER_ROOT_PRODUCT_CATEGORIES', 'int') : '';
@@ -132,26 +126,45 @@ if ($action == 'updateMask') {
         $errors[] = $db->lasterror();
         $error++;
     }
-
-    /*$res = dolibarr_set_const($db, 'requestmanager_BASE_PRICE_DISCOUNT', GETPOST('requestmanager_BASE_PRICE_DISCOUNT', "alpha"), 'chaine', 0, '', $conf->entity);
+} elseif ($action == 'updateMask') {
+    $maskconst = GETPOST('maskconst', 'alpha');
+    $maskvalue = GETPOST('maskvalue', 'alpha');
+    if ($maskconst) $res = dolibarr_set_const($db, $maskconst, $maskvalue, 'chaine', 0, '', $conf->entity);
     if (!$res > 0) {
+        $error++;
+    }
+} else if ($action == 'setrefmod') {
+    // TODO Verifier si module numerotation choisi peut etre active
+    // par appel methode canBeActivated
+
+    dolibarr_set_const($db, "REQUESTMANAGER_REF_ADDON", $value, 'chaine', 0, '', $conf->entity);
+} else if ($action == 'setrefextmod') {
+    // TODO Verifier si module numerotation choisi peut etre active
+    // par appel methode canBeActivated
+
+    dolibarr_set_const($db, "REQUESTMANAGER_REFEXT_ADDON", $value, 'chaine', 0, '', $conf->entity);
+} elseif (preg_match('/set_(.*)/',$action,$reg)) {
+    $code = $reg[1];
+    $value = (GETPOST($code) ? GETPOST($code) : 1);
+    if (dolibarr_set_const($db, $code, $value, 'chaine', 0, '', $conf->entity) > 0) {
+        Header("Location: " . $_SERVER["PHP_SELF"]);
+        exit;
+    } else {
         $errors[] = $db->lasterror();
         $error++;
     }
-
-    $res = dolibarr_set_const($db, 'requestmanager_CALCULATION_MODE_WITH_EXISTING_DISCOUNT', GETPOST('requestmanager_CALCULATION_MODE_WITH_EXISTING_DISCOUNT', "int"), 'chaine', 0, '', $conf->entity);
-    if (!$res > 0) {
+} elseif (preg_match('/del_(.*)/',$action,$reg)) {
+    $code = $reg[1];
+    if (dolibarr_del_const($db, $code, $conf->entity) > 0) {
+        Header("Location: " . $_SERVER["PHP_SELF"]);
+        exit;
+    } else {
         $errors[] = $db->lasterror();
         $error++;
     }
+}
 
-    $round_precision = GETPOST('requestmanager_DISCOUNT_ROUND_PRECISION', "int");
-    $res = dolibarr_set_const($db, 'requestmanager_DISCOUNT_ROUND_PRECISION', (empty($round_precision) ? 2 : $round_precision), 'chaine', 0, '', $conf->entity);
-    if (!$res > 0) {
-        $errors[] = $db->lasterror();
-        $error++;
-    }*/
-
+if ($action != '') {
     if (!$error) {
         setEventMessage($langs->trans("SetupSaved"));
     } else {
@@ -178,9 +191,9 @@ dol_fiche_head($head, 'settings', $langs->trans("Module163018Name"), 0, 'opendsi
 $dirmodels=array_merge(array('/requestmanager/'),(array) $conf->modules_parts['models']);
 
 
-/*
- *  Module ref numerotation
- */
+/********************************************************
+ *  Module ref numbering
+ ********************************************************/
 print load_fiche_titre($langs->trans("RequestManagerRefNumberingModules"),'','');
 
 print '<table class="noborder" width="100%">';
@@ -279,9 +292,9 @@ foreach ($dirmodels as $reldir)
 print "</table><br>\n";
 
 
-/*
- *  Module external ref numerotation
- */
+/********************************************************
+ *  Module external ref numbering
+ ********************************************************/
 print load_fiche_titre($langs->trans("RequestManagerExternalRefNumberingModules"),'','');
 
 print '<table class="noborder" width="100%">';
@@ -379,7 +392,280 @@ foreach ($dirmodels as $reldir)
 }
 print "</table><br>\n";
 
+/********************************************************
+ *  Notification options
+ ********************************************************/
+print load_fiche_titre($langs->trans("RequestManagerNotificationOptions"),'','');
+
+print '<form method="post" action="'.$_SERVER["PHP_SELF"].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_notification_options">';
+
+$var=true;
+
+print '<table class="noborder" width="100%">';
+print '<tr class="liste_titre">';
+print '<td width="20%">'.$langs->trans("Name").'</td>'."\n";
+print '<td>'.$langs->trans("Description").'</td>'."\n";
+print '<td align="right">'.$langs->trans("Value").'</td>'."\n";
+print "</tr>\n";
+
+// REQUESTMANAGERMESSAGE_CREATE_NOTIFY
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>'.$langs->trans("RequestManagerMessageCreateNotifyName").'</td>'."\n";
+print '<td>'.$langs->trans("RequestManagerMessageCreateNotifyDesc").'</td>'."\n";
+print '<td align="right">' . "\n";
+if (!empty($conf->use_javascript_ajax)) {
+    print ajax_constantonoff('REQUESTMANAGERMESSAGE_CREATE_NOTIFY');
+} else {
+    if (empty($conf->global->REQUESTMANAGERMESSAGE_CREATE_NOTIFY)) {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_REQUESTMANAGERMESSAGE_CREATE_NOTIFY">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+    } else {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_REQUESTMANAGERMESSAGE_CREATE_NOTIFY">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+    }
+}
+print '</td></tr>' . "\n";
+
+// REQUESTMANAGER_SET_ASSIGNED_NOTIFY
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>'.$langs->trans("RequestManagerSetAssignedNotifyName").'</td>'."\n";
+print '<td>'.$langs->trans("RequestManagerSetAssignedNotifyDesc").'</td>'."\n";
+print '<td align="right">' . "\n";
+if (!empty($conf->use_javascript_ajax)) {
+    print ajax_constantonoff('REQUESTMANAGER_SET_ASSIGNED_NOTIFY');
+} else {
+    if (empty($conf->global->REQUESTMANAGER_SET_ASSIGNED_NOTIFY)) {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_REQUESTMANAGER_SET_ASSIGNED_NOTIFY">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+    } else {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_REQUESTMANAGER_SET_ASSIGNED_NOTIFY">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+    }
+}
+print '</td></tr>' . "\n";
+
+// REQUESTMANAGER_STATUS_MODIFY_NOTIFY
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>'.$langs->trans("RequestManagerStatusModifyNotifyName").'</td>'."\n";
+print '<td>'.$langs->trans("RequestManagerStatusModifyNotifyDesc").'</td>'."\n";
+print '<td align="right">' . "\n";
+if (!empty($conf->use_javascript_ajax)) {
+    print ajax_constantonoff('REQUESTMANAGER_STATUS_MODIFY_NOTIFY');
+} else {
+    if (empty($conf->global->REQUESTMANAGER_STATUS_MODIFY_NOTIFY)) {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_REQUESTMANAGER_STATUS_MODIFY_NOTIFY">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+    } else {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_REQUESTMANAGER_STATUS_MODIFY_NOTIFY">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+    }
+}
+print '</td></tr>' . "\n";
+
+print '</table>';
+
+print '</form><br>' . "\n";
+
+/********************************************************
+ *  Notification assigned options
+ ********************************************************/
+print load_fiche_titre($langs->trans("RequestManagerNotificationAssignedOptions"),'','');
+
+print '<form method="post" action="'.$_SERVER["PHP_SELF"].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_notification_assigned_options">';
+
+$var=true;
+
+print '<table class="noborder" width="100%">';
+print '<tr class="liste_titre">';
+print '<td width="20%">'.$langs->trans("Name").'</td>'."\n";
+print '<td>'.$langs->trans("Description").'</td>'."\n";
+print '<td align="right">'.$langs->trans("Value").'</td>'."\n";
+print "</tr>\n";
+
+// REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_EMAIL
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>'.$langs->trans("RequestManagerNotificationAssignedByEmailName").'</td>'."\n";
+print '<td>'.$langs->trans("RequestManagerNotificationAssignedByEmailDesc").'</td>'."\n";
+print '<td align="right">' . "\n";
+if (!empty($conf->use_javascript_ajax)) {
+    print ajax_constantonoff('REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_EMAIL');
+} else {
+    if (empty($conf->global->REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_EMAIL)) {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_EMAIL">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+    } else {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_EMAIL">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+    }
+}
+print '</td></tr>' . "\n";
+
+// REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_WEBSITE
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>'.$langs->trans("RequestManagerNotificationAssignedByWebSiteName").'</td>'."\n";
+print '<td>'.$langs->trans("RequestManagerNotificationAssignedByWebSiteDesc").'</td>'."\n";
+print '<td align="right">' . "\n";
+if (!empty($conf->use_javascript_ajax)) {
+    print ajax_constantonoff('REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_WEBSITE');
+} else {
+    if (empty($conf->global->REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_WEBSITE)) {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_WEBSITE">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+    } else {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_WEBSITE">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+    }
+}
+print '</td></tr>' . "\n";
+
+// REQUESTMANAGER_ASSIGNED_NOTIFICATION_SEND_FROM
+$var=!$var;
+print '<tr '.$bc[$var].'>'."\n";
+print '<td>'.$langs->trans("RequestManagerAssignedNotificationSendFromName").'</td>'."\n";
+print '<td>'.$langs->trans("RequestManagerAssignedNotificationSendFromDesc").'</td>'."\n";
+print '<td align="right">'."\n";
+$email = GETPOST('REQUESTMANAGER_ASSIGNED_NOTIFICATION_SEND_FROM', "alpha");
+print '<input type="text" size="100" name="REQUESTMANAGER_ASSIGNED_NOTIFICATION_SEND_FROM" value="'.(!empty($email) ? $email : $conf->global->REQUESTMANAGER_ASSIGNED_NOTIFICATION_SEND_FROM).'">';
+print '</td></tr>'."\n";
+
+// REQUESTMANAGER_SPLIT_ASSIGNED_NOTIFICATION
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>'.$langs->trans("RequestManagerSplitAssignedNotificationName").'</td>'."\n";
+print '<td>'.$langs->trans("RequestManagerSplitAssignedNotificationDesc").'</td>'."\n";
+print '<td align="right">' . "\n";
+if (!empty($conf->use_javascript_ajax)) {
+    print ajax_constantonoff('REQUESTMANAGER_SPLIT_ASSIGNED_NOTIFICATION');
+} else {
+    if (empty($conf->global->REQUESTMANAGER_SPLIT_ASSIGNED_NOTIFICATION)) {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_REQUESTMANAGER_SPLIT_ASSIGNED_NOTIFICATION">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+    } else {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_REQUESTMANAGER_SPLIT_ASSIGNED_NOTIFICATION">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+    }
+}
+print '</td></tr>' . "\n";
+
+print '</table>';
+
 print '<br>';
+print '<div align="center">';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</div>';
+
+print '</form>';
+
+/********************************************************
+ *  Notification requester options
+ ********************************************************/
+print load_fiche_titre($langs->trans("RequestManagerNotificationRequesterOptions"),'','');
+
+print '<form method="post" action="'.$_SERVER["PHP_SELF"].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_notification_requester_options">';
+
+$var=true;
+
+print '<table class="noborder" width="100%">';
+print '<tr class="liste_titre">';
+print '<td width="20%">'.$langs->trans("Name").'</td>'."\n";
+print '<td>'.$langs->trans("Description").'</td>'."\n";
+print '<td align="right">'.$langs->trans("Value").'</td>'."\n";
+print "</tr>\n";
+
+// REQUESTMANAGER_REQUESTER_NOTIFICATION_SEND_FROM
+$var=!$var;
+print '<tr '.$bc[$var].'>'."\n";
+print '<td>'.$langs->trans("RequestManagerRequesterNotificationSendFromName").'</td>'."\n";
+print '<td>'.$langs->trans("RequestManagerRequesterNotificationSendFromDesc").'</td>'."\n";
+print '<td align="right">'."\n";
+$email = GETPOST('REQUESTMANAGER_REQUESTER_NOTIFICATION_SEND_FROM', "alpha");
+print '<input type="text" size="100" name="REQUESTMANAGER_REQUESTER_NOTIFICATION_SEND_FROM" value="'.(!empty($email) ? $email : $conf->global->REQUESTMANAGER_REQUESTER_NOTIFICATION_SEND_FROM).'">';
+print '</td></tr>'."\n";
+
+// REQUESTMANAGER_SPLIT_REQUESTER_NOTIFICATION
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>'.$langs->trans("RequestManagerSplitRequesterNotificationName").'</td>'."\n";
+print '<td>'.$langs->trans("RequestManagerSplitRequesterNotificationDesc").'</td>'."\n";
+print '<td align="right">' . "\n";
+if (!empty($conf->use_javascript_ajax)) {
+    print ajax_constantonoff('REQUESTMANAGER_SPLIT_REQUESTER_NOTIFICATION');
+} else {
+    if (empty($conf->global->REQUESTMANAGER_SPLIT_REQUESTER_NOTIFICATION)) {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_REQUESTMANAGER_SPLIT_REQUESTER_NOTIFICATION">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+    } else {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_REQUESTMANAGER_SPLIT_REQUESTER_NOTIFICATION">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+    }
+}
+print '</td></tr>' . "\n";
+
+print '</table>';
+
+print '<br>';
+print '<div align="center">';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</div>';
+
+print '</form>';
+
+/********************************************************
+ *  Notification watchers options
+ ********************************************************/
+print load_fiche_titre($langs->trans("RequestManagerNotificationWatchersOptions"),'','');
+
+print '<form method="post" action="'.$_SERVER["PHP_SELF"].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_notification_watchers_options">';
+
+$var=true;
+
+print '<table class="noborder" width="100%">';
+print '<tr class="liste_titre">';
+print '<td width="20%">'.$langs->trans("Name").'</td>'."\n";
+print '<td>'.$langs->trans("Description").'</td>'."\n";
+print '<td align="right">'.$langs->trans("Value").'</td>'."\n";
+print "</tr>\n";
+
+// REQUESTMANAGER_WATCHERS_NOTIFICATION_SEND_FROM
+$var=!$var;
+print '<tr '.$bc[$var].'>'."\n";
+print '<td>'.$langs->trans("RequestManagerWatchersNotificationSendFromName").'</td>'."\n";
+print '<td>'.$langs->trans("RequestManagerWatchersNotificationSendFromDesc").'</td>'."\n";
+print '<td align="right">'."\n";
+$email = GETPOST('REQUESTMANAGER_WATCHERS_NOTIFICATION_SEND_FROM', "alpha");
+print '<input type="text" size="100" name="REQUESTMANAGER_WATCHERS_NOTIFICATION_SEND_FROM" value="'.(!empty($email) ? $email : $conf->global->REQUESTMANAGER_WATCHERS_NOTIFICATION_SEND_FROM).'">';
+print '</td></tr>'."\n";
+
+// REQUESTMANAGER_SPLIT_WATCHERS_NOTIFICATION
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>'.$langs->trans("RequestManagerSplitWatchersNotificationName").'</td>'."\n";
+print '<td>'.$langs->trans("RequestManagerSplitWatchersNotificationDesc").'</td>'."\n";
+print '<td align="right">' . "\n";
+if (!empty($conf->use_javascript_ajax)) {
+    print ajax_constantonoff('REQUESTMANAGER_SPLIT_WATCHERS_NOTIFICATION');
+} else {
+    if (empty($conf->global->REQUESTMANAGER_SPLIT_WATCHERS_NOTIFICATION)) {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_REQUESTMANAGER_SPLIT_WATCHERS_NOTIFICATION">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+    } else {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_REQUESTMANAGER_SPLIT_WATCHERS_NOTIFICATION">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+    }
+}
+print '</td></tr>' . "\n";
+
+print '</table>';
+
+print '<br>';
+print '<div align="center">';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</div>';
+
+print '</form>';
+
+/********************************************************
+ *  General options
+ ********************************************************/
+print load_fiche_titre($langs->trans("Other"),'','');
+
 print '<form method="post" action="'.$_SERVER["PHP_SELF"].'">';
 print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
 print '<input type="hidden" name="action" value="set">';
@@ -388,45 +674,10 @@ $var=true;
 
 print '<table class="noborder" width="100%">';
 print '<tr class="liste_titre">';
-print '<td>'.$langs->trans("Name").'</td>'."\n";
+print '<td width="20%">'.$langs->trans("Name").'</td>'."\n";
 print '<td>'.$langs->trans("Description").'</td>'."\n";
 print '<td align="right">'.$langs->trans("Value").'</td>'."\n";
 print "</tr>\n";
-
-// REQUESTMANAGER_NOTIFICATION_SEND_FROM
-$var=!$var;
-print '<tr '.$bc[$var].'>'."\n";
-print '<td>'.$langs->trans("RequestManagerNotificationSendFromName").'</td>'."\n";
-print '<td>'.$langs->trans("RequestManagerNotificationSendFromDesc").'</td>'."\n";
-print '<td align="right">'."\n";
-print '<input type="text" name="REQUESTMANAGER_NOTIFICATION_SEND_FROM" value="'.$conf->global->REQUESTMANAGER_NOTIFICATION_SEND_FROM.'">';
-print '</td></tr>'."\n";
-
-// REQUESTMANAGER_NOTIFICATION_USERS_IN_DB
-$var = !$var;
-print '<tr ' . $bc[$var] . '>' . "\n";
-print '<td>'.$langs->trans("RequestManagerNotificationUsersName").'</td>'."\n";
-print '<td>'.$langs->trans("RequestManagerNotificationUsersDesc").'</td>'."\n";
-print '<td align="right">' . "\n";
-if (empty($conf->global->REQUESTMANAGER_NOTIFICATION_USERS_IN_DB)) {
-    print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_REQUESTMANAGER_NOTIFICATION_USERS_IN_DB&REQUESTMANAGER_NOTIFICATION_USERS_IN_DB=1">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
-} else {
-    print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_REQUESTMANAGER_NOTIFICATION_USERS_IN_DB&REQUESTMANAGER_NOTIFICATION_USERS_IN_DB=0">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
-}
-print '</td></tr>' . "\n";
-
-// REQUESTMANAGER_NOTIFICATION_BY_MAIL
-$var = !$var;
-print '<tr ' . $bc[$var] . '>' . "\n";
-print '<td>'.$langs->trans("RequestManagerNotificationByMailName").'</td>'."\n";
-print '<td>'.$langs->trans("RequestManagerNotificationByMailDesc").'</td>'."\n";
-print '<td align="right">' . "\n";
-if (empty($conf->global->REQUESTMANAGER_NOTIFICATION_BY_MAIL)) {
-    print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_REQUESTMANAGER_NOTIFICATION_BY_MAIL&REQUESTMANAGER_NOTIFICATION_BY_MAIL=1">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
-} else {
-    print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_REQUESTMANAGER_NOTIFICATION_BY_MAIL&REQUESTMANAGER_NOTIFICATION_BY_MAIL=0">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
-}
-print '</td></tr>' . "\n";
 
 // REQUESTMANAGER_AUTO_ADD_CONTRACT_OF_PRINCIPAL_COMPANY
 $var = !$var;
@@ -475,25 +726,25 @@ if (empty($conf->global->REQUESTMANAGER_CONTRACT_SEARCH_IN_PARENT_COMPANY)) {
 }
 print '</td></tr>' . "\n";
 
-// REQUESTMANAGER_OPERATION_TIME_DEFAULT
-$var=!$var;
-print '<tr '.$bc[$var].'>'."\n";
-print '<td>' . $langs->trans("RequestManagerOperationTimeDefaultName") . '</td>'."\n";
-print '<td>' . $langs->trans("RequestManagerOperationTimeDefaultDesc") . '</td>'."\n";
-print '<td align="right">'."\n";
-print '<input type="number" name="REQUESTMANAGER_OPERATION_TIME_DEFAULT" min="0" value="' . intval($conf->global->REQUESTMANAGER_OPERATION_TIME_DEFAULT) . '">';
-print ' ' . $langs->trans("Minutes");
-print '</td></tr>'."\n";
-
-// REQUESTMANAGER_DEADLINE_TIME_DEFAULT
-$var=!$var;
-print '<tr '.$bc[$var].'>'."\n";
-print '<td>' . $langs->trans("RequestManagerDeadlineTimeDefaultName") . '</td>'."\n";
-print '<td>' . $langs->trans("RequestManagerDeadlineTimeDefaultDesc") . '</td>'."\n";
-print '<td align="right">'."\n";
-print '<input type="number" name="REQUESTMANAGER_DEADLINE_TIME_DEFAULT" min="0" value="' . intval($conf->global->REQUESTMANAGER_DEADLINE_TIME_DEFAULT) . '">';
-print ' ' . $langs->trans("Minutes");
-print '</td></tr>'."\n";
+//// REQUESTMANAGER_OPERATION_TIME_DEFAULT
+//$var=!$var;
+//print '<tr '.$bc[$var].'>'."\n";
+//print '<td>' . $langs->trans("RequestManagerOperationTimeDefaultName") . '</td>'."\n";
+//print '<td>' . $langs->trans("RequestManagerOperationTimeDefaultDesc") . '</td>'."\n";
+//print '<td align="right">'."\n";
+//print '<input type="number" name="REQUESTMANAGER_OPERATION_TIME_DEFAULT" min="0" value="' . intval($conf->global->REQUESTMANAGER_OPERATION_TIME_DEFAULT) . '">';
+//print ' ' . $langs->trans("Minutes");
+//print '</td></tr>'."\n";
+//
+//// REQUESTMANAGER_DEADLINE_TIME_DEFAULT
+//$var=!$var;
+//print '<tr '.$bc[$var].'>'."\n";
+//print '<td>' . $langs->trans("RequestManagerDeadlineTimeDefaultName") . '</td>'."\n";
+//print '<td>' . $langs->trans("RequestManagerDeadlineTimeDefaultDesc") . '</td>'."\n";
+//print '<td align="right">'."\n";
+//print '<input type="number" name="REQUESTMANAGER_DEADLINE_TIME_DEFAULT" min="0" value="' . intval($conf->global->REQUESTMANAGER_DEADLINE_TIME_DEFAULT) . '">';
+//print ' ' . $langs->trans("Minutes");
+//print '</td></tr>'."\n";
 
 // REQUESTMANAGER_ROOT_PRODUCT_CATEGORIES
 $var=!$var;
@@ -540,59 +791,7 @@ print '<td align="right">'."\n";
 print $form->selectarray("REQUESTMANAGER_POSITION_LINK_NEW_OBJECT_LINKED", $position_array, $conf->global->REQUESTMANAGER_POSITION_LINK_NEW_OBJECT_LINKED);
 print '</td></tr>'."\n";
 
-/*
-// requestmanager_BASE_PRICE_DISCOUNT
-$var=!$var;
-print '<tr '.$bc[$var].'>'."\n";
-print '<td>'.$langs->trans("requestmanagerBasePriceDiscountName").'</td>'."\n";
-print '<td>'.$langs->trans("requestmanagerBasePriceDiscountDesc").'</td>'."\n";
-print '<td align="right">'."\n";
-print '<input type="radio" name="requestmanager_BASE_PRICE_DISCOUNT" value="HT"'.($conf->global->requestmanager_BASE_PRICE_DISCOUNT=='HT'?' checked':'').'>&nbsp;'.$langs->trans("HT")."\n";
-print '&nbsp;'."\n";
-print '<input type="radio" name="requestmanager_BASE_PRICE_DISCOUNT" value="TTC"'.($conf->global->requestmanager_BASE_PRICE_DISCOUNT=='TTC'?' checked':'').'>&nbsp;'.$langs->trans("TTC")."\n";
-print '</td></tr>'."\n";
-
-// requestmanager_DISABLED_DISCOUNT_WHEN_HAS_CUSTOMER_PRICE
-$var = !$var;
-print '<tr ' . $bc[$var] . '>' . "\n";
-print '<td>'.$langs->trans("requestmanagerDisabledDiscountWhenHasCustomerPriceName").'</td>'."\n";
-print '<td>'.$langs->trans("requestmanagerDisabledDiscountWhenHasCustomerPriceDesc").'</td>'."\n";
-print '<td align="right">' . "\n";
-if (!empty($conf->use_javascript_ajax)) {
-    print ajax_constantonoff('requestmanager_DISABLED_DISCOUNT_WHEN_HAS_CUSTOMER_PRICE');
-} else {
-    if (empty($conf->global->requestmanager_DISABLED_DISCOUNT_WHEN_HAS_CUSTOMER_PRICE)) {
-        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_requestmanager_DISABLED_DISCOUNT_WHEN_HAS_CUSTOMER_PRICE">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
-    } else {
-        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_requestmanager_DISABLED_DISCOUNT_WHEN_HAS_CUSTOMER_PRICE">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
-    }
-}
-print '</td></tr>' . "\n";
-
-// requestmanager_CALCULATION_MODE_WITH_EXISTING_DISCOUNT
-$var=!$var;
-print '<tr '.$bc[$var].'>'."\n";
-print '<td>'.$langs->trans("requestmanagerCalculationModeWithExistingDiscountName").'</td>'."\n";
-print '<td>'.$langs->trans("requestmanagerCalculationModeWithExistingDiscountDesc").'</td>'."\n";
-print '<td align="right">'."\n";
-print '<input type="radio" name="requestmanager_CALCULATION_MODE_WITH_EXISTING_DISCOUNT" value="1"'.($conf->global->requestmanager_CALCULATION_MODE_WITH_EXISTING_DISCOUNT==1?' checked':'').'>&nbsp;'.$langs->trans("requestmanagerCalculationModeReplace")."\n";
-print '&nbsp;'."\n";
-print '<input type="radio" name="requestmanager_CALCULATION_MODE_WITH_EXISTING_DISCOUNT" value="2"'.($conf->global->requestmanager_CALCULATION_MODE_WITH_EXISTING_DISCOUNT==2?' checked':'').'>&nbsp;'.$langs->trans("requestmanagerCalculationModeCascade")."\n";
-print '</td></tr>'."\n";
-
-// requestmanager_DISCOUNT_ROUND_PRECISION
-$var=!$var;
-print '<tr '.$bc[$var].'>'."\n";
-print '<td>'.$langs->trans("requestmanagerDiscountRoundPrecisionName").'</td>'."\n";
-print '<td>'.$langs->trans("requestmanagerDiscountRoundPrecisionDesc").'</td>'."\n";
-print '<td align="right">'."\n";
-print '<input type="text" name="requestmanager_DISCOUNT_ROUND_PRECISION" value="'.$conf->global->requestmanager_DISCOUNT_ROUND_PRECISION.'">';
-print '</td></tr>'."\n";
-*/
-
 print '</table>';
-
-dol_fiche_end();
 
 print '<br>';
 print '<div align="center">';
@@ -600,6 +799,8 @@ print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">'
 print '</div>';
 
 print '</form>';
+
+dol_fiche_end();
 
 llxFooter();
 

@@ -18,14 +18,40 @@ Permission163036 = Voir les documents des demandes
 RequestManagerSetup                                     = Configuration du module Request Manager
 RequestManagerExtraFields                               = Attributs supplémentaires (Demande)
 RequestManagerMessageExtraFields                        = Attributs supplémentaires (Message)
+
 RequestManagerRefNumberingModules                       = Modèles de numérotation des références interne des demandes
 RequestManagerExternalRefNumberingModules               = Modèles de numérotation des références externe des demandes
-RequestManagerNotificationSendFromName                  = Adresse email de l'émetteur
-RequestManagerNotificationSendFromDesc                  = Adresse email de l'émetteur pour l'envoi des mails de notification
-RequestManagerNotificationUsersName                     = Notifier les utilisateurs
-RequestManagerNotificationUsersDesc                     = Notifier les utilisateurs internes (enregistrement en base de données)
-RequestManagerNotificationByMailName                    = Notification par mail
-RequestManagerNotificationByMailDesc                    = Notifier par mail les utilisateurs
+
+RequestManagerNotificationOptions                       = Paramètres généraux des notifications
+RequestManagerMessageCreateNotifyName                   = Notification lors de la création d'un message
+RequestManagerMessageCreateNotifyDesc                   = Active la notification global lors de la création d'un message d'une demande
+RequestManagerSetAssignedNotifyName                     = Notification lors du changement d'assignation
+RequestManagerSetAssignedNotifyDesc                     = Active la notification global lors du changement d'assignation d'une demande
+RequestManagerStatusModifyNotifyName                    = Notification lors du changement de statut
+RequestManagerStatusModifyNotifyDesc                    = Active la notification global lors du changement de statut d'une demande
+
+RequestManagerNotificationAssignedOptions               = Paramètres des notifications aux assignés
+RequestManagerNotificationAssignedByEmailName           = Notification par courriel
+RequestManagerNotificationAssignedByEmailDesc           = Notifier les assignés d'une demande par courriel
+RequestManagerNotificationAssignedByWebSiteName         = Notification par le navigateur
+RequestManagerNotificationAssignedByWebSiteDesc         = Notifier les assignés d'une demande par le navigateur
+RequestManagerAssignedNotificationSendFromName          = Adresse courriel de l'émetteur
+RequestManagerAssignedNotificationSendFromDesc          = Adresse courriel de l'émetteur pour l'envoi des courriels de notification vers les assignés (Courriel de l'utilisateur à l'origine de la notification si vide)
+RequestManagerSplitAssignedNotificationName             = Séparation des envois
+RequestManagerSplitAssignedNotificationDesc             = Envois des notification séparément à tous les assignés
+
+RequestManagerNotificationRequesterOptions              = Paramètres des notifications aux contacts d'origine
+RequestManagerRequesterNotificationSendFromName         = Adresse courriel de l'émetteur
+RequestManagerRequesterNotificationSendFromDesc         = Adresse courriel de l'émetteur pour l'envoi des courriels de notification vers les contacts d'origine (Courriel de l'utilisateur à l'origine de la notification si vide)
+RequestManagerSplitRequesterNotificationName            = Séparation des envois
+RequestManagerSplitRequesterNotificationDesc            = Envois des notification séparément à tous les contacts d'origine
+
+RequestManagerNotificationWatchersOptions               = Paramètres des notifications aux contacts observateur
+RequestManagerWatchersNotificationSendFromName          = Adresse courriel de l'émetteur
+RequestManagerWatchersNotificationSendFromDesc          = Adresse courriel de l'émetteur pour l'envoi des courriels de notification vers les contacts observateur (Courriel de l'utilisateur à l'origine de la notification si vide)
+RequestManagerSplitWatchersNotificationName             = Séparation des envois
+RequestManagerSplitWatchersNotificationDesc             = Envois des notification séparément à tous les contacts observateur
+
 RequestManagerAutoAddContractOfPrincipalCompanyName     = Contrats du donneur d'ordre
 RequestManagerAutoAddContractOfPrincipalCompanyDesc     = Lier automatiquement les contrats du donneur d'ordre à la création de la demande
 RequestManagerAutoAddContractOfBeneficialCompanyName    = Contrats du bénéficiaire
@@ -56,12 +82,18 @@ TypeContact_project_external_WATCHER    = Contact observateur
 ############################################################
 ### Actions
 ############################################################
-ActionAC_RM_ASSUSR  = Changement d'assignés
-ActionAC_RM_IN      = Message de demande entrant
-ActionAC_RM_OUT     = Message de demande sortant
-ActionAC_RM_PRIV    = Message de demande privé
-ActionAC_RM_STAT    = Changement de statut
-ActionAC_RM_FPC     = Forçage du donneur d'ordre
+ActionAC_RM_ASSMOD                      = Modification de l'assignation d'une demande
+ActionAC_RM_STATUS                      = Modification du statut d'une demande
+ActionAC_RM_IN                          = Message de demande entrant
+ActionAC_RM_OUT                         = Message de demande sortant
+ActionAC_RM_PRIV                        = Message de demande privé
+ActionAC_RM_FPC                         = Forçage du donneur d'ordre
+Notify_REQUESTMANAGER_CREATE            = Demande créée
+Notify_REQUESTMANAGER_MODIFY            = Demande modifiée
+Notify_REQUESTMANAGER_DELETE            = Demande supprimée
+Notify_REQUESTMANAGER_SET_ASSIGNED      = Assignation d'une demande modifiée
+Notify_REQUESTMANAGER_STATUS_MODIFY     = Statut d'une demande modifiée
+Notify_REQUESTMANAGERMESSAGE_SENTBYMAIL = Envoi du message d'une demande par email
 
 ############################################################
 ### Global search
@@ -87,7 +119,6 @@ RequestManagerMenuTopCreateFast            = Création de demande rapide
 ### Tabulation
 ############################################################
 RequestManagerRequestTab                = Demande
-RequestManagerCompaniesRelationshipTab  = Donneurs d’ordres / Bénéficiaires
 
 ############################################################
 ### Card
@@ -101,7 +132,7 @@ RequestManagerRequestType               = Type de demande
 RequestManagerCategory                  = Catégorie
 RequestManagerLabel                     = Titre
 RequestManagerThirdPartyOrigin          = Origine
-RequestManagerThirdPartyBill            = Donneur d'ordre
+RequestManagerThirdPartyPrincipal       = Donneur d'ordre
 RequestManagerThirdPartyBenefactor      = Bénéficiaire
 RequestManagerSource                    = Source
 RequestManagerUrgency                   = Urgence
@@ -110,6 +141,7 @@ RequestManagerPriority                  = Priorité
 RequestManagerDuration                  = Durée
 RequestManagerOperation                 = Date d'opération
 RequestManagerDeadline                  = Date d'écheance
+RequestManagerTags                      = Tags/Catégories des Produits/Services
 RequestManagerRequesterContacts         = Contacts d'origine
 RequestManagerRequesterNotification     = Notifier les contacts d'origine
 RequestManagerWatcherContacts           = Contacts observateur
@@ -146,64 +178,32 @@ RequestManagerRecalculateDeadLineDate   = Recalculer la date d'échéance
 RequestManagerRequestChild              = Sous demande
 RequestManagerRequestChildren           = Sous demandes
 RequestManagerParentRequest             = Demande parente
-
-############################################################
-### List
-############################################################
-RequestManagerListOfRequests            = Liste des demandes
-RequestManagerNotAssigned               = Non attribuées
-RequestManagerMyRequest                 = Mes demandes
-RequestManagerTypeNotResolved           = Non résolue
-RequestManagerExternalReferenceShort    = Réf. externe
-RequestManagerResolvedBy                = Résolu par
-RequestManagerDateResolved              = Date Résolu
-
-############################################################
-### Lists follow
-############################################################
-RequestManagerListsFollowTitle                = Suivi des demandes
-RequestManagerListsFollowMyRequest            = Mes demandes
-RequestManagerListsFollowMyGroupRequest       = Les demandes de mon groue
-RequestManagerListsFollowLinkToMyEvent        = Mes demandes à suivre
-RequestManagerListsFollowMyFutureRequest      = Mes demandes à venir
-RequestManagerListsFollowMyFutureGroupRequest = Les demandes de goupe à venir
-
-############################################################
-### Create fast
-############################################################
-RequestManagerCreateFastTitle             = Création demande rapide
-RequestManagerCreateFastActionCommLabel   = Evénement(s) non traité(s)
-RequestManagerCreateFastBtnCreateLabel    = Créer demande
-RequestManagerCreateFastBtnAssociateLabel = Associer demande
-RequestManagerCreateFastContractFormula   = Formule
-RequestManagerLastEvents                  = Derniers evénements
-
-############################################################
-### Confirm box : Create fast
-############################################################
-RequestManagerForcePrincipalCompany                = Forcer le choix du donneur d'ordre
-RequestManagerConfirmForcePrincipalCompany         = Êtes-vous sûr de vouloir forcer le choix du donneur d'ordre ?
-
-############################################################
-### Events : Create fast
-############################################################
-RequestManagerForcedPrincipalCompanyActionLabel    = Forçage du choix du donneur d'ordre pour la demande "%s"
-RequestManagerThirdPartyBillOld                    = Ancien donneur d'ordre
-RequestManagerThirdPartyBenefactorOld              = Ancien bénéficiaire
+RequestManagerChildrenRequest           = Demandes enfants
 
 ############################################################
 ### Message form
 ############################################################
-RequestManagerSelectKnowledgeBase           = Choisir une base de connaissance
 RequestManagerSelectTemplate                = Choisir modèle de message
 RequestManagerNoTemplateDefined             = Pas de modèle défini
+RequestManagerMessageNotify                 = Notifier les
+RequestManagerAssigned                      = Assignés
 RequestManagerMessageSubject                = Sujet
 RequestManagerMessageFile                   = Fichiers joints
+RequestManagerMessageKnowledgeBase          = Base de connaissance
+RequestManagerAddKnowledgeBaseDescriptions  = Ajouter les descriptions
 RequestManagerMessage                       = Message
-RequestManagerMessageNotifyByMail           = Envoyer par mail aux contacts d'origines et observateurs
-RequestManagerMessageDirection              = Sens du message
-RequestManagerMessageDirectionIn            = Entrant
-RequestManagerMessageDirectionOut           = Sortant
+RequestManagerMessageType                   = Type du message
+RequestManagerMessageTypeIn                 = Entrant
+RequestManagerMessageTypeOut                = Sortant
+RequestManagerMessageTypePrivate            = Privé
+RequestManagerMessageTypeInHelp             = Message venant du client
+RequestManagerMessageTypeOutHelp            = Message envoyé au client
+RequestManagerMessageTypePrivateHelp        = Message non visible par le client
+RequestManagerNoMessageTemplateDefined      = Pas de modèle de message défini pour ce type de demande
+RequestManagerNoKnowledgeBaseDefined        = Pas de connaissance défini pour ce type de demande et ces tags associés
+RequestManagerMessageTitleOut               = Message sortant sur la demande %s créé
+RequestManagerMessageTitlePrivate           = Message privé sur la demande %s créé
+RequestManagerMessageTitleIn                = Message entrant sur la demande %s créé
 
 ############################################################
 ### Confirm box
@@ -231,6 +231,68 @@ RequestManagerOnlyLinkedObjectToThisRequest             = Ne voir que les évén
 RequestManagerIncludeEventOfOtherRequest                = Voir aussi les événements des autres demandes
 RequestManagerIncludeLinkedEventToChildrenOfThisRequest = Voir aussi les événements des sous demandes
 
+############################################################
+### Create fast
+############################################################
+RequestManagerCreateFastTitle             = Création demande rapide
+RequestManagerCreateFastActionCommLabel   = Evénement(s) non traité(s)
+RequestManagerCreateFastBtnCreateLabel    = Créer demande
+RequestManagerCreateFastBtnAssociateLabel = Associer demande
+RequestManagerCreateFastContractFormula   = Formule
+RequestManagerLastEvents                  = Derniers evénements
+
+############################################################
+### Confirm box : Create fast
+############################################################
+RequestManagerForcePrincipalCompany                = Forcer le choix du donneur d'ordre
+RequestManagerConfirmForcePrincipalCompany         = Êtes-vous sûr de vouloir forcer le choix du donneur d'ordre ?
+
+############################################################
+### Events : Create fast
+############################################################
+RequestManagerForcedPrincipalCompanyActionLabel    = Donneur d'ordre de la demande "%s" forcé
+RequestManagerThirdPartyPrincipalOld               = Ancien donneur d'ordre
+RequestManagerThirdPartyBenefactorOld              = Ancien bénéficiaire
+
+############################################################
+### List
+############################################################
+RequestManagerListOfRequests            = Liste des demandes
+RequestManagerNotAssigned               = Non attribuées
+RequestManagerMyRequest                 = Mes demandes
+RequestManagerTypeNotResolved           = Non résolue
+RequestManagerExternalReferenceShort    = Réf. externe
+RequestManagerResolvedBy                = Résolu par
+RequestManagerDateResolved              = Date Résolu
+
+############################################################
+### Lists follow
+############################################################
+RequestManagerListsFollowTitle                = Suivi des demandes
+RequestManagerListsFollowMyRequest            = Mes demandes
+RequestManagerListsFollowMyGroupRequest       = Les demandes de mon groue
+RequestManagerListsFollowLinkToMyEvent        = Mes demandes à suivre
+RequestManagerListsFollowMyFutureRequest      = Mes demandes à venir
+RequestManagerListsFollowMyFutureGroupRequest = Les demandes de goupe à venir
+
+############################################################
+### Errors
+############################################################
+RequestManagerErrorFieldStatusMustBeOfInitialType                           = La demande doit être à un statut de type 'Initial'
+RequestManagerErrorRequestTypeNotFound                                      = Type de demande non trouvé
+RequestManagerErrorDeadlineDateMustBeGreaterThanCreateDate                  = La date d'échéance doit être supérieure à la date de création
+RequestManagerErrorInitStatusNotFound                                       = Statut de type 'Initial' non trouvé pour ce type de demande
+RequestManagerErrorStatusNotFound                                           = Statut non trouvé
+RequestManagerErrorOnlyOneStatusForThisTypeForEachRequestType               = Il ne peut y avoir qu'un statut de ce type par "Type de demande"
+RequestManagerErrorOnlyOneTemplateNameForEachRequestType                    = Il ne peut y avoir qu'un même "Libellé" de modèle par "Type de demande"
+RequestManagerErrorOnlyOneNotifyTemplateTypeForEachRequestTypeAndNotifyTo   = Il ne peut y avoir qu'un modèle de ce type par "Type de demande" et "Notifier aux"
+RequestManagerErrorNoTemplateLines                                          = Aucun template de message n'a été trouvé dans la configuration pour ce type de demande
+RequestManagerErrorMissingFieldsInTemplate                                  = Champs manquants dans la configuration du template de message
+RequestManagerErrorTriggerNextStatus                                        = Erreur lors du passage automatique vers le statut suivant de la demande "%s":
+RequestManagerCreateFastErrorNoRequestSelected                              = Veuillez sélectionner une demande
+RequestManagerErrorCanOnlyCreateMessageFromRequest                          = Vous ne pouvez créer un message d'une demande que depuis une fiche demande
+RequestManagerErrorMessageCanNotBeModified                                  = Vous ne pouvez pas modifier un message d'une demande
+
 ######################################################################
 # Dictionaries
 ######################################################################
@@ -241,7 +303,8 @@ RequestManagerSourceDictionaryLabel                                         = So
 RequestManagerUrgencyDictionaryLabel                                        = Urgence des demandes
 RequestManagerImpactDictionaryLabel                                         = Impact des demandes
 RequestManagerPriorityDictionaryLabel                                       = Priorité des demandes
-RequestManagerMessageTemplateDictionaryLabel                                = Modèles de messages / Notifications
+RequestManagerMessageTemplateDictionaryLabel                                = Modèles des messages
+RequestManagerNotifyTemplateDictionaryLabel                                 = Modèles des notifications par courriel
 RequestManagerKnowledgeBaseDictionaryLabel                                  = Base de connaissance
 RequestManagerRequestType                                                   = Types de demande
 RequestManagerType                                                          = Type
@@ -266,13 +329,6 @@ RequestManagerStatusDictionaryStatusNotIntoRequestType                      = Ce
 RequestManagerStatusDictionaryNextStatusCanNotBeItself                      = Le statut suivant ne peut être lui-même
 RequestManagerStatusDictionaryCanOnlyHaveInProgressAndResolvedForNextStatus = Le statut suivant ne peut pas être que de type 'En cours' ou 'Résolu'
 RequestManagerStatusDictionaryCanOnlyHaveClosedForNextStatus                = Le statut suivant ne peut pas être que de type 'Clôt'
-RequestManagerTemplateTypeNotifyAssignedUsersModified                       = Notification d'un changement d'utilisateur assigné
-RequestManagerTemplateTypeNotifyStatusModified                              = Notification d'un changement de statut
-RequestManagerTemplateTypeNotifyInputMessageAdded                           = Notification d'un ajout de message entrant
-RequestManagerTemplateTypeNotifyOutputMessageAdded                          = Notification d'un ajout de message sortant
-RequestManagerTemplateTypeMessageTemplateUser                               = Modèle de message
-RequestManagerTemplateForType                                               = Ce modèle est dédié à quoi ?
-RequestManagerTemplateForRequestType                                        = Ce modèle est dédié pour quel type de demande
 RequestManagerStatusDictionaryOperation                                     = Durée d'opération
 RequestManagerStatusDictionaryOperationHelp                                 = En minutes, Date d'opération calculé à partir de la date où la demande est passé à ce statut<br>-1 si la date d'opération ne change pas, 0 ou non renseigné si il n'y en a pas
 RequestManagerSourceDictionaryEventType                                     = Type d'évenement

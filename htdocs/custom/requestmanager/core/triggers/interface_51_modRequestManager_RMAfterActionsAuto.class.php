@@ -21,7 +21,7 @@
  */
 
 /**
- *	\file       htdocs/requestmanager/core/triggers/interface_51_modRequestManager_RequestManagerAfterActionsAuto.class.php
+ *	\file       htdocs/requestmanager/core/triggers/interface_51_modRequestManager_RMAfterActionsAuto.class.php
  *  \ingroup    agenda
  *  \brief      Trigger file for agenda module
  */
@@ -32,7 +32,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/triggers/dolibarrtriggers.class.php';
 /**
  *  Class of triggered functions for agenda module
  */
-class InterfaceRequestManagerAfterActionsAuto extends DolibarrTriggers
+class InterfaceRMAfterActionsAuto extends DolibarrTriggers
 {
 	public $family = 'agenda';
 	public $description = "Triggers of this module reaffect option of add action in agenda after standard trigger actions.";

@@ -18,4 +18,4 @@
 
 ALTER TABLE llx_requestmanager_message ADD UNIQUE INDEX uk_requestmanager_message (fk_actioncomm);
 
-ALTER TABLE llx_requestmanager_message ADD INDEX idx_requestmanager_message_fk_knowledge_base (fk_knowledge_base);
+ALTER TABLE llx_requestmanager_message ADD CONSTRAINT fk_requestmanager_m_fk_actioncomm FOREIGN KEY (fk_actioncomm) REFERENCES llx_actioncomm (id);

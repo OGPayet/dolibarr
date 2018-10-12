@@ -100,7 +100,7 @@ class modRequestManager extends DolibarrModules
             'dictionaries' => 1,
             'substitutions' => 1,
             'css' => array('/requestmanager/css/requestmanager.css.php'),
-            'hooks' => array('searchform', 'thirdpartycard', 'propalcard', 'ordercard', 'invoicecard', 'interventioncard', 'contractcard', 'toprightmenu'),
+            'hooks' => array('searchform', 'thirdpartycard', 'propalcard', 'ordercard', 'invoicecard', 'interventioncard', 'contractcard', 'actioncard', 'toprightmenu'),
             'triggers' => 1
         );
 
@@ -133,6 +133,10 @@ class modRequestManager extends DolibarrModules
             3 => array('REQUESTMANAGER_REFEXT_UNIVERSAL_MASK','chaine','RE{yy}{mm}-{000000}','','current',0),
             4 => array('REQUESTMANAGER_POSITION_BLOC_OBJECT_LINKED','chaine','top','','current',0),
             5 => array('REQUESTMANAGER_POSITION_LINK_NEW_OBJECT_LINKED','chaine','top','','current',0),
+            6 => array('REQUESTMANAGERMESSAGE_CREATE_NOTIFY','chaine','1','','current',0),
+            7 => array('REQUESTMANAGER_SET_ASSIGNED_NOTIFY','chaine','1','','current',0),
+            8 => array('REQUESTMANAGER_STATUS_MODIFY_NOTIFY','chaine','1','','current',0),
+            9 => array('REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_EMAIL','chaine','1','','current',0),
         );
 
         // Array to add new pages in new tabs

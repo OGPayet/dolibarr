@@ -84,7 +84,7 @@ class FormRequestManager
     {
         global $langs;
 
-        $out = $this->formdictionary->select_dictionary('requestmanager', 'requestmanagerrequesttype', $selected, $htmlname, 'rowid', '{{label}}', is_array($usergroups) ? array('user_group'=>$usergroups) : array(), $showempty, $forcecombo, $events, $usesearchtoselect, $limit, $morecss, $moreparam, $selected_input_value, $hidelabel, $selectlabel, $autofocus, $ajaxoptions, $options_only);
+        $out = $this->formdictionary->select_dictionary('requestmanager', 'requestmanagerrequesttype', $selected, $htmlname, $showempty, 'rowid', '{{label}}', is_array($usergroups) ? array('user_group'=>$usergroups) : array(), array('label'=>'ASC'), $forcecombo, $events, $usesearchtoselect, $limit, $morecss, $moreparam, $selected_input_value, $hidelabel, $selectlabel, $autofocus, $ajaxoptions, $options_only);
         if ($out < 0) {
             return $langs->trans('RequestManagerDontHaveRequestTypeForYoursGroup');
         }
@@ -125,7 +125,7 @@ class FormRequestManager
             unset($dictionaryLine);
         }
 
-        return $this->formdictionary->select_dictionary('requestmanager', 'requestmanagercategory', $selected, $htmlname, 'rowid', '{{label}}', array('rowid' => $categories_id), $showempty, $forcecombo, $events, $usesearchtoselect, $limit, $morecss, $moreparam, $selected_input_value, $hidelabel, $selectlabel, $autofocus, $ajaxoptions, $options_only);
+        return $this->formdictionary->select_dictionary('requestmanager', 'requestmanagercategory', $selected, $htmlname, $showempty, 'rowid', '{{label}}', array('rowid' => $categories_id), array('label'=>'ASC'), $forcecombo, $events, $usesearchtoselect, $limit, $morecss, $moreparam, $selected_input_value, $hidelabel, $selectlabel, $autofocus, $ajaxoptions, $options_only);
     }
 
     /**
@@ -150,7 +150,7 @@ class FormRequestManager
      */
     function select_source($selected = '', $htmlname = 'type', $showempty = '', $forcecombo = 0, $events = array(), $usesearchtoselect=0, $limit = 0, $morecss = 'minwidth100', $moreparam = '', $selected_input_value = '', $hidelabel = 1, $selectlabel = '', $autofocus=0, $ajaxoptions = array(), $options_only=false)
     {
-        return $this->formdictionary->select_dictionary('requestmanager', 'requestmanagersource', $selected, $htmlname, 'rowid', '{{label}}', array(), $showempty, $forcecombo, $events, $usesearchtoselect, $limit, $morecss, $moreparam, $selected_input_value, $hidelabel, $selectlabel, $autofocus, $ajaxoptions, $options_only);
+        return $this->formdictionary->select_dictionary('requestmanager', 'requestmanagersource', $selected, $htmlname, $showempty, 'rowid', '{{label}}', array(), array('label'=>'ASC'), $forcecombo, $events, $usesearchtoselect, $limit, $morecss, $moreparam, $selected_input_value, $hidelabel, $selectlabel, $autofocus, $ajaxoptions, $options_only);
     }
 
     /**
@@ -175,7 +175,7 @@ class FormRequestManager
      */
     function select_urgency($selected = '', $htmlname = 'type', $showempty = '', $forcecombo = 0, $events = array(), $usesearchtoselect=0, $limit = 0, $morecss = 'minwidth100', $moreparam = '', $selected_input_value = '', $hidelabel = 1, $selectlabel = '', $autofocus=0, $ajaxoptions = array(), $options_only=false)
     {
-        return $this->formdictionary->select_dictionary('requestmanager', 'requestmanagerurgency', $selected, $htmlname, 'rowid', '{{label}}', array(), $showempty, $forcecombo, $events, $usesearchtoselect, $limit, $morecss, $moreparam, $selected_input_value, $hidelabel, $selectlabel, $autofocus, $ajaxoptions, $options_only);
+        return $this->formdictionary->select_dictionary('requestmanager', 'requestmanagerurgency', $selected, $htmlname, $showempty, 'rowid', '{{label}}', array(), array('label'=>'ASC'), $forcecombo, $events, $usesearchtoselect, $limit, $morecss, $moreparam, $selected_input_value, $hidelabel, $selectlabel, $autofocus, $ajaxoptions, $options_only);
     }
 
     /**
@@ -200,7 +200,7 @@ class FormRequestManager
      */
     function select_impact($selected = '', $htmlname = 'type', $showempty = '', $forcecombo = 0, $events = array(), $usesearchtoselect=0, $limit = 0, $morecss = 'minwidth100', $moreparam = '', $selected_input_value = '', $hidelabel = 1, $selectlabel = '', $autofocus=0, $ajaxoptions = array(), $options_only=false)
     {
-        return $this->formdictionary->select_dictionary('requestmanager', 'requestmanagerimpact', $selected, $htmlname, 'rowid', '{{label}}', array(), $showempty, $forcecombo, $events, $usesearchtoselect, $limit, $morecss, $moreparam, $selected_input_value, $hidelabel, $selectlabel, $autofocus, $ajaxoptions, $options_only);
+        return $this->formdictionary->select_dictionary('requestmanager', 'requestmanagerimpact', $selected, $htmlname, $showempty, 'rowid', '{{label}}', array(), array('label'=>'ASC'), $forcecombo, $events, $usesearchtoselect, $limit, $morecss, $moreparam, $selected_input_value, $hidelabel, $selectlabel, $autofocus, $ajaxoptions, $options_only);
     }
 
     /**
@@ -225,7 +225,7 @@ class FormRequestManager
      */
     function select_priority($selected = '', $htmlname = 'type', $showempty = '', $forcecombo = 0, $events = array(), $usesearchtoselect=0, $limit = 0, $morecss = 'minwidth100', $moreparam = '', $selected_input_value = '', $hidelabel = 1, $selectlabel = '', $autofocus=0, $ajaxoptions = array(), $options_only=false)
     {
-        return $this->formdictionary->select_dictionary('requestmanager', 'requestmanagerpriority', $selected, $htmlname, 'rowid', '{{label}}', array(), $showempty, $forcecombo, $events, $usesearchtoselect, $limit, $morecss, $moreparam, $selected_input_value, $hidelabel, $selectlabel, $autofocus, $ajaxoptions, $options_only);
+        return $this->formdictionary->select_dictionary('requestmanager', 'requestmanagerpriority', $selected, $htmlname, $showempty, 'rowid', '{{label}}', array(), array('label'=>'ASC'), $forcecombo, $events, $usesearchtoselect, $limit, $morecss, $moreparam, $selected_input_value, $hidelabel, $selectlabel, $autofocus, $ajaxoptions, $options_only);
     }
 
     /**
@@ -251,7 +251,7 @@ class FormRequestManager
      */
     function select_status($request_type, $selected = '', $htmlname = 'type', $showempty = '', $forcecombo = 0, $events = array(), $usesearchtoselect=0, $limit = 0, $morecss = 'minwidth100', $moreparam = '', $selected_input_value = '', $hidelabel = 1, $selectlabel = '', $autofocus=0, $ajaxoptions = array(), $options_only=false)
     {
-        return $this->formdictionary->select_dictionary('requestmanager', 'requestmanagerstatus', $selected, $htmlname, 'rowid', '{{label}}', array('request_type'=>array($request_type), 'type'=>array(RequestManager::STATUS_TYPE_IN_PROGRESS)), $showempty, $forcecombo, $events, $usesearchtoselect, $limit, $morecss, $moreparam, $selected_input_value, $hidelabel, $selectlabel, $autofocus, $ajaxoptions, $options_only);
+        return $this->formdictionary->select_dictionary('requestmanager', 'requestmanagerstatus', $selected, $htmlname, $showempty, 'rowid', '{{label}}', array('request_type'=>array($request_type), 'type'=>array(RequestManager::STATUS_TYPE_IN_PROGRESS)), array('label'=>'ASC'), $forcecombo, $events, $usesearchtoselect, $limit, $morecss, $moreparam, $selected_input_value, $hidelabel, $selectlabel, $autofocus, $ajaxoptions, $options_only);
     }
 
     /**
@@ -467,6 +467,67 @@ class FormRequestManager
 	return $out;
     }
 
+    /**
+     *  Show children request block.
+     *
+     *  @param	RequestManager	$object		      Object we want to show children request to
+     *  @param  string          $morehtmlright    More html to show on right of title
+     *  @return	int							      Nb children found
+     */
+    function showChildrenRequestBlock($object, $morehtmlright='')
+    {
+        global $conf, $langs, $hookmanager;
+        global $bc;
+
+        $object->fetch_children_request(null, 1);
+
+        // Bypass the default method
+        $hookmanager->initHooks(array('requestmanagerdao'));
+        $parameters = array();
+        $reshook = $hookmanager->executeHooks('showChildrenRequestBlock', $parameters, $object, $action);    // Note that $action and $object may have been modified by hook
+
+        if (empty($reshook)) {
+            $nbchildren = count($object->children_request_ids);
+
+            print '<br><!-- showChildrenRequestBlock -->';
+            print load_fiche_titre($langs->trans('RequestManagerChildrenRequest'), $morehtmlright, '');
+
+            print '<div class="div-table-responsive-no-min">';
+            print '<table class="noborder allwidth">';
+
+            print '<tr class="liste_titre">';
+            print '<td>' . $langs->trans("Ref") . '</td>';
+            print '<td>' . $langs->trans("RequestManagerExternalReference") . '</td>';
+            print '<td align="center">' . $langs->trans("Date") . '</td>';
+            print '<td align="right">' . $langs->trans("Status") . '</td>';
+            print '</tr>';
+
+            global $childrenRequestBlock;
+            global $stopParentID;
+            $childrenRequestBlock = $object->children_request_list;
+            $stopParentID = $object->id;
+
+            // Output template part (modules that overwrite templates must declare this into descriptor)
+            $dirtpls = array_merge($conf->modules_parts['tpl'], array('/requestmanager/tpl'));
+            foreach ($dirtpls as $reldir) {
+                $res = @include dol_buildpath($reldir . '/childrenrequestblock.tpl.php');
+                if ($res) {
+                    break;
+                }
+            }
+
+            if (!$nbchildren) {
+                print '<tr><td class="impair opacitymedium" colspan="7">' . $langs->trans("None") . '</td></tr>';
+            }
+
+            print '</table>';
+            print '</div>';
+
+            return $nbchildren;
+        }
+
+        return $reshook;
+    }
 
     /**
      *  Output html form to select a actioncomm
@@ -574,7 +635,6 @@ class FormRequestManager
             return -1;
         }
     }
-
 
     /**
      *  Output html form to select an equipement
@@ -754,7 +814,7 @@ class FormRequestManager
         } else {
             $excludes_contact = $requestManager->requester_ids;
         }
-        $newCompanyId = $requestManager->socid;
+        $newCompanyId = $requestManager->socid_origin;
         $contactTypeCodeHtmlName = RequestManager::getContactTypeCodeHtmlNameById($idContactType);
 
         // form to add requester contact

@@ -110,6 +110,16 @@ class RequestManager extends CommonObject
      * @var RequestManager
      */
     public $parent;
+    /**
+     * List children request ID
+     * @var string[]
+     */
+    public $children_request_ids;
+    /**
+     * List children request object
+     * @var RequestManager[]
+     */
+    public $children_request_list;
 
     /**
      * Ref of the request
@@ -288,6 +298,18 @@ class RequestManager extends CommonObject
     public $assigned_usergroup_deleted_ids;
 
     /**
+     * List of tags ID to this request
+     * @var string[]
+     */
+    public $tag_ids;
+    /**
+     * List of tags ID to this request
+     * @var string[]
+     * @see fetch_tags()
+     */
+    public $tag_list;
+
+    /**
      * Date operation of the request
      * @var int
      */
@@ -348,6 +370,11 @@ class RequestManager extends CommonObject
      * @var int
      */
     public $statut_type;
+    /**
+     * New type of the status of the request when set_status() is called
+     * @var int
+     */
+    public $new_statut_type;
     /**
      * Entity of the request
      * @var int
@@ -701,7 +728,7 @@ class RequestManager extends CommonObject
 
             // Set status
             if (!$error) {
-                $ret = $this->set_status($this->statut, -1, $user, 1, 0, 0, 1);
+                $ret = $this->set_status($this->statut, -1, $user, 1, 0, 1);
                 if ($ret < 0) {
                     $error++;
                 }
@@ -994,8 +1021,8 @@ class RequestManager extends CommonObject
                 $this->user_modification_id         = $obj->fk_user_modif;
 
                 $this->fetch_assigned();
-                $this->fetch_requester();
-                $this->fetch_watcher();
+                $this->fetch_requesters();
+                $this->fetch_watchers();
             }
             $this->db->free($resql);
 
@@ -1368,7 +1395,7 @@ class RequestManager extends CommonObject
      * @param   int     $with_object    Load also the object
      * @return  int     <0 if KO, >0 if OK
      */
-    function fetch_requester($with_object=0)
+    function fetch_requesters($with_object=0)
     {
         $this->requester_ids = array();
         $this->requester_list = array();
@@ -1396,7 +1423,7 @@ class RequestManager extends CommonObject
      * @param   int     $with_object    Load also the object
      * @return  int     <0 if KO, >0 if OK
      */
-    function fetch_watcher($with_object=0)
+    function fetch_watchers($with_object=0)
     {
         $this->watcher_ids = array();
         $this->watcher_list = array();
@@ -1419,12 +1446,42 @@ class RequestManager extends CommonObject
     }
 
     /**
+     *  Load the tag of the request
+     *
+     * @param   int     $with_object    Load also the object
+     * @return  int     <0 if KO, >0 if OK
+     */
+    function fetch_tags($with_object=0)
+    {
+        $this->tag_ids = array();
+        $this->tag_list = array();
+
+        dol_include_once('/requestmanager/class/categorierequestmanager.class.php');
+        $categorierequestmanager = new CategorieRequestManager($this->db);
+
+        // Get tags
+        $categories = $categorierequestmanager->containing($this->id, CategorieRequestManager::TYPE_REQUESTMANAGER, 'id');
+        if (!is_array($categories))
+            return -1;
+
+        foreach ($categories as $category_id) {
+            $this->tag_ids[$category_id] = $category_id;
+            if ($with_object) {
+                $category = new Categorie($this->db);
+                $category->fetch($category_id);
+                $this->tag_list[$category_id] = $category;
+            }
+        }
+    }
+
+    /**
      *  Load the parent request of object, from id $this->fk_parent, into this->parent
      *
      * @return		int								<0 if KO, >0 if OK
      */
     function fetch_parent()
     {
+        $this->parent = null;
         if (empty($this->fk_parent))
             return 0;
 
@@ -1508,10 +1565,9 @@ class RequestManager extends CommonObject
 	 *
 	 * @param   User    $user           User that modifies
 	 * @param   bool    $notrigger      false=launch triggers after, true=disable triggers
-     * @param   int		$nonotify		Disable notification of assigned changed
 	 * @return  int                     <0 if KO, >0 if OK
 	 */
-	public function update(User $user, $notrigger = false, $nonotify=0)
+	public function update(User $user, $notrigger = false)
 	{
         global $conf, $langs, $hookmanager;
         $error = 0;
@@ -1601,6 +1657,35 @@ class RequestManager extends CommonObject
             return -3;
         }
 
+        // Check if standard properties modified
+        dol_include_once('/requestmanager/lib/opendsi_tools.lib.php');
+        if (opendsi_is_updated_property($this, 'fk_type') ||
+            opendsi_is_updated_property($this, 'fk_category') ||
+            opendsi_is_updated_property($this, 'label') ||
+            opendsi_is_updated_property($this, 'socid_origin') ||
+            opendsi_is_updated_property($this, 'socid') ||
+            opendsi_is_updated_property($this, 'socid_benefactor') ||
+            opendsi_is_updated_property($this, 'fk_source') ||
+            opendsi_is_updated_property($this, 'fk_urgency') ||
+            opendsi_is_updated_property($this, 'fk_impact') ||
+            opendsi_is_updated_property($this, 'fk_priority') ||
+            opendsi_is_updated_property($this, 'duration') ||
+            opendsi_is_updated_property($this, 'date_operation') ||
+            opendsi_is_updated_property($this, 'date_deadline') ||
+            opendsi_is_updated_property($this, 'notify_assigned_by_email') ||
+            opendsi_is_updated_property($this, 'dd') ||// Request tags
+            opendsi_is_updated_property($this, 'description') ||
+            opendsi_is_updated_property($this, 'dd') ||// Request origin contacts
+            opendsi_is_updated_property($this, 'notify_requester_by_email') ||
+            opendsi_is_updated_property($this, 'dd') ||// Request watcher contacts
+            opendsi_is_updated_property($this, 'notify_watcher_by_email') ||
+            opendsi_is_updated_property($this, 'dd') ||// Request linked objects
+            opendsi_is_updated_property($this, 'dd') ||// Request product lines
+            opendsi_is_updated_property($this, 'array_options')
+        ) {
+            $this->context['has_properties_updated'] = true; // Can be modified by triggers
+        }
+
 		// Update request
 		$sql = 'UPDATE ' . MAIN_DB_PREFIX . $this->table_element . ' SET';
         $sql .= " fk_parent = " . ($this->fk_parent > 0 ? $this->fk_parent : 'NULL');
@@ -1655,7 +1740,7 @@ class RequestManager extends CommonObject
 
         // Set assigned
         if (!$error && (!empty($this->assigned_user_ids) || !empty($this->assigned_usergroup_ids))) {
-            $result = $this->set_assigned($this->assigned_user_ids, $this->assigned_usergroup_ids, $nonotify);
+            $result = $this->set_assigned($this->assigned_user_ids, $this->assigned_usergroup_ids);
             if ($result < 0) {
                 $error++;
             }
@@ -1677,7 +1762,10 @@ class RequestManager extends CommonObject
 
 			return - 1 * $error;
 		} else {
-			$this->db->commit();
+            if (!empty($this->context['has_properties_updated']))
+			    $this->db->commit();
+            else
+                $this->db->rollback();
             dol_syslog(__METHOD__ . " success", LOG_DEBUG);
 
 			return 1;
@@ -1743,8 +1831,6 @@ class RequestManager extends CommonObject
 
         // Fetch linked objects
         $requestChild->fetchObjectLinked();
-        $requestChild->linkedObjectsIds[$this->element][] = $this->id;
-        unset($requestChild->linkedObjectsIds['action']); // Todo a enlever une fois la creation des events corrigées
 
         // Create request child
         $result = $requestChild->create($user);
@@ -1963,10 +2049,9 @@ class RequestManager extends CommonObject
      *  @param	array	$assigned_user_ids          List of user ID assigned to the request
      *  @param 	array   $assigned_usergroup_ids 	List of usergroup ID assigned to the request
      *  @param  int		$notrigger			        Disable all triggers
-     *  @param  int		$nonotify			        Disable notification of assigned changed
      *  @return int                 		        <0 if KO, >0 if OK
      */
-    public function set_assigned($assigned_user_ids, $assigned_usergroup_ids, $notrigger=0, $nonotify=0)
+    public function set_assigned($assigned_user_ids, $assigned_usergroup_ids, $notrigger=0)
     {
         global $user;
 
@@ -2104,18 +2189,13 @@ class RequestManager extends CommonObject
             }
         }
 
-        if (!$error && !$notrigger) {
-            $result = $this->call_trigger('REQUESTMANAGER_SET_ASSIGNED', $user);
-            if ($result < 0) {
-                $error++;
-            }
+        if (!$error && (count($this->assigned_user_added_ids) > 0 || count($this->assigned_usergroup_added_ids) > 0 ||
+                count($this->assigned_user_deleted_ids) > 0 || count($this->assigned_usergroup_deleted_ids) > 0)) {
+            $this->context['has_properties_updated'] = true; // Can be modified by triggers
         }
 
-        // if assigned user or usergroup changed
-        //todo deplacer dans le triger notification
-        if (!$error && !$nonotify) {
-            // create new event and notify assigned users and contacts
-            $result = $this->createActionCommAndNotifyFromTemplateType(self::TEMPLATE_TYPE_NOTIFY_ASSIGNED_USERS_MODIFIED, self::ACTIONCOMM_TYPE_CODE_ASSUSR);
+        if (!$error && !$notrigger) {
+            $result = $this->call_trigger('REQUESTMANAGER_SET_ASSIGNED', $user);
             if ($result < 0) {
                 $error++;
             }
@@ -2140,11 +2220,10 @@ class RequestManager extends CommonObject
      * @param   User    $user           User that modifies
 	 * @param   bool    $notrigger      false=launch triggers after, true=disable triggers
      * @param   int     $forcereload    Force reload of the cache
-     * @param   int		$nonotify		Disable notification of assigned changed
      * @param   int		$dont_check		Don't check the old and new status is equal do pass
 	 * @return  int                     <0 if KO, >0 if OK
 	 */
-	public function set_status($status, $status_type, User $user, $notrigger = false, $forcereload = 0, $nonotify = 0, $dont_check=0)
+	public function set_status($status, $status_type, User $user, $notrigger = false, $forcereload = 0, $dont_check=0)
     {
         global $langs;
         $error = 0;
@@ -2192,6 +2271,7 @@ class RequestManager extends CommonObject
         }
 
         $this->new_statut = $status;
+        $this->new_statut_type = self::$status_list[$this->new_statut]->fields['type'];
 
         if ($this->new_statut == $this->statut && !$dont_check) {
             dol_syslog(__METHOD__ . " : Status not changed", LOG_DEBUG);
@@ -2247,7 +2327,7 @@ class RequestManager extends CommonObject
                 $this->assigned_usergroup_ids = $assigned_usergroups;
                 $this->date_operation = $date_operation;
                 $this->date_deadline = $date_deadline;
-                $result = $this->update($user, 1, $nonotify);
+                $result = $this->update($user);
                 if ($result < 0) {
                     $error++;
                 }
@@ -2290,26 +2370,52 @@ class RequestManager extends CommonObject
 	}
 
     /**
+     *  Load the children request
+     *
+     * @param   int     $with_object    Load also the object
+     * @return  int                     <0 if KO, >0 if OK
+     */
+    function fetch_children_request($request_id=null, $with_object=0)
+    {
+        $this->children_request_ids = array();
+        $this->children_request_list = array();
+
+        // Get contacts
+        $children_ids = $this->getAllChildrenRequest($request_id);
+        if (!is_array($children_ids))
+            return -1;
+
+        foreach ($children_ids as $request_id) {
+            $this->children_request_ids[$request_id] = $request_id;
+            if ($with_object) {
+                $request = new RequestManager($this->db);
+                $request->fetch($request_id);
+                $this->children_request_list[$request_id] = $request;
+            }
+        }
+    }
+
+    /**
      *  Return list of children request ID
      *
      * @param   int         $request_id         Id of the parent request
-     * @param   array       $children_ids       List of children request ID already found
      * @return  array                           List of children request ID
      */
-    function getAllChildrenRequest($request_id=null, &$children_ids=array())
+    function getAllChildrenRequest($request_id=null)
     {
         if (!isset($request_id)) $request_id = $this->id;
 
+        $children_ids = array();
+
         // Get all children request
-        $sql = 'SELECT fk_target as child_id';
-        $sql.= ' FROM '.MAIN_DB_PREFIX.'element_element';
-        $sql.= " WHERE fk_source = '".$request_id."' AND sourcetype = '".$this->element."' AND targettype = '".$this->element."'";
+        $sql = 'SELECT rowid as child_id FROM '.MAIN_DB_PREFIX . $this->table_element . ' WHERE fk_parent = ' . $request_id;
 
         $resql = $this->db->query($sql);
         if ($resql) {
             while ($obj = $this->db->fetch_object($resql)) {
-                $result = $this->getAllChildrenRequest($obj->child_id, $children_ids);
-                $children_ids = array_merge($children_ids, array($obj->child_id), $result);
+                $children_ids[] = $obj->child_id;
+                $result = $this->getAllChildrenRequest($obj->child_id);
+                $children_ids = array_merge($children_ids, $result);
             }
         }
 
@@ -2711,9 +2817,9 @@ class RequestManager extends CommonObject
         $msg = '';
         if (isset($this->oldcopy->socid) && $this->socid != $this->oldcopy->socid) {
             $this->oldcopy->fetch_thirdparty();
-            $msg .= $langs->trans('RequestManagerThirdPartyBillOld') . ' : ' . $this->oldcopy->thirdparty->getNomUrl(1) . '<br>';
+            $msg .= $langs->trans('RequestManagerThirdPartyPrincipalOld') . ' : ' . $this->oldcopy->thirdparty->getNomUrl(1) . '<br>';
         }
-        $msg .= $langs->trans('RequestManagerThirdPartyBill') . ' : ' . $this->thirdparty->getNomUrl(1) . '<br>';
+        $msg .= $langs->trans('RequestManagerThirdPartyPrincipal') . ' : ' . $this->thirdparty->getNomUrl(1) . '<br>';
         if (isset($this->oldcopy->socid_benefactor) && $this->socid_benefactor != $this->oldcopy->socid_benefactor) {
             $this->oldcopy->fetch_thirdparty_benefactor();
             $msg .= $langs->trans('RequestManagerThirdPartyBenefactorOld') . ' : ' . $this->oldcopy->thirdparty_benefactor->getNomUrl(1) . '<br>';
@@ -2832,10 +2938,16 @@ class RequestManager extends CommonObject
         if ($withpicto && $withpicto != 2) $result.=' ';
         if ($withpicto != 2) $result.=$linkstart.($maxlen?dol_trunc($this->ref,$maxlen):$this->ref).$linkend;
 
-        if ($option == 'parent_path' && $this->fk_parent > 0) {
+        if (preg_match('/^parent_path(.*)/i', $option, $matches) && $this->fk_parent > 0) {
+            if (preg_match('/parent_path_stop_parent_(\d+)/i', $option, $matches)) {
+                $stop_parent_id = $matches[1];
+            }
             $this->fetch_parent();
-            $result = $this->parent->getNomUrl($withpicto, $option, $maxlen, $notooltip, $save_lastsearch_value) . ' >> ' . $result;
+            if (!isset($stop_parent_id) || $stop_parent_id != $this->parent->id) {
+                $result = $this->parent->getNomUrl($withpicto, $option, $maxlen, $notooltip, $save_lastsearch_value) . ' >> ' . $result;
+            }
         }
+
         return $result;
     }
 
@@ -3217,10 +3329,10 @@ class RequestManager extends CommonObject
         }
 
         if ($idContactType == self::CONTACT_TYPE_ID_REQUEST) {
-            $this->fetch_requester(1);
+            $this->fetch_requesters(1);
             $contactList = $this->requester_list;
         } else if ($idContactType == self::CONTACT_TYPE_ID_WATCHER) {
-            $this->fetch_watcher(1);
+            $this->fetch_watchers(1);
             $contactList = $this->watcher_list;
         }
 
@@ -3334,7 +3446,7 @@ class RequestManager extends CommonObject
 
         // contact requesters
         if ($this->notify_requester_by_email == TRUE) {
-            $this->fetch_requester($withObject, $sourceFilter);
+            $this->fetch_requesters($withObject, $sourceFilter);
             $contactList = array_merge($contactList, $this->requester_list);
         }
 
@@ -3355,7 +3467,7 @@ class RequestManager extends CommonObject
 
         // contact watchers
         if ($this->notify_watcher_by_email == TRUE) {
-            $this->fetch_watcher($withObject, $sourceFilter);
+            $this->fetch_watchers($withObject, $sourceFilter);
             $contactList = array_merge($contactList, $this->watcher_list);
         }
 
@@ -3887,8 +3999,8 @@ class RequestManager extends CommonObject
                     $res = $requestmanagerStatic->_loadStatutTypeFromDbObject($obj);
                     if ($res < 0)   return $objectList;
                     $requestmanagerStatic->_loadFromDbObject($obj);
-                    //$requestmanagerStatic->fetch_requester();
-                    //$requestmanagerStatic->fetch_watcher();
+                    //$requestmanagerStatic->fetch_requesters();
+                    //$requestmanagerStatic->fetch_watchers();
 
                     $objectList[] = $requestmanagerStatic;
                 }

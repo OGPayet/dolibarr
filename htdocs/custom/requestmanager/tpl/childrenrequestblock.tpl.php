@@ -1,7 +1,5 @@
 <?php
-/* Copyright (C) 2010-2011  Regis Houssin <regis.houssin@capnetworks.com>
- * Copyright (C) 2013       Juanjo Menent <jmenent@2byte.es>
- * Copyright (C) 2014       Marcos García <marcosgdf@gmail.com>
+/* Copyright (C) 2018       Open-DSI      <support@open-dsi.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,9 +16,9 @@
  */
 
 /**
- *  \file		htdocs/requestmanager/tpl/linkedobjectblock.tpl.php
+ *  \file		htdocs/requestmanager/tpl/childrenrequestblock.tpl.php
  *  \ingroup	requestmanager
- *  \brief		Template to show objects linked to request manager
+ *  \brief		Template to show children request to request manager
  */
 
 // Protection to avoid direct call of template
@@ -39,23 +37,21 @@ if (empty($conf) || ! is_object($conf))
 global $user;
 
 $langs = $GLOBALS['langs'];
-$linkedObjectBlock = $GLOBALS['linkedObjectBlock'];
+$childrenRequestBlock = $GLOBALS['childrenRequestBlock'];
+$stopParentID = $GLOBALS['stopParentID'];
 
 $langs->load("requestmanager@requestmanager");
 
 $var=true;
-foreach($linkedObjectBlock as $key => $objectlink)
+foreach($childrenRequestBlock as $key => $request)
 {
     $trclass=($var?'pair':'impair');
 ?>
     <tr class="<?php echo $trclass; ?>">
-        <td><?php echo $langs->trans("RequestManagerRequest"); ?></td>
-        <td><?php echo $objectlink->getNomUrl(1); ?></td>
-	<td><?php echo $objectlink->ref_ext; ?></td>
-	<td align="center"><?php echo dol_print_date($objectlink->date_creation,'day'); ?></td>
-	<td align="right"></td>
-	<td align="right"><?php echo $objectlink->getLibStatut(3); ?></td>
-	<td align="right"><a href="<?php echo $_SERVER["PHP_SELF"].'?id='.$object->id.'&action=dellink&dellinkid='.$key; ?>"><?php echo img_delete($langs->transnoentitiesnoconv("RemoveLink")); ?></a></td>
+      <td><?php echo $request->getNomUrl(1, 'parent_path_stop_parent_'.$stopParentID); ?></td>
+	<td><?php echo $request->ref_ext; ?></td>
+	<td align="center"><?php echo dol_print_date($request->date_creation,'day'); ?></td>
+	<td align="right"><?php echo $request->getLibStatut(5); ?></td>
     </tr>
 <?php
 }

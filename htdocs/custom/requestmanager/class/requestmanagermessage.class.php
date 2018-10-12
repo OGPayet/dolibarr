@@ -25,295 +25,561 @@
  * \brief
  */
 
-require_once DOL_DOCUMENT_ROOT . '/core/class/commonobject.class.php';
+require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
 
 
 /**
- * Class RequestManagerNotification
+ * Class RequestManagerMessage
  *
  * Put here description of your class
- * @see CommonObject
+ * @see ActionComm
  */
-class RequestManagerMessage extends CommonObject
+class RequestManagerMessage extends ActionComm
 {
-
-    public $element = 'requestmanager_message';
+    public $element = 'requestmanager_requestmanagermessage';
     public $table_element = 'requestmanager_message';
     protected $ismultientitymanaged = 1;	// 0=No test on entity, 1=Test with field entity, 2=Test with link by societe
 
+    /**
+     * RequestManager handle
+     * @var RequestManager
+     */
+    public $requestmanager;
 
     /**
-     * ID of the notification
+     * Message type (Out, Private or In)
      * @var int
      */
-    public $id;
+    public $message_type;
 
     /**
-     * ActionComm of the notification
+     * Notify assigned (Used in triggers)
      * @var int
      */
-    public $fk_actioncomm;
-
+    public $notify_assigned;
     /**
-     * Id of knowledge base (in dictionary)
+     * Notify requester (Used in triggers)
      * @var int
      */
-    public $fk_knowledge_base;
-
-
+    public $notify_requesters;
     /**
-     * Object KnowledgeBase
-     * @var stdClass
+     * Notify watchers (Used in triggers)
+     * @var int
      */
-    public $knowledgeBase = NULL;
-
+    public $notify_watchers;
 
     /**
-     * Constructor
+     * Attached files (Can be used in triggers)
+     * @var int
+     */
+    public $attached_files;
+
+    /**
+     * List knowledge base ID
+     * @var string[]
+     */
+    public $knowledge_base_ids;
+    /**
+     * List knowledge base object
+     * @var DictionaryLine[]
+     */
+    public $knowledge_base_list;
+
+    /**
+     * Message types
+     */
+    const MESSAGE_TYPE_OUT = 0;
+    const MESSAGE_TYPE_PRIVATE = 1;
+    const MESSAGE_TYPE_IN = 2;
+
+    /**
+     *  Add an action/event into database.
+     *  $this->type_id OR $this->type_code must be set.
      *
-     * @param   DoliDb      $db     Database handler
+     * @param	User	        $user      		    Object user making action
+     * @param   int		        $notrigger		    1 = disable triggers, 0 = enable triggers
+     * @return  int 		        	            Id of created event, < 0 if KO
      */
-    public function __construct(DoliDB $db)
-    {
-        $this->db = $db;
-    }
-
-
-    /**
-     * Find knowledge base by id of actioncomm
-     *
-     * @param   int         $fkActionComm       Id of actioncomm
-     * @param   bool        $withKnowledgeBase  [=FALSE] without knowledge base, TRUE to join knowledge base
-     * @return  resource    SQL resource
-     */
-    private function _findByFkAction($fkActionComm, $withKnowledgeBase=FALSE)
-    {
-        $sql  = "SELECT";
-        $sql .= $this->_sqlSelectAllFields('rmm', TRUE);
-        if ($withKnowledgeBase) {
-            $sql .= ", crmkb.code";
-            $sql .= ", crmkb.title";
-        }
-        $sql .= $this->_slqFromTableElement();
-        if ($withKnowledgeBase) {
-            $sql .= " INNER JOIN " . MAIN_DB_PREFIX . "c_requestmanager_knowledge_base as crmkb ON crmkb.rowid = rmm.fk_knowledge_base";
-        }
-        $sql .= " WHERE rmm.fk_actioncomm = " . $fkActionComm;
-
-        return $this->db->query($sql);
-    }
-
-
-    /**
-     * Load this object from db object
-     *
-     * @param   stdClass    $obj    Db object
-     */
-    private function _loadFromDbObject($obj)
-    {
-        $this->id                = $obj->rowid;
-        $this->fk_actioncomm     = $obj->fk_actioncomm;
-        $this->fk_knowledge_base = $obj->fk_knowledge_base;
-    }
-
-
-    /**
-     * Load knowledge base object from db object
-     *
-     * @param   stdClass    $obj    Db object
-     */
-    private function _loadKnowledgeBaseFromDbObject($obj)
-    {
-        $this->knowledgeBase = new stdClass();
-        $this->knowledgeBase->code  = $obj->code;
-        $this->knowledgeBase->title = $obj->title;
-    }
-
-
-    /**
-     * Insert a message in database
-     *
-     * @param   int     $fkActionComm       Id of ActionComm
-     * @param   int     $fkKnowledgeBase    Id of knowledge base (in dictionary)
-     * @return  int     <0 if KO, >0 if OK
-     */
-    private function  _sqlInsert($fkActionComm, $fkKnowledgeBase)
-    {
-        $sql  = "INSERT INTO " . MAIN_DB_PREFIX . $this->table_element . " (";
-        $sql .= " fk_actioncomm, fk_knowledge_base";
-        $sql .= ") VALUES (";
-        $sql .= $fkActionComm . ", " . $fkKnowledgeBase;
-        $sql .= ")";
-
-        $this->db->begin();
-
-        $resql = $this->db->query($sql);
-        if (!$resql) {
-            $this->errors[] = $this->db->lasterror();
-            dol_syslog( __METHOD__ . " Error sql=" . $sql, LOG_ERR);
-            $this->db->rollback();
-            return -1;
-        }
-
-        $this->db->commit();
-
-        return 1;
-    }
-
-
-    /**
-     * Create all SQL fields for this table element
-     *
-     * param    string  $tableAliasName         [=''] Table alias name
-     * @param   bool    $firstFieldsInSelect    [=FALSE] if not for select fields in SQL, TRUE else
-     * @return  string  SQL select fields
-     */
-    private function _sqlSelectAllFields($tableAliasName='', $firstFieldsInSelect=FALSE)
-    {
-        $tableAliasForField = '';
-        if ($tableAliasName) {
-            $tableAliasForField = $tableAliasName . '.';
-        }
-
-        $sql  = "";
-        if($firstFieldsInSelect === FALSE) {
-            $sql = ",";
-        }
-        $sql .= " " . $tableAliasForField . "rowid";
-        $sql .= ", " . $tableAliasForField . "fk_actioncomm";
-        $sql .= ", " . $tableAliasForField . "fk_knowledge_base";
-
-        return $sql;
-    }
-
-
-    /**
-     * Create SQL From request for this table element
-     *
-     * @return  string
-     */
-    private function _slqFromTableElement()
-    {
-        $sql = " FROM " . MAIN_DB_PREFIX . $this->table_element . " as rmm";
-
-        return $sql;
-    }
-
-
-    /**
-     * Create a message in database
-     *
-     * @param   User    $user           User that creates
-     * @param   bool    $notrigger      [=FALSE] launch triggers after, TRUE disable triggers
-     * @return  int     <0 if KO, >0 if OK
-     */
-    public function create(User $user, $notrigger=FALSE)
+    public function create(User $user, $notrigger = 0)
     {
         global $langs;
 
-        $error = 0;
+        $now = dol_now();
 
         // Clean parameters
-        $this->fk_actioncomm     = $this->fk_actioncomm > 0 ? $this->fk_actioncomm : 0;
-        $this->fk_knowledge_base = $this->fk_knowledge_base > 0 ? $this->fk_knowledge_base : 0;
+        $this->message_type = $this->message_type != self::MESSAGE_TYPE_PRIVATE && $this->message_type != self::MESSAGE_TYPE_IN ? self::MESSAGE_TYPE_OUT : $this->message_type;
+        $this->notify_assigned = !empty($this->notify_assigned) ? 1 : 0;
+        $this->notify_requesters = !empty($this->notify_requesters) ? 1 : 0;
+        $this->notify_watchers = !empty($this->notify_watchers) ? 1 : 0;
+        $this->attached_files = is_array($this->attached_files) ? $this->attached_files : array();
+        $this->knowledge_base_ids = is_array($this->knowledge_base_ids) ? $this->knowledge_base_ids : (is_string($this->knowledge_base_ids) ? explode(',', $this->knowledge_base_ids) : array());
 
         // Check parameters
-        if (empty($this->fk_actioncomm)) {
-            $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("RequestManagerMessageActionComm"));
+        $error = 0;
+
+        $langs->load("requestmanager@requestmanager");
+        if (!($this->requestmanager->id > 0)) {
+            $this->errors[] = $langs->trans("ErrorBadParameters") . ': ' . $langs->trans("RequestManagerRequest");
             $error++;
         }
-
-        $this->db->begin();
-        if (!$error) {
-            $result = $this->_sqlInsert($this->fk_actioncomm, $this->fk_knowledge_base);
-            if ($result < 0) {
-                $error++;
-            }
+        if (empty($this->note)) {
+            $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("RequestManagerMessage"));
+            $error++;
+        }
+        if ($error) {
+            dol_syslog(__METHOD__ . " requestmanager_message Errors: " . $this->errorsToString(), LOG_ERR);
+            return -4;
         }
 
-        if (!$error) {
-            $this->id = $this->db->last_insert_id(MAIN_DB_PREFIX . $this->table_element);
+        switch ($this->message_type) {
+            case self::MESSAGE_TYPE_PRIVATE:
+                $this->type_code = 'AC_RM_PRIV';
+                $this->label = $langs->trans('RequestManagerMessageTitlePrivate', $this->requestmanager->ref);
+                break;
+            case self::MESSAGE_TYPE_IN:
+                $this->type_code = 'AC_RM_IN';
+                $this->label = $langs->trans('RequestManagerMessageTitleIn', $this->requestmanager->ref);
+                break;
+            default:
+                $this->type_code = 'AC_RM_OUT';
+                $this->label = $langs->trans('RequestManagerMessageTitleOut', $this->requestmanager->ref);
+                break;
+        }
+
+        $this->fk_project = 0;
+        $this->datep = $now;
+        $this->datef = $now;
+        $this->fulldayevent = 0;
+        $this->durationp = 0;
+        $this->punctual = 1;
+        $this->percentage = -1;           // Not applicable
+        $this->transparency = 0;          // Not applicable
+        $this->authorid = $user->id;      // User saving action
+        $this->userownerid = $user->id;   // User saving action
+        $this->elementtype = $this->requestmanager->element;
+        $this->fk_element = $this->requestmanager->id;
+        $this->socid = $user->socid > 0 && ($user->socid == $this->requestmanager->socid_origin || $user->socid == $this->requestmanager->socid || $user->socid == $this->requestmanager->socid_benefactor) ? $user->socid : $this->requestmanager->socid;
+
+        $this->db->begin();
+
+        $result = parent::create($user, 1);
+        if ($result > 0) {
+            $error = 0;
+
+            // Insert further information
+            $sql = "INSERT INTO " . MAIN_DB_PREFIX . "requestmanager_message (";
+            $sql .= "  fk_actioncomm";
+            $sql .= ", notify_assigned";
+            $sql .= ", notify_requesters";
+            $sql .= ", notify_watchers";
+            $sql .= ") VALUES (";
+            $sql .= "  " . $result;
+            $sql .= ", " . ($this->notify_assigned ? 1 : 'NULL');
+            $sql .= ", " . ($this->notify_requesters ? 1 : 'NULL');
+            $sql .= ", " . ($this->notify_watchers ? 1 : 'NULL');
+            $sql .= ")";
+
+            dol_syslog(__METHOD__ . " requestmanager_message", LOG_DEBUG);
+            $result = $this->db->query($sql);
+            if (!$result) {
+                $error++;
+                $this->errors[] = $this->db->lasterror();
+                dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $this->db->lasterror(), LOG_ERR);
+            }
+
+            if (!$error) {
+                $result = $this->set_knowledge_base($this->knowledge_base_ids);
+                if (!$result) {
+                    $error++;
+                }
+            }
+
+            if (!$error) {
+                $result = $this->add_files($this->attached_files);
+                if (!$result) {
+                    $error++;
+                }
+            }
 
             if (!$error && !$notrigger) {
                 // Call trigger
                 $result = $this->call_trigger('REQUESTMANAGERMESSAGE_CREATE', $user);
                 if ($result < 0) {
                     $error++;
-                    dol_syslog(__METHOD__ . " Errors call trigger: " . $this->errorsToString(), LOG_ERR);
                 }
                 // End call triggers
             }
+
+            if (!$error) {
+                $this->db->commit();
+                return $this->id;
+            } else {
+                $this->db->rollback();
+                return -$error;
+            }
         }
 
-        // Commit or rollback
+        return $result;
+    }
+
+    /**
+     *  Update action into database
+     *  If percentage = 100, on met a jour date 100%
+     *
+     * @param    User	$user			Object user making change
+     * @param    int	$notrigger		1 = disable triggers, 0 = enable triggers
+     * @return   int     				<0 if KO, >0 if OK
+     */
+    function update($user, $notrigger=0)
+    {
+        global $langs;
+
+        // Clean parameters
+        $this->message_type = $this->message_type != self::MESSAGE_TYPE_PRIVATE && $this->message_type != self::MESSAGE_TYPE_IN ? self::MESSAGE_TYPE_OUT : $this->message_type;
+        $this->notify_assigned = !empty($this->notify_assigned) ? 1 : 0;
+        $this->notify_requesters = !empty($this->notify_requesters) ? 1 : 0;
+        $this->notify_watchers = !empty($this->notify_watchers) ? 1 : 0;
+        $this->attached_files = is_array($this->attached_files) ? $this->attached_files : array();
+        $this->knowledge_base_ids = is_array($this->knowledge_base_ids) ? $this->knowledge_base_ids : (is_string($this->knowledge_base_ids) ? explode(',', $this->knowledge_base_ids) : array());
+
+        // Check parameters
+        $error = 0;
+
+        $langs->load("requestmanager@requestmanager");
+        if (!($this->requestmanager->id > 0)) {
+            $this->errors[] = $langs->trans("ErrorBadParameters") . ': ' . $langs->trans("RequestManagerRequest");
+            $error++;
+        }
+        if (empty($this->note)) {
+            $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("RequestManagerMessage"));
+            $error++;
+        }
         if ($error) {
-            $this->db->rollback();
-            return -1 * $error;
-        } else {
+            dol_syslog(__METHOD__ . " requestmanager_message Errors: " . $this->errorsToString(), LOG_ERR);
+            return -4;
+        }
+
+        switch ($this->message_type) {
+            case self::MESSAGE_TYPE_PRIVATE:
+                $this->type_code = 'AC_RM_PRIV';
+                $this->label = $langs->trans('RequestManagerMessageTitlePrivate', $this->requestmanager->ref);
+                break;
+            case self::MESSAGE_TYPE_IN:
+                $this->type_code = 'AC_RM_IN';
+                $this->label = $langs->trans('RequestManagerMessageTitleIn', $this->requestmanager->ref);
+                break;
+            default:
+                $this->type_code = 'AC_RM_OUT';
+                $this->label = $langs->trans('RequestManagerMessageTitleOut', $this->requestmanager->ref);
+                break;
+        }
+
+        $this->db->begin();
+
+        $result = parent::update($user, 1);
+        if ($result > 0) {
+            $error = 0;
+
+            // Insert further information
+            $sql = "UPDATE " . MAIN_DB_PREFIX . "requestmanager_message";
+            $sql .= " SET";
+            $sql .= "   notify_assigned = " . $this->notify_assigned;
+            $sql .= " , notify_requesters = " . $this->notify_requesters;
+            $sql .= " , notify_watchers = " . $this->notify_watchers;
+            $sql .= " WHERE fk_actioncomm = " . $this->id;
+
+            dol_syslog(__METHOD__ . " requestmanager_message", LOG_DEBUG);
+            $result = $this->db->query($sql);
+            if (!$result) {
+                $error++;
+                $this->errors[] = $this->db->lasterror();
+                dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $this->db->lasterror(), LOG_ERR);
+            }
+
+            if (!$error) {
+                $result = $this->set_knowledge_base($this->knowledge_base_ids);
+                if (!$result) {
+                    $error++;
+                }
+            }
+
+            if (!$error) {
+                $result = $this->add_files($this->attached_files);
+                if (!$result) {
+                    $error++;
+                }
+            }
+
+            if (!$error && !$notrigger) {
+                // Call trigger
+                $result = $this->call_trigger('REQUESTMANAGERMESSAGE_MODIFY', $user);
+                if ($result < 0) {
+                    $error++;
+                }
+                // End call triggers
+            }
+
+            if (!$error) {
+                $this->db->commit();
+                return 1;
+            } else {
+                $this->db->rollback();
+                return -$error;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     *    Delete event from database
+     *
+     *    @param    int		$notrigger		1 = disable triggers, 0 = enable triggers
+     *    @return   int 					<0 if KO, >0 if OK
+     */
+    function delete($notrigger=0)
+    {
+        global $user, $conf;
+        $this->db->begin();
+        $error = 0;
+
+        dol_syslog(__METHOD__ . ' requestmanager_message', LOG_DEBUG);
+
+        if (!$notrigger) {
+            // Call trigger
+            $result = $this->call_trigger('REQUESTMANAGERMESSAGE_DELETE', $user);
+            if ($result < 0) {
+                $error++;
+            }
+            // End call triggers
+        }
+
+        // Removed further information
+        if (!$error) {
+            $sql = "DELETE FROM " . MAIN_DB_PREFIX . "requestmanager_message_knowledge_base WHERE fk_actioncomm = " . $this->id;
+            $result = $this->db->query($sql);
+            if (!$result) {
+                $error++;
+                $this->errors[] = $this->db->lasterror();
+                dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $this->db->lasterror(), LOG_ERR);
+            }
+        }
+
+        // Removed further information
+        if (!$error) {
+            $sql = "DELETE FROM " . MAIN_DB_PREFIX . "requestmanager_message WHERE fk_actioncomm = " . $this->id;
+            $result = $this->db->query($sql);
+            if (!$result) {
+                $error++;
+                $this->errors[] = $this->db->lasterror();
+                dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $this->db->lasterror(), LOG_ERR);
+            }
+        }
+
+        if (!$error) {
+            $result = parent::delete(1);
+            if ($result < 0) {
+                $error -= $result;
+            }
+        }
+
+        if (!$error) {
             $this->db->commit();
-            dol_syslog(__METHOD__ . " success", LOG_DEBUG);
-            return $this->id;
+            return 1;
+        } else {
+            $this->db->rollback();
+            return -$error;
         }
     }
 
-
     /**
-     *  Load request in memory from the database
+     *    Load object from database
      *
-     * @param   int     $id         Id object
-     * @return  int                 <0 if KO, 0 if not found, >0 if OK
+     *    @param	int		$id     	Id of action to get
+     *    @param	string	$ref    	Ref of action to get
+     *    @param	string	$ref_ext	Ref ext to get
+     *    @return	int					<0 if KO, >0 if OK
      */
-    public function fetch($id)
+    function fetch($id, $ref='',$ref_ext='')
     {
-        $sql  = "SELECT";
-        $sql .= $this->_sqlSelectAllFields('rmm', TRUE);
-        $sql .= $this->_slqFromTableElement();
-        $sql .= " WHERE rmm.rowid = " . $id;
+        dol_syslog(__METHOD__ . " requestmanager_message id=" . $id . " ref=" . $ref . " ref_ext=" . $ref_ext);
 
-        $resql = $this->db->query($sql);
-        if (!$resql) {
-            $this->errors[] = 'Error ' . $this->db->lasterror();
-            dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $this->db->lasterror(), LOG_ERR);
-            return -1;
+        $result = parent::fetch($id, $ref, $ref_ext);
+        if ($result > 0) {
+            $sql = "SELECT fk_knowledge_base";
+            $sql .= " FROM " . MAIN_DB_PREFIX . "requestmanager_message";
+            $sql .= " WHERE fk_actioncomm = " . $this->id;
+
+            $resql = $this->db->query($sql);
+            if ($resql) {
+                if ($obj = $this->db->fetch_object($resql)) {
+                    $this->fk_knowledge_base = $obj->fk_knowledge_base;
+
+                    $this->db->free($resql);
+
+                    return 1;
+                } else {
+                    return 0;
+                }
+            } else {
+                $this->error = $this->db->lasterror();
+                return -1;
+            }
         }
 
-        $numrows = $this->db->num_rows($resql);
-        if ($numrows) {
-            $obj = $this->db->fetch_object($resql);
-            $this->_loadFromDbObject($obj);
-            $this->db->free($resql);
-            return 1;
+        return $result;
+    }
+
+    /**
+     *  Load the request manager
+     *
+     * @return  int     <0 if KO, >0 if OK
+     */
+    function fetch_requestmanager()
+    {
+        dol_include_once('/requestmanager/class/requestmanager.class.php');
+        $this->requestmanager = null;
+
+        $requestmanager = new RequestManager($this->db);
+        if ($this->fk_element > 0 && $this->elementtype == $requestmanager->element) {
+            $requestmanager->fetch($this->fk_element);
+            $this->requestmanager = $requestmanager;
         } else {
             return 0;
         }
+
+        return 1;
     }
 
-
     /**
-     * Load object with knowledge base
+     *  Load the knowledge base
      *
-     * @param   int     $fkActionComm       Id of ActionComm
-     * @param   bool    $withKnowledgeBase  [=FALSE] without knowledge base, TRUE to join knowledge base
-     * @return  int     <0 if KO, 0 if not found, >0 if OK
+     * @param   int     $with_object    Load also the object
+     * @return  int     <0 if KO, >0 if OK
      */
-    public function loadByFkAction($fkActionComm, $withKnowledgeBase=FALSE)
+    function fetch_knowledge_base($with_object=0)
     {
-        $resql = $this->_findByFkAction($fkActionComm, $withKnowledgeBase);
+        $this->knowledge_base_ids = array();
+        $this->knowledge_base_list = array();
 
-        if (!$resql) {
-            $this->errors[] = $this->db->lasterror();
-            return -1;
+        // Get contacts
+        $sql = 'SELECT fk_knowledge_base FROM '.MAIN_DB_PREFIX.'requestmanager_message_knowledge_base WHERE fk_actioncomm = '.$this->id;
+        $resql = $this->db->query($sql);
+        if ($resql) {
+            while ($obj = $this->db->fetch_object($resql)) {
+                $this->knowledge_base_ids[] = $obj->fk_knowledge_base;
+            }
+            $this->db->free($resql);
         }
 
-        if ($resql) {
-            if ($obj = $this->db->fetch_object($resql)) {
-                $this->_loadFromDbObject($obj);
-                $this->_loadKnowledgeBaseFromDbObject($obj);
-                $this->db->free($resql);
-                return 1;
-            } else {
-                return 0;
+        if ($with_object && count($this->knowledge_base_ids) > 0) {
+            dol_include_once('/advancedictionaries/class/dictionary.class.php');
+            $dictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagerknowledgebase');
+            $lines = $dictionary->fetch_lines(-1, array('rowid' => $this->knowledge_base_ids));
+            if (is_array($lines)) {
+                $this->knowledge_base_list = $lines;
             }
+        }
+    }
+
+    /**
+     *  Set knowledge base of this message
+     *
+     * @param	array	$knowledge_base_ids	    List of knowledge base ID
+     * @return	int					            <0 if KO, >0 if OK
+     */
+    function set_knowledge_base($knowledge_base_ids)
+    {
+        // Clean parameters
+        $knowledge_base_ids = is_array($knowledge_base_ids) ? $knowledge_base_ids : (is_string($knowledge_base_ids) ? explode(',', $knowledge_base_ids) : array());
+
+        dol_syslog(__METHOD__ . " id=" . $this->id . " knowledge_base_ids=" . json_encode($knowledge_base_ids));
+
+        // Delete old values
+        $sql = "DELETE FROM " . MAIN_DB_PREFIX . "requestmanager_message_knowledge_base WHERE fk_actioncomm = " . $this->id;
+        $resql = $this->db->query($sql);
+
+        // Insert new values
+        foreach ($knowledge_base_ids as $knowledge_base_id) {
+            $sql = "INSERT INTO " . MAIN_DB_PREFIX . "requestmanager_message_knowledge_base (fk_actioncomm, fk_knowledge_base)" .
+                " VALUES (" . $this->id . ", " . $knowledge_base_id . ")";
+
+            $resql = $this->db->query($sql);
+            if (!$resql) {
+                $this->errors[] = $this->db->lasterror();
+                dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $this->db->lasterror(), LOG_ERR);
+                return -1;
+            }
+        }
+
+        return 1;
+    }
+
+    /**
+     *  Add attached files in documents of the message
+     *
+     * @param	array	$attached_files	    List of knowledge base ID
+     * @return	int					            <0 if KO, >0 if OK
+     */
+    function add_files($attached_files)
+    {
+        global $conf;
+
+        if (is_array($attached_files) && array_key_exists('paths', $attached_files) && count($attached_files['paths']) > 0) {
+            require_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
+            foreach ($attached_files['paths'] as $key => $filespath) {
+                $srcfile = $filespath;
+                $destdir = $conf->agenda->dir_output . '/' . $this->id;
+                $destfile = $destdir . '/' . $attached_files['names'][$key];
+                if (dol_mkdir($destdir) >= 0) {
+                    dol_copy($srcfile, $destfile);
+                }
+            }
+        }
+
+        return 1;
+    }
+
+    /**
+     *  Fetch message type
+     *
+     * @return void
+     */
+    function fetch_message_type()
+    {
+        $this->message_type = -1;
+
+        switch ($this->type_code) {
+            case 'AC_RM_PRIV':
+                $this->message_type = self::MESSAGE_TYPE_PRIVATE;
+                break;
+            case 'AC_RM_IN':
+                $this->message_type = self::MESSAGE_TYPE_IN;
+                break;
+            case 'AC_RM_OUT':
+                $this->message_type = self::MESSAGE_TYPE_OUT;
+                break;
+        }
+    }
+
+    /**
+     *  Return label of message type
+     *
+     * @return  string                  Label
+     */
+    function getMessageType()
+    {
+        global $langs;
+
+        $langs->load("requestmanager@requestmanager");
+
+        switch ($this->type_code) {
+            case 'AC_RM_PRIV':
+            case 'AC_RM_IN':
+            case 'AC_RM_OUT':
+                return $langs->trans('Action'.$this->type_code);
+            default:
+                return $langs->trans('RequestManagerErrorNotFound');
         }
     }
 }

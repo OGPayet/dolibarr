@@ -77,8 +77,10 @@ $extralabels = $extrafields->fetch_name_optionals_label($object->table_element);
 if ($id > 0 || !empty($ref)) {
 	$ret = $object->fetch($id, $ref);
     if ($ret > 0) {
-        $ret = $object->fetch_thirdparty();
-        $ret = $object->fetch_optionals();
+        $object->fetch_thirdparty_origin();
+        $object->fetch_thirdparty();
+        $object->fetch_thirdparty_benefactor();
+        $object->fetch_optionals();
         //$mysoc = $object->socid;
     } elseif ($ret < 0) {
         dol_print_error('', $object->errorsToString());
@@ -102,9 +104,7 @@ $reshook = $hookmanager->executeHooks('doActions', $parameters, $object, $action
 if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
 
 if (empty($reshook)) {
-    if ($cancel) $action = '';
-
-    include DOL_DOCUMENT_ROOT.'/core/actions_dellink.inc.php';		// Must be include, not include_once
+    if (!empty($cancel)) $action = '';
 
     // Confirm forcing principal company
     $force_principal_company = false;
@@ -182,7 +182,8 @@ if (empty($reshook)) {
             $action = 'create';
         }
     } // Create request child
-    else*/if ($action == 'create_request_child' && $user->rights->requestmanager->creer) {
+    else*/
+    if ($action == 'create_request_child' && $user->rights->requestmanager->creer) {
         $new_request_type = GETPOST('new_request_type', 'int');
         $id = $object->createSubRequest($new_request_type, $user);
         if ($id > 0) {
@@ -411,8 +412,8 @@ if (empty($reshook)) {
                 $now = dol_now();
                 if (isset($deadline_offset) && $deadline_offset > 0) {
                     $object->date_deadline = ($object->date_operation > 0 ? $object->date_operation : $now) + ($deadline_offset * 60);
-                } elseif (intval($conf->global->REQUESTMANAGER_DEADLINE_TIME_DEFAULT) > 0) {
-                    $object->date_deadline = ($object->date_operation > 0 ? $object->date_operation : $now) + (intval($conf->global->REQUESTMANAGER_DEADLINE_TIME_DEFAULT) * 60);
+//                } elseif (intval($conf->global->REQUESTMANAGER_DEADLINE_TIME_DEFAULT) > 0) {
+//                    $object->date_deadline = ($object->date_operation > 0 ? $object->date_operation : $now) + (intval($conf->global->REQUESTMANAGER_DEADLINE_TIME_DEFAULT) * 60);
                 }
             } else {
                 setEventMessages($requestManagerStatusDictionaryLine->error, $requestManagerStatusDictionaryLine->errors, 'errors');
@@ -507,6 +508,8 @@ if (empty($reshook)) {
     } // Set categories
     elseif ($action == 'set_categories' && $user->rights->requestmanager->creer && ($object->statut_type == RequestManager::STATUS_TYPE_INITIAL || $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS)) {
         // Category association
+        $object->fetch_tags(1);
+        $object->oldcopy = clone $object;
         $categories = GETPOST('categories');
         $result = $object->setCategories($categories);
         if ($result < 0) {
@@ -594,6 +597,7 @@ if (empty($reshook)) {
         }
     } // Extrafields
     elseif ($action == 'update_extras' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+        $object->oldcopy = clone $object;
         // Fill array 'array_options' with data from update form
         $ret = $extrafields->setOptionalsFromPost($extralabels, $object, GETPOST('attribute'));
         if ($ret < 0) {
@@ -604,13 +608,17 @@ if (empty($reshook)) {
             if ($result < 0) {
                 setEventMessages($object->error, $object->errors, 'errors');
                 $error++;
+            } else {
+                // Call trigger
+                $object->context = array('extrafieldaddupdate' => 1);
+                $result = $object->call_trigger('REQUESTMANAGER_EXTRAFIELDS_ADD_UPDATE', $user);
+                if ($result < 0) $error++;
+                // End call trigger
             }
         }
         if ($error) $action = 'edit_extras';
-    }
-    // Add a new line
-    else if ($action == 'addline' && $user->rights->requestmanager->creer && ($object->statut_type == RequestManager::STATUS_TYPE_INITIAL || $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS))
-    {
+    } // Add a new line
+    elseif ($action == 'addline' && $user->rights->requestmanager->creer && ($object->statut_type == RequestManager::STATUS_TYPE_INITIAL || $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS)) {
         require_once DOL_DOCUMENT_ROOT . '/product/class/product.class.php';
         if (!empty($conf->variants->enabled)) {
             require_once DOL_DOCUMENT_ROOT . '/variants/class/ProductCombination.class.php';
@@ -621,21 +629,18 @@ if (empty($reshook)) {
 
         // Set if we used free entry or predefined product
         $predef = '';
-        $product_desc = (GETPOST('dp_desc')?GETPOST('dp_desc'):'');
+        $product_desc = (GETPOST('dp_desc') ? GETPOST('dp_desc') : '');
         if (!$product_desc) {
             $product_desc = GETPOST('product_desc');
         }
         $price_ht = GETPOST('price_ht');
         $price_ht_devise = GETPOST('multicurrency_price_ht');
         $prod_entry_mode = GETPOST('prod_entry_mode');
-        if ($prod_entry_mode == 'free')
-        {
-            $idprod=0;
+        if ($prod_entry_mode == 'free') {
+            $idprod = 0;
             $tva_tx = (GETPOST('tva_tx') ? GETPOST('tva_tx') : 0);
-        }
-        else
-        {
-            $idprod=GETPOST('idprod', 'int');
+        } else {
+            $idprod = GETPOST('idprod', 'int');
             $tva_tx = '';
         }
 
@@ -662,7 +667,7 @@ if (empty($reshook)) {
             setEventMessages($langs->trans('ErrorFieldRequired', $langs->transnoentitiesnoconv('Type')), null, 'errors');
             $error++;
         }
-        if ($prod_entry_mode == 'free' && empty($idprod) && (! ($price_ht >= 0) || $price_ht == '') && (! ($price_ht_devise >= 0) || $price_ht_devise == '')) 	// Unit price can be 0 but not ''
+        if ($prod_entry_mode == 'free' && empty($idprod) && (!($price_ht >= 0) || $price_ht == '') && (!($price_ht_devise >= 0) || $price_ht_devise == ''))    // Unit price can be 0 but not ''
         {
             setEventMessages($langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("UnitPriceHT")), null, 'errors');
             $error++;
@@ -685,22 +690,22 @@ if (empty($reshook)) {
                     $idprod = $res->fk_product_child;
                 } else {
                     setEventMessage($langs->trans('ErrorProductCombinationNotFound'), 'errors');
-                    $error ++;
+                    $error++;
                 }
             }
         }
 
-        if (! $error && ($qty >= 0) && (! empty($product_desc) || ! empty($idprod))) {
+        if (!$error && ($qty >= 0) && (!empty($product_desc) || !empty($idprod))) {
             // Clean parameters
-            $date_start = dol_mktime(GETPOST('date_start'.$predef.'hour'), GETPOST('date_start'.$predef.'min'), GETPOST('date_start'.$predef.'sec'), GETPOST('date_start'.$predef.'month'), GETPOST('date_start'.$predef.'day'), GETPOST('date_start'.$predef.'year'));
-            $date_end = dol_mktime(GETPOST('date_end'.$predef.'hour'), GETPOST('date_end'.$predef.'min'), GETPOST('date_end'.$predef.'sec'), GETPOST('date_end'.$predef.'month'), GETPOST('date_end'.$predef.'day'), GETPOST('date_end'.$predef.'year'));
-            $price_base_type = (GETPOST('price_base_type', 'alpha')?GETPOST('price_base_type', 'alpha'):'HT');
+            $date_start = dol_mktime(GETPOST('date_start' . $predef . 'hour'), GETPOST('date_start' . $predef . 'min'), GETPOST('date_start' . $predef . 'sec'), GETPOST('date_start' . $predef . 'month'), GETPOST('date_start' . $predef . 'day'), GETPOST('date_start' . $predef . 'year'));
+            $date_end = dol_mktime(GETPOST('date_end' . $predef . 'hour'), GETPOST('date_end' . $predef . 'min'), GETPOST('date_end' . $predef . 'sec'), GETPOST('date_end' . $predef . 'month'), GETPOST('date_end' . $predef . 'day'), GETPOST('date_end' . $predef . 'year'));
+            $price_base_type = (GETPOST('price_base_type', 'alpha') ? GETPOST('price_base_type', 'alpha') : 'HT');
 
             // Ecrase $pu par celui du produit
             // Ecrase $desc par celui du produit
             // Ecrase $tva_tx par celui du produit
             // Ecrase $base_price_type par celui du produit
-            if (! empty($idprod)) {
+            if (!empty($idprod)) {
                 $prod = new Product($db);
                 $prod->fetch($idprod);
 
@@ -709,7 +714,7 @@ if (empty($reshook)) {
                 // Update if prices fields are defined
                 $tva_tx = get_default_tva($mysoc, $object->thirdparty, $prod->id);
                 $tva_npr = get_default_npr($mysoc, $object->thirdparty, $prod->id);
-                if (empty($tva_tx)) $tva_npr=0;
+                if (empty($tva_tx)) $tva_npr = 0;
 
                 $pu_ht = $prod->price;
                 $pu_ttc = $prod->price_ttc;
@@ -717,42 +722,35 @@ if (empty($reshook)) {
                 $price_base_type = $prod->price_base_type;
 
                 // multiprix
-                if (! empty($conf->global->PRODUIT_MULTIPRICES) && ! empty($object->thirdparty->price_level))
-                {
+                if (!empty($conf->global->PRODUIT_MULTIPRICES) && !empty($object->thirdparty->price_level)) {
                     $pu_ht = $prod->multiprices[$object->thirdparty->price_level];
                     $pu_ttc = $prod->multiprices_ttc[$object->thirdparty->price_level];
                     $price_min = $prod->multiprices_min[$object->thirdparty->price_level];
                     $price_base_type = $prod->multiprices_base_type[$object->thirdparty->price_level];
-                    if (! empty($conf->global->PRODUIT_MULTIPRICES_USE_VAT_PER_LEVEL))  // using this option is a bug. kept for backward compatibility
+                    if (!empty($conf->global->PRODUIT_MULTIPRICES_USE_VAT_PER_LEVEL))  // using this option is a bug. kept for backward compatibility
                     {
-                        if (isset($prod->multiprices_tva_tx[$object->thirdparty->price_level])) $tva_tx=$prod->multiprices_tva_tx[$object->thirdparty->price_level];
-                        if (isset($prod->multiprices_recuperableonly[$object->thirdparty->price_level])) $tva_npr=$prod->multiprices_recuperableonly[$object->thirdparty->price_level];
+                        if (isset($prod->multiprices_tva_tx[$object->thirdparty->price_level])) $tva_tx = $prod->multiprices_tva_tx[$object->thirdparty->price_level];
+                        if (isset($prod->multiprices_recuperableonly[$object->thirdparty->price_level])) $tva_npr = $prod->multiprices_recuperableonly[$object->thirdparty->price_level];
                     }
-                }
-                elseif (! empty($conf->global->PRODUIT_CUSTOMER_PRICES))
-                {
+                } elseif (!empty($conf->global->PRODUIT_CUSTOMER_PRICES)) {
                     require_once DOL_DOCUMENT_ROOT . '/product/class/productcustomerprice.class.php';
 
                     $prodcustprice = new Productcustomerprice($db);
 
-                    $filter = array('t.fk_product' => $prod->id,'t.fk_soc' => $object->thirdparty->id);
+                    $filter = array('t.fk_product' => $prod->id, 't.fk_soc' => $object->thirdparty->id);
 
                     $result = $prodcustprice->fetch_all('', '', 0, 0, $filter);
-                    if ($result >= 0)
-                    {
-                        if (count($prodcustprice->lines) > 0)
-                        {
+                    if ($result >= 0) {
+                        if (count($prodcustprice->lines) > 0) {
                             $pu_ht = price($prodcustprice->lines[0]->price);
                             $pu_ttc = price($prodcustprice->lines[0]->price_ttc);
                             $price_base_type = $prodcustprice->lines[0]->price_base_type;
                             $tva_tx = $prodcustprice->lines[0]->tva_tx;
-                            if ($prodcustprice->lines[0]->default_vat_code && ! preg_match('/\(.*\)/', $tva_tx)) $tva_tx.= ' ('.$prodcustprice->lines[0]->default_vat_code.')';
+                            if ($prodcustprice->lines[0]->default_vat_code && !preg_match('/\(.*\)/', $tva_tx)) $tva_tx .= ' (' . $prodcustprice->lines[0]->default_vat_code . ')';
                             $tva_npr = $prodcustprice->lines[0]->recuperableonly;
-                            if (empty($tva_tx)) $tva_npr=0;
+                            if (empty($tva_tx)) $tva_npr = 0;
                         }
-                    }
-                    else
-                    {
+                    } else {
                         setEventMessages($prodcustprice->error, $prodcustprice->errors, 'errors');
                     }
                 }
@@ -761,7 +759,7 @@ if (empty($reshook)) {
                 $tmpprodvat = price2num(preg_replace('/\s*\(.*\)/', '', $prod->tva_tx));
 
                 // if price ht is forced (ie: calculated by margin rate and cost price)
-                if (! empty($price_ht)) {
+                if (!empty($price_ht)) {
                     $pu_ht = price2num($price_ht, 'MU');
                     $pu_ttc = price2num($pu_ht * (1 + ($tmpvat / 100)), 'MU');
                 }
@@ -778,19 +776,19 @@ if (empty($reshook)) {
                 $desc = '';
 
                 // Define output language
-                if (! empty($conf->global->MAIN_MULTILANGS) && ! empty($conf->global->PRODUIT_TEXTS_IN_THIRDPARTY_LANGUAGE)) {
+                if (!empty($conf->global->MAIN_MULTILANGS) && !empty($conf->global->PRODUIT_TEXTS_IN_THIRDPARTY_LANGUAGE)) {
                     $outputlangs = $langs;
                     $newlang = '';
-                    if (empty($newlang) && GETPOST('lang_id','aZ09'))
-                        $newlang = GETPOST('lang_id','aZ09');
+                    if (empty($newlang) && GETPOST('lang_id', 'aZ09'))
+                        $newlang = GETPOST('lang_id', 'aZ09');
                     if (empty($newlang))
                         $newlang = $object->thirdparty->default_lang;
-                    if (! empty($newlang)) {
+                    if (!empty($newlang)) {
                         $outputlangs = new Translate("", $conf);
                         $outputlangs->setDefaultLang($newlang);
                     }
 
-                    $desc = (! empty($prod->multilangs [$outputlangs->defaultlang] ["description"])) ? $prod->multilangs [$outputlangs->defaultlang] ["description"] : $prod->description;
+                    $desc = (!empty($prod->multilangs [$outputlangs->defaultlang] ["description"])) ? $prod->multilangs [$outputlangs->defaultlang] ["description"] : $prod->description;
                 } else {
                     $desc = $prod->description;
                 }
@@ -798,33 +796,33 @@ if (empty($reshook)) {
                 $desc = dol_concatdesc($desc, $product_desc);
 
                 // Add custom code and origin country into description
-                if (empty($conf->global->MAIN_PRODUCT_DISABLE_CUSTOMCOUNTRYCODE) && (! empty($prod->customcode) || ! empty($prod->country_code))) {
+                if (empty($conf->global->MAIN_PRODUCT_DISABLE_CUSTOMCOUNTRYCODE) && (!empty($prod->customcode) || !empty($prod->country_code))) {
                     $tmptxt = '(';
                     // Define output language
-                    if (! empty($conf->global->MAIN_MULTILANGS) && ! empty($conf->global->PRODUIT_TEXTS_IN_THIRDPARTY_LANGUAGE)) {
+                    if (!empty($conf->global->MAIN_MULTILANGS) && !empty($conf->global->PRODUIT_TEXTS_IN_THIRDPARTY_LANGUAGE)) {
                         $outputlangs = $langs;
                         $newlang = '';
-                        if (empty($newlang) && GETPOST('lang_id','alpha'))
-                            $newlang = GETPOST('lang_id','alpha');
+                        if (empty($newlang) && GETPOST('lang_id', 'alpha'))
+                            $newlang = GETPOST('lang_id', 'alpha');
                         if (empty($newlang))
                             $newlang = $object->thirdparty->default_lang;
-                        if (! empty($newlang)) {
+                        if (!empty($newlang)) {
                             $outputlangs = new Translate("", $conf);
                             $outputlangs->setDefaultLang($newlang);
                             $outputlangs->load('products');
                         }
-                        if (! empty($prod->customcode))
+                        if (!empty($prod->customcode))
                             $tmptxt .= $outputlangs->transnoentitiesnoconv("CustomCode") . ': ' . $prod->customcode;
-                        if (! empty($prod->customcode) && ! empty($prod->country_code))
+                        if (!empty($prod->customcode) && !empty($prod->country_code))
                             $tmptxt .= ' - ';
-                        if (! empty($prod->country_code))
+                        if (!empty($prod->country_code))
                             $tmptxt .= $outputlangs->transnoentitiesnoconv("CountryOrigin") . ': ' . getCountry($prod->country_code, 0, $db, $outputlangs, 0);
                     } else {
-                        if (! empty($prod->customcode))
+                        if (!empty($prod->customcode))
                             $tmptxt .= $langs->transnoentitiesnoconv("CustomCode") . ': ' . $prod->customcode;
-                        if (! empty($prod->customcode) && ! empty($prod->country_code))
+                        if (!empty($prod->customcode) && !empty($prod->country_code))
                             $tmptxt .= ' - ';
-                        if (! empty($prod->country_code))
+                        if (!empty($prod->country_code))
                             $tmptxt .= $langs->transnoentitiesnoconv("CountryOrigin") . ': ' . getCountry($prod->country_code, 0, $db, $langs, 0);
                     }
                     $tmptxt .= ')';
@@ -841,7 +839,7 @@ if (empty($reshook)) {
                 $label = (GETPOST('product_label') ? GETPOST('product_label') : '');
                 $desc = $product_desc;
                 $type = GETPOST('type');
-                $fk_unit=GETPOST('units', 'alpha');
+                $fk_unit = GETPOST('units', 'alpha');
                 $pu_ht_devise = price2num($price_ht_devise, 'MU');
             }
 
@@ -859,12 +857,12 @@ if (empty($reshook)) {
             if ($tva_npr)
                 $info_bits |= 0x01;
 
-            if (! empty($price_min) && (price2num($pu_ht) * (1 - price2num($remise_percent) / 100) < price2num($price_min))) {
-                $mesg = $langs->trans("CantBeLessThanMinPrice", price(price2num($price_min, 'MU'), 0, $langs, 0, 0, - 1, $conf->currency));
+            if (!empty($price_min) && (price2num($pu_ht) * (1 - price2num($remise_percent) / 100) < price2num($price_min))) {
+                $mesg = $langs->trans("CantBeLessThanMinPrice", price(price2num($price_min, 'MU'), 0, $langs, 0, 0, -1, $conf->currency));
                 setEventMessages($mesg, null, 'errors');
             } else {
                 // Insert line
-                $result = $object->addline($desc, $pu_ht, $qty, $tva_tx, $localtax1_tx, $localtax2_tx, $idprod, $remise_percent, $info_bits, 0, $price_base_type, $pu_ttc, $date_start, $date_end, $type, - 1, 0, GETPOST('fk_parent_line'), $fournprice, $buyingprice, $label, $array_options, $fk_unit, '', 0, $pu_ht_devise);
+                $result = $object->addline($desc, $pu_ht, $qty, $tva_tx, $localtax1_tx, $localtax2_tx, $idprod, $remise_percent, $info_bits, 0, $price_base_type, $pu_ttc, $date_start, $date_end, $type, -1, 0, GETPOST('fk_parent_line'), $fournprice, $buyingprice, $label, $array_options, $fk_unit, '', 0, $pu_ht_devise);
 
                 if ($result > 0) {
                     $ret = $object->fetch($object->id); // Reload to get new records
@@ -873,9 +871,9 @@ if (empty($reshook)) {
                         // Define output language
                         $outputlangs = $langs;
                         $newlang = GETPOST('lang_id', 'alpha');
-                        if (! empty($conf->global->MAIN_MULTILANGS) && empty($newlang))
+                        if (!empty($conf->global->MAIN_MULTILANGS) && empty($newlang))
                             $newlang = $object->thirdparty->default_lang;
-                        if (! empty($newlang)) {
+                        if (!empty($newlang)) {
                             $outputlangs = new Translate("", $conf);
                             $outputlangs->setDefaultLang($newlang);
                         }
@@ -922,18 +920,16 @@ if (empty($reshook)) {
             }
         }
         $action = '';
-    }
-    // Update a line
-    else if ($action == 'updateline' && $user->rights->requestmanager->creer && ($object->statut_type == RequestManager::STATUS_TYPE_INITIAL || $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) && GETPOST('save'))
-    {
+    } // Update a line
+    elseif ($action == 'updateline' && $user->rights->requestmanager->creer && ($object->statut_type == RequestManager::STATUS_TYPE_INITIAL || $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) && GETPOST('save')) {
         // Clean parameters
-        $date_start='';
-        $date_end='';
-        $date_start=dol_mktime(GETPOST('date_starthour'), GETPOST('date_startmin'), GETPOST('date_startsec'), GETPOST('date_startmonth'), GETPOST('date_startday'), GETPOST('date_startyear'));
-        $date_end=dol_mktime(GETPOST('date_endhour'), GETPOST('date_endmin'), GETPOST('date_endsec'), GETPOST('date_endmonth'), GETPOST('date_endday'), GETPOST('date_endyear'));
-        $description=dol_htmlcleanlastbr(GETPOST('product_desc'));
-        $pu_ht=GETPOST('price_ht');
-        $vat_rate=(GETPOST('tva_tx')?GETPOST('tva_tx'):0);
+        $date_start = '';
+        $date_end = '';
+        $date_start = dol_mktime(GETPOST('date_starthour'), GETPOST('date_startmin'), GETPOST('date_startsec'), GETPOST('date_startmonth'), GETPOST('date_startday'), GETPOST('date_startyear'));
+        $date_end = dol_mktime(GETPOST('date_endhour'), GETPOST('date_endmin'), GETPOST('date_endsec'), GETPOST('date_endmonth'), GETPOST('date_endday'), GETPOST('date_endyear'));
+        $description = dol_htmlcleanlastbr(GETPOST('product_desc'));
+        $pu_ht = GETPOST('price_ht');
+        $vat_rate = (GETPOST('tva_tx') ? GETPOST('tva_tx') : 0);
         $pu_ht_devise = GETPOST('multicurrency_subprice');
 
         // Define info_bits
@@ -962,25 +958,25 @@ if (empty($reshook)) {
         }
 
         // Define special_code for special lines
-        $special_code=GETPOST('special_code');
-        if (! GETPOST('qty')) $special_code=3;
+        $special_code = GETPOST('special_code');
+        if (!GETPOST('qty')) $special_code = 3;
 
         // Check minimum price
         $productid = GETPOST('productid', 'int');
-        if (! empty($productid)) {
+        if (!empty($productid)) {
             $product = new Product($db);
             $product->fetch($productid);
 
             $type = $product->type;
 
             $price_min = $product->price_min;
-            if (! empty($conf->global->PRODUIT_MULTIPRICES) && ! empty($object->thirdparty->price_level))
+            if (!empty($conf->global->PRODUIT_MULTIPRICES) && !empty($object->thirdparty->price_level))
                 $price_min = $product->multiprices_min [$object->thirdparty->price_level];
 
             $label = ((GETPOST('update_label') && GETPOST('product_label')) ? GETPOST('product_label') : '');
 
             if ($price_min && (price2num($pu_ht) * (1 - price2num(GETPOST('remise_percent')) / 100) < price2num($price_min))) {
-                setEventMessages($langs->trans("CantBeLessThanMinPrice", price(price2num($price_min, 'MU'), 0, $langs, 0, 0, - 1, $conf->currency)), null, 'errors');
+                setEventMessages($langs->trans("CantBeLessThanMinPrice", price(price2num($price_min, 'MU'), 0, $langs, 0, 0, -1, $conf->currency)), null, 'errors');
                 $error++;
             }
         } else {
@@ -994,32 +990,29 @@ if (empty($reshook)) {
             }
         }
 
-        if (! $error) {
+        if (!$error) {
 
-            if (empty($user->rights->margins->creer))
-            {
-                foreach ($object->lines as &$line)
-                {
-                    if ($line->id == GETPOST('lineid'))
-                    {
+            if (empty($user->rights->margins->creer)) {
+                foreach ($object->lines as &$line) {
+                    if ($line->id == GETPOST('lineid')) {
                         $fournprice = $line->fk_fournprice;
                         $buyingprice = $line->pa_ht;
                         break;
                     }
                 }
             }
-            $result = $object->updateline(GETPOST('lineid'), $description, $pu_ht, GETPOST('qty'), GETPOST('remise_percent'), $vat_rate, $localtax1_rate, $localtax2_rate, 'HT', $info_bits, $date_start, $date_end, $type, GETPOST('fk_parent_line'), 0, $fournprice, $buyingprice, $label, $special_code, $array_options, GETPOST('units'),$pu_ht_devise);
+            $result = $object->updateline(GETPOST('lineid'), $description, $pu_ht, GETPOST('qty'), GETPOST('remise_percent'), $vat_rate, $localtax1_rate, $localtax2_rate, 'HT', $info_bits, $date_start, $date_end, $type, GETPOST('fk_parent_line'), 0, $fournprice, $buyingprice, $label, $special_code, $array_options, GETPOST('units'), $pu_ht_devise);
 
             if ($result >= 0) {
                 if (empty($conf->global->MAIN_DISABLE_PDF_AUTOUPDATE)) {
                     // Define output language
                     $outputlangs = $langs;
                     $newlang = '';
-                    if ($conf->global->MAIN_MULTILANGS && empty($newlang) && GETPOST('lang_id','aZ09'))
-                        $newlang = GETPOST('lang_id','aZ09');
+                    if ($conf->global->MAIN_MULTILANGS && empty($newlang) && GETPOST('lang_id', 'aZ09'))
+                        $newlang = GETPOST('lang_id', 'aZ09');
                     if ($conf->global->MAIN_MULTILANGS && empty($newlang))
                         $newlang = $object->thirdparty->default_lang;
-                    if (! empty($newlang)) {
+                    if (!empty($newlang)) {
                         $outputlangs = new Translate("", $conf);
                         $outputlangs->setDefaultLang($newlang);
                     }
@@ -1057,25 +1050,21 @@ if (empty($reshook)) {
                 setEventMessages($object->error, $object->errors, 'errors');
             }
         }
-    }
-    else if ($action == 'updateline' && $user->rights->requestmanager->creer && ($object->statut_type == RequestManager::STATUS_TYPE_INITIAL || $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) && GETPOST('cancel') == $langs->trans('Cancel')) {
+    } elseif ($action == 'updateline' && $user->rights->requestmanager->creer && ($object->statut_type == RequestManager::STATUS_TYPE_INITIAL || $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) && GETPOST('cancel') == $langs->trans('Cancel')) {
         header('Location: ' . $_SERVER['PHP_SELF'] . '?id=' . $object->id);
         exit();
-    }
-    // Remove a product line
-    else if ($action == 'confirm_deleteline' && $confirm == 'yes' && $user->rights->requestmanager->creer)
-    {
+    } // Remove a product line
+    elseif ($action == 'confirm_deleteline' && $confirm == 'yes' && $user->rights->requestmanager->creer) {
         $result = $object->deleteline($lineid);
-        if ($result > 0)
-        {
+        if ($result > 0) {
             // Define output language
             $outputlangs = $langs;
             $newlang = '';
-            if ($conf->global->MAIN_MULTILANGS && empty($newlang) && GETPOST('lang_id','aZ09'))
-                $newlang = GETPOST('lang_id','aZ09');
+            if ($conf->global->MAIN_MULTILANGS && empty($newlang) && GETPOST('lang_id', 'aZ09'))
+                $newlang = GETPOST('lang_id', 'aZ09');
             if ($conf->global->MAIN_MULTILANGS && empty($newlang))
                 $newlang = $object->thirdparty->default_lang;
-            if (! empty($newlang)) {
+            if (!empty($newlang)) {
                 $outputlangs = new Translate("", $conf);
                 $outputlangs->setDefaultLang($newlang);
             }
@@ -1085,78 +1074,113 @@ if (empty($reshook)) {
 
             header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
             exit();
-        }
-        else
-        {
+        } else {
             setEventMessages($object->error, $object->errors, 'errors');
+        }
+    } // Add message
+    elseif ($action == 'add_contact' && $user->rights->requestmanager->creer && $object->statut_type != RequestManager::STATUS_TYPE_CLOSED && $object->statut_type != RequestManager::STATUS_TYPE_RESOLVED) {
+        $object->oldcopy = clone $object;
+        $object->add_contact_action(intval(GETPOST('add_contact_type_id')));
+    } elseif ($action == 'del_contact' && $user->rights->requestmanager->creer && $object->statut_type != RequestManager::STATUS_TYPE_CLOSED && $object->statut_type != RequestManager::STATUS_TYPE_RESOLVED) {
+        $object->oldcopy = clone $object;
+        $object->del_contact_action(intval(GETPOST('del_contact_type_id')));
+    } // Link invoice to order
+    elseif ($action == 'addlink' && !empty($permissiondellink) && !GETPOST('cancel', 'alpha') && $id > 0 && $addlinkid > 0 && $result > 0) {
+        $object->oldcopy = clone $object;
+        $addlinkid = GETPOST('idtolinkto', 'int');
+        $result = $object->add_object_linked(GETPOST('addlink', 'alpha'), $addlinkid);
+        if ($result < 0) {
+            setEventMessages($object->error, $object->errors, 'errors');
+            $error++;
+        } else {
+            // Call trigger
+            $object->context = array('addlink' => 1);
+            $result = $object->call_trigger('REQUESTMANAGER_ADD_LINK', $user);
+            if ($result < 0) $error++;
+            // End call trigger
+        }
+    } // Delete link
+    elseif ($action == 'dellink' && !empty($permissiondellink) && !GETPOST('cancel', 'alpha') && $dellinkid > 0 && $result > 0) {
+        $object->oldcopy = clone $object;
+        $dellinkid = GETPOST('dellinkid', 'int');
+        $result = $object->deleteObjectLinked(0, '', 0, '', $dellinkid);
+        if ($result < 0) {
+            setEventMessages($object->error, $object->errors, 'errors');
+            $error++;
+        } else {
+            // Call trigger
+            $object->context = array('dellink' => 1);
+            $result = $object->call_trigger('REQUESTMANAGER_DEL_LINK', $user);
+            if ($result < 0) $error++;
+            // End call trigger
         }
     }
+    /*********************************************************
+     * Message form
+     *********************************************************/
+    // Add file
+    elseif (GETPOST('addfile', 'alpha')) {
+        dol_include_once('/requestmanager/lib/requestmanagermessage.lib.php');
+
+        // Set tmp user directory
+        $vardir = $conf->user->dir_output . "/" . $user->id;
+        $upload_dir_tmp = $vardir . '/temp/rm-' . $object->id . '/';             // TODO Add $keytoavoidconflict in upload_dir path
+
+        requestmanagermessage_add_file_process($object, $upload_dir_tmp, 0, 0, 'addedfile', '', null);
+        $action = 'premessage';
+    }
+    // Remove file
+    elseif (!empty($_POST['removedfile']) && empty($_POST['removAll'])) {
+        dol_include_once('/requestmanager/lib/requestmanagermessage.lib.php');
+
+        // Set tmp user directory
+        $vardir = $conf->user->dir_output . "/" . $user->id;
+        $upload_dir_tmp = $vardir . '/temp/rm-' . $object->id . '/';             // TODO Add $keytoavoidconflict in upload_dir path
+
+        // TODO Delete only files that was uploaded from email form. This can be addressed by adding the trackid into the temp path then changing donotdeletefile to 2 instead of 1 to say "delete only if into temp dir"
+        // GETPOST('removedfile','alpha') is position of file into $_SESSION["listofpaths"...] array.
+        requestmanagermessage_remove_file_process($object, GETPOST('removedfile', 'alpha'), 0, 0);   // We do not delete because if file is the official PDF of doc, we don't want to remove it physically
+        $action = 'premessage';
+    }
+    // Remove all files
+    elseif (GETPOST('removAll', 'alpha')) {
+        dol_include_once('/requestmanager/class/html.formrequestmanagermessage.class.php');
+        $formrequestmanagermessage = new FormRequestManagerMessage($db, $requestmanager);
+        $formrequestmanagermessage->remove_all_attached_files();
+    }
     // Add message
-    elseif ($action == 'addmessage' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
-        $idKnowledgeBase     = GETPOST('id_knowledge_base')?GETPOST('id_knowledge_base'):0;
-        $messageNotifyByMail = GETPOST('message_notify_by_mail', 'int')?1:0;
-        $messageDirection    = GETPOST('message_direction', 'int')?intval(GETPOST('message_direction', 'int')):RequestManagerNotification::getMessageDirectionIdDefault();
-        $messageSubject      = GETPOST('message_subject')?GETPOST('message_subject'):'';
-        $messageBody         = GETPOST('message_body')?GETPOST('message_body'):'';
+    elseif ($action == 'premessage' && GETPOST('addmessage', 'alpha') && !$_POST['addfile'] && !$_POST['removAll'] && !$_POST['removedfile'] && !$_POST['modelselected'] && !$_POST['addknowledgebasedescription'] &&
+        $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS
+    ) {
+        dol_include_once('/requestmanager/class/html.formrequestmanagermessage.class.php');
+        $formrequestmanagermessage = new FormRequestManagerMessage($db, $object);
 
-        if (!$messageSubject) {
-            $error++;
-            $object->errors[] = $langs->trans('ErrorFieldRequired', $langs->transnoentitiesnoconv('MessageSubject'));
-        }
+        $requestmanagermessage = new RequestManagerMessage($db);
 
-        if (!$messageBody) {
-            $error++;
-            $object->errors[] = $langs->trans('ErrorFieldRequired', $langs->transnoentitiesnoconv('MessageBody'));
-        }
+        $requestmanagermessage->message_type = GETPOST('message_type', 'int');
+        $requestmanagermessage->notify_assigned = GETPOST('notify_assigned', 'int');
+        $requestmanagermessage->notify_requesters = GETPOST('notify_requesters', 'int');
+        $requestmanagermessage->notify_watchers = GETPOST('notify_watchers', 'int');
+        $requestmanagermessage->attached_files = $formrequestmanagermessage->get_attached_files();
+        $requestmanagermessage->knowledge_base_ids = GETPOST('knowledgebaseselected', 'array');
+        $requestmanagermessage->note = GETPOST('message', 'alpha');
+        $requestmanagermessage->requestmanager = $object;
 
-        $actionCommTypeCode = '';
-        $actionCommLabel    = '';
-        $actionCommNote     = '';
-        if ($messageDirection === RequestManagerNotification::MESSAGE_DIRECTION_ID_IN) {
-            // message in
-            $actionCommTypeCode = RequestManager::ACTIONCOMM_TYPE_CODE_IN;
-            $templateType = RequestManager::TEMPLATE_TYPE_NOTIFY_INPUT_MESSAGE_ADDED;
-        } else if ($messageDirection === RequestManagerNotification::MESSAGE_DIRECTION_ID_OUT) {
-            // message out
-            $actionCommTypeCode = RequestManager::ACTIONCOMM_TYPE_CODE_OUT;
-            $templateType = RequestManager::TEMPLATE_TYPE_NOTIFY_OUTPUT_MESSAGE_ADDED;
-        } else {
-            $error++;
-            $object->errors[] = $langs->trans('ErrorFieldRequired', $langs->transnoentitiesnoconv('MessageDirection'));
-        }
+        // Get extra fields of the message
+        $message_extrafields = new ExtraFields($db);
+        $message_extralabels = $message_extrafields->fetch_name_optionals_label($requestmanagermessage->table_element);
+        $ret = $message_extrafields->setOptionalsFromPost($message_extralabels, $requestmanagermessage);
 
-        if (!$error) {
-            // create event and notify users and send mail to contacts requesters and watchers (if notified)
-            $result = $object->createActionCommAndNotifyFromTemplateTypeWithMessage($templateType, $actionCommTypeCode, $messageNotifyByMail, $messageSubject, $messageBody, $idKnowledgeBase);
-            if ($result < 0) {
-                $error++;
-            }
-        }
-
-        if ($error) {
-            setEventMessages($object->error, $object->errors, 'errors');
+        // create
+        $result = $requestmanagermessage->create($user);
+        if ($result < 0) {
+            setEventMessages($requestmanagermessage->error, $requestmanagermessage->errors, 'errors');
+            $action = 'premessage';
         } else {
             header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
             exit();
         }
-
-        $action = 'premessage';
     }
-    else if ($action == 'add_contact' && $user->rights->requestmanager->creer && $object->statut_type != RequestManager::STATUS_TYPE_CLOSED && $object->statut_type != RequestManager::STATUS_TYPE_RESOLVED) {
-        $object->add_contact_action(intval(GETPOST('add_contact_type_id')));
-    }
-    else if ($action == 'del_contact' && $user->rights->requestmanager->creer && $object->statut_type != RequestManager::STATUS_TYPE_CLOSED && $object->statut_type != RequestManager::STATUS_TYPE_RESOLVED) {
-        $object->del_contact_action(intval(GETPOST('del_contact_type_id')));
-    }
-
-
-    // Actions to send emails
-    //$actiontypecode='AC_OTH_AUTO';
-    //$trigger_name='PROPAL_SENTBYMAIL';
-    //$paramname='id';
-    //$mode='emailfromproposal';
-    //$trackid='pro'.$object->id;
-    //include DOL_DOCUMENT_ROOT.'/core/actions_sendmails.inc.php';
 
     // Actions to build doc
     //$upload_dir = $conf->requestmanager->multidir_output[$object->entity];
@@ -1260,7 +1284,7 @@ $now = dol_now();
     print '</td></tr>';
 
     // ThirdParty Bill
-    print '<tr><td class="fieldrequired">' . $langs->trans('RequestManagerThirdPartyBill') . '</td><td>';
+    print '<tr><td class="fieldrequired">' . $langs->trans('RequestManagerThirdPartyPrincipal') . '</td><td>';
     print $form->select_company($object->socid, 'socid', '(s.client = 1 OR s.client = 2 OR s.client = 3) AND status=1', 'SelectThirdParty', 0, 0, array(), 0, 'minwidth300');
     if (!empty($conf->societe->enabled) && $user->rights->societe->creer) {
         print ' <a id="new_thridparty" href="' . DOL_URL_ROOT . '/societe/card.php?action=create&client=3&fournisseur=0&backtopage=' . urlencode($_SERVER["PHP_SELF"] . '?action=create' . ($object->fk_type ? '&type=' . $object->fk_type : '') . ($object->socid_origin ? '&socid_origin=' . $object->socid_origin : '') . ($object->socid_benefactor ? '&socid_benefactor=' . $object->socid_benefactor : '') . '&socid=##SOCID##') . '">' . $langs->trans("AddThirdParty") . '</a>';
@@ -1381,9 +1405,6 @@ $now = dol_now();
 	 * Show object in view mode
 	 */
 
-    $object->fetch_thirdparty_origin();
-    $object->fetch_thirdparty();
-    $object->fetch_thirdparty_benefactor();
 	$head = requestmanager_prepare_head($object);
 	dol_fiche_head($head, 'card', $langs->trans('RequestManagerCard'), 0, 'requestmanager@requestmanager');
 
@@ -1435,7 +1456,7 @@ $now = dol_now();
 
         $societe = new Societe($db);
         $societe->fetch(!empty($force_principal_company_params['socid']) ? $force_principal_company_params['socid'] : $object->socid);
-        $formquestion[] = array('type' => 'other', 'label' => $langs->trans('RequestManagerThirdPartyBill'), 'value' => $societe->getNomUrl(1));
+        $formquestion[] = array('type' => 'other', 'label' => $langs->trans('RequestManagerThirdPartyPrincipal'), 'value' => $societe->getNomUrl(1));
         $societe->fetch(!empty($force_principal_company_params['socid_benefactor']) ? $force_principal_company_params['socid_benefactor'] : $object->socid_benefactor);
         $formquestion[] = array('type' => 'other', 'label' => $langs->trans('RequestManagerThirdPartyBenefactor'), 'value' => $societe->getNomUrl(1));
 
@@ -1459,7 +1480,7 @@ $now = dol_now();
     $morehtmlref.='<br>'.$langs->trans('RequestManagerExternalReference') . ' : ' . $object->ref_ext;
     if ($object->fk_parent > 0) {
         $object->fetch_parent();
-        $morehtmlref.='<br>'.$langs->trans('RequestManagerParentRequest') . ' : ' . $object->parent->getNomUrl(1);
+        $morehtmlref.='<br>'.$langs->trans('RequestManagerParentRequest') . ' : ' . $object->parent->getNomUrl(1, 'parent_path');
     }
     $morehtmlref.='</div>';
 
@@ -1561,7 +1582,7 @@ $now = dol_now();
     // ThirdParty Bill
     print '<tr><td>';
 	print '<table class="nobordernopadding" width="100%"><tr><td>';
-	print $langs->trans('RequestManagerThirdPartyBill');
+	print $langs->trans('RequestManagerThirdPartyPrincipal');
 	print '</td>';
 	if ($action != 'edit_thirdparty' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS)
 		print '<td align="right"><a href="' . $_SERVER["PHP_SELF"] . '?action=edit_thirdparty&id=' . $object->id . '">' . img_edit($langs->trans('RequestManagerSetThirdPartyBill'), 1) . '</a></td>';
@@ -1842,7 +1863,7 @@ $now = dol_now();
     if ($conf->categorie->enabled) {
         print '<tr><td>';
         print '<table class="nobordernopadding" width="100%"><tr><td>';
-        print $langs->trans('Categories');
+        print $langs->trans('RequestManagerTags');
         print '</td>';
         if ($action != 'edit_categories' && $user->rights->requestmanager->creer && ($object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS || $object->statut_type == RequestManager::STATUS_TYPE_INITIAL))
             print '<td align="right"><a href="' . $_SERVER["PHP_SELF"] . '?action=edit_categories&id=' . $object->id . '">' . img_edit($langs->trans('RequestManagerSetCategories'), 1) . '</a></td>';
@@ -1977,17 +1998,21 @@ $now = dol_now();
             $linked_objects_list[] = img_picto($label, $icon) . ' ' . $label . ' (' . count($objects) . ')';
         }
         print '<tr><td>' . implode(', ', $linked_objects_list) . '</td></tr>';
-    } else {
-        print '<tr><td>';
+    }
+
+	print '</table>';
+
+    // Linked Objects
+    if ($conf->global->REQUESTMANAGER_POSITION_BLOC_OBJECT_LINKED != 'bottom') {
         // Show links to link elements
         print '<div id="linked_objects_list">';
         $linktoelem = $form->showLinkToObjectBlock($object, null, array('requestmanager'));
         $somethingshown = $form->showLinkedObjectBlock($object, $linktoelem);
         print '</div>';
-        print '</td></tr>';
     }
 
-	print '</table>';
+    // Children Request
+    $formrequestmanager->showChildrenRequestBlock($object);
 
     print '</div>';
     print '</div></div>';
@@ -2111,7 +2136,7 @@ $now = dol_now();
     dol_fiche_end();
 
     //Select mail models is same action as premessage
-	if (GETPOST('modelselected')) $action = 'premessage';
+	if (GETPOST('modelmessageselected', 'int') > 0) $action = 'premessage';
 
 	if ($action != 'premessage') {
         /*
@@ -2142,7 +2167,7 @@ $now = dol_now();
 
                 // Add message
                 if ($user->rights->requestmanager->creer) {
-                    print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=premessage#formmessagebeforetitle">'
+                    print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=premessage&messagemode=init#formmessagebeforetitle">'
                         . $langs->trans('RequestManagerAddMessage') . '</a></div>';
                 }
 
@@ -2276,17 +2301,14 @@ $now = dol_now();
 
         dol_fiche_head();
 
-        // Message
-        $message = new RequestManagerMessage($db);
-
         // Cree l'objet formulaire message
-        $formrequestmanagermessage = new FormRequestManagerMessage($db, $object, $message);
+        $formrequestmanagermessage = new FormRequestManagerMessage($db, $object);
 
         // Tableau des parametres complementaires du post
-        $formmail->param['action'] = $action;
-        $formmail->param['models'] = $modelmail;
-        $formmail->param['models_id'] = GETPOST('modelmailselected', 'int');
-        $formmail->param['returnurl'] = $_SERVER["PHP_SELF"] . '?id=' . $object->id;
+        $formrequestmanagermessage->param['action'] = $action;
+        $formrequestmanagermessage->param['models_id'] = GETPOST('modelmessageselected', 'int');
+        $formrequestmanagermessage->param['knowledgebase_ids'] = GETPOST('knowledgebaseselected', 'array');
+        $formrequestmanagermessage->param['returnurl'] = $_SERVER["PHP_SELF"] . '?id=' . $object->id;
 
         // Init list of files
         if (GETPOST("messagemode") == 'init') {
@@ -2294,13 +2316,8 @@ $now = dol_now();
             $formrequestmanagermessage->add_attached_files($file, basename($file), dol_mimetype($file));
         }
 
-        $actioncomm = GETPOST('actioncomm')?GETPOST('actioncomm'):'';
-        $actionurl = (GETPOST('actionurl')?GETPOST('actionurl'):$_SERVER["PHP_SELF"] . '?id=' . $object->id);
-        $templateType = GETPOST('type_template')?GETPOST('type_template'):'message_template_user';
-        $templateId = GETPOST('message_template_selected')?GETPOST('message_template_selected'):0;
-
         // Show form
-        print $formrequestmanagermessage->get_message_form($actioncomm, $actionurl, $templateType, $templateId, $formmail->param);
+        print $formrequestmanagermessage->get_message_form();
 
         dol_fiche_end();
     }

@@ -88,7 +88,7 @@ $arrayfields = array(
     'rm.fk_category'               => array('label' => $langs->trans("RequestManagerCategory"), 'checked' => 1),
     'rm.label'                     => array('label' => $langs->trans("RequestManagerLabel"), 'checked' => 1),
     'rm.fk_soc_origin'             => array('label' => $langs->trans("RequestManagerThirdPartyOrigin"), 'checked' => 1),
-    'rm.fk_soc'                    => array('label' => $langs->trans("RequestManagerThirdPartyBill"), 'checked' => 1),
+    'rm.fk_soc'                    => array('label' => $langs->trans("RequestManagerThirdPartyPrincipal"), 'checked' => 1),
     'rm.fk_soc_benefactor'         => array('label' => $langs->trans("RequestManagerThirdPartyBenefactor"), 'checked' => 1),
     'rm.description'               => array('label' => $langs->trans("RequestManagerDescription"), 'checked' => 0),
     'rm.fk_source'                 => array('label' => $langs->trans("RequestManagerSource"), 'checked' => 0),

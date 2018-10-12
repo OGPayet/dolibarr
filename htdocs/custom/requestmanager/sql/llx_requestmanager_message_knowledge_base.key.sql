@@ -16,5 +16,7 @@
 --
 -- ===========================================================================
 
-INSERT INTO `llx_c_actioncomm` (`id`, `code`, `type`, `libelle`, `module`, `active`, `todo`, `color`, `picto`, `position`) VALUES
-(163023, 'AC_RM_FPC', 'systemauto', 'Forcing principal company (auto inserted events)', 'requestmanager', 1, NULL, NULL, NULL, 20);
+ALTER TABLE llx_requestmanager_message_knowledge_base ADD UNIQUE INDEX uk_requestmanager_mkb (fk_actioncomm, fk_knowledge_base);
+
+ALTER TABLE llx_requestmanager_message_knowledge_base ADD CONSTRAINT fk_requestmanager_mkb_fk_actioncomm      FOREIGN KEY (fk_actioncomm) REFERENCES llx_actioncomm (id);
+ALTER TABLE llx_requestmanager_message_knowledge_base ADD CONSTRAINT fk_requestmanager_mkb_fk_knowledge_base  FOREIGN KEY (fk_knowledge_base) REFERENCES llx_c_requestmanager_knowledge_base (rowid);

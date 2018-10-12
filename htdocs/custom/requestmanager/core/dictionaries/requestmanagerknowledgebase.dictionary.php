@@ -29,6 +29,11 @@ dol_include_once('/advancedictionaries/class/dictionary.class.php');
 class RequestManagerKnowledgeBaseDictionary extends Dictionary
 {
     /**
+     * @var int         Version of this dictionary
+     */
+    public $version = 1;
+
+    /**
      * @var array       List of languages to load
      */
     public $langs = array('requestmanager@requestmanager');
@@ -145,6 +150,8 @@ class RequestManagerKnowledgeBaseDictionary extends Dictionary
             ),
             'is_require' => true
         ),
+        'request_type' => array(),
+        'categorie' => array(),
         'position' => array(
             'name'       => 'position',
             'label'      => 'Position',
@@ -164,10 +171,7 @@ class RequestManagerKnowledgeBaseDictionary extends Dictionary
             'td_input'  => array (
                 'align'  => 'left'
             ),
-            'is_require' => true
         ),
-        'categorie' => array(),
-        'request_type' => array(),
         'description' => array()
     );
 
@@ -183,6 +187,24 @@ class RequestManagerKnowledgeBaseDictionary extends Dictionary
             'fields'    => array('code'),
             'is_unique' => true
         )
+    );
+
+    /**
+     * @var array  List of fields/indexes added, updated or deleted for a version
+     * array(
+     *   'version' => array(
+     *     'fields' => array('field_name'=>'a', 'field_name'=>'u', ...), // List of field name who is added(a) or updated(u) for a version
+     *     'deleted_fields' => array('field_name'=> array('name', 'type', other_custom_data_required_for_delete), ...), // List of field name who is deleted for a version
+     *     'indexes' => array('idx_number'=>'u', 'idx_number'=>'d', ...), // List of indexes number who is updated(u) or deleted(d) for a version
+     *   ),
+     * )
+     */
+    public $updates = array(
+        1 => array(
+            'fields' => array(
+                'position'      => 'u',
+            ),
+        ),
     );
 
     /**
@@ -212,7 +234,7 @@ class RequestManagerKnowledgeBaseDictionary extends Dictionary
             'name' => 'categorie',
             'label' => 'Categories',
             'type' => 'chkbxlst',
-            'options' => 'categorie:label:rowid::type=0 and entity IN (' . getEntity('dictionary', 1) . ')',
+            'options' => 'categorie:label:rowid::type=0 and entity IN (' . getEntity( 'category', 1 ) . ')',
             'td_output' => array(
                 'moreAttributes' => 'width="20%"'
             ),
@@ -237,12 +259,14 @@ class RequestManagerKnowledgeBaseDictionary extends Dictionary
         );
 
         // List of help for fields
-        dol_include_once('/requestmanager/class/requestmanager.class.php');
-        $object = new RequestManager($this->db);
-        dol_include_once('/requestmanager/class/html.formrequestmanagermessage.class.php');
-        $tmp = FormRequestManagerMessage::getAvailableSubstitKey($object);
-        unset($object);
-        $helpSubstitution = $langs->trans("AvailableVariables") . ':<br>' . implode('<br>', array_keys($tmp));
+        dol_include_once('/requestmanager/class/requestmanagersubstitutes.class.php');
+        $subsitutesKeys = RequestManagerSubstitutes::getAvailableSubstitutesKeyFromRequest($this->db);
+        $helpSubstitution = $langs->trans("AvailableVariables") . ':<br>';
+        $helpSubstitution .= "<div style='display: block; overflow: auto; height: 700px;'><table class='nobordernopadding'>";
+        foreach ($subsitutesKeys as $key => $label) {
+            $helpSubstitution .= "<tr><td><span style='margin-right: 10px;'>" . $key . ' :</span></td><td>' . $label . '</td></tr>';
+        }
+        $helpSubstitution .= '</table></div>';
 
         $this->fields['description'] = array(
             'name' => 'description',

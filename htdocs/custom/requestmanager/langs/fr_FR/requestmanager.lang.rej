@@ -1,23 +1,72 @@
 diff a/htdocs/custom/requestmanager/langs/fr_FR/requestmanager.lang b/htdocs/custom/requestmanager/langs/fr_FR/requestmanager.lang	(rejected hunks)
-@@ -243,3 +243,20 @@ RequestManagerErrorNoTemplateLines                              = Aucun template
- RequestManagerErrorMissingFieldsInTemplate                      = Champs manquants dans la configuration du template de message
- RequestManagerErrorTriggerNextStatus                            = Erreur lors du passage automatique vers le statut suivant de la demande "%s":
- RequestManagerCreateFastErrorNoRequestSelected                  = Veuillez sélectionner une demande
-+
-+############################################################
-+### API
-+############################################################
-+API_caller               = Numéro de l'appelant : 
-+API_called               = Numéro appelé : 
-+API_hour                 = Heure de début de l'appel : 
-+API_poste                = Poste ayant décroché/émis l'appel : 
-+API_name_post            = Nom du compte associé au poste : 
-+API_id_IPBX              = Id interne à l'IPBX de l'appel : 
-+API_groupe               = Groupe de réponse à l'origine de l'appel : 
-+API_type                 = Sens de l'appel : 
-+API_source               = Appel source : 
-+API_state                = État de l'appel : 
-+API_hour_end             = Heure de fin de l'appel : 
-+API_during               = Durée de la communication : 
-+API_messagerie           = ID interne à l'IPBX du message : 
-\ No newline at end of file
+@@ -283,42 +339,39 @@ RequestManagerStatusDictionaryNewRequestTypeAutoHelp                        = Cr
+ RequestManagerStatusDictionaryAuthorizedButtons                             = Boutons authorisés
+ RequestManagerStatusDictionaryAuthorizedButtonsHelp                         = Liste des boutons authorisés à ce status (Tous les boutons si aucun sélectionnés)
+ RequestManagerStatusDictionaryNoButtons                                     = Aucun boutons
++RequestManagerNotifyTemplateTypeAssignedUsersModified                       = Changement d'utilisateur assigné
++RequestManagerNotifyTemplateTypeStatusModified                              = Changement de statut
++RequestManagerNotifyTemplateTypeMessageAdded                                = Ajout de message
++RequestManagerTemplateTypeRequestMessage                                    = Message d'une demande
++RequestManagerNotifyTemplateType                                            = Type de notification
++RequestManagerTemplateForRequestType                                        = Pour quel type de demande ce modèle est-il dédié ?
++RequestManagerNotifyTo                                                      = Notifier aux
++RequestManagerNotifyToHelp                                                  = Pour qui ce modèle est-il dédié ?
+ 
+ ############################################################
+-### Companies Relationship
+-############################################################
+-RequestManagerListOfPrincipalCompanies  = Liste des donneurs d'ordres
+-RequestManagerListOfBenefactorCompanies = Liste des bénéficiaires
+-RequestManagerPrincipalCompany          = Donneur d'ordre
+-RequestManagerBenefactorCompany         = Bénéficiaire
+-
+-############################################################
+-### Companies Relationship : Confirm box
+-############################################################
+-RequestManagerEditCompaniesRelationship             = Editer relation tiers
+-RequestManagerConfirmEditCompaniesRelationship      = Êtes-vous sûr de vouloir d'éditer cette relation tiers ?
+-RequestManagerDeleteCompaniesRelationship           = Supprimer relation tiers
+-RequestManagerConfirmDeleteCompaniesRelationship    = Êtes-vous sûr de vouloir supprimer cette relation tiers ?
+-
+-############################################################
+-### Globales
++### Form request manager
+ ############################################################
+ RequestManagerDontHaveRequestTypeForYoursGroup      = Vous n'avez pas de type de demande attribuée à vos groupes
+ 
+-############################################################
+-### Errors
+-############################################################
+-RequestManagerErrorFieldStatusMustBeOfInitialType               = La demande doit être à un statut de type 'Initial'
+-RequestManagerErrorRequestTypeNotFound                          = Type de demande non trouvé
+-RequestManagerErrorDeadlineDateMustBeGreaterThanCreateDate      = La date d'échéance doit être supérieure à la date de création
+-RequestManagerErrorInitStatusNotFound                           = Statut de type 'Initial' non trouvé pour ce type de demande
+-RequestManagerErrorStatusNotFound                               = Statut non trouvé
+-RequestManagerErrorOnlyOneStatusForThisTypeForEachRequestType   = Il ne peut y avoir qu'un statut de ce type par "Type de demande"
+-RequestManagerErrorOnlyOneTemplateForThisTypeForEachRequestType = Il ne peut y avoir qu'un modèle de ce type par "Type de demande"
+-RequestManagerErrorNoTemplateLines                              = Aucun template de message n'a été trouvé dans la configuration pour ce type de demande
+-RequestManagerErrorMissingFieldsInTemplate                      = Champs manquants dans la configuration du template de message
+-RequestManagerErrorTriggerNextStatus                            = Erreur lors du passage automatique vers le statut suivant de la demande "%s":
+-RequestManagerCreateFastErrorNoRequestSelected                  = Veuillez sélectionner une demande
++######################################################################
++# Automatics events
++######################################################################
++RequestManagerCreatedInDolibarr             = Demande %s créée
++RequestManagerModifiedInDolibarr            = Demande %s modifiée
++RequestManagerModifiedPropertiesList        = Liste des champs modifiés (anciennement)
++RequestManagerDeletedInDolibarr             = Demande %s supprimée
++RequestManagerAssignedModifiedInDolibarr    = Assignés à la demande %s modifiés
++RequestManagerAssignedUsersAdded            = Utilisateurs assignés ajoutés
++RequestManagerAssignedUserGroupsAdded       = Groupes d'utilisateurs assignés ajoutés
++RequestManagerAssignedUsersDeleted          = Utilisateurs assignés supprimés
++RequestManagerAssignedUserGroupsDeleted     = Groupes d'utilisateurs assignés supprimés
++RequestManagerStatusModifiedInDolibarr      = Statut de la demande %s modifié
++RequestManagerOldStatus                     = Ancien statut
++RequestManagerNewStatus                     = Nouveau statut
++RequestManagerNewDescription                = Nouvelle description
++RequestManagerOldDescription                = Ancienne description
++RequestManagerNewProductLines               = Nouvelles lignes de produits/services
++RequestManagerOldProductLines               = Anciennes lignes de produits/services
+ 
+ ############################################################
+ ### API

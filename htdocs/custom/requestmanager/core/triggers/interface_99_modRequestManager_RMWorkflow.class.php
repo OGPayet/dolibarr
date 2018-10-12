@@ -33,7 +33,7 @@ class InterfaceRMWorkflow extends DolibarrTriggers
 	public $family = 'requestmanager';
 	public $description = "Triggers of this module catch triggers event for the workflow of RequestManager module.";
 	public $version = self::VERSION_DOLIBARR;
-	public $picto = 'requestmanager@requestmanager';
+	public $picto = 'technic';
 
 
 	/**

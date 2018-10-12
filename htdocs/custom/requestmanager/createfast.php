@@ -262,7 +262,7 @@ if (($action == 'createfast' || $action == 'force_principal_company') && $user->
 
         $societe = new Societe($db);
         $societe->fetch($selectedSocId);
-        $formquestion[] = array('type' => 'other', 'label' => $langs->trans('RequestManagerThirdPartyBill'), 'value' => $societe->getNomUrl(1));
+        $formquestion[] = array('type' => 'other', 'label' => $langs->trans('RequestManagerThirdPartyPrincipal'), 'value' => $societe->getNomUrl(1));
         $societe->fetch($selectedSocIdBenefactor);
         $formquestion[] = array('type' => 'other', 'label' => $langs->trans('RequestManagerThirdPartyBenefactor'), 'value' => $societe->getNomUrl(1));
 

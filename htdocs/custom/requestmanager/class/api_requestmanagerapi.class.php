@@ -723,6 +723,7 @@ class RequestManagerApi extends DolibarrApi {
             throw new RestException(500, "Error while setting the request status", $this->_getErrors($requestmanager));
         }
     }
+
     /**
      *  Add an event following a phone call begin
      *

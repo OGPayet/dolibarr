@@ -16,7 +16,7 @@
  */
 
 /**
- *	\file       htdocs/requestmanager/core/triggers/interface_99_modRequestManager_Notification.class.php
+ *	\file       htdocs/requestmanager/core/triggers/interface_99_modRequestManager_RMNotification.class.php
  *  \ingroup    requestmanager
  *	\brief      File of class of triggers for notification in requestmanager module
  */
@@ -26,15 +26,14 @@ require_once DOL_DOCUMENT_ROOT.'/core/triggers/dolibarrtriggers.class.php';
 
 
 /**
- *  Class of triggers for notification in requestmanager module
+ *  Class of triggers for notification in RequestManager module
  */
 class InterfaceRMNotification extends DolibarrTriggers
 {
-	public $family = 'requestmanager';
-	public $description = "Triggers of this module send notifications according to RequestManager module setup.";
+	public $family = 'notification';
+	public $description = "Triggers of this module send email notifications according to RequestManager module setup.";
 	public $version = self::VERSION_DOLIBARR;
 	public $picto = 'email';
-
 
 	/**
 	 * Function called when a Dolibarrr business event is done.
@@ -48,14 +47,63 @@ class InterfaceRMNotification extends DolibarrTriggers
 	 * @return int         				<0 if KO, 0 if no triggered ran, >0 if OK
 	 */
 	public function runTrigger($action, $object, User $user, Translate $langs, Conf $conf)
-	{
-	    if ($action == 'REQUESTMANAGER_STATUS_MODIFY') {
-            dol_include_once('/requestmanager/class/requestmanager.class.php');
+    {
+        $key = $action . '_NOTIFY';
 
-            $result = $object->createActionCommAndNotifyFromTemplateType(RequestManager::TEMPLATE_TYPE_NOTIFY_STATUS_MODIFIED, RequestManager::ACTIONCOMM_TYPE_CODE_STAT);
+        // Do not notify, not enabled for this action
+        if (empty($conf->global->$key)) {
+            return 0;
+        }
 
-            dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
-	        return $result;
+        if ($action == 'REQUESTMANAGERMESSAGE_CREATE') {
+            // Notification by email of a new message to the request
+            dol_include_once('/requestmanager/class/requestmanagernotify.class.php');
+            $requestmanagernotify = new RequestManagerNotify($this->db);
+
+            $object->fetch_requestmanager();
+            $requestmanagernotify->sendNotify(RequestManagerNotify::TYPE_MESSAGE_ADDED, $object->requestmanager, $object);
+
+            // Notify by website to assigned
+            if (!empty($conf->global->REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_WEBSITE)) {
+
+            }
+
+            dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
+            return 1;
+        } elseif ($action == 'REQUESTMANAGER_SET_ASSIGNED') {
+            if (!empty($object->assigned_user_added_ids) || !empty($object->assigned_usergroup_added_ids) ||
+                !empty($object->assigned_user_deleted_ids) || !empty($object->assigned_usergroup_deleted_ids)
+            ) {
+                // Notification by email of a modification of assigned user or user groups to the request
+                dol_include_once('/requestmanager/class/requestmanagernotify.class.php');
+                $requestmanagernotify = new RequestManagerNotify($this->db);
+
+                $requestmanagernotify->sendNotify(RequestManagerNotify::TYPE_ASSIGNED_MODIFIED, $object);
+
+                // Notify by website to assigned
+                if (!empty($conf->global->REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_WEBSITE)) {
+
+                }
+            }
+
+            dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
+            return 1;
+        } elseif ($action == 'REQUESTMANAGER_STATUS_MODIFY') {
+            if ($object->new_statut != $object->statut) {
+                // Notification by email of a modification of status of the request
+                dol_include_once('/requestmanager/class/requestmanagernotify.class.php');
+                $requestmanagernotify = new RequestManagerNotify($this->db);
+
+                $requestmanagernotify->sendNotify(RequestManagerNotify::TYPE_STATUS_MODIFIED, $object);
+
+                // Notify by website to assigned
+                if (!empty($conf->global->REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_WEBSITE)) {
+
+                }
+            }
+
+            dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
+            return 1;
         }
 
         return 0;

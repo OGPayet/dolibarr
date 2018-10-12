@@ -31,6 +31,10 @@ class FormRequestManagerMessage
 {
     public $db;
     public $error;
+    public $withform;       // 1=Include HTML form tag and show submit button, 0=Do not include form tag and submit button, -1=Do not include form tag but include submit button
+    public $withcancel;
+    public $param=array();
+    public $trackid;
 
     /**
      * @var FormDictionary  Instance of the FormDictionary
@@ -41,11 +45,6 @@ class FormRequestManagerMessage
      * @var RequestManager  Instance of the RequestManager
      */
     public $requestmanager;
-
-    /**
-     * @var RequestManagerMessage      Instance of the RequestManagerMessage
-     */
-    public $requestmanager_message;
 
     /**
      * @var string  Key of the session for the path list of attached files
@@ -66,27 +65,36 @@ class FormRequestManagerMessage
     public $substit = array();
 
     /**
-     * @var DictionaryLine[]  List of template available
+     * @var DictionaryLine[]  List of message template available
      */
-    public $templates_list = array();
+    public $message_templates_list = array();
+    /**
+     * @var DictionaryLine[]  List of notify template available
+     */
+    public $notify_templates_list = array();
+    /**
+     * @var DictionaryLine[]  List of knowledge base available
+     */
+    public $knowledge_base_list = array();
 
     /**
      * Constructor
      *
      * @param   RequestManager          $object     Request manager object
-     * @param   RequestManagerMessage   $message    Request manager message object
      * @param   DoliDB                  $db         Database handler
      */
-    public function __construct($db, &$object, &$message)
+    public function __construct($db, &$object)
     {
         $this->db = $db;
+        $this->withform=1;
+        $this->withcancel=1;
+
         $this->requestmanager = $object;
-        $this->requestmanager_message = $message;
         $this->formdictionary = new FormDictionary($this->db);
 
-        $this->key_list_of_paths = "requestmanagerlop" . $this->requestmanager->ref_ext;
-        $this->key_list_of_names = "requestmanagerlon" . $this->requestmanager->ref_ext;
-        $this->key_list_of_mimes = "requestmanagerlom" . $this->requestmanager->ref_ext;
+        $this->key_list_of_paths = "listofpaths-rm" . $this->requestmanager->id;
+        $this->key_list_of_names = "listofnames-rm" . $this->requestmanager->id;
+        $this->key_list_of_mimes = "listofmimes-rm" . $this->requestmanager->id;
     }
 
     /**
@@ -101,7 +109,7 @@ class FormRequestManagerMessage
 
         // Set tmp user directory
         $vardir = $conf->user->dir_output . "/" . $user->id;
-        $upload_dir = $vardir . '/temp/' . $this->requestmanager->ref_ext . '/';
+        $upload_dir = $vardir . '/temp/rm-' . $this->requestmanager->id . '/';
         if (is_dir($upload_dir)) dol_delete_dir_recursive($upload_dir);
 
         unset($_SESSION[$this->key_list_of_paths]);
@@ -163,6 +171,37 @@ class FormRequestManagerMessage
     }
 
     /**
+     * Remove all file from the list of attached files (stored in SECTION array and physical files)
+     *
+     * @return	void
+     */
+    function remove_all_attached_files()
+    {
+        global $langs;
+
+        $listofpaths = array();
+        $listofnames = array();
+        $listofmimes = array();
+
+        if (! empty($_SESSION[$this->key_list_of_paths])) $listofpaths=explode(';',$_SESSION[$this->key_list_of_paths]);
+        if (! empty($_SESSION[$this->key_list_of_names])) $listofnames=explode(';',$_SESSION[$this->key_list_of_names]);
+        if (! empty($_SESSION[$this->key_list_of_mimes])) $listofmimes=explode(';',$_SESSION[$this->key_list_of_mimes]);
+
+        require_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
+
+        foreach ($listofpaths as $key => $value) {
+            $pathtodelete = $value;
+            $filetodelete = $listofnames[$key];
+            $result = dol_delete_file($pathtodelete, 1); // Delete uploded Files
+
+            $langs->load("other");
+            setEventMessages($langs->trans("FileWasRemoved", $filetodelete), null, 'mesgs');
+
+            $this->remove_attached_files($key); // Update Session
+        }
+    }
+
+    /**
      * Return list of attached files (stored in SECTION array)
      *
      * @return	array       array('paths'=> ,'names'=>, 'mimes'=> )
@@ -182,35 +221,27 @@ class FormRequestManagerMessage
     /**
      *  Output html form to send a message
      *
-     * @param  	string	    $actioncomm         Event message
-     * @param  	string	    $actionurl          Key in file array (0, 1, 2, ...)
-     * @param  	string	    $type_template      Key in file array (0, 1, 2, ...)
-     * @param  	int	        $template_id        Key in file array (0, 1, 2, ...)
-     * @param  	array	    $parameters         Key in file array (0, 1, 2, ...)
-     * @param  	string	    $addfileaction      Key in file array (0, 1, 2, ...)
-     * @param  	string	    $removefileaction   Key in file array (0, 1, 2, ...)
+     * @param   string      $addfileaction      Name of action when posting file attachments
+     * @param   string      $removefileaction   Name of action when removing file attachments
      * @return  string                          HTML string with form to send a message
      */
-    function get_message_form($actioncomm, $actionurl, $type_template='message_template_user', $template_id=0, $parameters=array(), $addfileaction='addfile', $removefileaction='removefile')
+    function get_message_form($addfileaction='addfile', $removefileaction='removefile')
     {
-        global $langs, $user, $hookmanager, $form;
+        global $conf, $langs, $user, $hookmanager, $form;
+
+        dol_include_once('/requestmanager/class/requestmanagermessage.class.php');
 
         if (!is_object($form)) $form = new Form($this->db);
 
         $langs->load("other");
 
-        $hookmanager->initHooks(array('formrequestmanagermessage'));
+        $hookmanager->initHooks(array('requestmanagerformmessage'));
 
         $parameters = array(
-            'actioncomm' => &$actioncomm,
-            'actionurl' => &$actionurl,
-            'type_template' => &$type_template,
-            'template_id' => &$template_id,
-            'parameters' => $parameters,
             'addfileaction' => &$addfileaction,
             'removefileaction' => &$removefileaction,
         );
-        $reshook = $hookmanager->executeHooks('getFormMail', $parameters, $this);
+        $reshook = $hookmanager->executeHooks('getRequestManagerMessageForm', $parameters, $this);
         if (!empty($reshook)) {
             return $hookmanager->resPrint;
         }
@@ -226,174 +257,122 @@ class FormRequestManagerMessage
         if (!empty($_SESSION[$this->key_list_of_names])) $listofnames = explode(';', $_SESSION[$this->key_list_of_names]);
         if (!empty($_SESSION[$this->key_list_of_mimes])) $listofmimes = explode(';', $_SESSION[$this->key_list_of_mimes]);
 
-        $out .= "\n" . '<!-- Begin form mail --><div id="requestmanagermessageformdiv"></div>' . "\n";
-        $out .= '<form method="POST" name="requestmanagermessageform" id="requestmanagermessageform" enctype="multipart/form-data" action="' . $actionurl . '#formrequestmanagermessage">' . "\n";
-        //$out .= '<input style="display:none" type="submit" id="addmessage" name="addmessage">';
-        $out .= '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '" />';
-        $out .= '<a id="formrequestmanagermessage" name="formrequestmanagermessage"></a>';
-        foreach ($parameters as $key => $value) {
+        // Define output language
+        $outputlangs = $langs;
+        $newlang = '';
+        if ($conf->global->MAIN_MULTILANGS && empty($newlang)) $newlang = $this->param['langsmodels'];
+        if (!empty($newlang)) {
+            $outputlangs = new Translate("", $conf);
+            $outputlangs->setDefaultLang($newlang);
+            $outputlangs->load('other');
+        }
+
+        $out .= "\n" . '<!-- Begin form message --><div id="requestmanagermessageformdiv"></div>' . "\n";
+        if ($this->withform == 1) {
+            $out .= '<form method="POST" name="requestmanagermessageform" id="requestmanagermessageform" enctype="multipart/form-data" action="' . $this->param["returnurl"] . '#formmessagebeforetitle">' . "\n";
+            $out .= '<input style="display:none" type="submit" id="addmessage" name="addmessage">';
+            $out .= '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '" />';
+            $out .= '<a id="formrequestmanagermessage" name="formrequestmanagermessage"></a>';
+        }
+
+        // Hidden parameters
+        //--------------------------
+        foreach ($this->param as $key => $value) {
             if (is_array($value)) {
                 foreach ($value as $arrKey => $arrValue) {
-                    $out .= '<input type="hidden" id="' . $arrKey . '" name="' . $arrKey . '" value="' . $arrValue . '" />' . "\n";
+                    $out .= '<input type="hidden" id="' . $arrKey . '" name="' . $arrKey . '[]" value="' . $arrValue . '" />' . "\n";
                 }
             } else {
                 $out .= '<input type="hidden" id="' . $key . '" name="' . $key . '" value="' . $value . '" />' . "\n";
             }
         }
 
-        $out .= '<div class="center" style="padding: 0px 0 12px 0">' . "\n";
-        // Select knowledge base
-        //----------------------
-        $knowledgeBaseSelectedId  = strlen(GETPOST('knowledge_base_selected')) ? GETPOST('knowledge_base_selected', 'int') : -1;
-        $knowledgeBaseOrderedList = $this->requestmanager->fetchAllDictionaryLinesForKnowledgeBaseAndOrderBy(array('nb_categorie' => SORT_DESC));
-        $knowledgeBaseSelectList  = array_column($knowledgeBaseOrderedList, 'title');
-        $out .= $langs->trans('RequestManagerSelectKnowledgeBase') . ' : ';
-        if ($nbKnowledgeBase = count($knowledgeBaseSelectList) > 0) {
-            $out .= '<input type="hidden" name="id_knowledge_base" value="' . $knowledgeBaseOrderedList[$knowledgeBaseSelectedId]['id'] . '" />' . "\n";
-            $out .= $form->selectarray('knowledge_base_selected', $knowledgeBaseSelectList, $knowledgeBaseSelectedId, 1);
-        } else {
-            $out .= '<input type="hidden" name="id_knowledge_base" value="-1" />' . "\n";
-            $out .= '<select name="modelmailselected" disabled="disabled"><option value="-1">' . $langs->trans("RequestManagerNoTemplateDefined") . '</option></select>';
+        // Get template list
+        //--------------------------
+        $result = $this->fetchAllMessageTemplate($this->requestmanager->fk_type);
+        if ($result < 0) {
+            setEventMessages($this->error, null, 'errors');
         }
-        $out .= '<script type="text/javascript" language="javascript">';
-        $out .= 'jQuery(document).ready(function() {';
-        $out .= '   jQuery("#knowledge_base_selected").change(function() {';
-        $out .= '       jQuery("#message_template_selected").val("-1");';
-        $out .= '   });';
-        $out .= '});';
-        $out .= '</script>' . "\n";
+        $modelmessage_array = array();
+        foreach ($this->message_templates_list as $line) {
+            $modelmessage_array[$line->id] = $line->fields['label'];
+        }
+
+        // Get default message template
+        //----------------------------------
+        $model_id = !empty($this->param["models_id"]) ? $this->param["models_id"] : 0;
+        $default_message = $this->message_templates_list[$model_id]->fields;
 
         // Select template
-        //-----------------
-        $result = $this->fetchAllTemplate($this->requestmanager->fk_type, $type_template);
-        if ($result < 0) {
-            setEventMessages($this->error, $this->errors, 'errors');
-        }
-        $template_array = array();
-        foreach ($this->templates_list as $line) {
-            $template_array[$line->id] = $line->fields['label'];
-        }
-        $out .= '&nbsp;&nbsp;|&nbsp;&nbsp;';
-        $out .= $langs->trans('RequestManagerSelectTemplate') . ' : ';
-        if ($nTemplate = count($template_array) > 0) {
-            $out .= $form->selectarray('message_template_selected', $template_array, $template_id, 1);
+        //--------------------------
+        $out .= '<div class="center" style="padding: 0px 0 12px 0">' . "\n";
+        if (count($modelmessage_array) > 0) {
+            $out .= $langs->trans('RequestManagerSelectTemplate') . ': ' . $form->selectarray('modelmessageselected', $modelmessage_array, 0, 1);
         } else {
-            $out .= '<select name="modelmailselected" disabled="disabled"><option value="-1">' . $langs->trans("RequestManagerNoTemplateDefined") . '</option></select>';
+            // Do not put disabled on option, it is already on select and it makes chrome crazy.
+            $out .= $langs->trans('RequestManagerSelectTemplate') . ': <select name="modelmessageselected" disabled="disabled"><option value="none">' . $langs->trans("RequestManagerNoMessageTemplateDefined") . '</option></select>';
         }
-        if ($user->admin) $out .= info_admin($langs->trans("YouCanChangeValuesForThisListFrom", $langs->transnoentitiesnoconv('Setup') . ' - ' . $langs->transnoentitiesnoconv('Module163018Name')), 1);
-        $out .= '<script type="text/javascript" language="javascript">';
-        $out .= 'jQuery(document).ready(function() {';
-        $out .= '   jQuery("#message_template_selected").change(function() {';
-        $out .= '       jQuery("#knowledge_base_selected").val("-1");';
-        $out .= '   });';
-        $out .= '});';
-        $out .= '</script>' . "\n";
-
-        // btn apply
-        $out .= '&nbsp;&nbsp;';
-        $out .= '<input class="button" type="button" value="' . $langs->trans('Apply') . '" id="btn_apply" name="btn_apply" ' . ($nbKnowledgeBase || $nTemplate > 0 ? '' : ' disabled="disabled"') . '>';
+        if ($user->admin) $out .= '&nbsp;' . info_admin($langs->trans("YouCanChangeValuesForThisListFrom", $langs->transnoentitiesnoconv('Setup') . ' - ' . $langs->transnoentitiesnoconv('Module163018Name')), 1);
         $out .= ' &nbsp; ';
+        $out .= '<input class="button" type="submit" value="' . $langs->trans('Apply') . '" name="modelselected" id="modelselected"' . (count($modelmessage_array) > 0 ? '' : ' disabled="disabled"') . '>';
         $out .= '</div>';
-        $out .= '<script type="text/javascript" language="javascript">';
-        $out .= 'jQuery(document).ready(function() {';
-        $out .= '    jQuery("#btn_apply").click(function() {';
-        $out .= '        jQuery("#action").val("premessage");';
-        $out .= '        if (jQuery("#knowledge_base_selected").val()!==undefined && jQuery("#knowledge_base_selected").val()>=0) {';
-        $out .= '           jQuery("#actioncomm").val("knowledge_base_apply");';
-        $out .= '        } else {';
-        $out .= '           jQuery("#actioncomm").val("message_template_apply");';
-        $out .= '        }';
-        $out .= '        jQuery("#requestmanagermessageform").submit();';
-        $out .= '    });';
-        $out .= '})';
-        $out .= '</script>' . "\n";
 
         $out .= '<table class="border" width="100%">' . "\n";
 
-        // Notification by mail
-        $messageNotifyByMail = GETPOST('message_notify_by_mail', 'int', 2)?1:0;
-        $messageNotifyByMailChecked = '';
-        if ($messageNotifyByMail) $messageNotifyByMailChecked = ' checked="checked"';
-        $out .= '<tr>';
-        $out .= '<td colspan="2">';
-        $out .= '<input type="checkbox" id="message_notify_by_mail" name="message_notify_by_mail" value="1"' . $messageNotifyByMailChecked .' /> ' . $langs->trans("RequestManagerMessageNotifyByMail");
-        $out .= "</td></tr>\n";
-        $out .= '<script type="text/javascript" language="javascript">';
-        $out .= 'jQuery(document).ready(function() {';
-        $out .= '   jQuery("#message_notify_by_mail").change(function() {';
-        $out .= '       if(jQuery(this).is(":checked")) {';
-        $out .= '           jQuery("#message_direction2").prop("checked", true);';
-        $out .= '           jQuery(".cb_message_direction").prop("disabled", true);';
-        $out .= '       } else {';
-        $out .= '           jQuery(".cb_message_direction").prop("disabled", false);';
-        $out .= '       }';
-        $out .= '   });';
-        $out .= '});';
-        $out .= '</script>' . "\n";
-
-        // Direction
+        // Message type
         //-----------------
-        dol_include_once('/requestmanager/class/requestmanagernotification.class.php');
-        $messageDirection = GETPOST('message_direction', 'int', 2)?intval(GETPOST('message_direction', 'int', 2)):RequestManagerNotification::getMessageDirectionIdDefault();
-        $messageDirectionCheckedList = array(RequestManagerNotification::MESSAGE_DIRECTION_ID_IN => '', RequestManagerNotification::MESSAGE_DIRECTION_ID_OUT => '');
-        $messageDirectionCheckedList[$messageDirection] .= ' checked="checked"';
+        $message_type = GETPOST('message_type', 'alpha', 2);
         $out .= '<tr>';
-        $out .= '<td class="fieldrequired" width="180">' . $langs->trans("RequestManagerMessageDirection") . '</td>';
+        $out .= '<td class="fieldrequired" width="180">' . $langs->trans("RequestManagerMessageType") . '</td>';
         $out .= '<td>';
-        $out .= '<input type="radio" id="message_direction1" class="cb_message_direction" name="message_direction" value="' . RequestManagerNotification::MESSAGE_DIRECTION_ID_IN . '"' . $messageDirectionCheckedList[RequestManagerNotification::MESSAGE_DIRECTION_ID_IN] . '/> ' . $langs->trans("RequestManagerMessageDirectionIn");
-        $out .= '&nbsp;&nbsp;<input type="radio" id="message_direction2" class="cb_message_direction" name="message_direction" value="' . RequestManagerNotification::MESSAGE_DIRECTION_ID_OUT . '"' . $messageDirectionCheckedList[RequestManagerNotification::MESSAGE_DIRECTION_ID_OUT] . '/> ' . $langs->trans("RequestManagerMessageDirectionOut");
+        $out .= '<input type="radio" id="message_type_out" name="message_type" value="' . RequestManagerMessage::MESSAGE_TYPE_OUT . '"' . ($message_type != RequestManagerMessage::MESSAGE_TYPE_PRIVATE && $message_type != RequestManagerMessage::MESSAGE_TYPE_IN ? ' checked="checked"' : '') . '/>';
+        $out .= '&nbsp;<label for="message_type_out">' . $langs->trans("RequestManagerMessageTypeOut") . '&nbsp;' . img_help(0, $langs->trans("RequestManagerMessageTypeOutHelp")) . '</label>';
+        $out .= ' &nbsp; ';
+        $out .= '<input type="radio" id="message_type_private" name="message_type" value="' . RequestManagerMessage::MESSAGE_TYPE_PRIVATE . '"' . ($message_type == RequestManagerMessage::MESSAGE_TYPE_PRIVATE ? ' checked="checked"' : '') . '/>';
+        $out .= '&nbsp;<label for="message_type_private">' . $langs->trans("RequestManagerMessageTypePrivate") . '&nbsp;' . img_help(0, $langs->trans("RequestManagerMessageTypePrivateHelp")) . '</label>';
+        $out .= ' &nbsp; ';
+        $out .= '<input type="radio" id="message_type_in" name="message_type" value="' . RequestManagerMessage::MESSAGE_TYPE_IN . '"' . ($message_type == RequestManagerMessage::MESSAGE_TYPE_IN ? ' checked="checked"' : '') . '/>';
+        $out .= '&nbsp;<label for="message_type_in">' . $langs->trans("RequestManagerMessageTypeIn") . '&nbsp;' . img_help(0, $langs->trans("RequestManagerMessageTypeInHelp")) . '</label>';
+        $out .= "</td></tr>\n";
+
+        // Notify
+        //-----------------
+        $notify_assigned = GETPOST('notify_assigned', 'int', 2);
+        $notify_requester = GETPOST('notify_requester', 'int', 2);
+        $notify_watcher = GETPOST('notify_watcher', 'int', 2);
+        if ($notify_assigned === '') $notify_assigned = $this->requestmanager->notify_assigned_by_email;
+        if ($notify_requester === '') $notify_requester = $this->requestmanager->notify_requester_by_email;
+        if ($notify_watcher === '') $notify_watcher = $this->requestmanager->notify_watcher_by_email;
+        $out .= '<tr>';
+        $out .= '<td width="180">' . $langs->trans("RequestManagerMessageNotify") . '</td>';
+        $out .= '<td>';
+        $out .= '<input type="checkbox" id="notify_assigned" name="notify_assigned" value="1"' . (!empty($notify_assigned) ? ' checked="checked"' : '') . ' />';
+        $out .= '&nbsp;<label for="notify_assigned">' . $langs->trans("RequestManagerAssigned") . '</label>';
+        $out .= ' &nbsp; ';
+        $out .= '<input type="checkbox" id="notify_requesters" name="notify_requesters" value="1"' . (!empty($notify_requester) ? ' checked="checked"' : '') . ' />';
+        $out .= '&nbsp;<label for="notify_requester">' . $langs->trans("RequestManagerRequesterContacts") . '</label>';
+        $out .= ' &nbsp; ';
+        $out .= '<input type="checkbox" id="notify_watchers" name="notify_watchers" value="1"' . (!empty($notify_watcher) ? ' checked="checked"' : '') . ' />';
+        $out .= '&nbsp;<label for="notify_watcher">' . $langs->trans("RequestManagerWatcherContacts") . '</label>';
         $out .= "</td></tr>\n";
 
         // Other attributes
+        //----------------------
         require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
         $extrafields = new ExtraFields($this->db);
-        $extralabels = $extrafields->fetch_name_optionals_label($this->requestmanager->table_element.'_message');
+        $requestmanagermessage = new RequestManagerMessage($this->db);
+        $extralabels = $extrafields->fetch_name_optionals_label($requestmanagermessage->table_element);
+        $ret = $extrafields->setOptionalsFromPost($extralabels, $requestmanagermessage);
         $parameters = array(
-            'actioncomm' => &$actioncomm,
-            'actionurl' => &$actionurl,
-            'type_template' => &$type_template,
-            'template_id' => &$template_id,
-            'parameters' => &$parameters,
+            'messageform' => &$this,
             'addfileaction' => &$addfileaction,
             'removefileaction' => &$removefileaction,
         );
-	$reshook = $hookmanager->executeHooks('formObjectOptions', $parameters, $this); // Note that $action and $object may have been modified by hook
+        $reshook = $hookmanager->executeHooks('formObjectOptions', $parameters, $requestmanagermessage); // Note that $action and $object may have been modified by hook
         $out .= $hookmanager->resPrint;
-	if (empty($reshook) && ! empty($extrafields->attribute_label)) {
-            $out .= $this->requestmanager_message->showOptionals($extrafields, 'edit');
-	}
-
-        // Get message template
-        $actionCommPost = GETPOST('actioncomm')?GETPOST('actioncomm'):'';
-        $default_message['subject'] = '';
-        $default_message['boby']    = '';
-        if ($knowledgeBaseSelectedId >= 0) {
-            $default_message['subject'] = $knowledgeBaseOrderedList[$knowledgeBaseSelectedId]['title'];
-            $default_message['boby']    = $knowledgeBaseOrderedList[$knowledgeBaseSelectedId]['description'];
-        } else if ($template_id > 0) {
-            $default_message = $this->getEMailTemplate($template_id);
+        if (empty($reshook) && !empty($extrafields->attribute_label)) {
+            $out .= $requestmanagermessage->showOptionals($extrafields, 'edit');
         }
-        $this->setSubstitFromObject($this->requestmanager);
-
-        // Subject
-        //-----------------
-        if ($actionCommPost == 'knowledge_base_apply') {
-            $subject = GETPOST('message_subject', 'alpha', 2) ? GETPOST('message_subject', 'alpha', 2) : '';
-            if (!$subject && $default_message['subject']) {
-                $subject = make_substitutions($default_message['subject'], $this->substit);
-            }
-        } else {
-            if (!empty($default_message['subject'])) {
-                $subject = make_substitutions($default_message['subject'], $this->substit);
-            } else {
-                $subject = GETPOST('message_subject', 'alpha', 2) ? GETPOST('message_subject', 'alpha', 2) : '';
-            }
-        }
-        $out .= '<tr>';
-        $out .= '<td class="fieldrequired" width="180">' . $langs->trans("RequestManagerMessageSubject") . '</td>';
-        $out .= '<td>';
-        $out .= '<input type="text" class="quatrevingtpercent" id="message_subject" name="message_subject" value="' . $subject . '" />';
-        $out .= "</td></tr>\n";
 
         // Attached files
         //-----------------
@@ -407,7 +386,7 @@ class FormRequestManagerMessage
         $out .= '    jQuery(".removedfile").click(function() {';
         $out .= '        jQuery(".removedfilehidden").val(jQuery(this).val());';
         $out .= '    });';
-        $out .= '});';
+        $out .= '})';
         $out .= '</script>' . "\n";
         if (count($listofpaths)) {
             foreach ($listofpaths as $key => $val) {
@@ -424,72 +403,128 @@ class FormRequestManagerMessage
         $out .= '<input class="button" type="submit" id="addfile' . $addfileaction . '" name="' . $addfileaction . '" value="' . $langs->trans("MailingAddFile") . '" />';
         $out .= "</td></tr>\n";
 
+        // Substitution help
+        //-----------------------
+        // List of help for fields
+        dol_include_once('/requestmanager/class/requestmanagersubstitutes.class.php');
+        $subsituteKeys = RequestManagerSubstitutes::getAvailableSubstitutesKeyFromRequest($this->db, 1, $this->requestmanager);
+        $this->substit = RequestManagerSubstitutes::setSubstitutesFromRequest($this->db, $this->requestmanager);
+        $helpSubstitution = $langs->trans("AvailableVariables") . ':<br>';
+        $helpSubstitution .= "<div style='display: block; overflow: auto; height: 700px;'><table class='nobordernopadding'>";
+        foreach ($subsituteKeys as $key => $label) {
+            $helpSubstitution .= "<tr><td><span style='margin-right: 10px;'>" . $key . ' :</span></td><td>' . $label . '</td></tr>';
+        }
+        $helpSubstitution .= '</table></div>';
+
+        // Get knowledge base list
+        //--------------------------
+        $this->requestmanager->fetch_tags();
+        $result = $this->fetchAllKnowledgeBase($this->requestmanager->fk_type, $this->requestmanager->tag_ids);
+        if ($result < 0) {
+            setEventMessages($this->error, null, 'errors');
+        }
+        $modelknowledgebase_array = array();
+        foreach ($this->knowledge_base_list as $line) {
+            $modelknowledgebase_array[$line->id] = $line->fields['title'];
+        }
+
+        // Get default message template
+        //----------------------------------
+        $knowledgebase_ids = !empty($this->param["knowledgebase_ids"]) ? $this->param["knowledgebase_ids"] : array();
+
+        // Select knowledge base
+        //------------------------
+        $out .= '<tr>';
+        $out .= '<td width="180">' . $langs->trans("RequestManagerMessageKnowledgeBase") . '</td>';
+        $out .= '<td>';
+        if (count($modelknowledgebase_array) > 0) {
+            $out .= $form->multiselectarray('knowledgebaseselected', $modelknowledgebase_array, $knowledgebase_ids, '', 0, ' minwidth300');
+        } else {
+            // Do not put disabled on option, it is already on select and it makes chrome crazy.
+            $out .= '<select name="knowledgebaseselected" disabled="disabled"><option value="none">' . $langs->trans("RequestManagerNoKnowledgeBaseDefined") . '</option></select>';
+        }
+        if ($user->admin) $out .= '&nbsp;' .info_admin($langs->trans("YouCanChangeValuesForThisListFrom", $langs->transnoentitiesnoconv('Setup') . ' - ' . $langs->transnoentitiesnoconv('Module163018Name')), 1);
+        $out .= ' &nbsp; ';
+        $out .= '<input class="button" type="submit" value="' . $langs->trans('RequestManagerAddKnowledgeBaseDescriptions') . '" name="addknowledgebasedescription" id="addknowledgebasedescription"' . (is_array($knowledgebase_ids) && count($knowledgebase_ids) > 0 ? '' : ' disabled="disabled"') . '>';
+        $out .= "</td></tr>\n";
+
         // Message
         //-----------------
-        if ($actionCommPost == 'knowledge_base_apply') {
-            $message_body = GETPOST('message_body', 'alpha', 2) ? GETPOST('message_body', 'alpha', 2) : '';
-            if ($default_message['boby']) {
-                if (!empty($message_body)) {
-                    $message_body .= '<br />';
+        $default_body = !empty($default_message['message']) ? $default_message['message'] : '';
+        $message = !empty($default_body) ? $default_body : GETPOST('message', 'alpha', 2);
+        if (GETPOST('addknowledgebasedescription', 'alpha') != '') {
+            foreach ($knowledgebase_ids as $knowledge_base_id) {
+                $knowledge_base_selected = $this->knowledge_base_list[$knowledge_base_id]->fields;
+                if (!empty($knowledge_base_selected['description'])) {
+                    $message = dol_concatdesc($message, "\n" . $knowledge_base_selected['title'] . ' :');
+                    $message = dol_concatdesc($message, $knowledge_base_selected['description']);
                 }
-                $message_body .= make_substitutions($default_message['boby'], $this->substit);
-            }
-        } else {
-            if (!empty($default_message['boby'])) {
-                $message_body = make_substitutions($default_message['boby'], $this->substit);
-            } else {
-                $message_body = GETPOST('message_body', 'alpha', 2) ? GETPOST('message_body', 'alpha', 2) : '';
             }
         }
-        if (!empty($message_body)) {
-            // Clean first \n and br (to avoid empty line when CONTACTCIVNAME is empty)
-            $message_body = preg_replace("/^(<br>)+/", "", $message_body);
-            $message_body = preg_replace("/^\n+/", "", $message_body);
-        }
+        $message = make_substitutions($message, $this->substit);
+        // Clean first \n and br (to avoid empty line when CONTACTCIVNAME is empty)
+        //$message = preg_replace("/^(<br>)+/", "", $message);
+        //$message = preg_replace("/^\n+/", "", $message);
+
         $out .= '<tr>';
-        $out .= '<td class="fieldrequired" width="180" valign="top">' . $langs->trans("RequestManagerMessage") . '</td>';
+        $out .= '<td class="fieldrequired" width="180" valign="top">' . $langs->trans("RequestManagerMessage");
+        $out .= '&nbsp;' . $form->textwithpicto('', $helpSubstitution, 1, 'help', '', 0, 2, 'substitution');
+        $out .= '</td>';
         $out .= '<td>';
         // Editor wysiwyg
         require_once DOL_DOCUMENT_ROOT . '/core/class/doleditor.class.php';
-        $doleditor = new DolEditor('message_body', $message_body, '', 280, 'dolibarr_notes', 'In', true, true, 1, 8, '95%');
+        $doleditor = new DolEditor('message', $message, '', 280, 'dolibarr_notes', 'In', true, true, 1, 8, '95%');
         $out .= $doleditor->Create(1);
         $out .= "</td></tr>\n";
 
         $out .= '</table>' . "\n";
 
-        $out .= '<br><div class="center">';
-        $out .= '<input class="button" type="submit" id="addmessage" name="addmessage" value="' . $langs->trans("RequestManagerAddMessage") . '"';
-        // Add a javascript test to avoid to forget to submit file before sending message
-        $out .= ' onClick="if (document.requestmanagermessageform.addedfile.value != \'\') { alert(\'' . dol_escape_js($langs->trans("FileWasNotUploaded")) . '\'); return false; } else { return true; }"';
-        $out .= ' />';
-        $out .= ' &nbsp; &nbsp; ';
-        $out .= '<input class="button" type="submit" id="cancel" name="cancel" value="' . $langs->trans("Cancel") . '" />';
-        $out .= '</div>' . "\n";
-        $out .= '<script type="text/javascript" language="javascript">';
-        $out .= 'jQuery(document).ready(function () {';
-        $out .= '    jQuery("#addmessage").click(function() {';
-        $out .= '        jQuery("#action").val("addmessage");';
-        $out .= '        jQuery("#actioncomm").val("message_add_validate");';
-        $out .= '        jQuery("#requestmanagermessageform").submit();';
-        $out .= '    });';
-        $out .= '});';
-        $out .= '</script>' . "\n";
+        if ($this->withform == 1 || $this->withform == -1) {
+            $out .= '<br><div class="center">';
+            $out .= '<input class="button" type="submit" id="addmessage" name="addmessage" value="' . $langs->trans("RequestManagerAddMessage") . '"';
+            // Add a javascript test to avoid to forget to submit file before sending email
+            if ($conf->use_javascript_ajax) {
+                $out .= ' onClick="if (document.requestmanagermessageform.addedfile.value != \'\') { alert(\'' . dol_escape_js($langs->trans("FileWasNotUploaded")) . '\'); return false; } else { return true; }"';
+            }
+            $out .= ' />';
+            if ($this->withcancel) {
+                $out .= ' &nbsp; &nbsp; ';
+                $out .= '<input class="button" type="submit" id="cancel" name="cancel" value="' . $langs->trans("Cancel") . '" />';
+            }
+            $out .= '</div>' . "\n";
+        }
 
-        $out .= '</form>' . "\n";
+        if ($this->withform == 1) $out .= '</form>' . "\n";
 
         // Disable enter key
         $out .= <<<SCRIPT
-    <script type="text/javascript" language="javascript">
-        jQuery(document).ready(function () {
-            $(document).on("keypress", '#requestmanagermessageform', function (e) {
-                var code = e.keyCode || e.which;
-                if (code == 13) {
-                    e.preventDefault();
-                    return false;
-                }
-            });
-        });
-    </script>
+            <script type="text/javascript" language="javascript">
+                jQuery(document).ready(function () {
+                    // Disabled return keypress
+                    $(document).on("keypress", '#requestmanagermessageform', function (e) {
+                        var code = e.keyCode || e.which;
+                        if (code == 13) {
+                            e.preventDefault();
+                            return false;
+                        }
+                    });
+
+                    // Resize tooltip box
+                    $(".classfortooltiponclick").click(function () {
+                        if ($(this).attr('dolid'))
+                        {
+                            jQuery(".classfortooltiponclicktext").dialog({ width: 'auto', autoOpen: false });
+                            obj=$("#idfortooltiponclick_"+$(this).attr('dolid'));
+                            obj.dialog("open");
+                        }
+                    });
+
+                    // Resize tooltip box
+                    $("#knowledgebaseselected").on('change', function () {
+                        $('#addknowledgebasedescription').prop('disabled', $(this).val().length == 0)
+                    });
+                });
+            </script>
 SCRIPT;
 
         $out .= "<!-- End form message -->\n";
@@ -498,12 +533,12 @@ SCRIPT;
     }
 
     /**
-	 *  Load template
+	 *  Load message template
 	 *
      * @param	int			$id				Id template
      * @return	array		                Template infos
 	 */
-	private function getEMailTemplate($id)
+	private function getMessageTemplate($id)
     {
         dol_include_once('/advancedictionaries/class/dictionary.class.php');
         $dictionaryLine = Dictionary::getDictionaryLine($this->db, 'requestmanager', 'requestmanagermessagetemplate');
@@ -521,19 +556,67 @@ SCRIPT;
         return $template;
     }
 
+    /**
+	 *  Load notify template
+	 *
+     * @param	int			$id				Id template
+     * @return	array		                Template infos
+	 */
+	private function getNotifyTemplate($id)
+    {
+        dol_include_once('/advancedictionaries/class/dictionary.class.php');
+        $dictionaryLine = Dictionary::getDictionaryLine($this->db, 'requestmanager', 'requestmanagernotifytemplate');
+
+        $template = $dictionaryLine->fields;
+
+        $result = $dictionaryLine->fetch($id);
+        if ($result < 0) {
+            $this->error = $dictionaryLine->errorsToString();
+            return $template;
+        }
+
+        $template = $dictionaryLine->fields;
+
+        return $template;
+    }
+
 	/**
-	 *  Load all active templates
+	 *  Load all active message templates
+	 *
+     * @param	int		    $request_type	Id of the request type
+	 * @return	int		                    <0 if KO, nb of records found if OK
+	 */
+	public function fetchAllMessageTemplate($request_type)
+    {
+        dol_include_once('/advancedictionaries/class/dictionary.class.php');
+        $dictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagermessagetemplate');
+
+        $this->message_templates_list = array();
+
+        $lines = $dictionary->fetch_lines(1, array('request_type' => array($request_type)), array('position' => 'ASC'), 0, 0, false, true);
+        if ($lines < 0) {
+            $this->error = $dictionary->errorsToString();
+            return -1;
+        }
+
+        $this->message_templates_list = $lines;
+
+        return count($lines);
+    }
+
+    /**
+	 *  Load all active notify templates
 	 *
      * @param	int		    $request_type	Id of the request type
      * @param	string		$type_template	Get message for key module
 	 * @return	int		                    <0 if KO, nb of records found if OK
 	 */
-	public function fetchAllTemplate($request_type, $type_template='message_template_user')
+	public function fetchAllNotifyTemplate($request_type, $type_template='message_template_user')
     {
         dol_include_once('/advancedictionaries/class/dictionary.class.php');
-        $dictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagermessagetemplate');
+        $dictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagernotifytemplate');
 
-        $this->templates_list = array();
+        $this->notify_templates_list = array();
 
         $lines = $dictionary->fetch_lines(1, array('template_type' => array($type_template), 'request_type' => array($request_type)), array('position' => 'ASC'), 0, 0, false, true);
         if ($lines < 0) {
@@ -541,301 +624,50 @@ SCRIPT;
             return -1;
         }
 
-        $this->templates_list = $lines;
+        $this->notify_templates_list = $lines;
 
         return count($lines);
     }
 
-	/**
-	 * Set substit array from object
-	 *
-	 * @param	RequestManager	   $object		  Request manager object
-	 * @return	void
-	 */
-	function setSubstitFromObject($object)
-    {
-        // Create dinamic tags for __EXTRAFIELD_FIELD__
-        $extrafields = new ExtraFields($this->db);
-        $extralabels = $extrafields->fetch_name_optionals_label($object->table_element, true);
-        $object->fetch_optionals($object->id, $extralabels);
-
-        $this->substit = self::getAvailableSubstitKey($object, 0);
-    }
-
-	/**
-	 * Get list of substitution keys available for message.
-	 * This include the complete_substitutions_array and the getCommonSubstitutionArray().
-	 *
-     * @param   RequestManager  $object     Request manager object
-     * @param   int             $keyonly    Return only key, dont load infos
-	 * @return	array                       Array of substitution values for message.
-	 */
-	static function getAvailableSubstitKey($object, $keyonly=1)
-    {
-        global $langs, $db;
-
-        $vars = array(
-            // Request
-            '__ID__' => $object->id,
-            '__REF__' => $object->ref,
-            '__REF_EXT__' => $object->ref_ext,
-            '__THIRDPARTY_ID__' => $object->socid,
-            '__THIRDPARTY_NAME__' => '',
-            '__LABEL__' => $object->label,
-            '__DESCRIPTION__' => $object->description,
-            '__TYPE_ID__' => $object->fk_type,
-            '__TYPE_CODE__' => '',
-            '__TYPE_LABEL__' => '',
-            '__CATEGORY_ID__' => $object->fk_category,
-            '__CATEGORY_CODE__' => '',
-            '__CATEGORY_LABEL__' => '',
-            '__SOURCE_ID__' => $object->fk_source,
-            '__SOURCE_CODE__' => '',
-            '__SOURCE_LABEL__' => '',
-            '__URGENCY_ID__' => $object->fk_urgency,
-            '__URGENCY_CODE__' => '',
-            '__URGENCY_LABEL__' => '',
-            '__IMPACT_ID__' => $object->fk_impact,
-            '__IMPACT_CODE__' => '',
-            '__IMPACT_LABEL__' => '',
-            '__PRIORITY_ID__' => $object->fk_priority,
-            '__PRIORITY_CODE__' => '',
-            '__PRIORITY_LABEL__' => '',
-            '__NOTIFY_ASSIGNED_BY_EMAIL__' => yn($object->notify_assigned_by_email),
-            '__ASSIGNED_USERS_ID__' => implode(', ', $object->assigned_user_ids),
-            '__ASSIGNED_USERS_NAME__' => '',
-            '__ASSIGNED_USERS_ID_ADDED__' => implode(', ', $object->assigned_user_added_ids),
-            '__ASSIGNED_USERS_NAME_ADDED__' => '',
-            '__ASSIGNED_USERS_ID_DELETED__' => implode(', ', $object->assigned_user_deleted_ids),
-            '__ASSIGNED_USERS_NAME_DELETED__' => '',
-            '__ASSIGNED_USERGROUPS_ID__' => implode(', ', $object->assigned_usergroup_ids),
-            '__ASSIGNED_USERGROUPS_NAME__' => '',
-            '__ASSIGNED_USERGROUPS_ID_ADDED__' => implode(', ', $object->assigned_usergroup_added_ids),
-            '__ASSIGNED_USERGROUPS_NAME_ADDED__' => '',
-            '__ASSIGNED_USERGROUPS_ID_DELETED__' => implode(', ', $object->assigned_usergroup_deleted_ids),
-            '__ASSIGNED_USERGROUPS_NAME_DELETED__' => '',
-            '__NOTIFY_REQUESTER_BY_EMAIL__' => yn($object->notify_requester_by_email),
-            '__REQUESTERS_NAME__' => '',
-            '__NOTIFY_WATCHER_BY_EMAIL__' => yn($object->notify_watcher_by_email),
-            '__WATCHERS_NAME__' => '',
-            '__DURATION__' => '',
-            '__DATE_OPERATION__' => '',
-            '__DATE_DEADLINE__' => '',
-            '__DATE_RESOLVED__' => '',
-            '__DATE_CLOTURE__' => '',
-            '__USER_RESOLVED_ID__' => $object->user_resolved_id,
-            '__USER_RESOLVED_NAME__' => '',
-            '__USER_CLOTURE_ID__' => $object->user_cloture_id,
-            '__USER_CLOTURE_NAME__' => '',
-            '__STATUT__' => $object->statut,
-            '__STATUT_LABEL__' => '',
-            '__STATUT_TYPE__' => $object->statut_type,
-            '__STATUT_TYPE_LABEL__' => '',
-            '__DATE_CREATION__' => '',
-            '__DATE_MODIFICATION__' => '',
-            '__USER_CREATION_ID__' => $object->user_creation_id,
-            '__USER_CREATION_NAME__' => '',
-            '__USER_MODIFICATION_ID__' => $object->user_modification_id,
-            '__USER_MODIFICATION_NAME__' => '',
-
-            // Message
-            '__MESSAGE_xxx__' => '',
-        );
-
-        if (!$keyonly) {
-            require_once DOL_DOCUMENT_ROOT . '/user/class/user.class.php';
-            require_once DOL_DOCUMENT_ROOT . '/user/class/usergroup.class.php';
-            $users_cache = array();
-            $usergroups_cache = array();
-
-            // Request
-            $object->fetch_thirdparty();
-            $vars['__THIRDPARTY_NAME__'] = $object->thirdparty->getFullName($langs);
-            $vars['__TYPE_CODE__'] = $object->getLibType(1);
-            $vars['__TYPE_LABEL__'] = $object->getLibType(0);
-            $vars['__CATEGORY_CODE__'] = $object->getLibCategory(1);
-            $vars['__CATEGORY_LABEL__'] = $object->getLibCategory(0);
-            $vars['__SOURCE_CODE__'] = $object->getLibSource(1);
-            $vars['__SOURCE_LABEL__'] = $object->getLibSource(0);
-            $vars['__URGENCY_CODE__'] = $object->getLibUrgency(1);
-            $vars['__URGENCY_LABEL__'] = $object->getLibUrgency(0);
-            $vars['__IMPACT_CODE__'] = $object->getLibImpact(1);
-            $vars['__IMPACT_LABEL__'] = $object->getLibImpact(0);
-            $vars['__PRIORITY_CODE__'] = $object->getLibPriority(1);
-            $vars['__PRIORITY_LABEL__'] = $object->getLibPriority(0);
-            $user_names = array();
-            foreach ($object->assigned_user_ids as $user_id) {
-                if (!isset($users_cache[$user_id])) {
-                    $user = new User($db);
-                    $user->fetch($user_id);
-                    $users_cache[$user_id] = $user;
-                }
-                $user_names[] = $users_cache[$user_id]->getFullName($langs);
-            }
-            $vars['__ASSIGNED_USERS_NAME__'] = implode(', ', $user_names);
-            $user_names = array();
-            foreach ($object->assigned_user_added_ids as $user_id) {
-                if (!isset($users_cache[$user_id])) {
-                    $user = new User($db);
-                    $user->fetch($user_id);
-                    $users_cache[$user_id] = $user;
-                }
-                $user_names[] = $users_cache[$user_id]->getFullName($langs);
-            }
-            $vars['__ASSIGNED_USERS_NAME_ADDED__'] = implode(', ', $user_names);
-            $user_names = array();
-            foreach ($object->assigned_user_deleted_ids as $user_id) {
-                if (!isset($users_cache[$user_id])) {
-                    $user = new User($db);
-                    $user->fetch($user_id);
-                    $users_cache[$user_id] = $user;
-                }
-                $user_names[] = $users_cache[$user_id]->getFullName($langs);
-            }
-            $vars['__ASSIGNED_USERS_NAME_DELETED__'] = implode(', ', $user_names);
-            $usergroup_names = array();
-            foreach ($object->assigned_usergroup_ids as $usergroup_id) {
-                if (!isset($usergroups_cache[$usergroup_id])) {
-                    $usergroup = new UserGroup($db);
-                    $usergroup->fetch($usergroup_id);
-                    $usergroups_cache[$usergroup_id] = $usergroup;
-                }
-                $usergroup_names[] = $usergroups_cache[$usergroup_id]->name;
-            }
-            $vars['__ASSIGNED_USERGROUPS_NAME__'] = implode(', ', $usergroup_names);
-            $usergroup_names = array();
-            foreach ($object->assigned_usergroup_added_ids as $usergroup_id) {
-                if (!isset($usergroups_cache[$usergroup_id])) {
-                    $usergroup = new UserGroup($db);
-                    $usergroup->fetch($usergroup_id);
-                    $usergroups_cache[$usergroup_id] = $usergroup;
-                }
-                $usergroup_names[] = $usergroups_cache[$usergroup_id]->name;
-            }
-            $vars['__ASSIGNED_USERGROUPS_NAME_ADDED__'] = implode(', ', $usergroup_names);
-            $usergroup_names = array();
-            foreach ($object->assigned_usergroup_deleted_ids as $usergroup_id) {
-                if (!isset($usergroups_cache[$usergroup_id])) {
-                    $usergroup = new UserGroup($db);
-                    $usergroup->fetch($usergroup_id);
-                    $usergroups_cache[$usergroup_id] = $usergroup;
-                }
-                $usergroup_names[] = $usergroups_cache[$usergroup_id]->name;
-            }
-            $vars['__ASSIGNED_USERGROUPS_NAME_DELETED__'] = implode(', ', $usergroup_names);
-            $object->fetch_requester(1);
-            $contact_names = array();
-            foreach ($object->requester_list as $requester) {
-                $contact_names[] = $requester->getFullName($langs);
-            }
-            $vars['__REQUESTERS_NAME__'] = implode(', ', $contact_names);
-            $object->fetch_watcher(1);
-            $contact_names = array();
-            foreach ($object->watcher_list as $watcher) {
-                $contact_names[] = $watcher->getFullName($langs);
-            }
-            $vars['__WATCHERS_NAME__'] = implode(', ', $contact_names);
-            $vars['__DURATION__'] = $object->duration;
-            $vars['__DATE_OPERATION__'] = dol_print_date($object->date_operation, 'dayhour');
-            $vars['__DATE_DEADLINE__'] = dol_print_date($object->date_deadline, 'dayhour');
-            $vars['__DATE_RESOLVED__'] = dol_print_date($object->date_resolved, 'dayhour');
-            $vars['__DATE_CLOTURE__'] = dol_print_date($object->date_cloture, 'dayhour');
-            if (!isset($users_cache[$object->user_resolved_id])) {
-                $user = new User($db);
-                $user->fetch($user_id);
-                $users_cache[$object->user_resolved_id] = $user;
-            }
-            $vars['__USER_RESOLVED_NAME__'] = $users_cache[$object->user_resolved_id]->getFullName($langs);
-            if (!isset($users_cache[$object->user_cloture_id])) {
-                $user = new User($db);
-                $user->fetch($user_id);
-                $users_cache[$object->user_cloture_id] = $user;
-            }
-            $vars['__USER_CLOTURE_NAME__'] = $users_cache[$object->user_cloture_id]->getFullName($langs);
-            $vars['__STATUT_LABEL__'] = $object->getLibStatut(0);
-            $vars['__STATUT_TYPE_LABEL__'] = $object->getLibStatut(12);
-            $vars['__DATE_CREATION__'] = dol_print_date($object->date_creation, 'dayhour');
-            $vars['__DATE_MODIFICATION__'] = dol_print_date($object->date_modification, 'dayhour');
-            if (!isset($users_cache[$object->user_creation_id])) {
-                $user = new User($db);
-                $user->fetch($user_id);
-                $users_cache[$object->user_creation_id] = $user;
-            }
-            $vars['__USER_CREATION_NAME__'] = $users_cache[$object->user_creation_id]->getFullName($langs);
-            if (!isset($users_cache[$object->user_modification_id])) {
-                $user = new User($db);
-                $user->fetch($user_id);
-                $users_cache[$object->user_modification_id] = $user;
-            }
-            $vars['__USER_MODIFICATION_NAME__'] = $users_cache[$object->user_modification_id]->getFullName($langs);
-        } else {
-            // Mail
-            $substitutList = self::getAvailableSubstitKeyForMail();
-            foreach($substitutList as $key => $value)
-            {
-                $vars[$key] = $value;
-            }
-        }
-
-        $tmparray = getCommonSubstitutionArray($langs, 1, array('objectamount'));
-        complete_substitutions_array($tmparray, $langs, $object, null, 'requestmanager_completesubstitutionarray');
-        foreach ($tmparray as $key => $val) {
-            $vars[$key] = $key;
-        }
-
-        // Create dynamic tags for __EXTRAFIELD_FIELD__ of message
-        $extrafields = new ExtraFields($object->db);
-        $extralabels = $extrafields->fetch_name_optionals_label($object->table_element.'_message', true);
-        foreach ($extrafields->attribute_label as $key => $val) {
-            $substitutionarray['__MESSAGE_EXTRA_' . $key . '__'] = '';
-            // For backward compatibiliy
-            $substitutionarray['%MESSAGE_EXTRA_' . $key . '%'] = '';
-        }
-
-        return $vars;
-    }
-
-
     /**
-     * Get subtitute list for mail
-     *
-     * @return  array
-     */
-    public static function getAvailableSubstitKeyForMail()
+	 *  Load all active knowledge base
+	 *
+     * @param	int		    $request_type	Id of the request type
+     * @param	array		$tag_ids	    List of tag/category produit ID
+	 * @return	int		                    <0 if KO, nb of records found if OK
+	 */
+	public function fetchAllKnowledgeBase($request_type, $tag_ids)
     {
-        $substitList = array(
-            '__MAIL_FROM__'    => '',
-            '__MAIL_TO__'      => '',
-            '__MAIL_SUBJECT__' => '',
-            '__MAIL_CONTENT__' => '',
-            '__MAIL_CC_TO__'   => '',
-            '__MAIL_BCC_TO__'  => ''
-        );
+        dol_include_once('/advancedictionaries/class/dictionary.class.php');
+        $dictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagerknowledgebase');
 
-        return $substitList;
-    }
+        $this->knowledge_base_list = array();
+        if (!is_array($tag_ids)) $tag_ids = array();
 
+        $lines = $dictionary->fetch_lines(1, array('request_type' => array($request_type)), array('position' => 'ASC'), 0, 0, false, true);
+        if ($lines < 0) {
+            $this->error = $dictionary->errorsToString();
+            return -1;
+        }
 
-    /**
-     * Set substitute keys for mail
-     *
-     * @param   $from           Sender email address
-     * @param   $to             Recipient email address
-     * @param   $subject        Subject of mail
-     * @param   $content        [=''] Content of mail
-     * @param   $ccTo           [=''] Copy carbone email address
-     * @param   $bccTo          [=''] Blind copy carbone email address
-     * @return  array
-     */
-    public static function setAvailableSubstitKeyForMail($from, $to, $subject, $content = '', $ccTo = '', $bccTo = '')
-    {
-        $substitList['__MAIL_FROM__']    = $from;
-        $substitList['__MAIL_TO__']      = $to;
-        $substitList['__MAIL_SUBJECT__'] = $subject;
-        $substitList['__MAIL_CONTENT__'] = $content;
-        $substitList['__MAIL_CC_TO__']   = $ccTo;
-        $substitList['__MAIL_BCC_TO__']  = $bccTo;
+        foreach ($lines as $line) {
+            if (!empty($line->fields['categorie'])) {
+                $found = false;
+                foreach ($tag_ids as $tag_id) {
+                    if (in_array($tag_id, $line->fields['categorie'])) {
+                        $found = true;
+                        break;
+                    }
+                }
+            } else {
+                $found = true;
+            }
 
-        return $substitList;
+            if ($found) {
+                $this->knowledge_base_list[$line->id] = $line;
+            }
+        }
+
+        return count($lines);
     }
 }

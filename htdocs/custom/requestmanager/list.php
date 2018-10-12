@@ -123,7 +123,7 @@ $arrayfields = array(
     'rm.fk_category' => array('label' => $langs->trans("RequestManagerCategory"), 'checked' => 1),
     'rm.label' => array('label' => $langs->trans("RequestManagerLabel"), 'checked' => 1),
     'rm.fk_soc_origin' => array('label' => $langs->trans("RequestManagerThirdPartyOrigin"), 'checked' => 1),
-    'rm.fk_soc' => array('label' => $langs->trans("RequestManagerThirdPartyBill"), 'checked' => 1),
+    'rm.fk_soc' => array('label' => $langs->trans("RequestManagerThirdPartyPrincipal"), 'checked' => 1),
     'rm.fk_soc_benefactor' => array('label' => $langs->trans("RequestManagerThirdPartyBenefactor"), 'checked' => 1),
     'rm.description' => array('label' => $langs->trans("RequestManagerDescription"), 'checked' => 0),
     'rm.fk_source' => array('label' => $langs->trans("RequestManagerSource"), 'checked' => 0),
@@ -241,7 +241,7 @@ llxHeader('',$langs->trans('RequestManagerResquest'),$help_url);
 
 $sql = 'SELECT';
 if ($sall) $sql = 'SELECT DISTINCT';
-$sql .= ' rm.rowid, rm.ref, rm.ref_ext,';
+$sql .= ' rm.rowid, rm.fk_parent, rm.ref, rm.ref_ext,';
 $sql .= ' rm.fk_soc_origin, so.nom as soc_name_origin, so.client as soc_client_origin, so.fournisseur as soc_fournisseur_origin, so.code_client as soc_code_client_origin, so.code_fournisseur as soc_code_fournisseur_origin,';
 $sql .= ' rm.fk_soc, s.nom as soc_name, s.client as soc_client, s.fournisseur as soc_fournisseur, s.code_client as soc_code_client, s.code_fournisseur as soc_code_fournisseur,';
 $sql .= ' rm.fk_soc_benefactor, sb.nom as soc_name_benefactor, sb.client as soc_client_benefactor, sb.fournisseur as soc_fournisseur_benefactor, sb.code_client as soc_code_client_benefactor, sb.code_fournisseur as soc_code_fournisseur_benefactor,';
@@ -780,6 +780,7 @@ if ($resql) {
         $societestatic_benefactor->code_fournisseur = $obj->soc_code_fournisseur_benefactor;
 
         $objectstatic->id = $obj->rowid;
+        $objectstatic->fk_parent = $obj->fk_parent;
         $objectstatic->ref = $obj->ref;
         $objectstatic->ref_ext = $obj->ref_ext;
         $objectstatic->fk_type = $obj->fk_type;
@@ -794,7 +795,7 @@ if ($resql) {
         // Ref
         if (!empty($arrayfields['rm.ref']['checked'])) {
             print '<td class="nowrap">';
-            print $objectstatic->getNomUrl(1);
+            print $objectstatic->getNomUrl(1, 'parent_path');
             print '</td>';
         }
         //External Ref

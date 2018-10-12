@@ -1,5 +1,5 @@
 -- ============================================================================
--- Copyright (C) 2017	 Open-DSI 	 <support@open-dsi.fr>
+-- Copyright (C) 2018	 Open-DSI 	 <support@open-dsi.fr>
 --
 -- This program is free software; you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -14,7 +14,12 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program. If not, see <http://www.gnu.org/licenses/>.
 --
--- ===========================================================================
+-- Table of journals for accountancy
+-- ============================================================================
 
-INSERT INTO `llx_c_actioncomm` (`id`, `code`, `type`, `libelle`, `module`, `active`, `todo`, `color`, `picto`, `position`) VALUES
-(163023, 'AC_RM_FPC', 'systemauto', 'Forcing principal company (auto inserted events)', 'requestmanager', 1, NULL, NULL, NULL, 20);
+CREATE TABLE llx_requestmanager_message_knowledge_base
+(
+  rowid               integer AUTO_INCREMENT PRIMARY KEY,
+  fk_actioncomm       integer NOT NULL,	  -- id of the actioncomm
+  fk_knowledge_base   integer NOT NULL	  -- id of dictionary of requestmanager knowledge base (c_requestmanager_knowledge_base)
+) ENGINE=innodb;
