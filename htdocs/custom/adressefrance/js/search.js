@@ -46,8 +46,8 @@ $(function(){
 	});
 
 	$('form[name="formsoc"]').submit(function(){
-		var address = inputAddress.val() + "\n" + inputAddress2.val();
-		$('#address').val(address);
+
+		$('#address').val(inputAddress.val() + "\n" + inputAddress2.val());
 		$('#address').show();
 
 		inputAddress.remove();
