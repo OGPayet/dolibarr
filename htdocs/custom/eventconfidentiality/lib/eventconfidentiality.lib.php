@@ -32,10 +32,10 @@ function eventconfidentiality_admin_prepare_head()
     $h = 0;
     $head = array();
 
-    $head[$h][0] = dol_buildpath("/eventconfidentiality/admin/setup.php", 1);
+/*    $head[$h][0] = dol_buildpath("/eventconfidentiality/admin/setup.php", 1);
     $head[$h][1] = $langs->trans("Parameters");
     $head[$h][2] = 'settings';
-    $h++;
+    $h++;*/
 
     $head[$h][0] = dol_buildpath("/eventconfidentiality/admin/dictionaries.php", 1);
     $head[$h][1] = $langs->trans("Dictionary");
@@ -154,4 +154,3 @@ function fetchAllTagForObject($id, $externe = 0)
 	}
 	return $list_tag;
 }
-?>

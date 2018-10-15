@@ -106,7 +106,7 @@ class modEventConfidentiality extends DolibarrModules
         $this->dirs = array('/eventconfidentiality');
 
         // Config pages. Put here list of php page, stored into mymodule/admin directory, to use to setup module.
-        $this->config_page_url = array("setup.php@eventconfidentiality");
+        $this->config_page_url = array("dictionaries.php@eventconfidentiality");
 
         // Dependencies
         $this->hidden = false;            // A condition to hide module
