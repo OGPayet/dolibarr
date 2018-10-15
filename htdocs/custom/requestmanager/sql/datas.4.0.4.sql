@@ -22,8 +22,8 @@ INSERT INTO `llx_c_actioncomm` (`id`, `code`, `type`, `libelle`, `module`, `acti
 INSERT INTO `llx_c_actioncomm` (`id`, `code`, `type`, `libelle`, `module`, `active`, `todo`, `color`, `picto`, `position`) VALUES
 (163022, 'AC_RM_ASSMOD', 'systemauto', 'Assigned modified (automatically inserted events)', 'requestmanager', 1, NULL, NULL, NULL, 20);
 
-DELETE FROM `llx_c_action_trigger` WHERE `code` IN ('REQUESTMANAGER_CREATE', 'REQUESTMANAGER_MODIFY', 'REQUESTMANAGER_DELETE', 'REQUESTMANAGER_SET_ASSIGNED',
- 'REQUESTMANAGER_STATUS_MODIFY', 'REQUESTMANAGER_SET_ASSIGNED_SENTBYMAIL', 'REQUESTMANAGER_STATUS_MODIFY_SENTBYMAIL', 'REQUESTMANAGERMESSAGE_SENTBYMAIL');
+DELETE FROM `llx_c_action_trigger` WHERE `code` = 'REQUESTMANAGER_CREATE' OR `code` = 'REQUESTMANAGER_MODIFY' OR `code` = 'REQUESTMANAGER_DELETE' OR `code` = 'REQUESTMANAGER_SET_ASSIGNED'
+ OR `code` = 'REQUESTMANAGER_STATUS_MODIFY' OR `code` = 'REQUESTMANAGER_SET_ASSIGNED_SENTBYMAIL' OR `code` = 'REQUESTMANAGER_STATUS_MODIFY_SENTBYMAIL' OR `code` = 'REQUESTMANAGERMESSAGE_SENTBYMAIL';
 INSERT INTO `llx_c_action_trigger` (`code`, `label`, `description`, `elementtype`, `rang`) VALUES
 ('REQUESTMANAGER_CREATE', 'Request created', 'Executed when a request is created', 'requestmanager', 50),
 ('REQUESTMANAGER_MODIFY', 'Request modified', 'Executed when a request is modified', 'requestmanager', 51),

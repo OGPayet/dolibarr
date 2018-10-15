@@ -977,8 +977,9 @@ class FormRequestManager
      * @param   Societe         $societestatic              Societe bill object
      * @param   Societe         $societestatic_benefactor   Societe benefactor object
      * @param   User            $userstatic                 User object
+     * @param   int             $lists_follow_last_date     Last date when follow list is viewed
      */
-    private static function _listsFollowPrintLineFrom(DoliDB $db, $arrayfields, $obj, RequestManager $requestmanagerstatic, Societe $societestatic_origin, Societe $societestatic, Societe $societestatic_benefactor, User $userstatic)
+    private static function _listsFollowPrintLineFrom(DoliDB $db, $arrayfields, $obj, RequestManager $requestmanagerstatic, Societe $societestatic_origin, Societe $societestatic, Societe $societestatic_benefactor, User $userstatic, $lists_follow_last_date=0)
     {
         global $langs;
 
@@ -1035,137 +1036,142 @@ class FormRequestManager
             }
         }
 
+        $updatedLineClass = "";
+        if ($lists_follow_last_date > 0 && $lists_follow_last_date <= $db->jdate($obj->tms)) {
+            $updatedLineClass = " rm_my_request_updated_line_color";
+        }
+
         print '<tr class="oddeven">';
 
         // Ref
         if (!empty($arrayfields['rm.ref']['checked'])) {
-            print '<td class="nowrap">';
+            print '<td class="nowrap'.$updatedLineClass.'">';
             print $requestmanagerstatic->getNomUrl(1, 'parent_path') . ' ' . $pictoWarning;
             print '</td>';
         }
 
         //External Ref
         if (!empty($arrayfields['rm.ref_ext']['checked'])) {
-            print '<td class="nowrap">';
+            print '<td class="nowrap'.$updatedLineClass.'">';
             print $obj->ref_ext;
             print '</td>';
         }
 
         // Type
         if (!empty($arrayfields['rm.fk_type']['checked'])) {
-            print '<td class="nowrap">';
+            print '<td class="nowrap'.$updatedLineClass.'">';
             print $obj->type_label;
             print '</td>';
         }
 
         // Category
         if (!empty($arrayfields['rm.fk_category']['checked'])) {
-            print '<td class="nowrap">';
+            print '<td class="nowrap'.$updatedLineClass.'">';
             print $obj->category_label;
             print '</td>';
         }
 
         // Label
         if (!empty($arrayfields['rm.label']['checked'])) {
-            print '<td class="nowrap">';
+            print '<td class="nowrap'.$updatedLineClass.'">';
             print $obj->label;
             print '</td>';
         }
 
         // Thridparty
         if (!empty($arrayfields['rm.fk_soc_origin']['checked'])) {
-            print '<td class="nowrap">';
+            print '<td class="nowrap'.$updatedLineClass.'">';
             print $societestatic_origin->getNomUrl(1);
             print '</td>';
         }
 
         // Thridparty
         if (!empty($arrayfields['rm.fk_soc']['checked'])) {
-            print '<td class="nowrap">';
+            print '<td class="nowrap'.$updatedLineClass.'">';
             print $societestatic->getNomUrl(1);
             print '</td>';
         }
 
         // Thridparty
         if (!empty($arrayfields['rm.fk_soc_benefactor']['checked'])) {
-            print '<td class="nowrap">';
+            print '<td class="nowrap'.$updatedLineClass.'">';
             print $societestatic_benefactor->getNomUrl(1);
             print '</td>';
         }
 
         // Description
         if (!empty($arrayfields['rm.description']['checked'])) {
-            print '<td class="nowrap">';
+            print '<td class="nowrap'.$updatedLineClass.'">';
             print $obj->description;
             print '</td>';
         }
 
         // Source
         if (!empty($arrayfields['rm.fk_source']['checked'])) {
-            print '<td class="nowrap">';
+            print '<td class="nowrap'.$updatedLineClass.'">';
             print $obj->source_label;
             print '</td>';
         }
 
         // Urgency
         if (!empty($arrayfields['rm.fk_urgency']['checked'])) {
-            print '<td class="nowrap">';
+            print '<td class="nowrap'.$updatedLineClass.'">';
             print $obj->urgency_label;
             print '</td>';
         }
 
         // Impact
         if (!empty($arrayfields['rm.fk_impact']['checked'])) {
-            print '<td class="nowrap">';
+            print '<td class="nowrap'.$updatedLineClass.'">';
             print $obj->impact_label;
             print '</td>';
         }
 
         // Priority
         if (!empty($arrayfields['rm.fk_priority']['checked'])) {
-            print '<td class="nowrap">';
+            print '<td class="nowrap'.$updatedLineClass.'">';
             print $obj->priority_label;
             print '</td>';
         }
 
         // Duration
         if (!empty($arrayfields['rm.duration']['checked'])) {
-            print '<td class="nowrap">';
+            print '<td class="nowrap'.$updatedLineClass.'">';
             if ($obj->duration > 0) print requestmanager_print_duration($obj->duration);
             print '</td>';
         }
 
         // Date Operation
         if (!empty($arrayfields['rm.date_operation']['checked'])) {
-            print '<td class="nowrap" align="center">';
+            print '<td class="nowrap'.$updatedLineClass.'" align="center">';
             if ($obj->date_operation > 0) print dol_print_date($db->jdate($obj->date_operation), 'dayhour');
             print '</td>';
         }
 
         // Date Deadline
         if (!empty($arrayfields['rm.date_deadline']['checked'])) {
-            print '<td class="nowrap" align="center">';
+            print '<td class="nowrap'.$updatedLineClass.'" align="center">';
             if ($obj->date_deadline > 0) print dol_print_date($db->jdate($obj->date_deadline), 'dayhour');
             print '</td>';
         }
 
         // Notification requesters
         if (!empty($arrayfields['rm.notify_requester_by_email']['checked'])) {
-            print '<td class="nowrap" align="center">';
+            print '<td class="nowrap'.$updatedLineClass.'" align="center">';
             print yn($obj->notify_requester_by_email);
             print '</td>';
         }
 
         // Notification watchers
         if (!empty($arrayfields['rm.notify_watcher_by_email']['checked'])) {
-            print '<td class="nowrap" align="center">';
+            print '<td class="nowrap'.$updatedLineClass.'" align="center">';
             print yn($obj->notify_watcher_by_email);
             print '</td>';
         }
 
         // Assigned user
         if (!empty($arrayfields['assigned_users']['checked'])) {
-            print '<td class="nowrap">';
+            print '<td class="nowrap'.$updatedLineClass.'">';
             $assigned_users = explode(',', $obj->assigned_users);
             if (is_array($assigned_users) && count($assigned_users) > 0) {
                 $toprint = array();
@@ -1186,7 +1192,7 @@ class FormRequestManager
 
         // Assigned usergroup
         if (!empty($arrayfields['assigned_usergroups']['checked'])) {
-            print '<td class="nowrap">';
+            print '<td class="nowrap'.$updatedLineClass.'">';
             $assigned_usergroups = explode(',', $obj->assigned_usergroups);
             if (is_array($assigned_usergroups) && count($assigned_usergroups) > 0) {
                 $toprint = array();
@@ -1205,14 +1211,14 @@ class FormRequestManager
 
         // Notification assigned
         if (!empty($arrayfields['rm.notify_assigned_by_email']['checked'])) {
-            print '<td class="nowrap" align="center">';
+            print '<td class="nowrap'.$updatedLineClass.'" align="center">';
             print yn($obj->notify_assigned_by_email);
             print '</td>';
         }
 
         // User resolved
         if (!empty($arrayfields['rm.fk_user_resolved']['checked'])) {
-            print '<td class="nowrap">';
+            print '<td class="nowrap'.$updatedLineClass.'">';
             if ($obj->fk_user_resolved > 0) {
                 $userstatic->id = $obj->fk_user_resolved;
                 $userstatic->firstname = $obj->userresolvedfirstname;
@@ -1225,7 +1231,7 @@ class FormRequestManager
 
         // User closed
         if (!empty($arrayfields['rm.fk_user_closed']['checked'])) {
-            print '<td class="nowrap">';
+            print '<td class="nowrap'.$updatedLineClass.'">';
             if ($obj->fk_user_closed > 0) {
                 $userstatic->id = $obj->fk_user_closed;
                 $userstatic->firstname = $obj->userclosedfirstname;
@@ -1238,21 +1244,21 @@ class FormRequestManager
 
         // Date resolved
         if (!empty($arrayfields['rm.date_resolved']['checked'])) {
-            print '<td class="nowrap" align="center">';
+            print '<td class="nowrap'.$updatedLineClass.'" align="center">';
             if ($obj->date_resolved > 0) print dol_print_date($db->jdate($obj->date_resolved), 'dayhour');
             print '</td>';
         }
 
         // Date closed
         if (!empty($arrayfields['rm.date_cloture']['checked'])) {
-            print '<td class="nowrap" align="center">';
+            print '<td class="nowrap'.$updatedLineClass.'" align="center">';
             if ($obj->date_closed > 0) print dol_print_date($db->jdate($obj->date_closed), 'dayhour');
             print '</td>';
         }
 
         // Author
         if (!empty($arrayfields['rm.fk_user_author']['checked'])) {
-            print '<td class="nowrap">';
+            print '<td class="nowrap'.$updatedLineClass.'">';
             if ($obj->fk_user_author > 0) {
                 $userstatic->id = $obj->fk_user_author;
                 $userstatic->firstname = $obj->userauthorfirstname;
@@ -1265,7 +1271,7 @@ class FormRequestManager
 
         // Modified by
         if (!empty($arrayfields['rm.fk_user_modif']['checked'])) {
-            print '<td class="nowrap">';
+            print '<td class="nowrap'.$updatedLineClass.'">';
             if ($obj->fk_user_modif > 0) {
                 $userstatic->id = $obj->fk_user_modif;
                 $userstatic->firstname = $obj->usermodiffirstname;
@@ -1278,24 +1284,24 @@ class FormRequestManager
 
         // Date creation
         if (!empty($arrayfields['rm.datec']['checked'])) {
-            print '<td align="center" class="nowrap">';
+            print '<td align="center" class="nowrap'.$updatedLineClass.'">';
             print dol_print_date($db->jdate($obj->datec), 'dayhour');
             print '</td>';
         }
 
         // Date modification
         if (!empty($arrayfields['rm.tms']['checked'])) {
-            print '<td align="center" class="nowrap">';
+            print '<td align="center" class="nowrap'.$updatedLineClass.'">';
             print dol_print_date($db->jdate($obj->tms), 'dayhour');
             print '</td>';
         }
 
         // Status
         if (!empty($arrayfields['rm.fk_status']['checked'])) {
-            print '<td align="right" class="nowrap">' . $requestmanagerstatic->LibStatut($obj->fk_status, 5) . '</td>';
+            print '<td align="right" class="nowrap'.$updatedLineClass.'">' . $requestmanagerstatic->LibStatut($obj->fk_status, 5) . '</td>';
         }
 
-        print '<td></td>';
+        print '<td class="nowrap'.$updatedLineClass.'"></td>';
 
         print "</tr>\n";
     }
@@ -1317,8 +1323,9 @@ class FormRequestManager
      * @param	string          $sortorder                  [=''] List of sort order seprated by comma ('ASC'|'DESC')
      * @param   string          $titleKey                   [=''] Traduction key for title of this list
      * @param   int             $nbCol                      [=1] Nb column to show
+     * @param   int             $lists_follow_last_date     Last date when follow list is viewed
      */
-    public static function listsFollowPrintListFrom(DoliDB $db, $arrayfields, RequestManager $requestmanagerstatic, Societe $societestatic_origin, Societe $societestatic, Societe $societestatic_benefactor, User $userstatic, $join='', $filter='', $sortfield='', $sortorder='', $titleKey='', $nbCol=1)
+    public static function listsFollowPrintListFrom(DoliDB $db, $arrayfields, RequestManager $requestmanagerstatic, Societe $societestatic_origin, Societe $societestatic, Societe $societestatic_benefactor, User $userstatic, $join='', $filter='', $sortfield='', $sortorder='', $titleKey='', $nbCol=1, $lists_follow_last_date=0)
     {
         global $langs;
 
@@ -1336,7 +1343,7 @@ class FormRequestManager
                 $obj = $db->fetch_object($resql);
 
                 // print a line
-                self::_listsFollowPrintLineFrom($db, $arrayfields, $obj, $requestmanagerstatic, $societestatic_origin, $societestatic, $societestatic_benefactor, $userstatic);
+                self::_listsFollowPrintLineFrom($db, $arrayfields, $obj, $requestmanagerstatic, $societestatic_origin, $societestatic, $societestatic_benefactor, $userstatic, $lists_follow_last_date);
 
                 $i++;
             }

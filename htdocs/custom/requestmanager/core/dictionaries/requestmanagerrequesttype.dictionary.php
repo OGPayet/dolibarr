@@ -209,7 +209,7 @@ class RequestManagerRequestTypeDictionary extends Dictionary
 
         $this->fields['category'] = array(
             'name' => 'category',
-            'label' => 'Categories',
+            'label' => 'RequestManagerCategories',
             'type' => 'chkbxlst',
             'options' => 'c_requestmanager_category:label:rowid::active=1 and entity IN (' . getEntity('dictionary', 1) . ')',
             'td_output' => array(
@@ -218,7 +218,6 @@ class RequestManagerRequestTypeDictionary extends Dictionary
             'td_input' => array(
                 'moreAttributes' => 'width="20%"',
             ),
-            'is_require' => true,
         );
     }
 }

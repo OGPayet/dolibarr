@@ -391,13 +391,71 @@ class ActionsRequestManager
      */
     function printTopRightMenu($parameters, &$object, &$action, $hookmanager)
     {
-        global $user;
+        global $langs, $user;
 
         if (in_array('toprightmenu', explode(':', $parameters['context']))) {
             if ($user->rights->requestmanager->lire) {
-                // show my assigned requests button
-                $out  = $this->_outMyAssignedRequestsButton();
-                $out .= $this->_outCreateFast();
+                $langs->load('requestmanager@requestmanager');
+
+                // Request status
+                //----------------------------------------------------------------------
+                $my_request_updated_url  = dol_buildpath('/requestmanager/lists_follow.php', 1);
+                $my_request_updated_text  = str_replace('"', '\\"', $langs->trans('RequestManagerMenuTopRequestsFollow'));
+
+                // Last view date
+                if (isset($_SESSION['rm_lists_follow_last_date'])) {
+                    $lastViewDate = $_SESSION['rm_lists_follow_last_date'];
+                } else if ($user->datepreviouslogin) {
+                    $lastViewDate = $user->datepreviouslogin;
+                } else {
+                    $lastViewDate = '';
+                }
+
+                dol_include_once('/requestmanager/class/requestmanager.class.php');
+                $requestManager = new RequestManager($this->db);
+
+                $isListsFollowModified  = $requestManager->isListsFollowModified($lastViewDate) ? 1 : 0;
+                $nbRequests             = $requestManager->countMyAssignedRequests(array(RequestManager::STATUS_TYPE_INITIAL, RequestManager::STATUS_TYPE_IN_PROGRESS));
+
+                // Create request
+                //----------------------------------------------------------------------
+                $create_request_url  = dol_buildpath('/requestmanager/createfast.php', 1) . '?action=createfast';
+                $create_request_text  = str_replace('"', '\\"', $langs->trans('RequestManagerMenuTopCreateFast'));
+                $create_request_img  = img_picto($langs->trans('RequestManagerMenuTopCreateFast'), 'filenew.png');
+
+                // Add create request button and my request status button
+                //----------------------------------------------------------------------
+                $out = <<<SCRIPT
+            <script type="text/javascript">
+		$(document).ready(function () {
+		    var requestmanager_my_request_updated = $isListsFollowModified;
+			var requestmanager_menu_div = $("#mainmenutd_requestmanager");
+
+			// Add request status button
+			requestmanager_menu_div.after('<li class="tmenu" id="mainmenutd_requestmanager_my_request_updated"><a class="tmenuimage" href="$my_request_updated_url" title="$my_request_updated_text"><div class="mainmenuaspan">$nbRequests</div></a></li>');
+
+			// Add create request button
+			requestmanager_menu_div.after('<li class="tmenu" id="mainmenutd_requestmanager_create"><a class="tmenuimage" href="$create_request_url" title="$create_request_text">$create_request_img</a></li>');
+
+			// Blink managment if new status of my request
+			var requestmanager_my_request_updated_a = $("#mainmenutd_requestmanager_my_request_updated a");
+			var requestmanager_my_request_updated_blink = null;
+			requestmanager_update_my_request_updated();
+
+			function requestmanager_update_my_request_updated() {
+                        if (requestmanager_my_request_updated && !requestmanager_my_request_updated_blink) {
+                            // Start blink
+                            requestmanager_my_request_updated_blink = setInterval(function() { requestmanager_my_request_updated_a.toggleClass("rm_my_request_updated_blink_color"); }, 1000);
+                        } else if (!requestmanager_my_request_updated && requestmanager_my_request_updated_blink) {
+                            // Stop blink
+                            clearInterval(requestmanager_my_request_updated_blink);
+                            requestmanager_my_request_updated_blink = null;
+                        }
+			}
+                });
+            </script>
+SCRIPT;
+
                 $this->resprints = $out;
             }
         }

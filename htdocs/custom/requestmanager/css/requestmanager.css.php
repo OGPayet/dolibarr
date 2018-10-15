@@ -43,6 +43,9 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
 
 header('Content-Type: text/css');
 
+$myRequestUpdatedBlinkColor = !empty($conf->global->REQUESTMANAGER_MY_REQUEST_UPDATED_BLINK_COLOR) ? $conf->global->REQUESTMANAGER_MY_REQUEST_UPDATED_BLINK_COLOR : 'yellow';
+$myRequestUpdatedLineColor = !empty($conf->global->REQUESTMANAGER_MY_REQUEST_UPDATED_LINE_COLOR) ? $conf->global->REQUESTMANAGER_MY_REQUEST_UPDATED_LINE_COLOR : 'yellow';
+
 ?>
 
 div.mainmenu.requestmanager {
@@ -56,4 +59,18 @@ div.mainmenu.requestmanager {
 .tabsStatusAction {
   margin-top: 10px;
   text-align: right;
+}
+
+.rm_my_request_updated_blink_color {
+  background: <?php print $myRequestUpdatedBlinkColor ?>;
+}
+
+.rm_my_request_updated_line_color {
+  background: <?php print $myRequestUpdatedLineColor ?>;
+}
+
+#mainmenutd_requestmanager_my_request_updated a {
+  -webkit-transition: background 0.8s ease-in-out;
+  -ms-transition:     background 0.8s ease-in-out;
+  transition:         background 0.8s ease-in-out;
 }

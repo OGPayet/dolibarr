@@ -1686,6 +1686,8 @@ class RequestManager extends CommonObject
             $this->context['has_properties_updated'] = true; // Can be modified by triggers
         }
 
+        $now = dol_now();
+
 		// Update request
 		$sql = 'UPDATE ' . MAIN_DB_PREFIX . $this->table_element . ' SET';
         $sql .= " fk_parent = " . ($this->fk_parent > 0 ? $this->fk_parent : 'NULL');
@@ -1707,6 +1709,7 @@ class RequestManager extends CommonObject
         $sql .= ", date_operation = " . ($this->date_operation > 0 ? "'" . $this->db->idate($this->date_operation) . "'" : 'NULL');
         $sql .= ", date_deadline = " . ($this->date_deadline > 0 ? "'" . $this->db->idate($this->date_deadline) . "'" : 'NULL');
         $sql .= ", fk_user_modif = " . $this->user_modification_id;
+        $sql .= ", tms = '" . $this->db->idate($now) ."'";
         $sql .= ' WHERE rowid = '.$this->id;
 
 		$this->db->begin();
@@ -3047,7 +3050,7 @@ class RequestManager extends CommonObject
         $sql .= ' OR (' . $sqlFilterInProgress . ' AND ' . $sqlFilterActionCommAssignedToMe . ')';
         $sql .= ')';
         if ($lastViewDate) {
-            $sql .= ' AND UNIX_TIMESTAMP(rm.tms) > ' . $lastViewDate;
+            $sql .= " AND rm.tms > '" . $this->db->idate($lastViewDate) . "'";
         }
         $sql .= " GROUP BY rm.rowid";
         $sql .= ' ORDER BY rm.tms DESC';
