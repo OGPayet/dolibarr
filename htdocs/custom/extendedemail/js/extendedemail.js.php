@@ -98,7 +98,7 @@ function extendedemail_select_email(input_htmlname, select_htmlname, label, user
     selectlabeltd.append(label);
 
     var values = [];
-    //console.log('values for '+input_htmlname, JSON.parse(users_email));
+    //console.log('values for '+input_htmlname, users_email);
     var selectedvalues = [];
     if (input.length > 0) {
       input.val().split(separator).map(function (value) {
@@ -313,7 +313,7 @@ function extendedemail_select_from(generic_email, selected_value, from_type, hid
         }
       },
       onChange: function (value) {
-        console.log(value);
+        //console.log(value);
         input_fromname.val(this.options[value] ? this.options[value].name : '');
         input_frommail.val(value);
       }
@@ -355,7 +355,7 @@ function extendedemail_get_email_infos(id, input) {
       // No email
       if ("<?php echo $no_email_label ?>" == match[2] || "<?php echo $no_email_label_noconv ?>" == match[2] ||
           "<?php echo $no_email_for_user_label ?>" == match[2] || "<?php echo $no_email_for_user_label_noconv ?>" == match[2] ||
-          match[2].trim() == ""
+          (match[2] && match[2].trim() == "")
       ) {
         return {
           email: id,

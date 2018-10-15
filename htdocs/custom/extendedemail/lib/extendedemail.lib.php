@@ -69,14 +69,14 @@ function extendedemail_get_users_email()
     $sql = "SELECT DISTINCT u.rowid";    // Distinct reduce pb with old tables with duplicates
     $sql .= " FROM " . MAIN_DB_PREFIX . "user as u";
     $sql .= " WHERE u.entity IN (" . getEntity('user', 1) . ")";
-	if (! empty($conf->global->FILTER_EXTERNAL))  $sql .= " AND u.fk_soc IS NULL";
+    if (!empty($conf->global->FILTER_EXTERNAL)) $sql .= " AND (u.fk_soc IS NULL OR u.fk_soc = 0)";
 
     $resql = $db->query($sql);
     if ($resql) {
         $idx = 0;
         while ($obj = $db->fetch_object($resql)) {
             $ret = $user_static->fetch($obj->rowid);
-            if ($ret> 0) {
+            if ($ret > 0) {
                 if ($hide_no_email && empty($user_static->email))
                     continue;
                 $tmp = array('email' => $user_static->email, 'name' => $user_static->getFullName($langs));
@@ -89,7 +89,7 @@ function extendedemail_get_users_email()
         }
     }
 
-    usort($users, function($a, $b) {
+    usort($users, function ($a, $b) {
         return strnatcasecmp($a['name'], $b['name']);
     });
 

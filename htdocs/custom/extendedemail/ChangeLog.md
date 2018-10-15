@@ -3,6 +3,10 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.7] - 15-10-2018
+### Ajouter
+- Correction JS lors d'ajout de courriels manuellement.
+
 ## [4.0.6] - 13-03-2018
 ### Ajouter
 - Ajout des contacts des maisons mères depuis l'envoi d'email des fiches standards de Dolibarr.
@@ -43,7 +47,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 08-09-2017
 - Version initial.
 
-[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/extendedemail/compare/v4.0.6...HEAD
+[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/extendedemail/compare/v4.0.7...HEAD
+[4.0.7]: http://git.open-dsi.fr/dolibarr-extension/extendedemail/compare/v4.0.6...v4.0.7
 [4.0.6]: http://git.open-dsi.fr/dolibarr-extension/extendedemail/compare/v4.0.5...v4.0.6
 [4.0.5]: http://git.open-dsi.fr/dolibarr-extension/extendedemail/compare/v4.0.4...v4.0.5
 [4.0.4]: http://git.open-dsi.fr/dolibarr-extension/extendedemail/compare/v4.0.3...v4.0.4
