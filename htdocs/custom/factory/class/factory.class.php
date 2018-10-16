@@ -1935,58 +1935,46 @@ class Factory extends CommonObject
 
 	}
 
-	function set_datestartmade($user, $datestartmade)
+	public function set_datestartmade($user, $datestartmade)
 	{
-		global $conf, $langs;
+        $error = 0;
 
-		// c'est lors de la premi�re validation que l'on effectue les mouvements de stocks des composants
+		// c'est lors de la premiere validation que l'on effectue les mouvements de stocks des composants
 		if ($user->rights->factory->creer) {
-			$sql = "UPDATE ".MAIN_DB_PREFIX."factory ";
-			$sql.= " SET date_start_made = ".($datestartmade ? $this->db->idate($datestartmade) :'null');
-			$sql.= " , fk_statut =".($datestartmade ? '1' : '0');
-			$sql.= " WHERE rowid = ".$this->id;
+		    $this->db->begin();
 
-			if ($this->db->query($sql)) {
-				$this->date_start_made = $datestartmade;
-				if ($datestartmade)
-					$this->statut  = 1;
-				else
-					$this->statut  = 0;
+		    $sql  = "UPDATE " . MAIN_DB_PREFIX . "factory SET";
+			$sql .= " date_start_made = " . ($datestartmade ? $this->db->idate($datestartmade) : 'null');
+			$sql .= ", fk_statut =" . ($datestartmade ? '1' : '0');
+			$sql .= " WHERE rowid = " . $this->id;
 
-				// on r�cup�re les composants et on mouvemente le stock si cela n'est pas encore fait (idmvt � 0)
-				$sql = "select * from ".MAIN_DB_PREFIX."factorydet where fk_factory=".$this->id;
-				$sql.= " and fk_mvtstockplanned=0";
-
-				$res  = $this->db->query($sql);
-				if ($res) {
-					require_once DOL_DOCUMENT_ROOT.'/product/stock/class/mouvementstock.class.php';
-					$mouvP = new MouvementStock($this->db);
-					// pour conserver l'origine du mouvement
-					$mouvP->origin = new Factory($db);
-					$mouvP->origin->id = $this->id;
-
-					while ($rec = $this->db->fetch_array($res)) {
-						$idmv=$mouvP->livraison(
-										$user, $rec['fk_product'], $this->fk_entrepot,
-										$rec['qty_planned'], $rec['price'],
-										$langs->trans("UsedforFactory", $this->ref), $this->date_start_made
-						);
-						// on indique que l'on a mouvement� le produit
-						if ($idmv > 0 ) {
-							// on m�morise que l'on a fait le mouvement de stock (pour ne pas le faire plusieurs fois)
-							$sql = "update ".MAIN_DB_PREFIX."factorydet set fk_mvtstockplanned=".$idmv;
-							$sql.= " where rowid=".$rec['rowid'];
-							$this->db->query($sql);
-						}
-					}
-				}
-				return 1;
+			if (! $this->db->query($sql)) {
+                $error++;
+			    $this->error = $this->db->lasterror();
+                $this->errors[] = $this->error;
+                dol_syslog(__METHOD__ ." Erreur SQL=" . $this->error, LOG_ERR);
 			} else {
-				$this->error=$this->db->error();
-				dol_syslog(get_class($this)."::set_datestartmade Erreur SQL ".$this->error, LOG_ERR);
-				return -1;
+                $this->date_start_made = $datestartmade;
+                if ($datestartmade) {
+                    $this->statut = 1;
+                } else {
+                    $this->statut = 0;
+                }
 			}
+
+			// commit or rollback
+			if ($error) {
+                $this->db->rollback();
+            } else {
+                $this->db->commit();
+            }
 		}
+
+        if ($error) {
+            return -1;
+        } else {
+            return 1;
+        }
 	}
 
 	function set_datestartplanned($user, $datestartplanned)

@@ -182,10 +182,11 @@ if (empty($reshook)) {
 						$_POST["datestartmadeday"],
 						$_POST["datestartmadeyear"]
 		);
-		//$factory->fetch($id);
+
 		$result=$factory->set_datestartmade($user, $datestartmade);
-		if ($result < 0)
-			dol_print_error($db, $factory->error);
+		if ($result < 0) {
+            setEventMessages($factory->error, $factory->errors, 'errors');
+        }
 		$action = "";
 	} elseif ($action == 'seteditdatestartplanned') {
 		$datestartplanned=dol_mktime(

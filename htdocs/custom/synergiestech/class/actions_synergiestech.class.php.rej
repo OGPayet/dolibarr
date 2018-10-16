@@ -1,0 +1,10 @@
+diff a/htdocs/custom/synergiestech/class/actions_synergiestech.class.php b/htdocs/custom/synergiestech/class/actions_synergiestech.class.php	(rejected hunks)
+@@ -449,7 +449,7 @@ class ActionsSynergiesTech
+    	 */
+    	function formObjectOptions($parameters, &$object, &$action, $hookmanager)
+     {
+-        $action=GETPOST('action','alpha');
++        //$action=GETPOST('action','alpha');
+         $origin=GETPOST('origin','alpha');
+         $originid=GETPOST('originid','int');
+ 
