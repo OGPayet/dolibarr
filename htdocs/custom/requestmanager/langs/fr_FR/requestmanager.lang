@@ -39,18 +39,30 @@ RequestManagerAssignedNotificationSendFromName          = Adresse courriel de l'
 RequestManagerAssignedNotificationSendFromDesc          = Adresse courriel de l'émetteur pour l'envoi des courriels de notification vers les assignés (Courriel de l'utilisateur à l'origine de la notification si vide)
 RequestManagerSplitAssignedNotificationName             = Séparation des envois
 RequestManagerSplitAssignedNotificationDesc             = Envois des notification séparément à tous les assignés
+RequestManagerAssignedNotificationSignatureName         = Signature
+RequestManagerAssignedNotificationSignatureDesc         = Ajouter cette signature après le corps du message des courriels de notification vers les assignés si la signature du modèle de notification est vide
+RequestManagerAssignedNotificationUserSignatureName     = Signature utilisateur
+RequestManagerAssignedNotificationUserSignatureDesc     = Ajouter la signature de l'utilisateur après le corps du message des courriels de notification vers les assignés si aucune signature n'a été trouvée
 
 RequestManagerNotificationRequesterOptions              = Paramètres des notifications aux contacts d'origine
 RequestManagerRequesterNotificationSendFromName         = Adresse courriel de l'émetteur
 RequestManagerRequesterNotificationSendFromDesc         = Adresse courriel de l'émetteur pour l'envoi des courriels de notification vers les contacts d'origine (Courriel de l'utilisateur à l'origine de la notification si vide)
 RequestManagerSplitRequesterNotificationName            = Séparation des envois
 RequestManagerSplitRequesterNotificationDesc            = Envois des notification séparément à tous les contacts d'origine
+RequestManagerRequesterNotificationSignatureName        = Signature
+RequestManagerRequesterNotificationSignatureDesc        = Ajouter cette signature après le corps du message des courriels de notification vers les contacts d'origine si la signature du modèle de notification est vide
+RequestManagerRequesterNotificationUserSignatureName    = Signature utilisateur
+RequestManagerRequesterNotificationUserSignatureDesc    = Ajouter la signature de l'utilisateur après le corps du message des courriels de notification vers les contacts d'origine si aucune signature n'a été trouvée
 
 RequestManagerNotificationWatchersOptions               = Paramètres des notifications aux contacts observateur
 RequestManagerWatchersNotificationSendFromName          = Adresse courriel de l'émetteur
 RequestManagerWatchersNotificationSendFromDesc          = Adresse courriel de l'émetteur pour l'envoi des courriels de notification vers les contacts observateur (Courriel de l'utilisateur à l'origine de la notification si vide)
 RequestManagerSplitWatchersNotificationName             = Séparation des envois
 RequestManagerSplitWatchersNotificationDesc             = Envois des notification séparément à tous les contacts observateur
+RequestManagerWatchersNotificationSignatureName         = Signature
+RequestManagerWatchersNotificationSignatureDesc         = Ajouter cette signature après le corps du message des courriels de notification vers les contacts observateur si la signature du modèle de notification est vide
+RequestManagerWatchersNotificationUserSignatureName     = Signature utilisateur
+RequestManagerWatchersNotificationUserSignatureDesc     = Ajouter la signature de l'utilisateur après le corps du message des courriels de notification vers les contacts observateur si aucune signature n'a été trouvée
 
 RequestManagerAutoAddContractOfPrincipalCompanyName     = Contrats du donneur d'ordre
 RequestManagerAutoAddContractOfPrincipalCompanyDesc     = Lier automatiquement les contrats du donneur d'ordre à la création de la demande

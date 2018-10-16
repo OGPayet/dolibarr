@@ -125,7 +125,11 @@ class RequestManagerNotify
                         }
 
                         $subject = make_substitutions($assigned_template['subject'], $substitutes_array);
-                        $body = make_substitutions($assigned_template['body'], $substitutes_array);
+                        $signature = $assigned_template['signature'];
+                        if (empty($signature)) $signature = $conf->global->REQUESTMANAGER_ASSIGNED_NOTIFICATION_SIGNATURE;
+                        if (empty($signature) && !empty($conf->global->REQUESTMANAGER_ASSIGNED_NOTIFICATION_USER_SIGNATURE)) $signature = $user->signature;
+                        $body = !empty($signature) ? dol_concatdesc($assigned_template['body'], '<br>' . $signature) : $assigned_template['body'];
+                        $body = make_substitutions($body, $substitutes_array);
 
                         $from = !empty($conf->global->REQUESTMANAGER_ASSIGNED_NOTIFICATION_SEND_FROM) ? $conf->global->REQUESTMANAGER_ASSIGNED_NOTIFICATION_SEND_FROM : $this->_formatEmail($user->getFullName($langs), $user->email);
 
@@ -155,7 +159,11 @@ class RequestManagerNotify
                     }
 
                     $subject = make_substitutions($requesters_template['subject'], $substitutes_array);
-                    $body = make_substitutions($requesters_template['body'], $substitutes_array);
+                    $signature = $requesters_template['signature'];
+                    if (empty($signature)) $signature = $conf->global->REQUESTMANAGER_REQUESTER_NOTIFICATION_SIGNATURE;
+                    if (empty($signature) && !empty($conf->global->REQUESTMANAGER_REQUESTER_NOTIFICATION_USER_SIGNATURE)) $signature = $user->signature;
+                    $body = !empty($signature) ? dol_concatdesc($requesters_template['body'], '<br>' . $signature) : $requesters_template['body'];
+                    $body = make_substitutions($body, $substitutes_array);
 
                     $from = !empty($conf->global->REQUESTMANAGER_REQUESTER_NOTIFICATION_SEND_FROM) ? $conf->global->REQUESTMANAGER_REQUESTER_NOTIFICATION_SEND_FROM : $this->_formatEmail($user->getFullName($langs), $user->email);
 
@@ -184,7 +192,11 @@ class RequestManagerNotify
                     }
 
                     $subject = make_substitutions($watchers_template['subject'], $substitutes_array);
-                    $body = make_substitutions($watchers_template['body'], $substitutes_array);
+                    $signature = $watchers_template['signature'];
+                    if (empty($signature)) $signature = $conf->global->REQUESTMANAGER_WATCHERS_NOTIFICATION_SIGNATURE;
+                    if (empty($signature) && !empty($conf->global->REQUESTMANAGER_WATCHERS_NOTIFICATION_USER_SIGNATURE)) $signature = $user->signature;
+                    $body = !empty($signature) ? dol_concatdesc($watchers_template['body'], '<br>' . $signature) : $watchers_template['body'];
+                    $body = make_substitutions($body, $substitutes_array);
 
                     $from = !empty($conf->global->REQUESTMANAGER_WATCHERS_NOTIFICATION_SEND_FROM) ? $conf->global->REQUESTMANAGER_WATCHERS_NOTIFICATION_SEND_FROM : $this->_formatEmail($user->getFullName($langs), $user->email);
 

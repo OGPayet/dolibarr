@@ -18,6 +18,7 @@
 use Luracast\Restler\RestException;
 
 dol_include_once('/requestmanager/class/requestmanager.class.php');
+dol_include_once('/requestmanager/class/requestmanagermessage.class.php');
 
 /**
  * API class for Request Manager
@@ -34,6 +35,11 @@ class RequestManagerApi extends DolibarrApi {
      * @var array       $FIELDS     Mandatory fields, checked when create and update object
      */
     static $FIELDS = array();
+
+    /**
+     * @var array       $MESSAGE_FIELDS     Mandatory fields, checked when create and update message object
+     */
+    static $MESSAGE_FIELDS = array();
 
     /**
      *  Constructor
@@ -527,8 +533,7 @@ class RequestManagerApi extends DolibarrApi {
             throw new RestException(500, "Error when retrieve request", $this->_getErrors($requestmanager));
         }
 
-        require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
-        $requestmanager_message = new ActionComm(self::$db);
+        $requestmanager_message = new RequestManagerMessage(self::$db);
         $result = $requestmanager_message->fetch($message_id);
         if ($result == 0 || ($result > 0 && ($requestmanager_message->elementtype != $requestmanager->element || $requestmanager_message->fk_element != $requestmanager->id))) {
             throw new RestException(404, "Request message not found");
@@ -544,16 +549,16 @@ class RequestManagerApi extends DolibarrApi {
      *
      * @url	POST {id}/message
      *
-     * @param   int     $id                 ID of the request
-     * @param   array   $request_data       Request message data
+     * @param   int     $id                         ID of the request
+     * @param   array   $request_message_data       Request message data
      *
-     * @return  int                         ID of the request message created
+     * @return  int                                 ID of the request message created
      *
-     * @throws  400     RestException       Field missing
-     * @throws  401     RestException       Insufficient rights
-     * @throws  500     RestException       Error while creating the request message
+     * @throws  400     RestException               Field missing
+     * @throws  401     RestException               Insufficient rights
+     * @throws  500     RestException               Error while creating the request message
      */
-    function postMessage($id, $request_data = null)
+    function postMessage($id, $request_message_data = null)
     {
         if (!DolibarrApiAccess::$user->rights->requestmanager->creer) {
             throw new RestException(401, "Insufficient rights");
@@ -567,23 +572,19 @@ class RequestManagerApi extends DolibarrApi {
             throw new RestException(500, "Error when retrieve request", $this->_getErrors($requestmanager));
         }
 
-        // Todo a faire
-
-        return 0;
-
         // Check mandatory fields
-        /*$this->_validate($request_data);
+        $this->_validateMessage($request_message_data);
 
-        $requestmanager = new RequestManager(self::$db);
-        foreach ($request_data as $field => $value) {
-            $requestmanager->$field = $value;
+        $requestmanager_message = new RequestManagerMessage(self::$db);
+        foreach ($request_message_data as $field => $value) {
+            $requestmanager_message->$field = $value;
         }
 
-        if ($requestmanager->create(DolibarrApiAccess::$user) < 0) {
-            throw new RestException(500, "Error while creating the request message", $this->_getErrors($requestmanager));
+        if ($requestmanager_message->create(DolibarrApiAccess::$user) < 0) {
+            throw new RestException(500, "Error while creating the request message", $this->_getErrors($requestmanager_message));
         }
 
-        return $requestmanager->id;*/
+        return $requestmanager_message->id;
     }
 
     /**
@@ -606,7 +607,7 @@ class RequestManagerApi extends DolibarrApi {
      * @throws  500         RestException       Error when retrieve request
      * @throws  500         RestException       Error when retrieve request list
      */
-    function indexEvents($id, $sort_field="t.rowid", $sort_order='ASC', $limit=100, $page=0, $sql_filters='')
+    function indexEvents($id, $sort_field="t.datec", $sort_order='DESC', $limit=100, $page=0, $sql_filters='')
     {
         $obj_ret = array();
 
@@ -625,7 +626,7 @@ class RequestManagerApi extends DolibarrApi {
         return $obj_ret;
 
         // Get benefactor companies
-        /*if (empty($benefactor_ids)) {
+        if (empty($benefactor_ids)) {
             $benefactor_companies_ids = array();
             if (DolibarrApiAccess::$user->socid > 0) {
                 dol_include_once('/companyrelationships/class/companyrelationships.class.php');
@@ -682,7 +683,7 @@ class RequestManagerApi extends DolibarrApi {
             throw new RestException(500, "Error when retrieve request events list", self::$db->lasterror());
         }
 
-        return $obj_ret;*/
+        return $obj_ret;
     }
 
     /**
@@ -926,6 +927,23 @@ class RequestManagerApi extends DolibarrApi {
     function _validate($data)
     {
         foreach (self::$FIELDS as $field) {
+            if (!isset($data[$field]))
+                throw new RestException(400, "Field missing: $field");
+        }
+    }
+
+    /**
+     *  Validate fields before create or update message object
+     *
+     * @param   array   $data               Array with data to verify
+     *
+     * @return  void
+     *
+     * @throws  400     RestException       Field missing
+     */
+    function _validateMessage($data)
+    {
+        foreach (self::$MESSAGE_FIELDS as $field) {
             if (!isset($data[$field]))
                 throw new RestException(400, "Field missing: $field");
         }

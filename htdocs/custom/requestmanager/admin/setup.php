@@ -28,6 +28,7 @@ if (! $res && file_exists("../../../main.inc.php")) $res=@include '../../../main
 if (! $res) die("Include of main fails");
 require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
+require_once DOL_DOCUMENT_ROOT . '/core/class/doleditor.class.php';
 dol_include_once('/requestmanager/lib/requestmanager.lib.php');
 dol_include_once('/requestmanager/class/requestmanager.class.php');
 
@@ -62,6 +63,13 @@ if ($action == 'set_notification_assigned_options') {
         $errors[] = $langs->trans('BadEMail') . ': ' . dol_htmlentities($email);
         $error++;
     }
+
+    $value = $email = GETPOST('REQUESTMANAGER_ASSIGNED_NOTIFICATION_SIGNATURE', "alpha");
+    $res = dolibarr_set_const($db, 'REQUESTMANAGER_ASSIGNED_NOTIFICATION_SIGNATURE', $value, 'chaine', 0, '', $conf->entity);
+    if (!$res > 0) {
+        $errors[] = $db->lasterror();
+        $error++;
+    }
 } elseif ($action == 'set_notification_requester_options') {
     $email_address = $email = GETPOST('REQUESTMANAGER_REQUESTER_NOTIFICATION_SEND_FROM', "alpha");
     if (preg_match('/<([^>]+)>/i', $email, $matches)) $email_address = $matches[1];
@@ -75,6 +83,13 @@ if ($action == 'set_notification_assigned_options') {
         $errors[] = $langs->trans('BadEMail') . ': ' . dol_htmlentities($email);
         $error++;
     }
+
+    $value = $email = GETPOST('REQUESTMANAGER_REQUESTER_NOTIFICATION_SIGNATURE', "alpha");
+    $res = dolibarr_set_const($db, 'REQUESTMANAGER_REQUESTER_NOTIFICATION_SIGNATURE', $value, 'chaine', 0, '', $conf->entity);
+    if (!$res > 0) {
+        $errors[] = $db->lasterror();
+        $error++;
+    }
 } elseif ($action == 'set_notification_watchers_options') {
     $email_address = $email = GETPOST('REQUESTMANAGER_WATCHERS_NOTIFICATION_SEND_FROM', "alpha");
     if (preg_match('/<([^>]+)>/i', $email, $matches)) $email_address = $matches[1];
@@ -86,6 +101,13 @@ if ($action == 'set_notification_assigned_options') {
         }
     } elseif (!empty($email)) {
         $errors[] = $langs->trans('BadEMail') . ': ' . dol_htmlentities($email);
+        $error++;
+    }
+
+    $value = $email = GETPOST('REQUESTMANAGER_WATCHERS_NOTIFICATION_SIGNATURE', "alpha");
+    $res = dolibarr_set_const($db, 'REQUESTMANAGER_WATCHERS_NOTIFICATION_SIGNATURE', $value, 'chaine', 0, '', $conf->entity);
+    if (!$res > 0) {
+        $errors[] = $db->lasterror();
         $error++;
     }
 } elseif ($action == 'set') {
@@ -544,6 +566,34 @@ if (!empty($conf->use_javascript_ajax)) {
 }
 print '</td></tr>' . "\n";
 
+// REQUESTMANAGER_ASSIGNED_NOTIFICATION_SIGNATURE
+$var=!$var;
+print '<tr '.$bc[$var].'>'."\n";
+print '<td>'.$langs->trans("RequestManagerAssignedNotificationSignatureName").' '.img_info($langs->trans("RequestManagerAssignedNotificationSignatureDesc")).'</td>'."\n";
+print '<td align="right" colspan="2">'."\n";
+$signature = GETPOST('REQUESTMANAGER_ASSIGNED_NOTIFICATION_SIGNATURE', "alpha");
+$doleditor = new DolEditor('REQUESTMANAGER_ASSIGNED_NOTIFICATION_SIGNATURE', !empty($signature) ? $signature : $conf->global->REQUESTMANAGER_ASSIGNED_NOTIFICATION_SIGNATURE,
+    '', 200, 'dolibarr_notes', 'In', false, false, !empty($conf->fckeditor->enabled), ROWS_5, '90%');
+print $doleditor->Create(1);
+print '</td></tr>'."\n";
+
+// REQUESTMANAGER_ASSIGNED_NOTIFICATION_USER_SIGNATURE
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>'.$langs->trans("RequestManagerAssignedNotificationUserSignatureName").'</td>'."\n";
+print '<td>'.$langs->trans("RequestManagerAssignedNotificationUserSignatureDesc").'</td>'."\n";
+print '<td align="right">' . "\n";
+if (!empty($conf->use_javascript_ajax)) {
+    print ajax_constantonoff('REQUESTMANAGER_ASSIGNED_NOTIFICATION_USER_SIGNATURE');
+} else {
+    if (empty($conf->global->REQUESTMANAGER_ASSIGNED_NOTIFICATION_USER_SIGNATURE)) {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_REQUESTMANAGER_ASSIGNED_NOTIFICATION_USER_SIGNATURE">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+    } else {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_REQUESTMANAGER_ASSIGNED_NOTIFICATION_USER_SIGNATURE">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+    }
+}
+print '</td></tr>' . "\n";
+
 print '</table>';
 
 print '<br>';
@@ -598,6 +648,34 @@ if (!empty($conf->use_javascript_ajax)) {
 }
 print '</td></tr>' . "\n";
 
+// REQUESTMANAGER_REQUESTER_NOTIFICATION_SIGNATURE
+$var=!$var;
+print '<tr '.$bc[$var].'>'."\n";
+print '<td>'.$langs->trans("RequestManagerRequesterNotificationSignatureName").' '.img_info($langs->trans("RequestManagerRequesterNotificationSignatureDesc")).'</td>'."\n";
+print '<td align="right" colspan="2">'."\n";
+$signature = GETPOST('REQUESTMANAGER_REQUESTER_NOTIFICATION_SIGNATURE', "alpha");
+$doleditor = new DolEditor('REQUESTMANAGER_REQUESTER_NOTIFICATION_SIGNATURE', !empty($signature) ? $signature : $conf->global->REQUESTMANAGER_REQUESTER_NOTIFICATION_SIGNATURE,
+    '', 200, 'dolibarr_notes', 'In', false, false, !empty($conf->fckeditor->enabled), ROWS_5, '90%');
+print $doleditor->Create(1);
+print '</td></tr>'."\n";
+
+// REQUESTMANAGER_REQUESTER_NOTIFICATION_USER_SIGNATURE
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>'.$langs->trans("RequestManagerRequesterNotificationUserSignatureName").'</td>'."\n";
+print '<td>'.$langs->trans("RequestManagerRequesterNotificationUserSignatureDesc").'</td>'."\n";
+print '<td align="right">' . "\n";
+if (!empty($conf->use_javascript_ajax)) {
+    print ajax_constantonoff('REQUESTMANAGER_REQUESTER_NOTIFICATION_USER_SIGNATURE');
+} else {
+    if (empty($conf->global->REQUESTMANAGER_REQUESTER_NOTIFICATION_USER_SIGNATURE)) {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_REQUESTMANAGER_REQUESTER_NOTIFICATION_USER_SIGNATURE">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+    } else {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_REQUESTMANAGER_REQUESTER_NOTIFICATION_USER_SIGNATURE">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+    }
+}
+print '</td></tr>' . "\n";
+
 print '</table>';
 
 print '<br>';
@@ -648,6 +726,34 @@ if (!empty($conf->use_javascript_ajax)) {
         print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_REQUESTMANAGER_SPLIT_WATCHERS_NOTIFICATION">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
     } else {
         print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_REQUESTMANAGER_SPLIT_WATCHERS_NOTIFICATION">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+    }
+}
+print '</td></tr>' . "\n";
+
+// REQUESTMANAGER_WATCHERS_NOTIFICATION_SIGNATURE
+$var=!$var;
+print '<tr '.$bc[$var].'>'."\n";
+print '<td>'.$langs->trans("RequestManagerWatchersNotificationSignatureName").' '.img_info($langs->trans("RequestManagerWatchersNotificationSignatureDesc")).'</td>'."\n";
+print '<td align="right" colspan="2">'."\n";
+$signature = GETPOST('REQUESTMANAGER_WATCHERS_NOTIFICATION_SIGNATURE', "alpha");
+$doleditor = new DolEditor('REQUESTMANAGER_WATCHERS_NOTIFICATION_SIGNATURE', !empty($signature) ? $signature : $conf->global->REQUESTMANAGER_WATCHERS_NOTIFICATION_SIGNATURE,
+    '', 200, 'dolibarr_notes', 'In', false, false, !empty($conf->fckeditor->enabled), ROWS_5, '90%');
+print $doleditor->Create(1);
+print '</td></tr>'."\n";
+
+// REQUESTMANAGER_WATCHERS_NOTIFICATION_USER_SIGNATURE
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>'.$langs->trans("RequestManagerWatchersNotificationUserSignatureName").'</td>'."\n";
+print '<td>'.$langs->trans("RequestManagerWatchersNotificationUserSignatureDesc").'</td>'."\n";
+print '<td align="right">' . "\n";
+if (!empty($conf->use_javascript_ajax)) {
+    print ajax_constantonoff('REQUESTMANAGER_WATCHERS_NOTIFICATION_USER_SIGNATURE');
+} else {
+    if (empty($conf->global->REQUESTMANAGER_WATCHERS_NOTIFICATION_USER_SIGNATURE)) {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_REQUESTMANAGER_WATCHERS_NOTIFICATION_USER_SIGNATURE">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+    } else {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_REQUESTMANAGER_WATCHERS_NOTIFICATION_USER_SIGNATURE">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
     }
 }
 print '</td></tr>' . "\n";

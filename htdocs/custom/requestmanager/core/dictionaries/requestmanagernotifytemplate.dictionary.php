@@ -30,6 +30,11 @@ dol_include_once('/requestmanager/class/requestmanagernotify.class.php');
 class RequestManagerNotifyTemplateDictionary extends Dictionary
 {
     /**
+     * @var int         Version of this dictionary
+     */
+    public $version = 1;
+
+    /**
      * @var array       List of languages to load
      */
     public $langs = array('requestmanager@requestmanager');
@@ -134,6 +139,7 @@ class RequestManagerNotifyTemplateDictionary extends Dictionary
         'notify_to' => array(),
         'subject' => array(),
         'body' => array(),
+        'signature' => array(),
     );
 
     /**
@@ -144,6 +150,24 @@ class RequestManagerNotifyTemplateDictionary extends Dictionary
      * )
      */
     public $indexes = array();
+
+    /**
+     * @var array  List of fields/indexes added, updated or deleted for a version
+     * array(
+     *   'version' => array(
+     *     'fields' => array('field_name'=>'a', 'field_name'=>'u', ...), // List of field name who is added(a) or updated(u) for a version
+     *     'deleted_fields' => array('field_name'=> array('name', 'type', other_custom_data_required_for_delete), ...), // List of field name who is deleted for a version
+     *     'indexes' => array('idx_number'=>'u', 'idx_number'=>'d', ...), // List of indexes number who is updated(u) or deleted(d) for a version
+     *   ),
+     * )
+     */
+    public $updates = array(
+        1 => array(
+            'fields' => array(
+                'signature' => 'a',
+            ),
+        ),
+    );
 
     /**
      * @var bool    Is multi entity (false = partaged, true = by entity)
@@ -278,6 +302,17 @@ class RequestManagerNotifyTemplateDictionary extends Dictionary
             'help_button' => $helpSubstitution,
             'td_input' => array(
                 'positionLine' => 1,
+            ),
+        );
+
+        $this->fields['signature'] = array(
+            'name' => 'signature',
+            'label' => 'Signature',
+            'type' => 'text',
+            'is_not_show' => true,
+            'help_button' => $helpSubstitution,
+            'td_input' => array(
+                'positionLine' => 2,
             ),
         );
     }
