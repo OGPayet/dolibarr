@@ -81,11 +81,28 @@ class Factory extends CommonObject
 	}
 
 
-	function createof()
+    /**
+     * Create factory order (OF)
+     *
+     * @param   array   $warehouseToUseList             [=array()] Use factory warehouse to extract product component or list of warehouses with quantities to extract each product component ( ex : array(array('fk_entrepot' => 1, 'qty' => 1), array('fk_entrepot' => 6, 'qty' => 2)) )
+     * @return  int     <0 if KO, Id of factory if OK
+     *
+     * @throws Exception
+     */
+	public function createof($warehouseToUseList=array())
 	{
+        global $user, $conf;
+        global $orig;
+
+        $error = 0;
+
+        // detect mode to create component OF
+        $createOFComponentMode = 1;
+        if (!empty($warehouseToUseList)) {
+            $createOFComponentMode = 2;
+        }
+
 		$this->db->begin();
-		global $user, $conf; // , $langs;
-		global $orig;
 
 		$obj = $conf->global->FACTORY_ADDON;
 		$modfactory = new $obj;
@@ -102,9 +119,9 @@ class Factory extends CommonObject
 		$sql.= ', '.($this->qty_planned?$this->qty_planned:'null').', '.$user->id.' )';
 
 		if (! $this->db->query($sql)) {
-			dol_print_error($this->db);
-			$this->db->rollback();
-			return -1;
+			$error++;
+			$this->error    = $this->db->lasterror();
+			$this->errors[] = $this->error;
 		} else {
 			// get the last inserted value
 			$factoryid=$this->db->last_insert_id(MAIN_DB_PREFIX."factory");
@@ -126,48 +143,123 @@ class Factory extends CommonObject
 			$this->id = $tmpid ;
 
 			// List of subproducts
-
 			if (count($prods_arbo) > 0) {
 				// on boucle sur les composants	pour cr�er les lignes de d�tail
-				foreach ($prods_arbo as $value)
-					$this->createof_component($factoryid, $this->qty_planned, $value, 0);
+				foreach ($prods_arbo as $value) {
+				    if ($createOFComponentMode == 1) {
+                        $result = $this->createof_component($factoryid, $this->qty_planned, $value, 0);
+                    } else {
+                        $result = $this->_createOFComponentFromWarehouseToUseList($warehouseToUseList[$value['id']], $factoryid, $value, 0);
+                    }
+
+                    if ($result < 0) {
+                        $error++;
+                        break;
+                    }
+                }
 			}
 
-			// les extrafields sont a associ� � l'of pas au produit
-			$this->id = $factoryid;
-			$result=$this->insertExtraFields();
-			if ($result < 0) {
-				$error++;
-				$this->db->rollback();
-			}
+			if (! $error) {
+                // les extrafields sont a associ� � l'of pas au produit
+                $this->id = $factoryid;
+                $result = $this->insertExtraFields();
+                if ($result < 0) {
+                    $error++;
+                }
+            }
+
+            if (! $error) {
+                // Call trigger
+                $result=$this->call_trigger('FACTORY_CREATE', $user);
+                if ($result < 0) $error++;
+                // End call triggers
+            }
 		}
-		if (! $error ) {
-			// Call trigger
-			$result=$this->call_trigger('FACTORY_CREATE', $user);
-			if ($result < 0) $error++;
-			// End call triggers
-		}
-		if (! $error) {
-			$this->db->commit();
-			return $factoryid;
-		}
+
+		// commit or rollback
+        if ($error) {
+            $this->db->rollback();
+            return -1;
+        } else {
+            $this->db->commit();
+            return $factoryid;
+        }
 	}
 
-	function createof_component($fk_factory, $qty_build, $valuearray, $fk_mouvementstock=0 )
+
+    /**
+     * Create component lines in factory order (OF) from a list of warehouses with quantities to use
+     *
+     * @param   array       $warehouseToUseList             [=array()] Use factory warehouse to extract product component or list of warehouses with quantities to extract each product component ( ex : array(array('fk_entrepot' => 1, 'qty' => 1), array('fk_entrepot' => 6, 'qty' => 2)) )
+     * @param   int         $fk_factory                     Id of factory
+     * @param   array       $valuearray                     Array of values
+     * @param   int         $fk_mouvementstock              Stock movement
+     * @return  int         <0 if KO, Id of factory if OK
+     *
+     * @throws  Exception
+     */
+    private function _createOFComponentFromWarehouseToUseList($warehouseToUseList, $fk_factory, $valuearray, $fk_mouvementstock=0)
+    {
+        $error = 0;
+
+        if (count($warehouseToUseList) > 0) {
+            foreach ($warehouseToUseList as $warehouseToUse) {
+                $result = $this->createof_component($fk_factory, $warehouseToUse['qty'], $valuearray, $fk_mouvementstock, $warehouseToUse['fk_entrepot']);
+
+                if ($result < 0) {
+                    $error++;
+                    break;
+                }
+            }
+        }
+
+        if ($error) {
+            return -1;
+        } else {
+            return 1;
+        }
+    }
+
+
+    /**
+     * Create a component line in factory order (OF)
+     *
+     * @param   int         $fk_factory             Id of factory
+     * @param   int         $qty_build              Qty to build
+     * @param   array       $valuearray             Array of values
+     * @param   int         $fk_mouvementstock      Stock movement
+     * @param   int|NULL    $fk_entrepot            [=NULL] Use factory warehouse, or Id of warehouse to use
+     * @return  int         <0 if KO, Id of factory if OK
+     *
+     * @throws  Exception
+     */
+	public function createof_component($fk_factory, $qty_build, $valuearray, $fk_mouvementstock=0, $fk_entrepot=NULL)
 	{
-		$sql = 'INSERT INTO '.MAIN_DB_PREFIX.'factorydet (fk_factory, fk_product, qty_unit, qty_planned, pmp, price,';
-		$sql .= ' fk_mvtstockplanned, globalqty, description)';
-		// pour g�rer les quantit�s
+	    // set by default with factory warehouse
+	    if ($fk_entrepot===NULL && $this->fk_entrepot>0) {
+	        $fk_entrepot = $this->fk_entrepot;
+        }
+
+		$sql  = "INSERT INTO " . MAIN_DB_PREFIX . "factorydet (";
+		$sql .= "fk_factory, fk_product, qty_unit, qty_planned, pmp, price";
+		$sql .= ", fk_mvtstockplanned, globalqty, description";
+        $sql .= ", fk_entrepot";
+		$sql .= ")";
+		// pour gerer les quantites
 		if ($valuearray['globalqty'] == 0)
 			$qty_planned=$qty_build * $valuearray['nb'];
 		else
 			$qty_planned=$valuearray['nb'];
-		$sql .= ' VALUES ('.$fk_factory.', '.$valuearray['id'] .', '.$valuearray['nb'].', ';
-		$sql .= $qty_planned.', '.$valuearray['pmp'].', '.$valuearray['price'];
-		$sql .= ', '.$fk_mouvementstock.', '.$valuearray['globalqty'].',"';
-		$sql .= $this->db->escape($valuearray['description']).'" )';
+		$sql .= " VALUES (" . $fk_factory . ", " . $valuearray['id'] .", " . $valuearray['nb'];
+		$sql .= ", " . $qty_planned . ", " . $valuearray['pmp'] . ", " . $valuearray['price'];
+		$sql .= ", " . $fk_mouvementstock . ", " . $valuearray['globalqty'];
+        $sql .= ", '" . $this->db->escape($valuearray['description']) . "'";
+        $sql .= ", " . ($fk_entrepot > 0 ? $fk_entrepot : 'NULL');
+        $sql .= ")";
 		if (! $this->db->query($sql)) {
-			dol_print_error($this->db);
+		    $this->error = $this->db->lasterror();
+		    $this->errors[] = $this->error;
+            dol_syslog(__METHOD__ . " sql=" . $sql, LOG_ERR);
 			return -1;
 		} else {
 			return 1;
@@ -1343,9 +1435,11 @@ class Factory extends CommonObject
 	function getChildsOF($fk_factory)
 	{
 		$sql = "SELECT fd.fk_product as id, p.label as label, fd.qty_unit as qtyunit, fd.qty_planned as qtyplanned,";
-		$sql.= " fd.qty_used as qtyused, fd.qty_deleted as qtydeleted, fd.globalqty, fd.description,";
-		$sql.= " fd.fk_mvtstockplanned as mvtstockplanned, fd.fk_mvtstockused as mvtstockused,";
-		$sql.= " fd.pmp as pmp, fd.price as price, p.ref, p.fk_product_type";
+		$sql.= " fd.qty_used as qtyused, fd.qty_deleted as qtydeleted, fd.globalqty, fd.description";
+		$sql.= ", fd.fk_mvtstockplanned as mvtstockplanned, fd.fk_mvtstockused as mvtstockused";
+		$sql.= ", fd.pmp as pmp, fd.price as price, p.ref, p.fk_product_type";
+        $sql.= ", fd.fk_entrepot as child_fk_entrepot";
+        $sql.= ", p.ref, p.fk_product_type";
 		$sql.= " FROM ".MAIN_DB_PREFIX."product as p";
 		$sql.= ", ".MAIN_DB_PREFIX."factorydet as fd";
 		$sql.= " WHERE p.rowid = fd.fk_product";
@@ -1372,7 +1466,9 @@ class Factory extends CommonObject
 							'qtyplanned'=>$rec['qtyplanned'],	// Nb of units that compose parent product
 							'mvtstockplanned'=>$rec['mvtstockplanned'],	// Nb of units that compose parent product
 							'mvtstockused'=>$rec['mvtstockused'],		// Nb of units that compose parent product
-							'type'=>$rec['fk_product_type']		// Nb of units that compose parent product
+							'type'=>$rec['fk_product_type'],		// Nb of units that compose parent product
+                            'child_fk_entrepot'=>$rec['child_fk_entrepot'], // Id of child warehouse
+                            'dispatch_suffix'=>$rec['id'].'_'.$rec['child_fk_entrepot'] // unique key for dispatching
 					);
 			}
 			return $prods;

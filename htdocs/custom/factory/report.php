@@ -106,13 +106,13 @@ if (empty($reshook)) {
 		$factory->duration_made=GETPOST("duration_madehour")*3600+GETPOST("duration_mademin")*60;
 		$factory->description = GETPOST("description");
 
-		// si rien de fabriqué le statut de l'of est mis à annulé
+		// si rien de fabrique le statut de l'of est mis a annule
 		if (GETPOST("qtymade") == 0)
 			$factory->statut = 3;
 		else
 			$factory->statut = 2;
 
-		//on mémorise les infos de l'OF
+		//on memorise les infos de l'OF
 		$sql = "UPDATE ".MAIN_DB_PREFIX."factory ";
 		$sql.= " SET date_end_made = ".($factory->date_end_made ? $db->idate($factory->date_end_made) :'null');
 		$sql.= " , duration_made = ".($factory->duration_made ? $factory->duration_made :'null');
@@ -131,13 +131,28 @@ if (empty($reshook)) {
 
 			if (count($prods_arbo) > 0) {
 				$totprixfabrication =0;
+
 				foreach ($prods_arbo as $value) {
+				    // get product values
+                    $dispatchSuffix     = $value['dispatch_suffix'];
+                    $qtyPlanned         = $value['qtyplanned'];
+                    $componentQtyToUse  = $value['nb'];
+                    $componentFkProduct = $value['id'];
 
+                    // determine final product and component warehouses
+                    $fkEntrepotDest = $factory->fk_entrepot;
+				    if ($value['child_fk_entrepot']>0) {
+                        $fkEntrepotChild = $value['child_fk_entrepot'];
+                    } else {
+                        $fkEntrepotChild = $fkEntrepotDest;
+                    }
 
-					// on détermine la quantité utilisé à partir de la quantité fabriquée
-					$qtyusedcomponent=0;
+                    // get post values
+                    $qtyDeleted = GETPOST("qtydeleted_".$dispatchSuffix) ? GETPOST("qtydeleted_".$dispatchSuffix) : 0;
+
+					/*
+                    $qtyusedcomponent=0;
 					foreach ($product_chidren as $valuechildren) {
-
 						if ($value['id'] == $valuechildren[0]) {
 							if ($valuechildren[6] == 1)
 								$qtyusedcomponent=$valuechildren[1];
@@ -145,66 +160,72 @@ if (empty($reshook)) {
 								$qtyusedcomponent=$valuechildren[1] * $factory->qty_made;
 						}
 					}
+					*/
+                    // on determine la quantite utilisee a partir de la quantite fabriquee
+                    if ($value['globalqty'] == 1) {
+                        $qtyusedcomponent = $componentQtyToUse;
+                    } else {
+                        $qtyusedcomponent = $componentQtyToUse * $factory->qty_made;
+                    }
 
-					// on met à jour les infos des lignes de l'OF
+					// on met a jour les infos des lignes de l'OF
 					$sql = "UPDATE ".MAIN_DB_PREFIX."factorydet ";
 					$sql.= " SET qty_used = ".$qtyusedcomponent;
-					$sql.= " , qty_deleted = ".(GETPOST("qtydeleted_".$value['id']) ? GETPOST("qtydeleted_".$value['id']) : 0);
-					$sql.= " WHERE fk_factory = ".$id;
-					$sql.= " AND fk_product = ".$value['id'];
+					$sql.= " , qty_deleted = ".$qtyDeleted;
+					$sql.= " WHERE fk_factory = " . $id;
+					$sql.= " AND fk_product = " . $componentFkProduct;
+					if ($value['child_fk_entrepot']>0) {
+                        $sql.= " AND fk_entrepot = " . $value['child_fk_entrepot'];
+                    } else {
+                        $sql .= " AND fk_entrepot IS NULL";
+                    }
 					if ($db->query($sql)) {
-						// si les valeurs ne sont pas parfaite (perte ou plus moins fabriqué), on ajoute des mouvements de stock en plus
-						if ((GETPOST("qtydeleted_".$value['id']) != 0) || ($value['qtyplanned'] != $qtyusedcomponent)) {
-							// si il y a du détruit
-							if (GETPOST("qtydeleted_".$value['id']) > 0)
-								$idmv=$mouvP->livraison($user, $value['id'], $factory->fk_entrepot,
-											GETPOST("qtydeleted_".$value['id']), 0, // le prix est à 0 pour ne pas impacter le pmp
-											$langs->trans("DeletedFactory", $factory->ref), $factory->date_end_made
-								);
+						// si les valeurs ne sont pas parfaites (perte ou plus moins fabrique), on ajoute des mouvements de stock en plus
+						if ($qtyDeleted!=0 || $qtyPlanned!=$qtyusedcomponent) {
+                            // si il y a du detruit
+                            if ($qtyDeleted > 0) {
+                                // le prix est a 0 pour ne pas impacter le pmp,
+                                $idmv = $mouvP->livraison($user, $componentFkProduct, $fkEntrepotChild, $qtyDeleted, 0, $langs->trans("DeletedFactory", $factory->ref), $factory->date_end_made);
+                            }
 
-							// on calcul si il y a du retour en stock (dans un sens ou l'autre
-							// on n'enleve pas les quantité supprimé du stock
-							//$retourstock = ($value['qtyplanned'] - GETPOST("qtydeleted_".$value['id']) - GETPOST("qtyused_".$value['id']));
-							$retourstock = ($value['qtyplanned'] - $qtyusedcomponent );
+                            // on calcul si il y a du retour en stock (dans un sens ou l'autre)
+                            // on n'enleve pas les quantites supprimees du stock
+                            $retourstock = ($qtyPlanned - $qtyusedcomponent);
 
-							// le prix est à 0 pour ne pas impacter le pmp
-							if ( $retourstock  != 0 ) // on renvoie au stock (attention au sens du mouvement)
-								$idmv=$mouvP->livraison(
-												$user, $value['id'], $factory->fk_entrepot, (-1*$retourstock), 0,
-												$langs->trans("NotUsedFactory", $factory->ref), $factory->date_end_made
-								);
-							elseif ( $retourstock > 0 ) // on a utilisé moins que l'on avait, on rend au stock
-								$idmv=$mouvP->reception(
-												$user, $value['id'], $factory->fk_entrepot, $retourstock, $value['price'],
-												$langs->trans("NeedMoreFactory", $factory->ref), $factory->date_end_made
-								);
-
+                            // on renvoie au stock (attention au sens du mouvement)
+                            if ($retourstock != 0)
+                            {
+                                // le prix est a 0 pour ne pas impacter le pmp
+                                $idmv = $mouvP->livraison($user, $componentFkProduct, $fkEntrepotChild, (-1 * $retourstock), 0, $langs->trans("NotUsedFactory", $factory->ref), $factory->date_end_made);
+                            }
+                            // on a utilise moins que l'on avait, on rend au stock
+                            else if ($retourstock > 0)
+                            {
+                                $idmv = $mouvP->reception($user, $componentFkProduct, $fkEntrepotChild, $retourstock, $value['price'], $langs->trans("NeedMoreFactory", $factory->ref), $factory->date_end_made);
+                            }
 						}
-						// on totalise le prix d'achat des composants utilisé pour déterminer un prix de fabrication et mettre à jour le pmp du produit fabriqué
-						// attention on prend les quantités utilisé et détruite
-						//print "used=".GETPOST("qtyused_".$value['id'])."+del=".GETPOST("qtydeleted_".$value['id'])."*pmp =".$value['pmp']."<br>";
-						$totprixfabrication+= $qtyusedcomponent * $value['pmp'];
-						$totprixfabrication+= GETPOST("qtydeleted_".$value['id']) * $value['pmp'];
+
+						// on totalise le prix d'achat des composants utilises pour determiner un prix de fabrication et mettre a jour le pmp du produit fabrique
+						// attention on prend les quantites utilisees et detruites
+						$totprixfabrication += $qtyusedcomponent * $value['pmp'];
+						$totprixfabrication += $qtyDeleted * $value['pmp'];
 					}
 				}
 			}
-			//print "totprixfabrication=".$totprixfabrication."<br>";
-			// on ajoute un mouvement de stock d'entrée de produit
-			$idmv=$mouvP->reception($user, $factory->fk_product, $factory->fk_entrepot,
-							$factory->qty_made, ($totprixfabrication / $factory->qty_made),
-							$langs->trans("BuildedFactory", $factory->ref), $factory->date_end_made
-			);
+
+			// on ajoute un mouvement de stock d'entree de produit
+			$idmv = $mouvP->reception($user, $factory->fk_product, $fkEntrepotDest, $factory->qty_made, ($totprixfabrication / $factory->qty_made), $langs->trans("BuildedFactory", $factory->ref), $factory->date_end_made);
 
 			// Call trigger
 			$result=$factory->call_trigger('FACTORY_CLOSE', $user);
 
 		}
 
-		// on redirige pour éviter le doublement
+		// on redirige pour eviter le doublement
 		header("Location: ".$_SERVER["PHP_SELF"].'?id='.$factory->id);
-		exit;
-		//$action="";
+		exit();
 	}
+
 	if ($action == 'reopenof') {
 		$factory->statut = 1;
 		$sql = "UPDATE ".MAIN_DB_PREFIX."factory ";
@@ -381,6 +402,7 @@ if (count($prods_arbo) > 0) {
 	print '<tr class="liste_titre">';
 	print '<td class="liste_titre" width=100px align="left">'.$langs->trans("Ref").'</td>';
 	print '<td class="liste_titre" width=200px align="left">'.$langs->trans("Label").'</td>';
+    print '<td class="liste_titre" width=200px align="left">'.$langs->trans("Warehouse").'</td>';
 	print '<td class="liste_titre" width=50px align="center">'.$langs->trans("QtyUnitNeed").'</td>';
 	print '<td class="liste_titre" width=50px align="center">'.$langs->trans("FactoryQtyPlanned").'</td>';
 	print '<td class="liste_titre" width=50px align="center">'.$langs->trans("QtyConsummed").'</td>';
@@ -392,8 +414,8 @@ if (count($prods_arbo) > 0) {
 	$mntTot=0;
 	$pmpTot=0;
 
+	$productEntrepotStatic = new Entrepot($db);
 	foreach ($prods_arbo as $value) {
-
 		// verify if product have child then display it after the product name
 		$tmpChildArbo=$factory->getChildsArbo($value['id']);
 		$nbChildArbo="";
@@ -405,6 +427,15 @@ if (count($prods_arbo) > 0) {
 		print '</td>';
 		print '<td align="left" title="'.$value['description'].'">';
 		print $value['label'].'</td>';
+
+        // child warehouse
+        print '<td>';
+        if ($value['child_fk_entrepot'] > 0) {
+            $productEntrepotStatic->fetch($value['child_fk_entrepot']);
+            print $productEntrepotStatic->getNomUrl(1);
+        }
+        print '</td>';
+
 		print '<td align="center">'.$value['nb'];
 		if ($value['globalqty'] == 1)
 			print "&nbsp;G";
@@ -416,12 +447,12 @@ if (count($prods_arbo) > 0) {
 			if ($value['qtyused']) {
 				print '<td align="right">'.$value['qtyused'].'</td>';
 				print '<td align="center">';
-				print '<input type=text size=4 name="qtydeleted_'.$value['id'].'"  value="'.($value['qtydeleted']).'"></td>';
+				print '<input type=text size=4 name="qtydeleted_'.$value['dispatch_suffix'].'"  value="'.($value['qtydeleted']).'"></td>';
 				print '<td align="right">'.($value['qtyused']+$value['qtydeleted']).'</td>';
 				print '<td align="right">'.($value['qtyplanned']-($value['qtyused']+$value['qtydeleted'])).'</td>';
 			} else {
 				print '<td align="center">'.$value['qtyplanned'].'</td>';
-				print '<td align="center"><input type=text size=4 name="qtydeleted_'.$value['id'].'"  value="0"></td>';
+				print '<td align="center"><input type=text size=4 name="qtydeleted_'.$value['dispatch_suffix'].'"  value="0"></td>';
 				print '<td ></td>';
 				print '<td ></td>';
 			}

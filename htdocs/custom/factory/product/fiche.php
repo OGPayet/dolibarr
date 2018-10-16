@@ -42,6 +42,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
 
 dol_include_once('/factory/class/factory.class.php');
 dol_include_once('/factory/core/lib/factory.lib.php');
+dol_include_once('/factory/class/html.factoryformproduct.class.php');
 
 if (! empty($conf->global->FACTORY_ADDON)
 	&& is_readable(dol_buildpath("/factory/core/modules/factory/".$conf->global->FACTORY_ADDON.".php")))
@@ -85,6 +86,20 @@ if ($id || $ref) {
 	$factory->id =$id;
 }
 
+
+//--------------------------------------------------------------------------
+// List of warehouses for each product - OpenDSI - Begin
+//--------------------------------------------------------------------------
+$factoryIdEntrepot = (GETPOST('factory_id_entrepot', 'int')?intval(GETPOST('factory_id_entrepot', 'int')):-1);
+$nbToBuild = (GETPOST('nbToBuild', 'int')?intval(GETPOST('nbToBuild', 'int')):1);
+if ($nbToBuild <= 0) {
+    $nbToBuild = 1;
+}
+//--------------------------------------------------------------------------
+// List of warehouses for each product - OpenDSI - End
+//--------------------------------------------------------------------------
+
+
 /*
  * Actions
  */
@@ -93,35 +108,138 @@ if ($cancel == $langs->trans("Cancel"))
 
 // build product on each store
 if ($action == 'createof' && GETPOST("createofrun")) {
-	// on récupère les valeurs saisies
-	$factory->fk_entrepot=GETPOST("entrepotid");
-	$factory->qty_planned=GETPOST("nbToBuild");
-	$factory->date_start_planned=dol_mktime(
-					GETPOST('plannedstarthour', 'int'), GETPOST('plannedstartmin', 'int'), 0,
-					GETPOST('plannedstartmonth', 'int'), GETPOST('plannedstartday', 'int'), GETPOST('plannedstartyear', 'int')
-	);
-	$factory->date_end_planned=dol_mktime(
-					GETPOST('plannedendhour', 'int'), GETPOST('plannedendmin', 'int'), 0,
-					GETPOST('plannedendmonth', 'int'), GETPOST('plannedendday', 'int'), GETPOST('plannedendyear', 'int')
-	);
-	$factory->duration_planned=GETPOST("workloadhour")*3600+GETPOST("workloadmin")*60;
-	$factory->description=GETPOST("description");
+    // on récupère les valeurs saisies
+    /*
+    $factory->fk_entrepot=GETPOST("entrepotid");
+    $factory->qty_planned=GETPOST("nbToBuild");
+    $factory->date_start_planned=dol_mktime(
+        GETPOST('plannedstarthour', 'int'), GETPOST('plannedstartmin', 'int'), 0,
+        GETPOST('plannedstartmonth', 'int'), GETPOST('plannedstartday', 'int'), GETPOST('plannedstartyear', 'int')
+    );
+    $factory->date_end_planned=dol_mktime(
+        GETPOST('plannedendhour', 'int'), GETPOST('plannedendmin', 'int'), 0,
+        GETPOST('plannedendmonth', 'int'), GETPOST('plannedendday', 'int'), GETPOST('plannedendyear', 'int')
+    );
+    $factory->duration_planned=GETPOST("workloadhour")*3600+GETPOST("workloadmin")*60;
+    $factory->description=GETPOST("description");
 
-	// Fill array 'array_options' with data from add form
-	$ret = $extrafields->setOptionalsFromPost($extralabels, $factory);
-	if ($ret < 0) $error++;
+    // Fill array 'array_options' with data from add form
+    $ret = $extrafields->setOptionalsFromPost($extralabels, $factory);
+    if ($ret < 0) $error++;
 
-	if (! $error) {
-		$newref=$factory->createof();
-		// Little message to inform of the number of builded product
-		$mesg='<div class="ok">'.$newref.' '.$langs->trans("FactoryOrderSaved").'</div>';
-		//$action="";
-		// on affiche la liste des of en cours pour le produit
-		Header("Location: list.php?fk_status=1&id=".$id);
-	} else {
-		// Required extrafield left blank, error message already defined by setOptionalsFromPost()
-		$action = 'verifyof';
-	}
+    if (! $error) {
+        $newref=$factory->createof();
+        // Little message to inform of the number of builded product
+        $mesg='<div class="ok">'.$newref.' '.$langs->trans("FactoryOrderSaved").'</div>';
+        //$action="";
+        // on affiche la liste des of en cours pour le produit
+        Header("Location: list.php?fk_status=1&id=".$id);
+    } else {
+        // Required extrafield left blank, error message already defined by setOptionalsFromPost()
+        $action = 'verifyof';
+    }
+    */
+
+    //--------------------------------------------------------------------------
+    // List of warehouses for each product - OpenDSI - Begin
+    //--------------------------------------------------------------------------
+    $error = 0;
+
+    $factory->get_sousproduits_arbo();
+    $prods_arbo = $factory->get_arbo_each_prod();
+
+    $factory->fk_entrepot=$factoryIdEntrepot;
+    $factory->qty_planned=GETPOST("nbToBuild");
+    $factory->date_start_planned=dol_mktime(
+        GETPOST('plannedstarthour', 'int'), GETPOST('plannedstartmin', 'int'), 0,
+        GETPOST('plannedstartmonth', 'int'), GETPOST('plannedstartday', 'int'), GETPOST('plannedstartyear', 'int')
+    );
+    $factory->date_end_planned=dol_mktime(
+        GETPOST('plannedendhour', 'int'), GETPOST('plannedendmin', 'int'), 0,
+        GETPOST('plannedendmonth', 'int'), GETPOST('plannedendday', 'int'), GETPOST('plannedendyear', 'int')
+    );
+    $factory->duration_planned=GETPOST("workloadhour")*3600+GETPOST("workloadmin")*60;
+    $factory->description=GETPOST("description");
+
+    // check mandatory fields
+    if ($factoryIdEntrepot <= 0) {
+        $error++;
+        $factory->error    = $langs->trans("ErrorFieldRequired", $langs->transnoentities("FactoryWarehouse"));
+        $factory->errors[] = $factory->error;
+    }
+
+    if ($nbToBuild <= 0) {
+        $error++;
+        $factory->error    = $langs->trans("ErrorFieldRequired", $langs->trans("NbToBuild"));
+        $factory->errors[] = $factory->error;
+    }
+
+    // list of warehouses for components to use to build final product
+    $warehouseToUseList = array();
+    if (count($prods_arbo) > 0) {
+        foreach ($prods_arbo as $value) {
+            // only for product
+            if (intval($value['type']) == 0) {
+                $lineNum = 0;
+                $productId = $value['id'];
+                $productNb = intval($value['nb']) * $nbToBuild;
+
+                for ($productNum = 0; $productNum < $productNb; $productNum++) {
+                    $productFactoryIdEntrepot = GETPOST('factory_id_entrepot_' . $productId . '_' . $lineNum, 'int');
+                    $productFactoryQtyPost = GETPOST('factory_qty_' . $productId . '_' . $lineNum, 'int');
+                    $productFactoryQty = intval($productFactoryQtyPost);
+
+                    if ($productFactoryQty >= 1) {
+                        if ($productFactoryIdEntrepot <= 0) {
+                            $error++;
+                            $factory->error    = $langs->trans('ErrorFieldRequired', $langs->transnoentities('Warehouse'));
+                            $factory->errors[] = $factory->error;
+                            break;
+                        }
+                    }
+
+                    // if warehouse defined
+                    if ($productFactoryIdEntrepot>0 && $productFactoryQty>0) {
+                        // add warehouses to use
+                        if (!isset($warehouseToUseList[$productId])) {
+                            $warehouseToUseList[$productId] = array();
+                        }
+                        $warehouseToUseList[$productId][] = array('fk_entrepot' => $productFactoryIdEntrepot, 'qty' => $productFactoryQty);
+                    }
+
+                    $lineNum++;
+                }
+            }
+        }
+    }
+
+    if (!$error) {
+        // Fill array 'array_options' with data from add form
+        $ret = $extrafields->setOptionalsFromPost($extralabels, $factory);
+        if ($ret < 0) $error++;
+
+        if (! $error) {
+            $newref=$factory->createof($warehouseToUseList);
+
+            if ($newref < 0) {
+                $error++;
+            }
+        }
+    }
+
+    if ($error) {
+        setEventMessages($factory->error, $factory->errors, 'errors');
+        $action = 'build';
+    } else {
+        // Little message to inform of the number of builded product
+        setEventMessage($langs->trans("FactoryOrderSaved"), 'mesgs');
+        // on affiche la liste des of en cours pour le produit
+        header("Location: list.php?fk_status=1&id=".$id);
+        exit();
+    }
+    //--------------------------------------------------------------------------
+    // List of warehouses for each product - OpenDSI - End
+    //--------------------------------------------------------------------------
 }
 
 
@@ -133,7 +251,7 @@ if ($action == 'createof' && GETPOST("createofrun")) {
 $productstatic = new Product($db);
 $form = new Form($db);
 
-llxHeader("", "", $langs->trans("CardProduct".$product->type));
+llxHeader("", "", $langs->trans("CardProduct".$product->type), '', 0, 0, array('/custom/factory/js/factory_dispatcher.js'));
 
 $head=product_prepare_head($object, $user);
 $titre=$langs->trans("CardProduct".$object->type);
@@ -380,19 +498,34 @@ if ($id || $ref) {
 		}
 
 		if ($action == 'build' || $action == 'createof') {
+            //--------------------------------------------------------------------------
+            // List of warehouses for each product - OpenDSI - Begin
+            //--------------------------------------------------------------------------
+            $formproduct = new FactoryFormProduct($db);
+            //--------------------------------------------------------------------------
+            // List of warehouses for each product - OpenDSI - End
+            //--------------------------------------------------------------------------
+
 			// Display the list of store with buildable product
 			print '<br>';
 			print_fiche_titre($langs->trans("CreateOF"), '', '');
 
-			print '<form action="fiche.php?id='.$id.'" method="post">';
+			print '<form action="fiche.php?id='.$id.'" id="factory_form" method="post">';
 			print '<input type="hidden" name="action" value="createof">';
 			print '<table class="nobordernopadding"><tr><td width=50% valign=top>';
 			print '<table class="border">';
 			print '<tr><td width=250px>'.$langs->trans("EntrepotStock").'</td><td width=250px>';
-			print select_entrepot_list(GETPOST("entrepotid"), "entrepotid", 0, 1);
+            //--------------------------------------------------------------------------
+            // List of warehouses for each product - OpenDSI - Begin
+            //--------------------------------------------------------------------------
+			//print select_entrepot_list(GETPOST("entrepotid"), "entrepotid", 0, 1);
+            print $formproduct->selectWarehouses('', 'factory_id_entrepot', 'warehouseopen,warehouseinternal', 0, 0, $object->id, '', 0, 0, null, 'minwidth100');
+            //--------------------------------------------------------------------------
+            // List of warehouses for each product - OpenDSI - End
+            //--------------------------------------------------------------------------
 			print '</td></tr>';
 			print '<tr><td>'.$langs->trans("QtyToBuild").'</td>';
-			print '<td  ><input style="text-align:right;" type="text" name="nbToBuild" size=5 value="'.GETPOST("nbToBuild").'">';
+			print '<td  ><input style="text-align:right;" type="text" id="factory_nbtobuild" name="nbToBuild" size=5 value="' . $nbToBuild .'">';
 			print '</td></tr>';
 
 			print '<tr><td>'.$langs->trans("FactoryDateStartPlanned").'</td>';
@@ -458,6 +591,8 @@ if ($id || $ref) {
 			print '</table>';
 			print '</td>';
 			print '<td valign=top width=50%>';
+
+			/*
 			if (GETPOST("verifyof")) {
 				// on vérifie que la quantité à fabriqué a bien été saisie (valeur obligatoire)
 				if (GETPOST("nbToBuild")) {
@@ -539,6 +674,7 @@ if ($id || $ref) {
 				else
 					$mesg='<div class="error">'.$langs->trans("QuantityToBuildNotNull").'</div>';
 			}
+
 			print '</td></tr>';
 			print '<tr>';
 			print '<td align=center>';
@@ -551,6 +687,86 @@ if ($id || $ref) {
 			print '</tr>';
 			print '</table>';
 			print '</form>';
+			*/
+
+            //--------------------------------------------------------------------------
+            // List of warehouses for each product - OpenDSI - Begin
+            //--------------------------------------------------------------------------
+
+            // List of subproducts
+            if (count($prods_arbo) > 0) {
+                print '<table class="border">';
+
+                foreach ($prods_arbo as $value) {
+                    // component product
+                    $componentProduct = new Product($db);
+                    $componentProduct->fetch($value['id']);
+
+                    $dispactherList = array('id' => $value['id'], 'name' => 'factory', 'line' => 0, 'nb' => intval($value['nb']) * $nbToBuild, 'btn_nb' => 0);
+
+                    // select warehouse where there is enough stock with qty dispatcher
+                    print '<tr name="' . $dispactherList['name'] . '_' . $dispactherList['id'] . '_' . $dispactherList['line'] . '">';
+                    print '<td class="fieldrequired">' . $componentProduct->ref . '</td>';
+                    print '<td>';
+                    print $formproduct->selectWarehouses('', $dispactherList['name'] . '_id_entrepot_' . $dispactherList['id'] . '_' . $dispactherList['line'], 'warehouseopen,warehouseinternal', 0, 0, $dispactherList['id'], '', 0, 1, null, 'minwidth100',  '', 1, TRUE);
+                    print '</td>';
+
+                    print '<td>';
+                    print '<select id="' . $dispactherList['name'] . '_qty_' . $dispactherList['id'] . '_' . $dispactherList['line'] . '" name="' . $dispactherList['name'] . '_qty_' . $dispactherList['id'] . '_' . $dispactherList['line'] . '">';
+
+                    for ($dispatcherQty = 1; $dispatcherQty <= $dispactherList['nb']; $dispatcherQty++) {
+                        $dispatcherOptionSelected = '';
+                        if ($dispatcherQty === $dispactherList['nb']) {
+                            $dispatcherOptionSelected = ' selected="selected"';
+                        }
+
+                        print '<option value="' . $dispatcherQty . '"' . $dispatcherOptionSelected . '>' . $dispatcherQty . '</option>';
+                    }
+
+                    print '</select>';
+                    print '</td>';
+
+                    print '<td name="' . $dispactherList['name'] . '_action_' . $dispactherList['id'] . '_' . $dispactherList['line'] . '">';
+                    if ($dispactherList['btn_nb'] === 0 && $dispactherList['nb'] > 1) {
+                        print '&nbsp;&nbsp;' . img_picto($langs->trans('AddDispatchBatchLine'), 'split.png', 'onClick="FactoryDispatcher.addLineFromDispatcher(' . $dispactherList['id'] . ',\'' . $dispactherList['name'] . '\')"') . '';
+                        $dispactherList['btn_nb']++;
+                    }
+                    print '</td>';
+
+                    print '</tr>';
+
+                    $dispactherList['line']++;
+                }
+
+                print '</table>';
+            }
+
+            print '</td></tr>';
+            print '<tr>';
+            print '<td align=center>';
+            if (($action == 'build' || $action == 'createof')) {
+                print '<td align=center>';
+                print '<input type="submit" class="button" name="createofrun" value="' . $langs->trans("LaunchOF") . '">';
+                print '</td>';
+            }
+            print '</tr>';
+
+            print <<<SCRIPT
+    <script type="text/javascript" language="javascript">
+        jQuery(document).ready(function(){
+            jQuery('#factory_nbtobuild').on('change', function(){
+                jQuery('#factory_form').submit();
+            })
+        });
+    </script>
+SCRIPT;
+
+            print '</table>';
+            print '</form>';
+
+            //--------------------------------------------------------------------------
+            // List of warehouses for each product - OpenDSI - End
+            //--------------------------------------------------------------------------
 		}
 	}
 }
