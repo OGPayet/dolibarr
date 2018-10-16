@@ -137,15 +137,15 @@ if ($zone === 1) {
     print '<tr>';
     // Source
     print '<td>' . $langs->trans('RequestManagerSource') . '</td>';
-    print '<td>' . $formrequestmanager->select_source($selectedFkSource, 'source', 1, 0, array(), 0, 0, 'minwidth100') . '</td>';
+    print '<td>' . $formrequestmanager->select_source($selectedFkSource, 'source', 1, 0, array(), 0, 0, 'minwidth300') . '</td>';
     // Urgency
     print '<td>' . $langs->trans('RequestManagerUrgency') . '</td>';
-    print '<td>' . $formrequestmanager->select_urgency($selectedFkUrgency, 'urgency', 1, 0, array(), 0, 0, 'minwidth100') . '</td>';
+    print '<td>' . $formrequestmanager->select_urgency($selectedFkUrgency, 'urgency', 1, 0, array(), 0, 0, 'minwidth300') . '</td>';
     // Type
     print '<td class="fieldrequired">' . $langs->trans('RequestManagerType') . '</td>';
     $groupslist = $usergroup_static->listGroupsForUser($user->id);
     print '<td>';
-    print $formrequestmanager->select_type(array_keys($groupslist), $selectedFkType, 'type', 1, 0, null, 0, 0, 'minwidth100');
+    print $formrequestmanager->select_type(array_keys($groupslist), $selectedFkType, 'type', 1, 0, null, 0, 0, 'minwidth300');
     print '</td>';
     print '</tr>';
     print '</table>';
@@ -155,7 +155,7 @@ if ($zone === 1) {
     // ActionComm
     print '<td width="200px">' . $langs->trans('RequestManagerCreateFastActionCommLabel') . '</td>';
     print '<td>';
-    print $formrequestmanager->select_actioncomm('', array('AC_TEL'), $selectedActionCommId, 'actioncomm_id', 1, 0, null, 0);
+    print $formrequestmanager->select_actioncomm('', array('AC_TEL'), $selectedActionCommId, 'actioncomm_id', 1, 0, null, 0, 'minwidth300');
     print '</td>';
     print '</tr>';
     print '</table>';
@@ -185,7 +185,7 @@ if ($zone === 1) {
     print '</tr>';
 
     print '<tr>';
-    // ThirdParty Bill
+    // ThirdParty Principal
     print '<td>' . $langs->trans('RequestManagerThirdPartyPrincipal') . '</td><td>';
     print $form->select_company($selectedSocId, 'socid', $filterSocId, 'SelectThirdParty', 0, 0, array(), 0, 'minwidth300');
     if (!empty($conf->societe->enabled) && $user->rights->societe->creer) {
@@ -211,12 +211,12 @@ if ($zone === 1) {
     if ($conf->equipement->enabled) {
         print '<td>' . $langs->trans("Equipement") . '</td>';
         print '<td>';
-        print $formrequestmanager->select_benefactor_equipement($selectedSocId, $selectedSocIdBenefactor, $selectedEquipementId, 'equipement_id', 1, 0, null, 0);
+        print $formrequestmanager->select_benefactor_equipement($selectedSocId, $selectedSocIdBenefactor, $selectedEquipementId, 'equipement_id', 1, 0, null, 0, 'minwidth300');
         print '</td>';
     }
     // Categories
     if ($conf->categorie->enabled) {
-        print '<td>' . $langs->trans("Categories") . '</td>';
+        print '<td>' . $langs->trans("RequestManagerTags") . '</td>';
         print '<td>';
         print $formrequestmanager->multiselect_categories($selectedCategories, 'categories',  '', 0, '', 0, '100%');
         print '</td>';

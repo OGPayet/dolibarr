@@ -240,6 +240,8 @@ RequestManagerCreateFastBtnCreateLabel    = Créer demande
 RequestManagerCreateFastBtnAssociateLabel = Associer demande
 RequestManagerCreateFastContractFormula   = Formule
 RequestManagerLastEvents                  = Derniers evénements
+RequestManagerNoActionComm                = Aucun événement non traité
+RequestManagerNoEquipement                = Aucun équipement
 
 ############################################################
 ### Confirm box : Create fast

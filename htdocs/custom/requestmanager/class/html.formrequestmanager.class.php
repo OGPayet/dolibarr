@@ -618,7 +618,7 @@ class FormRequestManager
             }
             else
             {
-                $out .= '<option value="-1" disabled>' . $langs->trans("NoActionComm") . '</option>';
+                $out .= '<option value="-1" disabled>' . $langs->trans("RequestManagerNoActionComm") . '</option>';
             }
 
             if (!$options_only)
@@ -700,7 +700,7 @@ class FormRequestManager
             }
             else
             {
-                $out .= '<option value="-1" disabled>' . $langs->trans("NoEquipement") . '</option>';
+                $out .= '<option value="-1" disabled>' . $langs->trans("RequestManagerNoEquipement") . '</option>';
             }
 
             if ($options_only)
@@ -777,7 +777,7 @@ class FormRequestManager
                     $i++;
                 }
             } else {
-                $out .= '<option value="-1" disabled>' . $langs->trans("NoEquipement") . '</option>';
+                $out .= '<option value="-1" disabled>' . $langs->trans("RequestManagerNoEquipement") . '</option>';
             }
 
             if ($options_only) {
