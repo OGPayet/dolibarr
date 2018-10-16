@@ -73,6 +73,8 @@ class RequestManagerApi extends DolibarrApi {
             throw new RestException(404, "Request not found");
         } elseif ($result < 0) {
             throw new RestException(500, "Error when retrieve request", $this->_getErrors($requestmanager));
+        } else {
+            $requestmanager->fetch_optionals();
         }
 
         $requestmanager->fetchObjectLinked();
@@ -539,9 +541,13 @@ class RequestManagerApi extends DolibarrApi {
             throw new RestException(404, "Request message not found");
         } elseif ($result < 0) {
             throw new RestException(500, "Error when retrieve request message", $this->_getErrors($requestmanager_message));
+        } else {
+            $requestmanager_message->fetch_knowledge_base();
+            $requestmanager_message->fetch_optionals();
         }
 
-        return $this->_cleanEventObjectDatas($requestmanager_message);
+        $requestmanager_message = $this->_cleanEventObjectDatas($requestmanager_message);
+        return $this->_cleanMessageObjectDatas($requestmanager_message);
     }
 
     /**
@@ -1086,46 +1092,90 @@ class RequestManagerApi extends DolibarrApi {
     {
         $object = parent::_cleanObjectDatas($object);
 
+        unset($object->icalname);
+        unset($object->icalcolor);
+        unset($object->actions);
+        unset($object->email_msgid);
+        unset($object->email_from);
+        unset($object->email_sender);
+        unset($object->email_to);
+        unset($object->email_tocc);
+        unset($object->email_tobcc);
+        unset($object->email_subject);
+        unset($object->errors_to);
+        unset($object->table_rowid);
+        unset($object->libelle);
+        unset($object->linkedObjectsIds);
+        unset($object->canvas);
+        unset($object->thirdparty);
+        unset($object->user);
+        unset($object->origin);
+        unset($object->origin_id);
+        unset($object->statut);
+        unset($object->country);
+        unset($object->country_id);
+        unset($object->country_code);
+        unset($object->barcode_type);
+        unset($object->barcode_type_code);
+        unset($object->barcode_type_label);
+        unset($object->barcode_type_coder);
+        unset($object->mode_reglement_id);
+        unset($object->cond_reglement_id);
+        unset($object->cond_reglement);
+        unset($object->fk_delivery_address);
+        unset($object->shipping_method_id);
+        unset($object->modelpdf);
+        unset($object->fk_account);
+        unset($object->note_public);
+        unset($object->note_private);
+        unset($object->total_ht);
+        unset($object->total_tva);
+        unset($object->total_localtax1);
+        unset($object->total_localtax2);
+        unset($object->total_ttc);
+        unset($object->lines);
+        unset($object->fk_incoterms);
+        unset($object->libelle_incoterms);
+        unset($object->location_incoterms);
+        unset($object->name);
+        unset($object->lastname);
+        unset($object->firstname);
+        unset($object->civility_id);
+        unset($object->contact_id);
+        unset($object->contact);
+        unset($object->societe);
         unset($object->usermod);
-	unset($object->libelle);
-	unset($object->array_options);
-	unset($object->context);
-	unset($object->canvas);
-	unset($object->contact);
-	unset($object->contact_id);
-	unset($object->thirdparty);
-	unset($object->user);
-	unset($object->origin);
-	unset($object->origin_id);
-	unset($object->ref_ext);
-	unset($object->statut);
-	unset($object->country);
-	unset($object->country_id);
-	unset($object->country_code);
-	unset($object->barcode_type);
-	unset($object->barcode_type_code);
-	unset($object->barcode_type_label);
-	unset($object->barcode_type_coder);
-	unset($object->mode_reglement_id);
-	unset($object->cond_reglement_id);
-	unset($object->cond_reglement);
-	unset($object->fk_delivery_address);
-	unset($object->shipping_method_id);
-	unset($object->fk_account);
-	unset($object->total_ht);
-	unset($object->total_tva);
-	unset($object->total_localtax1);
-	unset($object->total_localtax2);
-	unset($object->total_ttc);
-	unset($object->fk_incoterms);
-	unset($object->libelle_incoterms);
-	unset($object->location_incoterms);
-	unset($object->name);
-	unset($object->lastname);
-	unset($object->firstname);
-	unset($object->civility_id);
-	unset($object->contact);
-	unset($object->societe);
+        unset($object->import_key);
+        unset($object->userdone);
+        unset($object->usertodo);
+        unset($object->elementtype);
+
+        return $object;
+    }
+
+    /**
+     *  Clean sensible event object data
+     *
+     * @param   object          $object         Object to clean
+     *
+     * @return  object|array                    Array of cleaned object properties
+     */
+    function _cleanMessageObjectDatas($object)
+    {
+        $object = parent::_cleanObjectDatas($object);
+
+        unset($object->requestmanager);
+        unset($object->attached_files);
+        unset($object->knowledge_base_list);
+        unset($object->durationp);
+        unset($object->fulldayevent);
+        unset($object->punctual);
+        unset($object->percentage);
+        unset($object->location);
+        unset($object->transparency);
+        unset($object->priority);
+        unset($object->ref_ext);
+        unset($object->fk_project);
 
         return $object;
     }

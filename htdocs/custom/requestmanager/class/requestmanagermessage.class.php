@@ -406,14 +406,17 @@ class RequestManagerMessage extends ActionComm
 
         $result = parent::fetch($id, $ref, $ref_ext);
         if ($result > 0) {
-            $sql = "SELECT fk_knowledge_base";
+            $sql = "SELECT notify_assigned, notify_requesters, notify_watchers";
             $sql .= " FROM " . MAIN_DB_PREFIX . "requestmanager_message";
             $sql .= " WHERE fk_actioncomm = " . $this->id;
 
             $resql = $this->db->query($sql);
             if ($resql) {
                 if ($obj = $this->db->fetch_object($resql)) {
-                    $this->fk_knowledge_base = $obj->fk_knowledge_base;
+                    $this->notify_assigned = $obj->notify_assigned;
+                    $this->notify_requesters = $obj->notify_requesters;
+                    $this->notify_watchers = $obj->notify_watchers;
+                    $this->fetch_message_type();
 
                     $this->db->free($resql);
 
