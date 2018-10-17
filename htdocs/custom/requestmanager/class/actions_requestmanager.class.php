@@ -145,171 +145,174 @@ class ActionsRequestManager
 
         if (in_array('actioncard', $contexts)) {
             $id = GETPOST('id', 'int');
-            $object->fetch($id);
 
-            if ($object->type_code == 'AC_RM_OUT' || $object->type_code == 'AC_RM_PRIV' || $object->type_code == 'AC_RM_IN') {
-                $langs->load('requestmanager@requestmanager');
+			if($id > 0) {
+				$object->fetch($id);
 
-                if ($action == 'create' || $action == 'add') {
-                    $this->errors[] = $langs->trans('RequestManagerErrorCanOnlyCreateMessageFromRequest');
-                    $action = '';
-                    return -1;
-                } elseif ($action == 'edit' || $action == 'update') {
-                    $this->errors[] = $langs->trans('RequestManagerErrorMessageCanNotBeModified');
-                    $action = '';
-                    return -1;
-                    /*$error = 0;
-                    $cancel = GETPOST('cancel', 'alpha');
-                    if (empty($cancel) && $user->rights->requestmanager->creer) {
-                        dol_include_once('/requestmanager/class/requestmanagermessage.class.php');
-                        $requestmanagermessage = new RequestManagerMessage($this->db);
+				if ($object->type_code == 'AC_RM_OUT' || $object->type_code == 'AC_RM_PRIV' || $object->type_code == 'AC_RM_IN') {
+					$langs->load('requestmanager@requestmanager');
 
-                        require_once DOL_DOCUMENT_ROOT . '/comm/action/class/cactioncomm.class.php';
-                        $cactioncomm = new CActionComm($this->db);
+					if ($action == 'create' || $action == 'add') {
+						$this->errors[] = $langs->trans('RequestManagerErrorCanOnlyCreateMessageFromRequest');
+						$action = '';
+						return -1;
+					} elseif ($action == 'edit' || $action == 'update') {
+						$this->errors[] = $langs->trans('RequestManagerErrorMessageCanNotBeModified');
+						$action = '';
+						return -1;
+						/*$error = 0;
+						$cancel = GETPOST('cancel', 'alpha');
+						if (empty($cancel) && $user->rights->requestmanager->creer) {
+							dol_include_once('/requestmanager/class/requestmanagermessage.class.php');
+							$requestmanagermessage = new RequestManagerMessage($this->db);
 
-                        $backtopage = GETPOST('backtopage', 'alpha');
+							require_once DOL_DOCUMENT_ROOT . '/comm/action/class/cactioncomm.class.php';
+							$cactioncomm = new CActionComm($this->db);
 
-                        $fulldayevent = GETPOST('fullday');
-                        $aphour = GETPOST('aphour');
-                        $apmin = GETPOST('apmin');
-                        $p2hour = GETPOST('p2hour');
-                        $p2min = GETPOST('p2min');
-                        $percentage = in_array(GETPOST('status'), array(-1, 100)) ? GETPOST('status') : (in_array(GETPOST('complete'), array(-1, 100)) ? GETPOST('complete') : GETPOST("percentage"));    // If status is -1 or 100, percentage is not defined and we must use status
+							$backtopage = GETPOST('backtopage', 'alpha');
 
-                        // Clean parameters
-                        if ($aphour == -1) $aphour = '0';
-                        if ($apmin == -1) $apmin = '0';
-                        if ($p2hour == -1) $p2hour = '0';
-                        if ($p2min == -1) $p2min = '0';
+							$fulldayevent = GETPOST('fullday');
+							$aphour = GETPOST('aphour');
+							$apmin = GETPOST('apmin');
+							$p2hour = GETPOST('p2hour');
+							$p2min = GETPOST('p2min');
+							$percentage = in_array(GETPOST('status'), array(-1, 100)) ? GETPOST('status') : (in_array(GETPOST('complete'), array(-1, 100)) ? GETPOST('complete') : GETPOST("percentage"));    // If status is -1 or 100, percentage is not defined and we must use status
 
-                        $requestmanagermessage->fetch($id);
-                        $requestmanagermessage->fetch_userassigned();
+							// Clean parameters
+							if ($aphour == -1) $aphour = '0';
+							if ($apmin == -1) $apmin = '0';
+							if ($p2hour == -1) $p2hour = '0';
+							if ($p2min == -1) $p2min = '0';
 
-                        $datep = dol_mktime($fulldayevent ? '00' : $aphour, $fulldayevent ? '00' : $apmin, 0, $_POST["apmonth"], $_POST["apday"], $_POST["apyear"]);
-                        $datef = dol_mktime($fulldayevent ? '23' : $p2hour, $fulldayevent ? '59' : $p2min, $fulldayevent ? '59' : '0', $_POST["p2month"], $_POST["p2day"], $_POST["p2year"]);
+							$requestmanagermessage->fetch($id);
+							$requestmanagermessage->fetch_userassigned();
 
-                        $requestmanagermessage->fk_action = dol_getIdFromCode($this->db, GETPOST("actioncode"), 'c_actioncomm');
-                        $requestmanagermessage->label = GETPOST("label");
-                        $requestmanagermessage->datep = $datep;
-                        $requestmanagermessage->datef = $datef;
-                        $requestmanagermessage->percentage = $percentage;
-                        $requestmanagermessage->priority = GETPOST("priority");
-                        $requestmanagermessage->fulldayevent = GETPOST("fullday") ? 1 : 0;
-                        $requestmanagermessage->location = GETPOST('location');
-                        $requestmanagermessage->socid = GETPOST("socid");
-                        $requestmanagermessage->contactid = GETPOST("contactid", 'int');
-                        //$requestmanagermessage->societe->id = $_POST["socid"];			// deprecated
-                        //$requestmanagermessage->contact->id = $_POST["contactid"];		// deprecated
-                        $requestmanagermessage->fk_project = GETPOST("projectid", 'int');
-                        $requestmanagermessage->note = GETPOST("note");
-                        $requestmanagermessage->pnote = GETPOST("note");
-                        $requestmanagermessage->fk_element = GETPOST("fk_element");
-                        $requestmanagermessage->elementtype = GETPOST("elementtype");
+							$datep = dol_mktime($fulldayevent ? '00' : $aphour, $fulldayevent ? '00' : $apmin, 0, $_POST["apmonth"], $_POST["apday"], $_POST["apyear"]);
+							$datef = dol_mktime($fulldayevent ? '23' : $p2hour, $fulldayevent ? '59' : $p2min, $fulldayevent ? '59' : '0', $_POST["p2month"], $_POST["p2day"], $_POST["p2year"]);
 
-                        if (!$datef && $percentage == 100) {
-                            $error++;
-                            $donotclearsession = 1;
-                            setEventMessages($langs->transnoentitiesnoconv("ErrorFieldRequired", $langs->transnoentitiesnoconv("DateEnd")), $requestmanagermessage->errors, 'errors');
-                            $action = 'edit';
-                        }
+							$requestmanagermessage->fk_action = dol_getIdFromCode($this->db, GETPOST("actioncode"), 'c_actioncomm');
+							$requestmanagermessage->label = GETPOST("label");
+							$requestmanagermessage->datep = $datep;
+							$requestmanagermessage->datef = $datef;
+							$requestmanagermessage->percentage = $percentage;
+							$requestmanagermessage->priority = GETPOST("priority");
+							$requestmanagermessage->fulldayevent = GETPOST("fullday") ? 1 : 0;
+							$requestmanagermessage->location = GETPOST('location');
+							$requestmanagermessage->socid = GETPOST("socid");
+							$requestmanagermessage->contactid = GETPOST("contactid", 'int');
+							//$requestmanagermessage->societe->id = $_POST["socid"];			// deprecated
+							//$requestmanagermessage->contact->id = $_POST["contactid"];		// deprecated
+							$requestmanagermessage->fk_project = GETPOST("projectid", 'int');
+							$requestmanagermessage->note = GETPOST("note");
+							$requestmanagermessage->pnote = GETPOST("note");
+							$requestmanagermessage->fk_element = GETPOST("fk_element");
+							$requestmanagermessage->elementtype = GETPOST("elementtype");
 
-                        $transparency = (GETPOST("transparency") == 'on' ? 1 : 0);
+							if (!$datef && $percentage == 100) {
+								$error++;
+								$donotclearsession = 1;
+								setEventMessages($langs->transnoentitiesnoconv("ErrorFieldRequired", $langs->transnoentitiesnoconv("DateEnd")), $requestmanagermessage->errors, 'errors');
+								$action = 'edit';
+							}
 
-                        // Users
-                        $listofuserid = array();
-                        if (!empty($_SESSION['assignedtouser']))    // Now concat assigned users
-                        {
-                            // Restore array with key with same value than param 'id'
-                            $tmplist1 = json_decode($_SESSION['assignedtouser'], true);
-                            $tmplist2 = array();
-                            foreach ($tmplist1 as $key => $val) {
-                                if ($val['id'] > 0 && $val['id'] != $assignedtouser) $listofuserid[$val['id']] = $val;
-                            }
-                        } else {
-                            $assignedtouser = (!empty($requestmanagermessage->userownerid) && $requestmanagermessage->userownerid > 0 ? $requestmanagermessage->userownerid : 0);
-                            if ($assignedtouser) $listofuserid[$assignedtouser] = array('id' => $assignedtouser, 'mandatory' => 0, 'transparency' => ($user->id == $assignedtouser ? $transparency : ''));    // Owner first
-                        }
+							$transparency = (GETPOST("transparency") == 'on' ? 1 : 0);
 
-                        $requestmanagermessage->userassigned = array();
-                        $requestmanagermessage->userownerid = 0; // Clear old content
-                        $i = 0;
-                        foreach ($listofuserid as $key => $val) {
-                            if ($i == 0) $requestmanagermessage->userownerid = $val['id'];
-                            $requestmanagermessage->userassigned[$val['id']] = array('id' => $val['id'], 'mandatory' => 0, 'transparency' => ($user->id == $val['id'] ? $transparency : ''));
-                            $i++;
-                        }
+							// Users
+							$listofuserid = array();
+							if (!empty($_SESSION['assignedtouser']))    // Now concat assigned users
+							{
+								// Restore array with key with same value than param 'id'
+								$tmplist1 = json_decode($_SESSION['assignedtouser'], true);
+								$tmplist2 = array();
+								foreach ($tmplist1 as $key => $val) {
+									if ($val['id'] > 0 && $val['id'] != $assignedtouser) $listofuserid[$val['id']] = $val;
+								}
+							} else {
+								$assignedtouser = (!empty($requestmanagermessage->userownerid) && $requestmanagermessage->userownerid > 0 ? $requestmanagermessage->userownerid : 0);
+								if ($assignedtouser) $listofuserid[$assignedtouser] = array('id' => $assignedtouser, 'mandatory' => 0, 'transparency' => ($user->id == $assignedtouser ? $transparency : ''));    // Owner first
+							}
 
-                        $requestmanagermessage->transparency = $transparency;        // We set transparency on event (even if we can also store it on each user, standard says this property is for event)
+							$requestmanagermessage->userassigned = array();
+							$requestmanagermessage->userownerid = 0; // Clear old content
+							$i = 0;
+							foreach ($listofuserid as $key => $val) {
+								if ($i == 0) $requestmanagermessage->userownerid = $val['id'];
+								$requestmanagermessage->userassigned[$val['id']] = array('id' => $val['id'], 'mandatory' => 0, 'transparency' => ($user->id == $val['id'] ? $transparency : ''));
+								$i++;
+							}
 
-                        if (!empty($conf->global->AGENDA_ENABLE_DONEBY)) {
-                            if (GETPOST("doneby")) $requestmanagermessage->userdoneid = GETPOST("doneby", "int");
-                        }
+							$requestmanagermessage->transparency = $transparency;        // We set transparency on event (even if we can also store it on each user, standard says this property is for event)
 
-                        // Check parameters
-                        if (!GETPOST('actioncode') > 0) {
-                            $error++;
-                            $donotclearsession = 1;
-                            $action = 'edit';
-                            setEventMessages($langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("Type")), null, 'errors');
-                        } else {
-                            $result = $cactioncomm->fetch(GETPOST('actioncode'));
-                        }
-                        if (empty($requestmanagermessage->userownerid)) {
-                            $error++;
-                            $donotclearsession = 1;
-                            $action = 'edit';
-                            setEventMessages($langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("ActionsOwnedBy")), null, 'errors');
-                        }
+							if (!empty($conf->global->AGENDA_ENABLE_DONEBY)) {
+								if (GETPOST("doneby")) $requestmanagermessage->userdoneid = GETPOST("doneby", "int");
+							}
 
-                        // Fill array 'array_options' with data from add form
-                        $extrafields = new ExtraFields($this->db);
-                        $extralabels = $extrafields->fetch_name_optionals_label($requestmanagermessage->table_element);
-                        $ret = $extrafields->setOptionalsFromPost($extralabels, $requestmanagermessage);
-                        if ($ret < 0) $error++;
+							// Check parameters
+							if (!GETPOST('actioncode') > 0) {
+								$error++;
+								$donotclearsession = 1;
+								$action = 'edit';
+								setEventMessages($langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("Type")), null, 'errors');
+							} else {
+								$result = $cactioncomm->fetch(GETPOST('actioncode'));
+							}
+							if (empty($requestmanagermessage->userownerid)) {
+								$error++;
+								$donotclearsession = 1;
+								$action = 'edit';
+								setEventMessages($langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("ActionsOwnedBy")), null, 'errors');
+							}
 
-                        if (!$error) {
-                            $this->db->begin();
+							// Fill array 'array_options' with data from add form
+							$extrafields = new ExtraFields($this->db);
+							$extralabels = $extrafields->fetch_name_optionals_label($requestmanagermessage->table_element);
+							$ret = $extrafields->setOptionalsFromPost($extralabels, $requestmanagermessage);
+							if ($ret < 0) $error++;
 
-                            $result = $requestmanagermessage->update($user);
+							if (!$error) {
+								$this->db->begin();
 
-                            if ($result > 0) {
-                                unset($_SESSION['assignedtouser']);
+								$result = $requestmanagermessage->update($user);
 
-                                $this->db->commit();
-                            } else {
-                                setEventMessages($requestmanagermessage->error, $requestmanagermessage->errors, 'errors');
-                                $this->db->rollback();
-                            }
-                        }
-                    }
+								if ($result > 0) {
+									unset($_SESSION['assignedtouser']);
 
-                    if (!$error) {
-                        if (!empty($backtopage)) {
-                            unset($_SESSION['assignedtouser']);
-                            header("Location: " . $backtopage);
-                            exit;
-                        }
-                    }
+									$this->db->commit();
+								} else {
+									setEventMessages($requestmanagermessage->error, $requestmanagermessage->errors, 'errors');
+									$this->db->rollback();
+								}
+							}
+						}
 
-                    return 1;*/
-                } elseif ($action == 'confirm_delete' && GETPOST("confirm") == 'yes' && $user->rights->requestmanager->creer) {
-                    dol_include_once('/requestmanager/class/requestmanagermessage.class.php');
-                    $requestmanagermessage = new RequestManagerMessage($this->db);
+						if (!$error) {
+							if (!empty($backtopage)) {
+								unset($_SESSION['assignedtouser']);
+								header("Location: " . $backtopage);
+								exit;
+							}
+						}
 
-                    $id = GETPOST('id', 'int');
-                    $requestmanagermessage->fetch($id);
+						return 1;*/
+					} elseif ($action == 'confirm_delete' && GETPOST("confirm") == 'yes' && $user->rights->requestmanager->creer) {
+						dol_include_once('/requestmanager/class/requestmanagermessage.class.php');
+						$requestmanagermessage = new RequestManagerMessage($this->db);
 
-                    $result = $requestmanagermessage->delete();
+						$id = GETPOST('id', 'int');
+						$requestmanagermessage->fetch($id);
 
-                    if ($result >= 0) {
-                        header("Location: index.php");
-                        exit;
-                    } else {
-                        setEventMessages($requestmanagermessage->error, $requestmanagermessage->errors, 'errors');
-                    }
-                    return 1;
-                }
-            }
+						$result = $requestmanagermessage->delete();
+
+						if ($result >= 0) {
+							header("Location: index.php");
+							exit;
+						} else {
+							setEventMessages($requestmanagermessage->error, $requestmanagermessage->errors, 'errors');
+						}
+						return 1;
+					}
+				}
+			}
         }
 
         return 0;
