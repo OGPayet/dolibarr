@@ -228,7 +228,7 @@ if (empty($reshook)) {
             $factory->fetch($factory->id);
         } else {
 		    $db->commit();
-            setEventMessage($langs->trans('OK'), 'mesgs');
+            setEventMessage($langs->trans("BuildedFactory", $factory->ref), 'mesgs');
             // on redirige pour eviter le doublement
             header("Location: ". $_SERVER["PHP_SELF"] . '?id='.$factory->id);
             exit();
