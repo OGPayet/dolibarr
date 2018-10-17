@@ -3,8 +3,8 @@ diff a/htdocs/custom/synergiestech/class/actions_synergiestech.class.php b/htdoc
     	 */
     	function formObjectOptions($parameters, &$object, &$action, $hookmanager)
      {
--        $action=GETPOST('action','alpha');
-+        //$action=GETPOST('action','alpha');
+-        //$action=GETPOST('action','alpha');
++        $action=GETPOST('action','alpha');
          $origin=GETPOST('origin','alpha');
          $originid=GETPOST('originid','int');
  
