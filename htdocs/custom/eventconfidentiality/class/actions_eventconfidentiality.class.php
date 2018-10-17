@@ -200,7 +200,7 @@ class ActionsEventConfidentiality
 				$array_tags = $dictionary->fetch_array('rowid', '{{label}}', array(), array('label' => 'ASC'));
 
 				$out .= '<tr>';
-				$out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityTagLabel") . '</td>';
+				$out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityTagInterneLabel") . '</td>';
 				$out .= '<td colspan="3">'.$form->multiselectarray('add_tag_interne', $array_tags, array(), '', 0, '', 0, '100%').'</td>';
 				$out .= '</tr>';
 
@@ -210,7 +210,7 @@ class ActionsEventConfidentiality
 				$array_tags = $dictionary->fetch_array('rowid', '{{label}}', array(), array('label' => 'ASC'));
 
 				$out .= '<tr>';
-				$out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityTagLabel") . '</td>';
+				$out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityTagExterneLabel") . '</td>';
 				$out .= '<td colspan="3">'.$form->multiselectarray('add_tag_externe', $array_tags, array(), '', 0, '', 0, '100%').'</td>';
 				$out .= '</tr>';
 			}
@@ -234,6 +234,10 @@ class ActionsEventConfidentiality
 
 		$element = $object->element;
 
+		//Get context execution
+		$url = dirname($_SERVER['REQUEST_URI']);
+		$parts = explode('/',$url);
+
 		$langs->load("eventconfidentiality@eventconfidentiality");
 		dol_include_once('/advancedictionaries/class/dictionary.class.php');
 		dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
@@ -256,42 +260,45 @@ class ActionsEventConfidentiality
 
 			//Gestion du mode
 			if($mode == 2) {
-				// accessforbidden('',0,0,1);
-				unset($object->id);
-				unset($object->ref);
-				unset($object->ref_ext);
-				unset($object->type_id);
-				unset($object->type_code);
-				unset($object->type_color);
-				unset($object->type_picto);
-				unset($object->type);
-				unset($object->code);
-				unset($object->label);
-				unset($object->datep);
-				unset($object->datef);
-				unset($object->durationp);
-				unset($object->datec);
-				unset($object->datem);
-				unset($object->note);
-				unset($object->percentage);
-				unset($object->authorid);
-				unset($object->usermodid);
-				unset($object->author);
-				unset($object->usermod);
-				unset($object->userownerid);
-				unset($object->userdoneid);
-				unset($object->priority);
-				unset($object->fulldayevent);
-				unset($object->location);
-				unset($object->transparency);
-				unset($object->punctual);
-				unset($object->socid);
-				unset($object->contactid);
-				unset($object->fk_project);
-				unset($object->societe);
-				unset($object->contact);
-				unset($object->fk_element);
-				unset($object->elementtype);
+				if (end($parts) == "action") {
+					accessforbidden();
+				} else {
+					unset($object->id);
+					unset($object->ref);
+					unset($object->ref_ext);
+					unset($object->type_id);
+					unset($object->type_code);
+					unset($object->type_color);
+					unset($object->type_picto);
+					unset($object->type);
+					unset($object->code);
+					unset($object->label);
+					unset($object->datep);
+					unset($object->datef);
+					unset($object->durationp);
+					unset($object->datec);
+					unset($object->datem);
+					unset($object->note);
+					unset($object->percentage);
+					unset($object->authorid);
+					unset($object->usermodid);
+					unset($object->author);
+					unset($object->usermod);
+					unset($object->userownerid);
+					unset($object->userdoneid);
+					unset($object->priority);
+					unset($object->fulldayevent);
+					unset($object->location);
+					unset($object->transparency);
+					unset($object->punctual);
+					unset($object->socid);
+					unset($object->contactid);
+					unset($object->fk_project);
+					unset($object->societe);
+					unset($object->contact);
+					unset($object->fk_element);
+					unset($object->elementtype);
+				}
 			} elseif($mode == 1) {
 				unset($object->datec);
 				unset($object->datem);
