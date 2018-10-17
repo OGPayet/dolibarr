@@ -203,8 +203,8 @@ class Factory extends CommonObject
         $error = 0;
 
         if (count($warehouseToUseList) > 0) {
-            foreach ($warehouseToUseList as $warehouseToUse) {
-                $result = $this->createof_component($fk_factory, $warehouseToUse['qty'], $valuearray, $fk_mouvementstock, $warehouseToUse['fk_entrepot']);
+            foreach ($warehouseToUseList as $idDispatchedLine => $warehouseToUse) {
+                $result = $this->createof_component($fk_factory, $warehouseToUse['qty'], $valuearray, $fk_mouvementstock, $warehouseToUse['fk_entrepot'], $idDispatchedLine);
 
                 if ($result < 0) {
                     $error++;
@@ -229,11 +229,12 @@ class Factory extends CommonObject
      * @param   array       $valuearray             Array of values
      * @param   int         $fk_mouvementstock      Stock movement
      * @param   int|NULL    $fk_entrepot            [=NULL] Use factory warehouse, or Id of warehouse to use
+     * @param   int         $id_dispatched_line     [=O] Id of dispatched line
      * @return  int         <0 if KO, Id of factory if OK
      *
      * @throws  Exception
      */
-	public function createof_component($fk_factory, $qty_build, $valuearray, $fk_mouvementstock=0, $fk_entrepot=NULL)
+	public function createof_component($fk_factory, $qty_build, $valuearray, $fk_mouvementstock=0, $fk_entrepot=NULL, $id_dispatched_line=0)
 	{
 	    // set by default with factory warehouse
 	    if ($fk_entrepot===NULL && $this->fk_entrepot>0) {
@@ -244,6 +245,7 @@ class Factory extends CommonObject
 		$sql .= "fk_factory, fk_product, qty_unit, qty_planned, pmp, price";
 		$sql .= ", fk_mvtstockplanned, globalqty, description";
         $sql .= ", fk_entrepot";
+        $sql .= ", id_dispatched_line";
 		$sql .= ")";
 		// pour gerer les quantites
 		if ($valuearray['globalqty'] == 0)
@@ -255,6 +257,7 @@ class Factory extends CommonObject
 		$sql .= ", " . $fk_mouvementstock . ", " . $valuearray['globalqty'];
         $sql .= ", '" . $this->db->escape($valuearray['description']) . "'";
         $sql .= ", " . ($fk_entrepot > 0 ? $fk_entrepot : 'NULL');
+        $sql .= ", " . ($id_dispatched_line > 0 ? $id_dispatched_line : 0);
         $sql .= ")";
 		if (! $this->db->query($sql)) {
 		    $this->error = $this->db->lasterror();
@@ -1439,6 +1442,7 @@ class Factory extends CommonObject
 		$sql.= ", fd.fk_mvtstockplanned as mvtstockplanned, fd.fk_mvtstockused as mvtstockused";
 		$sql.= ", fd.pmp as pmp, fd.price as price, p.ref, p.fk_product_type";
         $sql.= ", fd.fk_entrepot as child_fk_entrepot";
+        $sql.= ", fd.id_dispatched_line";
         $sql.= ", p.ref, p.fk_product_type";
 		$sql.= " FROM ".MAIN_DB_PREFIX."product as p";
 		$sql.= ", ".MAIN_DB_PREFIX."factorydet as fd";
@@ -1452,23 +1456,23 @@ class Factory extends CommonObject
 			$prods = array();
 			while ($rec = $this->db->fetch_array($res)) {
 					$prods[]= array(
-							'id'=>$rec['id'],					// Id product
-							'refproduct'=>$rec['ref'],			// label product
-							'label'=>$rec['label'],				// label product
-							'pmp'=>$rec['pmp'],					// pmp of the product
-							'price'=>$rec['price'],				// price of the product
-							'price'=>$rec['price'],				// price of the product
-							'nb'=>$rec['qtyunit'],				// Nb of units that compose parent product
-							'globalqty'=>$rec['globalqty'],		//
-							'description'=>$rec['description'],	//
-							'qtyused'=>$rec['qtyused'],			// Nb of units that compose parent product
-							'qtydeleted'=>$rec['qtydeleted'],	// Nb of units that compose parent product
-							'qtyplanned'=>$rec['qtyplanned'],	// Nb of units that compose parent product
-							'mvtstockplanned'=>$rec['mvtstockplanned'],	// Nb of units that compose parent product
-							'mvtstockused'=>$rec['mvtstockused'],		// Nb of units that compose parent product
-							'type'=>$rec['fk_product_type'],		// Nb of units that compose parent product
-                            'child_fk_entrepot'=>$rec['child_fk_entrepot'], // Id of child warehouse
-                            'dispatch_suffix'=>$rec['id'].'_'.$rec['child_fk_entrepot'] // unique key for dispatching
+					    'id'                => $rec['id'],                  // Id product
+                        'refproduct'        => $rec['ref'],			        // label product
+                        'label'             => $rec['label'],			    // label product
+                        'pmp'               => $rec['pmp'],				    // pmp of the product
+                        'price'             => $rec['price'],				// price of the product
+                        'price'             => $rec['price'],				// price of the product
+                        'nb'                => $rec['qtyunit'],				// Nb of units that compose parent product
+                        'globalqty'         => $rec['globalqty'],		    //
+                        'description'       => $rec['description'],	        //
+                        'qtyused'           => $rec['qtyused'],			    // Nb of units that compose parent product
+                        'qtydeleted'        => $rec['qtydeleted'],	        // Nb of units that compose parent product
+                        'qtyplanned'        => $rec['qtyplanned'],	        // Nb of units that compose parent product
+                        'mvtstockplanned'   => $rec['mvtstockplanned'],	    // Nb of units that compose parent product
+                        'mvtstockused'      => $rec['mvtstockused'],		// Nb of units that compose parent product
+                        'type'              => $rec['fk_product_type'],		// Nb of units that compose parent product
+                        'child_fk_entrepot' => $rec['child_fk_entrepot'],   // Id of child warehouse
+                        'dispatch_suffix'   => $rec['id'] . '_' . $rec['id_dispatched_line'] // unique key for dispatching
 					);
 			}
 			return $prods;
