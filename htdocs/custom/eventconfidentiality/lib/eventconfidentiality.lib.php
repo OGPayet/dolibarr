@@ -93,7 +93,7 @@ function getDefaultTag($elementtype, $type_id, $fk_object)
 			$object = array();
 			$object['fk_object']           = $fk_object;
 			$object['fk_dict_tag_confid']  = $obj->fk_target;
-			$object['externe']  = $obj->external;
+			$object['externe']  = (!empty($obj->external)?$obj->external:0);
 			$object['level_confid']  = $obj->mode;
 
 			$return[] = $object;
@@ -135,7 +135,7 @@ function fetchAllTagForObject($id, $externe = 0)
 			$array['fk_dict_tag_confid']   = $obj->fk_dict_tag_confid;
 			$array['externe']              = $obj->externe;
 			$array['level_confid']         = $obj->level_confid;
-			$array['externe']              = $obj->externe;
+			$array['externe']              = (!empty($obj->external)?$obj->external:0);
 			$array['level_confid']         = $obj->level_confid;
 			if($obj->level_confid == 0) {
 				$array['level_label']      = $langs->trans('EventConfidentialityModeVisible');

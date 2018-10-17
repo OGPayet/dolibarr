@@ -279,7 +279,7 @@ class EventConfidentiality extends CommonObject
 
 				$this->fk_object           = $fk_object;
 				$this->fk_dict_tag_confid  = $id_tag;
-				$this->externe             = $obj->external;
+				$this->externe             = (!empty($obj->external)?$obj->external:0);
 				$this->level_confid        = $obj->mode;
 
 				$i++;
