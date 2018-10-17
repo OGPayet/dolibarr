@@ -556,7 +556,7 @@ if ($id || $ref) {
                     print '<tr name="' . $dispactherList['name'] . '_' . $dispactherList['id'] . '_' . $dispactherList['line'] . '">';
                     print '<td class="fieldrequired">' . $componentProduct->ref . '</td>';
                     print '<td>';
-                    print $formproduct->selectWarehouses('', $dispactherList['name'] . '_id_entrepot_' . $dispactherList['id'] . '_' . $dispactherList['line'], 'warehouseopen,warehouseinternal', 0, 0, $dispactherList['id'], '', 0, 1, null, 'minwidth100',  '', 1, FALSE);
+                    print $formproduct->selectWarehouses('', $dispactherList['name'] . '_id_entrepot_' . $dispactherList['id'] . '_' . $dispactherList['line'], 'warehouseopen,warehouseinternal', 0, 0, $dispactherList['id'], '', 0, 1, null, 'minwidth100',  '', 1, TRUE);
                     print '</td>';
 
                     print '<td>';

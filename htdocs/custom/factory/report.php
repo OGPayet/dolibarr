@@ -162,11 +162,7 @@ if (empty($reshook)) {
                     $sql .= " , fk_entrepot = " . $componentFkEntrepot;
 					$sql .= " WHERE fk_factory = " . $id;
 					$sql .= " AND fk_product = " . $componentFkProduct;
-					if ($value['child_fk_entrepot']>0) {
-                        $sql.= " AND fk_entrepot = " . $value['child_fk_entrepot'];
-                    } else {
-                        $sql .= " AND fk_entrepot IS NULL";
-                    }
+                    $sql .= " AND id_dispatched_line = " . $value['id_dispatched_line'];
 
 					if (!$db->query($sql)) {
                         $error++;
@@ -454,10 +450,9 @@ if (count($prods_arbo) > 0) {
 		// component warehouse
         print '<td>';
         if ($factory->statut == 1) {
-            print $factoryformproduct->selectWarehouses($componentFkEntrepot, 'id_entrepot_' . $dispatchSuffix, 'warehouseopen,warehouseinternal', 0, 0, $value['id'], '', 0, 1, null, 'minwidth100', '', 1, FALSE);
+            print $factoryformproduct->selectWarehouses($componentFkEntrepot, 'id_entrepot_' . $dispatchSuffix, 'warehouseopen,warehouseinternal', 0, 0, $value['id'], '', 0, 1, null, 'minwidth100', '', 1, TRUE);
         } else {
-            if ($value['child_fk_entrepot'] > 0) {
-                $productEntrepotStatic->fetch($value['child_fk_entrepot']);
+            if ($value['child_fk_entrepot']>0 && $productEntrepotStatic->fetch($value['child_fk_entrepot'])) {
                 print $productEntrepotStatic->getNomUrl(1);
             }
         }

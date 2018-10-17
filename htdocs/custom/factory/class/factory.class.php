@@ -1456,23 +1456,24 @@ class Factory extends CommonObject
 			$prods = array();
 			while ($rec = $this->db->fetch_array($res)) {
 					$prods[]= array(
-					    'id'                => $rec['id'],                  // Id product
-                        'refproduct'        => $rec['ref'],			        // label product
-                        'label'             => $rec['label'],			    // label product
-                        'pmp'               => $rec['pmp'],				    // pmp of the product
-                        'price'             => $rec['price'],				// price of the product
-                        'price'             => $rec['price'],				// price of the product
-                        'nb'                => $rec['qtyunit'],				// Nb of units that compose parent product
-                        'globalqty'         => $rec['globalqty'],		    //
-                        'description'       => $rec['description'],	        //
-                        'qtyused'           => $rec['qtyused'],			    // Nb of units that compose parent product
-                        'qtydeleted'        => $rec['qtydeleted'],	        // Nb of units that compose parent product
-                        'qtyplanned'        => $rec['qtyplanned'],	        // Nb of units that compose parent product
-                        'mvtstockplanned'   => $rec['mvtstockplanned'],	    // Nb of units that compose parent product
-                        'mvtstockused'      => $rec['mvtstockused'],		// Nb of units that compose parent product
-                        'type'              => $rec['fk_product_type'],		// Nb of units that compose parent product
-                        'child_fk_entrepot' => $rec['child_fk_entrepot'],   // Id of child warehouse
-                        'dispatch_suffix'   => $rec['id'] . '_' . $rec['id_dispatched_line'] // unique key for dispatching
+					    'id'                 => $rec['id'],                                   // Id product
+                        'refproduct'         => $rec['ref'],                                  // label product
+                        'label'              => $rec['label'],                                // label product
+                        'pmp'                => $rec['pmp'],                                  // pmp of the product
+                        'price'              => $rec['price'],                                // price of the product
+                        'price'              => $rec['price'],                                // price of the product
+                        'nb'                 => $rec['qtyunit'],                              // Nb of units that compose parent product
+                        'globalqty'          => $rec['globalqty'],                            //
+                        'description'        => $rec['description'],                          //
+                        'qtyused'            => $rec['qtyused'],                              // Nb of units that compose parent product
+                        'qtydeleted'         => $rec['qtydeleted'],                           // Nb of units that compose parent product
+                        'qtyplanned'         => $rec['qtyplanned'],                           // Nb of units that compose parent product
+                        'mvtstockplanned'    => $rec['mvtstockplanned'],                      // Nb of units that compose parent product
+                        'mvtstockused'       => $rec['mvtstockused'],                         // Nb of units that compose parent product
+                        'type'               => $rec['fk_product_type'],                      // Nb of units that compose parent product
+                        'child_fk_entrepot'  => $rec['child_fk_entrepot'],                    // Id of child warehouse
+                        'id_dispatched_line' => $rec['id_dispatched_line'],                   // Id of child warehouse
+                        'dispatch_suffix'    => $rec['id'] . '_' . $rec['id_dispatched_line'] // unique key for dispatching
 					);
 			}
 			return $prods;
