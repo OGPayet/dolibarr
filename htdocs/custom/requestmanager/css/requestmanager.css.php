@@ -45,6 +45,7 @@ header('Content-Type: text/css');
 
 $myRequestUpdatedBlinkColor = !empty($conf->global->REQUESTMANAGER_MY_REQUEST_UPDATED_BLINK_COLOR) ? $conf->global->REQUESTMANAGER_MY_REQUEST_UPDATED_BLINK_COLOR : 'yellow';
 $myRequestUpdatedLineColor = !empty($conf->global->REQUESTMANAGER_MY_REQUEST_UPDATED_LINE_COLOR) ? $conf->global->REQUESTMANAGER_MY_REQUEST_UPDATED_LINE_COLOR : 'yellow';
+$chronometerBlinkColor = !empty($conf->global->REQUESTMANAGER_CHRONOMETER_BLINK_COLOR) ? $conf->global->REQUESTMANAGER_CHRONOMETER_BLINK_COLOR : 'red';
 
 ?>
 
@@ -65,6 +66,10 @@ div.mainmenu.requestmanager {
   background: <?php print $myRequestUpdatedBlinkColor ?>;
 }
 
+.rm_chronometer_blink_color {
+  background: <?php print $chronometerBlinkColor ?> !important;
+}
+
 .rm_my_request_updated_line_color {
   background: <?php print $myRequestUpdatedLineColor ?>;
 }
@@ -73,4 +78,9 @@ div.mainmenu.requestmanager {
   -webkit-transition: background 0.8s ease-in-out;
   -ms-transition:     background 0.8s ease-in-out;
   transition:         background 0.8s ease-in-out;
+}
+
+#mainmenutd_requestmanager_chronometer a div.mainmenuaspan {
+  font-size: 24px !important;
+  font-weight: bolder !important;
 }

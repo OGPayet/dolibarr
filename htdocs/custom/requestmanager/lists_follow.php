@@ -132,15 +132,22 @@ if ($search_notify_assigned_by_email == '') $search_notify_assigned_by_email = -
 
 $now = dol_now();
 
-// save last view date of this page
 // last view date
 if (isset($_SESSION['rm_lists_follow_last_date'])) {
     $lists_follow_last_date = $_SESSION['rm_lists_follow_last_date'];
 } else if ($user->datepreviouslogin) {
-    $lists_follow_last_date = $user->datepreviouslogin;
+    dol_include_once('/requestmanager/class/requestmanager.class.php');
+    $requestManager = new RequestManager($db);
+    if ($requestManager->isListsFollowModified($lists_follow_last_date)) {
+        $lists_follow_last_date = $user->datepreviouslogin;
+    } else {
+        $lists_follow_last_date = '';
+    }
 } else {
     $lists_follow_last_date = '';
 }
+
+// save last view date of this page
 $_SESSION['rm_lists_follow_last_date'] = $now;
 
 $form             = new Form($db);

@@ -51,87 +51,133 @@ $confirm = GETPOST('confirm', 'alpha');
 // Security check
 $result = restrictedArea($user, 'requestmanager');
 
+// Initialize technical object to manage hooks of page. Note that conf->hooks_modules contains array of hook context
+$hookmanager->initHooks(array('requestmanagercard','globalcard'));
+
+// Active chronometer
+if (!empty($conf->global->REQUESTMANAGER_CHRONOMETER_ACTIVATE) && !isset($_SESSION['requestmanager_chronometer_activated']))
+    $_SESSION['requestmanager_chronometer_activated'] = dol_now();
+
 $object = new RequestManager($db);
 $companyrelationships = new CompanyRelationships($db);
 
 $force_principal_company = false;
-if ($cancel) $action = '';
-if ($action == 'confirm_force_principal_company' && $confirm == "yes" && $user->rights->requestmanager->creer) {
-    $force_principal_company = true;
-    $action = "addfast";
-}
-// Create request
-if ($action == 'addfast' && $user->rights->requestmanager->creer) {
-    $selectedCategories = GETPOST('categories', 'array') ? GETPOST('categories', 'array') : (GETPOST('categories', 'alpha') ? explode(',', GETPOST('categories', 'alpha')) : array());
-    $selectedContacts = GETPOST('contact_ids', 'array') ? GETPOST('contact_ids', 'array') : (GETPOST('contact_ids', 'alpha') ? explode(',', GETPOST('contact_ids', 'alpha')) : array());
 
-    $object->fk_type = GETPOST('type', 'int');
-    $object->label = GETPOST('label', 'alpha');
-    $object->socid_origin = GETPOST('socid_origin', 'int');
-    $object->socid = GETPOST('socid', 'int');
-    $object->socid_benefactor = GETPOST('socid_benefactor', 'int');
-    $object->requester_ids = $selectedContacts;
-    $object->fk_source = GETPOST('source', 'int');
-    $object->fk_urgency = GETPOST('urgency', 'int');
-    $object->description = GETPOST('description');
-    $selectedActionCommId = GETPOST('actioncomm_id') ? GETPOST('actioncomm_id') : -1;
+/*
+ * Actions
+ */
 
-    // Add equipment links
-    $selectedEquipementId = GETPOST('equipement_id', 'int')?intval(GETPOST('equipement_id', 'int')):-1;
-    if ($selectedEquipementId > 0) {
-        $object->linkedObjectsIds['equipement'][] = $selectedEquipementId;
+$parameters = array();
+$reshook = $hookmanager->executeHooks('doActions', $parameters, $object, $action); // Note that $action and $object may have been modified by some hooks
+if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+
+if (empty($reshook)) {
+    if ($cancel) $action = '';
+    if ($action == 'confirm_force_principal_company' && $confirm == "yes" && $user->rights->requestmanager->creer) {
+        $force_principal_company = true;
+        $action = "addfast";
     }
+    // Create request
+    if ($action == 'addfast' && $user->rights->requestmanager->creer) {
+        $selectedCategories = GETPOST('categories', 'array') ? GETPOST('categories', 'array') : (GETPOST('categories', 'alpha') ? explode(',', GETPOST('categories', 'alpha')) : array());
+        $selectedContacts = GETPOST('contact_ids', 'array') ? GETPOST('contact_ids', 'array') : (GETPOST('contact_ids', 'alpha') ? explode(',', GETPOST('contact_ids', 'alpha')) : array());
 
-    // Possibility to add external linked objects with hooks
-    $object->origin = GETPOST('origin', 'alpha');
-    $object->origin_id = GETPOST('originid', 'int');
-    if ($object->origin && $object->origin_id > 0) {
-        $object->linkedObjectsIds[$object->origin] = $object->origin_id;
-        if (is_array($_POST['other_linked_objects']) && !empty($_POST['other_linked_objects'])) {
-            $object->linkedObjectsIds = array_merge($object->linkedObjectsIds, $_POST['other_linked_objects']);
+        $object->fk_type = GETPOST('type', 'int');
+        $object->label = GETPOST('label', 'alpha');
+        $object->socid_origin = GETPOST('socid_origin', 'int');
+        $object->socid = GETPOST('socid', 'int');
+        $object->socid_benefactor = GETPOST('socid_benefactor', 'int');
+        $object->requester_ids = $selectedContacts;
+        $object->fk_source = GETPOST('source', 'int');
+        $object->fk_urgency = GETPOST('urgency', 'int');
+        $object->description = GETPOST('description');
+        $selectedActionCommId = GETPOST('actioncomm_id') ? GETPOST('actioncomm_id') : -1;
+
+        // Add equipment links
+        $selectedEquipementId = GETPOST('equipement_id', 'int') ? intval(GETPOST('equipement_id', 'int')) : -1;
+        if ($selectedEquipementId > 0) {
+            $object->linkedObjectsIds['equipement'][] = $selectedEquipementId;
         }
-    }
 
-    $btnAction = '';
-    if (GETPOST('btn_create')) {
-        $btnAction = 'create';
-    } else if (GETPOST('btn_associate')) {
-        $btnAction = 'associate';
-    }
+        // Possibility to add external linked objects with hooks
+        $object->origin = GETPOST('origin', 'alpha');
+        $object->origin_id = GETPOST('originid', 'int');
+        if ($object->origin && $object->origin_id > 0) {
+            $object->linkedObjectsIds[$object->origin] = $object->origin_id;
+            if (is_array($_POST['other_linked_objects']) && !empty($_POST['other_linked_objects'])) {
+                $object->linkedObjectsIds = array_merge($object->linkedObjectsIds, $_POST['other_linked_objects']);
+            }
+        }
 
-    $db->begin();
-    if ($btnAction == 'create' || $force_principal_company) {
-        $principal_companies_ids = $companyrelationships->getRelationships($object->socid_benefactor, 0);
-        $not_principal_company = !in_array($object->socid, $principal_companies_ids) && $object->socid != $object->socid_benefactor;
-        if ($not_principal_company && !$force_principal_company) {
-            $error++;
-            $action = 'force_principal_company';
-        } else {
-            $id = $object->create($user);
-            if ($id < 0) {
+        $btnAction = '';
+        if (GETPOST('btn_create')) {
+            $btnAction = 'create';
+        } else if (GETPOST('btn_associate')) {
+            $btnAction = 'associate';
+        }
+
+        $db->begin();
+        if ($btnAction == 'create' || $force_principal_company) {
+            $principal_companies_ids = $companyrelationships->getRelationships($object->socid_benefactor, 0);
+            $not_principal_company = !in_array($object->socid, $principal_companies_ids) && $object->socid != $object->socid_benefactor;
+            if ($not_principal_company && !$force_principal_company) {
+                $error++;
+                $action = 'force_principal_company';
+            } else {
+                $id = $object->create($user);
+                if ($id < 0) {
+                    setEventMessages($object->error, $object->errors, 'errors');
+                    $error++;
+                }
+
+                if (!$error && $not_principal_company && $force_principal_company) {
+                    // Principal company forced for the benefactor
+                    $result = $object->addActionForcedPrincipalCompany($user);
+                    if ($result < 0) {
+                        setEventMessages($object->error, $object->errors, 'errors');
+                        $error++;
+                    }
+                }
+
+                if (!$error) {
+                    // Category association
+                    $result = $object->setCategories($selectedCategories);
+                    if ($result < 0) {
+                        setEventMessages($object->error, $object->errors, 'errors');
+                        $error++;
+                    }
+                }
+
+                if (!$error && $selectedActionCommId > 0) {
+                    // link event to this request
+                    $result = $object->linkToActionComm($selectedActionCommId);
+                    if ($result < 0) {
+                        setEventMessages($object->error, $object->errors, 'errors');
+                        $error++;
+                    }
+                }
+
+                if ($error) {
+                    $action = 'createfast';
+                }
+            }
+        } else if ($btnAction == 'associate') {
+            $associateList = GETPOST('associate_list', 'array') ? GETPOST('associate_list', 'array') : array();
+            if (count($associateList) <= 0) {
+                $object->errors[] = $langs->trans("RequestManagerCreateFastErrorNoRequestSelected");
                 setEventMessages($object->error, $object->errors, 'errors');
                 $error++;
             }
 
-            if (!$error && $not_principal_company && $force_principal_company) {
-                // Principal company forced for the benefactor
-                $result = $object->addActionForcedPrincipalCompany($user);
-                if ($result < 0) {
-                    setEventMessages($object->error, $object->errors, 'errors');
-                    $error++;
-                }
+            if ($selectedActionCommId <= 0) {
+                $object->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("RequestManagerCreateFastActionCommLabel"));
+                setEventMessages($object->error, $object->errors, 'errors');
+                $error++;
             }
 
             if (!$error) {
-                // Category association
-                $result = $object->setCategories($selectedCategories);
-                if ($result < 0) {
-                    setEventMessages($object->error, $object->errors, 'errors');
-                    $error++;
-                }
-            }
+                $object->fetch(intval($associateList[0]));
 
-            if (!$error && $selectedActionCommId > 0) {
                 // link event to this request
                 $result = $object->linkToActionComm($selectedActionCommId);
                 if ($result < 0) {
@@ -144,49 +190,20 @@ if ($action == 'addfast' && $user->rights->requestmanager->creer) {
                 $action = 'createfast';
             }
         }
-    } else if ($btnAction == 'associate') {
-        $associateList = GETPOST('associate_list', 'array') ? GETPOST('associate_list', 'array') : array();
-        if (count($associateList) <= 0) {
-            $object->errors[] = $langs->trans("RequestManagerCreateFastErrorNoRequestSelected");
-            setEventMessages($object->error, $object->errors, 'errors');
-            $error++;
-        }
-
-        if ($selectedActionCommId <= 0) {
-            $object->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("RequestManagerCreateFastActionCommLabel"));
-            setEventMessages($object->error, $object->errors, 'errors');
-            $error++;
-        }
 
         if (!$error) {
-            $object->fetch(intval($associateList[0]));
-
-            // link event to this request
-            $result = $object->linkToActionComm($selectedActionCommId);
-            if ($result < 0) {
-                setEventMessages($object->error, $object->errors, 'errors');
-                $error++;
+            $db->commit();
+            if ($object->id > 0) {
+                header('Location: ' . dol_buildpath('/requestmanager/card.php', 1) . '?id=' . $object->id);
+            } else {
+                header('Location: ' . dol_buildpath('/requestmanager/list.php', 1));
             }
-        }
-
-        if ($error) {
-            $action = 'createfast';
-        }
-    }
-
-    if (!$error) {
-        $db->commit();
-        if ($object->id > 0) {
-            header('Location: ' . dol_buildpath('/requestmanager/card.php', 1) . '?id=' . $object->id);
+            exit();
         } else {
-            header('Location: ' . dol_buildpath('/requestmanager/list.php', 1));
+            $db->rollback();
         }
-        exit();
-    } else {
-        $db->rollback();
     }
 }
-
 
 /*
  * View

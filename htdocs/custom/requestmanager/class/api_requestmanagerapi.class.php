@@ -58,6 +58,7 @@ class RequestManagerApi extends DolibarrApi {
      * @return  object|array                        Request data without useless information
      *
      * @throws  401             RestException       Insufficient rights
+     * @throws  403             RestException       Access unauthorized
      * @throws  404             RestException       Request not found
      * @throws  500             RestException       Error when retrieve request
      */
@@ -67,16 +68,10 @@ class RequestManagerApi extends DolibarrApi {
             throw new RestException(401, "Insufficient rights");
         }
 
-        $requestmanager = new RequestManager(self::$db);
-        $result = $requestmanager->fetch($id);
-        if ($result == 0) {
-            throw new RestException(404, "Request not found");
-        } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve request", $this->_getErrors($requestmanager));
-        } else {
-            $requestmanager->fetch_optionals();
-        }
+        // Get request object
+        $requestmanager = $this->_getRequestManagerObject($id);
 
+        $requestmanager->fetch_optionals();
         $requestmanager->fetchObjectLinked();
         return $this->_cleanObjectDatas($requestmanager);
     }
@@ -160,6 +155,8 @@ class RequestManagerApi extends DolibarrApi {
             while ($obj = self::$db->fetch_object($resql)) {
                 $requestmanager = new RequestManager(self::$db);
                 if ($requestmanager->fetch($obj->rowid) > 0) {
+                    $requestmanager->fetch_optionals();
+                    $requestmanager->fetchObjectLinked();
                     $obj_ret[] = $this->_cleanObjectDatas($requestmanager);
                 }
             }
@@ -192,6 +189,7 @@ class RequestManagerApi extends DolibarrApi {
         // Check mandatory fields
         $this->_validate($request_data);
 
+        // todo remplir auto le socid_origin, socid et socid_benefactor si un utilisateur externe ?
         $requestmanager = new RequestManager(self::$db);
         foreach ($request_data as $field => $value) {
             $requestmanager->$field = $value;
@@ -213,6 +211,7 @@ class RequestManagerApi extends DolibarrApi {
      * @return  object                      Request data updated
      *
      * @throws  401         RestException   Insufficient rights
+     * @throws  403         RestException   Access unauthorized
      * @throws  404         RestException   Request not found
      * @throws  500         RestException   Error when retrieve request
      * @throws  500         RestException   Error while updating the request
@@ -223,17 +222,13 @@ class RequestManagerApi extends DolibarrApi {
             throw new RestException(401, "Insufficient rights");
         }
 
-        $requestmanager = new RequestManager(self::$db);
-        $result = $requestmanager->fetch($id);
-        if ($result == 0) {
-            throw new RestException(404, "Request not found");
-        } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve request", $this->_getErrors($requestmanager));
-        }
+        // Get request object
+        $requestmanager = $this->_getRequestManagerObject($id);
 
         $requestmanager->oldcopy = clone $requestmanager;
+        $exclude_fields = array('id', 'socid_origin', 'socid', 'socid_benefactor');
         foreach ($request_data as $field => $value) {
-            if ($field == 'id') continue;
+            if (in_array($field, $exclude_fields)) continue;
             $requestmanager->$field = $value;
         }
 
@@ -252,6 +247,7 @@ class RequestManagerApi extends DolibarrApi {
      * @return  array
      *
      * @throws  401     RestException   Insufficient rights
+     * @throws  403     RestException   Access unauthorized
      * @throws  404     RestException   Request not found
      * @throws  500     RestException   Error when retrieve request
      * @throws  500     RestException   Error while deleting the request
@@ -262,13 +258,8 @@ class RequestManagerApi extends DolibarrApi {
             throw new RestException(401, "Insufficient rights");
         }
 
-        $requestmanager = new RequestManager(self::$db);
-        $result = $requestmanager->fetch($id);
-        if ($result == 0) {
-            throw new RestException(404, "Request not found");
-        } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve request", $this->_getErrors($requestmanager));
-        }
+        // Get request object
+        $requestmanager = $this->_getRequestManagerObject($id);
 
         if ($requestmanager->delete(DolibarrApiAccess::$user) < 0) {
             throw new RestException(500, "Error while deleting the request", $this->_getErrors($requestmanager));
@@ -292,6 +283,7 @@ class RequestManagerApi extends DolibarrApi {
 	 * @return  array                       List of request line
      *
      * @throws  401     RestException       Insufficient rights
+     * @throws  403     RestException       Access unauthorized
      * @throws  404     RestException       Request not found
      * @throws  500     RestException       Error when retrieve request
 	 */
@@ -301,13 +293,8 @@ class RequestManagerApi extends DolibarrApi {
             throw new RestException(401, "Insufficient rights");
         }
 
-        $requestmanager = new RequestManager(self::$db);
-        $result = $requestmanager->fetch($id);
-        if ($result == 0) {
-            throw new RestException(404, "Request not found");
-        } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve request", $this->_getErrors($requestmanager));
-        }
+        // Get request object
+        $requestmanager = $this->_getRequestManagerObject($id);
 
         $requestmanager->getLinesArray();
         $result = array();
@@ -329,6 +316,7 @@ class RequestManagerApi extends DolibarrApi {
      * @return  int                         ID of the request line created
      *
      * @throws  401     RestException       Insufficient rights
+     * @throws  403     RestException       Access unauthorized
      * @throws  404     RestException       Request not found
      * @throws  500     RestException       Error when retrieve request
      * @throws  500     RestException       Error while creating the request line
@@ -339,13 +327,8 @@ class RequestManagerApi extends DolibarrApi {
             throw new RestException(401, "Insufficient rights");
         }
 
-        $requestmanager = new RequestManager(self::$db);
-        $result = $requestmanager->fetch($id);
-        if ($result == 0) {
-            throw new RestException(404, "Request not found");
-        } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve request", $this->_getErrors($requestmanager));
-        }
+        // Get request object
+        $requestmanager = $this->_getRequestManagerObject($id);
 
         $request_data = (object)$request_data;
 
@@ -397,6 +380,7 @@ class RequestManagerApi extends DolibarrApi {
      * @return  object                      Request data with line updated
      *
      * @throws  401     RestException       Insufficient rights
+     * @throws  403     RestException       Access unauthorized
      * @throws  404     RestException       Request not found
      * @throws  404     RestException       Request line not found
      * @throws  500     RestException       Error when retrieve request
@@ -409,13 +393,8 @@ class RequestManagerApi extends DolibarrApi {
             throw new RestException(401, "Insufficient rights");
         }
 
-        $requestmanager = new RequestManager(self::$db);
-        $result = $requestmanager->fetch($id);
-        if ($result == 0) {
-            throw new RestException(404, "Request not found");
-        } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve request", $this->_getErrors($requestmanager));
-        }
+        // Get request object
+        $requestmanager = $this->_getRequestManagerObject($id);
 
         $requestline = new RequestManagerLine(self::$db);
         $result = $requestline->fetch($line_id);
@@ -470,6 +449,7 @@ class RequestManagerApi extends DolibarrApi {
      * @return  object                      Request data with line deleted
      *
      * @throws  401     RestException       Insufficient rights
+     * @throws  403     RestException       Access unauthorized
      * @throws  404     RestException       Request not found
      * @throws  404     RestException       Request line not found
      * @throws  500     RestException       Error when retrieve request
@@ -482,13 +462,8 @@ class RequestManagerApi extends DolibarrApi {
             throw new RestException(401, "Insufficient rights");
         }
 
-        $requestmanager = new RequestManager(self::$db);
-        $result = $requestmanager->fetch($id);
-        if ($result == 0) {
-            throw new RestException(404, "Request not found");
-        } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve request", $this->_getErrors($requestmanager));
-        }
+        // Get request object
+        $requestmanager = $this->_getRequestManagerObject($id);
 
         $requestline = new RequestManagerLine(self::$db);
         $result = $requestline->fetch($line_id);
@@ -516,6 +491,7 @@ class RequestManagerApi extends DolibarrApi {
      * @return  object|array                        Request message data without useless information
      *
      * @throws  401             RestException       Insufficient rights
+     * @throws  403             RestException       Access unauthorized
      * @throws  404             RestException       Request not found
      * @throws  404             RestException       Request message not found
      * @throws  500             RestException       Error when retrieve request
@@ -527,13 +503,8 @@ class RequestManagerApi extends DolibarrApi {
             throw new RestException(401, "Insufficient rights");
         }
 
-        $requestmanager = new RequestManager(self::$db);
-        $result = $requestmanager->fetch($id);
-        if ($result == 0) {
-            throw new RestException(404, "Request not found");
-        } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve request", $this->_getErrors($requestmanager));
-        }
+        // Get request object
+        $requestmanager = $this->_getRequestManagerObject($id);
 
         $requestmanager_message = new RequestManagerMessage(self::$db);
         $result = $requestmanager_message->fetch($message_id);
@@ -542,10 +513,15 @@ class RequestManagerApi extends DolibarrApi {
         } elseif ($result < 0) {
             throw new RestException(500, "Error when retrieve request message", $this->_getErrors($requestmanager_message));
         } else {
-            $requestmanager_message->fetch_knowledge_base();
-            $requestmanager_message->fetch_optionals();
+            if ($requestmanager_message->message_type != -1) {
+                $requestmanager_message->fetch_knowledge_base();
+                $requestmanager_message->fetch_optionals();
+            } else {
+                throw new RestException(404, "Request not found");
+            }
         }
 
+        // todo inclure event confidentialité check
         $requestmanager_message = $this->_cleanEventObjectDatas($requestmanager_message);
         return $this->_cleanMessageObjectDatas($requestmanager_message);
     }
@@ -561,6 +537,7 @@ class RequestManagerApi extends DolibarrApi {
      * @return  int                                 ID of the request message created
      *
      * @throws  400     RestException               Field missing
+     * @throws  403     RestException               Access unauthorized
      * @throws  401     RestException               Insufficient rights
      * @throws  500     RestException               Error while creating the request message
      */
@@ -570,13 +547,8 @@ class RequestManagerApi extends DolibarrApi {
             throw new RestException(401, "Insufficient rights");
         }
 
-        $requestmanager = new RequestManager(self::$db);
-        $result = $requestmanager->fetch($id);
-        if ($result == 0) {
-            throw new RestException(404, "Request not found");
-        } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve request", $this->_getErrors($requestmanager));
-        }
+        // Get request object
+        $requestmanager = $this->_getRequestManagerObject($id);
 
         // Check mandatory fields
         $this->_validateMessage($request_message_data);
@@ -585,6 +557,7 @@ class RequestManagerApi extends DolibarrApi {
         foreach ($request_message_data as $field => $value) {
             $requestmanager_message->$field = $value;
         }
+        $requestmanager_message->requestmanager = $requestmanager;
 
         if ($requestmanager_message->create(DolibarrApiAccess::$user) < 0) {
             throw new RestException(500, "Error while creating the request message", $this->_getErrors($requestmanager_message));
@@ -598,22 +571,27 @@ class RequestManagerApi extends DolibarrApi {
      *
      * @url	GET {id}/events
      *
-     * @param   int         $id                 ID of the request
-     * @param   string	    $sort_field         Sort field
-     * @param   string	    $sort_order         Sort order
-     * @param   int		    $limit		        Limit for list
-     * @param   int		    $page		        Page number
-     * @param   string      $sql_filters        Other criteria to filter answers separated by a comma. Syntax example "(t.ref:like:'SO-%') and (t.datec:<:'20160101')"
+     * @param   int         $id                                         ID of the request
+     * @param   string	    $sort_field                                 Sort field
+     * @param   string	    $sort_order                                 Sort order
+     * @param   int		    $limit		                                Limit for list
+     * @param   int		    $page		                                Page number
+     * @param   string      $sql_filters                                Other criteria to filter answers separated by a comma. Syntax example "(t.ref:like:'SO-%') and (t.datec:<:'20160101')"
+     * @param   int		    $only_message		                        1=Return only request message of the request
+     * @param   int		    $only_linked_to_request		                1=Return only linked events to the request
+     * @param   int		    $include_events_other_request		        1=Return also events of other request (taken into account if only_linked_to_request = 0)
+     * @param   int		    $include_linked_events_children_request	    1=Return also events of children request
      *
-     * @return  array                           Array of order objects
+     * @return  array                                                   Array of order objects
      *
-     * @throws  400         RestException       Error when validating parameter 'sqlfilters'
-     * @throws  401         RestException       Insufficient rights
-     * @throws  404         RestException       Request not found
-     * @throws  500         RestException       Error when retrieve request
-     * @throws  500         RestException       Error when retrieve request list
+     * @throws  400         RestException                               Error when validating parameter 'sqlfilters'
+     * @throws  401         RestException                               Insufficient rights
+     * @throws  403         RestException                               Access unauthorized
+     * @throws  404         RestException                               Request not found
+     * @throws  500         RestException                               Error when retrieve request
+     * @throws  500         RestException                               Error when retrieve request list
      */
-    function indexEvents($id, $sort_field="t.datec", $sort_order='DESC', $limit=100, $page=0, $sql_filters='')
+    function indexEvents($id, $sort_field="t.datec", $sort_order='DESC', $limit=100, $page=0, $sql_filters='', $only_message=0, $only_linked_to_request=1, $include_events_other_request=0, $include_linked_events_children_request=1)
     {
         $obj_ret = array();
 
@@ -621,38 +599,48 @@ class RequestManagerApi extends DolibarrApi {
             throw new RestException(401, "Insufficient rights");
         }
 
-        $requestmanager = new RequestManager(self::$db);
-        $result = $requestmanager->fetch($id);
-        if ($result == 0) {
-            throw new RestException(404, "Request not found");
-        } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve request", $this->_getErrors($requestmanager));
+        // Get request object
+        $requestmanager = $this->_getRequestManagerObject($id);
+
+        // Get request ids (parent + children)
+        $request_children_ids = $requestmanager->getAllChildrenRequest();
+        if ($include_linked_events_children_request) {
+            $request_ids = array_merge($request_children_ids, array($requestmanager->id));
+            $request_ids = implode(',', $request_ids);
+        } else {
+            $request_ids = $requestmanager->id;
         }
+        $request_children_ids = implode(',', $request_children_ids);
 
-        return $obj_ret;
-
-        // Get benefactor companies
-        if (empty($benefactor_ids)) {
-            $benefactor_companies_ids = array();
-            if (DolibarrApiAccess::$user->socid > 0) {
-                dol_include_once('/companyrelationships/class/companyrelationships.class.php');
-                $companyrelationships = new CompanyRelationships(self::$db);
-                $benefactor_companies_ids = $companyrelationships->getRelationships(DolibarrApiAccess::$user->socid, 1);
-                $benefactor_companies_ids = is_array($benefactor_companies_ids) ? array_merge($benefactor_companies_ids, array(DolibarrApiAccess::$user->socid)) : array();
+        $sql = "SELECT t.id, t.code";
+        $sql .= " FROM " . MAIN_DB_PREFIX . "actioncomm as t";
+        if (!$only_message) {
+            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "element_element as ee";
+            $element_correspondance = "(" . // Todo a completer si il y a d'autres correspondances
+                "IF(t.elementtype = 'contract', 'contrat', " .
+                " IF(t.elementtype = 'invoice', 'facture', " .
+                "  IF(t.elementtype = 'order', 'commande', " .
+                "   t.elementtype)))" .
+                ")";
+            $sql .= " ON (ee.sourcetype = " . $element_correspondance . " AND ee.fk_source = t.fk_element) OR (ee.targettype = " . $element_correspondance . " AND ee.fk_target = t.fk_element)";
+        }
+        $sql .= ' WHERE t.entity IN (' . getEntity('agenda') . ')';
+        if (!$only_message) {
+            $soc_ids = array_merge(array($requestmanager->socid_origin), array($requestmanager->socid), array($requestmanager->socid_benefactor));
+            $sql .= ' AND t.fk_soc IN (' . implode(',', $soc_ids) . ')';
+            if ($only_linked_to_request) {
+                $sql .= " AND IF(t.elementtype='requestmanager', t.fk_element, IF(ee.targettype='requestmanager', ee.fk_target, IF(ee.sourcetype='requestmanager', ee.fk_source, NULL))) IN(" . (!empty($request_ids) ? $request_ids : '-1') . ")";
+            } else {
+                if (!$include_events_other_request) {
+                    $sql .= " AND (t.elementtype != 'requestmanager' OR t.fk_element IN (" . (!empty($request_ids) ? $request_ids : '-1') . "))";
+                }
+                if (!$include_linked_events_children_request) {
+                    $sql .= " AND IF(t.elementtype='requestmanager', t.fk_element, IF(ee.targettype='requestmanager', ee.fk_target, IF(ee.sourcetype='requestmanager', ee.fk_source, NULL))) NOT IN (" . (!empty($request_children_ids) ? $request_children_ids : '-1') . ")";
+                }
             }
         } else {
-            $benefactor_companies_ids = explode(',', $benefactor_ids);
-        }
-
-        $sql = "SELECT t.rowid";
-        $sql .= " FROM " . MAIN_DB_PREFIX . "requestmanager as t";
-        $sql .= ' WHERE t.entity IN (' . getEntity('requestmanager') . ')';
-        // Restrict to the benefactor companies provided
-        if (count($benefactor_companies_ids) > 0) {
-            $sql .= " AND t.fk_soc_benefactor IN (" . implode(',', $benefactor_companies_ids) . ")";
-        }
-        if (!(DolibarrApiAccess::$user->socid > 0)) {
-            // Todo filter assigned (user/group) if not a external user ?
+            $sql .= " AND t.elementtype = 'requestmanager' AND t.fk_element IN (" . $request_ids . ")";
+            $sql .= " AND (t.code = 'AC_RM_PRIV' OR t.code = 'AC_RM_IN' OR t.code = 'AC_RM_OUT')";
         }
         // Add sql filters
         if ($sql_filters) {
@@ -678,9 +666,21 @@ class RequestManagerApi extends DolibarrApi {
         if ($resql) {
             require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
             while ($obj = self::$db->fetch_object($resql)) {
-                $event = new ActionComm(self::$db);
-                if ($event->fetch($obj->rowid) > 0) {
-                    $obj_ret[] = $this->_cleanEventObjectDatas($event);
+                // todo inclure event confidentialité check
+                if ($obj->code == 'AC_RM_PRIV' || $obj->code == 'AC_RM_IN' || $obj->code == 'AC_RM_OUT') {
+                    $requestmanager_message = new RequestManagerMessage(self::$db);
+                    if ($requestmanager_message->fetch($obj->id) > 0) {
+                        $requestmanager_message->fetch_knowledge_base();
+                        $requestmanager_message->fetch_optionals();
+                        $requestmanager_message = $this->_cleanEventObjectDatas($requestmanager_message);
+                        $obj_ret[] = $this->_cleanMessageObjectDatas($requestmanager_message);
+                    }
+                } else {
+                    $event = new ActionComm(self::$db);
+                    if ($event->fetch($obj->id) > 0) {
+                        $event->fetch_optionals();
+                        $obj_ret[] = $this->_cleanEventObjectDatas($event);
+                    }
                 }
             }
 
@@ -706,6 +706,7 @@ class RequestManagerApi extends DolibarrApi {
      * @return  object                  Request data updated
      *
      * @throws  401     RestException   Insufficient rights
+     * @throws  403     RestException   Access unauthorized
      * @throws  404     RestException   Request not found
      * @throws  500     RestException   Error when retrieve request
      * @throws  500     RestException   Error while setting the request status
@@ -716,13 +717,8 @@ class RequestManagerApi extends DolibarrApi {
             throw new RestException(401, "Insufficient rights");
         }
 
-        $requestmanager = new RequestManager(self::$db);
-        $result = $requestmanager->fetch($id);
-        if ($result == 0) {
-            throw new RestException(404, "Request not found");
-        } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve request", $this->_getErrors($requestmanager));
-        }
+        // Get request object
+        $requestmanager = $this->_getRequestManagerObject($id);
 
         if ($requestmanager->set_status($status_id, $status_type, DolibarrApiAccess::$user, $no_trigger, $force_reload) > 0) {
             return $this->get($id);
@@ -919,6 +915,35 @@ class RequestManagerApi extends DolibarrApi {
         }
 
         return [];
+    }
+
+    /**
+     *  Get request object with authorization
+     *
+     * @param   int             $request_id         Id of the request
+     *
+     * @return  RequestManager
+     *
+     * @throws  403             RestException       Access unauthorized
+     * @throws  404             RestException       Request not found
+     * @throws  500             RestException       Error when retrieve request
+     */
+    function _getRequestManagerObject($request_id)
+    {
+        $requestmanager = new RequestManager(self::$db);
+        $result = $requestmanager->fetch($request_id);
+        if ($result == 0) {
+            throw new RestException(404, "Request not found");
+        } elseif ($result < 0) {
+            throw new RestException(500, "Error when retrieve request", $this->_getErrors($requestmanager));
+        }
+
+        $socid = DolibarrApiAccess::$user->socid;
+        if ($socid > 0 && $socid != $requestmanager->socid && $socid != $requestmanager->socid_benefactor) {
+            throw new RestException(403, "Access unauthorized");
+        }
+
+        return $requestmanager;
     }
 
     /**

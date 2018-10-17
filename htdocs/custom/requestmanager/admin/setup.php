@@ -50,7 +50,28 @@ $action = GETPOST('action','alpha');
 $errors = [];
 $error = 0;
 
-if ($action == 'set_notification_assigned_options') {
+if ($action == 'set_chronometer_options') {
+    $value = GETPOST('REQUESTMANAGER_CHRONOMETER_TIME', "alpha");
+    $res = dolibarr_set_const($db, 'REQUESTMANAGER_CHRONOMETER_TIME', $value, 'chaine', 0, '', $conf->entity);
+    if (!$res > 0) {
+        $errors[] = $db->lasterror();
+        $error++;
+    }
+
+    $value = GETPOST('REQUESTMANAGER_CHRONOMETER_BLINK_COLOR', "alpha");
+    $res = dolibarr_set_const($db, 'REQUESTMANAGER_CHRONOMETER_BLINK_COLOR', $value, 'chaine', 0, '', $conf->entity);
+    if (!$res > 0) {
+        $errors[] = $db->lasterror();
+        $error++;
+    }
+
+    /*$value =  GETPOST('REQUESTMANAGER_CHRONOMETER_SOUND', "alpha");
+    $res = dolibarr_set_const($db, 'REQUESTMANAGER_CHRONOMETER_SOUND', $value, 'chaine', 0, '', $conf->entity);
+    if (!$res > 0) {
+        $errors[] = $db->lasterror();
+        $error++;
+    }*/
+} elseif ($action == 'set_notification_assigned_options') {
     $email_address = $email = GETPOST('REQUESTMANAGER_ASSIGNED_NOTIFICATION_SEND_FROM', "alpha");
     if (preg_match('/<([^>]+)>/i', $email, $matches)) $email_address = $matches[1];
     if (empty($email) || isValidEmail($email_address)) {
@@ -64,7 +85,7 @@ if ($action == 'set_notification_assigned_options') {
         $error++;
     }
 
-    $value = $email = GETPOST('REQUESTMANAGER_ASSIGNED_NOTIFICATION_SIGNATURE', "alpha");
+    $value = GETPOST('REQUESTMANAGER_ASSIGNED_NOTIFICATION_SIGNATURE', "alpha");
     $res = dolibarr_set_const($db, 'REQUESTMANAGER_ASSIGNED_NOTIFICATION_SIGNATURE', $value, 'chaine', 0, '', $conf->entity);
     if (!$res > 0) {
         $errors[] = $db->lasterror();
@@ -84,7 +105,7 @@ if ($action == 'set_notification_assigned_options') {
         $error++;
     }
 
-    $value = $email = GETPOST('REQUESTMANAGER_REQUESTER_NOTIFICATION_SIGNATURE', "alpha");
+    $value = GETPOST('REQUESTMANAGER_REQUESTER_NOTIFICATION_SIGNATURE', "alpha");
     $res = dolibarr_set_const($db, 'REQUESTMANAGER_REQUESTER_NOTIFICATION_SIGNATURE', $value, 'chaine', 0, '', $conf->entity);
     if (!$res > 0) {
         $errors[] = $db->lasterror();
@@ -104,7 +125,7 @@ if ($action == 'set_notification_assigned_options') {
         $error++;
     }
 
-    $value = $email = GETPOST('REQUESTMANAGER_WATCHERS_NOTIFICATION_SIGNATURE', "alpha");
+    $value = GETPOST('REQUESTMANAGER_WATCHERS_NOTIFICATION_SIGNATURE', "alpha");
     $res = dolibarr_set_const($db, 'REQUESTMANAGER_WATCHERS_NOTIFICATION_SIGNATURE', $value, 'chaine', 0, '', $conf->entity);
     if (!$res > 0) {
         $errors[] = $db->lasterror();
@@ -415,6 +436,79 @@ foreach ($dirmodels as $reldir)
 print "</table><br>\n";
 
 /********************************************************
+ *  Chronometer
+ ********************************************************/
+print load_fiche_titre($langs->trans("RequestManagerChronometerOptions"),'','');
+
+print '<form method="post" action="'.$_SERVER["PHP_SELF"].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_chronometer_options">';
+
+$var=true;
+
+print '<table class="noborder" width="100%">';
+print '<tr class="liste_titre">';
+print '<td width="20%">'.$langs->trans("Name").'</td>'."\n";
+print '<td>'.$langs->trans("Description").'</td>'."\n";
+print '<td align="right">'.$langs->trans("Value").'</td>'."\n";
+print "</tr>\n";
+
+// REQUESTMANAGER_CHRONOMETER_ACTIVATE
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>'.$langs->trans("RequestManagerChronometerActivateName").'</td>'."\n";
+print '<td>'.$langs->trans("RequestManagerChronometerActivateDesc").'</td>'."\n";
+print '<td align="right">' . "\n";
+if (!empty($conf->use_javascript_ajax)) {
+    print ajax_constantonoff('REQUESTMANAGER_CHRONOMETER_ACTIVATE');
+} else {
+    if (empty($conf->global->REQUESTMANAGER_CHRONOMETER_ACTIVATE)) {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_REQUESTMANAGER_CHRONOMETER_ACTIVATE">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+    } else {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_REQUESTMANAGER_CHRONOMETER_ACTIVATE">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+    }
+}
+print '</td></tr>' . "\n";
+
+// REQUESTMANAGER_CHRONOMETER_TIME
+$var=!$var;
+print '<tr '.$bc[$var].'>'."\n";
+print '<td>' . $langs->trans("RequestManagerChronometerTimeName") . '</td>'."\n";
+print '<td>' . $langs->trans("RequestManagerChronometerTimeDesc") . '</td>'."\n";
+print '<td align="right">'."\n";
+print '<input type="number" name="REQUESTMANAGER_CHRONOMETER_TIME" min="0" value="' . intval($conf->global->REQUESTMANAGER_CHRONOMETER_TIME) . '">';
+print ' ' . $langs->trans("Minutes");
+print '</td></tr>'."\n";
+
+
+// REQUESTMANAGER_CHRONOMETER_BLINK_COLOR
+$var=!$var;
+print '<tr '.$bc[$var].'>'."\n";
+print '<td>' . $langs->trans("RequestManagerChronometerColorName") . '</td>'."\n";
+print '<td>' . $langs->trans("RequestManagerChronometerColorDesc") . '</td>'."\n";
+print '<td align="right">'."\n";
+print '<input type="text" name="REQUESTMANAGER_CHRONOMETER_BLINK_COLOR" min="0" value="' . dol_escape_htmltag($conf->global->REQUESTMANAGER_CHRONOMETER_BLINK_COLOR) . '">';
+print '</td></tr>'."\n";
+
+// REQUESTMANAGER_CHRONOMETER_SOUND
+/*$var=!$var;
+print '<tr '.$bc[$var].'>'."\n";
+print '<td>' . $langs->trans("RequestManagerChronometerSoundName") . '</td>'."\n";
+print '<td>' . $langs->trans("RequestManagerChronometerSoundDesc") . '</td>'."\n";
+print '<td align="right">'."\n";
+print '<input type="text" name="REQUESTMANAGER_CHRONOMETER_SOUND" min="0" value="' . dol_escape_htmltag($conf->global->REQUESTMANAGER_CHRONOMETER_SOUND) . '">';
+print '</td></tr>'."\n";*/
+
+print '</table>';
+
+print '<br>';
+print '<div align="center">';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</div>';
+
+print '</form>' . "\n";
+
+/********************************************************
  *  Notification options
  ********************************************************/
 print load_fiche_titre($langs->trans("RequestManagerNotificationOptions"),'','');
@@ -523,7 +617,7 @@ if (!empty($conf->use_javascript_ajax)) {
 print '</td></tr>' . "\n";
 
 // REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_WEBSITE
-$var = !$var;
+/*$var = !$var;
 print '<tr ' . $bc[$var] . '>' . "\n";
 print '<td>'.$langs->trans("RequestManagerNotificationAssignedByWebSiteName").'</td>'."\n";
 print '<td>'.$langs->trans("RequestManagerNotificationAssignedByWebSiteDesc").'</td>'."\n";
@@ -537,7 +631,7 @@ if (!empty($conf->use_javascript_ajax)) {
         print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_WEBSITE">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
     }
 }
-print '</td></tr>' . "\n";
+print '</td></tr>' . "\n";*/
 
 // REQUESTMANAGER_ASSIGNED_NOTIFICATION_SEND_FROM
 $var=!$var;

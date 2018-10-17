@@ -391,7 +391,7 @@ class ActionsRequestManager
      */
     function printTopRightMenu($parameters, &$object, &$action, $hookmanager)
     {
-        global $langs, $user;
+        global $conf, $langs, $user;
 
         if (in_array('toprightmenu', explode(':', $parameters['context']))) {
             if ($user->rights->requestmanager->lire) {
@@ -455,6 +455,62 @@ class ActionsRequestManager
                 });
             </script>
 SCRIPT;
+
+                // Chronometer
+                //----------------------------------------------------------------------
+                if (!empty($conf->global->REQUESTMANAGER_CHRONOMETER_ACTIVATE) && isset($_SESSION['requestmanager_chronometer_activated'])) {
+                    if (GETPOST('rm_action', 'alpha') == 'requestmanager_stop_chronometer') {
+                        unset($_SESSION['requestmanager_chronometer_activated']);
+                    } else {
+                        $is_create_request_page = $_SERVER['PHP_SELF'] == dol_buildpath('/requestmanager/createfast.php', 1);
+
+                        $parameters = array_merge($_POST, $_GET);
+                        $parameters['rm_action'] = 'requestmanager_stop_chronometer';
+                        $request_chronometer_stop_url = $is_create_request_page ? '#' : ($_SERVER['PHP_SELF'] . '?' . http_build_query($parameters));
+                        $request_chronometer_stop_text = $is_create_request_page ? '' : str_replace('"', '\\"', $langs->trans('RequestManagerChronometerStop'));
+                        $elapsed_time = dol_now() - $_SESSION['requestmanager_chronometer_activated'];
+                        $limit_time = (!empty($conf->global->REQUESTMANAGER_CHRONOMETER_TIME) ? $conf->global->REQUESTMANAGER_CHRONOMETER_TIME : 20) * 60;
+
+                        $out .= <<<SCRIPT
+            <script type="text/javascript">
+                $(document).ready(function () {
+                    var requestmanager_chronometer_elpased_time = $elapsed_time;
+                    var requestmanager_chronometer_limit_time = $limit_time;
+
+                    // Add chronometer button
+                    $("#mainmenutd_requestmanager_create").after('<li class="tmenu" id="mainmenutd_requestmanager_chronometer"><a class="tmenuimage" href="$request_chronometer_stop_url" title="$request_chronometer_stop_text"><div class="mainmenuaspan">' + rmGetDurationText(requestmanager_chronometer_elpased_time) + '</div></a></li>');
+
+                    var requestmanager_chronometer_a = $("#mainmenutd_requestmanager_chronometer a");
+                    var requestmanager_chronometer_text = $("#mainmenutd_requestmanager_chronometer a div.mainmenuaspan");
+                    var requestmanager_chronometer_blink = null;
+
+                    // start chronometer
+                    setInterval(function() {
+                        requestmanager_chronometer_elpased_time += 1;
+                        requestmanager_chronometer_text.text(rmGetDurationText(requestmanager_chronometer_elpased_time));
+
+                        if (requestmanager_chronometer_limit_time <= requestmanager_chronometer_elpased_time && !requestmanager_chronometer_blink) {
+                            // Start blink
+                            requestmanager_chronometer_blink = setInterval(function() { requestmanager_chronometer_a.toggleClass("rm_chronometer_blink_color"); }, 1000);
+                        }
+                    }, 1000);
+
+                    function rmGetDurationText(time) {
+                        var hours = Math.floor(time / 3600);
+                        time -= hours * 3600;
+
+                        var minutes = Math.floor(time / 60);
+                        time -= minutes * 60;
+
+                        var seconds = time;
+
+                        return (hours > 9 ? hours : "0" + hours) + ":" + (minutes > 9 ? minutes : "0" + minutes) + ":" + (seconds > 9 ? seconds : "0" + seconds);
+                    }
+                });
+            </script>
+SCRIPT;
+                    }
+                }
 
                 $this->resprints = $out;
             }
@@ -659,76 +715,6 @@ SCRIPT;
         }
 
         return 0;
-    }
-
-    /**
-     * 	Show my assigned requests button (with nb or +)
-     */
-    private function _outMyAssignedRequestsButton()
-    {
-        global $langs, $user;
-
-        require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
-        dol_include_once('/requestmanager/class/requestmanager.class.php');
-
-        $out = '';
-
-        // last view date
-        if (isset($_SESSION['rm_lists_follow_last_date'])) {
-            $lastViewDate = $_SESSION['rm_lists_follow_last_date'];
-        } else if ($user->datepreviouslogin) {
-            $lastViewDate = $user->datepreviouslogin;
-        } else {
-            $lastViewDate = '';
-        }
-
-        // nb requests assigned to me
-        $nbRequestsLimit  = 9;
-
-        $requestManager        = new RequestManager($this->db);
-        $isListsFollowModified = $requestManager->isListsFollowModified($lastViewDate);
-        if ($isListsFollowModified === TRUE) {
-            $linkStyleBgColor = '#fff000';
-        } else {
-            $linkStyleBgColor = '#ffffff';
-        }
-        $nbRequests      = $requestManager->countMyAssignedRequests(array(RequestManager::STATUS_TYPE_INITIAL, RequestManager::STATUS_TYPE_IN_PROGRESS));
-        $nbRequestsLabel = $nbRequests<=$nbRequestsLimit ? $nbRequests : $nbRequestsLimit.'+';
-
-        $text  = '<a href="' . dol_buildpath('/requestmanager/lists_follow.php', 1) . '" style="background-color: ' . $linkStyleBgColor . '; border-radius: 4px;">';
-        $text .= '<span style="color: #770000; font-size: 12px; font-weight: bold;">&nbsp;' . $nbRequestsLabel . '&nbsp;</span>';
-        //$text .= img_picto('', 'object_requestmanager@requestmanager', 'id="myassignedrequests"');
-        $text .= '</a>';
-
-        $htmltext  = '<u>' . $langs->trans("RequestManagerMenuTopRequestsFollow") . '</u>' . "\n";
-        $htmltext .= '<br /><b>' . $langs->trans("Total") . '</b> : ' . $nbRequests . "\n";
-        if ($lastViewDate) {
-            $htmltext .= '<br /><b>' . $langs->trans("RequestManagerMenuTopDateLastView") . '</b> : ' . dol_print_date($lastViewDate, 'dayhour') . "\n";
-        }
-        $out .= Form::textwithtooltip('', $htmltext,2,1, $text,'login_block_elem',2);
-
-        return $out;
-    }
-
-    /**
-     * 	Show request create fast
-     */
-    private function _outCreateFast()
-    {
-        global $langs;
-
-        require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
-
-        $out = '';
-
-        $text  = '<a href="' . dol_buildpath('/requestmanager/createfast.php?action=createfast', 1) . '" target="_blank">';
-        $text .= img_picto('', 'object_requestmanager@requestmanager', 'id="requestmanager_createfast"');
-        $text .= '</a>';
-
-        $htmltext  = '<u>' . $langs->trans("RequestManagerMenuTopCreateFast") . '</u>' . "\n";
-        $out .= Form::textwithtooltip('', $htmltext,2,1, $text,'login_block_elem',2);
-
-        return $out;
     }
 
     /**

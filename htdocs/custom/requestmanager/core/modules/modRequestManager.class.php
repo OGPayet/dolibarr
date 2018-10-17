@@ -69,7 +69,7 @@ class modRequestManager extends DolibarrModules
         $this->editor_url = 'http://www.open-dsi.fr';
 
         // Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-        $this->version = '4.0.5';
+        $this->version = '4.0.6';
         // Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
         $this->const_name = 'MAIN_MODULE_' . strtoupper($this->name);
         // Name of image file used for this module.
@@ -137,6 +137,10 @@ class modRequestManager extends DolibarrModules
             7 => array('REQUESTMANAGER_SET_ASSIGNED_NOTIFY','chaine','1','','current',0),
             8 => array('REQUESTMANAGER_STATUS_MODIFY_NOTIFY','chaine','1','','current',0),
             9 => array('REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_EMAIL','chaine','1','','current',0),
+            10 => array('REQUESTMANAGER_CHRONOMETER_ACTIVATE','chaine','0','','current',0),
+            11 => array('REQUESTMANAGER_CHRONOMETER_TIME','chaine','20','','current',0),
+            12 => array('REQUESTMANAGER_CHRONOMETER_COLOR','chaine','red','','current',0),
+            //9 => array('REQUESTMANAGER_CHRONOMETER_SOUND','chaine','','','current',0),
         );
 
         // Array to add new pages in new tabs

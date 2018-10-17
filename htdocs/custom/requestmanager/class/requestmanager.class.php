@@ -3051,6 +3051,7 @@ class RequestManager extends CommonObject
         $sql .= ')';
         if ($lastViewDate) {
             $sql .= " AND rm.tms > '" . $this->db->idate($lastViewDate) . "'";
+            $sql .= " AND rm.fk_user_modif != " . $user->id;
         }
         $sql .= " GROUP BY rm.rowid";
         $sql .= ' ORDER BY rm.tms DESC';

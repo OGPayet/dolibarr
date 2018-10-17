@@ -22,6 +22,16 @@ RequestManagerMessageExtraFields                        = Attributs supplémenta
 RequestManagerRefNumberingModules                       = Modèles de numérotation des références interne des demandes
 RequestManagerExternalRefNumberingModules               = Modèles de numérotation des références externe des demandes
 
+RequestManagerChronometerOptions                        = Paramètres du chronomètre
+RequestManagerChronometerActivateName                   = Activation
+RequestManagerChronometerActivateDesc                   = Active le chronomètre qui démarre lors de l'affichage de la page de création d'une demande
+RequestManagerChronometerTimeName                       = Limite de temps
+RequestManagerChronometerTimeDesc                       = Temps limite au bout duquel le chronomètre clignotera
+RequestManagerChronometerColorName                      = Couleur du clignotement
+RequestManagerChronometerColorDesc                      = Couleur du clignotement lorsque la limite de temps est atteinte ou dépassée (format html '#FF0000' ou nom html 'red')
+RequestManagerChronometerSoundName                      = Son d'alerte
+RequestManagerChronometerSoundDesc                      = Adresse URL du fichier son d'aletre une fois la limite de temps atteinte ou dépassée
+
 RequestManagerNotificationOptions                       = Paramètres généraux des notifications
 RequestManagerMessageCreateNotifyName                   = Notification lors de la création d'un message
 RequestManagerMessageCreateNotifyDesc                   = Active la notification global lors de la création d'un message d'une demande
@@ -288,6 +298,11 @@ RequestManagerListsFollowMyGroupRequest       = Les demandes de mon groue
 RequestManagerListsFollowLinkToMyEvent        = Mes demandes à suivre
 RequestManagerListsFollowMyFutureRequest      = Mes demandes à venir
 RequestManagerListsFollowMyFutureGroupRequest = Les demandes de goupe à venir
+
+############################################################
+### Chronometer
+############################################################
+RequestManagerChronometerStop   = Stopper le chronomètre
 
 ############################################################
 ### Errors
