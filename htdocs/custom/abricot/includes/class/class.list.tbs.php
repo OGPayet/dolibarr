@@ -439,9 +439,9 @@ class TListviewTBS {
 
 		}
 
-		$search_button = ' <div class="nowrap">';
+		$search_button = ' <div class="nowrap" style="float:right">';
 		$search_button.= '<a href="#" onclick="TListTBS_submitSearch(this);" class="list-search-link">'.$TParam['liste']['picto_search'].'</a>';
-		$search_button.= '&nbsp;<a href="#" onclick="TListTBS_submitSearch(this, true);" class="list-search-link">'.$TParam['liste']['picto_searchclear'].'</a>';
+		$search_button.= '&nbsp;<a href="#" onclick="TListTBS_submitSearch(this, true);" class="list-reset-link">'.$TParam['liste']['picto_searchclear'].'</a>';
 		$search_button.= '</div>';
 
 		/* TODO remove => fait redondance, un bouton pour lancer la recherche est déjà présent
@@ -619,7 +619,6 @@ class TListviewTBS {
 	private function renderChart(&$TEntete, &$TChamps,&$TTotal, &$TParam) {
 
 		$TData = array();
-		$header = '';
 		$first = true;
 
 		$TSearch = $this->setSearch($TEntete, $TParam);
@@ -632,12 +631,13 @@ class TListviewTBS {
 			$fieldXaxis = $TParam['xaxis'];
 		}
 
-		$TValue=array(); $key = null;
+		$header = '[';
 		foreach($TEntete as $field=>&$entete) {
-			if($field!=$fieldXaxis)$TValue[] = addslashes($entete['libelle']);
+			if (!empty($TParam['chart']['role'][$field])) $header.= '{role: "'.$TParam['chart']['role'][$field].'"}';//addslashes($entete['libelle']);
+			else $header .= '"'.addslashes($entete['libelle']).'", ';
 		}
+		$header.= ']';
 
-		$header='["'.addslashes( $TEntete[$fieldXaxis]['libelle'] ).'","'.implode('","', $TValue).'"]';
 		//var_dump($fieldXaxis, $TChamps);
 		foreach($TChamps as &$row) {
 			$TValue=array();
@@ -649,7 +649,8 @@ class TListviewTBS {
 					$key = $v;
 				}
 				else {
-					$TValue[] = (float)$v;
+					if (is_numeric($v)) $TValue[] = (float)$v;
+					else $TValue[] = '\''.addslashes($v).'\'';
 				}
 
 			}
@@ -658,7 +659,7 @@ class TListviewTBS {
 				if(!isset($TData[$key])) $TData[$key] = $TValue;
 				else {
 					foreach($TData[$key] as $k=>$v) {
-						$TData[$key][$k]+=(float)$TValue[$k];
+						if (is_numeric($v)) $TData[$key][$k]+=(float)$TValue[$k];
 					}
 
 				}
@@ -672,7 +673,8 @@ class TListviewTBS {
 
 			$data .= ',[ "'.$key.'", ';
 			foreach($TValue as $v) {
-				$data.=(float)$v.',';
+				if (is_numeric($v)) $data.=(float)$v.',';
+				else $data.=$v.',';
 			}
 
 			$data.=' ]';
@@ -728,6 +730,8 @@ class TListviewTBS {
 				  ,vAxis: '.json_encode($vAxis).'
 				  '.( $type == 'PieChart' && !empty($pieHole) ? ',pieHole: '.$pieHole : '').'
 				  '.( $type == 'AreaChart' ? ',isStacked: \'percent\'' : '').'
+
+				  '.(!empty($TParam['chart']['options']['bar']) ? ',bar : {'.$TParam['chart']['options']['bar'].'}' : '').'
 		        };
 
 		        var chart = new google.visualization.'.$type.'(document.getElementById("div_query_chart'.$this->id.'"));
@@ -882,7 +886,7 @@ class TListviewTBS {
 		$view_type = $this->getViewType($TParam);
 
 		if($view_type == 'raw') {
-			return $this->renderRAW($TEntete, $TChamps,$TTotal, $TParam);
+			return $this->renderRAW($TEntete, $TChamps,$TTotal, $TTotalGroup,$TParam);
 		}
 		if($view_type == 'chart') {
 			return $this->renderChart($TEntete, $TChamps,$TTotal, $TParam);
@@ -1117,7 +1121,7 @@ class TListviewTBS {
 								}
 							}
 							if($TParam['type'][$field]=='hour') { $row[$field] = date('H:i', strtotime($row[$field])); }
-							if($TParam['type'][$field]=='money') { $row[$field] = '<div align="right">'.price($row[$field],0,'',1,-1,2).'</div>'; }
+							if($TParam['type'][$field]=='money') { $row[$field] = '<div align="right">'.(is_null($row[$field]) ? '' :  price($row[$field],0,'',1,-1,2)).'</div>'; }
 							if($TParam['type'][$field]=='number') { $row[$field] = '<div align="right">'.price($row[$field]).'</div>'; }
 							if($TParam['type'][$field]=='integer') { $row[$field] = '<div align="right">'.(int)$row[$field].'</div>'; }
 						}

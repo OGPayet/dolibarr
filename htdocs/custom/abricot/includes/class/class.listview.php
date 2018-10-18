@@ -63,6 +63,7 @@ class Listview
 		if(!isset($TParam['type'])) $TParam['type']=array();
 		if(!isset($TParam['orderby']['noOrder'])) $TParam['orderby']['noOrder']=array();
 		if(!isset($TParam['allow-fields-select'])) $TParam['allow-fields-select'] = 0;
+		if(!isset($TParam['search'])) $TParam['search'] = array();
 
 		if(!isset($TParam['list']))$TParam['list']=array();
 		$TParam['list'] = array_merge(array(
@@ -325,7 +326,7 @@ class Listview
     {
 		global $langs, $form;
 
-		if(empty($TParam['search'])) return array();
+		if(empty($TParam['search']) && empty($TParam['list']['head_search'])) return array();
 
 		$TSearch=array();
 
@@ -392,14 +393,17 @@ class Listview
 		}
 
 		$search_button = '<div class="nowrap">';
-		$search_button.= '<a href="#" onclick="Listview_submitSearch(this);" class="list-search-link">'.img_search().'</a>';
-		$search_button.= '&nbsp;<a href="#" onclick="Listview_clearSearch(this);" class="list-search-link">'.img_searchclear().'</a>';
+//		$search_button.= '<a href="#" onclick="Listview_submitSearch(this);" class="list-search-link">'.img_search().'</a>';
+//		$search_button.= '&nbsp;<a href="#" onclick="Listview_clearSearch(this);" class="list-reset-link">'.img_searchclear().'</a>';
+		$search_button.= img_search();
+		$search_button.= '&nbsp;'.img_searchclear();
 		$search_button.= '</div>';
 
-		if($nb_search_in_bar>0)
+		if($nb_search_in_bar>0 || !empty($TParam['list']['head_search']))
 		{
 			end($TSearch);
 			list($key,$v) = each($TSearch);
+
 			$TSearch[$key].=$search_button;
 		}
 		else
@@ -589,7 +593,7 @@ class Listview
      */
     private function renderList(&$THeader, &$TField, &$TTotal, &$TTotalGroup, &$TParam)
     {
-		global $bc,$form;
+		global $form;
 
 		$TSearch = $this->setSearch($THeader, $TParam);
 		$TExport = $this->setExport($TParam, $TField, $THeader);
@@ -698,7 +702,7 @@ class Listview
 							if(!empty($TParam['list']['massactions'])) {
 								$arrayofselected=array(); // TODO get in param
 								$selected=0;
-								if (in_array($obj->rowid, $arrayofselected)) $selected=1;
+								if (in_array($fields['rowid'], $arrayofselected)) $selected=1;
 								$value_aff.='<input id="cb'.$fields['rowid'].'" class="flat checkforselect" type="checkbox" name="toselect[]" value="'.$fields['rowid'].'"'.($selected?' checked="checked"':'').'>';
 							}
 						}
@@ -779,19 +783,19 @@ class Listview
      * @param string $TParam    TParam
      * @return bool
      */
-    private function parse_array(&$THeader, &$TField, &$TParam, &$TFieldInView)
+    private function parse_array(&$THeader, &$TData, &$TParam, &$TFieldInView)
     {
-		$this->totalRow = count($TField);
+		$this->totalRow = count($TData);
 
 		$this->THideFlip = array_flip($TParam['hide']);
 		$this->TTotalTmp=array();
 
-		if (empty($TField)) return false;
+		if (empty($TData)) return false;
 
-		foreach($TField as $row) {
-			$this->set_line($TFieldInView, $TParam, $row);
+		foreach($TData as $row)
+		{
+			$this->set_line($THeader, $TFieldInView, $TParam, $row);
 		}
-
 
 	}
 

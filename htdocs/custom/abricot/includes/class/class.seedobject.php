@@ -25,7 +25,492 @@
 
 require_once DOL_DOCUMENT_ROOT.'/core/class/commonobject.class.php';
 
-class SeedObject extends CommonObject
+if ((float) DOL_VERSION < 7.0)
+{
+	class SeedObjectDolibarr extends CommonObject
+	{
+		/**
+		* Function test if type is date
+		*
+		* @param   array   $info   content informations of field
+		* @return                  bool
+		*/
+	   protected function isDate($info)
+	   {
+		   if (is_callable('parent::isDate')) return parent::isDate($info);
+
+		   if(isset($info['type']) && ($info['type']=='date' || $info['type']=='datetime' || $info['type']=='timestamp')) return true;
+		   else return false;
+	   }
+
+	   /**
+		* Function test if type is array
+		*
+		* @param   array   $info   content informations of field
+		* @return                  bool
+		*/
+	   protected function isArray($info)
+	   {
+		   if (is_callable('parent::isArray')) return parent::isArray($info);
+
+		   if(is_array($info))
+		   {
+			   if(isset($info['type']) && $info['type']=='array') return true;
+			   else return false;
+		   }
+		   else return false;
+	   }
+
+	   /**
+		* Function test if type is null
+		*
+		* @param   array   $info   content informations of field
+		* @return                  bool
+		*/
+	   protected function isNull($info)
+	   {
+		   if (is_callable('parent::isNull')) return parent::isNull($info);
+
+		   if(is_array($info))
+		   {
+			   if(isset($info['type']) && $info['type']=='null') return true;
+			   else return false;
+		   }
+		   else return false;
+	   }
+
+	   /**
+		* Function test if type is integer
+		*
+		* @param   array   $info   content informations of field
+		* @return                  bool
+		*/
+	   protected function isInt($info)
+	   {
+		   if (is_callable('parent::isInt')) return parent::isInt($info);
+
+		   if(is_array($info))
+		   {
+			   if(isset($info['type']) && ($info['type']=='int' || $info['type']=='integer' )) return true;
+			   else return false;
+		   }
+		   else return false;
+	   }
+
+	   /**
+		* Function test if type is float
+		*
+		* @param   array   $info   content informations of field
+		* @return                  bool
+		*/
+	   protected function isFloat($info)
+	   {
+		   if (is_callable('parent::isFloat')) return parent::isFloat($info);
+
+		   if(is_array($info))
+		   {
+			   if (isset($info['type']) && (preg_match('/^(double|real)/i', $info['type']))) return true;
+			   else return false;
+		   }
+		   else return false;
+	   }
+
+	   /**
+		* Function test if type is text
+		*
+		* @param   array   $info   content informations of field
+		* @return                  bool
+		*/
+	   protected function isText($info)
+	   {
+		   if (is_callable('parent::isText')) return parent::isText($info);
+
+		   if(is_array($info))
+		   {
+			   if(isset($info['type']) && $info['type']=='text') return true;
+			   else return false;
+		   }
+		   else return false;
+	   }
+
+	   /**
+		* Function test if is indexed
+		*
+		* @param   array   $info   content informations of field
+		* @return                  bool
+		*/
+	   protected function isIndex($info)
+	   {
+		   if (is_callable('parent::isIndex')) return parent::isIndex($info);
+
+		   if(is_array($info))
+		   {
+			   if(isset($info['index']) && $info['index']==true) return true;
+			   else return false;
+		   }
+		   else return false;
+	   }
+
+		/**
+		 * Function to concat keys of fields
+		 *
+		 * @return string
+		 */
+		public function get_field_list()
+		{
+			$keys = array_keys($this->fields);
+			return implode(',', $keys);
+		}
+
+		/**
+		 * Function to load data into current object this
+		 *
+		 * @param   stdClass    $obj    Contain data of object from database
+		 */
+		protected function set_vars_by_db(&$obj)
+		{
+			foreach ($this->fields as $field => $info)
+			{
+				if($this->isDate($info))
+				{
+					if(empty($obj->{$field}) || $obj->{$field} === '0000-00-00 00:00:00' || $obj->{$field} === '1000-01-01 00:00:00') $this->{$field} = 0;
+					else $this->{$field} = strtotime($obj->{$field});
+				}
+				elseif($this->isArray($info))
+				{
+					$this->{$field} = @unserialize($obj->{$field});
+					// Hack for data not in UTF8
+					if($this->{$field } === FALSE) @unserialize(utf8_decode($obj->{$field}));
+				}
+				elseif($this->isInt($info))
+				{
+					$this->{$field} = (int) $obj->{$field};
+				}
+				elseif($this->isFloat($info))
+				{
+					$this->{$field} = (double) $obj->{$field};
+				}
+				elseif($this->isNull($info))
+				{
+					$val = $obj->{$field};
+					// zero is not null
+					$this->{$field} = (is_null($val) || (empty($val) && $val!==0 && $val!=='0') ? null : $val);
+				}
+				else
+				{
+					$this->{$field} = $obj->{$field};
+				}
+			}
+		}
+
+		/**
+		 * Function to prepare the values to insert.
+		 * Note $this->${field} are set by the page that make the createCommon or the updateCommon.
+		 *
+		 * @return array
+		 */
+		protected function set_save_query()
+		{
+			global $conf;
+			$queryarray=array();
+			foreach ($this->fields as $field=>$info)	// Loop on definition of fields
+			{
+				// Depending on field type ('datetime', ...)
+				if($this->isDate($info))
+				{
+					if(empty($this->{$field}))
+					{
+						$queryarray[$field] = NULL;
+					}
+					else
+					{
+						$queryarray[$field] = $this->db->idate($this->{$field});
+					}
+				}
+				else if($this->isArray($info))
+				{
+					$queryarray[$field] = serialize($this->{$field});
+				}
+				else if($this->isInt($info))
+				{
+					if ($field == 'entity' && is_null($this->{$field})) $queryarray[$field]=$conf->entity;
+					else
+					{
+						$queryarray[$field] = (int) price2num($this->{$field});
+						if (empty($queryarray[$field])) $queryarray[$field]=0;		// May be rest to null later if property 'nullifempty' is on for this field.
+					}
+				}
+				else if($this->isFloat($info))
+				{
+					$queryarray[$field] = (double) price2num($this->{$field});
+					if (empty($queryarray[$field])) $queryarray[$field]=0;
+				}
+				else
+				{
+					$queryarray[$field] = $this->{$field};
+				}
+				if ($info['type'] == 'timestamp' && empty($queryarray[$field])) unset($queryarray[$field]);
+				if (! empty($info['nullifempty']) && empty($queryarray[$field])) $queryarray[$field] = null;
+			}
+			return $queryarray;
+		}
+
+		/**
+		 * Add quote to field value if necessary
+		 *
+		 * @param 	string|int	$value			Value to protect
+		 * @param	array		$fieldsentry	Properties of field
+		 * @return 	string
+		 */
+		protected function quote($value, $fieldsentry) {
+			if (is_null($value)) return 'NULL';
+			else if (preg_match('/^(int|double|real)/i', $fieldsentry['type'])) return $this->db->escape("$value");
+			else return "'".$this->db->escape($value)."'";
+		}
+	}
+
+}
+else
+{
+	class SeedObjectDolibarr extends CommonObject
+	{
+		/**
+		* Function test if type is date
+		*
+		* @param   array   $info   content informations of field
+		* @return                  bool
+		*/
+	   public function isDate($info)
+	   {
+		   if (is_callable('parent::isDate')) return parent::isDate($info);
+
+		   if(isset($info['type']) && ($info['type']=='date' || $info['type']=='datetime' || $info['type']=='timestamp')) return true;
+		   else return false;
+	   }
+
+	   /**
+		* Function test if type is array
+		*
+		* @param   array   $info   content informations of field
+		* @return                  bool
+		*/
+	   public function isArray($info)
+	   {
+		   if (is_callable('parent::isArray')) return parent::isArray($info);
+
+		   if(is_array($info))
+		   {
+			   if(isset($info['type']) && $info['type']=='array') return true;
+			   else return false;
+		   }
+		   else return false;
+	   }
+
+	   /**
+		* Function test if type is null
+		*
+		* @param   array   $info   content informations of field
+		* @return                  bool
+		*/
+	   public function isNull($info)
+	   {
+		   if (is_callable('parent::isNull')) return parent::isNull($info);
+
+		   if(is_array($info))
+		   {
+			   if(isset($info['type']) && $info['type']=='null') return true;
+			   else return false;
+		   }
+		   else return false;
+	   }
+
+	   /**
+		* Function test if type is integer
+		*
+		* @param   array   $info   content informations of field
+		* @return                  bool
+		*/
+	   public function isInt($info)
+	   {
+		   if (is_callable('parent::isInt')) return parent::isInt($info);
+
+		   if(is_array($info))
+		   {
+			   if(isset($info['type']) && ($info['type']=='int' || $info['type']=='integer' )) return true;
+			   else return false;
+		   }
+		   else return false;
+	   }
+
+	   /**
+		* Function test if type is float
+		*
+		* @param   array   $info   content informations of field
+		* @return                  bool
+		*/
+	   public function isFloat($info)
+	   {
+		   if (is_callable('parent::isFloat')) return parent::isFloat($info);
+
+		   if(is_array($info))
+		   {
+			   if (isset($info['type']) && (preg_match('/^(double|real)/i', $info['type']))) return true;
+			   else return false;
+		   }
+		   else return false;
+	   }
+
+	   /**
+		* Function test if type is text
+		*
+		* @param   array   $info   content informations of field
+		* @return                  bool
+		*/
+	   public function isText($info)
+	   {
+		   if (is_callable('parent::isText')) return parent::isText($info);
+
+		   if(is_array($info))
+		   {
+			   if(isset($info['type']) && $info['type']=='text') return true;
+			   else return false;
+		   }
+		   else return false;
+	   }
+
+	   /**
+		* Function test if is indexed
+		*
+		* @param   array   $info   content informations of field
+		* @return                  bool
+		*/
+	   public function isIndex($info)
+	   {
+		   if (is_callable('parent::isIndex')) return parent::isIndex($info);
+
+		   if(is_array($info))
+		   {
+			   if(isset($info['index']) && $info['index']==true) return true;
+			   else return false;
+		   }
+		   else return false;
+	   }
+
+		/**
+		 * Function to concat keys of fields
+		 *
+		 * @return string
+		 */
+		public function get_field_list()
+		{
+			if (method_exists($this, 'getFieldList')) return parent::getFieldList();
+
+			$keys = array_keys($this->fields);
+			return implode(',', $keys);
+		}
+
+		/**
+		 * Function to load data from a SQL pointer into properties of current object $this
+		 *
+		 * @param   stdClass    $obj    Contain data of object from database
+		 */
+		protected function set_vars_by_db(&$obj)
+		{
+			if (method_exists($this, 'setVarsFromFetchObj')) return parent::setVarsFromFetchObj($obj);
+
+			foreach ($this->fields as $field => $info)
+			{
+				if($this->isDate($info))
+				{
+					if(empty($obj->{$field}) || $obj->{$field} === '0000-00-00 00:00:00' || $obj->{$field} === '1000-01-01 00:00:00') $this->{$field} = 0;
+					else $this->{$field} = strtotime($obj->{$field});
+				}
+				elseif($this->isArray($info))
+				{
+					$this->{$field} = @unserialize($obj->{$field});
+					// Hack for data not in UTF8
+					if($this->{$field } === FALSE) @unserialize(utf8_decode($obj->{$field}));
+				}
+				elseif($this->isInt($info))
+				{
+					$this->{$field} = (int) $obj->{$field};
+				}
+				elseif($this->isFloat($info))
+				{
+					$this->{$field} = (double) $obj->{$field};
+				}
+				elseif($this->isNull($info))
+				{
+					$val = $obj->{$field};
+					// zero is not null
+					$this->{$field} = (is_null($val) || (empty($val) && $val!==0 && $val!=='0') ? null : $val);
+				}
+				else
+				{
+					$this->{$field} = $obj->{$field};
+				}
+
+			}
+		}
+
+		/**
+		 * Function to prepare the values to insert.
+		 * Note $this->${field} are set by the page that make the createCommon or the updateCommon.
+		 *
+		 * @return array
+		 */
+		protected function set_save_query()
+		{
+			if (method_exists($this, 'setSaveQuery')) return parent::setSaveQuery();
+
+			global $conf;
+			$queryarray=array();
+			foreach ($this->fields as $field=>$info)	// Loop on definition of fields
+			{
+				// Depending on field type ('datetime', ...)
+				if($this->isDate($info))
+				{
+					if(empty($this->{$field}))
+					{
+						$queryarray[$field] = NULL;
+					}
+					else
+					{
+						$queryarray[$field] = $this->db->idate($this->{$field});
+					}
+				}
+				else if($this->isArray($info))
+				{
+					$queryarray[$field] = serialize($this->{$field});
+				}
+				else if($this->isInt($info))
+				{
+					if ($field == 'entity' && is_null($this->{$field})) $queryarray[$field]=$conf->entity;
+					else
+					{
+						$queryarray[$field] = (int) price2num($this->{$field});
+						if (empty($queryarray[$field])) $queryarray[$field]=0;		// May be reset to null later if property 'notnull' is -1 for this field.
+					}
+				}
+				else if($this->isFloat($info))
+				{
+					$queryarray[$field] = (double) price2num($this->{$field});
+					if (empty($queryarray[$field])) $queryarray[$field]=0;
+				}
+				else
+				{
+					$queryarray[$field] = $this->{$field};
+				}
+				if ($info['type'] == 'timestamp' && empty($queryarray[$field])) unset($queryarray[$field]);
+				if (! empty($info['notnull']) && $info['notnull'] == -1 && empty($queryarray[$field])) $queryarray[$field] = null;
+			}
+			return $queryarray;
+		}
+	}
+}
+
+
+class SeedObject extends SeedObjectDolibarr
 {
 
 	public $withChild = true;
@@ -34,6 +519,10 @@ class SeedObject extends CommonObject
 	 *  @var Array $_fields Fields to synchronize with Database
 	 */
 	protected $fields=array();
+
+	protected $fk_element='';
+
+	protected $childtable=array();
 
 	/**
 	 *  Constructor
@@ -89,10 +578,8 @@ class SeedObject extends CommonObject
 	 * @return bool
 	 */
 	function init_vars_by_db() {
-		$res = $this->db->Execute("SHOW COLUMNS FROM ".MAIN_DB_PREFIX.$this->table_element);
+		$res = $this->db->query("SHOW COLUMNS FROM ".MAIN_DB_PREFIX.$this->table_element);
 		while($obj = $this->db->fetch_object($res)) {
-			$nom = strtolower($db->Get_field(''));
-			$type_my = $db->Get_field('Type');
 
 			if(strpos($obj->Type,'int(')!==false) $type=array('type'=>'integer');
 			else if(strpos($obj->Type,'date')!==false) $type=array('type'=>'date');
@@ -142,6 +629,34 @@ class SeedObject extends CommonObject
 	return $res;
 	}
 
+
+	/**
+	 *	Get object and children from database on custom field
+	 *
+	 *	@param      string		$key       		key of object to load
+	 **	@param      string		$field       	field of object used to load
+	 * 	@param		bool		$loadChild		used to load children from database
+	 *	@return     int         				>0 if OK, <0 if KO, 0 if not found
+	 */
+	public function fetchBy($key, $field, $loadChild = true)
+	{
+
+	    if(empty($this->fields[$field])) return false;
+
+	    $resql = $this->db->query("SELECT rowid FROM ".MAIN_DB_PREFIX.$this->table_element." WHERE ".$field."=".$this->quote($key, $this->fields[$field])." LIMIT 1 ");
+
+	    if($resql) {
+	        $objp = $this->db->fetch_object($resql);
+
+	        $res = $this->fetchCommon($objp->rowid);
+	        if($res>0) {
+	            if ($loadChild) $this->fetchChild();
+	        }
+
+	    }
+
+	    return $res;
+	}
 
     /**
      * Function to instantiate a new child
@@ -282,9 +797,7 @@ class SeedObject extends CommonObject
         $res = $this->updateCommon($user);
         if ($res)
         {
-            $result = $this->call_trigger(strtoupper($this->element). '_UPDATE', $user);
-            if ($result < 0) $error++;
-            else $this->saveChild($user);
+           $this->saveChild($user);
         }
         else
         {
@@ -322,11 +835,8 @@ class SeedObject extends CommonObject
         $res = $this->createCommon($user);
 		if($res)
 		{
-			$this->id = $this->db->last_insert_id($this->table_element);
 
-			$result = $this->call_trigger(strtoupper($this->element). '_CREATE', $user);
-            if ($result < 0) $error++;
-            else $this->saveChild($user);
+			$this->saveChild($user);
 		}
 		else
         {
@@ -360,12 +870,8 @@ class SeedObject extends CommonObject
         $error = 0;
         $this->db->begin();
 
-        $result = $this->call_trigger(strtoupper($this->element). '_DELETE', $user);
-        if ($result < 0) $error++;
-
-        if (!$error)
+        if ($this->deleteCommon($user)>0)
         {
-            $this->deleteCommon($user);
             if($this->withChild && !empty($this->childtables))
             {
                 foreach($this->childtables as $className => &$childTable)
@@ -538,11 +1044,12 @@ class SeedObject extends CommonObject
 	/**
 	 * Load object in memory from the database
 	 *
-	 * @param int    $id   Id object
-	 * @param string $ref  Ref
+	 * @param int    $id   		Id object
+	 * @param string $ref  		Ref
+	 * @param string $morewhere	Ref
 	 * @return int         <0 if KO, 0 if not found, >0 if OK
 	 */
-	public function fetchCommon($id, $ref = null)
+	public function fetchCommon($id, $ref = null, $morewhere='')
 	{
 		// method_exists() with key word 'parent' doesn't work
 		if (is_callable('parent::fetchCommon')) return parent::fetchCommon($id, $ref);
@@ -555,6 +1062,7 @@ class SeedObject extends CommonObject
 
 		if(!empty($id)) $sql.= ' WHERE rowid = '.$id;
 		else $sql.= " WHERE ref = ".$this->quote($ref, $this->fields['ref']);
+		if ($morewhere) $sql.=$morewhere;
 
 		$res = $this->db->query($sql);
 		if ($res)
@@ -815,5 +1323,4 @@ class SeedObject extends CommonObject
 		}
 		return $this->{$nom_champ};
 	}
-
 }
