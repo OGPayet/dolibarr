@@ -203,8 +203,8 @@ class modDeclinaison extends DolibarrModules
         $r = 0;
         // Example:
 
-        $this->boxes[$r][1] = "MyBox@Declinaison";
-        $r ++;
+        // $this->boxes[$r][1] = "MyBox@Declinaison";
+        // $r ++;
         /*
           $this->boxes[$r][1] = "myboxb.php";
           $r++;

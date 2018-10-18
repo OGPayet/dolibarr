@@ -200,10 +200,10 @@ class warehousechildwidget1 extends ModeleBoxes
 	 * @param array $contents Array with properties of box lines
 	 * @return void
 	 */
-	public function showBox($head = null, $contents = null)
+	public function showBox($head = null, $contents = null, $nooutput=0)
 	{
 		// You may make your own code here…
 		// … or use the parent's class function using the provided head and contents templates
-		parent::showBox($this->info_box_head, $this->info_box_contents);
+		parent::showBox($this->info_box_head, $this->info_box_contents, $nooutput);
 	}
 }
