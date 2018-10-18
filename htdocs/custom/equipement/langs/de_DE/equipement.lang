@@ -311,5 +311,5 @@ EquipmentNotFound=Equipment not found
 EquipmentReassigned=Equipment reassigned.
 EquipmentAlreadyAssignedToThisProduct=Equipment already assigned to this product.
 ReassignEquipmentProduct=The product %s has been swap by %s
-EquipmentAddEquipmentToComposition=Add equipment %s to composition
-EquipmentDeleteEquipmentToComposition=Delete equipment %s to composition
+EquipmentAddEquipmentToComposition=Add equipment %s to composition %s
+EquipmentDeleteEquipmentToComposition=Delete equipment %s to composition %s

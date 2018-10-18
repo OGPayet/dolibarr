@@ -344,8 +344,8 @@ EquipmentNotFound=Équipement non trouvé
 EquipmentReassigned=L'équipement a été réaffecter.
 EquipmentAlreadyAssignedToThisProduct=L'équipement est déjà affecter à ce produit.
 ReassignEquipmentProduct=Le produit %s à été échangé par %s
-EquipmentAddEquipmentToComposition=Ajout de l'équipement %s à la composition
-EquipmentDeleteEquipmentToComposition=Suppression de l'équipement %s à la composition
+EquipmentAddEquipmentToComposition=Ajout de l'équipement %s à la composition %s
+EquipmentDeleteEquipmentToComposition=Suppression de l'équipement %s à la composition %s
 EquipmentNoMoreProductToSerialize=Plus de produits à sérialiser
 EquipmentNoMoreProductToAttach=Plus de produits à attacher
 
