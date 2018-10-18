@@ -204,13 +204,16 @@ if (empty($reshook)) {
 
             if (! $error) {
                 // on ajoute un mouvement de stock d'entree de produit
-                $idmv = $mouvP->reception($user, $factory->fk_product, $factory->fk_entrepot, $factory->qty_made, ($totprixfabrication / $factory->qty_made), $langs->trans("BuildedFactory", $factory->ref), $factory->date_end_made);
-                if ($idmv < 0) {
-                    $error++;
-                    $componentProductStatic->fetch($factory->fk_product);
-                    $componentEntrepotStatic->fetch($factory->fk_entrepot);
-                    $factory->error = $componentProductStatic->ref . " : " . $mouvP->error . " (" . $componentEntrepotStatic->libelle . ")";
-                    $factory->errors[] = $factory->error;
+                if ($factory->qty_made!=0) {
+
+                    $idmv = $mouvP->reception($user, $factory->fk_product, $factory->fk_entrepot, $factory->qty_made, ($totprixfabrication / $factory->qty_made), $langs->trans("BuildedFactory", $factory->ref), $factory->date_end_made);
+                    if ($idmv < 0) {
+                        $error++;
+                        $componentProductStatic->fetch($factory->fk_product);
+                        $componentEntrepotStatic->fetch($factory->fk_entrepot);
+                        $factory->error = $componentProductStatic->ref . " : " . $mouvP->error . " (" . $componentEntrepotStatic->libelle . ")";
+                        $factory->errors[] = $factory->error;
+                    }
                 }
             }
 

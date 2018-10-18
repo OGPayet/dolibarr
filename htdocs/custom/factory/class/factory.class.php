@@ -204,7 +204,7 @@ class Factory extends CommonObject
 
         if (count($warehouseToUseList) > 0) {
             foreach ($warehouseToUseList as $idDispatchedLine => $warehouseToUse) {
-                $result = $this->createof_component($fk_factory, $warehouseToUse['qty'], $valuearray, $fk_mouvementstock, $warehouseToUse['fk_entrepot'], $idDispatchedLine);
+                $result = $this->createof_component($fk_factory, 0, $valuearray, $fk_mouvementstock, $warehouseToUse['fk_entrepot'], $idDispatchedLine, $warehouseToUse['qty']);
 
                 if ($result < 0) {
                     $error++;
@@ -230,11 +230,12 @@ class Factory extends CommonObject
      * @param   int         $fk_mouvementstock      Stock movement
      * @param   int|NULL    $fk_entrepot            [=NULL] Use factory warehouse, or Id of warehouse to use
      * @param   int         $id_dispatched_line     [=O] Id of dispatched line
+     * @param   int|NULL    $qty_planned            [=NULL] Qty planned or NULL to use default (calculated by qty to build)
      * @return  int         <0 if KO, Id of factory if OK
      *
      * @throws  Exception
      */
-	public function createof_component($fk_factory, $qty_build, $valuearray, $fk_mouvementstock=0, $fk_entrepot=NULL, $id_dispatched_line=0)
+	public function createof_component($fk_factory, $qty_build, $valuearray, $fk_mouvementstock=0, $fk_entrepot=NULL, $id_dispatched_line=0, $qty_planned=NULL)
 	{
 	    // set by default with factory warehouse
 	    if ($fk_entrepot===NULL && $this->fk_entrepot>0) {
@@ -247,11 +248,13 @@ class Factory extends CommonObject
         $sql .= ", fk_entrepot";
         $sql .= ", id_dispatched_line";
 		$sql .= ")";
-		// pour gerer les quantites
-		if ($valuearray['globalqty'] == 0)
-			$qty_planned=$qty_build * $valuearray['nb'];
-		else
-			$qty_planned=$valuearray['nb'];
+		if ($qty_planned===NULL) {
+            // pour gerer les quantites
+            if ($valuearray['globalqty'] == 0)
+                $qty_planned=$qty_build * $valuearray['nb'];
+            else
+                $qty_planned=$valuearray['nb'];
+        }
 		$sql .= " VALUES (" . $fk_factory . ", " . $valuearray['id'] .", " . $valuearray['nb'];
 		$sql .= ", " . $qty_planned . ", " . $valuearray['pmp'] . ", " . $valuearray['price'];
 		$sql .= ", " . $fk_mouvementstock . ", " . $valuearray['globalqty'];
