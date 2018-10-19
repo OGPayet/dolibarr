@@ -92,6 +92,7 @@ if (empty($reshook)) {
         $object->fk_urgency = GETPOST('urgency', 'int');
         $object->description = GETPOST('description');
         $selectedActionCommId = GETPOST('actioncomm_id') ? GETPOST('actioncomm_id') : -1;
+        $object->date_creation = dol_now();
 
         // Add equipment links
         $selectedEquipementId = GETPOST('equipement_id', 'int') ? intval(GETPOST('equipement_id', 'int')) : -1;
@@ -259,8 +260,8 @@ if (($action == 'createfast' || $action == 'force_principal_company') && $user->
     }
 
     // Confirm force principal company
+    $formquestion = array();
     if ($action == 'force_principal_company') {
-        $formquestion = array();
         if (!empty($selectedActionJs)) $formquestion[] = array('type' => 'hidden', 'name' => 'action_js', 'value' => $selectedActionJs);
         if (!empty($selectedActionCommId)) $formquestion[] = array('type' => 'hidden', 'name' => 'actioncomm_id', 'value' => $selectedActionCommId);
         if (!empty($selectedCategories)) $formquestion[] = array('type' => 'hidden', 'name' => 'categories', 'value' => implode(',', $selectedCategories));
@@ -276,7 +277,9 @@ if (($action == 'createfast' || $action == 'force_principal_company') && $user->
         if (!empty($selectedFkUrgency)) $formquestion[] = array('type' => 'hidden', 'name' => 'urgency', 'value' => $selectedFkUrgency);
         if (!empty($origin)) $formquestion[] = array('type' => 'hidden', 'name' => 'origin', 'value' => $origin);
         if (!empty($originid)) $formquestion[] = array('type' => 'hidden', 'name' => 'originid', 'value' => $originid);
+    }
 
+    if ($action == 'force_principal_company') {
         $societe = new Societe($db);
         $societe->fetch($selectedSocId);
         $formquestion[] = array('type' => 'other', 'label' => $langs->trans('RequestManagerThirdPartyPrincipal'), 'value' => $societe->getNomUrl(1));

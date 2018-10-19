@@ -13,14 +13,35 @@
 --
 -- You should have received a copy of the GNU General Public License
 -- along with this program. If not, see <http://www.gnu.org/licenses/>.
---
--- Table of journals for accountancy
 -- ============================================================================
 
-CREATE TABLE IF NOT EXISTS llx_requestmanager_notification
-(
-  rowid         integer AUTO_INCREMENT PRIMARY KEY,
-  fk_actioncomm integer NOT NULL DEFAULT '0',	-- id of the actioncomm for notification
-  fk_user       integer NOT NULL DEFAULT '0',	-- id of the user to notify
-  status        integer NOT NULL DEFAULT '0' -- status (0=not read, 1=read)
-) ENGINE=innodb;
+-- purge de caractères indésirables
+-- exemple : RM_GLOBAL_TRIM('+30 06 06 14 15', '0123456789') => '3006061415'
+CREATE FUNCTION RM_GLOBAL_TRIM(input_text VARCHAR (8000), accepted_chars VARCHAR(256))
+ RETURNS VARCHAR (8000)
+ BEGIN
+   DECLARE res VARCHAR(8000);
+
+   IF (input_text IS NOT NULL AND LENGTH(input_text) > 0) THEN
+     BEGIN
+       DECLARE idx INT DEFAULT 1;
+       DECLARE len INT DEFAULT LENGTH(input_text);
+       DECLARE c CHAR DEFAULT '';
+
+       -- initialisation
+       SET res = '';
+
+       -- lecture caractère par caractère
+       WHILE (idx <= len) DO
+         SET c = SUBSTRING(input_text, idx, 1);
+         IF LOCATE(c, accepted_chars) > 0 THEN SET res = CONCAT(res, c); END IF;
+
+         SET idx = idx + 1;
+       END WHILE;
+     END;
+   ELSE
+     SET res = NULL;
+   END IF;
+
+   RETURN res;
+ END;

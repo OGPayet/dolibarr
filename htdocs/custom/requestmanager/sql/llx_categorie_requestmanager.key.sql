@@ -13,7 +13,6 @@
 --
 -- You should have received a copy of the GNU General Public License
 -- along with this program. If not, see <http://www.gnu.org/licenses/>.
---
 -- ===========================================================================
 
 ALTER TABLE llx_categorie_requestmanager ADD PRIMARY KEY pk_categorie_requestmanager (fk_categorie, fk_requestmanager);

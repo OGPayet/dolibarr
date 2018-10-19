@@ -3,6 +3,11 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.7] - 19-10-2018
+- Ajout notification de creation d'une demande.
+- Corrections et refonte des appels IPBX sur l'API.
+- Corrections diverses.
+
 ## [4.0.6] - 17-10-2018
 - Ajout d'un chromomètre qui début dès l'affichage de la page de création d'une demande.
 - Corrections diverses.
@@ -16,7 +21,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 16-07-2018
 - Version initial.
 
-[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/compare/v4.0.6...HEAD
+[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/compare/v4.0.7...HEAD
+[4.0.7]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.7
 [4.0.6]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.6
 [4.0.5]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.5
 [4.0.4]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.4

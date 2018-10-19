@@ -33,12 +33,14 @@ RequestManagerChronometerSoundName                      = Son d'alerte
 RequestManagerChronometerSoundDesc                      = Adresse URL du fichier son d'aletre une fois la limite de temps atteinte ou dépassée
 
 RequestManagerNotificationOptions                       = Paramètres généraux des notifications
-RequestManagerMessageCreateNotifyName                   = Notification lors de la création d'un message
-RequestManagerMessageCreateNotifyDesc                   = Active la notification global lors de la création d'un message d'une demande
+RequestManagerCreateNotifyName                          = Notification lors de la création d'une demande
+RequestManagerCreateNotifyDesc                          = Active la notification global lors de la création d'une demande
 RequestManagerSetAssignedNotifyName                     = Notification lors du changement d'assignation
 RequestManagerSetAssignedNotifyDesc                     = Active la notification global lors du changement d'assignation d'une demande
 RequestManagerStatusModifyNotifyName                    = Notification lors du changement de statut
 RequestManagerStatusModifyNotifyDesc                    = Active la notification global lors du changement de statut d'une demande
+RequestManagerMessageCreateNotifyName                   = Notification lors de la création d'un message
+RequestManagerMessageCreateNotifyDesc                   = Active la notification global lors de la création d'un message d'une demande
 
 RequestManagerNotificationAssignedOptions               = Paramètres des notifications aux assignés
 RequestManagerNotificationAssignedByEmailName           = Notification par courriel
@@ -116,6 +118,11 @@ Notify_REQUESTMANAGER_DELETE            = Demande supprimée
 Notify_REQUESTMANAGER_SET_ASSIGNED      = Assignation d'une demande modifiée
 Notify_REQUESTMANAGER_STATUS_MODIFY     = Statut d'une demande modifiée
 Notify_REQUESTMANAGERMESSAGE_SENTBYMAIL = Envoi du message d'une demande par email
+
+############################################################
+### Extra fields
+############################################################
+RequestManagerIPBX      = IPBX
 
 ############################################################
 ### Global search

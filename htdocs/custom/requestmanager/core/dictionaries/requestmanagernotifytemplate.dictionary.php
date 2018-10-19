@@ -195,6 +195,8 @@ class RequestManagerNotifyTemplateDictionary extends Dictionary
 
         // Set list of template type
         $templateTypeList = array(
+            RequestManagerNotify::TYPE_REQUEST_CREATED => $langs->trans('RequestManagerNotifyTemplateTypeRequestCreated'),
+            RequestManagerNotify::TYPE_ASSIGNED_MODIFIED => $langs->trans('RequestManagerNotifyTemplateTypeAssignedUsersModified'),
             RequestManagerNotify::TYPE_ASSIGNED_MODIFIED => $langs->trans('RequestManagerNotifyTemplateTypeAssignedUsersModified'),
             RequestManagerNotify::TYPE_STATUS_MODIFIED => $langs->trans('RequestManagerNotifyTemplateTypeStatusModified'),
             RequestManagerNotify::TYPE_MESSAGE_ADDED => $langs->trans('RequestManagerNotifyTemplateTypeMessageAdded'),

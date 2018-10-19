@@ -55,7 +55,21 @@ class InterfaceRMNotification extends DolibarrTriggers
             return 0;
         }
 
-        if ($action == 'REQUESTMANAGERMESSAGE_CREATE') {
+        if ($action == 'REQUESTMANAGER_CREATE') {
+            // Notification by email of a new message to the request
+            dol_include_once('/requestmanager/class/requestmanagernotify.class.php');
+            $requestmanagernotify = new RequestManagerNotify($this->db);
+
+            $requestmanagernotify->sendNotify(RequestManagerNotify::TYPE_REQUEST_CREATED, $object);
+
+            // Notify by website to assigned
+            if (!empty($conf->global->REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_WEBSITE)) {
+
+            }
+
+            dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
+            return 1;
+        } elseif ($action == 'REQUESTMANAGERMESSAGE_CREATE') {
             // Notification by email of a new message to the request
             dol_include_once('/requestmanager/class/requestmanagernotify.class.php');
             $requestmanagernotify = new RequestManagerNotify($this->db);

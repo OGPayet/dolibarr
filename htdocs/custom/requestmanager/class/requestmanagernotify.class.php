@@ -46,6 +46,7 @@ class RequestManagerNotify
     const TYPE_ASSIGNED_MODIFIED = 1;
     const TYPE_STATUS_MODIFIED = 2;
     const TYPE_MESSAGE_ADDED = 3;
+    const TYPE_REQUEST_CREATED = 4;
 
     /**
      * Const notify to
@@ -451,10 +452,10 @@ class RequestManagerNotify
         // Insertion action
         require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
         $actioncomm = new ActionComm($this->db);
-        $actioncomm->type_code = 'AC_OTH_AUTO';        // Type of event ('AC_OTH', 'AC_OTH_AUTO', 'AC_XXX'...)
+        $actioncomm->type_code = 'AC_OTH_AUTO';
         //$actioncomm->code = 'AC_' . $action;
         $actioncomm->label = $actionmsg2;
-        $actioncomm->note = $actionmsg;          // TODO Replace with $actioncomm->email_msgid ? $object->email_content : $object->actionmsg
+        $actioncomm->note = $actionmsg;
         $actioncomm->fk_project = $projectid;
         $actioncomm->datep = $now;
         $actioncomm->datef = $now;

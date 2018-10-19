@@ -1,9 +1,46 @@
 diff a/htdocs/custom/requestmanager/langs/fr_FR/requestmanager.lang b/htdocs/custom/requestmanager/langs/fr_FR/requestmanager.lang	(rejected hunks)
-@@ -347,6 +347,7 @@ RequestManagerNotifyTemplateType                                            = Ty
- RequestManagerTemplateForRequestType                                        = Pour quel type de demande ce modèle est-il dédié ?
- RequestManagerNotifyTo                                                      = Notifier aux
- RequestManagerNotifyToHelp                                                  = Pour qui ce modèle est-il dédié ?
-+RequestManagerCategories                                                    = Catégories de demande
+@@ -368,6 +375,7 @@ RequestManagerStatusDictionaryNewRequestTypeAutoHelp                        = Cr
+ RequestManagerStatusDictionaryAuthorizedButtons                             = Boutons authorisés
+ RequestManagerStatusDictionaryAuthorizedButtonsHelp                         = Liste des boutons authorisés à ce status (Tous les boutons si aucun sélectionnés)
+ RequestManagerStatusDictionaryNoButtons                                     = Aucun boutons
++RequestManagerNotifyTemplateTypeRequestCreated                              = Ajout d'une demande
+ RequestManagerNotifyTemplateTypeAssignedUsersModified                       = Changement d'utilisateur assigné
+ RequestManagerNotifyTemplateTypeStatusModified                              = Changement de statut
+ RequestManagerNotifyTemplateTypeMessageAdded                                = Ajout de message
+@@ -404,18 +412,19 @@ RequestManagerNewProductLines               = Nouvelles lignes de produits/servi
+ RequestManagerOldProductLines               = Anciennes lignes de produits/services
  
  ############################################################
- ### Form request manager
+-### API
+-############################################################
+-API_caller               = Numéro de l'appelant : 
+-API_called               = Numéro appelé : 
+-API_hour                 = Heure de début de l'appel : 
+-API_poste                = Poste ayant décroché/émis l'appel : 
+-API_name_post            = Nom du compte associé au poste : 
+-API_id_IPBX              = Id interne à l'IPBX de l'appel : 
+-API_groupe               = Groupe de réponse à l'origine de l'appel : 
+-API_type                 = Sens de l'appel : 
+-API_source               = Appel source : 
+-API_state                = État de l'appel : 
+-API_hour_end             = Heure de fin de l'appel : 
+-API_during               = Durée de la communication : 
+-API_messagerie           = ID interne à l'IPBX du message : 
+\ No newline at end of file
++### Calling events
++############################################################
++RequestManagerIPBXID                    = ID interne à l'IPBX de l'appel : %s
++RequestManagerCallerNumber              = Numéro de l'appelant : %s
++RequestManagerCalledNumber              = Numéro appelé : %s
++RequestManagerStartTimeCall             = Heure de début de l'appel : %s
++RequestManagerEndTimeCall               = Heure de fin de l'appel : %s
++RequestManagerCallPost                  = Poste ayant décroché/émis l'appel : %s
++RequestManagerCallPostName              = Nom du compte associé au poste : %s
++RequestManagerAnswerGroupAtOriginCall   = Groupe de réponse à l'origine de l'appel : %s
++RequestManagerCallDirection             = Sens de l'appel : %s
++RequestManagerCallOrigin                = Appel source : %s
++RequestManagerCallStatus                = État de l'appel : %s
++RequestManagerCallDuration              = Durée de la communication : %s
++RequestManagerCallMessageID             = ID interne à l'IPBX du message : %s
++RequestManagerHourFromTo                = de %s à %s
+\ No newline at end of file

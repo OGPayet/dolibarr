@@ -13,13 +13,13 @@
 --
 -- You should have received a copy of the GNU General Public License
 -- along with this program. If not, see <http://www.gnu.org/licenses/>.
--- ===========================================================================
+-- ============================================================================
 
-ALTER TABLE llx_requestmanager_message DROP INDEX idx_requestmanager_message_fk_knowledge_base;
-ALTER TABLE llx_requestmanager_message DROP COLUMN fk_knowledge_base;
-
-ALTER TABLE llx_requestmanager_message ADD CONSTRAINT fk_requestmanager_m_fk_actioncomm FOREIGN KEY (fk_actioncomm) REFERENCES llx_actioncomm (id);
-
-ALTER TABLE llx_requestmanager_message ADD notify_assigned    integer(1) NULL; -- notify assigned
-ALTER TABLE llx_requestmanager_message ADD notify_requesters  integer(1) NULL; -- notify requesters
-ALTER TABLE llx_requestmanager_message ADD notify_watchers    integer(1) NULL; -- notify watchers
+CREATE VIEW llx_requestmanager_soc_contact_phone_book AS
+  SELECT DISTINCT s.rowid AS socid, sc.rowid AS contactid, s.entity,
+    RM_GLOBAL_TRIM(s.phone, '0123456789') COLLATE utf8_general_ci AS soc_phone,
+    RM_GLOBAL_TRIM(sc.phone, '0123456789') COLLATE utf8_general_ci AS contact_phone,
+    RM_GLOBAL_TRIM(sc.phone_perso, '0123456789') COLLATE utf8_general_ci AS contact_phone_perso,
+    RM_GLOBAL_TRIM(sc.phone_mobile, '0123456789') COLLATE utf8_general_ci AS contact_phone_mobile
+  FROM llx_societe AS s
+  LEFT JOIN llx_socpeople AS sc ON sc.fk_soc = s.rowid;

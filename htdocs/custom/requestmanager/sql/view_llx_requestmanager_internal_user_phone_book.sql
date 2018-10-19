@@ -1,5 +1,5 @@
 -- ============================================================================
--- Copyright (C) 2017	 Open-DSI 	 <support@open-dsi.fr>
+-- Copyright (C) 2018	 Open-DSI 	 <support@open-dsi.fr>
 --
 -- This program is free software; you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -13,10 +13,11 @@
 --
 -- You should have received a copy of the GNU General Public License
 -- along with this program. If not, see <http://www.gnu.org/licenses/>.
---
--- ===========================================================================
+-- ============================================================================
 
-ALTER TABLE llx_requestmanager_notification ADD UNIQUE INDEX uk_requestmanager_notification (fk_actioncomm, fk_user);
-
-ALTER TABLE llx_requestmanager_notification ADD INDEX idx_requestmanager_notification_fk_actioncomm (fk_actioncomm);
-ALTER TABLE llx_requestmanager_notification ADD INDEX idx_requestmanager_notification_fk_user (fk_user);
+CREATE VIEW llx_requestmanager_internal_user_phone_book AS
+  SELECT DISTINCT u.rowid, u.entity,
+    RM_GLOBAL_TRIM(u.office_phone, '0123456789') COLLATE utf8_general_ci AS office_phone,
+    RM_GLOBAL_TRIM(u.user_mobile, '0123456789') COLLATE utf8_general_ci AS user_mobile
+  FROM llx_user AS u
+  WHERE u.fk_soc = 0 OR u.fk_soc IS NULL;
