@@ -89,7 +89,7 @@ class FactoryDispatcher {
         if (this.unlock_qty===true || qtyDispatched < qtyToDispatch)
         {
             // replace with new names
-            var dispatcherRegex = new RegExp('_'+idDispatcher+'_'+(nbLine-1), 'g');
+            var dispatcherRegex = new RegExp('_'+idDispatcher+'_0', 'g');
             $row.html($row.html().replace(dispatcherRegex, '_'+idDispatcher+'_'+nbLine));
 
             // remove action to duplicate line
