@@ -16,7 +16,7 @@ class FactoryDispatcher {
      *
      * @param	int		idDispatcher		    Id of dispacther
      * @param	string	dispatcherName		    Name of dispatcher
-     * @param	string	dispatcherMode		    [='select'] Mode of dispatcher ('select' to use select for qty)
+     * @param	string	dispatcherMode		    [='select'] Mode of dispatcher ('select' to use select for qty, 'input_new' to use input and add new list)
      * @param   bool    dispatcherUnlockQty     [=false] Unlock qty
      */
     constructor(idDispatcher, dispatcherName, dispatcherMode, dispatcherUnlockQty)
@@ -68,6 +68,9 @@ class FactoryDispatcher {
         // nb lines dispatched
         var nbLine = jQuery("tr[name^='"+dispatcherPrefix+idDispatcher+"']").length;
 
+        // dispatcher suffix name
+        var dispatcherSuffix = idDispatcher+"_"+nbLine;
+
         // get the max value from first quantity selector of dispatcher
         var qtyToDispatch = 0;
         if (this.unlock_qty===false) {
@@ -101,10 +104,15 @@ class FactoryDispatcher {
             // insert new row before last row
             jQuery("tr[name='"+dispatcherPrefix+idDispatcher+"_"+(nbLine-1)+"']:last").after($row);
 
-            jQuery("#"+dispatcherPrefix+"qty_"+idDispatcher+"_"+nbLine).focus();
+            if (this.mode === 'input_new') {
+                $row.prepend(
+                    '<input type="hidden" name="' + dispatcherPrefix + 'suffix_new_list[]" value="' + dispatcherSuffix + '" />'
+                );
+            }
 
-            jQuery("#"+dispatcherPrefix+"qty_"+idDispatcher+"_"+nbLine).val(qtyToDispatch - qtyDispatched);
+            jQuery("#"+dispatcherPrefix+"qty_"+dispatcherSuffix).focus();
+
+            jQuery("#"+dispatcherPrefix+"qty_"+dispatcherSuffix).val(qtyToDispatch - qtyDispatched);
         }
-
     }
 }
