@@ -151,7 +151,7 @@ if ($action == 'createof' && GETPOST("createofrun")) {
 
                         $productFactoryQty = intval($productFactoryQtyPost);
 
-                        if ($productFactoryQty>=1 && empty($productFactoryIdEntrepot)) {
+                        if ($productFactoryQty>0 && empty($productFactoryIdEntrepot)) {
                             $error++;
                             $factory->error = $langs->trans('ErrorFieldRequired', $langs->transnoentities('Warehouse'));
                             $factory->errors[] = $factory->error;

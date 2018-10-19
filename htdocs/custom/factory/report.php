@@ -152,14 +152,21 @@ if (empty($reshook)) {
 
                     // get post values
                     $componentFkEntrepot = GETPOST("id_entrepot_" . $dispatchSuffix, "int") ? GETPOST("id_entrepot_" . $dispatchSuffix, "int") : NULL;
-                    $componentQtyUsed    = GETPOST("qtyused_" . $dispatchSuffix, "int") ? GETPOST("qtyused_" . $dispatchSuffix, "int") : 0;
-                    $componentQtyDeleted = GETPOST("qtydeleted_" . $dispatchSuffix, "int") ? GETPOST("qtydeleted_" . $dispatchSuffix, "int") : 0;
+                    $componentQtyUsed    = GETPOST("qtyused_" . $dispatchSuffix, "int")>0 ? GETPOST("qtyused_" . $dispatchSuffix, "int") : 0;
+                    $componentQtyDeleted = GETPOST("qtydeleted_" . $dispatchSuffix, "int")>0 ? GETPOST("qtydeleted_" . $dispatchSuffix, "int") : 0;
+
+                    if ($componentQtyUsed>0 && empty($componentFkEntrepot)) {
+                        $error++;
+                        $factory->error = $langs->trans('ErrorFieldRequired', $langs->transnoentities('Warehouse'));
+                        $factory->errors[] = $factory->error;
+                        break;
+                    }
 
 					// on met a jour les infos des lignes de l'OF
 					$sql  = "UPDATE " . MAIN_DB_PREFIX . "factorydet ";
 					$sql .= " SET qty_used = " . $componentQtyUsed;
 					$sql .= " , qty_deleted = " . $componentQtyDeleted;
-                    $sql .= " , fk_entrepot = " . $componentFkEntrepot;
+                    $sql .= " , fk_entrepot = " . ($componentFkEntrepot>0 ? $componentFkEntrepot : 'NULL');
 					$sql .= " WHERE fk_factory = " . $id;
 					$sql .= " AND fk_product = " . $componentFkProduct;
                     $sql .= " AND id_dispatched_line = " . $value['id_dispatched_line'];
@@ -258,7 +265,7 @@ if (empty($reshook)) {
 $form = new Form($db);
 $formfile = new FormFile($db);
 
-llxHeader("", "", $langs->trans("CardFactory"));
+llxHeader("", "", $langs->trans("CardFactory"), '', 0, 0, array('/custom/factory/js/factory_dispatcher.js'));
 
 dol_htmloutput_mesg($mesg);
 
@@ -437,13 +444,16 @@ if (count($prods_arbo) > 0) {
 		$nbChildArbo="";
 		if (count($tmpChildArbo) > 0) $nbChildArbo=" (".count($tmpChildArbo).")";
 
+		// dispatcher
+        $dispactherList = array('id' => $value['id'], 'name' => '', 'line' => intval($value['id_dispatched_line']), 'nb' => $value['qtyplanned'], 'btn_nb' => 0);
+
         // get post values
         $dispatchSuffix = $value['dispatch_suffix'];
         $componentFkEntrepot = GETPOST("id_entrepot_" . $dispatchSuffix, "int")>0 ? GETPOST("id_entrepot_" . $dispatchSuffix, "int") : $value['child_fk_entrepot'];
         $componentQtyUsed    = GETPOST("qtyused_" . $dispatchSuffix, "int")!='' ? GETPOST("qtyused_" . $dispatchSuffix, "int") : $value['qtyplanned'];
         $componentQtyDeleted = GETPOST("qtydeleted_" . $dispatchSuffix, "int")!='' ? GETPOST("qtydeleted_" . $dispatchSuffix, "int") : 0;
 
-		print '<tr>';
+		print '<tr name="' . $dispactherList['id'] . '_' . $dispactherList['line'] . '">';
 		print '<td align="left">'.$factory->getNomUrlFactory($value['id'], 1,'fiche').$nbChildArbo;
 		print $factory->PopupProduct($value['id']);
 		print '</td>';
@@ -486,7 +496,11 @@ if (count($prods_arbo) > 0) {
 				print '<td align="center">'.$value['qtyplanned'].'</td>';
 				print '<td align="center"><input type="text" size="4" name="qtydeleted_' . $value['dispatch_suffix'] . '" value="' . $componentQtyDeleted . '" /></td>';
 				print '<td><input type="text" size="4" id="qtyused_' . $value['dispatch_suffix'] . '" name="qtyused_' . $dispatchSuffix . '" value="' . $componentQtyUsed . '" /></td>';
-				print '<td></td>';
+                print '<td name="action_' . $dispactherList['id'] . '_' . $dispactherList['line'] . '">';
+				if ($dispactherList['line']===0) {
+                    print img_picto($langs->trans('AddDispatchBatchLine'), 'split.png', 'onClick="FactoryDispatcher.addLineFromDispatcher(' . $dispactherList['id'] . ',\'' . $dispactherList['name'] . '\', \'\', true)"');
+                }
+                print '</td>';
 			}
 		} else {
 			print '<td align="right">'.$value['qtyused'].'</td>';
