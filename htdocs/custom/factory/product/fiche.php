@@ -144,16 +144,18 @@ if ($action == 'createof' && GETPOST("createofrun")) {
                 $productNb = intval($value['nb']) * $nbToBuild;
 
                 for ($productNum = 0; $productNum < $productNb; $productNum++) {
-                    $productFactoryIdEntrepot = GETPOST('factory_id_entrepot_' . $productId . '_' . $lineNum, 'int');
-                    $productFactoryQtyPost    = GETPOST('factory_qty_' . $productId . '_' . $lineNum, 'int');
+                    if (isset($_POST['factory_id_entrepot_' . $productId . '_' . $lineNum])) {
+                        $productFactoryIdEntrepot = GETPOST('factory_id_entrepot_' . $productId . '_' . $lineNum, 'int');
+                        $productFactoryQtyPost    = GETPOST('factory_qty_' . $productId . '_' . $lineNum, 'int');
 
-                    if (empty($productFactoryIdEntrepot)) {
-                        $error++;
-                        $factory->error    = $langs->trans('ErrorFieldRequired', $langs->transnoentities('Warehouse'));
-                        $factory->errors[] = $factory->error;
-                        break;
-                    } else {
                         $productFactoryQty = intval($productFactoryQtyPost);
+
+                        if (empty($productFactoryIdEntrepot)) {
+                            $error++;
+                            $factory->error = $langs->trans('ErrorFieldRequired', $langs->transnoentities('Warehouse'));
+                            $factory->errors[] = $factory->error;
+                            break;
+                        }
 
                         // add warehouses to use
                         if (!isset($warehouseToUseList[$productId])) {
