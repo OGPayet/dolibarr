@@ -144,13 +144,14 @@ if ($action == 'createof' && GETPOST("createofrun")) {
                 $productNb = intval($value['nb']) * $nbToBuild;
 
                 for ($productNum = 0; $productNum < $productNb; $productNum++) {
-                    if (isset($_POST['factory_id_entrepot_' . $productId . '_' . $lineNum])) {
+                    // line exists
+                    if (isset($_POST['factory_qty_' . $productId . '_' . $lineNum])) {
                         $productFactoryIdEntrepot = GETPOST('factory_id_entrepot_' . $productId . '_' . $lineNum, 'int');
                         $productFactoryQtyPost    = GETPOST('factory_qty_' . $productId . '_' . $lineNum, 'int');
 
                         $productFactoryQty = intval($productFactoryQtyPost);
 
-                        if (empty($productFactoryIdEntrepot)) {
+                        if ($productFactoryQty>=1 && empty($productFactoryIdEntrepot)) {
                             $error++;
                             $factory->error = $langs->trans('ErrorFieldRequired', $langs->transnoentities('Warehouse'));
                             $factory->errors[] = $factory->error;
