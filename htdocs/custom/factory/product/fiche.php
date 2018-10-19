@@ -147,17 +147,13 @@ if ($action == 'createof' && GETPOST("createofrun")) {
                     $productFactoryIdEntrepot = GETPOST('factory_id_entrepot_' . $productId . '_' . $lineNum, 'int');
                     $productFactoryQtyPost    = GETPOST('factory_qty_' . $productId . '_' . $lineNum, 'int');
 
-                    if (!empty($productFactoryIdEntrepot)) {
+                    if (empty($productFactoryIdEntrepot)) {
+                        $error++;
+                        $factory->error    = $langs->trans('ErrorFieldRequired', $langs->transnoentities('Warehouse'));
+                        $factory->errors[] = $factory->error;
+                        break;
+                    } else {
                         $productFactoryQty = intval($productFactoryQtyPost);
-
-                        if ($productFactoryQty >= 1) {
-                            if ($productFactoryIdEntrepot <= 0) {
-                                $error++;
-                                $factory->error    = $langs->trans('ErrorFieldRequired', $langs->transnoentities('Warehouse'));
-                                $factory->errors[] = $factory->error;
-                                break;
-                            }
-                        }
 
                         // add warehouses to use
                         if (!isset($warehouseToUseList[$productId])) {
@@ -445,10 +441,11 @@ if ($id || $ref) {
 			}
 			print '<tr class="liste_total">';
 			print '<td colspan=5 align=right >'.$langs->trans("Total").'</td>';
-			print '<td align="right" >'.price($pmpTot).'</td>';
+			print '<td align="right">'.price($pmpTot).'</td>';
 			print '<td ></td>';
-			print '<td align="right" >'.price($mntTot).'</td>';
-			print '<td align="right" >'.price($mntTot-$pmpTot).'</td>';
+			print '<td align="right">'.price($mntTot).'</td>';
+			print '<td align="right">'.price($mntTot-$pmpTot).'</td>';
+            print '<td ></td>';
 			print '</tr>';
 			print '</table>';
 		}
