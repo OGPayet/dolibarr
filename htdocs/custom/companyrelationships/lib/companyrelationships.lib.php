@@ -231,10 +231,17 @@ function companyrelationships_show_companyrelationships($conf, $langs, $db, $obj
 
     $colspan = 4;
     print '<tr class="liste_titre">';
-    print_liste_field_titre("Name", $_SERVER["PHP_SELF"], "s.nom", "", $param, ' width="30%"', $sortfield, $sortorder);
+    print_liste_field_titre("Name", $_SERVER["PHP_SELF"], "s.nom", "", $param, '', $sortfield, $sortorder);
     print_liste_field_titre($langs->trans("Address") . ' / ' . $langs->trans("Phone") . ' / ' . $langs->trans("Email"), $_SERVER["PHP_SELF"], "", "", $param, '', $sortfield, $sortorder);
-    print_liste_field_titre('CompanyRelationshipsPublicSpaceAvailability' . ucfirst($modename));
-    print_liste_field_titre("Status", $_SERVER["PHP_SELF"], "s.statut", "", $param, ' width="150px"', $sortfield, $sortorder);
+    if ($mode) {
+        print_liste_field_titre('CompanyRelationshipsPublicSpaceAvailabilityBenefactor');
+        print_liste_field_titre($langs->trans('CompanyRelationshipsPublicSpaceAvailabilityPrincipal') . '<br />' . $object->nom);
+    } else {
+        print_liste_field_titre('CompanyRelationshipsPublicSpaceAvailabilityPrincipal');
+        print_liste_field_titre($langs->trans('CompanyRelationshipsPublicSpaceAvailabilityBenefactor') . '<br />' . $object->nom);
+    }
+
+    //print_liste_field_titre("Status", $_SERVER["PHP_SELF"], "s.statut", "", $param, ' width="150px"', $sortfield, $sortorder);
     // Edit
     print_liste_field_titre('', '', '', '', '', ' width="50px" align="right"');
     print "</tr>\n";
@@ -338,11 +345,15 @@ function companyrelationships_show_companyrelationships($conf, $langs, $db, $obj
                 // principal
                 $publicSpaceAvailabilityList = $companyrelationships->getAllPublicSpaceAvailability($companystatic->id, $object->id);
             }
-            $htmlPublicSpaceAvailability = '';
+            $htmlPublicSpaceAvailabilityList = array(0 => '', 1 => '');
             if (is_array($publicSpaceAvailabilityList)) {
                 foreach($publicSpaceAvailabilityList as $publicSpaceAvailability) {
-                    if ($publicSpaceAvailability[$modename]==1) {
-                        $htmlPublicSpaceAvailability .= $publicSpaceAvailability['label'] . '<br />';
+                    if ($publicSpaceAvailability['principal']==1) {
+                        $htmlPublicSpaceAvailabilityList[0] .= $publicSpaceAvailability['label'] . '<br />';
+                    }
+
+                    if ($publicSpaceAvailability['benefactor']==1) {
+                        $htmlPublicSpaceAvailabilityList[1] .= $publicSpaceAvailability['label'] . '<br />';
                     }
                 }
             }
@@ -360,12 +371,30 @@ function companyrelationships_show_companyrelationships($conf, $langs, $db, $obj
             print '</td>';
 
             // Public space availability
-            print '<td>';
-            print $htmlPublicSpaceAvailability;
-            print '</td>';
+            if ($mode) {
+                // public space availability for benefactor
+                print '<td>';
+                print $htmlPublicSpaceAvailabilityList[1];
+                print '</td>';
+
+                // public space availability for principal
+                print '<td>';
+                print $htmlPublicSpaceAvailabilityList[0];
+                print '</td>';
+            } else {
+                // public space availability for principal
+                print '<td>';
+                print $htmlPublicSpaceAvailabilityList[0];
+                print '</td>';
+
+                // public space availability for benefactor
+                print '<td>';
+                print $htmlPublicSpaceAvailabilityList[1];
+                print '</td>';
+            }
 
             // Status
-            print '<td>' . $companystatic->getLibStatut(5) . '</td>';
+            //print '<td>' . $companystatic->getLibStatut(5) . '</td>';
 
             // Edit
             if ($user->rights->societe->creer) {
