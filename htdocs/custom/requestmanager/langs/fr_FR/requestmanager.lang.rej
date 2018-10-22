@@ -1,13 +1,43 @@
 diff a/htdocs/custom/requestmanager/langs/fr_FR/requestmanager.lang b/htdocs/custom/requestmanager/langs/fr_FR/requestmanager.lang	(rejected hunks)
-@@ -368,6 +375,7 @@ RequestManagerStatusDictionaryNewRequestTypeAutoHelp                        = Cr
+@@ -33,12 +39,14 @@ RequestManagerChronometerSoundName                      = Son d'alerte
+ RequestManagerChronometerSoundDesc                      = Adresse URL du fichier son d'aletre une fois la limite de temps atteinte ou dépassée
+ 
+ RequestManagerNotificationOptions                       = Paramètres généraux des notifications
+-RequestManagerMessageCreateNotifyName                   = Notification lors de la création d'un message
+-RequestManagerMessageCreateNotifyDesc                   = Active la notification global lors de la création d'un message d'une demande
++RequestManagerCreateNotifyName                          = Notification lors de la création d'une demande
++RequestManagerCreateNotifyDesc                          = Active la notification global lors de la création d'une demande
+ RequestManagerSetAssignedNotifyName                     = Notification lors du changement d'assignation
+ RequestManagerSetAssignedNotifyDesc                     = Active la notification global lors du changement d'assignation d'une demande
+ RequestManagerStatusModifyNotifyName                    = Notification lors du changement de statut
+ RequestManagerStatusModifyNotifyDesc                    = Active la notification global lors du changement de statut d'une demande
++RequestManagerMessageCreateNotifyName                   = Notification lors de la création d'un message
++RequestManagerMessageCreateNotifyDesc                   = Active la notification global lors de la création d'un message d'une demande
+ 
+ RequestManagerNotificationAssignedOptions               = Paramètres des notifications aux assignés
+ RequestManagerNotificationAssignedByEmailName           = Notification par courriel
+@@ -117,6 +126,11 @@ Notify_REQUESTMANAGER_SET_ASSIGNED      = Assignation d'une demande modifiée
+ Notify_REQUESTMANAGER_STATUS_MODIFY     = Statut d'une demande modifiée
+ Notify_REQUESTMANAGERMESSAGE_SENTBYMAIL = Envoi du message d'une demande par email
+ 
++############################################################
++### Extra fields
++############################################################
++RequestManagerIPBX      = IPBX
++
+ ############################################################
+ ### Global search
+ ############################################################
+@@ -368,6 +399,8 @@ RequestManagerStatusDictionaryNewRequestTypeAutoHelp                        = Cr
  RequestManagerStatusDictionaryAuthorizedButtons                             = Boutons authorisés
  RequestManagerStatusDictionaryAuthorizedButtonsHelp                         = Liste des boutons authorisés à ce status (Tous les boutons si aucun sélectionnés)
  RequestManagerStatusDictionaryNoButtons                                     = Aucun boutons
 +RequestManagerNotifyTemplateTypeRequestCreated                              = Ajout d'une demande
++RequestManagerNotifyTemplateTypeRequestCreatedOutOfTime                     = Ajout d'une demande hors plages horaires
  RequestManagerNotifyTemplateTypeAssignedUsersModified                       = Changement d'utilisateur assigné
  RequestManagerNotifyTemplateTypeStatusModified                              = Changement de statut
  RequestManagerNotifyTemplateTypeMessageAdded                                = Ajout de message
-@@ -404,18 +412,19 @@ RequestManagerNewProductLines               = Nouvelles lignes de produits/servi
+@@ -404,18 +437,19 @@ RequestManagerNewProductLines               = Nouvelles lignes de produits/servi
  RequestManagerOldProductLines               = Anciennes lignes de produits/services
  
  ############################################################

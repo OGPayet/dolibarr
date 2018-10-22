@@ -41,6 +41,7 @@ if (!empty($conf->categorie->enabled)) {
 dol_include_once('/requestmanager/class/requestmanager.class.php');
 dol_include_once('/requestmanager/class/html.formrequestmanager.class.php');
 dol_include_once('/companyrelationships/class/companyrelationships.class.php');
+dol_include_once('/requestmanager/lib/requestmanagertimeslots.lib.php');
 
 
 // Protection to avoid direct call of template
@@ -74,19 +75,20 @@ $zone  = intval(GETPOST('zone' , 'int'));
 // Zone 1
 //
 if ($zone === 1) {
-    $selectedActionJs         = GETPOST('action_js')?GETPOST('action_js'):'';
-    $selectedActionCommId     = GETPOST('actioncomm_id', 'int')?intval(GETPOST('actioncomm_id', 'int')):-1;
-    $selectedCategories       = GETPOST('categories', 'array') ? GETPOST('categories', 'array') : (GETPOST('categories', 'alpha') ? explode(',', GETPOST('categories', 'alpha')) : array());
-    $selectedContacts         = GETPOST('contact_ids', 'array') ? GETPOST('contact_ids', 'array') : (GETPOST('contact_ids', 'alpha') ? explode(',', GETPOST('contact_ids', 'alpha')) : array());
-    $selectedDescription      = GETPOST('description', 'alpha')?GETPOST('description', 'alpha'):'';
-    $selectedEquipementId     = GETPOST('equipement_id', 'int')?intval(GETPOST('equipement_id', 'int')):-1;
-    $selectedLabel            = GETPOST('label', 'alpha')?GETPOST('label', 'alpha'):'';
-    $selectedSocIdOrigin      = GETPOST('socid_origin', 'int')?intval(GETPOST('socid_origin', 'int')):-1;
-    $selectedSocId            = GETPOST('socid', 'int')?intval(GETPOST('socid', 'int')):-1;
-    $selectedSocIdBenefactor  = GETPOST('socid_benefactor', 'int')?intval(GETPOST('socid_benefactor', 'int')):-1;
-    $selectedFkSource         = GETPOST('source', 'int')?intval(GETPOST('source', 'int')):-1;
-    $selectedFkType           = GETPOST('type', 'int')?intval(GETPOST('type', 'int')):-1;
-    $selectedFkUrgency        = GETPOST('urgency', 'int')?intval(GETPOST('urgency', 'int')):-1;
+    $selectedActionJs               = GETPOST('action_js')?GETPOST('action_js'):'';
+    $selectedActionCommId           = GETPOST('actioncomm_id', 'int')?intval(GETPOST('actioncomm_id', 'int')):-1;
+    $selectedCategories             = GETPOST('categories', 'array') ? GETPOST('categories', 'array') : (GETPOST('categories', 'alpha') ? explode(',', GETPOST('categories', 'alpha')) : array());
+    $selectedContacts               = GETPOST('contact_ids', 'array') ? GETPOST('contact_ids', 'array') : (GETPOST('contact_ids', 'alpha') ? explode(',', GETPOST('contact_ids', 'alpha')) : array());
+    $selectedDescription            = GETPOST('description', 'alpha')?GETPOST('description', 'alpha'):'';
+    $selectedEquipementId           = GETPOST('equipement_id', 'int')?intval(GETPOST('equipement_id', 'int')):-1;
+    $selectedLabel                  = GETPOST('label', 'alpha')?GETPOST('label', 'alpha'):'';
+    $selectedSocIdOrigin            = GETPOST('socid_origin', 'int')?intval(GETPOST('socid_origin', 'int')):-1;
+    $selectedSocId                  = GETPOST('socid', 'int')?intval(GETPOST('socid', 'int')):-1;
+    $selectedSocIdBenefactor        = GETPOST('socid_benefactor', 'int')?intval(GETPOST('socid_benefactor', 'int')):-1;
+    $selectedFkSource               = GETPOST('source', 'int')?intval(GETPOST('source', 'int')):-1;
+    $selectedFkType                 = GETPOST('type', 'int')?intval(GETPOST('type', 'int')):-1;
+    $selectedFkUrgency              = GETPOST('urgency', 'int')?intval(GETPOST('urgency', 'int')):-1;
+    $selectedRequesterNotification  = GETPOST('notify_requester_by_email', 'int') > 0 ? 1 : 0;
 
     // default filters
     $filterSocId = '(s.client = 1 OR s.client = 2 OR s.client = 3) AND status=1';
@@ -157,6 +159,24 @@ if ($zone === 1) {
     print '<td>';
     print $formrequestmanager->select_actioncomm('', array('AC_TEL'), $selectedActionCommId, 'actioncomm_id', 1, 0, null, 0, 'minwidth300');
     print '</td>';
+    if (!empty($conf->global->REQUESTMANAGER_TIMESLOTS_ACTIVATE) && $selectedSocId > 0) {
+        print '<td colspan="2" width="50%" align="center">';
+        $res = requestmanagertimeslots_is_in_time_slot($selectedSocId, dol_now());
+        if (is_array($res)) {
+            print '<span style="font-weight: bolder !important; font-size: 16px !important; color: green !important;">' . $langs->trans('RequestManagerTimeSlotsIntoPeriod', sprintf("%02d:%02d", $res['begin']['hour'], $res['begin']['minute']), sprintf("%02d:%02d", $res['end']['hour'], $res['end']['minute'])) . '</span>';
+        } else {
+            print '<span style="font-weight: bolder !important; font-size: 16px !important; color: red !important;">' . $langs->trans('RequestManagerTimeSlotsOutOfPeriod') . '</span>';
+            $outOfTimes = requestmanagertimeslots_get_out_of_time_infos($selectedSocId);
+            if (is_array($outOfTimes) && count($outOfTimes) > 0) {
+                $toprint = array();
+                foreach ($outOfTimes as $infos) {
+                    $toprint[] = '&nbsp;-&nbsp;' . $infos['year'] . (isset($infos['month']) ? '-' . $infos['month'] : '') . ' : ' . $infos['count'];
+                }
+                print '&nbsp;' . $form->textwithpicto('', $langs->trans('RequestManagerCreatedOutOfTime') . ' :<br>' . implode('<br>', $toprint), 1, 'warning');
+            }
+        }
+        print '</td>';
+    }
     print '</tr>';
     print '</table>';
 
@@ -181,6 +201,7 @@ if ($zone === 1) {
         $btnCreateContact .= '</a>' . "\n";
         print '&nbsp;&nbsp;' . $btnCreateContact;
     }
+    print '&nbsp;&nbsp;<input type="checkbox" id="notify_requester_by_email" name="notify_requester_by_email"' . ($selectedRequesterNotification ? ' checked="checked"' : '') . ' value="1"><label for="notify_requester_by_email">&nbsp;' . $langs->trans('Notifications') . '</label>';
     print '</td>';
     print '</tr>';
 
@@ -279,6 +300,26 @@ if ($zone === 1) {
         });
     </script>
     <?php
+
+    // Wrapper to show tooltips (html or onclick popup)
+    if (! empty($conf->use_javascript_ajax) && empty($conf->dol_no_mouse_hover))
+    {
+        print "\n<!-- JS CODE TO ENABLE tipTip on all object with class classfortooltip -->\n";
+        print '<script type="text/javascript">
+            jQuery(document).ready(function () {
+              jQuery(".classfortooltip").tipTip({maxWidth: "'.dol_size(($conf->browser->layout == 'phone' ? 400 : 700),'width').'px", edgeOffset: 10, delay: 50, fadeIn: 50, fadeOut: 50});
+              jQuery(".classfortooltiponclicktext").dialog({ width: 500, autoOpen: false });
+              jQuery(".classfortooltiponclick").click(function () {
+                console.log("We click on tooltip for element with dolid="+$(this).attr(\'dolid\'));
+                if ($(this).attr(\'dolid\'))
+                {
+                  obj=$("#idfortooltiponclick_"+$(this).attr(\'dolid\'));
+                  obj.dialog("open");
+                }
+              });
+            });
+          </script>' . "\n";
+    }
 }
 ?>
 <?php
@@ -325,6 +366,27 @@ if ($zone === 2) {
         print '<input type="submit" class="button" name="btn_associate" value="' . $langs->trans('RequestManagerCreateFastBtnAssociateLabel') . '"/>';
         print '</div>';
         print '</div>';
+
+        // Wrapper to show tooltips (html or onclick popup)
+        if (! empty($conf->use_javascript_ajax) && empty($conf->dol_no_mouse_hover))
+        {
+            print "\n<!-- JS CODE TO ENABLE tipTip on all object with class classfortooltip -->\n";
+            print '<script type="text/javascript">
+                jQuery(document).ready(function () {
+                  jQuery(".classfortooltip").tipTip({maxWidth: "'.dol_size(($conf->browser->layout == 'phone' ? 400 : 700),'width').'px", edgeOffset: 10, delay: 50, fadeIn: 50, fadeOut: 50});
+                  jQuery(".classfortooltiponclicktext").dialog({ width: 500, autoOpen: false });
+                  jQuery(".classfortooltiponclick").click(function () {
+                    console.log("We click on tooltip for element with dolid="+$(this).attr(\'dolid\'));
+                    if ($(this).attr(\'dolid\'))
+                    {
+                      obj=$("#idfortooltiponclick_"+$(this).attr(\'dolid\'));
+                      obj.dialog("open");
+                    }
+                  });
+                });
+              </script>' . "\n";
+        }
+
     }
 }
 
@@ -431,6 +493,27 @@ if ($zone === 3) {
         }
         print '</table>';
         print '</div>';
+
+        // Wrapper to show tooltips (html or onclick popup)
+        if (! empty($conf->use_javascript_ajax) && empty($conf->dol_no_mouse_hover))
+        {
+            print "\n<!-- JS CODE TO ENABLE tipTip on all object with class classfortooltip -->\n";
+            print '<script type="text/javascript">
+                jQuery(document).ready(function () {
+                  jQuery(".classfortooltip").tipTip({maxWidth: "'.dol_size(($conf->browser->layout == 'phone' ? 400 : 700),'width').'px", edgeOffset: 10, delay: 50, fadeIn: 50, fadeOut: 50});
+                  jQuery(".classfortooltiponclicktext").dialog({ width: 500, autoOpen: false });
+                  jQuery(".classfortooltiponclick").click(function () {
+                    console.log("We click on tooltip for element with dolid="+$(this).attr(\'dolid\'));
+                    if ($(this).attr(\'dolid\'))
+                    {
+                      obj=$("#idfortooltiponclick_"+$(this).attr(\'dolid\'));
+                      obj.dialog("open");
+                    }
+                  });
+                });
+              </script>' . "\n";
+        }
+
     }
 }
 

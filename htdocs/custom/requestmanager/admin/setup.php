@@ -30,6 +30,7 @@ require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
 require_once DOL_DOCUMENT_ROOT . '/core/class/doleditor.class.php';
 dol_include_once('/requestmanager/lib/requestmanager.lib.php');
+dol_include_once('/requestmanager/lib/requestmanagertimeslots.lib.php');
 dol_include_once('/requestmanager/class/requestmanager.class.php');
 
 $langs->load("admin");
@@ -50,7 +51,25 @@ $action = GETPOST('action','alpha');
 $errors = [];
 $error = 0;
 
-if ($action == 'set_chronometer_options') {
+if ($action == 'set_timeslots_options') {
+    $value = GETPOST('REQUESTMANAGER_TIMESLOTS_PERIODS', "alpha");
+    $res = requestmanagertimeslots_get_periods($value);
+    if (is_array($res)) {
+        if (count($res) > 0) {
+            $res = dolibarr_set_const($db, 'REQUESTMANAGER_TIMESLOTS_PERIODS', $value, 'chaine', 0, '', $conf->entity);
+            if (!$res > 0) {
+                $errors[] = $db->lasterror();
+                $error++;
+            }
+        } else {
+            $errors[] = $langs->trans('RequestManagerTimeSlotsPeriodsName') . ': ' . $langs->trans('RequestManagerErrorMustBeNotEmpty');
+            $error++;
+        }
+    } else {
+        $errors[] = $langs->trans('RequestManagerTimeSlotsPeriodsName') . ': ' . $res;
+        $error++;
+    }
+} elseif ($action == 'set_chronometer_options') {
     $value = GETPOST('REQUESTMANAGER_CHRONOMETER_TIME', "alpha");
     $res = dolibarr_set_const($db, 'REQUESTMANAGER_CHRONOMETER_TIME', $value, 'chaine', 0, '', $conf->entity);
     if (!$res > 0) {
@@ -436,6 +455,60 @@ foreach ($dirmodels as $reldir)
 print "</table><br>\n";
 
 /********************************************************
+ *  Time slots
+ ********************************************************/
+print load_fiche_titre($langs->trans("RequestManagerTimeSlotsOptions"),'','');
+
+print '<form method="post" action="'.$_SERVER["PHP_SELF"].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_timeslots_options">';
+
+$var=true;
+
+print '<table class="noborder" width="100%">';
+print '<tr class="liste_titre">';
+print '<td width="20%">'.$langs->trans("Name").'</td>'."\n";
+print '<td>'.$langs->trans("Description").'</td>'."\n";
+print '<td align="right">'.$langs->trans("Value").'</td>'."\n";
+print "</tr>\n";
+
+// REQUESTMANAGER_TIMESLOTS_ACTIVATE
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>'.$langs->trans("RequestManagerTimeSlotsActivateName").'</td>'."\n";
+print '<td>'.$langs->trans("RequestManagerTimeSlotsActivateDesc").'</td>'."\n";
+print '<td align="right">' . "\n";
+if (!empty($conf->use_javascript_ajax)) {
+    print ajax_constantonoff('REQUESTMANAGER_TIMESLOTS_ACTIVATE');
+} else {
+    if (empty($conf->global->REQUESTMANAGER_TIMESLOTS_ACTIVATE)) {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_REQUESTMANAGER_TIMESLOTS_ACTIVATE">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+    } else {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_REQUESTMANAGER_TIMESLOTS_ACTIVATE">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+    }
+}
+print '</td></tr>' . "\n";
+
+// REQUESTMANAGER_TIMESLOTS_PERIODS
+$var=!$var;
+print '<tr '.$bc[$var].'>'."\n";
+print '<td>' . $langs->trans("RequestManagerTimeSlotsPeriodsName") . '</td>'."\n";
+print '<td>' . $langs->trans("RequestManagerTimeSlotsPeriodsDesc") . '</td>'."\n";
+print '<td align="right" width="50%">'."\n";
+$periods = GETPOST('REQUESTMANAGER_TIMESLOTS_PERIODS', "alpha");
+print '<textarea style="width: 100%;" rows="15" name="REQUESTMANAGER_TIMESLOTS_PERIODS">'.(!empty($periods) ? $periods : $conf->global->REQUESTMANAGER_TIMESLOTS_PERIODS).'</textarea>';
+print '</td></tr>'."\n";
+
+print '</table>';
+
+print '<br>';
+print '<div align="center">';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</div>';
+
+print '</form>' . "\n";
+
+/********************************************************
  *  Chronometer
  ********************************************************/
 print load_fiche_titre($langs->trans("RequestManagerChronometerOptions"),'','');
@@ -572,6 +645,23 @@ if (!empty($conf->use_javascript_ajax)) {
         print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_REQUESTMANAGER_STATUS_MODIFY_NOTIFY">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
     } else {
         print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_REQUESTMANAGER_STATUS_MODIFY_NOTIFY">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+    }
+}
+print '</td></tr>' . "\n";
+
+// REQUESTMANAGERMESSAGE_CREATE_NOTIFY
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>'.$langs->trans("RequestManagerMessageCreateNotifyName").'</td>'."\n";
+print '<td>'.$langs->trans("RequestManagerMessageCreateNotifyDesc").'</td>'."\n";
+print '<td align="right">' . "\n";
+if (!empty($conf->use_javascript_ajax)) {
+    print ajax_constantonoff('REQUESTMANAGERMESSAGE_CREATE_NOTIFY');
+} else {
+    if (empty($conf->global->REQUESTMANAGERMESSAGE_CREATE_NOTIFY)) {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_REQUESTMANAGERMESSAGE_CREATE_NOTIFY">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+    } else {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_REQUESTMANAGERMESSAGE_CREATE_NOTIFY">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
     }
 }
 print '</td></tr>' . "\n";

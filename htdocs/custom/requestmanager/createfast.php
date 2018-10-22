@@ -39,6 +39,7 @@ if (!empty($conf->categorie->enabled)) {
 dol_include_once('/requestmanager/class/requestmanager.class.php');
 dol_include_once('/requestmanager/class/html.formrequestmanager.class.php');
 dol_include_once('/companyrelationships/class/companyrelationships.class.php');
+dol_include_once('/requestmanager/lib/requestmanagertimeslots.lib.php');
 
 $langs->load('requestmanager@requestmanager');
 
@@ -62,6 +63,7 @@ $object = new RequestManager($db);
 $companyrelationships = new CompanyRelationships($db);
 
 $force_principal_company = false;
+$force_out_of_time = false;
 
 /*
  * Actions
@@ -75,6 +77,9 @@ if (empty($reshook)) {
     if ($cancel) $action = '';
     if ($action == 'confirm_force_principal_company' && $confirm == "yes" && $user->rights->requestmanager->creer) {
         $force_principal_company = true;
+        $action = "addfast";
+    } elseif ($action == 'confirm_force_out_of_time' && $confirm == "yes" && $user->rights->requestmanager->creer) {
+        $force_out_of_time = true;
         $action = "addfast";
     }
     // Create request
@@ -118,12 +123,17 @@ if (empty($reshook)) {
         }
 
         $db->begin();
-        if ($btnAction == 'create' || $force_principal_company) {
+        if ($btnAction == 'create' || $force_principal_company || $force_out_of_time) {
+            $res = requestmanagertimeslots_is_in_time_slot($object->socid, $object->date_creation);
+            $object->created_out_of_time = is_array($res) ? 0 : 1;
             $principal_companies_ids = $companyrelationships->getRelationships($object->socid_benefactor, 0);
             $not_principal_company = !in_array($object->socid, $principal_companies_ids) && $object->socid != $object->socid_benefactor;
             if ($not_principal_company && !$force_principal_company) {
                 $error++;
                 $action = 'force_principal_company';
+            } elseif (!empty($conf->global->REQUESTMANAGER_TIMESLOTS_ACTIVATE) && $object->created_out_of_time && !$force_out_of_time) {
+                $error++;
+                $action = 'force_out_of_time';
             } else {
                 $id = $object->create($user);
                 if ($id < 0) {
@@ -134,6 +144,15 @@ if (empty($reshook)) {
                 if (!$error && $not_principal_company && $force_principal_company) {
                     // Principal company forced for the benefactor
                     $result = $object->addActionForcedPrincipalCompany($user);
+                    if ($result < 0) {
+                        setEventMessages($object->error, $object->errors, 'errors');
+                        $error++;
+                    }
+                }
+
+                if (!$error && !empty($conf->global->REQUESTMANAGER_TIMESLOTS_ACTIVATE) && $object->created_out_of_time && $force_out_of_time) {
+                    // Create forced out of time
+                    $result = $object->addActionForcedCreatedOutOfTime($user);
                     if ($result < 0) {
                         setEventMessages($object->error, $object->errors, 'errors');
                         $error++;
@@ -218,7 +237,7 @@ $usergroup_static = new UserGroup($db);
 
 $now = dol_now();
 
-if (($action == 'createfast' || $action == 'force_principal_company') && $user->rights->requestmanager->creer) {
+if (($action == 'createfast' || $action == 'force_principal_company' || $action == 'force_out_of_time') && $user->rights->requestmanager->creer) {
     $selectedActionJs = GETPOST('action_js') ? GETPOST('action_js') : '';
     $selectedActionCommId = GETPOST('actioncomm_id', 'int') ? intval(GETPOST('actioncomm_id', 'int')) : -1;
     $selectedCategories = GETPOST('categories', 'array') ? GETPOST('categories', 'array') : (GETPOST('categories', 'alpha') ? explode(',', GETPOST('categories', 'alpha')) : array());
@@ -232,6 +251,7 @@ if (($action == 'createfast' || $action == 'force_principal_company') && $user->
     $selectedFkSource = GETPOST('source', 'int') ? intval(GETPOST('source', 'int')) : -1;
     $selectedFkType = GETPOST('type', 'int') ? intval(GETPOST('type', 'int')) : -1;
     $selectedFkUrgency = GETPOST('urgency', 'int') ? intval(GETPOST('urgency', 'int')) : -1;
+    $selectedRequesterNotification = GETPOST('notify_requester_by_email', 'int') > 0 ? 1 : 0;
     $origin = GETPOST('origin', 'alpha');
     $originid = GETPOST('originid', 'int');
 
@@ -287,6 +307,17 @@ if (($action == 'createfast' || $action == 'force_principal_company') && $user->
         $formquestion[] = array('type' => 'other', 'label' => $langs->trans('RequestManagerThirdPartyBenefactor'), 'value' => $societe->getNomUrl(1));
 
         print $form->formconfirm($_SERVER["PHP_SELF"], $langs->trans('RequestManagerForcePrincipalCompany'), $langs->trans('RequestManagerConfirmForcePrincipalCompany'), 'confirm_force_principal_company', $formquestion, 0, 1);
+    } elseif (!empty($conf->global->REQUESTMANAGER_TIMESLOTS_ACTIVATE) && $action == 'force_out_of_time') {
+        $outOfTimes = requestmanagertimeslots_get_out_of_time_infos($selectedSocId);
+        if (is_array($outOfTimes) && count($outOfTimes) > 0) {
+            $toprint = array();
+            foreach ($outOfTimes as $infos) {
+                $toprint[] = '&nbsp;-&nbsp;' . $infos['year'] . (isset($infos['month']) ? '-' . $infos['month'] : '') . ' : ' . $infos['count'];
+            }
+            $formquestion[] = array('type' => 'onecolumn', 'value' => $langs->trans('RequestManagerCreatedOutOfTime') . ':<br>' . implode('<br>', $toprint));
+        }
+
+        print $form->formconfirm($_SERVER["PHP_SELF"], $langs->trans('RequestManagerForceCreateOutOfTime'), $langs->trans('RequestManagerConfirmForceCreateOutOfTime'), 'confirm_force_out_of_time', $formquestion, 0, 1);
     }
 
     /*
@@ -339,6 +370,7 @@ if (($action == 'createfast' || $action == 'force_principal_company') && $user->
     $out .= '       source: ' . $selectedFkSource . ',';
     $out .= '       type: ' . $selectedFkType . ',';
     $out .= '       urgency: ' . $selectedFkUrgency . ',';
+    $out .= '       notify_requester_by_email: ' . $selectedRequesterNotification . ',';
     $out .= '       zone: 1';
     $out .= '   };';
     $out .= '   var requestManagerLoader = new RequestManagerLoader(0, "create_fast_zone", "' . dol_buildpath('/requestmanager/tpl/rm_createfastzone.tpl.php', 1) . '", ajaxData);';

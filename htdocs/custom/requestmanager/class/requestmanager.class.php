@@ -133,6 +133,12 @@ class RequestManager extends CommonObject
     public $ref_ext;
 
     /**
+     * If created out of time (value only set at the creation)
+     * @var boolean
+     */
+    public $created_out_of_time;
+
+    /**
      * ID of the thirdparty origin
      * @var int
      */
@@ -2835,6 +2841,49 @@ class RequestManager extends CommonObject
         require_once(DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php');
         $actioncomm = new ActionComm($this->db);
         $actioncomm->type_code = 'AC_RM_FPC';
+        $actioncomm->label = $title;
+        $actioncomm->note = $msg;
+        $actioncomm->datep = $now;
+        $actioncomm->datef = $now;
+        $actioncomm->durationp = 0;
+        $actioncomm->punctual = 1;
+        $actioncomm->percentage = -1; // Not applicable
+        $actioncomm->contactid = 0;
+        $actioncomm->socid = $this->socid;
+        $actioncomm->author = $user; // User saving action
+        // $actioncomm->usertodo = $user; // User affected to action
+        $actioncomm->userdone = $user; // User doing action
+        $actioncomm->fk_element = $this->id;
+        $actioncomm->elementtype = $this->element;
+        $actioncomm->userownerid = $user->id;
+
+        $result = $actioncomm->create($user); // User qui saisit l'action
+        if ($result < 0) {
+            $this->error = $actioncomm->error;
+            $this->errors = $actioncomm->errors;
+        }
+
+        return $result;
+    }
+    /**
+     *  Add action : Forced created out of time
+     *
+     * @param   User    $user           User that modifies
+     * @return  int                     <0 if KO, >0 if OK
+     */
+    function addActionForcedCreatedOutOfTime($user)
+    {
+        global $langs;
+
+        $title = $langs->trans('RequestManagerForcedCreatedOutOfTimeActionLabel', $this->ref);
+        $msg = $langs->trans('RequestManagerForcedCreatedOutOfTimeActionLabel', $this->ref);
+        $msg .= '<br><br>' . $langs->transnoentities("Author") . ': ' . $user->login;
+
+        $now = dol_now();
+        // Insertion action
+        require_once(DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php');
+        $actioncomm = new ActionComm($this->db);
+        $actioncomm->type_code = 'AC_RM_FCOOT';
         $actioncomm->label = $title;
         $actioncomm->note = $msg;
         $actioncomm->datep = $now;

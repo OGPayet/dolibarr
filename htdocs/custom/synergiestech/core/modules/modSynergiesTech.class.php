@@ -74,7 +74,7 @@ class modSynergiesTech extends DolibarrModules
 		$this->editor_url = 'http://www.open-dsi.fr';
 
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-		$this->version = '1.0.2';
+		$this->version = '1.0.3';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Name of image file used for this module.
@@ -102,7 +102,7 @@ class modSynergiesTech extends DolibarrModules
 		//							'workflow' => array('WORKFLOW_MODULE1_YOURACTIONTYPE_MODULE2'=>array('enabled'=>'! empty($conf->module1->enabled) && ! empty($conf->module2->enabled)', 'picto'=>'yourpicto@mymodule')) // Set here all workflow context managed by module
 		//                        );
 		$this->module_parts = array(
-        //    'dictionaries' => 1,
+            'dictionaries' => 1,
             'tpl' => 1,
             'triggers' => 1,
             'hooks' => array('requestmanagercard', 'requestmanagerdao', 'ordercard', 'contractcard', 'tab_supplier_order', 'tab_expedition_add', 'invoicelist', 'main'),
@@ -329,13 +329,13 @@ class modSynergiesTech extends DolibarrModules
         $result=$extrafields->addExtraField('synergiestech_to_serialize', $langs->trans("SynergiesTechSerializable"), 'boolean', 10,  '', 'product',   0, 0, '', '', 1, '', 1, 0, ''); // For >= v7: ", '', 'synergiestech@synergiestech', '$conf->synergiestech->enabled');"
 
         // Create tables of all dictionaries
-/*        dol_include_once('/advancedictionaries/class/dictionary.class.php');
+        dol_include_once('/advancedictionaries/class/dictionary.class.php');
         $dictionaries = Dictionary::fetchAllDictionaries($this->db, 'synergiestech');
         foreach ($dictionaries as $dictionary) {
             if ($dictionary->createTables() < 0) {
                 setEventMessage('Error create dictionary table: ' . $dictionary->errorsToString(), 'errors');
             }
-        }*/
+        }
 
         return $this->_init($sql, $options);
 	}

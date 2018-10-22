@@ -48,6 +48,8 @@ class InterfaceRMNotification extends DolibarrTriggers
 	 */
 	public function runTrigger($action, $object, User $user, Translate $langs, Conf $conf)
     {
+        if (empty($conf->requestmanager->enabled)) return 0;     // Module not active, we do nothing
+
         $key = $action . '_NOTIFY';
 
         // Do not notify, not enabled for this action

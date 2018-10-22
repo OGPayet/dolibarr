@@ -57,6 +57,8 @@ class InterfaceSynergiesTech extends DolibarrTriggers
      */
     public function runTrigger($action, $object, User $user, Translate $langs, Conf $conf)
     {
+        if (empty($conf->synergiestech->enabled)) return 0;     // Module not active, we do nothing
+
 	    switch ($action) {
             case 'REQUESTMANAGER_CREATE':
                 if (isset($object->linkedObjectsIds['equipement'])) {
@@ -135,6 +137,26 @@ class InterfaceSynergiesTech extends DolibarrTriggers
                     }
 
 
+                }
+
+                dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+                return 0;
+            case 'CONTRACT_CREATE':
+                if (empty($object->array_options['options_rm_timeslots_periods'])) {
+                    if (!empty($object->array_options['options_formule'])) {
+                        // fetch optionals attributes and labels
+                        require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
+                        $extrafields = new ExtraFields($this->db);
+                        $extralabels = $extrafields->fetch_name_optionals_label($object->table_element);
+
+                        dol_include_once('/advancedictionaries/class/dictionary.class.php');
+                        $dictionary = Dictionary::getDictionary($this->db, 'synergiestech', 'synergiestechtimeslot');
+                        $res = $dictionary->getCodeFromFilter('{{time_slots}}', array('formula' => $extrafields->attribute_param['formule']['options'][$object->array_options['options_formule']]));
+                        if (!is_numeric($res)) {
+                            $object->array_options['options_rm_timeslots_periods'] = $res;
+                            $object->insertExtraFields();
+                        }
+                    }
                 }
 
                 dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);

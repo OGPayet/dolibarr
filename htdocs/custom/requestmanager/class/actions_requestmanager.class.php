@@ -329,7 +329,7 @@ class ActionsRequestManager
      */
     function formObjectOptions($parameters, &$object, &$action, $hookmanager)
     {
-        global $langs;
+        global $conf, $langs;
 
         $contexts = explode(':', $parameters['context']);
 
@@ -378,6 +378,44 @@ class ActionsRequestManager
             }
 
             return 1;
+        } elseif (in_array('contractcard', $contexts)) {
+            global $extrafields;
+
+            if (empty($conf->global->REQUESTMANAGER_TIMESLOTS_ACTIVATE)) {
+                unset($extrafields->attributes[$object->table_element]['label']['rm_timeslots_periods']);
+            } else {
+                global $form;
+
+                if (!isset($form)) {
+                    require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
+                    $form = new Form($this->db);
+                }
+                $langs->load('requestmanager@requestmanager');
+                $help = str_replace("'", "\\'", $form->textwithpicto('', $langs->trans("RequestManagerTimeSlotsPeriodsDesc"), 1, 'help', '', 0, 2, 'help_timeslots_periods'));
+
+                $this->resprints = <<<SCRIPT
+            <script type="text/javascript">
+                $(document).ready(function () {
+                    // Help button
+                    var element = $("td a[href*='&action=edit_extras&attribute=rm_timeslots_periods']").closest('tr').find('td:first-child');
+                    if (!element.length) {
+                        element = $("textarea#options_rm_timeslots_periods").closest('tr').find('table td:first-child');
+                    }
+                    element.append(' $help');
+
+                    // Disabled CKEDITOR
+                    if (typeof CKEDITOR == "object") {
+                        setTimeout(function () {
+                            if (typeof CKEDITOR.instances != "undefined" && "options_rm_timeslots_periods" in CKEDITOR.instances) {
+                                CKEDITOR.instances["options_rm_timeslots_periods"].destroy();
+                            }
+                        }, 500);
+                    }
+                });
+            </script>
+SCRIPT;
+            }
+
         }
 
         return 0;
@@ -775,6 +813,21 @@ SCRIPT;
 
                     $this->resprints = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('SynergiesTechProductOffFormula'), $langs->trans('SynergiesTechConfirmProductOffFormula'), 'addline', $inputList, '', 1);
 
+                    return 1;
+                }
+            }
+        } elseif (!empty($conf->global->REQUESTMANAGER_TIMESLOTS_ACTIVATE) && in_array('contractcard', $contexts)) {
+            if ($action == 'update_extras' && GETPOST('attribute') == 'rm_timeslots_periods') {
+                // fetch optionals attributes and labels
+                $extrafields = new ExtraFields($this->db);
+                $extralabels = $extrafields->fetch_name_optionals_label($object->table_element);
+                $ret = $extrafields->setOptionalsFromPost($extralabels, $object, GETPOST('attribute'));
+
+                dol_include_once('/requestmanager/lib/requestmanagertimeslots.lib.php');
+                $res = requestmanagertimeslots_get_periods($object->array_options['options_rm_timeslots_periods']);
+                if (!is_array($res)) {
+                    $action = 'edit_extras';
+                    $this->errors[] = $langs->trans('RequestManagerTimeSlotsPeriodsName') . ': ' . $res;
                     return 1;
                 }
             }

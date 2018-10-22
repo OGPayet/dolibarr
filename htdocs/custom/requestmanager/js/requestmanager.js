@@ -50,6 +50,7 @@ class RequestManagerLoader {
                 source: jQuery('#source').val(),
                 type: jQuery('#type').val(),
                 urgency: jQuery('#urgency').val(),
+                notify_requester_by_email: jQuery('#notify_requester_by_email').val(),
                 zone: idZone
             };
 

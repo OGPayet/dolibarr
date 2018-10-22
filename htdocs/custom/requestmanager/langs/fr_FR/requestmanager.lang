@@ -22,6 +22,12 @@ RequestManagerMessageExtraFields                        = Attributs supplémenta
 RequestManagerRefNumberingModules                       = Modèles de numérotation des références interne des demandes
 RequestManagerExternalRefNumberingModules               = Modèles de numérotation des références externe des demandes
 
+RequestManagerTimeSlotsOptions                          = Paramètres des plages horaires
+RequestManagerTimeSlotsActivateName                     = Activation
+RequestManagerTimeSlotsActivateDesc                     = Active la gestion des plages horaires lors de la création d'une demande
+RequestManagerTimeSlotsPeriodsName                      = Plages horaires
+RequestManagerTimeSlotsPeriodsDesc                      = Le paramètrage des plages est sous la forme suivante :<br><br>- Formatage date: "[2018Y][05M][06D|1W] 08h00"<br>-- Y: Spécifier une année (Optionnel)<br>-- M: Spécifier un mois de l'année (1-12, Optionnel)<br>-- D: Spécifier un jour du mois (1-31, Optionnel)<br>-- W: Spécifier un jour de la semaine (0-6, 0=>Dimanche, Optionnel)<br>-- h: Spécifier l'heure de la journée<br><br>- Formatage des plages: "date début - date fin, date début - date fin, ..."<br>-- La date de début et de fin doit être sous le même format (ex: 05M01D 08h30 - 06M30 18h00 => de 8h30 à 18h du 1 mai au 30 juin de chaque année)
+
 RequestManagerChronometerOptions                        = Paramètres du chronomètre
 RequestManagerChronometerActivateName                   = Activation
 RequestManagerChronometerActivateDesc                   = Active le chronomètre qui démarre lors de l'affichage de la page de création d'une demande
@@ -112,6 +118,7 @@ ActionAC_RM_IN                          = Message de demande entrant
 ActionAC_RM_OUT                         = Message de demande sortant
 ActionAC_RM_PRIV                        = Message de demande privé
 ActionAC_RM_FPC                         = Forçage du donneur d'ordre
+ActionAC_RM_FCOOT                       = Forçage d'une création hors plages horaires
 Notify_REQUESTMANAGER_CREATE            = Demande créée
 Notify_REQUESTMANAGER_MODIFY            = Demande modifiée
 Notify_REQUESTMANAGER_DELETE            = Demande supprimée
@@ -271,12 +278,15 @@ RequestManagerCreateFastContractFormula   = Formule
 RequestManagerLastEvents                  = Derniers evénements
 RequestManagerNoActionComm                = Aucun événement non traité
 RequestManagerNoEquipement                = Aucun équipement
+RequestManagerCreatedOutOfTime            = Demandes créées hors plages horaires
 
 ############################################################
 ### Confirm box : Create fast
 ############################################################
 RequestManagerForcePrincipalCompany                = Forcer le choix du donneur d'ordre
 RequestManagerConfirmForcePrincipalCompany         = Êtes-vous sûr de vouloir forcer le choix du donneur d'ordre ?
+RequestManagerForceCreateOutOfTime                 = Forcer la création de la demande hors de la plage horaire
+RequestManagerConfirmForceCreateOutOfTime          = Êtes-vous sûr de vouloir forcer la création de la demande hors de la plage horaire ?
 
 ############################################################
 ### Events : Create fast
@@ -284,6 +294,7 @@ RequestManagerConfirmForcePrincipalCompany         = Êtes-vous sûr de vouloir 
 RequestManagerForcedPrincipalCompanyActionLabel    = Donneur d'ordre de la demande "%s" forcé
 RequestManagerThirdPartyPrincipalOld               = Ancien donneur d'ordre
 RequestManagerThirdPartyBenefactorOld              = Ancien bénéficiaire
+RequestManagerForcedCreatedOutOfTimeActionLabel    = Demande "%s" créée hors plages horaires (forcée)
 
 ############################################################
 ### List
@@ -312,6 +323,13 @@ RequestManagerListsFollowMyFutureGroupRequest = Les demandes de goupe à venir
 RequestManagerChronometerStop   = Stopper le chronomètre
 
 ############################################################
+### Time slots
+############################################################
+RequestManagerTimeSlotsPeriods      = Plages horaires
+RequestManagerTimeSlotsIntoPeriod   = Vous êtes dans la plage horaire: %s à %s
+RequestManagerTimeSlotsOutOfPeriod  = Vous êtes en dehors des plages horaires
+
+############################################################
 ### Errors
 ############################################################
 RequestManagerErrorFieldStatusMustBeOfInitialType                           = La demande doit être à un statut de type 'Initial'
@@ -328,6 +346,12 @@ RequestManagerErrorTriggerNextStatus                                        = Er
 RequestManagerCreateFastErrorNoRequestSelected                              = Veuillez sélectionner une demande
 RequestManagerErrorCanOnlyCreateMessageFromRequest                          = Vous ne pouvez créer un message d'une demande que depuis une fiche demande
 RequestManagerErrorMessageCanNotBeModified                                  = Vous ne pouvez pas modifier un message d'une demande
+RequestManagerErrorTimeSlotsBadPeriodFormat                                 = Mauvais format de la période : %s
+RequestManagerErrorTimeSlotsBadDateFormat                                   = Mauvais format de la date : %s
+RequestManagerErrorTimeSlotsDateFormatMustBeEqual                           = Les deux dates de la période doivent être au du même type de format : %s
+RequestManagerErrorTimeSlotsPeriodDatesIsEqual                              = Les dates la période sont identiques : %s
+RequestManagerErrorTimeSlotsDateMustBeChronological                         = Les dates la période doivent être chronologique : %s
+RequestManagerErrorMustBeNotEmpty                                           = Ne doit pas être vide
 
 ######################################################################
 # Dictionaries

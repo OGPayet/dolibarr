@@ -16,17 +16,17 @@
  */
 
 /**
- * \file        class/synergiestechsymptom.dictionary.php
- * \ingroup     Synergies-Tech
- * \brief       Class of the dictionary Symptom
+ * \file        core/dictionaries/synergiestechtimeslot.dictionary.php
+ * \ingroup     synergiestech
+ * \brief       Class of the Time Slot
  */
 
 dol_include_once('/advancedictionaries/class/dictionary.class.php');
 
 /**
- * Class for AdvancedTicketRequestTypeDictionary
+ * Class for SynergiesTechTimeSlotDictionary
  */
-class synergiestechsymptomDictionary extends Dictionary
+class SynergiesTechTimeSlotDictionary extends Dictionary
 {
     /**
      * @var array       List of languages to load
@@ -36,17 +36,17 @@ class synergiestechsymptomDictionary extends Dictionary
     /**
      * @var string      Family name of which this dictionary belongs
      */
-    public $family = 'requestmanager';
+    public $family = 'synergiestech';
 
     /**
      * @var string      Family label for show in the list, translated if key found
      */
-    public $familyLabel = 'Module163018Name';
+    public $familyLabel = 'Module500100Name';
 
     /**
      * @var int         Position of the dictionary into the family
      */
-    public $familyPosition = 7;
+    public $familyPosition = 6;
 
     /**
      * @var string      Module name of which this dictionary belongs
@@ -61,12 +61,12 @@ class synergiestechsymptomDictionary extends Dictionary
     /**
      * @var string      Name of this dictionary for show in the list, translated if key found
      */
-    public $nameLabel = 'SynergiesTechSymptomDictionaryLabel';
+    public $nameLabel = 'SynergiesTechTimeSlotDictionaryLabel';
 
     /**
      * @var string      Name of the dictionary table without prefix (ex: c_country)
      */
-    public $table_name = 'c_synergiestech_symptom';
+    public $table_name = 'c_synergiestech_timeslot';
 
     /**
      * @var array  Fields of the dictionary table
@@ -127,28 +127,19 @@ class synergiestechsymptomDictionary extends Dictionary
      * )
      */
     public $fields = array(
-        'code' => array(
-            'name'       => 'code',
-            'label'      => 'Code',
-            'type'       => 'varchar',
-            'database'   => array(
-              'length'   => 16,
-            ),
-            'is_require' => true,
-        ),
-        'label' => array(
-            'name'       => 'label',
-            'label'      => 'Label',
+        'formula' => array(
+            'name'       => 'formula',
+            'label'      => 'SynergiesTechTimeSlotDictionaryFormula',
             'type'       => 'varchar',
             'database'   => array(
               'length'   => 255,
             ),
+            'help'       => 'SynergiesTechTimeSlotDictionaryFormulaHelp',
             'is_require' => true,
         ),
-        'emplacement' => array(),
-        'text' => array(
-            'name'       => 'text',
-            'label'      => 'SynergiesTechSymptomDictionaryText',
+        'time_slots' => array(
+            'name'       => 'time_slots',
+            'label'      => 'SynergiesTechTimeSlotDictionaryTimeSlots',
             'type'       => 'text',
             'is_require' => true,
         ),
@@ -162,14 +153,14 @@ class synergiestechsymptomDictionary extends Dictionary
      * )
      */
     public $indexes = array(
-        array(
-            'fields'    => array('code'),
+        0 => array(
+            'fields'    => array('formula'),
             'is_unique' => true,
         ),
     );
 
     /**
-     * @var bool    Is multi entity (not partaged = false)
+     * @var bool    Is multi entity (false = partaged, true = by entity)
      */
     public $is_multi_entity = true;
 
@@ -180,23 +171,59 @@ class synergiestechsymptomDictionary extends Dictionary
 	 */
 	protected function initialize()
     {
-        dol_include_once('/synergiestech/class/html.formsynergiestech.class.php');
-        $formsynergiestech = new FormSynergiesTech($this->db);
+        global $langs;
 
-        $categories = $formsynergiestech->requestmanager_emplacments_array();
+        $langs->load('requestmanager@requestmanager');
 
-        $this->fields['emplacement'] = array(
-            'name' => 'emplacement',
-            'label' => 'SynergiesTechSymptomDictionaryEmplacement',
-            'type' => 'checkbox',
-            'options' => $categories,
-            'td_output' => array(
-                'moreAttributes' => 'width="20%"',
-            ),
-            'td_input' => array(
-                'moreAttributes' => 'width="20%"',
-            ),
-            'is_require' => true,
-        );
+        $this->fields['time_slots']['help_button'] = $langs->trans("RequestManagerTimeSlotsPeriodsDesc");
+    }
+}
+
+
+class SynergiesTechTimeSlotDictionaryLine extends DictionaryLine
+{
+    public function checkFieldsValues($fieldsValue)
+    {
+        global $langs;
+
+        $result = parent::checkFieldsValues($fieldsValue);
+        if ($result < 0) {
+            return $result;
+        }
+
+        dol_include_once('/requestmanager/lib/requestmanagertimeslots.lib.php');
+        $res = requestmanagertimeslots_get_periods($fieldsValue['time_slots']);
+        if (!is_array($res)) {
+            $langs->load('requestmanager@requestmanager');
+            $this->errors[] = $langs->trans('RequestManagerTimeSlotsPeriodsName') . ': ' . $res;
+            return -1;
+        }
+
+        return $result;
+    }
+
+    /**
+	 * Return HTML string to put an input field into a page
+	 *
+	 * @param  string  $fieldName      Name of the field
+	 * @param  string  $value          Preselected value to show (for date type it must be in timestamp format, for amount or price it must be a php numeric value)
+	 * @param  string  $keyprefix      Prefix string to add into name and id of field (can be used to avoid duplicate names)
+	 * @param  string  $keysuffix      Suffix string to add into name and id of field (can be used to avoid duplicate names)
+	 * @param  int     $objectid       Current object id
+	 * @return string
+	 */
+	function showInputField($fieldName, $value=null, $keyprefix='', $keysuffix='', $objectid=0)
+    {
+        if ($fieldName == 'time_slots') {
+            if ($value === null) $value = $this->fields[$fieldName];
+            $fieldHtmlName = $keyprefix . $fieldName . $keysuffix;
+
+            $out = '<textarea id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" rows="' . ROWS_5 . '" style="margin-top: 5px; width: 90%;" class="flat">';
+            $out .= $value;
+            $out .= '</textarea>';
+            return $out;
+        }
+
+        return parent::showInputField($fieldName, $value, $keyprefix, $keysuffix, $objectid);
     }
 }

@@ -57,6 +57,8 @@ class InterfaceSynergiesTechWorkflowReceptions extends DolibarrTriggers
      */
     public function runTrigger($action, $object, User $user, Translate $langs, Conf $conf)
     {
+        if (empty($conf->synergiestech->enabled)) return 0;     // Module not active, we do nothing
+
 	    switch ($action) {
             // Supplier orders
 /*            case 'ORDER_SUPPLIER_RECEIVE':
