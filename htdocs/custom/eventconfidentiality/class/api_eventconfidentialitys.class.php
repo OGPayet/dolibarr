@@ -18,6 +18,7 @@
 use Luracast\Restler\RestException;
 
 require_once DOL_DOCUMENT_ROOT.'/custom/eventconfidentiality/class/eventconfidentiality.class.php';
+require_once DOL_DOCUMENT_ROOT.'/user/class/usergroup.class.php';
 
 /**
  * API class for eventconfidentialitys
@@ -215,6 +216,13 @@ class EventConfidentialitys extends DolibarrApi {
 
 		$mode = 2;
 		$user_tags = explode(",",DolibarrApiAccess::$user->array_options['options_user_tag']);
+
+		$usergroup = new UserGroup($db);
+		$usergroups = $usergroup->listGroupsForUser($user->id);
+		foreach($usergroups as $group) {
+			$user_tags[] = $group->array_options['options_group_tag'];
+		}
+
 		$tmp_mode = -1;
 		$externe = (empty($user->socid)?0:1); //Utilisateur interne ou externe
 

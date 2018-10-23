@@ -185,6 +185,7 @@ class modEventConfidentiality extends DolibarrModules
         $extrafields = new ExtraFields($this->db);
         // Invoice
         $result=$extrafields->addExtraField('user_tag', 'Tags de confidentialité', 'chkbxlst', 0,  '', 'user',   0, 0, '', array("options"=>array("c_eventconfidentiality_tag:label:rowid::active=1" => "")), 1, '', 0, 0, '');
+        $result=$extrafields->addExtraField('group_tag', 'Tags de confidentialité', 'chkbxlst', 0,  '', 'usergroup',   0, 0, '', array("options"=>array("c_eventconfidentiality_tag:label:rowid::active=1" => "")), 1, '', 0, 0, '');
         return $this->_init($sql, $options);
 	}
 

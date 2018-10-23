@@ -22,6 +22,7 @@
  *
  * Put detailed description here.
  */
+require_once DOL_DOCUMENT_ROOT.'/user/class/usergroup.class.php';
 
 /**
  * Class ActionsEventConfidentiality
@@ -91,7 +92,7 @@ class ActionsEventConfidentiality
 					//Tags interne
 					$array_tags = array();
 					$dictionary = Dictionary::getDictionary($db, 'eventconfidentiality', 'eventconfidentialitytag', 0);
-					$array_tags = $dictionary->fetch_array('rowid', '{{label}}', array(), array('label' => 'ASC'));
+					$array_tags = $dictionary->fetch_array('rowid', '{{label}}', array("external"=>NULL), array('label' => 'ASC'));
 					$out .= '<tr>';
 					$out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityTagInterneLabel") . '</td>';
 					$out .= '<td colspan="3"><table class="noborder margintable centpercent">';
@@ -132,7 +133,7 @@ class ActionsEventConfidentiality
 					//Tags externe
 					$array_tags = array();
 					$dictionary = Dictionary::getDictionary($db, 'eventconfidentiality', 'eventconfidentialitytag', 0);
-					$array_tags = $dictionary->fetch_array('rowid', '{{label}}', array(), array('label' => 'ASC'));
+					$array_tags = $dictionary->fetch_array('rowid', '{{label}}', array("external"=>1), array('label' => 'ASC'));
 					$out .= '<tr>';
 					$out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityTagExterneLabel") . '</td>';
 					$out .= '<td colspan="3"><table class="noborder margintable centpercent">';
@@ -197,7 +198,7 @@ class ActionsEventConfidentiality
 				//Tags interne
 				$array_tags = array();
 				$dictionary = Dictionary::getDictionary($db, 'eventconfidentiality', 'eventconfidentialitytag', 0);
-				$array_tags = $dictionary->fetch_array('rowid', '{{label}}', array(), array('label' => 'ASC'));
+				$array_tags = $dictionary->fetch_array('rowid', '{{label}}', array("external"=>NULL), array('label' => 'ASC'));
 
 				$out .= '<tr>';
 				$out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityTagInterneLabel") . '</td>';
@@ -207,7 +208,7 @@ class ActionsEventConfidentiality
 				//Tags externe
 				$array_tags = array();
 				$dictionary = Dictionary::getDictionary($db, 'eventconfidentiality', 'eventconfidentialitytag', 0);
-				$array_tags = $dictionary->fetch_array('rowid', '{{label}}', array(), array('label' => 'ASC'));
+				$array_tags = $dictionary->fetch_array('rowid', '{{label}}', array("external"=>1), array('label' => 'ASC'));
 
 				$out .= '<tr>';
 				$out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityTagExterneLabel") . '</td>';
@@ -246,6 +247,13 @@ class ActionsEventConfidentiality
 		if($object->id > 0) {
 			$mode = 2;
 			$user_tags = explode(",",$user->array_options['options_user_tag']);
+
+			$usergroup = new UserGroup($db);
+			$usergroups = $usergroup->listGroupsForUser($user->id);
+			foreach($usergroups as $group) {
+				$user_tags[] = $group->array_options['options_group_tag'];
+			}
+
 			$tmp_mode = -1;
 			$externe = (empty($user->socid)?0:1); //Utilisateur interne ou externe
 			$fk_tags = fetchAllTagForObject($object->id, $externe);
@@ -337,6 +345,13 @@ class ActionsEventConfidentiality
 		if($object->id > 0) {
 			$mode = 2;
 			$user_tags = explode(",",$user->array_options['options_user_tag']);
+
+			$usergroup = new UserGroup($db);
+			$usergroups = $usergroup->listGroupsForUser($user->id);
+			foreach($usergroups as $group) {
+				$user_tags[] = $group->array_options['options_group_tag'];
+			}
+
 			$tmp_mode = -1;
 			$externe = (empty($user->socid)?0:1); //Utilisateur interne ou externe
 			$fk_tags = fetchAllTagForObject($object->id, $externe);

@@ -150,6 +150,14 @@ class EventConfidentialityTagDictionary extends Dictionary
             ),
             'is_require' => true,
         ),
+        'external' => array(
+            'name'       => 'external',
+            'label'      => 'EventConfidentialityExternal',
+            'type'       => 'boolean',
+            'td_input'  => array (
+                'positionLine' => 1,
+            ),
+        ),
     );
 
     /**

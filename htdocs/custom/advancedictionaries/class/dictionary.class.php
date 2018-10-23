@@ -1179,6 +1179,7 @@ class Dictionary extends CommonObject
                 // Where clause
                 $sqlStatement = $this->whereFieldSqlStatement($this->fields[$fieldName], $value);
                 if (!empty($sqlStatement)) {
+					error_log($sqlStatement);
                     $where[] = $sqlStatement;
                 }
                 // Having clause
@@ -1381,6 +1382,7 @@ class Dictionary extends CommonObject
                 case 'radio':
                 case 'checkbox':
                     $values = array();
+
                     if (is_array($value)) {
                         foreach ($value as $val) {
                             $values[$val] = $val;
@@ -1428,7 +1430,11 @@ class Dictionary extends CommonObject
                 case 'datetime':
                     return natural_search('d.' . $field['name'], $value, 1, 1); // TODO check for date and datetime
                 case 'boolean':
-                    return 'd.' . $field['name'] . ' = ' . (!empty($value) ? '1' : '0');
+                    if (!empty($value)) {
+						return 'd.' . $field['name'] . ' = ' . ($value > 0 ? '1' : '0');
+					} else {
+						return 'd.' . $field['name'] . ' IS NULL';
+					}
                 case 'custom':
                     return $this->whereCustomFieldSqlStatement($field, $value);
                 default: // unknown
