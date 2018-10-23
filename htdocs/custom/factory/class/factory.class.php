@@ -96,12 +96,6 @@ class Factory extends CommonObject
 
         $error = 0;
 
-        // detect mode to create component OF
-        $createOFComponentMode = 1;
-        if (!empty($warehouseToUseList)) {
-            $createOFComponentMode = 2;
-        }
-
 		$this->db->begin();
 
 		$obj = $conf->global->FACTORY_ADDON;
@@ -129,11 +123,11 @@ class Factory extends CommonObject
 			$tmpid = $this->id;
 
 			if ($this->context['createfromclone'] == 'createfromclone') {
-				// on r�cup�re la composition de l'of Clon�
-				$prods_arbo =$this->getChildsOF($orig->id);
+				// on recupere la composition de l'of Clone
+				$prods_arbo = $this->getChildsOF($orig->id);
 			} else {
-				// sinon c'est ceux du produit associ� � l'OF
-				// on m�morise les composants utilis� pour la fabrication
+				// sinon c'est ceux du produit associe a l'OF
+				// on memorise les composants utilises pour la fabrication
 				//$prodsfather = $this->getFather(); //Parent Products
 				$this->get_sousproduits_arbo($factoryid);
 				$prods_arbo = $this->get_arbo_each_prod();
@@ -144,11 +138,30 @@ class Factory extends CommonObject
 
 			// List of subproducts
 			if (count($prods_arbo) > 0) {
-				// on boucle sur les composants	pour cr�er les lignes de d�tail
+
+                // detect mode to create component OF
+                $createOFComponentMode = 1;
+                if (!empty($warehouseToUseList)) {
+                    // dispatch lines
+                    $createOFComponentMode = 2;
+                }
+
+				// on boucle sur les composants	pour creer les lignes de detail
 				foreach ($prods_arbo as $value) {
 				    if ($createOFComponentMode == 1) {
-                        $result = $this->createof_component($factoryid, $this->qty_planned, $value, 0);
+                        // for clone only
+				        if ($this->context['createfromclone'] == 'createfromclone') {
+				            // only dispatch first line
+				            if ($value['id_dispatched_line']==0) {
+                                $result = $this->createof_component($factoryid, $this->qty_planned, $value, 0, $value['child_fk_entrepot']);
+                            }
+                        }
+                        // create component in standard mode
+                        else {
+                            $result = $this->createof_component($factoryid, $this->qty_planned, $value, 0);
+                        }
                     } else {
+                        // dispatch lines
                         $result = $this->_createOFComponentFromWarehouseToUseList($warehouseToUseList[$value['id']], $factoryid, $value, 0);
                     }
 
