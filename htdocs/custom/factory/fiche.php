@@ -952,7 +952,7 @@ if ($action == 'edit' || $action == 'search' || $action == 're-edit' ) {
 
 
 /* Barre d'action				*/
-if ($action == '' ) {
+if ($action == '' || $action == 'editdatestartmade') {
 	print '<div class="tabsAction">';
 
 	$parameters = array();
