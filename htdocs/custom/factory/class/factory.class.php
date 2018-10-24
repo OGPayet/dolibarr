@@ -107,8 +107,8 @@ class Factory extends CommonObject
 		$sql.= 'description, date_start_planned, date_end_planned, duration_planned, qty_planned, fk_user_author';
 		$sql.= ' ) VALUES ("'.$refOF.'", '.($this->fk_product ? $this->fk_product : $this->id).', '.$this->fk_entrepot.', "';
 		$sql.= $this->db->escape($this->description).'"';
-		$sql.= ', "'.($this->date_start_planned?$this->db->idate($this->date_start_planned):'null').'", "';
-		$sql.= ($this->date_end_planned?$this->db->idate($this->date_end_planned):'null').'"';
+        $sql.= ", " . ($this->date_start_planned ? "'" . $this->db->idate($this->date_start_planned) . "'" : 'null');
+        $sql.= ", " . ($this->date_end_planned ? "'" . $this->db->idate($this->date_end_planned) . "'" : 'null');
 		$sql.= ', '.($this->duration_planned?$this->duration_planned:'null');
 		$sql.= ', '.($this->qty_planned?$this->qty_planned:'null').', '.$user->id.' )';
 
