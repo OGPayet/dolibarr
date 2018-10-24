@@ -168,13 +168,15 @@ class ActionsCompanyRelationships
             if (!empty($object->element) && in_array($object->element, CompanyRelationships::$psa_element_list)) {
 
                 if ($object->element == 'fichinter') {
-                    $elementForRights = 'ficheinter';
+                    $userRightsElementCreer = $user->rights->ficheinter->creer;
+                } else if ($object->element == 'order_supplier') {
+                    $userRightsElementCreer = $user->rights->fournisseur->commande->creer;
                 } else {
-                    $elementForRights = $object->table_element;
+                    $userRightsElementCreer = $user->rights->{$object->table_element}->creer;
                 }
 
                 // action confirm principal company on create
-                if ($action == 'companyrelationships_confirm_socid' && $user->rights->{$elementForRights}->creer) {
+                if ($action == 'companyrelationships_confirm_socid' && $userRightsElementCreer) {
                     $langs->load('companyrelationships@companyrelationships');
 
                     $fk_soc_benefactor = GETPOST('companyrelationships_fk_soc_benefactor', 'int');
@@ -186,8 +188,8 @@ class ActionsCompanyRelationships
                         exit();
                     }
                 }
-                // uodate extra fields
-                else if ($action == 'update_extras' && $user->rights->{$elementForRights}->creer) {
+                // update extra fields
+                else if ($action == 'update_extras' && $userRightsElementCreer) {
                     $attribute = GETPOST('attribute', 'alpha');
 
                     // update benefactor company
@@ -241,7 +243,7 @@ class ActionsCompanyRelationships
                 }
                 // action clone object
                 /*
-                else if ($action == 'confirm_clone' && $confirm == 'yes' && $user->rights->{$elementForRights}->creer)
+                else if ($action == 'confirm_clone' && $confirm == 'yes' && $userRightsElementCreer)
                 {
                     if (!GETPOST('socid', 'int')) {
                         setEventMessages($langs->trans("NoCloneOptionsSpecified"), null, 'errors');
@@ -469,13 +471,15 @@ class ActionsCompanyRelationships
             if (!empty($object->table_element) && !empty($object->element) && in_array($object->element, CompanyRelationships::$psa_element_list)) {
 
                 if ($object->element == 'fichinter') {
-                    $elementForRights = 'ficheinter';
+                    $userRightsElementCreer = $user->rights->ficheinter->creer;
+                } else if ($object->element == 'order_supplier') {
+                    $userRightsElementCreer = $user->rights->fournisseur->commande->creer;
                 } else {
-                    $elementForRights = $object->table_element;
+                    $userRightsElementCreer = $user->rights->{$object->table_element}->creer;
                 }
 
                 // create
-                if ($action == 'create' && $user->rights->{$elementForRights}->creer) {
+                if ($action == 'create' && $userRightsElementCreer) {
                     dol_include_once('/companyrelationships/class/html.formcompanyrelationships.class.php');
 
                     $langs->load('companyrelationships@companyrelationships');
@@ -639,7 +643,7 @@ class ActionsCompanyRelationships
                     print $out;
                 }
                 // edit
-                else if ($action=='edit_extras' && $user->rights->{$elementForRights}->creer) {
+                else if ($action=='edit_extras' && $userRightsElementCreer) {
 
                     $attribute = GETPOST('attribute', 'alpha');
 

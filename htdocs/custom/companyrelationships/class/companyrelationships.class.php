@@ -60,6 +60,7 @@ class CompanyRelationships
      * expedition=shipping in class
      */
     public static $psa_element_list = array('propal', 'commande', 'facture', 'shipping', 'fichinter', 'contrat');
+    //public static $psa_element_list = array('propal', 'commande', 'facture', 'shipping', 'fichinter', 'contrat', 'order_supplier');
 
 
     /**
