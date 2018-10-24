@@ -175,7 +175,7 @@ class CommonObjectPatas extends CommonObject
 					if (file_exists(DOL_DOCUMENT_ROOT.'/'.$this->element.'/class/'.$this->element.'.class.php'))
 						require_once DOL_DOCUMENT_ROOT.'/'.$this->element.'/class/'.$this->element.'.class.php';
 					else
-						require_once DOL_DOCUMENT_ROOT.'/custom/'.$this->element.'/class/'.$this->element.'.class.php';
+						//require_once DOL_DOCUMENT_ROOT.'/custom/'.$this->element.'/class/'.$this->element.'.class.php';
 
 					// gère le cas des modules internes posé dans le /core ou pas
 					if (file_exists(DOL_DOCUMENT_ROOT.'/'.$this->element.'/lib/'.$this->element.'.lib.php'))
