@@ -212,7 +212,7 @@ class modSynergiesTech extends DolibarrModules
 	$this->rights[$r][5] = 'ticket_report';
 	$r++;
 
-        /*$this->rights[$r][0] = 500101;
+        $this->rights[$r][0] = 500101;
         $this->rights[$r][1] = 'Voir les prix des lignes de produits';
         $this->rights[$r][3] = 0;
         $this->rights[$r][4] = 'product_line_price';
@@ -238,7 +238,7 @@ class modSynergiesTech extends DolibarrModules
         $this->rights[$r][3] = 0;
         $this->rights[$r][4] = 'product_line_discount';
         $this->rights[$r][5] = 'creer';
-        $r++;*/
+        $r++;
 
 		// Add here list of permission defined by an id, a label, a boolean and two constant strings.
 		// Example:

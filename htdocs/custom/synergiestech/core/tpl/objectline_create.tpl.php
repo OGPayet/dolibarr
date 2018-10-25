@@ -416,24 +416,39 @@ else {
 		<td class="nobottom linecolresupplier" align="right"><input id="fourn_ref" name="fourn_ref" class="flat" size="10" value=""></td>
 	<?php } ?>
 
-	<td class="nobottom linecolvat" align="right"><?php
-	if ($seller->tva_assuj == "0") echo '<input type="hidden" name="tva_tx" id="tva_tx" value="0">'.vatrate(0, true);
-	else echo $form->load_tva('tva_tx', (isset($_POST["tva_tx"])?GETPOST("tva_tx",'alpha',2):-1), $seller, $buyer, 0, 0, '', false, 1);
-	?>
+	<td class="nobottom linecolvat" align="right">
+  <?php if ($user->rights->synergiestech->product_line_price->creer)  {
+      if ($seller->tva_assuj == "0") echo '<input type="hidden" name="tva_tx" id="tva_tx" value="0">' . vatrate(0, true);
+      else echo $form->load_tva('tva_tx', (isset($_POST["tva_tx"]) ? GETPOST("tva_tx", 'alpha', 2) : -1), $seller, $buyer, 0, 0, '', false, 1);
+  } else {
+      echo '<input type="hidden" name="tva_tx" id="tva_tx" value="0">';
+  } ?>
 	</td>
 	<td class="nobottom linecoluht" align="right">
-	<input type="text" size="5" name="price_ht" id="price_ht" class="flat right" value="<?php echo (isset($_POST["price_ht"])?GETPOST("price_ht",'alpha',2):''); ?>">
+  <?php  if ($user->rights->synergiestech->product_line_price->creer)  { ?>
+    <input type="text" size="5" name="price_ht" id="price_ht" class="flat right" value="<?php echo (isset($_POST["price_ht"])?GETPOST("price_ht",'alpha',2):''); ?>">
+  <?php } else {
+     echo '<input type="hidden" name="price_ht" id="price_ht" value="0">';
+  } ?>
 	</td>
 
 	<?php if (!empty($conf->multicurrency->enabled)) { $colspan++;?>
 	<td class="nobottom linecoluht_currency" align="right">
-	<input type="text" size="5" name="multicurrency_price_ht" id="multicurrency_price_ht" class="flat right" value="<?php echo (isset($_POST["multicurrency_price_ht"])?GETPOST("multicurrency_price_ht",'alpha',2):''); ?>">
+  <?php  if ($user->rights->synergiestech->product_line_price->creer)  { ?>
+    <input type="text" size="5" name="multicurrency_price_ht" id="multicurrency_price_ht" class="flat right" value="<?php echo (isset($_POST["multicurrency_price_ht"])?GETPOST("multicurrency_price_ht",'alpha',2):''); ?>">
+  <?php } else {
+     echo '<input type="hidden" name="multicurrency_price_ht" id="multicurrency_price_ht" value="0">';
+  } ?>
 	</td>
 	<?php } ?>
 
 	<?php if (! empty($inputalsopricewithtax)) { ?>
 	<td class="nobottom linecoluttc" align="right">
-	<input type="text" size="5" name="price_ttc" id="price_ttc" class="flat" value="<?php echo (isset($_POST["price_ttc"])?GETPOST("price_ttc",'alpha',2):''); ?>">
+  <?php  if ($user->rights->synergiestech->product_line_price->creer)  { ?>
+      <input type="text" size="5" name="price_ttc" id="price_ttc" class="flat" value="<?php echo (isset($_POST["price_ttc"])?GETPOST("price_ttc",'alpha',2):''); ?>">
+  <?php } else {
+     echo '<input type="hidden" name="price_ttc" id="price_ttc" value="0">';
+  } ?>
 	</td>
 	<?php } ?>
 	<td class="nobottom linecolqty" align="right"><input type="text" size="2" name="qty" id="qty" class="flat right" value="<?php echo (isset($_POST["qty"])?GETPOST("qty",'alpha',2):1); ?>">
@@ -446,7 +461,13 @@ else {
 		print '</td>';
 	}
 	?>
-	<td class="nobottom nowrap linecoldiscount" align="right"><input type="text" size="1" name="remise_percent" id="remise_percent" class="flat right" value="<?php echo (isset($_POST["remise_percent"])?GETPOST("remise_percent",'alpha',2):$buyer->remise_percent); ?>"><span class="hideonsmartphone">%</span></td>
+	<td class="nobottom nowrap linecoldiscount" align="right">
+  <?php  if ($user->rights->synergiestech->product_line_discount->creer)  { ?>
+    <input type="text" size="1" name="remise_percent" id="remise_percent" class="flat right" value="<?php echo (isset($_POST["remise_percent"])?GETPOST("remise_percent",'alpha',2):$buyer->remise_percent); ?>"><span class="hideonsmartphone">%</span>
+  <?php } else {
+     echo '<input type="hidden" name="remise_percent" id="remise_percent" value="0">';
+  } ?>
+  </td>
 	<?php
 	if ($this->situation_cycle_ref) {
 		$coldisplay++;

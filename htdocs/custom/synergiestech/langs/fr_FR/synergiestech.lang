@@ -7,6 +7,10 @@ Module500100Desc = Module spécifique pour Synergies-Tech
 # Permission
 #######################################################################
 Permission500100    = Générer le bilan des tickets
+Permission500101    = Voir les prix des lignes de produits
+Permission500102    = Editer les prix des lignes de produits
+Permission500103    = Voir les remises des lignes de produits
+Permission500104    = Editer les remises des lignes de produits
 
 #######################################################################
 # Configuration admin
