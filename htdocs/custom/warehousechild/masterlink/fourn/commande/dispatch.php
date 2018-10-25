@@ -67,9 +67,10 @@ if (! empty($conf->projet->enabled))
 namespace CORE\WAREHOUSECHILD;
 
 dol_include_once('/warehousechild/class/html.formproduct.class.php');
+dol_include_once('/warehousechild/class/fournisseur.commande.class.php');
 
 
-use \CommandeFournisseur as CommandeFournisseur;
+//use \CommandeFournisseur as CommandeFournisseur;
 use \ExtraFields as ExtraFields;
 use \Form as Form;
 //use FormProduct as FormProduct;
@@ -89,6 +90,7 @@ $langs->load('bills');
 $langs->load('deliveries');
 $langs->load('products');
 $langs->load('stocks');
+$langs->load('warehousechild@warehousechild');
 if (! empty($conf->productbatch->enabled))
 	$langs->load('productbatch');
 
@@ -261,6 +263,8 @@ if ($action == 'denydispatchline' && ! ((empty($conf->global->MAIN_USE_ADVANCED_
 if ($action == 'dispatch' && $user->rights->fournisseur->commande->receptionner) {
 	$error = 0;
 
+    $notrigger = 0;
+
 	$db->begin();
 
 	$pos = 0;
@@ -280,7 +284,7 @@ if ($action == 'dispatch' && $user->rights->fournisseur->commande->receptionner)
 			$fk_commandefourndet = "fk_commandefourndet_" . $reg[1] . '_' . $reg[2];
 
 			// We ask to move a qty
-			if (GETPOST($qty) > 0) {
+			if (GETPOST($qty) != 0) {
 				if (! (GETPOST($ent, 'int') > 0)) {
 					dol_syslog('No dispatch for line ' . $key . ' as no warehouse choosed');
 					$text = $langs->transnoentities('Warehouse') . ', ' . $langs->transnoentities('Line') . ' ' . ($numline);
@@ -289,7 +293,13 @@ if ($action == 'dispatch' && $user->rights->fournisseur->commande->receptionner)
 				}
 
 				if (! $error) {
-					$result = $object->dispatchProduct($user, GETPOST($prod, 'int'), GETPOST($qty), GETPOST($ent, 'int'), GETPOST($pu), GETPOST('comment'), '', '', '', GETPOST($fk_commandefourndet, 'int'), $notrigger);
+				    if (GETPOST($qty) < 0) {
+				        $comment = $langs->trans("WarehousechildDispatchSupplierOrderCorrect", $object->ref);
+                    } else {
+				        $comment = GETPOST('comment');
+                    }
+
+					$result = $object->dispatchProduct($user, GETPOST($prod, 'int'), GETPOST($qty), GETPOST($ent, 'int'), GETPOST($pu), $comment, '', '', '', GETPOST($fk_commandefourndet, 'int'), $notrigger);
 					if ($result < 0) {
 						setEventMessages($object->error, $object->errors, 'errors');
 						$error ++;
@@ -342,6 +352,15 @@ if ($action == 'dispatch' && $user->rights->fournisseur->commande->receptionner)
 			}
 		}
 	}
+
+    if (! $error) {
+        // modify status before recalculate
+        $result = $object->setStatus($user, 3);
+        if ($result < 0) {
+            setEventMessages($object->error, $object->errors, 'errors');
+            $error++;
+        }
+    }
 
 	if (! $error) {
 		$result = $object->calcAndSetStatusDispatch($user, GETPOST('closeopenorder')?1:0, GETPOST('comment'));

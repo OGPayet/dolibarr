@@ -46,3 +46,8 @@ MyPageName = My page name
 #
 MyWidget = My widget
 MyWidgetDescription = My widget description
+
+#
+# Order Supplier
+#
+WarehousechildDispatchSupplierOrderCorrect = Reception correction of the supplier order %s
