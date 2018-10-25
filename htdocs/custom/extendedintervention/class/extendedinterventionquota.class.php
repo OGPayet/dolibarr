@@ -224,7 +224,7 @@ class ExtendedInterventionQuota
         global $conf, $langs;
         $out = '';
 
-        if (is_array($contract_list) && count($contract_list) > 0) {
+        if (is_array($contract_list) && count($contract_list) > 0 && !empty($conf->global->EXTENDEDINTERVENTION_QUOTA_ACTIVATE)) {
             $langs->load('extendedintervention@extendedintervention');
             $nb_contract = count($contract_list);
 
