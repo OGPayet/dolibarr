@@ -1,0 +1,9 @@
+# Dolibarr language file - en_US - extendedintervention
+CHARSET          = UTF-8
+Module163023Name = Extended Intervention
+Module163023Desc = Extended management of the intervention
+
+############################################################
+### Admin setup
+############################################################
+ExtendedInterventionSetup       = Configuration of the module Extended Intervention
