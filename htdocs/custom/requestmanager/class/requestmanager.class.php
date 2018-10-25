@@ -40,7 +40,7 @@ class RequestManager extends CommonObject
 	public $table_element = 'requestmanager';
     public $table_element_line = 'requestmanagerdet';
     public $fk_element = 'fk_requestmanager';
-    protected $ismultientitymanaged = 1;	// 0=No test on entity, 1=Test with field entity, 2=Test with link by societe
+    public $ismultientitymanaged = 1;	// 0=No test on entity, 1=Test with field entity, 2=Test with link by societe
 
     /**
      * Cache of type list

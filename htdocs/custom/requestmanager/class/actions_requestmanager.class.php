@@ -382,7 +382,10 @@ class ActionsRequestManager
             global $extrafields;
 
             if (empty($conf->global->REQUESTMANAGER_TIMESLOTS_ACTIVATE)) {
+                unset($extrafields->attributes[$object->table_element]['label']['rm_timeslots_separator']);
                 unset($extrafields->attributes[$object->table_element]['label']['rm_timeslots_periods']);
+                unset($extrafields->attribute_label['rm_timeslots_separator']);
+                unset($extrafields->attribute_label['rm_timeslots_periods']);
             } else {
                 global $form;
 
@@ -397,11 +400,11 @@ class ActionsRequestManager
             <script type="text/javascript">
                 $(document).ready(function () {
                     // Help button
-                    var element = $("td a[href*='&action=edit_extras&attribute=rm_timeslots_periods']").closest('tr').find('td:first-child');
+                    var rm_timeslots_periods = $("td a[href*='&action=edit_extras&attribute=rm_timeslots_periods']").closest('tr').find('td:first-child');
                     if (!element.length) {
-                        element = $("textarea#options_rm_timeslots_periods").closest('tr').find('table td:first-child');
+                        rm_timeslots_periods = $("textarea#options_rm_timeslots_periods").closest('tr').find('table td:first-child');
                     }
-                    element.append(' $help');
+                    rm_timeslots_periods.append(' $help');
 
                     // Disabled CKEDITOR
                     if (typeof CKEDITOR == "object") {

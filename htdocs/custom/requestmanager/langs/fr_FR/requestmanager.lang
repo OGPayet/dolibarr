@@ -129,7 +129,8 @@ Notify_REQUESTMANAGERMESSAGE_SENTBYMAIL = Envoi du message d'une demande par ema
 ############################################################
 ### Extra fields
 ############################################################
-RequestManagerIPBX      = IPBX
+RequestManagerIPBX                      = IPBX
+RequestManagerTimeSlotsSeparatorTitle   = Paramètrages des plages horaires des demandes
 
 ############################################################
 ### Global search

@@ -155,7 +155,7 @@ if ($zone === 1) {
     print '</td>';
     // Requester Contacts
 	print '<td>' . $langs->trans('RequestManagerRequesterContacts') . '</td><td>';
-    print $formrequestmanager->multiselect_contacts($selectedSocIdOrigin, $selectedContacts, 'contact_ids', '', '', 0, 'quatrevingtpercent');
+    print $formrequestmanager->multiselect_contacts($selectedSocIdOrigin, $selectedContacts, 'contact_ids', '', '', 0, 'minwidth300');
     if ($selectedSocIdOrigin > 0 && $user->rights->societe->contact->creer) {
         $backToPage = dol_buildpath('/requestmanager/createfast.php', 1) . '?action=createfast' . ($selectedFkType ? '&type=' . $selectedFkType : '') . ($selectedSocIdOrigin ? '&socid_origin=' . $selectedSocIdOrigin : '') . ($selectedSocId ? '&socid=' . $selectedSocId : '') . ($selectedSocIdBenefactor ? '&socid_benefactor=' . $selectedSocIdBenefactor : '');
         $btnCreateContactLabel = (!empty($conf->global->SOCIETE_ADDRESSES_MANAGEMENT) ? $langs->trans("AddContact") : $langs->trans("AddContactAddress"));
@@ -401,11 +401,14 @@ if ($zone === 3) {
         print '</table>';
         print '</div>';
 
+        // Show count of interventions
+        dol_include_once('/extendedintervention/class/extendedinterventionquota.class.php');
+        $extendedinterventioncountintervention = new ExtendedInterventionQuota($db);
+        print '<br />';
+        print $extendedinterventioncountintervention->showBlockCountInterventionOfContract($contractList);
+
         // Equipement list of this thirdparty
         if ($conf->equipement->enabled) {
-            dol_include_once('/synergiestech/class/html.formsynergiestech.class.php');
-            $formsynergiestech = new FormSynergiesTech($db);
-
             $langs->load('equipement@equipement');
 
             $equipementList = $requestManager->loadAllBenefactorEquipments($selectedSocId, $selectedSocIdBenefactor);
@@ -420,6 +423,9 @@ if ($zone === 3) {
             print '</tr>';
             print '</tr>';
             if (count($equipementList) > 0) {
+                dol_include_once('/synergiestech/class/html.formsynergiestech.class.php');
+                $formsynergiestech = new FormSynergiesTech($db);
+
                 foreach($equipementList as $equipement) {
                     $productStatic = new Product($db);
                     $productStatic->fetch($equipement->fk_product);

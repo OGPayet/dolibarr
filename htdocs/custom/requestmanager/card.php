@@ -63,6 +63,9 @@ $cancel = GETPOST('cancel', 'alpha');
 $confirm = GETPOST('confirm', 'alpha');
 // lines
 $lineid = GETPOST('lineid', 'int');
+//links
+$addlinkid = GETPOST('idtolinkto', 'int');
+$dellinkid = GETPOST('dellinkid', 'int');
 
 // Security check
 $result = restrictedArea($user, 'requestmanager', $id);
@@ -1077,17 +1080,26 @@ if (empty($reshook)) {
         } else {
             setEventMessages($object->error, $object->errors, 'errors');
         }
-    } // Add message
+    }
+    /*********************************************************
+     * Contacts management
+     *********************************************************/
+    // Add contact
     elseif ($action == 'add_contact' && $user->rights->requestmanager->creer && $object->statut_type != RequestManager::STATUS_TYPE_CLOSED && $object->statut_type != RequestManager::STATUS_TYPE_RESOLVED) {
         $object->oldcopy = clone $object;
         $object->add_contact_action(intval(GETPOST('add_contact_type_id')));
-    } elseif ($action == 'del_contact' && $user->rights->requestmanager->creer && $object->statut_type != RequestManager::STATUS_TYPE_CLOSED && $object->statut_type != RequestManager::STATUS_TYPE_RESOLVED) {
+    }
+    // Delete contact
+    elseif ($action == 'del_contact' && $user->rights->requestmanager->creer && $object->statut_type != RequestManager::STATUS_TYPE_CLOSED && $object->statut_type != RequestManager::STATUS_TYPE_RESOLVED) {
         $object->oldcopy = clone $object;
         $object->del_contact_action(intval(GETPOST('del_contact_type_id')));
-    } // Link invoice to order
-    elseif ($action == 'addlink' && !empty($permissiondellink) && !GETPOST('cancel', 'alpha') && $id > 0 && $addlinkid > 0 && $result > 0) {
+    }
+    /*********************************************************
+     * Links management
+     *********************************************************/
+    // Add link
+    elseif ($action == 'addlink' && !empty($permissiondellink) && !GETPOST('cancel', 'alpha') && $object->id > 0 && $addlinkid > 0 && $result > 0) {
         $object->oldcopy = clone $object;
-        $addlinkid = GETPOST('idtolinkto', 'int');
         $result = $object->add_object_linked(GETPOST('addlink', 'alpha'), $addlinkid);
         if ($result < 0) {
             setEventMessages($object->error, $object->errors, 'errors');
@@ -1099,10 +1111,10 @@ if (empty($reshook)) {
             if ($result < 0) $error++;
             // End call trigger
         }
-    } // Delete link
-    elseif ($action == 'dellink' && !empty($permissiondellink) && !GETPOST('cancel', 'alpha') && $dellinkid > 0 && $result > 0) {
+    }
+    // Delete link
+    elseif ($action == 'dellink' && !empty($permissiondellink) && !GETPOST('cancel', 'alpha') && $object->id > 0 && $dellinkid > 0 && $result > 0) {
         $object->oldcopy = clone $object;
-        $dellinkid = GETPOST('dellinkid', 'int');
         $result = $object->deleteObjectLinked(0, '', 0, '', $dellinkid);
         if ($result < 0) {
             setEventMessages($object->error, $object->errors, 'errors');

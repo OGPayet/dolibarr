@@ -53,7 +53,7 @@ $confirm = GETPOST('confirm', 'alpha');
 $result = restrictedArea($user, 'requestmanager');
 
 // Initialize technical object to manage hooks of page. Note that conf->hooks_modules contains array of hook context
-$hookmanager->initHooks(array('requestmanagercard','globalcard'));
+$hookmanager->initHooks(array('requestmanagerfastcard','globalcard'));
 
 // Active chronometer
 if (!empty($conf->global->REQUESTMANAGER_CHRONOMETER_ACTIVATE) && !isset($_SESSION['requestmanager_chronometer_activated']))

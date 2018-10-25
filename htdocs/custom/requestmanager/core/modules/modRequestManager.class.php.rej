@@ -1,55 +1,13 @@
 diff a/htdocs/custom/requestmanager/core/modules/modRequestManager.class.php b/htdocs/custom/requestmanager/core/modules/modRequestManager.class.php	(rejected hunks)
-@@ -133,14 +133,17 @@ class modRequestManager extends DolibarrModules
-             3 => array('REQUESTMANAGER_REFEXT_UNIVERSAL_MASK','chaine','RE{yy}{mm}-{000000}','','current',0),
-             4 => array('REQUESTMANAGER_POSITION_BLOC_OBJECT_LINKED','chaine','top','','current',0),
-             5 => array('REQUESTMANAGER_POSITION_LINK_NEW_OBJECT_LINKED','chaine','top','','current',0),
--            6 => array('REQUESTMANAGERMESSAGE_CREATE_NOTIFY','chaine','1','','current',0),
--            7 => array('REQUESTMANAGER_SET_ASSIGNED_NOTIFY','chaine','1','','current',0),
--            8 => array('REQUESTMANAGER_STATUS_MODIFY_NOTIFY','chaine','1','','current',0),
--            9 => array('REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_EMAIL','chaine','1','','current',0),
--            10 => array('REQUESTMANAGER_CHRONOMETER_ACTIVATE','chaine','0','','current',0),
--            11 => array('REQUESTMANAGER_CHRONOMETER_TIME','chaine','20','','current',0),
--            12 => array('REQUESTMANAGER_CHRONOMETER_COLOR','chaine','red','','current',0),
--            //9 => array('REQUESTMANAGER_CHRONOMETER_SOUND','chaine','','','current',0),
-+            6 => array('REQUESTMANAGER_CREATE_NOTIFY','chaine','1','','current',0),
-+            7 => array('REQUESTMANAGERMESSAGE_CREATE_NOTIFY','chaine','1','','current',0),
-+            8 => array('REQUESTMANAGER_SET_ASSIGNED_NOTIFY','chaine','1','','current',0),
-+            9 => array('REQUESTMANAGER_STATUS_MODIFY_NOTIFY','chaine','1','','current',0),
-+            10 => array('REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_EMAIL','chaine','1','','current',0),
-+            11 => array('REQUESTMANAGER_CHRONOMETER_ACTIVATE','chaine','0','','current',0),
-+            12 => array('REQUESTMANAGER_CHRONOMETER_TIME','chaine','20','','current',0),
-+            13 => array('REQUESTMANAGER_CHRONOMETER_COLOR','chaine','red','','current',0),
-+            //14 => array('REQUESTMANAGER_CHRONOMETER_SOUND','chaine','','','current',0),
-+            15 => array('REQUESTMANAGER_TIMESLOTS_ACTIVATE','chaine','0','','current',0),
-+            16 => array('REQUESTMANAGER_TIMESLOTS_PERIODS','chaine','1W 08h00 - 5W 12h00, 1W 14h00 - 5W 18h00','','current',0),
-         );
- 
-         // Array to add new pages in new tabs
-@@ -517,6 +520,17 @@ class modRequestManager extends DolibarrModules
- 
-         $this->_load_tables('/requestmanager/sql/');
- 
-+        // Create functions and views SQL
-+        $sql_files =array(
-+            'function_rm_global_trim.sql',
-+            'view_llx_requestmanager_internal_user_phone_book.sql',
-+            'view_llx_requestmanager_soc_contact_phone_book.sql',
-+        );
-+        dol_include_once('/requestmanager/lib/opendsi_common.lib.php');
-+        foreach ($sql_files as $file) {
-+            opendsi_execute_sql_file(dol_buildpath('/requestmanager/sql/'.$file));
-+        }
-+
-         // Create tables of all dictionaries
-         dol_include_once('/advancedictionaries/class/dictionary.class.php');
-         $dictionaries = Dictionary::fetchAllDictionaries($this->db, 'requestmanager');
-@@ -532,7 +546,8 @@ class modRequestManager extends DolibarrModules
+@@ -546,8 +546,9 @@ class modRequestManager extends DolibarrModules
          // Create extrafields
          include_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
          $extrafields = new ExtraFields($this->db);
--		$result=$extrafields->addExtraField('ipbx', "IPBX", 'int', 1,  10, 'actioncomm',   0, 0, '', array('options'=>array()), 1, '', 0, 0, '', '');
-+		$result=$extrafields->addExtraField('rm_ipbx', $langs->trans('RequestManagerIPBX'), 'int', 1,  10, 'actioncomm',   1, 1, '', null, 0, '', 0, 1, '', '');
-+        $result=$extrafields->addExtraField('rm_timeslots_periods', $langs->trans('RequestManagerTimeSlotsPeriodsName'), 'text', 400,  2000, 'contrat',   0, 0, '', null, 1, '', 1, 0, '');
+-		$result=$extrafields->addExtraField('rm_ipbx', $langs->trans('RequestManagerIPBX'), 'int', 1,  10, 'actioncomm',   1, 1, '', null, 0, '', 0, 1, '', '');
+-        $result=$extrafields->addExtraField('rm_timeslots_periods', $langs->trans('RequestManagerTimeSlotsPeriodsName'), 'text', 400,  2000, 'contrat',   0, 0, '', null, 1, '', 1, 0, '');
++		$result=$extrafields->addExtraField('rm_ipbx', $langs->trans('RequestManagerIPBX'), 'int', 1,  10, 'actioncomm',   1, 0, '', null, 0, '', 0, 1, '', '');
++        $result=$extrafields->addExtraField('rm_timeslots_separator', $langs->trans('RequestManagerTimeSlotsSeparatorTitle'), 'separate', 400,  '', 'contrat',   0, 0, '', null, 1, '', 1, 0, '');
++        $result=$extrafields->addExtraField('rm_timeslots_periods', $langs->trans('RequestManagerTimeSlotsPeriodsName'), 'text', 401,  2000, 'contrat',   0, 0, '', null, 1, '', 1, 0, '');
  
  		return $this->_init($sql, $options);
  	}

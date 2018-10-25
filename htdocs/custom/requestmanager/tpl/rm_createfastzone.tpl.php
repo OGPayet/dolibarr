@@ -51,6 +51,10 @@ if (empty($conf) || !is_object($conf) || !isset($_POST['zone']))
 	exit();
 }
 
+
+// Initialize technical object to manage hooks of page. Note that conf->hooks_modules contains array of hook context
+$hookmanager->initHooks(array('requestmanagerfastcard','globalcard'));
+
 // Load other template instead of this one
 foreach($conf->modules_parts['tpl'] as $reldir) {
     $res = @include dol_buildpath($reldir . '/rm_createfastzone.tpl.php');
@@ -160,6 +164,7 @@ if ($zone === 1) {
     print $formrequestmanager->select_actioncomm('', array('AC_TEL'), $selectedActionCommId, 'actioncomm_id', 1, 0, null, 0, 'minwidth300');
     print '</td>';
     if (!empty($conf->global->REQUESTMANAGER_TIMESLOTS_ACTIVATE) && $selectedSocId > 0) {
+        dol_include_once('/requestmanager/lib/requestmanagertimeslots.lib.php');
         print '<td colspan="2" width="50%" align="center">';
         $res = requestmanagertimeslots_is_in_time_slot($selectedSocId, dol_now());
         if (is_array($res)) {

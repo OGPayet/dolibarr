@@ -38,7 +38,6 @@ class RequestManagerMessage extends ActionComm
 {
     public $element = 'requestmanager_requestmanagermessage';
     public $table_element = 'requestmanager_message';
-    protected $ismultientitymanaged = 1;	// 0=No test on entity, 1=Test with field entity, 2=Test with link by societe
 
     /**
      * RequestManager handle

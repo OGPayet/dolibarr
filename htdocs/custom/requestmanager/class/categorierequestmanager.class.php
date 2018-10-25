@@ -35,7 +35,7 @@ class CategorieRequestManager extends Categorie
     const TYPE_REQUESTMANAGER = 'requestmanager';
 
     public $parent_table_elemement = 'categorie';
-    public $table_element = 'categorie_' . self::TYPE_REQUESTMANAGER;
+    public $table_element = 'categorie_requestmanager';
 
 
     /**
