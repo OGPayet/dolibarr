@@ -74,7 +74,7 @@ class modSynergiesTech extends DolibarrModules
 		$this->editor_url = 'http://www.open-dsi.fr';
 
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-		$this->version = '1.0.3';
+		$this->version = '1.0.4';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Name of image file used for this module.
@@ -134,6 +134,7 @@ class modSynergiesTech extends DolibarrModules
             1 => array('SYNERGIESTECH_FORCE_ATTACH_EQUIPMENTS_AFTER_SHIPPING_CREATED', 'chaine', '1', '', 0, 'current'),
             2 => array('SYNERGIESTECH_ENABLED_WORKFLOW_ORDER_SUPPLIER_DISPATCH_TO_SET_EQUIPMENTS', 'chaine', '1', '', 0, 'current'),
             3 => array('SYNERGIESTECH_FORCE_SET_EQUIPMENTS_AFTER_ORDER_SUPPLIER_DISPATCH', 'chaine', '1', '', 0, 'current'),
+            4 => array('SYNERGIESTECH_PRINCIPAL_WAREHOUSE_NB_SHOWED', 'chaine', '10', '', 0, 'current'),
         );
 
 		// Array to add new pages in new tabs

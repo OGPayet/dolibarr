@@ -672,3 +672,120 @@ function synergiestech_get_return_products_list($db, $socid)
 
     return $lines;
 }
+
+/**
+ *  Get available stocks with details in tooltip for the product
+ *
+ * @param   Translate	$langs              Translate handler
+ * @param   Conf		$conf               Conf handler
+ * @param   DoliDb		$db                 Database handler
+ * @param   Form		$form               Form handler
+ * @param   int         $product_id         Product ID
+ * @return  string                          Return available stocks with details in tooltip for the product
+ */
+function synergiestech_get_principal_stocks_tooltip_for_product($langs, $conf, $db, $form, $product_id) {
+    global $cache_synergiestech_principal_stocks;
+
+    $out = '';
+
+    if ($product_id > 0) {
+        if (!isset($form)) {
+            require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
+            $form = new Form($db);
+        }
+
+        $langs->load('synergiestech@synergiestech');
+        $principal_warehouse_id = $conf->global->SYNERGIESTECH_PRINCIPAL_WAREHOUSE;
+        $sumStock = 0;
+
+        if ($principal_warehouse_id > 0) {
+            $sql = "SELECT e.rowid, e.label, e.fk_parent, IFNULL(ps.reel, 0) as stock";
+            $sql .= " FROM " . MAIN_DB_PREFIX . "entrepot as e";
+            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "product_stock as ps on ps.fk_entrepot = e.rowid AND ps.fk_product = '" . $product_id . "'";
+            $sql .= " WHERE e.entity IN (" . getEntity('stock') . ")";
+            $sql .= " AND e.statut IN (" . Entrepot::STATUS_OPEN_ALL . "," . Entrepot::STATUS_OPEN_INTERNAL . ")";
+
+            $resql = $db->query($sql);
+            if (!$resql) {
+                dol_print_error($db);
+                return -1;
+            }
+
+            while ($obj = $db->fetch_object($resql)) {
+                $cache_synergiestech_principal_stocks[$product_id][$obj->rowid]['id'] = $obj->rowid;
+                $cache_synergiestech_principal_stocks[$product_id][$obj->rowid]['label'] = $obj->label;
+                $cache_synergiestech_principal_stocks[$product_id][$obj->rowid]['parent_id'] = $obj->fk_parent;
+                $cache_synergiestech_principal_stocks[$product_id][$obj->rowid]['stock'] = $obj->stock;
+            }
+
+            // Full path and label init
+            foreach ($cache_synergiestech_principal_stocks[$product_id] as $obj_rowid => $tab) {
+                $final_label = synergiestech_get_warehouse_parent_path($product_id, $tab);
+                $cache_synergiestech_principal_stocks[$product_id][$obj_rowid]['full_path'] = $final_label['full_path'];
+                $cache_synergiestech_principal_stocks[$product_id][$obj_rowid]['full_label'] = $final_label['full_label'];
+            }
+
+            // Sort
+            uasort($cache_synergiestech_principal_stocks[$product_id], function ($a, $b) {
+                // Compare stocks
+                if ($a['stock'] > $b['stock'])
+                    return -1;
+                else if ($a['stock'] < $b['stock'])
+                    return 1;
+
+                // Compare full label
+                return strcmp($a['full_label'], $b['full_label']);
+            });
+
+            $infos_list = array();
+            $count = 0;
+            $nb_warehouse_showed = !empty($conf->global->SYNERGIESTECH_PRINCIPAL_WAREHOUSE_NB_SHOWED) ? $conf->global->SYNERGIESTECH_PRINCIPAL_WAREHOUSE_NB_SHOWED : 10;
+            foreach ($cache_synergiestech_principal_stocks[$product_id] as $warehouse_id => $warehouse) {
+                if (preg_match("/^{$principal_warehouse_id}$/", $warehouse['full_path']) ||
+                    preg_match("/^{$principal_warehouse_id}_/", $warehouse['full_path']) ||
+                    preg_match("/_{$principal_warehouse_id}$/", $warehouse['full_path']) ||
+                    preg_match("/_{$principal_warehouse_id}_/", $warehouse['full_path'])
+                ) {
+                    $infos_list[] = $langs->trans('SynergiesTechPrincipalWarehouseStocks', $warehouse['stock'], $warehouse['full_label']);
+                    $sumStock += $warehouse['stock'];
+                    $count++;
+                }
+
+                if ($nb_warehouse_showed <= $count) break;
+            }
+
+            $infos = implode('<br>', $infos_list);
+        } else {
+            $infos = $langs->trans('SynergiesTechErrorPrincipalWarehouseNotDefined');
+        }
+
+        $out = '&nbsp;' . $form->textwithpicto('', $infos, 1, $sumStock > 0 ? 'status_green.png@synergiestech' : 'status_red.png@synergiestech');
+    }
+
+    return $out;
+}
+
+/**
+ * Return full path and full label to current warehouse in $tab (recursive function)
+ *
+ * @param   int     $product_id     Product ID
+ * @param	array	$tab			Warehouse data in $cache_synergiestech_principal_stocks line
+ * @param	array	$final_label	Full path with all parents, separated by '_' and full label with all parents, separated by ' >> ' (completed on each call)
+ * @return	array					Full path with all parents, separated by '_' and full label with all parents, separated by ' >> '
+ */
+function synergiestech_get_warehouse_parent_path($product_id, $tab, $final_label=null) {
+    global $cache_synergiestech_principal_stocks;
+
+	if(empty($final_label)) $final_label = array('full_path'=>$tab['id'], 'full_label'=>$tab['label']);
+
+	if(empty($tab['parent_id'])) return $final_label;
+	else {
+		if(!empty($cache_synergiestech_principal_stocks[$product_id][$tab['parent_id']])) {
+            $final_label['full_path'] = $cache_synergiestech_principal_stocks[$product_id][$tab['parent_id']]['id'].'_'.$final_label['full_path'];
+            $final_label['full_label'] = $cache_synergiestech_principal_stocks[$product_id][$tab['parent_id']]['label'].' >> '.$final_label['full_label'];
+			return synergiestech_get_warehouse_parent_path($product_id, $cache_synergiestech_principal_stocks[$product_id][$tab['parent_id']], $final_label);
+		}
+	}
+
+	return $final_label;
+}

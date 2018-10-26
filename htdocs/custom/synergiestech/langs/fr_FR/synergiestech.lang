@@ -25,6 +25,8 @@ SynergiesTechForceSetEquipmentsAfterOrderSupplierDispatch           = Force la r
 
 SynergiesTechProductCategoryForContractFormule                      = Catégorie des produits servant de base aux formules des contrats
 SynergiesTechProductCategoryForAdvancedTicketEmplacement            = Catégorie des produits servant de base aux emplacements sur les messages des tickets
+SynergiesTechPrincipalWarehouse                                     = Entrepôt principal
+SynergiesTechPrincipalWarehouseNbShowed                             = Nombre d'entrepôt affiché dans l'info-bulle des stocks de l'entrepôt principal
 
 #######################################################################
 # Extrafields
@@ -127,3 +129,13 @@ SynergiesTechTicketGenerateReportErrorCreatePath        = Erreur création du r�
 ### Actions
 ############################################################
 ActionAC_SYN_AUTO = Message inséré automatiquement
+
+############################################################
+### Principal warehouse
+############################################################
+SynergiesTechPrincipalWarehouseStocks       = %s stock(s) pour l'entrepôt : %s
+
+############################################################
+### Errors
+############################################################
+SynergiesTechErrorPrincipalWarehouseNotDefined      = Entrepôt principal non définie dans la configuration du module Synergies-Tech

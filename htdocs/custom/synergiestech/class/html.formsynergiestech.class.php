@@ -67,7 +67,7 @@ class FormSynergiesTech
      *
      * @return  array
      */
-    function requestmanager_emplacments_array()
+    /*function requestmanager_emplacments_array()
     {
         global $conf;
 
@@ -89,7 +89,7 @@ class FormSynergiesTech
         }
 
         return $list;
-    }
+    }*/
 
     /**
      *  Return list of products for customer in Ajax if Ajax activated or go to select_produits_list

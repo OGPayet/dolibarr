@@ -28,6 +28,7 @@ if (! $res && file_exists("../../main.inc.php")) $res=@include '../../main.inc.p
 if (! $res && file_exists("../../../main.inc.php")) $res=@include '../../../main.inc.php';		// to work if your module directory is into a subdir of root htdocs directory
 if (! $res) die("Include of main fails");
 require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
 dol_include_once('/synergiestech/lib/synergiestech.lib.php');
 
@@ -112,7 +113,15 @@ if (preg_match('/set_(.*)/',$action,$reg))
         $error++;
     }
 
-    if (dolibarr_set_const($db, 'SYNERGIESTECH_PRODUCT_CATEGORY_FOR_ADVANCEDTICKECT_EMPLACEMENT', GETPOST('SYNERGIESTECH_PRODUCT_CATEGORY_FOR_ADVANCEDTICKECT_EMPLACEMENT', 'int'), 'chaine', 0, '', $conf->entity) <= 0) {
+    /*if (dolibarr_set_const($db, 'SYNERGIESTECH_PRODUCT_CATEGORY_FOR_ADVANCEDTICKECT_EMPLACEMENT', GETPOST('SYNERGIESTECH_PRODUCT_CATEGORY_FOR_ADVANCEDTICKECT_EMPLACEMENT', 'int'), 'chaine', 0, '', $conf->entity) <= 0) {
+        $error++;
+    }*/
+
+    if (dolibarr_set_const($db, 'SYNERGIESTECH_PRINCIPAL_WAREHOUSE', GETPOST('SYNERGIESTECH_PRINCIPAL_WAREHOUSE', 'int'), 'chaine', 0, '', $conf->entity) <= 0) {
+        $error++;
+    }
+
+    if (dolibarr_set_const($db, 'SYNERGIESTECH_PRINCIPAL_WAREHOUSE_NB_SHOWED', GETPOST('SYNERGIESTECH_PRINCIPAL_WAREHOUSE_NB_SHOWED', 'int'), 'chaine', 0, '', $conf->entity) <= 0) {
         $error++;
     }
 
@@ -128,6 +137,7 @@ if (preg_match('/set_(.*)/',$action,$reg))
  *	View
  */
 
+$formproduct = new FormProduct($db);
 $formother = new FormOther($db);
 
 llxHeader();
@@ -218,13 +228,31 @@ print '</td></tr>' . "\n";
 
 
 // SYNERGIESTECH_PRODUCT_CATEGORY_FOR_ADVANCEDTICKECT_EMPLACEMENT
-$var = !$var;
+/*$var = !$var;
 print '<tr ' . $bc[$var] . '>' . "\n";
 print '<td>' . $langs->trans("SynergiesTechProductCategoryForAdvancedTicketEmplacement") . '</td>' . "\n";
 print '<td align="center">&nbsp;</td>' . "\n";
 print '<td align="right">' . "\n";
 print $formother->select_categories('product', $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_ADVANCEDTICKECT_EMPLACEMENT, 'SYNERGIESTECH_PRODUCT_CATEGORY_FOR_ADVANCEDTICKECT_EMPLACEMENT', 0 ,1);
+print '</td></tr>' . "\n";*/
+
+// SYNERGIESTECH_PRINCIPAL_WAREHOUSE
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>' . $langs->trans("SynergiesTechPrincipalWarehouse") . '</td>' . "\n";
+print '<td align="center">&nbsp;</td>' . "\n";
+print '<td align="right">' . "\n";
+print $formproduct->selectWarehouses($conf->global->SYNERGIESTECH_PRINCIPAL_WAREHOUSE, 'SYNERGIESTECH_PRINCIPAL_WAREHOUSE', 'warehouseopen,warehouseinternal', 1, 0, 0, '', 0, 0, null, 'minwidth300');
 print '</td></tr>' . "\n";
+
+// SYNERGIESTECH_PRINCIPAL_WAREHOUSE_NB_SHOWED
+$var=!$var;
+print '<tr '.$bc[$var].'>'."\n";
+print '<td>'.$langs->trans("SynergiesTechPrincipalWarehouseNbShowed").'</td>'."\n";
+print '<td align="center">&nbsp;</td>' . "\n";
+print '<td align="right">'."\n";
+print '<input type="number" name="SYNERGIESTECH_PRINCIPAL_WAREHOUSE_NB_SHOWED" value="'.$conf->global->SYNERGIESTECH_PRINCIPAL_WAREHOUSE_NB_SHOWED.'">';
+print '</td></tr>'."\n";
 
 print '</table>';
 
