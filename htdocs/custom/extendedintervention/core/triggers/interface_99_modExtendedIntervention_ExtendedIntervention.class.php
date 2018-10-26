@@ -54,7 +54,7 @@ class InterfaceExtendedIntervention extends DolibarrTriggers
         switch ($action) {
             // Interventions
 		    case 'FICHINTER_CREATE':
-                if (!empty($object->ei_created_out_of_quota)) {
+                if (!empty($conf->global->EXTENDEDINTERVENTION_QUOTA_ACTIVATE) && !empty($object->ei_created_out_of_quota)) {
                     dol_include_once('/extendedintervention/class/extendedinterventionquota.class.php');
                     $extendedinterventioncountintervention = new ExtendedInterventionQuota($this->db);
 
@@ -69,6 +69,41 @@ class InterfaceExtendedIntervention extends DolibarrTriggers
 
                 dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
                 break;
+            // Contracts
+            case 'CONTRACT_CREATE':
+                if (!empty($conf->global->EXTENDEDINTERVENTION_QUOTA_ACTIVATE)) {
+                    $langs->load('extendedintervention@extendedintervention');
+
+                    dol_include_once('/advancedictionaries/class/dictionary.class.php');
+                    $inter_type_dictionary = Dictionary::getDictionary($this->db, 'extendedintervention', 'extendedinterventiontype');
+                    $inter_type_dictionary->fetch_lines(1, array('count' => 1), array('label' => 'ASC'));
+
+                    $values = array();
+                    foreach ($inter_type_dictionary->lines as $line) {
+                        $htmlname = 'ei_type_' . $line->fields['code'];
+                        if (isset($_POST[$htmlname]) || isset($_GET[$htmlname])) {
+                            $values[$line->id] = GETPOST($htmlname, 'int') ? GETPOST($htmlname, 'int') : 0;
+                        }
+                    }
+
+                    if (count($values) > 0) {
+                        dol_include_once('/extendedintervention/class/extendedinterventionquota.class.php');
+                        $extendedinterventioncountintervention = new ExtendedInterventionQuota($this->db);
+
+                        $res = $extendedinterventioncountintervention->setCountInterventionOfContract($object->id, $values);
+                    }
+                }
+
+                dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
+                break;
+            case 'CONTRACT_DELETE':
+                    dol_include_once('/extendedintervention/class/extendedinterventionquota.class.php');
+                    $extendedinterventioncountintervention = new ExtendedInterventionQuota($this->db);
+
+                    $extendedinterventioncountintervention->delAllCountInterventionOfContract($object->id);
+
+                    dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
+                    break;
         }
 
         return 0;

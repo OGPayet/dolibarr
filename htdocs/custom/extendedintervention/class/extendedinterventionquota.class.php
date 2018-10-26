@@ -128,6 +128,17 @@ class ExtendedInterventionQuota
     }
 
     /**
+     *  Del all count of each type of intervention into a contract
+     *
+     * @param   int         $contract_id        Contract ID
+     * @return  void
+     */
+    public function delAllCountInterventionOfContract($contract_id)
+    {
+        $this->db->query("DELETE FROM " . MAIN_DB_PREFIX . "extendedintervention_contract_count_type WHERE fk_contrat = " . $contract_id);
+    }
+
+    /**
      *  Get list of count (free, in progress, forced) by type intervention for a company and a contract
      *
      * @param   Contrat         $contract       Contract handler

@@ -111,7 +111,7 @@ class ActionsExtendedIntervention
                 }
             }
         } elseif (in_array('contractcard', $contexts)) {
-            if (!empty($conf->global->EXTENDEDINTERVENTION_QUOTA_ACTIVATE)) {
+            if (!empty($conf->global->EXTENDEDINTERVENTION_QUOTA_ACTIVATE) && $object->id > 0) {
                 $langs->load('extendedintervention@extendedintervention');
 
                 dol_include_once('/advancedictionaries/class/dictionary.class.php');
