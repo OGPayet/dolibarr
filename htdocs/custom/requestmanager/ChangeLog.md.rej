@@ -1,26 +1,22 @@
 diff a/htdocs/custom/requestmanager/ChangeLog.md b/htdocs/custom/requestmanager/ChangeLog.md	(rejected hunks)
-@@ -3,6 +3,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
+@@ -3,6 +3,10 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
  
  ## [Non Distribué]
  
-+## [4.0.9] - 25-10-2018
++## [4.0.10] - 29-10-2018
++- Ajout support module Event Confidentiality.
 +- Corrections diverses.
 +
- ## [4.0.8] - 22-10-2018
- - Ajout de la gestion des plages horaires.
+ ## [4.0.9] - 25-10-2018
+ - Corrections diverses.
  
-@@ -24,12 +27,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
+@@ -27,7 +31,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
  ## [4.0.0] - 16-07-2018
  - Version initial.
  
--<<<<<<< HEAD
--[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/compare/v4.0.8...HEAD
-+[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/compare/v4.0.9...HEAD
-+[4.0.9]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.9
+-[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/compare/v4.0.9...HEAD
++[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/compare/v4.0.10...HEAD
++[4.0.9]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.10
+ [4.0.9]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.9
  [4.0.8]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.8
--=======
--[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/compare/v4.0.7...HEAD
-->>>>>>> cd35dee234aa7a6088597a3b7c4034b0fe5f1139
  [4.0.7]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.7
- [4.0.6]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.6
- [4.0.5]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.5

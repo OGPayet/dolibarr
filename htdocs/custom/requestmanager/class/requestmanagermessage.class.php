@@ -404,7 +404,7 @@ class RequestManagerMessage extends ActionComm
         dol_syslog(__METHOD__ . " requestmanager_message id=" . $id . " ref=" . $ref . " ref_ext=" . $ref_ext);
 
         $result = parent::fetch($id, $ref, $ref_ext);
-        if ($result > 0) {
+        if ($result > 0 && $this->id > 0) {
             $sql = "SELECT notify_assigned, notify_requesters, notify_watchers";
             $sql .= " FROM " . MAIN_DB_PREFIX . "requestmanager_message";
             $sql .= " WHERE fk_actioncomm = " . $this->id;

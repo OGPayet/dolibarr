@@ -218,13 +218,13 @@ class EventConfidentialitys extends DolibarrApi {
 		$user_tags = explode(",",DolibarrApiAccess::$user->array_options['options_user_tag']);
 
 		$usergroup = new UserGroup($db);
-		$usergroups = $usergroup->listGroupsForUser($user->id);
+		$usergroups = $usergroup->listGroupsForUser(DolibarrApiAccess::$user->id);
 		foreach($usergroups as $group) {
 			$user_tags[] = $group->array_options['options_group_tag'];
 		}
 
 		$tmp_mode = -1;
-		$externe = (empty($user->socid)?0:1); //Utilisateur interne ou externe
+		$externe = (empty(DolibarrApiAccess::$user->socid)?0:1); //Utilisateur interne ou externe
 
 		foreach($fk_tags as $fk_tag) {
 			if(in_array($fk_tag['fk_dict_tag_confid'],$user_tags) && $fk_tag['externe'] == $externe) { //Si on a un tag en commun et que ce tag est interne

@@ -64,7 +64,7 @@ print "<br>\n";
 
 $head=eventconfidentiality_admin_prepare_head();
 
-dol_fiche_head($head, 'dictionaries', $langs->trans("Module163092Name"), 0, 'opendsi@eventconfidentiality');
+dol_fiche_head($head, 'dictionaries', $langs->trans("Module163022Name"), 0, 'opendsi@eventconfidentiality');
 
 $moduleFilter = ''; // array or string to set the dictionaries of witch modules to show in dictionaries list
 $familyFilter = 'eventconfidentiality'; // array or string to set the dictionaries of witch family to show in dictionaries list

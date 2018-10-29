@@ -823,7 +823,7 @@ if ($resql) {
             print '</td>';
         }
         // Thridparty Origin
-        if (!empty($arrayfields['rm.fk_soc']['checked'])) {
+        if (!empty($arrayfields['rm.fk_soc_origin']['checked'])) {
             print '<td class="nowrap">';
             print $societestatic_origin->getNomUrl(1);
             print '</td>';
@@ -835,7 +835,7 @@ if ($resql) {
             print '</td>';
         }
         // Thridparty Benefactor
-        if (!empty($arrayfields['rm.fk_soc']['checked'])) {
+        if (!empty($arrayfields['rm.fk_soc_benefactor']['checked'])) {
             print '<td class="nowrap">';
             print $societestatic_benefactor->getNomUrl(1);
             print '</td>';

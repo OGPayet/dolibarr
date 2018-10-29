@@ -512,16 +512,17 @@ class RequestManagerApi extends DolibarrApi {
             throw new RestException(404, "Request message not found");
         } elseif ($result < 0) {
             throw new RestException(500, "Error when retrieve request message", $this->_getErrors($requestmanager_message));
-        } else {
+        } elseif ($requestmanager_message->id > 0) {
             if ($requestmanager_message->message_type != -1) {
                 $requestmanager_message->fetch_knowledge_base();
                 $requestmanager_message->fetch_optionals();
             } else {
                 throw new RestException(404, "Request not found");
             }
+        } else {
+            throw new RestException(403, "Access unauthorized");
         }
 
-        // todo inclure event confidentialité check
         $requestmanager_message = $this->_cleanEventObjectDatas($requestmanager_message);
         return $this->_cleanMessageObjectDatas($requestmanager_message);
     }
@@ -666,10 +667,9 @@ class RequestManagerApi extends DolibarrApi {
         if ($resql) {
             require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
             while ($obj = self::$db->fetch_object($resql)) {
-                // todo inclure event confidentialité check
                 if ($obj->code == 'AC_RM_PRIV' || $obj->code == 'AC_RM_IN' || $obj->code == 'AC_RM_OUT') {
                     $requestmanager_message = new RequestManagerMessage(self::$db);
-                    if ($requestmanager_message->fetch($obj->id) > 0) {
+                    if ($requestmanager_message->fetch($obj->id) > 0 && $requestmanager_message->id > 0) {
                         $requestmanager_message->fetch_knowledge_base();
                         $requestmanager_message->fetch_optionals();
                         $requestmanager_message = $this->_cleanEventObjectDatas($requestmanager_message);
@@ -677,7 +677,7 @@ class RequestManagerApi extends DolibarrApi {
                     }
                 } else {
                     $event = new ActionComm(self::$db);
-                    if ($event->fetch($obj->id) > 0) {
+                    if ($event->fetch($obj->id) > 0 && $event->id > 0) {
                         $event->fetch_optionals();
                         $obj_ret[] = $this->_cleanEventObjectDatas($event);
                     }

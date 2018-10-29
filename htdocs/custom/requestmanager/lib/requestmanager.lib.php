@@ -190,39 +190,39 @@ function requestmanager_show_events(&$requestmanager)
     $search_array_options = array_merge($search_array_options, $search_array_options_message);
 
     $arrayfields = array(
-        'fk_request' => array('label' => $langs->trans("RequestManagerRequest"), 'checked' => 1),
-        'ac.elementtype' => array('label' => $langs->trans("Origin"), 'checked' => 1),
-        's.nom' => array('label' => $langs->trans("ThirdParty"), 'checked' => 1),
-        'ac.id' => array('label' => $langs->trans("Ref"), 'checked' => 1),
-        'ac.fk_action' => array('label' => $langs->trans("Type"), 'checked' => 1),
-        'ac.label' => array('label' => $langs->trans("Title"), 'checked' => 1),
-        'ac.note' => array('label' => $langs->trans("Description"), 'checked' => 1),
-        'ac.fulldayevent' => array('label' => $langs->trans("EventOnFullDay"), 'checked' => 0),
-        'ac.datep' => array('label' => $langs->trans("DateStart"), 'checked' => 1),
-        'ac.datep2' => array('label' => $langs->trans("DateEnd"), 'checked' => 1),
-        'ac.location' => array('label' => $langs->trans("Location"), 'checked' => 0, 'enabled' => empty($conf->global->AGENDA_DISABLE_LOCATION)),
-        'ac.fk_element' => array('label' => $langs->trans("LinkedObject"), 'checked' => 0),
-        'ac.fk_user_action' => array('label' => $langs->trans("ActionsOwnedByShort"), 'checked' => 0),
-//        'ac.userassigned' => array('label' => $langs->trans("ActionAssignedTo"), 'checked' => 0),
-        'ac.fk_user_done' => array('label' => $langs->trans("ActionDoneBy"), 'checked' => 0, 'enabled' => $conf->global->AGENDA_ENABLE_DONEBY),
-        'ac.fk_project' => array('label' => $langs->trans("Project"), 'checked' => 0),
-        'ac.priority' => array('label' => $langs->trans("Priority"), 'checked' => 0),
-        'ac.fk_user_author' => array('label' => $langs->trans("Author"), 'checked' => 0, 'position' => 10),
-        'ac.fk_user_mod' => array('label' => $langs->trans("ModifiedBy"), 'checked' => 0, 'position' => 10),
-        'ac.datec' => array('label' => $langs->trans("DateCreation"), 'checked' => 1, 'position' => 500),
-        'ac.tms' => array('label' => $langs->trans("DateModificationShort"), 'checked' => 0, 'position' => 500),
-        'ac.percent' => array('label' => $langs->trans("Status"), 'checked' => 1, 'position' => 1000),
+        'fk_request' => array('label' => $langs->trans("RequestManagerRequest"), 'checked' => 1, 'ec_mode' => 1),
+        'ac.elementtype' => array('label' => $langs->trans("Origin"), 'checked' => 1, 'ec_mode' => 1),
+        's.nom' => array('label' => $langs->trans("ThirdParty"), 'checked' => 1, 'ec_mode' => 1),
+        'ac.id' => array('label' => $langs->trans("Ref"), 'checked' => 1, 'ec_mode' => 1),
+        'ac.fk_action' => array('label' => $langs->trans("Type"), 'checked' => 1, 'ec_mode' => 1),
+        'ac.label' => array('label' => $langs->trans("Title"), 'checked' => 1, 'ec_mode' => 2),
+        'ac.note' => array('label' => $langs->trans("Description"), 'checked' => 1, 'ec_mode' => 1),
+        'ac.fulldayevent' => array('label' => $langs->trans("EventOnFullDay"), 'checked' => 0, 'ec_mode' => 2),
+        'ac.datep' => array('label' => $langs->trans("DateStart"), 'checked' => 1, 'ec_mode' => 2),
+        'ac.datep2' => array('label' => $langs->trans("DateEnd"), 'checked' => 1, 'ec_mode' => 2),
+        'ac.location' => array('label' => $langs->trans("Location"), 'checked' => 0, 'enabled' => empty($conf->global->AGENDA_DISABLE_LOCATION), 'ec_mode' => 1),
+        'ac.fk_element' => array('label' => $langs->trans("LinkedObject"), 'checked' => 0, 'ec_mode' => 2),
+        'ac.fk_user_action' => array('label' => $langs->trans("ActionsOwnedByShort"), 'checked' => 0, 'ec_mode' => 1),
+//        'ac.userassigned' => array('label' => $langs->trans("ActionAssignedTo"), 'checked' => 0, 'ec_mode' => 1),
+        'ac.fk_user_done' => array('label' => $langs->trans("ActionDoneBy"), 'checked' => 0, 'enabled' => $conf->global->AGENDA_ENABLE_DONEBY, 'ec_mode' => 1),
+        'ac.fk_project' => array('label' => $langs->trans("Project"), 'checked' => 0, 'ec_mode' => 1),
+        'ac.priority' => array('label' => $langs->trans("Priority"), 'checked' => 0, 'ec_mode' => 1),
+        'ac.fk_user_author' => array('label' => $langs->trans("Author"), 'checked' => 0, 'position' => 10, 'ec_mode' => 1),
+        'ac.fk_user_mod' => array('label' => $langs->trans("ModifiedBy"), 'checked' => 0, 'position' => 10, 'ec_mode' => 1),
+        'ac.datec' => array('label' => $langs->trans("DateCreation"), 'checked' => 1, 'position' => 500, 'ec_mode' => 2),
+        'ac.tms' => array('label' => $langs->trans("DateModificationShort"), 'checked' => 0, 'position' => 500, 'ec_mode' => 2),
+        'ac.percent' => array('label' => $langs->trans("Status"), 'checked' => 1, 'position' => 1000, 'ec_mode' => 1),
     );
     // Extra fields
     if (is_array($extrafields->attribute_label) && count($extrafields->attribute_label)) {
         foreach ($extrafields->attribute_label as $key => $val) {
-            $arrayfields["ef." . $key] = array('label' => $extrafields->attribute_label[$key], 'checked' => $extrafields->attribute_list[$key], 'position' => $extrafields->attribute_pos[$key], 'enabled' => $extrafields->attribute_perms[$key]);
+            $arrayfields["ef." . $key] = array('label' => $extrafields->attribute_label[$key], 'checked' => $extrafields->attribute_list[$key], 'position' => $extrafields->attribute_pos[$key], 'enabled' => $extrafields->attribute_perms[$key], 'ec_mode' => 1);
         }
     }
     // Extra fields message
     if (is_array($extrafields_message->attribute_label) && count($extrafields_message->attribute_label)) {
         foreach ($extrafields_message->attribute_label as $key => $val) {
-            $arrayfields["efm." . $key] = array('label' => $extrafields_message->attribute_label[$key], 'checked' => $extrafields_message->attribute_list[$key], 'position' => $extrafields_message->attribute_pos[$key], 'enabled' => $extrafields_message->attribute_perms[$key]);
+            $arrayfields["efm." . $key] = array('label' => $extrafields_message->attribute_label[$key], 'checked' => $extrafields_message->attribute_list[$key], 'position' => $extrafields_message->attribute_pos[$key], 'enabled' => $extrafields_message->attribute_perms[$key], 'ec_mode' => 1);
         }
     }
 
@@ -322,6 +322,9 @@ function requestmanager_show_events(&$requestmanager)
     $sql .= " ua.firstname as userauthorfirstname, ua.lastname as userauthorlastname, ua.email as userauthoremail,";
     $sql .= " um.firstname as usermodfirstname, um.lastname as usermodlastname, um.email as usermodemail,";
     $sql .= " p.ref as projectref, p.title as projecttitle, p.public as projectpublic, p.fk_statut as projectstatus, p.datee as projectdatee";
+    if ($conf->eventconfidentiality->enabled) {
+        $sql .= ", MAX(ea.level_confid) as ec_mode";
+    }
     // Add fields from extrafields
     foreach ($extrafields->attribute_label as $key => $val) $sql .= ($extrafields->attribute_type[$key] != 'separate' ? ",ef." . $key . ' as options_' . $key : '');
     foreach ($extrafields_message->attribute_label as $key => $val) $sql .= ($extrafields_message->attribute_type[$key] != 'separate' ? ",efm." . $key . ' as m_options_' . $key : '');
@@ -347,6 +350,10 @@ function requestmanager_show_events(&$requestmanager)
         "   ac.elementtype)))".
         ")";
     $sql .= " ON (ee.sourcetype = " . $element_correspondance . " AND ee.fk_source = ac.fk_element) OR (ee.targettype = " . $element_correspondance . " AND ee.fk_target = ac.fk_element)";
+    // Event confidentiality support
+    if ($conf->eventconfidentiality->enabled) {
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "event_agenda as ea ON ea.fk_object = ac.id";
+    }
     // Add 'from' from hooks
     $parameters = array();
     $reshook = $hookmanager->executeHooks('printFieldListFrom', $parameters);    // Note that $action and $object may have been modified by hook
@@ -441,6 +448,12 @@ function requestmanager_show_events(&$requestmanager)
         if ($crit != '' && (!in_array($typ, array('select', 'sellist')) || $crit != '0')) {
             $sql .= natural_search('efm.' . $tmpkey, $crit, $mode);
         }
+    }
+    // Event confidentiality support
+    if ($conf->eventconfidentiality->enabled) {
+        $tags_list = get_user_confidentiality_tags($user);
+        $sql .= ' AND ea.externe ' . ($user->socid > 0 ? '=' : '!=') . ' 1';
+        $sql .= ' AND ea.fk_dict_tag_confid IN (' . (count($tags_list) > 0 ? implode(',', $tags_list) : -1) . ')';
     }
     // Add where from hooks
     $parameters = array();
@@ -683,11 +696,11 @@ SCRIPT;
             print '</td>';
         }
         // Assigned To
-        if (!empty($arrayfields['ac.userassigned']['checked'])) {
-            print '<td class="liste_titre" align="center">';
-            print '<input class="flat" size="6" type="text" name="search_assigned_to" value="' . dol_escape_htmltag($search_assigned_to) . '">';
-            print '</td>';
-        }
+//        if (!empty($arrayfields['ac.userassigned']['checked'])) {
+//            print '<td class="liste_titre" align="center">';
+//            print '<input class="flat" size="6" type="text" name="search_assigned_to" value="' . dol_escape_htmltag($search_assigned_to) . '">';
+//            print '</td>';
+//        }
         // Done By
         if (!empty($arrayfields['ac.fk_user_done']['checked'])) {
             print '<td class="liste_titre" align="center">';
@@ -941,102 +954,128 @@ SCRIPT;
                 // Request Child
                 if (!empty($arrayfields['fk_request']['checked'])) {
                     print '<td class="nowrap"'.$tdcolor.'>';
-                    if ($obj->fk_request > 0) {
-                        include_once DOL_DOCUMENT_ROOT . '/core/lib/functions2.lib.php';
-                        if (!isset($link_url_cache['requestmanager'][$obj->fk_request]))
-                            $link_url_cache['requestmanager'][$obj->fk_request] = dolGetElementUrl($obj->fk_request, 'requestmanager', 1);
-                        print $link_url_cache['requestmanager'][$obj->fk_request];
+                    if (!$conf->eventconfidentiality->enabled || $arrayfields['fk_request']['ec_mode'] <= $obj->ec_mode) {
+                        if ($obj->fk_request > 0) {
+                            include_once DOL_DOCUMENT_ROOT . '/core/lib/functions2.lib.php';
+                            if (!isset($link_url_cache['requestmanager'][$obj->fk_request]))
+                                $link_url_cache['requestmanager'][$obj->fk_request] = dolGetElementUrl($obj->fk_request, 'requestmanager', 1);
+                            print $link_url_cache['requestmanager'][$obj->fk_request];
+                        }
                     }
                     print '</td>';
                 }
                 // Origin
                 if (!empty($arrayfields['ac.elementtype']['checked'])) {
                     print '<td class="nowrap"'.$tdcolor.'>';
-                    if (isset($elements_array[$actioncomm_static->elementtype])) print $elements_array[$actioncomm_static->elementtype];
-                    else print $elements_array['societe'];
+                    if (!$conf->eventconfidentiality->enabled || $arrayfields['ac.elementtype']['ec_mode'] <= $obj->ec_mode) {
+                        if (isset($elements_array[$actioncomm_static->elementtype])) print $elements_array[$actioncomm_static->elementtype];
+                        else print $elements_array['societe'];
+                    }
                     print '</td>';
                 }
                 // ThirdParty
                 if (!empty($arrayfields['s.nom']['checked'])) {
                     print '<td class="nowrap"'.$tdcolor.'>';
-                    print $societe_static->getNomUrl(1);
+                    if (!$conf->eventconfidentiality->enabled || $arrayfields['s.nom']['ec_mode'] <= $obj->ec_mode) {
+                        print $societe_static->getNomUrl(1);
+                    }
                     print '</td>';
                 }
                 // Ref
                 if (!empty($arrayfields['ac.id']['checked'])) {
                     print '<td class="nowrap"'.$tdcolor.'>';
-                    print $actioncomm_static->getNomUrl(1);
+                    if (!$conf->eventconfidentiality->enabled || $arrayfields['ac.id']['ec_mode'] <= $obj->ec_mode) {
+                        print $actioncomm_static->getNomUrl(1);
+                    }
                     print '</td>';
                 }
                 // Type
                 if (!empty($arrayfields['ac.fk_action']['checked'])) {
                     print '<td class="nowrap"'.$tdcolor.'>';
-                    if (!empty($conf->global->AGENDA_USE_EVENT_TYPE)) {
-                        if ($actioncomm_static->type_picto) print img_picto('', $actioncomm_static->type_picto);
-                        else {
-                            if ($actioncomm_static->type_code == 'AC_RDV') print img_picto('', 'object_group') . ' ';
-                            if ($actioncomm_static->type_code == 'AC_TEL') print img_picto('', 'object_phoning') . ' ';
-                            if ($actioncomm_static->type_code == 'AC_FAX') print img_picto('', 'object_phoning_fax') . ' ';
-                            if ($actioncomm_static->type_code == 'AC_EMAIL') print img_picto('', 'object_email') . ' ';
+                    if (!$conf->eventconfidentiality->enabled || $arrayfields['ac.fk_action']['ec_mode'] <= $obj->ec_mode) {
+                        if (!empty($conf->global->AGENDA_USE_EVENT_TYPE)) {
+                            if ($actioncomm_static->type_picto) print img_picto('', $actioncomm_static->type_picto);
+                            else {
+                                if ($actioncomm_static->type_code == 'AC_RDV') print img_picto('', 'object_group') . ' ';
+                                if ($actioncomm_static->type_code == 'AC_TEL') print img_picto('', 'object_phoning') . ' ';
+                                if ($actioncomm_static->type_code == 'AC_FAX') print img_picto('', 'object_phoning_fax') . ' ';
+                                if ($actioncomm_static->type_code == 'AC_EMAIL') print img_picto('', 'object_email') . ' ';
+                            }
                         }
+                        $labeltype = $obj->type_code;
+                        if (empty($conf->global->AGENDA_USE_EVENT_TYPE) && empty($cActionList[$labeltype])) $labeltype = 'AC_OTH';
+                        if (!empty($cActionList[$labeltype])) $labeltype = $cActionList[$labeltype];
+                        print $labeltype;
                     }
-                    $labeltype = $obj->type_code;
-                    if (empty($conf->global->AGENDA_USE_EVENT_TYPE) && empty($cActionList[$labeltype])) $labeltype = 'AC_OTH';
-                    if (!empty($cActionList[$labeltype])) $labeltype = $cActionList[$labeltype];
-                    print $labeltype;
                     print '</td>';
                 }
                 // Title
                 if (!empty($arrayfields['ac.label']['checked'])) {
                     print '<td class="nowrap"'.$tdcolor.'>';
-                    print $actioncomm_static->label;
+                    if (!$conf->eventconfidentiality->enabled || $arrayfields['ac.label']['ec_mode'] <= $obj->ec_mode) {
+                        print $actioncomm_static->label;
+                    }
                     print '</td>';
                 }
                 // Description
                 if (!empty($arrayfields['ac.note']['checked'])) {
                     print '<td class="nowrap tdoverflowmax300"'.$tdcolor.'>';
-                    print $actioncomm_static->note;
+                    if (!$conf->eventconfidentiality->enabled || $arrayfields['ac.note']['ec_mode'] <= $obj->ec_mode) {
+                        print $actioncomm_static->note;
+                    }
                     print '</td>';
                 }
                 // Event On Full Day
                 if (!empty($arrayfields['ac.fulldayevent']['checked'])) {
                     print '<td class="nowrap"'.$tdcolor.'>';
-                    print yn($actioncomm_static->fulldayevent);
+                    if (!$conf->eventconfidentiality->enabled || $arrayfields['ac.fulldayevent']['ec_mode'] <= $obj->ec_mode) {
+                        print yn($actioncomm_static->fulldayevent);
+                    }
                     print '</td>';
                 }
                 // Date Start
                 if (!empty($arrayfields['ac.datep']['checked'])) {
                     print '<td class="nowrap" align="center"'.$tdcolor.'>';
-                    if ($actioncomm_static->datep > 0) print dol_print_date($actioncomm_static->datep, "dayhour");
+                    if (!$conf->eventconfidentiality->enabled || $arrayfields['ac.datep']['ec_mode'] <= $obj->ec_mode) {
+                        if ($actioncomm_static->datep > 0) print dol_print_date($actioncomm_static->datep, "dayhour");
+                    }
                     print '</td>';
                 }
                 // Date End
                 if (!empty($arrayfields['ac.datep2']['checked'])) {
                     print '<td class="nowrap" align="center"'.$tdcolor.'>';
-                    if ($actioncomm_static->datef > 0) print dol_print_date($actioncomm_static->datef, "dayhour");
+                    if (!$conf->eventconfidentiality->enabled || $arrayfields['ac.datep2']['ec_mode'] <= $obj->ec_mode) {
+                        if ($actioncomm_static->datef > 0) print dol_print_date($actioncomm_static->datef, "dayhour");
+                    }
                     print '</td>';
                 }
                 // Location
                 if (!empty($arrayfields['ac.location']['checked'])) {
                     print '<td class="nowrap"'.$tdcolor.'>';
-                    print $actioncomm_static->location;
+                    if (!$conf->eventconfidentiality->enabled || $arrayfields['ac.location']['ec_mode'] <= $obj->ec_mode) {
+                        print $actioncomm_static->location;
+                    }
                     print '</td>';
                 }
                 // Linked Object
                 if (!empty($arrayfields['ac.fk_element']['checked'])) {
                     print '<td class="nowrap"'.$tdcolor.'>';
-                    if ($actioncomm_static->fk_element > 0 && !empty($actioncomm_static->elementtype)) {
-                        include_once DOL_DOCUMENT_ROOT . '/core/lib/functions2.lib.php';
-                        if (!isset($link_url_cache[$actioncomm_static->elementtype][$actioncomm_static->fk_element]))
-                            $link_url_cache[$actioncomm_static->elementtype][$actioncomm_static->fk_element] = dolGetElementUrl($actioncomm_static->fk_element, $actioncomm_static->elementtype, 1);
-                        print $link_url_cache[$actioncomm_static->elementtype][$actioncomm_static->fk_element];
+                    if (!$conf->eventconfidentiality->enabled || $arrayfields['ac.fk_element']['ec_mode'] <= $obj->ec_mode) {
+                        if ($actioncomm_static->fk_element > 0 && !empty($actioncomm_static->elementtype)) {
+                            include_once DOL_DOCUMENT_ROOT . '/core/lib/functions2.lib.php';
+                            if (!isset($link_url_cache[$actioncomm_static->elementtype][$actioncomm_static->fk_element]))
+                                $link_url_cache[$actioncomm_static->elementtype][$actioncomm_static->fk_element] = dolGetElementUrl($actioncomm_static->fk_element, $actioncomm_static->elementtype, 1);
+                            print $link_url_cache[$actioncomm_static->elementtype][$actioncomm_static->fk_element];
+                        }
                     }
                     print '</td>';
                 }
                 // Owned By
                 if (!empty($arrayfields['ac.fk_user_action']['checked'])) {
                     print '<td class="nowrap" align="center"'.$tdcolor.'>';
-                    if ($userowner_static->id > 0) print $userowner_static->getNomUrl(1);
+                    if (!$conf->eventconfidentiality->enabled || $arrayfields['ac.fk_user_action']['ec_mode'] <= $obj->ec_mode) {
+                        if ($userowner_static->id > 0) print $userowner_static->getNomUrl(1);
+                    }
                     print '</td>';
                 }
                 // Assigned To
@@ -1047,31 +1086,41 @@ SCRIPT;
                 // Done By
                 if (!empty($arrayfields['ac.fk_user_done']['checked'])) {
                     print '<td class="nowrap" align="center"'.$tdcolor.'>';
-                    if ($userdone_static->id > 0) print $userdone_static->getNomUrl(1);
+                    if (!$conf->eventconfidentiality->enabled || $arrayfields['ac.fk_user_done']['ec_mode'] <= $obj->ec_mode) {
+                        if ($userdone_static->id > 0) print $userdone_static->getNomUrl(1);
+                    }
                     print '</td>';
                 }
                 // Project
                 if (!empty($arrayfields['ac.fk_project']['checked'])) {
                     print '<td class="nowrap"'.$tdcolor.'>';
-                    if ($project_static->id > 0) print $project_static->getNomUrl(1);
+                    if (!$conf->eventconfidentiality->enabled || $arrayfields['ac.fk_project']['ec_mode'] <= $obj->ec_mode) {
+                        if ($project_static->id > 0) print $project_static->getNomUrl(1);
+                    }
                     print '</td>';
                 }
                 // Priority
                 if (!empty($arrayfields['ac.priority']['checked'])) {
                     print '<td class="nowrap"'.$tdcolor.'>';
-                    print $actioncomm_static->priority;
+                    if (!$conf->eventconfidentiality->enabled || $arrayfields['ac.priority']['ec_mode'] <= $obj->ec_mode) {
+                        print $actioncomm_static->priority;
+                    }
                     print '</td>';
                 }
                 // Author
                 if (!empty($arrayfields['ac.fk_user_author']['checked'])) {
                     print '<td class="nowrap" align="center"'.$tdcolor.'>';
-                    if ($userauthor_static->id > 0) print $userauthor_static->getNomUrl(1);
+                    if (!$conf->eventconfidentiality->enabled || $arrayfields['ac.fk_user_author']['ec_mode'] <= $obj->ec_mode) {
+                        if ($userauthor_static->id > 0) print $userauthor_static->getNomUrl(1);
+                    }
                     print '</td>';
                 }
                 // Modified By
                 if (!empty($arrayfields['ac.fk_user_mod']['checked'])) {
                     print '<td class="nowrap" align="center"'.$tdcolor.'>';
-                    if ($usermodif_static->id > 0) print $usermodif_static->getNomUrl(1);
+                    if (!$conf->eventconfidentiality->enabled || $arrayfields['ac.fk_user_mod']['ec_mode'] <= $obj->ec_mode) {
+                        if ($usermodif_static->id > 0) print $usermodif_static->getNomUrl(1);
+                    }
                     print '</td>';
                 }
 
@@ -1083,8 +1132,10 @@ SCRIPT;
                             $align = $extrafields->getAlignFlag($key);
                             if ($align) print ' align="' . $align . '"';
                             print $tdcolor.'>';
-                            $tmpkey = 'options_' . $key;
-                            print $extrafields->showOutputField($key, $obj->$tmpkey, '', 1);
+                            if (!$conf->eventconfidentiality->enabled || $arrayfields["ef." . $key]['ec_mode'] <= $obj->ec_mode) {
+                                $tmpkey = 'options_' . $key;
+                                print $extrafields->showOutputField($key, $obj->$tmpkey, '', 1);
+                            }
                             print '</td>';
                         }
                     }
@@ -1097,8 +1148,10 @@ SCRIPT;
                             $align = $extrafields_message->getAlignFlag($key);
                             if ($align) print ' align="' . $align . '"';
                             print $tdcolor.'>';
-                            $tmpkey = 'options_m_' . $key;
-                            print $extrafields_message->showOutputField($key, $obj->$tmpkey, '', 1);
+                            if (!$conf->eventconfidentiality->enabled || $arrayfields["efm." . $key]['ec_mode'] <= $obj->ec_mode) {
+                                $tmpkey = 'options_m_' . $key;
+                                print $extrafields_message->showOutputField($key, $obj->$tmpkey, '', 1);
+                            }
                             print '</td>';
                         }
                     }
@@ -1111,18 +1164,26 @@ SCRIPT;
                 // Date creation
                 if (!empty($arrayfields['ac.datec']['checked'])) {
                     print '<td align="center" class="nowrap"'.$tdcolor.'>';
-                    print dol_print_date($actioncomm_static->datec, 'dayhour');
+                    if (!$conf->eventconfidentiality->enabled || $arrayfields['ac.datec']['ec_mode'] <= $obj->ec_mode) {
+                        print dol_print_date($actioncomm_static->datec, 'dayhour');
+                    }
                     print '</td>';
                 }
                 // Date modif
                 if (!empty($arrayfields['ac.tms']['checked'])) {
                     print '<td align="center" class="nowrap"'.$tdcolor.'>';
-                    print dol_print_date($actioncomm_static->datem, 'dayhour');
+                    if (!$conf->eventconfidentiality->enabled || $arrayfields['ac.tms']['ec_mode'] <= $obj->ec_mode) {
+                        print dol_print_date($actioncomm_static->datem, 'dayhour');
+                    }
                     print '</td>';
                 }
                 // Status
                 if (!empty($arrayfields['ac.percent']['checked'])) {
-                    print '<td align="right" class="nowrap"'.$tdcolor.'>' . $actioncomm_static->getLibStatut(3) . '</td>';
+                    print '<td align="right" class="nowrap"'.$tdcolor.'>';
+                    if (!$conf->eventconfidentiality->enabled || $arrayfields['ac.percent']['ec_mode'] <= $obj->ec_mode) {
+                        print $actioncomm_static->getLibStatut(3);
+                    }
+                    print '</td>';
                 }
                 // Action column
                 print '<td class="nowrap" align="center"'.$tdcolor.'>';
@@ -1650,4 +1711,45 @@ function requestmanager_print_duration($timestamp, $day = 1, $hour_minute = 1, $
     if ($duration_infos['seconds'] > 0) $text .= ' ' . $duration_infos['seconds'] . ' ' . $langs->trans('Seconds');
 
     return trim($text);
+}
+
+/**
+ *  Get list of confidentiality tag of the user
+ *
+ * @param   User        $user       User handler
+ * @return  array                   List of confidentiality tag of the user
+ */
+function get_user_confidentiality_tags($user)
+{
+    global $db;
+
+    $tags_list = array();
+
+    if (!isset($user->id) || !($user->id > 0))
+        return $tags_list;
+
+    // Get user tags
+    if (empty($user->array_options))
+        $user->fetch_optionals();
+    if (!empty($user->array_options['options_user_tag'])) {
+        $u_tags = explode(',', $user->array_options['options_user_tag']);
+        foreach ($u_tags as $tag_id) {
+            if ($tag_id > 0)
+                $tags_list[$tag_id] = $tag_id;
+        }
+    }
+
+    // Get user groups tags of the user
+    require_once DOL_DOCUMENT_ROOT . '/user/class/usergroup.class.php';
+    $usergroup = new UserGroup($db);
+    $usergroups = $usergroup->listGroupsForUser($user->id);
+    foreach ($usergroups as $group) {
+        $ug_tags = explode(',', $group->array_options['options_group_tag']);
+        foreach ($ug_tags as $tag_id) {
+            if ($tag_id > 0 && !isset($tags_list[$tag_id]))
+                $tags_list[$tag_id] = $tag_id;
+        }
+    }
+
+    return $tags_list;
 }

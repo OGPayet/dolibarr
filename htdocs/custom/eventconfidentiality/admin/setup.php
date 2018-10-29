@@ -50,7 +50,7 @@ print "<br>\n";
 
 $head=eventconfidentiality_admin_prepare_head();
 
-dol_fiche_head($head, 'settings', $langs->trans("Module163092Name"), 0, 'opendsi@eventconfidentiality');
+dol_fiche_head($head, 'settings', $langs->trans("Module163022Name"), 0, 'opendsi@eventconfidentiality');
 
 dol_fiche_end();
 

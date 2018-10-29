@@ -289,7 +289,7 @@ SCRIPT;
 
                 print $out;
             }
-        } elseif (in_array('interventioncard', $contexts) || (in_array('requestmanagercard', $contexts))) {
+        } elseif (in_array('interventioncard', $contexts) || (in_array('requestmanagercard', $contexts) && $object->element == 'requestmanager')) {
             if (!empty($conf->global->EXTENDEDINTERVENTION_QUOTA_ACTIVATE)) {
                 if (in_array('interventioncard', $contexts)) {
                     if ($object->fk_contrat > 0) {

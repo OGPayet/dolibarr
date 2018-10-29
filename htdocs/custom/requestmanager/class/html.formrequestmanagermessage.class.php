@@ -374,6 +374,27 @@ class FormRequestManagerMessage
             $out .= $requestmanagermessage->showOptionals($extrafields, 'edit');
         }
 
+        // Event confidentiality
+        //--------------------------------------
+        if ($conf->eventconfidentiality->enabled) {
+            $langs->load('eventconfidentiality@eventconfidentiality');
+            $dictionary = Dictionary::getDictionary($this->db, 'eventconfidentiality', 'eventconfidentialitytag');
+
+            //Tags interne
+            $out .= '<tr>';
+            $out .= '<td width="180">' . $langs->trans("EventConfidentialityTagInterneLabel") . '</td>';
+            $array_tags = $dictionary->fetch_array('rowid', '{{label}}', array("external" => NULL), array('label' => 'ASC'));
+            $out .= '<td>' . $form->multiselectarray('add_tag_interne', $array_tags, array(), '', 0, '', 0, '100%') . '</td>';
+            $out .= '</tr>';
+
+            //Tags externe
+            $out .= '<tr>';
+            $out .= '<td width="180">' . $langs->trans("EventConfidentialityTagExterneLabel") . '</td>';
+            $array_tags = $dictionary->fetch_array('rowid', '{{label}}', array("external" => 1), array('label' => 'ASC'));
+            $out .= '<td>' . $form->multiselectarray('add_tag_externe', $array_tags, array(), '', 0, '', 0, '100%') . '</td>';
+            $out .= '</tr>';
+        }
+
         // Attached files
         //-----------------
         $out .= '<tr>';

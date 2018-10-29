@@ -50,7 +50,7 @@ print "<br>\n";
 
 $head=eventconfidentiality_admin_prepare_head();
 
-dol_fiche_head($head, 'about', $langs->trans("Module163092Name"), 0, 'opendsi@eventconfidentiality');
+dol_fiche_head($head, 'about', $langs->trans("Module163022Name"), 0, 'opendsi@eventconfidentiality');
 
 print '<table width="100%"><tr>'."\n";
 print '<td width="310px"><img src="../img/opendsi_dolibarr_preferred_partner.png" /></td>'."\n";
