@@ -410,7 +410,8 @@ $warehouse_static = new Entrepot($db);
 $supplierorderdispatch = new CommandeFournisseurDispatch($db);
 
 $help_url='EN:Module_Suppliers_Orders|FR:CommandeFournisseur|ES:Módulo_Pedidos_a_proveedores';
-llxHeader('', $langs->trans("Order"), $help_url, '', 0, 0, array('/fourn/js/lib_dispatch.js'));
+//llxHeader('', $langs->trans("Order"), $help_url, '', 0, 0, array('/fourn/js/lib_dispatch.js'));
+llxHeader('', $langs->trans("Order"), $help_url, '', 0, 0, array('/warehousechild/js/lib_dispatch.js'));
 
 if ($id > 0 || ! empty($ref)) {
 	$soc = new Societe($db);
@@ -730,12 +731,12 @@ if ($id > 0 || ! empty($ref)) {
 						if (! empty($conf->productbatch->enabled) && $objp->tobatch == 1) {
 						    $type = 'batch';
 						    //print img_picto($langs->trans('AddDispatchBatchLine'), 'split.png', 'class="splitbutton" onClick="addDispatchLine(' . $i . ',\'' . $type . '\')"');
-						    print img_picto($langs->trans('AddStockLocationLine'), 'split.png', 'class="splitbutton" onClick="addDispatchLine(' . $i . ',\'' . $type . '\')"');
+						    print img_picto($langs->trans('AddStockLocationLine'), 'split.png', 'class="splitbutton" onClick="addDispatchLineWarehousechild(' . $i . ',\'' . $type . '\')"');
 						}
 						else
 						{
 						    $type = 'dispatch';
-						    print img_picto($langs->trans('AddStockLocationLine'), 'split.png', 'class="splitbutton" onClick="addDispatchLine(' . $i . ',\'' . $type . '\')"');
+						    print img_picto($langs->trans('AddStockLocationLine'), 'split.png', 'class="splitbutton" onClick="addDispatchLineWarehousechild(' . $i . ',\'' . $type . '\', \'qtymissing\', true)"');
 						}
 
 						print '</td>';
