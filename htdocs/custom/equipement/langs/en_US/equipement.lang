@@ -323,3 +323,9 @@ ErrorEquipementAddProductCorrectStock=Can't modify stock of this product
 ErrorEquipementAddProductComponent=Can't add this component to this equipement
 SuccessEquipementAddProduct=Add succeeded
 EquipementAddProductLine=Add a component to this equipement
+
+#
+# Error
+#
+EquipementErrorAlreadyExists   = Serial number %s already exists for the supplier %s
+EquipementErrorNbAddEquipement = Number of equipments doesn't match with the quantity to create

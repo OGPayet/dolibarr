@@ -105,27 +105,33 @@ class Equipement extends CommonObject
 		$this->statuts_image[2]='statut6';
 	}
 
-	/**
-	 *	Create an equipement into data base
-	 *
-	 *	@return		int		<0 if KO, >0 if OK
-	 */
+
+    /**
+     * Create an equipement into data base
+     *
+     * @param   int     [=0] $notrigger
+     * @return  int     <0 if KO, >0 if OK
+     *
+     * @throws Exception
+     */
 	function create($notrigger=0)
 	{
 		global $conf, $user, $soc, $langs;
 
-		dol_syslog(get_class($this)."::create ref=".$this->ref);
+		$error = 0;
+
+		dol_syslog(__METHOD__ . " ref=" . $this->ref);
 
 		// Check parameters
 		if ($this->fk_product <= 0) {
-			$this->error='ErrorBadParameterForFunc';
-			dol_syslog(get_class($this)."::create ".$this->error, LOG_ERR);
+			$this->error = 'ErrorBadParameterForFunc';
+			dol_syslog(__METHOD__ . " " . $this->error, LOG_ERR);
 			return -1;
 		}
 
 		$now=dol_now();
 
-		// en mode s�rialisation externe, on d�termine le nombre de num�ro de s�rie transmi
+		// en mode serialisation externe, on determine le nombre de numeros de series transmis
 		if ($this->SerialMethod == 2) {
 			$separatorlist=$conf->global->EQUIPEMENT_SEPARATORLIST;
 			$separatorlist =($separatorlist ? $separatorlist : ";");
@@ -137,35 +143,49 @@ class Equipement extends CommonObject
 			$tblSerial=explode($separatorlist, $this->SerialFourn);
 
 			$nbCreateSerial=count($tblSerial);
-			// si on a des ref, on d�termine le nombre d'�quipement � cr�er
-			$this->nbAddEquipement = $nbCreateSerial;
-			dol_syslog(get_class($this)."::Addmethod2 nb2create =".$nbCreateSerial);
+
+			// calculate with list of serial number
+			if ($this->nbAddEquipement == 0) {
+                // si on a des ref, on determine le nombre d'equipements a creer
+                $this->nbAddEquipement = $nbCreateSerial;
+            } else {
+			    // check qty with list of serial number
+                if ($this->nbAddEquipement != $nbCreateSerial) {
+                    $this->error = $langs->trans('EquipementErrorNbAddEquipement');
+                    $this->errors[] = $this->error;
+                    return -1;
+                }
+            }
+
+			dol_syslog(__METHOD__ . " SerialMethod=" . $this->SerialMethod . "nb2create=" . $nbCreateSerial);
 		}
 
+        $this->db->begin();
+
 		$i=0;
-		// boucle sur les num�ros de s�rie pour cr�er autant d'�quipement
+		// boucle sur les numeros de serie pour creer autant d'equipement
 		while ($this->nbAddEquipement > $i) {
-			// r�cup de la ref suivante
+			// recup de la ref suivante
 			$this->date = dol_now();
 
 			// si on est en mode code fournisseur
 			switch($this->SerialMethod) {
-				case 1 : // en mode g�n�ration auto, on cr�e des num�ros s�rie interne
+				case 1 : // en mode generation auto, on cree des numeros serie interne
 					$obj = $conf->global->EQUIPEMENT_ADDON;
 					$modequipement = new $obj;
 					$numpr = $modequipement->getNextValue($soc, $this);
 					break;
 
-				case 2 :	// on r�cup�re le num�ro de s�rie dans la liste fournis
-					// attention on peut ne r�cup�rer qu'un bout du num�ro
+				case 2 : // on recupere le numero de serie dans la liste fournis
+					// attention on peut ne recuperer qu'un bout du numero
 					if ($conf->global->EQUIPEMENT_BEGINKEYSERIALLIST != 0)
 						$numpr=substr($tblSerial[$i], $conf->global->EQUIPEMENT_BEGINKEYSERIALLIST);
 					else
 						$numpr=$tblSerial[$i];
 					break;
 
-				case 3 :  // en mode s�rie par lot, on reprend le num�ro de lot comme num�ro de s�rie
-					// si en mode d�coupage on r�cup�re la ref, en cr�ation on r�cup�re le num�ro de lot
+				case 3 :  // en mode serie par lot, on reprend le numero de lot comme numero de serie
+					// si en mode decoupage on recupere la ref, en creation on recupere le numero de lot
 					if ($this->ref)
 						$numpr=$this->ref;
 					else
@@ -173,10 +193,8 @@ class Equipement extends CommonObject
 					break;
 			}
 
-			// si il a un soucis avec la ref, on ne cr� pas l'�quipement
+			// si il a un soucis avec la ref, on ne cre pas l'equipement
 			if ($numpr) {
-				$this->db->begin();
-
 				$sql = "INSERT INTO ".MAIN_DB_PREFIX."equipement (";
 				$sql.= "fk_product";
 				$sql.= ", fk_soc_client";
@@ -213,7 +231,7 @@ class Equipement extends CommonObject
 				$sql.= ", ".($this->datee?"'".$this->db->idate($this->datee)."'":"null");
 				$sql.= ", ".($this->dated?"'".$this->db->idate($this->dated)."'":"null");
 				$sql.= ", ".($this->dateo?"'".$this->db->idate($this->dateo)."'":"null");
-				$sql.= ", '".$numpr."'";
+				$sql.= ", '" . $this->db->escape(trim($numpr)) . "'";
 				$sql.= ", '".$this->numversion."'";
 				$sql.= ", ".$this->quantity;
 				$sql.= ", ".($this->unitweight?$this->unitweight:"null");
@@ -245,45 +263,64 @@ class Equipement extends CommonObject
 						$mouvP->origin = new Equipement($this->db);
 						$mouvP->origin->id = $this->id;
 
-						$mouvP->reception(
-										$user, $this->fk_product,
-										$this->fk_entrepot, $this->quantity, 0,
-										$langs->trans("EquipementMoveIn")
-						);
+                        $result = $mouvP->reception($user, $this->fk_product, $this->fk_entrepot, $this->quantity, 0, $langs->trans("EquipementMoveIn"));
+                        if ($result < 0) {
+                            $error++;
+                            $this->error = $mouvP->error;
+                            $this->errors[] = $this->error;
+                        }
 					}
 
-					if (! $notrigger) {
+					if (!$error && !$notrigger) {
 						// Call trigger
 						$result=$this->call_trigger('EQUIPEMENT_CREATE', $user);
 						if ($result < 0) $error++;
 						// End call triggers
 					}
 				} else {
-					dol_print_error($this->db);
-					$error++;
+                    $error++;
+                    if ($this->db->errno() == 'DB_ERROR_RECORD_ALREADY_EXISTS') {
+                        require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
+
+                        $fournSocieteStatic = new Societe($this->db);
+                        $fournSocieteStatic->fetch($this->fk_soc_fourn);
+                        $this->error = $langs->trans('EquipementErrorAlreadyExists', $numpr, $fournSocieteStatic->getFullName($langs));
+                    } else {
+                        $this->error = $this->db->lasterror();
+                    }
+                    $this->errors[] = $this->error;
 				}
 
-				if (! $error)
-					$this->db->commit();
-				else {
-					$this->error=$this->db->error();
-					dol_syslog(get_class($this)."::create ".$this->error, LOG_ERR);
-					$this->db->rollback();
-					break;
-				}
+                if (! $error) {
+                    // si factory est pr�sent on v�rifie si il est n�cessaire de cr�er la liaison
+                    if ($conf->global->MAIN_MODULE_FACTORY && $this->fk_factory > 0 ) {
+                        // on ajoute la liaison avec l'of
+                        $sql = "INSERT INTO ".MAIN_DB_PREFIX."equipement_factory (fk_equipement, fk_factory) ";
+                        $sql.= " values (".$this->id.", ".$this->fk_factory.")";
+                        $result=$this->db->query($sql);
 
-				// si factory est pr�sent on v�rifie si il est n�cessaire de cr�er la liaison
-				if ($conf->global->MAIN_MODULE_FACTORY && $this->fk_factory > 0 ) {
-					// on ajoute la liaison avec l'of
-					$sql = "INSERT INTO ".MAIN_DB_PREFIX."equipement_factory (fk_equipement, fk_factory) ";
-					$sql.= " values (".$this->id.", ".$this->fk_factory.")";
-					$result=$this->db->query($sql);
-
-					// on cr�e le lien vers l'of
-					$this->add_object_linked('factory', $this->fk_factory);
-				}
-			}
+                        // on cr�e le lien vers l'of
+                        $this->add_object_linked('factory', $this->fk_factory);
+                    }
+                } else {
+                    break;
+                }
+			} else {
+			    $error++;
+                $this->error = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("Ref"));
+                $this->errors[] = $this->error;
+                dol_syslog(__METHOD__ . "Error : " . $this->error, LOG_ERR);
+                break;
+            }
 		}
+
+		// commit or rollback
+        if (! $error) {
+            $this->db->commit();
+        } else {
+            dol_syslog(get_class($this)."::create ".$this->error, LOG_ERR);
+            $this->db->rollback();
+        }
 
 		// si on est all� jusqu'� la fin des cr�ation
 		if ($this->nbAddEquipement == $i) // on se positionne sur le dernier cr�e en modif
@@ -1766,7 +1803,7 @@ class Equipement extends CommonObject
                     $result = $equipment_statitc->addline(
                         $equipment_statitc->id,
                         $fk_equipementevt_type,
-                        $langs->trans('EquipmentDeleteEquipmentToComposition', $current_equipment_statitc->getNomUrl(1), $equipment_statitc->getNomUrl(1)),
+                        $langs->trans('EquipmentDeleteEquipmentToComposition', $current_equipment_statitc->getNomUrl(1)),
                         $now,
                         $now,
                         '',
@@ -1835,7 +1872,7 @@ class Equipement extends CommonObject
                         $result = $equipment_statitc->addline(
                             $equipment_statitc->id,
                             $fk_equipementevt_type,
-                            $langs->trans('EquipmentAddEquipmentToComposition', $this->getNomUrl(1), $equipment_statitc->getNomUrl(1)),
+                            $langs->trans('EquipmentAddEquipmentToComposition', $this->getNomUrl(1)),
                             $now,
                             $now,
                             '',
@@ -1859,7 +1896,7 @@ class Equipement extends CommonObject
                 $result = $equipment_statitc->addline(
                     $equipment_statitc->id,
                     $fk_equipementevt_type,
-                    $langs->trans('EquipmentDeleteEquipmentToComposition', $current_equipment_statitc->getNomUrl(1), $equipment_statitc->getNomUrl(1)),
+                    $langs->trans('EquipmentDeleteEquipmentToComposition', $current_equipment_statitc->getNomUrl(1)),
                     $now,
                     $now,
                     '',
