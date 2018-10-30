@@ -102,3 +102,8 @@ NumberVersion=Version
 MonthVersion=Publication
 ChangesVersion=Main modifications of the version
 NewVersionAviable=A new version is available
+
+#
+# Order
+#
+RestockOrderMustBeValidatedBeforeToProcess = The order is in the draft status, validate it before starting a replenishment operation

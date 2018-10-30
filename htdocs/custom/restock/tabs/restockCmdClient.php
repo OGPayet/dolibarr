@@ -735,146 +735,150 @@ if ($action == 'direct') {
 	}
 }
 if ($action=="") {
-	$liste_contact = $object->liste_contact();
-	$contact_shipping = false;
-	if($liste_contact) {
-		foreach($liste_contact as $contact) {
-			if($contact['code'] == 'SHIPPING'){
-				$contact_shipping = true;
-			}
-		}
-	}
-	if($contact_shipping == false) {
-		setEventMessages($langs->trans('EmptyContact'),null,'errors');
-	}
+    if ($object->statut == Commande::STATUS_DRAFT) {
+        print '<div class="center">' . $langs->trans("RestockOrderMustBeValidatedBeforeToProcess") . '</div>';
+    } else {
+        $liste_contact = $object->liste_contact();
+        $contact_shipping = false;
+        if ($liste_contact) {
+            foreach ($liste_contact as $contact) {
+                if ($contact['code'] == 'SHIPPING') {
+                    $contact_shipping = true;
+                }
+            }
+        }
+        if ($contact_shipping == false) {
+            setEventMessages($langs->trans('EmptyContact'), null, 'errors');
+        }
 
-	// premiere étape : la détermination des quantité à commander
-	print '<form action="restockCmdClient.php" method="post" name="formulaire">';
-	print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+        // premiere étape : la détermination des quantité à commander
+        print '<form action="restockCmdClient.php" method="post" name="formulaire">';
+        print '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '">';
 
-	print '<input type="hidden" name="action" value="restock">';
-	print '<input type="hidden" name="id" value="'.$id.'">';
+        print '<input type="hidden" name="action" value="restock">';
+        print '<input type="hidden" name="id" value="' . $id . '">';
 
-	$tblRestock=array();
+        $tblRestock = array();
 
-	// on récupère les produits présents dans la commande
-	$tblRestock=$restock_static->get_array_product_cmde_client($tblRestock, $id);
+        // on récupère les produits présents dans la commande
+        $tblRestock = $restock_static->get_array_product_cmde_client($tblRestock, $id);
 
-	// on gère la décomposition des produits
-	$tblRestockTemp=array();
+        // on gère la décomposition des produits
+        $tblRestockTemp = array();
 
-	foreach ($tblRestock as $lgnRestock) {
+        foreach ($tblRestock as $lgnRestock) {
 
-		// on récupère la composition et les quantités
-		$tbllistofcomponent=$restock_static->getcomponent($lgnRestock->id, 1);
+            // on récupère la composition et les quantités
+            $tbllistofcomponent = $restock_static->getcomponent($lgnRestock->id, 1);
 
-		foreach ($tbllistofcomponent as $lgncomponent) {
-			$numlines=count($tblRestockTemp);
-			$lineofproduct = -1;
-			// on regarde si on trouve déjà le produit dans le tableau
-			for ($j = 0 ; $j <= $numlines ; $j++)
-				if ($tblRestockTemp[$j]->id == $lgncomponent[0])
-					$lineofproduct=$j;
+            foreach ($tbllistofcomponent as $lgncomponent) {
+                $numlines = count($tblRestockTemp);
+                $lineofproduct = -1;
+                // on regarde si on trouve déjà le produit dans le tableau
+                for ($j = 0; $j <= $numlines; $j++)
+                    if ($tblRestockTemp[$j]->id == $lgncomponent[0])
+                        $lineofproduct = $j;
 
-			// si produit déja référencé, on ajoute au tableau en multipliant par la quantité du composant
-			if ($lineofproduct >= 0)
-				$tblRestockTemp[$lineofproduct]->nbCmdeClient+= $lgncomponent[1]*$lgnRestock->nbCmdeClient;
-			else {
-				// on rajoute une ligne dans le tableau
-				$tblRestockTemp[$numlines] = new Restock($db);
-				$tblRestockTemp[$numlines]->id= $lgncomponent[0];
-				$tblRestockTemp[$numlines]->nbCmdeClient= $lgncomponent[1]*$lgnRestock->nbCmdeClient;
-				$tblRestockTemp[$numlines]->MntCmdeClient= $lgnRestock->MntCmdeClient;
-				$numlines++;
-			}
-		}
-	}
+                // si produit déja référencé, on ajoute au tableau en multipliant par la quantité du composant
+                if ($lineofproduct >= 0)
+                    $tblRestockTemp[$lineofproduct]->nbCmdeClient += $lgncomponent[1] * $lgnRestock->nbCmdeClient;
+                else {
+                    // on rajoute une ligne dans le tableau
+                    $tblRestockTemp[$numlines] = new Restock($db);
+                    $tblRestockTemp[$numlines]->id = $lgncomponent[0];
+                    $tblRestockTemp[$numlines]->nbCmdeClient = $lgncomponent[1] * $lgnRestock->nbCmdeClient;
+                    $tblRestockTemp[$numlines]->MntCmdeClient = $lgnRestock->MntCmdeClient;
+                    $numlines++;
+                }
+            }
+        }
 
-	$tblRestock=$restock_static->enrichir_product($tblRestockTemp);
+        $tblRestock = $restock_static->enrichir_product($tblRestockTemp);
 
-	// Lignes des titres
-	print '<table class="liste" width="100%">';
-	print "<tr class=\"liste_titre\">";
-	print '<td class="liste_titre" align="left">'.$langs->trans("Ref").'</td>';
-	print '<td class="liste_titre" align="left">'.$langs->trans("Label").'</td>';
-	print '<td class="liste_titre" align="right">'.$langs->trans("SellingPrice").'</td>';
-	print '<td class="liste_titre" align="right">'.$langs->trans("BuyingPriceMinShort").'</td>';
-	print '<td class="liste_titre" align="right">'.$langs->trans("Ordered").'</td>';
-	print '<td class="liste_titre" align="right">'.$langs->trans("PhysicalStock").'</td>';
-	print '<td class="liste_titre" align="right">'.$langs->trans("StockLimit").'</td>';
-	print '<td class="liste_titre" align="right">'.$langs->trans("AlreadyOrder2").'</td>';
-	print '<td class="liste_titre" align="right">'.$langs->trans("QtyRestock").'</td>';
-	print "</tr>\n";
+        // Lignes des titres
+        print '<table class="liste" width="100%">';
+        print "<tr class=\"liste_titre\">";
+        print '<td class="liste_titre" align="left">' . $langs->trans("Ref") . '</td>';
+        print '<td class="liste_titre" align="left">' . $langs->trans("Label") . '</td>';
+        print '<td class="liste_titre" align="right">' . $langs->trans("SellingPrice") . '</td>';
+        print '<td class="liste_titre" align="right">' . $langs->trans("BuyingPriceMinShort") . '</td>';
+        print '<td class="liste_titre" align="right">' . $langs->trans("Ordered") . '</td>';
+        print '<td class="liste_titre" align="right">' . $langs->trans("PhysicalStock") . '</td>';
+        print '<td class="liste_titre" align="right">' . $langs->trans("StockLimit") . '</td>';
+        print '<td class="liste_titre" align="right">' . $langs->trans("AlreadyOrder2") . '</td>';
+        print '<td class="liste_titre" align="right">' . $langs->trans("QtyRestock") . '</td>';
+        print "</tr>\n";
 
-	// on crée la liste des choses à créer
-	$idprodlist="";
-	$cmdedetlist="";
+        // on crée la liste des choses à créer
+        $idprodlist = "";
+        $cmdedetlist = "";
 
-	$product_static=new Product($db);
-	foreach ($tblRestock as $lgnRestock) {
-		$var=!$var;
-		print "<tr ".$bc[$var].">";
-		$idprodlist.=$lgnRestock->id."-";
+        $product_static = new Product($db);
+        foreach ($tblRestock as $lgnRestock) {
+            $var = !$var;
+            print "<tr " . $bc[$var] . ">";
+            $idprodlist .= $lgnRestock->id . "-";
 
-		print '<td class="nowrap">';
-		$product_static->id = $lgnRestock->id;
-		$product_static->ref = $lgnRestock->ref_product;
-		$product_static->type = 0;
-		print $product_static->getNomUrl(1, '', 24);
-		print '</td>';
-		print '<td align="left">'.$lgnRestock->libproduct.'</td>';
-		// on affiche le prix de vente de la commande
-		print '<td align="right">'.price($lgnRestock->PrixVenteCmdeHT).'</td>';
-		print '<td align="right">'.price($lgnRestock->PrixAchatHT).'</td>';
-		print '<td align="right">'.$lgnRestock->nbCmdeClient.'</td>';
-		print '<td align="right">'.$lgnRestock->StockQty.'</td>';
-		print '<td align="right">'.$lgnRestock->StockQtyAlert.'</td>';
-		print '<td align="right">'.$lgnRestock->nbCmdFourn.'</td>';
-		$product_fourn = new ProductFournisseur($db);
-		$product_fourn_list = $product_fourn->list_product_fournisseur_price($product_static->id, "", "");
-		if (count($product_fourn_list) > 0) {
-			// détermination du besoin
-			$estimedNeed=$lgnRestock->nbCmdeClient;
-			// si on travail en réassort, on ne prend pas en compte le stock et les commandes en cours
-			if ($conf->global->RESTOCK_REASSORT_MODE != 1 && $conf->global->RESTOCK_REASSORT_MODE != 3)
-				$estimedNeed-= $lgnRestock->StockQty ;
+            print '<td class="nowrap">';
+            $product_static->id = $lgnRestock->id;
+            $product_static->ref = $lgnRestock->ref_product;
+            $product_static->type = 0;
+            print $product_static->getNomUrl(1, '', 24);
+            print '</td>';
+            print '<td align="left">' . $lgnRestock->libproduct . '</td>';
+            // on affiche le prix de vente de la commande
+            print '<td align="right">' . price($lgnRestock->PrixVenteCmdeHT) . '</td>';
+            print '<td align="right">' . price($lgnRestock->PrixAchatHT) . '</td>';
+            print '<td align="right">' . $lgnRestock->nbCmdeClient . '</td>';
+            print '<td align="right">' . $lgnRestock->StockQty . '</td>';
+            print '<td align="right">' . $lgnRestock->StockQtyAlert . '</td>';
+            print '<td align="right">' . $lgnRestock->nbCmdFourn . '</td>';
+            $product_fourn = new ProductFournisseur($db);
+            $product_fourn_list = $product_fourn->list_product_fournisseur_price($product_static->id, "", "");
+            if (count($product_fourn_list) > 0) {
+                // détermination du besoin
+                $estimedNeed = $lgnRestock->nbCmdeClient;
+                // si on travail en réassort, on ne prend pas en compte le stock et les commandes en cours
+                if ($conf->global->RESTOCK_REASSORT_MODE != 1 && $conf->global->RESTOCK_REASSORT_MODE != 3)
+                    $estimedNeed -= $lgnRestock->StockQty;
 
-			if ($conf->global->RESTOCK_REASSORT_MODE != 2 && $conf->global->RESTOCK_REASSORT_MODE != 3)
-				$estimedNeed-= $lgnRestock->nbCmdFourn;
+                if ($conf->global->RESTOCK_REASSORT_MODE != 2 && $conf->global->RESTOCK_REASSORT_MODE != 3)
+                    $estimedNeed -= $lgnRestock->nbCmdFourn;
 
-			// si il y a encore du besoin, (on a vidé toute le stock et les commandes)
-			if ($conf->global->RESTOCK_REASSORT_MODE != 1 && $conf->global->RESTOCK_REASSORT_MODE != 3)
-				if (($estimedNeed > 0) && ($lgnRestock->StockQtyAlert > 0))
-					$estimedNeed+= $lgnRestock->StockQtyAlert;
+                // si il y a encore du besoin, (on a vidé toute le stock et les commandes)
+                if ($conf->global->RESTOCK_REASSORT_MODE != 1 && $conf->global->RESTOCK_REASSORT_MODE != 3)
+                    if (($estimedNeed > 0) && ($lgnRestock->StockQtyAlert > 0))
+                        $estimedNeed += $lgnRestock->StockQtyAlert;
 
-			if ($estimedNeed < 0)  // si le besoin est négatif cela signifie que l'on a assez , pas besoin de commander
-				$estimedNeed = 0;
+                if ($estimedNeed < 0)  // si le besoin est négatif cela signifie que l'on a assez , pas besoin de commander
+                    $estimedNeed = 0;
 
-			print '<td align="right">';
-			print '<input type=text size=5 name="prd-'.$lgnRestock->id.'" value="'.round($estimedNeed).'"></td>';
-		} else {
-			print '<td align="right">';
-			print $langs->trans("NoFournish");
-			print '</td>';
-		}
-		print "</tr>\n";
-	}
+                print '<td align="right">';
+                print '<input type=text size=5 name="prd-' . $lgnRestock->id . '" value="' . round($estimedNeed) . '"></td>';
+            } else {
+                print '<td align="right">';
+                print $langs->trans("NoFournish");
+                print '</td>';
+            }
+            print "</tr>\n";
+        }
 
-	print '</table>';
-	// pour mémoriser les produits à réstockvisionner
-	// on vire le dernier '-' si la prodlist est alimenté
-	if ($idprodlist)
-		$idprodlist=substr($idprodlist, 0, -1);
-	print '<input type=hidden name="prodlist" value="'.$idprodlist.'"></td>';
+        print '</table>';
+        // pour mémoriser les produits à réstockvisionner
+        // on vire le dernier '-' si la prodlist est alimenté
+        if ($idprodlist)
+            $idprodlist = substr($idprodlist, 0, -1);
+        print '<input type=hidden name="prodlist" value="' . $idprodlist . '"></td>';
 
-	/*
-	 * Boutons actions
-	*/
-	print '<div class="tabsAction">';
-	print '<br><center><input type="submit" class="button" name="bouton" value="'.$langs->trans('RestockOrder').'"></center>';
-	print '</div >';
+        /*
+         * Boutons actions
+        */
+        print '<div class="tabsAction">';
+        print '<br><center><input type="submit" class="button" name="bouton" value="' . $langs->trans('RestockOrder') . '"></center>';
+        print '</div >';
 
-	print '</form >';
+        print '</form >';
+    }
 } elseif ($action=="restock") {
 	// deuxieme étape : la sélection des fournisseur
 	print '<form action="restockCmdClient.php" method="post" name="formulaire" id="formulaire">';
@@ -1222,13 +1226,17 @@ if ($action=="") {
 
 print '</div>';
 print '<div class="fichecenter"><div class="fichehalfleft">';
-/*
- * Linked object block
-*/
-if (DOL_VERSION >= "5.0.0")
-	$somethingshown = $form->showLinkedObjectBlock($object, "");
-else
-	$somethingshown=$object->showLinkedObjectBlock();
+
+//
+// Linked object block
+//
+// show only if not a draft
+if ($object->statut != Commande::STATUS_DRAFT) {
+    if (DOL_VERSION >= "5.0.0")
+        $somethingshown = $form->showLinkedObjectBlock($object, "");
+    else
+        $somethingshown = $object->showLinkedObjectBlock();
+}
 
 print '</div>';
 print '</div>';

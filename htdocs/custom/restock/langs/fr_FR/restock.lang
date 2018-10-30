@@ -166,3 +166,9 @@ PopQuestion=Êtes-vous sûr de vouloir faire une livraison directe avec cette co
 DispatchOrder=Ventilation des commandes fournisseurs :
 ErrorSelectDispatch=Veuillez sélectionner l'entrepôt pour la ventilation
 ErrorSelectShipping=Veuillez sélectionner la méthode de transit
+
+
+#
+# Order
+#
+RestockOrderMustBeValidatedBeforeToProcess = La commande est au statut brouillon, validez la avant de lancer une opération de réapprovisionnement
