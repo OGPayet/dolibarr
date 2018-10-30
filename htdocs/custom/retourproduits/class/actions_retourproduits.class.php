@@ -201,7 +201,10 @@ class ActionsRetourProduits // extends CommonObject
             $langs->load("retourproduits@retourproduits");
             $langs->load("equipement@equipement");
 
+            require_once DOL_DOCUMENT_ROOT . '/product/class/product.class.php';
+            require_once DOL_DOCUMENT_ROOT . '/product/class/html.formproduct.class.php';
             dol_include_once('/retourproduits/lib/retourproduits.lib.php');
+
             $lines = retourproduits_get_product_list($db, $object->id);
 
             if (empty($lines)) {
@@ -209,8 +212,17 @@ class ActionsRetourProduits // extends CommonObject
                 return 0;
             }
 
-            require_once DOL_DOCUMENT_ROOT . '/product/class/html.formproduct.class.php';
-            $formproduct = new FormProduct($db);
+            // module warehousechild activated
+            if ($conf->warehousechild->enabled) {
+                dol_include_once('/warehousechild/class/html.formproduct.class.php');
+                $formproduct = new CORE\WAREHOUSECHILD\FormProduct($db);
+                $selectWarehousesMoreCss = 'maxwidth300';
+            } else {
+                $formproduct = new FormProduct($db);
+                $selectWarehousesMoreCss = 'minwidth300';
+            }
+
+            $productStatic = new Product($db);
 
             $formquestion = array();
             foreach ($lines as $line_id => $line) {
@@ -223,14 +235,27 @@ class ActionsRetourProduits // extends CommonObject
                 // create an array of equipment ids
                 $equipments = explode(',', $equipmentsPost);
 
+                $formquestionNameList = array('s-' . $line_id, 'p-' . $line_id, 'q-' . $line_id, 'w-' . $line_id, 'e-' . $line_id);
+                $formquestionEquipementValue = '';
+
+                if ($line['produit_id'] > 0) {
+                    $productStatic->fetch($line['produit_id']);
+                    $productSerialize = $productStatic->array_options['options_synergiestech_to_serialize'];
+
+                    if ($productSerialize) {
+                        unset($formquestionNameList['e-' . $line_id]);
+                        $formquestionEquipementValue = $langs->trans('Equipements') . ' : ' . $form->multiselectarray('e-' . $line_id, $line['equipments'], $equipments, 0, 0, '', 0, 0, 'style="min-width:300px"');
+                    }
+                }
+
                 $formquestion[] = array(
                     'type' => 'other',
                     'label' => '<input type="checkbox" id="s-' . $line_id . '" name="s-' . $line_id . '" value="' . $line_id . '"'.$selected.'> ' . $line['product'],
-                    'name' => array('s-' . $line_id, 'p-' . $line_id, 'q-' . $line_id, 'w-' . $line_id, 'e-' . $line_id),
+                    'name' => $formquestionNameList,
                     'value' => '<input type="hidden" id="p-' . $line_id . '" name="p-' . $line_id . '" value="' . $line['produit_id'] . '">' .
-                        $langs->trans('Qty').': <input type="number" id="q-' . $line_id . '" name="q-' . $line_id . '" value="' . $qty . '" min="1" max="' . $line['qty_sent'] . '"> ' .
-                        ' '.$langs->trans('Warehouse').': '.$formproduct->selectWarehouses($warehouse, 'w-' . $line_id, 'warehouseopen,warehouseinternal', 1) . ' ' .
-                        '<br>'.$langs->trans('Equipements').': '.$form->multiselectarray('e-' . $line_id, $line['equipments'], $equipments, 0, 0, '', 0, 0, 'style="min-width:300px"')
+                        $langs->trans('Qty').' : <input type="number" id="q-' . $line_id . '" name="q-' . $line_id . '" value="' . $qty . '" min="1" max="' . $line['qty_sent'] . '" style="width: 50px;"> ' .
+                        '<br />' . $langs->trans('Warehouse') . ' : '.$formproduct->selectWarehouses($warehouse, 'w-' . $line_id, 'warehouseopen,warehouseinternal', 1, 0, $line['produit_id'], '', 0, 0, null, $selectWarehousesMoreCss) . ' ' .
+                        '<br />' . $formquestionEquipementValue
                 );
             }
 
