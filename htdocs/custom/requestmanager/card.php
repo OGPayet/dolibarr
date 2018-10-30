@@ -2280,6 +2280,7 @@ $now = dol_now();
 	 * Events
 	 */
         requestmanager_show_events($object);
+        requestmanager_show_timelines($object);
 
         /*
 	 * Linked Objects

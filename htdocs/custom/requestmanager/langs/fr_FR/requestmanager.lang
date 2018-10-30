@@ -263,10 +263,14 @@ RequestManagerConfirmAssignMySelf           = Une ou des personnes sont déja as
 ############################################################
 RequestManagerListOfEvents                              = Liste des événements
 RequestManagerListMode                                  = Vue Liste
-RequestManagerBlocMode                                  = Vue bloc
+RequestManagerTimeLineMode                              = Messages en vue chronologiques
 RequestManagerOnlyLinkedObjectToThisRequest             = Ne voir que les événements liés à cette demande
 RequestManagerIncludeEventOfOtherRequest                = Voir aussi les événements des autres demandes
 RequestManagerIncludeLinkedEventToChildrenOfThisRequest = Voir aussi les événements des sous demandes
+RequestManagerTimeLineMessages                          = Liste des messages en mode chronologique
+RequestManagerAssignedNotified                          = Les assignés ont été notifiés
+RequestManagerRequesterNotified                         = Les contacts d'origine ont été notifiés
+RequestManagerWatcherNotified                           = Les observateurs ont été notifiés
 
 ############################################################
 ### Create fast

@@ -643,6 +643,9 @@ class RequestManagerApi extends DolibarrApi {
             $sql .= " AND t.elementtype = 'requestmanager' AND t.fk_element IN (" . $request_ids . ")";
             $sql .= " AND (t.code = 'AC_RM_PRIV' OR t.code = 'AC_RM_IN' OR t.code = 'AC_RM_OUT')";
         }
+        if (DolibarrApiAccess::$user->socid > 0) {
+            $sql .= " AND t.code != 'AC_RM_PRIV'";
+        }
         // Add sql filters
         if ($sql_filters) {
             if (!DolibarrApi::_checkFilters($sql_filters)) {
