@@ -582,8 +582,62 @@ SCRIPT;
 
                 return 1;
             }
-        }
+        } else if (in_array('propalcard', $contexts)) {
+            // accept or refuse proposal
+            if ($action == 'statut') {
+                $out = '';
 
+                dol_include_once('/synergiestech/class/html.formsynergiestech.class.php');
+
+                $langs->load('synergiestech@synergiestech');
+
+                $formsynergiestech = new FormSynergiesTech($this->db);
+
+                //Form to close proposal (signed or not)
+                $formquestion = array(
+                    array('type' => 'select','name' => 'statut','label' => $langs->trans("CloseAs"),'values' => array(2=>$object->LibStatut(Propal::STATUS_SIGNED), 3=>$object->LibStatut(Propal::STATUS_NOTSIGNED)), 'default' => (GETPOST('statut', 'int') ? GETPOST('statut', 'int') : '')),
+                    array('type' => 'text', 'name' => 'note_private', 'label' => $langs->trans("Note"),'value' => (GETPOST('note_private', 'alpha') ? GETPOST('note_private', 'alpha') : ''))				// Field to complete private note (not replace)
+                );
+
+                // add file
+                $formquestion[] = array('type' => 'other', 'name' => 'addfile', 'label' =>  $langs->trans("File"), 'value' => '<input type="file" name="addfile" />');
+
+                /* Not used yet (Dolibarr 8.0)
+                if (! empty($conf->notification->enabled)) {
+                    require_once DOL_DOCUMENT_ROOT . '/core/class/notify.class.php';
+                    $notify = new Notify($this->db);
+                    $formquestion = array_merge($formquestion, array(
+                        array('type' => 'onecolumn', 'value' => $notify->confirmMessage('PROPAL_CLOSE_SIGNED', $object->socid, $object)),
+                    ));
+                }
+                */
+
+                $out .= $formsynergiestech->formconfirmfile($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('SetAcceptedRefused'), '', 'setstatut', $formquestion, '', 1, 300);
+
+                // javascript for field file required
+                $out .= <<<SCRIPT
+<script type="text/javascript">
+    jQuery(document).ready(function() {
+        jQuery('select[name="statut"]').change(function(){
+            var statutLabelTd = jQuery('input[name="addfile"]').parent().parent().find('td:first');
+            statutLabelTd.prop('class', 'fieldrequired');
+
+            // proposal signed
+            if (this.value == 2) {
+                statutLabelTd.addClass('fieldrequired');
+            } else {
+                statutLabelTd.removeClass('fieldrequired');
+            }
+        });
+    });
+</script>
+SCRIPT;
+
+                $this->resprints = $out;
+
+                return 1;
+            }
+        }
 
         return 0;
     }

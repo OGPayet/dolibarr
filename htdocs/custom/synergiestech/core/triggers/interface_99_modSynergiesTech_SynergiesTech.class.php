@@ -161,6 +161,40 @@ class InterfaceSynergiesTech extends DolibarrTriggers
 
                 dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
                 return 0;
+            case 'PROPAL_CLOSE_SIGNED':
+            case 'PROPAL_CLOSE_REFUSED':
+                // only for signed propal
+                if ($object->statut == Propal::STATUS_SIGNED) {
+
+                    // file is required for signed propal
+                    if ($action == "PROPAL_CLOSE_SIGNED" && empty($_FILES['addfile']['name'])) {
+                        $error_msg = $langs->trans('ErrorFieldRequired', $langs->transnoentitiesnoconv('File'));
+                        // file is required
+                        setEventMessage($error_msg, 'errors');
+
+                        dol_syslog(__METHOD__ . " Error : " . $error_msg, LOG_ERR);
+                        header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=statut&' . http_build_query($_POST));
+                        exit(0);
+                    }
+
+                    // upload file
+                    if (! empty($_FILES['addfile']['name'])) {
+                        require_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
+
+                        // set directory
+                        $filedir = $conf->propal->dir_output . "/" . dol_sanitizeFileName($object->ref);
+                        $ret = dol_add_file_process($filedir, 0, 1, 'addfile');
+
+                        if ($ret <= 0) {
+                            dol_syslog(__METHOD__ . " Error dol_add_file_process : filedir=" . $filedir, LOG_ERR);
+                            header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=statut&' . http_build_query($_POST));
+                            exit(0);
+                        }
+                    }
+                }
+
+                dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+                return 0;
         }
 
         return 0;
