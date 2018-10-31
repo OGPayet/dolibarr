@@ -159,8 +159,10 @@ if ($action == 'addequipement') {
                 );
                 $objectequipement->dateo = $dateo;
 
+                $serialFournArray = GETPOST('SerialFourn-' . $line->dispatchlineid, 'array');
+
                 $objectequipement->SerialMethod = GETPOST('SerialMethod-' . $line->dispatchlineid, 'int');
-                $objectequipement->SerialFourn  = GETPOST('SerialFourn-' . $line->dispatchlineid, 'alpha');
+                $objectequipement->SerialFourn  = implode(';', $serialFournArray);
                 $objectequipement->numversion   = GETPOST('numversion-' . $line->dispatchlineid, 'alpha');
 
                 // selon le mode de serialisation de l'equipement
@@ -279,6 +281,9 @@ print "</tr>\n";
 
 $var = false;
 if ($nb_to_serialize) {
+
+    $outjs = '';
+
     foreach ($dispatched_lines as $line) {
         $remains_serialized = $line->qty - $line->nb_serialized;
 
@@ -318,9 +323,12 @@ if ($nb_to_serialize) {
             print '</td>';
 
             // serial fourn
-            $dispatchSerialFourn = GETPOST('SerialFourn-' . $line->dispatchlineid, 'alpha') ? GETPOST('SerialFourn-' . $line->dispatchlineid, 'alpha') : '';
-            print '<td>';
-            print '<textarea name="SerialFourn-' . $line->dispatchlineid . '" cols="50" rows="' . ROWS_3 . '">' . $dispatchSerialFourn . '</textarea>';
+            $dispatchSerialFournArray = GETPOST('SerialFourn-' . $line->dispatchlineid, 'array') ? GETPOST('SerialFourn-' . $line->dispatchlineid, 'array') : array();
+            print '<td valign="top">';
+            for ($i = 0; $i < $remains_serialized; $i++) {
+                $dispatchSerialFourn = isset($dispatchSerialFournArray[$i]) ? $dispatchSerialFournArray[$i] : '';
+                print '<input type="text" class="SerialFourn-' . $line->dispatchlineid . '" name="SerialFourn-' . $line->dispatchlineid . '[]" value="' . $dispatchSerialFourn . '" />';
+            }
             print '</td>';
 
             // quantity
@@ -353,7 +361,28 @@ if ($nb_to_serialize) {
             print '</tr>';
 
             $var = !$var;
+
+            // disable input serial fourn for method internal and series
+            $outjs .= 'console.log(jQuery("#SerialMethod-' . $line->dispatchlineid . '").val());';
+            $outjs .= 'if (jQuery("#SerialMethod-' . $line->dispatchlineid . '").val()!=2) {';
+            $outjs .= ' jQuery(".SerialFourn-' . $line->dispatchlineid . '").prop("disabled", true);';
+            $outjs .= '}';
+            $outjs .= 'jQuery("#SerialMethod-' . $line->dispatchlineid . '").change(function(){';
+            $outjs .= ' if (this.value!=2) {';
+            $outjs .= '     jQuery(".SerialFourn-' . $line->dispatchlineid . '").prop("disabled", true);';
+            $outjs .= ' } else {';
+            $outjs .= ' jQuery(".SerialFourn-' . $line->dispatchlineid . '").prop("disabled", false);';
+            $outjs .= ' }';
+            $outjs .= '});';
         }
+    }
+
+    if (!empty($outjs)) {
+        print '<script type="text/javascript">';
+        print 'jQuery(document).ready(function(){';
+        print $outjs;
+        print '});';
+        print '</script>';
     }
 
     print <<<SCRIPT
