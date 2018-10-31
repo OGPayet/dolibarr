@@ -1,24 +1,23 @@
 diff a/htdocs/custom/requestmanager/ChangeLog.md b/htdocs/custom/requestmanager/ChangeLog.md	(rejected hunks)
-@@ -3,6 +3,10 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
+@@ -3,6 +3,11 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
  
  ## [Non Distribué]
  
-+## [4.0.11] - 30-10-2018
-+- Ajout de l'affiche des messages d'une demande sous forme chronologique.
++## [4.0.12] - 31-10-2018
++- Modification de l'API pour les appels IPBX.
++- Ajout du statut des cantrats sur la page de creation des demandes.
 +- Corrections diverses.
 +
- ## [4.0.10] - 29-10-2018
- - Ajout support module Event Confidentiality.
+ ## [4.0.11] - 30-10-2018
+ - Ajout de l'affiche des messages d'une demande sous forme chronologique.
  - Corrections diverses.
-@@ -31,8 +35,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
+@@ -35,7 +40,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
  ## [4.0.0] - 16-07-2018
  - Version initial.
  
--[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/compare/v4.0.10...HEAD
--[4.0.9]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.10
-+[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/compare/v4.0.11...HEAD
-+[4.0.11]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.11
-+[4.0.10]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.10
+-[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/compare/v4.0.11...HEAD
++[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/compare/v4.0.12...HEAD
++[4.0.12]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.12
+ [4.0.11]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.11
+ [4.0.10]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.10
  [4.0.9]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.9
- [4.0.8]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.8
- [4.0.7]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.7

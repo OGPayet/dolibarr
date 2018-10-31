@@ -79,6 +79,11 @@ SynergiesTechTimeSlotDictionaryTimeSlots    = Plages horaires
 SynergiesTechCreateNbRetourProduitsSuccessed = %s retour produits créés.
 
 #######################################################################
+# Request Manager
+#######################################################################
+SynergiesTechCreateFastContractFormula = Formules
+
+#######################################################################
 # Advanced Ticket
 #######################################################################
 SynergiesTechThridPartyNotDefined   = Tiers non définie

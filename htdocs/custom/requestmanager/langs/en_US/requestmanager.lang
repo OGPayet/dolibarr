@@ -4,27 +4,138 @@ Module163018Name = Request Manager
 Module163018Desc = Request Manager
 
 ############################################################
+### Permissions
+############################################################
+Permission163032 = Consulter les demandes
+Permission163033 = Créer/modifier les demandes
+Permission163034 = Supprimer les demandes
+Permission163035 = Réouvrir les demandes cloturées
+Permission163036 = Voir les documents des demandes
+
+############################################################
 ### Admin setup
 ############################################################
-RequestManagerNotificationSendFromName          = Sender email address
-RequestManagerNotificationSendFromDesc          = Sender email address uses to notify
-RequestManagerNotificationUsersName             = Notify users
-RequestManagerNotificationUsersDesc             = Notify internal users (save in database)
-RequestManagerNotificationByMailName            = Notify by mail
-RequestManagerNotificationByMailDesc            = Notify users by mail
-RequestManagerContractSearchInParentCompanyName = Search contracts of the parent company
-RequestManagerContractSearchInParentCompanyDesc = Search contracts linked to the third of the request in the parent company
-RequestManagerDeadlineTimeDefaultName           = Time for deadline
-RequestManagerDeadlineTimeDefaultDesc           = Default time for request deadline
+RequestManagerSetup                                     = Configuration of module Request Manager
+RequestManagerExtraFields                               = Attributs supplémentaires (Demande)
+RequestManagerMessageExtraFields                        = Attributs supplémentaires (Message)
+
+RequestManagerRefNumberingModules                       = Modèles de numérotation des références interne des demandes
+RequestManagerExternalRefNumberingModules               = Modèles de numérotation des références externe des demandes
+
+RequestManagerTimeSlotsOptions                          = Paramètres des plages horaires
+RequestManagerTimeSlotsActivateName                     = Activation
+RequestManagerTimeSlotsActivateDesc                     = Active la gestion des plages horaires lors de la création d'une demande
+RequestManagerTimeSlotsPeriodsName                      = Plages horaires
+RequestManagerTimeSlotsPeriodsDesc                      = Le paramètrage des plages est sous la forme suivante :<br><br>- Formatage date: "[2018Y][05M][06D|1W] 08h00"<br>-- Y: Spécifier une année (Optionnel)<br>-- M: Spécifier un mois de l'année (1-12, Optionnel)<br>-- D: Spécifier un jour du mois (1-31, Optionnel)<br>-- W: Spécifier un jour de la semaine (0-6, 0=>Dimanche, Optionnel)<br>-- h: Spécifier l'heure de la journée<br><br>- Formatage des plages: "date début - date fin, date début - date fin, ..."<br>-- La date de début et de fin doit être sous le même format (ex: 05M01D 08h30 - 06M30 18h00 => de 8h30 à 18h du 1 mai au 30 juin de chaque année)
+
+RequestManagerChronometerOptions                        = Paramètres du chronomètre
+RequestManagerChronometerActivateName                   = Activation
+RequestManagerChronometerActivateDesc                   = Active le chronomètre qui démarre lors de l'affichage de la page de création d'une demande
+RequestManagerChronometerTimeName                       = Limite de temps
+RequestManagerChronometerTimeDesc                       = Temps limite au bout duquel le chronomètre clignotera
+RequestManagerChronometerColorName                      = Couleur du clignotement
+RequestManagerChronometerColorDesc                      = Couleur du clignotement lorsque la limite de temps est atteinte ou dépassée (format html '#FF0000' ou nom html 'red')
+RequestManagerChronometerSoundName                      = Son d'alerte
+RequestManagerChronometerSoundDesc                      = Adresse URL du fichier son d'aletre une fois la limite de temps atteinte ou dépassée
+
+RequestManagerNotificationOptions                       = Paramètres généraux des notifications
+RequestManagerCreateNotifyName                          = Notification lors de la création d'une demande
+RequestManagerCreateNotifyDesc                          = Active la notification global lors de la création d'une demande
+RequestManagerSetAssignedNotifyName                     = Notification lors du changement d'assignation
+RequestManagerSetAssignedNotifyDesc                     = Active la notification global lors du changement d'assignation d'une demande
+RequestManagerStatusModifyNotifyName                    = Notification lors du changement de statut
+RequestManagerStatusModifyNotifyDesc                    = Active la notification global lors du changement de statut d'une demande
+RequestManagerMessageCreateNotifyName                   = Notification lors de la création d'un message
+RequestManagerMessageCreateNotifyDesc                   = Active la notification global lors de la création d'un message d'une demande
+
+RequestManagerNotificationAssignedOptions               = Paramètres des notifications aux assignés
+RequestManagerNotificationAssignedByEmailName           = Notification par courriel
+RequestManagerNotificationAssignedByEmailDesc           = Notifier les assignés d'une demande par courriel
+RequestManagerNotificationAssignedByWebSiteName         = Notification par le navigateur
+RequestManagerNotificationAssignedByWebSiteDesc         = Notifier les assignés d'une demande par le navigateur
+RequestManagerAssignedNotificationSendFromName          = Adresse courriel de l'émetteur
+RequestManagerAssignedNotificationSendFromDesc          = Adresse courriel de l'émetteur pour l'envoi des courriels de notification vers les assignés (Courriel de l'utilisateur à l'origine de la notification si vide)
+RequestManagerSplitAssignedNotificationName             = Séparation des envois
+RequestManagerSplitAssignedNotificationDesc             = Envois des notification séparément à tous les assignés
+RequestManagerAssignedNotificationSignatureName         = Signature
+RequestManagerAssignedNotificationSignatureDesc         = Ajouter cette signature après le corps du message des courriels de notification vers les assignés si la signature du modèle de notification est vide
+RequestManagerAssignedNotificationUserSignatureName     = Signature utilisateur
+RequestManagerAssignedNotificationUserSignatureDesc     = Ajouter la signature de l'utilisateur après le corps du message des courriels de notification vers les assignés si aucune signature n'a été trouvée
+
+RequestManagerNotificationRequesterOptions              = Paramètres des notifications aux contacts d'origine
+RequestManagerRequesterNotificationSendFromName         = Adresse courriel de l'émetteur
+RequestManagerRequesterNotificationSendFromDesc         = Adresse courriel de l'émetteur pour l'envoi des courriels de notification vers les contacts d'origine (Courriel de l'utilisateur à l'origine de la notification si vide)
+RequestManagerSplitRequesterNotificationName            = Séparation des envois
+RequestManagerSplitRequesterNotificationDesc            = Envois des notification séparément à tous les contacts d'origine
+RequestManagerRequesterNotificationSignatureName        = Signature
+RequestManagerRequesterNotificationSignatureDesc        = Ajouter cette signature après le corps du message des courriels de notification vers les contacts d'origine si la signature du modèle de notification est vide
+RequestManagerRequesterNotificationUserSignatureName    = Signature utilisateur
+RequestManagerRequesterNotificationUserSignatureDesc    = Ajouter la signature de l'utilisateur après le corps du message des courriels de notification vers les contacts d'origine si aucune signature n'a été trouvée
+
+RequestManagerNotificationWatchersOptions               = Paramètres des notifications aux contacts observateur
+RequestManagerWatchersNotificationSendFromName          = Adresse courriel de l'émetteur
+RequestManagerWatchersNotificationSendFromDesc          = Adresse courriel de l'émetteur pour l'envoi des courriels de notification vers les contacts observateur (Courriel de l'utilisateur à l'origine de la notification si vide)
+RequestManagerSplitWatchersNotificationName             = Séparation des envois
+RequestManagerSplitWatchersNotificationDesc             = Envois des notification séparément à tous les contacts observateur
+RequestManagerWatchersNotificationSignatureName         = Signature
+RequestManagerWatchersNotificationSignatureDesc         = Ajouter cette signature après le corps du message des courriels de notification vers les contacts observateur si la signature du modèle de notification est vide
+RequestManagerWatchersNotificationUserSignatureName     = Signature utilisateur
+RequestManagerWatchersNotificationUserSignatureDesc     = Ajouter la signature de l'utilisateur après le corps du message des courriels de notification vers les contacts observateur si aucune signature n'a été trouvée
+
+RequestManagerAutoAddContractOfPrincipalCompanyName     = Contrats du donneur d'ordre
+RequestManagerAutoAddContractOfPrincipalCompanyDesc     = Lier automatiquement les contrats du donneur d'ordre à la création de la demande
+RequestManagerAutoAddContractOfBeneficialCompanyName    = Contrats du bénéficiaire
+RequestManagerAutoAddContractOfBeneficialCompanyDesc    = Lier automatiquement les contrats du bénéficiaire à la création de la demande
+RequestManagerContractSearchInParentCompanyName         = Search contracts of the parent company
+RequestManagerContractSearchInParentCompanyDesc         = Search contracts linked to the third of the request in the parent company
+RequestManagerOperationTimeDefaultName                  = Décalage de temps pour date d'opération
+RequestManagerOperationTimeDefaultDesc                  = Décalage de temps depuis la création d'une demande pour la date d'opération par défaut (en minutes)
+RequestManagerDeadlineTimeDefaultName                   = Time for deadline
+RequestManagerDeadlineTimeDefaultDesc                   = Default time for request deadline
+RequestManagerRootProductCategoriesName                 = Racine des catégories de produits
+RequestManagerRootProductCategoriesDesc                 = Racine des catégories de produits accessiblent sur la demande
+RequestManagerRootProductCategoryIncludeName            = Inclure la racine
+RequestManagerRootProductCategoryIncludeDesc            = Inclure la racine dans la liste des catégories de produits
+RequestManagerPositionBlocObjectLinkedName              = Position des Objets Liés
+RequestManagerPositionBlocObjectLinkedDesc              = Position du bloc de la liste des objets liés
+RequestManagerPositionLinkNewObjectLinkedName           = Position du lien 'Lier à ...'
+RequestManagerPositionLinkNewObjectLinkedDesc           = Position du lien 'Lier à ...' des objets liés (si Position des Objets Liés est sur 'Haut' ce paramètre est inutile)
+
+############################################################
+### Contact
+############################################################
+TypeContact_project_internal_REQUESTER  = Utilisateur origine
+TypeContact_project_external_REQUESTER  = Contact origine
+TypeContact_project_internal_WATCHER    = Utilisateur observateur
+TypeContact_project_external_WATCHER    = Contact observateur
 
 ############################################################
 ### Actions
 ############################################################
-ActionAC_RM_ASSUSR  = Assigned users change
-ActionAC_RM_IN      = Input request message
-ActionAC_RM_OUT     = Output request message
-ActionAC_RM_PRIV    = Private request message
-ActionAC_RM_STAT    = Status change
+ActionAC_RM_ASSMOD                      = Assigned change
+ActionAC_RM_STATUS                      = Status change
+ActionAC_RM_IN                          = Input request message
+ActionAC_RM_OUT                         = Output request message
+ActionAC_RM_PRIV                        = Private request message
+ActionAC_RM_FPC                         = Forçage du donneur d'ordre
+ActionAC_RM_FCOOT                       = Forçage d'une création hors plages horaires
+Notify_REQUESTMANAGER_CREATE            = Demande créée
+Notify_REQUESTMANAGER_MODIFY            = Demande modifiée
+Notify_REQUESTMANAGER_DELETE            = Demande supprimée
+Notify_REQUESTMANAGER_SET_ASSIGNED      = Assignation d'une demande modifiée
+Notify_REQUESTMANAGER_STATUS_MODIFY     = Statut d'une demande modifiée
+Notify_REQUESTMANAGERMESSAGE_SENTBYMAIL = Envoi du message d'une demande par email
+
+############################################################
+### Extra fields
+############################################################
+RequestManagerIPBX                      = IPBX
+RequestManagerTimeSlotsSeparatorTitle   = Paramètrages des plages horaires des demandes
+
+############################################################
+### Global search
+############################################################
+RequestManagerSearchIntoRequests    = Demandes
 
 ############################################################
 ### Menu
@@ -42,10 +153,152 @@ RequestManagerMenuTopDateLastView          = Last access date
 RequestManagerMenuTopCreateFast            = Create fast request
 
 ############################################################
+### Tabulation
+############################################################
+RequestManagerRequestTab                = Demande
+
+############################################################
 ### Card
 ############################################################
+RequestManagerRequest                   = Demande
+RequestManagerShowRequest               = Afficher demande
+RequestManagerCard                      = Demande
+RequestManagerNewRequest                = Nouvelle demande
+RequestManagerExternalReference         = Référence externe
+RequestManagerRequestType               = Type de demande
+RequestManagerCategory                  = Catégorie
+RequestManagerLabel                     = Titre
+RequestManagerThirdPartyOrigin          = Origine
+RequestManagerThirdPartyPrincipal       = Donneur d'ordre
+RequestManagerThirdPartyBenefactor      = Bénéficiaire
+RequestManagerSource                    = Source
+RequestManagerUrgency                   = Urgence
+RequestManagerImpact                    = Impact
+RequestManagerPriority                  = Priorité
+RequestManagerDuration                  = Durée
+RequestManagerOperation                 = Date d'opération
+RequestManagerDeadline                  = Date d'écheance
+RequestManagerTags                      = Tags/Catégories des Produits/Services
+RequestManagerRequesterContacts         = Contacts d'origine
+RequestManagerRequesterNotification     = Notifier les contacts d'origine
+RequestManagerWatcherContacts           = Contacts observateur
+RequestManagerWatcherNotification       = Notifier les observateurs
+RequestManagerAssignedUserGroups        = Assigné aux groupes d'utilisateurs
+RequestManagerAssignedUsers             = Assigné aux utilisateurs
+RequestManagerAssignedNotification      = Notifier les assignés
+RequestManagerDescription               = Description
+RequestManagerAddRequest                = Créer demande
+RequestManagerAddMessage                = Ajouter un message
+RequestManagerCreateRequestChild        = Créer sous demande: %s
+RequestManagerNoNotifications           = Pas de notifications
+RequestManagerSetCategory               = Définir la catégorie
+RequestManagerSetLabel                  = Définir le titre
+RequestManagerSetThirdPartyOrigin       = Définir l'origine
+RequestManagerSetThirdPartyBill         = Définir le donneur d'ordre
+RequestManagerSetThirdPartyBenefactor   = Définir le bénéficiaire
+RequestManagerSetSource                 = Définir la source
+RequestManagerSetUrgency                = Définir l'urgence
+RequestManagerSetImpact                 = Définir l'impact
+RequestManagerSetPriority               = Définir la priorité
+RequestManagerSetDuration               = Définir la durée
+RequestManagerSetOperation              = Définir la date d'opération
+RequestManagerSetDeadline               = Définir la date d'écheance
+RequestManagerSetRequesterContacts      = Définir les contacts d'origine
+RequestManagerSetWatcherContacts        = Définir les contacts observateur
+RequestManagerSetAssignedUserGroups     = Définir les groupes d'utilisateurs assignés
+RequestManagerSetAssignedUsers          = Définir les utilisateurs assignés
+RequestManagerSetAssignedNotification   = Définir la notification des assignés
+RequestManagerSetDescription            = Définir la description
 RequestManagerAssignToMe                = Assign to me
-RequestManagerSetCategories             = Set tags/categories
+RequestManagerSetCategories             = Set tags/categories of products/services
+RequestManagerRecalculateDeadLineDate   = Recalculer la date d'échéance
+RequestManagerRequestChild              = Sous demande
+RequestManagerRequestChildren           = Sous demandes
+RequestManagerParentRequest             = Demande parente
+RequestManagerChildrenRequest           = Demandes enfants
+
+############################################################
+### Message form
+############################################################
+RequestManagerSelectTemplate                = Choose a message model
+RequestManagerNoTemplateDefined             = Pas de modèle défini
+RequestManagerMessageNotify                 = Notifier les
+RequestManagerAssigned                      = Assignés
+RequestManagerMessageSubject                = Subject
+RequestManagerMessageFile                   = Attachments
+RequestManagerMessageKnowledgeBase          = Base de connaissance
+RequestManagerAddKnowledgeBaseDescriptions  = Ajouter les descriptions
+RequestManagerMessage                       = Message
+RequestManagerMessageType                   = Type du message
+RequestManagerMessageTypeIn                 = Entrant
+RequestManagerMessageTypeOut                = Sortant
+RequestManagerMessageTypePrivate            = Privé
+RequestManagerMessageTypeInHelp             = Message venant du client
+RequestManagerMessageTypeOutHelp            = Message envoyé au client
+RequestManagerMessageTypePrivateHelp        = Message non visible par le client
+RequestManagerNoMessageTemplateDefined      = Pas de modèle de message défini pour ce type de demande
+RequestManagerNoKnowledgeBaseDefined        = Pas de connaissance défini pour ce type de demande et ces tags associés
+RequestManagerMessageTitleOut               = Message sortant sur la demande %s créé
+RequestManagerMessageTitlePrivate           = Message privé sur la demande %s créé
+RequestManagerMessageTitleIn                = Message entrant sur la demande %s créé
+
+############################################################
+### Confirm box
+############################################################
+RequestManagerResolveRequest                = Résoudre demande
+RequestManagerConfirmResolveRequest         = Êtes-vous sûr de vouloir résoudre cette demande ?
+RequestManagerCloseRequest                  = Clôturer demande
+RequestManagerConfirmCloseRequest           = Êtes-vous sûr de vouloir cloturer cette demande ?
+RequestManagerNotResolvedRequest            = Réouvrir demande
+RequestManagerConfirmNotResolvedRequest     = Êtes-vous sûr de vouloir rouvrir cette demande ?
+RequestManagerReOpenRequest                 = Réouvrir demande
+RequestManagerConfirmReOpenRequest          = Êtes-vous sûr de vouloir rouvrir cette demande ?
+RequestManagerDeleteRequest                 = Supprimer demande
+RequestManagerConfirmDeleteRequest          = Êtes-vous sûr de vouloir supprimer cette demande ?
+RequestManagerAssignMySelf                  = M'assigner à la demande
+RequestManagerConfirmAssignMySelf           = Une ou des personnes sont déja assignées à cette demande.<br>Êtes-vous sûr de vouloir vous assigner à cette demande ?
+
+############################################################
+### Events list on card
+############################################################
+RequestManagerListOfEvents                              = Liste des événements
+RequestManagerListMode                                  = Vue Liste
+RequestManagerTimeLineMode                              = Messages en vue chronologiques
+RequestManagerOnlyLinkedObjectToThisRequest             = Ne voir que les événements liés à cette demande
+RequestManagerIncludeEventOfOtherRequest                = Voir aussi les événements des autres demandes
+RequestManagerIncludeLinkedEventToChildrenOfThisRequest = Voir aussi les événements des sous demandes
+RequestManagerTimeLineMessages                          = Liste des messages en mode chronologique
+RequestManagerAssignedNotified                          = Les assignés ont été notifiés
+RequestManagerRequesterNotified                         = Les contacts d'origine ont été notifiés
+RequestManagerWatcherNotified                           = Les observateurs ont été notifiés
+
+############################################################
+### Create fast
+############################################################
+RequestManagerCreateFastTitle             = Create fast request
+RequestManagerCreateFastActionCommLabel   = Unprocessed events
+RequestManagerCreateFastBtnCreateLabel    = Create request
+RequestManagerCreateFastBtnAssociateLabel = Link to request
+RequestManagerLastEvents                  = Last events
+RequestManagerNoActionComm                = Aucun événement non traité
+RequestManagerNoEquipement                = Aucun équipement
+RequestManagerCreatedOutOfTime            = Demandes créées hors plages horaires
+
+############################################################
+### Confirm box : Create fast
+############################################################
+RequestManagerForcePrincipalCompany                = Forcer le choix du donneur d'ordre
+RequestManagerConfirmForcePrincipalCompany         = Êtes-vous sûr de vouloir forcer le choix du donneur d'ordre ?
+RequestManagerForceCreateOutOfTime                 = Forcer la création de la demande hors de la plage horaire
+RequestManagerConfirmForceCreateOutOfTime          = Êtes-vous sûr de vouloir forcer la création de la demande hors de la plage horaire ?
+
+############################################################
+### Events : Create fast
+############################################################
+RequestManagerForcedPrincipalCompanyActionLabel    = Donneur d'ordre de la demande "%s" forcé
+RequestManagerThirdPartyPrincipalOld               = Ancien donneur d'ordre
+RequestManagerThirdPartyBenefactorOld              = Ancien bénéficiaire
+RequestManagerForcedCreatedOutOfTimeActionLabel    = Demande "%s" créée hors plages horaires (forcée)
 
 ############################################################
 ### List
@@ -69,58 +322,162 @@ RequestManagerListsFollowMyFutureRequest      = My future requests
 RequestManagerListsFollowMyFutureGroupRequest = Future requests to my group
 
 ############################################################
-### Create fast
+### Chronometer
 ############################################################
-RequestManagerCreateFastTitle             = Create fast request
-RequestManagerCreateFastActionCommLabel   = Unprocessed events
-RequestManagerCreateFastBtnCreateLabel    = Create request
-RequestManagerCreateFastBtnAssociateLabel = Link to request
-RequestManagerCreateFastContractFormula   = Formula
-RequestManagerLastEvents                  = Last events
+RequestManagerChronometerStop   = Stopper le chronomètre
 
 ############################################################
-### Message form
+### Time slots
 ############################################################
-RequestManagerSelectKnowledgeBase           = Choose a knowledge base
-RequestManagerSelectTemplate                = Choose a message model
-RequestManagerNoTemplateDefined             = No defined model
-RequestManagerMessageSubject                = Subject
-RequestManagerMessageFile                   = Attachments
-RequestManagerMessage                       = Message
-RequestManagerMessageNotifyByMail           = Send by mail to requesters and watchers contacts
-RequestManagerMessageDirection              = Message direction
-RequestManagerMessageDirectionIn            = Input
-RequestManagerMessageDirectionOut           = Output
-
-######################################################################
-# Dictionaries
-######################################################################
-RequestManagerRequestTypeDictionaryLabel              = Requests types
-RequestManagerStatusDictionaryLabel                   = Requests status
-RequestManagerCategoryDictionaryLabel                 = Requests categories
-RequestManagerSourceDictionaryLabel                   = Requests origin
-RequestManagerUrgencyDictionaryLabel                  = Requests emergency
-RequestManagerImpactDictionaryLabel                   = Requests impact
-RequestManagerPriorityDictionaryLabel                 = Requests priority
-RequestManagerMessageTemplateDictionaryLabel          = Messages / notification models
-RequestManagerKnowledgeBaseDictionaryLabel            = Knowledge base
-RequestManagerRequestType                             = Requests types
-RequestManagerType                                    = Type
-RequestManagerTypeInitial                             = Initial
-RequestManagerTypeInProgress                          = In progress
-RequestManagerTypeResolved                            = Resolved
-RequestManagerTypeClosed                              = Closed
-RequestManagerStatusDictionaryPicto                   = Icon
-RequestManagerStatusDictionaryPictoHelp               = Dolibarr icon name format ('image.png' if icon is in the directory path '%s', 'image.png@nom_du_module' else if icon is in the module directory path /img/)
-RequestManagerTemplateTypeNotifyAssignedUsersModified = Notification of an assigned user change
-RequestManagerTemplateTypeNotifyStatusModified        = Notification of a status change
-RequestManagerTemplateTypeNotifyInputMessageAdded     = Notification of a new input message
-RequestManagerTemplateTypeNotifyOutputMessageAdded    = Notification of a new output message
-RequestManagerTemplateTypeMessageTemplateUser         = Message model
+RequestManagerTimeSlotsPeriods      = Plages horaires
+RequestManagerTimeSlotsIntoPeriod   = Vous êtes dans la plage horaire: %s à %s
+RequestManagerTimeSlotsOutOfPeriod  = Vous êtes en dehors des plages horaires
 
 ############################################################
 ### Errors
 ############################################################
-RequestManagerErrorNoTemplateLines                              = No mesage template found in configuration for this type of request
-RequestManagerErrorMissingFieldsInTemplate                      = Missing fields in configuration of message template
-RequestManagerCreateFastErrorNoRequestSelected                  = Please select a request
+RequestManagerErrorFieldStatusMustBeOfInitialType                           = La demande doit être à un statut de type 'Initial'
+RequestManagerErrorRequestTypeNotFound                                      = Type de demande non trouvé
+RequestManagerErrorDeadlineDateMustBeGreaterThanCreateDate                  = La date d'échéance doit être supérieure à la date de création
+RequestManagerErrorInitStatusNotFound                                       = Statut de type 'Initial' non trouvé pour ce type de demande
+RequestManagerErrorStatusNotFound                                           = Statut non trouvé
+RequestManagerErrorOnlyOneStatusForThisTypeForEachRequestType               = Il ne peut y avoir qu'un statut de ce type par "Type de demande"
+RequestManagerErrorOnlyOneTemplateNameForEachRequestType                    = Il ne peut y avoir qu'un même "Libellé" de modèle par "Type de demande"
+RequestManagerErrorOnlyOneNotifyTemplateTypeForEachRequestTypeAndNotifyTo   = Il ne peut y avoir qu'un modèle de ce type par "Type de demande" et "Notifier aux"
+RequestManagerErrorNoTemplateLines                                          = No mesage template found in configuration for this type of request
+RequestManagerErrorMissingFieldsInTemplate                                  = Missing fields in configuration of message template
+RequestManagerErrorTriggerNextStatus                                        = Erreur lors du passage automatique vers le statut suivant de la demande "%s":
+RequestManagerCreateFastErrorNoRequestSelected                              = Please select a request
+RequestManagerErrorCanOnlyCreateMessageFromRequest                          = Vous ne pouvez créer un message d'une demande que depuis une fiche demande
+RequestManagerErrorMessageCanNotBeModified                                  = Vous ne pouvez pas modifier un message d'une demande
+RequestManagerErrorTimeSlotsBadPeriodFormat                                 = Mauvais format de la période : %s
+RequestManagerErrorTimeSlotsBadDateFormat                                   = Mauvais format de la date : %s
+RequestManagerErrorTimeSlotsDateFormatMustBeEqual                           = Les deux dates de la période doivent être au du même type de format : %s
+RequestManagerErrorTimeSlotsPeriodDatesIsEqual                              = Les dates la période sont identiques : %s
+RequestManagerErrorTimeSlotsDateMustBeChronological                         = Les dates la période doivent être chronologique : %s
+RequestManagerErrorMustBeNotEmpty                                           = Ne doit pas être vide
+
+######################################################################
+# Dictionaries
+######################################################################
+RequestManagerRequestTypeDictionaryLabel                                    = Requests types
+RequestManagerStatusDictionaryLabel                                         = Requests status
+RequestManagerCategoryDictionaryLabel                                       = Requests categories
+RequestManagerSourceDictionaryLabel                                         = Requests source
+RequestManagerUrgencyDictionaryLabel                                        = Requests urgency
+RequestManagerImpactDictionaryLabel                                         = Requests impact
+RequestManagerPriorityDictionaryLabel                                       = Requests priority
+RequestManagerMessageTemplateDictionaryLabel                                = Messages models
+RequestManagerNotifyTemplateDictionaryLabel                                 = Notification models
+RequestManagerKnowledgeBaseDictionaryLabel                                  = Knowledge base
+RequestManagerRequestType                                                   = Requests types
+RequestManagerType                                                          = Type
+RequestManagerTypeInitial                                                   = Initial
+RequestManagerTypeInProgress                                                = In progress
+RequestManagerTypeResolved                                                  = Resolved
+RequestManagerTypeClosed                                                    = Closed
+RequestManagerStatusDictionaryPicto                                         = Icon
+RequestManagerStatusDictionaryPictoHelp                                     = Dolibarr icon name format ('image.png' if icon is in the directory path '%s', 'image.png@nom_du_module' else if icon is in the module directory path /img/)
+RequestManagerStatusDictionaryAssignedUser                                  = Utilisateur assigné
+RequestManagerStatusDictionaryAssignedUserReplaced                          = Remplacer
+RequestManagerStatusDictionaryAssignedUserReplacedHelp                      = Remplace les utilsateurs assignés lors du passage à ce statut par ceux renseignés (sinon ils seront ajoutés)
+RequestManagerStatusDictionaryAssignedUserGroupReplaced                     = Remplacer
+RequestManagerStatusDictionaryAssignedUserGroupReplacedHelp                 = Remplace les groupes d'utilsateurs assignés lors du passage à ce statut par ceux renseignés (sinon ils seront ajoutés)
+RequestManagerStatusDictionaryAssignedUserGroup                             = Groupe d'utilisateurs assigné
+RequestManagerStatusDictionaryDeadLine                                      = Durée d'échéance
+RequestManagerStatusDictionaryDeadLineHelp                                  = En minutes, Date d'échéance calculé à partir de la date où la demande est passé à ce statut<br>-1 si la date d'échéance ne change pas, 0 ou non renseigné si il n'y en a pas
+RequestManagerStatusDictionaryNextTrigger                                   = Trigger
+RequestManagerStatusDictionaryNextTriggerHelp                               = Passage automatique au statut suivant lors du déclanchement du trigger<br>Liste non exhaustive à l'adresse: https://wiki.dolibarr.org/index.php/Triggers
+RequestManagerStatusDictionaryNextStatus                                    = Statut(s) suivant(s)
+RequestManagerStatusDictionaryStatusNotIntoRequestType                      = Ce statut suivant n'est pas dans le(s) type(s) de demande: %s
+RequestManagerStatusDictionaryNextStatusCanNotBeItself                      = Le statut suivant ne peut être lui-même
+RequestManagerStatusDictionaryCanOnlyHaveInProgressAndResolvedForNextStatus = Le statut suivant ne peut pas être que de type 'En cours' ou 'Résolu'
+RequestManagerStatusDictionaryCanOnlyHaveClosedForNextStatus                = Le statut suivant ne peut pas être que de type 'Clôt'
+RequestManagerStatusDictionaryOperation                                     = Durée d'opération
+RequestManagerStatusDictionaryOperationHelp                                 = En minutes, Date d'opération calculé à partir de la date où la demande est passé à ce statut<br>-1 si la date d'opération ne change pas, 0 ou non renseigné si il n'y en a pas
+RequestManagerSourceDictionaryEventType                                     = Type d'évenement
+RequestManagerStatusDictionaryNewRequestType                                = Nouvelles demandes
+RequestManagerStatusDictionaryNewRequestTypeHelp                            = Nouvelles demandes disponiblent lors du passage à ce statut.<br>La demande passe au statut suivant une fois toutes les demandes filles cloturées.
+RequestManagerStatusDictionaryNewRequestTypeAuto                            = Création automatique
+RequestManagerStatusDictionaryNewRequestTypeAutoHelp                        = Créer les nouvelles demandes automatiquement lors du passage à ce statut.
+RequestManagerStatusDictionaryAuthorizedButtons                             = Boutons authorisés
+RequestManagerStatusDictionaryAuthorizedButtonsHelp                         = Liste des boutons authorisés à ce status (Tous les boutons si aucun sélectionnés)
+RequestManagerStatusDictionaryNoButtons                                     = Aucun boutons
+RequestManagerNotifyTemplateTypeRequestCreated                              = Ajout d'une demande
+RequestManagerNotifyTemplateTypeRequestCreatedOutOfTime                     = Ajout d'une demande hors plages horaires
+RequestManagerNotifyTemplateTypeAssignedUsersModified                       = Changement d'utilisateur assigné
+RequestManagerNotifyTemplateTypeStatusModified                              = Changement de statut
+RequestManagerNotifyTemplateTypeMessageAdded                                = Ajout de message
+RequestManagerTemplateTypeRequestMessage                                    = Message d'une demande
+RequestManagerNotifyTemplateType                                            = Type de notification
+RequestManagerTemplateForRequestType                                        = Pour quel type de demande ce modèle est-il dédié ?
+RequestManagerNotifyTo                                                      = Notifier aux
+RequestManagerNotifyToHelp                                                  = Pour qui ce modèle est-il dédié ?
+RequestManagerCategories                                                    = Catégories de demande
+
+############################################################
+### Form request manager
+############################################################
+RequestManagerDontHaveRequestTypeForYoursGroup      = Vous n'avez pas de type de demande attribuée à vos groupes
+
+######################################################################
+# Automatics events
+######################################################################
+RequestManagerCreatedInDolibarr             = Demande %s créée
+RequestManagerModifiedInDolibarr            = Demande %s modifiée
+RequestManagerModifiedPropertiesList        = Liste des champs modifiés (anciennement)
+RequestManagerDeletedInDolibarr             = Demande %s supprimée
+RequestManagerAssignedModifiedInDolibarr    = Assignés à la demande %s modifiés
+RequestManagerAssignedUsersAdded            = Utilisateurs assignés ajoutés
+RequestManagerAssignedUserGroupsAdded       = Groupes d'utilisateurs assignés ajoutés
+RequestManagerAssignedUsersDeleted          = Utilisateurs assignés supprimés
+RequestManagerAssignedUserGroupsDeleted     = Groupes d'utilisateurs assignés supprimés
+RequestManagerStatusModifiedInDolibarr      = Statut de la demande %s modifié
+RequestManagerOldStatus                     = Ancien statut
+RequestManagerNewStatus                     = Nouveau statut
+RequestManagerNewDescription                = Nouvelle description
+RequestManagerOldDescription                = Ancienne description
+RequestManagerNewProductLines               = Nouvelles lignes de produits/services
+RequestManagerOldProductLines               = Anciennes lignes de produits/services
+
+############################################################
+### Calling events
+############################################################
+RequestManagerIPBXUniqueID          = Unique ID : %s
+RequestManagerIPBXChannel           = Canal : %s
+RequestManagerIPBXCallerIDNum       = Numéro de l'appelant : %s
+RequestManagerIPBXCallerIDName      = Nom de l'appelant : %s
+RequestManagerIPBXCalledNum         = Numéro appelé : %s
+RequestManagerIPBXDirection         = Sens : %s
+RequestManagerIPBXContext           = Contexte : %s
+RequestManagerIPBXExtension         = Extension : %s
+RequestManagerIPBXBeginAskHour      = Heure de début de l'appel : %s
+RequestManagerIPBXTransferSuffix    = Suffixe de transfert : %s
+RequestManagerIPBXEndHour           = Heure de fin de l'appel : %s
+RequestManagerIPBXAnswered          = Est-ce que l'appel a été répondu? : %s
+RequestManagerIPBXPrivilege         = Privilège : %s
+RequestManagerIPBXConnectedLineNum  = Numéro de ligne connectée : %s
+RequestManagerIPBXConnectedLineName = Nom de ligne connectée : %s
+RequestManagerIPBXAccountCode       = L'appel a-t-il un code de compte? : %s
+RequestManagerIPBXChannelState      = Etat du canal : %s
+RequestManagerIPBXChannelStateDesc  = Description de l'état du canal : %s
+RequestManagerIPBXPriority          = Priorité : %s
+RequestManagerIPBXSeconds           = Secondes : %s
+RequestManagerIPBXId                = Id : %s
+RequestManagerIPBXFrom              = Venant de : %s
+RequestManagerIPBXFromChannel       = Venant du canal : %s
+RequestManagerIPBXTo                = Vers : %s
+RequestManagerIPBXToChannel         = Vers le canal : %s
+RequestManagerIPBXType              = Type : %s
+RequestManagerIPBXClass             = Classe : %s
+RequestManagerIPBXDestinationType   = Type de destination : %s
+RequestManagerIPBXDirectionId       = Sens id : %s
+RequestManagerIPBXDate              = Date : %s
+RequestManagerIPBXDuration          = Durée : %s
+RequestManagerIPBXBillSec           = Bill Sec : %s
+RequestManagerIPBXCost              = Coût : %s
+RequestManagerIPBXTags              = Tags : %s
+RequestManagerIPBXPbx               = PBX : %s
+RequestManagerIPBXUserField         = Champs utilisateur :
+RequestManagerIPBXFaxData           = Données du fax :
+RequestManagerHourFromTo            = de %s à %s

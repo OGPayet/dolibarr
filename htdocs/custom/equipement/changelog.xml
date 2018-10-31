@@ -159,6 +159,9 @@
 <Version Number="6.0.+2.3.4" MonthVersion="2017-12">
 	<change type='fix'>sql Error on recent mysql version</change>
 </Version>
+<Version Number="6.0.+2.3.5" MonthVersion="2018-10">
+    <change type='add'>API</change>
+</Version>
 
 <Dolibarr minVersion="3.6.0"/>
 </changelog>

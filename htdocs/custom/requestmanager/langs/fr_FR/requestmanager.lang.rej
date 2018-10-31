@@ -1,76 +1,58 @@
 diff a/htdocs/custom/requestmanager/langs/fr_FR/requestmanager.lang b/htdocs/custom/requestmanager/langs/fr_FR/requestmanager.lang	(rejected hunks)
-@@ -33,12 +39,14 @@ RequestManagerChronometerSoundName                      = Son d'alerte
- RequestManagerChronometerSoundDesc                      = Adresse URL du fichier son d'aletre une fois la limite de temps atteinte ou dépassée
- 
- RequestManagerNotificationOptions                       = Paramètres généraux des notifications
--RequestManagerMessageCreateNotifyName                   = Notification lors de la création d'un message
--RequestManagerMessageCreateNotifyDesc                   = Active la notification global lors de la création d'un message d'une demande
-+RequestManagerCreateNotifyName                          = Notification lors de la création d'une demande
-+RequestManagerCreateNotifyDesc                          = Active la notification global lors de la création d'une demande
- RequestManagerSetAssignedNotifyName                     = Notification lors du changement d'assignation
- RequestManagerSetAssignedNotifyDesc                     = Active la notification global lors du changement d'assignation d'une demande
- RequestManagerStatusModifyNotifyName                    = Notification lors du changement de statut
- RequestManagerStatusModifyNotifyDesc                    = Active la notification global lors du changement de statut d'une demande
-+RequestManagerMessageCreateNotifyName                   = Notification lors de la création d'un message
-+RequestManagerMessageCreateNotifyDesc                   = Active la notification global lors de la création d'un message d'une demande
- 
- RequestManagerNotificationAssignedOptions               = Paramètres des notifications aux assignés
- RequestManagerNotificationAssignedByEmailName           = Notification par courriel
-@@ -117,6 +126,11 @@ Notify_REQUESTMANAGER_SET_ASSIGNED      = Assignation d'une demande modifiée
- Notify_REQUESTMANAGER_STATUS_MODIFY     = Statut d'une demande modifiée
- Notify_REQUESTMANAGERMESSAGE_SENTBYMAIL = Envoi du message d'une demande par email
- 
-+############################################################
-+### Extra fields
-+############################################################
-+RequestManagerIPBX      = IPBX
-+
+@@ -444,17 +443,41 @@ RequestManagerOldProductLines               = Anciennes lignes de produits/servi
  ############################################################
- ### Global search
+ ### Calling events
  ############################################################
-@@ -368,6 +399,8 @@ RequestManagerStatusDictionaryNewRequestTypeAutoHelp                        = Cr
- RequestManagerStatusDictionaryAuthorizedButtons                             = Boutons authorisés
- RequestManagerStatusDictionaryAuthorizedButtonsHelp                         = Liste des boutons authorisés à ce status (Tous les boutons si aucun sélectionnés)
- RequestManagerStatusDictionaryNoButtons                                     = Aucun boutons
-+RequestManagerNotifyTemplateTypeRequestCreated                              = Ajout d'une demande
-+RequestManagerNotifyTemplateTypeRequestCreatedOutOfTime                     = Ajout d'une demande hors plages horaires
- RequestManagerNotifyTemplateTypeAssignedUsersModified                       = Changement d'utilisateur assigné
- RequestManagerNotifyTemplateTypeStatusModified                              = Changement de statut
- RequestManagerNotifyTemplateTypeMessageAdded                                = Ajout de message
-@@ -404,18 +437,19 @@ RequestManagerNewProductLines               = Nouvelles lignes de produits/servi
- RequestManagerOldProductLines               = Anciennes lignes de produits/services
- 
- ############################################################
--### API
--############################################################
--API_caller               = Numéro de l'appelant : 
--API_called               = Numéro appelé : 
--API_hour                 = Heure de début de l'appel : 
--API_poste                = Poste ayant décroché/émis l'appel : 
--API_name_post            = Nom du compte associé au poste : 
--API_id_IPBX              = Id interne à l'IPBX de l'appel : 
--API_groupe               = Groupe de réponse à l'origine de l'appel : 
--API_type                 = Sens de l'appel : 
--API_source               = Appel source : 
--API_state                = État de l'appel : 
--API_hour_end             = Heure de fin de l'appel : 
--API_during               = Durée de la communication : 
--API_messagerie           = ID interne à l'IPBX du message : 
+-RequestManagerIPBXID                    = ID interne à l'IPBX de l'appel : %s
+-RequestManagerCallerNumber              = Numéro de l'appelant : %s
+-RequestManagerCalledNumber              = Numéro appelé : %s
+-RequestManagerStartTimeCall             = Heure de début de l'appel : %s
+-RequestManagerEndTimeCall               = Heure de fin de l'appel : %s
+-RequestManagerCallPost                  = Poste ayant décroché/émis l'appel : %s
+-RequestManagerCallPostName              = Nom du compte associé au poste : %s
+-RequestManagerAnswerGroupAtOriginCall   = Groupe de réponse à l'origine de l'appel : %s
+-RequestManagerCallDirection             = Sens de l'appel : %s
+-RequestManagerCallOrigin                = Appel source : %s
+-RequestManagerCallStatus                = État de l'appel : %s
+-RequestManagerCallDuration              = Durée de la communication : %s
+-RequestManagerCallMessageID             = ID interne à l'IPBX du message : %s
+-RequestManagerHourFromTo                = de %s à %s
 \ No newline at end of file
-+### Calling events
-+############################################################
-+RequestManagerIPBXID                    = ID interne à l'IPBX de l'appel : %s
-+RequestManagerCallerNumber              = Numéro de l'appelant : %s
-+RequestManagerCalledNumber              = Numéro appelé : %s
-+RequestManagerStartTimeCall             = Heure de début de l'appel : %s
-+RequestManagerEndTimeCall               = Heure de fin de l'appel : %s
-+RequestManagerCallPost                  = Poste ayant décroché/émis l'appel : %s
-+RequestManagerCallPostName              = Nom du compte associé au poste : %s
-+RequestManagerAnswerGroupAtOriginCall   = Groupe de réponse à l'origine de l'appel : %s
-+RequestManagerCallDirection             = Sens de l'appel : %s
-+RequestManagerCallOrigin                = Appel source : %s
-+RequestManagerCallStatus                = État de l'appel : %s
-+RequestManagerCallDuration              = Durée de la communication : %s
-+RequestManagerCallMessageID             = ID interne à l'IPBX du message : %s
-+RequestManagerHourFromTo                = de %s à %s
-\ No newline at end of file
++RequestManagerIPBXUniqueID          = Unique ID : %s
++RequestManagerIPBXChannel           = Canal : %s
++RequestManagerIPBXCallerIDNum       = Numéro de l'appelant : %s
++RequestManagerIPBXCallerIDName      = Nom de l'appelant : %s
++RequestManagerIPBXCalledNum         = Numéro appelé : %s
++RequestManagerIPBXDirection         = Sens : %s
++RequestManagerIPBXContext           = Contexte : %s
++RequestManagerIPBXExtension         = Extension : %s
++RequestManagerIPBXBeginAskHour      = Heure de début de l'appel : %s
++RequestManagerIPBXTransferSuffix    = Suffixe de transfert : %s
++RequestManagerIPBXEndHour           = Heure de fin de l'appel : %s
++RequestManagerIPBXAnswered          = Est-ce que l'appel a été répondu? : %s
++RequestManagerIPBXPrivilege         = Privilège : %s
++RequestManagerIPBXConnectedLineNum  = Numéro de ligne connectée : %s
++RequestManagerIPBXConnectedLineName = Nom de ligne connectée : %s
++RequestManagerIPBXAccountCode       = L'appel a-t-il un code de compte? : %s
++RequestManagerIPBXChannelState      = Etat du canal : %s
++RequestManagerIPBXChannelStateDesc  = Description de l'état du canal : %s
++RequestManagerIPBXPriority          = Priorité : %s
++RequestManagerIPBXSeconds           = Secondes : %s
++RequestManagerIPBXId                = Id : %s
++RequestManagerIPBXFrom              = Venant de : %s
++RequestManagerIPBXFromChannel       = Venant du canal : %s
++RequestManagerIPBXTo                = Vers : %s
++RequestManagerIPBXToChannel         = Vers le canal : %s
++RequestManagerIPBXType              = Type : %s
++RequestManagerIPBXClass             = Classe : %s
++RequestManagerIPBXDestinationType   = Type de destination : %s
++RequestManagerIPBXDirectionId       = Sens id : %s
++RequestManagerIPBXDate              = Date : %s
++RequestManagerIPBXDuration          = Durée : %s
++RequestManagerIPBXBillSec           = Bill Sec : %s
++RequestManagerIPBXCost              = Coût : %s
++RequestManagerIPBXTags              = Tags : %s
++RequestManagerIPBXPbx               = PBX : %s
++RequestManagerIPBXUserField         = Champs utilisateur :
++RequestManagerIPBXFaxData           = Données du fax :
++RequestManagerHourFromTo            = de %s à %s

@@ -478,8 +478,8 @@ class RequestManagerMessage extends ActionComm
             dol_include_once('/advancedictionaries/class/dictionary.class.php');
             $dictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagerknowledgebase');
             $lines = $dictionary->fetch_lines(-1, array('rowid' => $this->knowledge_base_ids));
-            if (is_array($lines)) {
-                $this->knowledge_base_list = $lines;
+            if ($lines > 0) {
+                $this->knowledge_base_list = $dictionary->lines;
             }
         }
     }

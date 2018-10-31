@@ -69,7 +69,7 @@ class modRequestManager extends DolibarrModules
         $this->editor_url = 'http://www.open-dsi.fr';
 
         // Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-        $this->version = '4.0.11';
+        $this->version = '4.0.12';
         // Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
         $this->const_name = 'MAIN_MODULE_' . strtoupper($this->name);
         // Name of image file used for this module.
@@ -515,6 +515,13 @@ class modRequestManager extends DolibarrModules
 	{
 	    global $langs, $conf;
 		$sql = array();
+
+        // Create extrafields
+        include_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
+        $extrafields = new ExtraFields($this->db);
+		$result=$extrafields->addExtraField('rm_ipbx_id', $langs->trans('RequestManagerIPBXID'), 'varchar', 1,  255, 'actioncomm',   1, 0, '', null, 0, '', 0, 1, '', '');
+        $result=$extrafields->addExtraField('rm_timeslots_separator', $langs->trans('RequestManagerTimeSlotsSeparatorTitle'), 'separate', 400,  '', 'contrat',   0, 0, '', null, 1, '', 1, 0, '');
+        $result=$extrafields->addExtraField('rm_timeslots_periods', $langs->trans('RequestManagerTimeSlotsPeriodsName'), 'text', 401,  2000, 'contrat',   0, 0, '', null, 1, '', 1, 0, '');
 
         $this->_load_tables('/requestmanager/sql/');
 

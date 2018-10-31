@@ -380,22 +380,15 @@ if ($zone === 3) {
         print '<div class="div-table-responsive-no-min">';
         print '<table class="noborder allwidth">';
         print '<tr class="liste_titre">';
-        print '<td>' . $langs->trans("RequestManagerCreateFastContractFormula") . '</td>';
         print '<td>' . $langs->trans("Ref") . '</td>';
-        print '<td></td>';
+        print '<td align="right">' . $langs->trans("Status") . '</td>';
         print '</tr>';
         print '</tr>';
         if (count($contractList) > 0) {
-            $contractStatic = new Contrat($db);
-            $contractExtraFields = new ExtraFields($db);
-            $contractExtraLabels = $contractExtraFields->fetch_name_optionals_label($contractStatic->table_element);
             foreach ($contractList as $contract) {
-                // Todo specific code to get out
-                $formuleId    = $contract->array_options['options_formule'];
-                $formuleLabel = $contractExtraFields->attribute_param['formule']['options'][$formuleId];
                 print '<tr class="liste">';
-                print '<td align="left">' . $formuleLabel . '</td>';
                 print '<td align="left"><a href="' . DOL_URL_ROOT.  '/contrat/card.php?id=' . $contract->id . '" target="_blank">' . $contract->ref . '</a></td>';
+                print '<td align="right">'.$contract->getLibStatut(7).'</td>';
                 print '<tr>';
             }
         }

@@ -1348,7 +1348,7 @@ function requestmanager_show_timelines(&$requestmanager)
         print '<input type="hidden" name="page" value="' . $page . '">';
         print '<input type="hidden" name="list_mode" value="' . $list_mode . '">';
 
-        print_barre_liste($title, $page, $_SERVER["PHP_SELF"], $param, $sortfield, $sortorder, $morehtml, $num, $nbtotalofrecords, '', 0, '', '', $limit);
+        print_barre_liste($title, $page, $_SERVER["PHP_SELF"], $param, '', '', $morehtml, $num, $nbtotalofrecords, '', 0, '', '', $limit);
 
         print '</form>' . "\n";
 
@@ -1415,7 +1415,6 @@ SCRIPT;
             $requestmessage_static->datec = $db->jdate($obj->datec);
             $requestmessage_static->datem = $db->jdate($obj->datem);
             $current_day = dol_print_date($requestmessage_static->datec, 'daytext');
-            if ($today_day = $current_day) $current_day = $langs->trans('Today');
 
             $requestmessage_static->note = $obj->note;
 
@@ -1441,23 +1440,20 @@ SCRIPT;
                     print '</div><!-- end of timeline-events -->' . "\n";
                     print '<div class="clearfix"></div>' . "\n";
                     print '</div><!-- end of timeline-block -->' . "\n";
-                } else {
-                    if ($page > 0) {
-                        print '<div class="timeline-block">' . "\n";
-                        print '<div class="timeline-events">' . "\n";
-                        print '<br>' . "\n";
-                        print '</div><!-- end of timeline-events -->' . "\n";
-                        print '<div class="clearfix"></div>' . "\n";
-                        print '</div><!-- end of timeline-block -->' . "\n";
-                    }
-                    print '<div class="timeline-top">' . "\n";
-                    print '<div class="top-day">' . $current_day . '</div>' . "\n";
-                    print '</div>' . "\n";
+                } elseif ($page > 0) {
                     print '<div class="timeline-block">' . "\n";
                     print '<div class="timeline-events">' . "\n";
                     print '<br>' . "\n";
-                    $last_day = $current_day;
+                    print '</div><!-- end of timeline-events -->' . "\n";
+                    print '<div class="clearfix"></div>' . "\n";
+                    print '</div><!-- end of timeline-block -->' . "\n";
                 }
+                print '<div class="timeline-top">' . "\n";
+                print '<div class="top-day">' . ($today_day == $current_day ? $langs->trans('Today') : $current_day) . '</div>' . "\n";
+                print '</div>' . "\n";
+                print '<div class="timeline-block">' . "\n";
+                print '<div class="timeline-events">' . "\n";
+                $last_day = $current_day;
             }
 
             $notified = array();
@@ -1475,8 +1471,8 @@ SCRIPT;
             }
 
             $files_toprint = array();
-            $upload_dir = $conf->agenda->dir_output.'/'.dol_sanitizeFileName($requestmessage_static->ref);
-            $filearray = dol_dir_list($upload_dir,"files",0,'','(\.meta|_preview.*\.png)$');
+            $upload_dir = $conf->agenda->dir_output . '/' . dol_sanitizeFileName($requestmessage_static->ref);
+            $filearray = dol_dir_list($upload_dir, "files", 0, '', '(\.meta|_preview.*\.png)$');
             foreach ($filearray as $file) {
                 $relativepath = $requestmessage_static->id . '/' . $file["name"];
 

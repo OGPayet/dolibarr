@@ -56,15 +56,15 @@ header('Content-Type: text/css');
 }
 #timeline-container #timeline-wrapper .timeline-top .top-day {
   display: inline-block;
-  padding: 10px;
+  padding: 5px 15px;
   border-radius: 40px;
   background-color: #03a9f4;
   color: #fff;
   text-align: center;
-  font-size: 2.8rem;
+  font-size: 1.8rem;
 }
 #timeline-container #timeline-wrapper .timeline-top .top-day > span {
-  font-size: 3rem;
+  font-size: 2rem;
 }
 #timeline-container #timeline-wrapper .timeline-block {
   width: 100%;
@@ -74,12 +74,12 @@ header('Content-Type: text/css');
 #timeline-container #timeline-wrapper .timeline-block:after {
   content: "";
   position: absolute;
-  width: 4px;
+  width: 10px;
   height: 100%;
   background-color: #03a9f4;
   left: 50%;
   top: 0;
-  margin-left: -2px;
+  margin-left: -5px;
 }
 #timeline-container #timeline-wrapper .timeline-block .timeline-events .l-event {
   float: left;

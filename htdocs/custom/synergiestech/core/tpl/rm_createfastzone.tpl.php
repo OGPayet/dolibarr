@@ -371,6 +371,7 @@ if ($zone === 3) {
     if ($selectedSocId <= 0) {
         print '';
     } else {
+        $langs->load('synergiestech@synergiestech');
         // Contract list of this thirdparty
         $contractList = array();
         $requestManager->loadAllContract($selectedSocId, FALSE, $contractList);
@@ -379,9 +380,9 @@ if ($zone === 3) {
         print '<div class="div-table-responsive-no-min">';
         print '<table class="noborder allwidth">';
         print '<tr class="liste_titre">';
-        print '<td>' . $langs->trans("RequestManagerCreateFastContractFormula") . '</td>';
+        print '<td>' . $langs->trans("SynergiesTechCreateFastContractFormula") . '</td>';
         print '<td>' . $langs->trans("Ref") . '</td>';
-        print '<td></td>';
+        print '<td align="right">' . $langs->trans("Status") . '</td>';
         print '</tr>';
         print '</tr>';
         if (count($contractList) > 0) {
@@ -395,6 +396,7 @@ if ($zone === 3) {
                 print '<tr class="liste">';
                 print '<td align="left">' . $formuleLabel . '</td>';
                 print '<td align="left"><a href="' . DOL_URL_ROOT.  '/contrat/card.php?id=' . $contract->id . '" target="_blank">' . $contract->ref . '</a></td>';
+                print '<td align="right">'.$contract->getLibStatut(7).'</td>';
                 print '<tr>';
             }
         }

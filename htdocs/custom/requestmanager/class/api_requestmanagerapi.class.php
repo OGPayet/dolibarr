@@ -1,5 +1,6 @@
 <?php
 /* Copyright (C) 2018	Julien Vercruysse	<julien.vercruysse@elonet.fr>
+ * Copyright (C) 2018	Open-DSI	        <support@open-dsi.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -733,29 +734,28 @@ class RequestManagerApi extends DolibarrApi {
     /**
      *  Create a calling event
      *
-     * @url	POST /call/{id}/begin
+     * @url	POST /call/{unique_id}/begin
      *
-     * @param   int         $id                 Id interne à l'IPBX de l'appel
-     * @param   string      $caller_number      Caller's number
-     * @param   string      $called_number      Called number
-     * @param   string      $type               Sens de l'appel : entrant, sortant, transfert interne
-     * @param   string      $hour               Heure de début de l'appel (renseigné par l'IPBX, si non renseigné fait par dolibarr)
-     * @param   float       $poste              Poste ayant décroché/émis l'appel
-     * @param   string      $name_post          Nom du compte associé au poste
-     * @param   string      $groupe             Groupe de réponse à l'origine de l'appel
-     * @param   string      $source             Appel source : id interne IPBX
+     * @param   string      $unique_id          Unique ID of the call
+     * @param   string      $caller_id_num      Caller's number
+     * @param   string      $called_num         Called number
+     * @param   string      $direction          Direction of the call
+     * @param   string      $channel            Channel of the call
+     * @param   string      $caller_id_name     Caller's name
+     * @param   string      $context            Context of the call
+     * @param   string      $extension          Extension of the call
+     * @param   string      $begin_ask_hour     Begin ask hour of the call
+     * @param   string      $transfer_suffix    Transfer suffix of the call
      *
      * @return  int                             ID of the calling event
      *
      * @throws  401         RestException       Insufficient rights
-     * @throws  404         RestException       Company not found with phones
-     * @throws  404         RestException       Internal user not found with phones
      * @throws  500         RestException       Error when retrieve company / contact
      * @throws  500         RestException       Error when retrieve company information
      * @throws  500         RestException       Error when retrieve internal user
      * @throws  500         RestException       Error while creating the calling event
      */
-    function CallBegin($id, $caller_number, $called_number, $type, $hour='', $poste=NULL, $name_post='', $groupe='', $source=NULL)
+    function CallBegin($unique_id, $caller_id_num, $called_num, $direction, $channel='', $caller_id_name='', $context='', $extension='', $begin_ask_hour='', $transfer_suffix='')
     {
         global $langs;
 
@@ -766,8 +766,8 @@ class RequestManagerApi extends DolibarrApi {
         $now = dol_now();
 
         // Clean parameters
-        $from_num = preg_replace("/\D/", "", $caller_number);
-        $target_num = preg_replace("/\D/", "", $called_number);
+        $from_num = preg_replace("/\D/", "", $caller_id_num);
+        $target_num = preg_replace("/\D/", "", $called_num);
 
         // Search contact / company
         //---------------------------------------
@@ -800,20 +800,18 @@ class RequestManagerApi extends DolibarrApi {
             throw new RestException(500, "Error when retrieve company / contact", self::$db->lasterror());
         }
 
-        if ($socid == 0) {
-            throw new RestException(404, "Company not found with phones: ".$from_num.", ".$target_num);
-        }
-
-        require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
-        $societe = new Societe(self::$db);
-        $result = $societe->fetch($socid);
-        if ($result < 0) {
-            throw new RestException(500, "Error when retrieve company information", $this->_getErrors($requestmanager));
+        if ($socid > 0) {
+            require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
+            $societe = new Societe(self::$db);
+            $result = $societe->fetch($socid);
+            if ($result < 0) {
+                throw new RestException(500, "Error when retrieve company information", $this->_getErrors($requestmanager));
+            }
         }
 
         // Search internal user
         //---------------------------------------
-        $userid = 0;
+        $userid = DolibarrApiAccess::$user->id;
         //$userassigned = array();
 
         $sql = "SELECT rowid AS userid";
@@ -837,40 +835,49 @@ class RequestManagerApi extends DolibarrApi {
             throw new RestException(500, "Error when retrieve internal user", self::$db->lasterror());
         }
 
-        if ($userid == 0) {
-            throw new RestException(404, "Internal user not found with phones: ".$from_num.", ".$target_num);
-        }
-
         require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
         $actioncomm = new ActionComm(self::$db);
+
+        // Begin date
+        //--------------------------------------------------
+        $begin_date = new DateTime($begin_ask_hour);
+        if (isset($begin_date)) {
+            $begin_date = $begin_date->getTimestamp();
+        } else {
+            $begin_date = $now;
+        }
 
         // Create event
         //--------------------------------------------------
         $langs->load('commercial');
         $langs->load('requestmanager@requestmanager');
         $actioncomm->type_code = "AC_TEL";
-        $actioncomm->label = $langs->trans('ActionAC_TEL') . ': ' . $type . ' - ' . $societe->getFullName($langs) . ' - ' . $langs->trans('ActionRunningShort');
-        // Todo calculer la date exacte
-        $actioncomm->location = (!empty($name_post) ? $name_post : '') . (!empty($poste) ? ' ( ' . $poste . ' )' : '');
-        $actioncomm->datep = $now;
+        $actioncomm->location = $channel;
+        $actioncomm->datep = $begin_date;
         $actioncomm->percentage = 50;
         //$actioncomm->userassigned = $userassigned;
         $actioncomm->socid = $socid;
         $actioncomm->contactid = $contactid;
         $actioncomm->userownerid = $userid;
-        $actioncomm->array_options = array("options_rm_ipbx" => $id);
+        $actioncomm->array_options = array("options_rm_ipbx_id" => $unique_id);
+
+        // Title
+        //--------------------------------------------------
+        $actioncomm->label = $langs->trans('ActionAC_TEL') . ': ' . $direction . ' - ' . ($socid > 0 ? $societe->getFullName($langs) : $caller_id_num . ' ' . $langs->trans('toward') . ' ' . $called_num) .
+            ' - ' . $langs->trans('ActionRunningShort');
 
         // Message
         //--------------------------------------------------
-        $message = $langs->trans('RequestManagerIPBXID', $id) . '<br/>';
-        if (!empty($poste)) $message .= $langs->trans('RequestManagerCallPost', $poste) . '<br/>';
-        if (!empty($name_post)) $message .= $langs->trans('RequestManagerCallPostName', $name_post) . '<br/>';
-        $message .= $langs->trans('RequestManagerCallerNumber', $caller_number) . '<br/>';
-        $message .= $langs->trans('RequestManagerCalledNumber', $called_number) . '<br/>';
-        $message .= $langs->trans('RequestManagerCallDirection', $type) . '<br/>';
-        if (!empty($groupe)) $message .= $langs->trans('RequestManagerAnswerGroupAtOriginCall', $groupe) . '<br/>';
-        if (!empty($source)) $message .= $langs->trans('RequestManagerCallOrigin', $source) . '<br/>';
-        $message .= $langs->trans('RequestManagerStartTimeCall', !empty($hour) ? $hour : dol_print_date($now, 'hour')) . '<br/>';
+        $message = $langs->trans('RequestManagerIPBXUniqueID', $unique_id) . '<br>';
+        if (!empty($channel)) $message.= $langs->trans('RequestManagerIPBXChannel', $channel) . '<br>';
+        $message.= $langs->trans('RequestManagerIPBXCallerIDNum', $caller_id_num) . '<br>';
+        if (!empty($caller_id_name)) $message.= $langs->trans('RequestManagerIPBXCallerIDName', $caller_id_name) . '<br>';
+        $message.= $langs->trans('RequestManagerIPBXCalledNum', $called_num) . '<br>';
+        $message.= $langs->trans('RequestManagerIPBXDirection', $direction) . '<br>';
+        if (!empty($context)) $message.= $langs->trans('RequestManagerIPBXContext', $context) . '<br>';
+        if (!empty($extension)) $message.= $langs->trans('RequestManagerIPBXExtension', $extension) . '<br>';
+        if (!empty($begin_ask_hour)) $message.= $langs->trans('RequestManagerIPBXBeginAskHour', $begin_ask_hour) . '<br>';
+        if (!empty($transfer_suffix)) $message.= $langs->trans('RequestManagerIPBXTransferSuffix', $transfer_suffix) . '<br>';
         $actioncomm->note = $message;
 
         if ($actioncomm->create(DolibarrApiAccess::$user) < 0) {
@@ -883,22 +890,58 @@ class RequestManagerApi extends DolibarrApi {
     /**
      *  Close a calling event
      *
-     * @url	PUT /call/{id}/ending
+     * @url	PUT /call/{unique_id}/ending
      *
-     * @param   int         $id                 Id interne à l'IPBX de l'appel
-     * @param   string      $state              État de l'appel : Décroché, non décroché, messagerie
-     * @param   string      $hour               Heure de fin de l'appel  (renseigné par l'IPBX, si non renseigné fait par dolibarr)
-     * @param   string      $during             Durée de la communication
-     * @param   int         $messagerie         Si messagerie, id interne à l'IPBX du message
+     * @param   string      $unique_id              Unique ID of the call
+     * @param   string      $caller_id_num          Caller's number
+     * @param   string      $called_num             Called number
+     * @param   string      $direction              Direction of the call
+     * @param   string      $channel                Channel of the call
+     * @param   string      $caller_id_name         Caller's name
+     * @param   string      $context                Context of the call
+     * @param   string      $extension              Extension of the call
+     * @param   string      $begin_ask_hour         Begin ask hour of the call
+     * @param   string      $transfer_suffix        Transfer suffix of the call
+     * @param   string      $end_hour               End hour of the call
+     * @param   boolean     $answered               Has the call been answered ?
+     * @param   string      $privilege              Privilege
+     * @param   string      $connected_line_num     Connected line num
+     * @param   string      $connected_line_name    Connected line name
+     * @param   boolean     $account_code           Does the call have an account code ?
+     * @param   string      $channel_state          Channel state
+     * @param   string      $channel_state_desc     Channel state description
+     * @param   string      $priority               Priority
+     * @param   string      $seconds                Seconds
+     * @param   string      $id                     ID
+     * @param   string      $from                   From ID
+     * @param   string      $from_channel           From channel
+     * @param   string      $to                     To ID
+     * @param   string      $to_channel             To channel
+     * @param   string      $type                   Type
+     * @param   string      $class                  Class
+     * @param   string      $dest_type              Destination type
+     * @param   string      $direction_id           Direction ID
+     * @param   string      $date_call              Date
+     * @param   string      $duration               Duration
+     * @param   string      $bill_sec               Bill sec
+     * @param   string      $cost                   Cost
+     * @param   string      $tags                   Tags
+     * @param   string      $pbx                    PBX
+     * @param   array       $user_field             User field
+     * @param   string      $fax_data               Fax data
      *
-     * @return  int                             ID of the calling event
+     * @return  int                                 ID of the calling event
      *
-     * @throws  401         RestException       Insufficient rights
-     * @throws  404         RestException       Calling event not found with IPBX ID
-     * @throws  500         RestException       Error when retrieve calling event
-     * @throws  500         RestException       Error while closing the calling event
+     * @throws  401         RestException           Insufficient rights
+     * @throws  404         RestException           Calling event not found with IPBX ID
+     * @throws  500         RestException           Error when retrieve calling event
+     * @throws  500         RestException           Error when retrieve company information
+     * @throws  500         RestException           Error while closing the calling event
      */
-    function CallEnding($id, $state, $hour='', $during='', $messagerie=NULL)
+    function CallEnding($unique_id, $caller_id_num, $called_num, $direction, $channel='', $caller_id_name='', $context='', $extension='', $begin_ask_hour='', $transfer_suffix='',
+                        $end_hour='', $answered = false, $privilege='', $connected_line_num='', $connected_line_name='', $account_code=false, $channel_state='',
+                        $channel_state_desc='', $priority='', $seconds='', $id='', $from='', $from_channel='', $to='', $to_channel='', $type='', $class='', $dest_type='',
+                        $direction_id='', $date_call='', $duration='', $bill_sec='', $cost='', $tags='', $pbx='', $user_field=array(), $fax_data='')
     {
         global $langs;
 
@@ -915,7 +958,7 @@ class RequestManagerApi extends DolibarrApi {
         $sql = "SELECT ac.id";
         $sql .= " FROM " . MAIN_DB_PREFIX . "actioncomm AS ac";
         $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "actioncomm_extrafields AS acef ON acef.fk_object = ac.id";
-        $sql .= " WHERE acef.rm_ipbx = " . $id;
+        $sql .= " WHERE acef.rm_ipbx_id = '" . self::$db->escape($unique_id) . "'";
 
         $resql = self::$db->query($sql);
         if ($resql) {
@@ -927,7 +970,7 @@ class RequestManagerApi extends DolibarrApi {
         }
 
         if ($actioncommid == 0) {
-            throw new RestException(404, "Calling event not found with IPBX ID: " . $id);
+            throw new RestException(404, "Calling event not found with IPBX Unique ID: " . $unique_id);
         }
 
         require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
@@ -936,23 +979,91 @@ class RequestManagerApi extends DolibarrApi {
             throw new RestException(500, "Error when retrieve calling event", $this->_getErrors($actioncomm));
         }
 
+        // Get company
+        //--------------------------------------------------
+        if ($actioncomm->socid > 0) {
+            require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
+            $societe = new Societe(self::$db);
+            $result = $societe->fetch($actioncomm->socid);
+            if ($result < 0) {
+                throw new RestException(500, "Error when retrieve company information", $this->_getErrors($requestmanager));
+            }
+        }
+
+        // Begin date
+        //--------------------------------------------------
+        $begin_date = !empty($begin_ask_hour) ? new DateTime($begin_ask_hour) : null;
+        if (isset($begin_date)) {
+            $begin_date = $begin_date->getTimestamp();
+        } else {
+            $begin_date = $actioncomm->datep;
+        }
+
+        // End date
+        //--------------------------------------------------
+        $end_date = !empty($end_hour) ? new DateTime($end_hour) : null;
+        if (isset($end_date)) {
+            $end_date = $end_date->getTimestamp();
+        } elseif (!empty($duration)) {
+            $end_date = $begin_date + intval($duration);
+        } else {
+            $end_date = $now;
+        }
+
         // Update event
         //--------------------------------------------------
         $langs->load('commercial');
         $langs->load('requestmanager@requestmanager');
-        $actioncomm->label = str_replace(' - ' . $langs->trans('ActionRunningShort'), '' , $actioncomm->label) . ' ' . $langs->trans('RequestManagerHourFromTo', dol_print_date($actioncomm->datep, 'hour'), dol_print_date($now, 'hour'));
         $actioncomm->percentage = 100;
-        // Todo calculer la date exacte et la durée exacte
-        $actioncomm->datef = $now;
-        $actioncomm->durationp = $now - $actioncomm->datep;
+        $actioncomm->datep = $begin_date;
+        $actioncomm->datef = $end_date;
+        $actioncomm->durationp = $end_date - $begin_date;
 
-        // Added ending message
+        // Title
         //--------------------------------------------------
-        $message = '<br/>' . $langs->trans('RequestManagerCallStatus', $state) . '<br/>';
-        $message .= $langs->trans('RequestManagerEndTimeCall', !empty($hour) ? $hour : dol_print_date($now, 'hour')) . '<br/>';
-        $message .= $langs->trans('RequestManagerCallDuration', $during) . '<br/>';
-        if (!empty($messagerie)) $message .= $langs->trans('RequestManagerCallMessageID', $messagerie) . '<br/>';
-        $actioncomm->note = dol_concatdesc($actioncomm->note, $message);
+        $actioncomm->label = $langs->trans('ActionAC_TEL') . ': ' . $direction . ' - ' . ($actioncomm->socid > 0 ? $societe->getFullName($langs) : $caller_id_num . ' ' . $langs->trans('toward') . ' ' . $called_num) .
+            ' - ' . $langs->trans('RequestManagerHourFromTo', dol_print_date($actioncomm->datep, 'hour'), dol_print_date($actioncomm->datef, 'hour'));
+
+        // Message
+        //--------------------------------------------------
+        $message = $langs->trans('RequestManagerIPBXUniqueID', $unique_id) . '<br>';
+        if (!empty($channel)) $message.= $langs->trans('RequestManagerIPBXChannel', $channel) . '<br>';
+        $message.= $langs->trans('RequestManagerIPBXCallerIDNum', $caller_id_num) . '<br>';
+        if (!empty($caller_id_name)) $message.= $langs->trans('RequestManagerIPBXCallerIDName', $caller_id_name) . '<br>';
+        $message.= $langs->trans('RequestManagerIPBXCalledNum', $called_num) . '<br>';
+        $message.= $langs->trans('RequestManagerIPBXDirection', $direction) . '<br>';
+        if (!empty($context)) $message.= $langs->trans('RequestManagerIPBXContext', $context) . '<br>';
+        if (!empty($extension)) $message.= $langs->trans('RequestManagerIPBXExtension', $extension) . '<br>';
+        if (!empty($begin_ask_hour)) $message.= $langs->trans('RequestManagerIPBXBeginAskHour', $begin_ask_hour) . '<br>';
+        if (!empty($transfer_suffix)) $message.= $langs->trans('RequestManagerIPBXTransferSuffix', $transfer_suffix) . '<br>';
+        if (!empty($end_hour)) $message.= $langs->trans('RequestManagerIPBXEndHour', $end_hour) . '<br>';
+        if (!empty($answered)) $message.= $langs->trans('RequestManagerIPBXAnswered', yn($answered)) . '<br>';
+        if (!empty($privilege)) $message.= $langs->trans('RequestManagerIPBXPrivilege', $privilege) . '<br>';
+        if (!empty($connected_line_num)) $message.= $langs->trans('RequestManagerIPBXConnectedLineNum', $connected_line_num) . '<br>';
+        if (!empty($connected_line_name)) $message.= $langs->trans('RequestManagerIPBXConnectedLineName', $connected_line_name) . '<br>';
+        if (!empty($account_code)) $message.= $langs->trans('RequestManagerIPBXAccountCode', yn($account_code)) . '<br>';
+        if (!empty($channel_state)) $message.= $langs->trans('RequestManagerIPBXChannelState', $channel_state) . '<br>';
+        if (!empty($channel_state_desc)) $message.= $langs->trans('RequestManagerIPBXChannelStateDesc', $channel_state_desc) . '<br>';
+        if (!empty($priority)) $message.= $langs->trans('RequestManagerIPBXPriority', $priority) . '<br>';
+        if (!empty($seconds)) $message.= $langs->trans('RequestManagerIPBXSeconds', $seconds) . '<br>';
+        if (!empty($id)) $message.= $langs->trans('RequestManagerIPBXId', $id) . '<br>';
+        if (!empty($from)) $message.= $langs->trans('RequestManagerIPBXFrom', $from) . '<br>';
+        if (!empty($from_channel)) $message.= $langs->trans('RequestManagerIPBXFromChannel', $from_channel) . '<br>';
+        if (!empty($to)) $message.= $langs->trans('RequestManagerIPBXTo', $to) . '<br>';
+        if (!empty($to_channel)) $message.= $langs->trans('RequestManagerIPBXToChannel', $to_channel) . '<br>';
+        if (!empty($type)) $message.= $langs->trans('RequestManagerIPBXType', $type) . '<br>';
+        if (!empty($class)) $message.= $langs->trans('RequestManagerIPBXClass', $class) . '<br>';
+        if (!empty($dest_type)) $message.= $langs->trans('RequestManagerIPBXDestinationType', $dest_type) . '<br>';
+        if (!empty($direction_id)) $message.= $langs->trans('RequestManagerIPBXDirectionId', $direction_id) . '<br>';
+        if (!empty($date_call)) $message.= $langs->trans('RequestManagerIPBXDate', $date_call) . '<br>';
+        if (!empty($duration)) $message.= $langs->trans('RequestManagerIPBXDuration', $duration) . '<br>';
+        if (!empty($bill_sec)) $message.= $langs->trans('RequestManagerIPBXBillSec', $bill_sec) . '<br>';
+        if (!empty($cost)) $message.= $langs->trans('RequestManagerIPBXCost', $cost) . '<br>';
+        if (!empty($tags)) $message.= $langs->trans('RequestManagerIPBXTags', $tags) . '<br>';
+        if (!empty($pbx)) $message.= $langs->trans('RequestManagerIPBXPbx', $pbx) . '<br>';
+        if (!empty($user_field)) $message.= $langs->trans('RequestManagerIPBXUserField') . '<br><blockquote>' . json_encode($user_field) . '</blockquote>';
+        if (!empty($fax_data)) $message.= $langs->trans('RequestManagerIPBXFaxData') . '<br><blockquote>' . $fax_data . '</blockquote>';
+        $actioncomm->note = $message;
 
         if ($actioncomm->update(DolibarrApiAccess::$user) > 0) {
             return $actioncomm->id;
