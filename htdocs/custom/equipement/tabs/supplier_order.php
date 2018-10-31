@@ -363,7 +363,6 @@ if ($nb_to_serialize) {
             $var = !$var;
 
             // disable input serial fourn for method internal and series
-            $outjs .= 'console.log(jQuery("#SerialMethod-' . $line->dispatchlineid . '").val());';
             $outjs .= 'if (jQuery("#SerialMethod-' . $line->dispatchlineid . '").val()!=2) {';
             $outjs .= ' jQuery(".SerialFourn-' . $line->dispatchlineid . '").prop("disabled", true);';
             $outjs .= '}';
