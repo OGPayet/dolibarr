@@ -64,6 +64,7 @@ $confirm = GETPOST('confirm', 'alpha');
 // lines
 $lineid = GETPOST('lineid', 'int');
 //links
+$addlink = GETPOST('addlink', 'alpha');
 $addlinkid = GETPOST('idtolinkto', 'int');
 $dellinkid = GETPOST('dellinkid', 'int');
 
@@ -1100,13 +1101,13 @@ if (empty($reshook)) {
     // Add link
     elseif ($action == 'addlink' && !empty($permissiondellink) && !GETPOST('cancel', 'alpha') && $object->id > 0 && $addlinkid > 0 && $result > 0) {
         $object->oldcopy = clone $object;
-        $result = $object->add_object_linked(GETPOST('addlink', 'alpha'), $addlinkid);
+        $result = $object->add_object_linked($addlink, $addlinkid);
         if ($result < 0) {
             setEventMessages($object->error, $object->errors, 'errors');
             $error++;
         } else {
             // Call trigger
-            $object->context = array('addlink' => 1);
+            $object->context = array('addlink' => $addlink, 'addlinkid' => $addlinkid);
             $result = $object->call_trigger('REQUESTMANAGER_ADD_LINK', $user);
             if ($result < 0) $error++;
             // End call trigger
@@ -1121,7 +1122,7 @@ if (empty($reshook)) {
             $error++;
         } else {
             // Call trigger
-            $object->context = array('dellink' => 1);
+            $object->context = array('dellink' => $dellinkid);
             $result = $object->call_trigger('REQUESTMANAGER_DEL_LINK', $user);
             if ($result < 0) $error++;
             // End call trigger

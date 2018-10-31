@@ -80,6 +80,23 @@ class InterfaceSynergiesTech extends DolibarrTriggers
 
                 dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
                 return 0;
+            case 'REQUESTMANAGER_ADD_LINK':
+                $addlink = $object->context['addlink'];
+                $addlinkid = $object->context['addlinkid'];
+
+                if ($addlink == 'equipement' && $addlinkid > 0) {
+                    $sql = "SELECT DISTINCT fk_contrat FROM " . MAIN_DB_PREFIX . "equipementevt WHERE fk_equipement = " . $addlinkid;
+
+                    $resql = $this->db->query($sql);
+                    if ($resql) {
+                        while ($obj = $this->db->fetch_object($resql)) {
+                            $object->add_object_linked('contrat', $obj->fk_contrat);
+                        }
+                    }
+                }
+
+                dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+                return 0;
             case 'RETURN_CREATE':
                 if (isset($object->context['synergiestech_create_returnproducts']) && $object->context['synergiestech_create_returnproducts'] > 0) {
                     $id = $object->context['synergiestech_create_returnproducts'];
