@@ -151,4 +151,92 @@ class CommandeFournisseur extends \CommandeFournisseur
             return -2;
         }
     }
+
+
+    /**
+     * Calc status regarding to dispatched stock
+     *
+     * @param 		User 	$user                   User action
+     * @param       int     $closeopenorder         Close if received
+     * @param		string	$comment				Comment
+     * @return		int		                        <0 if KO, 0 if not applicable, >0 if OK
+     */
+    public function calcAndSetStatusDispatch(\User $user, $closeopenorder=1, $comment='')
+    {
+        global $conf, $langs;
+
+        if (! empty($conf->fournisseur->enabled))
+        {
+            require_once DOL_DOCUMENT_ROOT . '/fourn/class/fournisseur.commande.dispatch.class.php';
+
+            $qtydelivered=array();
+            $qtywished=array();
+
+            $supplierorderdispatch = new \CommandeFournisseurDispatch($this->db);
+            $filter=array('t.fk_commande'=>$this->id);
+            if (! empty($conf->global->SUPPLIER_ORDER_USE_DISPATCH_STATUS)) {
+                $filter['t.status']=1;	// Restrict to lines with status validated
+            }
+
+            $ret=$supplierorderdispatch->fetchAll('','',0,0,$filter);
+            if ($ret<0)
+            {
+                $this->error=$supplierorderdispatch->error; $this->errors=$supplierorderdispatch->errors;
+                return $ret;
+            }
+            else
+            {
+                if (is_array($supplierorderdispatch->lines) && count($supplierorderdispatch->lines)>0)
+                {
+                    $date_liv = dol_now();
+
+                    // Build array with quantity deliverd by product
+                    foreach($supplierorderdispatch->lines as $line) {
+                        $qtydelivered[$line->fk_product]+=$line->qty;
+                    }
+                    foreach($this->lines as $line) {
+                        $qtywished[$line->fk_product]+=$line->qty;
+                    }
+
+                    $allDelivered = TRUE;
+                    foreach ($qtydelivered as $idProduct => $qtyDelivery) {
+                        $qtyOrder = $qtywished[$idProduct];
+
+                        // delivered less than ordered
+                        if ($qtyDelivery < $qtyOrder) {
+                            $allDelivered = FALSE;
+                            break;
+                        }
+                    }
+
+                    // all received or more
+                    if ($allDelivered===TRUE) {
+                        if ($closeopenorder) {
+                            $ret = $this->Livraison($user, $date_liv, 'tot', $comment);
+                            if ($ret < 0) {
+                                return -1;
+                            }
+                            return 5;
+                        } else {
+                            // received partially
+                            $ret = $this->Livraison($user, $date_liv, 'par', $comment);
+                            if ($ret < 0) {
+                                return -1;
+                            }
+                            return 4;
+                        }
+                    } else {
+                        // received partially
+                        $ret = $this->Livraison($user, $date_liv, 'par', $comment);
+                        if ($ret<0) {
+                            return -1;
+                        }
+                        return 4;
+                    }
+                }
+                return 1;
+            }
+        }
+        return 0;
+    }
 }
