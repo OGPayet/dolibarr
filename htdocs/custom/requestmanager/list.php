@@ -32,8 +32,10 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/user/class/user.class.php';
 require_once DOL_DOCUMENT_ROOT.'/user/class/usergroup.class.php';
 require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
+require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
 dol_include_once('/requestmanager/class/requestmanager.class.php');
 dol_include_once('/requestmanager/class/html.formrequestmanager.class.php');
+dol_include_once('/advancedictionaries/class/dictionary.class.php');
 dol_include_once('/requestmanager/lib/requestmanager.lib.php');
 
 $langs->load('requestmanager@requestmanager');
@@ -73,6 +75,7 @@ $search_date_creation=GETPOST('search_date_creation','alpha');
 $search_date_modification=GETPOST('search_date_modification','alpha');
 $search_user_author=GETPOST('search_user_author','alpha');
 $search_user_modification=GETPOST('search_user_modification','alpha');
+$search_status_det=GETPOST('search_status_det','array');
 $my_list=GETPOST('mylist','int');
 $not_assigned=GETPOST('notassigned','int');
 $status_type=GETPOST('status_type','int');
@@ -208,11 +211,12 @@ if (GETPOST('button_removefilter_x','alpha') || GETPOST('button_removefilter.x',
     $status_type=-1;
 	$toselect='';
     $search_array_options=array();
+    $search_status_det = array();
 }
-if ($search_notify_requester_by_email == '') $search_notify_requester_by_email = -1;
-if ($search_notify_watcher_by_email == '') $search_notify_watcher_by_email = -1;
-if ($search_notify_assigned_by_email == '') $search_notify_assigned_by_email = -1;
-if ($status_type == '') $status_type = -1;
+if ($search_notify_requester_by_email === '') $search_notify_requester_by_email = -1;
+if ($search_notify_watcher_by_email === '') $search_notify_watcher_by_email = -1;
+if ($search_notify_assigned_by_email === '') $search_notify_assigned_by_email = -1;
+if ($status_type === '') $status_type = -1;
 
 if (empty($reshook))
 {
@@ -237,7 +241,7 @@ $formrequestmanager = new FormRequestManager($db);
 $usergroup_static = new UserGroup($db);
 
 $help_url='EN:RequestManager_En|FR:RequestManager_Fr|ES:RequestManager_Es';
-llxHeader('',$langs->trans('RequestManagerResquest'),$help_url);
+llxHeader('',$langs->trans('RequestManagerRequest'),$help_url);
 
 $sql = 'SELECT';
 if ($sall) $sql = 'SELECT DISTINCT';
@@ -337,7 +341,9 @@ if ($search_date_creation)  $sql.= natural_search('rm.datec', $search_date_creat
 if ($search_date_modification)  $sql.= natural_search('rm.tms', $search_date_modification, 1);
 if ($search_user_author)  $sql.= natural_search(array('ua.firstname', 'ua.lastname'), $search_user_author);
 if ($search_user_modification)  $sql.= natural_search(array('um.firstname', 'um.lastname'), $search_user_modification);
-if ($status_type > 0)  $sql.= ' AND crmst.type = ' . $status_type;
+if ($search_user_modification)  $sql.= natural_search(array('um.firstname', 'um.lastname'), $search_user_modification);
+if (count($search_status_det))  $sql.= natural_search(array('rm.fk_status'), implode(',', $search_status_det), 2);
+if ($status_type >= 0)  $sql.= ' AND crmst.type = ' . $status_type;
 elseif ($status_type == -2)  $sql.= ' AND crmst.type IN (' . RequestManager::STATUS_TYPE_INITIAL . ', ' . RequestManager::STATUS_TYPE_IN_PROGRESS . ')';
 if ($sall) {
     $sql .= natural_search(array_keys($fieldstosearchall), $sall);
@@ -423,9 +429,10 @@ if ($resql) {
     if ($search_date_modification) $param .= '&search_date_modification=' . urlencode($search_date_modification);
     if ($search_user_author) $param .= '&search_user_author=' . urlencode($search_user_author);
     if ($search_user_modification) $param .= '&search_user_modification=' . urlencode($search_user_modification);
+    if (count($search_status_det)) $param .= '&search_status_det=' . urlencode($search_status_det);
     if ($my_list) $param .= '&my_list=' . urlencode($my_list);
     if ($not_assigned) $param .= '&not_assigned=' . urlencode($not_assigned);
-    if ($status_type != '' && $status_type != -1) $param .= '&status_type=' . urlencode($status_type);
+    if ($status_type !== '' && $status_type != -1) $param .= '&status_type=' . urlencode($status_type);
     if ($optioncss != '') $param .= '&optioncss=' . urlencode($optioncss);
 
     // Add $param from extra fields
@@ -451,7 +458,7 @@ if ($resql) {
     print '<input type="hidden" name="page" value="' . $page . '">';
     if ($my_list) print '<input type="hidden" name="my_list" value="' . dol_escape_htmltag($my_list) . '">';
     if ($not_assigned) print '<input type="hidden" name="not_assigned" value="' . dol_escape_htmltag($not_assigned) . '">';
-    if ($status_type != '' && $status_type != -1) print '<input type="hidden" name="status_type" value="' . dol_escape_htmltag($status_type) . '">';
+    //if ($status_type != '' && $status_type != -1) print '<input type="hidden" name="status_type" value="' . dol_escape_htmltag($status_type) . '">';
 
     print_barre_liste($title, $page, $_SERVER["PHP_SELF"], $param, $sortfield, $sortorder, $massactionbutton, $num, $nbtotalofrecords, 'requestmanager@requestmanager', 0, '', '', $limit);
 
@@ -468,6 +475,25 @@ if ($resql) {
     //$moreforfilter.=$langs->trans('RequestManagerType'). ': ';
     //$moreforfilter.=$formrequestmanager->select_type(null,  $search_type, 'search_type', 1, 0, array(), 0, 0, ' minwidth200', ' multiple');
     //$moreforfilter.='</div>';
+
+    $moreforfilter.='<div class="divsearchfield">';
+    $moreforfilter.=$langs->trans('Status'). ': ';
+    $statut_array = array();
+    $rmtypedictionary = Dictionary::getDictionary($db, 'requestmanager', 'requestmanagerrequesttype');
+    $rmtypedictionary->fetch_lines();
+    $rmstatusdictionary = Dictionary::getDictionary($db, 'requestmanager', 'requestmanagerstatus');
+    $rmstatusdictionary->fetch_lines();
+    $unknown_label = $langs->trans('Unknown') . ': ';
+    foreach ($rmstatusdictionary->lines as $line) {
+        $type_list = is_array($line->fields['request_type']) ? $line->fields['request_type'] : (is_string($line->fields['request_type']) ? explode(',', $line->fields['request_type']) : array());
+        $toprint = array();
+        foreach ($type_list as $type_id) {
+            $toprint[] = isset($rmtypedictionary->lines[$type_id]) ? $rmtypedictionary->lines[$type_id]->fields['label'] : $unknown_label . $type_id;
+        }
+        $statut_array[$line->id] = $line->fields['label'] . (count($toprint) > 0 ? ' ( ' . implode(', ', $toprint) . ' )' : '');
+    }
+    $moreforfilter.=$form->multiselectarray('search_status_det',  $statut_array, $search_status_det, 0, 0, ' minwidth300', 0, '50%');
+    $moreforfilter.='</div>';
 
     $parameters = array();
     $reshook = $hookmanager->executeHooks('printFieldPreListTitle', $parameters);    // Note that $action and $object may have been modified by hook
@@ -795,7 +821,7 @@ if ($resql) {
         // Ref
         if (!empty($arrayfields['rm.ref']['checked'])) {
             print '<td class="nowrap">';
-            print $objectstatic->getNomUrl(1, 'parent_path');
+            print $objectstatic->getNomUrl(1, 'parent_path', 24);
             print '</td>';
         }
         //External Ref
@@ -819,31 +845,39 @@ if ($resql) {
         // Label
         if (!empty($arrayfields['rm.label']['checked'])) {
             print '<td class="nowrap">';
-            print $obj->label;
+            $toprint = dol_trunc($obj->label, 24);
+            if (empty($conf->global->MAIN_DISABLE_TRUNC)) {
+                $toprint = $form->textwithtooltip($toprint, $obj->label);
+            }
+            print $toprint;
             print '</td>';
         }
         // Thridparty Origin
         if (!empty($arrayfields['rm.fk_soc_origin']['checked'])) {
             print '<td class="nowrap">';
-            print $societestatic_origin->getNomUrl(1);
+            print $societestatic_origin->getNomUrl(1, '', 24);
             print '</td>';
         }
         // Thridparty Bill
         if (!empty($arrayfields['rm.fk_soc']['checked'])) {
             print '<td class="nowrap">';
-            print $societestatic->getNomUrl(1);
+            print $societestatic->getNomUrl(1, '', 24);
             print '</td>';
         }
         // Thridparty Benefactor
         if (!empty($arrayfields['rm.fk_soc_benefactor']['checked'])) {
             print '<td class="nowrap">';
-            print $societestatic_benefactor->getNomUrl(1);
+            print $societestatic_benefactor->getNomUrl(1, '', 24);
             print '</td>';
         }
         // Description
         if (!empty($arrayfields['rm.description']['checked'])) {
             print '<td class="nowrap">';
-            print $obj->description;
+            $toprint = dol_trunc($obj->description, 24);
+            if (empty($conf->global->MAIN_DISABLE_TRUNC)) {
+                $toprint = $form->textwithtooltip($toprint, $obj->description);
+            }
+            print $toprint;
             print '</td>';
         }
         // Source

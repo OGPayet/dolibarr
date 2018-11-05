@@ -981,7 +981,7 @@ class FormRequestManager
      */
     private static function _listsFollowPrintLineFrom(DoliDB $db, $arrayfields, $obj, RequestManager $requestmanagerstatic, Societe $societestatic_origin, Societe $societestatic, Societe $societestatic_benefactor, User $userstatic, $lists_follow_last_date=0)
     {
-        global $langs;
+        global $langs, $conf, $form;
 
         require_once DOL_DOCUMENT_ROOT . '/user/class/user.class.php';
         require_once DOL_DOCUMENT_ROOT . '/user/class/usergroup.class.php';
@@ -1046,7 +1046,7 @@ class FormRequestManager
         // Ref
         if (!empty($arrayfields['rm.ref']['checked'])) {
             print '<td class="nowrap'.$updatedLineClass.'">';
-            print $requestmanagerstatic->getNomUrl(1, 'parent_path') . ' ' . $pictoWarning;
+            print $requestmanagerstatic->getNomUrl(1, 'parent_path', 24) . ' ' . $pictoWarning;
             print '</td>';
         }
 
@@ -1074,35 +1074,43 @@ class FormRequestManager
         // Label
         if (!empty($arrayfields['rm.label']['checked'])) {
             print '<td class="nowrap'.$updatedLineClass.'">';
-            print $obj->label;
+            $toprint = dol_trunc($obj->label, 24);
+            if (empty($conf->global->MAIN_DISABLE_TRUNC)) {
+                $toprint = $form->textwithtooltip($toprint, $obj->label);
+            }
+            print $toprint;
             print '</td>';
         }
 
         // Thridparty
         if (!empty($arrayfields['rm.fk_soc_origin']['checked'])) {
             print '<td class="nowrap'.$updatedLineClass.'">';
-            print $societestatic_origin->getNomUrl(1);
+            print $societestatic_origin->getNomUrl(1, '', 24);
             print '</td>';
         }
 
         // Thridparty
         if (!empty($arrayfields['rm.fk_soc']['checked'])) {
             print '<td class="nowrap'.$updatedLineClass.'">';
-            print $societestatic->getNomUrl(1);
+            print $societestatic->getNomUrl(1, '', 24);
             print '</td>';
         }
 
         // Thridparty
         if (!empty($arrayfields['rm.fk_soc_benefactor']['checked'])) {
             print '<td class="nowrap'.$updatedLineClass.'">';
-            print $societestatic_benefactor->getNomUrl(1);
+            print $societestatic_benefactor->getNomUrl(1, '', 24);
             print '</td>';
         }
 
         // Description
         if (!empty($arrayfields['rm.description']['checked'])) {
             print '<td class="nowrap'.$updatedLineClass.'">';
-            print $obj->description;
+            $toprint = dol_trunc($obj->description, 24);
+            if (empty($conf->global->MAIN_DISABLE_TRUNC)) {
+                $toprint = $form->textwithtooltip($toprint, $obj->description);
+            }
+            print $toprint;
             print '</td>';
         }
 

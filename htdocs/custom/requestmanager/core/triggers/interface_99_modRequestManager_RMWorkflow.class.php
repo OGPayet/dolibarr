@@ -92,6 +92,7 @@ class InterfaceRMWorkflow extends DolibarrTriggers
                     // Add object linked
                     if (is_array($requestmanager_ids)) {       // New behaviour, if linkedObjectsIds can have several links per type, so is something like array('contract'=>array(id1, id2, ...))
                         foreach ($requestmanager_ids as $origin_id) {
+                            if ($object->element == 'requestmanager' && $origin_id == $object->id) continue;
                             $ret = $object->add_object_linked('requestmanager', $origin_id);
                             if (!$ret && $this->db->lasterrno() != 'DB_ERROR_RECORD_ALREADY_EXISTS') {
                                 $this->errors[] = $this->db->lasterror();
@@ -100,10 +101,12 @@ class InterfaceRMWorkflow extends DolibarrTriggers
                         }
                     } else {                               // Old behaviour, if linkedObjectsIds has only one link per type, so is something like array('contract'=>id1))
                         $origin_id = $requestmanager_ids;
-                        $ret = $object->add_object_linked('requestmanager', $origin_id);
-                        if (!$ret && $this->db->lasterrno() != 'DB_ERROR_RECORD_ALREADY_EXISTS') {
-                            $this->errors[] = $this->db->lasterror();
-                            return -1;
+                        if ($object->element != 'requestmanager' || $origin_id != $object->id) {
+                            $ret = $object->add_object_linked('requestmanager', $origin_id);
+                            if (!$ret && $this->db->lasterrno() != 'DB_ERROR_RECORD_ALREADY_EXISTS') {
+                                $this->errors[] = $this->db->lasterror();
+                                return -1;
+                            }
                         }
                     }
                 }

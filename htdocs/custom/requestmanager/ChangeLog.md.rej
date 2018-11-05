@@ -1,23 +1,26 @@
 diff a/htdocs/custom/requestmanager/ChangeLog.md b/htdocs/custom/requestmanager/ChangeLog.md	(rejected hunks)
-@@ -3,6 +3,11 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
+@@ -3,6 +3,14 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
  
  ## [Non Distribué]
  
-+## [4.0.12] - 31-10-2018
-+- Modification de l'API pour les appels IPBX.
-+- Ajout du statut des cantrats sur la page de creation des demandes.
++## [4.0.13] - 05-11-2018
++- Ajout des champs de filtres et corrections sur la page de suivie des demandes.
++- Ajout du filtre sur les statuts dans la liste des demandes et du suivie des demandes.
++- Troncage des champs affichés dans les listes et affichage complet au survole.
++- Correction rappatriment des objects liés lors de la création d'une demande depuis une autre fiche (propale, ...).
++- Un statut peut désormet se choisir lui-même dans le paramétrage.
 +- Corrections diverses.
 +
- ## [4.0.11] - 30-10-2018
- - Ajout de l'affiche des messages d'une demande sous forme chronologique.
- - Corrections diverses.
-@@ -35,7 +40,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
+ ## [4.0.12] - 31-10-2018
+ - Modification de l'API pour les appels IPBX.
+ - Ajout du statut des cantrats sur la page de creation des demandes.
+@@ -40,7 +48,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
  ## [4.0.0] - 16-07-2018
  - Version initial.
  
--[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/compare/v4.0.11...HEAD
-+[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/compare/v4.0.12...HEAD
-+[4.0.12]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.12
+-[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/compare/v4.0.12...HEAD
++[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/compare/v4.0.13...HEAD
++[4.0.13]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.13
+ [4.0.12]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.12
  [4.0.11]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.11
  [4.0.10]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.10
- [4.0.9]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.9

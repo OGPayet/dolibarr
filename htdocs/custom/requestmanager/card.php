@@ -2122,7 +2122,7 @@ $now = dol_now();
                     $line = $requestManagerStatusDictionary->lines[$line_id];
 
                     if (isset($line)) {
-                        if ($line->id == $object->statut ||
+                        if (/*$line->id == $object->statut ||*/
                             ($line->fields['type'] == RequestManager::STATUS_TYPE_CLOSED && !empty($conf->global->REQUESTMANAGER_AUTO_CLOSE_REQUEST))
                         ) continue;
                         print '<div class="inline-block divButAction noMarginBottom">';

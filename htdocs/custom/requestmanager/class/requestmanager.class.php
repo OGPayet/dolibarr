@@ -682,6 +682,12 @@ class RequestManager extends CommonObject
                             if (!$ret && $this->db->lasterrno() != 'DB_ERROR_RECORD_ALREADY_EXISTS') {
                                 $this->errors[] = $this->db->lasterror();
                                 $error++;
+                            } else {
+                                // Call trigger
+                                $this->context = array('addlink' => $origin, 'addlinkid' => $origin_id);
+                                $result = $this->call_trigger('REQUESTMANAGER_ADD_LINK', $user);
+                                if ($result < 0) $error++;
+                                // End call trigger
                             }
                         }
                     } else {                               // Old behaviour, if linkedObjectsIds has only one link per type, so is something like array('contract'=>id1))
@@ -690,6 +696,12 @@ class RequestManager extends CommonObject
                         if (!$ret && $this->db->lasterrno() != 'DB_ERROR_RECORD_ALREADY_EXISTS') {
                             $this->errors[] = $this->db->lasterror();
                             $error++;
+                        } else {
+                            // Call trigger
+                            $this->context = array('addlink' => $origin, 'addlinkid' => $origin_id);
+                            $result = $this->call_trigger('REQUESTMANAGER_ADD_LINK', $user);
+                            if ($result < 0) $error++;
+                            // End call trigger
                         }
                     }
                 }
@@ -1110,12 +1122,19 @@ class RequestManager extends CommonObject
      */
     public function setContract($contractId)
     {
+        global $user;
+
         $result = $this->add_object_linked('contrat', $contractId);
 
         if ($result <= 0) {
             dol_syslog(__METHOD__, LOG_ERR);
             return -1;
         } else {
+            // Call trigger
+            $this->context = array('addlink' => 'contrat', 'addlinkid' => $contractId);
+            $result = $this->call_trigger('REQUESTMANAGER_ADD_LINK', $user);
+            if ($result < 0) return -1;
+            // End call trigger
             return 1;
         }
     }
@@ -1182,7 +1201,7 @@ class RequestManager extends CommonObject
      */
     public function addEquipement($confChecked=FALSE)
     {
-        global $conf;
+        global $conf, $user;
 
         if ($confChecked===FALSE && empty($conf->equipement->enabled)) {
             return 0;
@@ -1201,6 +1220,12 @@ class RequestManager extends CommonObject
                         $this->errors[] = $this->db->lasterror();
                         dol_syslog(__METHOD__, LOG_ERR);
                         return -1;
+                    } else {
+                        // Call trigger
+                        $this->context = array('addlink' => 'equipement', 'addlinkid' => $obj->rowid);
+                        $result = $this->call_trigger('REQUESTMANAGER_ADD_LINK', $user);
+                        if ($result < 0) return -1;
+                        // End call trigger
                     }
                 }
             }
@@ -2282,10 +2307,10 @@ class RequestManager extends CommonObject
         $this->new_statut = $status;
         $this->new_statut_type = self::$status_list[$this->new_statut]->fields['type'];
 
-        if ($this->new_statut == $this->statut && !$dont_check) {
+        /*if ($this->new_statut == $this->statut && !$dont_check) {
             dol_syslog(__METHOD__ . " : Status not changed", LOG_DEBUG);
             return 1;
-        }
+        }*/
 
         // Update request
         $sql = 'UPDATE ' . MAIN_DB_PREFIX . $this->table_element . ' SET';

@@ -976,7 +976,7 @@ SCRIPT;
             if (!empty($arrayfields['s.nom']['checked'])) {
                 print '<td class="nowrap"' . $tdcolor . '>';
                 if (!$conf->eventconfidentiality->enabled || $arrayfields['s.nom']['ec_mode'] <= $obj->ec_mode) {
-                    print $societe_static->getNomUrl(1);
+                    print $societe_static->getNomUrl(1, '', 24);
                 }
                 print '</td>';
             }
@@ -984,7 +984,7 @@ SCRIPT;
             if (!empty($arrayfields['ac.id']['checked'])) {
                 print '<td class="nowrap"' . $tdcolor . '>';
                 if (!$conf->eventconfidentiality->enabled || $arrayfields['ac.id']['ec_mode'] <= $obj->ec_mode) {
-                    print $actioncomm_static->getNomUrl(1);
+                    print $actioncomm_static->getNomUrl(1, 24);
                 }
                 print '</td>';
             }
@@ -1004,7 +1004,11 @@ SCRIPT;
                     $labeltype = $obj->type_code;
                     if (empty($conf->global->AGENDA_USE_EVENT_TYPE) && empty($cActionList[$labeltype])) $labeltype = 'AC_OTH';
                     if (!empty($cActionList[$labeltype])) $labeltype = $cActionList[$labeltype];
-                    print $labeltype;
+                    $toprint = dol_trunc($labeltype, 24);
+                    if (empty($conf->global->MAIN_DISABLE_TRUNC)) {
+                        $toprint = $form->textwithtooltip($toprint, $labeltype);
+                    }
+                    print $toprint;
                 }
                 print '</td>';
             }
@@ -1012,7 +1016,11 @@ SCRIPT;
             if (!empty($arrayfields['ac.label']['checked'])) {
                 print '<td class="nowrap"' . $tdcolor . '>';
                 if (!$conf->eventconfidentiality->enabled || $arrayfields['ac.label']['ec_mode'] <= $obj->ec_mode) {
-                    print $actioncomm_static->label;
+                    $toprint = dol_trunc($actioncomm_static->label, 24);
+                    if (empty($conf->global->MAIN_DISABLE_TRUNC)) {
+                        $toprint = $form->textwithtooltip($toprint, $actioncomm_static->label);
+                    }
+                    print $toprint;
                 }
                 print '</td>';
             }
@@ -1020,7 +1028,11 @@ SCRIPT;
             if (!empty($arrayfields['ac.note']['checked'])) {
                 print '<td class="nowrap tdoverflowmax300"' . $tdcolor . '>';
                 if (!$conf->eventconfidentiality->enabled || $arrayfields['ac.note']['ec_mode'] <= $obj->ec_mode) {
-                    print $actioncomm_static->note;
+                    $toprint = dol_trunc($actioncomm_static->note, 24);
+                    if (empty($conf->global->MAIN_DISABLE_TRUNC)) {
+                        $toprint = $form->textwithtooltip($toprint, $actioncomm_static->note);
+                    }
+                    print $toprint;
                 }
                 print '</td>';
             }
@@ -1052,7 +1064,11 @@ SCRIPT;
             if (!empty($arrayfields['ac.location']['checked'])) {
                 print '<td class="nowrap"' . $tdcolor . '>';
                 if (!$conf->eventconfidentiality->enabled || $arrayfields['ac.location']['ec_mode'] <= $obj->ec_mode) {
-                    print $actioncomm_static->location;
+                    $toprint = dol_trunc($actioncomm_static->location, 24);
+                    if (empty($conf->global->MAIN_DISABLE_TRUNC)) {
+                        $toprint = $form->textwithtooltip($toprint, $actioncomm_static->location);
+                    }
+                    print $toprint;
                 }
                 print '</td>';
             }

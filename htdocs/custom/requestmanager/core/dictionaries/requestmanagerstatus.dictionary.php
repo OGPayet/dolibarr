@@ -568,10 +568,10 @@ class RequestManagerStatusDictionaryLine extends DictionaryLine
             }
         }
 
-        if ($this->id > 0 && !empty($fieldsValue['next_status']) && in_array($this->id, explode(',', $fieldsValue['next_status']))) {
+        /*if ($this->id > 0 && !empty($fieldsValue['next_status']) && in_array($this->id, explode(',', $fieldsValue['next_status']))) {
             $this->errors[] = $langs->trans('RequestManagerStatusDictionaryNextStatusCanNotBeItself');
             return -1;
-        }
+        }*/
 
         return $result;
     }

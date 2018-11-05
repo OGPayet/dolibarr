@@ -14,7 +14,7 @@ ExtendedInterventionQuotaActivateDesc                   = Active la gestion des 
 ExtendedInterventionQuotaShowBlockName                  = Afficher le décompte des interventions
 ExtendedInterventionQuotaShowBlockDesc                  = Afficher le décompte des interventions ouvert par défaut
 ExtendedInterventionQuotaShowOnlyTypeOfInterventionName = N'afficher que le décompte du type de l'intervention
-ExtendedInterventionQuotaShowOnlyTypeOfInterventionName = N'afficher que le décompte du type de l'intervention dans le tableau si celui-ci est renseigné
+ExtendedInterventionQuotaShowOnlyTypeOfInterventionDesc = N'afficher que le décompte du type de l'intervention dans le tableau si celui-ci est renseigné
 
 ############################################################
 ### Actions
