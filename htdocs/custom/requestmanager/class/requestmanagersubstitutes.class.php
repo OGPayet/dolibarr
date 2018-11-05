@@ -78,7 +78,7 @@ class RequestManagerSubstitutes
         $message_extralabels = $message_extrafields->fetch_name_optionals_label($requestmanagermessage->table_element, true);
         $requestmanagermessage->fetch_optionals($requestmanagermessage->id, $message_extralabels);
 
-        return self::getAvailableSubstitutesKeyFromRequestMessage($db, $requestmanagermessage, 0);
+        return self::getAvailableSubstitutesKeyFromRequestMessage($db, 0, $requestmanagermessage);
     }
 
     /**
