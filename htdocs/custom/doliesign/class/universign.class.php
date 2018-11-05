@@ -307,11 +307,11 @@ class Universign extends DoliEsign
 		$chainingMode = "email";
 
 		//Définition de l'url de retour
-
 		$returnUrl = (@$_SERVER["HTTPS"] == "on") ? "https://" : "http://";
 		$returnUrl .= $_SERVER["SERVER_NAME"];
 		$returnUrl .= $_SERVER["SCRIPT_NAME"] . "?id=" . $_REQUEST['id'] . "&action=doliesignsync";
-		// RECUPERATION D'UNE URL forcée
+
+		// Récupération d'une Url forcée
 		if (! empty($conf->global->DOLIESIGN_RETURN_URL_UNIVERSIGN)) $returnUrl=$conf->global->DOLIESIGN_RETURN_URL_UNIVERSIGN;
 
         //Récupération des options de signature dans config
@@ -352,9 +352,6 @@ class Universign extends DoliEsign
 
 			//Envoi des dossier par mail à la fin de la signature à tout les signataires
 			"finalDocSent" => new xmlrpcval($sendMailAll,"boolean"),
-
-			//Envoi des fichiers signés via la fonctionnalité cc à la liste des emails
-			"finalDocCCeMails" => new xmlrpcval($lstCCEmail, "array"),
 
             //Type de certificat utilisé
             "certificateType" => new xmlrpcval($certificateType, "string"),
@@ -694,11 +691,11 @@ class Universign extends DoliEsign
 			}
 		}
 
-		if (DoliEsign::checkDolVersion('6.0')) {
-			$substitutionarray=getCommonSubstitutionArray($langs, 0, null, $object);
-		} else {
+		// if (DoliEsign::checkDolVersion('6.0')) {
+		// 	$substitutionarray=getCommonSubstitutionArray($langs, 0, null, $object);
+		// } else {
 			$substitutionarray=doliEsignGetCommonSubstitutionArray($langs, 0, null, $object);
-		}
+		// }
 
 		$initMailSubject = make_substitutions($initTemplate->topic, $substitutionarray);
 		$initMailSubst = make_substitutions($initTemplate->content, $substitutionarray);
@@ -739,7 +736,6 @@ class Universign extends DoliEsign
 				//Si la redirection vers la page de signature automatique est activé on n'envoi pas de mail au premier signataire
 				if ($redirectSign == 'false' || ($redirectSign == 'true' && $key != 0)) {
 					//Création du mail personalisé et envoi de celui ci
-
 					$mailSign = new CMailFile(
 						$initMailSubject,
 						$signer->me['struct']['email']->me['string'],
