@@ -834,6 +834,193 @@ class EquipementApi extends DolibarrApi {
     }
 
     /**
+     *  Get lines (events) of a equipment
+     *
+     * @url	GET {id}/events
+     *
+     * @param   int     $id             ID of the equipment
+     *
+     * @return  array                   List of equipment line
+     *
+     * @throws  401     RestException   Insufficient rights
+     * @throws  404     RestException   Equipment not found
+     * @throws  500     RestException   Error when retrieve equipment
+     * @throws  500     RestException   Error when retrieve the equipment lines (events)
+     */
+	function getLines($id)
+    {
+        if (!DolibarrApiAccess::$user->rights->equipement->lire) {
+            throw new RestException(401, "Insufficient rights");
+        }
+
+        // Get equipment object
+        $equipment = $this->_getEquipmentObject($id);
+
+        if ($equipment->fetch_lines() < 0) {
+            throw new RestException(500, "Error when retrieve the equipment lines (events)", $this->_getErrors($equipment));
+        }
+
+        $result = array();
+        foreach ($equipment->lines as $line) {
+            array_push($result, $this->_cleanLineObjectDatas($line));
+        }
+
+        return $result;
+    }
+
+    /**
+     *  Add a line (event) to given equipment
+     *
+     * @url	POST {id}/events
+     *
+     * @param   int     $id             ID of the equipment
+     * @param   array   $request_data   Equipment line (event) data
+     *
+     * @return  int                     ID of the equipment line (event) created
+     *
+     * @throws  401     RestException   Insufficient rights
+     * @throws  404     RestException   Equipment not found
+     * @throws  500     RestException   Error when retrieve equipment
+     * @throws  500     RestException   Error while creating the equipment line (event)
+     */
+	function postLine($id, $request_data = null)
+    {
+        if (!DolibarrApiAccess::$user->rights->equipement->creer) {
+            throw new RestException(401, "Insufficient rights");
+        }
+
+        // Get equipment object
+        $equipment = $this->_getEquipmentObject($id);
+
+        $request_data = (object)$request_data;
+
+        $createRes = $equipment->addline(
+            $equipment->id,
+            $request_data->fk_equipementevt_type,
+            $request_data->desc,
+            $request_data->dateo,
+            $request_data->datee,
+            $request_data->fulldayevent,
+            $request_data->fk_contrat,
+            $request_data->fk_fichinter,
+            $request_data->fk_expedition,
+            $request_data->fk_project,
+            $request_data->fk_user_author,
+            $request_data->total_ht,
+            $request_data->array_options,
+            $request_data->fk_expeditiondet,
+            $request_data->fk_retourproduits
+        );
+
+        if ($createRes > 0) {
+            return $createRes;
+        } else {
+            throw new RestException(500, "Error while creating the equipment line (event)", $this->_getErrors($equipment));
+        }
+    }
+
+    /**
+     *  Update a given a equipment line (event)
+     *
+     * @url	POST {id}/events/{line_id}
+     *
+     * @param   int     $id             ID of the equipment
+     * @param   int     $line_id        ID of line to update
+     * @param   array   $request_data   Equipment line (event) data
+     *
+     * @return  object                  Equipment data with line updated
+     *
+     * @throws  401     RestException   Insufficient rights
+     * @throws  404     RestException   Equipment not found
+     * @throws  404     RestException   Equipment line (event) not found
+     * @throws  500     RestException   Error when retrieve equipment
+     * @throws  500     RestException   Error when retrieve equipment line (event)
+     * @throws  500     RestException   Error while updating the equipment line (event)
+     */
+	function putLine($id, $line_id, $request_data = null)
+	{
+		if(! DolibarrApiAccess::$user->rights->equipement->creer) {
+            throw new RestException(401, "Insufficient rights");
+		}
+
+        // Get equipment object
+        $equipment = $this->_getEquipmentObject($id);
+
+        $equipmentline = new Equipementevt(self::$db);
+        $result = $equipmentline->fetch($line_id);
+        if ($result == 0 || ($result > 0 && $equipmentline->fk_equipement != $equipment->id)) {
+            throw new RestException(404, "Equipment line (event) not found");
+        } elseif ($result < 0) {
+            throw new RestException(500, "Error when retrieve equipment line (event)", $this->_getErrors($equipmentline));
+        }
+
+        $request_data = (object)$request_data;
+
+        $equipmentline->fk_equipementevt_type   = isset($request_data->fk_equipementevt_type) ? $request_data->fk_equipementevt_type : $equipmentline->fk_equipementevt_type;
+        $equipmentline->desc                    = isset($request_data->desc) ? $request_data->desc : $equipmentline->desc;
+        $equipmentline->dateo                   = isset($request_data->dateo) ? $request_data->dateo : $equipmentline->dateo;
+        $equipmentline->datee                   = isset($request_data->datee) ? $request_data->datee : $equipmentline->datee;
+        $equipmentline->fulldayevent            = isset($request_data->fulldayevent) ? $request_data->fulldayevent : $equipmentline->fulldayevent;
+        $equipmentline->fk_contrat              = isset($request_data->fk_contrat) ? $request_data->fk_contrat : $equipmentline->fk_contrat;
+        $equipmentline->fk_fichinter            = isset($request_data->fk_fichinter) ? $request_data->fk_fichinter : $equipmentline->fk_fichinter;
+        $equipmentline->fk_expedition           = isset($request_data->fk_expedition) ? $request_data->fk_expedition : $equipmentline->fk_expedition;
+        $equipmentline->fk_project              = isset($request_data->fk_project) ? $request_data->fk_project : $equipmentline->fk_project;
+        $equipmentline->fk_user_author          = isset($request_data->fk_user_author) ? $request_data->fk_user_author : $equipmentline->fk_user_author;
+        $equipmentline->total_ht                = isset($request_data->total_ht) ? $request_data->total_ht : $equipmentline->total_ht;
+        $equipmentline->array_options           = isset($request_data->array_options) ? $request_data->array_options : $equipmentline->array_options;
+        $equipmentline->fk_expeditiondet        = isset($request_data->fk_expeditiondet) ? $request_data->fk_expeditiondet : $equipmentline->fk_expeditiondet;
+
+		$updateRes = $equipmentline->update();
+
+        if ($updateRes > 0) {
+            return $this->get($id);
+        } else {
+            throw new RestException(500, "Error while updating the equipment line (event)", $this->_getErrors($equipmentline));
+        }
+	}
+
+    /**
+     *  Delete a given equipment line (event)
+     *
+     * @url	DELETE {id}/lines/{line_id}
+     *
+     * @param   int     $id                 Id of equipment to delete
+     * @param   int     $line_id            Id of line (event) to delete
+     *
+     * @return  object                      Equipment data with line (event) deleted
+     *
+     * @throws  401     RestException       Insufficient rights
+     * @throws  404     RestException       Equipment not found
+     * @throws  404     RestException       Equipment line (event) not found
+     * @throws  500     RestException       Error when retrieve equipment
+     * @throws  500     RestException       Error when retrieve equipment line (event)
+     * @throws  500     RestException       Error while deleting the equipment line (event)
+     */
+	function deleteLine($id, $line_id)
+    {
+        if (!DolibarrApiAccess::$user->rights->equipement->creer) {
+            throw new RestException(401, "Insufficient rights");
+        }
+
+        // Get equipment object
+        $equipment = $this->_getEquipmentObject($id);
+
+        $equipmentline = new Equipementevt(self::$db);
+        $result = $equipmentline->fetch($line_id);
+        if ($result == 0 || ($result > 0 && $equipmentline->fk_equipement != $equipment->id)) {
+            throw new RestException(404, "Equipment line (event) not found");
+        } elseif ($result < 0) {
+            throw new RestException(500, "Error when retrieve equipment line (event)", $this->_getErrors($equipmentline));
+        }
+
+        if ($equipmentline->deleteline($line_id) > 0) {
+            return $this->get($id);
+        } else {
+            throw new RestException(500, "Error while deleting the equipment line (event)", $this->_getErrors($requestmanager));
+        }
+    }
+
+    /**
      *  Get equipment object with authorization
      *
      * @param   int             $equipment_id       Id of the equipment
@@ -884,7 +1071,6 @@ class EquipementApi extends DolibarrApi {
     {
         $object = parent::_cleanObjectDatas($object);
 
-        unset($object->lines);
         unset($object->statuts_image);
         unset($object->fk_contact);
         unset($object->client);
@@ -927,6 +1113,86 @@ class EquipementApi extends DolibarrApi {
         unset($object->fk_project);
         unset($object->civility_id);
         unset($object->rowid);
+
+        // If object has lines, remove $db property
+        if (isset($object->lines) && is_array($object->lines) && count($object->lines) > 0)  {
+            $nboflines = count($object->lines);
+		for ($i=0; $i < $nboflines; $i++)
+            {
+                $this->_cleanLineObjectDatas($object->lines[$i]);
+            }
+        }
+
+        return $object;
+    }
+
+    /**
+     *  Clean sensible line object data
+     *
+     * @param   object          $object         Object to clean
+     *
+     * @return  object|array                    Array of cleaned object properties
+     */
+    function _cleanLineObjectDatas($object)
+    {
+        unset($object->db);
+        unset($object->error);
+        unset($object->element);
+        unset($object->table_element);
+        unset($object->rowid);
+        unset($object->errors);
+        unset($object->table_element_line);
+        unset($object->linkedObjects);
+        unset($object->oldcopy);
+        unset($object->context);
+        unset($object->canvas);
+        unset($object->project);
+        unset($object->projet);
+        unset($object->contact);
+        unset($object->contact_id);
+        unset($object->thirdparty);
+        unset($object->user);
+        unset($object->origin);
+        unset($object->origin_id);
+        unset($object->ref_previous);
+        unset($object->ref_next);
+        unset($object->ref_ext);
+        unset($object->country);
+        unset($object->country_id);
+        unset($object->country_code);
+        unset($object->barcode_type);
+        unset($object->barcode_type_code);
+        unset($object->barcode_type_label);
+        unset($object->barcode_type_coder);
+        unset($object->mode_reglement_id);
+        unset($object->cond_reglement_id);
+        unset($object->cond_reglement);
+        unset($object->fk_delivery_address);
+        unset($object->shipping_method_id);
+        unset($object->modelpdf);
+        unset($object->fk_account);
+        unset($object->note_public);
+        unset($object->note_private);
+        unset($object->note);
+        unset($object->total_tva);
+        unset($object->total_localtax1);
+        unset($object->total_localtax2);
+        unset($object->total_ttc);
+        unset($object->fk_incoterms);
+        unset($object->libelle_incoterms);
+        unset($object->location_incoterms);
+        unset($object->name);
+        unset($object->lastname);
+        unset($object->firstname);
+        unset($object->civility_id);
+        unset($object->ref_fichinter);
+        unset($object->ref_contrat);
+        unset($object->ref_expedition);
+        unset($object->import_key);
+        unset($object->linkedObjectsIds);
+        unset($object->ref);
+        unset($object->statut);
+        unset($object->lines);
 
         return $object;
     }

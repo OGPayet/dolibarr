@@ -287,6 +287,7 @@ class RequestManagerApi extends DolibarrApi {
      * @throws  403     RestException       Access unauthorized
      * @throws  404     RestException       Request not found
      * @throws  500     RestException       Error when retrieve request
+     * @throws  500     RestException       Error when retrieve the request lines
 	 */
 	function getLines($id)
     {
@@ -297,7 +298,10 @@ class RequestManagerApi extends DolibarrApi {
         // Get request object
         $requestmanager = $this->_getRequestManagerObject($id);
 
-        $requestmanager->getLinesArray();
+        if ($requestmanager->getLinesArray() < 0) {
+            throw new RestException(500, "Error when retrieve the request lines", $this->_getErrors($requestmanager));
+        }
+
         $result = array();
         foreach ($requestmanager->lines as $line) {
             array_push($result, $this->_cleanLineObjectDatas($line));
@@ -333,7 +337,7 @@ class RequestManagerApi extends DolibarrApi {
 
         $request_data = (object)$request_data;
 
-        $updateRes = $requestmanager->addline(
+        $createRes = $requestmanager->addline(
             $request_data->desc,
             $request_data->subprice,
             $request_data->qty,
@@ -362,8 +366,8 @@ class RequestManagerApi extends DolibarrApi {
             $request_data->multicurrency_subprice
         );
 
-        if ($updateRes > 0) {
-            return $updateRes;
+        if ($createRes > 0) {
+            return $createRes;
         } else {
             throw new RestException(500, "Error while creating the request line", $this->_getErrors($requestmanager));
         }
@@ -402,7 +406,7 @@ class RequestManagerApi extends DolibarrApi {
         if ($result == 0 || ($result > 0 && $requestline->fk_requestmanager != $id)) {
             throw new RestException(404, "Request line not found");
         } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve request line", $this->_getErrors($requestmanager));
+            throw new RestException(500, "Error when retrieve request line", $this->_getErrors($requestline));
         }
 
         $request_data = (object)$request_data;
