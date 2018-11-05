@@ -256,11 +256,33 @@ class GContact
         if($result==0)
             throw new Exception($dolContact->$error);
 
+
+
+		//Specific for Synergies-Tech
+		//We build Thirdparty name according to their Official and Commercial Name
+		//If first word of this build name is "Pharmacie" we removed it
+		//Then we add postal code at the end of the name
+
+		$tempname = empty($dolContact->name_alias)? $dolContact->name:$dolContact->name_alias;
+		if(explode(' ',trim($tempname))[0] == "Pharmacie" || explode(' ',trim($tempname))[0] == "pharmacie" )
+		{
+			$tempname = substr(strstr($tempname," "), 1);
+		}
+
+		// Now we pushed Postal Code at the end of this thirdparty Name
+
+		if(!empty($dolContact->zip))
+		{
+			$tempname = $tempname . ' ' . $dolContact->zip;
+		}
+
+
+
         // Fill object with thirdparty infos
-		$this->firstname = $dolContact->name_alias;
-        $this->lastname = $dolContact->name;
-        $this->name = empty($dolContact->name_alias)? $dolContact->name:($dolContact->name_alias . " (" .$dolContact->name . ") ");
-        $this->fullName = empty($dolContact->name_alias)? $dolContact->name:($dolContact->name_alias . " (" .$dolContact->name . ") ");
+		$this->firstname = $tempname;
+        $this->lastname = "";
+        //$this->name = $tempname;
+        $this->fullName = $tempname;
         $this->email = $dolContact->email?$dolContact->email:("");
 
         if(!(empty($dolContact->address)&&empty($dolContact->zip)&&empty($dolContact->town)&&empty($dolContact->state)&&empty($dolContact->country)))
@@ -281,7 +303,7 @@ class GContact
         $google_nltechno_tag=getCommentIDTag();
         $idindolibarr=$this->dolID."/thirdparty";
 
-        $this->note_private = $dolContact->note_private;
+        $this->note_private = "";
         if (strpos($this->note_private,$google_nltechno_tag) === false) $this->note_private .= "\n\n".$google_nltechno_tag.$idindolibarr;
 
         // Prepare the DOM for google
