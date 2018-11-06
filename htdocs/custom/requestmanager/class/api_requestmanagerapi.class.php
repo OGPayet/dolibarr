@@ -968,7 +968,7 @@ class RequestManagerApi extends DolibarrApi {
      * @param   string      $cost                   Cost
      * @param   string      $tags                   Tags
      * @param   string      $pbx                    PBX
-     * @param   array       $user_field             User field
+     * @param   string       $user_field             User field
      * @param   string      $fax_data               Fax data
      *
      * @return  int                                 ID of the calling event
@@ -982,7 +982,7 @@ class RequestManagerApi extends DolibarrApi {
     function CallEnding($unique_id, $caller_id_num, $called_num, $direction, $channel='', $caller_id_name='', $context='', $extension='', $begin_ask_hour='', $transfer_suffix='',
                         $end_hour='', $answered = false, $privilege='', $connected_line_num='', $connected_line_name='', $account_code=false, $channel_state='',
                         $channel_state_desc='', $priority='', $seconds='', $id='', $from='', $from_channel='', $to='', $to_channel='', $type='', $class='', $dest_type='',
-                        $direction_id='', $date_call='', $duration='', $bill_sec='', $cost='', $tags='', $pbx='', $user_field=array(), $fax_data='')
+                        $direction_id='', $date_call='', $duration='', $bill_sec='', $cost='', $tags='', $pbx='', $user_field='', $fax_data='')
     {
         global $langs;
 
@@ -1102,7 +1102,7 @@ class RequestManagerApi extends DolibarrApi {
         if (!empty($cost)) $message.= $langs->trans('RequestManagerIPBXCost', $cost) . '<br>';
         if (!empty($tags)) $message.= $langs->trans('RequestManagerIPBXTags', $tags) . '<br>';
         if (!empty($pbx)) $message.= $langs->trans('RequestManagerIPBXPbx', $pbx) . '<br>';
-        if (!empty($user_field)) $message.= $langs->trans('RequestManagerIPBXUserField') . '<br><blockquote>' . json_encode($user_field) . '</blockquote>';
+        if (!empty($user_field)) $message.= $langs->trans('RequestManagerIPBXUserField') . '<br><blockquote>' . $user_field . '</blockquote>';
         if (!empty($fax_data)) $message.= $langs->trans('RequestManagerIPBXFaxData') . '<br><blockquote>' . $fax_data . '</blockquote>';
         $actioncomm->note = $message;
 
