@@ -262,9 +262,13 @@ class ActionsEventConfidentiality
 					$tmp_mode = max($tmp_mode,$fk_tag['level_confid']);
 				}
 			}
+
 			if($tmp_mode > -1) { //Si l'utilisateur un tag en commun avec l'event on considère la visilibité minimal parmi les tags en commun
 				$mode = $tmp_mode;
 			}
+
+			//Si aucune confidentialité n'est renseigné sur l'event, pour éviter que ce dernier soit inaccessible, on le laisse accessible (mode 0)
+			if(count($fk_tags)==0) $mode=0;
 
 			//Gestion du mode
 			if($mode == 2) {
@@ -364,6 +368,10 @@ class ActionsEventConfidentiality
 			if($tmp_mode > -1) { //Si l'utilisateur un tag en commun avec l'event on considère la visilibité minimal parmi les tags en commun
 				$mode = $tmp_mode;
 			}
+
+			//Si aucune confidentialité n'est renseigné sur l'event, pour éviter que ce dernier soit inaccessible, on le laisse accessible (mode 0)
+			if(count($fk_tags)==0) $mode=0;
+
 
 			//Gestion du mode
 			if($mode == 2) {

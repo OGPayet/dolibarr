@@ -1078,7 +1078,7 @@ class RequestManagerApi extends DolibarrApi {
         if (!empty($begin_ask_hour)) $message.= $langs->trans('RequestManagerIPBXBeginAskHour', $begin_ask_hour) . '<br>';
         if (!empty($transfer_suffix)) $message.= $langs->trans('RequestManagerIPBXTransferSuffix', $transfer_suffix) . '<br>';
         if (!empty($end_hour)) $message.= $langs->trans('RequestManagerIPBXEndHour', $end_hour) . '<br>';
-        if (!empty($answered)) $message.= $langs->trans('RequestManagerIPBXAnswered', yn($answered)) . '<br>';
+        if (isset($answered)) $message.= $langs->trans('RequestManagerIPBXAnswered', yn($answered)) . '<br>';
         if (!empty($privilege)) $message.= $langs->trans('RequestManagerIPBXPrivilege', $privilege) . '<br>';
         if (!empty($connected_line_num)) $message.= $langs->trans('RequestManagerIPBXConnectedLineNum', $connected_line_num) . '<br>';
         if (!empty($connected_line_name)) $message.= $langs->trans('RequestManagerIPBXConnectedLineName', $connected_line_name) . '<br>';
@@ -1095,15 +1095,15 @@ class RequestManagerApi extends DolibarrApi {
         if (!empty($type)) $message.= $langs->trans('RequestManagerIPBXType', $type) . '<br>';
         if (!empty($class)) $message.= $langs->trans('RequestManagerIPBXClass', $class) . '<br>';
         if (!empty($dest_type)) $message.= $langs->trans('RequestManagerIPBXDestinationType', $dest_type) . '<br>';
-        if (!empty($direction_id)) $message.= $langs->trans('RequestManagerIPBXDirectionId', $direction_id) . '<br>';
-        if (!empty($date_call)) $message.= $langs->trans('RequestManagerIPBXDate', $date_call) . '<br>';
-        if (!empty($duration)) $message.= $langs->trans('RequestManagerIPBXDuration', $duration) . '<br>';
-        if (!empty($bill_sec)) $message.= $langs->trans('RequestManagerIPBXBillSec', $bill_sec) . '<br>';
+        if (isset($direction_id)) $message.= $langs->trans('RequestManagerIPBXDirectionId', $direction_id) . '<br>';
+        if (isset($date_call)) $message.= $langs->trans('RequestManagerIPBXDate', $date_call) . '<br>';
+        if (isset($duration)) $message.= $langs->trans('RequestManagerIPBXDuration', $duration) . '<br>';
+        if (isset($bill_sec)) $message.= $langs->trans('RequestManagerIPBXBillSec', $bill_sec) . '<br>';
         if (!empty($cost)) $message.= $langs->trans('RequestManagerIPBXCost', $cost) . '<br>';
         if (!empty($tags)) $message.= $langs->trans('RequestManagerIPBXTags', $tags) . '<br>';
         if (!empty($pbx)) $message.= $langs->trans('RequestManagerIPBXPbx', $pbx) . '<br>';
-        if (!empty($user_field)) $message.= $langs->trans('RequestManagerIPBXUserField') . '<br><blockquote>' . $user_field . '</blockquote>';
-        if (!empty($fax_data)) $message.= $langs->trans('RequestManagerIPBXFaxData') . '<br><blockquote>' . $fax_data . '</blockquote>';
+        if (!empty($user_field)) $message.= $langs->trans('RequestManagerIPBXUserField') . '<br>' . $user_field . '';
+        if (!empty($fax_data)) $message.= $langs->trans('RequestManagerIPBXFaxData') . '<br>' . $fax_data . '';
         $actioncomm->note = $message;
 
         if ($actioncomm->update(DolibarrApiAccess::$user) > 0) {
