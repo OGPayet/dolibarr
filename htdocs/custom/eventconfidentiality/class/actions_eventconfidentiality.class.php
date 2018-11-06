@@ -247,28 +247,26 @@ class ActionsEventConfidentiality
 		if($object->id > 0) {
 			$mode = 2;
 			$user_tags = explode(",",$user->array_options['options_user_tag']);
-
 			$usergroup = new UserGroup($db);
 			$usergroups = $usergroup->listGroupsForUser($user->id);
 			foreach($usergroups as $group) {
-				$user_tags[] = $group->array_options['options_group_tag'];
+				$user_tags = array_merge($user_tags,explode(",",$group->array_options['options_group_tag']));
 			}
-
 			$tmp_mode = -1;
 			$externe = (empty($user->socid)?0:1); //Utilisateur interne ou externe
 			$fk_tags = fetchAllTagForObject($object->id, $externe);
 			foreach($fk_tags as $fk_tag) {
 				if(in_array($fk_tag['fk_dict_tag_confid'],$user_tags)) { //Si on a un tag en commun et que ce tag est interne
-					$tmp_mode = max($tmp_mode,$fk_tag['level_confid']);
+					$tmp_mode = min($tmp_mode,$fk_tag['level_confid']);
 				}
 			}
 
-			if($tmp_mode > -1) { //Si l'utilisateur un tag en commun avec l'event on considère la visilibité minimal parmi les tags en commun
+			if($tmp_mode > -1) { //Si l'utilisateur un tag en commun avec l'event on considère la visilibité maximale parmi les tags en commun
 				$mode = $tmp_mode;
 			}
 
-			//Si aucune confidentialité n'est renseigné sur l'event, pour éviter que ce dernier soit inaccessible, on le laisse accessible (mode 0)
-			if(count($fk_tags)==0) $mode=0;
+			//Si aucune confidentialité n'est renseigné sur l'event, pour éviter que ce dernier soit inaccessible, on le laisse accessible (mode 0) pour les utilisateurs internes uniquement
+			if(count($fk_tags)==0 && $externe==0) $mode=0;
 
 			//Gestion du mode
 			if($mode == 2) {
@@ -348,13 +346,13 @@ class ActionsEventConfidentiality
 
 		if($object->id > 0) {
 			$mode = 2;
-			$user_tags = explode(",",$user->array_options['options_user_tag']);
-
+			$user_tags = array_merge($user_tags,explode(",",$group->array_options['options_group_tag']));
 			$usergroup = new UserGroup($db);
 			$usergroups = $usergroup->listGroupsForUser($user->id);
 			foreach($usergroups as $group) {
-				$user_tags[] = $group->array_options['options_group_tag'];
+				$user_tags = array_merge($user_tags,$group->array_options['options_group_tag']);
 			}
+
 
 			$tmp_mode = -1;
 			$externe = (empty($user->socid)?0:1); //Utilisateur interne ou externe
@@ -362,15 +360,15 @@ class ActionsEventConfidentiality
 
 			foreach($fk_tags as $fk_tag) {
 				if(in_array($fk_tag['fk_dict_tag_confid'],$user_tags)) { //Si on a un tag en commun et que ce tag est interne
-					$tmp_mode = max($tmp_mode,$fk_tag['level_confid']);
+					$tmp_mode = min($tmp_mode,$fk_tag['level_confid']);
 				}
 			}
-			if($tmp_mode > -1) { //Si l'utilisateur un tag en commun avec l'event on considère la visilibité minimal parmi les tags en commun
+			if($tmp_mode > -1) { //Si l'utilisateur un tag en commun avec l'event on considère la visilibité maximale parmi les tags en commun
 				$mode = $tmp_mode;
 			}
 
-			//Si aucune confidentialité n'est renseigné sur l'event, pour éviter que ce dernier soit inaccessible, on le laisse accessible (mode 0)
-			if(count($fk_tags)==0) $mode=0;
+			//Si aucune confidentialité n'est renseigné sur l'event, pour éviter que ce dernier soit inaccessible, on le laisse accessible (mode 0) pour les utilisateurs internes uniquement
+			if(count($fk_tags)==0 && $externe==0) $mode=0;
 
 
 			//Gestion du mode
