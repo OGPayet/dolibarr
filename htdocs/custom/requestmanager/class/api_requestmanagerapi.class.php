@@ -164,7 +164,7 @@ class RequestManagerApi extends DolibarrApi {
 
             self::$db->free($resql);
         } else {
-            throw new RestException(500, "Error when retrieve request list", self::$db->lasterror());
+            throw new RestException(500, "Error when retrieve request list", [ 'details' => [ self::$db->lasterror() ]]);
         }
 
         return $obj_ret;
@@ -197,7 +197,7 @@ class RequestManagerApi extends DolibarrApi {
         }
 
         if ($requestmanager->create(DolibarrApiAccess::$user) < 0) {
-            throw new RestException(500, "Error while creating the request", $this->_getErrors($requestmanager));
+            throw new RestException(500, "Error while creating the request", [ 'details' => $this->_getErrors($requestmanager) ]);
         }
 
         return $requestmanager->id;
@@ -236,7 +236,7 @@ class RequestManagerApi extends DolibarrApi {
         if ($requestmanager->update(DolibarrApiAccess::$user) > 0) {
             return $this->get($id);
         } else {
-            throw new RestException(500, "Error while updating the request", $this->_getErrors($requestmanager));
+            throw new RestException(500, "Error while updating the request", [ 'details' => $this->_getErrors($requestmanager) ]);
         }
     }
 
@@ -263,7 +263,7 @@ class RequestManagerApi extends DolibarrApi {
         $requestmanager = $this->_getRequestManagerObject($id);
 
         if ($requestmanager->delete(DolibarrApiAccess::$user) < 0) {
-            throw new RestException(500, "Error while deleting the request", $this->_getErrors($requestmanager));
+            throw new RestException(500, "Error while deleting the request", [ 'details' => $this->_getErrors($requestmanager) ]);
         }
 
         return array(
@@ -299,7 +299,7 @@ class RequestManagerApi extends DolibarrApi {
         $requestmanager = $this->_getRequestManagerObject($id);
 
         if ($requestmanager->getLinesArray() < 0) {
-            throw new RestException(500, "Error when retrieve the request lines", $this->_getErrors($requestmanager));
+            throw new RestException(500, "Error when retrieve the request lines", [ 'details' => $this->_getErrors($requestmanager) ]);
         }
 
         $result = array();
@@ -369,7 +369,7 @@ class RequestManagerApi extends DolibarrApi {
         if ($createRes > 0) {
             return $createRes;
         } else {
-            throw new RestException(500, "Error while creating the request line", $this->_getErrors($requestmanager));
+            throw new RestException(500, "Error while creating the request line", [ 'details' => $this->_getErrors($requestmanager) ]);
         }
     }
 
@@ -406,7 +406,7 @@ class RequestManagerApi extends DolibarrApi {
         if ($result == 0 || ($result > 0 && $requestline->fk_requestmanager != $id)) {
             throw new RestException(404, "Request line not found");
         } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve request line", $this->_getErrors($requestline));
+            throw new RestException(500, "Error when retrieve request line", [ 'details' => $this->_getErrors($requestline) ]);
         }
 
         $request_data = (object)$request_data;
@@ -439,7 +439,7 @@ class RequestManagerApi extends DolibarrApi {
         if ($updateRes > 0) {
             return $this->get($id);
         } else {
-            throw new RestException(500, "Error while updating the request line", $this->_getErrors($requestmanager));
+            throw new RestException(500, "Error while updating the request line", [ 'details' => $this->_getErrors($requestmanager) ]);
         }
     }
 
@@ -475,13 +475,13 @@ class RequestManagerApi extends DolibarrApi {
         if ($result == 0 || ($result > 0 && $requestline->fk_requestmanager != $id)) {
             throw new RestException(404, "Request line not found");
         } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve request line", $this->_getErrors($requestmanager));
+            throw new RestException(500, "Error when retrieve request line", [ 'details' => $this->_getErrors($requestmanager) ]);
         }
 
         if ($requestmanager->deleteline($line_id) > 0) {
             return $this->get($id);
         } else {
-            throw new RestException(500, "Error while deleting the request line", $this->_getErrors($requestmanager));
+            throw new RestException(500, "Error while deleting the request line", [ 'details' => $this->_getErrors($requestmanager) ]);
         }
     }
 
@@ -504,6 +504,10 @@ class RequestManagerApi extends DolibarrApi {
      */
     function getMessage($id, $message_id)
     {
+        global $user;
+
+        $user_saved = $user;
+
         if (!DolibarrApiAccess::$user->rights->requestmanager->lire) {
             throw new RestException(401, "Insufficient rights");
         }
@@ -512,11 +516,13 @@ class RequestManagerApi extends DolibarrApi {
         $requestmanager = $this->_getRequestManagerObject($id);
 
         $requestmanager_message = new RequestManagerMessage(self::$db);
+        $user = DolibarrApiAccess::$user;
         $result = $requestmanager_message->fetch($message_id);
+        $user = $user_saved;
         if ($result == 0 || ($result > 0 && ($requestmanager_message->elementtype != $requestmanager->element || $requestmanager_message->fk_element != $requestmanager->id))) {
             throw new RestException(404, "Request message not found");
         } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve request message", $this->_getErrors($requestmanager_message));
+            throw new RestException(500, "Error when retrieve request message", [ 'details' => $this->_getErrors($requestmanager_message) ]);
         } elseif ($requestmanager_message->id > 0) {
             if ($requestmanager_message->message_type != -1) {
                 $requestmanager_message->fetch_knowledge_base();
@@ -566,7 +572,7 @@ class RequestManagerApi extends DolibarrApi {
         $requestmanager_message->requestmanager = $requestmanager;
 
         if ($requestmanager_message->create(DolibarrApiAccess::$user) < 0) {
-            throw new RestException(500, "Error while creating the request message", $this->_getErrors($requestmanager_message));
+            throw new RestException(500, "Error while creating the request message", [ 'details' => $this->_getErrors($requestmanager_message) ]);
         }
 
         return $requestmanager_message->id;
@@ -599,6 +605,10 @@ class RequestManagerApi extends DolibarrApi {
      */
     function indexEvents($id, $sort_field="t.datec", $sort_order='DESC', $limit=100, $page=0, $sql_filters='', $only_message=0, $only_linked_to_request=1, $include_events_other_request=0, $include_linked_events_children_request=1)
     {
+        global $conf, $user;
+
+        $user_saved = $user;
+
         $obj_ret = array();
 
         if (!DolibarrApiAccess::$user->rights->requestmanager->lire) {
@@ -619,6 +629,10 @@ class RequestManagerApi extends DolibarrApi {
         $request_children_ids = implode(',', $request_children_ids);
 
         $sql = "SELECT t.id, t.code";
+        // Event confidentiality support
+        if ($conf->eventconfidentiality->enabled) {
+            $sql .= ", MIN(ea.level_confid) as ec_mode";
+        }
         $sql .= " FROM " . MAIN_DB_PREFIX . "actioncomm as t";
         if (!$only_message) {
             $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "element_element as ee";
@@ -629,6 +643,10 @@ class RequestManagerApi extends DolibarrApi {
                 "   t.elementtype)))" .
                 ")";
             $sql .= " ON (ee.sourcetype = " . $element_correspondance . " AND ee.fk_source = t.fk_element) OR (ee.targettype = " . $element_correspondance . " AND ee.fk_target = t.fk_element)";
+        }
+        // Event confidentiality support
+        if ($conf->eventconfidentiality->enabled) {
+            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "event_agenda as ea ON ea.fk_object = t.id";
         }
         $sql .= ' WHERE t.entity IN (' . getEntity('agenda') . ')';
         if (!$only_message) {
@@ -651,6 +669,17 @@ class RequestManagerApi extends DolibarrApi {
         if (DolibarrApiAccess::$user->socid > 0) {
             $sql .= " AND t.code != 'AC_RM_PRIV'";
         }
+        // Event confidentiality support
+        if ($conf->eventconfidentiality->enabled) {
+            dol_include_once('/requestmanager/lib/requestmanager.lib.php');
+            $tags_list = get_user_confidentiality_tags(DolibarrApiAccess::$user);
+            if (DolibarrApiAccess::$user->socid > 0) {
+                $sql .= ' AND ea.externe = 1';
+            } else {
+                $sql .= ' AND (ea.externe IS NULL OR ea.externe = 0)';
+            }
+            $sql .= ' AND ea.fk_dict_tag_confid IN (' . (count($tags_list) > 0 ? implode(',', $tags_list) : -1) . ')';
+        }
         // Add sql filters
         if ($sql_filters) {
             if (!DolibarrApi::_checkFilters($sql_filters)) {
@@ -658,6 +687,12 @@ class RequestManagerApi extends DolibarrApi {
             }
             $regexstring = '\(([^:\'\(\)]+:[^:\'\(\)]+:[^:\(\)]+)\)';
             $sql .= " AND (" . preg_replace_callback('/' . $regexstring . '/', 'DolibarrApi::_forge_criteria_callback', $sql_filters) . ")";
+        }
+
+        $sql .= " GROUP BY t.id";
+        // Event confidentiality support
+        if ($conf->eventconfidentiality->enabled) {
+            $sql .= ' HAVING ec_mode < 2';
         }
 
         // Set Order and Limit
@@ -674,6 +709,7 @@ class RequestManagerApi extends DolibarrApi {
         $resql = self::$db->query($sql);
         if ($resql) {
             require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
+            $user = DolibarrApiAccess::$user;
             while ($obj = self::$db->fetch_object($resql)) {
                 if ($obj->code == 'AC_RM_PRIV' || $obj->code == 'AC_RM_IN' || $obj->code == 'AC_RM_OUT') {
                     $requestmanager_message = new RequestManagerMessage(self::$db);
@@ -691,10 +727,11 @@ class RequestManagerApi extends DolibarrApi {
                     }
                 }
             }
+            $user = $user_saved;
 
             self::$db->free($resql);
         } else {
-            throw new RestException(500, "Error when retrieve request events list", self::$db->lasterror());
+            throw new RestException(500, "Error when retrieve request events list", [ 'details' => [ self::$db->lasterror() ]]);
         }
 
         return $obj_ret;
@@ -731,7 +768,7 @@ class RequestManagerApi extends DolibarrApi {
         if ($requestmanager->set_status($status_id, $status_type, DolibarrApiAccess::$user, $no_trigger, $force_reload) > 0) {
             return $this->get($id);
         } else {
-            throw new RestException(500, "Error while setting the request status", $this->_getErrors($requestmanager));
+            throw new RestException(500, "Error while setting the request status", [ 'details' => $this->_getErrors($requestmanager) ]);
         }
     }
 
@@ -801,7 +838,7 @@ class RequestManagerApi extends DolibarrApi {
 
             self::$db->free($resql);
         } else {
-            throw new RestException(500, "Error when retrieve company / contact", self::$db->lasterror());
+            throw new RestException(500, "Error when retrieve company / contact", [ 'details' => [ self::$db->lasterror() ]]);
         }
 
         if ($socid > 0) {
@@ -809,7 +846,7 @@ class RequestManagerApi extends DolibarrApi {
             $societe = new Societe(self::$db);
             $result = $societe->fetch($socid);
             if ($result < 0) {
-                throw new RestException(500, "Error when retrieve company information", $this->_getErrors($requestmanager));
+                throw new RestException(500, "Error when retrieve company information", [ 'details' => $this->_getErrors($requestmanager) ]);
             }
         }
 
@@ -836,7 +873,7 @@ class RequestManagerApi extends DolibarrApi {
 
             self::$db->free($resql);
         } else {
-            throw new RestException(500, "Error when retrieve internal user", self::$db->lasterror());
+            throw new RestException(500, "Error when retrieve internal user", [ 'details' => [ self::$db->lasterror() ]]);
         }
 
         require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
@@ -885,7 +922,7 @@ class RequestManagerApi extends DolibarrApi {
         $actioncomm->note = $message;
 
         if ($actioncomm->create(DolibarrApiAccess::$user) < 0) {
-            throw new RestException(500, "Error while creating the calling event", $this->_getErrors($actioncomm));
+            throw new RestException(500, "Error while creating the calling event", [ 'details' => $this->_getErrors($actioncomm) ]);
         }
 
         return $actioncomm->id;
@@ -980,7 +1017,7 @@ class RequestManagerApi extends DolibarrApi {
         require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
         $actioncomm = new ActionComm(self::$db);
         if ($actioncomm->fetch($actioncommid) < 0) {
-            throw new RestException(500, "Error when retrieve calling event", $this->_getErrors($actioncomm));
+            throw new RestException(500, "Error when retrieve calling event", [ 'details' => $this->_getErrors($actioncomm) ]);
         }
 
         // Get company
@@ -990,7 +1027,7 @@ class RequestManagerApi extends DolibarrApi {
             $societe = new Societe(self::$db);
             $result = $societe->fetch($actioncomm->socid);
             if ($result < 0) {
-                throw new RestException(500, "Error when retrieve company information", $this->_getErrors($requestmanager));
+                throw new RestException(500, "Error when retrieve company information", [ 'details' => $this->_getErrors($requestmanager) ]);
             }
         }
 
@@ -1072,7 +1109,7 @@ class RequestManagerApi extends DolibarrApi {
         if ($actioncomm->update(DolibarrApiAccess::$user) > 0) {
             return $actioncomm->id;
         } else {
-            throw new RestException(500, "Error while closing the calling event", $this->_getErrors($actioncomm));
+            throw new RestException(500, "Error while closing the calling event", [ 'details' => $this->_getErrors($actioncomm) ]);
         }
     }
 
@@ -1094,7 +1131,7 @@ class RequestManagerApi extends DolibarrApi {
         if ($result == 0) {
             throw new RestException(404, "Request not found");
         } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve request", $this->_getErrors($requestmanager));
+            throw new RestException(500, "Error when retrieve request", [ 'details' => $this->_getErrors($requestmanager) ]);
         }
 
         $socid = DolibarrApiAccess::$user->socid;

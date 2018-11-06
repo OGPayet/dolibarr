@@ -131,7 +131,7 @@ class EquipementApi extends DolibarrApi {
 
             self::$db->free($resql);
         } else {
-            throw new RestException(500, "Error when retrieve equipment list", self::$db->lasterror());
+            throw new RestException(500, "Error when retrieve equipment list", [ 'details' => [ self::$db->lasterror() ]]);
         }
 
         return $obj_ret;
@@ -168,7 +168,7 @@ class EquipementApi extends DolibarrApi {
         $user = DolibarrApiAccess::$user;
         if ($equipment->create() < 0) {
             $user = $save_user;
-            throw new RestException(500, "Error while creating the equipment", $this->_getErrors($equipment));
+            throw new RestException(500, "Error while creating the equipment", [ 'details' => $this->_getErrors($equipment) ]);
         }
         $user = $save_user;
 
@@ -202,7 +202,7 @@ class EquipementApi extends DolibarrApi {
         if ($equipment->set_numref(DolibarrApiAccess::$user, $ref) > 0) {
             return $this->get($id);
         } else {
-            throw new RestException(500, "Error while updating the equipment", $this->_getErrors($equipment));
+            throw new RestException(500, "Error while updating the equipment", [ 'details' => $this->_getErrors($equipment) ]);
         }
     }
 
@@ -233,7 +233,7 @@ class EquipementApi extends DolibarrApi {
         if ($equipment->set_numversion(DolibarrApiAccess::$user, $numversion) > 0) {
             return $this->get($id);
         } else {
-            throw new RestException(500, "Error while updating the equipment", $this->_getErrors($equipment));
+            throw new RestException(500, "Error while updating the equipment", [ 'details' => $this->_getErrors($equipment) ]);
         }
     }
 
@@ -264,7 +264,7 @@ class EquipementApi extends DolibarrApi {
         if ($equipment->set_quantity(DolibarrApiAccess::$user, $quantity) > 0) {
             return $this->get($id);
         } else {
-            throw new RestException(500, "Error while updating the equipment", $this->_getErrors($equipment));
+            throw new RestException(500, "Error while updating the equipment", [ 'details' => $this->_getErrors($equipment) ]);
         }
     }
 
@@ -295,7 +295,7 @@ class EquipementApi extends DolibarrApi {
         if ($equipment->set_unitweight(DolibarrApiAccess::$user, $unitweight) > 0) {
             return $this->get($id);
         } else {
-            throw new RestException(500, "Error while updating the equipment", $this->_getErrors($equipment));
+            throw new RestException(500, "Error while updating the equipment", [ 'details' => $this->_getErrors($equipment) ]);
         }
     }
 
@@ -326,7 +326,7 @@ class EquipementApi extends DolibarrApi {
         if ($equipment->set_numimmocompta(DolibarrApiAccess::$user, $numimmocompta) > 0) {
             return $this->get($id);
         } else {
-            throw new RestException(500, "Error while updating the equipment", $this->_getErrors($equipment));
+            throw new RestException(500, "Error while updating the equipment", [ 'details' => $this->_getErrors($equipment) ]);
         }
     }
 
@@ -358,7 +358,7 @@ class EquipementApi extends DolibarrApi {
         if ($equipment->set_entrepot(DolibarrApiAccess::$user, $fk_entrepot, $isentrepotmove ? 1 : 0) > 0) {
             return $this->get($id);
         } else {
-            throw new RestException(500, "Error while updating the equipment", $this->_getErrors($equipment));
+            throw new RestException(500, "Error while updating the equipment", [ 'details' => $this->_getErrors($equipment) ]);
         }
     }
 
@@ -389,7 +389,7 @@ class EquipementApi extends DolibarrApi {
         if ($equipment->set_description(DolibarrApiAccess::$user, $description) > 0) {
             return $this->get($id);
         } else {
-            throw new RestException(500, "Error while updating the equipment", $this->_getErrors($equipment));
+            throw new RestException(500, "Error while updating the equipment", [ 'details' => $this->_getErrors($equipment) ]);
         }
     }
 
@@ -420,7 +420,7 @@ class EquipementApi extends DolibarrApi {
         if ($equipment->update_note($note_public, '_public') > 0) {
             return $this->get($id);
         } else {
-            throw new RestException(500, "Error while updating the equipment", $this->_getErrors($equipment));
+            throw new RestException(500, "Error while updating the equipment", [ 'details' => $this->_getErrors($equipment) ]);
         }
     }
 
@@ -451,7 +451,7 @@ class EquipementApi extends DolibarrApi {
         if ($equipment->update_note($note_private, '_private') > 0) {
             return $this->get($id);
         } else {
-            throw new RestException(500, "Error while updating the equipment", $this->_getErrors($equipment));
+            throw new RestException(500, "Error while updating the equipment", [ 'details' => $this->_getErrors($equipment) ]);
         }
     }
 
@@ -482,7 +482,7 @@ class EquipementApi extends DolibarrApi {
         if ($equipment->set_etatEquipement(DolibarrApiAccess::$user, $fk_etatequipement) > 0) {
             return $this->get($id);
         } else {
-            throw new RestException(500, "Error while updating the equipment", $this->_getErrors($equipment));
+            throw new RestException(500, "Error while updating the equipment", [ 'details' => $this->_getErrors($equipment) ]);
         }
     }
 
@@ -513,7 +513,7 @@ class EquipementApi extends DolibarrApi {
         if ($equipment->set_client(DolibarrApiAccess::$user, $fk_soc_client > 0 ? $fk_soc_client : 0) > 0) {
             return $this->get($id);
         } else {
-            throw new RestException(500, "Error while updating the equipment", $this->_getErrors($equipment));
+            throw new RestException(500, "Error while updating the equipment", [ 'details' => $this->_getErrors($equipment) ]);
         }
     }
 
@@ -544,7 +544,7 @@ class EquipementApi extends DolibarrApi {
         if ($equipment->set_fact_client(DolibarrApiAccess::$user, $fk_fact_client) > 0) {
             return $this->get($id);
         } else {
-            throw new RestException(500, "Error while updating the equipment", $this->_getErrors($equipment));
+            throw new RestException(500, "Error while updating the equipment", [ 'details' => $this->_getErrors($equipment) ]);
         }
     }
 
@@ -575,7 +575,7 @@ class EquipementApi extends DolibarrApi {
         if ($equipment->set_fact_fourn(DolibarrApiAccess::$user, $fk_fact_fourn) > 0) {
             return $this->get($id);
         } else {
-            throw new RestException(500, "Error while updating the equipment", $this->_getErrors($equipment));
+            throw new RestException(500, "Error while updating the equipment", [ 'details' => $this->_getErrors($equipment) ]);
         }
     }
 
@@ -606,7 +606,7 @@ class EquipementApi extends DolibarrApi {
         if ($equipment->set_commande_fourn(DolibarrApiAccess::$user, $fk_commande_fourn) > 0) {
             return $this->get($id);
         } else {
-            throw new RestException(500, "Error while updating the equipment", $this->_getErrors($equipment));
+            throw new RestException(500, "Error while updating the equipment", [ 'details' => $this->_getErrors($equipment) ]);
         }
     }
 
@@ -637,7 +637,7 @@ class EquipementApi extends DolibarrApi {
         if ($equipment->set_datee(DolibarrApiAccess::$user, $datee) > 0) {
             return $this->get($id);
         } else {
-            throw new RestException(500, "Error while updating the equipment", $this->_getErrors($equipment));
+            throw new RestException(500, "Error while updating the equipment", [ 'details' => $this->_getErrors($equipment) ]);
         }
     }
 
@@ -668,7 +668,7 @@ class EquipementApi extends DolibarrApi {
         if ($equipment->set_dateo(DolibarrApiAccess::$user, $dateo) > 0) {
             return $this->get($id);
         } else {
-            throw new RestException(500, "Error while updating the equipment", $this->_getErrors($equipment));
+            throw new RestException(500, "Error while updating the equipment", [ 'details' => $this->_getErrors($equipment) ]);
         }
     }
 
@@ -699,7 +699,7 @@ class EquipementApi extends DolibarrApi {
         if ($equipment->set_dated(DolibarrApiAccess::$user, $dated) > 0) {
             return $this->get($id);
         } else {
-            throw new RestException(500, "Error while updating the equipment", $this->_getErrors($equipment));
+            throw new RestException(500, "Error while updating the equipment", [ 'details' => $this->_getErrors($equipment) ]);
         }
     }
 
@@ -734,7 +734,7 @@ class EquipementApi extends DolibarrApi {
         if ($equipment->insertExtraFields() > 0) {
             return $this->get($id);
         } else {
-            throw new RestException(500, "Error while updating the equipment", $this->_getErrors($equipment));
+            throw new RestException(500, "Error while updating the equipment", [ 'details' => $this->_getErrors($equipment) ]);
         }
     }
 
@@ -766,7 +766,7 @@ class EquipementApi extends DolibarrApi {
         if ($equipment->setValid(DolibarrApiAccess::$user, $conf->equipement->outputdir) > 0) {
             return $this->get($id);
         } else {
-            throw new RestException(500, "Error while validate the equipment", $this->_getErrors($equipment));
+            throw new RestException(500, "Error while validate the equipment", [ 'details' => $this->_getErrors($equipment) ]);
         }
     }
 
@@ -796,7 +796,7 @@ class EquipementApi extends DolibarrApi {
         if ($equipment->setDraft(DolibarrApiAccess::$user) > 0) {
             return $this->get($id);
         } else {
-            throw new RestException(500, "Error while set to draft the equipment", $this->_getErrors($equipment));
+            throw new RestException(500, "Error while set to draft the equipment", [ 'details' => $this->_getErrors($equipment) ]);
         }
     }
 
@@ -822,7 +822,7 @@ class EquipementApi extends DolibarrApi {
         $equipment = $this->_getEquipmentObject($id);
 
         if ($equipment->delete(DolibarrApiAccess::$user) < 0) {
-            throw new RestException(500, "Error while deleting the equipment", $this->_getErrors($equipment));
+            throw new RestException(500, "Error while deleting the equipment", [ 'details' => $this->_getErrors($equipment) ]);
         }
 
         return array(
@@ -857,7 +857,7 @@ class EquipementApi extends DolibarrApi {
         $equipment = $this->_getEquipmentObject($id);
 
         if ($equipment->fetch_lines() < 0) {
-            throw new RestException(500, "Error when retrieve the equipment lines (events)", $this->_getErrors($equipment));
+            throw new RestException(500, "Error when retrieve the equipment lines (events)", [ 'details' => $this->_getErrors($equipment) ]);
         }
 
         $result = array();
@@ -915,7 +915,7 @@ class EquipementApi extends DolibarrApi {
         if ($createRes > 0) {
             return $createRes;
         } else {
-            throw new RestException(500, "Error while creating the equipment line (event)", $this->_getErrors($equipment));
+            throw new RestException(500, "Error while creating the equipment line (event)", [ 'details' => $this->_getErrors($equipment) ]);
         }
     }
 
@@ -951,7 +951,7 @@ class EquipementApi extends DolibarrApi {
         if ($result == 0 || ($result > 0 && $equipmentline->fk_equipement != $equipment->id)) {
             throw new RestException(404, "Equipment line (event) not found");
         } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve equipment line (event)", $this->_getErrors($equipmentline));
+            throw new RestException(500, "Error when retrieve equipment line (event)", [ 'details' => $this->_getErrors($equipmentline) ]);
         }
 
         $request_data = (object)$request_data;
@@ -975,7 +975,7 @@ class EquipementApi extends DolibarrApi {
         if ($updateRes > 0) {
             return $this->get($id);
         } else {
-            throw new RestException(500, "Error while updating the equipment line (event)", $this->_getErrors($equipmentline));
+            throw new RestException(500, "Error while updating the equipment line (event)", [ 'details' => $this->_getErrors($equipmentline) ]);
         }
 	}
 
@@ -1010,13 +1010,13 @@ class EquipementApi extends DolibarrApi {
         if ($result == 0 || ($result > 0 && $equipmentline->fk_equipement != $equipment->id)) {
             throw new RestException(404, "Equipment line (event) not found");
         } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve equipment line (event)", $this->_getErrors($equipmentline));
+            throw new RestException(500, "Error when retrieve equipment line (event)", [ 'details' => $this->_getErrors($equipmentline) ]);
         }
 
         if ($equipmentline->deleteline($line_id) > 0) {
             return $this->get($id);
         } else {
-            throw new RestException(500, "Error while deleting the equipment line (event)", $this->_getErrors($requestmanager));
+            throw new RestException(500, "Error while deleting the equipment line (event)", [ 'details' => $this->_getErrors($requestmanager) ]);
         }
     }
 
@@ -1037,7 +1037,7 @@ class EquipementApi extends DolibarrApi {
         if ($result == 0) {
             throw new RestException(404, "Equipment not found");
         } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve equipment", $this->_getErrors($equipment));
+            throw new RestException(500, "Error when retrieve equipment", [ 'details' => $this->_getErrors($equipment) ]);
         }
 
         return $equipment;
