@@ -1413,6 +1413,37 @@ class Equipement extends CommonObject
 
 
     /**
+     * Define the dipatch supplier order line
+     *
+     * @param   User	$user			                    Object user who modify
+     * @param   int     $fkCommandeFournisseurDispatch      Id of dispatch supplier order line
+     * @return  int     <0 if ko, >0 if ok
+     *
+     * @throws  Exception
+     */
+    public function setFkCommandeFournisseurDispatch($user)
+    {
+        global $conf;
+
+        if ($user->rights->equipement->creer) {
+            $sql  = "UPDATE " . MAIN_DB_PREFIX . "equipement";
+            $sql .= " SET fk_commande_fournisseur_dispatch = " . ($this->fk_commande_fournisseur_dispatch>0 ? $this->fk_commande_fournisseur_dispatch : "NULL");
+            $sql .= " WHERE rowid = " . $this->id;
+            $sql .= " AND entity = " . $conf->entity;
+
+            if ($this->db->query($sql)) {
+                return 1;
+            } else {
+                $this->error    = $this->db->lasterror();
+                $this->errors[] = $this->error;
+                dol_syslog(__METHOD__ . ' Error : SQL=' . $sql);
+                return -1;
+            }
+        }
+    }
+
+
+    /**
      * Adding a line of event into data base
      *
      * @param   int                 $equipementid               Id of equipement

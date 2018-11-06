@@ -260,104 +260,297 @@ if ($action == 'denydispatchline' && ! ((empty($conf->global->MAIN_USE_ADVANCED_
 	}
 }
 
+// list of dispatched lines
+$dispatchLineList = array();
 if ($action == 'dispatch' && $user->rights->fournisseur->commande->receptionner) {
-	$error = 0;
 
+    // module to create equipement
+    if ($conf->equipement->enabled) {
+        dol_include_once('/equipement/class/equipement.class.php');
+
+        if (! empty($conf->global->EQUIPEMENT_ADDON)
+            && is_readable(dol_buildpath("/equipement/core/modules/equipement/".$conf->global->EQUIPEMENT_ADDON.".php")))
+            dol_include_once("/equipement/core/modules/equipement/".$conf->global->EQUIPEMENT_ADDON.".php");
+    }
+
+	$error = 0;
     $notrigger = 0;
 
 	$db->begin();
 
 	$pos = 0;
-	foreach ($_POST as $key => $value)
-	{
+	foreach ($_POST as $key => $value) {
+	    $isProduct      = FALSE;
+	    $isProductBatch = FALSE;
+
 		// without batch module enabled
-		if (preg_match('/^product_([0-9]+)_([0-9]+)$/i', $key, $reg))
-		{
-			$pos ++;
+		if (preg_match('/^product_([0-9]+)_([0-9]+)$/i', $key, $reg)) {
+            $isProduct = TRUE;
+			$pos++;
 
-			// $numline=$reg[2] + 1; // line of product
-			$numline = $pos;
-			$prod = "product_" . $reg[1] . '_' . $reg[2];
-			$qty = "qty_" . $reg[1] . '_' . $reg[2];
-			$ent = "entrepot_" . $reg[1] . '_' . $reg[2];
-			$pu = "pu_" . $reg[1] . '_' . $reg[2]; // This is unit price including discount
-			$fk_commandefourndet = "fk_commandefourndet_" . $reg[1] . '_' . $reg[2];
+            $numTour = intval($reg[1]);
+            $index   = intval($reg[2]);
+            $suffix  = '_' . $numTour . '_' . $index;
 
-			// We ask to move a qty
-			if (GETPOST($qty) != 0) {
-				if (! (GETPOST($ent, 'int') > 0)) {
-					dol_syslog('No dispatch for line ' . $key . ' as no warehouse choosed');
-					$text = $langs->transnoentities('Warehouse') . ', ' . $langs->transnoentities('Line') . ' ' . ($numline);
-					setEventMessages($langs->trans('ErrorFieldRequired', $text), null, 'errors');
-					$error ++;
+            $fkCommandeFournisseurLine = GETPOST('fk_commandefourndet' . $suffix, 'int');
+            $commandeFournisseurLinePU = GETPOST('pu' . $suffix); // this is unit price including discount
+			$fkProduct                 = GETPOST('product' . $suffix, 'int');
+            $qtyOrdered                = GETPOST('qty_ordered' . $suffix, 'int');
+            $qtyToDispatch             = GETPOST('qty' . $suffix);
+            $fkEntrepot                = GETPOST('entrepot' . $suffix, 'int');
+
+            // product
+            $dispatchProduct = new \Product($db);
+            $dispatchProduct->fetch($fkProduct);
+            $productToSerialize = $dispatchProduct->array_options['options_synergiestech_to_serialize'];
+
+            // equipment
+            if ($productToSerialize) {
+                $objectequipement = new \Equipement($db);
+                $objectequipement->fk_product = $fkProduct;
+                $objectequipement->fk_entrepot = $fkEntrepot;
+                $serialFournArray = GETPOST('serialfourn' . $suffix, 'array');
+                $objectequipement->SerialMethod = GETPOST('serialmethod' . $suffix, 'int');
+                $objectequipement->SerialFourn = implode(';', $serialFournArray);
+                $objectequipement->numversion = GETPOST('numversion' . $suffix, 'alpha');
+                /*
+                $datee = dol_mktime(
+                    '23', '59', '59',
+                    $_POST["datee" . $suffix . "month"],
+                    $_POST["datee" . $suffix . "day"],
+                    $_POST["datee" . $suffix . "year"]
+                );
+                $objectequipement->datee = $datee;
+                $dateo = dol_mktime(
+                    '23', '59', '59',
+                    $_POST["dateo" . $suffix . "month"],
+                    $_POST["dateo" . $suffix . "day"],
+                    $_POST["dateo" . $suffix . "year"]
+                );
+                $objectequipement->dateo = $dateo;
+                */
+            }
+
+            // add dispatch line
+            if (!isset($dispatchLineList[$index]))  $dispatchLineList[$index] = array();
+            $dispatchLineList[$index][$numTour] = array('fk_commande_fournisseurdet' => $fkCommandeFournisseurLine, 'qty_ordered' => $qtyOrdered, 'qty_to_dispatch' => $qtyToDispatch);
+
+            // set line for errors
+            $errorLine = $langs->transnoentities('Product') . ' ' . $dispatchProduct->ref . ' - ' . $langs->transnoentities('Line') . ' ' . ($numTour + 1);
+
+			// we ask to move a qty
+			if ($qtyToDispatch != 0) {
+				if (! ($fkEntrepot > 0)) {
+                    $error++;
+                    dol_syslog('No dispatch for line ' . $key . ' as no warehouse choosed', LOG_ERR);
+					$text = $langs->transnoentities('Warehouse') . ', ' . $errorLine;
+					$object->error = $langs->trans('ErrorFieldRequired', $text);
+					$object->errors[] = $object->error;
 				}
 
 				if (! $error) {
-				    if (GETPOST($qty) < 0) {
-				        $comment = $langs->trans("WarehousechildDispatchSupplierOrderCorrect", $object->ref);
+				    if ($qtyToDispatch < 0) {
+				        $comment = $langs->trans("WarehousechildSupplierOrderDispatchCorrect", $object->ref);
                     } else {
 				        $comment = GETPOST('comment');
                     }
-
-					$result = $object->dispatchProduct($user, GETPOST($prod, 'int'), GETPOST($qty), GETPOST($ent, 'int'), GETPOST($pu), $comment, '', '', '', GETPOST($fk_commandefourndet, 'int'), $notrigger);
-					if ($result < 0) {
-						setEventMessages($object->error, $object->errors, 'errors');
-						$error ++;
-					}
 				}
+
+                if (! $error) {
+                    // dispatch product with movements
+                    $commandeFournisseurDispatchId = $object->dispatchProduct($user, $fkProduct, $qtyToDispatch, $fkEntrepot, $commandeFournisseurLinePU, $comment, '', '', '', $fkCommandeFournisseurLine, $notrigger);
+                    if ($commandeFournisseurDispatchId < 0) {
+                        $error++;
+                    }
+                }
 			}
 		}
+
 		// with batch module enabled
-		if (preg_match('/^product_batch_([0-9]+)_([0-9]+)$/i', $key, $reg))
-		{
-			$pos ++;
+		if (preg_match('/^product_batch_([0-9]+)_([0-9]+)$/i', $key, $reg)) {
+            $isProductBatch = TRUE;
+			$pos++;
 
 			// eat-by date dispatch
-			// $numline=$reg[2] + 1; // line of product
-			$numline = $pos;
-			$prod = 'product_batch_' . $reg[1] . '_' . $reg[2];
-			$qty = 'qty_' . $reg[1] . '_' . $reg[2];
-			$ent = 'entrepot_' . $reg[1] . '_' . $reg[2];
-			$pu = 'pu_' . $reg[1] . '_' . $reg[2];
-			$fk_commandefourndet = 'fk_commandefourndet_' . $reg[1] . '_' . $reg[2];
-			$lot = 'lot_number_' . $reg[1] . '_' . $reg[2];
-			$dDLUO = dol_mktime(12, 0, 0, $_POST['dluo_' . $reg[1] . '_' . $reg[2] . 'month'], $_POST['dluo_' . $reg[1] . '_' . $reg[2] . 'day'], $_POST['dluo_' . $reg[1] . '_' . $reg[2] . 'year']);
-			$dDLC = dol_mktime(12, 0, 0, $_POST['dlc_' . $reg[1] . '_' . $reg[2] . 'month'], $_POST['dlc_' . $reg[1] . '_' . $reg[2] . 'day'], $_POST['dlc_' . $reg[1] . '_' . $reg[2] . 'year']);
+            $numTour = intval($reg[1]);
+            $index   = intval($reg[2]);
+            $suffix = '_' . $numTour . '_' . $index;
 
-			$fk_commandefourndet = 'fk_commandefourndet_' . $reg[1] . '_' . $reg[2];
+            $fkCommandeFournisseurLine = GETPOST('fk_commandefourndet' . $suffix, 'int');
+            $commandeFournisseurLinePU = GETPOST('pu' . $suffix); // this is unit price including discount
+            $fkProduct                 = GETPOST('product' . $suffix, 'int');
+            $qtyOrdered                = GETPOST('qty_ordered' . $suffix, 'int');
+            $qtyToDispatch             = GETPOST('qty' . $suffix);
+            $fkEntrepot                = GETPOST('entrepot' . $suffix, 'int');
+
+            $dispatchLot = GETPOST('lot_number' . $suffix, 'alpha');
+            $dDLUO       = dol_mktime(12, 0, 0, $_POST['dluo' . $suffix . 'month'], $_POST['dluo' . $suffix . 'day'], $_POST['dluo' . $suffix . 'year']);
+            $dDLC        = dol_mktime(12, 0, 0, $_POST['dlc' . $suffix . 'month'], $_POST['dlc' . $suffix . 'day'], $_POST['dlc' . $suffix . 'year']);
+
+            // product
+            $dispatchProduct = new \Product($db);
+            $dispatchProduct->fetch($fkProduct);
+            $productToSerialize = $dispatchProduct->array_options['options_synergiestech_to_serialize'];
+
+            // equipment
+            if ($productToSerialize) {
+                $objectequipement = new \Equipement($db);
+                $objectequipement->fk_product = $fkProduct;
+                $objectequipement->fk_entrepot = $fkEntrepot;
+                $serialFournArray = GETPOST('serialfourn' . $suffix, 'array');
+                $objectequipement->SerialMethod = GETPOST('serialmethod' . $suffix, 'int');
+                $objectequipement->SerialFourn = implode(';', $serialFournArray);
+                $objectequipement->numversion = GETPOST('numversion' . $suffix, 'alpha');
+                /*
+                $datee = dol_mktime(
+                    '23', '59', '59',
+                    $_POST["datee" . $suffix . "month"],
+                    $_POST["datee" . $suffix . "day"],
+                    $_POST["datee" . $suffix . "year"]
+                );
+                $objectequipement->datee = $datee;
+                $dateo = dol_mktime(
+                    '23', '59', '59',
+                    $_POST["dateo" . $suffix . "month"],
+                    $_POST["dateo" . $suffix . "day"],
+                    $_POST["dateo" . $suffix . "year"]
+                );
+                $objectequipement->dateo = $dateo;
+                */
+            }
+
+            // add dispatch line
+            if (!isset($dispatchLineList[$index]))  $dispatchLineList[$index] = array();
+            $dispatchLineList[$index][$numTour] = array('fk_commande_fournisseurdet' => $fkCommandeFournisseurLine, 'qty_ordered' => $qtyOrdered, 'qty_to_dispatch' => $qtyToDispatch);
+
+            // set line for errors
+            $errorLine = $langs->transnoentities('Product') . ' ' . $dispatchProduct->ref . ' - ' . $langs->transnoentities('Line') . ' ' . ($numTour + 1);
 
 			// We ask to move a qty
-			if (GETPOST($qty) > 0) {
-				if (! (GETPOST($ent, 'int') > 0)) {
-					dol_syslog('No dispatch for line ' . $key . ' as no warehouse choosed');
-					$text = $langs->transnoentities('Warehouse') . ', ' . $langs->transnoentities('Line') . ' ' . ($numline) . '-' . ($reg[1] + 1);
-					setEventMessages($langs->trans('ErrorFieldRequired', $text), null, 'errors');
-					$error ++;
+			if ($qtyToDispatch != 0) {
+				if (! ($fkEntrepot > 0)) {
+                    $error++;
+					$text = $langs->transnoentities('Warehouse') . ', ' . $errorLine;
+                    $object->error = $langs->trans('ErrorFieldRequired', $text);
+                    $object->errors[] =  $object->error;
 				}
 
-				if (! (GETPOST($lot, 'alpha') || $dDLUO || $dDLC)) {
-					dol_syslog('No dispatch for line ' . $key . ' as serial/eat-by/sellby date are not set');
-					$text = $langs->transnoentities('atleast1batchfield') . ', ' . $langs->transnoentities('Line') . ' ' . ($numline) . '-' . ($reg[1] + 1);
-					setEventMessages($langs->trans('ErrorFieldRequired', $text), null, 'errors');
-					$error ++;
+				if (! ($dispatchLot || $dDLUO || $dDLC)) {
+                    $error++;
+                    dol_syslog('No dispatch for line ' . $key . ' as serial/eat-by/sellby date are not set', LOG_ERR);
+					$text = $langs->transnoentities('atleast1batchfield') . ', ' . $errorLine;
+                    $object->error = $langs->trans('ErrorFieldRequired', $text);
+                    $object->errors[] =  $object->error;
 				}
 
-				if (! $error) {
-					$result = $object->dispatchProduct($user, GETPOST($prod, 'int'), GETPOST($qty), GETPOST($ent, 'int'), GETPOST($pu), GETPOST('comment'), $dDLC, $dDLUO, GETPOST($lot, 'alpha'), GETPOST($fk_commandefourndet, 'int'), $notrigger);
-					if ($result < 0) {
-						setEventMessages($object->error, $object->errors, 'errors');
-						$error ++;
-					}
-				}
+                if (! $error) {
+                    if ($qtyToDispatch < 0) {
+                        $comment = $langs->trans("WarehousechildDispatchSupplierOrderCorrect", $object->ref);
+                    } else {
+                        $comment = GETPOST('comment');
+                    }
+                }
+
+                if (! $error) {
+                    // dispatch product with movements
+                    $commandeFournisseurDispatchId = $object->dispatchProduct($user, $fkProduct, $qtyToDispatch, $fkEntrepot, $commandeFournisseurLinePU, $comment, $dDLC, $dDLUO, $dispatchLot, $fkCommandeFournisseurLine, $notrigger);
+                    if ($commandeFournisseurDispatchId < 0) {
+                        $error++;
+                    }
+                }
 			}
 		}
+
+		// line product or product batch
+		if ($isProduct || $isProductBatch) {
+            // create equipment
+            if (!$error && $productToSerialize) {
+                $objectequipement->fk_soc_fourn = $object->thirdparty->id;
+                $objectequipement->author = $user->id;
+                $objectequipement->description = $langs->trans("SupplierOrder") . ":" . $object->ref;
+                $objectequipement->fk_commande_fourn = $object->id;
+                $objectequipement->fk_commande_fournisseur_dispatch = $commandeFournisseurDispatchId;
+
+                if ($qtyToDispatch > 0) {
+                    // selon le mode de serialisation de l'equipement
+                    switch ($objectequipement->SerialMethod) {
+                        case 1 : // en mode generation auto, on cree des numeros de series internes
+                            $objectequipement->quantity = 1;
+                            $objectequipement->nbAddEquipement = $qtyToDispatch;
+                            break;
+                        case 2 : // en mode generation a partir de la liste on determine en fonction de la saisie
+                            $objectequipement->quantity = 1;
+                            $objectequipement->nbAddEquipement = $qtyToDispatch; // sera calcule en fonction
+                            break;
+                        case 3 : // en mode gestion de lot
+                            $objectequipement->quantity = $qtyToDispatch;
+                            $objectequipement->nbAddEquipement = 1;
+                            break;
+                    }
+
+                    $result = $objectequipement->create();
+                    if ($result < 0) {
+                        $error++;
+                        $object->error    = $errorLine . ' : ' . $objectequipement->error;
+                        $object->errors[] = $object->error;
+                    }
+                } else if ($qtyToDispatch < 0) {
+                    $serialFournRemoveArray = GETPOST('serialfourn_remove' . $suffix, 'array');
+
+                    // check if quanity to dispatch matches with serialFournRemoveArray
+                    if (count($serialFournRemoveArray) != abs($qtyToDispatch)) {
+                        $error++;
+                        $object->error    = $errorLine . ' : ' . $langs->trans('WarehousechildErrorSupplierOrderDispatchLineIncorrectRemoveQty');
+                        $object->errors[] = $object->error;
+                    } else {
+                        foreach($serialFournRemoveArray as $serialFournRemove) {
+                            // find equipement by serial number
+                            $equipementToRemove = new \Equipement($db);
+
+                            $result = $equipementToRemove->fetch($serialFournRemove);
+                            if ($result < 0) {
+                                $error++;
+                                $object->error    = $errorLine . ' : ' . $langs->trans('WarehousechildErrorSupplierOrderDispatchLineIncorrectEquipmentRef');
+                                $object->errors[] = $object->error;
+                                break;
+                            }
+
+                            // check if equipment reference correspond to this supplier order and product and already dispatched
+                            if ($equipementToRemove->fk_commande_fourn != $object->id || $equipementToRemove->fk_product != $fkProduct || (!($equipementToRemove->fk_commande_fournisseur_dispatch > 0))) {
+                                $error++;
+                                $object->error    = $errorLine . ' : ' . $langs->trans('WarehousechildErrorSupplierOrderDispatchLineEquipmentRefNotMatch');
+                                $object->errors[] = $object->error;
+                                break;
+                            }
+
+                            // remove this equipment (change id of supplier order dispatch line and set warehouse to null)
+                            $equipementToRemove->fk_commande_fournisseur_dispatch = $commandeFournisseurDispatchId;
+                            $result = $equipementToRemove->setFkCommandeFournisseurDispatch($user);
+                            if ($result < 0) {
+                                $error++;
+                                $object->error    = $errorLine . ' : ' . $langs->trans('WarehousechildErrorSupplierOrderDispatchLineImpossibleToChangeDispatchLine');
+                                $object->errors[] = $object->error;
+                                break;
+                            }
+
+                            $result = $equipementToRemove->set_entrepot($user, -1);
+                            if ($result < 0) {
+                                $error++;
+                                $object->error    = $errorLine . ' : ' . $langs->trans('WarehousechildErrorSupplierOrderDispatchLineImpossibleToChangeWarehouse');
+                                $object->errors[] = $object->error;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
 	}
 
     if (! $error) {
         // modify status before recalculate
         $result = $object->setStatus($user, 3);
         if ($result < 0) {
-            setEventMessages($object->error, $object->errors, 'errors');
             $error++;
         }
     }
@@ -365,8 +558,7 @@ if ($action == 'dispatch' && $user->rights->fournisseur->commande->receptionner)
 	if (! $error) {
 		$result = $object->calcAndSetStatusDispatch($user, GETPOST('closeopenorder')?1:0, GETPOST('comment'));
 		if ($result < 0) {
-			setEventMessages($object->error, $object->errors, 'errors');
-			$error ++;
+            $error ++;
 		}
 	}
 
@@ -378,8 +570,7 @@ if ($action == 'dispatch' && $user->rights->fournisseur->commande->receptionner)
 		// End call triggers
 
 		if ($result < 0) {
-			setEventMessages($object->error, $object->errors, 'errors');
-			$error ++;
+            $error++;
 		}
 	}
 
@@ -387,14 +578,17 @@ if ($action == 'dispatch' && $user->rights->fournisseur->commande->receptionner)
         $db->commit();
 
         // Modification - Open-DSI - Begin - Hack for the redirect to set equipments if has products serializable
-        if (!isset($object->context['workflow_to_serialize'])) {
-            header("Location: dispatch.php?id=" . $id);
-        }
+        //if (!isset($object->context['workflow_to_serialize'])) {
+        //    header("Location: dispatch.php?id=" . $id);
+        //}
         // Modification - Open-DSI - End - Hack for the redirect to set equipments if has products serializable
+
+        header("Location: " . $_SERVER['SELF_PHP'] . "?id=" . $id);
         exit();
     } else {
-		$db->rollback();
-	}
+        $db->rollback();
+        setEventMessages($object->error, $object->errors, 'errors');
+    }
 }
 
 
@@ -411,7 +605,7 @@ $supplierorderdispatch = new CommandeFournisseurDispatch($db);
 
 $help_url='EN:Module_Suppliers_Orders|FR:CommandeFournisseur|ES:Módulo_Pedidos_a_proveedores';
 //llxHeader('', $langs->trans("Order"), $help_url, '', 0, 0, array('/fourn/js/lib_dispatch.js'));
-llxHeader('', $langs->trans("Order"), $help_url, '', 0, 0, array('/warehousechild/js/lib_dispatch.js'));
+llxHeader('', $langs->trans("Order"), $help_url, '', 0, 0, array('/warehousechild/js/lib_dispatch.js?sid=' . dol_now()));
 
 if ($id > 0 || ! empty($ref)) {
 	$soc = new Societe($db);
@@ -519,8 +713,10 @@ if ($id > 0 || ! empty($ref)) {
 		$listwarehouses = $entrepot->list_array(1);
 
 		print '<form method="POST" action="dispatch.php?id=' . $object->id . '">';
-		print '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '">';
-		print '<input type="hidden" name="action" value="dispatch">';
+        print '<input type="hidden" id="fk_commande_fourn" name="fk_commande_fourn" value="' . $object->id  . '" />';
+		print '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '" />';
+		print '<input type="hidden" name="action" value="dispatch" />';
+        print '<input type="hidden" id="url_to_get_supplier_order_dispatch_equipement" name="url_to_get_supplier_order_dispatch_equipement" value="' .  dol_buildpath('/warehousechild/ajax/supplier_order_dispatch_equipement.php', 1) . '" />';
 
 		print '<div class="div-table-responsive">';
 		print '<table class="noborder" width="100%">';
@@ -548,218 +744,306 @@ if ($id > 0 || ! empty($ref)) {
 			$db->free($resql);
 		}
 
-		$sql = "SELECT l.rowid, l.fk_product, l.subprice, l.remise_percent, SUM(l.qty) as qty,";
-		$sql .= " p.ref, p.label, p.tobatch";
-		$sql .= " FROM " . MAIN_DB_PREFIX . "commande_fournisseurdet as l";
-		$sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "product as p ON l.fk_product=p.rowid";
-		$sql .= " WHERE l.fk_commande = " . $object->id;
-		if (empty($conf->global->STOCK_SUPPORTS_SERVICES))
-			$sql .= " AND l.product_type = 0";
-		$sql .= " GROUP BY p.ref, p.label, p.tobatch, l.rowid, l.fk_product, l.subprice, l.remise_percent"; // Calculation of amount dispatched is done per fk_product so we must group by fk_product
-		$sql .= " ORDER BY p.ref, p.label";
+		// no dipatch line
+        if (empty($dispatchLineList)) {
+            $sql = "SELECT l.rowid, l.fk_product, l.subprice, l.remise_percent, SUM(l.qty) as qty,";
+            $sql .= " p.ref, p.label, p.tobatch";
+            $sql .= " FROM " . MAIN_DB_PREFIX . "commande_fournisseurdet as l";
+            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "product as p ON l.fk_product=p.rowid";
+            $sql .= " WHERE l.fk_commande = " . $object->id;
+            if (empty($conf->global->STOCK_SUPPORTS_SERVICES))
+                $sql .= " AND l.product_type = 0";
+            $sql .= " GROUP BY p.ref, p.label, p.tobatch, l.rowid, l.fk_product, l.subprice, l.remise_percent"; // Calculation of amount dispatched is done per fk_product so we must group by fk_product
+            $sql .= " ORDER BY p.ref, p.label";
 
-		$resql = $db->query($sql);
-		if ($resql) {
-			$num = $db->num_rows($resql);
-			$i = 0;
+            $resql = $db->query($sql);
+            if (!$resql) {
+                dol_print_error($db);
+            } else {
+                $index = 0;
+                $numTour = 0;
 
-			if ($num) {
-				print '<tr class="liste_titre">';
+                while ($objp = $db->fetch_object($resql)) {
+                    if ($objp->fk_product > 0) {
+                        $remaintodispatch = price2num($objp->qty - (( float ) $products_dispatched[$objp->rowid]), 5); // calculation of dispatched
+                        if ($remaintodispatch < 0)
+                            $remaintodispatch = 0;
 
-				print '<td>' . $langs->trans("Description") . '</td>';
-				print '<td></td>';
-				print '<td></td>';
-				print '<td></td>';
-				print '<td align="right">' . $langs->trans("QtyOrdered") . '</td>';
-				print '<td align="right">' . $langs->trans("QtyDispatchedShort") . '</td>';
-				print '<td align="right">' . $langs->trans("QtyToDispatchShort") . '</td>';
-				print '<td width="32"></td>';
-				print '<td align="right">' . $langs->trans("Warehouse") . '</td>';
-				print "</tr>\n";
+                        if (!isset($dispatchLineList[$index]))   $dispatchLineList[$index] = array();
+                        $dispatchLineList[$index][$numTour] = array('fk_commande_fournisseurdet' => $objp->rowid, 'qty_ordered' => $objp->qty, 'qty_to_dispatch' => $remaintodispatch);
+                        $index++;
+                    }
+                }
 
-				if (! empty($conf->productbatch->enabled)) {
-					print '<tr class="liste_titre">';
-					print '<td></td>';
-					print '<td>' . $langs->trans("batch_number") . '</td>';
-					print '<td>' . $langs->trans("EatByDate") . '</td>';
-					print '<td>' . $langs->trans("SellByDate") . '</td>';
-					print '<td colspan="5">&nbsp;</td>';
-					print "</tr>\n";
-				}
-			}
+                $db->free($resql);
+            }
+        }
 
-			$nbfreeproduct = 0;		// Nb of lins of free products/services
-			$nbproduct = 0;			// Nb of predefined product lines to dispatch (already done or not) if SUPPLIER_ORDER_DISABLE_STOCK_DISPATCH_WHEN_TOTAL_REACHED is off (default)
-									// or nb of line that remain to dispatch if SUPPLIER_ORDER_DISABLE_STOCK_DISPATCH_WHEN_TOTAL_REACHED is on.
+        if (!empty($dispatchLineList)) {
+            print '<tr class="liste_titre">';
+            print '<td>' . $langs->trans("Description") . '</td>';
+            print '<td></td>';
+            print '<td></td>';
+            print '<td></td>';
+            print '<td align="right">' . $langs->trans("QtyOrdered") . '</td>';
+            print '<td align="right">' . $langs->trans("QtyDispatchedShort") . '</td>';
+            print '<td align="right">' . $langs->trans("QtyToDispatchShort") . '</td>';
+            print '<td width="32"></td>';
+            print '<td align="center">' . $langs->trans("Warehouse") . '</td>';
+            print '<td align="center">' . $langs->trans('EquipmentSerialMethod') . '</td>';
+            print '<td align="left">' . $langs->trans('ExternalSerial') . '</td>';
+            print '<td align="left">' . $langs->trans('VersionNumber') . '</td>';
+            print "</tr>\n";
 
-			$var = false;
-			while ( $i < $num ) {
-				$objp = $db->fetch_object($resql);
+            if (! empty($conf->productbatch->enabled)) {
+                print '<tr class="liste_titre">';
+                print '<td></td>';
+                print '<td>' . $langs->trans("batch_number") . '</td>';
+                print '<td>' . $langs->trans("EatByDate") . '</td>';
+                print '<td>' . $langs->trans("SellByDate") . '</td>';
+                print '<td colspan="5">&nbsp;</td>';
+                print "</tr>\n";
+            }
 
-				// On n'affiche pas les produits libres
-				if (! $objp->fk_product > 0) {
-					$nbfreeproduct++;
-				} else {
-					$remaintodispatch = price2num($objp->qty - (( float ) $products_dispatched[$objp->rowid]), 5); // Calculation of dispatched
-					if ($remaintodispatch < 0)
-						$remaintodispatch = 0;
+            $nbproduct = 0; // Nb of predefined product lines to dispatch (already done or not) if SUPPLIER_ORDER_DISABLE_STOCK_DISPATCH_WHEN_TOTAL_REACHED is off (default)
+            $outjs = '';
+            foreach ($dispatchLineList as $index => $dispatchLine) {
+                // supplier order line
+                $dispatchCommandeFournisseurLine = new \CommandeFournisseurLigne($db);
+                $dispatchCommandeFournisseurLine->fetch($dispatchLine[0]['fk_commande_fournisseurdet']);
+                $commandeFournisseurLineId            = $dispatchCommandeFournisseurLine->id;
+                $commandeFournisseurLineSubprice      = $dispatchCommandeFournisseurLine->subprice;
+                $commandeFournisseurLineRemisePercent = $dispatchCommandeFournisseurLine->remise_percent;
 
-					if ($remaintodispatch || empty($conf->global->SUPPLIER_ORDER_DISABLE_STOCK_DISPATCH_WHEN_TOTAL_REACHED)) {
-						$nbproduct++;
+                // order qty
+                $qtyOrdered = $dispatchLine[0]['qty_ordered'];
 
-						// To show detail cref and description value, we must make calculation by cref
-						// print ($objp->cref?' ('.$objp->cref.')':'');
-						// if ($objp->description) print '<br>'.nl2br($objp->description);
-						$suffix = '_0_' . $i;
+                // product
+                $dispatchProduct = new \Product($db);
+                $dispatchProduct->fetch($dispatchCommandeFournisseurLine->fk_product);
+                $fkProduct          = $dispatchCommandeFournisseurLine->fk_product;
+                $productRef         = $dispatchProduct->ref;
+                $productLabel       = $dispatchProduct->label;
+                $productToBatch     = $dispatchProduct->status_batch;
+                $productToSerialize = $dispatchProduct->array_options['options_synergiestech_to_serialize'];
 
-						print "\n";
-						print '<!-- Line to dispatch ' . $suffix . ' -->' . "\n";
-						print '<tr class="oddeven">';
+                $remaintodispatch = price2num($qtyOrdered - (( float ) $products_dispatched[$commandeFournisseurLineId]), 5); // Calculation of dispatched
+                if ($remaintodispatch < 0)
+                    $remaintodispatch = 0;
 
-						$linktoprod = '<a href="' . DOL_URL_ROOT . '/product/fournisseurs.php?id=' . $objp->fk_product . '">' . img_object($langs->trans("ShowProduct"), 'product') . ' ' . $objp->ref . '</a>';
-						$linktoprod .= ' - ' . $objp->label . "\n";
 
-						if (! empty($conf->productbatch->enabled)) {
-							if ($objp->tobatch) {
-								print '<td colspan="4">';
-								print $linktoprod;
-								print "</td>";
-							} else {
-								print '<td>';
-								print $linktoprod;
-								print "</td>";
-								print '<td colspan="3">';
-								print $langs->trans("ProductDoesNotUseBatchSerial");
-								print '</td>';
-							}
-						} else {
-							print '<td colspan="4">';
-							print $linktoprod;
-							print "</td>";
-						}
+                if ($remaintodispatch || empty($conf->global->SUPPLIER_ORDER_DISABLE_STOCK_DISPATCH_WHEN_TOTAL_REACHED)) {
+                    $nbproduct++;
 
-						// Define unit price for PMP calculation
-						$up_ht_disc = $objp->subprice;
-						if (! empty($objp->remise_percent) && empty($conf->global->STOCK_EXCLUDE_DISCOUNT_FOR_PMP))
-							$up_ht_disc = price2num($up_ht_disc * (100 - $objp->remise_percent) / 100, 'MU');
+                    print "\n";
+                    print '<!-- Line to dispatch ' . '_0_' . $index . ' -->' . "\n";
+                    print '<tr class="oddeven">';
 
-						// Qty ordered
-						print '<td align="right">' . $objp->qty . '</td>';
+                    $linktoprod = '<a href="' . DOL_URL_ROOT . '/product/fournisseurs.php?id=' . $fkProduct . '">' . img_object($langs->trans("ShowProduct"), 'product') . ' ' . $productRef . '</a>';
+                    $linktoprod .= ' - ' . $productLabel . "\n";
 
-						// Already dispatched
-						print '<td align="right">' . $products_dispatched[$objp->rowid] . '</td>';
+                    if (! empty($conf->productbatch->enabled)) {
+                        if ($productToBatch) {
+                            print '<td colspan="4">';
+                            print $linktoprod;
+                            print "</td>";
+                        } else {
+                            print '<td>';
+                            print $linktoprod;
+                            print "</td>";
+                            print '<td colspan="3">';
+                            print $langs->trans("ProductDoesNotUseBatchSerial");
+                            print '</td>';
+                        }
+                    } else {
+                        print '<td colspan="4">';
+                        print $linktoprod;
+                        print "</td>";
+                    }
 
-						if (! empty($conf->productbatch->enabled) && $objp->tobatch == 1) {
-							$type = 'batch';
-							print '<td align="right">';
-							print '</td>';     // Qty to dispatch
-							print '<td>';
-							//print img_picto($langs->trans('AddDispatchBatchLine'), 'split.png', 'onClick="addDispatchLine(' . $i . ',\'' . $type . '\')"');
-							print '</td>';     // Dispatch column
-							print '<td></td>'; // Warehouse column
-							print '</tr>';
+                    // Define unit price for PMP calculation
+                    $up_ht_disc = $commandeFournisseurLineSubprice;
+                    if (! empty($commandeFournisseurLineRemisePercent) && empty($conf->global->STOCK_EXCLUDE_DISCOUNT_FOR_PMP))
+                        $up_ht_disc = price2num($up_ht_disc * (100 - $commandeFournisseurLineRemisePercent) / 100, 'MU');
 
-							print '<tr class="oddeven" name="' . $type . $suffix . '">';
-							print '<td>';
-							print '<input name="fk_commandefourndet' . $suffix . '" type="hidden" value="' . $objp->rowid . '">';
-							print '<input name="product_batch' . $suffix . '" type="hidden" value="' . $objp->fk_product . '">';
+                    // qty ordered
+                    print '<td align="right">' . $qtyOrdered . '</td>';
 
-							print '<!-- This is a up (may include discount or not depending on STOCK_EXCLUDE_DISCOUNT_FOR_PMP. will be used for PMP calculation) -->';
-							if (! empty($conf->global->SUPPLIER_ORDER_EDIT_BUYINGPRICE_DURING_RECEIPT)) // Not tested !
-							{
-							    print $langs->trans("BuyingPrice").': <input class="maxwidth75" name="pu' . $suffix . '" type="text" value="' . price2num($up_ht_disc, 'MU') . '">';
-							}
-							else
-							{
-							    print '<input class="maxwidth75" name="pu' . $suffix . '" type="hidden" value="' . price2num($up_ht_disc, 'MU') . '">';
-							}
+                    // already dispatched
+                    print '<td align="right">' . $products_dispatched[$commandeFournisseurLineId] . '</td>';
 
-							// hidden fields for js function
-							print '<input id="qty_ordered' . $suffix . '" type="hidden" value="' . $objp->qty . '">';
-							print '<input id="qty_dispatched' . $suffix . '" type="hidden" value="' . ( float ) $products_dispatched[$objp->rowid] . '">';
-							print '</td>';
+                    if (! empty($conf->productbatch->enabled) && $productToBatch == 1) {
+                        $type = 'batch';
+                        print '<td></td>'; // Qty to dispatch
+                        print '<td></td>'; // Dispatch column
+                        print '<td></td>'; // Warehouse column
+                        print '<td></td>'; // serial method
+                        print '<td></td>'; // serial fourn
+                        print '<td></td>'; // num version
+                    } else {
+                        $type = 'dispatch';
+                        print '<td></td>'; // Qty to dispatch
+                        print '<td></td>'; // Dispatch column
+                        print '<td></td>'; // Warehouse column
+                        print '<td></td>'; // serial method
+                        print '<td></td>'; // serial fourn
+                        print '<td></td>'; // num version
+                    }
 
-							print '<td>';
-							print '<input type="text" class="inputlotnumber" id="lot_number' . $suffix . '" name="lot_number' . $suffix . '" size="40" value="' . GETPOST('lot_number' . $suffix) . '">';
-							print '</td>';
-							print '<td>';
-							$dlcdatesuffix = dol_mktime(0, 0, 0, GETPOST('dlc' . $suffix . 'month'), GETPOST('dlc' . $suffix . 'day'), GETPOST('dlc' . $suffix . 'year'));
-							$form->select_date($dlcdatesuffix, 'dlc' . $suffix, '', '', 1, "");
-							print '</td>';
-							print '<td>';
-							$dluodatesuffix = dol_mktime(0, 0, 0, GETPOST('dluo' . $suffix . 'month'), GETPOST('dluo' . $suffix . 'day'), GETPOST('dluo' . $suffix . 'year'));
-							$form->select_date($dluodatesuffix, 'dluo' . $suffix, '', '', 1, "");
-							print '</td>';
-							print '<td colspan="2">&nbsp</td>'; // Qty ordered + qty already dispatached
-						} else {
-							$type = 'dispatch';
-							print '<td align="right">';
-							print '</td>';     // Qty to dispatch
-							print '<td>';
-							//print img_picto($langs->trans('AddStockLocationLine'), 'split.png', 'onClick="addDispatchLine(' . $i . ',\'' . $type . '\')"');
-							print '</td>';      // Dispatch column
-							print '<td></td>'; // Warehouse column
-							print '</tr>';
+                    print '</tr>';
 
-							print '<tr class="oddeven" name="' . $type . $suffix . '">';
-							print '<td colspan="6">';
-							print '<input name="fk_commandefourndet' . $suffix . '" type="hidden" value="' . $objp->rowid . '">';
-							print '<input name="product' . $suffix . '" type="hidden" value="' . $objp->fk_product . '">';
+                    foreach ($dispatchLine as $numTour => $dispatch) {
+                        $suffix = '_' . $numTour . '_' . $index;
+                        $qtyToDispatch = $dispatch['qty_to_dispatch'];
 
-							print '<!-- This is a up (may include discount or not depending on STOCK_EXCLUDE_DISCOUNT_FOR_PMP. will be used for PMP calculation) -->';
-							if (! empty($conf->global->SUPPLIER_ORDER_EDIT_BUYINGPRICE_DURING_RECEIPT)) // Not tested !
-							{
-							    print $langs->trans("BuyingPrice").': <input class="maxwidth75" name="pu' . $suffix . '" type="text" value="' . price2num($up_ht_disc, 'MU') . '">';
-							}
-							else
-							{
-							    print '<input class="maxwidth75" name="pu' . $suffix . '" type="hidden" value="' . price2num($up_ht_disc, 'MU') . '">';
-							}
+                        print '<tr class="oddeven" name="' . $type . $suffix . '">';
 
-							// hidden fields for js function
-							print '<input id="qty_ordered' . $suffix . '" type="hidden" value="' . $objp->qty . '">';
-							print '<input id="qty_dispatched' . $suffix . '" type="hidden" value="' . ( float ) $products_dispatched[$objp->rowid] . '">';
-							print '</td>';
-						}
+                        if ($type == 'btach') {
+                            // type batch
+                            print '<td>';
+                            print '<input name="fk_commandefourndet' . $suffix . '" type="hidden" value="' . $commandeFournisseurLineId . '">';
+                            print '<input name="product_batch' . $suffix . '" type="hidden" value="' . $fkProduct . '">';
 
-						// Qty to dispatch
-						print '<td align="right">';
-						print '<input id="qty' . $suffix . '" name="qty' . $suffix . '" type="text" size="8" value="' . (GETPOST('qty' . $suffix) != '' ? GETPOST('qty' . $suffix) : $remaintodispatch) . '">';
+                            print '<!-- This is a up (may include discount or not depending on STOCK_EXCLUDE_DISCOUNT_FOR_PMP. will be used for PMP calculation) -->';
+                            if (! empty($conf->global->SUPPLIER_ORDER_EDIT_BUYINGPRICE_DURING_RECEIPT)) // Not tested !
+                            {
+                                print $langs->trans("BuyingPrice").': <input class="maxwidth75" name="pu' . $suffix . '" type="text" value="' . price2num($up_ht_disc, 'MU') . '">';
+                            }
+                            else
+                            {
+                                print '<input class="maxwidth75" name="pu' . $suffix . '" type="hidden" value="' . price2num($up_ht_disc, 'MU') . '">';
+                            }
+
+                            // hidden fields for js function
+                            print '<input id="qty_ordered' . $suffix . '" type="hidden" value="' . $qtyOrdered . '">';
+                            print '<input id="qty_dispatched' . $suffix . '" type="hidden" value="' . ( float ) $products_dispatched[$commandeFournisseurLineId] . '">';
+                            print '</td>';
+
+                            print '<td>';
+                            print '<input type="text" class="inputlotnumber" id="lot_number' . $suffix . '" name="lot_number' . $suffix . '" size="40" value="' . GETPOST('lot_number' . $suffix) . '">';
+                            print '</td>';
+                            print '<td>';
+                            $dlcdatesuffix = dol_mktime(0, 0, 0, GETPOST('dlc' . $suffix . 'month'), GETPOST('dlc' . $suffix . 'day'), GETPOST('dlc' . $suffix . 'year'));
+                            $form->select_date($dlcdatesuffix, 'dlc' . $suffix, '', '', 1, "");
+                            print '</td>';
+                            print '<td>';
+                            $dluodatesuffix = dol_mktime(0, 0, 0, GETPOST('dluo' . $suffix . 'month'), GETPOST('dluo' . $suffix . 'day'), GETPOST('dluo' . $suffix . 'year'));
+                            $form->select_date($dluodatesuffix, 'dluo' . $suffix, '', '', 1, "");
+                            print '</td>';
+                            print '<td colspan="2">&nbsp</td>'; // Qty ordered + qty already dispatached
+                        } else {
+                            // type dispatch
+                            print '<td colspan="6">';
+                            print '<input name="fk_commandefourndet' . $suffix . '" type="hidden" value="' . $commandeFournisseurLineId . '">';
+                            print '<input id="product' . $suffix . '" name="product' . $suffix . '" type="hidden" value="' . $fkProduct . '">';
+
+                            print '<!-- This is a up (may include discount or not depending on STOCK_EXCLUDE_DISCOUNT_FOR_PMP. will be used for PMP calculation) -->';
+                            if (!empty($conf->global->SUPPLIER_ORDER_EDIT_BUYINGPRICE_DURING_RECEIPT)) // Not tested !
+                            {
+                                print $langs->trans("BuyingPrice") . ': <input class="maxwidth75" name="pu' . $suffix . '" type="text" value="' . price2num($up_ht_disc, 'MU') . '">';
+                            } else {
+                                print '<input class="maxwidth75" name="pu' . $suffix . '" type="hidden" value="' . price2num($up_ht_disc, 'MU') . '">';
+                            }
+
+                            // hidden fields for js function
+                            print '<input type="hidden" id="qty_ordered' . $suffix . '" name="qty_ordered' . $suffix . '" value="' . $qtyOrdered . '">';
+                            print '<input type="hidden" id="qty_dispatched' . $suffix . '" name="qty_dispatched' . $suffix . '" value="' . ( float )$products_dispatched[$commandeFournisseurLineId] . '">';
+                            print '</td>';
+                        }
+
+                        // qty to dispatch
+                        print '<td align="right">';
+                        print '<input id="qty' . $suffix . '" name="qty' . $suffix . '" type="text" size="8" value="' . (GETPOST('qty' . $suffix) != '' ? GETPOST('qty' . $suffix) : $qtyToDispatch) . '">';
                         print '</td>';
 
+                        // dispatch button
                         print '<td>';
-						if (! empty($conf->productbatch->enabled) && $objp->tobatch == 1) {
-						    $type = 'batch';
-						    //print img_picto($langs->trans('AddDispatchBatchLine'), 'split.png', 'class="splitbutton" onClick="addDispatchLine(' . $i . ',\'' . $type . '\')"');
-						    print img_picto($langs->trans('AddStockLocationLine'), 'split.png', 'class="splitbutton" onClick="addDispatchLineWarehousechild(' . $i . ',\'' . $type . '\')"');
-						}
-						else
-						{
-						    $type = 'dispatch';
-						    print img_picto($langs->trans('AddStockLocationLine'), 'split.png', 'class="splitbutton" onClick="addDispatchLineWarehousechild(' . $i . ',\'' . $type . '\', \'qtymissing\', true)"');
-						}
+                        if ($type == 'batch') {
+                            // type batch
+                            print img_picto($langs->trans('AddStockLocationLine'), 'split.png', 'class="splitbutton" onClick="addDispatchLineWarehousechild(' . $index . ',\'' . $type . '\')"');
+                        } else {
+                            // type dispatch
+                            print img_picto($langs->trans('AddStockLocationLine'), 'split.png', 'class="splitbutton" onClick="addDispatchLineWarehousechild(' . $index . ',\'' . $type . '\', \'qtymissing\', true, ' . ($productToSerialize == 1 ? 1 : 0) . ')"');
+                        }
+                        print '</td>';
 
-						print '</td>';
+                        // warehouse
+                        print '<td align="right">';
+                        if (count($listwarehouses) >= 1) {
+                            print $formproduct->selectWarehouses(GETPOST("entrepot" . $suffix), "entrepot" . $suffix, '', 0, 0, $fkProduct, '', 1);
+                        } else {
+                            $langs->load("errors");
+                            print $langs->trans("ErrorNoWarehouseDefined");
+                        }
+                        print "</td>\n";
 
-						// Warehouse
-						print '<td align="right">';
-						if (count($listwarehouses) >= 1) {
-							print $formproduct->selectWarehouses(GETPOST("entrepot" . $suffix), "entrepot" . $suffix, '', 0, 0, $objp->fk_product, '', 1);
-						} else {
-							$langs->load("errors");
-							print $langs->trans("ErrorNoWarehouseDefined");
-						}
-						print "</td>\n";
+                        // serial method
+                        print '<td id="td_serialmethod' . $suffix . '" align="center" valign="top">';
+                        if ($productToSerialize == 1) {
+                            $dispatchSerialMethod = GETPOST('serialmethod' . $suffix, 'int') ? GETPOST('serialmethod' . $suffix, 'int') : $conf->global->EQUIPEMENT_DEFAULTSERIALMODE;
+                            $arraySerialMethod = array(
+                                1 => $langs->trans("InternalSerial"),
+                                2 => $langs->trans("ExternalSerial"),
+                                3 => $langs->trans("SeriesMode")
+                            );
+                            print $form->selectarray("serialmethod" . $suffix, $arraySerialMethod, $dispatchSerialMethod, 0, 0, 0, '', 0, 0, ($qtyToDispatch <= 0 ? 1 : 0));
+                        }
+                        print '</td>';
 
-						print "</tr>\n";
-					}
-				}
-				$i++;
-			}
-			$db->free($resql);
-		} else {
-			dol_print_error($db);
-		}
+                        // serial fourn
+                        print '<td id="td_serialfourn' . $suffix . '" valign="top">';
+                        if ($productToSerialize == 1) {
+                            if ($qtyToDispatch < 0) {
+                                $dispatchSerialFournRemoveArray = GETPOST('serialfourn_remove' . $suffix, 'array') ? GETPOST('serialfourn_remove' . $suffix, 'array') : array();
+                                $outjs .= 'getSupplierOrderDispatchEquipementWarehousechild(' . $numTour . ', ' . $index . ', ' . json_encode($dispatchSerialFournRemoveArray) . ');';
+                            } else if ($qtyToDispatch > 0) {
+                                $dispatchSerialFournArray = GETPOST('serialfourn' . $suffix, 'array') ? GETPOST('serialfourn' . $suffix, 'array') : array();
+                                for ($numSerialFourn = 0; $numSerialFourn < $qtyToDispatch; $numSerialFourn++) {
+                                    $dispatchSerialFourn = isset($dispatchSerialFournArray[$numSerialFourn]) ? $dispatchSerialFournArray[$numSerialFourn] : '';
+                                    print '<input type="text" class="serialfourn' . $suffix . '" name="serialfourn' . $suffix . '[]" value="' . $dispatchSerialFourn . '" /><br />';
+                                }
+                            }
+                        }
+                        print '</td>';
+
+                        // num version
+                        print '<td id="td_numversion' . $suffix . '">';
+                        if ($productToSerialize == 1) {
+                            $dispatchNumversion = GETPOST('numversion' . $suffix, 'alpha') ? GETPOST('numversion' . $suffix, 'alpha') : '';
+                            print '<input type="text" id="numversion' . $suffix . '" name="numversion' . $suffix . '" value="' . $dispatchNumversion . '"' . ($qtyToDispatch <= 0 ? ' disabled' : '') . '/>';
+                        }
+                        print '</td>';
+
+                        print '</tr>';
+
+                        // change qty to disptach
+                        $outjs .= 'jQuery("#qty' . $suffix . '").change(function(){';
+                        $outjs .= ' addInputSerialFournWarehousechild(' . $numTour . ', ' . $index . ');';
+                        $outjs .= '});';
+
+                        // change warehouse
+                        $outjs .= 'jQuery("#entrepot' . $suffix . '").change(function(){';
+                        $outjs .= ' addInputSerialFournWarehousechild(' . $numTour . ', ' . $index . ');';
+                        $outjs .= '});';
+
+                        // disable input serial fourn for method internal and series
+                        $outjs .= 'disableInputSerialFournWarehousechild(' . $numTour . ', ' . $index . ');';
+                        $outjs .= 'jQuery("#serialmethod' . $suffix . '").change(function(){';
+                        $outjs .= ' disableInputSerialFournWarehousechild(' . $numTour . ', ' . $index . ');';
+                        $outjs .= '});';
+                    }
+                }
+            }
+
+            // javascript code
+            if (!empty($outjs)) {
+                print '<script type="text/javascript">';
+                print 'jQuery(document).ready(function(){';
+                print $outjs;
+                print '});';
+                print '</script>';
+            }
+        }
 
 		print "</table>\n";
 		print '</div>';

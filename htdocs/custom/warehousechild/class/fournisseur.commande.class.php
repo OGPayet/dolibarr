@@ -42,7 +42,7 @@ class CommandeFournisseur extends \CommandeFournisseur
      * @param	string		$batch					Lot number
      * @param	int			$fk_commandefourndet	Id of supplier order line
      * @param	int			$notrigger          	1 = notrigger
-     * @return 	int						<0 if KO, >0 if OK
+     * @return 	int						<0 if KO, >0 if OK (id of dispatch supplier order)
      */
     public function dispatchProduct($user, $product, $qty, $entrepot, $price=0, $comment='', $eatby='', $sellby='', $batch='', $fk_commandefourndet=0, $notrigger=0)
     {
@@ -84,6 +84,8 @@ class CommandeFournisseur extends \CommandeFournisseur
             $resql = $this->db->query($sql);
             if ($resql)
             {
+                $commandeFournisseurDispatchId = $this->db->last_insert_id(MAIN_DB_PREFIX . 'commande_fournisseur_dispatch');
+
                 if (! $notrigger)
                 {
                     global $conf, $langs, $user;
@@ -117,18 +119,18 @@ class CommandeFournisseur extends \CommandeFournisseur
                     if ($qty > 0) {
                         $result = $mouv->reception($user, $product, $entrepot, $qty, $price, $comment, $eatby, $sellby, $batch);
                         if ($result < 0) {
+                            $error++;
                             $this->error = $mouv->error;
                             $this->errors = $mouv->errors;
                             dol_syslog(__METHOD__  . ' ' . $this->error . " " . join(',', $this->errors), LOG_ERR);
-                            $error++;
                         }
                     } else if ($qty < 0) {
                         $result = $mouv->livraison($user, $product, $entrepot, -$qty, $price, $comment, '', $eatby, $sellby, $batch);
                         if ($result < 0) {
+                            $error++;
                             $this->error = $mouv->error;
                             $this->errors = $mouv->errors;
                             dol_syslog(__METHOD__  . ' ' . $this->error . " " . join(',', $this->errors), LOG_ERR);
-                            $error++;
                         }
                     }
                 }
@@ -137,7 +139,7 @@ class CommandeFournisseur extends \CommandeFournisseur
             if ($error == 0)
             {
                 $this->db->commit();
-                return 1;
+                return $commandeFournisseurDispatchId;
             }
             else
             {

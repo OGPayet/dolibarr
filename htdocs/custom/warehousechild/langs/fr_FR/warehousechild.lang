@@ -64,4 +64,14 @@ Open= Ouvert
 #
 # Order Supplier
 #
-WarehousechildDispatchSupplierOrderCorrect = Correction de la réception de la commande fournisseur %s
+WarehousechildSupplierOrderDispatchCorrect = Correction de la réception de la commande fournisseur %s
+
+#
+# Error
+#
+WarehousechildErrorSupplierOrderDispatchLineFieldQty                       = Quantité incorrecte
+WarehousechildErrorSupplierOrderDispatchLineIncorrectRemoveQty             = La quantité à enlever ne correspond pas au nombre d'équipements sélectionnés
+WarehousechildErrorSupplierOrderDispatchLineIncorrectEquipmentRef          = La référence de cet équipement n'existe pas
+WarehousechildErrorSupplierOrderDispatchLineEquipmentRefNotMatch           = La référence de l'équipement n'est pas associée à cette commande fournisseur
+WarehousechildErrorSupplierOrderDispatchLineImpossibleToChangeDispatchLine = Impossible de modifier la ventilation
+WarehousechildErrorSupplierOrderDispatchLineImpossibleToChangeWarehouse    = Impossible de changer d'entrepôt

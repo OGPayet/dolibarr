@@ -50,4 +50,14 @@ MyWidgetDescription = My widget description
 #
 # Order Supplier
 #
-WarehousechildDispatchSupplierOrderCorrect = Reception correction of the supplier order %s
+WarehousechildSupplierOrderDispatchCorrect = Reception correction of the supplier order %s
+
+#
+# Error
+#
+WarehousechildErrorSupplierOrderDispatchLineFieldQty                       = Bad quanity
+WarehousechildErrorSupplierOrderDispatchLineIncorrectRemoveQty             = The quantiyt to remove doesn't match with the number of selected equipments
+WarehousechildErrorSupplierOrderDispatchLineIncorrectEquipmentRef          = Bad equipment reference
+WarehousechildErrorSupplierOrderDispatchLineEquipmentRefNotMatch           = Equipment reference doesn't match with this supplier order
+WarehousechildErrorSupplierOrderDispatchLineImpossibleToChangeDispatchLine = Can't modify this dispatching
+WarehousechildErrorSupplierOrderDispatchLineImpossibleToChangeWarehouse    = Can't modify the warehouse
