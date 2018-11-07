@@ -421,7 +421,9 @@ if ($action == 'pushallcontacts')
 			}
 			catch(Exception $e)
 			{
+				if(strpos($e, 'unwanted') == false){
 				print "Error in constructor new GContact(".$obj->rowid.", 'contact', ...)";
+				}
 			}
 
 			$i++;

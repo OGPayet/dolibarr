@@ -419,7 +419,26 @@ class GContact
 		$company = new Societe($db);
 		$result=$company->fetch($dolContact->socid);
 		if ($result <=0) throw new Exception($company->$error);
-		$this->orgName=$company->name_alias . " (" .$company->name . ") ";
+
+			//Specifique Synergies-Tech
+
+
+			$tempname = empty($company->name_alias)? $company->name:$company->name_alias;
+		if(explode(' ',trim($tempname))[0] == "Pharmacie" || explode(' ',trim($tempname))[0] == "pharmacie" )
+		{
+			$tempname = substr(strstr($tempname," "), 1);
+		}
+
+		// Now we pushed Postal Code at the end of this thirdparty Name
+
+		if(!empty($company->zip))
+		{
+			$tempname = $tempname . ' ' . $company->zip;
+		}
+
+		$this->orgName=$tempname;
+			$diffNumber=array_diff(array($company->phone,$company->phone_perso,$company->phone_mobile),array($dolContact->phone_pro,$dolContact->phone_perso,$dolContact->phone_mobile));
+			if(count($diffNumber) >0 || (empty($dolContact->phone_pro)&&empty($dolContact->phone_perso)&&empty($dolContact->phone_mobile))) throw new Exception("unwanted");
 	}
 	$this->poste= $dolContact->poste;
 
