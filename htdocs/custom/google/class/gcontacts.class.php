@@ -22,7 +22,20 @@
  *  \brief      class GContacts
  */
 
+
+require_once(DOL_DOCUMENT_ROOT."/core/lib/admin.lib.php");
+require_once(DOL_DOCUMENT_ROOT."/core/lib/date.lib.php");
+require_once(DOL_DOCUMENT_ROOT.'/core/class/html.formadmin.class.php');
+require_once(DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php');
+require_once(DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php');
+require_once(DOL_DOCUMENT_ROOT.'/contact/class/contact.class.php');
+require_once(DOL_DOCUMENT_ROOT.'/adherents/class/adherent.class.php');
+dol_include_once("/google/lib/google.lib.php");
 dol_include_once('/google/lib/google_contact.lib.php');
+dol_include_once('/google/lib/google_calendar.lib.php');
+$langs->load("google@google");
+$langs->load("admin");
+$langs->load("other");
 
 
 /**
@@ -1041,6 +1054,277 @@ class GContact
 	*/
 	return(count($googleIDs));
      }
+	 /**
+     * Function to call with dolibarr cron task to update all account according to Synergies-Tech needs
+     *
+     * @return	bool
+     */
+	public function massUpdated()
+    {
+		////////////////////////////////////
+		//First we delete all thirdparties//
+		////////////////////////////////////
+	global $db, $langs, $conf;
+	$googleuser = empty($conf->global->GOOGLE_CONTACT_LOGIN)?'':$conf->global->GOOGLE_CONTACT_LOGIN;
+	$googlepwd  = empty($conf->global->GOOGLE_CONTACT_PASSWORD)?'':$conf->global->GOOGLE_CONTACT_PASSWORD;
+
+	// Create client object
+	//$service= 'cp';		// cl = calendar, cp=contact, ... Search on AUTH_SERVICE_NAME into Zend API for full list
+	//$client = getClientLoginHttpClientContact($googleuser, $googlepwd, $service);
+	//var_dump($client); exit;
+
+	// Create client/token object
+	$key_file_location = $conf->google->multidir_output[$conf->entity]."/".$conf->global->GOOGLE_API_SERVICEACCOUNT_P12KEY;
+	$force_do_not_use_session=false; // by default
+	$servicearray=getTokenFromServiceAccount($conf->global->GOOGLE_API_SERVICEACCOUNT_EMAIL, $key_file_location, $force_do_not_use_session, 'web');
+
+	if (! is_array($servicearray) || $servicearray == null)
+	{
+		$txterror="Failed to login to Google with current token";
+		dol_syslog($txterror, LOG_ERR);
+		$errors[]=$txterror;
+		return -1;
+	}
+	else
+	{
+		$client = $servicearray;
+		$gdata = $client;
+
+		dol_include_once('/google/class/gcontacts.class.php');
+
+		$nbContacts = GContact::deleteDolibarrContacts($gdata,'','thirdparty');
+
+		if ($nbContacts >= 0)
+		{
+			$sql = "UPDATE ".MAIN_DB_PREFIX."societe SET ref_ext = NULL WHERE ref_ext LIKE '%google%'";
+			dol_syslog("sql=".$sql);
+			$db->query($sql);
+
+			$mesg = $langs->trans("DeleteToGoogleSucess",$nbContacts);
+		}
+		else
+		{
+			$error++;
+			$errors[] = $langs->trans("Error");
+		}
+	}
+
+		////////////////////////////////////
+		// Second we delete all contacts  //
+		////////////////////////////////////
+
+	$googleuser = empty($conf->global->GOOGLE_CONTACT_LOGIN)?'':$conf->global->GOOGLE_CONTACT_LOGIN;
+	$googlepwd  = empty($conf->global->GOOGLE_CONTACT_PASSWORD)?'':$conf->global->GOOGLE_CONTACT_PASSWORD;
+
+	// Create client object
+	//$service= 'cp';		// cl = calendar, cp=contact, ... Search on AUTH_SERVICE_NAME into Zend API for full list
+	//$client = getClientLoginHttpClientContact($googleuser, $googlepwd, $service);
+	//var_dump($client); exit;
+
+	// Create client/token object
+	$key_file_location = $conf->google->multidir_output[$conf->entity]."/".$conf->global->GOOGLE_API_SERVICEACCOUNT_P12KEY;
+	$force_do_not_use_session=false; // by default
+	$servicearray=getTokenFromServiceAccount($conf->global->GOOGLE_API_SERVICEACCOUNT_EMAIL, $key_file_location, $force_do_not_use_session, 'web');
+
+	if (! is_array($servicearray) || $servicearray == null)
+	{
+		$txterror="Failed to login to Google with current token";
+		dol_syslog($txterror, LOG_ERR);
+		$errors[]=$txterror;
+		return -1;
+	}
+	else
+	{
+		$client = $servicearray;
+		$gdata = $client;
+
+		dol_include_once('/google/class/gcontacts.class.php');
+
+		$nbContacts = GContact::deleteDolibarrContacts($gdata,'','contact');
+
+		if ($nbContacts >= 0)
+		{
+			$sql = "UPDATE ".MAIN_DB_PREFIX."socpeople SET ref_ext = NULL WHERE ref_ext LIKE '%google%'";
+			dol_syslog("sql=".$sql);
+			$db->query($sql);
+
+			$mesg = $langs->trans("DeleteToGoogleSucess",$nbContacts);
+		}
+		else
+		{
+			$error++;
+			$errors[] = $langs->trans("Error");
+		}
+	}
+
+
+
+
+	////////////////////////////////////
+	// Finally we send all contacts  ///
+	////////////////////////////////////
+
+	$objectstatic=new Contact($db);
+
+	$googleuser = empty($conf->global->GOOGLE_CONTACT_LOGIN)?'':$conf->global->GOOGLE_CONTACT_LOGIN;
+	$googlepwd  = empty($conf->global->GOOGLE_CONTACT_PASSWORD)?'':$conf->global->GOOGLE_CONTACT_PASSWORD;
+
+	// Create client object
+	//$service= 'cp';		// cl = calendar, cp=contact, ... Search on AUTH_SERVICE_NAME into Zend API for full list
+	//$client = getClientLoginHttpClientContact($googleuser, $googlepwd, $service);
+	//var_dump($client); exit;
+
+	// Create client/token object
+	$key_file_location = $conf->google->multidir_output[$conf->entity]."/".$conf->global->GOOGLE_API_SERVICEACCOUNT_P12KEY;
+	$force_do_not_use_session=false; // by default
+	$servicearray=getTokenFromServiceAccount($conf->global->GOOGLE_API_SERVICEACCOUNT_EMAIL, $key_file_location, $force_do_not_use_session, 'web');
+
+	if (! is_array($servicearray) || $servicearray == null)
+	{
+		$txterror="Failed to login to Google with current token";
+		dol_syslog($txterror, LOG_ERR);
+		$errors[]=$txterror;
+		return -1;
+	}
+	else
+	{
+		$client = $servicearray;
+		$gdata = $client;
+
+		dol_include_once('/google/class/gcontacts.class.php');
+
+		//	$res = GContact::deleteDolibarrContacts();
+		$sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'socpeople';
+		$sql.= ' WHERE entity IN ('.getEntity('socpeople').')';
+		$sql.= ' ORDER BY rowid';
+
+		$resql = $db->query($sql);
+		if (! $resql)
+		{
+			dol_print_error($db);
+			exit;
+		}
+
+		$synclimit = 0;	// 0 = all
+		$i=0;
+		while (($obj = $db->fetch_object($resql)) && ($i < $synclimit || empty($synclimit)))
+		{
+			if (! empty($conf->global->GOOGLE_SYNC_FROM_POSITION) || GETPOST('syncfrom','int'))
+			{
+				if (($i + 1) < (GETPOST('syncfrom','int')?GETPOST('syncfrom','int'):$conf->global->GOOGLE_SYNC_FROM_POSITION)) continue;
+			}
+
+			try
+			{
+				$gContacts[] = new GContact($obj->rowid, 'contact', $gdata);
+			}
+			catch(Exception $e)
+			{
+				if(strpos($e, 'unwanted') == false){
+				print "Error in constructor new GContact(".$obj->rowid.", 'contact', ...)";
+				}
+			}
+
+			$i++;
+		}
+
+		$result=0;
+		if (count($gContacts)) $result=insertGContactsEntries($gdata, $gContacts, $objectstatic);
+
+		if (is_numeric($result) && $result >= 0)
+		{
+			$mesg = $langs->trans("PushToGoogleSucess",count($gContacts));
+		}
+		else
+		{
+			$error++;
+			$errors[] = $langs->trans("Error").' '.$result;
+		}
+	}
+
+
+
+
+
+
+
+
+
+	////////////////////////////////////
+	// Third we send all thirdparties///
+	////////////////////////////////////
+
+	$objectstatic=new Societe($db);
+
+	$googleuser = empty($conf->global->GOOGLE_CONTACT_LOGIN)?'':$conf->global->GOOGLE_CONTACT_LOGIN;
+	$googlepwd  = empty($conf->global->GOOGLE_CONTACT_PASSWORD)?'':$conf->global->GOOGLE_CONTACT_PASSWORD;
+
+	// Create client object
+	//$service= 'cp';		// cl = calendar, cp=contact, ... Search on AUTH_SERVICE_NAME into Zend API for full list
+	//$client = getClientLoginHttpClientContact($googleuser, $googlepwd, $service);
+	//var_dump($client); exit;
+
+	// Create client/token object
+	$key_file_location = $conf->google->multidir_output[$conf->entity]."/".$conf->global->GOOGLE_API_SERVICEACCOUNT_P12KEY;
+	$force_do_not_use_session=false; // by default
+	$servicearray=getTokenFromServiceAccount($conf->global->GOOGLE_API_SERVICEACCOUNT_EMAIL, $key_file_location, $force_do_not_use_session, 'web');
+
+	if (! is_array($servicearray) || $servicearray == null)
+	{
+		$txterror="Failed to login to Google with current token";
+		dol_syslog($txterror, LOG_ERR);
+		$errors[]=$txterror;
+		return -1;
+	}
+	else
+	{
+		$client = $servicearray;
+		$gdata = $client;
+
+		dol_include_once('/google/class/gcontacts.class.php');
+
+		//	$res = GContact::deleteDolibarrContacts();
+		$sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'societe';
+		$sql.= ' WHERE entity IN ('.getEntity('societe').')';
+		$sql.= ' ORDER BY rowid';
+
+		$resql = $db->query($sql);
+		if (! $resql)
+		{
+			dol_print_error($db);
+			exit;
+		}
+
+		// Sync from $conf->global->GOOGLE_SYNC_FROM_POSITION to $conf->global->GOOGLE_SYNC_TO_POSITION (1 to n)
+		$synclimit = 0;		// 0 = all
+		$i=0;
+		$gContacts=[];
+		while (($obj = $db->fetch_object($resql)) && ($i < $synclimit || empty($synclimit)))
+		{
+			if (! empty($conf->global->GOOGLE_SYNC_FROM_POSITION) || GETPOST('syncfrom','int'))
+			{
+				if (($i + 1) < (GETPOST('syncfrom','int')?GETPOST('syncfrom','int'):$conf->global->GOOGLE_SYNC_FROM_POSITION)) continue;
+			}
+
+			try {
+				$gContacts[] = new GContact($obj->rowid, 'thirdparty', $gdata);
+			}
+			catch(Exception $e)
+			{
+				print "Error in constructor new GContact(".$obj->rowid.", 'thirdparty', ...)";
+			}
+
+			$i++;
+		}
+
+		$result=0;
+		if (count($gContacts)) $result=insertGContactsEntries($gdata, $gContacts, $objectstatic);
+
+	}
+
+
+
+	}
 }
 
 
@@ -1130,4 +1414,8 @@ class GCaddr
                 $this->state_id=$obj->rowid;
         }
     }
+
+
 }
+
+
