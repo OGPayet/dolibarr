@@ -649,14 +649,14 @@ if ($id > 0)
 	{
 		$propal_static = new Propal($db);
 
-		$sql = "SELECT s.nom, s.rowid, p.rowid as propalid, p.fk_statut, p.total_ht";
+		$sql = "SELECT p.rowid as propalid, p.fk_statut, p.total_ht";
         $sql.= ", p.tva as total_tva";
         $sql.= ", p.total as total_ttc";
         $sql.= ", p.ref, p.ref_client, p.remise";
 		$sql.= ", p.datep as dp, p.fin_validite as datelimite";
-		$sql.= " FROM ".MAIN_DB_PREFIX."societe as s, ".MAIN_DB_PREFIX."propal as p, ".MAIN_DB_PREFIX."c_propalst as c";
-		$sql.= " WHERE p.fk_soc = s.rowid AND p.fk_statut = c.id";
-		$sql.= " AND s.rowid = ".$object->id;
+		$sql.= " FROM ".MAIN_DB_PREFIX."propal as p LEFT JOIN ".MAIN_DB_PREFIX."propal_extrafields as pef ON pef.fk_object = p.rowid RIGHT JOIN ".MAIN_DB_PREFIX."c_propalst as c ON p.fk_statut = c.id";
+		$sql.= " WHERE (p.fk_soc =" . $object->id;
+		$sql.= " OR pef.companyrelationships_fk_soc_benefactor =" . $object->id .")";
 		$sql.= " AND p.entity = ".$conf->entity;
 		$sql.= " ORDER BY p.datep DESC";
 
@@ -716,15 +716,15 @@ if ($id > 0)
 	{
 		$commande_static=new Commande($db);
 
-        $sql = "SELECT s.nom, s.rowid";
-        $sql.= ", c.rowid as cid, c.total_ht";
+        $sql = "SELECT ";
+        $sql.= "c.rowid as cid, c.total_ht";
         $sql.= ", c.tva as total_tva";
         $sql.= ", c.total_ttc";
         $sql.= ", c.ref, c.ref_client, c.fk_statut, c.facture";
         $sql.= ", c.date_commande as dc";
-		$sql.= " FROM ".MAIN_DB_PREFIX."societe as s, ".MAIN_DB_PREFIX."commande as c";
-		$sql.= " WHERE c.fk_soc = s.rowid ";
-		$sql.= " AND s.rowid = ".$object->id;
+		$sql.= " FROM ".MAIN_DB_PREFIX."commande as c LEFT JOIN ".MAIN_DB_PREFIX."commande_extrafields as cef ON cef.fk_object = c.rowid";
+		$sql.= " WHERE (c.fk_soc =" . $object->id;
+		$sql.= " OR cef.companyrelationships_fk_soc_benefactor =" . $object->id . ")";
 		$sql.= " AND c.entity = ".$conf->entity;
 		$sql.= " ORDER BY c.date_commande DESC";
 
@@ -800,17 +800,10 @@ if ($id > 0)
         $sql.= ', e.ref';
         $sql.= ', e.date_creation';
         $sql.= ', e.fk_statut as statut';
-        $sql.= ', s.nom';
-        $sql.= ', s.rowid as socid';
-        $sql.= " FROM ".MAIN_DB_PREFIX."societe as s, ".MAIN_DB_PREFIX."expedition as e";
-        $sql.= " WHERE e.fk_soc = s.rowid AND s.rowid = ".$object->id;
+        $sql.= " FROM ".MAIN_DB_PREFIX."expedition as e LEFT JOIN ".MAIN_DB_PREFIX."expedition_extrafields as eef ON eef.fk_object=e.rowid";
+        $sql.= " WHERE (e.fk_soc = ".$object->id;
+		$sql.= " OR eef.companyrelationships_fk_soc_benefactor =" . $object->id . ")";
         $sql.= " AND e.entity IN (".getEntity('expedition').")";
-        $sql.= ' GROUP BY e.rowid';
-        $sql.= ', e.ref';
-        $sql.= ', e.date_creation';
-        $sql.= ', e.fk_statut';
-        $sql.= ', s.nom';
-        $sql.= ', s.rowid';
         $sql.= " ORDER BY e.date_creation DESC";
 
         $resql = $db->query($sql);
@@ -862,10 +855,9 @@ if ($id > 0)
 	{
 		$contratstatic=new Contrat($db);
 
-		$sql = "SELECT s.nom, s.rowid, c.rowid as id, c.ref as ref, c.statut, c.datec as dc, c.date_contrat as dcon, c.ref_supplier as refsup";
-		$sql.= " FROM ".MAIN_DB_PREFIX."societe as s, ".MAIN_DB_PREFIX."contrat as c";
-		$sql.= " WHERE c.fk_soc = s.rowid ";
-		$sql.= " AND s.rowid = ".$object->id;
+		$sql = "SELECT c.rowid as id, c.ref as ref, c.statut, c.datec as dc, c.date_contrat as dcon, c.ref_supplier as refsup";
+		$sql.= " FROM ".MAIN_DB_PREFIX."contrat as c LEFT JOIN ".MAIN_DB_PREFIX."contrat_extrafields as cef ON cef.fk_object = c.rowid";
+		$sql.= " WHERE (c.fk_soc = ".$object->id . " OR cef.companyrelationships_fk_soc_benefactor = ".$object->id.")";
 		$sql.= " AND c.entity = ".$conf->entity;
 		$sql.= " ORDER BY c.datec DESC";
 
@@ -924,10 +916,10 @@ if ($id > 0)
 	 */
 	if (! empty($conf->ficheinter->enabled) && $user->rights->ficheinter->lire)
 	{
-		$sql = "SELECT s.nom, s.rowid, f.rowid as id, f.ref, f.fk_statut, f.duree as duration, f.datei as startdate";
-		$sql.= " FROM ".MAIN_DB_PREFIX."societe as s, ".MAIN_DB_PREFIX."fichinter as f";
-		$sql.= " WHERE f.fk_soc = s.rowid";
-		$sql.= " AND s.rowid = ".$object->id;
+		$sql = "SELECT f.rowid as id, f.ref, f.fk_statut, f.duree as duration, f.datei as startdate";
+		$sql.= " FROM " .MAIN_DB_PREFIX."fichinter as f LEFT JOIN ".MAIN_DB_PREFIX."fichinter_extrafields as fef ON fef.fk_object = f.rowid";
+		$sql.= " WHERE (f.fk_soc = ".$object->id;
+		$sql.= " OR fef.companyrelationships_fk_soc_benefactor = " . $object->id .")";
 		$sql.= " AND f.entity = ".$conf->entity;
 		$sql.= " ORDER BY f.tms DESC";
 
@@ -988,15 +980,12 @@ if ($id > 0)
         $sql.= ', f.tva as total_tva';
         $sql.= ', f.total_ttc';
 		$sql.= ', f.datef as df, f.datec as dc, f.paye as paye, f.fk_statut as statut';
-		$sql.= ', s.nom, s.rowid as socid';
 		$sql.= ', SUM(pf.amount) as am';
-		$sql.= " FROM ".MAIN_DB_PREFIX."societe as s,".MAIN_DB_PREFIX."facture as f";
+		$sql.= " FROM ".MAIN_DB_PREFIX."facture as f";
 		$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'paiement_facture as pf ON f.rowid=pf.fk_facture';
-		$sql.= " WHERE f.fk_soc = s.rowid AND s.rowid = ".$object->id;
+		$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX."facture_extrafields as fec ON fec.fk_object = f.rowid";
+		$sql.= " WHERE (f.fk_soc =".$object->id . " OR fec.companyrelationships_fk_soc_benefactor =" .$object->id .")" ;
 		$sql.= " AND f.entity = ".$conf->entity;
-		$sql.= ' GROUP BY f.rowid, f.facnumber, f.type, f.amount, f.total, f.tva, f.total_ttc,';
-		$sql.= ' f.datef, f.datec, f.paye, f.fk_statut,';
-		$sql.= ' s.nom, s.rowid';
 		$sql.= " ORDER BY f.datef DESC, f.datec DESC";
 
 		$resql=$db->query($sql);
