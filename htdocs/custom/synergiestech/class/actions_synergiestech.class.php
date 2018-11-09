@@ -1307,6 +1307,26 @@ SCRIPT;
             }
         }
 
+        // Redirect to shipping creation
+        if (!empty($conf->global->SYNERGIESTECH_ENABLED_WORKFLOW_SHIPPING_CREATE_AFTER_ORDER)) {
+            if (preg_match('/\/expedition\/shipment\.php/i', $_SERVER["PHP_SELF"])) {
+                $order_id = GETPOST('id');
+
+                if ($order_id > 0) {
+                    require_once DOL_DOCUMENT_ROOT . '/commande/class/commande.class.php';
+
+                    $commande = new Commande($this->db);
+                    if ($commande->fetch($order_id)) {
+                        // check status of order before redirect to shipping creation
+                        if ($commande->statut > Commande::STATUS_DRAFT && $commande->statut < Commande::STATUS_CLOSED) {
+                            header("Location: " . dol_buildpath('/expedition/card.php', 1) . '?action=create&shipping_method_id=&origin=commande&origin_id=' . $order_id . '&projectid=&entrepot_id=-1');
+                            exit;
+                        }
+                    }
+                }
+            }
+        }
+
         return 0; // or return 1 to replace standard code
     }
 
