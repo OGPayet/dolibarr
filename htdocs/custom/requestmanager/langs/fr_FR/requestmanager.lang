@@ -228,6 +228,7 @@ RequestManagerMessageSubject                = Sujet
 RequestManagerMessageFile                   = Fichiers joints
 RequestManagerMessageKnowledgeBase          = Base de connaissance
 RequestManagerAddKnowledgeBaseDescriptions  = Ajouter les descriptions
+RequestManagerSubject                       = Sujet
 RequestManagerMessage                       = Message
 RequestManagerMessageType                   = Type du message
 RequestManagerMessageTypeIn                 = Entrant
@@ -263,6 +264,7 @@ RequestManagerConfirmAssignMySelf           = Une ou des personnes sont déja as
 ############################################################
 RequestManagerListOfEvents                              = Liste des événements
 RequestManagerListMode                                  = Vue Liste
+RequestManagerTimeLineListMode                          = Vue Liste (chronologiques)
 RequestManagerTimeLineMode                              = Messages en vue chronologiques
 RequestManagerOnlyLinkedObjectToThisRequest             = Ne voir que les événements liés à cette demande
 RequestManagerIncludeEventOfOtherRequest                = Voir aussi les événements des autres demandes

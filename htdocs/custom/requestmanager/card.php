@@ -1176,6 +1176,7 @@ if (empty($reshook)) {
         $requestmanagermessage->notify_watchers = GETPOST('notify_watchers', 'int');
         $requestmanagermessage->attached_files = $formrequestmanagermessage->get_attached_files();
         $requestmanagermessage->knowledge_base_ids = GETPOST('knowledgebaseselected', 'array');
+        $requestmanagermessage->label = GETPOST('subject', 'alpha');
         $requestmanagermessage->note = GETPOST('message', 'alpha');
         $requestmanagermessage->requestmanager = $object;
 
@@ -2234,7 +2235,8 @@ $now = dol_now();
                 if (!empty($conf->agenda->enabled) && (count($authorizedButtons) == 0 || in_array('create_event', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
                     $langs->load("commercial");
                     if (! empty($user->rights->agenda->myactions->create) || ! empty($user->rights->agenda->allactions->create)) {
-                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT.'/comm/action/card.php?originid=' . $object->id . '&origin=' . $object->element . ($object->socid > 0 ? '&socid=' . $object->socid : '') . '&action=create">' . $langs->trans("AddAction") . '</a></div>';
+                        $backtopage = dol_buildpath('/requestmanager/card.php', 1).'?id='.$object->id;
+                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT.'/comm/action/card.php?originid=' . $object->id . '&origin=' . $object->element . ($object->socid > 0 ? '&socid=' . $object->socid : '') . '&action=create&backtopage='.urlencode($backtopage).'">' . $langs->trans("AddAction") . '</a></div>';
                     } else {
                         print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddAction") . '</a></div>';
                     }

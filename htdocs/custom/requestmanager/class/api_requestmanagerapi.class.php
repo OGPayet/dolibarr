@@ -504,10 +504,6 @@ class RequestManagerApi extends DolibarrApi {
      */
     function getMessage($id, $message_id)
     {
-        global $user;
-
-        $user_saved = $user;
-
         if (!DolibarrApiAccess::$user->rights->requestmanager->lire) {
             throw new RestException(401, "Insufficient rights");
         }
@@ -516,9 +512,7 @@ class RequestManagerApi extends DolibarrApi {
         $requestmanager = $this->_getRequestManagerObject($id);
 
         $requestmanager_message = new RequestManagerMessage(self::$db);
-        $user = DolibarrApiAccess::$user;
         $result = $requestmanager_message->fetch($message_id);
-        $user = $user_saved;
         if ($result == 0 || ($result > 0 && ($requestmanager_message->elementtype != $requestmanager->element || $requestmanager_message->fk_element != $requestmanager->id))) {
             throw new RestException(404, "Request message not found");
         } elseif ($result < 0) {
@@ -605,9 +599,7 @@ class RequestManagerApi extends DolibarrApi {
      */
     function indexEvents($id, $sort_field="t.datec", $sort_order='DESC', $limit=100, $page=0, $sql_filters='', $only_message=0, $only_linked_to_request=1, $include_events_other_request=0, $include_linked_events_children_request=1)
     {
-        global $conf, $user;
-
-        $user_saved = $user;
+        global $conf;
 
         $obj_ret = array();
 
@@ -709,7 +701,6 @@ class RequestManagerApi extends DolibarrApi {
         $resql = self::$db->query($sql);
         if ($resql) {
             require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
-            $user = DolibarrApiAccess::$user;
             while ($obj = self::$db->fetch_object($resql)) {
                 if ($obj->code == 'AC_RM_PRIV' || $obj->code == 'AC_RM_IN' || $obj->code == 'AC_RM_OUT') {
                     $requestmanager_message = new RequestManagerMessage(self::$db);
@@ -727,7 +718,6 @@ class RequestManagerApi extends DolibarrApi {
                     }
                 }
             }
-            $user = $user_saved;
 
             self::$db->free($resql);
         } else {
@@ -798,12 +788,15 @@ class RequestManagerApi extends DolibarrApi {
      */
     function CallBegin($unique_id, $caller_id_num, $called_num, $direction, $channel='', $caller_id_name='', $context='', $extension='', $begin_ask_hour='', $transfer_suffix='')
     {
-        global $langs;
+        global $conf, $langs;
 
         if (!DolibarrApiAccess::$user->rights->agenda->myactions->create) {
             throw new RestException(401, "Insufficient rights");
         }
 
+        require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
+
+        $nb_number = !empty($conf->global->REQUESTMANAGER_NB_NUMBER_FOR_COMPARE_PHONE) ? $conf->global->REQUESTMANAGER_NB_NUMBER_FOR_COMPARE_PHONE : 9;
         $now = dol_now();
 
         // Clean parameters
@@ -815,19 +808,52 @@ class RequestManagerApi extends DolibarrApi {
         $socid = 0;
         $contactid = 0;
 
-        $sql = "SELECT socid, contactid";
-        $sql .= " FROM " . MAIN_DB_PREFIX . "requestmanager_soc_contact_phone_book";
-        $sql .= " WHERE entity IN (".getEntity('societe').")";
-        $sql .= " AND (";
-        $sql .= " soc_phone = '" . $from_num . "'";
-        $sql .= " OR contact_phone = '" . $from_num . "'";
-        $sql .= " OR contact_phone_perso = '" . $from_num . "'";
-        $sql .= " OR contact_phone_mobile = '" . $from_num . "'";
-        $sql .= " OR soc_phone = '" . $target_num . "'";
-        $sql .= " OR contact_phone = '" . $target_num . "'";
-        $sql .= " OR contact_phone_perso = '" . $target_num . "'";
-        $sql .= " OR contact_phone_mobile = '" . $target_num . "'";
-        $sql .= " )";
+        // Set filters for phones
+        $phones = array();
+        // s.phone
+        $phones[] = "RIGHT(RM_GLOBAL_TRIM(s.phone, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$from_num'";
+        $phones[] = "RIGHT(RM_GLOBAL_TRIM(s.phone, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$target_num'";
+        // s.fax
+        $phones[] = "RIGHT(RM_GLOBAL_TRIM(s.fax, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$from_num'";
+        $phones[] = "RIGHT(RM_GLOBAL_TRIM(s.fax, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$target_num'";
+        // sc.phone
+        $phones[] = "RIGHT(RM_GLOBAL_TRIM(sc.phone, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$from_num'";
+        $phones[] = "RIGHT(RM_GLOBAL_TRIM(sc.phone, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$target_num'";
+        // sc.phone_perso
+        $phones[] = "RIGHT(RM_GLOBAL_TRIM(sc.phone_perso, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$from_num'";
+        $phones[] = "RIGHT(RM_GLOBAL_TRIM(sc.phone_perso, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$target_num'";
+        // sc.phone_mobile
+        $phones[] = "RIGHT(RM_GLOBAL_TRIM(sc.phone_mobile, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$from_num'";
+        $phones[] = "RIGHT(RM_GLOBAL_TRIM(sc.phone_mobile, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$target_num'";
+        // sc.fax
+        $phones[] = "RIGHT(RM_GLOBAL_TRIM(sc.fax, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$from_num'";
+        $phones[] = "RIGHT(RM_GLOBAL_TRIM(sc.fax, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$target_num'";
+
+        // Set filters for phones into extra fields
+        $extrafields = new ExtraFields(self::$db);
+        $extralabels = $extrafields->fetch_name_optionals_label('societe');
+        foreach ($extrafields->attributes['societe']['type'] as $key => $type) {
+            if ($type == '') {
+                $phones[] = "RIGHT(RM_GLOBAL_TRIM(sef.$key, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$from_num'";
+                $phones[] = "RIGHT(RM_GLOBAL_TRIM(sef.$key, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$target_num'";
+            }
+        }
+        $extrafields = new ExtraFields(self::$db);
+        $extralabels = $extrafields->fetch_name_optionals_label('socpeople');
+        foreach ($extrafields->attributes['socpeople']['type'] as $key => $type) {
+            if ($type == '') {
+                $phones[] = "RIGHT(RM_GLOBAL_TRIM(spef.$key, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$from_num'";
+                $phones[] = "RIGHT(RM_GLOBAL_TRIM(spef.$key, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$target_num'";
+            }
+        }
+
+        $sql = "SELECT DISTINCT s.rowid AS socid, sc.rowid AS contactid";
+        $sql .= " FROM " . MAIN_DB_PREFIX . "societe AS s";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe_extrafields AS sef ON sef.fk_object = s.rowid";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "socpeople AS sc ON sc.fk_soc = s.rowid";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "socpeople_extrafields AS scef ON scef.fk_object = sc.rowid";
+        $sql .= " WHERE entity IN (" . getEntity('societe') . ")";
+        $sql .= " AND (" . implode(' OR ', $phones) . ")";
 
         $resql = self::$db->query($sql);
         if ($resql) {
@@ -838,7 +864,7 @@ class RequestManagerApi extends DolibarrApi {
 
             self::$db->free($resql);
         } else {
-            throw new RestException(500, "Error when retrieve company / contact", [ 'details' => [ self::$db->lasterror() ]]);
+            throw new RestException(500, "Error when retrieve company / contact", ['details' => [self::$db->lasterror()]]);
         }
 
         if ($socid > 0) {
@@ -846,7 +872,7 @@ class RequestManagerApi extends DolibarrApi {
             $societe = new Societe(self::$db);
             $result = $societe->fetch($socid);
             if ($result < 0) {
-                throw new RestException(500, "Error when retrieve company information", [ 'details' => $this->_getErrors($requestmanager) ]);
+                throw new RestException(500, "Error when retrieve company information", ['details' => $this->_getErrors($requestmanager)]);
             }
         }
 
@@ -855,15 +881,34 @@ class RequestManagerApi extends DolibarrApi {
         $userid = DolibarrApiAccess::$user->id;
         //$userassigned = array();
 
+        // Set filters for phones
+        $phones = array();
+        // u.office_phone
+        $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.office_phone, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$from_num'";
+        $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.office_phone, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$target_num'";
+        // u.office_fax
+        $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.office_fax, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$from_num'";
+        $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.office_fax, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$target_num'";
+        // u.user_mobile
+        $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.user_mobile, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$from_num'";
+        $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.user_mobile, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$target_num'";
+
+        // Set filters for phones into extra fields
+        $extrafields = new ExtraFields(self::$db);
+        $extralabels = $extrafields->fetch_name_optionals_label('user');
+        foreach ($extrafields->attributes['user']['type'] as $key => $type) {
+            if ($type == '') {
+                $phones[] = "RIGHT(RM_GLOBAL_TRIM(uef.$key, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$from_num'";
+                $phones[] = "RIGHT(RM_GLOBAL_TRIM(uef.$key, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$target_num'";
+            }
+        }
+
         $sql = "SELECT rowid AS userid";
-        $sql .= " FROM " . MAIN_DB_PREFIX . "requestmanager_internal_user_phone_book";
-        $sql .= " WHERE entity IN (".getEntity('user').")";
-        $sql .= " AND (";
-        $sql .= " office_phone = '" . $from_num . "'";
-        $sql .= " OR user_mobile = '" . $from_num . "'";
-        $sql .= " OR office_phone = '" . $target_num . "'";
-        $sql .= " OR user_mobile = '" . $target_num . "'";
-        $sql .= " )";
+        $sql .= " FROM " . MAIN_DB_PREFIX . "user AS u";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "user_extrafields AS uef ON uef.fk_object = u.rowid";
+        $sql .= " WHERE entity IN (" . getEntity('user') . ")";
+        $sql .= " AND (u.fk_soc = 0 OR u.fk_soc IS NULL)";
+        $sql .= " AND (" . implode(' OR ', $phones) . ")";
 
         $resql = self::$db->query($sql);
         if ($resql) {
@@ -873,7 +918,7 @@ class RequestManagerApi extends DolibarrApi {
 
             self::$db->free($resql);
         } else {
-            throw new RestException(500, "Error when retrieve internal user", [ 'details' => [ self::$db->lasterror() ]]);
+            throw new RestException(500, "Error when retrieve internal user", ['details' => [self::$db->lasterror()]]);
         }
 
         require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
@@ -910,19 +955,19 @@ class RequestManagerApi extends DolibarrApi {
         // Message
         //--------------------------------------------------
         $message = $langs->trans('RequestManagerIPBXUniqueID', $unique_id) . '<br>';
-        if (!empty($channel)) $message.= $langs->trans('RequestManagerIPBXChannel', $channel) . '<br>';
-        $message.= $langs->trans('RequestManagerIPBXCallerIDNum', $caller_id_num) . '<br>';
-        if (!empty($caller_id_name)) $message.= $langs->trans('RequestManagerIPBXCallerIDName', $caller_id_name) . '<br>';
-        $message.= $langs->trans('RequestManagerIPBXCalledNum', $called_num) . '<br>';
-        $message.= $langs->trans('RequestManagerIPBXDirection', $direction) . '<br>';
-        if (!empty($context)) $message.= $langs->trans('RequestManagerIPBXContext', $context) . '<br>';
-        if (!empty($extension)) $message.= $langs->trans('RequestManagerIPBXExtension', $extension) . '<br>';
-        if (!empty($begin_ask_hour)) $message.= $langs->trans('RequestManagerIPBXBeginAskHour', $begin_ask_hour) . '<br>';
-        if (!empty($transfer_suffix)) $message.= $langs->trans('RequestManagerIPBXTransferSuffix', $transfer_suffix) . '<br>';
+        if (!empty($channel)) $message .= $langs->trans('RequestManagerIPBXChannel', $channel) . '<br>';
+        $message .= $langs->trans('RequestManagerIPBXCallerIDNum', $caller_id_num) . '<br>';
+        if (!empty($caller_id_name)) $message .= $langs->trans('RequestManagerIPBXCallerIDName', $caller_id_name) . '<br>';
+        $message .= $langs->trans('RequestManagerIPBXCalledNum', $called_num) . '<br>';
+        $message .= $langs->trans('RequestManagerIPBXDirection', $direction) . '<br>';
+        if (!empty($context)) $message .= $langs->trans('RequestManagerIPBXContext', $context) . '<br>';
+        if (!empty($extension)) $message .= $langs->trans('RequestManagerIPBXExtension', $extension) . '<br>';
+        if (!empty($begin_ask_hour)) $message .= $langs->trans('RequestManagerIPBXBeginAskHour', $begin_ask_hour) . '<br>';
+        if (!empty($transfer_suffix)) $message .= $langs->trans('RequestManagerIPBXTransferSuffix', $transfer_suffix) . '<br>';
         $actioncomm->note = $message;
 
         if ($actioncomm->create(DolibarrApiAccess::$user) < 0) {
-            throw new RestException(500, "Error while creating the calling event", [ 'details' => $this->_getErrors($actioncomm) ]);
+            throw new RestException(500, "Error while creating the calling event", ['details' => $this->_getErrors($actioncomm)]);
         }
 
         return $actioncomm->id;
@@ -974,6 +1019,7 @@ class RequestManagerApi extends DolibarrApi {
      * @return  int                                 ID of the calling event
      *
      * @throws  401         RestException           Insufficient rights
+     * @throws  403         RestException           Access unauthorized
      * @throws  404         RestException           Calling event not found with IPBX ID
      * @throws  500         RestException           Error when retrieve calling event
      * @throws  500         RestException           Error when retrieve company information
@@ -1016,8 +1062,11 @@ class RequestManagerApi extends DolibarrApi {
 
         require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
         $actioncomm = new ActionComm(self::$db);
-        if ($actioncomm->fetch($actioncommid) < 0) {
+        $result = $actioncomm->fetch($actioncommid);
+        if ($result < 0) {
             throw new RestException(500, "Error when retrieve calling event", [ 'details' => $this->_getErrors($actioncomm) ]);
+        } elseif (!($actioncomm->id > 0)) {
+            throw new RestException(403, "Access unauthorized");
         }
 
         // Get company

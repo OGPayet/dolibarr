@@ -119,8 +119,10 @@ if (empty($outputalsopricetotalwithtax)) $outputalsopricetotalwithtax=0;
 			echo get_date_range($line->date_start, $line->date_end, $format);
 
 			// Principal stocks
-      dol_include_once('/synergiestech/lib/synergiestech.lib.php');
-      print synergiestech_get_principal_stocks_tooltip_for_product($langs, $conf, $this->db, $form, $line->fk_product);
+      if ($type == 0) {
+          dol_include_once('/synergiestech/lib/synergiestech.lib.php');
+          print synergiestech_get_principal_stocks_tooltip_for_product($langs, $conf, $this->db, $form, $line->fk_product);
+      }
 
 			// Add description in form
 			if (! empty($conf->global->PRODUIT_DESC_IN_FORM))

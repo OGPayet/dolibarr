@@ -125,6 +125,10 @@ class RequestManagerMessage extends ActionComm
             $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("RequestManagerMessage"));
             $error++;
         }
+        if (empty($this->label) && $this->message_type == 'AC_RM_OUT') {
+            $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("RequestManagerSubject"));
+            $error++;
+        }
         if ($error) {
             dol_syslog(__METHOD__ . " requestmanager_message Errors: " . $this->errorsToString(), LOG_ERR);
             return -4;
@@ -133,15 +137,18 @@ class RequestManagerMessage extends ActionComm
         switch ($this->message_type) {
             case self::MESSAGE_TYPE_PRIVATE:
                 $this->type_code = 'AC_RM_PRIV';
+                $this->notify_requesters = 0;
+                $this->notify_watchers = 0;
                 $this->label = $langs->trans('RequestManagerMessageTitlePrivate', $this->requestmanager->ref);
                 break;
             case self::MESSAGE_TYPE_IN:
                 $this->type_code = 'AC_RM_IN';
-                $this->label = $langs->trans('RequestManagerMessageTitleIn', $this->requestmanager->ref);
+                $this->notify_requesters = 0;
+                $this->notify_watchers = 0;
+                if (empty($this->label)) $this->label = $langs->trans('RequestManagerMessageTitleIn', $this->requestmanager->ref);
                 break;
             default:
                 $this->type_code = 'AC_RM_OUT';
-                $this->label = $langs->trans('RequestManagerMessageTitleOut', $this->requestmanager->ref);
                 break;
         }
 

@@ -233,6 +233,11 @@ class ActionsEventConfidentiality
     {
         global $db, $langs, $form, $user;
 
+        $user_f = isset(DolibarrApiAccess::$user) ? DolibarrApiAccess::$user : $user;
+        if (empty($user_f->array_options) && $user_f->id > 0) {
+            $user_f->fetch_optionals();
+        }
+
 		$element = $object->element;
 
 		//Get context execution
@@ -246,17 +251,17 @@ class ActionsEventConfidentiality
 
 		if($object->id > 0) {
 			$mode = 2;
-			$user_tags = explode(",",$user->array_options['options_user_tag']);
+			$user_tags = explode(",",$user_f->array_options['options_user_tag']);
 			$usergroup = new UserGroup($db);
-			$usergroups = $usergroup->listGroupsForUser($user->id);
+			$usergroups = $usergroup->listGroupsForUser($user_f->id);
 			foreach($usergroups as $group) {
 				$user_tags = array_merge($user_tags,explode(",",$group->array_options['options_group_tag']));
 			}
-			$externe = (empty($user->socid)?0:1); //Utilisateur interne ou externe
+			$externe = (empty($user_f->socid)?0:1); //Utilisateur interne ou externe
 			$fk_tags = fetchAllTagForObject($object->id, $externe);
 			foreach($fk_tags as $fk_tag) {
 				if(in_array($fk_tag['fk_dict_tag_confid'],$user_tags)) { //Si on a un tag en commun et que ce tag est interne
-					$mode = min($tmp_mode,$fk_tag['level_confid']);//Si l'utilisateur un tag en commun avec l'event on considère la visilibité maximale parmi les tags en commun
+					$mode = min($mode,$fk_tag['level_confid']);//Si l'utilisateur un tag en commun avec l'event on considère la visilibité maximale parmi les tags en commun
 				}
 			}
 
@@ -331,6 +336,11 @@ class ActionsEventConfidentiality
     {
         global $db, $langs, $form, $user;
 
+        $user_f = isset(DolibarrApiAccess::$user) ? DolibarrApiAccess::$user : $user;
+        if (empty($user_f->array_options) && $user_f->id > 0) {
+            $user_f->fetch_optionals();
+        }
+
 		$element = $object->element;
 
 		$langs->load("eventconfidentiality@eventconfidentiality");
@@ -340,17 +350,17 @@ class ActionsEventConfidentiality
 
 		if($object->id > 0) {
 			$mode = 2;
-			$user_tags = explode(",",$user->array_options['options_user_tag']);
+			$user_tags = explode(",",$user_f->array_options['options_user_tag']);
 			$usergroup = new UserGroup($db);
-			$usergroups = $usergroup->listGroupsForUser($user->id);
+			$usergroups = $usergroup->listGroupsForUser($user_f->id);
 			foreach($usergroups as $group) {
 				$user_tags = array_merge($user_tags,explode(",",$group->array_options['options_group_tag']));
 			}
-			$externe = (empty($user->socid)?0:1); //Utilisateur interne ou externe
+			$externe = (empty($user_f->socid)?0:1); //Utilisateur interne ou externe
 			$fk_tags = fetchAllTagForObject($object->id, $externe);
 			foreach($fk_tags as $fk_tag) {
 				if(in_array($fk_tag['fk_dict_tag_confid'],$user_tags)) { //Si on a un tag en commun et que ce tag est interne
-					$mode = min($tmp_mode,$fk_tag['level_confid']);//Si l'utilisateur un tag en commun avec l'event on considère la visilibité maximale parmi les tags en commun
+					$mode = min($mode,$fk_tag['level_confid']);//Si l'utilisateur un tag en commun avec l'event on considère la visilibité maximale parmi les tags en commun
 				}
 			}
 

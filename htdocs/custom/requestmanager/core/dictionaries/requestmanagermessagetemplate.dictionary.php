@@ -31,7 +31,7 @@ class RequestManagerMessageTemplateDictionary extends Dictionary
     /**
      * @var int         Version of this dictionary
      */
-    public $version = 2;
+    public $version = 3;
 
     /**
      * @var array       List of languages to load
@@ -167,6 +167,7 @@ class RequestManagerMessageTemplateDictionary extends Dictionary
             ),
             'help'       => 'PositionIntoComboList',
         ),
+        'subject' => array(),
         'message' => array(),
     );
 
@@ -192,7 +193,7 @@ class RequestManagerMessageTemplateDictionary extends Dictionary
     public $updates = array(
         1 => array(
             'fields' => array(
-                'position'      => 'u',
+                'position' => 'u',
             ),
             'delete_fields' => array(
                 'template_type' => array(
@@ -203,7 +204,7 @@ class RequestManagerMessageTemplateDictionary extends Dictionary
         ),
         2 => array(
             'fields' => array(
-                'message'  => 'a',
+                'message' => 'a',
             ),
             'delete_fields' => array(
                 'boby' => array(
@@ -214,6 +215,11 @@ class RequestManagerMessageTemplateDictionary extends Dictionary
                     'name' => 'subject',
                     'type' => 'varchar',
                 ),
+            ),
+        ),
+        3 => array(
+            'fields' => array(
+                'subject' => 'a',
             ),
         ),
     );
@@ -264,6 +270,22 @@ class RequestManagerMessageTemplateDictionary extends Dictionary
         }
         $helpSubstitution .= '</table></div>';
 
+        $this->fields['subject'] = array(
+            'name'       => 'subject',
+            'label'      => 'Subject',
+            'type'       => 'varchar',
+            'database'   => array(
+              'length'   => 255,
+            ),
+            'help_button' => $helpSubstitution,
+            'show_input' => array(
+                'moreAttributes' => ' style="width:95%;"',
+            ),
+            'td_input' => array(
+                'positionLine' => 1,
+            ),
+        );
+
         $this->fields['message'] = array(
             'name' => 'message',
             'label' => 'Content',
@@ -274,7 +296,7 @@ class RequestManagerMessageTemplateDictionary extends Dictionary
                 'moreAttributes' => 'width="50%"',
             ),
             'td_input' => array(
-                'positionLine' => 1,
+                'positionLine' => 2,
             ),
         );
     }

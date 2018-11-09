@@ -69,7 +69,7 @@ class modRequestManager extends DolibarrModules
         $this->editor_url = 'http://www.open-dsi.fr';
 
         // Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-        $this->version = '4.0.13';
+        $this->version = '4.0.14';
         // Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
         $this->const_name = 'MAIN_MODULE_' . strtoupper($this->name);
         // Name of image file used for this module.
@@ -515,6 +515,7 @@ class modRequestManager extends DolibarrModules
 	{
 	    global $langs, $conf;
 		$sql = array();
+        $langs->load('requestmanager@requestmanager');
 
         // Create extrafields
         include_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
@@ -528,8 +529,6 @@ class modRequestManager extends DolibarrModules
         // Create functions and views SQL
         $sql_files =array(
             'function_rm_global_trim.sql',
-            'view_llx_requestmanager_internal_user_phone_book.sql',
-            'view_llx_requestmanager_soc_contact_phone_book.sql',
         );
         dol_include_once('/requestmanager/lib/opendsi_common.lib.php');
         foreach ($sql_files as $file) {

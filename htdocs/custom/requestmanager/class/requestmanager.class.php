@@ -2025,6 +2025,22 @@ class RequestManager extends CommonObject
             }
         }
 
+        // Delete linked categories
+        if (!$error) {
+            $sql  = 'DELETE FROM ' . MAIN_DB_PREFIX . 'categorie_requestmanager';
+            $sql .= ' WHERE fk_categorie = ' . $this->id;
+            $sql .= ' AND fk_requestmanager . $type . =' . $obj->id;
+            $sql = "DELETE FROM " . MAIN_DB_PREFIX . $this->table_element;
+            $sql .= ' WHERE rowid = ' . $this->id;
+
+            $resql = $this->db->query($sql);
+            if (!$resql) {
+                $error++;
+                $this->errors[] = 'Error ' . $this->db->lasterror();
+                dol_syslog(__METHOD__ . " SQL: " . $sql . "; Errors delete linked categories: " . $this->db->lasterror(), LOG_ERR);
+            }
+        }
+
         // Delete linked object
         if (!$error) {
             $res = $this->deleteObjectLinked();
@@ -3049,20 +3065,10 @@ class RequestManager extends CommonObject
         $userGroupList = $userGroup->listGroupsForUser($user->id);
 
         // count all assigned requests for user
-        $sql = "SELECT COUNT(rm.rowid) as nb";
+        $sql = "SELECT COUNT(DISTINCT rm.rowid) as nb";
         $sql .= " FROM " . MAIN_DB_PREFIX . $this->table_element . " as rm";
-        $sql .= ' INNER JOIN (';
-        $sql .= ' SELECT DISTINCT rm.rowid';
-        $sql .= ' FROM ' . MAIN_DB_PREFIX . 'requestmanager as rm';
         $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'requestmanager_assigned_user as rmau ON rmau.fk_requestmanager = rm.rowid';
         $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'requestmanager_assigned_usergroup as rmaug ON rmaug.fk_requestmanager = rm.rowid';
-        $sql .= ' WHERE rm.entity IN (' . getEntity('requestmanager') . ')';
-        $sql .= " AND (rmau.fk_user = " . $user->id;
-        if (count($userGroupList) > 0) {
-            $sql .= " OR rmaug.fk_usergroup IN (" . implode(',', array_keys($userGroupList)) . ")";
-        }
-        $sql .= ")";
-        $sql .= ' ) as assigned ON assigned.rowid = rm.rowid';
         if (count($statusTypeList) > 0) {
             $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_requestmanager_status as crmst ON crmst.rowid = rm.fk_status";
         }
@@ -3070,7 +3076,11 @@ class RequestManager extends CommonObject
         if (count($statusTypeList) > 0) {
             $sql .= " AND crmst.type IN (" . implode(',', $statusTypeList) . ")";
         }
-        $sql .= " GROUP BY rm.rowid";
+        $sql .= "   AND (rmau.fk_user = " . $user->id;
+        if (count($userGroupList) > 0) {
+            $sql .= "   OR rmaug.fk_usergroup IN (" . implode(',', array_keys($userGroupList)) . ")";
+        }
+        $sql .= "   )";
 
         $resql = $this->db->query($sql);
         if ($resql) {

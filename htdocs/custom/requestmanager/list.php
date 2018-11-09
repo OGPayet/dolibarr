@@ -492,7 +492,7 @@ if ($resql) {
         }
         $statut_array[$line->id] = $line->fields['label'] . (count($toprint) > 0 ? ' ( ' . implode(', ', $toprint) . ' )' : '');
     }
-    $moreforfilter.=$form->multiselectarray('search_status_det',  $statut_array, $search_status_det, 0, 0, ' minwidth300', 0, '50%');
+    $moreforfilter.=$form->multiselectarray('search_status_det',  $statut_array, $search_status_det, 0, 0, ' minwidth300');
     $moreforfilter.='</div>';
 
     $parameters = array();

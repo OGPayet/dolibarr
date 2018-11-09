@@ -321,6 +321,9 @@ class FormRequestManagerMessage
 
         // Message type
         //-----------------
+        $message_type_out = RequestManagerMessage::MESSAGE_TYPE_OUT;
+        $message_type_private = RequestManagerMessage::MESSAGE_TYPE_PRIVATE;
+        $message_type_in = RequestManagerMessage::MESSAGE_TYPE_IN;
         $message_type = GETPOST('message_type', 'alpha', 2);
         $out .= '<tr>';
         $out .= '<td class="fieldrequired" width="180">' . $langs->trans("RequestManagerMessageType") . '</td>';
@@ -334,6 +337,43 @@ class FormRequestManagerMessage
         $out .= '<input type="radio" id="message_type_in" name="message_type" value="' . RequestManagerMessage::MESSAGE_TYPE_IN . '"' . ($message_type == RequestManagerMessage::MESSAGE_TYPE_IN ? ' checked="checked"' : '') . '/>';
         $out .= '&nbsp;<label for="message_type_in">' . $langs->trans("RequestManagerMessageTypeIn") . '&nbsp;' . img_help(0, $langs->trans("RequestManagerMessageTypeInHelp")) . '</label>';
         $out .= "</td></tr>\n";
+        $out .= <<<SCRIPT
+            <script type="text/javascript" language="javascript">
+                jQuery(document).ready(function () {
+                    rm_update_message_type_options($('input[type=radio][name="message_type"]:checked').val());
+
+                    // Change message type
+                    $('input[type="radio"][name="message_type"]').on("change", function () {
+                        rm_update_message_type_options(this.value);
+                    });
+
+                    // Update html element for a message type
+                    function rm_update_message_type_options(value) {
+                        value = parseInt(value);
+                        switch (value) {
+                            case $message_type_out:
+                                $('input#notify_requesters').prop('disabled', false);
+                                $('input#notify_watchers').prop('disabled', false);
+                                $('td#subject_label').addClass('fieldrequired');
+                                $('input#subject').prop('disabled', false);
+                                break;
+                            case $message_type_private:
+                                $('input#notify_requesters').prop('disabled', true);
+                                $('input#notify_watchers').prop('disabled', true);
+                                $('td#subject_label').removeClass('fieldrequired');
+                                $('input#subject').prop('disabled', true);
+                                break;
+                            case $message_type_in:
+                                $('input#notify_requesters').prop('disabled', true);
+                                $('input#notify_watchers').prop('disabled', true);
+                                $('td#subject_label').removeClass('fieldrequired');
+                                $('input#subject').prop('disabled', false);
+                                break;
+                        }
+                    }
+                });
+            </script>
+SCRIPT;
 
         // Notify
         //-----------------
@@ -469,6 +509,20 @@ class FormRequestManagerMessage
         $out .= '<input class="button" type="submit" value="' . $langs->trans('RequestManagerAddKnowledgeBaseDescriptions') . '" name="addknowledgebasedescription" id="addknowledgebasedescription"' . (is_array($knowledgebase_ids) && count($knowledgebase_ids) > 0 ? '' : ' disabled="disabled"') . '>';
         $out .= "</td></tr>\n";
 
+        // Subject
+        //-----------------
+        $default_subject = !empty($default_message['subject']) ? $default_message['subject'] : '';
+        $subject = !empty($default_subject) ? $default_subject : GETPOST('subject', 'alpha', 2);
+        $subject = make_substitutions($subject, $this->substit);
+
+        $out .= '<tr>';
+        $out .= '<td width="180" valign="top" id="subject_label">' . $langs->trans("RequestManagerSubject");
+        $out .= '&nbsp;' . $form->textwithpicto('', $helpSubstitution, 1, 'help', '', 0, 2, 'substitution');
+        $out .= '</td>';
+        $out .= '<td>';
+        $out .= '<input type="text" id="subject" name="subject" style="width: 95%;" max="255" value="'.dol_escape_htmltag($subject).'">';
+        $out .= "</td></tr>\n";
+
         // Message
         //-----------------
         $default_body = !empty($default_message['message']) ? $default_message['message'] : '';
@@ -517,7 +571,6 @@ class FormRequestManagerMessage
 
         if ($this->withform == 1) $out .= '</form>' . "\n";
 
-        // Disable enter key
         $out .= <<<SCRIPT
             <script type="text/javascript" language="javascript">
                 jQuery(document).ready(function () {

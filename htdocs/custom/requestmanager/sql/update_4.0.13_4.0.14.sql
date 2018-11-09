@@ -13,11 +13,7 @@
 --
 -- You should have received a copy of the GNU General Public License
 -- along with this program. If not, see <http://www.gnu.org/licenses/>.
--- ============================================================================
+-- ===========================================================================
 
-CREATE VIEW llx_requestmanager_internal_user_phone_book AS
-  SELECT DISTINCT u.rowid, u.entity,
-    RM_GLOBAL_TRIM(u.office_phone, '0123456789') COLLATE utf8_general_ci AS office_phone,
-    RM_GLOBAL_TRIM(u.user_mobile, '0123456789') COLLATE utf8_general_ci AS user_mobile
-  FROM llx_user AS u
-  WHERE u.fk_soc = 0 OR u.fk_soc IS NULL;
+DROP VIEW IF EXISTS llx_requestmanager_internal_user_phone_book;
+DROP VIEW IF EXISTS llx_requestmanager_soc_contact_phone_book;

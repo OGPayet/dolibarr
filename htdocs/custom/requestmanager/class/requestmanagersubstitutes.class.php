@@ -167,6 +167,7 @@ class RequestManagerSubstitutes
                 '__REQUEST_USER_RESOLVED_NAME__'        => $langs->trans('RequestManagerRequestUserResolvedName'),
                 '__REQUEST_USER_CLOSED_ID__'            => $langs->trans('RequestManagerRequestUserClosedId'),
                 '__REQUEST_USER_CLOSED_NAME__'          => $langs->trans('RequestManagerRequestUserClosedName'),
+                '__REQUEST_URL__'                       => $langs->trans('RequestManagerRequestURL'),
             );
 
             // Create dynamic tags for __EXTRAFIELD_FIELD__
@@ -277,6 +278,7 @@ class RequestManagerSubstitutes
                 '__REQUEST_USER_RESOLVED_NAME__'        => $requestmanager->user_resolved_id > 0 ? self::_getUserName($requestmanager->user_resolved_id) : '',
                 '__REQUEST_USER_CLOSED_ID__'            => $requestmanager->user_cloture_id > 0 ? $requestmanager->user_cloture_id : '',
                 '__REQUEST_USER_CLOSED_NAME__'          => $requestmanager->user_cloture_id > 0 ? self::_getUserName($requestmanager->user_cloture_id) : '',
+                '__REQUEST_URL__'                       => dol_buildpath('/requestmanager/card.php', 2) . '?id='.$requestmanager->id,
             );
 
             // Create dynamic tags for __EXTRAFIELD_FIELD__
@@ -355,6 +357,7 @@ class RequestManagerSubstitutes
                 '__REQUEST_MESSAGE_KNOWLEDGE_BASE_CODES__'          => $langs->trans('RequestManagerRequestMessageKnowledgeBaseCodes'),
                 '__REQUEST_MESSAGE_KNOWLEDGE_BASE_TITLES__'         => $langs->trans('RequestManagerRequestMessageKnowledgeBaseTitles'),
                 '__REQUEST_MESSAGE_KNOWLEDGE_BASE_CODE_TITLES__'    => $langs->trans('RequestManagerRequestMessageKnowledgeBaseCodeTitles'),
+                '__REQUEST_MESSAGE_SUBJECT__'                       => $langs->trans('RequestManagerRequestMessageSubject'),
                 '__REQUEST_MESSAGE_CONTENT__'                       => $langs->trans('RequestManagerRequestMessageContent'),
             );
 
@@ -391,6 +394,7 @@ class RequestManagerSubstitutes
                 '__REQUEST_MESSAGE_KNOWLEDGE_BASE_CODES__'          => implode(', ', $knowledge_base_codes),
                 '__REQUEST_MESSAGE_KNOWLEDGE_BASE_TITLES__'         => implode(', ', $knowledge_base_titles),
                 '__REQUEST_MESSAGE_KNOWLEDGE_BASE_CODE_TITLES__'    => implode(', ', $knowledge_base_code_titles),
+                '__REQUEST_MESSAGE_SUBJECT__'                       => $requestmanagermessage->label,
                 '__REQUEST_MESSAGE_CONTENT__'                       => $requestmanagermessage->note,
             );
 
