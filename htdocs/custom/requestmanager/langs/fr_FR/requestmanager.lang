@@ -358,6 +358,8 @@ RequestManagerErrorTimeSlotsDateFormatMustBeEqual                           = Le
 RequestManagerErrorTimeSlotsPeriodDatesIsEqual                              = Les dates la période sont identiques : %s
 RequestManagerErrorTimeSlotsDateMustBeChronological                         = Les dates la période doivent être chronologique : %s
 RequestManagerErrorMustBeNotEmpty                                           = Ne doit pas être vide
+RequestManagerErrorNotAuthorized                                            = Pas autorisé
+RequestManagerErrorMustBeOneNextStatus                                      = Doit n'avoir qu'un prochain statut de paramètré
 
 ######################################################################
 # Dictionaries
@@ -380,6 +382,8 @@ RequestManagerTypeResolved                                                  = R�
 RequestManagerTypeClosed                                                    = Clôt
 RequestManagerStatusDictionaryPicto                                         = Icône
 RequestManagerStatusDictionaryPictoHelp                                     = Nom de l'icone au format dolibarr ('image.png' si mise dans le répertoire '%s', 'image.png@nom_du_module' si mise dans le repertoire /img/ d'un module)
+RequestManagerStatusDictionaryAuthorizedUser                                = Utilisateur authorisé pour ce statut
+RequestManagerStatusDictionaryAuthorizedUserGroup                           = Groupe d'utilisateurs authorisé pour ce statut
 RequestManagerStatusDictionaryAssignedUser                                  = Utilisateur assigné
 RequestManagerStatusDictionaryAssignedUserReplaced                          = Remplacer
 RequestManagerStatusDictionaryAssignedUserReplacedHelp                      = Remplace les utilsateurs assignés lors du passage à ce statut par ceux renseignés (sinon ils seront ajoutés)
@@ -388,8 +392,12 @@ RequestManagerStatusDictionaryAssignedUserGroupReplacedHelp                 = Re
 RequestManagerStatusDictionaryAssignedUserGroup                             = Groupe d'utilisateurs assigné
 RequestManagerStatusDictionaryDeadLine                                      = Durée d'échéance
 RequestManagerStatusDictionaryDeadLineHelp                                  = En minutes, Date d'échéance calculé à partir de la date où la demande est passé à ce statut<br>-1 si la date d'échéance ne change pas, 0 ou non renseigné si il n'y en a pas
-RequestManagerStatusDictionaryNextTrigger                                   = Trigger
+RequestManagerStatusDictionaryCurrentTrigger                                = Trigger => ce statut
+RequestManagerStatusDictionaryCurrentTriggerHelp                            = Passage automatique à ce statut lors du déclanchement du trigger<br>Liste non exhaustive à l'adresse: https://wiki.dolibarr.org/index.php/Triggers
+RequestManagerStatusDictionaryNextTrigger                                   = Trigger => statut suivant
 RequestManagerStatusDictionaryNextTriggerHelp                               = Passage automatique au statut suivant lors du déclanchement du trigger<br>Liste non exhaustive à l'adresse: https://wiki.dolibarr.org/index.php/Triggers
+RequestManagerStatusDictionaryNextStatusAuto                                = Statut suivant automatique
+RequestManagerStatusDictionaryNextStatusAutoHelp                            = Passage automatique au statut suivant lors du passage à ce statut.
 RequestManagerStatusDictionaryNextStatus                                    = Statut(s) suivant(s)
 RequestManagerStatusDictionaryStatusNotIntoRequestType                      = Ce statut suivant n'est pas dans le(s) type(s) de demande: %s
 RequestManagerStatusDictionaryNextStatusCanNotBeItself                      = Le statut suivant ne peut être lui-même

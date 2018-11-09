@@ -688,7 +688,7 @@ class RequestManagerApi extends DolibarrApi {
         }
 
         // Set Order and Limit
-        $sql .= self::$db->order($sort_field, $sort_order);
+        $sql .= self::$db->order($sort_field.', t.id', $sort_order.','.$sort_order);
         if ($limit) {
             if ($page < 0) {
                 $page = 0;

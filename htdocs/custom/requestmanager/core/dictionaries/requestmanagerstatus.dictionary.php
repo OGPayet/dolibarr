@@ -31,7 +31,7 @@ class RequestManagerStatusDictionary extends Dictionary
     /**
      * @var int         Version of this dictionary
      */
-    public $version = 7;
+    public $version = 8;
 
     /**
      * @var array       List of languages to load
@@ -222,6 +222,8 @@ class RequestManagerStatusDictionary extends Dictionary
                 'align'  => 'left',
             ),
         ),
+        'authorized_user' => array(),
+        'authorized_usergroup' => array(),
         'assigned_user' => array(),
         'assigned_user_replaced' => array(
             'name'       => 'assigned_user_replaced',
@@ -229,7 +231,7 @@ class RequestManagerStatusDictionary extends Dictionary
             'help'       => 'RequestManagerStatusDictionaryAssignedUserReplacedHelp',
             'type'       => 'boolean',
             'td_input' => array(
-                'positionLine' => 1,
+                'positionLine' => 2,
             ),
         ),
         'assigned_usergroup' => array(),
@@ -239,7 +241,19 @@ class RequestManagerStatusDictionary extends Dictionary
             'help'       => 'RequestManagerStatusDictionaryAssignedUserGroupReplacedHelp',
             'type'       => 'boolean',
             'td_input' => array(
-                'positionLine' => 1,
+                'positionLine' => 2,
+            ),
+        ),
+        'current_trigger' => array(
+            'name'       => 'current_trigger',
+            'label'      => 'RequestManagerStatusDictionaryCurrentTrigger',
+            'help'       => 'RequestManagerStatusDictionaryCurrentTriggerHelp',
+            'type'       => 'varchar',
+            'database'   => array(
+              'length'   => 255,
+            ),
+            'td_input' => array(
+                'positionLine' => 3,
             ),
         ),
         'new_request_type' => array(),
@@ -249,7 +263,7 @@ class RequestManagerStatusDictionary extends Dictionary
             'help'       => 'RequestManagerStatusDictionaryNewRequestTypeAutoHelp',
             'type'       => 'boolean',
             'td_input' => array(
-                'positionLine' => 2,
+                'positionLine' => 3,
             ),
         ),
         'next_trigger' => array(
@@ -261,7 +275,16 @@ class RequestManagerStatusDictionary extends Dictionary
               'length'   => 255,
             ),
             'td_input' => array(
-                'positionLine' => 2,
+                'positionLine' => 3,
+            ),
+        ),
+        'next_status_auto' => array(
+            'name'       => 'next_status_auto',
+            'label'      => 'RequestManagerStatusDictionaryNextStatusAuto',
+            'help'       => 'RequestManagerStatusDictionaryNextStatusAutoHelp',
+            'type'       => 'boolean',
+            'td_input' => array(
+                'positionLine' => 3,
             ),
         ),
         'next_status' => array(),
@@ -331,6 +354,14 @@ class RequestManagerStatusDictionary extends Dictionary
         7 => array(
             'fields' => array(
                 'authorized_buttons' => 'a',
+            )
+        ),
+        8 => array(
+            'fields' => array(
+                'authorized_user' => 'a',
+                'authorized_usergroup' => 'a',
+                'current_trigger' => 'a',
+                'next_status_auto' => 'a',
             )
         ),
     );
@@ -443,9 +474,24 @@ class RequestManagerStatusDictionary extends Dictionary
             }
         }
 
-        $this->fields['assigned_usergroup'] = array(
-            'name' => 'assigned_usergroup',
-            'label' => 'RequestManagerStatusDictionaryAssignedUserGroup',
+        $this->fields['authorized_user'] = array(
+            'name' => 'authorized_user',
+            'label' => 'RequestManagerStatusDictionaryAuthorizedUser',
+            'type' => 'chkbxlst',
+            'options' => 'user:firstname|lastname:rowid::' . $entity_filter,
+            'td_output' => array(
+                'moreAttributes' => 'width="20%"',
+            ),
+            'td_input' => array(
+                'moreAttributes' => 'width="36%"',
+                'positionLine' => 1,
+                'colspan' => 3,
+            ),
+        );
+
+        $this->fields['authorized_usergroup'] = array(
+            'name' => 'authorized_usergroup',
+            'label' => 'RequestManagerStatusDictionaryAuthorizedUserGroup',
             'type' => 'chkbxlst',
             'options' => 'usergroup:nom:rowid::' . $entity_filter,
             'td_output' => array(
@@ -468,7 +514,22 @@ class RequestManagerStatusDictionary extends Dictionary
             ),
             'td_input' => array(
                 'moreAttributes' => 'width="36%"',
-                'positionLine' => 1,
+                'positionLine' => 2,
+                'colspan' => 3,
+            ),
+        );
+
+        $this->fields['assigned_usergroup'] = array(
+            'name' => 'assigned_usergroup',
+            'label' => 'RequestManagerStatusDictionaryAssignedUserGroup',
+            'type' => 'chkbxlst',
+            'options' => 'usergroup:nom:rowid::' . $entity_filter,
+            'td_output' => array(
+                'moreAttributes' => 'width="20%"',
+            ),
+            'td_input' => array(
+                'moreAttributes' => 'width="36%"',
+                'positionLine' => 2,
                 'colspan' => 3,
             ),
         );
@@ -484,7 +545,7 @@ class RequestManagerStatusDictionary extends Dictionary
             ),
             'td_input' => array(
                 'moreAttributes' => 'width="20%"',
-                'positionLine' => 2,
+                'positionLine' => 3,
                 'colspan' => 2,
             ),
         );
@@ -500,8 +561,8 @@ class RequestManagerStatusDictionary extends Dictionary
             ),
             'td_input' => array(
                 'moreAttributes' => 'width="20%"',
-                'positionLine' => 2,
-                'colspan' => 4,
+                'positionLine' => 3,
+                'colspan' => 2,
             ),
         );
 
@@ -537,7 +598,7 @@ class RequestManagerStatusDictionary extends Dictionary
             ),
             'td_input'  => array (
                 'align'  => 'left',
-                'positionLine' => 3,
+                'positionLine' => 4,
             ),
         );
     }
@@ -572,6 +633,8 @@ class RequestManagerStatusDictionaryLine extends DictionaryLine
             $this->errors[] = $langs->trans('RequestManagerStatusDictionaryNextStatusCanNotBeItself');
             return -1;
         }*/
+
+        //todo check current trigger for each next status
 
         return $result;
     }
@@ -726,14 +789,18 @@ class RequestManagerStatusDictionaryLine extends DictionaryLine
         if ($fieldName == 'next_status') {
             dol_include_once('/requestmanager/class/requestmanager.class.php');
             $typeFieldHtmlName = $keyprefix . 'type' . $keysuffix;
+            $currentTriggerFieldHtmlName = $keyprefix . 'current_trigger' . $keysuffix;
             $newRequestTypeFieldHtmlName = $keyprefix . 'new_request_type' . $keysuffix;
             $newRequestTypeAutoFieldHtmlName = $keyprefix . 'new_request_type_auto' . $keysuffix;
             $nextTriggerFieldHtmlName = $keyprefix . 'next_trigger' . $keysuffix;
+            $nextStatusAutoFieldHtmlName = $keyprefix . 'next_status_auto' . $keysuffix;
             $nextStatusFieldHtmlName = $keyprefix . 'next_status' . $keysuffix;
             $authorizedButtonsFieldHtmlName = $keyprefix . 'authorized_buttons' . $keysuffix;
+            $updateCurrentTriggerFunctionName = 'update_' . $currentTriggerFieldHtmlName;
             $updateNewRequestTypeFunctionName = 'update_' . $newRequestTypeFieldHtmlName;
             $updateNewRequestTypeAutoFunctionName = 'update_' . $newRequestTypeAutoFieldHtmlName;
             $updateNextTriggerFunctionName = 'update_' . $nextTriggerFieldHtmlName;
+            $updateNextStatusAutoFunctionName = 'update_' . $nextStatusAutoFieldHtmlName;
             $updateNextStatusFunctionName = 'update_' . $nextStatusFieldHtmlName;
             $updateAuthorizedButtonsFunctionName = 'update_' . $authorizedButtonsFieldHtmlName;
             $initial_status = RequestManager::STATUS_TYPE_INITIAL;
@@ -742,17 +809,21 @@ class RequestManagerStatusDictionaryLine extends DictionaryLine
             $closed_status = RequestManager::STATUS_TYPE_CLOSED;
 
             print <<<SCRIPT
+            <input type="hidden" id="h_$currentTriggerFieldHtmlName" name="$currentTriggerFieldHtmlName" value="" disabled="disabled">
             <input type="hidden" id="h_$newRequestTypeAutoFieldHtmlName" name="$newRequestTypeAutoFieldHtmlName" value="" disabled="disabled">
             <input type="hidden" id="h_$newRequestTypeFieldHtmlName" name="$newRequestTypeFieldHtmlName" value="" disabled="disabled">
             <input type="hidden" id="h_$nextTriggerFieldHtmlName" name="$nextTriggerFieldHtmlName" value="" disabled="disabled">
+            <input type="hidden" id="h_$nextStatusAutoFieldHtmlName" name="$nextStatusAutoFieldHtmlName" value="" disabled="disabled">
             <input type="hidden" id="h_$nextStatusFieldHtmlName" name="$nextStatusFieldHtmlName" value="" disabled="disabled">
             <input type="hidden" id="h_$authorizedButtonsFieldHtmlName" name="$authorizedButtonsFieldHtmlName" value="" disabled="disabled">
 
 <script type="text/javascript">
     $(document).ready(function() {
+        $updateCurrentTriggerFunctionName();
         $updateNewRequestTypeFunctionName();
         $updateNewRequestTypeAutoFunctionName();
         $updateNextTriggerFunctionName();
+        $updateNextStatusAutoFunctionName();
         $updateNextStatusFunctionName();
         $updateAuthorizedButtonsFunctionName();
 
@@ -768,15 +839,27 @@ class RequestManagerStatusDictionaryLine extends DictionaryLine
             $updateNewRequestTypeFunctionName();
             $updateNewRequestTypeAutoFunctionName();
             $updateNextTriggerFunctionName();
+            $updateNextStatusAutoFunctionName();
         });
         $('#$typeFieldHtmlName').on('change', function() {
+            $updateCurrentTriggerFunctionName();
             $updateNewRequestTypeFunctionName();
             $updateNewRequestTypeAutoFunctionName();
             $updateNextTriggerFunctionName();
+            $updateNextStatusAutoFunctionName();
             $updateNextStatusFunctionName();
             $updateAuthorizedButtonsFunctionName();
         });
 
+        function $updateCurrentTriggerFunctionName() {
+            var disabled = $('#$typeFieldHtmlName').val() == $initial_status;
+
+            $('#$currentTriggerFieldHtmlName').prop('disabled', disabled);
+            $('#h_$currentTriggerFieldHtmlName').prop('disabled', !disabled);
+            if (disabled) {
+                $('#$currentTriggerFieldHtmlName').val('');
+            }
+        }
         function $updateNewRequestTypeFunctionName() {
             var disabled = $('#$nextStatusFieldHtmlName').val().length > 1 || $('#$nextTriggerFieldHtmlName').val().length > 0 || $('#$typeFieldHtmlName').val() != $inprogress_status;
 
@@ -788,8 +871,8 @@ class RequestManagerStatusDictionaryLine extends DictionaryLine
         }
         function $updateNewRequestTypeAutoFunctionName() {
             var disabled = $('#$nextStatusFieldHtmlName').val().length > 1 || $('#$nextTriggerFieldHtmlName').val().length > 0 ||
-                           $('#$newRequestTypeFieldHtmlName').val().length <= 1 || $('#$typeFieldHtmlName').val() != $inprogress_status;
-            var checked = (($('#$newRequestTypeAutoFieldHtmlName').is(':checked') && $('#$newRequestTypeFieldHtmlName').val().length > 0) || $('#$newRequestTypeFieldHtmlName').val().length == 1) &&
+                           $('#$typeFieldHtmlName').val() != $inprogress_status;
+            var checked = ($('#$newRequestTypeAutoFieldHtmlName').is(':checked') || $('#$newRequestTypeFieldHtmlName').val().length == 1) &&
                           $('#$typeFieldHtmlName').val() == $inprogress_status && $('#$nextStatusFieldHtmlName').val().length <= 1 && $('#$nextTriggerFieldHtmlName').val().length == 0;
 
             $('#$newRequestTypeAutoFieldHtmlName').prop('disabled', disabled);
@@ -805,6 +888,16 @@ class RequestManagerStatusDictionaryLine extends DictionaryLine
             if (disabled) {
                 $('#$nextTriggerFieldHtmlName').val('');
             }
+        }
+        function $updateNextStatusAutoFunctionName() {
+            var disabled = $('#$nextStatusFieldHtmlName').val().length != 1 || $('#$typeFieldHtmlName').val() != $resolved_status;
+            var checked = $('#$nextStatusAutoFieldHtmlName').is(':checked') &&
+                          $('#$typeFieldHtmlName').val() == $resolved_status && $('#$nextStatusFieldHtmlName').val().length == 1;
+
+            $('#$nextStatusAutoFieldHtmlName').prop('disabled', disabled);
+            $('#h_$nextStatusAutoFieldHtmlName').prop('disabled', !disabled);
+            $('#$nextStatusAutoFieldHtmlName').prop('checked', checked);
+            $('#h_$nextStatusAutoFieldHtmlName').val(checked ? '1' : '');
         }
         function $updateNextStatusFunctionName() {
             var disabled = $('#$typeFieldHtmlName').val() == $closed_status;

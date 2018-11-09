@@ -2266,7 +2266,7 @@ class RequestManager extends CommonObject
 	 *  Set status request into database
 	 *
      * @param   int     $status         New status
-     * @param   int     $status_type    New status type (initial, first in progress, resolved or closed)
+     * @param   int     $status_type    New status type (initial, first in progress, resolved or closed) (-1 if not used)
      * @param   User    $user           User that modifies
 	 * @param   bool    $notrigger      false=launch triggers after, true=disable triggers
      * @param   int     $forcereload    Force reload of the cache
@@ -2283,37 +2283,72 @@ class RequestManager extends CommonObject
         dol_syslog(__METHOD__ . " user_id=" . $user->id . " id=" . $this->id . " status=" . $status, LOG_DEBUG);
 
         // Clean parameters
+        $save_status = $this->statut;
+        $save_status_type = $this->statut_type;
         $status = $status > 0 ? $status : 0;
         $status_type = $status_type == self::STATUS_TYPE_INITIAL || $status_type == self::STATUS_TYPE_IN_PROGRESS || $status_type == self::STATUS_TYPE_RESOLVED || $status_type == self::STATUS_TYPE_CLOSED ? $status_type : -1;
 
-        if (empty(self::$status_list) || $forcereload) {
-            dol_include_once('/advancedictionaries/class/dictionary.class.php');
-            $dictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagerstatus');
-            $dictionary->fetch_lines(1, array(), array('type' => 'ASC', 'position' => 'ASC'));
-            self::$status_list = $dictionary->lines;
-        }
-
         // Check parameters
-        if ($status_type >= 0) {
-            $found = false;
-            foreach (self::$status_list as $s) {
-                if ($status_type == $s->fields['type']) {
-                    $found = true;
-                    $status = $s->id;
+        if (!($this->fk_type > 0)) {
+            $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("RequestManagerType"));
+            $error++;
+        }
+        if (!$error) {
+            if (empty(self::$status_list) || $forcereload) {
+                dol_include_once('/advancedictionaries/class/dictionary.class.php');
+                $dictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagerstatus');
+                $dictionary->fetch_lines(1, array(), array('type' => 'ASC', 'position' => 'ASC'));
+                self::$status_list = $dictionary->lines;
+            }
+            if ($status_type >= 0) {
+                $found = false;
+                foreach (self::$status_list as $s) {
+                    if ($status_type == $s->fields['type'] && in_array($this->fk_type, explode(',', $s->fields['request_type']))) {
+                        $found = true;
+                        $status = $s->id;
+                    }
+                }
+                if (!$found) {
+                    $this->errors[] = $langs->trans('RequestManagerErrorStatusNotFound');
+                    $error++;
+                }
+            } elseif ($status > 0) {
+                if (!isset(self::$status_list[$status])) {
+                    $this->errors[] = $langs->trans('RequestManagerErrorStatusNotFound');
+                    $error++;
+                }
+            } else {
+                $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("Status"));
+                $error++;
+            }
+        }
+        if (!$error) {
+            // Get group of user
+            require_once DOL_DOCUMENT_ROOT . '/user/class/usergroup.class.php';
+            $usergroup_static = new UserGroup($this->db);
+            $user_groups = $usergroup_static->listGroupsForUser($user->id);
+            $user_groups = is_array($user_groups) ? array_keys($user_groups) : array();
+
+            $authorized_user = self::$status_list[$this->new_statut]->fields['authorized_user'];
+            $authorized_usergroup = self::$status_list[$this->new_statut]->fields['authorized_usergroup'];
+
+            $not_authorized_user = !empty($authorized_user) ? !in_array($user->id, explode(',', $authorized_user)) : false;
+            $not_authorized_usergroup = false;
+            if (!empty($authorized_usergroup)) {
+                $not_authorized_usergroup = true;
+                $authorized_usergroup = explode(',', $authorized_usergroup);
+                foreach ($authorized_usergroup as $group_id) {
+                    if (in_array($group_id, $user_groups)) {
+                        $not_authorized_usergroup = false;
+                        break;
+                    }
                 }
             }
-            if (!$found) {
-                $this->errors[] = $langs->trans('RequestManagerErrorStatusNotFound');
+
+            if ($not_authorized_user || $not_authorized_usergroup) {
+                $this->errors[] = $langs->trans('RequestManagerErrorNotAuthorized');
                 $error++;
             }
-        } elseif ($status > 0) {
-            if (!isset(self::$status_list[$status])) {
-                $this->errors[] = $langs->trans('RequestManagerErrorStatusNotFound');
-                $error++;
-            }
-        } else {
-            $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("Status"));
-            $error++;
         }
         if ($error) {
             dol_syslog(__METHOD__ . " Errors check parameters: " . $this->errorsToString(), LOG_ERR);
@@ -2321,7 +2356,8 @@ class RequestManager extends CommonObject
         }
 
         $this->new_statut = $status;
-        $this->new_statut_type = self::$status_list[$this->new_statut]->fields['type'];
+        $status_infos = self::$status_list[$this->new_statut];
+        $this->new_statut_type = $status_infos->fields['type'];
 
         /*if ($this->new_statut == $this->statut && !$dont_check) {
             dol_syslog(__METHOD__ . " : Status not changed", LOG_DEBUG);
@@ -2344,7 +2380,6 @@ class RequestManager extends CommonObject
 
         if (!$error) {
             $now = dol_now();
-            $status_infos = self::$status_list[$this->new_statut];
             $assigned_users = !empty($status_infos->fields['assigned_user']) ? (is_string($status_infos->fields['assigned_user']) ? explode(',', $status_infos->fields['assigned_user']) : $status_infos->fields['assigned_user']) : $this->assigned_user_ids;
             $assigned_usergroups = !empty($status_infos->fields['assigned_usergroup']) ? (is_string($status_infos->fields['assigned_usergroup']) ? explode(',', $status_infos->fields['assigned_usergroup']) : $status_infos->fields['assigned_usergroup']) : $this->assigned_usergroup_ids;
             if (!isset($status_infos->fields['assigned_user_replaced']) || !$status_infos->fields['assigned_user_replaced']) {
@@ -2404,20 +2439,32 @@ class RequestManager extends CommonObject
             // End call triggers
         }
 
-		// Commit or rollback
-		if ($error) {
-			$this->db->rollback();
+        $this->statut = $this->new_statut;
+        $this->statut_type = $status_infos->fields['type'];
+        if (!$error) {
+            $next_status = !empty($status_infos->fields['next_status']) ? explode(',', $status_infos->fields['next_status']) : array();
+            if (!$error && count($next_status) == 1 && $status_infos->fields['next_status_auto']) {
+                $result = $this->set_status($next_status[0], -1, $user);
+                if ($result < 0) {
+                    $error++;
+                }
+            }
+        }
 
-			return - 1 * $error;
-		} else {
-			$this->db->commit();
-			$this->statut = $this->new_statut;
-            $this->statut_type = self::$status_list[$this->new_statut]->fields['type'];
+        // Commit or rollback
+        if ($error) {
+            $this->db->rollback();
+            $this->statut = $save_status;
+            $this->statut_type = $save_status_type;
+
+            return -1 * $error;
+        } else {
+            $this->db->commit();
             dol_syslog(__METHOD__ . " success", LOG_DEBUG);
 
-			return 1;
-		}
-	}
+            return 1;
+        }
+    }
 
     /**
      *  Load the children request

@@ -473,7 +473,7 @@ function requestmanager_show_events(&$requestmanager)
     if ($conf->eventconfidentiality->enabled) {
         $sql .= ' HAVING ec_mode < 2';
     }
-    $sql .= $db->order($sortfield, $sortorder);
+    $sql .= $db->order($sortfield.', ac.id', $sortorder.','.$sortorder);
 
     // Count total nb of records
     $nbtotalofrecords = '';

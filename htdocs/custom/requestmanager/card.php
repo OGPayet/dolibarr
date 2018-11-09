@@ -2109,6 +2109,10 @@ $now = dol_now();
     if ($user->rights->requestmanager->creer) {
         print '<div class="tabsStatusAction">';
 
+        // Get group of user
+        $user_groups = $usergroup_static->listGroupsForUser($user->id);
+        $user_groups = is_array($user_groups) ? array_keys($user_groups) : array();
+
         // Get count children request by status type
         $children_count = $object->getCountChildrenRequestByStatusType();
 
@@ -2123,8 +2127,21 @@ $now = dol_now();
                     $line = $requestManagerStatusDictionary->lines[$line_id];
 
                     if (isset($line)) {
+                        $not_authorized_user = !empty($line->fields['authorized_user']) ? !in_array($user->id, explode(',', $line->fields['authorized_user'])) : false;
+                        $not_authorized_usergroup = false;
+                        if (!empty($line->fields['authorized_usergroup'])) {
+                            $not_authorized_usergroup = true;
+                            $authorized_usergroup = explode(',', $line->fields['authorized_usergroup']);
+                            foreach ($authorized_usergroup as $group_id) {
+                                if (in_array($group_id, $user_groups)) {
+                                    $not_authorized_usergroup = false;
+                                    break;
+                                }
+                            }
+                        }
                         if (/*$line->id == $object->statut ||*/
-                            ($line->fields['type'] == RequestManager::STATUS_TYPE_CLOSED && !empty($conf->global->REQUESTMANAGER_AUTO_CLOSE_REQUEST))
+                            ($line->fields['type'] == RequestManager::STATUS_TYPE_CLOSED && !empty($conf->global->REQUESTMANAGER_AUTO_CLOSE_REQUEST)) ||
+                            $not_authorized_user || $not_authorized_usergroup
                         ) continue;
                         print '<div class="inline-block divButAction noMarginBottom">';
                         $options_url = '';

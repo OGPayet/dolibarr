@@ -147,12 +147,33 @@ class InterfaceRMWorkflow extends DolibarrTriggers
                     foreach ($requests as $requestmanager) {
                         if (isset($requestManagerStatusDictionary->lines[$requestmanager->statut])) {
                             $line = $requestManagerStatusDictionary->lines[$requestmanager->statut];
+                            $next_status = !empty($line->fields['next_status']) ? explode(',', $line->fields['next_status']) : array();
 
+                            // Auto set next status of the requests (by next trigger)
                             if ($line->fields['next_trigger'] == $action) {
-                                $result = $requestmanager->set_status($line->fields['next_status'], -1, $user);
-                                if ($result < 0) {
-                                    $this->errors = array_merge(array($langs->trans('RequestManagerErrorTriggerNextStatus', $requestmanager->ref)), $requestmanager->errors);
+                                if (count($next_status) == 1) {
+                                    $result = $requestmanager->set_status($line->fields['next_status'], -1, $user);
+                                    if ($result < 0) {
+                                        $this->errors = array_merge(array($langs->trans('RequestManagerErrorTriggerNextStatus', $requestmanager->ref)), $requestmanager->errors);
+                                        return -1;
+                                    }
+                                } else {
+                                    $this->errors = array_merge(array($langs->trans('RequestManagerErrorTriggerNextStatus', $requestmanager->ref)), array($langs->trans('RequestManagerErrorMustBeOneNextStatus')));
                                     return -1;
+                                }
+                            } else {
+                                // Auto set next status of the requests (by current trigger for each next status)
+                                if (count($next_status)) {
+                                    foreach ($next_status as $next_status_id) {
+                                        $next_status_line = $requestManagerStatusDictionary->lines[$next_status_id];
+                                        if ($next_status_line->fields['current_trigger'] == $action) {
+                                            $result = $requestmanager->set_status($next_status_id, -1, $user);
+                                            if ($result < 0) {
+                                                $this->errors = array_merge(array($langs->trans('RequestManagerErrorTriggerNextStatus', $requestmanager->ref)), $requestmanager->errors);
+                                                return -1;
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
