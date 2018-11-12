@@ -129,6 +129,8 @@ class Dictionary extends CommonObject
      *      'moreClasses'    => string,  // Add more classes in the output balise td
      *      'moreAttributes' => string,  // Add more attributes in the output balise td
      *      'align'          => string,  // Overwrirte the align by default
+     *      'positionLine'   => int,     // Move the input into new line in function of the position (only in add form, 0 by default)
+     *      'colspan'        => int,     // TD colspan
      *   ),
      *   'show_output'       => array (
      *      'moreAttributes' => string,  // Add more attributes in when show output field
@@ -152,6 +154,7 @@ class Dictionary extends CommonObject
      *      'moreAttributes' => string,  // Add more attributes in the input balise td
      *      'align'          => string,  // Overwrirte the align by default
      *      'positionLine'   => int,     // Move the input into new line in function of the position (only in add form, 0 by default)
+     *      'colspan'        => int,     // TD colspan
      *   ),
      *   'show_input'        => array (
      *      'moreClasses'    => string,  // Add more classes in the input field
@@ -429,6 +432,17 @@ class Dictionary extends CommonObject
             }
 
             if (!$error) {
+                // Add foreign key for sub dictionary table
+                foreach ($this->fields as $field) {
+                    $res = $this->addSubTableForeignKey($field);
+                    if ($res < 0) {
+                        $error++;
+                        break;
+                    }
+                }
+            }
+
+            if (!$error) {
                 // Update dictionary table
                 $res = $this->updateTables();
                 if ($res < 0) {
@@ -573,6 +587,108 @@ class Dictionary extends CommonObject
     }
 
     /**
+	 * Add foreign key of sub table for the field
+	 *
+     * @param   array   $field      Description of the field
+	 * @return  int                 <0 if not ok, >0 if ok
+	 */
+	protected function addSubTableForeignKey($field)
+    {
+        if (!empty($field)) {
+            switch ($field['type']) {
+                case 'chkbxlst':
+                    // Get table initial
+                    $initial = '';
+                    if (preg_match_all('/(?:^|_)(.)/', $this->table_name, $matches)) {
+                        foreach ($matches[1] as $k => $v) {
+                            $initial .= $v;
+                        }
+                    }
+
+                    // Add foreign constraint with association table for the multi-select list
+//                    $sql = 'SELECT 1 FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = DATABASE()' .
+//                        " AND CONSTRAINT_NAME   = 'fk_" . $initial . '_cbl_' . $field['name'] . "_a'" .
+//                        " AND CONSTRAINT_TYPE   = 'FOREIGN KEY'";
+//                    $resql = $this->db->query($sql);
+//                    if (!$resql) {
+//                        $this->error = 'Check foreign key "fk_' . $initial . '_cbl_' . $field['name'] . '_a" : ' . $this->db->lasterror();
+//                        return -1;
+//                    } else {
+//                        if (!$this->db->num_rows($resql)) {
+                            $sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . '_cbl_' . $field['name'] .
+                                ' ADD CONSTRAINT fk_' . $initial . '_cbl_' . $field['name'] . '_a FOREIGN KEY (fk_line) REFERENCES ' . MAIN_DB_PREFIX . $this->table_name . ' (' . $this->rowid_field . ');';
+
+                            $resql = $this->db->query($sql);
+                            if (!$resql) {
+//                                $this->error = 'Add foreign key "fk_' . $initial . '_cbl_' . $field['name'] . '_a" : ' . $sql . $this->db->lasterror();
+//                                return -1;
+                            }
+//                        }
+//                    }
+//
+//                    // Add foreign constraint with association table for the multi-select list
+//                    $sql = 'SELECT NULL FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = DATABASE()' .
+//                        " AND CONSTRAINT_NAME   = 'fk_" . $initial . '_cbl_' . $field['name'] . "_b'" .
+//                        " AND CONSTRAINT_TYPE   = 'FOREIGN KEY'";
+//                    $resql = $this->db->query($sql);
+//                    if (!$resql) {
+//                        $this->error = 'Check foreign key "fk_' . $initial . '_cbl_' . $field['name'] . '_b" : ' . $this->db->lasterror();
+//                        return -1;
+//                    } else {
+//                        if (!$this->db->num_rows($resql)) {
+
+                            // 0 : tableName
+                            // 1 : label field name
+                            // 2 : key fields name (if differ of rowid)
+                            // 3 : key field parent (for dependent lists)
+                            // 4 : where clause filter on column or table extrafield, syntax field='value' or extra.field=value
+                            $InfoFieldList = explode(":", (string)$field['options']);
+
+                            $keyList = 'rowid';
+                            if (count($InfoFieldList) >= 3) {
+                                $keyList = $InfoFieldList[2];
+                            }
+
+                            $sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . '_cbl_' . $field['name'] .
+                                ' ADD CONSTRAINT fk_' . $initial . '_cbl_' . $field['name'] . '_b FOREIGN KEY (fk_target) REFERENCES ' . MAIN_DB_PREFIX . $InfoFieldList[0] . ' (' . $keyList . ');';
+
+                            $resql = $this->db->query($sql);
+                            if (!$resql) {
+//                                $this->error = 'Add foreign key "fk_' . $initial . '_cbl_' . $field['name'] . '_b" : ' . $this->db->lasterror();
+//                                return -1;
+                            }
+//                        }
+//                    }
+
+                    break;
+                case 'custom':
+                    $res = $this->addCustomSubTableForeignKey($field);
+                    if ($res < 0) {
+                        return -1;
+                    }
+
+                    break;
+                default: // varchar, text, int, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
+                    break;
+            }
+
+            return 1;
+        }
+
+        return -2;
+    }
+
+    /**
+	 * Add foreign key of sub table for custom field
+	 *
+     * @param   array   $field      Description of the field
+	 * @return  int                 <0 if not ok, >0 if ok
+	 */
+    protected function addCustomSubTableForeignKey($field) {
+        return 1;
+    }
+
+    /**
 	 * Update dictionary table
 	 *
 	 * @return int             <0 if not ok, >0 if ok
@@ -609,7 +725,7 @@ class Dictionary extends CommonObject
                                         return -1;
                                     }
                                 } else {
-                                    $result = $this->createSubTable($field);
+                                    $result = $this->createSubTable($this->fields[$field_name]);
                                     if ($result < 0) {
                                         return -1;
                                     }
@@ -630,6 +746,8 @@ class Dictionary extends CommonObject
                                         $this->error = $this->db->lasterror();
                                         return -1;
                                     }
+                                } else {
+                                    // Todo update sub tables ?
                                 }
                                 break;
                         }
@@ -2866,8 +2984,10 @@ class DictionaryLine extends CommonObjectLine
      */
     function delete($user, $noTrigger = 0)
     {
+        global $langs;
         dol_syslog(__METHOD__ . "::delete lineId: " . $this->id);
 
+        $langs->load('advancedictionaries@advancedictionaries');
         $this->db->begin();
         $error = 0;
         $errors = array();
@@ -2887,7 +3007,11 @@ class DictionaryLine extends CommonObjectLine
                     $resql = $this->db->query($sql);
                     if (!$resql) {
                         $error++;
-                        $errors[] = $this->db->lasterror();
+                        if ($this->db->lasterrno == 'DB_ERROR_CHILD_EXISTS') {
+                            $errors[] = $langs->trans('AdvanceDictionariesErrorValueUsedInDolibarr', $langs->transnoentitiesnoconv($field['label']));
+                        } else {
+                            $errors[] = $this->db->lasterror();
+                        }
                     }
                     break;
                 case 'custom':
@@ -2910,7 +3034,11 @@ class DictionaryLine extends CommonObjectLine
             $resql = $this->db->query($sql);
             if (!$resql) {
                 $error++;
-                $errors[] = $this->db->lasterror();
+                if ($this->db->lasterrno == 'DB_ERROR_CHILD_EXISTS') {
+                    $errors[] = $langs->trans('AdvanceDictionariesErrorUsedInDolibarr');
+                } else {
+                    $errors[] = $this->db->lasterror();
+                }
             }
         }
 

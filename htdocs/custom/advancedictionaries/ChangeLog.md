@@ -3,6 +3,12 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.5] - 24-09-2018
+### Ajouter
+- Correction mineures des clés étrangères + affichage d'un message si l'on essaye de supprimer une valeur utilisé.
+- Option td_output: positionLine in field definition.
+- Option td_output: colspan in field definition.
+
 ## [4.0.4] - 24-09-2018
 ### Ajouter
 - Correction mineures sur le bouton d'aide.
@@ -25,7 +31,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 16-07-2018
 - Version initial.
 
-[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/compare/v4.0.4...HEAD
+[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/compare/v4.0.5...HEAD
+[4.0.5]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.5
 [4.0.4]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.4
 [4.0.3]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.3
 [4.0.2]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.2
