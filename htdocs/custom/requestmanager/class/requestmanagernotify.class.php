@@ -119,28 +119,30 @@ class RequestManagerNotify
                 if (isset($assigned_template)) {
                     if ((isset($requestmanagermessage) && !empty($requestmanagermessage->notify_assigned)) || (!isset($requestmanagermessage) && !empty($requestmanager->notify_assigned_by_email))) {
                         $emails = $this->_getAssignedEmails($requestmanager);
-                        if (!empty($conf->global->REQUESTMANAGER_SPLIT_ASSIGNED_NOTIFICATION)) {
-                            $sendto_list = array_chunk($emails, 1, true);
-                        } else {
-                            $sendto_list = array($emails);
-                        }
+                        if (count($emails)) {
+                            if (!empty($conf->global->REQUESTMANAGER_SPLIT_ASSIGNED_NOTIFICATION)) {
+                                $sendto_list = array_chunk($emails, 1, true);
+                            } else {
+                                $sendto_list = array($emails);
+                            }
 
-                        $subject = make_substitutions($assigned_template['subject'], $substitutes_array);
-                        $signature = $assigned_template['signature'];
-                        if (empty($signature)) $signature = $conf->global->REQUESTMANAGER_ASSIGNED_NOTIFICATION_SIGNATURE;
-                        if (empty($signature) && !empty($conf->global->REQUESTMANAGER_ASSIGNED_NOTIFICATION_USER_SIGNATURE)) $signature = $user->signature;
-                        $body = !empty($signature) ? dol_concatdesc($assigned_template['body'], '<br>' . $signature) : $assigned_template['body'];
-                        $body = make_substitutions($body, $substitutes_array);
+                            $subject = make_substitutions($assigned_template['subject'], $substitutes_array);
+                            $signature = $assigned_template['signature'];
+                            if (empty($signature)) $signature = $conf->global->REQUESTMANAGER_ASSIGNED_NOTIFICATION_SIGNATURE;
+                            if (empty($signature) && !empty($conf->global->REQUESTMANAGER_ASSIGNED_NOTIFICATION_USER_SIGNATURE)) $signature = $user->signature;
+                            $body = !empty($signature) ? dol_concatdesc($assigned_template['body'], '<br>' . $signature) : $assigned_template['body'];
+                            $body = make_substitutions($body, $substitutes_array);
 
-                        $from = !empty($conf->global->REQUESTMANAGER_ASSIGNED_NOTIFICATION_SEND_FROM) ? $conf->global->REQUESTMANAGER_ASSIGNED_NOTIFICATION_SEND_FROM : $this->_formatEmail($user->getFullName($langs), $user->email);
+                            $from = !empty($conf->global->REQUESTMANAGER_ASSIGNED_NOTIFICATION_SEND_FROM) ? $conf->global->REQUESTMANAGER_ASSIGNED_NOTIFICATION_SEND_FROM : $this->_formatEmail($user->getFullName($langs), $user->email);
 
-                        $sendtocc = $sendtobcc = "";
-                        $deliveryreceipt = 0;
+                            $sendtocc = $sendtobcc = "";
+                            $deliveryreceipt = 0;
 
-                        foreach ($sendto_list as $sendto) {
-                            $result = $this->_sendEmail($subject, $sendto, $from, $body, $attachedfiles['paths'], $attachedfiles['mimes'], $attachedfiles['names'], $sendtocc, $sendtobcc, $deliveryreceipt, -1);
-                            if ($result > 0) {
-                                $this->_createSendNotificationEvent($requestmanager, $subject, $sendto, array_keys($sendto), $from, $body, $attachedfiles, $sendtocc, $sendtobcc);
+                            foreach ($sendto_list as $sendto) {
+                                $result = $this->_sendEmail($subject, $sendto, $from, $body, $attachedfiles['paths'], $attachedfiles['mimes'], $attachedfiles['names'], $sendtocc, $sendtobcc, $deliveryreceipt, -1);
+                                if ($result > 0) {
+                                    $this->_createSendNotificationEvent($requestmanager, $subject, $sendto, array_keys($sendto), $from, $body, $attachedfiles, $sendtocc, $sendtobcc);
+                                }
                             }
                         }
                     }
@@ -153,28 +155,30 @@ class RequestManagerNotify
             if (isset($requesters_template)) {
                 if ((isset($requestmanagermessage) && !empty($requestmanagermessage->notify_requesters)) || (!isset($requestmanagermessage) && !empty($requestmanager->notify_requester_by_email))) {
                     $emails = $this->_getRequesterEmails($requestmanager);
-                    if (!empty($conf->global->REQUESTMANAGER_SPLIT_REQUESTER_NOTIFICATION)) {
-                        $sendto_list = array_chunk($emails, 1, true);
-                    } else {
-                        $sendto_list = array($emails);
-                    }
+                    if (count($emails)) {
+                        if (!empty($conf->global->REQUESTMANAGER_SPLIT_REQUESTER_NOTIFICATION)) {
+                            $sendto_list = array_chunk($emails, 1, true);
+                        } else {
+                            $sendto_list = array($emails);
+                        }
 
-                    $subject = make_substitutions($requesters_template['subject'], $substitutes_array);
-                    $signature = $requesters_template['signature'];
-                    if (empty($signature)) $signature = $conf->global->REQUESTMANAGER_REQUESTER_NOTIFICATION_SIGNATURE;
-                    if (empty($signature) && !empty($conf->global->REQUESTMANAGER_REQUESTER_NOTIFICATION_USER_SIGNATURE)) $signature = $user->signature;
-                    $body = !empty($signature) ? dol_concatdesc($requesters_template['body'], '<br>' . $signature) : $requesters_template['body'];
-                    $body = make_substitutions($body, $substitutes_array);
+                        $subject = make_substitutions($requesters_template['subject'], $substitutes_array);
+                        $signature = $requesters_template['signature'];
+                        if (empty($signature)) $signature = $conf->global->REQUESTMANAGER_REQUESTER_NOTIFICATION_SIGNATURE;
+                        if (empty($signature) && !empty($conf->global->REQUESTMANAGER_REQUESTER_NOTIFICATION_USER_SIGNATURE)) $signature = $user->signature;
+                        $body = !empty($signature) ? dol_concatdesc($requesters_template['body'], '<br>' . $signature) : $requesters_template['body'];
+                        $body = make_substitutions($body, $substitutes_array);
 
-                    $from = !empty($conf->global->REQUESTMANAGER_REQUESTER_NOTIFICATION_SEND_FROM) ? $conf->global->REQUESTMANAGER_REQUESTER_NOTIFICATION_SEND_FROM : $this->_formatEmail($user->getFullName($langs), $user->email);
+                        $from = !empty($conf->global->REQUESTMANAGER_REQUESTER_NOTIFICATION_SEND_FROM) ? $conf->global->REQUESTMANAGER_REQUESTER_NOTIFICATION_SEND_FROM : $this->_formatEmail($user->getFullName($langs), $user->email);
 
-                    $sendtocc = $sendtobcc = "";
-                    $deliveryreceipt = 0;
+                        $sendtocc = $sendtobcc = "";
+                        $deliveryreceipt = 0;
 
-                    foreach ($sendto_list as $sendto) {
-                        $result = $this->_sendEmail($subject, $sendto, $from, $body, $attachedfiles['paths'], $attachedfiles['mimes'], $attachedfiles['names'], $sendtocc, $sendtobcc, $deliveryreceipt, -1);
-                        if ($result > 0) {
-                            $this->_createSendNotificationEvent($requestmanager, $subject, $sendto, array_keys($sendto), $from, $body, $attachedfiles, $sendtocc, $sendtobcc);
+                        foreach ($sendto_list as $sendto) {
+                            $result = $this->_sendEmail($subject, $sendto, $from, $body, $attachedfiles['paths'], $attachedfiles['mimes'], $attachedfiles['names'], $sendtocc, $sendtobcc, $deliveryreceipt, -1);
+                            if ($result > 0) {
+                                $this->_createSendNotificationEvent($requestmanager, $subject, $sendto, array_keys($sendto), $from, $body, $attachedfiles, $sendtocc, $sendtobcc);
+                            }
                         }
                     }
                 }
@@ -186,28 +190,30 @@ class RequestManagerNotify
             if (isset($watchers_template)) {
                 if ((isset($requestmanagermessage) && !empty($requestmanagermessage->notify_watchers)) || (!isset($requestmanagermessage) && !empty($requestmanager->notify_watcher_by_email))) {
                     $emails = $this->_getWatcherEmails($requestmanager);
-                    if (!empty($conf->global->REQUESTMANAGER_SPLIT_WATCHERS_NOTIFICATION)) {
-                        $sendto_list = array_chunk($emails, 1, true);
-                    } else {
-                        $sendto_list = array($emails);
-                    }
+                    if (count($emails)) {
+                        if (!empty($conf->global->REQUESTMANAGER_SPLIT_WATCHERS_NOTIFICATION)) {
+                            $sendto_list = array_chunk($emails, 1, true);
+                        } else {
+                            $sendto_list = array($emails);
+                        }
 
-                    $subject = make_substitutions($watchers_template['subject'], $substitutes_array);
-                    $signature = $watchers_template['signature'];
-                    if (empty($signature)) $signature = $conf->global->REQUESTMANAGER_WATCHERS_NOTIFICATION_SIGNATURE;
-                    if (empty($signature) && !empty($conf->global->REQUESTMANAGER_WATCHERS_NOTIFICATION_USER_SIGNATURE)) $signature = $user->signature;
-                    $body = !empty($signature) ? dol_concatdesc($watchers_template['body'], '<br>' . $signature) : $watchers_template['body'];
-                    $body = make_substitutions($body, $substitutes_array);
+                        $subject = make_substitutions($watchers_template['subject'], $substitutes_array);
+                        $signature = $watchers_template['signature'];
+                        if (empty($signature)) $signature = $conf->global->REQUESTMANAGER_WATCHERS_NOTIFICATION_SIGNATURE;
+                        if (empty($signature) && !empty($conf->global->REQUESTMANAGER_WATCHERS_NOTIFICATION_USER_SIGNATURE)) $signature = $user->signature;
+                        $body = !empty($signature) ? dol_concatdesc($watchers_template['body'], '<br>' . $signature) : $watchers_template['body'];
+                        $body = make_substitutions($body, $substitutes_array);
 
-                    $from = !empty($conf->global->REQUESTMANAGER_WATCHERS_NOTIFICATION_SEND_FROM) ? $conf->global->REQUESTMANAGER_WATCHERS_NOTIFICATION_SEND_FROM : $this->_formatEmail($user->getFullName($langs), $user->email);
+                        $from = !empty($conf->global->REQUESTMANAGER_WATCHERS_NOTIFICATION_SEND_FROM) ? $conf->global->REQUESTMANAGER_WATCHERS_NOTIFICATION_SEND_FROM : $this->_formatEmail($user->getFullName($langs), $user->email);
 
-                    $sendtocc = $sendtobcc = "";
-                    $deliveryreceipt = 0;
+                        $sendtocc = $sendtobcc = "";
+                        $deliveryreceipt = 0;
 
-                    foreach ($sendto_list as $sendto) {
-                        $result = $this->_sendEmail($subject, $sendto, $from, $body, $attachedfiles['paths'], $attachedfiles['mimes'], $attachedfiles['names'], $sendtocc, $sendtobcc, $deliveryreceipt, -1);
-                        if ($result > 0) {
-                            $this->_createSendNotificationEvent($requestmanager, $subject, $sendto, array_keys($sendto), $from, $body, $attachedfiles, $sendtocc, $sendtobcc);
+                        foreach ($sendto_list as $sendto) {
+                            $result = $this->_sendEmail($subject, $sendto, $from, $body, $attachedfiles['paths'], $attachedfiles['mimes'], $attachedfiles['names'], $sendtocc, $sendtobcc, $deliveryreceipt, -1);
+                            if ($result > 0) {
+                                $this->_createSendNotificationEvent($requestmanager, $subject, $sendto, array_keys($sendto), $from, $body, $attachedfiles, $sendtocc, $sendtobcc);
+                            }
                         }
                     }
                 }
