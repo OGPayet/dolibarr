@@ -2885,11 +2885,11 @@ class RequestManager extends CommonObject
 
         if ($mode == 0) return $label;
         if ($mode == 1) return $label_short;
-        if ($mode == 2) return img_picto($label_short, $picto) . ' ' . $label_short;
+        if ($mode == 2) return (!empty($picto) ? img_picto($label_short, $picto) . ' ' : '') . $label_short;
         if ($mode == 3) return img_picto($label, $statuttypepicto);
-        if ($mode == 4) return img_picto($label, $picto) . ' ' . $label;
-        if ($mode == 5) return img_picto($label, $picto) . ' ' . '<span class="hideonsmartphone">' . $label_short . ' </span>' . img_picto($langs->trans($statuttypetext), $statuttypepicto);
-        if ($mode == 6) return img_picto($label, $picto) . ' ' . '<span class="hideonsmartphone">' . $label . ' </span>' . img_picto($langs->trans($statuttypetext), $statuttypepicto);
+        if ($mode == 4) return (!empty($picto) ? img_picto($label, $picto) . ' ' : '') . $label;
+        if ($mode == 5) return (!empty($picto) ? img_picto($label, $picto) . ' ' : '') . '<span class="hideonsmartphone">' . $label_short . ' </span>' . img_picto($langs->trans($statuttypetext), $statuttypepicto);
+        if ($mode == 6) return (!empty($picto) ? img_picto($label, $picto) . ' ' : '') . '<span class="hideonsmartphone">' . $label . ' </span>' . img_picto($langs->trans($statuttypetext), $statuttypepicto);
         if ($mode == 7) return img_picto($label, $statuttypepicto) . ' ' . '<span class="hideonsmartphone">' . $label_short . ' </span>';
         if ($mode == 8) return img_picto($label, $statuttypepicto) . ' ' . '<span class="hideonsmartphone">' . $label . ' </span>';
         if ($mode == 9) return img_picto($statuttypetext, $statuttypepicto) . ' ' . $label_short;

@@ -1,14 +1,23 @@
 diff a/htdocs/custom/requestmanager/ChangeLog.md b/htdocs/custom/requestmanager/ChangeLog.md	(rejected hunks)
-@@ -3,6 +3,12 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
+@@ -3,6 +3,11 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
  
  ## [Non Distribué]
  
-+## [4.0.14] - 09-11-2018
-+- Ajout d'un droit sur les statuts (utilisateur et groupe autorisés).
-+- Ajout d'un trigger pour passer à ce statut.
-+- Ajout de la permettre de n'avoir qu'un seul type de demande fille sans création automatique.
-+- Ajout d'une option de passage au statut suivant automatiquement.
++## [4.0.15] - 12-11-2018
++- Correction API Call.
++- Correction prise en compte des options de notification des messages.
++- Ne notifie pas aussi l'utilisateur connecté sur une demande ou il est assigné.
 +
- ## [4.0.14] - 08-11-2018
- - Ajout du mode liste (chronologique) sur une demande et de la compatibilité avec le module EventConfidentiality pour les mode de vue chronologique 
- - Ajout du retour sur la demande après la création d'un evenement depuis celle-ci
+ ## [4.0.14] - 09-11-2018
+ - Ajout d'un droit sur les statuts (utilisateur et groupe autorisés).
+ - Ajout d'un trigger pour passer à ce statut.
+@@ -68,7 +73,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
+ ## [4.0.0] - 16-07-2018
+ - Version initial.
+ 
+-[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/compare/v4.0.14...HEAD
++[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/compare/v4.0.15...HEAD
++[4.0.15]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.15
+ [4.0.14]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.14
+ [4.0.13]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.13
+ [4.0.12]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.12

@@ -71,7 +71,7 @@ class RequestManagerNotify
      *
      * @param   string                      $type                       Type notification (add message, assigned modified or status modified)
      * @param   RequestManager              $requestmanager             Request manager object
-     * @param   RequestManagerMessage       $requestmanagermessage      Request manager object
+     * @param   RequestManagerMessage       $requestmanagermessage      Request manager message object
      * @return  int                                                     <0 if KO, >0 if OK
      */
     public function sendNotify($type, &$requestmanager, &$requestmanagermessage=null)
@@ -117,7 +117,7 @@ class RequestManagerNotify
             // Send email to assigned
             if (!empty($conf->global->REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_EMAIL)) {
                 if (isset($assigned_template)) {
-                    if ((isset($requestmanagermessage) && !empty($requestmanagermessage->notify_assigned)) || !empty($requestmanager->notify_assigned_by_email)) {
+                    if ((isset($requestmanagermessage) && !empty($requestmanagermessage->notify_assigned)) || (!isset($requestmanagermessage) && !empty($requestmanager->notify_assigned_by_email))) {
                         $emails = $this->_getAssignedEmails($requestmanager);
                         if (!empty($conf->global->REQUESTMANAGER_SPLIT_ASSIGNED_NOTIFICATION)) {
                             $sendto_list = array_chunk($emails, 1, true);
@@ -151,7 +151,7 @@ class RequestManagerNotify
 
             // Send email to requesters
             if (isset($requesters_template)) {
-                if ((isset($requestmanagermessage) && !empty($requestmanagermessage->notify_requesters)) || !empty($requestmanager->notify_requester_by_email)) {
+                if ((isset($requestmanagermessage) && !empty($requestmanagermessage->notify_requesters)) || (!isset($requestmanagermessage) && !empty($requestmanager->notify_requester_by_email))) {
                     $emails = $this->_getRequesterEmails($requestmanager);
                     if (!empty($conf->global->REQUESTMANAGER_SPLIT_REQUESTER_NOTIFICATION)) {
                         $sendto_list = array_chunk($emails, 1, true);
@@ -184,7 +184,7 @@ class RequestManagerNotify
 
             // Send email to watchers
             if (isset($watchers_template)) {
-                if ((isset($requestmanagermessage) && !empty($requestmanagermessage->notify_watchers)) || !empty($requestmanager->notify_watcher_by_email)) {
+                if ((isset($requestmanagermessage) && !empty($requestmanagermessage->notify_watchers)) || (!isset($requestmanagermessage) && !empty($requestmanager->notify_watcher_by_email))) {
                     $emails = $this->_getWatcherEmails($requestmanager);
                     if (!empty($conf->global->REQUESTMANAGER_SPLIT_WATCHERS_NOTIFICATION)) {
                         $sendto_list = array_chunk($emails, 1, true);
@@ -226,21 +226,21 @@ class RequestManagerNotify
      * @return  array
      */
     private function _getAssignedEmails(&$requestmanager) {
-        global $langs;
+        global $langs, $user;
 
         $requestmanager->fetch_assigned(1);
 
         $emails = array();
-        foreach($requestmanager->assigned_user_list as $user) {
-            if (!isset($emails[$user->id])) {
-                $emails[$user->id] = $this->_formatEmail($user->getFullName($langs), $user->email);
+        foreach($requestmanager->assigned_user_list as $user_f) {
+            if (!isset($emails[$user_f->id]) && $user->id != $user_f->id) {
+                $emails[$user_f->id] = $this->_formatEmail($user_f->getFullName($langs), $user_f->email);
             }
         }
 
         foreach($requestmanager->assigned_usergroup_list as $usergroup) {
-            foreach($usergroup->members as $user) {
-                if (!isset($emails[$user->id])) {
-                    $emails[$user->id] = $this->_formatEmail($user->getFullName($langs), $user->email);
+            foreach($usergroup->members as $user_f) {
+                if (!isset($emails[$user_f->id]) && $user->id != $user_f->id) {
+                    $emails[$user_f->id] = $this->_formatEmail($user_f->getFullName($langs), $user_f->email);
                 }
             }
         }
