@@ -68,7 +68,7 @@ namespace CORE\WAREHOUSECHILD;
 
 dol_include_once('/warehousechild/class/html.formproduct.class.php');
 dol_include_once('/warehousechild/class/fournisseur.commande.class.php');
-
+dol_include_once('/warehousechild/class/html.formwarehousechild.class.php');
 
 //use \CommandeFournisseur as CommandeFournisseur;
 use \ExtraFields as ExtraFields;
@@ -80,8 +80,7 @@ use \Entrepot as Entrepot;
 use \CommandeFournisseurDispatch as CommandeFournisseurDispatch;
 use \Societe as Societe;
 use \User as User;
-//use \Form as Form;
-//use \Form as Form;
+use \WarehouseschildForm as WarehouseschildForm;
 
 $langs->load('orders');
 $langs->load('sendings');
@@ -94,11 +93,13 @@ $langs->load('warehousechild@warehousechild');
 if (! empty($conf->productbatch->enabled))
 	$langs->load('productbatch');
 
-	// Security check
+// Security check
 $id = GETPOST("id", 'int');
 $ref = GETPOST('ref');
 $lineid = GETPOST('lineid', 'int');
 $action = GETPOST('action','aZ09');
+$confirm = GETPOST('confirm','alpha');
+
 if ($user->societe_id)
 	$socid = $user->societe_id;
 $result = restrictedArea($user, 'fournisseur', $id, 'commande_fournisseur', 'commande');
@@ -260,334 +261,398 @@ if ($action == 'denydispatchline' && ! ((empty($conf->global->MAIN_USE_ADVANCED_
 	}
 }
 
-// list of dispatched lines
-$dispatchLineList = array();
+$dispatchLineList         = array(); // list of dispatched lines
+$equipementExistsLineList = array(); // list of equipment id supplier already exists (created)
+$nbEquipementExists       = 0;
 if ($action == 'dispatch' && $user->rights->fournisseur->commande->receptionner) {
 
-    // module to create equipement
+    // module to create equipment
     if ($conf->equipement->enabled) {
         dol_include_once('/equipement/class/equipement.class.php');
 
         if (! empty($conf->global->EQUIPEMENT_ADDON)
-            && is_readable(dol_buildpath("/equipement/core/modules/equipement/".$conf->global->EQUIPEMENT_ADDON.".php")))
-            dol_include_once("/equipement/core/modules/equipement/".$conf->global->EQUIPEMENT_ADDON.".php");
+            && is_readable(dol_buildpath("/equipement/core/modules/equipement/" . $conf->global->EQUIPEMENT_ADDON . ".php")))
+            dol_include_once("/equipement/core/modules/equipement/" . $conf->global->EQUIPEMENT_ADDON . ".php");
     }
 
-	$error = 0;
+    $error = 0;
     $notrigger = 0;
 
-	$db->begin();
+    // check all posted values
+    $dispatchLineProductList = array();
+    foreach ($_POST as $key => $value) {
+        $isProduct      = FALSE;
+        $isProductBatch = FALSE;
+        $numTour = 0;
+        $index   = 0;
 
-	$pos = 0;
-	foreach ($_POST as $key => $value) {
-	    $isProduct      = FALSE;
-	    $isProductBatch = FALSE;
-
-		// without batch module enabled
-		if (preg_match('/^product_([0-9]+)_([0-9]+)$/i', $key, $reg)) {
+        // without batch module enabled
+        if (preg_match('/^product_([0-9]+)_([0-9]+)$/i', $key, $reg)) {
             $isProduct = TRUE;
-			$pos++;
+            $numTour   = intval($reg[1]);
+            $index     = intval($reg[2]);
+        }
 
-            $numTour = intval($reg[1]);
-            $index   = intval($reg[2]);
-            $suffix  = '_' . $numTour . '_' . $index;
-
-            $fkCommandeFournisseurLine = GETPOST('fk_commandefourndet' . $suffix, 'int');
-            $commandeFournisseurLinePU = GETPOST('pu' . $suffix); // this is unit price including discount
-			$fkProduct                 = GETPOST('product' . $suffix, 'int');
-            $qtyOrdered                = GETPOST('qty_ordered' . $suffix, 'int');
-            $qtyToDispatch             = GETPOST('qty' . $suffix);
-            $fkEntrepot                = GETPOST('entrepot' . $suffix, 'int');
-
-            // product
-            $dispatchProduct = new \Product($db);
-            $dispatchProduct->fetch($fkProduct);
-            $productToSerialize = $dispatchProduct->array_options['options_synergiestech_to_serialize'];
-
-            // equipment
-            if ($productToSerialize) {
-                $objectequipement = new \Equipement($db);
-                $objectequipement->fk_product = $fkProduct;
-                $objectequipement->fk_entrepot = $fkEntrepot;
-                $serialFournArray = GETPOST('serialfourn' . $suffix, 'array');
-                $objectequipement->SerialMethod = GETPOST('serialmethod' . $suffix, 'int');
-                $objectequipement->SerialFourn = implode(';', $serialFournArray);
-                $objectequipement->numversion = GETPOST('numversion' . $suffix, 'alpha');
-                /*
-                $datee = dol_mktime(
-                    '23', '59', '59',
-                    $_POST["datee" . $suffix . "month"],
-                    $_POST["datee" . $suffix . "day"],
-                    $_POST["datee" . $suffix . "year"]
-                );
-                $objectequipement->datee = $datee;
-                $dateo = dol_mktime(
-                    '23', '59', '59',
-                    $_POST["dateo" . $suffix . "month"],
-                    $_POST["dateo" . $suffix . "day"],
-                    $_POST["dateo" . $suffix . "year"]
-                );
-                $objectequipement->dateo = $dateo;
-                */
-            }
-
-            // add dispatch line
-            if (!isset($dispatchLineList[$index]))  $dispatchLineList[$index] = array();
-            $dispatchLineList[$index][$numTour] = array('fk_commande_fournisseurdet' => $fkCommandeFournisseurLine, 'qty_ordered' => $qtyOrdered, 'qty_to_dispatch' => $qtyToDispatch);
-
-            // set line for errors
-            $errorLine = $langs->transnoentities('Product') . ' ' . $dispatchProduct->ref . ' - ' . $langs->transnoentities('Line') . ' ' . ($numTour + 1);
-
-			// we ask to move a qty
-			if ($qtyToDispatch != 0) {
-				if (! ($fkEntrepot > 0)) {
-                    $error++;
-                    dol_syslog('No dispatch for line ' . $key . ' as no warehouse choosed', LOG_ERR);
-					$text = $langs->transnoentities('Warehouse') . ', ' . $errorLine;
-					$object->error = $langs->trans('ErrorFieldRequired', $text);
-					$object->errors[] = $object->error;
-				}
-
-				if (! $error) {
-				    if ($qtyToDispatch < 0) {
-				        $comment = $langs->trans("WarehousechildSupplierOrderDispatchCorrect", $object->ref);
-                    } else {
-				        $comment = GETPOST('comment');
-                    }
-				}
-
-                if (! $error) {
-                    // dispatch product with movements
-                    $commandeFournisseurDispatchId = $object->dispatchProduct($user, $fkProduct, $qtyToDispatch, $fkEntrepot, $commandeFournisseurLinePU, $comment, '', '', '', $fkCommandeFournisseurLine, $notrigger);
-                    if ($commandeFournisseurDispatchId < 0) {
-                        $error++;
-                    }
-                }
-			}
-		}
-
-		// with batch module enabled
-		if (preg_match('/^product_batch_([0-9]+)_([0-9]+)$/i', $key, $reg)) {
+        // with batch module enabled
+        if (preg_match('/^product_batch_([0-9]+)_([0-9]+)$/i', $key, $reg)) {
             $isProductBatch = TRUE;
-			$pos++;
+            $numTour        = intval($reg[1]);
+            $index          = intval($reg[2]);
+        }
 
-			// eat-by date dispatch
-            $numTour = intval($reg[1]);
-            $index   = intval($reg[2]);
+        // line product or product batch
+        if ($isProduct || $isProductBatch) {
             $suffix = '_' . $numTour . '_' . $index;
 
             $fkCommandeFournisseurLine = GETPOST('fk_commandefourndet' . $suffix, 'int');
-            $commandeFournisseurLinePU = GETPOST('pu' . $suffix); // this is unit price including discount
-            $fkProduct                 = GETPOST('product' . $suffix, 'int');
-            $qtyOrdered                = GETPOST('qty_ordered' . $suffix, 'int');
-            $qtyToDispatch             = GETPOST('qty' . $suffix);
-            $fkEntrepot                = GETPOST('entrepot' . $suffix, 'int');
-
-            $dispatchLot = GETPOST('lot_number' . $suffix, 'alpha');
-            $dDLUO       = dol_mktime(12, 0, 0, $_POST['dluo' . $suffix . 'month'], $_POST['dluo' . $suffix . 'day'], $_POST['dluo' . $suffix . 'year']);
-            $dDLC        = dol_mktime(12, 0, 0, $_POST['dlc' . $suffix . 'month'], $_POST['dlc' . $suffix . 'day'], $_POST['dlc' . $suffix . 'year']);
+            $fkProduct  = GETPOST('product' . $suffix, 'int');
+            $qtyOrdered = GETPOST('qty_ordered' . $suffix, 'int');
+            $qtyToDispatch = GETPOST('qty' . $suffix);
 
             // product
             $dispatchProduct = new \Product($db);
             $dispatchProduct->fetch($fkProduct);
             $productToSerialize = $dispatchProduct->array_options['options_synergiestech_to_serialize'];
-
-            // equipment
-            if ($productToSerialize) {
-                $objectequipement = new \Equipement($db);
-                $objectequipement->fk_product = $fkProduct;
-                $objectequipement->fk_entrepot = $fkEntrepot;
-                $serialFournArray = GETPOST('serialfourn' . $suffix, 'array');
-                $objectequipement->SerialMethod = GETPOST('serialmethod' . $suffix, 'int');
-                $objectequipement->SerialFourn = implode(';', $serialFournArray);
-                $objectequipement->numversion = GETPOST('numversion' . $suffix, 'alpha');
-                /*
-                $datee = dol_mktime(
-                    '23', '59', '59',
-                    $_POST["datee" . $suffix . "month"],
-                    $_POST["datee" . $suffix . "day"],
-                    $_POST["datee" . $suffix . "year"]
-                );
-                $objectequipement->datee = $datee;
-                $dateo = dol_mktime(
-                    '23', '59', '59',
-                    $_POST["dateo" . $suffix . "month"],
-                    $_POST["dateo" . $suffix . "day"],
-                    $_POST["dateo" . $suffix . "year"]
-                );
-                $objectequipement->dateo = $dateo;
-                */
-            }
+            $dispatchLineProductList[$key] = $dispatchProduct;
 
             // add dispatch line
-            if (!isset($dispatchLineList[$index]))  $dispatchLineList[$index] = array();
+            if (!isset($dispatchLineList[$index])) $dispatchLineList[$index] = array();
             $dispatchLineList[$index][$numTour] = array('fk_commande_fournisseurdet' => $fkCommandeFournisseurLine, 'qty_ordered' => $qtyOrdered, 'qty_to_dispatch' => $qtyToDispatch);
 
-            // set line for errors
-            $errorLine = $langs->transnoentities('Product') . ' ' . $dispatchProduct->ref . ' - ' . $langs->transnoentities('Line') . ' ' . ($numTour + 1);
+            if ($productToSerialize) {
+                $serialFournArray = GETPOST('serialfourn' . $suffix, 'array');
+                $serialMethod = GETPOST('serialmethod' . $suffix, 'int');
 
-			// We ask to move a qty
-			if ($qtyToDispatch != 0) {
-				if (! ($fkEntrepot > 0)) {
-                    $error++;
-					$text = $langs->transnoentities('Warehouse') . ', ' . $errorLine;
-                    $object->error = $langs->trans('ErrorFieldRequired', $text);
-                    $object->errors[] =  $object->error;
-				}
+                // only for external serial numbers
+                if ($serialMethod == 2) {
+                    if (!isset($equipementExistsLineList[$index])) $equipementExistsLineList[$index] = array();
+                    if (!isset($equipementExistsLineList[$index][$numTour])) $equipementExistsLineList[$index][$numTour] = array('equipement_list' => array());
 
-				if (! ($dispatchLot || $dDLUO || $dDLC)) {
-                    $error++;
-                    dol_syslog('No dispatch for line ' . $key . ' as serial/eat-by/sellby date are not set', LOG_ERR);
-					$text = $langs->transnoentities('atleast1batchfield') . ', ' . $errorLine;
-                    $object->error = $langs->trans('ErrorFieldRequired', $text);
-                    $object->errors[] =  $object->error;
-				}
+                    // check all equipments selected
+                    foreach ($serialFournArray as $serialFourn) {
+                        if (!empty($serialFourn)) {
+                            // check if equipment already exists for this supplier and sent (no warehouse)
+                            $sql = "SELECT e.rowid";
+                            $sql .= " FROM " . MAIN_DB_PREFIX . "equipement as e";
+                            $sql .= " WHERE e.ref = '" . $db->escape($serialFourn) . "'";
+                            $sql .= " AND e.fk_soc_fourn = " . $object->thirdparty->id;
+                            $sql .= " AND e.fk_entrepot IS NULL";
+                            $sql .= " AND e.entity = " . getEntity('equipement');
 
-                if (! $error) {
-                    if ($qtyToDispatch < 0) {
-                        $comment = $langs->trans("WarehousechildDispatchSupplierOrderCorrect", $object->ref);
-                    } else {
-                        $comment = GETPOST('comment');
-                    }
-                }
-
-                if (! $error) {
-                    // dispatch product with movements
-                    $commandeFournisseurDispatchId = $object->dispatchProduct($user, $fkProduct, $qtyToDispatch, $fkEntrepot, $commandeFournisseurLinePU, $comment, $dDLC, $dDLUO, $dispatchLot, $fkCommandeFournisseurLine, $notrigger);
-                    if ($commandeFournisseurDispatchId < 0) {
-                        $error++;
-                    }
-                }
-			}
-		}
-
-		// line product or product batch
-		if ($isProduct || $isProductBatch) {
-            // create equipment
-            if (!$error && $productToSerialize) {
-                $objectequipement->fk_soc_fourn = $object->thirdparty->id;
-                $objectequipement->author = $user->id;
-                $objectequipement->description = $langs->trans("SupplierOrder") . ":" . $object->ref;
-                $objectequipement->fk_commande_fourn = $object->id;
-                $objectequipement->fk_commande_fournisseur_dispatch = $commandeFournisseurDispatchId;
-
-                if ($qtyToDispatch > 0) {
-                    // selon le mode de serialisation de l'equipement
-                    switch ($objectequipement->SerialMethod) {
-                        case 1 : // en mode generation auto, on cree des numeros de series internes
-                            $objectequipement->quantity = 1;
-                            $objectequipement->nbAddEquipement = $qtyToDispatch;
-                            break;
-                        case 2 : // en mode generation a partir de la liste on determine en fonction de la saisie
-                            $objectequipement->quantity = 1;
-                            $objectequipement->nbAddEquipement = $qtyToDispatch; // sera calcule en fonction
-                            break;
-                        case 3 : // en mode gestion de lot
-                            $objectequipement->quantity = $qtyToDispatch;
-                            $objectequipement->nbAddEquipement = 1;
-                            break;
-                    }
-
-                    $result = $objectequipement->create();
-                    if ($result < 0) {
-                        $error++;
-                        $object->error    = $errorLine . ' : ' . $objectequipement->error;
-                        $object->errors[] = $object->error;
-                    }
-                } else if ($qtyToDispatch < 0) {
-                    $serialFournRemoveArray = GETPOST('serialfourn_remove' . $suffix, 'array');
-
-                    // check if quanity to dispatch matches with serialFournRemoveArray
-                    if (count($serialFournRemoveArray) != abs($qtyToDispatch)) {
-                        $error++;
-                        $object->error    = $errorLine . ' : ' . $langs->trans('WarehousechildErrorSupplierOrderDispatchLineIncorrectRemoveQty');
-                        $object->errors[] = $object->error;
-                    } else {
-                        foreach($serialFournRemoveArray as $serialFournRemove) {
-                            // find equipement by serial number
-                            $equipementToRemove = new \Equipement($db);
-
-                            $result = $equipementToRemove->fetch($serialFournRemove);
-                            if ($result < 0) {
+                            $resql = $db->query($sql);
+                            if (!$resql) {
                                 $error++;
-                                $object->error    = $errorLine . ' : ' . $langs->trans('WarehousechildErrorSupplierOrderDispatchLineIncorrectEquipmentRef');
-                                $object->errors[] = $object->error;
-                                break;
-                            }
+                                $object->error = $db->lasterror();
+                                $object->errors = $object->error;
+                            } else {
+                                $num = $db->num_rows($resql);
+                                if ($num > 0) {
+                                    $obj = $db->fetch_object($resql);
 
-                            // check if equipment reference correspond to this supplier order and product and already dispatched
-                            if ($equipementToRemove->fk_commande_fourn != $object->id || $equipementToRemove->fk_product != $fkProduct || (!($equipementToRemove->fk_commande_fournisseur_dispatch > 0))) {
-                                $error++;
-                                $object->error    = $errorLine . ' : ' . $langs->trans('WarehousechildErrorSupplierOrderDispatchLineEquipmentRefNotMatch');
-                                $object->errors[] = $object->error;
-                                break;
-                            }
+                                    $equipementExists = new \Equipement($db);
+                                    $equipementExists->fetch($obj->rowid);
 
-                            // remove this equipment (change id of supplier order dispatch line and set warehouse to null)
-                            $equipementToRemove->fk_commande_fournisseur_dispatch = $commandeFournisseurDispatchId;
-                            $result = $equipementToRemove->setFkCommandeFournisseurDispatch($user);
-                            if ($result < 0) {
-                                $error++;
-                                $object->error    = $errorLine . ' : ' . $langs->trans('WarehousechildErrorSupplierOrderDispatchLineImpossibleToChangeDispatchLine');
-                                $object->errors[] = $object->error;
-                                break;
-                            }
+                                    $equipementExistsLineList[$index][$numTour]['equipement_list'][] = $equipementExists;
 
-                            $result = $equipementToRemove->set_entrepot($user, -1);
-                            if ($result < 0) {
-                                $error++;
-                                $object->error    = $errorLine . ' : ' . $langs->trans('WarehousechildErrorSupplierOrderDispatchLineImpossibleToChangeWarehouse');
-                                $object->errors[] = $object->error;
-                                break;
+                                    $nbEquipementExists++; // nb equipments already exist
+                                }
                             }
                         }
                     }
                 }
             }
         }
-	}
+    }
 
-    if (! $error) {
-        // modify status before recalculate
-        $result = $object->setStatus($user, 3);
-        if ($result < 0) {
-            $error++;
+    // we can create all equipments
+    if (!$error && ($nbEquipementExists<=0 || !empty($confirm))) {
+        $db->begin();
+
+        $pos = 0;
+        foreach ($dispatchLineProductList as $key => $dispatchProduct) {
+            $isProduct = FALSE;
+            $isProductBatch = FALSE;
+            $numTour = 0;
+            $index   = 0;
+
+            // without batch module enabled
+            if (preg_match('/^product_([0-9]+)_([0-9]+)$/i', $key, $reg)) {
+                $isProduct = TRUE;
+                $numTour   = intval($reg[1]);
+                $index     = intval($reg[2]);
+            }
+
+            // with batch module enabled
+            if (preg_match('/^product_batch_([0-9]+)_([0-9]+)$/i', $key, $reg)) {
+                $isProductBatch = TRUE;
+                $numTour        = intval($reg[1]);
+                $index          = intval($reg[2]);
+            }
+
+            // line product or product batch
+            if ($isProduct || $isProductBatch) {
+                $pos++;
+                $suffix = '_' . $numTour . '_' . $index;
+
+                $fkCommandeFournisseurLine = GETPOST('fk_commandefourndet' . $suffix, 'int');
+                $commandeFournisseurLinePU = GETPOST('pu' . $suffix); // this is unit price including discount
+                $fkProduct = GETPOST('product' . $suffix, 'int');
+                $qtyToDispatch = GETPOST('qty' . $suffix);
+                $fkEntrepot = GETPOST('entrepot' . $suffix, 'int');
+
+                $dispatchLot = '';
+                $dDLUO = '';
+                $dDLC = '';
+                if ($isProductBatch) {
+                    $dispatchLot = GETPOST('lot_number' . $suffix, 'alpha');
+                    $dDLUO = dol_mktime(12, 0, 0, $_POST['dluo' . $suffix . 'month'], $_POST['dluo' . $suffix . 'day'], $_POST['dluo' . $suffix . 'year']);
+                    $dDLC = dol_mktime(12, 0, 0, $_POST['dlc' . $suffix . 'month'], $_POST['dlc' . $suffix . 'day'], $_POST['dlc' . $suffix . 'year']);
+                }
+
+                // product
+                $productToSerialize = $dispatchProduct->array_options['options_synergiestech_to_serialize'];
+
+                // equipment
+                if ($productToSerialize) {
+                    $equipementExistsList = $equipementExistsLineList[$index][$numTour]['equipement_list'];
+
+                    $objectequipement = new \Equipement($db);
+                    $objectequipement->fk_product = $fkProduct;
+                    $objectequipement->fk_entrepot = $fkEntrepot;
+                    $serialFournArray = GETPOST('serialfourn' . $suffix, 'array');
+                    $objectequipement->SerialMethod = GETPOST('serialmethod' . $suffix, 'int');
+                    $objectequipement->numversion = GETPOST('numversion' . $suffix, 'alpha');
+                    /*
+                    $datee = dol_mktime(
+                        '23', '59', '59',
+                        $_POST["datee" . $suffix . "month"],
+                        $_POST["datee" . $suffix . "day"],
+                        $_POST["datee" . $suffix . "year"]
+                    );
+                    $objectequipement->datee = $datee;
+                    $dateo = dol_mktime(
+                        '23', '59', '59',
+                        $_POST["dateo" . $suffix . "month"],
+                        $_POST["dateo" . $suffix . "day"],
+                        $_POST["dateo" . $suffix . "year"]
+                    );
+                    $objectequipement->dateo = $dateo;
+                    */
+                }
+
+                // set line for errors
+                $errorLine = $langs->transnoentities('Product') . ' ' . $dispatchProduct->ref . ' - ' . $langs->transnoentities('Line') . ' ' . ($numTour + 1);
+
+                // we ask to move a qty
+                if ($qtyToDispatch != 0) {
+                    if (!($fkEntrepot > 0)) {
+                        $error++;
+                        dol_syslog('No dispatch for line ' . $key . ' as no warehouse choosed', LOG_ERR);
+                        $text = $langs->transnoentities('Warehouse') . ', ' . $errorLine;
+                        $object->error = $langs->trans('ErrorFieldRequired', $text);
+                        $object->errors[] = $object->error;
+                    }
+
+                    if ($isProductBatch) {
+                        if (!($dispatchLot || $dDLUO || $dDLC)) {
+                            $error++;
+                            dol_syslog('No dispatch for line ' . $key . ' as serial/eat-by/sellby date are not set', LOG_ERR);
+                            $text = $langs->transnoentities('atleast1batchfield') . ', ' . $errorLine;
+                            $object->error = $langs->trans('ErrorFieldRequired', $text);
+                            $object->errors[] = $object->error;
+                        }
+                    }
+
+                    if (!$error) {
+                        if ($qtyToDispatch < 0) {
+                            $comment = $langs->trans("WarehousechildDispatchSupplierOrderCorrect", $object->ref);
+                        } else {
+                            $comment = GETPOST('comment');
+                        }
+                    }
+
+                    if (!$error) {
+                        // dispatch product with movements
+                        $commandeFournisseurDispatchId = $object->dispatchProduct($user, $fkProduct, $qtyToDispatch, $fkEntrepot, $commandeFournisseurLinePU, $comment, $dDLC, $dDLUO, $dispatchLot, $fkCommandeFournisseurLine, $notrigger);
+                        if ($commandeFournisseurDispatchId < 0) {
+                            $error++;
+                        }
+                    }
+                }
+
+                // create or remove equipment
+                if (!$error && $productToSerialize) {
+                    $qtyEquipementToDispatch = $qtyToDispatch;
+
+                    // only for external serial numbers
+                    if ($objectequipement->SerialMethod == 2) {
+                        if ($confirm == 'yes') {
+                            // remove all equipment already exists
+                            foreach ($serialFournArray as $serialFournKey => $serialFournRef) {
+                                foreach ($equipementExistsList as $equipementExists) {
+                                    if ($serialFournRef == $equipementExists->ref) {
+                                        // return equipment in the warehouse
+                                        $equipementExists->fk_commande_fourn = $object->id;
+                                        $equipementExists->fk_commande_fournisseur_dispatch = $commandeFournisseurDispatchId;
+                                        $equipementExists->description = $langs->trans("SupplierOrder") . ":" . $object->ref . '<br />' . $equipementExists->description;
+                                        $equipementExists->fk_entrepot = $fkEntrepot;
+
+                                        // update supplier order
+                                        $ret = $equipementExists->updateSupplierOrder($user);
+                                        if ($ret < 0) {
+                                            $error++;
+                                            $object->error    = $equipementExists->error;
+                                            $object->errors[] = $object->error;
+                                        }
+
+                                        if (!$error) {
+                                            unset($serialFournArray[$serialFournKey]);
+                                            $qtyEquipementToDispatch--;
+                                        }
+                                    }
+
+                                    if ($error) {
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        $objectequipement->SerialFourn = implode(';', $serialFournArray); // serial numbers to create (external only)
+                    }
+
+                    if (!$error) {
+                        if ($qtyEquipementToDispatch > 0) {
+                            $objectequipement->fk_soc_fourn = $object->thirdparty->id;
+                            $objectequipement->author = $user->id;
+                            $objectequipement->description = $langs->trans("SupplierOrder") . ":" . $object->ref;
+                            $objectequipement->fk_commande_fourn = $object->id;
+                            $objectequipement->fk_commande_fournisseur_dispatch = $commandeFournisseurDispatchId;
+
+                            // selon le mode de serialisation de l'equipement
+                            switch ($objectequipement->SerialMethod) {
+                                case 1 : // en mode generation auto, on cree des numeros de series internes
+                                    $objectequipement->quantity = 1;
+                                    $objectequipement->nbAddEquipement = $qtyEquipementToDispatch;
+                                    break;
+                                case 2 : // en mode generation a partir de la liste on determine en fonction de la saisie
+                                    $objectequipement->quantity = 1;
+                                    $objectequipement->nbAddEquipement = $qtyEquipementToDispatch; // sera calcule en fonction
+                                    break;
+                                case 3 : // en mode gestion de lot
+                                    $objectequipement->quantity = $qtyEquipementToDispatch;
+                                    $objectequipement->nbAddEquipement = 1;
+                                    break;
+                            }
+
+                            // create equipment
+                            $result = $objectequipement->create();
+                            if ($result < 0) {
+                                $error++;
+                                $object->error = $errorLine . ' : ' . $objectequipement->error;
+                                $object->errors[] = $object->error;
+                            }
+                        } else if ($qtyEquipementToDispatch < 0) {
+                            $serialFournRemoveArray = GETPOST('serialfourn_remove' . $suffix, 'array');
+
+                            // check if quanity to dispatch matches with serialFournRemoveArray
+                            if (count($serialFournRemoveArray) != abs($qtyEquipementToDispatch)) {
+                                $error++;
+                                $object->error = $errorLine . ' : ' . $langs->trans('WarehousechildErrorSupplierOrderDispatchLineIncorrectRemoveQty');
+                                $object->errors[] = $object->error;
+                            } else {
+                                foreach ($serialFournRemoveArray as $serialFournRemove) {
+                                    // find equipement by serial number
+                                    $equipementToRemove = new \Equipement($db);
+
+                                    $result = $equipementToRemove->fetch($serialFournRemove);
+                                    if ($result < 0) {
+                                        $error++;
+                                        $object->error = $errorLine . ' : ' . $langs->trans('WarehousechildErrorSupplierOrderDispatchLineIncorrectEquipmentRef');
+                                        $object->errors[] = $object->error;
+                                        break;
+                                    }
+
+                                    // check if equipment reference correspond to this supplier order and product and already dispatched
+                                    if ($equipementToRemove->fk_commande_fourn != $object->id || $equipementToRemove->fk_product != $fkProduct || (!($equipementToRemove->fk_commande_fournisseur_dispatch > 0))) {
+                                        $error++;
+                                        $object->error = $errorLine . ' : ' . $langs->trans('WarehousechildErrorSupplierOrderDispatchLineEquipmentRefNotMatch');
+                                        $object->errors[] = $object->error;
+                                        break;
+                                    }
+
+                                    // remove this equipment (change id of supplier order dispatch line and set warehouse to null)
+                                    $equipementToRemove->fk_commande_fournisseur_dispatch = $commandeFournisseurDispatchId;
+                                    $result = $equipementToRemove->setFkCommandeFournisseurDispatch($user);
+                                    if ($result < 0) {
+                                        $error++;
+                                        $object->error = $errorLine . ' : ' . $langs->trans('WarehousechildErrorSupplierOrderDispatchLineImpossibleToChangeDispatchLine');
+                                        $object->errors[] = $object->error;
+                                        break;
+                                    }
+
+                                    $result = $equipementToRemove->set_entrepot($user, -1);
+                                    if ($result < 0) {
+                                        $error++;
+                                        $object->error = $errorLine . ' : ' . $langs->trans('WarehousechildErrorSupplierOrderDispatchLineImpossibleToChangeWarehouse');
+                                        $object->errors[] = $object->error;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (! $error) {
+            // modify status before recalculate
+            $result = $object->setStatus($user, 3);
+            if ($result < 0) {
+                $error++;
+            }
+        }
+
+        if (! $error) {
+            $result = $object->calcAndSetStatusDispatch($user, GETPOST('closeopenorder')?1:0, GETPOST('comment'));
+            if ($result < 0) {
+                $error ++;
+            }
+        }
+
+        if (! $notrigger && ! $error) {
+            global $conf, $langs, $user;
+            // Call trigger
+
+            $result = $object->call_trigger('ORDER_SUPPLIER_DISPATCH', $user);
+            // End call triggers
+
+            if ($result < 0) {
+                $error++;
+            }
+        }
+
+        // commit or rollback
+        if ($error) {
+            $db->rollback();
+        } else {
+            $db->commit();
         }
     }
 
-	if (! $error) {
-		$result = $object->calcAndSetStatusDispatch($user, GETPOST('closeopenorder')?1:0, GETPOST('comment'));
-		if ($result < 0) {
-            $error ++;
-		}
-	}
-
-	if (! $notrigger && ! $error) {
-		global $conf, $langs, $user;
-		// Call trigger
-
-		$result = $object->call_trigger('ORDER_SUPPLIER_DISPATCH', $user);
-		// End call triggers
-
-		if ($result < 0) {
-            $error++;
-		}
-	}
-
-	if ($result >= 0 && ! $error) {
-        $db->commit();
-
-        // Modification - Open-DSI - Begin - Hack for the redirect to set equipments if has products serializable
-        //if (!isset($object->context['workflow_to_serialize'])) {
-        //    header("Location: dispatch.php?id=" . $id);
-        //}
-        // Modification - Open-DSI - End - Hack for the redirect to set equipments if has products serializable
-
-        header("Location: " . $_SERVER['SELF_PHP'] . "?id=" . $id);
-        exit();
-    } else {
-        $db->rollback();
+	if ($error) {
         setEventMessages($object->error, $object->errors, 'errors');
+    } else {
+	    if ($nbEquipementExists<=0 || !empty($confirm)) {
+            // Modification - Open-DSI - Begin - Hack for the redirect to set equipments if has products serializable
+            //if (!isset($object->context['workflow_to_serialize'])) {
+            //    header("Location: dispatch.php?id=" . $id);
+            //}
+            // Modification - Open-DSI - End - Hack for the redirect to set equipments if has products serializable
+
+            header("Location: " . $_SERVER['SELF_PHP'] . "?id=" . $id);
+            exit();
+        }
     }
 }
 
@@ -599,6 +664,7 @@ if ($action == 'dispatch' && $user->rights->fournisseur->commande->receptionner)
 $now = dol_now();
 
 $form = new Form($db);
+$warehouseschildForm = new WarehouseschildForm($db);
 $formproduct = new FormProduct($db);
 $warehouse_static = new Entrepot($db);
 $supplierorderdispatch = new CommandeFournisseurDispatch($db);
@@ -618,6 +684,32 @@ if ($id > 0 || ! empty($ref)) {
 
 	$title = $langs->trans("SupplierOrder");
 	dol_fiche_head($head, 'dispatch', $title, -1, 'order');
+
+
+	// form confirm
+    $formconfirm = '';
+
+    // dispatch equipement form confirm
+    if ($action=='dispatch' && empty($confirm) && $nbEquipementExists>0) {
+        $question = '';
+        $question .= $langs->trans('WarehousechildEquipementAlreadyExistsList') . ' : ' . '<br />';
+        foreach ($equipementExistsLineList as $equipementExistsLine) {
+            foreach ($equipementExistsLine as $equipementExistsLineArray) {
+                $equipementExistsArray = $equipementExistsLineArray['equipement_list'];
+
+                foreach ($equipementExistsArray as $equipementExists) {
+                    $question .= ' - ' . $equipementExists->ref . '<br />';
+                }
+            }
+        }
+        $question .= $langs->trans('WarehousechildEquipementReplaceInSelectedWarehouse');
+
+        $formconfirmQuestion = array();
+
+        $formconfirm = $warehouseschildForm->formconfirm_submit($_SERVER['PHP_SELF'] . "?id=" . $object->id, $langs->trans("WarehousechildEquipementExistsConfirm"), $question, 'dispatch', $formconfirmQuestion, 'no', 1, 200, 500, 'form_dispatch');
+    }
+
+    print $formconfirm;
 
 
 	// Supplier order card
@@ -712,8 +804,9 @@ if ($id > 0 || ! empty($ref)) {
 		$entrepot = new Entrepot($db);
 		$listwarehouses = $entrepot->list_array(1);
 
-		print '<form method="POST" action="dispatch.php?id=' . $object->id . '">';
-        print '<input type="hidden" id="fk_commande_fourn" name="fk_commande_fourn" value="' . $object->id  . '" />';
+		print '<form name="form_dispatch" method="POST" action="dispatch.php?id=' . $object->id . '">';
+        print '<input type="hidden" id="form_dispatch_confirm" name="confirm" value="' . $confirm . '" />';
+		print '<input type="hidden" id="fk_commande_fourn" name="fk_commande_fourn" value="' . $object->id  . '" />';
 		print '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '" />';
 		print '<input type="hidden" name="action" value="dispatch" />';
         print '<input type="hidden" id="url_to_get_supplier_order_dispatch_equipement" name="url_to_get_supplier_order_dispatch_equipement" value="' .  dol_buildpath('/warehousechild/ajax/supplier_order_dispatch_equipement.php', 1) . '" />';

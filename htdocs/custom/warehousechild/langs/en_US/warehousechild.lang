@@ -50,7 +50,14 @@ MyWidgetDescription = My widget description
 #
 # Order Supplier
 #
-WarehousechildSupplierOrderDispatchCorrect = Reception correction of the supplier order %s
+WarehousechildSupplierOrderDispatchCorrect         = Reception correction of the supplier order %s
+
+#
+# Form Confirm
+#
+WarehousechildEquipementExistsConfirm              = Equipments already exist
+WarehousechildEquipementAlreadyExistsList          = These equipments already exist
+WarehousechildEquipementReplaceInSelectedWarehouse = Do you want to put them back in selected warehouse ?
 
 #
 # Error

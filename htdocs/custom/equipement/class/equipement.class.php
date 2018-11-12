@@ -657,6 +657,45 @@ class Equipement extends CommonObject
 	}
 
 
+    /**
+     * Update supplier order
+     *
+     * @param   User        $user                   User
+     * @return  int         <0 if KO, >0 if OK
+     *
+     * @throws  Exception
+     */
+	public function updateSupplierOrder($user)
+    {
+        global $langs;
+
+        if ($user->rights->equipement->creer) {
+            $sql  = "UPDATE " . MAIN_DB_PREFIX . "equipement";
+            $sql .= " SET fk_commande_fourn = " . ($this->fk_commande_fourn > 0 ? $this->fk_commande_fourn : "NULL");
+            $sql .= ", fk_commande_fournisseur_dispatch = " . ($this->fk_commande_fournisseur_dispatch>0 ? $this->fk_commande_fournisseur_dispatch : "NULL");
+            $sql .= ", description = '" . $this->db->escape($this->description) . "'";
+            $sql .= ", fk_entrepot = ". ($this->fk_entrepot>0 ? $this->fk_entrepot : "NULL");
+            $sql .= " WHERE rowid = " . $this->id;
+            $sql .= " AND entity = " . getEntity('equipement');
+
+            if ($this->db->query($sql)) {
+                $result = 1;
+            } else {
+                $this->error    = $this->db->lasterror();
+                $this->errors[] = $this->error;
+                $result = -1;
+            }
+        } else {
+            $this->error    = $langs->trans('ErrorForbidden');
+            $this->errors[] = $this->error;
+            dol_syslog(__METHOD__ . ' ' . $this->error, LOG_ERR);
+            $result = -2;
+        }
+
+        return $result;
+    }
+
+
 	/**
 	 *	Validate a Equipement
 	 *

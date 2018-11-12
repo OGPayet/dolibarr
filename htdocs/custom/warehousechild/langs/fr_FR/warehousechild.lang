@@ -67,6 +67,13 @@ Open= Ouvert
 WarehousechildSupplierOrderDispatchCorrect = Correction de la réception de la commande fournisseur %s
 
 #
+# Form confirm
+#
+WarehousechildEquipementExistsConfirm              = Equipements existent déjà
+WarehousechildEquipementAlreadyExistsList          = Ces équipements existent déjà
+WarehousechildEquipementReplaceInSelectedWarehouse = Voulez-vous les replacer dans l'entrepôt sélectionné ?
+
+#
 # Error
 #
 WarehousechildErrorSupplierOrderDispatchLineFieldQty                       = Quantité incorrecte
