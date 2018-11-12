@@ -139,6 +139,7 @@ ActionAC_SYN_AUTO = Message inséré automatiquement
 ### Principal warehouse
 ############################################################
 SynergiesTechPrincipalWarehouseStocks       = %s stock(s) pour l'entrepôt : %s
+SynergiesTechNoStockIntoPrincipalWarehouse  = Pas de stock dans l'entrepôt principal
 
 ############################################################
 ### Errors

@@ -755,7 +755,11 @@ function synergiestech_get_principal_stocks_tooltip_for_product($langs, $conf, $
                 if ($nb_warehouse_showed <= $count) break;
             }
 
-            $infos = implode('<br>', $infos_list);
+            if (count($infos_list)) {
+                $infos = implode('<br>', $infos_list);
+            } else {
+                $infos = $langs->trans('SynergiesTechNoStockIntoPrincipalWarehouse');
+            }
         } else {
             $infos = $langs->trans('SynergiesTechErrorPrincipalWarehouseNotDefined');
         }
