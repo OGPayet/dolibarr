@@ -184,7 +184,7 @@ function equipement_create($db, $object, $modele, $outputlangs, $hidedetails=0, 
 			$file = $prefix."_".$modele.".modules.php";
 
 			// On verifie l'emplacement du modele
-			$file=dol_buildpath($reldir."/equipement/core/modules/equipement/doc/".$file, 0);
+			$file=dol_buildpath($reldir."equipement/core/modules/equipement/doc/".$file, 0);
 			if (file_exists($file)) {
 				$filefound=1;
 				$classname=$prefix.'_'.$modele;

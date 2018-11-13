@@ -242,8 +242,13 @@ if ($action == 'confirm_validate'
 		$langs->load("other");
 		$upload_dir = $conf->equipement->dir_output;
 		$file = $upload_dir . '/' . GETPOST('file');
-		dol_delete_file($file, 0, 0, 0, $object);
-		$mesg = '<div class="ok">'.$langs->trans("FileWasRemoved", GETPOST('file')).'</div>';
+		$ret = dol_delete_file($file, 0, 0, 0, $object);
+        if ($ret) {
+            $mesg = $langs->trans("FileWasRemoved", GETPOST('file'));
+            setEventMessage($mesg, 'mesgs');
+            header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
+            exit();
+        }
 	}
 } elseif ($action == 'confirm_delete' && $confirm == 'yes' && $user->rights->equipement->supprimer) {
 	$object->delete($user);

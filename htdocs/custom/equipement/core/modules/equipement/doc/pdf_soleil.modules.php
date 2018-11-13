@@ -126,230 +126,233 @@ class pdf_soleil extends ModeleEquipement
 			if (! preg_match('/specimen/i', $objectref)) $dir.= "/" . $objectref;
 			$file = $dir . "/" . $objectref . ".pdf";
 
-			if (! file_exists($file)) {
-				if (dol_mkdir($dir) < 0) {
-					$this->error=$outputlangs->trans("ErrorCanNotCreateDir", $dir);
-					return 0;
-				} else {
-					$pdf=pdf_getInstance($this->format);
+            if (! file_exists($dir)) {
+                if (dol_mkdir($dir) < 0) {
+                    $this->error=$langs->transnoentities("ErrorCanNotCreateDir",$dir);
+                    return 0;
+                }
+            }
 
-					if (class_exists('TCPDF')) {
-						$pdf->setPrintHeader(false);
-						$pdf->setPrintFooter(false);
-					}
-					$pdf->SetFont(pdf_getPDFFont($outputlangs));
-					// Set path to the background PDF File
-					if (empty($conf->global->MAIN_DISABLE_FPDI) && ! empty($conf->global->MAIN_ADD_PDF_BACKGROUND)) {
-						$pagecount = $pdf->setSourceFile($conf->mycompany->dir_output.'/'.$conf->global->MAIN_ADD_PDF_BACKGROUND);
-						$tplidx = $pdf->importPage(1);
-					}
+			if (file_exists($dir)) {
+                $pdf=pdf_getInstance($this->format);
 
-					$pdf->Open();
-					$pagenb=0;
-					$pdf->SetDrawColor(128, 128, 128);
+                if (class_exists('TCPDF')) {
+                    $pdf->setPrintHeader(false);
+                    $pdf->setPrintFooter(false);
+                }
+                $pdf->SetFont(pdf_getPDFFont($outputlangs));
+                // Set path to the background PDF File
+                if (empty($conf->global->MAIN_DISABLE_FPDI) && ! empty($conf->global->MAIN_ADD_PDF_BACKGROUND)) {
+                    $pagecount = $pdf->setSourceFile($conf->mycompany->dir_output.'/'.$conf->global->MAIN_ADD_PDF_BACKGROUND);
+                    $tplidx = $pdf->importPage(1);
+                }
 
-					$pdf->SetTitle($outputlangs->convToOutputCharset($object->ref));
-					$pdf->SetSubject($outputlangs->transnoentities("EquipementCard"));
-					$pdf->SetCreator("Dolibarr ".DOL_VERSION);
-					$pdf->SetAuthor($outputlangs->convToOutputCharset($user->getFullName($outputlangs)));
-					$pdf->SetKeyWords($outputlangs->convToOutputCharset($object->ref)." ".$outputlangs->transnoentities("InterventionCard"));
-					if ($conf->global->MAIN_DISABLE_PDF_COMPRESSION)
-						$pdf->SetCompression(false);
+                $pdf->Open();
+                $pagenb=0;
+                $pdf->SetDrawColor(128, 128, 128);
 
-					$pdf->SetMargins($this->marge_gauche, $this->marge_haute, $this->marge_droite);   // Left, Top, Right
-					$pdf->SetAutoPageBreak(1, 0);
+                $pdf->SetTitle($outputlangs->convToOutputCharset($object->ref));
+                $pdf->SetSubject($outputlangs->transnoentities("EquipementCard"));
+                $pdf->SetCreator("Dolibarr ".DOL_VERSION);
+                $pdf->SetAuthor($outputlangs->convToOutputCharset($user->getFullName($outputlangs)));
+                $pdf->SetKeyWords($outputlangs->convToOutputCharset($object->ref)." ".$outputlangs->transnoentities("InterventionCard"));
+                if ($conf->global->MAIN_DISABLE_PDF_COMPRESSION)
+                    $pdf->SetCompression(false);
 
-					// New page
-					$pdf->AddPage();
-					if (! empty($tplidx)) $pdf->useTemplate($tplidx);
-					$pagenb++;
-					$this->_pagehead($pdf, $object, 1, $outputlangs);
-					$pdf->SetTextColor(0, 0, 0);
-					$pdf->SetFont('', '', $default_font_size - 1);
-					$pdf->MultiCell(0, 3, '');		// Set interline to 3
+                $pdf->SetMargins($this->marge_gauche, $this->marge_haute, $this->marge_droite);   // Left, Top, Right
+                $pdf->SetAutoPageBreak(1, 0);
 
-					$tab_top = 100;
-					$tab_top_middlepage = 50;
-					$tab_top_newpage = 50;
-					$tab_height = 170;
-					$tab_height_newpage = 170;
-					$tab_height_middlepage = 170;
-					$tab_height_endpage = 170;
+                // New page
+                $pdf->AddPage();
+                if (! empty($tplidx)) $pdf->useTemplate($tplidx);
+                $pagenb++;
+                $this->_pagehead($pdf, $object, 1, $outputlangs);
+                $pdf->SetTextColor(0, 0, 0);
+                $pdf->SetFont('', '', $default_font_size - 1);
+                $pdf->MultiCell(0, 3, '');		// Set interline to 3
 
-					// Affiche notes
-					if (! empty($object->note_public)) {
-						$tab_top = 88;
+                $tab_top = 100;
+                $tab_top_middlepage = 50;
+                $tab_top_newpage = 50;
+                $tab_height = 170;
+                $tab_height_newpage = 170;
+                $tab_height_middlepage = 170;
+                $tab_height_endpage = 170;
 
-						$pdf->SetFont('', '', $default_font_size - 1);   // Dans boucle pour gerer multi-page
-						$pdf->writeHTMLCell(190, 3, $this->posxdesc-1, $tab_top, dol_htmlentitiesbr($object->note_public), 0, 1);
-						$nexY = $pdf->GetY();
-						$height_note=$nexY-$tab_top;
+                // Affiche notes
+                if (! empty($object->note_public)) {
+                    $tab_top = 88;
 
-						// Rect prend une longueur en 3eme param
-						$pdf->SetDrawColor(192, 192, 192);
-						$pdf->Rect(
-										$this->marge_gauche, $tab_top-1,
-										$this->page_largeur-$this->marge_gauche-$this->marge_droite,
-										$height_note+1
-						);
+                    $pdf->SetFont('', '', $default_font_size - 1);   // Dans boucle pour gerer multi-page
+                    $pdf->writeHTMLCell(190, 3, $this->posxdesc-1, $tab_top, dol_htmlentitiesbr($object->note_public), 0, 1);
+                    $nexY = $pdf->GetY();
+                    $height_note=$nexY-$tab_top;
 
-						$tab_height = $tab_height - $height_note;
-						$tab_top = $nexY+6;
-					} else
-						$height_note=0;
+                    // Rect prend une longueur en 3eme param
+                    $pdf->SetDrawColor(192, 192, 192);
+                    $pdf->Rect(
+                                    $this->marge_gauche, $tab_top-1,
+                                    $this->page_largeur-$this->marge_gauche-$this->marge_droite,
+                                    $height_note+1
+                    );
 
-					$iniY = $tab_top + 7;
-					$curY = $tab_top + 7;
-					$nexY = $tab_top + 7;
+                    $tab_height = $tab_height - $height_note;
+                    $tab_top = $nexY+6;
+                } else
+                    $height_note=0;
+
+                $iniY = $tab_top + 7;
+                $curY = $tab_top + 7;
+                $nexY = $tab_top + 7;
 
 
-					//$pdf->line($this->marge_gauche, $nexY, $this->page_largeur-$this->marge_droite, $nexY);
-					$pdf->MultiCell(0, 2, '');		// Set interline to 3. Then writeMultiCell must use 3 also.
+                //$pdf->line($this->marge_gauche, $nexY, $this->page_largeur-$this->marge_droite, $nexY);
+                $pdf->MultiCell(0, 2, '');		// Set interline to 3. Then writeMultiCell must use 3 also.
 
-					$nblines = count($object->lines);
+                $nblines = count($object->lines);
 
-					// Loop on each lines
-					for ($i = 0; $i < $nblines; $i++) {
-						$objectligne = $object->lines[$i];
+                // Loop on each lines
+                for ($i = 0; $i < $nblines; $i++) {
+                    $objectligne = $object->lines[$i];
 
-						$valide = $objectligne->id ? $objectligne->fetch($objectligne->id) : 0;
-						if ($valide > 0 || $object->specimen) {
-							$curY = $nexY;
+                    $valide = $objectligne->id ? $objectligne->fetch($objectligne->id) : 0;
+                    if ($valide > 0 || $object->specimen) {
+                        $curY = $nexY;
 
-							// type d'évènement
-							if ($objectligne->equipeventlib) {
-								$pdf->SetFont('', 'B', $default_font_size - 1);
-								$pdf->SetXY($this->marge_gauche, $curY);
-								$txt=dol_htmlentitiesbr($outputlangs->transnoentities($objectligne->equipeventlib));
-								$pdf->writeHTMLCell(0, 3, $this->marge_gauche, $curY, $txt, 0, 1, 0);
-							}
-							// date de début et de fin de l'évènement
-							$pdf->SetFont('', '', $default_font_size - 1);
-							if ($objectligne->fulldayevent)
-								$fullday='day';
-							else
-								$fullday='dayhour';
-							$txt=dol_htmlentitiesbr(
-											" : ".dol_print_date($objectligne->dateo, $fullday, false, $outputlangs, true).
-											" - ".dol_print_date($objectligne->datee, $fullday, false, $outputlangs, true)
-							);
+                        // type d'évènement
+                        if ($objectligne->equipeventlib) {
+                            $pdf->SetFont('', 'B', $default_font_size - 1);
+                            $pdf->SetXY($this->marge_gauche, $curY);
+                            $txt=dol_htmlentitiesbr($outputlangs->transnoentities($objectligne->equipeventlib));
+                            $pdf->writeHTMLCell(0, 3, $this->marge_gauche, $curY, $txt, 0, 1, 0);
+                        }
+                        // date de début et de fin de l'évènement
+                        $pdf->SetFont('', '', $default_font_size - 1);
+                        if ($objectligne->fulldayevent)
+                            $fullday='day';
+                        else
+                            $fullday='dayhour';
+                        $txt=dol_htmlentitiesbr(
+                                        " : ".dol_print_date($objectligne->dateo, $fullday, false, $outputlangs, true).
+                                        " - ".dol_print_date($objectligne->datee, $fullday, false, $outputlangs, true)
+                        );
 
-							$pdf->writeHTMLCell(0, 3, $this->marge_gauche+25, $curY, $txt, 0, 1, 0);
+                        $pdf->writeHTMLCell(0, 3, $this->marge_gauche+25, $curY, $txt, 0, 1, 0);
 
-							// on affiche le contrat, l'intervention et l'expédition si elles sont renseignées
-							$pdf->SetXY($this->marge_gauche, $curY);
-							$txt=dol_htmlentitiesbr(
-											$objectligne->ref_fichinter."  ".$objectligne->ref_contrat."  ".$objectligne->ref_expedition
-							);
-							$pdf->writeHTMLCell(0, 3, $this->marge_gauche+90, $curY, $txt, 0, 1, 0);
+                        // on affiche le contrat, l'intervention et l'expédition si elles sont renseignées
+                        $pdf->SetXY($this->marge_gauche, $curY);
+                        $txt=dol_htmlentitiesbr(
+                                        $objectligne->ref_fichinter."  ".$objectligne->ref_contrat."  ".$objectligne->ref_expedition
+                        );
+                        $pdf->writeHTMLCell(0, 3, $this->marge_gauche+90, $curY, $txt, 0, 1, 0);
 
-							// prix associé à la ligne de l'évènement
-							$pdf->writeHTMLCell(
-											0, 3, $this->marge_gauche+150, $curY,
-											price($objectligne->total_ht), 0, 1, 0, true, "R"
-							);
-							// on totalise pour la forme;
-							$tottotal_ht=$tottotal_ht+$objectligne->total_ht;
+                        // prix associé à la ligne de l'évènement
+                        $pdf->writeHTMLCell(
+                                        0, 3, $this->marge_gauche+150, $curY,
+                                        price($objectligne->total_ht), 0, 1, 0, true, "R"
+                        );
+                        // on totalise pour la forme;
+                        $tottotal_ht=$tottotal_ht+$objectligne->total_ht;
 
-							$curYold=$nexYold=$nexY;
+                        $curYold=$nexYold=$nexY;
 
-							$curY = $pdf->GetY();
-							$nexY+=3;
+                        $curY = $pdf->GetY();
+                        $nexY+=3;
 
-							// la description de l'évènement sur une seconde ligne
-							$pdf->SetFont('', '', $default_font_size - 1);
-							$pdf->SetXY($this->marge_gauche, $nexY);
-							$desc = dol_htmlentitiesbr($objectligne->desc, 1);
-							$pdf->line($this->marge_gauche, $nexY+5, $this->page_largeur-$this->marge_droite, $nexY+5);
+                        // la description de l'évènement sur une seconde ligne
+                        $pdf->SetFont('', '', $default_font_size - 1);
+                        $pdf->SetXY($this->marge_gauche, $nexY);
+                        $desc = dol_htmlentitiesbr($objectligne->desc, 1);
+                        $pdf->line($this->marge_gauche, $nexY+5, $this->page_largeur-$this->marge_droite, $nexY+5);
 
-							$curYold = $pdf->GetY();
-							$nexYold = $curYold;
+                        $curYold = $pdf->GetY();
+                        $nexYold = $curYold;
 
-							$pdf->writeHTMLCell(0, 3, $this->marge_gauche, $curY, $desc, 0, 1, 0);
+                        $pdf->writeHTMLCell(0, 3, $this->marge_gauche, $curY, $desc, 0, 1, 0);
 
-							$stringheight=$pdf->getStringHeight('A', $txt);
-							$curY = $pdf->GetY();
+                        $stringheight=$pdf->getStringHeight('A', $txt);
+                        $curY = $pdf->GetY();
 
-							$nexY+=(dol_nboflines_bis($objectligne->desc, 0, $outputlangs->charset_output)*$stringheight);
+                        $nexY+=(dol_nboflines_bis($objectligne->desc, 0, $outputlangs->charset_output)*$stringheight);
 
-							$nexY+=2;	// Passe espace entre les lignes
+                        $nexY+=2;	// Passe espace entre les lignes
 
-							// Cherche nombre de lignes a venir pour savoir si place suffisante
-							if ($i < ($nblines - 1) && empty($hidedesc)) {
-								//on recupere la description du produit suivant
-								$follow_descproduitservice = $objectligne->desc;
-								//on compte le nombre de ligne afin de verifier la place disponible (largeur de ligne 52 caracteres)
-								$nblineFollowDesc = (dol_nboflines_bis($follow_descproduitservice, 52, $outputlangs->charset_output)*3);
-							}
-							else	// If it's last line
-								$nblineFollowDesc = 0;
+                        // Cherche nombre de lignes a venir pour savoir si place suffisante
+                        if ($i < ($nblines - 1) && empty($hidedesc)) {
+                            //on recupere la description du produit suivant
+                            $follow_descproduitservice = $objectligne->desc;
+                            //on compte le nombre de ligne afin de verifier la place disponible (largeur de ligne 52 caracteres)
+                            $nblineFollowDesc = (dol_nboflines_bis($follow_descproduitservice, 52, $outputlangs->charset_output)*3);
+                        }
+                        else	// If it's last line
+                            $nblineFollowDesc = 0;
 
-							// Test if a new page is required
-							if ($pagenb == 1) {
-								$tab_top_in_current_page=$tab_top;
-								$tab_height_in_current_page=$tab_height;
-							} else {
-								$tab_top_in_current_page=$tab_top_newpage;
-								$tab_height_in_current_page=$tab_height_middlepage;
-							}
-							if (($nexY+$nblineFollowDesc) > ($tab_top_in_current_page+$tab_height_in_current_page) && $i < ($nblines - 1)) {
-								if ($pagenb == 1)
-									$this->_tableau($pdf, $tab_top, $tab_height + 20, $nexY, $outputlangs);
-								else
-									$this->_tableau($pdf, $tab_top_newpage, $tab_height_middlepage, $nexY, $outputlangs);
+                        // Test if a new page is required
+                        if ($pagenb == 1) {
+                            $tab_top_in_current_page=$tab_top;
+                            $tab_height_in_current_page=$tab_height;
+                        } else {
+                            $tab_top_in_current_page=$tab_top_newpage;
+                            $tab_height_in_current_page=$tab_height_middlepage;
+                        }
+                        if (($nexY+$nblineFollowDesc) > ($tab_top_in_current_page+$tab_height_in_current_page) && $i < ($nblines - 1)) {
+                            if ($pagenb == 1)
+                                $this->_tableau($pdf, $tab_top, $tab_height + 20, $nexY, $outputlangs);
+                            else
+                                $this->_tableau($pdf, $tab_top_newpage, $tab_height_middlepage, $nexY, $outputlangs);
 
-								$this->_pagefoot($pdf, $object, $outputlangs);
+                            $this->_pagefoot($pdf, $object, $outputlangs);
 
-								// New page
-								$pdf->AddPage();
-								if (! empty($tplidx)) $pdf->useTemplate($tplidx);
-								$pagenb++;
-								$this->_pagehead($pdf, $object, 0, $outputlangs);
-								$pdf->SetFont('', '', $default_font_size - 1);
-								$pdf->MultiCell(0, 3, '');		// Set interline to 3
-								$pdf->SetTextColor(0, 0, 0);
+                            // New page
+                            $pdf->AddPage();
+                            if (! empty($tplidx)) $pdf->useTemplate($tplidx);
+                            $pagenb++;
+                            $this->_pagehead($pdf, $object, 0, $outputlangs);
+                            $pdf->SetFont('', '', $default_font_size - 1);
+                            $pdf->MultiCell(0, 3, '');		// Set interline to 3
+                            $pdf->SetTextColor(0, 0, 0);
 
-								$nexY = $tab_top_newpage + 7;
-							}
-						}
-					}
+                            $nexY = $tab_top_newpage + 7;
+                        }
+                    }
+                }
 
-					// Show square
-					if ($pagenb == 1) {
-						$this->_tableau($pdf, $tab_top, $tab_height, $nexY, $outputlangs);
-						$bottomlasttab=$tab_top + $tab_height + 1;
-					} else {
-						$this->_tableau($pdf, $tab_top_newpage, $tab_height_newpage, $nexY, $outputlangs);
-						$bottomlasttab=$tab_top_newpage + $tab_height_newpage + 1;
-					}
+                // Show square
+                if ($pagenb == 1) {
+                    $this->_tableau($pdf, $tab_top, $tab_height, $nexY, $outputlangs);
+                    $bottomlasttab=$tab_top + $tab_height + 1;
+                } else {
+                    $this->_tableau($pdf, $tab_top_newpage, $tab_height_newpage, $nexY, $outputlangs);
+                    $bottomlasttab=$tab_top_newpage + $tab_height_newpage + 1;
+                }
 
-					$pdf->line(
-									$this->marge_gauche, $tab_top+$tab_height-7,
-									$this->page_largeur-$this->marge_droite, $tab_top+$tab_height-7
-					);
-					$pdf->writeHTMLCell(
-									0, 3, $this->marge_gauche+5, $tab_top+$tab_height-4,
-									$outputlangs->transnoentities("NbOfEvenement")." : ".$nblines, 0, 1, 0, true, "L"
-					);
-					$pdf->writeHTMLCell(
-									0, 3, $this->marge_gauche+150, $tab_top+$tab_height-4,
-									$outputlangs->transnoentities("EquipementLineTotalHT")." : ".price($tottotal_ht),
-									0, 1, 0, true, "R"
-					);
+                $pdf->line(
+                                $this->marge_gauche, $tab_top+$tab_height-7,
+                                $this->page_largeur-$this->marge_droite, $tab_top+$tab_height-7
+                );
+                $pdf->writeHTMLCell(
+                                0, 3, $this->marge_gauche+5, $tab_top+$tab_height-4,
+                                $outputlangs->transnoentities("NbOfEvenement")." : ".$nblines, 0, 1, 0, true, "L"
+                );
+                $pdf->writeHTMLCell(
+                                0, 3, $this->marge_gauche+150, $tab_top+$tab_height-4,
+                                $outputlangs->transnoentities("EquipementLineTotalHT")." : ".price($tottotal_ht),
+                                0, 1, 0, true, "R"
+                );
 
-					$pdf->SetFont('', '', $default_font_size - 1);   // On repositionne la police par defaut
+                $pdf->SetFont('', '', $default_font_size - 1);   // On repositionne la police par defaut
 
-					$this->_pagefoot($pdf, $object, $outputlangs);
-					if (method_exists($pdf, 'AliasNbPages')) $pdf->AliasNbPages();
+                $this->_pagefoot($pdf, $object, $outputlangs);
+                if (method_exists($pdf, 'AliasNbPages')) $pdf->AliasNbPages();
 
-					$pdf->Close();
+                $pdf->Close();
 
-					$pdf->Output($file, 'F');
-					if (! empty($conf->global->MAIN_UMASK)) {
-						@chmod($file, octdec($conf->global->MAIN_UMASK));
-						return 1;
-					}
-				}
+                $pdf->Output($file, 'F');
+                if (! empty($conf->global->MAIN_UMASK)) {
+                    @chmod($file, octdec($conf->global->MAIN_UMASK));
+                }
+
+                return 1; // No error
 			} else {
 				$this->error=$langs->trans("ErrorCanNotCreateFile", $dir);
 				return 0;
