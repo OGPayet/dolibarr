@@ -159,6 +159,9 @@ class YousignSoap extends DoliEsign
 			if (dol_is_file($file)) {
 				// Placement des signatures sur le document
 				$pageCount = $pdf->setSourceFile($file);
+				if(!empty($conf->global->DOLIESIGN_CGV_NB_PAGE)) {
+					$pageCount -= $conf->global->DOLIESIGN_CGV_NB_PAGE;
+				}
 				$listFiles = array (
 					array (
 						'name' => basename($file),

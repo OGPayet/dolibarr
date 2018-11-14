@@ -79,6 +79,7 @@ $arrayofparameters=array(
 	'DOLIESIGN_HANDWRITEN_SIGN_UNIVERSIGN'=>array('css'=>'minwidth400','type'=>'select', 'class'=>'universign-prod universign-demo'),
 	'DOLIESIGN_CGV_REL_PATH'=>array('css'=>'minwidth400','type'=>'text','class'=>'yousign-demo yousign-staging-api yousign-prod yousign-api universign-prod universign-demo'),
 	'DOLIESIGN_CGV_FILENAME'=>array('css'=>'minwidth400','type'=>'text','class'=>'yousign-demo yousign-staging-api yousign-prod yousign-api universign-prod universign-demo'),
+	'DOLIESIGN_CGV_NB_PAGE'=>array('css'=>'minwidth400','type'=>'text','class'=>'yousign-demo yousign-staging-api yousign-prod yousign-api universign-prod universign-demo'),
 );
 
 $selectSetup = array("DOLIESIGN_ENVIRONMENT" => array(

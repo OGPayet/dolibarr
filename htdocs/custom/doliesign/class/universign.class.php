@@ -782,6 +782,8 @@ class Universign extends DoliEsign
 				if ($res < 0) {
 					$this->errors = $this->errors;
 					return $res;
+				} else {
+					$this->createEvent($user, $object);
 				}
 			}
 			if ($redirectSign == "true") header("Location: ".$redirectionURL);

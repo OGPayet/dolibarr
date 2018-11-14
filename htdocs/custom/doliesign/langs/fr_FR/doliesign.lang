@@ -70,6 +70,8 @@ DOLIESIGN_CGV_REL_PATH=Répertoire dans documents avec les pdf de conditions de 
 DOLIESIGN_CGV_REL_PATHTooltip=Répertoire pdf conditions de vente. Si vous utilisez RUBIS module c'est '/mycompany/cgv'.
 DOLIESIGN_CGV_FILENAME=Nom de fichier pdf conditions de vente
 DOLIESIGN_CGV_FILENAMETooltip=Nom de fichier pdf conditions de vente. Si vous utilisez RUBIS module c'est 'cgv.pdf'.
+DOLIESIGN_CGV_NB_PAGE=Nombre de page du fichier pdf conditions de vente
+DOLIESIGN_CGV_NB_PAGETooltip=Nombre de page du fichier pdf conditions de vente.
 
 #
 # About page

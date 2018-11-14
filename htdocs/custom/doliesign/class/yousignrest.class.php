@@ -544,6 +544,9 @@ class YousignRest extends DoliEsign
 				// Placement des signatures sur le document
 				$indexFile = 0;
 				$pageCount = $pdf->setSourceFile($file);
+				if(!empty($conf->global->DOLIESIGN_CGV_NB_PAGE)) {
+					$pageCount -= $conf->global->DOLIESIGN_CGV_NB_PAGE;
+				}
 				$listFiles = array (
 					array (
 						'name' => basename($file),

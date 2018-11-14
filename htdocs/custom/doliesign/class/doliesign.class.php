@@ -189,6 +189,39 @@ class DoliEsign extends CommonObject
 	}
 
 	/**
+     * @param object    $user           L'utilisateur qui initialise la signature
+     * @param object    $object         Objet Dolibarr à signer
+	 *
+	 * @return int < 0 = KO, 1 = OK
+	 */
+	function createEvent($user, $object) {
+		global $user, $conf;
+
+		include_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
+		$evt = new ActionComm($this->db);
+
+		$evt->label = 'Envoi signature éléctronique : '.$object->ref;
+		$evt->socid = $object->fk_soc;
+		$evt->userownerid = $user->id;
+		$evt->userassigned = $user->id;
+		$evt->datep = date("Y-m-d H:i:s");
+		$evt->fulldayevent = 0;
+		$evt->transparency = 1;
+		$evt->percentage = -1;
+		$evt->elementtype = 'doliesign';
+		$evt->fk_element = $object->id;
+		$evt->type_id = 713080;
+		$evt->create($user);
+		if (!empty($evt->error)) {
+			setEventMessages($evt->error, $evt->errors, 'errors');
+			return -1;
+		} else {
+			setEventMessage('Agenda créé');
+			return 1;
+		}
+	}
+
+	/**
 	 * Clone and object into another one
 	 *
 	 * @param  	User 	$user      	User that creates
