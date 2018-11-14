@@ -143,7 +143,6 @@ class EventConfidentialityDefaultDictionary extends Dictionary
             'td_input' => array(
                 'moreAttributes' => 'width="50%"',
             ),
-            'is_require' => true,
         ),
         'element_origin' => array(),
         'tags' => array(),
@@ -206,7 +205,6 @@ class EventConfidentialityDefaultDictionary extends Dictionary
                 'moreAttributes' => 'width="50%"',
                 'colspan' => 2,
             ),
-            'is_require' => true,
         );
 
         $this->fields['tags'] = array(

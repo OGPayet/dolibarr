@@ -72,6 +72,7 @@ function getDefaultTag($elementtype, $type_id, $fk_object)
 	global $langs, $db, $conf;
 
 	$return = array();
+	//Get internal
 	$sql = "SELECT t.fk_target, d.external, d.mode";
 	$sql .= " FROM";
 	$sql .= " ".MAIN_DB_PREFIX."c_eventconfidentiality_default as d,";
@@ -82,23 +83,109 @@ function getDefaultTag($elementtype, $type_id, $fk_object)
 	$sql .= " AND d.active = 1";
 	$sql .= " AND d.element_origin LIKE '%".$elementtype."%'"; //Origin
 	$sql .= " AND a.fk_target = ".$type_id; //Action id
+	$sql .= " AND d.external IS NULL"; //Action id
 
 	$resql = $db->query($sql);
 	if ($resql) {
 		$num=$db->num_rows($resql);
-		$i = 0;
-		while($i<$num) {
-			$obj = $db->fetch_object($resql);
+		if($num > 0) {
+			$i = 0;
+			while($i<$num) {
+				$obj = $db->fetch_object($resql);
 
-			$object = array();
-			$object['fk_object']           = $fk_object;
-			$object['fk_dict_tag_confid']  = $obj->fk_target;
-			$object['externe']  = (!empty($obj->external)?$obj->external:0);
-			$object['level_confid']  = $obj->mode;
+				$object = array();
+				$object['fk_object']           = $fk_object;
+				$object['fk_dict_tag_confid']  = $obj->fk_target;
+				$object['externe']  = (!empty($obj->external)?$obj->external:0);
+				$object['level_confid']  = $obj->mode;
 
-			$return[] = $object;
+				$return[] = $object;
 
-			$i++;
+				$i++;
+			}
+		} else {
+			$sql2 = "SELECT t.fk_target, d.external, d.mode";
+			$sql2 .= " FROM";
+			$sql2 .= " ".MAIN_DB_PREFIX."c_eventconfidentiality_default as d,";
+			$sql2 .= " ".MAIN_DB_PREFIX."c_eventconfidentiality_default_cbl_tags as t,";
+			$sql2 .= " ".MAIN_DB_PREFIX."c_eventconfidentiality_tag as a";
+			$sql2 .= " WHERE t.fk_line = d.rowid";
+			$sql2 .= " AND d.active = 1";
+			$sql2 .= " AND d.external IS NULL"; //Action id
+			$sql2 .= " AND a.code='DEFAUT_INTERNE'"; //Action id
+			$sql2 .= " AND t.fk_target = a.rowid"; //Action id
+
+			$resql2 = $db->query($sql2);
+			if ($resql2) {
+				$obj = $db->fetch_object($resql2);
+
+				$object = array();
+				$object['fk_object']           = $fk_object;
+				$object['fk_dict_tag_confid']  = $obj->fk_target;
+				$object['externe']  = (!empty($obj->external)?$obj->external:0);
+				$object['level_confid']  = $obj->mode;
+
+				$return[] = $object;
+			}
+		}
+		$db->free($resql);
+	}
+
+	//Get external
+	$sql = "SELECT t.fk_target, d.external, d.mode";
+	$sql .= " FROM";
+	$sql .= " ".MAIN_DB_PREFIX."c_eventconfidentiality_default as d,";
+	$sql .= " ".MAIN_DB_PREFIX."c_eventconfidentiality_default_cbl_tags as t,";
+	$sql .= " ".MAIN_DB_PREFIX."c_eventconfidentiality_default_cbl_action_type as a";
+	$sql .= " WHERE t.fk_line = d.rowid";
+	$sql .= " AND a.fk_line = d.rowid";
+	$sql .= " AND d.active = 1";
+	$sql .= " AND d.element_origin LIKE '%".$elementtype."%'"; //Origin
+	$sql .= " AND a.fk_target = ".$type_id; //Action id
+	$sql .= " AND d.external = 1"; //Action id
+
+	$resql = $db->query($sql);
+	if ($resql) {
+		$num=$db->num_rows($resql);
+		if($num > 0) {
+			$i = 0;
+			while($i<$num) {
+				$obj = $db->fetch_object($resql);
+
+				$object = array();
+				$object['fk_object']           = $fk_object;
+				$object['fk_dict_tag_confid']  = $obj->fk_target;
+				$object['externe']  = (!empty($obj->external)?$obj->external:0);
+				$object['level_confid']  = $obj->mode;
+
+				$return[] = $object;
+
+				$i++;
+			}
+		} else {
+			$sql2 = "SELECT t.fk_target, d.external, d.mode";
+			$sql2 .= " FROM";
+			$sql2 .= " ".MAIN_DB_PREFIX."c_eventconfidentiality_default as d,";
+			$sql2 .= " ".MAIN_DB_PREFIX."c_eventconfidentiality_default_cbl_tags as t,";
+			$sql2 .= " ".MAIN_DB_PREFIX."c_eventconfidentiality_tag as a";
+			$sql2 .= " WHERE t.fk_line = d.rowid";
+			$sql2 .= " AND d.active = 1";
+			$sql2 .= " AND d.external = 1"; //Action id
+			$sql2 .= " AND a.code='DEFAUT_EXTERNE'"; //Action id
+			$sql2 .= " AND t.fk_target = a.rowid"; //Action id
+
+			$resql2 = $db->query($sql2);
+			if ($resql2) {
+				$obj = $db->fetch_object($resql2);
+
+				$object = array();
+				$object['fk_object']           = $fk_object;
+				$object['fk_dict_tag_confid']  = $obj->fk_target;
+				$object['externe']  = (!empty($obj->external)?$obj->external:0);
+				$object['level_confid']  = $obj->mode;
+
+				$return[] = $object;
+			}
 		}
 		$db->free($resql);
 	}

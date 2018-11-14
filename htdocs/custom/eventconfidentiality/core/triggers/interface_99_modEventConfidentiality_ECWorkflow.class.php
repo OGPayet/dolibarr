@@ -67,7 +67,8 @@ class InterfaceECWorkflow extends DolibarrTriggers
 					$eventconfidentiality->getDefaultMode($tag, $object->elementtype, $object->type_id, $object->id);
 					$eventconfidentiality->create($user);
 				}
-			} else {
+			}
+			if(!empty($tags_interne) || !empty($tags_externe))  {
 				$list_event = getDefaultTag($object->elementtype, $object->type_id, $object->id);
 				foreach($list_event as $event) {
 					$eventconfidentiality = new EventConfidentiality($this->db);

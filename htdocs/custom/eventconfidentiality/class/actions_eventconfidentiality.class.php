@@ -233,7 +233,8 @@ class ActionsEventConfidentiality
     {
         global $db, $langs, $form, $user;
 
-        $user_f = isset(DolibarrApiAccess::$user) ? DolibarrApiAccess::$user : $user;
+        // $user_f = isset(DolibarrApiAccess::$user) ? DolibarrApiAccess::$user : $user;
+        $user_f = isset($user) ? $user : DolibarrApiAccess::$user;
         if (empty($user_f->array_options) && $user_f->id > 0) {
             $user_f->fetch_optionals();
         }
@@ -336,7 +337,8 @@ class ActionsEventConfidentiality
     {
         global $db, $langs, $form, $user;
 
-        $user_f = isset(DolibarrApiAccess::$user) ? DolibarrApiAccess::$user : $user;
+        // $user_f = isset(DolibarrApiAccess::$user) ? DolibarrApiAccess::$user : $user;
+        $user_f = isset($user) ? $user : DolibarrApiAccess::$user;
         if (empty($user_f->array_options) && $user_f->id > 0) {
             $user_f->fetch_optionals();
         }
