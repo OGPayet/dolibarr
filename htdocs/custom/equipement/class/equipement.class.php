@@ -1901,7 +1901,8 @@ class Equipement extends CommonObject
                     $result = $equipment_statitc->addline(
                         $equipment_statitc->id,
                         $fk_equipementevt_type,
-                        $langs->trans('EquipmentDeleteEquipmentToComposition', $current_equipment_statitc->getNomUrl(1)),
+                        //$langs->trans('EquipmentDeleteEquipmentToComposition', $current_equipment_statitc->getNomUrl(1)),
+                        $langs->trans('EquipmentDeleteEquipmentToComposition', $current_equipment_statitc->getNomUrl(1), $equipment_statitc->getNomUrl(1)),
                         $now,
                         $now,
                         '',
@@ -1970,7 +1971,8 @@ class Equipement extends CommonObject
                         $result = $equipment_statitc->addline(
                             $equipment_statitc->id,
                             $fk_equipementevt_type,
-                            $langs->trans('EquipmentAddEquipmentToComposition', $this->getNomUrl(1)),
+                            //$langs->trans('EquipmentAddEquipmentToComposition', $this->getNomUrl(1)),
+                            $langs->trans('EquipmentAddEquipmentToComposition', $this->getNomUrl(1), $equipment_statitc->getNomUrl(1)),
                             $now,
                             $now,
                             '',
@@ -1994,7 +1996,8 @@ class Equipement extends CommonObject
                 $result = $equipment_statitc->addline(
                     $equipment_statitc->id,
                     $fk_equipementevt_type,
-                    $langs->trans('EquipmentDeleteEquipmentToComposition', $current_equipment_statitc->getNomUrl(1)),
+                    //$langs->trans('EquipmentDeleteEquipmentToComposition', $current_equipment_statitc->getNomUrl(1)),
+                    $langs->trans('EquipmentDeleteEquipmentToComposition', $current_equipment_statitc->getNomUrl(1), $equipment_statitc->getNomUrl(1)),
                     $now,
                     $now,
                     '',
