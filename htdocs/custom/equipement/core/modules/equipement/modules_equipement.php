@@ -208,7 +208,10 @@ function equipement_create($db, $object, $modele, $outputlangs, $hidedetails=0, 
 
 			// We delete old preview
 			require_once(DOL_DOCUMENT_ROOT."/core/lib/files.lib.php");
-			dol_delete_preview($object);
+			$ret = dol_delete_preview($object);
+			if (!$ret) {
+			    setEventMessage($object->errorsToString(), 'errors');
+            }
 
 			// Success in building document. We build meta file.
 			dol_meta_create($object);

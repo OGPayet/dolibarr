@@ -262,7 +262,8 @@ class pdf_soleil extends ModeleEquipement
                         // la description de l'évènement sur une seconde ligne
                         $pdf->SetFont('', '', $default_font_size - 1);
                         $pdf->SetXY($this->marge_gauche, $nexY);
-                        $desc = dol_htmlentitiesbr($objectligne->desc, 1);
+                        //$desc = dol_htmlentitiesbr($objectligne->desc, 1);
+                        $desc = strip_tags($objectligne->desc); // delete all tags html in description
                         $pdf->line($this->marge_gauche, $nexY+5, $this->page_largeur-$this->marge_droite, $nexY+5);
 
                         $curYold = $pdf->GetY();
@@ -434,6 +435,9 @@ class pdf_soleil extends ModeleEquipement
 		$pdf->SetTextColor(0, 0, 60);
 		$pdf->SetFont('', 'B', $default_font_size + 3);
 
+        //
+        // top left column
+        //
 		$posx=$this->page_largeur-$this->marge_droite-100;
 		$posy=$this->marge_haute;
 
@@ -456,6 +460,52 @@ class pdf_soleil extends ModeleEquipement
 			$pdf->MultiCell(100, 4, $outputlangs->convToOutputCharset($text), 0, 'L');
 		}
 
+        // ref de l'équipement + num immocompta si saisie
+        $posy+=10;
+        //$posx=100;
+        if (intval($height) > 0) {
+            $posy += $height;
+        }
+        $posx=$this->marge_gauche;
+        $pdf->SetXY($posx, $posy);
+        $pdf->SetTextColor(0, 0, 60);
+        if ($object->numimmocompta)
+            $refequipement=$object->ref." - ".$object->numimmocompta;
+        else
+            $refequipement=$object->ref;
+
+        $pdf->MultiCell(100, 4, $outputlangs->transnoentities("Ref")." : " . $refequipement, '', 'L');
+
+        // product reference
+        $prod=new Product($this->db);
+        $prod->fetch($object->fk_product);
+        $posy+=6;
+        //$posx=100;
+        $posx=$this->marge_gauche;
+        $posy+=6;
+        $pdf->SetXY($posx, $posy);
+        $pdf->SetFont('', 'B', $default_font_size + 2);
+        $pdf->MultiCell(
+            100, 1,
+            $outputlangs->transnoentities("Product")." : " .$prod->ref." (vers. : ". $object->numversion.")",
+            '', 'L'
+        );
+        $pdf->SetFont('', '', $default_font_size);
+        //$posx=120;
+        $posx=$this->marge_gauche;
+        $posy+=6;
+        $pdf->SetXY($posx, $posy);
+        $pdf->MultiCell(100, 1, $prod->label, '', 'L');
+
+
+        //
+        // top right column
+        //
+        $posy=$this->marge_haute;
+
+        // title equipment
+        $posy+=6;
+        $posx=100;
 		$pdf->SetFont('', 'B', $default_font_size + 3);
 		$pdf->SetXY($posx, $posy);
 		$pdf->SetTextColor(0, 0, 60);
@@ -464,41 +514,14 @@ class pdf_soleil extends ModeleEquipement
 
 		$pdf->SetFont('', 'B', $default_font_size + 2);
 
-		// ref de l'équipement + num immocompta si saisie
-		$posy+=10;
-		$posx=100;
-		$pdf->SetXY($posx, $posy);
-		$pdf->SetTextColor(0, 0, 60);
-		if ($object->numimmocompta)
-			$refequipement=$object->ref." - ".$object->numimmocompta;
-		else
-			$refequipement=$object->ref;
-
-		$pdf->MultiCell(100, 4, $outputlangs->transnoentities("Ref")." : " . $refequipement, '', 'L');
-		$posx=$this->page_largeur-$this->marge_droite-100;
-		$pdf->SetXY($posx, $posy);
-		$pdf->SetFont('', '', $default_font_size);
-		$datec=dol_print_date($object->datec, "day", false, $outputlangs, true);
-		$pdf->MultiCell(100, 3, $outputlangs->transnoentities("Date")." : " . $datec, '', 'R');
-
-		// référence du produit
-		$prod=new Product($this->db);
-		$prod->fetch($object->fk_product);
-		$posy+=6;
-		$posx=100;
-		$pdf->SetXY($posx, $posy);
-
-		$pdf->SetFont('', 'B', $default_font_size + 2);
-		$pdf->MultiCell(
-						100, 1,
-						$outputlangs->transnoentities("Product")." : " .$prod->ref." (vers. : ". $object->numversion.")",
-						'', 'L'
-		);
-		$pdf->SetFont('', '', $default_font_size);
-		$posx=120;
-		$posy+=6;
-		$pdf->SetXY($posx, $posy);
-		$pdf->MultiCell(100, 1, $prod->label, '', 'L');
+		// date
+        //$posx=$this->page_largeur-$this->marge_droite-100;
+        //$posx=$this->marge_gauche;
+        $posy+=12;
+        $pdf->SetXY($posx, $posy);
+        $pdf->SetFont('', '', $default_font_size);
+        $datec=dol_print_date($object->datec, "day", false, $outputlangs, true);
+        $pdf->MultiCell(100, 3, $outputlangs->transnoentities("Date")." : " . $datec, '', 'R');
 
 		// le reste seulement sur la première page
 		if ($nbpage == 1) {
