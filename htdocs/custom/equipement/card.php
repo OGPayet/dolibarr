@@ -257,17 +257,41 @@ if ($action == 'confirm_validate'
 	exit;
 } elseif ($action == 'confirm_delete' && $confirm != 'yes' && $user->rights->equipement->supprimer)
 	$action = '';
-elseif ((substr($action, 0, 7) == 'setExFi' || $action == 'update_extras') && $user->rights->equipement->creer) {
-	$keyExFi= substr($action, 7);
+elseif ((substr($action, 0, 7) == 'setExFi' || $action == 'update_extras') ) {
+    $keyExFi = substr($action, 7);
 
-	$res=$object->fetch_optionals($object->id, $extralabels);
-	if (substr($action, 0, 7) == 'setExFi' )
-		$object->array_options["options_".$keyExFi]=$_POST["options_".$keyExFi];
-	else
-		$ret = $extrafields->setOptionalsFromPost($extralabels, $object, GETPOST('attribute'));
-	//var_dump($object->array_options);
-	$object->insertExtraFields();
-	$action="";
+    $res = $object->fetch_optionals($object->id, $extralabels);
+    if ($ret < 0) {
+        $error++;
+        setEventMessage($object->errorsToString(), 'errors');
+    }
+    if (!$error) {
+        if (substr($action, 0, 7) == 'setExFi') {
+            $object->array_options["options_" . $keyExFi] = $_POST["options_" . $keyExFi];
+        } else {
+            // Fill array 'array_options' with data from update form
+            $extralabels = $extrafields->fetch_name_optionals_label($object->table_element);
+            $ret = $extrafields->setOptionalsFromPost($extralabels, $object, GETPOST('attribute'));
+            if ($ret < 0) {
+                $error++;
+                //setEventMessage($extrafields->error, 'errors'); // already in setOptionalsFromPost
+            }
+        }
+    }
+    if (!$error) {
+        $result = $object->insertExtraFields();
+        if ($result < 0) {
+            $error++;
+            setEventMessage($object->errorsToString(), 'errors');
+        }
+    }
+    if ($error) {
+        if (substr($action, 0, 7) == 'setExFi') {
+            $action = 'ExFi';
+        } else {
+            $action = 'edit_extras';
+        }
+    }
 } else if ($action == 'setnumref' && $user->rights->equipement->majserial) {
 	$result=$object->set_numref($user, GETPOST('editnumref', 'alpha'));
 	if ($result < 0) dol_print_error($db, $object->error);
@@ -1225,9 +1249,8 @@ if ($action == 'create') {
 		$title = $langs->trans('Notes');
 		include(DOL_DOCUMENT_ROOT.'/core/tpl/bloc_showhide.tpl.php');
 	}
-}
-	print '</div>';
-	print "\n";
+    print '</div>';
+    print "\n";
 
 // Define confirmation messages
 
@@ -1235,7 +1258,7 @@ if ($action == 'create') {
 
 
 //$equipementstatic= new Equipement($db);
-$newref=$object->ref." (1)";
+    $newref=$object->ref." (1)";
 //while(true) {
 //	$equipementstatic->fetch(0, $newref);
 //	if ($equipementstatic->id > 0)
@@ -1244,141 +1267,144 @@ $newref=$object->ref." (1)";
 //		break;
 //}
 
-$formquestioncutEquipement=array(
-	'text' => $langs->trans("ConfirmCut"),
-	array(
-					'type' => 'text',
-					'name' => 'ref_new',
-					'label' => $langs->trans("NewRefForCutEquipment"),
-					'value' => $object->ref." (1)",
-					'size'=>24
-	),
-	array(
-					'type' => 'text',
-					'name' => 'quantitynew',
-					'label' => $langs->trans("QuantitytoCut"),
-					'value' => '1',
-					'size'=>5
-	),
-	array(
-					'type' => 'checkbox',
-					'name' => 'cloneevent',
-					'label' => $langs->trans("CloneContentEquipment"),
-					'value' => 1
-	),
-);
+    $formquestioncutEquipement=array(
+        'text' => $langs->trans("ConfirmCut"),
+        array(
+            'type' => 'text',
+            'name' => 'ref_new',
+            'label' => $langs->trans("NewRefForCutEquipment"),
+            'value' => $object->ref." (1)",
+            'size'=>24
+        ),
+        array(
+            'type' => 'text',
+            'name' => 'quantitynew',
+            'label' => $langs->trans("QuantitytoCut"),
+            'value' => '1',
+            'size'=>5
+        ),
+        array(
+            'type' => 'checkbox',
+            'name' => 'cloneevent',
+            'label' => $langs->trans("CloneContentEquipment"),
+            'value' => 1
+        ),
+    );
 
 
 // Clone confirmation
-if ($action == 'cutEquipment' && empty($conf->use_javascript_ajax))
-	print $form->formconfirm($_SERVER["PHP_SELF"].'?id='.$object->id,
-					$langs->trans('CutEquipment'), $langs->trans('ConfirmcutEquipement', $object->ref),
-					'confirm_cutEquipement', $formquestioncutEquipement, 'yes', 'action-cutEquimenent', 230, 600
-	);
+    if ($action == 'cutEquipment' && empty($conf->use_javascript_ajax))
+        print $form->formconfirm($_SERVER["PHP_SELF"].'?id='.$object->id,
+            $langs->trans('CutEquipment'), $langs->trans('ConfirmcutEquipement', $object->ref),
+            'confirm_cutEquipement', $formquestioncutEquipement, 'yes', 'action-cutEquimenent', 230, 600
+        );
 
-/* Barre d'action				*/
-if ($action == '' ) {
-	print '<div class="tabsAction">';
+    /* Barre d'action				*/
+//    if ($action == '' ) {
+        print '<div class="tabsAction">';
 
-	$parameters = array('id'=> $id, 'product' => $product);
-	$reshook = $hookmanager->executeHooks('addMoreActionsButtons', $parameters, $object, $action);
-	// modified by hook
-	if (empty($reshook)) {
-		// D�coupage d'un lot si il y en a plus d'un
-		if ($object->quantity > 1 && $user->rights->equipement->creer ) {
-			if (! empty($conf->use_javascript_ajax)) {
-				print '<div class="inline-block divButAction">';
-				print '<span id="action-cutEquimenent" class="butAction">'.$langs->trans('CutSerial').'</span>';
-				print '</div>'."\n";
-				print $form->formconfirm(
-								$_SERVER["PHP_SELF"].'?id='.$object->id,
-								$langs->trans('CutEquipment'), $langs->trans('ConfirmcutEquipement', $object->ref),
-								'confirm_cutEquipement', $formquestioncutEquipement, 'yes', 'action-cutEquimenent', 230, 600
-				);
-			} else {
-				print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&action=cutEquipment"';
-				print '>'.$langs->trans("CutSerial").'</a>';
-			}
+        $parameters = array('id'=> $id, 'product' => $product);
+        $reshook = $hookmanager->executeHooks('addMoreActionsButtons', $parameters, $object, $action);
+        // modified by hook
+        if (empty($reshook)) {
+            // D�coupage d'un lot si il y en a plus d'un
+            if ($object->quantity > 1 && $user->rights->equipement->creer ) {
+                if (! empty($conf->use_javascript_ajax)) {
+                    print '<div class="inline-block divButAction">';
+                    print '<span id="action-cutEquimenent" class="butAction">'.$langs->trans('CutSerial').'</span>';
+                    print '</div>'."\n";
+                    print $form->formconfirm(
+                        $_SERVER["PHP_SELF"].'?id='.$object->id,
+                        $langs->trans('CutEquipment'), $langs->trans('ConfirmcutEquipement', $object->ref),
+                        'confirm_cutEquipement', $formquestioncutEquipement, 'yes', 'action-cutEquimenent', 230, 600
+                    );
+                } else {
+                    print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&action=cutEquipment"';
+                    print '>'.$langs->trans("CutSerial").'</a>';
+                }
 
-		}
+            }
 
-		// Validate
-		if ($object->statut == 0 && $user->rights->equipement->creer ) {
-			print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&action=validate"';
-			print '>'.$langs->trans("Valid").'</a>';
-		}
+            // Validate
+            if ($object->statut == 0 && $user->rights->equipement->creer ) {
+                print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&action=validate"';
+                print '>'.$langs->trans("Valid").'</a>';
+            }
 
-		// Modify
-		if ($object->statut == 1  && $user->rights->equipement->creer) {
-			print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&action=modify"';
-			print '>'.$langs->trans("Modify").'</a>';
-		}
+            // Modify
+            if ($object->statut == 1  && $user->rights->equipement->creer) {
+                print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&action=modify"';
+                print '>'.$langs->trans("Modify").'</a>';
+            }
 
-		// Delete
-		if (($object->statut == 0
-				&& $user->rights->equipement->creer)
-				|| $user->rights->equipement->supprimer) {
-			print '<a class="butActionDelete" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=delete"';
-			print '>'.$langs->trans('Delete').'</a>';
-		}
+            // Delete
+            if (($object->statut == 0
+                    && $user->rights->equipement->creer)
+                || $user->rights->equipement->supprimer) {
+                print '<a class="butActionDelete" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=delete"';
+                print '>'.$langs->trans('Delete').'</a>';
+            }
 
-	}
+        }
 
-	// predef event button
-	$sql = "SELECT eet.rowid, eet.libelle";
-	$sql.= " FROM ".MAIN_DB_PREFIX."c_equipementevt_type as eet";
-	$sql.= " , ".MAIN_DB_PREFIX."equipementevt_predef as eep";
-	$sql.= " WHERE eep.fk_equipementevt_type = eet.rowid";
-	$sql.= " AND eep.fk_product = ".$object->fk_product;
-	$sql.= " AND eet.active = 1";
+        // predef event button
+        $sql = "SELECT eet.rowid, eet.libelle";
+        $sql.= " FROM ".MAIN_DB_PREFIX."c_equipementevt_type as eet";
+        $sql.= " , ".MAIN_DB_PREFIX."equipementevt_predef as eep";
+        $sql.= " WHERE eep.fk_equipementevt_type = eet.rowid";
+        $sql.= " AND eep.fk_product = ".$object->fk_product;
+        $sql.= " AND eet.active = 1";
 
-	$result=$db->query($sql);
-	if ($result) {
-		$num = $db->num_rows($result);
-		if ($num > 0) {
-			print "<br>";
-			print $langs->trans("PredefinedEvent");
-			$i = 0;
-			while ($i < $num) {
-				$objp = $db->fetch_object($result);
-				print '<a class="butAction" href="events.php?id='.$object->id.'&prefefid='.$objp->rowid.'" ';
-				print '>'.$langs->trans($objp->libelle).'</a>';
-				$i++;
-			}
-		}
-		$db->free($result);
-	}
+        $result=$db->query($sql);
+        if ($result) {
+            $num = $db->num_rows($result);
+            if ($num > 0) {
+                print "<br>";
+                print $langs->trans("PredefinedEvent");
+                $i = 0;
+                while ($i < $num) {
+                    $objp = $db->fetch_object($result);
+                    print '<a class="butAction" href="events.php?id='.$object->id.'&prefefid='.$objp->rowid.'" ';
+                    print '>'.$langs->trans($objp->libelle).'</a>';
+                    $i++;
+                }
+            }
+            $db->free($result);
+        }
 
-	print '</div>';
-	print '<br>';
+        print '</div>';
+        print '<br>';
 
-	print '<table width="100%"><tr><td width="50%" valign="top">';
-	/*
-	 * Built documents
-	 */
-	$filename=dol_sanitizeFileName($object->ref);
-	$filedir=$conf->equipement->dir_output . "/".$object->ref;
-	$urlsource=$_SERVER["PHP_SELF"]."?id=".$object->id;
-	$genallowed=$user->rights->equipement->creer;
-	$delallowed=$user->rights->equipement->supprimer;
+        print '<div class="fichecenter"><div class="fichehalfleft">';
+        print '<a name="builddoc"></a>'; // ancre
+        /*
+         * Built documents
+         */
+        $filename=dol_sanitizeFileName($object->ref);
+        $filedir=$conf->equipement->dir_output . "/".$object->ref;
+        $urlsource=$_SERVER["PHP_SELF"]."?id=".$object->id;
+        $genallowed=$user->rights->equipement->creer;
+        $delallowed=$user->rights->equipement->supprimer;
 
-	$var=true;
+        $var=true;
 
-	print "<br>\n";
-	$somethingshown=$formfile->show_documents(
-					'equipement', $filename, $filedir, $urlsource,
-					$genallowed, $delallowed, $object->model_pdf,
-					1, 0, 0, 28, 0, '', '', '', $soc->default_lang
-	);
+        print "<br>\n";
+        $somethingshown=$formfile->show_documents(
+            'equipement', $filename, $filedir, $urlsource,
+            $genallowed, $delallowed, $object->model_pdf,
+            1, 0, 0, 28, 0, '', '', '', $soc->default_lang
+        );
 
-	if (DOL_VERSION >= "5.0.0")
-		$somethingshown = $form->showLinkedObjectBlock($object, "");
-	else
-		$somethingshown=$object->showLinkedObjectBlock();
+        if (DOL_VERSION >= "5.0.0")
+            $somethingshown = $form->showLinkedObjectBlock($object, "");
+        else
+            $somethingshown=$object->showLinkedObjectBlock();
 
-	print "</td><td>";
-	print "&nbsp;</td>";
-	print "</tr></table>\n";
+        print '</div><div class="fichehalfright"><div class="ficheaddleft">';
+
+        print '</div></div></div>';
+//    }
 }
+
 llxFooter();
 $db->close();
