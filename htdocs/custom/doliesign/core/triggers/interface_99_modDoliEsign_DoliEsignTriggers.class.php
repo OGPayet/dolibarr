@@ -399,7 +399,7 @@ class InterfaceDoliEsignTriggers extends DolibarrTriggers
 				if ($signStatus == DoliEsign::STATUS_WAITING) {
 					$res = $doliEsign->signCancel($user);
 					if ($res < 0) {
-						$this->errors=$doliEsign->$errors;
+						if (!empty($doliEsign->$errors)) $this->errors=$doliEsign->$errors;
 						if (DoliEsign::checkDolVersion('7.0')) {
 							return -1;
 						} else {
