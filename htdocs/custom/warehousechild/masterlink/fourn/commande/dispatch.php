@@ -465,7 +465,7 @@ if ($action == 'dispatch' && $user->rights->fournisseur->commande->receptionner)
 
                     if (!$error) {
                         if ($qtyToDispatch < 0) {
-                            $comment = $langs->trans("WarehousechildDispatchSupplierOrderCorrect", $object->ref);
+                            $comment = $langs->trans("WarehousechildSupplierOrderDispatchCorrect", $object->ref);
                         } else {
                             $comment = GETPOST('comment');
                         }
