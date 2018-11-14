@@ -461,13 +461,14 @@ class ActionsCompanyRelationships
      */
     function formObjectOptions($parameters, &$object, &$action, $hookmanager)
     {
-        global $langs, $user;
+        global $conf, $langs, $user;
 
         $contexts = explode(':', $parameters['context']);
 
         if (in_array('globalcard', $contexts)) {
             dol_include_once('/companyrelationships/class/companyrelationships.class.php');
 
+            // /!\ element shipping (uses expediton/shipment.php for edit mode and uses expedition/card.php has only create card)
             if (!empty($object->table_element) && !empty($object->element) && in_array($object->element, CompanyRelationships::$psa_element_list)) {
 
                 if ($object->element == 'fichinter') {
@@ -501,6 +502,7 @@ class ActionsCompanyRelationships
                             $fk_soc_benefactor = $object->array_options['options_companyrelationships_fk_soc_benefactor'];
                         }
 
+                        // object src is defined (create from original card)
                         if (isset($parameters['objectsrc']) && is_object($parameters['objectsrc'])) {
                             $objectsrc = $parameters['objectsrc'];
 
@@ -513,6 +515,24 @@ class ActionsCompanyRelationships
 
                             if (intval($fk_soc_benefactor) <= 0 && isset($objectsrc->array_options['options_companyrelationships_fk_soc_benefactor'])) {
                                 $fk_soc_benefactor = $objectsrc->array_options['options_companyrelationships_fk_soc_benefactor'];
+                            }
+                        } else {
+                            // for shipping (no object src in parameters) with order origin
+                            if ($origin == 'commande' && $originid > 0) {
+                                // fetch origin object (commande)
+                                require_once DOL_DOCUMENT_ROOT . '/commande/class/commande.class.php';
+                                $objectsrc = new Commande($this->db);
+
+                                dol_syslog("Try to find order source object origin=" . $origin . " originid=" . $originid);
+                                $objectsrc->fetch($originid);
+
+                                if (intval($socid) <= 0 && $objectsrc->socid > 0) {
+                                    $socid = $objectsrc->socid;
+                                }
+
+                                if (intval($fk_soc_benefactor) <= 0 && isset($objectsrc->array_options['options_companyrelationships_fk_soc_benefactor'])) {
+                                    $fk_soc_benefactor = $objectsrc->array_options['options_companyrelationships_fk_soc_benefactor'];
+                                }
                             }
                         }
                     }
@@ -601,6 +621,15 @@ class ActionsCompanyRelationships
                         }
                         $out .= '});';
                         $out .= '</script>';
+
+
+                        // ajax search
+                        if ($conf->use_javascript_ajax)
+                        {
+                            include_once DOL_DOCUMENT_ROOT . '/core/lib/ajax.lib.php';
+                            $comboenhancement = ajax_combobox('options_companyrelationships_fk_soc_benefactor', array(), $conf->global->COMPANY_USE_SEARCH_TO_SELECT);
+                            $out.= $comboenhancement;
+                        }
                     } // no company selected (select options in this form to choose the company)
                     else {
                         $events = array();
@@ -638,11 +667,19 @@ class ActionsCompanyRelationships
                             $out .= '});';
                             $out .= '</script>';
                         }
+
+                        // ajax search
+                        if ($conf->use_javascript_ajax)
+                        {
+                            include_once DOL_DOCUMENT_ROOT . '/core/lib/ajax.lib.php';
+                            $comboenhancement = ajax_combobox('options_companyrelationships_fk_soc_benefactor', array(), $conf->global->COMPANY_USE_SEARCH_TO_SELECT);
+                            $out.= $comboenhancement;
+                        }
                     }
 
                     print $out;
                 }
-                // edit
+                // edit extrafields
                 else if ($action=='edit_extras' && $userRightsElementCreer) {
 
                     $attribute = GETPOST('attribute', 'alpha');
@@ -658,26 +695,90 @@ class ActionsCompanyRelationships
 
                         // company id already posted (an input hidden in this form)
                         if (intval($socid)>0) {
-                            $out .= '<script type="text/javascript" language="javascript">';
-                            $out .= 'jQuery(document).ready(function(){';
-                            $out .= '   var data = {';
-                            $out .= '       action: "getBenefactor",';
-                            $out .= '       id: "' . $socid . '",';
-                            $out .= '       htmlname: "options_companyrelationships_fk_soc_benefactor",';
-                            $out .= '       fk_soc_benefactor: "' . $fk_soc_benefactor . '"';
-                            $out .= '   };';
-                            $out .= '   var input = jQuery("select#options_companyrelationships_fk_soc_benefactor");';
-                            $out .= '   jQuery.getJSON("' . dol_buildpath('/companyrelationships/ajax/benefactor.php', 1) . '", data,';
-                            $out .= '       function(response) {';
-                            $out .= '           input.html(response.value);';
-                            $out .= '           input.change();';
-                            $out .= '           if (response.num < 0) {';
-                            $out .= '               console.error(response.error);';
-                            $out .= '           }';
-                            $out .= '       }';
-                            $out .= '   );';
-                            $out .= '});';
-                            $out .= '</script>';
+                            if (! empty($conf->use_javascript_ajax) && ! empty($conf->global->COMPANY_USE_SEARCH_TO_SELECT))
+                            {
+                                $hidelabel = 1;
+                                // No immediate load of all database
+                                $placeholder='';
+                                if ($fk_soc_benefactor && empty($selected_input_value))
+                                {
+                                    dol_include_once('/companyrelationships/class/companyrelationships.class.php');
+                                    $companyrelationships = new CompanyRelationships($this->db);
+                                    $benefactor_ids = $companyrelationships->getRelationships($socid, 1);
+                                    $benefactor_ids = is_array($benefactor_ids) ? $benefactor_ids : array();
+
+                                    require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
+                                    $societetmp = new Societe($this->db);
+                                    $societetmp->fetch($fk_soc_benefactor);
+                                    $selected_input_value=$societetmp->name;
+                                    if (in_array($fk_soc_benefactor, $benefactor_ids)) {
+                                        $selected_input_value .= ' *';
+                                    }
+
+                                    unset($societetmp);
+                                }
+                                // mode 1
+                                $urloption='htmlname=options_companyrelationships_fk_soc_benefactor&outjson=1&socid='.$socid;
+                                $out .= ajax_autocompleter($fk_soc_benefactor, 'options_companyrelationships_fk_soc_benefactor', dol_buildpath('/companyrelationships/ajax/benefactor2.php', 1), $urloption, $conf->global->COMPANY_USE_SEARCH_TO_SELECT);
+                                $out .= '<style type="text/css">
+					            .ui-autocomplete {
+						            z-index: 250;
+					            }
+				                </style>';
+                                if (empty($hidelabel)) print $langs->trans("RefOrLabel").' : ';
+                                else if ($hidelabel > 1) {
+                                    if (! empty($conf->global->MAIN_HTML5_PLACEHOLDER)) $placeholder=' placeholder="'.$langs->trans("RefOrLabel").'"';
+                                    else $placeholder=' title="'.$langs->trans("RefOrLabel").'"';
+                                    if ($hidelabel == 2) {
+                                        $out .= img_picto($langs->trans("Search"), 'search');
+                                    }
+                                }
+                                $out.=  '<input type="text" name="search_options_companyrelationships_fk_soc_benefactor" id="search_options_companyrelationships_fk_soc_benefactor" value="'.$selected_input_value.'"'.$placeholder.' '.(!empty($conf->global->THIRDPARTY_SEARCH_AUTOFOCUS) ? 'autofocus' : '').' />';
+                                if ($hidelabel == 3) {
+                                    $out.= img_picto($langs->trans("Search"), 'search');
+                                }
+                                $out .= '<script type="text/javascript" language="javascript">';
+                                $out .= 'jQuery(document).ready(function(){';
+                                $out .= '   var cr_input = $("input#options_companyrelationships_fk_soc_benefactor");';
+                                $out .= '   var cr_input_search = $("input#search_options_companyrelationships_fk_soc_benefactor");';
+                                $out .= '   var cr_select = $("select#options_companyrelationships_fk_soc_benefactor");';
+                                $out .= '   var cr_select_form = cr_select.closest("form");';
+                                $out .= '   cr_input.detach().prependTo(cr_select_form);';
+                                $out .= '   cr_input_search.detach().prependTo(cr_select_form);';
+                                $out .= '   cr_select.remove();';
+                                $out .= '});';
+                                $out .= '</script>';
+                            }
+                            else
+                            {
+                                $out .= '<script type="text/javascript" language="javascript">';
+                                $out .= 'jQuery(document).ready(function(){';
+                                $out .= '   var data = {';
+                                $out .= '       action: "getBenefactor",';
+                                $out .= '       id: "' . $socid . '",';
+                                $out .= '       htmlname: "options_companyrelationships_fk_soc_benefactor",';
+                                $out .= '       fk_soc_benefactor: "' . $fk_soc_benefactor . '"';
+                                $out .= '   };';
+                                $out .= '   var input = jQuery("select#options_companyrelationships_fk_soc_benefactor");';
+                                $out .= '   jQuery.getJSON("' . dol_buildpath('/companyrelationships/ajax/benefactor.php', 1) . '", data,';
+                                $out .= '       function(response) {';
+                                $out .= '           input.html(response.value);';
+                                $out .= '           input.change();';
+                                $out .= '           if (response.num < 0) {';
+                                $out .= '               console.error(response.error);';
+                                $out .= '           }';
+                                $out .= '       }';
+                                $out .= '   );';
+                                $out .= '});';
+                                $out .= '</script>';
+
+                                if ($conf->use_javascript_ajax)
+                                {
+                                    include_once DOL_DOCUMENT_ROOT . '/core/lib/ajax.lib.php';
+                                    $comboenhancement = ajax_combobox('options_companyrelationships_fk_soc_benefactor', array(), $conf->global->COMPANY_USE_SEARCH_TO_SELECT);
+                                    $out.= $comboenhancement;
+                                }
+                            }
                         }
 
                         print $out;

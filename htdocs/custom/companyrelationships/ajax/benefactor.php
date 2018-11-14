@@ -87,14 +87,14 @@ if (! empty($id) && ! empty($action) && ! empty($htmlname))
         if (in_array($company['key'], $benefactor_ids)) {
             $selected = '';
             if ($company['key'] == $selectedCompanyId) {
-                $selected = ' selected="seleected"';
+                $selected = ' selected="selected"';
             }
 
             $arrayresult[] = '<option value="' . $company['key'] . '"' . $selected . '>'.(preg_match('/\s\*$/',$company['label']) !== false ? $company['label'] . ' *' : $company['label']).'</option>';
         } else {
             $selected = '';
             if ($company['key'] == $selectedCompanyId) {
-                $selected = ' selected="seleected"';
+                $selected = ' selected="selected"';
             }
             $others[] = '<option value="' . $company['key'] . '"' . $selected . '>' . $company['label'] . '</option>';
         }
