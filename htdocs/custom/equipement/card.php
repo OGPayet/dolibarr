@@ -257,7 +257,7 @@ if ($action == 'confirm_validate'
 	exit;
 } elseif ($action == 'confirm_delete' && $confirm != 'yes' && $user->rights->equipement->supprimer)
 	$action = '';
-elseif ((substr($action, 0, 7) == 'setExFi' || $action == 'update_extras') ) {
+elseif ((substr($action, 0, 7) == 'setExFi' || $action == 'update_extras') && $user->rights->equipement->creer) {
     $keyExFi = substr($action, 7);
 
     $res = $object->fetch_optionals($object->id, $extralabels);
