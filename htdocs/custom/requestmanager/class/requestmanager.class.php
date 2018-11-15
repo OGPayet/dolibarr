@@ -2028,10 +2028,7 @@ class RequestManager extends CommonObject
         // Delete linked categories
         if (!$error) {
             $sql  = 'DELETE FROM ' . MAIN_DB_PREFIX . 'categorie_requestmanager';
-            $sql .= ' WHERE fk_categorie = ' . $this->id;
-            $sql .= ' AND fk_requestmanager . $type . =' . $obj->id;
-            $sql = "DELETE FROM " . MAIN_DB_PREFIX . $this->table_element;
-            $sql .= ' WHERE rowid = ' . $this->id;
+            $sql .= ' WHERE fk_requestmanager = ' . $this->id;
 
             $resql = $this->db->query($sql);
             if (!$resql) {
