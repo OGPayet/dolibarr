@@ -337,6 +337,9 @@ class modCompanyRelationships extends DolibarrModules
         $publicSpaceAvailibilityElementList = CompanyRelationships::$psa_element_list;
         include_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
         $extrafields = new ExtraFields($this->db);
+
+        // all extrafields we want to keep position
+        $extrafieldToKeepArray = array('companyrelationships_fk_soc_benefactor', 'companyrelationships_availability_principal', 'companyrelationships_availability_benefactor');
         foreach($publicSpaceAvailibilityElementList as $elementType) {
             if ($elementType == 'shipping') {
                 $elementType = 'expedition';
@@ -345,11 +348,39 @@ class modCompanyRelationships extends DolibarrModules
             } else if ($elementType == 'invoice_supplier') {
                 $elementType = 'facture_fourn';
             }
+
+            // init all extrafields default values for this element type
+            $posInit = 300;
+            $extrafieldToKeepList = array();
+            foreach ($extrafieldToKeepArray as $extrafieldName) {
+                $extrafieldToKeepList[$extrafieldName] = array('pos' => $posInit);
+                $posInit++;
+            }
+
+            // select all extrafields to keep
+            $sqlExtrafield  = "SELECT ef.rowid, ef.name, ef.pos";
+            $sqlExtrafield .= " FROM " . MAIN_DB_PREFIX . "extrafields as ef";
+            $sqlExtrafield .= " WHERE name IN ('" . implode("', '", $extrafieldToKeepArray) . "')";
+            $sqlExtrafield .= " AND elementtype = '" . $elementType . "'";
+            $sqlExtrafield .= " AND entity = " . $conf->entity;
+
+            // keep extrafields positions
+            if ($resql = $this->db->query($sqlExtrafield)) {
+                while ($objExtrafield = $this->db->fetch_object($resql)) {
+                    $extrafieldToKeepList[$objExtrafield->name] = array('pos' => intval($objExtrafield->pos));
+                }
+            }
+
             // benefactor
-            $result = $extrafields->addExtraField('companyrelationships_fk_soc_benefactor', $langs->trans('CompanyRelationshipsBenefactorCompany'), 'sellist', 300,  '', $elementType,   0, 1, '', array('options'=>array('societe:nom:rowid::(client = 1 OR client = 2 OR client = 3) AND status=1'=>null)), 1, '', 0, 0, ''); // For >= v7: ", '', 'companyrelationships@companyrelationships', '$conf->companyrelationships->enabled');"
+            $extrafieldName = $extrafieldToKeepArray[0];
+            $result = $extrafields->addExtraField($extrafieldName, $langs->trans('CompanyRelationshipsBenefactorCompany'), 'sellist', $extrafieldToKeepList[$extrafieldName]['pos'],  '', $elementType,   0, 1, '', array('options'=>array('societe:nom:rowid::(client = 1 OR client = 2 OR client = 3) AND status=1'=>null)), 1, '', 0, 0, ''); // For >= v7: ", '', 'companyrelationships@companyrelationships', '$conf->companyrelationships->enabled');"
+            $result = $extrafields->update($extrafieldName, $langs->trans('CompanyRelationshipsBenefactorCompany'), 'sellist', '',  $elementType,   0, 1, $extrafieldToKeepList[$extrafieldName]['pos'], array('options'=>array('societe:nom:rowid::(client = 1 OR client = 2 OR client = 3) AND status=1:Societe:societe/class/societe.class.php'=>null)), 1, '', 0, 0, ''); // For >= v7: ", '', 'companyrelationships@companyrelationships', '$conf->companyrelationships->enabled');"
+
             // public space availability
-            $result = $extrafields->addExtraField('companyrelationships_availability_principal', $langs->trans('CompanyRelationshipsPublicSpaceAvailabilityPrincipal'), 'boolean', 301,  '', $elementType,   0, 0, '', '', 1, '$user->rights->companyrelationships->update_md->element', 0, 0, ''); // For >= v7: ", '', 'companyrelationships@companyrelationships', '$conf->companyrelationships->enabled');"
-            $result = $extrafields->addExtraField('companyrelationships_availability_benefactor', $langs->trans('CompanyRelationshipsPublicSpaceAvailabilityBenefactor'), 'boolean', 302,  '', $elementType,   0, 0, '', '', 1, '$user->rights->companyrelationships->update_md->element', 0, 0, ''); // For >= v7: ", '', 'companyrelationships@companyrelationships', '$conf->companyrelationships->enabled');"
+            $extrafieldName = $extrafieldToKeepArray[1];
+            $result = $extrafields->addExtraField($extrafieldName, $langs->trans('CompanyRelationshipsPublicSpaceAvailabilityPrincipal'), 'boolean', $extrafieldToKeepList[$extrafieldName]['pos'],  '', $elementType,   0, 0, '', '', 1, '$user->rights->companyrelationships->update_md->element', 0, 0, ''); // For >= v7: ", '', 'companyrelationships@companyrelationships', '$conf->companyrelationships->enabled');"
+            $extrafieldName = $extrafieldToKeepArray[2];
+            $result = $extrafields->addExtraField($extrafieldName, $langs->trans('CompanyRelationshipsPublicSpaceAvailabilityBenefactor'), 'boolean', $extrafieldToKeepList[$extrafieldName]['pos'],  '', $elementType,   0, 0, '', '', 1, '$user->rights->companyrelationships->update_md->element', 0, 0, ''); // For >= v7: ", '', 'companyrelationships@companyrelationships', '$conf->companyrelationships->enabled');"
         }
 
         return $this->_init($sql, $options);
