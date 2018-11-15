@@ -920,15 +920,107 @@ if (empty($reshook))
 
 	else if ($action == 'confirm_delete' && $confirm == 'yes' && $user->rights->expedition->supprimer)
 	{
-	    $result = $object->delete();
-	    if ($result > 0)
-	    {
-	        header("Location: ".DOL_URL_ROOT.'/expedition/index.php');
-	        exit;
-	    }
-	    else
-		{
-			setEventMessages($object->error, $object->errors, 'errors');
+	    $error = 0;
+
+        // check user rights for equipment module
+        if (!empty($conf->equipement->enabled) && !$user->rights->equipement->creer) {
+            $error++;
+            $object->error    = $langs->trans('ErrorForbidden');
+            $object->errors[] = $object->error;
+        }
+
+        if (!$error) {
+            $db->begin();
+
+            if (!$error && !empty($conf->equipement->enabled)) {
+                // find all equipment events in shipment
+                $sql = "SELECT ee.rowid, ee.fk_equipement, ed.fk_entrepot";
+                $sql .= " FROM " . MAIN_DB_PREFIX . "equipementevt as ee";
+                $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "expeditiondet as ed ON ed.rowid = ee.fk_expeditiondet";
+                $sql .= " WHERE ee.fk_expedition = " . $object->id;
+
+                $resql = $db->query($sql);
+                if (!$resql) {
+                    $error++;
+                    $object->error    = $db->lasterror();
+                    $object->errors[] = $object->error;
+                }
+
+                if (!$error) {
+                    while ($obj = $db->fetch_object($resql)) {
+                        $expeditionFkEntrepot = $obj->fk_entrepot;
+
+                        // update equipment event
+                        $equipementEvtToReplace = new Equipementevt($db);
+                        $ret = $equipementEvtToReplace->fetch($obj->rowid);
+                        if ($ret < 0) {
+                            $error++;
+                            $object->error    = $equipementEvtToReplace->error;
+                            $object->errors[] = $object->error;
+                        }
+                        if (!$error) {
+                            $equipementEvtToReplace->fk_expedition = NULL;
+                            $equipementEvtToReplace->fk_expeditiondet = NULL;
+                            $ret = $equipementEvtToReplace->update();
+                            if ($ret < 0) {
+                                $error++;
+                                $object->error    = $equipementEvtToReplace->error;
+                                $object->errors[] = $object->error;
+                            }
+                        }
+
+                        if (!$error) {
+                            // update equipment
+                            $equipementToReplace = new Equipement($db);
+                            $ret = $equipementToReplace->fetch($obj->fk_equipement);
+                            if ($ret < 0) {
+                                $error++;
+                                $object->error = $equipementToReplace->error;
+                                $object->errors[] = $object->error;
+                            }
+
+                            // move into warehouse of shipping line
+                            $ret = $equipementToReplace->set_entrepot($user, $expeditionFkEntrepot);
+                            if ($ret < 0) {
+                                $error++;
+                                $object->error    = $equipementToReplace->error;
+                                $object->errors[] = $object->error;
+                            }
+
+                            // remove customer link
+                            $ret = $equipementToReplace->set_client($user, -1);
+                            if ($ret < 0) {
+                                $error++;
+                                $object->error    = $equipementToReplace->error;
+                                $object->errors[] = $object->error;
+                            }
+                        }
+
+                        if ($error) {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            $result = $object->delete();
+            if ($result <= 0) {
+                $error++;
+            }
+
+            // commit or rollback
+            if ($error) {
+                $db->rollback();
+            } else {
+                $db->commit();
+            }
+        }
+
+	    if ($error) {
+            setEventMessages($object->error, $object->errors, 'errors');
+	    } else {
+            header("Location: " . DOL_URL_ROOT . '/expedition/index.php');
+            exit();
 	    }
 	}
 	// TODO add alternative status
