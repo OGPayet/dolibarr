@@ -377,7 +377,7 @@ SCRIPT;
                             print '<td colspan="2"></td>';
                         } else {
                             print '<td colspan="2" align="center">';
-                            print '<input type="submit" class="button" name="actionedit" value="' . $langs->trans("Edit") . '">';
+                            print '<input type="submit" class="button" name="actionedit" value="' . $langs->trans("Modify") . '">';
                             print '<input type="submit" class="button" name="actioncancel" value="' . $langs->trans("Cancel") . '">';
                             print '</td>';
                         }

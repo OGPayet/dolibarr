@@ -1008,6 +1008,8 @@ class Dictionary extends CommonObject
     static function getDictionaryLine($db, $module='', $name='', $old_id=0)
     {
         $dictionary = self::getDictionary($db, $module, $name, $old_id);
+        if (!isset($dictionary))
+            return null;
 
         return $dictionary->getNewDictionaryLine();
     }

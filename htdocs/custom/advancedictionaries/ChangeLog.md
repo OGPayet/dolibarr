@@ -3,6 +3,11 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.6] - 16-11-2018
+### Ajouter
+- Ajout de l'API pour la gestion des dictionnaires.
+- Correction mineures.
+
 ## [4.0.5] - 24-09-2018
 ### Ajouter
 - Correction mineures des clés étrangères + affichage d'un message si l'on essaye de supprimer une valeur utilisé.
@@ -31,7 +36,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 16-07-2018
 - Version initial.
 
-[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/compare/v4.0.5...HEAD
+[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/compare/v4.0.6...HEAD
+[4.0.6]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.6
 [4.0.5]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.5
 [4.0.4]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.4
 [4.0.3]: http://git.open-dsi.fr/dolibarr-extension/advancedictionaries/commits/v4.0.3
