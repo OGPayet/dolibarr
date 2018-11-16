@@ -17,8 +17,10 @@ class ActionsPropalehistory
 
 		if (in_array('propalcard',explode(':',$parameters['context'])))
         {
-
-	        if($action != 'create' && $action != 'statut' && $action != 'presend') {
+            // -- Open DSI -- Show action buttons under form confirm -- Begin
+	        //if($action != 'create' && $action != 'statut' && $action != 'presend') {
+            if($action != 'create' && $action != 'presend') {
+            // -- Open DSI -- Show action buttons under form confirm -- End
 			dol_include_once("/propalehistory/class/propaleHist.class.php");
 				$ATMdb = new TPDOdb;
 
