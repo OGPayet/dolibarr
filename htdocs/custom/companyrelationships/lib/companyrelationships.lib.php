@@ -362,7 +362,8 @@ function companyrelationships_show_companyrelationships($conf, $langs, $db, $obj
 
             // Name
             print '<td>';
-            print $companystatic->getNomUrl(1);
+            //print $companystatic->getNomUrl(1);
+            print $companyrelationships->getNomUrlForSociete($companystatic, 1, 'companyrelationships');
             print '</td>';
 
             // Address - Phone - Email

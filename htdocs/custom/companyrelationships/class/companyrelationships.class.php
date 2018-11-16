@@ -557,4 +557,166 @@ class CompanyRelationships
 
         return $formName;
     }
+
+
+    /**
+     * Return a link on thirdparty (with picto)
+     *
+     * @param   Societe     $societe                    Societe object
+     * @param	int         $withpicto                  Add picto into link (0=No picto, 1=Include picto with link, 2=Picto only)
+     * @param	string      $option                     Target of link ('', 'customer', 'prospect', 'supplier', 'project')
+     * @param	int	        $maxlen                     Max length of name
+     * @param	int  	    $notooltip                  1=Disable tooltip
+     * @param   int         $save_lastsearch_value      -1=Auto, 0=No save of lastsearch_values when clicking, 1=Save lastsearch_values whenclicking
+     * @return	string
+     */
+    function getNomUrlForSociete($societe, $withpicto=0, $option='', $maxlen=0, $notooltip=0, $save_lastsearch_value=-1)
+    {
+        global $conf, $langs, $hookmanager;
+
+        if (! empty($conf->dol_no_mouse_hover)) $notooltip=1;   // Force disable tooltips
+
+        $name=$societe->name?$societe->name:$societe->nom;
+
+        if (! empty($conf->global->SOCIETE_ADD_REF_IN_LIST) && (!empty($withpicto)))
+        {
+            if (($societe->client) && (! empty ( $societe->code_client ))
+                && ($conf->global->SOCIETE_ADD_REF_IN_LIST == 1
+                    || $conf->global->SOCIETE_ADD_REF_IN_LIST == 2
+                )
+            )
+                $code = $societe->code_client . ' - ';
+
+            if (($societe->fournisseur) && (! empty ( $societe->code_fournisseur ))
+                && ($conf->global->SOCIETE_ADD_REF_IN_LIST == 1
+                    || $conf->global->SOCIETE_ADD_REF_IN_LIST == 3
+                )
+            )
+                $code .= $societe->code_fournisseur . ' - ';
+
+            if ($conf->global->SOCIETE_ADD_REF_IN_LIST == 1)
+                $name =$code.' '.$name;
+            else
+                $name =$code;
+        }
+
+        if (!empty($societe->name_alias)) $name .= ' ('.$societe->name_alias.')';
+
+        $result=''; $label='';
+        $linkstart=''; $linkend='';
+
+        if (! empty($societe->logo) && class_exists('Form'))
+        {
+            $label.= '<div class="photointooltip">';
+            $label.= Form::showphoto('societe', $societe, 80, 0, 0, 'photowithmargin', 'mini');
+            $label.= '</div><div style="clear: both;"></div>';
+        }
+
+        $label.= '<div class="centpercent">';
+
+        if ($option == 'customer' || $option == 'compta' || $option == 'category' || $option == 'category_supplier')
+        {
+            $label.= '<u>' . $langs->trans("ShowCustomer") . '</u>';
+            $linkstart = '<a href="'.DOL_URL_ROOT.'/comm/card.php?socid='.$societe->id;
+        }
+        else if ($option == 'prospect' && empty($conf->global->SOCIETE_DISABLE_PROSPECTS))
+        {
+            $label.= '<u>' . $langs->trans("ShowProspect") . '</u>';
+            $linkstart = '<a href="'.DOL_URL_ROOT.'/comm/card.php?socid='.$societe->id;
+        }
+        else if ($option == 'supplier')
+        {
+            $label.= '<u>' . $langs->trans("ShowSupplier") . '</u>';
+            $linkstart = '<a href="'.DOL_URL_ROOT.'/fourn/card.php?socid='.$societe->id;
+        }
+        else if ($option == 'agenda')
+        {
+            $label.= '<u>' . $langs->trans("ShowAgenda") . '</u>';
+            $linkstart = '<a href="'.DOL_URL_ROOT.'/societe/agenda.php?socid='.$societe->id;
+        }
+        else if ($option == 'project')
+        {
+            $label.= '<u>' . $langs->trans("ShowProject") . '</u>';
+            $linkstart = '<a href="'.DOL_URL_ROOT.'/societe/project.php?socid='.$societe->id;
+        }
+        else if ($option == 'margin')
+        {
+            $label.= '<u>' . $langs->trans("ShowMargin") . '</u>';
+            $linkstart = '<a href="'.DOL_URL_ROOT.'/margin/tabs/thirdpartyMargins.php?socid='.$societe->id.'&type=1';
+        }
+        // specific link for this module
+        else if ($option == 'companyrelationships')
+        {
+            $label.= '<u>' . $langs->trans("ShowCompany") . '</u>';
+            $linkstart = '<a href="' . dol_buildpath('/companyrelationships/companyrelationships.php?socid=' . $societe->id, 1);
+        }
+
+        // By default
+        if (empty($linkstart))
+        {
+            $label.= '<u>' . $langs->trans("ShowCompany") . '</u>';
+            $linkstart = '<a href="'.DOL_URL_ROOT.'/societe/card.php?socid='.$societe->id;
+        }
+
+        if (! empty($societe->name))
+        {
+            $label.= '<br><b>' . $langs->trans('Name') . ':</b> '. $societe->name;
+            if (! empty($societe->name_alias)) $label.=' ('.$societe->name_alias.')';
+        }
+        if (! empty($societe->code_client) && $societe->client)
+            $label.= '<br><b>' . $langs->trans('CustomerCode') . ':</b> '. $societe->code_client;
+        if (! empty($societe->code_fournisseur) && $societe->fournisseur)
+            $label.= '<br><b>' . $langs->trans('SupplierCode') . ':</b> '. $societe->code_fournisseur;
+        if (! empty($conf->accounting->enabled) && $societe->client)
+            $label.= '<br><b>' . $langs->trans('CustomerAccountancyCode') . ':</b> '. $societe->code_compta;
+        if (! empty($conf->accounting->enabled) && $societe->fournisseur)
+            $label.= '<br><b>' . $langs->trans('SupplierAccountancyCode') . ':</b> '. $societe->code_compta_fournisseur;
+
+        $label.= '</div>';
+
+        // Add type of canvas
+        $linkstart.=(!empty($societe->canvas)?'&canvas='.$societe->canvas:'');
+        // Add param to save lastsearch_values or not
+        $add_save_lastsearch_values=($save_lastsearch_value == 1 ? 1 : 0);
+        if ($save_lastsearch_value == -1 && preg_match('/list\.php/',$_SERVER["PHP_SELF"])) $add_save_lastsearch_values=1;
+        if ($add_save_lastsearch_values) $linkstart.='&save_lastsearch_values=1';
+        $linkstart.='"';
+
+        $linkclose='';
+        if (empty($notooltip))
+        {
+            if (! empty($conf->global->MAIN_OPTIMIZEFORTEXTBROWSER))
+            {
+                $label=$langs->trans("ShowCompany");
+                $linkclose.=' alt="'.dol_escape_htmltag($label, 1).'"';
+            }
+            $linkclose.= ' title="'.dol_escape_htmltag($label, 1).'"';
+            $linkclose.=' class="classfortooltip"';
+
+            if (! is_object($hookmanager))
+            {
+                include_once DOL_DOCUMENT_ROOT.'/core/class/hookmanager.class.php';
+                $hookmanager=new HookManager($societe->db);
+            }
+            $hookmanager->initHooks(array('cr_societedao'));
+            $parameters=array('id'=>$societe->id);
+            $reshook=$hookmanager->executeHooks('cr_getnomurltooltip',$parameters,$societe,$action);    // Note that $action and $societe may have been modified by some hooks
+            if ($reshook > 0) $linkclose = $hookmanager->resPrint;
+        }
+        $linkstart.=$linkclose.'>';
+        $linkend='</a>';
+
+        global $user;
+        if (! $user->rights->societe->client->voir && $user->societe_id > 0 && $societe->id != $user->societe_id)
+        {
+            $linkstart='';
+            $linkend='';
+        }
+
+        if ($withpicto) $result.=($linkstart.img_object(($notooltip?'':$label), 'company', ($notooltip?'':'class="classfortooltip valigntextbottom"'), 0, 0, $notooltip?0:1).$linkend);
+        if ($withpicto && $withpicto != 2) $result.=' ';
+        if ($withpicto != 2) $result.=$linkstart.($maxlen?dol_trunc($name,$maxlen):$name).$linkend;
+
+        return $result;
+    }
 }
