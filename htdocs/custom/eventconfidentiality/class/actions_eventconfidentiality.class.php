@@ -120,8 +120,8 @@ class ActionsEventConfidentiality
 								$out .= '<tr id="'.$fk_tag['id'].'">';
 								$out .= '<td>'.$fk_tag['label'].'</td>';
 								$out .= '<td>'.$fk_tag['level_label'].'</td>';
-								$out .= '<td class="linecoledit" align="center"><a href="'.$_SERVER["PHP_SELF"].'?action=edit&id='.$object->id.'&lineid='.$fk_tag['id'].'"><img src="/htdocs/theme/owntheme/img/edit.png" alt="" title="Modifier" class="pictoedit"></a></td>';
-								$out .= '<td class="linecoldelete" align="center"><a href="'.$_SERVER["PHP_SELF"].'?action=ask_deleteline&id='.$object->id.'&lineid='.$fk_tag['id'].'"><img src="/htdocs/theme/owntheme/img/delete.png" alt="" title="Supprimer" class="pictodelete"></a></td>';
+								$out .= '<td class="linecoledit" align="center"><a href="'.$_SERVER["PHP_SELF"].'?action=edit&id='.$object->id.'&lineid='.$fk_tag['id'].'">'.img_edit($langs->trans('Modify')).'</a></td>';
+								$out .= '<td class="linecoldelete" align="center"><a href="'.$_SERVER["PHP_SELF"].'?action=ask_deleteline&id='.$object->id.'&lineid='.$fk_tag['id'].'">'.img_delete($langs->trans('Delete')).'</a></td>';
 								$out .= '</tr>';
 							}
 						}
