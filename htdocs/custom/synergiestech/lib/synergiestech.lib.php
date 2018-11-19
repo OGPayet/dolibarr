@@ -704,7 +704,7 @@ function synergiestech_get_principal_stocks_tooltip_for_product($langs, $conf, $
             $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "product_stock as ps on ps.fk_entrepot = e.rowid AND ps.fk_product = '" . $product_id . "'";
             $sql .= " WHERE e.entity IN (" . getEntity('stock') . ")";
             $sql .= " AND e.statut IN (" . Entrepot::STATUS_OPEN_ALL . "," . Entrepot::STATUS_OPEN_INTERNAL . ")";
-            $sql .= " AND IFNULL(ps.reel, 0) > 0";
+            $sql .= " AND e.statut IN (" . Entrepot::STATUS_OPEN_ALL . "," . Entrepot::STATUS_OPEN_INTERNAL . ")";
 
             $resql = $db->query($sql);
             if (!$resql) {
@@ -742,10 +742,11 @@ function synergiestech_get_principal_stocks_tooltip_for_product($langs, $conf, $
             $count = 0;
             $nb_warehouse_showed = !empty($conf->global->SYNERGIESTECH_PRINCIPAL_WAREHOUSE_NB_SHOWED) ? $conf->global->SYNERGIESTECH_PRINCIPAL_WAREHOUSE_NB_SHOWED : 10;
             foreach ($cache_synergiestech_principal_stocks[$product_id] as $warehouse_id => $warehouse) {
-                if (preg_match("/^{$principal_warehouse_id}$/", $warehouse['full_path']) ||
+                if ($warehouse['stock'] > 0 &&
+                    (preg_match("/^{$principal_warehouse_id}$/", $warehouse['full_path']) ||
                     preg_match("/^{$principal_warehouse_id}_/", $warehouse['full_path']) ||
                     preg_match("/_{$principal_warehouse_id}$/", $warehouse['full_path']) ||
-                    preg_match("/_{$principal_warehouse_id}_/", $warehouse['full_path'])
+                    preg_match("/_{$principal_warehouse_id}_/", $warehouse['full_path']))
                 ) {
                     $infos_list[] = $langs->trans('SynergiesTechPrincipalWarehouseStocks', $warehouse['stock'], $warehouse['full_label']);
                     $sumStock += $warehouse['stock'];
