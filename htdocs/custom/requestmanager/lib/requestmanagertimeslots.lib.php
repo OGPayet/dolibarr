@@ -68,12 +68,24 @@ function requestmanagertimeslots_get_periods($periods)
             return $langs->trans('RequestManagerErrorTimeSlotsDateFormatMustBeEqual', $period);
         }
 
-        if ((isset($date_format_1['year']) && $date_format_1['year'] > $date_format_2['year']) ||
-            (isset($date_format_1['month']) && $date_format_1['month'] > $date_format_2['month']) ||
-            (isset($date_format_1['day']) && $date_format_1['day'] > $date_format_2['day']) ||
-            (isset($date_format_1['hour']) && $date_format_1['hour'] > $date_format_2['hour']) ||
-            (isset($date_format_1['minute']) && $date_format_1['minute'] > $date_format_2['minute'])
-        ) {
+        // Chronological test
+        $test_date_1 = dol_mktime(
+            (isset($date_format_1['hour']) && !empty($date_format_1['hour']) ? $date_format_1['hour'] : 0),
+            (isset($date_format_1['minute']) && !empty($date_format_1['minute']) ? $date_format_1['minute'] : 0),
+            0,
+            (isset($date_format_1['month']) && !empty($date_format_1['month']) ? $date_format_1['month'] : 0),
+            (isset($date_format_1['day']) && !empty($date_format_1['day']) ? $date_format_1['day'] : 0),
+            (isset($date_format_1['year']) && !empty($date_format_1['year']) ? $date_format_1['year'] : 0)
+        );
+        $test_date_2 = dol_mktime(
+            (isset($date_format_2['hour']) && !empty($date_format_2['hour']) ? $date_format_2['hour'] : 0),
+            (isset($date_format_2['minute']) && !empty($date_format_2['minute']) ? $date_format_2['minute'] : 0),
+            0,
+            (isset($date_format_2['month']) && !empty($date_format_2['month']) ? $date_format_2['month'] : 0),
+            (isset($date_format_2['day']) && !empty($date_format_2['day']) ? $date_format_2['day'] : 0),
+            (isset($date_format_2['year']) && !empty($date_format_2['year']) ? $date_format_2['year'] : 0)
+        );
+        if ($test_date_1 > $test_date_2) {
             return $langs->trans('RequestManagerErrorTimeSlotsDateMustBeChronological', $period);
         }
 
