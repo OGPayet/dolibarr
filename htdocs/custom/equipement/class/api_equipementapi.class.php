@@ -94,9 +94,20 @@ class EquipementApi extends DolibarrApi {
             throw new RestException(401, "Insufficient rights");
         }
 
+        // If the internal user must only see his customers, force searching by him
+        $search_sale = 0;
+        if (DolibarrApiAccess::$user->socid > 0 && !DolibarrApiAccess::$user->rights->societe->client->voir) $search_sale = DolibarrApiAccess::$user->id;
+
         $sql = "SELECT t.rowid";
         $sql .= " FROM " . MAIN_DB_PREFIX . "equipement as t";
+        if ($search_sale > 0) {
+            $sql .= ", " . MAIN_DB_PREFIX . "societe_commerciaux as sc"; // We need this table joined to the select in order to filter by sale
+        }
         $sql .= ' WHERE t.entity IN (' . getEntity('equipement') . ')';
+        if ($search_sale > 0) {
+            $sql .= " AND ((t.fk_soc_client = sc.fk_soc AND sc.fk_user = " . $search_sale. ")";     // Join for the needed table to filter by sale | OR t.fk_soc_fourn = sc.fk_soc
+            $sql .= " OR t.fk_soc_client = " . DolibarrApiAccess::$user->socid . ")";               // Insert sale filter
+        }
         // Add sql filters
         if ($sql_filters) {
             if (!DolibarrApi::_checkFilters($sql_filters)) {
@@ -131,7 +142,7 @@ class EquipementApi extends DolibarrApi {
 
             self::$db->free($resql);
         } else {
-            throw new RestException(500, "Error when retrieve equipment list", [ 'details' => [ self::$db->lasterror() ]]);
+            throw new RestException(500, "Error when retrieve equipment list", ['details' => [self::$db->lasterror()]]);
         }
 
         return $obj_ret;
@@ -1027,6 +1038,7 @@ class EquipementApi extends DolibarrApi {
      *
      * @return  Equipement
      *
+     * @throws  403             RestException       Access unauthorized
      * @throws  404             RestException       Equipment not found
      * @throws  500             RestException       Error when retrieve equipment
      */
@@ -1039,6 +1051,14 @@ class EquipementApi extends DolibarrApi {
         } elseif ($result < 0) {
             throw new RestException(500, "Error when retrieve equipment", [ 'details' => $this->_getErrors($equipment) ]);
         }
+
+        if(!DolibarrApi::_checkAccessToResource('equipement', $equipment->id, 'equipement', '', 'fk_soc_client')) {
+            throw new RestException(403, "Access unauthorized");
+        }
+
+//        if(!DolibarrApi::_checkAccessToResource('equipement', $equipment->id, 'equipement', '', 'fk_soc_fourn')) {
+//            throw new RestException(403, "Access unauthorized");
+//        }
 
         return $equipment;
     }
