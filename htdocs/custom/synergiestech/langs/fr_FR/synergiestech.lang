@@ -11,6 +11,8 @@ Permission500101    = Voir les prix des lignes de produits
 Permission500102    = Editer les prix des lignes de produits
 Permission500103    = Voir les remises des lignes de produits
 Permission500104    = Editer les remises des lignes de produits
+Permission500105    = Voir les montants (propositions commerciales, commandes)
+Permission500106    = Accéder aux fichiers jointes (propositions commerciales, commandes)
 
 #######################################################################
 # Configuration admin

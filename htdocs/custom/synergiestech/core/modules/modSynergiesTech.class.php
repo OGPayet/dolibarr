@@ -241,6 +241,20 @@ class modSynergiesTech extends DolibarrModules
         $this->rights[$r][5] = 'creer';
         $r++;
 
+        $this->rights[$r][0] = 500105;
+        $this->rights[$r][1] = 'Voir les montants (propositions commerciales, commandes)';
+        $this->rights[$r][3] = 0;
+        $this->rights[$r][4] = 'amount';
+        $this->rights[$r][5] = 'lire';
+        $r++;
+
+        $this->rights[$r][0] = 500106;
+        $this->rights[$r][1] = 'Accéder les fichiers jointes (propositions commerciales, commandes)';
+        $this->rights[$r][3] = 0;
+        $this->rights[$r][4] = 'documents';
+        $this->rights[$r][5] = 'lire';
+        $r++;
+
 		// Add here list of permission defined by an id, a label, a boolean and two constant strings.
 		// Example:
 		// $this->rights[$r][0] = $this->numero + $r;	// Permission id (must not be already used)
