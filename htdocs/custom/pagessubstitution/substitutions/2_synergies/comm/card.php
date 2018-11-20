@@ -235,24 +235,29 @@ if ($id > 0)
 
     dol_banner_tab($object, 'socid', $linkback, ($user->societe_id?0:1), 'rowid', 'nom');
 
-	$contract = new Contrat($db);
-	$contract->socid = $id;
-	$list_contract = $contract->getListOfContracts();
-	$return = "";
+    //-------------------------------------------------------------------------------
+    // Modification - Open-DSI - Begin
+	$contract_static = new Contrat($db);
+    $extrafields_contract = new ExtraFields($db);
+    $extralabels_contract = $extrafields_contract->fetch_name_optionals_label($contract_static->table_element);
+    $contract_static->socid = $object->id;
+	$list_contract = $contract_static->getListOfContracts();
+	$to_print = array();
 	if(!empty($list_contract)) {
 		foreach($list_contract as $contract) {
-			$extrafields1 = new ExtraFields($db);
-			$extralabels1=$extrafields1->fetch_name_optionals_label($contract->table_element);
-			$contract->fetch($rowid);
-			$contract->fetch_optionals($rowid,$extralabels1);
-			$return = "<a href='".DOL_URL_ROOT."/contrat/card.php?id=".$contract->id."'> ".$extrafields1->showOutputField('formule',$contract->array_options['options_formule'])." - " . $contract->ref."</a> ";
-		}
-		print '<h1 style="color:green;text-align:center;font-size: 4em;">Avec contrat : '.$return.'</h1>';
-
-
-	} else {
-		print '<h1 style="color:red;text-align:center;font-size: 4em;">Sans contrat</h1>';
+            if (($contract->nbofserviceswait + $contract->nbofservicesopened) > 0 && $contract->statut != 2) {
+                $contract->fetch_optionals();
+                $to_print[] = "<a href='" . DOL_URL_ROOT . "/contrat/card.php?id=" . $contract->id . "'> " . $extrafields_contract->showOutputField('formule', $contract->array_options['options_formule']) . " - " . $contract->ref . "</a> ";
+            }
+        }
 	}
+    if(count($to_print) > 0) {
+        print '<h1 style="color:green;text-align:center;font-size: 4em;">Avec contrat : ' . implode(', ', $to_print) . '</h1>';
+    } else {
+        print '<h1 style="color:red;text-align:center;font-size: 4em;">Sans contrat</h1>';
+    }
+    // Modification - Open-DSI - End
+    //-------------------------------------------------------------------------------
 
 	print '<div class="fichecenter"><div class="fichehalfleft">';
 
@@ -577,8 +582,16 @@ if ($id > 0)
 		$icon='bill';
 		if ($link) $boxstat.='<a href="'.$link.'" class="boxstatsindicator thumbstat nobold nounderline">';
 		$boxstat.='<div class="boxstats">';
-		$boxstat.='<span class="boxstatstext">'.img_object("",$icon).' '.$text.'</span><br>';
-		$boxstat.='<span class="boxstatsindicator">'.price($outstandingTotal, 1, $langs, 1, -1, -1, $conf->currency).'</span>';
+		$boxstat.='<span class="boxstatstext">'.img_object($text,$icon).' '.$text.'</span><br>';
+        //-------------------------------------------------------------------------------
+        // Modification - Open-DSI - Begin
+        if (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->lire) {
+            $boxstat .= '<span class="boxstatsindicator">' . price($outstandingTotal, 1, $langs, 1, -1, -1, $conf->currency) . '</span>';
+        } else {
+            $boxstat .= '<span class="boxstatsindicator">&nbsp;</span>';
+        }
+        // Modification - Open-DSI - End
+        //-------------------------------------------------------------------------------
 		$boxstat.='</div>';
 		if ($link) $boxstat.='</a>';
 	}
@@ -595,8 +608,16 @@ if ($id > 0)
 		$icon='bill';
 		if ($link) $boxstat.='<a href="'.$link.'" class="boxstatsindicator thumbstat nobold nounderline">';
 		$boxstat.='<div class="boxstats">';
-		$boxstat.='<span class="boxstatstext">'.img_object("",$icon).' '.$text.'</span><br>';
-		$boxstat.='<span class="boxstatsindicator">'.price($outstandingTotal, 1, $langs, 1, -1, -1, $conf->currency).'</span>';
+		$boxstat.='<span class="boxstatstext">'.img_object($text,$icon).' '.$text.'</span><br>';
+        //-------------------------------------------------------------------------------
+        // Modification - Open-DSI - Begin
+        if (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->lire) {
+            $boxstat.='<span class="boxstatsindicator">'.price($outstandingTotal, 1, $langs, 1, -1, -1, $conf->currency).'</span>';
+        } else {
+            $boxstat.='<span class="boxstatsindicator">&nbsp;</span>';
+        }
+        // Modification - Open-DSI - End
+        //-------------------------------------------------------------------------------
 		$boxstat.='</div>';
 		if ($link) $boxstat.='</a>';
 	}
@@ -612,7 +633,7 @@ if ($id > 0)
 		$icon='bill';
 		if ($link) $boxstat.='<a href="'.$link.'" class="boxstatsindicator thumbstat nobold nounderline">';
 		$boxstat.='<div class="boxstats">';
-		$boxstat.='<span class="boxstatstext">'.img_object("",$icon).' '.$text.'</span><br>';
+		$boxstat.='<span class="boxstatstext">'.img_object($text,$icon).' '.$text.'</span><br>';
 		$boxstat.='<span class="boxstatsindicator">'.price($outstandingTotal, 1, $langs, 1, -1, -1, $conf->currency).'</span>';
 		$boxstat.='</div>';
 		if ($link) $boxstat.='</a>';
@@ -628,7 +649,7 @@ if ($id > 0)
 		$icon='bill';
 		if ($link) $boxstat.='<a href="'.$link.'" class="boxstatsindicator thumbstat nobold nounderline">';
 		$boxstat.='<div class="boxstats">';
-		$boxstat.='<span class="boxstatstext">'.img_object("",$icon).' '.$text.'</span><br>';
+		$boxstat.='<span class="boxstatstext">'.img_object($text,$icon).' '.$text.'</span><br>';
 		$boxstat.='<span class="boxstatsindicator'.($outstandingOpened>0?' amountremaintopay':'').'">'.price($outstandingOpened, 1, $langs, 1, -1, -1, $conf->currency).$warn.'</span>';
 		$boxstat.='</div>';
 		if ($link) $boxstat.='</a>';
@@ -695,7 +716,15 @@ if ($id > 0)
                     print " ".img_warning();
                 }
 				print '</td><td align="right" width="80px">'.dol_print_date($db->jdate($objp->dp),'day')."</td>\n";
-				print '<td align="right" style="min-width: 60px">'.price($objp->total_ht).'</td>';
+                //-------------------------------------------------------------------------------
+                // Modification - Open-DSI - Begin
+                if (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->lire) {
+                    print '<td align="right" style="min-width: 60px">'.price($objp->total_ht).'</td>';
+                } else {
+                    print '<td align="right" style="min-width: 60px"></td>';
+                }
+                // Modification - Open-DSI - End
+                //-------------------------------------------------------------------------------
 				print '<td align="right" style="min-width: 60px" class="nowrap">'.$propal_static->LibStatut($objp->fk_statut,5).'</td></tr>';
 				$i++;
 			}
@@ -776,7 +805,15 @@ if ($id > 0)
                 $commande_static->total_ttc = $objp->total_ttc;
                 print $commande_static->getNomUrl(1);
 				print '</td><td align="right" width="80px">'.dol_print_date($db->jdate($objp->dc),'day')."</td>\n";
-				print '<td align="right" style="min-width: 60px">'.price($objp->total_ht).'</td>';
+                //-------------------------------------------------------------------------------
+                // Modification - Open-DSI - Begin
+                if (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->lire) {
+                    print '<td align="right" style="min-width: 60px">'.price($objp->total_ht).'</td>';
+                } else {
+                    print '<td align="right" style="min-width: 60px"></td>';
+                }
+                // Modification - Open-DSI - End
+                //-------------------------------------------------------------------------------
 				print '<td align="right" style="min-width: 60px" class="nowrap">'.$commande_static->LibStatut($objp->fk_statut,$objp->facture,5).'</td></tr>';
 				$i++;
 			}
@@ -985,7 +1022,9 @@ if ($id > 0)
 		$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'paiement_facture as pf ON f.rowid=pf.fk_facture';
 		$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX."facture_extrafields as fec ON fec.fk_object = f.rowid";
 		$sql.= " WHERE (f.fk_soc =".$object->id . " OR fec.companyrelationships_fk_soc_benefactor =" .$object->id .")" ;
-		$sql.= " AND f.entity = ".$conf->entity;
+        $sql.= " AND f.entity = ".$conf->entity;
+        $sql.= ' GROUP BY f.rowid, f.facnumber, f.type, f.amount, f.total, f.tva, f.total_ttc,';
+        $sql.= ' f.datef, f.datec, f.paye, f.fk_statut';
 		$sql.= " ORDER BY f.datef DESC, f.datec DESC";
 
 		$resql=$db->query($sql);
