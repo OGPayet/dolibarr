@@ -1,0 +1,47 @@
+--------------------------------------------------------------
+English Dolibarr MailChimp ChangeLog
+--------------------------------------------------------------
+
+***** ChangeLog for 1.16 compared to 1.14 *****
+- Add status and better management of mailchimp contact tab
+- Use MailChimp V3
+- Alert when user email change and is link to a list
+
+***** ChangeLog for 1.14 compared to 1.13 *****
+- Add Click report (only if database activities log option is enabled)
+- Add Contact by category synchronization
+
+***** ChangeLog for 1.13 compared to 1.12 *****
+- Add export campain Feature
+
+***** ChangeLog for 1.12 compared to 1.11 *****
+- Fix bug on importing contact from mailchimp segment
+
+***** ChangeLog for 1.11 compared to 1.10 *****
+- Subscribe contact to list directly from contact=>mailchimp tab
+
+***** ChangeLog for 1.10 compared to 1.7 *****
+- Use new mailchimp API 2.0
+- Allow update status destinaries mailchimp in dolibarr mailing
+- Mailcimp contact activites tab added in contact card
+
+***** ChangeLog for 1.7 compared to 1.6 *****
+- Fix email validity test into administration module
+
+***** ChangeLog for 1.6 compared to 1.5 *****
+- Fix Spelling (thank to GPCSolutions)
+
+***** ChangeLog for 1.5 compared to 1.4 *****
+- Fix Spelling and Mailing mode only
+
+***** ChangeLog for 1.4 compared to 1.3 *****
+- Fix Bug on export contact
+
+***** ChangeLog for 1.3 compared to 1.2 *****
+- Fix various bugs with Dolibarr 3.4 (from now Mailchimp will be only comptible with dolibarr 3.4)
+
+***** ChangeLog for 1.2 compared to 1.1 *****
+- New : Add option to use the module without transactional mail (without mandrill)
+
+***** ChangeLog for 1.1 compared to 1.0 *****
+-Fix bug on module installation.

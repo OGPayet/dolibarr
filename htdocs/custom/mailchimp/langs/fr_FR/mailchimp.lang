@@ -1,0 +1,252 @@
+# <MailChimp connector>
+# Copyright (C) 2013 Florian Henry florian.henry@open-concept.pro
+# Copyright (C) 2013 Raphaël Doursenaud <rdoursenaud@gpcsolutions.fr>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#
+# Générique
+#
+
+# Module label 'ModuleXXXName'
+# (where XXX is value of numeric property 'numero' of module)
+Module103020Name = MailChimp
+# Module description 'ModuleXXXDesc'
+# (where XXX is value of numeric property 'numero' of module)
+Module103020Desc = Connecteur MailChimp
+
+#
+# Page d'administration
+#
+MailChimpSetup = Configuration du module MailChimp
+MailChimpSettings = Réglages
+MailChimpSetupPage = Page de réglage de MailChimp
+MailChimpErrorCurlNotLoaded=Erreur : l'extension CURL n'est pas chargée dans la configuration PHP
+
+#
+# Page À propos
+#
+About = À propos
+MailChimpAbout = À propos de MailChimp
+MailChimpAboutPage = Page à propos de MailChimp
+
+#
+# Right
+#
+Permission1030200 = Lecture des attributs des campagnes MailChimp
+Permission1030201 = Écriture des attributs des campagnes MailChimp
+Permission1030202 = Autoriser la synchronisation manuelle
+
+#
+# Menu
+#
+MailChimpSending=MailChimp
+MailChimpTarget=Destinataires
+MailChimpListCampaign = Liste des campagnes Dolibarr
+MailChimpClickReport=Rapport des clics
+
+#
+# Admin
+#
+SettingsMailChimp=Configuration du module MailChimp
+MailChimpExplain=MailChimp est un service gratuit d'envoi d'emails<br><u><b>Internet Requis</b></u><br>Pour plus d'informations, consultez le site de <a href="http://www.mailchimp.com/" target="_blank">MailChimp</a>.<br>Pour voir vos identifiants : <a href="https://admin.mailchimp.com/account/profile/" target="_blank">Mon compte MailChimp</a>
+MAILCHIMP_MAIL_SMTP_SERVER=Serveur SMTP MailChimp
+MAILCHIMP_MAIL_SMTP_SERVERHelp=Vérifiez vos paramètres MailChimp (Serveur SMTP)
+MAILCHIMP_SMTP_PORT=Port serveur SMTP MailChimp
+MAILCHIMP_SMTP_PORTHelp=Vérifiez vos paramètres MailChimp (Port)
+MAILCHIMP_MAIL_SMTPS_ID=Utilisateur MailChimp (Email/login)
+MAILCHIMP_MAIL_SMTPS_IDHelp=Vérifiez vos paramètres MailChimp (Clé API)
+MAILCHIMP_MAIL_SMTPS_PW=Clé API MailChimp (Clé secrète)
+MAILCHIMP_MAIL_SMTPS_PWHelp=Vérifiez vos paramètres MailChimp (Clé secrète)
+MAILCHIMP_MAIL_EMAIL_TLS=Utiliser TLS pour MailChimp
+MAILCHIMP_MAIL_EMAIL_TLSHelp=Vérifiez vos paramètres MailChimp (TLS)
+MAILCHIMP_MAIL_EMAIL_FROM=Émetteur pour envoi emails automatiques
+MAILCHIMP_MAIL_EMAIL_FROMHelp=Nous vérifirons que cette adresse email est validée par MailChimp
+MAILCHIMP_MANDRILL_API_KEY = Clé API Mandrill
+MAILCHIMP_MANDRILL_API_KEYHelp = MailChimp n'est pas un fournisseur SMTP, Vous devez lier votre compte MailChimp à un compte Mandrill et paramétrer une Clé API
+MailChimpActiveSending=Tous les emails seront envoyés par MailChimp
+MailChimpActiveSendingForMailingOnly=Tous vos emails continueront de partir via le SMTP défini dans la configuration de Dolibarr.
+MailChimpActiveSendingForMailingOnlyHelp= La configuration email de Dolibarr n'est pas affectée, le module ne servira qu'à alimenter/synchroniser vos listes et segments MailChimp
+MailChimpSuccessSave=Configuration sauvegardée
+MailChimpDolibarrSettings=La configuration actuelle (<a href="%s">Configuration email</a>) sera sauvegardée lors de l'activation de cette option.<BR> Pour retrouver la configuration d'origine il vous suffit de désactiver le module par ce bouton.
+MailChimpDolibarrCheckSettings = Allez ici : <a href="%s">Configuration email</a> pour tester votre configuration
+MailChimpAPIKeyNotSet=Clé API obligatoire
+MandrillSecretKeyNotSet=Clé API Mandrill obligatoire
+MailChimpSecretKeyNotSet=Clé secrète obligatoire
+MailChimpSenderNameValid=Adresse Email valide
+MailChimpSenderNameNotValid=Adresse Email non valide
+MailChimpActiveActivityLocalStorage=Activer le stockage de l'historique de l'activité des contacts dans la base de données de Dolibarr. Attention cela peux augmenter la taille de votre base de données et ralentir la mise à jour des statut des destinataires.
+MAILCHIMP_NB_MAX_LIST=Nombre maximum de listes parcourues
+MAILCHIMP_NB_MAX_LISTHelp= Nombre permettant d'améliorer la vitesse de chargement de l'onglet mailchimp pour un contact, mais ATTENTION cela peut entrainer des pertes d'informations. Ne pas remplir si l'onglet mailchimp d'un contact se charge assez vite.
+MAILCHIMPHIDECONTACTACTIVITES=Cacher les activités des contacts en fonction des campagnes (fiche contact, onglet mailchimp) : permet un chargement plus rapide de la page
+
+#
+# Recipients list
+#
+MailChimpCreateList=Créer une liste de destinataires
+MailChimpDestList=Liste de destinataires MailChimp
+MailChimpListName=Nom de la liste
+MailChimpSubcribers=Nombre d'inscrits
+MailChimpNoEmailFound = Les référents et leurs contacts n'ont pas d'email (ou non valide)
+MailChimpDestListAction=Email des destinataires
+MailChimpNewListName = Créer la liste sur MailChimp (recharger cette page pour actualiser)
+MailChimpOr=Ou
+MailChimpUpdateExistingList=Choisissez une liste a laquelle ajouter ces emails
+MailChimpListNoEmailFound=Aucune liste trouvée
+MailChimpSelected=Selectionner
+MailChimpUpdateExistingSegments=Choisissez un segment auquel ajouter ces emails
+MailChimpNewSegmentName = Crée un nouveau segment
+MailChimpSelectSegmentOrNewOnes = Vous avez sélectionné un segment et saisi un nouveau nom. Vous devez choisir entre les deux options.
+MailChimpResetSegment = Vider le segment avant d'ajouter le(s) email(s)
+MailChimpSegment=Segment
+CreateCampaignOnThisSegment=Crée une campagne sur ce segment
+MailChimpUpdateStatus=Mettre à jour le statut des destinataires Dolibarr depuis MailChimp
+MailChimpConfirmUpdateCampaignText=Cette opération peux être très longue et provoquer un message d'erreur suite au temps d'exécution maximum dépassé <BR> Il est préférable de demander a votre administrateur Dolibarr de lancer cette tache en mode Batch via la ligne de commande <br><textarea cols="60" rows="2" wrap="soft">php %s</textarea>;
+MailChimpConfirmUpdateCampaign=Confirmer la mise à jour des statuts des destinataires Dolibarr depuis MailChimp pour la campagnes
+
+#
+# Index
+#
+MailChimpCampaign = Campagne
+MailChimpExplainIndex=Pour créer une campagne MailChimp, vous avez besoins de définir une liste/segment de destinataires.<BR>Pour créer une liste, rendez-vous sur <a href="http://www.mailchimp.com/" target="_blank">MailChimp</a>. <BR> Vous pouvez trouver un assistant sur l'onglet <b>%s</b> de <b>%s</b>. <BR> ou <BR> après avoir créé un emailing Dolibarr et ciblé des destinataires sur l'onglet MailChimp.
+DolibarrCampaignLink=Campagne Dolibarr liée
+MailChimpUpdateAllCampaign=Mettre à jour le statut des destinataires Dolibarr depuis MailChimp pour toutes les campagnes
+MailChimpConfirmUpdateAllCampaignText=Cette opération peux être très longue et provoquer un message d'erreur suite au temps d'execution maximum dépassé <BR> Il est préférable de demander à votre administrateur Dolibarr de lancer cette tache en mode Batch via la ligne de commande <br><textarea cols="60" rows="2" wrap="soft">php %s</textarea>;
+MailChimpConfirmUpdateAllCampaign=Confirmer la mise à jour des statuts des destinataires Dolibarr depuis MailChimp pour toutes les campagnes
+
+#
+# Status
+#
+MailChimpsave=Enregistrée
+MailChimppaused=En Pause
+MailChimpschedule=Programmée
+MailChimpsent=Envoyée
+MailchimpHardBounce=Hard bounce
+MailchimpSoftBounce=Soft bounce
+MailchimpOpen=Ouvert
+MailchimpClick=Clic
+MailchimpUnsucscribe=Désabonné
+
+#
+# Contact Status
+#
+MailChimpSubscribersState = Statut du contact
+MailChimpStatusunsubscribed=Désinscrit
+MailChimpStatuscleaned=Supprimé (ou non inscrit)
+MailChimpStatuspending=En attente
+MailChimpStatussubscribed=Inscrit
+
+
+#
+# Subscription
+#
+MailChimpUnsubscribe = Lien de désinscription
+MailChimpsending=Envoi en cours
+
+#
+# MailChimp Screen
+#
+MailJetUnsubLinkMandatory=Le lien de désinscription est obligatoire pour les emailing MailChimp
+MailChimpNoFileAttached=Les fichiers attachés ne sont pas autorisés dans les emails de campagne MailChimp
+MailJetCannotSendControlNotOK = Vous ne pourrez pas envoyer cet email avec MailChimp car les/la condition(s) ci-dessus ne sont pas remplie(s).
+MailChimpToSendByMailJetGoToMailChimp=Pour envoyer cet emailing par une campagne MailChimp, allez sur l'onglet MailChimp. Sinon, ils partiront comme des emails MailChimp/Mandrill transactionnels.
+MailChimpNotValidated=Votre campagne n'est pas encore validée
+MailChimpSelectSegmentOrList=Il n'y a pas de destinataire défini. Vous pouvez utiliser l'onglet destinataires ou les listes/segments MailChimp avec les options ci-dessous.
+MailChimpImportForm=Importer les contacts MailChimp (supprime et remplace les destinataires Dolibarr par les emails des liste/segment MailChimp sélectionnés)
+MailChimpExportTo=Exporter les destinataires Dolibarr actuels vers une liste/segment MailChimp.
+MailChimpEmailNotSync=Les destinataires de la liste/segment MailChimp sont différents de ceux définis dans Dolibarr. Utilisez le panneau ci-dessus pour les synchroniser.
+MailChimpCannotSendControlNotOK= Les conditions de création d'une campagne ne sont pas remplies.
+MailChimpCreateCampaign=Créer la campagne MailChimp
+MailChimpSenderName=Nom de l'expéditeur
+MailChimpSenderNameMandatory=le nom de l'expéditeur est obligatoire
+MailChimpStatus=Statut de la campagne MailChimp
+MailChimpSendMailing=Envoi de la campagne MailChimp
+MailChimpNotActive=Le module est actif mais la configuration n'est pas complète
+MailChimpEmailNotSyncInDolNotMailchimp=Adresse(s) destinataire Dolibarr est absent de la liste/segment MailChimp
+MailChimpUpdateOnly=Sauver le lien Liste/Segment entre la campagne Dolibarr et la campagne MailChimp uniquement
+MailChimpUpdateSegmentOnly=Mettre à jour uniquement le segment sélectionné (ne seront ajoutés au segment que les contacts déjà présents dans la liste MailChimp)
+MailChimpStats=MailChimp Stats.
+MailChimpExportToList=Exporter les contacts vers la liste
+MailChimpExportToSegment=Exporter les contacts vers un segment (faire un export vers la liste au préalable)
+#
+# Contact Activites
+#
+MailChimpActivites=Activité MailChimp
+NbOfEMailingsSend=Emailings de masse envoyé
+MailChimpContactIsList=Le contact appartient à la liste
+MailChimpMayBeLongToSeeStatus=L'inscription à une liste peut être long à devenir effectif chez MailChimp, pour vous assurer du succés de l'opération, nous vous invitons à cliquer sur l'onglet MailChimp pour recharger cette page et observer le changement demandée.
+
+
+#
+# Contact Status
+#
+MailChimpSubscribersState = Statut du contact
+unsubscribed=Désinscrit
+cleaned=Supprimé
+pending=En attente
+subscribed=Inscrit
+NoEmail = Pas d'email
+
+#
+# Export
+#
+ExportDataset_MailinsDestStatus=Mailchimp/Dolibarr - Export des status des destinataires
+
+
+#
+# Fiche categorie contact
+#
+mailchimp_nb_email_removed=Nombre d'email(s) supprimé(s) de la liste : %d
+mailchimp_nb_email_added=Nombre d'email(s) ajouté(s) de la liste : %d
+mailchimp_select_list=Liste mailchimp associé
+mailchimp_select_segment=Segment mailchimp associé
+mailchimp_sync=Synchronisation Mailchimp
+mailchimp_error_syn=Erreur sur synchronisation : %s
+MailChimp_error_can_not_update_fields=Erreur durant la mise à jour des champs mailchimp
+mailchimp_warning_info_about_sync=Attention : une synchronisation peut prendre beaucoup de temps
+mailchimp_confirm_sync=Confirmer la synchonisation ?
+UpdateMailChimpObject=Modification du contact
+ConfirmUpdateMailChimpObject=L'adresse mail ne sera pas modifié sur MailChimp, êtes-vous sur de vouloir modifier l'adresse mail du contact ?
+
+
+#
+# Retour mailchimp
+#
+statusCode_pending=Processing on the batch operation hasn’t started yet.
+statusCode_preprocessing=The batch request is being broken up into smaller operations to speed up processing.
+statusCode_started=Processing has started.
+statusCode_finalizing=Processing has completed, but the results are being compiled and saved.
+statusCode_finished=Processing is done. It’s now possible to retrieve the results from the URL listed in response_body_url.
+statusCode_total_operations=The total number of operations to be processed.
+statusCode_finished_operations=The number of operations that have processed.
+statusCode_errored_operations=The number of operations that returned a non-200 response.
+
+
+
+#
+# target.php
+#
+ExportList=Exporter la liste
+MailingModuleDescContactCompanies=Contacts tiers (prospects, clients, fournisseur...)
+MailingModuleDescDolibarrContractsLinesExpired=Tiers avec des lignes de contrat expirées
+
+#
+# mailchimp
+#
+AddFinishedYouCanSyncSeg=L'ajout dans la liste est terminé, vous pouvez synchroniser le segment
+DEV_EmptyBatchIdStartExport=ID batches v"ide, lancez un export des destinataires
+DEV_InfoExport=Export info (dev)
+DEV_EmptySegIdStartExport=ID segment vide, lancez un export des destinataires
+DEV_InfoSegExport=Export segment info (dev)
+DEV_InfoSegExport_LookConsol=Voir console...
