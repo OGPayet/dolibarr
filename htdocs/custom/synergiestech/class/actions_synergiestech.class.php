@@ -855,17 +855,19 @@ SCRIPT;
                     $formules_not_found_list = array();
                     if (!empty($list_contract)) {
                         foreach ($list_contract as $contract) {
-                            $contract->fetch_optionals();
-                            $formule_id = $contract->array_options['options_formule'];
-                            $formule_label = $contract_extrafields->attribute_param['formule']['options'][$formule_id];
-                            if (!empty($formule_label)) {
-                                $contract_category_id = $contract_formule_categories[$formule_label];
-                                if (isset($contract_category_id)) {
-                                    $formules_list[$formule_id] = $formule_label;
-                                    $contracts_list[] = $contract->getNomUrl(1);
-                                    $contract_categories[$contract_category_id] = $contract_category_id;
-                                } else {
-                                    $formules_not_found_list[$formule_label] = $formule_label;
+                            if (($contract->nbofserviceswait + $contract->nbofservicesopened) > 0 && $contract->statut != 2) {
+                                $contract->fetch_optionals();
+                                $formule_id = $contract->array_options['options_formule'];
+                                $formule_label = $contract_extrafields->attribute_param['formule']['options'][$formule_id];
+                                if (!empty($formule_label)) {
+                                    $contract_category_id = $contract_formule_categories[$formule_label];
+                                    if (isset($contract_category_id)) {
+                                        $formules_list[$formule_id] = $formule_label;
+                                        $contracts_list[] = $contract->getNomUrl(1);
+                                        $contract_categories[$contract_category_id] = $contract_category_id;
+                                    } else {
+                                        $formules_not_found_list[$formule_label] = $formule_label;
+                                    }
                                 }
                             }
                         }
@@ -1364,8 +1366,11 @@ SCRIPT;
             // Get formulas of the principal company contracts
             $product_category_names = array();
             foreach ($thirdPartyContractList as $c) {
-                $label_formula = $contractExtraFields->attribute_param['formule']['options'][$c->array_options['options_formule']];
-                $product_category_names[$label_formula] = $label_formula;
+                if (($c->nbofserviceswait + $c->nbofservicesopened) > 0 && $c->statut != 2) {
+                    $c->fetch_optionals();
+                    $label_formula = $contractExtraFields->attribute_param['formule']['options'][$c->array_options['options_formule']];
+                    $product_category_names[$label_formula] = $label_formula;
+                }
             }
 
             // Get product categories of the principal company contracts formula
@@ -1557,8 +1562,11 @@ SCRIPT;
                 // Get formulas of the principal company contracts
                 $product_category_names = array();
                 foreach ($thirdPartyContractList as $c) {
-                    $label_formula = $contractExtraFields->attribute_param['formule']['options'][$c->array_options['options_formule']];
-                    $product_category_names[$label_formula] = $label_formula;
+                    if (($c->nbofserviceswait + $c->nbofservicesopened) > 0 && $c->statut != 2) {
+                        $c->fetch_optionals();
+                        $label_formula = $contractExtraFields->attribute_param['formule']['options'][$c->array_options['options_formule']];
+                        $product_category_names[$label_formula] = $label_formula;
+                    }
                 }
 
                 // Get product categories of the principal company contracts formula

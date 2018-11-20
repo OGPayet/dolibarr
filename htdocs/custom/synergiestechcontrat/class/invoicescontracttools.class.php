@@ -1987,4 +1987,91 @@ class InvoicesContractTools
 
         return $out;
     }
+
+    /**
+	 *  Terminate all contracts.
+	 *  A result may also be provided into this->output.
+	 *
+	 *  @return	int						0 if OK, < 0 if KO (this function is used also by cron so only 0 is OK)
+	 */
+    public function terminateContracts()
+    {
+        global $conf, $langs, $db, $user;
+
+        $langs->load('synergiestechcontrat@synergiestechcontrat');
+        $now = dol_now();
+        $nbok = 0;
+        $all_error = 0;
+        $ref_contracts = array();
+        $this->output = '';
+
+        $sql = "SELECT c.rowid FROM " . MAIN_DB_PREFIX . "contrat as c" .
+            " LEFT JOIN " . MAIN_DB_PREFIX . "contratdet as cd ON c.rowid = cd.fk_contrat" .
+            " LEFT JOIN " . MAIN_DB_PREFIX . "contrat_extrafields as cef ON c.rowid = cef.fk_object" .
+            " WHERE cef.realdate <= '" . $db->idate($now) . "'" .
+            " AND cd.statut != 5" .
+            " GROUP BY c.rowid";
+
+        dol_syslog(__METHOD__);
+        $resql = $db->query($sql);
+        if ($resql) {
+            require_once (DOL_DOCUMENT_ROOT."/contrat/class/contrat.class.php");
+
+            while ($obj = $db->fetch_object($resql)) {
+                $error = 0;
+                $db->begin();
+
+                $contract = new Contrat($db);
+                $result = $contract->fetch($obj->rowid);
+                if ($result > 0) {
+                    $contract->fetch_thirdparty();
+
+                    $contract->cloture($user);
+
+                    $label = $langs->trans('STCContractTerminateEventLabel', $contract->ref);
+                    $message = $langs->trans('Author') . ' : ' . $user->login;
+
+                    $result = $this->addEvent($contract, 'AC_STC_TERMI', $label, $message);
+                    if ($result < 0) {
+                        $error++;
+                        setEventMessages($langs->trans("Contract") . ' : ' . $contract->ref, $this->errors, 'errors');
+                        dol_syslog(__METHOD__ . ' ' . $langs->trans("Contract") . ' : ' . $contract->ref . ' Errors: ' . implode('; ', $this->errors), LOG_ERR);
+                        $this->output .= $langs->trans("Contract") . ' : ' . $contract->ref . ' Errors: ' . implode('; ', $this->errors) . "\n";
+                    } else {
+                        $ref_contracts[] = '- ' . $contract->ref;
+                        $nbok++;
+                    }
+                } elseif ($result == 0) {
+                    $error++;
+                    setEventMessage($langs->trans("ErrorRecordNotFound") . ' : ID:' . $obj->rowid, 'errors');
+                    dol_syslog(__METHOD__ . ' ' . $langs->trans("ErrorRecordNotFound") . ' : ID:' . $obj->rowid, LOG_ERR);
+                    $this->output .= $langs->trans("ErrorRecordNotFound") . ' : ID:' . $obj->rowid . "\n";
+                } else {
+                    $error++;
+                    setEventMessages($contract->error, $contract->errors, 'errors');
+                    dol_syslog(__METHOD__ . ' Errors: ' . $contract->error . '; ' . implode('; ', $contract->errors), LOG_ERR);
+                    $this->output .= ' Errors: ' . $contract->error . '; ' . implode('; ', $contract->errors) . "\n";
+                }
+
+                if ($error) {
+                    $all_error += $error;
+                    $db->rollback();
+                } else {
+                    $db->commit();
+                }
+            }
+        }
+
+        if ($nbok > 0) {
+            setEventMessages($langs->trans('STCContractTerminated', $nbok), $ref_contracts, 'warnings');
+            dol_syslog(__METHOD__ . ' ' . $langs->trans('STCContractTerminated', $nbok) . ' ' . implode(' ', $ref_contracts));
+            $this->output .= $langs->trans('STCContractTerminated', $nbok) . ' ' . implode(' ', $ref_contracts) . "\n";
+        } else {
+            setEventMessage($langs->trans('STCNoContractTerminated'), 'warnings');
+            dol_syslog(__METHOD__ . ' ' . $langs->trans('STCNoContractTerminated'));
+            $this->output .= $langs->trans('STCNoContractTerminated') . "\n";
+        }
+
+        return $all_error ? $all_error : 0;
+    }
 }

@@ -232,64 +232,10 @@ if (empty($reshook)) {
     }
     // Terminate contract
     elseif ($action == "terminate_contract") {
-        $now = dol_now();
-        $nbok = 0;
-        $ref_contracts = array();
+        dol_include_once('/synergiestechcontrat/class/invoicescontracttools.class.php');
+        $invoicescontracttools = new InvoicesContractTools($db);
 
-        $sql = "SELECT c.rowid FROM " . MAIN_DB_PREFIX . "contrat as c" .
-            " LEFT JOIN " . MAIN_DB_PREFIX . "contratdet as cd ON c.rowid = cd.fk_contrat" .
-            " LEFT JOIN " . MAIN_DB_PREFIX . "contrat_extrafields as cef ON c.rowid = cef.fk_object" .
-            " WHERE cef.realdate <= '" . $db->idate($now) . "'" .
-            " AND (cd.statut != 5 OR c.statut != 2)" .
-            " GROUP BY c.rowid";
-
-        $resql = $db->query($sql);
-        if ($resql) {
-            dol_include_once('/synergiestechcontrat/class/invoicescontracttools.class.php');
-            $invoicescontracttools = new InvoicesContractTools($db);
-
-            while ($obj = $db->fetch_object($resql)) {
-                $error = 0;
-                $db->begin();
-
-                $contract = new Contrat($db);
-                $result = $contract->fetch($obj->rowid);
-                if ($result > 0) {
-                    $contract->fetch_thirdparty();
-
-                    $contract->cloture($user);
-
-                    $label = $langs->trans('STCContractTerminateEventLabel', $contract->ref);
-                    $message = $langs->trans('Author') . ' : ' . $user->login;
-
-                    $result = $invoicescontracttools->addEvent($contract, 'AC_STC_TERMI', $label, $message);
-                    if ($result < 0) {
-                        $error++;
-                        setEventMessages($langs->trans("Contract") . ' : ' . $contract->ref, $invoicescontracttools->errors, 'errors');
-                    } else {
-                        $ref_contracts[] = '- ' . $contract->ref;
-                        $nbok++;
-                    }
-                } elseif ($result == 0) {
-                    $error++;
-                    setEventMessage($langs->trans("ErrorRecordNotFound") . ' : ID:' . $obj->rowid, 'errors');
-                } else {
-                    $error++;
-                    setEventMessages($contract->error, $contract->errors, 'errors');
-                }
-
-                if ($error) {
-                    $db->rollback();
-                } else {
-                    $db->commit();
-                }
-            }
-        }
-
-        if ($nbok > 0)
-            setEventMessages($langs->trans('STCContractTerminated', $nbok), $ref_contracts, 'warnings');
-        else
-            setEventMessage($langs->trans('STCNoContractTerminated'), 'warnings');
+        $invoicescontracttools->terminateContracts();
     }
 
     $objectclass = 'Contrat';

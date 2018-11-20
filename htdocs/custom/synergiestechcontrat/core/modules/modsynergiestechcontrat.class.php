@@ -222,6 +222,7 @@ class modsynergiestechcontrat extends DolibarrModulessynergiestechcontrat
 
 		// Cronjobs (List of cron jobs entries to add when module is enabled)
 		$this->cronjobs = array(
+            0=>array('label'=>'TerminateContracts', 'jobtype'=>'method', 'class'=>'/custom/synergiestechcontrat/class/invoicescontracttools.class.php', 'objectname'=>'InvoicesContractTools', 'method'=>'terminateContracts', 'parameters'=>'', 'comment'=>'Terminate contracts periodically', 'frequency'=>1, 'unitfrequency'=>3600*24),
 //			0=>array('label'=>'MyJob label', 'jobtype'=>'method', 'class'=>'/synergiestechcontrat/class/synergiestechcontratmyjob.class.php', 'objectname'=>'synergiestechcontratMyJob', 'method'=>'myMethod', 'parameters'=>'', 'comment'=>'Comment', 'frequency'=>2, 'unitfrequency'=>3600, 'status'=>0, 'test'=>true)
 		);
 		// Example: $this->cronjobs=array(0=>array('label'=>'My label', 'jobtype'=>'method', 'class'=>'/dir/class/file.class.php', 'objectname'=>'MyClass', 'method'=>'myMethod', 'parameters'=>'', 'comment'=>'Comment', 'frequency'=>2, 'unitfrequency'=>3600, 'status'=>0, 'test'=>true),
