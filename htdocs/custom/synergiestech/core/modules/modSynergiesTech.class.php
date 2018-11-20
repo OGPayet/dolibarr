@@ -74,7 +74,7 @@ class modSynergiesTech extends DolibarrModules
 		$this->editor_url = 'http://www.open-dsi.fr';
 
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-		$this->version = '1.0.4';
+		$this->version = '1.0.5';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Name of image file used for this module.
@@ -104,6 +104,7 @@ class modSynergiesTech extends DolibarrModules
 		$this->module_parts = array(
             'dictionaries' => 1,
             'tpl' => 1,
+            'models' => 1,
             'triggers' => 1,
             'hooks' => array('requestmanagercard', 'requestmanagerdao', 'ordercard', 'contractcard', 'tab_supplier_order', 'tab_expedition_add', 'invoicelist', 'main'),
         );
