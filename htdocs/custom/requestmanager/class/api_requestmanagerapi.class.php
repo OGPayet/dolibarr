@@ -86,6 +86,8 @@ class RequestManagerApi extends DolibarrApi {
      * @param   int		    $page		        Page number
      * @param   int         $only_assigned	    1=Restrict list to the request assigned to this user or his user groups
      * @param   string      $sql_filters        Other criteria to filter answers separated by a comma. Syntax example "(t.ref:like:'SO-%') and (t.datec:<:'20160101')"
+     * @param   string      $linked_filters     Filter for linked object 'element:id,id;element:id,id'
+     *                                          ex: 'commande' only request linked with order, 'commande:1,10' only request linked with order id 1 and 10
      *
      * @return  array                           Array of request objects
      *
@@ -93,12 +95,35 @@ class RequestManagerApi extends DolibarrApi {
      * @throws  401         RestException       Insufficient rights
      * @throws  500         RestException       Error when retrieve request list
      */
-    function index($sort_field="t.rowid", $sort_order='ASC', $limit=100, $page=0, $only_assigned=0, $sql_filters='')
+    function index($sort_field="t.rowid", $sort_order='ASC', $limit=100, $page=0, $only_assigned=0, $sql_filters='', $linked_filters='')
     {
         $obj_ret = array();
 
         if (!DolibarrApiAccess::$user->rights->requestmanager->lire) {
             throw new RestException(401, "Insufficient rights");
+        }
+
+        // clean params
+        $linked_filters_t = array();
+        if (!empty($linked_filters)) {
+            $bloc_tmp = explode(';', $linked_filters);
+            foreach ($bloc_tmp as $bloc) {
+                $element_tmp = explode(':', $bloc);
+                $element = trim($element_tmp[0]);
+                if (!empty($element)) {
+                    $element_ids = array();
+                    if (isset($element_tmp[1]) && trim($element_tmp[1]) !== '') {
+                        $ids_tmp = explode(',', $element_tmp[1]);
+                        foreach ($ids_tmp as $id) {
+                            $id = trim($id);
+                            if ($id !== '') {
+                                $element_ids[] = $id;
+                            }
+                        }
+                    }
+                    $linked_filters_t[$element] = $element_ids;
+                }
+            }
         }
 
         $assignedSQLJoin = '';
@@ -158,7 +183,27 @@ class RequestManagerApi extends DolibarrApi {
                 if ($requestmanager->fetch($obj->rowid) > 0) {
                     $requestmanager->fetch_optionals();
                     $requestmanager->fetchObjectLinked();
-                    $obj_ret[] = $this->_cleanObjectDatas($requestmanager);
+                    $add_request = !count($linked_filters_t);
+                    foreach ($linked_filters_t as $element_type => $element_type_ids) {
+                        $linked_object_ids = $requestmanager->linkedObjectsIds[$element_type];
+                        if (is_array($linked_object_ids)) {
+                            if (count($element_type_ids) == 0) {
+                                $add_request = true;
+                                break;
+                            } else {
+                                foreach ($element_type_ids as $element_id) {
+                                    if (in_array($element_id, $linked_object_ids)) {
+                                        $add_request = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if ($add_request) {
+                        $obj_ret[] = $this->_cleanObjectDatas($requestmanager);
+                    }
                 }
             }
 
