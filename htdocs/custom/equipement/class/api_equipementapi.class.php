@@ -1032,6 +1032,98 @@ class EquipementApi extends DolibarrApi {
     }
 
     /**
+     *  Get the list of event type equipments into the dictionary
+     *
+     * @url	GET dictionary_event_types
+     *
+     * @return  array                           Array of event type equipments
+     *
+     * @throws  401         RestException       Insufficient rights
+     * @throws  500         RestException       Error when retrieve event type equipments list
+     */
+    function indexEventType()
+    {
+        global $langs;
+
+        $langs->load('equipement@equipement');
+        $obj_ret = array();
+
+        if (!DolibarrApiAccess::$user->rights->equipement->lire) {
+            throw new RestException(401, "Insufficient rights");
+        }
+
+        $sql = "SELECT t.rowid, t.code, t.libelle, t.coder, t.active, t.entity";
+        $sql .= " FROM " . MAIN_DB_PREFIX . "c_equipementevt_type as t";
+        $sql .= " ORDER BY t.rowid";
+
+        $resql = self::$db->query($sql);
+        if ($resql) {
+            while ($obj = self::$db->fetch_object($resql)) {
+                $obj_ret[] = array(
+                    'rowid' => $obj->rowid,
+                    'code' => $obj->code,
+                    'libelle' => $langs->transnoentitiesnoconv($obj->libelle),
+                    'coder' => $obj->coder,
+                    'active' => $obj->active,
+                    'entity' => $obj->entity
+                );
+            }
+
+            self::$db->free($resql);
+        } else {
+            throw new RestException(500, "Error when retrieve event type equipments list", ['details' => [self::$db->lasterror()]]);
+        }
+
+        return $obj_ret;
+    }
+
+    /**
+     *  Get the list of status equipments into the dictionary
+     *
+     * @url	GET dictionary_status
+     *
+     * @return  array                           Array of status equipments
+     *
+     * @throws  401         RestException       Insufficient rights
+     * @throws  500         RestException       Error when retrieve status equipments list
+     */
+    function indexStatus()
+    {
+        global $langs;
+
+        $langs->load('equipement@equipement');
+        $obj_ret = array();
+
+        if (!DolibarrApiAccess::$user->rights->equipement->lire) {
+            throw new RestException(401, "Insufficient rights");
+        }
+
+        $sql = "SELECT t.rowid, t.code, t.libelle, t.coder, t.active, t.entity";
+        $sql .= " FROM " . MAIN_DB_PREFIX . "c_equipement_etat as t";
+        $sql .= " ORDER BY t.rowid";
+
+        $resql = self::$db->query($sql);
+        if ($resql) {
+            while ($obj = self::$db->fetch_object($resql)) {
+                $obj_ret[] = array(
+                    'rowid' => $obj->rowid,
+                    'code' => $obj->code,
+                    'libelle' => $langs->transnoentitiesnoconv($obj->libelle),
+                    'coder' => $obj->coder,
+                    'active' => $obj->active,
+                    'entity' => $obj->entity
+                );
+            }
+
+            self::$db->free($resql);
+        } else {
+            throw new RestException(500, "Error when retrieve status equipments list", ['details' => [self::$db->lasterror()]]);
+        }
+
+        return $obj_ret;
+    }
+
+    /**
      *  Get equipment object with authorization
      *
      * @param   int             $equipment_id       Id of the equipment
