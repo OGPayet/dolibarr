@@ -1321,67 +1321,67 @@ SCRIPT;
                 }
 
                 // Request Child
-                if (/*!empty($arrayfields['fk_request']['checked']) && */ (!$conf->eventconfidentiality->enabled || $arrayfields['fk_request']['ec_mode'] >= $obj->ec_mode) && $obj->fk_request > 0) {
+                if (!empty($arrayfields['fk_request']['checked']) && (!$conf->eventconfidentiality->enabled || $arrayfields['fk_request']['ec_mode'] >= $obj->ec_mode) && $obj->fk_request > 0) {
                     include_once DOL_DOCUMENT_ROOT . '/core/lib/functions2.lib.php';
                     if (!isset($link_url_cache['requestmanager'][$obj->fk_request]))
                         $link_url_cache['requestmanager'][$obj->fk_request] = dolGetElementUrl($obj->fk_request, 'requestmanager', 1);
                     $infos_to_print[] = $arrayfields['fk_request']['label'] . ' : ' . $link_url_cache['requestmanager'][$obj->fk_request];
                 }
                 // Origin
-                if (/*!empty($arrayfields['ac.elementtype']['checked']) && */ (!$conf->eventconfidentiality->enabled || $arrayfields['ac.elementtype']['ec_mode'] >= $obj->ec_mode)) {
+                if (!empty($arrayfields['ac.elementtype']['checked']) && (!$conf->eventconfidentiality->enabled || $arrayfields['ac.elementtype']['ec_mode'] >= $obj->ec_mode)) {
                     $infos_to_print[] = $arrayfields['ac.elementtype']['label'] . ' : ' . (isset($elements_array[$actioncomm_static->elementtype]) ? $elements_array[$actioncomm_static->elementtype] : $elements_array['societe']);
                 }
                 // ThirdParty
-                if (/*!empty($arrayfields['s.nom']['checked']) && */ (!$conf->eventconfidentiality->enabled || $arrayfields['s.nom']['ec_mode'] >= $obj->ec_mode) && $societe_static->id > 0) {
+                if (!empty($arrayfields['s.nom']['checked']) && (!$conf->eventconfidentiality->enabled || $arrayfields['s.nom']['ec_mode'] >= $obj->ec_mode) && $societe_static->id > 0) {
                     $infos_to_print[] = $arrayfields['s.nom']['label'] . ' : ' . $societe_static->getNomUrl(1);
                 }
                 // Event On Full Day
-                if (/*!empty($arrayfields['ac.fulldayevent']['checked']) && */ (!$conf->eventconfidentiality->enabled || $arrayfields['ac.fulldayevent']['ec_mode'] >= $obj->ec_mode) && !empty($actioncomm_static->fulldayevent)) {
+                if (!empty($arrayfields['ac.fulldayevent']['checked']) && (!$conf->eventconfidentiality->enabled || $arrayfields['ac.fulldayevent']['ec_mode'] >= $obj->ec_mode) && !empty($actioncomm_static->fulldayevent)) {
                     $infos_to_print[] = $arrayfields['ac.fulldayevent']['label'] . ' : ' . yn($actioncomm_static->fulldayevent);
                 }
                 // Date Start
-                if (/*!empty($arrayfields['ac.datep']['checked']) && */ (!$conf->eventconfidentiality->enabled || $arrayfields['ac.datep']['ec_mode'] >= $obj->ec_mode) && $actioncomm_static->datep > 0) {
+                if (!empty($arrayfields['ac.datep']['checked']) && (!$conf->eventconfidentiality->enabled || $arrayfields['ac.datep']['ec_mode'] >= $obj->ec_mode) && $actioncomm_static->datep > 0) {
                     $infos_to_print[] = $arrayfields['ac.datep']['label'] . ' : ' . dol_print_date($actioncomm_static->datep, "dayhour");
                 }
                 // Date End
-                if (/*!empty($arrayfields['ac.datep2']['checked']) && */ (!$conf->eventconfidentiality->enabled || $arrayfields['ac.datep2']['ec_mode'] >= $obj->ec_mode) && $actioncomm_static->datef > 0) {
+                if (!empty($arrayfields['ac.datep2']['checked']) && (!$conf->eventconfidentiality->enabled || $arrayfields['ac.datep2']['ec_mode'] >= $obj->ec_mode) && $actioncomm_static->datef > 0) {
                     $infos_to_print[] = $arrayfields['ac.datep2']['label'] . ' : ' . dol_print_date($actioncomm_static->datef, "dayhour");
                 }
                 // Location
-                if (/*!empty($arrayfields['ac.location']['checked']) && */ (!$conf->eventconfidentiality->enabled || $arrayfields['ac.location']['ec_mode'] >= $obj->ec_mode) && !empty($actioncomm_static->location)) {
+                if (!empty($arrayfields['ac.location']['checked']) && (!$conf->eventconfidentiality->enabled || $arrayfields['ac.location']['ec_mode'] >= $obj->ec_mode) && !empty($actioncomm_static->location)) {
                     $infos_to_print[] = $arrayfields['ac.location']['label'] . ' : ' . $actioncomm_static->location;
                 }
                 // Linked Object
-                if (/*!empty($arrayfields['ac.fk_element']['checked']) && */ (!$conf->eventconfidentiality->enabled || $arrayfields['ac.fk_element']['ec_mode'] >= $obj->ec_mode) && $actioncomm_static->fk_element > 0 && !empty($actioncomm_static->elementtype)) {
+                if (!empty($arrayfields['ac.fk_element']['checked']) && (!$conf->eventconfidentiality->enabled || $arrayfields['ac.fk_element']['ec_mode'] >= $obj->ec_mode) && $actioncomm_static->fk_element > 0 && !empty($actioncomm_static->elementtype)) {
                     include_once DOL_DOCUMENT_ROOT . '/core/lib/functions2.lib.php';
                     if (!isset($link_url_cache[$actioncomm_static->elementtype][$actioncomm_static->fk_element]))
                         $link_url_cache[$actioncomm_static->elementtype][$actioncomm_static->fk_element] = dolGetElementUrl($actioncomm_static->fk_element, $actioncomm_static->elementtype, 1);
                     $infos_to_print[] = $arrayfields['ac.fk_element']['label'] . ' : ' . $link_url_cache[$actioncomm_static->elementtype][$actioncomm_static->fk_element];
                 }
                 // Owned By
-                if (/*!empty($arrayfields['ac.fk_user_action']['checked']) && */ (!$conf->eventconfidentiality->enabled || $arrayfields['ac.fk_user_action']['ec_mode'] >= $obj->ec_mode) && $userowner_static->id > 0) {
+                if (!empty($arrayfields['ac.fk_user_action']['checked']) && (!$conf->eventconfidentiality->enabled || $arrayfields['ac.fk_user_action']['ec_mode'] >= $obj->ec_mode) && $userowner_static->id > 0) {
                     $infos_to_print[] = $arrayfields['ac.fk_user_action']['label'] . ' : ' . $userowner_static->getNomUrl(1);
                 }
                 // Assigned To
-//                if (/*!empty($arrayfields['ac.userassigned']['checked']) && */ (!$conf->eventconfidentiality->enabled || $arrayfields['ac.userassigned']['ec_mode'] >= $obj->ec_mode)) {
+//                if (!empty($arrayfields['ac.userassigned']['checked']) && (!$conf->eventconfidentiality->enabled || $arrayfields['ac.userassigned']['ec_mode'] >= $obj->ec_mode)) {
 //                    $infos_to_print[] = $arrayfields['ac.userassigned']['label'] . ' : ' . '';
 //                }
                 // Done By
-                if (/*!empty($arrayfields['ac.fk_user_done']['checked']) && */ (!$conf->eventconfidentiality->enabled || $arrayfields['ac.fk_user_done']['ec_mode'] >= $obj->ec_mode) && $userdone_static->id > 0) {
+                if (!empty($arrayfields['ac.fk_user_done']['checked']) && (!$conf->eventconfidentiality->enabled || $arrayfields['ac.fk_user_done']['ec_mode'] >= $obj->ec_mode) && $userdone_static->id > 0) {
                     $infos_to_print[] = $arrayfields['ac.fk_user_done']['label'] . ' : ' . $userdone_static->getNomUrl(1);
                 }
                 // Project
-                if (/*!empty($arrayfields['ac.fk_project']['checked']) && */ (!$conf->eventconfidentiality->enabled || $arrayfields['ac.fk_project']['ec_mode'] >= $obj->ec_mode) && $project_static->id > 0) {
+                if (!empty($arrayfields['ac.fk_project']['checked']) && (!$conf->eventconfidentiality->enabled || $arrayfields['ac.fk_project']['ec_mode'] >= $obj->ec_mode) && $project_static->id > 0) {
                     $infos_to_print[] = $arrayfields['ac.fk_project']['label'] . ' : ' . $project_static->getNomUrl(1);
                 }
                 // Priority
-                if (/*!empty($arrayfields['ac.priority']['checked']) && */ (!$conf->eventconfidentiality->enabled || $arrayfields['ac.priority']['ec_mode'] >= $obj->ec_mode) && !empty($actioncomm_static->priority)) {
+                if (!empty($arrayfields['ac.priority']['checked']) && (!$conf->eventconfidentiality->enabled || $arrayfields['ac.priority']['ec_mode'] >= $obj->ec_mode) && !empty($actioncomm_static->priority)) {
                     $infos_to_print[] = $arrayfields['ac.priority']['label'] . ' : ' . $actioncomm_static->priority;
                 }
                 // Extra fields
                 if (is_array($extrafields->attribute_label) && count($extrafields->attribute_label)) {
                     foreach ($extrafields->attribute_label as $key => $label) {
-//                        if (!empty($arrayfields["ef." . $key]['checked'])) {
+                        if (!empty($arrayfields["ef." . $key]['checked'])) {
                         if (!$conf->eventconfidentiality->enabled || $arrayfields["ef." . $key]['ec_mode'] >= $obj->ec_mode) {
                             if ($extrafields->attribute_type[$key] == 'separate') {
                                 $infos_to_print[] = $label . ' :<br>' . "\n";
@@ -1390,13 +1390,13 @@ SCRIPT;
                                 $infos_to_print[] = $label . ' : ' . $extrafields->showOutputField($key, $obj->$tmpkey, '', 1);
                             }
                         }
-//                        }
+                        }
                     }
                 }
                 // Extra fields message
                 if (is_array($extrafields_message->attribute_label) && count($extrafields_message->attribute_label)) {
                     foreach ($extrafields_message->attribute_label as $key => $label) {
-//                        if (!empty($arrayfields["efm." . $key]['checked'])) {
+                        if (!empty($arrayfields["efm." . $key]['checked'])) {
                         if (!$conf->eventconfidentiality->enabled || $arrayfields["efm." . $key]['ec_mode'] >= $obj->ec_mode) {
                             if ($extrafields->attribute_type[$key] == 'separate') {
                                 $infos_to_print[] = $label . ' :<br>' . "\n";
@@ -1405,7 +1405,7 @@ SCRIPT;
                                 $infos_to_print[] = $label . ' : ' . $extrafields->showOutputField($key, $obj->$tmpkey, '', 1);
                             }
                         }
-//                        }
+                        }
                     }
                 }
                 // Fields from hook
@@ -1415,7 +1415,7 @@ SCRIPT;
                     $infos_to_print = array_merge($infos_to_print, $hookmanager->resArray);
                 }
                 // Status
-                if (/*!empty($arrayfields['ac.percent']['checked']) && */(!$conf->eventconfidentiality->enabled || $arrayfields['ac.percent']['ec_mode'] >= $obj->ec_mode)) {
+                if (!empty($arrayfields['ac.percent']['checked']) && (!$conf->eventconfidentiality->enabled || $arrayfields['ac.percent']['ec_mode'] >= $obj->ec_mode)) {
                     $infos_to_print[] = $arrayfields['ac.percent']['label'] . ' : ' . $actioncomm_static->getLibStatut(3);
                 }
                 // Attached files
@@ -1450,7 +1450,7 @@ SCRIPT;
                 print '<div class="event ' . $direction . ' col-md-6 col-sm-6 col-xs-8 ">' . (!empty($icon) ? '<span class="thumb fa ' . $icon . '"></span>' : '<span class="thumb">' . $icon_img . '</span>') . "\n";
                 print '<div class=" event-body">' . "\n";
                 print '<div class="person-image pull-left ">' . "\n";
-                if (/*!empty($arrayfields['ac.fk_user_author']['checked']) && */(!$conf->eventconfidentiality->enabled || $arrayfields['ac.fk_user_author']['ec_mode'] >= $obj->ec_mode)) {
+                if (!empty($arrayfields['ac.fk_user_author']['checked']) && (!$conf->eventconfidentiality->enabled || $arrayfields['ac.fk_user_author']['ec_mode'] >= $obj->ec_mode)) {
                     print Form::showphoto('userphoto', $userauthor_static, 100, 0, 0, '', 'small', 0, 1) . "\n";
                 } else {
                     print Form::showphoto('userphoto', $userempty_static, 100, 0, 0, '', 'small', 0, 1) . "\n";
@@ -1460,7 +1460,7 @@ SCRIPT;
                 print '<h5 class="text-primary text-left">' . "\n";
                 $to_print = array();
                 // Ref
-                if (/*!empty($arrayfields['ac.id']['checked']) && */(!$conf->eventconfidentiality->enabled || $arrayfields['ac.id']['ec_mode'] >= $obj->ec_mode) && $actioncomm_static->id > 0) {
+                if (!empty($arrayfields['ac.id']['checked']) && (!$conf->eventconfidentiality->enabled || $arrayfields['ac.id']['ec_mode'] >= $obj->ec_mode) && $actioncomm_static->id > 0) {
                     $to_print[] = $actioncomm_static->getNomUrl(2);
                 }
                 // Title
@@ -1468,7 +1468,7 @@ SCRIPT;
                     $to_print[] = $actioncomm_static->label;
                 }
                 // Type
-                if (/*!empty($arrayfields['ac.fk_action']['checked']) && */(!$conf->eventconfidentiality->enabled || $arrayfields['ac.fk_action']['ec_mode'] >= $obj->ec_mode)) {
+                if (!empty($arrayfields['ac.fk_action']['checked']) && (!$conf->eventconfidentiality->enabled || $arrayfields['ac.fk_action']['ec_mode'] >= $obj->ec_mode)) {
                     $labeltype = $obj->type_code;
                     if (empty($conf->global->AGENDA_USE_EVENT_TYPE) && empty($cActionList[$labeltype])) $labeltype = 'AC_OTH';
                     if (!empty($cActionList[$labeltype])) $labeltype = $cActionList[$labeltype];
@@ -1478,18 +1478,18 @@ SCRIPT;
                 print implode(' ', $to_print);
                 print '</h5>' . "\n";
                 print '<span class="text-muted text-left" style="display:block; margin: 0"><small>' . "\n";
-                if (/*!empty($arrayfields['ac.fk_user_author']['checked']) && */(!$conf->eventconfidentiality->enabled || $arrayfields['ac.fk_user_author']['ec_mode'] >= $obj->ec_mode)) {
+                if (!empty($arrayfields['ac.fk_user_author']['checked']) && (!$conf->eventconfidentiality->enabled || $arrayfields['ac.fk_user_author']['ec_mode'] >= $obj->ec_mode)) {
                     print $userauthor_static->getNomUrl();
                 }
-                if (/*!empty($arrayfields['ac.datec']['checked']) && */(!$conf->eventconfidentiality->enabled || $arrayfields['ac.datec']['ec_mode'] >= $obj->ec_mode)) {
+                if (!empty($arrayfields['ac.datec']['checked']) && (!$conf->eventconfidentiality->enabled || $arrayfields['ac.datec']['ec_mode'] >= $obj->ec_mode)) {
                     print ' , ' . dol_print_date($actioncomm_static->datec, 'dayhour');
                 }
                 if ($actioncomm_static->datem > 0 && $actioncomm_static->datec != $actioncomm_static->datem) {
                     $to_print = array();
-                    if (/*!empty($arrayfields['ac.fk_user_mod']['checked']) && */(!$conf->eventconfidentiality->enabled || $arrayfields['ac.fk_user_mod']['ec_mode'] >= $obj->ec_mode)) {
+                    if (!empty($arrayfields['ac.fk_user_mod']['checked']) && (!$conf->eventconfidentiality->enabled || $arrayfields['ac.fk_user_mod']['ec_mode'] >= $obj->ec_mode)) {
                         $to_print[] = $usermodif_static->getNomUrl();
                     }
-                    if (/*!empty($arrayfields['ac.tms']['checked']) && */(!$conf->eventconfidentiality->enabled || $arrayfields['ac.tms']['ec_mode'] >= $obj->ec_mode)) {
+                    if (!empty($arrayfields['ac.tms']['checked']) && (!$conf->eventconfidentiality->enabled || $arrayfields['ac.tms']['ec_mode'] >= $obj->ec_mode)) {
                         $to_print[] = ' , ' . dol_print_date($actioncomm_static->datem, 'dayhour');
                     }
                     if (count($to_print)) {
