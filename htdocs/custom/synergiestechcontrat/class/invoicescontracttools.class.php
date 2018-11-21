@@ -1989,6 +1989,99 @@ class InvoicesContractTools
     }
 
     /**
+	 *  Activate all contracts.
+	 *  A result may also be provided into this->output.
+	 *
+	 *  @return	int						0 if OK, < 0 if KO (this function is used also by cron so only 0 is OK)
+	 */
+    public function activateContracts()
+    {
+        global $conf, $langs, $db, $user;
+
+        $langs->load('synergiestechcontrat@synergiestechcontrat');
+        $now = dol_now();
+        $nbok = 0;
+        $all_error = 0;
+        $ref_contracts = array();
+        $this->output = '';
+
+        $sql = "SELECT c.rowid FROM " . MAIN_DB_PREFIX . "contrat as c" .
+            " LEFT JOIN " . MAIN_DB_PREFIX . "contratdet as cd ON c.rowid = cd.fk_contrat" .
+            " LEFT JOIN " . MAIN_DB_PREFIX . "contrat_extrafields as cef ON c.rowid = cef.fk_object" .
+            " WHERE cef.startdate <= '" . $db->idate($now) . "'" .
+            " AND cef.realdate > '" . $db->idate($now) . "'" .
+            " AND cd.statut != 4" .
+            " GROUP BY c.rowid";
+
+        dol_syslog(__METHOD__);
+        $resql = $db->query($sql);
+        if ($resql) {
+            require_once (DOL_DOCUMENT_ROOT."/contrat/class/contrat.class.php");
+
+            while ($obj = $db->fetch_object($resql)) {
+                $error = 0;
+                $db->begin();
+
+                $contract = new Contrat($db);
+                $result = $contract->fetch($obj->rowid);
+                if ($result > 0) {
+                    $contract->fetch_thirdparty();
+
+                    if ($this->activateContract($user, $contract) < 0) {
+                        $error++;
+                        setEventMessages($langs->trans("Contract") . ' : ' . $contract->ref, $this->errors, 'errors');
+                        dol_syslog(__METHOD__ . ' ' . $langs->trans("Contract") . ' : ' . $contract->ref . ' Errors: ' . implode('; ', $this->errors), LOG_ERR);
+                        $this->output .= $langs->trans("Contract") . ' : ' . $contract->ref . ' Errors: ' . implode('; ', $this->errors) . "\n";
+                    }
+
+                    $label = $langs->trans('STCContractActivateEventLabel', $contract->ref);
+                    $message = $langs->trans('Author') . ' : ' . $user->login;
+
+                    $result = $this->addEvent($contract, 'AC_OTH_AUTO', $label, $message);
+                    if ($result < 0) {
+                        $error++;
+                        setEventMessages($langs->trans("Contract") . ' : ' . $contract->ref, $this->errors, 'errors');
+                        dol_syslog(__METHOD__ . ' ' . $langs->trans("Contract") . ' : ' . $contract->ref . ' Errors: ' . implode('; ', $this->errors), LOG_ERR);
+                        $this->output .= $langs->trans("Contract") . ' : ' . $contract->ref . ' Errors: ' . implode('; ', $this->errors) . "\n";
+                    } else {
+                        $ref_contracts[] = '- ' . $contract->ref;
+                        $nbok++;
+                    }
+                } elseif ($result == 0) {
+                    $error++;
+                    setEventMessage($langs->trans("ErrorRecordNotFound") . ' : ID:' . $obj->rowid, 'errors');
+                    dol_syslog(__METHOD__ . ' ' . $langs->trans("ErrorRecordNotFound") . ' : ID:' . $obj->rowid, LOG_ERR);
+                    $this->output .= $langs->trans("ErrorRecordNotFound") . ' : ID:' . $obj->rowid . "\n";
+                } else {
+                    $error++;
+                    setEventMessages($contract->error, $contract->errors, 'errors');
+                    dol_syslog(__METHOD__ . ' Errors: ' . $contract->error . '; ' . implode('; ', $contract->errors), LOG_ERR);
+                    $this->output .= ' Errors: ' . $contract->error . '; ' . implode('; ', $contract->errors) . "\n";
+                }
+
+                if ($error) {
+                    $all_error += $error;
+                    $db->rollback();
+                } else {
+                    $db->commit();
+                }
+            }
+        }
+
+        if ($nbok > 0) {
+            setEventMessages($langs->trans('STCContractActivated', $nbok), $ref_contracts, 'warnings');
+            dol_syslog(__METHOD__ . ' ' . $langs->trans('STCContractActivated', $nbok) . ' ' . implode(' ', $ref_contracts));
+            $this->output .= $langs->trans('STCContractActivated', $nbok) . ' ' . implode(' ', $ref_contracts) . "\n";
+        } else {
+            setEventMessage($langs->trans('STCNoContractActivated'), 'warnings');
+            dol_syslog(__METHOD__ . ' ' . $langs->trans('STCNoContractActivated'));
+            $this->output .= $langs->trans('STCNoContractActivated') . "\n";
+        }
+
+        return $all_error ? $all_error : 0;
+    }
+
+    /**
 	 *  Terminate all contracts.
 	 *  A result may also be provided into this->output.
 	 *
@@ -2073,5 +2166,52 @@ class InvoicesContractTools
         }
 
         return $all_error ? $all_error : 0;
+    }
+
+    /**
+	 *  Activate all lines of a contract
+	 *
+     *  @param	User		$user       Object User making action
+     *  @param	Contrat		$contract   Object of a contract
+	 *	@return	void
+	 */
+	function activateContract($user, &$contract)
+    {
+        $this->db->begin();
+
+        // Load lines
+        $contract->fetch_lines();
+
+        $ok = true;
+        foreach ($contract->lines as $contratline) {
+            // Active line not already active
+            if ($contratline->statut != 4) {
+                $contratline->date_ouverture = dol_now();
+                $contratline->fk_user_ouverture = $user->id;
+                $contratline->statut = '4';
+                $result = $contratline->update($user);
+                if ($result < 0) {
+                    $this->errors = array_merge($this->errors, $contratline->errors);
+                    $ok = false;
+                    break;
+                }
+            }
+        }
+
+        if ($contract->statut == 0) {
+            $result = $contract->validate($user);
+            if ($result < 0) {
+                $this->errors[] = $contract->error;
+                $ok = false;
+            }
+        }
+
+        if ($ok) {
+            $this->db->commit();
+            return 1;
+        } else {
+            $this->db->rollback();
+            return -1;
+        }
     }
 }

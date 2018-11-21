@@ -260,9 +260,10 @@ STCRenewalOfTheContractEndedEventDescription    = Le contrat %s n'a pas été re
 STCContractExtraFields                          = Attributs supplémentaires du contrat
 
 ########################################################################################################
-# Terminate Event
+# Activate / Terminate Event
 ########################################################################################################
 STCContractTerminateEventLabel  = Contrat %s résilié.
+STCContractActivateEventLabel   = Contrat %s activé.
 
 ############################################################
 ### Actions
