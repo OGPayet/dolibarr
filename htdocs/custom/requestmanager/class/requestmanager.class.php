@@ -574,7 +574,7 @@ class RequestManager extends CommonObject
             $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("RequestManagerDescription"));
             $error++;
         }
-        if ($this->date_deadline > 0 && $this->date_deadline < $now) {
+        if ($this->date_deadline > 0 && $this->date_deadline < $this->date_creation) {
             $this->errors[] = $langs->trans("RequestManagerErrorDeadlineDateMustBeGreaterThanCreateDate");
             $error++;
         }
@@ -1852,6 +1852,7 @@ class RequestManager extends CommonObject
 
         $requestChild->fk_parent = $this->id;
         $requestChild->fk_type = $new_request_type;
+        $requestChild->date_creation = 0;
         $requestChild->date_deadline = 0;
         $requestChild->context['createSubRequest'] = 'createSubRequest';
 
