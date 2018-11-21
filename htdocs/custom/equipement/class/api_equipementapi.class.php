@@ -100,6 +100,7 @@ class EquipementApi extends DolibarrApi {
 
         $sql = "SELECT t.rowid";
         $sql .= " FROM " . MAIN_DB_PREFIX . "equipement as t";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "equipement_extrafields as tef";
         if ($search_sale > 0) {
             $sql .= ", " . MAIN_DB_PREFIX . "societe_commerciaux as sc"; // We need this table joined to the select in order to filter by sale
         }
