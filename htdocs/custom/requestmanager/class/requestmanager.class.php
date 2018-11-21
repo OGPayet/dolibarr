@@ -575,7 +575,7 @@ class RequestManager extends CommonObject
             $error++;
         }
         if ($this->date_deadline > 0 && $this->date_deadline < $now) {
-            $this->errors[] = $langs->trans("RequestManagerErrorDeadlineDateInferiorAtCreateDate");
+            $this->errors[] = $langs->trans("RequestManagerErrorDeadlineDateMustBeGreaterThanCreateDate");
             $error++;
         }
         if (empty($this->statut)) {
@@ -1672,7 +1672,7 @@ class RequestManager extends CommonObject
             $error++;
         }
         if ($this->date_deadline > 0 && $this->date_deadline < $this->date_creation) {
-            $this->errors[] = $langs->trans("RequestManagerErrorDeadlineDateInferiorAtCreateDate");
+            $this->errors[] = $langs->trans("RequestManagerErrorDeadlineDateMustBeGreaterThanCreateDate");
             $error++;
         }
         if (!is_array($this->requester_ids)) {
@@ -1852,6 +1852,7 @@ class RequestManager extends CommonObject
 
         $requestChild->fk_parent = $this->id;
         $requestChild->fk_type = $new_request_type;
+        $requestChild->date_deadline = 0;
         $requestChild->context['createSubRequest'] = 'createSubRequest';
 
         // Fetch extrafields
