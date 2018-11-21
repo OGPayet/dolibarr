@@ -24,8 +24,7 @@ namespace CORE\WAREHOUSECHILD;
  */
 class FormProduct extends \FormProduct
 {
-
-	/**
+    /**
 	 *  Return list of warehouses
 	 *
 	 *  @param	int		$selected       Id of preselected warehouse ('' for no value, 'ifone'=select value if one value otherwise no value)
@@ -45,6 +44,8 @@ class FormProduct extends \FormProduct
 	 *  @param	array	$exclude		Warehouses ids to exclude
 	 *  @param  int     $showfullpath   1=Show full path of name (parent ref into label), 0=Show only ref of current warehouse
 	 * 	@return	string					HTML select
+     *
+     *  @throws \Exception
 	 */
 	function selectWarehouses($selected='',$htmlname='idwarehouse',$filterstatus='',$empty=0,$disabled=0,$fk_product=0,$empty_label='', $showstock=0, $forcecombo=0, $events=array(), $morecss='minwidth200', $exclude='', $showfullpath=1)
 	{
@@ -99,12 +100,17 @@ class FormProduct extends \FormProduct
 	 * @param	boolean	$sumStock		    sum total stock of a warehouse, default true
 	 * @param	array	$exclude		    warehouses ids to exclude
 	 * @return  int  		    		    Nb of loaded lines, 0 if already loaded, <0 if KO
+     *
+     * @throws \Exception
 	 */
 	function loadWarehouses($fk_product=0, $batch = '', $status='', $sumStock = true, $exclude='')
 	{
 		global $conf, $langs;
 
 		if (empty($fk_product) && count($this->cache_warehouses)) return 0;    // Cache already loaded and we do not want a list with information specific to a product
+
+        // reset warehouses cache
+        $this->cache_warehouses = array();
 
 		if (is_array($exclude))	$excludeGroups = implode("','",$exclude);
 
