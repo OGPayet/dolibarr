@@ -2009,7 +2009,7 @@ class InvoicesContractTools
             " LEFT JOIN " . MAIN_DB_PREFIX . "contratdet as cd ON c.rowid = cd.fk_contrat" .
             " LEFT JOIN " . MAIN_DB_PREFIX . "contrat_extrafields as cef ON c.rowid = cef.fk_object" .
             " WHERE cef.startdate <= '" . $db->idate($now) . "'" .
-            " AND cef.realdate > '" . $db->idate($now) . "'" .
+            " AND (cef.realdate > '" . $db->idate($now) . "' OR cef.realdate IS NULL OR cef.realdate = '')" .
             " AND cd.statut != 4" .
             " GROUP BY c.rowid";
 
