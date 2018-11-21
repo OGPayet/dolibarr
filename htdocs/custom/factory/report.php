@@ -45,6 +45,9 @@ require_once DOL_DOCUMENT_ROOT."/core/lib/date.lib.php";
 dol_include_once('/factory/class/factory.class.php');
 dol_include_once('/factory/core/lib/factory.lib.php');
 dol_include_once('/factory/class/html.factoryformproduct.class.php');
+if (!empty($conf->equipement->enabled)) {
+    dol_include_once('/equipement/class/equipement.class.php');
+}
 
 if (! empty($conf->global->FACTORY_ADDON)
 	&& is_readable(dol_buildpath("/factory/core/modules/factory/".$conf->global->FACTORY_ADDON.".php")))
@@ -84,6 +87,9 @@ if ($id || $ref) {
 	$id = $factory->id;
 }
 
+// all dispatched lines
+$dispatchLineList = array();
+$dispatchPrefix   = '';
 
 // Initialize technical object to manage hooks of thirdparties. Note that conf->hooks_modules contains array array
 $hookmanager->initHooks(array('factoryreport'));
@@ -98,7 +104,7 @@ if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'e
  */
 
 if (empty($reshook)) {
-	if ($action == 'closeof') {
+	if ($action == 'closeof' && $user->rights->factory->creer && $factory->statut == 1) {
 	    $error = 0;
 
         $componentProductStatic  = new Product($db);
@@ -119,106 +125,242 @@ if (empty($reshook)) {
 			$factory->statut = 2;
 
 		// get new components to add
-        $componentSuffixNewList = GETPOST('suffix_new_list', 'array') ? GETPOST('suffix_new_list', 'array') : array();
+        $componentSuffixNewList = array();
 
-        // first save dispatched lines
-        if (!$error) {
-            $db->begin();
+        // get all component product
+        $sql  = "SELECT";
+        $sql .= " fd.rowid as fd_rowid";
+        $sql .= ", fd.fk_product as id, fd.qty_unit as qtyunit, fd.pmp as pmp, fd.price as price";
+        $sql .= ", fd.globalqty, fd.description";
+        $sql .= ", fd.id_dispatched_line";
+        $sql .= " FROM " . MAIN_DB_PREFIX . "factorydet as fd";
+        $sql .= " WHERE fd.fk_factory = " . $factory->id;
 
-            $sql = "SELECT fd.fk_product as id, fd.qty_unit as qtyunit, fd.pmp as pmp, fd.price as price";
-            $sql .= ", fd.globalqty, fd.description";
-            $sql .= " FROM " . MAIN_DB_PREFIX . "factorydet as fd";
-            $sql .= " WHERE fd.fk_factory = " . $factory->id;
-            $sql .= " AND fd.id_dispatched_line = 0";
-            $sql .= " ORDER BY fd.ordercomponent";
+        $resql = $db->query($sql);
+        if (!$resql) {
+            $error++;
+            $factory->error = $db->lasterror();
+            $factory->errors[] = $factory->error;
+        }
 
-            $resql = $db->query($sql);
-            if (!$resql) {
-                $error++;
-                $factory->error = $db->lasterror();
-                $factory->errors[] = $factory->error;
-            }
-
-            $componentValueArray = array();
-            while ($obj = $db->fetch_object($resql)) {
+        $componentValueArray = array();
+        $factoryLineExistsList = array();
+        while ($obj = $db->fetch_object($resql)) {
+            if ($obj->id_dispatched_line == 0) {
                 $componentValueArray[$obj->id] = array(
-                    'id' => $obj->id,
-                    'nb' => $obj->qtyunit,
-                    'pmp' => $obj->pmp,
-                    'price' => $obj->price,
-                    'globalqty' => $obj->globalqty,
+                    'id'          => $obj->id,
+                    'nb'          => $obj->qtyunit,
+                    'pmp'         => $obj->pmp,
+                    'price'       => $obj->price,
+                    'globalqty'   => $obj->globalqty,
                     'description' => $obj->description
                 );
             }
 
-            foreach ($componentSuffixNewList as $componentSuffixNew) {
-                $componentSuffixArray = explode('_', $componentSuffixNew);
-                if (count($componentSuffixArray) == 2) {
-                    $componentIdProduct = $componentSuffixArray[0];
-                    $componentIdDispatchedLine = $componentSuffixArray[1];
+            $factoryLineExistsList[$obj->id][$obj->id_dispatched_line] = $obj->fd_rowid;
+        }
 
-                    $componentFkEntrepot = GETPOST("id_entrepot_" . $componentSuffixNew, "int") ? GETPOST("id_entrepot_" . $componentSuffixNew, "int") : NULL;
-                    $componentQtyUsed = GETPOST("qtyused_" . $componentSuffixNew, "int") > 0 ? GETPOST("qtyused_" . $componentSuffixNew, "int") : 0;
+        // for all posted values
+        $componentProductEquipementIdList = array();
+        foreach ($_POST as $postKey => $postValue) {
+            $matches = array();
 
-                    // add new lines
-                    $result = $factory->createof_component($factory->id, 0, $componentValueArray[$componentIdProduct], 0, $componentFkEntrepot, $componentIdDispatchedLine, $componentQtyUsed);
-                    if ($result < 0) {
+            // it's a dispatched line of factory
+            if (preg_match('#^' . $dispatchPrefix . 'id_component_product_([0-9]+)_([0-9]+)$#', $postKey, $matches)) {
+                $componentProductId = intval($matches[1]);
+                $lineNum            = $matches[2];
+                $dispatchSuffix     = $componentProductId . '_' . $lineNum;
+
+                // get post values
+                $componentQtyUsed                     = GETPOST($dispatchPrefix . 'qtyused_' . $dispatchSuffix, 'int') > 0 ? GETPOST('qtyused_' . $dispatchSuffix, 'int') : 0;
+                $componentQtyDeleted                  = GETPOST($dispatchPrefix . 'qtydeleted_' . $dispatchSuffix, 'int') > 0 ? GETPOST('qtydeleted_' . $dispatchSuffix, 'int') : 0;
+                $componentProductToSerialize          = GETPOST($dispatchPrefix . 'product_serializel_' . $dispatchSuffix, 'int');
+                $componentProductEquipementUsedIdList = GETPOST($dispatchPrefix . 'equipementused_' . $dispatchSuffix, 'array') ? GETPOST($dispatchPrefix . 'equipementused_' . $dispatchSuffix, 'array') : array();
+                $componentProductEquipementLostIdList = GETPOST($dispatchPrefix . 'equipementlost_' . $dispatchSuffix, 'array') ? GETPOST($dispatchPrefix . 'equipementlost_' . $dispatchSuffix, 'array') : array();
+                $equipementLostFkEntrepot             = GETPOST($dispatchPrefix . 'id_entrepotlost_' . $dispatchSuffix, 'int') ? GETPOST($dispatchPrefix . 'id_entrepotlost_' . $dispatchSuffix, 'int') : NULL;
+
+                // component product
+                $componentProduct = new Product($db);
+                $componentProduct->fetch($componentProductId);
+                $componentProductValueArray = $componentValueArray[$componentProductId];
+
+                // set line for errors
+                $errorLine = $langs->trans('Product') . ' ' . $componentProduct->ref . ' - ' . $langs->trans('Line') . ' ' . ($lineNum + 1);
+
+                // add to dispatched lines
+                $dispatchLineList[$dispatchSuffix] = array(
+                    'component_product'      => $componentProduct,
+                    'line'                   => intval($lineNum),
+                    'fk_factorydet'          => 0,
+                    'nb'                     => $componentProductValueArray['qtyplanned'],
+                    'value_array'            => $componentProductValueArray,
+                    'equipementused_id_list' => $componentProductEquipementUsedIdList,
+                    'equipementlost_id_list' => $componentProductEquipementLostIdList,
+                    'entrepotlost_id'        => $equipementLostFkEntrepot
+                );
+
+                // find new lines
+                if (!isset($factoryLineExistsList[$componentProductId][$lineNum])) {
+                    $componentSuffixNewList[] = $dispatchSuffix;
+                } else {
+                    $dispatchLineList[$dispatchSuffix]['fk_factorydet'] = $factoryLineExistsList[$componentProductId][$lineNum];
+                }
+
+                // check equipement qty to use and delete with equipement used and delete list
+                if ($componentProductToSerialize == 1) {
+                    if ($componentQtyUsed != count($componentProductEquipementUsedIdList)) {
                         $error++;
+                        $factory->error    = $errorLine . ' : ' . $langs->trans('EquipementErrorQtyToUse');
+                        $factory->errors[] = $factory->error;
+                    }
+
+                    if ($componentQtyDeleted != count($componentProductEquipementLostIdList)) {
+                        $error++;
+                        $factory->error    = $errorLine . ' : ' . $langs->trans('EquipementErrorQtyLost');
+                        $factory->errors[] = $factory->error;
                     }
                 }
-            }
 
-            // commit or rollback
-            if ($error) {
-                $db->rollback();
-            } else {
-                $db->commit();
+                // check all serial numbers for each component product
+                if (!isset($componentProductEquipementIdList[$componentProductId])) {
+                    $componentProductEquipementIdList[$componentProductId] = array();
+                }
+                foreach ($componentProductEquipementUsedIdList as $equipementId) {
+                    if (in_array($equipementId, $componentProductEquipementIdList[$componentProductId])) {
+                        $error++;
+                        $factory->error    = $errorLine . ' : ' . $langs->trans('EquipementErrorReferenceAlreadyUsed');
+                        $factory->errors[] = $factory->error;
+                    } else {
+                        $componentProductEquipementIdList[$componentProductId][] = $equipementId;
+                    }
+                }
+                foreach ($componentProductEquipementLostIdList as $equipementId) {
+                    if (in_array($equipementId, $componentProductEquipementIdList[$componentProductId])) {
+                        $error++;
+                        $factory->error    = $errorLine . ' : ' . $langs->trans('EquipementErrorReferenceAlreadyUsed');
+                        $factory->errors[] = $factory->error;
+                    } else {
+                        $componentProductEquipementIdList[$componentProductId][] = $equipementId;
+                    }
+                }
+
+                // check quantity deleted and selected warehouse for quantity lost
+                if ($componentQtyDeleted>0 && !($equipementLostFkEntrepot>0)) {
+                    $error++;
+                    $factory->error    = $errorLine . ' : ' . $langs->trans('EquipementErrorWarehouseLostNone');
+                    $factory->errors[] = $factory->error;
+                }
             }
         }
 
         if (!$error) {
+            $now = dol_now();
+
             $db->begin();
 
-            //on memorise les infos de l'OF
-            $sql = "UPDATE " . MAIN_DB_PREFIX . "factory ";
-            $sql .= " SET date_end_made = " . ($factory->date_end_made ? $db->idate($factory->date_end_made) : 'null');
-            $sql .= " , duration_made = " . ($factory->duration_made ? $factory->duration_made : 'null');
-            $sql .= " , qty_made = " . ($factory->qty_made ? $factory->qty_made : 'null');
-            $sql .= " , description = '" . $db->escape($factory->description) . "'";
-            $sql .= " , fk_statut =2";
-            $sql .= " WHERE rowid = " . $id;
+            // first save new dispatched lines
+            foreach ($componentSuffixNewList as $componentSuffixNew) {
+                $componentSuffixArray = explode('_', $componentSuffixNew);
+                if (count($componentSuffixArray) == 2) {
+                    $componentIdProduct        = $componentSuffixArray[0];
+                    $componentIdDispatchedLine = $componentSuffixArray[1];
 
-            if (!$db->query($sql)) {
-                $error++;
-                $factory->error = $db->lasterror();
-                $factory->errors[] = $factory->error;
+                    $componentFkEntrepot = GETPOST($dispatchPrefix . 'id_entrepot_' . $componentSuffixNew, 'int') ? GETPOST($dispatchPrefix . 'id_entrepot_' . $componentSuffixNew, 'int') : NULL;
+                    $componentQtyUsed    = GETPOST($dispatchPrefix . 'qtyused_' . $componentSuffixNew, 'int') > 0 ? GETPOST($dispatchPrefix . 'qtyused_' . $componentSuffixNew, 'int') : 0;
+
+                    // add new factory line
+                    $fkFactoryDet = $factory->createof_component($factory->id, 0, $componentValueArray[$componentIdProduct], 0, $componentFkEntrepot, $componentIdDispatchedLine, $componentQtyUsed);
+                    if ($fkFactoryDet < 0) {
+                        $error++;
+                    }
+
+                    // add new dispatch line
+                    $dispatchLineList[$dispatchSuffix]['fk_factorydet'] = $fkFactoryDet;
+
+                    // associate equipment list to use
+                    if (!$error) {
+                        $equipementUsedIdList = GETPOST($dispatchPrefix . 'equipementused_' . $componentSuffixNew, 'array') ? GETPOST($dispatchPrefix . 'equipementused_' . $componentSuffixNew, 'array') : array();
+
+                        foreach ($equipementUsedIdList as $equipementUsedId) {
+                            $equipementUsed = new Equipement($db);
+                            $equipementUsed->fetch($equipementUsedId);
+
+                            // add line fk_equipement, fk_factory and fk_factorydet in equipementevt
+                            $ret = $equipementUsed->addline($equipementUsed->id, -1, '', $now, $now, '', '', '', '', '', '', 0, 0, 0, 0, $factory->id, $fkFactoryDet);
+                            if ($ret < 0) {
+                                $error++;
+                                $factory->error    = $equipementUsed->errorsToString();
+                                $factory->errors[] = $factory->error;
+                            }
+
+                            if ($error) {
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if ($error) {
+                    break;
+                }
             }
 
             if (!$error) {
-                // on boucle sur les lignes de l'OF
-                $prods_arbo = $factory->getChildsOF($id);
-                $product_chidren = $factory->getChildsArbo(0, $id);
-                require_once DOL_DOCUMENT_ROOT . '/product/stock/class/mouvementstock.class.php';
-                $mouvP = new MouvementStock($db);
-                $mouvP->origin = new Factory($db);
-                $mouvP->origin->id = $id;
+                //on memorise les infos de l'OF
+                $sql  = "UPDATE " . MAIN_DB_PREFIX . "factory";
+                $sql .= " SET date_end_made = " . ($factory->date_end_made ? $db->idate($factory->date_end_made) : 'null');
+                $sql .= " , duration_made = " . ($factory->duration_made ? $factory->duration_made : 'null');
+                $sql .= " , qty_made = " . ($factory->qty_made ? $factory->qty_made : 'null');
+                $sql .= " , description = '" . $db->escape($factory->description) . "'";
+                $sql .= " , fk_statut = 2";
+                $sql .= " WHERE rowid = " . $id;
 
-                if (count($prods_arbo) > 0) {
-                    $totprixfabrication = 0;
+                if (!$db->query($sql)) {
+                    $error++;
+                    $factory->error = $db->lasterror();
+                    $factory->errors[] = $factory->error;
+                }
 
-                    foreach ($prods_arbo as $value) {
-                        // get product values
-                        $dispatchSuffix = $value['dispatch_suffix'];
-                        $componentFkProduct = $value['id'];
+                if (!$error) {
+                    require_once DOL_DOCUMENT_ROOT . '/product/stock/class/mouvementstock.class.php';
+                    $mouvP = new MouvementStock($db);
+                    $mouvP->origin = new Factory($db);
+                    $mouvP->origin->id = $id;
+
+                    // for all dispatched lines
+                    foreach ($dispatchLineList as $dispatchLine) {
+                        $totprixfabrication = 0;
+
+                        // component product
+                        $componentProduct   = $dispatchLine['component_product'];
+                        $componentProductId = $componentProduct->id;
+                        $lineNum            = $dispatchLine['line'];
+
+                        // component product values
+                        $value               = $dispatchLine['value_array'];
+                        $componentProductPMP = $value['pmp'];
+
+                        // dispatch values
+                        $dispatchSuffix = $componentProductId . '_' . $lineNum;
+
+                        // factory line
+                        $fkFactoryDet = $dispatchLine['fk_factorydet'];
 
                         // get post values
-                        $componentFkEntrepot = GETPOST("id_entrepot_" . $dispatchSuffix, "int") ? GETPOST("id_entrepot_" . $dispatchSuffix, "int") : NULL;
-                        $componentQtyUsed = GETPOST("qtyused_" . $dispatchSuffix, "int") > 0 ? GETPOST("qtyused_" . $dispatchSuffix, "int") : 0;
-                        $componentQtyDeleted = GETPOST("qtydeleted_" . $dispatchSuffix, "int") > 0 ? GETPOST("qtydeleted_" . $dispatchSuffix, "int") : 0;
+                        $componentFkEntrepot                  = GETPOST($dispatchPrefix . 'id_entrepot_' . $dispatchSuffix, 'int') ? GETPOST($dispatchPrefix . 'id_entrepot_' . $dispatchSuffix, 'int') : NULL;
+                        $componentQtyUsed                     = GETPOST($dispatchPrefix . 'qtyused_' . $dispatchSuffix, 'int') > 0 ? GETPOST($dispatchPrefix . 'qtyused_' . $dispatchSuffix, 'int') : 0;
+                        $componentQtyDeleted                  = GETPOST($dispatchPrefix . 'qtydeleted_' . $dispatchSuffix, 'int') > 0 ? GETPOST($dispatchPrefix . 'qtydeleted_' . $dispatchSuffix, 'int') : 0;
+                        $componentProductToSerialize          = GETPOST($dispatchPrefix . 'product_serializel_' . $dispatchSuffix, 'int');
+                        $componentProductEquipementUsedIdList = GETPOST($dispatchPrefix . 'equipementused_' . $dispatchSuffix, 'array') ? GETPOST($dispatchPrefix . 'equipementused_' . $dispatchSuffix, 'array') : array();
+                        $componentProductEquipementLostIdList = GETPOST($dispatchPrefix . 'equipementlost_' . $dispatchSuffix, 'array') ? GETPOST($dispatchPrefix . 'equipementlost_' . $dispatchSuffix, 'array') : array();
+                        $equipementLostFkEntrepot             = GETPOST($dispatchPrefix . 'id_entrepotlost_' . $dispatchSuffix, 'int') ? GETPOST($dispatchPrefix . 'id_entrepotlost_' . $dispatchSuffix, 'int') : NULL;
+
+                        // set line for errors
+                        $errorLine = $langs->trans('Product') . ' ' . $componentProduct->ref . ' - ' . $langs->trans('Line') . ' ' . ($lineNum + 1);
 
                         if ($componentQtyUsed > 0 && empty($componentFkEntrepot)) {
                             $error++;
-                            $factory->error = $langs->trans('ErrorFieldRequired', $langs->transnoentities('Warehouse'));
+                            $factory->error    = $langs->trans('ErrorFieldRequired', $langs->transnoentities('Warehouse'));
                             $factory->errors[] = $factory->error;
                             break;
                         }
@@ -226,67 +368,113 @@ if (empty($reshook)) {
                         // on met a jour les infos des lignes de l'OF
                         $sql = "UPDATE " . MAIN_DB_PREFIX . "factorydet ";
                         $sql .= " SET qty_used = " . $componentQtyUsed;
-                        $sql .= " , qty_deleted = " . $componentQtyDeleted;
-                        $sql .= " , fk_entrepot = " . ($componentFkEntrepot > 0 ? $componentFkEntrepot : 'NULL');
+                        $sql .= ", qty_deleted = " . $componentQtyDeleted;
+                        $sql .= ", fk_entrepot = " . ($componentFkEntrepot > 0 ? $componentFkEntrepot : 'NULL');
                         $sql .= " WHERE fk_factory = " . $id;
-                        $sql .= " AND fk_product = " . $componentFkProduct;
-                        $sql .= " AND id_dispatched_line = " . $value['id_dispatched_line'];
+                        $sql .= " AND fk_product = " . $componentProductId;
+                        $sql .= " AND id_dispatched_line = " . $lineNum;
 
                         if (!$db->query($sql)) {
                             $error++;
-                            $factory->error = $db->lasterror();
+                            $factory->error    = $db->lasterror();
                             $factory->errors[] = $factory->error;
                         } else {
                             // s'il a ete detruit
                             if ($componentQtyDeleted > 0) {
                                 // le prix est a 0 pour ne pas impacter le pmp
-                                $idmv = $mouvP->livraison($user, $componentFkProduct, $componentFkEntrepot, $componentQtyDeleted, 0, $langs->trans("DeletedFactory", $factory->ref), $factory->date_end_made);
+                                $idmv = $mouvP->livraison($user, $componentProductId, $componentFkEntrepot, $componentQtyDeleted, 0, $langs->trans("DeletedFactory", $factory->ref), $factory->date_end_made);
                                 if ($idmv < 0) {
                                     $error++;
-                                    $componentProductStatic->fetch($componentFkProduct);
                                     $componentEntrepotStatic->fetch($componentFkEntrepot);
-                                    $factory->error = $componentProductStatic->ref . " : " . $mouvP->error . " (" . $componentEntrepotStatic->libelle . ")";
+                                    $factory->error    = $errorLine . " : " . $mouvP->error . " (" . $componentEntrepotStatic->libelle . ")";
                                     $factory->errors[] = $factory->error;
+                                }
+
+                                if (!$error) {
+                                    // delete equipment (put in waste warehouse selected)
+                                    if ($componentProductToSerialize == 1) {
+                                        foreach ($componentProductEquipementLostIdList as $equipementLostId) {
+                                            $equipementLost = new Equipement($db);
+                                            $equipementLost->fetch($equipementLostId);
+
+                                            $ret = $equipementLost->set_entrepot($user, $equipementLostFkEntrepot);
+                                            if ($ret < 0) {
+                                                $error++;
+                                                $factory->error    = $errorLine . " : " . $equipementLost->errorsToString();
+                                                $factory->errors[] = $factory->error;
+                                            }
+
+                                            if ($error) {
+                                                break;
+                                            }
+                                        }
+                                    }
                                 }
                             }
 
                             if (!$error) {
-                                // le prix est a 0 pour ne pas impacter le pmp
-                                $idmv = $mouvP->livraison($user, $componentFkProduct, $componentFkEntrepot, $componentQtyUsed, 0, $langs->trans("UsedforFactory", $factory->ref), $factory->date_end_made);
-                                if ($idmv < 0) {
-                                    $error++;
-                                    $componentProductStatic->fetch($componentFkProduct);
-                                    $componentEntrepotStatic->fetch($componentFkEntrepot);
-                                    $factory->error = $componentProductStatic->ref . " : " . $mouvP->error . " (" . $componentEntrepotStatic->libelle . ")";
-                                    $factory->errors[] = $factory->error;
+                                if ($componentQtyUsed != 0) {
+                                    // le prix est a 0 pour ne pas impacter le pmp
+                                    $idmv = $mouvP->livraison($user, $componentProductId, $componentFkEntrepot, $componentQtyUsed, 0, $langs->trans("UsedforFactory", $factory->ref), $factory->date_end_made);
+                                    if ($idmv < 0) {
+                                        $error++;
+                                        $componentEntrepotStatic->fetch($componentFkEntrepot);
+                                        $factory->error = $errorLine . " : " . $mouvP->error . " (" . $componentEntrepotStatic->libelle . ")";
+                                        $factory->errors[] = $factory->error;
+                                    }
+
+                                    // remove equipment list to use from warehouse of component
+                                    if (!$error) {
+                                        if ($componentProductToSerialize == 1) {
+                                            foreach ($componentProductEquipementUsedIdList as $equipementUsedId) {
+                                                $equipementUsed = new Equipement($db);
+                                                $equipementUsed->fetch($equipementUsedId);
+
+                                                $ret = $equipementUsed->set_entrepot($user, -1);
+                                                if ($ret < 0) {
+                                                    $error++;
+                                                    $factory->error = $errorLine . " : " . $equipementUsed->errorsToString();
+                                                    $factory->errors[] = $factory->error;
+                                                }
+
+                                                if ($error) {
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
 
                             // on totalise le prix d'achat des composants utilises pour determiner un prix de fabrication et mettre a jour le pmp du produit fabrique
                             // attention on prend les quantites utilisees et detruites
-                            $totprixfabrication += $componentQtyUsed * $value['pmp'];
-                            $totprixfabrication += $componentQtyDeleted * $value['pmp'];
+                            $totprixfabrication += $componentQtyUsed * $componentProductPMP;
+                            $totprixfabrication += $componentQtyDeleted * $componentProductPMP;
+                        }
+
+                        if ($error) {
+                            break;
                         }
                     }
-                }
 
-                if (!$error) {
-                    // on ajoute un mouvement de stock d'entree de produit
-                    if ($factory->qty_made != 0) {
-                        $idmv = $mouvP->reception($user, $factory->fk_product, $factory->fk_entrepot, $factory->qty_made, ($totprixfabrication / $factory->qty_made), $langs->trans("BuildedFactory", $factory->ref), $factory->date_end_made);
-                        if ($idmv < 0) {
-                            $error++;
-                            $componentProductStatic->fetch($factory->fk_product);
-                            $componentEntrepotStatic->fetch($factory->fk_entrepot);
-                            $factory->error = $componentProductStatic->ref . " : " . $mouvP->error . " (" . $componentEntrepotStatic->libelle . ")";
-                            $factory->errors[] = $factory->error;
+                    if (!$error) {
+                        // on ajoute un mouvement de stock d'entree de produit
+                        if ($factory->qty_made != 0) {
+                            $idmv = $mouvP->reception($user, $factory->fk_product, $factory->fk_entrepot, $factory->qty_made, ($totprixfabrication / $factory->qty_made), $langs->trans("BuildedFactory", $factory->ref), $factory->date_end_made);
+                            if ($idmv < 0) {
+                                $error++;
+                                $componentProductStatic->fetch($factory->fk_product);
+                                $componentEntrepotStatic->fetch($factory->fk_entrepot);
+                                $factory->error    = $componentProductStatic->ref . " : " . $mouvP->error . " (" . $componentEntrepotStatic->libelle . ")";
+                                $factory->errors[] = $factory->error;
+                            }
                         }
                     }
-                }
 
-                if (!$error) {
-                    // Call trigger
-                    $result = $factory->call_trigger('FACTORY_CLOSE', $user);
+                    if (!$error) {
+                        // Call trigger
+                        $result = $factory->call_trigger('FACTORY_CLOSE', $user);
+                    }
                 }
             }
 
@@ -330,6 +518,9 @@ if (empty($reshook)) {
 
 $form = new Form($db);
 $formfile = new FormFile($db);
+if (!empty($conf->equipement->enabled)) {
+    $equipementStatic = new Equipement($db);
+}
 
 llxHeader("", "", $langs->trans("CardFactory"), '', 0, 0, array('/custom/factory/js/factory_dispatcher.js?sid=' . dol_now()));
 
@@ -344,6 +535,9 @@ dol_fiche_head($head, 'factoryreport', $titre, 0, $picto);
 print '<form name="closeof" action="'.$_SERVER["PHP_SELF"].'?id='.$factory->id.'" method="post">';
 print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
 print '<input type="hidden" name="action" value="closeof">';
+if (!empty($conf->equipement->enabled)) {
+    print '<input type="hidden" id="url_to_get_all_equipement_in_warehouse" name="url_to_get_all_equipement_in_warehouse" value="' . dol_buildpath('/equipement/ajax/all_equipement_in_warehouse.php', 1) . '" />';
+}
 print '<table class="border" width="100%">';
 print "<tr>";
 
@@ -478,13 +672,117 @@ print '<td  valign=top>';
 // indique si on a déjà une composition de présente ou pas
 $compositionpresente=0;
 
-$prods_arbo =$factory->getChildsOF($id);
-print_fiche_titre($langs->trans("FactorisedProductsNumber").' : '.count($prods_arbo),'','');
+//$prods_arbo =$factory->getChildsOF($id);
+if (empty($dispatchLineList)) {
+    $sql  = "SELECT";
+    $sql .= " fd.rowid as fd_rowid";
+    $sql .= ", fd.fk_product as id";
+    $sql .= ", fd.qty_used as qtyused";
+    $sql .= ", fd.qty_deleted as qtydeleted";
+    $sql .= ", fd.globalqty";
+    $sql .= ", fd.description";
+    $sql .= ", fd.qty_unit as qtyunit";
+    $sql .= ", fd.qty_planned as qtyplanned";
+    //$sql .= ", fd.fk_mvtstockplanned as mvtstockplanned";
+    //$sql .= ", fd.fk_mvtstockused as mvtstockused";
+    //$sql .= ", fd.pmp as pmp";
+    //$sql .= ", fd.price as price";
+    $sql .= ", fd.fk_entrepot as child_fk_entrepot";
+    $sql .= ", fd.id_dispatched_line";
+    //$sql .= ", p.label as label";
+    //$sql .= ", p.ref";
+    //$sql .= ", p.fk_product_type";
+    $sql .= " FROM " . MAIN_DB_PREFIX . "factorydet as fd";
+    $sql .= " INNER JOIN " . MAIN_DB_PREFIX . "product as p ON p.rowid = fd.fk_product";
+    $sql .= " WHERE fd.fk_factory = " . $id;
+
+    $resql = $db->query($sql);
+    if ($resql) {
+        while ($obj = $db->fetch_object($resql)) {
+            $valueArray = array(
+                'id'                => $obj->id,
+                'nb'                => $obj->qtyunit,
+                'globalqty'         => $obj->globalqty,
+                'description'       => $obj->description,
+                'qtyused'           => $obj->qtyused,
+                'qtydeleted'        => $obj->qtydeleted,
+                'qtyplanned'        => $obj->qtyplanned,
+                'child_fk_entrepot' => $obj->child_fk_entrepot
+            );
+
+            // component product
+            $componentProduct = new Product($db);
+            $componentProduct->fetch($obj->id);
+            $componentProductId = $componentProduct->id;
+
+            // equipment used and lost id list
+            $equipementUsedIdList = array();
+            $equipementLostIdList = array();
+            $entrepotLostId       = NULL;
+            if (!empty($conf->equipement->enabled)) {
+                $sqlEquipementEvt  = "SELECT ee.rowid";
+                $sqlEquipementEvt .= ", ee.fk_equipement";
+                $sqlEquipementEvt .= ", e.fk_entrepot";
+                $sqlEquipementEvt .= " FROM " . MAIN_DB_PREFIX . "equipementevt as ee";
+                $sqlEquipementEvt .= " INNER JOIN " . MAIN_DB_PREFIX . "equipement as e ON e.rowid = ee.fk_equipement";
+                $sqlEquipementEvt .= " WHERE ee.fk_factory = " . $id;
+                $sqlEquipementEvt .= " AND ee.fk_factorydet = " . $obj->fd_rowid;
+
+                $resqlEquipementEvt = $db->query($sqlEquipementEvt);
+                if ($resqlEquipementEvt) {
+                    while ($obje = $db->fetch_object($resqlEquipementEvt)) {
+                        // modification mode
+                        if ($factory->statut == 1) {
+                            $equipementUsedIdList[] = $obje->fk_equipement;
+                        }
+                        // validated mode
+                        else {
+                            if ($obje->fk_entrepot > 0) {
+                                $equipementLostIdList[] = $obje->fk_equipement;
+                                $entrepotLostId = intval($obje->fk_entrepot);
+                            } else {
+                                $equipementUsedIdList[] = $obje->fk_equipement;
+                            }
+                        }
+                    }
+
+                    $db->free($resqlEquipementEvt);
+                }
+            }
+
+            // dispatch values
+            $lineNum        = intval($obj->id_dispatched_line);
+            $dispatchSuffix = $componentProduct->id . '_' . $lineNum;
+
+            // add dispatch line
+            $dispatchLineList[$dispatchSuffix] = array(
+                'component_product'      => $componentProduct,
+                'line'                   => $lineNum,
+                'fk_factorydet'          => $obj->fd_rowid,
+                'nb'                     => $obj->qtyplanned,
+                'value_array'            => $valueArray,
+                'equipementused_id_list' => $equipementUsedIdList,
+                'equipementlost_id_list' => $equipementLostIdList,
+                'entrepotlost_id'        => $entrepotLostId
+            );
+        }
+
+        $db->free($resql);
+    }
+}
+
+print_fiche_titre($langs->trans("FactorisedProductsNumber").' : '.count($dispatchLineList),'','');
 
 // List of subproducts
-if (count($prods_arbo) > 0) {
+if (count($dispatchLineList) > 0) {
+    // list of component product id
+    $componentProductIdList = array();
+
+    // all js lines
+    $outjsLineList = array();
+    $outjsQtyMadeChangeList = array();
+
 	$compositionpresente=1;
-	//print '<b>'.$langs->trans("FactoryTableInfo").'</b><BR>';
 	print '<table class="border" >';
 	print '<tr class="liste_titre">';
 	print '<td class="liste_titre" width=100px align="left">'.$langs->trans("Ref").'</td>';
@@ -494,7 +792,13 @@ if (count($prods_arbo) > 0) {
 	print '<td class="liste_titre" width=50px align="center">'.$langs->trans("FactoryQtyPlanned").'</td>';
 	print '<td class="liste_titre" width=50px align="center">'.$langs->trans("QtyConsummed").'</td>';
 	print '<td class="liste_titre" width=50px align="center">'.$langs->trans("QtyLosed").'</td>';
+    if (!empty($conf->equipement->enabled)) {
+        print '<td class="liste_titre" align="center">' . $langs->trans("EquipementLost") . '</td>';
+    }
 	print '<td class="liste_titre" width=50px align="center">'.$langs->trans("QtyUsed").'</td>';
+    if (!empty($conf->equipement->enabled)) {
+        print '<td class="liste_titre" align="center">' . $langs->trans("EquipementUsed") . '</td>';
+    }
 	print '<td class="liste_titre" width=50px align="center">'.$langs->trans("QtyRestocked").'</td>';
 
 	print '</tr>';
@@ -504,100 +808,263 @@ if (count($prods_arbo) > 0) {
 	$productEntrepotStatic = new Entrepot($db);
     $factoryformproduct = new FactoryFormProduct($db);
 
-	foreach ($prods_arbo as $value) {
+    foreach ($dispatchLineList as $dispatchLine) {
+        // component product
+        $componentProduct      = $dispatchLine['component_product'];
+        $componentProductId    = $componentProduct->id;
+        $componentProductLabel = $componentProduct->label;
+
+        // component product values
+        $valueArray                  = $dispatchLine['value_array'];
+        $componentProductGlobalQty   = $valueArray['globalqty'];
+        $componentProductQtyPlanned  = $valueArray['qtyplanned'];
+        $componentProductQtyUsed     = $valueArray['qtyused'];
+        $componentProductQtyDeleted  = $valueArray['qtydeleted'];
+        $componentProductFkEntrepot  = $valueArray['child_fk_entrepot'];
+        $componentProductDescription = $valueArray['description'];
+        $componentProductQtyUnit     = $valueArray['nb'];
+
         // dispatcher
-        $dispactherList = array('id' => $value['id'], 'name' => '', 'line' => intval($value['id_dispatched_line']), 'nb' => $value['qtyplanned'], 'btn_nb' => 0);
+        $dispactherList = array(
+            'id'                     => $componentProductId,
+            'name'                   => '',
+            'line'                   => $dispatchLine['line'],
+            'nb'                     => $componentProductQtyPlanned,
+            'equipementused_id_list' => $dispatchLine['equipementused_id_list'],
+            'equipementlost_id_list' => $dispatchLine['equipementlost_id_list'],
+            'entrepotlost_id'        => $dispatchLine['entrepotlost_id'],
+            'btn_nb'                 => 0,
+            'mode'                   => 'select',
+            'unlock_qty'             => 'true',
+            'element_type'           => ''
+        );
+        $dispatchSuffix = $dispactherList['id'] . '_' . $dispatchLine['line'];
 
         // get post values
-        $dispatchSuffix = $value['dispatch_suffix'];
-        $componentFkEntrepot = GETPOST("id_entrepot_" . $dispatchSuffix, "int")>0 ? GETPOST("id_entrepot_" . $dispatchSuffix, "int") : $value['child_fk_entrepot'];
-        $componentQtyUsed    = GETPOST("qtyused_" . $dispatchSuffix, "int")!='' ? GETPOST("qtyused_" . $dispatchSuffix, "int") : $value['qtyplanned'];
-        $componentQtyDeleted = GETPOST("qtydeleted_" . $dispatchSuffix, "int")!='' ? GETPOST("qtydeleted_" . $dispatchSuffix, "int") : 0;
+        $componentFkEntrepot = GETPOST($dispatchPrefix . 'id_entrepot_' . $dispatchSuffix, 'int')>0 ? GETPOST($dispatchPrefix . 'id_entrepot_' . $dispatchSuffix, 'int') : $componentProductFkEntrepot;
+        $componentQtyUsed    = GETPOST($dispatchPrefix . 'qtyused_' . $dispatchSuffix, 'int')!='' ? GETPOST($dispatchPrefix . 'qtyused_' . $dispatchSuffix, 'int') : $componentProductQtyPlanned;
+        $componentQtyDeleted = GETPOST($dispatchPrefix . 'qtydeleted_' . $dispatchSuffix, 'int')!='' ? GETPOST($dispatchPrefix . 'qtydeleted_' . $dispatchSuffix, 'int') : 0;
 
         // verify if product have child then display it after the product name
-        $tmpChildArbo = $factory->getChildsArbo($value['id']);
+        $tmpChildArbo = $factory->getChildsArbo($componentProductId);
         $nbChildArbo = "";
         if (count($tmpChildArbo) > 0) $nbChildArbo = " (" . count($tmpChildArbo) . ")";
 
-		print '<tr name="' . $dispactherList['id'] . '_' . $dispactherList['line'] . '">';
-		print '<td align="left">'.$factory->getNomUrlFactory($value['id'], 1,'fiche').$nbChildArbo;
-		print $factory->PopupProduct($value['id']);
+		print '<tr name="' . $dispatchPrefix . $dispatchSuffix . '">';
+
+        // dispatch component ref
+		print '<td align="left">'.$factory->getNomUrlFactory($componentProductId, 1,'fiche').$nbChildArbo;
+        print '<input type="hidden" id="' . $dispatchPrefix . 'id_component_product_'  .$dispatchSuffix . '" name="' . $dispatchPrefix . 'id_component_product_'  .$dispatchSuffix . '" value="' . $componentProductId . '" />';
+		print $factory->PopupProduct($componentProductId);
 		print '</td>';
-		print '<td align="left" title="'.$value['description'].'">';
-		print $value['label'].'</td>';
+
+		// dispatch component label (with description)
+		print '<td align="left" title="' . $componentProductDescription . '">' . $componentProductLabel . '</td>';
 
 		// component warehouse
         print '<td>';
         if ($factory->statut == 1) {
-            print $factoryformproduct->selectWarehouses($componentFkEntrepot, 'id_entrepot_' . $dispatchSuffix, 'warehouseopen,warehouseinternal', 0, 0, $value['id'], '', 0, 1, null, 'minwidth100', '', 1, TRUE);
+            print $factoryformproduct->selectWarehouses($componentFkEntrepot, $dispatchPrefix . 'id_entrepot_' . $dispatchSuffix, 'warehouseopen,warehouseinternal', 0, 0, $componentProductId, '', 0, 1, null, 'minwidth100', '', 1, TRUE);
         } else {
-            if ($value['child_fk_entrepot']>0 && $productEntrepotStatic->fetch($value['child_fk_entrepot'])) {
+            if ($componentProductFkEntrepot>0 && $productEntrepotStatic->fetch($componentProductFkEntrepot)) {
                 print $productEntrepotStatic->getNomUrl(1);
             }
         }
         print '</td>';
 
         // component qty unit
-		print '<td align="center">'.$value['nb'];
-		if ($value['globalqty'] == 1) {
+		print '<td align="center">'.$componentProductQtyUnit;
+		if ($componentProductGlobalQty == 1) {
             print "&nbsp;G";
-            print '<input type="hidden" id="qtyunit_' . $dispatchSuffix . '" value="1" />';
+            print '<input type="hidden" id="' . $dispatchPrefix . 'qtyunit_' . $dispatchSuffix . '" value="1" />';
         } else {
-            print '<input type="hidden" id="qtyunit_' . $dispatchSuffix . '" value="' . $value['nb'] . '" />';
+            print '<input type="hidden" id="' . $dispatchPrefix . 'qtyunit_' . $dispatchSuffix . '" value="' . $componentProductQtyUnit . '" />';
         }
 		print '</td>';
 
 		// component qty planned
-		print '<td align="center">'.($value['qtyplanned']).'</td>';
+		print '<td align="center">'.($componentProductQtyPlanned).'</td>';
 
 		if ($factory->statut == 1) {
-			// si c'est la première saisie on alimente avec les valeurs par défaut
-			if ($value['qtyused']) {
-				print '<td align="right">'.$value['qtyused'].'</td>';
+			// si c'est la premiere saisie on alimente avec les valeurs par defaut
+			if ($componentProductQtyUsed) {
+				print '<td align="right">'.$componentProductQtyUsed.'</td>';
 				print '<td align="center">';
-				print '<input type=text size=4 name="qtydeleted_'.$value['dispatch_suffix'].'" value="'.($value['qtydeleted']).'"></td>';
-				print '<td align="right">'.($value['qtyused']+$value['qtydeleted']).'</td>';
-				print '<td align="right">'.($value['qtyplanned']-($value['qtyused']+$value['qtydeleted'])).'</td>';
+				print '<input type="text" size="4" name="qtydeleted_'.$dispatchSuffix.'" value="'.($componentProductQtyDeleted).'"></td>';
+				print '<td align="right">'.($componentProductQtyUsed+$componentProductQtyDeleted).'</td>';
+				print '<td align="right">'.($componentProductQtyPlanned-($componentProductQtyUsed+$componentProductQtyDeleted)).'</td>';
 			} else {
-				print '<td align="center">'.$value['qtyplanned'].'</td>';
-				print '<td align="center"><input type="text" size="4" name="qtydeleted_' . $value['dispatch_suffix'] . '" value="' . $componentQtyDeleted . '" /></td>';
-				print '<td><input type="text" size="4" id="qtyused_' . $value['dispatch_suffix'] . '" name="qtyused_' . $dispatchSuffix . '" value="' . $componentQtyUsed . '" /></td>';
-                print '<td name="action_' . $dispactherList['id'] . '_' . $dispactherList['line'] . '">';
+			    // javascript for line
+                $outjs = '';
+
+			    // dispatch product to serialize
+                $componentProductToSerialize = 0;
+                $equipementList = array();
+                if (!empty($conf->equipement->enabled)) {
+                    if ($componentProduct->array_options['options_synergiestech_to_serialize']==1) {
+                        $componentProductToSerialize = 1;
+                        $dispactherList['element_type'] = 'equipement';
+                        $dispactherList['element_data'] = json_encode(["actionname" => "getAllEquipementInWarehouse", "htmlname_middle" => "equipementused_", "copyto_htmlname_middle" => "equipementlost_"]);
+
+                        // find all equipments for a product and warehouse
+                        if ($componentFkEntrepot > 0) {
+                            $resql = $equipementStatic->findAllByFkProductAndFkEntrepot($componentProductId, $componentFkEntrepot);
+                            if ($resql) {
+                                while ($obj = $db->fetch_object($resql)) {
+                                    $equipementList[$obj->rowid] = $obj->ref;
+                                }
+                            }
+                        }
+                    }
+
+                    print '<input type="hidden" name="' . $dispatchPrefix . 'product_serializel_' . $dispatchSuffix . '" value="' . $componentProductToSerialize . '" />';
+                }
+
+			    // dispatch qty planned
+				print '<td align="center">'.$componentProductQtyPlanned.'</td>';
+
+				// dispatch qty lost
+				print '<td align="center"><input type="text" size="4" name="' . $dispatchPrefix . 'qtydeleted_' . $dispatchSuffix . '" value="' . $componentQtyDeleted . '" /></td>';
+                if (!empty($conf->equipement->enabled)) {
+                    // dispatch lost equipment
+                    $multiSelectEquipement      = '';
+                    $selectWarehousesEquipement = '';
+
+                    if ($componentProductToSerialize==1) {
+                        // warehouses for lost quantities
+                        $equipementLostFkEntrepot   = GETPOST($dispatchPrefix . 'id_entrepotlost_' . $dispatchSuffix, 'int')>0 ? GETPOST($dispatchPrefix . 'id_entrepotlost_' . $dispatchSuffix, 'int') : '';
+                        $selectWarehousesEquipement = $langs->trans("EquipementWarehouseForLost") . ' : ' . $factoryformproduct->selectWarehouses($equipementLostFkEntrepot, $dispatchPrefix . 'id_entrepotlost_' . $dispatchSuffix, 'warehouseopen,warehouseinternal', 1, 0, $componentProductId, '', 0, 1, null, 'minwidth100', '', 1, FALSE);
+
+                        // multiselect equipment lost
+                        $idEquipementList = array();
+                        if (GETPOST($dispatchPrefix . 'equipementlost_' . $dispatchSuffix, 'array')) {
+                            $idEquipementList = GETPOST($dispatchPrefix . 'equipementlost_' . $dispatchSuffix, 'array');
+                        }
+                        $multiSelectEquipement = Form::multiselectarray($dispatchPrefix . 'equipementlost_' . $dispatchSuffix, $equipementList, $idEquipementList, 0, 0, '', 0, 200);
+                    }
+
+                    print '<td>';
+                    print  $selectWarehousesEquipement;
+                    print '<span id="' . $dispatchPrefix . 'equipementlost_multiselect_' . $dispatchSuffix . '">' . $multiSelectEquipement . '</span>';
+                    print '</td>';
+                }
+
+                // dispatch qty used
+				print '<td><input type="text" size="4" id="' . $dispatchPrefix . 'qtyused_' . $dispatchSuffix . '" name="' . $dispatchPrefix . 'qtyused_' . $dispatchSuffix . '" value="' . $componentQtyUsed . '" /></td>';
+                if (!empty($conf->equipement->enabled)) {
+                    // dispatch used equipment
+                    $multiSelectEquipement = '';
+
+                    if ($componentProductToSerialize==1) {
+                        // multiselect equipment used
+                        $idEquipementList = $dispactherList['equipementused_id_list'];
+                        if (GETPOST($dispatchPrefix . 'equipementused_' . $dispatchSuffix, 'array')) {
+                            $idEquipementList = GETPOST($dispatchPrefix . 'equipementused_' . $dispatchSuffix, 'array');
+                        }
+                        $multiSelectEquipement = Form::multiselectarray($dispatchPrefix . 'equipementused_' . $dispatchSuffix, $equipementList, $idEquipementList, 0, 0, '', 0, 200);
+                    }
+
+                    print '<td>';
+                    print '<span id="' . $dispatchPrefix . 'equipementused_multiselect_' . $dispatchSuffix . '">' . $multiSelectEquipement . '</span>';
+                    print '</td>';
+                }
+
+                // dispatch action
+                print '<td name="' . $dispatchPrefix . 'action_' . $dispatchSuffix . '">';
 				if ($dispactherList['line']===0) {
-                    print img_picto($langs->trans('AddDispatchBatchLine'), 'split.png', 'onClick="FactoryDispatcher.addLineFromDispatcher(' . $dispactherList['id'] . ',\'' . $dispactherList['name'] . '\', \'input_new\', true)"');
+                    print img_picto($langs->trans('AddDispatchBatchLine'), 'split.png');
+                    // on dispatcher img click
+                    $outjs .= 'jQuery("td[name=\"' . $dispatchPrefix . 'action_' . $dispatchSuffix . '\"] img").click(function(){';
+                    $outjs .= 'FactoryDispatcher.addLineFromDispatcher(' . $dispactherList['id'] . ',\'' . $dispactherList['name'] . '\', \'' . $dispactherList['mode'] . '\', ' . $dispactherList['unlock_qty'] . ', \'' . $dispactherList['element_type'] . '\', \'' . $dispactherList['element_data'] . '\');';
+                    $outjs .= '});';
                 }
                 print '</td>';
+
+                // on warehouse change
+                $outjs .= 'jQuery("#' . $dispatchPrefix . 'id_entrepot_' . $dispatchSuffix . '").change(function(){';
+                $outjs .= 'FactoryDispatcher.getAllEquipementInSelectedWarehouse(\'' . $dispactherList['id'] . '\', \'' . $dispactherList['name'] . '\', \'' . $dispactherList['line'] . '\', \'' . $dispactherList['element_data'] . '\');';
+                $outjs .= '});';
+				$outjsLineList[] = $outjs;
 			}
+
+            if (!array_key_exists($componentProductId, $componentProductIdList)) {
+                $outjsQtyMadeChangeList[] = 'jQuery("#' . $dispatchPrefix . 'qtyused_' . $dispatchSuffix . '").val(this.value*jQuery("#' . $dispatchPrefix . 'qtyunit_' . $dispatchSuffix . '").val());';
+            } else {
+                $outjsQtyMadeChangeList[] = 'jQuery("#' . $dispatchPrefix .'qtyused_' . $dispatchSuffix . '").val(0);';
+            }
+            $componentProductIdList[$componentProductId] = $componentProductId;
 		} else {
-			print '<td align="right">'.$value['qtyused'].'</td>';
-			print '<td align="right">'.$value['qtydeleted'].'</td>';
-			print '<td align="right">'.($value['qtyused']+$value['qtydeleted']).'</td>';
-			print '<td align="right">'.($value['qtyplanned']-($value['qtyused']+$value['qtydeleted'])).'</td>';
+		    // qty used (consumed)
+			print '<td align="right">'.$componentProductQtyUsed.'</td>';
+
+			// qty deleted (lost)
+			print '<td align="right">'.$componentProductQtyDeleted.'</td>';
+
+            // equipment lost
+            if (!empty($conf->equipement->enabled)) {
+                print '<td>';
+                // warehouse for lost quantity
+                $entrepotLostId = $dispactherList['entrepotlost_id'];
+                if ($entrepotLostId > 0) {
+                    $entrepotLost = new Entrepot($db);
+                    $entrepotLost->fetch($entrepotLostId);
+
+                    print $entrepotLost->getNomUrl(1) . '<br />';
+                }
+
+                foreach ($dispactherList['equipementlost_id_list'] as $equipementId) {
+                    $equipementLost = new Equipement($db);
+                    $equipementLost->fetch($equipementId);
+
+                    print '';
+                    print $equipementLost->getNomUrl(1) . '<br />';
+                }
+                print '</td>';
+            }
+
+            // qty used and delete
+			print '<td align="right">'.($componentProductQtyUsed+$componentProductQtyDeleted).'</td>';
+
+            // equipment used
+            if (!empty($conf->equipement->enabled)) {
+                print '<td>';
+                foreach ($dispactherList['equipementused_id_list'] as $equipementId) {
+                    $equipementUsed = new Equipement($db);
+                    $equipementUsed->fetch($equipementId);
+
+                    print $equipementUsed->getNomUrl(1) . '<br />';
+                }
+                print '</td>';
+            }
+
+            // qty return in stock
+			print '<td align="right">'.($componentProductQtyPlanned-($componentProductQtyUsed+$componentProductQtyDeleted)).'</td>';
 		}
 		print '</tr>';
 	}
 	print '</table>';
 
+    // javascript
     if ($factory->statut == 1) {
-        $productIdList = array();
+        $out  = '<script type="text/javascript" language="javascript">';
+        $out .= 'jQuery(document).ready(function(){';
 
-        print '<script type="text/javascript" language="javascript">';
-        print 'jQuery(document).ready(function(){';
-        print ' jQuery("#qtymade").on("change", function(){';
-        foreach ($prods_arbo as $value) {
-            $dispatchSuffix = $value['dispatch_suffix'];
-
-            if (!array_key_exists($value['id'], $productIdList)) {
-                print 'jQuery("#qtyused_' . $dispatchSuffix . '").val(this.value*jQuery("#qtyunit_' . $dispatchSuffix . '").val());';
-            } else {
-                print 'jQuery("#qtyused_' . $dispatchSuffix . '").val(0);';
-            }
-
-            $productIdList[$value['id']] = $value['id'];
+        // add all js lines
+        foreach ($outjsLineList as $outjs) {
+            $out .= $outjs;
         }
-        print ' });';
-        print '});';
-        print '</script>';
+
+        // on qty made change
+        $out .= 'jQuery("#qtymade").on("change", function(){';
+        foreach ($outjsQtyMadeChangeList as $outjsQtyMadeChange) {
+            $out .=  $outjsQtyMadeChange;
+        }
+        $out .=  '});';
+
+        $out .=  '});';
+        $out .=  '</script>';
+
+        print $out;
     }
 }
 print '</td>';

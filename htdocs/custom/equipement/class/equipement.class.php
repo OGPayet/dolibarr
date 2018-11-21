@@ -1504,7 +1504,7 @@ class Equipement extends CommonObject
      *
      * @throws  Exception
      */
-	function addline($equipementid, $fk_equipementevt_type, $desc, $dateo, $datee, $fulldayevent, $fk_contrat, $fk_fichinter, $fk_expedition, $fk_project, $fk_user_author, $total_ht=0, $array_option=0, $fk_expeditiondet=0, $fk_retourproduits=0)
+	function addline($equipementid, $fk_equipementevt_type, $desc, $dateo, $datee, $fulldayevent, $fk_contrat, $fk_fichinter, $fk_expedition, $fk_project, $fk_user_author, $total_ht=0, $array_option=0, $fk_expeditiondet=0, $fk_retourproduits=0, $k_factory=0, $fk_factorydet=0)
 	{
 
 		$this->db->begin();
@@ -1527,6 +1527,8 @@ class Equipement extends CommonObject
 		$line->fk_user_author			= $fk_user_author;
 		$line->datec					= dol_now();
 		$line->fk_retourproduits        = $fk_retourproduits;
+        $line->fk_factory               = $k_factory;
+        $line->fk_factorydet            = $fk_factorydet;
 
 		if (is_array($array_option) && count($array_option)>0)
 			$line->array_options=$array_option;
@@ -2294,6 +2296,9 @@ class Equipementevt extends CommonObject
 	var $fk_expedition;
     var $fk_expeditiondet;
 	var $fk_user_author;
+    var $fk_retourproduits;
+    var $fk_factory;
+    var $fk_factorydet;
 	// pour �viter de se taper une recherche pour chaque ligne
 	var $ref_fichinter;
 	var $ref_contrat;
@@ -2328,6 +2333,9 @@ class Equipementevt extends CommonObject
 		$sql = 'SELECT ee.rowid, ee.fk_equipement, ee.description, ee.datec, ee.fk_equipementevt_type, ';
 		$sql.= ' eet.libelle as equipeventlib, ee.datee, ee.dateo, ee.fulldayevent, ee.total_ht, ';
 		$sql.= ' ee.fk_user_author, ee.fk_fichinter, ee.fk_contrat, ee.fk_expedition, ee.fk_expeditiondet, ee.fk_project ';
+        $sql.= ", ee.fk_retourproduits";
+        $sql.= ", ee.fk_factory";
+        $sql.= ", ee.fk_factorydet";
 		$sql.= ' FROM '.MAIN_DB_PREFIX.'equipementevt as ee';
 		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."c_equipementevt_type as eet on ee.fk_equipementevt_type = eet.rowid";
 		$sql.= ' WHERE ee.rowid = '.$rowid;
@@ -2352,7 +2360,9 @@ class Equipementevt extends CommonObject
 			$this->fk_expedition			= $objp->fk_expedition;
             $this->fk_expeditiondet			= $objp->fk_expeditiondet;
 			$this->fk_project				= $objp->fk_project;
-			$this->fk_user_author			= $objp->fk_user_author;
+            $this->fk_retourproduits	    = $objp->fk_retourproduits;
+			$this->fk_factory			    = $objp->fk_factory;
+            $this->fk_factorydet			= $objp->fk_factorydet;
 
 			$this->db->free($result);
 			return 1;
@@ -2380,7 +2390,10 @@ class Equipementevt extends CommonObject
 		$sql.= ' (fk_equipement, fk_equipementevt_type, description,';
 		$sql.= ' fulldayevent, fk_fichinter, fk_contrat, fk_expedition, fk_expeditiondet, fk_project,';
 		$sql.= ' datec, dateo, datee, total_ht, fk_user_author';
-        $sql.= ", fk_retourproduits)";
+        $sql.= ", fk_retourproduits";
+        $sql.= ", fk_factory";
+        $sql.= ", fk_factorydet";
+        $sql.= ")";;
 		$sql.= " VALUES (".$this->fk_equipement.",";
 		$sql.= " ".($this->fk_equipementevt_type?$this->fk_equipementevt_type:"null").",";
 		$sql.= " '".($this->desc?$this->db->escape($this->desc):"non saisie")."',";
@@ -2394,8 +2407,10 @@ class Equipementevt extends CommonObject
 		$sql.= " '".$this->db->idate($this->dateo)."',";
 		$sql.= " '".$this->db->idate($this->datee)."',";
 		$sql.= ' '.($this->total_ht?price2num($this->total_ht):"null").",";
-		$sql.= ' '.($this->fk_user_author?$this->fk_user_author:"null").",";
-        $sql.= " ".($this->fk_retourproduits?$this->fk_retourproduits:"null");
+		$sql.= ' '.($this->fk_user_author?$this->fk_user_author:"null");
+        $sql.= ", ".($this->fk_retourproduits?$this->fk_retourproduits:"null");
+        $sql.= ", ".($this->fk_factory?$this->fk_factory:"null");
+        $sql.= ", ".($this->fk_factorydet?$this->fk_factorydet:"null");
 		$sql.= ')';
 //print $sql.'<br>';
 		dol_syslog(get_class($this)."::insert sql=".$sql);

@@ -14,12 +14,14 @@ class FactoryDispatcher {
     /**
      * Constructor of dispatcher
      *
-     * @param	int		idDispatcher		    Id of dispacther
-     * @param	string	dispatcherName		    Name of dispatcher
-     * @param	string	dispatcherMode		    [='select'] Mode of dispatcher ('select' to use select for qty, 'input_new' to use input and add new list)
-     * @param   bool    dispatcherUnlockQty     [=false] Unlock qty
+     * @param	int		    idDispatcher		    Id of dispacther
+     * @param	string	    dispatcherName		    Name of dispatcher
+     * @param	string	    dispatcherMode		    [='select'] Mode of dispatcher ('select' to use select for qty)
+     * @param   bool        dispatcherUnlockQty     [=false] Unlock qty
+     * @param   string      dispatcherElementType   [=''] Element type (ex : 'equipement')
+     * @param   string      dispatchElementData     Data object of the element to send (ex : '{"actionname" : "getAllEquipementInWarehouse", "htmlname_middle" : "equipementused_", "copyto_htmlname_middle" : "equipementlost_"}')
      */
-    constructor(idDispatcher, dispatcherName, dispatcherMode, dispatcherUnlockQty)
+    constructor(idDispatcher, dispatcherName, dispatcherMode, dispatcherUnlockQty, dispatcherElementType, dispatchElementData)
     {
         this.id   = idDispatcher;
         this.name = dispatcherName;
@@ -35,19 +37,34 @@ class FactoryDispatcher {
         } else {
             this.unlock_qty = false;
         }
+
+        if (dispatcherElementType!==undefined) {
+            this.element_type = dispatcherElementType;
+        } else {
+            this.element_type = '';
+        }
+
+        if (dispatchElementData!==undefined) {
+            this.element_data = dispatchElementData;
+        } else {
+            this.element_data = '';
+        }
     }
 
 
     /**
      * Add line and dispatching quantities from a dispatcher
      *
-     * @param	int		idDispatcher		Id of dispatcher
-     * @param	string	dispatcherName		Name of dispatcher
-     * @param   bool    dispatcherUnlockQty     [=false] Unlock qty
+     * @param	int		    idDispatcher		    Id of dispatcher
+     * @param	string	    dispatcherName		    Name of dispatcher
+     * @param	string	    dispatcherMode		    [='select'] Mode of dispatcher ('select' to use select for qty)
+     * @param   bool        dispatcherUnlockQty     [=false] Unlock qty
+     * @param   string      dispatcherElementType   [=''] Element type (ex : 'equipement')
+     * @param   string      dispatchElementData     Data object of the element to send (ex : '{"actionname" : "getAllEquipementInWarehouse", "htmlname_middle" : "equipementused_", "copyto_htmlname_middle" : "equipementlost_"}')
      */
-    static addLineFromDispatcher(idDispatcher, dispatcherName, dispatcherMode, dispatcherUnlockQty)
+    static addLineFromDispatcher(idDispatcher, dispatcherName, dispatcherMode, dispatcherUnlockQty, dispatcherElementType, dispatchElementData)
     {
-        var dispatcher = new FactoryDispatcher(idDispatcher, dispatcherName, dispatcherMode, dispatcherUnlockQty);
+        var dispatcher = new FactoryDispatcher(idDispatcher, dispatcherName, dispatcherMode, dispatcherUnlockQty, dispatcherElementType, dispatchElementData);
         dispatcher.addLine();
     }
 
@@ -59,6 +76,8 @@ class FactoryDispatcher {
     {
         var idDispatcher = this.id;
         var dispatcherName = this.name;
+        var dispatchElementData = this.element_data;
+
         var dispatcherPrefix = '';
 
         if (dispatcherName) {
@@ -101,18 +120,86 @@ class FactoryDispatcher {
             // change name of new row
             $row.attr('name', dispatcherPrefix+idDispatcher+'_'+nbLine);
 
-            // insert new row before last row
+            // insert new row after last row
             jQuery("tr[name='"+dispatcherPrefix+idDispatcher+"_"+(nbLine-1)+"']:last").after($row);
-
-            if (this.mode === 'input_new') {
-                $row.prepend(
-                    '<input type="hidden" name="' + dispatcherPrefix + 'suffix_new_list[]" value="' + dispatcherSuffix + '" />'
-                );
-            }
 
             jQuery("#"+dispatcherPrefix+"qty_"+dispatcherSuffix).focus();
 
             jQuery("#"+dispatcherPrefix+"qty_"+dispatcherSuffix).val(qtyToDispatch - qtyDispatched);
+
+            // specific for equipement
+            if (this.element_type == 'equipement') {
+
+                // get all equipments in selected warehouse
+                FactoryDispatcher.getAllEquipementInSelectedWarehouse(idDispatcher, dispatcherName, nbLine, dispatchElementData);
+
+                // change event on warehouse
+                jQuery("#"+dispatcherPrefix+"id_entrepot_"+dispatcherSuffix).change(function(){
+                    // get all equipments in selected warehouse
+                    FactoryDispatcher.getAllEquipementInSelectedWarehouse(idDispatcher, dispatcherName, nbLine, dispatchElementData);
+                });
+            }
         }
+    }
+
+    /**
+     * Get all equipment in selected warehouse of dispatched line
+     *
+     * @param   int         idDispatcher                Id of dispatcher
+     * @param   string      dispatcherName              Name of dispatcher
+     * @param   int         numLine                     Num line of dispatcher
+     * @param   string      dispatchElementData         Data object of the element to send
+     */
+    static getAllEquipementInSelectedWarehouse(idDispatcher, dispatcherName, numLine, dispatchElementData)
+    {
+        var dispatcherPrefix = '';
+
+        if (dispatcherName) {
+            dispatcherPrefix = dispatcherName + '_';
+        }
+
+        // dispatcher suffix name
+        var dispatcherSuffix = idDispatcher+"_"+numLine;
+
+        // default values
+        var dispatchElementDataObj;
+        if (dispatchElementData===undefined || dispatchElementData.length<=0) {
+            dispatchElementDataObj = {
+                actionname : "getAllEquipementInWarehouse",
+                htmlname_middle : "equipementl_"
+            };
+        } else {
+            // convert to object
+            dispatchElementDataObj = JSON.parse(dispatchElementData);
+        }
+
+        var urlTo = jQuery("#url_to_get_all_equipement_in_warehouse").val();
+
+        var data = {
+            id: idDispatcher,
+            action: dispatchElementDataObj.actionname,
+            htmlname: dispatcherPrefix+dispatchElementDataObj.htmlname_middle+dispatcherSuffix,
+            id_component_product: jQuery("#"+dispatcherPrefix+"id_component_product_"+dispatcherSuffix).val(),
+            id_entrepot: jQuery("#"+dispatcherPrefix+"id_entrepot_"+dispatcherSuffix).val()
+        };
+
+        var input = jQuery("#"+dispatcherPrefix+dispatchElementDataObj.htmlname_middle+"multiselect_"+dispatcherSuffix);
+        var inputCopyTo = '';
+        if (dispatchElementDataObj.copyto_htmlname_middle!==undefined) {
+            inputCopyTo = jQuery("#"+dispatcherPrefix+dispatchElementDataObj.copyto_htmlname_middle+"multiselect_"+dispatcherSuffix);
+        }
+
+        jQuery.getJSON(urlTo, data, function(response){
+            input.html(response.value);
+            //input.change();
+            if (dispatchElementDataObj.copyto_htmlname_middle!==undefined) {
+                var dispatcherEquipementRegex = new RegExp(dispatchElementDataObj.htmlname_middle, 'g');
+                inputCopyTo.html(response.value.replace(dispatcherEquipementRegex, dispatchElementDataObj.copyto_htmlname_middle));
+            }
+
+            if (response.num < 0) {
+                console.error(response.error);
+            }
+        });
     }
 }

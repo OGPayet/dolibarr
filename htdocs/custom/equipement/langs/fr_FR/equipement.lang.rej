@@ -1,10 +1,28 @@
 diff a/htdocs/custom/equipement/langs/fr_FR/equipement.lang b/htdocs/custom/equipement/langs/fr_FR/equipement.lang	(rejected hunks)
-@@ -362,7 +362,7 @@ EquipementAddProductLine=Ajouter un composant à cet équipement
+@@ -359,11 +359,23 @@ ErrorEquipementAddProductComponent=Impossible d'ajouter ce composat à cet équi
+ SuccessEquipementAddProduct=Ajout réalisé avec succès
+ EquipementAddProductLine=Ajouter un composant à cet équipement
+ 
++#
++# Warehouses
++#
++EquipementLost                   = Equipement perdu
++EquipementUsed                   = Equipement utilisé
++EquipementWarehouseForLost       = Entrepôt rebut
++
  #
  # Error
  #
--EquipementErrorAlreadyExists   = Le numéro de série %s existe chez le fournisseur %s
-+EquipementErrorAlreadyExists   = Le numéro de série %s existe déjà pour le fournisseur %s
- EquipementErrorNbAddEquipement = Le nombre d'équipements renseignés ne correspond pas avec la quantité à créer
- EquipementErrorQtyToShip       = Le nombre d'équipements renseignés ne correspond pas avec la quantité à expédier
+-EquipementErrorAlreadyExists   = Le numéro de série %s existe déjà pour le fournisseur %s
+-EquipementErrorNbAddEquipement = Le nombre d'équipements renseignés ne correspond pas avec la quantité à créer
+-EquipementErrorQtyToShip       = Le nombre d'équipements renseignés ne correspond pas avec la quantité à expédier
++EquipementErrorAlreadyExists        = Le numéro de série %s existe déjà pour le fournisseur %s
++EquipementErrorNbAddEquipement      = Le nombre d'équipements renseignés ne correspond pas avec la quantité à créer
++EquipementErrorQtyToShip            = Le nombre d'équipements renseignés ne correspond pas avec la quantité à expédier
++EquipementErrorQtyToBuild           = Le nombre d'équipements renseignés ne correspond pas avec la quantité à fabriquer
++EquipementErrorQtyToUse             = Le nombre d'équipements renseignés ne correspond pas avec la quantité à utiliser
++EquipementErrorQtyLost              = Le nombre d'équipements renseignés ne correspond pas avec la quantité perdue
++EquipementErrorReferenceAlreadyUsed = Equipement déjà utilisé
++EquipementErrorWarehouseLostNone    = Aucun entrepôt rebut n'a été sélectionné
  
+ LinkToEquipement=Lier à un équipement

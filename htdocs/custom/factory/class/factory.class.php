@@ -244,7 +244,7 @@ class Factory extends CommonObject
      * @param   int|NULL    $fk_entrepot            [=NULL] Id of warehouse to use
      * @param   int         $id_dispatched_line     [=O] Id of dispatched line
      * @param   int|NULL    $qty_planned            [=NULL] Qty planned or NULL to use default (calculated by qty to build)
-     * @return  int         <0 if KO, Id of factory if OK
+     * @return  int         <0 if KO, Id of factorydet if OK
      *
      * @throws  Exception
      */
@@ -271,12 +271,14 @@ class Factory extends CommonObject
         $sql .= ", " . ($id_dispatched_line > 0 ? $id_dispatched_line : 0);
         $sql .= ")";
 		if (! $this->db->query($sql)) {
-		    $this->error = $this->db->lasterror();
+		    $this->error    = $this->db->lasterror();
 		    $this->errors[] = $this->error;
             dol_syslog(__METHOD__ . " sql=" . $sql, LOG_ERR);
 			return -1;
 		} else {
-			return 1;
+            // get the last inserted value
+            $factorydetId = $this->db->last_insert_id(MAIN_DB_PREFIX . "factorydet");
+			return $factorydetId;
 		}
 	}
 
