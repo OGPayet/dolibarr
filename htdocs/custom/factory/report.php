@@ -47,6 +47,10 @@ dol_include_once('/factory/core/lib/factory.lib.php');
 dol_include_once('/factory/class/html.factoryformproduct.class.php');
 if (!empty($conf->equipement->enabled)) {
     dol_include_once('/equipement/class/equipement.class.php');
+
+    if (! empty($conf->global->EQUIPEMENT_ADDON)
+        && is_readable(dol_buildpath("/equipement/core/modules/equipement/".$conf->global->EQUIPEMENT_ADDON.".php")))
+        dol_include_once("/equipement/core/modules/equipement/".$conf->global->EQUIPEMENT_ADDON.".php");
 }
 
 if (! empty($conf->global->FACTORY_ADDON)
@@ -99,6 +103,21 @@ $reshook = $hookmanager->executeHooks('doActions', $parameters, $factory, $actio
 // Note that $action and $object may have been modified by some hooks
 if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
 
+// equipement conf
+$equipementSeparatorList = ';';
+if (!empty($conf->equipement->enabled)) {
+    if (!empty($conf->global->EQUIPEMENT_SEPARATORLIST)) {
+        $equipementSeparatorList = $conf->global->EQUIPEMENT_SEPARATORLIST;
+    }
+
+    // all serial methods
+    $arraySerialMethod = array(
+        '1'=>$langs->trans("InternalSerial"),
+        '2'=>$langs->trans("ExternalSerial"),
+        '3'=>$langs->trans("SeriesMode")
+    );
+}
+
 /*
  * Actions
  */
@@ -123,6 +142,38 @@ if (empty($reshook)) {
 			$factory->statut = 3;
 		else
 			$factory->statut = 2;
+
+        // it's a product to serialize
+        if ($product->array_options['options_synergiestech_to_serialize'] == 1) {
+            $equipementBuildSerialMethod     = GETPOST('equipementbuild_serialmethod', 'int') ? GETPOST('equipementbuild_serialmethod', 'int') : 0;
+            $equipementBuildSerialFournArray = GETPOST('equipementbuild_serialfourn_list', 'array') ? GETPOST('equipementbuild_serialfourn_list', 'array') : array();
+
+            // check serial method
+            if (!array_key_exists($equipementBuildSerialMethod, $arraySerialMethod)) {
+                $error++;
+                $factory->error    = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("EquipmentSerialMethod"));
+                $factory->errors[] = $factory->error;
+            }
+
+            // check serial numbers (for external method only)
+            if ($equipementBuildSerialMethod == 2) {
+                foreach ($equipementBuildSerialFournArray as $equipementBuildSerialFourn) {
+                    if (strlen(trim($equipementBuildSerialFourn)) <= 0) {
+                        $error++;
+                        $factory->error    = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("ExternalSerial"));
+                        $factory->errors[] = $factory->error;
+                        break;
+                    }
+                }
+
+                // check nb to build with nb equipment selected
+                if (count($equipementBuildSerialFournArray) != $factory->qty_made) {
+                    $error++;
+                    $factory->error = $langs->trans("EquipementErrorQtyToBuild");
+                    $factory->errors[] = $factory->error;
+                }
+            }
+        }
 
 		// get new components to add
         $componentSuffixNewList = array();
@@ -465,8 +516,48 @@ if (empty($reshook)) {
                                 $error++;
                                 $componentProductStatic->fetch($factory->fk_product);
                                 $componentEntrepotStatic->fetch($factory->fk_entrepot);
-                                $factory->error    = $componentProductStatic->ref . " : " . $mouvP->error . " (" . $componentEntrepotStatic->libelle . ")";
+                                $factory->error    = $componentProductStatic->ref . ' : '. $mouvP->error . " (" . $componentEntrepotStatic->libelle . ")";
                                 $factory->errors[] = $factory->error;
+                            }
+
+                            if (!$error) {
+                                // it's a product to serialize
+                                if ($product->array_options['options_synergiestech_to_serialize'] == 1) {
+                                    // new equipment
+                                    $equipementBuild = new Equipement($db);
+
+                                    $equipementBuild->fk_product   = $factory->fk_product;
+                                    $equipementBuild->fk_entrepot  = $factory->fk_entrepot;
+                                    $equipementBuild->SerialMethod = $equipementBuildSerialMethod;
+                                    $equipementBuild->SerialFourn  = implode($equipementSeparatorList, $equipementBuildSerialFournArray); // serial numbers to create (external only)
+                                    $equipementBuild->author       = $user->id;
+                                    $equipementBuild->description  = $langs->trans('OrderBuild') . ' : ' . $factory->ref;
+                                    $equipementBuild->fk_factory   = $factory->id;
+
+                                    // selon le mode de serialisation de l'equipement
+                                    switch ($equipementBuild->SerialMethod) {
+                                        case 1 : // en mode generation auto, on cree des numeros de series internes
+                                            $equipementBuild->quantity = 1;
+                                            $equipementBuild->nbAddEquipement = $factory->qty_made;
+                                            break;
+                                        case 2 : // en mode generation a partir de la liste on determine en fonction de la saisie
+                                            $equipementBuild->quantity = 1;
+                                            $equipementBuild->nbAddEquipement = $factory->qty_made; // sera calcule en fonction
+                                            break;
+                                        case 3 : // en mode gestion de lot
+                                            $equipementBuild->quantity = $factory->qty_made;
+                                            $equipementBuild->nbAddEquipement = 1;
+                                            break;
+                                    }
+
+                                    // create equipment
+                                    $result = $equipementBuild->create();
+                                    if ($result < 0) {
+                                        $error++;
+                                        $factory->error    = $equipementBuild->error;
+                                        $factory->errors[] = $factory->error;
+                                    }
+                                }
                             }
                         }
                     }
@@ -493,8 +584,8 @@ if (empty($reshook)) {
             $factory->fetch($factory->id);
         } else {
             setEventMessage($langs->trans("BuildedFactory", $factory->ref), 'mesgs');
-            // on redirige pour eviter le doublement
-            header("Location: ". $_SERVER["PHP_SELF"] . '?id='.$factory->id);
+            // redirect to avoid to duplicate factory
+            header("Location: ". $_SERVER["PHP_SELF"] . '?id=' . $factory->id);
             exit();
         }
 
@@ -661,6 +752,71 @@ print '</td></tr>';
 print '<tr><td>'.$langs->trans("PhysicalStock").'</td>';
 $product->load_stock();
 print '<td>'.$product->stock_reel.'</td></tr>';
+
+// equipment to build
+if (!empty($conf->equipement->enabled)) {
+    if ($product->array_options['options_synergiestech_to_serialize'] == 1) {
+        if ($factory->statut == 1) {
+            // nb to build
+            $equipementBuildNb = ($factory->qty_made ? $factory->qty_made : $factory->qty_planned);
+
+            $equipementBuildSerialMethod     = GETPOST('equipementbuild_serialmethod', 'int') ? GETPOST('equipementbuild_serialmethod', 'int') : $conf->global->EQUIPEMENT_DEFAULTSERIALMODE;
+            $equipementBuildSerialFournArray = GETPOST('equipementbuild_serialfourn_list', 'array') ? GETPOST('equipementbuild_serialfourn_list', 'array') : array();
+
+            // serial method
+            print '<tr>';
+            print '<td class="fieldrequired">' . $langs->trans("EquipmentSerialMethod") . '</td>';
+            print '<td>';
+            print $form->selectarray("equipementbuild_serialmethod", $arraySerialMethod, $equipementBuildSerialMethod);
+            print '</td>';
+            print '</tr>';
+
+            // serial numbers (for external method only)
+            print '<tr>';
+            print '<td' . ($equipementBuildSerialMethod == 2 ? ' class="fieldrequired"' : '') . '>' . $langs->trans("ExternalSerial") . '</td>';
+            print '<td id="equipementbuild_serialfourn_list">';
+            for ($num = 0; $num < $equipementBuildNb; $num++) {
+                $equipementBuildSerialFourn = '';
+                if (isset($equipementBuildSerialFournArray[$num])) {
+                    $equipementBuildSerialFourn = $equipementBuildSerialFournArray[$num];
+                }
+                print '<input type="text" name="equipementbuild_serialfourn_list[]" value="' . $equipementBuildSerialFourn . '" />';
+            }
+            print '</td>';
+            print '</tr>';
+        } else {
+            $equipementBuildList = array();
+
+            // find all built equipments
+            $sql  = "SELECT ef.fk_equipement";
+            $sql .= " FROM " . MAIN_DB_PREFIX . "equipement_factory as ef";
+            $sql .= " WHERE ef.fk_factory = " . $factory->id;
+
+            $resql = $db->query($sql);
+            if ($resql) {
+                $num = 0;
+                while ($obj = $db->fetch_object($resql)) {
+                    $equipementBuild = new Equipement($db);
+                    $equipementBuild->fetch($obj->fk_equipement);
+                    $equipementBuildList[] = $equipementBuild;
+                    $num++;
+                }
+
+                $db->free($resql);
+            }
+
+            // serial numbers
+            print '<tr>';
+            print '<td>' . $langs->trans("Equipement") . '</td>';
+            print '<td>';
+            foreach ($equipementBuildList as $equipementBuild) {
+                print $equipementBuild->getNomUrl(1) . '<br />';
+            }
+            print '</td>';
+            print '</tr>';
+        }
+    }
+}
 
 print '</table>';
 
@@ -1059,7 +1215,14 @@ if (count($dispatchLineList) > 0) {
         foreach ($outjsQtyMadeChangeList as $outjsQtyMadeChange) {
             $out .=  $outjsQtyMadeChange;
         }
-        $out .=  '});';
+        // change nb input for equipments (external method)
+        $out .= 'var equipementBuildNb = this.value;';
+        $out .= 'var inputEquipementBuild = \'<input type="text" name="equipementbuild_serialfourn_list[]" value="" />\';';
+        $out .= 'jQuery("td#equipementbuild_serialfourn_list").html("");';
+        $out .= 'for (var i=0; i<equipementBuildNb; i++) {';
+        $out .= 'jQuery("td#equipementbuild_serialfourn_list").prepend(inputEquipementBuild);';
+        $out .= '}';
+        $out .= '});';
 
         $out .=  '});';
         $out .=  '</script>';

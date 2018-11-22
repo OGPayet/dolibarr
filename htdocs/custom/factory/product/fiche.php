@@ -733,7 +733,6 @@ if ($id || $ref) {
                         $multiSelectEquipement = '';
 
                         print '<td>';
-                        print '<input type="hidden" name="' . $dispatchPrefix . 'product_serializel_' . $dispatchSuffix . '" value="' . $componentProductToSerialize . '" />';
                         if ($componentProduct->array_options['options_synergiestech_to_serialize']==1) {
                             $componentProductToSerialize = 1;
                             $dispactherList['element_type'] = 'equipement';
@@ -753,17 +752,18 @@ if ($id || $ref) {
                                 }
                             }
 
-                            if (empty($multiSelectEquipement)) {
-                                // equipment multiselect (in warehouse selected)
-                                print '&nbsp;&nbsp;' . $langs->trans('Equipement') . ' : ' . '<span id="' . $dispatchPrefix . 'equipementl_multiselect_' . $dispatchSuffix . '">' . $multiSelectEquipement . '</span>';
+                            // equipment multiselect (in warehouse selected)
+                            print '&nbsp;&nbsp;' . $langs->trans('Equipement') . ' : ' . '<span id="' . $dispatchPrefix . 'equipementl_multiselect_' . $dispatchSuffix . '">' . $multiSelectEquipement . '</span>';
 
+                            if (empty($multiSelectEquipement)) {
                                 $outjs .= 'FactoryDispatcher.getAllEquipementInSelectedWarehouse(\'' . $dispactherList['id'] . '\',  \'' . $dispactherList['name'] . '\', \'' . $dispactherList['line'] . '\');';
-                                // on warehouse change
-                                $outjs .= 'jQuery("#' . $dispatchPrefix . 'id_entrepot_' . $dispatchSuffix . '").change(function(){';
-                                $outjs .= 'FactoryDispatcher.getAllEquipementInSelectedWarehouse(\'' . $dispactherList['id'] . '\', \'' . $dispactherList['name'] . '\', \'' . $dispactherList['line'] . '\');';
-                                $outjs .= '});';
                             }
+                            // on warehouse change
+                            $outjs .= 'jQuery("#' . $dispatchPrefix . 'id_entrepot_' . $dispatchSuffix . '").change(function(){';
+                            $outjs .= 'FactoryDispatcher.getAllEquipementInSelectedWarehouse(\'' . $dispactherList['id'] . '\', \'' . $dispactherList['name'] . '\', \'' . $dispactherList['line'] . '\');';
+                            $outjs .= '});';
                         }
+                        print '<input type="hidden" name="' . $dispatchPrefix . 'product_serializel_' . $dispatchSuffix . '" value="' . $componentProductToSerialize . '" />';
                         print '</td>';
                     }
 
