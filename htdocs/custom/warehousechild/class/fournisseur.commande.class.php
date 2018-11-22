@@ -201,13 +201,19 @@ class CommandeFournisseur extends \CommandeFournisseur
                     }
 
                     $allDelivered = TRUE;
-                    foreach ($qtydelivered as $idProduct => $qtyDelivery) {
-                        $qtyOrder = $qtywished[$idProduct];
-
-                        // delivered less than ordered
-                        if ($qtyDelivery < $qtyOrder) {
+                    // check qty ordered (because we have all products lines)
+                    foreach ($qtywished as $idProduct => $qtyOrder) {
+                        if (!isset($qtydelivered[$idProduct])) {
                             $allDelivered = FALSE;
                             break;
+                        } else {
+                            $qtyDelivery = $qtydelivered[$idProduct];
+
+                            // delivered less than ordered
+                            if ($qtyDelivery < $qtyOrder) {
+                                $allDelivered = FALSE;
+                                break;
+                            }
                         }
                     }
 
