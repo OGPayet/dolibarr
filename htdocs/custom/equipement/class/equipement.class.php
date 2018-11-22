@@ -1500,11 +1500,13 @@ class Equipement extends CommonObject
      * @param   array               $array_option               Array options
      * @param   int                 $fk_expeditiondet           Id of shipping line
      * @param   int                 $fk_retourproduits          [=0] Id of product return
+     * @param   int                 $fk_factory                 [=0] Id of factory
+     * @param   int                 $fk_factorydet              [=0] Id of factory line
      * @return  int                 >0 if ok, <0 if ko
      *
      * @throws  Exception
      */
-	function addline($equipementid, $fk_equipementevt_type, $desc, $dateo, $datee, $fulldayevent, $fk_contrat, $fk_fichinter, $fk_expedition, $fk_project, $fk_user_author, $total_ht=0, $array_option=0, $fk_expeditiondet=0, $fk_retourproduits=0, $k_factory=0, $fk_factorydet=0)
+	function addline($equipementid, $fk_equipementevt_type, $desc, $dateo, $datee, $fulldayevent, $fk_contrat, $fk_fichinter, $fk_expedition, $fk_project, $fk_user_author, $total_ht=0, $array_option=0, $fk_expeditiondet=0, $fk_retourproduits=0, $fk_factory=0, $fk_factorydet=0)
 	{
 
 		$this->db->begin();
@@ -1527,7 +1529,7 @@ class Equipement extends CommonObject
 		$line->fk_user_author			= $fk_user_author;
 		$line->datec					= dol_now();
 		$line->fk_retourproduits        = $fk_retourproduits;
-        $line->fk_factory               = $k_factory;
+        $line->fk_factory               = $fk_factory;
         $line->fk_factorydet            = $fk_factorydet;
 
 		if (is_array($array_option) && count($array_option)>0)
