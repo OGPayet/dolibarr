@@ -114,13 +114,32 @@ class ActionsShippinglabels
 
 				$service = $this->getService($shipping_method);
 
+                if (!empty($conf->companyrelationships->enabled)) {
+                    // modify thirdparty with benefactor
+                    $savObjectSocId = $object->socid;
+
+                    if ($object->array_options['options_companyrelationships_fk_soc_benefactor'] > 0) {
+                        $object->socid = $object->array_options['options_companyrelationships_fk_soc_benefactor'];
+                    }
+                }
+
 				if($service->ws_call($object)<0)
 				{
+                    if (!empty($conf->companyrelationships->enabled)) {
+                        // reset saved thirdparty
+                        $object->socid = $savObjectSocId;
+                    }
+
 					dol_syslog(__FUNCTION__." erreur ".$service->error, LOG_DEBUG);
 					setEventMessages('',$service->errors,'errors');
 				}
 				else
 				{
+                    if (!empty($conf->companyrelationships->enabled)) {
+                        // reset saved thirdparty
+                        $object->socid = $savObjectSocId;
+                    }
+
 					$object->tracking_number=$service->trackingnumber;
 					$object->update($user);
 					Header("Location: ".$page.".php?id=".$object->id);
