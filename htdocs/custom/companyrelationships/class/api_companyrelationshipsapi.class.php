@@ -24,6 +24,12 @@ require_once DOL_DOCUMENT_ROOT . '/fichinter/class/fichinter.class.php';
 require_once DOL_DOCUMENT_ROOT . '/expedition/class/expedition.class.php';
 require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
 
+dol_include_once('/companyrelationships/class/companyrelationships.class.php');
+if (!empty($conf->equipement->enabled)) {
+    dol_include_once('/equipement/class/equipement.class.php');
+}
+
+
 /**
  * API class for Company Relationships
  *
@@ -131,6 +137,17 @@ class CompanyRelationshipsApi extends DolibarrApi {
      */
     public $contract;
 
+    /**
+     * @var Equipement $equipement {@type Equipement}
+     */
+    public $equipement;
+
+
+    /**
+     * @var array $benefactor_ids List of benefactor ids (for thirdpaty of API user)
+     */
+    public $benefactor_ids = array();
+
 
     /**
      * Constructor
@@ -157,6 +174,25 @@ class CompanyRelationshipsApi extends DolibarrApi {
 
         // contracts
         $this->contract = new Contrat($this->db);
+
+        // equipments
+        if (!empty($conf->equipement->enabled)) {
+            $this->equipement = new Equipement($this->db);
+
+            // get API user
+            $user = DolibarrApiAccess::$user;
+            $userSocId = $user->societe_id;
+
+            // If external user: Check permission for external users
+            if ($userSocId > 0) {
+                // get benefactors ids
+                $companyrelationships = new CompanyRelationships($db);
+                $benefactor_ids = $companyrelationships->getRelationships($userSocId, 1);
+                if (is_array($benefactor_ids)) {
+                    $this->benefactor_ids = $benefactor_ids;
+                }
+            }
+        }
     }
 
 
@@ -4356,5 +4392,168 @@ class CompanyRelationshipsApi extends DolibarrApi {
         }
 
         return $contrat;
+    }
+
+
+    //
+    // API Equipement
+    //
+
+    /**
+     * List equipements
+     *
+     * Get a list of equipements
+     *
+     * @url	GET equipements
+     *
+     * @param   string      $sortfield	            Sort field
+     * @param   string	    $sortorder	            Sort order
+     * @param   int		    $limit		            Limit for list
+     * @param   int         $page		            Page number
+     * @param   string      $thirdparty_ids	        Thirdparty ids to filter commercial proposals. {@example '1' or '1,2,3'} {@pattern /^[0-9,]*$/i}
+     * @param   string      $sqlfilters             Other criteria to filter answers separated by a comma. Syntax example "(t.ref:like:'SO-%') and (t.datec:<:'20160101')"
+     * @return  array       Array of order objects
+     *
+     * @throws  401     RestException   Insufficient rights
+     * @throws  503     RestException   Error when retrieve equipement list
+     */
+    function indexEquipement($sortfield = "t.rowid", $sortorder = 'ASC', $limit = 100, $page = 0, $thirdparty_ids = '', $sqlfilters = '')
+    {
+        global $db, $conf;
+
+        $obj_ret = array();
+
+        if(! DolibarrApiAccess::$user->rights->equipement->lire) {
+            throw new RestException(401, "Insufficient rights");
+        }
+
+        // get API user
+        $userSocId = DolibarrApiAccess::$user->societe_id;
+
+        // If the internal user must only see his customers, force searching by him
+        $search_sale = 0;
+        if (! DolibarrApiAccess::$user->rights->societe->client->voir) $search_sale = DolibarrApiAccess::$user->id;
+
+        $sql  = "SELECT t.rowid";
+        $sql .= " FROM " . MAIN_DB_PREFIX . "equipement as t";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "equipement_extrafields as ef ON ef.fk_object = t.rowid";
+
+        // external
+        if ($userSocId > 0) {
+            // list of benefactor ids of this user
+            $sqlInBenefactorIds = implode(',', $this->benefactor_ids);
+
+            if ($search_sale > 0) $sql .=  " LEFT JOIN " . MAIN_DB_PREFIX . "societe_commerciaux as scfourn ON scfourn.fk_soc = t.fk_soc_fourn AND scfourn.fk_user = " . $search_sale; // We need this table joined to the select in order to filter by sale
+            if ($search_sale > 0) $sql .=  " LEFT JOIN " . MAIN_DB_PREFIX . "societe_commerciaux as scclient ON scclient.fk_soc = t.fk_soc_client AND scclient.fk_user = " . $search_sale; // We need this table joined to the select in order to filter by sale
+
+            $sql .= " WHERE t.entity IN (" . getEntity('equipement') . ")";
+            $sql .= " AND (";
+            // equipment thirdparty of API user
+            $sql .= "t.fk_soc_fourn = " . $userSocId . " OR t.fk_soc_client = " . $userSocId;
+            // equipment benefactor of API user
+            if (!empty($sqlInBenefactorIds)) {
+                $sql .= " OR t.fk_soc_fourn IN (" . $sqlInBenefactorIds . ") OR t.fk_soc_client IN (" . $sqlInBenefactorIds . ")";
+            }
+            // equipment seller
+            if ($search_sale > 0) {
+                $sql .= " OR scfourn.fk_user = " . $search_sale . " OR scclient.fk_user = " . $search_sale;
+            }
+            $sql .= ")";
+        }
+        // internal
+        else {
+            if ($search_sale > 0) $sql .=  " LEFT JOIN " . MAIN_DB_PREFIX . "societe_commerciaux as scfourn ON scfourn.fk_soc = t.fk_soc_fourn AND scfourn.fk_user = " . $search_sale; // We need this table joined to the select in order to filter by sale
+            if ($search_sale > 0) $sql .=  " LEFT JOIN " . MAIN_DB_PREFIX . "societe_commerciaux as scclient ON scclient.fk_soc = t.fk_soc_client AND scclient.fk_user = " . $search_sale; // We need this table joined to the select in order to filter by sale
+
+            $sql .= " WHERE (t.entity IN (" . getEntity('equipement') . ")";
+            // equipment seller
+            if ($search_sale > 0) {
+                $sql .= " AND (scfourn.fk_user = " . $search_sale . " OR scclient.fk_user = " . $search_sale . ")";
+            }
+            $sql .= ")";
+
+            // case of external user, $thirdparty_ids param is ignored and replaced by user's socid
+            $socids = DolibarrApiAccess::$user->societe_id ? DolibarrApiAccess::$user->societe_id : $thirdparty_ids;
+            if ($socids) {
+                $sql .= " OR (";
+                $sql .= "t.entity IN (" . getEntity('societe') . ")";
+                $sql .= " AND (t.fk_soc_fourn IN (" . $socids . ") OR t.fk_soc_client IN (" . $socids . "))";
+                $sql .= ")";
+            }
+
+            $sql .= " GROUP BY rowid";
+        }
+
+        // Add sql filters
+        if ($sqlfilters)
+        {
+            if (! DolibarrApi::_checkFilters($sqlfilters))
+            {
+                throw new RestException(503, 'Error when validating parameter sqlfilters '.$sqlfilters);
+            }
+            $regexstring='\(([^:\'\(\)]+:[^:\'\(\)]+:[^:\(\)]+)\)';
+            $sql.=" AND (".preg_replace_callback('/'.$regexstring.'/', 'DolibarrApi::_forge_criteria_callback', $sqlfilters).")";
+        }
+
+        $sql.= $db->order($sortfield, $sortorder);
+        if ($limit)	{
+            if ($page < 0)
+            {
+                $page = 0;
+            }
+            $offset = $limit * $page;
+
+            $sql.= $db->plimit($limit + 1, $offset);
+        }
+
+        dol_syslog("API Rest request");
+        $result = $db->query($sql);
+
+        if ($result)
+        {
+            $num = $db->num_rows($result);
+            $min = min($num, ($limit <= 0 ? $num : $limit));
+            $i = 0;
+            while ($i < $min)
+            {
+                $obj = $db->fetch_object($result);
+                $equipement_static = new Equipement($db);
+                if($equipement_static->fetch($obj->rowid)) {
+                    $obj_ret[] = $this->_cleanEquipementObjectDatas($equipement_static);
+                }
+                $i++;
+            }
+        }
+        else {
+            throw new RestException(503, 'Error when retrieve equipement list : '.$db->lasterror());
+        }
+        if( ! count($obj_ret)) {
+            return [];
+        }
+        return $obj_ret;
+    }
+
+    /**
+     * Clean sensible object datas
+     *
+     * @param   object  $object    Object to clean
+     * @return  array   Array of cleaned object properties
+     */
+    function _cleanEquipementObjectDatas($object)
+    {
+        $object = parent::_cleanObjectDatas($object);
+
+        // equipment belongs to a supplier benefactor company of API user
+        if ($object->fk_soc_fourn>0 && in_array($object->fk_soc_fourn, $this->benefactor_ids)) {
+            // remove equipement event lines
+            unset($object->lines);
+        }
+        // equipment belongs to a customer benefactor company of API user
+        else if ($object->fk_soc_client>0 && in_array($object->fk_soc_client, $this->benefactor_ids)) {
+            // remove equipement event lines
+            unset($object->lines);
+        }
+
+        return $object;
     }
 }
