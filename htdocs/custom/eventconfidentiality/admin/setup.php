@@ -39,10 +39,61 @@ if (!$user->admin) accessforbidden();
 $action = GETPOST('action','alpha');
 
 /*
+ *	Actions
+ */
+$errors = array();
+$error = 0;
+
+if (preg_match('/set_(.*)/',$action,$reg)) {
+    $code = $reg[1];
+    $value = (GETPOST($code) ? GETPOST($code) : 1);
+    if (dolibarr_set_const($db, $code, $value, 'chaine', 0, '', $conf->entity) > 0) {
+        Header("Location: " . $_SERVER["PHP_SELF"]);
+        exit;
+    } else {
+        $errors[] = $db->lasterror();
+        $error++;
+    }
+} elseif (preg_match('/del_(.*)/',$action,$reg)) {
+    $code = $reg[1];
+    if (dolibarr_del_const($db, $code, $conf->entity) > 0) {
+        Header("Location: " . $_SERVER["PHP_SELF"]);
+        exit;
+    } else {
+        $errors[] = $db->lasterror();
+        $error++;
+    }
+} elseif ($action == 'set') {
+    $value = GETPOST('EVENTCONFIDENTIALITY_DEFAULT_INTERNAL_LEVEL', "int");
+    $res = dolibarr_set_const($db, 'EVENTCONFIDENTIALITY_DEFAULT_INTERNAL_LEVEL', $value, 'chaine', 0, '', $conf->entity);
+    if (!$res > 0) {
+        $errors[] = $db->lasterror();
+        $error++;
+    }
+
+    $value = GETPOST('EVENTCONFIDENTIALITY_DEFAULT_EXTERNAL_LEVEL', "int");
+    $res = dolibarr_set_const($db, 'EVENTCONFIDENTIALITY_DEFAULT_EXTERNAL_LEVEL', $value, 'chaine', 0, '', $conf->entity);
+    if (!$res > 0) {
+        $errors[] = $db->lasterror();
+        $error++;
+    }
+}
+
+if ($action != '') {
+    if (!$error) {
+        setEventMessage($langs->trans("SetupSaved"));
+    } else {
+        setEventMessages($langs->trans("Error"), $errors, 'errors');
+    }
+}
+
+/*
  *	View
  */
 
 llxHeader();
+
+$form = new Form($db);
 
 $linkback='<a href="'.DOL_URL_ROOT.'/admin/modules.php">'.$langs->trans("BackToModuleList").'</a>';
 print load_fiche_titre($langs->trans("EventConfidentialitySetup"),$linkback,'title_setup');
@@ -52,8 +103,54 @@ $head=eventconfidentiality_admin_prepare_head();
 
 dol_fiche_head($head, 'settings', $langs->trans("Module163022Name"), 0, 'opendsi@eventconfidentiality');
 
+print '<br>';
+print '<form method="post" action="'.$_SERVER["PHP_SELF"].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set">';
+
+$var=true;
+
+print '<table class="noborder" width="100%">';
+print '<tr class="liste_titre">';
+print '<td>'.$langs->trans("Parameters").'</td>'."\n";
+print '<td align="center">&nbsp;</td>'."\n";
+print '<td align="right">'.$langs->trans("Value").'</td>'."\n";
+print "</tr>\n";
+
+$confidential_leves = array(
+    0 => $langs->trans('EventConfidentialityModeVisible'),
+    1 => $langs->trans('EventConfidentialityModeBlurred'),
+    2 => $langs->trans('EventConfidentialityModeHidden'),
+);
+
+// EVENTCONFIDENTIALITY_DEFAULT_INTERNAL_LEVEL
+$var=!$var;
+print '<tr '.$bc[$var].'>'."\n";
+print '<td>'.$langs->trans("EventConfidentialityDefaultInternalLevel").'</td>'."\n";
+print '<td align="center">&nbsp;</td>'."\n";
+print '<td align="right">'."\n";
+print $form->selectarray('EVENTCONFIDENTIALITY_DEFAULT_INTERNAL_LEVEL', $confidential_leves, $conf->global->EVENTCONFIDENTIALITY_DEFAULT_INTERNAL_LEVEL);
+print '</td></tr>'."\n";
+
+// EVENTCONFIDENTIALITY_DEFAULT_EXTERNAL_LEVEL
+$var=!$var;
+print '<tr '.$bc[$var].'>'."\n";
+print '<td>'.$langs->trans("EventConfidentialityDefaultExternalLevel").'</td>'."\n";
+print '<td align="center">&nbsp;</td>'."\n";
+print '<td align="right">'."\n";
+print $form->selectarray('EVENTCONFIDENTIALITY_DEFAULT_EXTERNAL_LEVEL', $confidential_leves, $conf->global->EVENTCONFIDENTIALITY_DEFAULT_EXTERNAL_LEVEL);
+print '</td></tr>'."\n";
+
+print '</table>';
+
 dol_fiche_end();
 
+print '<br>';
+print '<div align="center">';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</div>';
+
+print '</form>';
 
 llxFooter();
 

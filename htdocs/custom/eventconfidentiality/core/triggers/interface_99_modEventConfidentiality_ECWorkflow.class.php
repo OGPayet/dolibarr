@@ -58,8 +58,8 @@ class InterfaceECWorkflow extends DolibarrTriggers
 		}
 
 	    if ($action == 'ACTION_CREATE') {
-			$tags_interne = isset($object->add_tag_interne) ? (is_array($object->add_tag_interne) ? $object->add_tag_interne : explode(',', $object->add_tag_interne)) : GETPOST('add_tag_interne', 'array');
-			$tags_externe = isset($object->add_tag_externe) ? (is_array($object->add_tag_externe) ? $object->add_tag_externe : explode(',', $object->add_tag_externe)) : GETPOST('add_tag_externe', 'array');
+			$tags_interne = GETPOST('add_tag_interne', 'array') ? GETPOST('add_tag_interne', 'array') : (isset($object->edit_tag_interne) ? (is_array($object->add_tag_interne) ? $object->add_tag_interne : explode(',', $object->add_tag_interne)) : array());
+            $tags_externe = GETPOST('add_tag_externe', 'array') ? GETPOST('add_tag_externe', 'array') : (isset($object->add_tag_externe) ? (is_array($object->add_tag_externe) ? $object->add_tag_externe : explode(',', $object->add_tag_externe)) : array());
 			$tags = array_merge($tags_interne, $tags_externe);
 			if(!empty($tags)) {
 				foreach($tags as $tag) {
@@ -83,10 +83,10 @@ class InterfaceECWorkflow extends DolibarrTriggers
         }
 
 	    if ($action == 'ACTION_MODIFY') {
-			$tags_interne = isset($object->edit_tag_interne) ? (is_array($object->edit_tag_interne) ? $object->edit_tag_interne : explode(',', $object->edit_tag_interne)) : GETPOST('edit_tag_interne', 'array');
-			$tags_externe = isset($object->edit_tag_externe) ? (is_array($object->edit_tag_externe) ? $object->edit_tag_externe : explode(',', $object->edit_tag_externe)) : GETPOST('edit_tag_externe', 'array');
+            $tags_interne = GETPOST('edit_tag_interne', 'array') ? GETPOST('edit_tag_interne', 'array') : (isset($object->edit_tag_interne) ? (is_array($object->add_tag_interne) ? $object->add_tag_interne : explode(',', $object->add_tag_interne)) : array());
+            $tags_externe = GETPOST('edit_tag_externe', 'array') ? GETPOST('edit_tag_externe', 'array') : (isset($object->add_tag_externe) ? (is_array($object->add_tag_externe) ? $object->add_tag_externe : explode(',', $object->add_tag_externe)) : array());
 			$tags = array_merge($tags_interne, $tags_externe);
-			if(!empty($tags)) {
+			if(count($tags) > 0) {
 				foreach($tags as $tag) {
 					$eventconfidentiality = new EventConfidentiality($this->db);
 					$eventconfidentiality->getDefaultMode($tag, $object->elementtype, $object->type_id, $object->id);

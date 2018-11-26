@@ -52,6 +52,11 @@ class EventConfidentiality extends CommonObject
 	var $label;  //Label of tag
 
     /**
+     * @var DictionaryLine[]
+     */
+    protected static $tags_cached = array();
+
+    /**
 	 * Constructor
 	 *
 	 * @param   DoliDb      $db     Database handler
@@ -254,8 +259,14 @@ class EventConfidentiality extends CommonObject
      */
     function getDefaultMode($id_tag, $elementtype, $type_id, $fk_object)
     {
-        global $langs;
+        global $conf;
 
+        if (empty(self::$tags_cached)) {
+            dol_include_once('/advancedictionaries/class/dictionary.class.php');
+            $dictionary = Dictionary::getDictionary($this->db, 'eventconfidentiality', 'eventconfidentialitytag');
+            $dictionary->fetch_lines();
+            self::$tags_cached = $dictionary->lines;
+        }
 
 		$sql = "SELECT d.external, d.mode";
 		$sql .= " FROM";
@@ -265,7 +276,7 @@ class EventConfidentiality extends CommonObject
 		$sql .= " WHERE t.fk_line = d.rowid";
 		$sql .= " AND a.fk_line = d.rowid";
 		$sql .= " AND d.active = 1";
-		$sql .= " AND d.element_origin LIKE '%".$elementtype."%'"; //Origin
+		$sql .= " AND d.element_origin LIKE '".$elementtype."'"; //Origin
 		$sql .= " AND t.fk_target = ".$id_tag; //Tag id
 		$sql .= " AND a.fk_target = ".$type_id; //Action id
 
@@ -273,8 +284,7 @@ class EventConfidentiality extends CommonObject
 		$resql = $this->db->query($sql);
 		if ($resql) {
 			$num=$this->db->num_rows($resql);
-			$i = 0;
-			while($i<$num) {
+			if ($num > 0) {
 				$obj = $this->db->fetch_object($resql);
 
 				$this->fk_object           = $fk_object;
@@ -282,15 +292,21 @@ class EventConfidentiality extends CommonObject
 				$this->externe             = (!empty($obj->external)?$obj->external:0);
 				$this->level_confid        = $obj->mode;
 
-				$i++;
-			}
-			$this->db->free($resql);
+                $this->db->free($resql);
+			} elseif(isset(self::$tags_cached[$id_tag])) {
+			    $external = !empty(self::$tags_cached[$id_tag]->fields['external']) ? 1 : 0;
+                $this->fk_object           = $fk_object;
+				$this->fk_dict_tag_confid  = $id_tag;
+				$this->externe             = $external;
+				$this->level_confid        = $external ? $conf->global->EVENTCONFIDENTIALITY_DEFAULT_EXTERNAL_LEVEL : $conf->global->EVENTCONFIDENTIALITY_DEFAULT_INTERNAL_LEVEL;
+            }
 		}
 		else
         {
             $this->error=$this->db->lasterror();
             return -1;
         }
-        return $this;
+
+        return 1;
     }
 }

@@ -131,7 +131,7 @@ function requestmanager_show_events(&$requestmanager)
 
     $list_mode = GETPOST('list_mode', 'int');
     if ($list_mode === "") $list_mode = $_SESSION['rm_list_mode'];
-    if (empty($list_mode)) $list_mode = !empty($conf->global->REQUESTMANAGER_DEFAULT_LIST_MODE) ? $conf->global->REQUESTMANAGER_DEFAULT_LIST_MODE : 0;
+    if ($list_mode === "" || !isset($list_mode)) $list_mode = !empty($conf->global->REQUESTMANAGER_DEFAULT_LIST_MODE) ? $conf->global->REQUESTMANAGER_DEFAULT_LIST_MODE : 0;
     if ($list_mode == 2) return 0;
     $_SESSION['rm_list_mode'] = $list_mode;
 
@@ -166,6 +166,9 @@ function requestmanager_show_events(&$requestmanager)
     $search_done_by = GETPOST('search_done_by', 'alpha');
     $search_project = GETPOST('search_project', 'alpha');
     $search_priority = GETPOST('search_priority', 'alpha');
+    $search_internal_tag = GETPOST('search_internal_tag', 'alpha');
+    $search_external_tag = GETPOST('search_external_tag', 'alpha');
+    $search_level_tag = GETPOST('search_level_tag', 'int');
     $search_author = GETPOST('search_author', 'alpha');
     $search_modified_by = GETPOST('search_modified_by', 'alpha');
     $search_date_created = GETPOST('search_date_created', 'alpha');
@@ -173,6 +176,7 @@ function requestmanager_show_events(&$requestmanager)
     $search_status = GETPOST('search_status', 'alpha');
     $optioncss = GETPOST('optioncss', 'alpha');
     if ($search_event_on_full_day === "") $search_event_on_full_day = -1;
+    if ($search_level_tag === "") $search_level_tag = -1;
 
     // Initialize technical object to manage hooks of page. Note that conf->hooks_modules contains array of hook context
     $contextpage = $list_mode == 0 ? 'requestmanagereventlist' : 'requestmanagertimelineeventlist';
@@ -188,6 +192,12 @@ function requestmanager_show_events(&$requestmanager)
     $extralabels_message = $extrafields_message->fetch_name_optionals_label('requestmanager_message');
     $search_array_options_message = $extrafields_message->getOptionalsFromPost($extralabels_message, '', 'search_m_');
     $search_array_options = array_merge($search_array_options, $search_array_options_message);
+
+    // Event confidentiality
+    //--------------------------------------
+    if ($conf->eventconfidentiality->enabled) {
+        $langs->load('eventconfidentiality@eventconfidentiality');
+    }
 
     $arrayfields = array(
         'fk_request' => array('label' => $langs->trans("RequestManagerRequest"), 'checked' => 1, 'ec_mode' => 1),
@@ -207,6 +217,8 @@ function requestmanager_show_events(&$requestmanager)
         'ac.fk_user_done' => array('label' => $langs->trans("ActionDoneBy"), 'checked' => 0, 'enabled' => $conf->global->AGENDA_ENABLE_DONEBY, 'ec_mode' => 1),
         'ac.fk_project' => array('label' => $langs->trans("Project"), 'checked' => 0, 'ec_mode' => 1),
         'ac.priority' => array('label' => $langs->trans("Priority"), 'checked' => 0, 'ec_mode' => 1),
+        'internal_tags' => array('label' => $langs->trans("EventConfidentialityTagInterneLabel"), 'checked' => 0, 'enabled' => $conf->eventconfidentiality->enabled && $user->rights->eventconfidentiality->manage, 'position' => 10, 'ec_mode' => 1),
+        'external_tags' => array('label' => $langs->trans("EventConfidentialityTagExterneLabel"), 'checked' => 0, 'enabled' => $conf->eventconfidentiality->enabled && $user->rights->eventconfidentiality->manage, 'position' => 10, 'ec_mode' => 1),
         'ac.fk_user_author' => array('label' => $langs->trans("Author"), 'checked' => 0, 'position' => 10, 'ec_mode' => 1),
         'ac.fk_user_mod' => array('label' => $langs->trans("ModifiedBy"), 'checked' => 0, 'position' => 10, 'ec_mode' => 1),
         'ac.datec' => array('label' => $langs->trans("DateCreation"), 'checked' => 1, 'position' => 500, 'ec_mode' => 0),
@@ -260,6 +272,9 @@ function requestmanager_show_events(&$requestmanager)
         $search_done_by = '';
         $search_project = '';
         $search_priority = '';
+        $search_internal_tag = '';
+        $search_external_tag = '';
+        $search_level_tag = -1;
         $search_author = '';
         $search_modified_by = '';
         $search_date_created = '';
@@ -324,8 +339,9 @@ function requestmanager_show_events(&$requestmanager)
     $sql .= " ua.firstname as userauthorfirstname, ua.lastname as userauthorlastname, ua.email as userauthoremail, ua.photo as userauthorphoto, ua.gender as userauthorgender,";
     $sql .= " um.firstname as usermodfirstname, um.lastname as usermodlastname, um.email as usermodemail,";
     $sql .= " p.ref as projectref, p.title as projecttitle, p.public as projectpublic, p.fk_statut as projectstatus, p.datee as projectdatee";
+    // Event confidentiality support
     if ($conf->eventconfidentiality->enabled) {
-        $sql .= ", MIN(ea.level_confid) as ec_mode";
+        $sql .= ", MIN(ea.level_confid) as ec_mode, tags_info.internal_tags_info, tags_info.external_tags_info";
     }
     // Add fields from extrafields
     foreach ($extrafields->attribute_label as $key => $val) $sql .= ($extrafields->attribute_type[$key] != 'separate' ? ",ef." . $key . ' as options_' . $key : '');
@@ -335,6 +351,41 @@ function requestmanager_show_events(&$requestmanager)
     $reshook = $hookmanager->executeHooks('printFieldListSelect', $parameters);    // Note that $action and $object may have been modified by hook
     $sql .= $hookmanager->resPrint;
     $sql .= " FROM " . MAIN_DB_PREFIX . "actioncomm as ac ";
+    $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "element_element as ee";
+    $element_correspondance = "(" . // Todo a completer si il y a d'autres correspondances
+        "IF(ac.elementtype = 'contract', 'contrat', " .
+        " IF(ac.elementtype = 'invoice', 'facture', " .
+        "  IF(ac.elementtype = 'order', 'commande', " .
+        "   ac.elementtype)))" .
+        ")";
+    $sql .= " ON (ee.sourcetype = " . $element_correspondance . " AND ee.fk_source = ac.fk_element) OR (ee.targettype = " . $element_correspondance . " AND ee.fk_target = ac.fk_element)";
+    // Event confidentiality support
+    if ($conf->eventconfidentiality->enabled) {
+        if ($user->rights->eventconfidentiality->manage && ($search_internal_tag || $search_external_tag || $search_level_tag >= 0)) {
+            $sql .= " INNER JOIN (";
+            $sql .= "   SELECT ea.fk_object AS event_id";
+            $sql .= "   FROM " . MAIN_DB_PREFIX . "event_agenda AS ea";
+            $sql .= "   LEFT JOIN " . MAIN_DB_PREFIX . "c_eventconfidentiality_tag AS cecti ON ea.fk_dict_tag_confid = cecti.rowid AND (ea.externe != 1 OR ea.externe IS NULL)";
+            $sql .= "   LEFT JOIN " . MAIN_DB_PREFIX . "c_eventconfidentiality_tag AS cecte ON ea.fk_dict_tag_confid = cecte.rowid AND ea.externe = 1";
+            $search_tag_where = array();
+            if ($search_internal_tag) $search_tag_where[] = natural_search("cecti.label", $search_internal_tag, 0, 1);
+            if ($search_external_tag) $search_tag_where[] = natural_search("cecte.label", $search_external_tag, 0, 1);
+            if ($search_level_tag >= 0) $search_tag_where[] = 'ea.level_confid = ' . $search_level_tag;
+            $sql .= "   WHERE " . implode(' AND ', $search_tag_where);
+            $sql .= "   GROUP BY ea.fk_object";
+            $sql .= " ) AS search_tag ON search_tag.event_id = ac.id";
+        }
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "event_agenda AS ea ON ea.fk_object = ac.id";
+        $sql .= " LEFT JOIN (";
+        $sql .= "   SELECT ea.fk_object AS event_id";
+        $sql .= "   , GROUP_CONCAT(DISTINCT IF(cecti.rowid IS NOT NULL, CONCAT(cecti.rowid, ':', ea.level_confid), NULL) SEPARATOR ',') AS internal_tags_info";
+        $sql .= "   , GROUP_CONCAT(DISTINCT IF(cecte.rowid IS NOT NULL, CONCAT(cecte.rowid, ':', ea.level_confid), NULL) SEPARATOR ',') AS external_tags_info";
+        $sql .= "   FROM " . MAIN_DB_PREFIX . "event_agenda AS ea";
+        $sql .= "   LEFT JOIN " . MAIN_DB_PREFIX . "c_eventconfidentiality_tag AS cecti ON ea.fk_dict_tag_confid = cecti.rowid AND (ea.externe != 1 OR ea.externe IS NULL)";
+        $sql .= "   LEFT JOIN " . MAIN_DB_PREFIX . "c_eventconfidentiality_tag AS cecte ON ea.fk_dict_tag_confid = cecte.rowid AND ea.externe = 1";
+        $sql .= "   GROUP BY ea.fk_object";
+        $sql .= " ) AS tags_info ON tags_info.event_id = ac.id";
+    }
     if (is_array($extrafields->attribute_label) && count($extrafields->attribute_label)) $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "actioncomm_extrafields as ef on (ac.id = ef.fk_object)";
     if (is_array($extrafields_message->attribute_label) && count($extrafields_message->attribute_label)) $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "requestmanager_message_extrafields as efm on (ac.id = efm.fk_object)";
     $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "requestmanager_message as rmm ON ac.id = rmm.fk_actioncomm";
@@ -346,18 +397,6 @@ function requestmanager_show_events(&$requestmanager)
     $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "user as ua ON ua.rowid = ac.fk_user_author";
     $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "user as um ON um.rowid = ac.fk_user_mod";
     $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "projet as p ON p.rowid = ac.fk_project";
-    $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "element_element as ee";
-    $element_correspondance = "(" . // Todo a completer si il y a d'autres correspondances
-        "IF(ac.elementtype = 'contract', 'contrat', " .
-        " IF(ac.elementtype = 'invoice', 'facture', " .
-        "  IF(ac.elementtype = 'order', 'commande', " .
-        "   ac.elementtype)))" .
-        ")";
-    $sql .= " ON (ee.sourcetype = " . $element_correspondance . " AND ee.fk_source = ac.fk_element) OR (ee.targettype = " . $element_correspondance . " AND ee.fk_target = ac.fk_element)";
-    // Event confidentiality support
-    if ($conf->eventconfidentiality->enabled) {
-        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "event_agenda as ea ON ea.fk_object = ac.id";
-    }
     // Add 'from' from hooks
     $parameters = array();
     $reshook = $hookmanager->executeHooks('printFieldListFrom', $parameters);    // Note that $action and $object may have been modified by hook
@@ -511,6 +550,9 @@ function requestmanager_show_events(&$requestmanager)
         if ($search_done_by) $param .= '&search_done_by=' . urlencode($search_done_by);
         if ($search_project) $param .= '&search_project=' . urlencode($search_project);
         if ($search_priority) $param .= '&search_priority=' . urlencode($search_priority);
+        if ($search_internal_tag) $param .= '&search_internal_tag=' . urlencode($search_internal_tag);
+        if ($search_external_tag) $param .= '&search_external_tag=' . urlencode($search_external_tag);
+        if ($search_level_tag) $param .= '&search_level_tag=' . urlencode($search_level_tag);
         if ($search_author) $param .= '&search_author=' . urlencode($search_author);
         if ($search_modified_by) $param .= '&search_modified_by=' . urlencode($search_modified_by);
         if ($search_date_created) $param .= '&search_date_created=' . urlencode($search_date_created);
@@ -587,6 +629,19 @@ function requestmanager_show_events(&$requestmanager)
     </script>
 SCRIPT;
         $moreforfilter .= '</div>';
+
+        // Event confidentiality support
+        if ($conf->eventconfidentiality->enabled) {
+            // Filter of level confidentiality of a tag
+            $moreforfilter .= '<div class="divsearchfield">';
+            $moreforfilter .= $langs->trans('EventConfidentialityMode') . ' : ';
+            $confidentiality_levels = array(
+                0 => $langs->trans('EventConfidentialityModeVisible'),
+                1 => $langs->trans('EventConfidentialityModeBlurred'),
+            );
+            $moreforfilter .= $form->selectarray('search_level_tag', $confidentiality_levels, $search_level_tag, 1);
+            $moreforfilter .= '</div>';
+        }
 
         // Filter: include only event linked to the request
         $moreforfilter .= '<div class="divsearchfield">';
@@ -740,6 +795,18 @@ SCRIPT;
             print '<input class="flat" size="6" type="text" name="search_priority" value="' . dol_escape_htmltag($search_priority) . '">';
             print '</td>';
         }
+        // Internal tags
+        if (!empty($arrayfields['internal_tags']['checked'])) {
+            print '<td class="liste_titre">';
+            print '<input class="flat" size="6" type="text" name="search_internal_tag" value="' . dol_escape_htmltag($search_internal_tag) . '">';
+            print '</td>';
+        }
+        // External tags
+        if (!empty($arrayfields['external_tags']['checked'])) {
+            print '<td class="liste_titre">';
+            print '<input class="flat" size="6" type="text" name="search_external_tag" value="' . dol_escape_htmltag($search_external_tag) . '">';
+            print '</td>';
+        }
         // Author
         if (!empty($arrayfields['ac.fk_user_author']['checked'])) {
             print '<td class="liste_titre" align="center">';
@@ -839,6 +906,8 @@ SCRIPT;
         if (!empty($arrayfields['ac.fk_user_done']['checked'])) print_liste_field_titre($arrayfields['ac.fk_user_done']['label'], $_SERVER["PHP_SELF"], 'ud.lastname', '', $param, 'align="center"', $sortfield, $sortorder);
         if (!empty($arrayfields['ac.fk_project']['checked'])) print_liste_field_titre($arrayfields['ac.fk_project']['label'], $_SERVER["PHP_SELF"], 'ac.fk_project', '', $param, '', $sortfield, $sortorder);
         if (!empty($arrayfields['ac.priority']['checked'])) print_liste_field_titre($arrayfields['ac.priority']['label'], $_SERVER["PHP_SELF"], 'ac.priority', '', $param, '', $sortfield, $sortorder);
+        if (!empty($arrayfields['internal_tags']['checked'])) print_liste_field_titre($arrayfields['internal_tags']['label'], $_SERVER["PHP_SELF"], '', '', $param, '', $sortfield, $sortorder);
+        if (!empty($arrayfields['external_tags']['checked'])) print_liste_field_titre($arrayfields['external_tags']['label'], $_SERVER["PHP_SELF"], '', '', $param, '', $sortfield, $sortorder);
         if (!empty($arrayfields['ac.fk_user_author']['checked'])) print_liste_field_titre($arrayfields['ac.fk_user_author']['label'], $_SERVER["PHP_SELF"], 'ua.lastname', '', $param, 'align="center"', $sortfield, $sortorder);
         if (!empty($arrayfields['ac.fk_user_mod']['checked'])) print_liste_field_titre($arrayfields['ac.fk_user_mod']['label'], $_SERVER["PHP_SELF"], 'um.lastname', '', $param, 'align="center"', $sortfield, $sortorder);
         // Extra fields
@@ -893,6 +962,13 @@ SCRIPT;
         dol_include_once('/advancedictionaries/class/dictionary.class.php');
         $knowledge_base = Dictionary::getDictionary($db, 'requestmanager', 'requestmanagerknowledgebase');
         $knowledge_base->fetch_lines(1);
+
+        // Event confidentiality
+        //--------------------------------------
+        if ($conf->eventconfidentiality->enabled) {
+            $confidentiality_tags = Dictionary::getDictionary($db, 'eventconfidentiality', 'eventconfidentialitytag');
+            $confidentiality_tags->fetch_lines(1);
+        }
 
         $actioncomm_static = new ActionComm($db);
 
@@ -1175,6 +1251,38 @@ SCRIPT;
                     }
                     print '</td>';
                 }
+                // Internal tags
+                if (!empty($arrayfields['internal_tags']['checked'])) {
+                    print '<td class="nowrap"' . $tdcolor . '>';
+                    if (!$conf->eventconfidentiality->enabled || $arrayfields['internal_tags']['ec_mode'] >= $obj->ec_mode) {
+                        $tags_list = !empty($obj->internal_tags_info) ? explode(',', $obj->internal_tags_info) : array();
+                        $to_print = array();
+                        foreach ($tags_list as $tag_info) {
+                            $info = explode(':', $tag_info);
+                            $to_print[] = '<li class="select2-search-choice-dolibarr noborderoncategories style="background: #aaa">' .
+                                (!empty($confidentiality_tags->lines[$info[0]]) ? $confidentiality_tags->lines[$info[0]]->fields['label'] : '') .
+                                ' (' . (!empty($confidentiality_levels[$info[1]]) ? $confidentiality_levels[$info[1]] : '') . ')' . '</li>';
+                        }
+                        print '<div class="select2-container-multi-dolibarr" style="width: 90%;"><ul class="select2-choices-dolibarr">' . implode(' ', $to_print) . '</ul></div>';
+                    }
+                    print '</td>';
+                }
+                // External tags
+                if (!empty($arrayfields['external_tags']['checked'])) {
+                    print '<td class="nowrap"' . $tdcolor . '>';
+                    if (!$conf->eventconfidentiality->enabled || $arrayfields['external_tags']['ec_mode'] >= $obj->ec_mode) {
+                        $tags_list = !empty($obj->external_tags_info) ? explode(',', $obj->external_tags_info) : array();
+                        $to_print = array();
+                        foreach ($tags_list as $tag_info) {
+                            $info = explode(':', $tag_info);
+                            $to_print[] = '<li class="select2-search-choice-dolibarr noborderoncategories style="background: #aaa">' .
+                                (!empty($confidentiality_tags->lines[$info[0]]) ? $confidentiality_tags->lines[$info[0]]->fields['label'] : '') .
+                                ' (' . (!empty($confidentiality_levels[$info[1]]) ? $confidentiality_levels[$info[1]] : '') . ')' . '</li>';
+                        }
+                        print '<div class="select2-container-multi-dolibarr" style="width: 90%;"><ul class="select2-choices-dolibarr">' . implode(' ', $to_print) . '</ul></div>';
+                    }
+                    print '</td>';
+                }
                 // Author
                 if (!empty($arrayfields['ac.fk_user_author']['checked'])) {
                     print '<td class="nowrap" align="center"' . $tdcolor . '>';
@@ -1378,6 +1486,30 @@ SCRIPT;
                 if (!empty($arrayfields['ac.priority']['checked']) && (!$conf->eventconfidentiality->enabled || $arrayfields['ac.priority']['ec_mode'] >= $obj->ec_mode) && !empty($actioncomm_static->priority)) {
                     $infos_to_print[] = $arrayfields['ac.priority']['label'] . ' : ' . $actioncomm_static->priority;
                 }
+                // Internal tags
+                if (!empty($arrayfields['internal_tags']['checked']) && (!$conf->eventconfidentiality->enabled || $arrayfields['internal_tags']['ec_mode'] >= $obj->ec_mode) && !empty($obj->internal_tags_info)) {
+                    $tags_list = explode(',', $obj->internal_tags_info);
+                    $to_print = array();
+                    foreach ($tags_list as $tag_info) {
+                        $info = explode(':', $tag_info);
+                        $to_print[] = '<li class="select2-search-choice-dolibarr noborderoncategories style="background: #aaa">' .
+                            (!empty($confidentiality_tags->lines[$info[0]]) ? $confidentiality_tags->lines[$info[0]]->fields['label'] : '') .
+                            ' (' . (!empty($confidentiality_levels[$info[1]]) ? $confidentiality_levels[$info[1]] : '') . ')' . '</li>';
+                    }
+                    $infos_to_print[] = $arrayfields['internal_tags']['label'] . ' : <div class="select2-container-multi-dolibarr" style="width: 90%;"><ul class="select2-choices-dolibarr">' . implode(' ', $to_print) . '</ul></div>';
+                }
+                // External tags
+                if (!empty($arrayfields['external_tags']['checked']) && (!$conf->eventconfidentiality->enabled || $arrayfields['external_tags']['ec_mode'] >= $obj->ec_mode) && !empty($obj->external_tags_info)) {
+                    $tags_list = explode(',', $obj->external_tags_info);
+                    $to_print = array();
+                    foreach ($tags_list as $tag_info) {
+                        $info = explode(':', $tag_info);
+                        $to_print[] = '<li class="select2-search-choice-dolibarr noborderoncategories style="background: #aaa">' .
+                            (!empty($confidentiality_tags->lines[$info[0]]) ? $confidentiality_tags->lines[$info[0]]->fields['label'] : '') .
+                            ' (' . (!empty($confidentiality_levels[$info[1]]) ? $confidentiality_levels[$info[1]] : '') . ')' . '</li>';
+                    }
+                    $infos_to_print[] = $arrayfields['external_tags']['label'] . ' : <div class="select2-container-multi-dolibarr" style="width: 90%;"><ul class="select2-choices-dolibarr">' . implode(' ', $to_print) . '</ul></div>';
+                }
                 // Extra fields
                 if (is_array($extrafields->attribute_label) && count($extrafields->attribute_label)) {
                     foreach ($extrafields->attribute_label as $key => $label) {
@@ -1547,7 +1679,7 @@ function requestmanager_show_timelines(&$requestmanager)
 
     $list_mode = GETPOST('list_mode', 'int');
     if ($list_mode === "") $list_mode = $_SESSION['rm_list_mode'];
-    if (empty($list_mode)) $list_mode = !empty($conf->global->REQUESTMANAGER_DEFAULT_LIST_MODE) ? $conf->global->REQUESTMANAGER_DEFAULT_LIST_MODE : 0;
+    if ($list_mode === "" || !isset($list_mode)) $list_mode = !empty($conf->global->REQUESTMANAGER_DEFAULT_LIST_MODE) ? $conf->global->REQUESTMANAGER_DEFAULT_LIST_MODE : 0;
     if ($list_mode != 2) return 0;
     $_SESSION['rm_list_mode'] = $list_mode;
 

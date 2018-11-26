@@ -106,7 +106,7 @@ class modEventConfidentiality extends DolibarrModules
         $this->dirs = array('/eventconfidentiality');
 
         // Config pages. Put here list of php page, stored into mymodule/admin directory, to use to setup module.
-        $this->config_page_url = array("dictionaries.php@eventconfidentiality");
+        $this->config_page_url = array("setup.php@eventconfidentiality");
 
         // Dependencies
         $this->hidden = false;            // A condition to hide module
@@ -119,8 +119,14 @@ class modEventConfidentiality extends DolibarrModules
         $langs->load('eventconfidentiality@eventconfidentiality');
 
         // Constants
-        $this->const = array();
-
+        // List of particular constants to add when module is enabled (key, 'chaine', value, desc, visible, 'current' or 'allentities', deleteonunactive)
+        // Example: $this->const=array(0=>array('MYMODULE_MYNEWCONST1','chaine','myvalue','This is a constant to add',1),
+        //                             1=>array('MYMODULE_MYNEWCONST2','chaine','myvalue','This is another constant to add',0, 'current', 1)
+        // );
+        $this->const = array(
+            0 => array('EVENTCONFIDENTIALITY_DEFAULT_INTERNAL_LEVEL','chaine','0','',0,'current'),
+            1 => array('EVENTCONFIDENTIALITY_DEFAULT_EXTERNAL_LEVEL','chaine','0','',0,'current'),
+        );
 
         $this->tabs = array();
 

@@ -416,7 +416,7 @@ SCRIPT;
 
         // Event confidentiality
         //--------------------------------------
-        if ($conf->eventconfidentiality->enabled) {
+        if ($conf->eventconfidentiality->enabled && $user->rights->eventconfidentiality->manage) {
             $langs->load('eventconfidentiality@eventconfidentiality');
             $dictionary = Dictionary::getDictionary($this->db, 'eventconfidentiality', 'eventconfidentialitytag');
 

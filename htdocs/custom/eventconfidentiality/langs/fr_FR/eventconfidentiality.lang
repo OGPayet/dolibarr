@@ -22,7 +22,10 @@ EventConfidentialityElementOrigin = Element
 ############################################################
 ### Admin setup
 ############################################################
-EventConfidentialitySetup = Configuration du module Event Confidentiality
+EventConfidentialitySetup                   = Configuration du module Event Confidentiality
+
+EventConfidentialityDefaultInternalLevel    = Niveau de confidentialité par défaut pour les utilisateur interne
+EventConfidentialityDefaultExternalLevel    = Niveau de confidentialité par défaut pour les utilisateur externe
 
 ############################################################
 ### Form
@@ -31,7 +34,7 @@ EventConfidentialityTagInterneLabel = Tag de confidentialité interne
 EventConfidentialityTagExterneLabel = Tag de confidentialité externe
 EventConfidentialityExternalLabel = Externe
 EventConfidentialityModeLabel = Niveau de confidentialité
-DeleteEventConfidentiality = Supprimer le tag de confidentialité
-ConfirmDeleteEventConfidentiality = Êtes-vous sûr de vouloir effacer ce tag de confidentialité ?
+DeleteEventConfidentiality = Supprimer le(s) tag(s) de confidentialité
+ConfirmDeleteEventConfidentiality = Êtes-vous sûr de vouloir effacer ce(s) tag(s) de confidentialité ?
 AddNewTagExterne = Ajouter un nouveau tag externe
 AddNewTagInterne = Ajouter un nouveau tag interne
