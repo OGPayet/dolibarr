@@ -99,3 +99,6 @@ Compulsory=obligatorio
 SizeField=Tamaño del campo de entrada
 FormatField=Entrada de máscara
 Replacement=Texto de reemplazo
+EnableSmallButton=Activar los botones reducidos
+InfoEnableSmallButton=Reemplaza los botones nativos no un botón más pequeño con el icono
+context=Contexto de activación

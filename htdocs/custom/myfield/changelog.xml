@@ -114,7 +114,23 @@
 	<Version Number="6.0.+2.1.0" MonthVersion="2017-08">
 		<change type='inf'>6.0 compatibility</change>
 	</Version>
+	<Version Number="7.0.+2.2.0" MonthVersion="2018-02">
+		<change type='inf'>7.0 compatibility</change>
+		<change type='add'>small button feature</change>
+	</Version>
+	<Version Number="7.0.+2.2.1" MonthVersion="2018-06">
+		<change type='fix'>bad quote management in vmenu</change>
+	</Version>
+	<Version Number="8.0.+2.3.0" MonthVersion="2018-09">
+		<change type='inf'>8.0 compatibility</change>
+		<change type='fix'>Patas-tools top menu can be duplicate</change>
+		<change type='add'>display fields,tabs or menu can be managed by sql query</change>
+	</Version>
+	<Version Number="8.0.+2.3.1" MonthVersion="2018-11">
+		<change type='add'>New display control (in the list) </change>
+		<change type='add'>Allow change background of input field </change>
 
+	</Version>
 	<!-- Remplir le undocumented.xml ? -->
-	<Dolibarr minVersion="3.7.0"/>
+	<Dolibarr minVersion="4.0.0"/>
 </changelog>

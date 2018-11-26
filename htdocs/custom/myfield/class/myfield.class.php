@@ -1,5 +1,5 @@
 <?php
-/* Copyright (C) 2015-2017	Charlie BENKE		<charlie@patas-monkey.com>
+/* Copyright (C) 2015-2018	Charlie BENKE		<charlie@patas-monkey.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,6 +42,7 @@ class Myfield extends CommonObject
 	var $sizefield;
 	var $movefield;
 	var $formatfield;
+	var $querydisplay;
 
 	/**
 	 *	Constructor
@@ -66,7 +67,7 @@ class Myfield extends CommonObject
 //		global $conf;
 
 		$sql = "SELECT rowid, label, context, author, active, color, initvalue,";
-		$sql.= " movefield, typefield, replacement, compulsory, sizefield, formatfield";
+		$sql.= " movefield, typefield, replacement, compulsory, sizefield, formatfield, querydisplay";
 		$sql.= " FROM ".MAIN_DB_PREFIX."myfield";
 		$sql.= " WHERE rowid = ".$rowid;
 
@@ -89,6 +90,8 @@ class Myfield extends CommonObject
 				$this->compulsory	= $res['compulsory'];
 				$this->sizefield	= $res['sizefield'];
 				$this->formatfield	= $res['formatfield'];
+				$this->querydisplay	= $res['querydisplay'];
+
 
 				$this->db->free($resql);
 
@@ -115,14 +118,16 @@ class Myfield extends CommonObject
 
 		$error=0;
 
-		$this->label	=trim($this->label);
-		$this->context	=(!empty($this->context)?trim($this->context):"");
-		$this->author	=(!empty($this->author)?trim($this->author):"");
-		$this->initvalue=(!empty($this->initvalue)?trim($this->initvalue):"");
-		$this->replacement=(!empty($this->replacement)?trim($this->replacement):"");
-		$this->compulsory=($this->compulsory=='yes'?'true':'false');
-		$this->sizefield=(!empty($this->sizefield)?trim($this->sizefield):"");
-		$this->formatfield=(!empty($this->formatfield)?trim($this->formatfield):"");
+		$this->label		=trim($this->label);
+		$this->context		=(!empty($this->context)?trim($this->context):"");
+		$this->author		=(!empty($this->author)?trim($this->author):"");
+		$this->initvalue	=(!empty($this->initvalue)?trim($this->initvalue):"");
+		$this->replacement	=(!empty($this->replacement)?trim($this->replacement):"");
+		$this->compulsory	=($this->compulsory=='yes'?'true':'false');
+		$this->sizefield	=(!empty($this->sizefield)?trim($this->sizefield):"");
+		$this->formatfield	=(!empty($this->formatfield)?trim($this->formatfield):"");
+		$this->querydisplay	=(!empty($this->querydisplay)?trim($this->querydisplay):"");
+
 
 		$this->db->begin();
 
@@ -138,7 +143,9 @@ class Myfield extends CommonObject
 		$sql.= " replacement,";
 		$sql.= " compulsory,";
 		$sql.= " sizefield,";
-		$sql.= " formatfield";
+		$sql.= " formatfield,";
+		$sql.= " querydisplay";
+
 		$sql.= ") VALUES (";
 		$sql.= " '".$this->db->escape($this->label)."'";
 		$sql.= ", '".$this->db->escape($this->context)."'";
@@ -155,6 +162,7 @@ class Myfield extends CommonObject
 		else
 			$sql.= ", null";
 		$sql.= ", '".$this->db->escape($this->formatfield)."'";
+		$sql.= ", '".$this->db->escape($this->querydisplay)."'";
 		$sql.= ")";
 //print $sql;
 		dol_syslog(get_class($this).'::create sql='.$sql);
@@ -202,6 +210,8 @@ class Myfield extends CommonObject
 		else
 			$sql.= ", sizefield =null";
 		$sql.= ", formatfield ='".$this->db->escape($this->formatfield)."'";
+		$sql.= ", querydisplay ='".$this->db->escape($this->querydisplay)."'";
+
 
 		$sql.= " WHERE rowid =".$this->rowid;
 		print $sql;
@@ -253,7 +263,7 @@ class Myfield extends CommonObject
 //		global $conf;
 
 		$sql = "SELECT rowid, label, context, author, color, active, initvalue,";
-		$sql.= " movefield, typefield, replacement, compulsory, sizefield, formatfield";
+		$sql.= " movefield, typefield, replacement, compulsory, sizefield, formatfield, querydisplay";
 		$sql.= " FROM ".MAIN_DB_PREFIX."myfield";
 		$sql.= " WHERE 1 = 1";
 
@@ -292,6 +302,8 @@ class Myfield extends CommonObject
 				$cat['compulsory']	= $rec['compulsory'];
 				$cat['sizefield']	= $rec['sizefield'];
 				$cat['formatfield']	= $rec['formatfield'];
+				$cat['querydisplay']= $rec['querydisplay'];
+
 				$cats[$rec['rowid']] = $cat;
 			}
 			return $cats;
@@ -301,15 +313,30 @@ class Myfield extends CommonObject
 		}
 	}
 
-	function getUserSpecialsRights($myFielId, $user)
+	// permet de savoir si l'utilisateur a des droits d'accès particulier
+	function getUserSpecialsRights($myFielId, $user, $querydisplay="")
 	{
-		global $conf;
+		global $conf, $object;
 		$array_return = array();
+
+		// si l'affichage du champ est conditionné par une requête SQL
+		if (!empty($querydisplay)) {
+			$array_return = array('read'=>1, 'write'=>1);
+			$querydisplay = str_replace("#SEL#", "SELECT", $querydisplay);
+			$querydisplay = str_replace("#ID#", ($object->rowid?$object->rowid:$object->id), $querydisplay);
+			$resql=$this->db->query($querydisplay);
+			if ($resql) {
+				$obj = $this->db->fetch_object($resql);
+				$array_return['read']=$obj->read;
+				$array_return['write']=$obj->write;
+			}
+			return $array_return;
+		}
 
 		if (!empty($user->id)) {
 			//If user is admin he get all rights by default
 			if ($user->admin && $conf->global->MYFIELD_ADMIN_ALL_RIGHT) {
-				$array_return = array('read'=>1, 'write'=>1, 'open'=>2);
+				$array_return = array('read'=>1, 'write'=>1);
 			} else {
 				require_once DOL_DOCUMENT_ROOT.'/user/class/usergroup.class.php';
 				$usr_group = new UserGroup($this->db);
@@ -333,7 +360,7 @@ class Myfield extends CommonObject
 					} else
 						print $this->db->error();
 				} else
-					$array_return = array('read'=>1, 'write'=>1, 'open'=>1); // no usergroup : open bar
+					$array_return = array('read'=>1, 'write'=>1); // no usergroup : open bar
 			}
 		}
 		return $array_return;
@@ -359,6 +386,7 @@ class Myfield extends CommonObject
 			$tmp.="\t \t<compulsory>".$value['compulsory']."</compulsory>\n";
 			$tmp.="\t \t<sizefield>".$value['sizefield']."</sizefield>\n";
 			$tmp.="\t \t<formatfield>".$value['formatfield']."</formatfield>\n";
+			$tmp.="\t \t<querydisplay>".$value['querydisplay']."</querydisplay>\n";
 			$tmp.="\t</myfield>\n";
 		}
 		$tmp.="</myfields>\n";
@@ -392,18 +420,20 @@ class Myfield extends CommonObject
 			$tblmyfields=$arraydata;
 
 		foreach ($tblmyfields as $myfieldimport) {
-			$this->label=		$myfieldimport['label'];
-			$this->context=		$myfieldimport['context'];
-			$this->author=		$myfieldimport['author'];
-			$this->active=		$myfieldimport['active'];
-			$this->typefield=	$myfieldimport['typefield'];
-			$this->movefield=	$myfieldimport['movefield'];
-			$this->color=		$myfieldimport['color'];
-			$this->initvalue=	$myfieldimport['initvalue'];
-			$this->replacement=	$myfieldimport['replacement'];
-			$this->compulsory=	$myfieldimport['compulsory'];
-			$this->sizefield=	$myfieldimport['sizefield'];
-			$this->formatfield=	$myfieldimport['formatfield'];
+			$this->label=			$myfieldimport['label'];
+			$this->context=			$myfieldimport['context'];
+			$this->author=			$myfieldimport['author'];
+			$this->active=			$myfieldimport['active'];
+			$this->typefield=		$myfieldimport['typefield'];
+			$this->movefield=		$myfieldimport['movefield'];
+			$this->color=			$myfieldimport['color'];
+			$this->initvalue=		$myfieldimport['initvalue'];
+			$this->replacement=		$myfieldimport['replacement'];
+			$this->compulsory=		$myfieldimport['compulsory'];
+			$this->sizefield=		$myfieldimport['sizefield'];
+			$this->formatfield=		$myfieldimport['formatfield'];
+			$this->querydisplay=	$myfieldimport['querydisplay'];
+
 			$fk_myfield = $this->create($user);
 		}
 	}

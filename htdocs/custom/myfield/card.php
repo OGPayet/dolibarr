@@ -1,5 +1,5 @@
 <?php
-/* Copyright (C) 2015-2017	Charlie BENKE	<charlie@patas-monkey.com>
+/* Copyright (C) 2015-2018	Charlie BENKE	<charlie@patas-monkey.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -71,6 +71,7 @@ if ($action == 'add'
 			$myfield->movefield		= trim($_POST["movefield"]);	// valeur par défaut si besoin
 			$myfield->formatfield	= trim($_POST["formatfield"]);	// valeur par défaut si besoin
 			$myfield->typefield		= trim($_POST["typefield"]);
+			$myfield->querydisplay		= trim($_POST["querydisplay"]);
 			$id=$myfield->create($user->id);
 
 			if ( $id > 0 ) {	// la saisie du nom de la table est obligatoire sinon on ne crée pas la table
@@ -110,6 +111,7 @@ if ($action == 'update' && $user->rights->myfield->setup) {
 			$myfield->sizefield		= trim($_POST["sizefield"]);
 			$myfield->movefield		= trim($_POST["movefield"]);
 			$myfield->formatfield	= trim($_POST["formatfield"]);
+			$myfield->querydisplay	= trim($_POST["querydisplay"]);
 
 			$myfield->update($user);
 			header("Location: list.php");
@@ -198,15 +200,17 @@ if ($action == 'create') {
 	print '<table class="border tableforfield" width="100%">';
 
 	print '<tr><td width=30%>'.$langs->trans("ActiveFieldMode").'</td><td>';
-	print SelectActiveMode($myfield->active);
+	print SelectActiveMode($myfield->active, ($typefield == 0));
+
 	print '</td></tr>';
 
-	print '<tr class="fieldinfo"><td >'.$langs->trans("BGColor").'</td><td>';
-	print $formother->selectColor(GETPOST('color'), 'color', 'color', 1, '', 'hideifnotset');
-	print '</td></tr>';
-	print '<tr><td >'.$langs->trans("MoveField").'</td>';
-	print '<td><input type="text" name="movefield" size="1" value="'.GETPOST('movefield').'"></td></tr>';
-
+	if ($typefield != 3) {
+		print '<tr class="fieldinfo"><td >'.$langs->trans("BGColor").'</td><td>';
+		print $formother->selectColor(GETPOST('color'), 'color', 'color', 1, '', 'hideifnotset');
+		print '</td></tr>';
+		print '<tr><td >'.$langs->trans("MoveField").'</td>';
+		print '<td><input type="text" name="movefield" size="1" value="'.GETPOST('movefield').'"></td></tr>';
+	}
 	// des infos en plus pour les myfields de type champs
 	if ($typefield == 0) {
 		print '<tr><td >'.$langs->trans("InitValue").'</td><td><input type="text" name="initvalue" size="10"></td></tr>';
@@ -215,12 +219,17 @@ if ($action == 'create') {
 		print '<td>'.$form->selectyesno("compulsory", 0).'</td></tr>';
 		print '<tr class="fieldinfo"><td >'.$langs->trans("FormatField").'</td>';
 		print '<td><input type="text" name="formatfield" size="10"></td></tr>';
-	} else {
+	} elseif ($typefield != 3) {
 		print '<tr class="fieldinfo"><td >'.$langs->trans("RedirectURL").'</td>';
 		print '<td><input type="text" name="formatfield" size="40"></td></tr>';
 	}
-	print "</table>\n";
 
+
+	print '<tr><td colspan=2>'.$langs->trans("QueryDisplay").'</td></tr>';
+	print '<tr><td colspan=2><textarea name="querydisplay" cols=50 rows=5>';
+	print GETPOST('querydisplay').'</textarea></td></tr>';
+
+	print "</table>\n";
 	print '</div>';
 	print '</div></div>';
 	print '<div style="clear:both"></div>';
@@ -287,7 +296,8 @@ if ($rowid > 0) {
 		print '<table class="border tableforfield" width="100%">';
 
 		print '<tr><td width=30% >'.$langs->trans("ActiveFieldMode").'</td><td>';
-		print SelectActiveMode($myfield->active);
+		print SelectActiveMode($myfield->active, ($typefield==0));
+
 		print '</td></tr>';
 
 		print '<tr><td >'.$langs->trans("BGColor").'</td><td>';
@@ -315,8 +325,10 @@ if ($rowid > 0) {
 			print '<td><input type="text" name="formatfield" size="40" value="'.$myfield->formatfield.'"></td></tr>';
 		}
 
-		print '<tr>';
-		print '</td></tr>';
+		print '<tr><td >'.$langs->trans("QueryDisplay").'</td>';
+		print '<td><textarea name="querydisplay" cols=60 rows=5>';
+		print $myfield->querydisplay.'</textarea></td></tr>';
+
 		print "</table>\n";
 
 		print '</div>';
@@ -380,6 +392,11 @@ if ($rowid > 0) {
 		}
 		else
 			print '<tr><td >'.$langs->trans("RedirectURL").'</td><td>'.$myfield->formatfield.'</td></tr>';
+
+		print '<tr><td >'.$langs->trans("QueryDisplay").'</td>';
+		print '<td>'.$myfield->querydisplay.'</td></tr>';
+
+
 		print '</table>';
 
 		print '</div>';
@@ -409,7 +426,7 @@ if ($rowid > 0) {
 
 /* ************************************************************************** */
 /*																			*/
-/* Importation / des myfiels 												  */
+/* Importation / des myfields 												  */
 /*																			*/
 /* ************************************************************************** */
 if ($action == 'import' || $action == 'export') {

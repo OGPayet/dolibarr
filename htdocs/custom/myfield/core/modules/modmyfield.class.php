@@ -1,5 +1,5 @@
 <?php
-/* Copyright (C) 2015-2016 Charlie BENKE  <charlie@patas-monkey.com>
+/* Copyright (C) 2015-2018 Charlene BENKE  <charlie@patas-monkey.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,7 +63,9 @@ class modmyfield extends DolibarrModules
 
 		// Defined if the directory /mymodule/inc/triggers/ contains triggers or not
 		$this->module_parts = array(
-			'hooks' => array(
+			'hooks' => array('all', 'contractlist', 'propallist', 'orderlist', 'invoicelist',
+							'supplierorderlist', 'supplierinvoicelist', 'supplier_proposallist',
+							'interventionlist', 'shipmentlist', 'productservicelist',
 							'toprightmenu', 'globalcard', 'membercard', 'membertypecard',
 							'categorycard', 'commcard', 'propalcard', 'actioncard',
 							'agenda', 'mailingcard', 'ordercard', 'invoicecard',
@@ -83,7 +85,6 @@ class modmyfield extends DolibarrModules
 		// Example: this->dirs = array("/mymodule/temp");
 		$this->dirs = array();
 		$r=0;
-
 
 		// Dependencies
 		// List of modules id that must be enabled if this module is enabled
@@ -157,10 +158,10 @@ class modmyfield extends DolibarrModules
 						'url'=>'/myfield/core/patastools.php?mainmenu=patastools&leftmenu=myfield',
 						'langs'=>'myfield@myfield',
 						'position'=>100, 'enabled'=>'1',
-						'perms'=>'$user->rights->myfield->lire',
-						'target'=>'', 'user'=>0);
+						'perms'=>'1', 'target'=>'', 'user'=>0);
 			$r++; //1
 		}
+
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=patastools',
 					'type'=>'left',
 					'titre'=>'MyField',
@@ -183,6 +184,19 @@ class modmyfield extends DolibarrModules
 					'position'=>110, 'enabled'=>'1',
 					'perms'=>'$user->rights->myfield->setup',
 					'target'=>'', 'user'=>2);
+
+		$r++;
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=patastools,fk_leftmenu=myfield',
+					'type'=>'left',
+					'titre'=>'NewmyList',
+					'mainmenu'=>'',
+					'leftmenu'=>'',
+					'url'=>'/myfield/card.php?action=create&typefield=3',
+					'langs'=>'myfield@myfield',
+					'position'=>110, 'enabled'=>'1',
+					'perms'=>'$user->rights->myfield->setup',
+					'target'=>'', 'user'=>2);
+
 		$r++;
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=patastools,fk_leftmenu=myfield',
 					'type'=>'left',
@@ -194,6 +208,7 @@ class modmyfield extends DolibarrModules
 					'position'=>110, 'enabled'=>'1',
 					'perms'=>'$user->rights->myfield->setup',
 					'target'=>'', 'user'=>2);
+
 		$r++;
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=patastools,fk_leftmenu=myfield',
 					'type'=>'left',
@@ -205,6 +220,7 @@ class modmyfield extends DolibarrModules
 					'position'=>110, 'enabled'=>'1',
 					'perms'=>'$user->rights->myfield->setup',
 					'target'=>'', 'user'=>2);
+
 
 		$r++;
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=patastools,fk_leftmenu=myfield',
@@ -286,11 +302,14 @@ class modmyfield extends DolibarrModules
 	/*  Is the top menu already exist */
 	function no_topmenu()
 	{
+		global $conf;
 		// gestion de la position du menu
 		$sql="SELECT rowid FROM ".MAIN_DB_PREFIX."menu";
 		$sql.=" WHERE mainmenu ='patastools'";
 		//$sql.=" AND module ='patastools'";
 		$sql.=" AND type = 'top'";
+		$sql.=" AND entity = ".(int) $conf->entity;
+
 		$resql = $this->db->query($sql);
 		if ($resql) {
 			// il y a un top menu on renvoie 0 : pas besoin d'en créer un nouveau

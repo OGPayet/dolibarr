@@ -104,3 +104,5 @@ ErasePreviousMyldields=Erase the previous data
 ErasePreviousMyFields=Erase the previous data
 ExportMyfields=Export MyField
 ShowXMLExportData=Export XML file
+EnableSmallButton=Activate the reduced buttons
+InfoEnableSmallButton=Replaces native buttons not a smaller button with icon

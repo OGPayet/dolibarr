@@ -40,12 +40,62 @@ function formObjectOptions($parameters, $object, $action)
 	return 0;
 }
 
+function doActions($parameters, $object, $action)
+{
+	global $conf, $langs, $db, $user;
+	global $arrayfields, $hookmanager;
+
+	dol_include_once('/myfield/class/myfield.class.php');
+	$myField = new Myfield($db);
+
+	// gestion des champs de liste
+	$listfield = $myField->get_all_myfield($parameters['context'], 3);
+
+	foreach ($listfield  as $currfield) {
+		if (strrpos($parameters['context'], $currfield['context']) !== false ) {
+			$user_specials_rights = $myField->getUserSpecialsRights($currfield['rowid'], $user, $currfield['querydisplay']);
+			$label = $currfield['label'];
+			$keyvalue= array_search ($label, array_column($arrayfields, 'label'));
+			$arraykeys=array_keys($arrayfields);
+			// si autorisé en mode lecture
+			if ($user_specials_rights['read']) {
+				if ($keyvalue !== false) {
+					if ($currfield['active'] == 2) {
+						unset($arrayfields[$arraykeys[$keyvalue]]);
+					}
+					if ($currfield['replacement']) {
+						$arrayfields[$arraykeys[$keyvalue]]['label'] =  $currfield['replacement'];
+					}
+				}
+			} else {
+				// si pas de droit en lecture on vire l'affichage du champs
+				unset($arrayfields[$arraykeys[$keyvalue]]);
+			}
+		}
+	}
+}
+
 // sur toute les fiches / on gère la mise à jour des nom
 function printCommonFooter($parameters, $object, $action)
 {
-	global  $langs, $db, $user;
+	global  $langs, $db, $user, $conf;
 	// check if db is not close -> bad writing of page
 	if ($db->connected) {
+
+		if ($conf->global->MYFIELD_INPUT_BACKGROUND) {
+			print "<script>\n";
+			print "jQuery(document).ready(function () {\n";
+
+			print "$(':input').css({'background-color': 'rgb(".$conf->global->MYFIELD_INPUT_BACKGROUND.")'});";
+			print "$('.select2').css({'border': 'solid 2px rgb(".$conf->global->MYFIELD_INPUT_BACKGROUND.")'});";
+
+			print "})\n;";
+			print "</script>\n";
+		}
+
+		if ($conf->global->MYFIELD_ENABLE_SMALL_BUTTON =="1")
+			print '<script src="'.dol_buildpath('/myfield/js/jquery.chgbutton.js', 1).'"></script>';
+
 		dol_include_once('/myfield/class/myfield.class.php');
 		$myField = new Myfield($db);
 
@@ -57,8 +107,7 @@ function printCommonFooter($parameters, $object, $action)
 		print "<script>\n";
 		print "jQuery(document).ready(function () {\n";
 		foreach ($listfield  as $currfield) {
-			$user_specials_rights = $myField->getUserSpecialsRights($currfield['rowid'], $user);
-	//		print "/// user open=".$user_specials_rights['open']."\n";
+			$user_specials_rights = $myField->getUserSpecialsRights($currfield['rowid'], $user, $currfield['querydisplay']);
 	//		print "/// user read=".$user_specials_rights['read']."\n";
 	//		print "/// user write=".$user_specials_rights['write']."\n";
 			// on mémorise la ligne du tableau et les colonnes de celui-ci
@@ -201,7 +250,7 @@ function printCommonFooter($parameters, $object, $action)
 		// menu principal
 		$listfield = $myField->get_all_myfield('tmenu', 2);
 		foreach ($listfield  as $currfield) {
-			$user_specials_rights = $myField->getUserSpecialsRights($currfield['rowid'], $user);
+			$user_specials_rights = $myField->getUserSpecialsRights($currfield['rowid'], $user, $currfield['querydisplay']);
 			$label = $currfield['label'];
 			$namevalue=getNameValue($label);
 			print $namevalue.'=$(\'.mainmenuaspan:contains("'.str_replace("'", "\'", $label).'")\');'."\n";
@@ -219,7 +268,7 @@ function printCommonFooter($parameters, $object, $action)
 			if ($currfield['replacement'])
 				print genRemplacement($currfield['replacement'], ".mainmenuaspan", $label, $namevalue);
 
-			if ($currfield['active'] == 1 || $user_specials_rights[read] == 0)
+			if ($currfield['active'] == 1 || $user_specials_rights['read'] == 0)
 				print $namevalue.'.parent().parent().parent().remove();'."\n";
 
 			if ($currfield['formatfield'] != '' )
@@ -232,7 +281,7 @@ function printCommonFooter($parameters, $object, $action)
 		// menu gauche premier niveau
 		$listfield = $myField->get_all_myfield('vmenu', 2);
 		foreach ($listfield  as $currfield) {
-			$user_specials_rights = $myField->getUserSpecialsRights($currfield['rowid'], $user);
+			$user_specials_rights = $myField->getUserSpecialsRights($currfield['rowid'], $user, $currfield['querydisplay']);
 			$label = $currfield['label'];
 			$namevalue=getNameValue($label);
 
@@ -251,7 +300,7 @@ function printCommonFooter($parameters, $object, $action)
 			if ($currfield['replacement'])
 				print genRemplacement($currfield['replacement'], "a.vmenu", $label, $namevalue);
 
-			if ($currfield['active'] == 1 || $user_specials_rights[read] == 0)
+			if ($currfield['active'] == 1 || $user_specials_rights['read'] == 0)
 				print $namevalue.'.parent().parent().remove();'."\n";
 
 			if ($currfield['formatfield'] != '' )
@@ -264,7 +313,7 @@ function printCommonFooter($parameters, $object, $action)
 		// menu gauche second niveau}
 		$listfield = $myField->get_all_myfield('vsmenu', 2);
 		foreach ($listfield  as $currfield) {
-			$user_specials_rights = $myField->getUserSpecialsRights($currfield['rowid'], $user);
+			$user_specials_rights = $myField->getUserSpecialsRights($currfield['rowid'], $user, $currfield['querydisplay']);
 			$label = $currfield['label'];
 			// pour les sous menu ambigue, on ajoute le menu principal avec # en séparation
 			if (strpos($label, "#") > 0) {
@@ -277,7 +326,7 @@ function printCommonFooter($parameters, $object, $action)
 				print $namevalue.'='.$namevalueparent.'.find(\'a.vsmenu:contains("'.$label.'")\');'."\n";
 			} else {
 				$namevalue=getNameValue($label);
-				print $namevalue.'=$(\'a.vsmenu:contains("'.$label.'")\');'."\n";
+				print $namevalue.'=$(\'a.vsmenu:contains("'.str_replace("'", "\'", $label).'")\');'."\n";
 			}
 			print $namevalue.'='.$namevalue.'.filter(function () {return ($(this).text() == "'.$label.'")});';
 
@@ -295,7 +344,7 @@ function printCommonFooter($parameters, $object, $action)
 				print genRemplacement($currfield['replacement'], "a.vsmenu", $label, $namevalue);
 
 			// suppression
-			if ($currfield['active'] == 1 || $user_specials_rights[read] == 0)
+			if ($currfield['active'] == 1 || $user_specials_rights['read'] == 0)
 				print $namevalue.'.parent().remove();'."\n";
 
 			// changement d'url
@@ -319,7 +368,7 @@ function printCommonFooter($parameters, $object, $action)
 function printTabsHead($parameters, $object, $action)
 {
 	global $user, $db, $conf;
-	$tblcontext=explode(":", $parameters['context']);
+	$tblcontext=explode(":", $parameters['currentcontext']);
 	if ($conf->global->MYFIELD_CONTEXT_VIEW =="1" )
 		var_dump($tblcontext);
 
@@ -333,7 +382,7 @@ function printTabsHead($parameters, $object, $action)
 	$listfield = $myField->get_all_myfield($parameters['currentcontext'], 1);
 
 	foreach ($listfield  as $currfield) {
-		$user_specials_rights = $myField->getUserSpecialsRights($currfield['rowid'], $user);
+		$user_specials_rights = $myField->getUserSpecialsRights($currfield['rowid'], $user, $currfield['querydisplay']);
 		$label = $currfield['label'];
 		$namevalue=getNameValue($label);
 
@@ -352,7 +401,7 @@ function printTabsHead($parameters, $object, $action)
 			print genRemplacement($currfield['replacement'], "a.tab", $label, $namevalue);
 
 		// suppression
-		if ($currfield['active'] == 1 || $user_specials_rights[read] == 0)
+		if ($currfield['active'] == 1 || $user_specials_rights['read'] == 0)
 			print $namevalue.'.parent().remove();'."\n";
 
 		// changement d'url
@@ -406,7 +455,7 @@ function genRemplacement($fieldreplacement, $elementcontain, $label, $namevalue)
 {
 	$res = 'textchange='.$namevalue.'.html();'."\n";
 	$res.= 'if (textchange) {'."\n";
-	$res.= "\t".'textchange=textchange.replace(\''.$label.'\', \''.$fieldreplacement.'\');'."\n";
+	$res.= "\t".'textchange=textchange.replace("'.$label.'", "'.$fieldreplacement.'");'."\n";
 	$res.= "\t".$namevalue.'.html(textchange);'."\n";
 	$res.= "}\n";
 	$res.= $namevalue.'=$(\''.$elementcontain.':contains("'.str_replace("'", "\'", $fieldreplacement).'")\');'."\n";

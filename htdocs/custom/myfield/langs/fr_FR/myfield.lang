@@ -14,6 +14,11 @@ NewVersionAviable=Une nouvelle version du module est disponible
 NumberVersion=Version
 MonthVersion=Mois de publication
 ChangesVersion=Principales modifications apportées
+EnableSmallButton=Activer les boutons réduits
+InfoEnableSmallButton=Remplace les boutons natifs pas un bouton plus petit avec icone
+ChangeInputBackground=Choisir fond des zones de saisie
+InfoChangeInputBackground=Permet de choisir un fond personnalisé des zones de saisie
+
 
 ##ABOUT
 About=À propos

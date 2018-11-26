@@ -67,13 +67,14 @@ function myfield_prepare_head ($object)
 	return $head;
 }
 
-function SelectActiveMode($selected)
+function SelectActiveMode($selected, $withHidden=true)
 {
 	global $langs;
 
 	$tmp="<select name=activemode>";
 	$tmp.="<option value='0' >".$langs->trans("Visible")."</option>";
-	$tmp.="<option value='1' ".($selected=="1"?" selected ":"").">".$langs->trans("Hidden")."</option>";
+	if ($withHidden)
+		$tmp.="<option value='1' ".($selected=="1"?" selected ":"").">".$langs->trans("Hidden")."</option>";
 	$tmp.="<option value='2' ".($selected=="2"?" selected ":"").">".$langs->trans("Invisible")."</option>";
 	$tmp.="</select>";
 	return $tmp;
@@ -96,6 +97,7 @@ function SelectMyFieldType($selected, $showempty=0)
 		$tmp.='<option value="-1"'.($selected == -1 ? ' selected="selected"':"").'>&nbsp;</option>';
 
 	$tmp.="<option value='0' ".($selected=="0"?" selected ":"").">".$langs->trans("Field")."</option>";
+	$tmp.="<option value='3' ".($selected=="3"?" selected ":"").">".$langs->trans("List")."</option>";
 	$tmp.="<option value='1' ".($selected=="1"?" selected ":"").">".$langs->trans("Tabs")."</option>";
 	$tmp.="<option value='2' ".($selected=="2"?" selected ":"").">".$langs->trans("Menu")."</option>";
 	$tmp.="</select>";
@@ -107,6 +109,8 @@ function ShowMyFieldType($selected)
 	$tmp=$langs->trans("Field");
 	$tmp=($selected=="1"?$langs->trans("Tabs"):$tmp);
 	$tmp=($selected=="2"?$langs->trans("Menu"):$tmp);
+	$tmp=($selected=="3"?$langs->trans("List"):$tmp);
+
 	return $tmp;
 }
 
