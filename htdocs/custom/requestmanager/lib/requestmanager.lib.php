@@ -872,7 +872,7 @@ SCRIPT;
             print '</td>';
         }
         // Action column
-        print '<td class="liste_titre" align="middle">';
+        print '<td class="liste_titre" align="middle" colspan="2">';
         $searchpicto = $form->showFilterButtons();
         print $searchpicto;
         print '</td>';
@@ -931,7 +931,7 @@ SCRIPT;
         if (!empty($arrayfields['ac.datec']['checked'])) print_liste_field_titre($arrayfields['ac.datec']['label'], $_SERVER["PHP_SELF"], "ac.datec", "", $param, 'align="center" class="nowrap"', $sortfield, $sortorder);
         if (!empty($arrayfields['ac.tms']['checked'])) print_liste_field_titre($arrayfields['ac.tms']['label'], $_SERVER["PHP_SELF"], "ac.tms", "", $param, 'align="center" class="nowrap"', $sortfield, $sortorder);
         if (!empty($arrayfields['ac.percent']['checked'])) print_liste_field_titre($arrayfields['ac.percent']['label'], $_SERVER["PHP_SELF"], "ac.percent", "", $param, 'align="right"', $sortfield, $sortorder);
-        print_liste_field_titre($selectedfields, $_SERVER["PHP_SELF"], "", '', '', 'align="center"', $sortfield, $sortorder, 'maxwidthsearch ');
+        print_liste_field_titre($selectedfields, $_SERVER["PHP_SELF"], "", '', '', 'align="center" colspan="2"', $sortfield, $sortorder, 'maxwidthsearch ');
         print '</tr>' . "\n";
 
         if ($list_mode != 0) {
@@ -987,6 +987,9 @@ SCRIPT;
 
         $last_day = "";
         $today_day = dol_print_date(dol_now(), 'daytext');
+
+        $action_card_url = dol_buildpath('/comm/action/card.php', 1);
+        $backtopage = dol_buildpath('/requestmanager/card.php', 1) . '?id=' . $requestmanager->id;
 
         $i = 0;
         while ($i < min($num, $limit)) {
@@ -1354,8 +1357,26 @@ SCRIPT;
                     print '</td>';
                 }
                 // Action column
-                print '<td class="nowrap" align="center"' . $tdcolor . '>';
-                print '</td>';
+                // Edit event
+                if ($user->rights->agenda->allactions->create ||
+                    (($userauthor_static->id == $user->id || $userowner_static->id == $user->id) && $user->rights->agenda->myactions->create)
+                ) {
+                    print '<td class="nowrap" align="center"' . $tdcolor . '>';
+                    print '<a href="'.$action_card_url.'?id='.$actioncomm_static->id.'&action=edit&backtopage='.urlencode($backtopage).'">';
+                    print img_edit();
+                    print '</a></td>';
+                }
+                else print '<td>&nbsp;</td>';
+                // Delete event
+                if ($user->rights->agenda->allactions->delete ||
+                    (($userauthor_static->id == $user->id || $userowner_static->id == $user->id) && $user->rights->agenda->myactions->delete)
+                ) {
+                    print '<td class="nowrap" align="center"' . $tdcolor . '>';
+                    print '<a href="'.$action_card_url.'?id='.$actioncomm_static->id.'&action=delete&backtopage='.urlencode($backtopage).'">';
+                    print img_delete();
+                    print '</a></td>';
+                }
+                else print '<td>&nbsp;</td>';
 
                 print "</tr>\n";
             } else {
@@ -1570,6 +1591,21 @@ SCRIPT;
                     }
                 }
 
+                // Action icons
+                $action_icons = array();
+                // Edit event
+                if ($user->rights->agenda->allactions->create ||
+                    (($userauthor_static->id == $user->id || $userowner_static->id == $user->id) && $user->rights->agenda->myactions->create)
+                ) {
+                    $action_icons[] = '<a href="' . $action_card_url . '?id=' . $actioncomm_static->id . '&action=edit&backtopage=' . urlencode($backtopage) . '">' . img_edit() . '</a>';
+                }
+                // Delete event
+                if ($user->rights->agenda->allactions->delete ||
+                    (($userauthor_static->id == $user->id || $userowner_static->id == $user->id) && $user->rights->agenda->myactions->delete)
+                ) {
+                    $action_icons[] = '<a href="' . $action_card_url . '?id=' . $actioncomm_static->id . '&action=delete&backtopage=' . urlencode($backtopage) . '">' . img_delete() . '</a>';
+                }
+
                 print '<div class="row"></div>' . "\n";
                 print '<div class="event ' . $direction . ' col-md-6 col-sm-6 col-xs-8 ">' . (!empty($icon) ? '<span class="thumb fa ' . $icon . '"></span>' : '<span class="thumb">' . $icon_img . '</span>') . "\n";
                 print '<div class=" event-body">' . "\n";
@@ -1600,6 +1636,7 @@ SCRIPT;
                 }
                 $to_print[] = $notification;
                 print implode(' ', $to_print);
+                print '<span class="right">'.implode(' ', $action_icons).'</span>';
                 print '</h5>' . "\n";
                 print '<span class="text-muted text-left" style="display:block; margin: 0"><small>' . "\n";
                 if (!empty($arrayfields['ac.fk_user_author']['checked']) && (!$conf->eventconfidentiality->enabled || $arrayfields['ac.fk_user_author']['ec_mode'] >= $obj->ec_mode)) {

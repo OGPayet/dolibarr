@@ -84,3 +84,8 @@ div.mainmenu.requestmanager {
   font-size: 24px !important;
   font-weight: bolder !important;
 }
+
+div.event-content h5 span.right {
+  text-align: right;
+  float: right;
+}

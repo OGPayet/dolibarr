@@ -2363,68 +2363,69 @@ class RequestManager extends CommonObject
             return 1;
         }*/
 
-        // Update request
-        $sql = 'UPDATE ' . MAIN_DB_PREFIX . $this->table_element . ' SET';
-        $sql .= " fk_status = " . $this->new_statut;
-        $sql .= ' WHERE rowid = ' . $this->id;
-
         $this->db->begin();
 
-        $resql = $this->db->query($sql);
-        if (!$resql) {
-            $error++;
-            $this->errors[] = 'Error ' . $this->db->lasterror();
-            dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $this->db->lasterror(), LOG_ERR);
+        // Auto update values
+        $now = dol_now();
+        $assigned_users = !empty($status_infos->fields['assigned_user']) ? (is_string($status_infos->fields['assigned_user']) ? explode(',', $status_infos->fields['assigned_user']) : $status_infos->fields['assigned_user']) : $this->assigned_user_ids;
+        $assigned_usergroups = !empty($status_infos->fields['assigned_usergroup']) ? (is_string($status_infos->fields['assigned_usergroup']) ? explode(',', $status_infos->fields['assigned_usergroup']) : $status_infos->fields['assigned_usergroup']) : $this->assigned_usergroup_ids;
+        if (!isset($status_infos->fields['assigned_user_replaced']) || !$status_infos->fields['assigned_user_replaced']) {
+            $assigned_users = array_merge($assigned_users, $this->assigned_user_ids);
+        }
+        if (!isset($status_infos->fields['assigned_usergroup_replaced']) || !$status_infos->fields['assigned_usergroup_replaced']) {
+            $assigned_usergroups = array_merge($assigned_usergroups, $this->assigned_usergroup_ids);
+        }
+        $date_operation = null;
+        if (isset($status_infos->fields['operation'])) {
+            if ($status_infos->fields['operation'] > 0) {
+                $date_operation = $now + ($status_infos->fields['operation'] * 60);
+            } elseif ($status_infos->fields['operation'] == -1 || $status_infos->fields['type'] == self::STATUS_TYPE_INITIAL) {
+                $date_operation = $this->date_operation;
+            }
+        }
+        $date_deadline = null;
+        if (isset($status_infos->fields['deadline'])) {
+            if ($status_infos->fields['deadline'] > 0) {
+                $date_deadline = (isset($date_operation) ? $date_operation : $now) + ($status_infos->fields['deadline'] * 60);
+            } elseif ($status_infos->fields['deadline'] == -1 || $status_infos->fields['type'] == self::STATUS_TYPE_INITIAL) {
+                $date_deadline = $this->date_deadline;
+            }
+        }
+        if (count(array_diff($assigned_users, $this->assigned_user_ids)) || count(array_diff($assigned_usergroups, $this->assigned_usergroup_ids)) || $date_operation != $this->date_operation || $date_deadline != $this->date_deadline) {
+            $this->fetch($this->id);
+            $this->oldcopy = clone $this;
+            $this->assigned_user_ids = $assigned_users;
+            $this->assigned_usergroup_ids = $assigned_usergroups;
+            $this->date_operation = $date_operation;
+            $this->date_deadline = $date_deadline;
+            $result = $this->update($user);
+            if ($result < 0) {
+                $error++;
+            }
         }
 
-        if (!$error) {
-            $now = dol_now();
-            $assigned_users = !empty($status_infos->fields['assigned_user']) ? (is_string($status_infos->fields['assigned_user']) ? explode(',', $status_infos->fields['assigned_user']) : $status_infos->fields['assigned_user']) : $this->assigned_user_ids;
-            $assigned_usergroups = !empty($status_infos->fields['assigned_usergroup']) ? (is_string($status_infos->fields['assigned_usergroup']) ? explode(',', $status_infos->fields['assigned_usergroup']) : $status_infos->fields['assigned_usergroup']) : $this->assigned_usergroup_ids;
-            if (!isset($status_infos->fields['assigned_user_replaced']) || !$status_infos->fields['assigned_user_replaced']) {
-                $assigned_users = array_merge($assigned_users, $this->assigned_user_ids);
-            }
-            if (!isset($status_infos->fields['assigned_usergroup_replaced']) || !$status_infos->fields['assigned_usergroup_replaced']) {
-                $assigned_usergroups = array_merge($assigned_usergroups, $this->assigned_usergroup_ids);
-            }
-            $date_operation = null;
-            if (isset($status_infos->fields['operation'])) {
-                if ($status_infos->fields['operation'] > 0) {
-                    $date_operation = $now + ($status_infos->fields['operation'] * 60);
-                } elseif ($status_infos->fields['operation'] == -1 || $status_infos->fields['type'] == self::STATUS_TYPE_INITIAL) {
-                    $date_operation = $this->date_operation;
-                }
-            }
-            $date_deadline = null;
-            if (isset($status_infos->fields['deadline'])) {
-                if ($status_infos->fields['deadline'] > 0) {
-                    $date_deadline = (isset($date_operation) ? $date_operation : $now) + ($status_infos->fields['deadline'] * 60);
-                } elseif ($status_infos->fields['deadline'] == -1 || $status_infos->fields['type'] == self::STATUS_TYPE_INITIAL) {
-                    $date_deadline = $this->date_deadline;
-                }
-            }
-
-            if (count(array_diff($assigned_users, $this->assigned_user_ids)) || count(array_diff($assigned_usergroups, $this->assigned_usergroup_ids)) || $date_operation != $this->date_operation || $date_deadline != $this->date_deadline) {
-                $this->fetch($this->id);
-                $this->oldcopy = clone $this;
-                $this->assigned_user_ids = $assigned_users;
-                $this->assigned_usergroup_ids = $assigned_usergroups;
-                $this->date_operation = $date_operation;
-                $this->date_deadline = $date_deadline;
-                $result = $this->update($user);
-                if ($result < 0) {
+        // Create sub request
+        if (!$error && !empty($status_infos->fields['new_request_type']) && $status_infos->fields['new_request_type_auto']) {
+            foreach (explode(',', $status_infos->fields['new_request_type']) as $new_request_type_id) {
+                $id = $this->createSubRequest($new_request_type_id, $user);
+                if ($id < 0) {
                     $error++;
+                    break;
                 }
             }
+        }
 
-            if (!$error && !empty($status_infos->fields['new_request_type']) && $status_infos->fields['new_request_type_auto']) {
-                foreach (explode(',', $status_infos->fields['new_request_type']) as $new_request_type_id) {
-                    $id = $this->createSubRequest($new_request_type_id, $user);
-                    if ($id < 0) {
-                        $error++;
-                        break;
-                    }
-                }
+        // Update request status
+        if (!$error) {
+            $sql = 'UPDATE ' . MAIN_DB_PREFIX . $this->table_element . ' SET';
+            $sql .= " fk_status = " . $this->new_statut;
+            $sql .= ' WHERE rowid = ' . $this->id;
+
+            $resql = $this->db->query($sql);
+            if (!$resql) {
+                $error++;
+                $this->errors[] = 'Error ' . $this->db->lasterror();
+                dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $this->db->lasterror(), LOG_ERR);
             }
         }
 
