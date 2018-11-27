@@ -33,6 +33,14 @@ class RequestManagerApi extends DolibarrApi {
      */
     static protected $db;
     /**
+     * @var string Error
+     */
+    public $error = '';
+    /**
+     * @var array Errors
+     */
+    public $errors = array();
+    /**
      * @var array       $FIELDS     Mandatory fields, checked when create and update object
      */
     static $FIELDS = array();
@@ -582,18 +590,21 @@ class RequestManagerApi extends DolibarrApi {
      *
      * @url	POST {id}/message
      *
-     * @param   int     $id                         ID of the request
-     * @param   array   $request_message_data       Request message data
+     * @param   int         $id                         ID of the request
+     * @param   array       $request_message_data       Request message data
      *
-     * @return  int                                 ID of the request message created
+     * @return  array                                   ID of the request message created and errors of the notification by email
      *
-     * @throws  400     RestException               Field missing
-     * @throws  403     RestException               Access unauthorized
-     * @throws  401     RestException               Insufficient rights
-     * @throws  500     RestException               Error while creating the request message
+     * @throws  400         RestException               Field missing
+     * @throws  403         RestException               Access unauthorized
+     * @throws  401         RestException               Insufficient rights
+     * @throws  500         RestException               Error while adding attached files
+     * @throws  500         RestException               Error while creating the request message
      */
     function postMessage($id, $request_message_data = null)
     {
+        global $user;
+
         if (!DolibarrApiAccess::$user->rights->requestmanager->creer) {
             throw new RestException(401, "Insufficient rights");
         }
@@ -604,17 +615,50 @@ class RequestManagerApi extends DolibarrApi {
         // Check mandatory fields
         $this->_validateMessage($request_message_data);
 
+        dol_include_once('/requestmanager/class/html.formrequestmanagermessage.class.php');
+        $formrequestmanagermessage = new FormRequestManagerMessage(self::$db, $requestmanager);
+
+        // Add attached files
+        if (isset($request_message_data['attached_files'])) {
+            foreach ($request_message_data['attached_files'] as $file) {
+                if ($this->_addAttachedFile($requestmanager, $formrequestmanagermessage, $file) < 0) {
+                    $formrequestmanagermessage->remove_all_attached_files();
+                    throw new RestException(500, "Error while adding attached files", [ 'details' => $this->_getErrors($this) ]);
+                }
+            }
+
+            $request_message_data['attached_files'] = $formrequestmanagermessage->get_attached_files();
+        }
+
         $requestmanager_message = new RequestManagerMessage(self::$db);
         foreach ($request_message_data as $field => $value) {
             $requestmanager_message->$field = $value;
         }
         $requestmanager_message->requestmanager = $requestmanager;
 
+        $save_user = $user;
+        $user = DolibarrApiAccess::$user;
         if ($requestmanager_message->create(DolibarrApiAccess::$user) < 0) {
+            $user = $save_user;
+            $formrequestmanagermessage->remove_all_attached_files();
             throw new RestException(500, "Error while creating the request message", [ 'details' => $this->_getErrors($requestmanager_message) ]);
         }
+        $user = $save_user;
 
-        return $requestmanager_message->id;
+        $formrequestmanagermessage->remove_all_attached_files();
+        $errors = array();
+        if (!empty($requestmanager_message->context['send_notify_errors'])) {
+            $errors = $requestmanager_message->context['send_notify_errors'];
+
+            function convert($item)
+            {
+                return dol_html_entity_decode($item, ENT_QUOTES);
+            }
+
+            $errors = array_map('convert', $errors);
+        }
+
+        return array('id' => $requestmanager_message->id, "notify_errors" => $errors);
     }
 
     /**
@@ -1499,6 +1543,7 @@ class RequestManagerApi extends DolibarrApi {
      * Get all errors
      *
      * @param  object   $object     Object
+     *
      * @return array                Array of errors
      */
 	function _getErrors(&$object)
@@ -1514,5 +1559,109 @@ class RequestManagerApi extends DolibarrApi {
         $errors = array_map('convert', $errors);
 
         return $errors;
+    }
+
+    /**
+     * Add attached file for message
+     *
+     * @param  RequestManager               $requestmanager                 Handler RequestManager
+     * @param  FormRequestManagerMessage    $formrequestmanagermessage      Handler FormRequestManagerMessage
+     * @param  array                        $file_info                      Information of the file
+     *
+     * @return int                                                          >0 if OK, <0 if not OK
+     *
+     * @throws
+     */
+	function _addAttachedFile(&$requestmanager, &$formrequestmanagermessage, $file_info)
+    {
+        global $conf, $langs;
+
+        $filename = $file_info['name'];
+        $filecontent = $file_info['content'];
+        $fileencoding = $file_info['encoding'];
+
+        $newfilecontent = '';
+        if (empty($fileencoding)) $newfilecontent = $filecontent;
+        if ($fileencoding == 'base64') $newfilecontent = base64_decode($filecontent);
+        $original_file = dol_sanitizeFileName($filename);
+
+        // Set tmp user directory
+        $vardir = $conf->user->dir_output . "/" . DolibarrApiAccess::$user->id;
+        $upload_dir_tmp = $vardir . '/temp/rm-' . $requestmanager->id . '/'; // TODO Add $keytoavoidconflict in upload_dir path
+        $upload_file_tmp = $upload_dir_tmp . '/' . $original_file;
+
+        // Security:
+        // Disallow file with some extensions. We rename them.
+        // Because if we put the documents directory into a directory inside web root (very bad), this allows to execute on demand arbitrary code.
+        if (preg_match('/\.htm|\.html|\.php|\.pl|\.cgi$/i', $upload_file_tmp) && empty($conf->global->MAIN_DOCUMENT_IS_OUTSIDE_WEBROOT_SO_NOEXE_NOT_REQUIRED)) {
+            $upload_file_tmp .= '.noexe';
+            $original_file .= '.noexe';
+        }
+
+        // Security:
+        // We refuse cache files/dirs, upload using .. and pipes into filenames.
+        if (preg_match('/^\./', $original_file) || preg_match('/\.\./', $original_file) || preg_match('/[<>|]/', $original_file)) {
+            dol_syslog("Refused to deliver file " . $filename, LOG_WARNING);
+            $this->errors[] = 'Refused to deliver file "' . $filename . '".';
+            return -1;
+        }
+
+        if (dol_mkdir($upload_dir_tmp) < 0) {
+            $this->errors[] = "Error when create temporary directory.";
+            return -2;
+        }
+
+        include DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
+        if (!dol_is_dir($upload_dir_tmp)) {
+            $this->errors[] = 'Directory not exists : "' . $upload_dir_tmp . '".';
+            return -3;
+        }
+
+        if (dol_is_file($upload_file_tmp)) {
+            $this->errors[] = "File with name '" . $original_file . "' already exists.";
+            return -4;
+        }
+
+        $fhandle = @fopen($upload_file_tmp, 'w');
+        if ($fhandle) {
+            $nbofbyteswrote = fwrite($fhandle, $newfilecontent);
+            fclose($fhandle);
+            @chmod($upload_file_tmp, octdec($conf->global->MAIN_UMASK));
+        } else {
+            $this->errors[] = 'Failed to open file "' . $upload_file_tmp . '" for write.';
+            return -5;
+        }
+
+        // If we need to make a virus scan
+        if (file_exists($upload_file_tmp)) {
+            $checkvirusarray = dolCheckVirus($upload_file_tmp);
+            if (count($checkvirusarray)) {
+                $langs->load("errors");
+                dol_syslog(__METHOD__ . ' File "' . $upload_file_tmp . '" KO with antivirus: errors=' . join(',', $checkvirusarray), LOG_WARNING);
+                $this->errors[] = $langs->trans('ErrorFileIsInfectedWithAVirus') . ' : ' . join(',', $checkvirusarray);
+                return -6;
+            }
+        }
+
+        // Generate thumbs. useful ?
+//        if (image_format_supported($upload_file_tmp) == 1) {
+//            global $maxwidthsmall, $maxheightsmall, $maxwidthmini, $maxheightmini;
+//
+//            include_once DOL_DOCUMENT_ROOT . '/core/lib/images.lib.php';
+//
+//            // Create thumbs
+//            // We can't use $object->addThumbs here because there is no $object known
+//
+//            // Used on logon for example
+//            $imgThumbSmall = vignette($upload_file_tmp, $maxwidthsmall, $maxheightsmall, '_small', 50, "thumbs");
+//            // Create mini thumbs for image (Ratio is near 16/9)
+//            // Used on menu or for setup page for example
+//            $imgThumbMini = vignette($upload_file_tmp, $maxwidthmini, $maxheightmini, '_mini', 50, "thumbs");
+//        }
+
+        // Update session
+        $formrequestmanagermessage->add_attached_files($upload_file_tmp, $original_file, dol_mimetype($original_file));
+
+        return 1;
     }
 }

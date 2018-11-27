@@ -1,10 +1,9 @@
 diff a/htdocs/custom/requestmanager/ChangeLog.md b/htdocs/custom/requestmanager/ChangeLog.md	(rejected hunks)
-@@ -9,6 +9,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
- - Cacher l'attribut complémentaire IPBX.
- - Corrections textes.
+@@ -11,6 +11,7 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
  - Correction sur le filtre des types d'événements sur la liste des événements d'une demande.
-+- Correction des informations sur l'evenement de changement de statut
-+- Ajout des boutons de modification et suppression des evenements sur la liste des evenements d'une demande.
+ - Correction des informations sur l'evenement de changement de statut
+ - Ajout des boutons de modification et suppression des evenements sur la liste des evenements d'une demande.
++- Correction de l'ajout de message (+ ajout des fichiers joints) par l'API
  - Correction mineurs.
  
  ## [4.0.15] - 12-11-2018

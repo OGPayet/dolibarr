@@ -361,20 +361,15 @@ class RequestManagerNotify
             // Send mail
             $mailfile = new CMailFile($subject, $sendto, $from, $body, $filename_list, $mimetype_list, $mimefilename_list, $sendtocc, $sendtobcc, $deliveryreceipt, $msgishtml, $errors_to, $css, '', $moreinheader, $sendcontext);
             if ($mailfile->error) {
+                $this->errors[] = $mailfile->error;
                 setEventMessage($mailfile->error, 'errors');
             } else {
                 $result = $mailfile->sendfile();
                 if ($result) {
-                    $error = 0;
+                    $mesg = $langs->trans('MailSuccessfulySent', $mailfile->getValidAddress($from, 2), $mailfile->getValidAddress($sendto, 2));
+                    setEventMessages($mesg, null, 'mesgs');
 
-                    if ($error) {
-                        dol_print_error($db);
-                    } else {
-                        $mesg = $langs->trans('MailSuccessfulySent', $mailfile->getValidAddress($from, 2), $mailfile->getValidAddress($sendto, 2));
-                        setEventMessages($mesg, null, 'mesgs');
-
-                        return 1;
-                    }
+                    return 1;
                 } else {
                     $langs->load("other");
                     $mesg = '<div class="error">';
@@ -386,12 +381,14 @@ class RequestManagerNotify
                     }
                     $mesg .= '</div>';
 
+                    $this->errors[] = $mesg;
                     setEventMessages($mesg, null, 'warnings');
                 }
             }
         } else {
             $langs->load("errors");
             setEventMessages($langs->trans('ErrorFieldRequired', $langs->transnoentitiesnoconv("MailTo")), null, 'warnings');
+            $this->errors[] = $langs->trans('ErrorFieldRequired', $langs->transnoentitiesnoconv("MailTo"));
             dol_syslog('Try to send notify email with no recipient defined', LOG_WARNING);
         }
 
@@ -408,9 +405,10 @@ class RequestManagerNotify
 	 * @param   array	            $attachedfiles      List of files to attach array( 'paths' => full path of filename on file system, 'mimes' => List of MIME type of attached files, 'names' => List of attached file name in message )
 	 * @param   array|string        $sendtocc           Email cc
 	 * @param   array|string        $sendtobcc          Email bcc (Note: This is autocompleted with MAIN_MAIL_AUTOCOPY_TO if defined)
+     * @param   string              $other              Other information add to the description of the event
      * @return  int                                     <0 if KO, >0 if OK
      */
-    private function _createSendNotificationEvent(&$requestmanager, $subject, $sendto, $sendtoid, $from, $body, $attachedfiles=array(), $sendtocc="", $sendtobcc="")
+    private function _createSendNotificationEvent(&$requestmanager, $subject, $sendto, $sendtoid, $from, $body, $attachedfiles=array(), $sendtocc="", $sendtobcc="",$other="")
     {
         global $conf, $langs, $user;
 
@@ -454,6 +452,9 @@ class RequestManagerNotify
         if (is_array($attachedfiles) && array_key_exists('names', $attachedfiles) && count($attachedfiles['names']) > 0) {
             $actionmsg = dol_concatdesc($actionmsg, '<br>' . $langs->transnoentities("AttachedFiles") . ': ' . implode(';', $attachedfiles['names']));
         }
+
+        // Concat other information
+        $actionmsg = dol_concatdesc($actionmsg, $other);
 
         // Insertion action
         require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';

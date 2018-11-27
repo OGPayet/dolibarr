@@ -78,6 +78,9 @@ class InterfaceRMNotification extends DolibarrTriggers
 
             $object->fetch_requestmanager();
             $requestmanagernotify->sendNotify(RequestManagerNotify::TYPE_MESSAGE_ADDED, $object->requestmanager, $object);
+            if (count($requestmanagernotify->errors)) {
+                $object->context['send_notify_errors'] = $requestmanagernotify->errors;
+            }
 
             // Notify by website to assigned
             if (!empty($conf->global->REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_WEBSITE)) {
@@ -95,6 +98,9 @@ class InterfaceRMNotification extends DolibarrTriggers
                 $requestmanagernotify = new RequestManagerNotify($this->db);
 
                 $requestmanagernotify->sendNotify(RequestManagerNotify::TYPE_ASSIGNED_MODIFIED, $object);
+                if (count($requestmanagernotify->errors)) {
+                    $object->context['send_notify_errors'] = $requestmanagernotify->errors;
+                }
 
                 // Notify by website to assigned
                 if (!empty($conf->global->REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_WEBSITE)) {
@@ -111,6 +117,9 @@ class InterfaceRMNotification extends DolibarrTriggers
                 $requestmanagernotify = new RequestManagerNotify($this->db);
 
                 $requestmanagernotify->sendNotify(RequestManagerNotify::TYPE_STATUS_MODIFIED, $object);
+                if (count($requestmanagernotify->errors)) {
+                    $object->context['send_notify_errors'] = $requestmanagernotify->errors;
+                }
 
                 // Notify by website to assigned
                 if (!empty($conf->global->REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_WEBSITE)) {

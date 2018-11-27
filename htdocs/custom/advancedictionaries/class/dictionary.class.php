@@ -270,7 +270,7 @@ class Dictionary extends CommonObject
         global $conf;
         $this->db = $db;
         $dictionaryLineClassName = get_class($this) . 'Line';
-        if (class_exists($dictionaryLineClassName)) {
+        if (class_exists($dictionaryLineClassName, false)) {
             $this->dictionaryLineClassName = $dictionaryLineClassName;
         }
         $this->name = strtolower(substr(get_class($this), 0, -10));
@@ -989,9 +989,11 @@ class Dictionary extends CommonObject
         $classname = $name . "Dictionary";
         $file = "/" . $module . "/core/dictionaries/".strtolower($name).".dictionary.php";
 
-        if (dol_include_once($file, $classname)) {
-            $dictionary = new $classname($db);
+        if (!class_exists($classname, false)) {
+            dol_include_once($file);
         }
+
+        $dictionary = new $classname($db);
 
         return $dictionary;
     }
@@ -2624,7 +2626,7 @@ class DictionaryLine extends CommonObjectLine
 
         if ($dictionary === null) {
             $dictionaryClassName = substr(get_class($this), 0, -4);
-            if (class_exists($dictionaryClassName)) {
+            if (class_exists($dictionaryClassName, false)) {
                 $this->dictionary = new $dictionaryClassName($this->db);
             } else {
                 $this->dictionary = new Dictionary($this->db);
@@ -3562,7 +3564,7 @@ class DictionaryLine extends CommonObjectLine
                         // 1 : classPath
                         $InfoFieldList = explode(":", (string)$field['options']);
                         dol_include_once($InfoFieldList[1]);
-                        if ($InfoFieldList[0] && class_exists($InfoFieldList[0])) {
+                        if ($InfoFieldList[0] && class_exists($InfoFieldList[0], false)) {
                             $object = new $InfoFieldList[0]($this->db);
                             $object->fetch($value);
                             $out = $object->getNomUrl(3);
@@ -4021,7 +4023,7 @@ class DictionaryLine extends CommonObjectLine
                         // 1 : classPath
                         $InfoFieldList = explode(":", (string)$field['options']);
                         dol_include_once($InfoFieldList[1]);
-                        if ($InfoFieldList[0] && class_exists($InfoFieldList[0])) {
+                        if ($InfoFieldList[0] && class_exists($InfoFieldList[0], false)) {
                             $valuetoshow = $value;
                             if (!empty($value)) {
                                 $object = new $InfoFieldList[0]($this->db);
