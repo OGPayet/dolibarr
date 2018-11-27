@@ -350,32 +350,37 @@ class ActionsRequestManager
 
             $requestManagerMessage->fetch_knowledge_base(1);
             print '<tr><td class="nowrap" class="titlefield">' . $langs->trans("RequestManagerMessageKnowledgeBase") . '</td>';
-            print ($action == "edit" ? '<td>' : '<td colspan="3">');
-            $toprint = array();
-            foreach($requestManagerMessage->knowledge_base_list as $knowledge_base) {
-                $toprint[] = '<li class="select2-search-choice-dolibarr noborderoncategories style="background: #aaa">' . $knowledge_base->fields['code'] . ' - ' . $knowledge_base->fields['title'] . '</li>';
+//            if ($action == 'edit') {
+//                print '<td>';
+//            } else {
+                print '<td colspan="3">';
+                $toprint = array();
+                foreach($requestManagerMessage->knowledge_base_list as $knowledge_base) {
+                    $toprint[] = '<li class="select2-search-choice-dolibarr noborderoncategories style="background: #aaa">' . $knowledge_base->fields['code'] . ' - ' . $knowledge_base->fields['title'] . '</li>';
+//                }
+                print '<div class="select2-container-multi-dolibarr" style="width: 90%;"><ul class="select2-choices-dolibarr">'.implode(' ', $toprint).'</ul></div>';
             }
-            print '<div class="select2-container-multi-dolibarr" style="width: 90%;"><ul class="select2-choices-dolibarr">'.implode(' ', $toprint).'</ul></div>';
+            print '</td>';
             print '</tr>';
 
             print '<tr><td class="nowrap" class="titlefield">' . $langs->trans("RequestManagerMessageNotify") . '</td>';
             print ($action == "edit" ? '<td>' : '<td colspan="3">');
-            print '<input type="checkbox" id="notify_assigned" name="notify_assigned" value="1"' . (!empty($requestManagerMessage->notify_assigned) ? ' checked="checked"' : '') . ' disabled="disabled" />';
+            print '<input type="checkbox" id="rm_notify_assigned" name="rm_notify_assigned" value="1"' . (!empty($requestManagerMessage->notify_assigned) ? ' checked="checked"' : '') . ' disabled="disabled" />';
             print '&nbsp;' . $langs->trans("RequestManagerAssigned");
             print ' &nbsp; ';
-            print '<input type="checkbox" id="notify_requesters" name="notify_requesters" value="1"' . (!empty($requestManagerMessage->notify_requester) ? ' checked="checked"' : '') . ' disabled="disabled" />';
+            print '<input type="checkbox" id="rm_notify_requesters" name="rm_notify_requesters" value="1"' . (!empty($requestManagerMessage->notify_requester) ? ' checked="checked"' : '') . ' disabled="disabled" />';
             print '&nbsp;' . $langs->trans("RequestManagerRequesterContacts");
             print ' &nbsp; ';
-            print '<input type="checkbox" id="notify_watchers" name="notify_watchers" value="1"' . (!empty($requestManagerMessage->notify_watcher) ? ' checked="checked"' : '') . ' disabled="disabled" />';
+            print '<input type="checkbox" id="rm_notify_watchers" name="rm_notify_watchers" value="1"' . (!empty($requestManagerMessage->notify_watcher) ? ' checked="checked"' : '') . ' disabled="disabled" />';
             print '&nbsp;' . $langs->trans("RequestManagerWatcherContacts");
             print "</td></tr>";
 
             // Other attributes
-            if ($action == "edit") {
-                print $requestManagerMessage->showOptionals($extrafields);
-            } else {
+//            if ($action == "edit") {
+//                print $requestManagerMessage->showOptionals($extrafields, 'edit', array('colspan'=>3), 'rm_message_');
+//            } else {
                 print $requestManagerMessage->showOptionals($extrafields, 'view', array('colspan'=>3));
-            }
+//            }
 
             return 1;
         } elseif (in_array('contractcard', $contexts)) {

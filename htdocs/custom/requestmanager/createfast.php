@@ -242,7 +242,7 @@ if (($action == 'createfast' || $action == 'force_principal_company' || $action 
     $selectedActionCommId = GETPOST('actioncomm_id', 'int') ? intval(GETPOST('actioncomm_id', 'int')) : -1;
     $selectedCategories = GETPOST('categories', 'array') ? GETPOST('categories', 'array') : (GETPOST('categories', 'alpha') ? explode(',', GETPOST('categories', 'alpha')) : array());
     $selectedContacts = GETPOST('contact_ids', 'array') ? GETPOST('contact_ids', 'array') : (GETPOST('contact_ids', 'alpha') ? explode(',', GETPOST('contact_ids', 'alpha')) : array());
-    $selectedDescription = GETPOST('description', 'alpha') ? GETPOST('description', 'alpha') : '';
+    $selectedDescription = GETPOST('description') ? GETPOST('description') : '';
     $selectedEquipementId = GETPOST('equipement_id', 'int') ? intval(GETPOST('equipement_id', 'int')) : -1;
     $selectedLabel = GETPOST('label', 'alpha') ? GETPOST('label', 'alpha') : '';
     $selectedSocIdOrigin = GETPOST('socid_origin', 'int') ? intval(GETPOST('socid_origin', 'int')) : -1;

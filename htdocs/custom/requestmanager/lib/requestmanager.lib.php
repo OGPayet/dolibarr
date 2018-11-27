@@ -417,26 +417,18 @@ function requestmanager_show_events(&$requestmanager)
     if (!empty($search_origin)) $sql .= " AND ac.elementtype IN ('" . implode("','", $search_origin) . "')";
     if ($search_thirdparty) $sql .= natural_search(array('s.nom', 's.name_alias'), $search_thirdparty);
     if (!empty($search_type)) {
+        $cac_sql = array();
         $search_type_tmp = $search_type;
         if (in_array('AC_NON_AUTO', $search_type_tmp) || in_array('AC_OTH', $search_type_tmp)) {
-            $sql .= " AND cac.type != 'systemauto'";
-            if (($key = array_search('AC_NON_AUTO', $search_type_tmp)) !== false) {
-                unset($search_type_tmp[$key]);
-            }
-            if (($key = array_search('AC_OTH', $search_type_tmp)) !== false) {
-                unset($search_type_tmp[$key]);
-            }
+            $cac_sql[] = "cac.type != 'systemauto'";
+            $search_type_tmp = array_diff($search_type_tmp, array('AC_NON_AUTO', 'AC_OTH'));
         }
         if (in_array('AC_ALL_AUTO', $search_type_tmp) || in_array('AC_OTH_AUTO', $search_type_tmp)) {
-            $sql .= " AND cac.type = 'systemauto'";
-            if (($key = array_search('AC_ALL_AUTO', $search_type_tmp)) !== false) {
-                unset($search_type_tmp[$key]);
-            }
-            if (($key = array_search('AC_OTH_AUTO', $search_type_tmp)) !== false) {
-                unset($search_type_tmp[$key]);
-            }
+            $cac_sql[] = "cac.type = 'systemauto'";
+            $search_type_tmp = array_diff($search_type_tmp, array('AC_ALL_AUTO', 'AC_OTH_AUTO'));
         }
-        $sql .= " AND cac.code IN ('" . implode("','", $search_type_tmp) . "')";
+        $cac_sql[] = "cac.code IN ('" . implode("','", $search_type_tmp) . "')";
+        $sql .= " AND (" . implode(" OR ", $cac_sql) . ")";
     }
     if ($search_title) $sql .= natural_search('ac.label', $search_title);
     if ($search_description) $sql .= natural_search('ac.note', $search_title);

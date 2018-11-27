@@ -1,23 +1,16 @@
 diff a/htdocs/custom/requestmanager/ChangeLog.md b/htdocs/custom/requestmanager/ChangeLog.md	(rejected hunks)
-@@ -3,6 +3,11 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
+@@ -3,6 +3,14 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
  
  ## [Non Distribué]
  
-+## [4.0.15] - 12-11-2018
-+- Correction API Call.
-+- Correction prise en compte des options de notification des messages.
-+- Ne notifie pas aussi l'utilisateur connecté sur une demande ou il est assigné.
++## [4.0.16] - 27-11-2018
++- Correction de l'ajout d'un message comportant une URL (Erreur message vide).
++- Idem pour la création d'une demande avec la description.
++- Cacher l'attribut complémentaire IPBX.
++- Corrections textes.
++- Correction sur le filtre des types d'événements sur la liste des événements d'une demande.
++- Correction mineurs.
 +
- ## [4.0.14] - 09-11-2018
- - Ajout d'un droit sur les statuts (utilisateur et groupe autorisés).
- - Ajout d'un trigger pour passer à ce statut.
-@@ -68,7 +73,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
- ## [4.0.0] - 16-07-2018
- - Version initial.
- 
--[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/compare/v4.0.14...HEAD
-+[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/compare/v4.0.15...HEAD
-+[4.0.15]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.15
- [4.0.14]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.14
- [4.0.13]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.13
- [4.0.12]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.12
+ ## [4.0.15] - 12-11-2018
+ - Correction API Call.
+ - Correction prise en compte des options de notification des messages.

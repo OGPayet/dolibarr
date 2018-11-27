@@ -318,10 +318,10 @@ RequestManagerDateResolved              = Date Résolu
 ############################################################
 RequestManagerListsFollowTitle                = Suivi des demandes
 RequestManagerListsFollowMyRequest            = Mes demandes
-RequestManagerListsFollowMyGroupRequest       = Les demandes de mon groue
+RequestManagerListsFollowMyGroupRequest       = Les demandes de mon groupe
 RequestManagerListsFollowLinkToMyEvent        = Mes demandes à suivre
 RequestManagerListsFollowMyFutureRequest      = Mes demandes à venir
-RequestManagerListsFollowMyFutureGroupRequest = Les demandes de goupe à venir
+RequestManagerListsFollowMyFutureGroupRequest = Les demandes de mon groupe à venir
 
 ############################################################
 ### Chronometer
@@ -379,7 +379,7 @@ RequestManagerType                                                          = Ty
 RequestManagerTypeInitial                                                   = Initial
 RequestManagerTypeInProgress                                                = En cours
 RequestManagerTypeResolved                                                  = Résolu
-RequestManagerTypeClosed                                                    = Clôt
+RequestManagerTypeClosed                                                    = Clos
 RequestManagerStatusDictionaryPicto                                         = Icône
 RequestManagerStatusDictionaryPictoHelp                                     = Nom de l'icone au format dolibarr ('image.png' si mise dans le répertoire '%s', 'image.png@nom_du_module' si mise dans le repertoire /img/ d'un module)
 RequestManagerStatusDictionaryAuthorizedUser                                = Utilisateur authorisé pour ce statut
@@ -402,7 +402,7 @@ RequestManagerStatusDictionaryNextStatus                                    = St
 RequestManagerStatusDictionaryStatusNotIntoRequestType                      = Ce statut suivant n'est pas dans le(s) type(s) de demande: %s
 RequestManagerStatusDictionaryNextStatusCanNotBeItself                      = Le statut suivant ne peut être lui-même
 RequestManagerStatusDictionaryCanOnlyHaveInProgressAndResolvedForNextStatus = Le statut suivant ne peut pas être que de type 'En cours' ou 'Résolu'
-RequestManagerStatusDictionaryCanOnlyHaveClosedForNextStatus                = Le statut suivant ne peut pas être que de type 'Clôt'
+RequestManagerStatusDictionaryCanOnlyHaveClosedForNextStatus                = Le statut suivant ne peut pas être que de type 'Clos'
 RequestManagerStatusDictionaryOperation                                     = Durée d'opération
 RequestManagerStatusDictionaryOperationHelp                                 = En minutes, Date d'opération calculé à partir de la date où la demande est passé à ce statut (valeur rajoutée à celle-ci)<br>-1 si la date d'opération ne change pas, 0 ou non renseigné si il n'y en a pas
 RequestManagerSourceDictionaryEventType                                     = Type d'évenement

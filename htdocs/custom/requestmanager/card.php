@@ -1177,7 +1177,7 @@ if (empty($reshook)) {
         $requestmanagermessage->attached_files = $formrequestmanagermessage->get_attached_files();
         $requestmanagermessage->knowledge_base_ids = GETPOST('knowledgebaseselected', 'array');
         $requestmanagermessage->label = GETPOST('subject', 'alpha');
-        $requestmanagermessage->note = GETPOST('message', 'alpha');
+        $requestmanagermessage->note = GETPOST('message');
         $requestmanagermessage->requestmanager = $object;
 
         // Get extra fields of the message
