@@ -391,7 +391,7 @@ RequestManagerStatusDictionaryAssignedUserGroupReplaced                     = Re
 RequestManagerStatusDictionaryAssignedUserGroupReplacedHelp                 = Remplace les groupes d'utilsateurs assignés lors du passage à ce statut par ceux renseignés (sinon ils seront ajoutés)
 RequestManagerStatusDictionaryAssignedUserGroup                             = Groupe d'utilisateurs assigné
 RequestManagerStatusDictionaryDeadLine                                      = Durée d'échéance
-RequestManagerStatusDictionaryDeadLineHelp                                  = En minutes, Date d'échéance calculé à partir de la date où la demande est passé à ce statut<br>-1 si la date d'échéance ne change pas, 0 ou non renseigné si il n'y en a pas
+RequestManagerStatusDictionaryDeadLineHelp                                  = En minutes, Date d'échéance calculé à partir de la date d'opération (valeur rajoutée à celle-ci)<br>-1 si la date d'échéance ne change pas, 0 ou non renseigné si il n'y en a pas
 RequestManagerStatusDictionaryCurrentTrigger                                = Trigger => ce statut
 RequestManagerStatusDictionaryCurrentTriggerHelp                            = Passage automatique à ce statut lors du déclanchement du trigger<br>Liste non exhaustive à l'adresse: https://wiki.dolibarr.org/index.php/Triggers
 RequestManagerStatusDictionaryNextTrigger                                   = Trigger => statut suivant
@@ -404,7 +404,7 @@ RequestManagerStatusDictionaryNextStatusCanNotBeItself                      = Le
 RequestManagerStatusDictionaryCanOnlyHaveInProgressAndResolvedForNextStatus = Le statut suivant ne peut pas être que de type 'En cours' ou 'Résolu'
 RequestManagerStatusDictionaryCanOnlyHaveClosedForNextStatus                = Le statut suivant ne peut pas être que de type 'Clôt'
 RequestManagerStatusDictionaryOperation                                     = Durée d'opération
-RequestManagerStatusDictionaryOperationHelp                                 = En minutes, Date d'opération calculé à partir de la date où la demande est passé à ce statut<br>-1 si la date d'opération ne change pas, 0 ou non renseigné si il n'y en a pas
+RequestManagerStatusDictionaryOperationHelp                                 = En minutes, Date d'opération calculé à partir de la date où la demande est passé à ce statut (valeur rajoutée à celle-ci)<br>-1 si la date d'opération ne change pas, 0 ou non renseigné si il n'y en a pas
 RequestManagerSourceDictionaryEventType                                     = Type d'évenement
 RequestManagerStatusDictionaryNewRequestType                                = Nouvelles demandes
 RequestManagerStatusDictionaryNewRequestTypeHelp                            = Nouvelles demandes disponiblent lors du passage à ce statut.<br>La demande passe au statut suivant une fois toutes les demandes filles cloturées.

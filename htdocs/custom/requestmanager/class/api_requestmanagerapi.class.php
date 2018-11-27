@@ -1501,10 +1501,18 @@ class RequestManagerApi extends DolibarrApi {
      * @param  object   $object     Object
      * @return array                Array of errors
      */
-	function _getErrors(&$object) {
-	    $errors = is_array($object->errors) ? $object->errors : array();
-	    $errors = array_merge($errors, (!empty($object->error) ? array($object->error) : array()));
+	function _getErrors(&$object)
+    {
+        $errors = is_array($object->errors) ? $object->errors : array();
+        $errors = array_merge($errors, (!empty($object->error) ? array($object->error) : array()));
 
-	    return $errors;
+        function convert($item)
+        {
+            return dol_htmlentitiesbr_decode($item);
+        }
+
+        $errors = array_map('convert', $errors);
+
+        return $errors;
     }
 }
