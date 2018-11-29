@@ -1617,7 +1617,7 @@ class RequestManagerApi extends DolibarrApi {
             return -2;
         }
 
-        include DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
+        require_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
         if (!dol_is_dir($upload_dir_tmp)) {
             $this->errors[] = 'Directory not exists : "' . $upload_dir_tmp . '".';
             return -3;
