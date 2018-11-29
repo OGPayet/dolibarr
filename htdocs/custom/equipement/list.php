@@ -53,7 +53,7 @@ $page = GETPOST('page', 'int');
 if ($page == -1)
 	$page = 0;
 
-$limit = $conf->liste_limit;
+$limit = GETPOST('limit','int')?GETPOST('limit','int'):$conf->liste_limit;
 $offset = $limit * $page;
 $pageprev = $page - 1;
 $pagenext = $page + 1;
@@ -90,6 +90,25 @@ $equipementstatic=new Equipement($db);
 /*
  *	Action
  */
+
+// Selection of new fields
+include DOL_DOCUMENT_ROOT.'/core/actions_changeselectedfields.inc.php';
+
+// Purge search criteria
+if (GETPOST('button_removefilter_x','alpha') || GETPOST('button_removefilter.x','alpha') || GETPOST('button_removefilter','alpha')) // All tests are required to be compatible with all browsers
+{
+    $sall='';
+    $search_ref='';
+    $search_refProduct='';
+    $search_labelProduct='';
+    $search_numversion='';
+    $search_company_fourn='';
+    $search_reffact_fourn='';
+    $search_entrepot=-1;
+    $search_company_client='';
+    $search_etatequipement=-1;
+    $viewstatut=-1;
+}
 
 if (GETPOST("updatecheck") == $langs->trans("Update")) {
 
@@ -267,25 +286,27 @@ if ($sall) {
 if ($search_entrepot >=0)		$sql .= " AND ent.rowid =".$search_entrepot;
 if ($search_etatequipement>=0)	$sql .= " AND e.fk_etatequipement =".$search_etatequipement;
 if ($viewstatut >=0)			$sql .= " AND e.fk_statut =".$viewstatut;
-$sql.= " ORDER BY ".$sortfield." ".$sortorder;
+$sql.= $db->order($sortfield,$sortorder);;
+$nbtotalofrecords = '';
+if (empty($conf->global->MAIN_DISABLE_FULL_SCANLIST))
+{
+    $result = $db->query($sql);
+    $nbtotalofrecords = $db->num_rows($result);
+}
 $sql.= $db->plimit($limit+1, $offset);
 
 //print $sql;
-$result=$db->query($sql);
+$resql=$db->query($sql);
 
 $form = new Form($db);
 
 
-if ($result) {
-	$num = $db->num_rows($result);
+if ($resql) {
+	$num = $db->num_rows($resql);
 
-	$urlparam="";
-
-	if ($limit > 0 && $limit != $conf->liste_limit)
-									$urlparam .='&limit='.$limit;
-	if (! empty($contextpage) && $contextpage != $_SERVER["PHP_SELF"])
-									$urlparam .='&contextpage='.urlencode($contextpage);
-
+	$urlparam='';
+	if (! empty($contextpage) && $contextpage != $_SERVER["PHP_SELF"]) $urlparam .='&contextpage='.urlencode($contextpage);
+    if ($limit > 0 && $limit != $conf->liste_limit) $urlparam.='&limit='.urlencode($limit);
 	if ($sall)						$urlparam .= "&sall=".$db->escape($sall);
 	if ($search_ref)				$urlparam .= "&search_ref=".$db->escape($search_ref);
 	if ($search_refProduct)			$urlparam .= "&search_refProduct=".$db->escape($search_refProduct);
@@ -293,19 +314,23 @@ if ($result) {
 	if ($search_numversion)			$urlparam .= "&search_numversion=".$db->escape($search_numversion);
 	if ($search_company_fourn)		$urlparam .= "&search_company_fourn=".$db->escape($search_company_fourn);
 	if ($search_reffact_fourn)		$urlparam .= "&search_reffact_fourn=".$db->escape($search_reffact_fourn);
-  if ($search_reforder_fourn)		$urlparam .= "&search_reforder_fourn=".$db->escape($search_reforder_fourn);
+	if ($search_reforder_fourn)		$urlparam .= "&search_reforder_fourn=".$db->escape($search_reforder_fourn);
 	if ($search_entrepot)			$urlparam .= "&search_entrepot=".$search_entrepot;
 	if ($search_company_client)		$urlparam .= "&search_company_client=".$db->escape($search_company_client);
 	if ($search_reffact_client)		$urlparam .= "&search_reffact_client=".$db->escape($search_reffact_client);
-  if ($search_note_private)		$urlparam .= "&search_note_private=".$db->escape($search_note_private);
+	if ($search_note_private)		$urlparam .= "&search_note_private=".$db->escape($search_note_private);
 	if ($search_etatequipement>=0)	$urlparam .= "&search_etatequipement=".$search_etatequipement;
 	if ($viewstatut >=0)			$urlparam .= "&viewstatut=".$viewstatut;
 
-	print_barre_liste($langs->trans("ListOfEquipements"), $page, "list.php", $urlparam, $sortfield, $sortorder, '', $num);
+	print '<form method="post" action="'.$_SERVER["PHP_SELF"].'" name="formulaire">';
+    print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
+    print '<input type="hidden" name="formfilteraction" id="formfilteraction" value="list" />';
+    print '<input type="hidden" name="action" value="list" />';
+    print '<input type="hidden" name="sortfield" value="'.$sortfield.'" />';
+    print '<input type="hidden" name="sortorder" value="'.$sortorder.'" />';
+    print '<input type="hidden" name="page" value="'.$page.'" />';
 
-	print '<form method="get" action="'.$_SERVER["PHP_SELF"].'">'."\n";
-	print '<input type=hidden name=page value="'.($page).'">';
-	print '<input type="hidden" name="formfilteraction" id="formfilteraction" value="list">';
+    print_barre_liste($langs->trans("ListOfEquipements"), $page, $_SERVER['PHP_SELF'], $urlparam, $sortfield, $sortorder, '', $num, $nbtotalofrecords, 'title_generic.png', 0, '', '', $limit);
 
 	$varpage=empty($contextpage)?$_SERVER["PHP_SELF"]:$contextpage;
 
@@ -613,7 +638,7 @@ if ($result) {
 		$separatorlist="\b";
 
 	while ($i < min($num, $limit)) {
-		$objp = $db->fetch_object($result);
+		$objp = $db->fetch_object($resql);
 
 		$idlist.=$objp->equipementid.$separatorlist;
 		$reflist.=$objp->ref.$separatorlist;
@@ -807,45 +832,45 @@ if ($result) {
 	print '<br>';
 	// to do : after test made it hidden
 	print "<input type=hidden size=50 name=idlist value='".$idlist."'>";
-	print '<table class="border" width="50%">';
+	print '<table class="border">';
 
-	print "<tr >";
-	print "<td align=left >".$langs->trans("Entrepot")."</td>";
-	print "<td align=left > ";
+	print "<tr>";
+	print "<td align=left>".$langs->trans("Entrepot")."</td>";
+	print "<td align=left>";
 	print '<input type=checkbox name="chk_entrepot">&nbsp;';
 	select_entrepot($update_entrepot, 'update_entrepot', 1, 1, 0, 1);
 	print "</td>";
-	print "</tr >";
+	print "</tr>";
 
-	print "<tr >";
-	print "<td align=left >".$langs->trans("Customer")."</td>";
-	print "<td align=left >";
+	print "<tr>";
+	print "<td align=left>".$langs->trans("Customer")."</td>";
+	print "<td align=left>";
 	print '<input type=checkbox name="chk_soc_client" >';
 	print $form->select_company('', 'update_soc_client', '', 'SelectThirdParty', 1);
 	print "</td>";
-	print "</tr >";
+	print "</tr>";
 
-	print "<tr >";
-	print "<td align=left >".$langs->trans("Dateo")."</td>";
-	print "<td align=left >";
+	print "<tr>";
+	print "<td align=left>".$langs->trans("Dateo")."</td>";
+	print "<td align=left>";
 	print '<input type=checkbox name="chk_dateo" >&nbsp;';
 	print $form->select_date('', 'dateo', 0, 0, 1, "dateo");
 	print "</td>";
-	print "</tr >";
+	print "</tr>";
 
 	print "<tr >";
-	print "<td align=left >".$langs->trans("Datee")."</td>";
-	print "<td align=left >";
+	print "<td align=left>".$langs->trans("Datee")."</td>";
+	print "<td align=left>";
 	print '<input type=checkbox name="chk_datee" >&nbsp;';
 	print $form->select_date('', 'datee', 0, 0, 1, "datee");
 	print "</td>";
-	print "</tr >";
+	print "</tr>";
 
 	if ($conf->global->EQUIPEMENT_USEDLUODATE == 1) {
 		// Date DLUO
 		print "<tr >";
-		print "<td align=left >".$langs->trans("DateDluo")."</td>";
-		print "<td align=left >";
+		print "<td align=left>".$langs->trans("DateDluo")."</td>";
+		print "<td align=left>";
 		print '<input type=checkbox name="chk_dated" >&nbsp;';
 		print $form->select_date('', 'dated', 0, 0, 1, "dated");
 		print "</td>";
@@ -853,14 +878,14 @@ if ($result) {
 	}
 
 	print "<tr >";
-	print "<td align=left >".$langs->trans("EtatEquip")."</td>";
-	print "<td align=left >";
+	print "<td align=left>".$langs->trans("EtatEquip")."</td>";
+	print "<td align=left>";
 	print '<input type=checkbox name="chk_etatequipement" >&nbsp;';
 	print select_equipement_etat('', 'update_etatequipement', 1, 1);
 	print "</td>";
-	print "</tr >";
+	print "</tr>";
 
-	print "<tr >";
+	print "<tr>";
 	print "<td align=left >".$langs->trans("Status")."</td>";
 	print "<td align=left>";
 	print '<input type=checkbox name="chk_statut" >&nbsp;';
@@ -873,7 +898,7 @@ if ($result) {
 	print "</td>";
 	print "</tr >";
 
-	print "<tr >";
+	print "<tr>";
 	print "<td align=center colspan=2>";
 	print "<input type=submit name='updatecheck' value='".$langs->trans("Update")."'>";
 	print "</td>";
@@ -886,7 +911,7 @@ if ($result) {
 	print '</table>';
 //	dol_fiche_end();
 	print "</form>\n";
-	$db->free($result);
+	$db->free($resql);
 }
 else
 	dol_print_error($db);
