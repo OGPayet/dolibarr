@@ -368,7 +368,7 @@ class ActionsRequestManager
             print '<input type="checkbox" id="rm_notify_assigned" name="rm_notify_assigned" value="1"' . (!empty($requestManagerMessage->notify_assigned) ? ' checked="checked"' : '') . ' disabled="disabled" />';
             print '&nbsp;' . $langs->trans("RequestManagerAssigned");
             print ' &nbsp; ';
-            print '<input type="checkbox" id="rm_notify_requesters" name="rm_notify_requesters" value="1"' . (!empty($requestManagerMessage->notify_requester) ? ' checked="checked"' : '') . ' disabled="disabled" />';
+            print '<input type="checkbox" id="rm_notify_requesters" name="rm_notify_requesters" value="1"' . (!empty($requestManagerMessage->notify_requesters) ? ' checked="checked"' : '') . ' disabled="disabled" />';
             print '&nbsp;' . $langs->trans("RequestManagerRequesterContacts");
             print ' &nbsp; ';
             print '<input type="checkbox" id="rm_notify_watchers" name="rm_notify_watchers" value="1"' . (!empty($requestManagerMessage->notify_watcher) ? ' checked="checked"' : '') . ' disabled="disabled" />';
