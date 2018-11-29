@@ -98,7 +98,7 @@ class modEventConfidentiality extends DolibarrModules
         //                        );
         $this->module_parts = array(
             'dictionaries' => 1,
-            'hooks' => array('agenda', 'agendalist', 'actiondao'),
+            'hooks' => array('agenda', 'agendalist', 'actiondao', 'actioncard'),
             'triggers' => 1,
         );
 

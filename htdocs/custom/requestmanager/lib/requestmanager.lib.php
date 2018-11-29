@@ -342,8 +342,7 @@ function requestmanager_show_events(&$requestmanager)
     // Event confidentiality support
     if ($conf->eventconfidentiality->enabled) {
         dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
-        $sql .= ", MIN(IFNULL(ecm.mode, " . EventConfidentiality::MODE_HIDDEN . ")) as ec_mode";
-        //$sql .= ", MIN(IFNULL(ecm.mode, " . EventConfidentiality::MODE_HIDDEN . ")) as ec_mode, tags_info.internal_tags_info, tags_info.external_tags_info";
+        $sql .= ", MIN(IFNULL(ecm.mode, " . EventConfidentiality::MODE_HIDDEN . ")) as ec_mode, tags_info.internal_tags_info, tags_info.external_tags_info";
     }
     // Add fields from extrafields
     foreach ($extrafields->attribute_label as $key => $val) $sql .= ($extrafields->attribute_type[$key] != 'separate' ? ",ef." . $key . ' as options_' . $key : '');
@@ -363,31 +362,31 @@ function requestmanager_show_events(&$requestmanager)
     $sql .= " ON (ee.sourcetype = " . $element_correspondance . " AND ee.fk_source = ac.fk_element) OR (ee.targettype = " . $element_correspondance . " AND ee.fk_target = ac.fk_element)";
     // Event confidentiality support
     if ($conf->eventconfidentiality->enabled) {
-//        if ($user->rights->eventconfidentiality->manage && ($search_internal_tag || $search_external_tag || $search_level_tag >= 0)) {
-//            $sql .= " INNER JOIN (";
-//            $sql .= "   SELECT ecm.fk_actioncomm AS event_id";
-//            $sql .= "   FROM " . MAIN_DB_PREFIX . "eventconfidentiality_mode AS ecm";
-//            $sql .= "   LEFT JOIN " . MAIN_DB_PREFIX . "c_eventconfidentiality_tag AS cecti ON ecm.fk_c_eventconfidentiality_tag = cecti.rowid AND (cecti.external != 1 OR cecti.external IS NULL)";
-//            $sql .= "   LEFT JOIN " . MAIN_DB_PREFIX . "c_eventconfidentiality_tag AS cecte ON ecm.fk_c_eventconfidentiality_tag = cecte.rowid AND cecti.external = 1";
-//            $search_tag_where = array();
-//            if ($search_internal_tag) $search_tag_where[] = natural_search("cecti.label", $search_internal_tag, 0, 1);
-//            if ($search_external_tag) $search_tag_where[] = natural_search("cecte.label", $search_external_tag, 0, 1);
-//            if ($search_level_tag >= 0) $search_tag_where[] = 'ecm.mode = ' . $search_level_tag;
-//            $sql .= "   WHERE " . implode(' AND ', $search_tag_where);
-//            $sql .= "   GROUP BY ecm.fk_actioncomm";
-//            $sql .= " ) AS search_tag ON search_tag.event_id = ac.id";
-//        }
+        if ($user->rights->eventconfidentiality->manage && ($search_internal_tag || $search_external_tag || $search_level_tag >= 0)) {
+            $sql .= " INNER JOIN (";
+            $sql .= "   SELECT ecm.fk_actioncomm AS event_id";
+            $sql .= "   FROM " . MAIN_DB_PREFIX . "eventconfidentiality_mode AS ecm";
+            $sql .= "   LEFT JOIN " . MAIN_DB_PREFIX . "c_eventconfidentiality_tag AS cecti ON ecm.fk_c_eventconfidentiality_tag = cecti.rowid AND (cecti.external != 1 OR cecti.external IS NULL)";
+            $sql .= "   LEFT JOIN " . MAIN_DB_PREFIX . "c_eventconfidentiality_tag AS cecte ON ecm.fk_c_eventconfidentiality_tag = cecte.rowid AND cecti.external = 1";
+            $search_tag_where = array();
+            if ($search_internal_tag) $search_tag_where[] = natural_search("cecti.label", $search_internal_tag, 0, 1);
+            if ($search_external_tag) $search_tag_where[] = natural_search("cecte.label", $search_external_tag, 0, 1);
+            if ($search_level_tag >= 0) $search_tag_where[] = 'ecm.mode = ' . $search_level_tag;
+            $sql .= "   WHERE " . implode(' AND ', $search_tag_where);
+            $sql .= "   GROUP BY ecm.fk_actioncomm";
+            $sql .= " ) AS search_tag ON search_tag.event_id = ac.id";
+        }
         $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "eventconfidentiality_mode AS ecm ON ecm.fk_actioncomm = ac.id";
         $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_eventconfidentiality_tag AS cect ON ecm.fk_c_eventconfidentiality_tag = cect.rowid";
-//        $sql .= " LEFT JOIN (";
-//        $sql .= "   SELECT ecm.fk_actioncomm AS event_id";
-//        $sql .= "   , GROUP_CONCAT(DISTINCT IF(cecti.rowid IS NOT NULL, CONCAT(cecti.rowid, ':', ecm.mode), NULL) SEPARATOR ',') AS internal_tags_info";
-//        $sql .= "   , GROUP_CONCAT(DISTINCT IF(cecte.rowid IS NOT NULL, CONCAT(cecte.rowid, ':', ecm.mode), NULL) SEPARATOR ',') AS external_tags_info";
-//        $sql .= "   FROM " . MAIN_DB_PREFIX . "eventconfidentiality_mode AS ecm";
-//        $sql .= "   LEFT JOIN " . MAIN_DB_PREFIX . "c_eventconfidentiality_tag AS cecti ON ecm.fk_c_eventconfidentiality_tag = cecti.rowid AND (cecti.external != 1 OR cecti.external IS NULL)";
-//        $sql .= "   LEFT JOIN " . MAIN_DB_PREFIX . "c_eventconfidentiality_tag AS cecte ON ecm.fk_c_eventconfidentiality_tag = cecte.rowid AND cecti.external = 1";
-//        $sql .= "   GROUP BY ecm.fk_actioncomm";
-//        $sql .= " ) AS tags_info ON tags_info.event_id = ac.id";
+        $sql .= " LEFT JOIN (";
+        $sql .= "   SELECT ecm.fk_actioncomm AS event_id";
+        $sql .= "   , GROUP_CONCAT(DISTINCT IF(cecti.rowid IS NOT NULL, CONCAT(cecti.rowid, ':', ecm.mode), NULL) SEPARATOR ',') AS internal_tags_info";
+        $sql .= "   , GROUP_CONCAT(DISTINCT IF(cecte.rowid IS NOT NULL, CONCAT(cecte.rowid, ':', ecm.mode), NULL) SEPARATOR ',') AS external_tags_info";
+        $sql .= "   FROM " . MAIN_DB_PREFIX . "eventconfidentiality_mode AS ecm";
+        $sql .= "   LEFT JOIN " . MAIN_DB_PREFIX . "c_eventconfidentiality_tag AS cecti ON ecm.fk_c_eventconfidentiality_tag = cecti.rowid AND (cecti.external != 1 OR cecti.external IS NULL)";
+        $sql .= "   LEFT JOIN " . MAIN_DB_PREFIX . "c_eventconfidentiality_tag AS cecte ON ecm.fk_c_eventconfidentiality_tag = cecte.rowid AND cecti.external = 1";
+        $sql .= "   GROUP BY ecm.fk_actioncomm";
+        $sql .= " ) AS tags_info ON tags_info.event_id = ac.id";
     }
     if (is_array($extrafields->attribute_label) && count($extrafields->attribute_label)) $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "actioncomm_extrafields as ef on (ac.id = ef.fk_object)";
     if (is_array($extrafields_message->attribute_label) && count($extrafields_message->attribute_label)) $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "requestmanager_message_extrafields as efm on (ac.id = efm.fk_object)";
