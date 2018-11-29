@@ -205,12 +205,16 @@ class RequestManagerSubstitutes
             $requestmanager->fetch_watchers();
 
             $assigned_user_names = array();
+            $requestmanager->assigned_user_ids = is_array($requestmanager->assigned_user_ids) ? $requestmanager->assigned_user_ids : array();
             foreach ($requestmanager->assigned_user_ids as $user_id) { $assigned_user_names[] = self::_getUserName($user_id); }
             $assigned_usergroup_names = array();
+            $requestmanager->assigned_usergroup_ids = is_array($requestmanager->assigned_usergroup_ids) ? $requestmanager->assigned_usergroup_ids : array();
             foreach ($requestmanager->assigned_usergroup_ids as $usergroup_id) { $assigned_usergroup_names[] = self::_getUserGroupName($usergroup_id); }
             $requester_names = array();
+            $requestmanager->requester_ids = is_array($requestmanager->requester_ids) ? $requestmanager->requester_ids : array();
             foreach ($requestmanager->requester_ids as $contact_id) { $requester_names[] = self::_getContactName($contact_id); }
             $watcher_names = array();
+            $requestmanager->watcher_ids = is_array($requestmanager->watcher_ids) ? $requestmanager->watcher_ids : array();
             foreach ($requestmanager->watcher_ids as $contact_id) { $watcher_names[] = self::_getContactName($contact_id); }
 
             $vars = array(
@@ -292,12 +296,16 @@ class RequestManagerSubstitutes
 
             if ($alsofornotify) {
                 $assigned_user_added_names = array();
+                $requestmanager->assigned_user_added_ids = is_array($requestmanager->assigned_user_added_ids) ? $requestmanager->assigned_user_added_ids : array();
                 foreach ($requestmanager->assigned_user_added_ids as $user_id) { $assigned_user_added_names[] = self::_getUserName($user_id); }
                 $assigned_user_deleted_names = array();
+                $requestmanager->assigned_user_deleted_ids = is_array($requestmanager->assigned_user_deleted_ids) ? $requestmanager->assigned_user_deleted_ids : array();
                 foreach ($requestmanager->assigned_user_deleted_ids as $user_id) { $assigned_user_deleted_names[] = self::_getUserName($user_id); }
                 $assigned_usergroup_added_names = array();
+                $requestmanager->assigned_usergroup_added_ids = is_array($requestmanager->assigned_usergroup_added_ids) ? $requestmanager->assigned_usergroup_added_ids : array();
                 foreach ($requestmanager->assigned_usergroup_added_ids as $usergroup_id) { $assigned_usergroup_added_names[] = self::_getUserGroupName($usergroup_id); }
                 $assigned_usergroup_deleted_names = array();
+                $requestmanager->assigned_usergroup_deleted_ids = is_array($requestmanager->assigned_usergroup_deleted_ids) ? $requestmanager->assigned_usergroup_deleted_ids : array();
                 foreach ($requestmanager->assigned_usergroup_deleted_ids as $usergroup_id) { $assigned_usergroup_deleted_names[] = self::_getUserGroupName($usergroup_id); }
 
                 $vars = array_merge($vars, array(
@@ -375,6 +383,7 @@ class RequestManagerSubstitutes
             $knowledge_base_codes = array();
             $knowledge_base_titles = array();
             $knowledge_base_code_titles = array();
+            $requestmanagermessage->knowledge_base_list = is_array($requestmanagermessage->knowledge_base_list) ? $requestmanagermessage->knowledge_base_list : array();
             foreach ($requestmanagermessage->knowledge_base_list as $knowledge_base) {
                 $knowledge_base_codes[] = $knowledge_base->fields['code'];
                 $knowledge_base_titles[] = $knowledge_base->fields['title'];

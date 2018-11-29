@@ -1301,7 +1301,6 @@ class Dictionary extends CommonObject
                 // Where clause
                 $sqlStatement = $this->whereFieldSqlStatement($this->fields[$fieldName], $value);
                 if (!empty($sqlStatement)) {
-					error_log($sqlStatement);
                     $where[] = $sqlStatement;
                 }
                 // Having clause
