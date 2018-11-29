@@ -1001,8 +1001,12 @@ SCRIPT;
         while ($i < min($num, $limit)) {
             $obj = $db->fetch_object($resql);
 
-            $ec_mode = $obj->ec_mode;
-            if ($ec_mode == EventConfidentiality::MODE_HIDDEN && $user->rights->eventconfidentiality->manage) $ec_mode = EventConfidentiality::MODE_VISIBLE;
+            // Event confidentiality
+            //--------------------------------------
+            if ($conf->eventconfidentiality->enabled) {
+                $ec_mode = $obj->ec_mode;
+                if ($ec_mode == EventConfidentiality::MODE_HIDDEN && $user->rights->eventconfidentiality->manage) $ec_mode = EventConfidentiality::MODE_VISIBLE;
+            }
 
             $actioncomm_static->id = $obj->id;
             $actioncomm_static->ref = $obj->ref;
@@ -1910,8 +1914,12 @@ SCRIPT;
         while ($i < min($num, $limit)) {
             $obj = $db->fetch_object($resql);
 
-            $ec_mode = $obj->ec_mode;
-            if ($ec_mode == EventConfidentiality::MODE_HIDDEN && $user->rights->eventconfidentiality->manage) $ec_mode = EventConfidentiality::MODE_VISIBLE;
+            // Event confidentiality
+            //--------------------------------------
+            if ($conf->eventconfidentiality->enabled) {
+                $ec_mode = $obj->ec_mode;
+                if ($ec_mode == EventConfidentiality::MODE_HIDDEN && $user->rights->eventconfidentiality->manage) $ec_mode = EventConfidentiality::MODE_VISIBLE;
+            }
 
             $requestmessage_static->id = $obj->id;
             $requestmessage_static->ref = $obj->ref;
