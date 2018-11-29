@@ -418,21 +418,100 @@ SCRIPT;
         //--------------------------------------
         if ($conf->eventconfidentiality->enabled && $user->rights->eventconfidentiality->manage) {
             $langs->load('eventconfidentiality@eventconfidentiality');
+
+            // Get all tags
+            dol_include_once('/advancedictionaries/class/dictionary.class.php');
             $dictionary = Dictionary::getDictionary($this->db, 'eventconfidentiality', 'eventconfidentialitytag');
+            $result = $dictionary->fetch_lines(1, array(), array('label' => 'ASC'));
+            if ($result < 0) {
+                $this->error = $dictionary->error;
+                $this->errors = $dictionary->errors;
+                return -1;
+            }
 
-            //Tags interne
+            // Get tags set or default tags
+            dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
+            $eventconfidentiality = new EventConfidentiality($this->db);
+            $default_tags = $eventconfidentiality->getDefaultTags($object->elementtype);
+            if (!is_array($default_tags)) {
+                $this->error = $eventconfidentiality->error;
+                $this->errors = $eventconfidentiality->errors;
+                return -1;
+            }
+
+            // Format out tags lines
+            $internal_tags = '';
+            $external_tags = '';
+            $initialize_tags = true;
+            foreach ($dictionary->lines as $line) {
+                if (isset($_POST['ec_mode_' . $line->id])) $initialize_tags = false;
+                $mode = isset($_POST['ec_mode_' . $line->id]) ? GETPOST('ec_mode_' . $line->id, 'int') : EventConfidentiality::MODE_HIDDEN;
+                $tmp = '<tr id="' . $line->id . '">';
+                $tmp .= '<td>' . $line->fields['label'] . '</td>';
+                $tmp .= '<td>';
+                $tmp .= '<input type="radio" id="ec_mode_' . $line->id . '_' . EventConfidentiality::MODE_VISIBLE . '" name="ec_mode_' . $line->id . '" value="0"' . ($mode == EventConfidentiality::MODE_VISIBLE ? ' checked="checked"' : "") . '><label for="ec_mode_' . $line->id . '_' . EventConfidentiality::MODE_VISIBLE . '">' . $langs->trans('EventConfidentialityModeVisible') . '</label>';
+                $tmp .= '&nbsp;<input type="radio" id="ec_mode_' . $line->id . '_' . EventConfidentiality::MODE_BLURRED . '" name="ec_mode_' . $line->id . '" value="1"' . ($mode == EventConfidentiality::MODE_BLURRED ? ' checked="checked"' : "") . '><label for="ec_mode_' . $line->id . '_' . EventConfidentiality::MODE_BLURRED . '">' . $langs->trans('EventConfidentialityModeBlurred') . '</label>';
+                $tmp .= '&nbsp;<input type="radio" id="ec_mode_' . $line->id . '_' . EventConfidentiality::MODE_HIDDEN . '" name="ec_mode_' . $line->id . '" value="2"' . ($mode == EventConfidentiality::MODE_HIDDEN ? ' checked="checked"' : "") . '><label for="ec_mode_' . $line->id . '_' . EventConfidentiality::MODE_HIDDEN . '">' . $langs->trans('EventConfidentialityModeHidden') . '</label>';
+                $tmp .= '</td>';
+                $tmp .= '</tr>';
+                if (empty($line->fields['external'])) {
+                    $internal_tags .= $tmp;
+                } else {
+                    $external_tags .= $tmp;
+                }
+            }
+            // Internal tags
             $out .= '<tr>';
-            $out .= '<td width="180">' . $langs->trans("EventConfidentialityTagInterneLabel") . '</td>';
-            $array_tags = $dictionary->fetch_array('rowid', '{{label}}', array("external" => NULL), array('label' => 'ASC'));
-            $out .= '<td>' . $form->multiselectarray('add_tag_interne', $array_tags, array(), '', 0, '', 0, '100%') . '</td>';
+            $out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityTagInterneLabel") . '</td>';
+            $out .= '<td colspan="3"><table class="noborder margintable centpercent">';
+            $out .= '<tr><th class="liste_titre" width="40%">Tags</th><th class="liste_titre">Mode</th></tr>';
+            $out .= $internal_tags;
+            $out .= '</table></td>';
+            $out .= '</tr>';
+            // External tags
+            $out .= '<tr>';
+            $out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityTagExterneLabel") . '</td>';
+            $out .= '<td colspan="3"><table class="noborder margintable centpercent">';
+            $out .= '<tr><th class="liste_titre" width="40%">Tags</th><th class="liste_titre">Mode</th></tr>';
+            $out .= $external_tags;
+            $out .= '</table></td>';
             $out .= '</tr>';
 
-            //Tags externe
-            $out .= '<tr>';
-            $out .= '<td width="180">' . $langs->trans("EventConfidentialityTagExterneLabel") . '</td>';
-            $array_tags = $dictionary->fetch_array('rowid', '{{label}}', array("external" => 1), array('label' => 'ASC'));
-            $out .= '<td>' . $form->multiselectarray('add_tag_externe', $array_tags, array(), '', 0, '', 0, '100%') . '</td>';
-            $out .= '</tr>';
+            $default_tags = json_encode($default_tags);
+            $message_type_list = json_encode(array(
+                RequestManagerMessage::MESSAGE_TYPE_OUT => 'AC_RM_OUT',
+                RequestManagerMessage::MESSAGE_TYPE_PRIVATE => 'AC_RM_PRIV',
+                RequestManagerMessage::MESSAGE_TYPE_IN => 'AC_RM_IN',
+            ));
+            $hidden_mode = EventConfidentiality::MODE_HIDDEN;
+            $out .= <<<SCRIPT
+    <script type="text/javascript" language="javascript">
+        $(document).ready(function () {
+            var rm_default_tags = $default_tags;
+            var rm_message_type_list = $message_type_list;
+
+            if ($initialize_tags) rm_update_tags();
+            $('input[name="message_type"]').on('change', function() {
+                rm_update_tags();
+            });
+
+            function rm_update_tags() {
+                var message_type = $('input[name="message_type"]:checked').val();
+                var action_code = rm_message_type_list[message_type];
+
+                if (action_code in rm_default_tags) {
+                    $.map(rm_default_tags[action_code], function(val, idx) {
+                        $('#ec_mode_' + idx + '_' + val['mode']).prop('checked', true);
+                    })
+                } else {
+                    $.map($('[id^="ec_mode_"][id$="_$hidden_mode"]'), function(val, idx) {
+                        $(val).prop('checked', true);
+                    });
+                }
+            }
+        });
+    </script>
+SCRIPT;
         }
 
         // Attached files

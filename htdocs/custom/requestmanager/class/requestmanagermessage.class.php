@@ -168,7 +168,7 @@ class RequestManagerMessage extends ActionComm
 
         $this->db->begin();
 
-        $result = parent::create($user, 1);
+        $result = parent::create($user);
         if ($result > 0) {
             $error = 0;
 
@@ -282,7 +282,7 @@ class RequestManagerMessage extends ActionComm
 
         $this->db->begin();
 
-        $result = parent::update($user, 1);
+        $result = parent::update($user);
         if ($result > 0) {
             $error = 0;
 
@@ -383,7 +383,7 @@ class RequestManagerMessage extends ActionComm
         }
 
         if (!$error) {
-            $result = parent::delete(1);
+            $result = parent::delete();
             if ($result < 0) {
                 $error -= $result;
             }

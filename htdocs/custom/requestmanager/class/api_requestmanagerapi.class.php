@@ -684,6 +684,7 @@ class RequestManagerApi extends DolibarrApi {
      * @throws  403         RestException                               Access unauthorized
      * @throws  404         RestException                               Request not found
      * @throws  500         RestException                               Error when retrieve request
+     * @throws  500         RestException                               Error when retrieve tags list of the user
      * @throws  500         RestException                               Error when retrieve request list
      */
     function indexEvents($id, $sort_field="t.datec", $sort_order='DESC', $limit=100, $page=0, $sql_filters='', $only_message=0, $only_linked_to_request=1, $include_events_other_request=0, $include_linked_events_children_request=1)
@@ -712,7 +713,8 @@ class RequestManagerApi extends DolibarrApi {
         $sql = "SELECT t.id, t.code";
         // Event confidentiality support
         if ($conf->eventconfidentiality->enabled) {
-            $sql .= ", MIN(ea.level_confid) as ec_mode";
+            dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
+            $sql .= ", MIN(IFNULL(ecm.mode, " . EventConfidentiality::MODE_HIDDEN . ")) as ec_mode";
         }
         $sql .= " FROM " . MAIN_DB_PREFIX . "actioncomm as t";
         if (!$only_message) {
@@ -727,7 +729,8 @@ class RequestManagerApi extends DolibarrApi {
         }
         // Event confidentiality support
         if ($conf->eventconfidentiality->enabled) {
-            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "event_agenda as ea ON ea.fk_object = t.id";
+            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "eventconfidentiality_mode as ecm ON ecm.fk_actioncomm = t.id";
+            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_eventconfidentiality_tag AS cect ON ecm.fk_c_eventconfidentiality_tag = cect.rowid";
         }
         $sql .= ' WHERE t.entity IN (' . getEntity('agenda') . ')';
         if (!$only_message) {
@@ -751,15 +754,18 @@ class RequestManagerApi extends DolibarrApi {
             $sql .= " AND t.code != 'AC_RM_PRIV'";
         }
         // Event confidentiality support
-        if ($conf->eventconfidentiality->enabled) {
-            dol_include_once('/requestmanager/lib/requestmanager.lib.php');
-            $tags_list = get_user_confidentiality_tags(DolibarrApiAccess::$user);
-            if (DolibarrApiAccess::$user->socid > 0) {
-                $sql .= ' AND ea.externe = 1';
-            } else {
-                $sql .= ' AND (ea.externe IS NULL OR ea.externe = 0)';
+        if ($conf->eventconfidentiality->enabled && !DolibarrApiAccess::$user->rights->eventconfidentiality->manage) {
+            $eventconfidentiality = new EventConfidentiality(self::$db);
+            $tags_list = $eventconfidentiality->getConfidentialTagsOfUser(DolibarrApiAccess::$user);
+            if (!is_array($tags_list)) {
+                throw new RestException(500, 'Error when retrieve tags list of the user', [ 'details' => $this->_getErrors($eventconfidentiality) ]);
             }
-            $sql .= ' AND ea.fk_dict_tag_confid IN (' . (count($tags_list) > 0 ? implode(',', $tags_list) : -1) . ')';
+            if (DolibarrApiAccess::$user->socid > 0) {
+                $sql .= ' AND cect.external = 1';
+            } else {
+                $sql .= ' AND (cect.external IS NULL OR cect.external = 0)';
+            }
+            $sql .= ' AND ecm.fk_c_eventconfidentiality_tag IN (' . (count($tags_list) > 0 ? implode(',', $tags_list) : -1) . ')';
         }
         // Add sql filters
         if ($sql_filters) {
@@ -772,8 +778,8 @@ class RequestManagerApi extends DolibarrApi {
 
         $sql .= " GROUP BY t.id";
         // Event confidentiality support
-        if ($conf->eventconfidentiality->enabled) {
-            $sql .= ' HAVING ec_mode < 2';
+        if ($conf->eventconfidentiality->enabled && !DolibarrApiAccess::$user->rights->eventconfidentiality->manage) {
+            $sql .= ' HAVING ec_mode != ' . EventConfidentiality::MODE_HIDDEN;
         }
 
         // Set Order and Limit

@@ -28,7 +28,8 @@ if (! $res && file_exists("../../../main.inc.php")) $res=@include '../../../main
 if (! $res) die("Include of main fails");
 require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 dol_include_once('/eventconfidentiality/lib/eventconfidentiality.lib.php');
-dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
+dol_include_once('/advancedictionaries/class/dictionary.class.php');
+dol_include_once('/advancedictionaries/class/html.formdictionary.class.php');
 
 $langs->load("admin");
 $langs->load("eventconfidentiality@eventconfidentiality");
@@ -64,15 +65,27 @@ if (preg_match('/set_(.*)/',$action,$reg)) {
         $error++;
     }
 } elseif ($action == 'set') {
-    $value = GETPOST('EVENTCONFIDENTIALITY_DEFAULT_INTERNAL_LEVEL', "int");
-    $res = dolibarr_set_const($db, 'EVENTCONFIDENTIALITY_DEFAULT_INTERNAL_LEVEL', $value, 'chaine', 0, '', $conf->entity);
+    $value = GETPOST('EVENTCONFIDENTIALITY_DEFAULT_INTERNAL_TAG', "int");
+    $res = dolibarr_set_const($db, 'EVENTCONFIDENTIALITY_DEFAULT_INTERNAL_TAG', $value < 0 ? '' : $value, 'chaine', 0, '', $conf->entity);
+    if (!$res > 0) {
+        $errors[] = $db->lasterror();
+        $error++;
+    }
+    $value = $value < 0 ? -1 : GETPOST('EVENTCONFIDENTIALITY_DEFAULT_INTERNAL_MODE', "int");
+    $res = dolibarr_set_const($db, 'EVENTCONFIDENTIALITY_DEFAULT_INTERNAL_MODE', $value < 0 ? '' : $value, 'chaine', 0, '', $conf->entity);
     if (!$res > 0) {
         $errors[] = $db->lasterror();
         $error++;
     }
 
-    $value = GETPOST('EVENTCONFIDENTIALITY_DEFAULT_EXTERNAL_LEVEL', "int");
-    $res = dolibarr_set_const($db, 'EVENTCONFIDENTIALITY_DEFAULT_EXTERNAL_LEVEL', $value, 'chaine', 0, '', $conf->entity);
+    $value = GETPOST('EVENTCONFIDENTIALITY_DEFAULT_EXTERNAL_TAG', "int");
+    $res = dolibarr_set_const($db, 'EVENTCONFIDENTIALITY_DEFAULT_EXTERNAL_TAG', $value < 0 ? '' : $value, 'chaine', 0, '', $conf->entity);
+    if (!$res > 0) {
+        $errors[] = $db->lasterror();
+        $error++;
+    }
+    $value = $value < 0 ? -1 : GETPOST('EVENTCONFIDENTIALITY_DEFAULT_EXTERNAL_MODE', "int");
+    $res = dolibarr_set_const($db, 'EVENTCONFIDENTIALITY_DEFAULT_EXTERNAL_MODE', $value < 0 ? '' : $value, 'chaine', 0, '', $conf->entity);
     if (!$res > 0) {
         $errors[] = $db->lasterror();
         $error++;
@@ -94,6 +107,7 @@ if ($action != '') {
 llxHeader();
 
 $form = new Form($db);
+$formdictionary = new FormDictionary($db);
 
 $linkback='<a href="'.DOL_URL_ROOT.'/admin/modules.php">'.$langs->trans("BackToModuleList").'</a>';
 print load_fiche_titre($langs->trans("EventConfidentialitySetup"),$linkback,'title_setup');
@@ -117,29 +131,71 @@ print '<td align="center">&nbsp;</td>'."\n";
 print '<td align="right">'.$langs->trans("Value").'</td>'."\n";
 print "</tr>\n";
 
-$confidential_leves = array(
-    0 => $langs->trans('EventConfidentialityModeVisible'),
-    1 => $langs->trans('EventConfidentialityModeBlurred'),
-    2 => $langs->trans('EventConfidentialityModeHidden'),
-);
+$default_tags_dictionary = Dictionary::getDictionary($db, 'eventconfidentiality', 'eventconfidentialitydefault');
+$confidential_leves = $default_tags_dictionary->fields['mode']['options'];
 
-// EVENTCONFIDENTIALITY_DEFAULT_INTERNAL_LEVEL
+// EVENTCONFIDENTIALITY_DEFAULT_INTERNAL_TAG / EVENTCONFIDENTIALITY_DEFAULT_INTERNAL_MODE
 $var=!$var;
 print '<tr '.$bc[$var].'>'."\n";
 print '<td>'.$langs->trans("EventConfidentialityDefaultInternalLevel").'</td>'."\n";
 print '<td align="center">&nbsp;</td>'."\n";
 print '<td align="right">'."\n";
-print $form->selectarray('EVENTCONFIDENTIALITY_DEFAULT_INTERNAL_LEVEL', $confidential_leves, $conf->global->EVENTCONFIDENTIALITY_DEFAULT_INTERNAL_LEVEL);
+print $formdictionary->select_dictionary('eventconfidentiality', 'eventconfidentialitytag', $conf->global->EVENTCONFIDENTIALITY_DEFAULT_INTERNAL_TAG, 'EVENTCONFIDENTIALITY_DEFAULT_INTERNAL_TAG', 1, 'rowid', '{{label}}', array('external' => NULL), array('label'=>'ASC'), 0, array(), 0, 0, 'minwidth300');
+print $form->selectarray('EVENTCONFIDENTIALITY_DEFAULT_INTERNAL_MODE', $confidential_leves, $conf->global->EVENTCONFIDENTIALITY_DEFAULT_INTERNAL_MODE, 1);
 print '</td></tr>'."\n";
 
-// EVENTCONFIDENTIALITY_DEFAULT_EXTERNAL_LEVEL
+// EVENTCONFIDENTIALITY_DEFAULT_EXTERNAL_TAG / EVENTCONFIDENTIALITY_DEFAULT_EXTERNAL_MODE
 $var=!$var;
 print '<tr '.$bc[$var].'>'."\n";
 print '<td>'.$langs->trans("EventConfidentialityDefaultExternalLevel").'</td>'."\n";
 print '<td align="center">&nbsp;</td>'."\n";
 print '<td align="right">'."\n";
-print $form->selectarray('EVENTCONFIDENTIALITY_DEFAULT_EXTERNAL_LEVEL', $confidential_leves, $conf->global->EVENTCONFIDENTIALITY_DEFAULT_EXTERNAL_LEVEL);
+print $formdictionary->select_dictionary('eventconfidentiality', 'eventconfidentialitytag', $conf->global->EVENTCONFIDENTIALITY_DEFAULT_EXTERNAL_TAG, 'EVENTCONFIDENTIALITY_DEFAULT_EXTERNAL_TAG', 1, 'rowid', '{{label}}', array('external' => 1), array('label'=>'ASC'), 0, array(), 0, 0, 'minwidth300');
+print $form->selectarray('EVENTCONFIDENTIALITY_DEFAULT_EXTERNAL_MODE', $confidential_leves, $conf->global->EVENTCONFIDENTIALITY_DEFAULT_EXTERNAL_MODE, 1);
 print '</td></tr>'."\n";
+
+print <<<SCRIPT
+    <script type="text/javascript" language="javascript">
+        $(document).ready(function(){
+            var ec_default_internal_tag = $('#EVENTCONFIDENTIALITY_DEFAULT_INTERNAL_TAG');
+            var ec_default_internal_mode = $('#EVENTCONFIDENTIALITY_DEFAULT_INTERNAL_MODE');
+            var ec_default_external_tag = $('#EVENTCONFIDENTIALITY_DEFAULT_EXTERNAL_TAG');
+            var ec_default_external_mode = $('#EVENTCONFIDENTIALITY_DEFAULT_EXTERNAL_MODE');
+
+            ec_update_default_internal_mode();
+            ec_default_internal_tag.on('change', function() {
+                ec_update_default_internal_mode();
+            });
+
+            ec_update_default_external_mode();
+            ec_default_external_tag.on('change', function() {
+                ec_update_default_external_mode();
+            });
+
+            function ec_update_default_internal_mode() {
+                if (ec_default_internal_tag.val() < 0) {
+                    ec_default_internal_mode.prop('disabled', true);
+                    ec_default_internal_mode.prepend('<option class="optiongrey" value="-1">&nbsp;</option>');
+                    ec_default_internal_mode.val(-1);
+                } else {
+                    ec_default_internal_mode.prop('disabled', false);
+                    ec_default_internal_mode.find('option[value="-1"]').remove();
+                }
+            }
+
+            function ec_update_default_external_mode() {
+                if (ec_default_external_tag.val() < 0) {
+                    ec_default_external_mode.prop('disabled', true);
+                    ec_default_external_mode.prepend('<option class="optiongrey" value="-1">&nbsp;</option>');
+                    ec_default_external_mode.val(-1);
+                } else {
+                    ec_default_external_mode.prop('disabled', false);
+                    ec_default_external_mode.find('option[value="-1"]').remove();
+                }
+            }
+        });
+    </script>
+SCRIPT;
 
 print '</table>';
 

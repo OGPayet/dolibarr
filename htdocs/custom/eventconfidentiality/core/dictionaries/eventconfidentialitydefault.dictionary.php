@@ -31,7 +31,7 @@ class EventConfidentialityDefaultDictionary extends Dictionary
     /**
      * @var int         Version of this dictionary
      */
-    public $version = 0;
+    public $version = 1;
 
     /**
      * @var array       List of languages to load
@@ -146,15 +146,28 @@ class EventConfidentialityDefaultDictionary extends Dictionary
         ),
         'element_origin' => array(),
         'tags' => array(),
-        'external' => array(
-            'name'       => 'external',
-            'label'      => 'EventConfidentialityExternal',
-            'type'       => 'boolean',
-            'td_input'  => array (
-                'positionLine' => 1,
+        'mode' => array(),
+    );
+
+    /**
+     * @var array  List of fields/indexes added, updated or deleted for a version
+     * array(
+     *   'version' => array(
+     *     'fields' => array('field_name'=>'a', 'field_name'=>'u', ...), // List of field name who is added(a) or updated(u) for a version
+     *     'deleted_fields' => array('field_name'=> array('name', 'type', other_custom_data_required_for_delete), ...), // List of field name who is deleted for a version
+     *     'indexes' => array('idx_number'=>'u', 'idx_number'=>'d', ...), // List of indexes number who is updated(u) or deleted(d) for a version
+     *   ),
+     * )
+     */
+    public $updates = array(
+        1 => array(
+            'delete_fields' => array(
+                'external' => array(
+                    'name' => 'external',
+                    'type' => 'boolean',
+                ),
             ),
         ),
-        'mode' => array(),
     );
 
     /**
@@ -166,6 +179,29 @@ class EventConfidentialityDefaultDictionary extends Dictionary
      * @var bool    Edit in the add form
      */
     public $edit_in_add_form = true;
+
+    /**
+     * @var array    Cache of the list of the action type for action_type show output
+     */
+    public $cactioncomm_cache = null;
+
+    /**
+	 * Load the cache of the list of the action type for action_type show output
+	 *
+     * @return  void
+	 */
+    public function load_action_type()
+    {
+        global $conf;
+
+        if (!isset($this->cactioncomm_cache)) {
+            require_once DOL_DOCUMENT_ROOT.'/comm/action/class/cactioncomm.class.php';
+            $cactioncomm = new CActionComm($this->db);
+
+            // Suggest a list with manual events or all auto events
+            $this->cactioncomm_cache = $cactioncomm->liste_array(1, 'id', '', (empty($conf->global->AGENDA_USE_EVENT_TYPE)?1:-1));
+        }
+    }
 
     /**
 	 * Initialize the dictionary
@@ -184,7 +220,7 @@ class EventConfidentialityDefaultDictionary extends Dictionary
             'order' => $langs->trans('Order'),
             'invoice' => $langs->trans('Invoice'),
             'inter' => $langs->trans('Inter'),
-            'event' => $langs->trans('Action'),
+            'ec_event' => $langs->trans('Action'),
         );
 
         // Add custom object
@@ -203,7 +239,6 @@ class EventConfidentialityDefaultDictionary extends Dictionary
             ),
             'td_input'  => array (
                 'moreAttributes' => 'width="50%"',
-                'colspan' => 2,
             ),
         );
 
@@ -222,15 +257,13 @@ class EventConfidentialityDefaultDictionary extends Dictionary
             'is_require' => true,
         );
 
+        dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
+        $eventconfidentiality = new EventConfidentiality($this->db);
         $this->fields['mode'] = array(
             'name' => 'mode',
             'label' => 'EventConfidentialityMode',
             'type' => 'select',
-            'options' => array(
-                0 => $langs->trans('EventConfidentialityModeVisible'),
-                1 => $langs->trans('EventConfidentialityModeBlurred'),
-                2 => $langs->trans('EventConfidentialityModeHidden'),
-            ),
+            'options' => $eventconfidentiality->mode_labels,
             'td_input'  => array (
                 'positionLine' => 1,
             ),
@@ -262,7 +295,6 @@ class EventConfidentialityDefaultDictionaryLine extends DictionaryLine
                 'action_type' => explode(',', $fieldsValue['action_type']),
                 'element_origin' => explode(',', $fieldsValue['element_origin']),
                 'tags' => explode(',', $fieldsValue['tags']),
-                'external' => $fieldsValue['external'],
                 'mode' => array($fieldsValue['mode']),
             ),
             array(), 0, 0, true
@@ -274,5 +306,65 @@ class EventConfidentialityDefaultDictionaryLine extends DictionaryLine
         }
 
         return 1;
+    }
+
+
+    /**
+     * Return HTML string to put an output field into a page
+     *
+     * @param   string	$fieldName      Name of the field
+     * @param   string	$value          Value to show
+     * @return	string					Formatted value
+     */
+    function showOutputField($fieldName, $value = null)
+    {
+        if ($fieldName == 'action_type') {
+            if (isset($this->dictionary->fields[$fieldName])) {
+                // Load action type infos into cache
+                $this->dictionary->load_action_type();
+
+                if ($value === null) $value = $this->fields[$fieldName];
+
+                if (is_array($value)) {
+                    $value_arr = $value;
+                } else {
+                    $value_arr = explode(',', (string)$value);
+                }
+
+                $toprint = array();
+                foreach ($value_arr as $action_type_id) {
+                    $toprint[] = '<li class="select2-search-choice-dolibarr noborderoncategories" style="background: #aaa">' . $this->dictionary->cactioncomm_cache[$action_type_id] . '</li>';
+                }
+                $value = '<div class="select2-container-multi-dolibarr" style="width: 90%;"><ul class="select2-choices-dolibarr">' . implode(' ', $toprint) . '</ul></div>';
+
+                return $value;
+            }
+        }
+
+        return parent::showOutputField($fieldName, $value);
+    }
+
+    /**
+	 * Return HTML string to put an input field into a page
+	 *
+	 * @param  string  $fieldName      Name of the field
+	 * @param  string  $value          Preselected value to show (for date type it must be in timestamp format, for amount or price it must be a php numeric value)
+	 * @param  string  $keyprefix      Prefix string to add into name and id of field (can be used to avoid duplicate names)
+	 * @param  string  $keysuffix      Suffix string to add into name and id of field (can be used to avoid duplicate names)
+	 * @param  int     $objectid       Current object id
+	 * @return string
+	 */
+	function showInputField($fieldName, $value=null, $keyprefix='', $keysuffix='', $objectid=0)
+    {
+        global $conf;
+
+        if ($fieldName == 'action_type') {
+            require_once DOL_DOCUMENT_ROOT . '/core/class/html.formactions.class.php';
+            $formactions = new FormActions($this->db);
+
+            return $formactions->select_type_actions($value, $keyprefix . 'action_type' . $keysuffix, '', (empty($conf->global->AGENDA_USE_EVENT_TYPE) ? 1 : -1), 0, 1);
+        }
+
+        return parent::showInputField($fieldName, $value, $keyprefix, $keysuffix, $objectid);
     }
 }

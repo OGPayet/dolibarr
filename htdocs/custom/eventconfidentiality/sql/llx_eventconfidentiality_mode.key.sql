@@ -13,17 +13,12 @@
 --
 -- You should have received a copy of the GNU General Public License
 -- along with this program. If not, see <http://www.gnu.org/licenses/>.
---
--- Table of journals for accountancy
--- ============================================================================
+-- ===========================================================================
 
-create table llx_event_agenda
-(
-  rowid                     integer AUTO_INCREMENT PRIMARY KEY,
+ALTER TABLE llx_eventconfidentiality_mode ADD UNIQUE INDEX uk_eventconfidentiality_mode (fk_actioncomm, fk_c_eventconfidentiality_tag);
 
-  fk_object                 integer NOT NULL,		            -- id of action
-  fk_dict_tag_confid        integer NOT NULL,		            -- id of tag
+ALTER TABLE llx_eventconfidentiality_mode ADD INDEX idx_ecm_fk_actioncomm (fk_actioncomm);
+ALTER TABLE llx_eventconfidentiality_mode ADD INDEX idx_ecm_fk_c_eventconfidentiality_tag (fk_c_eventconfidentiality_tag);
 
-  externe                   integer(1), 		      -- interne ou externe
-  level_confid               integer(1)               -- niveau de confidentialité
-)ENGINE=innodb;
+ALTER TABLE llx_eventconfidentiality_mode ADD CONSTRAINT fk_ecm_fk_actioncomm   FOREIGN KEY (fk_actioncomm) REFERENCES llx_actioncomm (id);
+ALTER TABLE llx_eventconfidentiality_mode ADD CONSTRAINT fk_ecm_fk_cec_tag      FOREIGN KEY (fk_c_eventconfidentiality_tag) REFERENCES llx_c_eventconfidentiality_tag (rowid);

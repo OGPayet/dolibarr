@@ -244,34 +244,6 @@ class modRequestManager extends DolibarrModules
         $this->rights[$r][4] = 'read_file';
         $r++;
 
-        /*$this->rights[$r][0] = 163037;
-        $this->rights[$r][1] = 'Voir les prix des lignes de produits';
-        $this->rights[$r][3] = 0;
-        $this->rights[$r][4] = 'product_line_price';
-        $this->rights[$r][5] = 'lire';
-        $r++;
-
-        $this->rights[$r][0] = 163038;
-        $this->rights[$r][1] = 'Editer les prix des lignes de produits';
-        $this->rights[$r][3] = 0;
-        $this->rights[$r][4] = 'product_line_price';
-        $this->rights[$r][5] = 'creer';
-        $r++;
-
-        $this->rights[$r][0] = 163039;
-        $this->rights[$r][1] = 'Voir les remises des lignes de produits';
-        $this->rights[$r][3] = 0;
-        $this->rights[$r][4] = 'product_line_discount';
-        $this->rights[$r][5] = 'lire';
-        $r++;
-
-        $this->rights[$r][0] = 163040;
-        $this->rights[$r][1] = 'Editer les remises des lignes de produits';
-        $this->rights[$r][3] = 0;
-        $this->rights[$r][4] = 'product_line_discount';
-        $this->rights[$r][5] = 'creer';
-        $r++;*/
-
         // Add here list of permission defined by an id, a label, a boolean and two constant strings.
         // Example:
         // $this->rights[$r][0] = $this->numero + $r;	// Permission id (must not be already used)

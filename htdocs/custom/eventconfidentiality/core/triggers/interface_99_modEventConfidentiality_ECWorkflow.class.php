@@ -35,7 +35,6 @@ class InterfaceECWorkflow extends DolibarrTriggers
 	public $version = self::VERSION_DOLIBARR;
 	public $picto = 'eventconfidentiality@eventconfidentiality';
 
-
 	/**
 	 * Function called when a Dolibarrr business event is done.
 	 * All functions "runTrigger" are triggered if file is inside directory htdocs/core/triggers or htdocs/module/code/triggers (and declared)
@@ -48,51 +47,119 @@ class InterfaceECWorkflow extends DolibarrTriggers
 	 * @return int         				<0 if KO, 0 if no triggered ran, >0 if OK
 	 */
 	public function runTrigger($action, $object, User $user, Translate $langs, Conf $conf)
-	{
-		dol_include_once('/advancedictionaries/class/dictionary.class.php');
-		dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
-		dol_include_once('/eventconfidentiality/lib/eventconfidentiality.lib.php');
+    {
+        if (empty($conf->eventconfidentiality->enabled)) return 0;     // Module not active, we do nothing
 
-		if(empty($object->elementtype)) { //Gestion des event action qui n'ont pas de type
-			$object->elementtype = 'event';
-		}
+        switch ($action) {
+            // Action
+            case 'ACTION_CREATE':
+                // Get all tags
+                dol_include_once('/advancedictionaries/class/dictionary.class.php');
+                $dictionary = Dictionary::getDictionary($this->db, 'eventconfidentiality', 'eventconfidentialitytag');
+                $result = $dictionary->fetch_lines(1, array(), array('label' => 'ASC'));
+                if ($result < 0) {
+                    $this->error = $dictionary->error;
+                    $this->errors = $dictionary->errors;
+                    return -1;
+                }
 
-	    if ($action == 'ACTION_CREATE') {
-			$tags_interne = GETPOST('add_tag_interne', 'array') ? GETPOST('add_tag_interne', 'array') : (isset($object->edit_tag_interne) ? (is_array($object->add_tag_interne) ? $object->add_tag_interne : explode(',', $object->add_tag_interne)) : array());
-            $tags_externe = GETPOST('add_tag_externe', 'array') ? GETPOST('add_tag_externe', 'array') : (isset($object->add_tag_externe) ? (is_array($object->add_tag_externe) ? $object->add_tag_externe : explode(',', $object->add_tag_externe)) : array());
-			$tags = array_merge($tags_interne, $tags_externe);
-			if(!empty($tags)) {
-				foreach($tags as $tag) {
-					$eventconfidentiality = new EventConfidentiality($this->db);
-					$eventconfidentiality->getDefaultMode($tag, $object->elementtype, $object->type_id, $object->id);
-					$eventconfidentiality->create($user);
-				}
-			}
-			if(!empty($tags_interne) || !empty($tags_externe))  {
-				$list_event = getDefaultTag($object->elementtype, $object->type_id, $object->id);
-				foreach($list_event as $event) {
-					$eventconfidentiality = new EventConfidentiality($this->db);
-					$eventconfidentiality->fk_object = $event['fk_object'];
-					$eventconfidentiality->fk_dict_tag_confid = $event['fk_dict_tag_confid'];
-					$eventconfidentiality->externe = $event['externe'];
-					$eventconfidentiality->level_confid = $event['level_confid'];
-					$eventconfidentiality->create($user);
+                dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
+                $eventconfidentiality = new EventConfidentiality($this->db);
 
-				}
-			}
-        }
+                // Get default tags
+                $default_tags = $eventconfidentiality->getDefaultTags($object->elementtype, $object->type_id);
+                if (!is_array($default_tags)) {
+                    $this->error = $eventconfidentiality->error;
+                    $this->errors = $eventconfidentiality->errors;
+                    return -1;
+                }
+                $default_tags = $default_tags[$object->type_code];
 
-	    if ($action == 'ACTION_MODIFY') {
-            $tags_interne = GETPOST('edit_tag_interne', 'array') ? GETPOST('edit_tag_interne', 'array') : (isset($object->edit_tag_interne) ? (is_array($object->add_tag_interne) ? $object->add_tag_interne : explode(',', $object->add_tag_interne)) : array());
-            $tags_externe = GETPOST('edit_tag_externe', 'array') ? GETPOST('edit_tag_externe', 'array') : (isset($object->add_tag_externe) ? (is_array($object->add_tag_externe) ? $object->add_tag_externe : explode(',', $object->add_tag_externe)) : array());
-			$tags = array_merge($tags_interne, $tags_externe);
-			if(count($tags) > 0) {
-				foreach($tags as $tag) {
-					$eventconfidentiality = new EventConfidentiality($this->db);
-					$eventconfidentiality->getDefaultMode($tag, $object->elementtype, $object->type_id, $object->id);
-					$eventconfidentiality->create($user);
-				}
-			}
+                foreach ($dictionary->lines as $line) {
+                    $mode = isset($_POST['ec_mode_' . $line->id]) ? GETPOST('ec_mode_' . $line->id, 'int') : (isset($object->ec_mode_tags[$line->id]) ? $object->ec_mode_tags[$line->id] : (!isset($object->ec_mode_tags) && isset($default_tags[$line->id]['mode']) ? $default_tags[$line->id]['mode'] : EventConfidentiality::MODE_HIDDEN));
+
+                    if ($mode != EventConfidentiality::MODE_HIDDEN) {
+                        $eventconfidentiality->fk_actioncomm = $object->id;
+                        $eventconfidentiality->fk_c_eventconfidentiality_tag = $line->id;
+                        $eventconfidentiality->mode = $mode;
+                        $result = $eventconfidentiality->create($user);
+                        if ($result < 0) {
+                            $this->error = $eventconfidentiality->error;
+                            $this->errors = $eventconfidentiality->errors;
+                            return -1;
+                        }
+                    }
+                }
+
+                dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
+                break;
+
+            case 'ACTION_MODIFY':
+                // Get all tags
+                dol_include_once('/advancedictionaries/class/dictionary.class.php');
+                $dictionary = Dictionary::getDictionary($this->db, 'eventconfidentiality', 'eventconfidentialitytag');
+                $result = $dictionary->fetch_lines(1, array(), array('label' => 'ASC'));
+                if ($result < 0) {
+                    $this->error = $dictionary->error;
+                    $this->errors = $dictionary->errors;
+                    return -1;
+                }
+
+                // Get tags set or default tags
+                dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
+                $eventconfidentiality = new EventConfidentiality($this->db);
+                $tags_set = $eventconfidentiality->fetchAllTagsOfEvent($object->id);
+                if (!is_array($tags_set)) {
+                    $this->error = $eventconfidentiality->error;
+                    $this->errors = $eventconfidentiality->errors;
+                    return -1;
+                }
+
+                foreach ($dictionary->lines as $line) {
+                    $mode = isset($_POST['ec_mode_' . $line->id]) ? GETPOST('ec_mode_' . $line->id, 'int') : (isset($object->ec_mode_tags[$line->id]) ? $object->ec_mode_tags[$line->id] : EventConfidentiality::MODE_HIDDEN);
+                    $eventconfidentiality->fk_actioncomm = $object->id;
+                    $eventconfidentiality->fk_c_eventconfidentiality_tag = $line->id;
+
+                    if ($mode != EventConfidentiality::MODE_HIDDEN) {
+                        $eventconfidentiality->mode = $mode;
+                        $result = 0;
+                        if ($tags_set[$line->id]['mode'] == EventConfidentiality::MODE_HIDDEN) {
+                            $result = $eventconfidentiality->create($user);
+                        } else if ($tags_set[$line->id]['mode'] != $mode) {
+                            $result = $eventconfidentiality->update($user);
+                        }
+                        if ($result < 0) {
+                            $this->error = $eventconfidentiality->error;
+                            $this->errors = $eventconfidentiality->errors;
+                            return -1;
+                        }
+                    } elseif ($tags_set[$line->id]['mode'] != EventConfidentiality::MODE_HIDDEN) {
+                        $result = $eventconfidentiality->delete();
+                        if ($result < 0) {
+                            $this->error = $eventconfidentiality->error;
+                            $this->errors = $eventconfidentiality->errors;
+                            return -1;
+                        }
+                    }
+                }
+
+                dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
+                break;
+
+            case 'ACTION_DELETE':
+                // Delete all tags
+                dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
+                $eventconfidentiality = new EventConfidentiality($this->db);
+                $eventconfidentiality->fk_actioncomm = $object->id;
+                $result = $eventconfidentiality->delete();
+                if ($result < 0) {
+                    $this->error = $eventconfidentiality->error;
+                    $this->errors = $eventconfidentiality->errors;
+                    return -1;
+                }
+
+                dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
+                break;
         }
 
         return 0;
