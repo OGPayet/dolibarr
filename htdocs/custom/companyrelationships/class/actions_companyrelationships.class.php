@@ -63,7 +63,7 @@ class ActionsCompanyRelationships
 
 
     /**
-     * Overloading the doActions function : replacing the parent's function with the one below
+     * Overloading the beforePDFCreation function : replacing the parent's function with the one below
      *
      * @param   array()         $parameters     Hook metadatas (context, etc...)
      * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
@@ -785,6 +785,57 @@ class ActionsCompanyRelationships
                     }
                 }
             }
+        }
+
+        return 0;
+    }
+
+    /**
+     * Overloading the printFieldPreListTitle function : replacing the parent's function with the one below
+     *
+     * @param   array()         $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          &$action        Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+    function printFieldPreListTitle($parameters, &$object, &$action, $hookmanager)
+    {
+        global $conf, $form;
+        $contexts = explode(':', $parameters['context']);
+
+        if (count(array_diff(array('propallist', 'orderlist', 'invoicelist', 'shipmentlist', 'interventionlist', 'contractlist'), $contexts)) != 6) {
+            if (!is_object($form)) {
+                require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
+                $form = new Form($this->db);
+            }
+
+            $selected = GETPOST('search_options_companyrelationships_fk_soc_benefactor', 'int');
+            $out = $form->select_company($selected, 'new_search_options_companyrelationships_fk_soc_benefactor', '(s.client = 1 OR s.client = 2 OR s.client = 3) AND status=1', 'SelectThirdParty', 0, 0, null, 0, 'maxwidth300');
+
+            $out .= '<script type="text/javascript" language="javascript">';
+            $out .= '  $(document).ready(function(){';
+            $out .= '    var cr_old_select = $("select#options_companyrelationships_fk_soc_benefactor");';
+            $out .= '    var cr_new_select = $("select#new_search_options_companyrelationships_fk_soc_benefactor");';
+            $out .= '    if (cr_new_select.length == 0) cr_new_select = $("input#new_search_options_companyrelationships_fk_soc_benefactor");';
+            $out .= '    var cr_new_select_div = $("div#s2id_new_search_options_companyrelationships_fk_soc_benefactor");';
+            $out .= '    cr_new_select_div.detach().prependTo(cr_old_select.parent());';
+            $out .= '    cr_new_select.detach().prependTo(cr_old_select.parent());';
+            $out .= '    cr_old_select.remove();';
+            $out .= '    cr_new_select.attr("name", "search_options_companyrelationships_fk_soc_benefactor");';
+            $out .= '    cr_new_select.find(\'option[value="-1"]\').attr("value", "0");';
+            $out .= '  });';
+            $out .= '</script>';
+
+            if (!empty($conf->use_javascript_ajax) && !empty($conf->global->COMPANY_USE_SEARCH_TO_SELECT)) {
+                $urloption = 'htmlname=search_options_companyrelationships_fk_soc_benefactor&outjson=1&filter=' . urlencode('(s.client = 1 OR s.client = 2 OR s.client = 3) AND status=1') . '&showtype=SelectThirdParty';
+                $out .= ajax_autocompleter($selected, 'search_options_companyrelationships_fk_soc_benefactor', DOL_URL_ROOT . '/societe/ajax/company.php', $urloption, $conf->global->COMPANY_USE_SEARCH_TO_SELECT, 0);
+            } elseif ($conf->use_javascript_ajax) {
+                include_once DOL_DOCUMENT_ROOT . '/core/lib/ajax.lib.php';
+                $out .= ajax_combobox('search_options_companyrelationships_fk_soc_benefactor', null, $conf->global->COMPANY_USE_SEARCH_TO_SELECT);
+            }
+
+            $this->resprints = $out;
         }
 
         return 0;
