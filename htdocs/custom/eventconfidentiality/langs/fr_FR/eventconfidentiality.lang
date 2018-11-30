@@ -24,8 +24,8 @@ EventConfidentialityElementOrigin = Type de l'objet lié à l'événement
 ############################################################
 EventConfidentialitySetup                   = Configuration du module Event Confidentiality
 
-EventConfidentialityDefaultInternalLevel    = Tag par défaut pour les utilisateurs internes
-EventConfidentialityDefaultExternalLevel    = Tag par défaut pour les utilisateurs externes
+EventConfidentialityDefaultInternalLevel    = Tag par défaut pour les utilisateurs internes si aucun tags par défaut trouvé dans le dictionnaire
+EventConfidentialityDefaultExternalLevel    = Tag par défaut pour les utilisateurs externes si aucun tags par défaut trouvé dans le dictionnaire
 
 ############################################################
 ### Form
