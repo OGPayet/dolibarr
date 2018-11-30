@@ -319,7 +319,7 @@ if (count($prods_arbo) > 0) {
 				$refFieldName = 'ref_'.$value['id'].'_'.$i;
 
                 $resql = $componentstatic->findAllInWarehouseByFkProduct($productstatic->id);
-				if (!$resql || $resql->num_rows<=0) {
+				if (!$resql || $db->num_rows($resql)<=0) {
                     print '<input type="text" name="'.$refFieldName.'" value="'.$refComponent.'">';
                 } else {
                     print '<select name="'.$refFieldName.'">';
@@ -337,6 +337,7 @@ if (count($prods_arbo) > 0) {
 
                     print '</select>';
                 }
+                print '</td>';
 
 				print '<td align="left">';
                 require_once DOL_DOCUMENT_ROOT.'/core/class/doleditor.class.php';
@@ -344,7 +345,7 @@ if (count($prods_arbo) > 0) {
                 print $doleditor->Create(1);
                // print '<input type="text" name="note_'.$value['id'].'_'.$i.'" value="'..'">';
                 print '</td>';
-				print '</td></tr>';
+				print '</tr>';
 			}
 		} else {
 			// pas de num�ro de s�rie � saisir sur la main-d'oeuvre

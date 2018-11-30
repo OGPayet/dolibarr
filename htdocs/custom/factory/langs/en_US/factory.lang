@@ -357,3 +357,8 @@ DateEndPlanned=End date plan
 FactoryWarehouse=Factory warehouse for this product
 ErrorNotEnoughComponentToBuild=Not enough component in this warehouse stock
 ErrorNotEnoughComponentQtySelected=You have not selected enough qty to build this product
+
+#
+# Report
+#
+FactoryBuildIndice = N°

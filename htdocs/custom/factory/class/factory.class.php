@@ -84,7 +84,7 @@ class Factory extends CommonObject
     /**
      * Create factory order (OF)
      *
-     * @param   array   $warehouseToUseList             [=array()] Use factory warehouse to extract product component or list of warehouses with quantities to extract each product component ( ex : array(array('fk_entrepot' => 1, 'qty' => 1), array('fk_entrepot' => 6, 'qty' => 2)) )
+     * @param   array   $warehouseToUseList             [=array()] Use factory warehouse to extract product component or list of warehouses with quantities to extract each product component ( ex : array(array(array('fk_entrepot' => 1, 'qty' => 1), array('fk_entrepot' => 6, 'qty' => 2))) )
      * @return  int     <0 if KO, Id of factory if OK
      *
      * @throws Exception
@@ -203,7 +203,7 @@ class Factory extends CommonObject
     /**
      * Create component lines in factory order (OF) from a list of warehouses with quantities to use
      *
-     * @param   array       $warehouseToUseList             [=array()] Use factory warehouse to extract product component or list of warehouses with quantities to extract each product component ( ex : array(array('fk_entrepot' => 1, 'qty' => 1), array('fk_entrepot' => 6, 'qty' => 2)) )
+     * @param   array       $warehouseToUseList             [=array()] Use factory warehouse to extract product component or list of warehouses with quantities to extract each product component ( ex : array(array(array('fk_entrepot' => 1, 'qty' => 1), array('fk_entrepot' => 6, 'qty' => 2))) )
      * @param   int         $fk_factory                     Id of factory
      * @param   array       $valuearray                     Array of values
      * @param   int         $fk_mouvementstock              Stock movement
@@ -216,11 +216,17 @@ class Factory extends CommonObject
         $error = 0;
 
         if (count($warehouseToUseList) > 0) {
-            foreach ($warehouseToUseList as $idDispatchedLine => $warehouseToUse) {
-                $result = $this->createof_component($fk_factory, 0, $valuearray, $fk_mouvementstock, $warehouseToUse['fk_entrepot'], $idDispatchedLine, $warehouseToUse['qty']);
+            foreach ($warehouseToUseList as $indiceFactoryBuild => $warehouseToUseByIndiceList) {
+                foreach ($warehouseToUseByIndiceList as $idDispatchedLine => $warehouseToUse) {
+                    $result = $this->createof_component($fk_factory, 0, $valuearray, $fk_mouvementstock, $warehouseToUse['fk_entrepot'], $idDispatchedLine, $warehouseToUse['qty'], $indiceFactoryBuild);
 
-                if ($result < 0) {
-                    $error++;
+                    if ($result < 0) {
+                        $error++;
+                        break;
+                    }
+                }
+
+                if ($error) {
                     break;
                 }
             }
@@ -244,17 +250,19 @@ class Factory extends CommonObject
      * @param   int|NULL    $fk_entrepot            [=NULL] Id of warehouse to use
      * @param   int         $id_dispatched_line     [=O] Id of dispatched line
      * @param   int|NULL    $qty_planned            [=NULL] Qty planned or NULL to use default (calculated by qty to build)
+     * @param   int         $indice_factory_build   [=O] Id of factory build
      * @return  int         <0 if KO, Id of factorydet if OK
      *
      * @throws  Exception
      */
-	public function createof_component($fk_factory, $qty_build, $valuearray, $fk_mouvementstock=0, $fk_entrepot=NULL, $id_dispatched_line=0, $qty_planned=NULL)
+	public function createof_component($fk_factory, $qty_build, $valuearray, $fk_mouvementstock=0, $fk_entrepot=NULL, $id_dispatched_line=0, $qty_planned=NULL, $indice_factory_build=0)
 	{
 		$sql  = "INSERT INTO " . MAIN_DB_PREFIX . "factorydet (";
 		$sql .= "fk_factory, fk_product, qty_unit, qty_planned, pmp, price";
 		$sql .= ", fk_mvtstockplanned, globalqty, description";
         $sql .= ", fk_entrepot";
         $sql .= ", id_dispatched_line";
+        $sql .= ", indice_factory_build";
 		$sql .= ")";
 		if ($qty_planned===NULL) {
             // pour gerer les quantites
@@ -269,6 +277,7 @@ class Factory extends CommonObject
         $sql .= ", '" . $this->db->escape($valuearray['description']) . "'";
         $sql .= ", " . ($fk_entrepot > 0 ? $fk_entrepot : 'NULL');
         $sql .= ", " . ($id_dispatched_line > 0 ? $id_dispatched_line : 0);
+        $sql .= ", " . ($indice_factory_build > 0 ? $indice_factory_build : 0);
         $sql .= ")";
 		if (! $this->db->query($sql)) {
 		    $this->error    = $this->db->lasterror();

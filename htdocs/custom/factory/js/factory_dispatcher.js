@@ -99,7 +99,7 @@ class FactoryDispatcher {
         }
 
         // retrieve the first dispatched line to copy
-        var $row = jQuery("tr[name='"+dispatcherPrefix+idDispatcher+'_0'+"']").clone(true);
+        var $row = jQuery("tr[name='"+dispatcherPrefix+idDispatcher+'_0'+"']").clone(false);
 
         // add all quantities already selected
         var qtyDispatched = 0;
@@ -138,6 +138,13 @@ class FactoryDispatcher {
                     // get all equipments in selected warehouse
                     FactoryDispatcher.getAllEquipementInSelectedWarehouse(idDispatcher, dispatcherName, nbLine, dispatchElementData);
                 });
+
+                // remove and reload copied warehouse lost select2
+                if (jQuery("#s2id_"+dispatcherPrefix+"id_entrepotlost_"+dispatcherSuffix).length > 0) {
+                    jQuery("#s2id_"+dispatcherPrefix+"id_entrepotlost_"+dispatcherSuffix).remove();
+                    jQuery("select#"+dispatcherPrefix+"id_entrepotlost_"+dispatcherSuffix).select2();
+                    jQuery("#s2id_"+dispatcherPrefix+"id_entrepotlost_"+dispatcherSuffix).show();
+                }
             }
         }
     }

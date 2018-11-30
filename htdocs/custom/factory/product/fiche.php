@@ -91,10 +91,9 @@ if ($id || $ref) {
 
 // all dispatched lines
 $dispatchLineList = array();
-$dispatchName   = 'factory';
-$dispatchPrefix = $dispatchName . '_';
-$factoryIdEntrepot = (GETPOST($dispatchPrefix . 'id_entrepot', 'int') ? intval(GETPOST($dispatchPrefix . 'id_entrepot', 'int')) : -1);
-$nbToBuild = (GETPOST('nbToBuild', 'int') ? intval(GETPOST('nbToBuild', 'int')) : 1);
+$dispatchLinePrefixName = 'factory';
+$factoryIdEntrepot = GETPOST('factory_id_entrepot', 'int') ? intval(GETPOST('factory_id_entrepot', 'int')) : -1;
+$nbToBuild = GETPOST('nbToBuild', 'int') ? intval(GETPOST('nbToBuild', 'int')) : 1;
 if ($nbToBuild <= 0) {
     $nbToBuild = 1;
 }
@@ -107,25 +106,25 @@ if ($cancel == $langs->trans("Cancel"))
 	$action = '';
 
 // build product on each store
-if ($action == 'createof' && GETPOST("createofrun") && $user->rights->factory->creer) {
-
+if ($action == 'createof' && GETPOST('createofrun') && $user->rights->factory->creer) {
+    // error num
     $error = 0;
 
     $factory->get_sousproduits_arbo();
     $prods_arbo = $factory->get_arbo_each_prod();
 
-    $factory->fk_entrepot=$factoryIdEntrepot;
-    $factory->qty_planned=GETPOST("nbToBuild");
-    $factory->date_start_planned=dol_mktime(
+    $factory->fk_entrepot = $factoryIdEntrepot;
+    $factory->qty_planned = GETPOST("nbToBuild");
+    $factory->date_start_planned = dol_mktime(
         GETPOST('plannedstarthour', 'int'), GETPOST('plannedstartmin', 'int'), 0,
         GETPOST('plannedstartmonth', 'int'), GETPOST('plannedstartday', 'int'), GETPOST('plannedstartyear', 'int')
     );
-    $factory->date_end_planned=dol_mktime(
+    $factory->date_end_planned = dol_mktime(
         GETPOST('plannedendhour', 'int'), GETPOST('plannedendmin', 'int'), 0,
         GETPOST('plannedendmonth', 'int'), GETPOST('plannedendday', 'int'), GETPOST('plannedendyear', 'int')
     );
-    $factory->duration_planned=GETPOST("workloadhour")*3600+GETPOST("workloadmin")*60;
-    $factory->description=GETPOST("description");
+    $factory->duration_planned = GETPOST("workloadhour")*3600+GETPOST("workloadmin")*60;
+    $factory->description = GETPOST("description");
 
     // check mandatory fields
     if ($factoryIdEntrepot <= 0) {
@@ -144,29 +143,37 @@ if ($action == 'createof' && GETPOST("createofrun") && $user->rights->factory->c
     $warehouseToUseList               = array();
     $componentProductEquipementIdList = array();
     if (count($prods_arbo) > 0) {
-
+        // for all posted values
         foreach ($_POST as $postKey => $postValue) {
             $matches = array();
 
             // it's a dispatched line of factory
-            if (preg_match('#^' . $dispatchPrefix . 'id_component_product_([0-9]+)_([0-9]+)$#', $postKey, $matches)) {
-                $componentProductId = intval($matches[1]);
-                $lineNum            = $matches[2];
-                $dispatchSuffix     = $componentProductId . '_' . $lineNum;
+            if (preg_match('#^' . $dispatchLinePrefixName . '_([0-9]+)_id_component_product_([0-9]+)_([0-9]+)$#', $postKey, $matches)) {
+                $indiceFactoryBuild = intval($matches[1]);
+                $componentProductId = intval($matches[2]);
+                $lineNum            = $matches[3];
 
-                $componentProductNb              = GETPOST($dispatchPrefix . 'nb_component_product_' . $dispatchSuffix, 'int');
-                $componentProductIdEntrepot      = GETPOST($dispatchPrefix . 'id_entrepot_' . $dispatchSuffix, 'int');
-                $componentProductQtyPost         = GETPOST($dispatchPrefix . 'qty_' . $dispatchSuffix, 'int');
-                $componentProductToSerialize     = GETPOST($dispatchPrefix . 'product_serializel_' . $dispatchSuffix, 'int');
-                $componentProductEquipementArray = GETPOST($dispatchPrefix . 'equipementl_' . $dispatchSuffix, 'array') ? GETPOST($dispatchPrefix . 'equipementl_' . $dispatchSuffix, 'array') : array();
+                $dispatcherPrefix = $dispatchLinePrefixName . '_' . $indiceFactoryBuild . '_';
+                $dispatcherSuffix = $componentProductId . '_' . $lineNum;
+
+                $componentProductNb              = GETPOST($dispatcherPrefix . 'nb_component_product_' . $dispatcherSuffix, 'int');
+                $componentProductIdEntrepot      = GETPOST($dispatcherPrefix . 'id_entrepot_' . $dispatcherSuffix, 'int');
+                $componentProductQtyPost         = GETPOST($dispatcherPrefix . 'qty_' . $dispatcherSuffix, 'int');
+                $componentProductToSerialize     = GETPOST($dispatcherPrefix . 'product_serializel_' . $dispatcherSuffix, 'int');
+                $componentProductEquipementArray = GETPOST($dispatcherPrefix . 'equipementl_' . $dispatcherSuffix, 'array') ? GETPOST($dispatcherPrefix . 'equipementl_' . $dispatcherSuffix, 'array') : array();
 
                 // add to dispatched lines
                 $componentProduct = new Product($db);
                 $componentProduct->fetch($componentProductId);
-                $dispatchLineList[] = array('component_product' => $componentProduct, 'nb' => $componentProductNb, 'line' => $lineNum);
+                $dispatchLineList[] = array(
+                    'component_product'    => $componentProduct,
+                    'indice_factory_build' => $indiceFactoryBuild,
+                    'line'                 => $lineNum,
+                    'nb'                   => $componentProductNb
+                );
 
                 // set line for errors
-                $errorLine = $langs->trans('Product') . ' ' . $componentProduct->ref . ' - ' . $langs->trans('Line') . ' ' . ($lineNum+1);
+                $errorLine = $langs->trans('FactoryBuildIndice') . ' '  . ($indiceFactoryBuild+1) . ' - ' . $langs->trans('Product') . ' ' . $componentProduct->ref . ' - ' . $langs->trans('Line') . ' ' . ($lineNum+1);
 
                 $componentProductQty = intval($componentProductQtyPost);
 
@@ -185,27 +192,30 @@ if ($action == 'createof' && GETPOST("createofrun") && $user->rights->factory->c
                         $factory->error    = $errorLine . ' : ' . $langs->trans('EquipementErrorQtyToBuild');
                         $factory->errors[] = $factory->error;
                     }
+
+                    // check all serial numbers for each component product
+                    if (!isset($componentProductEquipementIdList[$componentProductId])) {
+                        $componentProductEquipementIdList[$componentProductId] = array();
+                    }
+                    foreach ($componentProductEquipementArray as $equipementId) {
+                        if (in_array($equipementId, $componentProductEquipementIdList[$componentProductId])) {
+                            $error++;
+                            $factory->error    = $errorLine . ' : ' . $langs->trans('EquipementErrorReferenceAlreadyUsed');
+                            $factory->errors[] = $factory->error;
+                        } else {
+                            $componentProductEquipementIdList[$componentProductId][] = $equipementId;
+                        }
+                    }
                 }
 
                 // add warehouses to use
                 if (!isset($warehouseToUseList[$componentProductId])) {
                     $warehouseToUseList[$componentProductId] = array();
                 }
-                $warehouseToUseList[$componentProductId][] = array('fk_entrepot' => $componentProductIdEntrepot, 'qty' => $componentProductQty, 'id_equipement_list' => $componentProductEquipementArray);
-
-                // check all serial numbers for each component product
-                if (!isset($componentProductEquipementIdList[$componentProductId])) {
-                    $componentProductEquipementIdList[$componentProductId] = array();
+                if (!isset($warehouseToUseList[$componentProductId][$indiceFactoryBuild])) {
+                    $warehouseToUseList[$componentProductId][$indiceFactoryBuild] = array();
                 }
-                foreach ($componentProductEquipementArray as $equipementId) {
-                    if (in_array($equipementId, $componentProductEquipementIdList[$componentProductId])) {
-                        $error++;
-                        $factory->error    = $errorLine . ' : ' . $langs->trans('EquipementErrorReferenceAlreadyUsed');
-                        $factory->errors[] = $factory->error;
-                    } else {
-                        $componentProductEquipementIdList[$componentProductId][] = $equipementId;
-                    }
-                }
+                $warehouseToUseList[$componentProductId][$indiceFactoryBuild][] = array('fk_entrepot' => $componentProductIdEntrepot, 'qty' => $componentProductQty, 'id_equipement_list' => $componentProductEquipementArray);
             }
         }
     }
@@ -245,6 +255,7 @@ if ($action == 'createof' && GETPOST("createofrun") && $user->rights->factory->c
             $sql  = "SELECT fd.rowid";
             $sql .= ", fd.fk_product";
             $sql .= ", fd.id_dispatched_line";
+            $sql .= ", fd.indice_factory_build";
             $sql .= " FROM " . MAIN_DB_PREFIX . "factorydet as fd";
             $sql .= " WHERE fd.fk_factory = " . $factory->id;
 
@@ -258,10 +269,11 @@ if ($action == 'createof' && GETPOST("createofrun") && $user->rights->factory->c
                 while ($obj = $db->fetch_object($resql)) {
                     $fkFactoryDet       = $obj->rowid;
                     $componentProductId = $obj->fk_product;
+                    $indiceFactoryBuild = intval($obj->indice_factory_build);
                     $idDispatchedLine   = intval($obj->id_dispatched_line);
 
-                    if (isset($warehouseToUseList[$componentProductId][$idDispatchedLine])) {
-                        $equipementIdList = $warehouseToUseList[$componentProductId][$idDispatchedLine]['id_equipement_list'];
+                    if (isset($warehouseToUseList[$componentProductId][$indiceFactoryBuild][$idDispatchedLine])) {
+                        $equipementIdList = $warehouseToUseList[$componentProductId][$indiceFactoryBuild][$idDispatchedLine]['id_equipement_list'];
 
                         foreach ($equipementIdList as $equipementId) {
                             $equipement = new Equipement($db);
@@ -553,12 +565,6 @@ if ($id || $ref) {
 				$pmpTot=$pmpTot+$value['pmp']*$value['nb']; // sub total calculation
 
 				print '</tr>';
-
-				//var_dump($value);
-				//print '<pre>'.$productstatic->ref.'</pre>';
-				//print $productstatic->getNomUrl(1).'<br>';
-				//print $value[0];	// This contains a tr line.
-
 			}
 			print '<tr class="liste_total">';
 			print '<td colspan=5 align=right >'.$langs->trans("Total").'</td>';
@@ -671,11 +677,18 @@ if ($id || $ref) {
                 $outjsLineList = array();
 
                 if (empty($dispatchLineList)) {
-                    foreach ($prods_arbo as $value) {
-                        // component product
-                        $componentProduct = new Product($db);
-                        $componentProduct->fetch($value['id']);
-                        $dispatchLineList[] = array('component_product' => $componentProduct, 'line' => 0, 'nb' => intval($value['nb']) * $nbToBuild);
+                    for ($indiceFactoryBuild = 0; $indiceFactoryBuild < $nbToBuild; $indiceFactoryBuild++) {
+                        foreach ($prods_arbo as $value) {
+                            // component product
+                            $componentProduct = new Product($db);
+                            $componentProduct->fetch($value['id']);
+                            $dispatchLineList[] = array(
+                                'component_product'    => $componentProduct,
+                                'indice_factory_build' => $indiceFactoryBuild,
+                                'line'                 => 0,
+                                'nb'                   => intval($value['nb'])
+                            );
+                        }
                     }
                 }
 
@@ -688,34 +701,47 @@ if ($id || $ref) {
                     $componentProductId = $componentProduct->id;
 
                     // dispatcher
-                    $dispactherList = array('id' => $componentProductId, 'name' => 'factory', 'line' => $dispatchLine['line'], 'nb' => $dispatchLine['nb'], 'btn_nb' => 0, 'mode' => 'select', 'unlock_qty' => 'false', 'element_type' => '');
-                    $dispatchSuffix = $dispactherList['id'] . '_' . $dispactherList['line'];
+                    $indiceFactoryBuild = $dispatchLine['indice_factory_build'];
+                    $dispactherList = array(
+                        'id'           => $componentProductId,
+                        'name'         => $dispatchLinePrefixName . '_' . $indiceFactoryBuild,
+                        'line'         => $dispatchLine['line'],
+                        'nb'           => $dispatchLine['nb'],
+                        'btn_nb'       => 0,
+                        'mode'         => 'select',
+                        'unlock_qty'   => 'false',
+                        'element_type' => ''
+                    );
+                    $dispatcherPrefix = $dispactherList['name'] . '_';
+                    $dispatcherSuffix = $dispactherList['id'] . '_' . $dispactherList['line'];
 
                     // select warehouse where there is enough stock with qty dispatcher
-                    print '<tr name="' . $dispatchPrefix . $dispatchSuffix . '">';
+                    print '<tr name="' . $dispatcherPrefix . $dispatcherSuffix . '">';
+
+                    print '<td>' . $langs->trans('FactoryBuildIndice') . ($indiceFactoryBuild+1) . '</td>';
 
                     // dispatch component ref
                     print '<td class="fieldrequired">';
-                    print '<input type="hidden" id="' . $dispatchPrefix . 'id_component_product_' . $dispatchSuffix . '" name="' . $dispatchPrefix . 'id_component_product_' . $dispatchSuffix . '" value="' . $dispactherList['id'] . '" />';
-                    print '<input type="hidden" id="' . $dispatchPrefix . 'nb_component_product_' . $dispatchSuffix . '" name="' . $dispatchPrefix . 'nb_component_product_' . $dispatchSuffix . '" value="' . $dispactherList['nb'] . '" />';
+                    print '<input type="hidden" id="' . $dispatcherPrefix . 'id_component_product_' . $dispatcherSuffix . '" name="' . $dispatcherPrefix . 'id_component_product_' . $dispatcherSuffix . '" value="' . $dispactherList['id'] . '" />';
+                    print '<input type="hidden" id="' . $dispatcherPrefix . 'nb_component_product_' . $dispatcherSuffix . '" name="' . $dispatcherPrefix . 'nb_component_product_' . $dispatcherSuffix . '" value="' . $dispactherList['nb'] . '" />';
                     print '&nbsp;&nbsp;' . $componentProduct->getNomUrl(1) . '&nbsp;&nbsp;';
                     print '</td>';
 
                     // dispatch component warehouse
-                    $componentEntrepotId = GETPOST($dispatchPrefix . 'id_entrepot_' . $dispatchSuffix, 'int') ? GETPOST($dispatchPrefix . 'id_entrepot_' . $dispatchSuffix, 'int') : '';
+                    $componentEntrepotId = GETPOST($dispatcherPrefix . 'id_entrepot_' . $dispatcherSuffix, 'int') ? GETPOST($dispatcherPrefix . 'id_entrepot_' . $dispatcherSuffix, 'int') : '';
                     print '<td>';
-                    print $formproduct->selectWarehouses($componentEntrepotId, $dispatchPrefix . 'id_entrepot_' . $dispatchSuffix, 'warehouseopen,warehouseinternal', 0, 0, $dispactherList['id'], '', 0, 1, null, 'minwidth100',  '', 1, TRUE);
+                    print $formproduct->selectWarehouses($componentEntrepotId, $dispatcherPrefix . 'id_entrepot_' . $dispatcherSuffix, 'warehouseopen,warehouseinternal', 0, 0, $dispactherList['id'], '', 0, 1, null, 'minwidth100',  '', 1, TRUE);
                     print '</td>';
 
                     // dispatch component qty to use
-                    if (!isset($_POST[$dispatchPrefix . 'qty_' . $dispatchSuffix])) {
+                    if (!isset($_POST[$dispatcherPrefix . 'qty_' . $dispatcherSuffix])) {
                         $componentProductQty = $dispactherList['nb'];
                     } else {
-                        $componentProductQty = GETPOST($dispatchPrefix . 'qty_' . $dispatchSuffix, 'int');
+                        $componentProductQty = GETPOST($dispatcherPrefix . 'qty_' . $dispatcherSuffix, 'int');
                     }
                     print '<td>';
                     print '&nbsp;&nbsp;' . $langs->trans('Qty') . ' : ';
-                    print '<select id="' . $dispatchPrefix . 'qty_' . $dispatchSuffix . '" name="' . $dispatchPrefix . 'qty_' . $dispatchSuffix . '">';
+                    print '<select id="' . $dispatcherPrefix . 'qty_' . $dispatcherSuffix . '" name="' . $dispatcherPrefix . 'qty_' . $dispatcherSuffix . '">';
                     for ($dispatcherQty = 0; $dispatcherQty <= $dispactherList['nb']; $dispatcherQty++) {
                         $dispatcherOptionSelected = '';
                         if ($dispatcherQty == $componentProductQty) {
@@ -740,7 +766,7 @@ if ($id || $ref) {
                             // find all equipments for a product and warehouse
                             if ($componentEntrepotId > 0) {
                                 $equipementList   = array();
-                                $idEquipementList = GETPOST($dispatchPrefix . 'equipementl_' . $dispatchSuffix, 'array') ? GETPOST($dispatchPrefix . 'equipementl_' . $dispatchSuffix, 'array') : array();
+                                $idEquipementList = GETPOST($dispatcherPrefix . 'equipementl_' . $dispatcherSuffix, 'array') ? GETPOST($dispatcherPrefix . 'equipementl_' . $dispatcherSuffix, 'array') : array();
 
                                 $resql = $equipementStatic->findAllByFkProductAndFkEntrepot($dispactherList['id'], $componentEntrepotId);
                                 if ($resql) {
@@ -748,27 +774,27 @@ if ($id || $ref) {
                                         $equipementList[$obj->rowid] = $obj->ref;
                                     }
 
-                                    $multiSelectEquipement = Form::multiselectarray($dispatchPrefix . 'equipementl_' . $dispatchSuffix, $equipementList, $idEquipementList, 0, 0, '', 0, 200);
+                                    $multiSelectEquipement = Form::multiselectarray($dispatcherPrefix . 'equipementl_' . $dispatcherSuffix, $equipementList, $idEquipementList, 0, 0, '', 0, 200);
                                 }
                             }
 
                             // equipment multiselect (in warehouse selected)
-                            print '&nbsp;&nbsp;' . $langs->trans('Equipement') . ' : ' . '<span id="' . $dispatchPrefix . 'equipementl_multiselect_' . $dispatchSuffix . '">' . $multiSelectEquipement . '</span>';
+                            print '&nbsp;&nbsp;' . $langs->trans('Equipement') . ' : ' . '<span id="' . $dispatcherPrefix . 'equipementl_multiselect_' . $dispatcherSuffix . '">' . $multiSelectEquipement . '</span>';
 
                             if (empty($multiSelectEquipement)) {
                                 $outjs .= 'FactoryDispatcher.getAllEquipementInSelectedWarehouse(\'' . $dispactherList['id'] . '\',  \'' . $dispactherList['name'] . '\', \'' . $dispactherList['line'] . '\');';
                             }
                             // on warehouse change
-                            $outjs .= 'jQuery("#' . $dispatchPrefix . 'id_entrepot_' . $dispatchSuffix . '").change(function(){';
+                            $outjs .= 'jQuery("#' . $dispatcherPrefix . 'id_entrepot_' . $dispatcherSuffix . '").change(function(){';
                             $outjs .= 'FactoryDispatcher.getAllEquipementInSelectedWarehouse(\'' . $dispactherList['id'] . '\', \'' . $dispactherList['name'] . '\', \'' . $dispactherList['line'] . '\');';
                             $outjs .= '});';
                         }
-                        print '<input type="hidden" name="' . $dispatchPrefix . 'product_serializel_' . $dispatchSuffix . '" value="' . $componentProductToSerialize . '" />';
+                        print '<input type="hidden" name="' . $dispatcherPrefix . 'product_serializel_' . $dispatcherSuffix . '" value="' . $componentProductToSerialize . '" />';
                         print '</td>';
                     }
 
                     // dispatch action
-                    print '<td name="' . $dispatchPrefix . 'action_' . $dispatchSuffix . '">';
+                    print '<td name="' . $dispatcherPrefix . 'action_' . $dispatcherSuffix . '">';
                     if ($dispactherList['btn_nb'] === 0 && $dispactherList['nb'] > 1) {
                         print '&nbsp;&nbsp;' . img_picto($langs->trans('AddDispatchBatchLine'), 'split.png', 'onClick="FactoryDispatcher.addLineFromDispatcher(' . $dispactherList['id'] . ',\'' . $dispactherList['name'] . '\', \'' . $dispactherList['mode'] . '\', ' . $dispactherList['unlock_qty'] . ', \'' . $dispactherList['element_type'] . '\')"');
                         $dispactherList['btn_nb']++;

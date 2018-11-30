@@ -331,3 +331,8 @@ DateEndPlanned=Date de fin planifiée
 FactoryWarehouse=Entrepôt de fabrication du produit
 ErrorNotEnoughComponentToBuild=Il n'y a plus assez de composants en stock dans cet entrepôt
 ErrorNotEnoughComponentQtySelected=Vous n'avez pas sélectionné assez de quantités pour fabriquer ce produit
+
+#
+# Report
+#
+FactoryBuildIndice = N°

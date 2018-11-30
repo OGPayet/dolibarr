@@ -1011,7 +1011,7 @@ class Equipement extends CommonObject
 	 *	Defines a entrepot of the equipement
 	 *
 	 *	@param	  User	$user				Object user who define
-	 *	@param	  date	$fk_entrepot   		id of the entrepot
+	 *	@param	  int	$fk_entrepot   		id of the entrepot
 	 *	@return	 int							<0 if ko, >0 if ok
 	 */
 	function set_entrepot($user, $fk_entrepot, $bmoveentrepot=0)
