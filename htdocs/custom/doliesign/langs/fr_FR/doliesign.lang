@@ -154,3 +154,8 @@ DoliEsignSetupError = Erreur dans votre configuration DoliEsign.
 #
 MyWidget = My widget
 MyWidgetDescription = My widget description
+
+############################################################
+### Actions
+############################################################
+ActionAC_DOLIESIGN_AUTO = Doliesign (inséré automatiquement)

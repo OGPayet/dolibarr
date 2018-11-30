@@ -1,4 +1,5 @@
 -- Copyright (C) 2018 		Netlogic			<info@netlogic.fr>
+-- Copyright (C) 2018 		Alexis LAURIER			<contact@alexislaurier.fr>
 --
 -- This program is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -189,3 +190,5 @@ INSERT INTO `llx_doliesign_config` (`entity`,`label`,`date_creation`,`fk_user_cr
     VALUES (1,'Customer signature','2018-01-22 19:44:05',12,12,NULL,0,'fichinter',131,'311,104,541,177');
 INSERT INTO `llx_doliesign_config` (`entity`,`label`,`date_creation`,`fk_user_creat`,`fk_user_modif`,`import_key`,`status`,`module`,`fk_c_type_contact`,`sign_coordinate`)
     VALUES (1,'Company signature','2018-01-22 19:44:05',12,12,NULL,0,'fichinter',121,'55,103,285,176');
+INSERT INTO `llx_c_actioncomm` (`id`, `code`, `type`, `libelle`, `module`, `active`, `todo`, `color`, `picto`, `position`) VALUES
+(713080, 'AC_DOLIESIGN_AUTO', 'systemauto', 'DoliEsign (automatically inserted events)', 'doliesign', 1, NULL, NULL, NULL, 20);
