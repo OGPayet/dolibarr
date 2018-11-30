@@ -72,37 +72,6 @@ function quicklist_get_context($context)
 }
 
 /**
- * Get list of dolibarr groups
- *
- * @return  array				List of dolibarr groups
- */
-function quicklist_get_dolgroups()
-{
-    global $conf, $db;
-
-    $groups = array();
-
-    // On recherche les groupes
-    $sql = "SELECT ug.rowid, ug.nom as name";
-    $sql .= " FROM " . MAIN_DB_PREFIX . "usergroup as ug ";
-    if (!empty($conf->multicompany->enabled) && !empty($conf->multicompany->transverse_mode)) {
-        $sql .= " WHERE ug.entity IN (0,1)";
-    } else {
-        $sql .= " WHERE ug.entity = " . $conf->entity;
-    }
-    $sql .= " ORDER BY ug.nom ASC";
-
-    $resql = $db->query($sql);
-    if ($resql) {
-        while ($obj = $db->fetch_object($resql)) {
-            $groups[$obj->rowid] = $obj->name;
-        }
-    }
-
-    return $groups;
-}
-
-/**
  * Print confirm form
  *
  * @param   string  $formconfirm    Confirm form

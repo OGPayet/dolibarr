@@ -198,6 +198,18 @@ class ActionsQuickList
         //--------------------------------------------------------------------
         if ($act == 'quicklist_editfilter' || $act == 'quicklist_deletefilter' || $addfilter) {
             $form = new Form($db);
+            dol_include_once('/quicklist/class/html.formquicklist.class.php');
+            $formquicklist = new FormQuickList($db);
+
+            // Get groups of the user
+//            require_once DOL_DOCUMENT_ROOT . '/user/class/usergroup.class.php';
+//            $usergroup = new UserGroup($db);
+//            $usergroups = $usergroup->listGroupsForUser($user->id);
+//            if (!is_array($usergroups)) {
+//                $this->error = $usergroup->error;
+//                $this->errors = $usergroup->errors;
+//                return -1;
+//            }
 
             //--------------------------------------------------------------------
             // Get filter
@@ -211,8 +223,6 @@ class ActionsQuickList
             // Formulaire de Ajout / modification
             //--------------------------------------------------------------------
             if ($addfilter || $act == 'quicklist_editfilter') {
-                $groupsList = quicklist_get_dolgroups();
-
                 $formquestion = array(
                     array(
                         'name' => 'filter_id',
@@ -230,16 +240,16 @@ class ActionsQuickList
                         'label' => $langs->trans('QuickListFilterScope'),
                         'type' => 'radio',
                         'values' => array(
-                            QuickList::QUICKLIST_SCOPE_PRIVATE => $langs->trans('QuickListScopePrivate'),
-                            QuickList::QUICKLIST_SCOPE_USERGROUP => $langs->trans('QuickListScopeUserGroup'),
-                            QuickList::QUICKLIST_SCOPE_PUBLIC => $langs->trans('QuickListScopePublic'),
+                            QuickList::QUICKLIST_SCOPE_PRIVATE => '<label for="filter_scope_'.QuickList::QUICKLIST_SCOPE_PRIVATE.'">' . $langs->trans('QuickListScopePrivate') . '</label>',
+                            QuickList::QUICKLIST_SCOPE_USERGROUP => '<label for="filter_scope_'.QuickList::QUICKLIST_SCOPE_USERGROUP.'">' . $langs->trans('QuickListScopeUserGroup') . '</label>',
+                            QuickList::QUICKLIST_SCOPE_PUBLIC => '<label for="filter_scope_'.QuickList::QUICKLIST_SCOPE_PUBLIC.'">' . $langs->trans('QuickListScopePublic') . '</label>',
                         )
                     ),
                     array(
                         'name' => 'filter_scope_usergroup',
                         'label' => $langs->trans('QuickListFilterScopeUserGroup'),
                         'type' => 'other',
-                        'value' => $form->multiselectarray('filter_scope_usergroup', $groupsList, (isset($quicklist->usergroups) ? array_keys($quicklist->usergroups) : array()), '', 0, '', 0, '100%')
+                        'value' => $formquicklist->multiselect_dolgroups((isset($quicklist->usergroups) ? array_keys($quicklist->usergroups) : array()), 'filter_scope_usergroup')//, '', 0, array_keys($usergroups))
                     ),
                 );
 
@@ -262,10 +272,12 @@ class ActionsQuickList
                 $form_title = $addfilter ? $langs->trans("QuickListAddFilter") : $langs->trans("QuickListEditFilter");
                 $form_action = $addfilter ? "quicklist_addfilter_confirm" : "quicklist_editfilter_confirm";
 
-                $formconfirm = $form->formconfirm($base_url, $form_title, '', $form_action, $formquestion, 'yes', 1, 250);
+                $formconfirm = $form->formconfirm($base_url, $form_title, '', $form_action, $formquestion, 'yes', 1, 350, 800);
                 $formconfirm .= '<script type="text/javascript" language="javascript">' . "\n";
                 $formconfirm .= '$(document).ready(function () {' . "\n";
                 $formconfirm .= '  $("#dialog-confirm").on("dialogopen", function(event, ui) {' . "\n";
+                $formconfirm .= '    $(\'input[name=filter_name]\').closest(\'tr\').find(\'td:first-child\').attr(\'width\', \'25%\');' . "\n";
+                $formconfirm .= '    $.map($(\'input[type=radio][name=filter_scope]\'), function(item) { $(item).attr(\'id\', \'filter_scope_\' + $(item).val()); });' . "\n";
                 $formconfirm .= '    $(\'input[type=radio][name=filter_scope]\').filter(\'[value=' . (isset($quicklist->scope) ? $quicklist->scope : QuickList::QUICKLIST_SCOPE_PRIVATE) . ']\').prop(\'checked\', true);' . "\n";
                 if ($quicklist->scope != QuickList::QUICKLIST_SCOPE_USERGROUP) {
                     $formconfirm .= '    $("#filter_scope_usergroup").closest("tr").hide();' . "\n";
