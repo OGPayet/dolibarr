@@ -799,7 +799,7 @@ class ActionsCompanyRelationships
      * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
      * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
      */
-    function printFieldPreListTitle($parameters, &$object, &$action, $hookmanager)
+    function printFieldListOption($parameters, &$object, &$action, $hookmanager)
     {
         global $conf, $form;
         $contexts = explode(':', $parameters['context']);
