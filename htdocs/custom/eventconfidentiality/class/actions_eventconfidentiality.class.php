@@ -253,20 +253,22 @@ SCRIPT;
                     return -1;
                 }
 
-                // Get all tags of the event
-                $tags_set = $eventconfidentiality->fetchAllTagsOfEvent($object->id);
-                if (!is_array($tags_set)) {
-                    $this->error = $eventconfidentiality->error;
-                    $this->errors = $eventconfidentiality->errors;
-                    return -1;
-                }
+                if ($user->rights->eventconfidentiality->manage) {
+                    // Get all tags of the event
+                    $tags_set = $eventconfidentiality->fetchAllTagsOfEvent($object->id);
+                    if (!is_array($tags_set)) {
+                        $this->error = $eventconfidentiality->error;
+                        $this->errors = $eventconfidentiality->errors;
+                        return -1;
+                    }
 
-                // Add custom fields for the event object
-                $object->ec_mode_tags = array();
-                $object->ec_tags = array();
-                foreach ($tags_set as $tag_id => $tag) {
-                    $object->ec_mode_tags[$tag_id] = intval($tag['mode']);
-                    $object->ec_tags[$tag_id] = $tag;
+                    // Add custom fields for the event object
+                    $object->ec_mode_tags = array();
+                    $object->ec_tags = array();
+                    foreach ($tags_set as $tag_id => $tag) {
+                        $object->ec_mode_tags[$tag_id] = intval($tag['mode']);
+                        $object->ec_tags[$tag_id] = $tag;
+                    }
                 }
 
                 // Manage the mode
