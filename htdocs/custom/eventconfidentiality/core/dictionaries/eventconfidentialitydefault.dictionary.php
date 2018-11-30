@@ -200,6 +200,8 @@ class EventConfidentialityDefaultDictionary extends Dictionary
 
             // Suggest a list with manual events or all auto events
             $this->cactioncomm_cache = $cactioncomm->liste_array(1, 'id', '', (empty($conf->global->AGENDA_USE_EVENT_TYPE)?1:-1));
+
+            unset($this->cactioncomm_cache[-99]);
         }
     }
 
@@ -212,15 +214,24 @@ class EventConfidentialityDefaultDictionary extends Dictionary
     {
         global $langs, $hookmanager;
 
-        $langs->loadLangs(array('eventconfidentiality@eventconfidentiality', 'propal', 'orders', 'bills', 'interventions', 'commercial'));
+        $langs->loadLangs(array('eventconfidentiality@eventconfidentiality', 'companies', 'projects', 'products', 'propal', 'orders', 'bills', 'trips', 'sendings', 'interventions', 'commercial', 'supplier_proposal'));
 
-        // Todo à vérifier car c'est mis à titre d'exemple (c'est la liste des objets standard)
+        // TODO A compléter si manquant
         $element_origin_list = array(
-            'propal' => $langs->trans('Propal'),
-            'order' => $langs->trans('Order'),
+            'contract' => $langs->trans('Contract'),
+            'societe' => $langs->trans('ThirdParty'),
+            'expensereport' => $langs->trans('ExpenseReport'),
+            'product' => $langs->trans('ProductOrService'),
             'invoice' => $langs->trans('Invoice'),
-            'inter' => $langs->trans('Inter'),
-            'ec_event' => $langs->trans('Action'),
+            'propal' => $langs->trans('Proposal'),
+            'supplier_proposal' => $langs->trans('SupplierProposal'),
+            'order' => $langs->trans('Order'),
+            'order_supplier' => $langs->trans('SupplierOrder'),
+            'shipping' => $langs->trans('Shipment'),
+            'invoice_supplier' => $langs->trans('SupplierInvoice'),
+            'project' => $langs->trans('Project'),
+            'fichinter' => $langs->trans('Intervention'),
+            'ec_event' => $langs->trans('Event'),
         );
 
         // Add custom object
@@ -228,6 +239,8 @@ class EventConfidentialityDefaultDictionary extends Dictionary
         $parameters = array();
         $reshook = $hookmanager->executeHooks('addEventConfidentialityElementOrigin', $parameters); // Note that $action and $object may have been
         if ($reshook) $element_origin_list = array_merge($element_origin_list, $hookmanager->resArray);
+
+        asort($element_origin_list);
 
         $this->fields['element_origin'] = array(
             'name'       => 'element_origin',
@@ -356,13 +369,14 @@ class EventConfidentialityDefaultDictionaryLine extends DictionaryLine
 	 */
 	function showInputField($fieldName, $value=null, $keyprefix='', $keysuffix='', $objectid=0)
     {
-        global $conf;
-
         if ($fieldName == 'action_type') {
-            require_once DOL_DOCUMENT_ROOT . '/core/class/html.formactions.class.php';
-            $formactions = new FormActions($this->db);
+            // Load action type infos into cache
+            $this->dictionary->load_action_type();
 
-            return $formactions->select_type_actions($value, $keyprefix . 'action_type' . $keysuffix, '', (empty($conf->global->AGENDA_USE_EVENT_TYPE) ? 1 : -1), 0, 1);
+            require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
+            $form = new Form($this->db);
+
+            return $form->multiselectarray($keyprefix . 'action_type' . $keysuffix, $this->dictionary->cactioncomm_cache, $value, 0, 0, 'centpercent');
         }
 
         return parent::showInputField($fieldName, $value, $keyprefix, $keysuffix, $objectid);

@@ -2339,9 +2339,9 @@ function requestmanager_get_elements_infos()
             'picto' => '',
         ),
         'expensereport' => array(
-            'label' => '',
-            'langs' => array(),
-            'picto' => '',
+            'label' => 'ExpenseReport',
+            'langs' => array('trips'),
+            'picto' => 'object_trip',
         ),
         'facture' => array(
             'label' => 'Invoice',
@@ -2459,9 +2459,9 @@ function requestmanager_get_elements_infos()
             'picto' => '',
         ),
         'product' => array(
-            'label' => '',
-            'langs' => array(),
-            'picto' => '',
+            'label' => 'ProductOrService',
+            'langs' => array('products'),
+            'picto' => 'object_product',
         ),
         'productbatch' => array(
             'label' => '',
@@ -2479,9 +2479,9 @@ function requestmanager_get_elements_infos()
             'picto' => '',
         ),
         'project' => array(
-            'label' => '',
-            'langs' => array(),
-            'picto' => '',
+            'label' => 'Project',
+            'langs' => array('projects'),
+            'picto' => 'object_project',
         ),
         'project_task' => array(
             'label' => '',
@@ -2489,7 +2489,7 @@ function requestmanager_get_elements_infos()
             'picto' => '',
         ),
         'propal' => array(
-            'label' => 'Propal',
+            'label' => 'Proposal',
             'langs' => array('propal'),
             'picto' => 'object_propal',
         ),
@@ -2499,14 +2499,14 @@ function requestmanager_get_elements_infos()
             'picto' => '',
         ),
         'shipping' => array(
-            'label' => '',
-            'langs' => array(),
-            'picto' => '',
+            'label' => 'Shipment',
+            'langs' => array('sendings'),
+            'picto' => 'object_sending',
         ),
         'societe' => array(
-            'label' => '',
-            'langs' => array(),
-            'picto' => '',
+            'label' => 'ThirdParty',
+            'langs' => array('companies'),
+            'picto' => 'object_company',
         ),
         'stock' => array(
             'label' => '',

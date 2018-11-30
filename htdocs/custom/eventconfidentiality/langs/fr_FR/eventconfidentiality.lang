@@ -16,8 +16,8 @@ EventConfidentialityModeHidden = Caché
 EventConfidentialityTags = Tag de confidentialité
 EventConfidentialityExternal = Externe
 EventConfidentialityMode = Niveau de confidentialité
-EventConfidentialityActionType = Action
-EventConfidentialityElementOrigin = Element
+EventConfidentialityActionType = Type d'événement
+EventConfidentialityElementOrigin = Type de l'objet lié à l'événement
 
 ############################################################
 ### Admin setup
