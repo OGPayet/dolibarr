@@ -675,8 +675,8 @@ if (empty($reshook)) {
                                                         $position = 0;
                                                         foreach ($componentProductEquipementUsed as $equipementUsed) {
                                                             $equipementBuildStatic = new Equipement($db);
-                                                            $equipementBuildStatic->set_component($equipementBuildId, $fkProductUsed, $position, $equipementUsed->ref);
-                                                            if (!empty($equipementBuildStatic->error)) {
+                                                            $ret = $equipementBuildStatic->set_component($equipementBuildId, $fkProductUsed, $position, $equipementUsed->ref);
+                                                            if ($ret < 0) {
                                                                 $error++;
                                                                 $factory->error    = $equipementBuildStatic->error;
                                                                 $factory->errors[] = $factory->error;

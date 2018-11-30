@@ -65,8 +65,7 @@ $result = restrictedArea($user, 'equipement', $id, 'equipement', '', 'fk_soc_cli
 *	Action
 */
 
-if ($action == 'addproductline')
-{
+if ($action == 'addproductline' && $user->rights->equipement->creer) {
     $error = 0;
     $msgs = '';
 
@@ -74,17 +73,16 @@ if ($action == 'addproductline')
 
     if ($addProductId <= 0 && !$addProductRef) {
         $error++;
-        $msgs .= $langs->trans('ErrorFieldRequired', $langs->transnoentities('Ref') ) . '<br />';
+        $msgs .= $langs->trans('ErrorFieldRequired', $langs->transnoentities('Ref')) . '<br />';
     }
 
     if ($addProductEntropotId <= 0) {
         $error++;
-        $msgs .= $langs->trans('ErrorFieldRequired', $langs->transnoentities('Warehouse') ) . '<br />';
+        $msgs .= $langs->trans('ErrorFieldRequired', $langs->transnoentities('Warehouse')) . '<br />';
     }
 
     if (!$error) {
         // add to the factory components
-        $factory = new Factory($db);
         $addProduct = new Product($db);
 
         if ($addProductId > 0) {
@@ -158,11 +156,77 @@ if ($action == 'addproductline')
     if ($error) {
         setEventMessage($msgs, 'errors');
     } else {
-        $msgs = $langs->trans('SuccessEquipementAddProduct') . '<br />';
-        setEventMessage($msgs);
+        setEventMessage($langs->trans('SuccessEquipementAddProduct'));
+        header('Location: ' . $_SERVER['PHP_SELF'] . '?id=' . $object->id);
     }
 
     $action = '';
+}
+// save the equipment component
+else if ($action == 'save' && $user->rights->equipement->creer) {
+    $error = 0;
+
+    // factory
+    $factory=new Factory($db);
+    $factory->id=$object->fk_product;
+    // un OF est-il lie a l'equipement (factory)?
+    $factoryid = $factory->get_equipement_linked($id);
+    if ($factoryid >0 )
+        $factory->get_sousproduits_factory_arbo($factoryid);
+    else
+        $factory->get_sousproduits_arbo();
+    $prods_arbo = $factory->get_arbo_each_prod();
+
+    if (count($prods_arbo) > 0) {
+        // products to add to component list
+        $prods_arbo = $object->mergeProdsArboWithProductAddList($prods_arbo);
+
+        $componentEquipementStatic = new Equipement($db);
+
+        $db->begin();
+
+        // for each component product
+        foreach ($prods_arbo as $value) {
+            if ($value['type']==0) {
+                // for each equipment componnent
+                for ($i=0; $i < $value['nb']; $i++) {
+                    $refComponent = GETPOST('ref_' . $value['id'] . '_' . $i);
+
+                    // save component equipment
+                    $ret = $componentEquipementStatic->set_component($id, $value['id'], $i, $refComponent);
+                    if ($ret < 0) $error++;
+
+                    if ($error) {
+                        break;
+                    }
+                }
+            }
+
+            if ($error) {
+                break;
+            }
+        }
+
+        // save private note
+        if (!$error) {
+            $ret = $object->update_note(GETPOST('note_private', 'alpha'), '_private');
+            if ($ret < 0) $error++;
+        }
+
+        // commit or rollback
+        if ($error) {
+            $db->rollback();
+        } else {
+            $db->commit();
+        }
+    }
+
+    if ($error) {
+        setEventMessages($object->error, $object->errors, 'errors');
+    } else {
+        setEventMessage($langs->trans('EquipementSuccessSave'));
+        header('Location: ' . $_SERVER['PHP_SELF'] . '?id=' . $object->id);
+    }
 }
 
 
@@ -182,7 +246,6 @@ dol_fiche_head($head, 'composition', $langs->trans('EquipementCard'), 0, 'equipe
 
 $prod=new Product($db);
 $prod->fetch($object->fk_product);
-$factory=new Factory($db);
 
 print '<table class="border" width="100%">';
 print '<tr><td width="25%">'.$langs->trans('Ref').'</td><td colspan="3">';
@@ -238,60 +301,38 @@ if (count($tblParent) > 0) {
 	print '</table ><br>';
 }
 
+// factory
+$factory=new Factory($db);
 $factory->id=$object->fk_product;
-
-// un OF est-il li� � l'�quipement (factory)?
+// un OF est-il lie a l'equipement (factory)?
 $factoryid = $factory->get_equipement_linked($id);
 if ($factoryid >0 )
-	$factory->get_sousproduits_factory_arbo($factoryid);
+    $factory->get_sousproduits_factory_arbo($factoryid);
 else
-	$factory->get_sousproduits_arbo();
-
+    $factory->get_sousproduits_arbo();
 $prods_arbo = $factory->get_arbo_each_prod();
-
-// save the equipement component
-if ($action == 'save' && $user->rights->equipement->creer) {
-	if (count($prods_arbo) > 0) {
-
-	    // products to add to component list
-        $prods_arbo = $object->mergeProdsArboWithProductAddList($prods_arbo);
-
-		foreach ($prods_arbo as $value) {
-			if ($value['type']==0) {
-				// on boucle sur le nombre d'�quipement saisie
-				for ($i=0; $i < $value['nb']; $i++) {
-				    $refComponent = GETPOST('ref_'.$value['id'].'_'.$i);
-					// on enregistre ce qui a �t� saisie
-					$object->set_component($id, $value['id'], $i, $refComponent);
-                    if ($refComponent) {
-                        $componentstatic=new Equipement($db);
-                        $componentstatic->fetch('', $refComponent);
-                        $componentstatic->update_note(GETPOST('note_'.$value['id'].'_'.$i), '_private');
-                    }
-				}
-			}
-		}
-	}
-}
 
 // Number of subproducts
 //print_fiche_titre($langs->trans("AssociatedProductsNumber").' : '.count($prod->get_arbo_each_prod()),'','');
 
 // List of subproducts
 if (count($prods_arbo) > 0) {
-	print '<b>'.$langs->trans("EquipementChildAssociationList").'</b><br />';
+    // products to add to component list
+    $prods_arbo  = $object->mergeProdsArboWithProductAddList($prods_arbo);
+    $numProduct  = 0;
+    $nbProdArbo  = count($prods_arbo);
+    $noteRowspan = ' rowspan="' . $nbProdArbo . '"';
+
+    print '<b>'.$langs->trans("EquipementChildAssociationList").'</b><br />';
 	print '<form action="'.dol_buildpath('/equipement', 1).'/composition.php?id='.$id.'" method="post">';
 	print '<input type="hidden" name="action" value="save">';
 	print '<table class="border" width="100%">';
 	print '<tr class="liste_titre">';
-	print '<td class="liste_titre" width=100px align="left">'.$langs->trans("Ref").'</td>';
-	print '<td class="liste_titre" width=200px align="left">'.$langs->trans("Label").'</td>';
-    print '<td class="liste_titre" width=150px align="left">'.$langs->trans("Equipementcomposant").'</td>';
-    print '<td class="liste_titre" width=150px align="center">'.$langs->trans("Note").'</td>';
+	print '<td class="liste_titre" width="200px" align="left">'.$langs->trans("Ref").'</td>';
+	print '<td class="liste_titre" width="200px" align="left">'.$langs->trans("Label").'</td>';
+    print '<td class="liste_titre" width="200px" align="left">'.$langs->trans("Equipementcomposant").'</td>';
+    print '<td class="liste_titre" align="center">'.$langs->trans("Note").'</td>';
 	print '</tr>';
-
-    // products to add to component list
-    $prods_arbo = $object->mergeProdsArboWithProductAddList($prods_arbo);
 
 	foreach ($prods_arbo as $value) {
 		$productstatic=new Product($db);
@@ -303,62 +344,69 @@ if (count($prods_arbo) > 0) {
 			// on boucle sur le nombre d'�quipement � saisir
 			for ($i=0; $i < $value['nb']; $i++) {
 				print '<tr>';
-				print '<td width=100px align="left">'.$productstatic->getNomUrl(1, 'composition').'</td>';
-				print '<td width=200px align="left">'.$productstatic->label.'</td>';
-				$componentstatic=new Equipement($db);
+				print '<td align="left">'.$productstatic->getNomUrl(1, 'composition').'</td>';
+				print '<td align="left">'.$productstatic->label.'</td>';
 
-				$refComponent=$componentstatic->get_component($id, $value['id'], $i);
-				print '<td width=150px align="left">';
-				if ($refComponent) {
-					$componentstatic->fetch('', $refComponent);
-					print $componentstatic->getNomUrl(2);
-					print "&nbsp;&nbsp;";
-				}
+                print '<td align="left">';
+				if ($productstatic->array_options['options_synergiestech_to_serialize'] == 1) {
+                    $componentEquipementStatic = new Equipement($db);
+                    $refComponent = $componentEquipementStatic->get_component($id, $value['id'], $i);
 
-				// serial number field
-				$refFieldName = 'ref_'.$value['id'].'_'.$i;
-
-                $resql = $componentstatic->findAllInWarehouseByFkProduct($productstatic->id);
-				if (!$resql || $db->num_rows($resql)<=0) {
-                    print '<input type="text" name="'.$refFieldName.'" value="'.$refComponent.'">';
-                } else {
-                    print '<select name="'.$refFieldName.'">';
-                    print '<option value=""></option>';
-
-                    while ($obj = $db->fetch_object($resql)) {
-                        $optionSelected = '';
-
-                        if ($obj->ref == $refComponent) {
-                            $optionSelected = ' selected="selected"';
-                        }
-
-                        print '<option value="'. $obj->ref .'"' . $optionSelected .'>' . $obj->ref . '</option>';
+                    if (!empty($refComponent)) {
+                        $componentEquipementStatic->fetch('', $refComponent);
+                        print $componentEquipementStatic->getNomUrl(1);
+                        print '<br />';
                     }
 
-                    print '</select>';
+                    // serial number field
+                    $refFieldName = 'ref_' . $value['id'] . '_' . $i;
+
+                    $resql = $componentEquipementStatic->findAllInWarehouseByFkProduct($productstatic->id);
+                    if (!$resql || $db->num_rows($resql) <= 0) {
+                        print '<input type="text" name="' . $refFieldName . '" value="' . $refComponent . '" />';
+                    } else {
+                        print '<select name="' . $refFieldName . '">';
+                        print '<option value=""></option>';
+                        if (!empty($refComponent)) {
+                            print '<option value="' . $refComponent . '" selected="selected">' . $refComponent . '</option>';
+                        }
+
+                        while ($obj = $db->fetch_object($resql)) {
+                            print '<option value="' . $obj->ref . '">' . $obj->ref . '</option>';
+                        }
+                        print '</select>';
+                    }
                 }
                 print '</td>';
 
-				print '<td align="left">';
-                require_once DOL_DOCUMENT_ROOT.'/core/class/doleditor.class.php';
-                $doleditor = new DolEditor('note_'.$value['id'].'_'.$i, dol_escape_htmltag($componentstatic->note_private), '', '100', 'dolibarr_notes', 'In', 0, true, true, 20, '100');
-                print $doleditor->Create(1);
-               // print '<input type="text" name="note_'.$value['id'].'_'.$i.'" value="'..'">';
+				// private note
+                print '<td align="left"' . $noteRowspan . '>';
+                if ($numProduct === 0) {
+                    $notePrivate = GETPOST('note_private', 'alpha') ? GETPOST('note_private', 'alpha') : $object->note_private;
+                    require_once DOL_DOCUMENT_ROOT . '/core/class/doleditor.class.php';
+                    $doleditor = new DolEditor('note_private', $notePrivate, '', '100', 'dolibarr_notes', 'In', 0, true, true, 20, '100');
+                    print $doleditor->Create(1);
+                }
+                // print '<input type="text" name="note_'.$value['id'].'_'.$i.'" value="'..'">';
                 print '</td>';
 				print '</tr>';
+
+                $noteRowspan = '';
+                $numProduct++;
 			}
 		} else {
-			// pas de num�ro de s�rie � saisir sur la main-d'oeuvre
+			// pas de numero de serie a saisir sur la main-d'oeuvre
 			print '<tr>';
 			print '<td align="left">'.$productstatic->getNomUrl(1, 'composition').'</td>';
 			print '<td align="left">'.$productstatic->label.'</td>';
 			print '<td></td>';
+            print '<td></td>';
 			print '</tr>';
 		}
 		print '</tr>';
 	}
 	print '<tr>';
-	print '<td colspan=3 align=right><input type="submit" class="button" value="'.$langs->trans("Update").'"></td>';
+	print '<td colspan="4" align="center"><input type="submit" class="button" value="'.$langs->trans("Update").'" /></td>';
 	print '</tr>';
 
 	print '</table>';

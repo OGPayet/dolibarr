@@ -332,6 +332,11 @@ EquipementUsed             = Used equipment
 EquipementWarehouseForLost = Waste warehouse
 
 #
+# Success
+#
+EquipementSuccessSave = Equipment saved successfully
+
+#
 # Error
 #
 EquipementErrorAlreadyExists        = Serial number %s already exists for the supplier %s

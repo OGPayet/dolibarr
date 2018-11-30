@@ -1703,7 +1703,7 @@ class Equipement extends CommonObject
 	 *	Get the id of the fisrt parent child
 	 *	with recursive search
 	 *	@param  	int		$fk_equipementcomponent	Id equipement component
-	 *	@return 	int								id equipement main
+	 *	@return 	array								id equipement main
 	 */
 	function get_Parent($fk_equipementcomponent)
 	{
@@ -1819,6 +1819,8 @@ class Equipement extends CommonObject
      *
      * @param   int         $fkProduct      Id product
      * @return  resource    SQL resource
+     *
+     * @throws Exception
      */
 	public function findAllInWarehouseByFkProduct($fkProduct)
     {
@@ -1837,7 +1839,7 @@ class Equipement extends CommonObject
         $sql .= " AND e.rowid NOT IN (" . $sqlNotInEquipementUsed . ")";
         $sql .= " AND e.entity = " . $conf->entity;
 
-        dol_syslog(get_class($this)."::findAllInWarehouseByFkProduct sql=" . $sql, LOG_DEBUG);
+        dol_syslog(__METHOD__ . " sql=" . $sql, LOG_DEBUG);
 
         return $this->db->query($sql);
     }
@@ -1871,15 +1873,17 @@ class Equipement extends CommonObject
     }
 
 
-	/**
-	 *	set the id of the equipement child
-	 *
-	 *	@param  	int		$fk_parent			Id equipement parent
-	 *	@param  	int		$fk_product			Id product of component
-	 *	@param  	int		$position			position of the component in the parent
-	 *	@param  	string	$ref_child			ref equipement child
-	 *  @return 	void
-	 */
+    /**
+     * Set the id of the equipment child
+     *
+     * @param  	int		$fk_parent          Id equipment parent
+     * @param  	int		$fk_product         Id product of component
+     * @param  	int		$position           Position of the component in the parent
+     * @param  	string	$ref_child          Ref equipment child
+     * @return 	int     <0 if KO, >0 if OK
+     *
+     * @throws Exception
+     */
 	function set_component($fk_parent, $fk_product, $position, $ref_child, $notrigger=0)
     {
         global $langs, $user;
@@ -1897,7 +1901,7 @@ class Equipement extends CommonObject
         $current_equipment_statitc = new Equipement($this->db);
         $current_ref_child = $current_equipment_statitc->get_component($fk_parent, $fk_product, $position);
 
-        // on r�cup�re l'id du composant � partir de sa ref
+        // on recupere l'id du composant a partir de sa ref
         $this->id = '';
         if (!empty($ref_child) && $this->fetch('', $ref_child) > 0) {
             if ($current_ref_child != $ref_child) {
@@ -1951,7 +1955,7 @@ class Equipement extends CommonObject
                 }
 
                 if (!$error) {
-                    $sql = "INSERT into " . MAIN_DB_PREFIX . "equipementassociation ";
+                    $sql = "INSERT INTO " . MAIN_DB_PREFIX . "equipementassociation ";
                     $sql .= " (fk_equipement_fils, fk_equipement_pere, fk_product, position)";
                     $sql .= " values (" . $this->id . ", " . $fk_parent . ", " . $fk_product . ", " . $position . ")";
                     dol_syslog(get_class($this) . "::set_component trt sql=" . $sql, LOG_DEBUG);
@@ -2047,18 +2051,20 @@ class Equipement extends CommonObject
 
         if (!$error) {
             $this->db->commit();
+            return 1;
         } else {
             $this->db->rollback();
+            return -1;
         }
     }
 
 	/**
-	 *	cut an �quipement
+	 *	cut an equipement
 	 *
-	 *	@param  	string	$ref_new			ref�rence du nouveau lot
-	 *	@param  	int		$quantiynew			quantit� du nouveau lot
-	 *	@param  	boolean	$cloneevent			top pour reprendre les �v�nements du lot ou pas
-	 *  @return 	int		$fk_iddest			Id de l'�v�nement cr�e
+	 *	@param  	string	$ref_new			reference du nouveau lot
+	 *	@param  	int		$quantiynew			quantite du nouveau lot
+	 *	@param  	boolean	$cloneevent			top pour reprendre les evenements du lot ou pas
+	 *  @return 	int		$fk_iddest			Id de l'evenement cree
 	 */
 	function cut_equipement($ref_new, $quantitynew, $cloneevent)
 	{
