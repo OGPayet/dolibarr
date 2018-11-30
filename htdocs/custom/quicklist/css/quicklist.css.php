@@ -48,8 +48,6 @@ $search_img_url = img_picto('', 'searchicon.png@quicklist', '', false, 1);
 ?>
 
 .quicklist-dropdown {
-  float: right;
-  position: relative;
   display: inline-block;
 }
 
@@ -57,7 +55,13 @@ $search_img_url = img_picto('', 'searchicon.png@quicklist', '', false, 1);
   outline: none;
 }
 
+.quicklist-dropbtn.ql_owntheme_fix {
+  margin: 3px 0 3px 10px !important;
+  padding: 0 !important;
+}
+
 .quicklist-dropdown-content {
+  margin-right: 24px;
   display: none;
   position: absolute;
   background-color: #f6f6f6;
@@ -98,15 +102,15 @@ $search_img_url = img_picto('', 'searchicon.png@quicklist', '', false, 1);
 #quicklistElements .item.category {
   background-color: #ccc;
 }
-#quicklistElements .item.filter {
+#quicklistElements .item.filter, #quicklistElements .item.filter span.right {
   text-decoration: none;
 }
 #quicklistElements .item.filter:hover {background-color: #ddd}
+#quicklistElements .item.filter span {
+  display: inline-block;
+}
 #quicklistElements .item.filter span.right {
   float: right;
-}
-#quicklistElements .item.filter span.right.hide {
-  display: none;
 }
 #quicklistElements .item.filter span.right img {
   margin: 0 0 0 4px;

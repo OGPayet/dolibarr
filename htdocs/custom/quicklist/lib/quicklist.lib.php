@@ -123,11 +123,11 @@ function quicklist_print_confirmform($formconfirm)
     }
     $html[] = substr($formconfirm, $cursor_pos);
 
-    $confirm = str_replace(["'", "\n"], ["\\'", ""], implode('', $html));
+    $confirm = str_replace(['"', "\n"], ['\\"', ""], implode('', $html));
 
     print '<script type="text/javascript" language="javascript">'."\n";
     print '$(document).ready(function () {'."\n";
-    print '$("#id-right").append(\''.$confirm.'\');'."\n";
+    print '$("#id-right").append("'.$confirm.'");'."\n";
     print '});';
     print '</script>'."\n";
     print implode('', $scripts);

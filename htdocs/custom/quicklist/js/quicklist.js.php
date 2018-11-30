@@ -60,8 +60,10 @@ $scope_private_title = dol_escape_htmltag($langs->trans('QuickListScopePrivate')
 $scope_usergroup_title = dol_escape_htmltag($langs->trans('QuickListScopeUserGroup'));
 $scope_public_title = dol_escape_htmltag($langs->trans('QuickListScopePublic'));
 
-$edit_img = img_picto($langs->trans('QuickListEditFilter'), 'edit.png');
-$delete_img = img_picto($langs->trans('QuickListDeleteFilter'), 'delete.png');
+$edit_img = img_picto($langs->trans('QuickListEditFilter'), 'edit.png', ' id="quicklist_editfilter"');
+$delete_img = img_picto($langs->trans('QuickListDeleteFilter'), 'delete.png', ' id="quicklist_deletefilter"');
+
+$module_owntheme_activated = !empty($conf->owntheme->enabled) ? 1 : 0;
 
 ?>
 
@@ -73,7 +75,8 @@ function quicklist_replace_button_removefilter(base_url, filters) {
     var base_url_params = base_url+(base_url.indexOf('?')==-1?'?':'&');
 
     button_search.remove();
-    var menu = '<div class="quicklist-dropdown">' +
+    var menu =
+      '<div class="quicklist-dropdown">' +
       '<input type="image" class="liste_titre quicklist-dropbtn" name="button_quicklist" src="<?php echo $search_plus_img_src ?>" value="" title="<?php echo $search_plus_img_title ?>">' +
       '<div id="quicklistDropdown" class="quicklist-dropdown-content">' +
       '<input type="submit" class="quicklist-action" name="button_removefilter" value="<?php echo $button_delete_filter_text ?>">' +
@@ -85,42 +88,31 @@ function quicklist_replace_button_removefilter(base_url, filters) {
       '</div>';
     td.append(menu);
 
+    if (<?php echo $module_owntheme_activated ?>) {
+      var owntheme_div = $('div.icon-plus-filter-cancel.search_icons_container');
+      $('div.quicklist-dropdown').detach().appendTo(owntheme_div.parent());
+      owntheme_div.remove();
+      $('input.quicklist-dropbtn').removeClass('liste_titre').addClass('ql_owntheme_fix');
+    }
+
     var quicklistElements = $('#quicklistElements');
 
     // Add private filter
     if (filters.private.length) {
       quicklistElements.append('<span class="item category"><?php echo $scope_private_title ?></span>');
-      $.map(filters.private, function (filter) {
-        quicklistElements.append('<a id="' + filter.id + '" class="item filter" href="' + filter.url + '">' + filter.name + '</a>');
-        $('#quicklistElements .item.filter#' + filter.id).append('<span class="right'+(filter.author?'':' hide')+'">' +
-          '<a class="quicklist-button" action="quicklist_editfilter" filterid="'+filter.id+'" href="javascript:;"><?php echo $edit_img ?></a>' +
-          '<a class="quicklist-button" action="quicklist_deletefilter" filterid="'+filter.id+'" href="javascript:;"><?php echo $delete_img ?></a>' +
-          '</span>');
-      });
+      quicklistAddFilterItem(quicklistElements, filters.private);
     }
 
     // Add usergroup filter
     if (filters.usergroup.length) {
       quicklistElements.append('<span class="item category"><?php echo $scope_usergroup_title ?></span>');
-      $.map(filters.usergroup, function (filter) {
-        quicklistElements.append('<a id="' + filter.id + '" class="item filter" href="' + filter.url + '">' + filter.name + '</a>');
-        $('#quicklistElements .item.filter#' + filter.id).append('<span class="right'+(filter.author?'':' hide')+'">' +
-          '<a class="quicklist-button" action="quicklist_editfilter" filterid="'+filter.id+'" href="javascript:;"><?php echo $edit_img ?></a>' +
-          '<a class="quicklist-button" action="quicklist_deletefilter" filterid="'+filter.id+'" href="javascript:;"><?php echo $delete_img ?></a>' +
-          '</span>');
-      });
+      quicklistAddFilterItem(quicklistElements, filters.usergroup);
     }
 
     // Add public filter
     if (filters.public.length) {
       quicklistElements.append('<span class="item category"><?php echo $scope_public_title ?></span>');
-      $.map(filters.public, function (filter) {
-        quicklistElements.append('<a id="' + filter.id + '" class="item filter" href="' + filter.url + '">' + filter.name + '</a>');
-        $('#quicklistElements .item.filter#' + filter.id).append('<span class="right'+(filter.author?'':' hide')+'">' +
-          '<a class="quicklist-button" action="quicklist_editfilter" filterid="'+filter.id+'" href="javascript:;"><?php echo $edit_img ?></a>' +
-          '<a class="quicklist-button" action="quicklist_deletefilter" filterid="'+filter.id+'" href="javascript:;"><?php echo $delete_img ?></a>' +
-          '</span>');
-      });
+      quicklistAddFilterItem(quicklistElements, filters.public);
     }
 
     $('input[name="button_quicklist"]').click(function (event) {
@@ -130,22 +122,15 @@ function quicklist_replace_button_removefilter(base_url, filters) {
       return false;
     });
 
-    $('a.quicklist-button').click(function (event) {
-      var _this = $(this);
-      var form = _this.closest('form');
-      var actionType = _this.attr('action');
-      var filterID = _this.attr('filterid');
-
-      var action = form.find('input[name="action"]');
-      if (action.length) {
-        action.val(actionType);
-      } else {
-        form.append('<input type="hidden" name="action" value="'+actionType+'">');
-      }
-
-      form.append('<input type="hidden" name="filter_id" value="'+filterID+'">');
-
-      form.submit();
+    $('img#quicklist_editfilter').click(function (event) {
+      quicklistClickFilterButton($(this));
+      event.stopPropagation();
+      return false;
+    });
+    $('img#quicklist_deletefilter').click(function (event) {
+      quicklistClickFilterButton($(this));
+      event.stopPropagation();
+      return false;
     });
 
     $(window).click(function() {
@@ -169,4 +154,31 @@ function quicklistFilterFunction() {
       _this.hide();
     }
   });
+}
+
+function quicklistAddFilterItem(quicklistElements, filterList) {
+  $.map(filterList, function (filter) {
+    quicklistElements.append(
+      '<a id="' + filter.id + '" class="item filter" href="' + filter.url + '">' +
+      filter.name + (filter.author ? '<span class="right"><?php echo $edit_img ?><?php echo $delete_img ?></span>' : '') +
+      '</a>'
+    );
+  });
+}
+
+function quicklistClickFilterButton(_this) {
+  var form = _this.closest('form');
+  var actionType = _this.attr('id');
+  var filterID = _this.closest('a').attr('id');
+
+  var action = form.find('input[name="action"]');
+  if (action.length) {
+    action.val(actionType);
+  } else {
+    form.append('<input type="hidden" name="action" value="'+actionType+'">');
+  }
+
+  form.append('<input type="hidden" name="filter_id" value="'+filterID+'">');
+
+  form.submit();
 }
