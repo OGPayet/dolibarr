@@ -209,15 +209,20 @@ class ExtendedInterventionQuota
         }
 
         if (isset($effective_date) && $duration > 0 && $period_size > 0) {
+            $now = Carbon::now();
             $begin_date = $effective_date;
             $end_date = $begin_date->copy()->addMonths($duration)->subDay();
 
             $idx = 1;
             while ($begin_date < $end_date) {
-                $periods[$idx] = array('begin' => $begin_date->timestamp, 'end' => $begin_date->addMonths($period_size)->copy()->subDay()->timestamp);
+                $b_date = $begin_date->timestamp;
+                $e_date = $begin_date->addMonths($period_size)->copy()->subDay()->timestamp;
+                $in_period = $b_date <= $now->timestamp && $now->timestamp <= $e_date;
+                $periods[$idx] = array('begin' => $b_date, 'end' => $e_date, 'in_period' => $in_period);
                 $idx++;
             }
             $periods[$idx-1]['end'] = $end_date->timestamp;
+            $periods[$idx-1]['in_period'] = $begin_date->timestamp <= $now->timestamp && $now->timestamp <= $end_date->timestamp;
         }
 
         return $periods;
@@ -309,17 +314,17 @@ SCRIPT;
             $out .= '<tr><td class="titlefield" align="right">' . $langs->trans('ExtendedInterventionPeriod') . ' : </td>';
             $idx = 1;
             foreach ($company_counts['periods'] as $period) {
-                $out .= '<td align="center">' . $idx++ . '&nbsp;' . $this->form->textwithpicto('', $langs->trans('DateFromTo', dol_print_date($period['begin'], 'day'), dol_print_date($period['end'], 'day')), 1, 'help') . '</td>';
+                $out .= '<td align="center"'.(!empty($period['in_period']) ? ' style="background-color: lightblue;"' : '') . '>' . $langs->trans('DateFromTo', dol_print_date($period['begin'], 'day'), dol_print_date($period['end'], 'day')) . '</td>';
             }
             $out .= '</tr>';
 
             foreach ($inter_type_dictionary->lines as $line) {
                 $out .= '<tr><td class="titlefield">' . $line->fields['label'] . '</td>';
-                foreach ($company_counts['types'][$line->id] as $period) {
+                foreach ($company_counts['types'][$line->id] as $period_idx => $period) {
                     // Set label
                     $label = $period['current'] . ' / ' . $period['max'];
-                    if ($period['current'] == $period['max'] || $period['current'] == $period['max'] + $period['free']) $label = '<span style="color: green;">' . $label . '</span>';
-                    elseif ($period['current'] > $period['max']) $label = '<span style="color: red;">' . $label . '</span>';
+                    if ($period['current'] < $period['max']) $label = '<span style="color: green;">' . $label . '</span>';
+                    elseif ($period['current'] > $period['max'] + $period['free']) $label = '<span style="color: red;">' . $label . '</span>';
 
                     // Set more info
                     $more_info = '';
@@ -328,7 +333,7 @@ SCRIPT;
                     if (!empty($period['forced'])) $toprint[] = $langs->trans('ExtendedInterventionForced') . ' : ' . $period['forced'];
                     if (!empty($toprint)) $more_info = '&nbsp;' . $this->form->textwithpicto('', implode('<br>', $toprint), 1, 'warning');
 
-                    $out .= '<td align="center">' . $label . $more_info . '</td>';
+                    $out .= '<td align="center"'.(!empty($company_counts['periods'][$period_idx]['in_period']) ? ' style="background-color: lightblue;"' : '') . '>' . $label . $more_info . '</td>';
                 }
                 $out .= '</tr>';
             }

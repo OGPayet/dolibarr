@@ -258,7 +258,7 @@ class Dictionary extends CommonObject
     /**
 	 * @var DictionaryLine[]
 	 */
-	public $lines;
+	public $lines = array();
 
     /**
 	 * Constructor
@@ -1319,7 +1319,7 @@ class Dictionary extends CommonObject
 
         // TODO revoir le retour des valeurs pour le type chkbxlst quand on fournit un filtre avec tableau d'ids, seul les valeurs du tableau sont retourner et pas ttes les possibiltés avec ce filtre
 
-        $parameters = array();
+        $parameters = array('dictionary_hook'=>1);
         $sql = 'SELECT d.' . $this->rowid_field . ', ' . implode(', ', $select) . ', d.' . $this->active_field;
         if ($this->has_entity) $sql .= ', d.' . $this->entity_field;
         // Add where from hooks

@@ -52,6 +52,11 @@ class ActionsExtendedIntervention
     public $resprints;
 
     /**
+     * @var DictionaryLine[]    Cache of the list of the intervention type
+     */
+    protected static $intervention_type_cached = null;
+
+    /**
      * Constructor
      *
      * @param        DoliDB $db Database handler
@@ -59,6 +64,20 @@ class ActionsExtendedIntervention
     public function __construct($db)
     {
         $this->db = $db;
+    }
+
+    /**
+     * Load the list of the intervention type in the cache
+     *
+     * @return void
+     */
+    protected function _fetchInterventionType() {
+        if (!isset(self::$intervention_type_cached)) {
+            dol_include_once('/advancedictionaries/class/dictionary.class.php');
+            $inter_type_dictionary = Dictionary::getDictionary($this->db, 'extendedintervention', 'extendedinterventiontype');
+            $inter_type_dictionary->fetch_lines(1, array('count' => 1), array('label' => 'DESC'));
+            self::$intervention_type_cached = $inter_type_dictionary->lines;
+        }
     }
 
     /**
@@ -114,12 +133,9 @@ class ActionsExtendedIntervention
             if (!empty($conf->global->EXTENDEDINTERVENTION_QUOTA_ACTIVATE) && $object->id > 0) {
                 $langs->load('extendedintervention@extendedintervention');
 
-                dol_include_once('/advancedictionaries/class/dictionary.class.php');
-                $inter_type_dictionary = Dictionary::getDictionary($this->db, 'extendedintervention', 'extendedinterventiontype');
-                $inter_type_dictionary->fetch_lines(1, array('count' => 1), array('label' => 'ASC'));
-
                 $values = array();
-                foreach ($inter_type_dictionary->lines as $line) {
+                $this->_fetchInterventionType();
+                foreach (self::$intervention_type_cached as $line) {
                     $htmlname = 'ei_type_' . $line->fields['code'];
                     if (isset($_POST[$htmlname]) || isset($_GET[$htmlname])) {
                         $values[$line->id] = GETPOST($htmlname, 'int') ? GETPOST($htmlname, 'int') : 0;
@@ -132,6 +148,22 @@ class ActionsExtendedIntervention
 
                     $res = $extendedinterventioncountintervention->setCountInterventionOfContract($object->id, $values);
                 }
+            }
+        } elseif (in_array('contractlist', $contexts)) {
+            if (!empty($conf->global->EXTENDEDINTERVENTION_QUOTA_ACTIVATE)) {
+                global $arrayfields;
+
+                $langs->load('extendedintervention@extendedintervention');
+                $this->_fetchInterventionType();
+
+                $added_arrayfields = array();
+                foreach (self::$intervention_type_cached as $line) {
+                    $htmlname = 'ei_type_' . $line->fields['code'];
+                    $label = $langs->trans('ExtendedInterventionQuotaFor', $line->fields['label']);
+                    $added_arrayfields[$htmlname] = array('label' => $label, 'checked' => 0);
+                }
+
+                $arrayfields = array_merge($arrayfields, $added_arrayfields);
             }
         }
 
@@ -337,12 +369,10 @@ SCRIPT;
             if (!empty($conf->global->EXTENDEDINTERVENTION_QUOTA_ACTIVATE)) {
                 $langs->load('extendedintervention@extendedintervention');
 
-                dol_include_once('/advancedictionaries/class/dictionary.class.php');
-                $inter_type_dictionary = Dictionary::getDictionary($this->db, 'extendedintervention', 'extendedinterventiontype');
-                $inter_type_dictionary->fetch_lines(1, array('count' => 1), array('label' => 'DESC'));
+                $this->_fetchInterventionType();
 
                 if ($action == 'create') {
-                    foreach ($inter_type_dictionary->lines as $line) {
+                    foreach (self::$intervention_type_cached as $line) {
                         $htmlname = 'ei_type_'.$line->fields['code'];
                         $label = $langs->trans('ExtendedInterventionQuotaFor', $line->fields['label']);
                         print '<tr id="ei_count_intervention_block"><td>' . $label . '</td>';
@@ -361,7 +391,7 @@ SCRIPT;
 
                     $counts = $extendedinterventioncountintervention->getCountInterventionOfContract($object->id);
 
-                    foreach ($inter_type_dictionary->lines as $line) {
+                    foreach (self::$intervention_type_cached as $line) {
                         $htmlname = 'ei_type_'.$line->fields['code'];
                         $value = GETPOST($htmlname, 'int') ? GETPOST($htmlname, 'int') : (isset($counts[$line->id]) ? $counts[$line->id] : '');
                         $label = $langs->trans('ExtendedInterventionQuotaFor', $line->fields['label']);
@@ -398,6 +428,206 @@ SCRIPT;
                 unset($extrafields->attributes[$object->table_element]['label']['ei_count_period_size']);
                 unset($extrafields->attribute_label['ei_count_separator']);
                 unset($extrafields->attribute_label['ei_count_period_size']);
+            }
+        }
+
+        return 0;
+    }
+
+    /**
+     * Overloading the printFieldListSelect function : replacing the parent's function with the one below
+     *
+     * @param   array()         $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          &$action        Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+	function printFieldListSelect($parameters, &$object, &$action, $hookmanager)
+    {
+        global $conf, $user, $langs;
+
+        $contexts = explode(':', $parameters['context']);
+
+        if (in_array('contractlist', $contexts) && empty($parameters['dictionary_hook'])) {
+            if (!empty($conf->global->EXTENDEDINTERVENTION_QUOTA_ACTIVATE)) {
+                $out = '';
+
+                foreach (self::$intervention_type_cached as $line) {
+                    $htmlname = 'ei_type_' . $line->fields['code'];
+                    $out .= ', MAX(IF(eicct.fk_c_intervention_type = ' . $line->id . ', IFNULL(eicct.count, 0), 0)) AS ' . $htmlname . '_quota';
+                }
+
+                $this->resprints = $out;
+            }
+        }
+
+        return 0;
+    }
+
+    /**
+     * Overloading the printFieldListFrom function : replacing the parent's function with the one below
+     *
+     * @param   array()         $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          &$action        Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+	function printFieldListFrom($parameters, &$object, &$action, $hookmanager)
+    {
+        global $conf, $user, $langs;
+
+        $contexts = explode(':', $parameters['context']);
+
+        if (in_array('contractlist', $contexts) && empty($parameters['dictionary_hook'])) {
+            if (!empty($conf->global->EXTENDEDINTERVENTION_QUOTA_ACTIVATE)) {
+                $out = ' LEFT JOIN ' . MAIN_DB_PREFIX . 'extendedintervention_contract_count_type AS eicct ON eicct.fk_contrat = c.rowid';
+
+                $this->resprints = $out;
+            }
+        }
+
+        return 0;
+    }
+
+    /**
+     * Overloading the printFieldListGroupBy function : replacing the parent's function with the one below
+     *
+     * @param   array()         $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          &$action        Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+	function printFieldListGroupBy($parameters, &$object, &$action, $hookmanager)
+    {
+        global $conf, $user, $langs;
+
+        $contexts = explode(':', $parameters['context']);
+
+        if (in_array('contractlist', $contexts) && empty($parameters['dictionary_hook'])) {
+            if (!empty($conf->global->EXTENDEDINTERVENTION_QUOTA_ACTIVATE)) {
+                $out = '';
+
+                $search = array();
+                foreach (self::$intervention_type_cached as $line) {
+                    $htmlname = 'ei_type_' . $line->fields['code'];
+                    $value = GETPOST('search_' . $htmlname, 'alpha');
+                    if ($value) $search[] = natural_search($htmlname . '_quota', $value, 1, 1);
+                }
+
+                if (count($search)) {
+                    $out = ' HAVING ' . implode(' AND ', $search);
+                }
+
+                $this->resprints = $out;
+            }
+        }
+
+        return 0;
+    }
+
+    /**
+     * Overloading the printFieldListOption function : replacing the parent's function with the one below
+     *
+     * @param   array()         $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          &$action        Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+	function printFieldListOption($parameters, &$object, &$action, $hookmanager)
+    {
+        global $conf, $user, $langs;
+
+        $contexts = explode(':', $parameters['context']);
+
+        if (in_array('contractlist', $contexts)) {
+            if (!empty($conf->global->EXTENDEDINTERVENTION_QUOTA_ACTIVATE)) {
+                global $arrayfields;
+                $out = '';
+
+                foreach (self::$intervention_type_cached as $line) {
+                    $htmlname = 'ei_type_' . $line->fields['code'];
+                    if (!empty($arrayfields[$htmlname]['checked'])) {
+                        $out .= '<td class="liste_titre">';
+                        $out .= '<input class="flat" size="4" type="text" name="search_' . $htmlname . '" value="' . dol_escape_htmltag(GETPOST('search_' . $htmlname, 'alpha')) . '">';
+                        $out .= '</td>';
+                    }
+                }
+
+                $this->resprints = $out;
+            }
+        }
+
+        return 0;
+    }
+
+    /**
+     * Overloading the printFieldListTitle function : replacing the parent's function with the one below
+     *
+     * @param   array()         $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          &$action        Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+	function printFieldListTitle($parameters, &$object, &$action, $hookmanager)
+    {
+        global $conf, $user, $langs;
+
+        $contexts = explode(':', $parameters['context']);
+
+        if (in_array('contractlist', $contexts)) {
+            if (!empty($conf->global->EXTENDEDINTERVENTION_QUOTA_ACTIVATE)) {
+                global $arrayfields, $param, $sortfield, $sortorder;
+                $out = '';
+
+                foreach (self::$intervention_type_cached as $line) {
+                    $htmlname = 'ei_type_' . $line->fields['code'];
+                    if (! empty($arrayfields[$htmlname]['checked']))
+                        $out .= getTitleFieldOfList($arrayfields[$htmlname]['label'], 0, $_SERVER["PHP_SELF"], $htmlname . '_quota', "", "$param", 'align="center"', $sortfield, $sortorder);
+                }
+
+                $this->resprints = $out;
+            }
+        }
+
+        return 0;
+    }
+
+    /**
+     * Overloading the printFieldListValue function : replacing the parent's function with the one below
+     *
+     * @param   array()         $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          &$action        Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+	function printFieldListValue($parameters, &$object, &$action, $hookmanager)
+    {
+        global $conf, $user, $langs;
+
+        $contexts = explode(':', $parameters['context']);
+
+        if (in_array('contractlist', $contexts)) {
+            if (!empty($conf->global->EXTENDEDINTERVENTION_QUOTA_ACTIVATE)) {
+                global $arrayfields, $obj, $i, $totalarray;
+                $out = '';
+
+                foreach (self::$intervention_type_cached as $line) {
+                    $htmlname = 'ei_type_' . $line->fields['code'];
+                    if (!empty($arrayfields[$htmlname]['checked'])) {
+                        $out .= '<td align="center" class="nowrap">';
+                        $out .= $obj->{$htmlname.'_quota'};
+                        $out .= '</td>';
+                        if (!$i) $totalarray['nbfield']++;
+                    }
+                }
+
+                $this->resprints = $out;
             }
         }
 
