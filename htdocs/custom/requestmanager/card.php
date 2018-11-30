@@ -2206,7 +2206,7 @@ $now = dol_now();
                 if (!empty($conf->propal->enabled) && (count($authorizedButtons) == 0 || in_array('create_propal', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
                     $langs->load("propal");
                     if ($user->rights->propal->creer) {
-                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/comm/propal/card.php?originid=' . $object->id . '&origin=' . $object->element . ($object->socid > 0 ? '&socid=' . $object->socid : '') . '&action=create">' . $langs->trans("AddProp") . '</a></div>';
+                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/comm/propal/card.php?originid=' . $object->id . '&origin=' . $object->element . ($object->socid > 0 ? '&socid=' . $object->socid : '') . ($object->socid_benefactor > 0 ? '&options_companyrelationships_fk_soc_benefactor=' . $object->socid_benefactor : '') . '&action=create">' . $langs->trans("AddProp") . '</a></div>';
                     } else {
                         print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddProp") . '</a></div>';
                     }
@@ -2216,7 +2216,7 @@ $now = dol_now();
                 if (!empty($conf->commande->enabled) && (count($authorizedButtons) == 0 || in_array('create_order', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
                     $langs->load("orders");
                     if ($user->rights->commande->creer) {
-                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/commande/card.php?originid=' . $object->id . '&origin=' . $object->element . ($object->socid > 0 ? '&socid=' . $object->socid : '') . '&action=create">' . $langs->trans("AddOrder") . '</a></div>';
+                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/commande/card.php?originid=' . $object->id . '&origin=' . $object->element . ($object->socid > 0 ? '&socid=' . $object->socid : '') . ($object->socid_benefactor > 0 ? '&options_companyrelationships_fk_soc_benefactor=' . $object->socid_benefactor : '') . '&action=create">' . $langs->trans("AddOrder") . '</a></div>';
                     } else {
                         print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddOrder") . '</a></div>';
                     }
@@ -2229,7 +2229,7 @@ $now = dol_now();
                     if ($user->rights->facture->creer) {
                         $object->fetch_thirdparty();
                         if ($object->thirdparty->client != 0 && $object->thirdparty->client != 2) {
-                            print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/compta/facture/card.php?originid=' . $object->id . '&origin=' . $object->element . ($object->socid > 0 ? '&socid=' . $object->socid : '') . '&action=create">' . $langs->trans("AddBill") . '</a></div>';
+                            print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/compta/facture/card.php?originid=' . $object->id . '&origin=' . $object->element . ($object->socid > 0 ? '&socid=' . $object->socid : '') . ($object->socid_benefactor > 0 ? '&options_companyrelationships_fk_soc_benefactor=' . $object->socid_benefactor : '') . '&action=create">' . $langs->trans("AddBill") . '</a></div>';
                         } else {
                             print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("ThirdPartyMustBeEditAsCustomer")) . '" href="#">' . $langs->trans("AddBill") . '</a></div>';
                         }
@@ -2242,7 +2242,7 @@ $now = dol_now();
                 if (!empty($conf->ficheinter->enabled) && (count($authorizedButtons) == 0 || in_array('create_inter', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
                     $langs->load("interventions");
                     if ($user->rights->ficheinter->creer) {
-                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/fichinter/card.php?originid=' . $object->id . '&origin=' . $object->element . ($object->socid > 0 ? '&socid=' . $object->socid : '') . '&action=create">' . $langs->trans("AddIntervention") . '</a></div>';
+                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/fichinter/card.php?originid=' . $object->id . '&origin=' . $object->element . ($object->socid > 0 ? '&socid=' . $object->socid : '') . ($object->socid_benefactor > 0 ? '&options_companyrelationships_fk_soc_benefactor=' . $object->socid_benefactor : '') . '&action=create">' . $langs->trans("AddIntervention") . '</a></div>';
                     } else {
                         print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddIntervention") . '</a></div>';
                     }
