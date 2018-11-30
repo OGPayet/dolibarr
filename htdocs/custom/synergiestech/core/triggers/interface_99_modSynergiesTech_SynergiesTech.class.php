@@ -190,7 +190,7 @@ class InterfaceSynergiesTech extends DolibarrTriggers
                         setEventMessage($error_msg, 'errors');
 
                         dol_syslog(__METHOD__ . " Error : " . $error_msg, LOG_ERR);
-                        header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=statut&' . http_build_query($_POST));
+                        //header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=statut&' . http_build_query($_POST));
                         exit(0);
                     }
 
@@ -204,7 +204,7 @@ class InterfaceSynergiesTech extends DolibarrTriggers
 
                         if ($ret <= 0) {
                             dol_syslog(__METHOD__ . " Error dol_add_file_process : filedir=" . $filedir, LOG_ERR);
-                            header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=statut&' . http_build_query($_POST));
+                            //header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=statut&' . http_build_query($_POST));
                             exit(0);
                         }
                     }
