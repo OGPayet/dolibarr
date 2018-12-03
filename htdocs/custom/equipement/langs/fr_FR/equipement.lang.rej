@@ -1,13 +1,8 @@
 diff a/htdocs/custom/equipement/langs/fr_FR/equipement.lang b/htdocs/custom/equipement/langs/fr_FR/equipement.lang	(rejected hunks)
-@@ -366,6 +366,11 @@ EquipementLost             = Equipement perdu
- EquipementUsed             = Equipement utilisé
- EquipementWarehouseForLost = Entrepôt rebut
+@@ -382,5 +383,6 @@ EquipementErrorQtyToUse             = Le nombre d'équipements renseignés ne co
+ EquipementErrorQtyLost              = Le nombre d'équipements renseignés ne correspond pas avec la quantité perdue
+ EquipementErrorReferenceAlreadyUsed = Equipement déjà utilisé
+ EquipementErrorWarehouseLostNone    = Aucun entrepôt rebut n'a été sélectionné
++EquipementErrorStatusNotDefined     = Statut non défini dans le dictionnaire des etats d'équipements : %s
  
-+#
-+# Success
-+#
-+EquipementSuccessSave = Equipement enregistré avec succès
-+
- #
- # Error
- #
+ LinkToEquipement=Lier à un équipement

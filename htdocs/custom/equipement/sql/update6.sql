@@ -1,0 +1,1 @@
+INSERT INTO llx_c_equipement_etat (code, libelle, active) values ('LOST', 'Lost',  1);

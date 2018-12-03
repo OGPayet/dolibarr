@@ -51,6 +51,10 @@ if (!empty($conf->equipement->enabled)) {
     if (! empty($conf->global->EQUIPEMENT_ADDON)
         && is_readable(dol_buildpath("/equipement/core/modules/equipement/".$conf->global->EQUIPEMENT_ADDON.".php")))
         dol_include_once("/equipement/core/modules/equipement/".$conf->global->EQUIPEMENT_ADDON.".php");
+
+    $equipementLostStatic = new Equipement($db);
+    $equipementEtatLost   = $equipementLostStatic->getDictionaryEquipementEtatByCode(Equipement::EQUIPEMENT_ETAT_CODE_LOST);
+    $equipementEtatLostId = $equipementEtatLost->rowid;
 }
 
 if (! empty($conf->global->FACTORY_ADDON)
@@ -148,6 +152,13 @@ if (empty($reshook)) {
         if ($product->array_options['options_synergiestech_to_serialize'] == 1) {
             $equipementBuildSerialMethod     = GETPOST('equipementbuild_serialmethod', 'int') ? GETPOST('equipementbuild_serialmethod', 'int') : 0;
             $equipementBuildSerialFournArray = GETPOST('equipementbuild_serialfourn_list', 'array') ? GETPOST('equipementbuild_serialfourn_list', 'array') : array();
+
+            // check equipment status lost
+            if ($equipementEtatLostId <= 0) {
+                $error++;
+                $factory->error    = $langs->trans("EquipementErrorStatusNotDefined", $langs->transnoentitiesnoconv(Equipement::EQUIPEMENT_ETAT_CODE_LOST));
+                $factory->errors[] = $factory->error;
+            }
 
             // check serial method
             if (!array_key_exists($equipementBuildSerialMethod, $arraySerialMethod)) {
@@ -558,6 +569,14 @@ if (empty($reshook)) {
                                             foreach ($componentProductEquipementLostIdList as $equipementLostId) {
                                                 $equipementLost = new Equipement($db);
                                                 $equipementLost->fetch($equipementLostId);
+
+                                                // change equipment status
+                                                $ret = $equipementLost->set_etatEquipement($user, $equipementEtatLostId, TRUE);
+                                                if ($ret < 0) {
+                                                    $error++;
+                                                    $factory->error    = $errorLine . " : " . $equipementLost->errorsToString();
+                                                    $factory->errors[] = $factory->error;
+                                                }
 
                                                 $ret = $equipementLost->set_entrepot($user, $equipementLostFkEntrepot);
                                                 if ($ret < 0) {
@@ -1026,6 +1045,7 @@ if (empty($dispatchLineList)) {
                 $sqlEquipementEvt  = "SELECT ee.rowid";
                 $sqlEquipementEvt .= ", ee.fk_equipement";
                 $sqlEquipementEvt .= ", e.fk_entrepot";
+                $sqlEquipementEvt .= ", e.fk_etatequipement";
                 $sqlEquipementEvt .= " FROM " . MAIN_DB_PREFIX . "equipementevt as ee";
                 $sqlEquipementEvt .= " INNER JOIN " . MAIN_DB_PREFIX . "equipement as e ON e.rowid = ee.fk_equipement";
                 $sqlEquipementEvt .= " WHERE ee.fk_factory = " . $id;
@@ -1034,6 +1054,7 @@ if (empty($dispatchLineList)) {
                 $resqlEquipementEvt = $db->query($sqlEquipementEvt);
                 if ($resqlEquipementEvt) {
                     while ($obje = $db->fetch_object($resqlEquipementEvt)) {
+                        /*
                         // modification mode
                         if ($factory->statut == 1) {
                             $equipementUsedIdList[] = $obje->fk_equipement;
@@ -1046,6 +1067,15 @@ if (empty($dispatchLineList)) {
                             } else {
                                 $equipementUsedIdList[] = $obje->fk_equipement;
                             }
+
+                        }
+                        */
+
+                        if ($obje->fk_etatequipement == $equipementEtatLostId) {
+                            $equipementLostIdList[] = $obje->fk_equipement;
+                            $entrepotLostId = intval($obje->fk_entrepot);
+                        } else {
+                            $equipementUsedIdList[] = $obje->fk_equipement;
                         }
                     }
 

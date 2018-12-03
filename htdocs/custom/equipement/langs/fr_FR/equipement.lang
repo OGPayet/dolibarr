@@ -213,6 +213,7 @@ InUse=En utilisation
 Broken=En panne
 ForSale=En vente
 OutofOrder=Hors Service
+Lost=Perdu
 ### TYPE EVENEMENT
 TypeofEquipementEvent=Type d'évènement
 TypeEvent=Type

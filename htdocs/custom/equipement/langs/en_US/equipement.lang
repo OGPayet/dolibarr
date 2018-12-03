@@ -74,6 +74,7 @@ LastEquipement=Last %s equipments
 LastEquipementEvent=Last %s events of equipments
 BoxTitleLastModifiedEquipement=Last %s Modified equipments
 BoxTitleLastModifiedEquipementEvt=Last %s Modified events of equipments
+
 ### ETAT EQUIPEMENT
 BrandNew=Brand New
 Demo=Demonstration
@@ -85,6 +86,8 @@ InUse=In use
 Broken=Broken
 ForSale=For sale
 OutofOrder=Out of Order
+Lost=Lost
+
 ### TYPE EVENEMENT
 TypeofEquipementEvent=Type of event
 Warranty=Warranty
@@ -347,3 +350,6 @@ EquipementErrorQtyToUse             = Number of equipments doesn't match with th
 EquipementErrorQtyLost              = Number of equipments doesn't match with the lost quantity
 EquipementErrorReferenceAlreadyUsed = Equipment already used
 EquipementErrorWarehouseLostNone    = No waste warehouse selected
+EquipementErrorStatusNotDefined     = Status not defined in equipment states dictionary : %s
+
+

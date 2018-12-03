@@ -28,6 +28,8 @@ require_once(DOL_DOCUMENT_ROOT ."/core/class/commonobject.class.php");
  */
 class Equipement extends CommonObject
 {
+    const EQUIPEMENT_ETAT_CODE_LOST = 'LOST';
+
 	public $element='equipement';
 	public $table_element='equipement';
 	public $fk_element='fk_equipement';
@@ -1101,11 +1103,12 @@ class Equipement extends CommonObject
 	/**
 	 *	Defines a etat of the equipement
 	 *
-	 *	@param	  User	$user				Object user who define
-	 *	@param	  date	$fk_etatequipement	id of the entrepot
-	 *	@return	 int							<0 if ko, >0 if ok
+	 *	@param      User	$user				Object user who define
+	 *	@param      int     $fk_etatequipement  Id of equipment
+     *	@param      int     $noCheckStatus      [=FALSE] Check status
+	 *	@return	    int							<0 if ko, >0 if ok
 	 */
-	function set_etatEquipement($user, $fk_etatequipement)
+	function set_etatEquipement($user, $fk_etatequipement, $noCheckStatus = FALSE)
 	{
 		global $conf;
 
@@ -1114,7 +1117,9 @@ class Equipement extends CommonObject
 			$sql.= " SET fk_etatequipement= ".($fk_etatequipement!=-1? $fk_etatequipement:"null");
 			$sql.= " WHERE rowid = ".$this->id;
 			$sql.= " AND entity = ".$conf->entity;
-			$sql.= " AND fk_statut = 0";
+			if ($noCheckStatus === FALSE) {
+                $sql .= " AND fk_statut = 0";
+            }
 
 			if ($this->db->query($sql)) {
 				$this->fk_etatequipement = $fk_etatequipement;
@@ -1531,6 +1536,7 @@ class Equipement extends CommonObject
 		$line->fk_retourproduits        = $fk_retourproduits;
         $line->fk_factory               = $fk_factory;
         $line->fk_factorydet            = $fk_factorydet;
+        $line->context                  = $this->context;
 
 		if (is_array($array_option) && count($array_option)>0)
 			$line->array_options=$array_option;
@@ -1955,6 +1961,9 @@ class Equipement extends CommonObject
                 }
 
                 if (!$error) {
+                    $equipment_statitc->context['set_component_add'] = 'set_component_add';
+                    $equipment_statitc->context['component_add_id'] = $this->id;
+
                     $sql = "INSERT INTO " . MAIN_DB_PREFIX . "equipementassociation ";
                     $sql .= " (fk_equipement_fils, fk_equipement_pere, fk_product, position)";
                     $sql .= " values (" . $this->id . ", " . $fk_parent . ", " . $fk_product . ", " . $position . ")";
@@ -1997,6 +2006,8 @@ class Equipement extends CommonObject
                             $this->error = $equipment_statitc->errorsToString();
                         }
                     }
+
+                    unset($equipment_statitc->context);
                 }
             }
         } else {
@@ -2279,6 +2290,64 @@ class Equipement extends CommonObject
 		}
 		return 0;
 	}
+
+
+    /**
+     * Find equipment status from dictionary
+     *
+     * @param   string      $statusCode     Code of equipment status in dictionary
+     * @return  resource    SQL resource
+     *
+     * @throws Exception
+     */
+	public function findDictionaryEquipementEtatByCode($statusCode)
+    {
+        dol_syslog(__METHOD__ . ' statusCode=' . $statusCode, LOG_DEBUG);
+
+        $sql  = "SELECT cee.rowid, cee.libelle, cee.coder";
+        $sql .= " FROM " . MAIN_DB_PREFIX . "c_equipement_etat as cee";
+        $sql .= " WHERE cee.code = '" . $this->db->escape($statusCode) . "'";
+        $sql .= " AND cee.entity = " . getEntity($this->element);
+
+        return $this->db->query($sql);
+    }
+
+
+    /**
+     * Get equipment status from dictionary
+     *
+     * @param   string          $statusCode     Code of equipment status in dictionary
+     * @return  null|Object
+     *
+     * @throws Exception
+     */
+	public function getDictionaryEquipementEtatByCode($statusCode)
+    {
+        global $langs;
+
+        $obj = NULL;
+
+        dol_syslog(__METHOD__ . ' statusCode=' . $statusCode, LOG_DEBUG);
+
+        $resql = $this->findDictionaryEquipementEtatByCode($statusCode);
+        if (!$resql) {
+            $this->error    = $this->db->lasterror();
+            $this->errors[] = $this->error;
+            dol_syslog(__METHOD__ . ' Error:' . $this->error, LOG_ERR);
+        } else {
+            if ($this->db->num_rows($resql) > 0) {
+                $obj = $this->db->fetch_object($resql);
+            }
+        }
+
+        if ($obj === NULL) {
+            $this->error    = $langs->trans("EquipementErrorStatusNotDefined", $langs->transnoentitiesnoconv($statusCode));
+            $this->errors[] = $this->error;
+            dol_syslog(__METHOD__ . ' Error:' . $this->error, LOG_ERR);
+        }
+
+        return $obj;
+    }
 }
 
 /**
@@ -2401,7 +2470,7 @@ class Equipementevt extends CommonObject
         $sql.= ", fk_retourproduits";
         $sql.= ", fk_factory";
         $sql.= ", fk_factorydet";
-        $sql.= ")";;
+        $sql.= ")";
 		$sql.= " VALUES (".$this->fk_equipement.",";
 		$sql.= " ".($this->fk_equipementevt_type?$this->fk_equipementevt_type:"null").",";
 		$sql.= " '".($this->desc?$this->db->escape($this->desc):"non saisie")."',";

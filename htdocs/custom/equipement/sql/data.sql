@@ -34,6 +34,7 @@ insert into llx_c_equipement_etat ( code, libelle, active) values ('USE', 'InUse
 insert into llx_c_equipement_etat ( code, libelle, active) values ('BROKEN', 'Broken',  1);
 insert into llx_c_equipement_etat ( code, libelle, active) values ('SALE', 'ForSale',  1);
 insert into llx_c_equipement_etat ( code, libelle, active) values ('HS', 'OutofOrder',  1);
+insert into llx_c_equipement_etat ( code, libelle, active) values ('LOST', 'Lost',  1);
 
 --
 -- Type equipement event

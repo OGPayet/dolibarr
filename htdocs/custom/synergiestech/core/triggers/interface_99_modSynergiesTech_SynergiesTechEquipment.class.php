@@ -60,25 +60,77 @@ class InterfaceSynergiesTechEquipment extends DolibarrTriggers
         if (empty($conf->synergiestech->enabled)) return 0;     // Module not active, we do nothing
 
 	    switch ($action) {
+//	        case 'SET_COMPONENT_ADD':
+//               $now = dol_now();
+//
+//               $fk_equipementevt_type = dol_getIdFromCode($this->db, 'COMPO', 'c_equipementevt_type', 'code', 'rowid');
+//
+//               // object is child equipment
+//               $parameters = $object->context['parameters'];
+//               //$parameters['parent']
+//               //$parameters['old_child']
+//               //$parameters['position']
+//               $parentEquipement = $parameters['parent'];
+//               $result = $object->addline(
+//                   $object->id,
+//                   $fk_equipementevt_type,
+//                   $langs->trans('EquipmentAddEquipmentToComposition', $object->getNomUrl(1), $parentEquipement->getNomUrl(1)),
+//                   $now,
+//                   $now,
+//                   '',
+//                   '',
+//                   '',
+//                   '',
+//                   '',
+//                   '',
+//                   '',
+//                   ''
+//               );
+//
+//               if ($result < 0) {
+//                   return -1;
+//               }
+//
+//               $this->db->query(
+//                   'INSERT INTO '.MAIN_DB_PREFIX.'synergiestech_equipementevtassociation(fk_equipement_evt_pere, fk_equipement_evt_fils)'.
+//                   ' VALUES('.$parentEquipement->rowid.', '.$object->rowid.')'
+//               );
+//
+//               dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+//               return 0;
+
             case 'LINEEQUIPEMENTEVT_INSERT':
                 $equipment = new Equipement($this->db);
                 $equipment->fetch($object->fk_equipement);
                 $ref_link = ' ['.$equipment->getNomUrl(1).']';
 
-                // Get children of equipment
-                $children = $equipment->get_Childs();
-
-                foreach ($children as $child) {
+                if (isset($object->context['set_component_add'])) {
                     $event = clone $object;
-                    $event->fk_equipement = $child;
+                    $event->fk_equipement = $object->context['component_add_id'];
                     $event->desc .= $ref_link;
-                    if ($event->insert() < 0) {
+                    if ($event->insert(1) < 0) {
                         return -1;
                     }
                     $this->db->query(
                         'INSERT INTO '.MAIN_DB_PREFIX.'synergiestech_equipementevtassociation(fk_equipement_evt_pere, fk_equipement_evt_fils)'.
                         ' VALUES('.$object->rowid.', '.$event->rowid.')'
                     );
+                } else {
+                    // Get children of equipment
+                    $children = $equipment->get_Childs();
+
+                    foreach ($children as $child) {
+                        $event = clone $object;
+                        $event->fk_equipement = $child;
+                        $event->desc .= $ref_link;
+                        if ($event->insert() < 0) {
+                            return -1;
+                        }
+                        $this->db->query(
+                            'INSERT INTO '.MAIN_DB_PREFIX.'synergiestech_equipementevtassociation(fk_equipement_evt_pere, fk_equipement_evt_fils)'.
+                            ' VALUES('.$object->rowid.', '.$event->rowid.')'
+                        );
+                    }
                 }
 
                 dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
