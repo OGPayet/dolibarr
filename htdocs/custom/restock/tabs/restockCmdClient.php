@@ -221,21 +221,26 @@ if($action == 'confirm_direct') {
 			 */
 			if (GETPOST("shipping_methode") != '')
 			{
-				$result = $object->Livraison($user, GETPOST("shipping_date"), GETPOST("shipping_methode"), GETPOST("shipping_comment"));   // GETPOST("type") is 'tot', 'par', 'nev', 'can'
-				if ($result > 0)
-				{
-					$langs->load("deliveries");
-					setEventMessages($langs->trans("DeliveryStateSaved"), null);
-					$action = '';
-				}
-				else if($result == -3)
-				{
-					setEventMessages($object->error, $object->errors, 'errors');
-				}
-				else
-				{
-					setEventMessages($object->error, $object->errors, 'errors');
-				}
+                if (!GETPOST("shipping_date")) {
+                    $error++;
+                    setEventMessage($langs->trans("ErrorFieldRequired", $langs->transnoentities("DeliveryDate")), 'errors');
+                } else {
+                    $result = $object->Livraison($user, GETPOST("shipping_date"), GETPOST("shipping_methode"), GETPOST("shipping_comment"));   // GETPOST("type") is 'tot', 'par', 'nev', 'can'
+                    if ($result > 0)
+                    {
+                        $langs->load("deliveries");
+                        setEventMessages($langs->trans("DeliveryStateSaved"), null);
+                        $action = '';
+                    }
+                    else if($result == -3)
+                    {
+                        setEventMessages($object->error, $object->errors, 'errors');
+                    }
+                    else
+                    {
+                        setEventMessages($object->error, $object->errors, 'errors');
+                    }
+                }
 			}
 			else
 			{
@@ -696,7 +701,7 @@ if ($action == 'direct') {
 							),
 							array(
 								'text' => "<b>".$langs->trans("ReceptionOrder")."</b>",
-								array('type' => 'date', 'name' => 'shipping_date', 'label' => $langs->trans("DeliveryDate"), 'value' => dol_mktime(0, 0, 0,GETPOST('remonth'), GETPOST('reday'), GETPOST('reyear'))),
+								array('type' => 'date', 'name' => 'shipping_date', 'label' => '<b>' . $langs->trans("DeliveryDate") . '</b>', 'value' => dol_mktime(0, 0, 0,GETPOST('remonth'), GETPOST('reday'), GETPOST('reyear'))),
 								array('type' => 'select', 'name' => 'shipping_methode', 'label' => $langs->trans("Delivery"), 'values' => $liv),
 								array('type' => 'text', 'name' => 'shipping_comment', 'label' => $langs->trans("Comment"), 'value' =>  GETPOST('comment'))
 							),
@@ -717,6 +722,9 @@ if ($action == 'direct') {
 					$(document).ready(function() {
 						 $("form").submit(function(e){
 							var error = "";
+							if(!$("#shipping_date").val()) {
+								error += "'.$langs->trans("ErrorFieldRequired", $langs->transnoentities("DeliveryDate")).'<br/>";
+							}
 							if(!$("#shipping_methode").val() || $("#shipping_methode").val() == "-1") {
 								error += "'.$langs->trans("ErrorSelectShipping").'<br/>";
 							}
