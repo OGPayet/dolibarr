@@ -240,9 +240,9 @@ class ActionsQuickList
                         'label' => $langs->trans('QuickListFilterScope'),
                         'type' => 'radio',
                         'values' => array(
-                            QuickList::QUICKLIST_SCOPE_PRIVATE => '<label for="filter_scope_'.QuickList::QUICKLIST_SCOPE_PRIVATE.'">' . $langs->trans('QuickListScopePrivate') . '</label>',
-                            QuickList::QUICKLIST_SCOPE_USERGROUP => '<label for="filter_scope_'.QuickList::QUICKLIST_SCOPE_USERGROUP.'">' . $langs->trans('QuickListScopeUserGroup') . '</label>',
-                            QuickList::QUICKLIST_SCOPE_PUBLIC => '<label for="filter_scope_'.QuickList::QUICKLIST_SCOPE_PUBLIC.'">' . $langs->trans('QuickListScopePublic') . '</label>',
+                            QuickList::QUICKLIST_SCOPE_PRIVATE => '<label for="filter_scope_' . QuickList::QUICKLIST_SCOPE_PRIVATE . '">' . $langs->trans('QuickListScopePrivate') . '</label>',
+                            QuickList::QUICKLIST_SCOPE_USERGROUP => '<label for="filter_scope_' . QuickList::QUICKLIST_SCOPE_USERGROUP . '">' . $langs->trans('QuickListScopeUserGroup') . '</label>',
+                            QuickList::QUICKLIST_SCOPE_PUBLIC => '<label for="filter_scope_' . QuickList::QUICKLIST_SCOPE_PUBLIC . '">' . $langs->trans('QuickListScopePublic') . '</label>',
                         )
                     ),
                     array(
