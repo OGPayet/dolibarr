@@ -552,14 +552,14 @@ if ($action == 'dispatch' && $user->rights->fournisseur->commande->receptionner)
                                 $object->errors[] = $object->error;
                             }
                         } else if ($qtyEquipementToDispatch < 0) {
-                            $serialFournRemoveArray = GETPOST('serialfourn_remove' . $suffix, 'array');
+                            $serialFournRemoveArray = GETPOST('serialfourn_remove' . $suffix, 'array') ? GETPOST('serialfourn_remove' . $suffix, 'array') : array();
 
                             // check if quanity to dispatch matches with serialFournRemoveArray
-                            if (count($serialFournRemoveArray) != abs($qtyEquipementToDispatch)) {
-                                $error++;
-                                $object->error = $errorLine . ' : ' . $langs->trans('WarehousechildErrorSupplierOrderDispatchLineIncorrectRemoveQty');
-                                $object->errors[] = $object->error;
-                            } else {
+//                            if (count($serialFournRemoveArray) != abs($qtyEquipementToDispatch)) {
+//                                $error++;
+//                                $object->error = $errorLine . ' : ' . $langs->trans('WarehousechildErrorSupplierOrderDispatchLineIncorrectRemoveQty');
+//                                $object->errors[] = $object->error;
+//                            } else {
                                 foreach ($serialFournRemoveArray as $serialFournRemove) {
                                     // find equipement by serial number
                                     $equipementToRemove = new \Equipement($db);
@@ -598,7 +598,7 @@ if ($action == 'dispatch' && $user->rights->fournisseur->commande->receptionner)
                                         break;
                                     }
                                 }
-                            }
+//                            }
                         }
                     }
                 }
