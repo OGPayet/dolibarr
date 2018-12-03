@@ -763,7 +763,9 @@ class FormSynergiesTech
 
             require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
 
-            $sql = "SELECT DISTINCT fk_contrat FROM " . MAIN_DB_PREFIX . "equipementevt WHERE fk_equipement = " . $equipment_id;
+            $sql = "SELECT DISTINCT IF(sourcetype = 'equipement', fk_target, fk_source) AS fk_contrat FROM " . MAIN_DB_PREFIX . "element_element".
+                " WHERE (sourcetype = 'equipement' AND fk_source = ".$equipment_id." AND targettype = 'contrat')" .
+                " OR (sourcetype = 'contrat' AND targettype = 'equipement' AND fk_target = ".$equipment_id.")";
 
             $resql = $this->db->query($sql);
             if ($resql) {

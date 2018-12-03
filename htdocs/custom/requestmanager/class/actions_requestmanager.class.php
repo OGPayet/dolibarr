@@ -612,7 +612,7 @@ SCRIPT;
 
         $contexts = explode(':',$parameters['context']);
 
-        if (in_array('requestmanagercard', $contexts)) {
+        if (in_array('requestmanagercard', $contexts) && empty($conf->global->REQUESTMANAGER_DISABLE_SHOW_LINK_TO_OBJECT_BLOCK)) {
             if (!is_object($object->thirdparty)) $object->fetch_thirdparty();
 
             if (is_object($object->thirdparty) && !empty($object->thirdparty->id) && $object->thirdparty->id > 0) {
@@ -749,9 +749,10 @@ SCRIPT;
                         'enabled' => $conf->equipement->enabled,
                         'perms' => 1,
                         'label' => 'LinkToEquipement',
-                        'sql' => "SELECT s.rowid as socid, s.nom as name, s.client, e.rowid, e.ref FROM " . MAIN_DB_PREFIX . "societe as s" .
+                        'sql' => "SELECT s.rowid as socid, s.nom as name, s.client, e.rowid, e.ref, p.ref AS ref_client FROM " . MAIN_DB_PREFIX . "societe as s" .
                             " INNER JOIN  " . MAIN_DB_PREFIX . "equipement as e ON e.fk_soc_client = s.rowid" .
                             " LEFT JOIN  " . MAIN_DB_PREFIX . "equipement_extrafields as eef ON eef.fk_object = e.rowid" .
+                            " LEFT JOIN  " . MAIN_DB_PREFIX . "product as p ON p.rowid = e.fk_product" .
                             " LEFT JOIN  " . MAIN_DB_PREFIX . "element_element as ee" .
                             "   ON (ee.sourcetype = 'equipement' AND ee.fk_source = e.rowid AND ee.targettype = '" . $object->element . "' AND ee.fk_target = " . $object->id . ")" .
                             "   OR (ee.targettype = 'equipement' AND ee.fk_target = e.rowid AND ee.sourcetype = '" . $object->element . "' AND ee.fk_source = " . $object->id . ")" .
@@ -761,6 +762,7 @@ SCRIPT;
                             ' AND ee.rowid IS NULL' .
                             ' GROUP BY e.rowid, s.rowid',
                     );
+                    $conf->global->EQUIPEMENT_DISABLE_SHOW_LINK_TO_OBJECT_BLOCK = true;
                 }
 
                 $this->results = $possiblelinks;

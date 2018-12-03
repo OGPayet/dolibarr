@@ -80,292 +80,296 @@ $extralabels = $extrafields->fetch_name_optionals_label("equipement");
 // Initialize technical object to manage hooks of thirdparties. Note that conf->hooks_modules contains array array
 $hookmanager->initHooks(array('equipementcard', 'globalcard'));
 
-$parameters = array('id'=> $id, 'product' => $product);
-// Note that $action and $object may have been modified by some hooks
-$reshook = $hookmanager->executeHooks('doActions', $parameters, $object, $action);
-if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+$permissiondellink=$user->rights->equipement->creer;	// Used by the include of actions_dellink.inc.php
+
 
 
 /*
  * Actions
  */
+$parameters = array('id'=> $id, 'product' => $product);
+$reshook = $hookmanager->executeHooks('doActions', $parameters, $object, $action); // Note that $action and $object may have been modified by some hooks
+if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+if (empty($reshook)) {
+    include DOL_DOCUMENT_ROOT . '/core/actions_dellink.inc.php';        // Must be include, not include_once
 
-if ($action == 'confirm_cutEquipement' && $confirm == 'yes' && $user->rights->equipement->creer) {
-	if ($object->fetch($id, $ref)) {
-		$ref_new=GETPOST("ref_new");
-		$quantitynew=GETPOST("quantitynew");
-		$cloneevent=GETPOST("cloneevent");
-		$object->cut_equipement($ref_new, $quantitynew, $cloneevent);
-		Header('Location: '.$_SERVER["PHP_SELF"].'?id='.$id);
-		exit;
-	}
-} else if ($action == 'add' && $user->rights->equipement->creer) {
-	$object->fk_product			= $productid;
-	$object->fk_soc_fourn 		= $socFournid;
-	$object->fk_soc_client 		= $socClienid;
-	$object->author				= $user->id;
-	$object->unitweight			= GETPOST('unitweight', 'alpha');
-	$object->description		= GETPOST('description');
-	$object->ref				= $ref;
-	$object->fk_entrepot		= GETPOST('fk_entrepot', 'alpha');
-	$object->isentrepotmove		= (GETPOST('fk_entrepotmove', 'alpha')?1:0);
-	$object->fk_etatequipement	= GETPOST('fk_etatequipement');
-
-	$datee=dol_mktime('23', '59', '59', $_POST["dateemonth"], $_POST["dateeday"], $_POST["dateeyear"]);
-	$object->datee				= $datee;
-
-	$dated=dol_mktime('23', '59', '59', $_POST["datedmonth"], $_POST["datedday"], $_POST["datedyear"]);
-	$object->dated				= $dated;
-
-	$dateo=dol_mktime('23', '59', '59', $_POST["dateomonth"], $_POST["dateoday"], $_POST["dateoyear"]);
-	$object->dateo				= $dateo;
-
-	$object->note_private		= GETPOST('note_private', 'alpha');
-	$object->note_public		= GETPOST('note_public', 'alpha');
-	$object->quantity 			= GETPOST('quantity', 'int');
-	$object->nbAddEquipement	= $nbAddEquipement;
-	$object->SerialMethod 		= $serialMethod;
-	$object->SerialFourn		= GETPOST('SerialFourn', 'alpha');
-	$object->numversion			= GETPOST('numversion', 'alpha');
-	$object->model_pdf			= GETPOST('modelpdf', 'alpha');
-	$object->fk_factory			= GETPOST('factoryid', 'int');
-	$object->fk_product_batch	= $fk_product_batch;
-
-//var_dump($object);
-//exit;
-
-	if ($object->fk_product > 0) {
-		$result = $object->create();
-		if ($result > 0) {
-			$id=$result;	  // Force raffraichissement sur fiche venant d'etre cree
-			$action = '';
-		} else {
-			$langs->load("errors");
-			$mesg='<div class="error">'.$langs->trans($object->error).'</div>';
-			$action = 'create';
-		}
-	} else {
-		$mesg='<div class="error">'.$langs->trans("ErrorFieldRequired", $langs->trans("ThirdParty")).'</div>';
-		$action = 'create';
-	}
-}
-
-if ($id > 0 || ! empty($ref)) {
-	$object->fetch($id, $ref);
-	$object->fetch_thirdparty();
-}
-
-if ($action == 'confirm_validate'
-		&& $confirm == 'yes'
-		&& $user->rights->equipement->creer) {
-	$object->fetch_thirdparty();
-
-	$result = $object->setValid($user, $conf->equipement->outputdir);
-	if ($result >= 0) {
-		// Define output language
-		$outputlangs = $langs;
-		$newlang='';
-		if ($conf->global->MAIN_MULTILANGS && empty($newlang) && GETPOST('lang_id', 'alpha'))
-			$newlang=GETPOST('lang_id', 'alpha');
-		if ($conf->global->MAIN_MULTILANGS && empty($newlang))
-			$newlang=$object->thirdparty->default_lang;
-		if (! empty($newlang)) {
-			$outputlangs = new Translate("", $conf);
-			$outputlangs->setDefaultLang($newlang);
-		}
-		// g�n�re le pdf qui n'existe pas pour le moment
-		$result=equipement_create($db, $object, GETPOST('model', 'alpha'), $outputlangs);
-		Header('Location: '.$_SERVER["PHP_SELF"].'?id='.$object->id);
-		exit;
-	}
-	else
-		$mesg='<div class="error">'.$object->error.'</div>';
-} else if ($action == 'confirm_modify' && $confirm == 'yes' && $user->rights->equipement->creer) {
-
-	$result = $object->setDraft($user);
-	if ($result >= 0) {
-		// Define output language
-		$outputlangs = $langs;
-		$newlang='';
-		if ($conf->global->MAIN_MULTILANGS && empty($newlang) && GETPOST('lang_id', 'alpha'))
-			$newlang=GETPOST('lang_id', 'alpha');
-		if ($conf->global->MAIN_MULTILANGS && empty($newlang))
-			$newlang=$object->thirdparty->default_lang;
-		if (! empty($newlang)) {
-			$outputlangs = new Translate("", $conf);
-			$outputlangs->setDefaultLang($newlang);
-		}
-		$result=equipement_create(
-						$db, $object,
-						(!GETPOST('model', 'alpha'))?$object->model:GETPOST('model', 'apha'),
-						$outputlangs
-		);
-		Header('Location: '.$_SERVER["PHP_SELF"].'?id='.$object->id);
-		exit;
-	} else
-		$mesg='<div class="error">'.$object->error.'</div>';
-
-} elseif ($action == 'builddoc' && $user->rights->equipement->creer) {
-	/*
-	 * Build doc
-	 */
-	$object->fetch_lines();
-
-	if (GETPOST('model', 'alpha'))
-		$object->setDocModel($user, GETPOST('model', 'alpha'));
-
-
-	// Define output language
-	$outputlangs = $langs;
-	$newlang='';
-	if ($conf->global->MAIN_MULTILANGS && empty($newlang) && GETPOST('lang_id', 'alpha'))
-		$newlang=GETPOST('lang_id', 'alpha');
-	if ($conf->global->MAIN_MULTILANGS && empty($newlang))
-		$newlang=$object->thirdparty->default_lang;
-	if (! empty($newlang)) {
-		$outputlangs = new Translate("", $conf);
-		$outputlangs->setDefaultLang($newlang);
-	}
-	$result=equipement_create($db, $object, GETPOST('model', 'alpha'), $outputlangs);
-	if ($result <= 0) {
-		dol_print_error($db, $result);
-		exit;
-	}
-	$action="";
-} elseif ($action == 'remove_file') {
-	// Remove file in doc form
-	if ($object->fetch($id, $ref)) {
-		require_once(DOL_DOCUMENT_ROOT."/core/lib/files.lib.php");
-
-		$object->fetch_thirdparty();
-
-		$langs->load("other");
-		$upload_dir = $conf->equipement->dir_output;
-		$file = $upload_dir . '/' . GETPOST('file');
-		$ret = dol_delete_file($file, 0, 0, 0, $object);
-        if ($ret) {
-            $mesg = $langs->trans("FileWasRemoved", GETPOST('file'));
-            setEventMessage($mesg, 'mesgs');
-            header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
-            exit();
+    if ($action == 'confirm_cutEquipement' && $confirm == 'yes' && $user->rights->equipement->creer) {
+        if ($object->fetch($id, $ref)) {
+            $ref_new = GETPOST("ref_new");
+            $quantitynew = GETPOST("quantitynew");
+            $cloneevent = GETPOST("cloneevent");
+            $object->cut_equipement($ref_new, $quantitynew, $cloneevent);
+            Header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $id);
+            exit;
         }
-	}
-} elseif ($action == 'confirm_delete' && $confirm == 'yes' && $user->rights->equipement->supprimer) {
-	$object->delete($user);
+    } else if ($action == 'add' && $user->rights->equipement->creer) {
+        $object->fk_product = $productid;
+        $object->fk_soc_fourn = $socFournid;
+        $object->fk_soc_client = $socClienid;
+        $object->author = $user->id;
+        $object->unitweight = GETPOST('unitweight', 'alpha');
+        $object->description = GETPOST('description');
+        $object->ref = $ref;
+        $object->fk_entrepot = GETPOST('fk_entrepot', 'alpha');
+        $object->isentrepotmove = (GETPOST('fk_entrepotmove', 'alpha') ? 1 : 0);
+        $object->fk_etatequipement = GETPOST('fk_etatequipement');
 
-	Header('Location: list.php?leftmenu=equipement');
-	exit;
-} elseif ($action == 'confirm_delete' && $confirm != 'yes' && $user->rights->equipement->supprimer)
-	$action = '';
-elseif ((substr($action, 0, 7) == 'setExFi' || $action == 'update_extras') && $user->rights->equipement->creer) {
-    $keyExFi = substr($action, 7);
+        $datee = dol_mktime('23', '59', '59', $_POST["dateemonth"], $_POST["dateeday"], $_POST["dateeyear"]);
+        $object->datee = $datee;
 
-    $res = $object->fetch_optionals($object->id, $extralabels);
-    if ($ret < 0) {
-        $error++;
-        setEventMessage($object->errorsToString(), 'errors');
-    }
-    if (!$error) {
-        if (substr($action, 0, 7) == 'setExFi') {
-            $object->array_options["options_" . $keyExFi] = $_POST["options_" . $keyExFi];
+        $dated = dol_mktime('23', '59', '59', $_POST["datedmonth"], $_POST["datedday"], $_POST["datedyear"]);
+        $object->dated = $dated;
+
+        $dateo = dol_mktime('23', '59', '59', $_POST["dateomonth"], $_POST["dateoday"], $_POST["dateoyear"]);
+        $object->dateo = $dateo;
+
+        $object->note_private = GETPOST('note_private', 'alpha');
+        $object->note_public = GETPOST('note_public', 'alpha');
+        $object->quantity = GETPOST('quantity', 'int');
+        $object->nbAddEquipement = $nbAddEquipement;
+        $object->SerialMethod = $serialMethod;
+        $object->SerialFourn = GETPOST('SerialFourn', 'alpha');
+        $object->numversion = GETPOST('numversion', 'alpha');
+        $object->model_pdf = GETPOST('modelpdf', 'alpha');
+        $object->fk_factory = GETPOST('factoryid', 'int');
+        $object->fk_product_batch = $fk_product_batch;
+
+        //var_dump($object);
+        //exit;
+
+        if ($object->fk_product > 0) {
+            $result = $object->create();
+            if ($result > 0) {
+                $id = $result;      // Force raffraichissement sur fiche venant d'etre cree
+                $action = '';
+            } else {
+                $langs->load("errors");
+                $mesg = '<div class="error">' . $langs->trans($object->error) . '</div>';
+                $action = 'create';
+            }
         } else {
-            // Fill array 'array_options' with data from update form
-            $extralabels = $extrafields->fetch_name_optionals_label($object->table_element);
-            $ret = $extrafields->setOptionalsFromPost($extralabels, $object, GETPOST('attribute'));
-            if ($ret < 0) {
-                $error++;
-                //setEventMessage($extrafields->error, 'errors'); // already in setOptionalsFromPost
+            $mesg = '<div class="error">' . $langs->trans("ErrorFieldRequired", $langs->trans("ThirdParty")) . '</div>';
+            $action = 'create';
+        }
+    }
+
+    if ($id > 0 || !empty($ref)) {
+        $object->fetch($id, $ref);
+        $object->fetch_thirdparty();
+    }
+
+    if ($action == 'confirm_validate'
+        && $confirm == 'yes'
+        && $user->rights->equipement->creer
+    ) {
+        $object->fetch_thirdparty();
+
+        $result = $object->setValid($user, $conf->equipement->outputdir);
+        if ($result >= 0) {
+            // Define output language
+            $outputlangs = $langs;
+            $newlang = '';
+            if ($conf->global->MAIN_MULTILANGS && empty($newlang) && GETPOST('lang_id', 'alpha'))
+                $newlang = GETPOST('lang_id', 'alpha');
+            if ($conf->global->MAIN_MULTILANGS && empty($newlang))
+                $newlang = $object->thirdparty->default_lang;
+            if (!empty($newlang)) {
+                $outputlangs = new Translate("", $conf);
+                $outputlangs->setDefaultLang($newlang);
+            }
+            // g�n�re le pdf qui n'existe pas pour le moment
+            $result = equipement_create($db, $object, GETPOST('model', 'alpha'), $outputlangs);
+            Header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
+            exit;
+        } else
+            $mesg = '<div class="error">' . $object->error . '</div>';
+    } else if ($action == 'confirm_modify' && $confirm == 'yes' && $user->rights->equipement->creer) {
+
+        $result = $object->setDraft($user);
+        if ($result >= 0) {
+            // Define output language
+            $outputlangs = $langs;
+            $newlang = '';
+            if ($conf->global->MAIN_MULTILANGS && empty($newlang) && GETPOST('lang_id', 'alpha'))
+                $newlang = GETPOST('lang_id', 'alpha');
+            if ($conf->global->MAIN_MULTILANGS && empty($newlang))
+                $newlang = $object->thirdparty->default_lang;
+            if (!empty($newlang)) {
+                $outputlangs = new Translate("", $conf);
+                $outputlangs->setDefaultLang($newlang);
+            }
+            $result = equipement_create(
+                $db, $object,
+                (!GETPOST('model', 'alpha')) ? $object->model : GETPOST('model', 'apha'),
+                $outputlangs
+            );
+            Header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
+            exit;
+        } else
+            $mesg = '<div class="error">' . $object->error . '</div>';
+
+    } elseif ($action == 'builddoc' && $user->rights->equipement->creer) {
+        /*
+         * Build doc
+         */
+        $object->fetch_lines();
+
+        if (GETPOST('model', 'alpha'))
+            $object->setDocModel($user, GETPOST('model', 'alpha'));
+
+
+        // Define output language
+        $outputlangs = $langs;
+        $newlang = '';
+        if ($conf->global->MAIN_MULTILANGS && empty($newlang) && GETPOST('lang_id', 'alpha'))
+            $newlang = GETPOST('lang_id', 'alpha');
+        if ($conf->global->MAIN_MULTILANGS && empty($newlang))
+            $newlang = $object->thirdparty->default_lang;
+        if (!empty($newlang)) {
+            $outputlangs = new Translate("", $conf);
+            $outputlangs->setDefaultLang($newlang);
+        }
+        $result = equipement_create($db, $object, GETPOST('model', 'alpha'), $outputlangs);
+        if ($result <= 0) {
+            dol_print_error($db, $result);
+            exit;
+        }
+        $action = "";
+    } elseif ($action == 'remove_file') {
+        // Remove file in doc form
+        if ($object->fetch($id, $ref)) {
+            require_once(DOL_DOCUMENT_ROOT . "/core/lib/files.lib.php");
+
+            $object->fetch_thirdparty();
+
+            $langs->load("other");
+            $upload_dir = $conf->equipement->dir_output;
+            $file = $upload_dir . '/' . GETPOST('file');
+            $ret = dol_delete_file($file, 0, 0, 0, $object);
+            if ($ret) {
+                $mesg = $langs->trans("FileWasRemoved", GETPOST('file'));
+                setEventMessage($mesg, 'mesgs');
+                header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
+                exit();
             }
         }
-    }
-    if (!$error) {
-        $result = $object->insertExtraFields();
-        if ($result < 0) {
+    } elseif ($action == 'confirm_delete' && $confirm == 'yes' && $user->rights->equipement->supprimer) {
+        $object->delete($user);
+
+        Header('Location: list.php?leftmenu=equipement');
+        exit;
+    } elseif ($action == 'confirm_delete' && $confirm != 'yes' && $user->rights->equipement->supprimer)
+        $action = '';
+    elseif ((substr($action, 0, 7) == 'setExFi' || $action == 'update_extras') && $user->rights->equipement->creer) {
+        $keyExFi = substr($action, 7);
+
+        $res = $object->fetch_optionals($object->id, $extralabels);
+        if ($ret < 0) {
             $error++;
             setEventMessage($object->errorsToString(), 'errors');
         }
-    }
-    if ($error) {
-        if (substr($action, 0, 7) == 'setExFi') {
-            $action = 'ExFi';
-        } else {
-            $action = 'edit_extras';
+        if (!$error) {
+            if (substr($action, 0, 7) == 'setExFi') {
+                $object->array_options["options_" . $keyExFi] = $_POST["options_" . $keyExFi];
+            } else {
+                // Fill array 'array_options' with data from update form
+                $extralabels = $extrafields->fetch_name_optionals_label($object->table_element);
+                $ret = $extrafields->setOptionalsFromPost($extralabels, $object, GETPOST('attribute'));
+                if ($ret < 0) {
+                    $error++;
+                    //setEventMessage($extrafields->error, 'errors'); // already in setOptionalsFromPost
+                }
+            }
         }
+        if (!$error) {
+            $result = $object->insertExtraFields();
+            if ($result < 0) {
+                $error++;
+                setEventMessage($object->errorsToString(), 'errors');
+            }
+        }
+        if ($error) {
+            if (substr($action, 0, 7) == 'setExFi') {
+                $action = 'ExFi';
+            } else {
+                $action = 'edit_extras';
+            }
+        }
+    } else if ($action == 'setnumref' && $user->rights->equipement->majserial) {
+        $result = $object->set_numref($user, GETPOST('editnumref', 'alpha'));
+        if ($result < 0) dol_print_error($db, $object->error);
+        $action = "";
+    } else if ($action == 'setnumversion' && $user->rights->equipement->creer) {
+        $result = $object->set_numversion($user, GETPOST('numversion', 'alpha'));
+        if ($result < 0) dol_print_error($db, $object->error);
+        $action = "";
+    } else if ($action == 'setquantity' && $user->rights->equipement->creer) {
+        $result = $object->set_quantity($user, GETPOST('quantity', 'alpha'));
+        if ($result < 0) dol_print_error($db, $object->error);
+        $action = "";
+    } else if ($action == 'setunitweight' && $user->rights->equipement->creer) {
+        $result = $object->set_unitweight($user, GETPOST('unitweight', 'alpha'));
+        if ($result < 0) dol_print_error($db, $object->error);
+        $action = "";
+    } else if ($action == 'setnumimmocompta' && $user->rights->equipement->creer) {
+        $result = $object->set_numimmocompta($user, GETPOST('numimmocompta', 'alpha'));
+        if ($result < 0) dol_print_error($db, $object->error);
+        $action = "";
+    } else if ($action == 'setentrepot' && $user->rights->equipement->creer) {
+        $result = $object->set_entrepot($user, GETPOST('fk_entrepot', 'alpha'), (GETPOST('fk_entrepotmove', 'alpha') ? 1 : 0));
+        if ($result < 0) dol_print_error($db, $object->error);
+        $action = "";
+    } else if ($action == 'setdescription' && $user->rights->equipement->creer) {
+        $result = $object->set_description($user, GETPOST('description'));
+        if ($result < 0) dol_print_error($db, $object->error);
+        $action = "";
+    } else if ($action == 'setnote_public' && $user->rights->equipement->creer) {
+        $result = $object->update_note_public(dol_html_entity_decode(GETPOST('note_public'), ENT_QUOTES));
+        if ($result < 0) dol_print_error($db, $object->error);
+        $action = "";
+    } else if ($action == 'setnote_private' && $user->rights->equipement->creer) {
+        $result = $object->update_note(dol_html_entity_decode(GETPOST('note_private'), ENT_QUOTES));
+        if ($result < 0) dol_print_error($db, $object->error);
+        $action = "";
+    } else if ($action == 'setetatequip' && $user->rights->equipement->creer) {
+        $result = $object->set_etatEquipement($user, GETPOST('fk_etatequipement'));
+        if ($result < 0) dol_print_error($db, $object->error);
+        $action = "";
+    } else if ($action == 'setclient' && $user->rights->equipement->creer) {
+        if (GETPOST("emptyclient"))
+            $result = $object->set_client($user, 0);
+        else
+            $result = $object->set_client($user, GETPOST('fk_soc_client'));
+        if ($result < 0) dol_print_error($db, $object->error);
+        $action = "";
+    } else if ($action == 'setfactclient' && $user->rights->equipement->creer) {
+        $result = $object->set_fact_client($user, GETPOST('fk_fact_client'));
+        if ($result < 0) dol_print_error($db, $object->error);
+        $action = "";
+    } else if ($action == 'setfactfourn' && $user->rights->equipement->creer) {
+        $result = $object->set_fact_fourn($user, GETPOST('fk_facture_fourn'));
+        if ($result < 0) dol_print_error($db, $object->error);
+        $action = "";
+    } else if ($action == 'setcommandefourn' && $user->rights->equipement->creer) {
+        $result = $object->set_commande_fourn($user, GETPOST('fk_commande_fourn'));
+        if ($result < 0) dol_print_error($db, $object->error);
+        $action = "";
+    } else if ($action == 'setdatee') {
+        $datee = dol_mktime('23', '59', '59', $_POST["dateemonth"], $_POST["dateeday"], $_POST["dateeyear"]);
+        $result = $object->set_datee($user, $datee);
+        if ($result < 0) dol_print_error($db, $object->error);
+        $action = "";
+    } else if ($action == 'setdated') {
+        $dated = dol_mktime('23', '59', '59', $_POST["datedmonth"], $_POST["datedday"], $_POST["datedyear"]);
+        $result = $object->set_dated($user, $dated);
+        if ($result < 0) dol_print_error($db, $object->error);
+        $action = "";
+    } else if ($action == 'setdateo') {
+        $dateo = dol_mktime('23', '59', '59', $_POST["dateomonth"], $_POST["dateoday"], $_POST["dateoyear"]);
+        $result = $object->set_dateo($user, $dateo);
+        if ($result < 0) dol_print_error($db, $object->error);
+        $action = "";
     }
-} else if ($action == 'setnumref' && $user->rights->equipement->majserial) {
-	$result=$object->set_numref($user, GETPOST('editnumref', 'alpha'));
-	if ($result < 0) dol_print_error($db, $object->error);
-	$action="";
-} else if ($action == 'setnumversion' && $user->rights->equipement->creer) {
-	$result=$object->set_numversion($user, GETPOST('numversion', 'alpha'));
-	if ($result < 0) dol_print_error($db, $object->error);
-	$action="";
-} else if ($action == 'setquantity' && $user->rights->equipement->creer) {
-	$result=$object->set_quantity($user, GETPOST('quantity', 'alpha'));
-	if ($result < 0) dol_print_error($db, $object->error);
-	$action="";
-} else if ($action == 'setunitweight' && $user->rights->equipement->creer) {
-	$result=$object->set_unitweight($user, GETPOST('unitweight', 'alpha'));
-	if ($result < 0) dol_print_error($db, $object->error);
-	$action="";
-} else if ($action == 'setnumimmocompta' && $user->rights->equipement->creer) {
-	$result=$object->set_numimmocompta($user, GETPOST('numimmocompta', 'alpha'));
-	if ($result < 0) dol_print_error($db, $object->error);
-	$action="";
-} else if ($action == 'setentrepot' && $user->rights->equipement->creer) {
-	$result=$object->set_entrepot($user, GETPOST('fk_entrepot', 'alpha'), (GETPOST('fk_entrepotmove', 'alpha')?1:0));
-	if ($result < 0) dol_print_error($db, $object->error);
-	$action="";
-} else if ($action == 'setdescription' && $user->rights->equipement->creer) {
-	$result=$object->set_description($user, GETPOST('description'));
-	if ($result < 0) dol_print_error($db, $object->error);
-	$action="";
-} else if ($action == 'setnote_public' && $user->rights->equipement->creer) {
-	$result=$object->update_note_public(dol_html_entity_decode(GETPOST('note_public'), ENT_QUOTES));
-	if ($result < 0) dol_print_error($db, $object->error);
-	$action="";
-} else if ($action == 'setnote_private' && $user->rights->equipement->creer) {
-	$result=$object->update_note(dol_html_entity_decode(GETPOST('note_private'), ENT_QUOTES));
-	if ($result < 0) dol_print_error($db, $object->error);
-	$action="";
-} else if ($action == 'setetatequip' && $user->rights->equipement->creer) {
-	$result=$object->set_etatEquipement($user, GETPOST('fk_etatequipement'));
-	if ($result < 0) dol_print_error($db, $object->error);
-	$action="";
-} else if ($action == 'setclient' && $user->rights->equipement->creer) {
-	if (GETPOST("emptyclient"))
-		$result=$object->set_client($user, 0);
-	else
-		$result=$object->set_client($user, GETPOST('fk_soc_client'));
-	if ($result < 0) dol_print_error($db, $object->error);
-	$action="";
-} else if ($action == 'setfactclient' && $user->rights->equipement->creer) {
-	$result=$object->set_fact_client($user, GETPOST('fk_fact_client'));
-	if ($result < 0) dol_print_error($db, $object->error);
-	$action="";
-} else if ($action == 'setfactfourn' && $user->rights->equipement->creer) {
-	$result=$object->set_fact_fourn($user, GETPOST('fk_facture_fourn'));
-	if ($result < 0) dol_print_error($db, $object->error);
-	$action="";
-} else if ($action == 'setcommandefourn' && $user->rights->equipement->creer) {
-	$result=$object->set_commande_fourn($user, GETPOST('fk_commande_fourn'));
-	if ($result < 0) dol_print_error($db, $object->error);
-	$action="";
-} else if ($action == 'setdatee') {
-	$datee=dol_mktime('23', '59', '59', $_POST["dateemonth"], $_POST["dateeday"], $_POST["dateeyear"]);
-	$result=$object->set_datee($user, $datee);
-	if ($result < 0) dol_print_error($db, $object->error);
-	$action="";
-} else if ($action == 'setdated') {
-	$dated=dol_mktime('23', '59', '59', $_POST["datedmonth"], $_POST["datedday"], $_POST["datedyear"]);
-	$result=$object->set_dated($user, $dated);
-	if ($result < 0) dol_print_error($db, $object->error);
-	$action="";
-} else if ($action == 'setdateo') {
-	$dateo=dol_mktime('23', '59', '59', $_POST["dateomonth"], $_POST["dateoday"], $_POST["dateoyear"]);
-	$result=$object->set_dateo($user, $dateo);
-	if ($result < 0) dol_print_error($db, $object->error);
-	$action="";
 }
 
 
@@ -1395,7 +1399,11 @@ if ($action == 'create') {
             1, 0, 0, 28, 0, '', '', '', $soc->default_lang
         );
 
-        if (DOL_VERSION >= "5.0.0")
+        if (strcmp(DOL_VERSION, "6.0.0") >= 0) {
+            // Show links to link elements
+            $linktoelem = $form->showLinkToObjectBlock($object, null, array('equipement'));
+            $somethingshown = $form->showLinkedObjectBlock($object, $linktoelem);
+        } elseif (DOL_VERSION >= "5.0.0")
             $somethingshown = $form->showLinkedObjectBlock($object, "");
         else
             $somethingshown=$object->showLinkedObjectBlock();

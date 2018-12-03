@@ -106,8 +106,9 @@ class ActionsEquipement // extends CommonObject
                         'enabled' => $conf->equipement->enabled,
                         'perms' => 1,
                         'label' => 'LinkToEquipement',
-                        'sql' => "SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref FROM " . MAIN_DB_PREFIX . "societe as s" .
+                        'sql' => "SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref, p.ref AS ref_client FROM " . MAIN_DB_PREFIX . "societe as s" .
                             " INNER JOIN  " . MAIN_DB_PREFIX . "equipement as t ON t.fk_soc_client = s.rowid" .
+                            " LEFT JOIN  " . MAIN_DB_PREFIX . "product as p ON p.rowid = e.fk_product" .
                             " LEFT JOIN  " . MAIN_DB_PREFIX . "element_element as ee" .
                             "   ON (ee.sourcetype = 'equipement' AND ee.fk_source = t.rowid AND ee.targettype = '".$object->element."' AND ee.fk_target = ".$object->id.")" .
                             "   OR (ee.targettype = 'equipement' AND ee.fk_target = t.rowid AND ee.sourcetype = '".$object->element."' AND ee.fk_source = ".$object->id.")" .

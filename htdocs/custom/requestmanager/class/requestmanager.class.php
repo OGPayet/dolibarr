@@ -3005,15 +3005,19 @@ class RequestManager extends CommonObject
      */
     function addContractsOfEquipment($equipment_id)
     {
-        $sql = "SELECT DISTINCT fk_contrat FROM " . MAIN_DB_PREFIX . "equipementevt WHERE fk_equipement = " . $equipment_id;
+        $sql = "SELECT DISTINCT IF(sourcetype = 'equipement', fk_target, fk_source) AS fk_contrat FROM " . MAIN_DB_PREFIX . "element_element".
+            " WHERE (sourcetype = 'equipement' AND fk_source = ".$equipment_id." AND targettype = 'contrat')" .
+            " OR (sourcetype = 'contrat' AND targettype = 'equipement' AND fk_target = ".$equipment_id.")";
 
         $resql = $this->db->query($sql);
         if ($resql) {
             while ($obj = $this->db->fetch_object($resql)) {
-                $ret = $this->setContract($obj->fk_contrat);
-                if (!$ret && $this->db->lasterrno() != 'DB_ERROR_RECORD_ALREADY_EXISTS') {
-                    $this->errors[] = $this->db->lasterror();
-                    return -1;
+                if ($obj->fk_contrat > 0) {
+                    $ret = $this->setContract($obj->fk_contrat);
+                    if (!$ret && $this->db->lasterrno() != 'DB_ERROR_RECORD_ALREADY_EXISTS') {
+                        $this->errors[] = $this->db->lasterror();
+                        return -1;
+                    }
                 }
             }
         }

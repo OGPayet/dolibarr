@@ -359,7 +359,7 @@ class Equipement extends CommonObject
 				$this->id				= $obj->rowid;
 				$this->ref				= $obj->ref;
 				$this->description  	= $obj->description;
-				$this->socid			= $obj->fk_soc;
+				$this->socid			= $obj->fk_soc_client; //$obj->fk_soc;
 				$this->statut			= $obj->fk_statut;
 				$this->numversion		= $obj->numversion;
 				$this->quantity			= $obj->quantity;

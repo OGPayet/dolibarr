@@ -85,13 +85,9 @@ class InterfaceSynergiesTech extends DolibarrTriggers
                 $addlinkid = $object->context['addlinkid'];
 
                 if ($addlink == 'equipement' && $addlinkid > 0) {
-                    $sql = "SELECT DISTINCT fk_contrat FROM " . MAIN_DB_PREFIX . "equipementevt WHERE fk_equipement = " . $addlinkid;
-
-                    $resql = $this->db->query($sql);
-                    if ($resql) {
-                        while ($obj = $this->db->fetch_object($resql)) {
-                            $object->add_object_linked('contrat', $obj->fk_contrat);
-                        }
+                    if ($object->addContractsOfEquipment($addlinkid) < 0) {
+                        array_merge($this->errors, $object->errors);
+                        return -1;
                     }
                 }
 
