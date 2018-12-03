@@ -53,6 +53,7 @@ class ExtendedInterventionQuota
     const EF_EFFECTIVE_DATE                     = 'startdate';
     const EF_CONTRACT_DURATION_MONTHS           = 'duration';
     const EF_COUNT_PERIOD_SIZE                  = 'ei_count_period_size';
+    const EF_TERMINATION_DATE                   = 'realdate';
 
     /**
      *  Constructor
@@ -202,16 +203,32 @@ class ExtendedInterventionQuota
         $effective_date_t = $contract->array_options['options_' . self::EF_EFFECTIVE_DATE];
         $duration = $contract->array_options['options_' . self::EF_CONTRACT_DURATION_MONTHS];
         $period_size = $contract->array_options['options_' . self::EF_COUNT_PERIOD_SIZE];
+        $termination_date_t = $contract->array_options['options_' . self::EF_TERMINATION_DATE];
 
         $effective_date = null;
         if (!empty($effective_date_t)) {
             $effective_date = Carbon::createFromFormat('Y-m-d', $effective_date_t);
         }
 
+        $termination_date = null;
+        if (!empty($termination_date_t)) {
+            $termination_date = Carbon::createFromFormat('Y-m-d', $termination_date_t);
+        }
+
+        $contract_closed_date = null;
+        if (is_array($contract->lines)) {
+            foreach ($contract->lines as $line) {
+                if (!empty($line->date_cloture) && (!isset($contract_closed_date) || $line->date_cloture < $contract_closed_date->timestamp)) $contract_closed_date = Carbon::createFromTimestamp($line->date_cloture);
+                elseif (!empty($line->date_fin_validite) && (!isset($contract_closed_date) || $line->date_fin_validite < $contract_closed_date->timestamp)) $contract_closed_date = Carbon::createFromTimestamp($line->date_fin_validite);
+            }
+        }
+
         if (isset($effective_date) && $duration > 0 && $period_size > 0) {
             $now = Carbon::now();
             $begin_date = $effective_date;
             $end_date = $begin_date->copy()->addMonths($duration)->subDay();
+            if (isset($termination_date) && $termination_date < $end_date) $end_date = $termination_date;
+            if (isset($contract_closed_date) && $contract_closed_date < $end_date) $end_date = $contract_closed_date;
 
             $idx = 1;
             while ($begin_date < $end_date) {
