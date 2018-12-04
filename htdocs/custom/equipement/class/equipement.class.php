@@ -1974,6 +1974,12 @@ class Equipement extends CommonObject
                         $this->error = $this->db->lasterror();
                     }
 
+                    // remove child equipment from warehouse
+                    if (!$error) {
+                        $result = $this->set_entrepot($user, -1);
+                        if ($result < 0) $error++;
+                    }
+
                     if (!$error && ! $notrigger) {
                         // Call trigger
                         $this->context['parameters'] = array('parent' => $equipment_statitc, 'old_child' => $current_equipment_statitc, 'position' => $position);

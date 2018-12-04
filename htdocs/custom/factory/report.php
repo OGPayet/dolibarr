@@ -500,18 +500,11 @@ if (empty($reshook)) {
                                                 }
                                                 $componentProductEquipementUsedList[$indiceFactoryBuild][$componentProductId][] = $equipementUsed;
 
-                                                $ret = $equipementUsed->set_entrepot($user, -1);
-                                                if ($ret < 0) {
-                                                    $error++;
-                                                    $factory->error = $errorLine . " : " . $equipementUsed->errorsToString();
-                                                    $factory->errors[] = $factory->error;
-                                                }
-
                                                 // add line fk_equipement, fk_factory and fk_factorydet in equipementevt
                                                 $ret = $equipementUsedStatic->addline($equipementUsed->id, -1, '', $now, $now, '', '', '', '', '', '', 0, 0, 0, 0, $factory->id, $fkFactoryDet);
                                                 if ($ret < 0) {
                                                     $error++;
-                                                    $factory->error = $equipementUsed->errorsToString();
+                                                    $factory->error    = $equipementUsed->errorsToString();
                                                     $factory->errors[] = $factory->error;
                                                 }
 
