@@ -150,6 +150,10 @@ DateSign = Date signature
 DoliEsignInvalidCgvCoordinates = Format des coordonnées de signature invalide (ex: 12,34,56,78) pour les conditions de vente.
 CgvSignCoordinate = Position des coordonnées de la signature CGV.
 DoliEsignSetupError = Erreur dans votre configuration DoliEsign.
+DoliesignSentByEMail=Demande de signature pour la pièce %s créé et envoyée par email
+DoliesignUpdate=Signature électronique pour la pièce %s mise à jour
+DoliesignDelete=Signature électronique pour la pièce %s supprimée
+
 # Sample widget
 #
 MyWidget = My widget

@@ -362,6 +362,30 @@ class InterfaceDoliEsignTriggers extends DolibarrTriggers
 			//case 'SHIPPING_CLOSED':
 			//case 'SHIPPING_REOPEN':
 			//case 'SHIPPING_DELETE':
+			case 'UNIVERSIGN_CREATE':
+			{
+			if (empty($object->actionmsg2)) $object->actionmsg2=$langs->transnoentities("DoliesignSentByEMail","");
+            if (empty($object->actionmsg))  $object->actionmsg=$langs->transnoentities("DoliesignSentByEMail","");
+		$result = $this->createEvent($action, $object,$user,$langs,$conf);
+				dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+				break;
+			}
+	//		case 'UNIVERSIGN_MODIFY':
+	//		{
+	//		if (empty($object->actionmsg2)) $object->actionmsg2=$langs->transnoentities("DoliesignUpdate","");
+    //        if (empty($object->actionmsg))  $object->actionmsg=$langs->transnoentities("DoliesignUpdate","");
+    //        	$result = $this->createEvent($action, $object,$user,$langs,$conf);
+	//			dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+	//			break;
+	//		}
+			case 'DOLIESIGN_DELETE':
+			{
+			if (empty($object->actionmsg2)) $object->actionmsg2=$langs->transnoentities("DoliesignDelete","");
+            if (empty($object->actionmsg))  $object->actionmsg=$langs->transnoentities("DoliesignDelete","");
+		$result = $this->createEvent($action, $object,$user,$langs,$conf);
+				dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+				break;
+			}
 			default:
 				dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
 				break;
@@ -417,4 +441,112 @@ class InterfaceDoliEsignTriggers extends DolibarrTriggers
 			return 0;
 		}
 	}
+	/**
+	 * Create a event
+	 *
+	 *
+	 * @return int -1 NOK, 1 OK
+	 */
+
+	 private function createEvent($action, $object, User $user, Translate $langs, Conf $conf)
+	 {
+		 $langs->load("doliesign@doliesign");
+		 // Add entry in event table
+		$now=dol_now();
+
+		if (isset($_SESSION['listofnames-'.$object->trackid]))
+		{
+			$attachs=$_SESSION['listofnames-'.$object->trackid];
+			if ($attachs && strpos($action,'SENTBYMAIL'))
+			{
+                $object->actionmsg=dol_concatdesc($object->actionmsg, "\n".$langs->transnoentities("AttachedFiles").': '.$attachs);
+			}
+		}
+
+        require_once DOL_DOCUMENT_ROOT.'/contact/class/contact.class.php';
+        require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
+		$contactforaction=new Contact($this->db);
+        $societeforaction=new Societe($this->db);
+        // Set contactforaction if there is only 1 contact.
+        if (is_array($object->sendtoid))
+        {
+            if (count($object->sendtoid) == 1) $contactforaction->fetch(reset($object->sendtoid));
+        }
+        else
+        {
+            if ($object->sendtoid > 0) $contactforaction->fetch($object->sendtoid);
+        }
+        // Set societeforaction.
+        if ($object->socid > 0)    $societeforaction->fetch($object->socid);
+
+        $projectid = isset($object->fk_project)?$object->fk_project:0;
+        if ($object->element == 'project') $projectid = $object->id;
+
+		// Insertion action
+		require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
+		$actioncomm = new ActionComm($this->db);
+		$actioncomm->type_code   = "AC_OTH_AUTO";		// Type of event ('AC_OTH', 'AC_OTH_AUTO', 'AC_XXX'...)
+		$actioncomm->code        = 'AC_'.$action;
+		$actioncomm->label       = $object->actionmsg2;
+		$actioncomm->note        = $object->actionmsg;          // TODO Replace with $actioncomm->email_msgid ? $object->email_content : $object->actionmsg
+		$actioncomm->fk_project  = $projectid;
+		$actioncomm->datep       = $now;
+		$actioncomm->datef       = $now;
+		$actioncomm->durationp   = 0;
+		$actioncomm->punctual    = 1;
+		$actioncomm->percentage  = -1;   // Not applicable
+		$actioncomm->societe     = $societeforaction;
+		$actioncomm->contact     = $contactforaction;
+		$actioncomm->socid       = $societeforaction->id;
+		$actioncomm->contactid   = $contactforaction->id;
+		$actioncomm->authorid    = $user->id;   // User saving action
+		$actioncomm->userownerid = $user->id;	// Owner of action
+        // Fields when action is en email (content should be added into note)
+		$actioncomm->email_msgid = $object->email_msgid;
+		$actioncomm->email_from  = $object->email_from;
+		$actioncomm->email_sender= $object->email_sender;
+		$actioncomm->email_to    = $object->email_to;
+		$actioncomm->email_tocc  = $object->email_tocc;
+		$actioncomm->email_tobcc = $object->email_tobcc;
+		$actioncomm->email_subject = $object->email_subject;
+		$actioncomm->errors_to   = $object->errors_to;
+
+		$actioncomm->fk_element  = $object->fk_object;
+		$actioncomm->elementtype = $object->object_type;
+
+		$ret=$actioncomm->create($user);       // User creating action
+
+		if ($ret > 0 && $conf->global->MAIN_COPY_FILE_IN_EVENT_AUTO)
+		{
+			if (is_array($object->attachedfiles) && array_key_exists('paths',$object->attachedfiles) && count($object->attachedfiles['paths'])>0) {
+				foreach($object->attachedfiles['paths'] as $key=>$filespath) {
+					$srcfile = $filespath;
+					$destdir = $conf->agenda->dir_output . '/' . $ret;
+					$destfile = $destdir . '/' . $object->attachedfiles['names'][$key];
+					if (dol_mkdir($destdir) >= 0) {
+						require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
+						dol_copy($srcfile, $destfile);
+					}
+				}
+			}
+		}
+
+		unset($object->actionmsg); unset($object->actionmsg2); unset($object->actiontypecode);	// When several action are called on same object, we must be sure to not reuse value of first action.
+
+		if ($ret > 0)
+		{
+			$_SESSION['LAST_ACTION_CREATED'] = $ret;
+			return 1;
+		}
+		else
+		{
+            $error ="Failed to insert event : ".$actioncomm->error." ".join(',',$actioncomm->errors);
+            $this->error=$error;
+            $this->errors=$actioncomm->errors;
+
+            dol_syslog("interface_modAgenda_ActionsAuto.class.php: ".$this->error, LOG_ERR);
+            return -1;
+		}
+	 }
+
 }
