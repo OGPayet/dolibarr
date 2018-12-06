@@ -1,0 +1,114 @@
+# Dolibarr language file - fr_FR - CustomLink
+CHARSET=UTF-8
+
+## ADMIN INFOS
+##ADMIN
+NothingToSetup=Activez le module pour accéder à la page de configuration
+GeneralSetup=Paramètres généraux
+PatasTools=Outils Patas-M
+PatasToolsNews=Retrouvez ici les informations de patas-monkey.com (nécessite une connexion à internet)
+PatasMonkeyPresent=Ce module est une création des patas-monkey, une documentation de celui-ci est disponible sur notre site
+MoreModulesLink=Vous pouvez trouver tous nos développements sur le dolistore
+SettingIsOnToolsMenu=Le module ne nécessite pas de paramétrage particulier. <br/>Ses fonctionnalités sont accessibles depuis le menu principal 'Outils Patas-M'.
+BackToModuleList=Retour à la liste des modules
+NewVersionAviable=Une nouvelle version du module est disponible
+NumberVersion=Version
+MonthVersion=Mois de publication
+ChangesVersion=Principales modifications apportées
+
+##ABOUT
+About=À propos
+Slogan=Développement, support et formation pour Dolibarr
+LienModules=Nos modules
+LienServices=Nos services
+LienDoc=Nos documentations
+LienDolistore=Retrouvez nos autres modules
+Changelog=ChangeLog du module
+SupportModuleInformation=Informations techniques
+SupportModuleInformationDesc=<br/><em>Note : Ces informations sont utiles et pourront vous être demandées si vous rencontrez un bug dans le fonctionnement du module.</em>
+DolibarrVersion=Version de Dolibarr
+ModuleVersion=Version du module
+PHPVersion=Version de PHP
+DatabaseVersion=Version de la base de données
+WebServerVersion=Version du serveur web
+
+##EXTRAFIELDS
+Extrafield=Champs supplémentaires
+
+InfoCustomLinkModules=Gestion avancée des liaisons entre éléments
+CustomlinkSetup=Configuration du module customLink
+CustomLink=CustomLink
+CreateLink=Nouveau Lien
+CreateCustomLink=Nouvelle Liaison
+CustomLinkArea=Espace customLink
+SearchLink=Rechercher un lien
+SearchTag=Rechercher un tag
+TagLink=Tag affecté
+SearchContact=Recherche un contact
+SearchVentilation=Recherche une ventilation
+ListOfLinks=Liste des liens
+CreateTag=Nouveau tag
+ListOfTags=Liste des tags
+Target=Destination
+ListOfContacts=Contacts Liés
+ExternalContact=Contacts Externes
+ListOfUsers=Utilisateurs Liés
+NbOfLink=Nombre de lien
+NbOfTag=Nombre de tags
+UpdateLink=Modifier
+DeleteLink=Supprimer
+SourceRef=Référence d'origine
+TargetRef=Référence liée
+AddNewLink=Ajouter un nouveau lien
+AddNewTag=Ajouter un nouveau tag
+JoinElement=Joindre
+ElementType=Élément
+AssociatedElement=Éléments associés
+TypeOfAssociation=Type d'association
+TypeOfLink=Type de ventilation
+RefOfLink=Référence Lien
+FournishBill=Facture Fournisseur
+CustomerBill=Facture Client
+FactoryOF=Fabrication Factory
+invoice_supplier=Facture Fournisseur
+order_supplier=Commande Fournisseur
+propal=Proposition commerciale
+DateVentilation=Date ventilation
+DateBuildOF=Fabrication
+commande=Commande client
+facture=Facture client
+InvoiceDivision=Ventilation
+CustomerBillAdd=Facture client à joindre
+FournishBillAdd=Facture fournisseur à joindre
+ListOfVentiledBillsInput=Liste des factures ventilées entrantes
+ListOfVentiledBillsOutput=Liste des ventilations sortantes
+DictOfSocieteContact=Type de contacts sociétés
+MarginOnVentilation=Frais Annexes ventilés
+ListOfVentilations=Ventilations Fournisseurs
+AddNewVentilation=Création d'une nouvelle ventilation
+LastNewLinks=Derniers liens ajoutés
+LastNewTags=Derniers tags ajoutés
+factureBrief=Fact. client
+invoice_supplierBrief=Fact. fourn.
+factoryBrief=Factory OF
+shipping=Expedition
+project_task=Tâche
+TicketSup=Ticket
+
+MembersListOfTiers=Adhérents du tiers
+ElementTags=Tags d'éléments
+LinkedSociety=Société(s) Liées
+ExternalBills=Factures Clients Associées
+ExternalSupplierBills=Factures Fournisseurs Associées
+ErrorRefNotFound=Référence à associer non trouvée
+
+Shipping=Expédition
+desc=Fonctionnalité
+Value=Sélection
+NumberVersion=Version
+MonthVersion=Mois d'édition
+ChangesVersion=Principales modifications de la version
+CreateCustomTag=Nouveau tag
+Join=Enregistrer
+BackToModuleList=Retour à la liste des modules
+CustomlinkGeneralSetting=Paramètres généraux
