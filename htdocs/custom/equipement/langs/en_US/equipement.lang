@@ -95,6 +95,8 @@ Repair=Repair
 Maintain=Maintenance
 Delivery=On Delivery
 OnSale=On sale
+EquipementWarranty=Garantie
+
 # Modele numérotation
 EquipementSetup=Equipment Setup
 ArcticNumRefModelDesc1=Generic Serial Modele

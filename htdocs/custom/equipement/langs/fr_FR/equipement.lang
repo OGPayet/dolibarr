@@ -214,6 +214,7 @@ Broken=En panne
 ForSale=En vente
 OutofOrder=Hors Service
 Lost=Perdu
+
 ### TYPE EVENEMENT
 TypeofEquipementEvent=Type d'évènement
 TypeEvent=Type
@@ -223,6 +224,7 @@ Maintain=Maintenance
 Delivery=En transit
 OnSale=Mandat de vente
 Stock=Mouvement de Stock
+EquipementWarranty=Garantie
 
 NoProjectsFind=Pas de projet
 ErrorBadValueForParamNotAString=Sans

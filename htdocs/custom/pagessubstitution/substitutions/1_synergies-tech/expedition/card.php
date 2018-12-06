@@ -45,6 +45,7 @@ if (! $res && file_exists("../../../../../../../../main.inc.php")) $res=@include
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
 require_once DOL_DOCUMENT_ROOT.'/expedition/class/expedition.class.php';
 require_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
+require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/sendings.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/modules/expedition/modules_expedition.php';
@@ -458,6 +459,8 @@ if (empty($reshook))
                             $expeditionLineId = $expeditionEquipementLineArray['expedition_line_id'];
 
                             foreach ($expeditionEquipementLineArray['equipement_id_list'] as $equipementId) {
+                                $now = dol_now();
+
                                 // join equipment to this shipment line
                                 $equipement = new Equipement($db);
                                 $ret = $equipement->fetch($equipementId);
@@ -468,13 +471,13 @@ if (empty($reshook))
                                 }
 
                                 if (!$error) {
-                                    // add equipment line (event)
+                                    // add equipment line (shipment event)
                                     $result = $equipement->addline(
                                         $equipementId,
                                         -1,
                                         '',
-                                        dol_now(),
-                                        dol_now(),
+                                        $now,
+                                        $now,
                                         '',
                                         '',
                                         '',
@@ -493,6 +496,44 @@ if (empty($reshook))
                                     }
                                 }
 
+                                // add equipement line (warranty event)
+                                if (!$error) {
+                                    // determine equipement line event type for warranty
+                                    $fk_equipementevt_type = dol_getIdFromCode($db, 'WARRANTY', 'c_equipementevt_type', 'code', 'rowid');
+
+                                    // add nb month of warranty to the end of event
+                                    if (isset($productStatic->array_options['options_synergiestech_warranty'])) {
+                                        $equipementDateEnd = dol_time_plus_duree(dol_now(), $productStatic->array_options['options_synergiestech_warranty'], 'm');
+                                    } else {
+                                        $equipementDateEnd = $now;
+                                    }
+
+                                    // add equipment line (event)
+                                    $result = $equipement->addline(
+                                        $equipementId,
+                                        $fk_equipementevt_type,
+                                        '',
+                                        $now,
+                                        $equipementDateEnd,
+                                        '',
+                                        '',
+                                        '',
+                                        '',
+                                        '',
+                                        $user->id,
+                                        0,
+                                        array(),
+                                        ''
+                                    );
+
+                                    if ($result < 0) {
+                                        $error++;
+                                        $object->error    = $equipement->error;
+                                        $object->errors[] = $object->error;
+                                    }
+                                }
+
+                                /* Already in LINEEQUIPEMENTEVT_INSERT trigger (in synergiestech module)
                                 if (!$error) {
                                     // find all children components
                                     $sql = "SELECT fk_equipement_fils";
@@ -507,8 +548,8 @@ if (empty($reshook))
                                                 $objp->fk_equipement_fils,
                                                 -1,
                                                 '',
-                                                dol_now(),
-                                                dol_now(),
+                                                $now,
+                                                $now,
                                                 '',
                                                 '',
                                                 '',
@@ -532,6 +573,7 @@ if (empty($reshook))
                                         }
                                     }
                                 }
+                                */
 
                                 if ($error) {
                                     break;

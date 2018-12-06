@@ -343,6 +343,7 @@ class modSynergiesTech extends DolibarrModules
         $extrafields = new ExtraFields($this->db);
         // Product
         $result=$extrafields->addExtraField('synergiestech_to_serialize', $langs->trans("SynergiesTechSerializable"), 'boolean', 10,  '', 'product',   0, 0, '', '', 1, '', 1, 0, ''); // For >= v7: ", '', 'synergiestech@synergiestech', '$conf->synergiestech->enabled');"
+        $result=$extrafields->addExtraField('synergiestech_warranty', $langs->trans("SynergiesTechWarranty"), 'int', 20,  '', 'product',   0, 0, '', '', 1, '', 1, 0, ''); // For >= v7: ", '', 'synergiestech@synergiestech', '$conf->synergiestech->enabled');"
 
         // Create tables of all dictionaries
         dol_include_once('/advancedictionaries/class/dictionary.class.php');

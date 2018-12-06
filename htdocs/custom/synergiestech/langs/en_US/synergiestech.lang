@@ -18,6 +18,7 @@ SynergiesTechForceSetEquipmentsAfterOrderSupplierDispatch           = Force la r
 # Extrafields
 #######################################################################
 SynergiesTechSerializable   = To serialize
+SynergiesTechWarranty       = Warranty (month)
 
 #######################################################################
 # Force redirection

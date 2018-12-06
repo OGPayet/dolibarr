@@ -1,0 +1,1 @@
+INSERT INTO llx_c_equipementevt_type ( code, libelle, active) VALUES ('WARRANTY', 'EquipementWarranty',  1);
