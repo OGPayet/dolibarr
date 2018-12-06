@@ -46,7 +46,7 @@ class RequestManagerCategoryDictionary extends Dictionary
     /**
      * @var int         Position of the dictionary into the family
      */
-    public $familyPosition = 3;
+    public $familyPosition = 4;
 
     /**
      * @var string      Module name of which this dictionary belongs

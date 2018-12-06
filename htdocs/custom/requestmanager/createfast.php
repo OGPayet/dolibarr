@@ -38,7 +38,6 @@ if (!empty($conf->categorie->enabled)) {
 
 dol_include_once('/requestmanager/class/requestmanager.class.php');
 dol_include_once('/requestmanager/class/html.formrequestmanager.class.php');
-dol_include_once('/companyrelationships/class/companyrelationships.class.php');
 dol_include_once('/requestmanager/lib/requestmanagertimeslots.lib.php');
 
 $langs->load('requestmanager@requestmanager');
@@ -60,7 +59,11 @@ if (!empty($conf->global->REQUESTMANAGER_CHRONOMETER_ACTIVATE) && !isset($_SESSI
     $_SESSION['requestmanager_chronometer_activated'] = dol_now();
 
 $object = new RequestManager($db);
-$companyrelationships = new CompanyRelationships($db);
+
+if (!empty($conf->companyrelationships->enabled)) {
+    dol_include_once('/companyrelationships/class/companyrelationships.class.php');
+    $companyrelationships = new CompanyRelationships($db);
+}
 
 $force_principal_company = false;
 $force_out_of_time = false;
@@ -126,8 +129,12 @@ if (empty($reshook)) {
         if ($btnAction == 'create' || $force_principal_company || $force_out_of_time) {
             $res = requestmanagertimeslots_is_in_time_slot($object->socid, $object->date_creation);
             $object->created_out_of_time = is_array($res) ? 0 : 1;
-            $principal_companies_ids = $companyrelationships->getRelationships($object->socid_benefactor, 0);
-            $not_principal_company = !in_array($object->socid, $principal_companies_ids) && $object->socid != $object->socid_benefactor;
+            if (!empty($conf->companyrelationships->enabled)) {
+                $principal_companies_ids = $companyrelationships->getRelationships($object->socid_benefactor, 0);
+                $not_principal_company = !in_array($object->socid, $principal_companies_ids) && $object->socid != $object->socid_benefactor;
+            } else {
+                $not_principal_company = false;
+            }
             if ($not_principal_company && !$force_principal_company) {
                 $error++;
                 $action = 'force_principal_company';
@@ -255,28 +262,37 @@ if (($action == 'createfast' || $action == 'force_principal_company' || $action 
     $origin = GETPOST('origin', 'alpha');
     $originid = GETPOST('originid', 'int');
 
-    // Set default values
-    $force_set = $selectedActionJs=='change_socid_origin';
-    if ($selectedSocIdOrigin > 0) {
-        $originRelationshipType = $companyrelationships->getRelationshipType($selectedSocIdOrigin);
-        if ($originRelationshipType == 0) { // Benefactor company
-            $selectedSocIdBenefactor = $selectedSocIdBenefactor < 0 || $force_set ? $selectedSocIdOrigin : $selectedSocIdBenefactor;
-        } elseif ($originRelationshipType > 0) { // Principal company or both
-            $selectedSocId = $selectedSocId < 0 || $force_set ? $selectedSocIdOrigin : $selectedSocId;
-        } else { // None
-            $selectedSocId = $selectedSocId < 0 || $force_set ? $selectedSocIdOrigin : $selectedSocId;
-            $selectedSocIdBenefactor = $selectedSocIdBenefactor < 0 || $force_set ? $selectedSocId : $selectedSocIdBenefactor;
+    if ($selectedSocIdOrigin === '' && $selectedSocId > 0) {
+        $selectedSocIdOrigin = $selectedSocId;
+    }
+
+    if (!empty($conf->companyrelationships->enabled)) {
+        // Set default values
+        $force_set = $selectedActionJs == 'change_socid_origin';
+        if ($selectedSocIdOrigin > 0) {
+            $originRelationshipType = $companyrelationships->getRelationshipType($selectedSocIdOrigin);
+            if ($originRelationshipType == 0) { // Benefactor company
+                $selectedSocIdBenefactor = $selectedSocIdBenefactor < 0 || $force_set ? $selectedSocIdOrigin : $selectedSocIdBenefactor;
+            } elseif ($originRelationshipType > 0) { // Principal company or both
+                $selectedSocId = $selectedSocId < 0 || $force_set ? $selectedSocIdOrigin : $selectedSocId;
+            } else { // None
+                $selectedSocId = $selectedSocId < 0 || $force_set ? $selectedSocIdOrigin : $selectedSocId;
+                $selectedSocIdBenefactor = $selectedSocIdBenefactor < 0 || $force_set ? $selectedSocId : $selectedSocIdBenefactor;
+            }
         }
-    }
-    if ($selectedSocId > 0) {
-        $benefactor_companies_ids = $companyrelationships->getRelationships($selectedSocId, 1);
-        $benefactor_companies_ids = is_array($benefactor_companies_ids) ? array_values($benefactor_companies_ids) : array();
-        $selectedSocIdBenefactor = $selectedSocIdBenefactor < 0 || $force_set ? (count($benefactor_companies_ids) > 0 ? $benefactor_companies_ids[0] : $selectedSocId) : $selectedSocIdBenefactor;
-    }
-    if ($selectedSocIdBenefactor > 0) {
-        $principal_companies_ids = $companyrelationships->getRelationships($selectedSocIdBenefactor, 0);
-        $principal_companies_ids = is_array($principal_companies_ids) ? array_values($principal_companies_ids) : array();
-        $selectedSocId = $selectedSocId < 0 || $force_set ? (count($principal_companies_ids) > 0 ? $principal_companies_ids[0] : $selectedSocIdBenefactor) : $selectedSocId;
+        if ($selectedSocId > 0) {
+            $benefactor_companies_ids = $companyrelationships->getRelationships($selectedSocId, 1);
+            $benefactor_companies_ids = is_array($benefactor_companies_ids) ? array_values($benefactor_companies_ids) : array();
+            $selectedSocIdBenefactor = $selectedSocIdBenefactor < 0 || $force_set ? (count($benefactor_companies_ids) > 0 ? $benefactor_companies_ids[0] : $selectedSocId) : $selectedSocIdBenefactor;
+        }
+        if ($selectedSocIdBenefactor > 0) {
+            $principal_companies_ids = $companyrelationships->getRelationships($selectedSocIdBenefactor, 0);
+            $principal_companies_ids = is_array($principal_companies_ids) ? array_values($principal_companies_ids) : array();
+            $selectedSocId = $selectedSocId < 0 || $force_set ? (count($principal_companies_ids) > 0 ? $principal_companies_ids[0] : $selectedSocIdBenefactor) : $selectedSocId;
+        }
+    } else {
+        $selectedSocId = $selectedSocIdOrigin;
+        $selectedSocIdBenefactor = $selectedSocIdOrigin;
     }
 
     // Confirm force principal company

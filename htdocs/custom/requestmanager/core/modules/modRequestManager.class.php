@@ -69,7 +69,7 @@ class modRequestManager extends DolibarrModules
         $this->editor_url = 'http://www.open-dsi.fr';
 
         // Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-        $this->version = '4.0.16';
+        $this->version = '4.0.17';
         // Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
         $this->const_name = 'MAIN_MODULE_' . strtoupper($this->name);
         // Name of image file used for this module.
@@ -100,7 +100,7 @@ class modRequestManager extends DolibarrModules
             'dictionaries' => 1,
             'substitutions' => 1,
             'css' => array('/requestmanager/css/requestmanager.css.php'),
-            'hooks' => array('eventconfidentialitydao', 'searchform', 'thirdpartycard', 'propalcard', 'ordercard', 'invoicecard', 'interventioncard', 'contractcard', 'actioncard', 'toprightmenu'),
+            'hooks' => array('eventconfidentialitydao', 'searchform', 'thirdpartycard', 'commcard', 'suppliercard', 'propalcard', 'ordercard', 'invoicecard', 'interventioncard', 'contractcard', 'actioncard', 'toprightmenu'),
             'triggers' => 1
         );
 
@@ -113,7 +113,7 @@ class modRequestManager extends DolibarrModules
 
         // Dependencies
         $this->hidden = false;            // A condition to hide module
-        $this->depends = array('modAgenda','modAdvanceDictionaries','modCompanyRelationships');        // List of modules id that must be enabled if this module is enabled
+        $this->depends = array('modAgenda','modAdvanceDictionaries');        // List of modules id that must be enabled if this module is enabled
         $this->requiredby = array();    // List of modules id to disable if this one is disabled
         $this->conflictwith = array();    // List of modules id this module is in conflict with
         $this->phpmin = array(5, 0);                    // Minimum version of PHP required by module
@@ -169,6 +169,7 @@ class modRequestManager extends DolibarrModules
         // 'thirdparty'       to add a tab in third party view
         // 'user'             to add a tab in user view
         $this->tabs = array(
+            'thirdparty:+rm_request_list:SUBSTITUTION_RMLISTTABLABEL:requestmanager@requestmanager:$user->rights->requestmanager->lire:/requestmanager/list.php?socid=__ID__',
             //'product:+requestmanager_product:SUBSTITUTION_requestmanagerTABLABEL:requestmanager@requestmanager:$user->rights->requestmanager->lire:/requestmanager/product_tab.php?id=__ID__',
         );
 

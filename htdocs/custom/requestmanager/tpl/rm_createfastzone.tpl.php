@@ -40,7 +40,6 @@ if (!empty($conf->categorie->enabled)) {
 
 dol_include_once('/requestmanager/class/requestmanager.class.php');
 dol_include_once('/requestmanager/class/html.formrequestmanager.class.php');
-dol_include_once('/companyrelationships/class/companyrelationships.class.php');
 dol_include_once('/requestmanager/lib/requestmanagertimeslots.lib.php');
 
 
@@ -107,37 +106,41 @@ if ($zone === 1) {
     $form = new Form($db);
     $formrequestmanager = new FormRequestManager($db);
     $usergroup_static = new UserGroup($db);
-    $companyrelationships = new CompanyRelationships($db);
 
-    // Set default values
-    $force_set = $selectedActionJs=='change_socid_origin';
-    if ($selectedSocIdOrigin > 0) {
-        $originRelationshipType = $companyrelationships->getRelationshipType($selectedSocIdOrigin);
-        if ($originRelationshipType == 0) { // Benefactor company
-            $selectedSocIdBenefactor = $selectedSocIdBenefactor < 0 || $force_set ? $selectedSocIdOrigin : $selectedSocIdBenefactor;
-        } elseif ($originRelationshipType > 0) { // Principal company or both
-            $selectedSocId = $selectedSocId < 0 || $force_set ? $selectedSocIdOrigin : $selectedSocId;
-        } else { // None
-            $selectedSocId = $selectedSocId < 0 || $force_set ? $selectedSocIdOrigin : $selectedSocId;
-            $selectedSocIdBenefactor = $selectedSocIdBenefactor < 0 || $force_set ? $selectedSocId : $selectedSocIdBenefactor;
+    if (!empty($conf->companyrelationships->enabled)) {
+        dol_include_once('/companyrelationships/class/companyrelationships.class.php');
+        $companyrelationships = new CompanyRelationships($db);
+
+        // Set default values
+        $force_set = $selectedActionJs=='change_socid_origin';
+        if ($selectedSocIdOrigin > 0) {
+            $originRelationshipType = $companyrelationships->getRelationshipType($selectedSocIdOrigin);
+            if ($originRelationshipType == 0) { // Benefactor company
+                $selectedSocIdBenefactor = $selectedSocIdBenefactor < 0 || $force_set ? $selectedSocIdOrigin : $selectedSocIdBenefactor;
+            } elseif ($originRelationshipType > 0) { // Principal company or both
+                $selectedSocId = $selectedSocId < 0 || $force_set ? $selectedSocIdOrigin : $selectedSocId;
+            } else { // None
+                $selectedSocId = $selectedSocId < 0 || $force_set ? $selectedSocIdOrigin : $selectedSocId;
+                $selectedSocIdBenefactor = $selectedSocIdBenefactor < 0 || $force_set ? $selectedSocId : $selectedSocIdBenefactor;
+            }
         }
-    }
-    if ($selectedSocId > 0) {
-        $benefactor_companies_ids = $companyrelationships->getRelationships($selectedSocId, 1);
-        $benefactor_companies_ids = is_array($benefactor_companies_ids) ? array_values($benefactor_companies_ids) : array();
-        $selectedSocIdBenefactor = $selectedSocIdBenefactor < 0 || $force_set ? (count($benefactor_companies_ids) > 0 ? $benefactor_companies_ids[0] : $selectedSocId) : $selectedSocIdBenefactor;
-    }
-    if ($selectedSocIdBenefactor > 0) {
+        if ($selectedSocId > 0) {
+            $benefactor_companies_ids = $companyrelationships->getRelationships($selectedSocId, 1);
+            $benefactor_companies_ids = is_array($benefactor_companies_ids) ? array_values($benefactor_companies_ids) : array();
+            $selectedSocIdBenefactor = $selectedSocIdBenefactor < 0 || $force_set ? (count($benefactor_companies_ids) > 0 ? $benefactor_companies_ids[0] : $selectedSocId) : $selectedSocIdBenefactor;
+        }
+        if ($selectedSocIdBenefactor > 0) {
+            $principal_companies_ids = $companyrelationships->getRelationships($selectedSocIdBenefactor, 0);
+            $principal_companies_ids = is_array($principal_companies_ids) ? array_values($principal_companies_ids) : array();
+            $selectedSocId = $selectedSocId < 0 || $force_set ? (count($principal_companies_ids) > 0 ? $principal_companies_ids[0] : $selectedSocIdBenefactor) : $selectedSocId;
+        }
+
+        // Get principal companies
         $principal_companies_ids = $companyrelationships->getRelationships($selectedSocIdBenefactor, 0);
-        $principal_companies_ids = is_array($principal_companies_ids) ? array_values($principal_companies_ids) : array();
-        $selectedSocId = $selectedSocId < 0 || $force_set ? (count($principal_companies_ids) > 0 ? $principal_companies_ids[0] : $selectedSocIdBenefactor) : $selectedSocId;
+
+        // Get benefactor companies
+        $benefactor_companies_ids = $companyrelationships->getRelationships($selectedSocId, 1);
     }
-
-    // Get principal companies
-    $principal_companies_ids = $companyrelationships->getRelationships($selectedSocIdBenefactor, 0);
-
-    // Get benefactor companies
-    $benefactor_companies_ids = $companyrelationships->getRelationships($selectedSocId, 1);
 
     print '<table class="border" width="100%">';
     print '<tr>';
@@ -191,8 +194,25 @@ if ($zone === 1) {
     print '<td class="fieldrequired">' . $langs->trans('RequestManagerThirdPartyOrigin') . '</td><td>';
     print $form->select_company($selectedSocIdOrigin, 'socid_origin', $filterSocId, 'SelectThirdParty', 0, 0, array(), 0, 'minwidth300');
     if (!empty($conf->societe->enabled) && $user->rights->societe->creer) {
-        $backToPage = dol_buildpath('/requestmanager/createfast.php', 1) . '?action=createfast' . ($selectedFkType ? '&type=' . $selectedFkType : '') . ($selectedSocId ? '&socid=' . $selectedSocId : '') . ($selectedSocIdBenefactor ? '&socid_benefactor=' . $selectedSocIdBenefactor : '') . '&socid_origin=##SOCID##';
+        $backToPage = dol_buildpath('/requestmanager/createfast.php', 1) . '?action=createfast' . ($selectedFkType ? '&type=' . $selectedFkType : '') . '&socid_origin=##SOCID##';
+        if (!empty($conf->companyrelationships->enabled)) {
+            $backToPage .= ($selectedSocId ? '&socid=' . $selectedSocId : '') . ($selectedSocIdBenefactor ? '&socid_benefactor=' . $selectedSocIdBenefactor : '');
+        }
         print ' <a id="new_thridparty" href="' . DOL_URL_ROOT . '/societe/card.php?action=create&client=3&fournisseur=0&backtopage=' . urlencode($backToPage) . '">' . $langs->trans("AddThirdParty") . '</a>';
+    }
+    if (empty($conf->companyrelationships->enabled)) {
+        print '
+        <script type="text/javascript">
+            $(document).ready(function(){
+              $("#socid_origin").on("change", function() {
+                  var value = $(this).val();
+                  $("#socid").val(value);
+                  $("#socid_benefactor").val(value);
+              });
+            });
+        </script>';
+        print '<input type="hidden" id="socid" name="socid" value="' . $selectedSocId . '">';
+        print '<input type="hidden" id="socid_benefactor" name="socid_benefactor" value="' . $selectedSocIdBenefactor . '">';
     }
     print '</td>';
     // Requester Contacts
@@ -210,27 +230,29 @@ if ($zone === 1) {
     print '</td>';
     print '</tr>';
 
-    print '<tr>';
-    // ThirdParty Principal
-    print '<td>' . $langs->trans('RequestManagerThirdPartyPrincipal') . '</td><td>';
-    print $form->select_company($selectedSocId, 'socid', $filterSocId, 'SelectThirdParty', 0, 0, array(), 0, 'minwidth300');
-    if (!empty($conf->societe->enabled) && $user->rights->societe->creer) {
-        $backToPage = dol_buildpath('/requestmanager/createfast.php', 1) . '?action=createfast' . ($selectedFkType ? '&type=' . $selectedFkType : '') . ($selectedSocIdOrigin ? '&socid_origin=' . $selectedSocIdOrigin : '') . ($selectedSocIdBenefactor ? '&socid_benefactor=' . $selectedSocIdBenefactor : '') . '&socid=##SOCID##';
-        print ' <a id="new_thridparty" href="' . DOL_URL_ROOT . '/societe/card.php?action=create&client=3&fournisseur=0&backtopage=' . urlencode($backToPage) . '">' . $langs->trans("AddThirdParty") . '</a>';
+    if (!empty($conf->companyrelationships->enabled)) {
+        print '<tr>';
+        // ThirdParty Principal
+        print '<td>' . $langs->trans('RequestManagerThirdPartyPrincipal') . '</td><td>';
+        print $form->select_company($selectedSocId, 'socid', $filterSocId, 'SelectThirdParty', 0, 0, array(), 0, 'minwidth300');
+        if (!empty($conf->societe->enabled) && $user->rights->societe->creer) {
+            $backToPage = dol_buildpath('/requestmanager/createfast.php', 1) . '?action=createfast' . ($selectedFkType ? '&type=' . $selectedFkType : '') . ($selectedSocIdOrigin ? '&socid_origin=' . $selectedSocIdOrigin : '') . ($selectedSocIdBenefactor ? '&socid_benefactor=' . $selectedSocIdBenefactor : '') . '&socid=##SOCID##';
+            print ' <a id="new_thridparty" href="' . DOL_URL_ROOT . '/societe/card.php?action=create&client=3&fournisseur=0&backtopage=' . urlencode($backToPage) . '">' . $langs->trans("AddThirdParty") . '</a>';
+        }
+        print '</td>';
+        // ThirdParty Benefactor
+        print '<td>' . $langs->trans('RequestManagerThirdPartyBenefactor') . '</td><td>';
+        print $form->select_company($selectedSocIdBenefactor, 'socid_benefactor', $filterSocId, 'SelectThirdParty', 0, 0, array(), 0, 'minwidth300');
+        print '
+        <script type="text/javascript">
+            $(document).ready(function(){
+              move_top_select_options("socid", ' . json_encode($principal_companies_ids) . ');
+              move_top_select_options("socid_benefactor", ' . json_encode($benefactor_companies_ids) . ');
+            });
+        </script>';
+        print '</td>';
+        print '</tr>';
     }
-    print '</td>';
-    // ThirdParty Benefactor
-    print '<td>' . $langs->trans('RequestManagerThirdPartyBenefactor') . '</td><td>';
-    print $form->select_company($selectedSocIdBenefactor, 'socid_benefactor', $filterSocId, 'SelectThirdParty', 0, 0, array(), 0, 'minwidth300');
-    print '
-    <script type="text/javascript">
-        $(document).ready(function(){
-          move_top_select_options("socid", '.json_encode($principal_companies_ids).');
-          move_top_select_options("socid_benefactor", '.json_encode($benefactor_companies_ids).');
-        });
-    </script>';
-    print '</td>';
-    print '</tr>';
 
     print '<tr>';
     // Equipement

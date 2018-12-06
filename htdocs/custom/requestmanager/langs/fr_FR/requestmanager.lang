@@ -216,6 +216,8 @@ RequestManagerRequestChild              = Sous demande
 RequestManagerRequestChildren           = Sous demandes
 RequestManagerParentRequest             = Demande parente
 RequestManagerChildrenRequest           = Demandes enfants
+RequestManagerReasonResolution          = Motif de résolution
+RequestManagerReasonResolutionDetails   = Détails du motif de résolution
 
 ############################################################
 ### Message form
@@ -305,6 +307,7 @@ RequestManagerForcedCreatedOutOfTimeActionLabel    = Demande "%s" créée hors p
 ############################################################
 ### List
 ############################################################
+RequestManagerRequestListTab            = Demandes
 RequestManagerListOfRequests            = Liste des demandes
 RequestManagerNotAssigned               = Non attribuées
 RequestManagerMyRequest                 = Mes demandes
@@ -360,6 +363,7 @@ RequestManagerErrorTimeSlotsDateMustBeChronological                         = Le
 RequestManagerErrorMustBeNotEmpty                                           = Ne doit pas être vide
 RequestManagerErrorNotAuthorized                                            = Pas autorisé
 RequestManagerErrorMustBeOneNextStatus                                      = Doit n'avoir qu'un prochain statut de paramètré
+RequestManagerErrorStatusDoNotHaveThisReasonResolution                      = Le statut "%s" ne possède pas ce motif de résolution
 
 ######################################################################
 # Dictionaries
@@ -401,8 +405,8 @@ RequestManagerStatusDictionaryNextStatusAutoHelp                            = Pa
 RequestManagerStatusDictionaryNextStatus                                    = Statut(s) suivant(s)
 RequestManagerStatusDictionaryStatusNotIntoRequestType                      = Ce statut suivant n'est pas dans le(s) type(s) de demande: %s
 RequestManagerStatusDictionaryNextStatusCanNotBeItself                      = Le statut suivant ne peut être lui-même
-RequestManagerStatusDictionaryCanOnlyHaveInProgressAndResolvedForNextStatus = Le statut suivant ne peut pas être que de type 'En cours' ou 'Résolu'
-RequestManagerStatusDictionaryCanOnlyHaveClosedForNextStatus                = Le statut suivant ne peut pas être que de type 'Clos'
+RequestManagerStatusDictionaryCanOnlyHaveInProgressAndResolvedForNextStatus = Le statut suivant ne peut être que de type 'En cours' ou 'Résolu'
+RequestManagerStatusDictionaryCanOnlyHaveClosedForNextStatus                = Le statut suivant ne peut être que de type 'Clos'
 RequestManagerStatusDictionaryOperation                                     = Durée d'opération
 RequestManagerStatusDictionaryOperationHelp                                 = En minutes, Date d'opération calculé à partir de la date où la demande est passé à ce statut (valeur rajoutée à celle-ci)<br>-1 si la date d'opération ne change pas, 0 ou non renseigné si il n'y en a pas
 RequestManagerSourceDictionaryEventType                                     = Type d'évenement

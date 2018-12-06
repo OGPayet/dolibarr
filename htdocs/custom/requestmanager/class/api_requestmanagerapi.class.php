@@ -827,21 +827,23 @@ class RequestManagerApi extends DolibarrApi {
      *
      * @url	POST {id}/set_status
      *
-     * @param   int     $id             ID of the request
-     * @param   int     $status_id      New status (ID of a status defined into the dictionary)
-     * @param   int     $status_type    New status type (0=Initial, 1=In progress, 2=Resolved, 3=Closed)
-     * @param   int     $no_trigger     1=Does not execute triggers, 0= execute triggers
-     * @param   int     $force_reload   1=Force reload the cache of the list of status
+     * @param   int     $id                         ID of the request
+     * @param   int     $status_id                  New status (ID of a status defined into the dictionary)
+     * @param   int     $status_type                New status type (0=Initial, 1=In progress, 2=Resolved, 3=Closed)
+     * @param   int     $reason_resolution_id       Id of the reason for resolution (when set STATUS_RESOLVED)
+     * @param   string  $reason_resolution_details  Details of the reason for resolution (when set STATUS_RESOLVED)
+     * @param   int     $no_trigger                 1=Does not execute triggers, 0= execute triggers
+     * @param   int     $force_reload               1=Force reload the cache of the list of status
      *
-     * @return  object                  Request data updated
+     * @return  object                              Request data updated
      *
-     * @throws  401     RestException   Insufficient rights
-     * @throws  403     RestException   Access unauthorized
-     * @throws  404     RestException   Request not found
-     * @throws  500     RestException   Error when retrieve request
-     * @throws  500     RestException   Error while setting the request status
+     * @throws  401     RestException               Insufficient rights
+     * @throws  403     RestException               Access unauthorized
+     * @throws  404     RestException               Request not found
+     * @throws  500     RestException               Error when retrieve request
+     * @throws  500     RestException               Error while setting the request status
      */
-    function setStatus($id, $status_id=0, $status_type=-1, $no_trigger=0, $force_reload=0)
+    function setStatus($id, $status_id=0, $status_type=-1, $reason_resolution_id=0, $reason_resolution_details='', $no_trigger=0, $force_reload=0)
     {
         if (!DolibarrApiAccess::$user->rights->requestmanager->creer) {
             throw new RestException(401, "Insufficient rights");
@@ -850,7 +852,7 @@ class RequestManagerApi extends DolibarrApi {
         // Get request object
         $requestmanager = $this->_getRequestManagerObject($id);
 
-        if ($requestmanager->set_status($status_id, $status_type, DolibarrApiAccess::$user, $no_trigger, $force_reload) > 0) {
+        if ($requestmanager->set_status($status_id, $status_type, DolibarrApiAccess::$user, $reason_resolution_id, $reason_resolution_details, $no_trigger, $force_reload) > 0) {
             return $this->get($id);
         } else {
             throw new RestException(500, "Error while setting the request status", [ 'details' => $this->_getErrors($requestmanager) ]);

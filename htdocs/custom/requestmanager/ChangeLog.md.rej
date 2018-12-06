@@ -1,9 +1,18 @@
 diff a/htdocs/custom/requestmanager/ChangeLog.md b/htdocs/custom/requestmanager/ChangeLog.md	(rejected hunks)
-@@ -11,6 +11,7 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
- - Correction sur le filtre des types d'événements sur la liste des événements d'une demande.
- - Correction des informations sur l'evenement de changement de statut
- - Ajout des boutons de modification et suppression des evenements sur la liste des evenements d'une demande.
-+- Correction de l'ajout de message (+ ajout des fichiers joints) par l'API
- - Correction mineurs.
+@@ -3,6 +3,16 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
  
- ## [4.0.15] - 12-11-2018
+ ## [Non Distribué]
+ 
++## [4.0.17] - 04-12-2018
++- Filtre pat tags/catégories sur la liste.
++- Ajout d'un onglet sur le tiers affichant la liste de ses demandes (origine, donneur d'ordre, bénéficiaire).
++- Ajout du bouton "creer demande" sur la fiche tiers "client" et "fournisseur".
++- Ajout du motif de résolution.
++- Ajout de nouveaux bouton "créer" sur la demande.
++- Le module 'Company Relationships' est maintenant optionnel.
++- Correction calcule de la date d'échéance au passage d'un statut selon les paramètres renseignés pour celui-ci.
++- Correctionde l'affichage des tags de confidentialités externes sur la liste des événements de la demande.
++
+ ## [4.0.16] - 27-11-2018
+ - Correction de l'ajout d'un message comportant une URL (Erreur message vide).
+ - Idem pour la création d'une demande avec la description.

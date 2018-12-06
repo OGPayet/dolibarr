@@ -73,6 +73,11 @@ class RequestManager extends CommonObject
      */
     static public $priority_list;
     /**
+     * Cache of reason for resolution list
+     * @var DictionaryLine[]
+     */
+    static public $reason_resolution_list;
+    /**
      * Cache of status list
      * @var DictionaryLine[]
      */
@@ -215,6 +220,16 @@ class RequestManager extends CommonObject
      * @var int
      */
     public $duration;
+    /**
+     * Reason for resolution ID of the request
+     * @var int
+     */
+    public $fk_reason_resolution;
+    /**
+     * Details of the reason for resolution of the request
+     * @var string
+     */
+    public $reason_resolution_details;
 
     /**
      * List requester contact ID
@@ -539,6 +554,10 @@ class RequestManager extends CommonObject
         $this->date_creation = empty($this->date_creation) ? $now : $this->date_creation;
         $this->user_creation_id = $user->id;
         $this->requester_ids = empty($this->requester_ids) ? array() : (is_string($this->requester_ids) ? explode(',', $this->requester_ids) : $this->requester_ids);
+        if (empty($conf->companyrelationships->enabled)) {
+            $this->socid = $this->socid_origin;
+            $this->socid_benefactor = $this->socid_origin;
+        }
 
         // Check parameters
         if (empty($this->socid_origin)) {
@@ -746,7 +765,7 @@ class RequestManager extends CommonObject
 
             // Set status
             if (!$error) {
-                $ret = $this->set_status($this->statut, -1, $user, 1, 0, 1);
+                $ret = $this->set_status($this->statut, -1, $user, 0, '', 1, 0, 1);
                 if ($ret < 0) {
                     $error++;
                 }
@@ -970,6 +989,8 @@ class RequestManager extends CommonObject
         $sql .= ' t.notify_watcher_by_email,';
         $sql .= ' t.notify_assigned_by_email,';
         $sql .= ' t.duration,';
+        $sql .= ' t.fk_reason_resolution,';
+        $sql .= ' t.reason_resolution_details,';
         $sql .= ' t.date_operation,';
         $sql .= ' t.date_deadline,';
         $sql .= ' t.date_resolved,';
@@ -1025,6 +1046,8 @@ class RequestManager extends CommonObject
                 $this->notify_watcher_by_email      = empty($obj->notify_watcher_by_email) ? 0 : 1;
                 $this->notify_assigned_by_email     = empty($obj->notify_assigned_by_email) ? 0 : 1;
                 $this->duration                     = $obj->duration;
+                $this->fk_reason_resolution         = $obj->fk_reason_resolution;
+                $this->reason_resolution_details    = $obj->reason_resolution_details;
                 $this->date_operation               = $this->db->jdate($obj->date_operation);
                 $this->date_deadline                = $this->db->jdate($obj->date_deadline);
                 $this->date_resolved                = $this->db->jdate($obj->date_resolved);
@@ -1631,6 +1654,10 @@ class RequestManager extends CommonObject
         $this->user_modification_id = $user->id;
         //$this->requester_ids = empty($this->requester_ids) ? array() : (is_string($this->requester_ids) ? explode(',', $this->requester_ids) : $this->requester_ids);
         //$this->watcher_ids = empty($this->watcher_ids) ? array() : (is_string($this->watcher_ids) ? explode(',', $this->watcher_ids) : $this->watcher_ids);
+        if (empty($conf->companyrelationships->enabled)) {
+            $this->socid = $this->socid_origin;
+            $this->socid_benefactor = $this->socid_origin;
+        }
 
         // Check parameters
         if (!($this->id > 0)) {
@@ -1704,14 +1731,14 @@ class RequestManager extends CommonObject
             opendsi_is_updated_property($this, 'date_operation') ||
             opendsi_is_updated_property($this, 'date_deadline') ||
             opendsi_is_updated_property($this, 'notify_assigned_by_email') ||
-            opendsi_is_updated_property($this, 'dd') ||// Request tags
+            opendsi_is_updated_property($this, 'dd') ||// Request tags TODO a faire
             opendsi_is_updated_property($this, 'description') ||
-            opendsi_is_updated_property($this, 'dd') ||// Request origin contacts
+            opendsi_is_updated_property($this, 'dd') ||// Request origin contacts  TODO a faire
             opendsi_is_updated_property($this, 'notify_requester_by_email') ||
-            opendsi_is_updated_property($this, 'dd') ||// Request watcher contacts
+            opendsi_is_updated_property($this, 'dd') ||// Request watcher contacts  TODO a faire
             opendsi_is_updated_property($this, 'notify_watcher_by_email') ||
-            opendsi_is_updated_property($this, 'dd') ||// Request linked objects
-            opendsi_is_updated_property($this, 'dd') ||// Request product lines
+            opendsi_is_updated_property($this, 'dd') ||// Request linked objects  TODO a faire
+            opendsi_is_updated_property($this, 'dd') ||// Request product lines TODO a faire
             opendsi_is_updated_property($this, 'array_options')
         ) {
             $this->context['has_properties_updated'] = true; // Can be modified by triggers
@@ -2264,15 +2291,17 @@ class RequestManager extends CommonObject
     /**
 	 *  Set status request into database
 	 *
-     * @param   int     $status         New status
-     * @param   int     $status_type    New status type (initial, first in progress, resolved or closed) (-1 if not used)
-     * @param   User    $user           User that modifies
-	 * @param   bool    $notrigger      false=launch triggers after, true=disable triggers
-     * @param   int     $forcereload    Force reload of the cache
-     * @param   int		$dont_check		Don't check the old and new status is equal do pass
-	 * @return  int                     <0 if KO, >0 if OK
+     * @param   int     $status                     New status
+     * @param   int     $status_type                New status type (initial, first in progress, resolved or closed) (-1 if not used)
+     * @param   User    $user                       User that modifies
+     * @param   int     $reason_resolution          Id of the reason for resolution (when set STATUS_RESOLVED)
+     * @param   string  $reason_resolution_details  Details of the reason for resolution (when set STATUS_RESOLVED)
+	 * @param   bool    $notrigger                  false=launch triggers after, true=disable triggers
+     * @param   int     $forcereload                Force reload of the cache
+     * @param   int		$dont_check		            Don't check the old and new status is equal do pass
+	 * @return  int                                 <0 if KO, >0 if OK
 	 */
-	public function set_status($status, $status_type, User $user, $notrigger = false, $forcereload = 0, $dont_check=0)
+	public function set_status($status, $status_type, User $user, $reason_resolution=0, $reason_resolution_details='', $notrigger = false, $forcereload = 0, $dont_check=0)
     {
         global $langs;
         $error = 0;
@@ -2284,6 +2313,8 @@ class RequestManager extends CommonObject
         // Clean parameters
         $save_status = $this->statut;
         $save_status_type = $this->statut_type;
+        $save_reason_resolution = $this->fk_reason_resolution;
+        $save_reason_resolution_details = $this->reason_resolution_details;
         $status = $status > 0 ? $status : 0;
         $status_type = $status_type == self::STATUS_TYPE_INITIAL || $status_type == self::STATUS_TYPE_IN_PROGRESS || $status_type == self::STATUS_TYPE_RESOLVED || $status_type == self::STATUS_TYPE_CLOSED ? $status_type : -1;
 
@@ -2349,6 +2380,22 @@ class RequestManager extends CommonObject
                 $error++;
             }
         }
+        if (!$error) {
+            if (self::$status_list[$status]->fields['type'] == self::STATUS_TYPE_RESOLVED) {
+                if ($reason_resolution > 0) {
+                    $reasons_resolutions = self::$status_list[$status]->fields['reason_resolution'];
+                    $reasons_resolutions = isset($reasons_resolutions) ? $reasons_resolutions : '';
+                    $reasons_resolutions = array_filter(array_map('trim', explode(',', $reasons_resolutions)), 'strlen');
+                    if (!in_array($reason_resolution, $reasons_resolutions)) {
+                        $this->errors[] = $langs->trans('RequestManagerErrorStatusDoNotHaveThisReasonResolution', self::$status_list[$status]->fields['label']);
+                        $error++;
+                    }
+                }
+            } else {
+                $reason_resolution = 0;
+                $reason_resolution_details = '';
+            }
+        }
         if ($error) {
             dol_syslog(__METHOD__ . " Errors check parameters: " . $this->errorsToString(), LOG_ERR);
             return -3;
@@ -2357,6 +2404,8 @@ class RequestManager extends CommonObject
         $this->new_statut = $status;
         $status_infos = self::$status_list[$this->new_statut];
         $this->new_statut_type = $status_infos->fields['type'];
+        $this->fk_reason_resolution = $reason_resolution;
+        $this->reason_resolution_details = $reason_resolution_details;
 
         /*if ($this->new_statut == $this->statut && !$dont_check) {
             dol_syslog(__METHOD__ . " : Status not changed", LOG_DEBUG);
@@ -2386,7 +2435,7 @@ class RequestManager extends CommonObject
         $date_deadline = null;
         if (isset($status_infos->fields['deadline'])) {
             if ($status_infos->fields['deadline'] > 0) {
-                $date_deadline = (isset($date_operation) ? $date_operation : $now) + ($status_infos->fields['deadline'] * 60);
+                $date_deadline = (!empty($date_operation) ? $date_operation : $now) + ($status_infos->fields['deadline'] * 60);
             } elseif ($status_infos->fields['deadline'] == -1 || $status_infos->fields['type'] == self::STATUS_TYPE_INITIAL) {
                 $date_deadline = $this->date_deadline;
             }
@@ -2419,6 +2468,10 @@ class RequestManager extends CommonObject
         if (!$error) {
             $sql = 'UPDATE ' . MAIN_DB_PREFIX . $this->table_element . ' SET';
             $sql .= " fk_status = " . $this->new_statut;
+            if ($status_infos->fields['type'] != self::STATUS_TYPE_CLOSED) {
+                $sql .= ", fk_reason_resolution = " . ($reason_resolution > 0 ? $reason_resolution : 'NULL');
+                $sql .= ", reason_resolution_details = " . ($reason_resolution > 0 && !empty($reason_resolution_details) ? "'" . $this->db->escape($reason_resolution_details) . "'" : 'NULL');
+            }
             $sql .= ' WHERE rowid = ' . $this->id;
 
             $resql = $this->db->query($sql);
@@ -2456,6 +2509,8 @@ class RequestManager extends CommonObject
             $this->db->rollback();
             $this->statut = $save_status;
             $this->statut_type = $save_status_type;
+            $this->fk_reason_resolution = $save_reason_resolution;
+            $this->reason_resolution_details = $save_reason_resolution_details;
 
             return -1 * $error;
         } else {
@@ -2830,6 +2885,52 @@ class RequestManager extends CommonObject
     }
 
     /**
+     *  Return label of reason for resolution
+     *
+     * @param   int         $mode       0=libelle, 1=code, 2=code - libelle
+     * @return  string                  Label
+     */
+    function getLibReasonResolution($mode=0)
+    {
+        return $this->LibReasonResolution($this->fk_reason_resolution, $mode);
+    }
+
+    /**
+     *  Return label of reason for resolution provides
+     *
+     * @param   int         $id             Id
+     * @param   int         $mode           0=libelle, 1=code, 2=code - libelle
+     * @param   int         $forcereload    Force reload of the cache
+     * @return  string                      Label
+     */
+    function LibReasonResolution($id,$mode=0,$forcereload=0)
+    {
+        global $langs;
+
+        if (!($id > 0))
+            return '';
+
+        $langs->load("requestmanager@requestmanager");
+
+        if (empty(self::$reason_resolution_list) || $forcereload) {
+            dol_include_once('/advancedictionaries/class/dictionary.class.php');
+            $dictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagerreasonresolution');
+            $dictionary->fetch_lines(1, array(), array('label' => 'ASC'));
+            self::$reason_resolution_list = $dictionary->lines;
+        }
+
+        if (!isset(self::$reason_resolution_list[$id])) {
+            return $langs->trans('RequestManagerErrorNotFound');
+        }
+
+        $reasonInfos = self::$reason_resolution_list[$id];
+
+        if ($mode == 0) return $reasonInfos->fields['label'];
+        if ($mode == 1) return $reasonInfos->fields['code'];
+        if ($mode == 2) return $reasonInfos->fields['code'] . ' - ' . $reasonInfos->fields['label'];
+    }
+
+    /**
      *  Return label of status
      *
      * @param   int         $mode       0=libelle long, 1=libelle court, 2=Picto + Libelle court, 3=Picto, 4=Picto + Libelle long
@@ -3087,8 +3188,8 @@ class RequestManager extends CommonObject
             if (preg_match('/parent_path_stop_parent_(\d+)/i', $option, $matches)) {
                 $stop_parent_id = $matches[1];
             }
-            $this->fetch_parent();
             if (!isset($stop_parent_id) || $stop_parent_id != $this->parent->id) {
+                $this->fetch_parent();
                 $result = $this->parent->getNomUrl($withpicto, $option, $maxlen, $notooltip, $save_lastsearch_value) . ' >> ' . $result;
             }
         }

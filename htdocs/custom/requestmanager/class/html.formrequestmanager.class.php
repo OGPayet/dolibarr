@@ -148,7 +148,7 @@ class FormRequestManager
      * @param   bool        $options_only           Return options only (for ajax treatment)
      * @return  string                              HTML string with select box for source.
      */
-    function select_source($selected = '', $htmlname = 'type', $showempty = '', $forcecombo = 0, $events = array(), $usesearchtoselect=0, $limit = 0, $morecss = 'minwidth100', $moreparam = '', $selected_input_value = '', $hidelabel = 1, $selectlabel = '', $autofocus=0, $ajaxoptions = array(), $options_only=false)
+    function select_source($selected = '', $htmlname = 'source', $showempty = '', $forcecombo = 0, $events = array(), $usesearchtoselect=0, $limit = 0, $morecss = 'minwidth100', $moreparam = '', $selected_input_value = '', $hidelabel = 1, $selectlabel = '', $autofocus=0, $ajaxoptions = array(), $options_only=false)
     {
         return $this->formdictionary->select_dictionary('requestmanager', 'requestmanagersource', $selected, $htmlname, $showempty, 'rowid', '{{label}}', array(), array('label'=>'ASC'), $forcecombo, $events, $usesearchtoselect, $limit, $morecss, $moreparam, $selected_input_value, $hidelabel, $selectlabel, $autofocus, $ajaxoptions, $options_only);
     }
@@ -173,7 +173,7 @@ class FormRequestManager
      * @param   bool        $options_only           Return options only (for ajax treatment)
      * @return  string                              HTML string with select box for urgency.
      */
-    function select_urgency($selected = '', $htmlname = 'type', $showempty = '', $forcecombo = 0, $events = array(), $usesearchtoselect=0, $limit = 0, $morecss = 'minwidth100', $moreparam = '', $selected_input_value = '', $hidelabel = 1, $selectlabel = '', $autofocus=0, $ajaxoptions = array(), $options_only=false)
+    function select_urgency($selected = '', $htmlname = 'urgency', $showempty = '', $forcecombo = 0, $events = array(), $usesearchtoselect=0, $limit = 0, $morecss = 'minwidth100', $moreparam = '', $selected_input_value = '', $hidelabel = 1, $selectlabel = '', $autofocus=0, $ajaxoptions = array(), $options_only=false)
     {
         return $this->formdictionary->select_dictionary('requestmanager', 'requestmanagerurgency', $selected, $htmlname, $showempty, 'rowid', '{{label}}', array(), array('label'=>'ASC'), $forcecombo, $events, $usesearchtoselect, $limit, $morecss, $moreparam, $selected_input_value, $hidelabel, $selectlabel, $autofocus, $ajaxoptions, $options_only);
     }
@@ -198,7 +198,7 @@ class FormRequestManager
      * @param   bool        $options_only           Return options only (for ajax treatment)
      * @return  string                              HTML string with select box for impact.
      */
-    function select_impact($selected = '', $htmlname = 'type', $showempty = '', $forcecombo = 0, $events = array(), $usesearchtoselect=0, $limit = 0, $morecss = 'minwidth100', $moreparam = '', $selected_input_value = '', $hidelabel = 1, $selectlabel = '', $autofocus=0, $ajaxoptions = array(), $options_only=false)
+    function select_impact($selected = '', $htmlname = 'impact', $showempty = '', $forcecombo = 0, $events = array(), $usesearchtoselect=0, $limit = 0, $morecss = 'minwidth100', $moreparam = '', $selected_input_value = '', $hidelabel = 1, $selectlabel = '', $autofocus=0, $ajaxoptions = array(), $options_only=false)
     {
         return $this->formdictionary->select_dictionary('requestmanager', 'requestmanagerimpact', $selected, $htmlname, $showempty, 'rowid', '{{label}}', array(), array('label'=>'ASC'), $forcecombo, $events, $usesearchtoselect, $limit, $morecss, $moreparam, $selected_input_value, $hidelabel, $selectlabel, $autofocus, $ajaxoptions, $options_only);
     }
@@ -223,7 +223,7 @@ class FormRequestManager
      * @param   bool        $options_only           Return options only (for ajax treatment)
      * @return  string                              HTML string with select box for priority.
      */
-    function select_priority($selected = '', $htmlname = 'type', $showempty = '', $forcecombo = 0, $events = array(), $usesearchtoselect=0, $limit = 0, $morecss = 'minwidth100', $moreparam = '', $selected_input_value = '', $hidelabel = 1, $selectlabel = '', $autofocus=0, $ajaxoptions = array(), $options_only=false)
+    function select_priority($selected = '', $htmlname = 'priority', $showempty = '', $forcecombo = 0, $events = array(), $usesearchtoselect=0, $limit = 0, $morecss = 'minwidth100', $moreparam = '', $selected_input_value = '', $hidelabel = 1, $selectlabel = '', $autofocus=0, $ajaxoptions = array(), $options_only=false)
     {
         return $this->formdictionary->select_dictionary('requestmanager', 'requestmanagerpriority', $selected, $htmlname, $showempty, 'rowid', '{{label}}', array(), array('label'=>'ASC'), $forcecombo, $events, $usesearchtoselect, $limit, $morecss, $moreparam, $selected_input_value, $hidelabel, $selectlabel, $autofocus, $ajaxoptions, $options_only);
     }
@@ -249,9 +249,46 @@ class FormRequestManager
      * @param   bool        $options_only           Return options only (for ajax treatment)
      * @return  string                              HTML string with select box for status.
      */
-    function select_status($request_type, $selected = '', $htmlname = 'type', $showempty = '', $forcecombo = 0, $events = array(), $usesearchtoselect=0, $limit = 0, $morecss = 'minwidth100', $moreparam = '', $selected_input_value = '', $hidelabel = 1, $selectlabel = '', $autofocus=0, $ajaxoptions = array(), $options_only=false)
+    function select_status($request_type, $selected = '', $htmlname = 'status', $showempty = '', $forcecombo = 0, $events = array(), $usesearchtoselect=0, $limit = 0, $morecss = 'minwidth100', $moreparam = '', $selected_input_value = '', $hidelabel = 1, $selectlabel = '', $autofocus=0, $ajaxoptions = array(), $options_only=false)
     {
         return $this->formdictionary->select_dictionary('requestmanager', 'requestmanagerstatus', $selected, $htmlname, $showempty, 'rowid', '{{label}}', array('request_type'=>array($request_type), 'type'=>array(RequestManager::STATUS_TYPE_IN_PROGRESS)), array('label'=>'ASC'), $forcecombo, $events, $usesearchtoselect, $limit, $morecss, $moreparam, $selected_input_value, $hidelabel, $selectlabel, $autofocus, $ajaxoptions, $options_only);
+    }
+
+    /**
+     *  Output html form to select a reason for resolution
+     *
+     * @param   int         $request_type           Id of the request type
+     * @param   string      $selected               Preselected type
+     * @param   string      $htmlname               Name of field in form
+     * @param   string      $showempty              Add an empty field (Can be '1' or text key to use on empty line like 'SelectThirdParty')
+     * @param   int         $forcecombo             Force to use combo box
+     * @param   array       $events                 Ajax event options to run on change. Example: array(array('method'=>'getContacts', 'url'=>dol_buildpath('/core/ajax/contacts.php',1), 'htmlname'=>'contactid', 'params'=>array('add-customer-contact'=>'disabled')))
+     * @param  	int		    $usesearchtoselect	    Minimum length of input string to start autocomplete
+     * @param   int         $limit                  Maximum number of elements
+     * @param   string      $morecss                Add more css styles to the SELECT component
+     * @param   string      $moreparam              Add more parameters onto the select tag. For example 'style="width: 95%"' to avoid select2 component to go over parent container
+     * @param   string      $selected_input_value   Value of preselected input text (for use with ajax)
+     * @param   int         $hidelabel              Hide label (0=no, 1=yes, 2=show search icon (before) and placeholder, 3 search icon after)
+     * @param   string      $selectlabel            Text of the label (can be translated)
+     * @param   int         $autofocus              Autofocus the field in form (1 auto focus, 0 not)
+     * @param   array       $ajaxoptions            Options for ajax_autocompleter
+     * @param   bool        $options_only           Return options only (for ajax treatment)
+     * @return  string                              HTML string with select box for status.
+     */
+    function select_reason_resolution($request_type, $selected = '', $htmlname = 'reason_resolution', $showempty = '', $forcecombo = 0, $events = array(), $usesearchtoselect=0, $limit = 0, $morecss = 'minwidth100', $moreparam = '', $selected_input_value = '', $hidelabel = 1, $selectlabel = '', $autofocus=0, $ajaxoptions = array(), $options_only=false)
+    {
+        $reasons_resolutions = '';
+        dol_include_once('/advancedictionaries/class/dictionary.class.php');
+        $statusDictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagerstatus');
+        $statusDictionary->fetch_lines(1, array('request_type'=>array($request_type), 'type'=>array(RequestManager::STATUS_TYPE_RESOLVED)));
+        if (count($statusDictionary->lines) == 1) {
+            $lines = array_values($statusDictionary->lines);
+            $reasons_resolutions = $lines[0]->fields['reason_resolution'];
+        }
+        $reasons_resolutions = isset($reasons_resolutions) ? $reasons_resolutions : '';
+        $reasons_resolutions = array_filter(array_map('trim', explode(',', $reasons_resolutions)), 'strlen');
+
+        return $this->formdictionary->select_dictionary('requestmanager', 'requestmanagerreasonresolution', $selected, $htmlname, $showempty, 'rowid', '{{label}}', count($reasons_resolutions) ? array('rowid' => $reasons_resolutions) : null, array('label'=>'ASC'), $forcecombo, $events, $usesearchtoselect, $limit, $morecss, $moreparam, $selected_input_value, $hidelabel, $selectlabel, $autofocus, $ajaxoptions, $options_only);
     }
 
     /**

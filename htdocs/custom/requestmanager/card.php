@@ -118,75 +118,7 @@ if (empty($reshook)) {
         $force_principal_company = true;
     }
 
-    // Create request
-    /*if ($action == 'add' && $user->rights->requestmanager->creer) {
-        $object->fk_type = GETPOST('type', 'int');
-        $object->fk_category = GETPOST('category', 'int');
-        $object->label = GETPOST('label', 'alpha');
-        $object->socid_origin = GETPOST('socid_origin', 'int') ? GETPOST('socid_origin', 'int') : GETPOST('socid', 'int');
-        $object->socid = GETPOST('socid', 'int');
-        $object->socid_benefactor = GETPOST('socid_benefactor', 'int');
-        $object->fk_source = GETPOST('source', 'int');
-        $object->fk_urgency = GETPOST('urgency', 'int');
-        $object->fk_impact = GETPOST('impact', 'int');
-        $object->fk_priority = GETPOST('priority', 'int');
-        $object->date_operation = dol_mktime(GETPOST('operation_hour', 'int'), GETPOST('operation_minute', 'int'), 0, GETPOST('operation_month', 'int'), GETPOST('operation_day', 'int'), GETPOST('operation_year', 'int'));
-        $object->date_deadline = dol_mktime(GETPOST('deadline_hour', 'int'), GETPOST('deadline_min', 'int'), 0, GETPOST('deadline_month', 'int'), GETPOST('deadline_day', 'int'), GETPOST('deadline_year', 'int'));
-        $object->requester_ids = GETPOST('requester_contacts', 'array');
-        $object->notify_requester_by_email = GETPOST('requester_notification', 'int');
-        $object->watcher_ids = GETPOST('watcher_contacts', 'array');
-        $object->notify_watcher_by_email = GETPOST('watcher_notification', 'int');
-        $object->assigned_usergroup_ids = GETPOST('assigned_usergroups', 'array');
-        $object->assigned_user_ids = GETPOST('assigned_users', 'array');
-        $object->notify_assigned_by_email = GETPOST('assigned_notification', 'int');
-        $object->description = GETPOST('description');
-
-        // Possibility to add external linked objects with hooks
-        $object->origin = GETPOST('origin', 'alpha');
-        $object->origin_id = GETPOST('originid', 'int');
-        if ($object->origin && $object->origin_id) {
-            $object->linkedObjectsIds[$object->origin] = $object->origin_id;
-            if (is_array($_POST['other_linked_objects']) && !empty($_POST['other_linked_objects'])) {
-                $object->linkedObjectsIds = array_merge($object->linkedObjectsIds, $_POST['other_linked_objects']);
-            }
-        }
-
-        // Fill array 'array_options' with data from add form
-        $ret = $extrafields->setOptionalsFromPost($extralabels, $object);
-        if ($ret < 0) {
-            $error++;
-        }
-
-        if (!$error) {
-            $db->begin();
-
-            $id = $object->create($user);
-            if ($id < 0) {
-                setEventMessages($object->error, $object->errors, 'errors');
-                $error++;
-            }
-        }
-
-        if (!$error) {
-            // Category association
-            $categories = GETPOST('categories');
-            $result = $object->setCategories($categories);
-            if ($result < 0) {
-                setEventMessages($object->error, $object->errors, 'errors');
-                $error++;
-            }
-        }
-
-        if (!$error) {
-            $db->commit();
-            header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $id);
-            exit();
-        } else {
-            $db->rollback();
-            $action = 'create';
-        }
-    } // Create request child
-    else*/
+    // Create request child
     if ($action == 'create_request_child' && $user->rights->requestmanager->creer) {
         $new_request_type = GETPOST('new_request_type', 'int');
         $id = $object->createSubRequest($new_request_type, $user);
@@ -269,6 +201,10 @@ if (empty($reshook)) {
     elseif ($action == 'set_thirdparty_origin' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
         $object->oldcopy = clone $object;
         $object->socid_origin = GETPOST('socid_origin', 'int');
+        if (empty($conf->companyrelationships->enabled)) {
+            $object->socid = $object->socid_origin;
+            $object->socid_benefactor = $object->socid_origin;
+        }
         $result = $object->update($user);
         if ($result < 0) {
             setEventMessages($object->error, $object->errors, 'errors');
@@ -278,7 +214,7 @@ if (empty($reshook)) {
             exit();
         }
     } // Set ThirdParty Bill
-    elseif ($action == 'set_thirdparty' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+    elseif ($action == 'set_thirdparty' && !empty($conf->companyrelationships->enabled) && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
         $object->oldcopy = clone $object;
         $object->socid = GETPOST('socid', 'int');
 
@@ -310,7 +246,7 @@ if (empty($reshook)) {
             }
         }
     } // Set ThirdParty Benefactor
-    elseif ($action == 'set_thirdparty_benefactor' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+    elseif ($action == 'set_thirdparty_benefactor' && !empty($conf->companyrelationships->enabled) && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
         $object->oldcopy = clone $object;
         $object->socid_benefactor = GETPOST('socid_benefactor', 'int');
 
@@ -563,7 +499,9 @@ if (empty($reshook)) {
         }
     } // Resolve
     elseif ($action == 'confirm_resolve' && $confirm == 'yes' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
-        $result = $object->set_status(0, RequestManager::STATUS_TYPE_RESOLVED, $user);
+        $reason_resolution = GETPOST('reason_resolution', 'int');
+        $reason_resolution_details = GETPOST('reason_resolution_details');
+        $result = $object->set_status(0, RequestManager::STATUS_TYPE_RESOLVED, $user, $reason_resolution, $reason_resolution_details);
         if ($result < 0) {
             setEventMessages($object->error, $object->errors, 'errors');
         } else {
@@ -1219,202 +1157,7 @@ $usergroup_static = new UserGroup($db);
 $contact_static = new Contact($db);
 
 $now = dol_now();
-
-/*if ($action == 'create' && $user->rights->requestmanager->creer)
-{
-    /*
-     *  Creation
-     */
-/*	print load_fiche_titre($langs->trans("RequestManagerNewRequest"), '', 'requestmanager@requestmanager');
-
-    $object->fk_type = GETPOST('type', 'int');
-    $object->fk_category = GETPOST('category', 'int');
-    $object->label = GETPOST('label', 'alpha');
-    $object->socid_origin = GETPOST('socid_origin', 'int');
-    $object->socid = GETPOST('socid', 'int');
-    $object->socid_benefactor = GETPOST('socid_benefactor', 'int');
-    $object->fk_source = GETPOST('source', 'int');
-    $object->fk_urgency = GETPOST('urgency', 'int');
-    $object->fk_impact = GETPOST('impact', 'int');
-    $object->fk_priority = GETPOST('priority', 'int');
-    if (!GETPOST('operation_') && !GETPOST('operation_hour', 'int') && !GETPOST('operation_min', 'int')) {
-        // calculate operation date from default operation time in minutes and now
-        $object->date_operation = intval($conf->global->REQUESTMANAGER_OPERATION_TIME_DEFAULT) > 0 ? $now + (intval($conf->global->REQUESTMANAGER_OPERATION_TIME_DEFAULT) * 60) : -1;
-    } else {
-        $object->date_operation = dol_mktime(GETPOST('operation_hour', 'int'), GETPOST('operation_min', 'int'), 0, GETPOST('operation_month', 'int'), GETPOST('operation_day', 'int'), GETPOST('operation_year', 'int'));
-    }
-    if (!GETPOST('deadline_') && !GETPOST('deadline_hour', 'int') && !GETPOST('deadline_min', 'int')) {
-        // calculate deadline date from default deadline time in minutes and operation date
-        $object->date_deadline = intval($conf->global->REQUESTMANAGER_DEADLINE_TIME_DEFAULT) > 0 ? $object->date_operation + (intval($conf->global->REQUESTMANAGER_DEADLINE_TIME_DEFAULT) * 60) : -1;
-    } else {
-        $object->date_deadline = dol_mktime(GETPOST('deadline_hour', 'int'), GETPOST('deadline_min', 'int'), 0, GETPOST('deadline_month', 'int'), GETPOST('deadline_day', 'int'), GETPOST('deadline_year', 'int'));
-    }
-    $object->requester_ids = GETPOST('requester_contacts', 'array');
-    $object->notify_requester_by_email = isset($_POST['requester_notification']) ? GETPOST('requester_notification', 'int') : 1;
-    $object->notify_watcher_by_email = isset($_POST['watcher_notification']) ? GETPOST('watcher_notification', 'int') : 1;
-    $object->assigned_usergroup_ids = GETPOST('assigned_usergroups', 'array');
-    $object->assigned_user_ids = GETPOST('assigned_users', 'array');
-    $object->notify_assigned_by_email = isset($_POST['assigned_notification']) ? GETPOST('assigned_notification', 'int') : 1;
-    $object->description = GETPOST('description');
-
-    $object->origin = GETPOST('origin', 'alpha');
-    $object->origin_id = GETPOST('originid', 'int');
-
-    $categories = GETPOST('categories', 'array');
-
-	print '<form name="addprop" action="' . $_SERVER["PHP_SELF"] . '" method="POST">';
-	print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
-	print '<input type="hidden" name="action" value="add">';
-
-	dol_fiche_head();
-
-	print '<table class="border" width="100%">';
-
-    // Type
-	print '<tr><td class="fieldrequired">' . $langs->trans('RequestManagerType') . '</td><td>';
-    $events = array();
-    $events[] = array('method' => 'getCategories', 'url' => dol_buildpath('/requestmanager/ajax/categories.php', 1), 'htmlname' => 'category', 'showempty' => '1');
-    $groupslist = $usergroup_static->listGroupsForUser($user->id);
-    print $formrequestmanager->select_type(array_keys($groupslist), $object->fk_type, 'type', 1, 0, $events, 0, 0, 'minwidth300');
-    print '</td></tr>';
-
-    // Category
-	print '<tr><td>' . $langs->trans('RequestManagerCategory') . '</td><td>';
-    print $formrequestmanager->select_category($object->fk_type, $object->fk_category, 'category', 1, 0, array(), 0, 0, 'minwidth300');
-    print '</td></tr>';
-
-    // Label
-	print '<tr><td class="titlefield fieldrequired">' . $langs->trans('RequestManagerLabel') . '</td><td>';
-	print '<input class="quatrevingtpercent" type="text" name="label" value="'.dol_escape_htmltag($object->label).'">';
-    print '</td></tr>';
-
-    // ThirdParty Origin
-    print '<tr><td class="fieldrequired">' . $langs->trans('RequestManagerThirdPartyOrigin') . '</td><td>';
-    $events[] = array('method' => 'getContacts', 'url' => dol_buildpath('/core/ajax/contacts.php', 1), 'htmlname' => 'requester_contacts', 'params' => array('add-customer-contact' => 'disabled'));
-    print $form->select_company($object->socid_origin, 'socid_origin', '(s.client = 1 OR s.client = 2 OR s.client = 3) AND status=1', 'SelectThirdParty', 0, 0, $events, 0, 'minwidth300');
-    if (!empty($conf->societe->enabled) && $user->rights->societe->creer) {
-        print ' <a id="new_thridparty" href="' . DOL_URL_ROOT . '/societe/card.php?action=create&client=3&fournisseur=0&backtopage=' . urlencode($_SERVER["PHP_SELF"] . '?action=create' . ($object->fk_type ? '&type=' . $object->fk_type : '') . ($object->socid ? '&socid=' . $object->socid : '') . ($object->socid_benefactor ? '&socid_benefactor=' . $object->socid_benefactor : '') . '&socid_origin=##SOCID##') . '">' . $langs->trans("AddThirdParty") . '</a>';
-    }
-    print '</td></tr>';
-
-    // ThirdParty Bill
-    print '<tr><td class="fieldrequired">' . $langs->trans('RequestManagerThirdPartyPrincipal') . '</td><td>';
-    print $form->select_company($object->socid, 'socid', '(s.client = 1 OR s.client = 2 OR s.client = 3) AND status=1', 'SelectThirdParty', 0, 0, array(), 0, 'minwidth300');
-    if (!empty($conf->societe->enabled) && $user->rights->societe->creer) {
-        print ' <a id="new_thridparty" href="' . DOL_URL_ROOT . '/societe/card.php?action=create&client=3&fournisseur=0&backtopage=' . urlencode($_SERVER["PHP_SELF"] . '?action=create' . ($object->fk_type ? '&type=' . $object->fk_type : '') . ($object->socid_origin ? '&socid_origin=' . $object->socid_origin : '') . ($object->socid_benefactor ? '&socid_benefactor=' . $object->socid_benefactor : '') . '&socid=##SOCID##') . '">' . $langs->trans("AddThirdParty") . '</a>';
-    }
-    print '</td></tr>';
-
-    // ThirdParty Benefactor
-    print '<tr><td class="fieldrequired">' . $langs->trans('RequestManagerThirdPartyBenefactor') . '</td><td>';
-    print $form->select_company($object->socid_benefactor, 'socid_benefactor', '(s.client = 1 OR s.client = 2 OR s.client = 3) AND status=1', 'SelectThirdParty', 0, 0, array(), 0, 'minwidth300');
-    if (!empty($conf->societe->enabled) && $user->rights->societe->creer) {
-        print ' <a id="new_thridparty" href="' . DOL_URL_ROOT . '/societe/card.php?action=create&client=3&fournisseur=0&backtopage=' . urlencode($_SERVER["PHP_SELF"] . '?action=create' . ($object->fk_type ? '&type=' . $object->fk_type : '') . ($object->socid_origin ? '&socid_origin=' . $object->socid_origin : '') . ($object->socid ? '&socid=' . $object->socid : '') . '&socid_benefactor=##SOCID##') . '">' . $langs->trans("AddThirdParty") . '</a>';
-    }
-    print '</td></tr>';
-
-    // Requester Contacts
-	print '<tr><td>' . $langs->trans('RequestManagerRequesterContacts') . '</td><td>';
-    print $formrequestmanager->multiselect_contacts($object->socid, $object->requester_ids, 'requester_contacts', '', '', 0, 'minwidth300');
-    print '</td></tr>';
-
-    // Requester Notification
-	print '<tr><td>' . $langs->trans('RequestManagerRequesterNotification') . '</td><td>';
-    print '<input type="checkbox" name="requester_notification" value="1"' . ($object->notify_requester_by_email ? ' checked' : '') . ' />';
-    print '</td></tr>';
-
-    // Source
-	print '<tr><td>' . $langs->trans('RequestManagerSource') . '</td><td>';
-    print $formrequestmanager->select_source($object->fk_source, 'source', 1, 0, array(), 0, 0, 'minwidth300');
-    print '</td></tr>';
-
-    // Urgency
-	print '<tr><td>' . $langs->trans('RequestManagerUrgency') . '</td><td>';
-    print $formrequestmanager->select_urgency($object->fk_urgency, 'urgency', 1, 0, array(), 0, 0, 'minwidth300');
-    print '</td></tr>';
-
-    // Impact
-	print '<tr><td>' . $langs->trans('RequestManagerImpact') . '</td><td>';
-    print $formrequestmanager->select_impact($object->fk_impact, 'impact', 1, 0, array(), 0, 0, 'minwidth300');
-    print '</td></tr>';
-
-    // Priority
-	print '<tr><td>' . $langs->trans('RequestManagerPriority') . '</td><td>';
-    print $formrequestmanager->select_priority($object->fk_priority, 'priority', 1, 0, array(), 0, 0, 'minwidth300');
-    print '</td></tr>';
-
-    // Date Operation
-	print '<tr><td>' . $langs->trans('RequestManagerOperation') . '</td><td>';
-	$form->select_date($object->date_operation, 'operation_', 1, 1, 1, '', 1);
-	print '</td></tr>';
-
-    // Date Deadline
-	print '<tr><td>' . $langs->trans('RequestManagerDeadline') . '</td><td>';
-	$form->select_date($object->date_deadline, 'deadline_', 1, 1, 1, '', 1);
-	print '</td></tr>';
-
-    // Assigned usergroups
-    print "<tr><td>" . $langs->trans("RequestManagerAssignedUserGroups") . '</td><td>';
-    print $formrequestmanager->multiselect_dolgroups($object->assigned_usergroup_ids,'assigned_usergroups');
-    print '</td></tr>';
-
-    // Assigned users
-    print "<tr><td>" . $langs->trans("RequestManagerAssignedUsers") . '</td><td>';
-    print $formrequestmanager->multiselect_dolusers($object->assigned_user_ids,'assigned_users', null, 0, '', '', 0, 0, 0, '', 0, '', '', 1, 0);
-    print '</td></tr>';
-
-    // Assigned Notification
-	print '<tr><td>' . $langs->trans('RequestManagerAssignedNotification') . '</td><td>';
-    print '<input type="checkbox" name="assigned_notification" value="1"' . ($object->notify_assigned_by_email ? ' checked' : '') . ' />';
-    print '</td></tr>';
-
-    // Watcher Notification
-	print '<tr><td>' . $langs->trans('RequestManagerWatcherNotification') . '</td><td>';
-    print '<input type="checkbox" name="watcher_notification" value="1"' . ($object->notify_watcher_by_email ? ' checked' : '') . ' />';
-    print '</td></tr>';
-
-    // Other attributes
-	$parameters = array();
-	$reshook = $hookmanager->executeHooks('formObjectOptions', $parameters, $object, $action); // Note that $action and $object may have been modified by hook
-       print $hookmanager->resPrint;
-	if (empty($reshook) && ! empty($extrafields->attribute_label)) {
-		print $object->showOptionals($extrafields, 'edit');
-	}
-
-    // Origin
-	if (! empty($object->origin) && ! empty($object->origin_id)) {
-        print '<tr><td>' . $langs->trans('Origin') . '</td><td>';
-        print '<input type="hidden" name="origin" value="' . dol_escape_htmltag($object->origin) . '">';
-        print '<input type="hidden" name="originid" value="' . $object->origin_id . '">';
-        print dolGetElementUrl($object->origin_id, $object->origin, 1);
-        print '</td></tr>';
-    }
-
-    // Categories
-    if ($conf->categorie->enabled) {
-        print '<tr><td>' . $langs->trans("Categories") . '</td><td colspan="3">';
-        print $formrequestmanager->multiselect_categories($categories, 'categories', '', 0, '', 0, '100%');
-        print "</td></tr>";
-    }
-
-    // Description
-    print '<tr><td class="tdtop fieldrequired">' . $langs->trans('RequestManagerDescription') . '</td><td valign="top">';
-    $doleditor = new DolEditor('description', $object->description, '', 200, 'dolibarr_notes', 'In', 0, false, true, ROWS_3, '90%');
-    print $doleditor->Create(1);
-    print '</td></tr>';
-
-	print "</table>\n";
-
-	dol_fiche_end();
-
-	print '<div class="center">';
-	print '<input type="submit" class="button" value="' . $langs->trans("RequestManagerAddRequest") . '">';
-    print ' &nbsp; &nbsp; ';
-	print '<input type="button" class="button" value="' . $langs->trans("Cancel") . '" onClick="javascript:history.go(-1)">';
-	print '</div>';
-
-	print "</form>";
-} else*/if ($object->id > 0) {
+if ($object->id > 0) {
 	/*
 	 * Show object in view mode
 	 */
@@ -1426,7 +1169,40 @@ $now = dol_now();
 
     // Confirm resolve
 	if ($action == 'resolve') {
-		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('RequestManagerResolveRequest'), $langs->trans('RequestManagerConfirmResolveRequest', $object->ref), 'confirm_resolve', '', 0, 1);
+        $reason_resolution = GETPOST('reason_resolution', 'int');
+        $reason_resolution_details = GETPOST('reason_resolution_details');
+
+        $formquestion = array(
+            array('type' => 'other', 'name' => 'reason_resolution', 'label' => $langs->trans('RequestManagerReasonResolution'),
+                'value' => $formrequestmanager->select_reason_resolution($object->fk_type, $reason_resolution, 'reason_resolution', 1, 0, array(), 0, 0, 'minwidth300')),
+        );
+
+        if (!empty($conf->fckeditor->enabled)) {
+            $doleditor = new DolEditor('reason_resolution_details', $reason_resolution_details, '', 200, 'dolibarr_notes', 'In', 0, false, true, ROWS_3, '90%');
+            $formquestion = array_merge($formquestion, array(
+                array('type' => 'other', 'name' => 'reason_resolution_details', 'label' => $langs->trans('RequestManagerReasonResolutionDetails'), 'value' => $doleditor->Create(1, ".on('change', function(e) { $('textarea#reason_resolution_details').val(encodeURIComponent(this.getData())); });")),
+            ));
+            $height = 520;
+        } else {
+            $reason_resolution_details_form = <<<SCRIPT
+  <textarea id="reason_resolution_details_text" rows="10" style="width: 100%;">$reason_resolution_details</textarea>
+  <script type="text/javascript">
+    $(document).ready(function() {
+      $('#reason_resolution_details_text').on('focusout', function() {
+        $('#reason_resolution_details').val(encodeURIComponent($(this).val()));
+      });
+    });
+  </script>
+SCRIPT;
+
+            $formquestion = array_merge($formquestion, array(
+                array('type' => 'hidden', 'name' => 'reason_resolution_details', 'value' => ''),
+                array('type' => 'other', 'label' => $langs->trans('RequestManagerReasonResolutionDetails'), 'value' => $reason_resolution_details_form),
+            ));
+            $height = 400;
+        }
+
+		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('RequestManagerResolveRequest'), $langs->trans('RequestManagerConfirmResolveRequest', $object->ref), 'confirm_resolve', $formquestion, 0, 1, $height, 800);
 	}
 
     // Confirm close
@@ -1593,47 +1369,49 @@ $now = dol_now();
 	}
     print '</td></tr>';
 
-    // ThirdParty Bill
-    print '<tr><td>';
-	print '<table class="nobordernopadding" width="100%"><tr><td>';
-	print $langs->trans('RequestManagerThirdPartyPrincipal');
-	print '</td>';
-	if ($action != 'edit_thirdparty' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS)
-		print '<td align="right"><a href="' . $_SERVER["PHP_SELF"] . '?action=edit_thirdparty&id=' . $object->id . '">' . img_edit($langs->trans('RequestManagerSetThirdPartyBill'), 1) . '</a></td>';
-	print '</tr></table>';
-	print '</td><td>';
-	if ($action == 'edit_thirdparty' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
-		print '<form name="editthirdparty" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
-		print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
-		print '<input type="hidden" name="action" value="set_thirdparty">';
-        print $form->select_company($object->socid, 'socid', '(s.client = 1 OR s.client = 2 OR s.client = 3) AND status=1', 'SelectThirdParty', 0, 0, null, 0, 'minwidth300');
-		print '<input type="submit" class="button" value="' . $langs->trans('Modify') . '">';
-		print '</form>';
-	} else {
-        print $object->thirdparty->getNomUrl(1);
-	}
-    print '</td></tr>';
+    if (!empty($conf->companyrelationships->enabled)) {
+        // ThirdParty Bill
+        print '<tr><td>';
+        print '<table class="nobordernopadding" width="100%"><tr><td>';
+        print $langs->trans('RequestManagerThirdPartyPrincipal');
+        print '</td>';
+        if ($action != 'edit_thirdparty' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS)
+            print '<td align="right"><a href="' . $_SERVER["PHP_SELF"] . '?action=edit_thirdparty&id=' . $object->id . '">' . img_edit($langs->trans('RequestManagerSetThirdPartyBill'), 1) . '</a></td>';
+        print '</tr></table>';
+        print '</td><td>';
+        if ($action == 'edit_thirdparty' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+            print '<form name="editthirdparty" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
+            print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
+            print '<input type="hidden" name="action" value="set_thirdparty">';
+            print $form->select_company($object->socid, 'socid', '(s.client = 1 OR s.client = 2 OR s.client = 3) AND status=1', 'SelectThirdParty', 0, 0, null, 0, 'minwidth300');
+            print '<input type="submit" class="button" value="' . $langs->trans('Modify') . '">';
+            print '</form>';
+        } else {
+            print $object->thirdparty->getNomUrl(1);
+        }
+        print '</td></tr>';
 
-    // ThirdParty Benefactor
-    print '<tr><td>';
-	print '<table class="nobordernopadding" width="100%"><tr><td>';
-	print $langs->trans('RequestManagerThirdPartyBenefactor');
-	print '</td>';
-	if ($action != 'edit_thirdparty_benefactor' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS)
-		print '<td align="right"><a href="' . $_SERVER["PHP_SELF"] . '?action=edit_thirdparty_benefactor&id=' . $object->id . '">' . img_edit($langs->trans('RequestManagerSetThirdPartyBenefactor'), 1) . '</a></td>';
-	print '</tr></table>';
-	print '</td><td>';
-	if ($action == 'edit_thirdparty_benefactor' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
-		print '<form name="editthirdpartybenefactor" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
-		print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
-		print '<input type="hidden" name="action" value="set_thirdparty_benefactor">';
-        print $form->select_company($object->socid_benefactor, 'socid_benefactor', '(s.client = 1 OR s.client = 2 OR s.client = 3) AND status=1', 'SelectThirdParty', 0, 0, null, 0, 'minwidth300');
-		print '<input type="submit" class="button" value="' . $langs->trans('Modify') . '">';
-		print '</form>';
-	} else {
-        print $object->thirdparty_benefactor->getNomUrl(1);
-	}
-    print '</td></tr>';
+        // ThirdParty Benefactor
+        print '<tr><td>';
+        print '<table class="nobordernopadding" width="100%"><tr><td>';
+        print $langs->trans('RequestManagerThirdPartyBenefactor');
+        print '</td>';
+        if ($action != 'edit_thirdparty_benefactor' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS)
+            print '<td align="right"><a href="' . $_SERVER["PHP_SELF"] . '?action=edit_thirdparty_benefactor&id=' . $object->id . '">' . img_edit($langs->trans('RequestManagerSetThirdPartyBenefactor'), 1) . '</a></td>';
+        print '</tr></table>';
+        print '</td><td>';
+        if ($action == 'edit_thirdparty_benefactor' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+            print '<form name="editthirdpartybenefactor" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
+            print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
+            print '<input type="hidden" name="action" value="set_thirdparty_benefactor">';
+            print $form->select_company($object->socid_benefactor, 'socid_benefactor', '(s.client = 1 OR s.client = 2 OR s.client = 3) AND status=1', 'SelectThirdParty', 0, 0, null, 0, 'minwidth300');
+            print '<input type="submit" class="button" value="' . $langs->trans('Modify') . '">';
+            print '</form>';
+        } else {
+            print $object->thirdparty_benefactor->getNomUrl(1);
+        }
+        print '</td></tr>';
+    }
 
     // Source
     print '<tr><td>';
@@ -1896,6 +1674,20 @@ $now = dol_now();
         print '</td></tr>';
     }
 
+    // Reason for resolution
+    if ($object->fk_reason_resolution > 0) {
+        print '<tr><td>'.$langs->trans('RequestManagerReasonResolution').'</td><td>';
+        print $object->getLibReasonResolution();
+        print '</td></tr>';
+    }
+
+    // Details reason for resolution
+    if (!empty($object->reason_resolution_details)) {
+        print '<tr><td>'.$langs->trans('RequestManagerReasonResolutionDetails').'</td><td>';
+        print $object->reason_resolution_details;
+        print '</td></tr>';
+    }
+
     // Description
     if ($action == 'edit_description' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
         print '<form name="editdescription" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
@@ -2096,10 +1888,8 @@ $now = dol_now();
 
     print "</form>\n";
 
-    dol_include_once('/advancedictionaries/class/dictionary.class.php');
-    $requestManagerStatusDictionary = Dictionary::getDictionary($db, 'requestmanager', 'requestmanagerstatus');
-
     // Get current status infos
+    $requestManagerStatusDictionary = Dictionary::getDictionary($db, 'requestmanager', 'requestmanagerstatus');
     $requestManagerStatusDictionaryLine = $requestManagerStatusDictionary->getNewDictionaryLine();
     $requestManagerStatusDictionaryLine->fetch($object->statut);
 
@@ -2202,34 +1992,38 @@ $now = dol_now();
                         . $langs->trans('RequestManagerAddMessage') . '</a></div>';
                 }
 
-                // Add Propale
+                $backtopage = dol_buildpath('/requestmanager/card.php', 1) . '?id=' . $object->id;
+                $commun_params = '&originid=' . $object->id . '&origin=' . $object->element . '&socid=' . $object->socid . '&backtopage=' . urlencode($backtopage);
+                $benefactor_params = !empty($conf->companyrelationships->enabled) ? '&options_companyrelationships_fk_soc_benefactor=' . $object->socid_benefactor : '';
+
+                // Add proposal
                 if (!empty($conf->propal->enabled) && (count($authorizedButtons) == 0 || in_array('create_propal', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
                     $langs->load("propal");
                     if ($user->rights->propal->creer) {
-                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/comm/propal/card.php?originid=' . $object->id . '&origin=' . $object->element . ($object->socid > 0 ? '&socid=' . $object->socid : '') . ($object->socid_benefactor > 0 ? '&options_companyrelationships_fk_soc_benefactor=' . $object->socid_benefactor : '') . '&action=create">' . $langs->trans("AddProp") . '</a></div>';
+                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/comm/propal/card.php?action=create' . $commun_params . $benefactor_params . '">' . $langs->trans("AddProp") . '</a></div>';
                     } else {
                         print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddProp") . '</a></div>';
                     }
                 }
 
-                // Add Order
+                // Add order
                 if (!empty($conf->commande->enabled) && (count($authorizedButtons) == 0 || in_array('create_order', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
                     $langs->load("orders");
                     if ($user->rights->commande->creer) {
-                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/commande/card.php?originid=' . $object->id . '&origin=' . $object->element . ($object->socid > 0 ? '&socid=' . $object->socid : '') . ($object->socid_benefactor > 0 ? '&options_companyrelationships_fk_soc_benefactor=' . $object->socid_benefactor : '') . '&action=create">' . $langs->trans("AddOrder") . '</a></div>';
+                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/commande/card.php?action=create' . $commun_params . $benefactor_params . '">' . $langs->trans("AddOrder") . '</a></div>';
                     } else {
                         print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddOrder") . '</a></div>';
                     }
                 }
 
                 // Add invoice
-                if ($user->societe_id == 0 && !empty($conf->facture->enabled) && (count($authorizedButtons) == 0 || in_array('create_invoice', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
+                if ($user->socid == 0 && !empty($conf->facture->enabled) && (count($authorizedButtons) == 0 || in_array('create_invoice', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
                     $langs->load("bills");
                     $langs->load("compta");
                     if ($user->rights->facture->creer) {
                         $object->fetch_thirdparty();
                         if ($object->thirdparty->client != 0 && $object->thirdparty->client != 2) {
-                            print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/compta/facture/card.php?originid=' . $object->id . '&origin=' . $object->element . ($object->socid > 0 ? '&socid=' . $object->socid : '') . ($object->socid_benefactor > 0 ? '&options_companyrelationships_fk_soc_benefactor=' . $object->socid_benefactor : '') . '&action=create">' . $langs->trans("AddBill") . '</a></div>';
+                            print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/compta/facture/card.php?action=create' . $commun_params . $benefactor_params . '">' . $langs->trans("AddBill") . '</a></div>';
                         } else {
                             print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("ThirdPartyMustBeEditAsCustomer")) . '" href="#">' . $langs->trans("AddBill") . '</a></div>';
                         }
@@ -2238,22 +2032,90 @@ $now = dol_now();
                     }
                 }
 
-                // Add Intervention
+                // Add supplier proposal
+                if (!empty($conf->supplier_proposal->enabled) && (count($authorizedButtons) == 0 || in_array('create_supplier_proposal', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
+                    $langs->load("supplier_proposal");
+                    if ($user->rights->supplier_proposal->creer) {
+                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/supplier_proposal/card.php?action=create' . $commun_params . '">' . $langs->trans("AddSupplierProposal") . '</a></div>';
+                    } else {
+                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddSupplierProposal") . '</a></div>';
+                    }
+                }
+
+                // Add supplier order
+                if (!empty($conf->fournisseur->enabled) && (count($authorizedButtons) == 0 || in_array('create_supplier_order', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
+                    $langs->load("suppliers");
+                    if ($user->rights->fournisseur->commande->creer) {
+                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/fourn/commande/card.php?action=create' . $commun_params . '">' . $langs->trans("AddSupplierOrder") . '</a></div>';
+                    } else {
+                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddSupplierOrder") . '</a></div>';
+                    }
+                }
+
+                // Add supplier invoice
+                if (!empty($conf->fournisseur->enabled) && (count($authorizedButtons) == 0 || in_array('create_supplier_invoice', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
+                    $langs->load("suppliers");
+                    if ($user->rights->fournisseur->facture->creer) {
+                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/fourn/facture/card.php?action=create' . $commun_params . '">' . $langs->trans("AddSupplierInvoice") . '</a></div>';
+                    } else {
+                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddSupplierInvoice") . '</a></div>';
+                    }
+                }
+
+                // Add contract
+                if (!empty($conf->contrat->enabled) && (count($authorizedButtons) == 0 || in_array('create_contract', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
+                    $langs->load("contracts");
+                    if ($user->rights->contrat->creer) {
+                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/contrat/card.php?action=create' . $commun_params . $benefactor_params . '">' . $langs->trans("AddContract") . '</a></div>';
+                    } else {
+                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddContract") . '</a></div>';
+                    }
+                }
+
+                // Add intervention
                 if (!empty($conf->ficheinter->enabled) && (count($authorizedButtons) == 0 || in_array('create_inter', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
                     $langs->load("interventions");
                     if ($user->rights->ficheinter->creer) {
-                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/fichinter/card.php?originid=' . $object->id . '&origin=' . $object->element . ($object->socid > 0 ? '&socid=' . $object->socid : '') . ($object->socid_benefactor > 0 ? '&options_companyrelationships_fk_soc_benefactor=' . $object->socid_benefactor : '') . '&action=create">' . $langs->trans("AddIntervention") . '</a></div>';
+                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/fichinter/card.php?action=create' . $commun_params . $benefactor_params . '">' . $langs->trans("AddIntervention") . '</a></div>';
                     } else {
                         print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddIntervention") . '</a></div>';
                     }
                 }
 
-                // Add Event
+                // Add project
+                if (!empty($conf->projet->enabled) && (count($authorizedButtons) == 0 || in_array('create_project', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
+                    $langs->load("projects");
+                    if ($user->rights->projet->creer) {
+                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/projet/card.php?action=create' . $commun_params . '">' . $langs->trans("AddProject") . '</a></div>';
+                    } else {
+                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddProject") . '</a></div>';
+                    }
+                }
+
+                // Add trip
+                if (!empty($conf->deplacement->enabled) && (count($authorizedButtons) == 0 || in_array('create_trip', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
+                    $langs->load("trips");
+                    if ($user->rights->deplacement->creer) {
+                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/compta/deplacement/card.php?action=create' . $commun_params . '">' . $langs->trans("AddTrip") . '</a></div>';
+                    } else {
+                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddTrip") . '</a></div>';
+                    }
+                }
+
+                // Add request
+                if ((count($authorizedButtons) == 0 || in_array('create_request_manager', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
+                    if ($user->rights->requestmanager->creer) {
+                        print '<div class="inline-block divButAction"><a class="butAction" href="' . dol_buildpath('/requestmanager/createfast.php', 2) . '?action=createfast&socid_origin=' . $object->socid . $commun_params . '">' . $langs->trans("RequestManagerAddRequest") . '</a></div>';
+                    } else {
+                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("RequestManagerAddRequest") . '</a></div>';
+                    }
+                }
+
+                // Add event
                 if (!empty($conf->agenda->enabled) && (count($authorizedButtons) == 0 || in_array('create_event', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
                     $langs->load("commercial");
                     if (! empty($user->rights->agenda->myactions->create) || ! empty($user->rights->agenda->allactions->create)) {
-                        $backtopage = dol_buildpath('/requestmanager/card.php', 1).'?id='.$object->id;
-                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT.'/comm/action/card.php?originid=' . $object->id . '&origin=' . $object->element . ($object->socid > 0 ? '&socid=' . $object->socid : '') . '&action=create&backtopage='.urlencode($backtopage).'">' . $langs->trans("AddAction") . '</a></div>';
+                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT.'/comm/action/card.php?action=create' . $commun_params . '">' . $langs->trans("AddAction") . '</a></div>';
                     } else {
                         print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddAction") . '</a></div>';
                     }

@@ -51,7 +51,7 @@ class RequestManagerSourceDictionary extends Dictionary
     /**
      * @var int         Position of the dictionary into the family
      */
-    public $familyPosition = 4;
+    public $familyPosition = 5;
 
     /**
      * @var string      Module name of which this dictionary belongs

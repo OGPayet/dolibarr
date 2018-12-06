@@ -28,7 +28,9 @@ if (! $res && file_exists("../../main.inc.php")) $res=@include '../../main.inc.p
 if (! $res && file_exists("../../../dolibarr/htdocs/main.inc.php")) $res=@include '../../../dolibarr/htdocs/main.inc.php';     // Used on dev env only
 if (! $res && file_exists("../../../../dolibarr/htdocs/main.inc.php")) $res=@include '../../../../dolibarr/htdocs/main.inc.php';   // Used on dev env only
 if (! $res) die("Include of main fails");
+require_once DOL_DOCUMENT_ROOT.'/categories/class/categorie.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
 require_once DOL_DOCUMENT_ROOT.'/user/class/user.class.php';
 require_once DOL_DOCUMENT_ROOT.'/user/class/usergroup.class.php';
 require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
@@ -36,6 +38,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
 dol_include_once('/requestmanager/class/requestmanager.class.php');
 dol_include_once('/requestmanager/class/html.formrequestmanager.class.php');
 dol_include_once('/advancedictionaries/class/dictionary.class.php');
+dol_include_once('/advancedictionaries/class/html.formdictionary.class.php');
 dol_include_once('/requestmanager/lib/requestmanager.lib.php');
 
 $langs->load('requestmanager@requestmanager');
@@ -44,6 +47,8 @@ $action=GETPOST('action','alpha');
 $massaction=GETPOST('massaction','alpha');
 $confirm=GETPOST('confirm','alpha');
 $toselect = GETPOST('toselect', 'array');
+
+$socid=GETPOST('socid','int');
 
 $sall=GETPOST('sall', 'alphanohtml');
 $search_ref=GETPOST('search_ref','alpha');
@@ -67,6 +72,9 @@ $search_assigned_user=GETPOST('search_assigned_user','alpha');
 $search_assigned_usergroup=GETPOST('search_assigned_usergroup','alpha');
 $search_notify_assigned_by_email=GETPOST('search_notify_assigned_by_email','int');
 $search_description=GETPOST('search_description','alpha');
+$search_tags=GETPOST('search_tags','array');
+$search_reason_resolution=GETPOST('search_reason_resolution','int');
+$search_reason_resolution_details=GETPOST('search_reason_resolution_details','alpha');
 $search_date_resolved=GETPOST('search_date_resolved','alpha');
 $search_date_cloture=GETPOST('search_date_cloture','alpha');
 $search_user_resolved=GETPOST('search_user_resolved','alpha');
@@ -96,7 +104,6 @@ if (! $sortorder) $sortorder='DESC';
 $contextpage='requestmanagerlist';
 
 // Security check
-$socid = 0;
 if (! empty($user->societe_id))	$socid=$user->societe_id;
 if (! empty($socid)) {
     $result = restrictedArea($user, 'societe', $socid, '&societe');
@@ -141,6 +148,8 @@ $arrayfields = array(
     'assigned_users' => array('label' => $langs->trans("RequestManagerAssignedUsers"), 'checked' => 1),
     'assigned_usergroups' => array('label' => $langs->trans("RequestManagerAssignedUserGroups"), 'checked' => 1),
     'rm.notify_assigned_by_email' => array('label' => $langs->trans("RequestManagerAssignedNotification"), 'checked' => 0),
+    'rm.fk_reason_resolution' => array('label' => $langs->trans("RequestManagerReasonResolution"), 'checked' => 0),
+    'rm.reason_resolution_details' => array('label' => $langs->trans("RequestManagerReasonResolutionDetails"), 'checked' => 0),
     'rm.fk_user_resolved' => array('label' => $langs->trans("RequestManagerResolvedBy"), 'checked' => 0, 'position' => 10),
     'rm.fk_user_closed' => array('label' => $langs->trans("ClosedBy"), 'checked' => 0, 'position' => 10),
     'rm.date_resolved' => array('label' => $langs->trans("RequestManagerDateResolved"), 'checked' => 0, 'position' => 10),
@@ -200,6 +209,9 @@ if (GETPOST('button_removefilter_x','alpha') || GETPOST('button_removefilter.x',
     $search_assigned_usergroup='';
     $search_notify_assigned_by_email=-1;
     $search_description='';
+    $search_tags=array();
+    $search_reason_resolution=-1;
+    $search_reason_resolution_details='';
     $search_date_resolved='';
     $search_date_cloture='';
     $search_user_resolved='';
@@ -216,6 +228,7 @@ if (GETPOST('button_removefilter_x','alpha') || GETPOST('button_removefilter.x',
 if ($search_notify_requester_by_email === '') $search_notify_requester_by_email = -1;
 if ($search_notify_watcher_by_email === '') $search_notify_watcher_by_email = -1;
 if ($search_notify_assigned_by_email === '') $search_notify_assigned_by_email = -1;
+if ($search_reason_resolution === '') $search_reason_resolution = -1;
 if ($status_type === '') $status_type = -1;
 
 if (empty($reshook))
@@ -237,11 +250,63 @@ if (empty($reshook))
 $now=dol_now();
 
 $form = new Form($db);
+$formother = new FormOther($db);
+$formdictionary = new FormDictionary($db);
 $formrequestmanager = new FormRequestManager($db);
 $usergroup_static = new UserGroup($db);
 
 $help_url='EN:RequestManager_En|FR:RequestManager_Fr|ES:RequestManager_Es';
 llxHeader('',$langs->trans('RequestManagerRequest'),$help_url);
+
+if ($socid > 0) {
+    /*
+     * Affichage onglets
+     */
+    $societe = new Societe($db);
+    $societe->fetch($socid);
+
+    $langs->load("companies");
+
+    $head = societe_prepare_head($societe);
+
+    dol_fiche_head($head, 'rm_request_list', $langs->trans("ThirdParty"), -1, 'company');
+
+    $linkback = '<a href="' . DOL_URL_ROOT . '/societe/list.php?restore_lastsearch_values=1">' . $langs->trans("BackToList") . '</a>';
+
+    dol_banner_tab($societe, 'socid', $linkback, ($user->societe_id ? 0 : 1), 'rowid', 'nom');
+
+    $cssclass = 'titlefield';
+
+    print '<div class="fichecenter">';
+
+    print '<div class="underbanner clearboth"></div>';
+    print '<table class="border centpercent">';
+
+    if (!empty($conf->global->SOCIETE_USEPREFIX))  // Old not used prefix field
+    {
+        print '<tr><td class="' . $cssclass . '">' . $langs->trans('Prefix') . '</td><td colspan="3">' . $societe->prefix_comm . '</td></tr>';
+    }
+
+    if ($societe->client) {
+        print '<tr><td class="' . $cssclass . '">';
+        print $langs->trans('CustomerCode') . '</td><td colspan="3">';
+        print $societe->code_client;
+        if ($societe->check_codeclient() <> 0) print ' <font class="error">(' . $langs->trans("WrongCustomerCode") . ')</font>';
+        print '</td></tr>';
+    }
+
+    if ($societe->fournisseur) {
+        print '<tr><td class="' . $cssclass . '">';
+        print $langs->trans('SupplierCode') . '</td><td colspan="3">';
+        print $societe->code_fournisseur;
+        if ($societe->check_codefournisseur() <> 0) print ' <font class="error">(' . $langs->trans("WrongSupplierCode") . ')</font>';
+        print '</td></tr>';
+    }
+
+    print "</table>";
+
+    print '</div>';
+}
 
 $sql = 'SELECT';
 if ($sall) $sql = 'SELECT DISTINCT';
@@ -265,7 +330,8 @@ $sql .= ' rm.fk_user_closed, uc.firstname as userclosedfirstname, uc.lastname as
 $sql .= ' rm.fk_status,';
 $sql .= ' rm.datec, rm.tms,';
 $sql .= ' rm.fk_user_author, ua.firstname as userauthorfirstname, ua.lastname as userauthorlastname, ua.email as userauthoremail,';
-$sql .= ' rm.fk_user_modif, um.firstname as usermodiffirstname, um.lastname as usermodiflastname, um.email as usermodifemail';
+$sql .= ' rm.fk_user_modif, um.firstname as usermodiffirstname, um.lastname as usermodiflastname, um.email as usermodifemail,';
+$sql .= ' crmrr.label AS reason_resolution, rm.reason_resolution_details';
 // Add fields from extrafields
 foreach ($extrafields->attribute_label as $key => $val) $sql.=($extrafields->attribute_type[$key] != 'separate' ? ",ef.".$key.' as options_'.$key : '');
 // Add fields from hooks
@@ -280,6 +346,7 @@ $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."c_requestmanager_urgency as crmu on (crmu.r
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."c_requestmanager_impact as crmi on (crmi.rowid = rm.fk_impact)";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."c_requestmanager_priority as crmp on (crmp.rowid = rm.fk_priority)";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."c_requestmanager_status as crmst on (crmst.rowid = rm.fk_status)";
+$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."c_requestmanager_reason_resolution as crmrr on (crmrr.rowid = rm.fk_reason_resolution)";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as so on (so.rowid = rm.fk_soc_origin)";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as s on (s.rowid = rm.fk_soc)";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as sb on (sb.rowid = rm.fk_soc_benefactor)";
@@ -290,6 +357,7 @@ $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'user as ua ON ua.rowid = rm.fk_user_author'
 $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'user as um ON um.rowid = rm.fk_user_modif';
 $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'requestmanager_assigned_user as rmau ON rmau.fk_requestmanager = rm.rowid';
 $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'requestmanager_assigned_usergroup as rmaug ON rmaug.fk_requestmanager = rm.rowid';
+if (count($search_tags)) $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX."categorie_requestmanager as cp ON rm.rowid = cp.fk_requestmanager"; // We'll need this table joined to the select in order to filter by categ
 if ($search_assigned_user || $search_assigned_usergroup || $my_list || $not_assigned) {
     $sql .= ' INNER JOIN (';
     $sql .= '   SELECT rm.rowid';
@@ -322,6 +390,7 @@ if ($search_label)  $sql.= natural_search('rm.label', $search_label);
 if ($search_thridparty_origin)  $sql.= natural_search('so.nom', $search_thridparty_origin);
 if ($search_thridparty)  $sql.= natural_search('s.nom', $search_thridparty);
 if ($search_thridparty_benefactor)  $sql.= natural_search('sb.nom', $search_thridparty_benefactor);
+if ($socid > 0)  $sql .= ' AND (rm.fk_soc_origin = '.$socid.' OR rm.fk_soc = '.$socid.' OR rm.fk_soc_benefactor = '.$socid.')';
 if ($search_source)  $sql.= natural_search('crms.label', $search_source);
 if ($search_urgency)  $sql.= natural_search('crmu.label', $search_urgency);
 if ($search_impact)  $sql.= natural_search('crmi.label', $search_impact);
@@ -333,6 +402,9 @@ if ($search_notify_requester_by_email >= 0) $sql.= ' AND rm.notify_requester_by_
 if ($search_notify_watcher_by_email >= 0) $sql.= ' AND rm.notify_watcher_by_email = ' . $search_notify_watcher_by_email;
 if ($search_notify_assigned_by_email >= 0) $sql.= ' AND rm.notify_assigned_by_email = ' . $search_notify_assigned_by_email;
 if ($search_description)  $sql.= natural_search('rm.description', $search_description);
+if (count($search_tags))   $sql.= " AND cp.fk_categorie IN (" . implode(',', $search_tags) . ")";
+if ($search_reason_resolution > 0)  $sql.= " AND rm.fk_reason_resolution = " . $search_reason_resolution;
+if ($search_reason_resolution_details)  $sql.= natural_search('rm.reason_resolution_details', $search_reason_resolution_details);
 if ($search_date_resolved)  $sql.= natural_search('rm.date_resolved', $search_date_resolved, 1);
 if ($search_date_cloture)  $sql.= natural_search('rm.date_closed', $search_date_cloture, 1);
 if ($search_user_resolved)  $sql.= natural_search(array('ur.firstname', 'ur.lastname'), $search_user_resolved);
@@ -400,6 +472,7 @@ if ($resql) {
     if (!empty($contextpage) && $contextpage != $_SERVER["PHP_SELF"]) $param .= '&contextpage=' . urlencode($contextpage);
     if ($limit > 0 && $limit != $conf->liste_limit) $param .= '&limit=' . urlencode($limit);
     if ($sall) $param .= '&sall=' . urlencode($sall);
+    if ($socid) $param .= '&socid=' . urlencode($socid);
     if ($search_ref) $param .= '&search_ref=' . urlencode($search_ref);
     if ($search_ref_ext) $param .= '&search_ref_ext=' . urlencode($search_ref_ext);
     if ($search_type) $param .= '&search_type=' . urlencode($search_type);
@@ -421,6 +494,9 @@ if ($resql) {
     if ($search_assigned_usergroup) $param .= '&search_assigned_usergroup=' . urlencode($search_assigned_usergroup);
     if ($search_notify_assigned_by_email >= 0) $param .= '&search_notify_assigned_by_email=' . urlencode($search_notify_assigned_by_email);
     if ($search_description) $param .= '&search_description=' . urlencode($search_description);
+    if ($search_tags) $param .= "&search_tags=" . urlencode($search_tags);
+    if ($search_reason_resolution > 0) $param .= '&search_reason_resolution=' . urlencode($search_reason_resolution);
+    if ($search_reason_resolution_details) $param .= '&search_reason_resolution_details=' . urlencode($search_reason_resolution_details);
     if ($search_date_resolved) $param .= '&search_date_resolved=' . urlencode($search_date_resolved);
     if ($search_date_cloture) $param .= '&search_date_cloture=' . urlencode($search_date_cloture);
     if ($search_user_resolved) $param .= '&search_user_resolved=' . urlencode($search_user_resolved);
@@ -458,6 +534,7 @@ if ($resql) {
     print '<input type="hidden" name="page" value="' . $page . '">';
     if ($my_list) print '<input type="hidden" name="my_list" value="' . dol_escape_htmltag($my_list) . '">';
     if ($not_assigned) print '<input type="hidden" name="not_assigned" value="' . dol_escape_htmltag($not_assigned) . '">';
+    if ($socid > 0) print '<input type="hidden" name="socid" value="' . $socid . '">';
     //if ($status_type != '' && $status_type != -1) print '<input type="hidden" name="status_type" value="' . dol_escape_htmltag($status_type) . '">';
 
     print_barre_liste($title, $page, $_SERVER["PHP_SELF"], $param, $sortfield, $sortorder, $massactionbutton, $num, $nbtotalofrecords, 'requestmanager@requestmanager', 0, '', '', $limit);
@@ -494,6 +571,14 @@ if ($resql) {
     }
     $moreforfilter.=$form->multiselectarray('search_status_det',  $statut_array, $search_status_det, 0, 0, ' minwidth300');
     $moreforfilter.='</div>';
+
+    // Filter on tags/categories
+    if (! empty($conf->categorie->enabled)) {
+        $moreforfilter .= '<div class="divsearchfield">';
+        $moreforfilter .= $langs->trans('RequestManagerTags') . ': ';
+        $moreforfilter .= $formrequestmanager->multiselect_categories($search_tags, 'search_tags',  '', 0, 'minwidth300');
+        $moreforfilter .= '</div>';
+    }
 
     $parameters = array();
     $reshook = $hookmanager->executeHooks('printFieldPreListTitle', $parameters);    // Note that $action and $object may have been modified by hook
@@ -640,6 +725,18 @@ if ($resql) {
         print $form->selectyesno('search_notify_assigned_by_email', $search_notify_assigned_by_email, 1, 0, 1);
         print '</td>';
     }
+    // Reason for resolution
+    if (!empty($arrayfields['rm.fk_reason_resolution']['checked'])) {
+        print '<td class="liste_titre">';
+        print $formdictionary->select_dictionary('requestmanager', 'requestmanagerreasonresolution', $search_reason_resolution, 'search_reason_resolution', 1);
+        print '</td>';
+    }
+    // Details reason for resolution
+    if (!empty($arrayfields['rm.reason_resolution_details']['checked'])) {
+        print '<td class="liste_titre">';
+        print '<input class="flat" size="6" type="text" name="search_reason_resolution_details" value="' . dol_escape_htmltag($search_reason_resolution_details) . '">';
+        print '</td>';
+    }
     // User resolved
     if (!empty($arrayfields['rm.fk_user_resolved']['checked'])) {
         print '<td class="liste_titre">';
@@ -748,6 +845,8 @@ if ($resql) {
     if (!empty($arrayfields['assigned_users']['checked'])) print_liste_field_titre($arrayfields['assigned_users']['label'], $_SERVER["PHP_SELF"], '', '', $param, '', $sortfield, $sortorder);
     if (!empty($arrayfields['assigned_usergroups']['checked'])) print_liste_field_titre($arrayfields['assigned_usergroups']['label'], $_SERVER["PHP_SELF"], '', '', $param, '', $sortfield, $sortorder);
     if (!empty($arrayfields['rm.notify_assigned_by_email']['checked'])) print_liste_field_titre($arrayfields['rm.notify_assigned_by_email']['label'], $_SERVER["PHP_SELF"], 'rm.notify_assigned_by_email', 'align="center"', $param, '', $sortfield, $sortorder);
+    if (!empty($arrayfields['rm.fk_reason_resolution']['checked'])) print_liste_field_titre($arrayfields['rm.fk_reason_resolution']['label'], $_SERVER["PHP_SELF"], 'crmrr.label', '', $param, '', $sortfield, $sortorder);
+    if (!empty($arrayfields['rm.reason_resolution_details']['checked'])) print_liste_field_titre($arrayfields['rm.reason_resolution_details']['label'], $_SERVER["PHP_SELF"], 'rm.reason_resolution_details', '', $param, '', $sortfield, $sortorder);
     if (!empty($arrayfields['rm.fk_user_resolved']['checked'])) print_liste_field_titre($arrayfields['rm.fk_user_resolved']['label'], $_SERVER["PHP_SELF"], 'ur.lastname', '', $param, '', $sortfield, $sortorder);
     if (!empty($arrayfields['rm.fk_user_closed']['checked'])) print_liste_field_titre($arrayfields['rm.fk_user_closed']['label'], $_SERVER["PHP_SELF"], 'uc.lastname', '', $param, '', $sortfield, $sortorder);
     if (!empty($arrayfields['rm.date_resolved']['checked'])) print_liste_field_titre($arrayfields['rm.date_resolved']['label'], $_SERVER["PHP_SELF"], 'rm.date_resolved', 'align="center"', $param, '', $sortfield, $sortorder);
@@ -976,6 +1075,18 @@ if ($resql) {
         if (!empty($arrayfields['rm.notify_assigned_by_email']['checked'])) {
             print '<td class="nowrap" align="center">';
             print yn($obj->notify_assigned_by_email);
+            print '</td>';
+        }
+        // Reason for resolution
+        if (!empty($arrayfields['rm.fk_reason_resolution']['checked'])) {
+            print '<td class="nowrap">';
+            print $obj->reason_resolution;
+            print '</td>';
+        }
+        // Details reason for resolution
+        if (!empty($arrayfields['rm.reason_resolution_details']['checked'])) {
+            print '<td class="nowrap">';
+            print $obj->reason_resolution_details;
             print '</td>';
         }
         // User resolved

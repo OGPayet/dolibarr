@@ -37,5 +37,18 @@ function requestmanager_completesubstitutionarray(&$substitutionarray, $langs, $
         }
 
         $substitutionarray['REQUESTMANAGERTABLABEL'] = $langs->trans("RequestManagerRequestTab") . ($nbrequests > 0 ? ' <span class="badge">' . ($nbrequests) . '</span>' : '');
+    } elseif ($object->element == 'societe' && $parameters['needforkey'] == 'SUBSTITUTION_RMLISTTABLABEL') {
+        $nbrequests = 0;
+        $sql = "SELECT COUNT(rm.rowid) as nb FROM ".MAIN_DB_PREFIX."requestmanager as rm WHERE rm.entity = {$conf->entity} AND (rm.fk_soc_origin = {$object->id} OR rm.fk_soc = {$object->id} OR rm.fk_soc_benefactor = {$object->id})";
+        $resql = $db->query($sql);
+        if ($resql) {
+            if ($obj = $db->fetch_object($resql)) {
+                $nbrequests = $obj->nb;
+            }
+        } else {
+            dol_print_error($db);
+        }
+
+        $substitutionarray['RMLISTTABLABEL'] = $langs->trans("RequestManagerRequestListTab") . ($nbrequests > 0 ? ' <span class="badge">' . ($nbrequests) . '</span>' : '');
     }
 }

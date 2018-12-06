@@ -46,7 +46,7 @@ class RequestManagerUrgencyDictionary extends Dictionary
     /**
      * @var int         Position of the dictionary into the family
      */
-    public $familyPosition = 5;
+    public $familyPosition = 6;
 
     /**
      * @var string      Module name of which this dictionary belongs

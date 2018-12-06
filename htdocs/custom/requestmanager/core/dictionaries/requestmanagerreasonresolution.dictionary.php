@@ -16,17 +16,17 @@
  */
 
 /**
- * \file        core/dictionaries/requestmanagerimpact.dictionary.php
+ * \file        core/dictionaries/requestmanagerreasonresolution.dictionary.php
  * \ingroup     requestmanager
- * \brief       Class of the dictionary Urgency
+ * \brief       Class of the dictionary reason for resolution
  */
 
 dol_include_once('/advancedictionaries/class/dictionary.class.php');
 
 /**
- * Class for RequestManagerImpactDictionary
+ * Class for RequestManagerReasonResolutionDictionary
  */
-class RequestManagerImpactDictionary extends Dictionary
+class RequestManagerReasonResolutionDictionary extends Dictionary
 {
     /**
      * @var array       List of languages to load
@@ -46,7 +46,7 @@ class RequestManagerImpactDictionary extends Dictionary
     /**
      * @var int         Position of the dictionary into the family
      */
-    public $familyPosition = 7;
+    public $familyPosition = 3;
 
     /**
      * @var string      Module name of which this dictionary belongs
@@ -61,12 +61,12 @@ class RequestManagerImpactDictionary extends Dictionary
     /**
      * @var string      Name of this dictionary for show in the list, translated if key found
      */
-    public $nameLabel = 'RequestManagerImpactDictionaryLabel';
+    public $nameLabel = 'RequestManagerReasonResolutionDictionaryLabel';
 
     /**
      * @var string      Name of the dictionary table without prefix (ex: c_country)
      */
-    public $table_name = 'c_requestmanager_impact';
+    public $table_name = 'c_requestmanager_reason_resolution';
 
     /**
      * @var array  Fields of the dictionary table

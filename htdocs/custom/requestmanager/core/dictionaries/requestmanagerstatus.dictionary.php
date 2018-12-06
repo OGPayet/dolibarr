@@ -288,6 +288,7 @@ class RequestManagerStatusDictionary extends Dictionary
             ),
         ),
         'next_status' => array(),
+        'reason_resolution' => array(),
         'authorized_buttons' => array(),
     );
 
@@ -420,7 +421,7 @@ class RequestManagerStatusDictionary extends Dictionary
     {
         global $conf, $langs, $user, $hookmanager;
 
-        $langs->loadLangs(array('requestmanager@requestmanager', 'propal', 'orders', 'bills', 'interventions', 'commercial'));
+        $langs->loadLangs(array('requestmanager@requestmanager', 'propal', 'orders', 'contracts', 'suppliers', 'projects', 'trips', 'bills', 'interventions', 'commercial'));
 
         $theme = $conf->theme;
         $path = 'theme/'.$theme;
@@ -566,20 +567,65 @@ class RequestManagerStatusDictionary extends Dictionary
             ),
         );
 
-        $authorized_buttons_list = array(
-            'no_buttons' => $langs->trans('RequestManagerStatusDictionaryNoButtons'),
-            'create_propal' => $langs->trans('AddProp'),
-            'create_order' => $langs->trans('AddOrder'),
-            'create_invoice' => $langs->trans('AddBill'),
-            'create_inter' => $langs->trans('AddIntervention'),
-            'create_event' => $langs->trans('AddAction'),
+        $this->fields['reason_resolution'] = array(
+            'name' => 'reason_resolution',
+            'label' => 'RequestManagerReasonsResolution',
+            'type' => 'chkbxlst',
+            'options' => 'c_requestmanager_reason_resolution:label:rowid::active=1 and entity IN (' . getEntity('dictionary', 1) . ')',
+            'td_output' => array(
+                'moreAttributes' => 'width="50%"',
+            ),
+            'td_input' => array(
+                'moreAttributes' => 'width="50%"',
+                'positionLine' => 4,
+                'colspan' => 4,
+            ),
         );
+
+        $authorized_buttons_list = array('create_request_manager' => $langs->trans('RequestManagerAddRequest'));
+        if (!empty($conf->propal->enabled)) {
+            $authorized_buttons_list = array_merge($authorized_buttons_list, array('create_propal' => $langs->trans('AddProp')));
+        }
+        if (!empty($conf->commande->enabled)) {
+            $authorized_buttons_list = array_merge($authorized_buttons_list, array('create_order' => $langs->trans('AddOrder')));
+        }
+        if (!empty($conf->facture->enabled)) {
+            $authorized_buttons_list = array_merge($authorized_buttons_list, array('create_invoice' => $langs->trans('AddBill')));
+        }
+        if (!empty($conf->supplier_proposal->enabled)) {
+            $authorized_buttons_list = array_merge($authorized_buttons_list, array('create_supplier_proposal' => $langs->trans('AddSupplierProposal')));
+        }
+        if (!empty($conf->fournisseur->enabled)) {
+            $authorized_buttons_list = array_merge($authorized_buttons_list, array('create_supplier_order' => $langs->trans('AddSupplierOrder'),'create_supplier_invoice' => $langs->trans('AddSupplierInvoice')));
+        }
+        if (!empty($conf->contrat->enabled)) {
+            $authorized_buttons_list = array_merge($authorized_buttons_list, array('create_contract' => $langs->trans('AddContract')));
+        }
+        if (!empty($conf->ficheinter->enabled)) {
+            $authorized_buttons_list = array_merge($authorized_buttons_list, array('create_inter' => $langs->trans('AddIntervention')));
+        }
+        if (!empty($conf->projet->enabled)) {
+            $authorized_buttons_list = array_merge($authorized_buttons_list, array('create_project' => $langs->trans('AddProject')));
+        }
+        if (!empty($conf->deplacement->enabled)) {
+            $authorized_buttons_list = array_merge($authorized_buttons_list, array('create_trip' => $langs->trans('AddTrip')));
+        }
+        if (!empty($conf->agenda->enabled)) {
+            $authorized_buttons_list = array_merge($authorized_buttons_list, array('create_event' => $langs->trans('AddAction')));
+        }
 
         // Add custom object
         $hookmanager->initHooks(array('requestmanagerdao'));
         $parameters = array();
         $reshook = $hookmanager->executeHooks('addRequestManagerAuthorizedButton', $parameters); // Note that $action and $object may have been
         if ($reshook) $authorized_buttons_list = array_merge($authorized_buttons_list, $hookmanager->resArray);
+
+        // Sort list
+        asort($authorized_buttons_list);
+        $authorized_buttons_list = array_merge(
+            array('no_buttons' => $langs->trans('RequestManagerStatusDictionaryNoButtons')),
+            $authorized_buttons_list
+        );
 
         $this->fields['authorized_buttons'] = array(
             'name'       => 'authorized_buttons',
@@ -597,6 +643,7 @@ class RequestManagerStatusDictionary extends Dictionary
                 'align'  => 'left',
             ),
             'td_input'  => array (
+                'moreAttributes' => 'width="50%"',
                 'align'  => 'left',
                 'positionLine' => 4,
             ),
@@ -795,6 +842,7 @@ class RequestManagerStatusDictionaryLine extends DictionaryLine
             $nextTriggerFieldHtmlName = $keyprefix . 'next_trigger' . $keysuffix;
             $nextStatusAutoFieldHtmlName = $keyprefix . 'next_status_auto' . $keysuffix;
             $nextStatusFieldHtmlName = $keyprefix . 'next_status' . $keysuffix;
+            $reasonResolutionFieldHtmlName = $keyprefix . 'reason_resolution' . $keysuffix;
             $authorizedButtonsFieldHtmlName = $keyprefix . 'authorized_buttons' . $keysuffix;
             $updateCurrentTriggerFunctionName = 'update_' . $currentTriggerFieldHtmlName;
             $updateNewRequestTypeFunctionName = 'update_' . $newRequestTypeFieldHtmlName;
@@ -802,6 +850,7 @@ class RequestManagerStatusDictionaryLine extends DictionaryLine
             $updateNextTriggerFunctionName = 'update_' . $nextTriggerFieldHtmlName;
             $updateNextStatusAutoFunctionName = 'update_' . $nextStatusAutoFieldHtmlName;
             $updateNextStatusFunctionName = 'update_' . $nextStatusFieldHtmlName;
+            $updateReasonResolutionFunctionName = 'update_' . $reasonResolutionFieldHtmlName;
             $updateAuthorizedButtonsFunctionName = 'update_' . $authorizedButtonsFieldHtmlName;
             $initial_status = RequestManager::STATUS_TYPE_INITIAL;
             $inprogress_status = RequestManager::STATUS_TYPE_IN_PROGRESS;
@@ -815,6 +864,7 @@ class RequestManagerStatusDictionaryLine extends DictionaryLine
             <input type="hidden" id="h_$nextTriggerFieldHtmlName" name="$nextTriggerFieldHtmlName" value="" disabled="disabled">
             <input type="hidden" id="h_$nextStatusAutoFieldHtmlName" name="$nextStatusAutoFieldHtmlName" value="" disabled="disabled">
             <input type="hidden" id="h_$nextStatusFieldHtmlName" name="$nextStatusFieldHtmlName" value="" disabled="disabled">
+            <input type="hidden" id="h_$reasonResolutionFieldHtmlName" name="$reasonResolutionFieldHtmlName" value="" disabled="disabled">
             <input type="hidden" id="h_$authorizedButtonsFieldHtmlName" name="$authorizedButtonsFieldHtmlName" value="" disabled="disabled">
 
 <script type="text/javascript">
@@ -825,6 +875,7 @@ class RequestManagerStatusDictionaryLine extends DictionaryLine
         $updateNextTriggerFunctionName();
         $updateNextStatusAutoFunctionName();
         $updateNextStatusFunctionName();
+        $updateReasonResolutionFunctionName();
         $updateAuthorizedButtonsFunctionName();
 
         $('#$newRequestTypeFieldHtmlName').on('change', function() {
@@ -848,6 +899,7 @@ class RequestManagerStatusDictionaryLine extends DictionaryLine
             $updateNextTriggerFunctionName();
             $updateNextStatusAutoFunctionName();
             $updateNextStatusFunctionName();
+            $updateReasonResolutionFunctionName();
             $updateAuthorizedButtonsFunctionName();
         });
 
@@ -906,6 +958,15 @@ class RequestManagerStatusDictionaryLine extends DictionaryLine
             $('#h_$nextStatusFieldHtmlName').prop('disabled', !disabled);
             if (disabled) {
                 $('#$nextStatusFieldHtmlName').val(null).trigger('change');
+            }
+        }
+        function $updateReasonResolutionFunctionName() {
+            var disabled = $('#$typeFieldHtmlName').val() != $resolved_status;
+
+            $('#$reasonResolutionFieldHtmlName').prop('disabled', disabled);
+            $('#h_$reasonResolutionFieldHtmlName').prop('disabled', !disabled);
+            if (disabled) {
+                $('#$reasonResolutionFieldHtmlName').val(null).trigger('change');
             }
         }
         function $updateAuthorizedButtonsFunctionName() {

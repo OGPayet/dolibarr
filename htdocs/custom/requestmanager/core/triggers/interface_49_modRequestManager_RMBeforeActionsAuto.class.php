@@ -325,6 +325,13 @@ class InterfaceRMBeforeActionsAuto extends DolibarrTriggers
             //if ($object->new_statut != $object->statut) {
                 $object->actionmsg .= '<br>' . $langs->transnoentities("RequestManagerOldStatus") . ' : ' . $object->LibStatut($object->statut) . ' ( ' . $object->LibStatut($object->statut, 12) . ' )';
                 $object->actionmsg .= '<br>' . $langs->transnoentities("RequestManagerNewStatus") . ' : ' . $object->LibStatut($object->new_statut) . ' ( ' . $object->LibStatut($object->new_statut, 12) . ' )';
+
+                if ($object->fk_reason_resolution > 0) {
+                    $object->actionmsg .= '<br>' . $langs->transnoentities("RequestManagerReasonResolution") . ' : ' . $object->getLibReasonResolution(2);
+                }
+                if (!empty($object->reason_resolution_details)) {
+                    $object->actionmsg .= '<br>' . $langs->transnoentities("RequestManagerReasonResolutionDetails") . ' : ' . $object->reason_resolution_details;
+                }
             /*} else {
                 dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id . " : Status not modified.");
                 $object->skipstandardaction = true;

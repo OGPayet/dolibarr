@@ -108,6 +108,8 @@ class ActionsRequestManager
         $contexts = explode(':', $parameters['context']);
 
         if (in_array('thirdpartycard', $contexts) ||
+            in_array('commcard', $contexts) ||
+            in_array('suppliercard', $contexts) ||
             in_array('propalcard', $contexts) ||
             in_array('ordercard', $contexts) ||
             in_array('invoicecard', $contexts) ||

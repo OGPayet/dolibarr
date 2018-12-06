@@ -46,7 +46,7 @@ class RequestManagerPriorityDictionary extends Dictionary
     /**
      * @var int         Position of the dictionary into the family
      */
-    public $familyPosition = 7;
+    public $familyPosition = 8;
 
     /**
      * @var string      Module name of which this dictionary belongs

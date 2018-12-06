@@ -310,10 +310,12 @@ function requestmanager_show_events(&$requestmanager)
     $request_children_ids = $requestmanager->getAllChildrenRequest();
     if ($search_include_linked_event_to_children_request) {
         $request_ids = array_merge($request_children_ids, array($requestmanager->id));
+        $request_ids = array_unique($request_ids);
         $request_ids = implode(',', $request_ids);
     } else {
         $request_ids = $requestmanager->id;
     }
+    $request_children_ids = array_unique($request_children_ids);
     $request_children_ids = implode(',', $request_children_ids);
 
     $sql = "SELECT ac.id,";
@@ -367,7 +369,7 @@ function requestmanager_show_events(&$requestmanager)
             $sql .= "   SELECT ecm.fk_actioncomm AS event_id";
             $sql .= "   FROM " . MAIN_DB_PREFIX . "eventconfidentiality_mode AS ecm";
             $sql .= "   LEFT JOIN " . MAIN_DB_PREFIX . "c_eventconfidentiality_tag AS cecti ON ecm.fk_c_eventconfidentiality_tag = cecti.rowid AND (cecti.external != 1 OR cecti.external IS NULL)";
-            $sql .= "   LEFT JOIN " . MAIN_DB_PREFIX . "c_eventconfidentiality_tag AS cecte ON ecm.fk_c_eventconfidentiality_tag = cecte.rowid AND cecti.external = 1";
+            $sql .= "   LEFT JOIN " . MAIN_DB_PREFIX . "c_eventconfidentiality_tag AS cecte ON ecm.fk_c_eventconfidentiality_tag = cecte.rowid AND cecte.external = 1";
             $search_tag_where = array();
             if ($search_internal_tag) $search_tag_where[] = natural_search("cecti.label", $search_internal_tag, 0, 1);
             if ($search_external_tag) $search_tag_where[] = natural_search("cecte.label", $search_external_tag, 0, 1);
@@ -384,7 +386,7 @@ function requestmanager_show_events(&$requestmanager)
         $sql .= "   , GROUP_CONCAT(DISTINCT IF(cecte.rowid IS NOT NULL, CONCAT(cecte.rowid, ':', ecm.mode), NULL) SEPARATOR ',') AS external_tags_info";
         $sql .= "   FROM " . MAIN_DB_PREFIX . "eventconfidentiality_mode AS ecm";
         $sql .= "   LEFT JOIN " . MAIN_DB_PREFIX . "c_eventconfidentiality_tag AS cecti ON ecm.fk_c_eventconfidentiality_tag = cecti.rowid AND (cecti.external != 1 OR cecti.external IS NULL)";
-        $sql .= "   LEFT JOIN " . MAIN_DB_PREFIX . "c_eventconfidentiality_tag AS cecte ON ecm.fk_c_eventconfidentiality_tag = cecte.rowid AND cecti.external = 1";
+        $sql .= "   LEFT JOIN " . MAIN_DB_PREFIX . "c_eventconfidentiality_tag AS cecte ON ecm.fk_c_eventconfidentiality_tag = cecte.rowid AND cecte.external = 1";
         $sql .= "   GROUP BY ecm.fk_actioncomm";
         $sql .= " ) AS tags_info ON tags_info.event_id = ac.id";
     }
@@ -403,6 +405,7 @@ function requestmanager_show_events(&$requestmanager)
     $parameters = array();
     $reshook = $hookmanager->executeHooks('printFieldListFrom', $parameters);    // Note that $action and $object may have been modified by hook
     $soc_ids = array_merge(array($requestmanager->socid_origin), array($requestmanager->socid), array($requestmanager->socid_benefactor));
+    $soc_ids = array_unique($soc_ids);
     $sql .= ' WHERE ac.fk_soc IN (' . implode(',', $soc_ids) . ')';
     $sql .= ' AND ac.entity IN (' . getEntity('agenda') . ')';
     if ($search_only_linked_to_request) {

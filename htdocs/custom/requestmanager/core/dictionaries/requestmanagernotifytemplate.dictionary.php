@@ -52,7 +52,7 @@ class RequestManagerNotifyTemplateDictionary extends Dictionary
     /**
      * @var int         Position of the dictionary into the family
      */
-    public $familyPosition = 8;
+    public $familyPosition = 11;
 
     /**
      * @var string      Module name of which this dictionary belongs

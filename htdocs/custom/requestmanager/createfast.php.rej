@@ -1,34 +1,15 @@
 diff a/htdocs/custom/requestmanager/createfast.php b/htdocs/custom/requestmanager/createfast.php	(rejected hunks)
-@@ -92,6 +97,8 @@ if (empty($reshook)) {
-         $object->fk_urgency = GETPOST('urgency', 'int');
-         $object->description = GETPOST('description');
+@@ -99,6 +102,13 @@ if (empty($reshook)) {
          $selectedActionCommId = GETPOST('actioncomm_id') ? GETPOST('actioncomm_id') : -1;
-+        $object->date_creation = dol_now();
-+        $object->notify_requester_by_email = GETPOST('notify_requester_by_email', 'int') > 0 ? 1 : 0;
+         $object->date_creation = dol_now();
+         $object->notify_requester_by_email = GETPOST('notify_requester_by_email', 'int') > 0 ? 1 : 0;
++        if ($object->socid_origin === '' && $object->socid > 0) {
++            $object->socid_origin = $object->socid;
++        }
++        if (empty($conf->companyrelationships->enabled)) {
++            $object->socid = $object->socid_origin;
++            $object->socid_benefactor = $object->socid_origin;
++        }
  
          // Add equipment links
          $selectedEquipementId = GETPOST('equipement_id', 'int') ? intval(GETPOST('equipement_id', 'int')) : -1;
-@@ -259,8 +281,8 @@ if (($action == 'createfast' || $action == 'force_principal_company') && $user->
-     }
- 
-     // Confirm force principal company
--    if ($action == 'force_principal_company') {
--        $formquestion = array();
-+    $formquestion = array();
-+    if ($action == 'force_principal_company' || $action == 'force_out_of_time') {
-         if (!empty($selectedActionJs)) $formquestion[] = array('type' => 'hidden', 'name' => 'action_js', 'value' => $selectedActionJs);
-         if (!empty($selectedActionCommId)) $formquestion[] = array('type' => 'hidden', 'name' => 'actioncomm_id', 'value' => $selectedActionCommId);
-         if (!empty($selectedCategories)) $formquestion[] = array('type' => 'hidden', 'name' => 'categories', 'value' => implode(',', $selectedCategories));
-@@ -274,9 +296,12 @@ if (($action == 'createfast' || $action == 'force_principal_company') && $user->
-         if (!empty($selectedFkSource)) $formquestion[] = array('type' => 'hidden', 'name' => 'source', 'value' => $selectedFkSource);
-         if (!empty($selectedFkType)) $formquestion[] = array('type' => 'hidden', 'name' => 'type', 'value' => $selectedFkType);
-         if (!empty($selectedFkUrgency)) $formquestion[] = array('type' => 'hidden', 'name' => 'urgency', 'value' => $selectedFkUrgency);
-+        if (!empty($selectedRequesterNotification)) $formquestion[] = array('type' => 'hidden', 'name' => 'notify_requester_by_email', 'value' => $selectedRequesterNotification);
-         if (!empty($origin)) $formquestion[] = array('type' => 'hidden', 'name' => 'origin', 'value' => $origin);
-         if (!empty($originid)) $formquestion[] = array('type' => 'hidden', 'name' => 'originid', 'value' => $originid);
-+    }
- 
-+    if ($action == 'force_principal_company') {
-         $societe = new Societe($db);
-         $societe->fetch($selectedSocId);
-         $formquestion[] = array('type' => 'other', 'label' => $langs->trans('RequestManagerThirdPartyPrincipal'), 'value' => $societe->getNomUrl(1));

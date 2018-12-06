@@ -1,58 +1,10 @@
 diff a/htdocs/custom/requestmanager/langs/fr_FR/requestmanager.lang b/htdocs/custom/requestmanager/langs/fr_FR/requestmanager.lang	(rejected hunks)
-@@ -444,17 +443,41 @@ RequestManagerOldProductLines               = Anciennes lignes de produits/servi
+@@ -424,6 +428,8 @@ RequestManagerTemplateForRequestType                                        = Po
+ RequestManagerNotifyTo                                                      = Notifier aux
+ RequestManagerNotifyToHelp                                                  = Pour qui ce modèle est-il dédié ?
+ RequestManagerCategories                                                    = Catégories de demande
++RequestManagerReasonResolutionDictionaryLabel                               = Motif de résolution
++RequestManagerReasonsResolution                                             = Motifs de résolution
+ 
  ############################################################
- ### Calling events
- ############################################################
--RequestManagerIPBXID                    = ID interne à l'IPBX de l'appel : %s
--RequestManagerCallerNumber              = Numéro de l'appelant : %s
--RequestManagerCalledNumber              = Numéro appelé : %s
--RequestManagerStartTimeCall             = Heure de début de l'appel : %s
--RequestManagerEndTimeCall               = Heure de fin de l'appel : %s
--RequestManagerCallPost                  = Poste ayant décroché/émis l'appel : %s
--RequestManagerCallPostName              = Nom du compte associé au poste : %s
--RequestManagerAnswerGroupAtOriginCall   = Groupe de réponse à l'origine de l'appel : %s
--RequestManagerCallDirection             = Sens de l'appel : %s
--RequestManagerCallOrigin                = Appel source : %s
--RequestManagerCallStatus                = État de l'appel : %s
--RequestManagerCallDuration              = Durée de la communication : %s
--RequestManagerCallMessageID             = ID interne à l'IPBX du message : %s
--RequestManagerHourFromTo                = de %s à %s
-\ No newline at end of file
-+RequestManagerIPBXUniqueID          = Unique ID : %s
-+RequestManagerIPBXChannel           = Canal : %s
-+RequestManagerIPBXCallerIDNum       = Numéro de l'appelant : %s
-+RequestManagerIPBXCallerIDName      = Nom de l'appelant : %s
-+RequestManagerIPBXCalledNum         = Numéro appelé : %s
-+RequestManagerIPBXDirection         = Sens : %s
-+RequestManagerIPBXContext           = Contexte : %s
-+RequestManagerIPBXExtension         = Extension : %s
-+RequestManagerIPBXBeginAskHour      = Heure de début de l'appel : %s
-+RequestManagerIPBXTransferSuffix    = Suffixe de transfert : %s
-+RequestManagerIPBXEndHour           = Heure de fin de l'appel : %s
-+RequestManagerIPBXAnswered          = Est-ce que l'appel a été répondu? : %s
-+RequestManagerIPBXPrivilege         = Privilège : %s
-+RequestManagerIPBXConnectedLineNum  = Numéro de ligne connectée : %s
-+RequestManagerIPBXConnectedLineName = Nom de ligne connectée : %s
-+RequestManagerIPBXAccountCode       = L'appel a-t-il un code de compte? : %s
-+RequestManagerIPBXChannelState      = Etat du canal : %s
-+RequestManagerIPBXChannelStateDesc  = Description de l'état du canal : %s
-+RequestManagerIPBXPriority          = Priorité : %s
-+RequestManagerIPBXSeconds           = Secondes : %s
-+RequestManagerIPBXId                = Id : %s
-+RequestManagerIPBXFrom              = Venant de : %s
-+RequestManagerIPBXFromChannel       = Venant du canal : %s
-+RequestManagerIPBXTo                = Vers : %s
-+RequestManagerIPBXToChannel         = Vers le canal : %s
-+RequestManagerIPBXType              = Type : %s
-+RequestManagerIPBXClass             = Classe : %s
-+RequestManagerIPBXDestinationType   = Type de destination : %s
-+RequestManagerIPBXDirectionId       = Sens id : %s
-+RequestManagerIPBXDate              = Date : %s
-+RequestManagerIPBXDuration          = Durée : %s
-+RequestManagerIPBXBillSec           = Bill Sec : %s
-+RequestManagerIPBXCost              = Coût : %s
-+RequestManagerIPBXTags              = Tags : %s
-+RequestManagerIPBXPbx               = PBX : %s
-+RequestManagerIPBXUserField         = Champs utilisateur :
-+RequestManagerIPBXFaxData           = Données du fax :
-+RequestManagerHourFromTo            = de %s à %s
+ ### Form request manager
