@@ -153,7 +153,8 @@ class Factory extends CommonObject
 				        if ($this->context['createfromclone'] == 'createfromclone') {
 				            // only dispatch first line
 				            if ($value['id_dispatched_line']==0) {
-                                $result = $this->createof_component($factoryid, $this->qty_planned, $value, 0, $value['child_fk_entrepot']);
+                                //$result = $this->createof_component($factoryid, $this->qty_planned, $value, 0, $value['child_fk_entrepot']);
+                                $result = $this->createof_component($factoryid, $this->qty_planned, $value, 0, $value['child_fk_entrepot'], $value['id_dispatched_line'], $value['nb'], $value['indice_factory_build']);
                             }
                         }
                         // create component in standard mode
@@ -1465,6 +1466,7 @@ class Factory extends CommonObject
 		$sql.= ", fd.pmp as pmp, fd.price as price, p.ref, p.fk_product_type";
         $sql.= ", fd.fk_entrepot as child_fk_entrepot";
         $sql.= ", fd.id_dispatched_line";
+        $sql.= ", fd.indice_factory_build";
         $sql.= ", p.ref, p.fk_product_type";
 		$sql.= " FROM ".MAIN_DB_PREFIX."product as p";
 		$sql.= ", ".MAIN_DB_PREFIX."factorydet as fd";
@@ -1478,24 +1480,25 @@ class Factory extends CommonObject
 			$prods = array();
 			while ($rec = $this->db->fetch_array($res)) {
 					$prods[]= array(
-					    'id'                 => $rec['id'],                                   // Id product
-                        'refproduct'         => $rec['ref'],                                  // label product
-                        'label'              => $rec['label'],                                // label product
-                        'pmp'                => $rec['pmp'],                                  // pmp of the product
-                        'price'              => $rec['price'],                                // price of the product
-                        'price'              => $rec['price'],                                // price of the product
-                        'nb'                 => $rec['qtyunit'],                              // Nb of units that compose parent product
-                        'globalqty'          => $rec['globalqty'],                            //
-                        'description'        => $rec['description'],                          //
-                        'qtyused'            => $rec['qtyused'],                              // Nb of units that compose parent product
-                        'qtydeleted'         => $rec['qtydeleted'],                           // Nb of units that compose parent product
-                        'qtyplanned'         => $rec['qtyplanned'],                           // Nb of units that compose parent product
-                        'mvtstockplanned'    => $rec['mvtstockplanned'],                      // Nb of units that compose parent product
-                        'mvtstockused'       => $rec['mvtstockused'],                         // Nb of units that compose parent product
-                        'type'               => $rec['fk_product_type'],                      // Nb of units that compose parent product
-                        'child_fk_entrepot'  => $rec['child_fk_entrepot'],                    // Id of child warehouse
-                        'id_dispatched_line' => $rec['id_dispatched_line'],                   // Id of child warehouse
-                        'dispatch_suffix'    => $rec['id'] . '_' . $rec['id_dispatched_line'] // unique key for dispatching
+					    'id'                   => $rec['id'],                                    // Id product
+                        'refproduct'           => $rec['ref'],                                   // label product
+                        'label'                => $rec['label'],                                 // label product
+                        'pmp'                  => $rec['pmp'],                                   // pmp of the product
+                        'price'                => $rec['price'],                                 // price of the product
+                        'price'                => $rec['price'],                                 // price of the product
+                        'nb'                   => $rec['qtyunit'],                               // Nb of units that compose parent product
+                        'globalqty'            => $rec['globalqty'],                             //
+                        'description'          => $rec['description'],                           //
+                        'qtyused'              => $rec['qtyused'],                               // Nb of units that compose parent product
+                        'qtydeleted'           => $rec['qtydeleted'],                            // Nb of units that compose parent product
+                        'qtyplanned'           => $rec['qtyplanned'],                            // Nb of units that compose parent product
+                        'mvtstockplanned'      => $rec['mvtstockplanned'],                       // Nb of units that compose parent product
+                        'mvtstockused'         => $rec['mvtstockused'],                          // Nb of units that compose parent product
+                        'type'                 => $rec['fk_product_type'],                       // Nb of units that compose parent product
+                        'child_fk_entrepot'    => $rec['child_fk_entrepot'],                     // Id of child warehouse
+                        'id_dispatched_line'   => $rec['id_dispatched_line'],                    // Id of child warehouse
+                        'dispatch_suffix'      => $rec['id'] . '_' . $rec['id_dispatched_line'], // unique key for dispatching
+                        'indice_factory_build' => $rec['indice_factory_build']                   // indice of build factory
 					);
 			}
 			return $prods;
