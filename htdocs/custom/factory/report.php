@@ -228,6 +228,10 @@ if (empty($reshook)) {
             $factoryLineExistsList[$dispatcherPrefix . $dispatcherSuffix] = $obj->fd_rowid;
         }
 
+        // Manufacturing cost calculation
+        $product_cost_sum = 0;
+        $service_cost_sum = 0;
+
         // get new components to add
         $componentProductNewList = array();
         // get all equipment id for a product component
@@ -260,6 +264,14 @@ if (empty($reshook)) {
                 $componentProduct->fetch($componentProductId);
                 $componentProductValueArray = $componentValueArray[$componentProductId];
 
+                // Manufacturing cost calculation
+                if ($componentProduct->type == Product::TYPE_PRODUCT) {
+                    $componentPMP = $componentProduct->pmp ? $componentProduct->pmp : ($componentProduct->cost_price ? $componentProduct->cost_price : 0);
+                    $product_cost_sum += ($componentQtyUsed + $componentQtyDeleted) * $componentPMP;
+                } else { // Services
+                    $componentPMP = $componentProduct->cost_price ? $componentProduct->cost_price : ($componentProduct->pmp ? $componentProduct->pmp : 0);
+                    $service_cost_sum += ($componentQtyUsed + $componentQtyDeleted) * $componentPMP;
+                }
                 // set line for errors
                 $errorLine = $langs->trans('FactoryBuildIndice') . ' '  . ($indiceFactoryBuild+1) . ' - ' . $langs->trans('Product') . ' ' . $componentProduct->ref . ' - ' . $langs->trans('Line') . ' ' . ($lineNum + 1);
 
@@ -372,6 +384,8 @@ if (empty($reshook)) {
                 $sql .= " , duration_made = " . ($factory->duration_made ? $factory->duration_made : 'null');
                 $sql .= " , qty_made = " . ($factory->qty_made ? $factory->qty_made : 'null');
                 $sql .= " , description = '" . $db->escape($factory->description) . "'";
+                $sql .= " , manufacturing_cost = " . price2num($factory->qty_made ? ($product_cost_sum + $service_cost_sum) / $factory->qty_made : 0, 'MU');
+                $sql .= " , manufacturing_cost_excluding_services = " . price2num($factory->qty_made ? $product_cost_sum / $factory->qty_made : 0, 'MU');
                 $sql .= " , fk_statut = 2";
                 $sql .= " WHERE rowid = " . $id;
 
@@ -420,7 +434,7 @@ if (empty($reshook)) {
                         // set line for errors
                         $errorLine = $langs->trans('FactoryBuildIndice') . ' '  . ($indiceFactoryBuild+1) . ' - ' . $langs->trans('Product') . ' ' . $componentProduct->ref . ' - ' . $langs->trans('Line') . ' ' . ($lineNum + 1);
 
-                        if ($componentQtyUsed > 0 && empty($componentFkEntrepot)) {
+                        if ($componentQtyUsed > 0 && empty($componentFkEntrepot) && $componentProduct->type == Product::TYPE_PRODUCT) {
                             $error++;
                             $factory->error    = $langs->trans('ErrorFieldRequired', $langs->transnoentities('Warehouse'));
                             $factory->errors[] = $factory->error;
@@ -446,7 +460,7 @@ if (empty($reshook)) {
                             $productComponentEquipementEvtAlreadyDeleted = FALSE;
 
                             // used
-                            if ($componentQtyUsed != 0) {
+                            if ($componentQtyUsed != 0 && $componentProduct->type == Product::TYPE_PRODUCT) {
                                 // le prix est a 0 pour ne pas impacter le pmp
                                 $idmv = $mouvP->livraison($user, $componentProductId, $componentFkEntrepot, $componentQtyUsed, 0, $langs->trans("UsedforFactory", $factory->ref), $factory->date_end_made);
                                 if ($idmv < 0) {
@@ -519,7 +533,7 @@ if (empty($reshook)) {
 
                             if (!$error) {
                                 // s'il a ete detruit
-                                if ($componentQtyDeleted > 0) {
+                                if ($componentQtyDeleted > 0 && $componentProduct->type == Product::TYPE_PRODUCT) {
                                     // le prix est a 0 pour ne pas impacter le pmp
                                     $idmv = $mouvP->livraison($user, $componentProductId, $componentFkEntrepot, $componentQtyDeleted, 0, $langs->trans("DeletedFactory", $factory->ref), $factory->date_end_made);
                                     if ($idmv < 0) {
@@ -753,7 +767,7 @@ if (empty($reshook)) {
 		$sql.= " SET fk_statut =1";
 		$sql.= " WHERE rowid = ".$id;
 		if ($db->query($sql)) {
-			// on supprimera les mouvements de stock quand le mouvement sera stocké V6?
+			// on supprimera les mouvements de stock quand le mouvement sera stockï¿½ V6?
 		}
 		$action="";
 	}
@@ -848,6 +862,15 @@ if ($factory->statut == 1)
 else
 	print convertSecondToTime($factory->duration_made, 'allhourmin');
 print '</td></tr>';
+
+// Manufacturing cost
+if ($factory->statut == 2) { // Closed
+    print '<tr><td>' . $langs->trans("FactoryManufacturingCost") . '</td><td>';
+    print price($factory->manufacturing_cost > 0 ? $factory->manufacturing_cost : 0, 1, $langs, 0, 0, -1, $conf->currency);
+    print '</td><td>' . $langs->trans("FactoryManufacturingCostExcludingServices") . '</td><td>';
+    print price($factory->manufacturing_cost_excluding_services > 0 ? $factory->manufacturing_cost_excluding_services : 0, 1, $langs, 0, 0, -1, $conf->currency);
+    print '</td></tr>';
+}
 
 print '<tr><td>'.$langs->trans('Status').'</td><td colspan=3>'.$factory->getLibStatut(4).'</td></tr>';
 print '<tr><td valign=top>'.$langs->trans('Description').'</td><td colspan=3>';
@@ -976,7 +999,7 @@ print '</td>';
 // tableau de description de la composition du produit
 print '<td  valign=top>';
 
-// indique si on a déjà une composition de présente ou pas
+// indique si on a dï¿½jï¿½ une composition de prï¿½sente ou pas
 $compositionpresente=0;
 
 //$prods_arbo =$factory->getChildsOF($id);
@@ -1227,11 +1250,13 @@ if (count($dispatchLineList) > 0) {
 
 		// component warehouse
         print '<td>';
-        if ($factory->statut == 1) {
-            print $factoryformproduct->selectWarehouses($componentFkEntrepot, $dispatcherPrefix . 'id_entrepot_' . $dispatcherSuffix, 'warehouseopen,warehouseinternal', 0, 0, $componentProductId, '', 0, 1, null, 'minwidth100', '', 1, TRUE);
-        } else {
-            if ($componentProductFkEntrepot>0 && $productEntrepotStatic->fetch($componentProductFkEntrepot)) {
-                print $productEntrepotStatic->getNomUrl(1);
+        if ($componentProduct->type == Product::TYPE_PRODUCT) {
+            if ($factory->statut == 1) {
+                print $factoryformproduct->selectWarehouses($componentFkEntrepot, $dispatcherPrefix . 'id_entrepot_' . $dispatcherSuffix, 'warehouseopen,warehouseinternal', 0, 0, $componentProductId, '', 0, 1, null, 'minwidth100', '', 1, TRUE);
+            } else {
+                if ($componentProductFkEntrepot > 0 && $productEntrepotStatic->fetch($componentProductFkEntrepot)) {
+                    print $productEntrepotStatic->getNomUrl(1);
+                }
             }
         }
         print '</td>';
@@ -1450,7 +1475,7 @@ print '</form>';
 
 print '<br><hr><br>';
 print_fiche_titre($langs->trans("FactoryMovement"), '', '');
-// list des mouvements associés à l'of
+// list des mouvements associï¿½s ï¿½ l'of
 
 $productstatic=new Product($db);
 $movement=new MouvementStock($db);

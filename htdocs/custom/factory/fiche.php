@@ -84,7 +84,7 @@ $form = new Form($db);
 
 $productid=0;
 if ($id || $ref) {
-	// l'of et le produit associé
+	// l'of et le produit associï¿½
 	$result = $factory->fetch($id, $ref);
 	if (!$id) $id = $factory->id;
 	$result = $product->fetch($factory->fk_product);
@@ -106,10 +106,10 @@ if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'e
  */
 
 if (empty($reshook)) {
-	// mise à jour des composants
+	// mise ï¿½ jour des composants
 	if ($action == 'add_prod'
 		&& $cancel <> $langs->trans("Cancel")
-		&& $factory->statut == 0		// seulement si le module est à l'état brouillon
+		&& $factory->statut == 0		// seulement si le module est ï¿½ l'ï¿½tat brouillon
 		&& $user->rights->factory->creer ) {
 		$error=0;
 		for ($i=0;$i < $_POST["max_prod"];$i++) {
@@ -476,7 +476,7 @@ if ($action == 'editdatestartmade') {
 }
 else
 	print dol_print_date($factory->date_start_made, 'day');
-// pour gérer la mise en forme
+// pour gï¿½rer la mise en forme
 if ($factory->date_start_made)
 	print '<br>';
 else
@@ -541,6 +541,15 @@ if ($action == 'editdurationplanned') {
 else
 	print convertSecondToTime($factory->duration_planned, 'allhourmin');
 print '</td></tr>';
+
+// Manufacturing cost
+if ($factory->statut == 2) { // Closed
+    print '<tr><td>' . $langs->trans("FactoryManufacturingCost") . '</td><td>';
+    print price($factory->manufacturing_cost > 0 ? $factory->manufacturing_cost : 0, 1, $langs, 0, 0, -1, $conf->currency);
+    print '</td><td>' . $langs->trans("FactoryManufacturingCostExcludingServices") . '</td><td>';
+    print price($factory->manufacturing_cost_excluding_services > 0 ? $factory->manufacturing_cost_excluding_services : 0, 1, $langs, 0, 0, -1, $conf->currency);
+    print '</td></tr>';
+}
 
 print '<tr><td>'.$langs->trans('Status').'</td><td colspan=3>'.$factory->getLibStatut(4).'</td></tr>';
 
@@ -649,12 +658,12 @@ print '</td>';
 // tableau de description de la composition du produit
 print '<td  valign=top>';
 
-// indique si on a déjà une composition de présente ou pas
+// indique si on a dï¿½jï¿½ une composition de prï¿½sente ou pas
 $compositionpresente=0;
 
 $prods_arbo =$factory->getChildsOF($id);
 
-// on travaille avec les valeurs conservées
+// on travaille avec les valeurs conservï¿½es
 if (false) {
 	$factory->id =$product->id;
 	$factory->get_sousproduits_arbo();
@@ -676,7 +685,7 @@ if (count($prods_arbo) > 0) {
 	print '<td class="liste_titre" width=100px align="left">'.$langs->trans("Ref").'</td>';
 	print '<td class="liste_titre" width=200px align="left">'.$langs->trans("Label").'</td>';
 	print '<td class="liste_titre" width=50px align="center">'.$langs->trans("QtyNeedOF").'</td>';
-	// on affiche la colonne stock même si cette fonction n'est pas active
+	// on affiche la colonne stock mï¿½me si cette fonction n'est pas active
 	print '<td class="liste_titre" width=50px align="center">'.$langs->trans("QtyOfWarehouse").'</td>';
 	print '<td class="liste_titre" width=100px align="center">'.$langs->trans("QtyOrder").'</td>';
 	if ($user->rights->factory->showprice) {
@@ -788,12 +797,12 @@ print '</td>';
 print '</tr></table>';
 
 
-/* Gestion de la composition à chaud */
+/* Gestion de la composition ï¿½ chaud */
 if ($action == 'search') {
 	$addselected=GETPOST("addselected");
 	$keysearch=GETPOST('keysearch');
 
-	// filtre sélectionné on filtre
+	// filtre sï¿½lectionnï¿½ on filtre
 	$sql = 'SELECT DISTINCT p.rowid, p.ref, p.label, p.price, p.fk_product_type as type, p.pmp';
 	if ($conf->global->factory_extrafieldsNameInfo)
 		$sql.= ' , pe.'.$conf->global->factory_extrafieldsNameInfo. ' as addinforecup';
@@ -803,7 +812,7 @@ if ($action == 'search') {
 	$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'product_extrafields as pe ON p.rowid = pe.fk_object';
 	$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'categorie_product as cp ON p.rowid = cp.fk_product';
 	$sql.= ' WHERE p.entity IN ('.getEntity("product", 1).')';
-	$sql.= " AND p.rowid <> ".$productid;		 // pour ne pas afficher le produit lui-même
+	$sql.= " AND p.rowid <> ".$productid;		 // pour ne pas afficher le produit lui-mï¿½me
 	if ($keysearch != "") {
 		$sql.= " AND (p.ref LIKE '%".$keysearch."%'";
 		$sql.= " OR p.label LIKE '%".$keysearch."%')";
@@ -822,7 +831,7 @@ if ($action == 'search') {
 		$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'product_extrafields as pe ON p.rowid = pe.fk_object';
 		$sql.= ' , '.MAIN_DB_PREFIX.'product_factory as pf WHERE pf.fk_product_children = p.rowid';
 		$sql.= ' AND p.entity IN ('.getEntity("product", 1).')';
-		$sql.= " AND pf.fk_product_father = ".$productid;		 // pour afficher les produits déjà sélectionnés
+		$sql.= " AND pf.fk_product_father = ".$productid;		 // pour afficher les produits dï¿½jï¿½ sï¿½lectionnï¿½s
 	}
 
 	$resql = $db->query($sql);
@@ -1296,7 +1305,7 @@ if ($action == 'presend') {
 	$formmail->frommail = $user->email;
 	$formmail->withfrom=1;
 
-	// on récupère les contacts de l'entrepot
+	// on rï¿½cupï¿½re les contacts de l'entrepot
 	$liste=array();
 	foreach ($factory->contact_entrepot_email_array() as $key=>$value)
 		$liste[$key]=$value;
@@ -1320,7 +1329,7 @@ if ($action == 'presend') {
 	$contactarr=array();
 	$entrepotStatic=new Entrepot($db);
 	$entrepotStatic->fetch($factory->fk_entrepot);
-	$entrepotStatic->element='stock'; // bug dolibarr corrigé dans les prochaines versions
+	$entrepotStatic->element='stock'; // bug dolibarr corrigï¿½ dans les prochaines versions
 	$contactarr=$entrepotStatic->liste_contact(-1, 'external');
 	if (is_array($contactarr) && count($contactarr)>0) {
 		foreach ($contactarr as $contact) {

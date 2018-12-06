@@ -327,6 +327,9 @@ InfoPMP=PMP<br/>unitaire HT
 InfoCostPrice=Prix de revient unitaire HT
 DateEndPlanned=Date de fin planifiée
 
+FactoryManufacturingCost                    = Coût de fabrication
+FactoryManufacturingCostExcludingServices   = Coût de fabrication (Hors services)
+
 # Direct Factory
 FactoryWarehouse=Entrepôt de fabrication du produit
 ErrorNotEnoughComponentToBuild=Il n'y a plus assez de composants en stock dans cet entrepôt

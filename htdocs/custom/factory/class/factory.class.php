@@ -48,6 +48,8 @@ class Factory extends CommonObject
 	var $date_end_made;
 	var $date_start_made;
 	var $duration_made;
+    var $manufacturing_cost;
+    var $manufacturing_cost_excluding_services;
 
 	var $is_sousproduit_qty=0;
 	var $is_sousproduit_qtyglobal=0;
@@ -315,6 +317,8 @@ class Factory extends CommonObject
 				$this->date_end_made	= $this->db->jdate($obj->date_end_made);
 				$this->duration_planned	= $obj->duration_planned;
 				$this->duration_made	= $obj->duration_made;
+                $this->manufacturing_cost	= $obj->manufacturing_cost;
+                $this->manufacturing_cost_excluding_services	= $obj->manufacturing_cost_excluding_services;
 				$this->fk_product		= $obj->fk_product;
 				$this->fk_entrepot		= $obj->fk_entrepot;
 				$this->note_public		= $obj->note_public;
