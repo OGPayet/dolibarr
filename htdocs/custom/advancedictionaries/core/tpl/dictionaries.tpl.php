@@ -82,6 +82,12 @@ if (isset($dictionary)) {
             if ($limit > 0 && $limit != $conf->liste_limit) print '<input type="hidden" name="limit" value="' . dol_escape_htmltag($limit) . '">';
             if ($search_active != 1) print '<input type="hidden" name="search_' . $dictionary->active_field . '" value="' . dol_escape_htmltag($search_active) . '">';
             if ($action == 'edit' && $dictionary->edit_in_add_form) print '<input type="hidden" name="rowid" value="' . $rowid . '">';
+            // Search fields
+            foreach ($dictionary->fields as $fieldName => $field) {
+                if (!$field['is_not_searchable']) {
+                    print '<input type="hidden" name="search_'.$fieldName.'" value="'.dol_escape_htmltag(GETPOST('search_'.$fieldName)).'">';
+                }
+            }
 
             print '<div id="addform" class="div-table-responsive-no-min">';
             print '<table class="noborder" width="100%">';

@@ -358,6 +358,42 @@ class RequestManagerNotify
             // <img alt="" src="'.$urlwithroot.'viewimage.php?modulepart=medias&amp;entity=1&amp;file=image/ldestailleur_166x166.jpg" style="height:166px; width:166px" />
             $body = preg_replace('/(<img.*src=")[^\"]*viewimage\.php([^\"]*)modulepart=medias([^\"]*)file=([^\"]*)("[^\/]*\/>)/', '\1' . $urlwithroot . '/viewimage.php\2modulepart=medias\3file=\4\5', $body);
 
+            // Feature to push mail sent into Sent folder
+//            if (! empty($conf->dolimail->enabled)) {
+//                $mailfromid = explode("#", $_POST['frommail'], 3);    // $_POST['frommail'] = 'aaa#Sent# <aaa@aaa.com>'	// TODO Use a better way to define Sent dir.
+//                if (count($mailfromid) == 0) $from = $_POST['fromname'] . ' <' . $_POST['frommail'] . '>';
+//                else {
+//                    $mbid = $mailfromid[1];
+//
+//                    /*IMAP Postbox*/
+//                    $mailboxconfig = new IMAP($db);
+//                    $mailboxconfig->fetch($mbid);
+//                    if ($mailboxconfig->mailbox_imap_host) $ref = $mailboxconfig->get_ref();
+//
+//                    $mailboxconfig->folder_id = $mailboxconfig->mailbox_imap_outbox;
+//                    $mailboxconfig->userfolder_fetch();
+//
+//                    if ($mailboxconfig->mailbox_save_sent_mails == 1) {
+//
+//                        $folder = str_replace($ref, '', $mailboxconfig->folder_cache_key);
+//                        if (!$folder) $folder = "Sent";    // Default Sent folder
+//
+//                        $mailboxconfig->mbox = imap_open($mailboxconfig->get_connector_url() . $folder, $mailboxconfig->mailbox_imap_login, $mailboxconfig->mailbox_imap_password);
+//                        if (FALSE === $mailboxconfig->mbox) {
+//                            $info = FALSE;
+//                            $err = $langs->trans('Error3_Imap_Connection_Error');
+//                            setEventMessages($err, $mailboxconfig->element, null, 'errors');
+//                        } else {
+//                            $mailboxconfig->mailboxid = $_POST['frommail'];
+//                            $mailboxconfig->foldername = $folder;
+//                            $from = $mailfromid[0] . $mailfromid[2];
+//                            $imap = 1;
+//                        }
+//
+//                    }
+//                }
+//            }
+
             // Send mail
             $mailfile = new CMailFile($subject, $sendto, $from, $body, $filename_list, $mimetype_list, $mimefilename_list, $sendtocc, $sendtobcc, $deliveryreceipt, $msgishtml, $errors_to, $css, '', $moreinheader, $sendcontext);
             if ($mailfile->error) {
@@ -366,8 +402,55 @@ class RequestManagerNotify
             } else {
                 $result = $mailfile->sendfile();
                 if ($result) {
-                    $mesg = $langs->trans('MailSuccessfulySent', $mailfile->getValidAddress($from, 2), $mailfile->getValidAddress($sendto, 2));
-                    setEventMessages($mesg, null, 'mesgs');
+                    $error = 0;
+
+                    // FIXME This must be moved into the trigger for action $trigger_name
+//                    if (!empty($conf->dolimail->enabled)) {
+//                        $mid = (GETPOST('mid', 'int') ? GETPOST('mid', 'int') : 0);    // Original mail id is set ?
+//                        if ($mid) {
+//                            // set imap flag answered if it is an answered mail
+//                            $dolimail = new DoliMail($db);
+//                            $dolimail->id = $mid;
+//                            $res = $dolimail->set_prop($user, 'answered', 1);
+//                        }
+//                        if ($imap == 1) {
+//                            // write mail to IMAP Server
+//                            $movemail = $mailboxconfig->putMail($subject, $sendto, $from, $message, $filepath, $mimetype, $filename, $sendtocc, $folder, $deliveryreceipt, $mailfile);
+//                            if ($movemail) setEventMessages($langs->trans("MailMovedToImapFolder", $folder), null, 'mesgs');
+//                            else setEventMessages($langs->trans("MailMovedToImapFolder_Warning", $folder), null, 'warnings');
+//                        }
+//                    }
+//
+//                    // Initialisation of datas
+//                    if (is_object($object)) {
+//                        if (empty($actiontypecode)) $actiontypecode = 'AC_OTH_AUTO'; // Event insert into agenda automatically
+//
+//                        $object->socid = $sendtosocid;       // To link to a company
+//                        $object->sendtoid = $sendtoid;       // To link to contacts/addresses. This is an array.
+//                        $object->actiontypecode = $actiontypecode; // Type of event ('AC_OTH', 'AC_OTH_AUTO', 'AC_XXX'...)
+//                        $object->actionmsg = $actionmsg;      // Long text
+//                        $object->actionmsg2 = $actionmsg2;     // Short text
+//                        $object->trackid = $trackid;
+//                        $object->fk_element = $object->id;
+//                        $object->elementtype = $object->element;
+//                        $object->attachedfiles = $attachedfiles;
+//
+//                        // Call of triggers
+//                        if (!empty($trigger_name)) {
+//                            include_once DOL_DOCUMENT_ROOT . '/core/class/interfaces.class.php';
+//                            $interface = new Interfaces($db);
+//                            $result = $interface->run_triggers($trigger_name, $object, $user, $langs, $conf);
+//                            if ($result < 0) {
+//                                $error++;
+//                                $errors = $interface->errors;
+//                            }
+//                        }
+//                    }
+
+                    if (!$error) {
+                        $mesg = $langs->trans('MailSuccessfulySent', $mailfile->getValidAddress($from, 2), $mailfile->getValidAddress($sendto, 2));
+                        setEventMessages($mesg, null, 'mesgs');
+                    }
 
                     return 1;
                 } else {
