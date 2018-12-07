@@ -341,6 +341,15 @@ class modCompanyRelationships extends DolibarrModules
         // all extrafields we want to keep position
         $extrafieldToKeepArray = array('companyrelationships_fk_soc_benefactor', 'companyrelationships_availability_principal', 'companyrelationships_availability_benefactor');
         foreach($publicSpaceAvailibilityElementList as $elementType) {
+            switch ($elementType) {
+                case 'shipping':
+                    $elementTable = 'expedition';
+                    break;
+                default:
+                    $elementTable = $elementType;
+                    break;
+            }
+
             if ($elementType == 'shipping') {
                 $elementType = 'expedition';
             } else if ($elementType == 'order_supplier') {
@@ -381,6 +390,21 @@ class modCompanyRelationships extends DolibarrModules
             $result = $extrafields->addExtraField($extrafieldName, $langs->trans('CompanyRelationshipsPublicSpaceAvailabilityPrincipal'), 'boolean', $extrafieldToKeepList[$extrafieldName]['pos'],  '', $elementType,   0, 0, '', '', 1, '$user->rights->companyrelationships->update_md->element', 0, 0, ''); // For >= v7: ", '', 'companyrelationships@companyrelationships', '$conf->companyrelationships->enabled');"
             $extrafieldName = $extrafieldToKeepArray[2];
             $result = $extrafields->addExtraField($extrafieldName, $langs->trans('CompanyRelationshipsPublicSpaceAvailabilityBenefactor'), 'boolean', $extrafieldToKeepList[$extrafieldName]['pos'],  '', $elementType,   0, 0, '', '', 1, '$user->rights->companyrelationships->update_md->element', 0, 0, ''); // For >= v7: ", '', 'companyrelationships@companyrelationships', '$conf->companyrelationships->enabled');"
+
+            $sql[] = 'UPDATE llx_'.$elementTable.'_extrafields
+                        LEFT JOIN llx_'.$elementTable.' AS t ON (llx_'.$elementTable.'_extrafields.fk_object = t.rowid)
+                        SET llx_'.$elementTable.'_extrafields.companyrelationships_fk_soc_benefactor = t.fk_soc
+                        WHERE llx_'.$elementTable.'_extrafields.companyrelationships_fk_soc_benefactor IS NULL
+                        OR llx_'.$elementTable.'_extrafields.companyrelationships_fk_soc_benefactor = \'\';';
+            $sql[] = 'UPDATE llx_'.$elementTable.'_extrafields
+                        SET companyrelationships_availability_principal = 1
+                        WHERE companyrelationships_availability_principal IS NULL
+                        OR companyrelationships_availability_principal = \'\';';
+            $sql[] = 'INSERT INTO llx_'.$elementTable.'_extrafields(fk_object, companyrelationships_fk_soc_benefactor, companyrelationships_availability_principal)
+                        SELECT t.rowid, t.fk_soc, 1
+                        FROM llx_'.$elementTable.' AS t
+                        LEFT JOIN llx_'.$elementTable.'_extrafields AS ef ON (ef.fk_object = t.rowid)
+                        WHERE ef.rowid IS NULL;';
         }
 
         return $this->_init($sql, $options);
