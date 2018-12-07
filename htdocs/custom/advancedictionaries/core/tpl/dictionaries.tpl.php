@@ -160,7 +160,9 @@ SCRIPT;
                     $colspan_sum += $colspan - 1;
                     $idx_column++;
                 }
-                print '<td style="min-width: 26px;"></td>';
+                if ($idx == 1) {
+                    print '<td style="min-width: 26px;"></td>';
+                }
                 print '</tr>';
 
                 // Line to enter new values
@@ -182,10 +184,8 @@ SCRIPT;
                 }
 
                 // Button
-                if ($numLines != $idx) {
-                    print '<td style="min-width: 26px;"></td>';
-                } else {
-                    print '<td align="center">';
+                if ($idx == 1) {
+                    print '<td align="center" rowspan="'.(($numLines * 2) - 1).'">';
                     if ($action == 'edit' && $dictionary->edit_in_add_form) {
                         print '<input type="submit" class="button" name="actionedit" value="' . $langs->trans("Edit") . '">';
                         print '<input type="submit" class="button" name="actioncancel" value="' . $langs->trans("Cancel") . '">';

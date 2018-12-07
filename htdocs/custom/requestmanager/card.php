@@ -1909,7 +1909,7 @@ SCRIPT;
         // Get lines (hide if has new request type in the setting of this status and has none child or all children is not closed)
         if (empty($requestManagerStatusDictionaryLine->fields['new_request_type']) ||
             ($children_count[RequestManager::STATUS_TYPE_INITIAL] + $children_count[RequestManager::STATUS_TYPE_IN_PROGRESS] + $children_count[RequestManager::STATUS_TYPE_RESOLVED] == 0 &&
-                $children_count[RequestManager::STATUS_TYPE_CLOSED] > 0)) {
+                $children_count[RequestManager::STATUS_TYPE_CLOSED] >= 0)) {
             $requestManagerStatusDictionary->fetch_lines(1, array('request_type' => array($object->fk_type)));
             $next_status = explode(',', $requestManagerStatusDictionaryLine->fields['next_status']);
             if (is_array($next_status) && count($next_status) > 0) {
@@ -1984,12 +1984,6 @@ SCRIPT;
                                 . $langs->trans('RequestManagerCreateRequestChild', $requestManagerRequestTypeDictionary->lines[$request_type_id]->fields['label']) . '</a></div>';
                         }
                     }
-                }
-
-                // Add message
-                if ($user->rights->requestmanager->creer) {
-                    print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=premessage&messagemode=init#formmessagebeforetitle">'
-                        . $langs->trans('RequestManagerAddMessage') . '</a></div>';
                 }
 
                 $backtopage = dol_buildpath('/requestmanager/card.php', 1) . '?id=' . $object->id;
@@ -2109,6 +2103,12 @@ SCRIPT;
                     } else {
                         print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("RequestManagerAddRequest") . '</a></div>';
                     }
+                }
+
+                // Add message
+                if ($user->rights->requestmanager->creer) {
+                    print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=premessage&messagemode=init#formmessagebeforetitle">'
+                        . $langs->trans('RequestManagerAddMessage') . '</a></div>';
                 }
 
                 // Add event

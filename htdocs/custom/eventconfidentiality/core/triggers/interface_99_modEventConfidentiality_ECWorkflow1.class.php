@@ -28,7 +28,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/triggers/dolibarrtriggers.class.php';
 /**
  *  Class of triggers for workflow in eventconfidentiality module
  */
-class InterfaceECWorkflow extends DolibarrTriggers
+class InterfaceECWorkflow1 extends DolibarrTriggers
 {
 	public $family = 'eventconfidentiality';
 	public $description = "Triggers of this module catch triggers event for the workflow of EventConfidentiality module.";
@@ -76,7 +76,9 @@ class InterfaceECWorkflow extends DolibarrTriggers
                 $default_tags = $default_tags[$object->type_code];
 
                 foreach ($dictionary->lines as $line) {
-                    $mode = isset($_POST['ec_mode_' . $line->id]) ? GETPOST('ec_mode_' . $line->id, 'int') : (isset($object->ec_mode_tags[$line->id]) ? $object->ec_mode_tags[$line->id] : (!isset($object->ec_mode_tags) && isset($default_tags[$line->id]['mode']) ? $default_tags[$line->id]['mode'] : EventConfidentiality::MODE_HIDDEN));
+                    $mode = isset($_POST['ec_mode_' . $line->id]) ? GETPOST('ec_mode_' . $line->id, 'int') :
+                        (isset($object->ec_mode_tags[$line->id]) ? $object->ec_mode_tags[$line->id] :
+                            (isset($default_tags[$line->id]['mode']) ? $default_tags[$line->id]['mode'] : EventConfidentiality::MODE_HIDDEN));
 
                     if ($mode != EventConfidentiality::MODE_HIDDEN) {
                         $eventconfidentiality->fk_actioncomm = $object->id;
@@ -105,7 +107,7 @@ class InterfaceECWorkflow extends DolibarrTriggers
                     return -1;
                 }
 
-                // Get tags set or default tags
+                // Get tags set
                 dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
                 $eventconfidentiality = new EventConfidentiality($this->db);
                 $tags_set = $eventconfidentiality->fetchAllTagsOfEvent($object->id);
@@ -116,7 +118,9 @@ class InterfaceECWorkflow extends DolibarrTriggers
                 }
 
                 foreach ($dictionary->lines as $line) {
-                    $mode = isset($_POST['ec_mode_' . $line->id]) ? GETPOST('ec_mode_' . $line->id, 'int') : (isset($object->ec_mode_tags[$line->id]) ? $object->ec_mode_tags[$line->id] : EventConfidentiality::MODE_HIDDEN);
+                    $mode = isset($_POST['ec_mode_' . $line->id]) ? GETPOST('ec_mode_' . $line->id, 'int') :
+                        (isset($object->ec_mode_tags[$line->id]) ? $object->ec_mode_tags[$line->id] :
+                            (isset($tags_set[$line->id]['mode']) ? $tags_set[$line->id]['mode'] : EventConfidentiality::MODE_HIDDEN));
                     $eventconfidentiality->fk_actioncomm = $object->id;
                     $eventconfidentiality->fk_c_eventconfidentiality_tag = $line->id;
 

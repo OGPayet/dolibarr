@@ -190,6 +190,45 @@ class ActionsEventConfidentiality
         });
     </script>
 SCRIPT;
+                    } else {
+                        // Get mode for the user and event
+                        $user_f = isset($user) ? $user : DolibarrApiAccess::$user;
+                        $mode = $eventconfidentiality->getModeForUserAndEvent($user_f, $object->id);
+                        if ($mode < 0) {
+                            $this->error = $eventconfidentiality->error;
+                            $this->errors = $eventconfidentiality->errors;
+                            return -1;
+                        }
+
+                        if ($mode == EventConfidentiality::MODE_BLURRED) {
+                            // Get html input names to hide
+                            $hidden_html_input_names = array();
+                            foreach (EventConfidentiality::$blurred_properties as $key => $html_input_names) {
+                                foreach ($html_input_names as $input_name) {
+                                    $hidden_html_input_names[] = $input_name;
+                                }
+                            }
+                            $hidden_html_input_names = array_unique($hidden_html_input_names);
+                            $hidden_html_input_names = json_encode($hidden_html_input_names);
+
+                            $out .= <<<SCRIPT
+    <script type="text/javascript" language="javascript">
+        $(document).ready(function () {
+            var ec_hidden_html_input_names = $hidden_html_input_names;
+
+            $.map(ec_hidden_html_input_names, function(item) {
+                var input = $('[name="'+item+'"]');
+                if (input.length > 0) {
+                    input.parent().append('<input type="hidden" name="'+item+'" value="1">');
+                } else {
+                    input =  $('#'+item);
+                }
+                input.remove();
+            })
+        });
+    </script>
+SCRIPT;
+                        }
                     }
                 } else {
                     // Format out tags lines
@@ -276,52 +315,18 @@ SCRIPT;
                     if (in_array('actioncard', $contexts)) {
                         accessforbidden();
                     } else {
-                        unset($object->id);
-                        unset($object->ref);
-                        unset($object->ref_ext);
-                        unset($object->type_id);
-                        unset($object->type_code);
-                        unset($object->type_color);
-                        unset($object->type_picto);
-                        unset($object->type);
-                        unset($object->code);
-                        unset($object->label);
-                        unset($object->datep);
-                        unset($object->datef);
-                        unset($object->durationp);
-                        unset($object->datec);
-                        unset($object->datem);
-                        unset($object->note);
-                        unset($object->percentage);
-                        unset($object->authorid);
-                        unset($object->usermodid);
-                        unset($object->author);
-                        unset($object->usermod);
-                        unset($object->userownerid);
-                        unset($object->userdoneid);
-                        unset($object->priority);
-                        unset($object->fulldayevent);
-                        unset($object->location);
-                        unset($object->transparency);
-                        unset($object->punctual);
-                        unset($object->socid);
-                        unset($object->contactid);
-                        unset($object->fk_project);
-                        unset($object->societe);
-                        unset($object->contact);
-                        unset($object->fk_element);
-                        unset($object->elementtype);
+                        foreach ($object as $key => $value) {
+                            unset($object->$key);
+                        }
 
                         $parameters['num'] = 0;
                     }
                 } elseif ($mode == EventConfidentiality::MODE_BLURRED) {
-                    unset($object->datec);
-                    unset($object->datem);
-                    unset($object->datep);
-                    unset($object->datef);
-                    unset($object->type);
-                    unset($object->code);
-                    unset($object->label);
+                    $object->ec_save_values = array();
+                    foreach (EventConfidentiality::$blurred_properties as $key => $html_input_names) {
+                        $object->ec_save_values[$key] = $object->$key;
+                        unset($object->$key);
+                    }
                 }
             }
         }
@@ -361,69 +366,13 @@ SCRIPT;
 
                 // Manage the mode
                 if ($mode == EventConfidentiality::MODE_HIDDEN) {
-                    unset($object->id);
-                    unset($object->ref);
-                    unset($object->ref_ext);
-                    unset($object->type_id);
-                    unset($object->type_color);
-                    unset($object->type_picto);
-                    unset($object->type);
-                    unset($object->code);
-                    unset($object->label);
-                    unset($object->datep);
-                    unset($object->datef);
-                    unset($object->durationp);
-                    unset($object->datec);
-                    unset($object->datem);
-                    unset($object->note);
-                    unset($object->percentage);
-                    unset($object->authorid);
-                    unset($object->usermodid);
-                    unset($object->author);
-                    unset($object->usermod);
-                    unset($object->userownerid);
-                    unset($object->userdoneid);
-                    unset($object->priority);
-                    unset($object->fulldayevent);
-                    unset($object->location);
-                    unset($object->transparency);
-                    unset($object->punctual);
-                    unset($object->socid);
-                    unset($object->contactid);
-                    unset($object->fk_project);
-                    unset($object->societe);
-                    unset($object->contact);
-                    unset($object->fk_element);
-                    unset($object->elementtype);
-                    unset($object->date_start_in_calendar);
-                    unset($object->date_end_in_calendar);
-                    unset($object->client);
-                    unset($object->dp);
-                    unset($object->dp2);
-                    unset($object->fk_user_author);
-                    unset($object->fk_user_action);
-                    unset($object->fk_contact);
-                    unset($object->percent);
-                    unset($object->type_code);
-                    unset($object->type_label);
-                    unset($object->lastname);
-                    unset($object->firstname);
+                    foreach ($object as $key => $value) {
+                        unset($object->$key);
+                    }
                 } elseif ($mode == EventConfidentiality::MODE_BLURRED) {
-                    unset($object->datec);
-                    unset($object->datem);
-                    unset($object->datep);
-                    unset($object->datef);
-                    unset($object->type);
-                    unset($object->code);
-                    unset($object->label);
-                    unset($object->date_start_in_calendar);
-                    unset($object->date_end_in_calendar);
-                    unset($object->type_code);
-                    unset($object->type_label);
-                    unset($object->dp);
-                    unset($object->dp2);
-                    unset($object->date_start_in_calendar);
-                    unset($object->date_end_in_calendar);
+                    foreach (EventConfidentiality::$blurred_properties as $key => $html_input_names) {
+                        unset($object->$key);
+                    }
                 }
             }
         }

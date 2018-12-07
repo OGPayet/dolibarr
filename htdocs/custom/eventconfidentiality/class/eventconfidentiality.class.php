@@ -67,6 +67,27 @@ class EventConfidentiality extends CommonObject
     protected static $tags_cached = array();
 
     /**
+     * @var array   List of properties blurred array('property_name' => array('input_html_name', ...), ...)
+     */
+    public static $blurred_properties = array(
+        'datec' => array(),
+        'datem' => array(),
+        'datep' => array('ap', 'apmonth', 'apday', 'apyear', 'apyear', 'aphour', 'apmin', 'apButton', 'apButtonNow'),
+        'datef' => array('p2', 'p2month', 'p2day', 'p2year', 'p2year', 'p2hour', 'p2min', 'p2Button', 'p2ButtonNow'),
+        'fulldayevent' => array('fullday'),
+        'fk_action' => array(),
+        'type' => array(),
+        'code' => array('actioncode'),
+        'label' => array('label'),
+        'date_start_in_calendar' => array(),
+        'date_end_in_calendar' => array(),
+        'type_code' => array(),
+        'type_label' => array(),
+        'dp' => array(),
+        'dp2' => array(),
+    );
+
+    /**
      * @var array     List of the label of the confidentiality mode of the tag
      */
     public $mode_labels = array();
