@@ -449,7 +449,7 @@ SCRIPT;
 
         $contexts = explode(':', $parameters['context']);
 
-        if (in_array('contractlist', $contexts) && empty($parameters['dictionary_hook'])) {
+        if (in_array('contractlist', $contexts)) {
             if (!empty($conf->global->EXTENDEDINTERVENTION_QUOTA_ACTIVATE)) {
                 $out = '';
 
@@ -480,7 +480,7 @@ SCRIPT;
 
         $contexts = explode(':', $parameters['context']);
 
-        if (in_array('contractlist', $contexts) && empty($parameters['dictionary_hook'])) {
+        if (in_array('contractlist', $contexts)) {
             if (!empty($conf->global->EXTENDEDINTERVENTION_QUOTA_ACTIVATE)) {
                 $out = ' LEFT JOIN ' . MAIN_DB_PREFIX . 'extendedintervention_contract_count_type AS eicct ON eicct.fk_contrat = c.rowid';
 
@@ -506,7 +506,7 @@ SCRIPT;
 
         $contexts = explode(':', $parameters['context']);
 
-        if (in_array('contractlist', $contexts) && empty($parameters['dictionary_hook'])) {
+        if (in_array('contractlist', $contexts)) {
             if (!empty($conf->global->EXTENDEDINTERVENTION_QUOTA_ACTIVATE)) {
                 $out = '';
 

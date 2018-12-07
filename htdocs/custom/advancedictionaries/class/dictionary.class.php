@@ -1291,13 +1291,15 @@ class Dictionary extends CommonObject
             if (!empty($sqlStatement)) {
                 $select[] = $sqlStatement;
             }
-            // from clause
+            // From clause
             $from .= $this->fromFieldSqlStatement($field);
         }
         $where = array();
         $having = array();
         foreach ($filters as $fieldName => $value) {
             if (isset($this->fields[$fieldName])) {
+                // From clause
+                $from .= $this->fromFilterFieldSqlStatement($this->fields[$fieldName], $value);
                 // Where clause
                 $sqlStatement = $this->whereFieldSqlStatement($this->fields[$fieldName], $value);
                 if (!empty($sqlStatement)) {
@@ -1319,26 +1321,26 @@ class Dictionary extends CommonObject
 
         // TODO revoir le retour des valeurs pour le type chkbxlst quand on fournit un filtre avec tableau d'ids, seul les valeurs du tableau sont retourner et pas ttes les possibiltés avec ce filtre
 
-        $parameters = array('dictionary_hook'=>1);
+        $parameters = array();
         $sql = 'SELECT d.' . $this->rowid_field . ', ' . implode(', ', $select) . ', d.' . $this->active_field;
         if ($this->has_entity) $sql .= ', d.' . $this->entity_field;
         // Add where from hooks
-        $reshook = $hookmanager->executeHooks('printFieldListSelect', $parameters, $this);
+        $reshook = $hookmanager->executeHooks('printADFetchLinesSelect', $parameters, $this);
         $sql .= $hookmanager->resPrint;
         $sql .= ' FROM ' . MAIN_DB_PREFIX . $this->table_name . ' as d ' . $from;
         // Add where from hooks
-        $reshook = $hookmanager->executeHooks('printFieldListFrom', $parameters, $this);
+        $reshook = $hookmanager->executeHooks('printADFetchLinesFrom', $parameters, $this);
         $sql .= $hookmanager->resPrint;
         if($filter_active >= 0) $where[] = 'd.' . $this->active_field . ' = ' . $filter_active;
         if($this->is_multi_entity && $this->has_entity) $where[] = 'd.' . $this->entity_field . ' IN (' . getEntity('dictionary', 1) . ')';
         $sql .= !empty($where) ? ' WHERE ' . implode(' AND ', $where) : '';
         // Add where from hooks
-        $reshook = $hookmanager->executeHooks('printFieldListWhere', $parameters, $this);
+        $reshook = $hookmanager->executeHooks('printADFetchLinesWhere', $parameters, $this);
         $sql .= $hookmanager->resPrint;
         $sql .= ' GROUP BY ' . $this->rowid_field;
         $sql .= !empty($having) ? ' HAVING ' . implode(' AND ', $having) : '';
         // Add where from hooks
-        $reshook = $hookmanager->executeHooks('printFieldListHaving', $parameters, $this);
+        $reshook = $hookmanager->executeHooks('printADFetchLinesHaving', $parameters, $this);
         $sql .= (empty($having) && !empty($hookmanager->resPrint) ? ' HAVING ' : '') . $hookmanager->resPrint;
         $sql .= $this->db->order($sortfield, $sortorder);
         $sql .= $this->db->plimit($limit, $offset);
@@ -1446,10 +1448,6 @@ class Dictionary extends CommonObject
                         $keyList = $InfoFieldList[2] . ' as rowid';
                     }
                     $fields_label = explode('|', $InfoFieldList[1]);
-                    if (is_array($fields_label)) {
-                        $keyList .= ', ';
-                        $keyList .= implode(', ', $fields_label);
-                    }
 
                     $sqlStatement .= ' LEFT JOIN (';
                     $sqlStatement .= '   SELECT ' . $keyList;
@@ -1477,6 +1475,71 @@ class Dictionary extends CommonObject
      * @return  string                  Return the sql statement for the custom field in the from clause
 	 */
     protected function fromCustomFieldSqlStatement($field) {
+	    return '';
+    }
+
+    /**
+	 * Return the sql filter statement for the field in the from clause
+	 *
+     * @param   array       $field      Description of the field
+     * @param   mixed       $value      Value searched
+     * @return  string                  Return the sql statement for the field in the having clause
+	 */
+    private function fromFilterFieldSqlStatement($field, $value)
+    {
+        if (!empty($field)) {
+            switch ($field['type']) {
+                case 'chkbxlst':
+                    if (!is_array($value)) {
+                        // 0 : tableName
+                        // 1 : label field name
+                        // 2 : key fields name (if differ of rowid)
+                        // 3 : key field parent (for dependent lists)
+                        // 4 : where clause filter on column or table extrafield, syntax field='value' or extra.field=value
+                        $InfoFieldList = explode(":", (string)$field['options']);
+
+                        $keyList = 'rowid';
+                        if (count($InfoFieldList) >= 3) {
+                            $keyList = $InfoFieldList[2] . ' as rowid';
+                        }
+                        $fields_label = explode('|', $InfoFieldList[1]);
+                        if (is_array($fields_label)) {
+                            $keyList .= ', ';
+                            $keyList .= implode(', ', $fields_label);
+                        }
+
+                        $sqlStatement  = ' INNER JOIN (';
+                        $sqlStatement .= '   SELECT DISTINCT l.fk_line';
+                        $sqlStatement .= '   FROM ' . MAIN_DB_PREFIX . $this->table_name . '_cbl_' . $field['name'] . ' AS l';
+                        $sqlStatement .= '   INNER JOIN (';
+                        $sqlStatement .= '     SELECT ' . $keyList;
+                        $sqlStatement .= '     FROM ' . MAIN_DB_PREFIX . $InfoFieldList[0] . (strpos($InfoFieldList[4], 'extra') !== false ? ' as main' : '');
+                        $sqlStatement .= '     WHERE ' . natural_search($fields_label, $value, 0, 1);
+                        $sqlStatement .= '   ) AS v ON (l.fk_target = v.rowid)';
+                        $sqlStatement .= ') AS search_cbl_' . $field['name'] . ' ON (search_cbl_' . $field['name'] . '.fk_line = d.' . $this->rowid_field . ')';
+
+                        return $sqlStatement;
+                    } else {
+                        return '';
+                    }
+                case 'custom':
+                    return $this->fromFilterCustomFieldSqlStatement($field, $value);
+                default: // varchar, text, int, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
+                    return '';
+            }
+        }
+
+        return '';
+    }
+
+    /**
+	 * Return the sql filter statement for the custom field in the from clause
+	 *
+     * @param   array       $field      Description of the field
+     * @param   mixed       $value      Value searched
+     * @return  string                  Return the sql statement for the custom field in the having clause
+	 */
+    protected function fromFilterCustomFieldSqlStatement($field, $value) {
 	    return '';
     }
 
@@ -1588,29 +1651,9 @@ class Dictionary extends CommonObject
     {
         if (!empty($field)) {
             switch ($field['type']) {
-                case 'chkbxlst':
-                    if (!is_array($value)) {
-                        // 0 : tableName
-                        // 1 : label field name
-                        // 2 : key fields name (if differ of rowid)
-                        // 3 : key field parent (for dependent lists)
-                        // 4 : where clause filter on column or table extrafield, syntax field='value' or extra.field=value
-                        $InfoFieldList = explode(":", (string)$field['options']);
-
-                        $fields_label = explode('|', $InfoFieldList[1]);
-                        $fields = array();
-                        foreach ($fields_label as $label) {
-                            $tmp = explode('.', $label);
-                            $fields[] = 'cbl_val_' . $field['name'] . '.' . (isset($tmp[1]) ? $tmp[1] : $label);
-                        }
-
-                        return natural_search($fields, $value, 0, 1);
-                    } else {
-                        return '';
-                    }
                 case 'custom':
                     return $this->havingCustomFieldSqlStatement($field, $value);
-                default: // varchar, text, int, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
+                default: // varchar, text, int, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, chkbxlst, radio, checkbox, link, unknown
                     return '';
             }
         }
@@ -2787,7 +2830,7 @@ class DictionaryLine extends CommonObjectLine
                                 if (is_array($value)) {
                                     $value_arr = $value;
                                 } elseif (!empty($value)) {
-                                    $value_arr = explode(',', (string)$value);
+                                    $value_arr = array_filter(array_map('trim', explode(',', (string)$value)), 'strlen');
                                 }
                                 foreach ($value_arr as $value_id) {
                                     $insert_values[] = '(' . $this->id . ', ' . $value_id . ')';
@@ -2911,7 +2954,7 @@ class DictionaryLine extends CommonObjectLine
                                 if (is_array($value)) {
                                     $value_arr = $value;
                                 } elseif (!empty($value)) {
-                                    $value_arr = explode(',', (string)$value);
+                                    $value_arr = array_filter(array_map('trim', explode(',', (string)$value)), 'strlen');
                                 }
                                 foreach ($value_arr as $value_id) {
                                     $insert_values[] = '(' . $this->id . ', ' . $value_id . ')';
@@ -3457,7 +3500,7 @@ class DictionaryLine extends CommonObjectLine
                     if (is_array($value)) {
                         $value_arr = $value;
                     } else {
-                        $value_arr = explode(',', (string)$value);
+                        $value_arr = array_filter(explode(',', (string)$value), 'strlen');
                     }
                     $toprint = array();
                     if (is_array($value_arr)) {
@@ -3474,7 +3517,7 @@ class DictionaryLine extends CommonObjectLine
                         if ($value === NULL) {
                             $value_arr = array('NULL');
                         } else {
-                            $value_arr = explode(',', (string)$value);
+                            $value_arr = array_filter(explode(',', (string)$value), 'strlen');
                         }
                     }
 
@@ -3850,7 +3893,7 @@ class DictionaryLine extends CommonObjectLine
                         if (is_array($value)) {
                             $value_arr = $value;
                         } else {
-                            $value_arr = explode(',', (string)$value);
+                            $value_arr = array_filter(explode(',', (string)$value), 'strlen');
                         }
                         $out = $form->multiselectarray($fieldHtmlName, (empty($field['options']) ? null : $field['options']), $value_arr, '', 0, '', 0, '100%');
                         break;
@@ -3858,7 +3901,7 @@ class DictionaryLine extends CommonObjectLine
                         if (is_array($value)) {
                             $value_arr = $value;
                         } else {
-                            $value_arr = explode(',', (string)$value);
+                            $value_arr = array_filter(explode(',', (string)$value), 'strlen');
                         }
 
                         $InfoFieldList = explode(":", (string)$field['options']);

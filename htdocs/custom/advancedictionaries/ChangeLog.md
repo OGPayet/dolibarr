@@ -3,6 +3,10 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.7] - 07-12-2018
+- Correction sur les filtre texte sur les champs de type 'chkbxlst'.
+- Correction d'affichage si pas de valeurs selectionné pour les champs de type 'checkbox'.
+
 ## [4.0.6] - 16-11-2018
 ### Ajouter
 - Ajout de l'API pour la gestion des dictionnaires.
