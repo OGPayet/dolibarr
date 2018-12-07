@@ -178,7 +178,7 @@ if ($action == 'createof' && GETPOST('createofrun') && $user->rights->factory->c
                 $componentProductQty = intval($componentProductQtyPost);
 
                 // check qty and at least one warehouse
-                if ($componentProductQty>0 && empty($componentProductIdEntrepot)) {
+                if ($componentProductQty>0 && empty($componentProductIdEntrepot) && $componentProduct->type == PRODUCT::TYPE_PRODUCT) {
                     $error++;
                     $factory->error    = $errorLine . ' : ' . $langs->trans('ErrorFieldRequired', $langs->transnoentities('Warehouse'));
                     $factory->errors[] = $factory->error;
@@ -728,10 +728,14 @@ if ($id || $ref) {
                     print '</td>';
 
                     // dispatch component warehouse
-                    $componentEntrepotId = GETPOST($dispatcherPrefix . 'id_entrepot_' . $dispatcherSuffix, 'int') ? GETPOST($dispatcherPrefix . 'id_entrepot_' . $dispatcherSuffix, 'int') : '';
-                    print '<td>';
-                    print $formproduct->selectWarehouses($componentEntrepotId, $dispatcherPrefix . 'id_entrepot_' . $dispatcherSuffix, 'warehouseopen,warehouseinternal', 0, 0, $dispactherList['id'], '', 0, 1, null, 'minwidth100',  '', 1, TRUE);
-                    print '</td>';
+                    if ($componentProduct->type == PRODUCT::TYPE_PRODUCT) {
+                        $componentEntrepotId = GETPOST($dispatcherPrefix . 'id_entrepot_' . $dispatcherSuffix, 'int') ? GETPOST($dispatcherPrefix . 'id_entrepot_' . $dispatcherSuffix, 'int') : '';
+                        print '<td>';
+                        print $formproduct->selectWarehouses($componentEntrepotId, $dispatcherPrefix . 'id_entrepot_' . $dispatcherSuffix, 'warehouseopen,warehouseinternal', 0, 0, $dispactherList['id'], '', 0, 1, null, 'minwidth100', '', 1, TRUE);
+                        print '</td>';
+                    } else {
+                        print '<td></td>';
+                    }
 
                     // dispatch component qty to use
                     if (!isset($_POST[$dispatcherPrefix . 'qty_' . $dispatcherSuffix])) {
