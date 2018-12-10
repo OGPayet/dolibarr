@@ -267,6 +267,7 @@ if ($socid > 0) {
 
     $langs->load("companies");
 
+    require_once DOL_DOCUMENT_ROOT . '/core/lib/company.lib.php';
     $head = societe_prepare_head($societe);
 
     dol_fiche_head($head, 'rm_request_list', $langs->trans("ThirdParty"), -1, 'company');
