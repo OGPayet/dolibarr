@@ -183,11 +183,11 @@ class InterfaceSynergiesTech extends DolibarrTriggers
                     if ($action == "PROPAL_CLOSE_SIGNED" && empty($_FILES['addfile']['name'])) {
                         $error_msg = $langs->trans('ErrorFieldRequired', $langs->transnoentitiesnoconv('File'));
                         // file is required
-                        setEventMessage($error_msg, 'errors');
+                        //setEventMessage($error_msg, 'errors');
 
                         dol_syslog(__METHOD__ . " Error : " . $error_msg, LOG_ERR);
                         //header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=statut&' . http_build_query($_POST));
-                        exit(0);
+                        //exit(0);
                     }
 
                     // upload file
@@ -201,7 +201,7 @@ class InterfaceSynergiesTech extends DolibarrTriggers
                         if ($ret <= 0) {
                             dol_syslog(__METHOD__ . " Error dol_add_file_process : filedir=" . $filedir, LOG_ERR);
                             //header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=statut&' . http_build_query($_POST));
-                            exit(0);
+                            //exit(0);
                         }
                     }
                 }
