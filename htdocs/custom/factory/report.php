@@ -1165,7 +1165,7 @@ if (count($dispatchLineList) > 0) {
 
 	$compositionpresente=1;
 	print '<table class="border" >';
-	print '<tr class="liste_titre">';
+	print '<tr>';
     print '<td class="liste_titre" width="50px" align="center">' . $langs->trans('FactoryBuildIndice') . '</td>';
 	print '<td class="liste_titre" width=100px align="left">' . $langs->trans('Ref') . '</td>';
 	print '<td class="liste_titre" width=200px align="left">' . $langs->trans('Label') . '</td>';

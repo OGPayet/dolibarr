@@ -681,25 +681,25 @@ print_fiche_titre($langs->trans("FactorisedProductsNumber").' : '.count($prods_a
 if (count($prods_arbo) > 0) {
 	$compositionpresente=1;
 	print '<table class="border" >';
-	print '<tr class="liste_titre">';
+	print '<tr>';
 	print '<td class="liste_titre" width=100px align="left">'.$langs->trans("Ref").'</td>';
-	print '<td class="liste_titre" width=200px align="left">'.$langs->trans("Label").'</td>';
-	print '<td class="liste_titre" width=50px align="center">'.$langs->trans("QtyNeedOF").'</td>';
+	print '<td class="liste_titre" width=200px align="left" style="color:#000000;">'.$langs->trans("Label").'</td>';
+	print '<td class="liste_titre" width=50px align="center" style="color:#000000;">'.$langs->trans("QtyNeedOF").'</td>';
 	// on affiche la colonne stock m�me si cette fonction n'est pas active
-	print '<td class="liste_titre" width=50px align="center">'.$langs->trans("QtyOfWarehouse").'</td>';
-	print '<td class="liste_titre" width=100px align="center">'.$langs->trans("QtyOrder").'</td>';
+	print '<td class="liste_titre" width=50px align="center" style="color:#000000;">'.$langs->trans("QtyOfWarehouse").'</td>';
+	print '<td class="liste_titre" width=100px align="center" style="color:#000000;">'.$langs->trans("QtyOrder").'</td>';
 	if ($user->rights->factory->showprice) {
 		if ($conf->stock->enabled) { 	// we display vwap titles
-			print '<td class="liste_titre" width=100px align="center">'.$langs->trans("UnitPmp").'</td>';
-			print '<td class="liste_titre" width=100px align="center">'.$langs->trans("CostPmpHT").'</td>';
+			print '<td class="liste_titre" width=100px align="center" style="color:#000000;">'.$langs->trans("UnitPmp").'</td>';
+			print '<td class="liste_titre" width=100px align="center" style="color:#000000;">'.$langs->trans("CostPmpHT").'</td>';
 		} else { 	// we display price as latest purchasing unit price title
-			print '<td class="liste_titre" width=100px align="center">'.$langs->trans("UnitHA").'</td>';
-			print '<td class="liste_titre" width=100px align="center">'.$langs->trans("CostHA").'</td>';
+			print '<td class="liste_titre" width=100px align="center" style="color:#000000;">'.$langs->trans("UnitHA").'</td>';
+			print '<td class="liste_titre" width=100px align="center" style="color:#000000;">'.$langs->trans("CostHA").'</td>';
 		}
-		print '<td class="liste_titre" width=100px align="right">'.$langs->trans("SellPrice").'</td>';
-		print '<td class="liste_titre" width=100px align="right">'.$langs->trans("FactorySellingPriceHT").'</td>';
-		print '<td class="liste_titre" width=100px align="right">'.$langs->trans("UnitProfitAmount").'</td>';
-		print '<td class="liste_titre" width=100px align="right">'.$langs->trans("ProfitAmount").'</td>';
+		print '<td class="liste_titre" width=100px align="right" style="color:#000000;">'.$langs->trans("SellPrice").'</td>';
+		print '<td class="liste_titre" width=100px align="right" style="color:#000000;">'.$langs->trans("FactorySellingPriceHT").'</td>';
+		print '<td class="liste_titre" width=100px align="right" style="color:#000000;">'.$langs->trans("UnitProfitAmount").'</td>';
+		print '<td class="liste_titre" width=100px align="right" style="color:#000000;">'.$langs->trans("ProfitAmount").'</td>';
 	}
 
 	print '</tr>';
