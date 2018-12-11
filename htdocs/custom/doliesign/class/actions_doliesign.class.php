@@ -184,7 +184,7 @@ class ActionsDoliEsign
 					$result = $doliEsign->fetch(null, null, $object->id, $object->element);
 					if ($result > 0) {
 						$signStatus = $doliEsign->status;
-						if ($signStatus >= DoliEsign::STATUS_SIGNED) {
+						if ($signStatus == DoliEsign::STATUS_SIGNED) {
 							$object->cloture($user, Propal::STATUS_SIGNED, $langs->trans('SignedByDoliEsign'));
 						}
 					}
