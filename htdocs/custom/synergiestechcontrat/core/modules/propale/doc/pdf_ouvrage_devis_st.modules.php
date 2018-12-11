@@ -35,6 +35,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
 
 dol_include_once('/synergiestechcontrat/class/libPDFST.trait.php');
+dol_include_once('/synergiestech/lib/opendsi_pdf.lib.php');
 
 
 /**
@@ -275,7 +276,9 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
 				$reshook=$hookmanager->executeHooks('beforePDFCreation',$parameters,$object,$action);    // Note that $action and $object may have been modified by some hooks
 
 				// Create pdf instance
-                $pdf=pdf_getInstance($this->format);
+                $pdf = opendsi_pdf_getInstance($this->format);
+                $pdf->backgroundImagePath = dol_buildpath('/synergiestechcontrat/img/fond_2.jpg');
+
                 $default_font_size = pdf_getPDFFontSize($outputlangs);	// Must be after pdf_getInstance
 	            $pdf->SetAutoPageBreak(1,0);
 
@@ -283,6 +286,9 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
                 {
                     $pdf->setPrintHeader(false);
                     $pdf->setPrintFooter(false);
+                }
+                if (!empty($pdf->backgroundImagePath) && (class_exists('TCPDI') || class_exists('TCPDF'))) {
+                    $pdf->setPrintHeader(true);
                 }
                 $pdf->SetFont(pdf_getPDFFont($outputlangs));
                 // Set path to the background PDF File
@@ -425,7 +431,7 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
 					$imglinesize=array();
 					if (! empty($realpatharray[$i])) $imglinesize=pdf_getSizeForImage($realpatharray[$i]);
 
-					$pdf->setTopMargin($tab_top_newpage);
+					$pdf->setTopMargin($tab_top_newpage+6);
 					$pdf->setPageOrientation('', 1, $heightforfooter+$heightforfreetext+$heightforsignature+$heightforinfotot);	// The only function to edit the bottom margin of current page to set it.
 					$pageposbefore=$pdf->getPage();
 
@@ -465,15 +471,13 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
 					$pdf->startTransaction();
 					pdf_writelinedesc($pdf,$object,$i,$outputlangs,$this->posxpicture-$curX,3,$curX,$curY,$hideref,$hidedesc);
 					$pageposafter=$pdf->getPage();
-					$breakpage = 0;
 					if ($pageposafter > $pageposbefore)	// There is a pagebreak
 					{
-						$breakpage = 6;
 						$pdf->rollbackTransaction(true);
 						$pageposafter=$pageposbefore;
 						//print $pageposafter.'-'.$pageposbefore;exit;
 						$pdf->setPageOrientation('', 1, $heightforfooter);	// The only function to edit the bottom margin of current page to set it.
-						pdf_writelinedesc($pdf,$object,$i,$outputlangs,$this->posxpicture-$curX,3,$curX,$curY+$breakpage,$hideref,$hidedesc);
+						pdf_writelinedesc($pdf,$object,$i,$outputlangs,$this->posxpicture-$curX,3,$curX,$curY,$hideref,$hidedesc);
 
 						$pageposafter=$pdf->getPage();
 						$posyafter=$pdf->GetY();
@@ -509,7 +513,7 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
 
 					// We suppose that a too long description or photo were moved completely on next page
 					if ($pageposafter > $pageposbefore && empty($showpricebeforepagebreak)) {
-						$pdf->setPage($pageposafter); $curY = $tab_top_newpage;
+						$pdf->setPage($pageposafter); $curY = $tab_top_newpage+6;
 					}
 
 					$pdf->SetFont('','', $default_font_size - 1);   // On repositionne la police par defaut
@@ -519,7 +523,7 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
 					{
 						$vat_rate = pdf_getlinevatrate($object, $i, $outputlangs, $hidedetails);
 						$pdf->SetXY($this->posxtva, $curY);
-						$pdf->MultiCell($this->posxup-$this->posxtva-0.8, 3+$breakpage, $vat_rate, 0, 'R');
+						$pdf->MultiCell($this->posxup-$this->posxtva-0.8, 3, $vat_rate, 0, 'R');
 					}
 
 					// Unit price before discount
@@ -528,19 +532,19 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
                         $up_excl_tax.=' €';
                     }
 					$pdf->SetXY($this->posxup-1.6, $curY);
-					$pdf->MultiCell($this->posxqty-$this->posxup+1.2, 4+$breakpage, $up_excl_tax, 0, 'R', 0);
+					$pdf->MultiCell($this->posxqty-$this->posxup+1.2, 4, $up_excl_tax, 0, 'R', 0);
 
 					// Quantity
 					$qty = pdf_getlineqty($object, $i, $outputlangs, $hidedetails);
-					$pdf->SetXY($this->posxqty, $curY+$breakpage);
+					$pdf->SetXY($this->posxqty, $curY);
 					// Enough for 6 chars
 					if($conf->global->PRODUCT_USE_UNITS)
 					{
-						$pdf->MultiCell($this->posxunit-$this->posxqty-0.8, 4+$breakpage, $qty, 0, 'R');
+						$pdf->MultiCell($this->posxunit-$this->posxqty-0.8, 4, $qty, 0, 'R');
 					}
 					else
 					{
-						$pdf->MultiCell($this->posxdiscount-$this->posxqty-0.8, 4+$breakpage, $qty, 0, 'R');
+						$pdf->MultiCell($this->posxdiscount-$this->posxqty-0.8, 4, $qty, 0, 'R');
 					}
 
 					// Unit
@@ -548,7 +552,7 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
 					{
 						$unit = pdf_getlineunit($object, $i, $outputlangs, $hidedetails, $hookmanager);
 						$pdf->SetXY($this->posxunit, $curY);
-						$pdf->MultiCell($this->posxdiscount-$this->posxunit-0.8, 4+$breakpage, $unit, 0, 'L');
+						$pdf->MultiCell($this->posxdiscount-$this->posxunit-0.8, 4, $unit, 0, 'L');
 					}
 
 					// Discount on line
@@ -557,7 +561,7 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
 					{
 						$pdf->SetXY($this->posxdiscount-2, $curY);
 						$remise_percent = pdf_getlineremisepercent($object, $i, $outputlangs, $hidedetails);
-						$pdf->MultiCell($this->postotalht-$this->posxdiscount+2, 3+$breakpage, $remise_percent, 0, 'R');
+						$pdf->MultiCell($this->postotalht-$this->posxdiscount+2, 3, $remise_percent, 0, 'R');
 					}
 
 					// Total HT line
@@ -566,7 +570,7 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
                         $total_excl_tax.=' €';
                     }
 					$pdf->SetXY($this->postotalht-8, $curY);
-					$pdf->MultiCell($this->page_largeur-$this->marge_droite-$this->postotalht+8, 3+$breakpage, $total_excl_tax, 0, 'R', 0);
+					$pdf->MultiCell($this->page_largeur-$this->marge_droite-$this->postotalht+8, 3, $total_excl_tax, 0, 'R', 0);
 
 					// Collecte des totaux par valeur de tva dans $this->tva["taux"]=total_tva
 					if ($conf->multicurrency->enabled && $object->multicurrency_tx != 1) $tvaligne=$object->lines[$i]->multicurrency_total_tva;
@@ -1434,14 +1438,17 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
 		$outputlangs->load("bills");
 		$outputlangs->load("propal");
 		$outputlangs->load("companies");
+        if ($conf->companyrelationships->enabled) {
+            $outputlangs->load("companyrelationships@companyrelationships");
+        }
 
 		$default_font_size = pdf_getPDFFontSize($outputlangs);
 
 		pdf_pagehead($pdf,$outputlangs,$this->page_hauteur);
 
         //OSCSS BEGIN
-        $bgImage = dol_buildpath('/synergiestechcontrat/img/fond_2.jpg');
-        $this->setBackgroundImage($pdf, $bgImage);
+        //$bgImage = dol_buildpath('/synergiestechcontrat/img/fond_2.jpg');
+        //$this->setBackgroundImage($pdf, $bgImage);
         //OSCSS END
 
 		//  Show Draft Watermark
@@ -1584,13 +1591,31 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
 
 		if ($showaddress)
 		{
+            //-------------------------------------------------------------------------------
+            // Open DSI -- Benefactor -- Begin
+            $bulletWidth     = 6;
+            $multiCellBorder = 0;
+            $showBenefactor  = FALSE;
+            if ($conf->companyrelationships->enabled) {
+                $object->fetch_optionals();
+                $benefactor_id = $object->array_options['options_companyrelationships_fk_soc_benefactor'];
+                if (isset($benefactor_id) && $benefactor_id > 0 && $benefactor_id != $object->thirdparty->id) {
+                    $benefactor = new Societe($this->db);
+                    $benefactor->fetch($benefactor_id);
+                    $showBenefactor = TRUE;
+                }
+            }
 
+            if ($showBenefactor === TRUE) {
+                $w = intval(($this->page_largeur - ($this->marge_gauche+7) - $this->marge_droite) / 3);
+            }
+            // Open DSI -- Benefactor -- End
+            //-------------------------------------------------------------------------------
 
-
-            $posx  = $this->marge_gauche + 7;
+            $posx  = $this->marge_gauche;
             $posy  = $this->marge_haute;
-            $pdf->SetFont('', 'B', $default_font_size + 8);
-            $pdf->SetXY($posx - 5, $posy - 1);
+            $pdf->SetFont('', 'B', $default_font_size);
+            $pdf->SetXY($posx, $posy);
             //$pdf->SetTextColor(explode());
             call_user_func_array(array($pdf, 'SetTextColor'), $this->main_color);
             $title = $outputlangs->transnoentities("PropalMAJ");
@@ -1598,26 +1623,24 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
             if ($object->type == 2) $title = $outputlangs->transnoentities("InvoiceAvoir");
             if ($object->type == 3) $title = $outputlangs->transnoentities("InvoiceDeposit");
             if ($object->type == 4) $title = $outputlangs->transnoentities("InvoiceProFormat");
-            $pdf->MultiCell($w, 3, $title, '', 'L');
+            $pdf->MultiCell($w, 5, $title, $multiCellBorder, 'L');
 
-            $pdf->SetFont('', '', $default_font_size);
+            $pdf->SetFont('', '', $default_font_size-2);
+            $bulletSize = 1;
 
             $posy += 10;
-            $pdf->SetXY($posx, $posy);
+            $pdf->SetXY($posx+$bulletWidth, $posy);
             $pdf->SetTextColor(0, 0, 60);
-            $this->addBullet($pdf);
-            $pdf->MultiCell($w, 4, $outputlangs->transnoentities("NumberPropal")." : ".$outputlangs->convToOutputCharset($object->ref), '', 'L');
+            $this->addBullet($pdf, $bulletSize);
+            $pdf->MultiCell($w-$bulletWidth, 4, $outputlangs->transnoentities("NumberPropal")." : ".$outputlangs->convToOutputCharset($object->ref), $multiCellBorder, 'L');
 
             $posy += 1;
-            $pdf->SetFont('', '', $default_font_size);
-
-
             if ($object->thirdparty->code_client) {
                 $posy += 4;
-                $pdf->SetXY($posx, $posy);
+                $pdf->SetXY($posx+$bulletWidth, $posy);
                 $pdf->SetTextColor(0, 0, 60);
-                $this->addBullet($pdf);
-                $pdf->MultiCell($w, 3, $outputlangs->transnoentities("CustomerCode")." : ".$outputlangs->transnoentities($object->thirdparty->code_client), '', 'L');
+                $this->addBullet($pdf, $bulletSize);
+                $pdf->MultiCell($w-$bulletWidth, 3, $outputlangs->transnoentities("CustomerCode")." : ".$outputlangs->transnoentities($object->thirdparty->code_client), $multiCellBorder, 'L');
             }
 
 //            $objectidnext = $object->getIdReplacingInvoice('validated');
@@ -1653,33 +1676,33 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
 //            }
 
             $posy += 5;
-            $pdf->SetXY($posx, $posy);
+            $pdf->SetXY($posx+$bulletWidth, $posy);
             $pdf->SetTextColor(0, 0, 60);
-            $this->addBullet($pdf);
-            $pdf->MultiCell($w, 3, $outputlangs->transnoentities("DateDebutDevis")." : ".dol_print_date($object->date, "day", false, $outputlangs), '', 'L');
+            $this->addBullet($pdf, $bulletSize);
+            $pdf->MultiCell($w-$bulletWidth, 3, $outputlangs->transnoentities("DateDebutDevis")." : ".dol_print_date($object->date, "day", false, $outputlangs), $multiCellBorder, 'L');
 
             if (!empty($conf->global->INVOICE_POINTOFTAX_DATE)) {
                 $posy += 5;
-                $pdf->SetXY($posx, $posy);
+                $pdf->SetXY($posx+$bulletWidth, $posy);
                 $pdf->SetTextColor(0, 0, 60);
-                $this->addBullet($pdf);
-                $pdf->MultiCell($w, 3, $outputlangs->transnoentities("DatePointOfTax")." : ".dol_print_date($object->date_pointoftax, "day", false, $outputlangs), '', 'L');
+                $this->addBullet($pdf, $bulletSize);
+                $pdf->MultiCell($w-$bulletWidth, 3, $outputlangs->transnoentities("DatePointOfTax")." : ".dol_print_date($object->date_pointoftax, "day", false, $outputlangs), $multiCellBorder, 'L');
             }
 
             if ($object->type != 2) {
                 $posy += 5;
-                $pdf->SetXY($posx, $posy);
+                $pdf->SetXY($posx+$bulletWidth, $posy);
                 $pdf->SetTextColor(0, 0, 60);
-                $this->addBullet($pdf);
-                $pdf->MultiCell($w, 3, $outputlangs->transnoentities("DateFinDevis")." : ".dol_print_date($object->fin_validite, "day", false, $outputlangs, true), '', 'L');
+                $this->addBullet($pdf, $bulletSize);
+                $pdf->MultiCell($w-$bulletWidth, 3, $outputlangs->transnoentities("DateFinDevis")." : ".dol_print_date($object->fin_validite, "day", false, $outputlangs, true), $multiCellBorder, 'L');
             }
 
             if ($object->ref_client) {
                 $posy += 5;
-                $pdf->SetXY($posx, $posy);
+                $pdf->SetXY($posx+$bulletWidth, $posy);
                 $pdf->SetTextColor(0, 0, 60);
-                $this->addBullet($pdf);
-                $pdf->MultiCell($w, 3, $outputlangs->transnoentities("ObjetFAC")." : ".$outputlangs->convToOutputCharset($object->ref_client), '', 'L');
+                $this->addBullet($pdf, $bulletSize);
+                $pdf->MultiCell($w-$bulletWidth, 3, $outputlangs->transnoentities("ObjetFAC")." : ".$outputlangs->convToOutputCharset($object->ref_client), $multiCellBorder, 'L');
             }
 
             // Get contact
@@ -1689,10 +1712,10 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
                     $usertmp = new User($this->db);
                     $usertmp->fetch($arrayidcontact[0]);
                     $posy    += 5;
-                    $pdf->SetXY($posx, $posy);
+                    $pdf->SetXY($posx+$bulletWidth, $posy);
                     $pdf->SetTextColor(0, 0, 60);
-                    $this->addBullet($pdf);
-                    $pdf->MultiCell($w, 3, $langs->trans("SalesRepresentative")." : ".$usertmp->getFullName($langs), '', 'L');
+                    $this->addBullet($pdf, $bulletSize);
+                    $pdf->MultiCell($w-$bulletWidth, 3, $langs->trans("SalesRepresentative")." : ".$usertmp->getFullName($langs), $multiCellBorder, 'L');
                 }
             }
 
@@ -1701,8 +1724,51 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
             // Show list of linked objects
             // $posy = pdf_writeLinkedObjects($pdf, $object, $outputlangs, $posx, $posy, $w, 3, 'R', $default_font_size);
 
+            //-------------------------------------------------------------------------------
+            // Open DSI -- Benefactor -- Begin
+            if ($showBenefactor === TRUE) {
+                $usecontact = FALSE;
 
+                $carac_benefactor_name = pdfBuildThirdpartyName($benefactor, $outputlangs, 1);
 
+                $carac_benefactor = pdf_build_address($outputlangs, $this->emetteur, $benefactor, ($usecontact ? $benefactor->contact : ''), $usecontact, 'target', $object);
+
+                $widthrecbox = $w;
+                $posy = $this->marge_haute;
+                $posx = $this->marge_gauche+$w+4;
+
+                // show benefactor frame
+                call_user_func_array(array($pdf, 'SetTextColor'), $this->main_color);
+                $pdf->SetFont('', 'B', $default_font_size);
+                $pdf->SetXY($posx, $posy);
+                $pdf->MultiCell($widthrecbox, 5, mb_strtoupper($outputlangs->transnoentities("CompanyRelationshipsBenefactorSite"), 'UTF-8'), $multiCellBorder, 'L');
+                $pdf->SetTextColor(0, 0, 0);
+
+                $posy = $pdf->getY();
+
+                // show benefactor name
+                $pdf->SetXY($posx, $posy + 1);
+                $pdf->SetFont('', 'B', $default_font_size-2);
+                $pdf->MultiCell($widthrecbox, 2, $carac_benefactor_name, $multiCellBorder, 'L');
+
+                $posy = $pdf->getY();
+
+                // show benefactor information
+                $pdf->SetFont('', '', $default_font_size-2);
+                $pdf->SetXY($posx+$bulletWidth, $posy + 1);
+                $this->addBullet($pdf, $bulletSize);
+                $pdf->MultiCell($widthrecbox-$bulletWidth, 4, $carac_benefactor, $multiCellBorder, 'L');
+
+                $posy = $pdf->getY();
+
+                // Show recipient email
+                $pdf->SetFont('', '', $default_font_size-2);
+                $pdf->SetXY($posx+$bulletWidth, $posy);
+                $this->addBullet($pdf, $bulletSize);
+                $pdf->MultiCell($widthrecbox-$bulletWidth, 4, (($usecontact) ? $benefactor->contact->email : $benefactor->email), $multiCellBorder, 'L');
+            }
+            // Open DSI -- Benefactor -- End
+            //-------------------------------------------------------------------------------
 
 
             // If BILLING contact defined on invoice, we use it
@@ -1726,42 +1792,48 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
             $carac_client = pdf_build_address($outputlangs, $this->emetteur, $object->thirdparty, ($usecontact ? $object->contact : ''), $usecontact, 'target', $object);
 
             // Show recipient
-            $widthrecbox = !empty($conf->global->MAIN_PDF_USE_ISO_LOCATION) ? 92 : 100;
-            if ($this->page_largeur < 210) $widthrecbox = 84; // To work with US executive format
+            if ($showBenefactor === FALSE) {
+                $widthrecbox = !empty($conf->global->MAIN_PDF_USE_ISO_LOCATION) ? 92 : 100;
+                if ($this->page_largeur < 210) $widthrecbox = 84; // To work with US executive format
+                $widthrecbox -= 20;
+            } else {
+                $widthrecbox = $w;
+            }
 
-			$widthrecbox -= 20;
-            $posy = $this->marge_haute + 5;
+            $posy = $this->marge_haute;
             $posx = $this->page_largeur - $this->marge_droite - $widthrecbox;
             if (!empty($conf->global->MAIN_INVERT_SENDER_RECIPIENT)) $posx = $this->marge_gauche;
 
             // Show recipient frame
             call_user_func_array(array($pdf, 'SetTextColor'), $this->main_color);
             $pdf->SetFont('', 'B', $default_font_size);
-            $pdf->SetXY($posx - 4, $posy - 5);
-            $pdf->MultiCell($widthrecbox, 5, $outputlangs->transnoentities("sentToMAJ"), 0, 'L');
+            $pdf->SetXY($posx, $posy);
+            $pdf->MultiCell($widthrecbox, 5, $outputlangs->transnoentities("sentToMAJ"), $multiCellBorder, 'L');
             //$pdf->Rect($posx, $posy, $widthrecbox, $hautcadre);
             $pdf->SetTextColor(0, 0, 0);
 
+            $posy = $pdf->getY();
+
             // Show recipient name
-            $pdf->SetXY($posx - 4, $posy + 1);
-            $pdf->SetFont('', 'B', $default_font_size);
-            $pdf->MultiCell($widthrecbox, 2, $carac_client_name, 0, 'L');
+            $pdf->SetXY($posx, $posy + 1);
+            $pdf->SetFont('', 'B', $default_font_size-2);
+            $pdf->MultiCell($widthrecbox, 2, $carac_client_name, $multiCellBorder, 'L');
 
             $posy = $pdf->getY();
 
             // Show recipient information
-            $pdf->SetFont('', '', $default_font_size);
-            $pdf->SetXY($posx + 2, $posy + 1);
-            $this->addBullet($pdf);
-            $pdf->MultiCell($widthrecbox, 4, $carac_client, 0, 'L');
+            $pdf->SetFont('', '', $default_font_size-2);
+            $pdf->SetXY($posx+$bulletWidth, $posy + 1);
+            $this->addBullet($pdf, $bulletSize);
+            $pdf->MultiCell($widthrecbox-$bulletWidth, 4, $carac_client, $multiCellBorder, 'L');
 
             $posy = $pdf->getY();
 
             // Show recipient email
-            $pdf->SetFont('', '', $default_font_size);
-            $pdf->SetXY($posx + 2, $posy);
-            $this->addBullet($pdf);
-            $pdf->MultiCell($widthrecbox, 4, (($usecontact) ? $object->contact->email : $object->thirdparty->email), 0, 'L');
+            $pdf->SetFont('', '', $default_font_size-2);
+            $pdf->SetXY($posx+$bulletWidth, $posy);
+            $this->addBullet($pdf, $bulletSize);
+            $pdf->MultiCell($widthrecbox-$bulletWidth, 4, (($usecontact) ? $object->contact->email : $object->thirdparty->email), $multiCellBorder, 'L');
 
 //
 //			// Sender properties

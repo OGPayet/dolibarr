@@ -44,6 +44,7 @@ CompanyRelationshipsListOfPrincipalCompanies  = Liste des donneurs d'ordres
 CompanyRelationshipsListOfBenefactorCompanies = Liste des bénéficiaires
 CompanyRelationshipsPrincipalCompany          = Donneur d'ordre
 CompanyRelationshipsBenefactorCompany         = Bénéficiaire
+CompanyRelationshipsBenefactorSite            = Site Bénéficiaire
 
 ############################################################
 ### Company Relationships : Confirm box

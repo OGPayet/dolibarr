@@ -21,14 +21,15 @@ trait libPDFST {
     var $debug = false;
 
     /**
-     * 	add a bullet
+     * Add a bullet
      *
-     * 	@param	PDF			$pdf            Object PDF
-     * 	@return void
+     * @param	PDF			$pdf            Object PDF
+     * @param   int         $size           [=2] size
+     * return void
      */
-    function addBullet(&$pdf)
+    function addBullet(&$pdf, $size=2)
     {
-        $pdf->Rect($pdf->GetX() - 4, $pdf->GetY() + 1, 2, 2, 'F', array(), $this->main_color);
+        $pdf->Rect($pdf->GetX() - 4, $pdf->GetY() + 1, $size, $size, 'F', array(), $this->main_color);
     }
 
     /**
