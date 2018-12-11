@@ -39,7 +39,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
 /**
  *	Classe to generate PDF orders with template Einstein
  */
-class pdf_ouvrage_com extends ModelePDFCommandes
+class pdf_ouvrage_com_st extends ModelePDFCommandes
 {
     var $db;
     var $name;
@@ -74,7 +74,7 @@ class pdf_ouvrage_com extends ModelePDFCommandes
 		$langs->load("products");
 
 		$this->db = $db;
-		$this->name = "einstein";
+		$this->name = "einstein_st";
 		$this->description = $langs->trans('PDFEinsteinDescription');
 
 		// Dimension page pour format A4

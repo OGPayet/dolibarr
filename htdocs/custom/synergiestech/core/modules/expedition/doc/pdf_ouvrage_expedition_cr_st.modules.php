@@ -1465,6 +1465,7 @@ class pdf_ouvrage_expedition_cr_st extends ModelePdfExpedition
 
         //-------------------------------------------------------------------------------
         // Modification - Open-DSI - Begin
+        $savObjectThirdparty = $object->thirdparty;
         if ($conf->companyrelationships->enabled) {
             $object->fetch_optionals();
             $benefactor_id = $object->array_options['options_companyrelationships_fk_soc_benefactor'];
@@ -1624,9 +1625,6 @@ class pdf_ouvrage_expedition_cr_st extends ModelePdfExpedition
 
 		if ($showaddress)
 		{
-
-
-
             $posx  = $this->marge_gauche + 7;
             $posy  = $this->marge_haute;
             $pdf->SetFont('', 'B', $default_font_size + 8);
@@ -1892,6 +1890,8 @@ class pdf_ouvrage_expedition_cr_st extends ModelePdfExpedition
 //			$pdf->SetXY($posx+2,$posy);
 //			$pdf->MultiCell($widthrecbox, 4, $carac_client, 0, 'L');
 		}
+
+        $object->thirdparty = $savObjectThirdparty;
 
 		$pdf->SetTextColor(0,0,0);
 	}
