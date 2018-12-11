@@ -286,7 +286,7 @@ class pdf_ouvrage_expedition_cr_st extends ModelePdfExpedition
                     $pdf->setPrintHeader(false);
                     $pdf->setPrintFooter(false);
                 }
-                if (!empty($this->backgroundImagePath) && (class_exists('TCPDI') || class_exists('TCPDF'))) {
+                if (!empty($pdf->backgroundImagePath) && (class_exists('TCPDI') || class_exists('TCPDF'))) {
                     $pdf->setPrintHeader(true);
                 }
                 $pdf->SetFont(pdf_getPDFFont($outputlangs));
