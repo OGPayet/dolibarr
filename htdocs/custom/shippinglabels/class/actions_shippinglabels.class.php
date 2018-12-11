@@ -135,14 +135,17 @@ class ActionsShippinglabels
 				}
 				else
 				{
+                    $urlAction = '';
                     if (!empty($conf->companyrelationships->enabled)) {
                         // reset saved thirdparty
                         $object->socid = $savObjectSocId;
+                        $urlAction = '&action=builddoc';
                     }
 
 					$object->tracking_number=$service->trackingnumber;
 					$object->update($user);
-					Header("Location: ".$page.".php?id=".$object->id);
+					header("Location: ".$page.".php?id=".$object->id.$urlAction);
+					exit();
 				};
 			}
 		}
