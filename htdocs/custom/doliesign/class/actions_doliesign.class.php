@@ -499,7 +499,7 @@ class ActionsDoliEsign
 			$doliEsign = new DoliEsign($this->db);
 			if ($parameters['currentcontext'] == 'propalcard' && count($config->fetchListId('propal')) > 0) {
 				$active = true;
-				//$minStatus = Propal::STATUS_VALIDATED;
+				$minStatus = Propal::STATUS_VALIDATED;
 				// OpenDSI & Alexis LAURIER
 				// We add Propal::STATUS_AWAIT = 5 which is between Propal::STATUS_DRAFT = 0 && Propal::STATUS_VALIDATED = 1
 				// So proposals are draft is status is Propal::STATUS_DRAFT or Propal::STATUS_AWAIT
