@@ -280,3 +280,4 @@ STCBillingPeriodBegin       = Début de la période de facturation
 STCBillingPeriodBeginShort  = Début de la période
 STCBillingPeriodEnd         = Fin de la période de facturation
 STCBillingPeriodEndShort    = Fin de la période
+STCContractLineExtraDesc    = Formule contrat de maintenance

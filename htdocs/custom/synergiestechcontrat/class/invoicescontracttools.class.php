@@ -77,6 +77,9 @@ class InvoicesContractTools
     const EF_LAST_REVALUATION_INDEX_USED        = 'oldindicemonth';
     const EF_MONTH_FOR_NEW_REVALUATION_INDEX    = 'newindicemonth';
     const EF_CONTRACT_DURATION                  = 'duration';
+    // Specific Synergies-Tech - Begin
+    const EF_CONTRACT_FORMULA                   = 'formule';
+    // Specific Synergies-Tech - End
 
     /**
      * @var string      CSV separator to use
@@ -271,6 +274,7 @@ class InvoicesContractTools
         $frequency_of_billing = $contract->array_options['options_' . self::EF_FREQUENCY_BILLING];
         $watching_date = Carbon::createFromTimestamp($watching_date);
 
+        // TODO 'endOf' serait la base du 'bug' de la longueur des périodes facturées, 1 jour ajouté
         // Get watching period
         switch (intval($billing_type)) {
             // Billing to go
@@ -287,7 +291,7 @@ class InvoicesContractTools
                     // Semi
                     case 3:
                         $next_semi = $watching_date->copy()->addMonths(7 - ($watching_date->month % 6));
-                        return array('begin' => $next_semi->copy()->startOfMonth(), 'end' => $next_semi->copy()->addMonths(6)->endOfMonth());
+                        return array('begin' => $next_semi->copy()->startOfMonth(), 'end' => $next_semi->copy()->startOfMonth()->addMonths(6)->subDay());
                     // Annual
                     case 4:
                         $next_year = $watching_date->copy()->addYear();
@@ -310,7 +314,7 @@ class InvoicesContractTools
                     // Semi
                     case 3:
                         $next_semi = $watching_date->copy()->subMonths(($watching_date->month % 6) + 1);
-                        return array('begin' => $next_semi->copy()->startOfMonth(), 'end' => $next_semi->copy()->addMonths(6)->endOfMonth());
+                        return array('begin' => $next_semi->copy()->startOfMonth(), 'end' => $next_semi->copy()->startOfMonth()->addMonths(6)->subDay());
                     // Annual
                     case 4:
                         $next_year = $watching_date->copy()->subYear();
@@ -446,7 +450,7 @@ class InvoicesContractTools
         $billing_period_end = $billing_period['end']->copy();
 
         // Get watching period length
-        $watching_period_lenght = $watching_period_begin->diffInDays($watching_period_end);
+        $watching_period_lenght = $watching_period_begin->diffInDays($watching_period_end) + 1;
 
         // Set info into the report CSV
         $this->setCurrentReportLineValue(self::RLH_WATCHING_PERIOD_LENGHT, $watching_period_lenght);
@@ -521,9 +525,8 @@ class InvoicesContractTools
                 $second_billing_period_end = $billing_period_end->copy();
 
                 // Get length periods
-                // Todo first period -1 day ?
-                $first_billing_period_lenght = $first_billing_period_begin->diffInDays($first_billing_period_end);
-                $second_billing_period_lenght = $second_billing_period_begin->diffInDays($second_billing_period_end);
+                $first_billing_period_lenght = $first_billing_period_begin->diffInDays($first_billing_period_end) + 1;
+                $second_billing_period_lenght = $second_billing_period_begin->diffInDays($second_billing_period_end) + 1;
 
                 // Set info into the report CSV
                 $this->setCurrentReportLineValue(self::RLH_FIRST_BILLING_PERIOD_BEGIN, $first_billing_period_begin->toDateString());
@@ -647,7 +650,7 @@ class InvoicesContractTools
 
         // Calculate the billing period amount if not already calculated
         if (!isset($billing_period_amount)) {
-            $billing_period_lenght = $billing_period_begin->diffInDays($billing_period_end);
+            $billing_period_lenght = $billing_period_begin->diffInDays($billing_period_end) + 1;
 
             // Set info into the report CSV
             $this->setCurrentReportLineValue(self::RLH_BILLING_PERIOD_LENGHT, $billing_period_lenght);
@@ -763,7 +766,7 @@ class InvoicesContractTools
      */
     public function createInvoice(&$contract, $billing_period, $amount, $payment_condition=0, $payment_deadline_date=0, $ref_customer='', $use_customer_discounts=0, $test_mode=0)
     {
-        global $conf, $user;
+        global $conf, $langs, $user;
 
         require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
         $invoice = new Facture($this->db);
@@ -820,6 +823,14 @@ class InvoicesContractTools
         // Insert lines of the contract
         if (!$error) {
             $contract->fetch_lines();
+            // Specific Synergies-Tech - Begin
+            if (empty($contract->array_options)) {
+                $contract->fetch_optionals();
+            }
+            require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
+            $extrafields = new ExtraFields($this->db);
+            $extrafields->fetch_name_optionals_label($contract->element);
+            // Specific Synergies-Tech - End
 
             // Set invoice info into the report CSV
             $this->setCurrentReportLineValue(self::RLH_INVOICE_ID, $invoice->id);
@@ -827,25 +838,12 @@ class InvoicesContractTools
             $fk_parent_line = 0;
             $i = 0;
             foreach ($contract->lines as $line) {
-                $label = (!empty($line->label) ? $line->label : '');
-
-				if(!empty($line->label))
-				{
-					$label =$line->label;
-				}
-				elseif (!empty($line->libelle))
-				{
-					$label = $line->libelle;
-				}
-
+                $label = (!empty($line->label) ? $line->label : (!empty($line->libelle) ? $line->libelle : ''));
                 $desc = (!empty($line->desc) ? $line->desc : '');
 
-			$extrafields = new ExtraFields($this->db);
-			$extralabels=$extrafields->fetch_name_optionals_label($contract->table_element);
-			$contract->fetch($rowid);
-			$contract->fetch_optionals($rowid,$extralabels);
-
-                $desc = dol_concatdesc($desc, 'Formule contrat de maintenance : ' . $extrafields->showOutputField('formule',$contract->array_options['options_formule']));
+                // Specific Synergies-Tech - Begin
+                $desc = dol_concatdesc($desc, $langs->trans('STCContractLineExtraDesc') . ' : ' . $extrafields->showOutputField(self::EF_CONTRACT_FORMULA, $contract->array_options['options_' . self::EF_CONTRACT_FORMULA]));
+                // Specific Synergies-Tech - End
 
                 // Positive line
                 $product_type = ($line->product_type ? $line->product_type : 0);

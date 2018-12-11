@@ -1801,7 +1801,7 @@ class RequestManager extends CommonObject
 
         // Set assigned
         if (!$error && (!empty($this->assigned_user_ids) || !empty($this->assigned_usergroup_ids))) {
-            $result = $this->set_assigned($this->assigned_user_ids, $this->assigned_usergroup_ids);
+            $result = $this->set_assigned($user, $this->assigned_user_ids, $this->assigned_usergroup_ids);
             if ($result < 0) {
                 $error++;
             }
@@ -2047,7 +2047,7 @@ class RequestManager extends CommonObject
 
         // Delete assigned
         if (!$error) {
-            $res = $this->set_assigned(array(), array(), 1);
+            $res = $this->set_assigned($user, array(), array(), 1);
             if ($res < 0) {
                 $error++;
                 dol_syslog(__METHOD__ . " Errors delete assigned: " . $this->errorsToString(), LOG_ERR);
@@ -2122,15 +2122,14 @@ class RequestManager extends CommonObject
     /**
      *  Set assigned to the request
      *
+     *  @param  User    $user                       User that action
      *  @param	array	$assigned_user_ids          List of user ID assigned to the request
      *  @param 	array   $assigned_usergroup_ids 	List of usergroup ID assigned to the request
      *  @param  int		$notrigger			        Disable all triggers
      *  @return int                 		        <0 if KO, >0 if OK
      */
-    public function set_assigned($assigned_user_ids, $assigned_usergroup_ids, $notrigger=0)
+    public function set_assigned(User $user, $assigned_user_ids, $assigned_usergroup_ids, $notrigger=0)
     {
-        global $user;
-
         dol_syslog(get_class($this)."::set_assigned assigned_user_ids:".implode(', ', $assigned_user_ids).", assigned_usergroup_ids:".implode(', ', $assigned_usergroup_ids).", notrigger:$notrigger", LOG_DEBUG);
 
         $this->new_assigned_user_ids = empty($assigned_user_ids) ? array() : (is_string($assigned_user_ids) ? explode(',', $assigned_user_ids) : $assigned_user_ids);
