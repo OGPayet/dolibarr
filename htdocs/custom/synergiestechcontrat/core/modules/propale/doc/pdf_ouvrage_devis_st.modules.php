@@ -1771,12 +1771,21 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
             //-------------------------------------------------------------------------------
 
 
-            // If BILLING contact defined on invoice, we use it
-            $usecontact     = false;
-            $arrayidcontact = $object->getIdContact('external', 'BILLING');
-            if (count($arrayidcontact) > 0) {
-                $usecontact = true;
-                $result     = $object->fetch_contact($arrayidcontact[0]);
+            // If CUSTOMER contact defined, we use it
+			$usecontact = FALSE;
+			$arrayidcontact=$object->getIdContact('external','CUSTOMER');
+			if (count($arrayidcontact) > 0)
+			{
+				$usecontact = TRUE;
+				$object->fetch_contact($arrayidcontact[0]);
+			}
+			if ($usecontact === FALSE) {
+                // If BILLING contact defined on invoice, we use it
+                $arrayidcontact = $object->getIdContact('external', 'BILLING');
+                if (count($arrayidcontact) > 0) {
+                    $usecontact = TRUE;
+                    $object->fetch_contact($arrayidcontact[0]);
+                }
             }
 
             //Recipient name
