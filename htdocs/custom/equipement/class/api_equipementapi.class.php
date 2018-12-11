@@ -67,6 +67,7 @@ class EquipementApi extends DolibarrApi {
         $equipment = $this->_getEquipmentObject($id);
 
         $equipment->fetch_optionals();
+        $equipment->fetch_product();
         $equipment->fetchObjectLinked();
         return $this->_cleanObjectDatas($equipment);
     }
@@ -136,6 +137,7 @@ class EquipementApi extends DolibarrApi {
                 $equipment = new Equipement(self::$db);
                 if ($equipment->fetch($obj->rowid) > 0) {
                     $equipment->fetch_optionals();
+                    $equipment->fetch_product();
                     $equipment->fetchObjectLinked();
                     $obj_ret[] = $this->_cleanObjectDatas($equipment);
                 }
@@ -1234,6 +1236,12 @@ class EquipementApi extends DolibarrApi {
             {
                 $this->_cleanLineObjectDatas($object->lines[$i]);
             }
+        }
+
+        if (! empty($object->product) && is_object($object->product))
+        {
+		parent::_cleanObjectDatas($object->product);
+            unset($object->product->regeximgext);
         }
 
         return $object;

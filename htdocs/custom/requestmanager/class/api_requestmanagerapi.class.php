@@ -82,6 +82,9 @@ class RequestManagerApi extends DolibarrApi {
         $requestmanager = $this->_getRequestManagerObject($id);
 
         $requestmanager->fetch_optionals();
+        $requestmanager->fetch_thirdparty();
+        $requestmanager->fetch_thirdparty_benefactor();
+        $requestmanager->fetch_thirdparty_benefactor();
         $requestmanager->fetchObjectLinked();
         return $this->_cleanObjectDatas($requestmanager);
     }
@@ -191,6 +194,9 @@ class RequestManagerApi extends DolibarrApi {
                 $requestmanager = new RequestManager(self::$db);
                 if ($requestmanager->fetch($obj->rowid) > 0) {
                     $requestmanager->fetch_optionals();
+                    $requestmanager->fetch_thirdparty();
+                    $requestmanager->fetch_thirdparty_benefactor();
+                    $requestmanager->fetch_thirdparty_benefactor();
                     $requestmanager->fetchObjectLinked();
                     $add_request = !count($linked_filters_t);
                     foreach ($linked_filters_t as $element_type => $element_type_ids) {
@@ -575,6 +581,7 @@ class RequestManagerApi extends DolibarrApi {
             if ($requestmanager_message->message_type != -1) {
                 $requestmanager_message->fetch_knowledge_base();
                 $requestmanager_message->fetch_optionals();
+                $this->_fetch_event_users($requestmanager_message);
             } else {
                 throw new RestException(404, "Request not found");
             }
@@ -803,6 +810,8 @@ class RequestManagerApi extends DolibarrApi {
                     if ($requestmanager_message->fetch($obj->id) > 0 && $requestmanager_message->id > 0) {
                         $requestmanager_message->fetch_knowledge_base();
                         $requestmanager_message->fetch_optionals();
+                        $requestmanager_message->fetch_thirdparty();
+                        $this->_fetch_event_users($requestmanager_message);
                         $requestmanager_message = $this->_cleanEventObjectDatas($requestmanager_message);
                         $obj_ret[] = $this->_cleanMessageObjectDatas($requestmanager_message);
                     }
@@ -810,6 +819,9 @@ class RequestManagerApi extends DolibarrApi {
                     $event = new ActionComm(self::$db);
                     if ($event->fetch($obj->id) > 0 && $event->id > 0) {
                         $event->fetch_optionals();
+                        $event->fetch_contact();
+                        $event->fetch_thirdparty();
+                        $this->_fetch_event_users($event);
                         $obj_ret[] = $this->_cleanEventObjectDatas($event);
                     }
                 }
@@ -1324,6 +1336,48 @@ class RequestManagerApi extends DolibarrApi {
     }
 
     /**
+     *  Fetch all users of the event
+     *
+     * @param   object          $object         Object to fetch
+     *
+     * @return  void
+     **/
+    function _fetch_event_users(&$object)
+    {
+        $object->fetch_userassigned();
+
+        $object->user_mod = $this->_fetch_user($object->usermodid);
+        $object->user_done = $this->_fetch_user($object->userdoneid);
+        $object->user_owner = $this->_fetch_user($object->userownerid);
+
+        foreach ($object->userassigned as $key => $user_infos) {
+            $object->userassigned[$key]['user'] = $this->_fetch_user($user_infos['id']);
+        }
+    }
+
+    /**
+     *  Fetch user object
+     *
+     * @param   int          $id         ID of the user
+     *
+     * @return  object
+     **/
+    function _fetch_user($id)
+    {
+        $result = null;
+
+        if ($id > 0) {
+            require_once DOL_DOCUMENT_ROOT . '/user/class/user.class.php';
+            $user = new User(self::$db);
+            if ($user->fetch($id) > 0) {
+                $result = $user;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
      *  Clean sensible object data
      *
      * @param   object          $object         Object to clean
@@ -1334,9 +1388,16 @@ class RequestManagerApi extends DolibarrApi {
     {
         $object = parent::_cleanObjectDatas($object);
 
-        unset($object->thirdparty_origin);
-        unset($object->thirdparty);
-        unset($object->thirdparty_benefactor);
+        if (! empty($object->thirdparty_origin) && is_object($object->thirdparty_origin))
+        {
+            parent::_cleanObjectDatas($object->thirdparty_origin);
+        }
+
+        if (! empty($object->thirdparty_benefactor) && is_object($object->thirdparty_benefactor))
+        {
+            parent::_cleanObjectDatas($object->thirdparty_benefactor);
+        }
+
         unset($object->requester_list);
         unset($object->watcher_list);
         unset($object->assigned_user_list);
@@ -1509,8 +1570,6 @@ class RequestManagerApi extends DolibarrApi {
         unset($object->lastname);
         unset($object->firstname);
         unset($object->civility_id);
-        unset($object->contact_id);
-        unset($object->contact);
         unset($object->societe);
         unset($object->usermod);
         unset($object->import_key);

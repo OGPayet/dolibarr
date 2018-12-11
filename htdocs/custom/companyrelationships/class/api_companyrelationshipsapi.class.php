@@ -105,6 +105,12 @@ class CompanyRelationshipsApi extends DolibarrApi {
         'commercial_suivi_id',
         'array_options' => array('options_companyrelationships_fk_soc_benefactor')
     );
+    /**
+	 * @var array   $DOCUMENT_FIELDS     Mandatory fields, checked when create and update object
+	 */
+	static $DOCUMENT_FIELDS = array(
+		'modulepart'
+	);
 
 
     /**
@@ -345,6 +351,8 @@ class CompanyRelationshipsApi extends DolibarrApi {
         }
 
         $this->propal->fetchObjectLinked();
+        $this->propal->fetch_thirdparty();
+        $this->_fetch_benefactor($this->propal);
         return $this->_cleanProposalObjectDatas($this->propal);
     }
 
@@ -474,6 +482,9 @@ class CompanyRelationshipsApi extends DolibarrApi {
                 $obj = $db->fetch_object($result);
                 $proposal_static = new Propal($db);
                 if($proposal_static->fetch($obj->rowid)) {
+                    $proposal_static->fetchObjectLinked();
+                    $proposal_static->fetch_thirdparty();
+                    $this->_fetch_benefactor($proposal_static);
                     $obj_ret[] = $this->_cleanProposalObjectDatas($proposal_static);
                 }
                 $i++;
@@ -1134,6 +1145,8 @@ class CompanyRelationshipsApi extends DolibarrApi {
         }
 
         $this->commande->fetchObjectLinked();
+        $this->commande->fetch_thirdparty();
+        $this->_fetch_benefactor($this->commande);
         return $this->_cleanOrderObjectDatas($this->commande);
     }
 
@@ -1263,6 +1276,9 @@ class CompanyRelationshipsApi extends DolibarrApi {
                 $obj = $db->fetch_object($result);
                 $commande_static = new Commande($db);
                 if($commande_static->fetch($obj->rowid)) {
+                    $commande_static->fetchObjectLinked();
+                    $commande_static->fetch_thirdparty();
+                    $this->_fetch_benefactor($commande_static);
                     $obj_ret[] = $this->_cleanOrderObjectDatas($commande_static);
                 }
                 $i++;
@@ -1996,6 +2012,8 @@ class CompanyRelationshipsApi extends DolibarrApi {
         }
 
         $this->invoice->fetchObjectLinked();
+        $this->invoice->fetch_thirdparty();
+        $this->_fetch_benefactor($this->invoice);
         return $this->_cleanInvoiceObjectDatas($this->invoice);
     }
 
@@ -2135,6 +2153,9 @@ class CompanyRelationshipsApi extends DolibarrApi {
                 $obj = $db->fetch_object($result);
                 $invoice_static = new Facture($db);
                 if($invoice_static->fetch($obj->rowid)) {
+                    $invoice_static->fetchObjectLinked();
+                    $invoice_static->fetch_thirdparty();
+                    $this->_fetch_benefactor($invoice_static);
                     $obj_ret[] = $this->_cleanInvoiceObjectDatas($invoice_static);
                 }
                 $i++;
@@ -2605,6 +2626,8 @@ class CompanyRelationshipsApi extends DolibarrApi {
         }
 
         $this->fichinter->fetchObjectLinked();
+        $this->fichinter->fetch_thirdparty();
+        $this->_fetch_benefactor($this->fichinter);
         return $this->_cleanInterventionObjectDatas($this->fichinter);
     }
 
@@ -2731,6 +2754,9 @@ class CompanyRelationshipsApi extends DolibarrApi {
                 $obj = $db->fetch_object($result);
                 $fichinter_static = new Fichinter($db);
                 if($fichinter_static->fetch($obj->rowid)) {
+                    $fichinter_static->fetchObjectLinked();
+                    $fichinter_static->fetch_thirdparty();
+                    $this->_fetch_benefactor($fichinter_static);
                     $obj_ret[] = $this->_cleanInterventionObjectDatas($fichinter_static);
                 }
                 $i++;
@@ -3234,6 +3260,8 @@ class CompanyRelationshipsApi extends DolibarrApi {
         }
 
         $this->shipment->fetchObjectLinked();
+        $this->shipment->fetch_thirdparty();
+        $this->_fetch_benefactor($this->shipment);
         return $this->_cleanShipmentObjectDatas($this->shipment);
     }
 
@@ -3360,6 +3388,9 @@ class CompanyRelationshipsApi extends DolibarrApi {
                 $obj = $db->fetch_object($result);
                 $shipment_static = new Expedition($db);
                 if($shipment_static->fetch($obj->rowid)) {
+                    $shipment_static->fetchObjectLinked();
+                    $shipment_static->fetch_thirdparty();
+                    $this->_fetch_benefactor($shipment_static);
                     $obj_ret[] = $this->_cleanShipmentObjectDatas($shipment_static);
                 }
                 $i++;
@@ -3446,8 +3477,6 @@ class CompanyRelationshipsApi extends DolibarrApi {
         }
 
         // TODO Check the lineid $lineid is a line of ojbect
-
-        $request_data = (object) $request_data;
         $updateRes = $this->shipment->deleteline(DolibarrApiAccess::$user, $lineid);
         if ($updateRes > 0) {
             return $this->getShipment($id);
@@ -3704,6 +3733,9 @@ class CompanyRelationshipsApi extends DolibarrApi {
             throw new RestException(401, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
         }
 
+        $this->contract->fetchObjectLinked();
+        $this->contract->fetch_thirdparty();
+        $this->_fetch_benefactor($this->contract);
         return $this->_cleanContractObjectDatas($this->contract);
     }
 
@@ -3834,6 +3866,9 @@ class CompanyRelationshipsApi extends DolibarrApi {
                 $obj = $db->fetch_object($result);
                 $contrat_static = new Contrat($db);
                 if($contrat_static->fetch($obj->rowid)) {
+                    $contrat_static->fetchObjectLinked();
+                    $contrat_static->fetch_thirdparty();
+                    $this->_fetch_benefactor($contrat_static);
                     $obj_ret[] = $this->_cleanContractObjectDatas($contrat_static);
                 }
                 $i++;
@@ -4108,8 +4143,6 @@ class CompanyRelationshipsApi extends DolibarrApi {
         if (! $hasPerm) {
             throw new RestException(401, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
         }
-
-        $request_data = (object) $request_data;
 
         $updateRes = $this->contract->close_line(DolibarrApiAccess::$user, $lineid, $datestart, $comment);
 
@@ -4395,6 +4428,30 @@ class CompanyRelationshipsApi extends DolibarrApi {
     }
 
 
+    /**
+     *  Fetch all benefactor of the object
+     *
+     * @param   object          $object         Object to fetch
+     *
+     * @return  void
+     **/
+    function _fetch_benefactor(&$object)
+    {
+        $object->cr_thirdparty_benefactor = null;
+
+        if (!isset($object->array_options['options_companyrelationships_fk_soc_benefactor'])) {
+            $object->fetch_optionals();
+        }
+
+        if ($object->array_options['options_companyrelationships_fk_soc_benefactor'] > 0) {
+            require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
+            $societe = new Societe($this->db);
+            if ($societe->fetch($object->array_options['options_companyrelationships_fk_soc_benefactor']) > 0) {
+                $object->cr_thirdparty_benefactor = $societe;
+            }
+        }
+    }
+
     //
     // API Equipement
     //
@@ -4519,6 +4576,9 @@ class CompanyRelationshipsApi extends DolibarrApi {
                 $obj = $db->fetch_object($result);
                 $equipement_static = new Equipement($db);
                 if($equipement_static->fetch($obj->rowid)) {
+                    $equipement_static->fetchObjectLinked();
+                    $equipement_static->fetch_product();
+                    $equipement_static->fetch_thirdparty();
                     $obj_ret[] = $this->_cleanEquipementObjectDatas($equipement_static);
                 }
                 $i++;
@@ -4534,14 +4594,58 @@ class CompanyRelationshipsApi extends DolibarrApi {
     }
 
     /**
-     * Clean sensible object datas
+     *  Clean sensible object data
      *
-     * @param   object  $object    Object to clean
-     * @return  array   Array of cleaned object properties
+     * @param   object          $object         Object to clean
+     *
+     * @return  object|array                    Array of cleaned object properties
      */
     function _cleanEquipementObjectDatas($object)
     {
         $object = parent::_cleanObjectDatas($object);
+
+        unset($object->statuts_image);
+        unset($object->fk_contact);
+        unset($object->client);
+        unset($object->country_code);
+        unset($object->barcode);
+        unset($object->barcode_type);
+        unset($object->barcode_type_code);
+        unset($object->barcode_type_label);
+        unset($object->barcode_type_coder);
+        unset($object->canvas);
+        unset($object->contact);
+        unset($object->contact_id);
+        unset($object->thirdparty);
+        unset($object->user);
+        unset($object->origin);
+        unset($object->origin_id);
+        unset($object->ref_ext);
+        unset($object->country);
+        unset($object->country_id);
+        unset($object->country_code);
+        unset($object->mode_reglement_id);
+        unset($object->cond_reglement_id);
+        unset($object->cond_reglement);
+        unset($object->fk_delivery_address);
+        unset($object->shipping_method_id);
+        unset($object->fk_account);
+        unset($object->total_ht);
+        unset($object->total_tva);
+        unset($object->total_localtax1);
+        unset($object->total_localtax2);
+        unset($object->total_ttc);
+        unset($object->fk_incoterms);
+        unset($object->libelle_incoterms);
+        unset($object->location_incoterms);
+        unset($object->note);
+        unset($object->name);
+        unset($object->lastname);
+        unset($object->firstname);
+        unset($object->fulldayevent);
+        unset($object->fk_project);
+        unset($object->civility_id);
+        unset($object->rowid);
 
         // equipment belongs to a supplier benefactor company of API user
         if ($object->fk_soc_fourn>0 && in_array($object->fk_soc_fourn, $this->benefactor_ids)) {
@@ -4554,6 +4658,866 @@ class CompanyRelationshipsApi extends DolibarrApi {
             unset($object->lines);
         }
 
+        // If object has lines, remove $db property
+        if (isset($object->lines) && is_array($object->lines) && count($object->lines) > 0)  {
+            $nboflines = count($object->lines);
+		for ($i=0; $i < $nboflines; $i++)
+            {
+                $this->_cleanEquipementLineObjectDatas($object->lines[$i]);
+            }
+        }
+
+        if (! empty($object->product) && is_object($object->product))
+        {
+		parent::_cleanObjectDatas($object->product);
+            unset($object->product->regeximgext);
+        }
+
         return $object;
+    }
+
+    /**
+     *  Clean sensible line object data
+     *
+     * @param   object          $object         Object to clean
+     *
+     * @return  object|array                    Array of cleaned object properties
+     */
+    function _cleanEquipementLineObjectDatas($object)
+    {
+        unset($object->db);
+        unset($object->error);
+        unset($object->element);
+        unset($object->table_element);
+        unset($object->rowid);
+        unset($object->errors);
+        unset($object->table_element_line);
+        unset($object->linkedObjects);
+        unset($object->oldcopy);
+        unset($object->context);
+        unset($object->canvas);
+        unset($object->project);
+        unset($object->projet);
+        unset($object->contact);
+        unset($object->contact_id);
+        unset($object->thirdparty);
+        unset($object->user);
+        unset($object->origin);
+        unset($object->origin_id);
+        unset($object->ref_previous);
+        unset($object->ref_next);
+        unset($object->ref_ext);
+        unset($object->country);
+        unset($object->country_id);
+        unset($object->country_code);
+        unset($object->barcode_type);
+        unset($object->barcode_type_code);
+        unset($object->barcode_type_label);
+        unset($object->barcode_type_coder);
+        unset($object->mode_reglement_id);
+        unset($object->cond_reglement_id);
+        unset($object->cond_reglement);
+        unset($object->fk_delivery_address);
+        unset($object->shipping_method_id);
+        unset($object->modelpdf);
+        unset($object->fk_account);
+        unset($object->note_public);
+        unset($object->note_private);
+        unset($object->note);
+        unset($object->total_tva);
+        unset($object->total_localtax1);
+        unset($object->total_localtax2);
+        unset($object->total_ttc);
+        unset($object->fk_incoterms);
+        unset($object->libelle_incoterms);
+        unset($object->location_incoterms);
+        unset($object->name);
+        unset($object->lastname);
+        unset($object->firstname);
+        unset($object->civility_id);
+        unset($object->ref_fichinter);
+        unset($object->ref_contrat);
+        unset($object->ref_expedition);
+        unset($object->import_key);
+        unset($object->linkedObjectsIds);
+        unset($object->ref);
+        unset($object->statut);
+        unset($object->lines);
+
+        return $object;
+    }
+
+    //
+    // API thirdparties
+    //
+
+    /**
+     * List my thirdparties
+     *
+     * Get a list of thirdparties (where this user is a commercial affect at the company and his company if external user, with benefactors and principals company of these companies)
+     *
+     * @url	GET mythirdparties
+     *
+     * @param   string  $sortfield      Sort field
+     * @param   string  $sortorder      Sort order
+     * @param   int     $limit          Limit for list
+     * @param   int     $page           Page number
+     * @param   int     $mode           Set to 1 to show only customers
+     *                                  Set to 2 to show only prospects
+     *                                  Set to 3 to show only those are not customer neither prospect
+     * @param   string  $sqlfilters     Other criteria to filter answers separated by a comma. Syntax example "(t.nom:like:'TheCompany%') and (t.date_creation:<:'20160101')"
+     *
+     * @return  array                   Array of order objects
+     *
+     * @throws  401     RestException   Insufficient rights
+     * @throws  503     RestException   Error when retrieve equipement list
+     */
+    function indexMyThirdparties($sortfield = "t.rowid", $sortorder = 'ASC', $limit = 100, $page = 0, $mode=0, $sqlfilters = '')
+    {
+        global $db;
+
+        $obj_ret = array();
+
+        if (!DolibarrApiAccess::$user->rights->societe->lire) {
+            throw new RestException(401);
+        }
+
+        $company_ids = array();
+        $company_details = array();
+
+        // Get all ids of my companies
+        $sql = "SELECT t.rowid, crp.fk_soc AS principal_id, crb.fk_soc_benefactor AS benefactor_id";
+        $sql .= " FROM " . MAIN_DB_PREFIX . "societe AS t";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "companyrelationships AS crp ON crp.fk_soc_benefactor = t.rowid";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "companyrelationships AS crb ON crb.fk_soc = t.rowid";
+        $sql .= " , " . MAIN_DB_PREFIX . "societe_commerciaux AS sc";
+        $sql .= " WHERE t.entity IN (" . getEntity('societe') . ')';
+        $sql .= " ";
+        $sql .= " AND ((t.rowid = sc.fk_soc AND sc.fk_user = " . DolibarrApiAccess::$user->id . ")";
+        if (DolibarrApiAccess::$user->societe_id > 0) {
+            $sql .= " OR t.rowid = " . DolibarrApiAccess::$user->societe_id;
+        }
+        $sql .= " )";
+        $sql .= " GROUP BY t.rowid, crp.fk_soc, crb.fk_soc_benefactor";
+        $result = $db->query($sql);
+        if ($result) {
+            while ($obj = $db->fetch_object($result)) {
+                $company_ids[$obj->rowid] = $obj->rowid;
+                if (!empty($obj->principal_id)) {
+                    $company_ids[$obj->principal_id] = $obj->principal_id;
+                    $company_details[$obj->rowid]['principal_ids'][$obj->principal_id] = $obj->principal_id;
+                }
+                if (!empty($obj->benefactor_id)) {
+                    $company_ids[$obj->benefactor_id] = $obj->benefactor_id;
+                    $company_details[$obj->rowid]['benefactor_ids'][$obj->benefactor_id] = $obj->benefactor_id;
+                }
+            }
+        } else {
+            throw new RestException(503, 'Error when retrieve my thirdparties : ' . $db->lasterror());
+        }
+
+        if (count($company_ids) == 0) {
+            return [];
+        }
+
+        // Get all ids of sub principals and benefactors of these companies
+//        do {
+//            $last_companies_nb = count($company_ids);
+//
+//            // Get all ids of my companies
+//            $sql = "SELECT t.rowid, crp.fk_soc AS principal_id, crb.fk_soc_benefactor AS benefactor_id";
+//            $sql .= " FROM " . MAIN_DB_PREFIX . "societe AS t";
+//            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "companyrelationships AS crp ON crp.fk_soc_benefactor = t.rowid";
+//            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "companyrelationships AS crb ON crb.fk_soc = t.rowid";
+//            $sql .= " WHERE t.rowid IN (" . implode(',', $company_ids) . ')';
+//            $sql .= " GROUP BY t.rowid, crp.fk_soc, crb.fk_soc_benefactor";
+//            $result = $db->query($sql);
+//            if ($result) {
+//                while ($obj = $db->fetch_object($result)) {
+//                    $company_ids[$obj->rowid] = $obj->rowid;
+//                    if (!empty($obj->principal_id)) {
+//                        $company_ids[$obj->principal_id] = $obj->principal_id;
+//                        $company_details[$obj->rowid]['principal_ids'][$obj->principal_id] = $obj->principal_id;
+//                    }
+//                    if (!empty($obj->benefactor_id)) {
+//                        $company_ids[$obj->benefactor_id] = $obj->benefactor_id;
+//                        $company_details[$obj->rowid]['benefactor_ids'][$obj->benefactor_id] = $obj->benefactor_id;
+//                    }
+//                }
+//            } else {
+//                throw new RestException(503, 'Error when retrieve sub principals and benefactors of my thirdparties  : ' . $db->lasterror());
+//            }
+//        } while ($last_companies_nb < count($company_ids));
+
+        $sql = "SELECT t.rowid";
+        $sql .= " FROM " . MAIN_DB_PREFIX . "societe AS t";
+        $sql .= " , " . MAIN_DB_PREFIX . "c_stcomm AS st";
+        $sql .= " WHERE t.fk_stcomm = st.id";
+        if ($mode == 1) $sql .= " AND t.client IN (1, 3)";
+        if ($mode == 2) $sql .= " AND t.client IN (2, 3)";
+        if ($mode == 3) $sql .= " AND t.client IN (0)";
+        $sql .= ' AND t.entity IN (' . getEntity('societe') . ')';
+        $sql .= ' AND t.rowid IN (' . implode(',', $company_ids) . ')';
+        // Add sql filters
+        if ($sqlfilters) {
+            if (!DolibarrApi::_checkFilters($sqlfilters)) {
+                throw new RestException(503, 'Error when validating parameter sqlfilters ' . $sqlfilters);
+            }
+            $regexstring = '\(([^:\'\(\)]+:[^:\'\(\)]+:[^:\(\)]+)\)';
+            $sql .= " AND (" . preg_replace_callback('/' . $regexstring . '/', 'DolibarrApi::_forge_criteria_callback', $sqlfilters) . ")";
+        }
+        $sql .= " GROUP BY t.rowid";
+
+        $sql .= $db->order($sortfield, $sortorder);
+
+        if ($limit) {
+            if ($page < 0) {
+                $page = 0;
+            }
+            $offset = $limit * $page;
+
+            $sql .= $db->plimit($limit + 1, $offset);
+        }
+
+        $i = 0;
+        $result = $db->query($sql);
+        if ($result) {
+            $num = $db->num_rows($result);
+            $min = min($num, ($limit <= 0 ? $num : $limit));
+            while ($i < $min) {
+                $obj = $db->fetch_object($result);
+                $soc_static = new Societe($db);
+                if ($soc_static->fetch($obj->rowid)) {
+                    $soc_static->fetchObjectLinked();
+                    $soc_static->thirdparty_principal_ids = !empty($company_details[$obj->rowid]['principal_ids']) ? array_values($company_details[$obj->rowid]['principal_ids']) : array();
+                    $soc_static->thirdparty_benefactor_ids = !empty($company_details[$obj->rowid]['benefactor_ids']) ? array_values($company_details[$obj->rowid]['benefactor_ids']) : array();
+                    $obj_ret[] = $this->_cleanThirdpartyObjectDatas($soc_static);
+                }
+                $i++;
+            }
+        } else {
+            throw new RestException(503, 'Error when retrieve thirdparties : ' . $db->lasterror());
+        }
+        if (!count($obj_ret)) {
+            return [];
+        }
+        return $obj_ret;
+    }
+
+    /**
+	 * Clean sensible object datas
+	 *
+	 * @param   object  $object    Object to clean
+	 * @return    array    Array of cleaned object properties
+	 */
+	function _cleanThirdpartyObjectDatas($object) {
+
+	    $object = parent::_cleanObjectDatas($object);
+
+	    unset($object->total_ht);
+	    unset($object->total_tva);
+	    unset($object->total_localtax1);
+	    unset($object->total_localtax2);
+	    unset($object->total_ttc);
+
+	    return $object;
+	}
+
+    //
+    // API documents
+    //
+
+    /**
+	 * Download a document.
+	 *
+	 * Note that, this API is similar to using the wrapper link "documents.php" to download a file (used for
+	 * internal HTML links of documents into application), but with no need to have a session cookie (the token is used instead).
+	 *
+	 * @param   string  $module_part    Name of module or area concerned by file download ('facture', 'agenda', ...)
+	 * @param   string  $original_file  Relative path with filename, relative to modulepart (for example: IN201701-999/IN201701-999.pdf)
+	 * @return  array                   List of documents
+	 *
+	 * @throws 400
+	 * @throws 401
+	 * @throws 404
+	 * @throws 200
+	 *
+     * @url	GET documents/download
+	 */
+	public function indexDocuments($module_part, $original_file='')
+    {
+        global $conf, $langs, $db;
+
+        if (empty($module_part)) {
+            throw new RestException(400, 'bad value for parameter modulepart');
+        }
+        if (empty($original_file)) {
+            throw new RestException(400, 'bad value for parameter original_file');
+        }
+
+        //--- Finds and returns the document
+        $entity = $conf->entity;
+        $dirname = dirname($original_file);
+        if (strstr($dirname, '/')) {
+            $dirname = dirname($dirname);
+        }
+        $refname = basename($dirname . "/");
+
+        $check_access = dol_check_secure_access_document($module_part, $original_file, $entity, DolibarrApiAccess::$user, $refname, 'read', true);
+        $accessallowed = $check_access['accessallowed'];
+        $sqlprotectagainstexternals = $check_access['sqlprotectagainstexternals'];
+        $original_file = $check_access['original_file'];
+        $sqlprotectagainstexternalsapi = $check_access['sqlprotectagainstexternalsapi'];
+
+        if (DolibarrApiAccess::$user->societe_id > 0) {
+            if ($sqlprotectagainstexternalsapi) {
+                $resql = $db->query($sqlprotectagainstexternalsapi);
+                if ($resql) {
+                    if ($db->num_rows($resql) == 0) throw new RestException(401);
+                } else {
+                    throw new RestException(401);
+                }
+            } else {
+                throw new RestException(401);
+            }
+        }
+        if (preg_match('/\.\./', $original_file) || preg_match('/[<>|]/', $original_file)) {
+            throw new RestException(401);
+        }
+        if (!$accessallowed) {
+            throw new RestException(401);
+        }
+
+        $object = null;
+        if ($module_part == 'propal' || $module_part == 'proposal') {
+            require_once DOL_DOCUMENT_ROOT . '/comm/propal/class/propal.class.php';
+            $object = new Propal($this->db);
+            $result = $object->fetch('', $refname);
+            if (!$result) {
+                return [];
+            }
+        } elseif ($module_part == 'commande' || $module_part == 'order') {
+            require_once DOL_DOCUMENT_ROOT . '/commande/class/commande.class.php';
+            $object = new Commande($this->db);
+            $result = $object->fetch('', $refname);
+            if (!$result) {
+                return [];
+            }
+        } elseif ($module_part == 'shipment' || $module_part == 'expedition') {
+            require_once DOL_DOCUMENT_ROOT . '/expedition/class/expedition.class.php';
+            $ref = basename(str_replace('sending/', '', $dirname . "/"));
+            $object = new Expedition($this->db);
+            $result = $object->fetch('', $ref);
+            if (!$result) {
+                return [];
+            }
+        } elseif ($module_part == 'facture' || $module_part == 'invoice') {
+            require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
+            $object = new Facture($this->db);
+            $result = $object->fetch('', $refname);
+            if (!$result) {
+                return [];
+            }
+        } elseif ($module_part == 'fichinter' || $module_part == 'ficheinter' || $module_part == 'intervention' || $module_part == 'interventions') {
+            require_once DOL_DOCUMENT_ROOT . '/fichinter/class/fichinter.class.php';
+            $object = new Fichinter($this->db);
+            $result = $object->fetch('', $refname);
+            if (!$result) {
+                return [];
+            }
+        } elseif ($module_part == 'contract' || $module_part == 'contrat') {
+            require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
+            $object = new Contrat($this->db);
+            $result = $object->fetch('', $refname);
+            if (!$result) {
+                return [];
+            }
+        }
+        if (isset($object)) {
+            $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($object);
+            if (!$hasPerm) {
+                throw new RestException(401, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
+            }
+        }
+
+        $filename = basename($original_file);
+        $original_file_osencoded = dol_osencode($original_file);    // New file name encoded in OS encoding charset
+
+        if (!file_exists($original_file_osencoded)) {
+            return [];
+        }
+
+        $file_content = file_get_contents($original_file_osencoded);
+        return array('filename' => $filename, 'content' => base64_encode($file_content), 'encoding' => 'MIME base64 (base64_encode php function, http://php.net/manual/en/function.base64-encode.php)');
+    }
+
+	/**
+	 * Return the list of documents of a dedicated element (from its ID or Ref)
+	 *
+	 * @param   string 	$modulepart		Name of module or area concerned ('thirdparty', 'member', 'proposal', 'order', 'invoice', 'shipment', 'project', 'agenda',  ...)
+	 * @param	int		$id				ID of element
+	 * @param	string	$ref			Ref of element
+	 * @param	string	$sortfield		Sort criteria ('','fullname','relativename','name','date','size')
+	 * @param	string	$sortorder		Sort order ('asc' or 'desc')
+	 * @param	bool	$showlogo		Show logo (true or false) for thirdparty, contact, user, member only (default false)
+	 * @param	bool	$active			Show active logo only (true or false) for thirdparty, contact, user, member only and if $showlogo is true (default true)
+	 * @return	array					Array of documents with path
+	 *
+	 * @throws 200
+	 * @throws 400
+	 * @throws 401
+	 * @throws 404
+	 * @throws 500
+	 *
+     * @url	GET documents
+	 */
+	function getDocumentsListByElement($modulepart, $id=0, $ref='', $sortfield='', $sortorder='', $showlogo=false, $active=true)
+    {
+        global $conf;
+
+        $active = true; //Forçage pour Synergies-Tech à retirer en cas de PR
+
+        $tableandshare = '';
+        //--------------------------------------------------------------
+        // Open-DSI - Modification - Begin
+        //
+        $feature2 = '';
+        $dbt_keyfield = 'fk_soc';
+        $dbt_select = 'rowid';
+        //
+        // Open-DSI - Modification - End
+        //--------------------------------------------------------------
+
+        if (empty($modulepart)) {
+            throw new RestException(400, 'bad value for parameter modulepart');
+        }
+
+        if (empty($id) && empty($ref)) {
+            throw new RestException(400, 'bad value for parameter id or ref');
+        }
+
+        $id = (empty($id) ? 0 : $id);
+
+        if ($modulepart == 'societe' || $modulepart == 'thirdparty' || $modulepart == 'thirdparties') // Wrapping pour les societes
+        {
+            require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
+
+            if (!DolibarrApiAccess::$user->rights->societe->lire || !DolibarrApiAccess::$user->rights->societe->read_file) {
+                throw new RestException(401);
+            }
+
+            $object = new Societe($this->db);
+            $result = $object->fetch($id, $ref);
+            if (!$result) {
+                return [];
+            }
+            if ($showlogo == false) {
+                $upload_dir = $conf->societe->multidir_output[$object->entity] . "/" . $object->id;
+            } else if ($showlogo == true) {
+                $upload_dir = $conf->societe->multidir_output[$object->entity] . "/" . $object->id;
+                $upload_dir_logo = $conf->societe->multidir_output[$object->entity] . "/" . $object->id . "/logos/";
+                $logo_name = $object->logo;
+            }
+            //--------------------------------------------------------------
+            // Open-DSI - Modification - Begin
+            //
+            $output_dir = $conf->societe->multidir_output[$object->entity] . "/";
+            //
+            // Open-DSI - Modification - End
+            //--------------------------------------------------------------
+            $tableandshare = 'societe';
+            $modulepart = 'societe';
+        } else if ($modulepart == 'contact') // Wrapping pour les contacts
+        {
+            require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
+            require_once DOL_DOCUMENT_ROOT . '/contact/class/contact.class.php';
+
+            if (!DolibarrApiAccess::$user->rights->societe->contact->lire) {
+                throw new RestException(401);
+            }
+
+            $object = new Contact($this->db);
+            $result = $object->fetch($id, $ref);
+            if (!$result) {
+                return [];
+            }
+            $object->entity = 1;
+
+            if ($showlogo == false) {
+                $upload_dir = $conf->societe->multidir_output[$object->entity] . "/contact/" . $object->id;
+            } else if ($showlogo == true) {
+                $upload_dir = $conf->societe->multidir_output[$object->entity] . "/contact/" . $object->id;
+                $upload_dir_logo = $conf->societe->multidir_output[$object->entity] . "/contact/" . $object->id . "/photos/";
+                $logo_name = $object->photo;
+            }
+            //--------------------------------------------------------------
+            // Open-DSI - Modification - Begin
+            //
+            $output_dir = $conf->societe->multidir_output[$object->entity] . "/";
+            //
+            // Open-DSI - Modification - End
+            //--------------------------------------------------------------
+            $tableandshare = 'socpeople';
+        } else if ($modulepart == 'adherent' || $modulepart == 'member') {
+            require_once DOL_DOCUMENT_ROOT . '/adherents/class/adherent.class.php';
+
+            if (!DolibarrApiAccess::$user->rights->adherent->lire) {
+                throw new RestException(401);
+            }
+
+            $object = new Adherent($this->db);
+            $result = $object->fetch($id, $ref);
+            if (!$result) {
+                return [];
+            }
+
+            if ($showlogo == false) {
+                $upload_dir = $conf->adherent->dir_output . "/" . get_exdir(0, 0, 0, 1, $object, 'member');
+            } else if ($showlogo == true) {
+                $upload_dir = $conf->adherent->dir_output . "/" . get_exdir(0, 0, 0, 1, $object, 'member');
+                $upload_dir_logo = $conf->adherent->dir_output . "/" . get_exdir(0, 0, 0, 1, $object, 'member') . 'photos/';
+                $logo_name = $object->photo;
+            }
+            //--------------------------------------------------------------
+            // Open-DSI - Modification - Begin
+            //
+            $output_dir = $conf->adherent->dir_output . "/";
+            //
+            // Open-DSI - Modification - End
+            //--------------------------------------------------------------
+        } else if ($modulepart == 'propal' || $modulepart == 'proposal') {
+            require_once DOL_DOCUMENT_ROOT . '/comm/propal/class/propal.class.php';
+
+            if (!DolibarrApiAccess::$user->rights->propal->lire) {
+                throw new RestException(401);
+            }
+
+            $object = new Propal($this->db);
+            $result = $object->fetch($id, $ref);
+            if (!$result) {
+                return [];
+            }
+            $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($object);
+            if (! $hasPerm) {
+                throw new RestException(401, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
+            }
+
+            $upload_dir = $conf->propal->dir_output . "/" . get_exdir(0, 0, 0, 1, $object, 'propal');
+            //--------------------------------------------------------------
+            // Open-DSI - Modification - Begin
+            //
+            $output_dir = $conf->propal->dir_output . "/";
+            //
+            // Open-DSI - Modification - End
+            //--------------------------------------------------------------
+            $tableandshare = 'propal';
+        } else if ($modulepart == 'commande' || $modulepart == 'order') {
+            require_once DOL_DOCUMENT_ROOT . '/commande/class/commande.class.php';
+
+            if (!DolibarrApiAccess::$user->rights->commande->lire) {
+                throw new RestException(401);
+            }
+
+            $object = new Commande($this->db);
+            $result = $object->fetch($id, $ref);
+            if (!$result) {
+                return [];
+            }
+            $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($object);
+            if (! $hasPerm) {
+                throw new RestException(401, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
+            }
+
+            $upload_dir = $conf->commande->dir_output . "/" . get_exdir(0, 0, 0, 1, $object, 'commande');
+            //--------------------------------------------------------------
+            // Open-DSI - Modification - Begin
+            //
+            $output_dir = $conf->commande->dir_output . "/";
+            //
+            // Open-DSI - Modification - End
+            //--------------------------------------------------------------
+            $tableandshare = 'commande';
+        } else if ($modulepart == 'shipment' || $modulepart == 'expedition') {
+            require_once DOL_DOCUMENT_ROOT . '/expedition/class/expedition.class.php';
+
+            if (!DolibarrApiAccess::$user->rights->expedition->lire) {
+                throw new RestException(401);
+            }
+
+            $object = new Expedition($this->db);
+            $result = $object->fetch($id, $ref);
+            if (!$result) {
+                return [];
+            }
+            $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($object);
+            if (! $hasPerm) {
+                throw new RestException(401, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
+            }
+
+            $upload_dir = $conf->expedition->dir_output . "/sending/" . get_exdir(0, 0, 0, 1, $object, 'shipment');
+            //--------------------------------------------------------------
+            // Open-DSI - Modification - Begin
+            //
+            $output_dir = $conf->expedition->dir_output . "/";
+            //
+            // Open-DSI - Modification - End
+            //--------------------------------------------------------------
+            $tableandshare = 'expedition';
+        } else if ($modulepart == 'facture' || $modulepart == 'invoice') {
+            require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
+
+            if (!DolibarrApiAccess::$user->rights->facture->lire) {
+                throw new RestException(401);
+            }
+
+            $object = new Facture($this->db);
+            $result = $object->fetch($id, $ref);
+            if (!$result) {
+                return [];
+            }
+            $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($object);
+            if (! $hasPerm) {
+                throw new RestException(401, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
+            }
+
+            $upload_dir = $conf->facture->dir_output . "/" . get_exdir(0, 0, 0, 1, $object, 'invoice');
+            //--------------------------------------------------------------
+            // Open-DSI - Modification - Begin
+            //
+            $output_dir = $conf->facture->dir_output . "/";
+            //
+            // Open-DSI - Modification - End
+            //--------------------------------------------------------------
+            $tableandshare = 'facture';
+        } else if ($modulepart == 'product' || $modulepart == 'produit') // Wrapping pour les produits
+        {
+            require_once DOL_DOCUMENT_ROOT . '/product/class/product.class.php';
+
+            if (!DolibarrApiAccess::$user->rights->produit->lire) {
+                throw new RestException(401);
+            }
+
+            $object = new Product($this->db);
+            $result = $object->fetch($id, $ref);
+            if (!$result) {
+                return [];
+            }
+
+            $upload_dir = $conf->product->multidir_output[$object->entity] . "/" . get_exdir(0, 0, 0, 0, $object, 'product') . dol_sanitizeFileName($object->ref);
+            //--------------------------------------------------------------
+            // Open-DSI - Modification - Begin
+            //
+            $output_dir = $conf->product->multidir_output[$object->entity] . "/";
+            //
+            // Open-DSI - Modification - End
+            //--------------------------------------------------------------
+            $tableandshare = 'product';
+        } else if ($modulepart == 'service') // Wrapping pour les services
+        {
+            require_once DOL_DOCUMENT_ROOT . '/product/class/product.class.php';
+
+            if (!DolibarrApiAccess::$user->rights->service->lire) {
+                throw new RestException(401);
+            }
+
+            $object = new Product($this->db);
+            $result = $object->fetch($id, $ref);
+            if (!$result) {
+                return [];
+            }
+
+            $upload_dir = $conf->service->multidir_output[$object->entity] . "/" . get_exdir(0, 0, 0, 0, $object, 'product') . dol_sanitizeFileName($object->ref);
+            //--------------------------------------------------------------
+            // Open-DSI - Modification - Begin
+            //
+            $output_dir = $conf->service->multidir_output[$object->entity] . "/";
+            //
+            // Open-DSI - Modification - End
+            //--------------------------------------------------------------
+            $tableandshare = 'product';
+        } else if ($modulepart == 'user') // Wrapping for users
+        {
+            require_once DOL_DOCUMENT_ROOT . '/user/class/user.class.php';
+
+            if (!DolibarrApiAccess::$user->rights->user->user->lire && DolibarrApiAccess::$user->id != $id) {
+                throw new RestException(401);
+            }
+
+            $object = new User($this->db);
+            $result = $object->fetch($id, $ref);
+            if (!$result) {
+                return [];
+            }
+
+            $entitytouseforuserdir = $object->entity;
+            if (empty($entitytouseforuserdir)) $entitytouseforuserdir = 1;
+
+            if ($showlogo == false) {
+                $upload_dir = $conf->user->multidir_output[$entitytouseforuserdir] . "/" . $object->id;
+            } else if ($showlogo == true) {
+                $upload_dir = $conf->user->multidir_output[$entitytouseforuserdir] . "/" . $object->id;
+                $upload_dir_logo = $conf->user->multidir_output[$entitytouseforuserdir] . "/" . get_exdir($id, 2, 0, 0, $object, 'user');
+                $logo_name = $object->photo;
+            }
+            //--------------------------------------------------------------
+            // Open-DSI - Modification - Begin
+            //
+            $output_dir = $conf->user->multidir_output[$entitytouseforuserdir] . "/";
+            //
+            // Open-DSI - Modification - End
+            //--------------------------------------------------------------
+            $tableandshare = 'user';
+        } else if ($modulepart == 'fichinter' || $modulepart == 'ficheinter' || $modulepart == 'intervention' || $modulepart == 'interventions') // Wrapping for interventions
+        {
+            require_once DOL_DOCUMENT_ROOT . '/fichinter/class/fichinter.class.php';
+
+            if (!DolibarrApiAccess::$user->rights->ficheinter->lire) {
+                throw new RestException(401);
+            }
+
+            $object = new Fichinter($this->db);
+            $result = $object->fetch($id, $ref);
+            if (!$result) {
+                return [];
+            }
+            $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($object);
+            if (! $hasPerm) {
+                throw new RestException(401, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
+            }
+
+            $upload_dir = $conf->ficheinter->dir_output . '/' . $object->ref;
+            //--------------------------------------------------------------
+            // Open-DSI - Modification - Begin
+            //
+            $output_dir = $conf->ficheinter->dir_output . "/";
+            //
+            // Open-DSI - Modification - End
+            //--------------------------------------------------------------
+            $tableandshare = 'fichinter';
+        } else if ($modulepart == 'contract' || $modulepart == 'contrat') // Wrapping pour les contrats
+        {
+            require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
+
+            if (!DolibarrApiAccess::$user->rights->contrat->lire) {
+                throw new RestException(401);
+            }
+
+            $object = new Contrat($this->db);
+            $result = $object->fetch($id, $ref);
+            if (!$result) {
+                return [];
+            }
+            $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($object);
+            if (! $hasPerm) {
+                throw new RestException(401, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
+            }
+
+            $upload_dir = $conf->contrat->dir_output . '/' . $object->ref;
+            //--------------------------------------------------------------
+            // Open-DSI - Modification - Begin
+            //
+            $output_dir = $conf->contrat->dir_output . "/";
+            //
+            // Open-DSI - Modification - End
+            //--------------------------------------------------------------
+            $tableandshare = 'contrat';
+        }
+        //--------------------------------------------------------------
+        // Open-DSI - Modification - Begin
+        //
+        else if ($modulepart == 'agenda') // Wrapping pour les actions
+        {
+            require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
+
+            $object = new ActionComm($this->db);
+            $result = $object->fetch($id, $ref);
+            if (!$result) {
+                return [];
+            }
+
+            if (!DolibarrApiAccess::$user->rights->agenda->allactions->read &&
+                !(($object->authorid == DolibarrApiAccess::$user->id || $object->userownerid == DolibarrApiAccess::$user->id) && DolibarrApiAccess::$user->rights->agenda->myactions->read)
+            ) {
+                throw new RestException(401);
+            }
+
+            $upload_dir = $conf->agenda->dir_output . '/' . dol_sanitizeFileName($object->ref);
+            $output_dir = $conf->agenda->dir_output . "/";
+            $tableandshare = 'actioncomm&societe';
+            $feature2 = 'myactions|allactions';
+            $dbt_select = 'id';
+        } else if ($modulepart == 'equipement') // Wrapping pour les equipements
+        {
+            dol_include_once('/equipement/class/equipement.class.php');
+
+            $object = new Equipement($this->db);
+            $result = $object->fetch($id, $ref);
+            if (!$result) {
+                return [];
+            }
+
+            if (!DolibarrApiAccess::$user->rights->equipement->lire) {
+                throw new RestException(401);
+            }
+
+            $upload_dir = $conf->equipement->dir_output . '/' . dol_sanitizeFileName($object->ref);
+            $output_dir = $conf->equipement->dir_output . "/";
+            $tableandshare = 'equipement';
+            $dbt_keyfield = 'fk_soc_client';
+        }
+        //
+        // Open-DSI - Modification - End
+        //--------------------------------------------------------------
+        else {
+            throw new RestException(500, 'Modulepart ' . $modulepart . ' not implemented yet.');
+        }
+        //--------------------------------------------------------------
+        // Open-DSI - Modification - Begin
+        //
+        if (!DolibarrApi::_checkAccessToResource($modulepart, $object->id, $tableandshare, $feature2, $dbt_keyfield, $dbt_select)) {
+            throw new RestException(401, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
+        }
+        //
+        // Open-DSI - Modification - End
+        //--------------------------------------------------------------
+
+        $filearray = dol_dir_list($upload_dir, "files", 0, '', '(\.meta|_preview.*\.png)$', $sortfield, (strtolower($sortorder) == 'desc' ? SORT_DESC : SORT_ASC), 1);
+        if (!empty($upload_dir_logo)) {
+            $filearraylogo = dol_dir_list($upload_dir_logo, "files", 0, '', '(\.meta|_preview.*\.png)$', $sortfield, (strtolower($sortorder) == 'desc' ? SORT_DESC : SORT_ASC), 1);
+
+            //Add identifier for logo only
+            $tmp_array = array();
+            foreach ($filearraylogo as $logo) {
+                $logo['type'] = 'logo';
+                $tmp_array[] = $logo;
+            }
+            $filearraylogo = $tmp_array;
+
+            if ($active == true) {
+                $tmp_array = "";
+                foreach ($filearraylogo as $logo) {
+                    if ($logo['relativename'] == $logo_name) {
+                        $tmp_array = $logo;
+                    }
+                }
+                $filearraylogo = $tmp_array;
+            }
+            $filearray[] = $filearraylogo;
+        }
+        if (empty($filearray)) {
+            return [];
+        }
+
+        //--------------------------------------------------------------
+        // Open-DSI - Modification - Begin
+        //
+        foreach ($filearray as $k => $v) {
+            $filearray[$k]['original_file'] = str_replace($output_dir, '', $v['fullname']);
+        }
+        //
+        // Open-DSI - Modification - End
+        //--------------------------------------------------------------
+
+        return $filearray;
     }
 }

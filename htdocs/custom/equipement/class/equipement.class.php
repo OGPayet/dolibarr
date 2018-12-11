@@ -38,6 +38,7 @@ class Equipement extends CommonObject
 	var $id;					// ID de l'�quipement
 	var $ref;					// num�ro de s�rie unique pour l'�quipement
 	var $fk_product;			// ID du produit
+    var $product;               // Product fetched by fetch_product()
 	var $fk_product_batch;		// num�ro de lot
 	var $numimmocompta;			// num�ro de compte immo pour les recherches
 	var $numversion; 			// num�ro de version associ� au produit
@@ -2353,6 +2354,25 @@ class Equipement extends CommonObject
         }
 
         return $obj;
+    }
+
+    /**
+     *  Load object product with id=$this->fk_product into $this->product
+     *
+     * @param   int     $productid      Id du product. Use this->fk_product if empty.
+     * @return  int						<0 if KO, >0 if OK
+     */
+    function fetch_product($productid=null)
+    {
+	if (empty($productid)) $productid=$this->fk_product;
+
+	if (empty($productid)) return 0;
+
+        require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
+        $product = new Product($this->db);
+        $result=$product->fetch($productid);
+        $this->product = $product;
+        return $result;
     }
 }
 
