@@ -1593,6 +1593,7 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
 		{
             //-------------------------------------------------------------------------------
             // Open DSI -- Benefactor -- Begin
+            $bulletSize      = 1;
             $bulletWidth     = 6;
             $multiCellBorder = 0;
             $showBenefactor  = FALSE;
@@ -1626,7 +1627,6 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
             $pdf->MultiCell($w, 5, $title, $multiCellBorder, 'L');
 
             $pdf->SetFont('', '', $default_font_size-2);
-            $bulletSize = 1;
 
             $posy += 10;
             $pdf->SetXY($posx+$bulletWidth, $posy);
