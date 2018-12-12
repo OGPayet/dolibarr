@@ -54,6 +54,7 @@ class ExtendedInterventionQuota
     const EF_CONTRACT_DURATION_MONTHS           = 'duration';
     const EF_COUNT_PERIOD_SIZE                  = 'ei_count_period_size';
     const EF_TERMINATION_DATE                   = 'realdate';
+    const EF_TACIT_RENEWAL                      = 'tacitagreement';
 
     /**
      *  Constructor
@@ -195,6 +196,8 @@ class ExtendedInterventionQuota
      */
     public function getPeriodOfContract(&$contract)
     {
+        global $conf;
+
         if (empty($contract->array_options)) {
             $contract->fetch_optionals();
         }
@@ -204,6 +207,7 @@ class ExtendedInterventionQuota
         $duration = $contract->array_options['options_' . self::EF_CONTRACT_DURATION_MONTHS];
         $period_size = $contract->array_options['options_' . self::EF_COUNT_PERIOD_SIZE];
         $termination_date_t = $contract->array_options['options_' . self::EF_TERMINATION_DATE];
+        $tacit_renewal = $contract->array_options['options_' . self::EF_TACIT_RENEWAL];
 
         $effective_date = null;
         if (!empty($effective_date_t)) {
@@ -226,20 +230,30 @@ class ExtendedInterventionQuota
         if (isset($effective_date) && $duration > 0 && $period_size > 0) {
             $now = Carbon::now();
             $begin_date = $effective_date;
-            $end_date = $begin_date->copy()->addMonths($duration)->subDay();
-            if (isset($termination_date) && $termination_date < $end_date) $end_date = $termination_date;
-            if (isset($contract_closed_date) && $contract_closed_date < $end_date) $end_date = $contract_closed_date;
+            $end_date = null;
+            if (empty($tacit_renewal)) $end_date = $begin_date->copy()->addMonths($duration)->subDay();
+            if (isset($termination_date) && (!isset($end_date) || $termination_date < $end_date)) $end_date = $termination_date;
+            if (isset($contract_closed_date) && (!isset($end_date) || $contract_closed_date < $end_date)) $end_date = $contract_closed_date;
 
-            $idx = 1;
-            while ($begin_date < $end_date) {
-                $b_date = $begin_date->timestamp;
-                $e_date = $begin_date->addMonths($period_size)->copy()->subDay()->timestamp;
-                $in_period = $b_date <= $now->timestamp && $now->timestamp <= $e_date;
-                $periods[$idx] = array('begin' => $b_date, 'end' => $e_date, 'in_period' => $in_period);
-                $idx++;
+            if ($begin_date <= $now) {
+                $idx = 1;
+                $nb_period = 0;
+                $stop_period = false;
+                do {
+                    $b_date = $begin_date->timestamp;
+                    $e_date = $begin_date->addMonths($period_size)->copy()->subDay()->timestamp;
+                    $last_period = isset($end_date) && $b_date <= $end_date->timestamp && $end_date->timestamp <= $e_date;
+                    $in_period = $b_date <= $now->timestamp && $now->timestamp <= ($last_period ? $end_date->timestamp : $e_date);
+                    $periods[$idx] = array('begin' => $b_date, 'end' => $last_period ? $end_date->timestamp : $e_date, 'in_period' => $in_period, 'last_period' => $last_period);
+                    $idx++;
+                    $nb_period++;
+                    if ($in_period) $stop_period = true;
+                } while ((!$stop_period || $nb_period < $conf->global->EXTENDEDINTERVENTION_QUOTA_SHOW_X_PERIOD) && !$last_period);
             }
-            $periods[$idx-1]['end'] = $end_date->timestamp;
-            $periods[$idx-1]['in_period'] = $begin_date->timestamp <= $now->timestamp && $now->timestamp <= $end_date->timestamp;
+        }
+
+        if (count($periods) > $conf->global->EXTENDEDINTERVENTION_QUOTA_SHOW_X_PERIOD) {
+            $periods = array_slice($periods, -$conf->global->EXTENDEDINTERVENTION_QUOTA_SHOW_X_PERIOD, null, true);
         }
 
         return $periods;
@@ -329,9 +343,14 @@ SCRIPT;
         if (count($inter_type_dictionary->lines) > 0 && count($company_counts['periods']) > 0) {
             $out .= '<table class="border" width="100%">';
             $out .= '<tr><td class="titlefield" align="right">' . $langs->trans('ExtendedInterventionPeriod') . ' : </td>';
-            $idx = 1;
             foreach ($company_counts['periods'] as $period) {
-                $out .= '<td align="center"'.(!empty($period['in_period']) ? ' style="background-color: lightblue;"' : '') . '>' . $langs->trans('DateFromTo', dol_print_date($period['begin'], 'day'), dol_print_date($period['end'], 'day')) . '</td>';
+                $out .= '<td align="center"' . (!empty($period['last_period']) || !empty($period['in_period']) ? ' style="background-color: '.(!empty($period['last_period']) ? 'indianred' : 'lightblue').';"' : '') . '>' .
+                    $langs->trans('DateFromTo', dol_print_date($period['begin'], 'day'), dol_print_date($period['end'], 'day')) .
+                    (!empty($period['last_period']) || !empty($period['in_period']) ? '&nbsp;' . $this->form->textwithpicto('',
+                            (!empty($period['in_period']) ? $langs->trans('ExtendedInterventionCurrentPeriod') : '') .
+                            (!empty($period['last_period']) && !empty($period['in_period']) ? '<br>' : '') .
+                            (!empty($period['last_period']) ? $langs->trans('ExtendedInterventionEndOfTheContract') : ''), 1, 'help') : '') .
+                    '</td>';
             }
             $out .= '</tr>';
 
@@ -350,7 +369,7 @@ SCRIPT;
                     if (!empty($period['forced'])) $toprint[] = $langs->trans('ExtendedInterventionForced') . ' : ' . $period['forced'];
                     if (!empty($toprint)) $more_info = '&nbsp;' . $this->form->textwithpicto('', implode('<br>', $toprint), 1, 'warning');
 
-                    $out .= '<td align="center"'.(!empty($company_counts['periods'][$period_idx]['in_period']) ? ' style="background-color: lightblue;"' : '') . '>' . $label . $more_info . '</td>';
+                    $out .= '<td align="center"' . (!empty($company_counts['periods'][$period_idx]['in_period']) ? ' style="background-color: lightblue;"' : '') . '>' . $label . $more_info . '</td>';
                 }
                 $out .= '</tr>';
             }

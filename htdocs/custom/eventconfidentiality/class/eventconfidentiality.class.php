@@ -473,11 +473,11 @@ class EventConfidentiality extends CommonObject
             }
         }
 
-        // If mode not found then set to hidden mode for external user and visible for internal user
-        if (!isset($mode)) $mode = $external_user ? EventConfidentiality::MODE_HIDDEN : EventConfidentiality::MODE_VISIBLE;
+        // If is internal user and mode is not found or is hidden then set to visible mode
+        if (!$external_user && (!isset($mode) || $mode == EventConfidentiality::MODE_HIDDEN)) $mode = EventConfidentiality::MODE_VISIBLE;
 
         // If mode is hidden and the user as the right to manage the tags then set to visible mode
-        if ($user->rights->eventconfidentiality->manage && $mode == EventConfidentiality::MODE_HIDDEN) $mode = EventConfidentiality::MODE_VISIBLE;
+        //if ($user->rights->eventconfidentiality->manage && $mode == EventConfidentiality::MODE_HIDDEN) $mode = EventConfidentiality::MODE_VISIBLE;
 
         return $mode;
     }

@@ -7,3 +7,63 @@ Module163023Desc = Extended management of the intervention
 ### Admin setup
 ############################################################
 ExtendedInterventionSetup       = Configuration of the module Extended Intervention
+
+ExtendedInterventionQuotaCategory                       = Paramètres des quotas
+ExtendedInterventionQuotaActivateName                   = Activation
+ExtendedInterventionQuotaActivateDesc                   = Active la gestion des quotas sur les interventions
+ExtendedInterventionQuotaShowBlockName                  = Afficher le décompte des interventions
+ExtendedInterventionQuotaShowBlockDesc                  = Afficher le décompte des interventions ouvert par défaut
+ExtendedInterventionQuotaShowOnlyTypeOfInterventionName = N'afficher que le décompte du type de l'intervention
+ExtendedInterventionQuotaShowOnlyTypeOfInterventionDesc = N'afficher que le décompte du type de l'intervention dans le tableau si celui-ci est renseigné
+ExtendedInterventionQuotaShowXPeriodName                = Nombre de période affichée dans le tableau
+ExtendedInterventionQuotaShowXPeriodDesc                = Affiche les X périodes ou les X dernières périodes si il y a plus de X périodes antérieures à la période actuelle (s'arrête dans tout les cas à la fin du contract)
+
+############################################################
+### Actions
+############################################################
+ActionAC_EI_FCI         = Forçage de la création d'une intervention
+
+############################################################
+### Extra fields : Intervention
+############################################################
+ExtendedInterventionType        = Type d'intervention
+
+############################################################
+### Extra fields : Contract
+############################################################
+ExtendedInterventionContractGeneralSeparatorTitle       = Généralités
+ExtendedInterventionContractGeneralStartDate            = Date d'effet
+ExtendedInterventionContractGeneralDuration             = Durée contractuelle (en mois)
+ExtendedInterventionQuotaSeparatorTitle                 = Paramètres pour le décompte des interventions
+ExtendedInterventionContractCountInterventionPeriodSize = Durée entre 2 remises à zéro des crédits dépensés (en mois)
+
+############################################################
+### Dictionaries
+############################################################
+ExtendedInterventionTypeDictionaryLabel        = Type d'intervention
+ExtendedInterventionTypeDictionaryCount        = Décompté
+
+############################################################
+### Confirm Box : Force create intervention out of quota
+############################################################
+ExtendedInterventionForceCreateInterventionOutOfQuota           = Forcer la création de l'intervention hors du quota
+ExtendedInterventionReason                                      = Raison du forçage
+ExtendedInterventionConfirmForceCreateInterventionOutOfQuota    = Êtes-vous sûr de vouloir forcer la création de l'intervention hors du quota ?
+
+############################################################
+### Generals
+############################################################
+ExtendedInterventionQuotaFor            = Nombre d'interventions pour "%s"
+ExtendedInterventionPeriod              = Période
+ExtendedInterventionFree                = Gratuite
+ExtendedInterventionForced              = Forcée
+ExtendedInterventionQuotaBlockTitle     = Décompte des interventions
+ExtendedInterventionQuotaForContract    = Pour le contrat "%s"
+ExtendedInterventionCurrentPeriod       = Période actuelle
+ExtendedInterventionEndOfTheContract    = Fin du contrat
+
+############################################################
+### Events : Force create intervention out of quota
+############################################################
+ExtendedInterventionForcedCreatedOutOfQuotaActionLabel      = Création de l'intervention hors du quota forcée
+ExtendedInterventionForcedCreatedOutOfQuotaActionReason     = La création de cette intervention à été forcée hors du quota pour la raison suivante

@@ -45,7 +45,15 @@ $action = GETPOST('action','alpha');
 $errors = [];
 $error = 0;
 
-if (preg_match('/set_(.*)/',$action,$reg)) {
+if ($action == 'set') {
+    $value = GETPOST('EXTENDEDINTERVENTION_QUOTA_SHOW_X_PERIOD', "int");
+    if (!($value > 0)) $value = 5;
+    $res = dolibarr_set_const($db, 'EXTENDEDINTERVENTION_QUOTA_SHOW_X_PERIOD', $value, 'chaine', 0, '', $conf->entity);
+    if (!$res > 0) {
+        $errors[] = $db->lasterror();
+        $error++;
+    }
+} elseif (preg_match('/set_(.*)/',$action,$reg)) {
     $code = $reg[1];
     $value = (GETPOST($code) ? GETPOST($code) : 1);
     if (dolibarr_set_const($db, $code, $value, 'chaine', 0, '', $conf->entity) > 0) {
@@ -160,7 +168,21 @@ if (!empty($conf->use_javascript_ajax)) {
 }
 print '</td></tr>' . "\n";
 
+// EXTENDEDINTERVENTION_QUOTA_SHOW_X_PERIOD
+$var=!$var;
+print '<tr '.$bc[$var].'>'."\n";
+print '<td>'.$langs->trans("ExtendedInterventionQuotaShowXPeriodName").'</td>'."\n";
+print '<td>'.$langs->trans("ExtendedInterventionQuotaShowXPeriodDesc").'</td>'."\n";
+print '<td align="right">'."\n";
+print '<input type="number" name="EXTENDEDINTERVENTION_QUOTA_SHOW_X_PERIOD" value="'.dol_escape_htmltag($conf->global->EXTENDEDINTERVENTION_QUOTA_SHOW_X_PERIOD).'">';
+print '</td></tr>'."\n";
+
 print '</table>';
+
+print '<br>';
+print '<div align="center">';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</div>';
 
 print '</form>';
 

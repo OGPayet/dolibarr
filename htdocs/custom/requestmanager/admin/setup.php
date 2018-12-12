@@ -55,14 +55,9 @@ if ($action == 'set_timeslots_options') {
     $value = GETPOST('REQUESTMANAGER_TIMESLOTS_PERIODS', "alpha");
     $res = requestmanagertimeslots_get_periods($value);
     if (is_array($res)) {
-        if (count($res) > 0) {
-            $res = dolibarr_set_const($db, 'REQUESTMANAGER_TIMESLOTS_PERIODS', $value, 'chaine', 0, '', $conf->entity);
-            if (!$res > 0) {
-                $errors[] = $db->lasterror();
-                $error++;
-            }
-        } else {
-            $errors[] = $langs->trans('RequestManagerTimeSlotsPeriodsName') . ': ' . $langs->trans('RequestManagerErrorMustBeNotEmpty');
+        $res = dolibarr_set_const($db, 'REQUESTMANAGER_TIMESLOTS_PERIODS', $value, 'chaine', 0, '', $conf->entity);
+        if (!$res > 0) {
+            $errors[] = $db->lasterror();
             $error++;
         }
     } else {

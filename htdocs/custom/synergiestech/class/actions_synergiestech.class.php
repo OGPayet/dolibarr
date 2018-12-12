@@ -1184,6 +1184,7 @@ SCRIPT;
         $origin=GETPOST('origin','alpha');
         $originid=GETPOST('originid','int');
 
+        // Propagation of references
         if ($action == 'create' && !empty($origin) && !empty($originid)) {
             // Parse element/subelement (ex: project_task)
             $element = $subelement = $origin;

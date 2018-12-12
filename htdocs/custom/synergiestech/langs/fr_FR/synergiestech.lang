@@ -71,7 +71,7 @@ SynergiesTechDontHaveContract   = N'as pas de contrats
 #######################################################################
 # Dictionaries
 #######################################################################
-SynergiesTechTimeSlotDictionaryLabel        = Plages horaires par Formule de contrat
+SynergiesTechTimeSlotDictionaryLabel        = Plages horaires par défaut pour une Formule de contrat
 SynergiesTechTimeSlotDictionaryFormula      = Formule de contrat
 SynergiesTechTimeSlotDictionaryFormulaHelp  = Le nom doit être exactement identique à celui dans la liste des formules de contrat de l'attribut supplémentaire "Formule" du contrat
 SynergiesTechTimeSlotDictionaryTimeSlots    = Plages horaires

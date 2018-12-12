@@ -762,7 +762,7 @@ class RequestManagerApi extends DolibarrApi {
             $sql .= " AND t.code != 'AC_RM_PRIV'";
         }
         // Event confidentiality support
-        if ($conf->eventconfidentiality->enabled && !DolibarrApiAccess::$user->rights->eventconfidentiality->manage) {
+        if ($conf->eventconfidentiality->enabled) {
             $eventconfidentiality = new EventConfidentiality(self::$db);
             $tags_list = $eventconfidentiality->getConfidentialTagsOfUser(DolibarrApiAccess::$user);
             if (!is_array($tags_list)) {
@@ -773,7 +773,11 @@ class RequestManagerApi extends DolibarrApi {
             } else {
                 $sql .= ' AND (cect.external IS NULL OR cect.external = 0)';
             }
-            $sql .= ' AND ecm.fk_c_eventconfidentiality_tag IN (' . (count($tags_list) > 0 ? implode(',', $tags_list) : -1) . ')';
+            $sql .= ' AND (ecm.fk_c_eventconfidentiality_tag IN (' . (count($tags_list) > 0 ? implode(',', $tags_list) : -1) . ')';
+            if (DolibarrApiAccess::$user->socid == 0) {
+                $sql .= ' OR ecm.rowid IS NULL';
+            }
+            $sql .= ')';
         }
         // Add sql filters
         if ($sql_filters) {
@@ -786,7 +790,7 @@ class RequestManagerApi extends DolibarrApi {
 
         $sql .= " GROUP BY t.id";
         // Event confidentiality support
-        if ($conf->eventconfidentiality->enabled && !DolibarrApiAccess::$user->rights->eventconfidentiality->manage) {
+        if ($conf->eventconfidentiality->enabled && DolibarrApiAccess::$user->socid > 0) {
             $sql .= ' HAVING ec_mode != ' . EventConfidentiality::MODE_HIDDEN;
         }
 

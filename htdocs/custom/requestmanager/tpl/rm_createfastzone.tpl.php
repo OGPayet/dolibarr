@@ -173,14 +173,16 @@ if ($zone === 1) {
         if (is_array($res)) {
             print '<span style="font-weight: bolder !important; font-size: 16px !important; color: green !important;">' . $langs->trans('RequestManagerTimeSlotsIntoPeriod', sprintf("%02d:%02d", $res['begin']['hour'], $res['begin']['minute']), sprintf("%02d:%02d", $res['end']['hour'], $res['end']['minute'])) . '</span>';
         } else {
-            print '<span style="font-weight: bolder !important; font-size: 16px !important; color: red !important;">' . $langs->trans('RequestManagerTimeSlotsOutOfPeriod') . '</span>';
-            $outOfTimes = requestmanagertimeslots_get_out_of_time_infos($selectedSocId);
-            if (is_array($outOfTimes) && count($outOfTimes) > 0) {
-                $toprint = array();
-                foreach ($outOfTimes as $infos) {
-                    $toprint[] = '&nbsp;-&nbsp;' . $infos['year'] . (isset($infos['month']) ? '-' . $infos['month'] : '') . ' : ' . $infos['count'];
+            if (!$res) {
+                print '<span style="font-weight: bolder !important; font-size: 16px !important; color: red !important;">' . $langs->trans('RequestManagerTimeSlotsOutOfPeriod') . '</span>';
+                $outOfTimes = requestmanagertimeslots_get_out_of_time_infos($selectedSocId);
+                if (is_array($outOfTimes) && count($outOfTimes) > 0) {
+                    $toprint = array();
+                    foreach ($outOfTimes as $infos) {
+                        $toprint[] = '&nbsp;-&nbsp;' . $infos['year'] . (isset($infos['month']) ? '-' . $infos['month'] : '') . ' : ' . $infos['count'];
+                    }
+                    print '&nbsp;' . $form->textwithpicto('', $langs->trans('RequestManagerCreatedOutOfTime') . ' :<br>' . implode('<br>', $toprint), 1, 'warning');
                 }
-                print '&nbsp;' . $form->textwithpicto('', $langs->trans('RequestManagerCreatedOutOfTime') . ' :<br>' . implode('<br>', $toprint), 1, 'warning');
             }
         }
         print '</td>';

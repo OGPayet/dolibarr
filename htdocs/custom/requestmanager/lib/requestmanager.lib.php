@@ -490,7 +490,7 @@ function requestmanager_show_events(&$requestmanager)
         }
     }
     // Event confidentiality support
-    if ($conf->eventconfidentiality->enabled && !$user->rights->eventconfidentiality->manage) {
+    if ($conf->eventconfidentiality->enabled) {
         $eventconfidentiality = new EventConfidentiality($db);
         $tags_list = $eventconfidentiality->getConfidentialTagsOfUser($user);
         if (!is_array($tags_list)) {
@@ -501,7 +501,11 @@ function requestmanager_show_events(&$requestmanager)
         } else {
             $sql .= ' AND (cect.external IS NULL OR cect.external = 0)';
         }
-        $sql .= ' AND ecm.fk_c_eventconfidentiality_tag IN (' . (count($tags_list) > 0 ? implode(',', $tags_list) : -1) . ')';
+        $sql .= ' AND (ecm.fk_c_eventconfidentiality_tag IN (' . (count($tags_list) > 0 ? implode(',', $tags_list) : -1) . ')';
+        if ($user->socid == 0) {
+            $sql .= ' OR ecm.rowid IS NULL';
+        }
+        $sql .= ')';
     }
     // Add where from hooks
     $parameters = array();
@@ -510,7 +514,7 @@ function requestmanager_show_events(&$requestmanager)
 
     $sql .= " GROUP BY ac.id";
     // Event confidentiality support
-    if ($conf->eventconfidentiality->enabled && !$user->rights->eventconfidentiality->manage) {
+    if ($conf->eventconfidentiality->enabled && $user->socid > 0) {
         $sql .= ' HAVING ec_mode != ' . EventConfidentiality::MODE_HIDDEN;
     }
     $sql .= $db->order($sortfield.', ac.id', $sortorder.','.$sortorder);
@@ -1008,7 +1012,7 @@ SCRIPT;
             //--------------------------------------
             if ($conf->eventconfidentiality->enabled) {
                 $ec_mode = $obj->ec_mode;
-                if ($ec_mode == EventConfidentiality::MODE_HIDDEN && $user->rights->eventconfidentiality->manage) $ec_mode = EventConfidentiality::MODE_VISIBLE;
+                if ($ec_mode == EventConfidentiality::MODE_HIDDEN && $user->socid == 0) $ec_mode = EventConfidentiality::MODE_VISIBLE;
             }
 
             $actioncomm_static->id = $obj->id;
@@ -1802,7 +1806,7 @@ function requestmanager_show_timelines(&$requestmanager)
     $sql .= " AND (ac.fk_element = " . $requestmanager->id . " AND ac.elementtype = '" . $requestmanager->element . "')";
     $sql .= " AND (ac.code = 'AC_RM_IN' OR ac.code = 'AC_RM_OUT' OR ac.code = 'AC_RM_PRIV')";
     // Event confidentiality support
-    if ($conf->eventconfidentiality->enabled && !$user->rights->eventconfidentiality->manage) {
+    if ($conf->eventconfidentiality->enabled) {
         $eventconfidentiality = new EventConfidentiality($db);
         $tags_list = $eventconfidentiality->getConfidentialTagsOfUser($user);
         if (!is_array($tags_list)) {
@@ -1813,7 +1817,11 @@ function requestmanager_show_timelines(&$requestmanager)
         } else {
             $sql .= ' AND (cect.external IS NULL OR cect.external = 0)';
         }
-        $sql .= ' AND ecm.fk_c_eventconfidentiality_tag IN (' . (count($tags_list) > 0 ? implode(',', $tags_list) : -1) . ')';
+        $sql .= ' AND (ecm.fk_c_eventconfidentiality_tag IN (' . (count($tags_list) > 0 ? implode(',', $tags_list) : -1) . ')';
+        if ($user->socid == 0) {
+            $sql .= ' OR ecm.rowid IS NULL';
+        }
+        $sql .= ')';
     }
     // Add where from hooks
     $parameters = array();
@@ -1822,7 +1830,7 @@ function requestmanager_show_timelines(&$requestmanager)
 
     $sql .= " GROUP BY ac.id";
     // Event confidentiality support
-    if ($conf->eventconfidentiality->enabled && !$user->rights->eventconfidentiality->manage) {
+    if ($conf->eventconfidentiality->enabled && $user->socid > 0) {
         $sql .= ' HAVING ec_mode != ' . EventConfidentiality::MODE_HIDDEN;
     }
     $sql .= $db->order($sortfield, $sortorder);
@@ -1921,7 +1929,7 @@ SCRIPT;
             //--------------------------------------
             if ($conf->eventconfidentiality->enabled) {
                 $ec_mode = $obj->ec_mode;
-                if ($ec_mode == EventConfidentiality::MODE_HIDDEN && $user->rights->eventconfidentiality->manage) $ec_mode = EventConfidentiality::MODE_VISIBLE;
+                if ($ec_mode == EventConfidentiality::MODE_HIDDEN && $user->socid == 0) $ec_mode = EventConfidentiality::MODE_VISIBLE;
             }
 
             $requestmessage_static->id = $obj->id;

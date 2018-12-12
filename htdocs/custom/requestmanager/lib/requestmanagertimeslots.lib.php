@@ -189,6 +189,8 @@ function requestmanagertimeslots_is_in_time_slot($soc_id, $date)
                 return $period;
             }
         }
+    } else {
+        return true;
     }
 
     return false;

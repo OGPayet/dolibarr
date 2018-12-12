@@ -68,7 +68,7 @@ class modExtendedIntervention extends DolibarrModules
         $this->editor_url = 'http://www.open-dsi.fr';
 
         // Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-        $this->version = '4.0.3';
+        $this->version = '4.0.4';
         // Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
         $this->const_name = 'MAIN_MODULE_' . strtoupper($this->name);
         // Name of image file used for this module.
@@ -128,6 +128,7 @@ class modExtendedIntervention extends DolibarrModules
             0 => array('EXTENDEDINTERVENTION_QUOTA_ACTIVATE', 'chaine', '0', '', 0, 'current'),
             1 => array('EXTENDEDINTERVENTION_QUOTA_SHOW_BLOCK', 'chaine', '1', '', 0, 'current'),
             2 => array('EXTENDEDINTERVENTION_QUOTA_SHOW_ONLY_TYPE_OF_INTERVENTION', 'chaine', '1', '', 0, 'current'),
+            3 => array('EXTENDEDINTERVENTION_QUOTA_SHOW_X_PERIOD', 'chaine', '5', '', 0, 'current'),
         );
 
         // Array to add new pages in new tabs

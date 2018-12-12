@@ -128,7 +128,7 @@ if (empty($reshook)) {
         $db->begin();
         if ($btnAction == 'create' || $force_principal_company || $force_out_of_time) {
             $res = requestmanagertimeslots_is_in_time_slot($object->socid, $object->date_creation);
-            $object->created_out_of_time = is_array($res) ? 0 : 1;
+            $object->created_out_of_time = is_array($res) ? 0 : ($res ? 0 : 1);
             if (!empty($conf->companyrelationships->enabled)) {
                 $principal_companies_ids = $companyrelationships->getRelationships($object->socid_benefactor, 0);
                 $not_principal_company = !in_array($object->socid, $principal_companies_ids) && $object->socid != $object->socid_benefactor;
