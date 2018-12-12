@@ -1638,15 +1638,6 @@ class pdf_ouvrage_fact_st extends ModelePDFFactures
                 $usecontact = TRUE;
                 $result     = $object->fetch_contact($arrayidcontact[0]);
             }
-            if ($usecontact === FALSE) {
-                // If CUSTOMER contact defined, we use it
-                $usecontact = FALSE;
-                $arrayidcontact = $object->getIdContact('external', 'CUSTOMER');
-                if (count($arrayidcontact) > 0) {
-                    $usecontact = TRUE;
-                    $object->fetch_contact($arrayidcontact[0]);
-                }
-            }
 
             //Recipient name
             // On peut utiliser le nom de la societe du contact
