@@ -53,11 +53,12 @@ class TInventory extends TObjetStd
 	{
 		global $db;
 
-		$r = strcmp(strtoupper(trim($objA->entrepot->label)), strtoupper(trim($objB->entrepot->label)));
+		$r = strcmp(strtoupper(trim($objA->product->ref)), strtoupper(trim($objB->product->ref)));
 
 		if ($r < 0) $r = -1;
 		elseif ($r > 0) $r = 1;
 		else $r = 0;
+
 		return $r;
 	}
 

@@ -91,7 +91,6 @@ function _action()
 			     INNER JOIN '.MAIN_DB_PREFIX.'product p ON (p.rowid = ps.fk_product)
                  LEFT JOIN '.MAIN_DB_PREFIX.'categorie_product cp ON (cp.fk_product = p.rowid)
 				 LEFT JOIN '.MAIN_DB_PREFIX.'product_fournisseur_price pfp ON (pfp.fk_product = p.rowid)
-				 LEFT JOIN '.MAIN_DB_PREFIX.'entrepot e ON (e.rowid = ps.fk_entrepot)
 			     WHERE ps.fk_entrepot IN ('.implode(', ', $TChildWarehouses).')';
 
             if($fk_category>0) $sql.= " AND cp.fk_categorie=".$fk_category;
@@ -99,7 +98,7 @@ function _action()
 			if($only_prods_in_stock>0) $sql.= ' AND ps.reel > 0';
 
 			$sql.=' GROUP BY ps.fk_product, ps.fk_entrepot
-					ORDER BY e.label ASC,p.ref ASC';
+					ORDER BY p.ref ASC,p.label ASC';
 
 
 			$Tab = $PDOdb->ExecuteAsArray($sql);
@@ -331,9 +330,9 @@ function _liste(&$user, &$db, &$conf, &$langs)
 	$sql="SELECT i.rowid, ".($dol_version >= 7 ? 'e.ref' : 'e.label').", i.date_inventory, i.fk_warehouse, i.date_cre, i.date_maj, i.status
 		  FROM ".MAIN_DB_PREFIX."inventory i
 		  LEFT JOIN ".MAIN_DB_PREFIX."entrepot e ON (e.rowid = i.fk_warehouse)
-		  WHERE i.entity=".(int) $conf->entity . " ORDER BY e.label ASC" ;
+		  WHERE i.entity=".(int) $conf->entity;
 
-	//if (!__get('TListTBS', 0, 'int')) $sql .= " ORDER BY i.rowid DESC";
+	if (!__get('TListTBS', 0, 'int')) $sql .= " ORDER BY i.rowid DESC";
 	$hide = $dol_version >= 7 ? 'ref' : 'label';
 	$THide = array($hide);
 
