@@ -518,7 +518,18 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
 	foreach ($inventory->TInventorydet as $k => $TInventorydet)
 	{
 
-        $product = & $TInventorydet->product;
+	$e = new Entrepot($db);
+		if(!empty($TCacheEntrepot[$TInventorydet->fk_warehouse])) $e = $TCacheEntrepot[$TInventorydet->fk_warehouse];
+		elseif($e->fetch($TInventorydet->fk_warehouse) > 0) $TCacheEntrepot[$e->id] = $e;
+		$inventory->TInventorydet[$k]->entrepotlabel = $e->label;
+
+	}
+
+	usort($inventory->TInventorydet,function ($a,$b){return strnatcasecmp($a->entrepotlabel,$b->entrepotlabel);});
+
+	foreach ($inventory->TInventorydet as $k => $TInventorydet)
+	{
+		$product = & $TInventorydet->product;
 		$stock = $TInventorydet->qty_stock;
 
         $pmp = $TInventorydet->pmp;
@@ -532,11 +543,9 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
 			if(!empty($last_pa)){ $pmp_actual = $last_pa* $stock;$pmp=$last_pa;}
 			else if(!empty($current_pa)) {$pmp_actual = $current_pa* $stock; $pmp=$current_pa;}
 		}
-
 		$e = new Entrepot($db);
 		if(!empty($TCacheEntrepot[$TInventorydet->fk_warehouse])) $e = $TCacheEntrepot[$TInventorydet->fk_warehouse];
 		elseif($e->fetch($TInventorydet->fk_warehouse) > 0) $TCacheEntrepot[$e->id] = $e;
-
 		$TInventory[]=array(
 			'produit' => $product->getNomUrl(1).'&nbsp;-&nbsp;'.$product->label
 			,'entrepot'=>$e->getNomUrl(1)
@@ -560,6 +569,7 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form)
             ,'k'=>$k
             ,'id'=>$TInventorydet->getId()
 		);
+
 	}
 
 }
