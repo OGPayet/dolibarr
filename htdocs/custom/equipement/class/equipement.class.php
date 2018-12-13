@@ -1638,7 +1638,7 @@ class Equipement extends CommonObject
 	function fetch_lines()
 	{
 		$sql = 'SELECT ee.rowid, ee.fk_equipement, ee.description, ee.datec, ee.fk_equipementevt_type,';
-		$sql.= ' ee.datee, ee.dateo, ee.fulldayevent, ee.total_ht, ee.fk_fichinter,';
+		$sql.= ' ee.fk_user_author, ee.datee, ee.dateo, ee.fulldayevent, ee.total_ht, ee.fk_fichinter,';
 		$sql.= '  ee.fk_contrat, ee.fk_expedition, fi.ref as reffichinter, co.ref as refcontrat, ex.ref as refexpedition ';
 		$sql.= ' FROM '.MAIN_DB_PREFIX.'equipementevt as ee';
 		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fichinter as fi on ee.fk_fichinter = fi.rowid";
@@ -1669,7 +1669,10 @@ class Equipement extends CommonObject
 				$line->dateo					= $this->db->jdate($objp->dateo);
 				$line->datee					= $this->db->jdate($objp->datee);
 				$line->fulldayevent				= $objp->fulldayevent;
+                $line->fk_user_author			= $objp->fk_user_author;
 				$line->total_ht					= $objp->total_ht;
+                $line->fetch_optionals();
+
 				$this->lines[$i] = $line;
 
 				$i++;
@@ -2448,6 +2451,7 @@ class Equipementevt extends CommonObject
 		if ($result) {
 			$objp 	= $this->db->fetch_object($result);
 
+            $this->id 						= $objp->rowid;
 			$this->rowid					= $objp->rowid;
 			$this->fk_equipement			= $objp->fk_equipement;
 			$this->fk_equipementevt_type	= $objp->fk_equipementevt_type;
@@ -2466,6 +2470,8 @@ class Equipementevt extends CommonObject
             $this->fk_retourproduits	    = $objp->fk_retourproduits;
 			$this->fk_factory			    = $objp->fk_factory;
             $this->fk_factorydet			= $objp->fk_factorydet;
+            $this->fk_user_author			= $objp->fk_user_author;
+            $this->fetch_optionals();
 
 			$this->db->free($result);
 			return 1;

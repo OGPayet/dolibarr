@@ -23,6 +23,8 @@ require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
 require_once DOL_DOCUMENT_ROOT . '/fichinter/class/fichinter.class.php';
 require_once DOL_DOCUMENT_ROOT . '/expedition/class/expedition.class.php';
 require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
+require_once DOL_DOCUMENT_ROOT . '/main.inc.php';
+require_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
 
 dol_include_once('/companyrelationships/class/companyrelationships.class.php');
 if (!empty($conf->equipement->enabled)) {
@@ -4448,6 +4450,8 @@ class CompanyRelationshipsApi extends DolibarrApi {
             $societe = new Societe($this->db);
             if ($societe->fetch($object->array_options['options_companyrelationships_fk_soc_benefactor']) > 0) {
                 $object->cr_thirdparty_benefactor = $societe;
+
+                $this->_cleanThirdPartyObjectDatas($object->cr_thirdparty_benefactor);
             }
         }
     }
@@ -4648,29 +4652,25 @@ class CompanyRelationshipsApi extends DolibarrApi {
         unset($object->rowid);
 
         // equipment belongs to a supplier benefactor company of API user
-        if ($object->fk_soc_fourn>0 && in_array($object->fk_soc_fourn, $this->benefactor_ids)) {
+        if ($object->fk_soc_fourn > 0 && in_array($object->fk_soc_fourn, $this->benefactor_ids)) {
             // remove equipement event lines
             unset($object->lines);
-        }
-        // equipment belongs to a customer benefactor company of API user
-        else if ($object->fk_soc_client>0 && in_array($object->fk_soc_client, $this->benefactor_ids)) {
+        } // equipment belongs to a customer benefactor company of API user
+        else if ($object->fk_soc_client > 0 && in_array($object->fk_soc_client, $this->benefactor_ids)) {
             // remove equipement event lines
             unset($object->lines);
         }
 
         // If object has lines, remove $db property
-        if (isset($object->lines) && is_array($object->lines) && count($object->lines) > 0)  {
+        if (isset($object->lines) && is_array($object->lines) && count($object->lines) > 0) {
             $nboflines = count($object->lines);
-		for ($i=0; $i < $nboflines; $i++)
-            {
+            for ($i = 0; $i < $nboflines; $i++) {
                 $this->_cleanEquipementLineObjectDatas($object->lines[$i]);
             }
         }
 
-        if (! empty($object->product) && is_object($object->product))
-        {
-		parent::_cleanObjectDatas($object->product);
-            unset($object->product->regeximgext);
+        if (!empty($object->product) && is_object($object->product)) {
+            $this->_cleanProductObjectDatas($object->product);
         }
 
         return $object;
@@ -4685,33 +4685,73 @@ class CompanyRelationshipsApi extends DolibarrApi {
      */
     function _cleanEquipementLineObjectDatas($object)
     {
-        unset($object->db);
-        unset($object->error);
-        unset($object->element);
-        unset($object->table_element);
+        $object = parent::_cleanObjectDatas($object);
+
         unset($object->rowid);
-        unset($object->errors);
-        unset($object->table_element_line);
-        unset($object->linkedObjects);
-        unset($object->oldcopy);
-        unset($object->context);
         unset($object->canvas);
-        unset($object->project);
-        unset($object->projet);
+        unset($object->origin);
+        unset($object->origin_id);
+        unset($object->ref_ext);
+        unset($object->barcode_type);
+        unset($object->barcode_type_code);
+        unset($object->barcode_type_label);
+        unset($object->barcode_type_coder);
+        unset($object->fk_account);
+        unset($object->note);
+        unset($object->total_tva);
+        unset($object->total_localtax1);
+        unset($object->total_localtax2);
+        unset($object->total_ttc);
+        unset($object->import_key);
+        unset($object->linkedObjectsIds);
+        unset($object->ref);
+        unset($object->statut);
+        unset($object->lines);
+
+        return $object;
+    }
+
+    /**
+     *  Clean sensible product object data
+     *
+     * @param   object          $object         Object to clean
+     *
+     * @return  object|array                    Array of cleaned object properties
+     */
+    function _cleanProductObjectDatas($object)
+    {
+        $object = parent::_cleanObjectDatas($object);
+
+        unset($object->regeximgext);
+
+        //unset($object->entity);
+        unset($object->libelle);
+        unset($object->stock_theorique);
+        unset($object->barcodes_extra);
+        unset($object->stats_propale);
+        unset($object->stats_commande);
+        unset($object->stats_contrat);
+        unset($object->stats_facture);
+        unset($object->stats_commande_fournisseur);
+        unset($object->imgWidth);
+        unset($object->imgHeight);
+        unset($object->product_fourn_id);
+        unset($object->product_id_already_linked);
+        unset($object->nbphoto);
+        unset($object->stock_warehouse);
+        unset($object->import_key);
+        unset($object->canvas);
+        unset($object->fk_project);
         unset($object->contact);
         unset($object->contact_id);
         unset($object->thirdparty);
         unset($object->user);
         unset($object->origin);
         unset($object->origin_id);
-        unset($object->ref_previous);
-        unset($object->ref_next);
-        unset($object->ref_ext);
+        unset($object->statut);
         unset($object->country);
         unset($object->country_id);
         unset($object->country_code);
-        unset($object->barcode_type);
-        unset($object->barcode_type_code);
         unset($object->barcode_type_label);
         unset($object->barcode_type_coder);
         unset($object->mode_reglement_id);
@@ -4724,25 +4764,24 @@ class CompanyRelationshipsApi extends DolibarrApi {
         unset($object->note_public);
         unset($object->note_private);
         unset($object->note);
-        unset($object->total_tva);
-        unset($object->total_localtax1);
-        unset($object->total_localtax2);
-        unset($object->total_ttc);
         unset($object->fk_incoterms);
         unset($object->libelle_incoterms);
         unset($object->location_incoterms);
+        unset($object->lines);
         unset($object->name);
         unset($object->lastname);
         unset($object->firstname);
         unset($object->civility_id);
-        unset($object->ref_fichinter);
-        unset($object->ref_contrat);
-        unset($object->ref_expedition);
-        unset($object->import_key);
-        unset($object->linkedObjectsIds);
-        unset($object->ref);
-        unset($object->statut);
-        unset($object->lines);
+        unset($object->total_ht);
+        unset($object->total_tva);
+        unset($object->total_localtax1);
+        unset($object->total_localtax2);
+        unset($object->total_ttc);
+        unset($object->buyprice);
+        unset($object->fourn_pu);
+        unset($object->fourn_price_base_type);
+        unset($object->ref_fourn);
+        unset($object->ref_supplier);
 
         return $object;
     }
@@ -4891,7 +4930,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
                     $soc_static->fetchObjectLinked();
                     $soc_static->thirdparty_principal_ids = !empty($company_details[$obj->rowid]['principal_ids']) ? array_values($company_details[$obj->rowid]['principal_ids']) : array();
                     $soc_static->thirdparty_benefactor_ids = !empty($company_details[$obj->rowid]['benefactor_ids']) ? array_values($company_details[$obj->rowid]['benefactor_ids']) : array();
-                    $obj_ret[] = $this->_cleanThirdpartyObjectDatas($soc_static);
+                    $obj_ret[] = $this->_cleanThirdPartyObjectDatas($soc_static);
                 }
                 $i++;
             }
@@ -4905,12 +4944,13 @@ class CompanyRelationshipsApi extends DolibarrApi {
     }
 
     /**
-	 * Clean sensible object datas
-	 *
-	 * @param   object  $object    Object to clean
-	 * @return    array    Array of cleaned object properties
-	 */
-	function _cleanThirdpartyObjectDatas($object) {
+     *  Clean sensible third party object data
+     *
+     * @param   object          $object         Object to clean
+     *
+     * @return  object|array                    Array of cleaned object properties
+     */
+	function _cleanThirdPartyObjectDatas($object) {
 
 	    $object = parent::_cleanObjectDatas($object);
 
@@ -4919,6 +4959,37 @@ class CompanyRelationshipsApi extends DolibarrApi {
 	    unset($object->total_localtax1);
 	    unset($object->total_localtax2);
 	    unset($object->total_ttc);
+
+        // Others
+        //unset($object->entity);
+        unset($object->managers);
+        unset($object->name_bis);
+        unset($object->specimen);
+        unset($object->note);
+        unset($object->note_private);
+        //unset($object->note_public);
+        unset($object->logo_small);
+        unset($object->logo_mini);
+        unset($object->webservices_url);
+        unset($object->webservices_key);
+        unset($object->import_key);
+        unset($object->commercial_id);
+        unset($object->contact);
+        unset($object->contact_id);
+        unset($object->thirdparty);
+        unset($object->user);
+        unset($object->origin);
+        unset($object->origin_id);
+        unset($object->statut);
+        unset($object->barcode_type);
+        unset($object->barcode_type_code);
+        unset($object->barcode_type_label);
+        unset($object->barcode_type_coder);
+        unset($object->modelpdf);
+        unset($object->lines);
+        unset($object->lastname);
+        unset($object->firstname);
+        unset($object->civility_id);
 
 	    return $object;
 	}

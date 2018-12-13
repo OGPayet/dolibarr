@@ -81,6 +81,9 @@ class RequestManagerApi extends DolibarrApi {
         // Get request object
         $requestmanager = $this->_getRequestManagerObject($id);
 
+        $requestmanager->fetch_assigned(1);
+        $requestmanager->fetch_requesters(1);
+        $requestmanager->fetch_watchers(1);
         $requestmanager->fetch_optionals();
         $requestmanager->fetch_thirdparty();
         $requestmanager->fetch_thirdparty_benefactor();
@@ -193,6 +196,9 @@ class RequestManagerApi extends DolibarrApi {
             while ($obj = self::$db->fetch_object($resql)) {
                 $requestmanager = new RequestManager(self::$db);
                 if ($requestmanager->fetch($obj->rowid) > 0) {
+                    $requestmanager->fetch_assigned(1);
+                    $requestmanager->fetch_requesters(1);
+                    $requestmanager->fetch_watchers(1);
                     $requestmanager->fetch_optionals();
                     $requestmanager->fetch_thirdparty();
                     $requestmanager->fetch_thirdparty_benefactor();
@@ -581,6 +587,8 @@ class RequestManagerApi extends DolibarrApi {
             if ($requestmanager_message->message_type != -1) {
                 $requestmanager_message->fetch_knowledge_base();
                 $requestmanager_message->fetch_optionals();
+                $requestmanager_message->fetch_contact();
+                $requestmanager_message->fetch_thirdparty();
                 $this->_fetch_event_users($requestmanager_message);
             } else {
                 throw new RestException(404, "Request not found");
@@ -814,6 +822,7 @@ class RequestManagerApi extends DolibarrApi {
                     if ($requestmanager_message->fetch($obj->id) > 0 && $requestmanager_message->id > 0) {
                         $requestmanager_message->fetch_knowledge_base();
                         $requestmanager_message->fetch_optionals();
+                        $requestmanager_message->fetch_contact();
                         $requestmanager_message->fetch_thirdparty();
                         $this->_fetch_event_users($requestmanager_message);
                         $requestmanager_message = $this->_cleanEventObjectDatas($requestmanager_message);
@@ -1355,7 +1364,8 @@ class RequestManagerApi extends DolibarrApi {
         $object->user_owner = $this->_fetch_user($object->userownerid);
 
         foreach ($object->userassigned as $key => $user_infos) {
-            $object->userassigned[$key]['user'] = $this->_fetch_user($user_infos['id']);
+            $user = $this->_fetch_user($user_infos['id']);
+            $object->userassigned[$key]['user'] = $user;
         }
     }
 
@@ -1392,20 +1402,42 @@ class RequestManagerApi extends DolibarrApi {
     {
         $object = parent::_cleanObjectDatas($object);
 
-        if (! empty($object->thirdparty_origin) && is_object($object->thirdparty_origin))
-        {
-            parent::_cleanObjectDatas($object->thirdparty_origin);
+        if (!empty($object->thirdparty_origin) && is_object($object->thirdparty_origin)) {
+            $this->_cleanThirdPartyObjectDatas($object->thirdparty_origin);
         }
 
-        if (! empty($object->thirdparty_benefactor) && is_object($object->thirdparty_benefactor))
-        {
-            parent::_cleanObjectDatas($object->thirdparty_benefactor);
+        if (!empty($object->thirdparty) && is_object($object->thirdparty)) {
+            $this->_cleanThirdPartyObjectDatas($object->thirdparty);
         }
 
-        unset($object->requester_list);
-        unset($object->watcher_list);
-        unset($object->assigned_user_list);
-        unset($object->assigned_usergroup_list);
+        if (!empty($object->thirdparty_benefactor) && is_object($object->thirdparty_benefactor)) {
+            $this->_cleanThirdPartyObjectDatas($object->thirdparty_benefactor);
+        }
+
+        if (isset($object->requester_list) && is_array($object->requester_list) && count($object->requester_list) > 0) {
+            foreach ($object->requester_list as $key => $user_infos) {
+                $this->_cleanContactObjectDatas($object->requester_list[$key]);
+            }
+        }
+
+        if (isset($object->watcher_list) && is_array($object->watcher_list) && count($object->watcher_list) > 0) {
+            foreach ($object->watcher_list as $key => $user_infos) {
+                $this->_cleanContactObjectDatas($object->watcher_list[$key]);
+            }
+        }
+
+        if (isset($object->assigned_user_list) && is_array($object->assigned_user_list) && count($object->assigned_user_list) > 0) {
+            foreach ($object->assigned_user_list as $key => $user_infos) {
+                $this->_cleanUserObjectDatas($object->assigned_user_list[$key]);
+            }
+        }
+
+        if (isset($object->assigned_usergroup_list) && is_array($object->assigned_usergroup_list) && count($object->assigned_usergroup_list) > 0) {
+            foreach ($object->assigned_usergroup_list as $key => $usergroup_infos) {
+                $this->_cleanUserGroupObjectDatas($object->assigned_usergroup_list[$key]);
+            }
+        }
+
         unset($object->new_assigned_user_ids);
         unset($object->new_assigned_usergroup_ids);
         unset($object->assigned_user_added_ids);
@@ -1481,6 +1513,8 @@ class RequestManagerApi extends DolibarrApi {
      */
     function _cleanLineObjectDatas($object)
     {
+        $object = parent::_cleanObjectDatas($object);
+
         unset($object->contact);
         unset($object->contact_id);
         unset($object->country);
@@ -1511,6 +1545,27 @@ class RequestManagerApi extends DolibarrApi {
         unset($object->multicurrency_code);
         unset($object->shipping_method_id);
 
+        // Others
+        unset($object->desc);
+        unset($object->ref);
+        unset($object->libelle);
+        unset($object->rowid);
+        unset($object->import_key);
+        unset($object->linkedObjectsIds);
+        unset($object->canvas);
+        unset($object->fk_project);
+        unset($object->origin);
+        unset($object->origin_id);
+        unset($object->ref_ext);
+        unset($object->statut);
+        unset($object->barcode_type);
+        unset($object->barcode_type_code);
+        unset($object->barcode_type_label);
+        unset($object->barcode_type_coder);
+        unset($object->fk_account);
+        unset($object->note);
+        unset($object->lines);
+
         return $object;
     }
 
@@ -1524,6 +1579,34 @@ class RequestManagerApi extends DolibarrApi {
     function _cleanEventObjectDatas($object)
     {
         $object = parent::_cleanObjectDatas($object);
+
+        if (!empty($object->thirdparty) && is_object($object->thirdparty)) {
+            $this->_cleanThirdPartyObjectDatas($object->thirdparty);
+        }
+
+        if (!empty($object->contact) && is_object($object->contact)) {
+            $this->_cleanContactObjectDatas($object->contact);
+        }
+
+        if (!empty($object->user_mod) && is_object($object->user_mod)) {
+            $this->_cleanUserObjectDatas($object->user_mod);
+        }
+
+        if (!empty($object->user_done) && is_object($object->user_done)) {
+            $this->_cleanUserObjectDatas($object->user_done);
+        }
+
+        if (!empty($object->user_owner) && is_object($object->user_owner)) {
+            $this->_cleanUserObjectDatas($object->user_owner);
+        }
+
+        if (isset($object->userassigned) && is_array($object->userassigned) && count($object->userassigned) > 0) {
+            foreach ($object->userassigned as $key => $user_infos) {
+                if (!empty($object->userassigned[$key]['user']) && is_object($object->userassigned[$key]['user'])) {
+                    $this->_cleanUserObjectDatas($object->userassigned[$key]['user']);
+                }
+            }
+        }
 
         unset($object->icalname);
         unset($object->icalcolor);
@@ -1610,6 +1693,271 @@ class RequestManagerApi extends DolibarrApi {
 
         return $object;
     }
+
+    /**
+     *  Clean sensible user object data
+     *
+     * @param   object          $object         Object to clean
+     *
+     * @return  object|array                    Array of cleaned object properties
+     */
+	function _cleanUserObjectDatas($object)
+    {
+        global $conf;
+
+        $object = parent::_cleanObjectDatas($object);
+
+        unset($object->default_values);
+        unset($object->lastsearch_values);
+        unset($object->lastsearch_values_tmp);
+
+        unset($object->total_ht);
+        unset($object->total_tva);
+        unset($object->total_localtax1);
+        unset($object->total_localtax2);
+        unset($object->total_ttc);
+        unset($object->libelle_incoterms);
+        unset($object->location_incoterms);
+
+        unset($object->fk_delivery_address);
+        unset($object->fk_incoterms);
+        unset($object->all_permissions_are_loaded);
+        unset($object->shipping_method_id);
+        unset($object->nb_rights);
+        unset($object->search_sid);
+        unset($object->ldap_sid);
+
+        // List of properties never returned by API, whatever are permissions
+        unset($object->pass);
+        unset($object->pass_indatabase);
+        unset($object->pass_indatabase_crypted);
+        unset($object->pass_temp);
+        unset($object->api_key);
+        unset($object->clicktodial_password);
+        unset($object->openid);
+
+        $canreadsalary = ((!empty($conf->salaries->enabled) && !empty(DolibarrApiAccess::$user->rights->salaries->read))
+            || (!empty($conf->hrm->enabled) && !empty(DolibarrApiAccess::$user->rights->hrm->employee->read)));
+
+        if (!$canreadsalary) {
+            unset($object->salary);
+            unset($object->salaryextra);
+            unset($object->thm);
+            unset($object->tjm);
+        }
+
+        // Others
+        //unset($object->entity);
+        unset($object->admin);
+        unset($object->login);
+        unset($object->societe_id);
+        unset($object->contact_id);
+        unset($object->clicktodial_url);
+        unset($object->clicktodial_login);
+        unset($object->clicktodial_poste);
+        unset($object->rights);
+        unset($object->conf);
+        unset($object->accountancy_code);
+        unset($object->import_key);
+        unset($object->linkedObjectsIds);
+        unset($object->canvas);
+        unset($object->fk_project);
+        unset($object->contact);
+        unset($object->thirdparty);
+        unset($object->user);
+        unset($object->origin);
+        unset($object->origin_id);
+        unset($object->country);
+        unset($object->barcode_type);
+        unset($object->barcode_type_code);
+        unset($object->barcode_type_label);
+        unset($object->barcode_type_coder);
+        unset($object->mode_reglement_id);
+        unset($object->cond_reglement_id);
+        unset($object->cond_reglement);
+        unset($object->modelpdf);
+        unset($object->fk_account);
+        unset($object->note_public);
+        unset($object->note_private);
+        unset($object->note);
+        unset($object->lines);
+        unset($object->name);
+        unset($object->civility_id);
+        unset($object->liste_limit);
+        unset($object->clicktodial_loaded);
+
+        return $object;
+    }
+
+    /**
+     *  Clean sensible user object data
+     *
+     * @param   object          $object         Object to clean
+     *
+     * @return  object|array                    Array of cleaned object properties
+     */
+	function _cleanUserGroupObjectDatas($object)
+    {
+        $object = parent::_cleanObjectDatas($object);
+
+        // Others
+        //unset($object->entity);
+        unset($object->nom);
+        unset($object->note);
+        unset($object->members);
+        unset($object->globalgroup);
+        unset($object->import_key);
+        unset($object->linkedObjectsIds);
+        unset($object->canvas);
+        unset($object->fk_project);
+        unset($object->contact);
+        unset($object->contact_id);
+        unset($object->thirdparty);
+        unset($object->user);
+        unset($object->origin);
+        unset($object->origin_id);
+        unset($object->ref_ext);
+        unset($object->statut);
+        unset($object->country);
+        unset($object->country_id);
+        unset($object->country_code);
+        unset($object->barcode_type);
+        unset($object->barcode_type_code);
+        unset($object->barcode_type_label);
+        unset($object->barcode_type_coder);
+        unset($object->mode_reglement_id);
+        unset($object->cond_reglement_id);
+        unset($object->cond_reglement);
+        unset($object->fk_delivery_address);
+        unset($object->shipping_method_id);
+        unset($object->modelpdf);
+        unset($object->note_public);
+        unset($object->note_private);
+        unset($object->total_ht);
+        unset($object->total_tva);
+        unset($object->total_localtax1);
+        unset($object->total_localtax2);
+        unset($object->total_ttc);
+        unset($object->lines);
+        unset($object->fk_incoterms);
+        unset($object->libelle_incoterms);
+        unset($object->location_incoterms);
+        unset($object->lastname);
+        unset($object->firstname);
+        unset($object->civility_id);
+        unset($object->fk_account);
+
+        return $object;
+    }
+    /**
+     *  Clean sensible contact object data
+     *
+     * @param   object          $object         Object to clean
+     *
+     * @return  object|array                    Array of cleaned object properties
+     */
+    function _cleanContactObjectDatas($object) {
+
+	$object = parent::_cleanObjectDatas($object);
+
+	unset($object->total_ht);
+	unset($object->total_tva);
+	unset($object->total_localtax1);
+	unset($object->total_localtax2);
+	unset($object->total_ttc);
+
+	unset($object->note);
+	unset($object->lines);
+	unset($object->thirdparty);
+
+        // Others
+        //unset($object->entity);
+        unset($object->code);
+        //unset($object->priv);
+        unset($object->ref_facturation);
+        unset($object->ref_contrat);
+        unset($object->ref_commande);
+        unset($object->ref_propal);
+        unset($object->import_key);
+        unset($object->linkedObjectsIds);
+        unset($object->canvas);
+        unset($object->fk_project);
+        unset($object->contact);
+        unset($object->contact_id);
+        unset($object->user);
+        unset($object->origin);
+        unset($object->origin_id);
+        unset($object->barcode_type);
+        unset($object->barcode_type_code);
+        unset($object->barcode_type_label);
+        unset($object->barcode_type_coder);
+        unset($object->mode_reglement_id);
+        unset($object->cond_reglement_id);
+        unset($object->cond_reglement);
+        unset($object->fk_delivery_address);
+        unset($object->shipping_method_id);
+        unset($object->modelpdf);
+        //unset($object->note_public);
+        unset($object->note_private);
+        unset($object->fk_account);
+        unset($object->fk_incoterms);
+        unset($object->libelle_incoterms);
+        unset($object->location_incoterms);
+        unset($object->name);
+
+	return $object;
+    }
+
+    /**
+     *  Clean sensible third party object data
+     *
+     * @param   object          $object         Object to clean
+     *
+     * @return  object|array                    Array of cleaned object properties
+     */
+	function _cleanThirdPartyObjectDatas($object) {
+
+	    $object = parent::_cleanObjectDatas($object);
+
+	    unset($object->total_ht);
+	    unset($object->total_tva);
+	    unset($object->total_localtax1);
+	    unset($object->total_localtax2);
+	    unset($object->total_ttc);
+
+        // Others
+        //unset($object->entity);
+        unset($object->managers);
+        unset($object->name_bis);
+        unset($object->specimen);
+        unset($object->note);
+        unset($object->note_private);
+        //unset($object->note_public);
+        unset($object->logo_small);
+        unset($object->logo_mini);
+        unset($object->webservices_url);
+        unset($object->webservices_key);
+        unset($object->import_key);
+        unset($object->commercial_id);
+        unset($object->contact);
+        unset($object->contact_id);
+        unset($object->thirdparty);
+        unset($object->user);
+        unset($object->origin);
+        unset($object->origin_id);
+        unset($object->statut);
+        unset($object->barcode_type);
+        unset($object->barcode_type_code);
+        unset($object->barcode_type_label);
+        unset($object->barcode_type_coder);
+        unset($object->modelpdf);
+        unset($object->lines);
+        unset($object->lastname);
+        unset($object->firstname);
+        unset($object->civility_id);
+
+	    return $object;
+	}
 
     /**
      * Get all errors

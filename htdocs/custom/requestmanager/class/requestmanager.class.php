@@ -1434,7 +1434,7 @@ class RequestManager extends CommonObject
                     $this->assigned_usergroup_ids[] = $obj->fk_usergroup;
                     if ($with_object) {
                         $usergroup = new UserGroup($this->db);
-                        $usergroup->fetch($obj->fk_user);
+                        $usergroup->fetch($obj->fk_usergroup);
                         $this->assigned_usergroup_list[$obj->fk_usergroup] = $usergroup;
                     }
                 }

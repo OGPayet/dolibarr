@@ -1230,18 +1230,15 @@ class EquipementApi extends DolibarrApi {
         unset($object->rowid);
 
         // If object has lines, remove $db property
-        if (isset($object->lines) && is_array($object->lines) && count($object->lines) > 0)  {
+        if (isset($object->lines) && is_array($object->lines) && count($object->lines) > 0) {
             $nboflines = count($object->lines);
-		for ($i=0; $i < $nboflines; $i++)
-            {
+            for ($i = 0; $i < $nboflines; $i++) {
                 $this->_cleanLineObjectDatas($object->lines[$i]);
             }
         }
 
-        if (! empty($object->product) && is_object($object->product))
-        {
-		parent::_cleanObjectDatas($object->product);
-            unset($object->product->regeximgext);
+        if (!empty($object->product) && is_object($object->product)) {
+            $this->_cleanProductObjectDatas($object->product);
         }
 
         return $object;
@@ -1256,33 +1253,73 @@ class EquipementApi extends DolibarrApi {
      */
     function _cleanLineObjectDatas($object)
     {
-        unset($object->db);
-        unset($object->error);
-        unset($object->element);
-        unset($object->table_element);
+        $object = parent::_cleanObjectDatas($object);
+
         unset($object->rowid);
-        unset($object->errors);
-        unset($object->table_element_line);
-        unset($object->linkedObjects);
-        unset($object->oldcopy);
-        unset($object->context);
         unset($object->canvas);
-        unset($object->project);
-        unset($object->projet);
+        unset($object->origin);
+        unset($object->origin_id);
+        unset($object->ref_ext);
+        unset($object->barcode_type);
+        unset($object->barcode_type_code);
+        unset($object->barcode_type_label);
+        unset($object->barcode_type_coder);
+        unset($object->fk_account);
+        unset($object->note);
+        unset($object->total_tva);
+        unset($object->total_localtax1);
+        unset($object->total_localtax2);
+        unset($object->total_ttc);
+        unset($object->import_key);
+        unset($object->linkedObjectsIds);
+        unset($object->ref);
+        unset($object->statut);
+        unset($object->lines);
+
+        return $object;
+    }
+
+    /**
+     *  Clean sensible product object data
+     *
+     * @param   object          $object         Object to clean
+     *
+     * @return  object|array                    Array of cleaned object properties
+     */
+    function _cleanProductObjectDatas($object)
+    {
+        $object = parent::_cleanObjectDatas($object);
+
+        unset($object->regeximgext);
+
+        //unset($object->entity);
+        unset($object->libelle);
+        unset($object->stock_theorique);
+        unset($object->barcodes_extra);
+        unset($object->stats_propale);
+        unset($object->stats_commande);
+        unset($object->stats_contrat);
+        unset($object->stats_facture);
+        unset($object->stats_commande_fournisseur);
+        unset($object->imgWidth);
+        unset($object->imgHeight);
+        unset($object->product_fourn_id);
+        unset($object->product_id_already_linked);
+        unset($object->nbphoto);
+        unset($object->stock_warehouse);
+        unset($object->import_key);
+        unset($object->canvas);
+        unset($object->fk_project);
         unset($object->contact);
         unset($object->contact_id);
         unset($object->thirdparty);
         unset($object->user);
         unset($object->origin);
         unset($object->origin_id);
-        unset($object->ref_previous);
-        unset($object->ref_next);
-        unset($object->ref_ext);
+        unset($object->statut);
         unset($object->country);
         unset($object->country_id);
         unset($object->country_code);
-        unset($object->barcode_type);
-        unset($object->barcode_type_code);
         unset($object->barcode_type_label);
         unset($object->barcode_type_coder);
         unset($object->mode_reglement_id);
@@ -1295,25 +1332,24 @@ class EquipementApi extends DolibarrApi {
         unset($object->note_public);
         unset($object->note_private);
         unset($object->note);
-        unset($object->total_tva);
-        unset($object->total_localtax1);
-        unset($object->total_localtax2);
-        unset($object->total_ttc);
         unset($object->fk_incoterms);
         unset($object->libelle_incoterms);
         unset($object->location_incoterms);
+        unset($object->lines);
         unset($object->name);
         unset($object->lastname);
         unset($object->firstname);
         unset($object->civility_id);
-        unset($object->ref_fichinter);
-        unset($object->ref_contrat);
-        unset($object->ref_expedition);
-        unset($object->import_key);
-        unset($object->linkedObjectsIds);
-        unset($object->ref);
-        unset($object->statut);
-        unset($object->lines);
+        unset($object->total_ht);
+        unset($object->total_tva);
+        unset($object->total_localtax1);
+        unset($object->total_localtax2);
+        unset($object->total_ttc);
+        unset($object->buyprice);
+        unset($object->fourn_pu);
+        unset($object->fourn_price_base_type);
+        unset($object->ref_fourn);
+        unset($object->ref_supplier);
 
         return $object;
     }
