@@ -447,7 +447,7 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
 						if (empty($conf->global->MAIN_PDF_DONOTREPEAT_HEAD)) $this->_pagehead($pdf, $object, 0, $outputlangs);
 						$pdf->setPage($pageposbefore+1);
 
-						$curY = $tab_top_newpage;
+						$curY = $tab_top_newpage+6;
 						$showpricebeforepagebreak=0;
 					}
 
@@ -1615,7 +1615,7 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
 
             $posx  = $this->marge_gauche;
             $posy  = $this->marge_haute;
-            $pdf->SetFont('', 'B', $default_font_size);
+            $pdf->SetFont('', 'B', $default_font_size+4);
             $pdf->SetXY($posx, $posy);
             //$pdf->SetTextColor(explode());
             call_user_func_array(array($pdf, 'SetTextColor'), $this->main_color);
@@ -1934,6 +1934,7 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
 //			$pdf->MultiCell($widthrecbox, 4, $carac_client, 0, 'L');
 		}
 
+        $pdf->SetFont('','', $default_font_size - 1);
 		$pdf->SetTextColor(0,0,0);
 	}
 
