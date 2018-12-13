@@ -59,8 +59,10 @@ class InterfaceSynergiesTechHack extends DolibarrTriggers
     {
         if (empty($conf->synergiestech->enabled)) return 0;     // Module not active, we do nothing
 
+        $authorized_element = array_flip(array('propal', 'commande', 'facture', 'contrat', 'retourproduits', 'shipping', 'fichinter'));
+
         // Propagation of references
-        if (preg_match('/_CREATE$/i', $action) && !empty($object->origin) && $object->origin_id > 0) {
+        if (preg_match('/_CREATE$/i', $action) && !empty($object->origin) && $object->origin_id > 0 && isset($authorized_element[$object->element])) {
             // Parse element/subelement (ex: project_task)
             $element = $subelement = $object->origin;
             if (preg_match('/^([^_]+)_([^_]+)/i', $object->origin, $regs)) {
@@ -90,7 +92,12 @@ class InterfaceSynergiesTechHack extends DolibarrTriggers
 
             if (empty($object->ref_client)) $object->ref_client = $ref_client;
             if (empty($object->ref_customer)) $object->ref_customer = $ref_client;
-            $object->update($user, 1);
+
+            if ($object->element == 'propal') {
+                $object->set_ref_client($user, $ref_client, 1);
+            } else {
+                $object->update($user, 1);
+            }
         }
 
         return 0;
