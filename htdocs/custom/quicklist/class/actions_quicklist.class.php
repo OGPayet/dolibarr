@@ -230,13 +230,18 @@ class ActionsQuickList
                         'value' => $filter_id
                     ),
                     array(
+                        'name' => 'filter_scope',
+                        'type' => 'hidden',
+                        'value' => (isset($quicklist->scope) ? $quicklist->scope : QuickList::QUICKLIST_SCOPE_PRIVATE)
+                    ),
+                    array(
                         'name' => 'filter_name',
                         'label' => $langs->trans('QuickListFilterName'),
                         'type' => 'text',
                         'value' => (isset($quicklist->name) ? $quicklist->name : '')
                     ),
                     array(
-                        'name' => 'filter_scope',
+                        'name' => 'filter_scope_r',
                         'label' => $langs->trans('QuickListFilterScope'),
                         'type' => 'radio',
                         'values' => array(
@@ -277,12 +282,13 @@ class ActionsQuickList
                 $formconfirm .= '$(document).ready(function () {' . "\n";
                 $formconfirm .= '  $("#dialog-confirm").on("dialogopen", function(event, ui) {' . "\n";
                 $formconfirm .= '    $(\'input[name=filter_name]\').closest(\'tr\').find(\'td:first-child\').attr(\'width\', \'25%\');' . "\n";
-                $formconfirm .= '    $.map($(\'input[type=radio][name=filter_scope]\'), function(item) { $(item).attr(\'id\', \'filter_scope_\' + $(item).val()); });' . "\n";
-                $formconfirm .= '    $(\'input[type=radio][name=filter_scope]\').filter(\'[value=' . (isset($quicklist->scope) ? $quicklist->scope : QuickList::QUICKLIST_SCOPE_PRIVATE) . ']\').prop(\'checked\', true);' . "\n";
+                $formconfirm .= '    $.map($(\'input[type=radio][name=filter_scope_r]\'), function(item) { $(item).attr(\'id\', \'filter_scope_\' + $(item).val()); });' . "\n";
+                $formconfirm .= '    $(\'input[type=radio][name=filter_scope_r]\').filter(\'[value=' . (isset($quicklist->scope) ? $quicklist->scope : QuickList::QUICKLIST_SCOPE_PRIVATE) . ']\').prop(\'checked\', true);' . "\n";
                 if ($quicklist->scope != QuickList::QUICKLIST_SCOPE_USERGROUP) {
                     $formconfirm .= '    $("#filter_scope_usergroup").closest("tr").hide();' . "\n";
                 }
-                $formconfirm .= '    $(\'input[type=radio][name=filter_scope]\').change(function() {' . "\n";
+                $formconfirm .= '    $(\'input[type=radio][name=filter_scope_r]\').change(function() {' . "\n";
+                $formconfirm .= '      $(\'input[type=hidden][name=filter_scope]\').val(this.value);' . "\n";
                 $formconfirm .= '      if (this.value == ' . QuickList::QUICKLIST_SCOPE_USERGROUP . ') {' . "\n";
                 $formconfirm .= '        $("#filter_scope_usergroup").closest("tr").show();' . "\n";
                 $formconfirm .= '      } else {' . "\n";
