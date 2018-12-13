@@ -696,11 +696,12 @@ class InvoicesContractTools
             $sql .= " WHERE re.fk_soc = " . $invoice->socid;
             $sql .= " AND re.entity = " . $conf->entity;
             if (empty($conf->global->FACTURE_DEPOSITS_ARE_JUST_PAYMENTS)) {    // Never use this
-                if ($invoice->statut == Facture::STATUS_DRAFT) { // absolute discount
-                    $sql .= " AND fk_facture_source IS NULL OR (fk_facture_source IS NOT NULL AND (description LIKE '(DEPOSIT)%' AND description NOT LIKE '(EXCESS RECEIVED)%'))";
-                } else { // credit note
-                    $sql .= " AND fk_facture_source IS NOT NULL AND (description NOT LIKE '(DEPOSIT)%' OR description LIKE '(EXCESS RECEIVED)%'))";
-                }
+//                if ($invoice->statut == Facture::STATUS_DRAFT) { // absolute discount
+//                    $sql .= " AND re.fk_facture_source IS NULL OR (re.fk_facture_source IS NOT NULL AND (re.description LIKE '(DEPOSIT)%' AND re.description NOT LIKE '(EXCESS RECEIVED)%'))";
+//                } else { // credit note
+//                    $sql .= " AND re.fk_facture_source IS NOT NULL AND (re.description NOT LIKE '(DEPOSIT)%' OR re.description LIKE '(EXCESS RECEIVED)%'))";
+//                }
+                $sql .= " AND re.fk_facture IS NULL AND re.fk_facture_line IS NULL";
             }
             $sql .= " ORDER BY re.description ASC";
 
@@ -900,14 +901,14 @@ class InvoicesContractTools
             } else {
                 $validated = 1;
 
-                if ($use_customer_discounts) {
-                    $result = $this->setAbsoluteDiscountAndCreditNote($invoice, $test_mode);
-                    if ($result < 0) {
-                        $error++;
-                    } else {
-                        $remise_absolue += $result;
-                    }
-                }
+//                if ($use_customer_discounts) {
+//                    $result = $this->setAbsoluteDiscountAndCreditNote($invoice, $test_mode);
+//                    if ($result < 0) {
+//                        $error++;
+//                    } else {
+//                        $remise_absolue += $result;
+//                    }
+//                }
             }
         }
 
