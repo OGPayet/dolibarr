@@ -2620,13 +2620,12 @@ else if ($id || $ref)
 			}
 
             // Equipment
-            if (!empty($conf->equipement->enabled)) {
+            if (!empty($conf->equipement->enabled) && $lines[$i]->fk_product>0 && $product_static->id>0) {
                 $multiSelectEquipementList = array();
                 $equipementLine = '';
 
                 $product_static->fetch_optionals();
-
-                if ($product_static->id > 0 && $product_static->array_options['options_synergiestech_to_serialize'] == 1) {
+                if ($product_static->array_options['options_synergiestech_to_serialize'] == 1) {
                     $qtyEquipementToShip = 0;
 
                     foreach ($entrepotIdList as $entrepotId) {
