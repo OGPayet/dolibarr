@@ -269,113 +269,113 @@ class ActionsRetourProduits // extends CommonObject
 	}
 
 
-	function showLinkedObjectBlock($parameters,$object,$action){
-		if ($object->element == 'commande') {
-			global $conf, $langs, $db;
-            $morehtmlright = '';
-		$nbofdifferenttypes = count($object->linkedObjects);
-
-		print '<br><!-- showLinkedObjectBlock -->';
-	        print load_fiche_titre($langs->trans('RelatedObjects'), $morehtmlright, '');
-
-
-			print '<div class="div-table-responsive-no-min">';
-	        print '<table class="noborder allwidth">';
-
-	        print '<tr class="liste_titre">';
-	        print '<td>'.$langs->trans("Type").'</td>';
-	        print '<td>'.$langs->trans("Ref").'</td>';
-	        print '<td align="center"></td>';
-	        print '<td align="center">'.$langs->trans("Date").'</td>';
-	        print '<td align="right">'.$langs->trans("AmountHTShort").'</td>';
-	        print '<td align="right">'.$langs->trans("Status").'</td>';
-	        print '<td></td>';
-	        print '</tr>';
-
-	        $nboftypesoutput=0;
-
-		foreach($object->linkedObjects as $objecttype => $objects)
-		{
-			$tplpath = $element = $subelement = $objecttype;
-
-			if ($objecttype != 'supplier_proposal' && preg_match('/^([^_]+)_([^_]+)/i',$objecttype,$regs))
-			{
-				$element = $regs[1];
-				$subelement = $regs[2];
-				$tplpath = $element.'/'.$subelement;
-			}
-			$tplname='linkedobjectblock';
-
-			// To work with non standard path
-			if ($objecttype == 'facture')          {
-				$tplpath = 'compta/'.$element;
-				if (empty($conf->facture->enabled)) continue;	// Do not show if module disabled
-			}
-		    else if ($objecttype == 'facturerec')          {
-				$tplpath = 'compta/facture';
-				$tplname = 'linkedobjectblockForRec';
-				if (empty($conf->facture->enabled)) continue;	// Do not show if module disabled
-			}
-			else if ($objecttype == 'propal')           {
-				$tplpath = 'comm/'.$element;
-				if (empty($conf->propal->enabled)) continue;	// Do not show if module disabled
-			}
-			else if ($objecttype == 'supplier_proposal')           {
-				if (empty($conf->supplier_proposal->enabled)) continue;	// Do not show if module disabled
-			}
-			else if ($objecttype == 'shipping' || $objecttype == 'shipment') {
-				$tplpath = 'expedition';
-				if (empty($conf->expedition->enabled)) continue;	// Do not show if module disabled
-			}
-			else if ($objecttype == 'delivery')         {
-				$tplpath = 'livraison';
-				if (empty($conf->expedition->enabled)) continue;	// Do not show if module disabled
-			}
-			else if ($objecttype == 'invoice_supplier') {
-				$tplpath = 'fourn/facture';
-			}
-			else if ($objecttype == 'order_supplier')   {
-				$tplpath = 'fourn/commande';
-			}
-			else if ($objecttype == 'expensereport')   {
-				$tplpath = 'expensereport';
-			}
-			else if ($objecttype == 'subscription')   {
-			    $tplpath = 'adherents';
-			} else if ($objecttype == 'retourproduits') {
-				$tplpath = 'retourproduits';
-			}
-
-	            global $linkedObjectBlock;
-			$linkedObjectBlock = $objects;
-
-
-			// Output template part (modules that overwrite templates must declare this into descriptor)
-			$dirtpls=array_merge($conf->modules_parts['tpl'],array('/'.$tplpath.'/tpl'));
-			foreach($dirtpls as $reldir)
-			{
-			    if ($nboftypesoutput == ($nbofdifferenttypes - 1))    // No more type to show after
-			    {
-			        global $noMoreLinkedObjectBlockAfter;
-			        $noMoreLinkedObjectBlockAfter=1;
-			    }
-	                $res=@include dol_buildpath($reldir.'/'.$tplname.'.tpl.php');
-				if ($res)
-				{
-				    $nboftypesoutput++;
-				    break;
-				}
-			}
-		}
-
-		if (! $nboftypesoutput)
-		{
-		    print '<tr><td class="impair opacitymedium" colspan="7">'.$langs->trans("None").'</td></tr>';
-		}
-
-		print '</table>';
-			print '</div>';
-			return 1 ;
-		}
-	}
+//	function showLinkedObjectBlock($parameters,$object,$action){
+//		if ($object->element == 'commande') {
+//			global $conf, $langs, $db;
+//            $morehtmlright = '';
+//	    	$nbofdifferenttypes = count($object->linkedObjects);
+//
+//	    	print '<br><!-- showLinkedObjectBlock -->';
+//	        print load_fiche_titre($langs->trans('RelatedObjects'), $morehtmlright, '');
+//
+//
+//			print '<div class="div-table-responsive-no-min">';
+//	        print '<table class="noborder allwidth">';
+//
+//	        print '<tr class="liste_titre">';
+//	        print '<td>'.$langs->trans("Type").'</td>';
+//	        print '<td>'.$langs->trans("Ref").'</td>';
+//	        print '<td align="center"></td>';
+//	        print '<td align="center">'.$langs->trans("Date").'</td>';
+//	        print '<td align="right">'.$langs->trans("AmountHTShort").'</td>';
+//	        print '<td align="right">'.$langs->trans("Status").'</td>';
+//	        print '<td></td>';
+//	        print '</tr>';
+//
+//	        $nboftypesoutput=0;
+//
+//	    	foreach($object->linkedObjects as $objecttype => $objects)
+//	    	{
+//	    		$tplpath = $element = $subelement = $objecttype;
+//
+//	    		if ($objecttype != 'supplier_proposal' && preg_match('/^([^_]+)_([^_]+)/i',$objecttype,$regs))
+//	    		{
+//	    			$element = $regs[1];
+//	    			$subelement = $regs[2];
+//	    			$tplpath = $element.'/'.$subelement;
+//	    		}
+//	    		$tplname='linkedobjectblock';
+//
+//	    		// To work with non standard path
+//	    		if ($objecttype == 'facture')          {
+//	    			$tplpath = 'compta/'.$element;
+//	    			if (empty($conf->facture->enabled)) continue;	// Do not show if module disabled
+//	    		}
+//	    	    else if ($objecttype == 'facturerec')          {
+//	    			$tplpath = 'compta/facture';
+//	    			$tplname = 'linkedobjectblockForRec';
+//	    			if (empty($conf->facture->enabled)) continue;	// Do not show if module disabled
+//	    		}
+//	    		else if ($objecttype == 'propal')           {
+//	    			$tplpath = 'comm/'.$element;
+//	    			if (empty($conf->propal->enabled)) continue;	// Do not show if module disabled
+//	    		}
+//	    		else if ($objecttype == 'supplier_proposal')           {
+//	    			if (empty($conf->supplier_proposal->enabled)) continue;	// Do not show if module disabled
+//	    		}
+//	    		else if ($objecttype == 'shipping' || $objecttype == 'shipment') {
+//	    			$tplpath = 'expedition';
+//	    			if (empty($conf->expedition->enabled)) continue;	// Do not show if module disabled
+//	    		}
+//	    		else if ($objecttype == 'delivery')         {
+//	    			$tplpath = 'livraison';
+//	    			if (empty($conf->expedition->enabled)) continue;	// Do not show if module disabled
+//	    		}
+//	    		else if ($objecttype == 'invoice_supplier') {
+//	    			$tplpath = 'fourn/facture';
+//	    		}
+//	    		else if ($objecttype == 'order_supplier')   {
+//	    			$tplpath = 'fourn/commande';
+//	    		}
+//	    		else if ($objecttype == 'expensereport')   {
+//	    			$tplpath = 'expensereport';
+//	    		}
+//	    		else if ($objecttype == 'subscription')   {
+//	    		    $tplpath = 'adherents';
+//	    		} else if ($objecttype == 'retourproduits') {
+//	    			$tplpath = 'retourproduits';
+//	    		}
+//
+//	            global $linkedObjectBlock;
+//	    		$linkedObjectBlock = $objects;
+//
+//
+//	    		// Output template part (modules that overwrite templates must declare this into descriptor)
+//	    		$dirtpls=array_merge($conf->modules_parts['tpl'],array('/'.$tplpath.'/tpl'));
+//	    		foreach($dirtpls as $reldir)
+//	    		{
+//	    		    if ($nboftypesoutput == ($nbofdifferenttypes - 1))    // No more type to show after
+//	    		    {
+//	    		        global $noMoreLinkedObjectBlockAfter;
+//	    		        $noMoreLinkedObjectBlockAfter=1;
+//	    		    }
+//	                $res=@include dol_buildpath($reldir.'/'.$tplname.'.tpl.php');
+//	    			if ($res)
+//	    			{
+//	    			    $nboftypesoutput++;
+//	    			    break;
+//	    			}
+//	    		}
+//	    	}
+//
+//	    	if (! $nboftypesoutput)
+//	    	{
+//	    	    print '<tr><td class="impair opacitymedium" colspan="7">'.$langs->trans("None").'</td></tr>';
+//	    	}
+//
+//	    	print '</table>';
+//			print '</div>';
+//			return 1 ;
+//		}
+//	}
 }

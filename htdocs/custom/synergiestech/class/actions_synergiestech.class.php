@@ -904,6 +904,12 @@ SCRIPT;
                 unset($_SESSION['synergiestech_addline_post']);
                 $action = 'addline';
             }
+        } elseif (in_array('propalcard', $contexts)) {
+            if ($object->id > 0) {
+                $object->fetch_optionals();
+                if (!$user->rights->synergiestech->propal->installation_value && !empty($object->array_options['options_sitevalue']))
+                    accessforbidden();
+            }
         }
 
         return 0;

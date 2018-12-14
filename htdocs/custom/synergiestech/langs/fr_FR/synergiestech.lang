@@ -13,6 +13,7 @@ Permission500103    = Voir les remises des lignes de produits
 Permission500104    = Editer les remises des lignes de produits
 Permission500105    = Voir les montants (propositions commerciales, commandes)
 Permission500106    = Accéder aux fichiers jointes (propositions commerciales, commandes)
+Permission500107    = Accéder aux propositions qui ont une valeur pour le champs complémentaire "Valeur de l'installation"
 
 #######################################################################
 # Configuration admin

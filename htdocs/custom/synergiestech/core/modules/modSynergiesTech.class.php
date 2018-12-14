@@ -74,7 +74,7 @@ class modSynergiesTech extends DolibarrModules
 		$this->editor_url = 'http://www.open-dsi.fr';
 
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-		$this->version = '1.0.5';
+		$this->version = '1.0.6';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Name of image file used for this module.
@@ -106,7 +106,7 @@ class modSynergiesTech extends DolibarrModules
             'tpl' => 1,
             'models' => 1,
             'triggers' => 1,
-            'hooks' => array('requestmanagercard', 'requestmanagerdao', 'ordercard', 'contractcard', 'tab_supplier_order', 'tab_expedition_add', 'invoicelist', 'commonobject', 'main'),
+            'hooks' => array('requestmanagercard', 'requestmanagerdao', 'propalcard', 'ordercard', 'contractcard', 'tab_supplier_order', 'tab_expedition_add', 'invoicelist', 'commonobject', 'main'),
         );
 
 		// Data directories to create when module is enabled.
@@ -254,6 +254,13 @@ class modSynergiesTech extends DolibarrModules
         $this->rights[$r][3] = 0;
         $this->rights[$r][4] = 'documents';
         $this->rights[$r][5] = 'lire';
+        $r++;
+
+        $this->rights[$r][0] = 500107;
+        $this->rights[$r][1] = 'Accéder aux propositions qui ont une valeur pour le champs complémentaire "Valeur de l\'installation"';
+        $this->rights[$r][3] = 0;
+        $this->rights[$r][4] = 'propal';
+        $this->rights[$r][5] = 'installation_value';
         $r++;
 
 		// Add here list of permission defined by an id, a label, a boolean and two constant strings.
