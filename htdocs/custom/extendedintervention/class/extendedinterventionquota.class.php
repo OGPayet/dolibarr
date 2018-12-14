@@ -355,9 +355,14 @@ SCRIPT;
             $out .= '</tr>';
 
             foreach ($inter_type_dictionary->lines as $line) {
-                $out .= '<tr><td class="titlefield">' . $line->fields['label'] . '</td>';
+
+				$first=true;
                 foreach ($company_counts['types'][$line->id] as $period_idx => $period) {
                     // Set label
+					if($period['max'] > 0)
+					{
+					if($first) $out .= '<tr><td class="titlefield">' . $line->fields['label'] . '</td>';
+					$first=false;
                     $label = $period['current'] . ' / ' . $period['max'];
                     if ($period['current'] < $period['max']) $label = '<span style="color: green;">' . $label . '</span>';
                     elseif ($period['current'] > $period['max'] + $period['free']) $label = '<span style="color: red;">' . $label . '</span>';
@@ -370,7 +375,9 @@ SCRIPT;
                     if (!empty($toprint)) $more_info = '&nbsp;' . $this->form->textwithpicto('', implode('<br>', $toprint), 1, 'warning');
 
                     $out .= '<td align="center"' . (!empty($company_counts['periods'][$period_idx]['in_period']) ? ' style="background-color: lightblue;"' : '') . '>' . $label . $more_info . '</td>';
+					}
                 }
+
                 $out .= '</tr>';
             }
 
