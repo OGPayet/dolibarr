@@ -355,11 +355,18 @@ SCRIPT;
             $out .= '</tr>';
 
             foreach ($inter_type_dictionary->lines as $line) {
+				//We try to find the max number of intervention of each type done per period
+                $max=0;
+				foreach ($company_counts['types'][$line->id] as $period_idx => $period)
+				{
+					$max = ($period['current'] > $max ? $period['current'] : $max);
+				}
 
-				$first=true;
+				$first=true; //we output only one time <tr>
                 foreach ($company_counts['types'][$line->id] as $period_idx => $period) {
-                    // Set label
-					if($period['max'] > 0)
+                    // Set label - we display the line only if the quota due is >0 or if some interventions have been done ($max >0)
+
+					if($period['max'] > 0 || max > 0)
 					{
 					if($first) $out .= '<tr><td class="titlefield">' . $line->fields['label'] . '</td>';
 					$first=false;
