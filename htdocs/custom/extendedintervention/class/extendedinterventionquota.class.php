@@ -281,8 +281,15 @@ class ExtendedInterventionQuota
                 $table = $this->showTableCountInterventionOfContract($contract, array($contract->socid), $fk_c_intervention_type);
 
                 if (!empty($table)) {
-                    if ($nb_contract > 1) {
-                        $table = load_fiche_titre($langs->trans("ExtendedInterventionQuotaForContract", $contract->ref), '', '') . $table;
+                    if ($nb_contract > 0) { //modif par Alexis Laurier - on affiche toujours le titre de chaque sous tableau - on y indique également la formule (la valeur de l'extrafield donc)
+						$extrafields_contract = new ExtraFields($this->db);
+						$extralabels_contract = $extrafields_contract->fetch_name_optionals_label($contract->element);
+
+						$contract->fetch_optionals();
+
+						$title = $contract->ref . " - " . $extrafields_contract->showOutputField('formule', $contract->array_options['options_formule']);
+
+                        $table = load_fiche_titre($langs->trans("ExtendedInterventionQuotaForContract", $title), '', '') . $table;
                     }
                     $block[] = $table;
                 }
@@ -290,7 +297,7 @@ class ExtendedInterventionQuota
 
             if (count($block) > 0) {
                 $out .= '<div id="ei_count_intervention_block"><br>';
-                $out .= load_fiche_titre($langs->trans("ExtendedInterventionQuotaBlockTitle"), '', '', 0, 'ei_count_intervention_block_title');
+               $out .= load_fiche_titre($langs->trans("ExtendedInterventionQuotaBlockTitle"), '', '', 0, 'ei_count_intervention_block_title');
                 $out .= '<div id="ei_count_intervention_block_content"' . (empty($conf->global->EXTENDEDINTERVENTION_QUOTA_SHOW_BLOCK) ? ' style="display: none;"' : '') . '>';
                 $out .= implode('', $block);
                 $out .= '</div></div>';
@@ -357,12 +364,13 @@ SCRIPT;
             foreach ($inter_type_dictionary->lines as $line) {
 				//We try to find the max number of intervention of each type done per period
                 $max=0;
+				if(!empty($company_counts['types'][$line->id]))
 				foreach ($company_counts['types'][$line->id] as $period_idx => $period)
 				{
 					$max = ($period['current'] > $max ? $period['current'] : $max);
 				}
-
 				$first=true; //we output only one time <tr>
+				if(!empty($company_counts['types'][$line->id]))
                 foreach ($company_counts['types'][$line->id] as $period_idx => $period) {
                     // Set label - we display the line only if the quota due is >0 or if some interventions have been done ($max >0)
 

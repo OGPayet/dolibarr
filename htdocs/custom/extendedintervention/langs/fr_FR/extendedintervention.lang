@@ -53,12 +53,12 @@ ExtendedInterventionConfirmForceCreateInterventionOutOfQuota    = Êtes-vous sû
 ############################################################
 ### Generals
 ############################################################
-ExtendedInterventionQuotaFor            = Nombre d'interventions pour "%s"
+ExtendedInterventionQuotaFor            = Nombre d'interventions pour %s
 ExtendedInterventionPeriod              = Période
 ExtendedInterventionFree                = Gratuite
 ExtendedInterventionForced              = Forcée
 ExtendedInterventionQuotaBlockTitle     = Décompte des interventions
-ExtendedInterventionQuotaForContract    = Pour le contrat "%s"
+ExtendedInterventionQuotaForContract    = Pour le contrat %s
 ExtendedInterventionCurrentPeriod       = Période actuelle
 ExtendedInterventionEndOfTheContract    = Fin du contrat
 
