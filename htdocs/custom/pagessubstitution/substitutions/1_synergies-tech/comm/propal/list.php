@@ -828,7 +828,10 @@ if ($resql)
 		// Other picto tool
 //-------------------------------------------------------------------------------
 // Modification - Open-DSI - Begin
-            if (!$conf->synergiestech->enabled || $user->rights->synergiestech->documents->lire) {
+            if (!$conf->synergiestech->enabled ||
+			($user->rights->synergiestech->documents->lire &&
+			(empty($obj->options_sitevalue) ||
+			($user->rights->synergiestech->propal->installation_value&&!empty($obj->options_sitevalue))))) {
                 print '<td width="16" align="right" class="nobordernopadding">';
                 $filename = dol_sanitizeFileName($obj->ref);
                 $filedir = $conf->propal->dir_output . '/' . dol_sanitizeFileName($obj->ref);
@@ -1020,7 +1023,13 @@ if ($resql)
         {
             $selected=0;
 		if (in_array($obj->rowid, $arrayofselected)) $selected=1;
+			if (!$conf->synergiestech->enabled ||
+			($user->rights->synergiestech->documents->lire &&
+			(empty($obj->options_sitevalue) ||
+			($user->rights->synergiestech->propal->installation_value&&!empty($obj->options_sitevalue)))))
+			{
 		print '<input id="cb'.$obj->rowid.'" class="flat checkforselect" type="checkbox" name="toselect[]" value="'.$obj->rowid.'"'.($selected?' checked="checked"':'').'>';
+			}
         }
         print '</td>';
         if (! $i) $totalarray['nbfield']++;
