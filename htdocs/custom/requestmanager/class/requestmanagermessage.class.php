@@ -40,6 +40,61 @@ class RequestManagerMessage extends ActionComm
     public $table_element = 'requestmanager_message';
 
     /**
+     * Array of whitelist of properties keys for this object used for the API
+     * @var  array
+     *      array('properties_name'=> '' or array('properties_name'=> '' or array(...), ...)
+     *      if property is a object and this properties_name value is not a array then get whitelist of his object element
+     *      if property is a object and this properties_name value is a array then get whitelist set in the array
+     *      if property is a array and this properties_name value is not a array then get all values
+     *      if property is a array and this properties_name value is a array then get whitelist set in the array
+     */
+    static public $API_WHITELIST_OF_PROPERTIES = array(
+        "message_type" => '', "notify_assigned" => '', "notify_requesters" => '', "notify_watchers" => '', "knowledge_base_ids" => '',
+        "id" => '', "ref" => '', "type_id" => '', "type_code" => '', "type" => '', "type_color" => '', "code" => '',
+        "label" => '', "datec" => '', "datem" => '', "authorid" => '', "usermodid" => '', "datep" => '', "datef" => '',
+        "userassigned" => '', "userownerid" => '', "userdoneid" => '', "socid" => '', "contactid" => '', "contact" => '',
+        "array_options" => '', "fk_project" => '', "ref_ext" => '', "note" => '', "type_picto" => '', "user_mod" => '',
+        "user_done" => '', "user_owner" => '', "thirdparty" => '', "entity" => '',
+    );
+
+    /**
+     * Array of whitelist of properties keys for this object when is a linked object used for the API
+     * @var  array
+     *      if empty array then equal at $api_whitelist_of_properties
+     *      array('properties_name'=> '' or array('properties_name'=> '' or array(...), ...)
+     *      if property is a object and this properties_name value is not a array then get whitelist of his object element
+     *      if property is a object and this properties_name value is a array then get whitelist set in the array
+     *      if property is a array and this properties_name value is not a array then get all values
+     *      if property is a array and this properties_name value is a array then get whitelist set in the array
+     */
+    static public $API_WHITELIST_OF_PROPERTIES_LINKED_OBJECT = array(
+    );
+
+    /**
+     * Array of blacklist of properties keys for this object used for the API
+     * @var  array
+     *      array('element_type' => array('properties_name'=> '' or array('properties_name'=> '' or array(...), ...), ...)
+     *      if property is a object and this properties_name value is not a array then get blacklist of his object element
+     *      if property is a object and this properties_name value is a array then get blacklist set in the array
+     *      if property is a array and this properties_name value is not a array then get all values
+     *      if property is a array and this properties_name value is a array then get blacklist set in the array
+     */
+    static protected $API_BLACKLIST_OF_PROPERTIES = array(
+    );
+
+    /**
+     * Array of blacklist of properties keys for this object when is a linked object used for the API
+     * @var  array
+     *      array('element_type' => array('properties_name'=> '' or array('properties_name'=> '' or array(...), ...), ...)
+     *      if property is a object and this properties_name value is not a array then get blacklist of his object element
+     *      if property is a object and this properties_name value is a array then get blacklist set in the array
+     *      if property is a array and this properties_name value is not a array then get all values
+     *      if property is a array and this properties_name value is a array then get blacklist set in the array
+     */
+    static protected $API_BLACKLIST_OF_PROPERTIES_LINKED_OBJECT = array(
+    );
+
+    /**
      * RequestManager handle
      * @var RequestManager
      */

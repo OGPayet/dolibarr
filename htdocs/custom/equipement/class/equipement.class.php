@@ -35,6 +35,62 @@ class Equipement extends CommonObject
 	public $fk_element='fk_equipement';
 	public $table_element_line='equipementevt';
 
+    /**
+     * Array of whitelist of properties keys for this object used for the API
+     * @var  array
+     *      array('properties_name'=> '' or array('properties_name'=> '' or array(...), ...)
+     *      if property is a object and this properties_name value is not a array then get whitelist of his object element
+     *      if property is a object and this properties_name value is a array then get whitelist set in the array
+     *      if property is a array and this properties_name value is not a array then get all values
+     *      if property is a array and this properties_name value is a array then get whitelist set in the array
+     */
+    static public $API_WHITELIST_OF_PROPERTIES = array(
+        "id" => '', "ref" => '', "fk_product" => '', "product" => '', "fk_product_batch" => '', "numimmocompta" => '',
+        "numversion" => '', "fk_soc_fourn" => '', "fk_commande_fourn" => '', "fk_commande_fournisseur_dispatch" => '',
+        "fk_fact_fourn" => '', "ref_fourn" => '', "fk_soc_client" => '', "fk_fact_client" => '', "fk_etatequipement" => '',
+        "etatequiplibelle" => '', "fk_entrepot" => '', "isentrepotmove" => '', "unitweight" => '', "SerialMethod" => '',
+        "quantity" => '', "nbCreateEquipement" => '', "fk_factory" => '', "datec" => '', "dateo" => '', "datee" => '',
+        "dated" => '', "statut" => '', "localisation" => '', "description" => '', "note_public" => '', "extraparams" => '',
+        "array_options" => '', "socid" => '', "datev" => '', "datem" => '',
+    );
+
+    /**
+     * Array of whitelist of properties keys for this object when is a linked object used for the API
+     * @var  array
+     *      if empty array then equal at $api_whitelist_of_properties
+     *      array('properties_name'=> '' or array('properties_name'=> '' or array(...), ...)
+     *      if property is a object and this properties_name value is not a array then get whitelist of his object element
+     *      if property is a object and this properties_name value is a array then get whitelist set in the array
+     *      if property is a array and this properties_name value is not a array then get all values
+     *      if property is a array and this properties_name value is a array then get whitelist set in the array
+     */
+    static public $API_WHITELIST_OF_PROPERTIES_LINKED_OBJECT = array(
+    );
+
+    /**
+     * Array of blacklist of properties keys for this object used for the API
+     * @var  array
+     *      array('element_type' => array('properties_name'=> '' or array('properties_name'=> '' or array(...), ...), ...)
+     *      if property is a object and this properties_name value is not a array then get blacklist of his object element
+     *      if property is a object and this properties_name value is a array then get blacklist set in the array
+     *      if property is a array and this properties_name value is not a array then get all values
+     *      if property is a array and this properties_name value is a array then get blacklist set in the array
+     */
+    static protected $API_BLACKLIST_OF_PROPERTIES = array(
+    );
+
+    /**
+     * Array of blacklist of properties keys for this object when is a linked object used for the API
+     * @var  array
+     *      array('element_type' => array('properties_name'=> '' or array('properties_name'=> '' or array(...), ...), ...)
+     *      if property is a object and this properties_name value is not a array then get blacklist of his object element
+     *      if property is a object and this properties_name value is a array then get blacklist set in the array
+     *      if property is a array and this properties_name value is not a array then get all values
+     *      if property is a array and this properties_name value is a array then get blacklist set in the array
+     */
+    static protected $API_BLACKLIST_OF_PROPERTIES_LINKED_OBJECT = array(
+    );
+
 	var $id;					// ID de l'�quipement
 	var $ref;					// num�ro de s�rie unique pour l'�quipement
 	var $fk_product;			// ID du produit
@@ -2391,6 +2447,35 @@ class Equipementevt extends CommonObject
 	public $element='equipementevt';
 	public $table_element='equipementevt';
 
+    /**
+     * Array of whitelist of properties keys for this object used for the API
+     * @var  array
+     *      array('properties_name'=> '' or array('properties_name'=> '' or array(...), ...)
+     *      if property is a object and this properties_name value is not a array then get whitelist of his object element
+     *      if property is a object and this properties_name value is a array then get whitelist set in the array
+     *      if property is a array and this properties_name value is not a array then get all values
+     *      if property is a array and this properties_name value is a array then get whitelist set in the array
+     */
+    static public $API_WHITELIST_OF_PROPERTIES = array(
+        "fk_equipement" => '', "fk_equipementevt_type" => '', "equipeventlib" => '', "fk_fichinter" => '', "fk_contrat" => '',
+        "fk_expedition" => '', "fk_expeditiondet" => '', "fk_user_author" => '', "fk_retourproduits" => '', "fk_factory" => '',
+        "fk_factorydet" => '', "ref_fichinter" => '', "ref_contrat" => '', "ref_expedition" => '', "array_options" => '',
+        "desc" => '', "datec" => '', "dateo" => '', "datee" => '', "id" => '',
+    );
+
+    /**
+     * Array of whitelist of properties keys for this object when is a linked object used for the API
+     * @var  array
+     *      if empty array then equal at $api_whitelist_of_properties
+     *      array('properties_name'=> '' or array('properties_name'=> '' or array(...), ...)
+     *      if property is a object and this properties_name value is not a array then get whitelist of his object element
+     *      if property is a object and this properties_name value is a array then get whitelist set in the array
+     *      if property is a array and this properties_name value is not a array then get all values
+     *      if property is a array and this properties_name value is a array then get whitelist set in the array
+     */
+    static public $API_WHITELIST_OF_PROPERTIES_LINKED_OBJECT = array(
+    );
+
 	// From llx_equipementevt
 	var $rowid;
 	var $fk_equipement;
@@ -2671,6 +2756,33 @@ class Equipementconsumption extends CommonObject
 	public $element='equipementconsumption';
 	public $table_element='equipementconsumption';
 
+    /**
+     * Array of whitelist of properties keys for this object used for the API
+     * @var  array
+     *      array('properties_name'=> '' or array('properties_name'=> '' or array(...), ...)
+     *      if property is a object and this properties_name value is not a array then get whitelist of his object element
+     *      if property is a object and this properties_name value is a array then get whitelist set in the array
+     *      if property is a array and this properties_name value is not a array then get all values
+     *      if property is a array and this properties_name value is a array then get whitelist set in the array
+     */
+    static public $API_WHITELIST_OF_PROPERTIES = array(
+        "id" => '', "fk_equipement" => '', "fk_equipementcons" => '', "fk_equipementevt" => '', "datecons" => '',
+        "desc" => '', "fk_product" => '', "price" => '', "fk_entrepot" => '', "fk_user_author" => '',
+    );
+
+    /**
+     * Array of whitelist of properties keys for this object when is a linked object used for the API
+     * @var  array
+     *      if empty array then equal at $api_whitelist_of_properties
+     *      array('properties_name'=> '' or array('properties_name'=> '' or array(...), ...)
+     *      if property is a object and this properties_name value is not a array then get whitelist of his object element
+     *      if property is a object and this properties_name value is a array then get whitelist set in the array
+     *      if property is a array and this properties_name value is not a array then get all values
+     *      if property is a array and this properties_name value is a array then get whitelist set in the array
+     */
+    static public $API_WHITELIST_OF_PROPERTIES_LINKED_OBJECT = array(
+    );
+
 	// From llx_equipementevt
 	var $rowid;
 	var $fk_equipement;
@@ -2715,7 +2827,8 @@ class Equipementconsumption extends CommonObject
 		if ($result) {
 			$objp 	= $this->db->fetch_object($result);
 
-			$this->rowid				= $objp->rowid;
+            $this->rowid				= $objp->rowid;
+            $this->id				    = $objp->rowid;
 			$this->fk_equipement		= $objp->fk_equipement;
 			$this->fk_equipementcons	= $objp->fk_equipementcons;
 			$this->fk_equipementevt		= $objp->fk_equipementevt;

@@ -192,8 +192,7 @@ class ActionsEventConfidentiality
 SCRIPT;
                     } else {
                         // Get mode for the user and event
-                        $user_f = isset($user) ? $user : DolibarrApiAccess::$user;
-                        $mode = $eventconfidentiality->getModeForUserAndEvent($user_f, $object->id);
+                        $mode = $eventconfidentiality->getModeForUserAndEvent($user, $object->id);
                         if ($mode < 0) {
                             $this->error = $eventconfidentiality->error;
                             $this->errors = $eventconfidentiality->errors;
@@ -279,7 +278,7 @@ SCRIPT;
 
         if (in_array('actiondao', $contexts)) {
             if ($object->id > 0) {
-                $user_f = isset($user) ? $user : DolibarrApiAccess::$user;
+                $user_f = DolibarrApiAccess::$user->id > 0 ? DolibarrApiAccess::$user : $user;
 
                 dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
                 $eventconfidentiality = new EventConfidentiality($this->db);
@@ -292,7 +291,7 @@ SCRIPT;
                     return -1;
                 }
 
-                if ($user->rights->eventconfidentiality->manage) {
+                if ($user_f->rights->eventconfidentiality->manage) {
                     // Get all tags of the event
                     $tags_set = $eventconfidentiality->fetchAllTagsOfEvent($object->id);
                     if (!is_array($tags_set)) {
@@ -335,6 +334,49 @@ SCRIPT;
     }
 
     /**
+	 * Overloading the getBlackWhitelistOfProperties function : replacing the parent's function with the one below
+	 *
+	 * @param   array() $parameters Hook metadatas (context, etc...)
+	 * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+	 * @param   string &$action Current action (if set). Generally create or edit or null
+	 * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
+	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+	 */
+	function getBlackWhitelistOfProperties($parameters, &$object, &$action, $hookmanager)
+    {
+        global $user;
+
+        $contexts = explode(':', $parameters['context']);
+
+        if (in_array('globalapi', $contexts)) {
+//                    // Overwrite the whitelist for the object
+//                    $parameters['whitelist_of_properties'] = array(
+//                    );
+//                    // Overwrite the whitelist for the object if is a linked object
+//                    $parameters['whitelist_of_properties_linked_object'] = array(
+//                    );
+//                    // Overwrite the blacklist for the object
+//                    $parameters['blacklist_of_properties'] = array(
+//                    );
+//                    // Overwrite the blacklist for the object if is a linked object
+//                    $parameters['blacklist_of_properties_linked_object'] = array(
+//                    );
+
+            if ($object->element == 'action' || $object->element == 'requestmanager_requestmanagermessage') {
+                $user_f = DolibarrApiAccess::$user->id > 0 ? DolibarrApiAccess::$user : $user;
+
+                $parameters['whitelist_of_properties']['action']['ec_save_values'] = '';
+                if ($user_f->rights->eventconfidentiality->manage) {
+                    $parameters['whitelist_of_properties']['action']['ec_mode_tags'] = '';
+                    $parameters['whitelist_of_properties']['action']['ec_tags'] = '';
+                }
+            }
+        }
+
+        return 0;
+    }
+
+    /**
      * Overloading the afterSQLFetch function : replacing the parent's function with the one below
      *
      * @param   array()         $parameters     Hook metadatas (context, etc...)
@@ -351,7 +393,7 @@ SCRIPT;
 
         if (in_array('agenda', $contexts) || in_array('agendalist', $contexts)) {
             if ($object->id > 0) {
-                $user_f = isset($user) ? $user : DolibarrApiAccess::$user;
+                $user_f = DolibarrApiAccess::$user->id > 0 ? DolibarrApiAccess::$user : $user;
 
                 dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
                 $eventconfidentiality = new EventConfidentiality($this->db);

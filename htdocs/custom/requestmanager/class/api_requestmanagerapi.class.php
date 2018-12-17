@@ -40,24 +40,117 @@ class RequestManagerApi extends DolibarrApi {
      * @var array Errors
      */
     public $errors = array();
+
     /**
      * @var array       $FIELDS     Mandatory fields, checked when create and update object
      */
     static $FIELDS = array();
-
     /**
      * @var array       $MESSAGE_FIELDS     Mandatory fields, checked when create and update message object
      */
     static $MESSAGE_FIELDS = array();
 
     /**
+     * Array of whitelist of properties keys to overwrite the white list of each element object used in this API
+     * @var  array
+     *      array('element_type' => array('properties_name'=> '' or array('properties_name'=> '' or array(...), ...), ...)
+     *      if property is a object and this properties_name value is not a array then get whitelist of his object element
+     *      if property is a object and this properties_name value is a array then get whitelist set in the array
+     *      if property is a array and this properties_name value is not a array then get all values
+     *      if property is a array and this properties_name value is a array then get whitelist set in the array
+     */
+    static protected $WHITELIST_OF_PROPERTIES = array(
+        'action' => array(
+            "id" => '', "ref" => '', "type_id" => '', "type_code" => '', "type" => '', "type_color" => '', "code" => '',
+            "label" => '', "datec" => '', "datem" => '', "authorid" => '', "usermodid" => '', "datep" => '', "datef" => '',
+            "durationp" => '', "fulldayevent" => '', "punctual" => '', "percentage" => '', "location" => '', "transparency" => '',
+            "priority" => '', "userassigned" => array(''=>array('id'=>'')), "userownerid" => '', "userdoneid" => '', "socid" => '', "contactid" => '',
+            "contact" => '', "array_options" => '', "fk_project" => '', "ref_ext" => '', "note" => '', "type_picto" => '',
+            "user_mod" => '', "user_done" => '', "user_owner" => '', "thirdparty" => '', "entity" => '',
+        ),
+        'user' => array(
+            "id" => '', "employee" => '', "gender" => '', "email" => '', "skype" => '', "job" => '', "signature" => '',
+            "address" => '', "zip" => '', "town" => '', "state_id" => '', "state_code" => '', "state" => '', "office_phone" => '',
+            "office_fax" => '', "user_mobile" => '', "entity" => '', "datec" => '', "datem" => '', "socid" => '', "contactid" => '',
+            "fk_member" => '', "fk_user" => '', "datelastlogin" => '', "datepreviouslogin" => '', "statut" => '', "photo" => '',
+            "lang" => '', "users" => '', "parentof" => '', "thm" => '', "tjm" => '', "salary" => '', "salaryextra" => '',
+            "weeklyhours" => '', "color" => '', "dateemployment" => '', "array_options" => '', "ref" => '', "ref_ext" => '',
+            "country_id" => '', "country_code" => '', "lastname" => '', "firstname" => '', "thirdparty" => '',
+        ),
+        'usergroup' => array(
+            "id" => '', "ref" => '', "name" => '', "array_options" => '', "entity" => '', "datec" => '', "datem" => '',
+        ),
+        'societe' => array(
+            "entity" => '', "nom" => '', "name_alias" => '', "particulier" => '', "zip" => '', "town" => '', "status" => '',
+            "state_id" => '', "state_code" => '', "state" => '', "departement_code" => '', "departement" => '', "pays" => '',
+            "phone" => '', "fax" => '', "email" => '', "skype" => '', "url" => '', "barcode" => '', "idprof1" => '', "idprof2" => '',
+            "idprof3" => '', "idprof4" => '', "idprof5" => '', "idprof6" => '', "prefix_comm" => '', "tva_assuj" => '', "tva_intra" => '',
+            "localtax1_assuj" => '', "localtax1_value" => '', "localtax2_assuj" => '', "localtax2_value" => '', "capital" => '',
+            "typent_id" => '', "typent_code" => '', "effectif" => '', "effectif_id" => '', "forme_juridique_code" => '', "forme_juridique" => '',
+            "remise_percent" => '', "mode_reglement_supplier_id" => '', "cond_reglement_supplier_id" => '', "fk_prospectlevel" => '',
+            "date_modification" => '', "date_creation" => '', "client" => '', "prospect" => '', "fournisseur" => '', "code_client" => '',
+            "code_fournisseur" => '', "code_compta" => '', "code_compta_fournisseur" => '', "stcomm_id" => '', "statut_commercial" => '',
+            "price_level" => '', "outstanding_limit" => '', "parent" => '', "default_lang" => '', "ref" => '', "ref_ext" => '',
+            "logo" => '', "array_options" => '', "id" => '', "linkedObjectsIds" => '',
+        ),
+    );
+
+    /**
+     * Array of whitelist of properties keys to overwrite the white list of each element object used in this API
+     * @var  array
+     *      array('element_type' => array('properties_name'=> '' or array('properties_name'=> '' or array(...), ...), ...)
+     *      if property is a object and this properties_name value is not a array then get whitelist of his object element
+     *      if property is a object and this properties_name value is a array then get whitelist set in the array
+     *      if property is a array and this properties_name value is not a array then get all values
+     *      if property is a array and this properties_name value is a array then get whitelist set in the array
+     */
+    static protected $WHITELIST_OF_PROPERTIES_LINKED_OBJECT = array();
+
+    /**
+     * Array of blacklist of properties keys to overwrite the blacklist of each element object used in this API
+     * @var  array
+     *      array('element_type' => array('properties_name'=> '' or array('properties_name'=> '' or array(...), ...), ...)
+     *      if property is a object and this properties_name value is not a array then get blacklist of his object element
+     *      if property is a object and this properties_name value is a array then get blacklist set in the array
+     *      if property is a array and this properties_name value is not a array then get all values
+     *      if property is a array and this properties_name value is a array then get blacklist set in the array
+     */
+    static protected $BLACKLIST_OF_PROPERTIES = array();
+
+    /**
+     * Array of blacklist of properties keys to overwrite the blacklist of each element object when is a linked object used in this API
+     * @var  array
+     *      array('element_type' => array('properties_name'=> '' or array('properties_name'=> '' or array(...), ...), ...)
+     *      if property is a object and this properties_name value is not a array then get blacklist of his object element
+     *      if property is a object and this properties_name value is a array then get blacklist set in the array
+     *      if property is a array and this properties_name value is not a array then get all values
+     *      if property is a array and this properties_name value is a array then get blacklist set in the array
+     */
+    static protected $BLACKLIST_OF_PROPERTIES_LINKED_OBJECT = array();
+
+    /**
+     * @var array   $BLACKWHITELIST_OF_PROPERTIES_LOADED      List of element type who is loaded
+     */
+    static protected $BLACKWHITELIST_OF_PROPERTIES_LOADED = array();
+
+    /**
      *  Constructor
      */
     function __construct()
     {
-        global $db, $langs;
+        global $conf, $db, $langs;
         self::$db = $db;
         $langs->load('requestmanager@requestmanager');
+
+        // Specific case for the whitelist of the user object
+        $canreadsalary = ((!empty($conf->salaries->enabled) && !empty(DolibarrApiAccess::$user->rights->salaries->read))
+            || (!empty($conf->hrm->enabled) && !empty(DolibarrApiAccess::$user->rights->hrm->employee->read)));
+        if (!$canreadsalary) {
+            unset(self::$WHITELIST_OF_PROPERTIES['user']['salary']);
+            unset(self::$WHITELIST_OF_PROPERTIES['user']['salaryextra']);
+            unset(self::$WHITELIST_OF_PROPERTIES['user']['thm']);
+            unset(self::$WHITELIST_OF_PROPERTIES['user']['tjm']);
+        }
     }
 
     /**
@@ -85,11 +178,11 @@ class RequestManagerApi extends DolibarrApi {
         $requestmanager->fetch_requesters(1);
         $requestmanager->fetch_watchers(1);
         $requestmanager->fetch_optionals();
+        $requestmanager->fetch_thirdparty_origin();
         $requestmanager->fetch_thirdparty();
         $requestmanager->fetch_thirdparty_benefactor();
-        $requestmanager->fetch_thirdparty_benefactor();
         $requestmanager->fetchObjectLinked();
-        return $this->_cleanObjectDatas($requestmanager);
+        return $this->_cleanObjectData($requestmanager);
     }
 
     /**
@@ -200,8 +293,8 @@ class RequestManagerApi extends DolibarrApi {
                     $requestmanager->fetch_requesters(1);
                     $requestmanager->fetch_watchers(1);
                     $requestmanager->fetch_optionals();
+                    $requestmanager->fetch_thirdparty_origin();
                     $requestmanager->fetch_thirdparty();
-                    $requestmanager->fetch_thirdparty_benefactor();
                     $requestmanager->fetch_thirdparty_benefactor();
                     $requestmanager->fetchObjectLinked();
                     $add_request = !count($linked_filters_t);
@@ -223,7 +316,7 @@ class RequestManagerApi extends DolibarrApi {
                     }
 
                     if ($add_request) {
-                        $obj_ret[] = $this->_cleanObjectDatas($requestmanager);
+                        $obj_ret[] = $this->_cleanObjectData($requestmanager);
                     }
                 }
             }
@@ -370,7 +463,7 @@ class RequestManagerApi extends DolibarrApi {
 
         $result = array();
         foreach ($requestmanager->lines as $line) {
-            array_push($result, $this->_cleanLineObjectDatas($line));
+            array_push($result, $this->_cleanObjectData($line));
         }
 
         return $result;
@@ -597,8 +690,7 @@ class RequestManagerApi extends DolibarrApi {
             throw new RestException(403, "Access unauthorized");
         }
 
-        $requestmanager_message = $this->_cleanEventObjectDatas($requestmanager_message);
-        return $this->_cleanMessageObjectDatas($requestmanager_message);
+        return $this->_cleanObjectData($requestmanager_message);
     }
 
     /**
@@ -825,8 +917,7 @@ class RequestManagerApi extends DolibarrApi {
                         $requestmanager_message->fetch_contact();
                         $requestmanager_message->fetch_thirdparty();
                         $this->_fetch_event_users($requestmanager_message);
-                        $requestmanager_message = $this->_cleanEventObjectDatas($requestmanager_message);
-                        $obj_ret[] = $this->_cleanMessageObjectDatas($requestmanager_message);
+                        $obj_ret[] = $this->_cleanObjectData($requestmanager_message);
                     }
                 } else {
                     $event = new ActionComm(self::$db);
@@ -835,7 +926,7 @@ class RequestManagerApi extends DolibarrApi {
                         $event->fetch_contact();
                         $event->fetch_thirdparty();
                         $this->_fetch_event_users($event);
-                        $obj_ret[] = $this->_cleanEventObjectDatas($event);
+                        $obj_ret[] = $this->_cleanObjectData($event);
                     }
                 }
             }
@@ -924,7 +1015,9 @@ class RequestManagerApi extends DolibarrApi {
 
         // Clean parameters
         $from_num = preg_replace("/\D/", "", $caller_id_num);
+        $from_num = substr($from_num, -$nb_number);
         $target_num = preg_replace("/\D/", "", $called_num);
+        $target_num = substr($target_num, -$nb_number);
 
         // Search contact / company
         //---------------------------------------
@@ -1392,596 +1485,6 @@ class RequestManagerApi extends DolibarrApi {
     }
 
     /**
-     *  Clean sensible object data
-     *
-     * @param   object          $object         Object to clean
-     *
-     * @return  object|array                    Array of cleaned object properties
-     */
-    function _cleanObjectDatas($object)
-    {
-        $object = parent::_cleanObjectDatas($object);
-
-        if (!empty($object->thirdparty_origin) && is_object($object->thirdparty_origin)) {
-            $this->_cleanThirdPartyObjectDatas($object->thirdparty_origin);
-        }
-
-        if (!empty($object->thirdparty) && is_object($object->thirdparty)) {
-            $this->_cleanThirdPartyObjectDatas($object->thirdparty);
-        }
-
-        if (!empty($object->thirdparty_benefactor) && is_object($object->thirdparty_benefactor)) {
-            $this->_cleanThirdPartyObjectDatas($object->thirdparty_benefactor);
-        }
-
-        if (isset($object->requester_list) && is_array($object->requester_list) && count($object->requester_list) > 0) {
-            foreach ($object->requester_list as $key => $user_infos) {
-                $this->_cleanContactObjectDatas($object->requester_list[$key]);
-            }
-        }
-
-        if (isset($object->watcher_list) && is_array($object->watcher_list) && count($object->watcher_list) > 0) {
-            foreach ($object->watcher_list as $key => $user_infos) {
-                $this->_cleanContactObjectDatas($object->watcher_list[$key]);
-            }
-        }
-
-        if (isset($object->assigned_user_list) && is_array($object->assigned_user_list) && count($object->assigned_user_list) > 0) {
-            foreach ($object->assigned_user_list as $key => $user_infos) {
-                $this->_cleanUserObjectDatas($object->assigned_user_list[$key]);
-            }
-        }
-
-        if (isset($object->assigned_usergroup_list) && is_array($object->assigned_usergroup_list) && count($object->assigned_usergroup_list) > 0) {
-            foreach ($object->assigned_usergroup_list as $key => $usergroup_infos) {
-                $this->_cleanUserGroupObjectDatas($object->assigned_usergroup_list[$key]);
-            }
-        }
-
-        unset($object->new_assigned_user_ids);
-        unset($object->new_assigned_usergroup_ids);
-        unset($object->assigned_user_added_ids);
-        unset($object->assigned_usergroup_added_ids);
-        unset($object->assigned_user_deleted_ids);
-        unset($object->assigned_usergroup_deleted_ids);
-        unset($object->new_statut);
-        unset($object->save_status);
-        unset($object->user_resolved);
-        unset($object->user_cloture);
-        unset($object->user_creation);
-        unset($object->user_modification);
-        unset($object->fk_multicurrency);
-        unset($object->multicurrency_code);
-        unset($object->multicurrency_tx);
-        unset($object->multicurrency_total_ht);
-        unset($object->multicurrency_total_tva);
-        unset($object->multicurrency_total_ttc);
-        unset($object->canvas);
-        unset($object->contact);
-        unset($object->contact_id);
-        unset($object->country);
-        unset($object->country_id);
-        unset($object->country_code);
-        unset($object->barcode_type);
-        unset($object->barcode_type_code);
-        unset($object->barcode_type_label);
-        unset($object->barcode_type_coder);
-        unset($object->mode_reglement_id);
-        unset($object->cond_reglement_id);
-        unset($object->cond_reglement);
-        unset($object->fk_delivery_address);
-        unset($object->shipping_method_id);
-        unset($object->modelpdf);
-        unset($object->fk_account);
-        unset($object->note_public);
-        unset($object->note_private);
-        unset($object->total_ht);
-        unset($object->total_tva);
-        unset($object->total_localtax1);
-        unset($object->total_localtax2);
-        unset($object->total_ttc);
-        unset($object->fk_incoterms);
-        unset($object->libelle_incoterms);
-        unset($object->location_incoterms);
-        unset($object->user);
-        unset($object->import_key);
-        unset($object->fk_project);
-        unset($object->note);
-        unset($object->name);
-        unset($object->lastname);
-        unset($object->firstname);
-        unset($object->civility_id);
-        unset($object->address);
-
-        // If object has lines, remove $db property
-        if (isset($object->lines) && is_array($object->lines) && count($object->lines) > 0) {
-            $nboflines = count($object->lines);
-            for ($i = 0; $i < $nboflines; $i++) {
-                $object->lines[$i] = $this->_cleanLineObjectDatas($object->lines[$i]);
-            }
-        }
-
-        return $object;
-    }
-
-    /**
-     *  Clean sensible line object data
-     *
-     * @param   object          $object         Object to clean
-     *
-     * @return  object|array                    Array of cleaned object properties
-     */
-    function _cleanLineObjectDatas($object)
-    {
-        $object = parent::_cleanObjectDatas($object);
-
-        unset($object->contact);
-        unset($object->contact_id);
-        unset($object->country);
-        unset($object->country_id);
-        unset($object->country_code);
-        unset($object->mode_reglement_id);
-        unset($object->mode_reglement_code);
-        unset($object->mode_reglement);
-        unset($object->cond_reglement_id);
-        unset($object->cond_reglement_code);
-        unset($object->cond_reglement);
-        unset($object->fk_delivery_address);
-        unset($object->fk_projet);
-        unset($object->thirdparty);
-        unset($object->user);
-        unset($object->model_pdf);
-        unset($object->modelpdf);
-        unset($object->note_public);
-        unset($object->note_private);
-        unset($object->fk_incoterms);
-        unset($object->libelle_incoterms);
-        unset($object->location_incoterms);
-        unset($object->name);
-        unset($object->lastname);
-        unset($object->firstname);
-        unset($object->civility_id);
-        unset($object->fk_multicurrency);
-        unset($object->multicurrency_code);
-        unset($object->shipping_method_id);
-
-        // Others
-        unset($object->desc);
-        unset($object->ref);
-        unset($object->libelle);
-        unset($object->rowid);
-        unset($object->import_key);
-        unset($object->linkedObjectsIds);
-        unset($object->canvas);
-        unset($object->fk_project);
-        unset($object->origin);
-        unset($object->origin_id);
-        unset($object->ref_ext);
-        unset($object->statut);
-        unset($object->barcode_type);
-        unset($object->barcode_type_code);
-        unset($object->barcode_type_label);
-        unset($object->barcode_type_coder);
-        unset($object->fk_account);
-        unset($object->note);
-        unset($object->lines);
-
-        return $object;
-    }
-
-    /**
-     *  Clean sensible event object data
-     *
-     * @param   object          $object         Object to clean
-     *
-     * @return  object|array                    Array of cleaned object properties
-     */
-    function _cleanEventObjectDatas($object)
-    {
-        $object = parent::_cleanObjectDatas($object);
-
-        if (!empty($object->thirdparty) && is_object($object->thirdparty)) {
-            $this->_cleanThirdPartyObjectDatas($object->thirdparty);
-        }
-
-        if (!empty($object->contact) && is_object($object->contact)) {
-            $this->_cleanContactObjectDatas($object->contact);
-        }
-
-        if (!empty($object->user_mod) && is_object($object->user_mod)) {
-            $this->_cleanUserObjectDatas($object->user_mod);
-        }
-
-        if (!empty($object->user_done) && is_object($object->user_done)) {
-            $this->_cleanUserObjectDatas($object->user_done);
-        }
-
-        if (!empty($object->user_owner) && is_object($object->user_owner)) {
-            $this->_cleanUserObjectDatas($object->user_owner);
-        }
-
-        if (isset($object->userassigned) && is_array($object->userassigned) && count($object->userassigned) > 0) {
-            foreach ($object->userassigned as $key => $user_infos) {
-                if (!empty($object->userassigned[$key]['user']) && is_object($object->userassigned[$key]['user'])) {
-                    $this->_cleanUserObjectDatas($object->userassigned[$key]['user']);
-                }
-            }
-        }
-
-        unset($object->icalname);
-        unset($object->icalcolor);
-        unset($object->actions);
-        unset($object->email_msgid);
-        unset($object->email_from);
-        unset($object->email_sender);
-        unset($object->email_to);
-        unset($object->email_tocc);
-        unset($object->email_tobcc);
-        unset($object->email_subject);
-        unset($object->errors_to);
-        unset($object->table_rowid);
-        unset($object->libelle);
-        unset($object->linkedObjectsIds);
-        unset($object->canvas);
-        unset($object->thirdparty);
-        unset($object->user);
-        unset($object->origin);
-        unset($object->origin_id);
-        unset($object->statut);
-        unset($object->country);
-        unset($object->country_id);
-        unset($object->country_code);
-        unset($object->barcode_type);
-        unset($object->barcode_type_code);
-        unset($object->barcode_type_label);
-        unset($object->barcode_type_coder);
-        unset($object->mode_reglement_id);
-        unset($object->cond_reglement_id);
-        unset($object->cond_reglement);
-        unset($object->fk_delivery_address);
-        unset($object->shipping_method_id);
-        unset($object->modelpdf);
-        unset($object->fk_account);
-        unset($object->note_public);
-        unset($object->note_private);
-        unset($object->total_ht);
-        unset($object->total_tva);
-        unset($object->total_localtax1);
-        unset($object->total_localtax2);
-        unset($object->total_ttc);
-        unset($object->lines);
-        unset($object->fk_incoterms);
-        unset($object->libelle_incoterms);
-        unset($object->location_incoterms);
-        unset($object->name);
-        unset($object->lastname);
-        unset($object->firstname);
-        unset($object->civility_id);
-        unset($object->societe);
-        unset($object->usermod);
-        unset($object->import_key);
-        unset($object->userdone);
-        unset($object->usertodo);
-        unset($object->elementtype);
-
-        return $object;
-    }
-
-    /**
-     *  Clean sensible event object data
-     *
-     * @param   object          $object         Object to clean
-     *
-     * @return  object|array                    Array of cleaned object properties
-     */
-    function _cleanMessageObjectDatas($object)
-    {
-        $object = parent::_cleanObjectDatas($object);
-
-        unset($object->requestmanager);
-        unset($object->attached_files);
-        unset($object->knowledge_base_list);
-        unset($object->durationp);
-        unset($object->fulldayevent);
-        unset($object->punctual);
-        unset($object->percentage);
-        unset($object->location);
-        unset($object->transparency);
-        unset($object->priority);
-        unset($object->ref_ext);
-        unset($object->fk_project);
-
-        return $object;
-    }
-
-    /**
-     *  Clean sensible user object data
-     *
-     * @param   object          $object         Object to clean
-     *
-     * @return  object|array                    Array of cleaned object properties
-     */
-	function _cleanUserObjectDatas($object)
-    {
-        global $conf;
-
-        $object = parent::_cleanObjectDatas($object);
-
-        unset($object->default_values);
-        unset($object->lastsearch_values);
-        unset($object->lastsearch_values_tmp);
-
-        unset($object->total_ht);
-        unset($object->total_tva);
-        unset($object->total_localtax1);
-        unset($object->total_localtax2);
-        unset($object->total_ttc);
-        unset($object->libelle_incoterms);
-        unset($object->location_incoterms);
-
-        unset($object->fk_delivery_address);
-        unset($object->fk_incoterms);
-        unset($object->all_permissions_are_loaded);
-        unset($object->shipping_method_id);
-        unset($object->nb_rights);
-        unset($object->search_sid);
-        unset($object->ldap_sid);
-
-        // List of properties never returned by API, whatever are permissions
-        unset($object->pass);
-        unset($object->pass_indatabase);
-        unset($object->pass_indatabase_crypted);
-        unset($object->pass_temp);
-        unset($object->api_key);
-        unset($object->clicktodial_password);
-        unset($object->openid);
-
-        $canreadsalary = ((!empty($conf->salaries->enabled) && !empty(DolibarrApiAccess::$user->rights->salaries->read))
-            || (!empty($conf->hrm->enabled) && !empty(DolibarrApiAccess::$user->rights->hrm->employee->read)));
-
-        if (!$canreadsalary) {
-            unset($object->salary);
-            unset($object->salaryextra);
-            unset($object->thm);
-            unset($object->tjm);
-        }
-
-        // Others
-        //unset($object->entity);
-        unset($object->admin);
-        unset($object->login);
-        unset($object->societe_id);
-        unset($object->contact_id);
-        unset($object->clicktodial_url);
-        unset($object->clicktodial_login);
-        unset($object->clicktodial_poste);
-        unset($object->rights);
-        unset($object->conf);
-        unset($object->accountancy_code);
-        unset($object->import_key);
-        unset($object->linkedObjectsIds);
-        unset($object->canvas);
-        unset($object->fk_project);
-        unset($object->contact);
-        unset($object->thirdparty);
-        unset($object->user);
-        unset($object->origin);
-        unset($object->origin_id);
-        unset($object->country);
-        unset($object->barcode_type);
-        unset($object->barcode_type_code);
-        unset($object->barcode_type_label);
-        unset($object->barcode_type_coder);
-        unset($object->mode_reglement_id);
-        unset($object->cond_reglement_id);
-        unset($object->cond_reglement);
-        unset($object->modelpdf);
-        unset($object->fk_account);
-        unset($object->note_public);
-        unset($object->note_private);
-        unset($object->note);
-        unset($object->lines);
-        unset($object->name);
-        unset($object->civility_id);
-        unset($object->liste_limit);
-        unset($object->clicktodial_loaded);
-
-        return $object;
-    }
-
-    /**
-     *  Clean sensible user object data
-     *
-     * @param   object          $object         Object to clean
-     *
-     * @return  object|array                    Array of cleaned object properties
-     */
-	function _cleanUserGroupObjectDatas($object)
-    {
-        $object = parent::_cleanObjectDatas($object);
-
-        // Others
-        //unset($object->entity);
-        unset($object->nom);
-        unset($object->note);
-        unset($object->members);
-        unset($object->globalgroup);
-        unset($object->import_key);
-        unset($object->linkedObjectsIds);
-        unset($object->canvas);
-        unset($object->fk_project);
-        unset($object->contact);
-        unset($object->contact_id);
-        unset($object->thirdparty);
-        unset($object->user);
-        unset($object->origin);
-        unset($object->origin_id);
-        unset($object->ref_ext);
-        unset($object->statut);
-        unset($object->country);
-        unset($object->country_id);
-        unset($object->country_code);
-        unset($object->barcode_type);
-        unset($object->barcode_type_code);
-        unset($object->barcode_type_label);
-        unset($object->barcode_type_coder);
-        unset($object->mode_reglement_id);
-        unset($object->cond_reglement_id);
-        unset($object->cond_reglement);
-        unset($object->fk_delivery_address);
-        unset($object->shipping_method_id);
-        unset($object->modelpdf);
-        unset($object->note_public);
-        unset($object->note_private);
-        unset($object->total_ht);
-        unset($object->total_tva);
-        unset($object->total_localtax1);
-        unset($object->total_localtax2);
-        unset($object->total_ttc);
-        unset($object->lines);
-        unset($object->fk_incoterms);
-        unset($object->libelle_incoterms);
-        unset($object->location_incoterms);
-        unset($object->lastname);
-        unset($object->firstname);
-        unset($object->civility_id);
-        unset($object->fk_account);
-
-        return $object;
-    }
-    /**
-     *  Clean sensible contact object data
-     *
-     * @param   object          $object         Object to clean
-     *
-     * @return  object|array                    Array of cleaned object properties
-     */
-    function _cleanContactObjectDatas($object) {
-
-	$object = parent::_cleanObjectDatas($object);
-
-	unset($object->total_ht);
-	unset($object->total_tva);
-	unset($object->total_localtax1);
-	unset($object->total_localtax2);
-	unset($object->total_ttc);
-
-	unset($object->note);
-	unset($object->lines);
-	unset($object->thirdparty);
-
-        // Others
-        //unset($object->entity);
-        unset($object->code);
-        //unset($object->priv);
-        unset($object->ref_facturation);
-        unset($object->ref_contrat);
-        unset($object->ref_commande);
-        unset($object->ref_propal);
-        unset($object->import_key);
-        unset($object->linkedObjectsIds);
-        unset($object->canvas);
-        unset($object->fk_project);
-        unset($object->contact);
-        unset($object->contact_id);
-        unset($object->user);
-        unset($object->origin);
-        unset($object->origin_id);
-        unset($object->barcode_type);
-        unset($object->barcode_type_code);
-        unset($object->barcode_type_label);
-        unset($object->barcode_type_coder);
-        unset($object->mode_reglement_id);
-        unset($object->cond_reglement_id);
-        unset($object->cond_reglement);
-        unset($object->fk_delivery_address);
-        unset($object->shipping_method_id);
-        unset($object->modelpdf);
-        //unset($object->note_public);
-        unset($object->note_private);
-        unset($object->fk_account);
-        unset($object->fk_incoterms);
-        unset($object->libelle_incoterms);
-        unset($object->location_incoterms);
-        unset($object->name);
-
-	return $object;
-    }
-
-    /**
-     *  Clean sensible third party object data
-     *
-     * @param   object          $object         Object to clean
-     *
-     * @return  object|array                    Array of cleaned object properties
-     */
-	function _cleanThirdPartyObjectDatas($object) {
-
-	    $object = parent::_cleanObjectDatas($object);
-
-	    unset($object->total_ht);
-	    unset($object->total_tva);
-	    unset($object->total_localtax1);
-	    unset($object->total_localtax2);
-	    unset($object->total_ttc);
-
-        // Others
-        //unset($object->entity);
-        unset($object->managers);
-        unset($object->name_bis);
-        unset($object->specimen);
-        unset($object->note);
-        unset($object->note_private);
-        //unset($object->note_public);
-        unset($object->logo_small);
-        unset($object->logo_mini);
-        unset($object->webservices_url);
-        unset($object->webservices_key);
-        unset($object->import_key);
-        unset($object->commercial_id);
-        unset($object->contact);
-        unset($object->contact_id);
-        unset($object->thirdparty);
-        unset($object->user);
-        unset($object->origin);
-        unset($object->origin_id);
-        unset($object->statut);
-        unset($object->barcode_type);
-        unset($object->barcode_type_code);
-        unset($object->barcode_type_label);
-        unset($object->barcode_type_coder);
-        unset($object->modelpdf);
-        unset($object->lines);
-        unset($object->lastname);
-        unset($object->firstname);
-        unset($object->civility_id);
-
-	    return $object;
-	}
-
-    /**
-     * Get all errors
-     *
-     * @param  object   $object     Object
-     *
-     * @return array                Array of errors
-     */
-	function _getErrors(&$object)
-    {
-        $errors = is_array($object->errors) ? $object->errors : array();
-        $errors = array_merge($errors, (!empty($object->error) ? array($object->error) : array()));
-
-        function convert($item)
-        {
-            return dol_htmlentitiesbr_decode($item);
-        }
-
-        $errors = array_map('convert', $errors);
-
-        return $errors;
-    }
-
-    /**
      * Add attached file for message
      *
      * @param  RequestManager               $requestmanager                 Handler RequestManager
@@ -2083,5 +1586,204 @@ class RequestManagerApi extends DolibarrApi {
         $formrequestmanagermessage->add_attached_files($upload_file_tmp, $original_file, dol_mimetype($original_file));
 
         return 1;
+    }
+
+    /*******************************************************************************************************************
+     * Tools functions
+     ******************************************************************************************************************/
+
+    /**
+     *  Clean sensible object data
+     *
+     * @param   object|array    $object                     Object to clean
+     * @param   array           $whitelist_of_properties    Whitelist of properties
+     * @param   array           $blacklist_of_properties    Blacklist of properties
+     *
+     * @return  object|array                                Array of cleaned object properties
+     *
+     * @throws  500             RestException               Error while retrieve the custom whitelist of properties for the object type
+     */
+	function _cleanObjectData(&$object, $whitelist_of_properties=array(), $blacklist_of_properties=array())
+    {
+        if (!empty($object->element)) {
+            $this->_getBlackWhitelistOfProperties($object, $whitelist_of_properties, $blacklist_of_properties);
+        }
+
+        if (!is_array($whitelist_of_properties)) $whitelist_of_properties = array();
+        $has_whitelist = count($whitelist_of_properties) > 0 && !isset($whitelist_of_properties['']);
+        if (!is_array($blacklist_of_properties)) $blacklist_of_properties = array();
+        $has_blacklist = count($blacklist_of_properties) > 0 && !isset($blacklist_of_properties['']);
+        foreach ($object as $k => $v) {
+            if (($has_whitelist && !isset($whitelist_of_properties[$k])) || ($has_blacklist && isset($blacklist_of_properties[$k]) && !is_array($blacklist_of_properties[$k]))) {
+                if (is_array($object))
+                    unset($object[$k]);
+                else
+                    unset($object->$k);
+            } else {
+                if (is_object($v) || is_array($v)) {
+                    if (is_array($object))
+                        $this->_cleanSubObjectData($object[$k], $whitelist_of_properties[$k], $blacklist_of_properties[$k]);
+                    else
+                        $this->_cleanSubObjectData($object->$k, $whitelist_of_properties[$k], $blacklist_of_properties[$k]);
+                }
+            }
+        }
+
+        return $object;
+    }
+
+    /**
+     *  Clean sensible linked object data
+     *
+     * @param   object|array    $object                     Object to clean
+     * @param   array           $whitelist_of_properties    Whitelist of properties
+     * @param   array           $blacklist_of_properties    Blacklist of properties
+     *
+     * @return  object|array                                Array of cleaned object properties
+     *
+     * @throws  500             RestException               Error while retrieve the custom whitelist of properties for the object type
+     */
+	function _cleanSubObjectData(&$object, $whitelist_of_properties=array(), $blacklist_of_properties=array())
+    {
+        if (!empty($object->element)) {
+            $this->_getBlackWhitelistOfProperties($object, $whitelist_of_properties, $blacklist_of_properties, true);
+        }
+
+        if (!is_array($whitelist_of_properties)) $whitelist_of_properties = array();
+        $has_whitelist = count($whitelist_of_properties) > 0 && !isset($whitelist_of_properties['']);
+        if (!is_array($blacklist_of_properties)) $blacklist_of_properties = array();
+        $has_blacklist = count($blacklist_of_properties) > 0 && !isset($blacklist_of_properties['']);
+        foreach ($object as $k => $v) {
+            if (($has_whitelist && !isset($whitelist_of_properties[$k])) || ($has_blacklist && isset($blacklist_of_properties[$k]) && !is_array($blacklist_of_properties[$k]))) {
+                if (is_array($object))
+                    unset($object[$k]);
+                else
+                    unset($object->$k);
+            } else {
+                if (is_object($v) || is_array($v)) {
+                    if (is_array($object))
+                        $this->_cleanSubObjectData($object[$k], $whitelist_of_properties[$k], $blacklist_of_properties[$k]);
+                    else
+                        $this->_cleanSubObjectData($object->$k, $whitelist_of_properties[$k], $blacklist_of_properties[$k]);
+                }
+            }
+        }
+
+        return $object;
+    }
+
+    /**
+     *  Get a array of whitelist of properties keys for this object or linked object
+     *
+     * @param   object      $object                     Object to clean
+     * @param   boolean     $linked_object              This object is a linked object
+     * @param   array       $whitelist_of_properties    Array of whitelist of properties keys for this object
+     *                                                      array('properties_name'=> '' or array('properties_name'=> '' or array(...), ...)
+     *                                                      if property is a object and this properties_name value is equal '' then get whitelist of his object element
+     *                                                      if property is a object and this properties_name value is a array then get whitelist set in the array
+     *                                                      if property is a array and this properties_name value is equal '' then get all values
+     *                                                      if property is a array and this properties_name value is a array then get whitelist set in the array
+     * @param   array       $blacklist_of_properties    Array of blacklist of properties keys for this object
+     *                                                      array('properties_name'=> '' or array('properties_name'=> '' or array(...), ...)
+     *                                                      if property is a object and this properties_name value is equal '' then get blacklist of his object element
+     *                                                      if property is a object and this properties_name value is a array then get blacklist set in the array
+     *                                                      if property is a array and this properties_name value is equal '' then get all values
+     *                                                      if property is a array and this properties_name value is a array then get blacklist set in the array
+     *
+     * @return void
+     *
+     * @throws  500         RestException       Error while retrieve the custom whitelist of properties for the object type
+     */
+	function _getBlackWhitelistOfProperties($object, &$whitelist_of_properties, &$blacklist_of_properties, $linked_object=false)
+    {
+        global $hookmanager;
+
+        $whitelist_of_properties = array();
+        $whitelist_of_properties_linked_object = array();
+        $blacklist_of_properties = array();
+        $blacklist_of_properties_linked_object = array();
+
+        if (!empty($object->element)) {
+            // Load white list for clean sensitive properties of the objects
+            if (!isset(self::$BLACKWHITELIST_OF_PROPERTIES_LOADED[$object->element])) {
+                $object_class = get_class($object);
+
+                // Whitelist
+                if (!empty(self::$WHITELIST_OF_PROPERTIES[$object->element]))
+                    $whitelist_of_properties = self::$WHITELIST_OF_PROPERTIES[$object->element];
+                elseif (!empty($object_class::$API_WHITELIST_OF_PROPERTIES))
+                    $whitelist_of_properties = $object_class::$API_WHITELIST_OF_PROPERTIES;
+
+                if (!empty(self::$WHITELIST_OF_PROPERTIES_LINKED_OBJECT[$object->element]))
+                    $whitelist_of_properties_linked_object = self::$WHITELIST_OF_PROPERTIES_LINKED_OBJECT[$object->element];
+                elseif (!empty($object_class::$API_WHITELIST_OF_PROPERTIES_LINKED_OBJECT))
+                    $whitelist_of_properties_linked_object = $object_class::$API_WHITELIST_OF_PROPERTIES_LINKED_OBJECT;
+
+                // Blacklist
+                if (!empty(self::$BLACKLIST_OF_PROPERTIES[$object->element]))
+                    $blacklist_of_properties = self::$BLACKLIST_OF_PROPERTIES[$object->element];
+                elseif (!empty($object_class::$API_BLACKLIST_OF_PROPERTIES))
+                    $blacklist_of_properties = $object_class::$API_BLACKLIST_OF_PROPERTIES;
+
+                if (!empty(self::$BLACKLIST_OF_PROPERTIES_LINKED_OBJECT[$object->element]))
+                    $blacklist_of_properties_linked_object = self::$BLACKLIST_OF_PROPERTIES_LINKED_OBJECT[$object->element];
+                elseif (!empty($object_class::$API_BLACKLIST_OF_PROPERTIES_LINKED_OBJECT))
+                    $blacklist_of_properties_linked_object = $object_class::$API_BLACKLIST_OF_PROPERTIES_LINKED_OBJECT;
+
+                // Modification by hook
+                $hookmanager->initHooks(array('companyrelationshipsapi', 'globalapi'));
+                $parameters = array('whitelist_of_properties' => &$whitelist_of_properties, 'whitelist_of_properties_linked_object' => &$whitelist_of_properties_linked_object,
+                    'blacklist_of_properties' => &$blacklist_of_properties, 'blacklist_of_properties_linked_object' => &$blacklist_of_properties_linked_object);
+                $reshook = $hookmanager->executeHooks('getBlackWhitelistOfProperties', $parameters, $object); // Note that $action and $object may have been
+                if ($reshook < 0) {
+                    throw new RestException(500, "Error while retrieve the custom blacklist and whitelist of properties for the object type: " . $object->element, ['details' => $this->_getErrors($hookmanager)]);
+                }
+
+                if (empty($whitelist_of_properties_linked_object)) $whitelist_of_properties_linked_object = $whitelist_of_properties;
+                if (empty($blacklist_of_properties_linked_object)) $blacklist_of_properties_linked_object = $blacklist_of_properties;
+
+                self::$WHITELIST_OF_PROPERTIES[$object->element] = $whitelist_of_properties;
+                self::$WHITELIST_OF_PROPERTIES_LINKED_OBJECT[$object->element] = $whitelist_of_properties_linked_object;
+                self::$BLACKLIST_OF_PROPERTIES[$object->element] = $blacklist_of_properties;
+                self::$BLACKLIST_OF_PROPERTIES_LINKED_OBJECT[$object->element] = $blacklist_of_properties_linked_object;
+
+                self::$BLACKWHITELIST_OF_PROPERTIES_LOADED[$object->element] = true;
+            }
+            // Get white list
+            elseif (isset(self::$WHITELIST_OF_PROPERTIES[$object->element])) {
+                $whitelist_of_properties = self::$WHITELIST_OF_PROPERTIES[$object->element];
+                $whitelist_of_properties_linked_object = self::$WHITELIST_OF_PROPERTIES_LINKED_OBJECT[$object->element];
+                if (empty($whitelist_of_properties_linked_object)) $whitelist_of_properties_linked_object = $whitelist_of_properties;
+
+                $blacklist_of_properties = self::$BLACKLIST_OF_PROPERTIES[$object->element];
+                $blacklist_of_properties_linked_object = self::$BLACKLIST_OF_PROPERTIES_LINKED_OBJECT[$object->element];
+                if (empty($blacklist_of_properties_linked_object)) $blacklist_of_properties_linked_object = $blacklist_of_properties;
+            }
+        }
+
+        $whitelist_of_properties = $linked_object ? $whitelist_of_properties_linked_object : $whitelist_of_properties;
+        $blacklist_of_properties = $linked_object ? $blacklist_of_properties_linked_object : $blacklist_of_properties;
+    }
+
+    /**
+     * Get all errors
+     *
+     * @param  object   $object     Object
+     *
+     * @return array                Array of errors
+     */
+	function _getErrors(&$object)
+    {
+        $errors = is_array($object->errors) ? $object->errors : array();
+        $errors = array_merge($errors, (!empty($object->error) ? array($object->error) : array()));
+
+        function convert($item)
+        {
+            return dol_htmlentitiesbr_decode($item);
+        }
+
+        $errors = array_map('convert', $errors);
+
+        return $errors;
     }
 }

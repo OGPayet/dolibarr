@@ -114,6 +114,225 @@ class CompanyRelationshipsApi extends DolibarrApi {
 		'modulepart'
 	);
 
+    /**
+     * Array of whitelist of properties keys to overwrite the white list of each element object used in this API
+     * @var  array
+     *      array('element_type' => array('properties_name'=> '' or array('properties_name'=> '' or array(...), ...), ...)
+     *      if property is a object and this properties_name value is not a array then get whitelist of his object element
+     *      if property is a object and this properties_name value is a array then get whitelist set in the array
+     *      if property is a array and this properties_name value is not a array then get all values
+     *      if property is a array and this properties_name value is a array then get whitelist set in the array
+     */
+    static protected $WHITELIST_OF_PROPERTIES = array(
+        'action' => array(
+            "id" => '', "ref" => '', "type_id" => '', "type_code" => '', "type" => '', "type_color" => '', "code" => '',
+            "label" => '', "datec" => '', "datem" => '', "authorid" => '', "usermodid" => '', "datep" => '', "datef" => '',
+            "durationp" => '', "fulldayevent" => '', "punctual" => '', "percentage" => '', "location" => '', "transparency" => '',
+            "priority" => '', "userassigned" => array(''=>array('id'=>'')), "userownerid" => '', "userdoneid" => '', "socid" => '', "contactid" => '',
+            "contact" => '', "array_options" => '', "fk_project" => '', "ref_ext" => '', "note" => '', "type_picto" => '',
+            "user_mod" => '', "user_done" => '', "user_owner" => '', "thirdparty" => '', "entity" => '',
+        ),
+        'user' => array(
+            "id" => '', "employee" => '', "gender" => '', "email" => '', "skype" => '', "job" => '', "signature" => '',
+            "address" => '', "zip" => '', "town" => '', "state_id" => '', "state_code" => '', "state" => '', "office_phone" => '',
+            "office_fax" => '', "user_mobile" => '', "entity" => '', "datec" => '', "datem" => '', "socid" => '', "contactid" => '',
+            "fk_member" => '', "fk_user" => '', "datelastlogin" => '', "datepreviouslogin" => '', "statut" => '', "photo" => '',
+            "lang" => '', "users" => '', "parentof" => '', "thm" => '', "tjm" => '', "salary" => '', "salaryextra" => '',
+            "weeklyhours" => '', "color" => '', "dateemployment" => '', "array_options" => '', "ref" => '', "ref_ext" => '',
+            "country_id" => '', "country_code" => '', "lastname" => '', "firstname" => '', "thirdparty" => '',
+        ),
+        'usergroup' => array(
+            "id" => '', "ref" => '', "name" => '', "array_options" => '', "entity" => '', "datec" => '', "datem" => '',
+        ),
+        'societe' => array(
+            "entity" => '', "nom" => '', "name_alias" => '', "particulier" => '', "zip" => '', "town" => '', "status" => '',
+            "state_id" => '', "state_code" => '', "state" => '', "departement_code" => '', "departement" => '', "pays" => '',
+            "phone" => '', "fax" => '', "email" => '', "skype" => '', "url" => '', "barcode" => '', "idprof1" => '', "idprof2" => '',
+            "idprof3" => '', "idprof4" => '', "idprof5" => '', "idprof6" => '', "prefix_comm" => '', "tva_assuj" => '', "tva_intra" => '',
+            "localtax1_assuj" => '', "localtax1_value" => '', "localtax2_assuj" => '', "localtax2_value" => '', "capital" => '',
+            "typent_id" => '', "typent_code" => '', "effectif" => '', "effectif_id" => '', "forme_juridique_code" => '', "forme_juridique" => '',
+            "remise_percent" => '', "mode_reglement_supplier_id" => '', "cond_reglement_supplier_id" => '', "fk_prospectlevel" => '',
+            "date_modification" => '', "date_creation" => '', "client" => '', "prospect" => '', "fournisseur" => '', "code_client" => '',
+            "code_fournisseur" => '', "code_compta" => '', "code_compta_fournisseur" => '', "stcomm_id" => '', "statut_commercial" => '',
+            "price_level" => '', "outstanding_limit" => '', "parent" => '', "default_lang" => '', "ref" => '', "ref_ext" => '',
+            "logo" => '', "array_options" => '', "id" => '', "linkedObjectsIds" => '',
+        ),
+        'product' => array(
+            "label" => '', "description" => '', "type" => '', "price" => '', "price_ttc" => '', "price_min" => '',
+            "price_min_ttc" => '', "price_base_type" => '', "multiprices" => '', "multiprices_ttc" => '', "multiprices_base_type" => '',
+            "multiprices_min" => '', "multiprices_min_ttc" => '', "multiprices_tva_tx" => '', "multiprices_recuperableonly" => '',
+            "price_by_qty" => '', "prices_by_qty" => '', "prices_by_qty_id" => '', "prices_by_qty_list" => '', "default_vat_code" => '',
+            "tva_tx" => '', "tva_npr" => '', "localtax1_tx" => '', "localtax2_tx" => '', "localtax1_type" => '', "localtax2_type" => '',
+            "stock_reel" => '', "cost_price" => '', "pmp" => '', "seuil_stock_alerte" => '', "desiredstock" => '', "duration_value" => '',
+            "duration_unit" => '', "status" => '', "status_buy" => '', "finished" => '', "status_batch" => '', "customcode" => '',
+            "url" => '', "weight" => '', "weight_units" => '', "length" => '', "length_units" => '', "surface" => '', "surface_units" => '',
+            "volume" => '', "volume_units" => '', "accountancy_code_buy" => '', "accountancy_code_sell" => '', "barcode" => '',
+            "multilangs" => '', "date_creation" => '', "date_modification" => '', "fk_price_expression" => '', "fk_unit" => '',
+            "price_autogen" => '', "id" => '', "array_options" => '', "linkedObjectsIds" => '', "ref" => '', "ref_ext" => '',
+            "barcode_type" => '', "barcode_type_code" => '', "recuperableonly" => '', "duration" => '', "width" => '', "width_units" => '',
+            "height" => '', "height_units" => '', "entity" => '',
+        ),
+        'contrat' => array(
+            "id" => '', "ref" => '', "ref_customer" => '', "ref_supplier" => '', "ref_ext" => '', "statut" => '',
+            "mise_en_service" => '', "date_contrat" => '', "date_creation" => '', "fin_validite" => '', "date_modification" => '',
+            "date_validation" => '', "user_author_id" => '', "commercial_signature_id" => '', "commercial_suivi_id" => '',
+            "note_public" => '', "fk_project" => '', "socid" => '', "array_options" => '', "thirdparty" => '',
+            "cr_thirdparty_benefactor" => '', "lines" => '',
+        ),
+        'contratdet' => array(
+            "id" => '', "ref" => '', "tms" => '', "fk_contrat" => '', "fk_product" => '', "statut" => '', "product_ref" => '',
+            "product_label" => '', "product_description" => '', "product_type" => '', "label" => '', "description" => '',
+            "date_commande" => '', "date_ouverture_prevue" => '', "date_ouverture" => '', "date_fin_validite" => '',
+            "date_cloture" => '', "tva_tx" => '', "vat_src_code" => '', "localtax1_tx" => '', "localtax2_tx" => '',
+            "localtax1_type" => '', "localtax2_type" => '', "qty" => '', "remise_percent" => '', "remise" => '',
+            "fk_remise_except" => '', "subprice" => '', "price_ht" => '', "total_ht" => '', "total_tva" => '', "total_localtax1" => '',
+            "total_localtax2" => '', "total_ttc" => '', "info_bits" => '', "fk_user_author" => '', "fk_user_ouverture" => '',
+            "fk_user_cloture" => '', "commentaire" => '', "fk_fournprice" => '', "pa_ht" => '', "fk_unit" => '', "array_options" => '',
+        ),
+        'shipping' => array(
+            "id" => '', "ref" => '', "socid" => '', "ref_customer" => '', "ref_ext" => '', "statut" => '',
+            "user_author_id" => '', "date_creation" => '', "date_shipping" => '', "date_delivery" => '', "shipping_method_id" => '',
+            "tracking_number" => '', "origin" => '', "origin_id" => '', "billed" => '', "trueWeight" => '', "weight_units" => '',
+            "trueWidth" => '', "width_units" => '', "trueHeight" => '', "height_units" => '', "trueDepth" => '', "depth_units" => '',
+            "note_public" => '', "trueSize" => '', "size_units" => '', "fk_incoterms" => '', "location_incoterms" => '',
+            "libelle_incoterms" => '', "brouillon" => '', "tracking_url" => '', "thirdparty" => '', "array_options" => '',
+            "cr_thirdparty_benefactor" => '', "lines" => '',
+        ),
+        'expeditiondet' => array(
+            "id" => '', "entrepot_id" => '', "qty_shipped" => '', "details_entrepot" => '', "fk_origin" => '', "fk_origin_line" => '',
+            "product_type" => '', "fk_product" => '', "fk_product_type" => '', "product_ref" => '',
+            "product_label" => '', "product_tobatch" => '', "label" => '', "description" => '', "qty_asked" => '',
+            "weight" => '', "weight_units" => '', "length" => '', "length_units" => '', "surface" => '', "surface_units" => '',
+            "volume" => '', "volume_units" => '', "pa_ht" => '', "desc" => '', "qty" => '',/* "total_ht" => '', "total_localtax1" => '',*/
+            /*"total_localtax2" => '', "total_ttc" => '', "total_tva" => '', "vat_src_code" => '', "tva_tx" => '',*/ "localtax1_tx" => '',
+            "localtax2_tx" => '', "info_bits" => '', "price" => '', "subprice" => '', /*"remise_percent" => '',*/ "fk_multicurrency" => '',
+            "multicurrency_code" => '', "multicurrency_subprice" => '', "multicurrency_total_ht" => '', "multicurrency_total_tva" => '',
+            "multicurrency_total_ttc" => '', "detail_batch" => '', "array_options" => '',
+        ),
+        'fichinter' => array(
+            "id" => '', "ref" => '', "description" => '', "socid" => '', "statut" => '', "duration" => '', "datec" => '',
+            "datee" => '', "dateo" => '', "datet" => '', "datev" => '', "datem" => '', "fk_project" => '', "note_public" => '',
+            "trueWidth" => '', "width_units" => '', "trueHeight" => '', "height_units" => '', "trueDepth" => '', "depth_units" => '',
+            "fk_contrat" => '', "user_creation" => '', "brouillon" => '', "thirdparty" => '', "array_options" => '',
+            "cr_thirdparty_benefactor" => '', "lines" => '',
+        ),
+        'fichinterdet' => array(
+            "id" => '', "desc" => '', "duration" => '', "qty" => '', "date" => '', "datei" => '',
+            "rang" => '', "product_type" => '', "array_options" => '',
+        ),
+        'facture' => array(
+            "id" => '', "ref" => '', "ref_client" => '', "ref_ext" => '', "type" => '', "date" => '', "date_pointoftax" => '',
+            "date_creation" => '', "date_validation" => '', "datem" => '', "remise_percent" => '', "remise_absolue" => '',
+            "total_ht" => '', "total_tva" => '', "total_localtax1" => '', "total_localtax2" => '', "total_ttc" => '',
+            "revenuestamp" => '', "paye" => '', "close_code" => '', "close_note" => '', "socid" => '', "statut" => '',
+            "date_lim_reglement" => '', "mode_reglement_id" => '', "mode_reglement_code" => '', "mode_reglement" => '',
+            "cond_reglement_id" => '', "cond_reglement_code" => '', "cond_reglement_doc" => '', "fk_account" => '',
+            "fk_project" => '', "fk_facture_source" => '', "note_public" => '', "user_author" => '', "user_valid" => '',
+            "situation_cycle_ref" => '', "situation_counter" => '', "situation_final" => '', "fk_incoterms" => '',
+            "location_incoterms" => '', "libelle_incoterms" => '', "fk_multicurrency" => '', "multicurrency_code" => '',
+            "multicurrency_tx" => '', "multicurrency_total_ht" => '', "multicurrency_total_tva" => '',
+            "multicurrency_total_ttc" => '', "tab_previous_situation_invoice" => '', "tab_next_situation_invoice" => '',
+            "brouillon" => '', "thirdparty" => '', "array_options" => '', "cr_thirdparty_benefactor" => '', "lines" => '',
+        ),
+        'facturedet' => array(
+            "id" => '', "desc" => '', "product_type" => '', "product_ref" => '', "product_label" => '', "product_desc" => '',
+            "fk_product_type" => '', "qty" => '', "subprice" => '', "vat_src_code" => '', "tva_tx" => '', "localtax1_tx" => '',
+            "localtax2_tx" => '', "localtax1_type" => '', "localtax2_type" => '', "remise_percent" => '', "fk_remise_except" => '',
+            "fk_product" => '', "date_start" => '', "date_end" => '', "info_bits" => '', "total_ht" => '', "total_tva" => '',
+            "total_localtax1" => '', "total_localtax2" => '', "total_ttc" => '', "code_ventilation" => '', "fk_fournprice" => '',
+            "pa_ht" => '', "marge_tx" => '', "marque_tx" => '', "rang" => '', "special_code" => '', "fk_parent_line" => '',
+            "situation_percent" => '', "fk_prev_id" => '', "fk_unit" => '', "fk_multicurrency" => '', "multicurrency_code" => '',
+            "multicurrency_subprice" => '', "multicurrency_total_ht" => '', "multicurrency_total_tva" => '',
+            "multicurrency_total_ttc" => '', "array_options" => '',
+        ),
+        'commande' => array(
+            "id" => '', "ref" => '', "ref_customer" => '', "ref_ext" => '', "socid" => '', "statut" => '', "user_author_id" => '',
+            "user_valid" => '', "total_ht" => '', "total_tva" => '', "total_localtax1" => '', "total_localtax2" => '',
+            "total_ttc" => '', "date" => '', "remise" => '', "remise_percent" => '', "remise_absolue" => '',
+            "source" => '', "billed" => '', "note_public" => '', "fk_project" => '', "mode_reglement_id" => '',
+            "mode_reglement_code" => '', "mode_reglement" => '', "cond_reglement_id" => '', "cond_reglement_code" => '',
+            "cond_reglement_doc" => '', "fk_account" => '', "availability_id" => '', "availability_code" => '',
+            "availability" => '', "demand_reason_id" => '', "demand_reason_code" => '', "date_livraison" => '',
+            "shipping_method_id" => '', "warehouse_id" => '', "fk_incoterms" => '', "location_incoterms" => '',
+            "libelle_incoterms" => '', "fk_multicurrency" => '', "multicurrency_code" => '', "multicurrency_tx" => '',
+            "multicurrency_total_ht" => '', "multicurrency_total_tva" => '', "multicurrency_total_ttc" => '',
+            "brouillon" => '', "thirdparty" => '', "array_options" => '', "cr_thirdparty_benefactor" => '', "lines" => '',
+        ),
+        'commandedet' => array(
+            "id" => '', "label" => '', "desc" => '', "product_type" => '', "qty" => '', "vat_src_code" => '',
+            "tva_tx" => '', "localtax1_tx" => '', "localtax2_tx" => '', "localtax1_type" => '', "localtax2_type" => '',
+            "total_ht" => '', "total_ttc" => '', "total_tva" => '', "total_localtax1" => '', "total_localtax2" => '',
+            "subprice" => '', "fk_remise_except" => '', "remise_percent" => '', "fk_product" => '', "fk_fournprice" => '',
+            "pa_ht" => '', "marge_tx" => '', "marque_tx" => '', "rang" => '', "info_bits" => '', "special_code" => '',
+            "fk_parent_line" => '', "product_ref" => '', "product_label" => '', "product_desc" => '', "product_tobatch" => '',
+            "fk_product_type" => '', "fk_unit" => '', "weight" => '', "weight_units" => '', "volume" => '', "volume_units" => '',
+            "date_start" => '', "date_end" => '', "fk_multicurrency" => '', "multicurrency_code" => '', "multicurrency_subprice" => '',
+            "multicurrency_total_ht" => '', "multicurrency_total_tva" => '', "multicurrency_total_ttc" => '', "array_options" => '',
+        ),
+        'propal' => array(
+            "id" => '', "ref" => '', "ref_client" => '', "remise" => '', "remise_percent" => '', "remise_absolue" => '',
+            "total_ht" => '', "total_tva" => '', "total_localtax1" => '', "total_localtax2" => '', "total_ttc" => '',
+            "socid" => '', "fk_project" => '', "note_public" => '', "statut" => '', "statut_libelle" => '', "date_creation" => '',
+            "date_validation" => '', "date" => '', "fin_validite" => '', "date_livraison" => '', "shipping_method_id" => '',
+            "availability_id" => '', "availability_code" => '', "availability" => '', "demand_reason_id" => '',
+            "demand_reason_code" => '', "demand_reason" => '', "fk_address" => '', "mode_reglement_id" => '',
+            "mode_reglement_code" => '', "mode_reglement" => '', "fk_account" => '', "cond_reglement_id" => '',
+            "cond_reglement_code" => '', "cond_reglement_doc" => '', "user_author_id" => '', "user_valid_id" => '',
+            "user_close_id" => '', "fk_incoterms" => '', "location_incoterms" => '', "libelle_incoterms" => '',
+            "fk_multicurrency" => '', "multicurrency_code" => '', "multicurrency_tx" => '', "multicurrency_total_ht" => '',
+            "multicurrency_total_tva" => '', "multicurrency_total_ttc" => '',
+            "brouillon" => '', "thirdparty" => '', "array_options" => '', "cr_thirdparty_benefactor" => '', "lines" => '',
+        ),
+        'propaldet' => array(
+            "id" => '', "fk_parent_line" => '', "product_type" => '', "label" => '', "desc" => '', "qty" => '',
+            "vat_src_code" => '', "tva_tx" => '', "localtax1_tx" => '', "localtax2_tx" => '', "localtax1_type" => '',
+            "localtax2_type" => '', "subprice" => '', "fk_remise_except" => '', "remise_percent" => '', "info_bits" => '',
+            "total_ht" => '', "total_tva" => '', "total_localtax1" => '', "total_localtax2" => '', "total_ttc" => '',
+            "fk_fournprice" => '', "pa_ht" => '', "marge_tx" => '', "marque_tx" => '', "special_code" => '',
+            "rang" => '', "fk_product" => '', "product_ref" => '', "product_label" => '', "product_desc" => '',
+            "fk_unit" => '', "date_start" => '', "date_end" => '', "fk_multicurrency" => '', "multicurrency_code" => '',
+            "multicurrency_subprice" => '', "multicurrency_total_ht" => '', "multicurrency_total_tva" => '',
+            "multicurrency_total_ttc" => '', "array_options" => '',
+        ),
+    );
+
+    /**
+     * Array of whitelist of properties keys to overwrite the white list of each element object used in this API
+     * @var  array
+     *      array('element_type' => array('properties_name'=> '' or array('properties_name'=> '' or array(...), ...), ...)
+     *      if property is a object and this properties_name value is not a array then get whitelist of his object element
+     *      if property is a object and this properties_name value is a array then get whitelist set in the array
+     *      if property is a array and this properties_name value is not a array then get all values
+     *      if property is a array and this properties_name value is a array then get whitelist set in the array
+     */
+    static protected $WHITELIST_OF_PROPERTIES_LINKED_OBJECT = array();
+
+    /**
+     * Array of blacklist of properties keys to overwrite the blacklist of each element object used in this API
+     * @var  array
+     *      array('element_type' => array('properties_name'=> '' or array('properties_name'=> '' or array(...), ...), ...)
+     *      if property is a object and this properties_name value is not a array then get blacklist of his object element
+     *      if property is a object and this properties_name value is a array then get blacklist set in the array
+     *      if property is a array and this properties_name value is not a array then get all values
+     *      if property is a array and this properties_name value is a array then get blacklist set in the array
+     */
+    static protected $BLACKLIST_OF_PROPERTIES = array();
+
+    /**
+     * Array of blacklist of properties keys to overwrite the blacklist of each element object when is a linked object used in this API
+     * @var  array
+     *      array('element_type' => array('properties_name'=> '' or array('properties_name'=> '' or array(...), ...), ...)
+     *      if property is a object and this properties_name value is not a array then get blacklist of his object element
+     *      if property is a object and this properties_name value is a array then get blacklist set in the array
+     *      if property is a array and this properties_name value is not a array then get all values
+     *      if property is a array and this properties_name value is a array then get blacklist set in the array
+     */
+    static protected $BLACKLIST_OF_PROPERTIES_LINKED_OBJECT = array();
+
+    /**
+     * @var array   $BLACKWHITELIST_OF_PROPERTIES_LOADED      List of element type who is loaded
+     */
+    static protected $BLACKWHITELIST_OF_PROPERTIES_LOADED = array();
 
     /**
      * @var Propal $propal {@type Propal}
@@ -200,6 +419,47 @@ class CompanyRelationshipsApi extends DolibarrApi {
                     $this->benefactor_ids = $benefactor_ids;
                 }
             }
+        }
+
+        if (!DolibarrApiAccess::$user->rights->companyrelationships->update_md->element) {
+            self::$BLACKLIST_OF_PROPERTIES = array(
+                'contrat' => array(
+                    'array_options' => array(
+                        'options_companyrelationships_availability_principal' => '',
+                        'options_companyrelationships_availability_benefactor' => '',
+                    ),
+                ),
+                'shipping' => array(
+                    'array_options' => array(
+                        'options_companyrelationships_availability_principal' => '',
+                        'options_companyrelationships_availability_benefactor' => '',
+                    ),
+                ),
+                'fichinter' => array(
+                    'array_options' => array(
+                        'options_companyrelationships_availability_principal' => '',
+                        'options_companyrelationships_availability_benefactor' => '',
+                    ),
+                ),
+                'facture' => array(
+                    'array_options' => array(
+                        'options_companyrelationships_availability_principal' => '',
+                        'options_companyrelationships_availability_benefactor' => '',
+                    ),
+                ),
+                'commande' => array(
+                    'array_options' => array(
+                        'options_companyrelationships_availability_principal' => '',
+                        'options_companyrelationships_availability_benefactor' => '',
+                    ),
+                ),
+                'propal' => array(
+                    'array_options' => array(
+                        'options_companyrelationships_availability_principal' => '',
+                        'options_companyrelationships_availability_benefactor' => '',
+                    ),
+                ),
+            );
         }
     }
 
@@ -355,7 +615,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
         $this->propal->fetchObjectLinked();
         $this->propal->fetch_thirdparty();
         $this->_fetch_benefactor($this->propal);
-        return $this->_cleanProposalObjectDatas($this->propal);
+        return $this->_cleanObjectData($this->propal);
     }
 
     /**
@@ -487,7 +747,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
                     $proposal_static->fetchObjectLinked();
                     $proposal_static->fetch_thirdparty();
                     $this->_fetch_benefactor($proposal_static);
-                    $obj_ret[] = $this->_cleanProposalObjectDatas($proposal_static);
+                    $obj_ret[] = $this->_cleanObjectData($proposal_static);
                 }
                 $i++;
             }
@@ -572,7 +832,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
         $this->propal->getLinesArray();
         $result = array();
         foreach ($this->propal->lines as $line) {
-            array_push($result,$this->_cleanProposalObjectDatas($line));
+            array_push($result,$this->_cleanObjectData($line));
         }
         return $result;
     }
@@ -708,7 +968,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
         if ($updateRes > 0) {
             $result = $this->getPropal($id);
             unset($result->line);
-            return $this->_cleanProposalObjectDatas($result);
+            return $this->_cleanObjectData($result);
         }
         return false;
     }
@@ -895,7 +1155,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
 
         $this->propal->fetchObjectLinked();
 
-        return $this->_cleanProposalObjectDatas($this->propal);
+        return $this->_cleanObjectData($this->propal);
     }
 
     /**
@@ -951,7 +1211,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
 
         $this->propal->fetchObjectLinked();
 
-        return $this->_cleanProposalObjectDatas($this->propal);
+        return $this->_cleanObjectData($this->propal);
     }
 
     /**
@@ -1004,7 +1264,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
 
         $this->propal->fetchObjectLinked();
 
-        return $this->_cleanProposalObjectDatas($this->propal);
+        return $this->_cleanObjectData($this->propal);
     }
 
     /**
@@ -1055,32 +1315,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
 
         $this->propal->fetchObjectLinked();
 
-        return $this->_cleanProposalObjectDatas($this->propal);
-    }
-
-    /**
-     * Clean sensible object datas
-     *
-     * @param   object  $object    Object to clean
-     * @return  array   Array of cleaned object properties
-     */
-    function _cleanProposalObjectDatas($object)
-    {
-        $object = parent::_cleanObjectDatas($object);
-
-        unset($object->note);
-        unset($object->name);
-        unset($object->lastname);
-        unset($object->firstname);
-        unset($object->civility_id);
-        unset($object->address);
-
-        if (! DolibarrApiAccess::$user->rights->companyrelationships->update_md->element) {
-            unset($object->array_options['options_companyrelationships_availability_principal']);
-            unset($object->array_options['options_companyrelationships_availability_benefactor']);
-        }
-
-        return $object;
+        return $this->_cleanObjectData($this->propal);
     }
 
     /**
@@ -1149,7 +1384,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
         $this->commande->fetchObjectLinked();
         $this->commande->fetch_thirdparty();
         $this->_fetch_benefactor($this->commande);
-        return $this->_cleanOrderObjectDatas($this->commande);
+        return $this->_cleanObjectData($this->commande);
     }
 
     /**
@@ -1281,7 +1516,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
                     $commande_static->fetchObjectLinked();
                     $commande_static->fetch_thirdparty();
                     $this->_fetch_benefactor($commande_static);
-                    $obj_ret[] = $this->_cleanOrderObjectDatas($commande_static);
+                    $obj_ret[] = $this->_cleanObjectData($commande_static);
                 }
                 $i++;
             }
@@ -1366,7 +1601,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
         $this->commande->getLinesArray();
         $result = array();
         foreach ($this->commande->lines as $line) {
-            array_push($result,$this->_cleanOrderObjectDatas($line));
+            array_push($result,$this->_cleanObjectData($line));
         }
         return $result;
     }
@@ -1495,7 +1730,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
         if ($updateRes > 0) {
             $result = $this->getOrder($id);
             unset($result->line);
-            return $this->_cleanOrderObjectDatas($result);
+            return $this->_cleanObjectData($result);
         }
         return false;
     }
@@ -1682,7 +1917,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
 
         $this->commande->fetchObjectLinked();
 
-        return $this->_cleanOrderObjectDatas($this->commande);
+        return $this->_cleanObjectData($this->commande);
     }
 
     /**
@@ -1774,7 +2009,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
 
         $this->commande->fetchObjectLinked();
 
-        return $this->_cleanOrderObjectDatas($this->commande);
+        return $this->_cleanObjectData($this->commande);
     }
 
     /**
@@ -1825,7 +2060,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
 
         $this->commande->fetchObjectLinked();
 
-        return $this->_cleanOrderObjectDatas($this->commande);
+        return $this->_cleanObjectData($this->commande);
     }
 
     /**
@@ -1876,7 +2111,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
 
         $this->commande->fetchObjectLinked();
 
-        return $this->_cleanOrderObjectDatas($this->commande);
+        return $this->_cleanObjectData($this->commande);
     }
 
     /**
@@ -1922,32 +2157,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
         }
         $this->commande->fetchObjectLinked();
 
-        return $this->_cleanOrderObjectDatas($this->commande);
-    }
-
-    /**
-     * Clean sensible object datas
-     *
-     * @param   object  $object    Object to clean
-     * @return  array   Array of cleaned object properties
-     */
-    function _cleanOrderObjectDatas($object)
-    {
-        $object = parent::_cleanObjectDatas($object);
-
-        unset($object->note);
-        unset($object->address);
-        unset($object->barcode_type);
-        unset($object->barcode_type_code);
-        unset($object->barcode_type_label);
-        unset($object->barcode_type_coder);
-
-        if (! DolibarrApiAccess::$user->rights->companyrelationships->update_md->element) {
-            unset($object->array_options['options_companyrelationships_availability_principal']);
-            unset($object->array_options['options_companyrelationships_availability_benefactor']);
-        }
-
-        return $object;
+        return $this->_cleanObjectData($this->commande);
     }
 
     /**
@@ -2016,7 +2226,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
         $this->invoice->fetchObjectLinked();
         $this->invoice->fetch_thirdparty();
         $this->_fetch_benefactor($this->invoice);
-        return $this->_cleanInvoiceObjectDatas($this->invoice);
+        return $this->_cleanObjectData($this->invoice);
     }
 
     /**
@@ -2158,7 +2368,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
                     $invoice_static->fetchObjectLinked();
                     $invoice_static->fetch_thirdparty();
                     $this->_fetch_benefactor($invoice_static);
-                    $obj_ret[] = $this->_cleanInvoiceObjectDatas($invoice_static);
+                    $obj_ret[] = $this->_cleanObjectData($invoice_static);
                 }
                 $i++;
             }
@@ -2246,7 +2456,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
         $this->invoice->getLinesArray();
         $result = array();
         foreach ($this->invoice->lines as $line) {
-            array_push($result,$this->_cleanInvoiceObjectDatas($line));
+            array_push($result,$this->_cleanObjectData($line));
         }
         return $result;
     }
@@ -2377,7 +2587,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
         if ($updateRes > 0) {
             $result = $this->getInvoice($id);
             unset($result->line);
-            return $this->_cleanInvoiceObjectDatas($result);
+            return $this->_cleanObjectData($result);
         }
         return false;
     }
@@ -2545,26 +2755,6 @@ class CompanyRelationshipsApi extends DolibarrApi {
     }
 
     /**
-     * Clean sensible object datas
-     *
-     * @param   object  $object    Object to clean
-     * @return  array   Array of cleaned object properties
-     */
-    function _cleanInvoiceObjectDatas($object)
-    {
-        $object = parent::_cleanObjectDatas($object);
-
-        unset($object->address);
-
-        if (! DolibarrApiAccess::$user->rights->companyrelationships->update_md->element) {
-            unset($object->array_options['options_companyrelationships_availability_principal']);
-            unset($object->array_options['options_companyrelationships_availability_benefactor']);
-        }
-
-        return $object;
-    }
-
-    /**
      * Validate fields before create or update object
      *
      * @param   array|null    $data       Datas to validate
@@ -2630,7 +2820,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
         $this->fichinter->fetchObjectLinked();
         $this->fichinter->fetch_thirdparty();
         $this->_fetch_benefactor($this->fichinter);
-        return $this->_cleanInterventionObjectDatas($this->fichinter);
+        return $this->_cleanObjectData($this->fichinter);
     }
 
     /**
@@ -2759,7 +2949,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
                     $fichinter_static->fetchObjectLinked();
                     $fichinter_static->fetch_thirdparty();
                     $this->_fetch_benefactor($fichinter_static);
-                    $obj_ret[] = $this->_cleanInterventionObjectDatas($fichinter_static);
+                    $obj_ret[] = $this->_cleanObjectData($fichinter_static);
                 }
                 $i++;
             }
@@ -2836,7 +3026,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
         $this->fichinter->getLinesArray();
         $result = array();
         foreach ($this->fichinter->lines as $line) {
-            array_push($result,$this->_cleanInterventionObjectDatas($line));
+            array_push($result,$this->_cleanObjectData($line));
         }
         return $result;
     }
@@ -2984,7 +3174,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
         if ($updateRes > 0) {
             $result = $this->getIntervention($id);
             unset($result->line);
-            return $this->_cleanInterventionObjectDatas($result);
+            return $this->_cleanObjectData($result);
         } else {
             throw new RestException(400, $this->fichinter->error);
         }
@@ -3110,7 +3300,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
 
         $this->fichinter->fetchObjectLinked();
 
-        return $this->_cleanInterventionObjectDatas($this->fichinter);
+        return $this->_cleanObjectData($this->fichinter);
     }
 
     /**
@@ -3152,7 +3342,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
 
         $this->fichinter->fetchObjectLinked();
 
-        return $this->_cleanInterventionObjectDatas($this->fichinter);
+        return $this->_cleanObjectData($this->fichinter);
     }
 
     /**
@@ -3183,28 +3373,6 @@ class CompanyRelationshipsApi extends DolibarrApi {
         }
 
         return $fichinter;
-    }
-
-    /**
-     * Clean sensible object datas
-     *
-     * @param   object  $object    Object to clean
-     * @return  array   Array of cleaned object properties
-     */
-    function _cleanInterventionObjectDatas($object)
-    {
-        $object = parent::_cleanObjectDatas($object);
-
-        unset($object->statuts_short);
-        unset($object->statuts_logo);
-        unset($object->statuts);
-
-        if (! DolibarrApiAccess::$user->rights->companyrelationships->update_md->element) {
-            unset($object->array_options['options_companyrelationships_availability_principal']);
-            unset($object->array_options['options_companyrelationships_availability_benefactor']);
-        }
-
-        return $object;
     }
 
     /**
@@ -3264,7 +3432,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
         $this->shipment->fetchObjectLinked();
         $this->shipment->fetch_thirdparty();
         $this->_fetch_benefactor($this->shipment);
-        return $this->_cleanShipmentObjectDatas($this->shipment);
+        return $this->_cleanObjectData($this->shipment);
     }
 
     /**
@@ -3393,7 +3561,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
                     $shipment_static->fetchObjectLinked();
                     $shipment_static->fetch_thirdparty();
                     $this->_fetch_benefactor($shipment_static);
-                    $obj_ret[] = $this->_cleanShipmentObjectDatas($shipment_static);
+                    $obj_ret[] = $this->_cleanObjectData($shipment_static);
                 }
                 $i++;
             }
@@ -3626,50 +3794,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
         }
 
         $this->shipment->fetchObjectLinked();
-        return $this->_cleanShipmentObjectDatas($this->shipment);
-    }
-
-
-    /**
-     * Clean sensible object datas
-     *
-     * @param       object  $object     Object to clean
-     * @return      array   Array of cleaned object properties
-     */
-    function _cleanShipmentObjectDatas($object)
-    {
-        $object = parent::_cleanObjectDatas($object);
-
-        unset($object->thirdparty);	// id already returned
-
-        unset($object->note);
-        unset($object->address);
-        unset($object->barcode_type);
-        unset($object->barcode_type_code);
-        unset($object->barcode_type_label);
-        unset($object->barcode_type_coder);
-
-        if (! DolibarrApiAccess::$user->rights->companyrelationships->update_md->element) {
-            unset($object->array_options['options_companyrelationships_availability_principal']);
-            unset($object->array_options['options_companyrelationships_availability_benefactor']);
-        }
-
-        if (! empty($object->lines) && is_array($object->lines))
-        {
-            foreach ($object->lines as $line)
-            {
-                unset($line->tva_tx);
-                unset($line->vat_src_code);
-                unset($line->total_ht);
-                unset($line->total_ttc);
-                unset($line->total_tva);
-                unset($line->total_localtax1);
-                unset($line->total_localtax2);
-                unset($line->remise_percent);
-            }
-        }
-
-        return $object;
+        return $this->_cleanObjectData($this->shipment);
     }
 
     /**
@@ -3738,7 +3863,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
         $this->contract->fetchObjectLinked();
         $this->contract->fetch_thirdparty();
         $this->_fetch_benefactor($this->contract);
-        return $this->_cleanContractObjectDatas($this->contract);
+        return $this->_cleanObjectData($this->contract);
     }
 
     /**
@@ -3871,7 +3996,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
                     $contrat_static->fetchObjectLinked();
                     $contrat_static->fetch_thirdparty();
                     $this->_fetch_benefactor($contrat_static);
-                    $obj_ret[] = $this->_cleanContractObjectDatas($contrat_static);
+                    $obj_ret[] = $this->_cleanObjectData($contrat_static);
                 }
                 $i++;
             }
@@ -3956,7 +4081,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
         $this->contract->getLinesArray();
         $result = array();
         foreach ($this->contract->lines as $line) {
-            array_push($result,$this->_cleanContractObjectDatas($line));
+            array_push($result,$this->_cleanObjectData($line));
         }
         return $result;
     }
@@ -4070,7 +4195,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
         if ($updateRes > 0) {
             $result = $this->getContract($id);
             unset($result->line);
-            return $this->_cleanContractObjectDatas($result);
+            return $this->_cleanObjectData($result);
         }
 
         return false;
@@ -4111,7 +4236,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
         if ($updateRes > 0) {
             $result = $this->getContract($id);
             unset($result->line);
-            return $this->_cleanContractObjectDatas($result);
+            return $this->_cleanObjectData($result);
         }
 
         return false;
@@ -4151,7 +4276,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
         if ($updateRes > 0) {
             $result = $this->getContract($id);
             unset($result->line);
-            return $this->_cleanContractObjectDatas($result);
+            return $this->_cleanObjectData($result);
         }
 
         return false;
@@ -4380,27 +4505,6 @@ class CompanyRelationshipsApi extends DolibarrApi {
     }
 
     /**
-     * Clean sensible object datas
-     *
-     * @param   object  $object    Object to clean
-     * @return  array   Array of cleaned object properties
-     */
-    function _cleanContractObjectDatas($object)
-    {
-        $object = parent::_cleanObjectDatas($object);
-
-        unset($object->address);
-        unset($object->civility_id);
-
-        if (! DolibarrApiAccess::$user->rights->companyrelationships->update_md->element) {
-            unset($object->array_options['options_companyrelationships_availability_principal']);
-            unset($object->array_options['options_companyrelationships_availability_benefactor']);
-        }
-
-        return $object;
-    }
-
-    /**
      * Validate fields before create or update object
      *
      * @param   array           $data   Array with data to verify
@@ -4429,7 +4533,6 @@ class CompanyRelationshipsApi extends DolibarrApi {
         return $contrat;
     }
 
-
     /**
      *  Fetch all benefactor of the object
      *
@@ -4450,8 +4553,6 @@ class CompanyRelationshipsApi extends DolibarrApi {
             $societe = new Societe($this->db);
             if ($societe->fetch($object->array_options['options_companyrelationships_fk_soc_benefactor']) > 0) {
                 $object->cr_thirdparty_benefactor = $societe;
-
-                $this->_cleanThirdPartyObjectDatas($object->cr_thirdparty_benefactor);
             }
         }
     }
@@ -4583,7 +4684,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
                     $equipement_static->fetchObjectLinked();
                     $equipement_static->fetch_product();
                     $equipement_static->fetch_thirdparty();
-                    $obj_ret[] = $this->_cleanEquipementObjectDatas($equipement_static);
+                    $obj_ret[] = $this->_cleanObjectData($equipement_static);
                 }
                 $i++;
             }
@@ -4595,195 +4696,6 @@ class CompanyRelationshipsApi extends DolibarrApi {
             return [];
         }
         return $obj_ret;
-    }
-
-    /**
-     *  Clean sensible object data
-     *
-     * @param   object          $object         Object to clean
-     *
-     * @return  object|array                    Array of cleaned object properties
-     */
-    function _cleanEquipementObjectDatas($object)
-    {
-        $object = parent::_cleanObjectDatas($object);
-
-        unset($object->statuts_image);
-        unset($object->fk_contact);
-        unset($object->client);
-        unset($object->country_code);
-        unset($object->barcode);
-        unset($object->barcode_type);
-        unset($object->barcode_type_code);
-        unset($object->barcode_type_label);
-        unset($object->barcode_type_coder);
-        unset($object->canvas);
-        unset($object->contact);
-        unset($object->contact_id);
-        unset($object->thirdparty);
-        unset($object->user);
-        unset($object->origin);
-        unset($object->origin_id);
-        unset($object->ref_ext);
-        unset($object->country);
-        unset($object->country_id);
-        unset($object->country_code);
-        unset($object->mode_reglement_id);
-        unset($object->cond_reglement_id);
-        unset($object->cond_reglement);
-        unset($object->fk_delivery_address);
-        unset($object->shipping_method_id);
-        unset($object->fk_account);
-        unset($object->total_ht);
-        unset($object->total_tva);
-        unset($object->total_localtax1);
-        unset($object->total_localtax2);
-        unset($object->total_ttc);
-        unset($object->fk_incoterms);
-        unset($object->libelle_incoterms);
-        unset($object->location_incoterms);
-        unset($object->note);
-        unset($object->name);
-        unset($object->lastname);
-        unset($object->firstname);
-        unset($object->fulldayevent);
-        unset($object->fk_project);
-        unset($object->civility_id);
-        unset($object->rowid);
-
-        // equipment belongs to a supplier benefactor company of API user
-        if ($object->fk_soc_fourn > 0 && in_array($object->fk_soc_fourn, $this->benefactor_ids)) {
-            // remove equipement event lines
-            unset($object->lines);
-        } // equipment belongs to a customer benefactor company of API user
-        else if ($object->fk_soc_client > 0 && in_array($object->fk_soc_client, $this->benefactor_ids)) {
-            // remove equipement event lines
-            unset($object->lines);
-        }
-
-        // If object has lines, remove $db property
-        if (isset($object->lines) && is_array($object->lines) && count($object->lines) > 0) {
-            $nboflines = count($object->lines);
-            for ($i = 0; $i < $nboflines; $i++) {
-                $this->_cleanEquipementLineObjectDatas($object->lines[$i]);
-            }
-        }
-
-        if (!empty($object->product) && is_object($object->product)) {
-            $this->_cleanProductObjectDatas($object->product);
-        }
-
-        return $object;
-    }
-
-    /**
-     *  Clean sensible line object data
-     *
-     * @param   object          $object         Object to clean
-     *
-     * @return  object|array                    Array of cleaned object properties
-     */
-    function _cleanEquipementLineObjectDatas($object)
-    {
-        $object = parent::_cleanObjectDatas($object);
-
-        unset($object->rowid);
-        unset($object->canvas);
-        unset($object->origin);
-        unset($object->origin_id);
-        unset($object->ref_ext);
-        unset($object->barcode_type);
-        unset($object->barcode_type_code);
-        unset($object->barcode_type_label);
-        unset($object->barcode_type_coder);
-        unset($object->fk_account);
-        unset($object->note);
-        unset($object->total_tva);
-        unset($object->total_localtax1);
-        unset($object->total_localtax2);
-        unset($object->total_ttc);
-        unset($object->import_key);
-        unset($object->linkedObjectsIds);
-        unset($object->ref);
-        unset($object->statut);
-        unset($object->lines);
-
-        return $object;
-    }
-
-    /**
-     *  Clean sensible product object data
-     *
-     * @param   object          $object         Object to clean
-     *
-     * @return  object|array                    Array of cleaned object properties
-     */
-    function _cleanProductObjectDatas($object)
-    {
-        $object = parent::_cleanObjectDatas($object);
-
-        unset($object->regeximgext);
-
-        //unset($object->entity);
-        unset($object->libelle);
-        unset($object->stock_theorique);
-        unset($object->barcodes_extra);
-        unset($object->stats_propale);
-        unset($object->stats_commande);
-        unset($object->stats_contrat);
-        unset($object->stats_facture);
-        unset($object->stats_commande_fournisseur);
-        unset($object->imgWidth);
-        unset($object->imgHeight);
-        unset($object->product_fourn_id);
-        unset($object->product_id_already_linked);
-        unset($object->nbphoto);
-        unset($object->stock_warehouse);
-        unset($object->import_key);
-        unset($object->canvas);
-        unset($object->fk_project);
-        unset($object->contact);
-        unset($object->contact_id);
-        unset($object->thirdparty);
-        unset($object->user);
-        unset($object->origin);
-        unset($object->origin_id);
-        unset($object->statut);
-        unset($object->country);
-        unset($object->country_id);
-        unset($object->country_code);
-        unset($object->barcode_type_label);
-        unset($object->barcode_type_coder);
-        unset($object->mode_reglement_id);
-        unset($object->cond_reglement_id);
-        unset($object->cond_reglement);
-        unset($object->fk_delivery_address);
-        unset($object->shipping_method_id);
-        unset($object->modelpdf);
-        unset($object->fk_account);
-        unset($object->note_public);
-        unset($object->note_private);
-        unset($object->note);
-        unset($object->fk_incoterms);
-        unset($object->libelle_incoterms);
-        unset($object->location_incoterms);
-        unset($object->lines);
-        unset($object->name);
-        unset($object->lastname);
-        unset($object->firstname);
-        unset($object->civility_id);
-        unset($object->total_ht);
-        unset($object->total_tva);
-        unset($object->total_localtax1);
-        unset($object->total_localtax2);
-        unset($object->total_ttc);
-        unset($object->buyprice);
-        unset($object->fourn_pu);
-        unset($object->fourn_price_base_type);
-        unset($object->ref_fourn);
-        unset($object->ref_supplier);
-
-        return $object;
     }
 
     //
@@ -4930,7 +4842,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
                     $soc_static->fetchObjectLinked();
                     $soc_static->thirdparty_principal_ids = !empty($company_details[$obj->rowid]['principal_ids']) ? array_values($company_details[$obj->rowid]['principal_ids']) : array();
                     $soc_static->thirdparty_benefactor_ids = !empty($company_details[$obj->rowid]['benefactor_ids']) ? array_values($company_details[$obj->rowid]['benefactor_ids']) : array();
-                    $obj_ret[] = $this->_cleanThirdPartyObjectDatas($soc_static);
+                    $obj_ret[] = $this->_cleanObjectData($soc_static);
                 }
                 $i++;
             }
@@ -4942,57 +4854,6 @@ class CompanyRelationshipsApi extends DolibarrApi {
         }
         return $obj_ret;
     }
-
-    /**
-     *  Clean sensible third party object data
-     *
-     * @param   object          $object         Object to clean
-     *
-     * @return  object|array                    Array of cleaned object properties
-     */
-	function _cleanThirdPartyObjectDatas($object) {
-
-	    $object = parent::_cleanObjectDatas($object);
-
-	    unset($object->total_ht);
-	    unset($object->total_tva);
-	    unset($object->total_localtax1);
-	    unset($object->total_localtax2);
-	    unset($object->total_ttc);
-
-        // Others
-        //unset($object->entity);
-        unset($object->managers);
-        unset($object->name_bis);
-        unset($object->specimen);
-        unset($object->note);
-        unset($object->note_private);
-        //unset($object->note_public);
-        unset($object->logo_small);
-        unset($object->logo_mini);
-        unset($object->webservices_url);
-        unset($object->webservices_key);
-        unset($object->import_key);
-        unset($object->commercial_id);
-        unset($object->contact);
-        unset($object->contact_id);
-        unset($object->thirdparty);
-        unset($object->user);
-        unset($object->origin);
-        unset($object->origin_id);
-        unset($object->statut);
-        unset($object->barcode_type);
-        unset($object->barcode_type_code);
-        unset($object->barcode_type_label);
-        unset($object->barcode_type_coder);
-        unset($object->modelpdf);
-        unset($object->lines);
-        unset($object->lastname);
-        unset($object->firstname);
-        unset($object->civility_id);
-
-	    return $object;
-	}
 
     //
     // API documents
@@ -5034,81 +4895,95 @@ class CompanyRelationshipsApi extends DolibarrApi {
         }
         $refname = basename($dirname . "/");
 
+        //--------------------------------------------------------------
+        // Open-DSI - Modification - Begin
+        //
         $check_access = dol_check_secure_access_document($module_part, $original_file, $entity, DolibarrApiAccess::$user, $refname, 'read', true);
-        $accessallowed = $check_access['accessallowed'];
-        $sqlprotectagainstexternals = $check_access['sqlprotectagainstexternals'];
         $original_file = $check_access['original_file'];
-        $sqlprotectagainstexternalsapi = $check_access['sqlprotectagainstexternalsapi'];
 
-        if (DolibarrApiAccess::$user->societe_id > 0) {
-            if ($sqlprotectagainstexternalsapi) {
-                $resql = $db->query($sqlprotectagainstexternalsapi);
-                if ($resql) {
-                    if ($db->num_rows($resql) == 0) throw new RestException(401);
+        $companyrelationships_modulepart_check = array_flip(array(
+            'propal', 'proposal', 'commande', 'order', 'shipment', 'expedition', 'facture', 'invoice',
+            'fichinter', 'ficheinter', 'intervention', 'interventions', 'contract', 'contrat'
+        ));
+        if (isset($companyrelationships_modulepart_check[$module_part])) {
+            $object = null;
+            if ($module_part == 'propal' || $module_part == 'proposal') {
+                require_once DOL_DOCUMENT_ROOT . '/comm/propal/class/propal.class.php';
+                $object = new Propal($this->db);
+                $result = $object->fetch('', $refname);
+                if (!$result) {
+                    return [];
+                }
+            } elseif ($module_part == 'commande' || $module_part == 'order') {
+                require_once DOL_DOCUMENT_ROOT . '/commande/class/commande.class.php';
+                $object = new Commande($this->db);
+                $result = $object->fetch('', $refname);
+                if (!$result) {
+                    return [];
+                }
+            } elseif ($module_part == 'shipment' || $module_part == 'expedition') {
+                require_once DOL_DOCUMENT_ROOT . '/expedition/class/expedition.class.php';
+                $ref = basename(str_replace('sending/', '', $dirname . "/"));
+                $object = new Expedition($this->db);
+                $result = $object->fetch('', $ref);
+                if (!$result) {
+                    return [];
+                }
+            } elseif ($module_part == 'facture' || $module_part == 'invoice') {
+                require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
+                $object = new Facture($this->db);
+                $result = $object->fetch('', $refname);
+                if (!$result) {
+                    return [];
+                }
+            } elseif ($module_part == 'fichinter' || $module_part == 'ficheinter' || $module_part == 'intervention' || $module_part == 'interventions') {
+                require_once DOL_DOCUMENT_ROOT . '/fichinter/class/fichinter.class.php';
+                $object = new Fichinter($this->db);
+                $result = $object->fetch('', $refname);
+                if (!$result) {
+                    return [];
+                }
+            } elseif ($module_part == 'contract' || $module_part == 'contrat') {
+                require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
+                $object = new Contrat($this->db);
+                $result = $object->fetch('', $refname);
+                if (!$result) {
+                    return [];
+                }
+            }
+            if (isset($object)) {
+                $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($object);
+                if (!$hasPerm) {
+                    throw new RestException(401, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
+                }
+            }
+            $accessallowed = true;
+        } else {
+            $accessallowed = $check_access['accessallowed'];
+            $sqlprotectagainstexternals = $check_access['sqlprotectagainstexternals'];
+            $sqlprotectagainstexternalsapi = $check_access['sqlprotectagainstexternalsapi'];
+
+            if (DolibarrApiAccess::$user->societe_id > 0) {
+                if ($sqlprotectagainstexternalsapi) {
+                    $resql = $db->query($sqlprotectagainstexternalsapi);
+                    if ($resql) {
+                        if ($db->num_rows($resql) == 0) throw new RestException(401);
+                    } else {
+                        throw new RestException(401);
+                    }
                 } else {
                     throw new RestException(401);
                 }
-            } else {
-                throw new RestException(401);
             }
         }
+        //
+        // Open-DSI - Modification - End
+        //--------------------------------------------------------------
         if (preg_match('/\.\./', $original_file) || preg_match('/[<>|]/', $original_file)) {
             throw new RestException(401);
         }
         if (!$accessallowed) {
             throw new RestException(401);
-        }
-
-        $object = null;
-        if ($module_part == 'propal' || $module_part == 'proposal') {
-            require_once DOL_DOCUMENT_ROOT . '/comm/propal/class/propal.class.php';
-            $object = new Propal($this->db);
-            $result = $object->fetch('', $refname);
-            if (!$result) {
-                return [];
-            }
-        } elseif ($module_part == 'commande' || $module_part == 'order') {
-            require_once DOL_DOCUMENT_ROOT . '/commande/class/commande.class.php';
-            $object = new Commande($this->db);
-            $result = $object->fetch('', $refname);
-            if (!$result) {
-                return [];
-            }
-        } elseif ($module_part == 'shipment' || $module_part == 'expedition') {
-            require_once DOL_DOCUMENT_ROOT . '/expedition/class/expedition.class.php';
-            $ref = basename(str_replace('sending/', '', $dirname . "/"));
-            $object = new Expedition($this->db);
-            $result = $object->fetch('', $ref);
-            if (!$result) {
-                return [];
-            }
-        } elseif ($module_part == 'facture' || $module_part == 'invoice') {
-            require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
-            $object = new Facture($this->db);
-            $result = $object->fetch('', $refname);
-            if (!$result) {
-                return [];
-            }
-        } elseif ($module_part == 'fichinter' || $module_part == 'ficheinter' || $module_part == 'intervention' || $module_part == 'interventions') {
-            require_once DOL_DOCUMENT_ROOT . '/fichinter/class/fichinter.class.php';
-            $object = new Fichinter($this->db);
-            $result = $object->fetch('', $refname);
-            if (!$result) {
-                return [];
-            }
-        } elseif ($module_part == 'contract' || $module_part == 'contrat') {
-            require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
-            $object = new Contrat($this->db);
-            $result = $object->fetch('', $refname);
-            if (!$result) {
-                return [];
-            }
-        }
-        if (isset($object)) {
-            $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($object);
-            if (!$hasPerm) {
-                throw new RestException(401, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
-            }
         }
 
         $filename = basename($original_file);
@@ -5155,6 +5030,10 @@ class CompanyRelationshipsApi extends DolibarrApi {
         $feature2 = '';
         $dbt_keyfield = 'fk_soc';
         $dbt_select = 'rowid';
+        $companyrelationships_modulepart_check = array_flip(array(
+            'propal', 'proposal', 'commande', 'order', 'shipment', 'expedition', 'facture', 'invoice',
+            'fichinter', 'ficheinter', 'intervention', 'interventions', 'contract', 'contrat'
+        ));
         //
         // Open-DSI - Modification - End
         //--------------------------------------------------------------
@@ -5268,10 +5147,6 @@ class CompanyRelationshipsApi extends DolibarrApi {
             if (!$result) {
                 return [];
             }
-            $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($object);
-            if (! $hasPerm) {
-                throw new RestException(401, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
-            }
 
             $upload_dir = $conf->propal->dir_output . "/" . get_exdir(0, 0, 0, 1, $object, 'propal');
             //--------------------------------------------------------------
@@ -5293,10 +5168,6 @@ class CompanyRelationshipsApi extends DolibarrApi {
             $result = $object->fetch($id, $ref);
             if (!$result) {
                 return [];
-            }
-            $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($object);
-            if (! $hasPerm) {
-                throw new RestException(401, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
             }
 
             $upload_dir = $conf->commande->dir_output . "/" . get_exdir(0, 0, 0, 1, $object, 'commande');
@@ -5320,10 +5191,6 @@ class CompanyRelationshipsApi extends DolibarrApi {
             if (!$result) {
                 return [];
             }
-            $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($object);
-            if (! $hasPerm) {
-                throw new RestException(401, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
-            }
 
             $upload_dir = $conf->expedition->dir_output . "/sending/" . get_exdir(0, 0, 0, 1, $object, 'shipment');
             //--------------------------------------------------------------
@@ -5345,10 +5212,6 @@ class CompanyRelationshipsApi extends DolibarrApi {
             $result = $object->fetch($id, $ref);
             if (!$result) {
                 return [];
-            }
-            $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($object);
-            if (! $hasPerm) {
-                throw new RestException(401, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
             }
 
             $upload_dir = $conf->facture->dir_output . "/" . get_exdir(0, 0, 0, 1, $object, 'invoice');
@@ -5451,10 +5314,6 @@ class CompanyRelationshipsApi extends DolibarrApi {
             if (!$result) {
                 return [];
             }
-            $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($object);
-            if (! $hasPerm) {
-                throw new RestException(401, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
-            }
 
             $upload_dir = $conf->ficheinter->dir_output . '/' . $object->ref;
             //--------------------------------------------------------------
@@ -5477,10 +5336,6 @@ class CompanyRelationshipsApi extends DolibarrApi {
             $result = $object->fetch($id, $ref);
             if (!$result) {
                 return [];
-            }
-            $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($object);
-            if (! $hasPerm) {
-                throw new RestException(401, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
             }
 
             $upload_dir = $conf->contrat->dir_output . '/' . $object->ref;
@@ -5545,7 +5400,12 @@ class CompanyRelationshipsApi extends DolibarrApi {
         //--------------------------------------------------------------
         // Open-DSI - Modification - Begin
         //
-        if (!DolibarrApi::_checkAccessToResource($modulepart, $object->id, $tableandshare, $feature2, $dbt_keyfield, $dbt_select)) {
+        if (isset($companyrelationships_modulepart_check[$modulepart])) {
+            $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($object);
+            if (!$hasPerm) {
+                throw new RestException(401, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
+            }
+        } elseif (!DolibarrApi::_checkAccessToResource($modulepart, $object->id, $tableandshare, $feature2, $dbt_keyfield, $dbt_select)) {
             throw new RestException(401, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
         }
         //
@@ -5590,5 +5450,204 @@ class CompanyRelationshipsApi extends DolibarrApi {
         //--------------------------------------------------------------
 
         return $filearray;
+    }
+
+    /*******************************************************************************************************************
+     * Tools functions
+     ******************************************************************************************************************/
+
+    /**
+     *  Clean sensible object data
+     *
+     * @param   object|array    $object                     Object to clean
+     * @param   array           $whitelist_of_properties    Whitelist of properties
+     * @param   array           $blacklist_of_properties    Blacklist of properties
+     *
+     * @return  object|array                                Array of cleaned object properties
+     *
+     * @throws  500             RestException               Error while retrieve the custom whitelist of properties for the object type
+     */
+	function _cleanObjectData(&$object, $whitelist_of_properties=array(), $blacklist_of_properties=array())
+    {
+        if (!empty($object->element)) {
+            $this->_getBlackWhitelistOfProperties($object, $whitelist_of_properties, $blacklist_of_properties);
+        }
+
+        if (!is_array($whitelist_of_properties)) $whitelist_of_properties = array();
+        $has_whitelist = count($whitelist_of_properties) > 0 && !isset($whitelist_of_properties['']);
+        if (!is_array($blacklist_of_properties)) $blacklist_of_properties = array();
+        $has_blacklist = count($blacklist_of_properties) > 0 && !isset($blacklist_of_properties['']);
+        foreach ($object as $k => $v) {
+            if (($has_whitelist && !isset($whitelist_of_properties[$k])) || ($has_blacklist && isset($blacklist_of_properties[$k]) && !is_array($blacklist_of_properties[$k]))) {
+                if (is_array($object))
+                    unset($object[$k]);
+                else
+                    unset($object->$k);
+            } else {
+                if (is_object($v) || is_array($v)) {
+                    if (is_array($object))
+                        $this->_cleanSubObjectData($object[$k], $whitelist_of_properties[$k], $blacklist_of_properties[$k]);
+                    else
+                        $this->_cleanSubObjectData($object->$k, $whitelist_of_properties[$k], $blacklist_of_properties[$k]);
+                }
+            }
+        }
+
+        return $object;
+    }
+
+    /**
+     *  Clean sensible linked object data
+     *
+     * @param   object|array    $object                     Object to clean
+     * @param   array           $whitelist_of_properties    Whitelist of properties
+     * @param   array           $blacklist_of_properties    Blacklist of properties
+     *
+     * @return  object|array                                Array of cleaned object properties
+     *
+     * @throws  500             RestException               Error while retrieve the custom whitelist of properties for the object type
+     */
+	function _cleanSubObjectData(&$object, $whitelist_of_properties=array(), $blacklist_of_properties=array())
+    {
+        if (!empty($object->element)) {
+            $this->_getBlackWhitelistOfProperties($object, $whitelist_of_properties, $blacklist_of_properties, true);
+        }
+
+        if (!is_array($whitelist_of_properties)) $whitelist_of_properties = array();
+        $has_whitelist = count($whitelist_of_properties) > 0 && !isset($whitelist_of_properties['']);
+        if (!is_array($blacklist_of_properties)) $blacklist_of_properties = array();
+        $has_blacklist = count($blacklist_of_properties) > 0 && !isset($blacklist_of_properties['']);
+        foreach ($object as $k => $v) {
+            if (($has_whitelist && !isset($whitelist_of_properties[$k])) || ($has_blacklist && isset($blacklist_of_properties[$k]) && !is_array($blacklist_of_properties[$k]))) {
+                if (is_array($object))
+                    unset($object[$k]);
+                else
+                    unset($object->$k);
+            } else {
+                if (is_object($v) || is_array($v)) {
+                    if (is_array($object))
+                        $this->_cleanSubObjectData($object[$k], $whitelist_of_properties[$k], $blacklist_of_properties[$k]);
+                    else
+                        $this->_cleanSubObjectData($object->$k, $whitelist_of_properties[$k], $blacklist_of_properties[$k]);
+                }
+            }
+        }
+
+        return $object;
+    }
+
+    /**
+     *  Get a array of whitelist of properties keys for this object or linked object
+     *
+     * @param   object      $object                     Object to clean
+     * @param   boolean     $linked_object              This object is a linked object
+     * @param   array       $whitelist_of_properties    Array of whitelist of properties keys for this object
+     *                                                      array('properties_name'=> '' or array('properties_name'=> '' or array(...), ...)
+     *                                                      if property is a object and this properties_name value is equal '' then get whitelist of his object element
+     *                                                      if property is a object and this properties_name value is a array then get whitelist set in the array
+     *                                                      if property is a array and this properties_name value is equal '' then get all values
+     *                                                      if property is a array and this properties_name value is a array then get whitelist set in the array
+     * @param   array       $blacklist_of_properties    Array of blacklist of properties keys for this object
+     *                                                      array('properties_name'=> '' or array('properties_name'=> '' or array(...), ...)
+     *                                                      if property is a object and this properties_name value is equal '' then get blacklist of his object element
+     *                                                      if property is a object and this properties_name value is a array then get blacklist set in the array
+     *                                                      if property is a array and this properties_name value is equal '' then get all values
+     *                                                      if property is a array and this properties_name value is a array then get blacklist set in the array
+     *
+     * @return void
+     *
+     * @throws  500         RestException       Error while retrieve the custom whitelist of properties for the object type
+     */
+	function _getBlackWhitelistOfProperties($object, &$whitelist_of_properties, &$blacklist_of_properties, $linked_object=false)
+    {
+        global $hookmanager;
+
+        $whitelist_of_properties = array();
+        $whitelist_of_properties_linked_object = array();
+        $blacklist_of_properties = array();
+        $blacklist_of_properties_linked_object = array();
+
+        if (!empty($object->element)) {
+            // Load white list for clean sensitive properties of the objects
+            if (!isset(self::$BLACKWHITELIST_OF_PROPERTIES_LOADED[$object->element])) {
+                $object_class = get_class($object);
+
+                // Whitelist
+                if (!empty(self::$WHITELIST_OF_PROPERTIES[$object->element]))
+                    $whitelist_of_properties = self::$WHITELIST_OF_PROPERTIES[$object->element];
+                elseif (!empty($object_class::$API_WHITELIST_OF_PROPERTIES))
+                    $whitelist_of_properties = $object_class::$API_WHITELIST_OF_PROPERTIES;
+
+                if (!empty(self::$WHITELIST_OF_PROPERTIES_LINKED_OBJECT[$object->element]))
+                    $whitelist_of_properties_linked_object = self::$WHITELIST_OF_PROPERTIES_LINKED_OBJECT[$object->element];
+                elseif (!empty($object_class::$API_WHITELIST_OF_PROPERTIES_LINKED_OBJECT))
+                    $whitelist_of_properties_linked_object = $object_class::$API_WHITELIST_OF_PROPERTIES_LINKED_OBJECT;
+
+                // Blacklist
+                if (!empty(self::$BLACKLIST_OF_PROPERTIES[$object->element]))
+                    $blacklist_of_properties = self::$BLACKLIST_OF_PROPERTIES[$object->element];
+                elseif (!empty($object_class::$API_BLACKLIST_OF_PROPERTIES))
+                    $blacklist_of_properties = $object_class::$API_BLACKLIST_OF_PROPERTIES;
+
+                if (!empty(self::$BLACKLIST_OF_PROPERTIES_LINKED_OBJECT[$object->element]))
+                    $blacklist_of_properties_linked_object = self::$BLACKLIST_OF_PROPERTIES_LINKED_OBJECT[$object->element];
+                elseif (!empty($object_class::$API_BLACKLIST_OF_PROPERTIES_LINKED_OBJECT))
+                    $blacklist_of_properties_linked_object = $object_class::$API_BLACKLIST_OF_PROPERTIES_LINKED_OBJECT;
+
+                // Modification by hook
+                $hookmanager->initHooks(array('companyrelationshipsapi', 'globalapi'));
+                $parameters = array('whitelist_of_properties' => &$whitelist_of_properties, 'whitelist_of_properties_linked_object' => &$whitelist_of_properties_linked_object,
+                    'blacklist_of_properties' => &$blacklist_of_properties, 'blacklist_of_properties_linked_object' => &$blacklist_of_properties_linked_object);
+                $reshook = $hookmanager->executeHooks('getBlackWhitelistOfProperties', $parameters, $object); // Note that $action and $object may have been
+                if ($reshook < 0) {
+                    throw new RestException(500, "Error while retrieve the custom blacklist and whitelist of properties for the object type: " . $object->element, ['details' => $this->_getErrors($hookmanager)]);
+                }
+
+                if (empty($whitelist_of_properties_linked_object)) $whitelist_of_properties_linked_object = $whitelist_of_properties;
+                if (empty($blacklist_of_properties_linked_object)) $blacklist_of_properties_linked_object = $blacklist_of_properties;
+
+                self::$WHITELIST_OF_PROPERTIES[$object->element] = $whitelist_of_properties;
+                self::$WHITELIST_OF_PROPERTIES_LINKED_OBJECT[$object->element] = $whitelist_of_properties_linked_object;
+                self::$BLACKLIST_OF_PROPERTIES[$object->element] = $blacklist_of_properties;
+                self::$BLACKLIST_OF_PROPERTIES_LINKED_OBJECT[$object->element] = $blacklist_of_properties_linked_object;
+
+                self::$BLACKWHITELIST_OF_PROPERTIES_LOADED[$object->element] = true;
+            }
+            // Get white list
+            elseif (isset(self::$WHITELIST_OF_PROPERTIES[$object->element])) {
+                $whitelist_of_properties = self::$WHITELIST_OF_PROPERTIES[$object->element];
+                $whitelist_of_properties_linked_object = self::$WHITELIST_OF_PROPERTIES_LINKED_OBJECT[$object->element];
+                if (empty($whitelist_of_properties_linked_object)) $whitelist_of_properties_linked_object = $whitelist_of_properties;
+
+                $blacklist_of_properties = self::$BLACKLIST_OF_PROPERTIES[$object->element];
+                $blacklist_of_properties_linked_object = self::$BLACKLIST_OF_PROPERTIES_LINKED_OBJECT[$object->element];
+                if (empty($blacklist_of_properties_linked_object)) $blacklist_of_properties_linked_object = $blacklist_of_properties;
+            }
+        }
+
+        $whitelist_of_properties = $linked_object ? $whitelist_of_properties_linked_object : $whitelist_of_properties;
+        $blacklist_of_properties = $linked_object ? $blacklist_of_properties_linked_object : $blacklist_of_properties;
+    }
+
+    /**
+     * Get all errors
+     *
+     * @param  object   $object     Object
+     *
+     * @return array                Array of errors
+     */
+	function _getErrors(&$object)
+    {
+        $errors = is_array($object->errors) ? $object->errors : array();
+        $errors = array_merge($errors, (!empty($object->error) ? array($object->error) : array()));
+
+        function convert($item)
+        {
+            return dol_htmlentitiesbr_decode($item);
+        }
+
+        $errors = array_map('convert', $errors);
+
+        return $errors;
     }
 }

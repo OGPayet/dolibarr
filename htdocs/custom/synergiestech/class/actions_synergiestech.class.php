@@ -1486,6 +1486,68 @@ SCRIPT;
     }
 
     /**
+	 * Overloading the getBlackWhitelistOfProperties function : replacing the parent's function with the one below
+	 *
+	 * @param   array() $parameters Hook metadatas (context, etc...)
+	 * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+	 * @param   string &$action Current action (if set). Generally create or edit or null
+	 * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
+	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+	 */
+	function getBlackWhitelistOfProperties($parameters, &$object, &$action, $hookmanager)
+    {
+        $contexts = explode(':', $parameters['context']);
+
+        if (in_array('globalapi', $contexts)) {
+//                    // Overwrite the whitelist for the object
+//                    $parameters['whitelist_of_properties'] = array(
+//                    );
+//                    // Overwrite the whitelist for the object if is a linked object
+//                    $parameters['whitelist_of_properties_linked_object'] = array(
+//                    );
+//                    // Overwrite the blacklist for the object
+//                    $parameters['blacklist_of_properties'] = array(
+//                    );
+//                    // Overwrite the blacklist for the object if is a linked object
+//                    $parameters['blacklist_of_properties_linked_object'] = array(
+//                    );
+
+            switch($object->element) {
+//                case 'contrat':
+//                    unset($parameters['whitelist_of_properties']['ref_customer']);
+//                    break;
+                case 'product':
+                    $parameters['whitelist_of_properties_linked_object'] = array(
+                        "description" => '', "ref" => '', "id" => '', "array_options" => array('options_publiclabel' => ''), "label" => '',
+                    );
+                    break;
+                case 'user':
+                    $parameters['whitelist_of_properties_linked_object'] = array(
+                        "lastname" => '', "firstname" => '',
+                    );
+                    break;
+                case 'usergroup':
+                    $parameters['whitelist_of_properties_linked_object'] = array(
+                        "name" => '',
+                    );
+                    break;
+                case 'societe':
+                    $parameters['whitelist_of_properties_linked_object'] = array(
+                        "nom" => '', "name_alias" => '', "particulier" => '', "zip" => '', "town" => '', "status" => '',
+                        "state_id" => '', "state_code" => '', "state" => '', "departement_code" => '', "departement" => '', "pays" => '',
+                        "phone" => '', "fax" => '', "email" => '', "skype" => '', "url" => '', "barcode" => '', "idprof1" => '', "idprof2" => '',
+                        "idprof3" => '', "idprof4" => '', "idprof5" => '', "idprof6" => '', "code_client" => '',
+                        "code_fournisseur" => '', "ref" => '', "logo" => '', "id" => '', "thirdparty_principal_ids" => '',
+                        "thirdparty_benefactor_ids" => '',
+                    );
+                    break;
+            }
+        }
+
+        return 0;
+    }
+
+    /**
      * _block_page function
      *
      * @param   array() $parameters Hook metadatas (context, etc...)

@@ -43,6 +43,42 @@ class RequestManager extends CommonObject
     public $ismultientitymanaged = 1;	// 0=No test on entity, 1=Test with field entity, 2=Test with link by societe
 
     /**
+     * Array of whitelist of properties keys for this object used for the API
+     * @var  array
+     *      array('properties_name'=> '' or array('properties_name'=> '' or array(...), ...)
+     *      if property is a object and this properties_name value is not a array then get whitelist of his object element
+     *      if property is a object and this properties_name value is a array then get whitelist set in the array
+     *      if property is a array and this properties_name value is not a array then get all values
+     *      if property is a array and this properties_name value is a array then get whitelist set in the array
+     */
+    static public $API_WHITELIST_OF_PROPERTIES = array(
+        "id" => '', "fk_parent" => '',/* "parent" => '',*/ "children_request_ids" => '', "children_request_list" => '',
+        "ref" => '', "ref_ext" => '', "socid_origin" => '', "socid" => '', "socid_benefactor" => '', "thirdparty_origin" => '',
+        "thirdparty" => '', "thirdparty_benefactor" => '', "label" => '', "description" => '', "fk_type" => '',
+        "fk_category" => '', "fk_source" => '', "fk_urgency" => '', "fk_impact" => '', "fk_priority" => '', "duration" => '',
+        "fk_reason_resolution" => '', "reason_resolution_details" => '', "requester_ids" => '', "requester_list" => '',
+        "notify_requester_by_email" => '', "watcher_ids" => '', "watcher_list" => '', "notify_watcher_by_email" => '',
+        "assigned_user_ids" => '', "assigned_user_list" => '', "assigned_usergroup_ids" => '', "assigned_usergroup_list" => '',
+        "notify_assigned_by_email" => '', "tag_ids" => '', "tag_list" => '', "date_operation" => '', "date_deadline" => '',
+        "date_resolved" => '', "date_cloture" => '', "user_resolved_id" => '', "user_cloture_id" => '', "statut" => '',
+        "statut_type" => '', "entity" => '', "date_creation" => '', "date_modification" => '', "user_creation_id" => '',
+        "user_modification_id" => '', "array_options" => '', "linkedObjectsIds" => '',
+    );
+
+    /**
+     * Array of whitelist of properties keys for this object when is a linked object used for the API
+     * @var  array
+     *      if empty array then equal at $api_whitelist_of_properties
+     *      array('properties_name'=> '' or array('properties_name'=> '' or array(...), ...)
+     *      if property is a object and this properties_name value is not a array then get whitelist of his object element
+     *      if property is a object and this properties_name value is a array then get whitelist set in the array
+     *      if property is a array and this properties_name value is not a array then get all values
+     *      if property is a array and this properties_name value is a array then get whitelist set in the array
+     */
+    static public $API_WHITELIST_OF_PROPERTIES_LINKED_OBJECT = array(
+    );
+
+    /**
      * Cache of type list
      * @var DictionaryLine[]
      */
@@ -4890,6 +4926,64 @@ class RequestManagerLine extends CommonObjectLine
 {
     public $element = 'requestmanagerdet';
     public $table_element = 'requestmanagerdet';
+
+    /**
+     * Array of whitelist of properties keys for this object used for the API
+     * @var  array
+     *      array('properties_name'=> '' or array('properties_name'=> '' or array(...), ...)
+     *      if property is a object and this properties_name value is not a array then get whitelist of his object element
+     *      if property is a object and this properties_name value is a array then get whitelist set in the array
+     *      if property is a array and this properties_name value is not a array then get all values
+     *      if property is a array and this properties_name value is a array then get whitelist set in the array
+     */
+    static public $API_WHITELIST_OF_PROPERTIES = array(
+        "fk_requestmanager" => '', "fk_parent_line" => '', "fk_product" => '', "label" => '', "description" => '',
+        "vat_src_code" => '', "tva_tx" => '', "localtax1_tx" => '', "localtax1_type" => '', "localtax2_tx" => '',
+        "localtax2_type" => '', "qty" => '', "remise_percent" => '', "fk_remise_except" => '', "subprice" => '',
+        "product_type" => '', "date_start" => '', "date_end" => '', "info_bits" => '', "pa_ht" => '', "fk_fournprice" => '',
+        "marge_tx" => '', "marque_tx" => '', "special_code" => '', "rang" => '', "multicurrency_subprice" => '',
+        "multicurrency_total_ht" => '', "multicurrency_total_tva" => '', "multicurrency_total_ttc" => '', "product_ref" => '',
+        "product_label" => '', "product_desc" => '', "fk_product_type" => '', "product_tobatch" => '', "id" => '',
+        "fk_unit" => '', "array_options" => '', "total_ht" => '', "total_tva" => '', "total_localtax1" => '',
+        "total_localtax2" => '', "total_ttc" => '',
+    );
+
+    /**
+     * Array of whitelist of properties keys for this object when is a linked object used for the API
+     * @var  array
+     *      if empty array then equal at $api_whitelist_of_properties
+     *      array('properties_name'=> '' or array('properties_name'=> '' or array(...), ...)
+     *      if property is a object and this properties_name value is not a array then get whitelist of his object element
+     *      if property is a object and this properties_name value is a array then get whitelist set in the array
+     *      if property is a array and this properties_name value is not a array then get all values
+     *      if property is a array and this properties_name value is a array then get whitelist set in the array
+     */
+    static public $API_WHITELIST_OF_PROPERTIES_LINKED_OBJECT = array(
+    );
+
+    /**
+     * Array of blacklist of properties keys for this object used for the API
+     * @var  array
+     *      array('element_type' => array('properties_name'=> '' or array('properties_name'=> '' or array(...), ...), ...)
+     *      if property is a object and this properties_name value is not a array then get blacklist of his object element
+     *      if property is a object and this properties_name value is a array then get blacklist set in the array
+     *      if property is a array and this properties_name value is not a array then get all values
+     *      if property is a array and this properties_name value is a array then get blacklist set in the array
+     */
+    static protected $API_BLACKLIST_OF_PROPERTIES = array(
+    );
+
+    /**
+     * Array of blacklist of properties keys for this object when is a linked object used for the API
+     * @var  array
+     *      array('element_type' => array('properties_name'=> '' or array('properties_name'=> '' or array(...), ...), ...)
+     *      if property is a object and this properties_name value is not a array then get blacklist of his object element
+     *      if property is a object and this properties_name value is a array then get blacklist set in the array
+     *      if property is a array and this properties_name value is not a array then get all values
+     *      if property is a array and this properties_name value is a array then get blacklist set in the array
+     */
+    static protected $API_BLACKLIST_OF_PROPERTIES_LINKED_OBJECT = array(
+    );
 
     var $oldline;
 
