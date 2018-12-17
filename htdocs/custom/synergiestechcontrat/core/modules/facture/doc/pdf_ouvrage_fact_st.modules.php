@@ -182,25 +182,79 @@ class pdf_ouvrage_fact_st extends ModelePDFFactures
         // Loop on each lines to detect if there is at least one image to show
         $realpatharray = array();
         if (!empty($conf->global->MAIN_GENERATE_INVOICES_WITH_PICTURE)) {
-            for ($i = 0; $i < $nblignes; $i++) {
+            // Open DSI -- Correct picture path for product -- Begin
+//            for ($i = 0; $i < $nblignes; $i++) {
+//                if (empty($object->lines[$i]->fk_product)) continue;
+//
+//                $objphoto = new Product($this->db);
+//                $objphoto->fetch($object->lines[$i]->fk_product);
+//
+//                $pdir = get_exdir($object->lines[$i]->fk_product, 2, 0, 0, $objphoto, 'product').$object->lines[$i]->fk_product."/photos/";
+//                $dir  = $conf->product->dir_output.'/'.$pdir;
+//
+//                $realpath = '';
+//                foreach ($objphoto->liste_photos($dir, 1) as $key => $obj) {
+//                    $filename = $obj['photo'];
+//                    //if ($obj['photo_vignette']) $filename='thumbs/'.$obj['photo_vignette'];
+//                    $realpath = $dir.$filename;
+//                    break;
+//                }
+//
+//                if ($realpath) $realpatharray[$i] = $realpath;
+//            }
+
+            $objphoto = new Product($this->db);
+
+            for ($i = 0 ; $i < $nblignes ; $i++)
+            {
                 if (empty($object->lines[$i]->fk_product)) continue;
 
-                $objphoto = new Product($this->db);
                 $objphoto->fetch($object->lines[$i]->fk_product);
-
-                $pdir = get_exdir($object->lines[$i]->fk_product, 2, 0, 0, $objphoto, 'product').$object->lines[$i]->fk_product."/photos/";
-                $dir  = $conf->product->dir_output.'/'.$pdir;
-
-                $realpath = '';
-                foreach ($objphoto->liste_photos($dir, 1) as $key => $obj) {
-                    $filename = $obj['photo'];
-                    //if ($obj['photo_vignette']) $filename='thumbs/'.$obj['photo_vignette'];
-                    $realpath = $dir.$filename;
-                    break;
+                if (! empty($conf->global->PRODUCT_USE_OLD_PATH_FOR_PHOTO))
+                {
+                    $pdir[0] = get_exdir($objphoto->id,2,0,0,$objphoto,'product') . $objphoto->id ."/photos/";
+                    $pdir[1] = get_exdir(0,0,0,0,$objphoto,'product') . dol_sanitizeFileName($objphoto->ref).'/';
+                }
+                else
+                {
+                    $pdir[0] = get_exdir(0,0,0,0,$objphoto,'product') . dol_sanitizeFileName($objphoto->ref).'/';				// default
+                    $pdir[1] = get_exdir($objphoto->id,2,0,0,$objphoto,'product') . $objphoto->id ."/photos/";	// alternative
                 }
 
-                if ($realpath) $realpatharray[$i] = $realpath;
+                $arephoto = false;
+                foreach ($pdir as $midir)
+                {
+                    if (! $arephoto)
+                    {
+                        $dir = $conf->product->dir_output.'/'.$midir;
+
+                        foreach ($objphoto->liste_photos($dir,1) as $key => $obj)
+                        {
+                            if (empty($conf->global->CAT_HIGH_QUALITY_IMAGES))		// If CAT_HIGH_QUALITY_IMAGES not defined, we use thumb if defined and then original photo
+                            {
+                                if ($obj['photo_vignette'])
+                                {
+                                    $filename= $obj['photo_vignette'];
+                                }
+                                else
+                                {
+                                    $filename=$obj['photo'];
+                                }
+                            }
+                            else
+                            {
+                                $filename=$obj['photo'];
+                            }
+
+                            $realpath = $dir.$filename;
+                            $arephoto = true;
+                        }
+                    }
+                }
+
+                if ($realpath && $arephoto) $realpatharray[$i]=$realpath;
             }
+            // Open DSI -- Correct picture path for product -- End
         }
         if (count($realpatharray) == 0) $this->posxpicture = $this->posxtva;
 
@@ -1280,7 +1334,9 @@ class pdf_ouvrage_fact_st extends ModelePDFFactures
         }
 
         if (!empty($conf->global->MAIN_GENERATE_INVOICES_WITH_PICTURE)) {
-            $pdf->line($this->posxpicture - 1, $tab_top, $this->posxpicture - 1, $tab_top + $tab_height);
+            // Open DSI -- Correct picture path for product -- Begin
+            //$pdf->line($this->posxpicture - 1, $tab_top, $this->posxpicture - 1, $tab_top + $tab_height);
+            // Open DSI -- Correct picture path for product -- End
             if (empty($hidetop)) {
                 //$pdf->SetXY($this->posxpicture-1, $tab_top+1);
                 //$pdf->MultiCell($this->posxtva-$this->posxpicture-1,2, $outputlangs->transnoentities("Photo"),'','C');
@@ -1441,13 +1497,13 @@ class pdf_ouvrage_fact_st extends ModelePDFFactures
 
         // Show sender name
         $pdf->SetXY($posx + 0, $posy + 2);
-        $pdf->SetFont('', 'B', $default_font_size - 2);
+        $pdf->SetFont('', '', $default_font_size - 2);
         $nameAdress = $this->emetteur->name."\n".$this->emetteur->address."\n".$this->emetteur->zip." ".$this->emetteur->town."\n".$this->emetteur->country;
         $pdf->MultiCell($widthrecbox - 2, 4, $outputlangs->convToOutputCharset($nameAdress), 0, 'L');
         //$posy = $pdf->getY();
         // Show sender information
         $pdf->SetXY($posx + 36, $posy + 2);
-        $pdf->SetFont('', 'B', $default_font_size - 2);
+        $pdf->SetFont('', '', $default_font_size - 2);
         $pdf->MultiCell($widthrecbox - 2, 4, $carac_emetteur, 0, 'L');
 
         if ($showaddress) {

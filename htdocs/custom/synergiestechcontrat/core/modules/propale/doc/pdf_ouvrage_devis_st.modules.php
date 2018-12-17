@@ -1517,13 +1517,13 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
 
         // Show sender name
         $pdf->SetXY($posx + 0, $posy + 2);
-        $pdf->SetFont('', 'B', $default_font_size - 2);
+        $pdf->SetFont('', '', $default_font_size - 2);
         $nameAdress = $this->emetteur->name."\n".$this->emetteur->address."\n".$this->emetteur->zip." ".$this->emetteur->town."\n".$this->emetteur->country;
         $pdf->MultiCell($widthrecbox - 2, 4, $outputlangs->convToOutputCharset($nameAdress), 0, 'L');
         //$posy = $pdf->getY();
         // Show sender information
         $pdf->SetXY($posx + 36, $posy + 2);
-        $pdf->SetFont('', 'B', $default_font_size - 2);
+        $pdf->SetFont('', '', $default_font_size - 2);
         $pdf->MultiCell($widthrecbox - 2, 4, $carac_emetteur, 0, 'L');
 
 //
