@@ -130,7 +130,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
             "durationp" => '', "fulldayevent" => '', "punctual" => '', "percentage" => '', "location" => '', "transparency" => '',
             "priority" => '', "userassigned" => array(''=>array('id'=>'')), "userownerid" => '', "userdoneid" => '', "socid" => '', "contactid" => '',
             "contact" => '', "array_options" => '', "fk_project" => '', "ref_ext" => '', "note" => '', "type_picto" => '',
-            "user_mod" => '', "user_done" => '', "user_owner" => '', "thirdparty" => '', "entity" => '',"linkedObjectsIds" => ''
+            "user_mod" => '', "user_done" => '', "user_owner" => '', "thirdparty" => '', "entity" => '', "fk_element " => '', "elementtype" => '',
         ),
         'user' => array(
             "id" => '', "employee" => '', "gender" => '', "email" => '', "skype" => '', "job" => '', "signature" => '',
@@ -139,7 +139,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
             "fk_member" => '', "fk_user" => '', "datelastlogin" => '', "datepreviouslogin" => '', "statut" => '', "photo" => '',
             "lang" => '', "users" => '', "parentof" => '', "thm" => '', "tjm" => '', "salary" => '', "salaryextra" => '',
             "weeklyhours" => '', "color" => '', "dateemployment" => '', "array_options" => '', "ref" => '', "ref_ext" => '',
-            "country_id" => '', "country_code" => '', "lastname" => '', "firstname" => '', "thirdparty" => '',"linkedObjectsIds" => ''
+            "country_id" => '', "country_code" => '', "lastname" => '', "firstname" => '', "thirdparty" => '', "linkedObjectsIds" => '',
         ),
         'usergroup' => array(
             "id" => '', "ref" => '', "name" => '', "array_options" => '', "entity" => '', "datec" => '', "datem" => '',
@@ -155,7 +155,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
             "date_modification" => '', "date_creation" => '', "client" => '', "prospect" => '', "fournisseur" => '', "code_client" => '',
             "code_fournisseur" => '', "code_compta" => '', "code_compta_fournisseur" => '', "stcomm_id" => '', "statut_commercial" => '',
             "price_level" => '', "outstanding_limit" => '', "parent" => '', "default_lang" => '', "ref" => '', "ref_ext" => '',
-            "logo" => '', "array_options" => '', "id" => '', "linkedObjectsIds" => '',"linkedObjectsIds" => ''
+            "logo" => '', "array_options" => '', "id" => '', "linkedObjectsIds" => '',
         ),
         'product' => array(
             "label" => '', "description" => '', "type" => '', "price" => '', "price_ttc" => '', "price_min" => '',
@@ -177,7 +177,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
             "mise_en_service" => '', "date_contrat" => '', "date_creation" => '', "fin_validite" => '', "date_modification" => '',
             "date_validation" => '', "user_author_id" => '', "commercial_signature_id" => '', "commercial_suivi_id" => '',
             "note_public" => '', "fk_project" => '', "socid" => '', "array_options" => '', "thirdparty" => '',
-            "cr_thirdparty_benefactor" => '', "lines" => '',"linkedObjectsIds" => ''
+            "cr_thirdparty_benefactor" => '', "lines" => '', "linkedObjectsIds" => '',
         ),
         'contratdet' => array(
             "id" => '', "ref" => '', "tms" => '', "fk_contrat" => '', "fk_product" => '', "statut" => '', "product_ref" => '',
@@ -187,7 +187,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
             "localtax1_type" => '', "localtax2_type" => '', "qty" => '', "remise_percent" => '', "remise" => '',
             "fk_remise_except" => '', "subprice" => '', "price_ht" => '', "total_ht" => '', "total_tva" => '', "total_localtax1" => '',
             "total_localtax2" => '', "total_ttc" => '', "info_bits" => '', "fk_user_author" => '', "fk_user_ouverture" => '',
-            "fk_user_cloture" => '', "commentaire" => '', "fk_fournprice" => '', "pa_ht" => '', "fk_unit" => '', "array_options" => '',"linkedObjectsIds" => ''
+            "fk_user_cloture" => '', "commentaire" => '', "fk_fournprice" => '', "pa_ht" => '', "fk_unit" => '', "array_options" => '',
         ),
         'shipping' => array(
             "id" => '', "ref" => '', "socid" => '', "ref_customer" => '', "ref_ext" => '', "statut" => '',
@@ -196,7 +196,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
             "trueWidth" => '', "width_units" => '', "trueHeight" => '', "height_units" => '', "trueDepth" => '', "depth_units" => '',
             "note_public" => '', "trueSize" => '', "size_units" => '', "fk_incoterms" => '', "location_incoterms" => '',
             "libelle_incoterms" => '', "brouillon" => '', "tracking_url" => '', "thirdparty" => '', "array_options" => '',
-            "cr_thirdparty_benefactor" => '', "lines" => '',"linkedObjectsIds" => ''
+            "cr_thirdparty_benefactor" => '', "lines" => '', "linkedObjectsIds" => '',
         ),
         'expeditiondet' => array(
             "id" => '', "entrepot_id" => '', "qty_shipped" => '', "details_entrepot" => '', "fk_origin" => '', "fk_origin_line" => '',
@@ -207,18 +207,18 @@ class CompanyRelationshipsApi extends DolibarrApi {
             /*"total_localtax2" => '', "total_ttc" => '', "total_tva" => '', "vat_src_code" => '', "tva_tx" => '',*/ "localtax1_tx" => '',
             "localtax2_tx" => '', "info_bits" => '', "price" => '', "subprice" => '', /*"remise_percent" => '',*/ "fk_multicurrency" => '',
             "multicurrency_code" => '', "multicurrency_subprice" => '', "multicurrency_total_ht" => '', "multicurrency_total_tva" => '',
-            "multicurrency_total_ttc" => '', "detail_batch" => '', "array_options" => '',"linkedObjectsIds" => ''
+            "multicurrency_total_ttc" => '', "detail_batch" => '', "array_options" => '',
         ),
         'fichinter' => array(
             "id" => '', "ref" => '', "description" => '', "socid" => '', "statut" => '', "duration" => '', "datec" => '',
             "datee" => '', "dateo" => '', "datet" => '', "datev" => '', "datem" => '', "fk_project" => '', "note_public" => '',
             "trueWidth" => '', "width_units" => '', "trueHeight" => '', "height_units" => '', "trueDepth" => '', "depth_units" => '',
             "fk_contrat" => '', "user_creation" => '', "brouillon" => '', "thirdparty" => '', "array_options" => '',
-            "cr_thirdparty_benefactor" => '', "lines" => '',"linkedObjectsIds" => ''
+            "cr_thirdparty_benefactor" => '', "lines" => '', "linkedObjectsIds" => '',
         ),
         'fichinterdet' => array(
             "id" => '', "desc" => '', "duration" => '', "qty" => '', "date" => '', "datei" => '',
-            "rang" => '', "product_type" => '', "array_options" => '',"linkedObjectsIds" => ''
+            "rang" => '', "product_type" => '', "array_options" => '',
         ),
         'facture' => array(
             "id" => '', "ref" => '', "ref_client" => '', "ref_ext" => '', "type" => '', "date" => '', "date_pointoftax" => '',
@@ -232,7 +232,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
             "location_incoterms" => '', "libelle_incoterms" => '', "fk_multicurrency" => '', "multicurrency_code" => '',
             "multicurrency_tx" => '', "multicurrency_total_ht" => '', "multicurrency_total_tva" => '',
             "multicurrency_total_ttc" => '', "tab_previous_situation_invoice" => '', "tab_next_situation_invoice" => '',
-            "brouillon" => '', "thirdparty" => '', "array_options" => '', "cr_thirdparty_benefactor" => '', "lines" => '',"linkedObjectsIds" => ''
+            "brouillon" => '', "thirdparty" => '', "array_options" => '', "cr_thirdparty_benefactor" => '', "lines" => '', "linkedObjectsIds" => '',
         ),
         'facturedet' => array(
             "id" => '', "desc" => '', "product_type" => '', "product_ref" => '', "product_label" => '', "product_desc" => '',
@@ -243,7 +243,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
             "pa_ht" => '', "marge_tx" => '', "marque_tx" => '', "rang" => '', "special_code" => '', "fk_parent_line" => '',
             "situation_percent" => '', "fk_prev_id" => '', "fk_unit" => '', "fk_multicurrency" => '', "multicurrency_code" => '',
             "multicurrency_subprice" => '', "multicurrency_total_ht" => '', "multicurrency_total_tva" => '',
-            "multicurrency_total_ttc" => '', "array_options" => '',"linkedObjectsIds" => ''
+            "multicurrency_total_ttc" => '', "array_options" => '',
         ),
         'commande' => array(
             "id" => '', "ref" => '', "ref_customer" => '', "ref_ext" => '', "socid" => '', "statut" => '', "user_author_id" => '',
@@ -256,7 +256,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
             "shipping_method_id" => '', "warehouse_id" => '', "fk_incoterms" => '', "location_incoterms" => '',
             "libelle_incoterms" => '', "fk_multicurrency" => '', "multicurrency_code" => '', "multicurrency_tx" => '',
             "multicurrency_total_ht" => '', "multicurrency_total_tva" => '', "multicurrency_total_ttc" => '',
-            "brouillon" => '', "thirdparty" => '', "array_options" => '', "cr_thirdparty_benefactor" => '', "lines" => '',"linkedObjectsIds" => ''
+            "brouillon" => '', "thirdparty" => '', "array_options" => '', "cr_thirdparty_benefactor" => '', "lines" => '', "linkedObjectsIds" => '',
         ),
         'commandedet' => array(
             "id" => '', "label" => '', "desc" => '', "product_type" => '', "qty" => '', "vat_src_code" => '',
@@ -267,7 +267,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
             "fk_parent_line" => '', "product_ref" => '', "product_label" => '', "product_desc" => '', "product_tobatch" => '',
             "fk_product_type" => '', "fk_unit" => '', "weight" => '', "weight_units" => '', "volume" => '', "volume_units" => '',
             "date_start" => '', "date_end" => '', "fk_multicurrency" => '', "multicurrency_code" => '', "multicurrency_subprice" => '',
-            "multicurrency_total_ht" => '', "multicurrency_total_tva" => '', "multicurrency_total_ttc" => '', "array_options" => '',"linkedObjectsIds" => ''
+            "multicurrency_total_ht" => '', "multicurrency_total_tva" => '', "multicurrency_total_ttc" => '', "array_options" => '',
         ),
         'propal' => array(
             "id" => '', "ref" => '', "ref_client" => '', "remise" => '', "remise_percent" => '', "remise_absolue" => '',
@@ -281,7 +281,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
             "user_close_id" => '', "fk_incoterms" => '', "location_incoterms" => '', "libelle_incoterms" => '',
             "fk_multicurrency" => '', "multicurrency_code" => '', "multicurrency_tx" => '', "multicurrency_total_ht" => '',
             "multicurrency_total_tva" => '', "multicurrency_total_ttc" => '',
-            "brouillon" => '', "thirdparty" => '', "array_options" => '', "cr_thirdparty_benefactor" => '', "lines" => '',"linkedObjectsIds" => ''
+            "brouillon" => '', "thirdparty" => '', "array_options" => '', "cr_thirdparty_benefactor" => '', "lines" => '', "linkedObjectsIds" => '',
         ),
         'propaldet' => array(
             "id" => '', "fk_parent_line" => '', "product_type" => '', "label" => '', "desc" => '', "qty" => '',
@@ -292,7 +292,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
             "rang" => '', "fk_product" => '', "product_ref" => '', "product_label" => '', "product_desc" => '',
             "fk_unit" => '', "date_start" => '', "date_end" => '', "fk_multicurrency" => '', "multicurrency_code" => '',
             "multicurrency_subprice" => '', "multicurrency_total_ht" => '', "multicurrency_total_tva" => '',
-            "multicurrency_total_ttc" => '', "array_options" => '',"linkedObjectsIds" => ''
+            "multicurrency_total_ttc" => '', "array_options" => '',
         ),
     );
 

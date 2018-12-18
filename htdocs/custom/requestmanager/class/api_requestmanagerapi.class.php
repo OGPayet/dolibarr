@@ -66,7 +66,7 @@ class RequestManagerApi extends DolibarrApi {
             "durationp" => '', "fulldayevent" => '', "punctual" => '', "percentage" => '', "location" => '', "transparency" => '',
             "priority" => '', "userassigned" => array(''=>array('id'=>'')), "userownerid" => '', "userdoneid" => '', "socid" => '', "contactid" => '',
             "contact" => '', "array_options" => '', "fk_project" => '', "ref_ext" => '', "note" => '', "type_picto" => '',
-            "user_mod" => '', "user_done" => '', "user_owner" => '', "thirdparty" => '', "entity" => '',
+            "user_mod" => '', "user_done" => '', "user_owner" => '', "thirdparty" => '', "entity" => '', "fk_element " => '', "elementtype" => '',
         ),
         'contact' => array(
             "id" => '', "ref" => '', "ref_ext" => '', "civility_id" => '', "civility_code" => '', "lastname" => '', "firstname" => '',

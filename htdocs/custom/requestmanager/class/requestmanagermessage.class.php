@@ -54,7 +54,7 @@ class RequestManagerMessage extends ActionComm
         "label" => '', "datec" => '', "datem" => '', "authorid" => '', "usermodid" => '', "datep" => '', "datef" => '',
         "userassigned" => '', "userownerid" => '', "userdoneid" => '', "socid" => '', "contactid" => '', "contact" => '',
         "array_options" => '', "fk_project" => '', "ref_ext" => '', "note" => '', "type_picto" => '', "user_mod" => '',
-        "user_done" => '', "user_owner" => '', "thirdparty" => '', "entity" => '',
+        "user_done" => '', "user_owner" => '', "thirdparty" => '', "entity" => '', "fk_element " => '', "elementtype" => '',
     );
 
     /**

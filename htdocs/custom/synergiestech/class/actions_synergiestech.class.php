@@ -1546,6 +1546,26 @@ SCRIPT;
                         "thirdparty_benefactor_ids" => '',
                     );
                     break;
+                case 'propaldet':
+                    if (DolibarrApiAccess::$user->societe_id > 0) {
+                        $parameters['blacklist_of_properties'] = array(
+                            "vat_src_code" => '', "tva_tx" => '', "localtax1_tx" => '', "localtax2_tx" => '', "localtax1_type" => '',
+                            "localtax2_type" => '', "subprice" => '', "fk_remise_except" => '', "remise_percent" => '', "info_bits" => '',
+                            "total_ht" => '', "total_tva" => '', "total_localtax1" => '', "total_localtax2" => '', "total_ttc" => '',
+                            "fk_fournprice" => '', "pa_ht" => '', "marge_tx" => '', "marque_tx" => '', "special_code" => '',
+                            "fk_multicurrency" => '', "multicurrency_code" => '', "multicurrency_subprice" => '', "multicurrency_total_ht" => '',
+                            "multicurrency_total_tva" => '', "multicurrency_total_ttc" => '',
+                        );
+                        $parameters['blacklist_of_properties_linked_object'] = array(
+                            "vat_src_code" => '', "tva_tx" => '', "localtax1_tx" => '', "localtax2_tx" => '', "localtax1_type" => '',
+                            "localtax2_type" => '', "subprice" => '', "fk_remise_except" => '', "remise_percent" => '', "info_bits" => '',
+                            "total_ht" => '', "total_tva" => '', "total_localtax1" => '', "total_localtax2" => '', "total_ttc" => '',
+                            "fk_fournprice" => '', "pa_ht" => '', "marge_tx" => '', "marque_tx" => '', "special_code" => '',
+                            "fk_multicurrency" => '', "multicurrency_code" => '', "multicurrency_subprice" => '', "multicurrency_total_ht" => '',
+                            "multicurrency_total_tva" => '', "multicurrency_total_ttc" => '',
+                        );
+                    }
+                    break;
             }
         }
 
