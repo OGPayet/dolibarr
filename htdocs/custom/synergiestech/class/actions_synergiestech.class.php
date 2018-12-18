@@ -1538,13 +1538,18 @@ SCRIPT;
                     break;
                 case 'societe':
                     $parameters['whitelist_of_properties_linked_object'] = array(
-                        "name" => '',"nom" => '', "name_alias" => '', "particulier" => '', "address" => '',"zip" => '', "town" => '', "status" => '',
-                        "state_id" => '', "state_code" => '', "state" => '', "departement_code" => '', "departement" => '', "pays" => '',
-                        "phone" => '', "fax" => '', "email" => '', "skype" => '', "url" => '', "barcode" => '', "idprof1" => '', "idprof2" => '',
-                        "idprof3" => '', "idprof4" => '', "idprof5" => '', "idprof6" => '', "code_client" => '',
-                        "code_fournisseur" => '', "ref" => '', "logo" => '', "id" => '', "thirdparty_principal_ids" => '',
-                        "thirdparty_benefactor_ids" => '',
+                        "name" => '',"nom" => '', "name_alias" => '', "address" => '',"zip" => '', "town" => '',
+                        "state_id" => '', "state_code" => '', "state" => '', "departement_code" => '', "departement" => '', "pays" => ''
                     );
+					$parameters['whitelist_of_properties'] = array(
+            "name" => '', "nom" => '', "name_alias" => '', "address" => '', "zip" => '', "town" => '',
+            "state_id" => '', "state_code" => '', "state" => '', "departement_code" => '', "departement" => '', "pays" => '',
+            "phone" => '', "fax" => '', "email" => '', "code_client" => '',
+            "code_fournisseur" => '',"ref" => '',
+            "id" => '', "linkedObjectsIds" => '',"thirdparty_principal_ids" => '',
+                        "thirdparty_benefactor_ids" => ''
+        );
+
                     break;
                 case 'propaldet':
                     if (DolibarrApiAccess::$user->societe_id > 0) {
