@@ -51,7 +51,7 @@ class Equipement extends CommonObject
         "etatequiplibelle" => '', "fk_entrepot" => '', "isentrepotmove" => '', "unitweight" => '', "SerialMethod" => '',
         "quantity" => '', "nbCreateEquipement" => '', "fk_factory" => '', "datec" => '', "dateo" => '', "datee" => '',
         "dated" => '', "statut" => '', "localisation" => '', "description" => '', "note_public" => '', "extraparams" => '',
-        "array_options" => '', "socid" => '', "datev" => '', "datem" => '',
+        "array_options" => '', "socid" => '', "datev" => '', "datem" => '',"linkedObjectsIds" => ''
     );
 
     /**
