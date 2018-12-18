@@ -985,6 +985,182 @@ class RequestManagerApi extends DolibarrApi {
     }
 
     /**
+     *  Get the files list of the request or request message
+     *
+     * @url	GET {id}/{message_id}/documents
+     *
+     * @param   int             $id                 ID of the request
+     * @param   int             $message_id         ID of the request message (event) (=0 if not message)
+     * @param	string	        $sortfield		    Sort criteria ('','fullname','relativename','name','date','size')
+	 * @param	string	        $sortorder		    Sort order ('asc' or 'desc')
+     *
+     * @return  array                               Files list of the request or request message
+     *
+     * @throws  401             RestException       Insufficient rights
+     * @throws  403             RestException       Access unauthorized
+     * @throws  404             RestException       Request not found
+     * @throws  404             RestException       Request message not found
+     * @throws  500             RestException       Error when retrieve request
+     * @throws  500             RestException       Error when retrieve request message
+     * @throws  500             RestException       Error while retrieve the mode of confidentiality for the request message
+     */
+    function indexDocuments($id, $message_id, $sortfield='', $sortorder='')
+    {
+        global $conf;
+
+        if (!DolibarrApiAccess::$user->rights->requestmanager->lire) {
+            throw new RestException(401, "Insufficient rights");
+        }
+
+        // Get request object
+        $requestmanager = $this->_getRequestManagerObject($id);
+
+        if ($message_id > 0) {
+            $requestmanager_message = new RequestManagerMessage(self::$db);
+            $result = $requestmanager_message->fetch($message_id);
+            if ($result == 0 || ($result > 0 && ($requestmanager_message->elementtype != $requestmanager->element || $requestmanager_message->fk_element != $requestmanager->id))) {
+                throw new RestException(404, "Request message not found");
+            } elseif ($result < 0) {
+                throw new RestException(500, "Error when retrieve request message", [ 'details' => $this->_getErrors($requestmanager_message) ]);
+            } elseif ($requestmanager_message->id > 0) {
+                // List documents of the request message
+                if ($conf->eventconfidentiality->enabled) {
+                    dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
+                    $eventconfidentiality = new EventConfidentiality(self::$db);
+
+                    // Get mode for the user and event
+                    $mode = $eventconfidentiality->getModeForUserAndEvent(DolibarrApiAccess::$user, $requestmanager_message->id);
+                    if ($mode < 0) {
+                        throw new RestException(500, "Error while retrieve the mode of confidentiality for the request message.", ['details' => $this->_getErrors($eventconfidentiality)]);
+                    }
+
+                    if ($mode != EventConfidentiality::MODE_VISIBLE) {
+                        throw new RestException(403, "Access unauthorized");
+                    }
+                }
+
+                $upload_dir = $conf->agenda->dir_output . '/' . dol_sanitizeFileName($requestmanager_message->ref);
+            } else {
+                throw new RestException(403, "Access unauthorized");
+            }
+        } else {
+            // List documents of the request
+            if (!DolibarrApiAccess::$user->rights->requestmanager->read_file) {
+                throw new RestException(401, "Insufficient rights");
+            }
+
+            $upload_dir = $conf->requestmanager->multidir_output[$requestmanager->entity] . '/' . dol_sanitizeFileName($requestmanager->ref);
+        }
+
+        require_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
+        $filearray = dol_dir_list($upload_dir, "files", 0, '', '(\.meta|_preview.*\.png)$', $sortfield, (strtolower($sortorder) == 'desc' ? SORT_DESC : SORT_ASC), 1);
+        if (empty($filearray)) {
+            return [];
+        }
+
+        $result = array();
+        foreach ($filearray as $v) {
+            $result[] = array(
+                'name' => $v['name'],
+                'date' => $v['date'],
+                'size' => $v['size'],
+                'type' => $v['type'],
+            );
+        }
+
+        return $result;
+    }
+
+    /**
+     *  Get the file of the request or request message
+     *
+     * @url	GET {id}/{message_id}/documents/download
+     *
+     * @param   int             $id                 ID of the request
+     * @param   int             $message_id         ID of the request message (event) (=0 if not message)
+     * @param	string	        $filename		    Filename of the file to download
+     *
+     * @return  array                               File information
+     *
+     * @throws  401             RestException       Insufficient rights
+     * @throws  403             RestException       Access unauthorized
+     * @throws  404             RestException       Request not found
+     * @throws  404             RestException       Request message not found
+     * @throws  500             RestException       Error when retrieve request
+     * @throws  500             RestException       Error when retrieve request message
+     * @throws  500             RestException       Error while retrieve the mode of confidentiality for the request message
+     */
+    function getDocuments($id, $message_id, $filename)
+    {
+        global $conf;
+
+        if (!DolibarrApiAccess::$user->rights->requestmanager->lire) {
+            throw new RestException(401, "Insufficient rights");
+        }
+
+        // Get request object
+        $requestmanager = $this->_getRequestManagerObject($id);
+
+        if ($message_id > 0) {
+            $requestmanager_message = new RequestManagerMessage(self::$db);
+            $result = $requestmanager_message->fetch($message_id);
+            if ($result == 0 || ($result > 0 && ($requestmanager_message->elementtype != $requestmanager->element || $requestmanager_message->fk_element != $requestmanager->id))) {
+                throw new RestException(404, "Request message not found");
+            } elseif ($result < 0) {
+                throw new RestException(500, "Error when retrieve request message", [ 'details' => $this->_getErrors($requestmanager_message) ]);
+            } elseif ($requestmanager_message->id > 0) {
+                // List documents of the request message
+                if ($conf->eventconfidentiality->enabled) {
+                    dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
+                    $eventconfidentiality = new EventConfidentiality(self::$db);
+
+                    // Get mode for the user and event
+                    $mode = $eventconfidentiality->getModeForUserAndEvent(DolibarrApiAccess::$user, $requestmanager_message->id);
+                    if ($mode < 0) {
+                        throw new RestException(500, "Error while retrieve the mode of confidentiality for the request message.", ['details' => $this->_getErrors($eventconfidentiality)]);
+                    }
+
+                    if ($mode != EventConfidentiality::MODE_VISIBLE) {
+                        throw new RestException(403, "Access unauthorized");
+                    }
+                }
+
+                $original_file = dol_sanitizeFileName($requestmanager_message->ref) . '/' . $filename;
+                $module_part = 'agenda';
+                $refname = $requestmanager_message->ref;
+            } else {
+                throw new RestException(403, "Access unauthorized");
+            }
+        } else {
+            // List documents of the request
+            if (!DolibarrApiAccess::$user->rights->requestmanager->read_file) {
+                throw new RestException(401, "Insufficient rights");
+            }
+
+            $original_file = dol_sanitizeFileName($requestmanager->ref) . '/' . $filename;
+            $module_part = 'requestmanager';
+            $refname = $requestmanager->ref;
+        }
+
+        require_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
+        $check_access = dol_check_secure_access_document($module_part, $original_file, $conf->entity, DolibarrApiAccess::$user, $refname, 'read', true);
+        $original_file = $check_access['original_file'];
+        if (preg_match('/\.\./', $original_file) || preg_match('/[<>|]/', $original_file)) {
+            throw new RestException(401);
+        }
+
+        $filename = basename($original_file);
+        $original_file_osencoded = dol_osencode($original_file);    // New file name encoded in OS encoding charset
+
+        if (!file_exists($original_file_osencoded)) {
+            return [];
+        }
+
+        $file_content = file_get_contents($original_file_osencoded);
+        return array('filename' => $filename, 'content' => base64_encode($file_content), 'encoding' => 'MIME base64 (base64_encode php function, http://php.net/manual/en/function.base64-encode.php)');
+    }
+
+    /**
      *  Create a calling event
      *
      * @url	POST /call/{unique_id}/begin
