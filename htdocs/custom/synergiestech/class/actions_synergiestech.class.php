@@ -1521,6 +1521,11 @@ SCRIPT;
                         "description" => '', "ref" => '', "id" => '', "array_options" => array('options_publiclabel' => ''), "label" => '',
                     );
                     break;
+                case 'contact':
+                    $parameters['whitelist_of_properties_linked_object'] = array(
+                        "civility_code" => '', "lastname" => '', "firstname" => '',
+                    );
+                    break;
                 case 'user':
                     $parameters['whitelist_of_properties_linked_object'] = array(
                         "lastname" => '', "firstname" => '',
