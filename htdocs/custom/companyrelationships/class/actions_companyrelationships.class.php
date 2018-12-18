@@ -175,18 +175,31 @@ class ActionsCompanyRelationships
                     $userRightsElementCreer = $user->rights->{$object->table_element}->creer;
                 }
 
+                $object->cr_confirm_socid = GETPOST('cr_confirm_socid', 'int');
+
+                // action confirm principal company on create
+                if ($action == 'add' && $userRightsElementCreer) {
+                    if (!$conf->extendedintervention->enabled || $object->element != 'fichinter' || !$object->force_out_of_quota) {
+                        $socid = GETPOST('socid', 'int') ? GETPOST('socid', 'int') : 0;
+                        $originid = (GETPOST('originid', 'int') ? GETPOST('originid', 'int') : GETPOST('origin_id', 'int')); // For backward compatibility
+
+                        if (!$object->cr_confirm_socid && empty($originid) && intval($socid) > 0) {
+                            $companyRelationships = new CompanyRelationships($this->db);
+                            $principalCompanyList = $companyRelationships->getRelationships($socid, 0, 1);
+                            $principalCompanyList = is_array($principalCompanyList) ? $principalCompanyList : array();
+                            if (count($principalCompanyList) > 0) {
+                                $object->cr_must_confirm_socid = true;
+                                $action = 'create';
+                                return 1;
+                            }
+                        }
+                    }
+                }
+
                 // action confirm principal company on create
                 if ($action == 'companyrelationships_confirm_socid' && $userRightsElementCreer) {
-                    $langs->load('companyrelationships@companyrelationships');
-
-                    $fk_soc_benefactor = GETPOST('companyrelationships_fk_soc_benefactor', 'int');
-                    $socid = GETPOST('companyrelationships_socid', 'int');
-
-                    if (intval($socid) > 0) {
-                        $url = 'card.php?action=create&socid=' . $socid . '&companyrelationships_fk_soc_benefactor=' . $fk_soc_benefactor;
-                        header('Location: ' . $url);
-                        exit();
-                    }
+                    $object->cr_confirm_socid = 1;
+                    $action = 'create';
                 }
                 // update extra fields
                 else if ($action == 'update_extras' && $userRightsElementCreer) {
@@ -547,7 +560,7 @@ class ActionsCompanyRelationships
                     $out .= '<tr>';
                     $out .= '<td>';
                     $out .= '<div id="companyrelationships_confirm">';
-                    if (empty($confirm) && empty($originid) && intval($socid) > 0) {
+                    if (!empty($object->cr_must_confirm_socid)) {
                         $principalCompanyList = $companyRelationships->getRelationships($socid, 0, 1);
                         $principalCompanyList = is_array($principalCompanyList) ? $principalCompanyList : array();
                         if (count($principalCompanyList) > 0) {
@@ -559,6 +572,13 @@ class ActionsCompanyRelationships
                             }
 
                             $formQuestionList = array();
+                            if ($object->ei_created_out_of_quota) {
+                                $ei_free = GETPOST('ei_free', "alpha");
+                                $ei_reason = GETPOST('ei_reason', "alpha");
+                                $formQuestionList[] = array('name' => 'ei_free', 'type' => 'hidden', 'value' => $ei_free);
+                                $formQuestionList[] = array('name' => 'ei_reason', 'type' => 'hidden', 'value' => $ei_reason);
+                                $formQuestionList[] = array('name' => 'ei_created_out_of_quota', 'type' => 'hidden', 'value' => ($object->ei_created_out_of_quota ? 1 : 0));
+                            }
                             $formQuestionList[] = array('name' => 'companyrelationships_fk_soc_benefactor', 'type' => 'hidden', 'value' => $socid);
                             $formQuestionList[] = array('label' => $langs->trans('CompanyRelationshipsPrincipalCompany'), 'name' => 'companyrelationships_socid', 'type' => 'select', 'values' => $principalCompanySelectArray, 'default' => '');
 
@@ -569,6 +589,7 @@ class ActionsCompanyRelationships
                     $out .= '</div>';
                     $out .= '</td>';
                     $out .= '</tr>';
+                    $out .= '<input type="hidden" name="cr_confirm_socid" value="'.(!empty($object->cr_confirm_socid) ? 1 : 0).'">';
 
                     // company id already posted (an input hidden in this form)
                     if (intval($socid) > 0) {

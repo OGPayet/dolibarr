@@ -278,7 +278,7 @@ SCRIPT;
 
         if (in_array('actiondao', $contexts)) {
             if ($object->id > 0) {
-                $user_f = DolibarrApiAccess::$user->id > 0 ? DolibarrApiAccess::$user : $user;
+                $user_f = $user->id > 0 ? $user : DolibarrApiAccess::$user;
 
                 dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
                 $eventconfidentiality = new EventConfidentiality($this->db);
@@ -334,6 +334,52 @@ SCRIPT;
     }
 
     /**
+     * Overloading the afterSQLFetch function : replacing the parent's function with the one below
+     *
+     * @param   array()         $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          &$action        Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+    function afterSQLFetch($parameters, &$object, &$action, $hookmanager)
+    {
+        global $user;
+
+        $contexts = explode(':', $parameters['context']);
+
+        if (in_array('agenda', $contexts) || in_array('agendalist', $contexts)) {
+            if ($object->id > 0) {
+                $user_f = $user->id > 0 ? $user : DolibarrApiAccess::$user;
+
+                dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
+                $eventconfidentiality = new EventConfidentiality($this->db);
+
+                // Get mode for the user and event
+                $mode = $eventconfidentiality->getModeForUserAndEvent($user_f, $object->id);
+                if ($mode < 0) {
+                    $this->error = $eventconfidentiality->error;
+                    $this->errors = $eventconfidentiality->errors;
+                    return -1;
+                }
+
+                // Manage the mode
+                if ($mode == EventConfidentiality::MODE_HIDDEN) {
+                    foreach ($object as $key => $value) {
+                        unset($object->$key);
+                    }
+                } elseif ($mode == EventConfidentiality::MODE_BLURRED) {
+                    foreach (EventConfidentiality::$blurred_properties as $key => $html_input_names) {
+                        unset($object->$key);
+                    }
+                }
+            }
+        }
+
+        return 0;
+    }
+
+    /**
 	 * Overloading the getBlackWhitelistOfProperties function : replacing the parent's function with the one below
 	 *
 	 * @param   array() $parameters Hook metadatas (context, etc...)
@@ -363,58 +409,12 @@ SCRIPT;
 //                    );
 
             if ($object->element == 'action' || $object->element == 'requestmanager_requestmanagermessage') {
-                $user_f = DolibarrApiAccess::$user->id > 0 ? DolibarrApiAccess::$user : $user;
+                $user_f = $user->id > 0 ? $user : DolibarrApiAccess::$user;
 
                 $parameters['whitelist_of_properties']['action']['ec_save_values'] = '';
                 if ($user_f->rights->eventconfidentiality->manage) {
                     $parameters['whitelist_of_properties']['action']['ec_mode_tags'] = '';
                     $parameters['whitelist_of_properties']['action']['ec_tags'] = '';
-                }
-            }
-        }
-
-        return 0;
-    }
-
-    /**
-     * Overloading the afterSQLFetch function : replacing the parent's function with the one below
-     *
-     * @param   array()         $parameters     Hook metadatas (context, etc...)
-     * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-     * @param   string          &$action        Current action (if set). Generally create or edit or null
-     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
-     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
-     */
-    function afterSQLFetch($parameters, &$object, &$action, $hookmanager)
-    {
-        global $user;
-
-        $contexts = explode(':', $parameters['context']);
-
-        if (in_array('agenda', $contexts) || in_array('agendalist', $contexts)) {
-            if ($object->id > 0) {
-                $user_f = DolibarrApiAccess::$user->id > 0 ? DolibarrApiAccess::$user : $user;
-
-                dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
-                $eventconfidentiality = new EventConfidentiality($this->db);
-
-                // Get mode for the user and event
-                $mode = $eventconfidentiality->getModeForUserAndEvent($user_f, $object->id);
-                if ($mode < 0) {
-                    $this->error = $eventconfidentiality->error;
-                    $this->errors = $eventconfidentiality->errors;
-                    return -1;
-                }
-
-                // Manage the mode
-                if ($mode == EventConfidentiality::MODE_HIDDEN) {
-                    foreach ($object as $key => $value) {
-                        unset($object->$key);
-                    }
-                } elseif ($mode == EventConfidentiality::MODE_BLURRED) {
-                    foreach (EventConfidentiality::$blurred_properties as $key => $html_input_names) {
-                        unset($object->$key);
-                    }
                 }
             }
         }

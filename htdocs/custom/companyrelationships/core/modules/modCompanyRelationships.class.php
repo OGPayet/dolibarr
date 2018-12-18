@@ -396,12 +396,8 @@ class modCompanyRelationships extends DolibarrModules
                         SET llx_'.$elementTable.'_extrafields.companyrelationships_fk_soc_benefactor = t.fk_soc
                         WHERE llx_'.$elementTable.'_extrafields.companyrelationships_fk_soc_benefactor IS NULL
                         OR llx_'.$elementTable.'_extrafields.companyrelationships_fk_soc_benefactor = \'\';';
-            $sql[] = 'UPDATE llx_'.$elementTable.'_extrafields
-                        SET companyrelationships_availability_principal = 1
-                        WHERE companyrelationships_availability_principal IS NULL
-                        OR companyrelationships_availability_principal = \'\';';
-            $sql[] = 'INSERT INTO llx_'.$elementTable.'_extrafields(fk_object, companyrelationships_fk_soc_benefactor, companyrelationships_availability_principal)
-                        SELECT t.rowid, t.fk_soc, 1
+            $sql[] = 'INSERT INTO llx_'.$elementTable.'_extrafields(fk_object, companyrelationships_fk_soc_benefactor)
+                        SELECT t.rowid, t.fk_soc
                         FROM llx_'.$elementTable.' AS t
                         LEFT JOIN llx_'.$elementTable.'_extrafields AS ef ON (ef.fk_object = t.rowid)
                         WHERE ef.rowid IS NULL;';

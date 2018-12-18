@@ -391,7 +391,7 @@ class FormCompanyRelationships
 					if (pageyes.length > 0) {
 					    if (form.length > 0) {
                                     if (jQuery("#companyrelationships_socid").val() > 0) {
-                                        jQuery("input[name=\"action\"]").val("create");
+                                        jQuery("input[name=\"action\"]").val("'.dol_escape_js($action).'");
                                         jQuery("input[name=\"socid\"]").val(jQuery("#companyrelationships_socid").val());
                                         jQuery("#socid").val(jQuery("#companyrelationships_socid").val());
                                         jQuery(form).submit();

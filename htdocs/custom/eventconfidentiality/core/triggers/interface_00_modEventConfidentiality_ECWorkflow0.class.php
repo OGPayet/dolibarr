@@ -54,7 +54,7 @@ class InterfaceECWorkflow0 extends DolibarrTriggers
             // Action
             case 'ACTION_MODIFY':
                 // Get mode for the user and event
-                $user_f = DolibarrApiAccess::$user->id > 0 ? DolibarrApiAccess::$user : $user;
+                $user_f = $user->id > 0 ? $user : DolibarrApiAccess::$user;
                 dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
                 $eventconfidentiality = new EventConfidentiality($this->db);
                 $mode = $eventconfidentiality->getModeForUserAndEvent($user_f, $object->id);

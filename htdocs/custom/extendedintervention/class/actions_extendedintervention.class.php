@@ -99,7 +99,7 @@ class ActionsExtendedIntervention
             if (!empty($conf->global->EXTENDEDINTERVENTION_QUOTA_ACTIVATE)) {
                 $confirm = GETPOST('confirm', 'alpha');
 
-                if ($action == 'add' && $user->rights->ficheinter->creer) {
+                if ($action == 'add' && $user->rights->ficheinter->creer && (!$conf->extendedintervention->enabled || !$object->cr_must_confirm_socid)) {
                     $fk_contrat = GETPOST('contratid', 'int');
 
                     // Extrafields

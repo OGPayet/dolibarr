@@ -4872,7 +4872,8 @@ class CompanyRelationshipsApi extends DolibarrApi {
 	 * @throws 400
 	 * @throws 401
 	 * @throws 404
-	 * @throws 200
+     * @throws 200
+     * @throws 500
 	 *
      * @url	GET documents/download
 	 */
@@ -4973,6 +4974,29 @@ class CompanyRelationshipsApi extends DolibarrApi {
                     }
                 } else {
                     throw new RestException(401);
+                }
+            }
+
+            if ($module_part == 'agenda' && $conf->eventconfidentiality->enabled) // Wrapping pour les actions
+            {
+                require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
+                $object = new ActionComm($this->db);
+                $result = $object->fetch('', $refname);
+                if ($result <= 0) {
+                    throw new RestException(500, "Error while retrieve the event object.", ['details' => $this->_getErrors($object)]);
+                }
+
+                dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
+                $eventconfidentiality = new EventConfidentiality($this->db);
+
+                // Get mode for the user and event
+                $mode = $eventconfidentiality->getModeForUserAndEvent(DolibarrApiAccess::$user, $object->id);
+                if ($mode < 0) {
+                    throw new RestException(500, "Error while retrieve the mode of confidentiality for the event.", ['details' => $this->_getErrors($eventconfidentiality)]);
+                }
+
+                if ($mode != EventConfidentiality::MODE_VISIBLE) {
+                    throw new RestException(401, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
                 }
             }
         }
@@ -5361,18 +5385,35 @@ class CompanyRelationshipsApi extends DolibarrApi {
                 return [];
             }
 
+            if ($conf->eventconfidentiality->enabled) {
+                dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
+                $eventconfidentiality = new EventConfidentiality($this->db);
+
+                // Get mode for the user and event
+                $mode = $eventconfidentiality->getModeForUserAndEvent(DolibarrApiAccess::$user, $object->id);
+                if ($mode < 0) {
+                    throw new RestException(500, "Error while retrieve the mode of confidentiality for the event: ", ['details' => $this->_getErrors($eventconfidentiality)]);
+                }
+
+                if ($mode != EventConfidentiality::MODE_VISIBLE) {
+                    throw new RestException(401, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
+                }
+            }
+
             if (!DolibarrApiAccess::$user->rights->agenda->allactions->read &&
                 !(($object->authorid == DolibarrApiAccess::$user->id || $object->userownerid == DolibarrApiAccess::$user->id) && DolibarrApiAccess::$user->rights->agenda->myactions->read)
             ) {
-                throw new RestException(401);
+                throw new RestException(401, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
             }
 
-            $upload_dir = $conf->agenda->dir_output . '/' . dol_sanitizeFileName($object->ref);
-            $output_dir = $conf->agenda->dir_output . "/";
             $tableandshare = 'actioncomm&societe';
             $feature2 = 'myactions|allactions';
             $dbt_select = 'id';
-        } else if ($modulepart == 'equipement') // Wrapping pour les equipements
+
+            $upload_dir = $conf->agenda->dir_output . '/' . dol_sanitizeFileName($object->ref);
+            $output_dir = $conf->agenda->dir_output . "/";
+        }
+        else if ($modulepart == 'equipement') // Wrapping pour les equipements
         {
             dol_include_once('/equipement/class/equipement.class.php');
 
