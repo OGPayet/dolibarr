@@ -1533,7 +1533,7 @@ SCRIPT;
                     break;
                 case 'societe':
                     $parameters['whitelist_of_properties_linked_object'] = array(
-                        "nom" => '', "name_alias" => '', "particulier" => '', "zip" => '', "town" => '', "status" => '',
+                        "name" => '',"nom" => '', "name_alias" => '', "particulier" => '', "address" => '',"zip" => '', "town" => '', "status" => '',
                         "state_id" => '', "state_code" => '', "state" => '', "departement_code" => '', "departement" => '', "pays" => '',
                         "phone" => '', "fax" => '', "email" => '', "skype" => '', "url" => '', "barcode" => '', "idprof1" => '', "idprof2" => '',
                         "idprof3" => '', "idprof4" => '', "idprof5" => '', "idprof6" => '', "code_client" => '',
