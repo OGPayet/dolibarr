@@ -361,6 +361,12 @@ if($action == 'confirm_direct') {
 		$objectexp->socid					= $objectsrc->socid;
 		$objectexp->fk_delivery_address	= $objectsrc->fk_delivery_address;
 
+		// Open DSI -- Set default model of document -- Begin
+		if (!empty($conf->global->EXPEDITION_ADDON_PDF)) {
+            $objectexp->model_pdf = $conf->global->EXPEDITION_ADDON_PDF;
+        }
+        // Open DSI -- Set default model of document -- End
+
 		$stockLine = array();
 
 		$num=count($objectsrc->lines);
@@ -683,6 +689,11 @@ if ($action == 'direct') {
 		foreach ($tblIdCmdFourn as $CmdeFourn) {
 			$array_fourn[] = $CmdeFourn;
 		}
+        //-------------------------
+        // Modification - Open-DSI - Begin
+        $object->fetch_optionals();
+        // Modification - Open-DSI - End
+        //-------------------------
 
 		// Create an array for form
 		$restock_static=new Restock($db);
@@ -697,7 +708,12 @@ if ($action == 'direct') {
 								'text' => "<b>".$langs->trans("PassationOrder")."</b>",
 								array('type' => 'date', 'name' => 'order_date', 'label' => $langs->trans("OrderDate"), 'value' => dol_mktime(0, 0, 0, GETPOST('remonth'), GETPOST('reday'), GETPOST('reyear'))),
 								array('type' => 'select', 'name' => 'order_methode', 'label' => $langs->trans("OrderMode"), 'values' =>  $restock_static->selectInputMethodRestock(GETPOST('methodecommande'), "methodecommande", 1)),
-								array('type' => 'text', 'name' => 'order_comment', 'label' => $langs->trans("Comment"), 'value' =>  GETPOST('comment'))
+								array('type' => 'text', 'name' => 'order_comment', 'label' => $langs->trans("Comment"), 'value' =>  GETPOST('comment')),
+                                //-------------------------
+                                // Modification - Open-DSI - Begin
+                                array('type' => 'hidden', 'name' => 'options_companyrelationships_fk_soc_benefactor', 'value' => $object->array_options['options_companyrelationships_fk_soc_benefactor'])
+                                // Modification - Open-DSI - End
+                                //-------------------------
 							),
 							array(
 								'text' => "<b>".$langs->trans("ReceptionOrder")."</b>",
