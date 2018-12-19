@@ -1549,7 +1549,6 @@ SCRIPT;
             "id" => '', "linkedObjectsIds" => '',"thirdparty_principal_ids" => '',
                         "thirdparty_benefactor_ids" => ''
         );
-
                     break;
                 case 'propaldet':
                     if (DolibarrApiAccess::$user->societe_id > 0) {

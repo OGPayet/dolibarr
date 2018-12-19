@@ -491,6 +491,8 @@ class EventConfidentiality extends CommonObject
      */
     function getConfidentialTagsOfUser(&$user)
     {
+        global $conf;
+
         if (empty($user->array_options) && $user->id > 0) {
             $user->fetch_optionals();
         }
@@ -499,18 +501,30 @@ class EventConfidentiality extends CommonObject
         $user_tags = array_filter(array_map('trim', explode(',', $user->array_options['options_user_tag'])), 'strlen');
 
         // Get groups of the user
-        require_once DOL_DOCUMENT_ROOT . '/user/class/usergroup.class.php';
-        $usergroup = new UserGroup($this->db);
-        $usergroups = $usergroup->listGroupsForUser($user->id);
-        if (!is_array($usergroups)) {
-            $this->error = $usergroup->error;
-            $this->errors = $usergroup->errors;
-            return -1;
+        $sql = "SELECT gef.group_tag";
+        $sql.= " FROM ".MAIN_DB_PREFIX."usergroup as g,";
+        $sql.= " ".MAIN_DB_PREFIX."usergroup_user as ug,";
+        $sql.= " ".MAIN_DB_PREFIX."usergroup_extrafields as gef";
+        $sql.= " WHERE ug.fk_usergroup = g.rowid";
+        $sql.= " AND gef.fk_object = g.rowid";
+        $sql.= " AND ug.fk_user = " . $user->id;
+        if(!empty($conf->multicompany->enabled) && $conf->entity == 1 && $user->admin && ! $user->entity) {
+            $sql .= " AND g.entity IS NOT NULL";
+        } else {
+            $sql .= " AND g.entity IN (0," . $conf->entity . ")";
         }
+        $sql.= " ORDER BY g.nom";
 
-        // Get groups tags
-        foreach ($usergroups as $group) {
-            $user_tags = array_merge($user_tags, array_filter(array_map('trim', explode(',', $group->array_options['options_group_tag'])), 'strlen'));
+        $resql = $this->db->query($sql);
+        if ($resql) {
+            while ($obj = $this->db->fetch_object($resql)) {
+                $user_tags = array_merge($user_tags, array_filter(array_map('trim', explode(',', $obj->group_tag)), 'strlen'));
+            }
+
+            $this->db->free($resql);
+        } else {
+            $this->error = $this->db->lasterror();
+            return -1;
         }
 
         return array_unique($user_tags);
