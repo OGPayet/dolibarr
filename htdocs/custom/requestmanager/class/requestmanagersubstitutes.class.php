@@ -220,6 +220,8 @@ class RequestManagerSubstitutes
             $requestmanager->watcher_ids = is_array($requestmanager->watcher_ids) ? $requestmanager->watcher_ids : array();
             foreach ($requestmanager->watcher_ids as $contact_id) { $watcher_names[] = self::_getContactName($contact_id); }
 
+            $url = dol_buildpath('/requestmanager/card.php', 2) . '?id='.$requestmanager->id;
+
             $vars = array(
                 // Request
                 '__REQUEST_ID__'                        => $requestmanager->id,
@@ -288,7 +290,7 @@ class RequestManagerSubstitutes
                 '__REQUEST_USER_RESOLVED_NAME__'        => $requestmanager->user_resolved_id > 0 ? self::_getUserName($requestmanager->user_resolved_id) : '',
                 '__REQUEST_USER_CLOSED_ID__'            => $requestmanager->user_cloture_id > 0 ? $requestmanager->user_cloture_id : '',
                 '__REQUEST_USER_CLOSED_NAME__'          => $requestmanager->user_cloture_id > 0 ? self::_getUserName($requestmanager->user_cloture_id) : '',
-                '__REQUEST_URL__'                       => dol_buildpath('/requestmanager/card.php', 2) . '?id='.$requestmanager->id,
+                '__REQUEST_URL__'                       => '<a href="'.$url.'">'.$url.'</a>',
             );
 
             // Create dynamic tags for __EXTRAFIELD_FIELD__

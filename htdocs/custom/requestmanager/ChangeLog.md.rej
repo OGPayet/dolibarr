@@ -1,18 +1,25 @@
 diff a/htdocs/custom/requestmanager/ChangeLog.md b/htdocs/custom/requestmanager/ChangeLog.md	(rejected hunks)
-@@ -3,6 +3,16 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
+@@ -3,6 +3,13 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
  
  ## [Non Distribué]
  
-+## [4.0.17] - 04-12-2018
-+- Filtre pat tags/catégories sur la liste.
-+- Ajout d'un onglet sur le tiers affichant la liste de ses demandes (origine, donneur d'ordre, bénéficiaire).
-+- Ajout du bouton "creer demande" sur la fiche tiers "client" et "fournisseur".
-+- Ajout du motif de résolution.
-+- Ajout de nouveaux bouton "créer" sur la demande.
-+- Le module 'Company Relationships' est maintenant optionnel.
-+- Correction calcule de la date d'échéance au passage d'un statut selon les paramètres renseignés pour celui-ci.
-+- Correctionde l'affichage des tags de confidentialités externes sur la liste des événements de la demande.
++## [4.0.18] - 19-12-2018
++- Correction lors de la creation d'une demande lors d'un forcage du donneur d'ordre en dehors de la plage horaire.
++- Correction affichage de l'URL dans les courriels avec la variable de substitution "\_\_REQUEST_URL__".
++- Ajout sur le dictionnaire des statuts des options suivantes :
++  - Pour fermer tous les événements lié à la demande au passage à ce statut.
++  - Pour que, lors de la création ou modification d'un événement lié à une demande et l'événements a la date de début la plus lointaine, la date d'opération soit égale à la date de début de l'événement et la date d'échéance (optionnel) soit recalculer ou soit égale à la date de fin de l'événement
 +
- ## [4.0.16] - 27-11-2018
- - Correction de l'ajout d'un message comportant une URL (Erreur message vide).
- - Idem pour la création d'une demande avec la description.
+ ## [4.0.17] - 04-12-2018
+ - Filtre pat tags/catégories sur la liste.
+ - Ajout d'un onglet sur le tiers affichant la liste de ses demandes (origine, donneur d'ordre, bénéficiaire).
+@@ -94,7 +101,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
+ ## [4.0.0] - 16-07-2018
+ - Version initial.
+ 
+-[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/compare/v4.0.15...HEAD
++[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/compare/v4.0.18...HEAD
++[4.0.18]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.18
+ [4.0.15]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.15
+ [4.0.14]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.14
+ [4.0.13]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.13

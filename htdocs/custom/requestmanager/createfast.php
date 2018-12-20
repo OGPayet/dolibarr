@@ -65,8 +65,8 @@ if (!empty($conf->companyrelationships->enabled)) {
     $companyrelationships = new CompanyRelationships($db);
 }
 
-$force_principal_company = false;
-$force_out_of_time = false;
+$force_principal_company = GETPOST('force_principal_company', 'int');
+$force_out_of_time = GETPOST('force_out_of_time', 'int');
 
 /*
  * Actions
@@ -316,6 +316,7 @@ if (($action == 'createfast' || $action == 'force_principal_company' || $action 
     }
 
     if ($action == 'force_principal_company') {
+        if (!empty($force_out_of_time)) $formquestion[] = array('type' => 'hidden', 'name' => 'force_out_of_time', 'value' => $force_out_of_time ? 1 : 0);
         $societe = new Societe($db);
         $societe->fetch($selectedSocId);
         $formquestion[] = array('type' => 'other', 'label' => $langs->trans('RequestManagerThirdPartyPrincipal'), 'value' => $societe->getNomUrl(1));
@@ -324,6 +325,8 @@ if (($action == 'createfast' || $action == 'force_principal_company' || $action 
 
         print $form->formconfirm($_SERVER["PHP_SELF"], $langs->trans('RequestManagerForcePrincipalCompany'), $langs->trans('RequestManagerConfirmForcePrincipalCompany'), 'confirm_force_principal_company', $formquestion, 0, 1);
     } elseif (!empty($conf->global->REQUESTMANAGER_TIMESLOTS_ACTIVATE) && $action == 'force_out_of_time') {
+        if (!empty($force_principal_company)) $formquestion[] = array('type' => 'hidden', 'name' => 'force_principal_company', 'value' => $force_principal_company ? 1 : 0);
+        if (!empty($originid)) $formquestion[] = array('type' => 'hidden', 'name' => 'originid', 'value' => $originid);
         $outOfTimes = requestmanagertimeslots_get_out_of_time_infos($selectedSocId);
         if (is_array($outOfTimes) && count($outOfTimes) > 0) {
             $toprint = array();

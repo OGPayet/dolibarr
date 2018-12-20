@@ -2488,6 +2488,34 @@ class RequestManager extends CommonObject
             }
         }
 
+        // Close all events linked to this request
+        if (!$error && !empty($status_infos->fields['close_all_event'])) {
+            $sql = "UPDATE " . MAIN_DB_PREFIX . "actioncomm as t";
+            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "element_element as ee";
+            $element_correspondance = "(" . // Todo a completer si il y a d'autres correspondances
+                "IF(t.elementtype = 'contract', 'contrat', " .
+                " IF(t.elementtype = 'invoice', 'facture', " .
+                "  IF(t.elementtype = 'order', 'commande', " .
+                "   t.elementtype)))" .
+                ")";
+            $sql .= " ON (ee.sourcetype = " . $element_correspondance . " AND ee.fk_source = t.fk_element) OR (ee.targettype = " . $element_correspondance . " AND ee.fk_target = t.fk_element)";
+            $sql .= ' SET t.percent = 100';
+            $sql .= ' WHERE t.entity IN (' . getEntity('agenda') . ')';
+            $soc_ids = array_unique(array($this->socid_origin, $this->socid, $this->socid_benefactor));
+            $sql .= ' AND t.fk_soc IN (' . implode(',', $soc_ids) . ')';
+            $request_children_ids = $this->getAllChildrenRequest();
+            $request_ids = array_merge($request_children_ids, array($this->id));
+            $sql .= " AND IF(t.elementtype='requestmanager', t.fk_element, IF(ee.targettype='requestmanager', ee.fk_target, IF(ee.sourcetype='requestmanager', ee.fk_source, NULL))) IN(" . implode(',', $request_ids) . ")";
+            $sql .= ' AND t.percent < 100 AND t.percent >= 0';
+
+            $resql = $this->db->query($sql);
+            if (!$resql) {
+                $error++;
+                $this->errors[] = 'Error ' . $this->db->lasterror();
+                dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $this->db->lasterror(), LOG_ERR);
+            }
+        }
+
         // Create sub request
         if (!$error && !empty($status_infos->fields['new_request_type']) && $status_infos->fields['new_request_type_auto']) {
             foreach (explode(',', $status_infos->fields['new_request_type']) as $new_request_type_id) {

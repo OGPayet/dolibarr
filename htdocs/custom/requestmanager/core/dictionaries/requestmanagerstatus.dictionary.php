@@ -31,7 +31,7 @@ class RequestManagerStatusDictionary extends Dictionary
     /**
      * @var int         Version of this dictionary
      */
-    public $version = 8;
+    public $version = 9;
 
     /**
      * @var array       List of languages to load
@@ -201,6 +201,12 @@ class RequestManagerStatusDictionary extends Dictionary
                 'align'  => 'left',
             ),
         ),
+        'operation_from_event' => array(
+            'name'       => 'operation_from_event',
+            'label'      => 'RequestManagerStatusDictionaryOperationFromEvent',
+            'help'       => 'RequestManagerStatusDictionaryOperationFromEventHelp',
+            'type'       => 'boolean',
+        ),
         'deadline' => array(
             'name'       => 'deadline',
             'label'      => 'RequestManagerStatusDictionaryDeadLine',
@@ -220,6 +226,34 @@ class RequestManagerStatusDictionary extends Dictionary
             ),
             'td_input'  => array (
                 'align'  => 'left',
+                'positionLine' => 1,
+            ),
+        ),
+        'deadline_rc_from_event' => array(
+            'name'       => 'deadline_rc_from_event',
+            'label'      => 'RequestManagerStatusDictionaryDeadlineRcFromEventEvent',
+            'help'       => 'RequestManagerStatusDictionaryDeadlineRcFromEventEventHelp',
+            'type'       => 'boolean',
+            'td_input' => array(
+                'positionLine' => 1,
+            ),
+        ),
+        'deadline_from_event' => array(
+            'name'       => 'deadline_from_event',
+            'label'      => 'RequestManagerStatusDictionaryDeadlineFromEvent',
+            'help'       => 'RequestManagerStatusDictionaryDeadlineFromEventHelp',
+            'type'       => 'boolean',
+            'td_input' => array(
+                'positionLine' => 1,
+            ),
+        ),
+        'close_all_event' => array(
+            'name'       => 'close_all_event',
+            'label'      => 'RequestManagerStatusDictionaryCloseAllEvent',
+            'help'       => 'RequestManagerStatusDictionaryCloseAllEventHelp',
+            'type'       => 'boolean',
+            'td_input' => array(
+                'positionLine' => 1,
             ),
         ),
         'authorized_user' => array(),
@@ -365,6 +399,14 @@ class RequestManagerStatusDictionary extends Dictionary
                 'next_status_auto' => 'a',
             )
         ),
+        9 => array(
+            'fields' => array(
+                'operation_from_event' => 'a',
+                'deadline_rc_from_event' => 'a',
+                'deadline_from_event' => 'a',
+                'close_all_event' => 'a',
+            )
+        ),
     );
 
     /**
@@ -453,7 +495,7 @@ class RequestManagerStatusDictionary extends Dictionary
                 'moreAttributes' => 'width="20%"',
             ),
             'td_input' => array(
-                'moreAttributes' => 'width="20%"',
+                'moreAttributes' => 'width="12.5%"',
             ),
             'is_require' => true,
         );
@@ -484,9 +526,9 @@ class RequestManagerStatusDictionary extends Dictionary
                 'moreAttributes' => 'width="20%"',
             ),
             'td_input' => array(
-                'moreAttributes' => 'width="36%"',
+                'moreAttributes' => 'width="25%"',
                 'positionLine' => 1,
-                'colspan' => 3,
+                'colspan' => 2,
             ),
         );
 
@@ -499,9 +541,9 @@ class RequestManagerStatusDictionary extends Dictionary
                 'moreAttributes' => 'width="20%"',
             ),
             'td_input' => array(
-                'moreAttributes' => 'width="36%"',
+                'moreAttributes' => 'width="25%"',
                 'positionLine' => 1,
-                'colspan' => 3,
+                'colspan' => 2,
             ),
         );
 
@@ -514,7 +556,7 @@ class RequestManagerStatusDictionary extends Dictionary
                 'moreAttributes' => 'width="20%"',
             ),
             'td_input' => array(
-                'moreAttributes' => 'width="36%"',
+                'moreAttributes' => 'width="37.5%"',
                 'positionLine' => 2,
                 'colspan' => 3,
             ),
@@ -529,7 +571,7 @@ class RequestManagerStatusDictionary extends Dictionary
                 'moreAttributes' => 'width="20%"',
             ),
             'td_input' => array(
-                'moreAttributes' => 'width="36%"',
+                'moreAttributes' => 'width="37.5%"',
                 'positionLine' => 2,
                 'colspan' => 3,
             ),
@@ -545,7 +587,7 @@ class RequestManagerStatusDictionary extends Dictionary
                 'moreAttributes' => 'width="20%"',
             ),
             'td_input' => array(
-                'moreAttributes' => 'width="20%"',
+                'moreAttributes' => 'width="25%"',
                 'positionLine' => 3,
                 'colspan' => 2,
             ),
@@ -561,7 +603,7 @@ class RequestManagerStatusDictionary extends Dictionary
                 'moreAttributes' => 'width="20%"',
             ),
             'td_input' => array(
-                'moreAttributes' => 'width="20%"',
+                'moreAttributes' => 'width="25%"',
                 'positionLine' => 3,
                 'colspan' => 2,
             ),
@@ -836,6 +878,9 @@ class RequestManagerStatusDictionaryLine extends DictionaryLine
         if ($fieldName == 'next_status') {
             dol_include_once('/requestmanager/class/requestmanager.class.php');
             $typeFieldHtmlName = $keyprefix . 'type' . $keysuffix;
+            $operationFromEventFieldHtmlName = $keyprefix . 'operation_from_event' . $keysuffix;
+            $deadlineRcFromEventFieldHtmlName = $keyprefix . 'deadline_rc_from_event' . $keysuffix;
+            $deadlineFromEventFieldHtmlName = $keyprefix . 'deadline_from_event' . $keysuffix;
             $currentTriggerFieldHtmlName = $keyprefix . 'current_trigger' . $keysuffix;
             $newRequestTypeFieldHtmlName = $keyprefix . 'new_request_type' . $keysuffix;
             $newRequestTypeAutoFieldHtmlName = $keyprefix . 'new_request_type_auto' . $keysuffix;
@@ -844,6 +889,8 @@ class RequestManagerStatusDictionaryLine extends DictionaryLine
             $nextStatusFieldHtmlName = $keyprefix . 'next_status' . $keysuffix;
             $reasonResolutionFieldHtmlName = $keyprefix . 'reason_resolution' . $keysuffix;
             $authorizedButtonsFieldHtmlName = $keyprefix . 'authorized_buttons' . $keysuffix;
+            $updateDeadlineRcFromEventFunctionName = 'update_' . $deadlineRcFromEventFieldHtmlName;
+            $updateDeadlineFromEventFunctionName = 'update_' . $deadlineFromEventFieldHtmlName;
             $updateCurrentTriggerFunctionName = 'update_' . $currentTriggerFieldHtmlName;
             $updateNewRequestTypeFunctionName = 'update_' . $newRequestTypeFieldHtmlName;
             $updateNewRequestTypeAutoFunctionName = 'update_' . $newRequestTypeAutoFieldHtmlName;
@@ -858,6 +905,8 @@ class RequestManagerStatusDictionaryLine extends DictionaryLine
             $closed_status = RequestManager::STATUS_TYPE_CLOSED;
 
             print <<<SCRIPT
+            <input type="hidden" id="h_$deadlineRcFromEventFieldHtmlName" name="$deadlineRcFromEventFieldHtmlName" value="" disabled="disabled">
+            <input type="hidden" id="h_$deadlineFromEventFieldHtmlName" name="$deadlineFromEventFieldHtmlName" value="" disabled="disabled">
             <input type="hidden" id="h_$currentTriggerFieldHtmlName" name="$currentTriggerFieldHtmlName" value="" disabled="disabled">
             <input type="hidden" id="h_$newRequestTypeAutoFieldHtmlName" name="$newRequestTypeAutoFieldHtmlName" value="" disabled="disabled">
             <input type="hidden" id="h_$newRequestTypeFieldHtmlName" name="$newRequestTypeFieldHtmlName" value="" disabled="disabled">
@@ -869,6 +918,8 @@ class RequestManagerStatusDictionaryLine extends DictionaryLine
 
 <script type="text/javascript">
     $(document).ready(function() {
+        $updateDeadlineRcFromEventFunctionName();
+        $updateDeadlineFromEventFunctionName();
         $updateCurrentTriggerFunctionName();
         $updateNewRequestTypeFunctionName();
         $updateNewRequestTypeAutoFunctionName();
@@ -902,7 +953,37 @@ class RequestManagerStatusDictionaryLine extends DictionaryLine
             $updateReasonResolutionFunctionName();
             $updateAuthorizedButtonsFunctionName();
         });
+        $('#$operationFromEventFieldHtmlName').on('change', function() {
+            $updateDeadlineRcFromEventFunctionName();
+            $updateDeadlineFromEventFunctionName();
+        });
+        $('#$deadlineRcFromEventFieldHtmlName').on('change', function() {
+            $updateDeadlineFromEventFunctionName();
+        });
+        $('#$deadlineFromEventFieldHtmlName').on('change', function() {
+            $updateDeadlineRcFromEventFunctionName();
+        });
 
+        function $updateDeadlineRcFromEventFunctionName() {
+            var disabled = !$('#$operationFromEventFieldHtmlName').is(':checked');
+            var uncheck = $('#$deadlineFromEventFieldHtmlName').is(':checked');
+
+            $('#$deadlineRcFromEventFieldHtmlName').prop('disabled', disabled);
+            $('#h_$deadlineRcFromEventFieldHtmlName').prop('disabled', !disabled);
+            if (disabled || uncheck) {
+                $('#$deadlineRcFromEventFieldHtmlName').prop('checked', false);
+            }
+        }
+        function $updateDeadlineFromEventFunctionName() {
+            var disabled = !$('#$operationFromEventFieldHtmlName').is(':checked');
+            var uncheck = $('#$deadlineRcFromEventFieldHtmlName').is(':checked');
+
+            $('#$deadlineFromEventFieldHtmlName').prop('disabled', disabled);
+            $('#h_$deadlineFromEventFieldHtmlName').prop('disabled', !disabled);
+            if (disabled || uncheck) {
+                $('#$deadlineFromEventFieldHtmlName').prop('checked', false);
+            }
+        }
         function $updateCurrentTriggerFunctionName() {
             var disabled = $('#$typeFieldHtmlName').val() == $initial_status;
 
