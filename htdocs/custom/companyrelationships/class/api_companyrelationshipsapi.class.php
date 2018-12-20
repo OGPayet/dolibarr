@@ -130,7 +130,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
             "durationp" => '', "fulldayevent" => '', "punctual" => '', "percentage" => '', "location" => '', "transparency" => '',
             "priority" => '', "userassigned" => array(''=>array('id'=>'')), "userownerid" => '', "userdoneid" => '', "socid" => '', "contactid" => '',
             "contact" => '', "array_options" => '', "fk_project" => '', "ref_ext" => '', "note" => '', "type_picto" => '',
-            "user_mod" => '', "user_done" => '', "user_owner" => '', "thirdparty" => '', "entity" => '', "fk_element" => '', "elementtype" => '',
+            "user_mod" => '', "user_done" => '', "user_owner" => '', "thirdparty" => '', "entity" => '', "fk_element " => '', "elementtype" => '',
         ),
         'user' => array(
             "id" => '', "employee" => '', "gender" => '', "email" => '', "skype" => '', "job" => '', "signature" => '',
@@ -4598,7 +4598,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
 
         $sql  = "SELECT t.rowid";
         $sql .= " FROM " . MAIN_DB_PREFIX . "equipement as t";
-        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "equipement_extrafields as ef ON ef.fk_object = t.rowid";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "equipement_extrafields as tef ON tef.fk_object = t.rowid";
 
         // external
         if ($userSocId > 0) {
@@ -4682,6 +4682,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
                 $equipement_static = new Equipement($db);
                 if($equipement_static->fetch($obj->rowid)) {
                     $equipement_static->fetchObjectLinked();
+					$equipement_static->fetch_optionals();
                     $equipement_static->fetch_product();
                     $equipement_static->fetch_thirdparty();
                     $obj_ret[] = $this->_cleanObjectData($equipement_static);
