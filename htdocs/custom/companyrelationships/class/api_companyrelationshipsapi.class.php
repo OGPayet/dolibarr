@@ -4900,6 +4900,18 @@ class CompanyRelationshipsApi extends DolibarrApi {
         //--------------------------------------------------------------
         // Open-DSI - Modification - Begin
         //
+				//Modif par Alexis LAURIER - we try to merge elementtype return by agenda module to elementtype accepted by document
+
+switch($module_part)
+{
+case 'shipping':
+$module_part='expedition';
+break;
+
+default:
+}
+
+
         $check_access = dol_check_secure_access_document($module_part, $original_file, $entity, DolibarrApiAccess::$user, $refname, 'read', true);
         $original_file = $check_access['original_file'];
 
@@ -4907,6 +4919,10 @@ class CompanyRelationshipsApi extends DolibarrApi {
             'propal', 'proposal', 'commande', 'order', 'shipment', 'expedition', 'facture', 'invoice',
             'fichinter', 'ficheinter', 'intervention', 'interventions', 'contract', 'contrat'
         ));
+
+
+
+
         if (isset($companyrelationships_modulepart_check[$module_part])) {
             $object = null;
             if ($module_part == 'propal' || $module_part == 'proposal') {
@@ -5204,7 +5220,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
             // Open-DSI - Modification - End
             //--------------------------------------------------------------
             $tableandshare = 'commande';
-        } else if ($modulepart == 'shipment' || $modulepart == 'expedition') {
+        } else if ($modulepart == 'shipment' || $modulepart == 'expedition' || $modulepart == 'shipping') {
             require_once DOL_DOCUMENT_ROOT . '/expedition/class/expedition.class.php';
 
             if (!DolibarrApiAccess::$user->rights->expedition->lire) {
