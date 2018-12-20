@@ -1504,11 +1504,14 @@ class InvoicesContractTools
                 return -1;
         }
 
+        $limit_up = ($potential_revaluation_date->year - ($month_for_new_revaluation_index > $potential_revaluation_date->month ? 1 : 0)). "-" . $month_for_new_revaluation_index;
+        $limit_down = ($potential_revaluation_date->year - 1) . "-" . $potential_revaluation_date->month;
+
         // Todo to check for 'month used for get the new revaluation index' and 'potential revaluation date' used in the sql request
         $sql = "SELECT indice, year_indice, month_indice FROM " . MAIN_DB_PREFIX . "c_indice_".$suffix_table .
             " WHERE active = 1" .
-            " AND STR_TO_DATE(CONCAT(year_indice, '-', month_indice), '%Y-%m') <= STR_TO_DATE('" . $this->db->escape(($potential_revaluation_date->year - ($month_for_new_revaluation_index > $potential_revaluation_date->month ? 1 : 0)). "-" . $month_for_new_revaluation_index) . "', '%Y-%m')" .
-            " AND STR_TO_DATE(CONCAT(year_indice, '-', month_indice), '%Y-%m') >= STR_TO_DATE('" . $this->db->escape(($potential_revaluation_date->year - 1) . "-" . $potential_revaluation_date->month) . "', '%Y-%m')" .
+            " AND STR_TO_DATE(CONCAT(year_indice, '-', month_indice), '%Y-%m') <= STR_TO_DATE('" . $this->db->escape($limit_up) . "', '%Y-%m')" .
+            " AND STR_TO_DATE(CONCAT(year_indice, '-', month_indice), '%Y-%m') >= STR_TO_DATE('" . $this->db->escape($limit_down) . "', '%Y-%m')" .
             " ORDER BY year_indice DESC, month_indice DESC" .
             " LIMIT 1";
 
@@ -1530,7 +1533,7 @@ class InvoicesContractTools
 
             return array('index' => ucfirst($suffix_table), 'index_value' => $obj->indice, 'month' => $obj->month_indice, 'year' => $obj->year_indice);
         } else {
-            $this->errors[] = $langs->trans('STCErrorRevaluationIndexInfoNotFound', ucfirst($suffix_table), $month_for_new_revaluation_index, $potential_revaluation_date->month, $potential_revaluation_date->year);
+            $this->errors[] = $langs->trans('STCErrorRevaluationIndexInfoNotFound', ucfirst($suffix_table), $limit_down, $limit_up);
             return -1;
         }
     }
