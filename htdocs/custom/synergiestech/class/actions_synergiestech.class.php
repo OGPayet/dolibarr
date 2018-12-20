@@ -1549,6 +1549,17 @@ SCRIPT;
             "id" => '', "linkedObjectsIds" => '',"thirdparty_principal_ids" => '',
                         "thirdparty_benefactor_ids" => ''
         );
+<<<<<<< HEAD
+=======
+		break;
+		case 'propal':
+		if (DolibarrApiAccess::$user->societe_id > 0) {
+		$parameters['blacklist_of_properties'] = array(
+            "lines" => ''
+        );
+		}
+					
+>>>>>>> Ajustement confidentialité api Module synergies-tech
                     break;
                 case 'propaldet':
                     if (DolibarrApiAccess::$user->societe_id > 0) {
