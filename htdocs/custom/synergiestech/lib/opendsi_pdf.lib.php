@@ -117,7 +117,7 @@ function opendsi_pdf_getInstance($format='',$metric='mm',$pagetype='P')
         }
 
         $pdf = new ExFPDI($pagetype, $metric, $format);
-    } elseif (!class_exists('ExFPDI')) {
+    } elseif (!class_exists('ExTCPDF')) {
         // Extend the TCPDF class to create custom Header and Footer
         class ExTCPDF extends TCPDF
         {
