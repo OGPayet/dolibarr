@@ -62,7 +62,7 @@ function opendsi_pdf_getInstance($format='',$metric='mm',$pagetype='P')
     //$format=array($arrayformat['width'],$arrayformat['height']);
     //$metric=$arrayformat['unit'];
 
-    if (class_exists('TCPDI')) {
+    if (class_exists('TCPDI') && !class_exists('ExTCPDI')) {
         // Extend the TCPDF class to create custom Header and Footer
         class ExTCPDI extends TCPDI
         {
@@ -91,7 +91,7 @@ function opendsi_pdf_getInstance($format='',$metric='mm',$pagetype='P')
         }
 
         $pdf = new ExTCPDI($pagetype, $metric, $format);
-    } else if (class_exists('FPDI')) {
+    } else if (class_exists('FPDI') && !class_exists('ExFPDI')) {
         class ExFPDI extends FPDI
         {
             public $backgroundImagePath = '';
@@ -117,7 +117,7 @@ function opendsi_pdf_getInstance($format='',$metric='mm',$pagetype='P')
         }
 
         $pdf = new ExFPDI($pagetype, $metric, $format);
-    } else {
+    } elseif (!class_exists('ExFPDI')) {
         // Extend the TCPDF class to create custom Header and Footer
         class ExTCPDF extends TCPDF
         {
