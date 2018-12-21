@@ -450,7 +450,7 @@ class InvoicesContractTools
         $billing_period_end = $billing_period['end']->copy();
 
         // Get watching period length
-        $watching_period_lenght = $watching_period_begin->diffInDays($watching_period_end) + 1;
+        $watching_period_lenght = $watching_period_begin->diffInDays($watching_period_end) + ($watching_period_begin != $watching_period_end ? 1 : 0);
 
         // Set info into the report CSV
         $this->setCurrentReportLineValue(self::RLH_WATCHING_PERIOD_LENGHT, $watching_period_lenght);
@@ -525,8 +525,8 @@ class InvoicesContractTools
                 $second_billing_period_end = $billing_period_end->copy();
 
                 // Get length periods
-                $first_billing_period_lenght = $first_billing_period_begin->diffInDays($first_billing_period_end) + 1;
-                $second_billing_period_lenght = $second_billing_period_begin->diffInDays($second_billing_period_end) + 1;
+                $first_billing_period_lenght = $first_billing_period_begin->diffInDays($first_billing_period_end) + ($first_billing_period_begin != $first_billing_period_end ? 1 : 0);
+                $second_billing_period_lenght = $second_billing_period_begin->diffInDays($second_billing_period_end) + ($second_billing_period_begin != $second_billing_period_end ? 1 : 0);
 
                 // Set info into the report CSV
                 $this->setCurrentReportLineValue(self::RLH_FIRST_BILLING_PERIOD_BEGIN, $first_billing_period_begin->toDateString());
@@ -650,7 +650,7 @@ class InvoicesContractTools
 
         // Calculate the billing period amount if not already calculated
         if (!isset($billing_period_amount)) {
-            $billing_period_lenght = $billing_period_begin->diffInDays($billing_period_end) + 1;
+            $billing_period_lenght = $billing_period_begin->diffInDays($billing_period_end) + ($billing_period_begin != $billing_period_end ? 1 : 0);
 
             // Set info into the report CSV
             $this->setCurrentReportLineValue(self::RLH_BILLING_PERIOD_LENGHT, $billing_period_lenght);
