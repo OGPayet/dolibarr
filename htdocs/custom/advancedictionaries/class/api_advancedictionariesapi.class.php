@@ -46,7 +46,9 @@ class AdvanceDictionariesApi extends DolibarrApi {
      */
     function __construct()
     {
-        global $db;
+        global $db, $user;
+
+        $user = DolibarrApiAccess::$user;
         self::$db = $db;
     }
 

@@ -381,7 +381,9 @@ class CompanyRelationshipsApi extends DolibarrApi {
      */
     function __construct()
     {
-        global $db, $conf;
+        global $db, $conf, $user;
+
+        $user = DolibarrApiAccess::$user;
         $this->db = $db;
 
         // proposals

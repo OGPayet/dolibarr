@@ -805,9 +805,10 @@ SCRIPT;
 
         foreach ($lines as $line) {
             if (!empty($line->fields['categorie'])) {
+                $categories = array_filter(array_map('trim', explode(',', $line->fields['categorie'])), 'strlen');
                 $found = false;
                 foreach ($tag_ids as $tag_id) {
-                    if (in_array($tag_id, $line->fields['categorie'])) {
+                    if (in_array($tag_id, $categories)) {
                         $found = true;
                         break;
                     }

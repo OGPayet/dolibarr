@@ -146,7 +146,9 @@ class RequestManagerApi extends DolibarrApi {
      */
     function __construct()
     {
-        global $conf, $db, $langs;
+        global $conf, $db, $langs, $user;
+
+        $user = DolibarrApiAccess::$user;
         self::$db = $db;
         $langs->load('requestmanager@requestmanager');
 

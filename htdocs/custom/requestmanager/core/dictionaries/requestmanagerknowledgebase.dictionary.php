@@ -217,6 +217,55 @@ class RequestManagerKnowledgeBaseDictionary extends Dictionary
      */
     public $edit_in_add_form = true;
 
+    /**
+     * @var array    Cache of the list of the categories for categorie show output
+     */
+    public $categories_cache = null;
+    /**
+     * @var FormRequestManager    FormRequestManager object for categorie show input
+     */
+    public $formrequestmanager = null;
+
+    /**
+	 * Load the cache of the list of the categories for categorie show output
+	 *
+     * @return  void
+	 */
+    public function load_categories()
+    {
+        global $conf;
+
+        if (!isset($this->categories_cache)) {
+            include_once DOL_DOCUMENT_ROOT . '/categories/class/categorie.class.php';
+            $cat = new Categorie($this->db);
+            $cate_arbo = $cat->get_full_arbo(Categorie::TYPE_PRODUCT);
+
+            $list = array();
+            foreach ($cate_arbo as $k => $cat) {
+                if (((preg_match('/^'.$conf->global->REQUESTMANAGER_ROOT_PRODUCT_CATEGORIES.'$/', $cat['fullpath']) ||
+                    preg_match('/_'.$conf->global->REQUESTMANAGER_ROOT_PRODUCT_CATEGORIES.'$/', $cat['fullpath'])) && $conf->global->REQUESTMANAGER_ROOT_PRODUCT_CATEGORY_INCLUDE) ||
+                    preg_match('/^'.$conf->global->REQUESTMANAGER_ROOT_PRODUCT_CATEGORIES.'_/', $cat['fullpath']) ||
+                    preg_match('/_'.$conf->global->REQUESTMANAGER_ROOT_PRODUCT_CATEGORIES.'_/', $cat['fullpath'])) {
+                    $list[$cat['id']] = $cat['fulllabel'];
+                }
+            }
+
+            $this->categories_cache = $list;
+        }
+    }
+
+    /**
+	 * Load the FormRequestManager object for categories show input
+	 *
+     * @return  void
+	 */
+    public function load_formrequestmanager()
+    {
+        if (!isset($this->formrequestmanager)) {
+            dol_include_once('/requestmanager/class/html.formrequestmanager.class.php');
+            $this->formrequestmanager = new FormRequestManager($this->db);
+        }
+    }
 
     /**
 	 * Initialize the dictionary
@@ -236,10 +285,13 @@ class RequestManagerKnowledgeBaseDictionary extends Dictionary
             'type' => 'chkbxlst',
             'options' => 'categorie:label:rowid::type=0 and entity IN (' . getEntity( 'category', 1 ) . ')',
             'td_output' => array(
-                'moreAttributes' => 'width="20%"'
+                'moreAttributes' => 'width="40%"'
             ),
             'td_input' => array(
-                'moreAttributes' => 'width="20%"'
+                'moreAttributes' => 'width="40%"'
+            ),
+            'show_input' => array(
+                'moreClasses' => 'centpercent'
             ),
             'is_require' => false
         );
@@ -250,10 +302,10 @@ class RequestManagerKnowledgeBaseDictionary extends Dictionary
             'type' => 'chkbxlst',
             'options' => 'c_requestmanager_request_type:label:rowid::active=1 and entity IN (' . getEntity('dictionary', 1) . ')',
             'td_output' => array(
-                'moreAttributes' => 'width="20%"'
+                'moreAttributes' => 'width="30%"'
             ),
             'td_input' => array(
-                'moreAttributes' => 'width="20%"'
+                'moreAttributes' => 'width="30%"'
             ),
             'is_require' => true
         );
@@ -279,5 +331,98 @@ class RequestManagerKnowledgeBaseDictionary extends Dictionary
                 'positionLine' => 1
             )
         );
+    }
+}
+
+class RequestManagerKnowledgeBaseDictionaryLine extends DictionaryLine
+{
+    /**
+     * Return HTML string to put an output field into a page
+     *
+     * @param   string	$fieldName      Name of the field
+     * @param   string	$value          Value to show
+     * @return	string					Formatted value
+     */
+    function showOutputField($fieldName, $value = null)
+    {
+        if ($fieldName == 'categorie') {
+            if (isset($this->dictionary->fields[$fieldName])) {
+                if ($value === null) $value = $this->fields[$fieldName];
+                if (is_array($value)) {
+                    $value_arr = $value;
+                } else {
+                    $value_arr = explode(',', (string)$value);
+                }
+
+                $toprint = array();
+                if (is_array($value_arr) && count($value_arr)) {
+                    $this->dictionary->load_categories();
+                    foreach ($value_arr as $id) {
+                        $toprint[] = '<li class="select2-search-choice-dolibarr noborderoncategories" style="background: #aaa">' . $this->dictionary->categories_cache[$id] . '</li>';
+                    }
+                }
+
+                return '<div class="select2-container-multi-dolibarr" style="width: 90%;"><ul class="select2-choices-dolibarr">' . implode(' ', $toprint) . '</ul></div>';
+            }
+        }
+
+        return parent::showOutputField($fieldName, $value);
+    }
+
+    /**
+	 * Return HTML string to put an input field into a page
+	 *
+	 * @param  string  $fieldName      Name of the field
+	 * @param  string  $value          Preselected value to show (for date type it must be in timestamp format, for amount or price it must be a php numeric value)
+	 * @param  string  $keyprefix      Prefix string to add into name and id of field (can be used to avoid duplicate names)
+	 * @param  string  $keysuffix      Suffix string to add into name and id of field (can be used to avoid duplicate names)
+	 * @param  int     $objectid       Current object id
+	 * @return string
+	 */
+	function showInputField($fieldName, $value=null, $keyprefix='', $keysuffix='', $objectid=0)
+    {
+        if ($fieldName == 'categorie') {
+            if (isset($this->dictionary->fields[$fieldName])) {
+                $field = $this->dictionary->fields[$fieldName];
+
+                if ($value === null) $value = $this->fields[$fieldName];
+                if (is_array($value)) {
+                    $value_arr = $value;
+                } else {
+                    $value_arr = array_filter(explode(',', (string)$value), 'strlen');
+                }
+
+                $type = $field['type'];
+
+                $fieldHtmlName = $keyprefix . $fieldName . $keysuffix;
+
+                $moreClasses = trim($field['show_input']['moreClasses']);
+                if (empty($moreClasses)) {
+                    if ($type == 'date') {
+                        $moreClasses = ' minwidth100imp';
+                    } elseif ($type == 'datetime') {
+                        $moreClasses = ' minwidth200imp';
+                    } elseif (in_array($type, array('int', 'double', 'price'))) {
+                        $moreClasses = ' maxwidth75';
+                    } elseif (in_array($type, array('varchar', 'phone', 'mail', 'url', 'password', 'select', 'sellist', 'radio', 'checkbox', 'link', 'chkbxlst'))) {
+                        $moreClasses = ' minwidth200';
+                    } elseif ($type == 'boolean') {
+                        $moreClasses = '';
+                    } else {
+                        $moreClasses = ' minwidth100';
+                    }
+                } else {
+                    $moreClasses = ' ' . $moreClasses;
+                }
+
+                $moreAttributes = trim($field['show_input']['moreAttributes']);
+                $moreAttributes = !empty($moreAttributes) ? ' ' . $moreAttributes : '';
+
+                $this->dictionary->load_formrequestmanager();
+                return $this->dictionary->formrequestmanager->multiselect_categories($value_arr, $fieldHtmlName,  0, 0, $moreClasses, 0, '', $moreAttributes);
+            }
+        }
+
+        return parent::showInputField($fieldName, $value, $keyprefix, $keysuffix, $objectid);
     }
 }
