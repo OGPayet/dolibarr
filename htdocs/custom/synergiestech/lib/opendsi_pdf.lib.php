@@ -62,85 +62,91 @@ function opendsi_pdf_getInstance($format='',$metric='mm',$pagetype='P')
     //$format=array($arrayformat['width'],$arrayformat['height']);
     //$metric=$arrayformat['unit'];
 
-    if (class_exists('TCPDI') && !class_exists('ExTCPDI')) {
-        // Extend the TCPDF class to create custom Header and Footer
-        class ExTCPDI extends TCPDI
-        {
-            public $backgroundImagePath = '';
-
-            //Page header
-            public function Header()
+    if (class_exists('TCPDI')) {
+        if (!class_exists('ExTCPDI')) {
+            // Extend the TCPDF class to create custom Header and Footer
+            class ExTCPDI extends TCPDI
             {
-                if (!empty($this->backgroundImagePath)) {
-                    // get the current page break margin
-                    $bMargin = $this->getBreakMargin();
-                    // get current auto-page-break mode
-                    $auto_page_break = $this->AutoPageBreak;
-                    // disable auto-page-break
-                    $this->SetAutoPageBreak(false, 0);
-                    // set bacground image
-                    $this->Image($this->backgroundImagePath, 0, 0, 210, 297, '', '', '', false, 300, '', false, false, 0);
-                    // restore auto-page-break status
-                    $this->SetAutoPageBreak($auto_page_break, $bMargin);
-                    // set the starting point for the page content
-                    $this->setPageMark();
-                } else {
-                    parent::Header();
+                public $backgroundImagePath = '';
+
+                //Page header
+                public function Header()
+                {
+                    if (!empty($this->backgroundImagePath)) {
+                        // get the current page break margin
+                        $bMargin = $this->getBreakMargin();
+                        // get current auto-page-break mode
+                        $auto_page_break = $this->AutoPageBreak;
+                        // disable auto-page-break
+                        $this->SetAutoPageBreak(false, 0);
+                        // set bacground image
+                        $this->Image($this->backgroundImagePath, 0, 0, 210, 297, '', '', '', false, 300, '', false, false, 0);
+                        // restore auto-page-break status
+                        $this->SetAutoPageBreak($auto_page_break, $bMargin);
+                        // set the starting point for the page content
+                        $this->setPageMark();
+                    } else {
+                        parent::Header();
+                    }
                 }
             }
         }
 
         $pdf = new ExTCPDI($pagetype, $metric, $format);
-    } else if (class_exists('FPDI') && !class_exists('ExFPDI')) {
-        class ExFPDI extends FPDI
-        {
-            public $backgroundImagePath = '';
-
-            //Page header
-            function Header()
+    } else if (class_exists('FPDI')) {
+        if (!class_exists('ExFPDI')) {
+            class ExFPDI extends FPDI
             {
-                if (!empty($this->backgroundImagePath)) {
-                    // Logo
-                    $this->Image($this->backgroundImagePath, 10, 6, 30);
-                    // Police Arial gras 15
-                    $this->SetFont('Arial', 'B', 15);
-                    // Décalage à droite
-                    $this->Cell(80);
-                    // Titre
-                    $this->Cell(30, 10, 'Titre', 1, 0, 'C');
-                    // Saut de ligne
-                    $this->Ln(20);
-                } else {
-                    parent::Header();
+                public $backgroundImagePath = '';
+
+                //Page header
+                function Header()
+                {
+                    if (!empty($this->backgroundImagePath)) {
+                        // Logo
+                        $this->Image($this->backgroundImagePath, 10, 6, 30);
+                        // Police Arial gras 15
+                        $this->SetFont('Arial', 'B', 15);
+                        // Décalage à droite
+                        $this->Cell(80);
+                        // Titre
+                        $this->Cell(30, 10, 'Titre', 1, 0, 'C');
+                        // Saut de ligne
+                        $this->Ln(20);
+                    } else {
+                        parent::Header();
+                    }
                 }
             }
         }
 
         $pdf = new ExFPDI($pagetype, $metric, $format);
-    } elseif (!class_exists('ExTCPDF')) {
-        // Extend the TCPDF class to create custom Header and Footer
-        class ExTCPDF extends TCPDF
-        {
-            public $backgroundImagePath = '';
-
-            //Page header
-            public function Header()
+    } else {
+        if (!class_exists('ExTCPDF')) {
+            // Extend the TCPDF class to create custom Header and Footer
+            class ExTCPDF extends TCPDF
             {
-                if (!empty($this->backgroundImagePath)) {
-                    // get the current page break margin
-                    $bMargin = $this->getBreakMargin();
-                    // get current auto-page-break mode
-                    $auto_page_break = $this->AutoPageBreak;
-                    // disable auto-page-break
-                    $this->SetAutoPageBreak(false, 0);
-                    // set bacground image
-                    $this->Image($this->backgroundImagePath, 0, 0, 210, 297, '', '', '', false, 300, '', false, false, 0);
-                    // restore auto-page-break status
-                    $this->SetAutoPageBreak($auto_page_break, $bMargin);
-                    // set the starting point for the page content
-                    $this->setPageMark();
-                } else {
-                    parent::Header();
+                public $backgroundImagePath = '';
+
+                //Page header
+                public function Header()
+                {
+                    if (!empty($this->backgroundImagePath)) {
+                        // get the current page break margin
+                        $bMargin = $this->getBreakMargin();
+                        // get current auto-page-break mode
+                        $auto_page_break = $this->AutoPageBreak;
+                        // disable auto-page-break
+                        $this->SetAutoPageBreak(false, 0);
+                        // set bacground image
+                        $this->Image($this->backgroundImagePath, 0, 0, 210, 297, '', '', '', false, 300, '', false, false, 0);
+                        // restore auto-page-break status
+                        $this->SetAutoPageBreak($auto_page_break, $bMargin);
+                        // set the starting point for the page content
+                        $this->setPageMark();
+                    } else {
+                        parent::Header();
+                    }
                 }
             }
         }
