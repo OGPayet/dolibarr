@@ -155,7 +155,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
             "date_modification" => '', "date_creation" => '', "client" => '', "prospect" => '', "fournisseur" => '', "code_client" => '',
             "code_fournisseur" => '', "code_compta" => '', "code_compta_fournisseur" => '', "stcomm_id" => '', "statut_commercial" => '',
             "price_level" => '', "outstanding_limit" => '', "parent" => '', "default_lang" => '', "ref" => '', "ref_ext" => '',
-            "logo" => '', "array_options" => '', "id" => '', "linkedObjectsIds" => '',
+            "logo" => '', "array_options" => '', "id" => '', "linkedObjectsIds" => '','address' => '',"name" => '',
         ),
         'product' => array(
             "label" => '', "description" => '', "type" => '', "price" => '', "price_ttc" => '', "price_min" => '',
