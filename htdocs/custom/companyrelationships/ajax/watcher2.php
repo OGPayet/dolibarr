@@ -18,7 +18,7 @@
  */
 
 /**
- *       \file       htdocs/companyrelationships/ajax/benefactor2.php
+ *       \file       htdocs/companyrelationships/ajax/watcher2.php
  *       \brief      File to return Ajax response on thirdparty list request
  */
 
@@ -96,19 +96,21 @@ else
 	if (! $searchkey) return;
 
 	$form = new Form($db);
-    $companies=$form->select_thirdparty_list('', $htmlname, $filter, 1, $showtype, 0, null, $searchkey, $outjson);
-    //$companies=$form->select_thirdparty_list('', $htmlname, '(s.client = 1 OR s.client = 2 OR s.client = 3) AND status=1', 1, 0, 0, null, $searchkey, $outjson);
 
     dol_include_once('/companyrelationships/class/companyrelationships.class.php');
     $companyrelationships = new CompanyRelationships($db);
-    $benefactor_ids = $companyrelationships->getRelationships($socid, 1);
-    $benefactor_ids = is_array($benefactor_ids) ? $benefactor_ids : array();
+    $relationThirdparty = $companyrelationships->getRelationshipThirdparty($socid, CompanyRelationships::RELATION_TYPE_WATCHER);
+    $relationThirdparty = is_object($relationThirdparty) ? $relationThirdparty : NULL;
+
+    $relationThirdpartySelectedId = $relationThirdparty ? $relationThirdparty->id : '';
+
+    $companies = $form->select_thirdparty_list($relationThirdpartySelectedId, $htmlname, $filter, 1, $showtype, 0, null, $searchkey, $outjson);
 
     $arrayresult = [];
     foreach ($companies as $key => $company) {
         $arrayresult[$key]['key'] = $company['key'];
 
-        if (in_array($company['key'], $benefactor_ids)) {
+        if ($company['key'] == $relationThirdpartySelectedId) {
             $arrayresult[$key]['label'] = preg_match('/\s\*$/',$company['label']) !== false ? $company['label'] . ' *' : $company['label'];
         } else {
             $arrayresult[$key]['label'] = $company['label'];

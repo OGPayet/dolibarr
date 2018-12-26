@@ -44,7 +44,7 @@ top_httphead();
 
 dol_include_once('/custom/companyrelationships/class/companyrelationships.class.php');
 $companyRelationships = new CompanyRelationships($db);
-$return = $companyRelationships->getAllPublicSpaceAvailability($socid, $socid_benefactor);
+$return = $companyRelationships->getAllPublicSpaceAvailabilityThirdparty($socid, CompanyRelationships::RELATION_TYPE_BENEFACTOR, $socid_benefactor);
 
 echo json_encode($return);
 

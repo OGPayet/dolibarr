@@ -36,6 +36,7 @@ CompanyRelationshipsPublicSpaceAvailabilityDictionaryLabel                  = Pu
 CompanyRelationshipsPublicSpaceAvailabilityDictionaryElementHelp            = Write the element name (ex: 'propal' for commercial proposals, 'order' for Order, ...)
 CompanyRelationshipsPublicSpaceAvailabilityDictionaryPrincipalAvailability  = Authorize for the Contractor
 CompanyRelationshipsPublicSpaceAvailabilityDictionaryBenefactorAvailability = Authorize for the Benefactor
+CompanyRelationshipsPublicSpaceAvailabilityDictionaryWatcherAvailability    = Authorize for the Watcher
 
 ############################################################
 ### Company Relationships
@@ -44,6 +45,7 @@ CompanyRelationshipsListOfPrincipalCompanies  = Contractors list
 CompanyRelationshipsListOfBenefactorCompanies = Benefactors list
 CompanyRelationshipsPrincipalCompany          = Contractor
 CompanyRelationshipsBenefactorCompany         = Benefactor
+CompanyRelationshipsWatcherCompany            = Watcher
 CompanyRelationshipsBenefactorSite            = Benefactor site
 
 ############################################################
@@ -64,6 +66,7 @@ CompanyRelationshipsPublicSpaceAvailabilityID         = ID of line in public spa
 CompanyRelationshipsPublicSpaceAvailability           = Public space availability
 CompanyRelationshipsPublicSpaceAvailabilityPrincipal  = Public space availability for the Contractor
 CompanyRelationshipsPublicSpaceAvailabilityBenefactor = Public space availability for the Benefactor
+CompanyRelationshipsPublicSpaceAvailabilityWatcher    = Public space availability for the Watcher
 
 ############################################################
 ### Company Relationships : Confirm clone box

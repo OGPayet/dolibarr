@@ -339,7 +339,7 @@ class modCompanyRelationships extends DolibarrModules
         $extrafields = new ExtraFields($this->db);
 
         // all extrafields we want to keep position
-        $extrafieldToKeepArray = array('companyrelationships_fk_soc_benefactor', 'companyrelationships_availability_principal', 'companyrelationships_availability_benefactor');
+        $extrafieldToKeepArray = array('companyrelationships_fk_soc_benefactor', 'companyrelationships_availability_principal', 'companyrelationships_availability_benefactor', 'companyrelationships_fk_soc_watcher', 'companyrelationships_availability_watcher');
         foreach($publicSpaceAvailibilityElementList as $elementType) {
             switch ($elementType) {
                 case 'shipping':
@@ -385,14 +385,21 @@ class modCompanyRelationships extends DolibarrModules
             $result = $extrafields->addExtraField($extrafieldName, $langs->trans('CompanyRelationshipsBenefactorCompany'), 'sellist', $extrafieldToKeepList[$extrafieldName]['pos'],  '', $elementType,   0, 1, '', array('options'=>array('societe:nom:rowid::(client = 1 OR client = 2 OR client = 3) AND status=1'=>null)), 1, '', 0, 0, ''); // For >= v7: ", '', 'companyrelationships@companyrelationships', '$conf->companyrelationships->enabled');"
             $result = $extrafields->update($extrafieldName, $langs->trans('CompanyRelationshipsBenefactorCompany'), 'sellist', '',  $elementType,   0, 1, $extrafieldToKeepList[$extrafieldName]['pos'], array('options'=>array('societe:nom:rowid::(client = 1 OR client = 2 OR client = 3) AND status=1:Societe:societe/class/societe.class.php'=>null)), 1, '', 0, 0, ''); // For >= v7: ", '', 'companyrelationships@companyrelationships', '$conf->companyrelationships->enabled');"
 
-            // public space availability
+            // public space availability principal and benefactor
             $extrafieldName = $extrafieldToKeepArray[1];
             $result = $extrafields->addExtraField($extrafieldName, $langs->trans('CompanyRelationshipsPublicSpaceAvailabilityPrincipal'), 'boolean', $extrafieldToKeepList[$extrafieldName]['pos'],  '', $elementType,   0, 0, '', '', 1, '$user->rights->companyrelationships->update_md->element', 0, 0, ''); // For >= v7: ", '', 'companyrelationships@companyrelationships', '$conf->companyrelationships->enabled');"
             $extrafieldName = $extrafieldToKeepArray[2];
             $result = $extrafields->addExtraField($extrafieldName, $langs->trans('CompanyRelationshipsPublicSpaceAvailabilityBenefactor'), 'boolean', $extrafieldToKeepList[$extrafieldName]['pos'],  '', $elementType,   0, 0, '', '', 1, '$user->rights->companyrelationships->update_md->element', 0, 0, ''); // For >= v7: ", '', 'companyrelationships@companyrelationships', '$conf->companyrelationships->enabled');"
 
+            // watcher
+            $extrafieldName = $extrafieldToKeepArray[3];
+            $result = $extrafields->addExtraField($extrafieldName, $langs->trans('CompanyRelationshipsWatcherCompany'), 'sellist', $extrafieldToKeepList[$extrafieldName]['pos'],  '', $elementType,   0, 0, '', array('options'=>array('societe:nom:rowid::(client = 1 OR client = 2 OR client = 3) AND status=1:Societe:societe/class/societe.class.php'=>null)), 1, '', 0, 0, ''); // For >= v7: ", '', 'companyrelationships@companyrelationships', '$conf->companyrelationships->enabled');"
+            // public space availability for watcher
+            $extrafieldName = $extrafieldToKeepArray[4];
+            $result = $extrafields->addExtraField($extrafieldName, $langs->trans('CompanyRelationshipsPublicSpaceAvailabilityWatcher'), 'boolean', $extrafieldToKeepList[$extrafieldName]['pos'],  '', $elementType,   0, 0, '', '', 1, '$user->rights->companyrelationships->update_md->element', 0, 0, ''); // For >= v7: ", '', 'companyrelationships@companyrelationships', '$conf->companyrelationships->enabled');"
+
             $sql[] = 'UPDATE llx_'.$elementTable.'_extrafields
-                        LEFT JOIN llx_'.$elementTable.' AS t ON (llx_'.$elementTable.'_extrafields.fk_object = t.rowid)
+                        INNER JOIN llx_'.$elementTable.' AS t ON (llx_'.$elementTable.'_extrafields.fk_object = t.rowid)
                         SET llx_'.$elementTable.'_extrafields.companyrelationships_fk_soc_benefactor = t.fk_soc
                         WHERE llx_'.$elementTable.'_extrafields.companyrelationships_fk_soc_benefactor IS NULL
                         OR llx_'.$elementTable.'_extrafields.companyrelationships_fk_soc_benefactor = \'\';';

@@ -36,6 +36,7 @@ CompanyRelationshipsPublicSpaceAvailabilityDictionaryLabel                  = Mi
 CompanyRelationshipsPublicSpaceAvailabilityDictionaryElementHelp            = Entre le nom de l'element (ex: 'propal' pour les Proposition Commercial, 'commande' pour Commande, ...)
 CompanyRelationshipsPublicSpaceAvailabilityDictionaryPrincipalAvailability  = Autoriser pour le donneur d'ordre
 CompanyRelationshipsPublicSpaceAvailabilityDictionaryBenefactorAvailability = Autoriser pour le bénéficiaire
+CompanyRelationshipsPublicSpaceAvailabilityDictionaryWatcherAvailability    = Autoriser pour l'observateur
 
 ############################################################
 ### Company Relationships
@@ -44,6 +45,7 @@ CompanyRelationshipsListOfPrincipalCompanies  = Liste des donneurs d'ordres
 CompanyRelationshipsListOfBenefactorCompanies = Liste des bénéficiaires
 CompanyRelationshipsPrincipalCompany          = Donneur d'ordre
 CompanyRelationshipsBenefactorCompany         = Bénéficiaire
+CompanyRelationshipsWatcherCompany            = Observateur
 CompanyRelationshipsBenefactorSite            = Site Bénéficiaire
 
 ############################################################
@@ -64,6 +66,7 @@ CompanyRelationshipsPublicSpaceAvailabilityID         = ID de la ligne du dictio
 CompanyRelationshipsPublicSpaceAvailability           = Mises à disposition
 CompanyRelationshipsPublicSpaceAvailabilityPrincipal  = Pièces mises à disposition par défaut pour le donneur d'ordres
 CompanyRelationshipsPublicSpaceAvailabilityBenefactor = Pièces mises à disposition par défaut pour le bénéficiaire
+CompanyRelationshipsPublicSpaceAvailabilityWatcher    = Pièces mises à disposition par défaut pour l'observateur
 
 ############################################################
 ### Company Relationships : Confirm clone box

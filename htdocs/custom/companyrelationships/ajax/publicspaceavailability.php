@@ -33,9 +33,10 @@ if (! $res && file_exists("../../main.inc.php")) $res=@include '../../main.inc.p
 if (! $res && file_exists("../../../main.inc.php")) $res=@include '../../../main.inc.php';		// to work if your module directory is into a subdir of root htdocs directory
 if (! $res) die("Include of main fails");
 
-$socid			  = GETPOST('socid', 'int');
-$socid_benefactor = GETPOST('socid_benefactor', 'int');
-$element          = GETPOST('element', 'alpha');
+$socid			= GETPOST('socid', 'int');
+$relation_type  = GETPOST('relation_type', 'int');
+$relation_socid = GETPOST('relation_socid', 'int');
+$element        = GETPOST('element', 'alpha');
 
 /*
  * View
@@ -44,15 +45,21 @@ $element          = GETPOST('element', 'alpha');
 top_httphead();
 
 
-$return = array('principal' => 0, 'benefactor' => 0, 'error' => 0);
-if ($socid>0 && $socid_benefactor>0 && !empty($element))
+$return = array(
+    'error'      => 0,
+    'principal'  => 0,
+    'benefactor' => 0,
+    'watcher'    => 0
+);
+if ($socid>0 && $relation_type>0 && $relation_socid>0 && !empty($element))
 {
     dol_include_once('/custom/companyrelationships/class/companyrelationships.class.php');
     $companyRelationships = new CompanyRelationships($db);
-    $publicSpaceAvailability = $companyRelationships->getPublicSpaceAvailability($socid, $socid_benefactor, $element);
+    $publicSpaceAvailability = $companyRelationships->getPublicSpaceAvailabilityThirdparty($socid, $relation_type, $relation_socid, $element);
     if (is_array($publicSpaceAvailability)) {
         $return['principal']  = $publicSpaceAvailability['principal'];
         $return['benefactor'] = $publicSpaceAvailability['benefactor'];
+        $return['watcher']    = $publicSpaceAvailability['watcher'];
     } else {
         $return['error'] = 1;
     }

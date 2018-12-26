@@ -14,13 +14,10 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program. If not, see <http://www.gnu.org/licenses/>.
 --
--- Table of journals for accountancy
--- ============================================================================
+-- ===========================================================================
 
-create table llx_companyrelationships
-(
-  rowid                     integer AUTO_INCREMENT PRIMARY KEY,
-  fk_soc                    integer NOT NULL,		            -- id of the thirdparty
-  fk_soc_benefactor         integer DEFAULT 0 NOT NULL,		  -- id of the thirdparty benefactor
-  fk_soc_watcher            integer DEFAULT 0 NOT NULL		  -- id of the thirdparty watcher
-)ENGINE=innodb;
+ALTER TABLE `llx_companyrelationships` DROP FOREIGN KEY `fk_companyrelationships_fk_soc_benefactor`;
+ALTER TABLE `llx_companyrelationships` CHANGE `fk_soc_benefactor` `fk_soc_benefactor` INT DEFAULT 0 NOT NULL;
+
+ALTER TABLE `llx_companyrelationships` ADD `fk_soc_watcher` INT DEFAULT 0 NOT NULL;
+ALTER TABLE `llx_companyrelationships_availability` ADD `watcher_availability` INT DEFAULT 0 NOT NULL;

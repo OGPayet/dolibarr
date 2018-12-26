@@ -23,5 +23,6 @@ create table llx_companyrelationships_availability
   fk_companyrelationships                             integer NOT NULL,		                      -- id of company relationships
   fk_c_companyrelationships_availability              integer NOT NULL,                         -- id of line in dictionary of company relationships public space availability
   principal_availability                              integer DEFAULT 0 NOT NULL,               -- public space availability for contractor
-  benefactor_availability                             integer DEFAULT 0 NOT NULL                -- public space availability for benefactor
+  benefactor_availability                             integer DEFAULT 0 NOT NULL,               -- public space availability for benefactor
+  watcher_availability                                integer DEFAULT 0 NOT NULL                -- public space availability for watcher
 )ENGINE=innodb;

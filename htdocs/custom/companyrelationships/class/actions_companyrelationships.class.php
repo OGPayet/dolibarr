@@ -188,7 +188,9 @@ class ActionsCompanyRelationships
                             $principalCompanyList = $companyRelationships->getRelationships($socid, 0, 1);
                             $principalCompanyList = is_array($principalCompanyList) ? $principalCompanyList : array();
                             if (count($principalCompanyList) > 0) {
-                                $object->cr_must_confirm_socid = true;
+                                // it doesn't work bacause there is a new Propal in create mode
+                                //$object->cr_must_confirm_socid = true;
+                                $_SESSION['cr_must_confirm_socid'] = true;
                                 $action = 'create';
                                 return 1;
                             }
@@ -198,7 +200,10 @@ class ActionsCompanyRelationships
 
                 // action confirm principal company on create
                 if ($action == 'companyrelationships_confirm_socid' && $userRightsElementCreer) {
-                    $object->cr_confirm_socid = 1;
+                    // it doesn't work because object is new in create mode
+                    //$object->cr_confirm_socid = 1;
+                    $_SESSION['cr_confirm_socid'] = 1;
+                    $_SESSION['cr_must_confirm_socid'] = false;
                     $action = 'create';
                 }
                 // update extra fields
@@ -399,59 +404,6 @@ class ActionsCompanyRelationships
 
                     $out .= $formconfirm;
 
-                    // add events on select socid change
-                    //$out .= $formcompanyrelationships->add_select_events_more_data('socid', $events);
-
-                    /*
-                    $out .= '<script type="text/javascript" language="javascript">';
-                    $out .= 'jQuery(document).ready(function(){';
-                    $out .= '   var data = {';
-                    $out .= '       action: "getBenefactor",';
-                    $out .= '       id: "' . $socid . '",';
-                    $out .= '       htmlname: "options_companyrelationships_fk_soc_benefactor",';
-                    $out .= '       fk_soc_benefactor: "' . $fk_soc_benefactor . '"';
-                    $out .= '   };';
-                    $out .= '   var input = jQuery("select#options_companyrelationships_fk_soc_benefactor");';
-                    $out .= '   jQuery.getJSON("' . dol_buildpath('/companyrelationships/ajax/benefactor.php', 1) . '", data,';
-                    $out .= '       function(response) {';
-                    $out .= '           input.html(response.value);';
-                    $out .= '           input.change();';
-                    $out .= '           if (response.num < 0) {';
-                    $out .= '               console.error(response.error);';
-                    $out .= '           }';
-                    $out .= '       }';
-                    $out .= '   );';
-
-                    // company relationships availability for this element
-                    if ($user->rights->companyrelationships->update_md->element) {
-                        $out .= '   jQuery("#options_companyrelationships_fk_soc_benefactor").change(function(){';
-                        $out .= '       jQuery.ajax({';
-                        $out .= '           data: {';
-                        $out .= '           socid: "' . $socid . '",';
-                        $out .= '           socid_benefactor: jQuery("#options_companyrelationships_fk_soc_benefactor").val(),';
-                        $out .= '           element: "' . $object->element . '"';
-                        $out .= '           },';
-                        $out .= '           dataType: "json",';
-                        $out .= '           method: "POST",';
-                        $out .= '           url: "' . dol_buildpath('/companyrelationships/ajax/publicspaceavailability.php', 1) . '",';
-                        $out .= '           success: function(data){';
-                        $out .= '               if (data.error > 0) {';
-                        $out .= '                   console.error("Error : ", "' . dol_buildpath('/companyrelationships/class/actions_companyrelationships.class.php', 1) . '", "in formObjectOptions() on #options_companyrelationships_fk_soc_benefactor.change()");';
-                        $out .= '               } else {';
-                        $out .= '                   jQuery("input[name=options_companyrelationships_availability_principal]").prop("checked", data.principal);';
-                        $out .= '                   jQuery("input[name=options_companyrelationships_availability_benefactor]").prop("checked", data.benefactor);';
-                        $out .= '               }';
-                        $out .= '           },';
-                        $out .= '           error: function(){';
-                        $out .= '               console.error("Error : ", "' . dol_buildpath('/companyrelationships/class/actions_companyrelationships.class.php', 1) . '", "in formObjectOptions() on #options_companyrelationships_fk_soc_benefactor.change()");';
-                        $out .= '           }';
-                        $out .= '       });';
-                        $out .= '   });';
-                    }
-                    $out .= '});';
-                    $out .= '</script>';
-                    */
-
                     $this->resprints = $out;
 
                     return 1;
@@ -507,6 +459,7 @@ class ActionsCompanyRelationships
 
                     // come from confirm_socid dialog box
                     $fk_soc_benefactor = GETPOST('companyrelationships_fk_soc_benefactor', 'int') ? GETPOST('companyrelationships_fk_soc_benefactor', 'int') : 0;
+                    $fk_soc_watcher    = GETPOST('companyrelationships_fk_soc_watcher', 'int') ? GETPOST('companyrelationships_fk_soc_watcher', 'int') : 0;
 
                     // set default values for socid and fk_soc_benefactor if this element linked to a previous element (origin)
                     if (!empty($originid) && intval($fk_soc_benefactor) <= 0) {
@@ -560,7 +513,9 @@ class ActionsCompanyRelationships
                     $out .= '<tr>';
                     $out .= '<td>';
                     $out .= '<div id="companyrelationships_confirm">';
-                    if (!empty($object->cr_must_confirm_socid)) {
+                    // it doesn't work because object is new in create mode
+                    //if (!empty($object->cr_must_confirm_socid)) {
+                    if (!empty($_SESSION['cr_must_confirm_socid'])) {
                         $principalCompanyList = $companyRelationships->getRelationships($socid, 0, 1);
                         $principalCompanyList = is_array($principalCompanyList) ? $principalCompanyList : array();
                         if (count($principalCompanyList) > 0) {
@@ -589,12 +544,18 @@ class ActionsCompanyRelationships
                     $out .= '</div>';
                     $out .= '</td>';
                     $out .= '</tr>';
-                    $out .= '<input type="hidden" name="cr_confirm_socid" value="'.(!empty($object->cr_confirm_socid) ? 1 : 0).'">';
+                    // it doesn't work because object is new in create mode
+                    //$out .= '<input type="hidden" name="cr_confirm_socid" value="'.(!empty($object->cr_confirm_socid) ? 1 : 0).'">';
+                    $out .= '<input type="hidden" name="cr_confirm_socid" value="'.(!empty($_SESSION['cr_confirm_socid']) ? $_SESSION['cr_confirm_socid'] : 0).'" />';
 
                     // company id already posted (an input hidden in this form)
                     if (intval($socid) > 0) {
+                        $jquery_socid = $socid;
+
                         $out .= '<script type="text/javascript" language="javascript">';
                         $out .= 'jQuery(document).ready(function(){';
+
+                        // benefactor
                         $out .= '   var data = {';
                         $out .= '       action: "getBenefactor",';
                         $out .= '       id: "' . $socid . '",';
@@ -603,99 +564,120 @@ class ActionsCompanyRelationships
                         $out .= '       origin: "' . $origin . '",';
                         $out .= '       originid: "' . $originid . '"';
                         $out .= '   };';
-                        $out .= '   var input = jQuery("select#options_companyrelationships_fk_soc_benefactor");';
                         $out .= '   jQuery.getJSON("' . dol_buildpath('/companyrelationships/ajax/benefactor.php', 1) . '", data,';
                         $out .= '       function(response) {';
-                        $out .= '           input.html(response.value);';
-                        $out .= '           input.change();';
+                        $out .= '           jQuery("select#options_companyrelationships_fk_soc_benefactor").html(response.value);';
+                        $out .= '           jQuery("select#options_companyrelationships_fk_soc_benefactor").change();';
                         $out .= '           if (response.num < 0) {';
                         $out .= '               console.error(response.error);';
                         $out .= '           }';
                         $out .= '       }';
                         $out .= '   );';
 
-                        // company relationships availability for this element
-                        if ($user->rights->companyrelationships->update_md->element) {
-                            $out .= '   jQuery("#options_companyrelationships_fk_soc_benefactor").change(function(){';
-                            $out .= '       jQuery.ajax({';
-                            $out .= '           data: {';
-                            $out .= '           socid: "' . $socid . '",';
-                            $out .= '           socid_benefactor: jQuery("#options_companyrelationships_fk_soc_benefactor").val(),';
-                            $out .= '           element: "' . $object->element . '"';
-                            $out .= '           },';
-                            $out .= '           dataType: "json",';
-                            $out .= '           method: "POST",';
-                            $out .= '           url: "' . dol_buildpath('/companyrelationships/ajax/publicspaceavailability.php', 1) . '",';
-                            $out .= '           success: function(data){';
-                            $out .= '               if (data.error > 0) {';
-                            $out .= '                   console.error("Error : ", "' . dol_buildpath('/companyrelationships/class/actions_companyrelationships.class.php', 1) . '", "in formObjectOptions() on #options_companyrelationships_fk_soc_benefactor.change()");';
-                            $out .= '               } else {';
-                            $out .= '                   jQuery("input[name=options_companyrelationships_availability_principal]").prop("checked", data.principal);';
-                            $out .= '                   jQuery("input[name=options_companyrelationships_availability_benefactor]").prop("checked", data.benefactor);';
-                            $out .= '               }';
-                            $out .= '           },';
-                            $out .= '           error: function(){';
-                            $out .= '               console.error("Error : ", "' . dol_buildpath('/companyrelationships/class/actions_companyrelationships.class.php', 1) . '", "in formObjectOptions() on #options_companyrelationships_fk_soc_benefactor.change()");';
-                            $out .= '           }';
-                            $out .= '       });';
-                            $out .= '   });';
-                        }
+                        // watcher
+                        $out .= '   var data = {';
+                        $out .= '       action: "getWatcher",';
+                        $out .= '       id: "' . $socid . '",';
+                        $out .= '       htmlname: "options_companyrelationships_fk_soc_watcher",';
+                        $out .= '       fk_soc_watcher: "' . $fk_soc_watcher . '",';
+                        $out .= '       origin: "' . $origin . '",';
+                        $out .= '       originid: "' . $originid . '"';
+                        $out .= '   };';
+                        $out .= '   jQuery.getJSON("' . dol_buildpath('/companyrelationships/ajax/watcher.php', 1) . '", data,';
+                        $out .= '       function(response) {';
+                        $out .= '           jQuery("select#options_companyrelationships_fk_soc_watcher").html(response.value);';
+                        $out .= '           jQuery("select#options_companyrelationships_fk_soc_watcher").change();';
+                        $out .= '           if (response.num < 0) {';
+                        $out .= '               console.error(response.error);';
+                        $out .= '           }';
+                        $out .= '       }';
+                        $out .= '   );';
+
                         $out .= '});';
                         $out .= '</script>';
-
-
-                        // ajax search
-                        if ($conf->use_javascript_ajax)
-                        {
-                            include_once DOL_DOCUMENT_ROOT . '/core/lib/ajax.lib.php';
-                            $comboenhancement = ajax_combobox('options_companyrelationships_fk_soc_benefactor', array(), $conf->global->COMPANY_USE_SEARCH_TO_SELECT);
-                            $out.= $comboenhancement;
-                        }
                     } // no company selected (select options in this form to choose the company)
                     else {
+                        $jquery_socid = 'jQuery("#socid").val()';
+
                         $events = array();
                         $events[] = array('action' => 'getPrincipal', 'url' => dol_buildpath('/companyrelationships/ajax/principal.php', 1), 'htmlname' => 'companyrelationships_confirm', 'more_data' => array('form_name' => $formName, 'url_src' => $_SERVER['PHP_SELF']));
                         $events[] = array('action' => 'getBenefactor', 'url' => dol_buildpath('/companyrelationships/ajax/benefactor.php', 1), 'htmlname' => 'options_companyrelationships_fk_soc_benefactor', 'more_data' => array('fk_soc_benefactor' => $fk_soc_benefactor));
+                        $events[] = array('action' => 'getWatcher', 'url' => dol_buildpath('/companyrelationships/ajax/watcher.php', 1), 'htmlname' => 'options_companyrelationships_fk_soc_watcher', 'more_data' => array('fk_soc_watcher' => $fk_soc_watcher));
                         $out .= $formcompanyrelationships->add_select_events_more_data('socid', $events);
+                    }
 
-                        // company relationships availability for this element
-                        if ($user->rights->companyrelationships->update_md->element) {
-                            $out .= '<script type="text/javascript" language="javascript">';
-                            $out .= 'jQuery(document).ready(function(){';
-                            $out .= '   jQuery("#options_companyrelationships_fk_soc_benefactor").change(function(){';
-                            $out .= '       jQuery.ajax({';
-                            $out .= '           data: {';
-                            $out .= '           socid: jQuery("#socid").val(),';
-                            $out .= '           socid_benefactor: jQuery("#options_companyrelationships_fk_soc_benefactor").val(),';
-                            $out .= '           element: "' . $object->element . '"';
-                            $out .= '           },';
-                            $out .= '           dataType: "json",';
-                            $out .= '           method: "POST",';
-                            $out .= '           url: "' . dol_buildpath('/companyrelationships/ajax/publicspaceavailability.php', 1) . '",';
-                            $out .= '           success: function(data){';
-                            $out .= '               if (data.error > 0) {';
-                            $out .= '                   console.error("Error : ", "' . dol_buildpath('/companyrelationships/class/actions_companyrelationships.class.php', 1) . '", "in formObjectOptions() on #options_companyrelationships_fk_soc_benefactor.change()");';
-                            $out .= '               } else {';
-                            $out .= '                   jQuery("input[name=options_companyrelationships_availability_principal]").prop("checked", data.principal);';
-                            $out .= '                   jQuery("input[name=options_companyrelationships_availability_benefactor]").prop("checked", data.benefactor);';
-                            $out .= '               }';
-                            $out .= '           },';
-                            $out .= '           error: function(){';
-                            $out .= '               console.error("Error : ", "' . dol_buildpath('/companyrelationships/class/actions_companyrelationships.class.php', 1) . '", "in formObjectOptions() on #options_companyrelationships_fk_soc_benefactor.change()");';
-                            $out .= '           }';
-                            $out .= '       });';
-                            $out .= '   });';
-                            $out .= '});';
-                            $out .= '</script>';
-                        }
+                    // company relationships availability for this element
+                    if ($user->rights->companyrelationships->update_md->element) {
+                        $out .= '<script type="text/javascript" language="javascript">';
+                        $out .= 'jQuery(document).ready(function(){';
 
-                        // ajax search
-                        if ($conf->use_javascript_ajax)
-                        {
-                            include_once DOL_DOCUMENT_ROOT . '/core/lib/ajax.lib.php';
-                            $comboenhancement = ajax_combobox('options_companyrelationships_fk_soc_benefactor', array(), $conf->global->COMPANY_USE_SEARCH_TO_SELECT);
-                            $out.= $comboenhancement;
-                        }
+                        // benefactor
+                        $out .= '   jQuery("#options_companyrelationships_fk_soc_benefactor").change(function(){';
+                        $out .= '       jQuery.ajax({';
+                        $out .= '           data: {';
+                        $out .= '           socid: ' . $jquery_socid . ',';
+                        $out .= '           relation_type: ' . CompanyRelationships::RELATION_TYPE_BENEFACTOR . ',';
+                        $out .= '           relation_socid: jQuery("#options_companyrelationships_fk_soc_benefactor").val(),';
+                        $out .= '           element: "' . $object->element . '"';
+                        $out .= '           },';
+                        $out .= '           dataType: "json",';
+                        $out .= '           method: "POST",';
+                        $out .= '           url: "' . dol_buildpath('/companyrelationships/ajax/publicspaceavailability.php', 1) . '",';
+                        $out .= '           success: function(data){';
+                        $out .= '               if (data.error > 0) {';
+                        $out .= '                   console.error("Error : ", "' . dol_buildpath('/companyrelationships/class/actions_companyrelationships.class.php', 1) . '", "in formObjectOptions() on #options_companyrelationships_fk_soc_benefactor.change()");';
+                        $out .= '               } else {';
+                        $out .= '                   jQuery("input[name=options_companyrelationships_availability_principal]").prop("checked", data.principal);';
+                        $out .= '                   jQuery("input[name=options_companyrelationships_availability_benefactor]").prop("checked", data.benefactor);';
+                        $out .= '               }';
+                        $out .= '           },';
+                        $out .= '           error: function(){';
+                        $out .= '               console.error("Error : ", "' . dol_buildpath('/companyrelationships/class/actions_companyrelationships.class.php', 1) . '", "in formObjectOptions() on #options_companyrelationships_fk_soc_benefactor.change()");';
+                        $out .= '           }';
+                        $out .= '       });';
+                        $out .= '   });';
+
+                        // watcher
+                        $out .= '   jQuery("#options_companyrelationships_fk_soc_watcher").change(function(){';
+                        $out .= '       jQuery.ajax({';
+                        $out .= '           data: {';
+                        $out .= '           socid: ' . $jquery_socid . ',';
+                        $out .= '           relation_type: ' . CompanyRelationships::RELATION_TYPE_WATCHER . ',';
+                        $out .= '           relation_socid: jQuery("#options_companyrelationships_fk_soc_watcher").val(),';
+                        $out .= '           element: "' . $object->element . '"';
+                        $out .= '           },';
+                        $out .= '           dataType: "json",';
+                        $out .= '           method: "POST",';
+                        $out .= '           url: "' . dol_buildpath('/companyrelationships/ajax/publicspaceavailability.php', 1) . '",';
+                        $out .= '           success: function(data){';
+                        $out .= '               if (data.error > 0) {';
+                        $out .= '                   console.error("Error : ", "' . dol_buildpath('/companyrelationships/class/actions_companyrelationships.class.php', 1) . '", "in formObjectOptions() on #options_companyrelationships_fk_soc_watcher.change()");';
+                        $out .= '               } else {';
+                        $out .= '                   jQuery("input[name=options_companyrelationships_availability_watcher]").prop("checked", data.watcher);';
+                        $out .= '               }';
+                        $out .= '           },';
+                        $out .= '           error: function(){';
+                        $out .= '               console.error("Error : ", "' . dol_buildpath('/companyrelationships/class/actions_companyrelationships.class.php', 1) . '", "in formObjectOptions() on #options_companyrelationships_fk_soc_watcher.change()");';
+                        $out .= '           }';
+                        $out .= '       });';
+                        $out .= '   });';
+
+                        $out .= '});';
+
+                        $out .= '</script>';
+                    }
+
+                    // ajax search
+                    if ($conf->use_javascript_ajax) {
+                        include_once DOL_DOCUMENT_ROOT . '/core/lib/ajax.lib.php';
+
+                        // benefactor
+                        $comboenhancement = ajax_combobox('options_companyrelationships_fk_soc_benefactor', array(), $conf->global->COMPANY_USE_SEARCH_TO_SELECT);
+                        $out.= $comboenhancement;
+
+                        // watcher
+                        $comboenhancement = ajax_combobox('options_companyrelationships_fk_soc_watcher', array(), $conf->global->COMPANY_USE_SEARCH_TO_SELECT);
+                        $out.= $comboenhancement;
                     }
 
                     print $out;
@@ -705,8 +687,8 @@ class ActionsCompanyRelationships
 
                     $attribute = GETPOST('attribute', 'alpha');
 
-                    if (!empty($attribute) && $attribute=='companyrelationships_fk_soc_benefactor') {
-
+                    // benefactor
+                    if ($attribute=='companyrelationships_fk_soc_benefactor') {
                         $langs->load('companyrelationships@companyrelationships');
 
                         $out = '';
@@ -716,14 +698,11 @@ class ActionsCompanyRelationships
 
                         // company id already posted (an input hidden in this form)
                         if (intval($socid)>0) {
-                            if (! empty($conf->use_javascript_ajax) && ! empty($conf->global->COMPANY_USE_SEARCH_TO_SELECT))
-                            {
+                            if (! empty($conf->use_javascript_ajax) && ! empty($conf->global->COMPANY_USE_SEARCH_TO_SELECT)) {
                                 $hidelabel = 1;
                                 // No immediate load of all database
                                 $placeholder='';
-                                if ($fk_soc_benefactor && empty($selected_input_value))
-                                {
-                                    dol_include_once('/companyrelationships/class/companyrelationships.class.php');
+                                if ($fk_soc_benefactor && empty($selected_input_value)) {
                                     $companyrelationships = new CompanyRelationships($this->db);
                                     $benefactor_ids = $companyrelationships->getRelationships($socid, 1);
                                     $benefactor_ids = is_array($benefactor_ids) ? $benefactor_ids : array();
@@ -769,9 +748,7 @@ class ActionsCompanyRelationships
                                 $out .= '   cr_select.remove();';
                                 $out .= '});';
                                 $out .= '</script>';
-                            }
-                            else
-                            {
+                            } else {
                                 $out .= '<script type="text/javascript" language="javascript">';
                                 $out .= 'jQuery(document).ready(function(){';
                                 $out .= '   var data = {';
@@ -780,11 +757,11 @@ class ActionsCompanyRelationships
                                 $out .= '       htmlname: "options_companyrelationships_fk_soc_benefactor",';
                                 $out .= '       fk_soc_benefactor: "' . $fk_soc_benefactor . '"';
                                 $out .= '   };';
-                                $out .= '   var input = jQuery("select#options_companyrelationships_fk_soc_benefactor");';
+                                //$out .= '   var input = jQuery("select#options_companyrelationships_fk_soc_benefactor");';
                                 $out .= '   jQuery.getJSON("' . dol_buildpath('/companyrelationships/ajax/benefactor.php', 1) . '", data,';
                                 $out .= '       function(response) {';
-                                $out .= '           input.html(response.value);';
-                                $out .= '           input.change();';
+                                $out .= '           jQuery("select#options_companyrelationships_fk_soc_benefactor").html(response.value);';
+                                $out .= '           jQuery("select#options_companyrelationships_fk_soc_benefactor").change();';
                                 $out .= '           if (response.num < 0) {';
                                 $out .= '               console.error(response.error);';
                                 $out .= '           }';
@@ -793,10 +770,102 @@ class ActionsCompanyRelationships
                                 $out .= '});';
                                 $out .= '</script>';
 
-                                if ($conf->use_javascript_ajax)
-                                {
+                                if ($conf->use_javascript_ajax) {
                                     include_once DOL_DOCUMENT_ROOT . '/core/lib/ajax.lib.php';
                                     $comboenhancement = ajax_combobox('options_companyrelationships_fk_soc_benefactor', array(), $conf->global->COMPANY_USE_SEARCH_TO_SELECT);
+                                    $out.= $comboenhancement;
+                                }
+                            }
+                        }
+
+                        print $out;
+                    }
+                    // watcher
+                    else if ($attribute=='companyrelationships_fk_soc_watcher') {
+                        $langs->load('companyrelationships@companyrelationships');
+
+                        $out = '';
+
+                        $socid = $object->socid;
+                        $fk_soc_watcher = $object->array_options['options_companyrelationships_fk_soc_watcher'];
+
+                        // company id already posted (an input hidden in this form)
+                        if (intval($socid)>0) {
+                            if (! empty($conf->use_javascript_ajax) && ! empty($conf->global->COMPANY_USE_SEARCH_TO_SELECT)) {
+                                $hidelabel = 1;
+                                // No immediate load of all database
+                                $placeholder='';
+                                if ($fk_soc_watcher && empty($selected_input_value)) {
+                                    $companyrelationships = new CompanyRelationships($this->db);
+                                    $relationThirdparty = $companyrelationships->getRelationshipThirdparty($socid, CompanyRelationships::RELATION_TYPE_WATCHER);
+                                    $relationThirdparty = is_object($relationThirdparty) ? $relationThirdparty : NULL;
+
+                                    require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
+                                    $societetmp = new Societe($this->db);
+                                    $societetmp->fetch($fk_soc_watcher);
+                                    $selected_input_value = $societetmp->name;
+                                    if ($fk_soc_watcher == $relationThirdparty->id) {
+                                        $selected_input_value .= ' *';
+                                    }
+
+                                    unset($societetmp);
+                                }
+                                // mode 1
+                                $urloption='htmlname=options_companyrelationships_fk_soc_watcher&outjson=1&socid='.$socid;
+                                $out .= ajax_autocompleter($fk_soc_watcher, 'options_companyrelationships_fk_soc_watcher', dol_buildpath('/companyrelationships/ajax/watcher2.php', 1), $urloption, $conf->global->COMPANY_USE_SEARCH_TO_SELECT);
+                                $out .= '<style type="text/css">
+					            .ui-autocomplete {
+						            z-index: 250;
+					            }
+				                </style>';
+                                if (empty($hidelabel)) print $langs->trans("RefOrLabel").' : ';
+                                else if ($hidelabel > 1) {
+                                    if (! empty($conf->global->MAIN_HTML5_PLACEHOLDER)) $placeholder=' placeholder="'.$langs->trans("RefOrLabel").'"';
+                                    else $placeholder=' title="'.$langs->trans("RefOrLabel").'"';
+                                    if ($hidelabel == 2) {
+                                        $out .= img_picto($langs->trans("Search"), 'search');
+                                    }
+                                }
+                                $out.=  '<input type="text" name="search_options_companyrelationships_fk_soc_watcher" id="search_options_companyrelationships_fk_soc_watcher" value="'.$selected_input_value.'"'.$placeholder.' '.(!empty($conf->global->THIRDPARTY_SEARCH_AUTOFOCUS) ? 'autofocus' : '').' />';
+                                if ($hidelabel == 3) {
+                                    $out.= img_picto($langs->trans("Search"), 'search');
+                                }
+                                $out .= '<script type="text/javascript" language="javascript">';
+                                $out .= 'jQuery(document).ready(function(){';
+                                $out .= '   var cr_input = $("input#options_companyrelationships_fk_soc_watcher");';
+                                $out .= '   var cr_input_search = $("input#search_options_companyrelationships_fk_soc_watcher");';
+                                $out .= '   var cr_select = $("select#options_companyrelationships_fk_soc_watcher");';
+                                $out .= '   var cr_select_form = cr_select.closest("form");';
+                                $out .= '   cr_input.detach().prependTo(cr_select_form);';
+                                $out .= '   cr_input_search.detach().prependTo(cr_select_form);';
+                                $out .= '   cr_select.remove();';
+                                $out .= '});';
+                                $out .= '</script>';
+
+                            } else {
+                                $out .= '<script type="text/javascript" language="javascript">';
+                                $out .= 'jQuery(document).ready(function(){';
+                                $out .= '   var data = {';
+                                $out .= '       action: "getWatcher",';
+                                $out .= '       id: "' . $socid . '",';
+                                $out .= '       htmlname: "options_companyrelationships_fk_soc_watcher",';
+                                $out .= '       fk_soc_watcher: "' . $fk_soc_watcher . '"';
+                                $out .= '   };';
+                                $out .= '   jQuery.getJSON("' . dol_buildpath('/companyrelationships/ajax/watcher.php', 1) . '", data,';
+                                $out .= '       function(response) {';
+                                $out .= '           jQuery("select#options_companyrelationships_fk_soc_watcher").html(response.value);';
+                                $out .= '           jQuery("select#options_companyrelationships_fk_soc_watcher").change();';
+                                $out .= '           if (response.num < 0) {';
+                                $out .= '               console.error(response.error);';
+                                $out .= '           }';
+                                $out .= '       }';
+                                $out .= '   );';
+                                $out .= '});';
+                                $out .= '</script>';
+
+                                if ($conf->use_javascript_ajax) {
+                                    include_once DOL_DOCUMENT_ROOT . '/core/lib/ajax.lib.php';
+                                    $comboenhancement = ajax_combobox('options_companyrelationships_fk_soc_watcher', array(), $conf->global->COMPANY_USE_SEARCH_TO_SELECT);
                                     $out.= $comboenhancement;
                                 }
                             }

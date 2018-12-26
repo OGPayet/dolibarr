@@ -82,6 +82,12 @@ class CompanyRelationshipsAvailability
      */
     public $benefactor_availability;
 
+    /**
+     * Watcher availability
+     * @var int
+     */
+    public $watcher_availability;
+
 
     /**
      * Constructor
@@ -95,18 +101,30 @@ class CompanyRelationshipsAvailability
 
 
     /**
-     *  Create public space availability into database
+     * Method to output saved errors
+     *
+     * @return	string		String with errors
+     */
+    public function errorsToString()
+    {
+        return $this->error.(is_array($this->errors)?(($this->error!=''?', ':'').join(', ',$this->errors)):'');
+    }
+
+
+    /**
+     * Create public space availability into database
      *
      * @param   User    $user           User that creates
      * @param   bool    $notrigger      [=FALSE] Launch triggers after, TRUE=disable triggers
-     * @return  int                     <0 if KO, Id of created object if OK
+     * @return  int
+     *
+     * @throws  Exception
      */
     public function create(User $user, $notrigger=FALSE)
     {
         global $conf, $langs, $hookmanager;
         $error = 0;
         $this->errors = array();
-        $now = dol_now();
         $langs->load("relationstierscontacts@relationstierscontacts");
 
         dol_syslog(__METHOD__ . " user_id=" . $user->id, LOG_DEBUG);
@@ -114,8 +132,9 @@ class CompanyRelationshipsAvailability
         // Clean parameters
         $this->fk_companyrelationships = $this->fk_companyrelationships > 0 ? $this->fk_companyrelationships : 0;
         $this->fk_c_companyrelationships_availability = $this->fk_c_companyrelationships_availability > 0 ? $this->fk_c_companyrelationships_availability : 0;
-        $this->principal_availability = $this->principal_availability > 0 ? $this->principal_availability : 0;
+        $this->principal_availability  = $this->principal_availability > 0 ? $this->principal_availability : 0;
         $this->benefactor_availability = $this->benefactor_availability > 0 ? $this->benefactor_availability : 0;
+        $this->watcher_availability    = $this->watcher_availability > 0 ? $this->watcher_availability : 0;
 
         // Check parameters
         if (empty($this->fk_companyrelationships)) {
@@ -140,12 +159,14 @@ class CompanyRelationshipsAvailability
             $sql .= ", fk_c_companyrelationships_availability";
             $sql .= ", principal_availability";
             $sql .= ", benefactor_availability";
+            $sql .= ", watcher_availability";
             $sql .= ")";
             $sql .= " VALUES (";
             $sql .= " " . $this->fk_companyrelationships;
             $sql .= ", " . $this->fk_c_companyrelationships_availability;
             $sql .= ", " . $this->principal_availability;
             $sql .= ", " . $this->benefactor_availability;
+            $sql .= ", " . $this->watcher_availability;
             $sql .= ")";
 
             $resql = $this->db->query($sql);
@@ -173,10 +194,12 @@ class CompanyRelationshipsAvailability
 
 
     /**
-     *  Load public space availability in memory from the database
+     * Load public space availability in memory from the database
      *
      * @param   int     $id         Id object
      * @return  int                 <0 if KO, 0 if not found, >0 if OK
+     *
+     * @throws  Exception
      */
     public function fetch($id)
     {
@@ -192,6 +215,7 @@ class CompanyRelationshipsAvailability
         $sql .= ", t.fk_c_companyrelationships_availability";
         $sql .= ", t.principal_availability";
         $sql .= ", t.benefactor_availability";
+        $sql .= ", t.watcher_availability";
         $sql .= " FROM " . MAIN_DB_PREFIX . $this->table_element . " as t";
         if ($id) $sql .= " WHERE t.rowid = " . $id;
 
@@ -210,6 +234,7 @@ class CompanyRelationshipsAvailability
                 $this->fk_c_companyrelationships_availability = $obj->fk_c_companyrelationships_availability;
                 $this->principal_availability                 = $obj->principal_availability;
                 $this->benefactor_availability                = $obj->benefactor_availability;
+                $this->watcher_availability                   = $obj->watcher_availability;
             }
             $this->db->free($resql);
 
@@ -223,11 +248,13 @@ class CompanyRelationshipsAvailability
 
 
     /**
-     *  Update public space availability into database
+     * Update public space availability into database
      *
      * @param   User    $user           User that modifies
-     * @param   bool    $notrigger      [=FALSEl Launch triggers after, TRUE=disable triggers
+     * @param   bool    $notrigger      [=FALSE] Launch triggers after, TRUE=disable triggers
      * @return  int                     <0 if KO, >0 if OK
+     *
+     * @throws  Exception
      */
     public function update(User $user, $notrigger=FALSE)
     {
@@ -270,6 +297,7 @@ class CompanyRelationshipsAvailability
             $sql .= ", fk_c_companyrelationships_availability = " . $this->fk_c_companyrelationships_availability;
             $sql .= ", principal_availability = " . $this->principal_availability;
             $sql .= ", benefactor_availability = " . $this->benefactor_availability;
+            $sql .= ", watcher_availability = " . $this->watcher_availability;
             $sql .= " WHERE rowid = " . $this->id;
 
             $resql = $this->db->query($sql);
@@ -295,11 +323,13 @@ class CompanyRelationshipsAvailability
 
 
     /**
-     *  Delete public space availability in database
+     * Delete public space availability in database
      *
      * @param   User    $user           User that deletes
-     * @param   bool    $notrigger      [=FALSEl Launch triggers after, TRUE=disable triggers
+     * @param   bool    $notrigger      [=FALSE] Launch triggers after, TRUE=disable triggers
      * @return  int                     <0 if KO, >0 if OK
+     *
+     * @throws  Exception
      */
     public function delete(User $user, $notrigger=FALSE)
     {
@@ -355,6 +385,7 @@ class CompanyRelationshipsAvailability
      * @param   User    $user                       User that deletes
      * @param   bool    $notrigger                  [=FALSEl Launch triggers after, TRUE=disable triggers
      * @return  int     <0 if KO, >0 if OK
+     * @throws  Exception
      */
     public function deleteAllByFkCompanyRelationships($fk_companyrelationships, User $user, $notrigger=FALSE)
     {
@@ -366,6 +397,7 @@ class CompanyRelationshipsAvailability
         $sql .= ", t.fk_c_companyrelationships_availability";
         $sql .= ", t.principal_availability";
         $sql .= ", t.benefactor_availability";
+        $sql .= ", t.watcher_availability";
         $sql .= " FROM " . MAIN_DB_PREFIX . $this->table_element . " as t";
         $sql .= " WHERE t.fk_companyrelationships = " . $fk_companyrelationships;
 
@@ -379,6 +411,7 @@ class CompanyRelationshipsAvailability
                 $this->fk_c_companyrelationships_availability = $obj->fk_c_companyrelationships_availability;
                 $this->principal_availability                 = $obj->principal_availability;
                 $this->benefactor_availability                = $obj->benefactor_availability;
+                $this->watcher_availability                   = $obj->watcher_availability;
 
                 $ret = $this->delete($user, $notrigger);
 
@@ -420,6 +453,7 @@ class CompanyRelationshipsAvailability
         $sql .= ", t.fk_c_companyrelationships_availability";
         $sql .= ", t.principal_availability";
         $sql .= ", t.benefactor_availability";
+        $sql .= ", t.watcher_availability";
         $sql .= " FROM " . MAIN_DB_PREFIX . $companyRelationshipsAvailability->table_element . " as t";
         $sql .= " WHERE t.fk_companyrelationships = " . $fk_companyrelationships;
         $sql .= " AND t.fk_c_companyrelationships_availability = " . $fk_c_companyrelationships_availability;
@@ -439,6 +473,7 @@ class CompanyRelationshipsAvailability
                 $companyRelationshipsAvailability->fk_c_companyrelationships_availability = $obj->fk_c_companyrelationships_availability;
                 $companyRelationshipsAvailability->principal_availability                 = $obj->principal_availability;
                 $companyRelationshipsAvailability->benefactor_availability                = $obj->benefactor_availability;
+                $companyRelationshipsAvailability->watcher_availability                   = $obj->watcher_availability;
             }
 
             return $companyRelationshipsAvailability;

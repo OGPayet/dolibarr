@@ -19,11 +19,11 @@
 --
 -- Default public space availability to add in dictionnary
 --
-INSERT INTO llx_c_companyrelationships_publicspaceavailability (element, label, principal_availability, benefactor_availability, active, entity) VALUES
-('propal', 'Propositions Commerciales', 0, 0, 1, 1),
-('commande', 'Commandes', 0, 0, 1, 1),
-('facture', 'Factures', 0, 0, 1, 1),
-('shipping', 'Expeditions', 0, 0, 1, 1),
-('fichinter', 'Interventions', 0, 0, 1, 1),
-('contrat', 'Contrats', 0, 0, 1, 1);
+INSERT INTO llx_c_companyrelationships_publicspaceavailability (element, label, principal_availability, benefactor_availability, watcher_availability, active, entity) VALUES
+('propal', 'Propositions Commerciales', 0, 0, 0, 1, 1),
+('commande', 'Commandes', 0, 0, 0, 1, 1),
+('facture', 'Factures', 0, 0, 0, 1, 1),
+('shipping', 'Expeditions', 0, 0, 0, 1, 1),
+('fichinter', 'Interventions', 0, 0, 0, 1, 1),
+('contrat', 'Contrats', 0, 0, 0, 1, 1);
 

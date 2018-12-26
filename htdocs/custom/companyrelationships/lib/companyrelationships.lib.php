@@ -21,6 +21,8 @@
  *	\brief      Functions for the module company relationships
  */
 
+dol_include_once('/companyrelationships/class/companyrelationships.class.php');
+
 /**
  * Prepare array with list of tabs
  *
@@ -50,6 +52,178 @@ function companyrelationships_admin_prepare_head()
     complete_head_from_modules($conf,$langs,null,$head,$h,'companyrelationships_admin');
 
     return $head;
+}
+
+/**
+ * Form confirm of thirdparty in relation
+ *
+ * @param	DoliDB		            $db			            Database handler
+ * @param	Societe		            $societe                Thirdparty object
+ * @param	CompanyRelationships    $companyrelationships   Relation thirdpaty object
+ * @param	int	                    $relation_type		    Relation type
+ * @return  string
+ *
+ * @throws  Exception
+ */
+function companyrelationships_formconfirm_relation_thirdparty($db, $societe, CompanyRelationships $companyrelationships, $relation_type)
+{
+    global $langs, $user;
+    global $action, $form;
+
+    $formconfirm = '';
+
+    // Confirm update thirdparty relationship
+    $relation_type_name = $companyrelationships->getRelationTypeName($relation_type);
+    // get relation thirdparty
+    $relationThirdparty = $companyrelationships->getRelationshipThirdparty($societe->id, $relation_type);
+    $relationThirdparty = is_object($relationThirdparty) ? $relationThirdparty : NULL;
+
+    $relationThirdpartySelectedId = $relationThirdparty ? $relationThirdparty->id : '';
+
+    if ($action=='edit_relationship_'.$relation_type_name && $user->rights->societe->creer && !empty($relationThirdpartySelectedId)) {
+        $thirdparty_htmlname = $relation_type_name . '_socid';
+        $thirdparty_label    = $langs->trans('CompanyRelationships' . ucfirst($relation_type_name) . 'Company');
+
+        $formquestion = array(
+            array(
+                'name'  => $thirdparty_htmlname,
+                'label' => $thirdparty_label,
+                'type'  => 'other',
+                'value' => $form->select_company($relationThirdpartySelectedId, $thirdparty_htmlname, '', '', 0, 0, array(), 0, 'maxwidth300')
+            )
+        );
+
+        if ($user->rights->companyrelationships->update_md->relationship) {
+            $publicSpaceAvailabilityList = $companyrelationships->getAllPublicSpaceAvailabilityThirdparty($societe->id, $relation_type, $relationThirdpartySelectedId);
+            if (is_array($publicSpaceAvailabilityList)) {
+                $inputElements = '';
+                $inputElementsNameArray = array();
+
+                foreach ($publicSpaceAvailabilityList as $publicSpaceAvailability) {
+                    $inputElementName    = 'publicspaceavailability_' . $publicSpaceAvailability['element'];
+                    $inputElementChecked = '';
+                    if (intval($publicSpaceAvailability[$relation_type_name]) > 0) {
+                        $inputElementChecked = 'checked="checked"';
+                    }
+                    $inputElements .= '<input type="checkbox" id="' . $inputElementName .'" ' . 'name="' . $inputElementName . '" value="1" '. $inputElementChecked . ' /> ' . $publicSpaceAvailability['label'] . '<br />';
+                    $inputElementsNameArray[] = $inputElementName;
+                }
+
+                $formquestion[] = array(
+                    'name' => $inputElementsNameArray,
+                    'type' => 'onecolumn',
+                    'value' => '<div id="publicspaceavailability">' . $inputElements . '</div>'
+                );
+            }
+        }
+
+        $formconfirm = $form->formconfirm($_SERVER['PHP_SELF'] . '?socid=' . $societe->id . '&relation_type=' . $relation_type . '&' . $thirdparty_htmlname . '=' . $societe->id, $langs->trans("CompanyRelationshipsEditCompanyRelationships"), $langs->trans("CompanyRelationshipsConfirmEditCompanyRelationships"), 'confirm_update_relationship_' . $relation_type_name, $formquestion, 0, 1, 400, 600);
+    }
+
+    // Confirm deleting relationship
+    if ($action=='delete_relationship_'.$relation_type_name && $user->rights->societe->creer) {
+        $formconfirm = $form->formconfirm($_SERVER['PHP_SELF'] . '?socid=' . $societe->id . '&relation_type=' . $relation_type, $langs->trans("CompanyRelationshipsDeleteCompanyRelationships"), $langs->trans("CompanyRelationshipsConfirmDeleteCompanyRelationships"), 'confirm_delete_relationship_' . $relation_type_name, '', 0, 1);
+    }
+
+    return $formconfirm;
+}
+
+/**
+ * Show html line of thirdpaty in relation
+ *
+ * @param	DoliDB		            $db			            Database handler
+ * @param	Societe		            $societe                Thirdparty object
+ * @param	CompanyRelationships    $companyrelationships   Relation thirdpaty object
+ * @param	int	                    $relation_type		    Relation type
+ * @return  void
+ *
+ * @throws  Exception
+ */
+function companyrelationships_show_relation_thirdparty($db, $societe, CompanyRelationships $companyrelationships, $relation_type)
+{
+    global $langs, $user;
+    global $action, $form;
+
+    $relation_type_name = $companyrelationships->getRelationTypeName($relation_type);
+    // get relation thirdparty
+    $relationThirdparty = $companyrelationships->getRelationshipThirdparty($societe->id, $relation_type);
+    $relationThirdparty = is_object($relationThirdparty) ? $relationThirdparty : NULL;
+
+    $relationThirdpartySelectedId = $relationThirdparty ? $relationThirdparty->id : '';
+
+    print '<tr><td>';
+    print '<table class="nobordernopadding" width="100%"><tr><td>';
+    print $langs->trans('CompanyRelationshipsWatcherCompany');
+    print '</td>';
+    if ($action!='edit_thirdparty_'.$relation_type_name && $user->rights->societe->creer)
+        print '<td align="right"><a href="' . $_SERVER["PHP_SELF"] . '?action=edit_thirdparty_'.$relation_type_name . '&socid=' . $societe->id . '&relation_type=' . $relation_type . '">' . img_edit($langs->trans('CompanyRelationshipsSetThirdpartyWatcher'), 1) . '</a></td>';
+    print '</tr></table>';
+    print '</td><td>';
+    if ($action=='edit_thirdparty_'.$relation_type_name && $user->rights->societe->creer) {
+        print '<form name="edit_thirdparty_'.$relation_type_name.'" action="' . $_SERVER["PHP_SELF"] . '?socid=' . $societe->id . '" method="post">';
+        print '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '" />';
+        print '<input type="hidden" name="action" value="set_thirdparty_'.$relation_type_name.'" />';
+        print '<input type="hidden" name="relation_type" value="'.$relation_type.'" />';
+        print $form->select_company($relationThirdpartySelectedId, $relation_type_name.'_socid', '(s.client = 1 OR s.client = 2 OR s.client = 3) AND status=1', 'SelectThirdparty', 0, 0, null, 0, 'minwidth300');
+        print '<input type="submit" class="button" value="' . $langs->trans('Modify') . '" />';
+        print '</form>';
+    } else {
+        if ($relationThirdparty) {
+            print $companyrelationships->getNomUrlForSociete($relationThirdparty, 1, 'companyrelationships');
+        }
+    }
+    print '</td></tr>';
+}
+
+/**
+ * Show html line of thirdparty public space availability in relation
+ *
+ * @param	DoliDB		            $db			            Database handler
+ * @param	Societe		            $societe                Thirdparty object
+ * @param	CompanyRelationships    $companyrelationships   Relation thirdpaty object
+ * @param	int	                    $relation_type		    Relation type
+ * @return  void
+ *
+ * @throws  Exception
+ */
+function companyrelationships_show_reation_psa($db, $societe, $companyrelationships, $relation_type)
+{
+    global $langs, $user;
+    global $action;
+
+    $relation_type_name = $companyrelationships->getRelationTypeName($relation_type);
+    // get relation thirdparty
+    $relationThirdparty = $companyrelationships->getRelationshipThirdparty($societe->id, $relation_type);
+    $relationThirdparty = is_object($relationThirdparty) ? $relationThirdparty : NULL;
+
+    $relationThirdpartyId = $relationThirdparty ? $relationThirdparty->id : 0;
+    $publicSpaceAvailabilityList = array();
+    if ($relationThirdpartyId > 0) {
+        $publicSpaceAvailabilityList = $companyrelationships->getAllPublicSpaceAvailabilityThirdparty($societe->id, $relation_type, $relationThirdpartyId);
+    }
+    $htmlPublicSpaceAvailabilityList = array($relation_type => '');
+    if (is_array($publicSpaceAvailabilityList)) {
+        foreach($publicSpaceAvailabilityList as $publicSpaceAvailability) {
+            if ($publicSpaceAvailability[$relation_type_name]==1) {
+                $htmlPublicSpaceAvailabilityList[$relation_type] .= $publicSpaceAvailability['label'] . '<br />';
+            }
+        }
+    }
+
+    print '<tr><td>';
+    print '<table class="nobordernopadding" width="100%"><tr><td>';
+    print $langs->trans('CompanyRelationshipsPublicSpaceAvailability' . ucfirst($relation_type_name));
+    print '</td>';
+    if ($action!='edit_thirdparty_'.$relation_type_name  && $user->rights->societe->creer) {
+        print '<td align="right">';
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=edit_relationship_' . $relation_type_name . '&socid=' . $societe->id . '&relation_type=' . $relation_type . '">' . img_edit() . '</a>';
+        //print '<a href="' . $_SERVER['PHP_SELF'] . '?action=delete_relationship_' . $relation_type_name . '&socid=' . $societe->id . '&relation_type=' . $relation_type . '">' . img_delete() . '</a>';
+        print '</td>';
+    }
+    print '</tr></table>';
+    print '</td><td>';
+    print $htmlPublicSpaceAvailabilityList[$relation_type];
+    print '</td></tr>';
 }
 
 /**
@@ -84,8 +258,6 @@ function companyrelationships_show_companyrelationships($conf, $langs, $db, $obj
     if (!$sortfield) $sortfield = "s.nom";
 
     $companystatic = new Societe($db);
-
-    dol_include_once('/companyrelationships/class/companyrelationships.class.php');
     $companyrelationships = new CompanyRelationships($db);
 
     $modename = $mode ? 'benefactor' : 'principal';
@@ -116,7 +288,7 @@ function companyrelationships_show_companyrelationships($conf, $langs, $db, $obj
         );
 
         if ($user->rights->companyrelationships->update_md->relationship) {
-            $publicSpaceAvailbilityList = ($mode ? $companyrelationships->getAllPublicSpaceAvailability($object->id, $selected) : $companyrelationships->getAllPublicSpaceAvailability($selected, $object->id));
+            $publicSpaceAvailbilityList = ($mode ? $companyrelationships->getAllPublicSpaceAvailabilityThirdparty($object->id, CompanyRelationships::RELATION_TYPE_BENEFACTOR, $selected) : $companyrelationships->getAllPublicSpaceAvailabilityThirdparty($selected, CompanyRelationships::RELATION_TYPE_BENEFACTOR, $object->id));
             if (is_array($publicSpaceAvailbilityList)) {
                 $inputElements = '';
                 $inputElementsNameArray = array();
@@ -340,10 +512,10 @@ function companyrelationships_show_companyrelationships($conf, $langs, $db, $obj
             // get public space availability for all elements
             if ($mode) {
                 // benefactor
-                $publicSpaceAvailabilityList = $companyrelationships->getAllPublicSpaceAvailability($object->id, $companystatic->id);
+                $publicSpaceAvailabilityList = $companyrelationships->getAllPublicSpaceAvailabilityThirdparty($object->id, CompanyRelationships::RELATION_TYPE_BENEFACTOR, $companystatic->id);
             } else {
                 // principal
-                $publicSpaceAvailabilityList = $companyrelationships->getAllPublicSpaceAvailability($companystatic->id, $object->id);
+                $publicSpaceAvailabilityList = $companyrelationships->getAllPublicSpaceAvailabilityThirdparty($companystatic->id, CompanyRelationships::RELATION_TYPE_BENEFACTOR, $object->id);
             }
             $htmlPublicSpaceAvailabilityList = array(0 => '', 1 => '');
             if (is_array($publicSpaceAvailabilityList)) {

@@ -70,6 +70,10 @@ if ($id > 0 || !empty($ref)) {
     }
 }
 
+// get thirdparty watcher
+$thirdpartyWatcher = $companyrelationships->getRelationshipThirdparty($object->id, CompanyRelationships::RELATION_TYPE_WATCHER);
+$thirdpartyWatcher = is_object($thirdpartyWatcher) ? $thirdpartyWatcher : NULL;
+
 /*
  *	Actions
  */
@@ -81,7 +85,55 @@ if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'e
 if (empty($reshook)) {
     $error = 0;
 
-    if ($action == 'add_relationship' && $user->rights->societe->creer) {
+    if ($action == 'set_thirdparty_watcher' && $user->rights->societe->creer) {
+        $socid_relation = intval(GETPOST('watcher_socid', 'int'));
+        $relation_type  = intval(GETPOST('relation_type', 'int'));
+
+        // save thirdparty watcher relationships
+        $result = $companyrelationships->saveRelationshipThirdparty($object->id, $relation_type, $socid_relation);
+        if ($result < 0) {
+            $error++;
+        }
+
+        if ($error) {
+            setEventMessages($companyrelationships->error, $companyrelationships->errors, 'errors');
+        } else {
+            header('Location: ' . $_SERVER["PHP_SELF"] . '?socid=' . $object->id);
+            exit();
+        }
+    }
+    elseif ($action == 'confirm_update_relationship_watcher' && $confirm == 'yes' && $user->rights->societe->creer) {
+        $socid_relation = intval(GETPOST('watcher_socid', 'int'));
+        $relation_type  = intval(GETPOST('relation_type', 'int'));
+
+        $publicSpaceAvailabilityElementList = $companyrelationships->getAllPublicSpaceAvailabilityByDefault('element');
+        if (!is_array($publicSpaceAvailabilityElementList)) {
+            $error++;
+        }
+
+        $publicSpaceAvailabilityArray = array();
+        foreach ($publicSpaceAvailabilityElementList as $psaId => $publicSpaceAvailabilityElement) {
+            $publicSpaceAvailabilityArray[$psaId] = GETPOST('publicspaceavailability_' . $publicSpaceAvailabilityElement, 'int');
+        }
+
+        $db->begin();
+
+        $result = $companyrelationships->updateRelationshipThirdparty($object->id, $relation_type, $socid_relation, $publicSpaceAvailabilityArray);
+        if ($result < 0) {
+            $error++;
+        }
+
+        if ($error) {
+            $db->rollback();
+            setEventMessages($companyrelationships->error, $companyrelationships->errors, 'errors');
+            $action = 'edit_relationship';
+        } else {
+            $db->commit();
+            header('Location: ' . $_SERVER["PHP_SELF"] . '?socid=' . $object->id);
+            exit();
+        }
+    }
+    else if ($action == 'add_relationship' && $user->rights->societe->creer) {
         $principal_socid = GETPOST('add_principal_socid', 'int');
         $benefactor_socid = GETPOST('add_benefactor_socid', 'int');
 
@@ -167,6 +219,14 @@ $form=new Form($db);
 
 dol_fiche_head($head, 'companyrelationships', $langs->trans("ThirdParty"), -1, 'company');
 
+$formconfirm = '';
+
+// watcher form confirm
+$formconfirm = companyrelationships_formconfirm_relation_thirdparty($db, $object, $companyrelationships, CompanyRelationships::RELATION_TYPE_WATCHER);
+
+// Print form confirm
+print $formconfirm;
+
 $linkback = '<a href="'.DOL_URL_ROOT.'/societe/list.php?restore_lastsearch_values=1">'.$langs->trans("BackToList").'</a>';
 
 dol_banner_tab($object, 'socid', $linkback, ($user->societe_id?0:1), 'rowid', 'nom');
@@ -187,6 +247,12 @@ if (! empty($conf->global->SOCIETE_USEPREFIX))  // Old not used prefix field
 }
 print '</td>';
 print '</tr>';
+
+// watcher relation thirdparty
+companyrelationships_show_relation_thirdparty($db, $object, $companyrelationships, CompanyRelationships::RELATION_TYPE_WATCHER);
+
+// watcher public space availability
+companyrelationships_show_reation_psa($db, $object, $companyrelationships, CompanyRelationships::RELATION_TYPE_WATCHER);
 
 print '</table>';
 print "</div>\n";

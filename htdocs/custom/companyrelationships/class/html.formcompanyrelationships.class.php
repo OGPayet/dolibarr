@@ -359,7 +359,10 @@ class FormCompanyRelationships
                     height: "'.$height.'",
                     width: "'.$width.'",
                     modal: true,
-                    closeOnEscape: false,
+                    closeOnEscape: true,
+                    close: function(event, ui) {
+                        $("#'.$dialogconfirm.'").dialog("destroy");
+                    },
                     buttons: {
                         "'.dol_escape_js($langs->transnoentities("Yes")).'": function() {
 				var options="";
@@ -391,11 +394,11 @@ class FormCompanyRelationships
 					if (pageyes.length > 0) {
 					    if (form.length > 0) {
                                     if (jQuery("#companyrelationships_socid").val() > 0) {
-                                        jQuery("input[name=\"action\"]").val("'.dol_escape_js($action).'");
                                         jQuery("input[name=\"socid\"]").val(jQuery("#companyrelationships_socid").val());
                                         jQuery("#socid").val(jQuery("#companyrelationships_socid").val());
-                                        jQuery(form).submit();
                                     }
+                                    jQuery("input[name=\"action\"]").val("'.dol_escape_js($action).'");
+                                    jQuery(form).submit();
 					    } else {
 					        //location.href = urljump;
 					    }
@@ -406,6 +409,10 @@ class FormCompanyRelationships
 				var options = "";
 				var inputko = '.json_encode($inputko).';
 				var pageno="'.dol_escape_js(! empty($pageno)?$pageno:'').'";
+				var form_name = "' .  dol_escape_js($formName) . '";
+				//var form = jQuery("form:first");
+				var form = jQuery("form[name=\"" +  form_name + "\"]");
+
 				if (inputko.length>0) {
 					$.each(inputko, function(i, inputname) {
 						var more = "";
@@ -413,12 +420,26 @@ class FormCompanyRelationships
 						var inputvalue = $("#" + inputname + more).val();
 						if (typeof inputvalue == "undefined") { inputvalue=""; }
 						options += "&" + inputname + "=" + inputvalue;
+
+						if (form.length > 0) {
+						    jQuery("<input type=\"hidden\" name=\"" + inputname + "\" value=\"" + inputvalue + "\" />\"").prependTo(form);
+						}
 					});
+				}
+				if (form.length > 0) {
+				    jQuery("<input type=\"hidden\" name=\"confirm\" value=\"no\" />").prependTo(form);
 				}
 
 				var urljump=pageno + (pageno.indexOf("?") < 0 ? "?" : "") + options;
 				//alert(urljump);
-					if (pageno.length > 0) { location.href = urljump; }
+					if (pageno.length > 0) {
+					    if (form.length > 0) {
+                                    jQuery("input[name=\"action\"]").val("'.dol_escape_js($action).'");
+                                    jQuery(form).submit();
+					    } else {
+					        //location.href = urljump;
+					    }
+				    }
                             $(this).dialog("close");
                         }
                     }

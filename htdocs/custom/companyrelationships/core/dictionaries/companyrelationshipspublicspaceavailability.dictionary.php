@@ -31,7 +31,7 @@ class CompanyRelationshipsPublicSpaceAvailabilityDictionary extends Dictionary
     /**
      * @var int         Version of this dictionary
      */
-    public $version = 0;
+    public $version = 1;
 
     /**
      * @var array       List of languages to load
@@ -167,6 +167,14 @@ class CompanyRelationshipsPublicSpaceAvailabilityDictionary extends Dictionary
                 'default'=> '0',
             ),
         ),
+        'watcher_availability' => array(
+            'name'       => 'watcher_availability',
+            'label'      => 'CompanyRelationshipsPublicSpaceAvailabilityDictionaryWatcherAvailability',
+            'type'       => 'boolean',
+            'database'   => array(
+                'default'=> '0',
+            ),
+        ),
     );
 
     /**
@@ -181,6 +189,24 @@ class CompanyRelationshipsPublicSpaceAvailabilityDictionary extends Dictionary
             'fields'    => array('element'),
             'is_unique' => true,
         ),
+    );
+
+    /**
+     * @var array  List of fields/indexes added, updated or deleted for a version
+     * array(
+     *   'version' => array(
+     *     'fields' => array('field_name'=>'u', ...), // List of field name who is updated(u) for a version
+     *     'deleted_fields' => array('field_name'=> array('name', 'type', other_custom_data_required_for_delete), ...), // List of field name who is deleted for a version
+     *     'indexes' => array('idx_number'=>'u', 'idx_number'=>'d', ...), // List of indexes number who is updated(u) or deleted(d) for a version
+     *   ),
+     * )
+     */
+    public $updates = array(
+        1 => array(
+            'fields' => array(
+                'watcher_availability' => 'a',
+            )
+        )
     );
 
     /**
