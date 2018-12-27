@@ -63,7 +63,6 @@ class InterfaceCompanyRelationshipsMassAction extends DolibarrTriggers
 	 */
 	public function runTrigger($action, $object, User $user, Translate $langs, Conf $conf)
 	{
-
         if (empty($conf->companyrelationships->enabled)) return 0;     // Module not active, we do nothing
 
         // invoice create
@@ -97,7 +96,7 @@ class InterfaceCompanyRelationshipsMassAction extends DolibarrTriggers
                         }
 
                         $companyRelationships = new CompanyRelationships($this->db);
-                        $publicSpaceAvailability = $companyRelationships->getPublicSpaceAvailability($object->socid, $object->array_options['options_companyrelationships_fk_soc_benefactor'], $object->element);
+                        $publicSpaceAvailability = $companyRelationships->getPublicSpaceAvailabilityThirdparty($object->socid, CompanyRelationships::RELATION_TYPE_BENEFACTOR, $object->array_options['options_companyrelationships_fk_soc_benefactor'], $object->element);
 
                         if (!is_array($publicSpaceAvailability)) {
                             $object->error = $companyRelationships->error;
@@ -120,62 +119,6 @@ class InterfaceCompanyRelationshipsMassAction extends DolibarrTriggers
 
             return 1;
         }
-        // order supplier create
-        /*
-        else if ($action == 'ORDER_SUPPLIER_CREATE') {
-            dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
-
-            dol_include_once('/companyrelationships/class/companyrelationships.class.php');
-
-            $langs->load('companyrelatioships@companyrelatioships');
-
-            // order supplier creation come from order (exemple : restock)
-            if ($object->socid>0 && $object->origin=='commande' && $object->origin_id>0) {
-                // fetch extrafields of this order
-                $object->fetch_optionals();
-
-                // /!\ can provide from create card : check if we haven't got extrafields yet
-                if (!isset($object->array_options['options_companyrelationships_fk_soc_benefactor'])) {
-                    // fetch origin object (commande)
-                    require_once DOL_DOCUMENT_ROOT . '/commande/class/commande.class.php';
-                    $object->fetch_origin();
-
-                    // verify if it's an order
-                    if (is_object($object->commande)) {
-                        $commande = $object->commande;
-
-                        // set benefactor company
-                        if ($commande->array_options['options_companyrelationships_fk_soc_benefactor']>0) {
-                            $object->array_options['options_companyrelationships_fk_soc_benefactor'] = $commande->array_options['options_companyrelationships_fk_soc_benefactor'];
-                        } else {
-                            $object->array_options['options_companyrelationships_fk_soc_benefactor'] = $object->socid;
-                        }
-
-                        $companyRelationships = new CompanyRelationships($this->db);
-                        $publicSpaceAvailability = $companyRelationships->getPublicSpaceAvailability($object->socid, $object->array_options['options_companyrelationships_fk_soc_benefactor'], $object->element);
-
-                        if (!is_array($publicSpaceAvailability)) {
-                            $object->error = $companyRelationships->error;
-                            $object->errors = $companyRelationships->errors;
-                            dol_syslog(__METHOD__ . " Error : " . $object->errorsToString(), LOG_ERR);
-                            return -1;
-                        }
-
-                        // modify extrafields for this invoice
-                        $object->array_options['options_companyrelationships_availability_principal'] = $publicSpaceAvailability['principal'];
-                        $object->array_options['options_companyrelationships_availability_benefactor'] = $publicSpaceAvailability['benefactor'];
-                        $ret = $object->insertExtrafields();
-                        if ($ret < 0) {
-                            dol_syslog(__METHOD__ . " Error : " . $object->errorsToString(), LOG_ERR);
-                            return -1;
-                        }
-                    }
-                }
-            }
-
-            return 1;
-        }
-        */
 
         return 0;
     }
