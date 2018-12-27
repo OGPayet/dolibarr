@@ -703,7 +703,7 @@ class RequestManagerApi extends DolibarrApi {
         // Transcodage of the text
         $requestmanager_message->type = dol_htmlentitiesbr_decode($requestmanager_message->type);
         $requestmanager_message->label = dol_htmlentitiesbr_decode($requestmanager_message->label);
-        $requestmanager_message->note = dol_htmlentitiesbr_decode($requestmanager_message->note);
+        //$requestmanager_message->note = dol_htmlentitiesbr_decode($requestmanager_message->note);
 
         return $this->_cleanObjectData($requestmanager_message);
     }
@@ -935,7 +935,7 @@ class RequestManagerApi extends DolibarrApi {
                         // Transcodage of the text
                         $requestmanager_message->type = dol_htmlentitiesbr_decode($requestmanager_message->type);
                         $requestmanager_message->label = dol_htmlentitiesbr_decode($requestmanager_message->label);
-                        $requestmanager_message->note = dol_htmlentitiesbr_decode($requestmanager_message->note);
+                       // $requestmanager_message->note = dol_htmlentitiesbr_decode($requestmanager_message->note);
                         $obj_ret[] = $this->_cleanObjectData($requestmanager_message);
                     }
                 } else {
@@ -948,7 +948,7 @@ class RequestManagerApi extends DolibarrApi {
                         // Transcodage of the text
                         $event->type = dol_htmlentitiesbr_decode($event->type);
                         $event->label = dol_htmlentitiesbr_decode($event->label);
-                        $event->note = dol_htmlentitiesbr_decode($event->note);
+                        //$event->note = dol_htmlentitiesbr_decode($event->note);
                         $obj_ret[] = $this->_cleanObjectData($event);
                     }
                 }
