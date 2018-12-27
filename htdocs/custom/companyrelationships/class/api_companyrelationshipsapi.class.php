@@ -5504,6 +5504,8 @@ default:
         //
         foreach ($filearray as $k => $v) {
             $filearray[$k]['original_file'] = str_replace($output_dir, '', $v['fullname']);
+			unset($filearray[$k]['path']);
+			unset($filearray[$k]['fullname']);
         }
         //
         // Open-DSI - Modification - End
