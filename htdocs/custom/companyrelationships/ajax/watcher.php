@@ -64,26 +64,39 @@ if (! empty($socid) && ! empty($action) && ! empty($htmlname))
     $relationThirdparty = $companyrelationships->getRelationshipThirdparty($socid, CompanyRelationships::RELATION_TYPE_WATCHER);
     $relationThirdparty = is_object($relationThirdparty) ? $relationThirdparty : NULL;
 
+    $relationThirdpartyId = $relationThirdparty ? $relationThirdparty->id : 0;
+
     // determine selected company id by default
-    if (!empty($fk_soc_watcher)) {
-        $relationThirdpartySelectedId = $fk_soc_watcher;
+    if ($fk_soc_watcher == '' ||  $fk_soc_watcher>0) {
+        $selectedCompanyId = $fk_soc_watcher;
     } else {
-        $relationThirdpartySelectedId = $relationThirdparty ? $relationThirdparty->id : '';
+        $selectedCompanyId = $relationThirdparty ? $relationThirdparty->id : '';
     }
 
-    $companies = $form->select_thirdparty_list($relationThirdpartySelectedId, $htmlname, '(s.client = 1 OR s.client = 2 OR s.client = 3) AND status=1', 'Thirdparty', 0, 0, null, '', 1);
+    $companies = $form->select_thirdparty_list($selectedCompanyId, $htmlname, '(s.client = 1 OR s.client = 2 OR s.client = 3) AND status=1', 'Thirdparty', 0, 0, null, '', 1);
 
+    $hasAtLeastOneSelected = FALSE;
     $arrayresult = [];
     $others = [];
     foreach ($companies as $company) {
-        if ($company['key'] == $relationThirdpartySelectedId) {
-            $arrayresult[] = '<option value="' . $company['key'] . '" selected="selected">'.(preg_match('/\s\*$/',$company['label']) !== false ? $company['label'] . ' *' : $company['label']).'</option>';
+        if ($company['key'] == $relationThirdpartyId) {
+            $selected = '';
+            if ($company['key'] == $selectedCompanyId) {
+                $hasAtLeastOneSelected = TRUE;
+                $selected = ' selected="selected"';
+            }
+
+            $arrayresult[] = '<option value="' . $company['key'] . '"' . $selected . '>'.(preg_match('/\s\*$/',$company['label']) !== false ? $company['label'] . ' *' : $company['label']).'</option>';
         } else {
-            $others[] = '<option value="' . $company['key'] . '">' . $company['label'] . '</option>';
+            $selected = '';
+            if ($company['key'] == $selectedCompanyId) {
+                $hasAtLeastOneSelected = TRUE;
+                $selected = ' selected="selected"';
+            }
+            $others[] = '<option value="' . $company['key'] . '"' . $selected . '>' . $company['label'] . '</option>';
         }
     }
-    $options = array_merge($arrayresult, array('<option value="">&nbsp;</option>'), $others);
-    //$options = array_merge($arrayresult, $others);
+    $options = array_merge($arrayresult, array('<option value=""' . ($hasAtLeastOneSelected ? '' : ' selected="selected"') . '>&nbsp;</option>'), $others);
 
     $return['value'] = implode('', $options);
     $return['num']   = $form->result['nbofthirdparties'];

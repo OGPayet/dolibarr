@@ -188,9 +188,8 @@ class ActionsCompanyRelationships
                             $principalCompanyList = $companyRelationships->getRelationships($socid, 0, 1);
                             $principalCompanyList = is_array($principalCompanyList) ? $principalCompanyList : array();
                             if (count($principalCompanyList) > 0) {
-                                // it doesn't work bacause there is a new Propal in create mode
+                                // it doesn't work because object is new in create mode
                                 //$object->cr_must_confirm_socid = true;
-                                $_SESSION['cr_must_confirm_socid'] = true;
                                 $action = 'create';
                                 return 1;
                             }
@@ -202,8 +201,6 @@ class ActionsCompanyRelationships
                 if ($action == 'companyrelationships_confirm_socid' && $userRightsElementCreer) {
                     // it doesn't work because object is new in create mode
                     //$object->cr_confirm_socid = 1;
-                    $_SESSION['cr_confirm_socid'] = 1;
-                    $_SESSION['cr_must_confirm_socid'] = false;
                     $action = 'create';
                 }
                 // update extra fields
@@ -211,7 +208,7 @@ class ActionsCompanyRelationships
                     $attribute = GETPOST('attribute', 'alpha');
 
                     // update benefactor company
-                    if (!empty($attribute) && $attribute=='companyrelationships_fk_soc_benefactor') {
+                    if ($attribute=='companyrelationships_fk_soc_benefactor') {
 
                         require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
 
@@ -227,7 +224,7 @@ class ActionsCompanyRelationships
                             $objectClone = clone $object;
 
                             $companyRelationships    = new CompanyRelationships($this->db);
-                            $publicSpaceAvailability = $companyRelationships->getPublicSpaceAvailability($object->socid, $fk_soc_benefactor, $object->element);
+                            $publicSpaceAvailability = $companyRelationships->getPublicSpaceAvailabilityThirdparty($object->socid, CompanyRelationships::RELATION_TYPE_BENEFACTOR, $fk_soc_benefactor, $object->element);
 
                             if (!is_array($publicSpaceAvailability)) {
                                 $error++;
@@ -240,6 +237,53 @@ class ActionsCompanyRelationships
                                 $objectClone->array_options['options_companyrelationships_fk_soc_benefactor']       = $fk_soc_benefactor;
                                 $objectClone->array_options['options_companyrelationships_availability_principal']  = $publicSpaceAvailability['principal'];
                                 $objectClone->array_options['options_companyrelationships_availability_benefactor'] = $publicSpaceAvailability['benefactor'];
+
+                                $result = $objectClone->insertExtraFields();
+                                if ($result < 0) {
+                                    $error++;
+                                    $object->error  = $objectClone->error;
+                                    $object->errors = $objectClone->errors;
+                                }
+                            }
+
+                            if ($error) {
+                                setEventMessages($object->error, $object->errors, 'errors');
+                                $action = 'edit_extras';
+                            } else {
+                                header("Location: " . $_SERVER['PHP_SELF'] . '?id=' . $object->id);
+                                exit();
+                            }
+                        }
+                    }
+                    // update watcher company
+                    else if ($attribute=='companyrelationships_fk_soc_watcher') {
+
+                        require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
+
+                        $langs->load('companyrelationships@companyrelationships');
+
+                        $error = 0;
+
+                        $socid_relation = GETPOST('options_companyrelationships_fk_soc_watcher', 'int');
+
+                        // if watcher company changed
+                        if (!empty($socid_relation) && $socid_relation!=$object->array_options['options_companyrelationships_fk_soc_watcher']) {
+                            // save a copy of this object
+                            $objectClone = clone $object;
+
+                            $companyRelationships    = new CompanyRelationships($this->db);
+                            $publicSpaceAvailability = $companyRelationships->getPublicSpaceAvailabilityThirdparty($object->socid, CompanyRelationships::RELATION_TYPE_WATCHER, $socid_relation, $object->element);
+
+                            if (!is_array($publicSpaceAvailability)) {
+                                $error++;
+                                $object->error  = $companyRelationships->error;
+                                $object->errors = $companyRelationships->errors;
+                            }
+
+                            if (! $error) {
+                                // modify options with company relationships default availability
+                                $objectClone->array_options['options_companyrelationships_fk_soc_watcher']       = $socid_relation;
+                                $objectClone->array_options['options_companyrelationships_availability_watcher'] = $publicSpaceAvailability['watcher'];
 
                                 $result = $objectClone->insertExtraFields();
                                 if ($result < 0) {
@@ -515,7 +559,7 @@ class ActionsCompanyRelationships
                     $out .= '<div id="companyrelationships_confirm">';
                     // it doesn't work because object is new in create mode
                     //if (!empty($object->cr_must_confirm_socid)) {
-                    if (!empty($_SESSION['cr_must_confirm_socid'])) {
+                    if (empty($originid) && intval($socid)>0) {
                         $principalCompanyList = $companyRelationships->getRelationships($socid, 0, 1);
                         $principalCompanyList = is_array($principalCompanyList) ? $principalCompanyList : array();
                         if (count($principalCompanyList) > 0) {
@@ -546,7 +590,7 @@ class ActionsCompanyRelationships
                     $out .= '</tr>';
                     // it doesn't work because object is new in create mode
                     //$out .= '<input type="hidden" name="cr_confirm_socid" value="'.(!empty($object->cr_confirm_socid) ? 1 : 0).'">';
-                    $out .= '<input type="hidden" name="cr_confirm_socid" value="'.(!empty($_SESSION['cr_confirm_socid']) ? $_SESSION['cr_confirm_socid'] : 0).'" />';
+                    $out .= '<input type="hidden" name="cr_confirm_socid" value="1" />';
 
                     // company id already posted (an input hidden in this form)
                     if (intval($socid) > 0) {
