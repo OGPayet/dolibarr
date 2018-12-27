@@ -1581,6 +1581,52 @@ SCRIPT;
                         );
                     }
                     break;
+					case 'shipping':
+					if (DolibarrApiAccess::$user->societe_id > 0) {
+					$parameters['blacklist_of_properties'] = array(
+						"lines" => ''
+					);
+					}
+					break;
+					case 'contrat':
+					if (DolibarrApiAccess::$user->societe_id > 0) {
+					$parameters['whitelist_of_properties'] = array(
+						"id" => '', "ref" => '', "ref_customer" => '', "ref_supplier" => '', "statut" => '',
+            "mise_en_service" => '', "date_contrat" => '', "date_creation" => '', "fin_validite" => '', "date_modification" => '',
+            "date_validation" => '', "user_author_id" => '', "commercial_signature_id" => '', "commercial_suivi_id" => '',
+            "note_public" => '', "fk_project" => '', "socid" => '', "thirdparty" => '',
+            "cr_thirdparty_benefactor" => '', "lines" => '', "linkedObjectsIds" => '',"array_options" =>array("options_companyrelationships_fk_soc_benefactor" =>'', "options_formule"=>'',"options_signaturedate"=>'',"options_startdate"=>'',"options_duration"=>''),
+					);
+					}
+					break;
+					case 'contratdet':
+					if (DolibarrApiAccess::$user->societe_id > 0) {
+					$parameters['whitelist_of_properties'] = array(
+            "id" => '', "ref" => '', "tms" => '', "fk_contrat" => '', "fk_product" => '', "statut" => ''
+					);
+					}
+					break;
+					case 'facture':
+		if (DolibarrApiAccess::$user->societe_id > 0) {
+		$parameters['whitelist_of_properties'] = array(
+             "id" => '', "ref" => '', "ref_client" => '', "type" => '', "date" => '',
+            "date_validation" => '', "datem" => '',
+            "total_ht" => '', "total_tva" => '', "total_localtax1" => '', "total_localtax2" => '', "total_ttc" => '',
+            "paye" => '', "close_code" => '', "socid" => '', "statut" => '',
+            "date_lim_reglement" => '', "mode_reglement_id" => '', "mode_reglement_code" => '', "mode_reglement" => '',
+            "cond_reglement_id" => '', "cond_reglement_code" => '', "cond_reglement_doc" => '',
+            "thirdparty" => '', "array_options" => '', "cr_thirdparty_benefactor" => '', "lines" => '', "linkedObjectsIds" => '',
+        );
+		}
+                    break;
+					case 'facturedet':
+		if (DolibarrApiAccess::$user->societe_id > 0) {
+		$parameters['whitelist_of_properties'] = array(
+           "id" => '',
+            "fk_product" => '',"total_ht" => '', "total_tva" => '', "total_ttc" => ''
+        );
+		}
+                    break;
             }
         }
 
