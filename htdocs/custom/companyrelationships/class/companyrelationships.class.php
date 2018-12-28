@@ -80,6 +80,13 @@ class CompanyRelationships
     public $fk_soc_watcher;
 
     /**
+     * Relation type
+     * @var int
+     */
+    public $relation_type;
+
+
+    /**
      * Element list of public space availability
      * @var array ('propal', 'commande', 'facture', 'shipping', 'fichinter', 'contrat')
      * expedition=shipping in class
@@ -466,19 +473,10 @@ class CompanyRelationships
         $sql .= ", fk_soc";
         $sql .= ", fk_soc_benefactor";
         $sql .= ", fk_soc_watcher";
+        $sql .= ", relation_type";
         $sql .= " FROM " .  MAIN_DB_PREFIX . "companyrelationships";
         $sql .= " WHERE fk_soc = " . $socid;
-
-        switch ($relation_type) {
-            case self::RELATION_TYPE_BENEFACTOR :
-                $sql .= " AND fk_soc_watcher = 0";
-                break;
-            case self::RELATION_TYPE_WATCHER :
-                $sql .= " AND fk_soc_benefactor = 0";
-                break;
-            default : break;
-        }
-
+        $sql .= " AND relation_type = " . $relation_type;
         $sql .= " ORDER BY rowid";
         $sql .= " LIMIT 1";
 
@@ -494,6 +492,7 @@ class CompanyRelationships
                 $this->fk_soc            = $obj->fk_soc;
                 $this->fk_soc_benefactor = $obj->fk_soc_benefactor;
                 $this->fk_soc_watcher    = $obj->fk_soc_watcher;
+                $this->relation_type     = $obj->relation_type;
             }
             return 1;
         }
@@ -587,14 +586,15 @@ class CompanyRelationships
         if (!($socid > 0) || !($mode >= 0))
             return array();
 
-        $filter = '';
+        $filter = "relation_type=" . self::RELATION_TYPE_BENEFACTOR . " AND (";
         if ($mode == 0) {
-            $filter = 'fk_soc_benefactor=' . $socid;
+            $filter .= 'fk_soc_benefactor=' . $socid;
         } elseif ($mode == 1) {
-            $filter = 'fk_soc=' . $socid;
+            $filter .= 'fk_soc=' . $socid;
         } elseif ($mode == 2) {
-            $filter = 'fk_soc=' . $socid . ' OR fk_soc_benefactor=' . $socid;
+            $filter .= 'fk_soc=' . $socid . ' OR fk_soc_benefactor=' . $socid;
         }
+        $filter .= ")";
 
         // Get relationships
         $sql = "SELECT fk_soc, fk_soc_benefactor FROM " . MAIN_DB_PREFIX . "companyrelationships WHERE " . $filter;
@@ -643,7 +643,10 @@ class CompanyRelationships
             return -1;
 
         // Get count relationships
-        $sql = "SELECT COUNT(DISTINCT fk_soc) as nb_benefactor, COUNT(DISTINCT fk_soc_benefactor) as nb_principal FROM " . MAIN_DB_PREFIX . "companyrelationships WHERE fk_soc=" . $socid . " OR fk_soc_benefactor=" . $socid;
+        $sql  = "SELECT COUNT(DISTINCT fk_soc) as nb_benefactor, COUNT(DISTINCT fk_soc_benefactor) as nb_principal";
+        $sql .= " FROM " . MAIN_DB_PREFIX . "companyrelationships";
+        $sql .= " WHERE relation_type=" . self::RELATION_TYPE_BENEFACTOR;
+        $sql .= " AND (fk_soc=" . $socid . " OR fk_soc_benefactor=" . $socid . ")";
 
         $resql = $this->db->query($sql);
         if ($resql) {
