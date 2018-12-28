@@ -1584,7 +1584,8 @@ SCRIPT;
 					case 'shipping':
 					if (DolibarrApiAccess::$user->societe_id > 0) {
 					$parameters['blacklist_of_properties'] = array(
-						"lines" => ''
+						"lines" => '',
+						"array_options"=>array("options_companyrelationships_availability_principal"=>'',"options_companyrelationships_availability_benefactor"=>'')
 					);
 					}
 					break;
@@ -1597,6 +1598,7 @@ SCRIPT;
             "note_public" => '', "fk_project" => '', "socid" => '', "thirdparty" => '',
             "cr_thirdparty_benefactor" => '', "lines" => '', "linkedObjectsIds" => '',"array_options" =>array("options_companyrelationships_fk_soc_benefactor" =>'', "options_formule"=>'',"options_signaturedate"=>'',"options_startdate"=>'',"options_duration"=>''),
 					);
+
 					}
 					break;
 					case 'contratdet':
@@ -1617,6 +1619,8 @@ SCRIPT;
             "cond_reglement_id" => '', "cond_reglement_code" => '', "cond_reglement_doc" => '',
             "thirdparty" => '', "array_options" => '', "cr_thirdparty_benefactor" => '', "lines" => '', "linkedObjectsIds" => '',
         );
+
+		$parameters['blacklist_of_properties'] = array("array_options"=>array("options_companyrelationships_availability_principal"=>'',"options_companyrelationships_availability_benefactor"=>''));
 		}
                     break;
 					case 'facturedet':
