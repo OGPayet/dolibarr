@@ -22,5 +22,6 @@ create table llx_companyrelationships
   rowid                     integer AUTO_INCREMENT PRIMARY KEY,
   fk_soc                    integer NOT NULL,		            -- id of the thirdparty
   fk_soc_benefactor         integer DEFAULT 0 NOT NULL,		  -- id of the thirdparty benefactor
-  fk_soc_watcher            integer DEFAULT 0 NOT NULL		  -- id of the thirdparty watcher
+  fk_soc_watcher            integer DEFAULT 0 NOT NULL,		  -- id of the thirdparty watcher
+  relation_type             integer DEFAULT 1 NOT NULL		  -- relation type default benefactor
 )ENGINE=innodb;

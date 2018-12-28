@@ -151,9 +151,11 @@ class CompanyRelationships
         $sql .= "";
         $sql .= "fk_soc";
         $sql .= ", " . $thirdparty_key_name;
+        $sql .= ", relation_type";
         $sql .= ") VALUES (";
         $sql .= $socid;
         $sql .= ", " . $socid_relation;
+        $sql .= ", " . $relation_type;
         $sql .= ")";
 
         $this->db->begin();
@@ -264,6 +266,7 @@ class CompanyRelationships
         $sql  = "UPDATE " . MAIN_DB_PREFIX . "companyrelationships";
         $sql .= " SET fk_soc = " . $socid;
         $sql .= ", " . $thirdparty_key_name . " = " . $socid_relation;
+        $sql .= ", relation_type = " . $relation_type;
         $sql .= " WHERE rowid = " . $this->id;
 
         $this->db->begin();

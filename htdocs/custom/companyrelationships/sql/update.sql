@@ -21,3 +21,5 @@ ALTER TABLE `llx_companyrelationships` CHANGE `fk_soc_benefactor` `fk_soc_benefa
 
 ALTER TABLE `llx_companyrelationships` ADD `fk_soc_watcher` INT DEFAULT 0 NOT NULL;
 ALTER TABLE `llx_companyrelationships_availability` ADD `watcher_availability` INT DEFAULT 0 NOT NULL;
+
+ALTER TABLE `llx_companyrelationships` ADD `relation_type` INT DEFAULT 1 NOT NULL;
