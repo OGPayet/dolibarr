@@ -101,6 +101,7 @@ class CompanyRelationships
 
     /**
      * Create companies relationship into database
+     * @deprecated use $this->createRelationshipThirdparty($socid, self::RELATION_TYPE_BENEFACTOR, $socid_benefactor) instead
      *
      * @param   int     $socid                  Main company ID
      * @param   int     $socid_benefactor       Benefactor company ID
@@ -110,70 +111,7 @@ class CompanyRelationships
      */
     public function createRelationship($socid, $socid_benefactor)
     {
-        global $user;
-
-        $error = 0;
-        $this->errors = array();
-
-        dol_syslog(__METHOD__ . " socid=" . $socid . " socid_benefactor=" . $socid_benefactor, LOG_DEBUG);
-
-        dol_include_once('/companyrelationships/class/companyrelationshipsavailability.class.php');
-
-        // Insert relationship
-        $sql = "INSERT INTO " . MAIN_DB_PREFIX . "companyrelationships (fk_soc, fk_soc_benefactor)";
-        $sql .= " VALUES (" . $socid . ", " . $socid_benefactor . ")";
-
-        $this->db->begin();
-
-        $resql = $this->db->query($sql);
-        if ($resql) {
-            $this->id = $this->db->last_insert_id(MAIN_DB_PREFIX . "companyrelationships");
-
-            if ($this->id > 0) {
-                $publicSpaceAvailabilityDefaultList = $this->getAllPublicSpaceAvailabilityByDefault();
-                if (!is_array($publicSpaceAvailabilityDefaultList)) {
-                    $error++;
-                }
-
-                if (!$error) {
-                    foreach ($publicSpaceAvailabilityDefaultList as $psaId => $psaAvailabilityArray) {
-                        // create public space availability for this relationship
-                        $companyRelationshipsAvailability = new CompanyRelationshipsAvailability($this->db);
-                        $companyRelationshipsAvailability->fk_companyrelationships = $this->id;
-                        $companyRelationshipsAvailability->fk_c_companyrelationships_availability = $psaId;
-                        $companyRelationshipsAvailability->principal_availability = intval($psaAvailabilityArray['principal_availability']);
-                        $companyRelationshipsAvailability->benefactor_availability = intval($psaAvailabilityArray['benefactor_availability']);
-                        $result = $companyRelationshipsAvailability->create($user);
-
-                        if ($result < 0) {
-                            $error++;
-                            $this->error  = $companyRelationshipsAvailability->error;
-                            $this->errors = $companyRelationshipsAvailability->errors;
-                            break;
-                        }
-                    }
-                }
-            }
-        } else if ($this->db->lasterrno() != 'DB_ERROR_RECORD_ALREADY_EXISTS') {
-            $error++;
-            $this->errors[] = 'Error ' . $this->db->lasterror();
-            dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $this->db->lasterror(), LOG_ERR);
-            return 0;
-        } else {
-            $error++;
-            $this->errors[] = 'Error ' . $this->db->lasterror();
-            dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $this->db->lasterror(), LOG_ERR);
-        }
-
-        // Commit or rollback
-        if ($error) {
-            $this->db->rollback();
-            return -1;
-        } else {
-            $this->db->commit();
-            dol_syslog(__METHOD__ . " success", LOG_DEBUG);
-            return $this->id;
-        }
+        return $this->createRelationshipThirdparty($socid, self::RELATION_TYPE_BENEFACTOR, $socid_benefactor);
     }
 
     /**
@@ -188,12 +126,20 @@ class CompanyRelationships
      */
     public function createRelationshipThirdparty($socid, $relation_type, $socid_relation)
     {
-        global $user;
+        global $langs, $user;
 
         $error = 0;
         $this->errors = array();
 
-        dol_syslog(__METHOD__ . " socid=" . $socid . " relation_type=" . $relation_type . " socid_relation=" . $relation_type, LOG_DEBUG);
+        $langs->load('errors');
+
+        dol_syslog(__METHOD__ . " socid=" . $socid . " relation_type=" . $relation_type . " socid_relation=" . $socid_relation, LOG_DEBUG);
+
+        if (!($socid>0) || !($relation_type>=0) || !($socid_relation>0)) {
+            $this->error    = 'ErrorBadParameters';
+            $this->errors[] = $this->error;
+            return -1;
+        }
 
         dol_include_once('/companyrelationships/class/companyrelationshipsavailability.class.php');
 
@@ -262,6 +208,7 @@ class CompanyRelationships
 
     /**
      * Update companies relationship into database
+     * @deprecated use $this->createRelationshipThirdparty($socid, self::RELATION_TYPE_BENEFACTOR, $socid_benefactor) instead
      *
      * @param   int     $rowid                          ID of the relationship
      * @param   int     $socid                          Main company ID
@@ -274,97 +221,39 @@ class CompanyRelationships
      */
     public function updateRelationship($rowid, $socid, $socid_benefactor, $publicSpaceAvailabilityArray=array(), $mode=0)
     {
-        global $user;
-
-        $error = 0;
-        $this->errors = array();
-
-        dol_syslog(__METHOD__ . " rowid=" . $rowid . " socid=" . $socid . " socid_benefactor=" . $socid_benefactor, LOG_DEBUG);
-
-        dol_include_once('/companyrelationships/class/companyrelationshipsavailability.class.php');
-
-        // Update relationship
-        $sql = "UPDATE " . MAIN_DB_PREFIX . "companyrelationships" .
-            " SET fk_soc = " . $socid . ", fk_soc_benefactor = " . $socid_benefactor .
-            " WHERE rowid = " . $rowid;
-
-        $this->db->begin();
-
-        $resql = $this->db->query($sql);
-        if (!$resql) {
-            $error++;
-            $this->errors[] = 'Error ' . $this->db->lasterror();
-            dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $this->db->lasterror(), LOG_ERR);
-        }
-
-        if (!$error && $user->rights->companyrelationships->update_md->relationship) {
-            // update public space availability for this company relationships
-            if (count($publicSpaceAvailabilityArray) > 0) {
-                $availabilityFieldName = $mode ? 'benefactor_availability' : 'principal_availability';
-
-                foreach($publicSpaceAvailabilityArray as $psaId => $psaAvailability) {
-                    $companyRelationshipsAvailability = CompanyRelationshipsAvailability::loadByUniqueKey($this->db, $rowid, $psaId);
-                    if ($companyRelationshipsAvailability < 0) {
-                        $error++;
-                        $this->error  = $companyRelationshipsAvailability->error;
-                        $this->errors = $companyRelationshipsAvailability->errors;
-                        break;
-                    }
-
-                    if (intval($psaAvailability) > 0) {
-                        $companyRelationshipsAvailability->{$availabilityFieldName} = 1;
-                    } else {
-                        $companyRelationshipsAvailability->{$availabilityFieldName} = 0;
-                    }
-
-                    // save public space availability for company relationships
-                    if ($companyRelationshipsAvailability->id > 0) {
-                        $result = $companyRelationshipsAvailability->update($user);
-                    } else {
-                        $result = $companyRelationshipsAvailability->create($user);
-                    }
-
-                    if ($result < 0) {
-                        $error++;
-                        $this->error  = $companyRelationshipsAvailability->error;
-                        $this->errors = $companyRelationshipsAvailability->errors;
-                        break;
-                    }
-                }
-            }
-        }
-
-        // Commit or rollback
-        if ($error) {
-            $this->db->rollback();
-            return -1;
-        } else {
-            $this->db->commit();
-            dol_syslog(__METHOD__ . " success", LOG_DEBUG);
-            return 1;
-        }
+        $this->id = $rowid;
+        $relation_direction = ($mode ? 1 : -1);
+        return $this->updateRelationshipThirdparty($socid, self::RELATION_TYPE_BENEFACTOR, $socid_benefactor, $publicSpaceAvailabilityArray, $relation_direction);
     }
 
     /**
      * Update thirdparty relationship into database
      *
-     * @param   int     $rowid                          ID of the relationship
-     * @param   int     $socid                          Main company ID
-     * @param   int     $socid_benefactor               Benefactor company ID
+     * @param   int     $socid                          Id of principal company
+     * @param   int     $relation_type                  Relation type
+     * @param   int     $socid_relation                 Id of company in relation
      * @param   array   $publicSpaceAvailabilityArray   Array of public space availability (rowid in public space availability dictionary)
-     * @param   int     $mode
+     * @param   int     $relation_direction             [=1] Relation direction, -1 to inverse relation
      * @return  int     <0 if KO, >0 if OK
      *
      * @throws  Exception
      */
-    public function updateRelationshipThirdparty($socid, $relation_type, $socid_relation, $publicSpaceAvailabilityArray=array())
+    public function updateRelationshipThirdparty($socid, $relation_type, $socid_relation, $publicSpaceAvailabilityArray=array(), $relation_direction=1)
     {
-        global $user;
+        global $langs, $user;
 
         $error = 0;
         $this->errors = array();
 
+        $langs->load('errors');
+
         dol_syslog(__METHOD__ . " socid=" . $socid . " relation_type=" . $relation_type . " socid_relation=" . $socid_relation, LOG_DEBUG);
+
+        if (!($socid>0) || !($relation_type>=0) || !($socid_relation>0)) {
+            $this->error    = 'ErrorBadParameters';
+            $this->errors[] = $this->error;
+            return -1;
+        }
 
         dol_include_once('/companyrelationships/class/companyrelationshipsavailability.class.php');
 
@@ -396,10 +285,10 @@ class CompanyRelationships
                         $availabilityFieldName = 'principal_availability';
                         break;
                     case self::RELATION_TYPE_BENEFACTOR :
-                        $availabilityFieldName = 'benefactor_availability';
+                        $availabilityFieldName = ($relation_direction==1 ? 'benefactor_availability' : 'principal_availability');
                         break;
                     case self::RELATION_TYPE_WATCHER :
-                        $availabilityFieldName = 'watcher_availability';
+                        $availabilityFieldName = ($relation_direction==1 ? 'watcher_availability' : 'principal_availability');
                         break;
                     default : break;
                 }

@@ -801,7 +801,6 @@ class ActionsCompanyRelationships
                                 $out .= '       htmlname: "options_companyrelationships_fk_soc_benefactor",';
                                 $out .= '       fk_soc_benefactor: "' . $fk_soc_benefactor . '"';
                                 $out .= '   };';
-                                //$out .= '   var input = jQuery("select#options_companyrelationships_fk_soc_benefactor");';
                                 $out .= '   jQuery.getJSON("' . dol_buildpath('/companyrelationships/ajax/benefactor.php', 1) . '", data,';
                                 $out .= '       function(response) {';
                                 $out .= '           jQuery("select#options_companyrelationships_fk_soc_benefactor").html(response.value);';
@@ -885,7 +884,6 @@ class ActionsCompanyRelationships
                                 $out .= '   cr_select.remove();';
                                 $out .= '});';
                                 $out .= '</script>';
-
                             } else {
                                 $out .= '<script type="text/javascript" language="javascript">';
                                 $out .= 'jQuery(document).ready(function(){';

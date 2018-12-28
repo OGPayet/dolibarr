@@ -140,7 +140,7 @@ if (empty($reshook)) {
         $db->begin();
 
         // create relationship
-        $result = $companyrelationships->createRelationship($principal_socid, $benefactor_socid);
+        $result = $companyrelationships->createRelationshipThirdparty($principal_socid, CompanyRelationships::RELATION_TYPE_BENEFACTOR, $benefactor_socid);
         if ($result < 0) {
             $error++;
         }
@@ -174,7 +174,9 @@ if (empty($reshook)) {
 
         $db->begin();
 
-        $result = $companyrelationships->updateRelationship($rowid, $principal_socid, $benefactor_socid, $publicSpaceAvailabilityArray, $list_mode);
+        $companyrelationships->id = $rowid;
+        $relation_direction = ($list_mode ? 1 : -1);
+        $result = $companyrelationships->updateRelationshipThirdparty($principal_socid, CompanyRelationships::RELATION_TYPE_BENEFACTOR, $benefactor_socid, $publicSpaceAvailabilityArray, $relation_direction);
         if ($result < 0) {
             $error++;
         }
