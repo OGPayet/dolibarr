@@ -191,6 +191,7 @@ class RequestManagerApi extends DolibarrApi {
         $requestmanager->fetch_thirdparty_origin();
         $requestmanager->fetch_thirdparty();
         $requestmanager->fetch_thirdparty_benefactor();
+        $requestmanager->fetch_thirdparty_watcher();
         $requestmanager->fetchObjectLinked();
         return $this->_cleanObjectData($requestmanager);
     }
@@ -271,7 +272,7 @@ class RequestManagerApi extends DolibarrApi {
         $sql .= ' WHERE t.entity IN (' . getEntity('requestmanager') . ')';
         // Restrict to the company of the user
         if (DolibarrApiAccess::$user->socid > 0) {
-            $sql .= " AND (t.fk_soc = " . DolibarrApiAccess::$user->socid . " OR t.fk_soc_benefactor = " . DolibarrApiAccess::$user->socid . ")";
+            $sql .= " AND (t.fk_soc = " . DolibarrApiAccess::$user->socid . " OR t.fk_soc_benefactor = " . DolibarrApiAccess::$user->socid . " OR t.fk_soc_watcher = " . DolibarrApiAccess::$user->socid  . ")";
         }
         // Add sql filters
         if ($sql_filters) {
@@ -306,6 +307,7 @@ class RequestManagerApi extends DolibarrApi {
                     $requestmanager->fetch_thirdparty_origin();
                     $requestmanager->fetch_thirdparty();
                     $requestmanager->fetch_thirdparty_benefactor();
+                    $requestmanager->fetch_thirdparty_watcher();
                     $requestmanager->fetchObjectLinked();
                     $add_request = !count($linked_filters_t);
                     foreach ($linked_filters_t as $element_type => $element_type_ids) {
@@ -857,7 +859,7 @@ class RequestManagerApi extends DolibarrApi {
         }
         $sql .= ' WHERE t.entity IN (' . getEntity('agenda') . ')';
         if (!$only_message) {
-            $soc_ids = array_merge(array($requestmanager->socid_origin), array($requestmanager->socid), array($requestmanager->socid_benefactor));
+            $soc_ids = array_merge(array($requestmanager->socid_origin), array($requestmanager->socid), array($requestmanager->socid_benefactor), array($requestmanager->socid_watcher));
             $sql .= ' AND t.fk_soc IN (' . implode(',', $soc_ids) . ')';
             if ($only_linked_to_request) {
                 $sql .= " AND IF(t.elementtype='requestmanager', t.fk_element, IF(ee.targettype='requestmanager', ee.fk_target, IF(ee.sourcetype='requestmanager', ee.fk_source, NULL))) IN(" . (!empty($request_ids) ? $request_ids : '-1') . ")";
@@ -1599,7 +1601,7 @@ class RequestManagerApi extends DolibarrApi {
         }
 
         $socid = DolibarrApiAccess::$user->socid;
-        if ($socid > 0 && $socid != $requestmanager->socid && $socid != $requestmanager->socid_benefactor) {
+        if ($socid > 0 && $socid != $requestmanager->socid && $socid != $requestmanager->socid_benefactor && $socid != $requestmanager->socid_watcher) {
             throw new RestException(403, "Access unauthorized");
         }
 
