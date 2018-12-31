@@ -635,36 +635,61 @@ class CompanyRelationships
         return $result;
     }
 
-
     /**
-     *  Get all companies relationships
+     * Get all companies relationships
+     * @deprecated use $this->getRelationshipsThirdparty($socid, self::RELATION_TYPE_BENEFACTOR, $mode, $fetch_object) instead
      *
      * @param   int $socid                  Company ID
      * @param   int $mode                   0: list of principal companies, 1: list of beneficial companies, 2: list of principal and beneficial companies
      * @param   int $fetch_object           Fetch company object
      * @return  int|array                   List of company ID or object (main or/and benefactor), <0 if KO
+     *
+     * @throws  Exception
      */
     public function getRelationships($socid=0, $mode=0, $fetch_object=0)
     {
+        return $this->getRelationshipsThirdparty($socid, self::RELATION_TYPE_BENEFACTOR, $mode, $fetch_object);
+    }
+
+    /**
+     * Get all companies relationships
+     *
+     * @param   int         $socid                  Company ID
+     * @param   int         $relation_type          Relation type (ex : self::RELATION_TYPE_BENEFACTOR, self::RELATION_TYPE_WATCHER)
+     * @param   int         $mode                   0: list of main companies, 1: list of companies in relation, 2: list of main and companies in relation
+     * @param   int         $fetch_object           Fetch company object
+     * @return  int|array   List of company ID or object (main or/and benefactor), <0 if KO
+     *
+     * @throws  Exception
+     */
+    public function getRelationshipsThirdparty($socid, $relation_type, $mode=0, $fetch_object=0)
+    {
         $this->errors = array();
 
-        dol_syslog(__METHOD__ . " socid=" . $socid . " mode=" . $mode . " fetch_object=" . $fetch_object, LOG_DEBUG);
+        dol_syslog(__METHOD__ . " socid=" . $socid . " relation_type=" . $relation_type . " mode=" . $mode . " fetch_object=" . $fetch_object, LOG_DEBUG);
 
-        if (!($socid > 0) || !($mode >= 0))
+        if (!($socid > 0) || !($relation_type >= 0) || !($mode >= 0))
             return array();
 
-        $filter = "relation_type=" . self::RELATION_TYPE_BENEFACTOR . " AND (";
+        // get relation key name for this relation type
+        $relation_key_name = $this->_getRelationThirdpartyKeyName($relation_type);
+
+        $filter = "relation_type=" . $relation_type . " AND (";
         if ($mode == 0) {
-            $filter .= 'fk_soc_benefactor=' . $socid;
+            $filter .= $relation_key_name . "=" . $socid;
         } elseif ($mode == 1) {
-            $filter .= 'fk_soc=' . $socid;
+            $filter .= "fk_soc=" . $socid;
         } elseif ($mode == 2) {
-            $filter .= 'fk_soc=' . $socid . ' OR fk_soc_benefactor=' . $socid;
+            $filter .= "fk_soc=" . $socid . " OR " . $relation_key_name . '=' . $socid;
         }
         $filter .= ")";
 
-        // Get relationships
-        $sql = "SELECT fk_soc, fk_soc_benefactor FROM " . MAIN_DB_PREFIX . "companyrelationships WHERE " . $filter;
+        // get relationships
+        $sql  = "SELECT";
+        $sql .= " fk_soc";
+        $sql .= ", " . $relation_key_name;
+        $sql .= " FROM " . MAIN_DB_PREFIX . "companyrelationships";
+        $sql .= " WHERE " . $filter;
 
         $resql = $this->db->query($sql);
         if ($resql) {
@@ -694,35 +719,54 @@ class CompanyRelationships
     }
 
     /**
-     *  Get types of companies relationships for the company
-     *  0: has beneficial companies, 1: has principal companies, 2: has principal and beneficial companies
+     * Get types of companies relationships for the company
+     * @deprecated use $this->getRelationshipTypeThirdparty($socid, self::RELATION_TYPE_BENEFACTOR) instead
      *
      * @param   int     $socid          Company ID
      * @return  int                     -1: no relationships, 0: has beneficial companies, 1: has principal companies, 2: has principal and beneficial companies, -2: if KO
+     * @throws  Exception
      */
     public function getRelationshipType($socid=0)
     {
+        return $this->getRelationshipTypeThirdparty($socid, self::RELATION_TYPE_BENEFACTOR);
+    }
+
+    /**
+     * Get types of companies relationships for the company
+     * 0: has companies in relation, 1: has main companies, 2: has main and companies in relation
+     *
+     * @param   int     $socid                  Company ID
+     * @param   int     $relation_type          Relation type (ex : self::RELATION_TYPE_BENEFACTOR, self::RELATION_TYPE_WATCHER)
+     * @return  int     -1: no relationships, 0: has companies in relation, 1: has main companies, 2: has main and companies in relation, -2: if KO
+     *
+     * @throws  Exception
+     */
+    public function getRelationshipTypeThirdparty($socid, $relation_type)
+    {
         $this->errors = array();
 
-        dol_syslog(__METHOD__ . " socid=" . $socid, LOG_DEBUG);
+        dol_syslog(__METHOD__ . " socid=" . $socid . " relation_type=" . $relation_type, LOG_DEBUG);
 
-        if (!($socid > 0))
+        if (!($socid > 0) || !($relation_type >= 0))
             return -1;
 
+        // get relation key name for this relation type
+        $relation_key_name = $this->_getRelationThirdpartyKeyName($relation_type);
+
         // Get count relationships
-        $sql  = "SELECT COUNT(DISTINCT fk_soc) as nb_benefactor, COUNT(DISTINCT fk_soc_benefactor) as nb_principal";
+        $sql  = "SELECT COUNT(DISTINCT fk_soc) as nb_relation, COUNT(DISTINCT " . $relation_key_name . ") as nb_main";
         $sql .= " FROM " . MAIN_DB_PREFIX . "companyrelationships";
-        $sql .= " WHERE relation_type=" . self::RELATION_TYPE_BENEFACTOR;
-        $sql .= " AND (fk_soc=" . $socid . " OR fk_soc_benefactor=" . $socid . ")";
+        $sql .= " WHERE relation_type=" . $relation_type;
+        $sql .= " AND (fk_soc=" . $socid . " OR " . $relation_key_name . "=" . $socid . ")";
 
         $resql = $this->db->query($sql);
         if ($resql) {
             $type = -1;
 
             if ($obj = $this->db->fetch_object($resql)) {
-                if ($obj->nb_benefactor > 0 && $obj->nb_principal > 0) $type = 2;
-                elseif ($obj->nb_benefactor > 0) $type = 0;
-                elseif ($obj->nb_principal > 0) $type = 1;
+                if ($obj->nb_relation > 0 && $obj->nb_main > 0) $type = 2;
+                elseif ($obj->nb_relation > 0) $type = 0;
+                elseif ($obj->nb_main > 0) $type = 1;
             }
 
             return $type;
@@ -733,7 +777,6 @@ class CompanyRelationships
             return -2;
         }
     }
-
 
     /**
      * Get all fields of each element in dictionary public space availability
