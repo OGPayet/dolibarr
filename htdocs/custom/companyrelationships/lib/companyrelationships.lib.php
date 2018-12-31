@@ -186,7 +186,7 @@ function companyrelationships_show_relation_thirdparty($db, $societe, CompanyRel
  *
  * @throws  Exception
  */
-function companyrelationships_show_reation_psa($db, $societe, $companyrelationships, $relation_type)
+function companyrelationships_show_relation_psa($db, $societe, $companyrelationships, $relation_type)
 {
     global $langs, $user;
     global $action;

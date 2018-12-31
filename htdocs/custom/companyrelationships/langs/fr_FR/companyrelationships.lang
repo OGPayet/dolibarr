@@ -41,6 +41,9 @@ CompanyRelationshipsPublicSpaceAvailabilityDictionaryWatcherAvailability    = Au
 ############################################################
 ### Company Relationships
 ############################################################
+CompanyRelationshipsRelationType              = Type de la relation
+CompanyRelationshipsMainCompany               = Tiers principal
+CompanyRelationshipsRelationCompany           = Tiers de la relation
 CompanyRelationshipsListOfPrincipalCompanies  = Liste des donneurs d'ordres
 CompanyRelationshipsListOfBenefactorCompanies = Liste des bénéficiaires
 CompanyRelationshipsPrincipalCompany          = Donneur d'ordre

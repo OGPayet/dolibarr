@@ -37,6 +37,7 @@ dol_include_once('/companyrelationships/lib/companyrelationships.lib.php');
 
 $langs->load("companies");
 $langs->load('other');
+$langs->load("companyrelationships@companyrelationships");
 
 $action=GETPOST('action','aZ09');
 $confirm=GETPOST('confirm');
@@ -71,8 +72,8 @@ if ($id > 0 || !empty($ref)) {
 }
 
 // get thirdparty watcher
-$thirdpartyWatcher = $companyrelationships->getRelationshipThirdparty($object->id, CompanyRelationships::RELATION_TYPE_WATCHER);
-$thirdpartyWatcher = is_object($thirdpartyWatcher) ? $thirdpartyWatcher : NULL;
+//$thirdpartyWatcher = $companyrelationships->getRelationshipThirdparty($object->id, CompanyRelationships::RELATION_TYPE_WATCHER);
+//$thirdpartyWatcher = is_object($thirdpartyWatcher) ? $thirdpartyWatcher : NULL;
 
 /*
  *	Actions
@@ -118,7 +119,7 @@ if (empty($reshook)) {
 
         $db->begin();
 
-        $result = $companyrelationships->updateRelationshipThirdparty($object->id, $relation_type, $socid_relation, $publicSpaceAvailabilityArray);
+        $result = $companyrelationships->saveRelationshipThirdparty($object->id, $relation_type, $socid_relation, $publicSpaceAvailabilityArray);
         if ($result < 0) {
             $error++;
         }
@@ -126,7 +127,7 @@ if (empty($reshook)) {
         if ($error) {
             $db->rollback();
             setEventMessages($companyrelationships->error, $companyrelationships->errors, 'errors');
-            $action = 'edit_relationship';
+            $action = 'edit_relationship_watcher';
         } else {
             $db->commit();
             header('Location: ' . $_SERVER["PHP_SELF"] . '?socid=' . $object->id);
@@ -254,7 +255,7 @@ print '</tr>';
 companyrelationships_show_relation_thirdparty($db, $object, $companyrelationships, CompanyRelationships::RELATION_TYPE_WATCHER);
 
 // watcher public space availability
-companyrelationships_show_reation_psa($db, $object, $companyrelationships, CompanyRelationships::RELATION_TYPE_WATCHER);
+companyrelationships_show_relation_psa($db, $object, $companyrelationships, CompanyRelationships::RELATION_TYPE_WATCHER);
 
 print '</table>';
 print "</div>\n";

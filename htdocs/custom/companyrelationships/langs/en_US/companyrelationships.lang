@@ -41,6 +41,9 @@ CompanyRelationshipsPublicSpaceAvailabilityDictionaryWatcherAvailability    = Au
 ############################################################
 ### Company Relationships
 ############################################################
+CompanyRelationshipsRelationType              = Relation type
+CompanyRelationshipsMainCompany               = Main thirdparty
+CompanyRelationshipsRelationCompany           = Related thirdparty
 CompanyRelationshipsListOfPrincipalCompanies  = Contractors list
 CompanyRelationshipsListOfBenefactorCompanies = Benefactors list
 CompanyRelationshipsPrincipalCompany          = Contractor

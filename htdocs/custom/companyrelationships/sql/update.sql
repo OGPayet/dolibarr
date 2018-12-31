@@ -19,7 +19,7 @@
 ALTER TABLE `llx_companyrelationships` DROP FOREIGN KEY `fk_companyrelationships_fk_soc_benefactor`;
 ALTER TABLE `llx_companyrelationships` CHANGE `fk_soc_benefactor` `fk_soc_benefactor` INT DEFAULT 0 NOT NULL;
 
-ALTER TABLE `llx_companyrelationships` ADD `fk_soc_watcher` INT DEFAULT 0 NOT NULL;
-ALTER TABLE `llx_companyrelationships_availability` ADD `watcher_availability` INT DEFAULT 0 NOT NULL;
+ALTER TABLE `llx_companyrelationships` ADD `fk_soc_relation` INT DEFAULT 0 NOT NULL;
+ALTER TABLE `llx_companyrelationships_availability` ADD `relation_availability` INT DEFAULT 0 NOT NULL;
 
 ALTER TABLE `llx_companyrelationships` ADD `relation_type` INT DEFAULT 1 NOT NULL;

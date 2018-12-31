@@ -83,10 +83,10 @@ class CompanyRelationshipsAvailability
     public $benefactor_availability;
 
     /**
-     * Watcher availability
+     * Relation availability
      * @var int
      */
-    public $watcher_availability;
+    public $relation_availability;
 
 
     /**
@@ -130,11 +130,11 @@ class CompanyRelationshipsAvailability
         dol_syslog(__METHOD__ . " user_id=" . $user->id, LOG_DEBUG);
 
         // Clean parameters
-        $this->fk_companyrelationships = $this->fk_companyrelationships > 0 ? $this->fk_companyrelationships : 0;
+        $this->fk_companyrelationships                = $this->fk_companyrelationships > 0 ? $this->fk_companyrelationships : 0;
         $this->fk_c_companyrelationships_availability = $this->fk_c_companyrelationships_availability > 0 ? $this->fk_c_companyrelationships_availability : 0;
-        $this->principal_availability  = $this->principal_availability > 0 ? $this->principal_availability : 0;
-        $this->benefactor_availability = $this->benefactor_availability > 0 ? $this->benefactor_availability : 0;
-        $this->watcher_availability    = $this->watcher_availability > 0 ? $this->watcher_availability : 0;
+        $this->principal_availability                 = $this->principal_availability > 0 ? $this->principal_availability : 0;
+        $this->benefactor_availability                = $this->benefactor_availability > 0 ? $this->benefactor_availability : 0;
+        $this->relation_availability                  = $this->relation_availability > 0 ? $this->relation_availability : 0;
 
         // Check parameters
         if (empty($this->fk_companyrelationships)) {
@@ -159,14 +159,14 @@ class CompanyRelationshipsAvailability
             $sql .= ", fk_c_companyrelationships_availability";
             $sql .= ", principal_availability";
             $sql .= ", benefactor_availability";
-            $sql .= ", watcher_availability";
+            $sql .= ", relation_availability";
             $sql .= ")";
             $sql .= " VALUES (";
             $sql .= " " . $this->fk_companyrelationships;
             $sql .= ", " . $this->fk_c_companyrelationships_availability;
             $sql .= ", " . $this->principal_availability;
             $sql .= ", " . $this->benefactor_availability;
-            $sql .= ", " . $this->watcher_availability;
+            $sql .= ", " . $this->relation_availability;
             $sql .= ")";
 
             $resql = $this->db->query($sql);
@@ -215,7 +215,7 @@ class CompanyRelationshipsAvailability
         $sql .= ", t.fk_c_companyrelationships_availability";
         $sql .= ", t.principal_availability";
         $sql .= ", t.benefactor_availability";
-        $sql .= ", t.watcher_availability";
+        $sql .= ", t.relation_availability";
         $sql .= " FROM " . MAIN_DB_PREFIX . $this->table_element . " as t";
         if ($id) $sql .= " WHERE t.rowid = " . $id;
 
@@ -234,7 +234,7 @@ class CompanyRelationshipsAvailability
                 $this->fk_c_companyrelationships_availability = $obj->fk_c_companyrelationships_availability;
                 $this->principal_availability                 = $obj->principal_availability;
                 $this->benefactor_availability                = $obj->benefactor_availability;
-                $this->watcher_availability                   = $obj->watcher_availability;
+                $this->relation_availability                  = $obj->relation_availability;
             }
             $this->db->free($resql);
 
@@ -266,10 +266,11 @@ class CompanyRelationshipsAvailability
         dol_syslog(__METHOD__ . " user_id=" . $user->id . " id=" . $this->id, LOG_DEBUG);
 
         // Clean parameters
-        $this->fk_companyrelationships = $this->fk_companyrelationships > 0 ? $this->fk_companyrelationships : 0;
+        $this->fk_companyrelationships                = $this->fk_companyrelationships > 0 ? $this->fk_companyrelationships : 0;
         $this->fk_c_companyrelationships_availability = $this->fk_c_companyrelationships_availability > 0 ? $this->fk_c_companyrelationships_availability : 0;
-        $this->principal_availability = $this->principal_availability > 0 ? $this->principal_availability : 0;
-        $this->benefactor_availability = $this->benefactor_availability > 0 ? $this->benefactor_availability : 0;
+        $this->principal_availability                 = $this->principal_availability > 0 ? $this->principal_availability : 0;
+        $this->benefactor_availability                = $this->benefactor_availability > 0 ? $this->benefactor_availability : 0;
+        $this->relation_availability                  = $this->relation_availability > 0 ? $this->relation_availability : 0;
 
         // Check parameters
         if (!($this->id > 0)) {
@@ -297,7 +298,7 @@ class CompanyRelationshipsAvailability
             $sql .= ", fk_c_companyrelationships_availability = " . $this->fk_c_companyrelationships_availability;
             $sql .= ", principal_availability = " . $this->principal_availability;
             $sql .= ", benefactor_availability = " . $this->benefactor_availability;
-            $sql .= ", watcher_availability = " . $this->watcher_availability;
+            $sql .= ", relation_availability = " . $this->relation_availability;
             $sql .= " WHERE rowid = " . $this->id;
 
             $resql = $this->db->query($sql);
@@ -397,7 +398,7 @@ class CompanyRelationshipsAvailability
         $sql .= ", t.fk_c_companyrelationships_availability";
         $sql .= ", t.principal_availability";
         $sql .= ", t.benefactor_availability";
-        $sql .= ", t.watcher_availability";
+        $sql .= ", t.relation_availability";
         $sql .= " FROM " . MAIN_DB_PREFIX . $this->table_element . " as t";
         $sql .= " WHERE t.fk_companyrelationships = " . $fk_companyrelationships;
 
@@ -411,7 +412,7 @@ class CompanyRelationshipsAvailability
                 $this->fk_c_companyrelationships_availability = $obj->fk_c_companyrelationships_availability;
                 $this->principal_availability                 = $obj->principal_availability;
                 $this->benefactor_availability                = $obj->benefactor_availability;
-                $this->watcher_availability                   = $obj->watcher_availability;
+                $this->relation_availability                  = $obj->relation_availability;
 
                 $ret = $this->delete($user, $notrigger);
 
@@ -453,7 +454,7 @@ class CompanyRelationshipsAvailability
         $sql .= ", t.fk_c_companyrelationships_availability";
         $sql .= ", t.principal_availability";
         $sql .= ", t.benefactor_availability";
-        $sql .= ", t.watcher_availability";
+        $sql .= ", t.relation_availability";
         $sql .= " FROM " . MAIN_DB_PREFIX . $companyRelationshipsAvailability->table_element . " as t";
         $sql .= " WHERE t.fk_companyrelationships = " . $fk_companyrelationships;
         $sql .= " AND t.fk_c_companyrelationships_availability = " . $fk_c_companyrelationships_availability;
@@ -473,7 +474,7 @@ class CompanyRelationshipsAvailability
                 $companyRelationshipsAvailability->fk_c_companyrelationships_availability = $obj->fk_c_companyrelationships_availability;
                 $companyRelationshipsAvailability->principal_availability                 = $obj->principal_availability;
                 $companyRelationshipsAvailability->benefactor_availability                = $obj->benefactor_availability;
-                $companyRelationshipsAvailability->watcher_availability                   = $obj->watcher_availability;
+                $companyRelationshipsAvailability->relation_availability                  = $obj->relation_availability;
             }
 
             return $companyRelationshipsAvailability;

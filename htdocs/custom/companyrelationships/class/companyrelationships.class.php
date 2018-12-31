@@ -77,7 +77,7 @@ class CompanyRelationships
      * Id watcher
      * @var int
      */
-    public $fk_soc_watcher;
+    public $fk_soc_relation;
 
     /**
      * Relation type
@@ -142,9 +142,23 @@ class CompanyRelationships
 
         dol_syslog(__METHOD__ . " socid=" . $socid . " relation_type=" . $relation_type . " socid_relation=" . $socid_relation, LOG_DEBUG);
 
-        if (!($socid>0) || !($relation_type>=0) || !($socid_relation>0)) {
-            $this->error    = 'ErrorBadParameters';
+        // Check parameters
+        if (!($socid>0)) {
+            $this->error = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("CompanyRelationshipsMainCompany"));
             $this->errors[] = $this->error;
+            $error++;
+        }
+        if (!($relation_type>=0)) {
+            $this->error = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("CompanyRelationshipsRelationType"));
+            $this->errors[] = $this->error;
+            $error++;
+        }
+        if (!($socid_relation>0)) {
+            $this->error = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("CompanyRelationshipsRelationCompany"));
+            $this->errors[] = $this->error;
+            $error++;
+        }
+        if ($error) {
             return -1;
         }
 
@@ -176,6 +190,9 @@ class CompanyRelationships
             $this->id = $this->db->last_insert_id(MAIN_DB_PREFIX . "companyrelationships");
 
             if ($this->id > 0) {
+                $relation_psa_key_name = $this->_getRelationPublicSpaceAvailabilityKeyName($relation_type);
+                $relation_cra_key_name = $this->_getRelationAvailabilityKeyName($relation_type);
+
                 $publicSpaceAvailabilityDefaultList = $this->getAllPublicSpaceAvailabilityByDefault();
                 if (!is_array($publicSpaceAvailabilityDefaultList)) {
                     $error++;
@@ -187,9 +204,8 @@ class CompanyRelationships
                         $companyRelationshipsAvailability = new CompanyRelationshipsAvailability($this->db);
                         $companyRelationshipsAvailability->fk_companyrelationships = $this->id;
                         $companyRelationshipsAvailability->fk_c_companyrelationships_availability = $psaId;
-                        $companyRelationshipsAvailability->principal_availability  = intval($psaAvailabilityArray['principal_availability']);
-                        $companyRelationshipsAvailability->benefactor_availability = intval($psaAvailabilityArray['benefactor_availability']);
-                        $companyRelationshipsAvailability->watcher_availability    = intval($psaAvailabilityArray['watcher_availability']);
+                        $companyRelationshipsAvailability->principal_availability   = intval($psaAvailabilityArray['principal_availability']);
+                        $companyRelationshipsAvailability->{$relation_cra_key_name} = intval($psaAvailabilityArray[$relation_psa_key_name]);
                         $result = $companyRelationshipsAvailability->create($user);
 
                         if ($result < 0) {
@@ -258,16 +274,35 @@ class CompanyRelationships
 
         dol_syslog(__METHOD__ . " socid=" . $socid . " relation_type=" . $relation_type . " socid_relation=" . $socid_relation, LOG_DEBUG);
 
-        if (!($socid>0) || !($relation_type>=0) || !($socid_relation>0)) {
-            $this->error    = 'ErrorBadParameters';
+        // get thirdparty key name for this relation type
+        $thirdparty_key_name = $this->_getRelationThirdpartyKeyName($relation_type);
+
+        // Check parameters
+        if (!($this->id > 0)) {
+            $this->error = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("TechnicalID"));
             $this->errors[] = $this->error;
+            $error++;
+        }
+        if (!($socid>0)) {
+            $this->error = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("CompanyRelationshipsMainCompany"));
+            $this->errors[] = $this->error;
+            $error++;
+        }
+        if (!($relation_type>=0)) {
+            $this->error = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("CompanyRelationshipsRelationType"));
+            $this->errors[] = $this->error;
+            $error++;
+        }
+        if (!($socid_relation>0)) {
+            $this->error = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("CompanyRelationshipsRelationCompany"));
+            $this->errors[] = $this->error;
+            $error++;
+        }
+        if ($error) {
             return -1;
         }
 
         dol_include_once('/companyrelationships/class/companyrelationshipsavailability.class.php');
-
-        // get thirdparty key name for this relation type
-        $thirdparty_key_name = $this->_getRelationThirdpartyKeyName($relation_type);
 
         // Update relationship
         $sql  = "UPDATE " . MAIN_DB_PREFIX . "companyrelationships";
@@ -288,20 +323,7 @@ class CompanyRelationships
         if (!$error && $user->rights->companyrelationships->update_md->relationship) {
             // update public space availability for this company relationships
             if (count($publicSpaceAvailabilityArray) > 0) {
-
-                $availabilityFieldName = '';
-                switch ($relation_type) {
-                    case self::RELATION_TYPE_PRINCIPAL :
-                        $availabilityFieldName = 'principal_availability';
-                        break;
-                    case self::RELATION_TYPE_BENEFACTOR :
-                        $availabilityFieldName = ($relation_direction==1 ? 'benefactor_availability' : 'principal_availability');
-                        break;
-                    case self::RELATION_TYPE_WATCHER :
-                        $availabilityFieldName = ($relation_direction==1 ? 'watcher_availability' : 'principal_availability');
-                        break;
-                    default : break;
-                }
+                $relation_cra_key_name = $this->_getRelationAvailabilityKeyName($relation_type, $relation_direction);
 
                 foreach($publicSpaceAvailabilityArray as $psaId => $psaAvailability) {
                     $companyRelationshipsAvailability = CompanyRelationshipsAvailability::loadByUniqueKey($this->db, $this->id, $psaId);
@@ -313,9 +335,9 @@ class CompanyRelationships
                     }
 
                     if (intval($psaAvailability) > 0) {
-                        $companyRelationshipsAvailability->{$availabilityFieldName} = 1;
+                        $companyRelationshipsAvailability->{$relation_cra_key_name} = 1;
                     } else {
-                        $companyRelationshipsAvailability->{$availabilityFieldName} = 0;
+                        $companyRelationshipsAvailability->{$relation_cra_key_name} = 0;
                     }
 
                     // save public space availability for company relationships
@@ -410,23 +432,71 @@ class CompanyRelationships
      */
     private function _getRelationThirdpartyKeyName($relation_type)
     {
-        $thirdparty_key_name = '';
+        $key_name = '';
 
         switch ($relation_type) {
             case self::RELATION_TYPE_PRINCIPAL :
-                $thirdparty_key_name = 'fk_soc';
+                $key_name = 'fk_soc';
                 break;
 
             case self::RELATION_TYPE_BENEFACTOR :
-                $thirdparty_key_name = 'fk_soc_benefactor';
+                $key_name = 'fk_soc_benefactor';
                 break;
             case self::RELATION_TYPE_WATCHER :
-                $thirdparty_key_name = 'fk_soc_watcher';
+                $key_name = 'fk_soc_relation';
                 break;
             default : break;
         }
 
-        return $thirdparty_key_name;
+        return $key_name;
+    }
+
+    /**
+     * Get key name for public space availability in relation
+     *
+     * @param   int     $relation_type          Relation type (ex : self::RELATION_TYPE_BENEFACTOR, self::RELATION_TYPE_WATCHER)
+     * @param   int     $relation_direction     [=1] Relation direction, -1 to inverse relation
+     * @return  string
+     */
+    private function _getRelationPublicSpaceAvailabilityKeyName($relation_type, $relation_direction=1)
+    {
+        $key_name = '';
+
+        switch($relation_type) {
+            case self::RELATION_TYPE_BENEFACTOR :
+                $key_name = ($relation_direction==1 ? 'benefactor_availability' : 'principal_availability');
+                break;
+            case self::RELATION_TYPE_WATCHER :
+                $key_name = ($relation_direction==1 ? 'watcher_availability' : 'principal_availability');
+                break;
+            default : break;
+        }
+
+        return $key_name;
+    }
+
+    /**
+     * Get key name for company relationships availability in relation
+     *
+     * @param   int     $relation_type          Relation type (ex : self::RELATION_TYPE_BENEFACTOR, self::RELATION_TYPE_WATCHER)
+     * @param   int     $relation_direction     [=1] Relation direction, -1 to inverse relation
+     * @return  string
+     */
+    private function _getRelationAvailabilityKeyName($relation_type, $relation_direction=1)
+    {
+        $key_name = '';
+
+        switch($relation_type) {
+            case self::RELATION_TYPE_BENEFACTOR :
+                $key_name = ($relation_direction==1 ? 'benefactor_availability' : 'principal_availability');
+                break;
+            case self::RELATION_TYPE_WATCHER :
+                $key_name = ($relation_direction==1 ? 'relation_availability' : 'principal_availability');
+                break;
+            default : break;
+        }
+
+        return $key_name;
     }
 
     /**
@@ -440,10 +510,6 @@ class CompanyRelationships
         $relation_type_name = '';
 
         switch ($relation_type) {
-            case self::RELATION_TYPE_PRINCIPAL :
-                $relation_type_name = 'principal';
-                break;
-
             case self::RELATION_TYPE_BENEFACTOR :
                 $relation_type_name = 'benefactor';
                 break;
@@ -472,7 +538,7 @@ class CompanyRelationships
         $sql .= " rowid";
         $sql .= ", fk_soc";
         $sql .= ", fk_soc_benefactor";
-        $sql .= ", fk_soc_watcher";
+        $sql .= ", fk_soc_relation";
         $sql .= ", relation_type";
         $sql .= " FROM " .  MAIN_DB_PREFIX . "companyrelationships";
         $sql .= " WHERE fk_soc = " . $socid;
@@ -491,7 +557,7 @@ class CompanyRelationships
                 $this->id                = $obj->rowid;
                 $this->fk_soc            = $obj->fk_soc;
                 $this->fk_soc_benefactor = $obj->fk_soc_benefactor;
-                $this->fk_soc_watcher    = $obj->fk_soc_watcher;
+                $this->fk_soc_relation    = $obj->fk_soc_relation;
                 $this->relation_type     = $obj->relation_type;
             }
             return 1;
@@ -536,14 +602,15 @@ class CompanyRelationships
     /**
      * Save thirdparty in relation (only first one)
      *
-     * @param   int     $socid              Id of principal company
-     * @param   int     $relation_type      Relation type (ex : self::RELATION_TYPE_BENEFACTOR, self::RELATION_TYPE_WATCHER)
-     * @param   int     $socid_relation     Id of company in relation
+     * @param   int     $socid                          Id of principal company
+     * @param   int     $relation_type                  Relation type (ex : self::RELATION_TYPE_BENEFACTOR, self::RELATION_TYPE_WATCHER)
+     * @param   int     $socid_relation                 Id of company in relation
+     * @param   array   $publicSpaceAvailabilityArray   Array of public space availability (rowid in public space availability dictionary)
      * @return  int     <0 if KO, >0 if OK (Id of saved company relationship), 0 if already created
      *
      * @throws  Exception
      */
-    public function saveRelationshipThirdparty($socid, $relation_type, $socid_relation)
+    public function saveRelationshipThirdparty($socid, $relation_type, $socid_relation, $publicSpaceAvailabilityArray=array())
     {
         dol_syslog(__METHOD__ . " socid=" . $socid . " relation_type=" . $relation_type . " socid_relation=" . $socid_relation, LOG_DEBUG);
 
@@ -553,7 +620,7 @@ class CompanyRelationships
         if ($this->id > 0) {
             if ($socid_relation > 0) {
                 // update
-                $result = $this->updateRelationshipThirdparty($socid, $relation_type, $socid_relation);
+                $result = $this->updateRelationshipThirdparty($socid, $relation_type, $socid_relation, $publicSpaceAvailabilityArray);
             } else {
                 // delete
                 $result = $this->deleteRelationships($this->id);
@@ -747,15 +814,20 @@ class CompanyRelationships
 
         dol_syslog(__METHOD__ . " socid=" . $socid . " relation_type=" . $relation_type . " socid_relation=" . $socid_relation . " element=" . $element, LOG_DEBUG);
 
+        $relation_type_name = $this->getRelationTypeName($relation_type);
+
         // get thirdparty key name for this relation type
         $thirdparty_key_name = $this->_getRelationThirdpartyKeyName($relation_type);
 
+        $relation_psa_key_name = $this->_getRelationPublicSpaceAvailabilityKeyName($relation_type);
+        $relation_cra_key_name = $this->_getRelationAvailabilityKeyName($relation_type);
+
         $sql  = "SELECT";
-        $sql .= " crpsa.rowid, crpsa.element, crpsa.label, crpsa.principal_availability, crpsa.benefactor_availability, crpsa.watcher_availability";
-        $sql .= ", cra.rowid as cra_id, cra.fk_companyrelationships, cra.principal_availability as cra_principal_availability, cra.benefactor_availability as cra_benefactor_availability, cra.watcher_availability as cra_watcher_availability";
+        $sql .= " crpsa.rowid, crpsa.element, crpsa.label, crpsa.principal_availability as psa_principal_availability, crpsa." . $relation_psa_key_name . " as psa_relation_availability";
+        $sql .= ", cra.rowid as cra_id, cra.fk_companyrelationships, cra.principal_availability as cra_principal_availability, cra." . $relation_cra_key_name . " as cra_relation_availability";
         $sql .= ", cr.rowid as cr_id";
         $sql .= " FROM " . MAIN_DB_PREFIX . "c_companyrelationships_publicspaceavailability as crpsa";
-        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "companyrelationships as cr ON cr.fk_soc = " . $socid . " AND cr." . $thirdparty_key_name . " = " . $socid_relation;
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "companyrelationships as cr ON cr.fk_soc = " . $socid . " AND cr." . $thirdparty_key_name . " = " . $socid_relation . " AND cr.relation_type = " . $relation_type;
         $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "companyrelationships_availability as cra ON cra.fk_companyrelationships = cr.rowid AND cra.fk_c_companyrelationships_availability = crpsa.rowid";
         $sql .= " WHERE crpsa.entity = " . $conf->entity;
         $sql .= " AND crpsa.active = 1";
@@ -779,13 +851,11 @@ class CompanyRelationships
                 $publicSpaceAvailability['label']   = $obj->label;
 
                 if ($obj->cra_id > 0) {
-                    $publicSpaceAvailability['principal']  = intval($obj->cra_principal_availability);
-                    $publicSpaceAvailability['benefactor'] = intval($obj->cra_benefactor_availability);
-                    $publicSpaceAvailability['watcher']    = intval($obj->cra_watcher_availability);
+                    $publicSpaceAvailability['principal']         = intval($obj->cra_principal_availability);
+                    $publicSpaceAvailability[$relation_type_name] = intval($obj->cra_relation_availability);
                 } else {
-                    $publicSpaceAvailability['principal']  = intval($obj->principal_availability);
-                    $publicSpaceAvailability['benefactor'] = intval($obj->benefactor_availability);
-                    $publicSpaceAvailability['watcher']    = intval($obj->watcher_availability);
+                    $publicSpaceAvailability['principal']         = intval($obj->psa_principal_availability);
+                    $publicSpaceAvailability[$relation_type_name] = intval($obj->psa_relation_availability);
                 }
 
                 $publicSpaceAvailabilityList[] = $publicSpaceAvailability;
