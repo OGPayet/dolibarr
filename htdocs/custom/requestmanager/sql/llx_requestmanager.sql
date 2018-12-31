@@ -24,6 +24,7 @@ create table llx_requestmanager
   fk_soc_origin             integer NOT NULL,		            -- id of the thirdparty origin
   fk_soc                    integer NOT NULL,		            -- id of the thirdparty bill
   fk_soc_benefactor         integer NOT NULL,		            -- id of the thirdparty benefactor
+  fk_soc_watcher            integer,		                    -- id of the thirdparty watcher
 
   label                     varchar(255) NOT NULL,		      -- label of the request
   description               text NOT NULL,		              -- description of the request

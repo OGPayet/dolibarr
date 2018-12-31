@@ -59,6 +59,7 @@ $search_label=GETPOST('search_label','alpha');
 $search_thridparty_origin=GETPOST('search_thridparty_origin','alpha');
 $search_thridparty=GETPOST('search_thridparty','alpha');
 $search_thridparty_benefactor=GETPOST('search_thridparty_benefactor','alpha');
+$search_thridparty_watcher=GETPOST('search_thridparty_watcher','alpha');
 $search_source=GETPOST('search_source','alpha');
 $search_urgency=GETPOST('search_urgency','alpha');
 $search_impact=GETPOST('search_impact','alpha');
@@ -135,6 +136,7 @@ $arrayfields = array(
     'rm.fk_soc_origin' => array('label' => $langs->trans("RequestManagerThirdPartyOrigin"), 'checked' => 1),
     'rm.fk_soc' => array('label' => $langs->trans("RequestManagerThirdPartyPrincipal"), 'checked' => 1),
     'rm.fk_soc_benefactor' => array('label' => $langs->trans("RequestManagerThirdPartyBenefactor"), 'checked' => 1),
+    'rm.fk_soc_watcher' => array('label' => $langs->trans("RequestManagerThirdPartyWatcher"), 'checked' => 0),
     'rm.description' => array('label' => $langs->trans("RequestManagerDescription"), 'checked' => 0),
     'rm.fk_source' => array('label' => $langs->trans("RequestManagerSource"), 'checked' => 0),
     'rm.fk_urgency' => array('label' => $langs->trans("RequestManagerUrgency"), 'checked' => 0),
@@ -196,6 +198,7 @@ if (GETPOST('button_removefilter_x','alpha') || GETPOST('button_removefilter.x',
     $search_thridparty_origin='';
     $search_thridparty='';
     $search_thridparty_benefactor='';
+    $search_thridparty_watcher='';
     $search_source='';
     $search_urgency='';
     $search_impact='';
@@ -315,6 +318,7 @@ $sql .= ' rm.rowid, rm.fk_parent, rm.ref, rm.ref_ext,';
 $sql .= ' rm.fk_soc_origin, so.nom as soc_name_origin, so.client as soc_client_origin, so.fournisseur as soc_fournisseur_origin, so.code_client as soc_code_client_origin, so.code_fournisseur as soc_code_fournisseur_origin,';
 $sql .= ' rm.fk_soc, s.nom as soc_name, s.client as soc_client, s.fournisseur as soc_fournisseur, s.code_client as soc_code_client, s.code_fournisseur as soc_code_fournisseur,';
 $sql .= ' rm.fk_soc_benefactor, sb.nom as soc_name_benefactor, sb.client as soc_client_benefactor, sb.fournisseur as soc_fournisseur_benefactor, sb.code_client as soc_code_client_benefactor, sb.code_fournisseur as soc_code_fournisseur_benefactor,';
+$sql .= ' rm.fk_soc_watcher, sw.nom as soc_name_watcher, sw.client as soc_client_watcher, sw.fournisseur as soc_fournisseur_watcher, sw.code_client as soc_code_client_watcher, sw.code_fournisseur as soc_code_fournisseur_watcher,';
 $sql .= ' rm.label, rm.description,';
 $sql .= ' rm.fk_type, crmrt.label as type_label,';
 $sql .= ' rm.fk_category, crmc.label as category_label,';
@@ -351,6 +355,7 @@ $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."c_requestmanager_reason_resolution as crmrr
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as so on (so.rowid = rm.fk_soc_origin)";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as s on (s.rowid = rm.fk_soc)";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as sb on (sb.rowid = rm.fk_soc_benefactor)";
+$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as sw on (sw.rowid = rm.fk_soc_watcher)";
 if (is_array($extrafields->attribute_label) && count($extrafields->attribute_label)) $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."requestmanager_extrafields as ef on (rm.rowid = ef.fk_object)";
 $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'user as ur ON ur.rowid = rm.fk_user_resolved';
 $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'user as uc ON uc.rowid = rm.fk_user_closed';
@@ -391,6 +396,7 @@ if ($search_label)  $sql.= natural_search('rm.label', $search_label);
 if ($search_thridparty_origin)  $sql.= natural_search('so.nom', $search_thridparty_origin);
 if ($search_thridparty)  $sql.= natural_search('s.nom', $search_thridparty);
 if ($search_thridparty_benefactor)  $sql.= natural_search('sb.nom', $search_thridparty_benefactor);
+if ($search_thridparty_watcher)  $sql.= natural_search('sw.nom', $search_thridparty_watcher);
 if ($socid > 0)  $sql .= ' AND (rm.fk_soc_origin = '.$socid.' OR rm.fk_soc = '.$socid.' OR rm.fk_soc_benefactor = '.$socid.')';
 if ($search_source)  $sql.= natural_search('crms.label', $search_source);
 if ($search_urgency)  $sql.= natural_search('crmu.label', $search_urgency);
@@ -460,6 +466,7 @@ if ($resql) {
     $societestatic_origin = new Societe($db);
     $societestatic = new Societe($db);
     $societestatic_benefactor = new Societe($db);
+    $societestatic_watcher = new Societe($db);
 
     $title = $langs->trans('RequestManagerListOfRequests');
     if ($my_list) $title .= ' (' . $langs->trans('RequestManagerMyRequest') . ')';
@@ -482,6 +489,7 @@ if ($resql) {
     if ($search_thridparty_origin) $param .= '&search_thridparty_origin=' . urlencode($search_thridparty_origin);
     if ($search_thridparty) $param .= '&search_thridparty=' . urlencode($search_thridparty);
     if ($search_thridparty_benefactor) $param .= '&search_thridparty_benefactor=' . urlencode($search_thridparty_benefactor);
+    if ($search_thridparty_watcher) $param .= '&search_thridparty_watcher=' . urlencode($search_thridparty_watcher);
     if ($search_source) $param .= '&search_source=' . urlencode($search_source);
     if ($search_urgency) $param .= '&search_urgency=' . urlencode($search_urgency);
     if ($search_impact) $param .= '&search_impact=' . urlencode($search_impact);
@@ -646,6 +654,12 @@ if ($resql) {
     if (!empty($arrayfields['rm.fk_soc_benefactor']['checked'])) {
         print '<td class="liste_titre">';
         print '<input class="flat" size="6" type="text" name="search_thridparty_benefactor" value="' . dol_escape_htmltag($search_thridparty_benefactor) . '">';
+        print '</td>';
+    }
+    // Thridparty Benefactor
+    if (!empty($arrayfields['rm.fk_soc_watcher']['checked'])) {
+        print '<td class="liste_titre">';
+        print '<input class="flat" size="6" type="text" name="search_thridparty_watcher" value="' . dol_escape_htmltag($search_thridparty_watcher) . '">';
         print '</td>';
     }
     // Description
@@ -833,6 +847,7 @@ if ($resql) {
     if (!empty($arrayfields['rm.fk_soc_origin']['checked'])) print_liste_field_titre($arrayfields['rm.fk_soc_origin']['label'], $_SERVER["PHP_SELF"], 'so.nom', '', $param, '', $sortfield, $sortorder);
     if (!empty($arrayfields['rm.fk_soc']['checked'])) print_liste_field_titre($arrayfields['rm.fk_soc']['label'], $_SERVER["PHP_SELF"], 's.nom', '', $param, '', $sortfield, $sortorder);
     if (!empty($arrayfields['rm.fk_soc_benefactor']['checked'])) print_liste_field_titre($arrayfields['rm.fk_soc_benefactor']['label'], $_SERVER["PHP_SELF"], 'sb.nom', '', $param, '', $sortfield, $sortorder);
+    if (!empty($arrayfields['rm.fk_soc_watcher']['checked'])) print_liste_field_titre($arrayfields['rm.fk_soc_watcher']['label'], $_SERVER["PHP_SELF"], 'sw.nom', '', $param, '', $sortfield, $sortorder);
     if (!empty($arrayfields['rm.description']['checked'])) print_liste_field_titre($arrayfields['rm.description']['label'], $_SERVER["PHP_SELF"], 'rm.description', '', $param, '', $sortfield, $sortorder);
     if (!empty($arrayfields['rm.fk_source']['checked'])) print_liste_field_titre($arrayfields['rm.fk_source']['label'], $_SERVER["PHP_SELF"], 'crms.label', '', $param, '', $sortfield, $sortorder);
     if (!empty($arrayfields['rm.fk_urgency']['checked'])) print_liste_field_titre($arrayfields['rm.fk_urgency']['label'], $_SERVER["PHP_SELF"], 'crmu.label', '', $param, '', $sortfield, $sortorder);
@@ -905,6 +920,13 @@ if ($resql) {
         $societestatic_benefactor->code_client = $obj->soc_code_client_benefactor;
         $societestatic_benefactor->code_fournisseur = $obj->soc_code_fournisseur_benefactor;
 
+        $societestatic_watcher->id = $obj->fk_soc_watcher;
+        $societestatic_watcher->name = $obj->soc_name_watcher;
+        $societestatic_watcher->client = $obj->soc_client_watcher;
+        $societestatic_watcher->fournisseur = $obj->soc_fournisseur_watcher;
+        $societestatic_watcher->code_client = $obj->soc_code_client_watcher;
+        $societestatic_watcher->code_fournisseur = $obj->soc_code_fournisseur_watcher;
+
         $objectstatic->id = $obj->rowid;
         $objectstatic->fk_parent = $obj->fk_parent;
         $objectstatic->ref = $obj->ref;
@@ -915,6 +937,7 @@ if ($resql) {
         $objectstatic->thirdparty_origin = $societestatic_origin;
         $objectstatic->thirdparty = $societestatic;
         $objectstatic->thirdparty_benefactor = $societestatic_benefactor;
+        $objectstatic->thirdparty_watcher = $societestatic_watcher;
 
         print '<tr class="oddeven">';
 
@@ -968,6 +991,14 @@ if ($resql) {
         if (!empty($arrayfields['rm.fk_soc_benefactor']['checked'])) {
             print '<td class="nowrap">';
             print $societestatic_benefactor->getNomUrl(1, '', 24);
+            print '</td>';
+        }
+        // Thridparty Watcher
+        if (!empty($arrayfields['rm.fk_soc_watcher']['checked'])) {
+            print '<td class="nowrap">';
+            if ($societestatic_watcher->id > 0) {
+                print $societestatic_watcher->getNomUrl(1, '', 24);
+            }
             print '</td>';
         }
         // Description

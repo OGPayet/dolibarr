@@ -195,6 +195,11 @@ class RequestManager extends CommonObject
      */
     public $socid_benefactor;
     /**
+     * ID of the thirdparty watcher
+     * @var int
+     */
+    public $socid_watcher;
+    /**
 	 * @var Societe A related thirdparty origin
 	 * @see fetch_thirdparty_origin()
 	 */
@@ -209,6 +214,11 @@ class RequestManager extends CommonObject
 	 * @see fetch_thirdparty_benefactor()
 	 */
 	public $thirdparty_benefactor;
+    /**
+     * @var Societe A related thirdparty benefactor
+     * @see fetch_thirdparty_benefactor()
+     */
+    public $thirdparty_watcher;
 
     /**
      * Label of the request
@@ -570,6 +580,7 @@ class RequestManager extends CommonObject
         $this->socid_origin = $this->socid_origin > 0 ? $this->socid_origin : 0;
         $this->socid = $this->socid > 0 ? $this->socid : $this->socid_origin;
         $this->socid_benefactor = $this->socid_benefactor > 0 ? $this->socid_benefactor : $this->socid_origin;
+        $this->socid_watcher = $this->socid_watcher > 0 ? $this->socid_watcher : 0;
         $this->label = trim($this->label);
         $this->description = trim($this->description);
         $this->fk_type = $this->fk_type > 0 ? $this->fk_type : 0;
@@ -672,6 +683,7 @@ class RequestManager extends CommonObject
         $sql .= ", fk_soc_origin";
         $sql .= ", fk_soc";
         $sql .= ", fk_soc_benefactor";
+        $sql .= ", fk_soc_watcher";
         $sql .= ", label";
         $sql .= ", description";
         $sql .= ", fk_type";
@@ -697,6 +709,7 @@ class RequestManager extends CommonObject
         $sql .= ", " . $this->socid_origin;
         $sql .= ", " . $this->socid;
         $sql .= ", " . $this->socid_benefactor;
+        $sql .= ", " . ($this->socid_watcher > 0 ? $this->socid_watcher : 'NULL');
         $sql .= ", '" . $this->db->escape($this->label) . "'";
         $sql .= ", '" . $this->db->escape($this->description) . "'";
         $sql .= ", " . $this->fk_type;
@@ -1013,6 +1026,7 @@ class RequestManager extends CommonObject
         $sql .= ' t.fk_soc_origin,';
         $sql .= ' t.fk_soc,';
         $sql .= ' t.fk_soc_benefactor,';
+        $sql .= ' t.fk_soc_watcher,';
         $sql .= ' t.label,';
         $sql .= ' t.description,';
         $sql .= ' t.fk_type,';
@@ -1070,6 +1084,7 @@ class RequestManager extends CommonObject
                 $this->socid_origin                 = $obj->fk_soc_origin;
                 $this->socid                        = $obj->fk_soc;
                 $this->socid_benefactor             = $obj->fk_soc_benefactor;
+                $this->socid_watcher                = $obj->fk_soc_watcher;
                 $this->label                        = $obj->label;
                 $this->description                  = $obj->description;
                 $this->fk_type                      = $obj->fk_type;
@@ -1651,6 +1666,40 @@ class RequestManager extends CommonObject
     }
 
     /**
+     *  Load the third party watcher of object, from id $this->socid_watcher, into this->thirdparty_watcher
+     *
+     * @param		int		$force_thirdparty_id	Force thirdparty id
+     * @return		int								<0 if KO, >0 if OK
+     */
+    function fetch_thirdparty_watcher($force_thirdparty_id=0)
+    {
+        global $conf;
+
+        if (empty($this->socid_watcher))
+            return 0;
+
+        require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
+
+        $idtofetch = $this->socid_watcher;
+        if ($force_thirdparty_id)
+            $idtofetch = $force_thirdparty_id;
+
+        if ($idtofetch) {
+            $thirdparty = new Societe($this->db);
+            $result = $thirdparty->fetch($idtofetch);
+            $this->thirdparty_watcher = $thirdparty;
+
+            // Use first price level if level not defined for third party
+            if (!empty($conf->global->PRODUIT_MULTIPRICES) && empty($this->thirdparty_watcher->price_level)) {
+                $this->thirdparty_watcher->price_level = 1;
+            }
+
+            return $result;
+        } else
+            return -1;
+    }
+
+    /**
 	 *  Update request into database
 	 *
 	 * @param   User    $user           User that modifies
@@ -1671,6 +1720,7 @@ class RequestManager extends CommonObject
         $this->socid_origin = $this->socid_origin > 0 ? $this->socid_origin : 0;
         $this->socid = $this->socid > 0 ? $this->socid : $this->socid_origin;
         $this->socid_benefactor = $this->socid_benefactor > 0 ? $this->socid_benefactor : $this->socid_origin;
+        $this->socid_watcher = $this->socid_watcher > 0 ? $this->socid_watcher : 0;
         $this->label = trim($this->label);
         $this->description = trim($this->description);
         $this->fk_type = $this->fk_type > 0 ? $this->fk_type : 0;
@@ -1759,6 +1809,7 @@ class RequestManager extends CommonObject
             opendsi_is_updated_property($this, 'socid_origin') ||
             opendsi_is_updated_property($this, 'socid') ||
             opendsi_is_updated_property($this, 'socid_benefactor') ||
+            opendsi_is_updated_property($this, 'socid_watcher') ||
             opendsi_is_updated_property($this, 'fk_source') ||
             opendsi_is_updated_property($this, 'fk_urgency') ||
             opendsi_is_updated_property($this, 'fk_impact') ||
@@ -1788,6 +1839,7 @@ class RequestManager extends CommonObject
         $sql .= ", fk_soc_origin = " . $this->socid_origin;
         $sql .= ", fk_soc = " . $this->socid;
         $sql .= ", fk_soc_benefactor = " . $this->socid_benefactor;
+        $sql .= ", fk_soc_watcher = " . ($this->socid_watcher > 0 ? $this->socid_watcher : 'NULL');
         $sql .= ", label = '" . $this->db->escape($this->label) . "'";
         $sql .= ", description = '" . $this->db->escape($this->description) . "'";
         $sql .= ", fk_type = " . $this->fk_type;

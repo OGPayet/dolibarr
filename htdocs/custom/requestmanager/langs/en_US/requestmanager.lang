@@ -171,6 +171,7 @@ RequestManagerLabel                     = Titre
 RequestManagerThirdPartyOrigin          = Origine
 RequestManagerThirdPartyPrincipal       = Donneur d'ordre
 RequestManagerThirdPartyBenefactor      = Bénéficiaire
+RequestManagerThirdPartyWatcher         = Watcher
 RequestManagerSource                    = Source
 RequestManagerUrgency                   = Urgence
 RequestManagerImpact                    = Impact

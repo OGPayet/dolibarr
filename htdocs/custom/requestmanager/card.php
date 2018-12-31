@@ -84,6 +84,7 @@ if ($id > 0 || !empty($ref)) {
         $object->fetch_thirdparty_origin();
         $object->fetch_thirdparty();
         $object->fetch_thirdparty_benefactor();
+        $object->fetch_thirdparty_watcher();
         $object->fetch_optionals();
         //$mysoc = $object->socid;
     } elseif ($ret < 0) {
@@ -276,6 +277,18 @@ if (empty($reshook)) {
                 header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
                 exit();
             }
+        }
+    } // Set ThirdParty Watcher
+    elseif ($action == 'set_thirdparty_watcher' && !empty($conf->companyrelationships->enabled) && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+        $object->oldcopy = clone $object;
+        $object->socid_watcher = GETPOST('socid_watcher', 'int');
+        $result = $object->update($user);
+        if ($result < 0) {
+            setEventMessages($object->error, $object->errors, 'errors');
+            $action = 'edit_thirdparty_watcher';
+        } else {
+            header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
+            exit();
         }
     } // Set Source
     elseif ($action == 'set_source' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
@@ -1409,6 +1422,29 @@ SCRIPT;
             print '</form>';
         } else {
             print $object->thirdparty_benefactor->getNomUrl(1);
+        }
+        print '</td></tr>';
+
+        // ThirdParty Watcher
+        print '<tr><td>';
+        print '<table class="nobordernopadding" width="100%"><tr><td>';
+        print $langs->trans('RequestManagerThirdPartyWatcher');
+        print '</td>';
+        if ($action != 'edit_thirdparty_watcher' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS)
+            print '<td align="right"><a href="' . $_SERVER["PHP_SELF"] . '?action=edit_thirdparty_watcher&id=' . $object->id . '">' . img_edit($langs->trans('RequestManagerSetThirdPartyWatcher'), 1) . '</a></td>';
+        print '</tr></table>';
+        print '</td><td>';
+        if ($action == 'edit_thirdparty_watcher' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+            print '<form name="editthirdpartywatcher" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
+            print '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '">';
+            print '<input type="hidden" name="action" value="set_thirdparty_watcher">';
+            print $form->select_company($object->socid_watcher, 'socid_watcher', '(s.client = 1 OR s.client = 2 OR s.client = 3) AND status=1', 'SelectThirdParty', 0, 0, null, 0, 'minwidth300');
+            print '<input type="submit" class="button" value="' . $langs->trans('Modify') . '">';
+            print '</form>';
+        } else {
+            if ($object->thirdparty_watcher) {
+                print $object->thirdparty_watcher->getNomUrl(1);
+            }
         }
         print '</td></tr>';
     }
