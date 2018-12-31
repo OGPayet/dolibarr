@@ -959,6 +959,7 @@ class FormRequestManager
         $sql .= ' rm.fk_soc_origin, so.nom as soc_name_origin, so.client as soc_client_origin, so.fournisseur as soc_fournisseur_origin, so.code_client as soc_code_client_origin, so.code_fournisseur as soc_code_fournisseur_origin,';
         $sql .= ' rm.fk_soc, s.nom as soc_name, s.client as soc_client, s.fournisseur as soc_fournisseur, s.code_client as soc_code_client, s.code_fournisseur as soc_code_fournisseur,';
         $sql .= ' rm.fk_soc_benefactor, sb.nom as soc_name_benefactor, sb.client as soc_client_benefactor, sb.fournisseur as soc_fournisseur_benefactor, sb.code_client as soc_code_client_benefactor, sb.code_fournisseur as soc_code_fournisseur_benefactor,';
+        $sql .= ' rm.fk_soc_watcher, sw.nom as soc_name_watcher, sw.client as soc_client_watcher, sw.fournisseur as soc_fournisseur_watcher, sw.code_client as soc_code_client_watcher, sw.code_fournisseur as soc_code_fournisseur_watcher,';
         $sql .= ' rm.label, rm.description,';
         $sql .= ' rm.fk_type, crmrt.label as type_label,';
         $sql .= ' rm.fk_category, crmc.label as category_label,';
@@ -987,6 +988,7 @@ class FormRequestManager
         $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'societe as so on (so.rowid = rm.fk_soc_origin)';
         $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'societe as s on (s.rowid = rm.fk_soc)';
         $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'societe as sb on (sb.rowid = rm.fk_soc_benefactor)';
+        $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'societe as sw on (sw.rowid = rm.fk_soc_watcher)';
         $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'user as ur ON ur.rowid = rm.fk_user_resolved';
         $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'user as uc ON uc.rowid = rm.fk_user_closed';
         $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'user as ua ON ua.rowid = rm.fk_user_author';
@@ -1013,10 +1015,11 @@ class FormRequestManager
      * @param   Societe         $societestatic_origin       Societe origin object
      * @param   Societe         $societestatic              Societe bill object
      * @param   Societe         $societestatic_benefactor   Societe benefactor object
+     * @param   Societe         $societestatic_watcher      Societe watcher object
      * @param   User            $userstatic                 User object
      * @param   int             $lists_follow_last_date     Last date when follow list is viewed
      */
-    private static function _listsFollowPrintLineFrom(DoliDB $db, $arrayfields, $obj, RequestManager $requestmanagerstatic, Societe $societestatic_origin, Societe $societestatic, Societe $societestatic_benefactor, User $userstatic, $lists_follow_last_date=0)
+    private static function _listsFollowPrintLineFrom(DoliDB $db, $arrayfields, $obj, RequestManager $requestmanagerstatic, Societe $societestatic_origin, Societe $societestatic, Societe $societestatic_benefactor, Societe $societestatic_watcher, User $userstatic, $lists_follow_last_date=0)
     {
         global $langs, $conf, $form;
 
@@ -1051,6 +1054,14 @@ class FormRequestManager
         $societestatic_benefactor->code_client = $obj->soc_code_client_benefactor;
         $societestatic_benefactor->code_fournisseur = $obj->soc_code_fournisseur_benefactor;
 
+        // societe watcher
+        $societestatic_watcher->id = $obj->fk_soc_watcher;
+        $societestatic_watcher->name = $obj->soc_name_watcher;
+        $societestatic_watcher->client = $obj->soc_client_watcher;
+        $societestatic_watcher->fournisseur = $obj->soc_fournisseur_watcher;
+        $societestatic_watcher->code_client = $obj->soc_code_client_watcher;
+        $societestatic_watcher->code_fournisseur = $obj->soc_code_fournisseur_watcher;
+
         // requestmanager
         $requestmanagerstatic->id = $obj->rowid;
         $requestmanagerstatic->ref = $obj->ref;
@@ -1062,6 +1073,7 @@ class FormRequestManager
         $requestmanagerstatic->thirdparty_origin = $societestatic_origin;
         $requestmanagerstatic->thirdparty = $societestatic;
         $requestmanagerstatic->thirdparty_benefactor = $societestatic_benefactor;
+        $requestmanagerstatic->thirdparty_watcher = $societestatic_watcher;
 
         // picto warning for deadline
         $pictoWarning = '';
@@ -1133,10 +1145,19 @@ class FormRequestManager
             print '</td>';
         }
 
-        // Thridparty
+        // Thridparty Benefactor
         if (!empty($arrayfields['rm.fk_soc_benefactor']['checked'])) {
             print '<td class="nowrap'.$updatedLineClass.'">';
             print $societestatic_benefactor->getNomUrl(1, '', 24);
+            print '</td>';
+        }
+
+        // Thridparty Watcher
+        if (!empty($arrayfields['rm.fk_soc_watcher']['checked'])) {
+            print '<td class="nowrap'.$updatedLineClass.'">';
+            if ($societestatic_watcher->id > 0) {
+                print $societestatic_watcher->getNomUrl(1, '', 24);
+            }
             print '</td>';
         }
 
@@ -1361,6 +1382,7 @@ class FormRequestManager
      * @param   Societe         $societestatic_origin       Societe origin object
      * @param   Societe         $societestatic              Societe bill object
      * @param   Societe         $societestatic_benefactor   Societe benefactor object
+     * @param   Societe         $societestatic_watcher      Societe watcher object
      * @param   User            $userstatic                 User object
      * @param   string          $join                       [=''] Join condition where in SQL
      * @param   string          $filter                     [=''] Filter condition where in SQL
@@ -1370,7 +1392,7 @@ class FormRequestManager
      * @param   int             $nbCol                      [=1] Nb column to show
      * @param   int             $lists_follow_last_date     Last date when follow list is viewed
      */
-    public static function listsFollowPrintListFrom(DoliDB $db, $arrayfields, RequestManager $requestmanagerstatic, Societe $societestatic_origin, Societe $societestatic, Societe $societestatic_benefactor, User $userstatic, $join='', $filter='', $sortfield='', $sortorder='', $titleKey='', $nbCol=1, $lists_follow_last_date=0)
+    public static function listsFollowPrintListFrom(DoliDB $db, $arrayfields, RequestManager $requestmanagerstatic, Societe $societestatic_origin, Societe $societestatic, Societe $societestatic_benefactor, Societe $societestatic_watcher, User $userstatic, $join='', $filter='', $sortfield='', $sortorder='', $titleKey='', $nbCol=1, $lists_follow_last_date=0)
     {
         global $langs;
 
@@ -1388,7 +1410,7 @@ class FormRequestManager
                 $obj = $db->fetch_object($resql);
 
                 // print a line
-                self::_listsFollowPrintLineFrom($db, $arrayfields, $obj, $requestmanagerstatic, $societestatic_origin, $societestatic, $societestatic_benefactor, $userstatic, $lists_follow_last_date);
+                self::_listsFollowPrintLineFrom($db, $arrayfields, $obj, $requestmanagerstatic, $societestatic_origin, $societestatic, $societestatic_benefactor, $societestatic_watcher, $userstatic, $lists_follow_last_date);
 
                 $i++;
             }
