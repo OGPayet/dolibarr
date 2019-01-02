@@ -216,15 +216,16 @@ class ActionsCompanyRelationships
 
                         $error = 0;
 
-                        $fk_soc_benefactor = GETPOST('options_companyrelationships_fk_soc_benefactor', 'int');
+                        $relation_type  = CompanyRelationships::RELATION_TYPE_BENEFACTOR;
+                        $relation_socid = GETPOST('options_companyrelationships_fk_soc_benefactor', 'int');
 
                         // if benefactor company changed
-                        if (!empty($fk_soc_benefactor) && $fk_soc_benefactor!=$object->array_options['options_companyrelationships_fk_soc_benefactor']) {
+                        if (!empty($relation_socid) && $relation_socid!=$object->array_options['options_companyrelationships_fk_soc_benefactor']) {
                             // save a copy of this object
                             $objectClone = clone $object;
 
                             $companyRelationships    = new CompanyRelationships($this->db);
-                            $publicSpaceAvailability = $companyRelationships->getPublicSpaceAvailabilityThirdparty($object->socid, CompanyRelationships::RELATION_TYPE_BENEFACTOR, $fk_soc_benefactor, $object->element);
+                            $publicSpaceAvailability = $companyRelationships->getPublicSpaceAvailabilityThirdparty($object->socid, $relation_type, $relation_socid, $object->element);
 
                             if (!is_array($publicSpaceAvailability)) {
                                 $error++;
@@ -234,7 +235,7 @@ class ActionsCompanyRelationships
 
                             if (! $error) {
                                 // modify options with company relationships default availability
-                                $objectClone->array_options['options_companyrelationships_fk_soc_benefactor']       = $fk_soc_benefactor;
+                                $objectClone->array_options['options_companyrelationships_fk_soc_benefactor']       = $relation_socid;
                                 $objectClone->array_options['options_companyrelationships_availability_principal']  = $publicSpaceAvailability['principal'];
                                 $objectClone->array_options['options_companyrelationships_availability_benefactor'] = $publicSpaceAvailability['benefactor'];
 
@@ -264,15 +265,16 @@ class ActionsCompanyRelationships
 
                         $error = 0;
 
-                        $socid_relation = GETPOST('options_companyrelationships_fk_soc_watcher', 'int');
+                        $relation_type  = CompanyRelationships::RELATION_TYPE_WATCHER;
+                        $relation_socid = GETPOST('options_companyrelationships_fk_soc_watcher', 'int');
 
                         // if watcher company changed
-                        if (!empty($socid_relation) && $socid_relation!=$object->array_options['options_companyrelationships_fk_soc_watcher']) {
+                        if (!empty($relation_socid) && $relation_socid!=$object->array_options['options_companyrelationships_fk_soc_watcher']) {
                             // save a copy of this object
                             $objectClone = clone $object;
 
                             $companyRelationships    = new CompanyRelationships($this->db);
-                            $publicSpaceAvailability = $companyRelationships->getPublicSpaceAvailabilityThirdparty($object->socid, CompanyRelationships::RELATION_TYPE_WATCHER, $socid_relation, $object->element);
+                            $publicSpaceAvailability = $companyRelationships->getPublicSpaceAvailabilityThirdparty($object->socid, $relation_type, $relation_socid, $object->element);
 
                             if (!is_array($publicSpaceAvailability)) {
                                 $error++;
@@ -282,7 +284,7 @@ class ActionsCompanyRelationships
 
                             if (! $error) {
                                 // modify options with company relationships default availability
-                                $objectClone->array_options['options_companyrelationships_fk_soc_watcher']       = $socid_relation;
+                                $objectClone->array_options['options_companyrelationships_fk_soc_watcher']       = $relation_socid;
                                 $objectClone->array_options['options_companyrelationships_availability_watcher'] = $publicSpaceAvailability['watcher'];
 
                                 $result = $objectClone->insertExtraFields();
@@ -663,7 +665,7 @@ class ActionsCompanyRelationships
                         $out .= '           data: {';
                         $out .= '           socid: ' . $jquery_socid . ',';
                         $out .= '           relation_type: ' . CompanyRelationships::RELATION_TYPE_BENEFACTOR . ',';
-                        $out .= '           relation_socid: jQuery("#options_companyrelationships_fk_soc_benefactor").val(),';
+                        $out .= '           relation_socid: jQuery(this).val(),';
                         $out .= '           element: "' . $object->element . '"';
                         $out .= '           },';
                         $out .= '           dataType: "json",';
@@ -674,7 +676,7 @@ class ActionsCompanyRelationships
                         $out .= '                   console.error("Error : ", "' . dol_buildpath('/companyrelationships/class/actions_companyrelationships.class.php', 1) . '", "in formObjectOptions() on #options_companyrelationships_fk_soc_benefactor.change()");';
                         $out .= '               } else {';
                         $out .= '                   jQuery("input[name=options_companyrelationships_availability_principal]").prop("checked", data.principal);';
-                        $out .= '                   jQuery("input[name=options_companyrelationships_availability_benefactor]").prop("checked", data.benefactor);';
+                        $out .= '                   jQuery("input[name=options_companyrelationships_availability_benefactor]").prop("checked", data.relation);';
                         $out .= '               }';
                         $out .= '           },';
                         $out .= '           error: function(){';
@@ -689,7 +691,7 @@ class ActionsCompanyRelationships
                         $out .= '           data: {';
                         $out .= '           socid: ' . $jquery_socid . ',';
                         $out .= '           relation_type: ' . CompanyRelationships::RELATION_TYPE_WATCHER . ',';
-                        $out .= '           relation_socid: jQuery("#options_companyrelationships_fk_soc_watcher").val(),';
+                        $out .= '           relation_socid: jQuery(this).val(),';
                         $out .= '           element: "' . $object->element . '"';
                         $out .= '           },';
                         $out .= '           dataType: "json",';
@@ -699,7 +701,7 @@ class ActionsCompanyRelationships
                         $out .= '               if (data.error > 0) {';
                         $out .= '                   console.error("Error : ", "' . dol_buildpath('/companyrelationships/class/actions_companyrelationships.class.php', 1) . '", "in formObjectOptions() on #options_companyrelationships_fk_soc_watcher.change()");';
                         $out .= '               } else {';
-                        $out .= '                   jQuery("input[name=options_companyrelationships_availability_watcher]").prop("checked", data.watcher);';
+                        $out .= '                   jQuery("input[name=options_companyrelationships_availability_watcher]").prop("checked", data.relation);';
                         $out .= '               }';
                         $out .= '           },';
                         $out .= '           error: function(){';
@@ -739,8 +741,9 @@ class ActionsCompanyRelationships
 
                         $out = '';
 
+                        $relation_type = CompanyRelationships::RELATION_TYPE_BENEFACTOR;
                         $socid = $object->socid;
-                        $fk_soc_benefactor = $object->array_options['options_companyrelationships_fk_soc_benefactor'];
+                        $relation_socid = $object->array_options['options_companyrelationships_fk_soc_benefactor'];
 
                         // company id already posted (an input hidden in this form)
                         if (intval($socid)>0) {
@@ -748,24 +751,24 @@ class ActionsCompanyRelationships
                                 $hidelabel = 1;
                                 // No immediate load of all database
                                 $placeholder='';
-                                if ($fk_soc_benefactor && empty($selected_input_value)) {
+                                if ($relation_socid && empty($selected_input_value)) {
                                     $companyrelationships = new CompanyRelationships($this->db);
-                                    $relation_ids = $companyrelationships->getRelationshipsThirdparty($socid, CompanyRelationships::RELATION_TYPE_BENEFACTOR,1);
+                                    $relation_ids = $companyrelationships->getRelationshipsThirdparty($socid, $relation_type,1);
                                     $relation_ids = is_array($relation_ids) ? $relation_ids : array();
 
                                     require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
                                     $societetmp = new Societe($this->db);
-                                    $societetmp->fetch($fk_soc_benefactor);
+                                    $societetmp->fetch($relation_socid);
                                     $selected_input_value = $societetmp->name;
-                                    if (in_array($fk_soc_benefactor, $relation_ids)) {
+                                    if (in_array($relation_socid, $relation_ids)) {
                                         $selected_input_value .= ' *';
                                     }
 
                                     unset($societetmp);
                                 }
                                 // mode 1
-                                $urloption='htmlname=options_companyrelationships_fk_soc_benefactor&outjson=1&socid='.$socid.'&relation_type='.CompanyRelationships::RELATION_TYPE_BENEFACTOR;
-                                $out .= ajax_autocompleter($fk_soc_benefactor, 'options_companyrelationships_fk_soc_benefactor', dol_buildpath('/companyrelationships/ajax/benefactor2.php', 1), $urloption, $conf->global->COMPANY_USE_SEARCH_TO_SELECT);
+                                $urloption='htmlname=options_companyrelationships_fk_soc_benefactor&outjson=1&socid='.$socid.'&relation_type='.$relation_type;
+                                $out .= ajax_autocompleter($relation_socid, 'options_companyrelationships_fk_soc_benefactor', dol_buildpath('/companyrelationships/ajax/benefactor2.php', 1), $urloption, $conf->global->COMPANY_USE_SEARCH_TO_SELECT);
                                 $out .= '<style type="text/css">
 					            .ui-autocomplete {
 						            z-index: 250;
@@ -801,8 +804,8 @@ class ActionsCompanyRelationships
                                 $out .= '       action: "getBenefactor",';
                                 $out .= '       id: "' . $socid . '",';
                                 $out .= '       htmlname: "options_companyrelationships_fk_soc_benefactor",';
-                                $out .= '       relation_type: "' . CompanyRelationships::RELATION_TYPE_BENEFACTOR . '",';
-                                $out .= '       relation_socid: "' . $fk_soc_benefactor . '"';
+                                $out .= '       relation_type: "' . $relation_type . '",';
+                                $out .= '       relation_socid: "' . $relation_socid . '"';
                                 $out .= '   };';
                                 $out .= '   jQuery.getJSON("' . dol_buildpath('/companyrelationships/ajax/benefactor.php', 1) . '", data,';
                                 $out .= '       function(response) {';
@@ -832,8 +835,9 @@ class ActionsCompanyRelationships
 
                         $out = '';
 
+                        $relation_type = CompanyRelationships::RELATION_TYPE_WATCHER;
                         $socid = $object->socid;
-                        $fk_soc_watcher = $object->array_options['options_companyrelationships_fk_soc_watcher'];
+                        $relation_socid = $object->array_options['options_companyrelationships_fk_soc_watcher'];
 
                         // company id already posted (an input hidden in this form)
                         if (intval($socid)>0) {
@@ -841,24 +845,24 @@ class ActionsCompanyRelationships
                                 $hidelabel = 1;
                                 // No immediate load of all database
                                 $placeholder='';
-                                if ($fk_soc_watcher && empty($selected_input_value)) {
+                                if ($relation_socid && empty($selected_input_value)) {
                                     $companyrelationships = new CompanyRelationships($this->db);
-                                    $relation_ids = $companyrelationships->getRelationshipsThirdparty($socid, CompanyRelationships::RELATION_TYPE_WATCHER,1);
+                                    $relation_ids = $companyrelationships->getRelationshipsThirdparty($socid, $relation_type,1);
                                     $relation_ids = is_array($relation_ids) ? $relation_ids : array();
 
                                     require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
                                     $societetmp = new Societe($this->db);
-                                    $societetmp->fetch($fk_soc_watcher);
+                                    $societetmp->fetch($relation_socid);
                                     $selected_input_value = $societetmp->name;
-                                    if (in_array($fk_soc_watcher, $relation_ids)) {
+                                    if (in_array($relation_socid, $relation_ids)) {
                                         $selected_input_value .= ' *';
                                     }
 
                                     unset($societetmp);
                                 }
                                 // mode 1
-                                $urloption='htmlname=options_companyrelationships_fk_soc_watcher&outjson=1&socid='.$socid.'&relation_type='.CompanyRelationships::RELATION_TYPE_WATCHER;
-                                $out .= ajax_autocompleter($fk_soc_watcher, 'options_companyrelationships_fk_soc_watcher', dol_buildpath('/companyrelationships/ajax/watcher2.php', 1), $urloption, $conf->global->COMPANY_USE_SEARCH_TO_SELECT);
+                                $urloption='htmlname=options_companyrelationships_fk_soc_watcher&outjson=1&socid='.$socid.'&relation_type='.$relation_type;
+                                $out .= ajax_autocompleter($relation_socid, 'options_companyrelationships_fk_soc_watcher', dol_buildpath('/companyrelationships/ajax/watcher2.php', 1), $urloption, $conf->global->COMPANY_USE_SEARCH_TO_SELECT);
                                 $out .= '<style type="text/css">
 					            .ui-autocomplete {
 						            z-index: 250;
@@ -894,8 +898,8 @@ class ActionsCompanyRelationships
                                 $out .= '       action: "getWatcher",';
                                 $out .= '       id: "' . $socid . '",';
                                 $out .= '       htmlname: "options_companyrelationships_fk_soc_watcher",';
-                                $out .= '       relation_type: "' . CompanyRelationships::RELATION_TYPE_WATCHER . '",';
-                                $out .= '       relation_socid: "' . $fk_soc_watcher . '"';
+                                $out .= '       relation_type: "' . $relation_type . '",';
+                                $out .= '       relation_socid: "' . $relation_socid . '"';
                                 $out .= '   };';
                                 $out .= '   jQuery.getJSON("' . dol_buildpath('/companyrelationships/ajax/watcher.php', 1) . '", data,';
                                 $out .= '       function(response) {';

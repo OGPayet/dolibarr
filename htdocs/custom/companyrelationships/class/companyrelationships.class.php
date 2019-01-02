@@ -108,17 +108,17 @@ class CompanyRelationships
 
     /**
      * Create companies relationship into database
-     * @deprecated use $this->createRelationshipThirdparty($socid, self::RELATION_TYPE_BENEFACTOR, $socid_benefactor) instead
+     * @deprecated use $this->createRelationshipThirdparty($socid, self::RELATION_TYPE_BENEFACTOR, $benefactor_socid) instead
      *
      * @param   int     $socid                  Main company ID
-     * @param   int     $socid_benefactor       Benefactor company ID
+     * @param   int     $benefactor_socid       Benefactor company ID
      * @return  int     <0 if KO, Id of created companies relationship if OK, 0 if already created
      *
      * @throws  Exception
      */
-    public function createRelationship($socid, $socid_benefactor)
+    public function createRelationship($socid, $benefactor_socid)
     {
-        return $this->createRelationshipThirdparty($socid, self::RELATION_TYPE_BENEFACTOR, $socid_benefactor);
+        return $this->createRelationshipThirdparty($socid, self::RELATION_TYPE_BENEFACTOR, $benefactor_socid);
     }
 
     /**
@@ -126,12 +126,12 @@ class CompanyRelationships
      *
      * @param   int         $socid              Id of principal company
      * @param   int         $relation_type      Relation type (ex : self::RELATION_TYPE_BENEFACTOR, self::RELATION_TYPE_WATCHER)
-     * @param   int         $socid_relation     Id of company in relation
+     * @param   int         $relation_socid     Id of company in relation
      * @return  int         <0 if KO, Id of created companies relationship if OK, 0 if already created
      *
      * @throws  Exception
      */
-    public function createRelationshipThirdparty($socid, $relation_type, $socid_relation)
+    public function createRelationshipThirdparty($socid, $relation_type, $relation_socid)
     {
         global $langs, $user;
 
@@ -140,7 +140,7 @@ class CompanyRelationships
 
         $langs->load('errors');
 
-        dol_syslog(__METHOD__ . " socid=" . $socid . " relation_type=" . $relation_type . " socid_relation=" . $socid_relation, LOG_DEBUG);
+        dol_syslog(__METHOD__ . " socid=" . $socid . " relation_type=" . $relation_type . " relation_socid=" . $relation_socid, LOG_DEBUG);
 
         // Check parameters
         if (!($socid>0)) {
@@ -153,7 +153,7 @@ class CompanyRelationships
             $this->errors[] = $this->error;
             $error++;
         }
-        if (!($socid_relation>0)) {
+        if (!($relation_socid>0)) {
             $this->error = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("CompanyRelationshipsRelationCompany"));
             $this->errors[] = $this->error;
             $error++;
@@ -175,7 +175,7 @@ class CompanyRelationships
         $sql .= ", relation_type";
         $sql .= ") VALUES (";
         $sql .= $socid;
-        $sql .= ", " . $socid_relation;
+        $sql .= ", " . $relation_socid;
         $sql .= ", " . $relation_type;
         $sql .= ")";
 
@@ -233,22 +233,22 @@ class CompanyRelationships
 
     /**
      * Update companies relationship into database
-     * @deprecated use $this->createRelationshipThirdparty($socid, self::RELATION_TYPE_BENEFACTOR, $socid_benefactor) instead
+     * @deprecated use $this->createRelationshipThirdparty($socid, self::RELATION_TYPE_BENEFACTOR, $benefactor_socid) instead
      *
      * @param   int     $rowid                          ID of the relationship
      * @param   int     $socid                          Main company ID
-     * @param   int     $socid_benefactor               Benefactor company ID
+     * @param   int     $benefactor_socid               Benefactor company ID
      * @param   array   $publicSpaceAvailabilityArray   Array of public space availability (rowid in public space availability dictionary)
      * @param   int     $mode
      * @return  int     <0 if KO, >0 if OK
      *
      * @throws  Exception
      */
-    public function updateRelationship($rowid, $socid, $socid_benefactor, $publicSpaceAvailabilityArray=array(), $mode=0)
+    public function updateRelationship($rowid, $socid, $benefactor_socid, $publicSpaceAvailabilityArray=array(), $mode=0)
     {
         $this->id = $rowid;
         $relation_direction = ($mode ? 1 : -1);
-        return $this->updateRelationshipThirdparty($socid, self::RELATION_TYPE_BENEFACTOR, $socid_benefactor, $publicSpaceAvailabilityArray, $relation_direction);
+        return $this->updateRelationshipThirdparty($socid, self::RELATION_TYPE_BENEFACTOR, $benefactor_socid, $publicSpaceAvailabilityArray, $relation_direction);
     }
 
     /**
@@ -256,14 +256,14 @@ class CompanyRelationships
      *
      * @param   int     $socid                          Id of principal company
      * @param   int     $relation_type                  Relation type
-     * @param   int     $socid_relation                 Id of company in relation
+     * @param   int     $relation_socid                 Id of company in relation
      * @param   array   $publicSpaceAvailabilityArray   Array of public space availability (rowid in public space availability dictionary)
      * @param   int     $relation_direction             [=1] Relation direction, -1 to inverse relation
      * @return  int     <0 if KO, >0 if OK
      *
      * @throws  Exception
      */
-    public function updateRelationshipThirdparty($socid, $relation_type, $socid_relation, $publicSpaceAvailabilityArray=array(), $relation_direction=1)
+    public function updateRelationshipThirdparty($socid, $relation_type, $relation_socid, $publicSpaceAvailabilityArray=array(), $relation_direction=1)
     {
         global $langs, $user;
 
@@ -272,7 +272,7 @@ class CompanyRelationships
 
         $langs->load('errors');
 
-        dol_syslog(__METHOD__ . " socid=" . $socid . " relation_type=" . $relation_type . " socid_relation=" . $socid_relation, LOG_DEBUG);
+        dol_syslog(__METHOD__ . " socid=" . $socid . " relation_type=" . $relation_type . " relation_socid=" . $relation_socid, LOG_DEBUG);
 
         // get thirdparty key name for this relation type
         $thirdparty_key_name = $this->_getRelationThirdpartyKeyName($relation_type);
@@ -293,7 +293,7 @@ class CompanyRelationships
             $this->errors[] = $this->error;
             $error++;
         }
-        if (!($socid_relation>0)) {
+        if (!($relation_socid>0)) {
             $this->error = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("CompanyRelationshipsRelationCompany"));
             $this->errors[] = $this->error;
             $error++;
@@ -307,7 +307,7 @@ class CompanyRelationships
         // Update relationship
         $sql  = "UPDATE " . MAIN_DB_PREFIX . "companyrelationships";
         $sql .= " SET fk_soc = " . $socid;
-        $sql .= ", " . $thirdparty_key_name . " = " . $socid_relation;
+        $sql .= ", " . $thirdparty_key_name . " = " . $relation_socid;
         $sql .= ", relation_type = " . $relation_type;
         $sql .= " WHERE rowid = " . $this->id;
 
@@ -370,24 +370,24 @@ class CompanyRelationships
 
     /**
      *  Delete companies relationships into database
-     *  if rowid defined or socid + socid_benefactor defined => delete line
+     *  if rowid defined or socid + benefactor_socid defined => delete line
      *  if socid defined                                     => delete all relation for main company
-     *  if socid_benefactor defined                          => delete all relation for benefactor company
+     *  if $benefactor_socid defined                          => delete all relation for benefactor company
      *
      * @param   int $rowid                  ID of the relationship
      * @param   int $socid                  Main company ID
-     * @param   int $socid_benefactor       Benefactor company ID
+     * @param   int $benefactor_socid       Benefactor company ID
      * @return  int                         <0 if KO, >0 if OK
      *
      * @throws  Exception
      */
-    public function deleteRelationships($rowid=0, $socid=0, $socid_benefactor=0)
+    public function deleteRelationships($rowid=0, $socid=0, $benefactor_socid=0)
     {
         global $user;
 
         $this->errors = array();
 
-        dol_syslog(__METHOD__ . " rowid=" . $rowid . " socid=" . $socid . " socid_benefactor=" . $socid_benefactor, LOG_DEBUG);
+        dol_syslog(__METHOD__ . " rowid=" . $rowid . " socid=" . $socid . " benefactor_socid=" . $benefactor_socid, LOG_DEBUG);
 
         if ($rowid > 0) {
             dol_include_once('/companyrelationships/class/companyrelationshipsavailability.class.php');
@@ -405,12 +405,12 @@ class CompanyRelationships
         $sql = "DELETE FROM " . MAIN_DB_PREFIX . "companyrelationships WHERE";
         if ($rowid > 0) {
             $sql .= " rowid = " . $rowid;
-        } elseif ($socid > 0 && $socid_benefactor > 0) {
-            $sql .= " fk_soc = " . $socid . " AND fk_soc_benefactor = " . $socid_benefactor;
+        } elseif ($socid > 0 && $benefactor_socid > 0) {
+            $sql .= " fk_soc = " . $socid . " AND fk_soc_benefactor = " . $benefactor_socid;
         } elseif ($socid > 0) {
             $sql .= " fk_soc = " . $socid;
-        } elseif ($socid_benefactor > 0) {
-            $sql .= " fk_soc_benefactor = " . $socid_benefactor;
+        } elseif ($benefactor_socid > 0) {
+            $sql .= " fk_soc_benefactor = " . $benefactor_socid;
         }
 
         $resql = $this->db->query($sql);
@@ -603,31 +603,31 @@ class CompanyRelationships
      *
      * @param   int     $socid                          Id of principal company
      * @param   int     $relation_type                  Relation type (ex : self::RELATION_TYPE_BENEFACTOR, self::RELATION_TYPE_WATCHER)
-     * @param   int     $socid_relation                 Id of company in relation
+     * @param   int     $relation_socid                 Id of company in relation
      * @param   array   $publicSpaceAvailabilityArray   Array of public space availability (rowid in public space availability dictionary)
      * @return  int     <0 if KO, >0 if OK (Id of saved company relationship), 0 if already created
      *
      * @throws  Exception
      */
-    public function saveRelationshipThirdparty($socid, $relation_type, $socid_relation, $publicSpaceAvailabilityArray=array())
+    public function saveRelationshipThirdparty($socid, $relation_type, $relation_socid, $publicSpaceAvailabilityArray=array())
     {
-        dol_syslog(__METHOD__ . " socid=" . $socid . " relation_type=" . $relation_type . " socid_relation=" . $socid_relation, LOG_DEBUG);
+        dol_syslog(__METHOD__ . " socid=" . $socid . " relation_type=" . $relation_type . " relation_socid=" . $relation_socid, LOG_DEBUG);
 
         // fetch thirdparty in relation
         $this->fetchRelationshipThirdparty($socid, $relation_type);
 
         if ($this->id > 0) {
-            if ($socid_relation > 0) {
+            if ($relation_socid > 0) {
                 // update
-                $result = $this->updateRelationshipThirdparty($socid, $relation_type, $socid_relation, $publicSpaceAvailabilityArray);
+                $result = $this->updateRelationshipThirdparty($socid, $relation_type, $relation_socid, $publicSpaceAvailabilityArray);
             } else {
                 // delete
                 $result = $this->deleteRelationships($this->id);
             }
         } else {
-            if ($socid_relation > 0) {
+            if ($relation_socid > 0) {
                 // create
-                $result = $this->createRelationshipThirdparty($socid, $relation_type, $socid_relation);
+                $result = $this->createRelationshipThirdparty($socid, $relation_type, $relation_socid);
             }
         }
 
@@ -824,18 +824,18 @@ class CompanyRelationships
 
     /**
      * Get all elements in public space availability for a company relationship
-     * @deprecated use $this->getAllPublicSpaceAvailabilityThirdparty($socid, self::RELATION_TYPE_BENEFACTOR, $socid_benefactor, $element) instead
+     * @deprecated use $this->getAllPublicSpaceAvailabilityThirdparty($socid, self::RELATION_TYPE_BENEFACTOR, $benefactor_socid, $element) instead
      *
      * @param   int         $socid                  Id of principal company
-     * @param   int         $socid_benefactor       Id of benefactor company
+     * @param   int         $benefactor_socid       Id of benefactor company
      * @param   string      $element                [=''] for all elements, or element name (ex : propal, commande, etc)
      * @return  array|int   <0 if KO, array of public space availability if OK
      *
      * @throws  Exception
      */
-    public function getAllPublicSpaceAvailability($socid, $socid_benefactor, $element='')
+    public function getAllPublicSpaceAvailability($socid, $benefactor_socid, $element='')
     {
-        return $this->getAllPublicSpaceAvailabilityThirdparty($socid, self::RELATION_TYPE_BENEFACTOR, $socid_benefactor, $element);
+        return $this->getAllPublicSpaceAvailabilityThirdparty($socid, self::RELATION_TYPE_BENEFACTOR, $benefactor_socid, $element);
     }
 
 
@@ -844,17 +844,17 @@ class CompanyRelationships
      *
      * @param   int         $socid                  Id of principal company
      * @param   int         $relation_type          Relation type
-     * @param   int         $socid_relation         Id of company in relation
+     * @param   int         $relation_socid         Id of company in relation
      * @param   string      $element                [=''] for all elements, or element name (ex : propal, commande, etc)
      * @return  array|int   <0 if KO, array of public space availability if OK
      *
      * @throws  Exception
      */
-    public function getAllPublicSpaceAvailabilityThirdparty($socid, $relation_type, $socid_relation, $element='')
+    public function getAllPublicSpaceAvailabilityThirdparty($socid, $relation_type, $relation_socid, $element='')
     {
         global $conf;
 
-        dol_syslog(__METHOD__ . " socid=" . $socid . " relation_type=" . $relation_type . " socid_relation=" . $socid_relation . " element=" . $element, LOG_DEBUG);
+        dol_syslog(__METHOD__ . " socid=" . $socid . " relation_type=" . $relation_type . " relation_socid=" . $relation_socid . " element=" . $element, LOG_DEBUG);
 
         $relation_type_name = $this->getRelationTypeName($relation_type);
 
@@ -869,7 +869,7 @@ class CompanyRelationships
         $sql .= ", cra.rowid as cra_id, cra.fk_companyrelationships, cra.principal_availability as cra_principal_availability, cra." . $relation_cra_key_name . " as cra_relation_availability";
         $sql .= ", cr.rowid as cr_id";
         $sql .= " FROM " . MAIN_DB_PREFIX . "c_companyrelationships_publicspaceavailability as crpsa";
-        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "companyrelationships as cr ON cr.fk_soc = " . $socid . " AND cr." . $thirdparty_key_name . " = " . $socid_relation . " AND cr.relation_type = " . $relation_type;
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "companyrelationships as cr ON cr.fk_soc = " . $socid . " AND cr." . $thirdparty_key_name . " = " . $relation_socid . " AND cr.relation_type = " . $relation_type;
         $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "companyrelationships_availability as cra ON cra.fk_companyrelationships = cr.rowid AND cra.fk_c_companyrelationships_availability = crpsa.rowid";
         $sql .= " WHERE crpsa.entity = " . $conf->entity;
         $sql .= " AND crpsa.active = 1";
@@ -910,17 +910,17 @@ class CompanyRelationships
 
     /**
      * Get one element in public space availability for a company relationship
-     * @deprecated use $this->getPublicSpaceAvailabilityThirdparty($socid, self::RELATION_TYPE_BENEFACTOR, $socid_benefactor, $element) instead
+     * @deprecated use $this->getPublicSpaceAvailabilityThirdparty($socid, self::RELATION_TYPE_BENEFACTOR, $benefactor_socid, $element) instead
      *
      * @param   int         $socid                  Id of principal company
-     * @param   int         $socid_benefactor       Id of benefactor company
+     * @param   int         $benefactor_socid       Id of benefactor company
      * @param   string      $element                Element name (ex : propal, commande, etc)
      * @return  array|int   <0 if KO, array of public space availability if OK
      * @throws  Exception
      */
-    public function getPublicSpaceAvailability($socid, $socid_benefactor, $element)
+    public function getPublicSpaceAvailability($socid, $benefactor_socid, $element)
     {
-        return $this->getPublicSpaceAvailabilityThirdparty($socid, self::RELATION_TYPE_BENEFACTOR, $socid_benefactor, $element);
+        return $this->getPublicSpaceAvailabilityThirdparty($socid, self::RELATION_TYPE_BENEFACTOR, $benefactor_socid, $element);
     }
 
     /**
@@ -928,17 +928,17 @@ class CompanyRelationships
      *
      * @param   int         $socid                  Id of principal company
      * @param   int         $relation_type          Relation type
-     * @param   int         $socid_relation         Id of company in relation
+     * @param   int         $relation_socid         Id of company in relation
      * @param   string      $element                [=''] for all elements, or element name (ex : propal, commande, etc)
      * @return  array|int   <0 if KO, array of public space availability if OK
      *
      * @throws  Exception
      */
-    public function getPublicSpaceAvailabilityThirdparty($socid, $relation_type, $socid_relation, $element)
+    public function getPublicSpaceAvailabilityThirdparty($socid, $relation_type, $relation_socid, $element)
     {
-        dol_syslog(__METHOD__ . " socid=" . $socid . " relation_type=" . $relation_type . " socid_relation=" . $socid_relation . " element=" . $element, LOG_DEBUG);
+        dol_syslog(__METHOD__ . " socid=" . $socid . " relation_type=" . $relation_type . " relation_socid=" . $relation_socid . " element=" . $element, LOG_DEBUG);
 
-        $publicSpaceAvailabilityList = $this->getAllPublicSpaceAvailabilityThirdparty($socid, $relation_type, $socid_relation, $element);
+        $publicSpaceAvailabilityList = $this->getAllPublicSpaceAvailabilityThirdparty($socid, $relation_type, $relation_socid, $element);
 
         if (!is_array($publicSpaceAvailabilityList)) {
             return -1;

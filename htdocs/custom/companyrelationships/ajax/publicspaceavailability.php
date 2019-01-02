@@ -45,22 +45,22 @@ $element        = GETPOST('element', 'alpha');
 top_httphead();
 
 
-dol_include_once('/custom/companyrelationships/class/companyrelationships.class.php');
-$companyRelationships = new CompanyRelationships($db);
-$relation_type_name = $companyRelationships->getRelationTypeName($relation_type);
-
 $return = array(
-    'error'             => 0,
-    'principal'         => 0,
-    $relation_type_name => 0
+    'error'     => 0,
+    'principal' => 0,
+    'relation'  => 0
 );
 
 if ($socid>0 && $relation_type>=0 && $relation_socid>0 && !empty($element))
 {
+    dol_include_once('/custom/companyrelationships/class/companyrelationships.class.php');
+    $companyRelationships = new CompanyRelationships($db);
+    $relation_type_name = $companyRelationships->getRelationTypeName($relation_type);
+
     $publicSpaceAvailability = $companyRelationships->getPublicSpaceAvailabilityThirdparty($socid, $relation_type, $relation_socid, $element);
     if (is_array($publicSpaceAvailability)) {
-        $return['principal']         = $publicSpaceAvailability['principal'];
-        $return[$relation_type_name] = $publicSpaceAvailability[$relation_type_name];
+        $return['principal'] = $publicSpaceAvailability['principal'];
+        $return['relation']  = $publicSpaceAvailability[$relation_type_name];
     } else {
         $return['error'] = 1;
     }
