@@ -71,9 +71,6 @@ if ($id > 0 || !empty($ref)) {
     }
 }
 
-// get thirdparty watcher
-//$thirdpartyWatcher = $companyrelationships->getRelationshipThirdparty($object->id, CompanyRelationships::RELATION_TYPE_WATCHER);
-//$thirdpartyWatcher = is_object($thirdpartyWatcher) ? $thirdpartyWatcher : NULL;
 
 /*
  *	Actions

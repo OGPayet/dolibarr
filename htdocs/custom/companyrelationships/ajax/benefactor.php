@@ -33,14 +33,15 @@ if (! $res && file_exists("../../main.inc.php")) $res=@include '../../main.inc.p
 if (! $res && file_exists("../../../main.inc.php")) $res=@include '../../../main.inc.php';		// to work if your module directory is into a subdir of root htdocs directory
 if (! $res) die("Include of main fails");
 
-$id       = GETPOST('id','int'); // socid
+$socid    = GETPOST('id','int'); // socid
 $action   = GETPOST('action','alpha');
 $htmlname = GETPOST('htmlname','alpha');
 
 // more_data
-$fk_soc_benefactor = GETPOST('fk_soc_benefactor', 'int');
-$origin = GETPOST('origin', 'alpha');
-$originid = GETPOST('originid', 'int');
+$relation_type  = GETPOST('relation_type', 'int');
+$relation_socid = GETPOST('relation_socid', 'int');
+$origin         = GETPOST('origin', 'alpha');
+$originid       = GETPOST('originid', 'int');
 
 
 /*
@@ -52,41 +53,43 @@ top_httphead();
 //print '<!-- Ajax page called with url '.dol_escape_htmltag($_SERVER["PHP_SELF"]).'?'.dol_escape_htmltag($_SERVER["QUERY_STRING"]).' -->'."\n";
 
 // Load original field value
-if (! empty($id) && ! empty($action) && ! empty($htmlname))
+if (! empty($socid) && ! empty($action) && ! empty($htmlname))
 {
     $form = new Form($db);
 
     $return=array();
     if (empty($showempty)) $showempty=0;
 
-    $companies = $form->select_thirdparty_list('', $htmlname, '(s.client = 1 OR s.client = 2 OR s.client = 3) AND status=1', 1, 0, 0, null, '', 1);
-
     dol_include_once('/companyrelationships/class/companyrelationships.class.php');
     $companyrelationships = new CompanyRelationships($db);
-    $benefactor_ids = $companyrelationships->getRelationshipsThirdparty($id, CompanyRelationships::RELATION_TYPE_BENEFACTOR, 1);
-    $benefactor_ids = is_array($benefactor_ids) ? $benefactor_ids : array();
+    $relation_ids = $companyrelationships->getRelationshipsThirdparty($socid, $relation_type, 1);
+    $relation_ids = is_array($relation_ids) ? $relation_ids : array();
 
     // determine selected company id by default
-    if (!empty($fk_soc_benefactor)) {
-        $selectedCompanyId = $fk_soc_benefactor;
+    if ($relation_socid=='' ||  $relation_socid>0) {
+        $selectedCompanyId = $relation_socid;
     } else {
         if (!empty($origin) && !empty($originid)) {
-            $selectedCompanyId = $id;
+            $selectedCompanyId = $socid;
         } else {
-            if (count($benefactor_ids) > 0) {
-                $selectedCompanyId = $benefactor_ids[0];
+            if (count($relation_ids) > 0) {
+                $selectedCompanyId = current($relation_ids);
             } else {
-                $selectedCompanyId = $id;
+                $selectedCompanyId = $socid;
             }
         }
     }
 
+    $companies = $form->select_thirdparty_list($selectedCompanyId, $htmlname, '(s.client = 1 OR s.client = 2 OR s.client = 3) AND status=1', 1, 0, 0, null, '', 1);
+
+    $hasAtLeastOneSelected = FALSE;
     $arrayresult = [];
     $others = [];
     foreach ($companies as $company) {
-        if (in_array($company['key'], $benefactor_ids)) {
+        if (in_array($company['key'], $relation_ids)) {
             $selected = '';
             if ($company['key'] == $selectedCompanyId) {
+                $hasAtLeastOneSelected = TRUE;
                 $selected = ' selected="selected"';
             }
 
@@ -94,12 +97,12 @@ if (! empty($id) && ! empty($action) && ! empty($htmlname))
         } else {
             $selected = '';
             if ($company['key'] == $selectedCompanyId) {
+                $hasAtLeastOneSelected = TRUE;
                 $selected = ' selected="selected"';
             }
             $others[] = '<option value="' . $company['key'] . '"' . $selected . '>' . $company['label'] . '</option>';
         }
     }
-    //$options = array_merge($arrayresult, array('<option value="0">&nbsp;</option>'), $others);
     $options = array_merge($arrayresult, $others);
 
     $return['value']	= implode('', $options);

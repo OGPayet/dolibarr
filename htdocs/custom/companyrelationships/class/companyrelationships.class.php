@@ -557,7 +557,7 @@ class CompanyRelationships
                 $this->id                = $obj->rowid;
                 $this->fk_soc            = $obj->fk_soc;
                 $this->fk_soc_benefactor = $obj->fk_soc_benefactor;
-                $this->fk_soc_relation    = $obj->fk_soc_relation;
+                $this->fk_soc_relation   = $obj->fk_soc_relation;
                 $this->relation_type     = $obj->relation_type;
             }
             return 1;
@@ -587,12 +587,11 @@ class CompanyRelationships
 
         if (!empty($thirdparty_key_name)) {
             // fetch thirdparty in relation
-            $this->fetchRelationshipThirdparty($socid, $relation_type);
-            $societeId = $this->{$thirdparty_key_name};
-            if ($societeId > 0) {
-                require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
-                $societe = new Societe($this->db);
-                $societe->fetch($societeId);
+            $companies = $this->getRelationshipsThirdparty($socid, $relation_type, 1, 1);
+            $companies = is_array($companies) ? $companies : array();
+
+            if (count($companies) > 0) {
+                return current($companies);
             }
         }
 
@@ -697,7 +696,7 @@ class CompanyRelationships
 
             require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
             while ($obj = $this->db->fetch_object($resql)) {
-                $id = $obj->fk_soc == $socid ? $obj->fk_soc_benefactor : $obj->fk_soc;
+                $id = $obj->fk_soc == $socid ? $obj->{$relation_key_name} : $obj->fk_soc;
                 if (!isset($compagnies[$id])) {
                     if ($fetch_object) {
                         $company = new Societe($this->db);

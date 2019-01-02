@@ -16,7 +16,7 @@
  */
 
 /**
- *       \file       htdocs/companyrelationships/ajax/benefactor.php
+ *       \file       htdocs/companyrelationships/ajax/principal.php
  *       \brief      File to load benefactors combobox
  */
 

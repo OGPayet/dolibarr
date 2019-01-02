@@ -38,9 +38,10 @@ $action   = GETPOST('action','alpha');
 $htmlname = GETPOST('htmlname','alpha');
 
 // more_data
-$fk_soc_watcher = GETPOST('fk_soc_watcher', 'int');
-$origin = GETPOST('origin', 'alpha');
-$originid = GETPOST('originid', 'int');
+$relation_type  = GETPOST('relation_type', 'int');
+$relation_socid = GETPOST('relation_socid', 'int');
+$origin         = GETPOST('origin', 'alpha');
+$originid       = GETPOST('originid', 'int');
 
 
 /*
@@ -61,25 +62,31 @@ if (! empty($socid) && ! empty($action) && ! empty($htmlname))
 
     dol_include_once('/companyrelationships/class/companyrelationships.class.php');
     $companyrelationships = new CompanyRelationships($db);
-    $relationThirdparty = $companyrelationships->getRelationshipThirdparty($socid, CompanyRelationships::RELATION_TYPE_WATCHER);
-    $relationThirdparty = is_object($relationThirdparty) ? $relationThirdparty : NULL;
-
-    $relationThirdpartyId = $relationThirdparty ? $relationThirdparty->id : 0;
+    $relation_ids = $companyrelationships->getRelationshipsThirdparty($socid, $relation_type, 1);
+    $relation_ids = is_array($relation_ids) ? $relation_ids : array();
 
     // determine selected company id by default
-    if ($fk_soc_watcher == '' ||  $fk_soc_watcher>0) {
-        $selectedCompanyId = $fk_soc_watcher;
+    if ($relation_socid=='' ||  $relation_socid>0) {
+        $selectedCompanyId = $relation_socid;
     } else {
-        $selectedCompanyId = $relationThirdparty ? $relationThirdparty->id : '';
+        if (!empty($origin) && !empty($originid)) {
+            $selectedCompanyId = $socid;
+        } else {
+            if (count($relation_ids) > 0) {
+                $selectedCompanyId = current($relation_ids);
+            } else {
+                $selectedCompanyId = '';
+            }
+        }
     }
 
-    $companies = $form->select_thirdparty_list($selectedCompanyId, $htmlname, '(s.client = 1 OR s.client = 2 OR s.client = 3) AND status=1', 'Thirdparty', 0, 0, null, '', 1);
+    $companies = $form->select_thirdparty_list($selectedCompanyId, $htmlname, '(s.client = 1 OR s.client = 2 OR s.client = 3) AND status=1', 1, 0, 0, null, '', 1);
 
     $hasAtLeastOneSelected = FALSE;
     $arrayresult = [];
     $others = [];
     foreach ($companies as $company) {
-        if ($company['key'] == $relationThirdpartyId) {
+        if (in_array($company['key'], $relation_ids)) {
             $selected = '';
             if ($company['key'] == $selectedCompanyId) {
                 $hasAtLeastOneSelected = TRUE;

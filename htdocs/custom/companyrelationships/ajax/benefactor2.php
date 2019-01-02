@@ -44,7 +44,8 @@ $id=GETPOST('id', 'int');
 $showtype=GETPOST('showtype','int');
 
 // more_data
-$socid=GETPOST('socid', 'int');
+$socid = GETPOST('socid', 'int');
+$relation_type = GETPOST('relation_type', 'int');
 
 /*
  * View
@@ -96,19 +97,19 @@ else
 	if (! $searchkey) return;
 
 	$form = new Form($db);
-    $companies=$form->select_thirdparty_list('', $htmlname, $filter, 1, $showtype, 0, null, $searchkey, $outjson);
-    //$companies=$form->select_thirdparty_list('', $htmlname, '(s.client = 1 OR s.client = 2 OR s.client = 3) AND status=1', 1, 0, 0, null, $searchkey, $outjson);
 
     dol_include_once('/companyrelationships/class/companyrelationships.class.php');
     $companyrelationships = new CompanyRelationships($db);
-    $benefactor_ids = $companyrelationships->getRelationshipsThirdparty($socid, CompanyRelationships::RELATION_TYPE_BENEFACTOR, 1);
-    $benefactor_ids = is_array($benefactor_ids) ? $benefactor_ids : array();
+    $relation_ids = $companyrelationships->getRelationshipsThirdparty($socid, $relation_type, 1);
+    $relation_ids = is_array($relation_ids) ? $relation_ids : array();
+
+    $companies = $form->select_thirdparty_list('', $htmlname, $filter, 1, $showtype, 0, null, $searchkey, $outjson);
 
     $arrayresult = [];
     foreach ($companies as $key => $company) {
         $arrayresult[$key]['key'] = $company['key'];
 
-        if (in_array($company['key'], $benefactor_ids)) {
+        if (in_array($company['key'], $relation_ids)) {
             $arrayresult[$key]['label'] = preg_match('/\s\*$/',$company['label']) !== false ? $company['label'] . ' *' : $company['label'];
         } else {
             $arrayresult[$key]['label'] = $company['label'];

@@ -604,7 +604,8 @@ class ActionsCompanyRelationships
                         $out .= '       action: "getBenefactor",';
                         $out .= '       id: "' . $socid . '",';
                         $out .= '       htmlname: "options_companyrelationships_fk_soc_benefactor",';
-                        $out .= '       fk_soc_benefactor: "' . $fk_soc_benefactor . '",';
+                        $out .= '       relation_type: "' . CompanyRelationships::RELATION_TYPE_BENEFACTOR . '",';
+                        $out .= '       relation_socid: "' . $fk_soc_benefactor . '",';
                         $out .= '       origin: "' . $origin . '",';
                         $out .= '       originid: "' . $originid . '"';
                         $out .= '   };';
@@ -623,7 +624,8 @@ class ActionsCompanyRelationships
                         $out .= '       action: "getWatcher",';
                         $out .= '       id: "' . $socid . '",';
                         $out .= '       htmlname: "options_companyrelationships_fk_soc_watcher",';
-                        $out .= '       fk_soc_watcher: "' . $fk_soc_watcher . '",';
+                        $out .= '       relation_type: "' . CompanyRelationships::RELATION_TYPE_WATCHER . '",';
+                        $out .= '       relation_socid: "' . $fk_soc_watcher . '",';
                         $out .= '       origin: "' . $origin . '",';
                         $out .= '       originid: "' . $originid . '"';
                         $out .= '   };';
@@ -645,8 +647,8 @@ class ActionsCompanyRelationships
 
                         $events = array();
                         $events[] = array('action' => 'getPrincipal', 'url' => dol_buildpath('/companyrelationships/ajax/principal.php', 1), 'htmlname' => 'companyrelationships_confirm', 'more_data' => array('form_name' => $formName, 'url_src' => $_SERVER['PHP_SELF']));
-                        $events[] = array('action' => 'getBenefactor', 'url' => dol_buildpath('/companyrelationships/ajax/benefactor.php', 1), 'htmlname' => 'options_companyrelationships_fk_soc_benefactor', 'more_data' => array('fk_soc_benefactor' => $fk_soc_benefactor));
-                        $events[] = array('action' => 'getWatcher', 'url' => dol_buildpath('/companyrelationships/ajax/watcher.php', 1), 'htmlname' => 'options_companyrelationships_fk_soc_watcher', 'more_data' => array('fk_soc_watcher' => $fk_soc_watcher));
+                        $events[] = array('action' => 'getBenefactor', 'url' => dol_buildpath('/companyrelationships/ajax/benefactor.php', 1), 'htmlname' => 'options_companyrelationships_fk_soc_benefactor', 'more_data' => array('relation_type' => CompanyRelationships::RELATION_TYPE_BENEFACTOR, 'relation_socid' => $fk_soc_benefactor));
+                        $events[] = array('action' => 'getWatcher', 'url' => dol_buildpath('/companyrelationships/ajax/watcher.php', 1), 'htmlname' => 'options_companyrelationships_fk_soc_watcher', 'more_data' => array('relation_type' => CompanyRelationships::RELATION_TYPE_WATCHER, 'relation_socid' => $fk_soc_watcher));
                         $out .= $formcompanyrelationships->add_select_events_more_data('socid', $events);
                     }
 
@@ -748,21 +750,21 @@ class ActionsCompanyRelationships
                                 $placeholder='';
                                 if ($fk_soc_benefactor && empty($selected_input_value)) {
                                     $companyrelationships = new CompanyRelationships($this->db);
-                                    $benefactor_ids = $companyrelationships->getRelationshipsThirdparty($socid, CompanyRelationships::RELATION_TYPE_BENEFACTOR,1);
-                                    $benefactor_ids = is_array($benefactor_ids) ? $benefactor_ids : array();
+                                    $relation_ids = $companyrelationships->getRelationshipsThirdparty($socid, CompanyRelationships::RELATION_TYPE_BENEFACTOR,1);
+                                    $relation_ids = is_array($relation_ids) ? $relation_ids : array();
 
                                     require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
                                     $societetmp = new Societe($this->db);
                                     $societetmp->fetch($fk_soc_benefactor);
-                                    $selected_input_value=$societetmp->name;
-                                    if (in_array($fk_soc_benefactor, $benefactor_ids)) {
+                                    $selected_input_value = $societetmp->name;
+                                    if (in_array($fk_soc_benefactor, $relation_ids)) {
                                         $selected_input_value .= ' *';
                                     }
 
                                     unset($societetmp);
                                 }
                                 // mode 1
-                                $urloption='htmlname=options_companyrelationships_fk_soc_benefactor&outjson=1&socid='.$socid;
+                                $urloption='htmlname=options_companyrelationships_fk_soc_benefactor&outjson=1&socid='.$socid.'&relation_type='.CompanyRelationships::RELATION_TYPE_BENEFACTOR;
                                 $out .= ajax_autocompleter($fk_soc_benefactor, 'options_companyrelationships_fk_soc_benefactor', dol_buildpath('/companyrelationships/ajax/benefactor2.php', 1), $urloption, $conf->global->COMPANY_USE_SEARCH_TO_SELECT);
                                 $out .= '<style type="text/css">
 					            .ui-autocomplete {
@@ -799,7 +801,8 @@ class ActionsCompanyRelationships
                                 $out .= '       action: "getBenefactor",';
                                 $out .= '       id: "' . $socid . '",';
                                 $out .= '       htmlname: "options_companyrelationships_fk_soc_benefactor",';
-                                $out .= '       fk_soc_benefactor: "' . $fk_soc_benefactor . '"';
+                                $out .= '       relation_type: "' . CompanyRelationships::RELATION_TYPE_BENEFACTOR . '",';
+                                $out .= '       relation_socid: "' . $fk_soc_benefactor . '"';
                                 $out .= '   };';
                                 $out .= '   jQuery.getJSON("' . dol_buildpath('/companyrelationships/ajax/benefactor.php', 1) . '", data,';
                                 $out .= '       function(response) {';
@@ -840,21 +843,21 @@ class ActionsCompanyRelationships
                                 $placeholder='';
                                 if ($fk_soc_watcher && empty($selected_input_value)) {
                                     $companyrelationships = new CompanyRelationships($this->db);
-                                    $relationThirdparty = $companyrelationships->getRelationshipThirdparty($socid, CompanyRelationships::RELATION_TYPE_WATCHER);
-                                    $relationThirdparty = is_object($relationThirdparty) ? $relationThirdparty : NULL;
+                                    $relation_ids = $companyrelationships->getRelationshipsThirdparty($socid, CompanyRelationships::RELATION_TYPE_WATCHER,1);
+                                    $relation_ids = is_array($relation_ids) ? $relation_ids : array();
 
                                     require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
                                     $societetmp = new Societe($this->db);
                                     $societetmp->fetch($fk_soc_watcher);
                                     $selected_input_value = $societetmp->name;
-                                    if ($fk_soc_watcher == $relationThirdparty->id) {
+                                    if (in_array($fk_soc_watcher, $relation_ids)) {
                                         $selected_input_value .= ' *';
                                     }
 
                                     unset($societetmp);
                                 }
                                 // mode 1
-                                $urloption='htmlname=options_companyrelationships_fk_soc_watcher&outjson=1&socid='.$socid;
+                                $urloption='htmlname=options_companyrelationships_fk_soc_watcher&outjson=1&socid='.$socid.'&relation_type='.CompanyRelationships::RELATION_TYPE_WATCHER;
                                 $out .= ajax_autocompleter($fk_soc_watcher, 'options_companyrelationships_fk_soc_watcher', dol_buildpath('/companyrelationships/ajax/watcher2.php', 1), $urloption, $conf->global->COMPANY_USE_SEARCH_TO_SELECT);
                                 $out .= '<style type="text/css">
 					            .ui-autocomplete {
@@ -891,7 +894,8 @@ class ActionsCompanyRelationships
                                 $out .= '       action: "getWatcher",';
                                 $out .= '       id: "' . $socid . '",';
                                 $out .= '       htmlname: "options_companyrelationships_fk_soc_watcher",';
-                                $out .= '       fk_soc_watcher: "' . $fk_soc_watcher . '"';
+                                $out .= '       relation_type: "' . CompanyRelationships::RELATION_TYPE_WATCHER . '",';
+                                $out .= '       relation_socid: "' . $fk_soc_watcher . '"';
                                 $out .= '   };';
                                 $out .= '   jQuery.getJSON("' . dol_buildpath('/companyrelationships/ajax/watcher.php', 1) . '", data,';
                                 $out .= '       function(response) {';
