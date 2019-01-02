@@ -680,7 +680,7 @@ class CompanyRelationships
         } elseif ($mode == 1) {
             $filter .= "fk_soc=" . $socid;
         } elseif ($mode == 2) {
-            $filter .= "fk_soc=" . $socid . " OR " . $relation_key_name . '=' . $socid;
+            $filter .= "fk_soc=" . $socid . " OR " . $relation_key_name . "=" . $socid;
         }
         $filter .= ")";
 

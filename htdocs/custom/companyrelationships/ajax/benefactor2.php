@@ -101,7 +101,7 @@ else
 
     dol_include_once('/companyrelationships/class/companyrelationships.class.php');
     $companyrelationships = new CompanyRelationships($db);
-    $benefactor_ids = $companyrelationships->getRelationships($socid, 1);
+    $benefactor_ids = $companyrelationships->getRelationshipsThirdparty($socid, CompanyRelationships::RELATION_TYPE_BENEFACTOR, 1);
     $benefactor_ids = is_array($benefactor_ids) ? $benefactor_ids : array();
 
     $arrayresult = [];

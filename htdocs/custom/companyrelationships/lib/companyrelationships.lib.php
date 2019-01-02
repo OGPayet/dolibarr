@@ -267,7 +267,7 @@ function companyrelationships_show_companyrelationships($conf, $langs, $db, $obj
 
     // Get all companies already into relationship
     $exclude_companies = array($object->id);
-    $companies_into_relationship = $companyrelationships->getRelationships($object->id, 2);
+    $companies_into_relationship = $companyrelationships->getRelationshipsThirdparty($object->id, CompanyRelationships::RELATION_TYPE_BENEFACTOR, 2);
     if (is_array($companies_into_relationship)) $exclude_companies = array_merge($exclude_companies, $companies_into_relationship);
 
     // Confirm update relationship

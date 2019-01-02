@@ -416,7 +416,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
             if ($userSocId > 0) {
                 // get benefactors ids
                 $companyrelationships = new CompanyRelationships($db);
-                $benefactor_ids = $companyrelationships->getRelationships($userSocId, 1);
+                $benefactor_ids = $companyrelationships->getRelationshipsThirdparty($userSocId, CompanyRelationships::RELATION_TYPE_BENEFACTOR, 1);
                 if (is_array($benefactor_ids)) {
                     $this->benefactor_ids = $benefactor_ids;
                 }

@@ -63,7 +63,7 @@ if (! empty($id) && ! empty($action) && ! empty($htmlname))
 
     dol_include_once('/companyrelationships/class/companyrelationships.class.php');
     $companyrelationships = new CompanyRelationships($db);
-    $benefactor_ids = $companyrelationships->getRelationships($id, 1);
+    $benefactor_ids = $companyrelationships->getRelationshipsThirdparty($id, CompanyRelationships::RELATION_TYPE_BENEFACTOR, 1);
     $benefactor_ids = is_array($benefactor_ids) ? $benefactor_ids : array();
 
     // determine selected company id by default

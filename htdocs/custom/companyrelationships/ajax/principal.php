@@ -65,7 +65,7 @@ if (! empty($id) && ! empty($action) && ! empty($htmlname) && ! empty($urlSrc))
 
     // get principal company
     $companyRelationships = new CompanyRelationships($db);
-    $principalCompanyList = $companyRelationships->getRelationships($id, 0, 1);
+    $principalCompanyList = $companyRelationships->getRelationshipsThirdparty($id, CompanyRelationships::RELATION_TYPE_BENEFACTOR, 0, 1);
     $principalCompanyList = is_array($principalCompanyList) ? $principalCompanyList : array();
     if (count($principalCompanyList) > 0) {
         $principalCompanySelectArray = array();

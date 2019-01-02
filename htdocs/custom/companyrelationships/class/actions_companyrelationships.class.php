@@ -185,7 +185,7 @@ class ActionsCompanyRelationships
 
                         if (!$object->cr_confirm_socid && empty($originid) && intval($socid) > 0) {
                             $companyRelationships = new CompanyRelationships($this->db);
-                            $principalCompanyList = $companyRelationships->getRelationships($socid, 0, 1);
+                            $principalCompanyList = $companyRelationships->getRelationshipsThirdparty($socid, CompanyRelationships::RELATION_TYPE_BENEFACTOR, 0, 1);
                             $principalCompanyList = is_array($principalCompanyList) ? $principalCompanyList : array();
                             if (count($principalCompanyList) > 0) {
                                 // it doesn't work because object is new in create mode
@@ -560,7 +560,7 @@ class ActionsCompanyRelationships
                     // it doesn't work because object is new in create mode
                     //if (!empty($object->cr_must_confirm_socid)) {
                     if (empty($originid) && intval($socid)>0) {
-                        $principalCompanyList = $companyRelationships->getRelationships($socid, 0, 1);
+                        $principalCompanyList = $companyRelationships->getRelationshipsThirdparty($socid,CompanyRelationships::RELATION_TYPE_BENEFACTOR, 0, 1);
                         $principalCompanyList = is_array($principalCompanyList) ? $principalCompanyList : array();
                         if (count($principalCompanyList) > 0) {
                             $principalCompanySelectArray = array();
@@ -748,7 +748,7 @@ class ActionsCompanyRelationships
                                 $placeholder='';
                                 if ($fk_soc_benefactor && empty($selected_input_value)) {
                                     $companyrelationships = new CompanyRelationships($this->db);
-                                    $benefactor_ids = $companyrelationships->getRelationships($socid, 1);
+                                    $benefactor_ids = $companyrelationships->getRelationshipsThirdparty($socid, CompanyRelationships::RELATION_TYPE_BENEFACTOR,1);
                                     $benefactor_ids = is_array($benefactor_ids) ? $benefactor_ids : array();
 
                                     require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
