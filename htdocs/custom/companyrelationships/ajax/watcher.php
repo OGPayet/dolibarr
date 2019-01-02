@@ -42,6 +42,7 @@ $relation_type  = GETPOST('relation_type', 'int');
 $relation_socid = GETPOST('relation_socid', 'int');
 $origin         = GETPOST('origin', 'alpha');
 $originid       = GETPOST('originid', 'int');
+$showempty      = GETPOST('showempty', 'int');
 
 
 /*
@@ -103,7 +104,12 @@ if (! empty($socid) && ! empty($action) && ! empty($htmlname))
             $others[] = '<option value="' . $company['key'] . '"' . $selected . '>' . $company['label'] . '</option>';
         }
     }
-    $options = array_merge($arrayresult, array('<option value=""' . ($hasAtLeastOneSelected ? '' : ' selected="selected"') . '>&nbsp;</option>'), $others);
+    if ($showempty) {
+        $options = array_merge($arrayresult, array('<option value=""' . ($hasAtLeastOneSelected ? '' : ' selected="selected"') . '>&nbsp;</option>'), $others);
+    } else {
+        $options = array_merge($arrayresult, $others);
+    }
+
 
     $return['value'] = implode('', $options);
     $return['num']   = $form->result['nbofthirdparties'];

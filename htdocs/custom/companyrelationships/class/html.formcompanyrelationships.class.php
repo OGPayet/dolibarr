@@ -498,5 +498,120 @@ class FormCompanyRelationships
         return $formconfirm;
     }
 
+    /**
+     * Generate HTML for search input in Ajax
+     *
+     * @param   string              $htmlname           Html name of search input to show
+     * @param   int                 $socid              Id of main thirdparty
+     * @param   int                 $relation_type      Relation type (benefactor, watcher)
+     * @param   int                 $relation_socid     Id of thirparty in relation
+     * @return  string
+     *
+     * @throws  Exception
+     */
+    function relation_select_search_autocompleter($htmlname, $socid, $relation_type, $relation_socid)
+    {
+        global $conf, $langs;
 
+        dol_include_once('/companyrelationships/class/companyrelationships.class.php');
+
+        $langs->load('companyrelationships@companyrelationships');
+
+        $out = '';
+
+        $select_search_action    = '';
+        $select_search_script    = '';
+        $select_search_showempty = 0;
+        if ($relation_type == CompanyRelationships::RELATION_TYPE_BENEFACTOR) {
+            $select_search_action    = 'getBenefactor';
+            $select_search_script    = 'benefactor.php';
+            $select_search_showempty = 0;
+        } else if ($relation_type == CompanyRelationships::RELATION_TYPE_WATCHER) {
+            $select_search_showempty = 1;
+            $select_search_action    = 'getWatcher';
+            $select_search_script    = 'watcher.php';
+        }
+
+        if (! empty($conf->use_javascript_ajax) && ! empty($conf->global->COMPANY_USE_SEARCH_TO_SELECT)) {
+            $hidelabel = 1;
+            // No immediate load of all database
+            $placeholder='';
+            if ($relation_socid && empty($selected_input_value)) {
+                $companyrelationships = new CompanyRelationships($this->db);
+                $relation_ids = $companyrelationships->getRelationshipsThirdparty($socid, $relation_type,1);
+                $relation_ids = is_array($relation_ids) ? $relation_ids : array();
+
+                require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
+                $societetmp = new Societe($this->db);
+                $societetmp->fetch($relation_socid);
+                $selected_input_value = $societetmp->name;
+                if (in_array($relation_socid, $relation_ids)) {
+                    $selected_input_value .= ' *';
+                }
+
+                unset($societetmp);
+            }
+            // mode 1
+            $urloption='htmlname='.$htmlname.'&outjson=1&socid='.$socid.'&relation_type='.$relation_type;
+            $out .= ajax_autocompleter($relation_socid, $htmlname, dol_buildpath('/companyrelationships/ajax/relation2.php', 1), $urloption, $conf->global->COMPANY_USE_SEARCH_TO_SELECT);
+            $out .= '<style type="text/css">
+                            .ui-autocomplete {
+                                z-index: 250;
+                            }
+                            </style>';
+            if (empty($hidelabel)) print $langs->trans("RefOrLabel").' : ';
+            else if ($hidelabel > 1) {
+                if (! empty($conf->global->MAIN_HTML5_PLACEHOLDER)) $placeholder=' placeholder="'.$langs->trans("RefOrLabel").'"';
+                else $placeholder=' title="'.$langs->trans("RefOrLabel").'"';
+                if ($hidelabel == 2) {
+                    $out .= img_picto($langs->trans("Search"), 'search');
+                }
+            }
+            $out.=  '<input type="text" name="search_' . $htmlname . '" id="search_' . $htmlname . '" value="'.$selected_input_value.'"'.$placeholder.' '.(!empty($conf->global->THIRDPARTY_SEARCH_AUTOFOCUS) ? 'autofocus' : '').' />';
+            if ($hidelabel == 3) {
+                $out.= img_picto($langs->trans("Search"), 'search');
+            }
+            $out .= '<script type="text/javascript" language="javascript">';
+            $out .= 'jQuery(document).ready(function(){';
+            $out .= '   var cr_input = $("input#' . $htmlname . '");';
+            $out .= '   var cr_input_search = $("input#search_' . $htmlname . '");';
+            $out .= '   var cr_select = $("select#' . $htmlname . '");';
+            $out .= '   var cr_select_form = cr_select.closest("form");';
+            $out .= '   cr_input.detach().prependTo(cr_select_form);';
+            $out .= '   cr_input_search.detach().prependTo(cr_select_form);';
+            $out .= '   cr_select.remove();';
+            $out .= '});';
+            $out .= '</script>';
+        } else {
+            $out .= '<script type="text/javascript" language="javascript">';
+            $out .= 'jQuery(document).ready(function(){';
+            $out .= '   var data = {';
+            $out .= '       action: "' . $select_search_action . '",';
+            $out .= '       id: "' . $socid . '",';
+            $out .= '       htmlname: "' . $htmlname . '",';
+            $out .= '       relation_type: "' . $relation_type . '",';
+            $out .= '       relation_socid: "' . $relation_socid . '",';
+            $out .= '       showempty: ' . $select_search_showempty . '';
+            $out .= '   };';
+            $out .= '   jQuery.getJSON("' . dol_buildpath('/companyrelationships/ajax/' . $select_search_script, 1) . '", data,';
+            $out .= '       function(response) {';
+            $out .= '           jQuery("select#' . $htmlname . '").html(response.value);';
+            $out .= '           jQuery("select#' . $htmlname . '").change();';
+            $out .= '           if (response.num < 0) {';
+            $out .= '               console.error(response.error);';
+            $out .= '           }';
+            $out .= '       }';
+            $out .= '   );';
+            $out .= '});';
+            $out .= '</script>';
+
+            if ($conf->use_javascript_ajax) {
+                include_once DOL_DOCUMENT_ROOT . '/core/lib/ajax.lib.php';
+                $comboenhancement = ajax_combobox($htmlname, array(), $conf->global->COMPANY_USE_SEARCH_TO_SELECT);
+                $out.= $comboenhancement;
+            }
+        }
+
+        return $out;
+    }
 }

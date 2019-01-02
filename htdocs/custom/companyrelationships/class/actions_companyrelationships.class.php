@@ -609,7 +609,8 @@ class ActionsCompanyRelationships
                         $out .= '       relation_type: "' . CompanyRelationships::RELATION_TYPE_BENEFACTOR . '",';
                         $out .= '       relation_socid: "' . $fk_soc_benefactor . '",';
                         $out .= '       origin: "' . $origin . '",';
-                        $out .= '       originid: "' . $originid . '"';
+                        $out .= '       originid: "' . $originid . '",';
+                        $out .= '       showempty: 0';
                         $out .= '   };';
                         $out .= '   jQuery.getJSON("' . dol_buildpath('/companyrelationships/ajax/benefactor.php', 1) . '", data,';
                         $out .= '       function(response) {';
@@ -629,7 +630,8 @@ class ActionsCompanyRelationships
                         $out .= '       relation_type: "' . CompanyRelationships::RELATION_TYPE_WATCHER . '",';
                         $out .= '       relation_socid: "' . $fk_soc_watcher . '",';
                         $out .= '       origin: "' . $origin . '",';
-                        $out .= '       originid: "' . $originid . '"';
+                        $out .= '       originid: "' . $originid . '",';
+                        $out .= '       showempty: 1';
                         $out .= '   };';
                         $out .= '   jQuery.getJSON("' . dol_buildpath('/companyrelationships/ajax/watcher.php', 1) . '", data,';
                         $out .= '       function(response) {';
@@ -649,8 +651,8 @@ class ActionsCompanyRelationships
 
                         $events = array();
                         $events[] = array('action' => 'getPrincipal', 'url' => dol_buildpath('/companyrelationships/ajax/principal.php', 1), 'htmlname' => 'companyrelationships_confirm', 'more_data' => array('form_name' => $formName, 'url_src' => $_SERVER['PHP_SELF']));
-                        $events[] = array('action' => 'getBenefactor', 'url' => dol_buildpath('/companyrelationships/ajax/benefactor.php', 1), 'htmlname' => 'options_companyrelationships_fk_soc_benefactor', 'more_data' => array('relation_type' => CompanyRelationships::RELATION_TYPE_BENEFACTOR, 'relation_socid' => $fk_soc_benefactor));
-                        $events[] = array('action' => 'getWatcher', 'url' => dol_buildpath('/companyrelationships/ajax/watcher.php', 1), 'htmlname' => 'options_companyrelationships_fk_soc_watcher', 'more_data' => array('relation_type' => CompanyRelationships::RELATION_TYPE_WATCHER, 'relation_socid' => $fk_soc_watcher));
+                        $events[] = array('action' => 'getBenefactor', 'url' => dol_buildpath('/companyrelationships/ajax/benefactor.php', 1), 'htmlname' => 'options_companyrelationships_fk_soc_benefactor', 'more_data' => array('relation_type' => CompanyRelationships::RELATION_TYPE_BENEFACTOR, 'relation_socid' => $fk_soc_benefactor, 'showempty' => 0));
+                        $events[] = array('action' => 'getWatcher', 'url' => dol_buildpath('/companyrelationships/ajax/watcher.php', 1), 'htmlname' => 'options_companyrelationships_fk_soc_watcher', 'more_data' => array('relation_type' => CompanyRelationships::RELATION_TYPE_WATCHER, 'relation_socid' => $fk_soc_watcher, 'showempty' => 1));
                         $out .= $formcompanyrelationships->add_select_events_more_data('socid', $events);
                     }
 
@@ -737,191 +739,27 @@ class ActionsCompanyRelationships
 
                     // benefactor
                     if ($attribute=='companyrelationships_fk_soc_benefactor') {
-                        $langs->load('companyrelationships@companyrelationships');
-
-                        $out = '';
-
-                        $relation_type = CompanyRelationships::RELATION_TYPE_BENEFACTOR;
-                        $socid = $object->socid;
-                        $relation_socid = $object->array_options['options_companyrelationships_fk_soc_benefactor'];
-
                         // company id already posted (an input hidden in this form)
-                        if (intval($socid)>0) {
-                            if (! empty($conf->use_javascript_ajax) && ! empty($conf->global->COMPANY_USE_SEARCH_TO_SELECT)) {
-                                $hidelabel = 1;
-                                // No immediate load of all database
-                                $placeholder='';
-                                if ($relation_socid && empty($selected_input_value)) {
-                                    $companyrelationships = new CompanyRelationships($this->db);
-                                    $relation_ids = $companyrelationships->getRelationshipsThirdparty($socid, $relation_type,1);
-                                    $relation_ids = is_array($relation_ids) ? $relation_ids : array();
+                        if (intval($object->socid)>0) {
+                            dol_include_once('/companyrelationships/class/html.formcompanyrelationships.class.php');
 
-                                    require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
-                                    $societetmp = new Societe($this->db);
-                                    $societetmp->fetch($relation_socid);
-                                    $selected_input_value = $societetmp->name;
-                                    if (in_array($relation_socid, $relation_ids)) {
-                                        $selected_input_value .= ' *';
-                                    }
+                            $formcompanyrelationships = new FormCompanyRelationships($this->db);
+                            $out = $formcompanyrelationships->relation_select_search_autocompleter('options_companyrelationships_fk_soc_benefactor', $object->socid, CompanyRelationships::RELATION_TYPE_BENEFACTOR, $object->array_options['options_companyrelationships_fk_soc_benefactor']);
 
-                                    unset($societetmp);
-                                }
-                                // mode 1
-                                $urloption='htmlname=options_companyrelationships_fk_soc_benefactor&outjson=1&socid='.$socid.'&relation_type='.$relation_type;
-                                $out .= ajax_autocompleter($relation_socid, 'options_companyrelationships_fk_soc_benefactor', dol_buildpath('/companyrelationships/ajax/relation2.php', 1), $urloption, $conf->global->COMPANY_USE_SEARCH_TO_SELECT);
-                                $out .= '<style type="text/css">
-					            .ui-autocomplete {
-						            z-index: 250;
-					            }
-				                </style>';
-                                if (empty($hidelabel)) print $langs->trans("RefOrLabel").' : ';
-                                else if ($hidelabel > 1) {
-                                    if (! empty($conf->global->MAIN_HTML5_PLACEHOLDER)) $placeholder=' placeholder="'.$langs->trans("RefOrLabel").'"';
-                                    else $placeholder=' title="'.$langs->trans("RefOrLabel").'"';
-                                    if ($hidelabel == 2) {
-                                        $out .= img_picto($langs->trans("Search"), 'search');
-                                    }
-                                }
-                                $out.=  '<input type="text" name="search_options_companyrelationships_fk_soc_benefactor" id="search_options_companyrelationships_fk_soc_benefactor" value="'.$selected_input_value.'"'.$placeholder.' '.(!empty($conf->global->THIRDPARTY_SEARCH_AUTOFOCUS) ? 'autofocus' : '').' />';
-                                if ($hidelabel == 3) {
-                                    $out.= img_picto($langs->trans("Search"), 'search');
-                                }
-                                $out .= '<script type="text/javascript" language="javascript">';
-                                $out .= 'jQuery(document).ready(function(){';
-                                $out .= '   var cr_input = $("input#options_companyrelationships_fk_soc_benefactor");';
-                                $out .= '   var cr_input_search = $("input#search_options_companyrelationships_fk_soc_benefactor");';
-                                $out .= '   var cr_select = $("select#options_companyrelationships_fk_soc_benefactor");';
-                                $out .= '   var cr_select_form = cr_select.closest("form");';
-                                $out .= '   cr_input.detach().prependTo(cr_select_form);';
-                                $out .= '   cr_input_search.detach().prependTo(cr_select_form);';
-                                $out .= '   cr_select.remove();';
-                                $out .= '});';
-                                $out .= '</script>';
-                            } else {
-                                $out .= '<script type="text/javascript" language="javascript">';
-                                $out .= 'jQuery(document).ready(function(){';
-                                $out .= '   var data = {';
-                                $out .= '       action: "getBenefactor",';
-                                $out .= '       id: "' . $socid . '",';
-                                $out .= '       htmlname: "options_companyrelationships_fk_soc_benefactor",';
-                                $out .= '       relation_type: "' . $relation_type . '",';
-                                $out .= '       relation_socid: "' . $relation_socid . '"';
-                                $out .= '   };';
-                                $out .= '   jQuery.getJSON("' . dol_buildpath('/companyrelationships/ajax/benefactor.php', 1) . '", data,';
-                                $out .= '       function(response) {';
-                                $out .= '           jQuery("select#options_companyrelationships_fk_soc_benefactor").html(response.value);';
-                                $out .= '           jQuery("select#options_companyrelationships_fk_soc_benefactor").change();';
-                                $out .= '           if (response.num < 0) {';
-                                $out .= '               console.error(response.error);';
-                                $out .= '           }';
-                                $out .= '       }';
-                                $out .= '   );';
-                                $out .= '});';
-                                $out .= '</script>';
-
-                                if ($conf->use_javascript_ajax) {
-                                    include_once DOL_DOCUMENT_ROOT . '/core/lib/ajax.lib.php';
-                                    $comboenhancement = ajax_combobox('options_companyrelationships_fk_soc_benefactor', array(), $conf->global->COMPANY_USE_SEARCH_TO_SELECT);
-                                    $out.= $comboenhancement;
-                                }
-                            }
+                            print $out;
                         }
-
-                        print $out;
                     }
                     // watcher
                     else if ($attribute=='companyrelationships_fk_soc_watcher') {
-                        $langs->load('companyrelationships@companyrelationships');
-
-                        $out = '';
-
-                        $relation_type = CompanyRelationships::RELATION_TYPE_WATCHER;
-                        $socid = $object->socid;
-                        $relation_socid = $object->array_options['options_companyrelationships_fk_soc_watcher'];
-
                         // company id already posted (an input hidden in this form)
-                        if (intval($socid)>0) {
-                            if (! empty($conf->use_javascript_ajax) && ! empty($conf->global->COMPANY_USE_SEARCH_TO_SELECT)) {
-                                $hidelabel = 1;
-                                // No immediate load of all database
-                                $placeholder='';
-                                if ($relation_socid && empty($selected_input_value)) {
-                                    $companyrelationships = new CompanyRelationships($this->db);
-                                    $relation_ids = $companyrelationships->getRelationshipsThirdparty($socid, $relation_type,1);
-                                    $relation_ids = is_array($relation_ids) ? $relation_ids : array();
+                        if (intval($object->socid)>0) {
+                            dol_include_once('/companyrelationships/class/html.formcompanyrelationships.class.php');
 
-                                    require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
-                                    $societetmp = new Societe($this->db);
-                                    $societetmp->fetch($relation_socid);
-                                    $selected_input_value = $societetmp->name;
-                                    if (in_array($relation_socid, $relation_ids)) {
-                                        $selected_input_value .= ' *';
-                                    }
+                            $formcompanyrelationships = new FormCompanyRelationships($this->db);
+                            $out = $formcompanyrelationships->relation_select_search_autocompleter('options_companyrelationships_fk_soc_watcher', $object->socid, CompanyRelationships::RELATION_TYPE_WATCHER, $object->array_options['options_companyrelationships_fk_soc_watcher']);
 
-                                    unset($societetmp);
-                                }
-                                // mode 1
-                                $urloption='htmlname=options_companyrelationships_fk_soc_watcher&outjson=1&socid='.$socid.'&relation_type='.$relation_type;
-                                $out .= ajax_autocompleter($relation_socid, 'options_companyrelationships_fk_soc_watcher', dol_buildpath('/companyrelationships/ajax/relation2.php', 1), $urloption, $conf->global->COMPANY_USE_SEARCH_TO_SELECT);
-                                $out .= '<style type="text/css">
-					            .ui-autocomplete {
-						            z-index: 250;
-					            }
-				                </style>';
-                                if (empty($hidelabel)) print $langs->trans("RefOrLabel").' : ';
-                                else if ($hidelabel > 1) {
-                                    if (! empty($conf->global->MAIN_HTML5_PLACEHOLDER)) $placeholder=' placeholder="'.$langs->trans("RefOrLabel").'"';
-                                    else $placeholder=' title="'.$langs->trans("RefOrLabel").'"';
-                                    if ($hidelabel == 2) {
-                                        $out .= img_picto($langs->trans("Search"), 'search');
-                                    }
-                                }
-                                $out.=  '<input type="text" name="search_options_companyrelationships_fk_soc_watcher" id="search_options_companyrelationships_fk_soc_watcher" value="'.$selected_input_value.'"'.$placeholder.' '.(!empty($conf->global->THIRDPARTY_SEARCH_AUTOFOCUS) ? 'autofocus' : '').' />';
-                                if ($hidelabel == 3) {
-                                    $out.= img_picto($langs->trans("Search"), 'search');
-                                }
-                                $out .= '<script type="text/javascript" language="javascript">';
-                                $out .= 'jQuery(document).ready(function(){';
-                                $out .= '   var cr_input = $("input#options_companyrelationships_fk_soc_watcher");';
-                                $out .= '   var cr_input_search = $("input#search_options_companyrelationships_fk_soc_watcher");';
-                                $out .= '   var cr_select = $("select#options_companyrelationships_fk_soc_watcher");';
-                                $out .= '   var cr_select_form = cr_select.closest("form");';
-                                $out .= '   cr_input.detach().prependTo(cr_select_form);';
-                                $out .= '   cr_input_search.detach().prependTo(cr_select_form);';
-                                $out .= '   cr_select.remove();';
-                                $out .= '});';
-                                $out .= '</script>';
-                            } else {
-                                $out .= '<script type="text/javascript" language="javascript">';
-                                $out .= 'jQuery(document).ready(function(){';
-                                $out .= '   var data = {';
-                                $out .= '       action: "getWatcher",';
-                                $out .= '       id: "' . $socid . '",';
-                                $out .= '       htmlname: "options_companyrelationships_fk_soc_watcher",';
-                                $out .= '       relation_type: "' . $relation_type . '",';
-                                $out .= '       relation_socid: "' . $relation_socid . '"';
-                                $out .= '   };';
-                                $out .= '   jQuery.getJSON("' . dol_buildpath('/companyrelationships/ajax/watcher.php', 1) . '", data,';
-                                $out .= '       function(response) {';
-                                $out .= '           jQuery("select#options_companyrelationships_fk_soc_watcher").html(response.value);';
-                                $out .= '           jQuery("select#options_companyrelationships_fk_soc_watcher").change();';
-                                $out .= '           if (response.num < 0) {';
-                                $out .= '               console.error(response.error);';
-                                $out .= '           }';
-                                $out .= '       }';
-                                $out .= '   );';
-                                $out .= '});';
-                                $out .= '</script>';
-
-                                if ($conf->use_javascript_ajax) {
-                                    include_once DOL_DOCUMENT_ROOT . '/core/lib/ajax.lib.php';
-                                    $comboenhancement = ajax_combobox('options_companyrelationships_fk_soc_watcher', array(), $conf->global->COMPANY_USE_SEARCH_TO_SELECT);
-                                    $out.= $comboenhancement;
-                                }
-                            }
+                            print $out;
                         }
-
-                        print $out;
                     }
                 }
             }
