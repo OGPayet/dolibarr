@@ -768,7 +768,7 @@ class ActionsCompanyRelationships
                                 }
                                 // mode 1
                                 $urloption='htmlname=options_companyrelationships_fk_soc_benefactor&outjson=1&socid='.$socid.'&relation_type='.$relation_type;
-                                $out .= ajax_autocompleter($relation_socid, 'options_companyrelationships_fk_soc_benefactor', dol_buildpath('/companyrelationships/ajax/benefactor2.php', 1), $urloption, $conf->global->COMPANY_USE_SEARCH_TO_SELECT);
+                                $out .= ajax_autocompleter($relation_socid, 'options_companyrelationships_fk_soc_benefactor', dol_buildpath('/companyrelationships/ajax/relation2.php', 1), $urloption, $conf->global->COMPANY_USE_SEARCH_TO_SELECT);
                                 $out .= '<style type="text/css">
 					            .ui-autocomplete {
 						            z-index: 250;
@@ -862,7 +862,7 @@ class ActionsCompanyRelationships
                                 }
                                 // mode 1
                                 $urloption='htmlname=options_companyrelationships_fk_soc_watcher&outjson=1&socid='.$socid.'&relation_type='.$relation_type;
-                                $out .= ajax_autocompleter($relation_socid, 'options_companyrelationships_fk_soc_watcher', dol_buildpath('/companyrelationships/ajax/watcher2.php', 1), $urloption, $conf->global->COMPANY_USE_SEARCH_TO_SELECT);
+                                $out .= ajax_autocompleter($relation_socid, 'options_companyrelationships_fk_soc_watcher', dol_buildpath('/companyrelationships/ajax/relation2.php', 1), $urloption, $conf->global->COMPANY_USE_SEARCH_TO_SELECT);
                                 $out .= '<style type="text/css">
 					            .ui-autocomplete {
 						            z-index: 250;

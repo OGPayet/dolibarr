@@ -2,6 +2,7 @@
 /* Copyright (C) 2006      Andre Cianfarani     <acianfa@free.fr>
  * Copyright (C) 2005-2012 Regis Houssin        <regis.houssin@capnetworks.com>
  * Copyright (C) 2007-2011 Laurent Destailleur  <eldy@users.sourceforge.net>
+ * Copyright (C) 2018      Open-DSI             <support@open-dsi.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +19,7 @@
  */
 
 /**
- *       \file       htdocs/companyrelationships/ajax/benefactor2.php
+ *       \file       htdocs/companyrelationships/ajax/relation.php
  *       \brief      File to return Ajax response on thirdparty list request
  */
 
