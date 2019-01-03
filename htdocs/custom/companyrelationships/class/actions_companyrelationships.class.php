@@ -629,8 +629,8 @@ class ActionsCompanyRelationships
                         $out .= '       htmlname: "options_companyrelationships_fk_soc_watcher",';
                         $out .= '       relation_type: "' . CompanyRelationships::RELATION_TYPE_WATCHER . '",';
                         $out .= '       relation_socid: "' . $fk_soc_watcher . '",';
-                        $out .= '       origin: "' . $origin . '",';
-                        $out .= '       originid: "' . $originid . '",';
+                        //$out .= '       origin: "' . $origin . '",';
+                        //$out .= '       originid: "' . $originid . '",';
                         $out .= '       showempty: 1';
                         $out .= '   };';
                         $out .= '   jQuery.getJSON("' . dol_buildpath('/companyrelationships/ajax/watcher.php', 1) . '", data,';
