@@ -897,8 +897,16 @@ if (empty($reshook))
                         }
 
                         if (!$error) {
+                            // determine equipment benefactor
+                            $fk_soc_client = $object->socid;
+                            if ($conf->companyrelationships->enabled) {
+                                if (!empty($object->array_options['options_companyrelationships_fk_soc_benefactor'])) {
+                                    $fk_soc_client = $object->array_options['options_companyrelationships_fk_soc_benefactor'];
+                                }
+                            }
+
                             // set equipment to customer
-                            $ret = $equipement->set_client($user, $object->socid);
+                            $ret = $equipement->set_client($user, $fk_soc_client);
                             if ($ret < 0) {
                                 $error++;
                                 $object->error    = $equipement->error;
