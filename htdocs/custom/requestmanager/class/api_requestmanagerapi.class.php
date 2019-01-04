@@ -859,7 +859,10 @@ class RequestManagerApi extends DolibarrApi {
         }
         $sql .= ' WHERE t.entity IN (' . getEntity('agenda') . ')';
         if (!$only_message) {
-            $soc_ids = array_merge(array($requestmanager->socid_origin), array($requestmanager->socid), array($requestmanager->socid_benefactor), array($requestmanager->socid_watcher));
+            $soc_ids = array_merge(array($requestmanager->socid_origin), array($requestmanager->socid), array($requestmanager->socid_benefactor));
+            if ($requestmanager->socid_watcher > 0) {
+                $soc_ids[] = $requestmanager->socid_watcher;
+            }
             $sql .= ' AND t.fk_soc IN (' . implode(',', $soc_ids) . ')';
             if ($only_linked_to_request) {
                 $sql .= " AND IF(t.elementtype='requestmanager', t.fk_element, IF(ee.targettype='requestmanager', ee.fk_target, IF(ee.sourcetype='requestmanager', ee.fk_source, NULL))) IN(" . (!empty($request_ids) ? $request_ids : '-1') . ")";
