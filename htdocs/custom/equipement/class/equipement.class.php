@@ -424,7 +424,7 @@ class Equipement extends CommonObject
 
                         $fournSocieteStatic = new Societe($this->db);
                         $fournSocieteStatic->fetch($this->fk_soc_fourn);
-                        $this->error = $langs->trans('EquipementErrorAlreadyExists', $numpr, $fournSocieteStatic->getFullName($langs));
+                        $this->error = $langs->trans('EquipementErrorAlreadyExistsForSupplier', $numpr, $fournSocieteStatic->getFullName($langs));
                     } else {
                         $this->error = $this->db->lasterror();
                     }
