@@ -344,7 +344,7 @@ EquipementSuccessSave = Equipment saved successfully
 #
 # Error
 #
-EquipementErrorAlreadyExistsForProduct  = Serial numbers %s already exist for the product %s
+EquipementErrorAlreadyExistsForProduct  = Serial numbers "%s" already exist for the product "%s"
 EquipementErrorAlreadyExistsForSupplier = Serial number %s already exists for the supplier %s
 EquipementErrorNbAddEquipement          = Number of equipments doesn't match with the quantity to create
 EquipementErrorQtyToShip                = Number of equipments doesn't match with the quantity to ship
