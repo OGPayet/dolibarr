@@ -219,6 +219,86 @@ class Equipement extends CommonObject
 			dol_syslog(__METHOD__ . " SerialMethod=" . $this->SerialMethod . "nb2create=" . $nbCreateSerial);
 		}
 
+        // check all serial numbers
+        if ($conf->global->EQUIPEMENT_CHECK_UNIQUE_REF_BY_PRODUCT) {
+            $equipementRefList = array();
+
+            $i = 0;
+            // boucle sur les numeros de serie pour creer autant d'equipement
+            while ($this->nbAddEquipement > $i) {
+                // si on est en mode code fournisseur
+                switch ($this->SerialMethod) {
+                    case 1 : // en mode generation auto, on cree des numeros serie interne
+                        $obj = $conf->global->EQUIPEMENT_ADDON;
+                        $modequipement = new $obj;
+                        $numpr = $modequipement->getNextValue($soc, $this);
+                        break;
+
+                    case 2 : // on recupere le numero de serie dans la liste fournis
+                        // attention on peut ne recuperer qu'un bout du numero
+                        if ($conf->global->EQUIPEMENT_BEGINKEYSERIALLIST != 0)
+                            $numpr = substr($tblSerial[$i], $conf->global->EQUIPEMENT_BEGINKEYSERIALLIST);
+                        else
+                            $numpr = $tblSerial[$i];
+                        break;
+
+                    case 3 :  // en mode serie par lot, on reprend le numero de lot comme numero de serie
+                        // si en mode decoupage on recupere la ref, en creation on recupere le numero de lot
+                        if ($this->ref)
+                            $numpr = $this->ref;
+                        else
+                            $numpr = $this->numversion;
+                        break;
+                }
+
+                $numpr = trim($numpr);
+                if ($numpr) {
+                    $equipementRefList[] = $numpr;
+                }
+
+                $i++;
+            }
+
+            if (!empty($equipementRefList)) {
+                $sql = "SELECT DISTINCT ref";
+                $sql .= " FROM " . MAIN_DB_PREFIX . "equipement";
+                $sql .= " WHERE ref IN ('" . implode("','", $equipementRefList) . "')";
+                $sql .= " AND fk_product = " . $this->fk_product;
+                $sql .= " AND entity = " . $conf->entity;
+
+                $resql = $this->db->query($sql);
+                if (!$resql) {
+                    $error++;
+                    $this->error = $this->db->lasterror();
+                    $this->errors[] = $this->error;
+                } else {
+                    // at least one equipment reference already exists
+                    if ($this->db->num_rows($resql) > 0) {
+                        $error++;
+
+                        // get all references already exist
+                        $equipementRefExistList = array();
+                        while ($obj = $this->db->fetch_object($resql)) {
+                            $equipementRefExistList[] = $obj->ref;
+                        }
+
+                        // get product
+                        $productStatic = new Product($this->db);
+                        $productStatic->fetch($this->fk_product);
+
+                        // error
+                        $this->error = $langs->trans('EquipementErrorAlreadyExistsForProduct', implode('", "', $equipementRefExistList), $productStatic->label);
+                        $this->errors[] = $this->error;
+                        dol_syslog(__METHOD__ . "Error : " . $this->error, LOG_ERR);
+                    }
+                }
+            }
+        }
+
+        if ($error) {
+            return -1;
+        }
+
         $this->db->begin();
 
 		$i=0;
@@ -253,6 +333,7 @@ class Equipement extends CommonObject
 			}
 
 			// si il a un soucis avec la ref, on ne cre pas l'equipement
+            $numpr = trim($numpr);
 			if ($numpr) {
 				$sql = "INSERT INTO ".MAIN_DB_PREFIX."equipement (";
 				$sql.= "fk_product";
@@ -290,7 +371,7 @@ class Equipement extends CommonObject
 				$sql.= ", ".($this->datee?"'".$this->db->idate($this->datee)."'":"null");
 				$sql.= ", ".($this->dated?"'".$this->db->idate($this->dated)."'":"null");
 				$sql.= ", ".($this->dateo?"'".$this->db->idate($this->dateo)."'":"null");
-				$sql.= ", '" . $this->db->escape(trim($numpr)) . "'";
+				$sql.= ", '" . $this->db->escape($numpr) . "'";
 				$sql.= ", '".$this->numversion."'";
 				$sql.= ", ".$this->quantity;
 				$sql.= ", ".($this->unitweight?$this->unitweight:"null");
@@ -312,7 +393,7 @@ class Equipement extends CommonObject
 					$i++;
 					$this->id=$this->db->last_insert_id(MAIN_DB_PREFIX."equipement");
 
-					// si on veut faire un mouvement correspondant � la cr�ation
+					// si on veut faire un mouvement correspondant a la creation
 					// et que l'on utilise pas product batch
 					if ($this->isentrepotmove
 						&& $this->fk_entrepot > 0
@@ -351,14 +432,14 @@ class Equipement extends CommonObject
 				}
 
                 if (! $error) {
-                    // si factory est pr�sent on v�rifie si il est n�cessaire de cr�er la liaison
+                    // si factory est present on verifie si il est necessaire de creer la liaison
                     if ($conf->global->MAIN_MODULE_FACTORY && $this->fk_factory > 0 ) {
                         // on ajoute la liaison avec l'of
                         $sql = "INSERT INTO ".MAIN_DB_PREFIX."equipement_factory (fk_equipement, fk_factory) ";
                         $sql.= " values (".$this->id.", ".$this->fk_factory.")";
                         $result=$this->db->query($sql);
 
-                        // on cr�e le lien vers l'of
+                        // on cre le lien vers l'of
                         $this->add_object_linked('factory', $this->fk_factory);
                     }
                 } else {
@@ -381,11 +462,11 @@ class Equipement extends CommonObject
             $this->db->rollback();
         }
 
-		// si on est all� jusqu'� la fin des cr�ation
-		if ($this->nbAddEquipement == $i) // on se positionne sur le dernier cr�e en modif
+		// si on est alle jusqu'a la fin des creations
+		if ($this->nbAddEquipement == $i) // on se positionne sur le dernier cree en modif
 			return $this->id;
 		else
-			return -1; // sinon on revient � la case d�part
+			return -1; // sinon on revient a la case depart
 	}
 
 	/**

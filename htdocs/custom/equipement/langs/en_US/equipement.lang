@@ -344,14 +344,15 @@ EquipementSuccessSave = Equipment saved successfully
 #
 # Error
 #
-EquipementErrorAlreadyExists        = Serial number %s already exists for the supplier %s
-EquipementErrorNbAddEquipement      = Number of equipments doesn't match with the quantity to create
-EquipementErrorQtyToShip            = Number of equipments doesn't match with the quantity to ship
-EquipementErrorQtyToBuild           = Number of equipments doesn't match with the quantity to build
-EquipementErrorQtyToUse             = Number of equipments doesn't match with the quantity to use
-EquipementErrorQtyLost              = Number of equipments doesn't match with the lost quantity
-EquipementErrorReferenceAlreadyUsed = Equipment already used
-EquipementErrorWarehouseLostNone    = No waste warehouse selected
-EquipementErrorStatusNotDefined     = Status not defined in equipment states dictionary : %s
+EquipementErrorAlreadyExistsForProduct  = Serial numbers %s already exist for the product %s
+EquipementErrorAlreadyExistsForSupplier = Serial number %s already exists for the supplier %s
+EquipementErrorNbAddEquipement          = Number of equipments doesn't match with the quantity to create
+EquipementErrorQtyToShip                = Number of equipments doesn't match with the quantity to ship
+EquipementErrorQtyToBuild               = Number of equipments doesn't match with the quantity to build
+EquipementErrorQtyToUse                 = Number of equipments doesn't match with the quantity to use
+EquipementErrorQtyLost                  = Number of equipments doesn't match with the lost quantity
+EquipementErrorReferenceAlreadyUsed     = Equipment already used
+EquipementErrorWarehouseLostNone        = No waste warehouse selected
+EquipementErrorStatusNotDefined         = Status not defined in equipment states dictionary : %s
 
 
