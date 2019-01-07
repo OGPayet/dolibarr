@@ -4746,7 +4746,8 @@ class CompanyRelationshipsApi extends DolibarrApi {
      * @return  array                   Array of order objects
      *
      * @throws  401     RestException   Insufficient rights
-     * @throws  503     RestException   Error when retrieve equipement list
+     * @throws  503     RestException   Error when retrieve my thirdparties where i'm a commercial
+     * @throws  503     RestException   Error when retrieve all ids of sub principals and benefactors of these companies
      */
     function indexMyThirdparties($sortfield = "t.rowid", $sortorder = 'ASC', $limit = 100, $page = 0, $mode=0, $sqlfilters = '')
     {
@@ -4755,41 +4756,29 @@ class CompanyRelationshipsApi extends DolibarrApi {
         $obj_ret = array();
 
         if (!DolibarrApiAccess::$user->rights->societe->lire) {
-            throw new RestException(401);
+            throw new RestException(401, "Insufficient rights");
         }
 
         $company_ids = array();
         $company_details = array();
+        if (DolibarrApiAccess::$user->societe_id > 0) {
+            $company_ids[DolibarrApiAccess::$user->societe_id] = DolibarrApiAccess::$user->societe_id;
+        }
 
-        // Get all ids of my companies
-        $sql = "SELECT t.rowid, crp.fk_soc AS principal_id, crb.fk_soc_benefactor AS benefactor_id";
+        // Get all ids of my companies where i'm a commercial
+        $sql = "SELECT t.rowid";
         $sql .= " FROM " . MAIN_DB_PREFIX . "societe AS t";
-        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "companyrelationships AS crp ON crp.fk_soc_benefactor = t.rowid";
-        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "companyrelationships AS crb ON crb.fk_soc = t.rowid";
         $sql .= " , " . MAIN_DB_PREFIX . "societe_commerciaux AS sc";
         $sql .= " WHERE t.entity IN (" . getEntity('societe') . ')';
-        $sql .= " ";
-        $sql .= " AND ((t.rowid = sc.fk_soc AND sc.fk_user = " . DolibarrApiAccess::$user->id . ")";
-        if (DolibarrApiAccess::$user->societe_id > 0) {
-            $sql .= " OR t.rowid = " . DolibarrApiAccess::$user->societe_id;
-        }
-        $sql .= " )";
-        $sql .= " GROUP BY t.rowid, crp.fk_soc, crb.fk_soc_benefactor";
+        $sql .= " AND t.rowid = sc.fk_soc AND sc.fk_user = " . DolibarrApiAccess::$user->id;
+        $sql .= " GROUP BY t.rowid";
         $result = $db->query($sql);
         if ($result) {
             while ($obj = $db->fetch_object($result)) {
                 $company_ids[$obj->rowid] = $obj->rowid;
-                if (!empty($obj->principal_id)) {
-                    $company_ids[$obj->principal_id] = $obj->principal_id;
-                    $company_details[$obj->rowid]['principal_ids'][$obj->principal_id] = $obj->principal_id;
-                }
-                if (!empty($obj->benefactor_id)) {
-                    $company_ids[$obj->benefactor_id] = $obj->benefactor_id;
-                    $company_details[$obj->rowid]['benefactor_ids'][$obj->benefactor_id] = $obj->benefactor_id;
-                }
             }
         } else {
-            throw new RestException(503, 'Error when retrieve my thirdparties : ' . $db->lasterror());
+            throw new RestException(503, 'Error when retrieve my thirdparties where i\'m a commercial : ' . $db->lasterror());
         }
 
         if (count($company_ids) == 0) {
@@ -4797,33 +4786,22 @@ class CompanyRelationshipsApi extends DolibarrApi {
         }
 
         // Get all ids of sub principals and benefactors of these companies
-//        do {
-//            $last_companies_nb = count($company_ids);
-//
-//            // Get all ids of my companies
-//            $sql = "SELECT t.rowid, crp.fk_soc AS principal_id, crb.fk_soc_benefactor AS benefactor_id";
-//            $sql .= " FROM " . MAIN_DB_PREFIX . "societe AS t";
-//            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "companyrelationships AS crp ON crp.fk_soc_benefactor = t.rowid";
-//            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "companyrelationships AS crb ON crb.fk_soc = t.rowid";
-//            $sql .= " WHERE t.rowid IN (" . implode(',', $company_ids) . ')';
-//            $sql .= " GROUP BY t.rowid, crp.fk_soc, crb.fk_soc_benefactor";
-//            $result = $db->query($sql);
-//            if ($result) {
-//                while ($obj = $db->fetch_object($result)) {
-//                    $company_ids[$obj->rowid] = $obj->rowid;
-//                    if (!empty($obj->principal_id)) {
-//                        $company_ids[$obj->principal_id] = $obj->principal_id;
-//                        $company_details[$obj->rowid]['principal_ids'][$obj->principal_id] = $obj->principal_id;
-//                    }
-//                    if (!empty($obj->benefactor_id)) {
-//                        $company_ids[$obj->benefactor_id] = $obj->benefactor_id;
-//                        $company_details[$obj->rowid]['benefactor_ids'][$obj->benefactor_id] = $obj->benefactor_id;
-//                    }
-//                }
-//            } else {
-//                throw new RestException(503, 'Error when retrieve sub principals and benefactors of my thirdparties  : ' . $db->lasterror());
-//            }
-//        } while ($last_companies_nb < count($company_ids));
+        $sql = "SELECT cr.fk_soc AS principal_id, cr.fk_soc_benefactor AS benefactor_id";
+        $sql .= " FROM " . MAIN_DB_PREFIX . "companyrelationships AS cr";
+        $sql .= " WHERE (cr.fk_soc IN (" . implode(',', $company_ids) . ")";
+        $sql .= " OR cr.fk_soc_benefactor IN (" . implode(',', $company_ids) . "))";
+        $sql .= " AND cr.relation_type = " . CompanyRelationships::RELATION_TYPE_BENEFACTOR;
+        $result = $db->query($sql);
+        if ($result) {
+            while ($obj = $db->fetch_object($result)) {
+                $company_ids[$obj->principal_id] = $obj->principal_id;
+                $company_ids[$obj->benefactor_id] = $obj->benefactor_id;
+                $company_details[$obj->benefactor_id]['principal_ids'][$obj->principal_id] = $obj->principal_id;
+                $company_details[$obj->principal_id]['benefactor_ids'][$obj->benefactor_id] = $obj->benefactor_id;
+            }
+        } else {
+            throw new RestException(503, 'Error when retrieve all ids of sub principals and benefactors of these companies : ' . $db->lasterror());
+        }
 
         $sql = "SELECT t.rowid";
         $sql .= " FROM " . MAIN_DB_PREFIX . "societe AS t";
