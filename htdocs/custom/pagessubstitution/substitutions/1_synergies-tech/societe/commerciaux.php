@@ -299,9 +299,9 @@ if (! empty($socid))
 				print "<td>";
 				if(!empty($obj->fk_soc))
 				{
-			$object = new Societe($db);
-				$object->fetch($obj->fk_soc);
-				print $object->getNomUrl(1);
+			$object2 = new Societe($db);
+				$object2->fetch($obj->fk_soc);
+				print $object2->getNomUrl(1);
 				}
 				else
 				{

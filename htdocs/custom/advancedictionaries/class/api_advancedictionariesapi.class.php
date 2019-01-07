@@ -495,6 +495,7 @@ class AdvanceDictionariesApi extends DolibarrApi {
     function _cleanLineObjectData($line)
     {
         $data = array();
+        $data[$line->dictionary->rowid_field] = $line->id;
         foreach ($line->dictionary->fields as $field) {
             if (DolibarrApiAccess::$user->societe_id>0) {
                 // show only rowid and label field for external user and active line
