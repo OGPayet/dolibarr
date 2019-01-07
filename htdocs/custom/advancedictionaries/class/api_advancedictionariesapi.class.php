@@ -495,24 +495,22 @@ class AdvanceDictionariesApi extends DolibarrApi {
     function _cleanLineObjectData($line)
     {
         $data = array();
-        $data[$line->dictionary->rowid_field] = $line->id;
         foreach ($line->dictionary->fields as $field) {
             if (DolibarrApiAccess::$user->societe_id>0) {
-                // show only rowid and label field for external user
+                // show only rowid and label field for external user and active line
                 if ($field['name']=='label') {
                     $data[$field['name']] = $line->fields[$field['name']];
                 }
+
             } else {
                 // show all fields for internal users
                 $data[$field['name']] = $line->fields[$field['name']];
             }
         }
 
-        // show all fields for internal user
-        if (!(DolibarrApiAccess::$user->societe_id>0)) {
+        // show associated data of each line
             $data[$line->dictionary->active_field] = $line->active;
             if ($line->dictionary->has_entity) $data[$line->dictionary->entity_field] = $line->entity;
-        }
 
         return $data;
     }

@@ -1525,10 +1525,16 @@ SCRIPT;
                     $parameters['whitelist_of_properties_linked_object'] = array(
                         "civility_code" => '', "lastname" => '', "firstname" => '',
                     );
+					$parameters['whitelist_of_properties'] = array(
+                        "civility_code" => '',"civility_id" => '', "lastname" => '', "firstname" => '',"socname" =>'',"mail"=>'',"id"=>'',"user_id"=>'',"phone_pro"=>'',"phone_perso"=>'',"phone_mobile"=>'',"photo"=>'',"email"=>'',"statut"=>'',"socid"=>'',"poste"=>'',"address"=>'',"zip"=>'',"town"=>'',
+                    );
                     break;
                 case 'user':
                     $parameters['whitelist_of_properties_linked_object'] = array(
                         "lastname" => '', "firstname" => '',
+                    );
+					$parameters['whitelist_of_properties'] = array(
+                        "lastname" => '', "firstname" => '',"id"=>'',"gender"=>'',"email"=>'',"signature"=>'',"address"=>'',"zip"=>'',"town"=>'',"office_phone"=>'',"office_fax"=>'',"user_mobile"=>'',"socid"=>'',"contactid"=>'',"photo"=>'',"lang"=>'',"rights"=>'',"array_options"=>'',"thirdparty"=>''
                     );
                     break;
                 case 'usergroup':
@@ -1536,6 +1542,11 @@ SCRIPT;
                         "name" => '',
                     );
                     break;
+				case 'requestmanager':
+				$parameters['whitelist_of_properties'] = array(
+                        "id" => '', "fk_parent"=>'',"ref"=>'',"ref_ext"=>'',"socid_origin"=>'',"socid"=>'',"socid_benefactor"=>'',"label"=>'',"description"=>'',"fk_type"=>'',"fk_category"=>'',"fk_source"=>'',"fk_urgency"=>'',"fk_impact"=>'',"fk_priority"=>'',"fk_reason_resolution"=>'',"requester_ids"=>'',"statut"=>'',"statut_type"=>'',"entity"=>'',"date_creation"=>'',"date_modification"=>'',"linkedObjectsIds"=>'',"thirdparty_origin"=>'',"thirdparty"=>'',"thirdparty_benefactor"=>'',"children_request_ids"=>'',"children_request_list"=>''
+                    );
+				break;
                 case 'societe':
                     $parameters['whitelist_of_properties_linked_object'] = array(
                         "name" => '',"nom" => '', "name_alias" => '', "address" => '',"zip" => '', "town" => '',
