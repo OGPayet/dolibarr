@@ -62,41 +62,44 @@ class InterfaceCompanyRelationshipsMassAction extends DolibarrTriggers
 	 * @return int         				<0 if KO, 0 if no triggered ran, >0 if OK
 	 */
 	public function runTrigger($action, $object, User $user, Translate $langs, Conf $conf)
-	{
+    {
         if (empty($conf->companyrelationships->enabled)) return 0;     // Module not active, we do nothing
 
         // invoice create
         if ($action == 'BILL_CREATE') {
-            dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+            dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
 
             dol_include_once('/companyrelationships/class/companyrelationships.class.php');
 
             $langs->load('companyrelatioships@companyrelatioships');
 
             // for mass action from order list
-            if ($object->socid>0 && $object->origin=='commande' && $object->origin_id>0) {
+            if ($object->socid > 0 && $object->origin == 'commande' && $object->origin_id > 0) {
                 // fetch extrafields of this invoice
                 $object->fetch_optionals();
 
-                // /!\ can provide from create card : check if we haven't got extrafields yet
-                if (!isset($object->array_options['options_companyrelationships_fk_soc_benefactor'])) {
-                    // fetch origin object (commande)
-                    require_once DOL_DOCUMENT_ROOT . '/commande/class/commande.class.php';
-                    $object->fetch_origin();
+                // fetch origin object (commande)
+                require_once DOL_DOCUMENT_ROOT . '/commande/class/commande.class.php';
+                $object->fetch_origin();
 
-                    // verify if it's an order
-                    if (is_object($object->commande)) {
-                        $commande = $object->commande;
+                // verify if it's an order
+                if (is_object($object->commande)) {
+                    $insert_extrafields = FALSE;
+                    $commande = $object->commande;
+                    $companyRelationships = new CompanyRelationships($this->db);
 
+                    // benefactor : /!\ can provide from create card : check if we haven't got extrafields yet
+                    if (!isset($object->array_options['options_companyrelationships_fk_soc_benefactor'])) {
                         // set benefactor company
-                        if ($commande->array_options['options_companyrelationships_fk_soc_benefactor']>0) {
+                        if ($commande->array_options['options_companyrelationships_fk_soc_benefactor'] > 0) {
                             $object->array_options['options_companyrelationships_fk_soc_benefactor'] = $commande->array_options['options_companyrelationships_fk_soc_benefactor'];
                         } else {
                             $object->array_options['options_companyrelationships_fk_soc_benefactor'] = $object->socid;
                         }
 
-                        $companyRelationships = new CompanyRelationships($this->db);
-                        $publicSpaceAvailability = $companyRelationships->getPublicSpaceAvailabilityThirdparty($object->socid, CompanyRelationships::RELATION_TYPE_BENEFACTOR, $object->array_options['options_companyrelationships_fk_soc_benefactor'], $object->element);
+                        $relation_type = CompanyRelationships::RELATION_TYPE_BENEFACTOR;
+                        $relation_type_name = $companyRelationships->getRelationTypeName($relation_type);
+                        $publicSpaceAvailability = $companyRelationships->getPublicSpaceAvailabilityThirdparty($object->socid, $relation_type, $object->array_options['options_companyrelationships_fk_soc_benefactor'], $object->element);
 
                         if (!is_array($publicSpaceAvailability)) {
                             $object->error = $companyRelationships->error;
@@ -107,7 +110,34 @@ class InterfaceCompanyRelationshipsMassAction extends DolibarrTriggers
 
                         // modify extrafields for this invoice
                         $object->array_options['options_companyrelationships_availability_principal'] = $publicSpaceAvailability['principal'];
-                        $object->array_options['options_companyrelationships_availability_benefactor'] = $publicSpaceAvailability['benefactor'];
+                        $object->array_options['options_companyrelationships_availability_benefactor'] = $publicSpaceAvailability[$relation_type_name];
+                        $insert_extrafields = TRUE;
+                    }
+
+                    // watcher
+                    if (!isset($object->array_options['options_companyrelationships_fk_soc_watcher'])) {
+                        // set watcher company
+                        if ($commande->array_options['options_companyrelationships_fk_soc_watcher'] > 0) {
+                            $object->array_options['options_companyrelationships_fk_soc_watcher'] = $commande->array_options['options_companyrelationships_fk_soc_watcher'];
+
+                            $relation_type = CompanyRelationships::RELATION_TYPE_WATCHER;
+                            $relation_type_name = $companyRelationships->getRelationTypeName($relation_type);
+                            $publicSpaceAvailability = $companyRelationships->getPublicSpaceAvailabilityThirdparty($object->socid, $relation_type, $object->array_options['options_companyrelationships_fk_soc_watcher'], $object->element);
+
+                            if (!is_array($publicSpaceAvailability)) {
+                                $object->error = $companyRelationships->error;
+                                $object->errors = $companyRelationships->errors;
+                                dol_syslog(__METHOD__ . " Error : " . $object->errorsToString(), LOG_ERR);
+                                return -1;
+                            }
+
+                            // modify extrafields for this invoice
+                            $object->array_options['options_companyrelationships_availability_watcher'] = $publicSpaceAvailability[$relation_type_name];
+                            $insert_extrafields = TRUE;
+                        }
+                    }
+
+                    if ($insert_extrafields === TRUE) {
                         $ret = $object->insertExtrafields();
                         if ($ret < 0) {
                             dol_syslog(__METHOD__ . " Error : " . $object->errorsToString(), LOG_ERR);

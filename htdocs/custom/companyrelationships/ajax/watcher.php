@@ -71,7 +71,39 @@ if (! empty($socid) && ! empty($action) && ! empty($htmlname))
         $selectedCompanyId = $relation_socid;
     } else {
         if (!empty($origin) && !empty($originid)) {
-            $selectedCompanyId = $socid;
+            // Parse element/subelement (ex: project_task)
+            $element = $subelement = $origin;
+            if (preg_match('/^([^_]+)_([^_]+)/i', $origin, $regs)) {
+                $element = $regs [1];
+                $subelement = $regs [2];
+            }
+
+            // For compatibility
+            if ($element == 'order') {
+                $element = $subelement = 'commande';
+            }
+            if ($element == 'propal') {
+                $element = 'comm/propal';
+                $subelement = 'propal';
+            }
+            if ($element == 'contract') {
+                $element = $subelement = 'contrat';
+            }
+            if ($element == 'inter') {
+                $element = $subelement = 'ficheinter';
+            }
+            if ($element == 'shipping') {
+                $element = $subelement = 'expedition';
+            }
+
+            dol_include_once('/' . $element . '/class/' . $subelement . '.class.php');
+
+            $classname = ucfirst($subelement);
+            $objectsrc = new $classname($this->db);
+            $objectsrc->fetch($originid);
+
+            $objectsrc_thirdparty = $objectsrc->fetch_thirdparty();
+            $selectedCompanyId = $objectsrc_thirdparty->id;
         } else {
             if (count($relation_ids) > 0) {
                 $selectedCompanyId = current($relation_ids);
@@ -105,7 +137,16 @@ if (! empty($socid) && ! empty($action) && ! empty($htmlname))
         }
     }
     if ($showempty) {
-        $options = array_merge($arrayresult, array('<option value=""' . ($hasAtLeastOneSelected ? '' : ' selected="selected"') . '>&nbsp;</option>'), $others);
+        if ($hasAtLeastOneSelected) {
+            $arrayempty = array('<option value="">&nbsp;</option>');
+        } else {
+            $arrayempty = array('<option value="" selected="selected">&nbsp;</option>');
+        }
+        if (empty($arrayresult)) {
+            $arrayempty[] ='<option value="">&nbsp;</option>';
+        }
+
+        $options = array_merge($arrayresult, $arrayempty, $others);
     } else {
         $options = array_merge($arrayresult, $others);
     }
