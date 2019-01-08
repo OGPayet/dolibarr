@@ -4643,6 +4643,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
      * @throws  401     RestException   Insufficient rights
      * @throws  503     RestException   Error when retrieve my thirdparties where i'm a commercial
      * @throws  503     RestException   Error when retrieve all ids of sub principals and benefactors of these companies
+     * * @throws  503     RestException   Error when retrieve all ids of sub watchers of these companies
      */
     function indexMyThirdparties($sortfield = "t.rowid", $sortorder = 'ASC', $limit = 100, $page = 0, $mode=0, $sqlfilters = '')
     {
@@ -4656,6 +4657,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
 
         $company_ids = array();
         $company_details = array();
+
         if (DolibarrApiAccess::$user->societe_id > 0) {
             $company_ids[DolibarrApiAccess::$user->societe_id] = DolibarrApiAccess::$user->societe_id;
         }
@@ -4696,6 +4698,23 @@ class CompanyRelationshipsApi extends DolibarrApi {
             }
         } else {
             throw new RestException(503, 'Error when retrieve all ids of sub principals and benefactors of these companies : ' . $db->lasterror());
+        }
+
+        // Get all ids of sub watchers of these companies
+        $sql = "SELECT cr.fk_soc, cr.fk_soc_relation";
+        $sql .= " FROM " . MAIN_DB_PREFIX . "companyrelationships AS cr";
+        $sql .= " WHERE (cr.fk_soc IN (" . implode(',', $company_ids) . ")";
+        $sql .= " OR cr.fk_soc_relation IN (" . implode(',', $company_ids) . "))";
+        $sql .= " AND cr.relation_type = " . CompanyRelationships::RELATION_TYPE_WATCHER;
+        $result = $db->query($sql);
+        if ($result) {
+            while ($obj = $db->fetch_object($result)) {
+                $company_ids[$obj->fk_soc] = $obj->fk_soc;
+                $company_ids[$obj->fk_soc_relation] = $obj->fk_soc_relation;
+                $company_details[$obj->fk_soc]['watcher_ids'][$obj->fk_soc_relation] = $obj->fk_soc_relation;
+            }
+        } else {
+            throw new RestException(503, 'Error when retrieve all ids of sub watchers of these companies : ' . $db->lasterror());
         }
 
         $sql = "SELECT t.rowid";
@@ -4740,6 +4759,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
                     $soc_static->fetchObjectLinked();
                     $soc_static->thirdparty_principal_ids = !empty($company_details[$obj->rowid]['principal_ids']) ? array_values($company_details[$obj->rowid]['principal_ids']) : array();
                     $soc_static->thirdparty_benefactor_ids = !empty($company_details[$obj->rowid]['benefactor_ids']) ? array_values($company_details[$obj->rowid]['benefactor_ids']) : array();
+                    $soc_static->thirdparty_watcher_ids = !empty($company_details[$obj->rowid]['watcher_ids']) ? array_values($company_details[$obj->rowid]['watcher_ids']) : array();
                     $obj_ret[] = $this->_cleanObjectData($soc_static);
                 }
                 $i++;
