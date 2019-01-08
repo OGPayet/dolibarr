@@ -48,6 +48,11 @@ if (preg_match('/set_(.*)/',$action,$reg))
 	$code=$reg[1];
 	if (dolibarr_set_const($db, $code, GETPOST($code), 'chaine', 0, '', $conf->entity) > 0)
 	{
+		if($code == 'QUERY_HOME_SELECTOR' && GETPOST($code) == 0)
+		{
+			dolibarr_del_const($db, 'QUERY_DASHBOARD_OPEN_IN_NEW_TAB', 0);
+		}
+
 		header("Location: ".$_SERVER["PHP_SELF"]);
 		exit;
 	}
@@ -210,6 +215,22 @@ print $form->selectyesno("QUERY_HOME_SELECTOR",$conf->global->QUERY_HOME_SELECTO
 print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
 print '</form>';
 print '</td></tr>';
+
+if(! empty($conf->global->QUERY_HOME_SELECTOR))
+{
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
+	print '<td>'.$langs->trans("set_QUERY_DASHBOARD_OPEN_IN_NEW_TAB").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="right" width="300">';
+	print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+	print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+	print '<input type="hidden" name="action" value="set_QUERY_DASHBOARD_OPEN_IN_NEW_TAB">';
+	print $form->selectyesno("QUERY_DASHBOARD_OPEN_IN_NEW_TAB",$conf->global->QUERY_DASHBOARD_OPEN_IN_NEW_TAB,1);
+	print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+	print '</form>';
+	print '</td></tr>';
+}
 
 print '</table>';
 

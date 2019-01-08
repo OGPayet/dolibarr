@@ -7,6 +7,7 @@ class TQuery extends TObjetStd {
 
 		$langs->load("stocks");
 		$langs->load("orders");
+		$langs->load("bills");
 
         parent::set_table(MAIN_DB_PREFIX.'query');
         parent::add_champs('sql_fields,sql_from,sql_where,sql_afterwhere',array('type'=>'text'));
@@ -39,6 +40,7 @@ class TQuery extends TObjetStd {
 			,'Product'=>$langs->trans('Product')
 			,'Entrepot'=>$langs->trans('Warehouse')
 			,'CommandeFournisseur'=>$langs->trans('SupplierOrder')
+			,'FactureFournisseur'=>$langs->trans('SupplierInvoice')
 			,'ActionComm'=>$langs->trans('Event')
 		);
 
@@ -106,7 +108,7 @@ class TQuery extends TObjetStd {
 				$sample.=$v->val;
 			}
 
-			$obj->sample = $sample;
+			$obj->sample = dol_escape_js($sample);
 
 		}
 
@@ -279,16 +281,15 @@ class TQuery extends TObjetStd {
 
 	function getSQL($table_element='',$objectid=0) {
 
-		global $conf;
+		global $conf, $user;
+
+		$sql = '';
 
 		if($this->expert == 2) {
 			$sql = $this->getRequestParam("SELECT ".$this->sql_fields."
 				FROM ".$this->sql_from."
 	                        WHERE (".($this->sql_where ? $this->sql_where : 1 ).")
 		                ".$this->sql_afterwhere);
-
-		    return $sql;
-
 		}
 		else if($this->expert == 1) {
 
@@ -296,7 +297,7 @@ class TQuery extends TObjetStd {
 					$this->sql_afterwhere=" GROUP BY ".implode(',', $this->TGroup);
 			}
 
-			return  "SELECT ".$this->getSQLFieldsWithAlias() ."
+			$sql = "SELECT ".$this->getSQLFieldsWithAlias() ."
 				FROM ".$this->sql_from."
 	                        WHERE (".($this->sql_where ? $this->sql_where : 1 ).")
 		                ".$this->sql_afterwhere;
@@ -342,9 +343,16 @@ class TQuery extends TObjetStd {
 
 			if($this->preview && stripos($sql,'LIMIT ') === false) $sql.=" LIMIT 5";
 
-			return $sql;
 		}
 
+		// Merge some generic fields from Dolibarr
+		$TDoliData = array(
+			'{entity}' => $conf->entity
+			,'{userid}' => $user->id
+		);
+		$sql = strtr($sql, $TDoliData);
+
+		return $sql;
 	}
 
 	private function getSQLHavingBindFunction($sql) {
@@ -469,7 +477,7 @@ class TQuery extends TObjetStd {
 
 					$method = empty($this->TMethod[$fSearch]) ? 'getNomUrl' : $this->TMethod[$fSearch];
 
-					$Tab[$fSearch]= 'TQuery::getCustomMethodForObject("'.$v.'", (int)"@val@", "'.$method.'")';
+					$Tab[$fSearch]= 'TQuery::getCustomMethodForObject("'.$v.'", "@val@", "'.$method.'")';
 				}
 
 			}
@@ -537,6 +545,7 @@ class TQuery extends TObjetStd {
 			else if($classname == 'Contact') dol_include_once('/contact/class/contact.class.php');
 			else if($classname == 'Entrepot') dol_include_once('/product/stock/class/entrepot.class.php');
 			else if($classname == 'CommandeFournisseur') dol_include_once('/fourn/class/fournisseur.commande.class.php');
+			else if($classname == 'FactureFournisseur') dol_include_once('/fourn/class/fournisseur.facture.class.php');
 			else if($classname == 'ActionComm') dol_include_once('/comm/action/class/actioncomm.class.php');
 			else {
 				return $langs->trans('ImpossibleToIncludeClass').' : '.$classname;
@@ -552,7 +561,8 @@ class TQuery extends TObjetStd {
 
 		$o=new $classname($db);
 		if(method_exists($o, 'fetch')) {
-			$o->fetch($id);
+			if(is_numeric($id)) $o->fetch($id);
+			else $o->fetch(0,$id);
 		}
 		else if(method_exists($o, 'load')) {
 			$PDOdb=new TPDOdb;
@@ -877,6 +887,38 @@ class TQuery extends TObjetStd {
 			return $html;
 	}
 
+
+	/**
+	 * Permet de asvoir si l'utilisateur connecté est autorisé à accéder à la requête
+	 */
+	function userHasRights(&$PDOdb, &$user) {
+
+		// On part du principe que les admin ont accès à toutes les requêtes
+		if($user->admin) return true;
+
+		/**
+		 * Vérification que la requête est soit
+		 * - publique (aucun droit défini)
+		 * - autorisée à l'utilisateur
+		 * - autorisée à un de ses groupes
+		 */
+		$sql="SELECT q.rowid
+			FROM ".MAIN_DB_PREFIX."query q
+			LEFT JOIN ".MAIN_DB_PREFIX."query_rights qr ON (qr.fk_query = q.rowid)
+			LEFT JOIN ".MAIN_DB_PREFIX."usergroup_user uu ON (uu.fk_usergroup = qr.fk_element)
+			WHERE q.rowid = ".$this->getId()."
+			AND (
+				(qr.element = 'user' AND qr.fk_element = ".$user->id.")
+				OR (qr.element = 'group' AND uu.fk_user = ".$user->id.")
+				OR qr.rowid IS NULL
+			)
+		 ";
+
+		$PDOdb->Execute($sql);
+		if($PDOdb->Get_Recordcount() > 0) return true;
+
+		return false;
+	}
 }
 
 
@@ -1123,4 +1165,15 @@ class TQueryMenu extends TObjetStd {
 		return $head;
 	}
 
+}
+
+class TQueryRights extends TObjetStd {
+	function __construct() {
+        global $langs;
+
+		parent::set_table(MAIN_DB_PREFIX.'query_rights');
+		parent::add_champs('entity,fk_query,fk_element',array('type'=>'int','index'=>true));
+		parent::_init_vars('element');
+		parent::start();
+	}
 }

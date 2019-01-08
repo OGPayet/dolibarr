@@ -35,9 +35,9 @@ setExpertFreeMode=Mode expert libre
 Query=Requête
 MainMenu=Menu principal
 LeftMenu=Sous menu
-ConfirmDeleteMessage=Êtes vous sûre de vouloir supprimer cette entrée ?
+ConfirmDeleteMessage=Êtes-vous sûr de vouloir supprimer cette entrée ?
 DeleteSuccess=Requête ou panneau supprimé avec succès
-ShowThisInCard=Voir ce panneau dans un fiche
+ShowThisInCard=Voir ce panneau dans une fiche
 TabsObject=Onglet
 TypeMenu=Type de menu
 Tab=Onglet
@@ -62,7 +62,8 @@ ShowGraphAsList=Voir en liste
 ShowGraphNormal=Voir le graphique
 ExportCSV=Export CSV
 ExportTXT=Export Texte
-ViewDashboard=Consulter les panneaux
+ViewDashboard=Consulter les panneaux auxquels je suis affecté
+ViewAllDashboard=Consulter tous les panneaux
 
 ExportQuery=Exporter la requête
 QueryToUpload=Sélectionner le fichier query à charger
@@ -79,4 +80,12 @@ DBName=Base de données
 Charset=Encodage
 DBType=Type
 
-set_QUERY_HOME_SELECTOR = Afficher le selecteur de panneaux sur la page d'acceuil de Dolibarr
+set_QUERY_HOME_SELECTOR = Afficher le selecteur de panneaux sur la page d'accueil de Dolibarr
+
+AddUser=Ajouter un utilisateur
+AddGroup=Ajouter un groupe
+
+query_warnings_set_expert_mode=Attention, le passage en mode expert peut rendre votre requête inopérante en fonction de sa complexité et/ou lors d'un retour en mode assisté
+query_warnings_set_expert_free_mode=Attention, le passage en mode expert libre peut rendre votre requête inopérante en fonction de sa complexité et/ou lors d'un retour en mode assisté
+
+set_QUERY_DASHBOARD_OPEN_IN_NEW_TAB=Développer les panneaux de la page d'accueil dans un nouvel onglet plutôt que dans le widget

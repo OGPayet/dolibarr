@@ -341,7 +341,9 @@ function drawFieldTables( table ){
 
 
 		$('#selected_tables').append($fields);
-		$("div.fields label").tipTip({maxWidth: "400px", edgeOffset: 10, delay: 50, fadeIn: 50, fadeOut: 50});
+
+		if(DOL_VERSION>=7)$("div.fields label").tooltip({maxWidth: "400px", edgeOffset: 10, delay: 50, fadeIn: 50, fadeOut: 50});
+		else $("div.fields label").tipTip({maxWidth: "400px", edgeOffset: 10, delay: 50, fadeIn: 50, fadeOut: 50});
 	});
 
 }
@@ -535,7 +537,8 @@ function refresh_field_array(table) {
 
 		if($fields.find('div[table="'+table+'"][field="'+field+'"]').length == 0) {
 			refresh_field_param(field, table);
-		}	});
+		}
+	});
 
 	if(MODQUERY_EXPERT == 1) {
 		null;
@@ -631,7 +634,7 @@ function refresh_sql() {
 
 	if(TWhere.length>0) where = TWhere.join(' AND ', TWhere);
 
-console.log(TWhere, where);
+//console.log(TWhere, where);
 
 	$('#sql_query_where').val(where);
 

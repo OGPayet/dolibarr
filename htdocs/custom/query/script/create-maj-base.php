@@ -33,6 +33,9 @@ $o->init_db_by_vars($PDOdb);
 $o=new TQueryMenu($db);
 $o->init_db_by_vars($PDOdb);
 
+$o=new TQueryRights();
+$o->init_db_by_vars($PDOdb);
+
 $o=new TBDDConnector($db);
 $o->init_db_by_vars($PDOdb);
 

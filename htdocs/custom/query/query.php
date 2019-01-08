@@ -141,7 +141,11 @@ switch ($action) {
 
 
 function run(&$PDOdb, &$query, $preview = false) {
-	global $conf,$langs;
+	global $conf,$langs,$user;
+
+	if(!$query->userHasRights($PDOdb, $user)) {
+		accessforbidden();
+	}
 
 	if(!$preview) {
 		llxHeader('', 'Query', '', '', 0, 0, array() , array('/query/css/query.css') );
@@ -206,35 +210,48 @@ function liste() {
 	llxHeader('', 'Query', '', '', 0, 0, array() , array('/query/css/query.css') );
 	dol_fiche_head();
 
-	$sql="SELECT rowid as 'Id', type,nb_result_max, title,expert,0 as 'delete'
-	FROM ".MAIN_DB_PREFIX."query
-	WHERE 1
-	 ";
+	if($user->admin == 1) {
+		$sql="SELECT rowid as 'Id', type,nb_result_max, title,expert,0 as 'action'
+			FROM ".MAIN_DB_PREFIX."query
+			WHERE 1
+		";
+	} else {
+		$sql="SELECT DISTINCT q.rowid as 'Id', q.type, q.nb_result_max, q.title, q.expert, 0 as 'action'
+			FROM ".MAIN_DB_PREFIX."query q
+			LEFT JOIN ".MAIN_DB_PREFIX."query_rights qr ON (qr.fk_query = q.rowid)
+			LEFT JOIN ".MAIN_DB_PREFIX."usergroup_user uu ON (uu.fk_usergroup = qr.fk_element)
+			WHERE (qr.element = 'user' AND qr.fk_element = ".$user->id.")
+			OR (qr.element = 'group' AND uu.fk_user = ".$user->id.")
+			OR qr.rowid IS NULL
+		";
+	}
 
 	$formCore=new TFormCore('auto','formQ','get');
 
 	$r=new TListviewTBS('lQuery');
 	echo $r->render($PDOdb, $sql,array(
 		'link'=>array(
-			'Id'=>'<a href="?action=view&id=@val@">'.img_picto('Edit', 'edit.png').' @val@</a>'
-			,'title'=>'<a href="?action=run&id=@Id@">'.img_picto('Run', 'object_cron.png').' @val@</a>'
-			,'delete'=>'<a href="?action=delete&id=@Id@" onclick="return(confirm(\''.$langs->trans('ConfirmDeleteMessage').'\'));">'.img_picto('Delete', 'delete.png').'</a>'
+			//'Id'=>'<a href="?action=view&id=@val@">'.img_picto('Edit', 'edit.png').' @val@</a>'
+			'title'=>'<a href="?action=run&id=@Id@">'.img_picto('Run', 'object_cron.png').' @val@</a>'
+			,'action'=>'<a href="?action=view&id=@Id@">'.img_picto('Edit', 'edit.png').'</a> <a href="?action=delete&id=@Id@" onclick="return(confirm(\''.$langs->trans('ConfirmDeleteMessage').'\'));">'.img_picto('Delete', 'delete.png').'</a>'
 		)
 		,'orderBy'=>array('title'=>'ASC')
-		,'hide'=>array('type','nb_result_max')
+		,'hide'=>array('type','nb_result_max','Id')
 		,'title'=>array(
 			'title'=>$langs->trans('Title')
 			,'expert'=>$langs->trans('Expert')
-			,'delete'=>$langs->trans('Delete')
+			,'action'=>''
 		)
 		,'translate'=>array(
 			'expert'=>array( 0=>$langs->trans('No'), 1=>$langs->trans('Yes'),2=>$langs->trans('Free') )
 
 		)
 		,'search'=>array(
-			'title'=>true
+			'title'=>array('recherche'=>true)
 		)
-
+		,'orderby'=>array(
+			'noOrder'=>array('action')
+		)
 	));
 
 
@@ -385,9 +402,12 @@ function init_js(&$query) {
 function fiche(&$query) {
 	global $langs, $conf,$user;
 
-	llxHeader('', 'Query', '', '', 0, 0, array('/query/js/query.js'/*,'/query/js/jquery.base64.min.js'*/) , array('/query/css/query.css') );
+	if(!$user->rights->query->all->create) accessforbidden();
 
-	dol_fiche_head($query->title);
+	llxHeader('', 'Query - '.$query->title, '', '', 0, 0, array('/query/js/query.js'/*,'/query/js/jquery.base64.min.js'*/) , array('/query/css/query.css') );
+
+	$head = queryPrepareHead($query);
+	dol_fiche_head($head, 'query', $langs->trans("Query"));
 
 	if($query->expert == 1) {
 		if(!empty($query->sql_fields)) {
@@ -403,6 +423,7 @@ function fiche(&$query) {
 		var MODQUERY_QUERYID = <?php echo $query->getId(); ?>;
 		var MODQUERY_EXPERT = <?php echo (int)$query->expert; ?>;
 		var MODQUERY_PREFIX = "<?php echo MAIN_DB_PREFIX ?>";
+		var DOL_VERSION = <?php echo (float)DOL_VERSION ?>;
 
 		var select_equal = '<select sql-act="operator"> '
 					+ '<option value=""> </option>'
@@ -510,7 +531,7 @@ function fiche(&$query) {
 			if(!empty($query->TMethodName)) {
 
 				foreach($query->TMethodName as $method=>$label) {
-					echo ' +\'<option value="'.$method.'">'.$label.'</option>\'';
+					echo ' +\'<option value="'.$method.'">'.addslashes($label).'</option>\'';
 				}
 
 			}
@@ -607,7 +628,7 @@ function fiche(&$query) {
 
 				if($query->expert == 0) {
 
-					?><a class="butAction" href="?action=set-expert&id=<?php echo $query->getId() ?>"><?php echo $langs->trans('setExpertMode') ?></a><?php
+					?><a onclick="if (!confirm('<?php echo dol_escape_js($langs->trans('query_warnings_set_expert_mode')); ?>')) return false;" class="butAction" href="?action=set-expert&id=<?php echo $query->getId() ?>"><?php echo $langs->trans('setExpertMode') ?></a><?php
 
 				}
 				else if($query->expert == 2) {
@@ -615,7 +636,7 @@ function fiche(&$query) {
 					?><br /><br /><a class="butAction" href="?action=unset-expert&id=<?php echo $query->getId() ?>"><?php echo $langs->trans('unsetExpertMode') ?></a><?php
 				}
 				else {
-					?><a class="butAction" href="?action=set-free&id=<?php echo $query->getId() ?>"><?php echo $langs->trans('setExpertFreeMode') ?></a><?php
+					?><a onclick="if (!confirm('<?php echo dol_escape_js($langs->trans('query_warnings_set_expert_free_mode')); ?>')) return false;"  class="butAction" href="?action=set-free&id=<?php echo $query->getId() ?>"><?php echo $langs->trans('setExpertFreeMode') ?></a><?php
 					?><br /><br /><a class="butAction" href="?action=unset-expert&id=<?php echo $query->getId() ?>"><?php echo $langs->trans('unsetExpertMode') ?></a><?php
 				}
 
@@ -736,3 +757,6 @@ function fiche(&$query) {
 
 	llxFooter();
 }
+
+
+

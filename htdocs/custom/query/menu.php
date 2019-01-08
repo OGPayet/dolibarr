@@ -60,6 +60,11 @@ function _card(&$PDOdb, &$object) {
 	$TQuery = array('0'=>'----') + TQuery::getQueries($PDOdb);
 	$TDashBoard = array('0'=>'----') + TQDashBoard::getDashboard($PDOdb,'',0,true);
 
+	$buttons = '';
+	if (!empty($object->getId())) $buttons.= $formCore->btsubmit($langs->trans('Delete'), 'bt_delete','','buttonDelete');
+
+	$buttons.= ' &nbsp; '. $formCore->btsubmit($langs->trans('Save'), 'bt_save');
+
 	$tbs=new TTemplateTBS;
 	echo $tbs->render('tpl/menu.html',array(),array(
 		'menu'=>array(
@@ -74,8 +79,9 @@ function _card(&$PDOdb, &$object) {
 		)
 		,'view'=>array(
 			'langs'=>$langs
-			,'buttons'=>$formCore->btsubmit($langs->trans('Delete'), 'bt_delete','','butActionDelete').' &nbsp; '. $formCore->btsubmit($langs->trans('Save'), 'bt_save')
+			,'buttons'=>$buttons
 		)
+		,'conf'=>$conf
 	));
 
 	$formCore->end();

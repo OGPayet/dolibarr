@@ -27,10 +27,12 @@
 		<td>[view.langs.transnoentities(Title)]</td>
 		<td>[menu.title; strconv=no]</td>
 	</tr>
-	<tr>
+
+	<tr style='[onshow;block=begin;when [conf.global.QUERY_USER_ADVANCE_PERM;noerr]=='']display:none;[onshow;block=end]'>
 		<td>[view.langs.transnoentities(Permission)]</td>
 		<td>[menu.perms; strconv=no]</td>
 	</tr>
+
 </table>
 <script type="text/javascript">
 	$('#fk_query').change(function() {

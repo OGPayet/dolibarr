@@ -61,7 +61,7 @@ class modquery extends DolibarrModules
         // (where XXX is value of numeric property 'numero' of module)
         $this->description = "Description of module query";
         // Possible values for version are: 'development', 'experimental' or version
-        $this->version = '1.5.1';
+        $this->version = '1.5.5';
         // Key used in llx_const table to save module status enabled/disabled
         // (where MYMODULE is value of property name of module in uppercase)
         $this->const_name = 'MAIN_MODULE_' . strtoupper($this->name);
@@ -263,6 +263,13 @@ class modquery extends DolibarrModules
 		$this->rights[$r][3] = 0; 					// Permission by default for new user (0/1)
 		$this->rights[$r][4] = 'dashboard';				// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
 		$this->rights[$r][5] = 'read';			// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
+		$r++;
+
+		$this->rights[$r][0] = $this->numero+$r; 				// Permission id (must not be already used)
+		$this->rights[$r][1] = 'ViewAllDashboard';	// Permission label
+		$this->rights[$r][3] = 0; 					// Permission by default for new user (0/1)
+		$this->rights[$r][4] = 'dashboard';				// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
+		$this->rights[$r][5] = 'readall';			// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
 		$r++;
 
 		$this->rights[$r][0] = $this->numero+$r; 				// Permission id (must not be already used)

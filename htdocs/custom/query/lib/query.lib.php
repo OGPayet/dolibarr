@@ -23,6 +23,29 @@
  *				Put some comments here
  */
 
+function queryPrepareHead($object)
+{
+    global $langs, $conf;
+
+    $langs->load("query@query");
+
+    $h = 0;
+    $head = array();
+
+    $head[$h][0] = dol_buildpath("/query/query.php?action=view&id=".$object->getID(), 1);
+    $head[$h][1] = $langs->trans("Card");
+    $head[$h][2] = 'query';
+    $h++;
+    $head[$h][0] = dol_buildpath("/query/query_rights.php?id=".$object->getID(), 1);
+    $head[$h][1] = $langs->trans("Rights");
+    $head[$h][2] = 'rights';
+    $h++;
+
+    complete_head_from_modules($conf, $langs, $object, $head, $h, 'query');
+
+    return $head;
+}
+
 function queryAdminPrepareHead()
 {
     global $langs, $conf;
@@ -116,15 +139,22 @@ function _getFieldAndTableName($field) {
 	$pos = strrpos(strtolower($field),' as ');
 
 	if($pos!==false) {
-		return array(trim(strtr(substr($field, $pos+3),array("'"=>''))),'');
+		// Si un "as" est présent, on prend que ce qu'il y a avant
+		$field = substr($field, 0, $pos);
 	}
-	else {
 
-		//$field = strtr($field,'.','_');
+	// Si $field est en fait une sous-requête (Traduction : la query contient dans son SELECT un sous SELECT)
+	if (stripos($field, 'select') !== false)
+	{
+		$table = '';
+	}
+	else
+	{
 		list($t,$f) = explode('.',$field);
 		$field = empty($f) ? $t : $f;
 		$table = empty($f) ? '' : $t;
 	}
+
 
 	return array($field,$table);
 }

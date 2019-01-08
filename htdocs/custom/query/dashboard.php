@@ -100,7 +100,7 @@ function liste() {
 	WHERE 1
 	";
 
-	if($user->admin) {
+	if($user->admin || $user->rights->query->dashboard->readall) {
 		null;
 	}
 	else {
@@ -370,7 +370,16 @@ function fiche(&$dashboard, $action = 'edit', $withHeader=true) {
 					echo '<a style="position:absolute; top:3px; right:3px; z-index:999;" href="javascript:delTile('.$cell->getId().')">'.img_delete('DeleteThisTile').'</a>';
 				}
 					else {
-						echo '<a style="position:absolute; top:3px; right:3px; z-index:999;" href="'.dol_buildpath('/query/query.php?action=run-in&id='.$cell->query->getId(),1).'">'.img_picto($langs->trans('Run'),'object_cron.png').'</a>';
+						$actionToDo = 'run-in';
+						$target = '';
+
+						if(! empty($conf->global->QUERY_DASHBOARD_OPEN_IN_NEW_TAB))
+						{
+							$actionToDo = 'run';
+							$target = ' target="_blank"';
+						}
+
+						echo '<a style="position:absolute; top:3px; right:3px; z-index:999;" href="'.dol_buildpath('/query/query.php?action='.$actionToDo.'&id='.$cell->query->getId(),1).'"'.$target.'>'.img_picto($langs->trans('Run'),'object_cron.png').'</a>';
 					}
 
 					if($cell->query->type=='LIST')$cell->query->type='SIMPLELIST';

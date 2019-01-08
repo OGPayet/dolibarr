@@ -48,3 +48,11 @@ RefreshDashboard=Automatically refresh the dashboard (minutes)
 set_ABRICOT_NB_MAX_RESULT_SQL=Results count into query (if LIMIT not in)
 CountOf=Count of
 TotalGroup=Total Group by column
+
+AddUser=Add user
+AddGroup=Add group
+
+query_warnings_set_expert_mode=Becareful, switch to expert mode can make your request inoperative according to its complexity and / or during a return to assisted mode
+query_warnings_set_expert_free_mode=Becareful, switch to free expert mode can make your request inoperative according to its complexity and / or during a return to assisted mode en mode assisté
+
+set_QUERY_DASHBOARD_OPEN_IN_NEW_TAB=Open hompage panels in a new tab instead of inside the widget
