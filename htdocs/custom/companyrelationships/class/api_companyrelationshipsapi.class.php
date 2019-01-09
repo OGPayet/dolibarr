@@ -420,6 +420,13 @@ class CompanyRelationshipsApi extends DolibarrApi {
                 if (is_array($benefactor_ids)) {
                     $this->benefactor_ids = $benefactor_ids;
                 }
+
+                // get watchers ids
+                $companyrelationships = new CompanyRelationships($db);
+                $watcher_ids = $companyrelationships->getRelationshipsThirdparty($userSocId, CompanyRelationships::RELATION_TYPE_WATCHER, 1);
+                if (is_array($watcher_ids)) {
+                    $this->watcher_ids = $watcher_ids;
+                }
             }
         }
 
@@ -4524,6 +4531,9 @@ class CompanyRelationshipsApi extends DolibarrApi {
             // list of benefactor ids of this user
             $sqlInBenefactorIds = implode(',', $this->benefactor_ids);
 
+            // list of watcher ids of this user
+            $sqlInWatcherIds = implode(',', $this->watcher_ids);
+
             if ($search_sale > 0) $sql .=  " LEFT JOIN " . MAIN_DB_PREFIX . "societe_commerciaux as scfourn ON scfourn.fk_soc = t.fk_soc_fourn AND scfourn.fk_user = " . $search_sale; // We need this table joined to the select in order to filter by sale
             if ($search_sale > 0) $sql .=  " LEFT JOIN " . MAIN_DB_PREFIX . "societe_commerciaux as scclient ON scclient.fk_soc = t.fk_soc_client AND scclient.fk_user = " . $search_sale; // We need this table joined to the select in order to filter by sale
 
@@ -4531,14 +4541,22 @@ class CompanyRelationshipsApi extends DolibarrApi {
             $sql .= " AND (";
             // equipment thirdparty of API user
             $sql .= "t.fk_soc_fourn = " . $userSocId . " OR t.fk_soc_client = " . $userSocId;
-            // equipment benefactor of API user
-            if (!empty($sqlInBenefactorIds)) {
-                $sql .= " OR t.fk_soc_fourn IN (" . $sqlInBenefactorIds . ") OR t.fk_soc_client IN (" . $sqlInBenefactorIds . ")";
-            }
+
             // equipment seller
             if ($search_sale > 0) {
                 $sql .= " OR scfourn.fk_user = " . $search_sale . " OR scclient.fk_user = " . $search_sale;
             }
+
+            // equipment benefactor of API user
+            if (!empty($sqlInBenefactorIds)) {
+                $sql .= " OR t.fk_soc_fourn IN (" . $sqlInBenefactorIds . ") OR t.fk_soc_client IN (" . $sqlInBenefactorIds . ")";
+            }
+
+            // equipment watcher of API user
+            if (!empty($sqlInBenefactorIds)) {
+                $sql .= " OR t.fk_soc_fourn IN (" . $sqlInWatcherIds . ") OR t.fk_soc_client IN (" . $sqlInWatcherIds . ")";
+            }
+
             $sql .= ")";
         }
         // internal
