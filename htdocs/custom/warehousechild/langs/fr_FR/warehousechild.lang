@@ -74,6 +74,11 @@ WarehousechildEquipementAlreadyExistsList          = Ces équipements existent d
 WarehousechildEquipementReplaceInSelectedWarehouse = Voulez-vous les replacer dans l'entrepôt sélectionné ?
 
 #
+# Events
+#
+WarehousechildEquipementForceReplaceInSelectedWarehouse = Réception forcée de l'équipemnt %s dans l'entrepôt
+
+#
 # Error
 #
 WarehousechildErrorSupplierOrderDispatchLineFieldQty                       = Quantité incorrecte

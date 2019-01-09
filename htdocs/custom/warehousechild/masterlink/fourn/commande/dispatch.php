@@ -505,6 +505,30 @@ if ($action == 'dispatch' && $user->rights->fournisseur->commande->receptionner)
                                             $object->errors[] = $object->error;
                                         }
 
+                                        // add event line for this equipement
+                                        $now = dol_now();
+                                        $equipementExistsEvtType = dol_getIdFromCode($db, 'RECEPT', 'c_equipementevt_type', 'code', 'rowid');
+                                        $ret = $equipementExists->addline(
+                                            $equipementExists->id,
+                                            $equipementExistsEvtType,
+                                            $langs->trans('WarehousechildEquipementForceReplaceInSelectedWarehouse', $equipementExists->getNomUrl(1)),
+                                            $now,
+                                            $now,
+                                            '',
+                                            '',
+                                            '',
+                                            '',
+                                            '',
+                                            '',
+                                            '',
+                                            ''
+                                        );
+                                        if ($ret < 0) {
+                                            $error++;
+                                            $object->error    = $equipementExists->error;
+                                            $object->errors[] = $object->error;
+                                        }
+
                                         if (!$error) {
                                             unset($serialFournArray[$serialFournKey]);
                                             $qtyEquipementToDispatch--;

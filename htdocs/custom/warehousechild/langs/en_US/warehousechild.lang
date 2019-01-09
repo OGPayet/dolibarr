@@ -60,6 +60,11 @@ WarehousechildEquipementAlreadyExistsList          = These equipments already ex
 WarehousechildEquipementReplaceInSelectedWarehouse = Do you want to put them back in selected warehouse ?
 
 #
+# Events
+#
+WarehousechildEquipementForceReplaceInSelectedWarehouse = Forced to put back equipment %s in warehouse
+
+#
 # Error
 #
 WarehousechildErrorSupplierOrderDispatchLineFieldQty                       = Bad quanity
