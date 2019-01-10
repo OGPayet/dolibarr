@@ -267,12 +267,26 @@ class RequestManagerApi extends DolibarrApi {
                 ' ) as assigned ON assigned.rowid = rm.rowid';
         }
 
+        // If the internal user must only see his customers, force searching by him
+        $search_sale = 0;
+        if (! DolibarrApiAccess::$user->rights->societe->client->voir) $search_sale = DolibarrApiAccess::$user->id;
+
         $sql = "SELECT t.rowid";
         $sql .= " FROM " . MAIN_DB_PREFIX . "requestmanager as t" . $assignedSQLJoin;
+        if ($search_sale > 0) {
+            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe_commerciaux as sc ON (sc.fk_soc = t.fk_soc OR sc.fk_soc = t.fk_soc_benefactor OR sc.fk_soc = t.fk_soc_watcher)";
+
+        }
         $sql .= ' WHERE t.entity IN (' . getEntity('requestmanager') . ')';
         // Restrict to the company of the user
         if (DolibarrApiAccess::$user->socid > 0) {
-            $sql .= " AND (t.fk_soc = " . DolibarrApiAccess::$user->socid . " OR t.fk_soc_benefactor = " . DolibarrApiAccess::$user->socid . " OR t.fk_soc_watcher = " . DolibarrApiAccess::$user->socid  . ")";
+            $sql .= " AND (t.fk_soc = " . DolibarrApiAccess::$user->socid . " OR t.fk_soc_benefactor = " . DolibarrApiAccess::$user->socid . " OR t.fk_soc_watcher = " . DolibarrApiAccess::$user->socid;
+            if ($search_sale > 0) {
+                $sql .= " OR sc.fk_user = " . $search_sale;
+            }
+            $sql .= ")";
+        } elseif ($search_sale > 0) {
+            $sql .= " AND sc.fk_user = " . $search_sale;
         }
         // Add sql filters
         if ($sql_filters) {
