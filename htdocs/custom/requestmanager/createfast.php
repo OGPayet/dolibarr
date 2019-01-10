@@ -95,6 +95,7 @@ if (empty($reshook)) {
         $object->socid_origin = GETPOST('socid_origin', 'int');
         $object->socid = GETPOST('socid', 'int');
         $object->socid_benefactor = GETPOST('socid_benefactor', 'int');
+        $object->socid_watcher = GETPOST('socid_watcher', 'int');
         $object->requester_ids = $selectedContacts;
         $object->fk_source = GETPOST('source', 'int');
         $object->fk_urgency = GETPOST('urgency', 'int');
@@ -255,6 +256,7 @@ if (($action == 'createfast' || $action == 'force_principal_company' || $action 
     $selectedSocIdOrigin = GETPOST('socid_origin', 'int') ? intval(GETPOST('socid_origin', 'int')) : -1;
     $selectedSocId = GETPOST('socid', 'int') ? intval(GETPOST('socid', 'int')) : -1;
     $selectedSocIdBenefactor = GETPOST('socid_benefactor', 'int') ? intval(GETPOST('socid_benefactor', 'int')) : -1;
+    $selectedSocIdWatcher = GETPOST('socid_watcher', 'int') ? intval(GETPOST('socid_watcher', 'int')) : -1;
     $selectedFkSource = GETPOST('source', 'int') ? intval(GETPOST('source', 'int')) : -1;
     $selectedFkType = GETPOST('type', 'int') ? intval(GETPOST('type', 'int')) : -1;
     $selectedFkUrgency = GETPOST('urgency', 'int') ? intval(GETPOST('urgency', 'int')) : -1;
@@ -270,7 +272,7 @@ if (($action == 'createfast' || $action == 'force_principal_company' || $action 
         // Set default values
         $force_set = $selectedActionJs == 'change_socid_origin';
         if ($selectedSocIdOrigin > 0) {
-            $originRelationshipType = $companyrelationships->getRelationshipType($selectedSocIdOrigin);
+            $originRelationshipType = $companyrelationships->getRelationshipTypeThirdparty($selectedSocIdOrigin, self::RELATION_TYPE_BENEFACTOR);
             if ($originRelationshipType == 0) { // Benefactor company
                 $selectedSocIdBenefactor = $selectedSocIdBenefactor < 0 || $force_set ? $selectedSocIdOrigin : $selectedSocIdBenefactor;
             } elseif ($originRelationshipType > 0) { // Principal company or both
@@ -281,14 +283,21 @@ if (($action == 'createfast' || $action == 'force_principal_company' || $action 
             }
         }
         if ($selectedSocId > 0) {
-            $benefactor_companies_ids = $companyrelationships->getRelationships($selectedSocId, 1);
+            $benefactor_companies_ids = $companyrelationships->getRelationshipsThirdparty($selectedSocId, CompanyRelationships::RELATION_TYPE_BENEFACTOR, 1);
             $benefactor_companies_ids = is_array($benefactor_companies_ids) ? array_values($benefactor_companies_ids) : array();
             $selectedSocIdBenefactor = $selectedSocIdBenefactor < 0 || $force_set ? (count($benefactor_companies_ids) > 0 ? $benefactor_companies_ids[0] : $selectedSocId) : $selectedSocIdBenefactor;
         }
         if ($selectedSocIdBenefactor > 0) {
-            $principal_companies_ids = $companyrelationships->getRelationships($selectedSocIdBenefactor, 0);
+            $principal_companies_ids = $companyrelationships->getRelationshipsThirdparty($selectedSocIdBenefactor, CompanyRelationships::RELATION_TYPE_BENEFACTOR,0);
             $principal_companies_ids = is_array($principal_companies_ids) ? array_values($principal_companies_ids) : array();
             $selectedSocId = $selectedSocId < 0 || $force_set ? (count($principal_companies_ids) > 0 ? $principal_companies_ids[0] : $selectedSocIdBenefactor) : $selectedSocId;
+        }
+
+        // default watcher
+        if ($selectedSocId > 0) {
+            $watcher_companies_ids = $companyrelationships->getRelationshipsThirdparty($selectedSocId, CompanyRelationships::RELATION_TYPE_WATCHER, 1);
+            $watcher_companies_ids = is_array($watcher_companies_ids) ? array_values($watcher_companies_ids) : array();
+            $selectedSocIdWatcher = $force_set ? (count($watcher_companies_ids) > 0 ? $watcher_companies_ids[0] : $selectedSocIdWatcher) : $selectedSocIdWatcher;
         }
     } else {
         $selectedSocId = $selectedSocIdOrigin;
@@ -386,6 +395,7 @@ if (($action == 'createfast' || $action == 'force_principal_company' || $action 
     $out .= '       socid_origin: ' . $selectedSocIdOrigin . ',';
     $out .= '       socid: ' . $selectedSocId . ',';
     $out .= '       socid_benefactor: ' . $selectedSocIdBenefactor . ',';
+    $out .= '       socid_watcher: ' . $selectedSocIdWatcher . ',';
     $out .= '       source: ' . $selectedFkSource . ',';
     $out .= '       type: ' . $selectedFkType . ',';
     $out .= '       urgency: ' . $selectedFkUrgency . ',';

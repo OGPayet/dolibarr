@@ -47,6 +47,7 @@ if ($zone === 1) {
     $selectedSocIdOrigin            = GETPOST('socid_origin', 'int')?intval(GETPOST('socid_origin', 'int')):-1;
     $selectedSocId                  = GETPOST('socid', 'int')?intval(GETPOST('socid', 'int')):-1;
     $selectedSocIdBenefactor        = GETPOST('socid_benefactor', 'int')?intval(GETPOST('socid_benefactor', 'int')):-1;
+    $selectedSocIdWatcher           = GETPOST('socid_watcher', 'int')?intval(GETPOST('socid_watcher', 'int')):-1;
     $selectedFkSource               = GETPOST('source', 'int')?intval(GETPOST('source', 'int')):-1;
     $selectedFkType                 = GETPOST('type', 'int')?intval(GETPOST('type', 'int')):-1;
     $selectedFkUrgency              = GETPOST('urgency', 'int')?intval(GETPOST('urgency', 'int')):-1;
@@ -73,7 +74,7 @@ if ($zone === 1) {
         // Set default values
         $force_set = $selectedActionJs == 'change_socid_origin';
         if ($selectedSocIdOrigin > 0) {
-            $originRelationshipType = $companyrelationships->getRelationshipType($selectedSocIdOrigin);
+            $originRelationshipType = $companyrelationships->getRelationshipTypeThirdparty($selectedSocIdOrigin, CompanyRelationships::RELATION_TYPE_BENEFACTOR);
             if ($originRelationshipType == 0) { // Benefactor company
                 $selectedSocIdBenefactor = $selectedSocIdBenefactor < 0 || $force_set ? $selectedSocIdOrigin : $selectedSocIdBenefactor;
             } elseif ($originRelationshipType > 0) { // Principal company or both
@@ -84,21 +85,31 @@ if ($zone === 1) {
             }
         }
         if ($selectedSocId > 0) {
-            $benefactor_companies_ids = $companyrelationships->getRelationships($selectedSocId, 1);
+            $benefactor_companies_ids = $companyrelationships->getRelationshipsThirdparty($selectedSocId, CompanyRelationships::RELATION_TYPE_BENEFACTOR,1);
             $benefactor_companies_ids = is_array($benefactor_companies_ids) ? array_values($benefactor_companies_ids) : array();
             $selectedSocIdBenefactor = $selectedSocIdBenefactor < 0 || $force_set ? (count($benefactor_companies_ids) > 0 ? $benefactor_companies_ids[0] : $selectedSocId) : $selectedSocIdBenefactor;
         }
         if ($selectedSocIdBenefactor > 0) {
-            $principal_companies_ids = $companyrelationships->getRelationships($selectedSocIdBenefactor, 0);
+            $principal_companies_ids = $companyrelationships->getRelationshipsThirdparty($selectedSocIdBenefactor, CompanyRelationships::RELATION_TYPE_BENEFACTOR, 0);
             $principal_companies_ids = is_array($principal_companies_ids) ? array_values($principal_companies_ids) : array();
             $selectedSocId = $selectedSocId < 0 || $force_set ? (count($principal_companies_ids) > 0 ? $principal_companies_ids[0] : $selectedSocIdBenefactor) : $selectedSocId;
         }
 
+        // default watcher
+        if ($selectedSocId > 0) {
+            $watcher_companies_ids = $companyrelationships->getRelationshipsThirdparty($selectedSocId, CompanyRelationships::RELATION_TYPE_WATCHER, 1);
+            $watcher_companies_ids = is_array($watcher_companies_ids) ? array_values($watcher_companies_ids) : array();
+            $selectedSocIdWatcher = $force_set ? (count($watcher_companies_ids) > 0 ? $watcher_companies_ids[0] : $selectedSocIdWatcher) : $selectedSocIdWatcher;
+        }
+
         // Get principal companies
-        $principal_companies_ids = $companyrelationships->getRelationships($selectedSocIdBenefactor, 0);
+        $principal_companies_ids = $companyrelationships->getRelationshipsThirdparty($selectedSocIdBenefactor,CompanyRelationships::RELATION_TYPE_BENEFACTOR, 0);
 
         // Get benefactor companies
-        $benefactor_companies_ids = $companyrelationships->getRelationships($selectedSocId, 1);
+        $benefactor_companies_ids = $companyrelationships->getRelationshipsThirdparty($selectedSocId,CompanyRelationships::RELATION_TYPE_BENEFACTOR, 1);
+
+        // Get watcher companies
+        $watcher_companies_ids = $companyrelationships->getRelationshipsThirdparty($selectedSocId, CompanyRelationships::RELATION_TYPE_WATCHER, 1);
     }
 
     print '<table class="border" width="100%">';
@@ -174,6 +185,7 @@ if ($zone === 1) {
         </script>';
         print '<input type="hidden" id="socid" name="socid" value="' . $selectedSocId . '">';
         print '<input type="hidden" id="socid_benefactor" name="socid_benefactor" value="' . $selectedSocIdBenefactor . '">';
+        print '<input type="hidden" id="socid_watcher" name="socid_watcher" value="' . $selectedSocIdWatcher . '">';
     }
     print '</td>';
     // Requester Contacts
@@ -205,13 +217,27 @@ if ($zone === 1) {
         print '<td>' . $langs->trans('RequestManagerThirdPartyBenefactor') . '</td><td>';
         print $form->select_company($selectedSocIdBenefactor, 'socid_benefactor', $filterSocId, 'SelectThirdParty', 0, 0, array(), 0, 'minwidth300');
         print '
-    <script type="text/javascript">
-        $(document).ready(function(){
-          move_top_select_options("socid", ' . json_encode($principal_companies_ids) . ');
-          move_top_select_options("socid_benefactor", ' . json_encode($benefactor_companies_ids) . ');
-        });
-    </script>';
+        <script type="text/javascript">
+            $(document).ready(function(){
+              move_top_select_options("socid", ' . json_encode($principal_companies_ids) . ');
+              move_top_select_options("socid_benefactor", ' . json_encode($benefactor_companies_ids) . ');
+            });
+        </script>';
         print '</td>';
+        print '</tr>';
+
+        print '<tr>';
+        // ThirdParty Watcher
+        print '<td>' . $langs->trans('RequestManagerThirdPartyWatcher') . '</td><td>';
+        print $form->select_company($selectedSocIdWatcher, 'socid_watcher', $filterSocId, 'SelectThirdParty', 0, 0, array(), 0, 'minwidth300');
+        print '
+        <script type="text/javascript">
+            $(document).ready(function(){
+              move_top_select_options("socid_watcher", ' . json_encode($watcher_companies_ids) . ');
+            });
+        </script>';
+        print '</td>';
+        print '<td colspan="2">&nbsp;</td>';
         print '</tr>';
     }
 
@@ -284,6 +310,10 @@ if ($zone === 1) {
 
           jQuery('#socid_benefactor').change(function(){
               requestManagerLoader.loadZone(1, 'change_socid_benefactor');
+          });
+
+          jQuery('#socid_watcher').change(function(){
+              requestManagerLoader.loadZone(1, 'change_socid_watcher');
           });
         });
     </script>

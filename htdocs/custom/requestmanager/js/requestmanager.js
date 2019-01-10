@@ -47,6 +47,7 @@ class RequestManagerLoader {
                 socid_origin: jQuery('#socid_origin').val(),
                 socid: jQuery('#socid').val(),
                 socid_benefactor: jQuery('#socid_benefactor').val(),
+                socid_watcher: jQuery('#socid_watcher').val(),
                 source: jQuery('#source').val(),
                 type: jQuery('#type').val(),
                 urgency: jQuery('#urgency').val(),
