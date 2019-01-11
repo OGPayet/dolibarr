@@ -63,6 +63,9 @@ class InterfaceSynergiesTechHack extends DolibarrTriggers
 
         // Propagation of references
         if (preg_match('/_CREATE$/i', $action) && !empty($object->origin) && $object->origin_id > 0 && isset($authorized_element[$object->element])) {
+            // Reload object
+            $object->fetch($object->id);
+
             // Parse element/subelement (ex: project_task)
             $element = $subelement = $object->origin;
             if (preg_match('/^([^_]+)_([^_]+)/i', $object->origin, $regs)) {
