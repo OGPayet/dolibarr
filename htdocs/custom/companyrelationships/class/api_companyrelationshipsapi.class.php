@@ -4553,7 +4553,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
             }
 
             // equipment watcher of API user
-            if (!empty($sqlInBenefactorIds)) {
+            if (!empty($sqlInWatcherIds)) {
                 $sql .= " OR t.fk_soc_fourn IN (" . $sqlInWatcherIds . ") OR t.fk_soc_client IN (" . $sqlInWatcherIds . ")";
             }
 
