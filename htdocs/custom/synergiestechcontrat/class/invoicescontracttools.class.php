@@ -798,6 +798,8 @@ class InvoicesContractTools
         $invoice->location_incoterms = $invoice->thirdparty->location_incoterms;
         $invoice->multicurrency_code = $invoice->thirdparty->multicurrency_code;
         $invoice->multicurrency_tx = '';
+        $invoice->origin = $contract->element;
+        $invoice->origin_id = $contract->id;
         $invoice->linkedObjectsIds[$contract->element] = $contract->id;
 
         if (empty($invoice->cond_reglement_id)) {

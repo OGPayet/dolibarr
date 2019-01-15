@@ -74,25 +74,51 @@ class InterfaceCompanyRelationshipsMassAction extends DolibarrTriggers
             $langs->load('companyrelatioships@companyrelatioships');
 
             // for mass action from order list
-            if ($object->socid > 0 && $object->origin == 'commande' && $object->origin_id > 0) {
+            if ($object->socid > 0 && in_array($object->origin, array('commande', 'contrat')) && $object->origin_id > 0) {
+                // Parse element/subelement (ex: project_task)
+                $element = $subelement = $object->origin;
+                if (preg_match('/^([^_]+)_([^_]+)/i', $object->origin, $regs)) {
+                    $element = $regs [1];
+                    $subelement = $regs [2];
+                }
+
+                // For compatibility
+                if ($element == 'order') {
+                    $element = $subelement = 'commande';
+                }
+                if ($element == 'propal') {
+                    $element = 'comm/propal';
+                    $subelement = 'propal';
+                }
+                if ($element == 'contract') {
+                    $element = $subelement = 'contrat';
+                }
+                if ($element == 'inter') {
+                    $element = $subelement = 'ficheinter';
+                }
+                if ($element == 'shipping') {
+                    $element = $subelement = 'expedition';
+                }
+
+                dol_include_once('/' . $element . '/class/' . $subelement . '.class.php');
+                $classname = ucfirst($subelement);
+                $srcobject = new $classname($this->db);
+                $result = $srcobject->fetch($object->origin_id);
+                $srcobject->fetch_optionals();
+
                 // fetch extrafields of this invoice
                 $object->fetch_optionals();
 
-                // fetch origin object (commande)
-                require_once DOL_DOCUMENT_ROOT . '/commande/class/commande.class.php';
-                $object->fetch_origin();
-
                 // verify if it's an order
-                if (is_object($object->commande)) {
+                if (is_object($srcobject)) {
                     $insert_extrafields = FALSE;
-                    $commande = $object->commande;
                     $companyRelationships = new CompanyRelationships($this->db);
 
                     // benefactor : /!\ can provide from create card : check if we haven't got extrafields yet
-                    if (!isset($object->array_options['options_companyrelationships_fk_soc_benefactor'])) {
+                    if (!($object->array_options['options_companyrelationships_fk_soc_benefactor'] > 0)) {
                         // set benefactor company
-                        if ($commande->array_options['options_companyrelationships_fk_soc_benefactor'] > 0) {
-                            $object->array_options['options_companyrelationships_fk_soc_benefactor'] = $commande->array_options['options_companyrelationships_fk_soc_benefactor'];
+                        if ($srcobject->array_options['options_companyrelationships_fk_soc_benefactor'] > 0) {
+                            $object->array_options['options_companyrelationships_fk_soc_benefactor'] = $srcobject->array_options['options_companyrelationships_fk_soc_benefactor'];
                         } else {
                             $object->array_options['options_companyrelationships_fk_soc_benefactor'] = $object->socid;
                         }
@@ -115,10 +141,10 @@ class InterfaceCompanyRelationshipsMassAction extends DolibarrTriggers
                     }
 
                     // watcher
-                    if (!isset($object->array_options['options_companyrelationships_fk_soc_watcher'])) {
+                    if (!($object->array_options['options_companyrelationships_fk_soc_watcher'] > 0)) {
                         // set watcher company
-                        if ($commande->array_options['options_companyrelationships_fk_soc_watcher'] > 0) {
-                            $object->array_options['options_companyrelationships_fk_soc_watcher'] = $commande->array_options['options_companyrelationships_fk_soc_watcher'];
+                        if ($srcobject->array_options['options_companyrelationships_fk_soc_watcher'] > 0) {
+                            $object->array_options['options_companyrelationships_fk_soc_watcher'] = $srcobject->array_options['options_companyrelationships_fk_soc_watcher'];
 
                             $relation_type = CompanyRelationships::RELATION_TYPE_WATCHER;
                             $relation_type_name = $companyRelationships->getRelationTypeName($relation_type);
