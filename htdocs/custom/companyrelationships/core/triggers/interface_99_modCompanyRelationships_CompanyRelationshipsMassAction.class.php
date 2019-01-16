@@ -71,7 +71,7 @@ class InterfaceCompanyRelationshipsMassAction extends DolibarrTriggers
 
             dol_include_once('/companyrelationships/class/companyrelationships.class.php');
 
-            $langs->load('companyrelatioships@companyrelatioships');
+            $langs->load('companyrelationships@companyrelationships');
 
             // for mass action from order list
             if ($object->socid > 0 && in_array($object->origin, array('commande', 'contrat')) && $object->origin_id > 0) {
