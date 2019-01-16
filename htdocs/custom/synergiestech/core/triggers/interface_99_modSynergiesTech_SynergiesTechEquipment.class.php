@@ -120,6 +120,7 @@ class InterfaceSynergiesTechEquipment extends DolibarrTriggers
                     $children = $equipment->get_Childs();
 
                     foreach ($children as $child) {
+                        if ($child == $object->fk_equipement) continue;
                         $event = clone $object;
                         $event->fk_equipement = $child;
                         $event->desc .= $ref_link;
@@ -149,6 +150,7 @@ class InterfaceSynergiesTechEquipment extends DolibarrTriggers
                 $resql = $this->db->query($sql);
                 if ($resql) {
                     while ($obj = $this->db->fetch_object($resql)) {
+                        if ($object->fk_equipement == $obj->fk_equipement) continue;
                         $event = clone $object;
                         $event->rowid = $obj->rowid;
                         $event->fk_equipement = $obj->fk_equipement;

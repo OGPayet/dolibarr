@@ -190,10 +190,10 @@ else if ($action == 'save' && $user->rights->equipement->creer) {
             if ($value['type']==0) {
                 // for each equipment componnent
                 for ($i=0; $i < $value['nb']; $i++) {
-                    $refComponent = GETPOST('ref_' . $value['id'] . '_' . $i);
+                    $fkComponent = GETPOST('component_' . $value['id'] . '_' . $i);
 
                     // save component equipment
-                    $ret = $componentEquipementStatic->set_component($id, $value['id'], $i, $refComponent);
+                    $ret = $componentEquipementStatic->set_component_id($id, $value['id'], $i, $fkComponent);
                     if ($ret < 0) $error++;
 
                     if ($error) {
@@ -350,29 +350,29 @@ if (count($prods_arbo) > 0) {
                 print '<td align="left">';
 				if ($productstatic->array_options['options_synergiestech_to_serialize'] == 1) {
                     $componentEquipementStatic = new Equipement($db);
-                    $refComponent = $componentEquipementStatic->get_component($id, $value['id'], $i);
+                    $fkComponent = $componentEquipementStatic->get_component_id($id, $value['id'], $i);
 
-                    if (!empty($refComponent)) {
-                        $componentEquipementStatic->fetch('', $refComponent);
+                    if ($fkComponent > 0) {
+                        $componentEquipementStatic->fetch($fkComponent);
                         print $componentEquipementStatic->getNomUrl(1);
                         print '<br />';
                     }
 
                     // serial number field
-                    $refFieldName = 'ref_' . $value['id'] . '_' . $i;
+                    $refFieldName = 'component_' . $value['id'] . '_' . $i;
 
                     $resql = $componentEquipementStatic->findAllInWarehouseByFkProduct($productstatic->id);
                     if (!$resql || $db->num_rows($resql) <= 0) {
-                        print '<input type="text" name="' . $refFieldName . '" value="' . $refComponent . '" />';
+                        print '<input type="text" name="' . $refFieldName . '" value="' . $fkComponent . '" />';
                     } else {
                         print '<select name="' . $refFieldName . '">';
                         print '<option value=""></option>';
-                        if (!empty($refComponent)) {
-                            print '<option value="' . $refComponent . '" selected="selected">' . $refComponent . '</option>';
+                        if ($fkComponent > 0) {
+                            print '<option value="' . $fkComponent . '" selected="selected">' . $componentEquipementStatic->ref . '</option>';
                         }
 
                         while ($obj = $db->fetch_object($resql)) {
-                            print '<option value="' . $obj->ref . '">' . $obj->ref . '</option>';
+                            print '<option value="' . $obj->rowid . '">' . $obj->ref . '</option>';
                         }
                         print '</select>';
                     }

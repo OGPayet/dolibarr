@@ -1873,7 +1873,7 @@ class Equipement extends CommonObject
 
 
 	/**
-	 *	Get the id of the equipement child
+	 *	Get the ref of the equipement child
 	 *
 	 *	@param  	int		$fk_parent			Id equipement parent
 	 *	@param  	int		$fk_product			Id product of component
@@ -1895,6 +1895,38 @@ class Equipement extends CommonObject
 			return($this->ref);
 		}
 	}
+
+
+    /**
+     * Get the id of the equipement child
+     *
+     * @param  	int		$fk_parent			Id equipement parent
+     * @param  	int		$fk_product			Id product of component
+     * @param  	int		$position			position of the component in the parent
+     * @return 	int     Id equipement child
+     *
+     * @throws  Exception
+     */
+    function get_component_id($fk_parent, $fk_product, $position)
+    {
+        $sql = "SELECT fk_equipement_fils FROM ".MAIN_DB_PREFIX."equipementassociation ";
+        $sql.= " WHERE fk_equipement_pere=".$fk_parent;
+        $sql.= " and fk_product=".$fk_product;
+        $sql.= " and position=".$position;
+
+        dol_syslog(get_class($this)."::get_component sql=".$sql, LOG_DEBUG);
+        $resql=$this->db->query($sql);
+        if ($resql) {
+            $objp = $this->db->fetch_object($resql);
+            $this->fetch($objp->fk_equipement_fils);
+            return($this->id);
+        } else {
+            $this->error    = $this->db->lasterror();
+            $this->errors[] = $this->error;
+            return -1;
+        }
+    }
+
 
 	/**
 	 *	Get the id of the childs
@@ -2022,6 +2054,7 @@ class Equipement extends CommonObject
 
     /**
      * Set the id of the equipment child
+     * @deprecated uses set_component_id instead (/!\ don't use because two equipments can have the same ref)
      *
      * @param  	int		$fk_parent          Id equipment parent
      * @param  	int		$fk_product         Id product of component
@@ -2215,6 +2248,204 @@ class Equipement extends CommonObject
             return -1;
         }
     }
+
+
+    /**
+     * Set the id of the equipment child
+     *
+     * @param  	int		$fk_parent          Id equipment parent
+     * @param  	int		$fk_product         Id product of component
+     * @param  	int		$position           Position of the component in the parent
+     * @param  	int     $fk_child           Id equipment child
+     * @return 	int     <0 if KO, >0 if OK
+     *
+     * @throws Exception
+     */
+    function set_component_id($fk_parent, $fk_product, $position, $fk_child, $notrigger=0)
+    {
+        global $langs, $user;
+        $langs->load('equipement@equipement');
+
+        $now = dol_now();
+        $error = 0;
+        $this->db->begin();
+
+        $equipment_statitc = new Equipement($this->db);
+        $equipment_statitc->fetch($fk_parent);
+        $fk_equipementevt_type = dol_getIdFromCode($this->db, 'COMPO', 'c_equipementevt_type', 'code', 'rowid');
+
+        // Get current ref attached to this $fk_parent, $fk_product, $position
+        $current_equipment_statitc = new Equipement($this->db);
+        $current_ref_child = $current_equipment_statitc->get_component($fk_parent, $fk_product, $position);
+
+        $this->id = '';
+        if ($fk_child>0 && $this->fetch($fk_child) > 0) {
+            $ref_child = $this->ref;
+            if ($current_ref_child != $ref_child) {
+                if (!empty($current_ref_child)) {
+                    $result = $equipment_statitc->addline(
+                        $equipment_statitc->id,
+                        $fk_equipementevt_type,
+                        //$langs->trans('EquipmentDeleteEquipmentToComposition', $current_equipment_statitc->getNomUrl(1)),
+                        $langs->trans('EquipmentDeleteEquipmentToComposition', $current_equipment_statitc->getNomUrl(1), $equipment_statitc->getNomUrl(1)),
+                        $now,
+                        $now,
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        ''
+                    );
+                    if ($result < 0) {
+                        $error++;
+                        $this->error = $equipment_statitc->errorsToString();
+                    }
+
+                    if (!$error) {
+                        // Delete old equiquipment
+                        $sql = "DELETE FROM " . MAIN_DB_PREFIX . "equipementassociation ";
+                        $sql .= " WHERE fk_equipement_pere=" . $fk_parent;
+                        $sql .= " and fk_product=" . $fk_product;
+                        $sql .= " and position=" . $position;
+
+                        dol_syslog(get_class($this) . "::set_component del sql=" . $sql, LOG_DEBUG);
+                        $result = $this->db->query($sql);
+                        if ($result < 0) {
+                            $error++;
+                            $this->error = $this->db->lasterror();
+                        }
+                    }
+
+                    if (!$error && ! $notrigger) {
+                        // Call trigger
+                        $this->context['parameters'] = array('parent' => $equipment_statitc, 'old_child' => $current_equipment_statitc, 'position' => $position);
+                        $result = $this->call_trigger('SET_COMPONENT_DEL', $user);
+                        if ($result < 0) {
+                            $error++;
+                        }
+                        // End call triggers
+                    }
+
+                }
+
+                if (!$error) {
+                    $equipment_statitc->context['set_component_add'] = 'set_component_add';
+                    $equipment_statitc->context['component_add_id'] = $this->id;
+
+                    $sql = "INSERT INTO " . MAIN_DB_PREFIX . "equipementassociation ";
+                    $sql .= " (fk_equipement_fils, fk_equipement_pere, fk_product, position)";
+                    $sql .= " values (" . $this->id . ", " . $fk_parent . ", " . $fk_product . ", " . $position . ")";
+                    dol_syslog(get_class($this) . "::set_component trt sql=" . $sql, LOG_DEBUG);
+                    $result = $this->db->query($sql);
+                    if ($result < 0) {
+                        $error++;
+                        $this->error = $this->db->lasterror();
+                    }
+
+                    // remove child equipment from warehouse
+                    if (!$error) {
+                        $result = $this->set_entrepot($user, -1);
+                        if ($result < 0) $error++;
+                    }
+
+                    if (!$error && ! $notrigger) {
+                        // Call trigger
+                        $this->context['parameters'] = array('parent' => $equipment_statitc, 'old_child' => $current_equipment_statitc, 'position' => $position);
+                        $result = $this->call_trigger('SET_COMPONENT_ADD', $user);
+                        if ($result < 0) {
+                            $error++;
+                        }
+                        // End call triggers
+                    }
+
+                    if (!$error) {
+                        $result = $equipment_statitc->addline(
+                            $equipment_statitc->id,
+                            $fk_equipementevt_type,
+                            //$langs->trans('EquipmentAddEquipmentToComposition', $this->getNomUrl(1)),
+                            $langs->trans('EquipmentAddEquipmentToComposition', $this->getNomUrl(1), $equipment_statitc->getNomUrl(1)),
+                            $now,
+                            $now,
+                            '',
+                            '',
+                            '',
+                            '',
+                            '',
+                            '',
+                            '',
+                            ''
+                        );
+                        if ($result < 0) {
+                            $error++;
+                            $this->error = $equipment_statitc->errorsToString();
+                        }
+                    }
+
+                    unset($equipment_statitc->context);
+                }
+            }
+        } else {
+            if (!empty($current_ref_child)) {
+                $result = $equipment_statitc->addline(
+                    $equipment_statitc->id,
+                    $fk_equipementevt_type,
+                    //$langs->trans('EquipmentDeleteEquipmentToComposition', $current_equipment_statitc->getNomUrl(1)),
+                    $langs->trans('EquipmentDeleteEquipmentToComposition', $current_equipment_statitc->getNomUrl(1), $equipment_statitc->getNomUrl(1)),
+                    $now,
+                    $now,
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    ''
+                );
+                if ($result < 0) {
+                    $error++;
+                    $this->error = $equipment_statitc->errorsToString();
+                }
+
+                if (!$error) {
+                    // Delete old equiquipment
+                    $sql = "DELETE FROM " . MAIN_DB_PREFIX . "equipementassociation ";
+                    $sql .= " WHERE fk_equipement_pere=" . $fk_parent;
+                    $sql .= " and fk_product=" . $fk_product;
+                    $sql .= " and position=" . $position;
+
+                    dol_syslog(get_class($this) . "::set_component del sql=" . $sql, LOG_DEBUG);
+                    $result = $this->db->query($sql);
+                    if ($result < 0) {
+                        $error++;
+                        $this->error = $this->db->lasterror();
+                    }
+                }
+
+                if (!$error && ! $notrigger) {
+                    // Call trigger
+                    $this->context['parameters'] = array('parent' => $equipment_statitc, 'old_child' => $current_equipment_statitc, 'position' => $position);
+                    $result = $this->call_trigger('SET_COMPONENT_DEL', $user);
+                    if ($result < 0) {
+                        $error++;
+                    }
+                    // End call triggers
+                }
+            }
+        }
+
+        if (!$error) {
+            $this->db->commit();
+            return 1;
+        } else {
+            $this->db->rollback();
+            return -1;
+        }
+    }
+
 
 	/**
 	 *	cut an equipement
