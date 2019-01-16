@@ -141,6 +141,24 @@ class InterfaceRMBeforeActionsAuto extends DolibarrTriggers
                 $object->oldcopy->fetch_thirdparty_benefactor();
                 $updatedProperty[] = '- ' . $langs->transnoentities("RequestManagerThirdPartyBenefactor") . ' : ' . $object->thirdparty_benefactor->getFullName($langs) . ' ( ' . $object->oldcopy->thirdparty_benefactor->getFullName($langs) . ' )';
             }
+            // Watcher company
+            if (opendsi_is_updated_property($object, 'socid_watcher')) {
+                $object->fetch_thirdparty_watcher();
+                $object->oldcopy->fetch_thirdparty_watcher();
+                $updatedProperty[] = '- ' . $langs->transnoentities("RequestManagerThirdPartyWatcher") . ' : ' . $object->thirdparty_watcher->getFullName($langs) . ' ( ' . $object->oldcopy->thirdparty_watcher->getFullName($langs) . ' )';
+            }
+            // Availability of the request for the principal company
+            if (opendsi_is_updated_property($object, 'availability_for_thirdparty_principal')) {
+                $updatedProperty[] = '- ' . $langs->transnoentities("RequestManagerAvailabilityForThirdPartyPrincipal") . ' : ' . yn($object->availability_for_thirdparty_principal) . ' ( ' . yn($object->oldcopy->availability_for_thirdparty_principal) . ' )';
+            }
+            // Availability of the request for the benefactor company
+            if (opendsi_is_updated_property($object, 'availability_for_thirdparty_benefactor')) {
+                $updatedProperty[] = '- ' . $langs->transnoentities("RequestManagerAvailabilityForThirdPartyBenefactor") . ' : ' . yn($object->availability_for_thirdparty_benefactor) . ' ( ' . yn($object->oldcopy->availability_for_thirdparty_benefactor) . ' )';
+            }
+            // Availability of the request for the watcher company
+            if (opendsi_is_updated_property($object, 'availability_for_thirdparty_watcher')) {
+                $updatedProperty[] = '- ' . $langs->transnoentities("RequestManagerAvailabilityForThirdPartyWatcher") . ' : ' . yn($object->availability_for_thirdparty_watcher) . ' ( ' . yn($object->oldcopy->availability_for_thirdparty_watcher) . ' )';
+            }
             // Request source
             if (opendsi_is_updated_property($object, 'fk_source')) {
                 $updatedProperty[] = '- ' . $langs->transnoentities("RequestManagerSource") . ' : ' . $object->getLibSource(2) . ' ( ' . $object->oldcopy->getLibSource(2) . ' )';

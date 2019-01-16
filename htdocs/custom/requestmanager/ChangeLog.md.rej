@@ -3,9 +3,19 @@ diff a/htdocs/custom/requestmanager/ChangeLog.md b/htdocs/custom/requestmanager/
  
  ## [Non Distribué]
  
-+## [4.0.19] - 31-12-2018
-+- Ajout de l'observateur
++## [4.0.20] - 16-01-2019
++- Correction du changement des dates operation et echeance lors d'une creation ou modification d'un evenement (seulement ceux qui ne sont pas automatiques)
 +
- ## [4.0.18] - 19-12-2018
- - Correction lors de la creation d'une demande lors d'un forcage du donneur d'ordre en dehors de la plage horaire.
- - Correction affichage de l'URL dans les courriels avec la variable de substitution "\_\_REQUEST_URL__".
+ ## [4.0.19] - 31-12-2018
+ - Ajout de l'observateur
+ 
+@@ -104,7 +107,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
+ ## [4.0.0] - 16-07-2018
+ - Version initial.
+ 
+-[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/compare/v4.0.18...HEAD
++[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/compare/v4.0.20...HEAD
++[4.0.20]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.20
+ [4.0.18]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.18
+ [4.0.15]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.15
+ [4.0.14]: http://git.open-dsi.fr/dolibarr-extension/requestmanager/commits/v4.0.14

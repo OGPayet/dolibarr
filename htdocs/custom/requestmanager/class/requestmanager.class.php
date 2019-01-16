@@ -53,15 +53,16 @@ class RequestManager extends CommonObject
      */
     static public $API_WHITELIST_OF_PROPERTIES = array(
         "id" => '', "fk_parent" => '',/* "parent" => '',*/ "children_request_ids" => '', "children_request_list" => '',
-        "ref" => '', "ref_ext" => '', "socid_origin" => '', "socid" => '', "socid_benefactor" => '', "thirdparty_origin" => '',
-        "thirdparty" => '', "thirdparty_benefactor" => '', "label" => '', "description" => '', "fk_type" => '',
-        "fk_category" => '', "fk_source" => '', "fk_urgency" => '', "fk_impact" => '', "fk_priority" => '', "duration" => '',
-        "fk_reason_resolution" => '', "reason_resolution_details" => '', "requester_ids" => '', "requester_list" => '',
-        "notify_requester_by_email" => '', "watcher_ids" => '', "watcher_list" => '', "notify_watcher_by_email" => '',
-        "assigned_user_ids" => '', "assigned_user_list" => '', "assigned_usergroup_ids" => '', "assigned_usergroup_list" => '',
-        "notify_assigned_by_email" => '', "tag_ids" => '', "tag_list" => '', "date_operation" => '', "date_deadline" => '',
-        "date_resolved" => '', "date_cloture" => '', "user_resolved_id" => '', "user_cloture_id" => '', "statut" => '',
-        "statut_type" => '', "entity" => '', "date_creation" => '', "date_modification" => '', "user_creation_id" => '',
+        "ref" => '', "ref_ext" => '', "socid_origin" => '', "socid" => '', "socid_benefactor" => '', "socid_watcher" => '',
+        "thirdparty_origin" => '', "thirdparty" => '', "thirdparty_benefactor" => '', "thirdparty_watcher" => '',
+        "availability_for_thirdparty_principal" => '', "availability_for_thirdparty_benefactor" => '', "availability_for_thirdparty_watcher" => '',
+        "label" => '', "description" => '', "fk_type" => '', "fk_category" => '', "fk_source" => '', "fk_urgency" => '',
+        "fk_impact" => '', "fk_priority" => '', "duration" => '', "fk_reason_resolution" => '', "reason_resolution_details" => '',
+        "requester_ids" => '', "requester_list" => '', "notify_requester_by_email" => '', "watcher_ids" => '', "watcher_list" => '',
+        "notify_watcher_by_email" => '', "assigned_user_ids" => '', "assigned_user_list" => '', "assigned_usergroup_ids" => '',
+        "assigned_usergroup_list" => '', "notify_assigned_by_email" => '', "tag_ids" => '', "tag_list" => '', "date_operation" => '',
+        "date_deadline" => '', "date_resolved" => '', "date_cloture" => '', "user_resolved_id" => '', "user_cloture_id" => '',
+        "statut" => '', "statut_type" => '', "entity" => '', "date_creation" => '', "date_modification" => '', "user_creation_id" => '',
         "user_modification_id" => '', "array_options" => '', "linkedObjectsIds" => '',
     );
 
@@ -219,6 +220,21 @@ class RequestManager extends CommonObject
      * @see fetch_thirdparty_benefactor()
      */
     public $thirdparty_watcher;
+    /**
+     * Availability of the request for the thirdparty principal
+     * @var boolean
+     */
+    public $availability_for_thirdparty_principal;
+    /**
+     * Availability of the request for the thirdparty benefactor
+     * @var boolean
+     */
+    public $availability_for_thirdparty_benefactor;
+    /**
+     * Availability of the request for the thirdparty watcher
+     * @var boolean
+     */
+    public $availability_for_thirdparty_watcher;
 
     /**
      * Label of the request
@@ -581,6 +597,9 @@ class RequestManager extends CommonObject
         $this->socid = $this->socid > 0 ? $this->socid : $this->socid_origin;
         $this->socid_benefactor = $this->socid_benefactor > 0 ? $this->socid_benefactor : $this->socid_origin;
         $this->socid_watcher = $this->socid_watcher > 0 ? $this->socid_watcher : 0;
+        $this->availability_for_thirdparty_principal = !isset($this->availability_for_thirdparty_principal) ? 1 : (!empty($this->availability_for_thirdparty_principal) ? 1 : 0);
+        $this->availability_for_thirdparty_benefactor = !isset($this->availability_for_thirdparty_benefactor) ? 1 : (!empty($this->availability_for_thirdparty_benefactor) ? 1 : 0);
+        $this->availability_for_thirdparty_watcher = !isset($this->availability_for_thirdparty_watcher) ? 1 : (!empty($this->availability_for_thirdparty_watcher) ? 1 : 0);
         $this->label = trim($this->label);
         $this->description = trim($this->description);
         $this->fk_type = $this->fk_type > 0 ? $this->fk_type : 0;
@@ -684,6 +703,9 @@ class RequestManager extends CommonObject
         $sql .= ", fk_soc";
         $sql .= ", fk_soc_benefactor";
         $sql .= ", fk_soc_watcher";
+        $sql .= ", availability_for_thirdparty_principal";
+        $sql .= ", availability_for_thirdparty_benefactor";
+        $sql .= ", availability_for_thirdparty_watcher";
         $sql .= ", label";
         $sql .= ", description";
         $sql .= ", fk_type";
@@ -710,6 +732,9 @@ class RequestManager extends CommonObject
         $sql .= ", " . $this->socid;
         $sql .= ", " . $this->socid_benefactor;
         $sql .= ", " . ($this->socid_watcher > 0 ? $this->socid_watcher : 'NULL');
+        $sql .= ", " . ($this->availability_for_thirdparty_principal > 0 ? $this->availability_for_thirdparty_principal : 'NULL');
+        $sql .= ", " . ($this->availability_for_thirdparty_benefactor > 0 ? $this->availability_for_thirdparty_benefactor : 'NULL');
+        $sql .= ", " . ($this->availability_for_thirdparty_watcher > 0 ? $this->availability_for_thirdparty_watcher : 'NULL');
         $sql .= ", '" . $this->db->escape($this->label) . "'";
         $sql .= ", '" . $this->db->escape($this->description) . "'";
         $sql .= ", " . $this->fk_type;
@@ -1027,6 +1052,9 @@ class RequestManager extends CommonObject
         $sql .= ' t.fk_soc,';
         $sql .= ' t.fk_soc_benefactor,';
         $sql .= ' t.fk_soc_watcher,';
+        $sql .= ' t.availability_for_thirdparty_principal,';
+        $sql .= ' t.availability_for_thirdparty_benefactor,';
+        $sql .= ' t.availability_for_thirdparty_watcher,';
         $sql .= ' t.label,';
         $sql .= ' t.description,';
         $sql .= ' t.fk_type,';
@@ -1085,6 +1113,9 @@ class RequestManager extends CommonObject
                 $this->socid                        = $obj->fk_soc;
                 $this->socid_benefactor             = $obj->fk_soc_benefactor;
                 $this->socid_watcher                = $obj->fk_soc_watcher;
+                $this->availability_for_thirdparty_principal    = empty($obj->availability_for_thirdparty_principal) ? 0 : 1;
+                $this->availability_for_thirdparty_benefactor   = empty($obj->availability_for_thirdparty_benefactor) ? 0 : 1;
+                $this->availability_for_thirdparty_watcher      = empty($obj->availability_for_thirdparty_watcher) ? 0 : 1;
                 $this->label                        = $obj->label;
                 $this->description                  = $obj->description;
                 $this->fk_type                      = $obj->fk_type;
@@ -1721,6 +1752,9 @@ class RequestManager extends CommonObject
         $this->socid = $this->socid > 0 ? $this->socid : $this->socid_origin;
         $this->socid_benefactor = $this->socid_benefactor > 0 ? $this->socid_benefactor : $this->socid_origin;
         $this->socid_watcher = $this->socid_watcher > 0 ? $this->socid_watcher : 0;
+        $this->availability_for_thirdparty_principal = !isset($this->availability_for_thirdparty_principal) ? 1 : (!empty($this->availability_for_thirdparty_principal) ? 1 : 0);
+        $this->availability_for_thirdparty_benefactor = !isset($this->availability_for_thirdparty_benefactor) ? 1 : (!empty($this->availability_for_thirdparty_benefactor) ? 1 : 0);
+        $this->availability_for_thirdparty_watcher = !isset($this->availability_for_thirdparty_watcher) ? 1 : (!empty($this->availability_for_thirdparty_watcher) ? 1 : 0);
         $this->label = trim($this->label);
         $this->description = trim($this->description);
         $this->fk_type = $this->fk_type > 0 ? $this->fk_type : 0;
@@ -1810,6 +1844,9 @@ class RequestManager extends CommonObject
             opendsi_is_updated_property($this, 'socid') ||
             opendsi_is_updated_property($this, 'socid_benefactor') ||
             opendsi_is_updated_property($this, 'socid_watcher') ||
+            opendsi_is_updated_property($this, 'availability_for_thirdparty_principal') ||
+            opendsi_is_updated_property($this, 'availability_for_thirdparty_benefactor') ||
+            opendsi_is_updated_property($this, 'availability_for_thirdparty_watcher') ||
             opendsi_is_updated_property($this, 'fk_source') ||
             opendsi_is_updated_property($this, 'fk_urgency') ||
             opendsi_is_updated_property($this, 'fk_impact') ||
@@ -1840,6 +1877,9 @@ class RequestManager extends CommonObject
         $sql .= ", fk_soc = " . $this->socid;
         $sql .= ", fk_soc_benefactor = " . $this->socid_benefactor;
         $sql .= ", fk_soc_watcher = " . ($this->socid_watcher > 0 ? $this->socid_watcher : 'NULL');
+        $sql .= ", availability_for_thirdparty_principal = " . ($this->availability_for_thirdparty_principal > 0 ? $this->availability_for_thirdparty_principal : 'NULL');
+        $sql .= ", availability_for_thirdparty_benefactor = " . ($this->availability_for_thirdparty_benefactor > 0 ? $this->availability_for_thirdparty_benefactor : 'NULL');
+        $sql .= ", availability_for_thirdparty_watcher = " . ($this->availability_for_thirdparty_watcher > 0 ? $this->availability_for_thirdparty_watcher : 'NULL');
         $sql .= ", label = '" . $this->db->escape($this->label) . "'";
         $sql .= ", description = '" . $this->db->escape($this->description) . "'";
         $sql .= ", fk_type = " . $this->fk_type;

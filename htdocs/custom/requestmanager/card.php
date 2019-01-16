@@ -290,6 +290,42 @@ if (empty($reshook)) {
             header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
             exit();
         }
+    } // Set Availability of the request for the thirdparty principal
+    elseif ($action == 'set_availability_for_thirdparty_principal' && !empty($conf->companyrelationships->enabled) && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+        $object->oldcopy = clone $object;
+        $object->availability_for_thirdparty_principal = GETPOST('availability_for_thirdparty_principal', 'int');
+        $result = $object->update($user);
+        if ($result < 0) {
+            setEventMessages($object->error, $object->errors, 'errors');
+            $action = 'edit_availability_for_thirdparty_principal';
+        } else {
+            header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
+            exit();
+        }
+    } // Set Availability of the request for the thirdparty benefactor
+    elseif ($action == 'set_availability_for_thirdparty_benefactor' && !empty($conf->companyrelationships->enabled) && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+        $object->oldcopy = clone $object;
+        $object->availability_for_thirdparty_benefactor = GETPOST('availability_for_thirdparty_benefactor', 'int');
+        $result = $object->update($user);
+        if ($result < 0) {
+            setEventMessages($object->error, $object->errors, 'errors');
+            $action = 'edit_availability_for_thirdparty_benefactor';
+        } else {
+            header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
+            exit();
+        }
+    } // Set Availability of the request for the thirdparty watcher
+    elseif ($action == 'set_availability_for_thirdparty_watcher' && !empty($conf->companyrelationships->enabled) && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+        $object->oldcopy = clone $object;
+        $object->availability_for_thirdparty_watcher = GETPOST('availability_for_thirdparty_watcher', 'int');
+        $result = $object->update($user);
+        if ($result < 0) {
+            setEventMessages($object->error, $object->errors, 'errors');
+            $action = 'edit_availability_for_thirdparty_watcher';
+        } else {
+            header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
+            exit();
+        }
     } // Set Source
     elseif ($action == 'set_source' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
         $object->oldcopy = clone $object;
@@ -1445,6 +1481,69 @@ SCRIPT;
             if ($object->thirdparty_watcher) {
                 print $object->thirdparty_watcher->getNomUrl(1);
             }
+        }
+        print '</td></tr>';
+
+        // Availability of the request for the thirdparty principal
+        print '<tr><td>';
+        print '<table class="nobordernopadding" width="100%"><tr><td>';
+        print $langs->trans('RequestManagerAvailabilityForThirdPartyPrincipal');
+        print '</td>';
+        if ($action != 'edit_availability_for_thirdparty_principal' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS)
+            print '<td align="right"><a href="' . $_SERVER["PHP_SELF"] . '?action=edit_availability_for_thirdparty_principal&id=' . $object->id . '">' . img_edit($langs->trans('RequestManagerSetAvailabilityForThirdPartyPrincipal'), 1) . '</a></td>';
+        print '</tr></table>';
+        print '</td><td>';
+        if ($action == 'edit_availability_for_thirdparty_principal' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+            print '<form name="editavailability_for_thirdparty_principal" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
+            print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
+            print '<input type="hidden" name="action" value="set_availability_for_thirdparty_principal">';
+            print '<input type="checkbox" name="availability_for_thirdparty_principal" value="1"' . ($object->availability_for_thirdparty_principal ? ' checked' : '') . ' />';
+            print '<input type="submit" class="button" value="' . $langs->trans('Modify') . '">';
+            print '</form>';
+        } else {
+            print yn($object->availability_for_thirdparty_principal);
+        }
+        print '</td></tr>';
+
+        // Availability of the request for the thirdparty benefactor
+        print '<tr><td>';
+        print '<table class="nobordernopadding" width="100%"><tr><td>';
+        print $langs->trans('RequestManagerAvailabilityForThirdPartyBenefactor');
+        print '</td>';
+        if ($action != 'edit_availability_for_thirdparty_benefactor' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS)
+            print '<td align="right"><a href="' . $_SERVER["PHP_SELF"] . '?action=edit_availability_for_thirdparty_benefactor&id=' . $object->id . '">' . img_edit($langs->trans('RequestManagerSetAvailabilityForThirdPartyBenefactor'), 1) . '</a></td>';
+        print '</tr></table>';
+        print '</td><td>';
+        if ($action == 'edit_availability_for_thirdparty_benefactor' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+            print '<form name="editavailability_for_thirdparty_benefactor" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
+            print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
+            print '<input type="hidden" name="action" value="set_availability_for_thirdparty_benefactor">';
+            print '<input type="checkbox" name="availability_for_thirdparty_benefactor" value="1"' . ($object->availability_for_thirdparty_benefactor ? ' checked' : '') . ' />';
+            print '<input type="submit" class="button" value="' . $langs->trans('Modify') . '">';
+            print '</form>';
+        } else {
+            print yn($object->availability_for_thirdparty_benefactor);
+        }
+        print '</td></tr>';
+
+        // Availability of the request for the thirdparty watcher
+        print '<tr><td>';
+        print '<table class="nobordernopadding" width="100%"><tr><td>';
+        print $langs->trans('RequestManagerAvailabilityForThirdPartyWatcher');
+        print '</td>';
+        if ($action != 'edit_availability_for_thirdparty_watcher' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS)
+            print '<td align="right"><a href="' . $_SERVER["PHP_SELF"] . '?action=edit_availability_for_thirdparty_watcher&id=' . $object->id . '">' . img_edit($langs->trans('RequestManagerSetAvailabilityForThirdPartyWatcher'), 1) . '</a></td>';
+        print '</tr></table>';
+        print '</td><td>';
+        if ($action == 'edit_availability_for_thirdparty_watcher' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+            print '<form name="editavailability_for_thirdparty_watcher" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
+            print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
+            print '<input type="hidden" name="action" value="set_availability_for_thirdparty_watcher">';
+            print '<input type="checkbox" name="availability_for_thirdparty_watcher" value="1"' . ($object->availability_for_thirdparty_watcher ? ' checked' : '') . ' />';
+            print '<input type="submit" class="button" value="' . $langs->trans('Modify') . '">';
+            print '</form>';
+        } else {
+            print yn($object->availability_for_thirdparty_watcher);
         }
         print '</td></tr>';
     }

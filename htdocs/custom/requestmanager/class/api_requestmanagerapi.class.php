@@ -274,19 +274,24 @@ class RequestManagerApi extends DolibarrApi {
         $sql = "SELECT t.rowid";
         $sql .= " FROM " . MAIN_DB_PREFIX . "requestmanager as t" . $assignedSQLJoin;
         if ($search_sale > 0) {
-            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe_commerciaux as sc ON (sc.fk_soc = t.fk_soc OR sc.fk_soc = t.fk_soc_benefactor OR sc.fk_soc = t.fk_soc_watcher)";
-
+            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe_commerciaux as scp ON (scp.fk_soc = t.fk_soc)";
+            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe_commerciaux as scb ON (scb.fk_soc = t.fk_soc_benefactor)";
+            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe_commerciaux as scw ON (scw.fk_soc = t.fk_soc_watcher)";
         }
         $sql .= ' WHERE t.entity IN (' . getEntity('requestmanager') . ')';
         // Restrict to the company of the user
         if (DolibarrApiAccess::$user->socid > 0) {
-            $sql .= " AND (t.fk_soc = " . DolibarrApiAccess::$user->socid . " OR t.fk_soc_benefactor = " . DolibarrApiAccess::$user->socid . " OR t.fk_soc_watcher = " . DolibarrApiAccess::$user->socid;
+            $sql .= " AND ((t.fk_soc = " . DolibarrApiAccess::$user->socid . " AND t.availability_for_thirdparty_principal = 1)";
+            $sql .= " OR (t.fk_soc_benefactor = " . DolibarrApiAccess::$user->socid . " AND t.availability_for_thirdparty_benefactor = 1)";
+            $sql .= " OR (t.fk_soc_watcher = " . DolibarrApiAccess::$user->socid . " AND t.availability_for_thirdparty_watcher = 1)";
             if ($search_sale > 0) {
-                $sql .= " OR sc.fk_user = " . $search_sale;
+                $sql .= " OR (scp.fk_user = " . $search_sale . " AND t.availability_for_thirdparty_principal = 1)";
+                $sql .= " OR (scb.fk_user = " . $search_sale . " AND t.availability_for_thirdparty_benefactor = 1)";
+                $sql .= " OR (scw.fk_user = " . $search_sale . " AND t.availability_for_thirdparty_watcher = 1)";
             }
             $sql .= ")";
         } elseif ($search_sale > 0) {
-            $sql .= " AND sc.fk_user = " . $search_sale;
+            $sql .= " AND (scp.fk_user = " . $search_sale . " OR scb.fk_user = " . $search_sale . " OR scw.fk_user = " . $search_sale . "";
         }
         // Add sql filters
         if ($sql_filters) {
@@ -1618,7 +1623,11 @@ class RequestManagerApi extends DolibarrApi {
         }
 
         $socid = DolibarrApiAccess::$user->socid;
-        if ($socid > 0 && $socid != $requestmanager->socid && $socid != $requestmanager->socid_benefactor && $socid != $requestmanager->socid_watcher) {
+        if ($socid > 0 &&
+            ($socid != $requestmanager->socid || empty($requestmanager->availability_for_thirdparty_principal)) &&
+            ($socid != $requestmanager->socid_benefactor || empty($requestmanager->availability_for_thirdparty_benefactor)) &&
+            ($socid != $requestmanager->socid_watcher || empty($requestmanager->availability_for_thirdparty_watcher))
+        ) {
             throw new RestException(403, "Access unauthorized");
         }
 
