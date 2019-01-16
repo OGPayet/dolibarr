@@ -191,90 +191,93 @@ class InterfaceRMWorkflow extends DolibarrTriggers
          * Auto set date operation and deadline from event
          */
         if ($action == "ACTION_CREATE" || $action == "ACTION_MODIFY") {
-            // Get requests linked to the object
-            $sql = "SELECT DISTINCT IF(ee.targettype = 'requestmanager', ee.fk_target, IF(ee.sourcetype = 'requestmanager', ee.fk_source, ac.fk_element)) AS request_id, rm.fk_status AS request_status";
-            $sql .= " FROM " . MAIN_DB_PREFIX . "actioncomm AS ac";
-            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "element_element AS ee";
-            $element_correspondance = "(" . // Todo a completer si il y a d'autres correspondances
-                "IF(ac.elementtype = 'contract', 'contrat', " .
-                " IF(ac.elementtype = 'invoice', 'facture', " .
-                "  IF(ac.elementtype = 'order', 'commande', " .
-                "   ac.elementtype)))" .
-                ")";
-            $sql .= " ON (ee.sourcetype = " . $element_correspondance . " AND ee.fk_source = ac.fk_element) OR (ee.targettype = " . $element_correspondance . " AND ee.fk_target = ac.fk_element)";
-            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "requestmanager AS rm ON IF(ee.targettype = 'requestmanager', ee.fk_target, IF(ee.sourcetype = 'requestmanager', ee.fk_source, ac.fk_element)) = rm.rowid";
-            $sql .= " WHERE (ee.targettype = 'requestmanager' OR ee.sourcetype = 'requestmanager' OR ac.elementtype = 'requestmanager')";
-            $sql .= " AND ac.id = " . $object->id;
+            $action_type = dol_getIdFromCode($this->db, $object->type_code, 'c_actioncomm', 'code', 'type');
+            if ($action_type != 'systemauto') {
+                // Get requests linked to the object
+                $sql = "SELECT DISTINCT IF(ee.targettype = 'requestmanager', ee.fk_target, IF(ee.sourcetype = 'requestmanager', ee.fk_source, ac.fk_element)) AS request_id, rm.fk_status AS request_status";
+                $sql .= " FROM " . MAIN_DB_PREFIX . "actioncomm AS ac";
+                $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "element_element AS ee";
+                $element_correspondance = "(" . // Todo a completer si il y a d'autres correspondances
+                    "IF(ac.elementtype = 'contract', 'contrat', " .
+                    " IF(ac.elementtype = 'invoice', 'facture', " .
+                    "  IF(ac.elementtype = 'order', 'commande', " .
+                    "   ac.elementtype)))" .
+                    ")";
+                $sql .= " ON (ee.sourcetype = " . $element_correspondance . " AND ee.fk_source = ac.fk_element) OR (ee.targettype = " . $element_correspondance . " AND ee.fk_target = ac.fk_element)";
+                $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "requestmanager AS rm ON IF(ee.targettype = 'requestmanager', ee.fk_target, IF(ee.sourcetype = 'requestmanager', ee.fk_source, ac.fk_element)) = rm.rowid";
+                $sql .= " WHERE (ee.targettype = 'requestmanager' OR ee.sourcetype = 'requestmanager' OR ac.elementtype = 'requestmanager')";
+                $sql .= " AND ac.id = " . $object->id;
 
-            $resql = $this->db->query($sql);
-            if ($resql) {
-                if ($this->db->num_rows($resql) > 0) {
-                    dol_include_once('/requestmanager/class/requestmanager.class.php');
-                    dol_include_once('/advancedictionaries/class/dictionary.class.php');
-                    $requestManagerStatusDictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagerstatus');
-                    $requestManagerStatusDictionary->fetch_lines(1);
+                $resql = $this->db->query($sql);
+                if ($resql) {
+                    if ($this->db->num_rows($resql) > 0) {
+                        dol_include_once('/requestmanager/class/requestmanager.class.php');
+                        dol_include_once('/advancedictionaries/class/dictionary.class.php');
+                        $requestManagerStatusDictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagerstatus');
+                        $requestManagerStatusDictionary->fetch_lines(1);
 
-                    while ($obj = $this->db->fetch_object($resql)) {
-                        if (isset($requestManagerStatusDictionary->lines[$obj->request_status])) {
-                            $status_infos = $requestManagerStatusDictionary->lines[$obj->request_status];
+                        while ($obj = $this->db->fetch_object($resql)) {
+                            if (isset($requestManagerStatusDictionary->lines[$obj->request_status])) {
+                                $status_infos = $requestManagerStatusDictionary->lines[$obj->request_status];
 
-                            if (!empty($status_infos->fields['operation_from_event'])) {
-                                $request = new RequestManager($this->db);
-                                if ($request->fetch($obj->request_id) > 0) {
-                                    // Test if this event has the oldest begin date
-                                    $sql = "SELECT ac.id AS event_id";
-                                    $sql .= " FROM " . MAIN_DB_PREFIX . "actioncomm as ac";
-                                    $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "element_element as ee";
-                                    $sql .= " ON (ee.sourcetype = " . $element_correspondance . " AND ee.fk_source = ac.fk_element) OR (ee.targettype = " . $element_correspondance . " AND ee.fk_target = ac.fk_element)";
-                                    $sql .= ' WHERE ac.entity IN (' . getEntity('agenda') . ')';
-                                    $soc_ids = array_unique(array($request->socid_origin, $request->socid, $request->socid_benefactor));
-                                    $sql .= ' AND ac.fk_soc IN (' . implode(',', $soc_ids) . ')';
-                                    $request_children_ids = $request->getAllChildrenRequest();
-                                    $request_ids = array_merge($request_children_ids, array($request->id));
-                                    $sql .= " AND IF(ac.elementtype='requestmanager', ac.fk_element, IF(ee.targettype='requestmanager', ee.fk_target, IF(ee.sourcetype='requestmanager', ee.fk_source, NULL))) IN(" . implode(',', $request_ids) . ")";
-                                    //$sql .= ' AND ac.percent >= 0';
-                                    $sql .= ' ORDER BY ac.datep DESC LIMIT 1';
+                                if (!empty($status_infos->fields['operation_from_event'])) {
+                                    $request = new RequestManager($this->db);
+                                    if ($request->fetch($obj->request_id) > 0) {
+                                        // Test if this event has the oldest begin date
+                                        $sql = "SELECT ac.id AS event_id";
+                                        $sql .= " FROM " . MAIN_DB_PREFIX . "actioncomm as ac";
+                                        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "element_element as ee";
+                                        $sql .= " ON (ee.sourcetype = " . $element_correspondance . " AND ee.fk_source = ac.fk_element) OR (ee.targettype = " . $element_correspondance . " AND ee.fk_target = ac.fk_element)";
+                                        $sql .= ' WHERE ac.entity IN (' . getEntity('agenda') . ')';
+                                        $soc_ids = array_unique(array($request->socid_origin, $request->socid, $request->socid_benefactor));
+                                        $sql .= ' AND ac.fk_soc IN (' . implode(',', $soc_ids) . ')';
+                                        $request_children_ids = $request->getAllChildrenRequest();
+                                        $request_ids = array_merge($request_children_ids, array($request->id));
+                                        $sql .= " AND IF(ac.elementtype='requestmanager', ac.fk_element, IF(ee.targettype='requestmanager', ee.fk_target, IF(ee.sourcetype='requestmanager', ee.fk_source, NULL))) IN(" . implode(',', $request_ids) . ")";
+                                        //$sql .= ' AND ac.percent >= 0';
+                                        $sql .= ' ORDER BY ac.datep DESC LIMIT 1';
 
-                                    $resql2 = $this->db->query($sql);
-                                    if ($resql2) {
-                                        if ($obj2 = $this->db->fetch_object($resql2)) {
-                                            if ($obj2->event_id == $object->id) {
-                                                // Copy begin date of the event to the operation date of the request
-                                                $request->date_operation = $object->datep;
+                                        $resql2 = $this->db->query($sql);
+                                        if ($resql2) {
+                                            if ($obj2 = $this->db->fetch_object($resql2)) {
+                                                if ($obj2->event_id == $object->id) {
+                                                    // Copy begin date of the event to the operation date of the request
+                                                    $request->date_operation = $object->datep;
 
-                                                // Recalculate the deadline
-                                                if (!empty($status_infos->fields['deadline_rc_from_event'])) {
-                                                    if ($status_infos->fields['deadline']) {
-                                                        $request->date_deadline = (!empty($request->date_operation) ? $request->date_operation : dol_now()) + ($status_infos->fields['deadline'] * 60);
+                                                    // Recalculate the deadline
+                                                    if (!empty($status_infos->fields['deadline_rc_from_event'])) {
+                                                        if ($status_infos->fields['deadline']) {
+                                                            $request->date_deadline = (!empty($request->date_operation) ? $request->date_operation : dol_now()) + ($status_infos->fields['deadline'] * 60);
+                                                        }
+                                                    } // Copy end date of the event to the deadline date of the request
+                                                    elseif (!empty($status_infos->fields['deadline_from_event'])) {
+                                                        $request->date_deadline = $object->datef;
                                                     }
-                                                } // Copy end date of the event to the deadline date of the request
-                                                elseif (!empty($status_infos->fields['deadline_from_event'])) {
-                                                    $request->date_deadline = $object->datef;
-                                                }
 
-                                                $request->update($user);
+                                                    $request->update($user);
+                                                }
                                             }
+                                        } else {
+                                            $this->errors[] = $this->db->lasterror();
+                                            return -1;
                                         }
                                     } else {
-                                        $this->errors[] = $this->db->lasterror();
+                                        $this->error = $request->error;
+                                        $this->errors = $request->errors;
                                         return -1;
                                     }
-                                } else {
-                                    $this->error = $request->error;
-                                    $this->errors = $request->errors;
-                                    return -1;
                                 }
                             }
                         }
+
+                        dol_syslog("Trigger '" . $this->name . "' for action '$action' [auto set date operation and deadline from event] launched by " . __FILE__ . ". id=" . $object->id);
                     }
 
-                    dol_syslog("Trigger '" . $this->name . "' for action '$action' [auto set date operation and deadline from event] launched by " . __FILE__ . ". id=" . $object->id);
+                    $this->db->free($resql);
+                } else {
+                    $this->errors[] = $this->db->lasterror();
+                    return -1;
                 }
-
-                $this->db->free($resql);
-            } else {
-                $this->errors[] = $this->db->lasterror();
-                return -1;
             }
         }
 
