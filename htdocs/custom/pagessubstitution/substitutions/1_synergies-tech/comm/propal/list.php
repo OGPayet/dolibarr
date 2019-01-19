@@ -156,9 +156,9 @@ $arrayfields=array(
     'p.fin_validite'=>array('label'=>$langs->trans("DateEnd"), 'checked'=>1),
 //-------------------------------------------------------------------------------
 // Modification - Open-DSI - Begin
-    'p.total_ht'=>array('label'=>$langs->trans("AmountHT"), 'checked'=>1, 'enabled'=>(!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->lire)),
-    'p.total_vat'=>array('label'=>$langs->trans("AmountVAT"), 'checked'=>0, 'enabled'=>(!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->lire)),
-    'p.total_ttc'=>array('label'=>$langs->trans("AmountTTC"), 'checked'=>0, 'enabled'=>(!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->lire)),
+    'p.total_ht'=>array('label'=>$langs->trans("AmountHT"), 'checked'=>1, 'enabled'=>(!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal)),
+    'p.total_vat'=>array('label'=>$langs->trans("AmountVAT"), 'checked'=>0, 'enabled'=>(!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal)),
+    'p.total_ttc'=>array('label'=>$langs->trans("AmountTTC"), 'checked'=>0, 'enabled'=>(!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal)),
 // Modification - Open-DSI - End
 //-------------------------------------------------------------------------------
     'u.login'=>array('label'=>$langs->trans("Author"), 'checked'=>1, 'position'=>10),
@@ -829,7 +829,7 @@ if ($resql)
 //-------------------------------------------------------------------------------
 // Modification - Open-DSI - Begin
             if (!$conf->synergiestech->enabled ||
-			($user->rights->synergiestech->documents->lire &&
+			($user->rights->synergiestech->documents->customerpropal &&
 			(empty($obj->options_sitevalue) ||
 			($user->rights->synergiestech->propal->installation_value&&!empty($obj->options_sitevalue))))) {
                 print '<td width="16" align="right" class="nobordernopadding">';
@@ -1024,7 +1024,7 @@ if ($resql)
             $selected=0;
 		if (in_array($obj->rowid, $arrayofselected)) $selected=1;
 			if (!$conf->synergiestech->enabled ||
-			($user->rights->synergiestech->documents->lire &&
+			($user->rights->synergiestech->documents->customerpropal &&
 			(empty($obj->options_sitevalue) ||
 			($user->rights->synergiestech->propal->installation_value&&!empty($obj->options_sitevalue)))))
 			{

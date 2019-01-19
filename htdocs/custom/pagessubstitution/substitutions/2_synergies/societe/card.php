@@ -2028,25 +2028,29 @@ else
 
         dol_banner_tab($object, 'socid', $linkback, ($user->societe_id?0:1), 'rowid', 'nom');
 
-
-		$contract = new Contrat($db);
-		$contract->socid = $id;
-		$list_contract = $contract->getListOfContracts();
-		$return = "";
-		if(!empty($list_contract)) {
+        //-------------------------------------------------------------------------------
+        // Modification - Open-DSI - Begin
+	$contract_static = new Contrat($db);
+        $extrafields_contract = new ExtraFields($db);
+        $extralabels_contract = $extrafields_contract->fetch_name_optionals_label($contract_static->table_element);
+        $contract_static->socid = $object->id;
+	$list_contract = $contract_static->getListOfContracts();
+	$to_print = array();
+	if(!empty($list_contract)) {
 		foreach($list_contract as $contract) {
-			$extrafields1 = new ExtraFields($db);
-			$extralabels1=$extrafields1->fetch_name_optionals_label($contract->table_element);
-			$contract->fetch($rowid);
-			$contract->fetch_optionals($rowid,$extralabels1);
-			$return = "<a href='".DOL_URL_ROOT."/contrat/card.php?id=".$contract->id."'> ".$extrafields1->showOutputField('formule',$contract->array_options['options_formule'])." - " . $contract->ref."</a> ";
-		}
-		print '<h1 style="color:green;text-align:center;font-size: 4em;">Avec contrat : '.$return.'</h1>';
-
-
-	} else {
-		print '<h1 style="color:red;text-align:center;font-size: 4em;">Sans contrat</h1>';
+                if (($contract->nbofserviceswait + $contract->nbofservicesopened) > 0 && $contract->statut != 2) {
+                    $contract->fetch_optionals();
+                    $to_print[] = "<a href='" . DOL_URL_ROOT . "/contrat/card.php?id=" . $contract->id . "'> " . $extrafields_contract->showOutputField('formule', $contract->array_options['options_formule']) . " - " . $contract->ref . "</a> ";
+                }
+            }
 	}
+        if(count($to_print) > 0) {
+            print '<h1 style="color:green;text-align:center;font-size: 4em;">Avec contrat : ' . implode(', ', $to_print) . '</h1>';
+        } else {
+            print '<h1 style="color:red;text-align:center;font-size: 4em;">Sans contrat</h1>';
+        }
+        // Modification - Open-DSI - End
+        //-------------------------------------------------------------------------------
 
         print '<div class="fichecenter">';
         print '<div class="fichehalfleft">';

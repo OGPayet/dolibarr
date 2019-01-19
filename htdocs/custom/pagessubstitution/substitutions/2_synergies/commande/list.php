@@ -138,9 +138,9 @@ $arrayfields=array(
     'c.date_delivery'=>array('label'=>$langs->trans("DateDeliveryPlanned"), 'checked'=>1, 'enabled'=>empty($conf->global->ORDER_DISABLE_DELIVERY_DATE)),
 //-------------------------------------------------------------------------------
 // Modification - Open-DSI - Begin
-    'c.total_ht'=>array('label'=>$langs->trans("AmountHT"), 'checked'=>1, 'enabled'=>(!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->lire)),
-    'c.total_vat'=>array('label'=>$langs->trans("AmountVAT"), 'checked'=>0, 'enabled'=>(!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->lire)),
-    'c.total_ttc'=>array('label'=>$langs->trans("AmountTTC"), 'checked'=>0, 'enabled'=>(!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->lire)),
+    'c.total_ht'=>array('label'=>$langs->trans("AmountHT"), 'checked'=>1, 'enabled'=>(!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal)),
+    'c.total_vat'=>array('label'=>$langs->trans("AmountVAT"), 'checked'=>0, 'enabled'=>(!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal)),
+    'c.total_ttc'=>array('label'=>$langs->trans("AmountTTC"), 'checked'=>0, 'enabled'=>(!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal)),
 // Modification - Open-DSI - End
 //-------------------------------------------------------------------------------
     'c.datec'=>array('label'=>$langs->trans("DateCreation"), 'checked'=>0, 'position'=>500),
@@ -1254,7 +1254,7 @@ if ($resql)
 
 //-------------------------------------------------------------------------------
 // Modification - Open-DSI - Begin
-            if (!$conf->synergiestech->enabled || $user->rights->synergiestech->documents->lire) {
+            if (!$conf->synergiestech->enabled || $user->rights->synergiestech->documents->customerpropal) {
                 print '<td width="16" align="right" class="nobordernopadding hideonsmartphone">';
                 $filename = dol_sanitizeFileName($obj->ref);
                 $filedir = $conf->commande->dir_output . '/' . dol_sanitizeFileName($obj->ref);

@@ -242,25 +242,103 @@ class modSynergiesTech extends DolibarrModules
         $this->rights[$r][5] = 'creer';
         $r++;
 
-        $this->rights[$r][0] = 500105;
-        $this->rights[$r][1] = 'Voir les montants (propositions commerciales, commandes)';
-        $this->rights[$r][3] = 0;
-        $this->rights[$r][4] = 'amount';
-        $this->rights[$r][5] = 'lire';
-        $r++;
-
-        $this->rights[$r][0] = 500106;
-        $this->rights[$r][1] = 'Accéder les fichiers jointes (propositions commerciales, commandes)';
-        $this->rights[$r][3] = 0;
-        $this->rights[$r][4] = 'documents';
-        $this->rights[$r][5] = 'lire';
-        $r++;
-
         $this->rights[$r][0] = 500107;
         $this->rights[$r][1] = 'Accéder aux propositions qui ont une valeur pour le champs complémentaire "Valeur de l\'installation"';
         $this->rights[$r][3] = 0;
         $this->rights[$r][4] = 'propal';
         $this->rights[$r][5] = 'installation_value';
+        $r++;
+
+		$this->rights[$r][0] = 500108;
+        $this->rights[$r][1] = 'Accéder aux statistiques des propositions commerciales clientes';
+        $this->rights[$r][3] = 0;
+        $this->rights[$r][4] = 'stats';
+        $this->rights[$r][5] = 'customerpropal';
+        $r++;
+
+		$this->rights[$r][0] = 500109;
+        $this->rights[$r][1] = 'Accéder aux statistiques des propositions commerciales fournisseur';
+        $this->rights[$r][3] = 0;
+        $this->rights[$r][4] = 'stats';
+        $this->rights[$r][5] = 'supplierpropal';
+        $r++;
+
+		$this->rights[$r][0] = 500110;
+        $this->rights[$r][1] = 'Accéder aux statistiques des commandes clientes';
+        $this->rights[$r][3] = 0;
+        $this->rights[$r][4] = 'stats';
+        $this->rights[$r][5] = 'customerorder';
+        $r++;
+
+		$this->rights[$r][0] = 500111;
+        $this->rights[$r][1] = 'Accéder aux statistiques des commandes fournisseur';
+        $this->rights[$r][3] = 0;
+        $this->rights[$r][4] = 'stats';
+        $this->rights[$r][5] = 'supplierorder';
+        $r++;
+
+		$this->rights[$r][0] = 500112;
+        $this->rights[$r][1] = 'Accéder aux statistiques des interventions';
+        $this->rights[$r][3] = 0;
+        $this->rights[$r][4] = 'stats';
+        $this->rights[$r][5] = 'intervention';
+        $r++;
+
+		$this->rights[$r][0] = 500113;
+        $this->rights[$r][1] = 'Accéder aux widgets statistiques des propositions commerciales clientes';
+        $this->rights[$r][3] = 0;
+        $this->rights[$r][4] = 'stats';
+        $this->rights[$r][5] = 'customerpropalwidget';
+        $r++;
+
+		$this->rights[$r][0] = 500114;
+        $this->rights[$r][1] = 'Accéder aux widgets statistiques des propositions commerciales fournisseur';
+        $this->rights[$r][3] = 0;
+        $this->rights[$r][4] = 'stats';
+        $this->rights[$r][5] = 'supplierpropalwidget';
+        $r++;
+
+		$this->rights[$r][0] = 500115;
+        $this->rights[$r][1] = 'Accéder aux widgets statistiques des commandes clientes';
+        $this->rights[$r][3] = 0;
+        $this->rights[$r][4] = 'stats';
+        $this->rights[$r][5] = 'customerorderwidget';
+        $r++;
+
+		$this->rights[$r][0] = 500116;
+        $this->rights[$r][1] = 'Accéder aux widgets statistiques des commandes fournisseur';
+        $this->rights[$r][3] = 0;
+        $this->rights[$r][4] = 'stats';
+        $this->rights[$r][5] = 'supplierorderwidget';
+        $r++;
+
+
+        $this->rights[$r][0] = 500117;
+        $this->rights[$r][1] = 'Voir les montants des propositions commerciales clientes';
+        $this->rights[$r][3] = 0;
+        $this->rights[$r][4] = 'amount';
+        $this->rights[$r][5] = 'customerpropal';
+        $r++;
+
+		$this->rights[$r][0] = 500118;
+        $this->rights[$r][1] = 'Voir les montants des commandes clientes';
+        $this->rights[$r][3] = 0;
+        $this->rights[$r][4] = 'amount';
+        $this->rights[$r][5] = 'customerorder';
+        $r++;
+
+		$this->rights[$r][0] = 500119;
+        $this->rights[$r][1] = 'Accéder les fichiers jointes des propositions commerciales client';
+        $this->rights[$r][3] = 0;
+        $this->rights[$r][4] = 'documents';
+        $this->rights[$r][5] = 'customerpropal';
+        $r++;
+
+		$this->rights[$r][0] = 500120;
+        $this->rights[$r][1] = 'Accéder les fichiers jointes des commandes clients';
+        $this->rights[$r][3] = 0;
+        $this->rights[$r][4] = 'documents';
+        $this->rights[$r][5] = 'customerorder';
         $r++;
 
 		// Add here list of permission defined by an id, a label, a boolean and two constant strings.

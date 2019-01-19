@@ -585,7 +585,7 @@ if ($id > 0)
 		$boxstat.='<span class="boxstatstext">'.img_object($text,$icon).' '.$text.'</span><br>';
         //-------------------------------------------------------------------------------
         // Modification - Open-DSI - Begin
-        if (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->lire) {
+        if (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal) {
             $boxstat .= '<span class="boxstatsindicator">' . price($outstandingTotal, 1, $langs, 1, -1, -1, $conf->currency) . '</span>';
         } else {
             $boxstat .= '<span class="boxstatsindicator">&nbsp;</span>';
@@ -611,7 +611,7 @@ if ($id > 0)
 		$boxstat.='<span class="boxstatstext">'.img_object($text,$icon).' '.$text.'</span><br>';
         //-------------------------------------------------------------------------------
         // Modification - Open-DSI - Begin
-        if (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->lire) {
+        if (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal) {
             $boxstat.='<span class="boxstatsindicator">'.price($outstandingTotal, 1, $langs, 1, -1, -1, $conf->currency).'</span>';
         } else {
             $boxstat.='<span class="boxstatsindicator">&nbsp;</span>';
@@ -718,7 +718,7 @@ if ($id > 0)
 				print '</td><td align="right" width="80px">'.dol_print_date($db->jdate($objp->dp),'day')."</td>\n";
                 //-------------------------------------------------------------------------------
                 // Modification - Open-DSI - Begin
-                if (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->lire) {
+                if (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal) {
                     print '<td align="right" style="min-width: 60px">'.price($objp->total_ht).'</td>';
                 } else {
                     print '<td align="right" style="min-width: 60px"></td>';
@@ -807,7 +807,7 @@ if ($id > 0)
 				print '</td><td align="right" width="80px">'.dol_print_date($db->jdate($objp->dc),'day')."</td>\n";
                 //-------------------------------------------------------------------------------
                 // Modification - Open-DSI - Begin
-                if (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->lire) {
+                if (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal) {
                     print '<td align="right" style="min-width: 60px">'.price($objp->total_ht).'</td>';
                 } else {
                     print '<td align="right" style="min-width: 60px"></td>';
