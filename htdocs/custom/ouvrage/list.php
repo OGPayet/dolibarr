@@ -57,7 +57,7 @@ $arrayfields=array(
 llxHeader('', $langs->trans($conf->global->OUVRAGE_TYPE."LISTINGOUVRAGE"));
 
 $sql = "SELECT w.* FROM ".MAIN_DB_PREFIX."works as w";
-$sql.= " WHERE 1 = 1";
+$sql.= " WHERE entity = " . $conf->entity;
 
 if ($search_id) $sql.= natural_search("rowid",$search_id);
 if ($search_ref) $sql.= natural_search("ref",$search_ref);
