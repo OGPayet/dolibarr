@@ -240,7 +240,7 @@ class Duration
             $this->parse($duration);
         }
 
-        if ($this->seconds > 0) {
+        if ($this->seconds >= 0) {
             $this->output .= $this->seconds . 's';
         }
 

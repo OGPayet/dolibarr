@@ -67,9 +67,9 @@ CompanyRelationshipsConfirmPrincipalCompanyChoice     = Choisir un donneur d'ord
 CompanyRelationshipsID                                = ID de la relation tiers
 CompanyRelationshipsPublicSpaceAvailabilityID         = ID de la ligne du dictionnaire des mises à disposition sur l'espace public
 CompanyRelationshipsPublicSpaceAvailability           = Mises à disposition
-CompanyRelationshipsPublicSpaceAvailabilityPrincipal  = Pièces mises à disposition par défaut pour le donneur d'ordres
-CompanyRelationshipsPublicSpaceAvailabilityBenefactor = Pièces mises à disposition par défaut pour le bénéficiaire
-CompanyRelationshipsPublicSpaceAvailabilityWatcher    = Pièces mises à disposition par défaut pour l'observateur
+CompanyRelationshipsPublicSpaceAvailabilityPrincipal  = Visible sur l'espace client pour le donneur d'ordres
+CompanyRelationshipsPublicSpaceAvailabilityBenefactor = Visible sur l'espace client pour le bénéficiaire
+CompanyRelationshipsPublicSpaceAvailabilityWatcher    = Visible sur l'espace client pour l'observateur
 
 ############################################################
 ### Company Relationships : Confirm clone box
