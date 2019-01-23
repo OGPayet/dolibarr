@@ -1789,7 +1789,7 @@ class RequestManagerApi extends DolibarrApi {
 
 		}
 		//Title for message let on the answerPhone
-		if (!empty($user_field)) $actioncomm->label = $langs->trans('RequestManagerAnswerPhone') . ' - ' . $displayName . ' - ' .  dol_print_date($begin_date,' %H:%M:%S') . ' - ' . $duration_fomatted .  ' (' . $langs->trans('RequestManagerWaitingTime') . ' : ' . $waitingTime_formatted . ')';
+		if (!empty($user_field)) $actioncomm->label = $langs->trans('RequestManagerAnswerPhone') . ' - ' . $displayName . ' - ' .  dol_print_date($begin_date,' %H:%M:%S') . ' - ' . $duration_fomatted .   ' (' . $langs->trans('RequestManagerWaitingTime',$waitingTime_formatted) .  ')';
 
 		$actioncomm->note = $message;
 
