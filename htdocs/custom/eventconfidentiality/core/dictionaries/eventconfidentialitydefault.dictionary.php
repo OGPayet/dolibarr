@@ -341,7 +341,7 @@ class EventConfidentialityDefaultDictionaryLine extends DictionaryLine
                 if (is_array($value)) {
                     $value_arr = $value;
                 } else {
-                    $value_arr = explode(',', (string)$value);
+                    $value_arr = array_filter(explode(',', (string)$value), 'strlen');
                 }
 
                 $toprint = array();

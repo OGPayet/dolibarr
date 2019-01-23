@@ -16,7 +16,8 @@
  * or see http://www.gnu.org/
  */
 dol_include_once('/framework/class/api.client.inc.php');
-dol_include_once('/framework/class/PclZip/pclzip.lib.php');
+include_once ODTPHP_PATHTOPCLZIP.'/pclzip.lib.php';
+//dol_include_once('/framework/class/PclZip/pclzip.lib.php');
 
 class updateOscssshop
 {

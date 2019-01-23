@@ -44,7 +44,8 @@ Class submakeModule
         switch (TRUE) {
             case $files != array():
 //                 error_reporting(E_ALL);
-                dol_include_once('/framework/class/PclZip/pclzip.lib.php');
+                include_once ODTPHP_PATHTOPCLZIP.'/pclzip.lib.php';
+                //dol_include_once('/framework/class/PclZip/pclzip.lib.php');
                 $version = '';
 
                 //try to open class to read version
