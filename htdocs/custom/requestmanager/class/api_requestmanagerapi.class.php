@@ -1293,6 +1293,7 @@ class RequestManagerApi extends DolibarrApi {
         $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "socpeople AS sc ON sc.fk_soc = s.rowid";
         $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "socpeople_extrafields AS scef ON scef.fk_object = sc.rowid";
         $sql .= " WHERE s.entity IN (" . getEntity('societe') . ")";
+		$sql .= " AND sc.statut = 1";
         $sql .= " AND (" . implode(' OR ', $phones) . ")";
 
         $resql = self::$db->query($sql);
@@ -1347,6 +1348,7 @@ class RequestManagerApi extends DolibarrApi {
         $sql .= " FROM " . MAIN_DB_PREFIX . "user AS u";
         $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "user_extrafields AS uef ON uef.fk_object = u.rowid";
         $sql .= " WHERE u.entity IN (" . getEntity('user') . ")";
+        $sql .= " AND u.statut = 1";
         $sql .= " AND (u.fk_soc = 0 OR u.fk_soc IS NULL)";
         $sql .= " AND (" . implode(' OR ', $phones) . ")";
 
@@ -1560,6 +1562,7 @@ class RequestManagerApi extends DolibarrApi {
         $sql .= " FROM " . MAIN_DB_PREFIX . "user AS u";
         $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "user_extrafields AS uef ON uef.fk_object = u.rowid";
         $sql .= " WHERE u.entity IN (" . getEntity('user') . ")";
+		$sql .= " AND u.statut = 1";
         $sql .= " AND (u.fk_soc = 0 OR u.fk_soc IS NULL)";
         $sql .= " AND (" . implode(' OR ', $phones) . ")";
 
