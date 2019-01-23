@@ -1345,7 +1345,7 @@ class Dictionary extends CommonObject
         $sql .= $this->db->order($sortfield, $sortorder);
         $sql .= $this->db->plimit($limit, $offset);
 
-        dol_syslog(__METHOD__ . "::fetch_lines", LOG_DEBUG);
+        dol_syslog(__METHOD__, LOG_DEBUG);
         $resql = $this->db->query($sql);
         if ($resql) {
             if ($nb_lines) {
@@ -1381,7 +1381,7 @@ class Dictionary extends CommonObject
             return $result;
         } else {
             $this->error = $this->db->lasterror();
-            dol_syslog(__METHOD__ . "::fetch_lines Sql: " . $sql . " Error: " . $this->error, LOG_ERR);
+            dol_syslog(__METHOD__ . " Sql: " . $sql . "; Error: " . $this->error, LOG_ERR);
             return -3;
         }
     }
@@ -1582,7 +1582,11 @@ class Dictionary extends CommonObject
                     return 'd.' . $field['name'] . ' IN (' . (empty($values) ? '-1' : "'" . implode("','", $values) . "'") . ")";
                 case 'sellist':
                     if (is_array($value)) {
-                        return natural_search('cbl_' . $field['name'] . '.fk_target', implode(',', $value), 2, 1);
+                        if (count($value) > 0) {
+                            return natural_search('cbl_' . $field['name'] . '.fk_target', implode(',', $value), 2, 1);
+                        } else {
+                            return '';
+                        }
                     } else {
                         // 0 : tableName
                         // 1 : label field name
@@ -1602,7 +1606,11 @@ class Dictionary extends CommonObject
                     }
                 case 'chkbxlst':
                     if (is_array($value)) {
-                        return natural_search('cbl_' . $field['name'] . '.fk_target', implode(',', $value), 2, 1);
+                        if (count($value) > 0) {
+                            return natural_search('cbl_' . $field['name'] . '.fk_target', implode(',', $value), 2, 1);
+                        } else {
+                            return '';
+                        }
                     } else {
                         return '';
                     }
@@ -2805,6 +2813,7 @@ class DictionaryLine extends CommonObjectLine
             dol_syslog(__METHOD__ . "::insert", LOG_DEBUG);
             $resql = $this->db->query($sql);
             if (!$resql) {
+                dol_syslog(__METHOD__ . ' SQL: ' . $sql . '; Errors: ' . $this->db->lasterror(), LOG_ERR);
                 $error++;
                 $errors[] = $this->db->lasterror();
             } else {
@@ -2821,6 +2830,7 @@ class DictionaryLine extends CommonObjectLine
                             $sql = 'DELETE FROM ' . MAIN_DB_PREFIX . $this->dictionary->table_name . '_cbl_' . $fieldName . ' WHERE fk_line = ' . $this->id;
                             $resql = $this->db->query($sql);
                             if (!$resql) {
+                                dol_syslog(__METHOD__ . ' SQL: ' . $sql . '; Errors: ' . $this->db->lasterror(), LOG_ERR);
                                 $error++;
                                 $errors[] = $this->db->lasterror();
                             } else {
@@ -2840,6 +2850,7 @@ class DictionaryLine extends CommonObjectLine
                                     $sql = 'INSERT INTO ' . MAIN_DB_PREFIX . $this->dictionary->table_name . '_cbl_' . $fieldName . '(fk_line, fk_target) VALUES' . implode(',', $insert_values);
                                     $resql = $this->db->query($sql);
                                     if (!$resql) {
+                                        dol_syslog(__METHOD__ . ' SQL: ' . $sql . '; Errors: ' . $this->db->lasterror(), LOG_ERR);
                                         $error++;
                                         $errors[] = $this->db->lasterror();
                                     }
@@ -2871,7 +2882,6 @@ class DictionaryLine extends CommonObjectLine
                 return 1;
             } else {
                 foreach ($errors as $errmsg) {
-                    dol_syslog(__METHOD__ . "::insert " . $errmsg, LOG_ERR);
                     $this->errors[] = ($this->errors ? ', ' : '') . $errmsg;
                 }
 
@@ -2931,6 +2941,7 @@ class DictionaryLine extends CommonObjectLine
             dol_syslog(__METHOD__ . "::update", LOG_DEBUG);
             $resql = $this->db->query($sql);
             if (!$resql) {
+                dol_syslog(__METHOD__ . ' SQL: ' . $sql . '; Errors: ' . $this->db->lasterror(), LOG_ERR);
                 $error++;
                 $errors[] = $this->db->lasterror();
             }
@@ -2945,6 +2956,7 @@ class DictionaryLine extends CommonObjectLine
                             $sql = 'DELETE FROM ' . MAIN_DB_PREFIX . $this->dictionary->table_name . '_cbl_' . $fieldName . ' WHERE fk_line = ' . $this->id;
                             $resql = $this->db->query($sql);
                             if (!$resql) {
+                                dol_syslog(__METHOD__ . ' SQL: ' . $sql . '; Errors: ' . $this->db->lasterror(), LOG_ERR);
                                 $error++;
                                 $errors[] = $this->db->lasterror();
                             } elseif(!empty($value)) {
@@ -2963,6 +2975,7 @@ class DictionaryLine extends CommonObjectLine
                                     $sql = 'INSERT INTO ' . MAIN_DB_PREFIX . $this->dictionary->table_name . '_cbl_' . $fieldName . '(fk_line, fk_target) VALUES' . implode(',', $insert_values);
                                     $resql = $this->db->query($sql);
                                     if (!$resql) {
+                                        dol_syslog(__METHOD__ . ' SQL: ' . $sql . '; Errors: ' . $this->db->lasterror(), LOG_ERR);
                                         $error++;
                                         $errors[] = $this->db->lasterror();
                                     }
@@ -2994,7 +3007,6 @@ class DictionaryLine extends CommonObjectLine
                 return 1;
             } else {
                 foreach ($errors as $errmsg) {
-                    dol_syslog(__METHOD__ . "::update " . $errmsg, LOG_ERR);
                     $this->errors[] = ($this->errors ? ', ' : '') . $errmsg;
                 }
 

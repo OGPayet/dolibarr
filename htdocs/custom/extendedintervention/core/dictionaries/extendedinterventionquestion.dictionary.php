@@ -16,17 +16,17 @@
  */
 
 /**
- * \file        core/dictionaries/extendedinterventiontype.dictionary.php
+ * \file        core/dictionaries/extendedinterventionquestion.dictionary.php
  * \ingroup     extendedintervention
- * \brief       Class of the dictionary Type
+ * \brief       Class of the dictionary Question
  */
 
 dol_include_once('/advancedictionaries/class/dictionary.class.php');
 
 /**
- * Class for ExtendedInterventionTypeDictionary
+ * Class for ExtendedInterventionQuestionDictionary
  */
-class ExtendedInterventionTypeDictionary extends Dictionary
+class ExtendedInterventionQuestionDictionary extends Dictionary
 {
     /**
      * @var array       List of languages to load
@@ -46,7 +46,7 @@ class ExtendedInterventionTypeDictionary extends Dictionary
     /**
      * @var int         Position of the dictionary into the family
      */
-    public $familyPosition = 0;
+    public $familyPosition = 4;
 
     /**
      * @var string      Module name of which this dictionary belongs
@@ -61,12 +61,12 @@ class ExtendedInterventionTypeDictionary extends Dictionary
     /**
      * @var string      Name of this dictionary for show in the list, translated if key found
      */
-    public $nameLabel = 'ExtendedInterventionTypeDictionaryLabel';
+    public $nameLabel = 'ExtendedInterventionQuestionDictionaryLabel';
 
     /**
      * @var string      Name of the dictionary table without prefix (ex: c_country)
      */
-    public $table_name = 'c_extendedintervention_type';
+    public $table_name = 'c_extendedintervention_question';
 
     /**
      * @var array  Fields of the dictionary table
@@ -127,6 +127,26 @@ class ExtendedInterventionTypeDictionary extends Dictionary
      * )
      */
     public $fields = array(
+        'position' => array(
+            'name'       => 'position',
+            'label'      => 'Position',
+            'type'       => 'int',
+            'database'   => array(
+              'length'   => 10,
+            ),
+            'td_title'  => array (
+                'align'  => 'left',
+            ),
+            'td_output'  => array (
+                'align'  => 'left',
+            ),
+            'td_search'  => array (
+                'align'  => 'left',
+            ),
+            'td_input'  => array (
+                'align'  => 'left',
+            ),
+        ),
         'code' => array(
             'name'       => 'code',
             'label'      => 'Code',
@@ -145,11 +165,8 @@ class ExtendedInterventionTypeDictionary extends Dictionary
             ),
             'is_require' => true,
         ),
-        'count' => array(
-            'name'       => 'count',
-            'label'      => 'ExtendedInterventionTypeDictionaryCount',
-            'type'       => 'boolean',
-        ),
+        'answers' => array(),
+        'extra_fields' => array(),
     );
 
     /**
@@ -170,4 +187,46 @@ class ExtendedInterventionTypeDictionary extends Dictionary
      * @var bool    Is multi entity (false = partaged, true = by entity)
      */
     public $is_multi_entity = true;
+
+    /**
+	 * Initialize the dictionary
+	 *
+     * @return  void
+	 */
+	protected function initialize()
+    {
+        $this->fields['answers'] = array(
+            'name' => 'answers',
+            'label' => 'ExtendedInterventionQuestionDictionaryAnswer',
+            'type' => 'chkbxlst',
+            'options' => 'c_extendedintervention_answer:code|label:rowid::active=1 and entity IN (' . getEntity('dictionary', 1) . ')',
+            'label_separator' => ' - ',
+            'td_output' => array(
+                'moreAttributes' => 'width="100%"',
+            ),
+            'td_input' => array(
+                'moreAttributes' => 'width="100%"',
+                'positionLine' => 1,
+            ),
+            'is_require' => true,
+        );
+
+        $element_type = 'extendedintervention_question_blocdet';
+        $extrafields = new ExtraFields($this->db);
+        $extralabels = $extrafields->fetch_name_optionals_label($element_type);
+
+        $this->fields['extra_fields'] = array(
+            'name' => 'extra_fields',
+            'label' => 'ExtendedInterventionQuestionDictionaryExtraFields',
+            'type' => 'checkbox',
+            'options' => $extrafields->attributes[$element_type]['label'],
+            'td_output' => array(
+                'moreAttributes' => 'width="100%"',
+            ),
+            'td_input' => array(
+                'moreAttributes' => 'width="100%"',
+                'positionLine' => 2,
+            ),
+        );
+    }
 }

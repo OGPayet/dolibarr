@@ -6,7 +6,9 @@ Module163023Desc = Extended management of the intervention
 ############################################################
 ### Admin setup
 ############################################################
-ExtendedInterventionSetup       = Configuration of the module Extended Intervention
+ExtendedInterventionSetup                               = Configuration of the module Extended Intervention
+ExtendedInterventionQuestionBlocExtraFields             = Attributs supplémentaires (Bloc de questions)
+ExtendedInterventionQuestionExtraFields                 = Attributs supplémentaires (Questions)
 
 ExtendedInterventionQuotaCategory                       = Paramètres des quotas
 ExtendedInterventionQuotaActivateName                   = Activation
@@ -17,6 +19,11 @@ ExtendedInterventionQuotaShowOnlyTypeOfInterventionName = N'afficher que le déc
 ExtendedInterventionQuotaShowOnlyTypeOfInterventionDesc = N'afficher que le décompte du type de l'intervention dans le tableau si celui-ci est renseigné
 ExtendedInterventionQuotaShowXPeriodName                = Nombre de période affichée dans le tableau
 ExtendedInterventionQuotaShowXPeriodDesc                = Affiche les X périodes ou les X dernières périodes si il y a plus de X périodes antérieures à la période actuelle (s'arrête dans tout les cas à la fin du contract)
+
+ExtendedInterventionRootProductCategoriesName           = Racine des catégories de produits
+ExtendedInterventionRootProductCategoriesDesc           = Racine des catégories de produits accessiblent sur les blocs de questions
+ExtendedInterventionRootProductCategoryIncludeName      = Inclure la racine
+ExtendedInterventionRootProductCategoryIncludeDesc      = Inclure la racine dans la liste des catégories de produits
 
 ############################################################
 ### Actions
@@ -40,8 +47,79 @@ ExtendedInterventionContractCountInterventionPeriodSize = Durée entre 2 remises
 ############################################################
 ### Dictionaries
 ############################################################
-ExtendedInterventionTypeDictionaryLabel        = Type d'intervention
+ExtendedInterventionTypeDictionaryLabel                                         = Types d'interventions
 ExtendedInterventionTypeDictionaryCount        = Décompté
+
+ExtendedInterventionQuestionBlocDictionaryLabel                                 = Blocs de questions
+ExtendedInterventionQuestionBlocDictionaryTitle                                 = Titre
+ExtendedInterventionQuestionBlocDictionaryType                                  = Type d'intervention
+ExtendedInterventionQuestionBlocDictionaryStatus                                = Status
+ExtendedInterventionQuestionBlocDictionaryQuestions                             = Questions
+ExtendedInterventionQuestionBlocDictionaryExtraFields                           = Attributs Supplémentaires
+
+ExtendedInterventionQuestionBlocStatusDictionaryLabel                           = Status des blocs de questions
+ExtendedInterventionQuestionBlocStatusDictionaryStatus                          = Libellé du status
+ExtendedInterventionQuestionBlocStatusDictionaryPredefinedText                  = Justificatifs prédéfinies
+
+ExtendedInterventionQuestionBlocStatusPredefinedTextDictionaryLabel             = Justificatifs prédéfinies des status des blocs de questions
+ExtendedInterventionQuestionBlocStatusPredefinedTextDictionaryPredefinedText    = Texte
+
+ExtendedInterventionQuestionDictionaryLabel                                     = Questions
+ExtendedInterventionQuestionDictionaryQuestion                                  = Libellé de la question
+ExtendedInterventionQuestionDictionaryAnswer                                    = Réponses
+ExtendedInterventionQuestionDictionaryExtraFields                               = Attributs Supplémentaires
+
+ExtendedInterventionAnswerDictionaryLabel                                       = Réponses des questions
+ExtendedInterventionAnswerDictionaryAnswer                                      = Libellé de la réponse
+ExtendedInterventionAnswerDictionaryPredefinedText                              = Justificatifs prédéfinies
+
+ExtendedInterventionAnswerPredefinedTextDictionaryLabel                         = Justificatifs prédéfinies des réponses des questions
+ExtendedInterventionAnswerPredefinedTextDictionaryPredefinedText                = Texte
+
+############################################################
+### Survey
+############################################################
+ExtendedInterventionSurvey                      = Questionnaire
+ExtendedInterventionMustBeValidate              = L'intervention doit être validée pour afficher le questionnaire.
+ExtendedInterventionJustificatory               = Justification
+ExtendedInterventionSurveyComplementaryText     = Texte complémentaire
+ExtendedInterventionUse                         = Utiliser
+ExtendedInterventionSurveyConfigurationChanged  = Il y a eu des changement dans le(s) dictionnaire(s) pour le(s) élément(s) suivant(s) :
+
+############################################################
+### Question Block
+############################################################
+ExtendedInterventionQuestionBloc                                = Bloc de questions
+ExtendedInterventionInterventionId                              = ID de l'intervention
+ExtendedInterventionQuestionBlocId                              = ID du bloc de question
+ExtendedInterventionQuestionBlocDictionaryId                    = ID du bloc de question (du dictionnaire)
+ExtendedInterventionQuestionBlocPosition                        = Position du bloc de question
+ExtendedInterventionQuestionBlocCode                            = Code du bloc de question
+ExtendedInterventionQuestionBlocTitle                           = Libellé du bloc de question
+ExtendedInterventionQuestionBlocStatusId                        = ID du status
+ExtendedInterventionQuestionBlocStatusCode                      = Code du status
+ExtendedInterventionQuestionBlocStatusLabel                     = Libellé du status
+ExtendedInterventionQuestionBlocStatusJustificatoryMandatory    = Le mode obligatoire de la justification du status
+
+############################################################
+### Question
+############################################################
+ExtendedInterventionQuestion                        = Question
+ExtendedInterventionQuestionId                      = ID de la question
+ExtendedInterventionQuestionDictionaryId            = ID de la question (du dictionnaire)
+ExtendedInterventionQuestionPosition                = Position de la question
+ExtendedInterventionQuestionCode                    = Code de la question
+ExtendedInterventionQuestionLabel                   = Libellé de la question
+ExtendedInterventionAnswerId                        = ID de la réponse
+ExtendedInterventionAnswerCode                      = Code de la réponse
+ExtendedInterventionAnswerLabel                     = Libellé de la réponse
+ExtendedInterventionAnswerJustificatoryMandatory    = Le mode obligatoire de la justification de la réponse
+
+############################################################
+### Confirm Box : Save question bloc
+############################################################
+ExtendedInterventionSaveQuestionBloc           = Enregistrement du bloc de questions
+ExtendedInterventionConfirmSaveQuestionBloc    = Êtes-vous sûr de vouloir enregistrer ce bloc de questions ?
 
 ############################################################
 ### Confirm Box : Force create intervention out of quota
@@ -53,12 +131,12 @@ ExtendedInterventionConfirmForceCreateInterventionOutOfQuota    = Êtes-vous sû
 ############################################################
 ### Generals
 ############################################################
-ExtendedInterventionQuotaFor            = Nombre d'interventions pour "%s"
+ExtendedInterventionQuotaFor            = Nombre d'interventions pour %s
 ExtendedInterventionPeriod              = Période
 ExtendedInterventionFree                = Gratuite
 ExtendedInterventionForced              = Forcée
 ExtendedInterventionQuotaBlockTitle     = Décompte des interventions
-ExtendedInterventionQuotaForContract    = Pour le contrat "%s"
+ExtendedInterventionQuotaForContract    = Pour le contrat %s
 ExtendedInterventionCurrentPeriod       = Période actuelle
 ExtendedInterventionEndOfTheContract    = Fin du contrat
 
@@ -67,3 +145,14 @@ ExtendedInterventionEndOfTheContract    = Fin du contrat
 ############################################################
 ExtendedInterventionForcedCreatedOutOfQuotaActionLabel      = Création de l'intervention hors du quota forcée
 ExtendedInterventionForcedCreatedOutOfQuotaActionReason     = La création de cette intervention à été forcée hors du quota pour la raison suivante
+
+############################################################
+### Errors
+############################################################
+ExtendedInterventionErrorTypeWithCategoryDuplicated                 = Vous ne pouvez pas avoir un type d'intervention associé avec une catégorie déjà associé avec celle-ci
+ExtendedInterventionErrorQuestionBlocDictionaryInfoNotFound         = Le bloc de question (ID: %s) est introuvable dans le dictionnaire du module
+ExtendedInterventionErrorQuestionBlocStatusDictionaryInfoNotFound   = Le statut du bloc de question (ID: %s) est introuvable dans le dictionnaire du module
+ExtendedInterventionErrorQuestionDictionaryInfoNotFound             = La question (ID: %s) est introuvable dans le dictionnaire du module
+ExtendedInterventionErrorAnswerDictionaryInfoNotFound               = La réponse de la question (ID: %s) est introuvable dans le dictionnaire du module
+ExtendedInterventionErrorQuestionBlocStatusNotInSurvey              = Le statut du bloc de question (ID: %s) n'est pas inclus dans le questionnaire
+ExtendedInterventionErrorQuestionAnswerNotInSurvey                  = Le réponse de la question (ID: %s) n'est pas inclus dans le questionnaire

@@ -42,6 +42,16 @@ function extendedintervention_admin_prepare_head()
     $head[$h][2] = 'dictionaries';
     $h++;
 
+    $head[$h][0] = dol_buildpath("/extendedintervention/admin/extendedinterventionquestionbloc_extrafields.php", 1);
+    $head[$h][1] = $langs->trans("ExtendedInterventionQuestionBlocExtraFields");
+    $head[$h][2] = 'extendedintervention_question_block_attributes';
+    $h++;
+
+    $head[$h][0] = dol_buildpath("/extendedintervention/admin/extendedinterventionquestion_extrafields.php", 1);
+    $head[$h][1] = $langs->trans("ExtendedInterventionQuestionExtraFields");
+    $head[$h][2] = 'extendedintervention_question_attributes';
+    $h++;
+
     // Show more tabs from modules
     // Entries must be declared in modules descriptor with line
     // $this->tabs = array('entity:+tabname:Title:@mymodule:/mymodule/mypage.php?id=__ID__');   to add new tab

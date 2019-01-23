@@ -16,17 +16,17 @@
  */
 
 /**
- * \file        core/dictionaries/extendedinterventiontype.dictionary.php
+ * \file        core/dictionaries/extendedinterventionquestionblocstatuspredefinedtext.dictionary.php
  * \ingroup     extendedintervention
- * \brief       Class of the dictionary Type
+ * \brief       Class of the dictionary Question Bloc Status Predefined Text
  */
 
 dol_include_once('/advancedictionaries/class/dictionary.class.php');
 
 /**
- * Class for ExtendedInterventionTypeDictionary
+ * Class for ExtendedInterventionQuestionBlocStatusPredefinedTextDictionary
  */
-class ExtendedInterventionTypeDictionary extends Dictionary
+class ExtendedInterventionQuestionBlocStatusPredefinedTextDictionary extends Dictionary
 {
     /**
      * @var array       List of languages to load
@@ -46,7 +46,7 @@ class ExtendedInterventionTypeDictionary extends Dictionary
     /**
      * @var int         Position of the dictionary into the family
      */
-    public $familyPosition = 0;
+    public $familyPosition = 3;
 
     /**
      * @var string      Module name of which this dictionary belongs
@@ -61,12 +61,12 @@ class ExtendedInterventionTypeDictionary extends Dictionary
     /**
      * @var string      Name of this dictionary for show in the list, translated if key found
      */
-    public $nameLabel = 'ExtendedInterventionTypeDictionaryLabel';
+    public $nameLabel = 'ExtendedInterventionQuestionBlocStatusPredefinedTextDictionaryLabel';
 
     /**
      * @var string      Name of the dictionary table without prefix (ex: c_country)
      */
-    public $table_name = 'c_extendedintervention_type';
+    public $table_name = 'c_extendedintervention_status_qbpt';
 
     /**
      * @var array  Fields of the dictionary table
@@ -127,6 +127,26 @@ class ExtendedInterventionTypeDictionary extends Dictionary
      * )
      */
     public $fields = array(
+        'position' => array(
+            'name'       => 'position',
+            'label'      => 'Position',
+            'type'       => 'int',
+            'database'   => array(
+              'length'   => 10,
+            ),
+            'td_title'  => array (
+                'align'  => 'left',
+            ),
+            'td_output'  => array (
+                'align'  => 'left',
+            ),
+            'td_search'  => array (
+                'align'  => 'left',
+            ),
+            'td_input'  => array (
+                'align'  => 'left',
+            ),
+        ),
         'code' => array(
             'name'       => 'code',
             'label'      => 'Code',
@@ -136,19 +156,11 @@ class ExtendedInterventionTypeDictionary extends Dictionary
             ),
             'is_require' => true,
         ),
-        'label' => array(
-            'name'       => 'label',
-            'label'      => 'Label',
-            'type'       => 'varchar',
-            'database'   => array(
-              'length'   => 255,
-            ),
+        'predefined_text' => array(
+            'name'       => 'predefined_text',
+            'label'      => 'ExtendedInterventionQuestionBlocStatusPredefinedTextDictionaryPredefinedText',
+            'type'       => 'text',
             'is_require' => true,
-        ),
-        'count' => array(
-            'name'       => 'count',
-            'label'      => 'ExtendedInterventionTypeDictionaryCount',
-            'type'       => 'boolean',
         ),
     );
 

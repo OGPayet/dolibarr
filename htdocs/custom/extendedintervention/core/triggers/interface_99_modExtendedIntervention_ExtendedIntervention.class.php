@@ -53,7 +53,7 @@ class InterfaceExtendedIntervention extends DolibarrTriggers
 
         switch ($action) {
             // Interventions
-		    case 'FICHINTER_CREATE':
+            case 'FICHINTER_CREATE':
                 if (!empty($conf->global->EXTENDEDINTERVENTION_QUOTA_ACTIVATE) && !empty($object->ei_created_out_of_quota)) {
                     dol_include_once('/extendedintervention/class/extendedinterventionquota.class.php');
                     $extendedinterventioncountintervention = new ExtendedInterventionQuota($this->db);
@@ -65,6 +65,102 @@ class InterfaceExtendedIntervention extends DolibarrTriggers
                         $this->errors = $extendedinterventioncountintervention->errors;
                         return -1;
                     }
+                }
+
+                dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
+                break;
+            case 'FICHINTER_CLASSIFY_DONE':
+            case 'FICHINTER_CLASSIFY_BILLED':
+            case 'FICHINTER_CLASSIFY_UNBILLED':
+                dol_include_once('/extendedintervention/class/extendedintervention.class.php');
+                $extendedintervention = new ExtendedIntervention($this->db);
+
+                if ($extendedintervention->fetch($object->id) > 0) {
+                    $extendedintervention->statut = ExtendedIntervention::STATUS_VALIDATED;
+                    if ($extendedintervention->fetch_survey() > 0) {
+                        foreach ($extendedintervention->survey as $question_bloc) {
+                            if (!($question_bloc->id > 0)) {
+                                // Create
+                                $result = $question_bloc->create($user);
+                                if ($result < 0) {
+                                    dol_syslog(__METHOD__ . " Error when creating the question bloc (fk_fichinter:{$question_bloc->fk_fichinter} fk_c_question_bloc:{$question_bloc->fk_c_question_bloc}) when the intervention is validate; Error: " . $question_bloc->errorsToString(), LOG_ERR);
+                                    $this->error = $question_bloc->error;
+                                    $this->errors[] = $question_bloc->errors;
+                                    return -1;
+                                }
+                            }
+
+                            foreach ($question_bloc->lines as $question) {
+                                if (!($question->id > 0)) {
+                                    // Create
+                                    $question->fk_question_bloc = $question_bloc->id;
+                                    $result = $question->insert($user);
+                                    if ($result < 0) {
+                                        dol_syslog(__METHOD__ . " Error when inserting the question (fk_fichinter:{$question_bloc->fk_fichinter} fk_c_question_bloc:{$question_bloc->fk_c_question_bloc} fk_c_question:{$question->fk_c_question}) when the intervention is validate; Error: " . $question->errorsToString(), LOG_ERR);
+                                        $this->error = $question->error;
+                                        $this->errors[] = $question->errors;
+                                        return -1;
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        dol_syslog(__METHOD__ . " Error when fetching the survey when the intervention is validate; Error: " . $extendedintervention->errorsToString(), LOG_ERR);
+                        $this->error = $extendedintervention->error;
+                        $this->errors[] = $extendedintervention->errors;
+                        return -1;
+                    }
+                } else {
+                    dol_syslog(__METHOD__ . " Error when fetching the intervention for auto save survey; Error: " . $extendedintervention->errorsToString(), LOG_ERR);
+                    $this->error = $extendedintervention->error;
+                    $this->errors[] = $extendedintervention->errors;
+                    return -1;
+                }
+
+                dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
+                break;
+            case 'FICHINTER_DELETE':
+                $error = 0;
+                $this->db->begin();
+
+                // Removed extrafields of the questions
+                if (empty($conf->global->MAIN_EXTRAFIELDS_DISABLED)) { // For avoid conflicts if trigger used
+                    $sql = "DELETE " . MAIN_DB_PREFIX . "extendedintervention_question_blocdet_extrafields FROM " . MAIN_DB_PREFIX . "extendedintervention_question_blocdet_extrafields" .
+                        " LEFT JOIN " . MAIN_DB_PREFIX . "extendedintervention_question_blocdet as eiqbd ON " . MAIN_DB_PREFIX . "extendedintervention_question_blocdet_extrafields.fk_object = eiqbd.rowid" .
+                        " LEFT JOIN " . MAIN_DB_PREFIX . "extendedintervention_question_bloc as eiqb ON eiqbd.fk_question_bloc = eiqb.rowid" .
+                        " WHERE eiqb.fk_fichinter = " . $object->id;
+                    if (!$this->db->query($sql)) $error++;
+                }
+
+                // Removed the questions
+                if (!$error) {
+                    $sql = "DELETE " . MAIN_DB_PREFIX . "extendedintervention_question_blocdet FROM " . MAIN_DB_PREFIX . "extendedintervention_question_blocdet" .
+                    " LEFT JOIN " . MAIN_DB_PREFIX . "extendedintervention_question_bloc as eiqb ON " . MAIN_DB_PREFIX . "extendedintervention_question_blocdet.fk_question_bloc = eiqb.rowid" .
+                    " WHERE eiqb.fk_fichinter = " . $object->id;
+                    if (!$this->db->query($sql)) $error++;
+                }
+
+                // Removed extrafields of the question blocs
+                if (!$error && empty($conf->global->MAIN_EXTRAFIELDS_DISABLED)) { // For avoid conflicts if trigger used
+                    $sql = "DELETE " . MAIN_DB_PREFIX . "extendedintervention_question_bloc_extrafields FROM " . MAIN_DB_PREFIX . "extendedintervention_question_bloc_extrafields" .
+                        " LEFT JOIN " . MAIN_DB_PREFIX . "extendedintervention_question_bloc as eiqb ON " . MAIN_DB_PREFIX . "extendedintervention_question_bloc_extrafields.fk_object = eiqb.rowid" .
+                        " WHERE eiqb.fk_fichinter = " . $object->id;
+                    if (!$this->db->query($sql)) $error++;
+                }
+
+                // Removed the question blocs
+                if (!$error) {
+                    $sql = "DELETE FROM " . MAIN_DB_PREFIX . "extendedintervention_question_bloc WHERE fk_fichinter = " . $object->id;
+                    if (!$this->db->query($sql)) $error++;
+                }
+
+                if (!$error) {
+                    $this->db->commit();
+                } else {
+                    dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $this->db->lasterror(), LOG_ERR);
+                    $this->errors[] = $this->db->lasterror();
+                    $this->db->rollback();
+                    return -1;
                 }
 
                 dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
@@ -97,13 +193,13 @@ class InterfaceExtendedIntervention extends DolibarrTriggers
                 dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
                 break;
             case 'CONTRACT_DELETE':
-                    dol_include_once('/extendedintervention/class/extendedinterventionquota.class.php');
-                    $extendedinterventioncountintervention = new ExtendedInterventionQuota($this->db);
+                dol_include_once('/extendedintervention/class/extendedinterventionquota.class.php');
+                $extendedinterventioncountintervention = new ExtendedInterventionQuota($this->db);
 
-                    $extendedinterventioncountintervention->delAllCountInterventionOfContract($object->id);
+                $extendedinterventioncountintervention->delAllCountInterventionOfContract($object->id);
 
-                    dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
-                    break;
+                dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
+                break;
         }
 
         return 0;

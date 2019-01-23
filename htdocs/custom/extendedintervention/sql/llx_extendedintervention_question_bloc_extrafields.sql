@@ -1,5 +1,5 @@
--- ============================================================================
--- Copyright (C) 2018	 Open-DSI 	 <support@open-dsi.fr>
+-- ===================================================================
+-- Copyright (C) 2018 Open-DSI  <support@open-dsi.fr>
 --
 -- This program is free software; you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -13,7 +13,12 @@
 --
 -- You should have received a copy of the GNU General Public License
 -- along with this program. If not, see <http://www.gnu.org/licenses/>.
--- ===========================================================================
+-- ===================================================================
 
-DROP VIEW IF EXISTS llx_requestmanager_internal_user_phone_book;
-DROP VIEW IF EXISTS llx_requestmanager_soc_contact_phone_book;
+create table llx_extendedintervention_question_bloc_extrafields
+(
+  rowid        integer AUTO_INCREMENT PRIMARY KEY,
+  tms          timestamp,
+  fk_object    integer NOT NULL,
+  import_key   varchar(14)                          		-- import key
+) ENGINE=innodb;

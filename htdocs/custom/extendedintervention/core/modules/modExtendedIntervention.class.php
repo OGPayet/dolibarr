@@ -68,7 +68,7 @@ class modExtendedIntervention extends DolibarrModules
         $this->editor_url = 'http://www.open-dsi.fr';
 
         // Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-        $this->version = '4.0.4';
+        $this->version = '4.0.5';
         // Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
         $this->const_name = 'MAIN_MODULE_' . strtoupper($this->name);
         // Name of image file used for this module.
@@ -156,6 +156,7 @@ class modExtendedIntervention extends DolibarrModules
         // 'thirdparty'       to add a tab in third party view
         // 'user'             to add a tab in user view
         $this->tabs = array(
+            'intervention:+survey:ExtendedInterventionSurvey:extendedintervention@extendedintervention:$user->rights->ficheinter->lire:/extendedintervention/survey.php?id=__ID__',
         );
 
         if (!isset($conf->extendedintervention) || !isset($conf->extendedintervention->enabled)) {
