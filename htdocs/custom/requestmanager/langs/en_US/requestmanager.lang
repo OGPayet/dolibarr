@@ -158,6 +158,11 @@ RequestManagerMenuTopCreateFast            = Création de demande rapide
 RequestManagerRequestTab                = Demande
 
 ############################################################
+### Linked object
+############################################################
+LinkToRequestManager         = Lier à une demande
+
+############################################################
 ### Card
 ############################################################
 RequestManagerRequest                                   = Demande

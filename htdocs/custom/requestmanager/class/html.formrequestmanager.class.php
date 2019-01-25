@@ -1081,7 +1081,7 @@ class FormRequestManager
             $tmsDeadLine = strtotime($obj->date_deadline);
             if ($tmsDeadLine < $now) {
                 // alert time is up
-                $pictoWarning = img_warning($langs->trans("Late"));
+                $pictoWarning = ' ' . img_warning($langs->trans("Late"));
             }
         }
 
@@ -1095,7 +1095,7 @@ class FormRequestManager
         // Ref
         if (!empty($arrayfields['rm.ref']['checked'])) {
             print '<td class="nowrap'.$updatedLineClass.'">';
-            print $requestmanagerstatic->getNomUrl(1, 'parent_path', 24) . ' ' . $pictoWarning;
+            print $requestmanagerstatic->getNomUrl(1, 'parent_path', 24) . $pictoWarning;
             print '</td>';
         }
 

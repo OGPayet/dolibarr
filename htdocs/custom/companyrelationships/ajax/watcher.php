@@ -99,7 +99,7 @@ if (! empty($socid) && ! empty($action) && ! empty($htmlname))
             dol_include_once('/' . $element . '/class/' . $subelement . '.class.php');
 
             $classname = ucfirst($subelement);
-            $objectsrc = new $classname($this->db);
+            $objectsrc = new $classname($db);
             $objectsrc->fetch($originid);
 
             $objectsrc_thirdparty = $objectsrc->fetch_thirdparty();

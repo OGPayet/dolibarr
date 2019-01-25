@@ -994,7 +994,7 @@ class RequestManagerStatusDictionaryLine extends DictionaryLine
             }
         }
         function $updateNewRequestTypeFunctionName() {
-            var disabled = $('#$nextStatusFieldHtmlName').val().length > 1 || $('#$nextTriggerFieldHtmlName').val().length > 0 || $('#$typeFieldHtmlName').val() != $inprogress_status;
+            var disabled = /*$('#$nextStatusFieldHtmlName').val().length > 1 ||*/ $('#$nextTriggerFieldHtmlName').val().length > 0 || $('#$typeFieldHtmlName').val() != $inprogress_status;
 
             $('#$newRequestTypeFieldHtmlName').prop('disabled', disabled);
             $('#h_$newRequestTypeFieldHtmlName').prop('disabled', !disabled);

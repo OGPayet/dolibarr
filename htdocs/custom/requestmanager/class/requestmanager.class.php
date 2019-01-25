@@ -2008,6 +2008,7 @@ class RequestManager extends CommonObject
         $requestChild->fk_parent = $this->id;
         $requestChild->fk_type = $new_request_type;
         $requestChild->date_creation = 0;
+        $requestChild->date_operation = 0;
         $requestChild->date_deadline = 0;
         $requestChild->context['createSubRequest'] = 'createSubRequest';
 
@@ -2074,7 +2075,10 @@ class RequestManager extends CommonObject
                 $tva_tx = $lines[$i]->tva_tx;
                 if (!empty($lines[$i]->vat_src_code) && !preg_match('/\(/', $tva_tx)) $tva_tx .= ' (' . $lines[$i]->vat_src_code . ')';
 
-                $result = $requestChild->addline($desc, $lines[$i]->subprice, $lines[$i]->qty, $tva_tx, $lines[$i]->localtax1_tx, $lines[$i]->localtax2_tx, $lines[$i]->fk_product, $lines[$i]->remise_percent, 'HT', 0, $lines[$i]->info_bits, $product_type, $lines[$i]->rang, $lines[$i]->special_code, $fk_parent_line, $lines[$i]->fk_fournprice, $lines[$i]->pa_ht, $label, $date_start, $date_end, $array_options, $lines[$i]->fk_unit);
+                $result = $requestChild->addline($desc, $lines[$i]->subprice, $lines[$i]->qty, $tva_tx, $lines[$i]->localtax1_tx, $lines[$i]->localtax2_tx, $lines[$i]->fk_product, $lines[$i]->remise_percent,
+                    $lines[$i]->info_bits, 0, 'HT', 0, $date_start, $date_end, $product_type, $lines[$i]->rang, $lines[$i]->special_code, $fk_parent_line,
+                    $lines[$i]->fk_fournprice, $lines[$i]->pa_ht, $label, $array_options, $lines[$i]->fk_unit
+                );
 
                 if ($result > 0) {
                     $lineid = $result;
@@ -2219,6 +2223,19 @@ class RequestManager extends CommonObject
             if ($result < 0) {
                 $error++;
                 dol_syslog(__METHOD__ . " Errors delete extra fields: " . $this->errorsToString(), LOG_ERR);
+            }
+        }
+
+        // Remove request lines
+        if (!$error) {
+            $sql = "DELETE FROM " . MAIN_DB_PREFIX . $this->table_element_line;
+            $sql .= ' WHERE fk_requestmanager = ' . $this->id;
+
+            $resql = $this->db->query($sql);
+            if (!$resql) {
+                $error++;
+                $this->errors[] = 'Error ' . $this->db->lasterror();
+                dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $this->db->lasterror(), LOG_ERR);
             }
         }
 
@@ -4285,12 +4302,12 @@ class RequestManager extends CommonObject
      * Prepare SQL request to find all for a company
      *
      * @param   int     $fkSoc              [=0] Id of company
-     * @param   array   $statusList         [=array()] List of status
+     * @param   array   $statusTypeList         [=array()] List of status
      * @param   int     $categorieList      [=array()] List of categories
      * @param   int     $equipementId       [=0] Id of equipement
      * @return  string  SQL request
      */
-    private function _sqlFindAllByFkSoc($fkSoc=0, $statusList=array(), $categorieList=array(), $equipementId=0)
+    private function _sqlFindAllByFkSoc($fkSoc=0, $statusTypeList=array(), $categorieList=array(), $equipementId=0)
     {
         $sql  = $this->_sqlSelectAllFromTableElement();
         if (count($categorieList)) {
@@ -4299,12 +4316,19 @@ class RequestManager extends CommonObject
         if ($equipementId > 0) {
             $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'element_element as ee ON ee.fk_target = t.rowid AND ee.targettype = "' . $this->db->escape($this->element) . '" AND ee.sourcetype = "equipement"';
         }
+        if (count($statusTypeList)) {
+            $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'c_requestmanager_status as crms ON crms.rowid = t.fk_status';
+        }
         $sql .= ' WHERE t.entity IN (' . getEntity($this->element) . ')';
         if ($fkSoc > 0) {
-            $sql .= ' AND t.fk_soc = ' . $fkSoc;
+            $sql .= ' AND (';
+            $sql .= ' t.fk_soc = ' . $fkSoc;
+            $sql .= ' OR t.fk_soc_benefactor = ' . $fkSoc;
+            $sql .= ' OR t.fk_soc_watcher = ' . $fkSoc;
+            $sql .= ')';
         }
-        if (count($statusList)) {
-            $sql .= ' AND t.fk_status IN (' . implode(',', $statusList) . ')';
+        if (count($statusTypeList)) {
+            $sql .= ' AND crms.type IN (' . implode(',', $statusTypeList) . ')';
         }
         if (count($categorieList)) {
             $sql .= ' AND cr.fk_categorie IN (' . implode(',', $categorieList) . ')';
@@ -4364,12 +4388,12 @@ class RequestManager extends CommonObject
      * Load all filter for a company
      *
      * @param   int     $fkSoc              [=0] Id of company
-     * @param   array   $statusList         [=array()] List of status
+     * @param   array   $statusTypeList         [=array()] List of status
      * @param   int     $categorieList      [=array()] List of categories
      * @param   int     $equipementId       [=0] Id of equipement
      * @return  int     <0 if KO, 0 if not found, >0 if OK
      */
-    public function loadAllByFkSoc($fkSoc=0, $statusList=array(), $categorieList=array(), $equipementId=0)
+    public function loadAllByFkSoc($fkSoc=0, $statusTypeList=array(), $categorieList=array(), $equipementId=0)
     {
         global $langs;
 
@@ -4380,7 +4404,7 @@ class RequestManager extends CommonObject
 
         dol_syslog(__METHOD__ . " fkSoc=" . $fkSoc, LOG_DEBUG);
 
-        $sql = $this->_sqlFindAllByFkSoc($fkSoc, $statusList, $categorieList, $equipementId);
+        $sql = $this->_sqlFindAllByFkSoc($fkSoc, $statusTypeList, $categorieList, $equipementId);
 
         $resql = $this->db->query($sql);
         if (!$resql) {

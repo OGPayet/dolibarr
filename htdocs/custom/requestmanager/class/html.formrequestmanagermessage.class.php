@@ -605,7 +605,7 @@ SCRIPT;
         // Message
         //-----------------
         $default_body = !empty($default_message['message']) ? $default_message['message'] : '';
-        $message = !empty($default_body) ? $default_body : GETPOST('message', 'alpha', 2);
+        $message = !empty($default_body) ? $default_body : GETPOST('message', '', 2);
         if (GETPOST('addknowledgebasedescription', 'alpha') != '') {
             foreach ($knowledgebase_ids as $knowledge_base_id) {
                 $knowledge_base_selected = $this->knowledge_base_list[$knowledge_base_id]->fields;

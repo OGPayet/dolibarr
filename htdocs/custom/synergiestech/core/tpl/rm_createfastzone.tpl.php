@@ -61,6 +61,13 @@ if ($zone === 1) {
         $actionComm = new ActionComm($db);
         $actionComm->fetch($selectedActionCommId);
         $selectedSocIdOrigin = $actionComm->socid;
+
+        $source_dictionary = Dictionary::getDictionary($db, 'requestmanager', 'requestmanagersource');
+        $source_dictionary->fetch_lines(1, array('event_type' => array($actionComm->type_id)));
+        if (is_array($source_dictionary->lines) && count($source_dictionary->lines) > 0) {
+            $source_lines = array_values($source_dictionary->lines);
+            $selectedFkSource =  $source_lines[0]->id;
+        }
     }
 
     $form = new Form($db);

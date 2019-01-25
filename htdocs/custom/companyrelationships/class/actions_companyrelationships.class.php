@@ -284,7 +284,7 @@ class ActionsCompanyRelationships
 
                             if (! $error) {
                                 // modify options with company relationships default availability
-                                $objectClone->array_options['options_companyrelationships_fk_soc_watcher']       = $relation_socid;
+                                $objectClone->array_options['options_companyrelationships_fk_soc_watcher']       = $relation_socid > 0 ? $relation_socid : null;
                                 $objectClone->array_options['options_companyrelationships_availability_watcher'] = $publicSpaceAvailability['watcher'];
 
                                 $result = $objectClone->insertExtraFields();

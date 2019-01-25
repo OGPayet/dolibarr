@@ -939,12 +939,22 @@ if ($resql) {
         $objectstatic->thirdparty_benefactor = $societestatic_benefactor;
         $objectstatic->thirdparty_watcher = $societestatic_watcher;
 
+        // picto warning for deadline
+        $pictoWarning = '';
+        if ($obj->date_deadline) {
+            $tmsDeadLine = strtotime($obj->date_deadline);
+            if ($tmsDeadLine < $now) {
+                // alert time is up
+                $pictoWarning = ' ' . img_warning($langs->trans("Late"));
+            }
+        }
+
         print '<tr class="oddeven">';
 
         // Ref
         if (!empty($arrayfields['rm.ref']['checked'])) {
             print '<td class="nowrap">';
-            print $objectstatic->getNomUrl(1, 'parent_path', 24);
+            print $objectstatic->getNomUrl(1, 'parent_path', 24) . $pictoWarning;
             print '</td>';
         }
         //External Ref

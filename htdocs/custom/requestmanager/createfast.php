@@ -272,7 +272,7 @@ if (($action == 'createfast' || $action == 'force_principal_company' || $action 
         // Set default values
         $force_set = $selectedActionJs == 'change_socid_origin';
         if ($selectedSocIdOrigin > 0) {
-            $originRelationshipType = $companyrelationships->getRelationshipTypeThirdparty($selectedSocIdOrigin, self::RELATION_TYPE_BENEFACTOR);
+            $originRelationshipType = $companyrelationships->getRelationshipTypeThirdparty($selectedSocIdOrigin, CompanyRelationships::RELATION_TYPE_BENEFACTOR);
             if ($originRelationshipType == 0) { // Benefactor company
                 $selectedSocIdBenefactor = $selectedSocIdBenefactor < 0 || $force_set ? $selectedSocIdOrigin : $selectedSocIdBenefactor;
             } elseif ($originRelationshipType > 0) { // Principal company or both

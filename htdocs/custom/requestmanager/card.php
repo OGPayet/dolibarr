@@ -377,7 +377,7 @@ if (empty($reshook)) {
     } // Set Duration
     elseif ($action == 'set_duration' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
         $object->oldcopy = clone $object;
-        $object->duration = GETPOST('duration_day', 'int') * 86400 + GETPOST('duration_hour', 'int') * 3600 + GETPOST('duration_minute', 'int') * 60;
+        $object->duration = GETPOST('duration_day', 'int') * 86400 + GETPOST('duration_hour', 'int') * 3600 + GETPOST('duration_min', 'int') * 60;
         $result = $object->update($user);
         if ($result < 0) {
             setEventMessages($object->error, $object->errors, 'errors');
@@ -389,7 +389,7 @@ if (empty($reshook)) {
     } // Set Date Operation
     elseif ($action == 'set_date_operation' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
         $object->oldcopy = clone $object;
-        $object->date_operation = dol_mktime(GETPOST('operation_hour', 'int'), GETPOST('operation_minute', 'int'), 0, GETPOST('operation_month', 'int'), GETPOST('operation_day', 'int'), GETPOST('operation_year', 'int'));
+        $object->date_operation = dol_mktime(GETPOST('operation_hour', 'int'), GETPOST('operation_min', 'int'), 0, GETPOST('operation_month', 'int'), GETPOST('operation_day', 'int'), GETPOST('operation_year', 'int'));
 
         // calculate deadline date with operation date or now and the offset deadline time in minutes
         if (GETPOST('recalculate_date_deadline', 'int') == 1) {
@@ -424,7 +424,7 @@ if (empty($reshook)) {
     } // Set Date Deadline
     elseif ($action == 'set_date_deadline' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
         $object->oldcopy = clone $object;
-        $object->date_deadline = dol_mktime(GETPOST('deadline_hour', 'int'), GETPOST('deadline_minute', 'int'), 0, GETPOST('deadline_month', 'int'), GETPOST('deadline_day', 'int'), GETPOST('deadline_year', 'int'));
+        $object->date_deadline = dol_mktime(GETPOST('deadline_hour', 'int'), GETPOST('deadline_min', 'int'), 0, GETPOST('deadline_month', 'int'), GETPOST('deadline_day', 'int'), GETPOST('deadline_year', 'int'));
         $result = $object->update($user);
         if ($result < 0) {
             setEventMessages($object->error, $object->errors, 'errors');
@@ -1226,32 +1226,12 @@ if ($object->id > 0) {
                 'value' => $formrequestmanager->select_reason_resolution($object->fk_type, $reason_resolution, 'reason_resolution', 1, 0, array(), 0, 0, 'minwidth300')),
         );
 
-        if (!empty($conf->fckeditor->enabled)) {
-            $doleditor = new DolEditor('reason_resolution_details', $reason_resolution_details, '', 200, 'dolibarr_notes', 'In', 0, false, true, ROWS_3, '90%');
-            $formquestion = array_merge($formquestion, array(
-                array('type' => 'other', 'name' => 'reason_resolution_details', 'label' => $langs->trans('RequestManagerReasonResolutionDetails'), 'value' => $doleditor->Create(1, ".on('change', function(e) { $('textarea#reason_resolution_details').val(encodeURIComponent(this.getData())); });")),
-            ));
-            $height = 520;
-        } else {
-            $reason_resolution_details_form = <<<SCRIPT
-  <textarea id="reason_resolution_details_text" rows="10" style="width: 100%;">$reason_resolution_details</textarea>
-  <script type="text/javascript">
-    $(document).ready(function() {
-      $('#reason_resolution_details_text').on('focusout', function() {
-        $('#reason_resolution_details').val(encodeURIComponent($(this).val()));
-      });
-    });
-  </script>
-SCRIPT;
+        $doleditor = new DolEditor('reason_resolution_details', $reason_resolution_details, '', 200, 'dolibarr_notes', 'In', 0, false, true, ROWS_3, '90%');
+        $formquestion = array_merge($formquestion, array(
+            array('type' => 'other', 'name' => 'reason_resolution_details', 'label' => $langs->trans('RequestManagerReasonResolutionDetails'), 'value' => $doleditor->Create(1, !empty($conf->fckeditor->enabled) ? ".on('change', function(e) { $('textarea#reason_resolution_details').val(encodeURIComponent(this.getData())); });" : '')),
+        ));
 
-            $formquestion = array_merge($formquestion, array(
-                array('type' => 'hidden', 'name' => 'reason_resolution_details', 'value' => ''),
-                array('type' => 'other', 'label' => $langs->trans('RequestManagerReasonResolutionDetails'), 'value' => $reason_resolution_details_form),
-            ));
-            $height = 400;
-        }
-
-		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('RequestManagerResolveRequest'), $langs->trans('RequestManagerConfirmResolveRequest', $object->ref), 'confirm_resolve', $formquestion, 0, 1, $height, 800);
+		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('RequestManagerResolveRequest'), $langs->trans('RequestManagerConfirmResolveRequest', $object->ref), 'confirm_resolve', $formquestion, 0, 1, 520, 800);
 	}
 
     // Confirm close
@@ -1653,7 +1633,7 @@ SCRIPT;
         $duration_infos = requestmanager_get_duration($object->duration);
         print '<input type="text" size="3" name="duration_day" value="'.$duration_infos['days'].'"> ' . $langs->trans('Days');
         print ' <input type="text" size="3" name="duration_hour" value="'.$duration_infos['hours'].'"> ' . $langs->trans('Hours');
-        print ' <input type="text" size="3" name="duration_minute" value="'.$duration_infos['minutes'].'"> ' . $langs->trans('Minutes');
+        print ' <input type="text" size="3" name="duration_min" value="'.$duration_infos['minutes'].'"> ' . $langs->trans('Minutes');
 		print '<input type="submit" class="button" value="' . $langs->trans('Modify') . '">';
 		print '</form>';
 	} else {
@@ -1700,7 +1680,16 @@ SCRIPT;
 		print '<input type="submit" class="button" value="' . $langs->trans('Modify') . '">';
 		print '</form>';
 	} else {
-        print $object->date_deadline > 0 ? dol_print_date($object->date_deadline, 'dayhour') : '';
+        // picto warning for deadline
+        $pictoWarning = '';
+        if ($object->date_deadline) {
+            $tmsDeadLine = strtotime($object->date_deadline);
+            if ($tmsDeadLine < $now) {
+                // alert time is up
+                $pictoWarning = ' ' . img_warning($langs->trans("Late"));
+            }
+        }
+        print $object->date_deadline > 0 ? (dol_print_date($object->date_deadline, 'dayhour') . $pictoWarning) : '';
 	}
     print '</td></tr>';
 
@@ -2123,13 +2112,14 @@ SCRIPT;
 
                 $backtopage = dol_buildpath('/requestmanager/card.php', 1) . '?id=' . $object->id;
                 $commun_params = '&originid=' . $object->id . '&origin=' . $object->element . '&socid=' . $object->socid . '&backtopage=' . urlencode($backtopage);
-                $benefactor_params = !empty($conf->companyrelationships->enabled) ? '&options_companyrelationships_fk_soc_benefactor=' . $object->socid_benefactor : '';
+                $benefactor_params = !empty($conf->companyrelationships->enabled) ? '&companyrelationships_fk_soc_benefactor=' . $object->socid_benefactor : '';
+                $watcher_params = !empty($conf->companyrelationships->enabled) ? '&companyrelationships_fk_soc_watcher=' . $object->socid_watcher : '';
 
                 // Add proposal
                 if (!empty($conf->propal->enabled) && (count($authorizedButtons) == 0 || in_array('create_propal', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
                     $langs->load("propal");
                     if ($user->rights->propal->creer) {
-                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/comm/propal/card.php?action=create' . $commun_params . $benefactor_params . '">' . $langs->trans("AddProp") . '</a></div>';
+                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/comm/propal/card.php?action=create' . $commun_params . $benefactor_params . $watcher_params . '">' . $langs->trans("AddProp") . '</a></div>';
                     } else {
                         print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddProp") . '</a></div>';
                     }
@@ -2139,7 +2129,7 @@ SCRIPT;
                 if (!empty($conf->commande->enabled) && (count($authorizedButtons) == 0 || in_array('create_order', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
                     $langs->load("orders");
                     if ($user->rights->commande->creer) {
-                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/commande/card.php?action=create' . $commun_params . $benefactor_params . '">' . $langs->trans("AddOrder") . '</a></div>';
+                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/commande/card.php?action=create' . $commun_params . $benefactor_params . $watcher_params . '">' . $langs->trans("AddOrder") . '</a></div>';
                     } else {
                         print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddOrder") . '</a></div>';
                     }
@@ -2152,7 +2142,7 @@ SCRIPT;
                     if ($user->rights->facture->creer) {
                         $object->fetch_thirdparty();
                         if ($object->thirdparty->client != 0 && $object->thirdparty->client != 2) {
-                            print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/compta/facture/card.php?action=create' . $commun_params . $benefactor_params . '">' . $langs->trans("AddBill") . '</a></div>';
+                            print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/compta/facture/card.php?action=create' . $commun_params . $benefactor_params . $watcher_params . '">' . $langs->trans("AddBill") . '</a></div>';
                         } else {
                             print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("ThirdPartyMustBeEditAsCustomer")) . '" href="#">' . $langs->trans("AddBill") . '</a></div>';
                         }
@@ -2195,7 +2185,7 @@ SCRIPT;
                 if (!empty($conf->contrat->enabled) && (count($authorizedButtons) == 0 || in_array('create_contract', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
                     $langs->load("contracts");
                     if ($user->rights->contrat->creer) {
-                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/contrat/card.php?action=create' . $commun_params . $benefactor_params . '">' . $langs->trans("AddContract") . '</a></div>';
+                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/contrat/card.php?action=create' . $commun_params . $benefactor_params . $watcher_params . '">' . $langs->trans("AddContract") . '</a></div>';
                     } else {
                         print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddContract") . '</a></div>';
                     }
@@ -2205,7 +2195,7 @@ SCRIPT;
                 if (!empty($conf->ficheinter->enabled) && (count($authorizedButtons) == 0 || in_array('create_inter', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
                     $langs->load("interventions");
                     if ($user->rights->ficheinter->creer) {
-                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/fichinter/card.php?action=create' . $commun_params . $benefactor_params . '">' . $langs->trans("AddIntervention") . '</a></div>';
+                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/fichinter/card.php?action=create' . $commun_params . $benefactor_params . $watcher_params . '">' . $langs->trans("AddIntervention") . '</a></div>';
                     } else {
                         print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddIntervention") . '</a></div>';
                     }
