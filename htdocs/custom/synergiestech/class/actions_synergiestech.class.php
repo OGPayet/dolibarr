@@ -1648,6 +1648,11 @@ SCRIPT;
         return 0;
     }
 
+		function printFieldListWhereCustomerOrderToBill($parameters, &$object, &$action, $hookmanager)
+    {
+       return " AND c.total_ttc > 0 ";
+    }
+
     /**
      * _block_page function
      *

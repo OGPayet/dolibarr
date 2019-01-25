@@ -3,6 +3,7 @@
  * Copyright (C) 2004-2015 Laurent Destailleur  <eldy@users.sourceforge.net>
  * Copyright (C) 2005-2016 Regis Houssin        <regis.houssin@capnetworks.com>
  * Copyright (C) 2017      Open-DSI             <support@open-dsi.fr>
+ * Copyright (C) 2019      Alexis LAURIER       <alexis@alexislaurier.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -411,6 +412,37 @@ class modSynergiesTech extends DolibarrModules
 		// $this->export_sql_end[$r] .=' WHERE f.fk_soc = s.rowid AND f.rowid = fd.fk_facture';
 		// $this->export_sql_order[$r] .=' ORDER BY s.nom';
 		// $r++;
+
+		if (! empty($conf->fournisseur->enabled))
+		{
+			// Import suppliers prices (note: this code is duplicated into module service)
+			$r++;
+			$this->import_code[$r]=$this->rights_class.'_supplierprices';
+			$this->import_label[$r]="SuppliersPricesOfProductsOrServicesUpgraded";	// Translation key
+			$this->import_icon[$r]='product';
+			$this->import_entities_array[$r]=array();		// We define here only fields that use another icon that the one defined into import_icon
+			$this->import_tables_array[$r]=array('sp'=>MAIN_DB_PREFIX.'product_fournisseur_price');
+			$this->import_tables_creator_array[$r]=array('sp'=>'fk_user');
+			$this->import_fields_array[$r]=array('sp.fk_product'=>"ProductOrService*",
+					'sp.fk_soc'=>"Supplier*", 'sp.ref_fourn'=>'SupplierRef', 'sp.quantity'=>"QtyMin*", 'sp.tva_tx'=>'VATRate',
+					'sp.price'=>"PriceQtyMinHT*",
+					'sp.unitprice'=>'UnitPriceHT*',	// TODO Make this file not required and calculate it from price and qty
+					'sp.remise_percent'=>'DiscountQtyMin'
+			);
+
+			$this->import_convertvalue_array[$r]=array(
+					'sp.fk_soc'=>array('rule'=>'fetchidfromref','classfile'=>'/societe/class/societe.class.php','class'=>'Societe','method'=>'fetch','element'=>'ThirdParty'),
+					'sp.fk_product'=>array('rule'=>'fetchidfromref','classfile'=>'/product/class/product.class.php','class'=>'Product','method'=>'fetch','element'=>'Product')
+			);
+			$this->import_examplevalues_array[$r]=array('sp.fk_product'=>"PREF123456",
+					'sp.fk_soc'=>"My Supplier",'sp.ref_fourn'=>"SupplierRef", 'sp.quantity'=>"1", 'sp.tva_tx'=>'21',
+					'sp.price'=>"50",
+					'sp.unitprice'=>'50',
+					'sp.remise_percent'=>'0'
+			);
+			$this->import_updatekeys_array[$r]=array('sp.fk_product'=>'ProductOrService','sp.ref_fourn'=>'SupplierRef','sp.fk_soc'=>'Supplier');
+		}
+
     }
 
 	/**

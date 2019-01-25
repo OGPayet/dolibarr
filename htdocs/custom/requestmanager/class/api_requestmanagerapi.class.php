@@ -1707,9 +1707,9 @@ class RequestManagerApi extends DolibarrApi {
 			//Title
 			$actioncomm->label = $langs->trans('RequestManagerOutgoingCall') . ' - ' . $displayName . ' - ' .  dol_print_date($begin_date,' %H:%M:%S') . ' - ' . $duration_fomatted .   ' (' . $langs->trans('RequestManagerWaitingTime',$waitingTime_formatted) .  ')';
 			//Message
-			$message.= $langs->trans('RequestManagerIPBXCallerIDNum', $caller_id_num) . '<br>';
+			$message.= $langs->trans('RequestManagerIPBXCallerIDNum', $connected_line_num) . '<br>';
 			$message.= $langs->trans('RequestManagerIPBXCalledNum', $called_num) . '<br>';
-            if (!empty($connected_line_num)) $message.= $langs->trans('RequestManagerIPBXPosteNumber', $connected_line_num) . '<br>';
+            if (!empty($connected_line_num)) $message.= $langs->trans('RequestManagerIPBXPosteNumber', $caller_id_num) . '<br>';
 			if (!empty($context)) $message.= $langs->trans('RequestManagerIPBXContext', $context) . '<br>';
 			if (!empty($begin_ask_hour)) $message.= $langs->trans('RequestManagerIPBXBeginAskHour', $begin_ask_hour) . '<br>';
             if (isset($bill_sec)) $message.= $langs->trans('RequestManagerIPBXTalkingTime', $duration_fomatted) . '<br>';

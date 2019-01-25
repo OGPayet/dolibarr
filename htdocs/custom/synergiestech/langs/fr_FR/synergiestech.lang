@@ -149,3 +149,9 @@ SynergiesTechNoStockIntoPrincipalWarehouse  = Pas de stock dans l'entrepôt prin
 ### Errors
 ############################################################
 SynergiesTechErrorPrincipalWarehouseNotDefined      = Entrepôt principal non définie dans la configuration du module Synergies-Tech
+
+
+###########################################################
+### Misc
+###########################################################
+SuppliersPricesOfProductsOrServicesUpgraded = Prix fournisseurs amélioré (des produits ou services)
