@@ -505,6 +505,14 @@ if ($action == 'dispatch' && $user->rights->fournisseur->commande->receptionner)
                                             $object->errors[] = $object->error;
                                         }
 
+                                        // update customer
+                                        $ret = $equipementExists->set_client($user, -1);
+                                        if ($ret < 0) {
+                                            $error++;
+                                            $object->error    = $equipementExists->error;
+                                            $object->errors[] = $object->error;
+                                        }
+
                                         // add event line for this equipement
                                         $now = dol_now();
                                         $equipementExistsEvtType = dol_getIdFromCode($db, 'RECEPT', 'c_equipementevt_type', 'code', 'rowid');
