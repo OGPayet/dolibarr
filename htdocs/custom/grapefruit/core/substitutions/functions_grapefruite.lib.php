@@ -81,10 +81,10 @@ function grapefruite_completesubstitutionarray(&$substitutionarray,$outputlangs,
 				$filtercreditnote = "fk_facture_source IS NOT NULL AND (description NOT LIKE '(DEPOSIT)%' OR description LIKE '(EXCESS RECEIVED)%')";
 			}
 
-			$total_remise_dispo = $societe->getAvailableDiscounts('', $filterabsolutediscount);
-			$total_avoir_dispo = $societe->getAvailableDiscounts('', $filtercreditnote);
+			$total_remise_dispo = $object->getAvailableDiscounts('', $filterabsolutediscount);
+			$total_avoir_dispo = $object->getAvailableDiscounts('', $filtercreditnote);
 
-			$tmp = $societe->getOutstandingBills();
+			$tmp = $object->getOutstandingBills();
 			$total_facture_impayee = $tmp['opened']; // si négatif alors c'est un client à qui on doit de l'argent
 			if ($total_facture_impayee > 0) $total_facture_impayee_only_pos = $total_facture_impayee;
 //			$outstandingTotal=$tmp['total_ht'];
