@@ -1846,31 +1846,81 @@ class Equipement extends CommonObject
 			return($fk_equipementcomponent);
 	}
 
-	/**
-	 *	Get the id of the fisrt parent child
-	 *	with recursive search
-	 *	@param  	int		$fk_equipementcomponent	Id equipement component
-	 *	@return 	array								id equipement main
-	 */
-	function get_Parent($fk_equipementcomponent)
+    /**
+     * Get the id of the parent equipment
+     *
+     * @param   int         $fk_equipement_fils         Id of child equipment
+     * @return  int|array   <0 if KO, array else
+     *
+     * @throws  Exception
+     */
+	function get_parent($fk_equipement_fils)
 	{
-		$sql = "SELECT fk_equipement_pere, fk_product FROM ".MAIN_DB_PREFIX."equipementassociation ";
-		$sql.= " WHERE fk_equipement_fils=".$fk_equipementcomponent;
+		$sql  = "SELECT ea.fk_equipement_pere";
+        $sql .= ", ea.fk_product as child_product_id";
+        $sql .= ", ep.fk_product as parent_product_id";
+        $sql .= " FROM ". MAIN_DB_PREFIX . "equipementassociation as ea ";
+        $sql .= " INNER JOIN " . MAIN_DB_PREFIX . " as ep ON e.rowid = ea.fk_equipement_pere";
+		$sql .= " WHERE ea.fk_equipement_fils = " . $fk_equipement_fils;
 
-		dol_syslog(get_class($this)."::get_Parent sql=".$sql, LOG_DEBUG);
-		$resql=$this->db->query($sql);
-		if ($resql) {
-			$objp = $this->db->fetch_object($resql);
-			if ($objp->fk_equipement_pere) {
-				$tblrep=array();
-				$tblrep[0]=$objp->fk_equipement_pere;
-				$tblrep[1]=$objp->fk_product;
-				return $tblrep;
+		dol_syslog(__METHOD__  . " sql=".$sql, LOG_DEBUG);
+		$resql = $this->db->query($sql);
+		if (!$resql) {
+		    return -1;
+        } else {
+            $parent_list = array();
+
+			if ($objp = $this->db->fetch_object($resql)) {
+			    if ($objp->fk_equipement_pere) {
+                    $parent_list[0] = $objp->fk_equipement_pere;
+                    $parent_list[1] = $objp->child_product_id;
+                    $parent_list[2] = $objp->parent_product_id;
+                }
 			}
+
+            return $parent_list;
 		}
-		return array();
 	}
 
+    /**
+     * Get parent equipment and product objects
+     *
+     * @param   int             $fk_equipement_fils          Id of child equipment
+     * @return  int|array       <0 if KO, else Array of parent equipment and product objects
+     *
+     * @throws  Exception
+     */
+    function get_parent_objects($fk_equipement_fils)
+    {
+        $sql  = "SELECT ea.fk_equipement_pere";
+        $sql .= ", ea.fk_product as child_product_id";
+        $sql .= ", ep.fk_product as parent_product_id";
+        $sql .= " FROM ". MAIN_DB_PREFIX . "equipementassociation as ea ";
+        $sql .= " INNER JOIN " . MAIN_DB_PREFIX . "equipement as ep ON ep.rowid = ea.fk_equipement_pere";
+        $sql .= " WHERE ea.fk_equipement_fils = " . $fk_equipement_fils;
+
+        dol_syslog(__METHOD__  . " sql=" . $sql, LOG_DEBUG);
+        $resql = $this->db->query($sql);
+        if (!$resql) {
+            return -1;
+        } else {
+            $parentequipementstatic = NULL;
+            $parentproductstatic = NULL;
+
+            if ($obj = $this->db->fetch_object($resql)) {
+                if ($obj->fk_equipement_pere) {
+                    $parentequipementstatic = new self($this->db);
+                    $parentequipementstatic->fetch($obj->fk_equipement_pere);
+
+                    require_once DOL_DOCUMENT_ROOT . "/product/class/product.class.php";
+                    $parentproductstatic = new Product($this->db);
+                    $parentproductstatic->fetch($obj->parent_product_id);
+                }
+            }
+
+            return array('parent_equipement' => $parentequipementstatic, 'parent_product' => $parentproductstatic);
+        }
+    }
 
 	/**
 	 *	Get the ref of the equipement child
@@ -2829,7 +2879,7 @@ class Equipementevt extends CommonObject
 	 *	Retrieve the line of equipement event
 	 *
 	 *	@param  int		$rowid		Line id
-	 *	@return	int					<0 if KO, >0 if OK
+	 *	@return	int					<0 if KO, >0 if OK, 0 if not found.
 	 */
 	function fetch($rowid)
 	{
@@ -2846,32 +2896,37 @@ class Equipementevt extends CommonObject
 		dol_syslog("EquipementEvt::fetch sql=".$sql);
 		$result = $this->db->query($sql);
 		if ($result) {
-			$objp 	= $this->db->fetch_object($result);
+			if ($objp = $this->db->fetch_object($result)) {
+                $this->id = $objp->rowid;
+                $this->rowid = $objp->rowid;
+                $this->fk_equipement = $objp->fk_equipement;
+                $this->fk_equipementevt_type = $objp->fk_equipementevt_type;
+                $this->equipeventlib = $objp->equipeventlib;
+                $this->datec = $this->db->jdate($objp->datec);
+                $this->datee = $this->db->jdate($objp->datee);
+                $this->dateo = $this->db->jdate($objp->dateo);
+                $this->total_ht = price2num($objp->total_ht);
+                $this->fulldayevent = $objp->fulldayevent;
+                $this->desc = $objp->description;
+                $this->fk_fichinter = $objp->fk_fichinter;
+                $this->fk_contrat = $objp->fk_contrat;
+                $this->fk_expedition = $objp->fk_expedition;
+                $this->fk_expeditiondet = $objp->fk_expeditiondet;
+                $this->fk_project = $objp->fk_project;
+                $this->fk_retourproduits = $objp->fk_retourproduits;
+                $this->fk_factory = $objp->fk_factory;
+                $this->fk_factorydet = $objp->fk_factorydet;
+                $this->fk_user_author = $objp->fk_user_author;
+                $this->fetch_optionals();
 
-            $this->id 						= $objp->rowid;
-			$this->rowid					= $objp->rowid;
-			$this->fk_equipement			= $objp->fk_equipement;
-			$this->fk_equipementevt_type	= $objp->fk_equipementevt_type;
-			$this->equipeventlib			= $objp->equipeventlib;
-			$this->datec					= $this->db->jdate($objp->datec);
-			$this->datee					= $this->db->jdate($objp->datee);
-			$this->dateo					= $this->db->jdate($objp->dateo);
-			$this->total_ht					= price2num($objp->total_ht);
-			$this->fulldayevent				= $objp->fulldayevent;
-			$this->desc						= $objp->description;
-			$this->fk_fichinter				= $objp->fk_fichinter;
-			$this->fk_contrat				= $objp->fk_contrat;
-			$this->fk_expedition			= $objp->fk_expedition;
-            $this->fk_expeditiondet			= $objp->fk_expeditiondet;
-			$this->fk_project				= $objp->fk_project;
-            $this->fk_retourproduits	    = $objp->fk_retourproduits;
-			$this->fk_factory			    = $objp->fk_factory;
-            $this->fk_factorydet			= $objp->fk_factorydet;
-            $this->fk_user_author			= $objp->fk_user_author;
-            $this->fetch_optionals();
+                $result = 1;
+            } else {
+              $result =  0;
+            }
 
-			$this->db->free($result);
-			return 1;
+            $this->db->free($result);
+
+			return $result;
 		} else {
 			$this->error=$this->db->error().' sql='.$sql;
 			dol_print_error($this->db, $this->error, LOG_ERR);

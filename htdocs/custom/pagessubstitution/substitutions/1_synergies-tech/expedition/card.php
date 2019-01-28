@@ -645,11 +645,13 @@ if (empty($reshook))
                         }
 
                         if (!$error) {
-                            $ret = $equipementEvt->deleteline();
-                            if ($ret < 0) {
-                                $error++;
-                                $object->error    = $equipementEvt->error;
-                                $object->errors[] = $object->error;
+                            if ($equipementEvt->id > 0) {
+                                $ret = $equipementEvt->deleteline();
+                                if ($ret < 0) {
+                                    $error++;
+                                    $object->error = $equipementEvt->error;
+                                    $object->errors[] = $object->error;
+                                }
                             }
                         }
 
@@ -700,6 +702,7 @@ if (empty($reshook))
                             }
                         }
 
+                        /*
                         if (!$error) {
                             // find all children components
                             $sql = "SELECT fk_equipement_fils";
@@ -739,6 +742,7 @@ if (empty($reshook))
                                 }
                             }
                         }
+                        */
 
                         if ($error) {
                             break;
@@ -2660,7 +2664,7 @@ else if ($id || $ref)
                         $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "equipementevt as ee ON ee.fk_equipement = e.rowid";
                         $sql .= " WHERE ee.fk_expedition = " . $lines[$i]->fk_expedition;
                         $sql .= " AND ee.fk_expeditiondet = " . $expeditionLineId;
-                        //$sql .= " AND e.fk_product = " . $product_static->id;
+                        $sql .= " AND e.fk_product = " . $product_static->id;
 
                         $resql = $db->query($sql);
                         if ($resql) {

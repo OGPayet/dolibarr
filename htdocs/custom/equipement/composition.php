@@ -277,26 +277,24 @@ print '<br>';
 
 // display the parent if they have a parent
 $componentstatic=new Equipement($db);
-$tblParent=$componentstatic->get_parent($id);
-if (count($tblParent) > 0) {
-	print '<b>'.$langs->trans("EquipementParentAssociation").'</b><BR>';
-	$productstatic=new Product($db);
-	$productstatic->id=$tblParent[1];
-	$productstatic->fetch($tblParent[1]);
+$parentobjects = $componentstatic->get_parent_objects($id);
+$parentobjects = is_array($parentobjects) ? $parentobjects : NULL;
+if (isset($parentobjects['parent_product']) && isset($parentobjects['parent_equipement'])) {
+	print '<b>' . $langs->trans("EquipementParentAssociation") . '</b><br />';
+	$parentproductstatic    = $parentobjects['parent_product'];
+    $parentequipementstatic = $parentobjects['parent_equipement'];
 
-	$parentstatic=new Equipement($db);
-	$parentstatic->fetch($tblParent[0]);
 	print '<table class="border" >';
 	print '<tr class="liste_titre">';
-	print '<td class="liste_titre" width=150px align="left">'.$langs->trans("Ref").'</td>';
-	print '<td class="liste_titre" width=200px align="left">'.$langs->trans("Label").'</td>';
-	print '<td class="liste_titre" width=150px align="center">'.$langs->trans("Equipement").'</td>';
+	print '<td class="liste_titre" width=150px align="left">' . $langs->trans("Ref") . '</td>';
+	print '<td class="liste_titre" width=200px align="left">' . $langs->trans("Label") . '</td>';
+	print '<td class="liste_titre" width=150px align="center">' . $langs->trans("Equipement") . '</td>';
 	print '</tr>';
 
 	print '<tr>';
-	print '<td align="left">'.$productstatic->getNomUrl(1, 'composition').'</td>';
-	print '<td align="left">'.$productstatic->label.'</td>';
-	print '<td align="left">'.$parentstatic->getNomUrl(1).'</td>';
+	print '<td align="left">'.$parentproductstatic->getNomUrl(1, 'composition').'</td>';
+	print '<td align="left">'.$parentproductstatic->label.'</td>';
+	print '<td align="left">'.$parentequipementstatic->getNomUrl(1).'</td>';
 	print '</tr>';
 	print '</table ><br>';
 }
