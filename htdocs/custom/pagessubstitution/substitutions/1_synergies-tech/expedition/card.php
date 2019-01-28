@@ -2834,7 +2834,8 @@ else if ($id || $ref)
 					    $label="ClassifyBilled";
 					    $paramaction='classifybilled';
 					}
-					print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action='.$paramaction.'">'.$langs->trans($label).'</a>';
+					$disabled = $object->statut == Expedition::STATUS_CLOSED ? "butActionRefused" : "butAction";
+					print '<a class="' . $disabled . '" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action='.$paramaction . '">'.$langs->trans($label).'</a>';
 				}
 			}
 

@@ -1,0 +1,30 @@
+/*
+ * Copyright (C) 2015 ATM Consulting <support@atm-consulting.fr>
+ *
+ * This program and files/directory inner it is free software: you can
+ * redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
+### Clés de substitutions supplémentaires
+* __CLIENT_TOTAL_REMISE_DISPO__               => remises disponibles (avoirs ou acomptes) du client
+* __CLIENT_TOTAL_AVOIR_DISPO__                => avoirs disponibles
+* __CLIENT_TOTAL_FACTURE_IMPAYEE__            => montant encours
+* __CLIENT_TOTAL_FACTURE_IMPAYEE_ONLY_POS__   => montant encours positif (si le montant est négatif alors affiche 0)
+
+Autres possibilités avec l'objet courant
+* __OBJECT_[ATTRIBUTE_NAME]__                 => il faut remplacer [ATTRIBUTE_NAME] par le nom de l'attribut (en majuscule) de l'objet que l'on souhaite afficher (exemple avec l'attribut ref : __OBJECT_REF__)
+
+### Configuration cachée
+* GRAPEFRUIT_SUBSTITUTION_USE_CURRENCY_SYMBOL => affiche le symbole de la monnaie au lieu de l'écrire en toutes lettres

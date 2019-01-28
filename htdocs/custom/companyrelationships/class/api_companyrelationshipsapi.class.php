@@ -4846,16 +4846,13 @@ break;
 default:
 }
 
-
-        $check_access = dol_check_secure_access_document($module_part, $original_file, $entity, DolibarrApiAccess::$user, $refname, 'read', true);
-        $original_file = $check_access['original_file'];
+	$output_dir="";
+	$check_access = dol_check_secure_access_document($module_part, $original_file, $entity, DolibarrApiAccess::$user, $refname, 'read', true);
 
         $companyrelationships_modulepart_check = array_flip(array(
             'propal', 'proposal', 'commande', 'order', 'shipment', 'expedition', 'facture', 'invoice',
             'fichinter', 'ficheinter', 'intervention', 'interventions', 'contract', 'contrat'
         ));
-
-
 
 
         if (isset($companyrelationships_modulepart_check[$module_part])) {
@@ -4886,6 +4883,7 @@ default:
                 require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
                 $object = new Facture($this->db);
                 $result = $object->fetch('', $refname);
+
                 if (!$result) {
                     return [];
                 }
@@ -4904,6 +4902,7 @@ default:
                     return [];
                 }
             }
+
             if (isset($object)) {
                 $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($object);
                 if (!$hasPerm) {
@@ -4929,11 +4928,14 @@ default:
                 }
             }
 
+
+
             if ($module_part == 'agenda' && $conf->eventconfidentiality->enabled) // Wrapping pour les actions
             {
                 require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
                 $object = new ActionComm($this->db);
                 $result = $object->fetch('', $refname);
+				$entity = $object->entity;
                 if ($result <= 0) {
                     throw new RestException(500, "Error while retrieve the event object.", ['details' => $this->_getErrors($object)]);
                 }
@@ -4951,7 +4953,32 @@ default:
                     throw new RestException(401, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
                 }
             }
+			elseif($module_part == 'societe' || $module_part == 'thirdparty' || $module_part == 'thirdparties') // Wrapping pour les societes
+        {
+            require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
+
+            if (!DolibarrApiAccess::$user->rights->societe->lire || !DolibarrApiAccess::$user->rights->societe->read_file) {
+                throw new RestException(401);
+            }
+            $object = new Societe($this->db);
+            $result = $object->fetch( $refname,'');
+            if (!$result) {
+                return [];
+            }
+
+            //--------------------------------------------------------------
+            // Open-DSI - Modification - Begin
+            //
+            $output_dir = $conf->societe->multidir_output[$object->entity] . "/";
+			$entity = $object->entity;
+            //
+            // Open-DSI - Modification - End
+            //--------------------------------------------------------------
         }
+        }
+		$check_access = dol_check_secure_access_document($module_part, $original_file, $entity, DolibarrApiAccess::$user, $refname, 'read', true);
+
+        $original_file = $check_access['original_file'];
         //
         // Open-DSI - Modification - End
         //--------------------------------------------------------------
@@ -4970,6 +4997,7 @@ default:
         }
 
         $file_content = file_get_contents($original_file_osencoded);
+
         return array('filename' => $filename, 'content' => base64_encode($file_content), 'encoding' => 'MIME base64 (base64_encode php function, http://php.net/manual/en/function.base64-encode.php)','Content-Type' => mime_content_type($original_file_osencoded));
     }
 
