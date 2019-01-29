@@ -85,6 +85,19 @@ ExtendedInterventionJustificatory               = Justification
 ExtendedInterventionSurveyComplementaryText     = Texte complémentaire
 ExtendedInterventionUse                         = Utiliser
 ExtendedInterventionSurveyConfigurationChanged  = Il y a eu des changement dans le(s) dictionnaire(s) pour le(s) élément(s) suivant(s) :
+ExtendedInterventionWarningEquipmentInfoChanged = Il y a eu des changement dans l'équipement pour le(s) élément(s) suivant(s) :
+ExtendedInterventionProductId                   = Id du produit
+ExtendedInterventionEquipmentRef                = Ref de l'équipement
+ExtendedInterventionProductRef                  = Ref du produit
+ExtendedInterventionProductLabel                = Label du produit
+
+############################################################
+### Survey Block
+############################################################
+ExtendedInterventionSurveyBlocTitle             = Questionnaire pour l'équipement "%s" (Ref produit: "%s", N° série: "%s")
+ExtendedInterventionSurveyBlocGeneralTitle      = Questionnaire général
+ExtendedInterventionSurveyBlocId                = ID du bloc des questionnaires de l'equipment
+ExtendedInterventionEquipmentId                 = ID de l'équipement
 
 ############################################################
 ### Question Block
@@ -99,6 +112,7 @@ ExtendedInterventionQuestionBlocTitle                           = Libellé du bl
 ExtendedInterventionQuestionBlocStatusId                        = ID du status
 ExtendedInterventionQuestionBlocStatusCode                      = Code du status
 ExtendedInterventionQuestionBlocStatusLabel                     = Libellé du status
+ExtendedInterventionQuestionBlocStatusJustificatory             = Justification du status
 ExtendedInterventionQuestionBlocStatusJustificatoryMandatory    = Le mode obligatoire de la justification du status
 
 ############################################################
@@ -113,6 +127,7 @@ ExtendedInterventionQuestionLabel                   = Libellé de la question
 ExtendedInterventionAnswerId                        = ID de la réponse
 ExtendedInterventionAnswerCode                      = Code de la réponse
 ExtendedInterventionAnswerLabel                     = Libellé de la réponse
+ExtendedInterventionAnswerJustificatory             = Justification de la réponse
 ExtendedInterventionAnswerJustificatoryMandatory    = Le mode obligatoire de la justification de la réponse
 
 ############################################################

@@ -43,6 +43,7 @@ $id = GETPOST('id','int');
 $ref = GETPOST('ref', 'alpha');
 $action = GETPOST('action','alpha');
 $confirm = GETPOST('confirm','alpha');
+$equipment_id = GETPOST('equipment_id','int');
 $question_bloc_id = GETPOST('question_bloc_id','int');
 $backtopage = GETPOST('backtopage','alpha');
 
@@ -84,71 +85,92 @@ if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'e
 if (empty($reshook)) {
     if ($action == 'confirm_save_question_bloc' && $user->rights->ficheinter->creer &&
         $object->statut > ExtendedIntervention::STATUS_DRAFT && $object->statut < ExtendedIntervention::STATUS_DONE &&
-        $object->id > 0 && $question_bloc_id > 0) {
+        $object->id > 0 && $equipment_id > 0 && $question_bloc_id > 0) {
         if ($confirm == "yes") {
             $result = 0;
             $db->begin();
 
-            dol_include_once('/extendedintervention/class/extendedinterventionquestionbloc.class.php');
-            $question_bloc_static = new EIQuestionBloc($db);
-            if (!$question_bloc_static->is_read_only($object->id, $question_bloc_id) && $question_bloc_static->fetch(0, $object->id, $question_bloc_id) > 0) {
-                // Save question bloc
-//                $question_bloc_static->oldcopy = clone $question_bloc_static; // Error 500
-                $question_bloc_static->fk_fichinter = $object->id;
-                $question_bloc_static->fk_c_question_bloc = $question_bloc_id;
-                $question_bloc_static->complementary_question_bloc = GETPOST('ei_qb_complementary');
-                $question_bloc_static->fk_c_question_bloc_status = GETPOST('ei_qb_status', 'int');
-                $question_bloc_static->justificatory_status = GETPOST('ei_qb_justificatory_status');
-                $question_bloc_static->array_options = $extrafields_question_bloc->getOptionalsFromPost($extralabels_question_bloc, '_ei_qb');
-                $question_bloc_static->position_question_bloc = null;
-                $question_bloc_static->code_question_bloc = null;
-                $question_bloc_static->label_question_bloc = null;
-                $question_bloc_static->extrafields_question_bloc = null;
-                $question_bloc_static->code_status = null;
-                $question_bloc_static->label_status = null;
-                $question_bloc_static->mandatory_status = null;
+            dol_include_once('/extendedintervention/class/extendedinterventionsurveybloc.class.php');
+            $survey_static = new EISurveyBloc($db);
+            if (!$survey_static->is_read_only($object->id, $equipment_id) && $survey_static->fetch(0, $object->id, $equipment_id) > 0) {
+                $survey_static->fk_fichinter = $object->id;
+                $survey_static->fk_equipment = $equipment_id;
 
-                if ($question_bloc_static->id > 0) {
+                if ($survey_static->id > 0) {
                     // Update
-                    $result = $question_bloc_static->update($user);
+                    $result = $survey_static->update($user);
                 } else {
                     // Create
-                    $result = $question_bloc_static->create($user);
+                    $result = $survey_static->create($user);
                 }
 
                 if ($result > 0) {
-                    // Save questions
-                    foreach ($question_bloc_static->lines as $line) {
-                        if (!$line->read_only) {
-//                            $line->oldline = clone $line; // Error 500
-                            $line->fk_question_bloc = $question_bloc_static->id;
-                            $line->fk_c_answer = GETPOST('ei_q_' . $line->fk_c_question . '_answer', 'int');
-                            $line->text_answer = GETPOST('ei_q_' . $line->fk_c_question . '_justificatory');
-                            $line->array_options = $extrafields_question->getOptionalsFromPost($extralabels_question, '_ei_q_' . $line->fk_c_question);
-                            $line->position_question = null;
-                            $line->code_question = null;
-                            $line->label_question = null;
-                            $line->extrafields_question = null;
-                            $line->code_answer = null;
-                            $line->label_answer = null;
-                            $line->mandatory_answer = null;
+                    dol_include_once('/extendedintervention/class/extendedinterventionquestionbloc.class.php');
+                    $question_bloc_static = new EIQuestionBloc($db);
+                    if (!$question_bloc_static->is_read_only($object->id, $equipment_id, $question_bloc_id) && $question_bloc_static->fetch(0, $object->id, $equipment_id, 0, $question_bloc_id) > 0) {
+                        // Save question bloc
+//                $question_bloc_static->oldcopy = clone $question_bloc_static; // Error 500
+                        $question_bloc_static->fk_survey_bloc = $survey_static->id;
+                        $question_bloc_static->fk_fichinter = $object->id;
+                        $question_bloc_static->fk_equipment = $equipment_id;
+                        $question_bloc_static->fk_c_question_bloc = $question_bloc_id;
+                        $question_bloc_static->complementary_question_bloc = GETPOST('ei_qb_complementary');
+                        $question_bloc_static->fk_c_question_bloc_status = GETPOST('ei_qb_status', 'int');
+                        $question_bloc_static->justificatory_status = GETPOST('ei_qb_justificatory_status');
+                        $question_bloc_static->array_options = $extrafields_question_bloc->getOptionalsFromPost($extralabels_question_bloc, '_ei_qb');
+                        $question_bloc_static->position_question_bloc = null;
+                        $question_bloc_static->code_question_bloc = null;
+                        $question_bloc_static->label_question_bloc = null;
+                        $question_bloc_static->extrafields_question_bloc = null;
+                        $question_bloc_static->code_status = null;
+                        $question_bloc_static->label_status = null;
+                        $question_bloc_static->mandatory_status = null;
 
-                            if ($line->id > 0) {
-                                // Update
-                                $result = $line->update($user);
-                            } else {
-                                // Create
-                                $result = $line->insert($user);
+                        if ($question_bloc_static->id > 0) {
+                            // Update
+                            $result = $question_bloc_static->update($user);
+                        } else {
+                            // Create
+                            $result = $question_bloc_static->create($user);
+                        }
+
+                        if ($result > 0) {
+                            // Save questions
+                            foreach ($question_bloc_static->lines as $line) {
+                                if (!$line->read_only) {
+//                            $line->oldline = clone $line; // Error 500
+                                    $line->fk_question_bloc = $question_bloc_static->id;
+                                    $line->fk_c_answer = GETPOST('ei_q_' . $line->fk_c_question . '_answer', 'int');
+                                    $line->text_answer = GETPOST('ei_q_' . $line->fk_c_question . '_justificatory');
+                                    $line->array_options = $extrafields_question->getOptionalsFromPost($extralabels_question, '_ei_q_' . $line->fk_c_question);
+                                    $line->position_question = null;
+                                    $line->code_question = null;
+                                    $line->label_question = null;
+                                    $line->extrafields_question = null;
+                                    $line->code_answer = null;
+                                    $line->label_answer = null;
+                                    $line->mandatory_answer = null;
+
+                                    if ($line->id > 0) {
+                                        // Update
+                                        $result = $line->update($user);
+                                    } else {
+                                        // Create
+                                        $result = $line->insert($user);
+                                    }
+                                    if ($result < 0) {
+                                        setEventMessages($line->error, null, 'errors');
+                                        setEventMessages($line->error, $line->errors, 'errors');
+                                        break;
+                                    }
+                                }
                             }
-                            if ($result < 0) {
-                                setEventMessages($line->error, null, 'errors');
-                                setEventMessages($line->error, $line->errors, 'errors');
-                                break;
-                            }
+                        } else {
+                            setEventMessages($question_bloc_static->error, $question_bloc_static->errors, 'errors');
                         }
                     }
                 } else {
-                    setEventMessages($question_bloc_static->error, $question_bloc_static->errors, 'errors');
+                    setEventMessages($survey_static->error, $survey_static->errors, 'errors');
                 }
             }
 
@@ -240,7 +262,7 @@ if ($object->id > 0) {
 	if ($action == 'save_question_bloc' && $user->rights->ficheinter->creer && $object->statut > ExtendedIntervention::STATUS_DRAFT && $object->statut < ExtendedIntervention::STATUS_DONE) {
             dol_include_once('/extendedintervention/class/extendedinterventionquestionbloc.class.php');
             $question_bloc_static = new EIQuestionBloc($db);
-            if ($question_bloc_static->fetch(0, $object->id, $question_bloc_id, 1) > 0) {
+            if ($question_bloc_static->fetch(0, $object->id, $equipment_id, 0, $question_bloc_id, 1) > 0) {
                 $formquestion = array();
 
                 // Add form elements
@@ -298,7 +320,7 @@ if ($object->id > 0) {
                   </tr>
                 </table>');
 
-                $formconfirm = $formextendedintervention->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id . '#ei_anchor_qb_' . $question_bloc_id, $langs->trans('ExtendedInterventionSaveQuestionBloc'), $langs->trans('ExtendedInterventionConfirmSaveQuestionBloc'), 'confirm_save_question_bloc', $formquestion, 'yes', 2, 450, 900, 1);
+                $formconfirm = $formextendedintervention->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id . '#ei_anchor_sb_'.$survey_bloc->fk_equipment.'_qb_' . $question_bloc_id, $langs->trans('ExtendedInterventionSaveQuestionBloc'), $langs->trans('ExtendedInterventionConfirmSaveQuestionBloc'), 'confirm_save_question_bloc', $formquestion, 'yes', 2, 450, 900, 1);
                 $formconfirm .= <<<SCRIPT
     <script>
         $(document).ready(function () {
@@ -393,42 +415,54 @@ SCRIPT;
                 }
                 print '});' . "\n" . '</script>';
 
-                $idx = 1;
-                foreach ($object->survey as $question_bloc) {
-                    if ($idx % 2 == 1) {
-                        print '<div class="fichecenter">';
+                foreach ($object->survey as $survey_bloc) {
+                    $warning = '';
+                    if (!$survey_bloc->read_only && $equipment_id == $survey_bloc->fk_equipment && $action == 'edit_question_bloc' && $user->rights->ficheinter->creer && $object->statut < ExtendedIntervention::STATUS_DONE) {
+                        $survey_bloc->load_warning();
+                        if ($survey_bloc->warning_fk_product) $warning .= '<br> - ' . $langs->trans('ExtendedInterventionProductId');
+                        if ($survey_bloc->warning_equipment_ref) $warning .= '<br> - ' . $langs->trans('ExtendedInterventionEquipmentRef');
+                        if ($survey_bloc->warning_product_ref) $warning .= '<br> - ' . $langs->trans('ExtendedInterventionProductRef');
+                        if ($survey_bloc->warning_product_label) $warning .= '<br> - ' . $langs->trans('ExtendedInterventionProductLabel');
+                        if (!empty($warning)) $warning = ' ' . $form->textwithpicto('', '<b>' . $langs->trans('ExtendedInterventionWarningEquipmentInfoChanged') . ' :</b>' . $warning, 1, 'warning', '', 0, 2);
                     }
-                    if ($question_bloc_id == $question_bloc->fk_c_question_bloc && $action == 'edit_question_bloc' && $user->rights->ficheinter->creer && $object->statut < ExtendedIntervention::STATUS_DONE) {
-                        if ($question_bloc->fetch(0, $object->id, $question_bloc->fk_c_question_bloc, 1, 0) > 0) {
-                            // Edit question bloc of the survey
-                            foreach ($dirtpls as $reldir) {
-                                $res = @include dol_buildpath($reldir . '/ei_survey_edit.tpl.php');
-                                if ($res) break;
+                    print load_fiche_titre('<b>'.($survey_bloc->fk_equipment > 0 ? $langs->trans('ExtendedInterventionSurveyBlocTitle', $survey_bloc->product_label, $survey_bloc->product_ref, $survey_bloc->equipment_ref) : $langs->trans('ExtendedInterventionSurveyBlocGeneralTitle')).'</b>' . $warning, '', '');
+                    $idx = 1;
+                    foreach ($survey_bloc->survey as $question_bloc) {
+                        if ($idx % 2 == 1) {
+                            print '<div class="fichecenter">';
+                        }
+                        if (!$survey_bloc->read_only && !$question_bloc->read_only && $equipment_id == $survey_bloc->fk_equipment && $question_bloc_id == $question_bloc->fk_c_question_bloc && $action == 'edit_question_bloc' && $user->rights->ficheinter->creer && $object->statut < ExtendedIntervention::STATUS_DONE) {
+                            if ($question_bloc->fetch(0, $survey_bloc->fk_fichinter, $survey_bloc->fk_equipment, 0, $question_bloc->fk_c_question_bloc, 1, 0) > 0) {
+                                // Edit question bloc of the survey
+                                foreach ($dirtpls as $reldir) {
+                                    $res = @include dol_buildpath($reldir . '/ei_survey_edit.tpl.php');
+                                    if ($res) break;
+                                }
+                            } else {
+                                setEventMessages($question_bloc->error, $question_bloc->errors, 'errors');
+                                break;
                             }
                         } else {
-                            setEventMessages($question_bloc->error, $question_bloc->errors, 'errors');
-                            break;
+                            // View question bloc of the survey
+                            foreach ($dirtpls as $reldir) {
+                                $res = @include dol_buildpath($reldir . '/ei_survey_view.tpl.php');
+                                if ($res) break;
+                            }
                         }
-                    } else {
-                        // View question bloc of the survey
-                        foreach ($dirtpls as $reldir) {
-                            $res = @include dol_buildpath($reldir . '/ei_survey_view.tpl.php');
-                            if ($res) break;
+                        if ($idx % 2 == 0) {
+                            print '</div>';
                         }
+                        $idx++;
                     }
-                    if ($idx % 2 == 0) {
+                    if ($idx % 2 != 1) {
                         print '</div>';
                     }
-                    $idx++;
-                }
-                if ($idx % 2 == 1) {
-                    print '</div>';
+
+                    // Print equipment task of the survey
+                    //todo
                 }
             }
         }
-
-        // Print equipment task of the survey
-        //todo
     }
 
     dol_fiche_end();

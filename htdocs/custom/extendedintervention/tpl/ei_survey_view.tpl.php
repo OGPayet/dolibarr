@@ -21,6 +21,7 @@
 // $hookmanager
 // $action
 // $form
+// $survey_bloc
 // $question_bloc
 // $extrafields_question_bloc
 // $extrafields_question
@@ -34,7 +35,7 @@ if (empty($question_bloc) || !is_object($question_bloc)) {
 ?>
 
 <!-- BEGIN PHP TEMPLATE ei_survey_view.tpl.php -->
-<div id="ei_anchor_qb_<?php print $question_bloc->fk_c_question_bloc ?>"></div>
+<div id="ei_anchor_sb_<?php print $survey_bloc->fk_equipment ?>_qb_<?php print $question_bloc->fk_c_question_bloc ?>"></div>
 <?php
    if ($idx % 2 == 0) {
        print '<div class="fichehalfright"><div class="ficheaddleft">';
@@ -88,7 +89,7 @@ if (empty($question_bloc) || !is_object($question_bloc)) {
     </table>
 
     <?php
-    if ($object->statut < ExtendedIntervention::STATUS_DONE && !$question_bloc->read_only) {
+    if ($object->statut < ExtendedIntervention::STATUS_DONE && !$survey_bloc->read_only && !$question_bloc->read_only) {
     ?>
     <br>
     <div class="right">
@@ -96,7 +97,7 @@ if (empty($question_bloc) || !is_object($question_bloc)) {
       if ($user->rights->ficheinter->creer) {
           //if ($question_bloc->fk_c_question_bloc_status > 0) {
       ?>
-      <div class="inline-block divButAction"><a class="butAction" href="<?php print $_SERVER["PHP_SELF"].'?id='.$object->id.'&question_bloc_id='.$question_bloc->fk_c_question_bloc.'&action=edit_question_bloc#ei_anchor_qb_'.$question_bloc->fk_c_question_bloc ?>"><?php print $langs->trans("Modify") ?></a></div>
+      <div class="inline-block divButAction"><a class="butAction" href="<?php print $_SERVER["PHP_SELF"].'?id='.$object->id.'&equipment_id='.$survey_bloc->fk_equipment.'&question_bloc_id='.$question_bloc->fk_c_question_bloc.'&action=edit_question_bloc#ei_anchor_sb_'.$survey_bloc->fk_equipment.'_qb_'.$question_bloc->fk_c_question_bloc ?>"><?php print $langs->trans("Modify") ?></a></div>
       <?php
           /*} else {
       ?>

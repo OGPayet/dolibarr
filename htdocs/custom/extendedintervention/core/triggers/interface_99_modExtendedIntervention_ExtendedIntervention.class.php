@@ -78,28 +78,41 @@ class InterfaceExtendedIntervention extends DolibarrTriggers
                 if ($extendedintervention->fetch($object->id) > 0) {
                     $extendedintervention->statut = ExtendedIntervention::STATUS_VALIDATED;
                     if ($extendedintervention->fetch_survey() > 0) {
-                        foreach ($extendedintervention->survey as $question_bloc) {
-                            if (!($question_bloc->id > 0)) {
+                        foreach ($extendedintervention->survey as $survey_bloc) {
+                            if (!($survey_bloc->id > 0)) {
                                 // Create
-                                $result = $question_bloc->create($user);
+                                $result = $survey_bloc->create($user);
                                 if ($result < 0) {
-                                    dol_syslog(__METHOD__ . " Error when creating the question bloc (fk_fichinter:{$question_bloc->fk_fichinter} fk_c_question_bloc:{$question_bloc->fk_c_question_bloc}) when the intervention is validate; Error: " . $question_bloc->errorsToString(), LOG_ERR);
-                                    $this->error = $question_bloc->error;
-                                    $this->errors[] = $question_bloc->errors;
+                                    dol_syslog(__METHOD__ . " Error when creating the survey bloc (fk_fichinter:{$survey_bloc->fk_fichinter} fk_equipment:{$survey_bloc->fk_equipment}) when the intervention is validate; Error: " . $survey_bloc->errorsToString(), LOG_ERR);
+                                    $this->error = $survey_bloc->error;
+                                    $this->errors[] = $survey_bloc->errors;
                                     return -1;
                                 }
                             }
 
-                            foreach ($question_bloc->lines as $question) {
-                                if (!($question->id > 0)) {
+                            foreach ($survey_bloc->survey as $question_bloc) {
+                                if (!($question_bloc->id > 0)) {
                                     // Create
-                                    $question->fk_question_bloc = $question_bloc->id;
-                                    $result = $question->insert($user);
+                                    $result = $question_bloc->create($user);
                                     if ($result < 0) {
-                                        dol_syslog(__METHOD__ . " Error when inserting the question (fk_fichinter:{$question_bloc->fk_fichinter} fk_c_question_bloc:{$question_bloc->fk_c_question_bloc} fk_c_question:{$question->fk_c_question}) when the intervention is validate; Error: " . $question->errorsToString(), LOG_ERR);
-                                        $this->error = $question->error;
-                                        $this->errors[] = $question->errors;
+                                        dol_syslog(__METHOD__ . " Error when creating the question bloc (fk_fichinter:{$survey_bloc->fk_fichinter} fk_equipment:{$survey_bloc->fk_equipment} fk_c_question_bloc:{$question_bloc->fk_c_question_bloc}) when the intervention is validate; Error: " . $question_bloc->errorsToString(), LOG_ERR);
+                                        $this->error = $question_bloc->error;
+                                        $this->errors[] = $question_bloc->errors;
                                         return -1;
+                                    }
+                                }
+
+                                foreach ($question_bloc->lines as $question) {
+                                    if (!($question->id > 0)) {
+                                        // Create
+                                        $question->fk_question_bloc = $question_bloc->id;
+                                        $result = $question->insert($user);
+                                        if ($result < 0) {
+                                            dol_syslog(__METHOD__ . " Error when inserting the question (fk_fichinter:{$survey_bloc->fk_fichinter} fk_equipment:{$survey_bloc->fk_equipment} fk_c_question_bloc:{$question_bloc->fk_c_question_bloc} fk_c_question:{$question->fk_c_question}) when the intervention is validate; Error: " . $question->errorsToString(), LOG_ERR);
+                                            $this->error = $question->error;
+                                            $this->errors[] = $question->errors;
+                                            return -1;
+                                        }
                                     }
                                 }
                             }
@@ -124,19 +137,21 @@ class InterfaceExtendedIntervention extends DolibarrTriggers
                 $this->db->begin();
 
                 // Removed extrafields of the questions
-                if (empty($conf->global->MAIN_EXTRAFIELDS_DISABLED)) { // For avoid conflicts if trigger used
-                    $sql = "DELETE " . MAIN_DB_PREFIX . "extendedintervention_question_blocdet_extrafields FROM " . MAIN_DB_PREFIX . "extendedintervention_question_blocdet_extrafields" .
+                if (!$error && empty($conf->global->MAIN_EXTRAFIELDS_DISABLED)) { // For avoid conflicts if trigger used
+                    $sql = "DELETE " . MAIN_DB_PREFIX .  "extendedintervention_question_blocdet_extrafields FROM " . MAIN_DB_PREFIX . "extendedintervention_question_blocdet_extrafields" .
                         " LEFT JOIN " . MAIN_DB_PREFIX . "extendedintervention_question_blocdet as eiqbd ON " . MAIN_DB_PREFIX . "extendedintervention_question_blocdet_extrafields.fk_object = eiqbd.rowid" .
                         " LEFT JOIN " . MAIN_DB_PREFIX . "extendedintervention_question_bloc as eiqb ON eiqbd.fk_question_bloc = eiqb.rowid" .
-                        " WHERE eiqb.fk_fichinter = " . $object->id;
+                        " LEFT JOIN " . MAIN_DB_PREFIX . "extendedintervention_survey_bloc as eisb ON eiqb.fk_survey_bloc = eisb.rowid" .
+                        " WHERE eisb.fk_fichinter = " . $object->id;
                     if (!$this->db->query($sql)) $error++;
                 }
 
                 // Removed the questions
                 if (!$error) {
                     $sql = "DELETE " . MAIN_DB_PREFIX . "extendedintervention_question_blocdet FROM " . MAIN_DB_PREFIX . "extendedintervention_question_blocdet" .
-                    " LEFT JOIN " . MAIN_DB_PREFIX . "extendedintervention_question_bloc as eiqb ON " . MAIN_DB_PREFIX . "extendedintervention_question_blocdet.fk_question_bloc = eiqb.rowid" .
-                    " WHERE eiqb.fk_fichinter = " . $object->id;
+                        " LEFT JOIN " . MAIN_DB_PREFIX . "extendedintervention_question_bloc as eiqb ON " . MAIN_DB_PREFIX . "extendedintervention_question_blocdet.fk_question_bloc = eiqb.rowid" .
+                        " LEFT JOIN " . MAIN_DB_PREFIX . "extendedintervention_survey_bloc as eisb ON eiqb.fk_survey_bloc = eisb.rowid" .
+                        " WHERE eisb.fk_fichinter = " . $object->id;
                     if (!$this->db->query($sql)) $error++;
                 }
 
@@ -144,13 +159,22 @@ class InterfaceExtendedIntervention extends DolibarrTriggers
                 if (!$error && empty($conf->global->MAIN_EXTRAFIELDS_DISABLED)) { // For avoid conflicts if trigger used
                     $sql = "DELETE " . MAIN_DB_PREFIX . "extendedintervention_question_bloc_extrafields FROM " . MAIN_DB_PREFIX . "extendedintervention_question_bloc_extrafields" .
                         " LEFT JOIN " . MAIN_DB_PREFIX . "extendedintervention_question_bloc as eiqb ON " . MAIN_DB_PREFIX . "extendedintervention_question_bloc_extrafields.fk_object = eiqb.rowid" .
-                        " WHERE eiqb.fk_fichinter = " . $object->id;
+                        " LEFT JOIN " . MAIN_DB_PREFIX . "extendedintervention_survey_bloc as eisb ON eiqb.fk_survey_bloc = eisb.rowid" .
+                        " WHERE eisb.fk_fichinter = " . $object->id;
                     if (!$this->db->query($sql)) $error++;
                 }
 
                 // Removed the question blocs
                 if (!$error) {
-                    $sql = "DELETE FROM " . MAIN_DB_PREFIX . "extendedintervention_question_bloc WHERE fk_fichinter = " . $object->id;
+                    $sql = "DELETE " . MAIN_DB_PREFIX . "extendedintervention_question_bloc FROM " . MAIN_DB_PREFIX . "extendedintervention_question_bloc" .
+                        " LEFT JOIN " . MAIN_DB_PREFIX . "extendedintervention_survey_bloc as eisb ON " . MAIN_DB_PREFIX . "extendedintervention_question_bloc.fk_survey_bloc = eisb.rowid" .
+                        " WHERE eisb.fk_fichinter = " . $object->id;
+                    if (!$this->db->query($sql)) $error++;
+                }
+
+                // Removed the survey blocs
+                if (!$error) {
+                    $sql = "DELETE FROM " . MAIN_DB_PREFIX . "extendedintervention_survey_bloc WHERE fk_fichinter = " . $object->id;
                     if (!$this->db->query($sql)) $error++;
                 }
 

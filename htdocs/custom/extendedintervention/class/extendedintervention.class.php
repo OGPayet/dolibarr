@@ -24,12 +24,13 @@
 require_once DOL_DOCUMENT_ROOT . '/fichinter/class/fichinter.class.php';
 
 /**
- *	Sort by position
+ *	Sort by product label
  */
-function ei_sort_question_bloc_position($a, $b)
+function ei_sort_survey_bloc_product_label($a, $b)
 {
-    if (isset($a) && isset($b) && $a->position_question_bloc != $b->position_question_bloc) return ($a->position_question_bloc < $b->position_question_bloc) ? -1 : 1;
-    if (isset($a) && isset($b) && $a->label_question_bloc != $b->label_question_bloc) return ($a->label_question_bloc < $b->label_question_bloc) ? -1 : 1;
+    if (isset($a) && isset($b) && $a->product_label != $b->product_label) return ($a->product_label < $b->product_label) ? -1 : 1;
+    if (isset($a) && isset($b) && $a->product_ref != $b->product_ref) return ($a->product_ref < $b->product_ref) ? -1 : 1;
+    if (isset($a) && isset($b) && $a->equipment_ref != $b->equipment_ref) return ($a->equipment_ref < $b->equipment_ref) ? -1 : 1;
     return 0;
 }
 
@@ -96,15 +97,9 @@ class ExtendedIntervention extends Fichinter
     );
 
     /**
-	 * @var EIQuestionBloc[]
+	 * @var EISurveyBloc[]
 	 */
     public $survey = array();
-
-    /**
-     *  Cache of the list of question bloc information
-     * @var DictionaryLine[]
-     */
-	static public $question_bloc_cached = array();
 
     /**
      * Status
@@ -113,32 +108,6 @@ class ExtendedIntervention extends Fichinter
     const STATUS_VALIDATED = 1;
     const STATUS_INVOICED = 2;
     const STATUS_DONE = 3;
-
-    /**
-     *  Fetch all the question bloc information (cached)
-     * @return  int                 <0 if not ok, > 0 if ok
-     */
-    public function fetchQuestionBlocInfo() {
-        if (empty($this->array_options['options_ei_type'])) {
-            $this->fetch_optionals();
-        }
-
-        if (empty(self::$question_bloc_cached[$this->array_options['ei_type']])) {
-            if (!empty($this->array_options['options_ei_type'])) {
-                dol_include_once('/advancedictionaries/class/dictionary.class.php');
-                $dictionary = Dictionary::getDictionary($this->db, 'extendedintervention', 'extendedinterventionquestionbloc');
-                if ($dictionary->fetch_lines(1, array('types_intervention' => array($this->array_options['options_ei_type']))) > 0) {
-                    self::$question_bloc_cached[$this->array_options['options_ei_type']] = $dictionary->lines;
-                } else {
-                    $this->error = $dictionary->error;
-                    $this->errors = array_merge($this->errors, $dictionary->errors);
-                    return -1;
-                }
-            }
-        }
-
-        return 1;
-    }
 
     /**
      *  Load the survey
@@ -151,25 +120,25 @@ class ExtendedIntervention extends Fichinter
         $this->survey = array();
 
         if ($this->id > 0 && $this->statut > self::STATUS_DRAFT) {
-            dol_include_once('/extendedintervention/class/extendedinterventionquestionbloc.class.php');
+            dol_include_once('/extendedintervention/class/extendedinterventionsurveybloc.class.php');
             if ($this->statut == self::STATUS_DONE) $all_data = 0;
 
-            $sql = "SELECT t.fk_c_question_bloc";
-            $sql .= " FROM " . MAIN_DB_PREFIX . "extendedintervention_question_bloc AS t";
+            $sql = "SELECT t.fk_equipment";
+            $sql .= " FROM " . MAIN_DB_PREFIX . "extendedintervention_survey_bloc AS t";
             $sql .= " WHERE t.fk_fichinter=" . $this->id;
 
             dol_syslog(__METHOD__, LOG_DEBUG);
             $resql = $this->db->query($sql);
             if ($resql) {
                 while ($obj = $this->db->fetch_object($resql)) {
-                    $bloc = new EIQuestionBloc($this->db, $this);
-                    if ($bloc->fetch(0, $this->id, $obj->fk_c_question_bloc, $all_data, 0) < 0) {
-                        $this->error = $bloc->error;
-                        $this->errors = $bloc->errors;
+                    $survey_bloc = new EISurveyBloc($this->db, $this);
+                    if ($survey_bloc->fetch(0, $this->id, $obj->fk_equipment, $all_data, 0) < 0) {
+                        $this->error = $survey_bloc->error;
+                        $this->errors = $survey_bloc->errors;
                         return -1;
                     }
-                    $bloc->read_only = 1;
-                    $this->survey[$obj->fk_c_question_bloc] = $bloc;
+                    $survey_bloc->read_only = 1;
+                    $this->survey[$obj->fk_equipment] = $survey_bloc;
                 }
             } else {
                 $this->error = $this->db->lasterror();
@@ -177,69 +146,25 @@ class ExtendedIntervention extends Fichinter
                 return -1;
             }
 
-            if ($this->statut != self::STATUS_DONE) {
-                if (empty($this->array_options['options_ei_type'])) {
-                    $this->fetch_optionals();
-                }
+            if ($this->fetchObjectLinked() < 0)
+                return -1;
+            $linked_equipments = is_array($this->linkedObjectsIds['equipement']) ? $this->linkedObjectsIds['equipement'] : array();
 
-                if ($this->fetchQuestionBlocInfo() < 0)
-                    return -1;
-
-                if ($this->fetchObjectLinked() < 0)
-                    return -1;
-                $linked_equipments = is_array($this->linkedObjectsIds['equipement']) ? $this->linkedObjectsIds['equipement'] : array();
-
-                // Filter question bloc for this intervention type and categories of the linked equipments
-                $equipements_categories = array();
-                $nb_equipements_categories = 0;
-                if (count($linked_equipments)) {
-                    dol_include_once('/equipement/class/equipement.class.php');
-                    require_once DOL_DOCUMENT_ROOT . '/categories/class/categorie.class.php';
-                    $equipment_static = new Equipement($this->db);
-                    $category_static = new Categorie($this->db);
-                    $full_categories = $category_static->get_full_arbo('product');
-                    $parents_categories = array();
-                    foreach ($full_categories as $category) {
-                        $parents_categories[$category['id']] = array_filter(explode('_', $category['fullpath']), "strlen");
+            foreach ($linked_equipments as $equipment_id) {
+                if (!isset($this->survey[$equipment_id])) {
+                    $survey_bloc = new EISurveyBloc($this->db, $this);
+                    if ($survey_bloc->fetch(0, $this->id, $equipment_id, $all_data, 0) < 0) {
+                        $this->error = $survey_bloc->error;
+                        $this->errors = $survey_bloc->errors;
+                        return -1;
                     }
-                    foreach ($linked_equipments as $equipment_id) {
-                        if ($equipment_id > 0 && $equipment_static->fetch($equipment_id) > 0) {
-                            if ($equipment_static->fk_product > 0) {
-                                $categories = $category_static->containing($equipment_static->fk_product, 'product', 'id');
-                                foreach ($categories as $category_id) {
-                                    if (isset($parents_categories[$category_id])) {
-                                        $equipements_categories = array_merge($equipements_categories, $parents_categories[$category_id]);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    $equipements_categories = array_flip(array_flip($equipements_categories));
-                    $nb_equipements_categories = count($equipements_categories);
+                    $this->survey[$equipment_id] = $survey_bloc;
                 }
-
-                if (is_array(self::$question_bloc_cached[$this->array_options['options_ei_type']])) {
-                    foreach (self::$question_bloc_cached[$this->array_options['options_ei_type']] as $question_bloc_id => $question_bloc) {
-                        if (empty($question_bloc->fields['categories']) ||
-                            count(array_diff($equipements_categories, explode(',', $question_bloc->fields['categories']))) != $nb_equipements_categories
-                        ) {
-                            if (!isset($this->survey[$question_bloc->id])) {
-                                $bloc = new EIQuestionBloc($this->db, $this);
-                                if ($bloc->fetch(0, $this->id, $question_bloc->id, $all_data, 0) < 0) {
-                                    $this->error = $bloc->error;
-                                    $this->errors = $bloc->errors;
-                                    return -1;
-                                }
-                                $this->survey[$question_bloc->id] = $bloc;
-                            }
-                            if (isset($this->survey[$question_bloc->id])) $this->survey[$question_bloc->id]->read_only = 0;
-                        }
-                    }
-                }
+                if (isset($this->survey[$equipment_id])) $this->survey[$equipment_id]->read_only = 0;
             }
 
-            // Sort by position
-            uasort($this->survey, 'ei_sort_question_bloc_position');
+            // Sort by product label
+            uasort($this->survey, 'ei_sort_survey_bloc_product_label');
         }
 
         return 1;

@@ -167,6 +167,89 @@ class ActionsExtendedIntervention
             }
         }
 
+        // Auto save survey when the equipment link with the intervention is deleted
+        //----------------------------------------------------------------------------
+        if (in_array('interventioncard', $contexts) || in_array('equipementcard', $contexts)) {
+            // Get intervention ID and equipment ID
+            $intervention_id = 0;
+            $equipment_id = 0;
+            $dellinkid = GETPOST('dellinkid','int');
+            if ($dellinkid > 0) {
+                $sql = "SELECT fk_source, sourcetype, fk_target FROM " . MAIN_DB_PREFIX . "element_element WHERE rowid = " . $dellinkid;
+
+                $resql = $this->db->query($sql);
+                if ($resql) {
+                     if ($obj = $this->db->fetch_object($resql)) {
+                         $intervention_id = $obj->sourcetype == "equipement" ? $obj->fk_target : $obj->fk_source;
+                         $equipment_id = $obj->sourcetype == "equipement" ? $obj->fk_source : $obj->fk_target;
+                     }
+                } else {
+                    $this->errors[] = $this->db->lasterror();
+                    return -1;
+                }
+            }
+
+            if ($intervention_id > 0 && $equipment_id > 0) {
+                dol_include_once('/extendedintervention/class/extendedintervention.class.php');
+                $extendedintervention = new ExtendedIntervention($this->db);
+                if ($extendedintervention->fetch($intervention_id) > 0) {
+                    $can_save = $extendedintervention->statut == ExtendedIntervention::STATUS_VALIDATED;
+                } else {
+                    $can_save = false;
+                }
+
+                if ($can_save) {
+                    dol_include_once('/extendedintervention/class/extendedinterventionsurveybloc.class.php');
+                    $survey_bloc = new EISurveyBloc($this->db);
+
+                    if ($survey_bloc->fetch(0, $intervention_id, $equipment_id) > 0) {
+                        if (!($survey_bloc->id > 0)) {
+                            // Create
+                            $result = $survey_bloc->create($user);
+                            if ($result < 0) {
+                                dol_syslog(__METHOD__ . " Error when creating the survey bloc (fk_fichinter:{$survey_bloc->fk_fichinter} fk_equipment:{$survey_bloc->fk_equipment}) when the equipment link with the intervention is deleted; Error: " . $survey_bloc->errorsToString(), LOG_ERR);
+                                $this->error = $survey_bloc->error;
+                                $this->errors[] = $survey_bloc->errors;
+                                return -1;
+                            }
+                        }
+
+                        foreach ($survey_bloc->survey as $question_bloc) {
+                            if (!($question_bloc->id > 0)) {
+                                // Create
+                                $question_bloc->fk_survey_bloc = $survey_bloc->id;
+                                $result = $question_bloc->create($user);
+                                if ($result < 0) {
+                                    dol_syslog(__METHOD__ . " Error when creating the question bloc (fk_fichinter:{$survey_bloc->fk_fichinter} fk_equipment:{$survey_bloc->fk_equipment} fk_c_question_bloc:{$question_bloc->fk_c_question_bloc}) when the equipment link with the intervention is deleted; Error: " . $question_bloc->errorsToString(), LOG_ERR);
+                                    $this->error = $question_bloc->error;
+                                    $this->errors[] = $question_bloc->errors;
+                                    return -1;
+                                }
+                            }
+
+                            foreach ($question_bloc->lines as $question) {
+                                if (!($question->id > 0)) {
+                                    // Create
+                                    $question->fk_question_bloc = $question_bloc->id;
+                                    $result = $question->insert($user);
+                                    if ($result < 0) {
+                                        dol_syslog(__METHOD__ . " Error when inserting the question (fk_fichinter:{$survey_bloc->fk_fichinter} fk_equipment:{$survey_bloc->fk_equipment} fk_c_question_bloc:{$question_bloc->fk_c_question_bloc} fk_c_question:{$question->fk_c_question}) when the equipment link with the intervention is deleted; Error: " . $question->errorsToString(), LOG_ERR);
+                                        $this->error = $question->error;
+                                        $this->errors[] = $question->errors;
+                                        return -1;
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        dol_syslog(__METHOD__ . " Error when fetching the survey bloc for auto save survey when the equipment link with the intervention is deleted; Error: " . $survey_bloc->errorsToString(), LOG_ERR);
+                        $this->errors[] = $survey_bloc->errorsToString();
+                        return -1;
+                    }
+                }
+            }
+        }
+
         return 0;
     }
 

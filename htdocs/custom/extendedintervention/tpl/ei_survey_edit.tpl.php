@@ -23,6 +23,7 @@
 // $backtopage
 // $form
 // $object
+// $survey_bloc
 // $question_bloc
 // $extrafields_question_bloc
 // $extrafields_question
@@ -36,7 +37,7 @@ if (empty($question_bloc) || !is_object($question_bloc)) {
 ?>
 
 <!-- BEGIN PHP TEMPLATE ei_survey_edit.tpl.php -->
-<div id="ei_anchor_qb_<?php print $question_bloc->fk_c_question_bloc ?>"></div>
+<div id="ei_anchor_sb_<?php print $survey_bloc->fk_equipment ?>_qb_<?php print $question_bloc->fk_c_question_bloc ?>"></div>
 <?php
   if ($idx % 2 == 0) {
     print '<div class="fichehalfright"><div class="ficheaddleft">';
@@ -47,8 +48,9 @@ if (empty($question_bloc) || !is_object($question_bloc)) {
 ?>
   <div class="underbanner clearboth"></div>
   <div id="ei_question_bloc_<?php print $question_bloc->fk_c_question_bloc ?>">
-    <form name="ei_survey" action="<?php print $_SERVER['PHP_SELF'].'?id='.$object->id.'#ei_anchor_qb_'.$question_bloc->fk_c_question_bloc ?>" method="POST">
+    <form name="ei_survey" action="<?php print $_SERVER['PHP_SELF'].'?id='.$object->id.'#ei_anchor_sb_'.$survey_bloc->fk_equipment.'_qb_'.$question_bloc->fk_c_question_bloc ?>" method="POST">
       <input type="hidden" name="token" value="<?php print $_SESSION['newtoken'] ?>">
+      <input type="hidden" name="equipment_id" value="<?php print $survey_bloc->fk_equipment ?>">
       <input type="hidden" name="question_bloc_id" value="<?php print $question_bloc->fk_c_question_bloc ?>">
       <input type="hidden" name="action" value="save_question_bloc">
       <input type="hidden" name="ei_qb_status" value="<?php print isset($_POST['ei_qb_status']) ? GETPOST('ei_qb_status', "int") : $question_bloc->fk_c_question_bloc_status ?>">

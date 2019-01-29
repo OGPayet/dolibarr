@@ -18,6 +18,7 @@
 use Luracast\Restler\RestException;
 
 dol_include_once('/extendedintervention/class/extendedintervention.class.php');
+dol_include_once('/extendedintervention/class/extendedinterventionsurveybloc.class.php');
 dol_include_once('/extendedintervention/class/extendedinterventionquestionbloc.class.php');
 
 /**
@@ -39,15 +40,6 @@ class ExtendedInterventionApi extends DolibarrApi {
      * @var array Errors
      */
     public $errors = array();
-
-    /**
-     * @var array       $FIELDS     Mandatory fields, checked when create and update object
-     */
-    static $FIELDS = array();
-    /**
-     * @var array       $MESSAGE_FIELDS     Mandatory fields, checked when create and update message object
-     */
-    static $MESSAGE_FIELDS = array();
 
     /**
      * Array of whitelist of properties keys to overwrite the white list of each element object used in this API
@@ -75,6 +67,21 @@ class ExtendedInterventionApi extends DolibarrApi {
             "code_fournisseur" => '', "code_compta" => '', "code_compta_fournisseur" => '', "stcomm_id" => '', "statut_commercial" => '',
             "price_level" => '', "outstanding_limit" => '', "parent" => '', "default_lang" => '', "ref" => '', "ref_ext" => '',
             "logo" => '', "array_options" => '', "id" => '', "linkedObjectsIds" => '','address' => '',"name" => '',
+        ),
+        'product' => array(
+            "label" => '', "description" => '', "type" => '', "price" => '', "price_ttc" => '', "price_min" => '',
+            "price_min_ttc" => '', "price_base_type" => '', "multiprices" => '', "multiprices_ttc" => '', "multiprices_base_type" => '',
+            "multiprices_min" => '', "multiprices_min_ttc" => '', "multiprices_tva_tx" => '', "multiprices_recuperableonly" => '',
+            "price_by_qty" => '', "prices_by_qty" => '', "prices_by_qty_id" => '', "prices_by_qty_list" => '', "default_vat_code" => '',
+            "tva_tx" => '', "tva_npr" => '', "localtax1_tx" => '', "localtax2_tx" => '', "localtax1_type" => '', "localtax2_type" => '',
+            "stock_reel" => '', "cost_price" => '', "pmp" => '', "seuil_stock_alerte" => '', "desiredstock" => '', "duration_value" => '',
+            "duration_unit" => '', "status" => '', "status_buy" => '', "finished" => '', "status_batch" => '', "customcode" => '',
+            "url" => '', "weight" => '', "weight_units" => '', "length" => '', "length_units" => '', "surface" => '', "surface_units" => '',
+            "volume" => '', "volume_units" => '', "accountancy_code_buy" => '', "accountancy_code_sell" => '', "barcode" => '',
+            "multilangs" => '', "date_creation" => '', "date_modification" => '', "fk_price_expression" => '', "fk_unit" => '',
+            "price_autogen" => '', "id" => '', "array_options" => '', "linkedObjectsIds" => '', "ref" => '', "ref_ext" => '',
+            "barcode_type" => '', "barcode_type_code" => '', "recuperableonly" => '', "duration" => '', "width" => '', "width_units" => '',
+            "height" => '', "height_units" => '', "entity" => '',
         ),
     );
 
@@ -148,7 +155,7 @@ class ExtendedInterventionApi extends DolibarrApi {
     function getSurvey($id_intervention, $all_data=0)
     {
         if (!DolibarrApiAccess::$user->rights->ficheinter->lire) {
-            throw new RestException(401, "Insufficient rights");
+            throw new RestException(401, "Insufficient rights", [ 'id_intervention' => $id_intervention ]);
         }
 
         // Get Extended Intervention
@@ -156,18 +163,296 @@ class ExtendedInterventionApi extends DolibarrApi {
 
         // Get survey
         if ($extendedintervention->fetch_survey($all_data) < 0) {
-            throw new RestException(500, "Error when retrieve the survey", [ 'details' => [ $this->_getErrors($extendedintervention) ]]);
+            throw new RestException(500, "Error when retrieve the survey", [ 'id_intervention' => $id_intervention, 'details' => [ $this->_getErrors($extendedintervention) ]]);
         }
 
         return $this->_cleanObjectData($extendedintervention->survey);
     }
 
     /**
-     *  Get a question bloc
+     *  Save a survey
      *
-     * @url	GET {id_intervention}/survey/questionblocs/{id_c_question_bloc}
+     * @url	PUT {id_intervention}/survey
+     *
+     * @param   int     $id_intervention        ID of the intervention
+     * @param   array   $survey                 Survey answers for this survey
+     *
+     * @return  object|array                    Survey data without useless information
+     *
+     * @throws  401     RestException           Insufficient rights
+     * @throws  403     RestException           Access not allowed for login
+     * @throws  404     RestException           Intervention not found
+     * @throws  405     RestException           Read only
+     * @throws  500     RestException           Error when retrieve intervention
+     * @throws  500     RestException           Error while saving the survey
+     */
+    function saveSurvey($id_intervention, $survey=null)
+    {
+        if (!DolibarrApiAccess::$user->rights->ficheinter->lire) {
+            throw new RestException(401, "Insufficient rights", [ 'id_intervention' => $id_intervention ]);
+        }
+
+        // Get Extended Intervention
+        $extendedintervention = $this->_getExtendedInterventionObject($id_intervention);
+
+        // Save answers
+        if (is_array($survey) && count($survey) > 0) {
+            foreach ($survey as $survey_bloc) {
+                $this->saveSurveyBloc($id_intervention, $survey_bloc['fk_equipment'], $survey_bloc['survey']);
+            }
+        }
+
+        // Get survey
+        if ($extendedintervention->fetch_survey() < 0) {
+            throw new RestException(500, "Error when retrieve the survey", [ 'id_intervention' => $id_intervention, 'details' => [ $this->_getErrors($extendedintervention) ]]);
+        }
+
+        return $this->_cleanObjectData($extendedintervention->survey);
+    }
+
+//    /**
+//     *  Delete a survey
+//     *
+//     * @url	DELETE {id_intervention}/survey
+//     *
+//     * @param   int     $id_intervention    ID of the intervention
+//     *
+//     * @return  array
+//     *
+//     * @throws  401     RestException       Insufficient rights
+//     * @throws  403     RestException       Access not allowed for login
+//     * @throws  404     RestException       Intervention not found
+//     * @throws  405     RestException       Read only
+//     * @throws  500     RestException       Error when retrieve intervention
+//     * @throws  500     RestException       Error while deleting the survey
+//     */
+//    function deleteSurvey($id_intervention)
+//    {
+//        if (!DolibarrApiAccess::$user->rights->ficheinter->lire) {
+//            throw new RestException(401, "Insufficient rights", [ 'id_intervention' => $id_intervention ]);
+//        }
+//
+//        // Get Extended Intervention
+//        $extendedintervention = $this->_getExtendedInterventionObject($id_intervention);
+//
+//        // Get survey
+//        if ($extendedintervention->fetch_survey(0) < 0) {
+//            throw new RestException(500, "Error when retrieve the survey", [ 'id_intervention' => $id_intervention, 'details' => [ $this->_getErrors($extendedintervention) ]]);
+//        }
+//
+//        // Delete survey
+//        if (is_array($extendedintervention->survey) && count($extendedintervention->survey) > 0) {
+//            foreach ($extendedintervention->survey as $equipment_id => $survey_bloc) {
+//                $this->deleteSurveyBloc($id_intervention, $equipment_id);
+//            }
+//        }
+//
+//        return array(
+//            'success' => array(
+//                'code' => 200,
+//                'message' => 'Survey deleted'
+//            )
+//        );
+//    }
+
+    /**
+     *  Get a survey bloc
+     *
+     * @url	GET {id_intervention}/survey/{id_equipment}
      *
      * @param   int             $id_intervention    ID of the intervention
+     * @param   int             $id_equipment       ID of the equipment
+     * @param   int             $all_data           If equal 1 then get all the data for the modification (all answers, status and predefined texts)
+     *
+     * @return  object|array                        Survey bloc data without useless information
+     *
+     * @throws  401             RestException       Insufficient rights
+     * @throws  403             RestException       Access not allowed for login
+     * @throws  404             RestException       Intervention not found
+     * @throws  404             RestException       Survey bloc not found
+     * @throws  500             RestException       Error when retrieve intervention
+     * @throws  500             RestException       Error when retrieve survey bloc
+     */
+    function getSurveyBloc($id_intervention, $id_equipment, $all_data=0)
+    {
+        if (!DolibarrApiAccess::$user->rights->ficheinter->lire) {
+            throw new RestException(401, "Insufficient rights", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment ]);
+        }
+
+        // Get Extended Intervention
+        $extendedintervention = $this->_getExtendedInterventionObject($id_intervention);
+
+        // Get survey bloc
+        $surveybloc = $this->_getSurveyBlocObject($id_intervention, $id_equipment, $all_data);
+        $surveybloc->is_read_only();
+
+        return $this->_cleanObjectData($surveybloc);
+    }
+
+    /**
+     *  Save a survey bloc
+     *
+     * @url	PUT {id_intervention}/survey/{id_equipment}
+     *
+     * @param   int     $id_intervention        ID of the intervention
+     * @param   int     $id_equipment           ID of the equipment
+     * @param   array   $survey                 Survey answers for this survey bloc
+     *
+     * @return  object|array                    Survey bloc data without useless information
+     *
+     * @throws  401     RestException           Insufficient rights
+     * @throws  403     RestException           Access not allowed for login
+     * @throws  404     RestException           Intervention not found
+     * @throws  404     RestException           Survey bloc not found
+     * @throws  405     RestException           Read only
+     * @throws  500     RestException           Error when retrieve intervention
+     * @throws  500     RestException           Error when retrieve survey bloc
+     * @throws  500     RestException           Error while saving the survey bloc
+     */
+    function saveSurveyBloc($id_intervention, $id_equipment, $survey=null)
+    {
+        if (!DolibarrApiAccess::$user->rights->ficheinter->lire) {
+            throw new RestException(401, "Insufficient rights", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment ]);
+        }
+
+        // Get Extended Intervention
+        $extendedintervention = $this->_getExtendedInterventionObject($id_intervention);
+
+        // Get survey bloc
+        $surveybloc = $this->_getSurveyBlocObject($id_intervention, $id_equipment);
+        if ($surveybloc->is_read_only()) {
+            throw new RestException(405, "Read only", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment ]);
+        }
+
+        // Save survey bloc
+//        $surveybloc->oldcopy = clone $surveybloc; // Error 500
+        $surveybloc->fk_fichinter = $id_intervention;
+        $surveybloc->fk_equipment = $id_equipment;
+        $surveybloc->fk_product = null;
+        $surveybloc->equipment_ref = null;
+        $surveybloc->product_ref = null;
+        $surveybloc->product_label = null;
+
+        if ($surveybloc->id > 0) {
+            // Update
+            $result = $surveybloc->update(DolibarrApiAccess::$user);
+        } else {
+            // Create
+            $result = $surveybloc->create(DolibarrApiAccess::$user);
+        }
+
+        // Save answers
+        if (is_array($survey) && count($survey) > 0) {
+            foreach ($survey as $question_bloc) {
+                $this->saveQuestionBloc($id_intervention, $id_equipment, $question_bloc['fk_c_question_bloc'], $question_bloc['complementary_question_bloc'],
+                    $question_bloc['fk_c_question_bloc_status'], $question_bloc['justificatory_status'], $question_bloc['array_options'], $question_bloc['lines']);
+            }
+        }
+
+        if ($result < 0) {
+            throw new RestException(500, "Error while saving the survey bloc", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'details' => $this->_getErrors($surveybloc) ]);
+        }
+
+        return $this->getSurveyBloc($id_intervention, $id_equipment);
+    }
+
+//    /**
+//     *  Delete a survey bloc
+//     *
+//     * @url	DELETE {id_intervention}/survey/{id_equipment}
+//     *
+//     * @param   int     $id_intervention    ID of the intervention
+//     * @param   int     $id_equipment       ID of the equipment
+//     *
+//     * @return  array
+//     *
+//     * @throws  401     RestException       Insufficient rights
+//     * @throws  403     RestException       Access not allowed for login
+//     * @throws  404     RestException       Intervention not found
+//     * @throws  404     RestException       Survey bloc not found
+//     * @throws  405     RestException       Read only
+//     * @throws  500     RestException       Error when retrieve intervention
+//     * @throws  500     RestException       Error when retrieve survey bloc
+//     * @throws  500     RestException       Error while deleting the survey bloc
+//     */
+//    function deleteSurveyBloc($id_intervention, $id_equipment)
+//    {
+//        if (!DolibarrApiAccess::$user->rights->ficheinter->lire) {
+//            throw new RestException(401, "Insufficient rights", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment ]);
+//        }
+//
+//        // Get Extended Intervention
+//        $extendedintervention = $this->_getExtendedInterventionObject($id_intervention);
+//
+//        // Get survey bloc
+//        $surveybloc = $this->_getSurveyBlocObject($id_intervention, $id_equipment);
+//
+//        if ($surveybloc->is_read_only()) {
+//            throw new RestException(405, "Read only", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment ]);
+//        }
+//
+//        if ($surveybloc->delete(DolibarrApiAccess::$user) < 0) {
+//            throw new RestException(500, "Error while deleting the survey bloc", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'details' => $this->_getErrors($surveybloc) ]);
+//        }
+//
+//        return array(
+//            'success' => array(
+//                'code' => 200,
+//                'message' => 'Survey bloc deleted'
+//            )
+//        );
+//    }
+
+    /**
+	 *  Get the question blocs of the given survey bloc
+	 *
+     * @url	GET {id_intervention}/survey/{id_equipment}/questionblocs
+     *
+     * @param   int     $id_intervention    ID of the intervention
+     * @param   int     $id_equipment       ID of the equipment
+     * @param   int     $all_data           If equal 1 then get all the data for the modification (all answers, status and predefined texts)
+	 *
+	 * @return  array                       List of question blocs
+     *
+     * @throws  401     RestException       Insufficient rights
+     * @throws  403     RestException       Access not allowed for login
+     * @throws  404     RestException       Intervention not found
+     * @throws  404     RestException       Survey bloc not found
+     * @throws  500     RestException       Error when retrieve intervention
+     * @throws  500     RestException       Error when retrieve survey bloc
+     * @throws  500     RestException       Error when retrieve question bloc
+	 */
+	function getQuestionBlocs($id_intervention, $id_equipment, $all_data=0)
+    {
+        if (!DolibarrApiAccess::$user->rights->ficheinter->lire) {
+            throw new RestException(401, "Insufficient rights", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment ]);
+        }
+
+        // Get Extended Intervention
+        $extendedintervention = $this->_getExtendedInterventionObject($id_intervention);
+
+        // Get survey bloc
+        $surveybloc = $this->_getSurveyBlocObject($id_intervention, $id_equipment);
+
+        if ($surveybloc->fetch_survey($all_data) < 0) {
+            throw new RestException(500, "Error when retrieve the question blocs", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'details' => $this->_getErrors($surveybloc) ]);
+        }
+
+        $result = array();
+        foreach ($surveybloc->survey as $questionbloc) {
+            array_push($result, $this->_cleanObjectData($questionbloc));
+        }
+
+        return $result;
+    }
+
+    /**
+     *  Get a question bloc
+     *
+     * @url	GET {id_intervention}/survey/{id_equipment}/questionblocs/{id_c_question_bloc}
+     *
+     * @param   int             $id_intervention    ID of the intervention
+     * @param   int             $id_equipment       ID of the equipment
      * @param   int             $id_c_question_bloc ID of the question bloc (in dictionary)
      * @param   int             $all_data           If equal 1 then get all the data for the modification (all answers, status and predefined texts)
      *
@@ -180,17 +465,17 @@ class ExtendedInterventionApi extends DolibarrApi {
      * @throws  500             RestException       Error when retrieve intervention
      * @throws  500             RestException       Error when retrieve question bloc
      */
-    function getQuestionBloc($id_intervention, $id_c_question_bloc, $all_data=0)
+    function getQuestionBloc($id_intervention, $id_equipment, $id_c_question_bloc, $all_data=0)
     {
         if (!DolibarrApiAccess::$user->rights->ficheinter->lire) {
-            throw new RestException(401, "Insufficient rights");
+            throw new RestException(401, "Insufficient rights", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc ]);
         }
 
         // Get Extended Intervention
         $extendedintervention = $this->_getExtendedInterventionObject($id_intervention);
 
         // Get question bloc
-        $questionbloc = $this->_getQuestionBlocObject($id_intervention, $id_c_question_bloc, $all_data);
+        $questionbloc = $this->_getQuestionBlocObject($id_intervention, $id_equipment, $id_c_question_bloc, $all_data);
         $questionbloc->is_read_only();
 
         return $this->_cleanObjectData($questionbloc);
@@ -199,14 +484,16 @@ class ExtendedInterventionApi extends DolibarrApi {
     /**
      *  Save a question bloc
      *
-     * @url	PUT {id_intervention}/survey/questionblocs/{id_c_question_bloc}
+     * @url	PUT {id_intervention}/survey/{id_equipment}/questionblocs/{id_c_question_bloc}
      *
      * @param   int     $id_intervention                ID of the intervention
+     * @param   int     $id_equipment                   ID of the equipment
      * @param   int     $id_c_question_bloc             ID of the question bloc (in dictionary)
      * @param   string  $complementary_question_bloc    Complementary text
      * @param   int     $fk_c_question_bloc_status      ID of the status (in dictionary)
      * @param   string  $justificatory_status           Justificatory of the status
      * @param   array   $array_options                  Extra fields data
+     * @param   array   $lines                          Question answers for this question bloc
      *
      * @return  object|array                            Question bloc data without useless information
      *
@@ -219,25 +506,27 @@ class ExtendedInterventionApi extends DolibarrApi {
      * @throws  500     RestException                   Error when retrieve question bloc
      * @throws  500     RestException                   Error while saving the question bloc
      */
-    function saveQuestionBloc($id_intervention, $id_c_question_bloc, $complementary_question_bloc = null, $fk_c_question_bloc_status = null, $justificatory_status = null, $array_options = null)
+    function saveQuestionBloc($id_intervention, $id_equipment, $id_c_question_bloc, $complementary_question_bloc = null, $fk_c_question_bloc_status = null, $justificatory_status = null, $array_options = null, $lines=null)
     {
         if (!DolibarrApiAccess::$user->rights->ficheinter->lire) {
-            throw new RestException(401, "Insufficient rights");
+            throw new RestException(401, "Insufficient rights", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc ]);
         }
 
         // Get Extended Intervention
         $extendedintervention = $this->_getExtendedInterventionObject($id_intervention);
 
-        // Get question bloc
-        $questionbloc = $this->_getQuestionBlocObject($id_intervention, $id_c_question_bloc);
+        // Get survey bloc
+        $surveybloc = $this->_getSurveyBlocObject($id_intervention, $id_equipment);
 
-        if ($questionbloc->is_read_only($id_intervention, $id_c_question_bloc)) {
-            throw new RestException(405, "Read only");
+        // Get question bloc
+        $questionbloc = $this->_getQuestionBlocObject($id_intervention, $id_equipment, $id_c_question_bloc);
+        if ($questionbloc->is_read_only()) {
+            throw new RestException(405, "Read only", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc ]);
         }
 
         // Save question bloc
 //        $questionbloc->oldcopy = clone $questionbloc; // Error 500
-        $questionbloc->fk_fichinter = $id_intervention;
+        $questionbloc->fk_survey_bloc = $surveybloc->id;
         $questionbloc->fk_c_question_bloc = $id_c_question_bloc;
         if (isset($complementary_question_bloc)) $questionbloc->complementary_question_bloc = $complementary_question_bloc;
         if (isset($fk_c_question_bloc_status)) $questionbloc->fk_c_question_bloc_status = $fk_c_question_bloc_status;
@@ -259,19 +548,28 @@ class ExtendedInterventionApi extends DolibarrApi {
             $result = $questionbloc->create(DolibarrApiAccess::$user);
         }
 
-        if ($result < 0) {
-            throw new RestException(500, "Error while saving the question bloc", [ 'details' => $this->_getErrors($questionbloc) ]);
+        // Save answers
+        if (is_array($lines) && count($lines) > 0) {
+            foreach ($lines as $question) {
+                $this->saveQuestion($id_intervention, $id_equipment, $id_c_question_bloc, $question['fk_c_question'],
+                    $question['fk_c_answer'], $question['justificatory_answer'], $question['array_options']);
+            }
         }
 
-        return $this->getQuestionBloc($id_intervention, $id_c_question_bloc);
+        if ($result < 0) {
+            throw new RestException(500, "Error while saving the question bloc", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc, 'details' => $this->_getErrors($questionbloc) ]);
+        }
+
+        return $this->getQuestionBloc($id_intervention, $id_equipment, $id_c_question_bloc);
     }
 
 //    /**
 //     *  Delete a question bloc
 //     *
-//     * @url	DELETE {id_intervention}/survey/questionblocs/{id_c_question_bloc}
+//     * @url	DELETE {id_intervention}/survey/{id_equipment}/questionblocs/{id_c_question_bloc}
 //     *
 //     * @param   int     $id_intervention    ID of the intervention
+//     * @param   int     $id_equipment       ID of the equipment
 //     * @param   int     $id_c_question_bloc ID of the question bloc (in dictionary)
 //     *
 //     * @return  array
@@ -285,24 +583,23 @@ class ExtendedInterventionApi extends DolibarrApi {
 //     * @throws  500     RestException       Error when retrieve question bloc
 //     * @throws  500     RestException       Error while deleting the question bloc
 //     */
-//    function deleteQuestionBloc($id_intervention, $id_c_question_bloc)
+//    function deleteQuestionBloc($id_intervention, $id_equipment, $id_c_question_bloc)
 //    {
 //        if (!DolibarrApiAccess::$user->rights->ficheinter->lire) {
-//            throw new RestException(401, "Insufficient rights");
+//            throw new RestException(401, "Insufficient rights", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc ]);
 //        }
 //
 //        // Get Extended Intervention
 //        $extendedintervention = $this->_getExtendedInterventionObject($id_intervention);
 //
 //        // Get question bloc
-//        $questionbloc = $this->_getQuestionBlocObject($id_intervention, $id_c_question_bloc);
-//
-//        if ($questionbloc->is_read_only($id_intervention, $id_c_question_bloc)) {
-//            throw new RestException(405, "Read only");
+//        $questionbloc = $this->_getQuestionBlocObject($id_intervention, $id_equipment, $id_c_question_bloc);
+//        if ($questionbloc->is_read_only()) {
+//            throw new RestException(405, "Read only", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc ]);
 //        }
 //
 //        if ($questionbloc->delete(DolibarrApiAccess::$user) < 0) {
-//            throw new RestException(500, "Error while deleting the question bloc", [ 'details' => $this->_getErrors($questionbloc) ]);
+//            throw new RestException(500, "Error while deleting the question bloc", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc, 'details' => $this->_getErrors($questionbloc) ]);
 //        }
 //
 //        return array(
@@ -316,9 +613,10 @@ class ExtendedInterventionApi extends DolibarrApi {
     /**
 	 *  Get the questions of the given question bloc
 	 *
-     * @url	GET {id_intervention}/survey/questionblocs/{id_c_question_bloc}/questions
+     * @url	GET {id_intervention}/survey/{id_equipment}/questionblocs/{id_c_question_bloc}/questions
      *
      * @param   int     $id_intervention    ID of the intervention
+     * @param   int     $id_equipment       ID of the equipment
      * @param   int     $id_c_question_bloc ID of the question bloc (in dictionary)
      * @param   int     $all_data           If equal 1 then get all the data for the modification (all answers, status and predefined texts)
 	 *
@@ -332,20 +630,20 @@ class ExtendedInterventionApi extends DolibarrApi {
      * @throws  500     RestException       Error when retrieve question bloc
      * @throws  500     RestException       Error when retrieve the questions
 	 */
-	function getQuestions($id_intervention, $id_c_question_bloc, $all_data=0)
+	function getQuestions($id_intervention, $id_equipment, $id_c_question_bloc, $all_data=0)
     {
         if (!DolibarrApiAccess::$user->rights->ficheinter->lire) {
-            throw new RestException(401, "Insufficient rights");
+            throw new RestException(401, "Insufficient rights", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc ]);
         }
 
         // Get Extended Intervention
         $extendedintervention = $this->_getExtendedInterventionObject($id_intervention);
 
         // Get question bloc
-        $questionbloc = $this->_getQuestionBlocObject($id_intervention, $id_c_question_bloc);
+        $questionbloc = $this->_getQuestionBlocObject($id_intervention, $id_equipment, $id_c_question_bloc);
 
         if ($questionbloc->getLinesArray($all_data) < 0) {
-            throw new RestException(500, "Error when retrieve the questions", [ 'details' => $this->_getErrors($questionbloc) ]);
+            throw new RestException(500, "Error when retrieve the questions", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc, 'details' => $this->_getErrors($questionbloc) ]);
         }
 
         $result = array();
@@ -359,9 +657,10 @@ class ExtendedInterventionApi extends DolibarrApi {
     /**
      *  Get a question
      *
-     * @url	GET {id_intervention}/survey/questionblocs/{id_c_question_bloc}/questions/{id_c_question}
+     * @url	GET {id_intervention}/survey/{id_equipment}/questionblocs/{id_c_question_bloc}/questions/{id_c_question}
      *
      * @param   int             $id_intervention    ID of the intervention
+     * @param   int             $id_equipment       ID of the equipment
      * @param   int             $id_c_question_bloc ID of the question bloc (in dictionary)
      * @param   int             $id_c_question      ID of the question (in dictionary)
      * @param   int             $all_data           If equal 1 then get all the data for the modification (all answers, status and predefined texts)
@@ -373,20 +672,20 @@ class ExtendedInterventionApi extends DolibarrApi {
      * @throws  404             RestException       Request not found
      * @throws  500             RestException       Error when retrieve request
      */
-    function getQuestion($id_intervention, $id_c_question_bloc, $id_c_question, $all_data=0)
+    function getQuestion($id_intervention, $id_equipment, $id_c_question_bloc, $id_c_question, $all_data=0)
     {
         if (!DolibarrApiAccess::$user->rights->ficheinter->lire) {
-            throw new RestException(401, "Insufficient rights");
+            throw new RestException(401, "Insufficient rights", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc, 'id_c_question' => $id_c_question ]);
         }
 
         // Get Extended Intervention
         $extendedintervention = $this->_getExtendedInterventionObject($id_intervention);
 
         // Get Question bloc
-        $questionbloc = $this->_getQuestionBlocObject($id_intervention, $id_c_question_bloc);
+        $questionbloc = $this->_getQuestionBlocObject($id_intervention, $id_equipment, $id_c_question_bloc);
 
         // Get question
-        $question = $this->_getQuestionObject($id_intervention, $id_c_question_bloc, $id_c_question, $all_data);
+        $question = $this->_getQuestionObject($id_intervention, $id_equipment, $id_c_question_bloc, $id_c_question, $all_data);
         $question->is_read_only();
 
         return $this->_cleanObjectData($question);
@@ -395,9 +694,10 @@ class ExtendedInterventionApi extends DolibarrApi {
     /**
      *  Save a question
      *
-     * @url	PUT {id_intervention}/survey/questionblocs/{id_c_question_bloc}/questions/{id_c_question}
+     * @url	PUT {id_intervention}/survey/{id_equipment}/questionblocs/{id_c_question_bloc}/questions/{id_c_question}
      *
      * @param   int     $id_intervention        ID of the intervention
+     * @param   int     $id_equipment           ID of the equipment
      * @param   int     $id_c_question_bloc     ID of the question bloc (in dictionary)
      * @param   int     $id_c_question          ID of the question (in dictionary)
      * @param   int     $fk_c_answer            ID of the answer (in dictionary)
@@ -415,23 +715,22 @@ class ExtendedInterventionApi extends DolibarrApi {
      * @throws  500     RestException           Error when retrieve question
      * @throws  500     RestException           Error while saving the question
      */
-    function postQuestion($id_intervention, $id_c_question_bloc, $id_c_question, $fk_c_answer = null, $justificatory_answer = null, $array_options = null)
+    function saveQuestion($id_intervention, $id_equipment, $id_c_question_bloc, $id_c_question, $fk_c_answer = null, $justificatory_answer = null, $array_options = null)
     {
         if (!DolibarrApiAccess::$user->rights->ficheinter->lire) {
-            throw new RestException(401, "Insufficient rights");
+            throw new RestException(401, "Insufficient rights", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc, 'id_c_question' => $id_c_question ]);
         }
 
         // Save question bloc (create if not exist or do nothing)
-        $this->saveQuestionBloc($id_intervention, $id_c_question_bloc);
+        $this->saveQuestionBloc($id_intervention, $id_equipment, $id_c_question_bloc);
 
         // Get question bloc
-        $questionbloc = $this->_getQuestionBlocObject($id_intervention, $id_c_question_bloc);
+        $questionbloc = $this->_getQuestionBlocObject($id_intervention, $id_equipment, $id_c_question_bloc);
 
-        // Get question bloc
-        $question = $this->_getQuestionObject($id_intervention, $id_c_question_bloc, $id_c_question);
-
+        // Get question
+        $question = $this->_getQuestionObject($id_intervention, $id_equipment, $id_c_question_bloc, $id_c_question);
         if ($question->is_read_only()) {
-            throw new RestException(405, "Read only");
+            throw new RestException(405, "Read only", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc, 'id_c_question' => $id_c_question ]);
         }
 
         // Save question
@@ -458,20 +757,21 @@ class ExtendedInterventionApi extends DolibarrApi {
         }
 
         if ($result < 0) {
-            throw new RestException(500, "Error while saving the question", [ 'details' => $this->_getErrors($question) ]);
+            throw new RestException(500, "Error while saving the question", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc, 'id_c_question' => $id_c_question, 'details' => $this->_getErrors($question) ]);
         }
 
         self::$db->commit();
 
-        return $this->getQuestion($id_intervention, $id_c_question_bloc, $id_c_question);
+        return $this->getQuestion($id_intervention, $id_equipment, $id_c_question_bloc, $id_c_question);
     }
 
 //    /**
 //     *  Delete a question
 //     *
-//     * @url	DELETE {id_intervention}/survey/questionblocs/{id_c_question_bloc}/questions/{id_c_question}
+//     * @url	DELETE {id_intervention}/survey/{id_equipment}/questionblocs/{id_c_question_bloc}/questions/{id_c_question}
 //     *
 //     * @param   int     $id_intervention    ID of the intervention
+//     * @param   int     $id_equipment       ID of the equipment
 //     * @param   int     $id_c_question_bloc ID of the question bloc (in dictionary)
 //     * @param   int     $id_c_question      ID of the question (in dictionary)
 //     *
@@ -488,27 +788,26 @@ class ExtendedInterventionApi extends DolibarrApi {
 //     * @throws  500     RestException       Error when retrieve question
 //     * @throws  500     RestException       Error while deleting the question
 //     */
-//    function deleteQuestion($id_intervention, $id_c_question_bloc, $id_c_question)
+//    function deleteQuestion($id_intervention, $id_equipment, $id_c_question_bloc, $id_c_question)
 //    {
 //        if (!DolibarrApiAccess::$user->rights->ficheinter->lire) {
-//            throw new RestException(401, "Insufficient rights");
+//            throw new RestException(401, "Insufficient rights", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc, 'id_c_question' => $id_c_question ]);
 //        }
 //
 //        // Get Extended Intervention
 //        $extendedintervention = $this->_getExtendedInterventionObject($id_intervention);
 //
 //        // Get Question bloc
-//        $questionbloc = $this->_getQuestionBlocObject($id_intervention, $id_c_question_bloc);
+//        $questionbloc = $this->_getQuestionBlocObject($id_intervention, $id_equipment, $id_c_question_bloc);
 //
 //        // Get question
-//        $question = $this->_getQuestionObject($id_intervention, $id_c_question_bloc, $id_c_question);
-//
+//        $question = $this->_getQuestionObject($id_intervention, $id_equipment, $id_c_question_bloc, $id_c_question);
 //        if ($question->is_read_only()) {
-//            throw new RestException(405, "Read only");
+//            throw new RestException(405, "Read only", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc, 'id_c_question' => $id_c_question ]);
 //        }
 //
 //        if ($question->delete(DolibarrApiAccess::$user) < 0) {
-//            throw new RestException(500, "Error while deleting the question", [ 'details' => $this->_getErrors($question) ]);
+//            throw new RestException(500, "Error while deleting the question", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc, 'id_c_question' => $id_c_question, 'details' => $this->_getErrors($question) ]);
 //        }
 //
 //        return array(
@@ -535,21 +834,21 @@ class ExtendedInterventionApi extends DolibarrApi {
         global $conf;
 
         if (!DolibarrApi::_checkAccessToResource('fichinter', $id_intervention, 'fichinter')) {
-            throw new RestException(403, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
+            throw new RestException(403, 'Access not allowed for login ' . DolibarrApiAccess::$user->login, [ 'id_intervention' => $id_intervention ]);
         }
 
         $extendedintervention = new ExtendedIntervention(self::$db);
         $result = $extendedintervention->fetch($id_intervention);
         if ($result == 0) {
-            throw new RestException(404, "Intervention not found");
+            throw new RestException(404, "Intervention not found", [ 'id_intervention' => $id_intervention ]);
         } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve intervention", [ 'details' => $this->_getErrors($extendedintervention) ]);
+            throw new RestException(500, "Error when retrieve intervention", [ 'id_intervention' => $id_intervention, 'details' => $this->_getErrors($extendedintervention) ]);
         }
 
         if ($conf->companyrelationships->enabled) {
             $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($extendedintervention);
             if (!$hasPerm) {
-                throw new RestException(403, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
+                throw new RestException(403, 'Access not allowed for login ' . DolibarrApiAccess::$user->login, [ 'id_intervention' => $id_intervention ]);
             }
         }
 
@@ -557,9 +856,39 @@ class ExtendedInterventionApi extends DolibarrApi {
     }
 
     /**
+     *  Get Survey Bloc object with authorization
+     *
+     * @param   int             $id_intervention    Id of the intervention
+     * @param   int             $id_equipment       Id of the equipment
+     * @param   int             $all_data           If equal 1 then get all the data for the modification (all answers, status and predefined texts)
+     *
+     * @return  EISurveyBloc
+     *
+     * @throws  404             RestException       Survey bloc not found
+     * @throws  500             RestException       Error when retrieve survey bloc
+     */
+    function _getSurveyBlocObject($id_intervention, $id_equipment, $all_data=0)
+    {
+        $surveybloc = new EISurveyBloc(self::$db);
+        $result = $surveybloc->fetch(0, $id_intervention, $id_equipment, $all_data);
+        if ($result == 0) {
+            throw new RestException(404, "Survey bloc not found", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment ]);
+        } elseif ($result < 0) {
+            throw new RestException(500, "Error when retrieve survey bloc", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'details' => $this->_getErrors($surveybloc) ]);
+        }
+
+//        $surveybloc->fetch_fichinter();
+//        $surveybloc->fetch_equipment();
+//        $surveybloc->fetch_product();
+
+        return $surveybloc;
+    }
+
+    /**
      *  Get Question Bloc object with authorization
      *
      * @param   int             $id_intervention    ID of the intervention
+     * @param   int             $id_equipment       Id of the equipment
      * @param   int             $id_c_question_bloc ID of the question bloc (in dictionary)
      * @param   int             $all_data           If equal 1 then get all the data for the modification (all answers, status and predefined texts)
      *
@@ -568,14 +897,14 @@ class ExtendedInterventionApi extends DolibarrApi {
      * @throws  404             RestException       Question bloc not found
      * @throws  500             RestException       Error when retrieve question bloc
      */
-    function _getQuestionBlocObject($id_intervention, $id_c_question_bloc, $all_data=0)
+    function _getQuestionBlocObject($id_intervention, $id_equipment, $id_c_question_bloc, $all_data=0)
     {
         $questionbloc = new EIQuestionBloc(self::$db);
-        $result = $questionbloc->fetch('', $id_intervention, $id_c_question_bloc, $all_data);
+        $result = $questionbloc->fetch(0, $id_intervention, $id_equipment, null, $id_c_question_bloc, $all_data);
         if ($result == 0) {
-            throw new RestException(404, "Question bloc not found");
+            throw new RestException(404, "Question bloc not found", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc ]);
         } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve question bloc", [ 'details' => $this->_getErrors($questionbloc) ]);
+            throw new RestException(500, "Error when retrieve question bloc", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc, 'details' => $this->_getErrors($questionbloc) ]);
         }
 
         return $questionbloc;
@@ -585,6 +914,7 @@ class ExtendedInterventionApi extends DolibarrApi {
      *  Get Question object with authorization
      *
      * @param   int             $id_intervention    ID of the intervention
+     * @param   int             $id_equipment       Id of the equipment
      * @param   int             $id_c_question_bloc ID of the question bloc (in dictionary)
      * @param   int             $id_c_question      ID of the question (in dictionary)
      * @param   int             $all_data           If equal 1 then get all the data for the modification (all answers, status and predefined texts)
@@ -594,34 +924,17 @@ class ExtendedInterventionApi extends DolibarrApi {
      * @throws  404             RestException       Question not found
      * @throws  500             RestException       Error when retrieve question
      */
-    function _getQuestionObject($id_intervention, $id_c_question_bloc, $id_c_question, $all_data=0)
+    function _getQuestionObject($id_intervention, $id_equipment, $id_c_question_bloc, $id_c_question, $all_data=0)
     {
         $question = new EIQuestionBlocLine(self::$db);
-        $result = $question->fetch('', $id_intervention, $id_c_question_bloc, null, $id_c_question, $all_data);
+        $result = $question->fetch(0, $id_intervention, $id_equipment, $id_c_question_bloc, null, $id_c_question, $all_data);
         if ($result == 0) {
-            throw new RestException(404, "Question not found");
+            throw new RestException(404, "Question not found", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc, 'id_c_question' => $id_c_question ]);
         } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve question", [ 'details' => $this->_getErrors($question) ]);
+            throw new RestException(500, "Error when retrieve question", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc, 'id_c_question' => $id_c_question, 'details' => $this->_getErrors($question) ]);
         }
 
         return $question;
-    }
-
-    /**
-     *  Validate fields before create or update object
-     *
-     * @param   array   $data               Array with data to verify
-     *
-     * @return  void
-     *
-     * @throws  400     RestException       Field missing
-     */
-    function _validate($data)
-    {
-        foreach (self::$FIELDS as $field) {
-            if (!isset($data[$field]))
-                throw new RestException(400, "Field missing: $field");
-        }
     }
 
     /**

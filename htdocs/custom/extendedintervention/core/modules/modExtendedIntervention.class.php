@@ -98,7 +98,7 @@ class modExtendedIntervention extends DolibarrModules
         $this->module_parts = array(
             'dictionaries' => 1,
             'tpl' => 1,
-            'hooks' => array('interventioncard', 'contractcard', 'requestmanagercard', 'contractlist'),
+            'hooks' => array('interventioncard', 'equipementcard', 'contractcard', 'requestmanagercard', 'contractlist'),
             'triggers' => 1
         );
 
