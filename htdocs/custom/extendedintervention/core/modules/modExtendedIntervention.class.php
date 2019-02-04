@@ -296,6 +296,7 @@ class modExtendedIntervention extends DolibarrModules
         // Intervention
         $result=$extrafields->addExtraField('ei_type', $langs->trans('ExtendedInterventionType'), 'sellist', 0,  '', 'fichinter',   0, 1, '', array('options'=>array('c_extendedintervention_type:label:rowid::active = 1'=>null)), 1, '', 1, 0, '', '');
         // Contract
+        // TODO a refaire pour compatibilité avec le module general ExtendedContract
         $result=$extrafields->addExtraField('generalites', $langs->trans('ExtendedInterventionContractGeneralSeparatorTitle'), 'separate', 0,  '', 'contrat',   0, 0, '', '', 0, '', 0, 0, '', '');
         $result=$extrafields->addExtraField('startdate', $langs->trans('ExtendedInterventionContractGeneralStartDate'), 'date', 6,  '', 'contrat',   0, 0, '', '', 1, '', 1, 0, '', '');
         $result=$extrafields->addExtraField('duration', $langs->trans('ExtendedInterventionContractGeneralDuration'), 'int', 7,  '10', 'contrat',   0, 0, '', '', 1, '', 1, 0, '', '');

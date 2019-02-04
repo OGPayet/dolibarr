@@ -11,6 +11,10 @@ Permission163033 = Créer/modifier les demandes
 Permission163034 = Supprimer les demandes
 Permission163035 = Réouvrir les demandes cloturées
 Permission163036 = Voir les documents des demandes
+Permission163052 = Voir les utilisateur(s) en charge sur les tiers pour la planification des demandes
+Permission163053 = Gère les utilisateur(s) en charge sur les tiers pour la planification des demandes
+Permission163054 = Voir la planification des demandes
+Permission163055 = Gère la planification des demandes
 
 ############################################################
 ### Admin setup
@@ -27,6 +31,15 @@ RequestManagerTimeSlotsActivateName                     = Activation
 RequestManagerTimeSlotsActivateDesc                     = Active la gestion des plages horaires lors de la création d'une demande
 RequestManagerTimeSlotsPeriodsName                      = Plages horaires
 RequestManagerTimeSlotsPeriodsDesc                      = Le paramètrage des plages est sous la forme suivante :<br><br>- Formatage date: "[2018Y][05M][06D|1W] 08h00"<br>-- Y: Spécifier une année (Optionnel)<br>-- M: Spécifier un mois de l'année (1-12, Optionnel)<br>-- D: Spécifier un jour du mois (1-31, Optionnel)<br>-- W: Spécifier un jour de la semaine (0-6, 0=>Dimanche, Optionnel)<br>-- h: Spécifier l'heure de la journée<br><br>- Formatage des plages: "date début - date fin, date début - date fin, ..."<br>-- La date de début et de fin doit être sous le même format (ex: 05M01D 08h30 - 06M30D 18h00 => de 8h30 à 18h du 1 mai au 30 juin de chaque année)
+
+RequestManagerPlanningOptions                           = Paramètres des planifications
+RequestManagerPlanningActivateName                      = Activation
+RequestManagerPlanningActivateDesc                      = Active la planification des demandes
+RequestManagerPlanningRequestTypesName                  = Types de demandes
+RequestManagerPlanningRequestTypesDesc                  = Sélection des types de demandes planifiées
+RequestManagerPlanningRequestStatusName                 = Type de demande "%s"
+RequestManagerPlanningRequestStatusToPlanDesc           = Sélection du statut de la demande "à planifier"
+RequestManagerPlanningRequestStatusPlannedDesc          = Sélection du statut de la demande "planifié"
 
 RequestManagerChronometerOptions                        = Paramètres du chronomètre
 RequestManagerChronometerActivateName                   = Activation
@@ -140,17 +153,19 @@ RequestManagerSearchIntoRequests    = Demandes
 ############################################################
 ### Menu
 ############################################################
-RequestManagerMenuTop                      = Demandes
-RequestManagerMenuLeftTitle                = Demandes
-RequestManagerMenuLeftNewRequest           = Nouvelle demande
-RequestManagerMenuLeftList                 = Liste
-RequestManagerMenuLeftMyList               = Mes demandes
-RequestManagerMenuLeftListNotAssigned      = Demandes non attribuées
-RequestManagerMenuLeftListNotResolved      = Demandes non résolues
-RequestManagerMenuLeftListClosed           = Demandes clôturées
-RequestManagerMenuTopRequestsFollow        = Suivi des demandes
-RequestManagerMenuTopDateLastView          = Date du dernier accès
-RequestManagerMenuTopCreateFast            = Création de demande rapide
+RequestManagerMenuTop                               = Demandes
+RequestManagerMenuLeftTitle                         = Demandes
+RequestManagerMenuLeftNewRequest                    = Nouvelle demande
+RequestManagerMenuLeftList                          = Liste
+RequestManagerMenuLeftMyList                        = Mes demandes
+RequestManagerMenuLeftListNotAssigned               = Demandes non attribuées
+RequestManagerMenuLeftListNotResolved               = Demandes non résolues
+RequestManagerMenuLeftListClosed                    = Demandes clôturées
+RequestManagerMenuLeftPlanningList                  = Planification des demandes
+RequestManagerMenuLeftPlanningListInCharge          = Dont je suis en charge
+RequestManagerMenuTopRequestsFollow                 = Suivi des demandes
+RequestManagerMenuTopDateLastView                   = Date du dernier accès
+RequestManagerMenuTopCreateFast                     = Création de demande rapide
 
 ############################################################
 ### Tabulation
@@ -273,6 +288,8 @@ RequestManagerDeleteRequest                 = Supprimer demande
 RequestManagerConfirmDeleteRequest          = Êtes-vous sûr de vouloir supprimer cette demande ?
 RequestManagerAssignMySelf                  = M'assigner à la demande
 RequestManagerConfirmAssignMySelf           = Une ou des personnes sont déja assignées à cette demande.<br>Êtes-vous sûr de vouloir vous assigner à cette demande ?
+RequestManagerPlanningRequest               = Planification de la ou des demande(s)
+RequestManagerConfirmPlanningRequest        = Êtes-vous sûr de vouloir planifier cette ou ces demande(s) ?
 
 ############################################################
 ### Events list on card
@@ -320,14 +337,21 @@ RequestManagerForcedCreatedOutOfTimeActionLabel    = Demande "%s" créée hors p
 ############################################################
 ### List
 ############################################################
-RequestManagerRequestListTab            = Demandes
-RequestManagerListOfRequests            = Liste des demandes
-RequestManagerNotAssigned               = Non attribuées
-RequestManagerMyRequest                 = Mes demandes
-RequestManagerTypeNotResolved           = Non résolue
-RequestManagerExternalReferenceShort    = Réf. externe
-RequestManagerResolvedBy                = Résolu par
-RequestManagerDateResolved              = Date Résolu
+RequestManagerRequestListTab                        = Demandes
+RequestManagerListOfRequests                        = Liste des demandes
+RequestManagerNotAssigned                           = Non attribuées
+RequestManagerMyRequest                             = Mes demandes
+RequestManagerTypeNotResolved                       = Non résolue
+RequestManagerExternalReferenceShort                = Réf. externe
+RequestManagerResolvedBy                            = Résolu par
+RequestManagerDateResolved                          = Date Résolu
+RequestManagerRequestPlanningListTab                = Planification des demandes
+RequestManagerPlanningListOfRequests                = Planification des demandes
+RequestManagerPlanningRequestTypeNotConfigured      = Auncun type de demande n'a été configuré pour la planification dans la configuration du module "Request Manager"
+RequestManagerPlanning                              = Planification
+RequestManagerPlanningInCharge                      = Dont je suis en charge
+RequestManagerPlanningUsersInCharge                 = Utilisateur(s) en charge
+RequestManagerPlanningToPlan                        = Planifier
 
 ############################################################
 ### Lists follow
@@ -377,6 +401,10 @@ RequestManagerErrorMustBeNotEmpty                                           = Ne
 RequestManagerErrorNotAuthorized                                            = Pas autorisé
 RequestManagerErrorMustBeOneNextStatus                                      = Doit n'avoir qu'un prochain statut de paramètré
 RequestManagerErrorStatusDoNotHaveThisReasonResolution                      = Le statut "%s" ne possède pas ce motif de résolution
+RequestManagerErrorPlanningRequestStatusToPlanMandatory                     = La sélection du statut de la demande "à planifier" est obligatoire pour le type de demande "%s"
+RequestManagerErrorPlanningRequestStatusPlannedMandatory                    = La sélection du statut de la demande "planifié" est obligatoire pour le type de demande "%s"
+RequestManagerErrorForRequest                                               = Erreur pour la demande (%s) :
+RequestManagerErrorPlanningRequestStatusPlannedNotConfigured                = La statut "planifié" n'est pas configuré pour le type de cette demande
 
 ######################################################################
 # Dictionaries

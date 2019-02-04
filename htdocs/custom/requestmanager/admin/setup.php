@@ -32,6 +32,7 @@ require_once DOL_DOCUMENT_ROOT . '/core/class/doleditor.class.php';
 dol_include_once('/requestmanager/lib/requestmanager.lib.php');
 dol_include_once('/requestmanager/lib/requestmanagertimeslots.lib.php');
 dol_include_once('/requestmanager/class/requestmanager.class.php');
+dol_include_once('/advancedictionaries/class/dictionary.class.php');
 
 $langs->load("admin");
 $langs->load("errors");
@@ -43,6 +44,17 @@ if (!$user->admin) accessforbidden();
 
 $action = GETPOST('action','alpha');
 
+// Get request types list
+$requestmanagerrequesttype = Dictionary::getDictionary($db, 'requestmanager', 'requestmanagerrequesttype');
+$request_types = $requestmanagerrequesttype->fetch_lines(1, array(), array(), 0, 0, false, true);
+$request_types_array = array();
+foreach ($request_types as $request_type) {
+    $request_types_array[$request_type->id] = $request_type->fields['label'];
+}
+
+// Get request status list
+$requestmanagerstatus = Dictionary::getDictionary($db, 'requestmanager', 'requestmanagerstatus');
+$request_status = $requestmanagerstatus->fetch_lines(1, array(), array(), 0, 0, false, true);
 
 /*
  *	Actions
@@ -63,6 +75,40 @@ if ($action == 'set_timeslots_options') {
     } else {
         $errors[] = $langs->trans('RequestManagerTimeSlotsPeriodsName') . ': ' . $res;
         $error++;
+    }
+} elseif ($action == 'set_planning_options') {
+    $value = GETPOST('REQUESTMANAGER_PLANNING_REQUEST_TYPE', "array");
+    $res = dolibarr_set_const($db, 'REQUESTMANAGER_PLANNING_REQUEST_TYPE', implode(',', $value), 'chaine', 0, '', $conf->entity);
+    if (!$res > 0) {
+        $errors[] = $db->lasterror();
+        $error++;
+    }
+
+    $request_types_planned = !empty($conf->global->REQUESTMANAGER_PLANNING_REQUEST_TYPE) ? explode(',', $conf->global->REQUESTMANAGER_PLANNING_REQUEST_TYPE) : array();
+    foreach ($request_types as $request_type) {
+        $value = GETPOST('REQUESTMANAGER_PLANNING_REQUEST_STATUS_TO_PLAN_' . $request_type->id, "int");
+        if (!($value > 0) && in_array($request_type->id, $request_types_planned)) {
+            $errors[] = $langs->trans('RequestManagerErrorPlanningRequestStatusToPlanMandatory', $request_type->fields['label']);
+            $error++;
+        } else {
+            $res = dolibarr_set_const($db, 'REQUESTMANAGER_PLANNING_REQUEST_STATUS_TO_PLAN_' . $request_type->id, $value > 0 && in_array($request_type->id, $request_types_planned) ? $value : '', 'chaine', 0, '', $conf->entity);
+            if (!$res > 0) {
+                $errors[] = $db->lasterror();
+                $error++;
+            }
+        }
+
+        $value = GETPOST('REQUESTMANAGER_PLANNING_REQUEST_STATUS_PLANNED_' . $request_type->id, "int");
+        if (!($value > 0) && in_array($request_type->id, $request_types_planned)) {
+            $errors[] = $langs->trans('RequestManagerErrorPlanningRequestStatusPlannedMandatory', $request_type->fields['label']);
+            $error++;
+        } else {
+            $res = dolibarr_set_const($db, 'REQUESTMANAGER_PLANNING_REQUEST_STATUS_PLANNED_' . $request_type->id, $value > 0 && in_array($request_type->id, $request_types_planned) ? $value : '', 'chaine', 0, '', $conf->entity);
+            if (!$res > 0) {
+                $errors[] = $db->lasterror();
+                $error++;
+            }
+        }
     }
 } elseif ($action == 'set_chronometer_options') {
     $value = GETPOST('REQUESTMANAGER_CHRONOMETER_TIME', "alpha");
@@ -225,7 +271,7 @@ if ($action != '') {
     if (!$error) {
         setEventMessage($langs->trans("SetupSaved"));
     } else {
-        setEventMessages($langs->trans("Error"), $errors, 'errors');
+        setEventMessages(/*$langs->trans("Error")*/'', $errors, 'errors');
     }
 }
 
@@ -233,7 +279,8 @@ if ($action != '') {
  *	View
  */
 
-llxHeader();
+$wikihelp='EN:Request_Manager_En|FR:Request_Manager_Fr|ES:Request_Manager_Es';
+llxHeader('', $langs->trans("RequestManagerSetup"), $wikihelp);
 
 $form = new Form($db);
 
@@ -493,6 +540,130 @@ print '<td align="right" width="50%">'."\n";
 $periods = GETPOST('REQUESTMANAGER_TIMESLOTS_PERIODS', "alpha");
 print '<textarea style="width: 100%;" rows="15" name="REQUESTMANAGER_TIMESLOTS_PERIODS">'.(!empty($periods) ? $periods : $conf->global->REQUESTMANAGER_TIMESLOTS_PERIODS).'</textarea>';
 print '</td></tr>'."\n";
+
+print '</table>';
+
+print '<br>';
+print '<div align="center">';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</div>';
+
+print '</form>' . "\n";
+
+/********************************************************
+ *  Planning
+ ********************************************************/
+print load_fiche_titre($langs->trans("RequestManagerPlanningOptions"),'','');
+
+print '<form method="post" action="'.$_SERVER["PHP_SELF"].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_planning_options">';
+
+$var=true;
+
+print '<table class="noborder" width="100%">';
+print '<tr class="liste_titre">';
+print '<td width="20%">'.$langs->trans("Name").'</td>'."\n";
+print '<td>'.$langs->trans("Description").'</td>'."\n";
+print '<td align="right">'.$langs->trans("Value").'</td>'."\n";
+print "</tr>\n";
+
+// REQUESTMANAGER_PLANNING_ACTIVATE
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>'.$langs->trans("RequestManagerPlanningActivateName").'</td>'."\n";
+print '<td>'.$langs->trans("RequestManagerPlanningActivateDesc").'</td>'."\n";
+print '<td align="right">' . "\n";
+if (!empty($conf->use_javascript_ajax)) {
+    print ajax_constantonoff('REQUESTMANAGER_PLANNING_ACTIVATE');
+} else {
+    if (empty($conf->global->REQUESTMANAGER_PLANNING_ACTIVATE)) {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_REQUESTMANAGER_PLANNING_ACTIVATE">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+    } else {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_REQUESTMANAGER_PLANNING_ACTIVATE">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+    }
+}
+print '</td></tr>' . "\n";
+
+$request_types_planned = !empty($conf->global->REQUESTMANAGER_PLANNING_REQUEST_TYPE) ? explode(',', $conf->global->REQUESTMANAGER_PLANNING_REQUEST_TYPE) : array();
+
+// REQUESTMANAGER_PLANNING_REQUEST_TYPE
+$var=!$var;
+print '<tr '.$bc[$var].'>'."\n";
+print '<td>' . $langs->trans("RequestManagerPlanningRequestTypesName") . '</td>'."\n";
+print '<td>' . $langs->trans("RequestManagerPlanningRequestTypesDesc") . '</td>'."\n";
+print '<td align="right">'."\n";
+print $form->multiselectarray("REQUESTMANAGER_PLANNING_REQUEST_TYPE", $request_types_array, $request_types_planned, 0, 0, 'minwidth300');
+print '</td></tr>'."\n";
+
+foreach ($request_types as $request_type) {
+    if (!in_array($request_type->id, $request_types_planned)) continue;
+
+    $request_status_to_plan_array = array();
+    $request_status_planned_array = array();
+
+    // Get status to plan for the request type
+    foreach ($request_status as $rstatus) {
+        if (!in_array($request_type->id, explode(',', $rstatus->fields['request_type']))) continue;
+
+        if (in_array($rstatus->fields['type'], array(RequestManager::STATUS_TYPE_INITIAL, RequestManager::STATUS_TYPE_IN_PROGRESS))) {
+            $request_status_to_plan_array[$rstatus->id] = $rstatus->fields['code'] . ' - ' . $rstatus->fields['label'];
+            $request_status_planned_array[$rstatus->id] = !empty($rstatus->fields['next_status']) ? explode(',', $rstatus->fields['next_status']) : array();
+        }
+    }
+
+    // Get status planned for each status to plan for the request type
+    foreach ($request_status_planned_array as $rstatus_to_plan_id => $rstatus_to_plan) {
+        $status_planned = array();
+        foreach ($rstatus_to_plan as $rstatus_planned_id) {
+            if (isset($request_status[$rstatus_planned_id])) {
+                $status_planned[$request_status[$rstatus_planned_id]->id] = $request_status[$rstatus_planned_id]->fields['code'] . ' - ' . $request_status[$rstatus_planned_id]->fields['label'];
+            }
+        }
+        $request_status_planned_array[$rstatus_to_plan_id] = $status_planned;
+    }
+
+    // REQUESTMANAGER_PLANNING_REQUEST_STATUS_TO_PLAN
+    $var = !$var;
+    print '<tr ' . $bc[$var] . '>' . "\n";
+    print '<td rowspan="2">' . $langs->trans("RequestManagerPlanningRequestStatusName", $request_type->fields['label']) . '</td>' . "\n";
+    print '<td>' . $langs->trans("RequestManagerPlanningRequestStatusToPlanDesc") . '</td>' . "\n";
+    print '<td align="right">' . "\n";
+    print $form->selectarray("REQUESTMANAGER_PLANNING_REQUEST_STATUS_TO_PLAN_" . $request_type->id, $request_status_to_plan_array, $conf->global->{'REQUESTMANAGER_PLANNING_REQUEST_STATUS_TO_PLAN_' . $request_type->id}, 1, 0, 0, '',0, 0, 0, '', 'minwidth300');
+    print '</td></tr>' . "\n";
+
+    // REQUESTMANAGER_PLANNING_REQUEST_STATUS_PLANNED
+    $var = !$var;
+    print '<tr ' . $bc[$var] . '>' . "\n";
+    print '<td>' . $langs->trans("RequestManagerPlanningRequestStatusPlannedDesc") . '</td>' . "\n";
+    print '<td align="right">' . "\n";
+    $request_status_planned_selected_array = isset($request_status_planned_array[$conf->global->{'REQUESTMANAGER_PLANNING_REQUEST_STATUS_TO_PLAN_' . $request_type->id}]) ? $request_status_planned_array[$conf->global->{'REQUESTMANAGER_PLANNING_REQUEST_STATUS_TO_PLAN_' . $request_type->id}] : array();
+    print $form->selectarray("REQUESTMANAGER_PLANNING_REQUEST_STATUS_PLANNED_" . $request_type->id, $request_status_planned_selected_array, $conf->global->{'REQUESTMANAGER_PLANNING_REQUEST_STATUS_PLANNED_' . $request_type->id}, 1, 0, 0, '',0, 0, 0, '', 'minwidth300');
+    print '</td></tr>' . "\n";
+
+    $request_status_planned_array = json_encode($request_status_planned_array);
+    print <<<SCRIPT
+    <script type="text/javascript">
+        $(document).ready(function () {
+            var rm_request_status_planned_array_{$request_type->id} = $request_status_planned_array;
+            var rm_planning_request_status_to_plan_{$request_type->id} = $('#REQUESTMANAGER_PLANNING_REQUEST_STATUS_TO_PLAN_{$request_type->id}');
+            var rm_planning_request_status_planned_{$request_type->id} = $('#REQUESTMANAGER_PLANNING_REQUEST_STATUS_PLANNED_{$request_type->id}');
+
+            rm_planning_request_status_to_plan_{$request_type->id}.on('change', function() {
+                var selected_id = rm_planning_request_status_to_plan_{$request_type->id}.val();
+
+                rm_planning_request_status_planned_{$request_type->id}.empty();
+                rm_planning_request_status_planned_{$request_type->id}.append('<option value="-1">&nbsp;</option>');
+                if (selected_id in rm_request_status_planned_array_{$request_type->id}) {
+                    $.map(rm_request_status_planned_array_{$request_type->id}[selected_id], function(item, idx) {
+			    rm_planning_request_status_planned_{$request_type->id}.append('<option value="' + idx + '">' + item + '</option>');
+                    })
+                }
+            });
+        });
+    </script>
+SCRIPT;
+}
 
 print '</table>';
 

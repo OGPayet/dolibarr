@@ -11,6 +11,10 @@ Permission163033 = Créer/modifier les demandes
 Permission163034 = Supprimer les demandes
 Permission163035 = Réouvrir les demandes cloturées
 Permission163036 = Voir les documents des demandes
+Permission163052 = Voir les utilisateur(s) en charge sur les tiers pour la planification des demandes
+Permission163053 = Creer/Modifier les utilisateur(s) en charge sur les tiers pour la planification des demandes
+Permission163054 = Voir la planification des demandes
+Permission163055 = Creer/Modifier la planification des demandes
 
 ############################################################
 ### Admin setup
@@ -27,6 +31,15 @@ RequestManagerTimeSlotsActivateName                     = Activation
 RequestManagerTimeSlotsActivateDesc                     = Active la gestion des plages horaires lors de la création d'une demande
 RequestManagerTimeSlotsPeriodsName                      = Plages horaires
 RequestManagerTimeSlotsPeriodsDesc                      = Le paramètrage des plages est sous la forme suivante :<br><br>- Formatage date: "[2018Y][05M][06D|1W] 08h00"<br>-- Y: Spécifier une année (Optionnel)<br>-- M: Spécifier un mois de l'année (1-12, Optionnel)<br>-- D: Spécifier un jour du mois (1-31, Optionnel)<br>-- W: Spécifier un jour de la semaine (0-6, 0=>Dimanche, Optionnel)<br>-- h: Spécifier l'heure de la journée<br><br>- Formatage des plages: "date début - date fin, date début - date fin, ..."<br>-- La date de début et de fin doit être sous le même format (ex: 05M01D 08h30 - 06M30D 18h00 => de 8h30 à 18h du 1 mai au 30 juin de chaque année)
+
+RequestManagerPlanningOptions                           = Paramètres des planifications
+RequestManagerPlanningActivateName                      = Activation
+RequestManagerPlanningActivateDesc                      = Active la planification des demandes
+RequestManagerPlanningRequestTypesName                  = Types de demandes
+RequestManagerPlanningRequestTypesDesc                  = Sélection des types de demandes planifiées
+RequestManagerPlanningRequestStatusName                 = Type de demande "%s"
+RequestManagerPlanningRequestStatusToPlanDesc           = Selection du statut de la demande "à planifier"
+RequestManagerPlanningRequestStatusPlannedDesc          = Selection du statut de la demande "planifié"
 
 RequestManagerChronometerOptions                        = Paramètres du chronomètre
 RequestManagerChronometerActivateName                   = Activation
@@ -533,3 +546,8 @@ RequestManagerIPBXPosteNumber       = Numéro de poste : %s
 RequestManagerIPBXTalkingTime       = Temps de communication : %s
 RequestManagerIPBXTotalTime         = Durée totale de l'appel : %s
 RequestManagerIPBXTalkers           = Numéro des interlocuteurs : %s,%s
+
+############################################################
+### Intervention planning
+############################################################
+RequestManagerPlanningUsersInChargeLabel    = Utilisateur(s) en charge pour les demandes de type "%s"

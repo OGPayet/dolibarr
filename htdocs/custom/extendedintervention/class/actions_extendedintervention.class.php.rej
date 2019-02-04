@@ -1,0 +1,18 @@
+diff a/htdocs/custom/extendedintervention/class/actions_extendedintervention.class.php b/htdocs/custom/extendedintervention/class/actions_extendedintervention.class.php	(rejected hunks)
+@@ -165,6 +165,16 @@ class ActionsExtendedIntervention
+ 
+                 $arrayfields = array_merge($arrayfields, $added_arrayfields);
+             }
++//        } elseif (in_array('invoicescontractlist', $contexts)) {
++//            if (!empty($conf->global->EXTENDEDINTERVENTION_QUOTA_ACTIVATE) && !empty($conf->requestmanager->enabled) && !empty($conf->global->REQUESTMANAGER_PLANNING_ACTIVATE)) {
++//                $massaction=GETPOST('massaction','alpha');
++//                $confirm=GETPOST('confirm','alpha');
++//                $test_mode = GETPOST('test_mode') ? 1 : 0;
++//
++//                if ($massaction == 'confirm_generate_invoices' && $confirm == 'yes' && !$test_mode && $user->rights->facture->creer) {
++//                    // Todo generate the intervention planned ??
++//                }
++//            }
+         }
+ 
+         return 0;

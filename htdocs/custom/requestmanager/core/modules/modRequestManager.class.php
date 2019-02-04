@@ -69,7 +69,7 @@ class modRequestManager extends DolibarrModules
         $this->editor_url = 'http://www.open-dsi.fr';
 
         // Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-        $this->version = '4.0.20';
+        $this->version = '4.0.22';
         // Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
         $this->const_name = 'MAIN_MODULE_' . strtoupper($this->name);
         // Name of image file used for this module.
@@ -170,6 +170,7 @@ class modRequestManager extends DolibarrModules
         // 'user'             to add a tab in user view
         $this->tabs = array(
             'thirdparty:+rm_request_list:SUBSTITUTION_RMLISTTABLABEL:requestmanager@requestmanager:$user->rights->requestmanager->lire:/requestmanager/list.php?socid=__ID__',
+            'thirdparty:+rm_request_planning_list:SUBSTITUTION_RMPLANNINGLISTTABLABEL:requestmanager@requestmanager:$user->rights->requestmanager->planning->lire:/requestmanager/list.php?planning=1&socid=__ID__',
             //'product:+requestmanager_product:SUBSTITUTION_requestmanagerTABLABEL:requestmanager@requestmanager:$user->rights->requestmanager->lire:/requestmanager/product_tab.php?id=__ID__',
         );
 
@@ -243,6 +244,34 @@ class modRequestManager extends DolibarrModules
         $this->rights[$r][1] = 'Voir les documents des demandes';
         $this->rights[$r][3] = 0;
         $this->rights[$r][4] = 'read_file';
+        $r++;
+
+        $this->rights[$r][0] = 163052;
+        $this->rights[$r][1] = 'Voir les utilisateur(s) en charge sur les tiers pour la planification des demandes';
+        $this->rights[$r][3] = 0;
+        $this->rights[$r][4] = 'user_in_charge';
+        $this->rights[$r][5] = 'lire';
+        $r++;
+
+        $this->rights[$r][0] = 163053;
+        $this->rights[$r][1] = 'Creer/Modifier les utilisateur(s) en charge sur les tiers pour la planification des demandes';
+        $this->rights[$r][3] = 0;
+        $this->rights[$r][4] = 'user_in_charge';
+        $this->rights[$r][5] = 'manage';
+        $r++;
+
+        $this->rights[$r][0] = 163054;
+        $this->rights[$r][1] = 'Voir la planification des demandes';
+        $this->rights[$r][3] = 0;
+        $this->rights[$r][4] = 'planning';
+        $this->rights[$r][5] = 'lire';
+        $r++;
+
+        $this->rights[$r][0] = 163055;
+        $this->rights[$r][1] = 'Gère la planification des demandes';
+        $this->rights[$r][3] = 0;
+        $this->rights[$r][4] = 'planning';
+        $this->rights[$r][5] = 'manage';
         $r++;
 
         // Add here list of permission defined by an id, a label, a boolean and two constant strings.
@@ -418,6 +447,36 @@ class modRequestManager extends DolibarrModules
             'position' => 430,
             'enabled' => '$conf->requestmanager->enabled',
             'perms' => '$user->rights->requestmanager->lire',
+            'target' => '',
+            'user' => 0
+        );
+        $r++;
+
+        $this->menu[$r] = array(
+            'fk_menu' => 'fk_mainmenu=requestmanager,fk_leftmenu=requestmanager',
+            'type' => 'left',
+            'titre' => 'RequestManagerMenuLeftPlanningList',
+            'leftmenu' => 'requestmanager_plist',
+            'url' => '/requestmanager/list.php?planning=1',
+            'langs' => 'requestmanager@requestmanager',
+            'position' => 500,
+            'enabled' => '$conf->requestmanager->enabled',
+            'perms' => '$user->rights->requestmanager->planning->lire',
+            'target' => '',
+            'user' => 0
+        );
+        $r++;
+
+        $this->menu[$r] = array(
+            'fk_menu' => 'fk_mainmenu=requestmanager,fk_leftmenu=requestmanager_plist',
+            'type' => 'left',
+            'titre' => 'RequestManagerMenuLeftPlanningListInCharge',
+            'leftmenu' => 'requestmanager_plist_in_charge',
+            'url' => '/requestmanager/list.php?planning=1&mylist=1',
+            'langs' => 'requestmanager@requestmanager',
+            'position' => 510,
+            'enabled' => '$conf->requestmanager->enabled',
+            'perms' => '$user->rights->requestmanager->planning->lire',
             'target' => '',
             'user' => 0
         );

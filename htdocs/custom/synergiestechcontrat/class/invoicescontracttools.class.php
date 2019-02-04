@@ -978,13 +978,21 @@ class InvoicesContractTools
             if ($renewed) {
                 $label = $langs->trans('STCContractRenewalEventLabel', $contract->ref);
                 $message = $langs->trans('STCContractRenewalEventDescription', $contract->ref, $birthday_date->toDateString(), $nbPeriod, $effective_date->toDateString()) . '<br>';
-                $message .= '<br>' . $langs->trans('STCContractExtraFields'). ' :<br>';
+                $message .= '<br>' . $langs->trans('STCContractExtraFields') . ' :<br>';
                 $message .= $this->getAllExtraFieldsToString($contract);
                 $message .= '<br>' . $langs->trans('Author') . ' : ' . $user->login;
 
                 $result = $this->addEvent($contract, 'AC_STC_CRENE', $label, $message);
                 if ($result < 0) {
                     $error++;
+                }
+
+                if (!$error) {
+                    $result = $contract->call_trigger('CONTRACT_EC_CRENE', $user);
+                    if ($result < 0) {
+                        $this->errors[] = $contract->errorsToString();
+                        $error++;
+                    }
                 }
             }
         }
@@ -1049,6 +1057,14 @@ class InvoicesContractTools
                 $result = $this->addEvent($contract, 'AC_STC_RENEC', $label, $message);
                 if ($result < 0) {
                     $error++;
+                }
+
+                if (!$error) {
+                    $result = $contract->call_trigger('CONTRACT_EC_RENEC', $user);
+                    if ($result < 0) {
+                        $this->errors[] = $contract->errorsToString();
+                        $error++;
+                    }
                 }
             }
         }

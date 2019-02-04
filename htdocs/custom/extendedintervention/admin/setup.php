@@ -45,7 +45,7 @@ $action = GETPOST('action','alpha');
 $errors = [];
 $error = 0;
 
-if ($action == 'set') {
+if ($action == 'set_quota') {
     $value = GETPOST('EXTENDEDINTERVENTION_QUOTA_SHOW_X_PERIOD', "int");
     if (!($value > 0)) $value = 5;
     $res = dolibarr_set_const($db, 'EXTENDEDINTERVENTION_QUOTA_SHOW_X_PERIOD', $value, 'chaine', 0, '', $conf->entity);
@@ -113,7 +113,7 @@ print load_fiche_titre($langs->trans("ExtendedInterventionQuotaCategory"),'','')
 
 print '<form method="post" action="'.$_SERVER["PHP_SELF"].'">';
 print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-print '<input type="hidden" name="action" value="set">';
+print '<input type="hidden" name="action" value="set_quota">';
 
 $var=true;
 
@@ -245,6 +245,41 @@ print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">'
 print '</div>';
 
 print '</form>';
+
+if ($conf->requestmanager->enabled && !empty($conf->global->REQUESTMANAGER_PLANNING_ACTIVATE)) {
+    /********************************************************
+     *  Planning options
+     ********************************************************/
+    print load_fiche_titre($langs->trans("ExtendedInterventionPlanningCategory"), '', '');
+
+    $var = true;
+
+    print '<table class="noborder" width="100%">';
+    print '<tr class="liste_titre">';
+    print '<td width="20%">' . $langs->trans("Name") . '</td>' . "\n";
+    print '<td>' . $langs->trans("Description") . '</td>' . "\n";
+    print '<td align="right">' . $langs->trans("Value") . '</td>' . "\n";
+    print "</tr>\n";
+
+    // EXTENDEDINTERVENTION_PLANNING_AUTO_VALIDATE
+    $var = !$var;
+    print '<tr ' . $bc[$var] . '>' . "\n";
+    print '<td>' . $langs->trans("ExtendedInterventionPlanningAutoValidateName") . '</td>' . "\n";
+    print '<td>' . $langs->trans("ExtendedInterventionPlanningAutoValidateDesc") . '</td>' . "\n";
+    print '<td align="right">' . "\n";
+    if (!empty($conf->use_javascript_ajax)) {
+        print ajax_constantonoff('EXTENDEDINTERVENTION_PLANNING_AUTO_VALIDATE');
+    } else {
+        if (empty($conf->global->EXTENDEDINTERVENTION_PLANNING_AUTO_VALIDATE)) {
+            print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_EXTENDEDINTERVENTION_PLANNING_AUTO_VALIDATE">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+        } else {
+            print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_EXTENDEDINTERVENTION_PLANNING_AUTO_VALIDATE">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+        }
+    }
+    print '</td></tr>' . "\n";
+
+    print '</table>';
+}
 
 dol_fiche_end();
 

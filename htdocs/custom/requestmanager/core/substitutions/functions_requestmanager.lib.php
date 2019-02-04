@@ -50,5 +50,29 @@ function requestmanager_completesubstitutionarray(&$substitutionarray, $langs, $
         }
 
         $substitutionarray['RMLISTTABLABEL'] = $langs->trans("RequestManagerRequestListTab") . ($nbrequests > 0 ? ' <span class="badge">' . ($nbrequests) . '</span>' : '');
-    }
+    } elseif ($object->element == 'societe' && $parameters['needforkey'] == 'SUBSTITUTION_RMPLANNINGLISTTABLABEL') {
+            $nbrequests = 0;
+            $request_types_planned = !empty($conf->global->REQUESTMANAGER_PLANNING_REQUEST_TYPE) ? explode(',', $conf->global->REQUESTMANAGER_PLANNING_REQUEST_TYPE) : array();
+
+            if (count($request_types_planned) > 0) {
+                $sql = "SELECT COUNT(rm.rowid) as nb FROM " . MAIN_DB_PREFIX . "requestmanager as rm WHERE rm.entity = {$conf->entity} AND (rm.fk_soc_origin = {$object->id} OR rm.fk_soc = {$object->id} OR rm.fk_soc_benefactor = {$object->id})";
+                $status_filter = array();
+                foreach ($request_types_planned as $request_type_id) {
+                    if ($conf->global->{'REQUESTMANAGER_PLANNING_REQUEST_STATUS_TO_PLAN_' . $request_type_id} > 0) {
+                        $status_filter[] = $conf->global->{'REQUESTMANAGER_PLANNING_REQUEST_STATUS_TO_PLAN_' . $request_type_id};
+                    }
+                }
+                $sql .= " AND rm.fk_status IN (" . implode(',', $status_filter) . ")";
+                $resql = $db->query($sql);
+                if ($resql) {
+                    if ($obj = $db->fetch_object($resql)) {
+                        $nbrequests = $obj->nb;
+                    }
+                } else {
+                    dol_print_error($db);
+                }
+            }
+
+            $substitutionarray['RMPLANNINGLISTTABLABEL'] = $langs->trans("RequestManagerRequestPlanningListTab") . ($nbrequests > 0 ? ' <span class="badge">' . ($nbrequests) . '</span>' : '');
+        }
 }

@@ -42,7 +42,8 @@ if (!$user->admin) accessforbidden();
  * View
  */
 
-llxHeader();
+$wikihelp='EN:Request_Manager_En|FR:Request_Manager_Fr|ES:Request_Manager_Es';
+llxHeader('', $langs->trans("RequestManagerSetup"), $wikihelp);
 
 $linkback='<a href="'.DOL_URL_ROOT.'/admin/modules.php">'.$langs->trans("BackToModuleList").'</a>';
 print load_fiche_titre($langs->trans("RequestManagerSetup"),$linkback,'title_setup');

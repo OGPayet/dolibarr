@@ -1,10 +1,13 @@
 diff a/htdocs/custom/requestmanager/langs/fr_FR/requestmanager.lang b/htdocs/custom/requestmanager/langs/fr_FR/requestmanager.lang	(rejected hunks)
-@@ -487,6 +487,8 @@ RequestManagerIPBXBeginAskHour      = Heure de début de l'appel transmise par l
- RequestManagerIPBXTransferSuffix    = Suffixe de transfert : %s
- RequestManagerIPBXEndHour           = Heure de fin de l'appel : %s
- RequestManagerIPBXAnswered          = Est-ce que l'appel a été répondu? : %s
-+RequestManagerIPBXAnsweredYes       = Répondu
-+RequestManagerIPBXAnsweredNo        = Non répondu
- RequestManagerIPBXPrivilege         = Privilège : %s
- RequestManagerIPBXConnectedLineNum  = Numéro de ligne connectée : %s
- RequestManagerIPBXConnectedLineName = Nom de ligne connectée : %s
+@@ -532,4 +560,9 @@ RequestManagerOutgoingCallShownNumber = Numéro de téléphone présenté à l'i
+ RequestManagerIPBXPosteNumber       = Numéro de poste : %s
+ RequestManagerIPBXTalkingTime       = Temps de communication : %s
+ RequestManagerIPBXTotalTime         = Durée totale de l'appel : %s
+-RequestManagerIPBXTalkers           = Numéro des interlocuteurs : %s,%s
+\ No newline at end of file
++RequestManagerIPBXTalkers           = Numéro des interlocuteurs : %s,%s
++
++############################################################
++### Intervention planning
++############################################################
++RequestManagerPlanningUsersInChargeLabel    = Utilisateur(s) en charge pour les demandes de type "%s"

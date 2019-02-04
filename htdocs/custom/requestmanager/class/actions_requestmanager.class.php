@@ -331,7 +331,7 @@ class ActionsRequestManager
      */
     function formObjectOptions($parameters, &$object, &$action, $hookmanager)
     {
-        global $conf, $langs;
+        global $conf, $langs, $user;
 
         $contexts = explode(':', $parameters['context']);
 
@@ -355,12 +355,12 @@ class ActionsRequestManager
 //            if ($action == 'edit') {
 //                print '<td>';
 //            } else {
-                print '<td colspan="3">';
-                $toprint = array();
-                foreach($requestManagerMessage->knowledge_base_list as $knowledge_base) {
-                    $toprint[] = '<li class="select2-search-choice-dolibarr noborderoncategories style="background: #aaa">' . $knowledge_base->fields['code'] . ' - ' . $knowledge_base->fields['title'] . '</li>';
+            print '<td colspan="3">';
+            $toprint = array();
+            foreach ($requestManagerMessage->knowledge_base_list as $knowledge_base) {
+                $toprint[] = '<li class="select2-search-choice-dolibarr noborderoncategories style="background: #aaa">' . $knowledge_base->fields['code'] . ' - ' . $knowledge_base->fields['title'] . '</li>';
 //                }
-                print '<div class="select2-container-multi-dolibarr" style="width: 90%;"><ul class="select2-choices-dolibarr">'.implode(' ', $toprint).'</ul></div>';
+                print '<div class="select2-container-multi-dolibarr" style="width: 90%;"><ul class="select2-choices-dolibarr">' . implode(' ', $toprint) . '</ul></div>';
             }
             print '</td>';
             print '</tr>';
@@ -381,7 +381,7 @@ class ActionsRequestManager
 //            if ($action == "edit") {
 //                print $requestManagerMessage->showOptionals($extrafields, 'edit', array('colspan'=>3), 'rm_message_');
 //            } else {
-                print $requestManagerMessage->showOptionals($extrafields, 'view', array('colspan'=>3));
+            print $requestManagerMessage->showOptionals($extrafields, 'view', array('colspan' => 3));
 //            }
 
             return 1;
@@ -425,7 +425,69 @@ class ActionsRequestManager
             </script>
 SCRIPT;
             }
+        }
 
+        // Management of the user(s) in charge for the planning
+        //----------------------------------------------------------------------
+        if (!empty($conf->global->REQUESTMANAGER_PLANNING_ACTIVATE) && $user->rights->requestmanager->user_in_charge->lire && (in_array('thirdpartycard', $contexts) || in_array('commcard', $contexts))) {
+            $langs->load('requestmanager@requestmanager');
+            dol_include_once('/requestmanager/class/html.formrequestmanager.class.php');
+            $formrequestmanager = new FormRequestManager($this->db);
+
+            $request_types_planned = !empty($conf->global->REQUESTMANAGER_PLANNING_REQUEST_TYPE) ? explode(',', $conf->global->REQUESTMANAGER_PLANNING_REQUEST_TYPE) : array();
+            dol_include_once('/advancedictionaries/class/dictionary.class.php');
+            $requestmanagerrequesttype = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagerrequesttype');
+            $requestmanagerrequesttype->fetch_lines(1);
+
+            dol_include_once('/requestmanager/class/requestmanagerplanning.class.php');
+            $requestmanagerplanning = new RequestManagerPlanning($this->db);
+            $users_in_charge = $action != 'create' ? $requestmanagerplanning->getUsersInChargeForCompany($object->id) : array();
+
+            // Technician(s) in charge
+            if ($action == 'create' || $action == 'edit') {
+                foreach ($requestmanagerrequesttype->lines as $request_type) {
+                    if (!in_array($request_type->id, $request_types_planned)) continue;
+                    $LabelTagName = 'RequestManagerPlanningUsersInChargeLabel_' . $request_type->fields['code'];
+                    print '<tr><td>' . $langs->trans($langs->trans($LabelTagName) != $LabelTagName ? $LabelTagName : 'RequestManagerPlanningUsersInChargeLabel', $request_type->fields['label']) . '</td>';
+                    print '<td colspan="3">';
+                    $users_in_charge_for_request_type = isset($Post['users_in_charge_' . $request_type->id]) ? $Post['users_in_charge_' . $request_type->id] : (isset($users_in_charge[$request_type->id]) ? $users_in_charge[$request_type->id] : array());
+                    print $formrequestmanager->multiselect_dolusers($users_in_charge_for_request_type, 'users_in_charge_' . $request_type->id, null, 0, '', array(), 0, 0, 0, 'AND fk_soc IS NULL');
+                    print '</td></tr>';
+                }
+            } else {
+                foreach ($requestmanagerrequesttype->lines as $request_type) {
+                    if (!in_array($request_type->id, $request_types_planned)) continue;
+                    $LabelTagName = 'RequestManagerPlanningUsersInChargeLabel_' . $request_type->fields['code'];
+                    print '<tr><td>';
+                    print '<table class="nobordernopadding" width="100%"><tr><td>';
+                    print $langs->trans($langs->trans($LabelTagName) != $LabelTagName ? $LabelTagName : 'RequestManagerPlanningUsersInChargeLabel', $request_type->fields['label']);
+                    print '</td>';
+                    if ($action != 'edit_users_in_charge_' . $request_type->id && $user->rights->requestmanager->user_in_charge->manage)
+                        print '<td align="right"><a href="' . $_SERVER["PHP_SELF"] . '?action=edit_users_in_charge_' . $request_type->id . '&socid=' . $object->id . '">' . img_edit('', 1) . '</a></td>';
+                    print '</tr></table>';
+                    print '</td><td>';
+                    if ($action == 'edit_users_in_charge_' . $request_type->id && $user->rights->requestmanager->user_in_charge->manage) {
+                        print '<form name="edit_users_in_charge" action="' . $_SERVER["PHP_SELF"] . '?socid=' . $object->id . '" method="post">';
+                        print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
+                        print '<input type="hidden" name="action" value="set_edit_users_in_charge">';
+                        $users_in_charge_for_request_type = isset($Post['users_in_charge_' . $request_type->id]) ? $Post['users_in_charge_' . $request_type->id] : (isset($users_in_charge[$request_type->id]) ? $users_in_charge[$request_type->id] : array());
+                        print $formrequestmanager->multiselect_dolusers($users_in_charge_for_request_type, 'users_in_charge_' . $request_type->id, null, 0, '', array(), 0, 0, 0, 'AND fk_soc IS NULL');
+                        print '<input type="submit" class="button" value="' . $langs->trans('Modify') . '">';
+                        print '</form>';
+                    } else {
+                        require_once DOL_DOCUMENT_ROOT . '/user/class/user.class.php';
+                        $user_static = new User($this->db);
+                        $toprint = array();
+                        $users_in_charge_for_request_type = isset($users_in_charge[$request_type->id]) ? $users_in_charge[$request_type->id] : array();
+                        foreach ($users_in_charge_for_request_type as $user_id) {
+                            $user_static->fetch($user_id);
+                            $toprint[] = $user_static->getNomUrl(1);
+                        }
+                        print implode(', ', $toprint);
+                    }
+                    print '</td></tr>';
+                }
+            }
         }
 
         return 0;
@@ -569,6 +631,40 @@ SCRIPT;
                 }
 
                 $this->resprints = $out;
+            }
+        }
+
+        // Management of the user(s) in charge for the planning
+        //----------------------------------------------------------------------
+        if (!empty($conf->global->REQUESTMANAGER_PLANNING_ACTIVATE) && (in_array('thirdpartycard', $contexts) || in_array('commcard', $contexts))) {
+            if ($action == 'set_edit_users_in_charge' && $user->rights->requestmanager->user_in_charge->manage) {
+                if (!($object->id > 0)) {
+                    $id = (GETPOST('socid','int') ? GETPOST('socid','int') : GETPOST('id','int'));
+                    $object->fetch($id);
+                }
+                $request_types_planned = !empty($conf->global->REQUESTMANAGER_PLANNING_REQUEST_TYPE) ? explode(',', $conf->global->REQUESTMANAGER_PLANNING_REQUEST_TYPE) : array();
+                dol_include_once('/advancedictionaries/class/dictionary.class.php');
+                $requestmanagerrequesttype = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagerrequesttype');
+                $requestmanagerrequesttype->fetch_lines(1);
+
+                dol_include_once('/requestmanager/class/requestmanagerplanning.class.php');
+                $requestmanagerplanning = new RequestManagerPlanning($this->db);
+
+                foreach ($requestmanagerrequesttype->lines as $request_type) {
+                    if (!in_array($request_type->id, $request_types_planned) || !isset($_POST['users_in_charge_' . $request_type->id])) continue;
+
+                    $users_in_charge = GETPOST('users_in_charge_' . $request_type->id, 'array');
+
+                    // Save users in charge for the request type
+                    if ($requestmanagerplanning->setUsersInChargeForCompany($object->id, $request_type->id, $users_in_charge) > 0) {
+                        header('Location: ' . $_SERVER["PHP_SELF"] . '?socid=' . $object->id);
+                        exit;
+                    } else {
+                        setEventMessages($requestmanagerplanning->error, $requestmanagerplanning->errors, 'errors');
+                    }
+                }
+
+                return 1;
             }
         }
 

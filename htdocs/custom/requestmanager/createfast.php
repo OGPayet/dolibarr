@@ -237,7 +237,7 @@ if (empty($reshook)) {
  * View
  */
 
-llxHeader('', $langs->trans('RequestManagerCreateFastTitle'), '', '', 0, 0, array('/custom/requestmanager/js/requestmanager.js'));
+llxHeader('', $langs->trans('RequestManagerCreateFastTitle'), '', '', 0, 0, array('/requestmanager/js/requestmanager.js', '/requestmanager/js/opendsi.js'));
 
 $form = new Form($db);
 $formrequestmanager = new FormRequestManager($db);
