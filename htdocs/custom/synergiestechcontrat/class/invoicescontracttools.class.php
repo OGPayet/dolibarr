@@ -2030,7 +2030,7 @@ class InvoicesContractTools
             " LEFT JOIN " . MAIN_DB_PREFIX . "contrat_extrafields as cef ON c.rowid = cef.fk_object" .
             " WHERE cef.startdate <= '" . $db->idate($now) . "'" .
             " AND (cef.realdate > '" . $db->idate($now) . "' OR cef.realdate IS NULL OR cef.realdate = '')" .
-            " AND cd.statut = 0" .
+            " AND cd.statut = 0" . " AND c.statut > 0 " .
             " GROUP BY c.rowid";
 
         dol_syslog(__METHOD__);
@@ -2222,7 +2222,7 @@ class InvoicesContractTools
             $result = $contract->validate($user);
             if ($result < 0) {
                 $this->errors[] = $contract->error;
-                $ok = false;
+               $ok = false;
             }
         }
 

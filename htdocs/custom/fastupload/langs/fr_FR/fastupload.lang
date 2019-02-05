@@ -1,0 +1,25 @@
+Module104742Name = Fichier joint rapide
+Module104742Desc = Permet l'ajout de fichier joint par glissé déposé
+
+ATMAbout = Ce module a été développé par <a href="http://www.atmconsulting.fr" target="_blank">ATM Consulting</a><br>Vous pouvez retrouver la documentation sur notre <a href="http://wiki.atmconsulting.fr/index.php/Accueil" target="_blank">wiki</a><br><br>Pour toute question technique ou retour, contacteznous sur <a href="mailto:support@atmconsulting.fr">support@atmconsulting.fr</a><br><br>Pour toute question commerciale, contacteznous sur <a href="mailto:contact@atmconsulting.fr">contact@atmconsulting.fr</a> ou au +33 9 77 19 50 70<br><br>Retrouvez nos autres modules sur <a href="http://www.dolistore.com/search.php?orderby=position&orderway=desc&search_query=atm&submit_search=Rechercher" target="_blank">Dolistore</a>
+
+FastUploadSetup = Configuration du module fichier joint rapide
+FastUploadAbout = A propos du module fichier joint rapide
+
+FastUpload=Envoi de fichier joint rapide
+
+FASTUPLOAD_LIMIT_FILE_NUMBER=Limiter le nombre maximal de fichiers qui seront gérés par Dropzone
+FASTUPLOAD_ENABLE_AUTOUPLOAD=Activer le téléversement automatique lorsque des fichiers sont déposés
+
+FastUpload_DefaultMessage=Déposer les fichiers ici pour les téléverser (ou cliquer)
+FastUpload_FallbackMessage=Votre navigateur ne prend pas en charge le téléversement de fichiers par glisserdéposer.
+FastUpload_FallbackText=
+FastUpload_FileTooBig=Le fichier est trop gros ({{filesize}}MiB). Taille maximale du fichier : {{maxFilesize}}MiB.
+FastUpload_InvalidFileType=Vous ne pouvez pas téléverser des fichiers de ce type.
+FastUpload_ResponseError=Le serveur a répondu avec le code {{statusCode}}.
+FastUpload_CancelUpload=Annuler le téléversement
+FastUpload_CancelUploadConfirmation=Êtes vous sûr de vouloir annuler ce téléversement ?
+FastUpload_RemoveFile=Supprimer le fichier
+FastUpload_RemoveFileConfirmation=Êtes vous sûr de vouloir supprimer ce fichier ?
+FastUpload_MaxFilesExceeded=Vous ne pouvez plus téléverser de fichiers.
+FastUpload_DropzoneNotSupported=Dropzone.js ne prend pas en charge les navigateurs plus anciens !
