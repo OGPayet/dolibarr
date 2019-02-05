@@ -1309,7 +1309,7 @@ if ($object->id > 0) {
     print '<div class="fichehalfleft">';
     print '<div class="underbanner clearboth"></div>';
 
-	print '<table class="border" width="100%">';
+	print '<table class="border tableforfield" width="100%">';
 
     // Type
     print '<tr><td class="titlefield">';
@@ -1813,22 +1813,23 @@ if ($object->id > 0) {
     }
 
     // Description
+    print '<tr><td colspan="2">';
     if ($action == 'edit_description' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
         print '<form name="editdescription" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
         print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
         print '<input type="hidden" name="action" value="set_description">';
     }
-    print '<tr><td>';
-	print '<table class="nobordernopadding" width="100%"><tr><td>';
-	print $langs->trans('RequestManagerDescription');
-	print '</td>';
-	if ($action != 'edit_description' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS)
-		print '<td align="right"><a href="' . $_SERVER["PHP_SELF"] . '?action=edit_description&id=' . $object->id . '">' . img_edit($langs->trans('RequestManagerSetDescription'), 1) . '</a></td>';
-	print '</tr></table>';
+	print '<table class="nobordernopadding" width="100%"><tr><td class="titlefield">';
+    print '<table class="nobordernopadding" width="100%"><tr><td>';
+    print $langs->trans('RequestManagerDescription');
+    print '</td>';
+    if ($action != 'edit_description' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS)
+        print '<td align="right"><a href="' . $_SERVER["PHP_SELF"] . '?action=edit_description&id=' . $object->id . '">' . img_edit($langs->trans('RequestManagerSetDescription'), 1) . '</a></td>';
+    print '</tr></table>';
     print '</td><td>';
     if ($action == 'edit_description' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
-		print '<input type="submit" class="button" value="' . $langs->trans('Modify') . '">';
-	}
+        print '<input type="submit" class="button" value="' . $langs->trans('Modify') . '">';
+    }
     print '</td></tr>';
     print '<tr><td colspan="2">';
 	if ($action == 'edit_description' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
@@ -1838,9 +1839,11 @@ if ($object->id > 0) {
         print $object->description;
 	}
     print '</td></tr>';
+    print '</table>';
     if ($action == 'edit_description' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
         print '</form>';
     }
+    print '</td></tr>';
 
 	print '</table>';
 
@@ -2114,12 +2117,17 @@ if ($object->id > 0) {
                 $commun_params = '&originid=' . $object->id . '&origin=' . $object->element . '&socid=' . $object->socid . '&backtopage=' . urlencode($backtopage);
                 $benefactor_params = !empty($conf->companyrelationships->enabled) ? '&companyrelationships_fk_soc_benefactor=' . $object->socid_benefactor : '';
                 $watcher_params = !empty($conf->companyrelationships->enabled) ? '&companyrelationships_fk_soc_watcher=' . $object->socid_watcher : '';
+                if (!empty($conf->global->REQUESTMANAGER_TITLE_TO_REF_CUSTOMER_WHEN_CREATE_OTHER_ELEMENT)) {
+                    $ref_client = '&ref_client=' . urlencode($object->label);
+                } else {
+                    $ref_client = '';
+                }
 
                 // Add proposal
                 if (!empty($conf->propal->enabled) && (count($authorizedButtons) == 0 || in_array('create_propal', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
                     $langs->load("propal");
                     if ($user->rights->propal->creer) {
-                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/comm/propal/card.php?action=create' . $commun_params . $benefactor_params . $watcher_params . '">' . $langs->trans("AddProp") . '</a></div>';
+                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/comm/propal/card.php?action=create' . $commun_params . $benefactor_params . $watcher_params . $ref_client . '">' . $langs->trans("AddProp") . '</a></div>';
                     } else {
                         print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddProp") . '</a></div>';
                     }
@@ -2129,7 +2137,7 @@ if ($object->id > 0) {
                 if (!empty($conf->commande->enabled) && (count($authorizedButtons) == 0 || in_array('create_order', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
                     $langs->load("orders");
                     if ($user->rights->commande->creer) {
-                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/commande/card.php?action=create' . $commun_params . $benefactor_params . $watcher_params . '">' . $langs->trans("AddOrder") . '</a></div>';
+                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/commande/card.php?action=create' . $commun_params . $benefactor_params . $watcher_params . $ref_client . '">' . $langs->trans("AddOrder") . '</a></div>';
                     } else {
                         print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddOrder") . '</a></div>';
                     }
@@ -2185,7 +2193,7 @@ if ($object->id > 0) {
                 if (!empty($conf->contrat->enabled) && (count($authorizedButtons) == 0 || in_array('create_contract', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
                     $langs->load("contracts");
                     if ($user->rights->contrat->creer) {
-                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/contrat/card.php?action=create' . $commun_params . $benefactor_params . $watcher_params . '">' . $langs->trans("AddContract") . '</a></div>';
+                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/contrat/card.php?action=create' . $commun_params . $benefactor_params . $watcher_params . $ref_client . '">' . $langs->trans("AddContract") . '</a></div>';
                     } else {
                         print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddContract") . '</a></div>';
                     }

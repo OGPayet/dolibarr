@@ -56,6 +56,8 @@ class FormSynergiesTech
     public $form;
 
     var $cache_equipment_contracts = null;
+    static public $cache_colored_product_label_info = null;
+    static public $cache_product_categories_list = null;
 
     /**
      * Constructor
@@ -790,6 +792,187 @@ class FormSynergiesTech
         }
     }
 
+
+    /**
+     *  Get colored product label for the objectline_view.tpl.php file
+     *
+     * @param  	CommonObject		  $_this				    Object who launch the printObjectLine function.
+     * @param   Product           $product_static		Product object
+     * @param   CommonObjectLine  $line		          Selected object line to output
+     * @return 	string      	    			            Return colored product label
+     */
+    function getObjectLineViewColoredProductLabel($_this, $product_static, $line)
+    {
+        global $conf,$langs,$user,$object,$hookmanager;
+        $text = '';
+
+        if ($line->fk_product > 0) {
+
+            if (!isset(self::$cache_colored_product_label_info[$object->element][$object->id])) {
+                // Get products categories of the contracts list
+                //------------------------------------------------------------
+                $mode = 0; // Show mode for orders lines
+
+                // Gat all contracts of the thirdparty
+                require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
+                $contract_static = new Contrat($this->db);
+                $contract_static->socid = $object->socid;
+                $list_contract = $contract_static->getListOfContracts();
+
+                // Get extrafields of the contract
+                require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
+                $contract_extrafields = new ExtraFields($this->db);
+                $contract_extralabels = $contract_extrafields->fetch_name_optionals_label($contract_static->table_element);
+
+                // Get categories who has the contract formule category in the full path (exclude the contract formule category)
+                require_once DOL_DOCUMENT_ROOT . '/categories/class/categorie.class.php';
+                $categorie_static = new Categorie($this->db);
+                $all_categories = $categorie_static->get_full_arbo('product');
+                $contract_formule_categories = array();
+                foreach ($all_categories as $cat) {
+                    if ((preg_match('/^' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '$/', $cat['fullpath']) ||
+                            preg_match('/_' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '$/', $cat['fullpath']) ||
+                            preg_match('/^' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '_/', $cat['fullpath']) ||
+                            preg_match('/_' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '_/', $cat['fullpath'])
+                        ) && $cat['id'] != $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE
+                    ) {
+                        $contract_formule_categories[$cat['label']] = $cat['id'];
+                    }
+                }
+
+                // Match all formules for the contracts of the thirdparty
+                $contract_categories = array();
+                $contracts_list = array();
+                $formules_list = array();
+                $formules_not_found_list = array();
+                if (!empty($list_contract)) {
+                    foreach ($list_contract as $contract) {
+                        if (($contract->nbofserviceswait + $contract->nbofservicesopened) > 0 && $contract->statut != 2) {
+                            $contract->fetch_optionals();
+                            $formule_id = $contract->array_options['options_formule'];
+                            $formule_label = $contract_extrafields->attribute_param['formule']['options'][$formule_id];
+                            if (!empty($formule_label)) {
+                                $contract_category_id = $contract_formule_categories[$formule_label];
+                                if (isset($contract_category_id)) {
+                                    $formules_list[$formule_id] = $formule_label;
+                                    $contracts_list[] = $contract->getNomUrl(1);
+                                    $contract_categories[$contract_category_id] = $contract_category_id;
+                                } else {
+                                    $formules_not_found_list[$formule_label] = $formule_label;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Get products categories of the equipments list
+                //------------------------------------------------------------
+                $tag_categories = array();
+                $equipment_categories = array();
+                if ($object->element == 'requestmanager') {
+                    $mode = 1; // Show mode for request manager lines
+
+                    $object->fetchObjectLinked();
+
+                    if (isset($object->linkedObjects['equipement']) && is_array($object->linkedObjects['equipement'])) {
+                        foreach ($object->linkedObjects['equipement'] as $equipment) {
+                            if ($equipment->fk_product > 0) {
+                                $categories = $categorie_static->containing($equipment->fk_product, 'product', 'id');
+                                foreach ($categories as $category_id) {
+                                    if (!isset($equipment_categories[$category_id])) {
+                                        // Get all sub categories of the categories founded
+                                        foreach ($all_categories as $cat) {
+                                            if ((preg_match('/^' . $category_id . '$/', $cat['fullpath']) ||
+                                                    preg_match('/_' . $category_id . '$/', $cat['fullpath']) ||
+                                                    preg_match('/^' . $category_id . '_/', $cat['fullpath']) ||
+                                                    preg_match('/_' . $category_id . '_/', $cat['fullpath'])) &&
+                                                (preg_match('/^' . $conf->global->REQUESTMANAGER_ROOT_PRODUCT_CATEGORIES . '$/', $cat['fullpath']) ||
+                                                    preg_match('/_' . $conf->global->REQUESTMANAGER_ROOT_PRODUCT_CATEGORIES . '$/', $cat['fullpath']) ||
+                                                    preg_match('/^' . $conf->global->REQUESTMANAGER_ROOT_PRODUCT_CATEGORIES . '_/', $cat['fullpath']) ||
+                                                    preg_match('/_' . $conf->global->REQUESTMANAGER_ROOT_PRODUCT_CATEGORIES . '_/', $cat['fullpath']))
+                                            ) {
+                                                $equipment_categories[$cat['id']] = $cat['id'];
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    $categories = $object->loadCategorieList('id');
+                    foreach ($categories as $category_id) {
+                        if (!isset($tag_categories[$category_id])) {
+                            // Get all sub categories of the categories founded
+                            foreach ($all_categories as $cat) {
+                                if (preg_match('/^' . $category_id . '$/', $cat['fullpath']) ||
+                                    preg_match('/_' . $category_id . '$/', $cat['fullpath']) ||
+                                    preg_match('/^' . $category_id . '_/', $cat['fullpath']) ||
+                                    preg_match('/_' . $category_id . '_/', $cat['fullpath'])
+                                ) {
+                                    $tag_categories[$cat['id']] = $cat['id'];
+                                }
+                            }
+                        }
+                    }
+                }
+
+                self::$cache_colored_product_label_info[$object->element][$object->id] = array('contract_categories' => $contract_categories, 'tag_categories' => $tag_categories, 'equipment_categories' => $equipment_categories);
+            }
+
+            $contract_categories = isset(self::$cache_colored_product_label_info[$object->element][$object->id]['contract_categories']) ? self::$cache_colored_product_label_info[$object->element][$object->id]['contract_categories'] : array();
+            $tag_categories = isset(self::$cache_colored_product_label_info[$object->element][$object->id]['tag_categories']) ? self::$cache_colored_product_label_info[$object->element][$object->id]['tag_categories'] : array();
+            $equipment_categories = isset(self::$cache_colored_product_label_info[$object->element][$object->id]['equipment_categories']) ? self::$cache_colored_product_label_info[$object->element][$object->id]['equipment_categories'] : array();
+
+            if (!isset(self::$cache_product_categories_list[$line->fk_product])) {
+                require_once DOL_DOCUMENT_ROOT . '/categories/class/categorie.class.php';
+                $categorie_static = new Categorie($this->db);
+                $cats = $categorie_static->containing($line->fk_product, Categorie::TYPE_PRODUCT);
+                foreach ($cats as $cat) {
+                    self::$cache_product_categories_list[$line->fk_product][] = $cat->id;
+                }
+            }
+            $product_categories = isset(self::$cache_product_categories_list[$line->fk_product]) ? self::$cache_product_categories_list[$line->fk_product] : array();
+
+            $is_into_contract_categories = count(array_diff($contract_categories, $product_categories)) != count($contract_categories);
+            $is_into_tag_categories = count(array_diff($tag_categories, $product_categories)) != count($tag_categories);
+
+            if (!is_object($product_static) || !($product_static->id > 0)) {
+                $product_static = new Product($this->db);
+                $product_static->fetch($line->fk_product);
+            }
+
+            $product_static->ref = $line->ref; //can change ref in hook
+            $product_static->label = $line->label; //can change label in hook
+            $text = $product_static->getNomUrl(1);
+
+            // Define output language and label
+            if (!empty($conf->global->MAIN_MULTILANGS)) {
+                if (!is_object($_this->thirdparty)) {
+                    dol_print_error('', 'Error: Method printObjectLine was called on an object and object->fetch_thirdparty was not done before');
+                    return '';
+                }
+
+                $outputlangs = $langs;
+                $newlang = '';
+                if (empty($newlang) && GETPOST('lang_id', 'aZ09')) $newlang = GETPOST('lang_id', 'aZ09');
+                if (!empty($conf->global->PRODUIT_TEXTS_IN_THIRDPARTY_LANGUAGE) && empty($newlang)) $newlang = $_this->thirdparty->default_lang;    // For language to language of customer
+                if (!empty($newlang)) {
+                    $outputlangs = new Translate("", $conf);
+                    $outputlangs->setDefaultLang($newlang);
+                }
+
+                $label = (!empty($product_static->multilangs[$outputlangs->defaultlang]["label"])) ? $product_static->multilangs[$outputlangs->defaultlang]["label"] : $line->product_label;
+            } else {
+                $label = $line->product_label;
+            }
+
+            $style = (empty($is_into_tag_categories) ? '' : 'font-weight:bolder;') . (empty($is_into_contract_categories) ? 'color:red;' : 'color:green;');
+            $text .= ' - <span style="' . $style . '">' . (!empty($line->label) ? $line->label : $label) . '</span>';
+        }
+
+        return $text;
+    }
 
     /**
      *     Show a confirmation HTML form or AJAX popup with file upload

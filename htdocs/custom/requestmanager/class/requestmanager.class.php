@@ -246,6 +246,12 @@ class RequestManager extends CommonObject
      * @var string
      */
     public $description;
+    /**
+     * Ref client of the request
+     * For propagation of the label in ref client when create object from this request and REQUESTMANAGER_TITLE_TO_REF_CUSTOMER_WHEN_CREATE_OTHER_ELEMENT equal 1
+     * @var string
+     */
+    public $ref_client;
 
     /**
      * Type of the request
@@ -1037,7 +1043,7 @@ class RequestManager extends CommonObject
 	 */
 	public function fetch($id, $ref='', $refext='', $entity=0)
     {
-        global $langs;
+        global $conf, $langs;
         $this->errors = array();
         $langs->load("requestmanager@requestmanager");
 
@@ -1142,6 +1148,10 @@ class RequestManager extends CommonObject
                 $this->date_modification            = $this->db->jdate($obj->tms);
                 $this->user_creation_id             = $obj->fk_user_author;
                 $this->user_modification_id         = $obj->fk_user_modif;
+
+                if (!empty($conf->global->REQUESTMANAGER_TITLE_TO_REF_CUSTOMER_WHEN_CREATE_OTHER_ELEMENT)) {
+                    $this->ref_client = $obj->label;
+                }
 
                 $this->fetch_assigned();
                 $this->fetch_requesters();
@@ -1613,19 +1623,27 @@ class RequestManager extends CommonObject
     /**
      *  Load the parent request of object, from id $this->fk_parent, into this->parent
      *
+     * @param		int		$force_request_id	    Force request id
      * @return		int								<0 if KO, >0 if OK
      */
-    function fetch_parent()
+    function fetch_parent($force_request_id=0)
     {
         $this->parent = null;
         if (empty($this->fk_parent))
             return 0;
 
-        $request = new RequestManager($this->db);
-        $result = $request->fetch($this->fk_parent);
-        $this->parent = $request;
+        $idtofetch = $this->fk_parent;
+        if ($force_request_id)
+            $idtofetch = $force_request_id;
 
-        return $result;
+        if ($idtofetch) {
+            $request = new RequestManager($this->db);
+            $result = $request->fetch($this->fk_parent);
+            $this->parent = $request;
+
+            return $result;
+        } else
+            return -1;
     }
 
     /**
@@ -2666,12 +2684,51 @@ class RequestManager extends CommonObject
 
         $this->statut = $this->new_statut;
         $this->statut_type = $status_infos->fields['type'];
+        // Auto next status
         if (!$error) {
             $next_status = !empty($status_infos->fields['next_status']) ? explode(',', $status_infos->fields['next_status']) : array();
             if (!$error && count($next_status) == 1 && $status_infos->fields['next_status_auto']) {
                 $result = $this->set_status($next_status[0], -1, $user);
                 if ($result < 0) {
                     $error++;
+                }
+            }
+        }
+
+        // Auto next status when all children of the parent closed
+        if (!$error && $this->statut_type == RequestManager::STATUS_TYPE_CLOSED && $this->fk_parent > 0) {
+            if (!is_object($this->parent)) {
+                if ($this->fetch_parent() < 0) {
+                    $this->error = $this->parent->error;
+                    $this->errors = $this->parent->errors;
+                    $error++;
+                }
+                if (empty($this->parent->id)) {
+                    $error_msg = 'Fetch parent request of this request (ID: '.$this->fk_parent.') not found for check auto next status when close child.';
+                    dol_syslog(__METHOD__ . " " . $error_msg, LOG_ERR);
+                    $this->errors[] = $error_msg;
+                    $error++;
+                }
+            }
+
+            if (!$error) {
+                $parent_status_infos = self::$status_list[$this->parent->statut];
+
+                if (!empty($parent_status_infos->fields['new_request_type']) && !empty($parent_status_infos->fields['new_request_type_next_status_auto'])) {
+                    $parent_next_status = !empty($parent_status_infos->fields['next_status']) ? explode(',', $parent_status_infos->fields['next_status']) : array();
+                    // Get count children request by status type
+                    $children_count = $this->parent->getCountChildrenRequestByStatusType();
+
+                    if ($children_count[RequestManager::STATUS_TYPE_INITIAL] + $children_count[RequestManager::STATUS_TYPE_IN_PROGRESS] + $children_count[RequestManager::STATUS_TYPE_RESOLVED] == 0 &&
+                        $children_count[RequestManager::STATUS_TYPE_CLOSED] >= 0
+                    ) {
+                        $result = $this->parent->set_status($parent_next_status[0], -1, $user);
+                        if ($result < 0) {
+                            $this->error = $this->parent->error;
+                            $this->errors = $this->parent->errors;
+                            $error++;
+                        }
+                    }
                 }
             }
         }

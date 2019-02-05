@@ -113,6 +113,20 @@ if (empty($outputalsopricetotalwithtax)) $outputalsopricetotalwithtax=0;
 
 	    if ($line->fk_product > 0)
 		{
+      if (($object->element == 'commande' || $object->element == 'requestmanager') && ! empty($conf->contrat->enabled)) {
+          $langs->load('synergiestech@synergiestech');
+
+          if ($conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE > 0) {
+              global $formsynergiestech;
+              if (!is_object($formsynergiestech)) {
+                  dol_include_once('/synergiestech/class/html.formsynergiestech.class.php');
+                  $formsynergiestech = new FormSynergiesTech($this->db);
+              }
+
+              $text = $formsynergiestech->getObjectLineViewColoredProductLabel($this, $product_static, $line);
+          }
+      }
+
 			echo $form->textwithtooltip($text,$description,3,'','',$i,0,(!empty($line->fk_parent_line)?img_picto('', 'rightarrow'):''));
 
 			// Show range

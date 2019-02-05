@@ -299,9 +299,9 @@ if ($zone === 1) {
                 requestManagerLoader.loadZone(1, 'change_actioncomm_id');
             });
 
-            jQuery('#categories').change(function(){
-                requestManagerLoader.loadZone(1, 'change_categories');
-            });
+//            jQuery('#categories').change(function(){
+//                requestManagerLoader.loadZone(1, 'change_categories');
+//            });
 
             jQuery('#equipement_id').change(function(){
                 requestManagerLoader.loadZone(1, 'change_equipement_id');
@@ -358,7 +358,7 @@ if ($zone === 2) {
     $selectedSocId        = GETPOST('socid', 'int')?intval(GETPOST('socid', 'int')):-1;
 
     $requestManagerStatic = new RequestManager($db);
-    $requestManagerList = $requestManagerStatic->loadAllByFkSoc($selectedSocId, array(RequestManager::STATUS_TYPE_INITIAL, RequestManager::STATUS_TYPE_IN_PROGRESS), $selectedCategories, $selectedEquipementId);
+    $requestManagerList = $requestManagerStatic->loadAllByFkSoc($selectedSocId, array(RequestManager::STATUS_TYPE_INITIAL, RequestManager::STATUS_TYPE_IN_PROGRESS), /*$selectedCategories*/array(), $selectedEquipementId);
 
     if (count($requestManagerList) > 0) {
         print '<br />';

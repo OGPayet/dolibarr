@@ -1263,6 +1263,23 @@ print '<td align="right">'."\n";
 print $form->selectarray("REQUESTMANAGER_POSITION_LINK_NEW_OBJECT_LINKED", $position_array, $conf->global->REQUESTMANAGER_POSITION_LINK_NEW_OBJECT_LINKED);
 print '</td></tr>'."\n";
 
+// REQUESTMANAGER_TITLE_TO_REF_CUSTOMER_WHEN_CREATE_OTHER_ELEMENT
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>'.$langs->trans("RequestManagerTitleToRafCustomerWhenCreateOtherElementName").'</td>'."\n";
+print '<td>'.$langs->trans("RequestManagerTitleToRafCustomerWhenCreateOtherElementDesc").'</td>'."\n";
+print '<td align="right">' . "\n";
+if (!empty($conf->use_javascript_ajax)) {
+    print ajax_constantonoff('REQUESTMANAGER_TITLE_TO_REF_CUSTOMER_WHEN_CREATE_OTHER_ELEMENT');
+} else {
+    if (empty($conf->global->REQUESTMANAGER_TITLE_TO_REF_CUSTOMER_WHEN_CREATE_OTHER_ELEMENT)) {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_REQUESTMANAGER_TITLE_TO_REF_CUSTOMER_WHEN_CREATE_OTHER_ELEMENT">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+    } else {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_REQUESTMANAGER_TITLE_TO_REF_CUSTOMER_WHEN_CREATE_OTHER_ELEMENT">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+    }
+}
+print '</td></tr>' . "\n";
+
 print '</table>';
 
 print '<br>';

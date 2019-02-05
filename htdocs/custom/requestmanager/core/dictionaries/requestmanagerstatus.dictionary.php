@@ -31,7 +31,7 @@ class RequestManagerStatusDictionary extends Dictionary
     /**
      * @var int         Version of this dictionary
      */
-    public $version = 9;
+    public $version = 10;
 
     /**
      * @var array       List of languages to load
@@ -300,6 +300,15 @@ class RequestManagerStatusDictionary extends Dictionary
                 'positionLine' => 3,
             ),
         ),
+        'new_request_type_next_status_auto' => array(
+            'name'       => 'new_request_type_next_status_auto',
+            'label'      => 'RequestManagerStatusDictionaryNewRequestTypeNextStatusAuto',
+            'help'       => 'RequestManagerStatusDictionaryNewRequestTypeNextStatusAutoHelp',
+            'type'       => 'boolean',
+            'td_input' => array(
+                'positionLine' => 3,
+            ),
+        ),
         'next_trigger' => array(
             'name'       => 'next_trigger',
             'label'      => 'RequestManagerStatusDictionaryNextTrigger',
@@ -405,6 +414,11 @@ class RequestManagerStatusDictionary extends Dictionary
                 'deadline_rc_from_event' => 'a',
                 'deadline_from_event' => 'a',
                 'close_all_event' => 'a',
+            )
+        ),
+        10 => array(
+            'fields' => array(
+                'new_request_type_next_status_auto' => 'a',
             )
         ),
     );
@@ -584,12 +598,11 @@ class RequestManagerStatusDictionary extends Dictionary
             'type' => 'chkbxlst',
             'options' => 'c_requestmanager_request_type:label:rowid::active=1 and entity IN (' . getEntity('dictionary', 1) . ')',
             'td_output' => array(
-                'moreAttributes' => 'width="20%"',
+                'moreAttributes' => 'width="12.5%"',
             ),
             'td_input' => array(
-                'moreAttributes' => 'width="25%"',
+                'moreAttributes' => 'width="12.5%"',
                 'positionLine' => 3,
-                'colspan' => 2,
             ),
         );
 
@@ -884,6 +897,7 @@ class RequestManagerStatusDictionaryLine extends DictionaryLine
             $currentTriggerFieldHtmlName = $keyprefix . 'current_trigger' . $keysuffix;
             $newRequestTypeFieldHtmlName = $keyprefix . 'new_request_type' . $keysuffix;
             $newRequestTypeAutoFieldHtmlName = $keyprefix . 'new_request_type_auto' . $keysuffix;
+            $newRequestTypeNextStatusAutoFieldHtmlName = $keyprefix . 'new_request_type_next_status_auto' . $keysuffix;
             $nextTriggerFieldHtmlName = $keyprefix . 'next_trigger' . $keysuffix;
             $nextStatusAutoFieldHtmlName = $keyprefix . 'next_status_auto' . $keysuffix;
             $nextStatusFieldHtmlName = $keyprefix . 'next_status' . $keysuffix;
@@ -894,6 +908,7 @@ class RequestManagerStatusDictionaryLine extends DictionaryLine
             $updateCurrentTriggerFunctionName = 'update_' . $currentTriggerFieldHtmlName;
             $updateNewRequestTypeFunctionName = 'update_' . $newRequestTypeFieldHtmlName;
             $updateNewRequestTypeAutoFunctionName = 'update_' . $newRequestTypeAutoFieldHtmlName;
+            $updateNewRequestTypeNextStatusAutoFunctionName = 'update_' . $newRequestTypeNextStatusAutoFieldHtmlName;
             $updateNextTriggerFunctionName = 'update_' . $nextTriggerFieldHtmlName;
             $updateNextStatusAutoFunctionName = 'update_' . $nextStatusAutoFieldHtmlName;
             $updateNextStatusFunctionName = 'update_' . $nextStatusFieldHtmlName;
@@ -909,6 +924,7 @@ class RequestManagerStatusDictionaryLine extends DictionaryLine
             <input type="hidden" id="h_$deadlineFromEventFieldHtmlName" name="$deadlineFromEventFieldHtmlName" value="" disabled="disabled">
             <input type="hidden" id="h_$currentTriggerFieldHtmlName" name="$currentTriggerFieldHtmlName" value="" disabled="disabled">
             <input type="hidden" id="h_$newRequestTypeAutoFieldHtmlName" name="$newRequestTypeAutoFieldHtmlName" value="" disabled="disabled">
+            <input type="hidden" id="h_$newRequestTypeNextStatusAutoFieldHtmlName" name="$newRequestTypeNextStatusAutoFieldHtmlName" value="" disabled="disabled">
             <input type="hidden" id="h_$newRequestTypeFieldHtmlName" name="$newRequestTypeFieldHtmlName" value="" disabled="disabled">
             <input type="hidden" id="h_$nextTriggerFieldHtmlName" name="$nextTriggerFieldHtmlName" value="" disabled="disabled">
             <input type="hidden" id="h_$nextStatusAutoFieldHtmlName" name="$nextStatusAutoFieldHtmlName" value="" disabled="disabled">
@@ -923,6 +939,7 @@ class RequestManagerStatusDictionaryLine extends DictionaryLine
         $updateCurrentTriggerFunctionName();
         $updateNewRequestTypeFunctionName();
         $updateNewRequestTypeAutoFunctionName();
+        $updateNewRequestTypeNextStatusAutoFunctionName();
         $updateNextTriggerFunctionName();
         $updateNextStatusAutoFunctionName();
         $updateNextStatusFunctionName();
@@ -932,14 +949,17 @@ class RequestManagerStatusDictionaryLine extends DictionaryLine
         $('#$newRequestTypeFieldHtmlName').on('change', function() {
             $updateNextTriggerFunctionName();
             $updateNewRequestTypeAutoFunctionName();
+            $updateNewRequestTypeNextStatusAutoFunctionName();
         });
         $('#$nextTriggerFieldHtmlName').on('keyup change', function() {
             $updateNewRequestTypeFunctionName();
             $updateNewRequestTypeAutoFunctionName();
+            $updateNewRequestTypeNextStatusAutoFunctionName();
         });
         $('#$nextStatusFieldHtmlName').on('change', function() {
             $updateNewRequestTypeFunctionName();
             $updateNewRequestTypeAutoFunctionName();
+            $updateNewRequestTypeNextStatusAutoFunctionName();
             $updateNextTriggerFunctionName();
             $updateNextStatusAutoFunctionName();
         });
@@ -947,6 +967,7 @@ class RequestManagerStatusDictionaryLine extends DictionaryLine
             $updateCurrentTriggerFunctionName();
             $updateNewRequestTypeFunctionName();
             $updateNewRequestTypeAutoFunctionName();
+            $updateNewRequestTypeNextStatusAutoFunctionName();
             $updateNextTriggerFunctionName();
             $updateNextStatusAutoFunctionName();
             $updateNextStatusFunctionName();
@@ -1003,15 +1024,27 @@ class RequestManagerStatusDictionaryLine extends DictionaryLine
             }
         }
         function $updateNewRequestTypeAutoFunctionName() {
-            var disabled = $('#$nextStatusFieldHtmlName').val().length > 1 || $('#$nextTriggerFieldHtmlName').val().length > 0 ||
-                           $('#$typeFieldHtmlName').val() != $inprogress_status;
-            var checked = ($('#$newRequestTypeAutoFieldHtmlName').is(':checked') || $('#$newRequestTypeFieldHtmlName').val().length == 1) &&
-                          $('#$typeFieldHtmlName').val() == $inprogress_status && $('#$nextStatusFieldHtmlName').val().length <= 1 && $('#$nextTriggerFieldHtmlName').val().length == 0;
+            var disabled = $('#$nextTriggerFieldHtmlName').val().length > 0 || $('#$typeFieldHtmlName').val() != $inprogress_status || $('#$newRequestTypeFieldHtmlName').val().length == 0;
+            var uncheck = $('#$newRequestTypeFieldHtmlName').val().length != 1 || $('#$typeFieldHtmlName').val() != $inprogress_status ||
+                          $('#$nextTriggerFieldHtmlName').val().length != 0 || $('#$newRequestTypeFieldHtmlName').val().length == 0;
 
             $('#$newRequestTypeAutoFieldHtmlName').prop('disabled', disabled);
             $('#h_$newRequestTypeAutoFieldHtmlName').prop('disabled', !disabled);
-            $('#$newRequestTypeAutoFieldHtmlName').prop('checked', checked);
-            $('#h_$newRequestTypeAutoFieldHtmlName').val(checked ? '1' : '');
+            if (disabled || uncheck) {
+                $('#$newRequestTypeAutoFieldHtmlName').prop('checked', false);
+            }
+        }
+        function $updateNewRequestTypeNextStatusAutoFunctionName() {
+            var disabled = $('#$nextStatusFieldHtmlName').val().length != 1 || $('#$typeFieldHtmlName').val() != $inprogress_status ||
+                           $('#$newRequestTypeFieldHtmlName').val().length == 0 || $('#$nextTriggerFieldHtmlName').val().length > 0;
+            var uncheck = $('#$newRequestTypeFieldHtmlName').val().length == 0 || $('#$typeFieldHtmlName').val() != $inprogress_status ||
+                          $('#$nextStatusFieldHtmlName').val().length != 1 || $('#$nextTriggerFieldHtmlName').val().length > 0;
+
+            $('#$newRequestTypeNextStatusAutoFieldHtmlName').prop('disabled', disabled);
+            $('#h_$newRequestTypeNextStatusAutoFieldHtmlName').prop('disabled', !disabled);
+            if (disabled || uncheck) {
+                $('#$newRequestTypeNextStatusAutoFieldHtmlName').prop('checked', false);
+            }
         }
         function $updateNextTriggerFunctionName() {
             var disabled = $('#$nextStatusFieldHtmlName').val().length > 1 || $('#$newRequestTypeFieldHtmlName').val().length > 0 || $('#$typeFieldHtmlName').val() == $closed_status;
