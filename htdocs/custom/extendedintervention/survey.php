@@ -51,6 +51,8 @@ $backtopage = GETPOST('backtopage','alpha');
 if ($user->societe_id) $socid=$user->societe_id;
 $result = restrictedArea($user, 'ficheinter', $id, 'fichinter');
 
+if(empty($user->rights->extendedintervention->questionnaireIntervention->lire)) accessforbidden();
+
 // Initialize technical object to manage hooks of page. Note that conf->hooks_modules contains array of hook context
 $hookmanager->initHooks(array('interventionsurvey'));
 
@@ -83,7 +85,7 @@ $reshook=$hookmanager->executeHooks('doActions',$parameters,$object,$action);   
 if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
 
 if (empty($reshook)) {
-    if ($action == 'confirm_save_question_bloc' && $user->rights->ficheinter->creer &&
+    if ($action == 'confirm_save_question_bloc' && $user->rights->extendedintervention->questionnaireIntervention->creer &&
         $object->statut > ExtendedIntervention::STATUS_DRAFT && $object->statut < ExtendedIntervention::STATUS_DONE &&
         $object->id > 0 && $equipment_id > 0 && $question_bloc_id > 0) {
         if ($confirm == "yes") {
@@ -220,7 +222,7 @@ if ($object->id > 0) {
     if (!empty($conf->projet->enabled)) {
         $langs->load("projects");
         $morehtmlref .= '<br>' . $langs->trans('Project') . ' ';
-        if ($user->rights->ficheinter->creer) {
+        if ($user->rights->extendedintervention->questionnaireIntervention->creer) {
             if ($action != 'classify')
                 //$morehtmlref.='<a href="' . $_SERVER['PHP_SELF'] . '?action=classify&amp;id=' . $object->id . '">' . img_edit($langs->transnoentitiesnoconv('SetProject')) . '</a> : ';
                 $morehtmlref .= ' : ';
@@ -259,7 +261,7 @@ if ($object->id > 0) {
         $formconfirm = '';
 
 	// Save question bloc confirmation
-	if ($action == 'save_question_bloc' && $user->rights->ficheinter->creer && $object->statut > ExtendedIntervention::STATUS_DRAFT && $object->statut < ExtendedIntervention::STATUS_DONE) {
+	if ($action == 'save_question_bloc' && $user->rights->extendedintervention->questionnaireIntervention->creer && $object->statut > ExtendedIntervention::STATUS_DRAFT && $object->statut < ExtendedIntervention::STATUS_DONE) {
             dol_include_once('/extendedintervention/class/extendedinterventionquestionbloc.class.php');
             $question_bloc_static = new EIQuestionBloc($db);
             if ($question_bloc_static->fetch(0, $object->id, $equipment_id, 0, $question_bloc_id, 1) > 0) {
@@ -417,7 +419,7 @@ SCRIPT;
 
                 foreach ($object->survey as $survey_bloc) {
                     $warning = '';
-                    if (!$survey_bloc->read_only && $equipment_id == $survey_bloc->fk_equipment && $action == 'edit_question_bloc' && $user->rights->ficheinter->creer && $object->statut < ExtendedIntervention::STATUS_DONE) {
+                    if (!$survey_bloc->read_only && $equipment_id == $survey_bloc->fk_equipment && $action == 'edit_question_bloc' && $user->rights->extendedintervention->questionnaireIntervention->creer && $object->statut < ExtendedIntervention::STATUS_DONE) {
                         $survey_bloc->load_warning();
                         if ($survey_bloc->warning_fk_product) $warning .= '<br> - ' . $langs->trans('ExtendedInterventionProductId');
                         if ($survey_bloc->warning_equipment_ref) $warning .= '<br> - ' . $langs->trans('ExtendedInterventionEquipmentRef');
@@ -431,7 +433,7 @@ SCRIPT;
                         if ($idx % 2 == 1) {
                             print '<div class="fichecenter">';
                         }
-                        if (!$survey_bloc->read_only && !$question_bloc->read_only && $equipment_id == $survey_bloc->fk_equipment && $question_bloc_id == $question_bloc->fk_c_question_bloc && $action == 'edit_question_bloc' && $user->rights->ficheinter->creer && $object->statut < ExtendedIntervention::STATUS_DONE) {
+                        if (!$survey_bloc->read_only && !$question_bloc->read_only && $equipment_id == $survey_bloc->fk_equipment && $question_bloc_id == $question_bloc->fk_c_question_bloc && $action == 'edit_question_bloc' && $user->rights->extendedintervention->questionnaireIntervention->creer && $object->statut < ExtendedIntervention::STATUS_DONE) {
                             if ($question_bloc->fetch(0, $survey_bloc->fk_fichinter, $survey_bloc->fk_equipment, 0, $question_bloc->fk_c_question_bloc, 1, 0) > 0) {
                                 // Edit question bloc of the survey
                                 foreach ($dirtpls as $reldir) {

@@ -94,7 +94,7 @@ if (empty($question_bloc) || !is_object($question_bloc)) {
     <br>
     <div class="right">
       <?php
-      if ($user->rights->ficheinter->creer) {
+      if ($user->rights->extendedintervention->questionnaireIntervention->creer) {
           //if ($question_bloc->fk_c_question_bloc_status > 0) {
       ?>
       <div class="inline-block divButAction"><a class="butAction" href="<?php print $_SERVER["PHP_SELF"].'?id='.$object->id.'&equipment_id='.$survey_bloc->fk_equipment.'&question_bloc_id='.$question_bloc->fk_c_question_bloc.'&action=edit_question_bloc#ei_anchor_sb_'.$survey_bloc->fk_equipment.'_qb_'.$question_bloc->fk_c_question_bloc ?>"><?php print $langs->trans("Modify") ?></a></div>

@@ -156,7 +156,7 @@ class modExtendedIntervention extends DolibarrModules
         // 'thirdparty'       to add a tab in third party view
         // 'user'             to add a tab in user view
         $this->tabs = array(
-            'intervention:+survey:ExtendedInterventionSurvey:extendedintervention@extendedintervention:$user->rights->ficheinter->lire:/extendedintervention/survey.php?id=__ID__',
+            'intervention:+survey:ExtendedInterventionSurvey:extendedintervention@extendedintervention:$user->rights->extendedintervention->questionnaireIntervention->lire:/extendedintervention/survey.php?id=__ID__',
         );
 
         if (!isset($conf->extendedintervention) || !isset($conf->extendedintervention->enabled)) {
@@ -201,14 +201,19 @@ class modExtendedIntervention extends DolibarrModules
         $this->rights = array();        // Permission array used by this module
         $r = 0;
 
-        // Add here list of permission defined by an id, a label, a boolean and two constant strings.
-        // Example:
-        // $this->rights[$r][0] = $this->numero + $r;	// Permission id (must not be already used)
-        // $this->rights[$r][1] = 'Permision label';	// Permission label
-        // $this->rights[$r][3] = 1; 					// Permission by default for new user (0/1)
-        // $this->rights[$r][4] = 'level1';				// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
-        // $this->rights[$r][5] = 'level2';				// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
-        // $r++;
+        $this->rights[$r][0] = 163023;
+	$this->rights[$r][1] = 'Voir les questionnaires';
+	$this->rights[$r][3] = 0;
+	$this->rights[$r][4] = 'questionnaireIntervention';
+	$this->rights[$r][5] = 'lire';
+	$r++;
+
+		$this->rights[$r][0] = 163024;
+	$this->rights[$r][1] = 'Répondre aux questionnaires';
+	$this->rights[$r][3] = 0;
+	$this->rights[$r][4] = 'questionnaireIntervention';
+	$this->rights[$r][5] = 'creer';
+	$r++;
 
         // Main menu entries
         $this->menu = array();            // List of menus to add

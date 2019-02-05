@@ -154,7 +154,7 @@ class ExtendedInterventionApi extends DolibarrApi {
      */
     function getSurvey($id_intervention, $all_data=0)
     {
-        if (!DolibarrApiAccess::$user->rights->ficheinter->lire) {
+        if (!DolibarrApiAccess::$user->rights->extendedintervention->questionnaireIntervention->lire) {
             throw new RestException(401, "Insufficient rights", [ 'id_intervention' => $id_intervention ]);
         }
 
@@ -188,7 +188,7 @@ class ExtendedInterventionApi extends DolibarrApi {
      */
     function saveSurvey($id_intervention, $survey=null)
     {
-        if (!DolibarrApiAccess::$user->rights->ficheinter->lire) {
+        if (!DolibarrApiAccess::$user->rights->extendedintervention->questionnaireIntervention->creer) {
             throw new RestException(401, "Insufficient rights", [ 'id_intervention' => $id_intervention ]);
         }
 
@@ -340,7 +340,7 @@ class ExtendedInterventionApi extends DolibarrApi {
 //     */
 //    function deleteSurvey($id_intervention)
 //    {
-//        if (!DolibarrApiAccess::$user->rights->ficheinter->lire) {
+//        if (!DolibarrApiAccess::$user->rights->extendedintervention->questionnaireIntervention->lire) {
 //            throw new RestException(401, "Insufficient rights", [ 'id_intervention' => $id_intervention ]);
 //        }
 //
@@ -387,7 +387,7 @@ class ExtendedInterventionApi extends DolibarrApi {
      */
     function getSurveyBloc($id_intervention, $id_equipment, $all_data=0)
     {
-        if (!DolibarrApiAccess::$user->rights->ficheinter->lire) {
+        if (!DolibarrApiAccess::$user->rights->extendedintervention->questionnaireIntervention->lire) {
             throw new RestException(401, "Insufficient rights", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment ]);
         }
 
@@ -423,7 +423,7 @@ class ExtendedInterventionApi extends DolibarrApi {
      */
     function saveSurveyBloc($id_intervention, $id_equipment, $survey=null)
     {
-        if (!DolibarrApiAccess::$user->rights->ficheinter->lire) {
+        if (!DolibarrApiAccess::$user->rights->extendedintervention->questionnaireIntervention->lire) {
             throw new RestException(401, "Insufficient rights", ['id_intervention' => $id_intervention, 'id_equipment' => $id_equipment]);
         }
 
@@ -577,7 +577,7 @@ class ExtendedInterventionApi extends DolibarrApi {
 //     */
 //    function deleteSurveyBloc($id_intervention, $id_equipment)
 //    {
-//        if (!DolibarrApiAccess::$user->rights->ficheinter->lire) {
+//        if (!DolibarrApiAccess::$user->rights->extendedintervention->questionnaireIntervention->lire) {
 //            throw new RestException(401, "Insufficient rights", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment ]);
 //        }
 //
@@ -624,7 +624,7 @@ class ExtendedInterventionApi extends DolibarrApi {
 	 */
 	function getQuestionBlocs($id_intervention, $id_equipment, $all_data=0)
     {
-        if (!DolibarrApiAccess::$user->rights->ficheinter->lire) {
+        if (!DolibarrApiAccess::$user->rights->extendedintervention->questionnaireIntervention->lire) {
             throw new RestException(401, "Insufficient rights", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment ]);
         }
 
@@ -667,7 +667,7 @@ class ExtendedInterventionApi extends DolibarrApi {
      */
     function getQuestionBloc($id_intervention, $id_equipment, $id_c_question_bloc, $all_data=0)
     {
-        if (!DolibarrApiAccess::$user->rights->ficheinter->lire) {
+        if (!DolibarrApiAccess::$user->rights->extendedintervention->questionnaireIntervention->lire) {
             throw new RestException(401, "Insufficient rights", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc ]);
         }
 
@@ -708,7 +708,7 @@ class ExtendedInterventionApi extends DolibarrApi {
      */
     function saveQuestionBloc($id_intervention, $id_equipment, $id_c_question_bloc, $complementary_question_bloc = null, $fk_c_question_bloc_status = null, $justificatory_status = null, $array_options = null, $lines=null)
     {
-        if (!DolibarrApiAccess::$user->rights->ficheinter->lire) {
+        if (!DolibarrApiAccess::$user->rights->extendedintervention->questionnaireIntervention->lire) {
             throw new RestException(401, "Insufficient rights", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc ]);
         }
 
@@ -860,7 +860,7 @@ class ExtendedInterventionApi extends DolibarrApi {
 //     */
 //    function deleteQuestionBloc($id_intervention, $id_equipment, $id_c_question_bloc)
 //    {
-//        if (!DolibarrApiAccess::$user->rights->ficheinter->lire) {
+//        if (!DolibarrApiAccess::$user->rights->extendedintervention->questionnaireIntervention->lire) {
 //            throw new RestException(401, "Insufficient rights", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc ]);
 //        }
 //
@@ -907,7 +907,7 @@ class ExtendedInterventionApi extends DolibarrApi {
 	 */
 	function getQuestions($id_intervention, $id_equipment, $id_c_question_bloc, $all_data=0)
     {
-        if (!DolibarrApiAccess::$user->rights->ficheinter->lire) {
+        if (!DolibarrApiAccess::$user->rights->extendedintervention->questionnaireIntervention->lire) {
             throw new RestException(401, "Insufficient rights", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc ]);
         }
 
@@ -949,7 +949,7 @@ class ExtendedInterventionApi extends DolibarrApi {
      */
     function getQuestion($id_intervention, $id_equipment, $id_c_question_bloc, $id_c_question, $all_data=0)
     {
-        if (!DolibarrApiAccess::$user->rights->ficheinter->lire) {
+        if (!DolibarrApiAccess::$user->rights->extendedintervention->questionnaireIntervention->lire) {
             throw new RestException(401, "Insufficient rights", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc, 'id_c_question' => $id_c_question ]);
         }
 
@@ -992,7 +992,7 @@ class ExtendedInterventionApi extends DolibarrApi {
      */
     function saveQuestion($id_intervention, $id_equipment, $id_c_question_bloc, $id_c_question, $fk_c_answer = null, $text_answer = null, $array_options = null)
     {
-        if (!DolibarrApiAccess::$user->rights->ficheinter->lire) {
+        if (!DolibarrApiAccess::$user->rights->extendedintervention->questionnaireIntervention->lire) {
             throw new RestException(401, "Insufficient rights", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc, 'id_c_question' => $id_c_question ]);
         }
 
@@ -1140,7 +1140,7 @@ class ExtendedInterventionApi extends DolibarrApi {
 //     */
 //    function deleteQuestion($id_intervention, $id_equipment, $id_c_question_bloc, $id_c_question)
 //    {
-//        if (!DolibarrApiAccess::$user->rights->ficheinter->lire) {
+//        if (!DolibarrApiAccess::$user->rights->extendedintervention->questionnaireIntervention->lire) {
 //            throw new RestException(401, "Insufficient rights", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc, 'id_c_question' => $id_c_question ]);
 //        }
 //
@@ -1183,10 +1183,6 @@ class ExtendedInterventionApi extends DolibarrApi {
     {
         global $conf;
 
-        if (!DolibarrApi::_checkAccessToResource('fichinter', $id_intervention, 'fichinter')) {
-            throw new RestException(403, 'Access not allowed for login ' . DolibarrApiAccess::$user->login, [ 'id_intervention' => $id_intervention ]);
-        }
-
         $extendedintervention = new ExtendedIntervention(self::$db);
         $result = $extendedintervention->fetch($id_intervention);
         if ($result == 0) {
@@ -1201,6 +1197,11 @@ class ExtendedInterventionApi extends DolibarrApi {
                 throw new RestException(403, 'Access not allowed for login ' . DolibarrApiAccess::$user->login, [ 'id_intervention' => $id_intervention ]);
             }
         }
+		else{
+			if (!DolibarrApi::_checkAccessToResource('fichinter', $id_intervention, 'fichinter')) {
+            throw new RestException(403, 'Access not allowed for login ' . DolibarrApiAccess::$user->login, [ 'id_intervention' => $id_intervention ]);
+        }
+		}
 
         return $extendedintervention;
     }
