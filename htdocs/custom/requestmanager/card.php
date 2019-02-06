@@ -1947,6 +1947,9 @@ if ($object->id > 0) {
     // Children Request
     $formrequestmanager->showChildrenRequestBlock($object);
 
+    // Children Request linked objects
+    $formrequestmanager->showChildrenRequestLinkedObjectsBlock($object);
+
     print '</div>';
     print '</div></div>';
     print '<div class="clearboth"></div>';

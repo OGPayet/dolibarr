@@ -226,22 +226,13 @@ if (empty($reshook))
 $now = dol_now();
 
 // last view date
-if (isset($_SESSION['rm_lists_follow_last_date'])) {
-    $lists_follow_last_date = $_SESSION['rm_lists_follow_last_date'];
-} else if ($user->datepreviouslogin) {
-    dol_include_once('/requestmanager/class/requestmanager.class.php');
-    $requestManager = new RequestManager($db);
-    if ($requestManager->isListsFollowModified($lists_follow_last_date)) {
-        $lists_follow_last_date = $user->datepreviouslogin;
-    } else {
-        $lists_follow_last_date = '';
-    }
-} else {
-    $lists_follow_last_date = '';
-}
+$user->fetch_optionals();
+$lists_follow_last_date = isset($user->array_options['options_rm_last_check_follow_list_date']) ? $user->array_options['options_rm_last_check_follow_list_date'] : '';
+if (is_string($lists_follow_last_date)) $lists_follow_last_date = strtotime($lists_follow_last_date);
 
 // save last view date of this page
-$_SESSION['rm_lists_follow_last_date'] = $now;
+$user->array_options['options_rm_last_check_follow_list_date'] = $now;
+$user->updateExtraField('rm_last_check_follow_list_date');
 
 llxHeader('',$langs->trans('RequestManagerListsFollowTitle'));
 

@@ -555,6 +555,7 @@ class modRequestManager extends DolibarrModules
 		$result=$extrafields->addExtraField('rm_ipbx_id', $langs->trans('RequestManagerIPBX'), 'varchar', 1,  255, 'actioncomm',   1, 0, '', null, 0, '0', 0, 1, '', '');
         $result=$extrafields->addExtraField('rm_timeslots_separator', $langs->trans('RequestManagerTimeSlotsSeparatorTitle'), 'separate', 400,  '', 'contrat',   0, 0, '', null, 1, '', 1, 0, '');
         $result=$extrafields->addExtraField('rm_timeslots_periods', $langs->trans('RequestManagerTimeSlotsPeriodsName'), 'text', 401,  2000, 'contrat',   0, 0, '', null, 1, '', 1, 0, '');
+        $result=$extrafields->addExtraField('rm_last_check_follow_list_date', $langs->trans('RequestManagerLastCheckFollowListDate'), 'datetime', 100,  '', 'user',   0, 0, '', null, 0, '', 0, 1, '');
 
         $this->_load_tables('/requestmanager/sql/');
 

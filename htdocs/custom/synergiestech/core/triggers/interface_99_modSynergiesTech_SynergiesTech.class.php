@@ -208,6 +208,50 @@ class InterfaceSynergiesTech extends DolibarrTriggers
 
                 dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
                 return 0;
+            case 'ORDER_CREATE':
+                if (isset($object->context['synergiestech_create_order_with_products_not_into_contract'])) {
+                    $langs->load('synergiestech@synergiestech');
+                    $now = dol_now();
+
+                    // Get order/thirdparty
+                    $order = new Commande($this->db);
+                    $order->fetch($object->id);
+                    $order->fetch_thirdparty();
+
+                    // Insertion action
+                    require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
+                    $actioncomm = new ActionComm($this->db);
+
+                    $actioncomm->type_code = 'AC_SYN_AUTO';
+                    $actioncomm->code = 'AC_SYN_AUTO';
+                    $actioncomm->label = $langs->trans('SynergiesTechProductsOffFormulaEventTitle');
+                    $actioncomm->note = $langs->trans('SynergiesTechProductsOffFormulaEventMessage',
+                        $user->getNomUrl(1), $order->getNomUrl(1));
+                    $actioncomm->datep = $now;
+                    $actioncomm->datef = $now;
+                    $actioncomm->percentage = -1;   // Not applicable
+                    $actioncomm->socid = $order->socid;
+                    $actioncomm->authorid = $user->id;   // User saving action
+                    $actioncomm->userownerid = $user->id;    // Owner of action
+
+                    $actioncomm->fk_element = $order->id;
+                    $actioncomm->elementtype = $order->element;
+
+                    $ret = $actioncomm->create($user);       // User creating action
+                    if ($ret > 0) {
+                        return 1;
+                    } else {
+                        $error = "Failed to insert event : " . $actioncomm->errorsToString();
+                        $this->error = $error;
+                        $this->errors = $actioncomm->errors;
+
+                        dol_syslog(__METHOD__ . " " . $error, LOG_ERR);
+                        return -1;
+                    }
+                }
+
+                dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+                return 0;
         }
 
         return 0;

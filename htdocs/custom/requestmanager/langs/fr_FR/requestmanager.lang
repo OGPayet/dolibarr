@@ -246,6 +246,8 @@ RequestManagerParentRequest                             = Demande parente
 RequestManagerChildrenRequest                           = Demandes enfants
 RequestManagerReasonResolution                          = Motif de résolution
 RequestManagerReasonResolutionDetails                   = Détails du motif de résolution
+RequestManagerChildrenRequestLinkedObjects              = Objets liées des demandes enfants
+RequestManagerList                                      = Liste
 
 ############################################################
 ### Message form
@@ -298,6 +300,8 @@ RequestManagerListOfEvents                              = Liste des événements
 RequestManagerListMode                                  = Vue Liste
 RequestManagerTimeLineListMode                          = Vue Liste (chronologiques)
 RequestManagerTimeLineMode                              = Messages en vue chronologiques
+RequestManagerEventType                                 = Type d'événements
+RequestManagerDontShowSelectedEventType                 = Ne pas afficher les types d'événements sélectionnés
 RequestManagerOnlyLinkedObjectToThisRequest             = Ne voir que les événements liés à cette demande
 RequestManagerIncludeEventOfOtherRequest                = Voir aussi les événements des autres demandes
 RequestManagerIncludeLinkedEventToChildrenOfThisRequest = Voir aussi les événements des sous demandes
@@ -362,6 +366,7 @@ RequestManagerListsFollowMyGroupRequest       = Les demandes de mon groupe
 RequestManagerListsFollowLinkToMyEvent        = Mes demandes à suivre
 RequestManagerListsFollowMyFutureRequest      = Mes demandes à venir
 RequestManagerListsFollowMyFutureGroupRequest = Les demandes de mon groupe à venir
+RequestManagerLastCheckFollowListDate         = Date de la dèrniere vérification de la page "Suivi des demandes"
 
 ############################################################
 ### Chronometer

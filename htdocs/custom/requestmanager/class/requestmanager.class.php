@@ -41,6 +41,7 @@ class RequestManager extends CommonObject
     public $table_element_line = 'requestmanagerdet';
     public $fk_element = 'fk_requestmanager';
     public $ismultientitymanaged = 1;	// 0=No test on entity, 1=Test with field entity, 2=Test with link by societe
+    public $picto = 'requestmanager@requestmanager';
 
     /**
      * Array of whitelist of properties keys for this object used for the API

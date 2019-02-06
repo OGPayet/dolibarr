@@ -516,13 +516,9 @@ SCRIPT;
                 $my_request_updated_text  = str_replace('"', '\\"', $langs->trans('RequestManagerMenuTopRequestsFollow'));
 
                 // Last view date
-                if (isset($_SESSION['rm_lists_follow_last_date'])) {
-                    $lastViewDate = $_SESSION['rm_lists_follow_last_date'];
-                } else if ($user->datepreviouslogin) {
-                    $lastViewDate = $user->datepreviouslogin;
-                } else {
-                    $lastViewDate = '';
-                }
+                $user->fetch_optionals();
+                $lastViewDate = isset($user->array_options['options_rm_last_check_follow_list_date']) ? $user->array_options['options_rm_last_check_follow_list_date'] : '';
+                if (is_string($lastViewDate)) $lastViewDate = strtotime($lastViewDate);
 
                 dol_include_once('/requestmanager/class/requestmanager.class.php');
                 $requestManager = new RequestManager($this->db);
@@ -833,33 +829,38 @@ SCRIPT;
                     ),
                 );
 
-                $listofidcompanytoscan = $object->thirdparty_benefactor->id;
-                if (($object->thirdparty_benefactor->parent > 0) && !empty($conf->global->THIRDPARTY_INCLUDE_PARENT_IN_LINKTO)) $listofidcompanytoscan .= ',' . $object->thirdparty_benefactor->parent;
-                if (($object->fk_project > 0) && !empty($conf->global->THIRDPARTY_INCLUDE_PROJECT_THIRDPARY_IN_LINKTO)) {
-                    include_once DOL_DOCUMENT_ROOT . '/projet/class/project.class.php';
-                    $tmpproject = new Project($this->db);
-                    $tmpproject->fetch($object->fk_project);
-                    if ($tmpproject->socid > 0 && ($tmpproject->socid != $object->thirdparty_benefactor->id)) $listofidcompanytoscan .= ',' . $tmpproject->socid;
-                    unset($tmpproject);
+                if ($conf->equipement->enabled) {
+                    // Todo pourquoi du spe synergie se retrouve dans le module ???
+                    if (empty($conf->global->REQUESTMANAGER_DISABLE_SHOW_LINK_TO_OBJECT_BLOCK)) {
+                        $listofidcompanytoscan = $object->thirdparty_benefactor->id;
+                        if (($object->thirdparty_benefactor->parent > 0) && !empty($conf->global->THIRDPARTY_INCLUDE_PARENT_IN_LINKTO)) $listofidcompanytoscan .= ',' . $object->thirdparty_benefactor->parent;
+                        if (($object->fk_project > 0) && !empty($conf->global->THIRDPARTY_INCLUDE_PROJECT_THIRDPARY_IN_LINKTO)) {
+                            include_once DOL_DOCUMENT_ROOT . '/projet/class/project.class.php';
+                            $tmpproject = new Project($this->db);
+                            $tmpproject->fetch($object->fk_project);
+                            if ($tmpproject->socid > 0 && ($tmpproject->socid != $object->thirdparty_benefactor->id)) $listofidcompanytoscan .= ',' . $tmpproject->socid;
+                            unset($tmpproject);
+                        }
+                        $possiblelinks['equipement'] = array(
+                            'enabled' => $conf->equipement->enabled,
+                            'perms' => 1,
+                            'label' => 'LinkToEquipement',
+                            'sql' => "SELECT s.rowid as socid, s.nom as name, s.client, e.rowid, e.ref, CONCAT(p.ref, ' - ', p.label, IF(eef.machineclient = 1, ' (Machine)', '')) AS ref_client FROM " . MAIN_DB_PREFIX . "societe as s" .
+                                " INNER JOIN  " . MAIN_DB_PREFIX . "equipement as e ON e.fk_soc_client = s.rowid" .
+                                " LEFT JOIN  " . MAIN_DB_PREFIX . "equipement_extrafields as eef ON eef.fk_object = e.rowid" .
+                                " LEFT JOIN  " . MAIN_DB_PREFIX . "product as p ON p.rowid = e.fk_product" .
+                                " LEFT JOIN  " . MAIN_DB_PREFIX . "element_element as ee" .
+                                "   ON (ee.sourcetype = 'equipement' AND ee.fk_source = e.rowid AND ee.targettype = '" . $object->element . "' AND ee.fk_target = " . $object->id . ")" .
+                                "   OR (ee.targettype = 'equipement' AND ee.fk_target = e.rowid AND ee.sourcetype = '" . $object->element . "' AND ee.fk_source = " . $object->id . ")" .
+                                " WHERE e.entity IN (" . getEntity('equipement') . ')' .
+                                " AND e.fk_soc_client IN (" . $listofidcompanytoscan . ")" .
+                                " AND eef.machineclient = 1" .
+                                ' AND ee.rowid IS NULL' .
+                                ' GROUP BY e.rowid, s.rowid',
+                        );
+                        $conf->global->EQUIPEMENT_DISABLE_SHOW_LINK_TO_OBJECT_BLOCK = true;
+                    }
                 }
-                $possiblelinks['equipement'] = array(
-                    'enabled' => $conf->equipement->enabled,
-                    'perms' => 1,
-                    'label' => 'LinkToEquipement',
-                    'sql' => "SELECT s.rowid as socid, s.nom as name, s.client, e.rowid, e.ref, p.ref AS ref_client FROM " . MAIN_DB_PREFIX . "societe as s" .
-                        " INNER JOIN  " . MAIN_DB_PREFIX . "equipement as e ON e.fk_soc_client = s.rowid" .
-                        " LEFT JOIN  " . MAIN_DB_PREFIX . "equipement_extrafields as eef ON eef.fk_object = e.rowid" .
-                        " LEFT JOIN  " . MAIN_DB_PREFIX . "product as p ON p.rowid = e.fk_product" .
-                        " LEFT JOIN  " . MAIN_DB_PREFIX . "element_element as ee" .
-                        "   ON (ee.sourcetype = 'equipement' AND ee.fk_source = e.rowid AND ee.targettype = '" . $object->element . "' AND ee.fk_target = " . $object->id . ")" .
-                        "   OR (ee.targettype = 'equipement' AND ee.fk_target = e.rowid AND ee.sourcetype = '" . $object->element . "' AND ee.fk_source = " . $object->id . ")" .
-                        " WHERE e.entity IN (" . getEntity('equipement') . ')' .
-                        " AND e.fk_soc_client IN (" . $listofidcompanytoscan . ")" .
-                        " AND eef.machineclient = 1" .
-                        ' AND ee.rowid IS NULL' .
-                        ' GROUP BY e.rowid, s.rowid',
-                );
-                $conf->global->EQUIPEMENT_DISABLE_SHOW_LINK_TO_OBJECT_BLOCK = true;
 
                 $this->results = $possiblelinks;
                 return 1;

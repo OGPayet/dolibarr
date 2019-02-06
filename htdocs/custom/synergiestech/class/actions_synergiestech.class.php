@@ -258,200 +258,6 @@ class ActionsSynergiesTech
                     print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("SynergiesTechThridPartyNotDefined")) . '" href="#">' . $langs->trans("returnProducts") . '</a></div>';
                 }
             }
-
-            if ($object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
-                $authorizedButtons = !empty($requestManagerStatusDictionaryLine->fields['authorized_buttons']) ? explode(',', $requestManagerStatusDictionaryLine->fields['authorized_buttons']) : array();
-
-                // Add child request
-                if ($user->rights->requestmanager->creer) {
-                    dol_include_once('/advancedictionaries/class/dictionary.class.php');
-                    $requestManagerRequestTypeDictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagerrequesttype');
-                    $requestManagerRequestTypeDictionary->fetch_lines(1);
-
-                    if (!empty($requestManagerStatusDictionaryLine->fields['new_request_type'])) {
-                        foreach (explode(',', $requestManagerStatusDictionaryLine->fields['new_request_type']) as $request_type_id) {
-                            print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=create_request_child&new_request_type='.$request_type_id.'">'
-                                . $langs->trans('RequestManagerCreateRequestChild', $requestManagerRequestTypeDictionary->lines[$request_type_id]->fields['label']) . '</a></div>';
-                        }
-                    }
-                }
-
-                $backtopage = dol_buildpath('/requestmanager/card.php', 1) . '?id=' . $object->id;
-                $commun_params = '&originid=' . $object->id . '&origin=' . $object->element . '&socid=' . $object->socid . '&backtopage=' . urlencode($backtopage);
-                $benefactor_params = !empty($conf->companyrelationships->enabled) ? '&companyrelationships_fk_soc_benefactor=' . $object->socid_benefactor : '';
-                $watcher_params = !empty($conf->companyrelationships->enabled) ? '&companyrelationships_fk_soc_watcher=' . $object->socid_watcher : '';
-                if (!empty($conf->global->REQUESTMANAGER_TITLE_TO_REF_CUSTOMER_WHEN_CREATE_OTHER_ELEMENT)) {
-                    $ref_client = '&ref_client=' . urlencode($object->label);
-                } else {
-                    $ref_client = '';
-                }
-
-                // Add proposal
-                if (!empty($conf->propal->enabled) && (count($authorizedButtons) == 0 || in_array('create_propal', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
-                    $langs->load("propal");
-                    if ($user->rights->propal->creer) {
-                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/comm/propal/card.php?action=create' . $commun_params . $benefactor_params . $watcher_params . $ref_client . '">' . $langs->trans("AddProp") . '</a></div>';
-                    } else {
-                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddProp") . '</a></div>';
-                    }
-                }
-
-                // Add order
-                if (!empty($conf->commande->enabled) && (count($authorizedButtons) == 0 || in_array('create_order', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
-                    $langs->load("orders");
-                    if ($user->rights->commande->creer) {
-                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/commande/card.php?action=create' . $commun_params . $benefactor_params . $watcher_params . $ref_client . '">' . $langs->trans("AddOrder") . ' A modifier</a></div>';
-                    } else {
-                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddOrder") . '</a></div>';
-                    }
-                }
-
-                // Add invoice
-                if ($user->socid == 0 && !empty($conf->facture->enabled) && (count($authorizedButtons) == 0 || in_array('create_invoice', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
-                    $langs->load("bills");
-                    $langs->load("compta");
-                    if ($user->rights->facture->creer) {
-                        $object->fetch_thirdparty();
-                        if ($object->thirdparty->client != 0 && $object->thirdparty->client != 2) {
-                            print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/compta/facture/card.php?action=create' . $commun_params . $benefactor_params . $watcher_params . '">' . $langs->trans("AddBill") . '</a></div>';
-                        } else {
-                            print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("ThirdPartyMustBeEditAsCustomer")) . '" href="#">' . $langs->trans("AddBill") . '</a></div>';
-                        }
-                    } else {
-                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddBill") . '</a></div>';
-                    }
-                }
-
-                // Add supplier proposal
-                if (!empty($conf->supplier_proposal->enabled) && (count($authorizedButtons) == 0 || in_array('create_supplier_proposal', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
-                    $langs->load("supplier_proposal");
-                    if ($user->rights->supplier_proposal->creer) {
-                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/supplier_proposal/card.php?action=create' . $commun_params . '">' . $langs->trans("AddSupplierProposal") . '</a></div>';
-                    } else {
-                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddSupplierProposal") . '</a></div>';
-                    }
-                }
-
-                // Add supplier order
-                if (!empty($conf->fournisseur->enabled) && (count($authorizedButtons) == 0 || in_array('create_supplier_order', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
-                    $langs->load("suppliers");
-                    if ($user->rights->fournisseur->commande->creer) {
-                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/fourn/commande/card.php?action=create' . $commun_params . '">' . $langs->trans("AddSupplierOrder") . '</a></div>';
-                    } else {
-                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddSupplierOrder") . '</a></div>';
-                    }
-                }
-
-                // Add supplier invoice
-                if (!empty($conf->fournisseur->enabled) && (count($authorizedButtons) == 0 || in_array('create_supplier_invoice', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
-                    $langs->load("suppliers");
-                    if ($user->rights->fournisseur->facture->creer) {
-                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/fourn/facture/card.php?action=create' . $commun_params . '">' . $langs->trans("AddSupplierInvoice") . '</a></div>';
-                    } else {
-                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddSupplierInvoice") . '</a></div>';
-                    }
-                }
-
-                // Add contract
-                if (!empty($conf->contrat->enabled) && (count($authorizedButtons) == 0 || in_array('create_contract', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
-                    $langs->load("contracts");
-                    if ($user->rights->contrat->creer) {
-                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/contrat/card.php?action=create' . $commun_params . $benefactor_params . $watcher_params . $ref_client . '">' . $langs->trans("AddContract") . '</a></div>';
-                    } else {
-                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddContract") . '</a></div>';
-                    }
-                }
-
-                // Add intervention
-                if (!empty($conf->ficheinter->enabled) && (count($authorizedButtons) == 0 || in_array('create_inter', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
-                    $langs->load("interventions");
-                    if ($user->rights->ficheinter->creer) {
-                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/fichinter/card.php?action=create' . $commun_params . $benefactor_params . $watcher_params . '">' . $langs->trans("AddIntervention") . '</a></div>';
-                    } else {
-                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddIntervention") . '</a></div>';
-                    }
-                }
-
-                // Add project
-                if (!empty($conf->projet->enabled) && (count($authorizedButtons) == 0 || in_array('create_project', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
-                    $langs->load("projects");
-                    if ($user->rights->projet->creer) {
-                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/projet/card.php?action=create' . $commun_params . '">' . $langs->trans("AddProject") . '</a></div>';
-                    } else {
-                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddProject") . '</a></div>';
-                    }
-                }
-
-                // Add trip
-                if (!empty($conf->deplacement->enabled) && (count($authorizedButtons) == 0 || in_array('create_trip', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
-                    $langs->load("trips");
-                    if ($user->rights->deplacement->creer) {
-                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/compta/deplacement/card.php?action=create' . $commun_params . '">' . $langs->trans("AddTrip") . '</a></div>';
-                    } else {
-                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddTrip") . '</a></div>';
-                    }
-                }
-
-                // Add request
-                if ((count($authorizedButtons) == 0 || in_array('create_request_manager', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
-                    if ($user->rights->requestmanager->creer) {
-                        print '<div class="inline-block divButAction"><a class="butAction" href="' . dol_buildpath('/requestmanager/createfast.php', 2) . '?action=createfast&socid_origin=' . $object->socid . $commun_params . '">' . $langs->trans("RequestManagerAddRequest") . '</a></div>';
-                    } else {
-                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("RequestManagerAddRequest") . '</a></div>';
-                    }
-                }
-
-                // Add message
-                if ($user->rights->requestmanager->creer) {
-                    print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=premessage&messagemode=init#formmessagebeforetitle">'
-                        . $langs->trans('RequestManagerAddMessage') . '</a></div>';
-                }
-
-                // Add event
-                if (!empty($conf->agenda->enabled) && (count($authorizedButtons) == 0 || in_array('create_event', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
-                    $langs->load("commercial");
-                    if (! empty($user->rights->agenda->myactions->create) || ! empty($user->rights->agenda->allactions->create)) {
-                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT.'/comm/action/card.php?action=create' . $commun_params . '">' . $langs->trans("AddAction") . '</a></div>';
-                    } else {
-                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddAction") . '</a></div>';
-                    }
-                }
-            }
-
-            // Not Resolved
-            if ($object->statut_type == RequestManager::STATUS_TYPE_RESOLVED) {
-                if ($user->rights->requestmanager->creer) {
-                    print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=notresolved">'
-                        . $langs->trans('ReOpen') . '</a></div>';
-                } else {
-                    print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">'
-                        . $langs->trans("ReOpen") . '</a></div>';
-                }
-            }
-
-            // ReOpen
-            if ($object->statut_type == RequestManager::STATUS_TYPE_CLOSED) {
-                if ($user->rights->requestmanager->cloturer) {
-                    print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=reopen">'
-                        . $langs->trans('ReOpen') . '</a></div>';
-                } else {
-                    print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">'
-                        . $langs->trans("ReOpen") . '</a></div>';
-                }
-            }
-
-            // Delete
-            if ($object->statut_type == RequestManager::STATUS_TYPE_INITIAL) {
-                if ($user->rights->requestmanager->supprimer) {
-                    print '<div class="inline-block divButAction"><a class="butActionDelete" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=delete">'
-                        . $langs->trans('Delete') . '</a></div>';
-                } else {
-                    print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">'
-                        . $langs->trans("Delete") . '</a></div>';
-                }
-            }
-
-            return 1;
         } elseif (in_array('contractcard', $contexts)) {
             $langs->load('synergiestech@synergiestech');
             if ($action == 'synergiestech_generate_ticket_report') {
@@ -1089,6 +895,69 @@ SCRIPT;
                         }
                     }
                 }
+            } elseif ($action == 'add' && $user->rights->commande->creer) {
+                $origin = GETPOST('origin', 'alpha');
+                $originid = (GETPOST('originid', 'int') ? GETPOST('originid', 'int') : GETPOST('origin_id', 'int')); // For backward compatibility
+
+                if (!empty($origin) && !empty($originid) && $origin == 'requestmanager') {
+                    // Parse element/subelement (ex: project_task)
+                    $element = $subelement = $origin;
+                    if (preg_match('/^([^_]+)_([^_]+)/i', $origin, $regs)) {
+                        $element = $regs [1];
+                        $subelement = $regs [2];
+                    }
+
+                    // For compatibility
+                    if ($element == 'order') {
+                        $element = $subelement = 'commande';
+                    }
+                    if ($element == 'propal') {
+                        $element = 'comm/propal';
+                        $subelement = 'propal';
+                    }
+                    if ($element == 'contract') {
+                        $element = $subelement = 'contrat';
+                    }
+
+                    dol_include_once('/' . $element . '/class/' . $subelement . '.class.php');
+
+                    $classname = ucfirst($subelement);
+                    $srcobject = new $classname($this->db);
+
+                    dol_syslog("Try to find source object origin=" . $origin . " originid=" . $originid . " to add lines");
+                    $result = $srcobject->fetch($originid);
+                    if ($result > 0) {
+                        $lines = $srcobject->lines;
+                        if (empty($lines) && method_exists($srcobject, 'fetch_lines')) {
+                            $srcobject->fetch_lines();
+                            $lines = $srcobject->lines;
+                        }
+
+                        $num = count($lines);
+                        if ($num > 0) {
+                            dol_include_once('/synergiestech/class/html.formsynergiestech.class.php');
+                            $formsynergiestech = new FormSynergiesTech($this->db);
+                            $coloredproductlabelinfo = $formsynergiestech->loadColoredProductLabelInfo($srcobject);
+                            $contract_categories = isset($coloredproductlabelinfo['contract_categories']) ? $coloredproductlabelinfo['contract_categories'] : array();
+
+                            for ($i = 0; $i < $num; $i++) {
+                                if (!(($lines[$i]->info_bits & 2) == 2) && !empty($lines[$i]->fk_product)) {
+                                    $product_categories = $formsynergiestech->loadProductCategoriesList($lines[$i]->fk_product);
+
+                                    $is_into_contract_categories = count(array_diff($contract_categories, $product_categories)) != count($contract_categories);
+                                    // if product is not into the contract
+                                    if (!$is_into_contract_categories) {
+                                        $action = 'create';
+                                        $object->context['products_not_in_contract'] = true;
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        setEventMessages($srcobject->error, $srcobject->errors, 'errors');
+                        $action = 'create';
+                    }
+                }
             } elseif ($action == 'confirm_synergiestech_addline' && $confirm == 'yes' && $user->rights->commande->creer) {
                 $object->context['synergiestech_addline_not_into_formula'] = $_SESSION['synergiestech_addline_formulas'];
                 unset($_SESSION['synergiestech_addline_formulas']);
@@ -1097,6 +966,9 @@ SCRIPT;
                 $_POST = $_SESSION['synergiestech_addline_post'];
                 unset($_SESSION['synergiestech_addline_post']);
                 $action = 'addline';
+            } elseif ($action == 'confirm_synergiestech_add' && $confirm == 'yes' && $user->rights->commande->creer) {
+                $object->context['synergiestech_create_order_with_products_not_into_contract'] = true;
+                $action = 'add';
             }
         } elseif (in_array('propalcard', $contexts)) {
             if ($object->id > 0) {
@@ -1381,8 +1253,10 @@ SCRIPT;
 	 */
 	function formObjectOptions($parameters, &$object, &$action, $hookmanager)
     {
-        $origin=GETPOST('origin','alpha');
-        $originid=GETPOST('originid','int');
+        global $user, $langs;
+
+        $origin = GETPOST('origin', 'alpha');
+        $originid = GETPOST('originid', 'int');
 
         // Propagation of references
         if ($action == 'create' && !empty($origin) && !empty($originid)) {
@@ -1421,6 +1295,18 @@ SCRIPT;
     });
 </script>
 SCRIPT;
+        }
+
+        $contexts = explode(':', $parameters['context']);
+        if (in_array('ordercard', $contexts) && $action == 'create' && $object->context['products_not_in_contract'] && $user->rights->commande->creer) {
+            $langs->load('synergiestech@synergiestech');
+
+            dol_include_once('/synergiestech/class/html.formsynergiestech.class.php');
+            $formsynergiestech = new FormSynergiesTech($this->db);
+
+            $formconfirm = $formsynergiestech->formconfirm($_SERVER['PHP_SELF'], $langs->trans('SynergiesTechProductsOffFormula'), $langs->trans('SynergiesTechConfirmProductsOffFormula'), 'confirm_synergiestech_add', '', 0, 1, 200, 500, 'crea_commande');
+            // Create the confirm form
+            print '<tr><td colspan="2">' . $formconfirm . '</tr></td>';
         }
 
         return 0;
@@ -1656,7 +1542,7 @@ SCRIPT;
                     'enabled' => $conf->equipement->enabled,
                     'perms' => 1,
                     'label' => 'LinkToEquipement',
-                    'sql' => "SELECT s.rowid as socid, s.nom as name, s.client, e.rowid, e.ref, p.ref AS ref_client FROM " . MAIN_DB_PREFIX . "societe as s" .
+                    'sql' => "SELECT s.rowid as socid, s.nom as name, s.client, e.rowid, e.ref, CONCAT(p.ref, ' - ', p.label, IF(eef.machineclient = 1, ' (Machine)', '')) AS ref_client FROM " . MAIN_DB_PREFIX . "societe as s" .
                         " INNER JOIN  " . MAIN_DB_PREFIX . "equipement as e ON e.fk_soc_client = s.rowid" .
                         " LEFT JOIN  " . MAIN_DB_PREFIX . "equipement_extrafields as eef ON eef.fk_object = e.rowid" .
                         " LEFT JOIN  " . MAIN_DB_PREFIX . "product as p ON p.rowid = e.fk_product" .
@@ -1672,7 +1558,7 @@ SCRIPT;
             );
 
             $conf->global->EQUIPEMENT_DISABLE_SHOW_LINK_TO_OBJECT_BLOCK = 1;
-            //$conf->global->REQUESTMANAGER_DISABLE_SHOW_LINK_TO_OBJECT_BLOCK = 1;
+            $conf->global->REQUESTMANAGER_DISABLE_SHOW_LINK_TO_OBJECT_BLOCK = 1;
             $this->results = $possiblelinks;
         }
 

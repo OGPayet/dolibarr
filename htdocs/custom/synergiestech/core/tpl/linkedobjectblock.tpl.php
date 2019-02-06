@@ -35,48 +35,87 @@ if (empty($conf) || ! is_object($conf))
 <!-- BEGIN PHP TEMPLATE -->
 
 <?php
+if ($objecttype == 'equipement') {
+    global $user;
 
-if ($object->element != 'requestmanager' || $objecttype != 'equipement') return 0;
+    $langs = $GLOBALS['langs'];
+    $db = $GLOBALS['db'];
+    $linkedObjectBlock = $GLOBALS['linkedObjectBlock'];
 
-global $user;
+    $langs->load("equipement@equipement");
 
-$langs = $GLOBALS['langs'];
-$db = $GLOBALS['db'];
-$linkedObjectBlock = $GLOBALS['linkedObjectBlock'];
+    require_once DOL_DOCUMENT_ROOT . "/product/class/product.class.php";
+    $productlink = new Product($db);
 
-$langs->load("equipement@equipement");
+    dol_include_once('/synergiestech/class/html.formsynergiestech.class.php');
+    $formsynergiestech = new FormSynergiesTech($db);
 
-require_once DOL_DOCUMENT_ROOT."/product/class/product.class.php";
-$productlink = new Product($db);
+    $total = 0;
+    $ilink = 0;
+    $var = true;
+    foreach ($linkedObjectBlock as $key => $objectlink) {
+        $ilink++;
 
-dol_include_once('/synergiestech/class/html.formsynergiestech.class.php');
-$formsynergiestech = new FormSynergiesTech($db);
+        $productlink->fetch($objectlink->fk_product);
+        $objectlink->fetch_optionals();
 
-$total=0; $ilink=0;
-$var=true;
-foreach($linkedObjectBlock as $key => $objectlink)
-{
-    $ilink++;
-
-    $productlink->fetch($objectlink->fk_product);
-
-    $trclass=($var?'pair':'impair');
-    if ($ilink == count($linkedObjectBlock) && empty($noMoreLinkedObjectBlockAfter) && count($linkedObjectBlock) <= 1) $trclass.=' liste_sub_total';
-?>
-    <tr class="<?php echo $trclass; ?>">
+        $trclass = ($var ? 'pair' : 'impair');
+        if ($ilink == count($linkedObjectBlock) && empty($noMoreLinkedObjectBlockAfter) && count($linkedObjectBlock) <= 1) $trclass .= ' liste_sub_total';
+        ?>
+      <tr class="<?php echo $trclass; ?>">
         <td><?php echo $langs->trans("Equipement"); ?></td>
         <td>
-        <?php
-            echo $objectlink->getNomUrl(1) . ' ' . $formsynergiestech->picto_equipment_has_contract($objectlink->id);
-        ?>
+            <?php
+            echo $objectlink->getNomUrl(1) . ' ' . $formsynergiestech->picto_equipment_has_contract($objectlink->id) . (!empty($objectlink->array_options['options_machineclient']) ? ' (M)' : '');
+            ?>
         </td>
-	<td></td>
-	<td align="center"></td>
-	<td align="center"><?php echo $productlink->getNomUrl(1); ?></td>
-	<td align="right"><?php echo $objectlink->getLibStatut(3); ?></td>
-	<td align="right"><a href="<?php echo $_SERVER["PHP_SELF"].'?id='.$object->id.'&action=dellink&dellinkid='.$key; ?>"><?php echo img_delete($langs->transnoentitiesnoconv("RemoveLink")); ?></a></td>
-    </tr>
-<?php
+        <td><?php echo $productlink->label; ?></td>
+        <td align="center"></td>
+        <td align="center"><?php echo $productlink->getNomUrl(1); ?></td>
+        <td align="right"><?php echo $objectlink->getLibStatut(3); ?></td>
+        <td align="right"><a href="<?php echo $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=dellink&dellinkid=' . $key; ?>"><?php echo img_delete($langs->transnoentitiesnoconv("RemoveLink")); ?></a>
+        </td>
+      </tr>
+        <?php
+    }
+} elseif ($objecttype == 'contrat') {
+    global $user;
+    global $noMoreLinkedObjectBlockAfter;
+
+    $langs = $GLOBALS['langs'];
+    $db = $GLOBALS['db'];
+    $linkedObjectBlock = $GLOBALS['linkedObjectBlock'];
+
+    $langs->load("contracts");
+
+    require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
+    $extrafieldsobject = new ExtraFields($db);
+    $extralabelsobject = $extrafieldsobject->fetch_name_optionals_label('contrat');
+
+    $total = 0;
+    $ilink = 0;
+    $var = true;
+    foreach ($linkedObjectBlock as $key => $objectlink) {
+        $ilink++;
+        $objectlink->fetch_optionals();
+
+        $trclass = ($var ? 'pair' : 'impair');
+        if ($ilink == count($linkedObjectBlock) && empty($noMoreLinkedObjectBlockAfter) && count($linkedObjectBlock) <= 1) $trclass .= ' liste_sub_total';
+        ?>
+      <tr class="<?php echo $trclass; ?>">
+        <td><?php echo $langs->trans("Contract"); ?></td>
+        <td><?php echo $objectlink->getNomUrl(1); ?></td>
+        <td><?php echo $extrafieldsobject->showOutputField('formule', $objectlink->array_options['options_formule']); ?></td>
+        <td align="center"><?php echo $extrafieldsobject->showOutputField('startdate', $objectlink->array_options['options_startdate']); ?></td>
+        <td align="right"></td>
+        <td align="right"><?php echo $objectlink->getLibStatut(7); ?></td>
+        <td align="right"><a href="<?php echo $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=dellink&dellinkid=' . $key; ?>"><?php echo img_delete($langs->transnoentitiesnoconv("RemoveLink")); ?></a>
+        </td>
+      </tr>
+        <?php
+    }
+} else {
+  return 0;
 }
 ?>
 

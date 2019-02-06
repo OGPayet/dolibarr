@@ -4,15 +4,32 @@ Module500100Name = Synergies-Tech
 Module500100Desc = Specific module for Synergies-Tech
 
 #######################################################################
+# Permission
+#######################################################################
+Permission500100    = Générer le bilan des tickets
+Permission500101    = Voir les prix des lignes de produits
+Permission500102    = Editer les prix des lignes de produits
+Permission500103    = Voir les remises des lignes de produits
+Permission500104    = Editer les remises des lignes de produits
+Permission500105    = Voir les montants (propositions commerciales, commandes)
+Permission500106    = Accéder aux fichiers jointes (propositions commerciales, commandes)
+Permission500107    = Accéder aux propositions qui ont une valeur pour le champs complémentaire "Valeur de l'installation"
+
+#######################################################################
 # Configuration admin
 #######################################################################
 SynergiesTechSetup                                                  = Configuration of the module Synergies-Tech
 
-SynergiesTechEnabledWorkflowShippingCreatedToAttachEquipments       = Active la redirection vers l'écran de saisie des équipements si un produit a le statut sérialisable lors de la création d'une expédition
+SynergiesTechEnabledWorkflowShippingCreatedToAttachEquipments       = Active la redirection vers l'écran de saisie des équipements si un produit à le statut sérialisable lors de la création d'une expédition
 SynergiesTechForceAttachEquipmentsAfterShippingCreated              = Force la rentrer des numéros de séries des produits sérialisables après la création d'une expédition
 
-SynergiesTechEnabledWorkflowOrderSupplierDispatchToSetEquipments    = Active la redirection vers l'écran de saisie des équipements si un produit a le statut sérialisable lors de la réceptions de marchandise d'une commande fournisseur
+SynergiesTechEnabledWorkflowOrderSupplierDispatchToSetEquipments    = Active la redirection vers l'écran de saisie des équipements si un produit à le statut sérialisable lors de la réceptions de marchandise d'une commande fournisseur
 SynergiesTechForceSetEquipmentsAfterOrderSupplierDispatch           = Force la rentrer des numéros de séries des produits sérialisables après la réceptions de marchandise d'une commande fournisseur
+
+SynergiesTechProductCategoryForContractFormule                      = Catégorie des produits servant de base aux formules des contrats
+SynergiesTechProductCategoryForAdvancedTicketEmplacement            = Catégorie des produits servant de base aux emplacements sur les messages des tickets
+SynergiesTechPrincipalWarehouse                                     = Entrepôt principal
+SynergiesTechPrincipalWarehouseNbShowed                             = Nombre d'entrepôt affiché dans l'info-bulle des stocks de l'entrepôt principal
 
 #######################################################################
 # Extrafields
@@ -27,7 +44,122 @@ SynergiesTechShippingHasEquipmentToSerialize         = Shipping has equipment to
 SynergiesTechShippingHasEquipmentToValidate          = Shipping has equipment to validate.
 SynergiesTechOrderSupplierHasEquipmentToSerialize    = Order supplier has equipment to serialize.
 
+#######################################################################
+# Mass action invoices list
+#######################################################################
+SynergiesTechNotSupportStockCalculateOnBill = Ne support pas le calcul du stock à la validation d'une facture
+SynergiesTechInvoiceMassValidate            = %s factures ont été validées.
+
+SynergiesTechOnlyProductIncludeIntoContract                 = Liste des produits inclus dans les contrats du client
+SynergiesTechFormules                                       = Formules
+SynergiesTechErrorFormulesNotFoundIntoCategories            = Formules dont la catégorie associée n'est pas trouvée
+SynergiesTechErrorProductCategoryForFomuleContratNotDefined = La catégorie des produits servant de base aux formules des contrats na pas été parametrée dans le module Synergies-Tech.
+SynergiesTechProductOffFormula                              = Forcage de ligne de produits hors contrat
+SynergiesTechConfirmProductOffFormula                       = Êtes-vous sur de vouloir ajouter ce produit hors contrat ?
+SynergiesTechProductOffFormulaEventTitle                    = Forcage de ligne de produits hors contrat dans une commande
+SynergiesTechProductOffFormulaEventMessage                  = L'utilisateur %s à forcé l'enregistrement du produit %s hors contrat ( %s ) dans la commande %s
+
+#######################################################################
+# Force add lines off contract when create order
+#######################################################################
+SynergiesTechProductsOffFormula                              = Forcage de la création d'une commande avec un ou des produits hors contrat
+SynergiesTechConfirmProductsOffFormula                       = Êtes-vous sur de vouloir créer une commande avec un ou des produits hors contrat ?
+SynergiesTechProductsOffFormulaEventTitle                    = Forcage de la création d'une commande avec un ou des produits hors contrat
+SynergiesTechProductsOffFormulaEventMessage                  = L'utilisateur %s à forcé la création d'une commande (%s) avec un ou des produits hors contrat
+
+#######################################################################
+# Products lines int the Request (RequestManager)
+#######################################################################
+SynergiesTechOnlyProductIncludeIntoContractAndEquipment     = Produits faisant partie de : Gras -> Machines, Normal -> Hors machiches, Vert -> Contrats, Rouge -> Hors contrat
+
+#######################################################################
+# Equipment lines into the Request (RequestManager)
+#######################################################################
+SynergiesTechDontHaveContract   = N'as pas de contrats
+
+#######################################################################
+# Dictionaries
+#######################################################################
+SynergiesTechTimeSlotDictionaryLabel        = Plages horaires par défaut pour une Formule de contrat
+SynergiesTechTimeSlotDictionaryFormula      = Formule de contrat
+SynergiesTechTimeSlotDictionaryFormulaHelp  = Le nom doit être exactement identique à celui dans la liste des formules de contrat de l'attribut supplémentaire "Formule" du contrat
+SynergiesTechTimeSlotDictionaryTimeSlots    = Plages horaires
+
+#######################################################################
+# Return products
+#######################################################################
+SynergiesTechCreateNbRetourProduitsSuccessed = %s retour produits créés.
+
+#######################################################################
+# Request Manager
+#######################################################################
+SynergiesTechCreateFastContractFormula = Formules
+
+#######################################################################
+# Advanced Ticket
+#######################################################################
+SynergiesTechThridPartyNotDefined   = Tiers non définie
+
+#######################################################################
+# Advanced Ticket Report - ConfirmBox, Button, MassAction
+#######################################################################
+SynergiesTechTicketGenerateReport                       = Générer le bilan des tickets
+SynergiesTechTicketGenerateReportConfirm                = Génération du bilan des tickets
+SynergiesTechTicketGenerateReportSuccess                = Génération du bilan des tickets réussie.
+SynergiesTechTicketGenerateReportErrorDatesRequired     = Dates de la période requises
+
+#######################################################################
+# Advanced Ticket Report - PDF
+#######################################################################
+SynergiesTechTicketGenerateReportServiceTitle           = Rapport d'interventions (Contrat: %s, Société: %s)
+SynergiesTechTicketGenerateReportServiceRef             = Réf. service
+SynergiesTechTicketGenerateReportServiceDescription     = Description service
+SynergiesTechTicketGenerateReportDateBegin              = Date de début
+SynergiesTechTicketGenerateReportDateEnd                = Date de fin
+SynergiesTechAdvancedTicketGenerateNoService            = Aucun service
+
+SynergiesTechTicketGenerateReportTicketInProgressTitle  = Tickets en cours
+SynergiesTechTicketGenerateReportTicketRef              = Réf. ticket
+SynergiesTechTicketGenerateReportTicketTitle            = Titre tickets
+SynergiesTechTicketGenerateReportTicketDescription      = Description ticket
+SynergiesTechTicketGenerateReportTicketDuration         = Durée
+SynergiesTechTicketGenerateReportTicketDateCreated      = Ouvert le
+SynergiesTechTicketGenerateReportTicketStatus           = État
+SynergiesTechAdvancedTicketGenerateNoTicketInProgress   = Aucun ticket en cours
+
+SynergiesTechTicketGenerateReportTicketClosedTitle      = Tickets cloturés pour la période %s au %s
+SynergiesTechTicketGenerateReportTicketDateClosed       = Cloturé le
+SynergiesTechTicketGenerateReportTicketUserClosed       = Cloturé par
+SynergiesTechAdvancedTicketGenerateNoTicketClosed               = Aucun ticket cloturé
+
+SynergiesTechTicketGenerateReportTicketMessageUser      = Utilisateur
+SynergiesTechTicketGenerateReportTicketMessageDate      = Date
+SynergiesTechTicketGenerateReportTicketMessageText      = Message
+SynergiesTechTicketGenerateReportTicketMessageDuration  = Durée
+SynergiesTechAdvancedTicketGenerateNoTicketMessage      = Aucun message
+
+SynergiesTechTicketGenerateReportErrorGetContract       = Erreur dans la recupération du contrat : %s
+SynergiesTechTicketGenerateReportErrorGetTicket         = Erreur dans la recupération du ticket : %s
+SynergiesTechTicketGenerateReportErrorCreatePath        = Erreur création du répertoire : %s
+
 ############################################################
 ### Actions
 ############################################################
 ActionAC_SYN_AUTO = Automatically inserted message
+
+############################################################
+### Principal warehouse
+############################################################
+SynergiesTechPrincipalWarehouseStocks       = %s stock(s) pour l'entrepôt : %s
+SynergiesTechNoStockIntoPrincipalWarehouse  = Pas de stock dans l'entrepôt principal
+
+############################################################
+### Errors
+############################################################
+SynergiesTechErrorPrincipalWarehouseNotDefined      = Entrepôt principal non définie dans la configuration du module Synergies-Tech
+
+
+###########################################################
+### Misc
+###########################################################
+SuppliersPricesOfProductsOrServicesUpgraded = Prix fournisseurs amélioré (des produits ou services)

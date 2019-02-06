@@ -60,6 +60,14 @@ SynergiesTechProductOffFormulaEventTitle                    = Forcage de ligne d
 SynergiesTechProductOffFormulaEventMessage                  = L'utilisateur %s à forcé l'enregistrement du produit %s hors contrat ( %s ) dans la commande %s
 
 #######################################################################
+# Force add lines off contract when create order
+#######################################################################
+SynergiesTechProductsOffFormula                              = Forcage de la création d'une commande avec un ou des produits hors contrat
+SynergiesTechConfirmProductsOffFormula                       = Êtes-vous sur de vouloir créer une commande avec un ou des produits hors contrat ?
+SynergiesTechProductsOffFormulaEventTitle                    = Forcage de la création d'une commande avec un ou des produits hors contrat
+SynergiesTechProductsOffFormulaEventMessage                  = L'utilisateur %s à forcé la création d'une commande (%s) avec un ou des produits hors contrat
+
+#######################################################################
 # Products lines int the Request (RequestManager)
 #######################################################################
 SynergiesTechOnlyProductIncludeIntoContractAndEquipment     = Produits faisant partie de : Gras -> Machines, Normal -> Hors machiches, Vert -> Contrats, Rouge -> Hors contrat

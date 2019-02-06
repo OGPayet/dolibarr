@@ -231,8 +231,8 @@ if (empty($reshook))
 			if (!empty($origin) && !empty($originid) )
 			{
 				// Parse element/subelement (ex: project_task)
-				$element = $subelement = $_POST['origin'];
-				if (preg_match('/^([^_]+)_([^_]+)/i',$_POST['origin'],$regs))
+				$element = $subelement = $origin;
+				if (preg_match('/^([^_]+)_([^_]+)/i',$origin,$regs))
 				{
 					$element = $regs[1];
 					$subelement = $regs[2];
@@ -286,6 +286,19 @@ if (empty($reshook))
 							$srcobject->fetch_lines();
 							$lines = $srcobject->lines;
 						}
+
+						// Add all linked object of the contract when the origin is a request
+                        if ($conf->contrat->enabled && $srcobject->element == 'requestmanager' && $object->fk_contrat > 0) {
+						    $contract = new Contrat($db);
+						    $contract->fetch($object->fk_contrat);
+                            $contract->fetchObjectLinked();
+                            foreach ($contract->linkedObjectsIds as $et => $ids_list) {
+                                        foreach ($ids_list as $olid) {
+                                    if (($et == $srcobject->element && $olid == $srcobject->id) || ($et == $object->element && $olid == $object->id)) continue;
+                                    $object->add_object_linked($et, $olid);
+                                }
+                            }
+                        }
 
 						$fk_parent_line=0;
 						$num=count($lines);

@@ -567,6 +567,71 @@ class FormRequestManager
     }
 
     /**
+     *  Show children request linked objects block.
+     *
+     *  @param	RequestManager	$object		      Object we want to show children request to
+     *  @param  string          $morehtmlright    More html to show on right of title
+     *  @return	int							      Nb children linked objects found
+     */
+    function showChildrenRequestLinkedObjectsBlock($object, $morehtmlright='')
+    {
+        global $conf, $langs, $hookmanager;
+        global $bc;
+
+        $object->fetchObjectLinked();
+        $object->fetch_children_request(null, 1);
+
+        $linked_objects = array();
+        foreach ($object->children_request_list as $request) {
+            $request->fetchObjectLinked();
+
+            foreach ($request->linkedObjects as $elementtype => $object_list) {
+                foreach ($object_list as $item) {
+                    if (isset($object->linkedObjectsIds[$elementtype]) && in_array($item->id, $object->linkedObjectsIds[$elementtype])) continue;
+                    $linked_objects[$elementtype . '_' . $item->id] = $item;
+                }
+            }
+        }
+
+        // Bypass the default method
+        $hookmanager->initHooks(array('requestmanagerdao'));
+        $parameters = array('linked_objects' => &$linked_objects);
+        $reshook = $hookmanager->executeHooks('showChildrenRequestLinkedObjectsBlock', $parameters, $object, $action);    // Note that $action and $object may have been modified by hook
+
+        if (empty($reshook)) {
+            $nb_linked_objects = count($linked_objects);
+
+            print '<br><!-- showChildrenRequestLinkedObjectsBlock -->';
+            print load_fiche_titre($langs->trans('RequestManagerChildrenRequestLinkedObjects'), $morehtmlright, '');
+
+            print '<div class="div-table-responsive-no-min">';
+            print '<table class="noborder allwidth">';
+
+            print '<tr class="liste_titre">';
+            print '<td>' . $langs->trans("RequestManagerList") . '</td>';
+            print '</tr>';
+
+            if ($nb_linked_objects) {
+                $to_print = array();
+                foreach ($linked_objects as $item) {
+                    $to_print[] = $item->getNomUrl(1);
+                }
+
+                print '<tr><td>' . implode(', ', $to_print) . '</td></tr>';
+            } else {
+                print '<tr><td class="impair opacitymedium">' . $langs->trans("None") . '</td></tr>';
+            }
+
+            print '</table>';
+            print '</div>';
+
+            return $nb_linked_objects;
+        }
+
+        return $reshook;
+    }
+
+    /**
      *  Output html form to select a actioncomm
      *
      * @param   int         $idActionComm           Id of the actioncomm
@@ -1021,7 +1086,7 @@ class FormRequestManager
      */
     private static function _listsFollowPrintLineFrom(DoliDB $db, $arrayfields, $obj, RequestManager $requestmanagerstatic, Societe $societestatic_origin, Societe $societestatic, Societe $societestatic_benefactor, Societe $societestatic_watcher, User $userstatic, $lists_follow_last_date=0)
     {
-        global $langs, $conf, $form;
+        global $langs, $conf, $form, $user;
 
         require_once DOL_DOCUMENT_ROOT . '/user/class/user.class.php';
         require_once DOL_DOCUMENT_ROOT . '/user/class/usergroup.class.php';
@@ -1086,7 +1151,7 @@ class FormRequestManager
         }
 
         $updatedLineClass = "";
-        if ($lists_follow_last_date > 0 && $lists_follow_last_date <= $db->jdate($obj->tms)) {
+        if ($lists_follow_last_date > 0 && $lists_follow_last_date <= $db->jdate($obj->tms) && $user->id != $obj->fk_user_modif) {
             $updatedLineClass = " rm_my_request_updated_line_color";
         }
 

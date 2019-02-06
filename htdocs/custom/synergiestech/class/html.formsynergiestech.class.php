@@ -56,8 +56,14 @@ class FormSynergiesTech
     public $form;
 
     var $cache_equipment_contracts = null;
-    static public $cache_colored_product_label_info = null;
-    static public $cache_product_categories_list = null;
+    /**
+     * @var array
+     */
+    public static $cache_colored_product_label_info = null;
+    /**
+     * @var array
+     */
+    public static $cache_product_categories_list = null;
 
     /**
      * Constructor
@@ -794,6 +800,151 @@ class FormSynergiesTech
 
 
     /**
+     *  Load colored product label info for a object
+     *
+     * @param  	CommonObject		  $object				    Object instance.
+     * @return 	array
+     */
+    function loadColoredProductLabelInfo($object)
+    {
+        global $conf;
+
+        if (!isset(self::$cache_colored_product_label_info[$object->element][$object->id])) {
+            // Get products categories of the contracts list
+            //------------------------------------------------------------
+            $mode = 0; // Show mode for orders lines
+
+            // Gat all contracts of the thirdparty
+            require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
+            $contract_static = new Contrat($this->db);
+            $contract_static->socid = $object->socid;
+            $list_contract = $contract_static->getListOfContracts();
+
+            // Get extrafields of the contract
+            require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
+            $contract_extrafields = new ExtraFields($this->db);
+            $contract_extralabels = $contract_extrafields->fetch_name_optionals_label($contract_static->table_element);
+
+            // Get categories who has the contract formule category in the full path (exclude the contract formule category)
+            require_once DOL_DOCUMENT_ROOT . '/categories/class/categorie.class.php';
+            $categorie_static = new Categorie($this->db);
+            $all_categories = $categorie_static->get_full_arbo('product');
+            $contract_formule_categories = array();
+            foreach ($all_categories as $cat) {
+                if ((preg_match('/^' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '$/', $cat['fullpath']) ||
+                        preg_match('/_' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '$/', $cat['fullpath']) ||
+                        preg_match('/^' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '_/', $cat['fullpath']) ||
+                        preg_match('/_' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '_/', $cat['fullpath'])
+                    ) && $cat['id'] != $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE
+                ) {
+                    $contract_formule_categories[$cat['label']] = $cat['id'];
+                }
+            }
+
+            // Match all formules for the contracts of the thirdparty
+            $contract_categories = array();
+            $contracts_list = array();
+            $formules_list = array();
+            $formules_not_found_list = array();
+            if (!empty($list_contract)) {
+                foreach ($list_contract as $contract) {
+                    if (($contract->nbofserviceswait + $contract->nbofservicesopened) > 0 && $contract->statut != 2) {
+                        $contract->fetch_optionals();
+                        $formule_id = $contract->array_options['options_formule'];
+                        $formule_label = $contract_extrafields->attribute_param['formule']['options'][$formule_id];
+                        if (!empty($formule_label)) {
+                            $contract_category_id = $contract_formule_categories[$formule_label];
+                            if (isset($contract_category_id)) {
+                                $formules_list[$formule_id] = $formule_label;
+                                $contracts_list[] = $contract->getNomUrl(1);
+                                $contract_categories[$contract_category_id] = $contract_category_id;
+                            } else {
+                                $formules_not_found_list[$formule_label] = $formule_label;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Get products categories of the equipments list
+            //------------------------------------------------------------
+            $tag_categories = array();
+            $equipment_categories = array();
+            if ($object->element == 'requestmanager') {
+                $mode = 1; // Show mode for request manager lines
+
+                $object->fetchObjectLinked();
+
+                if (isset($object->linkedObjects['equipement']) && is_array($object->linkedObjects['equipement'])) {
+                    foreach ($object->linkedObjects['equipement'] as $equipment) {
+                        if ($equipment->fk_product > 0) {
+                            $categories = $categorie_static->containing($equipment->fk_product, 'product', 'id');
+                            foreach ($categories as $category_id) {
+                                if (!isset($equipment_categories[$category_id])) {
+                                    // Get all sub categories of the categories founded
+                                    foreach ($all_categories as $cat) {
+                                        if ((preg_match('/^' . $category_id . '$/', $cat['fullpath']) ||
+                                                preg_match('/_' . $category_id . '$/', $cat['fullpath']) ||
+                                                preg_match('/^' . $category_id . '_/', $cat['fullpath']) ||
+                                                preg_match('/_' . $category_id . '_/', $cat['fullpath'])) &&
+                                            (preg_match('/^' . $conf->global->REQUESTMANAGER_ROOT_PRODUCT_CATEGORIES . '$/', $cat['fullpath']) ||
+                                                preg_match('/_' . $conf->global->REQUESTMANAGER_ROOT_PRODUCT_CATEGORIES . '$/', $cat['fullpath']) ||
+                                                preg_match('/^' . $conf->global->REQUESTMANAGER_ROOT_PRODUCT_CATEGORIES . '_/', $cat['fullpath']) ||
+                                                preg_match('/_' . $conf->global->REQUESTMANAGER_ROOT_PRODUCT_CATEGORIES . '_/', $cat['fullpath']))
+                                        ) {
+                                            $equipment_categories[$cat['id']] = $cat['id'];
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                $categories = $object->loadCategorieList('id');
+                foreach ($categories as $category_id) {
+                    if (!isset($tag_categories[$category_id])) {
+                        // Get all sub categories of the categories founded
+                        foreach ($all_categories as $cat) {
+                            if (preg_match('/^' . $category_id . '$/', $cat['fullpath']) ||
+                                preg_match('/_' . $category_id . '$/', $cat['fullpath']) ||
+                                preg_match('/^' . $category_id . '_/', $cat['fullpath']) ||
+                                preg_match('/_' . $category_id . '_/', $cat['fullpath'])
+                            ) {
+                                $tag_categories[$cat['id']] = $cat['id'];
+                            }
+                        }
+                    }
+                }
+            }
+
+            self::$cache_colored_product_label_info[$object->element][$object->id] = array('contract_categories' => $contract_categories, 'tag_categories' => $tag_categories, 'equipment_categories' => $equipment_categories);
+        }
+
+        return (isset(self::$cache_colored_product_label_info[$object->element][$object->id]) ? self::$cache_colored_product_label_info[$object->element][$object->id] : array());
+    }
+
+    /**
+     *  Load product categories list of a product
+     *
+     * @param  	int		  $fk_product				    Product ID.
+     * @return 	array
+     */
+    function loadProductCategoriesList($fk_product)
+    {
+        if (!isset(self::$cache_product_categories_list[$fk_product])) {
+            require_once DOL_DOCUMENT_ROOT . '/categories/class/categorie.class.php';
+            $categorie_static = new Categorie($this->db);
+            $cats = $categorie_static->containing($fk_product, Categorie::TYPE_PRODUCT);
+            foreach ($cats as $cat) {
+                self::$cache_product_categories_list[$fk_product][] = $cat->id;
+            }
+        }
+
+        return (isset(self::$cache_product_categories_list[$fk_product]) ? self::$cache_product_categories_list[$fk_product] : array());
+    }
+
+    /**
      *  Get colored product label for the objectline_view.tpl.php file
      *
      * @param  	CommonObject		  $_this				    Object who launch the printObjectLine function.
@@ -808,130 +959,14 @@ class FormSynergiesTech
 
         if ($line->fk_product > 0) {
 
-            if (!isset(self::$cache_colored_product_label_info[$object->element][$object->id])) {
-                // Get products categories of the contracts list
-                //------------------------------------------------------------
-                $mode = 0; // Show mode for orders lines
-
-                // Gat all contracts of the thirdparty
-                require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
-                $contract_static = new Contrat($this->db);
-                $contract_static->socid = $object->socid;
-                $list_contract = $contract_static->getListOfContracts();
-
-                // Get extrafields of the contract
-                require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
-                $contract_extrafields = new ExtraFields($this->db);
-                $contract_extralabels = $contract_extrafields->fetch_name_optionals_label($contract_static->table_element);
-
-                // Get categories who has the contract formule category in the full path (exclude the contract formule category)
-                require_once DOL_DOCUMENT_ROOT . '/categories/class/categorie.class.php';
-                $categorie_static = new Categorie($this->db);
-                $all_categories = $categorie_static->get_full_arbo('product');
-                $contract_formule_categories = array();
-                foreach ($all_categories as $cat) {
-                    if ((preg_match('/^' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '$/', $cat['fullpath']) ||
-                            preg_match('/_' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '$/', $cat['fullpath']) ||
-                            preg_match('/^' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '_/', $cat['fullpath']) ||
-                            preg_match('/_' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '_/', $cat['fullpath'])
-                        ) && $cat['id'] != $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE
-                    ) {
-                        $contract_formule_categories[$cat['label']] = $cat['id'];
-                    }
-                }
-
-                // Match all formules for the contracts of the thirdparty
-                $contract_categories = array();
-                $contracts_list = array();
-                $formules_list = array();
-                $formules_not_found_list = array();
-                if (!empty($list_contract)) {
-                    foreach ($list_contract as $contract) {
-                        if (($contract->nbofserviceswait + $contract->nbofservicesopened) > 0 && $contract->statut != 2) {
-                            $contract->fetch_optionals();
-                            $formule_id = $contract->array_options['options_formule'];
-                            $formule_label = $contract_extrafields->attribute_param['formule']['options'][$formule_id];
-                            if (!empty($formule_label)) {
-                                $contract_category_id = $contract_formule_categories[$formule_label];
-                                if (isset($contract_category_id)) {
-                                    $formules_list[$formule_id] = $formule_label;
-                                    $contracts_list[] = $contract->getNomUrl(1);
-                                    $contract_categories[$contract_category_id] = $contract_category_id;
-                                } else {
-                                    $formules_not_found_list[$formule_label] = $formule_label;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Get products categories of the equipments list
-                //------------------------------------------------------------
-                $tag_categories = array();
-                $equipment_categories = array();
-                if ($object->element == 'requestmanager') {
-                    $mode = 1; // Show mode for request manager lines
-
-                    $object->fetchObjectLinked();
-
-                    if (isset($object->linkedObjects['equipement']) && is_array($object->linkedObjects['equipement'])) {
-                        foreach ($object->linkedObjects['equipement'] as $equipment) {
-                            if ($equipment->fk_product > 0) {
-                                $categories = $categorie_static->containing($equipment->fk_product, 'product', 'id');
-                                foreach ($categories as $category_id) {
-                                    if (!isset($equipment_categories[$category_id])) {
-                                        // Get all sub categories of the categories founded
-                                        foreach ($all_categories as $cat) {
-                                            if ((preg_match('/^' . $category_id . '$/', $cat['fullpath']) ||
-                                                    preg_match('/_' . $category_id . '$/', $cat['fullpath']) ||
-                                                    preg_match('/^' . $category_id . '_/', $cat['fullpath']) ||
-                                                    preg_match('/_' . $category_id . '_/', $cat['fullpath'])) &&
-                                                (preg_match('/^' . $conf->global->REQUESTMANAGER_ROOT_PRODUCT_CATEGORIES . '$/', $cat['fullpath']) ||
-                                                    preg_match('/_' . $conf->global->REQUESTMANAGER_ROOT_PRODUCT_CATEGORIES . '$/', $cat['fullpath']) ||
-                                                    preg_match('/^' . $conf->global->REQUESTMANAGER_ROOT_PRODUCT_CATEGORIES . '_/', $cat['fullpath']) ||
-                                                    preg_match('/_' . $conf->global->REQUESTMANAGER_ROOT_PRODUCT_CATEGORIES . '_/', $cat['fullpath']))
-                                            ) {
-                                                $equipment_categories[$cat['id']] = $cat['id'];
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    $categories = $object->loadCategorieList('id');
-                    foreach ($categories as $category_id) {
-                        if (!isset($tag_categories[$category_id])) {
-                            // Get all sub categories of the categories founded
-                            foreach ($all_categories as $cat) {
-                                if (preg_match('/^' . $category_id . '$/', $cat['fullpath']) ||
-                                    preg_match('/_' . $category_id . '$/', $cat['fullpath']) ||
-                                    preg_match('/^' . $category_id . '_/', $cat['fullpath']) ||
-                                    preg_match('/_' . $category_id . '_/', $cat['fullpath'])
-                                ) {
-                                    $tag_categories[$cat['id']] = $cat['id'];
-                                }
-                            }
-                        }
-                    }
-                }
-
-                self::$cache_colored_product_label_info[$object->element][$object->id] = array('contract_categories' => $contract_categories, 'tag_categories' => $tag_categories, 'equipment_categories' => $equipment_categories);
-            }
+            $this->loadColoredProductLabelInfo($object);
 
             $contract_categories = isset(self::$cache_colored_product_label_info[$object->element][$object->id]['contract_categories']) ? self::$cache_colored_product_label_info[$object->element][$object->id]['contract_categories'] : array();
             $tag_categories = isset(self::$cache_colored_product_label_info[$object->element][$object->id]['tag_categories']) ? self::$cache_colored_product_label_info[$object->element][$object->id]['tag_categories'] : array();
             $equipment_categories = isset(self::$cache_colored_product_label_info[$object->element][$object->id]['equipment_categories']) ? self::$cache_colored_product_label_info[$object->element][$object->id]['equipment_categories'] : array();
 
-            if (!isset(self::$cache_product_categories_list[$line->fk_product])) {
-                require_once DOL_DOCUMENT_ROOT . '/categories/class/categorie.class.php';
-                $categorie_static = new Categorie($this->db);
-                $cats = $categorie_static->containing($line->fk_product, Categorie::TYPE_PRODUCT);
-                foreach ($cats as $cat) {
-                    self::$cache_product_categories_list[$line->fk_product][] = $cat->id;
-                }
-            }
+            $this->loadProductCategoriesList($line->fk_product);
+
             $product_categories = isset(self::$cache_product_categories_list[$line->fk_product]) ? self::$cache_product_categories_list[$line->fk_product] : array();
 
             $is_into_contract_categories = count(array_diff($contract_categories, $product_categories)) != count($contract_categories);
@@ -972,6 +1007,463 @@ class FormSynergiesTech
         }
 
         return $text;
+    }
+
+    /**
+     *  Get colored product label for the originproductline.tpl.php file
+     *
+     * @param  	CommonObject		  $object				    Object instance.
+     * @param   CommonObjectLine  $line		          Selected object line to output
+     * @return 	string      	    			            Return colored product label
+     */
+    function getOriginProductLineViewColoredProductLabel($object, $line)
+    {
+        if ($line->fk_product > 0) {
+            $this->loadColoredProductLabelInfo($object);
+
+            $contract_categories = isset(self::$cache_colored_product_label_info[$object->element][$object->id]['contract_categories']) ? self::$cache_colored_product_label_info[$object->element][$object->id]['contract_categories'] : array();
+            $tag_categories = isset(self::$cache_colored_product_label_info[$object->element][$object->id]['tag_categories']) ? self::$cache_colored_product_label_info[$object->element][$object->id]['tag_categories'] : array();
+            $equipment_categories = isset(self::$cache_colored_product_label_info[$object->element][$object->id]['equipment_categories']) ? self::$cache_colored_product_label_info[$object->element][$object->id]['equipment_categories'] : array();
+
+            $this->loadProductCategoriesList($line->fk_product);
+
+            $product_categories = isset(self::$cache_product_categories_list[$line->fk_product]) ? self::$cache_product_categories_list[$line->fk_product] : array();
+
+            $is_into_contract_categories = count(array_diff($contract_categories, $product_categories)) != count($contract_categories);
+            $is_into_tag_categories = count(array_diff($tag_categories, $product_categories)) != count($tag_categories);
+
+            if (!(($line->info_bits & 2) == 2) && !empty($line->fk_product)) {
+                $object->tpl['label'] = '';
+                if (!empty($line->fk_parent_line)) $object->tpl['label'] .= img_picto('', 'rightarrow');
+
+                $productstatic = new Product($this->db);
+                $productstatic->id = $line->fk_product;
+                $productstatic->ref = $line->ref;
+                $productstatic->type = $line->fk_product_type;
+                $object->tpl['label'] .= $productstatic->getNomUrl(1);
+
+                $style = (empty($is_into_tag_categories) ? '' : 'font-weight:bolder;') . (empty($is_into_contract_categories) ? 'color:red;' : 'color:green;');
+                $object->tpl['label'] .= ' - <span style="' . $style . '">';
+
+                $object->tpl['label'] .= (!empty($line->label) ? $line->label : $line->product_label);
+                // Dates
+                if (!empty($line->date_start)) {
+                    $date_start = $line->date_start;
+                } else {
+                    $date_start = $line->date_debut_prevue;
+                    if ($line->date_debut_reel) $date_start = $line->date_debut_reel;
+                }
+                if (!empty($line->date_end)) {
+                    $date_end = $line->date_end;
+                } else {
+                    $date_end = $line->date_fin_prevue;
+                    if ($line->date_fin_reel) $date_end = $line->date_fin_reel;
+                }
+                if ($line->product_type == 1 && ($date_start || $date_end)) {
+                    $object->tpl['label'] .= get_date_range($date_start, $date_end);
+                }
+                $object->tpl['label'] .= '</span>';
+            }
+        }
+    }
+
+    /**
+     *     Show a confirmation HTML form or AJAX popup.
+     *     Easiest way to use this is with useajax=1.
+     *     If you use useajax='xxx', you must also add jquery code to trigger opening of box (with correct parameters)
+     *     just after calling this method. For example:
+     *       print '<script type="text/javascript">'."\n";
+     *       print 'jQuery(document).ready(function() {'."\n";
+     *       print 'jQuery(".xxxlink").click(function(e) { jQuery("#aparamid").val(jQuery(this).attr("rel")); jQuery("#dialog-confirm-xxx").dialog("open"); return false; });'."\n";
+     *       print '});'."\n";
+     *       print '</script>'."\n";
+     *
+     *     @param  	string		$page        	   	Url of page to call if confirmation is OK
+     *     @param	string		$title       	   	Title
+     *     @param	string		$question    	   	Question
+     *     @param 	string		$action      	   	Action
+     *	   @param  	array		$formquestion	   	An array with complementary inputs to add into forms: array(array('label'=> ,'type'=> , ))
+     * 	   @param  	string		$selectedchoice  	"" or "no" or "yes"
+     * 	   @param  	int			$useajax		   	0=No, 1=Yes, 2=Yes but submit page with &confirm=no if choice is No, 'xxx'=Yes and preoutput confirm box with div id=dialog-confirm-xxx
+     *     @param  	int			$height          	Force height of box
+     *     @param	int			$width				Force width of box ('999' or '90%'). Ignored and forced to 90% on smartphones.
+     *     @param	int			$post				Send by form POST if =1,  if string send from existed form name.
+     *     @return 	string      	    			HTML ajax code if a confirm ajax popup is required, Pure HTML code if it's an html form
+     */
+    function formconfirm($page, $title, $question, $action, $formquestion=array(), $selectedchoice="", $useajax=0, $height=200, $width=500, $post=0)
+    {
+        global $langs, $conf, $form;
+        global $useglobalvars;
+
+        if (!is_object($form)) {
+            require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
+            $form = new Form($this->db);
+        }
+
+        $more = '';
+        $formconfirm = '';
+        $inputok = array();
+        $inputko = array();
+
+        // Clean parameters
+        $newselectedchoice = empty($selectedchoice) ? "no" : $selectedchoice;
+        if ($conf->browser->layout == 'phone') $width = '95%';
+
+        if (is_array($formquestion) && !empty($formquestion)) {
+            if ($post && !is_string($post)) {
+                $more .= '<form id="form_dialog_confirm" name="form_dialog_confirm" action="' . $page . '" method="POST" enctype="multipart/form-data">';
+                $more .= '<input type="hidden" id="confirm" name="confirm" value="yes">' . "\n";
+                $more .= '<input type="hidden" id="action" name="action" value="' . $action . '">' . "\n";
+            }
+            // First add hidden fields and value
+            foreach ($formquestion as $key => $input) {
+                if (is_array($input) && !empty($input)) {
+                    if ($post && ($input['name'] == "confirm" || $input['name'] == "action")) continue;
+                    if ($input['type'] == 'hidden') {
+                        $more .= '<input type="hidden" id="' . $input['name'] . '" name="' . $input['name'] . '" value="' . dol_escape_htmltag($input['value'], 1, 1) . '">' . "\n";
+                    }
+                }
+            }
+
+            // Now add questions
+            $more .= '<table class="paddingtopbottomonly" width="100%">' . "\n";
+            $more .= '<tr><td colspan="3">' . (!empty($formquestion['text']) ? $formquestion['text'] : '') . '</td></tr>' . "\n";
+            foreach ($formquestion as $key => $input) {
+                if (is_array($input) && !empty($input)) {
+                    $size = (!empty($input['size']) ? ' size="' . $input['size'] . '"' : '');
+
+                    if ($input['type'] == 'text') {
+                        $more .= '<tr><td>' . $input['label'] . '</td><td colspan="2" align="left"><input type="text" class="flat" id="' . $input['name'] . '" name="' . $input['name'] . '"' . $size . ' value="' . $input['value'] . '" /></td></tr>' . "\n";
+                    } else if ($input['type'] == 'password') {
+                        $more .= '<tr><td>' . $input['label'] . '</td><td colspan="2" align="left"><input type="password" class="flat" id="' . $input['name'] . '" name="' . $input['name'] . '"' . $size . ' value="' . $input['value'] . '" /></td></tr>' . "\n";
+                    } else if ($input['type'] == 'select') {
+                        $more .= '<tr><td>';
+                        if (!empty($input['label'])) $more .= $input['label'] . '</td><td valign="top" colspan="2" align="left">';
+                        $more .= $form->selectarray($input['name'], $input['values'], $input['default'], 1);
+                        $more .= '</td></tr>' . "\n";
+                    } else if ($input['type'] == 'checkbox') {
+                        $more .= '<tr>';
+                        $more .= '<td>' . $input['label'] . ' </td><td align="left">';
+                        $more .= '<input type="checkbox" class="flat" id="' . $input['name'] . '" name="' . $input['name'] . '"';
+                        if (!is_bool($input['value']) && $input['value'] != 'false') $more .= ' checked';
+                        if (is_bool($input['value']) && $input['value']) $more .= ' checked';
+                        if (isset($input['disabled'])) $more .= ' disabled';
+                        $more .= ' /></td>';
+                        $more .= '<td align="left">&nbsp;</td>';
+                        $more .= '</tr>' . "\n";
+                    } else if ($input['type'] == 'radio') {
+                        $i = 0;
+                        foreach ($input['values'] as $selkey => $selval) {
+                            $more .= '<tr>';
+                            if ($i == 0) $more .= '<td class="tdtop">' . $input['label'] . '</td>';
+                            else $more .= '<td>&nbsp;</td>';
+                            $more .= '<td width="20"><input type="radio" class="flat" id="' . $input['name'] . '" name="' . $input['name'] . '" value="' . $selkey . '"';
+                            if ($input['disabled']) $more .= ' disabled';
+                            $more .= ' /></td>';
+                            $more .= '<td align="left">';
+                            $more .= $selval;
+                            $more .= '</td></tr>' . "\n";
+                            $i++;
+                        }
+                    } else if ($input['type'] == 'date') {
+                        $more .= '<tr><td>' . $input['label'] . '</td>';
+                        $more .= '<td colspan="2" align="left">';
+                        $more .= $form->select_date($input['value'], $input['name'], 0, 0, 0, '', 1, 0, 1);
+                        $more .= '</td></tr>' . "\n";
+                        $formquestion[] = array('name' => $input['name'] . 'day');
+                        $formquestion[] = array('name' => $input['name'] . 'month');
+                        $formquestion[] = array('name' => $input['name'] . 'year');
+                        $formquestion[] = array('name' => $input['name'] . 'hour');
+                        $formquestion[] = array('name' => $input['name'] . 'min');
+                    } else if ($input['type'] == 'other') {
+                        $more .= '<tr><td>';
+                        if (!empty($input['label'])) $more .= $input['label'] . '</td><td colspan="2" align="left">';
+                        $more .= $input['value'];
+                        $more .= '</td></tr>' . "\n";
+                    } else if ($input['type'] == 'onecolumn') {
+                        $more .= '<tr><td colspan="3" align="left">';
+                        $more .= $input['value'];
+                        $more .= '</td></tr>' . "\n";
+                    }
+                }
+            }
+            $more .= '</table>' . "\n";
+            if ($post && !is_string($post)) $more .= '</form>';
+        }
+
+        // JQUI method dialog is broken with jmobile, we use standard HTML.
+        // Note: When using dol_use_jmobile or no js, you must also check code for button use a GET url with action=xxx and check that you also output the confirm code when action=xxx
+        // See page product/card.php for example
+        if (!empty($conf->dol_use_jmobile)) $useajax = 0;
+        if (empty($conf->use_javascript_ajax)) $useajax = 0;
+
+        if ($useajax) {
+            $autoOpen = true;
+            $dialogconfirm = 'dialog-confirm';
+            $button = '';
+            if (!is_numeric($useajax)) {
+                $button = $useajax;
+                $useajax = 1;
+                $autoOpen = false;
+                $dialogconfirm .= '-' . $button;
+            }
+            $pageyes = $page . (preg_match('/\?/', $page) ? '&' : '?') . 'action=' . $action . '&confirm=yes';
+            $pageno = ($useajax == 2 ? $page . (preg_match('/\?/', $page) ? '&' : '?') . 'action=' . $action . '&confirm=no' : '');
+            // Add input fields into list of fields to read during submit (inputok and inputko)
+            if (is_array($formquestion)) {
+                foreach ($formquestion as $key => $input) {
+                    //print "xx ".$key." rr ".is_array($input)."<br>\n";
+                    if (is_array($input) && isset($input['name'])) {
+                        // Modification Open-DSI - Begin
+                        if (is_array($input['name'])) $inputok = array_merge($inputok, $input['name']);
+                        else array_push($inputok, $input['name']);
+                        // Modification Open-DSI - End
+                    }
+                    if (isset($input['inputko']) && $input['inputko'] == 1) array_push($inputko, $input['name']);
+                }
+            }
+            // Show JQuery confirm box. Note that global var $useglobalvars is used inside this template
+            $formconfirm .= '<div id="' . $dialogconfirm . '" title="' . dol_escape_htmltag($title) . '" style="display: none;">';
+            if (!empty($more)) {
+                $formconfirm .= '<div class="confirmquestions">' . $more . '</div>';
+            }
+            $formconfirm .= ($question ? '<div class="confirmmessage">' . img_help('', '') . ' ' . $question . '</div>' : '');
+            $formconfirm .= '</div>' . "\n";
+
+            $formconfirm .= "\n<!-- begin ajax form_confirm page=" . $page . " -->\n";
+            $formconfirm .= '<script type="text/javascript">' . "\n";
+            $formconfirm .= 'jQuery(document).ready(function() {
+                $(function() {
+			$( "#' . $dialogconfirm . '" ).dialog(
+			{
+                        autoOpen: ' . ($autoOpen ? "true" : "false") . ',';
+            if ($newselectedchoice == 'no') {
+                $formconfirm .= '
+						open: function() {
+						$(this).parent().find("button.ui-button:eq(2)").focus();
+						},';
+            }
+            if ($post && !is_string($post)) {
+                $formconfirm .= '
+                        resizable: false,
+                        height: "' . $height . '",
+                        width: "' . $width . '",
+                        modal: true,
+                        closeOnEscape: false,
+                        buttons: {
+                            "' . dol_escape_js($langs->transnoentities("Yes")) . '": function() {
+                                var form_dialog_confirm = $("form#form_dialog_confirm");
+                                form_dialog_confirm.find("input#confirm").val("yes");
+                                form_dialog_confirm.submit();
+                                $(this).dialog("close");
+                            },
+                            "' . dol_escape_js($langs->transnoentities("No")) . '": function() {
+                                if (' . ($useajax == 2 ? '1' : '0') . ' == 1) {
+                                    var form_dialog_confirm = $("form#form_dialog_confirm");
+                                    form_dialog_confirm.find("input#confirm").val("no");
+                                    form_dialog_confirm.submit();
+                                }
+                                $(this).dialog("close");
+                            }
+                        }
+                    }
+                    );
+
+                  var button = "' . $button . '";
+                  if (button.length > 0) {
+                      $( "#" + button ).click(function() {
+                        $("#' . $dialogconfirm . '").dialog("open");
+                  });
+                    }
+                });
+                });
+                </script>';
+            } elseif ($post && is_string($post)) {
+                $formconfirm .= '
+                        resizable: false,
+                        height: "' . $height . '",
+                        width: "' . $width . '",
+                        modal: true,
+                        closeOnEscape: false,
+                        buttons: {
+                            "' . dol_escape_js($langs->transnoentities("Yes")) . '": function() {
+                                var dialog_div = $("#' . $dialogconfirm . '");
+                                var form = $("form#'.$post.'");
+                                if (form.length == 0) form = $(\'form[name="'.$post.'"]\');
+
+                                var inputok = ' . json_encode($inputok) . ';
+                                if (inputok.length>0) {
+                                  $.each(inputok, function(i, inputname) {
+                                    var input = dialog_div.find("#" + inputname);
+                                    var form_input = find_form_input(form, inputname);
+
+                                    var more = "";
+                                    if (input.attr("type") == "checkbox") { more = ":checked"; }
+                                    if (input.attr("type") == "radio") { more = ":checked"; }
+
+                                    var inputvalue = dialog_div.find("#" + inputname + more).val();
+                                    if (typeof inputvalue == "undefined") { inputvalue=""; }
+                                    form_input.val(inputvalue);
+                                  });
+                                }
+
+                                var form_action_input = find_form_input(form, "action");
+                                var form_confirm_input = find_form_input(form, "confirm");
+                                form_action_input.val("'.$action.'");
+                                form_confirm_input.val("yes");
+                                form.submit();
+                                $(this).dialog("close");
+                            },
+                            "' . dol_escape_js($langs->transnoentities("No")) . '": function() {
+                                if (' . ($useajax == 2 ? '1' : '0') . ' == 1) {
+                                  var dialog_div = $("#' . $dialogconfirm . '");
+                                  var form = $("form#'.$post.'");
+                                  if (form.length == 0) form = $(\'form[name="'.$post.'"]\');
+
+				    var inputko = ' . json_encode($inputko) . ';
+                                  if (inputko.length>0) {
+                                    $.each(inputko, function(i, inputname) {
+                                      var input = dialog_div.find("#" + inputname);
+                                      var form_input = find_form_input(form, inputname);
+
+                                      var more = "";
+                                      if (input.attr("type") == "checkbox") { more = ":checked"; }
+                                      if (input.attr("type") == "radio") { more = ":checked"; }
+
+                                      var inputvalue = dialog_div.find("#" + inputname + more).val();
+                                      if (typeof inputvalue == "undefined") { inputvalue=""; }
+                                      form_input.val(inputvalue);
+                                    });
+                                  }
+
+                                  var form_action_input = find_form_input(form, "action");
+                                  var form_confirm_input = find_form_input(form, "confirm");
+                                  form_action_input.val("'.$action.'");
+                                  form_confirm_input.val("no");
+                                  form.submit();
+                                }
+                                $(this).dialog("close");
+                            }
+                        }
+                    }
+                    );
+
+                    function find_form_input(form, inputname) {
+                      var form_input = form.find("#" + inputname);
+                      if (form_input.length == 0) form_input = form.find(\'[name="'.$post.'"]\');
+                      if (form_input.length == 0) {
+                        form.append(\'<input type="hidden" id="\' + inputname + \'" name="\' + inputname + \'" value="">\');
+                        form_input = form.find("#" + inputname);
+                      }
+                      return form_input;
+                    }
+
+                  var button = "' . $button . '";
+                  if (button.length > 0) {
+                      $( "#" + button ).click(function() {
+                        $("#' . $dialogconfirm . '").dialog("open");
+                  });
+                    }
+                });
+                });
+                </script>';
+            } else {
+                $formconfirm .= '
+                        resizable: false,
+                        height: "' . $height . '",
+                        width: "' . $width . '",
+                        modal: true,
+                        closeOnEscape: false,
+                        buttons: {
+                            "' . dol_escape_js($langs->transnoentities("Yes")) . '": function() {
+				var options="";
+				var inputok = ' . json_encode($inputok) . ';
+				var pageyes = "' . dol_escape_js(!empty($pageyes) ? $pageyes : '') . '";
+				if (inputok.length>0) {
+					$.each(inputok, function(i, inputname) {
+						var more = "";
+						if ($("#" + inputname).attr("type") == "checkbox") { more = ":checked"; }
+					    if ($("#" + inputname).attr("type") == "radio") { more = ":checked"; }
+						var inputvalue = $("#" + inputname + more).val();
+						if (typeof inputvalue == "undefined") { inputvalue=""; }
+						options += "&" + inputname + "=" + urlencode(inputvalue);
+					});
+				}
+				var urljump = pageyes + (pageyes.indexOf("?") < 0 ? "?" : "") + options;
+				//alert(urljump);
+						if (pageyes.length > 0) { location.href = urljump; }
+                                $(this).dialog("close");
+                            },
+                            "' . dol_escape_js($langs->transnoentities("No")) . '": function() {
+				var options = "";
+				var inputko = ' . json_encode($inputko) . ';
+				var pageno="' . dol_escape_js(!empty($pageno) ? $pageno : '') . '";
+				if (inputko.length>0) {
+					$.each(inputko, function(i, inputname) {
+						var more = "";
+						if ($("#" + inputname).attr("type") == "checkbox") { more = ":checked"; }
+						var inputvalue = $("#" + inputname + more).val();
+						if (typeof inputvalue == "undefined") { inputvalue=""; }
+						options += "&" + inputname + "=" + urlencode(inputvalue);
+					});
+				}
+				var urljump=pageno + (pageno.indexOf("?") < 0 ? "?" : "") + options;
+				//alert(urljump);
+						if (pageno.length > 0) { location.href = urljump; }
+                                $(this).dialog("close");
+                            }
+                        }
+                    }
+                    );
+
+			var button = "' . $button . '";
+			if (button.length > 0) {
+			$( "#" + button ).click(function() {
+				$("#' . $dialogconfirm . '").dialog("open");
+				});
+                    }
+                });
+                });
+                </script>';
+            }
+            $formconfirm .= "<!-- end ajax form_confirm -->\n";
+        } else {
+            $formconfirm .= "\n<!-- begin form_confirm page=" . $page . " -->\n";
+
+            $formconfirm .= '<form method="POST" action="' . $page . '" class="notoptoleftroright">' . "\n";
+            $formconfirm .= '<input type="hidden" name="action" value="' . $action . '">' . "\n";
+            $formconfirm .= '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '">' . "\n";
+
+            $formconfirm .= '<table width="100%" class="valid">' . "\n";
+
+            // Line title
+            $formconfirm .= '<tr class="validtitre"><td class="validtitre" colspan="3">' . img_picto('', 'recent') . ' ' . $title . '</td></tr>' . "\n";
+
+            // Line form fields
+            if ($more) {
+                $formconfirm .= '<tr class="valid"><td class="valid" colspan="3">' . "\n";
+                $formconfirm .= $more;
+                $formconfirm .= '</td></tr>' . "\n";
+            }
+
+            // Line with question
+            $formconfirm .= '<tr class="valid">';
+            $formconfirm .= '<td class="valid">' . $question . '</td>';
+            $formconfirm .= '<td class="valid">';
+            $formconfirm .= $form->selectyesno("confirm", $newselectedchoice);
+            $formconfirm .= '</td>';
+            $formconfirm .= '<td class="valid" align="center"><input class="button valignmiddle" type="submit" value="' . $langs->trans("Validate") . '"></td>';
+            $formconfirm .= '</tr>' . "\n";
+
+            $formconfirm .= '</table>' . "\n";
+
+            $formconfirm .= "</form>\n";
+            $formconfirm .= '<br>';
+
+            $formconfirm .= "<!-- end form_confirm -->\n";
+        }
+
+        return $formconfirm;
     }
 
     /**
