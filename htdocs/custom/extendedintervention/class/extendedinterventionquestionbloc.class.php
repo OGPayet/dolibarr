@@ -1,5 +1,6 @@
 <?php
 /* Copyright (C) 2018   Open-DSI            <support@open-dsi.fr>
+/* Copyright (C) 2019   Alexis LAURIER      <alexis@alexislaurier.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -67,7 +68,9 @@ class EIQuestionBloc extends CommonObject
     static public $API_WHITELIST_OF_PROPERTIES = array(
         /*"id" => '', */"fk_fichinter" => '', "fk_equipment" => '',
         "fk_c_question_bloc" => '', "position_question_bloc" => '', "code_question_bloc" => '', "label_question_bloc" => '', "complementary_question_bloc" => '', "extrafields_question_bloc" => '',
-        "fk_c_question_bloc_status" => '', "code_status" => '', "label_status" => '', "mandatory_status" => '', "justificatory_status" => '', "array_options" => '',
+        "fk_c_question_bloc_status" => '', "code_status" => '', "label_status" => '', "mandatory_status" => '', "icone" => '',"title_editable" => '',"bloc_complementary_editable" => '', "deletable" => '',
+		"private_bloc" => '', "desactivated_bloc" => '',"desactivate_bloc_status"=>'',
+		"justificatory_status" => '', "array_options" => '',
         "status_list" => array(
             '' => array(
                 "id" => '', "position" => '', "code" => '', "label" => '', "mandatory" => '', "predefined_texts" => array(
@@ -221,6 +224,41 @@ class EIQuestionBloc extends CommonObject
      * @var int
      */
     public $mandatory_status;
+	 /**
+     * Question bloc icon classname between material design, fontawesome and others
+     * @var string
+     */
+    public $icone;
+	 /**
+     * Bloc title editable parameter
+     * @var int
+     */
+    public $title_editable;
+	 /**
+     * Question bloc complementary Text editable parameter
+     * @var int
+     */
+    public $bloc_complementary_editable;
+	 /**
+     * Question bloc deletable parameter
+     * @var int
+     */
+    public $deletable;
+	 /**
+     * Question bloc private parameter
+     * @var int
+     */
+    public $private_bloc;
+	 /**
+     * Question bloc desactivated statut
+     * @var int
+     */
+    public $desactivated_bloc;
+	/**
+     * Question bloc status desactivated property
+     * @var int
+     */
+    public $desactivate_bloc_status;
     /**
      * Question bloc status text
      * @var string
@@ -591,6 +629,13 @@ class EIQuestionBloc extends CommonObject
         $this->label_status = !empty($this->label_status) ? $this->label_status : '';
         $this->mandatory_status = isset($this->mandatory_status) ? (!empty($this->mandatory_status) ? 1 : 0) : null;
         $this->justificatory_status = !empty($this->justificatory_status) ? $this->justificatory_status : '';
+		$this->icone = !empty($this->icone) ? $this->icone : '';
+		$this->title_editable = isset($this->title_editable) ? (!empty($this->title_editable) ? 1 : 0) : null;
+		$this->bloc_complementary_editable = isset($this->bloc_complementary_editable) ? (!empty(bloc_complementary_editable) ? 1 : 0) : null;
+		$this->deletable = isset($this->deletable) ? (!empty($this->deletable) ? 1 : 0) : null;
+		$this->private_bloc = isset($this->private_bloc) ? (!empty($this->private_bloc) ? 1 : 0) : null;
+		$this->desactivated_bloc = isset($this->desactivated_bloc) ? (!empty($this->desactivated_bloc) ? 1 : 0) : null;
+		$this->desactivate_bloc_status = isset($this->desactivate_bloc_status) ? (!empty($this->desactivate_bloc_status) ? 1 : 0) : null;
 
         // Check parameters
         $error = 0;
@@ -611,6 +656,11 @@ class EIQuestionBloc extends CommonObject
                 $this->position_question_bloc = !empty($this->position_question_bloc) ? $this->position_question_bloc : $question_bloc->fields['position'];
                 $this->code_question_bloc = !empty($this->code_question_bloc) ? $this->code_question_bloc : $question_bloc->fields['code'];
                 $this->label_question_bloc = !empty($this->label_question_bloc) ? $this->label_question_bloc : $question_bloc->fields['label'];
+				$this->icone = !empty($this->icone) ? $this->icone : $question_bloc->fields['icone'];
+				$this->title_editable = !empty($this->title_editable) ? $this->title_editable : $question_bloc->fields['title_editable'];
+				$this->bloc_complementary_editable = !empty($this->bloc_complementary_editable) ? $this->bloc_complementary_editable : $question_bloc->fields['bloc_complementary_editable'];
+				$this->deletable = !empty($this->deletable) ? $this->deletable : $question_bloc->fields['deletable'];
+				$this->private_bloc = !empty($this->private_bloc) ? $this->private_bloc : $question_bloc->fields['private_bloc'];
                 $this->extrafields_question_bloc = !empty($this->extrafields_question_bloc) ? $this->extrafields_question_bloc : array_filter(explode(',', $question_bloc->fields['extra_fields']), 'strlen');
             } else {
                 $this->errors[] = $langs->trans("ExtendedInterventionErrorQuestionBlocDictionaryInfoNotFound", $this->fk_c_question_bloc);
@@ -641,6 +691,7 @@ class EIQuestionBloc extends CommonObject
                 $this->code_status = !empty($this->code_status) ? $this->code_status : $question_bloc_status->fields['code'];
                 $this->label_status = !empty($this->label_status) ? $this->label_status : $question_bloc_status->fields['label'];
                 $this->mandatory_status = isset($this->mandatory_status) ? $this->mandatory_status : (!empty($question_bloc_status->fields['mandatory']) ? 1 : 0);
+				$this->desactivated_bloc_status = isset($this->desactivated_bloc_status) ? $this->desactivated_bloc_status : (!empty($question_bloc_status->fields['desactivate_bloc']) ? 1 : 0);
             } else {
                 $this->errors[] = $langs->trans("ExtendedInterventionErrorQuestionBlocStatusDictionaryInfoNotFound", $this->fk_c_question_bloc_status);
                 $error++;
@@ -654,6 +705,7 @@ class EIQuestionBloc extends CommonObject
             $this->label_status = "";
             $this->mandatory_status = 0;
             $this->justificatory_status = "";
+			$this->desactivated_bloc_status = 0;
         }
         if ($error) {
             dol_syslog(__METHOD__ . " Errors: " . $this->errorsToString(), LOG_ERR);
@@ -676,6 +728,15 @@ class EIQuestionBloc extends CommonObject
         $sql .= ", label_status";
         $sql .= ", mandatory_status";
         $sql .= ", justificatory_status";
+
+		$sql .= ", icone";
+		$sql .= ", title_editable";
+		$sql .= ", bloc_complementary_editable";
+		$sql .= ", deletable";
+		$sql .= ", private_bloc";
+		$sql .= ", desactivated_bloc";
+		$sql .= ", desactivate_bloc_status";
+
         $sql .= ", fk_user_author";
         $sql .= ", datec";
         $sql .= ", entity";
@@ -692,6 +753,15 @@ class EIQuestionBloc extends CommonObject
         $sql .= ", " .  (!empty($this->label_status) ? "'" . $this->db->escape($this->label_status) . "'" : 'NULL');
         $sql .= ", " .  (!empty($this->mandatory_status) ? $this->mandatory_status : 'NULL');
         $sql .= ", " . (!empty($this->justificatory_status) ? "'" . $this->db->escape($this->justificatory_status) . "'" : 'NULL');
+
+        $sql .= ", " . (!empty($this->icone) ? "'" . $this->db->escape($this->icone) . "'" : 'NULL');
+		$sql .= ", " . (!empty($this->title_editable) ? "'" . $this->db->escape($this->title_editable) . "'" : 'NULL');
+		$sql .= ", " . (!empty($this->bloc_complementary_editable) ? "'" . $this->db->escape($this->bloc_complementary_editable) . "'" : 'NULL');
+		$sql .= ", " . (!empty($this->deletable) ? "'" . $this->db->escape($this->deletable) . "'" : 'NULL');
+		$sql .= ", " . (!empty($this->private_bloc) ? "'" . $this->db->escape($this->private_bloc) . "'" : 'NULL');
+		$sql .= ", " . (!empty($this->desactivated_bloc) ? "'" . $this->db->escape($this->desactivated_bloc) . "'" : 'NULL');
+		$sql .= ", " . (!empty($this->desactivate_bloc_status) ? "'" . $this->db->escape($this->desactivate_bloc_status) . "'" : 'NULL');
+
         $sql .= ", " . $user->id;
         $sql .= ", '" . $this->db->idate($now) . "'";
         $sql .= ", " . $conf->entity;
@@ -762,6 +832,13 @@ class EIQuestionBloc extends CommonObject
         $this->label_status = !empty($this->label_status) ? $this->label_status : '';
         $this->mandatory_status = isset($this->mandatory_status) ? (!empty($this->mandatory_status) ? 1 : 0) : null;
         $this->justificatory_status = !empty($this->justificatory_status) ? $this->justificatory_status : '';
+		$this->icone = !empty($this->icone) ? $this->icone : '';
+		$this->title_editable = isset($this->title_editable) ? (!empty($this->title_editable) ? 1 : 0) : null;
+		$this->bloc_complementary_editable = isset($this->bloc_complementary_editable) ? (!empty(bloc_complementary_editable) ? 1 : 0) : null;
+		$this->deletable = isset($this->deletable) ? (!empty($this->deletable) ? 1 : 0) : null;
+		$this->private_bloc = isset($this->private_bloc) ? (!empty($this->private_bloc) ? 1 : 0) : null;
+		$this->desactivated_bloc = isset($this->desactivated_bloc) ? (!empty($this->desactivated_bloc) ? 1 : 0) : null;
+		$this->desactivate_bloc_status = isset($this->desactivate_bloc_status) ? (!empty($this->desactivate_bloc_status) ? 1 : 0) : null;
 
         // Check parameters
         $error = 0;
@@ -827,6 +904,7 @@ class EIQuestionBloc extends CommonObject
                 $this->code_status = !empty($this->code_status) ? $this->code_status : $question_bloc_status->fields['code'];
                 $this->label_status = !empty($this->label_status) ? $this->label_status : $question_bloc_status->fields['label'];
                 $this->mandatory_status = isset($this->mandatory_status) ? $this->mandatory_status : (!empty($question_bloc_status->fields['mandatory']) ? 1 : 0);
+				$this->desactivated_bloc_status = isset($this->desactivated_bloc_status) ? $this->desactivated_bloc_status : (!empty($question_bloc_status->fields['desactivate_bloc']) ? 1 : 0);
             } else {
                 $this->errors[] = $langs->trans("ExtendedInterventionErrorQuestionBlocStatusDictionaryInfoNotFound", $this->fk_c_question_bloc_status);
                 $error++;
@@ -862,6 +940,17 @@ class EIQuestionBloc extends CommonObject
         $sql .= ", t.label_status = " . (!empty($this->label_status) ? "'" . $this->db->escape($this->label_status) . "'" : 'NULL');
         $sql .= ", t.mandatory_status = " . (!empty($this->mandatory_status) ? $this->mandatory_status : 'NULL');
         $sql .= ", t.justificatory_status = " . (!empty($this->justificatory_status) ? "'" . $this->db->escape($this->justificatory_status) . "'" : "NULL");
+
+
+        $sql .= ", t.icone = " . (!empty($this->icone) ? "'" . $this->db->escape($this->icone) . "'" : 'NULL');
+		$sql .= ", t.title_editable = " . (!empty($this->title_editable) ? "'" . $this->db->escape($this->title_editable) . "'" : 'NULL');
+		$sql .= ", t.bloc_complementary_editable = " . (!empty($this->bloc_complementary_editable) ? "'" . $this->db->escape($this->bloc_complementary_editable) . "'" : 'NULL');
+		$sql .= ", t.deletable = " . (!empty($this->deletable) ? "'" . $this->db->escape($this->deletable) . "'" : 'NULL');
+		$sql .= ", t.private_bloc = " . (!empty($this->private_bloc) ? "'" . $this->db->escape($this->private_bloc) . "'" : 'NULL');
+		$sql .= ", t.desactivated_bloc = " . (!empty($this->desactivated_bloc) ? "'" . $this->db->escape($this->desactivated_bloc) . "'" : 'NULL');
+		$sql .= ", t.desactivate_bloc_status = " . (!empty($this->desactivate_bloc_status) ? "'" . $this->db->escape($this->desactivate_bloc_status) . "'" : 'NULL');
+
+
         $sql .= ", t.fk_user_modif = " . $user->id;
         $sql .= ", t.tms = '" . $this->db->idate($now) . "'";
         $sql .= " WHERE t.entity IN (" . getEntity('ei_question_bloc') . ")";
@@ -1070,6 +1159,7 @@ class EIQuestionBloc extends CommonObject
         $sql = "SELECT t.rowid, p.fk_fichinter, p.fk_equipment";
         $sql .= ", t.fk_c_question_bloc, t.position_question_bloc, t.code_question_bloc, t.label_question_bloc, t.complementary_question_bloc, t.extrafields_question_bloc";
         $sql .= ", t.fk_c_question_bloc_status, t.code_status, t.label_status, t.mandatory_status, t.justificatory_status";
+		$sql .= ", t.icone, t.title_editable, t.bloc_complementary_editable, t.deletable, t.private_bloc, t.desactivated_bloc, t.desactivate_bloc_status";
         $sql .= ", t.datec, t.tms, t.fk_user_author, t.fk_user_modif, t.import_key";
         $sql .= " FROM " . MAIN_DB_PREFIX . $this->table_element . " AS t";
         $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . $this->table_element_parent . " AS p ON p.rowid = t.fk_survey_bloc";
@@ -1111,6 +1201,15 @@ class EIQuestionBloc extends CommonObject
                 $this->label_status                 = $obj->label_status;
                 $this->mandatory_status             = !empty($obj->mandatory_status) ? 1 : 0;
                 $this->justificatory_status         = $obj->justificatory_status;
+
+				$this->icone 						= $obj->icone;
+				$this->title_editable 				= !empty($obj->title_editable) ? 1 : 0;
+				$this->bloc_complementary_editable  = !empty($obj->bloc_complementary_editable) ? 1 : 0;
+				$this->deletable					= !empty($obj->deletable) ? 1 : 0;
+				$this->private_bloc				    = !empty($obj->private_bloc) ? 1 : 0;
+				$this->desactivated_bloc 			= !empty($obj->desactivated_bloc) ? 1 : 0;
+				$this->desactivate_bloc_status 		= !empty($obj->desactivate_bloc_status) ? 1 : 0;
+
                 $this->date_creation                = $this->db->jdate($obj->datec);
                 $this->date_modification            = $this->db->jdate($obj->tms);
                 $this->user_creation_id             = $obj->fk_user_author;
@@ -1135,6 +1234,13 @@ class EIQuestionBloc extends CommonObject
                 $this->label_status                 = '';
                 $this->mandatory_status             = 0;
                 $this->justificatory_status         = '';
+				$this->icone 						= '';
+				$this->title_editable 				= 0;
+				$this->bloc_complementary_editable  = 0;
+				$this->deletable					= 0;
+				$this->private_bloc				    = 0;
+				$this->desactivated_bloc 			= 0;
+				$this->desactivate_bloc_status 		= 0;
                 $this->date_creation                = 0;
                 $this->date_modification            = 0;
                 $this->user_creation_id             = 0;
@@ -1200,11 +1306,14 @@ class EIQuestionBloc extends CommonObject
                         $this->warning_label_status = 1;
                     }
                     // Mandatory text of the status of the question bloc
-                    $new_mandatory_status = !empty(self::$question_bloc_status_cached[$this->fk_c_question_bloc_status]->fields['mandatory']) ? 1 : 0;
-                    if ($this->mandatory_status != $new_mandatory_status) {
-                        $this->mandatory_status = $new_mandatory_status;
-                        $this->warning_mandatory_status = 1;
-                    }
+                    //$new_mandatory_status = !empty(self::$question_bloc_status_cached[$this->fk_c_question_bloc_status]->fields['mandatory']) ? 1 : 0;
+                    //if ($this->mandatory_status != $new_mandatory_status) {
+                    //    $this->mandatory_status = $new_mandatory_status;
+                    //    $this->warning_mandatory_status = 1;
+                    //}
+
+					//All fields in this list : mandatory_status, icone, title_editable, bloc_complementary_editable ,deletable, private_bloc, desactivated_bloc, desactivated_bloc_status
+					// aren't checked to be able to modify them by the api and to display these forced informations
 
                     $this->position_question_bloc       = $question_bloc->fields['position'];
                     $this->code_question_bloc           = $question_bloc->fields['code'];
@@ -1616,7 +1725,7 @@ class EIQuestionBlocLine extends CommonObjectLine
     static public $API_WHITELIST_OF_PROPERTIES = array(
 //        "id" => '', "fk_question_bloc" => '',
         "fk_fichinter" => '', "fk_equipment" => '', "fk_c_question_bloc" => '',
-        "fk_c_question" => '', "position_question" => '', "code_question" => '', "label_question" => '', "extrafields_question" => '',
+        "fk_c_question" => '', "position_question" => '', "code_question" => '', "label_question" => '',"extrafields_question" => '',
         "fk_c_answer" => '', "code_answer" => '', "label_answer" => '', "mandatory_answer" => '', "text_answer" => '', "array_options" => '',
         "answer_list" => array(
             '' => array(

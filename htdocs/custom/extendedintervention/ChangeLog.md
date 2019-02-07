@@ -3,6 +3,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.6] - 07-02-2019
+- Ajout de champs sur les blocs de questions et le statut des blocs de question. Permet un paramétrage de la saisie sur l'application mobile. Les paramètres ne sont pas reportés dans l'interface Dolibarr
+
 ## [4.0.5] - 17-01-2019
 - Ajout des questionnaires sur les interventions.
 

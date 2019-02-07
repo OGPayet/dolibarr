@@ -1,5 +1,6 @@
 <?php
 /* Copyright (C) 2018  Open-Dsi <support@open-dsi.fr>
+/* Copyright (C) 2019   Alexis LAURIER      <alexis@alexislaurier.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -171,6 +172,43 @@ class ExtendedInterventionQuestionBlocDictionary extends Dictionary
         'status' => array(),
         'questions' => array(),
         'extra_fields' => array(),
+		'icone' => array(
+            'name'       => 'icone',
+            'label'      => 'Icone',
+            'type'       => 'varchar',
+            'database'   => array(
+              'length'   => 255,
+            ),
+            'is_require' => true,
+        ),
+		'title_editable' => array(
+            'name'       => 'title_editable',
+            'label'      => 'Libellé du Bloc Editable ?',
+            'type'       => 'boolean',
+        ),
+		'bloc_complementary_editable' => array(
+            'name'       => 'bloc_complementary_editable',
+            'label'      => 'Texte complémentaire du Libellé du bloc Editable ?',
+            'type'       => 'boolean',
+        ),
+		'deletable' => array(
+            'name'       => 'deletable',
+            'label'      => 'Bloc supprimable ?',
+            'type'       => 'boolean',
+        ),
+		'private_bloc' => array(
+            'name'       => 'private_bloc',
+            'label'      => 'Bloc privé par défaut ?',
+            'type'       => 'boolean',
+        ),
+		'unique_bloc' => array(
+            'name'       => 'unique_bloc',
+            'label'      => "Ne générer ce bloc q'une fois ce bloc (non rattaché à un équipement)",
+            'type'       => 'boolean',
+        ),
+
+
+
     );
 
     /**
