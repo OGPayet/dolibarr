@@ -73,7 +73,7 @@ class EIQuestionBloc extends CommonObject
 		"justificatory_status" => '', "array_options" => '',
         "status_list" => array(
             '' => array(
-                "id" => '', "position" => '', "code" => '', "label" => '', "mandatory" => '', "predefined_texts" => array(
+                "id" => '', "position" => '', "code" => '', "label" => '', "mandatory" => '',"desactivate_bloc"=>'', "predefined_texts" => array(
                     '' => array(
                         "position" => '', "code" => '', "predefined_text" => ''
                     ),
