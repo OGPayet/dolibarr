@@ -258,6 +258,192 @@ class ActionsSynergiesTech
                     print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("SynergiesTechThridPartyNotDefined")) . '" href="#">' . $langs->trans("returnProducts") . '</a></div>';
                 }
             }
+
+            if ($object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+                // Add child request
+                if ($user->rights->requestmanager->creer) {
+                    dol_include_once('/advancedictionaries/class/dictionary.class.php');
+                    $requestManagerRequestTypeDictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagerrequesttype');
+                    $requestManagerRequestTypeDictionary->fetch_lines(1);
+
+                    if (!empty($requestManagerStatusDictionaryLine->fields['new_request_type'])) {
+                        foreach (explode(',', $requestManagerStatusDictionaryLine->fields['new_request_type']) as $request_type_id) {
+                            print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=create_request_child&new_request_type=' . $request_type_id . '">'
+                                . $langs->trans('RequestManagerCreateRequestChild', $requestManagerRequestTypeDictionary->lines[$request_type_id]->fields['label']) . '</a></div>';
+                        }
+                    }
+                }
+
+                $backtopage = dol_buildpath('/requestmanager/card.php', 1) . '?id=' . $object->id;
+                $commun_params = '&originid=' . $object->id . '&origin=' . $object->element . '&socid=' . $object->socid . '&backtopage=' . urlencode($backtopage);
+                $benefactor_params = !empty($conf->companyrelationships->enabled) ? '&companyrelationships_fk_soc_benefactor=' . $object->socid_benefactor : '';
+                $watcher_params = !empty($conf->companyrelationships->enabled) ? '&companyrelationships_fk_soc_watcher=' . $object->socid_watcher : '';
+                if (!empty($conf->global->REQUESTMANAGER_TITLE_TO_REF_CUSTOMER_WHEN_CREATE_OTHER_ELEMENT)) {
+                    $ref_client = '&ref_client=' . urlencode($object->label);
+                } else {
+                    $ref_client = '';
+                }
+
+                // Add proposal
+                if (!empty($conf->propal->enabled) && (count($authorizedButtons) == 0 || in_array('create_propal', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
+                    $langs->load("propal");
+                    if ($user->rights->propal->creer) {
+                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/comm/propal/card.php?action=create' . $commun_params . $benefactor_params . $watcher_params . $ref_client . '">' . $langs->trans("AddProp") . '</a></div>';
+                    } else {
+                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddProp") . '</a></div>';
+                    }
+                }
+
+                // Add order
+                if (!empty($conf->commande->enabled) && (count($authorizedButtons) == 0 || in_array('create_order', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
+                    $langs->load("orders");
+                    if ($user->rights->commande->creer) {
+                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/commande/card.php?action=create' . $commun_params . $benefactor_params . $watcher_params . $ref_client . '">' . $langs->trans("AddOrder") . '</a></div>';
+                    } else {
+                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddOrder") . '</a></div>';
+                    }
+                }
+
+                // Add invoice
+                if ($user->socid == 0 && !empty($conf->facture->enabled) && (count($authorizedButtons) == 0 || in_array('create_invoice', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
+                    $langs->load("bills");
+                    $langs->load("compta");
+                    if ($user->rights->facture->creer) {
+                        $object->fetch_thirdparty();
+                        if ($object->thirdparty->client != 0 && $object->thirdparty->client != 2) {
+                            print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/compta/facture/card.php?action=create' . $commun_params . $benefactor_params . $watcher_params . '">' . $langs->trans("AddBill") . '</a></div>';
+                        } else {
+                            print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("ThirdPartyMustBeEditAsCustomer")) . '" href="#">' . $langs->trans("AddBill") . '</a></div>';
+                        }
+                    } else {
+                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddBill") . '</a></div>';
+                    }
+                }
+
+                // Add supplier proposal
+                if (!empty($conf->supplier_proposal->enabled) && (count($authorizedButtons) == 0 || in_array('create_supplier_proposal', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
+                    $langs->load("supplier_proposal");
+                    if ($user->rights->supplier_proposal->creer) {
+                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/supplier_proposal/card.php?action=create' . $commun_params . '">' . $langs->trans("AddSupplierProposal") . '</a></div>';
+                    } else {
+                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddSupplierProposal") . '</a></div>';
+                    }
+                }
+
+                // Add supplier order
+                if (!empty($conf->fournisseur->enabled) && (count($authorizedButtons) == 0 || in_array('create_supplier_order', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
+                    $langs->load("suppliers");
+                    if ($user->rights->fournisseur->commande->creer) {
+                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/fourn/commande/card.php?action=create' . $commun_params . '">' . $langs->trans("AddSupplierOrder") . '</a></div>';
+                    } else {
+                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddSupplierOrder") . '</a></div>';
+                    }
+                }
+
+                // Add supplier invoice
+                if (!empty($conf->fournisseur->enabled) && (count($authorizedButtons) == 0 || in_array('create_supplier_invoice', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
+                    $langs->load("suppliers");
+                    if ($user->rights->fournisseur->facture->creer) {
+                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/fourn/facture/card.php?action=create' . $commun_params . '">' . $langs->trans("AddSupplierInvoice") . '</a></div>';
+                    } else {
+                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddSupplierInvoice") . '</a></div>';
+                    }
+                }
+
+                // Add contract
+                if (!empty($conf->contrat->enabled) && (count($authorizedButtons) == 0 || in_array('create_contract', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
+                    $langs->load("contracts");
+                    if ($user->rights->contrat->creer) {
+                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/contrat/card.php?action=create' . $commun_params . $benefactor_params . $watcher_params . $ref_client . '">' . $langs->trans("AddContract") . '</a></div>';
+                    } else {
+                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddContract") . '</a></div>';
+                    }
+                }
+
+                // Add intervention
+                if (!empty($conf->ficheinter->enabled) && (count($authorizedButtons) == 0 || in_array('create_inter', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
+                    $langs->load("interventions");
+                    if ($user->rights->ficheinter->creer) {
+                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/fichinter/card.php?action=create' . $commun_params . $benefactor_params . $watcher_params . '">' . $langs->trans("AddIntervention") . '</a></div>';
+                    } else {
+                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddIntervention") . '</a></div>';
+                    }
+                }
+
+                // Add project
+                if (!empty($conf->projet->enabled) && (count($authorizedButtons) == 0 || in_array('create_project', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
+                    $langs->load("projects");
+                    if ($user->rights->projet->creer) {
+                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/projet/card.php?action=create' . $commun_params . '">' . $langs->trans("AddProject") . '</a></div>';
+                    } else {
+                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddProject") . '</a></div>';
+                    }
+                }
+
+                // Add trip
+                if (!empty($conf->deplacement->enabled) && (count($authorizedButtons) == 0 || in_array('create_trip', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
+                    $langs->load("trips");
+                    if ($user->rights->deplacement->creer) {
+                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/compta/deplacement/card.php?action=create' . $commun_params . '">' . $langs->trans("AddTrip") . '</a></div>';
+                    } else {
+                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddTrip") . '</a></div>';
+                    }
+                }
+
+                // Add request
+                if ((count($authorizedButtons) == 0 || in_array('create_request_manager', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
+                    if ($user->rights->requestmanager->creer) {
+                        print '<div class="inline-block divButAction"><a class="butAction" href="' . dol_buildpath('/requestmanager/createfast.php', 2) . '?action=createfast&socid_origin=' . $object->socid . $commun_params . '">' . $langs->trans("RequestManagerAddRequest") . '</a></div>';
+                    } else {
+                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("RequestManagerAddRequest") . '</a></div>';
+                    }
+                }
+
+                // Add event
+                if (!empty($conf->agenda->enabled) && (count($authorizedButtons) == 0 || in_array('create_event', $authorizedButtons)) && !in_array('no_buttons', $authorizedButtons)) {
+                    $langs->load("commercial");
+                    if (!empty($user->rights->agenda->myactions->create) || !empty($user->rights->agenda->allactions->create)) {
+                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/comm/action/card.php?action=create' . $commun_params . '">' . $langs->trans("AddAction") . '</a></div>';
+                    } else {
+                        print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddAction") . '</a></div>';
+                    }
+                }
+            }
+
+            // Not Resolved
+            if ($object->statut_type == RequestManager::STATUS_TYPE_RESOLVED) {
+                if ($user->rights->requestmanager->creer) {
+                    print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=notresolved">'
+                        . $langs->trans('ReOpen') . '</a></div>';
+                } else {
+                    print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">'
+                        . $langs->trans("ReOpen") . '</a></div>';
+                }
+            }
+
+            // ReOpen
+            if ($object->statut_type == RequestManager::STATUS_TYPE_CLOSED) {
+                if ($user->rights->requestmanager->cloturer) {
+                    print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=reopen">'
+                        . $langs->trans('ReOpen') . '</a></div>';
+                } else {
+                    print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">'
+                        . $langs->trans("ReOpen") . '</a></div>';
+                }
+            }
+
+            // Delete
+            if ($object->statut_type == RequestManager::STATUS_TYPE_INITIAL) {
+                if ($user->rights->requestmanager->supprimer) {
+                    print '<div class="inline-block divButAction"><a class="butActionDelete" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=delete">'
+                        . $langs->trans('Delete') . '</a></div>';
+                } else {
+                    print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">'
+                        . $langs->trans("Delete") . '</a></div>';
+                }
+            }
+
+            return 1;
         } elseif (in_array('contractcard', $contexts)) {
             $langs->load('synergiestech@synergiestech');
             if ($action == 'synergiestech_generate_ticket_report') {
@@ -1728,7 +1914,73 @@ SCRIPT;
         return 0;
     }
 
-		function printFieldListWhereCustomerOrderToBill($parameters, &$object, &$action, $hookmanager)
+    /**
+	 * Overloading the addMoreInfoBlocs function : replacing the parent's function with the one below
+	 *
+	 * @param   array() $parameters Hook metadatas (context, etc...)
+	 * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+	 * @param   string &$action Current action (if set). Generally create or edit or null
+	 * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
+	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+	 */
+	function addMoreInfoBlocs($parameters, &$object, &$action, $hookmanager)
+    {
+        $contexts = explode(':', $parameters['context']);
+
+        if (in_array('requestmanagercard', $contexts)) {
+            global $user;
+
+            dol_include_once('/requestmanager/class/requestmanager.class.php');
+            if ($object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS && $user->rights->requestmanager->creer) {
+                global $langs, $file;
+
+                /*
+                 * Affiche formulaire message
+                 */
+
+                print '<div id="formmessagebeforetitle" name="formmessagebeforetitle"></div>';
+                print '<div class="clearboth"></div>';
+                print '<br>';
+                print load_fiche_titre($langs->trans('RequestManagerAddMessage'));
+
+                dol_fiche_head();
+
+                // Cree l'objet formulaire message
+                dol_include_once('/synergiestech/class/html.formsynergiestechmessage.class.php');
+                $formsynergiestechmessage = new FormSynergiesTechMessage($this->db, $object);
+
+                // Tableau des parametres complementaires du post
+                $formsynergiestechmessage->param['action'] = $action;
+                $formsynergiestechmessage->param['models_id'] = GETPOST('stmodelmessageselected', 'int');
+//                $formsynergiestechmessage->param['knowledgebase_id'] = GETPOST('knowledgebaseselected', 'int');
+                $formsynergiestechmessage->param['knowledgebaselist'] = GETPOST('knowledgebaselist', 'alpha');
+                $formsynergiestechmessage->param['returnurl'] = $_SERVER["PHP_SELF"] . '?id=' . $object->id;
+                $formsynergiestechmessage->withcancel = 0;
+
+                // Init list of files
+                if (GETPOST("messagemode") == 'init') {
+                    $formsynergiestechmessage->clear_attached_files();
+                    $formsynergiestechmessage->add_attached_files($file, basename($file), dol_mimetype($file));
+                }
+
+                // Show form
+                print $formsynergiestechmessage->get_message_form();
+
+                dol_fiche_end();
+            }
+        }
+    }
+
+    /**
+	 * Overloading the printFieldListWhereCustomerOrderToBill function : replacing the parent's function with the one below
+	 *
+	 * @param   array() $parameters Hook metadatas (context, etc...)
+	 * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+	 * @param   string &$action Current action (if set). Generally create or edit or null
+	 * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
+	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+	 */
+	function printFieldListWhereCustomerOrderToBill($parameters, &$object, &$action, $hookmanager)
     {
        return " AND c.total_ttc > 0 ";
     }

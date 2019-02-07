@@ -2294,6 +2294,10 @@ if ($object->id > 0) {
 
         print '</div>';
 
+        $parameters = array();
+        $reshook = $hookmanager->executeHooks('addMoreInfoBlocs', $parameters, $object, $action); // Note that $action and $object may have been
+        print $hookmanager->resPrint;
+
         /*
 	 * Events
 	 */

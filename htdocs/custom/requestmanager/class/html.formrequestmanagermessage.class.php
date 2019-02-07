@@ -231,7 +231,10 @@ class FormRequestManagerMessage
 
         dol_include_once('/requestmanager/class/requestmanagermessage.class.php');
 
-        if (!is_object($form)) $form = new Form($this->db);
+        if (!is_object($form)) {
+            require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
+            $form = new Form($this->db);
+        }
 
         $langs->load("other");
 
@@ -460,14 +463,16 @@ SCRIPT;
                     $external_tags .= $tmp;
                 }
             }
-            // Internal tags
-            $out .= '<tr>';
-            $out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityTagInterneLabel") . '</td>';
-            $out .= '<td colspan="3"><table class="noborder margintable centpercent">';
-            $out .= '<tr><th class="liste_titre" width="40%">Tags</th><th class="liste_titre">Mode</th></tr>';
-            $out .= $internal_tags;
-            $out .= '</table></td>';
-            $out .= '</tr>';
+            if ($user->rights->eventconfidentiality->internal->lire) {
+                // Internal tags
+                $out .= '<tr>';
+                $out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityTagInterneLabel") . '</td>';
+                $out .= '<td colspan="3"><table class="noborder margintable centpercent">';
+                $out .= '<tr><th class="liste_titre" width="40%">Tags</th><th class="liste_titre">Mode</th></tr>';
+                $out .= $internal_tags;
+                $out .= '</table></td>';
+                $out .= '</tr>';
+            }
             // External tags
             $out .= '<tr>';
             $out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityTagExterneLabel") . '</td>';

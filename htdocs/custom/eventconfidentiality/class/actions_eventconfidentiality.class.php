@@ -129,28 +129,36 @@ class ActionsEventConfidentiality
                     foreach ($dictionary->lines as $line) {
                         if (isset($_POST['ec_mode_' . $line->id])) $initialize_tags = false;
                         $mode = isset($_POST['ec_mode_' . $line->id]) ? GETPOST('ec_mode_' . $line->id, 'int') : (isset($tags_set) ? $tags_set[$line->id]['mode'] : EventConfidentiality::MODE_HIDDEN);
-                        $tmp = '<tr id="' . $line->id . '">';
-                        $tmp .= '<td>' . $line->fields['label'] . '</td>';
-                        $tmp .= '<td>';
-                        $tmp .= '<input type="radio" id="ec_mode_' . $line->id . '_' . EventConfidentiality::MODE_VISIBLE . '" name="ec_mode_' . $line->id . '" value="0"' . ($mode == EventConfidentiality::MODE_VISIBLE ? ' checked="checked"' : "") . '><label for="ec_mode_' . $line->id . '_' . EventConfidentiality::MODE_VISIBLE . '">' . $langs->trans('EventConfidentialityModeVisible') . '</label>';
-                        $tmp .= '&nbsp;<input type="radio" id="ec_mode_' . $line->id . '_' . EventConfidentiality::MODE_BLURRED . '" name="ec_mode_' . $line->id . '" value="1"' . ($mode == EventConfidentiality::MODE_BLURRED ? ' checked="checked"' : "") . '><label for="ec_mode_' . $line->id . '_' . EventConfidentiality::MODE_BLURRED . '">' . $langs->trans('EventConfidentialityModeBlurred') . '</label>';
-                        $tmp .= '&nbsp;<input type="radio" id="ec_mode_' . $line->id . '_' . EventConfidentiality::MODE_HIDDEN . '" name="ec_mode_' . $line->id . '" value="2"' . ($mode == EventConfidentiality::MODE_HIDDEN ? ' checked="checked"' : "") . '><label for="ec_mode_' . $line->id . '_' . EventConfidentiality::MODE_HIDDEN . '">' . $langs->trans('EventConfidentialityModeHidden') . '</label>';
-                        $tmp .= '</td>';
-                        $tmp .= '</tr>';
+                        if (empty($line->fields['external']) && !$user->rights->eventconfidentiality->internal->lire) {
+                            $tmp = '<input type="hidden" name="ec_mode_' . $line->id . '" value="'.($mode == EventConfidentiality::MODE_VISIBLE ? 0 : ($mode == EventConfidentiality::MODE_BLURRED ? 1 : 2)).'">';
+                        } else {
+                            $tmp = '<tr id="' . $line->id . '">';
+                            $tmp .= '<td>' . $line->fields['label'] . '</td>';
+                            $tmp .= '<td>';
+                            $tmp .= '<input type="radio" id="ec_mode_' . $line->id . '_' . EventConfidentiality::MODE_VISIBLE . '" name="ec_mode_' . $line->id . '" value="0"' . ($mode == EventConfidentiality::MODE_VISIBLE ? ' checked="checked"' : "") . '><label for="ec_mode_' . $line->id . '_' . EventConfidentiality::MODE_VISIBLE . '">' . $langs->trans('EventConfidentialityModeVisible') . '</label>';
+                            $tmp .= '&nbsp;<input type="radio" id="ec_mode_' . $line->id . '_' . EventConfidentiality::MODE_BLURRED . '" name="ec_mode_' . $line->id . '" value="1"' . ($mode == EventConfidentiality::MODE_BLURRED ? ' checked="checked"' : "") . '><label for="ec_mode_' . $line->id . '_' . EventConfidentiality::MODE_BLURRED . '">' . $langs->trans('EventConfidentialityModeBlurred') . '</label>';
+                            $tmp .= '&nbsp;<input type="radio" id="ec_mode_' . $line->id . '_' . EventConfidentiality::MODE_HIDDEN . '" name="ec_mode_' . $line->id . '" value="2"' . ($mode == EventConfidentiality::MODE_HIDDEN ? ' checked="checked"' : "") . '><label for="ec_mode_' . $line->id . '_' . EventConfidentiality::MODE_HIDDEN . '">' . $langs->trans('EventConfidentialityModeHidden') . '</label>';
+                            $tmp .= '</td>';
+                            $tmp .= '</tr>';
+                        }
                         if (empty($line->fields['external'])) {
                             $internal_tags .= $tmp;
                         } else {
                             $external_tags .= $tmp;
                         }
                     }
-                    // Internal tags
-                    $out .= '<tr>';
-                    $out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityTagInterneLabel") . '</td>';
-                    $out .= '<td colspan="3"><table class="noborder margintable centpercent">';
-                    $out .= '<tr><th class="liste_titre" width="40%">Tags</th><th class="liste_titre">Mode</th></tr>';
-                    $out .= $internal_tags;
-                    $out .= '</table></td>';
-                    $out .= '</tr>';
+                    if ($user->rights->eventconfidentiality->internal->lire) {
+                        // Internal tags
+                        $out .= '<tr>';
+                        $out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityTagInterneLabel") . '</td>';
+                        $out .= '<td colspan="3"><table class="noborder margintable centpercent">';
+                        $out .= '<tr><th class="liste_titre" width="40%">Tags</th><th class="liste_titre">Mode</th></tr>';
+                        $out .= $internal_tags;
+                        $out .= '</table></td>';
+                        $out .= '</tr>';
+                    } else {
+                        $out .= $internal_tags;
+                    }
                     // External tags
                     $out .= '<tr>';
                     $out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityTagExterneLabel") . '</td>';
@@ -180,10 +188,14 @@ class ActionsEventConfidentiality
                 if (action_code in ec_default_tags) {
                     $.map(ec_default_tags[action_code], function(val, idx) {
                         $('#ec_mode_' + idx + '_' + val['mode']).prop('checked', true);
+                        $('input[type="hidden"][name="ec_mode_' + idx + '"]').val(val['mode']);
                     })
                 } else {
                     $.map($('[id^="ec_mode_"][id$="_$hidden_mode"]'), function(val, idx) {
                         $(val).prop('checked', true);
+                    });
+                    $.map($('input[type="hidden"][name^="ec_mode_"]'), function(val, idx) {
+                        $(val).val($hidden_mode);
                     });
                 }
             }
@@ -243,11 +255,13 @@ SCRIPT;
                             }
                         }
                     }
-                    // Internal tags
-                    $out .= '<tr>';
-                    $out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityTagInterneLabel") . '</td>';
-                    $out .= '<td colspan="3"><div class="select2-container-multi-dolibarr" style="width: 90%;"><ul class="select2-choices-dolibarr">' . implode(' ', $internal_tags) . '</ul></div></td>';
-                    $out .= '</tr>';
+                    if ($user->rights->eventconfidentiality->internal->lire) {
+                        // Internal tags
+                        $out .= '<tr>';
+                        $out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityTagInterneLabel") . '</td>';
+                        $out .= '<td colspan="3"><div class="select2-container-multi-dolibarr" style="width: 90%;"><ul class="select2-choices-dolibarr">' . implode(' ', $internal_tags) . '</ul></div></td>';
+                        $out .= '</tr>';
+                    }
                     // External tags
                     $out .= '<tr>';
                     $out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityTagExterneLabel") . '</td>';

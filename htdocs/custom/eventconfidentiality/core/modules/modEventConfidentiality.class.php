@@ -206,6 +206,13 @@ class modEventConfidentiality extends DolibarrModules
         $this->rights[$r][4] = 'manage';
         $r++;
 
+        $this->rights[$r][0] = 163038;
+        $this->rights[$r][1] = 'Affiche les tags internes';
+        $this->rights[$r][3] = 0;
+        $this->rights[$r][4] = 'internal';
+        $this->rights[$r][5] = 'lire';
+        $r++;
+
         // Add here list of permission defined by an id, a label, a boolean and two constant strings.
         // Example:
         // $this->rights[$r][0] = $this->numero + $r;	// Permission id (must not be already used)

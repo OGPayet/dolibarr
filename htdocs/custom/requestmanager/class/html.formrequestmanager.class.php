@@ -961,9 +961,11 @@ class FormRequestManager
      * 	@param		string	$type			Type of category ('member', 'customer', 'supplier', 'product', 'contact', 'requestmanager')
      *  @param		int		$rendermode		0=Default, use multiselect. 1=Emulate multiselect (recommended)
      *  @param		int		$editMode		[=FALSE] for view mode, TRUE for edit mode (with rendermode=0 only)
+     *	@param	    string	$htmlname		Name of select
+     *	@param	    array	$arrayselected  Selected values
      * 	@return		string					String with categories
      */
-    function showCategories($id, $type, $rendermode=0, $editMode=FALSE)
+    function showCategories($id, $type, $rendermode=0, $editMode=FALSE, $htmlname='categories', $arrayselected=null)
     {
         global $db;
 
@@ -988,9 +990,11 @@ class FormRequestManager
 
         if ($rendermode == 0)
         {
-            $arrayselected = array();
-            foreach($categories as $c) {
-                $arrayselected[] = $c->id;
+            if (!isset($arrayselected)) {
+                $arrayselected = array();
+                foreach ($categories as $c) {
+                    $arrayselected[] = $c->id;
+                }
             }
 
             $selectMoreAttrib = 'disabled';
@@ -1000,7 +1004,7 @@ class FormRequestManager
                 $selectElementType = '';
             }
 
-            return $this->multiselect_categories($arrayselected,'categories', '', 0, '', 0, '100%', $selectMoreAttrib, $selectElementType);
+            return $this->multiselect_categories($arrayselected, $htmlname, '', 0, '', 0, '100%', $selectMoreAttrib, $selectElementType);
         }
 
         return 'ErrorBadValueForParameterRenderMode';	// Should not happened
