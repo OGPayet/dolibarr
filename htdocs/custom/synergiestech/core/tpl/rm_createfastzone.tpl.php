@@ -529,6 +529,50 @@ if ($zone === 3) {
         print '</table>';
         print '</div>';
 
+        // Last 5 events filtered of this thirdparty
+        if (!empty($conf->global->SYNERGIESTECH_CREATE_REQUEST_EVENT)) {
+            $nbFiltered = 5;
+            $search_type = explode(',', $conf->global->SYNERGIESTECH_CREATE_REQUEST_EVENT);
+            $filter = '';
+            if (!empty($search_type)) {
+                $cac_sql = array();
+                $search_type_tmp = $search_type;
+                if (in_array('AC_NON_AUTO', $search_type_tmp) || in_array('AC_OTH', $search_type_tmp)) {
+                    $cac_sql[] = "cac.type != 'systemauto'";
+                    $search_type_tmp = array_diff($search_type_tmp, array('AC_NON_AUTO', 'AC_OTH'));
+                }
+                if (in_array('AC_ALL_AUTO', $search_type_tmp) || in_array('AC_OTH_AUTO', $search_type_tmp)) {
+                    $cac_sql[] = "cac.type = 'systemauto'";
+                    $search_type_tmp = array_diff($search_type_tmp, array('AC_ALL_AUTO', 'AC_OTH_AUTO'));
+                }
+                $cac_sql[] = "cac.code IN ('" . implode("','", $search_type_tmp) . "')";
+                $filter = " AND (" . implode(" OR ", $cac_sql) . ")";
+            }
+            $lastEventList = $requestManager->loadAllLastEventByFkSoc($selectedSocId, $nbFiltered, " LEFT JOIN " . MAIN_DB_PREFIX . "c_actioncomm as cac ON cac.id = ac.fk_action", $filter);
+            print '<br />';
+            print load_fiche_titre($langs->trans('SynergiesTechLastFilteredEvents', $nbFiltered), '', '');
+            print '<div class="div-table-responsive-no-min">';
+            print '<table class="noborder allwidth">';
+            print '<tr class="liste_titre">';
+            print '<td>' . $langs->trans("Ref") . '</td>';
+            print '<td>' . $langs->trans("Label") . '</td>';
+            print '<td>' . $langs->trans("Description") . '</td>';
+            print '<td></td>';
+            print '</tr>';
+            if (count($lastEventList) > 0) {
+                foreach ($lastEventList as $actionComm) {
+                    print '</tr>';
+                    print '<tr class="liste">';
+                    print '<td align="left"><a href="' . DOL_URL_ROOT . '/comm/action/card.php?id=' . $actionComm->id . '" target="_blank">' . $actionComm->id . '</a></td>';
+                    print '<td align="left">' . $actionComm->label . '</td>';
+                    print '<td align="left">' . $actionComm->note . '</td>';
+                    print '<tr>';
+                }
+            }
+            print '</table>';
+            print '</div>';
+        }
+
         // Wrapper to show tooltips (html or onclick popup)
         if (! empty($conf->use_javascript_ajax) && empty($conf->dol_no_mouse_hover))
         {

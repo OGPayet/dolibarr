@@ -17,5 +17,10 @@
 
 ALTER TABLE llx_requestmanager_message_knowledge_base ADD position integer NOT NULL DEFAULT 0; -- position
 
+ALTER TABLE llx_requestmanager_message_knowledge_base DROP FOREIGN KEY fk_requestmanager_mkb_fk_actioncomm;
+ALTER TABLE llx_requestmanager_message_knowledge_base DROP FOREIGN KEY fk_requestmanager_mkb_fk_knowledge_base;
 ALTER TABLE llx_requestmanager_message_knowledge_base DROP INDEX uk_requestmanager_mkb;
+
 ALTER TABLE llx_requestmanager_message_knowledge_base ADD UNIQUE INDEX uk_requestmanager_mkb (fk_actioncomm, position, fk_knowledge_base);
+ALTER TABLE llx_requestmanager_message_knowledge_base ADD CONSTRAINT fk_requestmanager_mkb_fk_actioncomm      FOREIGN KEY (fk_actioncomm) REFERENCES llx_actioncomm (id);
+ALTER TABLE llx_requestmanager_message_knowledge_base ADD CONSTRAINT fk_requestmanager_mkb_fk_knowledge_base  FOREIGN KEY (fk_knowledge_base) REFERENCES llx_c_requestmanager_knowledge_base (rowid);

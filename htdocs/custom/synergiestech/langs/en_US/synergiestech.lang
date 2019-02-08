@@ -30,6 +30,7 @@ SynergiesTechProductCategoryForContractFormule                      = Catégorie
 SynergiesTechProductCategoryForAdvancedTicketEmplacement            = Catégorie des produits servant de base aux emplacements sur les messages des tickets
 SynergiesTechPrincipalWarehouse                                     = Entrepôt principal
 SynergiesTechPrincipalWarehouseNbShowed                             = Nombre d'entrepôt affiché dans l'info-bulle des stocks de l'entrepôt principal
+SynergiesTechCreateRequestEvent                                     = Choix des types d'évènements à afficher dans la "Liste des 5 derniers évènements filtrés" lors de la création d'une demande
 
 #######################################################################
 # Extrafields
@@ -159,7 +160,14 @@ SynergiesTechNoStockIntoPrincipalWarehouse  = Pas de stock dans l'entrepôt prin
 SynergiesTechErrorPrincipalWarehouseNotDefined      = Entrepôt principal non définie dans la configuration du module Synergies-Tech
 
 
-###########################################################
-### Misc
-###########################################################
 SuppliersPricesOfProductsOrServicesUpgraded = Prix fournisseurs amélioré (des produits ou services)
+
+###########################################################
+### Create message request
+###########################################################
+SynergiesTechMessageKnowledgeBaseSelected   = Base de connaissance sélectionnées
+
+###########################################################
+### Create request
+###########################################################
+SynergiesTechLastFilteredEvents = Liste des %s derniers évènements filtrés

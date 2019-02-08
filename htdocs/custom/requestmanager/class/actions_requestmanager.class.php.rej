@@ -1,10 +1,44 @@
 diff a/htdocs/custom/requestmanager/class/actions_requestmanager.class.php b/htdocs/custom/requestmanager/class/actions_requestmanager.class.php	(rejected hunks)
-@@ -162,7 +162,7 @@ class ActionsRequestManager
-                     $langs->load('requestmanager@requestmanager');
+@@ -372,16 +372,12 @@ class ActionsRequestManager
  
-                     if ($action == 'edit' || $action == 'update') {
--                        $this->errors[] = $langs->trans('RequestManagerErrorMessageCanNotBeModified');
-+                        /*$this->errors[] = $langs->trans('RequestManagerErrorMessageCanNotBeModified');
-                         $action = '';
-                         return -1;
-                         /*$error = 0;
+             $requestManagerMessage->fetch_knowledge_base(1);
+             print '<tr><td class="nowrap" class="titlefield">' . $langs->trans("RequestManagerMessageKnowledgeBase") . '</td>';
+-//            if ($action == 'edit') {
+-//                print '<td>';
+-//            } else {
+-                print '<td colspan="3">';
+-                $toprint = array();
+-                foreach($requestManagerMessage->knowledge_base_list as $knowledge_base) {
+-                    $toprint[] = '<li class="select2-search-choice-dolibarr noborderoncategories style="background: #aaa">' . $knowledge_base->fields['code'] . ' - ' . $knowledge_base->fields['title'] . '</li>';
+-//                }
+-                print '<div class="select2-container-multi-dolibarr" style="width: 90%;"><ul class="select2-choices-dolibarr">'.implode(' ', $toprint).'</ul></div>';
++            print '<td colspan="3">';
++            $toprint = array();
++            foreach ($requestManagerMessage->knowledge_base_list as $knowledge_base) {
++                $toprint[] = '<li class="select2-search-choice-dolibarr noborderoncategories style="background: #aaa">' . $knowledge_base->fields['code'] . ' - ' . $knowledge_base->fields['title'] . '</li>';
+             }
++            print '<div class="select2-container-multi-dolibarr" style="width: 90%;"><ul class="select2-choices-dolibarr">' . implode(' ', $toprint) . '</ul></div>';
+             print '</td>';
+             print '</tr>';
+ 
+@@ -398,11 +394,7 @@ class ActionsRequestManager
+             print "</td></tr>";
+ 
+             // Other attributes
+-//            if ($action == "edit") {
+-//                print $requestManagerMessage->showOptionals($extrafields, 'edit', array('colspan'=>3), 'rm_message_');
+-//            } else {
+-                print $requestManagerMessage->showOptionals($extrafields, 'view', array('colspan'=>3));
+-//            }
++            print $requestManagerMessage->showOptionals($extrafields, 'view', array('colspan' => 3));
+ 
+             return 1;
+         } elseif (in_array('contractcard', $contexts)) {
+@@ -445,7 +437,6 @@ class ActionsRequestManager
+             </script>
+ SCRIPT;
+             }
+-
+         }
+ 
+         return 0;

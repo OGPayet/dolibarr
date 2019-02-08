@@ -981,7 +981,114 @@ SCRIPT;
                     setEventMessage($langs->trans('RetourProduitsErrorNoProductSelected'), 'errors');
                     $action = "synergiestech_returnproducts";
                 }
+            } // Add message
+            elseif ($action == 'stpremessage' && GETPOST('addmessage', 'alpha') && !$_POST['addfile'] && !$_POST['removAll'] && !$_POST['removedfile'] && !$_POST['modelselected'] &&
+                $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS
+            ) {
+                $error = 0;
+                $this->db->begin();
+
+                dol_include_once('/requestmanager/class/html.formrequestmanagermessage.class.php');
+                $formrequestmanagermessage = new FormRequestManagerMessage($this->db, $object);
+
+                dol_include_once('/requestmanager/class/requestmanagermessage.class.php');
+                $requestmanagermessage = new RequestManagerMessage($this->db);
+
+                $requestmanagermessage->message_type = GETPOST('message_type', 'int');
+                $requestmanagermessage->notify_assigned = GETPOST('notify_assigned', 'int');
+                $requestmanagermessage->notify_requesters = GETPOST('notify_requesters', 'int');
+                $requestmanagermessage->notify_watchers = GETPOST('notify_watchers', 'int');
+                $requestmanagermessage->attached_files = $formrequestmanagermessage->get_attached_files();
+                $requestmanagermessage->knowledge_base_ids = null;
+                $requestmanagermessage->label = GETPOST('subject', 'alpha');
+                $requestmanagermessage->note = GETPOST('message');
+                $requestmanagermessage->requestmanager = $object;
+
+                // Get extra fields of the message
+                require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
+                $message_extrafields = new ExtraFields($this->db);
+                $message_extralabels = $message_extrafields->fetch_name_optionals_label($requestmanagermessage->table_element);
+                $ret = $message_extrafields->setOptionalsFromPost($message_extralabels, $requestmanagermessage);
+
+                // Save tags/categories
+                $rmanager = new RequestManager($this->db);
+                $rmanager->fetch($object->id);
+                $rmanager->fetch_tags(1);
+                $rmanager->oldcopy = clone $object;
+                $tags_categories = GETPOST('tags_categories');
+                $result = $rmanager->setCategories($tags_categories);
+                if ($result < 0) {
+                    setEventMessages($rmanager->error, $rmanager->errors, 'errors');
+                    $error++;
+                }
+
+                // create message
+                if (!$error) {
+                    $result = $requestmanagermessage->create($user);
+                    if ($result < 0) {
+                        setEventMessages($requestmanagermessage->error, $requestmanagermessage->errors, 'errors');
+                        $error++;
+                    }
+                }
+
+                // Add knowledge base list into the message
+                if (!$error) {
+                    $knowledgebaselist = GETPOST('knowledgebaselist', 'alpha');
+                    $knowledgebaselist = !empty($knowledgebaselist) ? explode(',', $knowledgebaselist) : array();
+
+                    if (count($knowledgebaselist) > 0) {
+                        $idx = 0;
+                        $sql = 'INSERT INTO ' . MAIN_DB_PREFIX . 'requestmanager_message_knowledge_base(fk_actioncomm, position, fk_knowledge_base) VALUES';
+                        foreach ($knowledgebaselist as $kb_id) {
+                            $sql .= '(' . $requestmanagermessage->id . ',' . $idx . ',' . $kb_id . '),';
+                            $idx++;
+                        }
+                        $sql = substr($sql, 0, -1);
+
+                        $resql = $this->db->query($sql);
+                        if (!$resql) {
+                            setEventMessages($this->db->lasterror(), null, 'errors');
+                            $error++;
+                        }
+                    }
+                }
+
+                if ($error) {
+                    $this->db->rollback();
+                    $action = 'stpremessage';
+                } else {
+                    $formrequestmanagermessage->remove_all_attached_files();
+                    $this->db->commit();
+                    header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
+                    exit();
+                }
+            } // Add file
+            elseif (GETPOST('addfile', 'alpha')) {
+                dol_include_once('/requestmanager/lib/requestmanagermessage.lib.php');
+
+                // Set tmp user directory
+                $vardir = $conf->user->dir_output . "/" . $user->id;
+                $upload_dir_tmp = $vardir . '/temp/rm-' . $object->id . '/';             // TODO Add $keytoavoidconflict in upload_dir path
+
+                requestmanagermessage_add_file_process($object, $upload_dir_tmp, 0, 0, 'addedfile', '', null);
+                $action = 'stpremessage';
+                return 1;
+            } // Remove file
+            elseif (!empty($_POST['removedfile']) && empty($_POST['removAll'])) {
+                dol_include_once('/requestmanager/lib/requestmanagermessage.lib.php');
+
+                // Set tmp user directory
+                $vardir = $conf->user->dir_output . "/" . $user->id;
+                $upload_dir_tmp = $vardir . '/temp/rm-' . $object->id . '/';             // TODO Add $keytoavoidconflict in upload_dir path
+
+                // TODO Delete only files that was uploaded from email form. This can be addressed by adding the trackid into the temp path then changing donotdeletefile to 2 instead of 1 to say "delete only if into temp dir"
+                // GETPOST('removedfile','alpha') is position of file into $_SESSION["listofpaths"...] array.
+                requestmanagermessage_remove_file_process($object, GETPOST('removedfile', 'alpha'), 0, 0);   // We do not delete because if file is the official PDF of doc, we don't want to remove it physically
+                $action = 'stpremessage';
+                return 1;
             }
+
+            if ($action == 'premessage') $action == 'stpremessage';
         } elseif (in_array('contractcard', $contexts)) {
             $langs->load('synergiestech@synergiestech');
             if ($user->rights->synergiestech->generate->ticket_report && $action == 'synergiestech_generate_ticket_report_confirm' && $confirm == 'yes') {
@@ -1952,7 +2059,6 @@ SCRIPT;
                 // Tableau des parametres complementaires du post
                 $formsynergiestechmessage->param['action'] = $action;
                 $formsynergiestechmessage->param['models_id'] = GETPOST('stmodelmessageselected', 'int');
-//                $formsynergiestechmessage->param['knowledgebase_id'] = GETPOST('knowledgebaseselected', 'int');
                 $formsynergiestechmessage->param['knowledgebaselist'] = GETPOST('knowledgebaselist', 'alpha');
                 $formsynergiestechmessage->param['returnurl'] = $_SERVER["PHP_SELF"] . '?id=' . $object->id;
                 $formsynergiestechmessage->withcancel = 0;

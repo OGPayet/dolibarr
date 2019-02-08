@@ -76,6 +76,7 @@ $search_date_creation               = GETPOST('search_date_creation', 'alpha');
 $search_date_modification           = GETPOST('search_date_modification', 'alpha');
 $search_user_author                 = GETPOST('search_user_author', 'alpha');
 $search_user_modification           = GETPOST('search_user_modification', 'alpha');
+$search_dont_show_children_request  = GETPOST('search_dont_show_children_request','int');
 $search_status_det                  = GETPOST('search_status_det','array');
 $status_type                        = GETPOST('status_type', 'int');
 $optioncss                          = GETPOST('optioncss', 'alpha');
@@ -198,6 +199,7 @@ if (GETPOST('button_removefilter_x','alpha') || GETPOST('button_removefilter.x',
     $search_date_modification='';
     $search_user_author='';
     $search_user_modification='';
+    $search_dont_show_children_request='';
     $status_type=-1;
 	//$toselect='';
     $search_array_options=array();
@@ -287,6 +289,7 @@ if ($search_date_creation) $param .= '&search_date_creation=' . urlencode($searc
 if ($search_date_modification) $param .= '&search_date_modification=' . urlencode($search_date_modification);
 if ($search_user_author) $param .= '&search_user_author=' . urlencode($search_user_author);
 if ($search_user_modification) $param .= '&search_user_modification=' . urlencode($search_user_modification);
+if ($search_dont_show_children_request) $param .= '&search_dont_show_children_request=' . urlencode($search_dont_show_children_request);
 if (count($search_status_det)) $param .= '&search_status_det=' . urlencode($search_status_det);
 if ($status_type !== '' && $status_type != -1) $param .= '&status_type=' . urlencode($status_type);
 if ($optioncss != '') $param .= '&optioncss=' . urlencode($optioncss);
@@ -343,6 +346,12 @@ foreach ($rmstatusdictionary->lines as $line) {
 }
 $moreforfilter.=$form->multiselectarray('search_status_det',  $statut_array, $search_status_det, 0, 0, ' minwidth300');
 $moreforfilter.='</div>';
+
+// Filter don't show children request
+$moreforfilter .= '<div class="divsearchfield">';
+$moreforfilter .= $langs->trans('RequestManagerDontShowChildrenRequest') . ': ';
+$moreforfilter .= $form->selectyesno('search_dont_show_children_request', $search_dont_show_children_request,  1);
+$moreforfilter .= '</div>';
 
 $parameters = array();
 $reshook = $hookmanager->executeHooks('printFieldPreListTitle', $parameters);    // Note that $action and $object may have been modified by hook
@@ -712,6 +721,7 @@ if ($search_date_creation)  $sqlFilterSearch.= natural_search('rm.datec', $searc
 if ($search_date_modification)  $sqlFilterSearch.= natural_search('rm.tms', $search_date_modification, 1);
 if ($search_user_author)  $sqlFilterSearch.= natural_search(array('ua.firstname', 'ua.lastname'), $search_user_author);
 if ($search_user_modification)  $sqlFilterSearch.= natural_search(array('um.firstname', 'um.lastname'), $search_user_modification);
+if ($search_dont_show_children_request)  $sqlFilterSearch.= ' AND rm.fk_parent IS NULL';
 if (count($search_status_det))  $sqlFilterSearch.= natural_search(array('rm.fk_status'), implode(',', $search_status_det), 2);
 if ($status_type >= 0)  $sqlFilterSearch.= ' AND crmst.type = ' . $status_type;
 elseif ($status_type == -2)  $sqlFilterSearch.= ' AND crmst.type IN (' . RequestManager::STATUS_TYPE_INITIAL . ', ' . RequestManager::STATUS_TYPE_IN_PROGRESS . ')';

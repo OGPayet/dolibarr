@@ -619,7 +619,7 @@ class RequestManager extends CommonObject
         $this->notify_watcher_by_email = !empty($this->notify_watcher_by_email) ? 1 : 0;
         $this->assigned_user_ids = empty($this->assigned_user_ids) ? array() : (is_string($this->assigned_user_ids) ? explode(',', $this->assigned_user_ids) : $this->assigned_user_ids);
         $this->assigned_usergroup_ids = empty($this->assigned_usergroup_ids) ? array() : (is_string($this->assigned_usergroup_ids) ? explode(',', $this->assigned_usergroup_ids) : $this->assigned_usergroup_ids);
-        $this->notify_assigned_by_email = !isset($this->notify_assigned_by_email) ? 1 : (!empty($this->notify_assigned_by_email) ? 1 : 0);
+        $this->notify_assigned_by_email = !empty($conf->global->REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_EMAIL) ? (!isset($this->notify_assigned_by_email) ? 1 : (!empty($this->notify_assigned_by_email) ? 1 : 0)) : 0;
         $this->date_operation = $this->date_operation > 0 ? $this->date_operation : 0;
         $this->date_deadline = $this->date_deadline > 0 ? $this->date_deadline : 0;
         $this->statut = $status > 0 ? $status : 0;
@@ -1133,7 +1133,7 @@ class RequestManager extends CommonObject
                 $this->fk_priority                  = $obj->fk_priority;
                 $this->notify_requester_by_email    = empty($obj->notify_requester_by_email) ? 0 : 1;
                 $this->notify_watcher_by_email      = empty($obj->notify_watcher_by_email) ? 0 : 1;
-                $this->notify_assigned_by_email     = empty($obj->notify_assigned_by_email) ? 0 : 1;
+                $this->notify_assigned_by_email     = !empty($conf->global->REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_EMAIL) && !empty($obj->notify_assigned_by_email) ? 1 : 0;
                 $this->duration                     = $obj->duration;
                 $this->fk_reason_resolution         = $obj->fk_reason_resolution;
                 $this->reason_resolution_details    = $obj->reason_resolution_details;
@@ -1454,19 +1454,22 @@ class RequestManager extends CommonObject
      *
      * @param   int     $fkSoc      [=0] Id of thirdparty
      * @param   int     $limit      [=0] Limit to load, 0 to load nothing, -1 to load all
+     * @param   string  $join       Join SQL
+     * @param   string  $filter     Filter SQL
      * @return  array   List of ActionCom
      */
-    public function loadAllLastEventByFkSoc($fkSoc=0, $limit=0)
+    public function loadAllLastEventByFkSoc($fkSoc=0, $limit=0, $join='', $filter='')
     {
         $lastEventList = array();
 
-        $sql  = "SELECT";
-        $sql .= " ac.id";
+        $sql  = "SELECT DISTINCT ac.id";
         $sql .= " FROM " . MAIN_DB_PREFIX . "actioncomm ac";
+        if (!empty($join)) $sql .= $join;
         $sql .= " WHERE ac.entity IN (" . getEntity('agenda') . ")";
         if ($fkSoc >= 0) {
             $sql .= " AND ac.fk_soc= " . $fkSoc;
         }
+        if (!empty($filter)) $sql .= $filter;
         $sql .= " ORDER BY ac.datep DESC";
         if ($limit > 0) {
             $sql .= " LIMIT " . $limit;
@@ -1786,7 +1789,7 @@ class RequestManager extends CommonObject
         $this->notify_watcher_by_email = !empty($this->notify_watcher_by_email) ? 1 : 0;
         $this->assigned_user_ids = empty($this->assigned_user_ids) ? array() : (is_string($this->assigned_user_ids) ? explode(',', $this->assigned_user_ids) : $this->assigned_user_ids);
         $this->assigned_usergroup_ids = empty($this->assigned_usergroup_ids) ? array() : (is_string($this->assigned_usergroup_ids) ? explode(',', $this->assigned_usergroup_ids) : $this->assigned_usergroup_ids);
-        $this->notify_assigned_by_email = !empty($this->notify_assigned_by_email) ? 1 : 0;
+        $this->notify_assigned_by_email = !empty($conf->global->REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_EMAIL) && !empty($this->notify_assigned_by_email) ? 1 : 0;
         $this->date_operation = $this->date_operation > 0 ? $this->date_operation : 0;
         $this->date_deadline = $this->date_deadline > 0 ? $this->date_deadline : 0;
         $this->duration = $this->duration > 0 ? $this->duration : 0;
@@ -3020,6 +3023,48 @@ class RequestManager extends CommonObject
         if ($mode == 0) return $urgencyInfos->fields['label'];
         if ($mode == 1) return $urgencyInfos->fields['code'];
         if ($mode == 2) return $urgencyInfos->fields['code'] . ' - ' . $urgencyInfos->fields['label'];
+    }
+
+    /**
+     *  Return color of urgency
+     *
+     * @return  string                  Color (HTML format: #00000000)
+     */
+    function getColorUrgency()
+    {
+        return $this->ColorUrgency($this->fk_urgency);
+    }
+
+    /**
+     *  Return color of urgency provides
+     *
+     * @param   int         $id             Id
+     * @param   int         $forcereload    Force reload of the cache
+     * @return  string                      Color (HTML format: #00000000)
+     */
+    function ColorUrgency($id, $forcereload=0)
+    {
+        global $langs;
+
+        if (!($id > 0))
+            return '';
+
+        $langs->load("requestmanager@requestmanager");
+
+        if (empty(self::$urgency_list) || $forcereload) {
+            dol_include_once('/advancedictionaries/class/dictionary.class.php');
+            $dictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagerurgency');
+            $dictionary->fetch_lines(1, array(), array('label' => 'ASC'));
+            self::$urgency_list = $dictionary->lines;
+        }
+
+        if (!isset(self::$urgency_list[$id])) {
+            return '';
+        }
+
+        $urgencyInfos = self::$urgency_list[$id];
+
+        return $urgencyInfos->fields['color'];
     }
 
     /**

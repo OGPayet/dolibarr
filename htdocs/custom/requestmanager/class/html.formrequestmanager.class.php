@@ -1088,7 +1088,7 @@ class FormRequestManager
      * @param   User            $userstatic                 User object
      * @param   int             $lists_follow_last_date     Last date when follow list is viewed
      */
-    private static function _listsFollowPrintLineFrom(DoliDB $db, $arrayfields, $obj, RequestManager $requestmanagerstatic, Societe $societestatic_origin, Societe $societestatic, Societe $societestatic_benefactor, Societe $societestatic_watcher, User $userstatic, $lists_follow_last_date=0)
+    private static function _listsFollowPrintLineFrom(DoliDB $db, $arrayfields, $obj, RequestManager &$requestmanagerstatic, Societe $societestatic_origin, Societe $societestatic, Societe $societestatic_benefactor, Societe $societestatic_watcher, User $userstatic, $lists_follow_last_date=0)
     {
         global $langs, $conf, $form, $user;
 
@@ -1137,6 +1137,7 @@ class FormRequestManager
         $requestmanagerstatic->ref_ext = $obj->ref_ext;
         $requestmanagerstatic->fk_parent = $obj->fk_parent;
         $requestmanagerstatic->fk_type = $obj->fk_type;
+        $requestmanagerstatic->fk_urgency = $obj->fk_urgency;
         $requestmanagerstatic->label = $obj->label;
         $requestmanagerstatic->socid = $obj->fk_soc;
         $requestmanagerstatic->thirdparty_origin = $societestatic_origin;
@@ -1250,7 +1251,8 @@ class FormRequestManager
 
         // Urgency
         if (!empty($arrayfields['rm.fk_urgency']['checked'])) {
-            print '<td class="nowrap'.$updatedLineClass.'">';
+            $color = $requestmanagerstatic->getColorUrgency();
+            print '<td class="nowrap' . $updatedLineClass . '"' . (empty($color) ? '' : ' style="background-color: ' . $color . ' !important;"') . '>';
             print $obj->urgency_label;
             print '</td>';
         }

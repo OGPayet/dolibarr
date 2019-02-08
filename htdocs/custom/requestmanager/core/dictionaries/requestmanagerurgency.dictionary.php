@@ -29,6 +29,11 @@ dol_include_once('/advancedictionaries/class/dictionary.class.php');
 class RequestManagerUrgencyDictionary extends Dictionary
 {
     /**
+     * @var int         Version of this dictionary
+     */
+    public $version = 1;
+
+    /**
      * @var array       List of languages to load
      */
     public $langs = array('requestmanager@requestmanager');
@@ -145,6 +150,15 @@ class RequestManagerUrgencyDictionary extends Dictionary
             ),
             'is_require' => true,
         ),
+        'color' => array(
+            'name'       => 'color',
+            'label'      => 'Color',
+            'help'       => 'RequestManagerUrgencyDictionaryColorHelp',
+            'type'       => 'varchar',
+            'database'   => array(
+                'length' => 10,
+            ),
+        ),
     );
 
     /**
@@ -162,7 +176,45 @@ class RequestManagerUrgencyDictionary extends Dictionary
     );
 
     /**
+     * @var array  List of fields/indexes added, updated or deleted for a version
+     * array(
+     *   'version' => array(
+     *     'fields' => array('field_name'=>'a', 'field_name'=>'u', 'field_name'=>'d', ...), // List of field name who is added(a) or updated(u) or deleted(d) for a version
+     *     'indexes' => array('idx_number'=>'a', 'idx_number'=>'u', 'idx_number'=>'d', ...), // List of indexes number who is added(a) or updated(u) or deleted(d) for a version
+     *   ),
+     * )
+     */
+    public $updates = array(
+        1 => array(
+            'fields' => array(
+                'color' => 'a',
+            )
+        ),
+    );
+
+    /**
      * @var bool    Is multi entity (false = partaged, true = by entity)
      */
     public $is_multi_entity = true;
+}
+
+class RequestManagerUrgencyDictionaryLine extends DictionaryLine
+{
+    public function checkFieldsValues($fieldsValue)
+    {
+        global $langs;
+
+        $result = parent::checkFieldsValues($fieldsValue);
+        if ($result < 0) {
+            return $result;
+        }
+
+        if (!empty($fieldsValue['color']) && !preg_match('/#[A-F0-9]{1,8}/', $fieldsValue['color'])) {
+            $langs->load('errors');
+            $this->errors[] = $langs->trans('ErrorBadParameters') . ' : ' . $langs->trans('Color') ;
+            return -1;
+        }
+
+        return $result;
+    }
 }

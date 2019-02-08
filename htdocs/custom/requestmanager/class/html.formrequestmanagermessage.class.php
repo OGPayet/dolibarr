@@ -389,9 +389,11 @@ SCRIPT;
         $out .= '<tr>';
         $out .= '<td width="180">' . $langs->trans("RequestManagerMessageNotify") . '</td>';
         $out .= '<td>';
-        $out .= '<input type="checkbox" id="notify_assigned" name="notify_assigned" value="1"' . (!empty($notify_assigned) ? ' checked="checked"' : '') . ' />';
-        $out .= '&nbsp;<label for="notify_assigned">' . $langs->trans("RequestManagerAssigned") . '</label>';
-        $out .= ' &nbsp; ';
+        if (!empty($conf->global->REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_EMAIL)) {
+            $out .= '<input type="checkbox" id="notify_assigned" name="notify_assigned" value="1"' . (!empty($notify_assigned) ? ' checked="checked"' : '') . ' />';
+            $out .= '&nbsp;<label for="notify_assigned">' . $langs->trans("RequestManagerAssigned") . '</label>';
+            $out .= ' &nbsp; ';
+        }
         $out .= '<input type="checkbox" id="notify_requesters" name="notify_requesters" value="1"' . (!empty($notify_requester) ? ' checked="checked"' : '') . ' />';
         $out .= '&nbsp;<label for="notify_requester">' . $langs->trans("RequestManagerRequesterContacts") . '</label>';
         $out .= ' &nbsp; ';

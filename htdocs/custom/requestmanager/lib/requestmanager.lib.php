@@ -336,7 +336,7 @@ function requestmanager_show_events(&$requestmanager)
     $sql .= " ac.fk_element, ac.elementtype,";
     $sql .= " ac.priority, ac.fulldayevent, ac.location,";
     $sql .= " rmm.notify_assigned, rmm.notify_requesters, rmm.notify_watchers,";
-    $sql .= " GROUP_CONCAT(DISTINCT rmmkb.fk_knowledge_base SEPARATOR ',') AS knowledge_base_ids,";
+    $sql .= " knowledge_base.knowledge_base_ids,";
     $sql .= " s.rowid as soc_id, s.client as soc_client, s.nom as soc_name, s.name_alias as soc_name_alias,";
     $sql .= " cac.id as type_id, cac.code as type_code, cac.libelle as type_label, cac.color as type_color, cac.picto as type_picto,";
     $sql .= " uo.firstname as userownerfirstname, uo.lastname as userownerlastname, uo.email as userowneremail,";
@@ -396,6 +396,11 @@ function requestmanager_show_events(&$requestmanager)
     if (is_array($extrafields->attribute_label) && count($extrafields->attribute_label)) $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "actioncomm_extrafields as ef on (ac.id = ef.fk_object)";
     if (is_array($extrafields_message->attribute_label) && count($extrafields_message->attribute_label)) $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "requestmanager_message_extrafields as efm on (ac.id = efm.fk_object)";
     $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "requestmanager_message as rmm ON ac.id = rmm.fk_actioncomm";
+    $sql .= " LEFT JOIN (";
+    $sql .= "   SELECT fk_actioncomm AS event_id, GROUP_CONCAT(fk_knowledge_base ORDER BY position ASC SEPARATOR ',') AS knowledge_base_ids";
+    $sql .= "   FROM " . MAIN_DB_PREFIX . "requestmanager_message_knowledge_base";
+    $sql .= "   GROUP BY fk_actioncomm";
+    $sql .= " ) AS knowledge_base ON knowledge_base.event_id = ac.id";
     $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "requestmanager_message_knowledge_base as rmmkb ON ac.id = rmmkb.fk_actioncomm";
     $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_actioncomm as cac ON cac.id = ac.fk_action";
     $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe as s ON s.rowid = ac.fk_soc";
@@ -1786,7 +1791,7 @@ function requestmanager_show_timelines(&$requestmanager)
     $sql .= " ac.code, ac.label, ac.note,";
     $sql .= " ac.fk_user_author, ac.fk_user_mod,";
     $sql .= " rmm.notify_assigned, rmm.notify_requesters, rmm.notify_watchers,";
-    $sql .= " GROUP_CONCAT(DISTINCT rmmkb.fk_knowledge_base SEPARATOR ',') AS knowledge_base_ids,";
+    $sql .= " knowledge_base.knowledge_base_ids,";
     $sql .= " cac.id as type_id, cac.code as type_code, cac.libelle as type_label, cac.color as type_color, cac.picto as type_picto,";
     $sql .= " ua.firstname as userauthorfirstname, ua.lastname as userauthorlastname, ua.email as userauthoremail, ua.photo as userauthorphoto, ua.gender as userauthorgender,";
     $sql .= " um.firstname as usermodfirstname, um.lastname as usermodlastname, um.email as usermodemail";
@@ -1803,7 +1808,11 @@ function requestmanager_show_timelines(&$requestmanager)
     $sql .= $hookmanager->resPrint;
     $sql .= " FROM " . MAIN_DB_PREFIX . "actioncomm as ac ";
     $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "requestmanager_message as rmm ON ac.id = rmm.fk_actioncomm";
-    $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "requestmanager_message_knowledge_base as rmmkb ON ac.id = rmmkb.fk_actioncomm";
+    $sql .= " LEFT JOIN (";
+    $sql .= "   SELECT fk_actioncomm AS event_id, GROUP_CONCAT(fk_knowledge_base ORDER BY position ASC SEPARATOR ',') AS knowledge_base_ids";
+    $sql .= "   FROM " . MAIN_DB_PREFIX . "requestmanager_message_knowledge_base";
+    $sql .= "   GROUP BY fk_actioncomm";
+    $sql .= " ) AS knowledge_base ON knowledge_base.event_id = ac.id";
     if (is_array($extrafields->attribute_label) && count($extrafields->attribute_label)) $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "requestmanager_message_extrafields as ef on (ac.id = ef.fk_object)";
     $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_actioncomm as cac ON cac.id = ac.fk_action";
     $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "user as ua ON ua.rowid = ac.fk_user_author";

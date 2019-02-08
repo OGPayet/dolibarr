@@ -471,7 +471,7 @@ if (empty($reshook)) {
             }
         }
     } // Set Assigned Notification
-    elseif ($action == 'set_assigned_notification' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+    elseif (!empty($conf->global->REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_EMAIL) && $action == 'set_assigned_notification' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
         $object->oldcopy = clone $object;
         $object->notify_assigned_by_email = GETPOST('assigned_notification', 'int');
         $result = $object->update($user);
@@ -1178,6 +1178,7 @@ if (empty($reshook)) {
             setEventMessages($requestmanagermessage->error, $requestmanagermessage->errors, 'errors');
             $action = 'premessage';
         } else {
+            $formrequestmanagermessage->remove_all_attached_files();
             header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
             exit();
         }
@@ -1557,18 +1558,23 @@ if ($object->id > 0) {
 	if ($action != 'edit_urgency' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS)
 		print '<td align="right"><a href="' . $_SERVER["PHP_SELF"] . '?action=edit_urgency&id=' . $object->id . '">' . img_edit($langs->trans('RequestManagerSetUrgency'), 1) . '</a></td>';
 	print '</tr></table>';
-	print '</td><td>';
+	print '</td>';
 	if ($action == 'edit_urgency' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+        print '<td>';
 		print '<form name="editurgency" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
 		print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
 		print '<input type="hidden" name="action" value="set_urgency">';
         print $formrequestmanager->select_urgency($object->fk_urgency, 'urgency', 1, 0, array(), 0, 0, 'minwidth300');
 		print '<input type="submit" class="button" value="' . $langs->trans('Modify') . '">';
 		print '</form>';
+        print '</td>';
 	} else {
+        $color = $object->getColorUrgency();
+        print '<td' . (empty($color) ? '' : ' style="background-color: ' . $color . ';"') . '>';
         print $object->getLibUrgency();
-	}
-    print '</td></tr>';
+        print '</td>';
+    }
+    print '</tr>';
 
     // Impact
     print '<tr><td>';
@@ -1748,26 +1754,28 @@ if ($object->id > 0) {
 	}
     print '</td></tr>';
 
-    // Assigned Notification
-    print '<tr><td>';
-	print '<table class="nobordernopadding" width="100%"><tr><td>';
-	print $langs->trans('RequestManagerAssignedNotification');
-	print '</td>';
-	if ($action != 'edit_assigned_notification' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS)
-		print '<td align="right"><a href="' . $_SERVER["PHP_SELF"] . '?action=edit_assigned_notification&id=' . $object->id . '">' . img_edit($langs->trans('RequestManagerSetAssignedNotification'), 1) . '</a></td>';
-	print '</tr></table>';
-	print '</td><td>';
-	if ($action == 'edit_assigned_notification' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
-		print '<form name="editassignednotification" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
-		print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
-		print '<input type="hidden" name="action" value="set_assigned_notification">';
-        print '<input type="checkbox" name="assigned_notification" value="1"' . ($object->notify_assigned_by_email ? ' checked' : '') . ' />';
-		print '<input type="submit" class="button" value="' . $langs->trans('Modify') . '">';
-		print '</form>';
-	} else {
-        print yn($object->notify_assigned_by_email);
-	}
-    print '</td></tr>';
+	if (!empty($conf->global->REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_EMAIL)) {
+        // Assigned Notification
+        print '<tr><td>';
+        print '<table class="nobordernopadding" width="100%"><tr><td>';
+        print $langs->trans('RequestManagerAssignedNotification');
+        print '</td>';
+        if ($action != 'edit_assigned_notification' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS)
+            print '<td align="right"><a href="' . $_SERVER["PHP_SELF"] . '?action=edit_assigned_notification&id=' . $object->id . '">' . img_edit($langs->trans('RequestManagerSetAssignedNotification'), 1) . '</a></td>';
+        print '</tr></table>';
+        print '</td><td>';
+        if ($action == 'edit_assigned_notification' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+            print '<form name="editassignednotification" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
+            print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
+            print '<input type="hidden" name="action" value="set_assigned_notification">';
+            print '<input type="checkbox" name="assigned_notification" value="1"' . ($object->notify_assigned_by_email ? ' checked' : '') . ' />';
+            print '<input type="submit" class="button" value="' . $langs->trans('Modify') . '">';
+            print '</form>';
+        } else {
+            print yn($object->notify_assigned_by_email);
+        }
+        print '</td></tr>';
+    }
 
     // Other attributes
     $object->save_status = $object->statut;

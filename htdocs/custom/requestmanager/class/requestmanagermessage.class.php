@@ -156,13 +156,13 @@ class RequestManagerMessage extends ActionComm
      */
     public function create(User $user, $notrigger = 0)
     {
-        global $langs;
+        global $conf, $langs;
 
         $now = dol_now();
 
         // Clean parameters
         $this->message_type = $this->message_type != self::MESSAGE_TYPE_PRIVATE && $this->message_type != self::MESSAGE_TYPE_IN ? self::MESSAGE_TYPE_OUT : $this->message_type;
-        $this->notify_assigned = !empty($this->notify_assigned) ? 1 : 0;
+        $this->notify_assigned = !empty($conf->global->REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_EMAIL) && !empty($this->notify_assigned) ? 1 : 0;
         $this->notify_requesters = !empty($this->notify_requesters) ? 1 : 0;
         $this->notify_watchers = !empty($this->notify_watchers) ? 1 : 0;
         $this->attached_files = is_array($this->attached_files) ? $this->attached_files : array();
@@ -293,11 +293,11 @@ class RequestManagerMessage extends ActionComm
      */
     function update($user, $notrigger=0)
     {
-        global $langs;
+        global $conf, $langs;
 
         // Clean parameters
         $this->message_type = $this->message_type != self::MESSAGE_TYPE_PRIVATE && $this->message_type != self::MESSAGE_TYPE_IN ? self::MESSAGE_TYPE_OUT : $this->message_type;
-        $this->notify_assigned = !empty($this->notify_assigned) ? 1 : 0;
+        $this->notify_assigned = !empty($conf->global->REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_EMAIL) && !empty($this->notify_assigned) ? 1 : 0;
         $this->notify_requesters = !empty($this->notify_requesters) ? 1 : 0;
         $this->notify_watchers = !empty($this->notify_watchers) ? 1 : 0;
         $this->attached_files = is_array($this->attached_files) ? $this->attached_files : array();
@@ -463,6 +463,8 @@ class RequestManagerMessage extends ActionComm
      */
     function fetch($id, $ref='',$ref_ext='')
     {
+        global $conf;
+
         dol_syslog(__METHOD__ . " requestmanager_message id=" . $id . " ref=" . $ref . " ref_ext=" . $ref_ext);
 
         $result = parent::fetch($id, $ref, $ref_ext);
@@ -474,9 +476,9 @@ class RequestManagerMessage extends ActionComm
             $resql = $this->db->query($sql);
             if ($resql) {
                 if ($obj = $this->db->fetch_object($resql)) {
-                    $this->notify_assigned = $obj->notify_assigned;
-                    $this->notify_requesters = $obj->notify_requesters;
-                    $this->notify_watchers = $obj->notify_watchers;
+                    $this->notify_assigned = !empty($conf->global->REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_EMAIL) && !empty($obj->notify_assigned) ? 1 : 0;
+                    $this->notify_requesters = !empty($obj->notify_requesters) ? 1 : 0;
+                    $this->notify_watchers = !empty($obj->notify_watchers) ? 1 : 0;
                     $this->fetch_message_type();
 
                     $this->db->free($resql);
@@ -527,7 +529,7 @@ class RequestManagerMessage extends ActionComm
         $this->knowledge_base_list = array();
 
         // Get contacts
-        $sql = 'SELECT fk_knowledge_base FROM '.MAIN_DB_PREFIX.'requestmanager_message_knowledge_base WHERE fk_actioncomm = '.$this->id;
+        $sql = 'SELECT fk_knowledge_base FROM '.MAIN_DB_PREFIX.'requestmanager_message_knowledge_base WHERE fk_actioncomm = '.$this->id . ' ORDER BY position ASC';
         $resql = $this->db->query($sql);
         if ($resql) {
             while ($obj = $this->db->fetch_object($resql)) {
@@ -539,9 +541,10 @@ class RequestManagerMessage extends ActionComm
         if ($with_object && count($this->knowledge_base_ids) > 0) {
             dol_include_once('/advancedictionaries/class/dictionary.class.php');
             $dictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagerknowledgebase');
-            $lines = $dictionary->fetch_lines(-1, array('rowid' => $this->knowledge_base_ids));
-            if ($lines > 0) {
-                $this->knowledge_base_list = $dictionary->lines;
+            $dictionary->fetch_lines(1);
+
+            foreach ($this->knowledge_base_ids as $kb_id) {
+                $this->knowledge_base_list[] = $dictionary->lines[$kb_id];
             }
         }
     }

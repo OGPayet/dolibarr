@@ -347,6 +347,7 @@ RequestManagerTypeNotResolved           = Non résolue
 RequestManagerExternalReferenceShort    = Réf. externe
 RequestManagerResolvedBy                = Résolu par
 RequestManagerDateResolved              = Date Résolu
+RequestManagerDontShowChildrenRequest   = Ne pas afficher les demandes enfants
 
 ############################################################
 ### Lists follow
@@ -473,6 +474,7 @@ RequestManagerReasonResolutionDictionaryLabel                               = Mo
 RequestManagerReasonsResolution                                             = Motifs de résolution
 RequestManagerStatusDictionaryNewRequestTypeNextStatusAuto                  = Nouvelles demandes => statut suivant
 RequestManagerStatusDictionaryNewRequestTypeNextStatusAutoHelp              = Passage automatique au statut suivant lorsque toutes les nouvelles demandes créées ont été cloturées.
+RequestManagerUrgencyDictionaryColorHelp                                    = La couleur doit être au format HTML (Ex: #FF0000)
 
 ############################################################
 ### Form request manager

@@ -165,9 +165,11 @@ SCRIPT;
         $out .= '<tr>';
         $out .= '<td width="180">' . $langs->trans("RequestManagerMessageNotify") . '</td>';
         $out .= '<td>';
-        $out .= '<input type="checkbox" id="notify_assigned" name="notify_assigned" value="1"' . (!empty($notify_assigned) ? ' checked="checked"' : '') . ' />';
-        $out .= '&nbsp;<label for="notify_assigned">' . $langs->trans("RequestManagerAssigned") . '</label>';
-        $out .= ' &nbsp; ';
+        if (!empty($conf->global->REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_EMAIL)) {
+            $out .= '<input type="checkbox" id="notify_assigned" name="notify_assigned" value="1"' . (!empty($notify_assigned) ? ' checked="checked"' : '') . ' />';
+            $out .= '&nbsp;<label for="notify_assigned">' . $langs->trans("RequestManagerAssigned") . '</label>';
+            $out .= ' &nbsp; ';
+        }
         $out .= '<input type="checkbox" id="notify_requesters" name="notify_requesters" value="1"' . (!empty($notify_requester) ? ' checked="checked"' : '') . ' />';
         $out .= '&nbsp;<label for="notify_requester">' . $langs->trans("RequestManagerRequesterContacts") . '</label>';
         $out .= ' &nbsp; ';
@@ -378,10 +380,6 @@ SCRIPT;
             $modelknowledgebase_texts[$line->id] = $line->fields['description'];
         }
 
-        // Get default message template
-        //----------------------------------
-//        $knowledgebase_id = !empty($this->param["knowledgebase_id"]) ? $this->param["knowledgebase_id"] : array();
-
         $out .= '<tr><td valign="top" colspan="2"><table class="nobordernopadding" width="100%"><tr>' . "\n";
 
         // Select product tag
@@ -489,13 +487,6 @@ SCRIPT;
         //-----------------
         $default_body = !empty($default_message['message']) ? $default_message['message'] : '';
         $message = !empty($default_body) ? $default_body : GETPOST('message', '', 2);
-//        if (GETPOST('addknowledgebasedescription', 'alpha') != '') {
-//            $knowledge_base_selected = $this->knowledge_base_list[$knowledge_base_id]->fields;
-//            if (!empty($knowledge_base_selected['description'])) {
-//                $message = dol_concatdesc($message, "\n" . $knowledge_base_selected['title'] . ' :');
-//                $message = dol_concatdesc($message, $knowledge_base_selected['description']);
-//            }
-//        }
         $message = make_substitutions($message, $this->substit);
         // Clean first \n and br (to avoid empty line when CONTACTCIVNAME is empty)
         //$message = preg_replace("/^(<br>)+/", "", $message);
