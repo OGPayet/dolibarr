@@ -529,6 +529,17 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form, 
 	foreach ($inventory->TInventorydet as $k => $TInventorydet)
 	{
 
+		$e = new Entrepot($db);
+		if(!empty($TCacheEntrepot[$TInventorydet->fk_warehouse])) $e = $TCacheEntrepot[$TInventorydet->fk_warehouse];
+		elseif($e->fetch($TInventorydet->fk_warehouse) > 0) $TCacheEntrepot[$e->id] = $e;
+		$inventory->TInventorydet[$k]->entrepotlabel = $e->label;
+
+	}
+
+	usort($inventory->TInventorydet,function ($a,$b){return strnatcasecmp($a->entrepotlabel,$b->entrepotlabel);});
+
+	foreach ($inventory->TInventorydet as $k => $TInventorydet)
+	{
         $product = & $TInventorydet->product;
 		$stock = $TInventorydet->qty_stock;
 
