@@ -1,17 +1,19 @@
 diff a/htdocs/custom/requestmanager/langs/fr_FR/requestmanager.lang b/htdocs/custom/requestmanager/langs/fr_FR/requestmanager.lang	(rejected hunks)
-@@ -334,6 +334,7 @@ RequestManagerTypeNotResolved           = Non résolue
- RequestManagerExternalReferenceShort    = Réf. externe
- RequestManagerResolvedBy                = Résolu par
- RequestManagerDateResolved              = Date Résolu
-+RequestManagerDontShowChildrenRequest   = Ne pas afficher les demandes enfants
+@@ -102,6 +102,8 @@ RequestManagerPositionLinkNewObjectLinkedName               = Position du lien '
+ RequestManagerPositionLinkNewObjectLinkedDesc               = Position du lien 'Lier à ...' des objets liés (si Position des Objets Liés est sur 'Haut' ce paramètre est inutile)
+ RequestManagerTitleToRafCustomerWhenCreateOtherElementName  = Propagation du titre vers la Ref client
+ RequestManagerTitleToRafCustomerWhenCreateOtherElementDesc  = Propagation du titre vers la Ref client (ou fournisseur) lors de la création d'une proposition commerciale, d'une commande, d'une facture ou d'un contrat depuis une demande
++RequestManagerShowChildrenRequestStatusInListName           = Affiche les statuts des demandes enfants dans les listes
++RequestManagerShowChildrenRequestStatusInListDesc           = Affichage des statuts des demandes enfants dans les listes
  
  ############################################################
- ### Lists follow
-@@ -460,6 +461,7 @@ RequestManagerReasonResolutionDictionaryLabel                               = Mo
- RequestManagerReasonsResolution                                             = Motifs de résolution
+ ### Contact
+@@ -462,6 +464,8 @@ RequestManagerReasonsResolution                                             = Mo
  RequestManagerStatusDictionaryNewRequestTypeNextStatusAuto                  = Nouvelles demandes => statut suivant
  RequestManagerStatusDictionaryNewRequestTypeNextStatusAutoHelp              = Passage automatique au statut suivant lorsque toutes les nouvelles demandes créées ont été cloturées.
-+RequestManagerUrgencyDictionaryColorHelp                                    = La couleur doit être au format HTML (Ex: #FF0000)
+ RequestManagerUrgencyDictionaryColorHelp                                    = La couleur doit être au format HTML (Ex: #FF0000)
++RequestManagerStatusDictionaryAssignedUserCurrent                           = Assigner l'utilisateur courant
++RequestManagerStatusDictionaryAssignedUserCurrentHelp                       = Assigner l'utilisateur courant ayant effectué le passage à ce statut.
  
  ############################################################
  ### Form request manager

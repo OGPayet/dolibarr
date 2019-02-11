@@ -31,6 +31,7 @@ SynergiesTechProductCategoryForAdvancedTicketEmplacement            = Catégorie
 SynergiesTechPrincipalWarehouse                                     = Entrepôt principal
 SynergiesTechPrincipalWarehouseNbShowed                             = Nombre d'entrepôt affiché dans l'info-bulle des stocks de l'entrepôt principal
 SynergiesTechCreateRequestEvent                                     = Choix des types d'évènements à afficher dans la "Liste des 5 derniers évènements filtrés" lors de la création d'une demande
+SynergiesTechDefaultRequestTypeWhenCreate                           = Type de demande par défaut lors de la création d'une demande
 
 #######################################################################
 # Extrafields
@@ -159,7 +160,9 @@ SynergiesTechNoStockIntoPrincipalWarehouse  = Pas de stock dans l'entrepôt prin
 ############################################################
 SynergiesTechErrorPrincipalWarehouseNotDefined      = Entrepôt principal non définie dans la configuration du module Synergies-Tech
 
-
+###########################################################
+### Others
+###########################################################
 SuppliersPricesOfProductsOrServicesUpgraded = Prix fournisseurs amélioré (des produits ou services)
 
 ###########################################################
@@ -170,4 +173,5 @@ SynergiesTechMessageKnowledgeBaseSelected   = Base de connaissance sélectionné
 ###########################################################
 ### Create request
 ###########################################################
-SynergiesTechLastFilteredEvents = Liste des %s derniers évènements filtrés
+SynergiesTechLastFilteredEvents         = Liste des %s derniers évènements filtrés
+SynergiesTechButtonCreateAndTakeCharge  = Créer et prendre en charge

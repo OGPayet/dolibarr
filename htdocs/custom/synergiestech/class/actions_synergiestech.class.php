@@ -1269,6 +1269,170 @@ SCRIPT;
                 if (!$user->rights->synergiestech->propal->installation_value && !empty($object->array_options['options_sitevalue']))
                     accessforbidden();
             }
+//        } elseif (in_array('requestmanagerfastcard', $contexts)) {
+//            $langs->load('synergiestech@synergiestech');
+//            if ($cancel) $action = '';
+//            if ($action == 'confirm_force_principal_company' && $confirm == "yes" && $user->rights->requestmanager->creer) {
+//                $force_principal_company = true;
+//                $action = "addfast";
+//            } elseif ($action == 'confirm_force_out_of_time' && $confirm == "yes" && $user->rights->requestmanager->creer) {
+//                $force_out_of_time = true;
+//                $action = "addfast";
+//            }
+//            // Create request
+//            if ($action == 'addfast' && $user->rights->requestmanager->creer) {
+//                $selectedCategories = GETPOST('categories', 'array') ? GETPOST('categories', 'array') : (GETPOST('categories', 'alpha') ? explode(',', GETPOST('categories', 'alpha')) : array());
+//                $selectedContacts = GETPOST('contact_ids', 'array') ? GETPOST('contact_ids', 'array') : (GETPOST('contact_ids', 'alpha') ? explode(',', GETPOST('contact_ids', 'alpha')) : array());
+//
+//                $object->fk_type = GETPOST('type', 'int');
+//                $object->label = GETPOST('label', 'alpha');
+//                $object->socid_origin = GETPOST('socid_origin', 'int');
+//                $object->socid = GETPOST('socid', 'int');
+//                $object->socid_benefactor = GETPOST('socid_benefactor', 'int');
+//                $object->socid_watcher = GETPOST('socid_watcher', 'int');
+//                $object->requester_ids = $selectedContacts;
+//                $object->fk_source = GETPOST('source', 'int');
+//                $object->fk_urgency = GETPOST('urgency', 'int');
+//                $object->description = GETPOST('description');
+//                $selectedActionCommId = GETPOST('actioncomm_id') ? GETPOST('actioncomm_id') : -1;
+//                $object->date_creation = dol_now();
+//                $object->notify_requester_by_email = GETPOST('notify_requester_by_email', 'int') > 0 ? 1 : 0;
+//                if ($object->socid_origin === '' && $object->socid > 0) {
+//                    $object->socid_origin = $object->socid;
+//                }
+//                if (empty($conf->companyrelationships->enabled)) {
+//                    $object->socid = $object->socid_origin;
+//                    $object->socid_benefactor = $object->socid_origin;
+//                }
+//
+//                // Add equipment links
+//                $selectedEquipementId = GETPOST('equipement_id', 'int') ? intval(GETPOST('equipement_id', 'int')) : -1;
+//                if ($selectedEquipementId > 0) {
+//                    $object->linkedObjectsIds['equipement'][] = $selectedEquipementId;
+//                }
+//
+//                // Possibility to add external linked objects with hooks
+//                $object->origin = GETPOST('origin', 'alpha');
+//                $object->origin_id = GETPOST('originid', 'int');
+//                if ($object->origin && $object->origin_id > 0) {
+//                    $object->linkedObjectsIds[$object->origin] = $object->origin_id;
+//                    if (is_array($_POST['other_linked_objects']) && !empty($_POST['other_linked_objects'])) {
+//                        $object->linkedObjectsIds = array_merge($object->linkedObjectsIds, $_POST['other_linked_objects']);
+//                    }
+//                }
+//
+//                $btnAction = '';
+//                if (GETPOST('btn_create')) {
+//                    $btnAction = 'create';
+//                } else if (GETPOST('btn_associate')) {
+//                    $btnAction = 'associate';
+//                }
+//
+//                $db->begin();
+//                if ($btnAction == 'create' || $force_principal_company || $force_out_of_time) {
+//                    $res = requestmanagertimeslots_is_in_time_slot($object->socid, $object->date_creation);
+//                    $object->created_out_of_time = is_array($res) ? 0 : ($res ? 0 : 1);
+//                    if (!empty($conf->companyrelationships->enabled)) {
+//                        $principal_companies_ids = $companyrelationships->getRelationships($object->socid_benefactor, 0);
+//                        $not_principal_company = !in_array($object->socid, $principal_companies_ids) && $object->socid != $object->socid_benefactor;
+//                    } else {
+//                        $not_principal_company = false;
+//                    }
+//                    if ($not_principal_company && !$force_principal_company) {
+//                        $error++;
+//                        $action = 'force_principal_company';
+//                    } elseif (!empty($conf->global->REQUESTMANAGER_TIMESLOTS_ACTIVATE) && $object->created_out_of_time && !$force_out_of_time) {
+//                        $error++;
+//                        $action = 'force_out_of_time';
+//                    } else {
+//                        $id = $object->create($user);
+//                        if ($id < 0) {
+//                            setEventMessages($object->error, $object->errors, 'errors');
+//                            $error++;
+//                        }
+//
+//                        if (!$error && $not_principal_company && $force_principal_company) {
+//                            // Principal company forced for the benefactor
+//                            $result = $object->addActionForcedPrincipalCompany($user);
+//                            if ($result < 0) {
+//                                setEventMessages($object->error, $object->errors, 'errors');
+//                                $error++;
+//                            }
+//                        }
+//
+//                        if (!$error && !empty($conf->global->REQUESTMANAGER_TIMESLOTS_ACTIVATE) && $object->created_out_of_time && $force_out_of_time) {
+//                            // Create forced out of time
+//                            $result = $object->addActionForcedCreatedOutOfTime($user);
+//                            if ($result < 0) {
+//                                setEventMessages($object->error, $object->errors, 'errors');
+//                                $error++;
+//                            }
+//                        }
+//
+//                        if (!$error) {
+//                            // Category association
+//                            $result = $object->setCategories($selectedCategories);
+//                            if ($result < 0) {
+//                                setEventMessages($object->error, $object->errors, 'errors');
+//                                $error++;
+//                            }
+//                        }
+//
+//                        if (!$error && $selectedActionCommId > 0) {
+//                            // link event to this request
+//                            $result = $object->linkToActionComm($selectedActionCommId);
+//                            if ($result < 0) {
+//                                setEventMessages($object->error, $object->errors, 'errors');
+//                                $error++;
+//                            }
+//                        }
+//
+//                        if ($error) {
+//                            $action = 'createfast';
+//                        }
+//                    }
+//                } else if ($btnAction == 'associate') {
+//                    $associateList = GETPOST('associate_list', 'array') ? GETPOST('associate_list', 'array') : array();
+//                    if (count($associateList) <= 0) {
+//                        $object->errors[] = $langs->trans("RequestManagerCreateFastErrorNoRequestSelected");
+//                        setEventMessages($object->error, $object->errors, 'errors');
+//                        $error++;
+//                    }
+//
+//                    if ($selectedActionCommId <= 0) {
+//                        $object->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("RequestManagerCreateFastActionCommLabel"));
+//                        setEventMessages($object->error, $object->errors, 'errors');
+//                        $error++;
+//                    }
+//
+//                    if (!$error) {
+//                        $object->fetch(intval($associateList[0]));
+//
+//                        // link event to this request
+//                        $result = $object->linkToActionComm($selectedActionCommId);
+//                        if ($result < 0) {
+//                            setEventMessages($object->error, $object->errors, 'errors');
+//                            $error++;
+//                        }
+//                    }
+//
+//                    if ($error) {
+//                        $action = 'createfast';
+//                    }
+//                }
+//
+//                if (!$error) {
+//                    $db->commit();
+//                    if ($object->id > 0) {
+//                        header('Location: ' . dol_buildpath('/requestmanager/card.php', 1) . '?id=' . $object->id);
+//                    } else {
+//                        header('Location: ' . dol_buildpath('/requestmanager/list.php', 1));
+//                    }
+//                    exit();
+//                } else {
+//                    $db->rollback();
+//                }
+//            }
         }
 
         return 0;
@@ -2089,6 +2253,47 @@ SCRIPT;
 	function printFieldListWhereCustomerOrderToBill($parameters, &$object, &$action, $hookmanager)
     {
        return " AND c.total_ttc > 0 ";
+    }
+
+    /**
+	 * Overloading the addNextBannerTab function : replacing the parent's function with the one below
+	 *
+	 * @param   array() $parameters Hook metadatas (context, etc...)
+	 * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+	 * @param   string &$action Current action (if set). Generally create or edit or null
+	 * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
+	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+	 */
+	function addNextBannerTab($parameters, &$object, &$action, $hookmanager)
+    {
+        global $conf, $user, $langs;
+
+        $contexts = explode(':', $parameters['context']);
+
+        if (in_array('requestmanagercard', $contexts)) {
+            require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
+            require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
+            $extrafields_contract = new ExtraFields($this->db);
+            $extralabels_contract = $extrafields_contract->fetch_name_optionals_label('contrat');
+            $object->fetchObjectLinked();
+            $list_contract = is_array($object->linkedObjects['contrat']) ? $object->linkedObjects['contrat'] : array();
+            $to_print = array();
+            if (!empty($list_contract)) {
+                foreach ($list_contract as $contract) {
+                    if (($contract->nbofserviceswait + $contract->nbofservicesopened) > 0 && $contract->statut != 2) {
+                        $contract->fetch_optionals();
+                        $to_print[] = "<a href='" . DOL_URL_ROOT . "/contrat/card.php?id=" . $contract->id . "'> " . $extrafields_contract->showOutputField('formule', $contract->array_options['options_formule']) . " - " . $contract->ref . "</a> ";
+                    }
+                }
+            }
+            if (count($to_print) > 0) {
+                print '<h1 style="color:green;text-align:center;font-size: 4em;">Avec contrat : ' . implode(', ', $to_print) . '</h1>';
+            } else {
+                print '<h1 style="color:red;text-align:center;font-size: 4em;">Sans contrat</h1>';
+            }
+        }
+
+        return 0;
     }
 
     /**

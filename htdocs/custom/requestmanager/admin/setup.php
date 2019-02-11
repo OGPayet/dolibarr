@@ -1124,6 +1124,23 @@ if (!empty($conf->use_javascript_ajax)) {
 }
 print '</td></tr>' . "\n";
 
+// REQUESTMANAGER_SHOW_CHILDREN_REQUEST_STATUS_IN_LIST
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>'.$langs->trans("RequestManagerShowChildrenRequestStatusInListName").'</td>'."\n";
+print '<td>'.$langs->trans("RequestManagerShowChildrenRequestStatusInListDesc").'</td>'."\n";
+print '<td align="right">' . "\n";
+if (!empty($conf->use_javascript_ajax)) {
+    print ajax_constantonoff('REQUESTMANAGER_SHOW_CHILDREN_REQUEST_STATUS_IN_LIST');
+} else {
+    if (empty($conf->global->REQUESTMANAGER_SHOW_CHILDREN_REQUEST_STATUS_IN_LIST)) {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_REQUESTMANAGER_SHOW_CHILDREN_REQUEST_STATUS_IN_LIST">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+    } else {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_REQUESTMANAGER_SHOW_CHILDREN_REQUEST_STATUS_IN_LIST">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+    }
+}
+print '</td></tr>' . "\n";
+
 print '</table>';
 
 print '<br>';

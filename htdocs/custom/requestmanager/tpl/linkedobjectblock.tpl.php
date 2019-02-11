@@ -51,11 +51,11 @@ foreach($linkedObjectBlock as $key => $objectlink)
     <tr class="<?php echo $trclass; ?>">
         <td><?php echo $langs->trans("RequestManagerRequest"); ?></td>
         <td><?php echo $objectlink->getNomUrl(1); ?></td>
-	<td><?php echo $objectlink->ref_ext; ?></td>
-	<td align="center"><?php echo dol_print_date($objectlink->date_creation,'day'); ?></td>
-	<td align="right"></td>
-	<td align="right"><?php echo $objectlink->getLibStatut(3); ?></td>
-	<td align="right"><a href="<?php echo $_SERVER["PHP_SELF"].'?id='.$object->id.'&action=dellink&dellinkid='.$key; ?>"><?php echo img_delete($langs->transnoentitiesnoconv("RemoveLink")); ?></a></td>
+        <td><?php echo $objectlink->getLibType(); ?></td>
+        <td align="center"><?php echo dol_print_date($objectlink->date_creation,'day'); ?></td>
+        <td align="center"><?php echo $objectlink->ref_ext; ?></td>
+        <td align="right"><?php echo $objectlink->getLibStatut(3); ?></td>
+        <td align="right"><a href="<?php echo $_SERVER["PHP_SELF"].'?id='.$object->id.'&action=dellink&dellinkid='.$key; ?>"><?php echo img_delete($langs->transnoentitiesnoconv("RemoveLink")); ?></a></td>
     </tr>
 <?php
 }

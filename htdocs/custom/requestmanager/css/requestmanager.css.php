@@ -59,7 +59,14 @@ div.mainmenu.requestmanager {
 
 .tabsStatusAction {
   margin-top: 10px;
-  text-align: right;
+}
+
+.tabsStatusActionPrevious {
+  float: left;
+}
+
+.tabsStatusActionNext {
+  float: right;
 }
 
 .rm_my_request_updated_blink_color {

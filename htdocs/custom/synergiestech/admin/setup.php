@@ -32,6 +32,7 @@ require_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formactions.class.php';
 dol_include_once('/synergiestech/lib/synergiestech.lib.php');
+dol_include_once('/advancedictionaries/class/html.formdictionary.class.php');
 
 $langs->load("admin");
 $langs->load("synergiestech@synergiestech");
@@ -130,6 +131,10 @@ if (preg_match('/set_(.*)/',$action,$reg))
         $error++;
     }
 
+    if (dolibarr_set_const($db, 'SYNERGIESTECH_DEFAULT_REQUEST_TYPE_WHEN_CREATE', GETPOST('SYNERGIESTECH_DEFAULT_REQUEST_TYPE_WHEN_CREATE', 'int'), 'chaine', 0, '', $conf->entity) <= 0) {
+        $error++;
+    }
+
     if (!$error) {
         Header("Location: " . $_SERVER["PHP_SELF"]);
         exit;
@@ -145,6 +150,7 @@ if (preg_match('/set_(.*)/',$action,$reg))
 $formproduct = new FormProduct($db);
 $formother = new FormOther($db);
 $formactions = new FormActions($db);
+$formdictionary = new FormDictionary($db);
 
 llxHeader();
 
@@ -267,6 +273,15 @@ print '<td>' . $langs->trans("SynergiesTechCreateRequestEvent") . '</td>' . "\n"
 print '<td align="center">&nbsp;</td>' . "\n";
 print '<td align="right">' . "\n";
 print $formactions->select_type_actions($conf->global->SYNERGIESTECH_CREATE_REQUEST_EVENT, "SYNERGIESTECH_CREATE_REQUEST_EVENT", '', (empty($conf->global->AGENDA_USE_EVENT_TYPE) ? 1 : -1), 0, 1, 1);
+print '</td></tr>' . "\n";
+
+// SYNERGIESTECH_DEFAULT_REQUEST_TYPE_WHEN_CREATE
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>' . $langs->trans("SynergiesTechDefaultRequestTypeWhenCreate") . '</td>' . "\n";
+print '<td align="center">&nbsp;</td>' . "\n";
+print '<td align="right">' . "\n";
+print $formdictionary->select_dictionary('requestmanager', 'requestmanagerrequesttype', $conf->global->SYNERGIESTECH_DEFAULT_REQUEST_TYPE_WHEN_CREATE, 'SYNERGIESTECH_DEFAULT_REQUEST_TYPE_WHEN_CREATE', 1, 'rowid', '{{label}}', array(), array('label'=>'ASC'), 0, array(), 0, 0, 'minwidth300');
 print '</td></tr>' . "\n";
 
 print '</table>';

@@ -37,27 +37,28 @@ $zone  = intval(GETPOST('zone' , 'int'));
 // Zone 1
 //
 if ($zone === 1) {
-    $selectedActionJs               = GETPOST('action_js')?GETPOST('action_js'):'';
-    $selectedActionCommId           = GETPOST('actioncomm_id', 'int')?intval(GETPOST('actioncomm_id', 'int')):-1;
-    $selectedCategories             = GETPOST('categories', 'array') ? GETPOST('categories', 'array') : (GETPOST('categories', 'alpha') ? explode(',', GETPOST('categories', 'alpha')) : array());
-    $selectedContacts               = GETPOST('contact_ids', 'array') ? GETPOST('contact_ids', 'array') : (GETPOST('contact_ids', 'alpha') ? explode(',', GETPOST('contact_ids', 'alpha')) : array());
-    $selectedDescription            = GETPOST('description')?GETPOST('description'):'';
-    $selectedEquipementId           = GETPOST('equipement_id', 'int')?intval(GETPOST('equipement_id', 'int')):-1;
-    $selectedLabel                  = GETPOST('label', 'alpha')?GETPOST('label', 'alpha'):'';
-    $selectedSocIdOrigin            = GETPOST('socid_origin', 'int')?intval(GETPOST('socid_origin', 'int')):-1;
-    $selectedSocId                  = GETPOST('socid', 'int')?intval(GETPOST('socid', 'int')):-1;
-    $selectedSocIdBenefactor        = GETPOST('socid_benefactor', 'int')?intval(GETPOST('socid_benefactor', 'int')):-1;
-    $selectedSocIdWatcher           = GETPOST('socid_watcher', 'int')?intval(GETPOST('socid_watcher', 'int')):-1;
-    $selectedFkSource               = GETPOST('source', 'int')?intval(GETPOST('source', 'int')):-1;
-    $selectedFkType                 = GETPOST('type', 'int')?intval(GETPOST('type', 'int')):-1;
-    $selectedFkUrgency              = GETPOST('urgency', 'int')?intval(GETPOST('urgency', 'int')):-1;
-    $selectedRequesterNotification  = GETPOST('notify_requester_by_email', 'int') > 0 ? 1 : 0;
+    $selectedActionJs = GETPOST('action_js') ? GETPOST('action_js') : '';
+    $selectedActionCommId = GETPOST('actioncomm_id', 'int') ? intval(GETPOST('actioncomm_id', 'int')) : -1;
+    $selectedCategories = GETPOST('categories', 'array') ? GETPOST('categories', 'array') : (GETPOST('categories', 'alpha') ? explode(',', GETPOST('categories', 'alpha')) : array());
+    $selectedContacts = GETPOST('contact_ids', 'array') ? GETPOST('contact_ids', 'array') : (GETPOST('contact_ids', 'alpha') ? explode(',', GETPOST('contact_ids', 'alpha')) : array());
+    $selectedDescription = GETPOST('description') ? GETPOST('description') : '';
+    $selectedEquipementId = GETPOST('equipement_id', 'int') ? intval(GETPOST('equipement_id', 'int')) : -1;
+    $selectedLabel = GETPOST('label', 'alpha') ? GETPOST('label', 'alpha') : '';
+    $selectedSocIdOrigin = GETPOST('socid_origin', 'int') ? intval(GETPOST('socid_origin', 'int')) : -1;
+    $selectedSocId = GETPOST('socid', 'int') ? intval(GETPOST('socid', 'int')) : -1;
+    $selectedSocIdBenefactor = GETPOST('socid_benefactor', 'int') ? intval(GETPOST('socid_benefactor', 'int')) : -1;
+    $selectedSocIdWatcher = GETPOST('socid_watcher', 'int') ? intval(GETPOST('socid_watcher', 'int')) : -1;
+    $selectedFkSource = GETPOST('source', 'int') ? intval(GETPOST('source', 'int')) : -1;
+    $selectedFkType = GETPOST('type', 'int') ? intval(GETPOST('type', 'int')) : -1;
+    $selectedFkUrgency = GETPOST('urgency', 'int') ? intval(GETPOST('urgency', 'int')) : -1;
+    $selectedRequesterNotification = GETPOST('notify_requester_by_email', 'int') > 0 ? 1 : 0;
+    $selectedFkType = !($selectedFkType > 0) && !empty($conf->global->SYNERGIESTECH_DEFAULT_REQUEST_TYPE_WHEN_CREATE) ? $conf->global->SYNERGIESTECH_DEFAULT_REQUEST_TYPE_WHEN_CREATE : $selectedFkType;
 
     // default filters
     $filterSocId = '(s.client = 1 OR s.client = 2 OR s.client = 3) AND status=1';
 
     // load thirdparty of event
-    if ($selectedActionCommId>0 && $selectedActionJs=='change_actioncomm_id') {
+    if ($selectedActionCommId > 0 && $selectedActionJs == 'change_actioncomm_id') {
         $actionComm = new ActionComm($db);
         $actionComm->fetch($selectedActionCommId);
         $selectedSocIdOrigin = $actionComm->socid;
@@ -66,13 +67,14 @@ if ($zone === 1) {
         $source_dictionary->fetch_lines(1, array('event_type' => array($actionComm->type_id)));
         if (is_array($source_dictionary->lines) && count($source_dictionary->lines) > 0) {
             $source_lines = array_values($source_dictionary->lines);
-            $selectedFkSource =  $source_lines[0]->id;
+            $selectedFkSource = $source_lines[0]->id;
         }
     }
 
     $form = new Form($db);
     $formrequestmanager = new FormRequestManager($db);
     $usergroup_static = new UserGroup($db);
+    $requestManager = new RequestManager($db);
 
     if (!empty($conf->companyrelationships->enabled)) {
         dol_include_once('/companyrelationships/class/companyrelationships.class.php');
@@ -92,7 +94,7 @@ if ($zone === 1) {
             }
         }
         if ($selectedSocId > 0) {
-            $benefactor_companies_ids = $companyrelationships->getRelationshipsThirdparty($selectedSocId, CompanyRelationships::RELATION_TYPE_BENEFACTOR,1);
+            $benefactor_companies_ids = $companyrelationships->getRelationshipsThirdparty($selectedSocId, CompanyRelationships::RELATION_TYPE_BENEFACTOR, 1);
             $benefactor_companies_ids = is_array($benefactor_companies_ids) ? array_values($benefactor_companies_ids) : array();
             $selectedSocIdBenefactor = $selectedSocIdBenefactor < 0 || $force_set ? (count($benefactor_companies_ids) > 0 ? $benefactor_companies_ids[0] : $selectedSocId) : $selectedSocIdBenefactor;
         }
@@ -110,10 +112,10 @@ if ($zone === 1) {
         }
 
         // Get principal companies
-        $principal_companies_ids = $companyrelationships->getRelationshipsThirdparty($selectedSocIdBenefactor,CompanyRelationships::RELATION_TYPE_BENEFACTOR, 0);
+        $principal_companies_ids = $companyrelationships->getRelationshipsThirdparty($selectedSocIdBenefactor, CompanyRelationships::RELATION_TYPE_BENEFACTOR, 0);
 
         // Get benefactor companies
-        $benefactor_companies_ids = $companyrelationships->getRelationshipsThirdparty($selectedSocId,CompanyRelationships::RELATION_TYPE_BENEFACTOR, 1);
+        $benefactor_companies_ids = $companyrelationships->getRelationshipsThirdparty($selectedSocId, CompanyRelationships::RELATION_TYPE_BENEFACTOR, 1);
 
         // Get watcher companies
         $watcher_companies_ids = $companyrelationships->getRelationshipsThirdparty($selectedSocId, CompanyRelationships::RELATION_TYPE_WATCHER, 1);
@@ -196,7 +198,7 @@ if ($zone === 1) {
     }
     print '</td>';
     // Requester Contacts
-	print '<td>' . $langs->trans('RequestManagerRequesterContacts') . '</td><td>';
+    print '<td>' . $langs->trans('RequestManagerRequesterContacts') . '</td><td>';
     print $formrequestmanager->multiselect_contacts($selectedSocIdOrigin, $selectedContacts, 'contact_ids', '', '', 0, 'minwidth300');
     if ($selectedSocIdOrigin > 0 && $user->rights->societe->contact->creer) {
         $backToPage = dol_buildpath('/requestmanager/createfast.php', 1) . '?action=createfast' . ($selectedFkType ? '&type=' . $selectedFkType : '') . ($selectedSocIdOrigin ? '&socid_origin=' . $selectedSocIdOrigin : '') . ($selectedSocId ? '&socid=' . $selectedSocId : '') . ($selectedSocIdBenefactor ? '&socid_benefactor=' . $selectedSocIdBenefactor : '');
@@ -260,9 +262,35 @@ if ($zone === 1) {
     if ($conf->categorie->enabled) {
         print '<td>' . $langs->trans("RequestManagerTags") . '</td>';
         print '<td>';
-        print $formrequestmanager->multiselect_categories($selectedCategories, 'categories',  '', 0, '', 0, '100%');
+        print $formrequestmanager->multiselect_categories($selectedCategories, 'categories', '', 0, '', 0, '100%');
         print '</td>';
     }
+    print '</tr>';
+    print '</table>';
+
+    $to_print = array();
+    $contractList = array();
+    $requestManager->loadAllContract($selectedSocId, FALSE, $contractList);
+    require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
+    $extrafields_contract = new ExtraFields($db);
+    $extralabels_contract = $extrafields_contract->fetch_name_optionals_label('contrat');
+    if (!empty($contractList)) {
+        foreach ($contractList as $contract) {
+            if (($contract->nbofserviceswait + $contract->nbofservicesopened) > 0 && $contract->statut != 2) {
+                $contract->fetch_optionals();
+                $to_print[] = "<a href='" . DOL_URL_ROOT . "/contrat/card.php?id=" . $contract->id . "'> " . $extrafields_contract->showOutputField('formule', $contract->array_options['options_formule']) . " - " . $contract->ref . "</a> ";
+            }
+        }
+    }
+    print '<table class="border" width="100%">';
+    print '<tr>';
+    print '<td>';
+    if (count($to_print) > 0) {
+        print '<h1 style="color:green;text-align:center;font-size: 4em;">Avec contrat : ' . implode(', ', $to_print) . '</h1>';
+    } else {
+        print '<h1 style="color:red;text-align:center;font-size: 4em;">Sans contrat</h1>';
+    }
+    print '</td>';
     print '</tr>';
     print '</table>';
 
@@ -288,51 +316,51 @@ if ($zone === 1) {
     // btn create
     print '<div align="right">';
     print '<input type="submit" class="button" name="btn_create" value="' . $langs->trans('RequestManagerCreateFastBtnCreateLabel') . '"/>';
+//    print '&nbsp;<input type="submit" class="button" name="btn_create_take_charge" value="' . $langs->trans('SynergiesTechButtonCreateAndTakeCharge') . '"/>';
     print '</div>';
 
     ?>
-    <script type="text/javascript">
-        jQuery(document).ready(function(){
-            var requestManagerLoader = new RequestManagerLoader(1, 'create_fast_zone', '<?php echo $_SERVER["PHP_SELF"]; ?>', {});
+  <script type="text/javascript">
+    jQuery(document).ready(function () {
+      var requestManagerLoader = new RequestManagerLoader(1, 'create_fast_zone', '<?php echo $_SERVER["PHP_SELF"]; ?>', {});
 
-            jQuery('#actioncomm_id').change(function(){
-                requestManagerLoader.loadZone(1, 'change_actioncomm_id');
-            });
+      jQuery('#actioncomm_id').change(function () {
+        requestManagerLoader.loadZone(1, 'change_actioncomm_id');
+      });
 
 //            jQuery('#categories').change(function(){
 //                requestManagerLoader.loadZone(1, 'change_categories');
 //            });
 
-            jQuery('#equipement_id').change(function(){
-                requestManagerLoader.loadZone(1, 'change_equipement_id');
-            });
+      jQuery('#equipement_id').change(function () {
+        requestManagerLoader.loadZone(1, 'change_equipement_id');
+      });
 
-          jQuery('#socid_origin').change(function(){
-              requestManagerLoader.loadZone(1, 'change_socid_origin');
-          });
+      jQuery('#socid_origin').change(function () {
+        requestManagerLoader.loadZone(1, 'change_socid_origin');
+      });
 
-          jQuery('#socid').change(function(){
-              requestManagerLoader.loadZone(1, 'change_socid');
-          });
+      jQuery('#socid').change(function () {
+        requestManagerLoader.loadZone(1, 'change_socid');
+      });
 
-          jQuery('#socid_benefactor').change(function(){
-              requestManagerLoader.loadZone(1, 'change_socid_benefactor');
-          });
+      jQuery('#socid_benefactor').change(function () {
+        requestManagerLoader.loadZone(1, 'change_socid_benefactor');
+      });
 
-          jQuery('#socid_watcher').change(function(){
-              requestManagerLoader.loadZone(1, 'change_socid_watcher');
-          });
-        });
-    </script>
+      jQuery('#socid_watcher').change(function () {
+        requestManagerLoader.loadZone(1, 'change_socid_watcher');
+      });
+    });
+  </script>
     <?php
 
     // Wrapper to show tooltips (html or onclick popup)
-    if (! empty($conf->use_javascript_ajax) && empty($conf->dol_no_mouse_hover))
-    {
+    if (!empty($conf->use_javascript_ajax) && empty($conf->dol_no_mouse_hover)) {
         print "\n<!-- JS CODE TO ENABLE tipTip on all object with class classfortooltip -->\n";
         print '<script type="text/javascript">
             jQuery(document).ready(function () {
-              jQuery(".classfortooltip").tipTip({maxWidth: "'.dol_size(($conf->browser->layout == 'phone' ? 400 : 700),'width').'px", edgeOffset: 10, delay: 50, fadeIn: 50, fadeOut: 50});
+              jQuery(".classfortooltip").tipTip({maxWidth: "' . dol_size(($conf->browser->layout == 'phone' ? 400 : 700), 'width') . 'px", edgeOffset: 10, delay: 50, fadeIn: 50, fadeOut: 50});
               jQuery(".classfortooltiponclicktext").dialog({ width: 500, autoOpen: false });
               jQuery(".classfortooltiponclick").click(function () {
                 console.log("We click on tooltip for element with dolid="+$(this).attr(\'dolid\'));

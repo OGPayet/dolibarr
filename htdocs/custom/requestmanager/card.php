@@ -1306,6 +1306,10 @@ if ($object->id > 0) {
 
 	dol_banner_tab($object, 'ref', $linkback, 1, 'ref', 'ref', $morehtmlref);
 
+    // Hook
+    $parameters = array();
+    $reshook = $hookmanager->executeHooks('addNextBannerTab', $parameters, $object, $action); // Note that $action and $object may have been modified by hook
+
     print '<div class="fichecenter">';
     print '<div class="fichehalfleft">';
     print '<div class="underbanner clearboth"></div>';
@@ -1916,7 +1920,7 @@ if ($object->id > 0) {
         print '<tr><td align="center">';
         print '<a href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '#linked_objects_list">' . $langs->trans('RelatedObjects') . '</a>';
         if ($conf->global->REQUESTMANAGER_POSITION_LINK_NEW_OBJECT_LINKED == 'top') {
-            $linktoelem = $form->showLinkToObjectBlock($object, null, array('requestmanager'));
+            $linktoelem = $form->showLinkToObjectBlock($object);
             print ' ( ' . $linktoelem . ' )';
         }
         print '</td></tr>';
@@ -1947,7 +1951,7 @@ if ($object->id > 0) {
     if ($conf->global->REQUESTMANAGER_POSITION_BLOC_OBJECT_LINKED != 'bottom') {
         // Show links to link elements
         print '<div id="linked_objects_list">';
-        $linktoelem = $form->showLinkToObjectBlock($object, null, array('requestmanager'));
+        $linktoelem = $form->showLinkToObjectBlock($object);
         $somethingshown = $form->showLinkedObjectBlock($object, $linktoelem);
         print '</div>';
     }
@@ -2044,49 +2048,72 @@ if ($object->id > 0) {
         // Get count children request by status type
         $children_count = $object->getCountChildrenRequestByStatusType();
 
-        // Get lines (hide if has new request type in the setting of this status and has none child or all children is not closed)
+        // Show status (hide if has new request type in the setting of this status and has none child or all children is not closed)
         if (empty($requestManagerStatusDictionaryLine->fields['new_request_type']) ||
             ($children_count[RequestManager::STATUS_TYPE_INITIAL] + $children_count[RequestManager::STATUS_TYPE_IN_PROGRESS] + $children_count[RequestManager::STATUS_TYPE_RESOLVED] == 0 &&
-                $children_count[RequestManager::STATUS_TYPE_CLOSED] >= 0)) {
+                $children_count[RequestManager::STATUS_TYPE_CLOSED] >= 0)
+        ) {
+            // Get all status of the request type
             $requestManagerStatusDictionary->fetch_lines(1, array('request_type' => array($object->fk_type)));
-            $next_status = explode(',', $requestManagerStatusDictionaryLine->fields['next_status']);
-            if (is_array($next_status) && count($next_status) > 0) {
-                foreach ($next_status as $line_id) {
-                    $line = $requestManagerStatusDictionary->lines[$line_id];
 
-                    if (isset($line)) {
-                        $not_authorized_user = !empty($line->fields['authorized_user']) ? !in_array($user->id, explode(',', $line->fields['authorized_user'])) : false;
-                        $not_authorized_usergroup = false;
-                        if (!empty($line->fields['authorized_usergroup'])) {
-                            $not_authorized_usergroup = true;
-                            $authorized_usergroup = explode(',', $line->fields['authorized_usergroup']);
-                            foreach ($authorized_usergroup as $group_id) {
-                                if (in_array($group_id, $user_groups)) {
-                                    $not_authorized_usergroup = false;
-                                    break;
-                                }
-                            }
+            // Parse all status and add status in previous or next groups
+            $previousStatusButton = array();
+            $nextStatusButton = array();
+            $next_status = explode(',', $requestManagerStatusDictionaryLine->fields['next_status']);
+            foreach ($requestManagerStatusDictionary->lines as $s) {
+                $not_authorized_user = !empty($s->fields['authorized_user']) ? !in_array($user->id, explode(',', $s->fields['authorized_user'])) : false;
+                $not_authorized_usergroup = false;
+                if (!empty($s->fields['authorized_usergroup'])) {
+                    $not_authorized_usergroup = true;
+                    $authorized_usergroup = explode(',', $s->fields['authorized_usergroup']);
+                    foreach ($authorized_usergroup as $group_id) {
+                        if (in_array($group_id, $user_groups)) {
+                            $not_authorized_usergroup = false;
+                            break;
                         }
-                        if (/*$line->id == $object->statut ||*/
-                            ($line->fields['type'] == RequestManager::STATUS_TYPE_CLOSED && !empty($conf->global->REQUESTMANAGER_AUTO_CLOSE_REQUEST)) ||
-                            $not_authorized_user || $not_authorized_usergroup
-                        ) continue;
-                        print '<div class="inline-block divButAction noMarginBottom">';
-                        $options_url = '';
-                        if ($line->fields['type'] == RequestManager::STATUS_TYPE_INITIAL || $line->fields['type'] == RequestManager::STATUS_TYPE_IN_PROGRESS) {
-                            $options_url = '&action=set_status&status=' . $line->id;
-                        } elseif ($line->fields['type'] == RequestManager::STATUS_TYPE_RESOLVED) {
-                            $options_url = '&action=resolve';
-                        } elseif ($line->fields['type'] == RequestManager::STATUS_TYPE_CLOSED) {
-                            $options_url = '&action=close';
-                        }
-                        print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . $options_url . '">';
-                        print $object->LibStatut($line->id, 10);
-                        print '</a>';
-                        print '</div>';
                     }
                 }
+                if ($not_authorized_user || $not_authorized_usergroup) continue;
+
+                $out = '<div class="inline-block divButAction noMarginBottom">';
+                $options_url = '';
+                if ($s->fields['type'] == RequestManager::STATUS_TYPE_INITIAL || $s->fields['type'] == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+                    $options_url = '&action=set_status&status=' . $s->id;
+                } elseif ($s->fields['type'] == RequestManager::STATUS_TYPE_RESOLVED) {
+                    $options_url = '&action=resolve';
+                } elseif ($s->fields['type'] == RequestManager::STATUS_TYPE_CLOSED) {
+                    $options_url = '&action=close';
+                }
+                $out .= '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . $options_url . '">';
+                $out .= $object->LibStatut($s->id, 10);
+                $out .= '</a>';
+                $out .= '</div>';
+
+                $sort_key = $s->fields['type'] . '_' . $s->id;
+
+                // Add in previous group
+                $thisNextStatus = explode(',', $s->fields['next_status']);
+                if (in_array($object->statut, $thisNextStatus) && ($s->fields['type'] == RequestManager::STATUS_TYPE_IN_PROGRESS || $s->fields['type'] == RequestManager::STATUS_TYPE_INITIAL)) {
+                    $previousStatusButton[$sort_key] = $out;
+                }
+
+                // Add in next group
+                if (in_array($s->id, $next_status) && (empty($conf->global->REQUESTMANAGER_AUTO_CLOSE_REQUEST) || $s->fields['type'] != RequestManager::STATUS_TYPE_CLOSED)) {
+                    $nextStatusButton[$sort_key] = $out;
+                }
             }
+
+            // Show previous status
+            print '<div class="tabsStatusActionPrevious">';
+            ksort($previousStatusButton);
+            print implode('', $previousStatusButton);
+            print '</div>';
+
+            // Show next status
+            print '<div class="tabsStatusActionNext">';
+            ksort($nextStatusButton);
+            print implode('', $nextStatusButton);
+            print '</div>';
         }
 
         print '</div>';
@@ -2323,7 +2350,7 @@ if ($object->id > 0) {
             print '<div id="linked_objects_list">';
             $linktoelem = '';
             if ($conf->global->REQUESTMANAGER_POSITION_LINK_NEW_OBJECT_LINKED == 'bottom') {
-                $linktoelem = $form->showLinkToObjectBlock($object, null, array('requestmanager'));
+                $linktoelem = $form->showLinkToObjectBlock($object);
             }
             $somethingshown = $form->showLinkedObjectBlock($object, $linktoelem);
             print '</div>';

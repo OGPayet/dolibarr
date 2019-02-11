@@ -297,19 +297,39 @@ class ExtendedInterventionQuota
 
             if (count($block) > 0) {
                 $out .= '<div id="ei_count_intervention_block"><br>';
-               $out .= load_fiche_titre($langs->trans("ExtendedInterventionQuotaBlockTitle"), '', '', 0, 'ei_count_intervention_block_title');
+                $out .= load_fiche_titre('<span class="ei_count_intervention_block_title_label" style="font-weight: bolder !important; font-size: medium !important;">' . $langs->trans("ExtendedInterventionQuotaBlockTitle") . '&nbsp;<img class="ei_count_intervention_block_title_icon" src=""></img></span>', '', '', 0, 'ei_count_intervention_block_title');
                 $out .= '<div id="ei_count_intervention_block_content"' . (empty($conf->global->EXTENDEDINTERVENTION_QUOTA_SHOW_BLOCK) ? ' style="display: none;"' : '') . '>';
                 $out .= implode('', $block);
                 $out .= '</div></div>';
+
+                $show_label = json_encode($langs->trans('Show'));
+                $hide_label = json_encode($langs->trans('Hide'));
+                $arrow_up = json_encode(img_picto('', 'sort_asc', '', false, 1));
+                $arrow_down = json_encode(img_picto('', 'sort_desc', '', false, 1));
                 $out .= <<<SCRIPT
 <script type="text/javascript" language="javascript">
     $(document).ready(function () {
         var ei_count_block_title = $("#ei_count_intervention_block_title");
+        var ei_count_block_title_div = $('#ei_count_intervention_block_title div.titre');
+        var ei_count_block_title_icon = $(".ei_count_intervention_block_title_icon");
         var ei_count_block_content = $("#ei_count_intervention_block_content");
 
+        ei_count_block_title_div.css('cursor', 'pointer');
+        ei_update_title_icon();
         ei_count_block_title.on('click', function() {
             ei_count_block_content.toggle();
+            ei_update_title_icon();
         });
+
+        function ei_update_title_icon() {
+            if (ei_count_block_content.is(':visible')) {
+                ei_count_block_title_div.attr('title', $hide_label)
+                ei_count_block_title_icon.attr('src', $arrow_down);
+            } else {
+                ei_count_block_title_div.attr('title', $show_label)
+                ei_count_block_title_icon.attr('src', $arrow_up);
+            }
+        }
     });
 </script>
 SCRIPT;

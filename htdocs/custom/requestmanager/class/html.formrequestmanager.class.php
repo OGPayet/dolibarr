@@ -535,6 +535,7 @@ class FormRequestManager
             print '<tr class="liste_titre">';
             print '<td>' . $langs->trans("Ref") . '</td>';
             print '<td>' . $langs->trans("RequestManagerExternalReference") . '</td>';
+            print '<td align="center">' . $langs->trans("RequestManagerType") . '</td>';
             print '<td align="center">' . $langs->trans("Date") . '</td>';
             print '<td align="right">' . $langs->trans("Status") . '</td>';
             print '</tr>';
@@ -1435,7 +1436,7 @@ class FormRequestManager
 
         // Status
         if (!empty($arrayfields['rm.fk_status']['checked'])) {
-            print '<td align="right" class="nowrap'.$updatedLineClass.'">' . $requestmanagerstatic->LibStatut($obj->fk_status, 5) . '</td>';
+            print '<td align="right" class="nowrap'.$updatedLineClass.'">' . $requestmanagerstatic->LibStatut($obj->fk_status, 5, 0, !empty($conf->global->REQUESTMANAGER_SHOW_CHILDREN_REQUEST_STATUS_IN_LIST) ? 3 : -1) . '</td>';
         }
 
         print '<td class="nowrap'.$updatedLineClass.'"></td>';

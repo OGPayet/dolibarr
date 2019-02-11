@@ -31,7 +31,7 @@ class RequestManagerStatusDictionary extends Dictionary
     /**
      * @var int         Version of this dictionary
      */
-    public $version = 10;
+    public $version = 11;
 
     /**
      * @var array       List of languages to load
@@ -258,6 +258,15 @@ class RequestManagerStatusDictionary extends Dictionary
         ),
         'authorized_user' => array(),
         'authorized_usergroup' => array(),
+        'assigned_user_current' => array(
+            'name'       => 'assigned_user_current',
+            'label'      => 'RequestManagerStatusDictionaryAssignedUserCurrent',
+            'help'       => 'RequestManagerStatusDictionaryAssignedUserCurrentHelp',
+            'type'       => 'boolean',
+            'td_input' => array(
+                'positionLine' => 2,
+            ),
+        ),
         'assigned_user' => array(),
         'assigned_user_replaced' => array(
             'name'       => 'assigned_user_replaced',
@@ -421,6 +430,11 @@ class RequestManagerStatusDictionary extends Dictionary
                 'new_request_type_next_status_auto' => 'a',
             )
         ),
+        11 => array(
+            'fields' => array(
+                'assigned_user_current' => 'a',
+            )
+        ),
     );
 
     /**
@@ -572,7 +586,7 @@ class RequestManagerStatusDictionary extends Dictionary
             'td_input' => array(
                 'moreAttributes' => 'width="37.5%"',
                 'positionLine' => 2,
-                'colspan' => 3,
+                'colspan' => 2,
             ),
         );
 

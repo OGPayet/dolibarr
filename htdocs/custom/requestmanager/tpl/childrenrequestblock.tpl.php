@@ -49,7 +49,8 @@ foreach($childrenRequestBlock as $key => $request)
 ?>
     <tr class="<?php echo $trclass; ?>">
       <td><?php echo $request->getNomUrl(1, 'parent_path_stop_parent_'.$stopParentID); ?></td>
-	<td><?php echo $request->ref_ext; ?></td>
+      <td><?php echo $request->ref_ext; ?></td>
+      <td align="center"><?php echo $request->getLibType(); ?></td>
 	<td align="center"><?php echo dol_print_date($request->date_creation,'day'); ?></td>
 	<td align="right"><?php echo $request->getLibStatut(5); ?></td>
     </tr>

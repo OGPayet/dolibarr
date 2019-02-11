@@ -2590,6 +2590,13 @@ class RequestManager extends CommonObject
         if (!isset($status_infos->fields['assigned_usergroup_replaced']) || !$status_infos->fields['assigned_usergroup_replaced']) {
             $assigned_usergroups = array_merge($assigned_usergroups, $this->assigned_usergroup_ids);
         }
+        if (!empty($status_infos->fields['assigned_user_current'])) {
+            if (!is_array($assigned_users)) {
+                $assigned_users = array($user->id);
+            } elseif (!in_array($user->id, $assigned_users)) {
+                $assigned_users[] = $user->id;
+            }
+        }
         $date_operation = null;
         if (isset($status_infos->fields['operation'])) {
             if ($status_infos->fields['operation'] > 0) {
@@ -3208,12 +3215,17 @@ class RequestManager extends CommonObject
     /**
      *  Return label of status
      *
-     * @param   int         $mode       0=libelle long, 1=libelle court, 2=Picto + Libelle court, 3=Picto, 4=Picto + Libelle long
-     * @return  string                  Libelle
+     * @param   int         $mode           0=libelle long, 1=libelle court, 2=Picto + Libelle court, 3=Picto, 4=Picto + Libelle long
+     * @param   int         $forcereload    Force reload of the cache
+     * @param   int         $submode        Show status of all children request
+     *                                      -1=Don't show, 0=libelle long, 1=libelle court, 2=Picto + Libelle court, 3=Picto, 4=Picto + Libelle long, 5=Picto + Libelle court + Status type picto
+     * @param   int         $return_line    0=Return line equal "\n", 1=Return line equal "<br>", 2=No return line but a separator
+     * @param   string      $separator      Separator between each status
+     * @return  string                      Libelle
      */
-    function getLibStatut($mode=0)
+    function getLibStatut($mode=0, $forcereload=0, $submode=-1, $return_line=1, $separator=" / ")
     {
-        return $this->LibStatut($this->statut, $mode);
+        return $this->LibStatut($this->statut, $mode,$forcereload, $submode, $return_line, $separator);
     }
 
     /**
@@ -3222,9 +3234,13 @@ class RequestManager extends CommonObject
      * @param   int         $statut         Id statut
      * @param   int         $mode           0=libelle long, 1=libelle court, 2=Picto + Libelle court, 3=Picto, 4=Picto + Libelle long, 5=Picto + Libelle court + Status type picto
      * @param   int         $forcereload    Force reload of the cache
+     * @param   int         $submode        Show status of all children request
+     *                                      -1=Don't show, 0=libelle long, 1=libelle court, 2=Picto + Libelle court, 3=Picto, 4=Picto + Libelle long, 5=Picto + Libelle court + Status type picto
+     * @param   int         $return_line    0=Return line equal "\n", 1=Return line equal "<br>", 2=No return line but a separator
+     * @param   string      $separator      Separator between each status
      * @return  string                      Libelle du statut
      */
-    function LibStatut($statut,$mode=0,$forcereload=0)
+    function LibStatut($statut,$mode=0,$forcereload=0, $submode=-1, $return_line=1, $separator= " / ")
     {
         global $langs;
 
@@ -3252,26 +3268,56 @@ class RequestManager extends CommonObject
 
         $statuttypepicto = '';
         $statuttypetext = '';
-        if ($type == self::STATUS_TYPE_INITIAL) { $statuttypepicto = 'statut0'; $statuttypetext = $langs->trans('RequestManagerTypeInitial'); }
-        if ($type == self::STATUS_TYPE_IN_PROGRESS) { $statuttypepicto = 'statut1'; $statuttypetext = $langs->trans('RequestManagerTypeInProgress'); }
-        if ($type == self::STATUS_TYPE_RESOLVED) { $statuttypepicto = 'statut3'; $statuttypetext = $langs->trans('RequestManagerTypeResolved'); }
-        if ($type == self::STATUS_TYPE_CLOSED) { $statuttypepicto = 'statut4'; $statuttypetext = $langs->trans('RequestManagerTypeClosed'); }
-        if ($mode >= 7 && !empty($picto)) { $statuttypepicto = $picto; }
-        if ($mode >= 9 && !empty($picto)) { $statuttypetext = $label; }
+        if ($type == self::STATUS_TYPE_INITIAL) {
+            $statuttypepicto = 'statut0';
+            $statuttypetext = $langs->trans('RequestManagerTypeInitial');
+        }
+        if ($type == self::STATUS_TYPE_IN_PROGRESS) {
+            $statuttypepicto = 'statut1';
+            $statuttypetext = $langs->trans('RequestManagerTypeInProgress');
+        }
+        if ($type == self::STATUS_TYPE_RESOLVED) {
+            $statuttypepicto = 'statut3';
+            $statuttypetext = $langs->trans('RequestManagerTypeResolved');
+        }
+        if ($type == self::STATUS_TYPE_CLOSED) {
+            $statuttypepicto = 'statut4';
+            $statuttypetext = $langs->trans('RequestManagerTypeClosed');
+        }
+        if ($mode >= 7 && !empty($picto)) {
+            $statuttypepicto = $picto;
+        }
+        if ($mode >= 9 && !empty($picto)) {
+            $statuttypetext = $label;
+        }
 
-        if ($mode == 0) return $label;
-        if ($mode == 1) return $label_short;
-        if ($mode == 2) return (!empty($picto) ? img_picto($label_short, $picto) . ' ' : '') . $label_short;
-        if ($mode == 3) return img_picto($label, $statuttypepicto);
-        if ($mode == 4) return (!empty($picto) ? img_picto($label, $picto) . ' ' : '') . $label;
-        if ($mode == 5) return (!empty($picto) ? img_picto($label, $picto) . ' ' : '') . '<span class="hideonsmartphone">' . $label_short . ' </span>' . img_picto($langs->trans($statuttypetext), $statuttypepicto);
-        if ($mode == 6) return (!empty($picto) ? img_picto($label, $picto) . ' ' : '') . '<span class="hideonsmartphone">' . $label . ' </span>' . img_picto($langs->trans($statuttypetext), $statuttypepicto);
-        if ($mode == 7) return img_picto($label, $statuttypepicto) . ' ' . '<span class="hideonsmartphone">' . $label_short . ' </span>';
-        if ($mode == 8) return img_picto($label, $statuttypepicto) . ' ' . '<span class="hideonsmartphone">' . $label . ' </span>';
-        if ($mode == 9) return img_picto($statuttypetext, $statuttypepicto) . ' ' . $label_short;
-        if ($mode == 10) return img_picto($statuttypetext, $statuttypepicto) . ' ' . $label;
-        if ($mode == 11) return img_picto($statuttypetext, $statuttypepicto) . ' ' . $statuttypetext;
-        if ($mode == 12) return $statuttypetext;
+        $out = array();
+        if ($mode == 0) $out[] = $label;
+        if ($mode == 1) $out[] = $label_short;
+        if ($mode == 2) $out[] = (!empty($picto) ? img_picto($label_short, $picto) . ' ' : '') . $label_short;
+        if ($mode == 3) $out[] = img_picto($label, $statuttypepicto);
+        if ($mode == 4) $out[] = (!empty($picto) ? img_picto($label, $picto) . ' ' : '') . $label;
+        if ($mode == 5) $out[] = (!empty($picto) ? img_picto($label, $picto) . ' ' : '') . '<span class="hideonsmartphone">' . $label_short . ' </span>' . img_picto($langs->trans($statuttypetext), $statuttypepicto);
+        if ($mode == 6) $out[] = (!empty($picto) ? img_picto($label, $picto) . ' ' : '') . '<span class="hideonsmartphone">' . $label . ' </span>' . img_picto($langs->trans($statuttypetext), $statuttypepicto);
+        if ($mode == 7) $out[] = img_picto($label, $statuttypepicto) . ' ' . '<span class="hideonsmartphone">' . $label_short . ' </span>';
+        if ($mode == 8) $out[] = img_picto($label, $statuttypepicto) . ' ' . '<span class="hideonsmartphone">' . $label . ' </span>';
+        if ($mode == 9) $out[] = img_picto($statuttypetext, $statuttypepicto) . ' ' . $label_short;
+        if ($mode == 10) $out[] = img_picto($statuttypetext, $statuttypepicto) . ' ' . $label;
+        if ($mode == 11) $out[] = img_picto($statuttypetext, $statuttypepicto) . ' ' . $statuttypetext;
+        if ($mode == 12) $out[] = $statuttypetext;
+
+        if ($submode >= 0) {
+            $this->fetch_children_request(null, 1);
+            if (count($this->children_request_list) > 0) {
+                $to_print = array();
+                foreach ($this->children_request_list as $child_request) {
+                    $to_print[] = $child_request->getLibStatut($submode);
+                }
+                $out[] = implode($separator, $to_print);
+            }
+        }
+
+        return implode($return_line == 1 ? '<br>' : ($return_line == 2 ? $separator : "\n"), $out);
     }
 
     /**
