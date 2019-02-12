@@ -33,6 +33,7 @@ class FormRequestManagerMessage
     public $error;
     public $withform;       // 1=Include HTML form tag and show submit button, 0=Do not include form tag and submit button, -1=Do not include form tag but include submit button
     public $withcancel;
+    public $withfiles;
     public $param=array();
     public $trackid;
 
@@ -88,10 +89,12 @@ class FormRequestManagerMessage
         $this->db = $db;
         $this->withform=1;
         $this->withcancel=1;
+        $this->withfiles=1;
 
         $this->requestmanager = $object;
         $this->formdictionary = new FormDictionary($this->db);
 
+        $this->save_session_key = 'rm_save_message_' . $this->requestmanager->id;
         $this->key_list_of_paths = "listofpaths-rm" . $this->requestmanager->id;
         $this->key_list_of_names = "listofnames-rm" . $this->requestmanager->id;
         $this->key_list_of_mimes = "listofmimes-rm" . $this->requestmanager->id;
@@ -115,6 +118,29 @@ class FormRequestManagerMessage
         unset($_SESSION[$this->key_list_of_paths]);
         unset($_SESSION[$this->key_list_of_names]);
         unset($_SESSION[$this->key_list_of_mimes]);
+    }
+
+    /**
+     * Load datas of the form saved in session
+     *
+     * @return	bool        Return true if loaded datas in session
+     */
+    function load_datas_in_session()
+    {
+        if (isset($_SESSION['rm_data_save_in_session'][$this->save_session_key])) {
+            $datas = array();
+            parse_str($_SESSION['rm_data_save_in_session'][$this->save_session_key], $datas);
+
+            foreach ($datas as $k => $v) {
+                $_POST[$k] = $v;
+            }
+
+            unset($_SESSION['rm_data_save_in_session'][$this->save_session_key]);
+
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -523,32 +549,34 @@ SCRIPT;
 
         // Attached files
         //-----------------
-        $out .= '<tr>';
-        $out .= '<td width="180">' . $langs->trans("RequestManagerMessageFile") . '</td>';
-        $out .= '<td>';
-        // TODO Trick to have param removedfile containing nb of image to delete. But this does not works without javascript
-        $out .= '<input type="hidden" class="removedfilehidden" name="removedfile" value="">' . "\n";
-        $out .= '<script type="text/javascript" language="javascript">';
-        $out .= 'jQuery(document).ready(function () {';
-        $out .= '    jQuery(".removedfile").click(function() {';
-        $out .= '        jQuery(".removedfilehidden").val(jQuery(this).val());';
-        $out .= '    });';
-        $out .= '})';
-        $out .= '</script>' . "\n";
-        if (count($listofpaths)) {
-            foreach ($listofpaths as $key => $val) {
-                $out .= '<div id="attachfile_' . $key . '">';
-                $out .= img_mime($listofnames[$key]) . ' ' . $listofnames[$key];
-                $out .= ' <input type="image" style="border: 0px;" src="' . img_picto('', 'delete.png', '', false, 1) . '" value="' . ($key + 1) . '" class="removedfile" id="' . $removefileaction . '_' . $key . '" name="' . $removefileaction . '_' . $key . '" />';
-                $out .= '<br></div>';
+        if ($this->withfiles == 1) {
+            $out .= '<tr>';
+            $out .= '<td width="180">' . $langs->trans("RequestManagerMessageFile") . '</td>';
+            $out .= '<td>';
+            // TODO Trick to have param removedfile containing nb of image to delete. But this does not works without javascript
+            $out .= '<input type="hidden" class="removedfilehidden" name="removedfile" value="">' . "\n";
+            $out .= '<script type="text/javascript" language="javascript">';
+            $out .= 'jQuery(document).ready(function () {';
+            $out .= '    jQuery(".removedfile").click(function() {';
+            $out .= '        jQuery(".removedfilehidden").val(jQuery(this).val());';
+            $out .= '    });';
+            $out .= '})';
+            $out .= '</script>' . "\n";
+            if (count($listofpaths)) {
+                foreach ($listofpaths as $key => $val) {
+                    $out .= '<div id="attachfile_' . $key . '">';
+                    $out .= img_mime($listofnames[$key]) . ' ' . $listofnames[$key];
+                    $out .= ' <input type="image" style="border: 0px;" src="' . img_picto('', 'delete.png', '', false, 1) . '" value="' . ($key + 1) . '" class="removedfile" id="' . $removefileaction . '_' . $key . '" name="' . $removefileaction . '_' . $key . '" />';
+                    $out .= '<br></div>';
+                }
+            } else {
+                $out .= $langs->trans("NoAttachedFiles") . '<br>';
             }
-        } else {
-            $out .= $langs->trans("NoAttachedFiles") . '<br>';
+            $out .= '<input type="file" class="flat" id="addedfile" name="addedfile[]" value="' . $langs->trans("Upload") . '" multiple />';
+            $out .= ' ';
+            $out .= '<input class="button" type="submit" id="addfile' . $addfileaction . '" name="' . $addfileaction . '" value="' . $langs->trans("MailingAddFile") . '" />';
+            $out .= "</td></tr>\n";
         }
-        $out .= '<input type="file" class="flat" id="addedfile" name="addedfile[]" value="' . $langs->trans("Upload") . '" multiple />';
-        $out .= ' ';
-        $out .= '<input class="button" type="submit" id="addfile' . $addfileaction . '" name="' . $addfileaction . '" value="' . $langs->trans("MailingAddFile") . '" />';
-        $out .= "</td></tr>\n";
 
         // Substitution help
         //-----------------------
@@ -648,6 +676,8 @@ SCRIPT;
                 $out .= ' onClick="if (document.requestmanagermessageform.addedfile.value != \'\') { alert(\'' . dol_escape_js($langs->trans("FileWasNotUploaded")) . '\'); return false; } else { return true; }"';
             }
             $out .= ' />';
+            $out .= ' &nbsp; &nbsp; ';
+            $out .= '<div class="inline-block divButAction"><a class="butActionDelete rm_reset_data_in_session" href="' . $this->param["returnurl"] . '#formmessagebeforetitle">' . $langs->trans('Reset') . '</a></div>';
             if ($this->withcancel) {
                 $out .= ' &nbsp; &nbsp; ';
                 $out .= '<input class="button" type="submit" id="cancel" name="cancel" value="' . $langs->trans("Cancel") . '" />';
@@ -656,6 +686,8 @@ SCRIPT;
         }
 
         if ($this->withform == 1) $out .= '</form>' . "\n";
+
+        $out .= $formrequestmanager->saveFormToSession('requestmanagermessageform', $this->save_session_key);
 
         $out .= <<<SCRIPT
             <script type="text/javascript" language="javascript">

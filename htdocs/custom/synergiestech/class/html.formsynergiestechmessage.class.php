@@ -505,32 +505,34 @@ SCRIPT;
 
         // Attached files
         //-----------------
-        $out .= '<tr>';
-        $out .= '<td width="180">' . $langs->trans("RequestManagerMessageFile") . '</td>';
-        $out .= '<td>';
-        // TODO Trick to have param removedfile containing nb of image to delete. But this does not works without javascript
-        $out .= '<input type="hidden" class="removedfilehidden" name="removedfile" value="">' . "\n";
-        $out .= '<script type="text/javascript" language="javascript">';
-        $out .= 'jQuery(document).ready(function () {';
-        $out .= '    jQuery(".removedfile").click(function() {';
-        $out .= '        jQuery(".removedfilehidden").val(jQuery(this).val());';
-        $out .= '    });';
-        $out .= '})';
-        $out .= '</script>' . "\n";
-        if (count($listofpaths)) {
-            foreach ($listofpaths as $key => $val) {
-                $out .= '<div id="attachfile_' . $key . '">';
-                $out .= img_mime($listofnames[$key]) . ' ' . $listofnames[$key];
-                $out .= ' <input type="image" style="border: 0px;" src="' . img_picto('', 'delete.png', '', false, 1) . '" value="' . ($key + 1) . '" class="removedfile" id="' . $removefileaction . '_' . $key . '" name="' . $removefileaction . '_' . $key . '" />';
-                $out .= '<br></div>';
+        if ($this->withfiles == 1) {
+            $out .= '<tr>';
+            $out .= '<td width="180">' . $langs->trans("RequestManagerMessageFile") . '</td>';
+            $out .= '<td>';
+            // TODO Trick to have param removedfile containing nb of image to delete. But this does not works without javascript
+            $out .= '<input type="hidden" class="removedfilehidden" name="removedfile" value="">' . "\n";
+            $out .= '<script type="text/javascript" language="javascript">';
+            $out .= 'jQuery(document).ready(function () {';
+            $out .= '    jQuery(".removedfile").click(function() {';
+            $out .= '        jQuery(".removedfilehidden").val(jQuery(this).val());';
+            $out .= '    });';
+            $out .= '})';
+            $out .= '</script>' . "\n";
+            if (count($listofpaths)) {
+                foreach ($listofpaths as $key => $val) {
+                    $out .= '<div id="attachfile_' . $key . '">';
+                    $out .= img_mime($listofnames[$key]) . ' ' . $listofnames[$key];
+                    $out .= ' <input type="image" style="border: 0px;" src="' . img_picto('', 'delete.png', '', false, 1) . '" value="' . ($key + 1) . '" class="removedfile" id="' . $removefileaction . '_' . $key . '" name="' . $removefileaction . '_' . $key . '" />';
+                    $out .= '<br></div>';
+                }
+            } else {
+                $out .= $langs->trans("NoAttachedFiles") . '<br>';
             }
-        } else {
-            $out .= $langs->trans("NoAttachedFiles") . '<br>';
+            $out .= '<input type="file" class="flat" id="addedfile" name="addedfile[]" value="' . $langs->trans("Upload") . '" multiple />';
+            $out .= ' ';
+            $out .= '<input class="button" type="submit" id="addfile' . $addfileaction . '" name="' . $addfileaction . '" value="' . $langs->trans("MailingAddFile") . '" />';
+            $out .= "</td></tr>\n";
         }
-        $out .= '<input type="file" class="flat" id="addedfile" name="addedfile[]" value="' . $langs->trans("Upload") . '" multiple />';
-        $out .= ' ';
-        $out .= '<input class="button" type="submit" id="addfile' . $addfileaction . '" name="' . $addfileaction . '" value="' . $langs->trans("MailingAddFile") . '" />';
-        $out .= "</td></tr>\n";
 
         $out .= '</table>' . "\n";
 
@@ -542,6 +544,8 @@ SCRIPT;
                 $out .= ' onClick="if (document.requestmanagermessageform.addedfile.value != \'\') { alert(\'' . dol_escape_js($langs->trans("FileWasNotUploaded")) . '\'); return false; } else { return true; }"';
             }
             $out .= ' />';
+            $out .= ' &nbsp; &nbsp; ';
+            $out .= '<div class="inline-block divButAction"><a class="butActionDelete rm_reset_data_in_session" href="' . $this->param["returnurl"] . '#formmessagebeforetitle">' . $langs->trans('Reset') . '</a></div>';
             if ($this->withcancel) {
                 $out .= ' &nbsp; &nbsp; ';
                 $out .= '<input class="button" type="submit" id="cancel" name="cancel" value="' . $langs->trans("Cancel") . '" />';
@@ -551,28 +555,30 @@ SCRIPT;
 
         if ($this->withform == 1) $out .= '</form>' . "\n";
 
-        $out .= <<<SCRIPT
-             <script type="text/javascript" language="javascript">
-                 jQuery(document).ready(function () {
-                     // Disabled return keypress
-                     $(document).on("keypress", '#requestmanagermessageform', function (e) {
-                         var code = e.keyCode || e.which;
-                         if (code == 13) {
-                             e.preventDefault();
-                             return false;
-                         }
-                     });
+        $out .= $formrequestmanager->saveFormToSession('requestmanagermessageform', $this->save_session_key);
 
-                     // Resize tooltip box
-                     $(".classfortooltiponclick").click(function () {
-                         if ($(this).attr('dolid'))
-                         {
-                             jQuery(".classfortooltiponclicktext").dialog({ width: 'auto', autoOpen: false });
-                             obj=$("#idfortooltiponclick_"+$(this).attr('dolid'));
-                             obj.dialog("open");
-                         }
-                     });
-                 });
+        $out .= <<<SCRIPT
+            <script type="text/javascript" language="javascript">
+                jQuery(document).ready(function () {
+                    // Disabled return keypress
+                    $(document).on("keypress", '#requestmanagermessageform', function (e) {
+                        var code = e.keyCode || e.which;
+                        if (code == 13) {
+                            e.preventDefault();
+                            return false;
+                        }
+                    });
+
+                    // Resize tooltip box
+                    $(".classfortooltiponclick").click(function () {
+                        if ($(this).attr('dolid'))
+                        {
+                            jQuery(".classfortooltiponclicktext").dialog({ width: 'auto', autoOpen: false });
+                            obj=$("#idfortooltiponclick_"+$(this).attr('dolid'));
+                            obj.dialog("open");
+                        }
+                    });
+                });
              </script>
 SCRIPT;
 

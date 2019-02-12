@@ -60,7 +60,9 @@ class ActionsSynergiesTech
      */
     public function __construct($db)
     {
+        global $langs;
         $this->db = $db;
+        $langs->load('synergiestech@synergiestech');
     }
 
     /**
@@ -824,6 +826,136 @@ SCRIPT;
 
                 return 1;
             }
+        } else if (in_array('requestmanagerfastcard', $contexts)) {
+            global $force_principal_company_confirmed, $force_out_of_time_confirmed, $create_and_take_in_charge_confirmed;
+            $selectedActionJs = GETPOST('action_js') ? GETPOST('action_js') : '';
+            $selectedActionCommId = GETPOST('actioncomm_id', 'int') ? intval(GETPOST('actioncomm_id', 'int')) : -1;
+            $selectedCategories = GETPOST('categories', 'array') ? GETPOST('categories', 'array') : (GETPOST('categories', 'alpha') ? explode(',', GETPOST('categories', 'alpha')) : array());
+            $selectedContacts = GETPOST('contact_ids', 'array') ? GETPOST('contact_ids', 'array') : (GETPOST('contact_ids', 'alpha') ? explode(',', GETPOST('contact_ids', 'alpha')) : array());
+            $selectedDescription = GETPOST('description') ? GETPOST('description') : '';
+            $selectedEquipementId = GETPOST('equipement_id', 'int') ? intval(GETPOST('equipement_id', 'int')) : -1;
+            $selectedLabel = GETPOST('label', 'alpha') ? GETPOST('label', 'alpha') : '';
+            $selectedSocIdOrigin = GETPOST('socid_origin', 'int') ? intval(GETPOST('socid_origin', 'int')) : -1;
+            $selectedSocId = GETPOST('socid', 'int') ? intval(GETPOST('socid', 'int')) : -1;
+            $selectedSocIdBenefactor = GETPOST('socid_benefactor', 'int') ? intval(GETPOST('socid_benefactor', 'int')) : -1;
+            $selectedSocIdWatcher = GETPOST('socid_watcher', 'int') ? intval(GETPOST('socid_watcher', 'int')) : -1;
+            $selectedFkType = GETPOST('type', 'int') ? intval(GETPOST('type', 'int')) : -1;
+            $selectedFkSource = GETPOST('source', 'int') ? intval(GETPOST('source', 'int')) : -1;
+            $selectedFkUrgency = GETPOST('urgency', 'int') ? intval(GETPOST('urgency', 'int')) : -1;
+            $selectedRequesterNotification = GETPOST('notify_requester_by_email', 'int') > 0 ? 1 : 0;
+            $origin = GETPOST('origin', 'alpha');
+            $originid = GETPOST('originid', 'int');
+            $next_status = GETPOST('next_status', 'int');
+
+            if ($selectedSocIdOrigin === '' && $selectedSocId > 0) {
+                $selectedSocIdOrigin = $selectedSocId;
+            }
+
+            if (!empty($conf->companyrelationships->enabled)) {
+                dol_include_once('/companyrelationships/class/companyrelationships.class.php');
+                $companyrelationships = new CompanyRelationships($this->db);
+
+                // Set default values
+                $force_set = $selectedActionJs == 'change_socid_origin';
+                if ($selectedSocIdOrigin > 0) {
+                    $originRelationshipType = $companyrelationships->getRelationshipTypeThirdparty($selectedSocIdOrigin, CompanyRelationships::RELATION_TYPE_BENEFACTOR);
+                    if ($originRelationshipType == 0) { // Benefactor company
+                        $selectedSocIdBenefactor = $selectedSocIdBenefactor < 0 || $force_set ? $selectedSocIdOrigin : $selectedSocIdBenefactor;
+                    } elseif ($originRelationshipType > 0) { // Principal company or both
+                        $selectedSocId = $selectedSocId < 0 || $force_set ? $selectedSocIdOrigin : $selectedSocId;
+                    } else { // None
+                        $selectedSocId = $selectedSocId < 0 || $force_set ? $selectedSocIdOrigin : $selectedSocId;
+                        $selectedSocIdBenefactor = $selectedSocIdBenefactor < 0 || $force_set ? $selectedSocId : $selectedSocIdBenefactor;
+                    }
+                }
+                if ($selectedSocId > 0) {
+                    $benefactor_companies_ids = $companyrelationships->getRelationshipsThirdparty($selectedSocId, CompanyRelationships::RELATION_TYPE_BENEFACTOR, 1);
+                    $benefactor_companies_ids = is_array($benefactor_companies_ids) ? array_values($benefactor_companies_ids) : array();
+                    $selectedSocIdBenefactor = $selectedSocIdBenefactor < 0 || $force_set ? (count($benefactor_companies_ids) > 0 ? $benefactor_companies_ids[0] : $selectedSocId) : $selectedSocIdBenefactor;
+                }
+                if ($selectedSocIdBenefactor > 0) {
+                    $principal_companies_ids = $companyrelationships->getRelationshipsThirdparty($selectedSocIdBenefactor, CompanyRelationships::RELATION_TYPE_BENEFACTOR,0);
+                    $principal_companies_ids = is_array($principal_companies_ids) ? array_values($principal_companies_ids) : array();
+                    $selectedSocId = $selectedSocId < 0 || $force_set ? (count($principal_companies_ids) > 0 ? $principal_companies_ids[0] : $selectedSocIdBenefactor) : $selectedSocId;
+                }
+
+                // default watcher
+                if ($selectedSocId > 0) {
+                    $watcher_companies_ids = $companyrelationships->getRelationshipsThirdparty($selectedSocId, CompanyRelationships::RELATION_TYPE_WATCHER, 1);
+                    $watcher_companies_ids = is_array($watcher_companies_ids) ? array_values($watcher_companies_ids) : array();
+                    $selectedSocIdWatcher = $force_set ? (count($watcher_companies_ids) > 0 ? $watcher_companies_ids[0] : $selectedSocIdWatcher) : $selectedSocIdWatcher;
+                }
+            } else {
+                $selectedSocId = $selectedSocIdOrigin;
+                $selectedSocIdBenefactor = $selectedSocIdOrigin;
+            }
+
+            // Confirm force principal company
+            $formquestion = array();
+            if (!empty($selectedActionJs)) $formquestion[] = array('type' => 'hidden', 'name' => 'action_js', 'value' => $selectedActionJs);
+            if (!empty($selectedActionCommId)) $formquestion[] = array('type' => 'hidden', 'name' => 'actioncomm_id', 'value' => $selectedActionCommId);
+            if (!empty($selectedCategories)) $formquestion[] = array('type' => 'hidden', 'name' => 'categories', 'value' => implode(',', $selectedCategories));
+            if (!empty($selectedContacts)) $formquestion[] = array('type' => 'hidden', 'name' => 'contact_ids', 'value' => implode(',', $selectedContacts));
+            if (!empty($selectedDescription)) $formquestion[] = array('type' => 'hidden', 'name' => 'description', 'value' => $selectedDescription);
+            if (!empty($selectedEquipementId)) $formquestion[] = array('type' => 'hidden', 'name' => 'equipement_id', 'value' => $selectedEquipementId);
+            if (!empty($selectedLabel)) $formquestion[] = array('type' => 'hidden', 'name' => 'label', 'value' => $selectedLabel);
+            if (!empty($selectedSocIdOrigin)) $formquestion[] = array('type' => 'hidden', 'name' => 'socid_origin', 'value' => $selectedSocIdOrigin);
+            if (!empty($selectedSocId)) $formquestion[] = array('type' => 'hidden', 'name' => 'socid', 'value' => $selectedSocId);
+            if (!empty($selectedSocIdBenefactor)) $formquestion[] = array('type' => 'hidden', 'name' => 'socid_benefactor', 'value' => $selectedSocIdBenefactor);
+            if (!empty($selectedSocIdWatcher)) $formquestion[] = array('type' => 'hidden', 'name' => 'socid_watcher', 'value' => $selectedSocIdWatcher);
+            if (!empty($selectedFkSource)) $formquestion[] = array('type' => 'hidden', 'name' => 'source', 'value' => $selectedFkSource);
+            if (!empty($selectedFkType)) $formquestion[] = array('type' => 'hidden', 'name' => 'type', 'value' => $selectedFkType);
+            if (!empty($selectedFkUrgency)) $formquestion[] = array('type' => 'hidden', 'name' => 'urgency', 'value' => $selectedFkUrgency);
+            if (!empty($selectedRequesterNotification)) $formquestion[] = array('type' => 'hidden', 'name' => 'notify_requester_by_email', 'value' => $selectedRequesterNotification);
+            if (!empty($origin)) $formquestion[] = array('type' => 'hidden', 'name' => 'origin', 'value' => $origin);
+            if (!empty($originid)) $formquestion[] = array('type' => 'hidden', 'name' => 'originid', 'value' => $originid);
+            if (!empty($force_principal_company_confirmed)) $formquestion[] = array('type' => 'hidden', 'name' => 'force_principal_company_confirmed', 'value' => $force_principal_company_confirmed ? 1 : 0);
+            if (!empty($force_out_of_time_confirmed)) $formquestion[] = array('type' => 'hidden', 'name' => 'force_out_of_time_confirmed', 'value' => $force_out_of_time_confirmed ? 1 : 0);
+            if (!empty($next_status)) $formquestion[] = array('type' => 'hidden', 'name' => 'next_status', 'value' => $next_status);
+            if (!empty($create_and_take_in_charge_confirmed)) $formquestion[] = array('type' => 'hidden', 'name' => 'create_and_take_in_charge_confirmed', 'value' => $create_and_take_in_charge_confirmed ? 1 : 0);
+
+            dol_include_once('/synergiestech/class/html.formsynergiestech.class.php');
+            $formsynergiestech = new FormSynergiesTech($this->db);
+
+            $formconfirm = '';
+            if ($action == 'force_principal_company') {
+                $societe = new Societe($this->db);
+                $societe->fetch($selectedSocId);
+                $formquestion[] = array('type' => 'other', 'label' => $langs->trans('RequestManagerThirdPartyPrincipal'), 'value' => $societe->getNomUrl(1));
+                $societe->fetch($selectedSocIdBenefactor);
+                $formquestion[] = array('type' => 'other', 'label' => $langs->trans('RequestManagerThirdPartyBenefactor'), 'value' => $societe->getNomUrl(1));
+
+                $formconfirm = $formsynergiestech->formconfirm($_SERVER["PHP_SELF"], $langs->trans('RequestManagerForcePrincipalCompany'), $langs->trans('RequestManagerConfirmForcePrincipalCompany'), 'confirm_force_principal_company', $formquestion, 0, 1, 200, 500, 1);
+            } elseif (!empty($conf->global->REQUESTMANAGER_TIMESLOTS_ACTIVATE) && $action == 'force_out_of_time') {
+                $outOfTimes = requestmanagertimeslots_get_out_of_time_infos($selectedSocId);
+                if (is_array($outOfTimes) && count($outOfTimes) > 0) {
+                    $toprint = array();
+                    foreach ($outOfTimes as $infos) {
+                        $toprint[] = '&nbsp;-&nbsp;' . $infos['year'] . (isset($infos['month']) ? '-' . $infos['month'] : '') . ' : ' . $infos['count'];
+                    }
+                    $formquestion[] = array('type' => 'onecolumn', 'value' => $langs->trans('RequestManagerCreatedOutOfTime') . ':<br>' . implode('<br>', $toprint));
+                }
+
+                $formconfirm = $formsynergiestech->formconfirm($_SERVER["PHP_SELF"], $langs->trans('RequestManagerForceCreateOutOfTime'), $langs->trans('RequestManagerConfirmForceCreateOutOfTime'), 'confirm_force_out_of_time', $formquestion, 0, 1, 200, 500, 1);
+            } elseif ($action == 'create_take_charge' && $selectedFkType > 0) {
+                dol_include_once('/advancedictionaries/class/dictionary.class.php');
+                $requestManagerStatusDictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagerstatus');
+                $requestManagerStatusDictionary->fetch_lines(1, array('type' => array(RequestManager::STATUS_TYPE_INITIAL), 'request_type' => array($selectedFkType)));
+
+                dol_include_once('/advancedictionaries/class/html.formdictionary.class.php');
+                $formdictionary = new FormDictionary($this->db);
+
+                $status_list = array_values($requestManagerStatusDictionary->lines);
+                $status_init = isset($status_list[0]) ? $status_list[0] : array();
+                $next_status_list = !empty($status_init->fields['next_status']) ? explode(',', $status_init->fields['next_status']) : array();
+
+                $formquestion[] = array('type' => 'other', 'name' => 'next_status', 'label' => $langs->trans('SynergiesTechNextStatus'), 'value' => $formdictionary->select_dictionary('requestmanager', 'requestmanagerstatus', $next_status, 'next_status', '', 'rowid', '{{label}}', array('rowid' => (!empty($next_status_list) ? $next_status_list : array($status_init->id))), array('label' => 'ASC'), 0, array(), 0, 0, $morecss = 'minwidth300'));
+
+                $formconfirm = $formsynergiestech->formconfirm($_SERVER["PHP_SELF"], $langs->trans('SynergiesTechCreateAndTakeInCharge'), $langs->trans('SynergiesTechConfirmCreateAndTakeInCharge'), 'confirm_create_take_charge', $formquestion, 0, 1, 200, 500, 1);
+            }
+
+            $this->resprints = $formconfirm;
+            return 1;
         }
 
         return 0;
@@ -1270,170 +1402,199 @@ SCRIPT;
                 if (!$user->rights->synergiestech->propal->installation_value && !empty($object->array_options['options_sitevalue']))
                     accessforbidden();
             }
-//        } elseif (in_array('requestmanagerfastcard', $contexts)) {
-//            $langs->load('synergiestech@synergiestech');
-//            if ($cancel) $action = '';
-//            if ($action == 'confirm_force_principal_company' && $confirm == "yes" && $user->rights->requestmanager->creer) {
-//                $force_principal_company = true;
-//                $action = "addfast";
-//            } elseif ($action == 'confirm_force_out_of_time' && $confirm == "yes" && $user->rights->requestmanager->creer) {
-//                $force_out_of_time = true;
-//                $action = "addfast";
-//            }
-//            // Create request
-//            if ($action == 'addfast' && $user->rights->requestmanager->creer) {
-//                $selectedCategories = GETPOST('categories', 'array') ? GETPOST('categories', 'array') : (GETPOST('categories', 'alpha') ? explode(',', GETPOST('categories', 'alpha')) : array());
-//                $selectedContacts = GETPOST('contact_ids', 'array') ? GETPOST('contact_ids', 'array') : (GETPOST('contact_ids', 'alpha') ? explode(',', GETPOST('contact_ids', 'alpha')) : array());
-//
-//                $object->fk_type = GETPOST('type', 'int');
-//                $object->label = GETPOST('label', 'alpha');
-//                $object->socid_origin = GETPOST('socid_origin', 'int');
-//                $object->socid = GETPOST('socid', 'int');
-//                $object->socid_benefactor = GETPOST('socid_benefactor', 'int');
-//                $object->socid_watcher = GETPOST('socid_watcher', 'int');
-//                $object->requester_ids = $selectedContacts;
-//                $object->fk_source = GETPOST('source', 'int');
-//                $object->fk_urgency = GETPOST('urgency', 'int');
-//                $object->description = GETPOST('description');
-//                $selectedActionCommId = GETPOST('actioncomm_id') ? GETPOST('actioncomm_id') : -1;
-//                $object->date_creation = dol_now();
-//                $object->notify_requester_by_email = GETPOST('notify_requester_by_email', 'int') > 0 ? 1 : 0;
-//                if ($object->socid_origin === '' && $object->socid > 0) {
-//                    $object->socid_origin = $object->socid;
-//                }
-//                if (empty($conf->companyrelationships->enabled)) {
-//                    $object->socid = $object->socid_origin;
-//                    $object->socid_benefactor = $object->socid_origin;
-//                }
-//
-//                // Add equipment links
-//                $selectedEquipementId = GETPOST('equipement_id', 'int') ? intval(GETPOST('equipement_id', 'int')) : -1;
-//                if ($selectedEquipementId > 0) {
-//                    $object->linkedObjectsIds['equipement'][] = $selectedEquipementId;
-//                }
-//
-//                // Possibility to add external linked objects with hooks
-//                $object->origin = GETPOST('origin', 'alpha');
-//                $object->origin_id = GETPOST('originid', 'int');
-//                if ($object->origin && $object->origin_id > 0) {
-//                    $object->linkedObjectsIds[$object->origin] = $object->origin_id;
-//                    if (is_array($_POST['other_linked_objects']) && !empty($_POST['other_linked_objects'])) {
-//                        $object->linkedObjectsIds = array_merge($object->linkedObjectsIds, $_POST['other_linked_objects']);
-//                    }
-//                }
-//
-//                $btnAction = '';
-//                if (GETPOST('btn_create')) {
-//                    $btnAction = 'create';
-//                } else if (GETPOST('btn_associate')) {
-//                    $btnAction = 'associate';
-//                }
-//
-//                $db->begin();
-//                if ($btnAction == 'create' || $force_principal_company || $force_out_of_time) {
-//                    $res = requestmanagertimeslots_is_in_time_slot($object->socid, $object->date_creation);
-//                    $object->created_out_of_time = is_array($res) ? 0 : ($res ? 0 : 1);
-//                    if (!empty($conf->companyrelationships->enabled)) {
-//                        $principal_companies_ids = $companyrelationships->getRelationships($object->socid_benefactor, 0);
-//                        $not_principal_company = !in_array($object->socid, $principal_companies_ids) && $object->socid != $object->socid_benefactor;
-//                    } else {
-//                        $not_principal_company = false;
-//                    }
-//                    if ($not_principal_company && !$force_principal_company) {
-//                        $error++;
-//                        $action = 'force_principal_company';
-//                    } elseif (!empty($conf->global->REQUESTMANAGER_TIMESLOTS_ACTIVATE) && $object->created_out_of_time && !$force_out_of_time) {
-//                        $error++;
-//                        $action = 'force_out_of_time';
-//                    } else {
-//                        $id = $object->create($user);
-//                        if ($id < 0) {
-//                            setEventMessages($object->error, $object->errors, 'errors');
-//                            $error++;
-//                        }
-//
-//                        if (!$error && $not_principal_company && $force_principal_company) {
-//                            // Principal company forced for the benefactor
-//                            $result = $object->addActionForcedPrincipalCompany($user);
-//                            if ($result < 0) {
-//                                setEventMessages($object->error, $object->errors, 'errors');
-//                                $error++;
-//                            }
-//                        }
-//
-//                        if (!$error && !empty($conf->global->REQUESTMANAGER_TIMESLOTS_ACTIVATE) && $object->created_out_of_time && $force_out_of_time) {
-//                            // Create forced out of time
-//                            $result = $object->addActionForcedCreatedOutOfTime($user);
-//                            if ($result < 0) {
-//                                setEventMessages($object->error, $object->errors, 'errors');
-//                                $error++;
-//                            }
-//                        }
-//
-//                        if (!$error) {
-//                            // Category association
-//                            $result = $object->setCategories($selectedCategories);
-//                            if ($result < 0) {
-//                                setEventMessages($object->error, $object->errors, 'errors');
-//                                $error++;
-//                            }
-//                        }
-//
-//                        if (!$error && $selectedActionCommId > 0) {
-//                            // link event to this request
-//                            $result = $object->linkToActionComm($selectedActionCommId);
-//                            if ($result < 0) {
-//                                setEventMessages($object->error, $object->errors, 'errors');
-//                                $error++;
-//                            }
-//                        }
-//
-//                        if ($error) {
-//                            $action = 'createfast';
-//                        }
-//                    }
-//                } else if ($btnAction == 'associate') {
-//                    $associateList = GETPOST('associate_list', 'array') ? GETPOST('associate_list', 'array') : array();
-//                    if (count($associateList) <= 0) {
-//                        $object->errors[] = $langs->trans("RequestManagerCreateFastErrorNoRequestSelected");
-//                        setEventMessages($object->error, $object->errors, 'errors');
-//                        $error++;
-//                    }
-//
-//                    if ($selectedActionCommId <= 0) {
-//                        $object->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("RequestManagerCreateFastActionCommLabel"));
-//                        setEventMessages($object->error, $object->errors, 'errors');
-//                        $error++;
-//                    }
-//
-//                    if (!$error) {
-//                        $object->fetch(intval($associateList[0]));
-//
-//                        // link event to this request
-//                        $result = $object->linkToActionComm($selectedActionCommId);
-//                        if ($result < 0) {
-//                            setEventMessages($object->error, $object->errors, 'errors');
-//                            $error++;
-//                        }
-//                    }
-//
-//                    if ($error) {
-//                        $action = 'createfast';
-//                    }
-//                }
-//
-//                if (!$error) {
-//                    $db->commit();
-//                    if ($object->id > 0) {
-//                        header('Location: ' . dol_buildpath('/requestmanager/card.php', 1) . '?id=' . $object->id);
-//                    } else {
-//                        header('Location: ' . dol_buildpath('/requestmanager/list.php', 1));
-//                    }
-//                    exit();
-//                } else {
-//                    $db->rollback();
-//                }
-//            }
+        } elseif (in_array('requestmanagerfastcard', $contexts)) {
+            global $force_principal_company_confirmed, $force_out_of_time_confirmed, $create_and_take_in_charge_confirmed;
+            $error = 0;
+
+            $cancel  = GETPOST('cancel', 'alpha');
+            $create_and_take_in_charge_confirmed = GETPOST('create_and_take_in_charge_confirmed', 'int');
+
+            if (!empty($conf->companyrelationships->enabled)) {
+                dol_include_once('/companyrelationships/class/companyrelationships.class.php');
+                $companyrelationships = new CompanyRelationships($this->db);
+            }
+
+            if ($cancel) $action = '';
+            if ($action == 'addfast' && GETPOST('btn_create_take_charge')) {
+                $action = 'create_take_charge';
+            }
+            if ($action == 'confirm_force_principal_company' && $confirm == "yes" && $user->rights->requestmanager->creer) {
+                $force_principal_company_confirmed = true;
+                $action = "addfast";
+            } elseif ($action == 'confirm_force_out_of_time' && $confirm == "yes" && $user->rights->requestmanager->creer) {
+                $force_out_of_time_confirmed = true;
+                $action = "addfast";
+            } elseif ($action == 'confirm_create_take_charge' && $confirm == "yes" && $user->rights->requestmanager->creer) {
+                $create_and_take_in_charge_confirmed = true;
+                $action = "addfast";
+            }
+            // Create request
+            if ($action == 'addfast' && $user->rights->requestmanager->creer) {
+                $selectedCategories = GETPOST('categories', 'array') ? GETPOST('categories', 'array') : (GETPOST('categories', 'alpha') ? explode(',', GETPOST('categories', 'alpha')) : array());
+                $selectedContacts = GETPOST('contact_ids', 'array') ? GETPOST('contact_ids', 'array') : (GETPOST('contact_ids', 'alpha') ? explode(',', GETPOST('contact_ids', 'alpha')) : array());
+
+                $object->fk_type = GETPOST('type', 'int');
+                $object->label = GETPOST('label', 'alpha');
+                $object->socid_origin = GETPOST('socid_origin', 'int');
+                $object->socid = GETPOST('socid', 'int');
+                $object->socid_benefactor = GETPOST('socid_benefactor', 'int');
+                $object->socid_watcher = GETPOST('socid_watcher', 'int');
+                $object->requester_ids = $selectedContacts;
+                if ($create_and_take_in_charge_confirmed) {
+                    $object->assigned_user_ids = array($user->id);
+                }
+                $object->fk_source = GETPOST('source', 'int');
+                $object->fk_urgency = GETPOST('urgency', 'int');
+                $object->description = GETPOST('description');
+                $selectedActionCommId = GETPOST('actioncomm_id') ? GETPOST('actioncomm_id') : -1;
+                $object->date_creation = dol_now();
+                $object->notify_requester_by_email = GETPOST('notify_requester_by_email', 'int') > 0 ? 1 : 0;
+                if ($object->socid_origin === '' && $object->socid > 0) {
+                    $object->socid_origin = $object->socid;
+                }
+                if (empty($conf->companyrelationships->enabled)) {
+                    $object->socid = $object->socid_origin;
+                    $object->socid_benefactor = $object->socid_origin;
+                }
+
+                // Add equipment links
+                $selectedEquipementId = GETPOST('equipement_id', 'int') ? intval(GETPOST('equipement_id', 'int')) : -1;
+                if ($selectedEquipementId > 0) {
+                    $object->linkedObjectsIds['equipement'][] = $selectedEquipementId;
+                }
+
+                // Possibility to add external linked objects with hooks
+                $object->origin = GETPOST('origin', 'alpha');
+                $object->origin_id = GETPOST('originid', 'int');
+                if ($object->origin && $object->origin_id > 0) {
+                    $object->linkedObjectsIds[$object->origin] = $object->origin_id;
+                    if (is_array($_POST['other_linked_objects']) && !empty($_POST['other_linked_objects'])) {
+                        $object->linkedObjectsIds = array_merge($object->linkedObjectsIds, $_POST['other_linked_objects']);
+                    }
+                }
+
+                if (GETPOST('btn_associate')) {
+                    $btnAction = 'associate';
+                } else {
+                    $btnAction = 'create';
+                }
+
+                $this->db->begin();
+                if ($btnAction == 'create' || $force_principal_company_confirmed || $force_out_of_time_confirmed) {
+                    $res = requestmanagertimeslots_is_in_time_slot($object->socid, $object->date_creation);
+                    $object->created_out_of_time = is_array($res) ? 0 : ($res ? 0 : 1);
+                    if (!empty($conf->companyrelationships->enabled)) {
+                        $principal_companies_ids = $companyrelationships->getRelationships($object->socid_benefactor, 0);
+                        $not_principal_company = !in_array($object->socid, $principal_companies_ids) && $object->socid != $object->socid_benefactor;
+                    } else {
+                        $not_principal_company = false;
+                    }
+                    if ($not_principal_company && !$force_principal_company_confirmed) {
+                        $error++;
+                        $action = 'force_principal_company';
+                    } elseif (!empty($conf->global->REQUESTMANAGER_TIMESLOTS_ACTIVATE) && $object->created_out_of_time && !$force_out_of_time_confirmed) {
+                        $error++;
+                        $action = 'force_out_of_time';
+                    } else {
+                        $id = $object->create($user);
+                        if ($id < 0) {
+                            setEventMessages($object->error, $object->errors, 'errors');
+                            $error++;
+                        }
+
+                        if (!$error && $not_principal_company && $force_principal_company_confirmed) {
+                            // Principal company forced for the benefactor
+                            $result = $object->addActionForcedPrincipalCompany($user);
+                            if ($result < 0) {
+                                setEventMessages($object->error, $object->errors, 'errors');
+                                $error++;
+                            }
+                        }
+
+                        if (!$error && !empty($conf->global->REQUESTMANAGER_TIMESLOTS_ACTIVATE) && $object->created_out_of_time && $force_out_of_time_confirmed) {
+                            // Create forced out of time
+                            $result = $object->addActionForcedCreatedOutOfTime($user);
+                            if ($result < 0) {
+                                setEventMessages($object->error, $object->errors, 'errors');
+                                $error++;
+                            }
+                        }
+
+                        if (!$error) {
+                            // Category association
+                            $result = $object->setCategories($selectedCategories);
+                            if ($result < 0) {
+                                setEventMessages($object->error, $object->errors, 'errors');
+                                $error++;
+                            }
+                        }
+
+                        if (!$error && $selectedActionCommId > 0) {
+                            // link event to this request
+                            $result = $object->linkToActionComm($selectedActionCommId);
+                            if ($result < 0) {
+                                setEventMessages($object->error, $object->errors, 'errors');
+                                $error++;
+                            }
+                        }
+
+                        if ($create_and_take_in_charge_confirmed) {
+                            $next_status = GETPOST('next_status', 'int');
+                            $result = $object->set_status($next_status, -1, $user);
+                            if ($result < 0) {
+                                setEventMessages($object->error, $object->errors, 'errors');
+                                $error++;
+                            }
+                        }
+
+                        if ($error) {
+                            $action = 'createfast';
+                        }
+                    }
+                } else if ($btnAction == 'associate') {
+                    $associateList = GETPOST('associate_list', 'array') ? GETPOST('associate_list', 'array') : array();
+                    if (count($associateList) <= 0) {
+                        $object->errors[] = $langs->trans("RequestManagerCreateFastErrorNoRequestSelected");
+                        setEventMessages($object->error, $object->errors, 'errors');
+                        $error++;
+                    }
+
+                    if ($selectedActionCommId <= 0) {
+                        $object->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("RequestManagerCreateFastActionCommLabel"));
+                        setEventMessages($object->error, $object->errors, 'errors');
+                        $error++;
+                    }
+
+                    if (!$error) {
+                        $object->fetch(intval($associateList[0]));
+
+                        // link event to this request
+                        $result = $object->linkToActionComm($selectedActionCommId);
+                        if ($result < 0) {
+                            setEventMessages($object->error, $object->errors, 'errors');
+                            $error++;
+                        }
+                    }
+
+                    if ($error) {
+                        $action = 'createfast';
+                    }
+                }
+
+                if (!$error) {
+                    $this->db->commit();
+                    if ($object->id > 0) {
+                        header('Location: ' . dol_buildpath('/requestmanager/card.php', 1) . '?id=' . $object->id);
+                    } else {
+                        header('Location: ' . dol_buildpath('/requestmanager/list.php', 1));
+                    }
+                    exit();
+                } else {
+                    $this->db->rollback();
+                }
+            }
+
+            return 1;
         }
 
         return 0;
@@ -2204,7 +2365,7 @@ SCRIPT;
 
             dol_include_once('/requestmanager/class/requestmanager.class.php');
             if ($object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS && $user->rights->requestmanager->creer) {
-                global $langs, $file;
+                global $langs;
 
                 /*
                  * Affiche formulaire message
@@ -2221,6 +2382,8 @@ SCRIPT;
                 dol_include_once('/synergiestech/class/html.formsynergiestechmessage.class.php');
                 $formsynergiestechmessage = new FormSynergiesTechMessage($this->db, $object);
 
+                $loaded = $formsynergiestechmessage->load_datas_in_session();
+
                 // Tableau des parametres complementaires du post
                 $formsynergiestechmessage->param['action'] = $action;
                 $formsynergiestechmessage->param['models_id'] = GETPOST('stmodelmessageselected', 'int');
@@ -2229,9 +2392,9 @@ SCRIPT;
                 $formsynergiestechmessage->withcancel = 0;
 
                 // Init list of files
-                if (GETPOST("messagemode") == 'init') {
+                if (!$loaded && GETPOST("messagemode") == 'init') {
                     $formsynergiestechmessage->clear_attached_files();
-                    $formsynergiestechmessage->add_attached_files($file, basename($file), dol_mimetype($file));
+//                    $formsynergiestechmessage->add_attached_files($file, basename($file), dol_mimetype($file));
                 }
 
                 // Show form

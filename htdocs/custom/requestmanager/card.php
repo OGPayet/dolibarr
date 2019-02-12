@@ -2374,6 +2374,8 @@ if ($object->id > 0) {
         // Cree l'objet formulaire message
         $formrequestmanagermessage = new FormRequestManagerMessage($db, $object);
 
+        $loaded = $formrequestmanagermessage->load_datas_in_session();
+
         // Tableau des parametres complementaires du post
         $formrequestmanagermessage->param['action'] = $action;
         $formrequestmanagermessage->param['models_id'] = GETPOST('modelmessageselected', 'int');
@@ -2381,9 +2383,9 @@ if ($object->id > 0) {
         $formrequestmanagermessage->param['returnurl'] = $_SERVER["PHP_SELF"] . '?id=' . $object->id;
 
         // Init list of files
-        if (GETPOST("messagemode") == 'init') {
+        if (!$loaded && GETPOST("messagemode") == 'init') {
             $formrequestmanagermessage->clear_attached_files();
-            $formrequestmanagermessage->add_attached_files($file, basename($file), dol_mimetype($file));
+//            $formrequestmanagermessage->add_attached_files($file, basename($file), dol_mimetype($file));
         }
 
         // Show form

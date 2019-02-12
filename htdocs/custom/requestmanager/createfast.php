@@ -50,6 +50,9 @@ $confirm = GETPOST('confirm', 'alpha');
 
 // Security check
 $result = restrictedArea($user, 'requestmanager');
+if (!$user->rights->requestmanager->creer) {
+    accessforbidden();
+}
 
 // Initialize technical object to manage hooks of page. Note that conf->hooks_modules contains array of hook context
 $hookmanager->initHooks(array('requestmanagerfastcard','globalcard'));
@@ -65,8 +68,8 @@ if (!empty($conf->companyrelationships->enabled)) {
     $companyrelationships = new CompanyRelationships($db);
 }
 
-$force_principal_company = GETPOST('force_principal_company', 'int');
-$force_out_of_time = GETPOST('force_out_of_time', 'int');
+$force_principal_company_confirmed = GETPOST('force_principal_company_confirmed', 'int');
+$force_out_of_time_confirmed = GETPOST('force_out_of_time_confirmed', 'int');
 
 /*
  * Actions
@@ -79,10 +82,10 @@ if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'e
 if (empty($reshook)) {
     if ($cancel) $action = '';
     if ($action == 'confirm_force_principal_company' && $confirm == "yes" && $user->rights->requestmanager->creer) {
-        $force_principal_company = true;
+        $force_principal_company_confirmed = true;
         $action = "addfast";
     } elseif ($action == 'confirm_force_out_of_time' && $confirm == "yes" && $user->rights->requestmanager->creer) {
-        $force_out_of_time = true;
+        $force_out_of_time_confirmed = true;
         $action = "addfast";
     }
     // Create request
@@ -119,15 +122,14 @@ if (empty($reshook)) {
             }
         }
 
-        $btnAction = '';
-        if (GETPOST('btn_create')) {
-            $btnAction = 'create';
-        } else if (GETPOST('btn_associate')) {
+        if (GETPOST('btn_associate')) {
             $btnAction = 'associate';
+        } else {
+            $btnAction = 'create';
         }
 
         $db->begin();
-        if ($btnAction == 'create' || $force_principal_company || $force_out_of_time) {
+        if ($btnAction == 'create' || $force_principal_company_confirmed || $force_out_of_time_confirmed) {
             $res = requestmanagertimeslots_is_in_time_slot($object->socid, $object->date_creation);
             $object->created_out_of_time = is_array($res) ? 0 : ($res ? 0 : 1);
             if (!empty($conf->companyrelationships->enabled)) {
@@ -136,10 +138,10 @@ if (empty($reshook)) {
             } else {
                 $not_principal_company = false;
             }
-            if ($not_principal_company && !$force_principal_company) {
+            if ($not_principal_company && !$force_principal_company_confirmed) {
                 $error++;
                 $action = 'force_principal_company';
-            } elseif (!empty($conf->global->REQUESTMANAGER_TIMESLOTS_ACTIVATE) && $object->created_out_of_time && !$force_out_of_time) {
+            } elseif (!empty($conf->global->REQUESTMANAGER_TIMESLOTS_ACTIVATE) && $object->created_out_of_time && !$force_out_of_time_confirmed) {
                 $error++;
                 $action = 'force_out_of_time';
             } else {
@@ -149,7 +151,7 @@ if (empty($reshook)) {
                     $error++;
                 }
 
-                if (!$error && $not_principal_company && $force_principal_company) {
+                if (!$error && $not_principal_company && $force_principal_company_confirmed) {
                     // Principal company forced for the benefactor
                     $result = $object->addActionForcedPrincipalCompany($user);
                     if ($result < 0) {
@@ -158,7 +160,7 @@ if (empty($reshook)) {
                     }
                 }
 
-                if (!$error && !empty($conf->global->REQUESTMANAGER_TIMESLOTS_ACTIVATE) && $object->created_out_of_time && $force_out_of_time) {
+                if (!$error && !empty($conf->global->REQUESTMANAGER_TIMESLOTS_ACTIVATE) && $object->created_out_of_time && $force_out_of_time_confirmed) {
                     // Create forced out of time
                     $result = $object->addActionForcedCreatedOutOfTime($user);
                     if ($result < 0) {
