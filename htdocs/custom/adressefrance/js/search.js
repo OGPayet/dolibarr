@@ -1,3 +1,9 @@
+//
+//
+// Copyright (C) 2018      Alexis LAURIER              <alexis@alexislaurier.fr>
+// Copyright (C) 2018      Synergies-Tech             <infra@synergies-france.fr>
+//
+
 $(function(){
 	var tabAddress = $('#address').val().split("\n");
 	var address = tabAddress.splice(0, 1);

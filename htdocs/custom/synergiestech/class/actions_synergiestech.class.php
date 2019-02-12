@@ -1,6 +1,7 @@
 <?php
 /* Copyright (C) 2017      Open-DSI             <support@open-dsi.fr>
- * Copyright (C) ---Put here your own copyright and developer email---
+ * Copyright (C) 2018      Alexis LAURIER             <alexis@alexislaurier.fr>
+ * Copyright (C) 2018      Synergies-Tech             <infra@synergies-france.fr>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

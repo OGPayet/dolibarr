@@ -1,5 +1,6 @@
 -- Copyright (C) 2018 		Netlogic			<info@netlogic.fr>
 -- Copyright (C) 2018 		Alexis LAURIER			<contact@alexislaurier.fr>
+-- Copyright (C) 2018      Synergies-Tech             <infra@synergies-france.fr>
 --
 -- This program is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
