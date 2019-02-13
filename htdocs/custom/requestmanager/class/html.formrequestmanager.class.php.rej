@@ -1,97 +1,55 @@
 diff a/htdocs/custom/requestmanager/class/html.formrequestmanager.class.php b/htdocs/custom/requestmanager/class/html.formrequestmanager.class.php	(rejected hunks)
-@@ -1500,5 +1500,95 @@ class FormRequestManager
-             dol_print_error($db);
-         }
-     }
-+
-+    /**
-+     * Save the form in session
-+     *
-+     * @param   string      $htmlname       Name of the form
-+     * @param   string      $key            Key of the data in session
-+     * @param   string      $ajax_url       Url of the ajax page
-+     * @return  string                      Output sript js
-+     */
-+    public function saveFormToSession($htmlname, $key, $ajax_url='/requestmanager/ajax/save_data.php')
-+    {
-+        $key = json_encode($key);
-+        $ajax_url = json_encode(dol_buildpath($ajax_url, 1));
-+
-+        $out = <<<SCRIPT
-+            <script type="text/javascript" language="javascript">
-+                jQuery(document).ready(function () {
-+                    // Save form in session when click link
-+                    $('a').click(function(e) {
-+                        var result = true;
-+                        if ($(this).hasClass('rm_reset_data_in_session')) {
-+                            result = rm_save_data_in_session('', $key, $ajax_url);
-+                        } else {
-+                            result = rm_save_form_in_session('$htmlname', $key, $ajax_url);
-+                        }
-+
-+                        if (!result) {
-+                            e.preventDefault();
-+                        }
-+                    });
-+
-+                    // Save form in session when a form is send other than the message form
-+                    $('form[name!="$htmlname"]').submit(function(e) {
-+                        var result = rm_save_form_in_session('$htmlname', $key, $ajax_url);
-+                        if (!result) {
-+                            e.preventDefault();
-+                        }
-+                    });
-+
-+                    // Save form in session
-+                    function rm_save_form_in_session(form_name, key, ajax_url) {
-+                        var result = true;
-+                        var form_element = $('form#'+form_name);
-+                        if (form_element.length == 0) form_element = $('form[name="'+form_name+'"]');
-+                        
-+                        if (form_element.length == 0) {
-+                            result = false;
-+//                            alert('Form to save in session not found.');
-+                            console.error('Form to save in session not found.');
-+                        }
-+
-+                        if (result) {
-+                            result = rm_save_data_in_session(form_element.serialize(), key, ajax_url);
-+                        }
-+
-+                        return result;
-+                    }
-+
-+                    // Save data in session
-+                    function rm_save_data_in_session(data_to_save, key, ajax_url) {
-+                        var result = true;
-+
-+                        $.ajax({
-+                            url: ajax_url,
-+                            method: "POST",
-+                            data: {
-+                                key: key,
-+                                data: data_to_save
-+                            },
-+                            dataType: "json"
-+                        }).done(function(msg) {
-+                            if (!(msg.error.length == 0)) {
-+                                result = false;
-+                                alert(msg.error);
-+                                console.error('Error when save in session. msg: ', msg);
-+                            }
-+                        }).fail(function(jqXHR, textStatus) {
-+                            result = false;
-+//                            alert('Error when save in session: ' + jqXHR);
-+                            console.error('Error when save in session. jqXHR: ', jqXHR, ', textStatus: ', textStatus);
-+                        });
-+
-+                        return result;
-+                    }
-+                });
-+            </script>
-+SCRIPT;
-+
-+        return $out;
-+    }
- }
+@@ -1504,10 +1504,10 @@ class FormRequestManager
+     /**
+      * Save the form in session
+      *
+-     * @param   string      $htmlname       Name of the form
+-     * @param   string      $key            Key of the data in session
+-     * @param   string      $ajax_url       Url of the ajax page
+-     * @return  string                      Output sript js
++     * @param   string      $htmlname           Name of the form
++     * @param   string      $key                Key of the data in session
++     * @param   string      $ajax_url           Url of the ajax page
++     * @return  string                          Output sript js
+      */
+     public function saveFormToSession($htmlname, $key, $ajax_url='/requestmanager/ajax/save_data.php')
+     {
+@@ -1520,9 +1520,7 @@ class FormRequestManager
+                     // Save form in session when click link
+                     $('a').click(function(e) {
+                         var result = true;
+-                        if ($(this).hasClass('rm_reset_data_in_session')) {
+-                            result = rm_save_data_in_session('', $key, $ajax_url);
+-                        } else {
++                        if (!$(this).hasClass('rm_reset_data_in_session')) {
+                             result = rm_save_form_in_session('$htmlname', $key, $ajax_url);
+                         }
  
+@@ -1552,7 +1550,26 @@ class FormRequestManager
+                         }
+ 
+                         if (result) {
+-                            result = rm_save_data_in_session(form_element.serialize(), key, ajax_url);
++                            var save_data = {};
++                            $.map(form_element.find(':input'), function(item, idx) {
++                                var input = $(item);
++                                var input_type = item.localName;
++                                var type = input.attr("type");
++                                var name = input.attr("name");
++                                var value = '';
++
++                                if (((input_type == 'input' && type != 'button' && type != 'submit') || input_type == 'textarea' || input_type == 'select') &&
++                                    typeof name != "undefined" && name.length > 0 && !(name in save_data)
++                                ) {
++                                    if (type == "checkbox" || type == "radio") { value = $('input[name="' + name + '"]:checked').val(); }
++                                    else if (input_type == 'textarea' && typeof CKEDITOR == "object" && typeof CKEDITOR.instances != "undefined" && CKEDITOR.instances[name] != "undefined") { value = CKEDITOR.instances[name].getData(); }
++                                    else { value = input.val(); }
++    
++                                    if (typeof value != "undefined") save_data[name] = value;
++                                }
++                            });
++
++                            result = rm_save_data_in_session($.param(save_data), key, ajax_url);
+                         }
+ 
+                         return result;

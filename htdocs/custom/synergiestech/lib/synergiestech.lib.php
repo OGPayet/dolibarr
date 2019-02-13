@@ -795,3 +795,172 @@ function synergiestech_get_warehouse_parent_path($product_id, $tab, $final_label
 
 	return $final_label;
 }
+
+/**
+ *  Get all contracts of a company (and a optional matched benefactor)
+ *
+ * @param   int     $socId              Id of company
+ * @param   int     $socBenefactorId    Id of matched company benefactor
+ * @param   string  $msg_error          Output error message
+ *
+ * @return  int|array                   <0 if KO, List of contract if OK
+ */
+function synergiestech_fetch_contract($socId, $socBenefactorId=0, &$msg_error=null)
+{
+    global $db, $conf;
+
+    $result = array();
+
+    if (!empty($conf->contrat->enabled) && $socId > 0) {
+        $sql = "SELECT DISTINCT c.rowid";
+        $sql .= " FROM " . MAIN_DB_PREFIX . "contrat as c";
+        if (!empty($conf->companyrelationships->enabled) && $socBenefactorId > 0) {
+            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "contrat_extrafields as cf ON c.rowid = cf.fk_object";
+        }
+        $sql .= " WHERE c.entity IN (" . getEntity('contrat') . ")";
+        $sql .= " AND c.fk_soc = " . $socId;
+        if (!empty($conf->companyrelationships->enabled) && $socBenefactorId > 0) {
+            $sql .= " AND cf.companyrelationships_fk_soc_benefactor = " . $socBenefactorId;
+        }
+
+        dol_syslog(__METHOD__, LOG_DEBUG);
+        $resql = $db->query($sql);
+        if ($resql) {
+            if ($db->num_rows($resql) > 0) {
+                require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
+                while ($obj = $db->fetch_object($resql)) {
+                    $contrat = new Contrat($db);
+                    $contrat->fetch($obj->rowid);
+                    $result[] = $contrat;
+                }
+            }
+        } else {
+            $msg_error = $db->lasterror();
+            dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $msg_error, LOG_DEBUG);
+        }
+    }
+
+    return $result;
+}
+
+/**
+ *  Get all request of a company benefactor
+ *
+ * @param   int     $socBenefactorId    Id of company benefactor
+ * @param   array   $statusTypes        Filter by a list of status type
+ * @param   array   $categories         Filter by a list of categories
+ * @param   array   $equipments         Filter by a list of equipments
+ * @param   string  $msg_error          Output error message
+ *
+ * @return  int|array                   <0 if KO, List of request if OK
+ */
+function synergiestech_fetch_request_of_benefactor($socBenefactorId, $statusTypes=array(), $categories=array(), $equipments=array(), &$msg_error) {
+    global $db;
+
+    $result = array();
+
+    if ($socBenefactorId > 0) {
+        $sql = "SELECT DISTINCT rm.rowid";
+        $sql .= " FROM " . MAIN_DB_PREFIX . "requestmanager as rm";
+        if (!empty($statusTypes)) {
+            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_requestmanager_status as crms ON crms.rowid = rm.fk_status";
+        }
+        if (!empty($categories)) {
+            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "categorie_requestmanager as crm ON crm.fk_requestmanager = rm.rowid";
+        }
+        if (!empty($equipments)) {
+            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "element_element as ee ON ee.fk_target = rm.rowid AND ee.targettype = 'requestmanager' AND ee.sourcetype = 'equipement'";
+        }
+        $sql .= " WHERE rm.entity IN (" . getEntity('requestmanager') . ")";
+        $sql .= " AND rm.fk_soc_benefactor = " . $socBenefactorId;
+        if (!empty($statusTypes)) {
+            $sql .= " AND crms.type IN (" . implode(',', $statusTypes) . ")";
+        }
+        if (!empty($categories)) {
+            $sql .= " AND crm.fk_categorie IN (" . implode(',', $categories) . ")";
+        }
+        if (!empty($equipments)) {
+            $sql .= " AND ee.fk_source IN (" . implode(',', $equipments) . ")";
+        }
+
+        dol_syslog(__METHOD__, LOG_DEBUG);
+        $resql = $db->query($sql);
+        if ($resql) {
+            if ($db->num_rows($resql) > 0) {
+                dol_include_once('/requestmanager/class/requestmanager.class.php');
+                while ($obj = $db->fetch_object($resql)) {
+                    $request = new RequestManager($db);
+                    $request->fetch($obj->rowid);
+                    $result[] = $request;
+                }
+            }
+        } else {
+            $msg_error = $db->lasterror();
+            dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $msg_error, LOG_DEBUG);
+        }
+    }
+
+    return $result;
+}
+
+/**
+ *  Get all event of a company benefactor
+ *
+ * @param   int     $socBenefactorId    Id of company benefactor
+ * @param   int     $limit              Limit to load, 0 to load nothing, -1 to load all
+ * @param   string  $join               Join SQL
+ * @param   string  $filter             Filter SQL
+ * @param   string  $msg_error          Output error message
+ *
+ * @return  int|array                   <0 if KO, List of request if OK
+ */
+function synergiestech_fetch_event_of_benefactor($socBenefactorId, $limit=5, $join='', $filter='', &$msg_error) {
+    global $db;
+
+    $result = array();
+
+    if ($socBenefactorId > 0) {
+        $sql = "SELECT DISTINCT ac.id";
+        $sql .= " FROM " . MAIN_DB_PREFIX . "actioncomm ac";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "requestmanager as rm ON ac.elementtype = 'requestmanager' AND rm.rowid = ac.fk_element";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "propal_extrafields as pf ON ac.elementtype = 'propal' AND pf.fk_object = ac.fk_element";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "commande_extrafields as cmf ON ac.elementtype = 'order' AND cmf.fk_object = ac.fk_element";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "facture_extrafields as ff ON ac.elementtype = 'invoice' AND ff.fk_object = ac.fk_element";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "expedition_extrafields as ef ON ac.elementtype = 'shipping' AND ef.fk_object = ac.fk_element";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "fichinter_extrafields as fif ON ac.elementtype = 'fichinter' AND fif.fk_object = ac.fk_element";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "contrat_extrafields as cf ON ac.elementtype = 'contract' AND cf.fk_object = ac.fk_element";
+        if (!empty($join)) $sql .= $join;
+        $sql .= " WHERE ac.entity IN (" . getEntity('agenda') . ")";
+        $sql .= " AND (ac.fk_soc= " . $socBenefactorId .
+            " OR rm.fk_soc_benefactor = " . $socBenefactorId .
+            " OR pf.companyrelationships_fk_soc_benefactor = " . $socBenefactorId .
+            " OR cmf.companyrelationships_fk_soc_benefactor = " . $socBenefactorId .
+            " OR ff.companyrelationships_fk_soc_benefactor = " . $socBenefactorId .
+            " OR ef.companyrelationships_fk_soc_benefactor = " . $socBenefactorId .
+            " OR fif.companyrelationships_fk_soc_benefactor = " . $socBenefactorId .
+            " OR cf.companyrelationships_fk_soc_benefactor = " . $socBenefactorId . ")";
+        if (!empty($filter)) $sql .= $filter;
+        $sql .= " ORDER BY ac.datep DESC";
+        if ($limit >= 0) {
+            $sql .= " LIMIT " . $limit;
+        }
+
+        dol_syslog(__METHOD__, LOG_DEBUG);
+        $resql = $db->query($sql);
+        if ($resql) {
+            if ($db->num_rows($resql) > 0) {
+                require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
+                while ($obj = $db->fetch_object($resql)) {
+                    $actioncomm = new ActionComm($db);
+                    $actioncomm->fetch($obj->id);
+                    $result[] = $actioncomm;
+                }
+            }
+        } else {
+            $msg_error = $db->lasterror();
+            dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $msg_error, LOG_DEBUG);
+        }
+    }
+
+    return $result;
+}

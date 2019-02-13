@@ -2348,7 +2348,7 @@ SCRIPT;
     }
 
     /**
-	 * Overloading the addMoreInfoBlocs function : replacing the parent's function with the one below
+	 * Overloading the addMoreSpecificsInformation function : replacing the parent's function with the one below
 	 *
 	 * @param   array() $parameters Hook metadatas (context, etc...)
 	 * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
@@ -2356,7 +2356,7 @@ SCRIPT;
 	 * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
 	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
 	 */
-	function addMoreInfoBlocs($parameters, &$object, &$action, $hookmanager)
+	function addMoreSpecificsInformation($parameters, &$object, &$action, $hookmanager)
     {
         $contexts = explode(':', $parameters['context']);
 
@@ -2371,12 +2371,10 @@ SCRIPT;
                  * Affiche formulaire message
                  */
 
-                print '<div id="formmessagebeforetitle" name="formmessagebeforetitle"></div>';
-                print '<div class="clearboth"></div>';
-                print '<br>';
-                print load_fiche_titre($langs->trans('RequestManagerAddMessage'));
-
-                dol_fiche_head();
+                $out = '<div id="formmessagebeforetitle" name="formmessagebeforetitle"></div>';
+                $out .= '<div class="clearboth"></div>';
+                $out .= '<br>';
+                $out .= load_fiche_titre('<span style="font-weight: bolder !important; font-size: medium !important;">' . $langs->trans('RequestManagerAddMessage') . '</span>', '', '');
 
                 // Cree l'objet formulaire message
                 dol_include_once('/synergiestech/class/html.formsynergiestechmessage.class.php');
@@ -2385,7 +2383,7 @@ SCRIPT;
                 $loaded = $formsynergiestechmessage->load_datas_in_session();
 
                 // Tableau des parametres complementaires du post
-                $formsynergiestechmessage->param['action'] = $action;
+                $formsynergiestechmessage->param['action'] = 'stpremessage';
                 $formsynergiestechmessage->param['models_id'] = GETPOST('stmodelmessageselected', 'int');
                 $formsynergiestechmessage->param['knowledgebaselist'] = GETPOST('knowledgebaselist', 'alpha');
                 $formsynergiestechmessage->param['returnurl'] = $_SERVER["PHP_SELF"] . '?id=' . $object->id;
@@ -2398,9 +2396,8 @@ SCRIPT;
                 }
 
                 // Show form
-                print $formsynergiestechmessage->get_message_form();
-
-                dol_fiche_end();
+                $out .= $formsynergiestechmessage->get_message_form();
+                $this->resprints = $out;
             }
         }
     }

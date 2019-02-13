@@ -1969,7 +1969,7 @@ if ($object->id > 0) {
 	// Specifics Information
     $parameters = array();
     $reshook = $hookmanager->executeHooks('addMoreSpecificsInformation', $parameters, $object, $action); // Note that $action and $object may have been
-    if ($reshook) {
+    if (!empty($hookmanager->resPrint)) {
         print '<div class="fichecenter">';
         print '<div class="underbanner clearboth"></div>';
 

@@ -269,30 +269,37 @@ if ($zone === 1) {
     print '</table>';
 
     $to_print = array();
-    $contractList = array();
-    $requestManager->loadAllContract($selectedSocId, FALSE, $contractList);
-    require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
-    $extrafields_contract = new ExtraFields($db);
-    $extralabels_contract = $extrafields_contract->fetch_name_optionals_label('contrat');
-    if (!empty($contractList)) {
-        foreach ($contractList as $contract) {
-            if (($contract->nbofserviceswait + $contract->nbofservicesopened) > 0 && $contract->statut != 2) {
-                $contract->fetch_optionals();
-                $to_print[] = "<a href='" . DOL_URL_ROOT . "/contrat/card.php?id=" . $contract->id . "'> " . $extrafields_contract->showOutputField('formule', $contract->array_options['options_formule']) . " - " . $contract->ref . "</a> ";
+    $msg_error = '';
+    dol_include_once('/synergiestech/lib/synergiestech.lib.php');
+    $contractList = synergiestech_fetch_contract($selectedSocId, $selectedSocIdBenefactor, $msg_error);
+    if (!empty($contractList) || empty($msg_error)) {
+        if (!empty($contractList)) {
+            require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
+            $extrafields_contract = new ExtraFields($db);
+            $extralabels_contract = $extrafields_contract->fetch_name_optionals_label('contrat');
+            foreach ($contractList as $contract) {
+                if (($contract->nbofserviceswait + $contract->nbofservicesopened) > 0 && $contract->statut != 2) {
+                    $contract->fetch_optionals();
+                    $to_print[] = "<a href='" . DOL_URL_ROOT . "/contrat/card.php?id=" . $contract->id . "'> " . $extrafields_contract->showOutputField('formule', $contract->array_options['options_formule']) . " - " . $contract->ref . "</a> ";
+                }
             }
         }
+        print '<table class="border" width="100%">';
+        print '<tr>';
+        print '<td>';
+        if (empty($msg_error)) {
+            if (count($to_print) > 0) {
+                print '<h1 style="color:green;text-align:center;font-size: 4em;">Avec contrat : ' . implode(', ', $to_print) . '</h1>';
+            } else {
+                print '<h1 style="color:red;text-align:center;font-size: 4em;">Sans contrat</h1>';
+            }
+        } else {
+            print $msg_error;
+        }
+        print '</td>';
+        print '</tr>';
+        print '</table>';
     }
-    print '<table class="border" width="100%">';
-    print '<tr>';
-    print '<td>';
-    if (count($to_print) > 0) {
-        print '<h1 style="color:green;text-align:center;font-size: 4em;">Avec contrat : ' . implode(', ', $to_print) . '</h1>';
-    } else {
-        print '<h1 style="color:red;text-align:center;font-size: 4em;">Sans contrat</h1>';
-    }
-    print '</td>';
-    print '</tr>';
-    print '</table>';
 
     print '<table class="border" width="100%">';
     // Label
@@ -332,9 +339,9 @@ if ($zone === 1) {
 //                requestManagerLoader.loadZone(1, 'change_categories');
 //            });
 
-      jQuery('#equipement_id').change(function () {
-        requestManagerLoader.loadZone(1, 'change_equipement_id');
-      });
+//      jQuery('#equipement_id').change(function () {
+//        requestManagerLoader.loadZone(1, 'change_equipement_id');
+//      });
 
       jQuery('#socid_origin').change(function () {
         requestManagerLoader.loadZone(1, 'change_socid_origin');
@@ -347,10 +354,10 @@ if ($zone === 1) {
       jQuery('#socid_benefactor').change(function () {
         requestManagerLoader.loadZone(1, 'change_socid_benefactor');
       });
-
-      jQuery('#socid_watcher').change(function () {
-        requestManagerLoader.loadZone(1, 'change_socid_watcher');
-      });
+//
+//      jQuery('#socid_watcher').change(function () {
+//        requestManagerLoader.loadZone(1, 'change_socid_watcher');
+//      });
     });
   </script>
     <?php
@@ -381,52 +388,55 @@ if ($zone === 1) {
 // Zone 2
 //
 if ($zone === 2) {
-    $selectedCategories   = GETPOST('categories', 'array')?GETPOST('categories', 'array'):array();
-    $selectedEquipementId = GETPOST('equipement_id', 'int')?intval(GETPOST('equipement_id', 'int')):-1;
-    $selectedSocId        = GETPOST('socid', 'int')?intval(GETPOST('socid', 'int')):-1;
+    $selectedSocIdBenefactor = GETPOST('socid_benefactor', 'int') ? intval(GETPOST('socid_benefactor', 'int')) : -1;
 
-    $requestManagerStatic = new RequestManager($db);
-    $requestManagerList = $requestManagerStatic->loadAllByFkSoc($selectedSocId, array(RequestManager::STATUS_TYPE_INITIAL, RequestManager::STATUS_TYPE_IN_PROGRESS), /*$selectedCategories*/array(), $selectedEquipementId);
+    if ($selectedSocIdBenefactor > 0) {
+        dol_include_once('/synergiestech/lib/synergiestech.lib.php');
 
-    if (count($requestManagerList) > 0) {
-        print '<br />';
-        print load_fiche_titre($langs->trans('ListOfActions'), '', '');
-        print '<div class="div-table-responsive-no-min">';
-        print '<table class="noborder allwidth">';
-        print '<tr class="liste_titre">';
-        print '<td align="left">' . $langs->trans("RequestManagerType") . '</td>';
-        print '<td align="left">' . $langs->trans("Ref") . '</td>';
-        print '<td align="left">' . $langs->trans("RequestManagerLabel") . '</td>';
-        print '<td align="left">' . $langs->trans("DateCreation") . '</td>';
-        print '<td align="left"></td>';
-        print '</tr>';
+        $msg_error = '';
+        $requestManagerList = synergiestech_fetch_request_of_benefactor($selectedSocIdBenefactor, array(RequestManager::STATUS_TYPE_INITIAL, RequestManager::STATUS_TYPE_IN_PROGRESS), array(), array(), $msg_error);
+        if (count($requestManagerList) > 0 || !empty($msg_error)) {
+            print '<br />';
+            print load_fiche_titre($langs->trans('RequestManagerListOfRequests'), '', '');
+            print '<div class="div-table-responsive-no-min">';
+            if (empty($msg_error)) {
+                print '<table class="noborder allwidth">';
+                print '<tr class="liste_titre">';
+                print '<td align="left">' . $langs->trans("RequestManagerType") . '</td>';
+                print '<td align="left">' . $langs->trans("Ref") . '</td>';
+                print '<td align="left">' . $langs->trans("RequestManagerLabel") . '</td>';
+                print '<td align="left">' . $langs->trans("DateCreation") . '</td>';
+                print '<td align="left"></td>';
+                print '</tr>';
 
-        foreach ($requestManagerList as $requestManager) {
-            print '<tr class="liste">';
-            print '<td align="left">' . $requestManager->getLibType() . '</td>';
-            print '<td align="left"><a href="' . dol_buildpath('/requestmanager/card.php', 1) . '?id=' . $requestManager->id . '" target="_blank">' . $requestManager->ref . '</a></td>';
-            print '<td align="left">' . $requestManager->label . '</td>';
-            print '<td align="left">' . dol_print_date($requestManager->date_creation, 'dayhour') . '</td>';
-            print '<td align="center">';
-            print '<input type="radio" name="associate_list[]" value="' . $requestManager->id . '" />';
-            print '</td>';
-            print '</tr>';
-        }
-        print '</table>';
+                foreach ($requestManagerList as $requestManager) {
+                    print '<tr class="liste">';
+                    print '<td align="left">' . $requestManager->getLibType() . '</td>';
+                    print '<td align="left"><a href="' . dol_buildpath('/requestmanager/card.php', 1) . '?id=' . $requestManager->id . '" target="_blank">' . $requestManager->ref . '</a></td>';
+                    print '<td align="left">' . $requestManager->label . '</td>';
+                    print '<td align="left">' . dol_print_date($requestManager->date_creation, 'dayhour') . '</td>';
+                    print '<td align="center">';
+                    print '<input type="radio" name="associate_list[]" value="' . $requestManager->id . '" />';
+                    print '</td>';
+                    print '</tr>';
+                }
+                print '</table>';
 
-        // btn associate
-        print '<div align="right">';
-        print '<input type="submit" class="button" name="btn_associate" value="' . $langs->trans('RequestManagerCreateFastBtnAssociateLabel') . '"/>';
-        print '</div>';
-        print '</div>';
+                // btn associate
+                print '<div align="right">';
+                print '<input type="submit" class="button" name="btn_associate" value="' . $langs->trans('RequestManagerCreateFastBtnAssociateLabel') . '"/>';
+                print '</div>';
+            } else {
+                print $msg_error;
+            }
+            print '</div>';
 
-        // Wrapper to show tooltips (html or onclick popup)
-        if (! empty($conf->use_javascript_ajax) && empty($conf->dol_no_mouse_hover))
-        {
-            print "\n<!-- JS CODE TO ENABLE tipTip on all object with class classfortooltip -->\n";
-            print '<script type="text/javascript">
+            // Wrapper to show tooltips (html or onclick popup)
+            if (!empty($conf->use_javascript_ajax) && empty($conf->dol_no_mouse_hover)) {
+                print "\n<!-- JS CODE TO ENABLE tipTip on all object with class classfortooltip -->\n";
+                print '<script type="text/javascript">
                 jQuery(document).ready(function () {
-                  jQuery(".classfortooltip").tipTip({maxWidth: "'.dol_size(($conf->browser->layout == 'phone' ? 400 : 700),'width').'px", edgeOffset: 10, delay: 50, fadeIn: 50, fadeOut: 50});
+                  jQuery(".classfortooltip").tipTip({maxWidth: "' . dol_size(($conf->browser->layout == 'phone' ? 400 : 700), 'width') . 'px", edgeOffset: 10, delay: 50, fadeIn: 50, fadeOut: 50});
                   jQuery(".classfortooltiponclicktext").dialog({ width: 500, autoOpen: false });
                   jQuery(".classfortooltiponclick").click(function () {
                     console.log("We click on tooltip for element with dolid="+$(this).attr(\'dolid\'));
@@ -438,6 +448,7 @@ if ($zone === 2) {
                   });
                 });
               </script>' . "\n";
+            }
         }
     }
 }
@@ -458,39 +469,42 @@ if ($zone === 3) {
 
     $requestManager = new RequestManager($db);
 
-    if ($selectedSocId <= 0) {
-        print '';
-    } else {
+    if ($selectedSocId > 0 && $selectedSocIdBenefactor > 0) {
+        dol_include_once('/synergiestech/lib/synergiestech.lib.php');
         $langs->load('synergiestech@synergiestech');
+
         // Contract list of this thirdparty
-        $contractList = array();
-        $requestManager->loadAllContract($selectedSocId, FALSE, $contractList);
+        $msg_error = '';
+        $contractList = synergiestech_fetch_contract($selectedSocId, $selectedSocIdBenefactor, $msg_error);
         print '<br />';
         print load_fiche_titre($langs->trans('Contracts'), '', '');
         print '<div class="div-table-responsive-no-min">';
-        print '<table class="noborder allwidth">';
-        print '<tr class="liste_titre">';
-        print '<td>' . $langs->trans("SynergiesTechCreateFastContractFormula") . '</td>';
-        print '<td>' . $langs->trans("Ref") . '</td>';
-        print '<td align="right">' . $langs->trans("Status") . '</td>';
-        print '</tr>';
-        print '</tr>';
-        if (count($contractList) > 0) {
-            $contractStatic = new Contrat($db);
-            $contractExtraFields = new ExtraFields($db);
-            $contractExtraLabels = $contractExtraFields->fetch_name_optionals_label($contractStatic->table_element);
-            foreach ($contractList as $contract) {
-                // Todo specific code to get out
-                $formuleId    = $contract->array_options['options_formule'];
-                $formuleLabel = $contractExtraFields->attribute_param['formule']['options'][$formuleId];
-                print '<tr class="liste">';
-                print '<td align="left">' . $formuleLabel . '</td>';
-                print '<td align="left"><a href="' . DOL_URL_ROOT.  '/contrat/card.php?id=' . $contract->id . '" target="_blank">' . $contract->ref . '</a></td>';
-                print '<td align="right">'.$contract->getLibStatut(7).'</td>';
-                print '<tr>';
+        if (empty($msg_error)) {
+            print '<table class="noborder allwidth">';
+            print '<tr class="liste_titre">';
+            print '<td>' . $langs->trans("SynergiesTechCreateFastContractFormula") . '</td>';
+            print '<td>' . $langs->trans("Ref") . '</td>';
+            print '<td>' . $langs->trans("ThirdParty") . '</td>';
+            print '<td align="right">' . $langs->trans("Status") . '</td>';
+            print '</tr>';
+            print '</tr>';
+            if (count($contractList) > 0) {
+                $contractExtraFields = new ExtraFields($db);
+                $contractExtraLabels = $contractExtraFields->fetch_name_optionals_label('contrat');
+                foreach ($contractList as $contract) {
+                    $contract->fetch_thirdparty();
+                    print '<tr class="liste">';
+                    print '<td align="left">' . $contractExtraFields->showOutputField('formule', $contract->array_options['options_formule']) . '</td>';
+                    print '<td align="left">' . $contract->getNomUrl(1) . '</td>';
+                    print '<td align="left">' . $contract->thirdparty->getNomUrl(1) . '</td>';
+                    print '<td align="right">' . $contract->getLibStatut(7) . '</td>';
+                    print '<tr>';
+                }
             }
+            print '</table>';
+        } else {
+            print $msg_error;
         }
-        print '</table>';
         print '</div>';
 
         // Show count of interventions
@@ -533,28 +547,33 @@ if ($zone === 3) {
         }
 
         // Last 5 events of this thirdparty
-        $lastEventList = $requestManager->loadAllLastEventByFkSoc($selectedSocId, 5);
+        $msg_error = '';
+        $lastEventList = synergiestech_fetch_event_of_benefactor($selectedSocIdBenefactor, 5, '', '', $msg_error);
         print '<br />';
         print load_fiche_titre($langs->trans('RequestManagerLastEvents'), '', '');
         print '<div class="div-table-responsive-no-min">';
-        print '<table class="noborder allwidth">';
-        print '<tr class="liste_titre">';
-        print '<td>' . $langs->trans("Ref") . '</td>';
-        print '<td>' . $langs->trans("Label") . '</td>';
-        print '<td>' . $langs->trans("Description") . '</td>';
-        print '<td></td>';
-        print '</tr>';
-        if (count($lastEventList) > 0) {
-            foreach ($lastEventList as $actionComm) {
-                print '</tr>';
-                print '<tr class="liste">';
-                print '<td align="left"><a href="' . DOL_URL_ROOT . '/comm/action/card.php?id=' . $actionComm->id . '" target="_blank">' . $actionComm->id . '</a></td>';
-                print '<td align="left">' . $actionComm->label . '</td>';
-                print '<td align="left">' . $actionComm->note . '</td>';
-                print '<tr>';
+        if (empty($msg_error)) {
+            print '<table class="noborder allwidth">';
+            print '<tr class="liste_titre">';
+            print '<td>' . $langs->trans("Ref") . '</td>';
+            print '<td>' . $langs->trans("Label") . '</td>';
+            print '<td>' . $langs->trans("Description") . '</td>';
+            print '<td></td>';
+            print '</tr>';
+            if (count($lastEventList) > 0) {
+                foreach ($lastEventList as $actionComm) {
+                    print '</tr>';
+                    print '<tr class="liste">';
+                    print '<td align="left">' . $actionComm->getNomUrl(1) . '</td>';
+                    print '<td align="left">' . $actionComm->label . '</td>';
+                    print '<td align="left">' . $actionComm->note . '</td>';
+                    print '<tr>';
+                }
             }
+            print '</table>';
+        } else {
+            print $msg_error;
         }
-        print '</table>';
         print '</div>';
 
         // Last 5 events filtered of this thirdparty
@@ -576,28 +595,33 @@ if ($zone === 3) {
                 $cac_sql[] = "cac.code IN ('" . implode("','", $search_type_tmp) . "')";
                 $filter = " AND (" . implode(" OR ", $cac_sql) . ")";
             }
-            $lastEventList = $requestManager->loadAllLastEventByFkSoc($selectedSocId, $nbFiltered, " LEFT JOIN " . MAIN_DB_PREFIX . "c_actioncomm as cac ON cac.id = ac.fk_action", $filter);
+            $msg_error = '';
+            $lastEventList = synergiestech_fetch_event_of_benefactor($selectedSocIdBenefactor, $nbFiltered, " LEFT JOIN " . MAIN_DB_PREFIX . "c_actioncomm as cac ON cac.id = ac.fk_action", $filter, $msg_error);
             print '<br />';
             print load_fiche_titre($langs->trans('SynergiesTechLastFilteredEvents', $nbFiltered), '', '');
             print '<div class="div-table-responsive-no-min">';
-            print '<table class="noborder allwidth">';
-            print '<tr class="liste_titre">';
-            print '<td>' . $langs->trans("Ref") . '</td>';
-            print '<td>' . $langs->trans("Label") . '</td>';
-            print '<td>' . $langs->trans("Description") . '</td>';
-            print '<td></td>';
-            print '</tr>';
-            if (count($lastEventList) > 0) {
-                foreach ($lastEventList as $actionComm) {
-                    print '</tr>';
-                    print '<tr class="liste">';
-                    print '<td align="left"><a href="' . DOL_URL_ROOT . '/comm/action/card.php?id=' . $actionComm->id . '" target="_blank">' . $actionComm->id . '</a></td>';
-                    print '<td align="left">' . $actionComm->label . '</td>';
-                    print '<td align="left">' . $actionComm->note . '</td>';
-                    print '<tr>';
+            if (empty($msg_error)) {
+                print '<table class="noborder allwidth">';
+                print '<tr class="liste_titre">';
+                print '<td>' . $langs->trans("Ref") . '</td>';
+                print '<td>' . $langs->trans("Label") . '</td>';
+                print '<td>' . $langs->trans("Description") . '</td>';
+                print '<td></td>';
+                print '</tr>';
+                if (count($lastEventList) > 0) {
+                    foreach ($lastEventList as $actionComm) {
+                        print '</tr>';
+                        print '<tr class="liste">';
+                        print '<td align="left">' . $actionComm->getNomUrl(1) . '</td>';
+                        print '<td align="left">' . $actionComm->label . '</td>';
+                        print '<td align="left">' . $actionComm->note . '</td>';
+                        print '<tr>';
+                    }
                 }
+                print '</table>';
+            } else {
+                print $msg_error;
             }
-            print '</table>';
             print '</div>';
         }
 

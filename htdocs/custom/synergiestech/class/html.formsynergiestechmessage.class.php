@@ -47,6 +47,11 @@ class FormSynergiesTechMessage extends FormRequestManagerMessage
             $form = new Form($this->db);
         }
 
+        if (!is_object($formrequestmanager)) {
+            dol_include_once('/requestmanager/class/html.formrequestmanager.class.php');
+            $formrequestmanager = new FormRequestManager($this->db);
+        }
+
         $langs->loadLangs(array("other", "requestmanager@requestmanager", "requestmanager@synergiestechsynergiestech"));
 
         $hookmanager->initHooks(array('requestmanagerformmessage'));
@@ -58,11 +63,6 @@ class FormSynergiesTechMessage extends FormRequestManagerMessage
         $reshook = $hookmanager->executeHooks('getRequestManagerMessageForm', $parameters, $this);
         if (!empty($reshook)) {
             return $hookmanager->resPrint;
-        }
-
-        if (!is_object($formrequestmanager)) {
-            dol_include_once('/requestmanager/class/html.formrequestmanager.class.php');
-            $formrequestmanager = new FormRequestManager($this->db);
         }
 
         // Make
@@ -157,11 +157,13 @@ SCRIPT;
         // Notify
         //-----------------
         $notify_assigned = GETPOST('notify_assigned', 'int', 2);
-        $notify_requester = GETPOST('notify_requester', 'int', 2);
-        $notify_watcher = GETPOST('notify_watcher', 'int', 2);
-        if ($notify_assigned === '') $notify_assigned = $this->requestmanager->notify_assigned_by_email;
-        if ($notify_requester === '') $notify_requester = $this->requestmanager->notify_requester_by_email;
-        if ($notify_watcher === '') $notify_watcher = $this->requestmanager->notify_watcher_by_email;
+        $notify_requester = GETPOST('notify_requesters', 'int', 2);
+        $notify_watcher = GETPOST('notify_watchers', 'int', 2);
+        if (!isset($_POST['message_type'])) {
+            $notify_assigned = $this->requestmanager->notify_assigned_by_email;
+            $notify_requester = $this->requestmanager->notify_requester_by_email;
+            $notify_watcher = $this->requestmanager->notify_watcher_by_email;
+        }
         $out .= '<tr>';
         $out .= '<td width="180">' . $langs->trans("RequestManagerMessageNotify") . '</td>';
         $out .= '<td>';
@@ -171,10 +173,10 @@ SCRIPT;
             $out .= ' &nbsp; ';
         }
         $out .= '<input type="checkbox" id="notify_requesters" name="notify_requesters" value="1"' . (!empty($notify_requester) ? ' checked="checked"' : '') . ' />';
-        $out .= '&nbsp;<label for="notify_requester">' . $langs->trans("RequestManagerRequesterContacts") . '</label>';
+        $out .= '&nbsp;<label for="notify_requesters">' . $langs->trans("RequestManagerRequesterContacts") . '</label>';
         $out .= ' &nbsp; ';
         $out .= '<input type="checkbox" id="notify_watchers" name="notify_watchers" value="1"' . (!empty($notify_watcher) ? ' checked="checked"' : '') . ' />';
-        $out .= '&nbsp;<label for="notify_watcher">' . $langs->trans("RequestManagerWatcherContacts") . '</label>';
+        $out .= '&nbsp;<label for="notify_watchers">' . $langs->trans("RequestManagerWatcherContacts") . '</label>';
         $out .= "</td></tr>\n";
 
         // Other attributes
@@ -223,9 +225,9 @@ SCRIPT;
             // Format out tags lines
             $internal_tags = '';
             $external_tags = '';
-            $initialize_tags = true;
+            $initialize_tags = 1;
             foreach ($dictionary->lines as $line) {
-                if (isset($_POST['ec_mode_' . $line->id])) $initialize_tags = false;
+                if (isset($_POST['ec_mode_' . $line->id])) $initialize_tags = 0;
                 $mode = isset($_POST['ec_mode_' . $line->id]) ? GETPOST('ec_mode_' . $line->id, 'int') : EventConfidentiality::MODE_HIDDEN;
                 if (empty($line->fields['external']) && !$user->rights->eventconfidentiality->internal->lire) {
                     $tmp = '<input type="hidden" name="ec_mode_' . $line->id . '" value="' . ($mode == EventConfidentiality::MODE_VISIBLE ? 0 : ($mode == EventConfidentiality::MODE_BLURRED ? 1 : 2)) . '">';
@@ -545,7 +547,7 @@ SCRIPT;
             }
             $out .= ' />';
             $out .= ' &nbsp; &nbsp; ';
-            $out .= '<div class="inline-block divButAction"><a class="butActionDelete rm_reset_data_in_session" href="' . $this->param["returnurl"] . '#formmessagebeforetitle">' . $langs->trans('Reset') . '</a></div>';
+            $out .= '<div class="inline-block divButAction"><a class="butAction rm_reset_data_in_session" href="' . $this->param["returnurl"] . (strpos($this->param["returnurl"], '?') ? '&' :'?') . 'action=stpremessage&messagemode=init&rm'.time().'=#formmessagebeforetitle">' . $langs->trans('Reset') . '</a></div>';
             if ($this->withcancel) {
                 $out .= ' &nbsp; &nbsp; ';
                 $out .= '<input class="button" type="submit" id="cancel" name="cancel" value="' . $langs->trans("Cancel") . '" />';

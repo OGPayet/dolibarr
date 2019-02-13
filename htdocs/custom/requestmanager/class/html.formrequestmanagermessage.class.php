@@ -253,13 +253,18 @@ class FormRequestManagerMessage
      */
     function get_message_form($addfileaction='addfile', $removefileaction='removefile')
     {
-        global $conf, $langs, $user, $hookmanager, $form;
+        global $conf, $langs, $user, $hookmanager, $form, $formrequestmanager;
 
         dol_include_once('/requestmanager/class/requestmanagermessage.class.php');
 
         if (!is_object($form)) {
             require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
             $form = new Form($this->db);
+        }
+
+        if (!is_object($formrequestmanager)) {
+            dol_include_once('/requestmanager/class/html.formrequestmanager.class.php');
+            $formrequestmanager = new FormRequestManager($this->db);
         }
 
         $langs->load("other");
@@ -407,11 +412,11 @@ SCRIPT;
         // Notify
         //-----------------
         $notify_assigned = GETPOST('notify_assigned', 'int', 2);
-        $notify_requester = GETPOST('notify_requester', 'int', 2);
-        $notify_watcher = GETPOST('notify_watcher', 'int', 2);
-        if ($notify_assigned === '') $notify_assigned = $this->requestmanager->notify_assigned_by_email;
-        if ($notify_requester === '') $notify_requester = $this->requestmanager->notify_requester_by_email;
-        if ($notify_watcher === '') $notify_watcher = $this->requestmanager->notify_watcher_by_email;
+        $notify_requester = GETPOST('notify_requesters', 'int', 2);
+        $notify_watcher = GETPOST('notify_watchers', 'int', 2);
+        if (!isset($_POST['notify_assigned'])) $notify_assigned = $this->requestmanager->notify_assigned_by_email;
+        if (!isset($_POST['notify_requesters'])) $notify_requester = $this->requestmanager->notify_requester_by_email;
+        if (!isset($_POST['notify_watchers'])) $notify_watcher = $this->requestmanager->notify_watcher_by_email;
         $out .= '<tr>';
         $out .= '<td width="180">' . $langs->trans("RequestManagerMessageNotify") . '</td>';
         $out .= '<td>';
@@ -421,10 +426,10 @@ SCRIPT;
             $out .= ' &nbsp; ';
         }
         $out .= '<input type="checkbox" id="notify_requesters" name="notify_requesters" value="1"' . (!empty($notify_requester) ? ' checked="checked"' : '') . ' />';
-        $out .= '&nbsp;<label for="notify_requester">' . $langs->trans("RequestManagerRequesterContacts") . '</label>';
+        $out .= '&nbsp;<label for="notify_requesters">' . $langs->trans("RequestManagerRequesterContacts") . '</label>';
         $out .= ' &nbsp; ';
         $out .= '<input type="checkbox" id="notify_watchers" name="notify_watchers" value="1"' . (!empty($notify_watcher) ? ' checked="checked"' : '') . ' />';
-        $out .= '&nbsp;<label for="notify_watcher">' . $langs->trans("RequestManagerWatcherContacts") . '</label>';
+        $out .= '&nbsp;<label for="notify_watchers">' . $langs->trans("RequestManagerWatcherContacts") . '</label>';
         $out .= "</td></tr>\n";
 
         // Other attributes
@@ -473,18 +478,22 @@ SCRIPT;
             // Format out tags lines
             $internal_tags = '';
             $external_tags = '';
-            $initialize_tags = true;
+            $initialize_tags = 1;
             foreach ($dictionary->lines as $line) {
-                if (isset($_POST['ec_mode_' . $line->id])) $initialize_tags = false;
+                if (isset($_POST['ec_mode_' . $line->id])) $initialize_tags = 0;
                 $mode = isset($_POST['ec_mode_' . $line->id]) ? GETPOST('ec_mode_' . $line->id, 'int') : EventConfidentiality::MODE_HIDDEN;
-                $tmp = '<tr id="' . $line->id . '">';
-                $tmp .= '<td>' . $line->fields['label'] . '</td>';
-                $tmp .= '<td>';
-                $tmp .= '<input type="radio" id="ec_mode_' . $line->id . '_' . EventConfidentiality::MODE_VISIBLE . '" name="ec_mode_' . $line->id . '" value="0"' . ($mode == EventConfidentiality::MODE_VISIBLE ? ' checked="checked"' : "") . '><label for="ec_mode_' . $line->id . '_' . EventConfidentiality::MODE_VISIBLE . '">' . $langs->trans('EventConfidentialityModeVisible') . '</label>';
-                $tmp .= '&nbsp;<input type="radio" id="ec_mode_' . $line->id . '_' . EventConfidentiality::MODE_BLURRED . '" name="ec_mode_' . $line->id . '" value="1"' . ($mode == EventConfidentiality::MODE_BLURRED ? ' checked="checked"' : "") . '><label for="ec_mode_' . $line->id . '_' . EventConfidentiality::MODE_BLURRED . '">' . $langs->trans('EventConfidentialityModeBlurred') . '</label>';
-                $tmp .= '&nbsp;<input type="radio" id="ec_mode_' . $line->id . '_' . EventConfidentiality::MODE_HIDDEN . '" name="ec_mode_' . $line->id . '" value="2"' . ($mode == EventConfidentiality::MODE_HIDDEN ? ' checked="checked"' : "") . '><label for="ec_mode_' . $line->id . '_' . EventConfidentiality::MODE_HIDDEN . '">' . $langs->trans('EventConfidentialityModeHidden') . '</label>';
-                $tmp .= '</td>';
-                $tmp .= '</tr>';
+                if (empty($line->fields['external']) && !$user->rights->eventconfidentiality->internal->lire) {
+                    $tmp = '<input type="hidden" name="ec_mode_' . $line->id . '" value="' . ($mode == EventConfidentiality::MODE_VISIBLE ? 0 : ($mode == EventConfidentiality::MODE_BLURRED ? 1 : 2)) . '">';
+                } else {
+                    $tmp = '<tr id="' . $line->id . '">';
+                    $tmp .= '<td>' . $line->fields['label'] . '</td>';
+                    $tmp .= '<td>';
+                    $tmp .= '<input type="radio" id="ec_mode_' . $line->id . '_' . EventConfidentiality::MODE_VISIBLE . '" name="ec_mode_' . $line->id . '" value="0"' . ($mode == EventConfidentiality::MODE_VISIBLE ? ' checked="checked"' : "") . '><label for="ec_mode_' . $line->id . '_' . EventConfidentiality::MODE_VISIBLE . '">' . $langs->trans('EventConfidentialityModeVisible') . '</label>';
+                    $tmp .= '&nbsp;<input type="radio" id="ec_mode_' . $line->id . '_' . EventConfidentiality::MODE_BLURRED . '" name="ec_mode_' . $line->id . '" value="1"' . ($mode == EventConfidentiality::MODE_BLURRED ? ' checked="checked"' : "") . '><label for="ec_mode_' . $line->id . '_' . EventConfidentiality::MODE_BLURRED . '">' . $langs->trans('EventConfidentialityModeBlurred') . '</label>';
+                    $tmp .= '&nbsp;<input type="radio" id="ec_mode_' . $line->id . '_' . EventConfidentiality::MODE_HIDDEN . '" name="ec_mode_' . $line->id . '" value="2"' . ($mode == EventConfidentiality::MODE_HIDDEN ? ' checked="checked"' : "") . '><label for="ec_mode_' . $line->id . '_' . EventConfidentiality::MODE_HIDDEN . '">' . $langs->trans('EventConfidentialityModeHidden') . '</label>';
+                    $tmp .= '</td>';
+                    $tmp .= '</tr>';
+                }
                 if (empty($line->fields['external'])) {
                     $internal_tags .= $tmp;
                 } else {
@@ -500,6 +509,8 @@ SCRIPT;
                 $out .= $internal_tags;
                 $out .= '</table></td>';
                 $out .= '</tr>';
+            } else {
+                $out .= $internal_tags;
             }
             // External tags
             $out .= '<tr>';
@@ -677,7 +688,7 @@ SCRIPT;
             }
             $out .= ' />';
             $out .= ' &nbsp; &nbsp; ';
-            $out .= '<div class="inline-block divButAction"><a class="butActionDelete rm_reset_data_in_session" href="' . $this->param["returnurl"] . '#formmessagebeforetitle">' . $langs->trans('Reset') . '</a></div>';
+            $out .= '<div class="inline-block divButAction"><a class="butAction rm_reset_data_in_session" href="' . $this->param["returnurl"] . (strpos($this->param["returnurl"], '?') ? '&' :'?') . 'action=premessage&messagemode=init&rm'.time().'=#formmessagebeforetitle">' . $langs->trans('Reset') . '</a></div>';
             if ($this->withcancel) {
                 $out .= ' &nbsp; &nbsp; ';
                 $out .= '<input class="button" type="submit" id="cancel" name="cancel" value="' . $langs->trans("Cancel") . '" />';
