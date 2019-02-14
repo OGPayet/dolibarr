@@ -1969,16 +1969,10 @@ if ($object->id > 0) {
 	// Specifics Information
     $parameters = array();
     $reshook = $hookmanager->executeHooks('addMoreSpecificsInformation', $parameters, $object, $action); // Note that $action and $object may have been
-    if (!empty($hookmanager->resPrint)) {
-        print '<div class="fichecenter">';
-        print '<div class="underbanner clearboth"></div>';
-
-        print $hookmanager->resPrint;
-
-        print '</div>';
-        print '<div class="clearboth"></div>';
+    if (!empty($hookmanager->resArray)) {
+        ksort($hookmanager->resArray);
+        print implode("\n", $hookmanager->resArray);
     }
-
 
     /*
     * Lines
@@ -1996,6 +1990,14 @@ if ($object->id > 0) {
         include DOL_DOCUMENT_ROOT . '/core/tpl/ajaxrow.tpl.php';
     }
 
+    $numlines = count($object->lines);
+
+    print '<div class="fichecenter">';
+    print '<div class="underbanner clearboth"></div><br>';
+
+    print load_fiche_titre('<span class="rm_lines_block_title_label" style="font-weight: bolder !important; font-size: medium !important;">' . $langs->trans("RequestManagerProductLines") . '&nbsp;<img class="rm_lines_block_title_icon" src=""></img></span>', '', '', 0, 'rm_lines_block_title');
+    print '<div id="rm_lines_block_content"' . (empty($numlines) ? ' style="display: none;"' : '') . '>';
+
     print '<div class="div-table-responsive">';
     print '<table id="tablelines" class="noborder noshadow" width="100%">';
     // Show object lines
@@ -2008,9 +2010,6 @@ if ($object->id > 0) {
         $object->printObjectLines($action, $mysoc,  $object->thirdparty, $lineid, 1);
         $object->statut = $object->save_status;
     }
-
-    $numlines = count($object->lines);
-
     // form to add new line
     if ($user->rights->requestmanager->creer && ($object->statut_type == RequestManager::STATUS_TYPE_INITIAL || $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS))
     {
@@ -2027,6 +2026,43 @@ if ($object->id > 0) {
     }
     print '</table>';
     print '</div>';
+
+    print '</div>';
+
+    $show_label = json_encode($langs->trans('Show'));
+    $hide_label = json_encode($langs->trans('Hide'));
+    $arrow_up = json_encode(img_picto('', 'sort_asc', '', false, 1));
+    $arrow_down = json_encode(img_picto('', 'sort_desc', '', false, 1));
+    print <<<SCRIPT
+    <script type="text/javascript" language="javascript">
+        $(document).ready(function () {
+            var ei_count_block_title = $("#rm_lines_block_title");
+            var ei_count_block_title_div = $('#rm_lines_block_title div.titre');
+            var ei_count_block_title_icon = $(".rm_lines_block_title_icon");
+            var ei_count_block_content = $("#rm_lines_block_content");
+
+            ei_count_block_title_div.css('cursor', 'pointer');
+            ei_update_title_icon();
+            ei_count_block_title.on('click', function() {
+                ei_count_block_content.toggle();
+                ei_update_title_icon();
+            });
+
+            function ei_update_title_icon() {
+                if (ei_count_block_content.is(':visible')) {
+                    ei_count_block_title_div.attr('title', $hide_label)
+                    ei_count_block_title_icon.attr('src', $arrow_down);
+                } else {
+                    ei_count_block_title_div.attr('title', $show_label)
+                    ei_count_block_title_icon.attr('src', $arrow_up);
+                }
+            }
+        });
+    </script>
+SCRIPT;
+
+    print '</div>';
+    print '<div class="clearboth"></div>';
 
     print "</form>\n";
 

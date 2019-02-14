@@ -293,7 +293,7 @@ if (empty($reshook))
 						    $contract->fetch($object->fk_contrat);
                             $contract->fetchObjectLinked();
                             foreach ($contract->linkedObjectsIds as $et => $ids_list) {
-                                foreach ($ids_list as $olid) {
+                                        foreach ($ids_list as $olid) {
                                     if (($et == $srcobject->element && $olid == $srcobject->id) || ($et == $object->element && $olid == $object->id)) continue;
                                     $object->add_object_linked($et, $olid);
                                 }
@@ -864,6 +864,12 @@ if ($action == 'create')
 
 	if ($socid) $res=$soc->fetch($socid);
 
+    //------------------------------------------------------------
+    // Modification - Open-DSI - Begin
+    $contract_ids = array();
+    // Modification - Open-DSI - End
+    //------------------------------------------------------------
+
 	if (GETPOST('origin') && GETPOST('originid'))
 	{
 		// Parse element/subelement (ex: project_task)
@@ -909,6 +915,16 @@ if ($action == 'create')
 
 			$note_private		= (! empty($objectsrc->note) ? $objectsrc->note : (! empty($objectsrc->note_private) ? $objectsrc->note_private : GETPOST('note_private')));
 			$note_public		= (! empty($objectsrc->note_public) ? $objectsrc->note_public : GETPOST('note_public'));
+
+            //------------------------------------------------------------
+            // Modification - Open-DSI - Begin
+			if ($element == 'requestmanager') {
+                $objectsrc->fetchObjectLinked();
+
+                $contract_ids = isset($objectsrc->linkedObjectsIds['contrat']) ? array_values($objectsrc->linkedObjectsIds['contrat']) : array();
+            }
+            // Modification - Open-DSI - End
+            //------------------------------------------------------------
 
 			// Object source contacts list
 			$srccontactslist = $objectsrc->liste_contact(-1,'external',1);
@@ -981,17 +997,73 @@ if ($action == 'create')
         }
 
 		// Contract
-		if ($conf->contrat->enabled)
-		{
-			$langs->load("contracts");
-			print '<tr><td>'.$langs->trans("Contract").'</td><td>';
-			$numcontrat=$formcontract->select_contract($soc->id,GETPOST('contratid','int'),'contratid',0,1);
-			if ($numcontrat==0)
-			{
-				print ' &nbsp; <a href="'.DOL_URL_ROOT.'/contrat/card.php?socid='.$soc->id.'&action=create">'.$langs->trans("AddContract").'</a>';
-			}
-			print '</td></tr>';
-		}
+		if ($conf->contrat->enabled) {
+            $langs->load("contracts");
+            //------------------------------------------------------------
+            // Modification - Open-DSI - Begin
+            print '<tr><td>' . $langs->trans("Contract") . '</td><td>';
+            dol_include_once('/synergiestech/lib/synergiestech.lib.php');
+            $langs->load('synergiestech@synergiestech');
+            $company_benefactor_id = GETPOST('options_companyrelationships_fk_soc_benefactor', 'int');
+            $contract_id = GETPOST('contratid', 'int');
+            $contractList = synergiestech_fetch_contract($soc->id, $company_benefactor_id, $msg_error);
+            $contract_ids_match = array_intersect($contract_ids, array_keys($contractList));
+            if (!in_array($contract_id, $contract_ids_match)) {
+                $contract_id = count($contract_ids_match) ? $contract_ids_match[0] : '';
+            }
+//            if (!isset($contractList[$contract_id]) && !empty($contractList)) {
+//                $contract_id = array_keys($contractList)[0];
+//            }
+            $contractListArray = array();
+            foreach ($contractList as $c) {
+                $contractListArray[$c->id] = $c->ref;
+            }
+            print $form->selectarray('contratid', $contractListArray, $contract_id, 1);
+            print '<span id="contratid_other">';
+            if (count($contractListArray) == 0) {
+                print ' &nbsp; <a href="' . DOL_URL_ROOT . '/contrat/card.php?socid=' . $soc->id . '&options_companyrelationships_fk_soc_benefactor='.$company_benefactor_id.'&action=create">' . $langs->trans("AddContract") . '</a>';
+            }
+            print '</span>';
+
+            $contract_list_ajax_url = dol_buildpath('/synergiestech/ajax/contract_list_td.php', 1);
+            $soc_id = json_encode($soc->id);
+            $contract_ids = json_encode($contract_ids);
+            $contratid =  json_encode($contract_id);
+            print <<<SCRIPT
+            <script type="text/javascript" language="javascript">
+                $(document).ready(function () {
+                    var select_companyrelationships_fk_soc_benefactor = $("#options_companyrelationships_fk_soc_benefactor");
+                    var select_contratid = $("#contratid");
+                    var span_contratid_other = $("#contratid_other");
+
+                    select_companyrelationships_fk_soc_benefactor.on('change', function() {
+                        update_contractid();
+                    });
+
+                    function update_contractid() {
+                        $.ajax({
+                            method: "POST",
+                            url: "$contract_list_ajax_url",
+                            data: { soc_id: $soc_id, soc_benefactor_id: select_companyrelationships_fk_soc_benefactor.val(), contract_id: $contratid, contract_ids: $contract_ids },
+                            dataType: "json"
+                        }).done(function(data) {
+                            select_contratid.empty();
+                            select_contratid.append(data.values);
+                            span_contratid_other.empty();
+                            span_contratid_other.append(data.other);
+                        }).fail(function(jqXHR, textStatus) {
+                            select_contratid.empty();
+                            span_contratid_other.empty();
+                            span_contratid_other.append('Request failed: ' + textStatus);
+                        });
+                    }
+                });
+            </script>
+SCRIPT;
+            // Modification - Open-DSI - End
+            //------------------------------------------------------------
+            print '</td></tr>';
+        }
 
         // Model
         print '<tr>';
@@ -1287,8 +1359,24 @@ else if ($id > 0 || ! empty($ref))
 		print '</td><td>';
 		if ($action == 'contrat')
 		{
-			$formcontract= new Formcontract($db);
-			$formcontract->formSelectContract($_SERVER["PHP_SELF"].'?id='.$object->id, $object->socid, $object->fk_contrat, 'contratid', 0, 1);
+            print "\n";
+            print '<form method="post" action="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'">';
+            print '<input type="hidden" name="action" value="setcontract">';
+            print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+            //------------------------------------------------------------
+            // Modification - Open-DSI - Begin
+            dol_include_once('/synergiestech/lib/synergiestech.lib.php');
+            $langs->load('synergiestech@synergiestech');
+            $contractList = synergiestech_fetch_contract($object->socid, $object->array_options['options_companyrelationships_fk_soc_benefactor'], $msg_error);
+            $contractListArray = array();
+            foreach ($contractList as $c) {
+                $contractListArray[$c->id] = $c->ref;
+            }
+            print $form->selectarray('contratid', $contractListArray, $object->fk_contrat, 1);
+            // Modification - Open-DSI - End
+            //------------------------------------------------------------
+            print '<input type="submit" class="button valignmiddle" value="'.$langs->trans("Modify").'">';
+            print '</form>';
 		}
 		else
 		{

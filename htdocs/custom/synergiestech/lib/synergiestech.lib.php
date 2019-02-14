@@ -799,11 +799,11 @@ function synergiestech_get_warehouse_parent_path($product_id, $tab, $final_label
 /**
  *  Get all contracts of a company (and a optional matched benefactor)
  *
- * @param   int     $socId              Id of company
- * @param   int     $socBenefactorId    Id of matched company benefactor
- * @param   string  $msg_error          Output error message
+ * @param   int             $socId              Id of company
+ * @param   int             $socBenefactorId    Id of matched company benefactor
+ * @param   string          $msg_error          Output error message
  *
- * @return  int|array                   <0 if KO, List of contract if OK
+ * @return  int|Contrat[]                       <0 if KO, List of contract if OK
  */
 function synergiestech_fetch_contract($socId, $socBenefactorId=0, &$msg_error=null)
 {
@@ -831,7 +831,7 @@ function synergiestech_fetch_contract($socId, $socBenefactorId=0, &$msg_error=nu
                 while ($obj = $db->fetch_object($resql)) {
                     $contrat = new Contrat($db);
                     $contrat->fetch($obj->rowid);
-                    $result[] = $contrat;
+                    $result[$obj->rowid] = $contrat;
                 }
             }
         } else {

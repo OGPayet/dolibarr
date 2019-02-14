@@ -159,11 +159,11 @@ SCRIPT;
         $notify_assigned = GETPOST('notify_assigned', 'int', 2);
         $notify_requester = GETPOST('notify_requesters', 'int', 2);
         $notify_watcher = GETPOST('notify_watchers', 'int', 2);
-        if (!isset($_POST['message_type'])) {
-            $notify_assigned = $this->requestmanager->notify_assigned_by_email;
-            $notify_requester = $this->requestmanager->notify_requester_by_email;
-            $notify_watcher = $this->requestmanager->notify_watcher_by_email;
-        }
+//        if (!isset($_POST['message_type'])) {
+//            $notify_assigned = $this->requestmanager->notify_assigned_by_email;
+//            $notify_requester = $this->requestmanager->notify_requester_by_email;
+//            $notify_watcher = $this->requestmanager->notify_watcher_by_email;
+//        }
         $out .= '<tr>';
         $out .= '<td width="180">' . $langs->trans("RequestManagerMessageNotify") . '</td>';
         $out .= '<td>';

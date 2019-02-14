@@ -875,7 +875,7 @@ class FormRequestManager
                     $out .= '<option value="' . $obj->rowid . '"';
                     if ($selected && $selected == $obj->rowid) $out .= ' selected';
                     $out .= '>';
-                    $out .= $obj->ref;
+                    $out .= $obj->ref . ' - ' . $obj->label;
                     $out .= '</option>';
                     $i++;
                 }

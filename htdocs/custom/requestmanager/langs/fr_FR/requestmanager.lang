@@ -248,6 +248,7 @@ RequestManagerReasonResolution                          = Motif de résolution
 RequestManagerReasonResolutionDetails                   = Détails du motif de résolution
 RequestManagerChildrenRequestLinkedObjects              = Objets liées des demandes enfants
 RequestManagerList                                      = Liste
+RequestManagerProductLines                              = Lignes de produits
 
 ############################################################
 ### Message form

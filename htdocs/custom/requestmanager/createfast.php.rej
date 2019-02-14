@@ -1,335 +1,42 @@
 diff a/htdocs/custom/requestmanager/createfast.php b/htdocs/custom/requestmanager/createfast.php	(rejected hunks)
-@@ -253,174 +255,180 @@ $usergroup_static = new UserGroup($db);
- 
- $now = dol_now();
- 
--if (($action == 'createfast' || $action == 'force_principal_company' || $action == 'force_out_of_time') && $user->rights->requestmanager->creer) {
--    $selectedActionJs = GETPOST('action_js') ? GETPOST('action_js') : '';
--    $selectedActionCommId = GETPOST('actioncomm_id', 'int') ? intval(GETPOST('actioncomm_id', 'int')) : -1;
--    $selectedCategories = GETPOST('categories', 'array') ? GETPOST('categories', 'array') : (GETPOST('categories', 'alpha') ? explode(',', GETPOST('categories', 'alpha')) : array());
--    $selectedContacts = GETPOST('contact_ids', 'array') ? GETPOST('contact_ids', 'array') : (GETPOST('contact_ids', 'alpha') ? explode(',', GETPOST('contact_ids', 'alpha')) : array());
--    $selectedDescription = GETPOST('description') ? GETPOST('description') : '';
--    $selectedEquipementId = GETPOST('equipement_id', 'int') ? intval(GETPOST('equipement_id', 'int')) : -1;
--    $selectedLabel = GETPOST('label', 'alpha') ? GETPOST('label', 'alpha') : '';
--    $selectedSocIdOrigin = GETPOST('socid_origin', 'int') ? intval(GETPOST('socid_origin', 'int')) : -1;
--    $selectedSocId = GETPOST('socid', 'int') ? intval(GETPOST('socid', 'int')) : -1;
--    $selectedSocIdBenefactor = GETPOST('socid_benefactor', 'int') ? intval(GETPOST('socid_benefactor', 'int')) : -1;
--    $selectedSocIdWatcher = GETPOST('socid_watcher', 'int') ? intval(GETPOST('socid_watcher', 'int')) : -1;
--    $selectedFkSource = GETPOST('source', 'int') ? intval(GETPOST('source', 'int')) : -1;
--    $selectedFkType = GETPOST('type', 'int') ? intval(GETPOST('type', 'int')) : -1;
--    $selectedFkUrgency = GETPOST('urgency', 'int') ? intval(GETPOST('urgency', 'int')) : -1;
--    $selectedRequesterNotification = GETPOST('notify_requester_by_email', 'int') > 0 ? 1 : 0;
--    $origin = GETPOST('origin', 'alpha');
--    $originid = GETPOST('originid', 'int');
--
--    if ($selectedSocIdOrigin === '' && $selectedSocId > 0) {
--        $selectedSocIdOrigin = $selectedSocId;
--    }
--
--    if (!empty($conf->companyrelationships->enabled)) {
--        // Set default values
--        $force_set = $selectedActionJs == 'change_socid_origin';
--        if ($selectedSocIdOrigin > 0) {
--            $originRelationshipType = $companyrelationships->getRelationshipTypeThirdparty($selectedSocIdOrigin, CompanyRelationships::RELATION_TYPE_BENEFACTOR);
--            if ($originRelationshipType == 0) { // Benefactor company
--                $selectedSocIdBenefactor = $selectedSocIdBenefactor < 0 || $force_set ? $selectedSocIdOrigin : $selectedSocIdBenefactor;
--            } elseif ($originRelationshipType > 0) { // Principal company or both
--                $selectedSocId = $selectedSocId < 0 || $force_set ? $selectedSocIdOrigin : $selectedSocId;
--            } else { // None
--                $selectedSocId = $selectedSocId < 0 || $force_set ? $selectedSocIdOrigin : $selectedSocId;
--                $selectedSocIdBenefactor = $selectedSocIdBenefactor < 0 || $force_set ? $selectedSocId : $selectedSocIdBenefactor;
--            }
--        }
--        if ($selectedSocId > 0) {
--            $benefactor_companies_ids = $companyrelationships->getRelationshipsThirdparty($selectedSocId, CompanyRelationships::RELATION_TYPE_BENEFACTOR, 1);
--            $benefactor_companies_ids = is_array($benefactor_companies_ids) ? array_values($benefactor_companies_ids) : array();
--            $selectedSocIdBenefactor = $selectedSocIdBenefactor < 0 || $force_set ? (count($benefactor_companies_ids) > 0 ? $benefactor_companies_ids[0] : $selectedSocId) : $selectedSocIdBenefactor;
--        }
--        if ($selectedSocIdBenefactor > 0) {
--            $principal_companies_ids = $companyrelationships->getRelationshipsThirdparty($selectedSocIdBenefactor, CompanyRelationships::RELATION_TYPE_BENEFACTOR,0);
--            $principal_companies_ids = is_array($principal_companies_ids) ? array_values($principal_companies_ids) : array();
--            $selectedSocId = $selectedSocId < 0 || $force_set ? (count($principal_companies_ids) > 0 ? $principal_companies_ids[0] : $selectedSocIdBenefactor) : $selectedSocId;
--        }
-+$selectedActionJs = GETPOST('action_js') ? GETPOST('action_js') : '';
-+$selectedActionCommId = GETPOST('actioncomm_id', 'int') ? intval(GETPOST('actioncomm_id', 'int')) : -1;
-+$selectedCategories = GETPOST('categories', 'array') ? GETPOST('categories', 'array') : (GETPOST('categories', 'alpha') ? explode(',', GETPOST('categories', 'alpha')) : array());
-+$selectedContacts = GETPOST('contact_ids', 'array') ? GETPOST('contact_ids', 'array') : (GETPOST('contact_ids', 'alpha') ? explode(',', GETPOST('contact_ids', 'alpha')) : array());
-+$selectedDescription = GETPOST('description') ? GETPOST('description') : '';
-+$selectedEquipementId = GETPOST('equipement_id', 'int') ? intval(GETPOST('equipement_id', 'int')) : -1;
-+$selectedLabel = GETPOST('label', 'alpha') ? GETPOST('label', 'alpha') : '';
-+$selectedSocIdOrigin = GETPOST('socid_origin', 'int') ? intval(GETPOST('socid_origin', 'int')) : -1;
-+$selectedSocId = GETPOST('socid', 'int') ? intval(GETPOST('socid', 'int')) : -1;
-+$selectedSocIdBenefactor = GETPOST('socid_benefactor', 'int') ? intval(GETPOST('socid_benefactor', 'int')) : -1;
-+$selectedSocIdWatcher = GETPOST('socid_watcher', 'int') ? intval(GETPOST('socid_watcher', 'int')) : -1;
-+$selectedFkSource = GETPOST('source', 'int') ? intval(GETPOST('source', 'int')) : -1;
-+$selectedFkType = GETPOST('type', 'int') ? intval(GETPOST('type', 'int')) : -1;
-+$selectedFkUrgency = GETPOST('urgency', 'int') ? intval(GETPOST('urgency', 'int')) : -1;
-+$selectedRequesterNotification = GETPOST('notify_requester_by_email', 'int') > 0 ? 1 : 0;
-+$origin = GETPOST('origin', 'alpha');
-+$originid = GETPOST('originid', 'int');
-+
-+if ($selectedSocIdOrigin === '' && $selectedSocId > 0) {
-+    $selectedSocIdOrigin = $selectedSocId;
-+}
- 
--        // default watcher
--        if ($selectedSocId > 0) {
--            $watcher_companies_ids = $companyrelationships->getRelationshipsThirdparty($selectedSocId, CompanyRelationships::RELATION_TYPE_WATCHER, 1);
--            $watcher_companies_ids = is_array($watcher_companies_ids) ? array_values($watcher_companies_ids) : array();
--            $selectedSocIdWatcher = $force_set ? (count($watcher_companies_ids) > 0 ? $watcher_companies_ids[0] : $selectedSocIdWatcher) : $selectedSocIdWatcher;
-+if (!empty($conf->companyrelationships->enabled)) {
-+    // Set default values
-+    $force_set = $selectedActionJs == 'change_socid_origin';
-+    if ($selectedSocIdOrigin > 0) {
-+        $originRelationshipType = $companyrelationships->getRelationshipTypeThirdparty($selectedSocIdOrigin, CompanyRelationships::RELATION_TYPE_BENEFACTOR);
-+        if ($originRelationshipType == 0) { // Benefactor company
-+            $selectedSocIdBenefactor = $selectedSocIdBenefactor < 0 || $force_set ? $selectedSocIdOrigin : $selectedSocIdBenefactor;
-+        } elseif ($originRelationshipType > 0) { // Principal company or both
-+            $selectedSocId = $selectedSocId < 0 || $force_set ? $selectedSocIdOrigin : $selectedSocId;
-+        } else { // None
-+            $selectedSocId = $selectedSocId < 0 || $force_set ? $selectedSocIdOrigin : $selectedSocId;
-+            $selectedSocIdBenefactor = $selectedSocIdBenefactor < 0 || $force_set ? $selectedSocId : $selectedSocIdBenefactor;
-         }
--    } else {
--        $selectedSocId = $selectedSocIdOrigin;
--        $selectedSocIdBenefactor = $selectedSocIdOrigin;
-+    }
-+    if ($selectedSocId > 0) {
-+        $benefactor_companies_ids = $companyrelationships->getRelationshipsThirdparty($selectedSocId, CompanyRelationships::RELATION_TYPE_BENEFACTOR, 1);
-+        $benefactor_companies_ids = is_array($benefactor_companies_ids) ? array_values($benefactor_companies_ids) : array();
-+        $selectedSocIdBenefactor = $selectedSocIdBenefactor < 0 || $force_set ? (count($benefactor_companies_ids) > 0 ? $benefactor_companies_ids[0] : $selectedSocId) : $selectedSocIdBenefactor;
-+    }
-+    if ($selectedSocIdBenefactor > 0) {
-+        $principal_companies_ids = $companyrelationships->getRelationshipsThirdparty($selectedSocIdBenefactor, CompanyRelationships::RELATION_TYPE_BENEFACTOR,0);
-+        $principal_companies_ids = is_array($principal_companies_ids) ? array_values($principal_companies_ids) : array();
-+        $selectedSocId = $selectedSocId < 0 || $force_set ? (count($principal_companies_ids) > 0 ? $principal_companies_ids[0] : $selectedSocIdBenefactor) : $selectedSocId;
-     }
- 
--    // Confirm force principal company
--    $formquestion = array();
--    if ($action == 'force_principal_company' || $action == 'force_out_of_time') {
--        if (!empty($selectedActionJs)) $formquestion[] = array('type' => 'hidden', 'name' => 'action_js', 'value' => $selectedActionJs);
--        if (!empty($selectedActionCommId)) $formquestion[] = array('type' => 'hidden', 'name' => 'actioncomm_id', 'value' => $selectedActionCommId);
--        if (!empty($selectedCategories)) $formquestion[] = array('type' => 'hidden', 'name' => 'categories', 'value' => implode(',', $selectedCategories));
--        if (!empty($selectedContacts)) $formquestion[] = array('type' => 'hidden', 'name' => 'contact_ids', 'value' => implode(',', $selectedContacts));
--        if (!empty($selectedDescription)) $formquestion[] = array('type' => 'hidden', 'name' => 'description', 'value' => $selectedDescription);
--        if (!empty($selectedEquipementId)) $formquestion[] = array('type' => 'hidden', 'name' => 'equipement_id', 'value' => $selectedEquipementId);
--        if (!empty($selectedLabel)) $formquestion[] = array('type' => 'hidden', 'name' => 'label', 'value' => $selectedLabel);
--        if (!empty($selectedSocIdOrigin)) $formquestion[] = array('type' => 'hidden', 'name' => 'socid_origin', 'value' => $selectedSocIdOrigin);
--        if (!empty($selectedSocId)) $formquestion[] = array('type' => 'hidden', 'name' => 'socid', 'value' => $selectedSocId);
--        if (!empty($selectedSocIdBenefactor)) $formquestion[] = array('type' => 'hidden', 'name' => 'socid_benefactor', 'value' => $selectedSocIdBenefactor);
--        if (!empty($selectedFkSource)) $formquestion[] = array('type' => 'hidden', 'name' => 'source', 'value' => $selectedFkSource);
--        if (!empty($selectedFkType)) $formquestion[] = array('type' => 'hidden', 'name' => 'type', 'value' => $selectedFkType);
--        if (!empty($selectedFkUrgency)) $formquestion[] = array('type' => 'hidden', 'name' => 'urgency', 'value' => $selectedFkUrgency);
--        if (!empty($selectedRequesterNotification)) $formquestion[] = array('type' => 'hidden', 'name' => 'notify_requester_by_email', 'value' => $selectedRequesterNotification);
--        if (!empty($origin)) $formquestion[] = array('type' => 'hidden', 'name' => 'origin', 'value' => $origin);
--        if (!empty($originid)) $formquestion[] = array('type' => 'hidden', 'name' => 'originid', 'value' => $originid);
-+    // default watcher
-+    if ($selectedSocId > 0) {
-+        $watcher_companies_ids = $companyrelationships->getRelationshipsThirdparty($selectedSocId, CompanyRelationships::RELATION_TYPE_WATCHER, 1);
-+        $watcher_companies_ids = is_array($watcher_companies_ids) ? array_values($watcher_companies_ids) : array();
-+        $selectedSocIdWatcher = $force_set ? (count($watcher_companies_ids) > 0 ? $watcher_companies_ids[0] : $selectedSocIdWatcher) : $selectedSocIdWatcher;
-     }
-+} else {
-+    $selectedSocId = $selectedSocIdOrigin;
-+    $selectedSocIdBenefactor = $selectedSocIdOrigin;
-+}
- 
--    if ($action == 'force_principal_company') {
--        if (!empty($force_out_of_time)) $formquestion[] = array('type' => 'hidden', 'name' => 'force_out_of_time', 'value' => $force_out_of_time ? 1 : 0);
--        $societe = new Societe($db);
--        $societe->fetch($selectedSocId);
--        $formquestion[] = array('type' => 'other', 'label' => $langs->trans('RequestManagerThirdPartyPrincipal'), 'value' => $societe->getNomUrl(1));
--        $societe->fetch($selectedSocIdBenefactor);
--        $formquestion[] = array('type' => 'other', 'label' => $langs->trans('RequestManagerThirdPartyBenefactor'), 'value' => $societe->getNomUrl(1));
--
--        print $form->formconfirm($_SERVER["PHP_SELF"], $langs->trans('RequestManagerForcePrincipalCompany'), $langs->trans('RequestManagerConfirmForcePrincipalCompany'), 'confirm_force_principal_company', $formquestion, 0, 1);
--    } elseif (!empty($conf->global->REQUESTMANAGER_TIMESLOTS_ACTIVATE) && $action == 'force_out_of_time') {
--        if (!empty($force_principal_company)) $formquestion[] = array('type' => 'hidden', 'name' => 'force_principal_company', 'value' => $force_principal_company ? 1 : 0);
--        if (!empty($originid)) $formquestion[] = array('type' => 'hidden', 'name' => 'originid', 'value' => $originid);
--        $outOfTimes = requestmanagertimeslots_get_out_of_time_infos($selectedSocId);
--        if (is_array($outOfTimes) && count($outOfTimes) > 0) {
--            $toprint = array();
--            foreach ($outOfTimes as $infos) {
--                $toprint[] = '&nbsp;-&nbsp;' . $infos['year'] . (isset($infos['month']) ? '-' . $infos['month'] : '') . ' : ' . $infos['count'];
--            }
--            $formquestion[] = array('type' => 'onecolumn', 'value' => $langs->trans('RequestManagerCreatedOutOfTime') . ':<br>' . implode('<br>', $toprint));
-+// Confirm force principal company
-+$formquestion = array();
-+if (!empty($selectedActionJs)) $formquestion[] = array('type' => 'hidden', 'name' => 'action_js', 'value' => $selectedActionJs);
-+if (!empty($selectedActionCommId)) $formquestion[] = array('type' => 'hidden', 'name' => 'actioncomm_id', 'value' => $selectedActionCommId);
-+if (!empty($selectedCategories)) $formquestion[] = array('type' => 'hidden', 'name' => 'categories', 'value' => implode(',', $selectedCategories));
-+if (!empty($selectedContacts)) $formquestion[] = array('type' => 'hidden', 'name' => 'contact_ids', 'value' => implode(',', $selectedContacts));
-+if (!empty($selectedDescription)) $formquestion[] = array('type' => 'hidden', 'name' => 'description', 'value' => $selectedDescription);
-+if (!empty($selectedEquipementId)) $formquestion[] = array('type' => 'hidden', 'name' => 'equipement_id', 'value' => $selectedEquipementId);
-+if (!empty($selectedLabel)) $formquestion[] = array('type' => 'hidden', 'name' => 'label', 'value' => $selectedLabel);
-+if (!empty($selectedSocIdOrigin)) $formquestion[] = array('type' => 'hidden', 'name' => 'socid_origin', 'value' => $selectedSocIdOrigin);
-+if (!empty($selectedSocId)) $formquestion[] = array('type' => 'hidden', 'name' => 'socid', 'value' => $selectedSocId);
-+if (!empty($selectedSocIdBenefactor)) $formquestion[] = array('type' => 'hidden', 'name' => 'socid_benefactor', 'value' => $selectedSocIdBenefactor);
-+if (!empty($selectedSocIdWatcher)) $formquestion[] = array('type' => 'hidden', 'name' => 'socid_watcher', 'value' => $selectedSocIdWatcher);
-+if (!empty($selectedFkSource)) $formquestion[] = array('type' => 'hidden', 'name' => 'source', 'value' => $selectedFkSource);
-+if (!empty($selectedFkType)) $formquestion[] = array('type' => 'hidden', 'name' => 'type', 'value' => $selectedFkType);
-+if (!empty($selectedFkUrgency)) $formquestion[] = array('type' => 'hidden', 'name' => 'urgency', 'value' => $selectedFkUrgency);
-+if (!empty($selectedRequesterNotification)) $formquestion[] = array('type' => 'hidden', 'name' => 'notify_requester_by_email', 'value' => $selectedRequesterNotification);
-+if (!empty($origin)) $formquestion[] = array('type' => 'hidden', 'name' => 'origin', 'value' => $origin);
-+if (!empty($originid)) $formquestion[] = array('type' => 'hidden', 'name' => 'originid', 'value' => $originid);
-+if (!empty($force_out_of_time_confirmed)) $formquestion[] = array('type' => 'hidden', 'name' => 'force_out_of_time_confirmed', 'value' => $force_out_of_time_confirmed ? 1 : 0);
-+if (!empty($force_principal_company_confirmed)) $formquestion[] = array('type' => 'hidden', 'name' => 'force_principal_company_confirmed', 'value' => $force_principal_company_confirmed ? 1 : 0);
-+
-+$formconfirm = '';
-+if ($action == 'force_principal_company') {
-+    $societe = new Societe($db);
-+    $societe->fetch($selectedSocId);
-+    $formquestion[] = array('type' => 'other', 'label' => $langs->trans('RequestManagerThirdPartyPrincipal'), 'value' => $societe->getNomUrl(1));
-+    $societe->fetch($selectedSocIdBenefactor);
-+    $formquestion[] = array('type' => 'other', 'label' => $langs->trans('RequestManagerThirdPartyBenefactor'), 'value' => $societe->getNomUrl(1));
-+
-+    $formconfirm = $form->formconfirm($_SERVER["PHP_SELF"], $langs->trans('RequestManagerForcePrincipalCompany'), $langs->trans('RequestManagerConfirmForcePrincipalCompany'), 'confirm_force_principal_company', $formquestion, 0, 1);
-+} elseif (!empty($conf->global->REQUESTMANAGER_TIMESLOTS_ACTIVATE) && $action == 'force_out_of_time') {
-+    $outOfTimes = requestmanagertimeslots_get_out_of_time_infos($selectedSocId);
-+    if (is_array($outOfTimes) && count($outOfTimes) > 0) {
-+        $toprint = array();
-+        foreach ($outOfTimes as $infos) {
-+            $toprint[] = '&nbsp;-&nbsp;' . $infos['year'] . (isset($infos['month']) ? '-' . $infos['month'] : '') . ' : ' . $infos['count'];
-         }
--
--        print $form->formconfirm($_SERVER["PHP_SELF"], $langs->trans('RequestManagerForceCreateOutOfTime'), $langs->trans('RequestManagerConfirmForceCreateOutOfTime'), 'confirm_force_out_of_time', $formquestion, 0, 1);
-+        $formquestion[] = array('type' => 'onecolumn', 'value' => $langs->trans('RequestManagerCreatedOutOfTime') . ':<br>' . implode('<br>', $toprint));
-     }
- 
--    /*
--     *  Creation
--     */
--    print '<form name="addpropfast" action="' . $_SERVER["PHP_SELF"] . '" method="POST">';
--    print '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '">';
--    print '<input type="hidden" name="action" value="addfast">';
--
--    $origin_title = '';
--    // Origin
--    if (!empty($origin) && !empty($originid)) {
--        require_once DOL_DOCUMENT_ROOT . '/core/lib/functions2.lib.php';
--        $origin_title = ' (' . $langs->trans('Origin') . ' : ' . dolGetElementUrl($originid, $origin, 1) . ')';
--        print '<input type="hidden" name="origin" value="' . dol_escape_htmltag($origin) . '">';
--        print '<input type="hidden" name="originid" value="' . $originid . '">';
--    }
-+    $formconfirm = $form->formconfirm($_SERVER["PHP_SELF"], $langs->trans('RequestManagerForceCreateOutOfTime'), $langs->trans('RequestManagerConfirmForceCreateOutOfTime'), 'confirm_force_out_of_time', $formquestion, 0, 1);
-+}
- 
--    print load_fiche_titre($langs->trans("RequestManagerCreateFastTitle") . $origin_title, '', 'requestmanager@requestmanager');
-+// Hook
-+$parameters = array();
-+$reshook = $hookmanager->executeHooks('formConfirm', $parameters, $object, $action); // Note that $action and $object may have been modified by hook
-+if (empty($reshook)) $formconfirm.=$hookmanager->resPrint;
-+elseif ($reshook > 0) $formconfirm=$hookmanager->resPrint;
- 
--    dol_fiche_head();
--    print '<div id="create_fast_zone1"></div>';
--    dol_fiche_end();
-+// Print form confirm
-+print $formconfirm;
- 
--    print '<div id="create_fast_zone2"></div>';
--    print "</form>";
-+/*
-+ *  Creation
-+ */
-+print '<form name="addpropfast" action="' . $_SERVER["PHP_SELF"] . '" method="POST">';
-+print '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '">';
-+print '<input type="hidden" name="action" value="addfast">';
-+
-+$origin_title = '';
-+// Origin
-+if (!empty($origin) && !empty($originid)) {
-+    require_once DOL_DOCUMENT_ROOT . '/core/lib/functions2.lib.php';
-+    $origin_title = ' (' . $langs->trans('Origin') . ' : ' . dolGetElementUrl($originid, $origin, 1) . ')';
-+    print '<input type="hidden" name="origin" value="' . dol_escape_htmltag($origin) . '">';
-+    print '<input type="hidden" name="originid" value="' . $originid . '">';
-+}
- 
--    print '<div id="create_fast_zone3"></div>';
-+print load_fiche_titre($langs->trans("RequestManagerCreateFastTitle") . $origin_title, '', 'requestmanager@requestmanager');
- 
--    $out .= '<script type="text/javascript" language="javascript">';
--    $out .= 'jQuery(document).ready(function(){';
--    $out .= '   var ajaxData = {';
--    $out .= '       actioncomm_id: ' . $selectedActionCommId . ',';
--    if ($conf->categorie->enabled) {
--        $out .= '   categories: ' . json_encode($selectedCategories) . ',';
--    }
--    $out .= '       contact_ids: ' . json_encode($selectedContacts) . ',';
--    if (!empty($selectedDescription)) {
--        $out .= '   description: "' . $selectedDescription . '",';
--    }
--    if ($conf->equipement->enabled) {
--        $out .= '   equipement_id: ' . $selectedEquipementId . ',';
--    }
--    if (!empty($selectedLabel)) {
--        $out .= '   label: "' . $selectedLabel . '" ,';
--    }
--    $out .= '       socid_origin: ' . $selectedSocIdOrigin . ',';
--    $out .= '       socid: ' . $selectedSocId . ',';
--    $out .= '       socid_benefactor: ' . $selectedSocIdBenefactor . ',';
--    $out .= '       socid_watcher: ' . $selectedSocIdWatcher . ',';
--    $out .= '       source: ' . $selectedFkSource . ',';
--    $out .= '       type: ' . $selectedFkType . ',';
--    $out .= '       urgency: ' . $selectedFkUrgency . ',';
--    $out .= '       notify_requester_by_email: ' . $selectedRequesterNotification . ',';
--    $out .= '       zone: 1';
--    $out .= '   };';
--    $out .= '   var requestManagerLoader = new RequestManagerLoader(0, "create_fast_zone", "' . dol_buildpath('/requestmanager/tpl/rm_createfastzone.tpl.php', 1) . '", ajaxData);';
--    if ($selectedSocId > 0) {
--        $out .= '   requestManagerLoader.loadZone(1, "load_auto");';
--    } else {
--        $out .= '   requestManagerLoader.loadZone(1, "");';
--    }
--    $out .= '});';
--    $out .= '</script>' . "\n";
--    print $out;
-+dol_fiche_head();
-+print '<div id="create_fast_zone1"></div>';
-+dol_fiche_end();
-+
-+print '<div id="create_fast_zone2"></div>';
-+print "</form>";
-+
-+print '<div id="create_fast_zone3"></div>';
-+
-+$out .= '<script type="text/javascript" language="javascript">';
-+$out .= 'jQuery(document).ready(function(){';
-+$out .= '   var ajaxData = {';
-+$out .= '       actioncomm_id: ' . $selectedActionCommId . ',';
-+if ($conf->categorie->enabled) {
-+    $out .= '   categories: ' . json_encode($selectedCategories) . ',';
-+}
-+$out .= '       contact_ids: ' . json_encode($selectedContacts) . ',';
-+if (!empty($selectedDescription)) {
-+    $out .= '   description: "' . $selectedDescription . '",';
-+}
-+if ($conf->equipement->enabled) {
-+    $out .= '   equipement_id: ' . $selectedEquipementId . ',';
-+}
-+if (!empty($selectedLabel)) {
-+    $out .= '   label: "' . $selectedLabel . '" ,';
-+}
-+$out .= '       socid_origin: ' . $selectedSocIdOrigin . ',';
-+$out .= '       socid: ' . $selectedSocId . ',';
-+$out .= '       socid_benefactor: ' . $selectedSocIdBenefactor . ',';
-+$out .= '       socid_watcher: ' . $selectedSocIdWatcher . ',';
-+$out .= '       source: ' . $selectedFkSource . ',';
-+$out .= '       type: ' . $selectedFkType . ',';
-+$out .= '       urgency: ' . $selectedFkUrgency . ',';
-+$out .= '       notify_requester_by_email: ' . $selectedRequesterNotification . ',';
-+$out .= '       zone: 1';
-+$out .= '   };';
-+$out .= '   var requestManagerLoader = new RequestManagerLoader(0, "create_fast_zone", "' . dol_buildpath('/requestmanager/tpl/rm_createfastzone.tpl.php', 1) . '", ajaxData);';
-+if ($selectedSocId > 0) {
-+    $out .= '   requestManagerLoader.loadZone(1, "load_auto");';
-+} else {
-+    $out .= '   requestManagerLoader.loadZone(1, "");';
+@@ -396,28 +396,28 @@ print '<div id="create_fast_zone3"></div>';
+ $out .= '<script type="text/javascript" language="javascript">';
+ $out .= 'jQuery(document).ready(function(){';
+ $out .= '   var ajaxData = {';
+-$out .= '       actioncomm_id: ' . $selectedActionCommId . ',';
++$out .= '       actioncomm_id: ' . json_encode($selectedActionCommId) . ',';
+ if ($conf->categorie->enabled) {
+     $out .= '   categories: ' . json_encode($selectedCategories) . ',';
  }
-+$out .= '});';
-+$out .= '</script>' . "\n";
-+print $out;
- 
- // End of page
- llxFooter();
+ $out .= '       contact_ids: ' . json_encode($selectedContacts) . ',';
+ if (!empty($selectedDescription)) {
+-    $out .= '   description: "' . $selectedDescription . '",';
++    $out .= '   description: ' . json_encode($selectedDescription) . ',';
+ }
+ if ($conf->equipement->enabled) {
+-    $out .= '   equipement_id: ' . $selectedEquipementId . ',';
++    $out .= '   equipement_id: ' . json_encode($selectedEquipementId) . ',';
+ }
+ if (!empty($selectedLabel)) {
+-    $out .= '   label: "' . $selectedLabel . '" ,';
++    $out .= '   label: ' . json_encode($selectedLabel) . ',';
+ }
+-$out .= '       socid_origin: ' . $selectedSocIdOrigin . ',';
+-$out .= '       socid: ' . $selectedSocId . ',';
+-$out .= '       socid_benefactor: ' . $selectedSocIdBenefactor . ',';
+-$out .= '       socid_watcher: ' . $selectedSocIdWatcher . ',';
+-$out .= '       source: ' . $selectedFkSource . ',';
+-$out .= '       type: ' . $selectedFkType . ',';
+-$out .= '       urgency: ' . $selectedFkUrgency . ',';
+-$out .= '       notify_requester_by_email: ' . $selectedRequesterNotification . ',';
++$out .= '       socid_origin: ' . json_encode($selectedSocIdOrigin) . ',';
++$out .= '       socid: ' . json_encode($selectedSocId) . ',';
++$out .= '       socid_benefactor: ' . json_encode($selectedSocIdBenefactor) . ',';
++$out .= '       socid_watcher: ' . json_encode($selectedSocIdWatcher) . ',';
++$out .= '       source: ' . json_encode($selectedFkSource) . ',';
++$out .= '       type: ' . json_encode($selectedFkType) . ',';
++$out .= '       urgency: ' . json_encode($selectedFkUrgency) . ',';
++$out .= '       notify_requester_by_email: ' . json_encode($selectedRequesterNotification) . ',';
+ $out .= '       zone: 1';
+ $out .= '   };';
+ $out .= '   var requestManagerLoader = new RequestManagerLoader(0, "create_fast_zone", "' . dol_buildpath('/requestmanager/tpl/rm_createfastzone.tpl.php', 1) . '", ajaxData);';

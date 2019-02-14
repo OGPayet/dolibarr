@@ -662,10 +662,10 @@ class RequestManager extends CommonObject
             $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("RequestManagerLabel"));
             $error++;
         }
-        if (empty($this->description)) {
-            $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("RequestManagerDescription"));
-            $error++;
-        }
+//        if (empty($this->description)) {
+//            $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("RequestManagerDescription"));
+//            $error++;
+//        }
         if ($this->date_deadline > 0 && $this->date_deadline < $this->date_creation) {
             $this->errors[] = $langs->trans("RequestManagerErrorDeadlineDateMustBeGreaterThanCreateDate");
             $error++;
@@ -743,7 +743,7 @@ class RequestManager extends CommonObject
         $sql .= ", " . ($this->availability_for_thirdparty_benefactor > 0 ? $this->availability_for_thirdparty_benefactor : 'NULL');
         $sql .= ", " . ($this->availability_for_thirdparty_watcher > 0 ? $this->availability_for_thirdparty_watcher : 'NULL');
         $sql .= ", '" . $this->db->escape($this->label) . "'";
-        $sql .= ", '" . $this->db->escape($this->description) . "'";
+        $sql .= ", " . (!empty($this->description) ? "'" . $this->db->escape($this->description) . "'" : 'NULL');
         $sql .= ", " . $this->fk_type;
         $sql .= ", " . ($this->fk_category > 0 ? $this->fk_category : 'NULL');
         $sql .= ", " . ($this->fk_source > 0 ? $this->fk_source : 'NULL');
@@ -1297,8 +1297,9 @@ class RequestManager extends CommonObject
         if ($reshook) {
             $sql = $hookmanager->resPrint;
         } else {
-            $sql = "SELECT e.rowid , e.ref";
+            $sql = "SELECT e.rowid , e.ref, p.label";
             $sql .= " FROM " . MAIN_DB_PREFIX . "equipement as e";
+            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "product as p ON e.fk_product = p.rowid";
             $sql .= " WHERE e.entity = " . $conf->entity;
             if ($fkSocBenefactor >= 0) {
                 $sql .= " AND e.fk_soc_client = " . $fkSocBenefactor;
@@ -1836,10 +1837,10 @@ class RequestManager extends CommonObject
             $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("RequestManagerLabel"));
             $error++;
         }
-        if (empty($this->description)) {
-            $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("RequestManagerDescription"));
-            $error++;
-        }
+//        if (empty($this->description)) {
+//            $this->errors[] = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("RequestManagerDescription"));
+//            $error++;
+//        }
         if ($this->date_deadline > 0 && $this->date_deadline < $this->date_creation) {
             $this->errors[] = $langs->trans("RequestManagerErrorDeadlineDateMustBeGreaterThanCreateDate");
             $error++;
@@ -1903,7 +1904,7 @@ class RequestManager extends CommonObject
         $sql .= ", availability_for_thirdparty_benefactor = " . ($this->availability_for_thirdparty_benefactor > 0 ? $this->availability_for_thirdparty_benefactor : 'NULL');
         $sql .= ", availability_for_thirdparty_watcher = " . ($this->availability_for_thirdparty_watcher > 0 ? $this->availability_for_thirdparty_watcher : 'NULL');
         $sql .= ", label = '" . $this->db->escape($this->label) . "'";
-        $sql .= ", description = '" . $this->db->escape($this->description) . "'";
+        $sql .= ", description = " . (!empty($this->description) ? "'" . $this->db->escape($this->description) . "'" : 'NULL');
         $sql .= ", fk_type = " . $this->fk_type;
         $sql .= ", fk_category = " . ($this->fk_category > 0 ? $this->fk_category : 'NULL');
         $sql .= ", fk_source = " . ($this->fk_source > 0 ? $this->fk_source : 'NULL');

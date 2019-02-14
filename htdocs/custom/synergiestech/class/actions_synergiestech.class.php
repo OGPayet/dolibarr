@@ -62,7 +62,10 @@ class ActionsSynergiesTech
     {
         global $langs;
         $this->db = $db;
-        $langs->load('synergiestech@synergiestech');
+
+        if (is_object($langs)) {
+            $langs->load('synergiestech@synergiestech');
+        }
     }
 
     /**
@@ -827,13 +830,13 @@ SCRIPT;
                 return 1;
             }
         } else if (in_array('requestmanagerfastcard', $contexts)) {
-            global $force_principal_company_confirmed, $force_out_of_time_confirmed, $create_and_take_in_charge_confirmed;
+            global $force_principal_company_confirmed, $force_out_of_time_confirmed, $create_and_take_in_charge_confirmed, $selectedEquipementId;
             $selectedActionJs = GETPOST('action_js') ? GETPOST('action_js') : '';
             $selectedActionCommId = GETPOST('actioncomm_id', 'int') ? intval(GETPOST('actioncomm_id', 'int')) : -1;
             $selectedCategories = GETPOST('categories', 'array') ? GETPOST('categories', 'array') : (GETPOST('categories', 'alpha') ? explode(',', GETPOST('categories', 'alpha')) : array());
             $selectedContacts = GETPOST('contact_ids', 'array') ? GETPOST('contact_ids', 'array') : (GETPOST('contact_ids', 'alpha') ? explode(',', GETPOST('contact_ids', 'alpha')) : array());
             $selectedDescription = GETPOST('description') ? GETPOST('description') : '';
-            $selectedEquipementId = GETPOST('equipement_id', 'int') ? intval(GETPOST('equipement_id', 'int')) : -1;
+            $selectedEquipementId = GETPOST('equipement_id', 'array') ? GETPOST('equipement_id', 'array') : (GETPOST('equipement_id', 'alpha') ? explode(',', GETPOST('equipement_id', 'alpha')) : array());
             $selectedLabel = GETPOST('label', 'alpha') ? GETPOST('label', 'alpha') : '';
             $selectedSocIdOrigin = GETPOST('socid_origin', 'int') ? intval(GETPOST('socid_origin', 'int')) : -1;
             $selectedSocId = GETPOST('socid', 'int') ? intval(GETPOST('socid', 'int')) : -1;
@@ -897,7 +900,7 @@ SCRIPT;
             if (!empty($selectedCategories)) $formquestion[] = array('type' => 'hidden', 'name' => 'categories', 'value' => implode(',', $selectedCategories));
             if (!empty($selectedContacts)) $formquestion[] = array('type' => 'hidden', 'name' => 'contact_ids', 'value' => implode(',', $selectedContacts));
             if (!empty($selectedDescription)) $formquestion[] = array('type' => 'hidden', 'name' => 'description', 'value' => $selectedDescription);
-            if (!empty($selectedEquipementId)) $formquestion[] = array('type' => 'hidden', 'name' => 'equipement_id', 'value' => $selectedEquipementId);
+            if (!empty($selectedEquipementId)) $formquestion[] = array('type' => 'hidden', 'name' => 'equipement_id', 'value' => implode(',', $selectedEquipementId));
             if (!empty($selectedLabel)) $formquestion[] = array('type' => 'hidden', 'name' => 'label', 'value' => $selectedLabel);
             if (!empty($selectedSocIdOrigin)) $formquestion[] = array('type' => 'hidden', 'name' => 'socid_origin', 'value' => $selectedSocIdOrigin);
             if (!empty($selectedSocId)) $formquestion[] = array('type' => 'hidden', 'name' => 'socid', 'value' => $selectedSocId);
@@ -1458,9 +1461,9 @@ SCRIPT;
                 }
 
                 // Add equipment links
-                $selectedEquipementId = GETPOST('equipement_id', 'int') ? intval(GETPOST('equipement_id', 'int')) : -1;
-                if ($selectedEquipementId > 0) {
-                    $object->linkedObjectsIds['equipement'][] = $selectedEquipementId;
+                $selectedEquipementId = GETPOST('equipement_id', 'array') ? GETPOST('equipement_id', 'array') : (GETPOST('equipement_id', 'alpha') ? explode(',', GETPOST('equipement_id', 'alpha')) : array());
+                if (!empty($selectedEquipementId)) {
+                    $object->linkedObjectsIds['equipement'] = $selectedEquipementId;
                 }
 
                 // Possibility to add external linked objects with hooks
@@ -2097,8 +2100,9 @@ SCRIPT;
                 }
             }*/
 
-            $sql = "SELECT e.rowid , e.ref";
+            $sql = "SELECT e.rowid , e.ref, p.label";
             $sql .= " FROM " . MAIN_DB_PREFIX . "equipement as e";
+            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "product as p ON e.fk_product = p.rowid";
             $sql .= " LEFT JOIN  " . MAIN_DB_PREFIX . "equipement_extrafields as eef ON eef.fk_object = e.rowid";
             //$sql .= " LEFT JOIN  " . MAIN_DB_PREFIX . "categorie_product as cp ON cp.fk_product = e.fk_product";
             $sql .= " WHERE e.entity IN (" . getEntity('equipement') . ")";
@@ -2371,7 +2375,9 @@ SCRIPT;
                  * Affiche formulaire message
                  */
 
-                $out = '<div id="formmessagebeforetitle" name="formmessagebeforetitle"></div>';
+                $out =  '<div class="fichecenter">';
+                $out .= '<div class="underbanner clearboth"></div>';
+                $out .= '<div id="formmessagebeforetitle" name="formmessagebeforetitle"></div>';
                 $out .= '<div class="clearboth"></div>';
                 $out .= '<br>';
                 $out .= load_fiche_titre('<span style="font-weight: bolder !important; font-size: medium !important;">' . $langs->trans('RequestManagerAddMessage') . '</span>', '', '');
@@ -2397,9 +2403,14 @@ SCRIPT;
 
                 // Show form
                 $out .= $formsynergiestechmessage->get_message_form();
-                $this->resprints = $out;
+                $out .= '</div>';
+                $out .= '<div class="clearboth"></div>';
+
+                $this->results = array('2_st' => $out);
             }
         }
+
+        return 0;
     }
 
     /**

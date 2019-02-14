@@ -404,25 +404,19 @@ SCRIPT;
 
                 print $out;
             }
-        } elseif (in_array('interventioncard', $contexts) || (in_array('requestmanagercard', $contexts) && $object->element == 'requestmanager')) {
+        } elseif (in_array('interventioncard', $contexts)) {
             if (!empty($conf->global->EXTENDEDINTERVENTION_QUOTA_ACTIVATE)) {
-                if (in_array('interventioncard', $contexts)) {
-                    if ($object->fk_contrat > 0) {
-                        require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
-                        $contract = new Contrat($this->db);
-                        $contract->fetch($object->fk_contrat);
-                        $contract_list = array($contract->id => $contract);
-                    } else {
-                        $contract_list = array();
-                    }
-
-                    if (empty($object->array_options) && $object->id > 0) $object->fetch_optionals();
-                    $fk_c_intervention_type = isset($object->array_options['options_ei_type']) ? $object->array_options['options_ei_type'] : 0;
+                if ($object->fk_contrat > 0) {
+                    require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
+                    $contract = new Contrat($this->db);
+                    $contract->fetch($object->fk_contrat);
+                    $contract_list = array($contract->id => $contract);
                 } else {
-                    $object->fetchObjectLinked('', 'contrat', $object->id, $object->element);
-                    $contract_list = $object->linkedObjects['contrat'];
-                    $fk_c_intervention_type = 0;
+                    $contract_list = array();
                 }
+
+                if (empty($object->array_options) && $object->id > 0) $object->fetch_optionals();
+                $fk_c_intervention_type = isset($object->array_options['options_ei_type']) ? $object->array_options['options_ei_type'] : 0;
 
                 dol_include_once('/extendedintervention/class/extendedinterventionquota.class.php');
                 $extendedinterventioncountintervention = new ExtendedInterventionQuota($this->db);
@@ -456,10 +450,10 @@ SCRIPT;
 
                 if ($action == 'create') {
                     foreach (self::$intervention_type_cached as $line) {
-                        $htmlname = 'ei_type_'.$line->fields['code'];
+                        $htmlname = 'ei_type_' . $line->fields['code'];
                         $label = $langs->trans('ExtendedInterventionQuotaFor', $line->fields['label']);
                         print '<tr id="ei_count_intervention_block"><td>' . $label . '</td>';
-                        print '<td><input type="text" class="maxwidth150" name="'.$htmlname.'" id="'.$htmlname.'" value="' . GETPOST($htmlname, 'int') . '"></td></tr>';
+                        print '<td><input type="text" class="maxwidth150" name="' . $htmlname . '" id="' . $htmlname . '" value="' . GETPOST($htmlname, 'int') . '"></td></tr>';
                     }
                 } else {
                     global $form;
@@ -475,7 +469,7 @@ SCRIPT;
                     $counts = $extendedinterventioncountintervention->getCountInterventionOfContract($object->id);
 
                     foreach (self::$intervention_type_cached as $line) {
-                        $htmlname = 'ei_type_'.$line->fields['code'];
+                        $htmlname = 'ei_type_' . $line->fields['code'];
                         $value = GETPOST($htmlname, 'int') ? GETPOST($htmlname, 'int') : (isset($counts[$line->id]) ? $counts[$line->id] : '');
                         $label = $langs->trans('ExtendedInterventionQuotaFor', $line->fields['label']);
 
@@ -511,6 +505,45 @@ SCRIPT;
                 unset($extrafields->attributes[$object->table_element]['label']['ei_count_period_size']);
                 unset($extrafields->attribute_label['ei_count_separator']);
                 unset($extrafields->attribute_label['ei_count_period_size']);
+            }
+        }
+
+        return 0;
+    }
+
+    /**
+	 * Overloading the addMoreSpecificsInformation function : replacing the parent's function with the one below
+	 *
+	 * @param   array() $parameters Hook metadatas (context, etc...)
+	 * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+	 * @param   string &$action Current action (if set). Generally create or edit or null
+	 * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
+	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+	 */
+	function addMoreSpecificsInformation($parameters, &$object, &$action, $hookmanager)
+    {
+        $contexts = explode(':', $parameters['context']);
+
+        if (in_array('requestmanagercard', $contexts)) {
+            global $conf;
+
+            if (!empty($conf->global->EXTENDEDINTERVENTION_QUOTA_ACTIVATE)) {
+                $object->fetchObjectLinked('', 'contrat', $object->id, $object->element);
+                $contract_list = $object->linkedObjects['contrat'];
+
+                dol_include_once('/extendedintervention/class/extendedinterventionquota.class.php');
+                $extendedinterventioncountintervention = new ExtendedInterventionQuota($this->db);
+                $blocs = $extendedinterventioncountintervention->showBlockCountInterventionOfContract($contract_list, 0);
+
+                if (!empty($blocs)) {
+                    $out = '<div class="fichecenter">';
+                    $out .= '<div class="underbanner clearboth"></div>';
+                    $out .= $blocs;
+                    $out .= '</div>';
+                    $out .= '<div class="clearboth"></div>';
+
+                    $this->results = array('1_ei' => $out);
+                }
             }
         }
 

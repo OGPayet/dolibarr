@@ -277,7 +277,7 @@ if ($zone === 1) {
 
     // Description
     print '<tr>';
-    print '<td class="tdtop fieldrequired">' . $langs->trans('RequestManagerDescription') . '</td>';
+    print '<td class="tdtop">' . $langs->trans('RequestManagerDescription') . '</td>';
     print '<td valign="top">';
     $doleditor = new DolEditor('description', $selectedDescription, '', 200, 'dolibarr_notes', 'In', 0, false, true, ROWS_3, '90%');
     print $doleditor->Create(1);

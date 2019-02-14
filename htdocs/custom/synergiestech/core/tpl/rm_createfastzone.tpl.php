@@ -42,7 +42,7 @@ if ($zone === 1) {
     $selectedCategories = GETPOST('categories', 'array') ? GETPOST('categories', 'array') : (GETPOST('categories', 'alpha') ? explode(',', GETPOST('categories', 'alpha')) : array());
     $selectedContacts = GETPOST('contact_ids', 'array') ? GETPOST('contact_ids', 'array') : (GETPOST('contact_ids', 'alpha') ? explode(',', GETPOST('contact_ids', 'alpha')) : array());
     $selectedDescription = GETPOST('description') ? GETPOST('description') : '';
-    $selectedEquipementId = GETPOST('equipement_id', 'int') ? intval(GETPOST('equipement_id', 'int')) : -1;
+    $selectedEquipementId = GETPOST('equipement_id', 'array') ? GETPOST('equipement_id', 'array') : (GETPOST('equipement_id', 'alpha') ? explode(',', GETPOST('equipement_id', 'alpha')) : array());
     $selectedLabel = GETPOST('label', 'alpha') ? GETPOST('label', 'alpha') : '';
     $selectedSocIdOrigin = GETPOST('socid_origin', 'int') ? intval(GETPOST('socid_origin', 'int')) : -1;
     $selectedSocId = GETPOST('socid', 'int') ? intval(GETPOST('socid', 'int')) : -1;
@@ -255,7 +255,8 @@ if ($zone === 1) {
     if ($conf->equipement->enabled) {
         print '<td>' . $langs->trans("Equipement") . '</td>';
         print '<td>';
-        print $formrequestmanager->select_benefactor_equipement($selectedSocId, $selectedSocIdBenefactor, $selectedEquipementId, 'equipement_id', 1, 0, null, 0, 'minwidth300');
+        print $formrequestmanager->select_benefactor_equipement($selectedSocId, $selectedSocIdBenefactor, '', 'equipement_id', 1, 0, null, 0, 'minwidth300');
+        print $formrequestmanager->multiselect_javascript_code($selectedEquipementId, 'equipement_id');
         print '</td>';
     }
     // Categories
@@ -312,7 +313,7 @@ if ($zone === 1) {
 
     // Description
     print '<tr>';
-    print '<td class="tdtop fieldrequired">' . $langs->trans('RequestManagerDescription') . '</td>';
+    print '<td class="tdtop">' . $langs->trans('RequestManagerDescription') . '</td>';
     print '<td valign="top">';
     $doleditor = new DolEditor('description', $selectedDescription, '', 200, 'dolibarr_notes', 'In', 0, false, true, ROWS_3, '90%');
     print $doleditor->Create(1);
@@ -462,8 +463,6 @@ if ($zone === 2) {
 if ($zone === 3) {
     $langs->load('contracts');
 
-    $selectedCategories       = GETPOST('categories', 'array')?GETPOST('categories', 'array'):array();
-    $selectedEquipementId     = GETPOST('equipement_id', 'int')?intval(GETPOST('equipement_id', 'int')):-1;
     $selectedSocId            = GETPOST('socid', 'int')?intval(GETPOST('socid', 'int')):-1;
     $selectedSocIdBenefactor  = GETPOST('socid_benefactor', 'int')?intval(GETPOST('socid_benefactor', 'int')):-1;
 

@@ -46,7 +46,7 @@ $selected_tags_categories = GETPOST('selected_tags_categories', 'array');
 /*
  * View
  */
-dol_syslog(join(',', $_GET));
+//dol_syslog(join(',', $_GET));
 
 $error = 0;
 $out = '';
@@ -66,7 +66,6 @@ if ($request_type > 0) {
         // Get selected knowledge base
         //----------------------------------
         if (count($formsynergiestechmessage->knowledge_base_list) > 0) {
-            require_once DOL_DOCUMENT_ROOT . '/core/lib/functions.lib.php';
             $out .= '<option class="optiongrey" value="-1">&nbsp;</option>' . "\n";
             foreach ($formsynergiestechmessage->knowledge_base_list as $line) {
                 $out .= '<option value="' . $line->id . '">' . $line->fields['title'] . '</option>' . "\n";
