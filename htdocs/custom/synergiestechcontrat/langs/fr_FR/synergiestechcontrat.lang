@@ -268,10 +268,10 @@ STCContractActivateEventLabel   = Contrat %s activé.
 ############################################################
 ### Actions
 ############################################################
-ActionAC_STC_REVAL  = Revaluation du contrat
-ActionAC_STC_CRENE  = Renouvellement du contrat
-ActionAC_STC_RENEC  = Reconduciton du contrat
-ActionAC_STC_TERMI  = Résiliation du contrat
+ActionAC_STC_REVAL  = Revaluation du contrat (Auto)
+ActionAC_STC_CRENE  = Renouvellement du contrat (Auto)
+ActionAC_STC_RENEC  = Reconduciton du contrat (Auto)
+ActionAC_STC_TERMI  = Résiliation du contrat (Auto)
 
 ########################################################################################################
 # Others

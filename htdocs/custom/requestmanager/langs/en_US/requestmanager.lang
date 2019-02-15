@@ -129,13 +129,13 @@ TypeContact_project_external_WATCHER    = Contact observateur
 ############################################################
 ### Actions
 ############################################################
-ActionAC_RM_ASSMOD                      = Modification de l'assignation d'une demande
-ActionAC_RM_STATUS                      = Modification du statut d'une demande
-ActionAC_RM_IN                          = Message de demande entrant
-ActionAC_RM_OUT                         = Message de demande sortant
-ActionAC_RM_PRIV                        = Message de demande privé
-ActionAC_RM_FPC                         = Forçage du donneur d'ordre
-ActionAC_RM_FCOOT                       = Forçage d'une création hors plages horaires
+ActionAC_RM_ASSMOD                      = Modification de l'assignation d'une demande (Auto)
+ActionAC_RM_STATUS                      = Modification du statut d'une demande (Auto)
+ActionAC_RM_IN                          = Message de demande entrant (Auto)
+ActionAC_RM_OUT                         = Message de demande sortant (Auto)
+ActionAC_RM_PRIV                        = Message de demande privé (Auto)
+ActionAC_RM_FPC                         = Forçage du donneur d'ordre (Auto)
+ActionAC_RM_FCOOT                       = Forçage d'une création hors plages horaires (Auto)
 Notify_REQUESTMANAGER_CREATE            = Demande créée
 Notify_REQUESTMANAGER_MODIFY            = Demande modifiée
 Notify_REQUESTMANAGER_DELETE            = Demande supprimée

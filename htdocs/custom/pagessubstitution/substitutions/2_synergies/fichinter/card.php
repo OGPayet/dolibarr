@@ -864,6 +864,12 @@ if ($action == 'create')
 
 	if ($socid) $res=$soc->fetch($socid);
 
+    //------------------------------------------------------------
+    // Modification - Open-DSI - Begin
+    $contract_ids = array();
+    // Modification - Open-DSI - End
+    //------------------------------------------------------------
+
 	if (GETPOST('origin') && GETPOST('originid'))
 	{
 		// Parse element/subelement (ex: project_task)
@@ -909,6 +915,16 @@ if ($action == 'create')
 
 			$note_private		= (! empty($objectsrc->note) ? $objectsrc->note : (! empty($objectsrc->note_private) ? $objectsrc->note_private : GETPOST('note_private')));
 			$note_public		= (! empty($objectsrc->note_public) ? $objectsrc->note_public : GETPOST('note_public'));
+
+            //------------------------------------------------------------
+            // Modification - Open-DSI - Begin
+			if ($element == 'requestmanager') {
+                $objectsrc->fetchObjectLinked();
+
+                $contract_ids = isset($objectsrc->linkedObjectsIds['contrat']) ? array_values($objectsrc->linkedObjectsIds['contrat']) : array();
+            }
+            // Modification - Open-DSI - End
+            //------------------------------------------------------------
 
 			// Object source contacts list
 			$srccontactslist = $objectsrc->liste_contact(-1,'external',1);
@@ -991,12 +1007,15 @@ if ($action == 'create')
             $company_benefactor_id = GETPOST('options_companyrelationships_fk_soc_benefactor', 'int');
             $contract_id = GETPOST('contratid', 'int');
             $contractList = synergiestech_fetch_contract($soc->id, $company_benefactor_id, $msg_error);
-            if (!isset($contractList[$contract_id]) && !empty($contractList)) {
-                $contract_id = array_keys($contractList)[0];
+            $contract_ids_match = array_intersect($contract_ids, array_keys($contractList));
+            if (!in_array($contract_id, $contract_ids_match)) {
+                $contract_id = count($contract_ids_match) ? $contract_ids_match[0] : '';
             }
+//            if (!isset($contractList[$contract_id]) && !empty($contractList)) {
+//                $contract_id = array_keys($contractList)[0];
+//            }
             $contractListArray = array();
             foreach ($contractList as $c) {
-                if (!($contract_id > 0) && !isset($_POST['contratid'])) $contract_id = $c->id;
                 $contractListArray[$c->id] = $c->ref;
             }
             print $form->selectarray('contratid', $contractListArray, $contract_id, 1);
@@ -1008,6 +1027,7 @@ if ($action == 'create')
 
             $contract_list_ajax_url = dol_buildpath('/synergiestech/ajax/contract_list_td.php', 1);
             $soc_id = json_encode($soc->id);
+            $contract_ids = json_encode($contract_ids);
             $contratid =  json_encode($contract_id);
             print <<<SCRIPT
             <script type="text/javascript" language="javascript">
@@ -1024,7 +1044,7 @@ if ($action == 'create')
                         $.ajax({
                             method: "POST",
                             url: "$contract_list_ajax_url",
-                            data: { soc_id: $soc_id, soc_benefactor_id: select_companyrelationships_fk_soc_benefactor.val(), contrat_id: $contratid },
+                            data: { soc_id: $soc_id, soc_benefactor_id: select_companyrelationships_fk_soc_benefactor.val(), contract_id: $contratid, contract_ids: $contract_ids },
                             dataType: "json"
                         }).done(function(data) {
                             select_contratid.empty();

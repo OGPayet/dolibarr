@@ -446,11 +446,6 @@ class RequestManager extends CommonObject
      */
     public $statut;
     /**
-     * New status of the request when set_status() is called
-     * @var int
-     */
-    public $new_statut;
-    /**
      * Save status of the request when hack dolibarr (extrafields permission, ...)
      * @var int
      */
@@ -460,11 +455,6 @@ class RequestManager extends CommonObject
      * @var int
      */
     public $statut_type;
-    /**
-     * New type of the status of the request when set_status() is called
-     * @var int
-     */
-    public $new_statut_type;
     /**
      * Entity of the request
      * @var int
@@ -2478,10 +2468,6 @@ class RequestManager extends CommonObject
         dol_syslog(__METHOD__ . " user_id=" . $user->id . " id=" . $this->id . " status=" . $status, LOG_DEBUG);
 
         // Clean parameters
-        $save_status = $this->statut;
-        $save_status_type = $this->statut_type;
-        $save_reason_resolution = $this->fk_reason_resolution;
-        $save_reason_resolution_details = $this->reason_resolution_details;
         $status = $status > 0 ? $status : 0;
         $status_type = $status_type == self::STATUS_TYPE_INITIAL || $status_type == self::STATUS_TYPE_IN_PROGRESS || $status_type == self::STATUS_TYPE_RESOLVED || $status_type == self::STATUS_TYPE_CLOSED ? $status_type : -1;
 
@@ -2526,8 +2512,8 @@ class RequestManager extends CommonObject
             $user_groups = $usergroup_static->listGroupsForUser($user->id);
             $user_groups = is_array($user_groups) ? array_keys($user_groups) : array();
 
-            $authorized_user = self::$status_list[$this->new_statut]->fields['authorized_user'];
-            $authorized_usergroup = self::$status_list[$this->new_statut]->fields['authorized_usergroup'];
+            $authorized_user = self::$status_list[$status]->fields['authorized_user'];
+            $authorized_usergroup = self::$status_list[$status]->fields['authorized_usergroup'];
 
             $not_authorized_user = !empty($authorized_user) ? !in_array($user->id, explode(',', $authorized_user)) : false;
             $not_authorized_usergroup = false;
@@ -2568,13 +2554,10 @@ class RequestManager extends CommonObject
             return -3;
         }
 
-        $this->new_statut = $status;
-        $status_infos = self::$status_list[$this->new_statut];
-        $this->new_statut_type = $status_infos->fields['type'];
-        $this->fk_reason_resolution = $reason_resolution;
-        $this->reason_resolution_details = $reason_resolution_details;
+        // Get new status information
+        $new_status_infos = self::$status_list[$status];
 
-        /*if ($this->new_statut == $this->statut && !$dont_check) {
+        /*if ($status == $this->statut && !$dont_check) {
             dol_syslog(__METHOD__ . " : Status not changed", LOG_DEBUG);
             return 1;
         }*/
@@ -2583,15 +2566,15 @@ class RequestManager extends CommonObject
 
         // Auto update values
         $now = dol_now();
-        $assigned_users = !empty($status_infos->fields['assigned_user']) ? (is_string($status_infos->fields['assigned_user']) ? explode(',', $status_infos->fields['assigned_user']) : $status_infos->fields['assigned_user']) : $this->assigned_user_ids;
-        $assigned_usergroups = !empty($status_infos->fields['assigned_usergroup']) ? (is_string($status_infos->fields['assigned_usergroup']) ? explode(',', $status_infos->fields['assigned_usergroup']) : $status_infos->fields['assigned_usergroup']) : $this->assigned_usergroup_ids;
-        if (!isset($status_infos->fields['assigned_user_replaced']) || !$status_infos->fields['assigned_user_replaced']) {
+        $assigned_users = !empty($new_status_infos->fields['assigned_user']) ? (is_string($new_status_infos->fields['assigned_user']) ? explode(',', $new_status_infos->fields['assigned_user']) : $new_status_infos->fields['assigned_user']) : $this->assigned_user_ids;
+        $assigned_usergroups = !empty($new_status_infos->fields['assigned_usergroup']) ? (is_string($new_status_infos->fields['assigned_usergroup']) ? explode(',', $new_status_infos->fields['assigned_usergroup']) : $new_status_infos->fields['assigned_usergroup']) : $this->assigned_usergroup_ids;
+        if (!isset($new_status_infos->fields['assigned_user_replaced']) || !$new_status_infos->fields['assigned_user_replaced']) {
             $assigned_users = array_merge($assigned_users, $this->assigned_user_ids);
         }
-        if (!isset($status_infos->fields['assigned_usergroup_replaced']) || !$status_infos->fields['assigned_usergroup_replaced']) {
+        if (!isset($new_status_infos->fields['assigned_usergroup_replaced']) || !$new_status_infos->fields['assigned_usergroup_replaced']) {
             $assigned_usergroups = array_merge($assigned_usergroups, $this->assigned_usergroup_ids);
         }
-        if (!empty($status_infos->fields['assigned_user_current'])) {
+        if (!empty($new_status_infos->fields['assigned_user_current'])) {
             if (!is_array($assigned_users)) {
                 $assigned_users = array($user->id);
             } elseif (!in_array($user->id, $assigned_users)) {
@@ -2599,18 +2582,18 @@ class RequestManager extends CommonObject
             }
         }
         $date_operation = null;
-        if (isset($status_infos->fields['operation'])) {
-            if ($status_infos->fields['operation'] > 0) {
-                $date_operation = $now + ($status_infos->fields['operation'] * 60);
-            } elseif ($status_infos->fields['operation'] == -1 || $status_infos->fields['type'] == self::STATUS_TYPE_INITIAL) {
+        if (isset($new_status_infos->fields['operation'])) {
+            if ($new_status_infos->fields['operation'] > 0) {
+                $date_operation = $now + ($new_status_infos->fields['operation'] * 60);
+            } elseif ($new_status_infos->fields['operation'] == -1 || $new_status_infos->fields['type'] == self::STATUS_TYPE_INITIAL) {
                 $date_operation = $this->date_operation;
             }
         }
         $date_deadline = null;
-        if (isset($status_infos->fields['deadline'])) {
-            if ($status_infos->fields['deadline'] > 0) {
-                $date_deadline = (!empty($date_operation) ? $date_operation : $now) + ($status_infos->fields['deadline'] * 60);
-            } elseif ($status_infos->fields['deadline'] == -1 || $status_infos->fields['type'] == self::STATUS_TYPE_INITIAL) {
+        if (isset($new_status_infos->fields['deadline'])) {
+            if ($new_status_infos->fields['deadline'] > 0) {
+                $date_deadline = (!empty($date_operation) ? $date_operation : $now) + ($new_status_infos->fields['deadline'] * 60);
+            } elseif ($new_status_infos->fields['deadline'] == -1 || $new_status_infos->fields['type'] == self::STATUS_TYPE_INITIAL) {
                 $date_deadline = $this->date_deadline;
             }
         }
@@ -2628,7 +2611,7 @@ class RequestManager extends CommonObject
         }
 
         // Close all events linked to this request
-        if (!$error && !empty($status_infos->fields['close_all_event'])) {
+        if (!$error && !empty($new_status_infos->fields['close_all_event'])) {
             $sql = "UPDATE " . MAIN_DB_PREFIX . "actioncomm as t";
             $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "element_element as ee";
             $element_correspondance = "(" . // Todo a completer si il y a d'autres correspondances
@@ -2656,8 +2639,8 @@ class RequestManager extends CommonObject
         }
 
         // Create sub request
-        if (!$error && !empty($status_infos->fields['new_request_type']) && $status_infos->fields['new_request_type_auto']) {
-            foreach (explode(',', $status_infos->fields['new_request_type']) as $new_request_type_id) {
+        if (!$error && !empty($new_status_infos->fields['new_request_type']) && $new_status_infos->fields['new_request_type_auto']) {
+            foreach (explode(',', $new_status_infos->fields['new_request_type']) as $new_request_type_id) {
                 $id = $this->createSubRequest($new_request_type_id, $user);
                 if ($id < 0) {
                     $error++;
@@ -2668,11 +2651,18 @@ class RequestManager extends CommonObject
 
         // Update request status
         if (!$error) {
+            // Update status information
+            $this->oldcopy = clone $this;
+            $this->statut = $status;
+            $this->statut_type = $new_status_infos->fields['type'];
+
             $sql = 'UPDATE ' . MAIN_DB_PREFIX . $this->table_element . ' SET';
-            $sql .= " fk_status = " . $this->new_statut;
-            if ($status_infos->fields['type'] != self::STATUS_TYPE_CLOSED) {
-                $sql .= ", fk_reason_resolution = " . ($reason_resolution > 0 ? $reason_resolution : 'NULL');
-                $sql .= ", reason_resolution_details = " . ($reason_resolution > 0 && !empty($reason_resolution_details) ? "'" . $this->db->escape($reason_resolution_details) . "'" : 'NULL');
+            $sql .= " fk_status = " . $this->statut;
+            if ($new_status_infos->fields['type'] == self::STATUS_TYPE_RESOLVED) {
+                $this->fk_reason_resolution = $reason_resolution;
+                $this->reason_resolution_details = $reason_resolution_details;
+                $sql .= ", fk_reason_resolution = " . ($this->fk_reason_resolution > 0 ? $this->fk_reason_resolution : 'NULL');
+                $sql .= ", reason_resolution_details = " . ($this->reason_resolution_details > 0 && !empty($this->reason_resolution_details) ? "'" . $this->db->escape($this->reason_resolution_details) . "'" : 'NULL');
             }
             $sql .= ' WHERE rowid = ' . $this->id;
 
@@ -2694,12 +2684,10 @@ class RequestManager extends CommonObject
             // End call triggers
         }
 
-        $this->statut = $this->new_statut;
-        $this->statut_type = $status_infos->fields['type'];
         // Auto next status
         if (!$error) {
-            $next_status = !empty($status_infos->fields['next_status']) ? explode(',', $status_infos->fields['next_status']) : array();
-            if (!$error && count($next_status) == 1 && $status_infos->fields['next_status_auto']) {
+            $next_status = !empty($new_status_infos->fields['next_status']) ? explode(',', $new_status_infos->fields['next_status']) : array();
+            if (!$error && count($next_status) == 1 && $new_status_infos->fields['next_status_auto']) {
                 $result = $this->set_status($next_status[0], -1, $user);
                 if ($result < 0) {
                     $error++;
@@ -2747,11 +2735,12 @@ class RequestManager extends CommonObject
 
         // Commit or rollback
         if ($error) {
+            foreach ($this->oldcopy as $k => $v) {
+                if ($k == 'oldcopy') continue;
+                $this->$k = $v;
+            }
+            $this->oldcopy = null;
             $this->db->rollback();
-            $this->statut = $save_status;
-            $this->statut_type = $save_status_type;
-            $this->fk_reason_resolution = $save_reason_resolution;
-            $this->reason_resolution_details = $save_reason_resolution_details;
 
             return -1 * $error;
         } else {

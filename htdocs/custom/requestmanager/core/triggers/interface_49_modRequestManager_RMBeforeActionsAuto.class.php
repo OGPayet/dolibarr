@@ -340,9 +340,9 @@ class InterfaceRMBeforeActionsAuto extends DolibarrTriggers
 
             if (empty($object->actionmsg2)) $object->actionmsg2 = $langs->transnoentities("RequestManagerStatusModifiedInDolibarr", $object->ref);
             $object->actionmsg = $langs->transnoentities("RequestManagerStatusModifiedInDolibarr", $object->ref);
-            //if ($object->new_statut != $object->statut) {
-                $object->actionmsg .= '<br>' . $langs->transnoentities("RequestManagerOldStatus") . ' : ' . $object->LibStatut($object->statut) . ' ( ' . $object->LibStatut($object->statut, 12) . ' )';
-                $object->actionmsg .= '<br>' . $langs->transnoentities("RequestManagerNewStatus") . ' : ' . $object->LibStatut($object->new_statut) . ' ( ' . $object->LibStatut($object->new_statut, 12) . ' )';
+            //if ($object->statut != $object->oldcopy->statut) {
+                $object->actionmsg .= '<br>' . $langs->transnoentities("RequestManagerOldStatus") . ' : ' . $object->oldcopy->getLibStatut() . ' ( ' . $object->oldcopy->getLibStatut(12) . ' )';
+                $object->actionmsg .= '<br>' . $langs->transnoentities("RequestManagerNewStatus") . ' : ' . $object->getLibStatut() . ' ( ' . $object->getLibStatut(12) . ' )';
 
                 if ($object->fk_reason_resolution > 0) {
                     $object->actionmsg .= '<br>' . $langs->transnoentities("RequestManagerReasonResolution") . ' : ' . $object->getLibReasonResolution(2);

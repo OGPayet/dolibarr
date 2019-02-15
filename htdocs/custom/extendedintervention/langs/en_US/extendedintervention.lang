@@ -28,7 +28,7 @@ ExtendedInterventionRootProductCategoryIncludeDesc      = Inclure la racine dans
 ############################################################
 ### Actions
 ############################################################
-ActionAC_EI_FCI         = Forçage de la création d'une intervention
+ActionAC_EI_FCI         = Forçage de la création d'une intervention (Auto)
 
 ############################################################
 ### Extra fields : Intervention

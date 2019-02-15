@@ -2129,7 +2129,8 @@ SCRIPT;
 
                 // Add in previous group
                 $thisNextStatus = explode(',', $s->fields['next_status']);
-                if (in_array($object->statut, $thisNextStatus) && ($s->fields['type'] == RequestManager::STATUS_TYPE_IN_PROGRESS || $s->fields['type'] == RequestManager::STATUS_TYPE_INITIAL)) {
+                if ($object->statut_type != RequestManager::STATUS_TYPE_RESOLVED && $object->statut_type != RequestManager::STATUS_TYPE_CLOSED &&
+                    in_array($object->statut, $thisNextStatus) && ($s->fields['type'] == RequestManager::STATUS_TYPE_IN_PROGRESS || $s->fields['type'] == RequestManager::STATUS_TYPE_INITIAL)) {
                     $previousStatusButton[$sort_key] = $out;
                 }
 

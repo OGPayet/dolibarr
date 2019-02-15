@@ -1,5 +1,5 @@
 -- ============================================================================
--- Copyright (C) 2018	 Open-DSI 	 <support@open-dsi.fr>
+-- Copyright (C) 2019	 Open-DSI 	 <support@open-dsi.fr>
 --
 -- This program is free software; you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -16,5 +16,5 @@
 --
 -- ===========================================================================
 
-INSERT INTO `llx_c_actioncomm` (`id`, `code`, `type`, `libelle`, `module`, `active`, `todo`, `color`, `picto`, `position`) VALUES
-(5001001, 'AC_SYN_FPHCC', 'systemauto', 'Forcing product OC (automatically inserted events)', 'synergiestech', 1, NULL, NULL, NULL, 20);
+UPDATE llx_actioncomm SET code = 'AC_SYN_FPHCC' WHERE code = 'AC_SYN_AUTO';
+UPDATE llx_c_actioncomm SET code = 'AC_SYN_FPHCC', libelle = 'Forcing product OC (automatically inserted events)' WHERE code = 'AC_SYN_AUTO';

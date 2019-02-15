@@ -122,8 +122,8 @@ class InterfaceSynergiesTech extends DolibarrTriggers
                     require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
                     $actioncomm = new ActionComm($this->db);
 
-                    $actioncomm->type_code = 'AC_SYN_AUTO';
-                    $actioncomm->code = 'AC_SYN_AUTO';
+                    $actioncomm->type_code = 'AC_SYN_FPHCC';
+                    $actioncomm->code = 'AC_SYN_FPHCC';
                     $actioncomm->label = $langs->trans('SynergiesTechProductOffFormulaEventTitle');
                     $actioncomm->note = $langs->trans('SynergiesTechProductOffFormulaEventMessage',
                         $user->getNomUrl(1), $product->getNomUrl(1), $object->context['synergiestech_addline_not_into_formula'], $order->getNomUrl(1));
@@ -222,8 +222,8 @@ class InterfaceSynergiesTech extends DolibarrTriggers
                     require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
                     $actioncomm = new ActionComm($this->db);
 
-                    $actioncomm->type_code = 'AC_SYN_AUTO';
-                    $actioncomm->code = 'AC_SYN_AUTO';
+                    $actioncomm->type_code = 'AC_SYN_FPHCC';
+                    $actioncomm->code = 'AC_SYN_FPHCC';
                     $actioncomm->label = $langs->trans('SynergiesTechProductsOffFormulaEventTitle');
                     $actioncomm->note = $langs->trans('SynergiesTechProductsOffFormulaEventMessage',
                         $user->getNomUrl(1), $order->getNomUrl(1));

@@ -151,11 +151,12 @@ function requestmanager_show_events(&$requestmanager)
     $search_only_linked_to_request = GETPOST('search_only_linked_to_request', 'int');
     $search_include_event_other_request = GETPOST('search_include_event_other_request', 'int');
     $search_include_linked_event_to_children_request = GETPOST('search_include_linked_event_to_children_request', 'int');
-    $search_dont_show_selected_event_type = GETPOST('search_dont_show_selected_event_type', 'int');
+    $search_dont_show_selected_event_type_origin = GETPOST('search_dont_show_selected_event_type_origin', 'int');
     $search_ref = GETPOST('search_ref', 'alpha');
     $search_origin = GETPOST('search_origin', 'array');
     $search_thirdparty = GETPOST('search_thirdparty', 'alpha');
     $search_type = GETPOST('search_type', 'array');
+    $search_except_type = GETPOST('search_except_type', 'array');
     $search_title = GETPOST('search_title', 'alpha');
     $search_description = GETPOST('search_description', 'alpha');
     $search_event_on_full_day = GETPOST('search_event_on_full_day', 'int');
@@ -258,11 +259,12 @@ function requestmanager_show_events(&$requestmanager)
         $search_only_linked_to_request = 1;
         $search_include_event_other_request = 0;
         $search_include_linked_event_to_children_request = 1;
-        $search_dont_show_selected_event_type = 0;
+        $search_dont_show_selected_event_type_origin = 0;
         $search_ref = '';
         $search_origin = array();
         $search_thirdparty = '';
         $search_type = array();
+        $search_except_type = array();
         $search_title = '';
         $search_description = '';
         $search_event_on_full_day = -1;
@@ -287,7 +289,7 @@ function requestmanager_show_events(&$requestmanager)
     if ($search_only_linked_to_request === '') $search_only_linked_to_request = 1;
     if ($search_include_event_other_request === '') $search_include_event_other_request = 0;
     if ($search_include_linked_event_to_children_request === '') $search_include_linked_event_to_children_request = 1;
-    if ($search_dont_show_selected_event_type === '') $search_dont_show_selected_event_type = 0;
+    if ($search_dont_show_selected_event_type_origin === '') $search_dont_show_selected_event_type_origin = 0;
 
 
     /*
@@ -427,7 +429,7 @@ function requestmanager_show_events(&$requestmanager)
         }
     }
     if ($search_ref) $sql .= natural_search('ac.id', $search_ref);
-    if (!empty($search_origin)) $sql .= " AND ac.elementtype IN ('" . implode("','", $search_origin) . "')";
+    if (!empty($search_origin) && !$search_dont_show_selected_event_type_origin) $sql .= " AND ac.elementtype IN ('" . implode("','", $search_origin) . "')";
     if ($search_thirdparty) $sql .= natural_search(array('s.nom', 's.name_alias'), $search_thirdparty);
     if (!empty($search_type)) {
         $cac_sql = array();
@@ -440,12 +442,15 @@ function requestmanager_show_events(&$requestmanager)
             $cac_sql[] = "cac.type = 'systemauto'";
             $search_type_tmp = array_diff($search_type_tmp, array('AC_ALL_AUTO', 'AC_OTH_AUTO'));
         }
-        $cac_sql[] = "cac.code IN ('" . implode("','", $search_type_tmp) . "')";
+        if (!empty($search_type_tmp)) $cac_sql[] = "cac.code IN ('" . implode("','", $search_type_tmp) . "')";
         $sql .= " AND";
-        if ($search_dont_show_selected_event_type) {
-            $sql .= " NOT";
-        }
+        if ($search_dont_show_selected_event_type_origin) { $sql .= " NOT ("; }
         $sql .= " (" . implode(" OR ", $cac_sql) . ")";
+        if (!empty($search_except_type)) { $sql .= " AND cac.code NOT IN ('" . implode("','", $search_except_type) . "')"; }
+        if ($search_dont_show_selected_event_type_origin) {
+            if (!empty($search_origin)) $sql .= " AND ac.elementtype IN ('" . implode("','", $search_origin) . "')";
+            $sql .= ")";
+        }
     }
     if ($search_title) $sql .= natural_search('ac.label', $search_title);
     if ($search_description) $sql .= natural_search('ac.note', $search_title);
@@ -552,11 +557,12 @@ function requestmanager_show_events(&$requestmanager)
         if ($search_only_linked_to_request !== '') $param .= '&search_only_linked_to_request=' . urlencode($search_only_linked_to_request);
         if ($search_include_event_other_request !== '') $param .= '&search_include_event_other_request=' . urlencode($search_include_event_other_request);
         if ($search_include_linked_event_to_children_request !== '') $param .= '&search_include_linked_event_to_children_request=' . urlencode($search_include_linked_event_to_children_request);
-        if ($search_dont_show_selected_event_type !== '') $param .= '&search_dont_show_selected_event_type=' . urlencode($search_dont_show_selected_event_type);
+        if ($search_dont_show_selected_event_type_origin !== '') $param .= '&search_dont_show_selected_event_type_origin=' . urlencode($search_dont_show_selected_event_type_origin);
         if ($search_ref) $param .= '&search_ref=' . urlencode($search_ref);
         if (!empty($search_origin)) $param .= '&search_origin=' . urlencode($search_origin);
         if ($search_thirdparty) $param .= '&search_thirdparty=' . urlencode($search_thirdparty);
         if ($search_type) $param .= '&search_type=' . urlencode($search_type);
+        if ($search_except_type) $param .= '&search_except_type=' . urlencode($search_except_type);
         if ($search_title) $param .= '&search_title=' . urlencode($search_title);
         if ($search_description) $param .= '&search_description=' . urlencode($search_description);
         if ($search_event_on_full_day >= 0) $param .= '&search_event_on_full_day=' . urlencode($search_event_on_full_day);
@@ -638,11 +644,42 @@ function requestmanager_show_events(&$requestmanager)
         $moreforfilter .= '<div class="divsearchfield">';
         $moreforfilter .= $langs->trans('RequestManagerEventType') . ' : ';
         $moreforfilter .= $formactions->select_type_actions($search_type, "search_type", '', (empty($conf->global->AGENDA_USE_EVENT_TYPE) ? 1 : -1), 0, 1, 1);
+        $moreforfilter .= '<div id="except_type">';
+        $moreforfilter .= $langs->trans('RequestManagerExceptEventType') . ' : ';
+        $moreforfilter .= $formactions->select_type_actions($search_except_type, "search_except_type", '', (empty($conf->global->AGENDA_USE_EVENT_TYPE) ? 1 : -1), 0, 1, 1);
+        $moreforfilter .= '</div>';
         $moreforfilter .= <<<SCRIPT
     <script type="text/javascript" language="javascript">
         $(document).ready(function () {
-            $('#search_type').removeClass('centpercent');
-            $('#search_type').addClass('minwidth300');
+            var search_type = $('#search_type');
+            var search_except_type = $('#search_except_type');
+            var div_except_type = $('div#except_type');
+
+            search_type.removeClass('centpercent').addClass('minwidth300');
+            search_except_type.removeClass('centpercent').addClass('minwidth300');
+
+            update_except_type_actions();
+            search_type.on('change', function() {
+                update_except_type_actions();
+            });
+
+            function update_except_type_actions() {
+                var selected_values = search_type.val();
+
+                if ($.inArray('AC_NON_AUTO', selected_values) != -1 || $.inArray('AC_OTH_AUTO', selected_values) != -1) {
+                    search_except_type.prop('disabled', false);
+                    div_except_type.show();
+
+                    search_except_type.find('option').prop("disabled", false);
+                    $.map(selected_values, function(item, idx) {
+                        var option = search_except_type.find('option[value="' + item + '"]');
+                        option.prop("selected", false).prop("disabled", true).change();
+                    });
+                } else {
+                    search_except_type.prop('disabled', true);
+                    div_except_type.hide();
+                }
+            }
         });
     </script>
 SCRIPT;
@@ -650,8 +687,8 @@ SCRIPT;
 
         // Filter for don't show the selected event type filter
         $moreforfilter .= '<div class="divsearchfield">';
-        $moreforfilter .= $langs->trans('RequestManagerDontShowSelectedEventType') . ' : ';
-        $moreforfilter .= $form->selectyesno('search_dont_show_selected_event_type', $search_dont_show_selected_event_type, 1);
+        $moreforfilter .= $langs->trans('RequestManagerDontShowSelectedEventTypeAndOrigin') . ' : ';
+        $moreforfilter .= $form->selectyesno('search_dont_show_selected_event_type_origin', $search_dont_show_selected_event_type_origin, 1);
         $moreforfilter .= '</div>';
 
         // Event confidentiality support

@@ -111,7 +111,7 @@ class InterfaceRMNotification extends DolibarrTriggers
             dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
             return 1;
         } elseif ($action == 'REQUESTMANAGER_STATUS_MODIFY') {
-            if ($object->new_statut != $object->statut) {
+            if ($object->statut != $object->oldcopy->statut) {
                 // Notification by email of a modification of status of the request
                 dol_include_once('/requestmanager/class/requestmanagernotify.class.php');
                 $requestmanagernotify = new RequestManagerNotify($this->db);

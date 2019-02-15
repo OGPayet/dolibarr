@@ -62,6 +62,57 @@ class ActionsRequestManager
     }
 
     /**
+     * Overloading the updateSession function : replacing the parent's function with the one below
+     *
+     * @param   array() $parameters Hook metadatas (context, etc...)
+     * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string &$action Current action (if set). Generally create or edit or null
+     * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+    function updateSession($parameters, &$object, &$action, $hookmanager)
+    {
+        return $this->_managerModuleHistory($parameters, $object, $action, $hookmanager);
+    }
+
+    /**
+     * Overloading the afterLogin function : replacing the parent's function with the one below
+     *
+     * @param   array() $parameters Hook metadatas (context, etc...)
+     * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string &$action Current action (if set). Generally create or edit or null
+     * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+    function afterLogin($parameters, &$object, &$action, $hookmanager)
+    {
+        return $this->_managerModuleHistory($parameters, $object, $action, $hookmanager);
+    }
+
+    /**
+     * Manage for the module History
+     *
+     * @param   array() $parameters Hook metadatas (context, etc...)
+     * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string &$action Current action (if set). Generally create or edit or null
+     * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+    protected function _managerModuleHistory($parameters, &$object, &$action, $hookmanager)
+    {
+        global $conf;
+
+        if ($conf->history->enabled) {
+            if (preg_match('/\/history\/history\.php/i', $_SERVER["PHP_SELF"]) && GETPOST('type_object') == 'requestmanager') {
+                dol_include_once('/requestmanager/lib/requestmanager.lib.php');
+                dol_include_once('/requestmanager/class/requestmanager.class.php');
+            }
+        }
+
+        return 0;
+    }
+
+    /**
      * Overloading the addSearchEntry function : replacing the parent's function with the one below
      *
      * @param   array()         $parameters     Hook metadatas (context, etc...)

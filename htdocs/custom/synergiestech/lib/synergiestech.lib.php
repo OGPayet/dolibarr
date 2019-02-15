@@ -918,17 +918,16 @@ function synergiestech_fetch_event_of_benefactor($socBenefactorId, $limit=5, $jo
     global $db;
 
     $result = array();
-
     if ($socBenefactorId > 0) {
         $sql = "SELECT DISTINCT ac.id";
         $sql .= " FROM " . MAIN_DB_PREFIX . "actioncomm ac";
         $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "requestmanager as rm ON ac.elementtype = 'requestmanager' AND rm.rowid = ac.fk_element";
         $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "propal_extrafields as pf ON ac.elementtype = 'propal' AND pf.fk_object = ac.fk_element";
-        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "commande_extrafields as cmf ON ac.elementtype = 'order' AND cmf.fk_object = ac.fk_element";
-        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "facture_extrafields as ff ON ac.elementtype = 'invoice' AND ff.fk_object = ac.fk_element";
-        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "expedition_extrafields as ef ON ac.elementtype = 'shipping' AND ef.fk_object = ac.fk_element";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "commande_extrafields as cmf ON (ac.elementtype = 'order' OR ac.elementtype = 'commande') AND cmf.fk_object = ac.fk_element";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "facture_extrafields as ff ON (ac.elementtype = 'invoice' OR ac.elementtype = 'facture') AND ff.fk_object = ac.fk_element";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "expedition_extrafields as ef ON ac.elementtype = 'shipping' AND ef.fk_object = ac.fk_element"; // Todo a completer si il y a d'autres correspondances a l'avenir
         $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "fichinter_extrafields as fif ON ac.elementtype = 'fichinter' AND fif.fk_object = ac.fk_element";
-        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "contrat_extrafields as cf ON ac.elementtype = 'contract' AND cf.fk_object = ac.fk_element";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "contrat_extrafields as cf ON (ac.elementtype = 'contract' OR ac.elementtype = 'contrat') AND cf.fk_object = ac.fk_element";
         if (!empty($join)) $sql .= $join;
         $sql .= " WHERE ac.entity IN (" . getEntity('agenda') . ")";
         $sql .= " AND (ac.fk_soc= " . $socBenefactorId .

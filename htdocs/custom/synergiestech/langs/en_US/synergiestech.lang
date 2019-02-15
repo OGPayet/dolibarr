@@ -147,7 +147,7 @@ SynergiesTechTicketGenerateReportErrorCreatePath        = Erreur cr√©ation du r√
 ############################################################
 ### Actions
 ############################################################
-ActionAC_SYN_AUTO = Automatically inserted message
+ActionAC_SYN_FPHCC = Forcage de ligne de produits hors contrat dans une commande (Auto)
 
 ############################################################
 ### Principal warehouse

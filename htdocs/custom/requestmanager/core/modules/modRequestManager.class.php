@@ -100,7 +100,7 @@ class modRequestManager extends DolibarrModules
             'dictionaries' => 1,
             'substitutions' => 1,
             'css' => array('/requestmanager/css/requestmanager.css.php'),
-            'hooks' => array('eventconfidentialitydao', 'searchform', 'thirdpartycard', 'commcard', 'suppliercard', 'propalcard', 'ordercard', 'invoicecard', 'interventioncard', 'contractcard', 'actioncard', 'toprightmenu'),
+            'hooks' => array('eventconfidentialitydao', 'searchform', 'thirdpartycard', 'commcard', 'suppliercard', 'propalcard', 'ordercard', 'invoicecard', 'interventioncard', 'contractcard', 'actioncard', 'toprightmenu', 'main'),
             'triggers' => 1
         );
 
