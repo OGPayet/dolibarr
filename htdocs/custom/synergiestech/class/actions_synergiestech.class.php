@@ -2237,7 +2237,7 @@ SCRIPT;
                         "lastname" => '', "firstname" => '',
                     );
                     $parameters['whitelist_of_properties'] = array(
-                        "lastname" => '', "firstname" => '', "id" => '', "gender" => '', "email" => '', "signature" => '', "address" => '', "zip" => '', "town" => '', "office_phone" => '', "office_fax" => '', "user_mobile" => '', "socid" => '', "contactid" => '', "photo" => '', "lang" => '', "rights" => '', "array_options" => '', "thirdparty" => ''
+                        "lastname" => '', "firstname" => '', "id" => '', "gender" => '', "email" => '', "signature" => '', "address" => '', "zip" => '', "town" => '', "office_phone" => '', "office_fax" => '', "user_mobile" => '', "socid" => '', "contactid" => '', "photo" => '', "lang" => '', "rights" => '', "array_options" => '', "thirdparty" => '',"login"=>''
                     );
                     break;
                 case 'usergroup':
