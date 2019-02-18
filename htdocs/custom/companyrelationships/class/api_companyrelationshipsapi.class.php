@@ -2866,12 +2866,30 @@ class CompanyRelationshipsApi extends DolibarrApi {
             $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "fichinter_extrafields as ef ON ef.fk_object = t.rowid";
             $sql .= self::_sqlElementListForExternalUser($userSocId, $search_sale);
             $sql .= " AND t.entity IN (" . getEntity('fichinter') . ")";
+			// Add sql filters
+        if ($sqlfilters) {
+            if (!DolibarrApi::_checkFilters($sqlfilters)) {
+                throw new RestException(503, 'Error when validating parameter sqlfilters ' . $sqlfilters);
+            }
+            $regexstring = '\(([^:\'\(\)]+:[^:\'\(\)]+:[^:\(\)]+)\)';
+            $sql .= " AND (" . preg_replace_callback('/' . $regexstring . '/', 'DolibarrApi::_forge_criteria_callback', $sqlfilters) . ")";
+        }
         }
         // internal
         else {
             if ((!DolibarrApiAccess::$user->rights->societe->client->voir) || $search_sale > 0) $sql .= ", " . MAIN_DB_PREFIX . "societe_commerciaux as sc"; // We need this table joined to the select in order to filter by sale
 
             $sql .= ' WHERE (t.entity IN (' . getEntity('intervention') . ')';
+
+			        // Add sql filters
+        if ($sqlfilters) {
+            if (!DolibarrApi::_checkFilters($sqlfilters)) {
+                throw new RestException(503, 'Error when validating parameter sqlfilters ' . $sqlfilters);
+            }
+            $regexstring = '\(([^:\'\(\)]+:[^:\'\(\)]+:[^:\(\)]+)\)';
+            $sql .= " AND (" . preg_replace_callback('/' . $regexstring . '/', 'DolibarrApi::_forge_criteria_callback', $sqlfilters) . ")";
+        }
+
             if ((!DolibarrApiAccess::$user->rights->societe->client->voir) || $search_sale > 0) $sql .= " AND t.fk_soc = sc.fk_soc";
             if ($search_sale > 0) $sql .= " AND t.fk_soc = sc.fk_soc";        // Join for the needed table to filter by sale
             // Insert sale filter
@@ -2889,14 +2907,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
             $sql .= " GROUP BY rowid";
         }
 
-        // Add sql filters
-        if ($sqlfilters) {
-            if (!DolibarrApi::_checkFilters($sqlfilters)) {
-                throw new RestException(503, 'Error when validating parameter sqlfilters ' . $sqlfilters);
-            }
-            $regexstring = '\(([^:\'\(\)]+:[^:\'\(\)]+:[^:\(\)]+)\)';
-            $sql .= " AND (" . preg_replace_callback('/' . $regexstring . '/', 'DolibarrApi::_forge_criteria_callback', $sqlfilters) . ")";
-        }
+
 
         $sql.= $db->order($sortfield, $sortorder);
         if ($limit)	{
@@ -2934,8 +2945,9 @@ class CompanyRelationshipsApi extends DolibarrApi {
             throw new RestException(503, 'Error when retrieve fichinter list : '.$db->lasterror());
         }
         if( ! count($obj_ret)) {
-            return [];
+            return $obj_ret;
         }
+
         return $obj_ret;
     }
 

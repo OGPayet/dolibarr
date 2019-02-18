@@ -349,6 +349,13 @@ class modSynergiesTech extends DolibarrModules
         $this->rights[$r][4] = 'api';
         $this->rights[$r][5] = 'uploadfile';
         $r++;
+
+		$this->rights[$r][0] = 500122;
+        $this->rights[$r][1] = "Autoriser la récupération du message du jour via l'API Status";
+        $this->rights[$r][3] = 0;
+        $this->rights[$r][4] = 'api';
+        $this->rights[$r][5] = 'welcomeMessage';
+        $r++;
 		// Add here list of permission defined by an id, a label, a boolean and two constant strings.
 		// Example:
 		// $this->rights[$r][0] = $this->numero + $r;	// Permission id (must not be already used)
