@@ -11,9 +11,24 @@ Permission500101    = Voir les prix des lignes de produits
 Permission500102    = Editer les prix des lignes de produits
 Permission500103    = Voir les remises des lignes de produits
 Permission500104    = Editer les remises des lignes de produits
-Permission500105    = Voir les montants (propositions commerciales, commandes)
-Permission500106    = Accéder aux fichiers jointes (propositions commerciales, commandes)
+#Permission500105    = Voir les montants (propositions commerciales, commandes)
+#Permission500106    = Accéder aux fichiers jointes (propositions commerciales, commandes)
 Permission500107    = Accéder aux propositions qui ont une valeur pour le champs complémentaire "Valeur de l'installation"
+Permission500108    = Accéder aux statistiques des propositions commerciales clientes
+Permission500109    = Accéder aux statistiques des propositions commerciales fournisseur
+Permission500110    = Accéder aux statistiques des commandes clientes
+Permission500111    = Accéder aux statistiques des commandes fournisseur
+Permission500112    = Accéder aux statistiques des interventions
+Permission500113    = Accéder aux widgets statistiques des propositions commerciales clientes
+Permission500114    = Accéder aux widgets statistiques des propositions commerciales fournisseur
+Permission500115    = Accéder aux widgets statistiques des commandes clientes
+Permission500116    = Accéder aux widgets statistiques des commandes fournisseur
+Permission500117    = Voir les montants des propositions commerciales clientes
+Permission500118    = Voir les montants des commandes clientes
+Permission500119    = Accéder les fichiers jointes des propositions commerciales client
+Permission500120    = Accéder les fichiers jointes des commandes clients
+Permission500121    = Autoriser l'upload de fichier (uniquement) sans contrôle précis des accès aux pièces via l'api document (CORE)
+Permission500122    = Réouvrir les interventions
 
 #######################################################################
 # Configuration admin
@@ -147,7 +162,13 @@ SynergiesTechTicketGenerateReportErrorCreatePath        = Erreur création du r�
 ############################################################
 ### Actions
 ############################################################
-ActionAC_SYN_FPHCC = Forcage de ligne de produits hors contrat dans une commande (Auto)
+ActionAC_SYN_FPHCC  = Forcage de ligne de produits hors contrat dans une commande (Auto)
+ActionAC_SYN_ROI    = Réouverture d'une intervention (Auto)
+
+############################################################
+### Events automatics
+############################################################
+SynergiesTechInterventionReopenInDolibarr   = Intervention %s réouverte
 
 ############################################################
 ### Principal warehouse
@@ -173,8 +194,8 @@ SynergiesTechMessageKnowledgeBaseSelected   = Base de connaissance sélectionné
 ###########################################################
 ### Create request
 ###########################################################
-SynergiesTechLastFilteredEvents = Liste des %s derniers évènements filtrés
-SynergiesTechButtonCreateAndTakeCharge  = Créer et prendre en charge
+SynergiesTechLastFilteredEvents             = Liste des %s derniers évènements filtrés
+SynergiesTechButtonCreateAndTakeCharge      = Créer et prendre en charge
 SynergiesTechNextStatus                     = Statut
 SynergiesTechCreateAndTakeInCharge          = Créer et prendre en charge
 SynergiesTechConfirmCreateAndTakeInCharge   = Êtes-vous sûr de vouloir créer et prendre en charger cette demande ?

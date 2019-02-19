@@ -963,3 +963,60 @@ function synergiestech_fetch_event_of_benefactor($socBenefactorId, $limit=5, $jo
 
     return $result;
 }
+
+/**
+ *  Reopen intervention
+ *
+ * @param   DoliDB  $db             Database handler
+ * @param   int     $object         Intervention object
+ * @param   User    $user           Object user that close
+ * @param   string  $msg_error      Output error message
+ * @param   int     $notrigger      1=Does not execute triggers, 0= execute triggers
+ *
+ * @return  int                     <0 if KO, >0 if OK
+ */
+function synergiestech_reopen_intervention($db, $object, $user, &$msg_error, $notrigger=0)
+{
+    global $conf;
+    $save_status = $object->statut;
+
+    $object->statut = 1;
+    $error = 0;
+
+    $sql = "UPDATE " . MAIN_DB_PREFIX . "fichinter";
+    $sql .= " SET fk_statut = " . $object->statut;
+    $sql .= " WHERE rowid = " . $object->id;
+    $sql .= " AND entity = " . $conf->entity;
+
+    $db->begin();
+
+    dol_syslog(__METHOD__, LOG_DEBUG);
+    $resql = $db->query($sql);
+    if (!$resql) {
+        $error++;
+        $msg_error = $db->lasterror();
+        dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $msg_error, LOG_DEBUG);
+    }
+
+    if (!$error) {
+        if (!$notrigger) {
+            // Call trigger
+            $result = $object->call_trigger('FICHINTER_REOPEN', $user);
+            if ($result < 0) {
+                $error++;
+                $msg_error = $object->errorsToString();
+            }
+            // End call triggers
+        }
+    }
+
+    // Commit or rollback
+    if ($error) {
+        $object->statut = $save_status;
+        $db->rollback();
+        return -1 * $error;
+    } else {
+        $db->commit();
+        return 1;
+    }
+}

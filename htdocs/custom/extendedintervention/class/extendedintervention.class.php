@@ -102,6 +102,11 @@ class ExtendedIntervention extends Fichinter
     public $survey = array();
 
     /**
+	 * @var array List of attached files of the intervention
+	 */
+    public $attached_files = array();
+
+    /**
      * Status
      */
     const STATUS_DRAFT = 0;
@@ -163,10 +168,115 @@ class ExtendedIntervention extends Fichinter
                 if (isset($this->survey[$equipment_id])) $this->survey[$equipment_id]->read_only = 0;
             }
 
+            // General bloc
+            $equipment_id = 0;
+            if (!isset($this->survey[$equipment_id])) {
+                $survey_bloc = new EISurveyBloc($this->db, $this);
+                if ($survey_bloc->fetch(0, $this->id, $equipment_id, $all_data, 0) < 0) {
+                    $this->error = $survey_bloc->error;
+                    $this->errors = $survey_bloc->errors;
+                    return -1;
+                }
+                $this->survey[$equipment_id] = $survey_bloc;
+            }
+            if (isset($this->survey[$equipment_id])) $this->survey[$equipment_id]->read_only = 0;
+
             // Sort by product label
             uasort($this->survey, 'ei_sort_survey_bloc_product_label');
         }
 
+        return 1;
+    }
+
+    /**
+     *  Get all attached files of the intervention
+     *
+     * @return  void
+     */
+    public function fetch_attached_files()
+    {
+        global $conf, $langs, $formfile;
+        require_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
+
+        if (!is_object($formfile)) {
+            require_once DOL_DOCUMENT_ROOT . '/core/class/html.formfile.class.php';
+            $formfile = new FormFile($this->db);
+        }
+
+        $this->attached_files = array();
+        $upload_dir = $conf->ficheinter->dir_output.'/'.dol_sanitizeFileName($this->ref);
+        $filearray = dol_dir_list($upload_dir, "files", 0, '', '(\.meta|_preview.*\.png)$');
+        foreach ($filearray as $file) {
+            $relativepath = dol_sanitizeFileName($this->ref) . '/' . $file["name"];
+
+            $documenturl = DOL_URL_ROOT . '/document.php';
+            if (isset($conf->global->DOL_URL_ROOT_DOCUMENT_PHP)) $documenturl = $conf->global->DOL_URL_ROOT_DOCUMENT_PHP;    // To use another wrapper
+
+            // Show file name with link to download
+            $tmp = $formfile->showPreview($file, 'ficheinter', $relativepath, 0, '');
+            $out = ($tmp ? $tmp . ' ' : '');
+            $out .= '<a class="documentdownload" href="' . $documenturl . '?modulepart=ficheinter&amp;file=' . urlencode($relativepath) . '"';
+            $mime = dol_mimetype($relativepath, '', 0);
+            if (preg_match('/text/', $mime)) $out .= ' target="_blank"';
+            $out .= ' target="_blank">';
+            $out .= img_mime($file["name"], $langs->trans("File") . ': ' . $file["name"]) . ' ' . $file["name"];
+            $out .= '</a>';
+
+            $this->attached_files[$file["name"]] = $out;
+        }
+    }
+
+    /**
+     *  Update attached filename of all question bloc of the survey
+     *
+     * @param   string  $old_filename   Old filename
+     * @param   string  $new_filename   New filename
+     *
+     * @return  int                     <0 if KO, >0 if OK
+     */
+    public function update_attached_filename_in_survey($old_filename, $new_filename)
+    {
+        $sql = "SELECT eiqb.rowid, eiqb.attached_files";
+        $sql .= " FROM " . MAIN_DB_PREFIX . "extendedintervention_question_bloc AS eiqb";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "extendedintervention_survey_bloc AS eisb ON eisb.rowid = eiqb.fk_survey_bloc";
+        $sql .= " WHERE eiqb.entity IN (" . getEntity('ei_question_bloc') . ")";
+        $sql .= " AND eisb.fk_fichinter = " . $this->id;
+
+        $this->db->begin();
+
+        dol_syslog(__METHOD__, LOG_DEBUG);
+        $resql = $this->db->query($sql);
+        if ($resql) {
+            while ($obj = $this->db->fetch_object($resql)) {
+                $attached_files = !empty($obj->attached_files) ? unserialize($obj->attached_files) : array();
+
+                if (in_array($old_filename, $attached_files)) {
+                    $attached_files = array_diff($attached_files, array($old_filename));
+                    $attached_files[] = $new_filename;
+                    $attached_files = array_flip(array_flip($attached_files));
+
+                    // Update into database
+                    $sql2 = "UPDATE " . MAIN_DB_PREFIX . "extendedintervention_question_bloc";
+                    $sql2 .= " SET attached_files = " . (!empty($attached_files) ? "'" . $this->db->escape(serialize($attached_files)) . "'" : "NULL");
+			$sql2 .= " WHERE rowid = " . $obj->rowid;
+
+                    $resql2 = $this->db->query($sql2);
+                    if (!$resql2) {
+                        $this->errors[] = $this->db->error();
+                        $this->db->rollback();
+                        dol_syslog(__METHOD__ . " SQL: " . $sql . '; Errors: ' . $this->errorsToString(), LOG_ERR);
+                        return -1;
+                    }
+                }
+            }
+        } else {
+            $this->errors[] = $this->db->error();
+            $this->db->rollback();
+            dol_syslog(__METHOD__ . " SQL: " . $sql . '; Errors: ' . $this->errorsToString(), LOG_ERR);
+            return -1;
+        }
+
+        $this->db->commit();
         return 1;
     }
 }

@@ -87,7 +87,7 @@ if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'e
 if (empty($reshook)) {
     if ($action == 'confirm_save_question_bloc' && $user->rights->extendedintervention->questionnaireIntervention->creer &&
         $object->statut > ExtendedIntervention::STATUS_DRAFT && $object->statut < ExtendedIntervention::STATUS_DONE &&
-        $object->id > 0 && $equipment_id > 0 && $question_bloc_id > 0) {
+        $object->id > 0 && $equipment_id >= 0 && $question_bloc_id > 0) {
         if ($confirm == "yes") {
             $result = 0;
             $db->begin();
@@ -120,6 +120,7 @@ if (empty($reshook)) {
                         $question_bloc_static->fk_c_question_bloc_status = GETPOST('ei_qb_status', 'int');
                         $question_bloc_static->justificatory_status = GETPOST('ei_qb_justificatory_status');
                         $question_bloc_static->array_options = $extrafields_question_bloc->getOptionalsFromPost($extralabels_question_bloc, '_ei_qb');
+                        $question_bloc_static->attached_files = GETPOST('ei_qb_attached_files', 'array');
                         $question_bloc_static->position_question_bloc = null;
                         $question_bloc_static->code_question_bloc = null;
                         $question_bloc_static->label_question_bloc = null;
@@ -410,6 +411,8 @@ SCRIPT;
 
             // Print left question bloc of the survey
             if (count($object->survey)) {
+                $object->fetch_attached_files();
+
                 print '<style>td.ei_ef_question { padding-left: 15px !important; };</style>';
                 print '<script type="text/javascript" language="javascript">' . "\n" . '$(document).ready(function () {';
                 foreach ($extrafields_question->attribute_label as $key => $val) {

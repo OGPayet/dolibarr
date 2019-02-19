@@ -487,6 +487,7 @@ class ExtendedInterventionApi extends DolibarrApi {
                         if (isset($question_bloc_value['fk_c_question_bloc_status'])) $current_question_bloc->fk_c_question_bloc_status = $question_bloc_value['fk_c_question_bloc_status'];
                         if (isset($question_bloc_value['justificatory_status'])) $current_question_bloc->justificatory_status = $question_bloc_value['justificatory_status'];
                         if (isset($question_bloc_value['array_options'])) $current_question_bloc->array_options = $question_bloc_value['array_options'];
+                        if (isset($question_bloc_value['attached_files'])) $current_question_bloc->attached_files = $question_bloc_value['attached_files'];
                     }
                     $current_question_bloc->fk_survey_bloc = $current_survey_bloc->id;
                     $current_question_bloc->fk_c_question_bloc = $current_id_c_question_bloc;
@@ -696,6 +697,7 @@ class ExtendedInterventionApi extends DolibarrApi {
      * @param   string  $justificatory_status           Justificatory of the status
      * @param   array   $array_options                  Extra fields data
      * @param   array   $lines                          Question answers for this question bloc
+     * @param   array   $attached_files                 List of filename attached for this question bloc
      *
      * @return  object|array                            Question bloc data without useless information
      *
@@ -708,7 +710,7 @@ class ExtendedInterventionApi extends DolibarrApi {
      * @throws  500     RestException                   Error when retrieve question bloc
      * @throws  500     RestException                   Error while saving the question bloc
      */
-    function saveQuestionBloc($id_intervention, $id_equipment, $id_c_question_bloc, $complementary_question_bloc = null, $fk_c_question_bloc_status = null, $justificatory_status = null, $array_options = null, $lines=null)
+    function saveQuestionBloc($id_intervention, $id_equipment, $id_c_question_bloc, $complementary_question_bloc = null, $fk_c_question_bloc_status = null, $justificatory_status = null, $array_options = null, $lines=null, $attached_files=null)
     {
         if (!DolibarrApiAccess::$user->rights->extendedintervention->questionnaireIntervention->lire) {
             throw new RestException(401, "Insufficient rights", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc ]);
@@ -770,6 +772,7 @@ class ExtendedInterventionApi extends DolibarrApi {
                     if (isset($fk_c_question_bloc_status)) $current_question_bloc->fk_c_question_bloc_status = $fk_c_question_bloc_status;
                     if (isset($justificatory_status)) $current_question_bloc->justificatory_status = $justificatory_status;
                     if (isset($array_options)) $current_question_bloc->array_options = $array_options;
+                    if (isset($attached_files)) $current_question_bloc->attached_files = $attached_files;
                     $current_question_bloc->fk_survey_bloc = $current_survey_bloc->id;
                     $current_question_bloc->fk_c_question_bloc = $current_id_c_question_bloc;
                     $current_question_bloc->position_question_bloc = null;

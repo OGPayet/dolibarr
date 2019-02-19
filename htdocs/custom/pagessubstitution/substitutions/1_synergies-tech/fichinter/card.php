@@ -746,6 +746,12 @@ if (empty($reshook))
 	 */
 
 	// Actions to send emails
+    //------------------------------------------------------------
+    // Modification - Open-DSI - Begin
+    $actiontypecode='AC_OTH_AUTO';
+	$trigger_name='FICHINTER_SENTBYMAIL';
+    // Modification - Open-DSI - End
+    //------------------------------------------------------------
 	$paramname='id';
 	$mode='emailfromintervention';
 	$trackid='int'.$object->id;

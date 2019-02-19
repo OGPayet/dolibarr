@@ -85,6 +85,19 @@ if (empty($question_bloc) || !is_object($question_bloc)) {
       </tr>
       <?php
       }
+      // Attached files of the question bloc
+      if (!empty($question_bloc->attached_files)) {
+        $attached_files = array();
+        foreach ($question_bloc->attached_files as $filename) {
+            $attached_files[] = isset($object->attached_files[$filename]) ? $object->attached_files[$filename] : $langs->trans('ExtendedInterventionErrorFileNotFound', $filename);
+        }
+      ?>
+      <tr>
+        <td><?php print $langs->trans('Documents') ?></td>
+        <td><?php print implode(' , ', $attached_files) ?></td>
+      </tr>
+      <?php
+      }
       ?>
     </table>
 

@@ -31,6 +31,11 @@ dol_include_once('/advancedictionaries/class/dictionary.class.php');
 class ExtendedInterventionQuestionBlocDictionary extends Dictionary
 {
     /**
+     * @var int         Version of this dictionary
+     */
+    public $version = 1;
+
+    /**
      * @var array       List of languages to load
      */
     public $langs = array('extendedintervention@extendedintervention');
@@ -157,6 +162,9 @@ class ExtendedInterventionQuestionBlocDictionary extends Dictionary
               'length'   => 16,
             ),
             'is_require' => true,
+            'td_input' => array(
+                'colspan' => 2,
+            ),
         ),
         'label' => array(
             'name'       => 'label',
@@ -167,48 +175,63 @@ class ExtendedInterventionQuestionBlocDictionary extends Dictionary
             ),
             'is_require' => true,
         ),
+        'icone' => array(
+            'name'       => 'icone',
+            'label'      => 'Icone',
+            'type'       => 'varchar',
+            'database'   => array(
+                'length'   => 255,
+            ),
+            'is_require' => true,
+            'td_input' => array(
+                'positionLine' => 1,
+            ),
+        ),
+        'title_editable' => array(
+            'name'       => 'title_editable',
+            'label'      => 'ExtendedInterventionQuestionBlocDictionaryEditableTitle',
+            'type'       => 'boolean',
+            'td_input' => array(
+                'positionLine' => 1,
+            ),
+        ),
+        'bloc_complementary_editable' => array(
+            'name'       => 'bloc_complementary_editable',
+            'label'      => 'ExtendedInterventionQuestionBlocDictionaryEditableComplementaryBloc',
+            'type'       => 'boolean',
+            'td_input' => array(
+                'positionLine' => 1,
+            ),
+        ),
+        'deletable' => array(
+            'name'       => 'deletable',
+            'label'      => 'ExtendedInterventionQuestionBlocDictionaryDeletable',
+            'type'       => 'boolean',
+            'td_input' => array(
+                'positionLine' => 1,
+            ),
+        ),
+        'private_bloc' => array(
+            'name'       => 'private_bloc',
+            'label'      => 'ExtendedInterventionQuestionBlocDictionaryPrivateBloc',
+            'type'       => 'boolean',
+            'td_input' => array(
+                'positionLine' => 1,
+            ),
+        ),
+        'unique_bloc' => array(
+            'name'       => 'unique_bloc',
+            'label'      => "ExtendedInterventionQuestionBlocDictionaryUniqueBloc",
+            'type'       => 'boolean',
+            'td_input' => array(
+                'positionLine' => 1,
+            ),
+        ),
         'types_intervention' => array(),
         'categories' => array(),
         'status' => array(),
         'questions' => array(),
         'extra_fields' => array(),
-		'icone' => array(
-            'name'       => 'icone',
-            'label'      => 'Icone',
-            'type'       => 'varchar',
-            'database'   => array(
-              'length'   => 255,
-            ),
-            'is_require' => true,
-        ),
-		'title_editable' => array(
-            'name'       => 'title_editable',
-            'label'      => 'Libellé du Bloc Editable ?',
-            'type'       => 'boolean',
-        ),
-		'bloc_complementary_editable' => array(
-            'name'       => 'bloc_complementary_editable',
-            'label'      => 'Texte complémentaire du Libellé du bloc Editable ?',
-            'type'       => 'boolean',
-        ),
-		'deletable' => array(
-            'name'       => 'deletable',
-            'label'      => 'Bloc supprimable ?',
-            'type'       => 'boolean',
-        ),
-		'private_bloc' => array(
-            'name'       => 'private_bloc',
-            'label'      => 'Bloc privé par défaut ?',
-            'type'       => 'boolean',
-        ),
-		'unique_bloc' => array(
-            'name'       => 'unique_bloc',
-            'label'      => "Ne générer ce bloc q'une fois ce bloc (non rattaché à un équipement)",
-            'type'       => 'boolean',
-        ),
-
-
-
     );
 
     /**
@@ -222,6 +245,28 @@ class ExtendedInterventionQuestionBlocDictionary extends Dictionary
         0 => array(
             'fields'    => array('code'),
             'is_unique' => true,
+        ),
+    );
+
+    /**
+     * @var array  List of fields/indexes added, updated or deleted for a version
+     * array(
+     *   'version' => array(
+     *     'fields' => array('field_name'=>'a', 'field_name'=>'u', 'field_name'=>'d', ...), // List of field name who is added(a) or updated(u) or deleted(d) for a version
+     *     'indexes' => array('idx_number'=>'a', 'idx_number'=>'u', 'idx_number'=>'d', ...), // List of indexes number who is added(a) or updated(u) or deleted(d) for a version
+     *   ),
+     * )
+     */
+    public $updates = array(
+        1 => array(
+            'fields' => array(
+                'icone' => 'a',
+                'title_editable' => 'a',
+                'bloc_complementary_editable' => 'a',
+                'deletable' => 'a',
+                'private_bloc' => 'a',
+                'unique_bloc' => 'a',
+            )
         ),
     );
 
@@ -297,8 +342,8 @@ class ExtendedInterventionQuestionBlocDictionary extends Dictionary
             ),
             'td_input' => array(
                 'moreAttributes' => 'width="50%"',
-                'positionLine' => 1,
-                'colspan' => 2,
+                'positionLine' => 2,
+                'colspan' => 3,
             ),
             'is_require' => true,
         );
@@ -313,7 +358,7 @@ class ExtendedInterventionQuestionBlocDictionary extends Dictionary
             ),
             'td_input' => array(
                 'moreAttributes' => 'width="50%"',
-                'positionLine' => 1,
+                'positionLine' => 2,
             ),
         );
 
@@ -328,7 +373,7 @@ class ExtendedInterventionQuestionBlocDictionary extends Dictionary
             ),
             'td_input' => array(
                 'moreAttributes' => 'width="100%"',
-                'positionLine' => 2,
+                'positionLine' => 3,
             ),
             'is_require' => true,
         );
@@ -344,7 +389,7 @@ class ExtendedInterventionQuestionBlocDictionary extends Dictionary
             ),
             'td_input' => array(
                 'moreAttributes' => 'width="100%"',
-                'positionLine' => 3,
+                'positionLine' => 4,
             ),
             'is_require' => true,
         );
@@ -363,7 +408,7 @@ class ExtendedInterventionQuestionBlocDictionary extends Dictionary
             ),
             'td_input' => array(
                 'moreAttributes' => 'width="100%"',
-                'positionLine' => 4,
+                'positionLine' => 5,
             ),
         );
     }

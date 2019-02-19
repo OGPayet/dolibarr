@@ -56,10 +56,16 @@ ExtendedInterventionQuestionBlocDictionaryType                                  
 ExtendedInterventionQuestionBlocDictionaryStatus                                = Status
 ExtendedInterventionQuestionBlocDictionaryQuestions                             = Questions
 ExtendedInterventionQuestionBlocDictionaryExtraFields                           = Attributs Supplémentaires
+ExtendedInterventionQuestionBlocDictionaryEditableTitle                         = Libellé du Bloc Editable ?
+ExtendedInterventionQuestionBlocDictionaryEditableComplementaryBloc             = Texte complémentaire du Libellé du bloc Editable ?
+ExtendedInterventionQuestionBlocDictionaryDeletable                             = Bloc supprimable ?
+ExtendedInterventionQuestionBlocDictionaryPrivateBloc                           = Bloc privé par défaut ?
+ExtendedInterventionQuestionBlocDictionaryUniqueBloc                            = Ne générer ce bloc qu'une seule fois (non rattaché à un équipement)
 
 ExtendedInterventionQuestionBlocStatusDictionaryLabel                           = Status des blocs de questions
 ExtendedInterventionQuestionBlocStatusDictionaryStatus                          = Libellé du status
 ExtendedInterventionQuestionBlocStatusDictionaryPredefinedText                  = Justificatifs prédéfinies
+ExtendedInterventionQuestionBlocStatusDictionaryDisableBloc                     = Désactive le bloc si sélectionné
 
 ExtendedInterventionQuestionBlocStatusPredefinedTextDictionaryLabel             = Justificatifs prédéfinies des status des blocs de questions
 ExtendedInterventionQuestionBlocStatusPredefinedTextDictionaryPredefinedText    = Texte
@@ -171,3 +177,4 @@ ExtendedInterventionErrorQuestionDictionaryInfoNotFound             = La questio
 ExtendedInterventionErrorAnswerDictionaryInfoNotFound               = La réponse de la question (ID: %s) est introuvable dans le dictionnaire du module
 ExtendedInterventionErrorQuestionBlocStatusNotInSurvey              = Le statut du bloc de question (ID: %s) n'est pas inclus dans le questionnaire
 ExtendedInterventionErrorQuestionAnswerNotInSurvey                  = Le réponse de la question (ID: %s) n'est pas inclus dans le questionnaire
+ExtendedInterventionErrorFileNotFound                               = Le fichier "%s" n'a pas été trouvé

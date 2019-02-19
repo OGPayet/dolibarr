@@ -70,7 +70,7 @@ class EIQuestionBloc extends CommonObject
         /*"id" => '', */"fk_fichinter" => '', "fk_equipment" => '',
         "fk_c_question_bloc" => '', "position_question_bloc" => '', "code_question_bloc" => '', "label_question_bloc" => '', "complementary_question_bloc" => '', "extrafields_question_bloc" => '',
         "fk_c_question_bloc_status" => '', "code_status" => '', "label_status" => '', "mandatory_status" => '', "icone" => '',"title_editable" => '',"bloc_complementary_editable" => '', "deletable" => '',
-		"private_bloc" => '', "desactivated_bloc" => '',"desactivate_bloc_status"=>'',
+        "attached_files" => '', "private_bloc" => '', "desactivated_bloc" => '',"desactivate_bloc_status"=>'',
 		"justificatory_status" => '', "array_options" => '',
         "status_list" => array(
             '' => array(
@@ -225,7 +225,12 @@ class EIQuestionBloc extends CommonObject
      * @var int
      */
     public $mandatory_status;
-	 /**
+    /**
+     * List of filename attached to this question bloc
+     * @var array
+     */
+    public $attached_files;
+    /**
      * Question bloc icon classname between material design, fontawesome and others
      * @var string
      */
@@ -630,9 +635,10 @@ class EIQuestionBloc extends CommonObject
         $this->label_status = !empty($this->label_status) ? $this->label_status : '';
         $this->mandatory_status = isset($this->mandatory_status) ? (!empty($this->mandatory_status) ? 1 : 0) : null;
         $this->justificatory_status = !empty($this->justificatory_status) ? $this->justificatory_status : '';
+        $this->attached_files = is_array($this->attached_files) ? $this->attached_files : array();
 		$this->icone = !empty($this->icone) ? $this->icone : '';
 		$this->title_editable = isset($this->title_editable) ? (!empty($this->title_editable) ? 1 : 0) : null;
-		$this->bloc_complementary_editable = isset($this->bloc_complementary_editable) ? (!empty(bloc_complementary_editable) ? 1 : 0) : null;
+		$this->bloc_complementary_editable = isset($this->bloc_complementary_editable) ? (!empty($this->bloc_complementary_editable) ? 1 : 0) : null;
 		$this->deletable = isset($this->deletable) ? (!empty($this->deletable) ? 1 : 0) : null;
 		$this->private_bloc = isset($this->private_bloc) ? (!empty($this->private_bloc) ? 1 : 0) : null;
 		$this->desactivated_bloc = isset($this->desactivated_bloc) ? (!empty($this->desactivated_bloc) ? 1 : 0) : null;
@@ -654,7 +660,7 @@ class EIQuestionBloc extends CommonObject
                 $error++;
             } elseif (isset(self::$question_bloc_cached[$this->fk_c_question_bloc])) {
                 $question_bloc = self::$question_bloc_cached[$this->fk_c_question_bloc];
-                $this->position_question_bloc = !empty($this->position_question_bloc) ? $this->position_question_bloc : $question_bloc->fields['position'];
+                $this->position_question_bloc = !empty($this->position_question_bloc) ? $this->position_question_bloc : (!empty($question_bloc->fields['position']) ? $question_bloc->fields['position'] : 0);
                 $this->code_question_bloc = !empty($this->code_question_bloc) ? $this->code_question_bloc : $question_bloc->fields['code'];
                 $this->label_question_bloc = !empty($this->label_question_bloc) ? $this->label_question_bloc : $question_bloc->fields['label'];
 				$this->icone = !empty($this->icone) ? $this->icone : $question_bloc->fields['icone'];
@@ -729,6 +735,7 @@ class EIQuestionBloc extends CommonObject
         $sql .= ", label_status";
         $sql .= ", mandatory_status";
         $sql .= ", justificatory_status";
+        $sql .= ", attached_files";
 
 		$sql .= ", icone";
 		$sql .= ", title_editable";
@@ -754,6 +761,7 @@ class EIQuestionBloc extends CommonObject
         $sql .= ", " .  (!empty($this->label_status) ? "'" . $this->db->escape($this->label_status) . "'" : 'NULL');
         $sql .= ", " .  (!empty($this->mandatory_status) ? $this->mandatory_status : 'NULL');
         $sql .= ", " . (!empty($this->justificatory_status) ? "'" . $this->db->escape($this->justificatory_status) . "'" : 'NULL');
+        $sql .= ", " . (count($this->attached_files) ? "'" . $this->db->escape(serialize($this->attached_files)) . "'" : 'NULL');
 
         $sql .= ", " . (!empty($this->icone) ? "'" . $this->db->escape($this->icone) . "'" : 'NULL');
 		$sql .= ", " . (!empty($this->title_editable) ? "'" . $this->db->escape($this->title_editable) . "'" : 'NULL');
@@ -833,9 +841,10 @@ class EIQuestionBloc extends CommonObject
         $this->label_status = !empty($this->label_status) ? $this->label_status : '';
         $this->mandatory_status = isset($this->mandatory_status) ? (!empty($this->mandatory_status) ? 1 : 0) : null;
         $this->justificatory_status = !empty($this->justificatory_status) ? $this->justificatory_status : '';
+        $this->attached_files = is_array($this->attached_files) ? $this->attached_files : array();
 		$this->icone = !empty($this->icone) ? $this->icone : '';
 		$this->title_editable = isset($this->title_editable) ? (!empty($this->title_editable) ? 1 : 0) : null;
-		$this->bloc_complementary_editable = isset($this->bloc_complementary_editable) ? (!empty(bloc_complementary_editable) ? 1 : 0) : null;
+		$this->bloc_complementary_editable = isset($this->bloc_complementary_editable) ? (!empty($this->bloc_complementary_editable) ? 1 : 0) : null;
 		$this->deletable = isset($this->deletable) ? (!empty($this->deletable) ? 1 : 0) : null;
 		$this->private_bloc = isset($this->private_bloc) ? (!empty($this->private_bloc) ? 1 : 0) : null;
 		$this->desactivated_bloc = isset($this->desactivated_bloc) ? (!empty($this->desactivated_bloc) ? 1 : 0) : null;
@@ -845,11 +854,11 @@ class EIQuestionBloc extends CommonObject
         $error = 0;
         $now = dol_now();
 
-        if (!($this->fk_survey_bloc > 0) && !($this->fk_fichinter > 0) && !($this->fk_equipment > 0) && !($this->fk_c_question_bloc > 0) && !($this->id > 0)) {
+        if (!($this->fk_survey_bloc > 0) && !($this->fk_fichinter > 0) && !($this->fk_equipment >= 0) && !($this->fk_c_question_bloc > 0) && !($this->id > 0)) {
             $this->errors[] = $langs->trans("ErrorBadParameters") . ': ' . $langs->trans("ExtendedInterventionQuestionBlocId");
             $error++;
         } else {
-            if (!($this->fk_survey_bloc > 0) && !($this->fk_fichinter > 0) && !($this->fk_equipment > 0)) {
+            if (!($this->fk_survey_bloc > 0) && !($this->fk_fichinter > 0) && !($this->fk_equipment >= 0)) {
                 $this->errors[] = $langs->trans("ErrorBadParameters") . ': ' . $langs->trans("ExtendedInterventionSurveyBlocId");
                 $error++;
             } else {
@@ -857,7 +866,7 @@ class EIQuestionBloc extends CommonObject
                     $this->errors[] = $langs->trans("ErrorBadParameters") . ': ' . $langs->trans("ExtendedInterventionInterventionId");
                     $error++;
                 }
-                if (!($this->fk_equipment > 0)) {
+                if (!($this->fk_equipment >= 0)) {
                     $this->errors[] = $langs->trans("ErrorBadParameters") . ': ' . $langs->trans("ExtendedInterventionEquipmentId");
                     $error++;
                 }
@@ -872,7 +881,7 @@ class EIQuestionBloc extends CommonObject
                 $error++;
             } elseif (isset(self::$question_bloc_cached[$this->fk_c_question_bloc])) {
                 $question_bloc = self::$question_bloc_cached[$this->fk_c_question_bloc];
-                $this->position_question_bloc = !empty($this->position_question_bloc) ? $this->position_question_bloc : $question_bloc->fields['position'];
+                $this->position_question_bloc = !empty($this->position_question_bloc) ? $this->position_question_bloc : (!empty($question_bloc->fields['position']) ? $question_bloc->fields['position'] : 0);
                 $this->code_question_bloc = !empty($this->code_question_bloc) ? $this->code_question_bloc : $question_bloc->fields['code'];
                 $this->label_question_bloc = !empty($this->label_question_bloc) ? $this->label_question_bloc : $question_bloc->fields['label'];
                 $this->extrafields_question_bloc = !empty($this->extrafields_question_bloc) ? $this->extrafields_question_bloc : array_filter(explode(',', $question_bloc->fields['extra_fields']), 'strlen');
@@ -941,7 +950,7 @@ class EIQuestionBloc extends CommonObject
         $sql .= ", t.label_status = " . (!empty($this->label_status) ? "'" . $this->db->escape($this->label_status) . "'" : 'NULL');
         $sql .= ", t.mandatory_status = " . (!empty($this->mandatory_status) ? $this->mandatory_status : 'NULL');
         $sql .= ", t.justificatory_status = " . (!empty($this->justificatory_status) ? "'" . $this->db->escape($this->justificatory_status) . "'" : "NULL");
-
+        $sql .= ", t.attached_files = " . (!empty($this->attached_files) ? "'" . $this->db->escape(serialize($this->attached_files)) . "'" : "NULL");
 
         $sql .= ", t.icone = " . (!empty($this->icone) ? "'" . $this->db->escape($this->icone) . "'" : 'NULL');
 		$sql .= ", t.title_editable = " . (!empty($this->title_editable) ? "'" . $this->db->escape($this->title_editable) . "'" : 'NULL');
@@ -951,11 +960,10 @@ class EIQuestionBloc extends CommonObject
 		$sql .= ", t.desactivated_bloc = " . (!empty($this->desactivated_bloc) ? "'" . $this->db->escape($this->desactivated_bloc) . "'" : 'NULL');
 		$sql .= ", t.desactivate_bloc_status = " . (!empty($this->desactivate_bloc_status) ? "'" . $this->db->escape($this->desactivate_bloc_status) . "'" : 'NULL');
 
-
         $sql .= ", t.fk_user_modif = " . $user->id;
         $sql .= ", t.tms = '" . $this->db->idate($now) . "'";
         $sql .= " WHERE t.entity IN (" . getEntity('ei_question_bloc') . ")";
-        if ($this->fk_fichinter > 0 && $this->fk_equipment > 0 && $this->fk_c_question_bloc > 0)
+        if ($this->fk_fichinter > 0 && $this->fk_equipment >= 0 && $this->fk_c_question_bloc > 0)
             $sql .= " AND p.fk_fichinter=" . $this->fk_fichinter . " AND p.fk_equipment=" . $this->fk_equipment . " AND t.fk_c_question_bloc=" . $this->fk_c_question_bloc;
         elseif ($this->fk_survey_bloc > 0 && $this->fk_c_question_bloc > 0)
             $sql .= " AND t.fk_survey_bloc=" . $this->fk_survey_bloc . " AND t.fk_c_question_bloc=" . $this->fk_c_question_bloc;
@@ -1017,11 +1025,11 @@ class EIQuestionBloc extends CommonObject
         // Check parameters
         $error = 0;
 
-        if (!($this->fk_survey_bloc > 0) && !($this->fk_fichinter > 0) && !($this->fk_equipment > 0) && !($this->fk_c_question_bloc > 0) && !($this->id > 0)) {
+        if (!($this->fk_survey_bloc > 0) && !($this->fk_fichinter > 0) && !($this->fk_equipment >= 0) && !($this->fk_c_question_bloc > 0) && !($this->id > 0)) {
             $this->errors[] = $langs->trans("ErrorBadParameters") . ': ' . $langs->trans("ExtendedInterventionQuestionBlocId");
             $error++;
         } else {
-            if (!($this->fk_survey_bloc > 0) && !($this->fk_fichinter > 0) && !($this->fk_equipment > 0)) {
+            if (!($this->fk_survey_bloc > 0) && !($this->fk_fichinter > 0) && !($this->fk_equipment >= 0)) {
                 $this->errors[] = $langs->trans("ErrorBadParameters") . ': ' . $langs->trans("ExtendedInterventionSurveyBlocId");
                 $error++;
             } else {
@@ -1029,7 +1037,7 @@ class EIQuestionBloc extends CommonObject
                     $this->errors[] = $langs->trans("ErrorBadParameters") . ': ' . $langs->trans("ExtendedInterventionInterventionId");
                     $error++;
                 }
-                if (!($this->fk_equipment > 0)) {
+                if (!($this->fk_equipment >= 0)) {
                     $this->errors[] = $langs->trans("ErrorBadParameters") . ': ' . $langs->trans("ExtendedInterventionEquipmentId");
                     $error++;
                 }
@@ -1062,7 +1070,7 @@ class EIQuestionBloc extends CommonObject
                 " LEFT JOIN " . MAIN_DB_PREFIX . $this->table_element . " as t ON d.fk_question_bloc = t.rowid" .
                 " LEFT JOIN " . MAIN_DB_PREFIX . $this->table_element_parent . " as p ON t.fk_survey_bloc = p.rowid" .
                 " WHERE p.entity IN (" . getEntity('ei_question_bloc') . ")";
-            if ($this->fk_fichinter > 0 && $this->fk_equipment > 0 && $this->fk_c_question_bloc > 0)
+            if ($this->fk_fichinter > 0 && $this->fk_equipment >= 0 && $this->fk_c_question_bloc > 0)
                 $sql .= " AND p.fk_fichinter=" . $this->fk_fichinter . " AND p.fk_equipment=" . $this->fk_equipment . " AND t.fk_c_question_bloc=" . $this->fk_c_question_bloc;
             elseif ($this->fk_survey_bloc > 0 && $this->fk_c_question_bloc > 0)
                 $sql .= " AND t.fk_survey_bloc=" . $this->fk_survey_bloc . " AND t.fk_c_question_bloc=" . $this->fk_c_question_bloc;
@@ -1081,7 +1089,7 @@ class EIQuestionBloc extends CommonObject
                 " LEFT JOIN " . MAIN_DB_PREFIX . $this->table_element . " as t ON " . MAIN_DB_PREFIX . $this->table_element_line . ".fk_question_bloc = t.rowid" .
                 " LEFT JOIN " . MAIN_DB_PREFIX . $this->table_element_parent . " as p ON t.fk_survey_bloc = p.rowid" .
                 " WHERE p.entity IN (" . getEntity('ei_question_bloc') . ")";
-            if ($this->fk_fichinter > 0 && $this->fk_equipment > 0 && $this->fk_c_question_bloc > 0)
+            if ($this->fk_fichinter > 0 && $this->fk_equipment >= 0 && $this->fk_c_question_bloc > 0)
                 $sql .= " AND p.fk_fichinter=" . $this->fk_fichinter . " AND p.fk_equipment=" . $this->fk_equipment . " AND t.fk_c_question_bloc=" . $this->fk_c_question_bloc;
             elseif ($this->fk_survey_bloc > 0 && $this->fk_c_question_bloc > 0)
                 $sql .= " AND t.fk_survey_bloc=" . $this->fk_survey_bloc . " AND t.fk_c_question_bloc=" . $this->fk_c_question_bloc;
@@ -1100,7 +1108,7 @@ class EIQuestionBloc extends CommonObject
                 " LEFT JOIN " . MAIN_DB_PREFIX . $this->table_element . " as t ON " . MAIN_DB_PREFIX . $this->table_element . "_extrafields.fk_object = t.rowid" .
                 " LEFT JOIN " . MAIN_DB_PREFIX . $this->table_element_parent . " as p ON t.fk_survey_bloc = p.rowid" .
                 " WHERE p.entity IN (" . getEntity('ei_question_bloc') . ")";
-            if ($this->fk_fichinter > 0 && $this->fk_equipment > 0 && $this->fk_c_question_bloc > 0)
+            if ($this->fk_fichinter > 0 && $this->fk_equipment >= 0 && $this->fk_c_question_bloc > 0)
                 $sql .= " AND p.fk_fichinter=" . $this->fk_fichinter . " AND p.fk_equipment=" . $this->fk_equipment . " AND t.fk_c_question_bloc=" . $this->fk_c_question_bloc;
             elseif ($this->fk_survey_bloc > 0 && $this->fk_c_question_bloc > 0)
                 $sql .= " AND t.fk_survey_bloc=" . $this->fk_survey_bloc . " AND t.fk_c_question_bloc=" . $this->fk_c_question_bloc;
@@ -1118,7 +1126,7 @@ class EIQuestionBloc extends CommonObject
             $sql = "DELETE FROM " . MAIN_DB_PREFIX . $this->table_element .
                 " LEFT JOIN " . MAIN_DB_PREFIX . $this->table_element_parent . " as p ON " . MAIN_DB_PREFIX . $this->table_element . ".fk_survey_bloc = p.rowid" .
                 " WHERE " . MAIN_DB_PREFIX . $this->table_element . ".entity IN (" . getEntity('ei_question_bloc') . ")";
-            if ($this->fk_fichinter > 0 && $this->fk_equipment > 0 && $this->fk_c_question_bloc > 0)
+            if ($this->fk_fichinter > 0 && $this->fk_equipment >= 0 && $this->fk_c_question_bloc > 0)
                 $sql .= " AND p.fk_fichinter=" . $this->fk_fichinter . " AND p.fk_equipment=" . $this->fk_equipment . " AND " . MAIN_DB_PREFIX . $this->table_element . ".fk_c_question_bloc=" . $this->fk_c_question_bloc;
             elseif ($this->fk_survey_bloc > 0 && $this->fk_c_question_bloc > 0)
                 $sql .= " AND " . MAIN_DB_PREFIX . $this->table_element . ".fk_survey_bloc=" . $this->fk_survey_bloc . " AND " . MAIN_DB_PREFIX . $this->table_element . ".fk_c_question_bloc=" . $this->fk_c_question_bloc;
@@ -1159,13 +1167,13 @@ class EIQuestionBloc extends CommonObject
 
         $sql = "SELECT t.rowid, p.fk_fichinter, p.fk_equipment";
         $sql .= ", t.fk_c_question_bloc, t.position_question_bloc, t.code_question_bloc, t.label_question_bloc, t.complementary_question_bloc, t.extrafields_question_bloc";
-        $sql .= ", t.fk_c_question_bloc_status, t.code_status, t.label_status, t.mandatory_status, t.justificatory_status";
+        $sql .= ", t.fk_c_question_bloc_status, t.code_status, t.label_status, t.mandatory_status, t.justificatory_status, t.attached_files";
 		$sql .= ", t.icone, t.title_editable, t.bloc_complementary_editable, t.deletable, t.private_bloc, t.desactivated_bloc, t.desactivate_bloc_status";
         $sql .= ", t.datec, t.tms, t.fk_user_author, t.fk_user_modif, t.import_key";
         $sql .= " FROM " . MAIN_DB_PREFIX . $this->table_element . " AS t";
         $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . $this->table_element_parent . " AS p ON p.rowid = t.fk_survey_bloc";
         $sql .= " WHERE t.entity IN (" . getEntity('ei_question_bloc') . ")";
-        if ($fk_fichinter > 0 && $fk_equipment > 0 && $fk_c_question_bloc > 0)
+        if ($fk_fichinter > 0 && $fk_equipment >= 0 && $fk_c_question_bloc > 0)
             $sql .= " AND p.fk_fichinter=" . $fk_fichinter . " AND p.fk_equipment=" . $fk_equipment . " AND t.fk_c_question_bloc=" . $fk_c_question_bloc;
         elseif ($fk_survey_bloc > 0 && $fk_c_question_bloc > 0)
             $sql .= " AND t.fk_survey_bloc=" . $fk_survey_bloc . " AND t.fk_c_question_bloc=" . $fk_c_question_bloc;
@@ -1202,6 +1210,7 @@ class EIQuestionBloc extends CommonObject
                 $this->label_status                 = $obj->label_status;
                 $this->mandatory_status             = !empty($obj->mandatory_status) ? 1 : 0;
                 $this->justificatory_status         = $obj->justificatory_status;
+                $this->attached_files               = !empty($obj->attached_files) ? unserialize($obj->attached_files) : array();
 
 				$this->icone 						= $obj->icone;
 				$this->title_editable 				= !empty($obj->title_editable) ? 1 : 0;
@@ -1218,7 +1227,7 @@ class EIQuestionBloc extends CommonObject
                 $this->import_key                   = $obj->import_key;
 
                 $this->db->free($resql);
-            } elseif (($fk_survey_bloc > 0 || ($fk_fichinter > 0 && $fk_equipment > 0)) && $fk_c_question_bloc > 0 && isset(self::$question_bloc_cached[$fk_c_question_bloc]) && (!$test_exist || $this->is_in_survey($fk_fichinter, $fk_equipment, $fk_c_question_bloc))) {
+            } elseif (($fk_survey_bloc > 0 || ($fk_fichinter > 0 && $fk_equipment >= 0)) && $fk_c_question_bloc > 0 && isset(self::$question_bloc_cached[$fk_c_question_bloc]) && (!$test_exist || $this->is_in_survey($fk_fichinter, $fk_equipment, $fk_c_question_bloc))) {
                 $question_bloc = self::$question_bloc_cached[$fk_c_question_bloc];
 
                 $this->id                           = 0;
@@ -1235,6 +1244,7 @@ class EIQuestionBloc extends CommonObject
                 $this->label_status                 = '';
                 $this->mandatory_status             = 0;
                 $this->justificatory_status         = '';
+                $this->attached_files               = array();
 				$this->icone 						= '';
 				$this->title_editable 				= 0;
 				$this->bloc_complementary_editable  = 0;
@@ -1358,11 +1368,11 @@ class EIQuestionBloc extends CommonObject
 
         // Check parameters
         $error = 0;
-        if (!($this->fk_survey_bloc > 0) && !($this->fk_fichinter > 0) && !($this->fk_equipment > 0) && !($this->fk_c_question_bloc > 0) && !($this->id > 0)) {
+        if (!($this->fk_survey_bloc > 0) && !($this->fk_fichinter > 0) && !($this->fk_equipment >= 0) && !($this->fk_c_question_bloc > 0) && !($this->id > 0)) {
             $this->errors[] = $langs->trans("ErrorBadParameters") . ': ' . $langs->trans("ExtendedInterventionQuestionBlocId");
             $error++;
         } else {
-            if (!($this->fk_survey_bloc > 0) && !($this->fk_fichinter > 0) && !($this->fk_equipment > 0)) {
+            if (!($this->fk_survey_bloc > 0) && !($this->fk_fichinter > 0) && !($this->fk_equipment >= 0)) {
                 $this->errors[] = $langs->trans("ErrorBadParameters") . ': ' . $langs->trans("ExtendedInterventionSurveyBlocId");
                 $error++;
             } else {
@@ -1370,7 +1380,7 @@ class EIQuestionBloc extends CommonObject
                     $this->errors[] = $langs->trans("ErrorBadParameters") . ': ' . $langs->trans("ExtendedInterventionInterventionId");
                     $error++;
                 }
-                if (!($this->fk_equipment > 0)) {
+                if (!($this->fk_equipment >= 0)) {
                     $this->errors[] = $langs->trans("ErrorBadParameters") . ': ' . $langs->trans("ExtendedInterventionEquipmentId");
                     $error++;
                 }
@@ -1393,7 +1403,7 @@ class EIQuestionBloc extends CommonObject
             " LEFT JOIN " . MAIN_DB_PREFIX . $this->table_element . " as t ON d.fk_question_bloc = t.rowid" .
             " LEFT JOIN " . MAIN_DB_PREFIX . $this->table_element_parent . " as p ON d.fk_question_bloc = t.rowid" .
             " WHERE t.entity IN (" . getEntity('ei_question_bloc') . ")";
-        if ($this->fk_fichinter > 0 && $this->fk_equipment > 0 && $this->fk_c_question_bloc > 0)
+        if ($this->fk_fichinter > 0 && $this->fk_equipment >= 0 && $this->fk_c_question_bloc > 0)
             $sql .= " AND p.fk_fichinter=" . $this->fk_fichinter . " AND p.fk_equipment=" . $this->fk_equipment . " AND t.fk_c_question_bloc=" . $this->fk_c_question_bloc;
         elseif ($this->fk_survey_bloc > 0 && $this->fk_c_question_bloc > 0)
             $sql .= " AND t.fk_survey_bloc=" . $this->fk_survey_bloc . " AND t.fk_c_question_bloc=" . $this->fk_c_question_bloc;
@@ -2095,7 +2105,7 @@ class EIQuestionBlocLine extends CommonObjectLine
                 $error++;
             } elseif (isset(self::$question_cached[$this->fk_c_question])) {
                 $question = self::$question_cached[$this->fk_c_question];
-                $this->position_question = !empty($this->position_question) ? $this->position_question : $question->fields['position'];
+                $this->position_question = !empty($this->position_question) ? $this->position_question : (!empty($question->fields['position']) ? $question->fields['position'] : 0);
                 $this->code_question = !empty($this->code_question) ? $this->code_question : $question->fields['code'];
                 $this->label_question = !empty($this->label_question) ? $this->label_question : $question->fields['label'];
                 $this->extrafields_question = !empty($this->extrafields_question) ? $this->extrafields_question : array_filter(explode(',', $question->fields['extra_fields']), 'strlen');
@@ -2257,7 +2267,7 @@ class EIQuestionBlocLine extends CommonObjectLine
                 $error++;
             } elseif (isset(self::$question_cached[$this->fk_c_question])) {
                 $question = self::$question_cached[$this->fk_c_question];
-                $this->position_question = !empty($this->position_question) ? $this->position_question : $question->fields['position'];
+                $this->position_question = !empty($this->position_question) ? $this->position_question : (!empty($question->fields['position']) ? $question->fields['position'] : 0);
                 $this->code_question = !empty($this->code_question) ? $this->code_question : $question->fields['code'];
                 $this->label_question = !empty($this->label_question) ? $this->label_question : $question->fields['label'];
                 $this->extrafields_question = !empty($this->extrafields_question) ? $this->extrafields_question : array_filter(explode(',', $question->fields['extra_fields']), 'strlen');
@@ -2473,7 +2483,7 @@ class EIQuestionBlocLine extends CommonObjectLine
         $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . $this->table_element_parent . " AS p ON p.rowid = t.fk_question_bloc";
         $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . $this->table_element_parent_bis . " AS pb ON pb.rowid = p.fk_survey_bloc";
         $sql .= " WHERE p.entity IN (" . getEntity('ei_question_bloc') . ")";
-        if ($fk_fichinter > 0 && $fk_equipment > 0 && $fk_c_question_bloc > 0 && $fk_c_question > 0)
+        if ($fk_fichinter > 0 && $fk_equipment >= 0 && $fk_c_question_bloc > 0 && $fk_c_question > 0)
             $sql .= " AND pb.fk_fichinter=" . $fk_fichinter . " AND pb.fk_equipment=" . $fk_equipment . " AND p.fk_c_question_bloc=" . $fk_c_question_bloc . " AND t.fk_c_question=" . $fk_c_question;
         elseif ($fk_question_bloc > 0 && $fk_c_question > 0)
             $sql .= " AND t.fk_question_bloc=" . $fk_question_bloc . " AND t.fk_c_question=" . $fk_c_question;
@@ -2521,10 +2531,10 @@ class EIQuestionBlocLine extends CommonObjectLine
             } elseif ((($fk_fichinter > 0 && $fk_c_question_bloc > 0) || $fk_question_bloc > 0) && $fk_c_question > 0 && isset(self::$question_cached[$fk_c_question]) && (!$test_exist || $this->is_in_survey($fk_fichinter, $fk_equipment, $fk_c_question_bloc, $fk_question_bloc, $fk_c_question))) {
                 $question = self::$question_cached[$fk_c_question];
                 $this->id                           = 0;
-                $this->fk_fichinter                 = $fk_fichinter > 0 && $fk_equipment > 0 && $fk_c_question_bloc > 0 ? $fk_fichinter : 0;
-                $this->fk_equipment                 = $fk_fichinter > 0 && $fk_equipment > 0 && $fk_c_question_bloc > 0 ? $fk_equipment : 0;
-                $this->fk_c_question_bloc           = $fk_fichinter > 0 && $fk_equipment > 0 && $fk_c_question_bloc > 0 ? $fk_c_question_bloc : 0;
-                $this->fk_question_bloc             = !($fk_fichinter > 0 && $fk_equipment > 0 && $fk_c_question_bloc > 0) ? $fk_question_bloc : 0;
+                $this->fk_fichinter                 = $fk_fichinter > 0 && $fk_equipment >= 0 && $fk_c_question_bloc > 0 ? $fk_fichinter : 0;
+                $this->fk_equipment                 = $fk_fichinter > 0 && $fk_equipment >= 0 && $fk_c_question_bloc > 0 ? $fk_equipment : 0;
+                $this->fk_c_question_bloc           = $fk_fichinter > 0 && $fk_equipment >= 0 && $fk_c_question_bloc > 0 ? $fk_c_question_bloc : 0;
+                $this->fk_question_bloc             = !($fk_fichinter > 0 && $fk_equipment >= 0 && $fk_c_question_bloc > 0) ? $fk_question_bloc : 0;
                 $this->fk_c_question                = $fk_c_question;
                 $this->position_question            = $question->fields['position'];
                 $this->code_question                = $question->fields['code'];
@@ -2731,9 +2741,9 @@ class EIQuestionBlocLine extends CommonObjectLine
     {
         $result = 0;
 
-        if (!($this->fk_fichinter > 0) && !($this->fk_equipment > 0) && !($this->fk_c_question_bloc > 0) && !($this->fk_question_bloc > 0)) {
+        if (!($this->fk_fichinter > 0) && !($this->fk_equipment >= 0) && !($this->fk_c_question_bloc > 0) && !($this->fk_question_bloc > 0)) {
             $this->fk_question_bloc = null;
-        } elseif (!isset($this->question_bloc) || (($this->fk_fichinter > 0 && $this->fk_equipment > 0 && $this->fk_c_question_bloc > 0 && $this->question_bloc->fk_fichinter != $this->fk_fichinter && $this->question_bloc->fk_equipment > 0 != $this->fk_equipment && $this->question_bloc->fk_c_question_bloc != $this->fk_c_question_bloc) || $this->question_bloc->id != $this->fk_question_bloc)) {
+        } elseif (!isset($this->question_bloc) || (($this->fk_fichinter > 0 && $this->fk_equipment >= 0 && $this->fk_c_question_bloc > 0 && $this->question_bloc->fk_fichinter != $this->fk_fichinter && $this->question_bloc->fk_equipment >= 0 != $this->fk_equipment && $this->question_bloc->fk_c_question_bloc != $this->fk_c_question_bloc) || $this->question_bloc->id != $this->fk_question_bloc)) {
             $questionbloc = new EIQuestionBloc($this->db);
             $result = $questionbloc->fetch($this->fk_question_bloc, $this->fk_fichinter, $this->fk_equipment, 0, $this->fk_c_question_bloc);
             if ($result > 0) {

@@ -171,7 +171,7 @@ if (is_array($extrafields->attribute_label) && count($extrafields->attribute_lab
 {
     foreach($extrafields->attribute_label as $key => $val)
     {
-        $arrayfields["ef.".$key]=array('label'=>$extrafields->attribute_label[$key], 'checked'=>$extrafields->attribute_list[$key], 'position'=>$extrafields->attribute_pos[$key], 'enabled'=>$extrafields->attribute_perms[$key]);
+		if (! empty($extrafields->attribute_list[$key])) $arrayfields["ef.".$key]=array('label'=>$extrafields->attribute_label[$key], 'checked'=>(($extrafields->attribute_list[$key]<0)?0:1), 'position'=>$extrafields->attribute_pos[$key], 'enabled'=>(abs($extrafields->attribute_list[$key])!=3 && $extrafields->attribute_perms[$key]));
     }
 }
 
@@ -338,19 +338,8 @@ if ($search_user > 0)
     $sql.= " AND c.fk_c_type_contact = tc.rowid AND tc.element='propal' AND tc.source='internal' AND c.element_id = p.rowid AND c.fk_socpeople = ".$db->escape($search_user);
 }
 // Add where from extra fields
-foreach ($search_array_options as $key => $val)
-{
-    $crit=$val;
-    $tmpkey=preg_replace('/search_options_/','',$key);
-    $typ=$extrafields->attribute_type[$tmpkey];
-    $mode=0;
-    if (in_array($typ, array('int','double','real'))) $mode=1;    							// Search on a numeric
-    if (in_array($typ, array('sellist')) && $crit != '0' && $crit != '-1') $mode=2;    		// Search on a foreign key int
-    if ($crit != '' && (! in_array($typ, array('select','sellist')) || $crit != '0'))
-    {
-        $sql .= natural_search('ef.'.$tmpkey, $crit, $mode);
-    }
-}
+include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_search_sql.tpl.php';
+
 // Add where from hooks
 $parameters=array();
 $reshook=$hookmanager->executeHooks('printFieldListWhere',$parameters);    // Note that $action and $object may have been modified by hook
@@ -413,12 +402,7 @@ if ($resql)
 	if ($optioncss != '')    $param.='&optioncss='.urlencode($optioncss);
 
 	// Add $param from extra fields
-	foreach ($search_array_options as $key => $val)
-	{
-	    $crit=$val;
-	    $tmpkey=preg_replace('/search_options_/','',$key);
-	    if ($val != '') $param.='&search_options_'.$tmpkey.'='.urlencode($val);
-	}
+	include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_search_param.tpl.php';
 
 	// List of mass actions available
 	$arrayofmassactions =  array(
@@ -687,35 +671,8 @@ if ($resql)
 	print '</td>';
 	}
 	// Extra fields
-	if (is_array($extrafields->attribute_label) && count($extrafields->attribute_label))
-	{
-	    foreach($extrafields->attribute_label as $key => $val)
-	    {
-	        if (! empty($arrayfields["ef.".$key]['checked']))
-	        {
-	            $align=$extrafields->getAlignFlag($key);
-	            $typeofextrafield=$extrafields->attribute_type[$key];
-	            print '<td class="liste_titre'.($align?' '.$align:'').'">';
-			    if (in_array($typeofextrafield, array('varchar', 'int', 'double', 'select')))
-				{
-				    $crit=$val;
-				$tmpkey=preg_replace('/search_options_/','',$key);
-				$searchclass='';
-				if (in_array($typeofextrafield, array('varchar', 'select'))) $searchclass='searchstring';
-				if (in_array($typeofextrafield, array('int', 'double'))) $searchclass='searchnum';
-				print '<input class="flat'.($searchclass?' '.$searchclass:'').'" size="4" type="text" name="search_options_'.$tmpkey.'" value="'.dol_escape_htmltag($search_array_options['search_options_'.$tmpkey]).'">';
-                //-------------------------------------------------------------------------------
-                // Modification - Open-DSI - Begin
-				} elseif (in_array($typeofextrafield, array('sellist'))) {
-                    $tmpkey = preg_replace('/search_options_/', '', $key);
-                    print $extrafields->showInputField($tmpkey, $search_array_options['search_options_' . $tmpkey], '', '', 'search_');
-                // Modification - Open-DSI - End
-                //-------------------------------------------------------------------------------
-				}
-	            print '</td>';
-	        }
-	    }
-	}
+	include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_search_input.tpl.php';
+
 	// Fields from hook
 	$parameters=array('arrayfields'=>$arrayfields);
 	$reshook=$hookmanager->executeHooks('printFieldListOption',$parameters);    // Note that $action and $object may have been modified by hook
@@ -765,21 +722,9 @@ if ($resql)
 	if (! empty($arrayfields['p.total_ttc']['checked']))      print_liste_field_titre($arrayfields['p.total_ttc']['label'],$_SERVER["PHP_SELF"],'p.total','',$param, 'align="right"',$sortfield,$sortorder);
 	if (! empty($arrayfields['u.login']['checked']))       	  print_liste_field_titre($arrayfields['u.login']['label'],$_SERVER["PHP_SELF"],'u.login','',$param,'align="center"',$sortfield,$sortorder);
 	// Extra fields
-	if (is_array($extrafields->attribute_label) && count($extrafields->attribute_label))
-	{
-	   foreach($extrafields->attribute_label as $key => $val)
-	   {
-           if (! empty($arrayfields["ef.".$key]['checked']))
-           {
-				$align=$extrafields->getAlignFlag($key);
-			$sortonfield = "ef.".$key;
-			if (! empty($extrafields->attribute_computed[$key])) $sortonfield='';
-			print_liste_field_titre($extralabels[$key],$_SERVER["PHP_SELF"],$sortonfield,"",$param,($align?'align="'.$align.'"':''),$sortfield,$sortorder);
-           }
-	   }
-	}
+	include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_search_title.tpl.php';
 	// Hook fields
-	$parameters=array('arrayfields'=>$arrayfields);
+	$parameters=array('arrayfields'=>$arrayfields,'param'=>$param,'sortfield'=>$sortfield,'sortorder'=>$sortorder);
     $reshook=$hookmanager->executeHooks('printFieldListTitle',$parameters);    // Note that $action and $object may have been modified by hook
     print $hookmanager->resPrint;
 	if (! empty($arrayfields['p.datec']['checked']))     print_liste_field_titre($arrayfields['p.datec']['label'],$_SERVER["PHP_SELF"],"p.datec","",$param,'align="center" class="nowrap"',$sortfield,$sortorder);
@@ -974,23 +919,7 @@ if ($resql)
         }
 
         // Extra fields
-        if (is_array($extrafields->attribute_label) && count($extrafields->attribute_label))
-        {
-            foreach($extrafields->attribute_label as $key => $val)
-            {
-                if (! empty($arrayfields["ef.".$key]['checked']))
-                {
-                    print '<td';
-                    $align=$extrafields->getAlignFlag($key);
-                    if ($align) print ' align="'.$align.'"';
-                    print '>';
-                    $tmpkey='options_'.$key;
-                    print $extrafields->showOutputField($key, $obj->$tmpkey, '', 1);
-                    print '</td>';
-                    if (! $i) $totalarray['nbfield']++;
-                }
-            }
-        }
+		include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_print_fields.tpl.php';
         // Fields from hook
         $parameters=array('arrayfields'=>$arrayfields, 'obj'=>$obj);
         $reshook=$hookmanager->executeHooks('printFieldListValue',$parameters);    // Note that $action and $object may have been modified by hook

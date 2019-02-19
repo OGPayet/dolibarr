@@ -99,7 +99,7 @@ class modExtendedIntervention extends DolibarrModules
         $this->module_parts = array(
             'dictionaries' => 1,
             'tpl' => 1,
-            'hooks' => array('interventioncard', 'equipementcard', 'contractcard', 'requestmanagercard', 'contractlist'),
+            'hooks' => array('interventiondocument', 'interventioncard', 'equipementcard', 'contractcard', 'requestmanagercard', 'contractlist'),
             'triggers' => 1
         );
 
@@ -157,7 +157,9 @@ class modExtendedIntervention extends DolibarrModules
         // 'thirdparty'       to add a tab in third party view
         // 'user'             to add a tab in user view
         $this->tabs = array(
-            'intervention:+survey:ExtendedInterventionSurvey:extendedintervention@extendedintervention:$user->rights->extendedintervention->questionnaireIntervention->lire:/extendedintervention/survey.php?id=__ID__',
+            'intervention:+ei_survey:ExtendedInterventionSurvey:extendedintervention@extendedintervention:$user->rights->extendedintervention->questionnaireIntervention->lire:/extendedintervention/survey.php?id=__ID__',
+            'intervention:-documents',
+            'intervention:+ei_documents:Documents:fichinter:1:/extendedintervention/document.php?id=__ID__',
         );
 
         if (!isset($conf->extendedintervention) || !isset($conf->extendedintervention->enabled)) {

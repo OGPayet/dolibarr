@@ -1,5 +1,6 @@
 -- ============================================================================
 -- Copyright (C) 2019   Alexis LAURIER      <alexis@alexislaurier.fr>
+-- Copyright (C) 2019	  Open-DSI 	          <support@open-dsi.fr>
 --
 -- This program is free software; you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -14,14 +15,6 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program. If not, see <http://www.gnu.org/licenses/>.
 -- ===========================================================================
-ALTER TABLE llx_c_extendedintervention_question_bloc ADD icone varchar(255);
-ALTER TABLE llx_c_extendedintervention_question_bloc ADD title_editable integer(1) NULL;
-ALTER TABLE llx_c_extendedintervention_question_bloc ADD bloc_complementary_editable integer(1) NULL;
-ALTER TABLE llx_c_extendedintervention_question_bloc ADD deletable integer(1) NULL;
-ALTER TABLE llx_c_extendedintervention_question_bloc ADD private_bloc integer(1) NULL;
-ALTER TABLE llx_c_extendedintervention_question_bloc ADD unique_bloc integer(1) NULL;
-
-ALTER TABLE llx_c_extendedintervention_status_qb ADD desactivate_bloc integer(1) NULL;
 
 ALTER TABLE llx_extendedintervention_question_bloc ADD icone varchar(255);
 ALTER TABLE llx_extendedintervention_question_bloc ADD title_editable integer(1) NULL;

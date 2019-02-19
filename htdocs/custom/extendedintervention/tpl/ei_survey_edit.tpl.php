@@ -184,6 +184,11 @@ if (empty($question_bloc) || !is_object($question_bloc)) {
           ?>
           </td>
         </tr>
+        <tr>
+          <td><?php print $langs->trans('Documents') ?></td>
+          <td><?php print $formextendedintervention->multiselect_attached_files($object->ref, 'ei_qb_attached_files',
+                  isset($_POST['ei_qb_attached_files']) ? GETPOST('ei_qb_attached_files') : $question_bloc->attached_files) ?></td>
+        </tr>
       </table>
 
       <br>

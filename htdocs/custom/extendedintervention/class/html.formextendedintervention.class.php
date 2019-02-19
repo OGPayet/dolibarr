@@ -109,6 +109,43 @@ class FormExtendedIntervention
     }
 
     /**
+     *	Return multiselect list of attached files of a intervention
+     *
+     *	@param	int		$ref_intervention   Ref of the intervention
+     *	@param	string	$htmlname		    Name of select
+     *	@param	array	$selected		    Array with key+value preselected
+     *	@param	int		$key_in_label       1 pour afficher la key dans la valeur "[key] value"
+     *	@param	int		$value_as_key       1 to use value as key
+     *	@param  string	$morecss            Add more css style
+     *	@param  int		$translate		    Translate and encode value
+     *  @param	int		$width			    Force width of select box. May be used only when using jquery couch. Example: 250, 95%
+     *  @param	string	$moreattrib		    Add more options on select component. Example: 'disabled'
+     *	@return	string					    HTML multiselect string
+     *  @see selectarray
+     */
+    function multiselect_attached_files($ref_intervention, $htmlname='attached_files', $selected=array(), $key_in_label=0, $value_as_key=0, $morecss='minwidth300', $translate=0, $width=0, $moreattrib='')
+    {
+        global $conf, $formfile;
+        require_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
+
+        if (!is_object($formfile)) {
+            require_once DOL_DOCUMENT_ROOT . '/core/class/html.formfile.class.php';
+            $formfile = new FormFile($this->db);
+        }
+
+        $attached_files = array();
+        $upload_dir = $conf->ficheinter->dir_output.'/'.dol_sanitizeFileName($ref_intervention);
+        $filearray = dol_dir_list($upload_dir, "files", 0, '', '(\.meta|_preview.*\.png)$');
+        foreach ($filearray as $file) {
+            $attached_files[$file["name"]] = $file["name"];
+        }
+
+        $out = $this->form->multiselectarray($htmlname, $attached_files, $selected, $key_in_label, $value_as_key, $morecss, $translate, $width, $moreattrib);
+
+        return $out;
+    }
+
+    /**
      *     Show a confirmation HTML form or AJAX popup.
      *     Easiest way to use this is with useajax=1.
      *     If you use useajax='xxx', you must also add jquery code to trigger opening of box (with correct parameters)

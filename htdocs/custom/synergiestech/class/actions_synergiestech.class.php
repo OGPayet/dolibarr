@@ -482,6 +482,18 @@ class ActionsSynergiesTech
                 print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=synergiestech_generate_ticket_report">' . $langs->trans("SynergiesTechTicketGenerateReport") . '</a></div>';
             else
                 print '<div class="inline-block divButAction"><a class="butActionRefused" href="#" title="' . $langs->trans("NotEnoughPermissions") . '">' . $langs->trans("SynergiesTechTicketGenerateReport") . '</a></div>';
+        } elseif (in_array('interventioncard', $contexts)) {
+            // ReOpen
+            if ($object->statut == 2 /* invoiced */ || $object->statut == 3 /* done */) {
+                $langs->load('synergiestech@synergiestech');
+
+                if ($user->rights->synergiestech->fichinter->reopen) {
+                    print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=reopen' . (empty($conf->global->MAIN_JUMP_TAG) ? '' : '#reopen') . '">' .
+                        $langs->trans("ReOpen") . '</a></div>';
+                } else {
+                    print '<div class="inline-block divButAction"><a class="butActionRefused" href="#" title="' . $langs->trans("NotEnoughPermissions") . '">' . $langs->trans("ReOpen") . '</a></div>';
+                }
+            }
         }
 
         return 0;
@@ -959,6 +971,14 @@ SCRIPT;
 
             $this->resprints = $formconfirm;
             return 1;
+        } elseif (in_array('interventioncard', $contexts)) {
+            // Confirm reopen
+            if ($action == 'reopen') {
+                $langs->load('synergiestech@synergiestech');
+                $this->resprints = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('ReOpen'), $langs->trans('SynergiesTechConfirmReOpenIntervention'),
+                    'confirm_reopen', '', 0, 1);
+                return 1;
+            }
         }
 
         return 0;
@@ -1598,6 +1618,21 @@ SCRIPT;
             }
 
             return 1;
+        } elseif (in_array('interventioncard', $contexts)) {
+            // Reopen intervention
+            if ($action == 'confirm_reopen' && $confirm == 'yes' && ($object->statut == 2 /* invoiced */ || $object->statut == 3 /* done */) && $user->rights->synergiestech->fichinter->reopen && !GETPOST('cancel')) {
+                dol_include_once('/synergiestech/lib/synergiestech.lib.php');
+                $langs->load('synergiestech@synergiestech');
+
+                $msg_error = '';
+                $result = synergiestech_reopen_intervention($this->db, $object, $user, $msg_error);
+                if ($result > 0) {
+                    header('Location: ' . $_SERVER['PHP_SELF'] . '?id=' . $object->id);
+                    exit();
+                } else {
+                    setEventMessage($msg_error, 'errors');
+                }
+            }
         }
 
         return 0;
