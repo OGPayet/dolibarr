@@ -553,7 +553,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
             }
         }
         // If internal user: Check permission for internal users that are restricted on their objects
-        else if (! empty($conf->societe->enabled) && ($user->rights->societe->lire && ! $user->rights->societe->client->voir)) {
+        else if (! empty($conf->societe->enabled) && ($user->rights->societe->lire && ! $user->rights->societe->client->voir) && $object->id > 0) {
             $hasPerm = TRUE;
 
             $sql  = "SELECT COUNT(sc.fk_soc) as nb";
@@ -575,7 +575,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
             }
         }
         // If multicompany and internal users with all permissions, check user is in correct entity
-        else if (! empty($conf->multicompany->enabled)) {
+        else if (! empty($conf->multicompany->enabled) && $object->id > 0) {
             $hasPerm = TRUE;
 
             $sql = "SELECT COUNT(dbt.fk_soc) as nb";
@@ -590,6 +590,8 @@ class CompanyRelationshipsApi extends DolibarrApi {
             } else {
                 $hasPerm = FALSE;
             }
+        } else {
+            $hasPerm = TRUE;
         }
 
         return $hasPerm;

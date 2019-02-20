@@ -287,19 +287,6 @@ if (empty($reshook))
 							$lines = $srcobject->lines;
 						}
 
-						// Add all linked object of the contract when the origin is a request
-                        if ($conf->contrat->enabled && $srcobject->element == 'requestmanager' && $object->fk_contrat > 0) {
-						    $contract = new Contrat($db);
-						    $contract->fetch($object->fk_contrat);
-                            $contract->fetchObjectLinked();
-                            foreach ($contract->linkedObjectsIds as $et => $ids_list) {
-                                        foreach ($ids_list as $olid) {
-                                    if (($et == $srcobject->element && $olid == $srcobject->id) || ($et == $object->element && $olid == $object->id)) continue;
-                                    $object->add_object_linked($et, $olid);
-                                }
-                            }
-                        }
-
 						$fk_parent_line=0;
 						$num=count($lines);
 

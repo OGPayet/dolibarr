@@ -1245,7 +1245,8 @@ SCRIPT;
             }
 
             if ($action == 'premessage') $action == 'stpremessage';
-        } elseif (in_array('contractcard', $contexts)) {
+        }
+        elseif (in_array('contractcard', $contexts)) {
             $langs->load('synergiestech@synergiestech');
             if ($user->rights->synergiestech->generate->ticket_report && $action == 'synergiestech_generate_ticket_report_confirm' && $confirm == 'yes') {
                 if (GETPOST('synergiestech_generate_ticket_report_date_startmonth') && GETPOST('synergiestech_generate_ticket_report_date_startday') && GETPOST('synergiestech_generate_ticket_report_date_startyear') &&
@@ -1265,7 +1266,8 @@ SCRIPT;
                     return -1;
                 }
             }
-        } elseif (in_array('ordercard', $contexts)) {
+        }
+        elseif (in_array('ordercard', $contexts)) {
             if ($action == 'addline' && $user->rights->commande->creer) {
                 $product_id = GETPOST('idprod', 'int');
 
@@ -1419,13 +1421,15 @@ SCRIPT;
                 $object->context['synergiestech_create_order_with_products_not_into_contract'] = true;
                 $action = 'add';
             }
-        } elseif (in_array('propalcard', $contexts)) {
+        }
+        elseif (in_array('propalcard', $contexts)) {
             if ($object->id > 0) {
                 $object->fetch_optionals();
                 if (!$user->rights->synergiestech->propal->installation_value && !empty($object->array_options['options_sitevalue']))
                     accessforbidden();
             }
-        } elseif (in_array('requestmanagerfastcard', $contexts)) {
+        }
+        elseif (in_array('requestmanagerfastcard', $contexts)) {
             global $force_principal_company_confirmed, $force_out_of_time_confirmed, $create_and_take_in_charge_confirmed;
             $error = 0;
 
@@ -1618,7 +1622,8 @@ SCRIPT;
             }
 
             return 1;
-        } elseif (in_array('interventioncard', $contexts)) {
+        }
+        elseif (in_array('interventioncard', $contexts)) {
             // Reopen intervention
             if ($action == 'confirm_reopen' && $confirm == 'yes' && ($object->statut == 2 /* invoiced */ || $object->statut == 3 /* done */) && $user->rights->synergiestech->fichinter->reopen && !GETPOST('cancel')) {
                 dol_include_once('/synergiestech/lib/synergiestech.lib.php');

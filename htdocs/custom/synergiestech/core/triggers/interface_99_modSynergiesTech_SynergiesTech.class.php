@@ -78,7 +78,7 @@ class InterfaceSynergiesTech extends DolibarrTriggers
                     }
                 }
 
-                dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+                dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
                 return 0;
             case 'REQUESTMANAGER_ADD_LINK':
                 $addlink = $object->context['addlink'];
@@ -91,7 +91,7 @@ class InterfaceSynergiesTech extends DolibarrTriggers
                     }
                 }
 
-                dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+                dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
                 return 0;
             case 'RETURN_CREATE':
                 if (isset($object->context['synergiestech_create_returnproducts']) && $object->context['synergiestech_create_returnproducts'] > 0) {
@@ -100,7 +100,7 @@ class InterfaceSynergiesTech extends DolibarrTriggers
                     // todo link to create
                 }
 
-                dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+                dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
                 return 0;
             case 'LINEORDER_INSERT':
                 if (isset($object->context['synergiestech_addline_not_into_formula'])) {
@@ -152,7 +152,7 @@ class InterfaceSynergiesTech extends DolibarrTriggers
 
                 }
 
-                dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+                dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
                 return 0;
             case 'CONTRACT_CREATE':
                 if (empty($object->array_options['options_rm_timeslots_periods'])) {
@@ -172,7 +172,7 @@ class InterfaceSynergiesTech extends DolibarrTriggers
                     }
                 }
 
-                dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+                dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
                 return 0;
             case 'PROPAL_CLOSE_SIGNED':
             case 'PROPAL_CLOSE_REFUSED':
@@ -191,7 +191,7 @@ class InterfaceSynergiesTech extends DolibarrTriggers
                     }
 
                     // upload file
-                    if (! empty($_FILES['addfile']['name'])) {
+                    if (!empty($_FILES['addfile']['name'])) {
                         require_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
 
                         // set directory
@@ -206,7 +206,7 @@ class InterfaceSynergiesTech extends DolibarrTriggers
                     }
                 }
 
-                dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+                dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
                 return 0;
             case 'ORDER_CREATE':
                 if (isset($object->context['synergiestech_create_order_with_products_not_into_contract'])) {
@@ -250,7 +250,23 @@ class InterfaceSynergiesTech extends DolibarrTriggers
                     }
                 }
 
-                dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+                dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
+                return 0;
+            case 'FICHINTER_CREATE':
+                // Add all linked object of the contract when the origin is a request
+                if ($conf->contrat->enabled && $object->origin == 'requestmanager' && $object->fk_contrat > 0) {
+                    $contract = new Contrat($this->db);
+                    $contract->fetch($object->fk_contrat);
+                    $contract->fetchObjectLinked();
+                    foreach ($contract->linkedObjectsIds as $et => $ids_list) {
+                        foreach ($ids_list as $olid) {
+                            if (($et == $object->origin && $olid == $object->origin_id) || ($et == $object->element && $olid == $object->id)) continue;
+                            $object->add_object_linked($et, $olid);
+                        }
+                    }
+                }
+
+                dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
                 return 0;
         }
 
