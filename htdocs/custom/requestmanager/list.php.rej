@@ -1,10 +1,52 @@
 diff a/htdocs/custom/requestmanager/list.php b/htdocs/custom/requestmanager/list.php	(rejected hunks)
-@@ -1237,7 +1237,7 @@ if ($resql) {
+@@ -494,9 +514,9 @@ SCRIPT;
+     $sql .= ' rm.fk_user_author, ua.firstname as userauthorfirstname, ua.lastname as userauthorlastname, ua.email as userauthoremail,';
+     $sql .= ' rm.fk_user_modif, um.firstname as usermodiffirstname, um.lastname as usermodiflastname, um.email as usermodifemail,';
+     $sql .= ' crmrr.label AS reason_resolution, rm.reason_resolution_details';
+-// Add fields from extrafields
++    // Add fields from extrafields
+     foreach ($extrafields->attribute_label as $key => $val) $sql .= ($extrafields->attribute_type[$key] != 'separate' ? ",ef." . $key . ' as options_' . $key : '');
+-// Add fields from hooks
++    // Add fields from hooks
+     $parameters = array();
+     $reshook = $hookmanager->executeHooks('printFieldListSelect', $parameters);    // Note that $action and $object may have been modified by hook
+     $sql .= $hookmanager->resPrint;
+@@ -609,7 +633,7 @@ SCRIPT;
+     if ($sall) {
+         $sql .= natural_search(array_keys($fieldstosearchall), $sall);
+     }
+-// Add where from extra fields
++    // Add where from extra fields
+     foreach ($search_array_options as $key => $val) {
+         $crit = $val;
+         $tmpkey = preg_replace('/search_options_/', '', $key);
+@@ -621,7 +645,7 @@ SCRIPT;
+             $sql .= natural_search('ef.' . $tmpkey, $crit, $mode);
          }
-         // Status
-         if (!empty($arrayfields['rm.fk_status']['checked'])) {
--            print '<td align="right" class="nowrap">' . $objectstatic->LibStatut($obj->fk_status, 5) . '</td>';
-+            print '<td align="right" class="nowrap">' . $objectstatic->LibStatut($obj->fk_status, 5, 0, !empty($conf->global->REQUESTMANAGER_SHOW_CHILDREN_REQUEST_STATUS_IN_LIST) ? 3 : -1) . '</td>';
-         }
+     }
+-// Add where from hooks
++    // Add where from hooks
+     $parameters = array();
+     $reshook = $hookmanager->executeHooks('printFieldListWhere', $parameters);    // Note that $action and $object may have been modified by hook
+     $sql .= $hookmanager->resPrint;
+@@ -629,7 +653,7 @@ SCRIPT;
+     $sql .= ' GROUP BY rm.rowid';
+     $sql .= $db->order($sortfield, $sortorder);
  
-         // Action column
+-// Count total nb of records
++    // Count total nb of records
+     $nbtotalofrecords = '';
+     if (empty($conf->global->MAIN_DISABLE_FULL_SCANLIST)) {
+         $result = $db->query($sql);
+@@ -689,9 +713,9 @@ SCRIPT;
+         if ($search_date_modification) $param .= '&search_date_modification=' . urlencode($search_date_modification);
+         if ($search_user_author) $param .= '&search_user_author=' . urlencode($search_user_author);
+         if ($search_user_modification) $param .= '&search_user_modification=' . urlencode($search_user_modification);
+-        if (count($search_status_det)) $param .= '&search_status_det=' . urlencode($search_status_det);
++        if (count($search_status_det)) $param .= '&'.http_build_query(array('search_status_det'=>$search_status_det));
+         if ($search_dont_show_children_request) $param .= '&search_dont_show_children_request=' . urlencode($search_dont_show_children_request);
+-        if (count($search_in_charge)) $param .= '&search_in_charge=' . urlencode($search_in_charge);
++        if (count($search_in_charge)) $param .= '&'.http_build_query(array('search_in_charge'=>$search_in_charge));
+         if ($planning) $param .= '&planning=' . urlencode($planning);
+         if ($my_list) $param .= '&my_list=' . urlencode($my_list);
+         if (empty($planning) && $not_assigned) $param .= '&not_assigned=' . urlencode($not_assigned);

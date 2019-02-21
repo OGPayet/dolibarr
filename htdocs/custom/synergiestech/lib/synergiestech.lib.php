@@ -243,9 +243,27 @@ function synergiestech_ajax_autocompleter($selected, $htmlname, $url, $urloption
 							}
 						    }
                     });
+
 				$("input#search_'.$htmlname.'").autocomplete({
 					source: function( request, response ) {
-						$.get("'.$url.($urloption?'?'.$urloption:'').'", { '.$htmlname.': request.term }, function(data){
+		                var dynamic_data = "";
+                            if (options.dynamic_data) {
+                                var data = [];
+
+                                $.map(options.dynamic_data, function(key) {
+                                    var value = "";
+                                    if (typeof CKEDITOR == "object" && typeof CKEDITOR.instances != "undefined" && typeof CKEDITOR.instances[key] != "undefined") {
+                                        value = CKEDITOR.instances[key].getData();
+                                    } else {
+                                        value = $("#" + key).val();
+                                    }
+                                    data.push(encodeURIComponent(key) + "=" + encodeURIComponent(value));
+                                });
+
+                                dynamic_data = "'.($urloption?'&':'?').'" + data.join("&");
+                            }
+
+						$.get("'.$url.($urloption?'?'.$urloption:'').'"+dynamic_data, { '.$htmlname.': request.term }, function(data){
 								if (data != null)
 								{
 									response($.map( data, function(item) {

@@ -13,13 +13,6 @@
 --
 -- You should have received a copy of the GNU General Public License
 -- along with this program. If not, see <http://www.gnu.org/licenses/>.
--- ============================================================================
+-- ===========================================================================
 
-create table llx_societe_rm_user_in_charge
-(
-  rowid               integer AUTO_INCREMENT PRIMARY KEY,
-
-  fk_soc              integer NOT NULL,   -- id of the thirdparty
-  fk_user             integer NOT NULL,	  -- id of the technician user
-  fk_c_request_type   integer NOT NULL	  -- id of the request type into the dictionary
-)ENGINE=innodb;
+DROP TABLE `llx_societe_rm_user_in_charge`;

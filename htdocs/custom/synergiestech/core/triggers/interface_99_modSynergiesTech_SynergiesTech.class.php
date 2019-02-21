@@ -78,6 +78,16 @@ class InterfaceSynergiesTech extends DolibarrTriggers
                     }
                 }
 
+                // Set the availability of the request at no by default
+                $object->availability_for_thirdparty_principal = 0;
+                $object->availability_for_thirdparty_benefactor = 0;
+                $object->availability_for_thirdparty_watcher = 0;
+                $result = $object->update($user, 1);
+                if ($result < 0) {
+                    array_merge($this->errors, $object->errors);
+                    return -1;
+                }
+
                 dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
                 return 0;
             case 'REQUESTMANAGER_ADD_LINK':
@@ -263,6 +273,16 @@ class InterfaceSynergiesTech extends DolibarrTriggers
                             if (($et == $object->origin && $olid == $object->origin_id) || ($et == $object->element && $olid == $object->id)) continue;
                             $object->add_object_linked($et, $olid);
                         }
+                    }
+                }
+
+                // Delete lines of the inter
+                $object->fetch_lines();
+                foreach ($object->lines as $line) {
+                    if ($line->deleteline($user) < 0) {
+                        $this->error = $line->error;
+                        $this->errors = $line->errors;
+                        return -1;
                     }
                 }
 

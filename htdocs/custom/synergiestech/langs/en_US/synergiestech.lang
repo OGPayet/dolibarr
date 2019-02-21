@@ -51,8 +51,13 @@ SynergiesTechDefaultRequestTypeWhenCreate                           = Type de de
 #######################################################################
 # Extrafields
 #######################################################################
-SynergiesTechSerializable   = To serialize
-SynergiesTechWarranty       = Warranty (month)
+SynergiesTechSerializable           = To serialize
+SynergiesTechWarranty               = Warranty (month)
+SynergiesTechEstimatedBeginDate     = Date de début prévisionnel
+SynergiesTechEstimatedEndDate       = Date de fin prévisionnel
+SynergiesTechInvolvedUsers          = Utilisateur(s) intervenu(s)
+SynergiesTechCustomerSignature      = Signature(s) clients(s)
+SynergiesTechStakeholderSignature   = Signature(s) intervenant(s)
 
 #######################################################################
 # Force redirection

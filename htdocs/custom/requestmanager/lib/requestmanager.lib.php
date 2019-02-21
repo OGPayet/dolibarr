@@ -598,22 +598,22 @@ function requestmanager_show_events(&$requestmanager)
 
         // Button for change the view mode of the list
         $morehtml = '';
-        $morehtml .= '<a class="' . ($list_mode == 0 ? 'butActionRefused' : 'butAction') . '" href="' . ($list_mode == 0 ? '#' : $_SERVER['PHP_SELF'] . '?list_mode=0&page=' . urlencode($page) . $param . '#events-balise') . '">';
+        $morehtml .= '<a class="' . ($list_mode == 0 ? 'butActionRefused' : 'butAction') . '" href="' . ($list_mode == 0 ? '#' : $_SERVER['PHP_SELF'] . '?list_mode=0&page=' . urlencode($page) . $param . '#rm-events-balise') . '">';
         $morehtml .= $langs->trans("RequestManagerListMode");
         $morehtml .= '</a>';
-        $morehtml .= '<a class="' . ($list_mode == 1 ? 'butActionRefused' : 'butAction') . '" href="' . ($list_mode == 1 ? '#' : $_SERVER['PHP_SELF'] . '?list_mode=1&page=' . urlencode($page) . $param2 . '#events-balise') . '">';
+        $morehtml .= '<a class="' . ($list_mode == 1 ? 'butActionRefused' : 'butAction') . '" href="' . ($list_mode == 1 ? '#' : $_SERVER['PHP_SELF'] . '?list_mode=1&page=' . urlencode($page) . $param2 . '#rm-events-balise') . '">';
         $morehtml .= $langs->trans("RequestManagerTimeLineListMode");
         $morehtml .= '</a>';
-        $morehtml .= '<a class="' . ($list_mode == 2 ? 'butActionRefused' : 'butAction') . '" href="' . ($list_mode == 2 ? '#' : $_SERVER['PHP_SELF'] . '?list_mode=2&page=' . urlencode($page) . $param2 . '#timeline-balise') . '">';
+        $morehtml .= '<a class="' . ($list_mode == 2 ? 'butActionRefused' : 'butAction') . '" href="' . ($list_mode == 2 ? '#' : $_SERVER['PHP_SELF'] . '?list_mode=2&page=' . urlencode($page) . $param2 . '#rm-events-balise') . '">';
         $morehtml .= $langs->trans("RequestManagerTimeLineMode");
         $morehtml .= '</a>';
 
         if ($list_mode > 0) $param .= '&list_mode=' . urlencode($list_mode);
 
-        print '<div id="events-balise"></div>'."\n";
+        print '<div id="rm-events-balise"></div>'."\n";
 
         // Lignes des champs de filtre
-        print '<form method="POST" id="searchFormList" action="' . $_SERVER["PHP_SELF"] . '?id=' . $requestmanager->id . '#events-container">';
+        print '<form method="POST" id="searchFormList" action="' . $_SERVER["PHP_SELF"] . '?id=' . $requestmanager->id . '#rm-events-balise">';
         if ($optioncss != '') print '<input type="hidden" name="optioncss" value="' . $optioncss . '">';
         print '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '">';
         print '<input type="hidden" name="formfilteraction" id="formfilteraction" value="list">';
@@ -1058,7 +1058,7 @@ SCRIPT;
         $today_day = dol_print_date(dol_now(), 'daytext');
 
         $action_card_url = dol_buildpath('/comm/action/card.php', 1);
-        $backtopage = dol_buildpath('/requestmanager/card.php', 1) . '?id=' . $requestmanager->id;
+        $backtopage = dol_buildpath('/requestmanager/card.php', 1) . '?id=' . $requestmanager->id . '#rm-events-balise';
 
         $i = 0;
         while ($i < min($num, $limit)) {
@@ -1927,10 +1927,10 @@ function requestmanager_show_timelines(&$requestmanager)
 
         if ($list_mode > 0) $param .= '&list_mode=' . urlencode($list_mode);
 
-        print '<div id="timeline-balise"></div>' . "\n";
+        print '<div id="rm-events-balise"></div>' . "\n";
 
         // Lignes des champs de filtre
-        print '<form method="POST" id="searchFormList" action="' . $_SERVER["PHP_SELF"] . '?id=' . $requestmanager->id . '#timeline-container">';
+        print '<form method="POST" id="searchFormList" action="' . $_SERVER["PHP_SELF"] . '?id=' . $requestmanager->id . '#rm-events-balise">';
         print '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '">';
         print '<input type="hidden" name="formfilteraction" id="formfilteraction" value="list">';
         print '<input type="hidden" name="action" value="list">';

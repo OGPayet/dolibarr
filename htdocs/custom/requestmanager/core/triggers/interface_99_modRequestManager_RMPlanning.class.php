@@ -55,9 +55,9 @@ class InterfaceRMPlanning extends DolibarrTriggers
             // Companies
 		    case 'COMPANY_CREATE':
 		    case 'COMPANY_MODIFY':
-                // Management of the user(s) in charge for the planning
+                // Management of the user group(s) in charge for the planning
                 //----------------------------------------------------------------------
-                if (!empty($conf->global->REQUESTMANAGER_PLANNING_ACTIVATE) && $user->rights->requestmanager->user_in_charge->manage) {
+                if (!empty($conf->global->REQUESTMANAGER_PLANNING_ACTIVATE) && $user->rights->requestmanager->usergroup_in_charge->manage) {
                     $request_types_planned = !empty($conf->global->REQUESTMANAGER_PLANNING_REQUEST_TYPE) ? explode(',', $conf->global->REQUESTMANAGER_PLANNING_REQUEST_TYPE) : array();
                     dol_include_once('/advancedictionaries/class/dictionary.class.php');
                     $requestmanagerrequesttype = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagerrequesttype');
@@ -67,12 +67,12 @@ class InterfaceRMPlanning extends DolibarrTriggers
                     $requestmanagerplanning = new RequestManagerPlanning($this->db);
 
                     foreach ($requestmanagerrequesttype->lines as $request_type) {
-                        if (!in_array($request_type->id, $request_types_planned) || !isset($_POST['users_in_charge_' . $request_type->id])) continue;
+                        if (!in_array($request_type->id, $request_types_planned) || !isset($_POST['usergroups_in_charge_' . $request_type->id])) continue;
 
-                        $users_in_charge = GETPOST('users_in_charge_' . $request_type->id, 'array');
+                        $usergroups_in_charge = GETPOST('usergroups_in_charge_' . $request_type->id, 'array');
 
-                        // Save users in charge for the request type
-                        if ($requestmanagerplanning->setUsersInChargeForCompany($object->id, $request_type->id, $users_in_charge) < 0) {
+                        // Save user groups in charge for the request type
+                        if ($requestmanagerplanning->setUserGroupsInChargeForCompany($object->id, $request_type->id, $usergroups_in_charge) < 0) {
                             $this->error = $requestmanagerplanning->error;
                             $this->errors = $requestmanagerplanning->errors;
                             return -1;
@@ -84,14 +84,14 @@ class InterfaceRMPlanning extends DolibarrTriggers
 
                 break;
 		    case 'COMPANY_DELETE':
-                // Management of the user(s) in charge for the planning
+                // Management of the user group(s) in charge for the planning
                 //----------------------------------------------------------------------
-                if (!empty($conf->global->REQUESTMANAGER_PLANNING_ACTIVATE) && $user->rights->requestmanager->user_in_charge->manage) {
+                if (!empty($conf->global->REQUESTMANAGER_PLANNING_ACTIVATE) && $user->rights->requestmanager->usergroup_in_charge->manage) {
                     dol_include_once('/requestmanager/class/requestmanagerplanning.class.php');
                     $requestmanagerplanning = new RequestManagerPlanning($this->db);
 
-                    // Delete users in charge
-                    if ($requestmanagerplanning->deleteUsersInChargeForCompany($object->id) < 0) {
+                    // Delete user groups in charge
+                    if ($requestmanagerplanning->deleteUserGroupsInChargeForCompany($object->id) < 0) {
                         $this->error = $requestmanagerplanning->error;
                         $this->errors = $requestmanagerplanning->errors;
                         return -1;

@@ -317,11 +317,11 @@ else {
                           }
                       }
                   }
+//                  $ajaxoptions['dynamic_data'] = array('tags_categories');
               }
 
-              $ajaxoptions=array(
-						'update' => array('remise_percent' => 'discount'),	// html id tags that will be edited with which ajax json response key
-				);
+              $ajaxoptions['update'] = array('remise_percent' => 'discount');	// html id tags that will be edited with which ajax json response key
+
               if ($conf->global->ENTREPOT_EXTRA_STATUS) {
                   // hide products in closed warehouse, but show products for internal transfer
                   $formsynergiestech->select_produits(GETPOST('idprod'), 'idprod', $filtertype, $contract_categories, 1, $tag_categories, $mode, $equipment_categories, $conf->product->limit_size, $buyer->price_level, 1, 2, '', 1, $ajaxoptions, $buyer->id, '1', 0, '', 0, 'warehouseopen,warehouseinternal', GETPOST('combinations', 'array'));

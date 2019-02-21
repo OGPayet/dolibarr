@@ -478,9 +478,9 @@ SCRIPT;
             }
         }
 
-        // Management of the user(s) in charge for the planning
+        // Management of the user group(s) in charge for the planning
         //----------------------------------------------------------------------
-        if (!empty($conf->global->REQUESTMANAGER_PLANNING_ACTIVATE) && $user->rights->requestmanager->user_in_charge->lire && (in_array('thirdpartycard', $contexts) || in_array('commcard', $contexts))) {
+        if (!empty($conf->global->REQUESTMANAGER_PLANNING_ACTIVATE) && $user->rights->requestmanager->usergroup_in_charge->lire && (in_array('thirdpartycard', $contexts) || in_array('commcard', $contexts))) {
             $langs->load('requestmanager@requestmanager');
             dol_include_once('/requestmanager/class/html.formrequestmanager.class.php');
             $formrequestmanager = new FormRequestManager($this->db);
@@ -492,47 +492,47 @@ SCRIPT;
 
             dol_include_once('/requestmanager/class/requestmanagerplanning.class.php');
             $requestmanagerplanning = new RequestManagerPlanning($this->db);
-            $users_in_charge = $action != 'create' ? $requestmanagerplanning->getUsersInChargeForCompany($object->id) : array();
+            $usergroups_in_charge = $action != 'create' ? $requestmanagerplanning->getUserGroupsInChargeForCompany($object->id) : array();
 
-            // Technician(s) in charge
+            // User groups in charge
             if ($action == 'create' || $action == 'edit') {
                 foreach ($requestmanagerrequesttype->lines as $request_type) {
                     if (!in_array($request_type->id, $request_types_planned)) continue;
-                    $LabelTagName = 'RequestManagerPlanningUsersInChargeLabel_' . $request_type->fields['code'];
-                    print '<tr><td>' . $langs->trans($langs->trans($LabelTagName) != $LabelTagName ? $LabelTagName : 'RequestManagerPlanningUsersInChargeLabel', $request_type->fields['label']) . '</td>';
+                    $LabelTagName = 'RequestManagerPlanningUserGroupsInChargeLabel_' . $request_type->fields['code'];
+                    print '<tr><td>' . $langs->trans($langs->trans($LabelTagName) != $LabelTagName ? $LabelTagName : 'RequestManagerPlanningUserGroupsInChargeLabel', $request_type->fields['label']) . '</td>';
                     print '<td colspan="3">';
-                    $users_in_charge_for_request_type = isset($Post['users_in_charge_' . $request_type->id]) ? $Post['users_in_charge_' . $request_type->id] : (isset($users_in_charge[$request_type->id]) ? $users_in_charge[$request_type->id] : array());
-                    print $formrequestmanager->multiselect_dolusers($users_in_charge_for_request_type, 'users_in_charge_' . $request_type->id, null, 0, '', array(), 0, 0, 0, 'AND fk_soc IS NULL');
+                    $usergroups_in_charge_for_request_type = isset($Post['usergroups_in_charge_' . $request_type->id]) ? $Post['usergroups_in_charge_' . $request_type->id] : (isset($usergroups_in_charge[$request_type->id]) ? $usergroups_in_charge[$request_type->id] : array());
+                    print $formrequestmanager->multiselect_dolgroups($usergroups_in_charge_for_request_type, 'usergroups_in_charge_' . $request_type->id);
                     print '</td></tr>';
                 }
             } else {
                 foreach ($requestmanagerrequesttype->lines as $request_type) {
                     if (!in_array($request_type->id, $request_types_planned)) continue;
-                    $LabelTagName = 'RequestManagerPlanningUsersInChargeLabel_' . $request_type->fields['code'];
+                    $LabelTagName = 'RequestManagerPlanningUserGroupsInChargeLabel_' . $request_type->fields['code'];
                     print '<tr><td>';
                     print '<table class="nobordernopadding" width="100%"><tr><td>';
-                    print $langs->trans($langs->trans($LabelTagName) != $LabelTagName ? $LabelTagName : 'RequestManagerPlanningUsersInChargeLabel', $request_type->fields['label']);
+                    print $langs->trans($langs->trans($LabelTagName) != $LabelTagName ? $LabelTagName : 'RequestManagerPlanningUserGroupsInChargeLabel', $request_type->fields['label']);
                     print '</td>';
-                    if ($action != 'edit_users_in_charge_' . $request_type->id && $user->rights->requestmanager->user_in_charge->manage)
-                        print '<td align="right"><a href="' . $_SERVER["PHP_SELF"] . '?action=edit_users_in_charge_' . $request_type->id . '&socid=' . $object->id . '">' . img_edit('', 1) . '</a></td>';
+                    if ($action != 'edit_usergroups_in_charge_' . $request_type->id && $user->rights->requestmanager->usergroup_in_charge->manage)
+                        print '<td align="right"><a href="' . $_SERVER["PHP_SELF"] . '?action=edit_usergroups_in_charge_' . $request_type->id . '&socid=' . $object->id . '">' . img_edit('', 1) . '</a></td>';
                     print '</tr></table>';
                     print '</td><td>';
-                    if ($action == 'edit_users_in_charge_' . $request_type->id && $user->rights->requestmanager->user_in_charge->manage) {
-                        print '<form name="edit_users_in_charge" action="' . $_SERVER["PHP_SELF"] . '?socid=' . $object->id . '" method="post">';
+                    if ($action == 'edit_usergroups_in_charge_' . $request_type->id && $user->rights->requestmanager->usergroup_in_charge->manage) {
+                        print '<form name="edit_usergroups_in_charge" action="' . $_SERVER["PHP_SELF"] . '?socid=' . $object->id . '" method="post">';
                         print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
-                        print '<input type="hidden" name="action" value="set_edit_users_in_charge">';
-                        $users_in_charge_for_request_type = isset($Post['users_in_charge_' . $request_type->id]) ? $Post['users_in_charge_' . $request_type->id] : (isset($users_in_charge[$request_type->id]) ? $users_in_charge[$request_type->id] : array());
-                        print $formrequestmanager->multiselect_dolusers($users_in_charge_for_request_type, 'users_in_charge_' . $request_type->id, null, 0, '', array(), 0, 0, 0, 'AND fk_soc IS NULL');
+                        print '<input type="hidden" name="action" value="set_edit_usergroups_in_charge">';
+                        $usergroups_in_charge_for_request_type = isset($Post['usergroups_in_charge_' . $request_type->id]) ? $Post['usergroups_in_charge_' . $request_type->id] : (isset($usergroups_in_charge[$request_type->id]) ? $usergroups_in_charge[$request_type->id] : array());
+                        print $formrequestmanager->multiselect_dolgroups($usergroups_in_charge_for_request_type, 'usergroups_in_charge_' . $request_type->id);
                         print '<input type="submit" class="button" value="' . $langs->trans('Modify') . '">';
                         print '</form>';
                     } else {
-                        require_once DOL_DOCUMENT_ROOT . '/user/class/user.class.php';
-                        $user_static = new User($this->db);
+                        require_once DOL_DOCUMENT_ROOT . '/user/class/usergroup.class.php';
+                        $usergroup_static = new UserGroup($this->db);
                         $toprint = array();
-                        $users_in_charge_for_request_type = isset($users_in_charge[$request_type->id]) ? $users_in_charge[$request_type->id] : array();
-                        foreach ($users_in_charge_for_request_type as $user_id) {
-                            $user_static->fetch($user_id);
-                            $toprint[] = $user_static->getNomUrl(1);
+                        $usergroups_in_charge_for_request_type = isset($usergroups_in_charge[$request_type->id]) ? $usergroups_in_charge[$request_type->id] : array();
+                        foreach ($usergroups_in_charge_for_request_type as $usergroup_id) {
+                            $usergroup_static->fetch($usergroup_id);
+                            $toprint[] = $usergroup_static->name;
                         }
                         print implode(', ', $toprint);
                     }
@@ -681,10 +681,10 @@ SCRIPT;
             }
         }
 
-        // Management of the user(s) in charge for the planning
+        // Management of the user group(s) in charge for the planning
         //----------------------------------------------------------------------
         if (!empty($conf->global->REQUESTMANAGER_PLANNING_ACTIVATE) && (in_array('thirdpartycard', $contexts) || in_array('commcard', $contexts))) {
-            if ($action == 'set_edit_users_in_charge' && $user->rights->requestmanager->user_in_charge->manage) {
+            if ($action == 'set_edit_usergroups_in_charge' && $user->rights->requestmanager->usergroup_in_charge->manage) {
                 if (!($object->id > 0)) {
                     $id = (GETPOST('socid','int') ? GETPOST('socid','int') : GETPOST('id','int'));
                     $object->fetch($id);
@@ -698,12 +698,12 @@ SCRIPT;
                 $requestmanagerplanning = new RequestManagerPlanning($this->db);
 
                 foreach ($requestmanagerrequesttype->lines as $request_type) {
-                    if (!in_array($request_type->id, $request_types_planned) || !isset($_POST['users_in_charge_' . $request_type->id])) continue;
+                    if (!in_array($request_type->id, $request_types_planned) || !isset($_POST['usergroups_in_charge_' . $request_type->id])) continue;
 
-                    $users_in_charge = GETPOST('users_in_charge_' . $request_type->id, 'array');
+                    $usergroups_in_charge = GETPOST('usergroups_in_charge_' . $request_type->id, 'array');
 
                     // Save users in charge for the request type
-                    if ($requestmanagerplanning->setUsersInChargeForCompany($object->id, $request_type->id, $users_in_charge) > 0) {
+                    if ($requestmanagerplanning->setUserGroupsInChargeForCompany($object->id, $request_type->id, $usergroups_in_charge) > 0) {
                         header('Location: ' . $_SERVER["PHP_SELF"] . '?socid=' . $object->id);
                         exit;
                     } else {

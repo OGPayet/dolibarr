@@ -11,8 +11,8 @@ Permission163033 = Créer/modifier les demandes
 Permission163034 = Supprimer les demandes
 Permission163035 = Réouvrir les demandes cloturées
 Permission163036 = Voir les documents des demandes
-Permission163052 = Voir les utilisateur(s) en charge sur les tiers pour la planification des demandes
-Permission163053 = Gère les utilisateur(s) en charge sur les tiers pour la planification des demandes
+Permission163052 = Voir le(s) groupe(s) utilisateur(s) en charge sur les tiers pour la planification des demandes
+Permission163053 = Gère le(s) groupe(s) utilisateur(s) en charge sur les tiers pour la planification des demandes
 Permission163054 = Voir la planification des demandes
 Permission163055 = Gère la planification des demandes
 

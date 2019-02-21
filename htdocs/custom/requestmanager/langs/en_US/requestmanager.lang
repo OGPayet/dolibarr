@@ -11,10 +11,10 @@ Permission163033 = Créer/modifier les demandes
 Permission163034 = Supprimer les demandes
 Permission163035 = Réouvrir les demandes cloturées
 Permission163036 = Voir les documents des demandes
-Permission163052 = Voir les utilisateur(s) en charge sur les tiers pour la planification des demandes
-Permission163053 = Creer/Modifier les utilisateur(s) en charge sur les tiers pour la planification des demandes
+Permission163052 = Voir le(s) groupe(s) utilisateur(s) en charge sur les tiers pour la planification des demandes
+Permission163053 = Gère le(s) groupe(s) utilisateur(s) en charge sur les tiers pour la planification des demandes
 Permission163054 = Voir la planification des demandes
-Permission163055 = Creer/Modifier la planification des demandes
+Permission163055 = Gère la planification des demandes
 
 ############################################################
 ### Admin setup
@@ -38,8 +38,8 @@ RequestManagerPlanningActivateDesc                      = Active la planificatio
 RequestManagerPlanningRequestTypesName                  = Types de demandes
 RequestManagerPlanningRequestTypesDesc                  = Sélection des types de demandes planifiées
 RequestManagerPlanningRequestStatusName                 = Type de demande "%s"
-RequestManagerPlanningRequestStatusToPlanDesc           = Selection du statut de la demande "à planifier"
-RequestManagerPlanningRequestStatusPlannedDesc          = Selection du statut de la demande "planifié"
+RequestManagerPlanningRequestStatusToPlanDesc           = Sélection du statut de la demande "à planifier"
+RequestManagerPlanningRequestStatusPlannedDesc          = Sélection du statut de la demande "planifié"
 
 RequestManagerChronometerOptions                        = Paramètres du chronomètre
 RequestManagerChronometerActivateName                   = Activation
@@ -165,6 +165,8 @@ RequestManagerMenuLeftMyList               = Mes demandes
 RequestManagerMenuLeftListNotAssigned      = Demandes non attribuées
 RequestManagerMenuLeftListNotResolved      = Demandes non résolues
 RequestManagerMenuLeftListClosed           = Demandes clôturées
+RequestManagerMenuLeftPlanningList                  = Planification des demandes
+RequestManagerMenuLeftPlanningListInCharge          = Dont je suis en charge
 RequestManagerMenuTopRequestsFollow        = Suivi des demandes
 RequestManagerMenuTopDateLastView          = Date du dernier accès
 RequestManagerMenuTopCreateFast            = Création de demande rapide
@@ -293,6 +295,8 @@ RequestManagerDeleteRequest                 = Supprimer demande
 RequestManagerConfirmDeleteRequest          = Êtes-vous sûr de vouloir supprimer cette demande ?
 RequestManagerAssignMySelf                  = M'assigner à la demande
 RequestManagerConfirmAssignMySelf           = Une ou des personnes sont déja assignées à cette demande.<br>Êtes-vous sûr de vouloir vous assigner à cette demande ?
+RequestManagerPlanningRequest               = Planification de la ou des demande(s)
+RequestManagerConfirmPlanningRequest        = Êtes-vous sûr de vouloir planifier cette ou ces demande(s) ?
 
 ############################################################
 ### Events list on card
@@ -302,7 +306,8 @@ RequestManagerListMode                                  = Vue Liste
 RequestManagerTimeLineListMode                          = Vue Liste (chronologiques)
 RequestManagerTimeLineMode                              = Messages en vue chronologiques
 RequestManagerEventType                                 = Type d'événements
-RequestManagerDontShowSelectedEventType                 = Ne pas afficher les types d'événements sélectionnés
+RequestManagerExceptEventType                           = Sauf les types d'événements
+RequestManagerDontShowSelectedEventTypeAndOrigin        = Ne pas afficher les types d'événements et d'orignes sélectionnés
 RequestManagerOnlyLinkedObjectToThisRequest             = Ne voir que les événements liés à cette demande
 RequestManagerIncludeEventOfOtherRequest                = Voir aussi les événements des autres demandes
 RequestManagerIncludeLinkedEventToChildrenOfThisRequest = Voir aussi les événements des sous demandes
@@ -351,6 +356,13 @@ RequestManagerExternalReferenceShort    = Réf. externe
 RequestManagerResolvedBy                = Résolu par
 RequestManagerDateResolved              = Date Résolu
 RequestManagerDontShowChildrenRequest   = Ne pas afficher les demandes enfants
+RequestManagerRequestPlanningListTab                = Planification des demandes
+RequestManagerPlanningListOfRequests                = Planification des demandes
+RequestManagerPlanningRequestTypeNotConfigured      = Auncun type de demande n'a été configuré pour la planification dans la configuration du module "Request Manager"
+RequestManagerPlanning                              = Planification
+RequestManagerPlanningInCharge                      = Dont je suis en charge
+RequestManagerPlanningUsersInCharge                 = Utilisateur(s) en charge
+RequestManagerPlanningToPlan                        = Planifier
 
 ############################################################
 ### Lists follow
@@ -401,6 +413,10 @@ RequestManagerErrorMustBeNotEmpty                                           = Ne
 RequestManagerErrorNotAuthorized                                            = Pas autorisé
 RequestManagerErrorMustBeOneNextStatus                                      = Doit n'avoir qu'un prochain statut de paramètré
 RequestManagerErrorStatusDoNotHaveThisReasonResolution                      = Le statut "%s" ne possède pas ce motif de résolution
+RequestManagerErrorPlanningRequestStatusToPlanMandatory                     = La sélection du statut de la demande "à planifier" est obligatoire pour le type de demande "%s"
+RequestManagerErrorPlanningRequestStatusPlannedMandatory                    = La sélection du statut de la demande "planifié" est obligatoire pour le type de demande "%s"
+RequestManagerErrorForRequest                                               = Erreur pour la demande (%s) :
+RequestManagerErrorPlanningRequestStatusPlannedNotConfigured                = La statut "planifié" n'est pas configuré pour le type de cette demande
 
 ######################################################################
 # Dictionaries
@@ -566,4 +582,4 @@ RequestManagerIPBXTalkers           = Numéro des interlocuteurs : %s,%s
 ############################################################
 ### Intervention planning
 ############################################################
-RequestManagerPlanningUsersInChargeLabel    = Utilisateur(s) en charge pour les demandes de type "%s"
+RequestManagerPlanningUserGroupsInChargeLabel    = Groupe(s) utilisateur(s) en charge pour les demandes de type "%s"

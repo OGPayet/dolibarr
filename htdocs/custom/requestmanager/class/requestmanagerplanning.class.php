@@ -52,15 +52,15 @@ class RequestManagerPlanning
     }
 
     /**
-     *  Get all users in charge for a company by request type
+     *  Get all user groups in charge for a company by request type
      *
      * @param   int             $company_id     Company ID
-     * @return  int|array                       <0 if KO, List of Users ID in charge for the company by request type
+     * @return  int|array                       <0 if KO, List of User groups ID in charge for the company by request type
      */
-    public function getUsersInChargeForCompany($company_id)
+    public function getUserGroupsInChargeForCompany($company_id)
     {
         $this->errors = array();
-        $users_in_charge = array();
+        $usergroups_in_charge = array();
 
         dol_syslog(__METHOD__ . " company_id=" . $company_id, LOG_DEBUG);
 
@@ -73,13 +73,13 @@ class RequestManagerPlanning
         }
 
         // Get users in charge
-        $sql = "SELECT fk_user, fk_c_request_type FROM " . MAIN_DB_PREFIX . "societe_rm_user_in_charge";
+        $sql = "SELECT fk_usergroup, fk_c_request_type FROM " . MAIN_DB_PREFIX . "societe_rm_usergroup_in_charge";
         $sql .= " WHERE fk_soc = " . $company_id;
 
         $resql = $this->db->query($sql);
         if ($resql) {
             while ($obj = $this->db->fetch_object($resql)) {
-                $users_in_charge[$obj->fk_c_request_type][$obj->fk_user] = $obj->fk_user;
+                $usergroups_in_charge[$obj->fk_c_request_type][$obj->fk_usergroup] = $obj->fk_usergroup;
             }
         } else {
             $this->errors[] = 'Error ' . $this->db->lasterror();
@@ -87,28 +87,28 @@ class RequestManagerPlanning
             return -1;
         }
 
-        return $users_in_charge;
+        return $usergroups_in_charge;
     }
 
     /**
-     *  Set all users in charge for a company and a request type
+     *  Set all user groups in charge for a company and a request type
      *
      * @param   int             $company_id             Company ID
      * @param   int             $request_type_id        Request Type ID
-     * @param   array           $users_in_charge        List of Users ID in charge
+     * @param   array           $usergroups_in_charge   List of User groups ID in charge
      * @return  int                                     <0 if KO, >0 if OK
      */
-    public function setUsersInChargeForCompany($company_id, $request_type_id, $users_in_charge)
+    public function setUserGroupsInChargeForCompany($company_id, $request_type_id, $usergroups_in_charge)
     {
         $error = 0;
         $this->errors = array();
 
-        dol_syslog(__METHOD__ . " company_id=" . $company_id . " request_type_id=" . $request_type_id . " users_in_charge=" . json_encode($users_in_charge), LOG_DEBUG);
+        dol_syslog(__METHOD__ . " company_id=" . $company_id . " request_type_id=" . $request_type_id . " usergroups_in_charge=" . json_encode($usergroups_in_charge), LOG_DEBUG);
 
         // Clean parameters
         $company_id = $company_id > 0 ? $company_id : 0;
         $request_type_id = $request_type_id > 0 ? $request_type_id : 0;
-        $users_in_charge = is_array($users_in_charge) ? $users_in_charge : (is_string($users_in_charge) ? array_filter(explode(',', $users_in_charge), 'is_numeric') : array());
+        $usergroups_in_charge = is_array($usergroups_in_charge) ? $usergroups_in_charge : (is_string($usergroups_in_charge) ? array_filter(explode(',', $usergroups_in_charge), 'is_numeric') : array());
 
         if ($company_id == 0 || $request_type_id == 0) {
             dol_syslog(__METHOD__ . " Errors bad parameters: company_id=" . $company_id . " request_type_id=" . $request_type_id, LOG_ERR);
@@ -118,15 +118,15 @@ class RequestManagerPlanning
         $this->db->begin();
 
         // Delete old values
-        if ($this->deleteUsersInChargeForCompany($company_id) < 0) {
+        if ($this->deleteUserGroupsInChargeForCompany($company_id) < 0) {
             $error++;
         }
 
-        if (!$error && count($users_in_charge) > 0) {
+        if (!$error && count($usergroups_in_charge) > 0) {
             // Set users in charge
-            $sql = "INSERT INTO " . MAIN_DB_PREFIX . "societe_rm_user_in_charge (fk_soc, fk_user, fk_c_request_type) VALUES";
-            foreach ($users_in_charge as $user_id) {
-                $sql .= " (" . $company_id . "," . $user_id . "," . $request_type_id . "),";
+            $sql = "INSERT INTO " . MAIN_DB_PREFIX . "societe_rm_usergroup_in_charge (fk_soc, fk_usergroup, fk_c_request_type) VALUES";
+            foreach ($usergroups_in_charge as $usergroup_id) {
+                $sql .= " (" . $company_id . "," . $usergroup_id . "," . $request_type_id . "),";
             }
             $sql = substr($sql, 0, -1);
 
@@ -150,12 +150,12 @@ class RequestManagerPlanning
     }
 
     /**
-     *  Delete all users in charge for a company
+     *  Delete all user groups in charge for a company
      *
      * @param   int             $company_id     Company ID
      * @return  int                             <0 if KO, >0 if OK
      */
-    public function deleteUsersInChargeForCompany($company_id)
+    public function deleteUserGroupsInChargeForCompany($company_id)
     {
         $this->errors = array();
 
@@ -170,7 +170,7 @@ class RequestManagerPlanning
         }
 
         // Delete users in charge
-        $sql = "DELETE FROM " . MAIN_DB_PREFIX . "societe_rm_user_in_charge";
+        $sql = "DELETE FROM " . MAIN_DB_PREFIX . "societe_rm_usergroup_in_charge";
         $sql .= " WHERE fk_soc = " . $company_id;
 
         $resql = $this->db->query($sql);

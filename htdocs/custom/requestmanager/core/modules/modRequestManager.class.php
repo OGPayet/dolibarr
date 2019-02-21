@@ -69,7 +69,7 @@ class modRequestManager extends DolibarrModules
         $this->editor_url = 'http://www.open-dsi.fr';
 
         // Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-        $this->version = '4.0.22';
+        $this->version = '4.0.23';
         // Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
         $this->const_name = 'MAIN_MODULE_' . strtoupper($this->name);
         // Name of image file used for this module.
@@ -247,16 +247,16 @@ class modRequestManager extends DolibarrModules
         $r++;
 
         $this->rights[$r][0] = 163052;
-        $this->rights[$r][1] = 'Voir les utilisateur(s) en charge sur les tiers pour la planification des demandes';
+        $this->rights[$r][1] = 'Voir le(s) groupe(s) utilisateur(s) en charge sur les tiers pour la planification des demandes';
         $this->rights[$r][3] = 0;
-        $this->rights[$r][4] = 'user_in_charge';
+        $this->rights[$r][4] = 'usergroup_in_charge';
         $this->rights[$r][5] = 'lire';
         $r++;
 
         $this->rights[$r][0] = 163053;
-        $this->rights[$r][1] = 'Creer/Modifier les utilisateur(s) en charge sur les tiers pour la planification des demandes';
+        $this->rights[$r][1] = 'Creer/Modifier le(s) groupe(s) utilisateur(s) en charge sur les tiers pour la planification des demandes';
         $this->rights[$r][3] = 0;
-        $this->rights[$r][4] = 'user_in_charge';
+        $this->rights[$r][4] = 'usergroup_in_charge';
         $this->rights[$r][5] = 'manage';
         $r++;
 

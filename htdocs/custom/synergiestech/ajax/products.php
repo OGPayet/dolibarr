@@ -59,6 +59,7 @@ $price_by_qty_rowid = GETPOST('pbq', 'int');
 $finished = GETPOST('finished', 'int');
 $alsoproductwithnosupplierprice = GETPOST('alsoproductwithnosupplierprice', 'int');
 $warehouseStatus = GETPOST('warehousestatus', 'alpha');
+$tags_categories = GETPOST('tags_categories', 'array');
 
 
 /*
@@ -197,6 +198,28 @@ else
 
 	// When used from jQuery, the search term is added as GET param "term".
 	$searchkey = (($idprod && GETPOST($idprod,'alpha')) ? GETPOST($idprod,'alpha') :  (GETPOST($htmlname, 'alpha') ? GETPOST($htmlname, 'alpha') : ''));
+
+//	if ($mode == 1) {
+//        require_once DOL_DOCUMENT_ROOT . '/categories/class/categorie.class.php';
+//        $categorie_static = new Categorie($db);
+//        $all_categories = $categorie_static->get_full_arbo('product');
+//
+//        $include_tag_categories = array();
+//        foreach ($tags_categories as $category_id) {
+//            if (!isset($include_tag_categories[$category_id])) {
+//                // Get all sub categories of the categories founded
+//                foreach ($all_categories as $cat) {
+//                    if (preg_match('/^' . $category_id . '$/', $cat['fullpath']) ||
+//                        preg_match('/_' . $category_id . '$/', $cat['fullpath']) ||
+//                        preg_match('/^' . $category_id . '_/', $cat['fullpath']) ||
+//                        preg_match('/_' . $category_id . '_/', $cat['fullpath'])
+//                    ) {
+//                        $include_tag_categories[$cat['id']] = $cat['id'];
+//                    }
+//                }
+//            }
+//        }
+//    }
 
 	$form = new Form($db);
 	if (empty($mode) || $mode == 1) {  // mode=1: customer

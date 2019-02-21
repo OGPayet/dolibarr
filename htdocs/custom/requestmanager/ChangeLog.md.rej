@@ -1,24 +1,10 @@
 diff a/htdocs/custom/requestmanager/ChangeLog.md b/htdocs/custom/requestmanager/ChangeLog.md	(rejected hunks)
-@@ -3,6 +3,22 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
+@@ -5,7 +5,7 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
  
- ## [Non Distribué]
+ ## [4.0.22] - 31-01-2019
+ - Ajout de la planification des demandes
+-- Peut changer le texte des 'Utilisateur(s) en charge pour les demandes de type "xxx"'  en définisant la traduction sur la balise "RequestManagerPlanningUsersInChargeLabel_(Code du type de demande)"
++- Peut changer le texte des 'Utilisateur(s) en charge pour les demandes de type "xxx"'  en définisant la traduction sur la balise "RequestManagerPlanningUserGroupsInChargeLabel_(Code du type de demande)"
  
-+## [4.0.22] - 31-01-2019
-+- Ajout de la planification des demandes
-+- Peut changer le texte des 'Utilisateur(s) en charge pour les demandes de type "xxx"'  en définisant la traduction sur la balise "RequestManagerPlanningUsersInChargeLabel_(Code du type de demande)"
-+
-+## [4.0.21] - 29-01-2019
-+- Correction "error 500" sur l'écran de création rapide des demandes si type de demande non renseigné
-+- Correction lors de l'enregistrement du motif de résolution de la demande
-+- Correction de l'enregistrement du message d'une demande lorsqu'il y avais du code HTML dedans
-+- Correction de la prise en compte des minute des dates d'opération et d'échéance lors de sa modification sur la fiche de la demande
-+- Correction de l'affichage des demandes encours liés au tiers choisis sur la page de création rapide
-+- Correction lors de la suppression d'une demande comportant des demandes filles
-+- Correction de la copie des lignes d'une demande mère lors de la création d'une demande fille
-+- Correction des liens de création d'une commandes, devis, ... pour le passage du bénéficiaire
-+- Ajout de la selection automatique de la source lors de la selection d'un événement non traité sur la page de création rapide des demandes
-+- Rajout des info-bulle de "retard" (date d'échéance) sur la liste des demande et la fiche d'une demande
-+
- ## [4.0.20] - 16-01-2019
- - Correction du changement des dates operation et echeance lors d'une creation ou modification d'un evenement (seulement ceux qui ne sont pas automatiques)
- 
+ ## [4.0.21] - 29-01-2019
+ - Correction "error 500" sur l'écran de création rapide des demandes si type de demande non renseigné

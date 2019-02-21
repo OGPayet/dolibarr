@@ -252,6 +252,7 @@ if ($search_notify_watcher_by_email === '') $search_notify_watcher_by_email = -1
 if ($search_notify_assigned_by_email === '') $search_notify_assigned_by_email = -1;
 if ($search_reason_resolution === '') $search_reason_resolution = -1;
 if ($status_type === '') $status_type = -1;
+if ($planning && count($search_in_charge)) $search_in_charge = array_filter(array_map('trim', $search_in_charge), 'strlen');
 if ($planning && empty($search_in_charge) && $my_list) $search_in_charge = array($user->id);
 if ($planning && count($search_in_charge) == 1 && in_array($user->id, $search_in_charge)) $my_list = 1;
 
@@ -287,6 +288,24 @@ if (empty($reshook)) {
                 }
                 if (!$error && $request_static->set_status($conf->global->{'REQUESTMANAGER_PLANNING_REQUEST_STATUS_PLANNED_' . $request_static->fk_type}, -1, $user) <= 0) $error++;
                 $request_static->date_operation = $date_operation;
+                // calculate deadline date with operation date or now and the offset deadline time in minutes
+                if (GETPOST('recalculate_date_deadline', 'int') == 1) {
+                    dol_include_once('/advancedictionaries/class/dictionary.class.php');
+                    $requestManagerStatusDictionaryLine = Dictionary::getDictionaryLine($db, 'requestmanager', 'requestmanagerstatus');
+                    $res = $requestManagerStatusDictionaryLine->fetch($object->statut);
+                    if ($res > 0) {
+                        $deadline_offset = $requestManagerStatusDictionaryLine->fields['deadline'];
+                        $now = dol_now();
+                        if (isset($deadline_offset) && $deadline_offset > 0) {
+                            $object->date_deadline = ($object->date_operation > 0 ? $object->date_operation : $now) + ($deadline_offset * 60);
+        //                } elseif (intval($conf->global->REQUESTMANAGER_DEADLINE_TIME_DEFAULT) > 0) {
+        //                    $object->date_deadline = ($object->date_operation > 0 ? $object->date_operation : $now) + (intval($conf->global->REQUESTMANAGER_DEADLINE_TIME_DEFAULT) * 60);
+                        }
+                    } else {
+                        setEventMessages($requestManagerStatusDictionaryLine->error, $requestManagerStatusDictionaryLine->errors, 'errors');
+                        $error++;
+                    }
+                }
                 $request_static->assigned_user_ids = $assigned_user_ids;
                 $request_static->context['rm_planning'] = true;
                 if (!$error && $request_static->update($user) <= 0) $error++;
@@ -403,10 +422,11 @@ if (empty($planning) || count($request_types_planned) > 0) {
         $request_list = $massaction == 'rm_planning' ? $toselect : array($request_id);
         $request_list = array_flip(array_flip($request_list));
         if ($nb_request_selected = count($request_list)) {
-            $sql = 'SELECT srmuic.fk_user, COUNT(DISTINCT rm.rowid) AS nb_request_in_charge FROM ' . MAIN_DB_PREFIX . 'societe_rm_user_in_charge AS srmuic' .
-                ' LEFT JOIN ' . MAIN_DB_PREFIX . 'requestmanager as rm ON (srmuic.fk_soc = rm.fk_soc OR srmuic.fk_soc = rm.fk_soc_benefactor) AND srmuic.fk_c_request_type = rm.fk_type' .
+            $sql = 'SELECT ugu.fk_user, COUNT(DISTINCT rm.rowid) AS nb_request_in_charge FROM ' . MAIN_DB_PREFIX . 'societe_rm_usergroup_in_charge AS srmugic' .
+                ' LEFT JOIN ' . MAIN_DB_PREFIX . 'usergroup_user as ugu ON ugu.fk_usergroup = srmugic.fk_usergroup AND ' . (!empty($conf->multicompany->enabled) && $conf->entity == 1 && $user->admin && !$user->entity ? 'ugu.entity IS NOT NULL' : 'ugu.entity IN (0,' . $conf->entity . ')') .
+                ' LEFT JOIN ' . MAIN_DB_PREFIX . 'requestmanager as rm ON (srmugic.fk_soc = rm.fk_soc OR srmugic.fk_soc = rm.fk_soc_benefactor) AND srmugic.fk_c_request_type = rm.fk_type' .
                 ' WHERE rm.rowid IN (' . implode(',', $request_list) . ')' .
-                ' GROUP BY srmuic.fk_user';
+                ' GROUP BY ugu.fk_user';
 
             $resql = $db->query($sql);
             if ($resql) {
@@ -481,7 +501,7 @@ SCRIPT;
     $sql .= ' rm.fk_impact, crmi.label as impact_label,';
     $sql .= ' rm.fk_priority, crmp.label as priority_label,';
     $sql .= ' rm.notify_requester_by_email, rm.notify_watcher_by_email, rm.notify_assigned_by_email,';
-    if ($planning) $sql .= ' GROUP_CONCAT(DISTINCT srmuic.fk_user SEPARATOR \',\') as users_in_charge,';
+    if ($planning) $sql .= ' GROUP_CONCAT(DISTINCT ugu.fk_user SEPARATOR \',\') as users_in_charge,';
     $sql .= ' GROUP_CONCAT(DISTINCT rmau.fk_user SEPARATOR \',\') as assigned_users,';
     $sql .= ' GROUP_CONCAT(DISTINCT rmaug.fk_usergroup SEPARATOR \',\') as assigned_usergroups,';
     $sql .= ' rm.duration, rm.date_operation, rm.date_deadline, rm.date_resolved, rm.date_closed,';
@@ -516,7 +536,10 @@ SCRIPT;
     $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'user as uc ON uc.rowid = rm.fk_user_closed';
     $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'user as ua ON ua.rowid = rm.fk_user_author';
     $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'user as um ON um.rowid = rm.fk_user_modif';
-    if ($planning) $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'societe_rm_user_in_charge as srmuic ON (srmuic.fk_soc = rm.fk_soc OR srmuic.fk_soc = rm.fk_soc_benefactor) AND srmuic.fk_c_request_type = rm.fk_type';
+    if ($planning) {
+        $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'societe_rm_usergroup_in_charge as srmugic ON (srmugic.fk_soc = rm.fk_soc OR srmugic.fk_soc = rm.fk_soc_benefactor) AND srmugic.fk_c_request_type = rm.fk_type';
+        $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'usergroup_user as ugu ON ugu.fk_usergroup = srmugic.fk_usergroup AND ' . (!empty($conf->multicompany->enabled) && $conf->entity == 1 && $user->admin && !$user->entity ? 'ugu.entity IS NOT NULL' : 'ugu.entity IN (0,' . $conf->entity . ')');
+    }
     $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'requestmanager_assigned_user as rmau ON rmau.fk_requestmanager = rm.rowid';
     $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'requestmanager_assigned_usergroup as rmaug ON rmaug.fk_requestmanager = rm.rowid';
     if (count($search_tags)) $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . "categorie_requestmanager as cp ON rm.rowid = cp.fk_requestmanager"; // We'll need this table joined to the select in order to filter by categ
@@ -545,12 +568,13 @@ SCRIPT;
         $sql .= '   GROUP BY rm.rowid';
         $sql .= ' ) as assigned ON assigned.rowid = rm.rowid';
     }
-    if ($planning && count($search_in_charge)) {
+    if ($planning && count($search_in_charge) > 0) {
         $sql .= ' INNER JOIN (';
-        $sql .= '   SELECT fk_soc, fk_c_request_type';
-        $sql .= '   FROM ' . MAIN_DB_PREFIX . 'societe_rm_user_in_charge';
-        $sql .= '   WHERE fk_user IN (' . implode(',', $search_in_charge) . ')';
-        $sql .= '   GROUP BY fk_soc, fk_c_request_type';
+        $sql .= '   SELECT srmugic.fk_soc, srmugic.fk_c_request_type ';
+        $sql .= '   FROM ' . MAIN_DB_PREFIX . 'societe_rm_usergroup_in_charge as srmugic';
+        $sql .= '   LEFT JOIN ' . MAIN_DB_PREFIX . 'usergroup_user as ugu ON ugu.fk_usergroup = srmugic.fk_usergroup AND ' . (!empty($conf->multicompany->enabled) && $conf->entity == 1 && $user->admin && !$user->entity ? 'ugu.entity IS NOT NULL' : 'ugu.entity IN (0,' . $conf->entity . ')');
+        $sql .= '   WHERE ugu.fk_user IN (' . implode(',', $search_in_charge) . ')';
+        $sql .= '   GROUP BY srmugic.fk_soc, srmugic.fk_c_request_type';
         $sql .= ' ) as in_charge ON (in_charge.fk_soc = rm.fk_soc OR in_charge.fk_soc = rm.fk_soc_benefactor) AND in_charge.fk_c_request_type = rm.fk_type';
     }
     // Add From from hooks
@@ -675,7 +699,7 @@ SCRIPT;
         if ($search_assigned_usergroup) $param .= '&search_assigned_usergroup=' . urlencode($search_assigned_usergroup);
         if ($search_notify_assigned_by_email >= 0) $param .= '&search_notify_assigned_by_email=' . urlencode($search_notify_assigned_by_email);
         if ($search_description) $param .= '&search_description=' . urlencode($search_description);
-        if ($search_tags) $param .= "&search_tags=" . urlencode($search_tags);
+        if (count($search_tags)) $param .= '&'.http_build_query(array('search_tags'=>$search_tags));
         if ($search_reason_resolution > 0) $param .= '&search_reason_resolution=' . urlencode($search_reason_resolution);
         if ($search_reason_resolution_details) $param .= '&search_reason_resolution_details=' . urlencode($search_reason_resolution_details);
         if ($search_date_resolved) $param .= '&search_date_resolved=' . urlencode($search_date_resolved);
@@ -698,7 +722,13 @@ SCRIPT;
         foreach ($search_array_options as $key => $val) {
             $crit = $val;
             $tmpkey = preg_replace('/search_options_/', '', $key);
-            if ($val != '') $param .= '&search_options_' . $tmpkey . '=' . urlencode($val);
+            if ($val != '') {
+                if (is_array($val)) {
+                    $param .= '&'.http_build_query(array('search_options_' . $tmpkey=>$val));
+                } else {
+                    $param .= '&search_options_' . $tmpkey . '=' . urlencode($val);
+                }
+            }
         }
 
         // List of mass actions available
@@ -1280,6 +1310,7 @@ SCRIPT;
                 $users_in_charge = explode(',', $obj->users_in_charge);
                 if (is_array($users_in_charge) && count($users_in_charge) > 0) {
                     $toprint = array();
+                    $blocktoprint = array();
                     foreach ($users_in_charge as $user_id) {
                         if ($user_id > 0) {
                             if (!isset($users_cache[$user_id])) {
@@ -1287,10 +1318,15 @@ SCRIPT;
                                 $user_in_charge->fetch($user_id);
                                 $users_cache[$user_id] = $user_in_charge;
                             }
-                            $toprint[] = $users_cache[$user_id]->getNomUrl(1);
+                            $blocktoprint[] = $users_cache[$user_id]->getNomUrl(1);
+                        }
+                        if (count($blocktoprint) == 5) { // split nb of users into a line
+                            $toprint[] = implode(', ', $blocktoprint);
+                            $blocktoprint = array();
                         }
                     }
-                    print implode(', ', $toprint);
+                    if (count($blocktoprint)) $toprint[] = implode(', ', $blocktoprint);
+                    print implode('<br>', $toprint);
                 }
                 print '</td>';
             }
