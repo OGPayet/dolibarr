@@ -547,7 +547,7 @@ SCRIPT;
             }
             $out .= ' />';
             $out .= ' &nbsp; &nbsp; ';
-            $out .= '<div class="inline-block divButAction"><a class="butAction rm_reset_data_in_session" href="' . $this->param["returnurl"] . (strpos($this->param["returnurl"], '?') ? '&' :'?') . 'action=stpremessage&messagemode=init&rm'.time().'=#formmessagebeforetitle">' . $langs->trans('Reset') . '</a></div>';
+            $out .= '<div class="inline-block divButAction"><a class="butAction rm_reset_data_in_session" href="' . $this->param["returnurl"] . (strpos($this->param["returnurl"], '?') ? '&' :'?') . 'action=rm_reset_data_in_session">' . $langs->trans('Reset') . '</a></div>';
             if ($this->withcancel) {
                 $out .= ' &nbsp; &nbsp; ';
                 $out .= '<input class="button" type="submit" id="cancel" name="cancel" value="' . $langs->trans("Cancel") . '" />';

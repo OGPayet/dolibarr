@@ -1182,6 +1182,15 @@ if (empty($reshook)) {
             header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
             exit();
         }
+    } // Clear message
+    elseif ($action == 'rm_reset_data_in_session' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS
+    ) {
+        dol_include_once('/requestmanager/class/html.formrequestmanagermessage.class.php');
+        $formrequestmanagermessage = new FormRequestManagerMessage($db, $object);
+        $formrequestmanagermessage->clear_datas_in_session();
+
+        header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=premessage&messagemode=init#formmessagebeforetitle');
+        exit();
     }
 
     // Actions to build doc
@@ -2404,7 +2413,7 @@ SCRIPT;
         print '<div id="formmessagebeforetitle" name="formmessagebeforetitle"></div>';
         print '<div class="clearboth"></div>';
         print '<br>';
-        print load_fiche_titre($langs->trans('RequestManagerAddMessage'));
+        print load_fiche_titre($langs->trans('RequestManagerAddMessage') . '&nbsp;<span id="rm-saving-status"></span>');
 
         dol_fiche_head();
 

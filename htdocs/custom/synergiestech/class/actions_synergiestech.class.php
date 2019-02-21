@@ -1242,6 +1242,15 @@ SCRIPT;
                 requestmanagermessage_remove_file_process($object, GETPOST('removedfile', 'alpha'), 0, 0);   // We do not delete because if file is the official PDF of doc, we don't want to remove it physically
                 $action = 'stpremessage';
                 return 1;
+            } // Clear message
+            elseif ($action == 'rm_reset_data_in_session' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS
+            ) {
+                dol_include_once('/requestmanager/class/html.formrequestmanagermessage.class.php');
+                $formrequestmanagermessage = new FormRequestManagerMessage($db, $object);
+                $formrequestmanagermessage->clear_datas_in_session();
+
+                header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=stpremessage&messagemode=init#formmessagebeforetitle');
+                exit();
             }
 
             if ($action == 'premessage') $action == 'stpremessage';
@@ -2420,7 +2429,7 @@ SCRIPT;
                 $out .= '<div id="formmessagebeforetitle" name="formmessagebeforetitle"></div>';
                 $out .= '<div class="clearboth"></div>';
                 $out .= '<br>';
-                $out .= load_fiche_titre('<span style="font-weight: bolder !important; font-size: medium !important;">' . $langs->trans('RequestManagerAddMessage') . '</span>', '', '');
+                $out .= load_fiche_titre('<span style="font-weight: bolder !important; font-size: medium !important;">' . $langs->trans('RequestManagerAddMessage') . '</span>&nbsp;<span id="rm-saving-status"></span>', '', '');
 
                 // Cree l'objet formulaire message
                 dol_include_once('/synergiestech/class/html.formsynergiestechmessage.class.php');

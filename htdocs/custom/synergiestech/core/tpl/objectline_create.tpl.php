@@ -302,22 +302,7 @@ else {
                       }
                   }
 
-                  $categories = $object->loadCategorieList('id');
-                  foreach ($categories as $category_id) {
-                      if (!isset($tag_categories[$category_id])) {
-                          // Get all sub categories of the categories founded
-                          foreach ($all_categories as $cat) {
-                              if (preg_match('/^' . $category_id . '$/', $cat['fullpath']) ||
-                                  preg_match('/_' . $category_id . '$/', $cat['fullpath']) ||
-                                  preg_match('/^' . $category_id . '_/', $cat['fullpath']) ||
-                                  preg_match('/_' . $category_id . '_/', $cat['fullpath'])
-                              ) {
-                                  $tag_categories[$cat['id']] = $cat['id'];
-                              }
-                          }
-                      }
-                  }
-//                  $ajaxoptions['dynamic_data'] = array('tags_categories');
+                  $ajaxoptions['dynamic_data'] = array('tags_categories');
               }
 
               $ajaxoptions['update'] = array('remise_percent' => 'discount');	// html id tags that will be edited with which ajax json response key

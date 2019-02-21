@@ -94,7 +94,7 @@ class FormRequestManagerMessage
         $this->requestmanager = $object;
         $this->formdictionary = new FormDictionary($this->db);
 
-        $this->save_session_key = 'rm_save_message_' . $this->requestmanager->id;
+        $this->save_session_key = "rm_save_message_" . $this->requestmanager->id;
         $this->key_list_of_paths = "listofpaths-rm" . $this->requestmanager->id;
         $this->key_list_of_names = "listofnames-rm" . $this->requestmanager->id;
         $this->key_list_of_mimes = "listofmimes-rm" . $this->requestmanager->id;
@@ -135,12 +135,21 @@ class FormRequestManagerMessage
                 $_POST[$k] = $v;
             }
 
-            unset($_SESSION['rm_data_save_in_session'][$this->save_session_key]);
-
             return true;
         }
 
         return false;
+    }
+
+    /**
+     * Clear datas of the form saved in session
+     *
+     * @return	void
+     */
+    function clear_datas_in_session()
+    {
+        if (isset($_SESSION['rm_data_save_in_session'][$this->save_session_key]))
+            unset($_SESSION['rm_data_save_in_session'][$this->save_session_key]);
     }
 
     /**
@@ -688,7 +697,7 @@ SCRIPT;
             }
             $out .= ' />';
             $out .= ' &nbsp; &nbsp; ';
-            $out .= '<div class="inline-block divButAction"><a class="butAction rm_reset_data_in_session" href="' . $this->param["returnurl"] . (strpos($this->param["returnurl"], '?') ? '&' :'?') . 'action=premessage&messagemode=init&rm'.time().'=#formmessagebeforetitle">' . $langs->trans('Reset') . '</a></div>';
+            $out .= '<div class="inline-block divButAction"><a class="butAction rm_reset_data_in_session" href="' . $this->param["returnurl"] . (strpos($this->param["returnurl"], '?') ? '&' :'?') . 'action=rm_reset_data_in_session">' . $langs->trans('Reset') . '</a></div>';
             if ($this->withcancel) {
                 $out .= ' &nbsp; &nbsp; ';
                 $out .= '<input class="button" type="submit" id="cancel" name="cancel" value="' . $langs->trans("Cancel") . '" />';

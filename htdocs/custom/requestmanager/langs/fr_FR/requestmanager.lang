@@ -275,6 +275,9 @@ RequestManagerNoKnowledgeBaseDefined        = Pas de connaissance défini pour c
 RequestManagerMessageTitleOut               = Message sortant sur la demande %s créé
 RequestManagerMessageTitlePrivate           = Message privé sur la demande %s créé
 RequestManagerMessageTitleIn                = Message entrant sur la demande %s créé
+RequestManagerFormSavingToSession           = Formulaire du message en cours de sauvegarde en session
+RequestManagerFormSavedToSession            = Formulaire du message sauvegardé en session
+RequestManagerFormNotSavedToSession         = Formulaire du message non sauvegardé en session
 
 ############################################################
 ### Confirm box
