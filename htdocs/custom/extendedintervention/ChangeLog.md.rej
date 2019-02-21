@@ -1,12 +1,11 @@
 diff a/htdocs/custom/extendedintervention/ChangeLog.md b/htdocs/custom/extendedintervention/ChangeLog.md	(rejected hunks)
-@@ -3,6 +3,10 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
- 
+@@ -4,6 +4,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
  ## [Non Distribué]
  
-+## [4.0.8] - 07-02-2019
-+- Ajout d'un champ 'attached_files' sur les blocs de questions pour la gestion des fichiers attachés à un bloc de question.
-+- Substitution de l'onglet document de la page d'une intervention.
+ ## [4.0.8] - 07-02-2019
++- Ajout d'un champ 'icon' sur le dictionnaire des types d'intervention
 +
- ## [4.0.7] - 07-02-2019
- - Ajout de champs sur les blocs de questions et le statut des blocs de question. Permet un paramétrage de la saisie sur l'application mobile. Les paramètres ne sont pas reportés dans l'interface Dolibarr
++## [4.0.8] - 21-02-2019
+ - Ajout d'un champ 'attached_files' sur les blocs de questions pour la gestion des fichiers attachés à un bloc de question.
+ - Substitution de l'onglet document de la page d'une intervention.
  

@@ -16,4 +16,4 @@
 -- along with this program. If not, see <http://www.gnu.org/licenses/>.
 -- ===========================================================================
 
-ALTER TABLE llx_extendedintervention_question_bloc ADD attached_files text NULL;
+ALTER TABLE llx_c_extendedintervention_type ADD icon varchar(255);

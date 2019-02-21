@@ -219,7 +219,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
             "cr_thirdparty_benefactor" => '', "lines" => '', "linkedObjectsIds" => '',
         ),
         'fichinterdet' => array(
-            "id" => '', "desc" => '', "duration" => '', "qty" => '', "date" => '', "datei" => '',
+           "id" => '', "desc" => '', "duration" => '', "qty" => '', "date" => '', "datei" => '',
             "rang" => '', "product_type" => '', "array_options" => '',
         ),
         'facture' => array(

@@ -1,5 +1,6 @@
 <?php
 /* Copyright (C) 2018  Open-Dsi <support@open-dsi.fr>
+ * Copyright (C) 2019  Alexis LAURIER <alexis@alexislaurier.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -139,6 +140,15 @@ class ExtendedInterventionTypeDictionary extends Dictionary
         'label' => array(
             'name'       => 'label',
             'label'      => 'Label',
+            'type'       => 'varchar',
+            'database'   => array(
+              'length'   => 255,
+            ),
+            'is_require' => true,
+        ),
+		'icon' => array(
+            'name'       => 'icon',
+            'label'      => 'Icone',
             'type'       => 'varchar',
             'database'   => array(
               'length'   => 255,
