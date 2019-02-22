@@ -54,7 +54,7 @@ class InterfaceRMWorkflow extends DolibarrTriggers
         /**
          * Propagation of requests links
          */
-        if (!empty($object->origin) && $object->origin_id > 0) {
+        if (!empty($object->origin) && $object->origin_id > 0 && $object->id > 0) {
             // Parse element/subelement (ex: project_task)
             $element = $subelement = $object->origin;
             if (preg_match('/^([^_]+)_([^_]+)/i', $object->origin, $regs)) {
@@ -119,7 +119,7 @@ class InterfaceRMWorkflow extends DolibarrTriggers
         /**
          * Auto set next status of the requests
          */
-        if (isset($object->element)) {
+        if (isset($object->element) && $object->id > 0) {
             // TODO à améliorer pour accelerer la rapidité
             // Get request linked to the object
             $sql = 'SELECT rowid, fk_source, sourcetype, fk_target, targettype';
