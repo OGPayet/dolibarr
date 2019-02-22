@@ -2821,6 +2821,9 @@ class CompanyRelationshipsApi extends DolibarrApi {
 
         $this->fichinter->fetchObjectLinked();
         $this->fichinter->fetch_thirdparty();
+        foreach ($this->fichinter->lines as $k => $line) {
+            $this->fichinter->lines[$k]->fetch_optionals();
+        }
         $this->_fetch_benefactor($this->fichinter);
         return $this->_cleanObjectData($this->fichinter);
     }
@@ -2937,6 +2940,9 @@ class CompanyRelationshipsApi extends DolibarrApi {
                 if($fichinter_static->fetch($obj->rowid)) {
                     $fichinter_static->fetchObjectLinked();
                     $fichinter_static->fetch_thirdparty();
+                    foreach ($fichinter_static->lines as $k => $line) {
+                        $fichinter_static->lines[$k]->fetch_optionals();
+                    }
                     $this->_fetch_benefactor($fichinter_static);
                     $obj_ret[] = $this->_cleanObjectData($fichinter_static);
                 }
@@ -3016,6 +3022,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
         $this->fichinter->getLinesArray();
         $result = array();
         foreach ($this->fichinter->lines as $line) {
+            $line->fetch_optionals();
             array_push($result,$this->_cleanObjectData($line));
         }
         return $result;
