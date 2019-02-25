@@ -130,7 +130,14 @@ if (empty($reshook)) {
 
         $db->begin();
         if ($btnAction == 'create' || $force_principal_company_confirmed || $force_out_of_time_confirmed) {
-            $res = requestmanagertimeslots_is_in_time_slot($object->socid, $object->date_creation);
+            $date_creation = $object->date_creation;
+            if ($selectedActionCommId > 0) {
+                require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
+                $actioncomm = new ActionComm($db);
+                $actioncomm->fetch($selectedActionCommId);
+                $date_creation = $actioncomm->datep;
+            }
+            $res = requestmanagertimeslots_is_in_time_slot($object->socid, $date_creation);
             $object->created_out_of_time = is_array($res) ? 0 : ($res ? 0 : 1);
             if (!empty($conf->companyrelationships->enabled)) {
                 $principal_companies_ids = $companyrelationships->getRelationships($object->socid_benefactor, 0);

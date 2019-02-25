@@ -187,7 +187,14 @@ if ($zone === 1) {
     if (!empty($conf->global->REQUESTMANAGER_TIMESLOTS_ACTIVATE) && $selectedSocId > 0) {
         dol_include_once('/requestmanager/lib/requestmanagertimeslots.lib.php');
         print '<td colspan="2" width="50%" align="center">';
-        $res = requestmanagertimeslots_is_in_time_slot($selectedSocId, dol_now());
+        $date_creation = dol_now();
+        if ($selectedActionCommId > 0) {
+            require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
+            $actioncomm = new ActionComm($db);
+            $actioncomm->fetch($selectedActionCommId);
+            $date_creation = $actioncomm->datep;
+        }
+        $res = requestmanagertimeslots_is_in_time_slot($selectedSocId, $date_creation);
         if (is_array($res)) {
             print '<span style="font-weight: bolder !important; font-size: 16px !important; color: green !important;">' . $langs->trans('RequestManagerTimeSlotsIntoPeriod', sprintf("%02d:%02d", $res['begin']['hour'], $res['begin']['minute']), sprintf("%02d:%02d", $res['end']['hour'], $res['end']['minute'])) . '</span>';
         } else {
