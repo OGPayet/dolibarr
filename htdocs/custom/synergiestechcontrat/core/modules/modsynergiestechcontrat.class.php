@@ -407,6 +407,9 @@ class modsynergiestechcontrat extends DolibarrModulessynergiestechcontrat
 		}
 
 		//Creation de la vue SQL
+        $sql_view = "DROP VIEW `llx_view_c_indice`;";
+        $resql=$db->query($sql_view);
+        if ($resql) { $db->commit(); } else { $db->rollback(); }
 		$sql_view = "CREATE VIEW `llx_view_c_indice` AS
 				SELECT
 						concat(`i`.`rowid`, '_Insee') AS `rowid`,
@@ -414,7 +417,8 @@ class modsynergiestechcontrat extends DolibarrModulessynergiestechcontrat
 						`i`.`month_indice` AS `month_indice`,
 						`i`.`indice` AS `indice`,
 					CONCAT(`i`.`year_indice`,'/',`i`.`month_indice`,' Insee') AS `label`,
-						'Insee' AS `filter`
+						'Insee' AS `filter`,
+						'3' AS `filter_id`
 				FROM
 						`llx_c_indice_insee` `i`
 				WHERE
@@ -426,12 +430,12 @@ class modsynergiestechcontrat extends DolibarrModulessynergiestechcontrat
 						`s`.`month_indice` AS `month_indice`,
 						`s`.`indice` AS `indice`,
 					CONCAT(`s`.`year_indice`,'/',`s`.`month_indice`,' Syntec') AS `label`,
-						'Syntec' AS `filter`
+						'Syntec' AS `filter`,
+						'2' AS `filter_id`
 				FROM
 						`llx_c_indice_syntec` `s`
 				WHERE
 						(`s`.`active` = 1);";
-
 		$resql=$db->query($sql_view);
 		if ($resql) {
 			$db->commit();
