@@ -308,8 +308,8 @@ class modExtendedIntervention extends DolibarrModules
         $result=$extrafields->addExtraField('generalites', $langs->trans('ExtendedInterventionContractGeneralSeparatorTitle'), 'separate', 0,  '', 'contrat',   0, 0, '', '', 0, '', 0, 0, '', '');
         $result=$extrafields->addExtraField('startdate', $langs->trans('ExtendedInterventionContractGeneralStartDate'), 'date', 6,  '', 'contrat',   0, 0, '', '', 1, '', 1, 0, '', '');
         $result=$extrafields->addExtraField('duration', $langs->trans('ExtendedInterventionContractGeneralDuration'), 'int', 7,  '10', 'contrat',   0, 0, '', '', 1, '', 1, 0, '', '');
-        $result=$extrafields->addExtraField('ei_count_separator', $langs->trans('ExtendedInterventionContractCountInterventionSeparatorTitle'), 'separate', 450,  '', 'contrat',   0, 0, '', '', 0, '', 0, 0, '', '');
-        $result=$extrafields->addExtraField('ei_count_period_size', $langs->trans('ExtendedInterventionContractCountInterventionPeriodSize'), 'int', 451,  '', 'contrat',   0, 0, '', '', 1, '', 1, 0, '', '');
+        $result=$extrafields->addExtraField('ei_count_separator', $langs->trans('ExtendedInterventionContractQuotaInterventionSeparatorTitle'), 'separate', 450,  '', 'contrat',   0, 0, '', '', 0, '', 0, 0, '', '');
+        $result=$extrafields->addExtraField('ei_count_period_size', $langs->trans('ExtendedInterventionContractQuotaInterventionPeriodSize'), 'int', 451,  '', 'contrat',   0, 0, '', '', 1, '', 1, 0, '', '');
 
         $sql = array(
 

@@ -1,55 +1,11 @@
 diff a/htdocs/custom/extendedintervention/class/actions_extendedintervention.class.php b/htdocs/custom/extendedintervention/class/actions_extendedintervention.class.php	(rejected hunks)
-@@ -175,6 +175,53 @@ class ActionsExtendedIntervention
+@@ -175,7 +216,8 @@ class ActionsExtendedIntervention
  //                    // Todo generate the intervention planned ??
  //                }
  //            }
-+        } elseif (in_array('interventiondocument', $contexts)) {
-+            $upload_dir = $parameters['upload_dir'];
-+
-+            // Rename file
-+            if ($action == 'renamefile' && GETPOST('renamefilesave')) {
-+                if ($object->id) {
-+                    // For documents pages, upload_dir contains already path to file from module dir, so we clean path into urlfile.
-+                    //var_dump($upload_dir);exit;
-+                    if (!empty($upload_dir)) {
-+                        $filenamefrom = dol_sanitizeFileName(GETPOST('renamefilefrom', 'alpha'));
-+                        $filenameto = dol_sanitizeFileName(GETPOST('renamefileto', 'alpha'));
-+
-+                        // Security:
-+                        // Disallow file with some extensions. We rename them.
-+                        // Because if we put the documents directory into a directory inside web root (very bad), this allows to execute on demand arbitrary code.
-+                        if (preg_match('/\.htm|\.html|\.php|\.pl|\.cgi$/i', $filenameto) && empty($conf->global->MAIN_DOCUMENT_IS_OUTSIDE_WEBROOT_SO_NOEXE_NOT_REQUIRED)) {
-+                            $filenameto .= '.noexe';
-+                        }
-+
-+                        if ($filenamefrom && $filenameto) {
-+                            $srcpath = $upload_dir . '/' . $filenamefrom;
-+                            $destpath = $upload_dir . '/' . $filenameto;
-+
-+                            $result = dol_move($srcpath, $destpath);
-+                            if ($result) {
-+                                $object->addThumbs($destpath);
-+
-+                                // TODO Add revert function of addThumbs
-+                                //$object->delThumbs($srcpath);
-+
-+                                $result = $object->update_attached_filename_in_survey($filenamefrom, $filenameto);
-+                                if ($result < 0) {
-+                                    dol_move($destpath, $srcpath);
-+                                    setEventMessages($langs->trans("ErrorFailToRenameFile", $filenamefrom, $filenameto), $object->errorsToString(), 'errors');
-+                                } else {
-+                                    setEventMessages($langs->trans("FileRenamed"), null);
-+                                }
-+                            } else {
-+                                $langs->load("errors"); // key must be loaded because we can't rely on loading during output, we need var substitution to be done now.
-+                                setEventMessages($langs->trans("ErrorFailToRenameFile", $filenamefrom, $filenameto), null, 'errors');
-+                            }
-+                        }
-+                    }
-+                }
-+
-+                return 1;
-+            }
-         }
+-        } elseif (in_array('interventiondocument', $contexts)) {
++        }
++        elseif (in_array('interventiondocument', $contexts)) {
+             $upload_dir = $parameters['upload_dir'];
  
-         // Auto save survey when the equipment link with the intervention is deleted
+             // Rename file

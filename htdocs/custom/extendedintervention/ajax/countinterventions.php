@@ -50,9 +50,9 @@ if ($contract_id > 0) {
     $contract_list = array($contract->id => $contract);
 
     dol_include_once('/extendedintervention/class/extendedinterventionquota.class.php');
-    $extendedinterventioncountintervention = new ExtendedInterventionQuota($db);
+    $extendedinterventionquota = new ExtendedInterventionQuota($db);
 
-    print $extendedinterventioncountintervention->showBlockCountInterventionOfContract($contract_list, $ei_type);
+    print $extendedinterventionquota->showBlockCountInterventionOfContract($contract_list, $ei_type);
 
     // Wrapper to show tooltips (html or onclick popup)
     if (! empty($conf->use_javascript_ajax) && empty($conf->dol_no_mouse_hover))

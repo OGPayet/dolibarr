@@ -508,9 +508,9 @@ if ($zone === 3) {
 
         // Show count of interventions
         dol_include_once('/extendedintervention/class/extendedinterventionquota.class.php');
-        $extendedinterventioncountintervention = new ExtendedInterventionQuota($db);
+        $extendedinterventionquota = new ExtendedInterventionQuota($db);
         print '<br />';
-        print $extendedinterventioncountintervention->showBlockCountInterventionOfContract($contractList);
+        print $extendedinterventionquota->showBlockCountInterventionOfContract($contractList);
 
         // Equipement list of this thirdparty
         if ($conf->equipement->enabled) {

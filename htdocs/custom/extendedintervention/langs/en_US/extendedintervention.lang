@@ -38,11 +38,11 @@ ExtendedInterventionType        = Type d'intervention
 ############################################################
 ### Extra fields : Contract
 ############################################################
-ExtendedInterventionContractGeneralSeparatorTitle       = Généralités
-ExtendedInterventionContractGeneralStartDate            = Date d'effet
-ExtendedInterventionContractGeneralDuration             = Durée contractuelle (en mois)
-ExtendedInterventionQuotaSeparatorTitle                 = Paramètres pour le décompte des interventions
-ExtendedInterventionContractCountInterventionPeriodSize = Durée entre 2 remises à zéro des crédits dépensés (en mois)
+ExtendedInterventionContractGeneralSeparatorTitle                           = Généralités
+ExtendedInterventionContractGeneralStartDate                                = Date d'effet
+ExtendedInterventionContractGeneralDuration                                 = Durée contractuelle (en mois)
+ExtendedInterventionContractQuotaInterventionSeparatorTitle                 = Paramètres pour le décompte des interventions
+ExtendedInterventionContractQuotaInterventionPeriodSize                     = Durée entre 2 remises à zéro des crédits dépensés (en mois)
 
 ############################################################
 ### Dictionaries
@@ -152,14 +152,21 @@ ExtendedInterventionConfirmForceCreateInterventionOutOfQuota    = Êtes-vous sû
 ############################################################
 ### Generals
 ############################################################
-ExtendedInterventionQuotaFor            = Nombre d'interventions pour %s
-ExtendedInterventionPeriod              = Période
-ExtendedInterventionFree                = Gratuite
-ExtendedInterventionForced              = Forcée
-ExtendedInterventionQuotaBlockTitle     = Décompte des interventions
-ExtendedInterventionQuotaForContract    = Pour le contrat %s
-ExtendedInterventionCurrentPeriod       = Période actuelle
-ExtendedInterventionEndOfTheContract    = Fin du contrat
+ExtendedInterventionQuotaFor                    = Nombre d'interventions pour %s
+ExtendedInterventionPeriod                      = Période
+ExtendedInterventionFree                        = Gratuite
+ExtendedInterventionForced                      = Forcée
+ExtendedInterventionQuotaBlockTitle             = Décompte des interventions
+ExtendedInterventionQuotaForContract            = Pour le contrat %s
+ExtendedInterventionCurrentPeriod               = Période actuelle
+ExtendedInterventionEndOfTheContract            = Fin du contrat
+
+############################################################
+### Planning
+############################################################
+ExtendedInterventionPlanningForInterventionType = Générer les demandes planifiées pour les interventions de type %s
+ExtendedInterventionPlanningForRequestType      = et les demandes de type %s, les :
+ExtendedInterventionPlanningRequestTitle        = Demande d'intervention récurente de type %s
 
 ############################################################
 ### Events : Force create intervention out of quota
@@ -178,3 +185,4 @@ ExtendedInterventionErrorAnswerDictionaryInfoNotFound               = La répons
 ExtendedInterventionErrorQuestionBlocStatusNotInSurvey              = Le statut du bloc de question (ID: %s) n'est pas inclus dans le questionnaire
 ExtendedInterventionErrorQuestionAnswerNotInSurvey                  = Le réponse de la question (ID: %s) n'est pas inclus dans le questionnaire
 ExtendedInterventionErrorFileNotFound                               = Le fichier "%s" n'a pas été trouvé
+ExtendedInterventionErrorPlanningTimesPlannedMismatchedWithQuota    = Vous avez selectionnée(s) %s planification(s) pour les interventions de type "%s" alors que vous devez en sélectionnée(s) %s

@@ -21,7 +21,9 @@
  *	\brief      File of class to manage generating of invoices from a contract
  */
 
-dol_include_once('/synergiestechcontrat/vendor/autoload.php');
+if (!class_exists('ComposerAutoloaderInit7e289d877b5289c34886bc66da322d02', false)) {
+    dol_include_once('/synergiestechcontrat/vendor/autoload.php');
+}
 use Carbon\Carbon;
 
 /**
@@ -923,6 +925,25 @@ class InvoicesContractTools
             $this->setCurrentReportLineValue(self::RLH_INVOICE_REF, $invoice->ref);
             $this->setCurrentReportLineValue(self::RLH_INVOICE_VALIDATED, yn($validated));
             $this->setCurrentReportLineValue(self::RLH_INVOICE_REMISE_ABSOLUE, $remise_absolue);
+        }
+
+        if (!$error) {
+            $contract->context['ec_create_invoice'] = array(
+                'invoice' => &$invoice,
+                'billing_period' => &$billing_period,
+                'amount' => &$amount,
+                'payment_condition' => &$payment_condition,
+                'payment_deadline_date' => &$payment_deadline_date,
+                'ref_customer' => &$ref_customer,
+                'use_customer_discounts' => &$use_customer_discounts,
+                'test_mode' => &$test_mode
+            );
+            $result = $contract->call_trigger('CONTRACT_EC_CREATE_INVOICE', $user);
+            if ($result < 0) {
+                $this->errors[] = $contract->errorsToString();
+                $error++;
+            }
+            unset($contract->context['ec_create_invoice']);
         }
 
         if (!empty($test_mode)) $this->db->rollback();

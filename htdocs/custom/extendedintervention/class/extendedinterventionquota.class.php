@@ -23,7 +23,9 @@
  *	\brief      File of class to manage quota of the intervention
  */
 
-dol_include_once('/extendedintervention/vendor/autoload.php');
+if (!class_exists('ComposerAutoloaderInit7e289d877b5289c34886bc66da322d02', false)) {
+    dol_include_once('/extendedintervention/vendor/autoload.php');
+}
 use Carbon\Carbon;
 
 /**
@@ -50,6 +52,11 @@ class ExtendedInterventionQuota
     public $form = null;
 
     /**
+     * @var array       List of planning times
+     */
+    public static $planning_times;
+
+    /**
      * Constants of the extra fields code
      */
     const EF_EFFECTIVE_DATE                     = 'startdate';
@@ -65,7 +72,26 @@ class ExtendedInterventionQuota
      */
     public function __construct($db)
     {
+        global $langs;
+
+        $langs->load('extendedintervention@extendedintervention');
+
         $this->db = $db;
+
+        self::$planning_times = array(
+            1 => $langs->trans('January'),
+            2 => $langs->trans('February'),
+            3 => $langs->trans('March'),
+            4 => $langs->trans('April'),
+            5 => $langs->trans('May'),
+            6 => $langs->trans('June'),
+            7 => $langs->trans('July'),
+            8 => $langs->trans('August'),
+            9 => $langs->trans('September'),
+            10 => $langs->trans('October'),
+            11 => $langs->trans('November'),
+            12 => $langs->trans('December'),
+        );
     }
 
     /**
@@ -80,22 +106,25 @@ class ExtendedInterventionQuota
     }
 
     /**
-     *  Get list of count by type intervention defined into a contract
+     *  Get list of quota info by type intervention defined into a contract
      *
      * @param   int             $contract_id      Contract ID
      * @return  int|array                         <0 if KO, List of count by type of intervention if OK
      */
-    public function getCountInterventionOfContract($contract_id)
+    public function getInfoInterventionOfContract($contract_id)
     {
         $result = array();
 
-        $sql = "SELECT fk_c_intervention_type, count FROM ".MAIN_DB_PREFIX."extendedintervention_contract_count_type".
+        $sql = "SELECT fk_c_intervention_type, count, planning_times FROM ".MAIN_DB_PREFIX."extendedintervention_contract_type_info".
             " WHERE fk_contrat = " . $contract_id;
 
         $resql = $this->db->query($sql);
         if ($resql) {
             while ($obj = $this->db->fetch_object($resql)) {
-                $result[$obj->fk_c_intervention_type] = isset($obj->count) ? $obj->count : 0;
+                $result[$obj->fk_c_intervention_type] = array(
+                    'count' => isset($obj->count) ? $obj->count : 0,
+                    'planning_times' => !empty($obj->planning_times) ? json_decode($obj->planning_times, true) : array()
+                );
             }
         } else {
             $this->errors[] = $this->db->lasterror();
@@ -106,25 +135,32 @@ class ExtendedInterventionQuota
     }
 
     /**
-     *  Set list of count by type of intervention into a contract
+     *  Set list of quota info by type of intervention into a contract
      *
      * @param   int         $contract_id        Contract ID
-     * @param   array       $counts             List of count by type of intervention
+     * @param   array       $info               List of quota info by type of intervention
      * @return  int                             <0 if KO, >0 if OK
      */
-    public function setCountInterventionOfContract($contract_id, $counts)
+    public function setInfoInterventionOfContract($contract_id, $info)
     {
-        foreach ($counts as $id => $count) {
-            $value = $count > 0 ? $count : 'NULL';
+        foreach ($info as $id => $values) {
+            if (isset($values['count']) || isset($values['planning_times'])) {
+                $count = $values['count'] > 0 ? $values['count'] : 'NULL';
+                $planning_times = !empty($values['planning_times']) ? json_encode($values['planning_times']) : 'NULL';
 
-            $sql = "INSERT INTO " . MAIN_DB_PREFIX . "extendedintervention_contract_count_type (fk_contrat, fk_c_intervention_type, count)" .
-                " VALUES (" . $contract_id . ", " . $id . ", " . $value . ")" .
-                " ON DUPLICATE KEY UPDATE count = " . $value;
+                $sql = "INSERT INTO " . MAIN_DB_PREFIX . "extendedintervention_contract_type_info (fk_contrat, fk_c_intervention_type" .
+                    (isset($values['count']) ? ", count" : "") . (isset($values['planning_times']) ? ", planning_times" : "") . ")" .
+                    " VALUES (" . $contract_id . ", " . $id . (isset($values['count']) ? ", " . $count : "") .
+                    (isset($values['planning_times']) ? ", '" . $this->db->escape($planning_times) . "'" : "") . ")" .
+                    " ON DUPLICATE KEY UPDATE ". (isset($values['count']) ? "count = " . $count : "") .
+                    (isset($values['count']) && isset($values['planning_times']) ? ", " : "") .
+                    (isset($values['planning_times']) ? "planning_times = '" . $this->db->escape($planning_times) . "'" : "");
 
-            $resql = $this->db->query($sql);
-            if (!$resql) {
-                $this->errors[] = $this->db->lasterror();
-                return -1;
+                $resql = $this->db->query($sql);
+                if (!$resql) {
+                    $this->errors[] = $this->db->lasterror();
+                    return -1;
+                }
             }
         }
 
@@ -139,7 +175,7 @@ class ExtendedInterventionQuota
      */
     public function delAllCountInterventionOfContract($contract_id)
     {
-        $this->db->query("DELETE FROM " . MAIN_DB_PREFIX . "extendedintervention_contract_count_type WHERE fk_contrat = " . $contract_id);
+        $this->db->query("DELETE FROM " . MAIN_DB_PREFIX . "extendedintervention_contract_type_info WHERE fk_contrat = " . $contract_id);
     }
 
     /**
@@ -152,7 +188,8 @@ class ExtendedInterventionQuota
     public function getCountInterventionInfoOfCompany(&$contract, $soc_ids)
     {
         $periods = $this->getPeriodOfContract($contract);
-        $contract_counts = $this->getCountInterventionOfContract($contract->id);
+        $info = $this->getInfoInterventionOfContract($contract->id);
+        $contract_counts = $info['count'];
         $result = array('periods' => $periods, 'types' => array());
 
         $idx = 1;
@@ -439,7 +476,8 @@ SCRIPT;
         if (!($fk_c_intervention_type > 0)) return false;
 
         $periods = $this->getPeriodOfContract($contract);
-        $contract_counts = $this->getCountInterventionOfContract($contract->id);
+        $info = $this->getInfoInterventionOfContract($contract->id);
+        $contract_counts = $info['count'];
 
         foreach ($periods as $period) {
             if ($now < $period['begin'] || $period['end'] < $now) continue;
@@ -511,5 +549,81 @@ SCRIPT;
         }
 
         return $result;
+    }
+
+    /**
+     *  Generate planning request of a contract
+     *
+     * @param   Contrat     $object             Contract handler
+     * @param   User        $user               User that modifies
+     * @param   array       $billing_period     Billing period
+     * @return  int                             <0 if KO, >0 if OK
+     */
+    function generatePlanningRequest($object, $user, $billing_period)
+    {
+        global $conf, $langs;
+
+        $periods = $this->getPeriodOfContract($object);
+
+        // Billing period
+        $billing_period_begin = $billing_period['begin']->timestamp;
+        $billing_period_end = $billing_period['end']->timestamp;
+
+        $generate = false;
+        foreach ($periods as $period) {
+            if ($billing_period_begin <= $period['begin'] && $period['begin'] <= $billing_period_end) {
+                $generate = true;
+                break;
+            } elseif ($billing_period_end < $period['begin']) {
+                break;
+            }
+        }
+
+        // Generate the planned intervention
+        //---------------------------------------------------
+        if ($generate) {
+            dol_include_once('/requestmanager/class/requestmanager.class.php');
+            $request_types_planned = !empty($conf->global->REQUESTMANAGER_PLANNING_REQUEST_TYPE) ? explode(',', $conf->global->REQUESTMANAGER_PLANNING_REQUEST_TYPE) : array();
+
+            dol_include_once('/advancedictionaries/class/dictionary.class.php');
+            $inter_type_dictionary = Dictionary::getDictionary($this->db, 'extendedintervention', 'extendedinterventiontype');
+            $inter_type_dictionary->fetch_lines(1, array('count' => 1), array('label' => 'ASC'));
+
+            $info = $this->getInfoInterventionOfContract($object->id);
+            $date_infos = dol_getdate(dol_now(), true);
+
+            foreach ($info as $type_intervention => $values) {
+                foreach ($request_types_planned as $request_type) {
+                    $planned_times = $values['planning_times'][$request_type];
+
+                    if (!empty($planned_times)) {
+                        foreach ($planned_times as $month) {
+                            $request = new RequestManager($this->db);
+
+                            $request->fk_type = $request_type;
+                            $request->label = $langs->trans('ExtendedInterventionPlanningRequestTitle', $inter_type_dictionary->lines[$type_intervention]->fields['label']);
+                            $request->socid_origin = $object->socid;
+                            $request->socid = $object->socid;
+                            $request->socid_benefactor = $object->array_options[''];
+                            $request->socid_watcher = $object->array_options[''];
+                            $request->date_operation = dol_get_first_day($date_infos['year'], $month);
+                            $request->date_deadline = dol_get_last_day($date_infos['year'], $month);
+
+                            $request->origin = $object->element;
+                            $request->origin_id = $object->id;
+                            $request->linkedObjectsIds[$request->origin] = $request->origin_id;
+
+                            $id = $request->create($user);
+                            if ($id < 0) {
+                                setEventMessages($object->error, $object->errors, 'errors');
+                                return -1;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return 1;
     }
 }

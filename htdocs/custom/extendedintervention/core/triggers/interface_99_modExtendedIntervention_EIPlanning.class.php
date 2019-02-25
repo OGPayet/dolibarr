@@ -92,13 +92,20 @@ class InterfaceEIPlanning extends DolibarrTriggers
                 break;
 
             // Contract
-//            case 'CONTRACT_EC_RENEC':
-//                if (!empty($conf->requestmanager->enabled) && !empty($conf->global->REQUESTMANAGER_PLANNING_ACTIVATE)) {
-//                    // Todo generate the intervention planned ??
-//                }
-//
-//                dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
-//                break;
+            case 'CONTRACT_EC_CREATE_INVOICE':
+                if (!empty($conf->requestmanager->enabled) && !empty($conf->global->REQUESTMANAGER_PLANNING_ACTIVATE)) {
+                    dol_include_once('/extendedintervention/class/extendedinterventionquota.class.php');
+                    $extendedinterventionquota = new ExtendedInterventionQuota($this->db);
+
+                    $result = $extendedinterventionquota->generatePlanningRequest($object, $user, $object->context['ec_create_invoice']['billing_period']);
+                    if ($result < 0) {
+                        setEventMessages($object->error, $object->errors, 'errors');
+                        return -1;
+                    }
+                }
+
+                dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
+                break;
         }
 
         return 0;

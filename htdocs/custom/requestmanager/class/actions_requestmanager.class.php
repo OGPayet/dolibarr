@@ -459,7 +459,7 @@ class ActionsRequestManager
                 $(document).ready(function () {
                     // Help button
                     var rm_timeslots_periods = $("td a[href*='&action=edit_extras&attribute=rm_timeslots_periods']").closest('tr').find('td:first-child');
-                    if (!element.length) {
+                    if (!rm_timeslots_periods.length) {
                         rm_timeslots_periods = $("textarea#options_rm_timeslots_periods").closest('tr').find('table td:first-child');
                     }
                     rm_timeslots_periods.append(' $help');

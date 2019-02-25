@@ -16,4 +16,6 @@
 -- along with this program. If not, see <http://www.gnu.org/licenses/>.
 -- ===========================================================================
 
-ALTER TABLE llx_c_extendedintervention_type ADD icon varchar(255);
+ALTER TABLE llx_extendedintervention_contract_count_type ADD planning_times varchar(2000) NULL; -- planning times of the recurrent intervention for generation request
+
+ALTER TABLE llx_extendedintervention_contract_count_type RENAME llx_extendedintervention_contract_type_info;

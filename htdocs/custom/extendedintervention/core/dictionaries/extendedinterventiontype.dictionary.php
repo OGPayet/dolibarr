@@ -30,6 +30,11 @@ dol_include_once('/advancedictionaries/class/dictionary.class.php');
 class ExtendedInterventionTypeDictionary extends Dictionary
 {
     /**
+     * @var int         Version of this dictionary
+     */
+    public $version = 1;
+
+    /**
      * @var array       List of languages to load
      */
     public $langs = array('extendedintervention@extendedintervention');
@@ -173,6 +178,23 @@ class ExtendedInterventionTypeDictionary extends Dictionary
         0 => array(
             'fields'    => array('code'),
             'is_unique' => true,
+        ),
+    );
+
+    /**
+     * @var array  List of fields/indexes added, updated or deleted for a version
+     * array(
+     *   'version' => array(
+     *     'fields' => array('field_name'=>'a', 'field_name'=>'u', 'field_name'=>'d', ...), // List of field name who is added(a) or updated(u) or deleted(d) for a version
+     *     'indexes' => array('idx_number'=>'a', 'idx_number'=>'u', 'idx_number'=>'d', ...), // List of indexes number who is added(a) or updated(u) or deleted(d) for a version
+     *   ),
+     * )
+     */
+    public $updates = array(
+        1 => array(
+            'fields' => array(
+                'icon' => 'a',
+            )
         ),
     );
 

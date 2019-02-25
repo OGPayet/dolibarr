@@ -114,9 +114,9 @@ class ActionsExtendedIntervention
                         $contract->fetch($fk_contrat);
 
                         dol_include_once('/extendedintervention/class/extendedinterventionquota.class.php');
-                        $extendedinterventioncountintervention = new ExtendedInterventionQuota($this->db);
+                        $extendedinterventionquota = new ExtendedInterventionQuota($this->db);
 
-                        $res = $extendedinterventioncountintervention->isCreatedOutOfQuota($contract, array($contract->socid), $array_options['options_ei_type']);
+                        $res = $extendedinterventionquota->isCreatedOutOfQuota($contract, array($contract->socid), $array_options['options_ei_type']);
                         if ($res) {
                             $object->force_out_of_quota = true;
                             $action = 'create';
@@ -129,27 +129,68 @@ class ActionsExtendedIntervention
                     $action = "add";
                 }
             }
-        } elseif (in_array('contractcard', $contexts)) {
+        }
+        elseif (in_array('contractcard', $contexts)) {
             if (!empty($conf->global->EXTENDEDINTERVENTION_QUOTA_ACTIVATE) && $object->id > 0) {
-                $langs->load('extendedintervention@extendedintervention');
+                if (preg_match('/^setei_count_type_/i', $action) || preg_match('/^setei_planning_times_type_/i', $action)) {
+                    $error = 0;
+                    $langs->load('extendedintervention@extendedintervention');
 
-                $values = array();
-                $this->_fetchInterventionType();
-                foreach (self::$intervention_type_cached as $line) {
-                    $htmlname = 'ei_type_' . $line->fields['code'];
-                    if (isset($_POST[$htmlname]) || isset($_GET[$htmlname])) {
-                        $values[$line->id] = GETPOST($htmlname, 'int') ? GETPOST($htmlname, 'int') : 0;
+                    $request_types_planned = !empty($conf->global->REQUESTMANAGER_PLANNING_REQUEST_TYPE) ? explode(',', $conf->global->REQUESTMANAGER_PLANNING_REQUEST_TYPE) : array();
+
+                    dol_include_once('/extendedintervention/class/extendedinterventionquota.class.php');
+                    $extendedinterventionquota = new ExtendedInterventionQuota($this->db);
+
+                    if ($conf->requestmanager->enabled && !empty($conf->global->REQUESTMANAGER_PLANNING_ACTIVATE)) {
+                        $info = $extendedinterventionquota->getInfoInterventionOfContract($object->id);
+                    }
+
+                    $values = array();
+                    $this->_fetchInterventionType();
+                    foreach (self::$intervention_type_cached as $line) {
+                        $htmlname = 'ei_count_type_' . $line->fields['code'];
+                        if (isset($_POST[$htmlname]) || isset($_GET[$htmlname])) {
+                            $values[$line->id]['count'] = GETPOST($htmlname, 'int') ? GETPOST($htmlname, 'int') : 0;
+                        }
+
+                        if ($conf->requestmanager->enabled && !empty($conf->global->REQUESTMANAGER_PLANNING_ACTIVATE)) {
+                            $count = isset($values[$line->id]['count']) ? $values[$line->id]['count'] : (isset($info[$line->id]['count']) ? $info[$line->id]['count'] : '');
+
+                            $found = false;
+                            $planning_count = 0;
+                            $htmlname = 'ei_planning_times_type_' . $line->fields['code'];
+
+                            foreach ($request_types_planned as $request_type) {
+                                $sub_htmlname = $htmlname . '_' . $request_type;
+
+                                if (isset($_POST[$sub_htmlname]) || isset($_GET[$sub_htmlname])) {
+                                    $values[$line->id]['planning_times'][$request_type] = GETPOST($sub_htmlname, 'array') ? GETPOST($sub_htmlname, 'array') : array();
+                                    $planning_count += count($values[$line->id]['planning_times'][$request_type]);
+                                    $found = true;
+                                }
+                            }
+
+                            if ($found && $planning_count != $count) {
+                                $action = 'edit' . $htmlname;
+                                if (isset($_POST['action'])) $_POST['action'] = $action;
+                                if (isset($_GET['action'])) $_GET['action'] = $action;
+                                setEventMessages($langs->trans("ExtendedInterventionErrorPlanningTimesPlannedMismatchedWithQuota", $planning_count, $line->fields['label'], $count), null, 'errors');
+                                $error++;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!$error && count($values) > 0) {
+                        $res = $extendedinterventionquota->setInfoInterventionOfContract($object->id, $values);
+                        if ($res < 0) {
+                            setEventMessages($extendedinterventionquota->error, $extendedinterventionquota->errors, 'errors');
+                        }
                     }
                 }
-
-                if (count($values) > 0) {
-                    dol_include_once('/extendedintervention/class/extendedinterventionquota.class.php');
-                    $extendedinterventioncountintervention = new ExtendedInterventionQuota($this->db);
-
-                    $res = $extendedinterventioncountintervention->setCountInterventionOfContract($object->id, $values);
-                }
             }
-        } elseif (in_array('contractlist', $contexts)) {
+        }
+        elseif (in_array('contractlist', $contexts)) {
             if (!empty($conf->global->EXTENDEDINTERVENTION_QUOTA_ACTIVATE)) {
                 global $arrayfields;
 
@@ -158,7 +199,7 @@ class ActionsExtendedIntervention
 
                 $added_arrayfields = array();
                 foreach (self::$intervention_type_cached as $line) {
-                    $htmlname = 'ei_type_' . $line->fields['code'];
+                    $htmlname = 'ei_count_type_' . $line->fields['code'];
                     $label = $langs->trans('ExtendedInterventionQuotaFor', $line->fields['label']);
                     $added_arrayfields[$htmlname] = array('label' => $label, 'checked' => 0);
                 }
@@ -358,10 +399,10 @@ SCRIPT;
                 $fk_c_intervention_type = isset($array_options['options_ei_type']) ? $array_options['options_ei_type'] : 0;
 
                 dol_include_once('/extendedintervention/class/extendedinterventionquota.class.php');
-                $extendedinterventioncountintervention = new ExtendedInterventionQuota($this->db);
+                $extendedinterventionquota = new ExtendedInterventionQuota($this->db);
 
                 $ajaxUrl = dol_buildpath('/extendedintervention/ajax/countinterventions.php', 1);
-                $out_block = $extendedinterventioncountintervention->showBlockCountInterventionOfContract($contract_list, $fk_c_intervention_type);
+                $out_block = $extendedinterventionquota->showBlockCountInterventionOfContract($contract_list, $fk_c_intervention_type);
 
                 $out = '<tr id="ei_count_intervention_block"><td>';
                 $out .= '<div id="ei_count_intervention_ajax_block">';
@@ -404,7 +445,8 @@ SCRIPT;
 
                 print $out;
             }
-        } elseif (in_array('interventioncard', $contexts)) {
+        }
+        elseif (in_array('interventioncard', $contexts)) {
             if (!empty($conf->global->EXTENDEDINTERVENTION_QUOTA_ACTIVATE)) {
                 if ($object->fk_contrat > 0) {
                     require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
@@ -419,9 +461,9 @@ SCRIPT;
                 $fk_c_intervention_type = isset($object->array_options['options_ei_type']) ? $object->array_options['options_ei_type'] : 0;
 
                 dol_include_once('/extendedintervention/class/extendedinterventionquota.class.php');
-                $extendedinterventioncountintervention = new ExtendedInterventionQuota($this->db);
+                $extendedinterventionquota = new ExtendedInterventionQuota($this->db);
 
-                $out = $extendedinterventioncountintervention->showBlockCountInterventionOfContract($contract_list, $fk_c_intervention_type);
+                $out = $extendedinterventionquota->showBlockCountInterventionOfContract($contract_list, $fk_c_intervention_type);
                 if (!empty($out)) {
                     // Move out of the table
                     $out = '<tr id="ei_count_intervention_block"><td>' . $out;
@@ -442,15 +484,30 @@ SCRIPT;
                     print $out;
                 }
             }
-        } elseif (in_array('contractcard', $contexts)) {
+        }
+        elseif (in_array('contractcard', $contexts)) {
             if (!empty($conf->global->EXTENDEDINTERVENTION_QUOTA_ACTIVATE)) {
+                if ($conf->requestmanager->enabled && !empty($conf->global->REQUESTMANAGER_PLANNING_ACTIVATE)) {
+                    dol_include_once('/extendedintervention/class/html.formextendedintervention.class.php');
+                    $formextendedintervention = new FormExtendedIntervention($this->db);
+                }
+
                 $langs->load('extendedintervention@extendedintervention');
 
                 $this->_fetchInterventionType();
 
                 if ($action == 'create') {
                     foreach (self::$intervention_type_cached as $line) {
-                        $htmlname = 'ei_type_' . $line->fields['code'];
+                        if ($conf->requestmanager->enabled && !empty($conf->global->REQUESTMANAGER_PLANNING_ACTIVATE)) {
+                            $htmlname = 'ei_planning_times_type_' . $line->fields['code'];
+                            $label = $langs->trans('ExtendedInterventionPlanningForInterventionType', $line->fields['label']);
+                            print '<tr id="ei_count_intervention_block"><td>' . $label . '</td>';
+                            print '<td>';
+                            print $formextendedintervention->multiselect_planning_times($htmlname);
+                            print '</td></tr>';
+                        }
+
+                        $htmlname = 'ei_count_type_' . $line->fields['code'];
                         $label = $langs->trans('ExtendedInterventionQuotaFor', $line->fields['label']);
                         print '<tr id="ei_count_intervention_block"><td>' . $label . '</td>';
                         print '<td><input type="text" class="maxwidth150" name="' . $htmlname . '" id="' . $htmlname . '" value="' . GETPOST($htmlname, 'int') . '"></td></tr>';
@@ -464,20 +521,34 @@ SCRIPT;
                     }
 
                     dol_include_once('/extendedintervention/class/extendedinterventionquota.class.php');
-                    $extendedinterventioncountintervention = new ExtendedInterventionQuota($this->db);
+                    $extendedinterventionquota = new ExtendedInterventionQuota($this->db);
 
-                    $counts = $extendedinterventioncountintervention->getCountInterventionOfContract($object->id);
+                    $info = $extendedinterventionquota->getInfoInterventionOfContract($object->id);
 
                     foreach (self::$intervention_type_cached as $line) {
-                        $htmlname = 'ei_type_' . $line->fields['code'];
-                        $value = GETPOST($htmlname, 'int') ? GETPOST($htmlname, 'int') : (isset($counts[$line->id]) ? $counts[$line->id] : '');
-                        $label = $langs->trans('ExtendedInterventionQuotaFor', $line->fields['label']);
+                        $count_htmlname = 'ei_count_type_' . $line->fields['code'];
+                        $count_value = GETPOST($count_htmlname, 'int') ? GETPOST($count_htmlname, 'int') : (isset($info[$line->id]['count']) ? $info[$line->id]['count'] : '');
+                        $count_label = $langs->trans('ExtendedInterventionQuotaFor', $line->fields['label']);
+
+                        if ($conf->requestmanager->enabled && !empty($conf->global->REQUESTMANAGER_PLANNING_ACTIVATE)) {
+                            $can_edit = !empty($count_value) && $count_value > 0;
+                            $htmlname = 'ei_planning_times_type_' . $line->fields['code'];
+                            $label = $langs->trans('ExtendedInterventionPlanningForInterventionType', $line->fields['label']);
+
+                            print '<tr id="ei_count_intervention_block">';
+                            print '<td class="titlefield">';
+                            print $form->editfieldkey($label, $htmlname, '', $object, $user->rights->contrat->creer && $can_edit);
+                            print '</td><td>';
+                            print $formextendedintervention->form_planning_times($object, $htmlname, isset($info[$line->id]['planning_times']) ? $info[$line->id]['planning_times'] : array(), $can_edit);
+                            print '</td>';
+                            print '</tr>';
+                        }
 
                         print '<tr id="ei_count_intervention_block">';
                         print '<td class="titlefield">';
-                        print $form->editfieldkey($label, $htmlname, $value, $object, $user->rights->contrat->creer);
+                        print $form->editfieldkey($count_label, $count_htmlname, $count_value, $object, $user->rights->contrat->creer);
                         print '</td><td>';
-                        print $form->editfieldval($label, $htmlname, $value, $object, $user->rights->contrat->creer);
+                        print $form->editfieldval($count_label, $count_htmlname, $count_value, $object, $user->rights->contrat->creer);
                         print '</td>';
                         print '</tr>';
                     }
@@ -532,8 +603,8 @@ SCRIPT;
                 $contract_list = $object->linkedObjects['contrat'];
 
                 dol_include_once('/extendedintervention/class/extendedinterventionquota.class.php');
-                $extendedinterventioncountintervention = new ExtendedInterventionQuota($this->db);
-                $blocs = $extendedinterventioncountintervention->showBlockCountInterventionOfContract($contract_list, 0);
+                $extendedinterventionquota = new ExtendedInterventionQuota($this->db);
+                $blocs = $extendedinterventionquota->showBlockCountInterventionOfContract($contract_list, 0);
 
                 if (!empty($blocs)) {
                     $out = '<div class="fichecenter">';
@@ -570,7 +641,7 @@ SCRIPT;
                 $out = '';
 
                 foreach (self::$intervention_type_cached as $line) {
-                    $htmlname = 'ei_type_' . $line->fields['code'];
+                    $htmlname = 'ei_count_type_' . $line->fields['code'];
                     $out .= ', MAX(IF(eicct.fk_c_intervention_type = ' . $line->id . ', IFNULL(eicct.count, 0), 0)) AS ' . $htmlname . '_quota';
                 }
 
@@ -598,7 +669,7 @@ SCRIPT;
 
         if (in_array('contractlist', $contexts)) {
             if (!empty($conf->global->EXTENDEDINTERVENTION_QUOTA_ACTIVATE)) {
-                $out = ' LEFT JOIN ' . MAIN_DB_PREFIX . 'extendedintervention_contract_count_type AS eicct ON eicct.fk_contrat = c.rowid';
+                $out = ' LEFT JOIN ' . MAIN_DB_PREFIX . 'extendedintervention_contract_type_info AS eicct ON eicct.fk_contrat = c.rowid';
 
                 $this->resprints = $out;
             }
@@ -628,7 +699,7 @@ SCRIPT;
 
                 $search = array();
                 foreach (self::$intervention_type_cached as $line) {
-                    $htmlname = 'ei_type_' . $line->fields['code'];
+                    $htmlname = 'ei_count_type_' . $line->fields['code'];
                     $value = GETPOST('search_' . $htmlname, 'alpha');
                     if ($value) $search[] = natural_search($htmlname . '_quota', $value, 1, 1);
                 }
@@ -665,7 +736,7 @@ SCRIPT;
                 $out = '';
 
                 foreach (self::$intervention_type_cached as $line) {
-                    $htmlname = 'ei_type_' . $line->fields['code'];
+                    $htmlname = 'ei_count_type_' . $line->fields['code'];
                     if (!empty($arrayfields[$htmlname]['checked'])) {
                         $out .= '<td class="liste_titre">';
                         $out .= '<input class="flat" size="4" type="text" name="search_' . $htmlname . '" value="' . dol_escape_htmltag(GETPOST('search_' . $htmlname, 'alpha')) . '">';
@@ -701,7 +772,7 @@ SCRIPT;
                 $out = '';
 
                 foreach (self::$intervention_type_cached as $line) {
-                    $htmlname = 'ei_type_' . $line->fields['code'];
+                    $htmlname = 'ei_count_type_' . $line->fields['code'];
                     if (! empty($arrayfields[$htmlname]['checked']))
                         $out .= getTitleFieldOfList($arrayfields[$htmlname]['label'], 0, $_SERVER["PHP_SELF"], $htmlname . '_quota', "", "$param", 'align="center"', $sortfield, $sortorder);
                 }
@@ -734,7 +805,7 @@ SCRIPT;
                 $out = '';
 
                 foreach (self::$intervention_type_cached as $line) {
-                    $htmlname = 'ei_type_' . $line->fields['code'];
+                    $htmlname = 'ei_count_type_' . $line->fields['code'];
                     if (!empty($arrayfields[$htmlname]['checked'])) {
                         $out .= '<td align="center" class="nowrap">';
                         $out .= $obj->{$htmlname.'_quota'};
