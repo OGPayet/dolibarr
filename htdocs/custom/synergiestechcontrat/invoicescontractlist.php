@@ -980,27 +980,8 @@ if ($resql)
             if (!$i) $totalarray['totalttcfield'] = $totalarray['nbfield'];
         }
 
-        // Extra fields
-        if (is_array($extrafields->attribute_label) && count($extrafields->attribute_label))
-        {
-            foreach($extrafields->attribute_label as $key => $val)
-            {
-                if (! empty($arrayfields["ef.".$key]['checked']))
-                {
-                    print '<td';
-                    $align=$extrafields->getAlignFlag($key);
-                    if ($align) print ' align="'.$align.'"';
-                    print '>';
-                    $tmpkey='options_'.$key;
-                    print $extrafields->showOutputField($key, $obj->$tmpkey, '', 1);
-                    print '</td>';
-                    if (! $i) $totalarray['extrafieldsfield'][++$totalarray['nbfield']] = $key;
-                    $extrafields_type = $extrafields->attribute_type[$key];
-                    if ($extrafields_type == 'int') $totalarray['totalextrafields'][$key] += $obj->$tmpkey;
-                    elseif ($extrafields_type == 'price' || $extrafields_type == 'double') $totalarray['totalpriceextrafields'][$key] += $obj->$tmpkey;
-                }
-            }
-        }
+	// Extra fields
+	include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_print_fields.tpl.php';
         // Fields from hook
         $parameters=array('totalarray'=>&$totalarray, 'arrayfields'=>$arrayfields, 'obj'=>$obj);
         $reshook=$hookmanager->executeHooks('printFieldListValue',$parameters);    // Note that $action and $object may have been modified by hook
