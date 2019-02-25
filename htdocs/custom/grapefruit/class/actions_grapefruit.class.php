@@ -768,6 +768,12 @@ class ActionsGrapeFruit
 	{
 		global $conf,$langs;
 
+		//--------------------------------
+		// Correction - Open-DSI - Begin
+		if (!($object->id > 0)) return 0;
+    // Correction - Open-DSI - End
+    //--------------------------------
+
 		$TContext = explode(':', $parameters['context']);
 		$object->fetchObjectLinked();
 
