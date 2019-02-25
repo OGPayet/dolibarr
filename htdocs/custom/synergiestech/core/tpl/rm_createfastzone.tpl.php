@@ -75,6 +75,8 @@ if ($zone === 1) {
     $formrequestmanager = new FormRequestManager($db);
     $usergroup_static = new UserGroup($db);
     $requestManager = new RequestManager($db);
+    dol_include_once('/synergiestech/class/html.formsynergiestech.class.php');
+    $formsynergiestech = new FormSynergiesTech($db);
 
     if (!empty($conf->companyrelationships->enabled)) {
         dol_include_once('/companyrelationships/class/companyrelationships.class.php');
@@ -143,7 +145,7 @@ if ($zone === 1) {
     // ActionComm
     print '<td width="200px">' . $langs->trans('RequestManagerCreateFastActionCommLabel') . '</td>';
     print '<td>';
-    print $formrequestmanager->select_actioncomm('', array('AC_TEL'), $selectedActionCommId, 'actioncomm_id', 1, 0, null, 0, 'minwidth300');
+    print $formsynergiestech->select_actioncomm('', array('AC_TEL'), $selectedActionCommId, 'actioncomm_id', 1, 0, null, 0, 'minwidth300');
     print '</td>';
     if (!empty($conf->global->REQUESTMANAGER_TIMESLOTS_ACTIVATE) && $selectedSocId > 0) {
         dol_include_once('/requestmanager/lib/requestmanagertimeslots.lib.php');

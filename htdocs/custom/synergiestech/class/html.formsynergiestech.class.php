@@ -1733,5 +1733,113 @@ class FormSynergiesTech
 
         return $formconfirm;
     }
+
+
+    /**
+     *  Output html form to select a actioncomm
+     *
+     * @param   int         $idActionComm           Id of the actioncomm
+     * @param   array       $actionCommCodeList     [=array] List of actioncomm code
+     * @param   string      $selected               Preselected actioncomm
+     * @param   string      $htmlname               Name of field in form
+     * @param   string      $showempty              Add an empty field (Can be '1' or text key to use on empty line like 'SelectThirdParty')
+     * @param   int         $forcecombo             Force to use combo box
+     * @param   array       $events                 Ajax event options to run on change. Example: array(array('method'=>'getContacts', 'url'=>dol_buildpath('/core/ajax/contacts.php',1), 'htmlname'=>'contactid', 'params'=>array('add-customer-contact'=>'disabled')))
+     * @param  	int		    $usesearchtoselect	    Minimum length of input string to start autocomplete
+     * @param   string      $morecss                Add more css styles to the SELECT component
+     * @param   string      $moreparam              Add more parameters onto the select tag. For example 'style="width: 95%"' to avoid select2 component to go over parent container
+     * @param   bool        $options_only           Return options only (for ajax treatment)
+     * @return  string                              HTML string with select box for status.
+     */
+    function select_actioncomm($idActionComm, $actionCommCodeList=array(), $selected='', $htmlname='actioncomm_id', $showempty=0, $forcecombo=0, $events=array(), $usesearchtoselect=0, $morecss='minwidth100', $moreparam='', $options_only=false)
+    {
+        global $conf, $langs, $user;
+
+        $out = '';
+
+        // search actioncomm
+        $sql  = "SELECT";
+        $sql .= " ac.id";
+        $sql .= ", ac.label";
+        $sql .= " FROM " . MAIN_DB_PREFIX . "actioncomm as ac";
+        $sql .= " WHERE ac.entity IN (" . getEntity('agenda') . ")";
+        if (count($actionCommCodeList) > 0) {
+            $sql .= " AND ac.code IN (";
+            $sqlCodeIn = '';
+            $i = 0;
+            foreach($actionCommCodeList as $actionCommCode) {
+                if ($i > 0) {
+                    $sqlCodeIn .= ", ";
+                }
+                $sqlCodeIn .= "'" . $this->db->escape($actionCommCode) . "'";
+
+                $i++;
+            }
+            $sql .= $sqlCodeIn;
+            $sql .= ")";
+        }
+        $sql .= " AND ac.elementtype IS NULL";
+        if ($idActionComm > 0) {
+            $sql .= " AND ac.id = " . $idActionComm;
+        }
+        $sql .= " ORDER BY ac.fk_user_action = " . $user->id . ", ac.datep DESC";
+
+        dol_syslog(__METHOD__, LOG_DEBUG);
+        $resql = $this->db->query($sql);
+        if ($resql)
+        {
+            if ($conf->use_javascript_ajax && ! $forcecombo && ! $options_only)
+            {
+                include_once DOL_DOCUMENT_ROOT . '/core/lib/ajax.lib.php';
+                $comboenhancement = ajax_combobox($htmlname, $events, $usesearchtoselect);
+                $out .= $comboenhancement;
+            }
+
+            if (!$options_only) $out .= '<select id="' . $htmlname . '" class="flat' . ($morecss ? ' ' . $morecss : '') . '"' . ($moreparam ? ' ' . $moreparam : '') . ' name="' . $htmlname . '">';
+
+            $textifempty = '';
+            // Do not use textifempty = ' ' or '&nbsp;' here, or search on key will search on ' key'.
+            //if (! empty($conf->use_javascript_ajax) || $forcecombo) $textifempty='';
+            if (!empty($usesearchtoselect)) {
+                if ($showempty && !is_numeric($showempty)) $textifempty = $langs->trans($showempty);
+                else $textifempty .= $langs->trans("All");
+            }
+            if ($showempty) $out .= '<option value="-1">' . $textifempty . '</option>' . "\n";
+
+            $num = $this->db->num_rows($resql);
+            $i = 0;
+            if ($num)
+            {
+                while ($i < $num)
+                {
+                    $obj = $this->db->fetch_object($resql);
+
+                    $out.= '<option value="' . $obj->id . '"';
+                    if ($selected && $selected == $obj->id) $out .= ' selected';
+                    $out .= '>';
+                    $out .= $obj->label;
+                    $out .= '</option>';
+                    $i++;
+                }
+            }
+            else
+            {
+                $out .= '<option value="-1" disabled>' . $langs->trans("RequestManagerNoActionComm") . '</option>';
+            }
+
+            if (!$options_only)
+            {
+                $out .= '</select>';
+            }
+
+            $this->num = $num;
+            return $out;
+        }
+        else
+        {
+            dol_print_error($this->db);
+            return -1;
+        }
+    }
 }
 
