@@ -56,6 +56,7 @@ $confirm=GETPOST('confirm','alpha');
 $toselect = GETPOST('toselect', 'array');
 
 $search_name=GETPOST('search_name');
+$search_code_client=GETPOST('search_code_client');
 $search_town=GETPOST('search_town','alpha');
 $search_zip=GETPOST('search_zip','alpha');
 $search_state=trim(GETPOST("search_state"));
@@ -124,6 +125,7 @@ $arrayfields=array(
     's.nom'=>array('label'=>$langs->trans("ThirdParty"), 'checked'=>1),
     's.town'=>array('label'=>$langs->trans("Town"), 'checked'=>0),
     's.zip'=>array('label'=>$langs->trans("Zip"), 'checked'=>0),
+	's.code_client'=>array('label'=>$langs->trans("CustomerCode"), 'checked'=>0),
     'state.nom'=>array('label'=>$langs->trans("StateShort"), 'checked'=>0),
     'country.code_iso'=>array('label'=>$langs->trans("Country"), 'checked'=>0),
     'sale_representative'=>array('label'=>$langs->trans("SalesRepresentative"), 'checked'=>1),
@@ -166,6 +168,7 @@ if (GETPOST('button_removefilter_x','alpha') || GETPOST('button_removefilter.x',
 	$month='';
 	$year='';
     $search_name="";
+	$search_code_client="";
 	$search_town='';
 	$search_zip="";
 	$search_state="";
@@ -274,6 +277,7 @@ else if ($year > 0)
 	$sql.= " AND c.date_contrat BETWEEN '".$db->idate(dol_get_first_day($year,1,false))."' AND '".$db->idate(dol_get_last_day($year,12,false))."'";
 }
 if ($search_name) $sql .= natural_search('s.nom', $search_name);
+if ($search_code_client) $sql .= natural_search('s.code_client', $search_code_client);
 if ($search_contract) $sql .= natural_search(array('c.rowid', 'c.ref'), $search_contract);
 if (!empty($search_ref_supplier)) $sql .= natural_search(array('c.ref_supplier'), $search_ref_supplier);
 if ($search_sale > 0)
@@ -347,6 +351,7 @@ if ($resql)
     if ($sall != '')                $param.='&sall='.$sall;
     if ($search_contract != '')     $param.='&search_contract='.$search_contract;
     if ($search_name != '')         $param.='&search_name='.$search_name;
+	if ($search_code_client != '')  $param.='&search_code_client='.$search_code_client;
     if ($search_ref_supplier != '') $param.='&search_ref_supplier='.$search_ref_supplier;
     if ($search_sale != '')         $param.='&search_sale=' .$search_sale;
     if ($show_files)                $param.='&show_files=' .$show_files;
@@ -459,6 +464,12 @@ if ($resql)
         print '<input type="text" class="flat" size="8" name="search_name" value="'.dol_escape_htmltag($search_name).'">';
         print '</td>';
     }
+		 if (! empty($arrayfields['s.code_client']['checked']))
+    {
+        print '<td class="liste_titre">';
+        print '<input type="text" class="flat" size="8" name="search_code_client" value="'.dol_escape_htmltag($search_code_client).'">';
+        print '</td>';
+    }
     // Town
     if (! empty($arrayfields['s.town']['checked'])) print '<td class="liste_titre"><input class="flat" type="text" size="6" name="search_town" value="'.$search_town.'"></td>';
     // Zip
@@ -535,6 +546,7 @@ if ($resql)
     if (! empty($arrayfields['c.ref_customer']['checked']))      print_liste_field_titre($arrayfields['c.ref_customer']['label'], $_SERVER["PHP_SELF"], "c.ref_customer","","$param",'',$sortfield,$sortorder);
     if (! empty($arrayfields['c.ref_supplier']['checked']))      print_liste_field_titre($arrayfields['c.ref_supplier']['label'], $_SERVER["PHP_SELF"], "c.ref_supplier","","$param",'',$sortfield,$sortorder);
     if (! empty($arrayfields['s.nom']['checked']))               print_liste_field_titre($arrayfields['s.nom']['label'], $_SERVER["PHP_SELF"], "s.nom","","$param",'',$sortfield,$sortorder);
+	if (! empty($arrayfields['s.code_client']['checked']))       print_liste_field_titre($arrayfields['s.code_client']['label'], $_SERVER["PHP_SELF"], "s.code_client","","$param",'',$sortfield,$sortorder);
 	if (! empty($arrayfields['s.town']['checked']))              print_liste_field_titre($arrayfields['s.town']['label'],$_SERVER["PHP_SELF"],'s.town','',$param,'',$sortfield,$sortorder);
 	if (! empty($arrayfields['s.zip']['checked']))               print_liste_field_titre($arrayfields['s.zip']['label'],$_SERVER["PHP_SELF"],'s.zip','',$param,'',$sortfield,$sortorder);
 	if (! empty($arrayfields['state.nom']['checked']))           print_liste_field_titre($arrayfields['state.nom']['label'],$_SERVER["PHP_SELF"],"state.nom","",$param,'',$sortfield,$sortorder);
@@ -594,6 +606,10 @@ if ($resql)
         if (! empty($arrayfields['s.nom']['checked']))
         {
             print '<td><a href="../comm/card.php?socid='.$obj->socid.'">'.img_object($langs->trans("ShowCompany"),"company").' '.$obj->name.'</a></td>';
+        }
+		if (! empty($arrayfields['s.code_client']['checked']))
+        {
+            print '<td>'.$obj->code_client.'</td>';
         }
         // Town
         if (! empty($arrayfields['s.town']['checked']))
