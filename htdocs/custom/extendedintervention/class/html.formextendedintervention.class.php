@@ -48,6 +48,10 @@ class FormExtendedIntervention
      * @var array  List of request type
      */
     public $request_types_array;
+    /**
+     * @var array  List of intervention type
+     */
+    public $intervention_types_list;
 
 
     /**
@@ -77,6 +81,25 @@ class FormExtendedIntervention
             $this->request_types_array = array();
             foreach ($request_types as $request_type) {
                 $this->request_types_array[$request_type->id] = $request_type->fields['label'];
+            }
+        }
+    }
+
+    /**
+	 * Load the list of intervention type
+	 *
+     * @return  void
+	 */
+    public function load_intervention_type()
+    {
+        if (!isset($this->intervention_types_list)) {
+            // Get intervention types list
+            dol_include_once('/advancedictionaries/class/dictionary.class.php');
+            $extendedinterventiontype = Dictionary::getDictionary($this->db, 'extendedintervention', 'extendedinterventiontype');
+            $intervention_types = $extendedinterventiontype->fetch_lines(1, array(), array(), 0, 0, false, true);
+            $this->intervention_types_list = array();
+            foreach ($intervention_types as $intervention_type) {
+                $this->intervention_types_list[$intervention_type->id] = $intervention_type->fields;
             }
         }
     }
@@ -171,24 +194,26 @@ class FormExtendedIntervention
     /**
      *	Return multiselect list of planning times of a intervention
      *
-     *	@param	string	$htmlname		    Name of select
-     *	@param	array	$values		        Values by default for each request type
-     *	@param	int		$key_in_label       1 pour afficher la key dans la valeur "[key] value"
-     *	@param	int		$value_as_key       1 to use value as key
-     *	@param  string	$morecss            Add more css style
-     *	@param  int		$translate		    Translate and encode value
-     *  @param	int		$width			    Force width of select box. May be used only when using jquery couch. Example: 250, 95%
-     *  @param	string	$moreattrib		    Add more options on select component. Example: 'disabled'
-     *	@return	string					    HTML multiselect string
-     *  @see selectarray
+     * @param   int		$intervention_type_id   Intervention type ID
+     * @param   string	$htmlname		        Name of select
+     * @param   array	$values		            Values by default for each request type
+     * @param   int		$key_in_label           1 pour afficher la key dans la valeur "[key] value"
+     * @param   int		$value_as_key           1 to use value as key
+     * @param   string	$morecss                Add more css style
+     * @param   int		$translate		        Translate and encode value
+     * @param   int		$width			        Force width of select box. May be used only when using jquery couch. Example: 250, 95%
+     * @param   string	$moreattrib		        Add more options on select component. Example: 'disabled'
+     * @return  string					        HTML multiselect string
+     * @see selectarray
      */
-    function multiselect_planning_times($htmlname='ei_planning_times', $values=array(), $key_in_label=0, $value_as_key=0, $morecss='minwidth300', $translate=0, $width=0, $moreattrib='')
+    function multiselect_planning_times($intervention_type_id, $htmlname='ei_planning_times', $values=array(), $key_in_label=0, $value_as_key=0, $morecss='minwidth300', $translate=0, $width=0, $moreattrib='')
     {
         global $conf, $langs;
 
         dol_include_once('/extendedintervention/class/extendedinterventionquota.class.php');
         $this->load_request_type();
-        $request_types_planned = !empty($conf->global->REQUESTMANAGER_PLANNING_REQUEST_TYPE) ? explode(',', $conf->global->REQUESTMANAGER_PLANNING_REQUEST_TYPE) : array();
+        $this->load_intervention_type();
+        $request_types_planned = !empty($this->intervention_types_list[$intervention_type_id]['planning_request_type']) ? explode(',', $this->intervention_types_list[$intervention_type_id]['planning_request_type']) : array();
 
         $lines = '';
         foreach ($request_types_planned as $request_type) {
@@ -216,13 +241,14 @@ class FormExtendedIntervention
     /**
      *	Return multiselect list of planning times of a intervention
      *
-     * @param	object	$object		        Object handler
-     * @param	string	$htmlname		    Name of select
-     * @param	array	$values		        Values by default for each request type
-     * @param	boolean	$perm			    Permission to allow to edit
-     * @return	string					    HTML multiselect string
+     * @param	object	$object		            Object handler
+     * @param	int		$intervention_type_id   Intervention type ID
+     * @param	string	$htmlname		        Name of select
+     * @param	array	$values		            Values by default for each request type
+     * @param	boolean	$perm			        Permission to allow to edit
+     * @return	string					        HTML multiselect string
      */
-    function form_planning_times($object, $htmlname='ei_planning_times', $values=array(), $perm=true)
+    function form_planning_times($object, $intervention_type_id, $htmlname='ei_planning_times', $values=array(), $perm=true)
     {
         global $conf, $langs;
 
@@ -234,7 +260,7 @@ class FormExtendedIntervention
             $out .= '<input type="hidden" name="id" value="' . $object->id . '">';
             $out .= '<table class="nobordernopadding centpercent" cellpadding="0" cellspacing="0">';
             $out .= '<tr><td>';
-            $out .= $this->multiselect_planning_times($htmlname, $values);
+            $out .= $this->multiselect_planning_times($intervention_type_id, $htmlname, $values);
             $out .= '</td>';
             $out .= '<td align="left">';
             $out .= '<input type="submit" class="button" name="modify" value="' . $langs->trans("Modify") . '">';
@@ -245,7 +271,8 @@ class FormExtendedIntervention
         } else {
             dol_include_once('/extendedintervention/class/extendedinterventionquota.class.php');
             $this->load_request_type();
-            $request_types_planned = !empty($conf->global->REQUESTMANAGER_PLANNING_REQUEST_TYPE) ? explode(',', $conf->global->REQUESTMANAGER_PLANNING_REQUEST_TYPE) : array();
+            $this->load_intervention_type();
+            $request_types_planned = !empty($this->intervention_types_list[$intervention_type_id]['planning_request_type']) ? explode(',', $this->intervention_types_list[$intervention_type_id]['planning_request_type']) : array();
 
             $lines = '';
             foreach ($request_types_planned as $request_type) {

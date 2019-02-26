@@ -32,7 +32,7 @@ class ExtendedInterventionTypeDictionary extends Dictionary
     /**
      * @var int         Version of this dictionary
      */
-    public $version = 1;
+    public $version = 2;
 
     /**
      * @var array       List of languages to load
@@ -196,10 +196,48 @@ class ExtendedInterventionTypeDictionary extends Dictionary
                 'icon' => 'a',
             )
         ),
+        2 => array(
+            'fields' => array(
+                'planning_request_type' => 'a',
+            )
+        ),
     );
 
     /**
      * @var bool    Is multi entity (false = partaged, true = by entity)
      */
     public $is_multi_entity = true;
+
+    /**
+	 * Initialize the dictionary
+	 *
+     * @return  void
+	 */
+	protected function initialize()
+	{
+	    global $conf;
+
+	    if ($conf->requestmanager->enabled) {
+            // Get planned request types list
+            dol_include_once('/advancedictionaries/class/dictionary.class.php');
+            $requestmanagerrequesttype = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagerrequesttype');
+            $request_types = $requestmanagerrequesttype->fetch_lines(1, array(), array(), 0, 0, false, true);
+            $request_types_planned = !empty($conf->global->REQUESTMANAGER_PLANNING_REQUEST_TYPE) ? explode(',', $conf->global->REQUESTMANAGER_PLANNING_REQUEST_TYPE) : array();
+            $request_types_array = array();
+            foreach ($request_types as $request_type) {
+                if (in_array($request_type->id, $request_types_planned)) {
+                    $request_types_array[$request_type->id] = $request_type->fields['label'];
+                }
+            }
+
+            $this->fields['planning_request_type'] = array(
+                'name' => 'planning_request_type',
+                'label' => 'ExtendedInterventionTypeDictionaryPlanningRequestType',
+                'type' => 'checkbox',
+                'options' => $request_types_array,
+                'is_not_show' => empty($conf->global->EXTENDEDINTERVENTION_QUOTA_ACTIVATE) || !$conf->requestmanager->enabled || empty($conf->global->REQUESTMANAGER_PLANNING_ACTIVATE),
+            );
+        }
+	}
 }
+

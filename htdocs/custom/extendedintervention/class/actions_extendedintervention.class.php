@@ -503,7 +503,7 @@ SCRIPT;
                             $label = $langs->trans('ExtendedInterventionPlanningForInterventionType', $line->fields['label']);
                             print '<tr id="ei_count_intervention_block"><td>' . $label . '</td>';
                             print '<td>';
-                            print $formextendedintervention->multiselect_planning_times($htmlname);
+                            print $formextendedintervention->multiselect_planning_times($line->id, $htmlname);
                             print '</td></tr>';
                         }
 
@@ -539,7 +539,7 @@ SCRIPT;
                             print '<td class="titlefield">';
                             print $form->editfieldkey($label, $htmlname, '', $object, $user->rights->contrat->creer && $can_edit);
                             print '</td><td>';
-                            print $formextendedintervention->form_planning_times($object, $htmlname, isset($info[$line->id]['planning_times']) ? $info[$line->id]['planning_times'] : array(), $can_edit);
+                            print $formextendedintervention->form_planning_times($object, $line->id, $htmlname, isset($info[$line->id]['planning_times']) ? $info[$line->id]['planning_times'] : array(), $can_edit);
                             print '</td>';
                             print '</tr>';
                         }

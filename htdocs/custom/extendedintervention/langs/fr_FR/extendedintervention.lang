@@ -49,6 +49,7 @@ ExtendedInterventionContractQuotaInterventionPeriodSize                     = Du
 ############################################################
 ExtendedInterventionTypeDictionaryLabel                                         = Types d'interventions
 ExtendedInterventionTypeDictionaryCount                                         = Décompté
+ExtendedInterventionTypeDictionaryPlanningRequestType                           = Type de demande planifiable
 
 ExtendedInterventionQuestionBlocDictionaryLabel                                 = Blocs de questions
 ExtendedInterventionQuestionBlocDictionaryTitle                                 = Titre
