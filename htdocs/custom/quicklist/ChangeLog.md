@@ -31,7 +31,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 06-11-2017
 - Version initial.
 
-[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/quicklist/compare/v4.0.4...HEAD
+[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/quicklist/compare/v4.0.5...HEAD
+[4.0.5]: http://git.open-dsi.fr/dolibarr-extension/quicklist/commits/v4.0.5
 [4.0.4]: http://git.open-dsi.fr/dolibarr-extension/quicklist/commits/v4.0.4
 [4.0.3]: http://git.open-dsi.fr/dolibarr-extension/quicklist/commits/v4.0.3
 [4.0.2]: http://git.open-dsi.fr/dolibarr-extension/quicklist/commits/v4.0.2
