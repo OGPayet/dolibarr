@@ -48,6 +48,8 @@ else header('Cache-Control: no-cache');
 $langs->load('main');
 $langs->load('quicklist@quicklist');
 
+$default_text = json_encode(' (' . $langs->trans('QuickListDefault') .')');
+
 $search_plus_img_title = dol_escape_htmltag($langs->trans("QuickListHelp"));
 $search_plus_img_src = img_picto('', 'search_plus.png@quicklist', '', false, 1);
 
@@ -159,8 +161,8 @@ function quicklistFilterFunction() {
 function quicklistAddFilterItem(quicklistElements, filterList) {
   $.map(filterList, function (filter) {
     quicklistElements.append(
-      '<a id="' + filter.id + '" class="item filter" href="' + filter.url + '">' +
-      filter.name + (filter.author ? '<span class="right"><?php echo $edit_img ?><?php echo $delete_img ?></span>' : '') +
+      '<a id="' + filter.id + '" class="item filter" href="' + filter.url + filter.hash_tag + '">' +
+      filter.name + (filter.default ? <?php echo $default_text ?> : '') + (filter.author ? '<span class="right"><?php echo $edit_img ?><?php echo $delete_img ?></span>' : '') +
       '</a>'
     );
   });

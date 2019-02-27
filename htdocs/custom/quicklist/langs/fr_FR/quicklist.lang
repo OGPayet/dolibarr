@@ -10,6 +10,7 @@ QuickListAddFilter=Ajouter un filtre
 QuickListSearch=Rechercher...
 QuickListEditFilter=Modifier le filtre
 QuickListDeleteFilter=Supprimer le filtre
+QuickListDefault=Défaut
 
 QuickListScopePrivate=Privé
 QuickListScopeUserGroup=Groupes d\'utilisateurs
@@ -20,6 +21,7 @@ QuickListFilterScope=Visibilité du filtre :
 QuickListFilterScopeUserGroup=Selection des groupes d'utilisateurs :
 QuickListFilterMenu=Créer un menu associé ?
 QuickListFilterUpdateUrl=Mise à jour de l'url du filtre ?
+QuickListFilterDefault=Filtre par défaut
 
 QuickListConfirmDeleteFilter=Êtes-vous sûr de vouloir supprimer le filtre "%s" ?
 

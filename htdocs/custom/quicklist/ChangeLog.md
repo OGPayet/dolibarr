@@ -3,6 +3,11 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.5] - 27-02-2019
+- Prise en compte des colonnes sauvegardées à afficher.
+- Sauvegarde aussi le hashtag de l'URL.
+- Ajout de l'option filtre par défaut.
+
 ## [4.0.4] - 30-11-2018
 
 ## Fixer

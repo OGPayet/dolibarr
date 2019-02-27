@@ -98,7 +98,16 @@ if ($id > 0 || !empty($ref)) {
 // Initialize technical object to manage hooks of page. Note that conf->hooks_modules contains array of hook context
 $hookmanager->initHooks(array('requestmanagercard','globalcard'));
 
+// Initialize technical object to manage hooks of page. Note that conf->hooks_modules contains array of hook context For event list
+$list_mode = GETPOST('list_mode', 'int');
+if ($list_mode === "") $list_mode = $_SESSION['rm_list_mode'];
+if ($list_mode === "" || !isset($list_mode)) $list_mode = !empty($conf->global->REQUESTMANAGER_DEFAULT_LIST_MODE) ? $conf->global->REQUESTMANAGER_DEFAULT_LIST_MODE : 0;
+$contextpage = $list_mode == 0 ? 'requestmanagereventlist' : ($list_mode == 1 ? 'requestmanagertimelineeventlist' : 'requestmanagertimeline');
+
+
 $permissiondellink = $user->rights->requestmanager->creer; 	// Used by the include of actions_dellink.inc.php
+
+include dol_buildpath('/requestmanager/core/init_events.inc.php');
 
 /*
  * Actions
@@ -110,6 +119,8 @@ if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'e
 
 if (empty($reshook)) {
     if (!empty($cancel)) $action = '';
+
+    include dol_buildpath('/requestmanager/core/actions_events.inc.php');
 
     // Confirm forcing principal company
     $force_principal_company = false;
@@ -2382,8 +2393,14 @@ SCRIPT;
         /*
 	 * Events
 	 */
-        requestmanager_show_events($object);
-        requestmanager_show_timelines($object);
+        // Output template part (modules that overwrite templates must declare this into descriptor)
+        $dirtpls = array_merge($conf->modules_parts['tpl'], array('/requestmanager/tpl'));
+        foreach ($dirtpls as $reldir) {
+            $res = @include dol_buildpath($reldir . '/request_events.tpl.php');
+            if ($res) {
+                break;
+            }
+        }
 
         /*
 	 * Linked Objects

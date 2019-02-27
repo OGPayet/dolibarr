@@ -40,7 +40,6 @@ class QuickList extends CommonObject
      * @var integer
      */
     public $id;
-
     /**
      * Entity of filter
      * @var integer
@@ -52,43 +51,46 @@ class QuickList extends CommonObject
      * @var string
      */
     public $name;
-
     /**
      * Context of filter
      * @var string
      */
     public $context;
-
     /**
-     * Url of filter
+     * Parameters of the url of filter
      * @var string
      */
-    public $url;
-
+    public $params;
+    /**
+     * HashTag of the url of filter
+     * @var string
+     */
+    public $hash_tag;
     /**
      * ID of author of filter
      * @var integer
      */
     public $fk_user_author;
-
     /**
      * Date of creation of filter
      * @var integer
      */
     public $date_creation;
-
     /**
      * Scope of filter
      * @var integer
      */
     public $scope;
-
+    /**
+     * Default filter
+     * @var integer
+     */
+    public $default;
     /**
      * ID of menu linked with the filter (optional)
      * @var integer
      */
     public $fk_menu;
-
     /**
      * List of usergroup when the scope is 'usergroup' for the filter (optional)
      * @var array
@@ -99,12 +101,10 @@ class QuickList extends CommonObject
      * Private scope
      */
     const QUICKLIST_SCOPE_PRIVATE = 0;
-
     /**
      * Usergroup scope
      */
     const QUICKLIST_SCOPE_USERGROUP = 1;
-
     /**
      * Public scope
      */
@@ -148,16 +148,18 @@ class QuickList extends CommonObject
         $this->db->begin();
 
         $sql = "INSERT INTO " . MAIN_DB_PREFIX . "quicklist (";
-        $sql .= " entity, name, context, url, fk_user_author, date_creation, scope, fk_menu";
+        $sql .= " entity, name, context, params, fk_user_author, date_creation, scope, fk_menu, `default`, hash_tag";
         $sql .= ")";
         $sql .= " VALUES (" . $conf->entity;
         $sql .= ", '" . $this->db->escape($this->name) . "'";
         $sql .= ", '" . $this->db->escape($this->context) . "'";
-        $sql .= ", '" . $this->db->escape($this->url) . "'";
+        $sql .= ", " . (!empty($this->params) ? "'" . $this->db->escape($this->params) . "'" : "NULL");
         $sql .= ", " . $user->id;
         $sql .= ", '" . $this->db->idate($now) . "'";
         $sql .= ", " . $this->scope;
         $sql .= ", " . (!empty($this->fk_menu) ? $this->fk_menu : "NULL");
+        $sql .= ", " . (!empty($this->default) ? 1 : "NULL");
+        $sql .= ", " . (!empty($this->hash_tag) ? "'" . $this->db->escape($this->hash_tag) . "'" : "NULL");
         $sql .= ")";
 
         dol_syslog(get_class($this) . "::create", LOG_DEBUG);
@@ -198,7 +200,7 @@ class QuickList extends CommonObject
         // Check parameters
         if (empty($id)) return -1;
 
-        $sql = 'SELECT ql.rowid, ql.entity, ql.name, ql.context, ql.url, ql.fk_user_author, ql.date_creation, ql.scope, ql.fk_menu';
+        $sql = 'SELECT ql.rowid, ql.entity, ql.name, ql.context, ql.params, ql.fk_user_author, ql.date_creation, ql.scope, ql.fk_menu, ql.default, ql.hash_tag';
         $sql .= ' FROM ' . MAIN_DB_PREFIX . 'quicklist as ql';
         $sql .= " WHERE ql.entity IN (" . getEntity('quicklist', 1) . ")";
         $sql .= " AND ql.rowid=" . $id;
@@ -211,11 +213,13 @@ class QuickList extends CommonObject
                 $this->entity = $obj->entity;
                 $this->name = $obj->name;
                 $this->context = $obj->context;
-                $this->url = $obj->url;
+                $this->params = $obj->params;
                 $this->fk_user_author = $obj->fk_user_author;
                 $this->date_creation = $this->db->jdate($obj->date_creation);
                 $this->scope = $obj->scope;
+                $this->default = !empty($obj->default) ? 1 : 0;
                 $this->fk_menu = $obj->fk_menu;
+                $this->hash_tag = $obj->hash_tag;
 
                 $this->db->free($result);
 
@@ -303,14 +307,16 @@ class QuickList extends CommonObject
 
         // Update request
         $sql = "UPDATE " . MAIN_DB_PREFIX . "quicklist SET";
-        $sql .= " entity=" . $this->entity . ",";
-        $sql .= " name='" . $this->db->escape($this->name) . "',";
-        $sql .= " context='" . $this->db->escape($this->context) . "',";
-        $sql .= " url='" . $this->db->escape($this->url) . "',";
-        $sql .= " fk_user_author=" . $this->fk_user_author . ",";
-        $sql .= " date_creation='" . $this->db->idate($this->date_creation) . "',";
-        $sql .= " scope=" . $this->scope . ",";
-        $sql .= " fk_menu=" . (!empty($this->fk_menu) ? $this->fk_menu : "NULL");
+        $sql .= " entity = " . $this->entity;
+        $sql .= ", name = '" . $this->db->escape($this->name) . "'";
+        $sql .= ", context = '" . $this->db->escape($this->context) . "'";
+        $sql .= ", params = " . (!empty($this->params) ? "'" . $this->db->escape($this->params) . "'" : "NULL");
+        $sql .= ", fk_user_author = " . $this->fk_user_author;
+        $sql .= ", date_creation = '" . $this->db->idate($this->date_creation) . "'";
+        $sql .= ", scope = " . $this->scope;
+        $sql .= ", fk_menu = " . (!empty($this->fk_menu) ? $this->fk_menu : "NULL");
+        $sql .= ", `default` = " . (!empty($this->default) ? 1 : "NULL");
+        $sql .= ", hash_tag = " . (!empty($this->hash_tag) ? "'" . $this->db->escape($this->hash_tag) . "'" : "NULL");
         $sql .= " WHERE rowid=" . $this->id;
 
         $this->db->begin();
@@ -346,7 +352,7 @@ class QuickList extends CommonObject
     }
 
     /**
-     *  Delete the customer order
+     *  Delete the quicklist filter
      *
      * @param    User   $user       User object
      * @param    int    $notrigger  1=Does not execute triggers, 0= execuete triggers
@@ -430,6 +436,56 @@ class QuickList extends CommonObject
             return 1;
         } else {
             $this->error = $this->db->error();
+            return -1;
+        }
+    }
+
+    /**
+     *  Get default quicklist filter
+     *
+     * @param    string     $context     Context of the page
+     *
+     * @return  integer             <0 if KO, >0 if OK, 0 if not correct scope
+     */
+    function fetch_default($context)
+    {
+        global $conf, $user;
+
+        $usergroup_ids = array();
+        $usergroup = new UserGroup($this->db);
+        $groupslist = $usergroup->listGroupsForUser($user->id);
+        foreach ($groupslist as $group) {
+            if ($group->entity == $conf->entity) {
+                $usergroup_ids[] = $group->id;
+            }
+        }
+
+        $sql = 'SELECT ql.rowid';
+        $sql .= ' FROM ' . MAIN_DB_PREFIX . 'quicklist as ql';
+        $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'quicklist_usergroup as qlug';
+        $sql .= '   ON ql.rowid = qlug.fk_quicklist';
+        $sql .= " WHERE ql.entity IN (" . getEntity('quicklist', 1) . ")";
+        $sql .= " AND context = '".$this->db->escape($context)."'";
+        $sql .= " AND (";
+        $sql .= "   ql.fk_user_author = " . $user->id;
+        if (count($usergroup_ids) > 0) $sql .= "   OR qlug.fk_usergroup IN (" . implode(',', $usergroup_ids) . ")";
+        $sql .= "   OR ql.scope = " . self::QUICKLIST_SCOPE_PUBLIC;
+        $sql .= " )";
+        $sql .= " AND ql.default IS NOT NULL";
+        $sql .= " ORDER BY ql.scope, ql.name";
+
+        $result = $this->db->query($sql);
+        if ($result) {
+            if ($obj = $this->db->fetch_object($result)) {
+                $this->fetch($obj->rowid);
+                $this->fetch_usergroup();
+
+                return 1;
+            }
+
+            return 0;
+        } else {
+            dol_print_error($this->db);
             return -1;
         }
     }

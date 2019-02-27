@@ -28,13 +28,50 @@ dol_include_once('/quicklist/lib/quicklist.lib.php');
 
 class ActionsQuickList
 {
+    /**
+     * @var DoliDB Database handler.
+     */
+    public $db;
+    /**
+     * @var string Error
+     */
+    public $error = '';
+    /**
+     * @var array Errors
+     */
+    public $errors = array();
+
+    /**
+     * @var array Hook results. Propagated to $hookmanager->resArray for later reuse
+     */
+    public $results = array();
+
+    /**
+     * @var string String displayed by executeHook() immediately after return
+     */
+    public $resprints;
+
+    /**
+     * @var array
+     */
     private $invalid_params = [ 'token', 'confirm', 'formfilteraction',
         'button_search_y', 'button_search.y', 'button_search',
         'button_removefilte_x', 'button_removefilter.x', 'button_removefilter',
         'action', 'massaction', 'confirmmassaction', 'checkallactions', 'toselect[]',
         'button_quicklist_addfilter_x', 'button_quicklist_addfilter.x', 'button_quicklist_addfilter',
         'filter_name', 'filter_scope', 'filter_scope_usergroup', 'filter_update_url', 'filter_menu', 'filter_id',
+        'filter_hashtag', 'filter_default',
     ];
+
+    /**
+     * Constructor
+     *
+     * @param        DoliDB $db Database handler
+     */
+    public function __construct($db)
+    {
+        $this->db = $db;
+    }
 
     /**
      * Overloading the doActions function : replacing the parent's function with the one below
@@ -47,13 +84,26 @@ class ActionsQuickList
      */
     function doActions($parameters, &$object, &$action, $hookmanager)
     {
-        global $db, $langs, $user;
-
-        $act = GETPOST("action", 'alpha');
-        if ($act != 'quicklist_editfilter_confirm' && $act != 'quicklist_deletefilter_confirm' && $act != 'quicklist_addfilter_confirm')
-            return 0;
+        global $langs, $user;
 
         $langs->load('quicklist@quicklist');
+        $context = quicklist_get_context($parameters['context']);
+        if (empty($context))
+            return 0;
+
+        //--------------------------------------------------------------------
+        // Get filter
+        //--------------------------------------------------------------------
+        $filter_id = GETPOST("filter_id", 'int');
+        $quicklist = new QuickList($this->db);
+        if ($filter_id > 0) {
+            $quicklist->fetch($filter_id);
+        } else {
+            if ($quicklist->fetch_default($context) == 0)
+                return 0;
+        }
+
+        $act = GETPOST("action", 'alpha');
 
         //--------------------------------------------------------------------
         // Base url
@@ -64,14 +114,8 @@ class ActionsQuickList
                 $params[$key] = $value;
             }
         }
-        $base_url = $_SERVER["PHP_SELF"] . (count($params) ? "?" . http_build_query($params, '', '&') : '');
-
-        //--------------------------------------------------------------------
-        // Get filter
-        //--------------------------------------------------------------------
-        $filter_id = GETPOST("filter_id", 'int');
-        $quicklist = new QuickList($db);
-        $quicklist->fetch($filter_id);
+        if (!empty($params['selectedfields'])) $params['formfilteraction'] = 'listafterchangingselectedfields';
+        $params_url = count($params) ? http_build_query($params, '', '&') : '';
 
         //--------------------------------------------------------------------
         // Add filter
@@ -86,10 +130,12 @@ class ActionsQuickList
 
             if ($result) {
                 $quicklist->name = GETPOST("filter_name", 'alpha');
-                $quicklist->context = quicklist_get_context($parameters['context']);
-                $quicklist->url = $base_url;
+                $quicklist->context = $context;
+                $quicklist->params = $params_url;
                 $quicklist->scope = GETPOST("filter_scope", 'alpha');
                 $quicklist->fk_menu = $fk_menu;
+                $quicklist->default = GETPOST("filter_default", 'alpha') ? 1 : 0;
+                $quicklist->hash_tag = GETPOST("filter_hashtag", 'alpha');
                 $result = $quicklist->create($user);
                 if ($result < 0) {
                     setEventMessages($langs->trans('QuickListFilterSavedError', $quicklist->errorsToString()), null, 'errors');
@@ -122,10 +168,12 @@ class ActionsQuickList
             if ($result) {
                 $quicklist->name = GETPOST("filter_name", 'alpha');
                 if (!empty(GETPOST("filter_update_url", 'alpha'))) {
-                    $quicklist->url = $base_url;
+                    $quicklist->params = $params_url;
+                    $quicklist->hash_tag = GETPOST("filter_hashtag", 'alpha');
                 }
                 $quicklist->scope = GETPOST("filter_scope", 'alpha');
                 $quicklist->fk_menu = $fk_menu;
+                $quicklist->default = GETPOST("filter_default", 'alpha') ? 1 : 0;
                 $result = $quicklist->update($user);
                 if ($result < 0) {
                     setEventMessages($langs->trans('QuickListFilterSavedError', $quicklist->errorsToString()), null, 'errors');
@@ -156,6 +204,14 @@ class ActionsQuickList
                 setEventMessages($langs->trans('QuickListFilterDeleted'), null);
             }
         }
+        //--------------------------------------------------------------------
+        // Default filter
+        //--------------------------------------------------------------------
+        elseif (!isset($_SESSION['quicklist_current_filter'][$context])) {
+            $_SESSION['quicklist_current_filter'][$context] = $quicklist->id;
+            header('Location: ' . $_SERVER["PHP_SELF"] . (!empty($quicklist->params) ? '?' . $quicklist->params . '&quicklist_set=1' : '?quicklist_set=1'));
+            exit;
+        }
 
         return 0;
     }
@@ -171,7 +227,7 @@ class ActionsQuickList
      */
     function printFieldListOption($parameters, &$object, &$action, $hookmanager)
     {
-        global $db, $langs, $user;
+        global $langs, $user;
 
         $context = quicklist_get_context($parameters['context']);
         if (empty($context))
@@ -191,19 +247,20 @@ class ActionsQuickList
                 $params[$key] = $value;
             }
         }
-        $base_url = $_SERVER["PHP_SELF"] . (count($params) ? "?" . http_build_query($params, '', '&') : '');
+        $params_url = count($params) ? http_build_query($params, '', '&') : '';
+        $base_url = $_SERVER["PHP_SELF"] . (!empty($params_url) ? "?" . $params_url : '');
 
         //--------------------------------------------------------------------
         // Formulaire de Ajout / modification / confirmation de suppression
         //--------------------------------------------------------------------
         if ($act == 'quicklist_editfilter' || $act == 'quicklist_deletefilter' || $addfilter) {
-            $form = new Form($db);
+            $form = new Form($this->db);
             dol_include_once('/quicklist/class/html.formquicklist.class.php');
-            $formquicklist = new FormQuickList($db);
+            $formquicklist = new FormQuickList($this->db);
 
             // Get groups of the user
 //            require_once DOL_DOCUMENT_ROOT . '/user/class/usergroup.class.php';
-//            $usergroup = new UserGroup($db);
+//            $usergroup = new UserGroup($this->db);
 //            $usergroups = $usergroup->listGroupsForUser($user->id);
 //            if (!is_array($usergroups)) {
 //                $this->error = $usergroup->error;
@@ -215,7 +272,7 @@ class ActionsQuickList
             // Get filter
             //--------------------------------------------------------------------
             $filter_id = GETPOST("filter_id", 'int');
-            $quicklist = new QuickList($db);
+            $quicklist = new QuickList($this->db);
             $quicklist->fetch($filter_id);
             $quicklist->fetch_usergroup();
 
@@ -233,6 +290,11 @@ class ActionsQuickList
                         'name' => 'filter_scope',
                         'type' => 'hidden',
                         'value' => (isset($quicklist->scope) ? $quicklist->scope : QuickList::QUICKLIST_SCOPE_PRIVATE)
+                    ),
+                    array(
+                        'name' => 'filter_hashtag',
+                        'type' => 'hidden',
+                        'value' => ''
                     ),
                     array(
                         'name' => 'filter_name',
@@ -255,6 +317,12 @@ class ActionsQuickList
                         'label' => $langs->trans('QuickListFilterScopeUserGroup'),
                         'type' => 'other',
                         'value' => $formquicklist->multiselect_dolgroups((isset($quicklist->usergroups) ? array_keys($quicklist->usergroups) : array()), 'filter_scope_usergroup')//, '', 0, array_keys($usergroups))
+                    ),
+                    array(
+                        'name' => 'filter_default',
+                        'label' => $langs->trans('QuickListFilterDefault'),
+                        'type' => 'checkbox',
+                        'value' => !empty($quicklist->default)
                     ),
                 );
 
@@ -281,6 +349,8 @@ class ActionsQuickList
                 $formconfirm .= '<script type="text/javascript" language="javascript">' . "\n";
                 $formconfirm .= '$(document).ready(function () {' . "\n";
                 $formconfirm .= '  $("#dialog-confirm").on("dialogopen", function(event, ui) {' . "\n";
+                $formconfirm .= '    $("#dialog-confirm").val(encodeURIComponent(window.location.hash));' . "\n";
+                $formconfirm .= '    $(\'input[name=filter_hashtag]\').val(encodeURIComponent(window.location.hash));' . "\n";
                 $formconfirm .= '    $(\'input[name=filter_name]\').closest(\'tr\').find(\'td:first-child\').attr(\'width\', \'25%\');' . "\n";
                 $formconfirm .= '    $.map($(\'input[type=radio][name=filter_scope_r]\'), function(item) { $(item).attr(\'id\', \'filter_scope_\' + $(item).val()); });' . "\n";
                 $formconfirm .= '    $(\'input[type=radio][name=filter_scope_r]\').filter(\'[value=' . (isset($quicklist->scope) ? $quicklist->scope : QuickList::QUICKLIST_SCOPE_PRIVATE) . ']\').prop(\'checked\', true);' . "\n";
@@ -320,12 +390,13 @@ class ActionsQuickList
         // Remplacement du bouton de remise à zero des filtres
         //--------------------------------------------------------------------
         // Get filter list of user
-        $quicklist = new QuickList($db);
+        $quicklist = new QuickList($this->db);
         $filters_list = $quicklist->liste_array($context);
-        $filters = ['private' => [], 'usergroup' => [], 'public' => []];
+        $filters = [ 'private' => [], 'usergroup' => [], 'public' => [] ];
         if (is_array($filters_list)) {
             foreach ($filters_list as $filter) {
-                $value = ['id' => $filter->id, 'name' => $filter->name, 'url' => $filter->url, 'author' => $filter->fk_user_author == $user->id];
+                $value = [ 'id' => $filter->id, 'name' => $filter->name, 'url' => $_SERVER["PHP_SELF"] . (!empty($filter->params) ? "?" . $filter->params . '&quicklist_set=1' :  '?quicklist_set=1'),
+                    'hash_tag' => $filter->hash_tag, 'author' => $filter->fk_user_author == $user->id, 'default' => !empty($filter->default) ];
                 switch ($filter->scope) {
                     case QuickList::QUICKLIST_SCOPE_PRIVATE:
                         $filters['private'][] = $value;
