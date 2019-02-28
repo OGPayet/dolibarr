@@ -114,7 +114,6 @@ class ActionsQuickList
                 $params[$key] = $value;
             }
         }
-        if (!empty($params['selectedfields'])) $params['formfilteraction'] = 'listafterchangingselectedfields';
         $params_url = count($params) ? http_build_query($params, '', '&') : '';
 
         //--------------------------------------------------------------------
@@ -399,8 +398,12 @@ class ActionsQuickList
         $filters = [ 'private' => [], 'usergroup' => [], 'public' => [] ];
         if (is_array($filters_list)) {
             foreach ($filters_list as $filter) {
-                $value = [ 'id' => $filter->id, 'name' => $filter->name, 'url' => $_SERVER["PHP_SELF"] . (!empty($filter->params) ? "?" . $filter->params :  ''),
-                    'hash_tag' => $filter->hash_tag, 'author' => $filter->fk_user_author == $user->id, 'default' => !empty($filter->default) ];
+                $has_selected_fields = strpos($filter->params, '&selectedfields=') != -1 || strpos($filter->params, '?selectedfields=') != -1;
+                $url = $_SERVER["PHP_SELF"] . (!empty($filter->params) || $has_selected_fields ? '?' : '') . $filter->params .
+                    ($has_selected_fields ?  (!empty($filter->params) && $has_selected_fields ? '&' : '') . 'formfilteraction=listafterchangingselectedfields' : '');
+                $value = ['id' => $filter->id, 'name' => $filter->name,
+                    'url' => $url,
+                    'hash_tag' => $filter->hash_tag, 'author' => $filter->fk_user_author == $user->id, 'default' => !empty($filter->default)];
                 switch ($filter->scope) {
                     case QuickList::QUICKLIST_SCOPE_PRIVATE:
                         $filters['private'][] = $value;

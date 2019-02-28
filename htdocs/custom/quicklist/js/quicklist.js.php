@@ -161,7 +161,7 @@ function quicklistFilterFunction() {
 function quicklistAddFilterItem(quicklistElements, filterList) {
   $.map(filterList, function (filter) {
     quicklistElements.append(
-      '<a id="' + filter.id + '" class="item filter" href="' + filter.url + filter.hash_tag + '">' +
+      '<a id="' + filter.id + '" class="item filter" href="' + filter.url + (filter.hash_tag ? filter.hash_tag : '') + '">' +
       filter.name + (filter.default ? <?php echo $default_text ?> : '') + (filter.author ? '<span class="right"><?php echo $edit_img ?><?php echo $delete_img ?></span>' : '') +
       '</a>'
     );
