@@ -91,6 +91,8 @@ class ActionsQuickList
         if (empty($context))
             return 0;
 
+        $act = GETPOST("action", 'alpha');
+
         //--------------------------------------------------------------------
         // Get filter
         //--------------------------------------------------------------------
@@ -98,12 +100,10 @@ class ActionsQuickList
         $quicklist = new QuickList($this->db);
         if ($filter_id > 0) {
             $quicklist->fetch($filter_id);
-        } else {
+        } elseif ($act != 'quicklist_addfilter_confirm') {
             if ($quicklist->fetch_default($context) == 0)
                 return 0;
         }
-
-        $act = GETPOST("action", 'alpha');
 
         //--------------------------------------------------------------------
         // Base url

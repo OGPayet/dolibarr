@@ -51,7 +51,7 @@ print "<br>\n";
 
 $head=quicklist_prepare_head();
 
-dol_fiche_head($head, 'changelog', $langs->trans("OpenDsiChangeLog"), 0, 'action');
+dol_fiche_head($head, 'changelog', $langs->trans("Module163011Name"), 0, 'opendsi@quicklist');
 
 $changelog = opendsi_common_getChangeLog('quicklist');
 

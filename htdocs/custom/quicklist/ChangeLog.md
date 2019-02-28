@@ -6,6 +6,7 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.6] - 28-02-2019
 - Prise en compte du hashtag lors de l'édition / Suppression.
 - Ajout de l'option filtre par défaut.
+- Correction lors de l'ajout d'un filtre.
 
 ## [4.0.5] - 27-02-2019
 - Prise en compte des colonnes sauvegardées à afficher.

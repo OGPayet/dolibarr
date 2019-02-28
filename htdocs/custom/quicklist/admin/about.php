@@ -50,7 +50,7 @@ print "<br>\n";
 
 $head=quicklist_prepare_head();
 
-dol_fiche_head($head, 'about', $langs->trans("About"), 0, 'opendsi@quicklist');
+dol_fiche_head($head, 'about', $langs->trans("Module163011Name"), 0, 'opendsi@quicklist');
 
 print '<table width="100%"><tr>'."\n";
 print '<td width="310px"><img src="../img/opendsi_dolibarr_preferred_partner.png" /></td>'."\n";

@@ -24,7 +24,7 @@
 
 <!-- BEGIN PHP TEMPLATE -->
 <?php
-if ($mode_list == 0 || $list_mode == 1) {
+if ($list_mode == 0 || $list_mode == 1) {
     $now = dol_now();
 
     // Assigned user
@@ -328,13 +328,13 @@ if ($mode_list == 0 || $list_mode == 1) {
 
         // Button for change the view mode of the list
         $morehtml = '';
-        $morehtml .= '<a class="' . ($list_mode == 0 ? 'butActionRefused' : 'butAction') . '" href="' . ($list_mode == 0 ? '#' : $_SERVER['PHP_SELF'] . '?list_mode=0&page=' . urlencode($page) . $param . '#rm-events-balise') . '">';
+        $morehtml .= '<a class="' . ($list_mode == 0 ? 'butActionRefused' : 'butAction') . '" href="' . ($list_mode == 0 ? '#' : $_SERVER['PHP_SELF'] . '?list_mode=0&page=' . urlencode($page) . $param2 . '#rm-events-balise') . '">';
         $morehtml .= $langs->trans("RequestManagerListMode");
         $morehtml .= '</a>';
         $morehtml .= '<a class="' . ($list_mode == 1 ? 'butActionRefused' : 'butAction') . '" href="' . ($list_mode == 1 ? '#' : $_SERVER['PHP_SELF'] . '?list_mode=1&page=' . urlencode($page) . $param2 . '#rm-events-balise') . '">';
         $morehtml .= $langs->trans("RequestManagerTimeLineListMode");
         $morehtml .= '</a>';
-        $morehtml .= '<a class="' . ($list_mode == 2 ? 'butActionRefused' : 'butAction') . '" href="' . ($list_mode == 2 ? '#' : $_SERVER['PHP_SELF'] . '?list_mode=2&page=' . urlencode($page) . $param2 . '#rm-events-balise') . '">';
+        $morehtml .= '<a class="' . ($list_mode == 2 ? 'butActionRefused' : 'butAction') . '" href="' . ($list_mode == 2 ? '#' : $_SERVER['PHP_SELF'] . '?list_mode=2&page=' . urlencode($page) . $param . '#rm-events-balise') . '">';
         $morehtml .= $langs->trans("RequestManagerTimeLineMode");
         $morehtml .= '</a>';
 
@@ -1597,13 +1597,13 @@ SCRIPT;
 
         // Button for change the view mode of the list
         $morehtml = '';
-        $morehtml .= '<a class="' . ($list_mode == 0 ? 'butActionRefused' : 'butAction') . '" href="' . ($list_mode == 0 ? '#' : $_SERVER['PHP_SELF'] . '?list_mode=0&page=' . urlencode($page) . $param . '#events-balise') . '">';
+        $morehtml .= '<a class="' . ($list_mode == 0 ? 'butActionRefused' : 'butAction') . '" href="' . ($list_mode == 0 ? '#' : $_SERVER['PHP_SELF'] . '?list_mode=0&page=' . urlencode($page) . $param . '#rm-events-balise') . '">';
         $morehtml .= $langs->trans("RequestManagerListMode");
         $morehtml .= '</a>';
-        $morehtml .= '<a class="' . ($list_mode == 1 ? 'butActionRefused' : 'butAction') . '" href="' . ($list_mode == 1 ? '#' : $_SERVER['PHP_SELF'] . '?list_mode=1&page=' . urlencode($page) . $param2 . '#events-balise') . '">';
+        $morehtml .= '<a class="' . ($list_mode == 1 ? 'butActionRefused' : 'butAction') . '" href="' . ($list_mode == 1 ? '#' : $_SERVER['PHP_SELF'] . '?list_mode=1&page=' . urlencode($page) . $param . '#rm-events-balise') . '">';
         $morehtml .= $langs->trans("RequestManagerTimeLineListMode");
         $morehtml .= '</a>';
-        $morehtml .= '<a class="' . ($list_mode == 2 ? 'butActionRefused' : 'butAction') . '" href="' . ($list_mode == 2 ? '#' : $_SERVER['PHP_SELF'] . '?list_mode=2&page=' . urlencode($page) . $param2 . '#timeline-balise') . '">';
+        $morehtml .= '<a class="' . ($list_mode == 2 ? 'butActionRefused' : 'butAction') . '" href="' . ($list_mode == 2 ? '#' : $_SERVER['PHP_SELF'] . '?list_mode=2&page=' . urlencode($page) . $param . '#rm-events-balise') . '">';
         $morehtml .= $langs->trans("RequestManagerTimeLineMode");
         $morehtml .= '</a>';
 

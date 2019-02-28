@@ -2396,7 +2396,7 @@ SCRIPT;
         // Output template part (modules that overwrite templates must declare this into descriptor)
         $dirtpls = array_merge($conf->modules_parts['tpl'], array('/requestmanager/tpl'));
         foreach ($dirtpls as $reldir) {
-            $res = @include dol_buildpath($reldir . '/request_events.tpl.php');
+            $res = @include dol_buildpath($reldir . '/rm_request_events.tpl.php');
             if ($res) {
                 break;
             }
