@@ -124,12 +124,25 @@ function quicklist_replace_button_removefilter(base_url, filters) {
       return false;
     });
 
-    $('#quicklist_editfilter').click(function (event) {
+    // For v9-
+    $('img#quicklist_editfilter').click(function (event) {
       quicklistClickFilterButton($(this));
       event.stopPropagation();
       return false;
     });
-    $('#quicklist_deletefilter').click(function (event) {
+    $('img#quicklist_deletefilter').click(function (event) {
+      quicklistClickFilterButton($(this));
+      event.stopPropagation();
+      return false;
+    });
+
+    // For v9+
+    $('span#quicklist_editfilter').click(function (event) {
+      quicklistClickFilterButton($(this));
+      event.stopPropagation();
+      return false;
+    });
+    $('span#quicklist_deletefilter').click(function (event) {
       quicklistClickFilterButton($(this));
       event.stopPropagation();
       return false;
