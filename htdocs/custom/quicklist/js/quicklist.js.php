@@ -124,12 +124,12 @@ function quicklist_replace_button_removefilter(base_url, filters) {
       return false;
     });
 
-    $('img#quicklist_editfilter').click(function (event) {
+    $('#quicklist_editfilter').click(function (event) {
       quicklistClickFilterButton($(this));
       event.stopPropagation();
       return false;
     });
-    $('img#quicklist_deletefilter').click(function (event) {
+    $('#quicklist_deletefilter').click(function (event) {
       quicklistClickFilterButton($(this));
       event.stopPropagation();
       return false;
