@@ -185,6 +185,8 @@ class ActionsQuickList
                 $quicklist->set_usergroup($usergroup_ids);
 
                 setEventMessages($langs->trans('QuickListFilterSaved'), null);
+                header('Location: ' . $_SERVER["PHP_SELF"] . (!empty($params_url) ? '?' . $params_url : '') . $quicklist->hash_tag);
+                exit;
             }
         }
         //--------------------------------------------------------------------
@@ -202,6 +204,8 @@ class ActionsQuickList
 
             if ($result) {
                 setEventMessages($langs->trans('QuickListFilterDeleted'), null);
+                header('Location: ' . $_SERVER["PHP_SELF"] . (!empty($params_url) ? '?' . $params_url : '') . $quicklist->hash_tag);
+                exit;
             }
         }
         //--------------------------------------------------------------------
@@ -209,7 +213,7 @@ class ActionsQuickList
         //--------------------------------------------------------------------
         elseif (!isset($_SESSION['quicklist_current_filter'][$context])) {
             $_SESSION['quicklist_current_filter'][$context] = $quicklist->id;
-            header('Location: ' . $_SERVER["PHP_SELF"] . (!empty($quicklist->params) ? '?' . $quicklist->params . '&quicklist_set=1' : '?quicklist_set=1'));
+            header('Location: ' . $_SERVER["PHP_SELF"] . (!empty($quicklist->params) ? '?' . $quicklist->params : ''));
             exit;
         }
 
@@ -395,7 +399,7 @@ class ActionsQuickList
         $filters = [ 'private' => [], 'usergroup' => [], 'public' => [] ];
         if (is_array($filters_list)) {
             foreach ($filters_list as $filter) {
-                $value = [ 'id' => $filter->id, 'name' => $filter->name, 'url' => $_SERVER["PHP_SELF"] . (!empty($filter->params) ? "?" . $filter->params . '&quicklist_set=1' :  '?quicklist_set=1'),
+                $value = [ 'id' => $filter->id, 'name' => $filter->name, 'url' => $_SERVER["PHP_SELF"] . (!empty($filter->params) ? "?" . $filter->params :  ''),
                     'hash_tag' => $filter->hash_tag, 'author' => $filter->fk_user_author == $user->id, 'default' => !empty($filter->default) ];
                 switch ($filter->scope) {
                     case QuickList::QUICKLIST_SCOPE_PRIVATE:
