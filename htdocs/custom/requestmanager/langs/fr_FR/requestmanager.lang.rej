@@ -1,7 +1,8 @@
 diff a/htdocs/custom/requestmanager/langs/fr_FR/requestmanager.lang b/htdocs/custom/requestmanager/langs/fr_FR/requestmanager.lang	(rejected hunks)
-@@ -582,4 +582,4 @@ RequestManagerIPBXTalkers           = Numéro des interlocuteurs : %s,%s
+@@ -585,4 +585,5 @@ RequestManagerIPBXTalkers           = Numéro des interlocuteurs : %s,%s
  ############################################################
  ### Intervention planning
  ############################################################
--RequestManagerPlanningUsersInChargeLabel    = Utilisateur(s) en charge pour les demandes de type "%s"
-+RequestManagerPlanningUserGroupsInChargeLabel    = Groupe(s) utilisateur(s) en charge pour les demandes de type "%s"
+-RequestManagerPlanningUserGroupsInChargeLabel    = Groupe(s) utilisateur(s) en charge pour les demandes de type "%s"
++RequestManagerPlanningUserGroupsInChargeLabel   = Groupe(s) utilisateur(s) en charge pour les demandes de type "%s"
++RequestManagerForceCreateIntervention           = Créer une intervention même si une au statut brouillon existe déjà

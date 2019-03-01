@@ -570,8 +570,10 @@ SCRIPT;
         $billing_period_end = $billing_period['end']->timestamp;
 
         $generate = false;
+        $reset_date = 0;
         foreach ($periods as $period) {
             if ($billing_period_begin <= $period['begin'] && $period['begin'] <= $billing_period_end) {
+                $reset_date = $period['begin'];
                 $generate = true;
                 break;
             } elseif ($billing_period_end < $period['begin']) {
@@ -590,7 +592,7 @@ SCRIPT;
             $inter_type_dictionary->fetch_lines(1, array('count' => 1), array('label' => 'ASC'));
 
             $info = $this->getInfoInterventionOfContract($object->id);
-            $date_infos = dol_getdate(dol_now(), true);
+            $date_infos = dol_getdate($reset_date, true);
 
             foreach ($info as $type_intervention => $values) {
                 foreach ($request_types_planned as $request_type) {
@@ -604,11 +606,18 @@ SCRIPT;
                             $request->label = $langs->trans('ExtendedInterventionPlanningRequestTitle', $inter_type_dictionary->lines[$type_intervention]->fields['label']);
                             $request->socid_origin = $object->socid;
                             $request->socid = $object->socid;
-                            $request->socid_benefactor = $object->array_options[''];
-                            $request->socid_watcher = $object->array_options[''];
-                            $request->date_operation = dol_get_first_day($date_infos['year'], $month);
-                            $request->date_deadline = dol_get_last_day($date_infos['year'], $month);
+                            $request->socid_benefactor = $object->array_options['options_companyrelationships_fk_soc_benefactor'];
+                            $request->socid_watcher = $object->array_options['options_companyrelationships_fk_soc_watcher'];
 
+                            $year = $date_infos['year'];
+                            $request->date_operation = dol_get_first_day($year, $month);
+                            if ($request->date_operation < $reset_date) {
+                                $year++;
+                                $request->date_operation = dol_get_first_day($year, $month);
+                            }
+                            $request->date_deadline = dol_get_last_day($year, $month);
+
+                            $request->array_options['options_ei_type'] = $type_intervention;
                             $request->origin = $object->element;
                             $request->origin_id = $object->id;
                             $request->linkedObjectsIds[$request->origin] = $request->origin_id;

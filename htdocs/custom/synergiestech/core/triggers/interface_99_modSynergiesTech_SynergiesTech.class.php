@@ -90,6 +90,31 @@ class InterfaceSynergiesTech extends DolibarrTriggers
 
                 dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
                 return 0;
+            case 'REQUESTMANAGER_MODIFY':
+                // Assign begin and end date of the intervention planned when the request is planned
+                if (!empty($conf->requestmanager->enabled) && !empty($conf->global->REQUESTMANAGER_PLANNING_ACTIVATE) && !empty($object->context['rm_planning_intervention']) && $user->rights->requestmanager->planning->manage) {
+                    dol_include_once('/extendedintervention/class/extendedintervention.class.php');
+                    $object->fetchObjectLinked();
+
+                    // Change the date of the intervention planned
+                    if (is_array($object->linkedObjects['fichinter'])) {
+                        foreach ($object->linkedObjects['fichinter'] as $intervention) {
+                            if (!in_array($intervention->id, $object->context['rm_planning_intervention'])) continue;
+
+                            $intervention->fetch_optionals();
+                            $intervention->array_options['options_st_estimated_begin_date'] = $object->date_operation;
+                            $intervention->array_options['options_st_estimated_end_date'] = $object->date_deadline;
+                            if ($intervention->insertExtraFields('', $user) < 0) {
+                                $this->error = $intervention->error;
+                                $this->errors = $intervention->errors;
+                                return -1;
+                            }
+                        }
+                    }
+                }
+
+                dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
+                break;
             case 'REQUESTMANAGER_ADD_LINK':
                 $addlink = $object->context['addlink'];
                 $addlinkid = $object->context['addlinkid'];

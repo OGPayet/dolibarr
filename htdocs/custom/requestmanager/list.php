@@ -260,6 +260,7 @@ if (empty($reshook)) {
     if ($planning && $action == 'confirm_planning' && $confirm == 'yes' && $user->rights->requestmanager->planning->manage) {
         $nb_error = 0;
         $date_operation = dol_mktime(GETPOST('operate_datehour', 'int'), GETPOST('operate_datemin', 'int'), 0, GETPOST('operate_datemonth', 'int'), GETPOST('operate_dateday', 'int'), GETPOST('operate_dateyear', 'int'));
+        $date_deadline = dol_mktime(GETPOST('deadline_datehour', 'int'), GETPOST('deadline_datemin', 'int'), 0, GETPOST('deadline_datemonth', 'int'), GETPOST('deadline_dateday', 'int'), GETPOST('deadline_dateyear', 'int'));
         $assigned_user_ids = GETPOST('assigned_user_ids', 'array');
         $request_list = GETPOST('request_list', 'array');
         $old_action = GETPOST('old_action', 'alpha');
@@ -288,8 +289,10 @@ if (empty($reshook)) {
                 }
                 if (!$error && $request_static->set_status($conf->global->{'REQUESTMANAGER_PLANNING_REQUEST_STATUS_PLANNED_' . $request_static->fk_type}, -1, $user) <= 0) $error++;
                 $request_static->date_operation = $date_operation;
-                // calculate deadline date with operation date or now and the offset deadline time in minutes
-                if (GETPOST('recalculate_date_deadline', 'int') == 1) {
+                if ($date_deadline > 0) {
+                    $request_static->date_deadline = $date_deadline;
+                } else {
+                    // calculate deadline date with operation date or now and the offset deadline time in minutes
                     dol_include_once('/advancedictionaries/class/dictionary.class.php');
                     $requestManagerStatusDictionaryLine = Dictionary::getDictionaryLine($db, 'requestmanager', 'requestmanagerstatus');
                     $res = $requestManagerStatusDictionaryLine->fetch($object->statut);
@@ -298,8 +301,8 @@ if (empty($reshook)) {
                         $now = dol_now();
                         if (isset($deadline_offset) && $deadline_offset > 0) {
                             $object->date_deadline = ($object->date_operation > 0 ? $object->date_operation : $now) + ($deadline_offset * 60);
-        //                } elseif (intval($conf->global->REQUESTMANAGER_DEADLINE_TIME_DEFAULT) > 0) {
-        //                    $object->date_deadline = ($object->date_operation > 0 ? $object->date_operation : $now) + (intval($conf->global->REQUESTMANAGER_DEADLINE_TIME_DEFAULT) * 60);
+//                        } elseif (intval($conf->global->REQUESTMANAGER_DEADLINE_TIME_DEFAULT) > 0) {
+//                            $object->date_deadline = ($object->date_operation > 0 ? $object->date_operation : $now) + (intval($conf->global->REQUESTMANAGER_DEADLINE_TIME_DEFAULT) * 60);
                         }
                     } else {
                         setEventMessages($requestManagerStatusDictionaryLine->error, $requestManagerStatusDictionaryLine->errors, 'errors');
@@ -416,6 +419,8 @@ if ($socid > 0) {
 }
 
 if (empty($planning) || count($request_types_planned) > 0) {
+    $formconfirm = '';
+
     // Confirm box for the planning
     if ($planning && ($massaction == 'rm_planning' || $action == 'to_plan') && $user->rights->requestmanager->planning->manage) {
         $users_in_charge = array();
@@ -438,21 +443,31 @@ if (empty($planning) || count($request_types_planned) > 0) {
             }
 
             $date_operation = dol_mktime(GETPOST('operate_datehour', 'int'), GETPOST('operate_datemin', 'int'), 0, GETPOST('operate_datemonth', 'int'), GETPOST('operate_dateday', 'int'), GETPOST('operate_dateyear', 'int'));
+            $date_deadline = dol_mktime(GETPOST('deadline_datehour', 'int'), GETPOST('deadline_datemin', 'int'), 0, GETPOST('deadline_datemonth', 'int'), GETPOST('deadline_dateday', 'int'), GETPOST('deadline_dateyear', 'int'));
             $assigned_user_ids = isset($_POST['operate_datehour']) ? GETPOST('assigned_user_ids', 'array') : $users_in_charge;
 
             $formquestion = array(
                 array('type' => 'date', 'name' => 'operate_date', 'label' => '<span class="fieldrequired">' . $langs->trans("RequestManagerOperation") . '</span>', 'hour' => 1, 'minute' => 1, 'value' => $date_operation > 0 ? $date_operation : -1),
+                array('type' => 'date', 'name' => 'deadline_date', 'label' => $langs->trans("RequestManagerDeadline"), 'hour' => 1, 'minute' => 1, 'value' => $date_deadline > 0 ? $date_deadline : -1),
                 array('type' => 'other', 'name' => 'assigned_user_ids', 'label' => '<span class="fieldrequired">' . $langs->trans("RequestManagerAssignedUsers") . '</span>', 'value' => $formrequestmanager->multiselect_dolusers(array(), 'assigned_user_ids', null, 0, '', '', 0, 0, 0, '', 0, '', 'minwidth300', 1, 0)),
                 array('type' => 'hidden', 'name' => 'old_massaction', 'value' => $massaction),
                 array('type' => 'hidden', 'name' => 'old_action', 'value' => $action),
             );
+
+            // For ExtendedIntervention module
+            //--------------------------------------------------
+            if ($conf->extendedintervention->enabled) {
+                $rm_force_create_intervention = !empty(GETPOST('rm_force_create_intervention', 'alpha')) ? 1 : 0;
+                $formquestion[] = array('type' => 'checkbox', 'name' => 'rm_force_create_intervention', 'label' => $langs->trans("RequestManagerForceCreateIntervention"), 'value' => $rm_force_create_intervention);
+            }
 
             foreach ($request_list as $r_id) {
                 $formquestion[] = array('type' => 'hidden', 'name' => 'request_list[]', 'value' => $r_id);
             }
 
             $params_array = array_merge($_GET, $_POST);
-            $exclude_keys = array('action', 'massaction', 'operate_date', 'operate_datehour', 'operate_datemin', 'operate_datemonth', 'operate_dateday', 'operate_dateyear', 'assigned_user_ids', 'old_massaction', 'old_action', 'request_list');
+            $exclude_keys = array('action', 'massaction', 'operate_date', 'operate_datehour', 'operate_datemin', 'operate_datemonth', 'operate_dateday', 'operate_dateyear',
+                'deadline_date', 'deadline_datehour', 'deadline_datemin', 'deadline_datemonth', 'deadline_dateday', 'deadline_dateyear', 'assigned_user_ids', 'old_massaction', 'old_action', 'request_list');
             foreach ($params_array as $k => $v) {
                 if (in_array($k, $exclude_keys)) continue;
                 if (is_array($v)) {
@@ -471,11 +486,11 @@ if (empty($planning) || count($request_types_planned) > 0) {
             if ($socid > 0) $params2 .= '&socid=' . urlencode($socid);
             $params2 = !empty($params2) ? '?' . substr($params2, 1) : '';
 
-            print $formrequestmanager->formconfirm($_SERVER["PHP_SELF"] . $params2, $langs->trans('RequestManagerPlanningRequest'), $langs->trans('RequestManagerConfirmPlanningRequest'), 'confirm_planning', $formquestion, 'yes', 1, 300, 800, 1);
+            $formconfirm = $formrequestmanager->formconfirm($_SERVER["PHP_SELF"] . $params2, $langs->trans('RequestManagerPlanningRequest'), $langs->trans('RequestManagerConfirmPlanningRequest'), 'confirm_planning', $formquestion, 'yes', 1, 300, 800, 1);
 
             $users_in_charge = json_encode($users_in_charge);
             $assigned_user_ids = json_encode($assigned_user_ids);
-            print <<<SCRIPT
+            $formconfirm .= <<<SCRIPT
     <script type="text/javascript">
         $(document).ready(function () {
             move_top_select_options('assigned_user_ids', $users_in_charge);
@@ -485,6 +500,15 @@ if (empty($planning) || count($request_types_planned) > 0) {
 SCRIPT;
         }
     }
+
+    // Hook
+    $parameters = array();
+    $reshook = $hookmanager->executeHooks('formConfirm', $parameters, $object, $action); // Note that $action and $object may have been modified by hook
+    if (empty($reshook)) $formconfirm.=$hookmanager->resPrint;
+    elseif ($reshook > 0) $formconfirm=$hookmanager->resPrint;
+
+	// Print form confirm
+	print $formconfirm;
 
     $sql = 'SELECT';
     if ($sall) $sql = 'SELECT DISTINCT';

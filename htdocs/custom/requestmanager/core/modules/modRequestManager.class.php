@@ -557,6 +557,12 @@ class modRequestManager extends DolibarrModules
         $result=$extrafields->addExtraField('rm_timeslots_periods', $langs->trans('RequestManagerTimeSlotsPeriodsName'), 'text', 401,  2000, 'contrat',   0, 0, '', null, 1, '', 1, 0, '');
         $result=$extrafields->addExtraField('rm_last_check_follow_list_date', $langs->trans('RequestManagerLastCheckFollowListDate'), 'datetime', 100,  '', 'user',   0, 0, '', null, 0, '', 0, 1, '');
 
+        // Intervention
+        if ($conf->extendedintervention->enabled) {
+            $langs->load('extendedintervention@extendedintervention');
+            $result = $extrafields->addExtraField('ei_type', $langs->trans('ExtendedInterventionType'), 'int', 0, '10', 'requestmanager', 0, 0, '', '', 0, '', 0, 1, '', '');
+        }
+
         $this->_load_tables('/requestmanager/sql/');
 
         // Create functions and views SQL

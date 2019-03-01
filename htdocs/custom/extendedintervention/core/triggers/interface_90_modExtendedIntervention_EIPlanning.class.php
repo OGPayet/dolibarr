@@ -56,11 +56,66 @@ class InterfaceEIPlanning extends DolibarrTriggers
             case 'REQUESTMANAGER_MODIFY':
                 // Assign users to the linked intervention when the request is planned
                 if (!empty($conf->requestmanager->enabled) && !empty($conf->global->REQUESTMANAGER_PLANNING_ACTIVATE) && !empty($object->context['rm_planning']) && $user->rights->requestmanager->planning->manage) {
+                    dol_include_once('/extendedintervention/class/extendedintervention.class.php');
                     $object->fetchObjectLinked();
 
+                    if (empty($object->array_options)) {
+                        $object->fetch_optionals();
+                    }
+
+                    // Check if has a intervention linked who is draft or validate status
+                    $has_intervention = false;
                     if (is_array($object->linkedObjects['fichinter'])) {
                         foreach ($object->linkedObjects['fichinter'] as $intervention) {
-                            if ($intervention->statut <= 1) { // 0=draft, 1=validated
+                            if ($intervention->statut == ExtendedIntervention::STATUS_DRAFT/* || $intervention->statut == ExtendedIntervention::STATUS_VALIDATED*/) {
+                                $has_intervention = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    // Create intervention if not have already a intervention linked who is draft or validate status
+                    $intervention_id = 0;
+                    if (!$has_intervention || GETPOST('rm_force_create_intervention')) {
+                        $intervention = new ExtendedIntervention($this->db);
+
+                        $contract_list = is_array($object->linkedObjects['contrat']) ? array_values($object->linkedObjects['contrat']) : array();
+
+                        $intervention->socid = $object->socid;
+                        $intervention->duration = 0;
+                        $intervention->fk_project = 0;
+                        $intervention->fk_contrat = isset($contract_list[0]) ? $contract_list[0]->id : 0;
+                        $intervention->author = $user->id;
+                        $intervention->description = '';
+                        $intervention->modelpdf = $conf->global->FICHEINTER_ADDON_PDF;
+                        $intervention->note_private = '';
+                        $intervention->note_public = '';
+                        $intervention->array_options = $object->array_options;
+                        $intervention->array_options['options_companyrelationships_fk_soc_benefactor'] = $object->socid_benefactor;
+                        $intervention->array_options['options_companyrelationships_fk_soc_watcher'] = $object->socid_watcher;
+                        $intervention->origin = $object->element;
+                        $intervention->origin_id = $object->id;
+                        $intervention->linked_objects[$intervention->origin] = $intervention->origin_id;
+
+                        $intervention_id = $intervention->create($user);
+                        if ($intervention_id > 0) {
+                            $intervention->fetch($intervention_id);
+                            $object->linkedObjects['fichinter'][] = $intervention;
+                        } else {
+                            $this->error = $intervention->error;
+                            $this->errors = $intervention->errors;
+                            return -1;
+                        }
+                    }
+
+                    if (is_array($object->linkedObjects['fichinter'])) {
+                        $object->context['rm_planning_intervention'] = array();
+                        foreach ($object->linkedObjects['fichinter'] as $intervention) {
+                            if ($intervention_id > 0 && $intervention_id != $intervention->id) continue;
+
+                            if ($intervention->statut == ExtendedIntervention::STATUS_DRAFT/* || $intervention->statut == ExtendedIntervention::STATUS_VALIDATED*/) {
+                                $object->context['rm_planning_intervention'][] = $intervention->id;
+
                                 if ($intervention->delete_linked_contact('internal', 'INTERVENING') < 0) {
                                     dol_syslog(__METHOD__ . " Delete linked contact for intervention (ID: " . $intervention->id . ") : " . $intervention->errorsToString(), LOG_ERR);
                                     $this->error = $intervention->error;
@@ -77,7 +132,7 @@ class InterfaceEIPlanning extends DolibarrTriggers
                                 }
                             }
 
-                            if ($intervention->statut == 0 && !empty($conf->global->EXTENDEDINTERVENTION_PLANNING_AUTO_VALIDATE)) {
+                            if ($intervention->statut == ExtendedIntervention::STATUS_DRAFT && !empty($conf->global->EXTENDEDINTERVENTION_PLANNING_AUTO_VALIDATE)) {
                                 if ($intervention->setValid($user) < 0) {
                                     $this->error = $intervention->error;
                                     $this->errors = $intervention->errors;
