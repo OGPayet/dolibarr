@@ -346,8 +346,7 @@ class TSubtotal {
 
 	public static function isSubtotal(&$line)
 	{
-		//Compatibility with ouvrage/forfait - Alexis LAURIER - 28/02/2019
-		return ($line->special_code == self::$module_number && $line->product_type == 9 && $line->qty >= 90) || ($line->special_code == 501028 && $line->product_type == 9);
+		return $line->special_code == self::$module_number && $line->product_type == 9 && $line->qty >= 90;
 	}
 
 	public static function isFreeText(&$line)
