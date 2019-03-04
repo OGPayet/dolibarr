@@ -1,14 +1,15 @@
 diff a/htdocs/custom/synergiestech/core/modules/modSynergiesTech.class.php b/htdocs/custom/synergiestech/core/modules/modSynergiesTech.class.php	(rejected hunks)
-@@ -361,6 +361,12 @@ class modSynergiesTech extends DolibarrModules
+@@ -367,6 +367,13 @@ class modSynergiesTech extends DolibarrModules
+         $this->rights[$r][1] = 'Voir/Modifier les attributs complémentaires restraint';
          $this->rights[$r][3] = 0;
-         $this->rights[$r][4] = 'fichinter';
-         $this->rights[$r][5] = 'reopen';
+         $this->rights[$r][4] = 'extrafields';
 +        $r++;
-+
-+        $this->rights[$r][0] = 500124;
-+        $this->rights[$r][1] = 'Voir/Modifier les attributs complémentaires restraint';
++		
++		$this->rights[$r][0] = 500125;
++        $this->rights[$r][1] = "Accéder à une liste d'utilisateur interne restreinte via l'api (sélection de collègue dans l'application technicien)";
 +        $this->rights[$r][3] = 0;
-+        $this->rights[$r][4] = 'extrafields';
++        $this->rights[$r][4] = 'user';
++        $this->rights[$r][5] = 'lirerestreint';
          $r++;
  
  		// Add here list of permission defined by an id, a label, a boolean and two constant strings.
