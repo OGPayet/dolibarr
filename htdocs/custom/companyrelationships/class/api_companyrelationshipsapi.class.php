@@ -84,7 +84,8 @@ class CompanyRelationshipsApi extends DolibarrApi {
      * @var array   $FIELDSLINE_INTERVENTION     Mandatory fields, checked when create and update object
      */
     static $FIELDSLINE_INTERVENTION = array(
-        'description',
+        // Specific for Synergies-Tech: Description not mandatory
+        //'description',
         'date',
         'duree'
     );

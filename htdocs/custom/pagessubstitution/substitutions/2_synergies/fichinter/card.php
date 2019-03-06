@@ -486,11 +486,15 @@ if (empty($reshook))
 	// Add line
 	else if ($action == "addline" && $user->rights->ficheinter->creer)
 	{
-		if (!GETPOST('np_desc') && empty($conf->global->FICHINTER_EMPTY_LINE_DESC) )
+        //------------------------------------------------------------
+        // Modification - Open-DSI - Begin
+		/*if (!GETPOST('np_desc') && empty($conf->global->FICHINTER_EMPTY_LINE_DESC) )
 		{
 			$mesg='<div class="error">'.$langs->trans("ErrorFieldRequired",$langs->transnoentitiesnoconv("Description")).'</div>';
 			$error++;
-		}
+		}*/
+        // Modification - Open-DSI - End
+        //------------------------------------------------------------
 		if (empty($conf->global->FICHINTER_WITHOUT_DURATION) && !GETPOST('durationhour','int') && !GETPOST('durationmin','int'))
 		{
 			$mesg='<div class="error">'.$langs->trans("ErrorFieldRequired",$langs->transnoentitiesnoconv("Duration")).'</div>';

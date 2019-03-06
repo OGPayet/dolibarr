@@ -67,6 +67,7 @@ ExtendedInterventionQuestionBlocStatusDictionaryLabel                           
 ExtendedInterventionQuestionBlocStatusDictionaryStatus                          = Libellé du status
 ExtendedInterventionQuestionBlocStatusDictionaryPredefinedText                  = Justificatifs prédéfinies
 ExtendedInterventionQuestionBlocStatusDictionaryDisableBloc                     = Désactive le bloc si sélectionné
+ExtendedInterventionQuestionBlocStatusDictionaryColorHelp                       = La couleur doit être au format HTML (Ex: #FF0000)
 
 ExtendedInterventionQuestionBlocStatusPredefinedTextDictionaryLabel             = Justificatifs prédéfinies des status des blocs de questions
 ExtendedInterventionQuestionBlocStatusPredefinedTextDictionaryPredefinedText    = Texte
@@ -79,6 +80,7 @@ ExtendedInterventionQuestionDictionaryExtraFields                               
 ExtendedInterventionAnswerDictionaryLabel                                       = Réponses des questions
 ExtendedInterventionAnswerDictionaryAnswer                                      = Libellé de la réponse
 ExtendedInterventionAnswerDictionaryPredefinedText                              = Justificatifs prédéfinies
+ExtendedInterventionAnswerDictionaryColorHelp                                   = La couleur doit être au format HTML (Ex: #FF0000)
 
 ExtendedInterventionAnswerPredefinedTextDictionaryLabel                         = Justificatifs prédéfinies des réponses des questions
 ExtendedInterventionAnswerPredefinedTextDictionaryPredefinedText                = Texte

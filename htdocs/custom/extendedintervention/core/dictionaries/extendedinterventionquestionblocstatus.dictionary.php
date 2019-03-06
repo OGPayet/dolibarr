@@ -32,7 +32,7 @@ class ExtendedInterventionQuestionBlocStatusDictionary extends Dictionary
     /**
      * @var int         Version of this dictionary
      */
-    public $version = 1;
+    public $version = 2;
 
     /**
      * @var array       List of languages to load
@@ -171,6 +171,15 @@ class ExtendedInterventionQuestionBlocStatusDictionary extends Dictionary
             ),
             'is_require' => true,
         ),
+        'color' => array(
+            'name'       => 'color',
+            'label'      => 'Color',
+            'help'       => 'ExtendedInterventionQuestionBlocStatusDictionaryColorHelp',
+            'type'       => 'varchar',
+            'database'   => array(
+                'length' => 10,
+            ),
+        ),
         'mandatory' => array(
             'name'       => 'mandatory',
             'label'      => 'Mandatory',
@@ -213,6 +222,11 @@ class ExtendedInterventionQuestionBlocStatusDictionary extends Dictionary
                 'desactivate_bloc' => 'a',
             )
         ),
+        2 => array(
+            'fields' => array(
+                'color' => 'a',
+            )
+        ),
     );
 
     /**
@@ -241,5 +255,26 @@ class ExtendedInterventionQuestionBlocStatusDictionary extends Dictionary
                 'positionLine' => 1,
             ),
         );
+    }
+}
+
+class ExtendedInterventionQuestionBlocStatusDictionaryLine extends DictionaryLine
+{
+    public function checkFieldsValues($fieldsValue)
+    {
+        global $langs;
+
+        $result = parent::checkFieldsValues($fieldsValue);
+        if ($result < 0) {
+            return $result;
+        }
+
+        if (!empty($fieldsValue['color']) && !preg_match('/#[A-F0-9]{1,8}/', $fieldsValue['color'])) {
+            $langs->load('errors');
+            $this->errors[] = $langs->trans('ErrorBadParameters') . ' : ' . $langs->trans('Color') ;
+            return -1;
+        }
+
+        return $result;
     }
 }

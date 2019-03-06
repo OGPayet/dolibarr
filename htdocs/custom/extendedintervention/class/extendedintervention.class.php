@@ -56,7 +56,7 @@ class ExtendedIntervention extends Fichinter
         "datee" => '', "dateo" => '', "datet" => '', "datev" => '', "datem" => '', "fk_project" => '', "note_public" => '',
         "trueWidth" => '', "width_units" => '', "trueHeight" => '', "height_units" => '', "trueDepth" => '', "depth_units" => '',
         "fk_contrat" => '', "user_creation" => '', "brouillon" => '', "thirdparty" => '', "array_options" => '',
-        "cr_thirdparty_benefactor" => '', "lines" => '', "linkedObjectsIds" => '',
+        "cr_thirdparty_benefactor" => '', "lines" => '', "linkedObjectsIds" => '', "survey" => '',
     );
 
     /**
@@ -124,9 +124,9 @@ class ExtendedIntervention extends Fichinter
     {
         $this->survey = array();
 
-        if ($this->id > 0 && $this->statut > self::STATUS_DRAFT) {
+        if ($this->id > 0 && $this->statut != self::STATUS_DRAFT) {
             dol_include_once('/extendedintervention/class/extendedinterventionsurveybloc.class.php');
-            if ($this->statut == self::STATUS_DONE) $all_data = 0;
+            if ($this->statut != self::STATUS_VALIDATED) $all_data = 0;
 
             $sql = "SELECT t.fk_equipment";
             $sql .= " FROM " . MAIN_DB_PREFIX . "extendedintervention_survey_bloc AS t";
@@ -165,7 +165,8 @@ class ExtendedIntervention extends Fichinter
                     }
                     $this->survey[$equipment_id] = $survey_bloc;
                 }
-                if (isset($this->survey[$equipment_id])) $this->survey[$equipment_id]->read_only = 0;
+                if (isset($this->survey[$equipment_id])) $this->survey[$equipment_id]->read_only = $this->statut == self::STATUS_VALIDATED ? 0 : 1;
+                if (isset($this->survey[$equipment_id]) && empty($this->survey[$equipment_id]->survey)) unset($this->survey[$equipment_id]);
             }
 
             // General bloc
@@ -179,13 +180,24 @@ class ExtendedIntervention extends Fichinter
                 }
                 $this->survey[$equipment_id] = $survey_bloc;
             }
-            if (isset($this->survey[$equipment_id])) $this->survey[$equipment_id]->read_only = 0;
+            if (isset($this->survey[$equipment_id])) $this->survey[$equipment_id]->read_only = $this->statut == self::STATUS_VALIDATED ? 0 : 1;
+            if (isset($this->survey[$equipment_id]) && empty($this->survey[$equipment_id]->survey)) unset($this->survey[$equipment_id]);
 
             // Sort by product label
             uasort($this->survey, 'ei_sort_survey_bloc_product_label');
         }
 
         return 1;
+    }
+
+    /**
+     *  Is the survey read only
+     *
+     * @return  int                 =0 if No, >0 if Yes
+     */
+    function is_survey_read_only()
+    {
+        return $this->id > 0 && $this->statut == self::STATUS_VALIDATED ? 0 : 1;
     }
 
     /**

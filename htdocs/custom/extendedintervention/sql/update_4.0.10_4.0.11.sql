@@ -15,4 +15,11 @@
 -- along with this program. If not, see <http://www.gnu.org/licenses/>.
 -- ===========================================================================
 
-ALTER TABLE llx_extendedintervention_question_bloc ADD attached_files text NULL;
+ALTER TABLE llx_extendedintervention_question_bloc ADD COLUMN color_status    varchar(10) NULL AFTER label_status; -- color of the question bloc status
+ALTER TABLE llx_extendedintervention_question_blocdet ADD COLUMN color_answer varchar(10) NULL AFTER label_answer; -- color of the answer
+
+ALTER TABLE llx_extendedintervention_question_bloc DROP FOREIGN KEY fk_ei_qb_fk_c_question_bloc;
+ALTER TABLE llx_extendedintervention_question_bloc DROP FOREIGN KEY fk_ei_qb_fk_c_question_bloc_status;
+
+ALTER TABLE llx_extendedintervention_question_blocdet DROP FOREIGN KEY fk_ei_qbdet_fk_c_question;
+ALTER TABLE llx_extendedintervention_question_blocdet DROP FOREIGN KEY fk_ei_qbdet_fk_c_answer;

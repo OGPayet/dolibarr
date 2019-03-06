@@ -430,7 +430,7 @@ SCRIPT;
                         if ($survey_bloc->warning_product_label) $warning .= '<br> - ' . $langs->trans('ExtendedInterventionProductLabel');
                         if (!empty($warning)) $warning = ' ' . $form->textwithpicto('', '<b>' . $langs->trans('ExtendedInterventionWarningEquipmentInfoChanged') . ' :</b>' . $warning, 1, 'warning', '', 0, 2);
                     }
-                    print load_fiche_titre('<b>'.($survey_bloc->fk_equipment > 0 ? $langs->trans('ExtendedInterventionSurveyBlocTitle', $survey_bloc->product_label, $survey_bloc->product_ref, $survey_bloc->equipment_ref) : $langs->trans('ExtendedInterventionSurveyBlocGeneralTitle')).'</b>' . $warning, '', '');
+                    print load_fiche_titre('<b>'.($survey_bloc->fk_equipment != 0 ? $langs->trans('ExtendedInterventionSurveyBlocTitle', $survey_bloc->product_label, $survey_bloc->product_ref, $survey_bloc->equipment_ref) : $langs->trans('ExtendedInterventionSurveyBlocGeneralTitle')).'</b>' . $warning, '', '');
                     $idx = 1;
                     foreach ($survey_bloc->survey as $question_bloc) {
                         if ($idx % 2 == 1) {

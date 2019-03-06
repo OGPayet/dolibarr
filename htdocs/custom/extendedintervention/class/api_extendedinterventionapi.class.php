@@ -31,7 +31,7 @@ dol_include_once('/extendedintervention/class/extendedinterventionquestionbloc.c
  */
 class ExtendedInterventionApi extends DolibarrApi {
     /**
-     * @var DoliDb      $db         Database object
+     * @var DoliDb      self::$db         Database object
      */
     static protected $db;
     /**
@@ -140,6 +140,250 @@ class ExtendedInterventionApi extends DolibarrApi {
     }
 
     /**
+     *  Get properties of an intervention object
+     *  Return an array with intervention information
+     * @see in CompanyRelationshipsApi class
+     *
+     * @url	GET {id_intervention}
+     *
+     * @param   int             $id_intervention    ID of the intervention
+     * @param   int             $all_data           If equal 1 then get all the data for the modification (all answers, status and predefined texts)
+     *
+     * @return  object|array                        Intervention data without useless information
+     *
+     * @throws  401             RestException       Insufficient rights
+     * @throws  403             RestException       Access not allowed for login
+     * @throws  404             RestException       Intervention not found
+     * @throws  500             RestException       Error when retrieve the survey
+     */
+    function get($id_intervention, $all_data=0)
+    {
+        if (!DolibarrApiAccess::$user->rights->ficheinter->lire) {
+            throw new RestException(401, "Insufficient rights");
+        }
+
+        // Get Extended Intervention
+        $extendedintervention = $this->_getExtendedInterventionObject($id_intervention);
+
+        // Get survey
+        if ($extendedintervention->fetch_survey($all_data) < 0) {
+            throw new RestException(500, "Error when retrieve the survey", ['id_intervention' => $id_intervention, 'details' => [$this->_getErrors($extendedintervention)]]);
+        }
+
+        $extendedintervention->fetchObjectLinked();
+        $extendedintervention->fetch_thirdparty();
+        foreach ($extendedintervention->lines as $k => $line) {
+            $extendedintervention->lines[$k]->fetch_optionals();
+        }
+        $this->_fetch_benefactor($extendedintervention);
+
+        return $this->_cleanObjectData($extendedintervention);
+    }
+
+    /**
+     *  List of interventions
+     *  Return a list of interventions
+     * @see in CompanyRelationshipsApi class
+     *
+     * @param   string          $sortfield          Sort field
+     * @param   string          $sortorder          Sort order
+     * @param   int             $limit		        Limit for list
+     * @param   int             $page		        Page number
+     * @param   string          $thirdparty_ids     Thirdparty ids to filter orders of. {@example '1' or '1,2,3'} {@pattern /^[0-9,]*$/i}
+     * @param   string          $sqlfilters         Other criteria to filter answers separated by a comma. Syntax example "(t.ref:like:'SO-%') and (t.date_creation:<:'20160101')"
+     * @param   int             $all_data           If equal 1 then get all the data for the modification (all answers, status and predefined texts)
+     * @return  array           Array of order objects
+     *
+     * @throws  401     RestException   Insufficient rights
+     * @throws  503     RestException   Error when retrieve intervention list
+     */
+    function index($sortfield = "t.rowid", $sortorder = 'ASC', $limit = 100, $page = 0, $thirdparty_ids = '', $sqlfilters = '', $all_data=0)
+    {
+        global $conf;
+
+        $obj_ret = array();
+
+        if (!DolibarrApiAccess::$user->rights->ficheinter->lire) {
+            throw new RestException(401, "Insufficient rights");
+        }
+
+        // get API user
+        $userSocId = DolibarrApiAccess::$user->societe_id;
+
+        // If the internal user must only see his customers, force searching by him
+        $search_sale = 0;
+        if (!DolibarrApiAccess::$user->rights->societe->client->voir) $search_sale = DolibarrApiAccess::$user->id;
+
+        $sql = "SELECT t.rowid";
+        $sql .= " FROM " . MAIN_DB_PREFIX . "fichinter as t";
+
+        // external
+        if ($userSocId > 0) {
+            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "fichinter_extrafields as ef ON ef.fk_object = t.rowid";
+            $sql .= self::_sqlElementListForExternalUser($userSocId, $search_sale);
+            $sql .= " AND t.entity IN (" . getEntity('fichinter') . ")";
+            // Add sql filters
+            if ($sqlfilters) {
+                if (!DolibarrApi::_checkFilters($sqlfilters)) {
+                    throw new RestException(503, 'Error when validating parameter sqlfilters ' . $sqlfilters);
+                }
+                $regexstring = '\(([^:\'\(\)]+:[^:\'\(\)]+:[^:\(\)]+)\)';
+                $sql .= " AND (" . preg_replace_callback('/' . $regexstring . '/', 'DolibarrApi::_forge_criteria_callback', $sqlfilters) . ")";
+            }
+        } // internal
+        else {
+            if ((!DolibarrApiAccess::$user->rights->societe->client->voir) || $search_sale > 0) $sql .= ", " . MAIN_DB_PREFIX . "societe_commerciaux as sc"; // We need this table joined to the select in order to filter by sale
+
+            $sql .= ' WHERE (t.entity IN (' . getEntity('intervention') . ')';
+
+            // Add sql filters
+            if ($sqlfilters) {
+                if (!DolibarrApi::_checkFilters($sqlfilters)) {
+                    throw new RestException(503, 'Error when validating parameter sqlfilters ' . $sqlfilters);
+                }
+                $regexstring = '\(([^:\'\(\)]+:[^:\'\(\)]+:[^:\(\)]+)\)';
+                $sql .= " AND (" . preg_replace_callback('/' . $regexstring . '/', 'DolibarrApi::_forge_criteria_callback', $sqlfilters) . ")";
+            }
+
+            if ((!DolibarrApiAccess::$user->rights->societe->client->voir) || $search_sale > 0) $sql .= " AND t.fk_soc = sc.fk_soc";
+            if ($search_sale > 0) $sql .= " AND t.fk_soc = sc.fk_soc";        // Join for the needed table to filter by sale
+            // Insert sale filter
+            if ($search_sale > 0) {
+                $sql .= " AND sc.fk_user = " . $search_sale;
+            }
+            $sql .= ")";
+
+            // case of external user, $thirdparty_ids param is ignored and replaced by user's socid
+            $socids = DolibarrApiAccess::$user->societe_id ? DolibarrApiAccess::$user->societe_id : $thirdparty_ids;
+            if ($socids) {
+                $sql .= ' OR (t.entity IN (' . getEntity('intervention') . ')';
+                $sql .= " AND t.fk_soc IN (" . $socids . "))";
+            }
+            $sql .= " GROUP BY rowid";
+        }
+
+        $sql .= self::$db->order($sortfield, $sortorder);
+        if ($limit) {
+            if ($page < 0) {
+                $page = 0;
+            }
+            $offset = $limit * $page;
+
+            $sql .= self::$db->plimit($limit + 1, $offset);
+        }
+
+        dol_syslog("API Rest request");
+        $result = self::$db->query($sql);
+
+        if ($result) {
+            $num = self::$db->num_rows($result);
+            $min = min($num, ($limit <= 0 ? $num : $limit));
+            $i = 0;
+            while ($i < $min) {
+                $obj = self::$db->fetch_object($result);
+                $extendedintervention = new ExtendedIntervention(self::$db);
+                if ($extendedintervention->fetch($obj->rowid)) {
+                    $extendedintervention->fetchObjectLinked();
+                    $extendedintervention->fetch_thirdparty();
+                    foreach ($extendedintervention->lines as $k => $line) {
+                        $extendedintervention->lines[$k]->fetch_optionals();
+                    }
+                    $this->_fetch_benefactor($extendedintervention);
+                    // Get survey
+                    if ($extendedintervention->fetch_survey($all_data) < 0) {
+                        throw new RestException(500, "Error when retrieve the survey", ['id_intervention' => $obj->rowid, 'details' => [$this->_getErrors($extendedintervention)]]);
+                    }
+                    $obj_ret[] = $this->_cleanObjectData($extendedintervention);
+                }
+                $i++;
+            }
+        } else {
+            throw new RestException(503, 'Error when retrieve fichinter list : ' . self::$db->lasterror());
+        }
+        if (!count($obj_ret)) {
+            return $obj_ret;
+        }
+
+        return $obj_ret;
+    }
+
+    /**
+     *  Prepare SQL request for element list (propal, commande, invoice, fichinter, contract) for external user
+     * @see in CompanyRelationshipsApi class
+     *
+     * @param       int     $userSocId      Id of user company (external user)
+     * @param       int     $search_sale    Id of commercial user
+     * @return      string  SQL request
+     */
+    private static function _sqlElementListForExternalUser($userSocId, $search_sale=0)
+    {
+        $sql = '';
+
+        if ($search_sale > 0) $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe_commerciaux as scp ON scp.fk_soc = t.fk_soc AND scp.fk_user = " . $search_sale; // We need this table joined to the select in order to filter by sale
+        if ($search_sale > 0) $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe_commerciaux as scb ON scb.fk_soc = ef.companyrelationships_fk_soc_benefactor AND scb.fk_user = " . $search_sale; // We need this table joined to the select in order to filter by sale
+        if ($search_sale > 0) $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe_commerciaux as scw ON scw.fk_soc = ef.companyrelationships_fk_soc_watcher AND scw.fk_user = " . $search_sale; // We need this table joined to the select in order to filter by sale
+
+        // search principal company
+        $sqlPrincipal = "(";
+        $sqlPrincipal .= "(t.fk_soc = " . $userSocId;
+        if ($search_sale > 0) {
+            $sqlPrincipal .= " OR scp.fk_user = " . $search_sale;
+        }
+        $sqlPrincipal .= ")";
+        $sqlPrincipal .= " AND ef.companyrelationships_availability_principal = 1";
+        $sqlPrincipal .= ")";
+
+        // search benefactor company
+        $sqlBenefactor = "(";
+        $sqlBenefactor .= "(ef.companyrelationships_fk_soc_benefactor = " . $userSocId;
+        if ($search_sale > 0) {
+            $sqlBenefactor .= " OR scb.fk_user = " . $search_sale;
+        }
+        $sqlBenefactor .= ")";
+        $sqlBenefactor .= " AND ef.companyrelationships_availability_benefactor = 1";
+        $sqlBenefactor .= ")";
+
+        // search watcher company
+        $sqlWatcher = "(";
+        $sqlWatcher .= "(ef.companyrelationships_fk_soc_watcher = " . $userSocId;
+        if ($search_sale > 0) {
+            $sqlWatcher .= " OR scw.fk_user = " . $search_sale;
+        }
+        $sqlWatcher .= ")";
+        $sqlWatcher .= " AND ef.companyrelationships_availability_watcher = 1";
+        $sqlWatcher .= ")";
+
+        $sql .= " WHERE (" . $sqlPrincipal . " OR " . $sqlBenefactor . " OR " . $sqlWatcher . ")";
+
+        return $sql;
+    }
+
+    /**
+     *  Fetch all benefactor of the object
+     * @see in CompanyRelationshipsApi class
+     *
+     * @param   object          $object         Object to fetch
+     *
+     * @return  void
+     **/
+    function _fetch_benefactor(&$object)
+    {
+        $object->cr_thirdparty_benefactor = null;
+
+        if (!isset($object->array_options['options_companyrelationships_fk_soc_benefactor'])) {
+            $object->fetch_optionals();
+        }
+
+        if ($object->array_options['options_companyrelationships_fk_soc_benefactor'] > 0) {
+            require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
+            $societe = new Societe(self::$db);
+            if ($societe->fetch($object->array_options['options_companyrelationships_fk_soc_benefactor']) > 0) {
+                $object->cr_thirdparty_benefactor = $societe;
+            }
+        }
+    }
+
+    /**
      *  Get the survey
      *
      * @url	GET {id_intervention}/survey
@@ -194,132 +438,8 @@ class ExtendedInterventionApi extends DolibarrApi {
             throw new RestException(401, "Insufficient rights", [ 'id_intervention' => $id_intervention ]);
         }
 
-        self::$db->begin();
-
-        // Get Extended Intervention
-        $extendedintervention = $this->_getExtendedInterventionObject($id_intervention);
-
-        // Get survey
-        if ($extendedintervention->fetch_survey(1) < 0) {
-            throw new RestException(500, "Error when retrieve the survey with all info", [ 'id_intervention' => $id_intervention, 'details' => [ $this->_getErrors($extendedintervention) ]]);
-        }
-
-        // Save answers
-        //-------------------------
-        $current_survey = $extendedintervention->survey;
-        if (is_array($current_survey) && count($current_survey) > 0) {
-            // Save survey bloc
-            //-------------------------
-            foreach ($current_survey as $current_id_equipment => $current_survey_bloc) {
-                //$current_survey_bloc->oldcopy = clone $current_survey_bloc; // Error 500
-                if (isset($survey[$current_id_equipment])) {
-                    if ($current_survey_bloc->read_only) {
-                        self::$db->rollback();
-                        throw new RestException(405, "Read only", ['id_intervention' => $id_intervention, 'id_equipment' => $current_id_equipment]);
-                    }
-                }
-                $current_survey_bloc->fk_fichinter = $id_intervention;
-                $current_survey_bloc->fk_equipment = $current_id_equipment;
-                $current_survey_bloc->fk_product = null;
-                $current_survey_bloc->equipment_ref = null;
-                $current_survey_bloc->product_ref = null;
-                $current_survey_bloc->product_label = null;
-
-                if ($current_survey_bloc->id > 0) {
-                    // Update
-                    $result = $current_survey_bloc->update(DolibarrApiAccess::$user);
-                } else {
-                    // Create
-                    $result = $current_survey_bloc->create(DolibarrApiAccess::$user);
-                }
-
-                if ($result < 0) {
-                    self::$db->rollback();
-                    throw new RestException(500, "Error while saving the survey bloc", [ 'id_intervention' => $id_intervention, 'id_equipment' => $current_id_equipment, 'details' => $this->_getErrors($current_survey_bloc) ]);
-                }
-
-                // Save question bloc
-                //-------------------------
-                foreach ($current_survey_bloc->survey as $current_id_c_question_bloc => $current_question_bloc) {
-                    //$current_question_bloc->oldcopy = clone $current_question_bloc; // Error 500
-                    if (isset($survey[$current_id_equipment]['survey'][$current_id_c_question_bloc])) {
-                        if ($current_question_bloc->read_only) {
-                            self::$db->rollback();
-                            throw new RestException(405, "Read only", ['id_intervention' => $id_intervention, 'id_equipment' => $current_id_equipment, 'id_c_question_bloc' => $current_id_c_question_bloc]);
-                        }
-
-                        $question_bloc_value = $survey[$current_id_equipment]['survey'][$current_id_c_question_bloc];
-                        if (isset($question_bloc_value['complementary_question_bloc'])) $current_question_bloc->complementary_question_bloc = $question_bloc_value['complementary_question_bloc'];
-                        if (isset($question_bloc_value['fk_c_question_bloc_status'])) $current_question_bloc->fk_c_question_bloc_status = $question_bloc_value['fk_c_question_bloc_status'];
-                        if (isset($question_bloc_value['justificatory_status'])) $current_question_bloc->justificatory_status = $question_bloc_value['justificatory_status'];
-                        if (isset($question_bloc_value['array_options'])) $current_question_bloc->array_options = $question_bloc_value['array_options'];
-                    }
-                    $current_question_bloc->fk_survey_bloc = $current_survey_bloc->id;
-                    $current_question_bloc->fk_c_question_bloc = $current_id_c_question_bloc;
-                    $current_question_bloc->position_question_bloc = null;
-                    $current_question_bloc->code_question_bloc = null;
-                    $current_question_bloc->label_question_bloc = null;
-                    $current_question_bloc->extrafields_question_bloc = null;
-                    $current_question_bloc->code_status = null;
-                    $current_question_bloc->label_status = null;
-                    $current_question_bloc->mandatory_status = null;
-
-                    if ($current_question_bloc->id > 0) {
-                        // Update
-                        $result = $current_question_bloc->update(DolibarrApiAccess::$user);
-                    } else {
-                        // Create
-                        $result = $current_question_bloc->create(DolibarrApiAccess::$user);
-                    }
-
-                    if ($result < 0) {
-                        self::$db->rollback();
-                        throw new RestException(500, "Error while saving the question bloc", ['id_intervention' => $id_intervention, 'id_equipment' => $current_id_equipment, 'id_c_question_bloc' => $current_id_c_question_bloc, 'details' => $this->_getErrors($current_question_bloc)]);
-                    }
-
-                    // Save question
-                    //-------------------------
-                    foreach ($current_question_bloc->lines as $current_id_c_question => $current_question) {
-                        //$current_question->oldline = clone $current_question; // Error 500
-                        if (isset($survey[$current_id_equipment]['survey'][$current_id_c_question_bloc]['lines'][$current_id_c_question])) {
-                            if ($current_question->read_only) {
-                                self::$db->rollback();
-                                throw new RestException(405, "Read only", ['id_intervention' => $id_intervention, 'id_equipment' => $current_id_equipment, 'id_c_question_bloc' => $current_id_c_question_bloc, 'id_c_question' => $current_id_c_question]);
-                            }
-
-                            $question_value = $survey[$current_id_equipment]['survey'][$current_id_c_question_bloc]['lines'][$current_id_c_question];
-                            if (isset($question_value['fk_c_answer'])) $current_question->fk_c_answer = $question_value['fk_c_answer'];
-                            if (isset($question_value['text_answer'])) $current_question->text_answer = $question_value['text_answer'];
-                            if (isset($question_value['array_options'])) $current_question->array_options = $question_value['array_options'];
-                        }
-                        $current_question->fk_question_bloc = $current_question_bloc->id;
-                        $current_question->fk_c_question = $current_id_c_question;
-                        $current_question->position_question = null;
-                        $current_question->code_question = null;
-                        $current_question->label_question = null;
-                        $current_question->extrafields_question = null;
-                        $current_question->code_answer = null;
-                        $current_question->label_answer = null;
-                        $current_question->mandatory_answer = null;
-
-                        if ($current_question->id > 0) {
-                            // Update
-                            $result = $current_question->update(DolibarrApiAccess::$user);
-                        } else {
-                            // Create
-                            $result = $current_question->insert(DolibarrApiAccess::$user);
-                        }
-
-                        if ($result < 0) {
-                            self::$db->rollback();
-                            throw new RestException(500, "Error while saving the question", ['id_intervention' => $id_intervention, 'id_equipment' => $current_id_equipment, 'id_c_question_bloc' => $current_id_c_question_bloc, 'id_c_question' => $current_id_c_question, 'details' => $this->_getErrors($current_question)]);
-                        }
-                    }
-                }
-            }
-        }
-
-        self::$db->commit();
+        // Save survey
+        $this->_saveSurvey($id_intervention, $survey);
 
         return $this->getSurvey($id_intervention);
     }
@@ -425,136 +545,15 @@ class ExtendedInterventionApi extends DolibarrApi {
      */
     function saveSurveyBloc($id_intervention, $id_equipment, $survey=null)
     {
-        if (!DolibarrApiAccess::$user->rights->extendedintervention->questionnaireIntervention->lire) {
+        if (!DolibarrApiAccess::$user->rights->extendedintervention->questionnaireIntervention->creer) {
             throw new RestException(401, "Insufficient rights", ['id_intervention' => $id_intervention, 'id_equipment' => $id_equipment]);
         }
 
-        self::$db->begin();
+        // Reformat survey array
+        $survey = array($id_equipment => $survey);
 
-        // Get Extended Intervention
-        $extendedintervention = $this->_getExtendedInterventionObject($id_intervention);
-
-        // Get survey
-        if ($extendedintervention->fetch_survey(1) < 0) {
-            throw new RestException(500, "Error when retrieve the survey with all info", ['id_intervention' => $id_intervention, 'details' => [$this->_getErrors($extendedintervention)]]);
-        }
-
-        // Save answers
-        //-------------------------
-        $current_survey = $extendedintervention->survey;
-        if (is_array($current_survey) && count($current_survey) > 0) {
-            // Save survey bloc
-            //-------------------------
-            foreach ($current_survey as $current_id_equipment => $current_survey_bloc) {
-                if ($id_equipment != $current_id_equipment) continue;
-                //$current_survey_bloc->oldcopy = clone $current_survey_bloc; // Error 500
-                if ($current_survey_bloc->read_only) {
-                    self::$db->rollback();
-                    throw new RestException(405, "Read only", ['id_intervention' => $id_intervention, 'id_equipment' => $current_id_equipment]);
-                }
-                $current_survey_bloc->fk_fichinter = $id_intervention;
-                $current_survey_bloc->fk_equipment = $current_id_equipment;
-                $current_survey_bloc->fk_product = null;
-                $current_survey_bloc->equipment_ref = null;
-                $current_survey_bloc->product_ref = null;
-                $current_survey_bloc->product_label = null;
-
-                if ($current_survey_bloc->id > 0) {
-                    // Update
-                    $result = $current_survey_bloc->update(DolibarrApiAccess::$user);
-                } else {
-                    // Create
-                    $result = $current_survey_bloc->create(DolibarrApiAccess::$user);
-                }
-
-                if ($result < 0) {
-                    self::$db->rollback();
-                    throw new RestException(500, "Error while saving the survey bloc", ['id_intervention' => $id_intervention, 'id_equipment' => $current_id_equipment, 'details' => $this->_getErrors($current_survey_bloc)]);
-                }
-
-                // Save question bloc
-                //-------------------------
-                foreach ($current_survey_bloc->survey as $current_id_c_question_bloc => $current_question_bloc) {
-                    //$current_question_bloc->oldcopy = clone $current_question_bloc; // Error 500
-                    if (isset($survey[$current_id_c_question_bloc])) {
-                        if ($current_question_bloc->read_only) {
-                            self::$db->rollback();
-                            throw new RestException(405, "Read only", ['id_intervention' => $id_intervention, 'id_equipment' => $current_id_equipment, 'id_c_question_bloc' => $current_id_c_question_bloc]);
-                        }
-
-                        $question_bloc_value = $survey[$current_id_c_question_bloc];
-                        if (isset($question_bloc_value['complementary_question_bloc'])) $current_question_bloc->complementary_question_bloc = $question_bloc_value['complementary_question_bloc'];
-                        if (isset($question_bloc_value['fk_c_question_bloc_status'])) $current_question_bloc->fk_c_question_bloc_status = $question_bloc_value['fk_c_question_bloc_status'];
-                        if (isset($question_bloc_value['justificatory_status'])) $current_question_bloc->justificatory_status = $question_bloc_value['justificatory_status'];
-                        if (isset($question_bloc_value['array_options'])) $current_question_bloc->array_options = $question_bloc_value['array_options'];
-                        if (isset($question_bloc_value['attached_files'])) $current_question_bloc->attached_files = $question_bloc_value['attached_files'];
-                    }
-                    $current_question_bloc->fk_survey_bloc = $current_survey_bloc->id;
-                    $current_question_bloc->fk_c_question_bloc = $current_id_c_question_bloc;
-                    $current_question_bloc->position_question_bloc = null;
-                    $current_question_bloc->code_question_bloc = null;
-                    $current_question_bloc->label_question_bloc = null;
-                    $current_question_bloc->extrafields_question_bloc = null;
-                    $current_question_bloc->code_status = null;
-                    $current_question_bloc->label_status = null;
-                    $current_question_bloc->mandatory_status = null;
-
-                    if ($current_question_bloc->id > 0) {
-                        // Update
-                        $result = $current_question_bloc->update(DolibarrApiAccess::$user);
-                    } else {
-                        // Create
-                        $result = $current_question_bloc->create(DolibarrApiAccess::$user);
-                    }
-
-                    if ($result < 0) {
-                        self::$db->rollback();
-                        throw new RestException(500, "Error while saving the question bloc", ['id_intervention' => $id_intervention, 'id_equipment' => $current_id_equipment, 'id_c_question_bloc' => $current_id_c_question_bloc, 'details' => $this->_getErrors($current_question_bloc)]);
-                    }
-
-                    // Save question
-                    //-------------------------
-                    foreach ($current_question_bloc->lines as $current_id_c_question => $current_question) {
-                        //$current_question->oldline = clone $current_question; // Error 500
-                        $current_question->fk_question_bloc = $current_question_bloc->id;
-                        $current_question->fk_c_question = $current_id_c_question;
-                        $current_question->position_question = null;
-                        $current_question->code_question = null;
-                        $current_question->label_question = null;
-                        $current_question->extrafields_question = null;
-                        $current_question->code_answer = null;
-                        $current_question->label_answer = null;
-                        $current_question->mandatory_answer = null;
-                        if (isset($survey[$current_id_c_question_bloc]['lines'][$current_id_c_question])) {
-                            if ($current_question->read_only) {
-                                self::$db->rollback();
-                                throw new RestException(405, "Read only", ['id_intervention' => $id_intervention, 'id_equipment' => $current_id_equipment, 'id_c_question_bloc' => $current_id_c_question_bloc, 'id_c_question' => $current_id_c_question]);
-                            }
-
-                            $question_value = $survey[$current_id_c_question_bloc]['lines'][$current_id_c_question];
-                            if (isset($question_value['fk_c_answer'])) $current_question->fk_c_answer = $question_value['fk_c_answer'];
-                            if (isset($question_value['text_answer'])) $current_question->text_answer = $question_value['text_answer'];
-                            if (isset($question_value['array_options'])) $current_question->array_options = $question_value['array_options'];
-                        }
-
-                        if ($current_question->id > 0) {
-                            // Update
-                            $result = $current_question->update(DolibarrApiAccess::$user);
-                        } else {
-                            // Create
-                            $result = $current_question->insert(DolibarrApiAccess::$user);
-                        }
-
-                        if ($result < 0) {
-                            self::$db->rollback();
-                            throw new RestException(500, "Error while saving the question", ['id_intervention' => $id_intervention, 'id_equipment' => $current_id_equipment, 'id_c_question_bloc' => $current_id_c_question_bloc, 'id_c_question' => $current_id_c_question, 'details' => $this->_getErrors($current_question)]);
-                        }
-                    }
-                }
-            }
-        }
-
-        self::$db->commit();
+        // Save survey
+        $this->_saveSurvey($id_intervention, $survey);
 
         return $this->getSurveyBloc($id_intervention, $id_equipment);
     }
@@ -712,133 +711,28 @@ class ExtendedInterventionApi extends DolibarrApi {
      */
     function saveQuestionBloc($id_intervention, $id_equipment, $id_c_question_bloc, $complementary_question_bloc = null, $fk_c_question_bloc_status = null, $justificatory_status = null, $array_options = null, $lines=null, $attached_files=null)
     {
-        if (!DolibarrApiAccess::$user->rights->extendedintervention->questionnaireIntervention->lire) {
-            throw new RestException(401, "Insufficient rights", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc ]);
+        if (!DolibarrApiAccess::$user->rights->extendedintervention->questionnaireIntervention->creer) {
+            throw new RestException(401, "Insufficient rights", ['id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc]);
         }
 
-        self::$db->begin();
+        // Reformat survey array
+        $survey = array(
+            $id_equipment => array(
+                'survey' => array(
+                    $id_c_question_bloc => array(
+                        'complementary_question_bloc' => $complementary_question_bloc,
+                        'fk_c_question_bloc_status' => $fk_c_question_bloc_status,
+                        'justificatory_status' => $justificatory_status,
+                        'array_options' => $array_options,
+                        'lines' => $lines,
+                        'attached_files' => $attached_files,
+                    )
+                )
+            )
+        );
 
-        // Get Extended Intervention
-        $extendedintervention = $this->_getExtendedInterventionObject($id_intervention);
-
-        // Get survey
-        if ($extendedintervention->fetch_survey(1) < 0) {
-            throw new RestException(500, "Error when retrieve the survey with all info", ['id_intervention' => $id_intervention, 'details' => [$this->_getErrors($extendedintervention)]]);
-        }
-
-        // Save answers
-        //-------------------------
-        $current_survey = $extendedintervention->survey;
-        if (is_array($current_survey) && count($current_survey) > 0) {
-            // Save survey bloc
-            //-------------------------
-            foreach ($current_survey as $current_id_equipment => $current_survey_bloc) {
-                if ($id_equipment != $current_id_equipment) continue;
-                //$current_survey_bloc->oldcopy = clone $current_survey_bloc; // Error 500
-                if ($current_survey_bloc->read_only) {
-                    self::$db->rollback();
-                    throw new RestException(405, "Read only", ['id_intervention' => $id_intervention, 'id_equipment' => $current_id_equipment]);
-                }
-                $current_survey_bloc->fk_fichinter = $id_intervention;
-                $current_survey_bloc->fk_equipment = $current_id_equipment;
-                $current_survey_bloc->fk_product = null;
-                $current_survey_bloc->equipment_ref = null;
-                $current_survey_bloc->product_ref = null;
-                $current_survey_bloc->product_label = null;
-
-                if ($current_survey_bloc->id > 0) {
-                    // Update
-                    $result = $current_survey_bloc->update(DolibarrApiAccess::$user);
-                } else {
-                    // Create
-                    $result = $current_survey_bloc->create(DolibarrApiAccess::$user);
-                }
-
-                if ($result < 0) {
-                    self::$db->rollback();
-                    throw new RestException(500, "Error while saving the survey bloc", ['id_intervention' => $id_intervention, 'id_equipment' => $current_id_equipment, 'details' => $this->_getErrors($current_survey_bloc)]);
-                }
-
-                // Save question bloc
-                //-------------------------
-                foreach ($current_survey_bloc->survey as $current_id_c_question_bloc => $current_question_bloc) {
-                    if ($id_c_question_bloc != $current_id_c_question_bloc) continue;
-                    //$current_question_bloc->oldcopy = clone $current_question_bloc; // Error 500
-                    if ($current_question_bloc->read_only) {
-                        self::$db->rollback();
-                        throw new RestException(405, "Read only", ['id_intervention' => $id_intervention, 'id_equipment' => $current_id_equipment, 'id_c_question_bloc' => $current_id_c_question_bloc]);
-                    }
-                    if (isset($complementary_question_bloc)) $current_question_bloc->complementary_question_bloc = $complementary_question_bloc;
-                    if (isset($fk_c_question_bloc_status)) $current_question_bloc->fk_c_question_bloc_status = $fk_c_question_bloc_status;
-                    if (isset($justificatory_status)) $current_question_bloc->justificatory_status = $justificatory_status;
-                    if (isset($array_options)) $current_question_bloc->array_options = $array_options;
-                    if (isset($attached_files)) $current_question_bloc->attached_files = $attached_files;
-                    $current_question_bloc->fk_survey_bloc = $current_survey_bloc->id;
-                    $current_question_bloc->fk_c_question_bloc = $current_id_c_question_bloc;
-                    $current_question_bloc->position_question_bloc = null;
-                    $current_question_bloc->code_question_bloc = null;
-                    $current_question_bloc->label_question_bloc = null;
-                    $current_question_bloc->extrafields_question_bloc = null;
-                    $current_question_bloc->code_status = null;
-                    $current_question_bloc->label_status = null;
-                    $current_question_bloc->mandatory_status = null;
-
-                    if ($current_question_bloc->id > 0) {
-                        // Update
-                        $result = $current_question_bloc->update(DolibarrApiAccess::$user);
-                    } else {
-                        // Create
-                        $result = $current_question_bloc->create(DolibarrApiAccess::$user);
-                    }
-
-                    if ($result < 0) {
-                        self::$db->rollback();
-                        throw new RestException(500, "Error while saving the question bloc", ['id_intervention' => $id_intervention, 'id_equipment' => $current_id_equipment, 'id_c_question_bloc' => $current_id_c_question_bloc, 'details' => $this->_getErrors($current_question_bloc)]);
-                    }
-
-                    // Save question
-                    //-------------------------
-                    foreach ($current_question_bloc->lines as $current_id_c_question => $current_question) {
-                        //$current_question->oldline = clone $current_question; // Error 500
-                        $current_question->fk_question_bloc = $current_question_bloc->id;
-                        $current_question->fk_c_question = $current_id_c_question;
-                        $current_question->position_question = null;
-                        $current_question->code_question = null;
-                        $current_question->label_question = null;
-                        $current_question->extrafields_question = null;
-                        $current_question->code_answer = null;
-                        $current_question->label_answer = null;
-                        $current_question->mandatory_answer = null;
-                        if (isset($lines[$current_id_c_question])) {
-                            if ($current_question->read_only) {
-                                self::$db->rollback();
-                                throw new RestException(405, "Read only", ['id_intervention' => $id_intervention, 'id_equipment' => $current_id_equipment, 'id_c_question_bloc' => $current_id_c_question_bloc, 'id_c_question' => $current_id_c_question]);
-                            }
-
-                            $question_value = $lines[$current_id_c_question];
-                            if (isset($question_value['fk_c_answer'])) $current_question->fk_c_answer = $question_value['fk_c_answer'];
-                            if (isset($question_value['text_answer'])) $current_question->text_answer = $question_value['text_answer'];
-                            if (isset($question_value['array_options'])) $current_question->array_options = $question_value['array_options'];
-                        }
-
-                        if ($current_question->id > 0) {
-                            // Update
-                            $result = $current_question->update(DolibarrApiAccess::$user);
-                        } else {
-                            // Create
-                            $result = $current_question->insert(DolibarrApiAccess::$user);
-                        }
-
-                        if ($result < 0) {
-                            self::$db->rollback();
-                            throw new RestException(500, "Error while saving the question", ['id_intervention' => $id_intervention, 'id_equipment' => $current_id_equipment, 'id_c_question_bloc' => $current_id_c_question_bloc, 'id_c_question' => $current_id_c_question, 'details' => $this->_getErrors($current_question)]);
-                        }
-                    }
-                }
-            }
-        }
-
-        self::$db->commit();
+        // Save survey
+        $this->_saveSurvey($id_intervention, $survey);
 
         return $this->getQuestionBloc($id_intervention, $id_equipment, $id_c_question_bloc);
     }
@@ -997,125 +891,27 @@ class ExtendedInterventionApi extends DolibarrApi {
      */
     function saveQuestion($id_intervention, $id_equipment, $id_c_question_bloc, $id_c_question, $fk_c_answer = null, $text_answer = null, $array_options = null)
     {
-        if (!DolibarrApiAccess::$user->rights->extendedintervention->questionnaireIntervention->lire) {
-            throw new RestException(401, "Insufficient rights", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc, 'id_c_question' => $id_c_question ]);
+        if (!DolibarrApiAccess::$user->rights->extendedintervention->questionnaireIntervention->creer) {
+            throw new RestException(401, "Insufficient rights", ['id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc, 'id_c_question' => $id_c_question]);
         }
 
-        self::$db->begin();
+        // Reformat survey array
+        $survey = array(
+            $id_equipment => array(
+                $id_c_question_bloc => array(
+                    'lines' => array(
+                        $id_c_question => array(
+                            'fk_c_answer' => $fk_c_answer,
+                            'text_answer' => $text_answer,
+                            'array_options' => $array_options,
+                        )
+                    )
+                )
+            )
+        );
 
-        // Get Extended Intervention
-        $extendedintervention = $this->_getExtendedInterventionObject($id_intervention);
-
-        // Get survey
-        if ($extendedintervention->fetch_survey(1) < 0) {
-            throw new RestException(500, "Error when retrieve the survey with all info", ['id_intervention' => $id_intervention, 'details' => [$this->_getErrors($extendedintervention)]]);
-        }
-
-        // Save answers
-        //-------------------------
-        $current_survey = $extendedintervention->survey;
-        if (is_array($current_survey) && count($current_survey) > 0) {
-            // Save survey bloc
-            //-------------------------
-            foreach ($current_survey as $current_id_equipment => $current_survey_bloc) {
-                if ($id_equipment != $current_id_equipment) continue;
-                //$current_survey_bloc->oldcopy = clone $current_survey_bloc; // Error 500
-                if ($current_survey_bloc->read_only) {
-                    self::$db->rollback();
-                    throw new RestException(405, "Read only", ['id_intervention' => $id_intervention, 'id_equipment' => $current_id_equipment]);
-                }
-                $current_survey_bloc->fk_fichinter = $id_intervention;
-                $current_survey_bloc->fk_equipment = $current_id_equipment;
-                $current_survey_bloc->fk_product = null;
-                $current_survey_bloc->equipment_ref = null;
-                $current_survey_bloc->product_ref = null;
-                $current_survey_bloc->product_label = null;
-
-                if ($current_survey_bloc->id > 0) {
-                    // Update
-                    $result = $current_survey_bloc->update(DolibarrApiAccess::$user);
-                } else {
-                    // Create
-                    $result = $current_survey_bloc->create(DolibarrApiAccess::$user);
-                }
-
-                if ($result < 0) {
-                    self::$db->rollback();
-                    throw new RestException(500, "Error while saving the survey bloc", ['id_intervention' => $id_intervention, 'id_equipment' => $current_id_equipment, 'details' => $this->_getErrors($current_survey_bloc)]);
-                }
-
-                // Save question bloc
-                //-------------------------
-                foreach ($current_survey_bloc->survey as $current_id_c_question_bloc => $current_question_bloc) {
-                    if ($id_c_question_bloc != $current_id_c_question_bloc) continue;
-                    //$current_question_bloc->oldcopy = clone $current_question_bloc; // Error 500
-                    if ($current_question_bloc->read_only) {
-                        self::$db->rollback();
-                        throw new RestException(405, "Read only", ['id_intervention' => $id_intervention, 'id_equipment' => $current_id_equipment, 'id_c_question_bloc' => $current_id_c_question_bloc]);
-                    }
-                    $current_question_bloc->fk_survey_bloc = $current_survey_bloc->id;
-                    $current_question_bloc->fk_c_question_bloc = $current_id_c_question_bloc;
-                    $current_question_bloc->position_question_bloc = null;
-                    $current_question_bloc->code_question_bloc = null;
-                    $current_question_bloc->label_question_bloc = null;
-                    $current_question_bloc->extrafields_question_bloc = null;
-                    $current_question_bloc->code_status = null;
-                    $current_question_bloc->label_status = null;
-                    $current_question_bloc->mandatory_status = null;
-
-                    if ($current_question_bloc->id > 0) {
-                        // Update
-                        $result = $current_question_bloc->update(DolibarrApiAccess::$user);
-                    } else {
-                        // Create
-                        $result = $current_question_bloc->create(DolibarrApiAccess::$user);
-                    }
-
-                    if ($result < 0) {
-                        self::$db->rollback();
-                        throw new RestException(500, "Error while saving the question bloc", ['id_intervention' => $id_intervention, 'id_equipment' => $current_id_equipment, 'id_c_question_bloc' => $current_id_c_question_bloc, 'details' => $this->_getErrors($current_question_bloc)]);
-                    }
-
-                    // Save question
-                    //-------------------------
-                    foreach ($current_question_bloc->lines as $current_id_c_question => $current_question) {
-                        if ($id_c_question != $current_id_c_question) continue;
-                        //$current_question->oldline = clone $current_question; // Error 500
-                        $current_question->fk_question_bloc = $current_question_bloc->id;
-                        $current_question->fk_c_question = $current_id_c_question;
-                        $current_question->position_question = null;
-                        $current_question->code_question = null;
-                        $current_question->label_question = null;
-                        $current_question->extrafields_question = null;
-                        $current_question->code_answer = null;
-                        $current_question->label_answer = null;
-                        $current_question->mandatory_answer = null;
-                        if ($current_question->read_only) {
-                            self::$db->rollback();
-                            throw new RestException(405, "Read only", ['id_intervention' => $id_intervention, 'id_equipment' => $current_id_equipment, 'id_c_question_bloc' => $current_id_c_question_bloc, 'id_c_question' => $current_id_c_question]);
-                        }
-                        if (isset($fk_c_answer)) $current_question->fk_c_answer = $fk_c_answer;
-                        if (isset($text_answer)) $current_question->text_answer = $text_answer;
-                        if (isset($array_options)) $current_question->array_options = $array_options;
-
-                        if ($current_question->id > 0) {
-                            // Update
-                            $result = $current_question->update(DolibarrApiAccess::$user);
-                        } else {
-                            // Create
-                            $result = $current_question->insert(DolibarrApiAccess::$user);
-                        }
-
-                        if ($result < 0) {
-                            self::$db->rollback();
-                            throw new RestException(500, "Error while saving the question", ['id_intervention' => $id_intervention, 'id_equipment' => $current_id_equipment, 'id_c_question_bloc' => $current_id_c_question_bloc, 'id_c_question' => $current_id_c_question, 'details' => $this->_getErrors($current_question)]);
-                        }
-                    }
-                }
-            }
-        }
-
-        self::$db->commit();
+        // Save survey
+        $this->_saveSurvey($id_intervention, $survey);
 
         return $this->getQuestion($id_intervention, $id_equipment, $id_c_question_bloc, $id_c_question);
     }
@@ -1191,22 +987,21 @@ class ExtendedInterventionApi extends DolibarrApi {
         $extendedintervention = new ExtendedIntervention(self::$db);
         $result = $extendedintervention->fetch($id_intervention);
         if ($result == 0) {
-            throw new RestException(404, "Intervention not found", [ 'id_intervention' => $id_intervention ]);
+            throw new RestException(404, "Intervention not found", ['id_intervention' => $id_intervention]);
         } elseif ($result < 0) {
-            throw new RestException(500, "Error when retrieve intervention", [ 'id_intervention' => $id_intervention, 'details' => $this->_getErrors($extendedintervention) ]);
+            throw new RestException(500, "Error when retrieve intervention", ['id_intervention' => $id_intervention, 'details' => $this->_getErrors($extendedintervention)]);
         }
 
         if ($conf->companyrelationships->enabled) {
             $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($extendedintervention);
             if (!$hasPerm) {
-                throw new RestException(403, 'Access not allowed for login ' . DolibarrApiAccess::$user->login, [ 'id_intervention' => $id_intervention ]);
+                throw new RestException(403, 'Access not allowed for login ' . DolibarrApiAccess::$user->login, ['id_intervention' => $id_intervention]);
+            }
+        } else {
+            if (!DolibarrApi::_checkAccessToResource('fichinter', $id_intervention, 'fichinter')) {
+                throw new RestException(403, 'Access not allowed for login ' . DolibarrApiAccess::$user->login, ['id_intervention' => $id_intervention]);
             }
         }
-		else{
-			if (!DolibarrApi::_checkAccessToResource('fichinter', $id_intervention, 'fichinter')) {
-            throw new RestException(403, 'Access not allowed for login ' . DolibarrApiAccess::$user->login, [ 'id_intervention' => $id_intervention ]);
-        }
-		}
 
         return $extendedintervention;
     }
@@ -1291,6 +1086,173 @@ class ExtendedInterventionApi extends DolibarrApi {
         }
 
         return $question;
+    }
+
+    /**
+     *  Save the survey into the database
+     *
+     * @param   int     $id_intervention        ID of the intervention
+     * @param   array   $survey                 Survey answers for this survey
+     *
+     * @return  void
+     *
+     * @throws  401     RestException           Insufficient rights
+     * @throws  403     RestException           Access not allowed for login
+     * @throws  404     RestException           Intervention not found
+     * @throws  405     RestException           Read only
+     * @throws  500     RestException           Error when retrieve intervention
+     * @throws  500     RestException           Error while saving the survey
+     */
+    function _saveSurvey($id_intervention, $survey=null)
+    {
+        self::$db->begin();
+
+        // Get Extended Intervention
+        $extendedintervention = $this->_getExtendedInterventionObject($id_intervention);
+
+        // Test if is read only
+        if ($extendedintervention->is_survey_read_only()) {
+            self::$db->rollback();
+            throw new RestException(405, "Read only", ['id_intervention' => $id_intervention]);
+        }
+
+        // Save survey
+        //-------------------------
+        if (is_array($survey) && count($survey) > 0) {
+            // Get survey
+            if ($extendedintervention->fetch_survey(1) < 0) {
+                throw new RestException(500, "Error when retrieve the survey with all info", [ 'id_intervention' => $id_intervention, 'details' => [ $this->_getErrors($extendedintervention) ]]);
+            }
+            $current_survey = $extendedintervention->survey;
+
+            // Save survey bloc
+            //-------------------------
+            foreach ($survey as $id_equipment => $survey_bloc) {
+                // Get handler of the survey bloc (if exist in the current survey) or create it
+                $current_survey_bloc = isset($current_survey[$id_equipment]) ? $current_survey[$id_equipment] : new EISurveyBloc(self::$db, $extendedintervention);
+
+                // Test if is read only
+//                if ($current_survey_bloc->read_only) {
+//                    self::$db->rollback();
+//                    throw new RestException(405, "Read only", ['id_intervention' => $id_intervention, 'id_equipment' => $id_equipment]);
+//                }
+
+                // Set Values
+                $current_survey_bloc->fk_fichinter = $id_intervention;
+                $current_survey_bloc->fk_equipment = isset($survey_bloc['fk_equipment']) ? $survey_bloc['fk_equipment'] : $id_equipment;
+                $current_survey_bloc->fk_product = isset($survey_bloc['fk_product']) ? $survey_bloc['fk_product'] : null;
+                $current_survey_bloc->equipment_ref = isset($survey_bloc['equipment_ref']) ? $survey_bloc['equipment_ref'] : null;
+                $current_survey_bloc->product_ref = isset($survey_bloc['product_ref']) ? $survey_bloc['product_ref'] : null;
+                $current_survey_bloc->product_label = isset($survey_bloc['product_label']) ? $survey_bloc['product_label'] : null;
+
+                if ($current_survey_bloc->id > 0) {
+                    // Update
+                    $result = $current_survey_bloc->update(DolibarrApiAccess::$user);
+                } else {
+                    // Create
+                    $result = $current_survey_bloc->create(DolibarrApiAccess::$user);
+                }
+
+                if ($result < 0) {
+                    self::$db->rollback();
+                    throw new RestException(500, "Error while saving the survey bloc", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'details' => $this->_getErrors($current_survey_bloc) ]);
+                }
+
+                // Save question bloc
+                //-------------------------
+                foreach ($survey_bloc['survey'] as $id_c_question_bloc => $question_bloc) {
+                    // Get handler of the question bloc (if exist in the current survey) or create it
+                    $current_question_bloc = isset($current_survey_bloc->survey[$id_c_question_bloc]) ? $current_survey_bloc->survey[$id_c_question_bloc] : new EIQuestionBloc(self::$db, $current_survey_bloc);
+
+                    // Test if is read only
+//                    if ($current_question_bloc->read_only) {
+//                        self::$db->rollback();
+//                        throw new RestException(405, "Read only", ['id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc]);
+//                    }
+
+                    // Set Values
+                    $current_question_bloc->fk_survey_bloc = $current_survey_bloc->id;
+                    $current_question_bloc->fk_c_question_bloc = isset($question_bloc['fk_c_question_bloc']) ? $question_bloc['fk_c_question_bloc'] : $id_c_question_bloc;
+                    $current_question_bloc->position_question_bloc = isset($question_bloc['position_question_bloc']) ? $question_bloc['position_question_bloc'] : null;
+                    $current_question_bloc->code_question_bloc = isset($question_bloc['code_question_bloc']) ? $question_bloc['code_question_bloc'] : null;
+                    $current_question_bloc->label_question_bloc = isset($question_bloc['label_question_bloc']) ? $question_bloc['label_question_bloc'] : null;
+                    $current_question_bloc->extrafields_question_bloc = isset($question_bloc['extrafields_question_bloc']) ? $question_bloc['extrafields_question_bloc'] : null;
+                    $current_question_bloc->array_options = isset($question_bloc['array_options']) ? $question_bloc['array_options'] : $current_question_bloc->array_options;
+                    $current_question_bloc->complementary_question_bloc = isset($question_bloc['complementary_question_bloc']) ? $question_bloc['complementary_question_bloc'] : $current_question_bloc->complementary_question_bloc;
+                    $current_question_bloc->attached_files = isset($question_bloc['attached_files']) ? $question_bloc['attached_files'] : $current_question_bloc->attached_files;
+                    $current_question_bloc->fk_c_question_bloc_status = isset($question_bloc['fk_c_question_bloc_status']) ? $question_bloc['fk_c_question_bloc_status'] : $current_question_bloc->fk_c_question_bloc_status;
+                    $current_question_bloc->code_status = isset($question_bloc['code_status']) ? $question_bloc['code_status'] : null;
+                    $current_question_bloc->label_status = isset($question_bloc['label_status']) ? $question_bloc['label_status'] : null;
+                    $current_question_bloc->color_status = isset($question_bloc['color_status']) ? $question_bloc['color_status'] : null;
+                    $current_question_bloc->mandatory_status = isset($question_bloc['mandatory_status']) ? $question_bloc['mandatory_status'] : null;
+                    $current_question_bloc->justificatory_status = isset($question_bloc['justificatory_status']) ? $question_bloc['justificatory_status'] : $current_question_bloc->justificatory_status;
+
+                    $current_question_bloc->icone = isset($question_bloc['icone']) ? $question_bloc['icone'] : null;
+                    $current_question_bloc->title_editable = isset($question_bloc['title_editable']) ? $question_bloc['title_editable'] : null;
+                    $current_question_bloc->bloc_complementary_editable = isset($question_bloc['bloc_complementary_editable']) ? $question_bloc['bloc_complementary_editable'] : null;
+                    $current_question_bloc->deletable = isset($question_bloc['deletable']) ? $question_bloc['deletable'] : null;
+                    $current_question_bloc->private_bloc = isset($question_bloc['private_bloc']) ? $question_bloc['private_bloc'] : null;
+                    $current_question_bloc->desactivated_bloc = isset($question_bloc['desactivated_bloc']) ? $question_bloc['desactivated_bloc'] : null;
+                    $current_question_bloc->desactivate_bloc_status = isset($question_bloc['desactivate_bloc_status']) ? $question_bloc['desactivate_bloc_status'] : null;
+
+                    if ($current_question_bloc->id > 0) {
+                        // Update
+                        $result = $current_question_bloc->update(DolibarrApiAccess::$user);
+                    } else {
+                        // Create
+                        $result = $current_question_bloc->create(DolibarrApiAccess::$user);
+                    }
+
+                    if ($result < 0) {
+                        self::$db->rollback();
+                        throw new RestException(500, "Error while saving the question bloc", ['id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc, 'details' => $this->_getErrors($current_question_bloc)]);
+                    }
+
+                    // Save question
+                    //-------------------------
+                    foreach ($question_bloc['lines'] as $id_c_question => $question) {
+                        // Get handler of the question (if exist in the current survey) or create it
+                        $current_question = isset($current_question_bloc->lines[$id_c_question]) ? $current_question_bloc->lines[$id_c_question] : new EIQuestionBlocLine(self::$db);
+
+                        // Test if is read only
+//                        if ($current_question->read_only) {
+//                            self::$db->rollback();
+//                            throw new RestException(405, "Read only", ['id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc, 'id_c_question' => $id_c_question]);
+//                        }
+
+                        // Set Values
+                        $current_question->fk_question_bloc = $current_question_bloc->id;
+                        $current_question->fk_c_question = isset($question['fk_c_question']) ? $question['fk_c_question'] : $id_c_question;
+                        $current_question->position_question = isset($question['position_question']) ? $question['position_question'] : null;
+                        $current_question->code_question = isset($question['code_question']) ? $question['code_question'] : null;
+                        $current_question->label_question = isset($question['label_question']) ? $question['label_question'] : null;
+                        $current_question->extrafields_question = isset($question['extrafields_question']) ? $question['extrafields_question'] : null;
+                        $current_question->array_options = isset($question['array_options']) ? $question['array_options'] : $current_question->array_options;
+                        $current_question->fk_c_answer = isset($question['fk_c_answer']) ? $question['fk_c_answer'] : $current_question->fk_c_answer;
+                        $current_question->code_answer = isset($question['code_answer']) ? $question['code_answer'] : null;
+                        $current_question->label_answer = isset($question['label_answer']) ? $question['label_answer'] : null;
+                        $current_question->color_answer = isset($question['color_answer']) ? $question['color_answer'] : null;
+                        $current_question->mandatory_answer = isset($question['mandatory_answer']) ? $question['mandatory_answer'] : null;
+                        $current_question->text_answer = isset($question['text_answer']) ? $question['text_answer'] : $current_question->text_answer;
+
+                        if ($current_question->id > 0) {
+                            // Update
+                            $result = $current_question->update(DolibarrApiAccess::$user);
+                        } else {
+                            // Create
+                            $result = $current_question->insert(DolibarrApiAccess::$user);
+                        }
+
+                        if ($result < 0) {
+                            self::$db->rollback();
+                            throw new RestException(500, "Error while saving the question", ['id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc, 'id_c_question' => $id_c_question, 'details' => $this->_getErrors($current_question)]);
+                        }
+                    }
+                }
+            }
+        }
+
+        self::$db->commit();
     }
 
     /**
@@ -1449,6 +1411,11 @@ class ExtendedInterventionApi extends DolibarrApi {
                         $this->_cleanSubObjectData($object[$k], $has_sub_whitelist ? $whitelist_of_properties[''] : $whitelist_of_properties[$k], $has_sub_blacklist ? $blacklist_of_properties[''] : $blacklist_of_properties[$k]);
                     else
                         $this->_cleanSubObjectData($object->$k, $has_sub_whitelist ? $whitelist_of_properties[''] : $whitelist_of_properties[$k], $has_sub_blacklist ? $blacklist_of_properties[''] : $blacklist_of_properties[$k]);
+                } elseif (is_string($v)) {
+                    if (is_array($object))
+                        $object[$k] = $this->_cleanString($v);
+                    else
+                        $object->$k = $this->_cleanString($v);
                 }
             }
         }
@@ -1491,6 +1458,11 @@ class ExtendedInterventionApi extends DolibarrApi {
                         $this->_cleanSubObjectData($object[$k], $has_sub_whitelist ? $whitelist_of_properties[''] : $whitelist_of_properties[$k], $has_sub_blacklist ? $blacklist_of_properties[''] : $blacklist_of_properties[$k]);
                     else
                         $this->_cleanSubObjectData($object->$k, $has_sub_whitelist ? $whitelist_of_properties[''] : $whitelist_of_properties[$k], $has_sub_blacklist ? $blacklist_of_properties[''] : $blacklist_of_properties[$k]);
+                } elseif (is_string($v)) {
+                    if (is_array($object))
+                        $object[$k] = $this->_cleanString($v);
+                    else
+                        $object->$k = $this->_cleanString($v);
                 }
             }
         }
@@ -1589,6 +1561,21 @@ class ExtendedInterventionApi extends DolibarrApi {
 
         $whitelist_of_properties = $linked_object ? $whitelist_of_properties_linked_object : $whitelist_of_properties;
         $blacklist_of_properties = $linked_object ? $blacklist_of_properties_linked_object : $blacklist_of_properties;
+    }
+
+    /**
+     *	Clean a string (decode a HTML string (it decodes entities and br tags) and convert \n text en return line)
+     *
+     *	@param	string	$string		        String to decode
+     *	@param	string	$pagecodeto			Page code for result
+     *	@return	string						String cleaned
+     */
+    function _cleanString($string, $pagecodeto='UTF-8')
+    {
+        $ret = dol_html_entity_decode($string, ENT_QUOTES, $pagecodeto);
+        $ret = preg_replace('/<br(\s[\sa-zA-Z_="]*)?\/?>/i', "<br />", $ret);
+        $ret = preg_replace('/(\r\n|\r|\n)/i', preg_match('/<br \/>/i', $ret) ? "" : "<br />", $ret);
+        return $ret;
     }
 
     /**

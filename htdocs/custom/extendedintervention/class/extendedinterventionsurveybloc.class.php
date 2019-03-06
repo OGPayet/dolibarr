@@ -117,7 +117,7 @@ class EISurveyBloc extends CommonObject
      */
     public $fichinter;
     /**
-     * Equipment ID
+     * Equipment ID (Custom if negative)
      * @var int
      */
     public $fk_equipment;
@@ -270,7 +270,7 @@ class EISurveyBloc extends CommonObject
 
         // Clean parameters
         $this->fk_fichinter = $this->fk_fichinter > 0 ? $this->fk_fichinter : 0;
-        $this->fk_equipment = $this->fk_equipment > 0 ? $this->fk_equipment : 0;
+        $this->fk_equipment = isset($this->fk_equipment) ? $this->fk_equipment : 0;
         $this->fk_product = $this->fk_product > 0 ? $this->fk_product : 0;
         $this->equipment_ref = !empty($this->equipment_ref) ? $this->equipment_ref : '';
         $this->product_ref = !empty($this->product_ref) ? $this->product_ref : '';
@@ -311,7 +311,7 @@ class EISurveyBloc extends CommonObject
                     $error++;
                 }
             }
-        } else {
+        } elseif ($this->fk_equipment == 0) {
             $this->fk_product = 0;
             $this->equipment_ref = '';
             $this->product_ref = '';
@@ -391,8 +391,9 @@ class EISurveyBloc extends CommonObject
         global $conf, $langs;
 
         // Clean parameters
+        $this->id = $this->id > 0 ? $this->id : 0;
         $this->fk_fichinter = $this->fk_fichinter > 0 ? $this->fk_fichinter : 0;
-        $this->fk_equipment = $this->fk_equipment > 0 ? $this->fk_equipment : 0;
+        $this->fk_equipment = isset($this->fk_equipment) ? $this->fk_equipment : 0;
         $this->fk_product = $this->fk_product > 0 ? $this->fk_product : 0;
         $this->equipment_ref = !empty($this->equipment_ref) ? $this->equipment_ref : '';
         $this->product_ref = !empty($this->product_ref) ? $this->product_ref : '';
@@ -433,7 +434,7 @@ class EISurveyBloc extends CommonObject
                     $error++;
                 }
             }
-        } else {
+        } elseif ($this->fk_equipment == 0) {
             $this->fk_product = 0;
             $this->equipment_ref = '';
             $this->product_ref = '';
@@ -455,7 +456,7 @@ class EISurveyBloc extends CommonObject
         $sql .= ", fk_user_modif = " . $user->id;
         $sql .= ", tms = '" . $this->db->idate($now) . "'";
         $sql .= " WHERE entity IN (" . getEntity('ei_survey_bloc') . ")";
-        if ($this->fk_fichinter > 0 && $this->fk_equipment >= 0)
+        if ($this->fk_fichinter > 0 && $this->fk_equipment != 0)
             $sql .= " AND fk_fichinter=" . $this->fk_fichinter . " AND fk_equipment=" . $this->fk_equipment;
         else
             $sql .= " AND rowid=" . $this->id;
@@ -502,8 +503,9 @@ class EISurveyBloc extends CommonObject
         global $conf, $langs;
 
         // Clean parameters
+        $this->id = $this->id > 0 ? $this->id : 0;
         $this->fk_fichinter = $this->fk_fichinter > 0 ? $this->fk_fichinter : 0;
-        $this->fk_equipment = $this->fk_equipment > 0 ? $this->fk_equipment : 0;
+        $this->fk_equipment = isset($this->fk_equipment) ? $this->fk_equipment : 0;
 
         // Check parameters
         $error = 0;
@@ -535,7 +537,7 @@ class EISurveyBloc extends CommonObject
                 " LEFT JOIN " . MAIN_DB_PREFIX . $this->table_element_child . " as c ON cd.fk_question_bloc = c.rowid" .
                 " LEFT JOIN " . MAIN_DB_PREFIX . $this->table_element . " as t ON c.fk_survey_bloc = t.rowid" .
                 " WHERE t.entity IN (" . getEntity('ei_survey_bloc') . ")";
-            if ($this->fk_fichinter > 0 && $this->fk_equipment >= 0)
+            if ($this->fk_fichinter > 0 && $this->fk_equipment != 0)
                 $sql .= " AND t.fk_fichinter=" . $this->fk_fichinter . " AND t.fk_equipment=" . $this->fk_equipment;
             else
                 $sql .= " AND t.rowid=" . $this->id;
@@ -552,7 +554,7 @@ class EISurveyBloc extends CommonObject
                 " LEFT JOIN " . MAIN_DB_PREFIX . $this->table_element_child . " as c ON " . MAIN_DB_PREFIX . $this->table_element_child_line . ".fk_question_bloc = c.rowid" .
                 " LEFT JOIN " . MAIN_DB_PREFIX . $this->table_element . " as t ON c.fk_survey_bloc = t.rowid" .
                 " WHERE t.entity IN (" . getEntity('ei_survey_bloc') . ")";
-            if ($this->fk_fichinter > 0 && $this->fk_equipment >= 0)
+            if ($this->fk_fichinter > 0 && $this->fk_equipment != 0)
                 $sql .= " AND t.fk_fichinter=" . $this->fk_fichinter . " AND t.fk_equipment=" . $this->fk_equipment;
             else
                 $sql .= " AND t.rowid=" . $this->id;
@@ -569,7 +571,7 @@ class EISurveyBloc extends CommonObject
                 " LEFT JOIN " . MAIN_DB_PREFIX . $this->table_element_child . " as c ON " . MAIN_DB_PREFIX . $this->table_element_child . "_extrafields.fk_object = c.rowid" .
                 " LEFT JOIN " . MAIN_DB_PREFIX . $this->table_element . " as t ON c.fk_survey_bloc = t.rowid" .
                 " WHERE t.entity IN (" . getEntity('ei_survey_bloc') . ")";
-            if ($this->fk_fichinter > 0 && $this->fk_equipment >= 0)
+            if ($this->fk_fichinter > 0 && $this->fk_equipment != 0)
                 $sql .= " AND t.fk_fichinter=" . $this->fk_fichinter . " AND t.fk_equipment=" . $this->fk_equipment;
             else
                 $sql .= " AND t.rowid=" . $this->id;
@@ -585,7 +587,7 @@ class EISurveyBloc extends CommonObject
             $sql = "DELETE " . MAIN_DB_PREFIX . $this->table_element_child . " FROM " . MAIN_DB_PREFIX . $this->table_element_child .
                 " LEFT JOIN " . MAIN_DB_PREFIX . $this->table_element . " as t ON " . MAIN_DB_PREFIX . $this->table_element_child . ".fk_survey_bloc = t.rowid" .
                 " WHERE t.entity IN (" . getEntity('ei_survey_bloc') . ")";
-            if ($this->fk_fichinter > 0 && $this->fk_equipment >= 0)
+            if ($this->fk_fichinter > 0 && $this->fk_equipment != 0)
                 $sql .= " AND t.fk_fichinter=" . $this->fk_fichinter . " AND t.fk_equipment=" . $this->fk_equipment;
             else
                 $sql .= " AND t.rowid=" . $this->id;
@@ -600,7 +602,7 @@ class EISurveyBloc extends CommonObject
         if (!$error) {
             $sql = "DELETE FROM " . MAIN_DB_PREFIX . $this->table_element .
                 " WHERE entity IN (" . getEntity('ei_survey_bloc') . ")";
-            if ($this->fk_fichinter > 0 && $this->fk_equipment >= 0)
+            if ($this->fk_fichinter > 0 && $this->fk_equipment != 0)
                 $sql .= " AND fk_fichinter=" . $this->fk_fichinter . " AND fk_equipment=" . $this->fk_equipment;
             else
                 $sql .= " AND rowid=" . $this->id;
@@ -631,16 +633,21 @@ class EISurveyBloc extends CommonObject
      * @param   int     $test_exist             1=Test if the survey bloc exist in the survey of the intervention
      * @return  int                             <0 if KO, >=0 if OK
      */
-    function fetch($rowid, $fk_fichinter=0, $fk_equipment=0, $all_data=0, $test_exist=1)
+    function fetch($rowid=0, $fk_fichinter=0, $fk_equipment=0, $all_data=0, $test_exist=1)
     {
         global $langs;
+
+        // Clean parameters
+        $rowid = $rowid > 0 ? $rowid : 0;
+        $fk_fichinter = $fk_fichinter > 0 ? $fk_fichinter : 0;
+        $fk_equipment = isset($fk_equipment) ? $fk_equipment : 0;
 
         $sql = "SELECT t.rowid, t.fk_fichinter, t.fk_equipment";
         $sql .= ", t.fk_product, t.equipment_ref, t.product_ref, t.product_label";
         $sql .= ", t.datec, t.tms, t.fk_user_author, t.fk_user_modif, t.import_key";
         $sql .= " FROM " . MAIN_DB_PREFIX . $this->table_element . " AS t";
         $sql .= " WHERE t.entity IN (" . getEntity('ei_survey_bloc') . ")";
-        if ($fk_fichinter > 0 && $fk_equipment >= 0)
+        if ($fk_fichinter > 0 && $fk_equipment != 0)
             $sql .= " AND t.fk_fichinter=" . $fk_fichinter . " AND t.fk_equipment=" . $fk_equipment;
         else
             $sql .= " AND t.rowid=" . $rowid;
@@ -671,7 +678,7 @@ class EISurveyBloc extends CommonObject
                 $this->import_key                   = $obj->import_key;
 
                 $this->db->free($resql);
-            } elseif ($fk_fichinter > 0 && $fk_equipment >= 0 && (!$test_exist || $this->is_in_survey($fk_fichinter, $fk_equipment))) {
+            } elseif ($fk_fichinter > 0 && $fk_equipment != 0 && (!$test_exist || $fk_equipment < 0 || $this->is_in_survey($fk_fichinter, $fk_equipment))) {
                 $this->id                           = 0;
                 $this->fk_fichinter                 = $fk_fichinter;
                 $this->fk_equipment                 = $fk_equipment;
@@ -721,7 +728,7 @@ class EISurveyBloc extends CommonObject
         $this->warning_product_label = 0;
 
         // Check if has value modified with the dictionaries
-        if ($this->id > 0) {
+        if ($this->id > 0 && $this->fk_equipment > 0) {
             $this->fetch_equipment();
             if (isset($this->equipment)) $this->equipment->fetch_product();
 
@@ -764,6 +771,10 @@ class EISurveyBloc extends CommonObject
         if (isset($fk_fichinter)) $this->fk_fichinter = $fk_fichinter;
         if (isset($fk_equipment)) $this->fk_equipment = $fk_equipment;
 
+        // Clean parameters
+        $this->fk_fichinter = $this->fk_fichinter > 0 ? $this->fk_fichinter : 0;
+        $this->fk_equipment = isset($this->fk_equipment) ? $this->fk_equipment : 0;
+
         $this->fetch_fichinter();
         if (isset($this->fichinter)) {
             if (!is_array($this->fichinter->survey) || count($this->fichinter->survey) == 0) {
@@ -791,6 +802,10 @@ class EISurveyBloc extends CommonObject
     {
         if (isset($fk_fichinter)) $this->fk_fichinter = $fk_fichinter;
         if (isset($fk_equipment)) $this->fk_equipment = $fk_equipment;
+
+        // Clean parameters
+        $this->fk_fichinter = $this->fk_fichinter > 0 ? $this->fk_fichinter : 0;
+        $this->fk_equipment = isset($this->fk_equipment) ? $this->fk_equipment : 0;
 
         $this->fetch_fichinter();
         if (isset($this->fichinter)) {
@@ -870,15 +885,15 @@ class EISurveyBloc extends CommonObject
         $this->survey = array();
         $this->fetch_fichinter();
 
-        if (isset($this->fichinter) && $this->fk_fichinter > 0 && ($this->id > 0 || $this->fk_equipment >= 0) && $this->fichinter->statut > ExtendedIntervention::STATUS_DRAFT) {
+        if (isset($this->fichinter) && $this->fk_fichinter > 0 && ($this->id > 0 || $this->fk_equipment != 0) && $this->fichinter->statut != ExtendedIntervention::STATUS_DRAFT) {
             dol_include_once('/extendedintervention/class/extendedinterventionquestionbloc.class.php');
-            if ($this->fichinter->statut == ExtendedIntervention::STATUS_DONE) $all_data = 0;
+            if ($this->fichinter->statut != ExtendedIntervention::STATUS_VALIDATED) $all_data = 0;
 
             $sql = "SELECT t.fk_fichinter, t.fk_equipment, c.fk_survey_bloc, c.fk_c_question_bloc";
             $sql .= " FROM " . MAIN_DB_PREFIX . $this->table_element_child . " AS c" .
                 " LEFT JOIN " . MAIN_DB_PREFIX . $this->table_element . " as t ON c.fk_survey_bloc = t.rowid" .
                 " WHERE t.entity IN (" . getEntity('ei_survey_bloc') . ")";
-            if ($this->fk_fichinter > 0 && $this->fk_equipment >= 0)
+            if ($this->fk_fichinter > 0 && $this->fk_equipment != 0)
                 $sql .= " AND t.fk_fichinter=" . $this->fk_fichinter . " AND t.fk_equipment=" . $this->fk_equipment;
             else
                 $sql .= " AND t.rowid=" . $this->id;
@@ -902,7 +917,7 @@ class EISurveyBloc extends CommonObject
                 return -1;
             }
 
-            if ($this->fk_equipment >= 0 && $this->fichinter->statut != ExtendedIntervention::STATUS_DONE) {
+            if ($this->fk_equipment != 0 && $this->fichinter->statut == ExtendedIntervention::STATUS_VALIDATED) {
                 if (empty($this->fichinter->array_options['options_ei_type'])) {
                     $this->fichinter->fetch_optionals();
                 }
@@ -916,12 +931,8 @@ class EISurveyBloc extends CommonObject
                 $category_static = new Categorie($this->db);
 
                 $equipement_categories = array();
-                if ($this->fk_equipment > 0) {
-                    $equipment_ids = array($this->fk_equipment);
-                } else {
-                    $this->fichinter->fetchObjectLinked();
-                    $equipment_ids = isset($this->fichinter->linkedObjectsIds['equipement']) ? $this->fichinter->linkedObjectsIds['equipement'] : array();
-                }
+                $this->fichinter->fetchObjectLinked();
+                $equipment_ids = isset($this->fichinter->linkedObjectsIds['equipement']) ? $this->fichinter->linkedObjectsIds['equipement'] : array();
 
                 // Get list of categories (and parents) of the equipment
                 foreach ($equipment_ids as $equipment_id) {

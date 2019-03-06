@@ -504,8 +504,8 @@ class ActionsCompanyRelationships
                     $originid = (GETPOST('originid', 'int') ? GETPOST('originid', 'int') : GETPOST('origin_id', 'int')); // For backward compatibility
 
                     // come from confirm_socid dialog box
-                    $fk_soc_benefactor = GETPOST('companyrelationships_fk_soc_benefactor', 'int') ? GETPOST('companyrelationships_fk_soc_benefactor', 'int') : 0;
-                    $fk_soc_watcher    = GETPOST('companyrelationships_fk_soc_watcher', 'int') ? GETPOST('companyrelationships_fk_soc_watcher', 'int') : 0;
+                    $fk_soc_benefactor = GETPOST('companyrelationships_fk_soc_benefactor', 'int') ? GETPOST('companyrelationships_fk_soc_benefactor', 'int') : (GETPOST('options_companyrelationships_fk_soc_benefactor', 'int') ? GETPOST('options_companyrelationships_fk_soc_benefactor', 'int') : 0);
+                    $fk_soc_watcher    = GETPOST('companyrelationships_fk_soc_watcher', 'int') ? GETPOST('companyrelationships_fk_soc_watcher', 'int') : (GETPOST('options_companyrelationships_fk_soc_watcher', 'int') ? GETPOST('options_companyrelationships_fk_soc_watcher', 'int') : 0);
 
                     // set default values for socid and fk_soc_benefactor if this element linked to a previous element (origin)
                     if (!empty($originid) && intval($fk_soc_benefactor) <= 0) {

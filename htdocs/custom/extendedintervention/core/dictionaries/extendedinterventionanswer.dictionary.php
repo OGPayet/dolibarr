@@ -29,6 +29,11 @@ dol_include_once('/advancedictionaries/class/dictionary.class.php');
 class ExtendedInterventionAnswerDictionary extends Dictionary
 {
     /**
+     * @var int         Version of this dictionary
+     */
+    public $version = 1;
+
+    /**
      * @var array       List of languages to load
      */
     public $langs = array('extendedintervention@extendedintervention');
@@ -165,6 +170,15 @@ class ExtendedInterventionAnswerDictionary extends Dictionary
             ),
             'is_require' => true,
         ),
+        'color' => array(
+            'name'       => 'color',
+            'label'      => 'Color',
+            'help'       => 'ExtendedInterventionAnswerDictionaryColorHelp',
+            'type'       => 'varchar',
+            'database'   => array(
+                'length' => 10,
+            ),
+        ),
         'mandatory' => array(
             'name'       => 'mandatory',
             'label'      => 'Mandatory',
@@ -184,6 +198,23 @@ class ExtendedInterventionAnswerDictionary extends Dictionary
         0 => array(
             'fields'    => array('code'),
             'is_unique' => true,
+        ),
+    );
+
+    /**
+     * @var array  List of fields/indexes added, updated or deleted for a version
+     * array(
+     *   'version' => array(
+     *     'fields' => array('field_name'=>'a', 'field_name'=>'u', 'field_name'=>'d', ...), // List of field name who is added(a) or updated(u) or deleted(d) for a version
+     *     'indexes' => array('idx_number'=>'a', 'idx_number'=>'u', 'idx_number'=>'d', ...), // List of indexes number who is added(a) or updated(u) or deleted(d) for a version
+     *   ),
+     * )
+     */
+    public $updates = array(
+        1 => array(
+            'fields' => array(
+                'color' => 'a',
+            )
         ),
     );
 
@@ -213,5 +244,26 @@ class ExtendedInterventionAnswerDictionary extends Dictionary
                 'positionLine' => 1,
             ),
         );
+    }
+}
+
+class ExtendedInterventionAnswerDictionaryLine extends DictionaryLine
+{
+    public function checkFieldsValues($fieldsValue)
+    {
+        global $langs;
+
+        $result = parent::checkFieldsValues($fieldsValue);
+        if ($result < 0) {
+            return $result;
+        }
+
+        if (!empty($fieldsValue['color']) && !preg_match('/#[A-F0-9]{1,8}/', $fieldsValue['color'])) {
+            $langs->load('errors');
+            $this->errors[] = $langs->trans('ErrorBadParameters') . ' : ' . $langs->trans('Color') ;
+            return -1;
+        }
+
+        return $result;
     }
 }

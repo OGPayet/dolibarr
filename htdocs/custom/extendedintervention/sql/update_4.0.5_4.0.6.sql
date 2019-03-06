@@ -21,7 +21,5 @@ ALTER TABLE llx_extendedintervention_question_bloc ADD title_editable integer(1)
 ALTER TABLE llx_extendedintervention_question_bloc ADD bloc_complementary_editable integer(1) NULL;
 ALTER TABLE llx_extendedintervention_question_bloc ADD deletable integer(1) NULL;
 ALTER TABLE llx_extendedintervention_question_bloc ADD private_bloc integer(1) NULL;
-ALTER TABLE llx_extendedintervention_question_bloc ADD unique_bloc integer(1) NULL;
-
 ALTER TABLE llx_extendedintervention_question_bloc ADD desactivated_bloc integer(1) NULL;
 ALTER TABLE llx_extendedintervention_question_bloc ADD desactivate_bloc_status integer(1) NULL;
