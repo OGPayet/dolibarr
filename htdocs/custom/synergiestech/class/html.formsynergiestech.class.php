@@ -1782,6 +1782,15 @@ class FormSynergiesTech
         if ($idActionComm > 0) {
             $sql .= " AND ac.id = " . $idActionComm;
         }
+		//ADD By Alexis LAURIER - 07/03/2019
+		//We remove view of calls not assigned to the current user or wildix user (id 1632) when call was yesterday
+		//Display all today calls
+
+		$sql .= " AND (  DATEDIFF(NOW(), ac.datep) >= 1 ";
+		$sql .= " AND (ac.fk_user_action = 1362 OR ac.fk_user_action = " . $user->id . ")) OR  DATEDIFF(NOW(), ac.datep) = 0 ";
+
+		///END
+
         $sql .= " ORDER BY ac.fk_user_action = " . $user->id . ", ac.datep DESC";
 
         dol_syslog(__METHOD__, LOG_DEBUG);
@@ -1813,7 +1822,6 @@ class FormSynergiesTech
                 while ($i < $num)
                 {
                     $obj = $this->db->fetch_object($resql);
-
                     $out.= '<option value="' . $obj->id . '"';
                     if ($selected && $selected == $obj->id) $out .= ' selected';
                     $out .= '>';
