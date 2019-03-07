@@ -1,0 +1,19 @@
+InvoiceMAJ=INVOICE
+PropalMAJ=PROPAL
+NumberInvoice=Number
+NumberPropal=Number
+Numberexpedition=Number
+ObjetFAC=Object
+sentToMAJ=FOR THE ATTENTION OF
+description=Description
+pageNB=Page
+TotalHTST=SUBTOTAL (HT)
+TotalVATST=VAT
+TotalTTCST=TOTAL TTC
+MeanOP=PAIEMENT METHODS
+DateFinDevis=End date of validity
+DateDebutDevis=Date of issue
+DateLivraison=Estimated delivery date
+expeditionMAJ=Delivery order
+
+InternalRef=Product ref
