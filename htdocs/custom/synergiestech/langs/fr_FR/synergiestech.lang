@@ -209,3 +209,15 @@ SynergiesTechButtonCreateAndTakeCharge      = Créer et prendre en charge
 SynergiesTechNextStatus                     = Statut
 SynergiesTechCreateAndTakeInCharge          = Créer et prendre en charge
 SynergiesTechConfirmCreateAndTakeInCharge   = Êtes-vous sûr de vouloir créer et prendre en charger cette demande ?
+
+###########################################################
+### Intervention PDF
+###########################################################
+SynergiesTechPDFInterventionTitle                   = FICHE D’INTERVENTION
+SynergiesTechPDFInterventionRef                     = Intervention n°
+SynergiesTechPDFInterventionType                    = Type
+SynergiesTechPDFInterventionEstimatedDate           = Programmée le
+SynergiesTechPDFInterventionRefPrincipalCompany     = Code Client DO
+SynergiesTechPDFInterventionRefBenefactorCompany    = Code Client B
+SynergiesTechPDFInterventionBenefactorCompany       = BENEFICIAIRE
+SynergiesTechPDFInterventionPrincipalCompany        = DONNEUR D’ORDRE

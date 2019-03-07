@@ -397,6 +397,18 @@ if (empty($reshook)) {
             header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
             exit();
         }
+    } // Set Date Creation
+    elseif ($action == 'set_date_creation' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+        $object->oldcopy = clone $object;
+        $object->date_creation = dol_mktime(GETPOST('date_creation_hour', 'int'), GETPOST('date_creation_min', 'int'), 0, GETPOST('date_creation_month', 'int'), GETPOST('date_creation_day', 'int'), GETPOST('date_creation_year', 'int'));
+        $result = $object->update($user);
+        if ($result < 0) {
+            setEventMessages($object->error, $object->errors, 'errors');
+            $action = 'edit_date_creation';
+        } else {
+            header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
+            exit();
+        }
     } // Set Date Operation
     elseif ($action == 'set_date_operation' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
         $object->oldcopy = clone $object;
@@ -1642,9 +1654,25 @@ if ($object->id > 0) {
 	}
     print '</td></tr>';
 
-    // Date creation
-    print '<tr><td>'.$langs->trans('DateCreation').'</td><td>';
-    print dol_print_date($object->date_creation, 'dayhour');
+    // Date Creation
+    print '<tr><td>';
+	print '<table class="nobordernopadding" width="100%"><tr><td>';
+	print $langs->trans('DateCreation');
+	print '</td>';
+	if ($action != 'edit_date_creation' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS)
+		print '<td align="right"><a href="' . $_SERVER["PHP_SELF"] . '?action=edit_date_creation&id=' . $object->id . '">' . img_edit($langs->trans('RequestManagerSetDateCreation'), 1) . '</a></td>';
+	print '</tr></table>';
+	print '</td><td>';
+	if ($action == 'edit_date_creation' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
+		print '<form name="editdatecreation" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '" method="post">';
+		print '<input type="hidden" name="token" value="' . $_SESSION ['newtoken'] . '">';
+		print '<input type="hidden" name="action" value="set_date_creation">';
+        $form->select_date($object->date_creation, 'date_creation_', 1, 1, 1, '', 1);
+		print '<input type="submit" class="button" value="' . $langs->trans('Modify') . '">';
+		print '</form>';
+	} else {
+        print $object->date_creation > 0 ? dol_print_date($object->date_creation, 'dayhour') : '';
+	}
     print '</td></tr>';
 
     // Duration

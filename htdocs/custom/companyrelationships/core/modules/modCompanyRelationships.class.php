@@ -211,6 +211,20 @@ class modCompanyRelationships extends DolibarrModules
         $this->rights[$r][5] = 'element';
         $r++;
 
+        $this->rights[$r][0] = 163056;
+        $this->rights[$r][1] = 'Upload files by the API';
+        $this->rights[$r][3] = 0;
+        $this->rights[$r][4] = 'api_documents';
+        $this->rights[$r][5] = 'upload';
+        $r++;
+
+        $this->rights[$r][0] = 163057;
+        $this->rights[$r][1] = 'Delete files by the API';
+        $this->rights[$r][3] = 0;
+        $this->rights[$r][4] = 'api_documents';
+        $this->rights[$r][5] = 'delete';
+        $r++;
+
         /*$this->rights[$r][0] = 163037;
         $this->rights[$r][1] = 'Voir les prix des lignes de produits';
         $this->rights[$r][3] = 0;

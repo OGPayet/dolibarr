@@ -4859,19 +4859,18 @@ class CompanyRelationshipsApi extends DolibarrApi {
         //--------------------------------------------------------------
         // Open-DSI - Modification - Begin
         //
-				//Modif par Alexis LAURIER - we try to merge elementtype return by agenda module to elementtype accepted by document
+        //Modif par Alexis LAURIER - we try to merge elementtype return by agenda module to elementtype accepted by document
 
-switch($module_part)
-{
-case 'shipping':
-$module_part='expedition';
-break;
+        switch ($module_part) {
+            case 'shipping':
+                $module_part = 'expedition';
+                break;
 
-default:
-}
+            default:
+        }
 
-	$output_dir="";
-	$check_access = dol_check_secure_access_document($module_part, $original_file, $entity, DolibarrApiAccess::$user, $refname, 'read', true);
+        $output_dir = "";
+        $check_access = dol_check_secure_access_document($module_part, $original_file, $entity, DolibarrApiAccess::$user, $refname, 'read', true);
 
         $companyrelationships_modulepart_check = array_flip(array(
             'propal', 'proposal', 'commande', 'order', 'shipment', 'expedition', 'facture', 'invoice',
@@ -4953,13 +4952,12 @@ default:
             }
 
 
-
             if ($module_part == 'agenda' && $conf->eventconfidentiality->enabled) // Wrapping pour les actions
             {
                 require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
                 $object = new ActionComm($this->db);
                 $result = $object->fetch('', $refname);
-				$entity = $object->entity;
+                $entity = $object->entity;
                 if ($result <= 0) {
                     throw new RestException(500, "Error while retrieve the event object.", ['details' => $this->_getErrors($object)]);
                 }
@@ -4976,31 +4974,30 @@ default:
                 if ($mode != EventConfidentiality::MODE_VISIBLE) {
                     throw new RestException(401, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
                 }
-            }
-			elseif($module_part == 'societe' || $module_part == 'thirdparty' || $module_part == 'thirdparties') // Wrapping pour les societes
-        {
-            require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
+            } elseif ($module_part == 'societe' || $module_part == 'thirdparty' || $module_part == 'thirdparties') // Wrapping pour les societes
+            {
+                require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
 
-            if (!DolibarrApiAccess::$user->rights->societe->lire || !DolibarrApiAccess::$user->rights->societe->read_file) {
-                throw new RestException(401);
-            }
-            $object = new Societe($this->db);
-            $result = $object->fetch( $refname,'');
-            if (!$result) {
-                return [];
-            }
+                if (!DolibarrApiAccess::$user->rights->societe->lire || !DolibarrApiAccess::$user->rights->societe->read_file) {
+                    throw new RestException(401);
+                }
+                $object = new Societe($this->db);
+                $result = $object->fetch($refname, '');
+                if (!$result) {
+                    return [];
+                }
 
-            //--------------------------------------------------------------
-            // Open-DSI - Modification - Begin
-            //
-            $output_dir = $conf->societe->multidir_output[$object->entity] . "/";
-			$entity = $object->entity;
-            //
-            // Open-DSI - Modification - End
-            //--------------------------------------------------------------
+                //--------------------------------------------------------------
+                // Open-DSI - Modification - Begin
+                //
+                $output_dir = $conf->societe->multidir_output[$object->entity] . "/";
+                $entity = $object->entity;
+                //
+                // Open-DSI - Modification - End
+                //--------------------------------------------------------------
+            }
         }
-        }
-		$check_access = dol_check_secure_access_document($module_part, $original_file, $entity, DolibarrApiAccess::$user, $refname, 'read', true);
+        $check_access = dol_check_secure_access_document($module_part, $original_file, $entity, DolibarrApiAccess::$user, $refname, 'read', true);
 
         $original_file = $check_access['original_file'];
         //
@@ -5022,7 +5019,7 @@ default:
 
         $file_content = file_get_contents($original_file_osencoded);
 
-        return array('filename' => $filename, 'content' => base64_encode($file_content), 'encoding' => 'MIME base64 (base64_encode php function, http://php.net/manual/en/function.base64-encode.php)','Content-Type' => mime_content_type($original_file_osencoded));
+        return array('filename' => $filename, 'content' => base64_encode($file_content), 'encoding' => 'MIME base64 (base64_encode php function, http://php.net/manual/en/function.base64-encode.php)', 'Content-Type' => mime_content_type($original_file_osencoded));
     }
 
 	/**
@@ -5497,6 +5494,598 @@ default:
         //--------------------------------------------------------------
 
         return $filearray;
+    }
+
+    /**
+	 * Upload a file.
+	 *
+	 * Test sample 1: { "filename": "mynewfile.txt", "modulepart": "facture", "ref": "FA1701-001", "subdir": "", "filecontent": "content text", "fileencoding": "", "overwriteifexists": "0" }.
+     * Test sample 2: { "filename": "mynewfile.txt", "modulepart": "medias", "ref": "", "subdir": "image/mywebsite", "filecontent": "Y29udGVudCB0ZXh0Cg==", "fileencoding": "base64", "overwriteifexists": "0" }.
+     * Test sample 2: { "filename": "mynewfile.txt", "modulepart": "agenda", "ref": "7215", "subdir": "", "filecontent": "Y29udGVudCB0ZXh0Cg==", "fileencoding": "base64", "overwriteifexists": "0" }.
+	 *
+	 * @param   string  $filename           Name of file to create ('FA1705-0123.txt')
+	 * @param   string  $modulepart         Name of module or area concerned by file upload ('facture', 'project', 'project_task', 'agenda', ...)
+	 * @param   string  $ref                Reference of object (This will define subdir automatically and store submited file into it)
+	 * @param   string  $subdir       		Subdirectory (Only if ref not provided)
+	 * @param   string  $filecontent        File content (string with file content. An empty file will be created if this parameter is not provided)
+	 * @param   string  $fileencoding       File encoding (''=no encoding, 'base64'=Base 64) {@example '' or 'base64'}
+	 * @param   int 	$overwriteifexists  Overwrite file if exists (1 by default)
+     * @param	bool	$islogo		        The file is a logo (true or false) for thirdparty, contact, user, member only (default false)
+     * @return	string					    File path of the uploaded file
+	 *
+	 * @throws 200
+	 * @throws 400
+	 * @throws 401
+	 * @throws 404
+	 * @throws 500
+	 *
+	 * @url POST documents/upload
+	 */
+	public function postDocuments($filename, $modulepart, $ref='', $subdir='', $filecontent='', $fileencoding='', $overwriteifexists=0, $islogo=false)
+    {
+        global $db, $conf;
+
+        if (!DolibarrApiAccess::$user->rights->companyrelationships->api_documents->upload) {
+            throw new RestException(401, "Insufficient rights");
+        }
+
+        if (DolibarrApiAccess::$user->societe_id > 0) {
+            ///Disabled function for external user to avoid functionnal conflict with companyrelationshipsapi - Alexis LAURIER
+            ///BEGIN
+            throw new RestException(403);
+            ///END
+        }
+
+        if (empty($modulepart)) {
+            throw new RestException(400, 'Modulepart not provided.');
+        }
+
+        if (!DolibarrApiAccess::$user->rights->ecm->upload) {
+            throw new RestException(401);
+        }
+
+        $newfilecontent = '';
+        if (empty($fileencoding)) $newfilecontent = $filecontent;
+        if ($fileencoding == 'base64') $newfilecontent = base64_decode($filecontent);
+
+        $original_file = dol_sanitizeFileName($filename);
+
+        // Define $uploadir
+        $object = null;
+        $entity = DolibarrApiAccess::$user->entity;
+        if ($ref) {
+            $tmpreldir = '';
+
+            if ($modulepart == 'facture' || $modulepart == 'invoice') {
+                $modulepart = 'facture';
+
+                require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
+                $object = new Facture($this->db);
+            } elseif ($modulepart == 'project') {
+                require_once DOL_DOCUMENT_ROOT . '/projet/class/project.class.php';
+                $object = new Project($this->db);
+            } elseif ($modulepart == 'task' || $modulepart == 'project_task') {
+                $modulepart = 'project_task';
+
+                require_once DOL_DOCUMENT_ROOT . '/projet/class/task.class.php';
+                $object = new Task($this->db);
+
+                $task_result = $object->fetch('', $ref);
+
+                // Fetching the tasks project is required because its out_dir might be a sub-directory of the project
+                if ($task_result > 0) {
+                    $project_result = $object->fetch_projet();
+
+                    if ($project_result >= 0) {
+                        $tmpreldir = dol_sanitizeFileName($object->project->ref) . '/';
+                    }
+                } else {
+                    throw new RestException(500, 'Error while fetching Task ' . $ref);
+                }
+            }
+            //--------------------------------------------------------------
+            // Open-DSI - Modification - Begin
+            //
+            elseif ($modulepart == 'societe' || $modulepart == 'thirdparty' || $modulepart == 'thirdparties') // Wrapping pour les societes
+            {
+                require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
+                $object = new Societe($this->db);
+            } else if ($modulepart == 'contact') // Wrapping pour les contacts
+            {
+                require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
+                require_once DOL_DOCUMENT_ROOT . '/contact/class/contact.class.php';
+                $object = new Contact($this->db);
+            } else if ($modulepart == 'adherent' || $modulepart == 'member') {
+                require_once DOL_DOCUMENT_ROOT . '/adherents/class/adherent.class.php';
+                $object = new Adherent($this->db);
+            } else if ($modulepart == 'propal' || $modulepart == 'proposal') {
+                require_once DOL_DOCUMENT_ROOT . '/comm/propal/class/propal.class.php';
+                $object = new Propal($this->db);
+            } else if ($modulepart == 'commande' || $modulepart == 'order') {
+                require_once DOL_DOCUMENT_ROOT . '/commande/class/commande.class.php';
+                $object = new Commande($this->db);
+            } else if ($modulepart == 'shipment' || $modulepart == 'expedition' || $modulepart == 'shipping') {
+                require_once DOL_DOCUMENT_ROOT . '/expedition/class/expedition.class.php';
+                $object = new Expedition($this->db);
+            } else if ($modulepart == 'product' || $modulepart == 'produit') // Wrapping pour les produits
+            {
+                require_once DOL_DOCUMENT_ROOT . '/product/class/product.class.php';
+                $object = new Product($this->db);
+            } else if ($modulepart == 'service') // Wrapping pour les services
+            {
+                require_once DOL_DOCUMENT_ROOT . '/product/class/product.class.php';
+                $object = new Product($this->db);
+            } else if ($modulepart == 'user') // Wrapping for users
+            {
+                require_once DOL_DOCUMENT_ROOT . '/user/class/user.class.php';
+                $object = new User($this->db);
+            } else if ($modulepart == 'fichinter' || $modulepart == 'ficheinter' || $modulepart == 'intervention' || $modulepart == 'interventions') // Wrapping for interventions
+            {
+                require_once DOL_DOCUMENT_ROOT . '/fichinter/class/fichinter.class.php';
+                $object = new Fichinter($this->db);
+            } else if ($modulepart == 'contract' || $modulepart == 'contrat') // Wrapping pour les contrats
+            {
+                require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
+                $object = new Contrat($this->db);
+            } else if ($modulepart == 'agenda') // Wrapping pour les actions
+            {
+                require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
+                $object = new ActionComm($this->db);
+            } else if ($modulepart == 'equipement') // Wrapping pour les equipements
+            {
+                dol_include_once('/equipement/class/equipement.class.php');
+                $object = new Equipement($this->db);
+            }
+            //
+            // Open-DSI - Modification - End
+            //--------------------------------------------------------------
+            // TODO Implement additional moduleparts
+            else {
+                throw new RestException(500, 'Modulepart ' . $modulepart . ' not implemented yet.');
+            }
+
+            if (is_object($object)) {
+                $result = $object->fetch('', $ref);
+
+                if ($result == 0) {
+                    throw new RestException(404, 'Object not found.');
+                } elseif ($result < 0) {
+                    throw new RestException(500, 'Error while fetching object.');
+                }
+            }
+
+            if (!($object->id > 0)) {
+                return [];
+            }
+
+            $relativefile = $tmpreldir . dol_sanitizeFileName($object->ref);
+
+            //--------------------------------------------------------------
+            // Open-DSI - Modification - Begin
+            //
+            if ($islogo) {
+                if ($modulepart == 'societe' || $modulepart == 'thirdparty' || $modulepart == 'thirdparties') {
+                    $relativefile = $relativefile . "/logos/";
+                } else if ($modulepart == 'contact') {
+                    $relativefile = $relativefile . "/photos/";
+                } else if ($modulepart == 'adherent' || $modulepart == 'member') {
+                    $relativefile = $relativefile . "/" . get_exdir(0, 0, 0, 1, $object, 'member') . 'photos/';
+                } else if ($modulepart == 'user') {
+                    $relativefile = $tmpreldir . get_exdir($object->id, 2, 0, 0, $object, 'user');
+                }
+            }
+            //
+            // Open-DSI - Modification - End
+            //--------------------------------------------------------------
+
+            $tmp = dol_check_secure_access_document($modulepart, $relativefile, $entity, DolibarrApiAccess::$user, $ref, 'write');
+            $upload_dir = $tmp['original_file'];    // No dirname here, tmp['original_file'] is already the dir because dol_check_secure_access_document was called with param original_file that is only the dir
+
+            if (empty($upload_dir) || $upload_dir == '/') {
+                throw new RestException(500, 'This value of modulepart does not support yet usage of ref. Check modulepart parameter or try to use subdir parameter instead of ref.');
+            }
+        } else {
+            if ($modulepart == 'invoice') $modulepart = 'facture';
+
+            $relativefile = $subdir;
+
+            //--------------------------------------------------------------
+            // Open-DSI - Modification - Begin
+            //
+            if ($islogo) {
+                if ($modulepart == 'societe' || $modulepart == 'thirdparty' || $modulepart == 'thirdparties') {
+                    $relativefile = $relativefile . "/logos/";
+                } else if ($modulepart == 'contact') {
+                    $relativefile = $relativefile . "/photos/";
+                } else if ($modulepart == 'adherent' || $modulepart == 'member') {
+                    $relativefile = $relativefile . "/" . get_exdir(0, 0, 0, 1, $object, 'member') . 'photos/';
+                } else if ($modulepart == 'user') {
+                    $relativefile = $relativefile . "/" . get_exdir($object->id, 2, 0, 0, $object, 'user');
+                }
+            }
+            //
+            // Open-DSI - Modification - End
+            //--------------------------------------------------------------
+
+            $tmp = dol_check_secure_access_document($modulepart, $relativefile, $entity, DolibarrApiAccess::$user, '', 'write');
+            $upload_dir = $tmp['original_file'];    // No dirname here, tmp['original_file'] is already the dir because dol_check_secure_access_document was called with param original_file that is only the dir
+
+            if (empty($upload_dir) || $upload_dir == '/') {
+                throw new RestException(500, 'This value of modulepart does not support yet usage of ref. Check modulepart parameter or try to use subdir parameter instead of ref.');
+            }
+        }
+        // $original_file here is still value of filename without any dir.
+
+        $companyrelationships_modulepart_check = array_flip(array(
+            'propal', 'proposal', 'commande', 'order', 'shipment', 'expedition', 'facture', 'invoice',
+            'fichinter', 'ficheinter', 'intervention', 'interventions', 'contract', 'contrat'
+        ));
+
+        if (isset($companyrelationships_modulepart_check[$modulepart])) {
+            $object_tmp = null;
+            if ($modulepart == 'propal' || $modulepart == 'proposal') {
+                require_once DOL_DOCUMENT_ROOT . '/comm/propal/class/propal.class.php';
+                $object_tmp = new Propal($this->db);
+                $object_tmp->fetch('', $ref);
+                if (!($object_tmp->id > 0)) {
+                    return [];
+                }
+            } elseif ($modulepart == 'commande' || $modulepart == 'order') {
+                require_once DOL_DOCUMENT_ROOT . '/commande/class/commande.class.php';
+                $object_tmp = new Commande($this->db);
+                $object_tmp->fetch('', $ref);
+                if (!($object_tmp->id > 0)) {
+                    return [];
+                }
+            } elseif ($modulepart == 'shipment' || $modulepart == 'expedition') {
+                require_once DOL_DOCUMENT_ROOT . '/expedition/class/expedition.class.php';
+                $object_tmp = new Expedition($this->db);
+                $object_tmp->fetch('', $ref);
+                if (!($object_tmp->id > 0)) {
+                    return [];
+                }
+            } elseif ($modulepart == 'facture' || $modulepart == 'invoice') {
+                require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
+                $object_tmp = new Facture($this->db);
+                $object_tmp->fetch('', $ref);
+                if (!($object_tmp->id > 0)) {
+                    return [];
+                }
+            } elseif ($modulepart == 'fichinter' || $modulepart == 'ficheinter' || $modulepart == 'intervention' || $modulepart == 'interventions') {
+                require_once DOL_DOCUMENT_ROOT . '/fichinter/class/fichinter.class.php';
+                $object_tmp = new Fichinter($this->db);
+                $object_tmp->fetch('', $ref);
+                if (!($object_tmp->id > 0)) {
+                    return [];
+                }
+            } elseif ($modulepart == 'contract' || $modulepart == 'contrat') {
+                require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
+                $object_tmp = new Contrat($this->db);
+                $object_tmp->fetch('', $ref);
+                if (!($object_tmp->id > 0)) {
+                    return [];
+                }
+            }
+
+            if (isset($object_tmp)) {
+                $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($object_tmp);
+                if (!$hasPerm) {
+                    throw new RestException(401, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
+                }
+            }
+        }
+
+        $upload_dir = dol_sanitizePathName($upload_dir);
+
+        $destfile = $upload_dir . '/' . $original_file;
+        $destfiletmp = DOL_DATA_ROOT . '/admin/temp/' . $original_file;
+        dol_delete_file($destfiletmp);
+        //var_dump($original_file);exit;
+
+        //--------------------------------------------------------------
+        // Open-DSI - Modification - Begin
+        //
+        if ($islogo && ($modulepart == 'societe' || $modulepart == 'thirdparty' || $modulepart == 'thirdparties' ||
+                $modulepart == 'contact' || $modulepart == 'adherent' || $modulepart == 'member' || $modulepart == 'user')) {
+            $dir = dirname($destfile);
+            if (!dol_is_dir($dir)) {
+                dol_mkdir($dir);
+            }
+        }
+        //
+        // Open-DSI - Modification - End
+        //--------------------------------------------------------------
+
+        if (!dol_is_dir(dirname($destfile))) {
+            throw new RestException(401, 'Directory not exists : ' . dirname($destfile));
+        }
+
+        if (!$overwriteifexists && dol_is_file($destfile)) {
+            throw new RestException(500, "File with name '" . $original_file . "' already exists.");
+        }
+
+        $fhandle = @fopen($destfiletmp, 'w');
+        if ($fhandle) {
+            $nbofbyteswrote = fwrite($fhandle, $newfilecontent);
+            fclose($fhandle);
+            @chmod($destfiletmp, octdec($conf->global->MAIN_UMASK));
+        } else {
+            throw new RestException(500, "Failed to open file '" . $destfiletmp . "' for write");
+        }
+
+        $result = dol_move($destfiletmp, $destfile, 0, $overwriteifexists, 1);
+        if (!$result) {
+            throw new RestException(500, "Failed to move file into '" . $destfile . "'");
+        }
+
+        //--------------------------------------------------------------
+        // Open-DSI - Modification - Begin
+        //
+        if ($islogo && ($modulepart == 'societe' || $modulepart == 'thirdparty' || $modulepart == 'thirdparties' ||
+                $modulepart == 'contact' || $modulepart == 'adherent' || $modulepart == 'member' || $modulepart == 'user')) {
+            // Create thumbs
+			$object->addThumbs($destfile);
+            if ($modulepart == 'societe' || $modulepart == 'thirdparty' || $modulepart == 'thirdparties') {
+                $object->logo = dol_basename($destfile);
+                $object->update($object->id, DolibarrApiAccess::$user);
+            } else if ($modulepart == 'contact') {
+                $object->photo = dol_basename($destfile);
+                $object->update($object->id, DolibarrApiAccess::$user);
+            } else if ($modulepart == 'adherent' || $modulepart == 'member') {
+                $object->photo = dol_basename($destfile);
+                $object->update(DolibarrApiAccess::$user);
+            } else if ($modulepart == 'user') {
+                $object->photo = dol_basename($destfile);
+                $object->update(DolibarrApiAccess::$user);
+            }
+        }
+        //
+        // Open-DSI - Modification - End
+        //--------------------------------------------------------------
+
+        return dol_basename($destfile);
+    }
+
+    /**
+	 * Delete a document.
+	 *
+	 * Note that, this API is similar to using the wrapper link "documents.php" to download a file (used for
+	 * internal HTML links of documents into application), but with no need to have a session cookie (the token is used instead).
+	 *
+	 * @param   string  $module_part    Name of module or area concerned by file download ('facture', 'agenda', ...)
+	 * @param   string  $original_file  Relative path with filename, relative to modulepart (for example: IN201701-999/IN201701-999.pdf)
+	 * @return  array                   File deleted
+	 *
+	 * @throws 400
+	 * @throws 401
+	 * @throws 404
+     * @throws 200
+     * @throws 500
+	 *
+     * @url	DELETE documents/delete
+	 */
+	public function deleteDocuments($module_part, $original_file='')
+    {
+        global $conf, $langs, $db;
+
+        if (!DolibarrApiAccess::$user->rights->companyrelationships->api_documents->delete) {
+            throw new RestException(401, "Insufficient rights");
+        }
+
+        if (empty($module_part)) {
+            throw new RestException(400, 'bad value for parameter modulepart');
+        }
+        if (empty($original_file)) {
+            throw new RestException(400, 'bad value for parameter original_file');
+        }
+
+        //--- Finds and returns the document
+        $entity = $conf->entity;
+        $dirname = dirname($original_file);
+        if (strstr($dirname, '/')) {
+            $dirname = dirname($dirname);
+        }
+        $refname = basename($dirname . "/");
+
+        //--------------------------------------------------------------
+        // Open-DSI - Modification - Begin
+        //
+        //Modif par Alexis LAURIER - we try to merge elementtype return by agenda module to elementtype accepted by document
+
+        switch ($module_part) {
+            case 'shipping':
+                $module_part = 'expedition';
+                break;
+
+            default:
+        }
+
+        $output_dir = "";
+        $check_access = dol_check_secure_access_document($module_part, $original_file, $entity, DolibarrApiAccess::$user, $refname, 'delete', true);
+
+        $companyrelationships_modulepart_check = array_flip(array(
+            'propal', 'proposal', 'commande', 'order', 'shipment', 'expedition', 'facture', 'invoice',
+            'fichinter', 'ficheinter', 'intervention', 'interventions', 'contract', 'contrat'
+        ));
+
+        if (isset($companyrelationships_modulepart_check[$module_part])) {
+            $object = null;
+            if ($module_part == 'propal' || $module_part == 'proposal') {
+                require_once DOL_DOCUMENT_ROOT . '/comm/propal/class/propal.class.php';
+                $object = new Propal($this->db);
+                $result = $object->fetch('', $refname);
+                if (!$result) {
+                    return [];
+                }
+            } elseif ($module_part == 'commande' || $module_part == 'order') {
+                require_once DOL_DOCUMENT_ROOT . '/commande/class/commande.class.php';
+                $object = new Commande($this->db);
+                $result = $object->fetch('', $refname);
+                if (!$result) {
+                    return [];
+                }
+            } elseif ($module_part == 'shipment' || $module_part == 'expedition') {
+                require_once DOL_DOCUMENT_ROOT . '/expedition/class/expedition.class.php';
+                $ref = basename(str_replace('sending/', '', $dirname . "/"));
+                $object = new Expedition($this->db);
+                $result = $object->fetch('', $ref);
+                if (!$result) {
+                    return [];
+                }
+            } elseif ($module_part == 'facture' || $module_part == 'invoice') {
+                require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
+                $object = new Facture($this->db);
+                $result = $object->fetch('', $refname);
+
+                if (!$result) {
+                    return [];
+                }
+            } elseif ($module_part == 'fichinter' || $module_part == 'ficheinter' || $module_part == 'intervention' || $module_part == 'interventions') {
+                require_once DOL_DOCUMENT_ROOT . '/fichinter/class/fichinter.class.php';
+                $object = new Fichinter($this->db);
+                $result = $object->fetch('', $refname);
+                if (!$result) {
+                    return [];
+                }
+            } elseif ($module_part == 'contract' || $module_part == 'contrat') {
+                require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
+                $object = new Contrat($this->db);
+                $result = $object->fetch('', $refname);
+                if (!$result) {
+                    return [];
+                }
+            }
+
+            if (isset($object)) {
+                $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($object);
+                if (!$hasPerm) {
+                    throw new RestException(401, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
+                }
+            }
+            $accessallowed = true;
+        } else {
+            $accessallowed = $check_access['accessallowed'];
+            $sqlprotectagainstexternals = $check_access['sqlprotectagainstexternals'];
+            $sqlprotectagainstexternalsapi = $check_access['sqlprotectagainstexternalsapi'];
+
+            if (DolibarrApiAccess::$user->societe_id > 0) {
+                if ($sqlprotectagainstexternalsapi) {
+                    $resql = $db->query($sqlprotectagainstexternalsapi);
+                    if ($resql) {
+                        if ($db->num_rows($resql) == 0) throw new RestException(401);
+                    } else {
+                        throw new RestException(401);
+                    }
+                } else {
+                    throw new RestException(401);
+                }
+            }
+
+            if ($module_part == 'agenda' && $conf->eventconfidentiality->enabled) // Wrapping pour les actions
+            {
+                require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
+                $object = new ActionComm($this->db);
+                $result = $object->fetch('', $refname);
+                $entity = $object->entity;
+                if ($result <= 0) {
+                    throw new RestException(500, "Error while retrieve the event object.", ['details' => $this->_getErrors($object)]);
+                }
+
+                dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
+                $eventconfidentiality = new EventConfidentiality($this->db);
+
+                // Get mode for the user and event
+                $mode = $eventconfidentiality->getModeForUserAndEvent(DolibarrApiAccess::$user, $object->id);
+                if ($mode < 0) {
+                    throw new RestException(500, "Error while retrieve the mode of confidentiality for the event.", ['details' => $this->_getErrors($eventconfidentiality)]);
+                }
+
+                if ($mode != EventConfidentiality::MODE_VISIBLE) {
+                    throw new RestException(401, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
+                }
+            } elseif ($module_part == 'societe' || $module_part == 'thirdparty' || $module_part == 'thirdparties') // Wrapping pour les societes
+            {
+                require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
+
+                if (!DolibarrApiAccess::$user->rights->societe->lire || !DolibarrApiAccess::$user->rights->societe->read_file) {
+                    throw new RestException(401);
+                }
+                $object = new Societe($this->db);
+                $result = $object->fetch($refname, '');
+                if (!$result) {
+                    return [];
+                }
+
+                //--------------------------------------------------------------
+                // Open-DSI - Modification - Begin
+                //
+                $output_dir = $conf->societe->multidir_output[$object->entity] . "/";
+                $entity = $object->entity;
+                //
+                // Open-DSI - Modification - End
+                //--------------------------------------------------------------
+            }
+        }
+        $check_access = dol_check_secure_access_document($module_part, $original_file, $entity, DolibarrApiAccess::$user, $refname, 'delete', true);
+
+        $original_file = $check_access['original_file'];
+        //
+        // Open-DSI - Modification - End
+        //--------------------------------------------------------------
+        if (preg_match('/\.\./', $original_file) || preg_match('/[<>|]/', $original_file)) {
+            throw new RestException(401);
+        }
+        if (!$accessallowed) {
+            throw new RestException(401);
+        }
+
+        $filename = basename($original_file);
+        $original_file_osencoded = dol_osencode($original_file);    // New file name encoded in OS encoding charset
+
+        if (!file_exists($original_file_osencoded)) {
+            return [];
+        }
+
+        $ret = dol_delete_file($original_file_osencoded, 0, 0, 0, $object);
+        if (!$ret) {
+            $langs->load('errors');
+            throw new RestException(401, $langs->transnoentitiesnoconv("ErrorFailToDeleteFile", $original_file_osencoded));
+        }
+
+        //--------------------------------------------------------------
+        // Open-DSI - Modification - Begin
+        //
+        if ($module_part == 'societe' || $module_part == 'thirdparty' || $module_part == 'thirdparties' ||
+            $module_part == 'contact' || $module_part == 'adherent' || $module_part == 'member' || $module_part == 'user') {
+            // Delete thumbs if exist
+            $dir = dirname($original_file_osencoded) . '/thumbs';
+            if (dol_is_dir($dir)) {
+                dol_delete_dir_recursive($dir);
+            }
+            if ($module_part == 'societe' || $module_part == 'thirdparty' || $module_part == 'thirdparties') {
+                $object->logo = '';
+                $object->update($object->id, DolibarrApiAccess::$user);
+            } else if ($module_part == 'contact') {
+                $object->photo = '';
+                $object->update($object->id, DolibarrApiAccess::$user);
+            } else if ($module_part == 'adherent' || $module_part == 'member') {
+                $object->photo = '';
+                $object->update(DolibarrApiAccess::$user);
+            } else if ($module_part == 'user') {
+                $object->photo = '';
+                $object->update(DolibarrApiAccess::$user);
+            }
+        }
+        //
+        // Open-DSI - Modification - End
+        //--------------------------------------------------------------
+
+        return array(
+            'success' => array(
+                'code' => 200,
+                'message' => 'File deleted'
+            )
+        );
     }
 
     /*******************************************************************************************************************

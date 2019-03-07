@@ -1781,6 +1781,7 @@ class RequestManager extends CommonObject
         $this->assigned_user_ids = empty($this->assigned_user_ids) ? array() : (is_string($this->assigned_user_ids) ? explode(',', $this->assigned_user_ids) : $this->assigned_user_ids);
         $this->assigned_usergroup_ids = empty($this->assigned_usergroup_ids) ? array() : (is_string($this->assigned_usergroup_ids) ? explode(',', $this->assigned_usergroup_ids) : $this->assigned_usergroup_ids);
         $this->notify_assigned_by_email = !empty($conf->global->REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_EMAIL) && !empty($this->notify_assigned_by_email) ? 1 : 0;
+        $this->date_creation = $this->date_creation > 0 ? $this->date_creation : 0;
         $this->date_operation = $this->date_operation > 0 ? $this->date_operation : 0;
         $this->date_deadline = $this->date_deadline > 0 ? $this->date_deadline : 0;
         $this->duration = $this->duration > 0 ? $this->duration : 0;
@@ -1865,6 +1866,7 @@ class RequestManager extends CommonObject
             opendsi_is_updated_property($this, 'fk_impact') ||
             opendsi_is_updated_property($this, 'fk_priority') ||
             opendsi_is_updated_property($this, 'duration') ||
+            opendsi_is_updated_property($this, 'date_creation') ||
             opendsi_is_updated_property($this, 'date_operation') ||
             opendsi_is_updated_property($this, 'date_deadline') ||
             opendsi_is_updated_property($this, 'notify_assigned_by_email') ||
@@ -1905,6 +1907,7 @@ class RequestManager extends CommonObject
         $sql .= ", notify_watcher_by_email = " . ($this->notify_watcher_by_email > 0 ? $this->notify_watcher_by_email : 'NULL');
         $sql .= ", notify_assigned_by_email = " . ($this->notify_assigned_by_email > 0 ? $this->notify_assigned_by_email : 'NULL');
         $sql .= ", duration = " . $this->duration;
+        $sql .= ", datec = '" . $this->db->idate($this->date_creation) . "'";
         $sql .= ", date_operation = " . ($this->date_operation > 0 ? "'" . $this->db->idate($this->date_operation) . "'" : 'NULL');
         $sql .= ", date_deadline = " . ($this->date_deadline > 0 ? "'" . $this->db->idate($this->date_deadline) . "'" : 'NULL');
         $sql .= ", fk_user_modif = " . $this->user_modification_id;
@@ -2587,6 +2590,8 @@ class RequestManager extends CommonObject
                 $date_operation = $now + ($new_status_infos->fields['operation'] * 60);
             } elseif ($new_status_infos->fields['operation'] == -1 || $new_status_infos->fields['type'] == self::STATUS_TYPE_INITIAL) {
                 $date_operation = $this->date_operation;
+            } elseif ($new_status_infos->fields['operation'] == -2) {
+                $date_operation = $now;
             }
         }
         $date_deadline = null;
@@ -2595,6 +2600,8 @@ class RequestManager extends CommonObject
                 $date_deadline = (!empty($date_operation) ? $date_operation : $now) + ($new_status_infos->fields['deadline'] * 60);
             } elseif ($new_status_infos->fields['deadline'] == -1 || $new_status_infos->fields['type'] == self::STATUS_TYPE_INITIAL) {
                 $date_deadline = $this->date_deadline;
+            } elseif ($new_status_infos->fields['deadline'] == -2) {
+                $date_deadline = $now;
             }
         }
         if (count(array_diff($assigned_users, $this->assigned_user_ids)) || count(array_diff($assigned_usergroups, $this->assigned_usergroup_ids)) || $date_operation != $this->date_operation || $date_deadline != $this->date_deadline) {

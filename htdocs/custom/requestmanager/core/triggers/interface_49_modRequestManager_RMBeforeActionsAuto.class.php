@@ -180,6 +180,10 @@ class InterfaceRMBeforeActionsAuto extends DolibarrTriggers
                 dol_include_once('/requestmanager/lib/requestmanager.lib.php');
                 $updatedProperty[] = '- ' . $langs->transnoentities("RequestManagerDuration") . ' : ' . requestmanager_print_duration($object->duration) . ' ( ' . requestmanager_print_duration($object->oldcopy->duration) . ' )';
             }
+            // Request creation date
+            if (opendsi_is_updated_property($object, 'date_creation')) {
+                $updatedProperty[] = '- ' . $langs->transnoentities("DateCreation") . ' : ' . dol_print_date($object->date_creation, 'dayhour') . ' ( ' . dol_print_date($object->oldcopy->date_creation, 'dayhour') . ' )';
+            }
             // Request operation date
             if (opendsi_is_updated_property($object, 'date_operation')) {
                 $updatedProperty[] = '- ' . $langs->transnoentities("RequestManagerOperation") . ' : ' . dol_print_date($object->date_operation, 'day') . ' ( ' . dol_print_date($object->oldcopy->date_operation, 'day') . ' )';

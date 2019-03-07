@@ -229,6 +229,7 @@ RequestManagerSetUrgency                                = Définir l'urgence
 RequestManagerSetImpact                                 = Définir l'impact
 RequestManagerSetPriority                               = Définir la priorité
 RequestManagerSetDuration                               = Définir la durée
+RequestManagerSetDateCreation                           = Définir la date de création
 RequestManagerSetOperation                              = Définir la date d'opération
 RequestManagerSetDeadline                               = Définir la date d'écheance
 RequestManagerSetRequesterContacts                      = Définir les contacts d'origine
@@ -446,7 +447,7 @@ RequestManagerStatusDictionaryAssignedUserGroupReplaced                     = Re
 RequestManagerStatusDictionaryAssignedUserGroupReplacedHelp                 = Remplace les groupes d'utilsateurs assignés lors du passage à ce statut par ceux renseignés (sinon ils seront ajoutés)
 RequestManagerStatusDictionaryAssignedUserGroup                             = Groupe d'utilisateurs assigné
 RequestManagerStatusDictionaryDeadLine                                      = Durée d'échéance
-RequestManagerStatusDictionaryDeadLineHelp                                  = En minutes, Date d'échéance calculé à partir de la date d'opération (valeur rajoutée à celle-ci)<br>-1 si la date d'échéance ne change pas, 0 ou non renseigné si il n'y en a pas
+RequestManagerStatusDictionaryDeadLineHelp                                  = En minutes, Date d'échéance calculé à partir de la date d'opération (valeur rajoutée à celle-ci)<br>-2 affecte la date et l'heure au changement du statut, -1 si la date d'échéance ne change pas, 0 ou non renseigné si il n'y en a pas
 RequestManagerStatusDictionaryCurrentTrigger                                = Trigger => ce statut
 RequestManagerStatusDictionaryCurrentTriggerHelp                            = Passage automatique à ce statut lors du déclanchement du trigger<br>Liste non exhaustive à l'adresse: https://wiki.dolibarr.org/index.php/Triggers
 RequestManagerStatusDictionaryNextTrigger                                   = Trigger => statut suivant
@@ -459,7 +460,7 @@ RequestManagerStatusDictionaryNextStatusCanNotBeItself                      = Le
 RequestManagerStatusDictionaryCanOnlyHaveInProgressAndResolvedForNextStatus = Le statut suivant ne peut être que de type 'En cours' ou 'Résolu'
 RequestManagerStatusDictionaryCanOnlyHaveClosedForNextStatus                = Le statut suivant ne peut être que de type 'Clos'
 RequestManagerStatusDictionaryOperation                                     = Durée d'opération
-RequestManagerStatusDictionaryOperationHelp                                 = En minutes, Date d'opération calculé à partir de la date où la demande est passé à ce statut (valeur rajoutée à celle-ci)<br>-1 si la date d'opération ne change pas, 0 ou non renseigné si il n'y en a pas
+RequestManagerStatusDictionaryOperationHelp                                 = En minutes, Date d'opération calculé à partir de la date où la demande est passé à ce statut (valeur rajoutée à celle-ci)<br>-2 affecte la date et l'heure au changement du statut, -1 si la date d'opération ne change pas, 0 ou non renseigné si il n'y en a pas
 RequestManagerStatusDictionaryOperationFromEvent                            = Date événement
 RequestManagerStatusDictionaryOperationFromEventHelp                        = Durée d'opération est égale à la date de début à la création ou modification d'un événement lié à la demande si l'événements a la date de début la plus lointaine
 RequestManagerStatusDictionaryDeadlineRcFromEventEvent                      = Recalculation

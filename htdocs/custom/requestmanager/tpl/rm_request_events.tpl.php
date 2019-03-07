@@ -1663,6 +1663,9 @@ SCRIPT;
         $last_day = "";
         $today_day = dol_print_date(dol_now(), 'daytext');
 
+        $action_card_url = dol_buildpath('/comm/action/card.php', 1);
+        $backtopage = dol_buildpath('/requestmanager/card.php', 1) . '?id=' . $object->id . '#rm-events-balise';
+
         $i = 0;
         while ($i < min($num, $limit)) {
             $obj = $db->fetch_object($resql);
@@ -1792,6 +1795,21 @@ SCRIPT;
                 }
             }
 
+            // Action icons
+            $action_icons = array();
+            // Edit event
+            if ($user->rights->agenda->allactions->create ||
+                (($userauthor_static->id == $user->id || $userowner_static->id == $user->id) && $user->rights->agenda->myactions->create)
+            ) {
+                $action_icons[] = '<a href="' . $action_card_url . '?id=' . $requestmessage_static->id . '&action=edit&backtopage=' . urlencode($backtopage) . '">' . img_edit() . '</a>';
+            }
+            // Delete event
+            if ($user->rights->agenda->allactions->delete ||
+                (($userauthor_static->id == $user->id || $userowner_static->id == $user->id) && $user->rights->agenda->myactions->delete)
+            ) {
+                $action_icons[] = '<a href="' . $action_card_url . '?id=' . $requestmessage_static->id . '&action=delete&backtopage=' . urlencode($backtopage) . '">' . img_delete() . '</a>';
+            }
+
             print '<div class="row"></div>' . "\n";
             print '<div class="event ' . $direction . ' col-md-6 col-sm-6 col-xs-8 "><span class="thumb fa ' . $icon . '"></span>' . "\n";
             print '<div class=" event-body">' . "\n";
@@ -1822,6 +1840,7 @@ SCRIPT;
             }
             $to_print[] = $notification;
             print implode(' ', $to_print);
+            print '<span class="right">' . implode(' ', $action_icons) . '</span>';
             print '</h5>' . "\n";
             print '<span class="text-muted text-left" style="display:block; margin: 0"><small>' . "\n";
             if ((!$conf->eventconfidentiality->enabled || EventConfidentiality::MODE_BLURRED >= $ec_mode) && $userauthor_static->id > 0) {
