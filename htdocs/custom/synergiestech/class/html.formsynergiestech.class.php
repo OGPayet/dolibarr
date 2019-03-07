@@ -1786,8 +1786,8 @@ class FormSynergiesTech
 		//We remove view of calls not assigned to the current user or wildix user (id 1632) when call was yesterday
 		//Display all today calls
 
-		$sql .= " AND (  DATEDIFF(NOW(), ac.datep) >= 1 ";
-		$sql .= " AND (ac.fk_user_action = 1362 OR ac.fk_user_action = " . $user->id . ")) OR  DATEDIFF(NOW(), ac.datep) = 0 ";
+		$sql .= " AND ( (  DATEDIFF(NOW(), ac.datep) >= 1 ";
+		$sql .= " AND (ac.fk_user_action = '1632' OR ac.fk_user_action = " . $user->id . ")) OR  DATEDIFF(NOW(), ac.datep) = 0 ) ";
 
 		///END
 
