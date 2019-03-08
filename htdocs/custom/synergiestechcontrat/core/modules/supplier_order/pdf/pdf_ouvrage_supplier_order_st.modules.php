@@ -112,10 +112,10 @@ class pdf_ouvrage_supplier_order_st extends ModelePDFSuppliersOrders
 		$this->posxdesc=$this->marge_gauche+1;
 		if ($conf->global->PRODUCT_USE_UNITS)
 		{
-			$this->posxtva=99;
-			$this->posxup=114;
-			$this->posxqty=130;
-			$this->posxunit=147;
+            $this->posxtva=118;
+            $this->posxup=130;
+            $this->posxqty=151;
+            $this->posxunit=162;
 		} else {
             $this->posxtva=109;
             $this->posxup=123;
@@ -172,6 +172,66 @@ class pdf_ouvrage_supplier_order_st extends ModelePDFSuppliersOrders
         $outputlangs->load("pdf@synergiestechcontrat");
 
         $nblignes = count($object->lines);
+
+        // Loop on each lines to detect if there is at least one image to show
+        $realpatharray=array();
+        if (! empty($conf->global->MAIN_GENERATE_SUPPLIER_ORDERS_WITH_PICTURE))
+        {
+            $objphoto = new Product($this->db);
+
+            for ($i = 0 ; $i < $nblignes ; $i++)
+            {
+                if (empty($object->lines[$i]->fk_product)) continue;
+
+                $objphoto->fetch($object->lines[$i]->fk_product);
+                //var_dump($objphoto->ref);exit;
+                if (! empty($conf->global->PRODUCT_USE_OLD_PATH_FOR_PHOTO))
+                {
+                    $pdir[0] = get_exdir($objphoto->id,2,0,0,$objphoto,'product') . $objphoto->id ."/photos/";
+                    $pdir[1] = get_exdir(0,0,0,0,$objphoto,'product') . dol_sanitizeFileName($objphoto->ref).'/';
+                }
+                else
+                {
+                    $pdir[0] = get_exdir(0,0,0,0,$objphoto,'product') . dol_sanitizeFileName($objphoto->ref).'/';				// default
+                    $pdir[1] = get_exdir($objphoto->id,2,0,0,$objphoto,'product') . $objphoto->id ."/photos/";	// alternative
+                }
+
+                $arephoto = false;
+                foreach ($pdir as $midir)
+                {
+                    if (! $arephoto)
+                    {
+                        $dir = $conf->product->dir_output.'/'.$midir;
+
+                        foreach ($objphoto->liste_photos($dir,1) as $key => $obj)
+                        {
+                            if (empty($conf->global->CAT_HIGH_QUALITY_IMAGES))		// If CAT_HIGH_QUALITY_IMAGES not defined, we use thumb if defined and then original photo
+                            {
+                                if ($obj['photo_vignette'])
+                                {
+                                    $filename= $obj['photo_vignette'];
+                                }
+                                else
+                                {
+                                    $filename=$obj['photo'];
+                                }
+                            }
+                            else
+                            {
+                                $filename=$obj['photo'];
+                            }
+
+                            $realpath = $dir.$filename;
+                            $arephoto = true;
+                        }
+                    }
+                }
+
+                if ($realpath && $arephoto) $realpatharray[$i]=$realpath;
+            }
+        }
+
+        if (count($realpatharray) == 0) $this->posxpicture=$this->posxtva;
 
 		if ($conf->fournisseur->dir_output.'/commande')
 		{
@@ -282,7 +342,7 @@ class pdf_ouvrage_supplier_order_st extends ModelePDFSuppliersOrders
 				if (! empty($tplidx)) $pdf->useTemplate($tplidx);
 				$pagenb++;
 
-                $heightforinfotot = 40;	// Height reserved to output the info and total part
+                $heightforinfotot = 52;	// Height reserved to output the info and total part
                 $heightforfreetext= (isset($conf->global->MAIN_PDF_FREETEXT_HEIGHT)?$conf->global->MAIN_PDF_FREETEXT_HEIGHT:5);	// Height reserved to output the free text on last page
                 $heightforfooter = $this->marge_basse + 8;	// Height reserved to output the footer (value include bottom margin)
 
@@ -290,6 +350,7 @@ class pdf_ouvrage_supplier_order_st extends ModelePDFSuppliersOrders
 				$pdf->SetFont('','', $default_font_size - 1);
 				$pdf->MultiCell(0, 3, '');		// Set interline to 3
 				$pdf->SetTextColor(0,0,0);
+
 
                 $tab_top = 100;
                 $tab_top_newpage = (empty($conf->global->MAIN_PDF_DONOTREPEAT_HEAD)?40:10);
@@ -352,12 +413,45 @@ class pdf_ouvrage_supplier_order_st extends ModelePDFSuppliersOrders
 					$pdf->SetFont('','', $default_font_size - 1);   // Into loop to work with multipage
 					$pdf->SetTextColor(0,0,0);
 
+                    // Define size of image if we need it
+                    $imglinesize=array();
+                    if (! empty($realpatharray[$i])) $imglinesize=pdf_getSizeForImage($realpatharray[$i]);
+
 					$pdf->setTopMargin($tab_top_newpage);
 					$pdf->setPageOrientation('', 1, $heightforfooter+$heightforfreetext+$heightforinfotot);	// The only function to edit the bottom margin of current page to set it.
 					$pageposbefore=$pdf->getPage();
 
+                    $showpricebeforepagebreak=1;
+                    $posYAfterImage=0;
+                    $posYAfterDescription=0;
+
+                    // We start with Photo of product line
+                    if (isset($imglinesize['width']) && isset($imglinesize['height']) && ($curY + $imglinesize['height']) > ($this->page_hauteur-($heightforfooter+$heightforfreetext+$heightforinfotot)))	// If photo too high, we moved completely on new page
+                    {
+                        $pdf->AddPage('','',true);
+                        if (! empty($tplidx)) $pdf->useTemplate($tplidx);
+                        if (empty($conf->global->MAIN_PDF_DONOTREPEAT_HEAD)) $this->_pagehead($pdf, $object, 0, $outputlangs);
+                        $pdf->setPage($pageposbefore+1);
+
+                        $curY = $tab_top_newpage+6;
+                        $showpricebeforepagebreak=0;
+                    }
+
+                    if (isset($imglinesize['width']) && isset($imglinesize['height']))
+                    {
+                        $curX = $this->posxpicture-1;
+                        if (! empty($conf->global->MAIN_GENERATE_DOCUMENTS_WITHOUT_VAT) || !empty($conf->global->MAIN_GENERATE_DOCUMENTS_WITHOUT_VAT_COLUMN)) {
+                            $pdf->Image($realpatharray[$i], $curX + (($this->posxtva-$this->posxpicture-$imglinesize['width'])/2) + 10, $curY+3, $imglinesize['width'], $imglinesize['height'], '', '', '', 2, 300);	// Use 300 dpi
+                        } else {
+                            $pdf->Image($realpatharray[$i], $curX + (($this->posxtva-$this->posxpicture-$imglinesize['width'])/2) - 1, $curY+3, $imglinesize['width'], $imglinesize['height'], '', '', '', 2, 300);	// Use 300 dpi
+                        }
+                        // $pdf->Image does not increase value return by getY, so we save it manually
+                        $posYAfterImage=$curY+$imglinesize['height'];
+                    }
+
 					// Description of product line
 					$curX = $this->posxdesc-1;
+
 					$showpricebeforepagebreak=1;
 
 					$pdf->startTransaction();
@@ -370,6 +464,8 @@ class pdf_ouvrage_supplier_order_st extends ModelePDFSuppliersOrders
 						//print $pageposafter.'-'.$pageposbefore;exit;
 						$pdf->setPageOrientation('', 1, $heightforfooter);	// The only function to edit the bottom margin of current page to set it.
 						pdf_writelinedesc($pdf,$object,$i,$outputlangs,$this->posxtva-$curX,3,$curX,$curY,$hideref,$hidedesc,1);
+
+                        $pageposafter=$pdf->getPage();
 						$posyafter=$pdf->GetY();
 						if ($posyafter > ($this->page_hauteur - ($heightforfooter+$heightforfreetext+$heightforinfotot)))	// There is no space left for total+free text
 						{
@@ -391,9 +487,11 @@ class pdf_ouvrage_supplier_order_st extends ModelePDFSuppliersOrders
 					{
 						$pdf->commitTransaction();
 					}
+                    $posYAfterDescription=$pdf->GetY();
 
 					$nexY = $pdf->GetY();
                     $pageposafter=$pdf->getPage();
+
 					$pdf->setPage($pageposbefore);
 					$pdf->setTopMargin($this->marge_haute);
 					$pdf->setPageOrientation('', 1, 0);	// The only function to edit the bottom margin of current page to set it.
@@ -455,7 +553,6 @@ class pdf_ouvrage_supplier_order_st extends ModelePDFSuppliersOrders
 					// Collecte des totaux par valeur de tva dans $this->tva["taux"]=total_tva
 					if ($conf->multicurrency->enabled && $object->multicurrency_tx != 1) $tvaligne=$object->lines[$i]->multicurrency_total_tva;
 					else $tvaligne=$object->lines[$i]->total_tva;
-
 					$localtax1ligne=$object->lines[$i]->total_localtax1;
 					$localtax2ligne=$object->lines[$i]->total_localtax2;
 					$localtax1_rate=$object->lines[$i]->localtax1_tx;
@@ -488,6 +585,7 @@ class pdf_ouvrage_supplier_order_st extends ModelePDFSuppliersOrders
 					if (! isset($this->tva[$vatrate])) 				$this->tva[$vatrate]=0;
 					$this->tva[$vatrate] += $tvaligne;
 
+                    if ($posYAfterImage > $posYAfterDescription) $nexY=$posYAfterImage;
 
 					// Add line
 					if (! empty($conf->global->MAIN_PDF_DASH_BETWEEN_LINES) && $i < ($nblignes - 1))
@@ -1027,7 +1125,7 @@ class pdf_ouvrage_supplier_order_st extends ModelePDFSuppliersOrders
 		if (empty($hidetop))
 		{
 			$pdf->SetXY($this->postotalht-1, $tab_top - 8.5);
-			$pdf->MultiCell(20, 2, $outputlangs->transnoentities("TotalHTShort"),'','C');
+			$pdf->MultiCell(20, 2, $outputlangs->transnoentities("TotalHT"),'','C');
 		}
 	}
 
@@ -1049,18 +1147,10 @@ class pdf_ouvrage_supplier_order_st extends ModelePDFSuppliersOrders
 		$outputlangs->load("orders");
 		$outputlangs->load("companies");
 		$outputlangs->load("sendings");
-        if ($conf->companyrelationships->enabled) {
-            $outputlangs->load("companyrelationships@companyrelationships");
-        }
 		$default_font_size = pdf_getPDFFontSize($outputlangs);
 
 		pdf_pagehead($pdf,$outputlangs,$this->page_hauteur);
 
-        // Show Draft Watermark
-		/*if($object->statut==0 && (! empty($conf->global->COMMANDE_DRAFT_WATERMARK)) )
-		{
-            pdf_watermark($pdf,$outputlangs,$this->page_hauteur,$this->page_largeur,'mm',$conf->global->COMMANDE_DRAFT_WATERMARK);
-		}*/
 
 		$pdf->SetTextColor(0, 0, 60);
 		$pdf->SetFont('','B',$default_font_size + 3);
@@ -1131,58 +1221,10 @@ class pdf_ouvrage_supplier_order_st extends ModelePDFSuppliersOrders
 
 		if ($showaddress)
 		{
-			// Sender properties
-//			$carac_emetteur = pdf_build_address($outputlangs, $this->emetteur, $object->thirdparty);
-//
-//			// Show sender
-//			$posy=42;
-//			$posx=$this->marge_gauche;
-//			if (! empty($conf->global->MAIN_INVERT_SENDER_RECIPIENT)) $posx=$this->page_largeur-$this->marge_droite-80;
-//			$hautcadre=40;
-//
-//			// Show sender frame
-//			$pdf->SetTextColor(0,0,0);
-//			$pdf->SetFont('','', $default_font_size - 2);
-//			$pdf->SetXY($posx,$posy-5);
-//			$pdf->MultiCell(66,5, $outputlangs->transnoentities("BillFrom").":", 0, 'L');
-//			$pdf->SetXY($posx,$posy);
-//			$pdf->SetFillColor(230,230,230);
-//			$pdf->MultiCell(82, $hautcadre, "", 0, 'R', 1);
-//			$pdf->SetTextColor(0,0,60);
-//
-//			// Show sender name
-//			$pdf->SetXY($posx+2,$posy+3);
-//			$pdf->SetFont('','B', $default_font_size);
-//			$pdf->MultiCell(80, 4, $outputlangs->convToOutputCharset($this->emetteur->name), 0, 'L');
-//			$posy=$pdf->getY();
-//
-//			// Show sender information
-//			$pdf->SetXY($posx+2,$posy);
-//			$pdf->SetFont('','', $default_font_size - 1);
-//			$pdf->MultiCell(80, 4, $carac_emetteur, 0, 'L');
-
-
-            //-------------------------------------------------------------------------------
-            // Open DSI -- Benefactor -- Begin
             $bulletSize      = 1;
             $bulletWidth     = 6;
             $multiCellBorder = 0;
             $showBenefactor  = FALSE;
-            if ($conf->companyrelationships->enabled) {
-                $object->fetch_optionals();
-                $benefactor_id = $object->array_options['options_companyrelationships_fk_soc_benefactor'];
-                if (isset($benefactor_id) && $benefactor_id > 0 && $benefactor_id != $object->thirdparty->id) {
-                    $benefactor = new Societe($this->db);
-                    $benefactor->fetch($benefactor_id);
-                    $showBenefactor = TRUE;
-                }
-            }
-
-            if ($showBenefactor === TRUE) {
-                $w = intval(($this->page_largeur - ($this->marge_gauche+7) - $this->marge_droite) / 3);
-            }
-            // Open DSI -- Benefactor -- End
-            //-------------------------------------------------------------------------------
 
             $posx = $this->marge_gauche;
             $posy = $this->marge_haute;
@@ -1210,20 +1252,6 @@ class pdf_ouvrage_supplier_order_st extends ModelePDFSuppliersOrders
                 $pdf->MultiCell($w-$bulletWidth, 3, $outputlangs->transnoentities("RefSupplier")." : " . $outputlangs->convToOutputCharset($object->ref_supplier), $multiCellBorder, 'L');
             }
 
-            if (! empty($conf->global->PDF_SHOW_PROJECT))
-            {
-                $object->fetch_projet();
-                if (! empty($object->project->ref))
-                {
-                    $posy += 5;
-                    $pdf->SetXY($posx+$bulletWidth, $posy);
-                    $langs->load("projects");
-                    $pdf->SetTextColor(0, 0, 60);
-                    $this->addBullet($pdf, $bulletSize);
-                    $pdf->MultiCell($w-$bulletWidth, 3, $outputlangs->transnoentities("Project")." : " . (empty($object->project->ref)?'':$object->projet->ref), $multiCellBorder, 'L');
-                }
-            }
-
             if (! empty($object->date_commande))
             {
                 $posy += 5;
@@ -1241,92 +1269,19 @@ class pdf_ouvrage_supplier_order_st extends ModelePDFSuppliersOrders
                 $pdf->MultiCell($w-$bulletWidth, 3, $outputlangs->transnoentities("OrderToProcess"), $multiCellBorder, 'L');
             }
 
-            $pdf->SetTextColor(0, 0, 60);
-            $usehourmin='day';
-            if (!empty($conf->global->SUPPLIER_ORDER_USE_HOUR_FOR_DELIVERY_DATE)) $usehourmin='dayhour';
             if (! empty($object->date_livraison))
-            {
-                $posy += 5;
-                $pdf->SetXY($posx-90,$posy);
-                $pdf->MultiCell(190, 3, $outputlangs->transnoentities("DateDeliveryPlanned")." : " . dol_print_date($object->date_livraison,$usehourmin,false,$outputlangs,true), $multiCellBorder, 'L');
-            }
-
-            if ($object->thirdparty->code_fournisseur)
             {
                 $posy += 5;
                 $pdf->SetXY($posx+$bulletWidth,$posy);
                 $pdf->SetTextColor(0, 0, 60);
                 $this->addBullet($pdf, $bulletSize);
-                $pdf->MultiCell($w-$bulletWidth, 3, $outputlangs->transnoentities("SupplierCode")." : " . $outputlangs->transnoentities($object->thirdparty->code_fournisseur), $multiCellBorder, 'L');
-            }
-
-            // Get contact
-            if (!empty($conf->global->DOC_SHOW_FIRST_SALES_REP))
-            {
-                $arrayidcontact=$object->getIdContact('internal','SALESREPFOLL');
-                if (count($arrayidcontact) > 0)
-                {
-                    $usertmp=new User($this->db);
-                    $usertmp->fetch($arrayidcontact[0]);
-                    $posy += 5;
-                    $pdf->SetXY($posx+$bulletWidth,$posy);
-                    $pdf->SetTextColor(0, 0, 60);
-                    $this->addBullet($pdf, $bulletSize);
-                    $pdf->MultiCell($w-$bulletWidth, 3, $langs->trans("BuyerName")." : ".$usertmp->getFullName($langs), $multiCellBorder, 'L');
-                }
+                $pdf->MultiCell($w-$bulletWidth, 3, $outputlangs->transnoentities("DateDeliveryPlanned")." : " . dol_print_date($object->date_livraison, "day",false, $outputlangs, true), $multiCellBorder, 'L');
             }
 
             $posy+=1;
 
             // Show list of linked objects
             // $posy = pdf_writeLinkedObjects($pdf, $object, $outputlangs, $posx, $posy, 100, 3, 'R', $default_font_size);
-
-            //-------------------------------------------------------------------------------
-            // Open DSI -- Benefactor -- Begin
-            if ($showBenefactor === TRUE) {
-                $usecontact = FALSE;
-
-                $carac_benefactor_name = pdfBuildThirdpartyName($benefactor, $outputlangs, 1);
-
-                $carac_benefactor = pdf_build_address($outputlangs, $this->emetteur, $benefactor, ($usecontact ? $benefactor->contact : ''), $usecontact, 'target', $object);
-
-                $widthrecbox = $w;
-                $posy = $this->marge_haute;
-                $posx = $this->marge_gauche+$w+4;
-
-                // show benefactor frame
-                call_user_func_array(array($pdf, 'SetTextColor'), $this->main_color);
-                $pdf->SetFont('', 'B', $default_font_size);
-                $pdf->SetXY($posx, $posy);
-                $pdf->MultiCell($widthrecbox, 5, mb_strtoupper($outputlangs->transnoentities("CompanyRelationshipsBenefactorSite"), 'UTF-8'), $multiCellBorder, 'L');
-                $pdf->SetTextColor(0, 0, 0);
-
-                $posy = $pdf->getY();
-
-                // show benefactor name
-                $pdf->SetXY($posx, $posy + 1);
-                $pdf->SetFont('', 'B', $default_font_size-2);
-                $pdf->MultiCell($widthrecbox, 2, $carac_benefactor_name, $multiCellBorder, 'L');
-
-                $posy = $pdf->getY();
-
-                // show benefactor information
-                $pdf->SetFont('', '', $default_font_size-2);
-                $pdf->SetXY($posx+$bulletWidth, $posy + 1);
-                $this->addBullet($pdf, $bulletSize);
-                $pdf->MultiCell($widthrecbox-$bulletWidth, 4, $carac_benefactor, $multiCellBorder, 'L');
-
-                $posy = $pdf->getY();
-
-                // Show recipient email
-                $pdf->SetFont('', '', $default_font_size-2);
-                $pdf->SetXY($posx+$bulletWidth, $posy);
-                $this->addBullet($pdf, $bulletSize);
-                $pdf->MultiCell($widthrecbox-$bulletWidth, 4, (($usecontact) ? $benefactor->contact->email : $benefactor->email), $multiCellBorder, 'L');
-            }
-            // Open DSI -- Benefactor -- End
-            //-------------------------------------------------------------------------------
-
 
 			// If BILLING contact defined on order, we use it
 			$usecontact=false;
@@ -1337,17 +1292,19 @@ class pdf_ouvrage_supplier_order_st extends ModelePDFSuppliersOrders
 				$result=$object->fetch_contact($arrayidcontact[0]);
 			}
 
-			//Recipient name
-			// On peut utiliser le nom de la societe du contact
-			if ($usecontact && !empty($conf->global->MAIN_USE_COMPANY_NAME_OF_CONTACT)) {
-				$thirdparty = $object->contact;
-			} else {
-				$thirdparty = $object->thirdparty;
-			}
+            // Recipient name
+            if (! empty($usecontact)) {
+                // On peut utiliser le nom de la societe du contact
+                if (! empty($conf->global->MAIN_USE_COMPANY_NAME_OF_CONTACT))
+                    $socname = $object->contact->socname;
+                else
+                    $socname = $object->thirdparty->name;
+                $carac_client_name=$outputlangs->convToOutputCharset($socname);
+            } else {
+                $carac_client_name=$outputlangs->convToOutputCharset($object->thirdparty->name);
+            }
 
-			$carac_client_name= pdfBuildThirdpartyName($thirdparty, $outputlangs);
-
-			$carac_client=pdf_build_address($outputlangs,$this->emetteur,$object->thirdparty,($usecontact?$object->contact:''),$usecontact,'target',$object);
+			$carac_client=pdf_build_address($outputlangs,$this->emetteur,$object->thirdparty,($usecontact?$object->contact:''),$usecontact,'target');
 
             // Show recipient
             if ($showBenefactor === FALSE) {
@@ -1393,42 +1350,47 @@ class pdf_ouvrage_supplier_order_st extends ModelePDFSuppliersOrders
             $this->addBullet($pdf, $bulletSize);
             $pdf->MultiCell($widthrecbox-$bulletWidth, 4, (($usecontact) ? $object->contact->email : $object->thirdparty->email), $multiCellBorder, 'L');
 
-
-
-			/***
-			 * Contact de livraison provenant de la commande client
-			 ***/
-			// If SHIPPING contact defined on order, we use it
-			$usecontactorder=false;
-			$arrayidcontactorder=$object->getIdContact('external','SHIPPING');
-			if (count($arrayidcontactorder) > 0)
-			{
-				$usecontactorder=true;
-				$result=$object->fetch_contact($arrayidcontactorder[0]);
-			}
-
-			if ($usecontactorder) {
-				$thirdpartyorder = $object->contact;
-
-				$carac_client_name_order= pdfBuildThirdpartyName($thirdpartyorder, $outputlangs);
-
-				$carac_client_order=pdf_build_address($outputlangs,$this->emetteur,$object->thirdparty,($usecontactorder?$object->contact:''),$usecontactorder,'target',$object);
-
-				$posy = $pdf->getY();
-				$pdf->SetXY($posx+2,$posy+3);
-				$pdf->SetFont('','', $default_font_size - 1);
-				$pdf->MultiCell($widthrecbox, 4, $outputlangs->transnoentities("Contact client")." :\n", 0, 'L');
-
-				$posy = $pdf->getY();
-				$pdf->SetXY($posx+2,$posy);
-				$pdf->SetFont('','B', $default_font_size);
-				$pdf->MultiCell($widthrecbox, 4, $carac_client_name_order, 0, 'L');
-
-				$posy = $pdf->getY();
-				$pdf->SetFont('','', $default_font_size - 1);
-				$pdf->SetXY($posx+2,$posy);
-				$pdf->MultiCell($widthrecbox, 4, $carac_client_order, 0, 'L');
-			}
+            // adresse du client final destinataire
+//            $posy=42;
+//            $posx=75;
+//            $hautcadre=40;
+//
+//            $usecontact=false;
+//            $arrayidcontact=$object->getIdContact('external', 'SHIPPING');
+//
+//            if (count($arrayidcontact) > 0) {
+//                $usecontact=true;
+//                $result=$object->fetch_contact($arrayidcontact[0]);
+//                // pour recuperer l'adresse de la societe du client (si
+//                $object->contact->fetch_thirdparty();
+//                $carac_client_name=$outputlangs->convToOutputCharset($object->contact->socname);
+//                $carac_destinataire=pdf_build_address(
+//                    $outputlangs, $this->emetteur,
+//                    $object->contact->thirdparty, $object->contact,
+//                    $usecontact, 'target'
+//                );
+//
+//                // Show RECEPT frame
+//                $pdf->SetTextColor(0, 0, 0);
+//                $pdf->SetFont('', '', $default_font_size - 2);
+//                $pdf->SetXY($posx, $posy-5);
+//                $pdf->MultiCell(66, 5, $outputlangs->transnoentities("RecipientAdress").":", 0, 'L');
+//                $pdf->SetXY($posx, $posy);
+//                $pdf->SetFillColor(200, 200, 200);
+//                $pdf->MultiCell(62, $hautcadre, "", 0, 'R', 1);
+//                $pdf->SetTextColor(0, 0, 60);
+//
+//                // Show RECEPT name
+//                $pdf->SetXY($posx+2, $posy+3);
+//                $pdf->SetFont('', 'B', $default_font_size);
+//                $pdf->MultiCell(60, 4, $outputlangs->convToOutputCharset($carac_client_name), 0, 'L');
+//                $posy=$pdf->getY();
+//
+//                // Show RECEPT information
+//                $pdf->SetXY($posx+2, $posy);
+//                $pdf->SetFont('', '', $default_font_size - 1);
+//                $pdf->MultiCell(60, 4, $carac_destinataire, 0, 'L');
+//            }
 		}
 
         $pdf->SetFont('', '', $default_font_size - 1);

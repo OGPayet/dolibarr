@@ -201,6 +201,66 @@ class pdf_ouvrage_com_st extends ModelePDFCommandes
 
 		$nblignes = count($object->lines);
 
+        // Loop on each lines to detect if there is at least one image to show
+        $realpatharray=array();
+        if (! empty($conf->global->MAIN_GENERATE_ORDERS_WITH_PICTURE))
+        {
+            $objphoto = new Product($this->db);
+
+            for ($i = 0 ; $i < $nblignes ; $i++)
+            {
+                if (empty($object->lines[$i]->fk_product)) continue;
+
+                $objphoto->fetch($object->lines[$i]->fk_product);
+                //var_dump($objphoto->ref);exit;
+                if (! empty($conf->global->PRODUCT_USE_OLD_PATH_FOR_PHOTO))
+                {
+                    $pdir[0] = get_exdir($objphoto->id,2,0,0,$objphoto,'product') . $objphoto->id ."/photos/";
+                    $pdir[1] = get_exdir(0,0,0,0,$objphoto,'product') . dol_sanitizeFileName($objphoto->ref).'/';
+                }
+                else
+                {
+                    $pdir[0] = get_exdir(0,0,0,0,$objphoto,'product') . dol_sanitizeFileName($objphoto->ref).'/';				// default
+                    $pdir[1] = get_exdir($objphoto->id,2,0,0,$objphoto,'product') . $objphoto->id ."/photos/";	// alternative
+                }
+
+                $arephoto = false;
+                foreach ($pdir as $midir)
+                {
+                    if (! $arephoto)
+                    {
+                        $dir = $conf->product->dir_output.'/'.$midir;
+
+                        foreach ($objphoto->liste_photos($dir,1) as $key => $obj)
+                        {
+                            if (empty($conf->global->CAT_HIGH_QUALITY_IMAGES))		// If CAT_HIGH_QUALITY_IMAGES not defined, we use thumb if defined and then original photo
+                            {
+                                if ($obj['photo_vignette'])
+                                {
+                                    $filename= $obj['photo_vignette'];
+                                }
+                                else
+                                {
+                                    $filename=$obj['photo'];
+                                }
+                            }
+                            else
+                            {
+                                $filename=$obj['photo'];
+                            }
+
+                            $realpath = $dir.$filename;
+                            $arephoto = true;
+                        }
+                    }
+                }
+
+                if ($realpath && $arephoto) $realpatharray[$i]=$realpath;
+            }
+        }
+
+        if (count($realpatharray) == 0) $this->posxpicture=$this->posxtva;
+
 		if ($conf->commande->dir_output)
 		{
             $object->fetch_thirdparty();
@@ -301,7 +361,7 @@ class pdf_ouvrage_com_st extends ModelePDFCommandes
 				if (! empty($tplidx)) $pdf->useTemplate($tplidx);
 				$pagenb++;
 
-                $heightforinfotot = 40;	// Height reserved to output the info and total part
+                $heightforinfotot = 52;	// Height reserved to output the info and total part
                 $heightforsignature = 0;
                 $heightforfreetext= (isset($conf->global->MAIN_PDF_FREETEXT_HEIGHT)?$conf->global->MAIN_PDF_FREETEXT_HEIGHT:5);	// Height reserved to output the free text on last page
 	            $heightforfooter = $this->marge_basse + 8;	// Height reserved to output the footer (value include bottom margin)
