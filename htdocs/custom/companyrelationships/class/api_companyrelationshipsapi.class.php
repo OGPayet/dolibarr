@@ -5854,6 +5854,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
 	 *
 	 * @param   string  $module_part    Name of module or area concerned by file download ('facture', 'agenda', ...)
 	 * @param   string  $original_file  Relative path with filename, relative to modulepart (for example: IN201701-999/IN201701-999.pdf)
+     * @param	bool	$islogo		        The file is a logo (true or false) for thirdparty, contact, user, member only (default false)
 	 * @return  array                   File deleted
 	 *
 	 * @throws 400
@@ -5864,7 +5865,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
 	 *
      * @url	DELETE documents/delete
 	 */
-	public function deleteDocuments($module_part, $original_file='')
+	public function deleteDocuments($module_part, $original_file='', $islogo=false)
     {
         global $conf, $langs, $db;
 
@@ -6055,8 +6056,8 @@ class CompanyRelationshipsApi extends DolibarrApi {
         //--------------------------------------------------------------
         // Open-DSI - Modification - Begin
         //
-        if ($module_part == 'societe' || $module_part == 'thirdparty' || $module_part == 'thirdparties' ||
-            $module_part == 'contact' || $module_part == 'adherent' || $module_part == 'member' || $module_part == 'user') {
+        if ($islogo && ($module_part == 'societe' || $module_part == 'thirdparty' || $module_part == 'thirdparties' ||
+                $module_part == 'contact' || $module_part == 'adherent' || $module_part == 'member' || $module_part == 'user')) {
             // Delete thumbs if exist
             $dir = dirname($original_file_osencoded) . '/thumbs';
             if (dol_is_dir($dir)) {
