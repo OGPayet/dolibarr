@@ -2138,8 +2138,8 @@ SCRIPT;
                 $children_count[RequestManager::STATUS_TYPE_CLOSED] >= 0)
         ) {
             // Get all status of the request type
-            $requestManagerStatusDictionary->fetch_lines(1, array('request_type' => array($object->fk_type)));
-
+            //$requestManagerStatusDictionary->fetch_lines(1, array('request_type' => array($object->fk_type)));
+			$requestManagerStatusDictionary->fetch_lines(1, array(''=>array()));
             // Parse all status and add status in previous or next groups
             $previousStatusButton = array();
             $nextStatusButton = array();
