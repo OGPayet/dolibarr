@@ -182,6 +182,11 @@ SynergiesTechPrincipalWarehouseStocks       = %s stock(s) pour l'entrepôt : %s
 SynergiesTechNoStockIntoPrincipalWarehouse  = Pas de stock dans l'entrepôt principal
 
 ############################################################
+### Confirm box
+############################################################
+SynergiesTechConfirmReOpenIntervention  = Êtes-vous sûr de vouloir réouvrir cette intervention ?
+
+############################################################
 ### Errors
 ############################################################
 SynergiesTechErrorPrincipalWarehouseNotDefined      = Entrepôt principal non définie dans la configuration du module Synergies-Tech
@@ -204,3 +209,23 @@ SynergiesTechButtonCreateAndTakeCharge      = Créer et prendre en charge
 SynergiesTechNextStatus                     = Statut
 SynergiesTechCreateAndTakeInCharge          = Créer et prendre en charge
 SynergiesTechConfirmCreateAndTakeInCharge   = Êtes-vous sûr de vouloir créer et prendre en charger cette demande ?
+
+###########################################################
+### Intervention PDF
+###########################################################
+SynergiesTechPDFInterventionTitle                               = FICHE D’INTERVENTION
+SynergiesTechPDFInterventionRef                                 = Intervention n°
+SynergiesTechPDFInterventionType                                = Type
+SynergiesTechPDFInterventionEstimatedDate                       = Programmée le
+SynergiesTechPDFInterventionRefPrincipalCompany                 = Code Client DO
+SynergiesTechPDFInterventionRefBenefactorCompany                = Code Client B
+SynergiesTechPDFInterventionBenefactorCompany                   = BENEFICIAIRE
+SynergiesTechPDFInterventionPrincipalCompany                    = DONNEUR D’ORDRE
+SynergiesTechPDFInterventionEffectiveWorkingTimeTitle           = Date et Heure de travail effectif de l’intervention
+SynergiesTechPDFInterventionEffectiveWorkingTimeInvolvedUser    = Intervenant
+SynergiesTechPDFInterventionEffectiveWorkingTimeFrom            = De
+SynergiesTechPDFInterventionEffectiveWorkingTimeTo              = A
+SynergiesTechPDFInterventionEffectiveWorkingTimeDuration        = Total
+SynergiesTechPDFInterventionEffectiveWorkingTimeTotal           = Total
+SynergiesTechPDFInterventionSurveyBlocTitle                     = Description de l’intervention pour l'équipement "%s" (Ref produit: "%s", N° série: "%s")
+SynergiesTechPDFInterventionSurveyBlocGeneralTitle              = Description de l’intervention générale

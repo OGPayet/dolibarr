@@ -213,11 +213,19 @@ SynergiesTechConfirmCreateAndTakeInCharge   = Êtes-vous sûr de vouloir créer 
 ###########################################################
 ### Intervention PDF
 ###########################################################
-SynergiesTechPDFInterventionTitle                   = FICHE D’INTERVENTION
-SynergiesTechPDFInterventionRef                     = Intervention n°
-SynergiesTechPDFInterventionType                    = Type
-SynergiesTechPDFInterventionEstimatedDate           = Programmée le
-SynergiesTechPDFInterventionRefPrincipalCompany     = Code Client DO
-SynergiesTechPDFInterventionRefBenefactorCompany    = Code Client B
-SynergiesTechPDFInterventionBenefactorCompany       = BENEFICIAIRE
-SynergiesTechPDFInterventionPrincipalCompany        = DONNEUR D’ORDRE
+SynergiesTechPDFInterventionTitle                               = FICHE D’INTERVENTION
+SynergiesTechPDFInterventionRef                                 = Intervention n°
+SynergiesTechPDFInterventionType                                = Type
+SynergiesTechPDFInterventionEstimatedDate                       = Programmée le
+SynergiesTechPDFInterventionRefPrincipalCompany                 = Code Client DO
+SynergiesTechPDFInterventionRefBenefactorCompany                = Code Client B
+SynergiesTechPDFInterventionBenefactorCompany                   = BENEFICIAIRE
+SynergiesTechPDFInterventionPrincipalCompany                    = DONNEUR D’ORDRE
+SynergiesTechPDFInterventionEffectiveWorkingTimeTitle           = Date et Heure de travail effectif de l’intervention
+SynergiesTechPDFInterventionEffectiveWorkingTimeInvolvedUser    = Intervenant
+SynergiesTechPDFInterventionEffectiveWorkingTimeFrom            = De
+SynergiesTechPDFInterventionEffectiveWorkingTimeTo              = A
+SynergiesTechPDFInterventionEffectiveWorkingTimeDuration        = Total
+SynergiesTechPDFInterventionEffectiveWorkingTimeTotal           = Total
+SynergiesTechPDFInterventionSurveyBlocTitle                     = Description de l’intervention pour l'équipement "%s" (Ref produit: "%s", N° série: "%s")
+SynergiesTechPDFInterventionSurveyBlocGeneralTitle              = Description de l’intervention générale

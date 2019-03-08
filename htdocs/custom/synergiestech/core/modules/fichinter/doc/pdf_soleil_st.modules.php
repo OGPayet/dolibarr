@@ -32,9 +32,11 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
 
 dol_include_once('/synergiestechcontrat/class/libPDFST.trait.php');
 dol_include_once('/synergiestech/lib/opendsi_pdf.lib.php');
+dol_include_once('/extendedintervention/class/extendedintervention.class.php');
 
 
 /**
@@ -61,6 +63,11 @@ class pdf_soleil_st extends ModelePDFFicheinter
     var $main_color = array(192, 0, 0);
 
     var $emetteur;    // Objet societe qui emet
+
+    var $extrafields_question_bloc;
+    var $extralabels_question_bloc;
+    var $extrafields_question;
+    var $extralabels_question;
 
     /**
      *  List of effective working time by technician
@@ -106,6 +113,13 @@ class pdf_soleil_st extends ModelePDFFicheinter
 
         // Define position of columns
         $this->posxdesc = $this->marge_gauche + 1;
+
+        // Optionals attributes and labels for question bloc
+        $this->extrafields_question_bloc = new ExtraFields($db);
+        $this->extralabels_question_bloc = $this->extrafields_question_bloc->fetch_name_optionals_label('extendedintervention_question_bloc');
+        // Optionals attributes and labels for question
+        $this->extrafields_question = new ExtraFields($db);
+        $this->extralabels_question = $this->extrafields_question->fetch_name_optionals_label('extendedintervention_question_blocdet');
     }
 
     /**
@@ -134,8 +148,6 @@ class pdf_soleil_st extends ModelePDFFicheinter
         $outputlangs->load("interventions");
 
         if ($conf->ficheinter->dir_output) {
-            $object->fetch_thirdparty();
-
             // Definition of $dir and $file
             if ($object->specimen) {
                 $dir = $conf->ficheinter->dir_output;
@@ -154,6 +166,15 @@ class pdf_soleil_st extends ModelePDFFicheinter
             }
 
             if (file_exists($dir)) {
+                $new_object = new ExtendedIntervention($this->db);
+                $new_object->fetch($object->id);
+                $object = $new_object;
+
+                $object->fetch_survey();
+                $object->fetch_thirdparty();
+                $object->fetch_optionals();
+                $this->_fetch_effective_working_time($object, $outputlangs);
+
                 // Add pdfgeneration hook
                 if (!is_object($hookmanager)) {
                     include_once DOL_DOCUMENT_ROOT . '/core/class/hookmanager.class.php';
@@ -170,10 +191,6 @@ class pdf_soleil_st extends ModelePDFFicheinter
                 $pdf->backgroundImagePath = dol_buildpath('/synergiestechcontrat/img/fond_6.jpg');
 
                 $default_font_size = pdf_getPDFFontSize($outputlangs);    // Must be after pdf_getInstance
-                $heightforinfotot = 0;    // Height reserved to output the info and total part
-                $heightforsignature = max(40, 30+7*$this->_get_nb_effective_working_time());  // Height reserved to output the effective working time info and signature part
-                $heightforfreetext = (isset($conf->global->MAIN_PDF_FREETEXT_HEIGHT) ? $conf->global->MAIN_PDF_FREETEXT_HEIGHT : 5);    // Height reserved to output the free text on last page
-                $heightforfooter = $this->marge_basse + 8;    // Height reserved to output the footer (value include bottom margin)
                 $pdf->SetAutoPageBreak(1, 0);
 
                 if (class_exists('TCPDF')) {
@@ -207,11 +224,20 @@ class pdf_soleil_st extends ModelePDFFicheinter
                 $pdf->AddPage();
                 if (!empty($tplidx)) $pdf->useTemplate($tplidx);
                 $pagenb++;
-                $this->_pagehead($pdf, $object, 1, $outputlangs);
+                $tab_top = $this->_pagehead($pdf, $object, 1, $outputlangs);
                 $pdf->SetFont('', '', $default_font_size - 1);
                 $pdf->SetTextColor(0, 0, 0);
 
-                $tab_top = 90;
+                $pdf->startTransaction();
+                $heightforeffectiveworkingtime = $this->_effective_working_time_area($pdf, $object, 0, $outputlangs);
+                $heightforsignature = $this->_signature_area($pdf, $object, 0, $outputlangs);
+                $pdf->rollbackTransaction(true);
+
+                $heightforinfotot = 0;    // Height reserved to output the info and total part
+                $heightforsignature = max($heightforsignature, $heightforeffectiveworkingtime);  // Height reserved to output the effective working time info and signature part
+                $heightforfreetext = (isset($conf->global->MAIN_PDF_FREETEXT_HEIGHT) ? $conf->global->MAIN_PDF_FREETEXT_HEIGHT : 5);    // Height reserved to output the free text on last page
+                $heightforfooter = $this->marge_basse + 8;    // Height reserved to output the footer (value include bottom margin)
+
                 $tab_top_newpage = (empty($conf->global->MAIN_PDF_DONOTREPEAT_HEAD) ? 40 : 10);
                 $tab_height = 130;
                 $tab_height_newpage = 150;
@@ -219,7 +245,7 @@ class pdf_soleil_st extends ModelePDFFicheinter
                 // Affiche notes
                 $notetoshow = empty($object->note_public) ? '' : $object->note_public;
                 if ($notetoshow) {
-                    $tab_top = 88;
+                    $tab_top = $tab_top - 2;
 
                     $pdf->SetFont('', '', $default_font_size - 1);
                     $pdf->writeHTMLCell(190, 3, $this->posxdesc - 1, $tab_top, dol_htmlentitiesbr($notetoshow), 0, 1);
@@ -240,27 +266,23 @@ class pdf_soleil_st extends ModelePDFFicheinter
                 $curY = $tab_top + 7;
                 $nexY = $tab_top + 7;
 
-                $pdf->SetXY($this->marge_gauche, $curY);
-
-
-
-
-
-
-
-
-
-
-
-
+                // Print survey
+                foreach ($object->survey as $survey_bloc) {
+                    $curY = $this->_survey_bloc_area($pdf, $object, $survey_bloc, $curY, $outputlangs) + 2;
+                }
 
                 $bottomlasttab = $this->page_hauteur - $heightforinfotot - $heightforsignature - $heightforfreetext - $heightforfooter + 1;
 
+                if ($curY > $bottomlasttab) {
+                    $pdf->AddPage('', '', true);
+                    if (empty($conf->global->MAIN_PDF_DONOTREPEAT_HEAD)) $this->_pagehead($pdf, $object, 0, $outputlangs);
+                }
+
                 // Show effective working time
-//                $this->_effective_working_time_area($pdf, $object, $bottomlasttab, $outputlangs);
-//
-//                // Show signature
-//                $this->_signature_area($pdf, $object, $bottomlasttab, $outputlangs);
+                $this->_effective_working_time_area($pdf, $object, $bottomlasttab, $outputlangs);
+
+                // Show signature
+                $this->_signature_area($pdf, $object, $bottomlasttab, $outputlangs);
 
                 $this->_pagefoot($pdf, $object, $outputlangs);
                 if (method_exists($pdf, 'AliasNbPages')) $pdf->AliasNbPages();
@@ -296,7 +318,7 @@ class pdf_soleil_st extends ModelePDFFicheinter
      * @param  int          $showaddress    0=no, 1=yes
      * @param  Translate    $outputlangs    Object lang for output
      *
-     * @return void
+     * @return  int							    Position pour suite
      */
     function _pagehead(&$pdf, $object, $showaddress, $outputlangs)
     {
@@ -371,6 +393,8 @@ class pdf_soleil_st extends ModelePDFFicheinter
         $pdf->SetXY($posx + 36, $posy + 2);
         $pdf->SetFont('', '', $default_font_size - 2);
         $pdf->MultiCell($widthrecbox - 2, 4, $carac_emetteur, 0, 'L');
+
+        $max_y = $pdf->GetY() + 5;
 
         if ($showaddress) {
             // Get extrafields
@@ -462,6 +486,8 @@ class pdf_soleil_st extends ModelePDFFicheinter
             $this->addBullet($pdf, $bulletSize);
             $pdf->MultiCell($w - $bulletWidth, 3, $outputlangs->transnoentities("SynergiesTechPDFInterventionRefBenefactorCompany") . " : " . $benefactor_company->code_client, $multiCellBorder, 'L');
 
+            $max_y = max($max_y, $pdf->GetY());
+
             // Write Benefactor Company Information
             //-------------------------------------
             $widthrecbox = $w;
@@ -496,6 +522,8 @@ class pdf_soleil_st extends ModelePDFFicheinter
             $pdf->SetXY($posx + $bulletWidth, $posy);
             $this->addBullet($pdf, $bulletSize);
             $pdf->MultiCell($widthrecbox - $bulletWidth, 4, (($use_benefactor_contact) ? $benefactor_company->contact->email : $benefactor_company->email), $multiCellBorder, 'L');
+
+            $max_y = max($max_y, $pdf->GetY());
 
             // Write Principal Company Information
             //-------------------------------------
@@ -532,10 +560,14 @@ class pdf_soleil_st extends ModelePDFFicheinter
             $pdf->SetXY($posx + $bulletWidth, $posy);
             $this->addBullet($pdf, $bulletSize);
             $pdf->MultiCell($widthrecbox - $bulletWidth, 4, (($use_principal_contact) ? $principal_company->contact->email : $principal_company->email), $multiCellBorder, 'L');
+
+            $max_y = max($max_y, $pdf->GetY());
         }
 
         $pdf->SetFont('', '', $default_font_size - 1);
         $pdf->SetTextColor(0, 0, 0);
+
+        return $max_y;
     }
 
     /**
@@ -552,6 +584,219 @@ class pdf_soleil_st extends ModelePDFFicheinter
         global $conf;
         $showdetails = $conf->global->MAIN_GENERATE_DOCUMENTS_SHOW_FOOT_DETAILS;
         return $this->pdf_pagefoot($pdf, $outputlangs, 'FICHINTER_FREE_TEXT', $this->emetteur, $this->marge_basse, $this->marge_gauche, $this->page_hauteur, $object, $showdetails, $hidefreetext);
+    }
+
+    /**
+	 *	Show area for the survey bloc
+	 *
+	 * @param   PDF			    $pdf            Object PDF
+     * @param   Fichinter       $object         Object intervention
+     * @param   EISurveyBloc    $survey_bloc    Object survey block
+     * @param   int			    $posy			Position Y of the bloc
+	 * @param   Translate	    $outputlangs	Objet langs
+     *
+	 * @return  int							    Position pour suite
+	 */
+	function _survey_bloc_area(&$pdf, $object, $survey_bloc, $posy, $outputlangs)
+    {
+        global $conf;
+
+        $default_font_size = pdf_getPDFFontSize($outputlangs);
+
+        $posx = $this->marge_droite;
+        $w = $this->page_largeur - $this->marge_gauche - $this->marge_droite;
+
+        $column_left_w = ($w - 4) / 2;
+        $column_right_w = $column_left_w;
+        $column_right_posx = $this->page_largeur - $this->marge_droite - $column_left_w;
+
+        // Define colors and font size
+        $pdf->SetFont('', 'B', $default_font_size);
+        call_user_func_array(array($pdf, 'SetFillColor'), $this->main_color);
+        call_user_func_array(array($pdf, 'SetDrawColor'), $this->main_color);
+        $pdf->SetTextColor(255, 255, 255);
+
+        // Print title of the table
+        $survey_bloc_title = $survey_bloc->fk_equipment != 0 ? $outputlangs->transnoentities('SynergiesTechPDFInterventionSurveyBlocTitle', $survey_bloc->product_label, $survey_bloc->product_ref, $survey_bloc->equipment_ref) : $outputlangs->transnoentities('SynergiesTechPDFInterventionSurveyBlocGeneralTitle');
+        $pdf->SetXY($posx, $posy);
+        $pdf->MultiCell($w, 3, $survey_bloc_title, 1, 'C', 1);
+
+        $pdf->SetFillColor(255, 255, 255);
+        $pdf->SetDrawColor(0, 0, 0);
+        $pdf->SetTextColor(0, 0, 0);
+
+        $start_y = $pdf->GetY();
+        $start_page = $pdf->GetPage();
+
+        $nb_question_bloc = count($survey_bloc->survey);
+
+        // Print left column
+        $idx = 0;
+        foreach ($survey_bloc->survey as $question_bloc) {
+            $idx++;
+            if ($idx % 2 == 0) continue;
+
+            $this->_question_bloc_area($pdf, $question_bloc, $posx, $start_y, $column_left_w, $outputlangs, $idx < $nb_question_bloc - 1);
+        }
+
+        $end_y = $pdf->GetY();
+        $end_page = $pdf->getPage();
+
+        $pdf->SetPage($start_page);
+        $pdf->SetY($start_y);
+
+        // Print right column
+        $idx = 0;
+        foreach ($survey_bloc->survey as $question_bloc) {
+            $idx++;
+            if ($idx % 2 == 1) continue;
+
+            $this->_question_bloc_area($pdf, $question_bloc, $column_right_posx, $start_y, $column_right_w, $outputlangs, $idx < $nb_question_bloc);
+        }
+
+        if ($end_y < $pdf->GetY() || $end_page < $pdf->getPage()) {
+            $end_y = $pdf->GetY();
+            $end_page = $pdf->getPage();
+        }
+
+        // Calculate height and set header and footer of the page
+        $height = 0;
+        if ($end_page == $start_page) {
+            $height = $end_y - $start_y;
+        } else {
+            for ($page = $start_page; $page <= $end_page; ++$page) {
+                $pdf->setPage($page);
+                if ($page == $start_page) {
+                    // first page
+                    $this->_pagefoot($pdf,$object,$outputlangs,1);
+                    $height = $pdf->h - $start_y - $pdf->bMargin;
+                } elseif ($page == $end_page) {
+                    // last page
+                    if (empty($conf->global->MAIN_PDF_DONOTREPEAT_HEAD)) $this->_pagehead($pdf, $object, 0, $outputlangs);
+                    $height = $end_y - $pdf->tMargin;
+                } else {
+                    $this->_pagefoot($pdf,$object,$outputlangs,1);
+                    if (empty($conf->global->MAIN_PDF_DONOTREPEAT_HEAD)) $this->_pagehead($pdf, $object, 0, $outputlangs);
+                    $height = $pdf->h - $pdf->tMargin - $pdf->bMargin;
+                }
+            }
+        }
+
+        $pdf->SetPage($start_page);
+        $pdf->SetY($start_y);
+
+        // Print frame
+        call_user_func_array(array($pdf, 'SetDrawColor'), $this->main_color);
+        $pdf->Rect($posx, $start_y, $w, $height);
+        $pdf->SetDrawColor(0, 0, 0);
+        $posy = $pdf->GetY();
+
+        return $posy;
+    }
+
+    /**
+	 *	Show area for the question bloc
+	 *
+	 * @param   PDF			    $pdf            Object PDF
+     * @param   EIQuestionBloc  $question_bloc  Object question block
+     * @param   int			    $posx			Position X of the bloc
+     * @param   int			    $posy			Position Y of the bloc
+     * @param   int			    $width			Width of the bloc
+	 * @param   Translate	    $outputlangs	Objet langs
+     * @param   int	            $addline    	1=Add dash line after the bloc
+     *
+	 * @return  int							    Position pour suite
+	 */
+	function _question_bloc_area(&$pdf, $question_bloc, $posx, $posy, $width, $outputlangs, $addline=0)
+    {
+        $default_font_size = pdf_getPDFFontSize($outputlangs);
+
+        $pdf->SetFont('', '', $default_font_size - 1);   // Into loop to work with multipage
+        $pdf->SetTextColor(0, 0, 0);
+        $margin = 0;
+        $padding = 1;
+        $border = 0;
+
+        // Print status of the question bloc
+        $circle_ray = 1.25;
+        $circle_offset = $circle_ray + 1;
+        $circle_style = '';
+        $circle_fill_color = array();
+        if (!empty($question_bloc->color_status)) {
+            $circle_style = 'F';
+            list($r, $g, $b) = sscanf($question_bloc->color_status, "#%02x%02x%02x");
+            $circle_fill_color = array($r, $g, $b);
+        }
+        $pdf->Circle($posx + $circle_offset, $posy + $circle_offset, $circle_ray, 0, 360, $circle_style, array(), $circle_fill_color);
+
+        // Print label (+ complementary text and status justificatory) of the question bloc
+        $question_bloc_complementary_text = $question_bloc->complementary_question_bloc . (!empty($question_bloc->complementary_question_bloc) && !empty($question_bloc->justificatory_status) ? ' - ' : '') . $question_bloc->justificatory_status;
+        $question_bloc_title = '<b><font size="' . $default_font_size . '">' . $question_bloc->label_question_bloc . (!empty($question_bloc_complementary_text) ? '&nbsp;->&nbsp;</font><font size="' . ($default_font_size - 1) . '">' . $question_bloc_complementary_text : '') . '</font></b>';
+        $pdf->writeHTMLCell($width - ($circle_offset * 2 + $margin), 3, $posx + $circle_offset * 2 + $margin, $posy, trim($question_bloc_title), $border, 1, false, true, 'L', true);
+        $posy = $pdf->GetY();
+
+        $posx_question = $posx + $circle_offset * 2 + $padding;
+        $width_question = $width - ($circle_offset * 2 + $padding);
+
+        $bullet_ray = 0.5;
+        $circle_ray = 1;
+        $circle_offset = $circle_ray + 1;
+        $posx_question_extrafield = $posx_question + $circle_offset * 2 + $padding;
+        $width_question_extrafield = $width_question - ($circle_offset * 2 + $padding);
+
+        // Print extrafields of the question bloc
+        $question_bloc->fetch_optionals();
+        foreach ($question_bloc->extrafields_question_bloc as $key) {
+            // Print bullet of the extrafield
+            $pdf->Circle($posx_question + $circle_offset, $posy + $circle_offset, $bullet_ray, 0, 360, 'F', array(), array(0, 0, 0));
+
+            // Print label and value of the extrafield
+            $question_bloc_extrafield = '<b><font size="' . ($default_font_size - 1) . '">' . $this->extrafields_question_bloc->attribute_label[$key] . '&nbsp;:&nbsp;</font></b><font size="' . ($default_font_size - 2) . '">' . $this->extrafields_question_bloc->showOutputField($key, $question_bloc->array_options['options_' . $key]) . '</font>';
+            $pdf->writeHTMLCell($width_question - ($circle_offset * 2 + $margin), 3, $posx_question + $circle_offset * 2 + $margin, $posy, trim($question_bloc_extrafield), $border, 1, false, true, 'L', true);
+            $posy = $pdf->GetY();
+        }
+
+        // Print questions
+        foreach ($question_bloc->lines as $line) {
+            // Print color answer of the question
+            $circle_style = '';
+            $circle_fill_color = array();
+            if (!empty($line->color_answer)) {
+                $circle_style = 'F';
+                list($r, $g, $b) = sscanf($line->color_answer, "#%02x%02x%02x");
+                $circle_fill_color = array($r, $g, $b);
+            }
+            $pdf->Circle($posx_question + $circle_offset, $posy + $circle_offset, $circle_ray, 0, 360, $circle_style, array(), $circle_fill_color);
+
+            // Print label (+ answer justificatory) of the question
+            $question_answer = '<b><font size="' . ($default_font_size - 1) . '">' . $line->label_question . '&nbsp;:&nbsp;</font></b><font size="' . ($default_font_size - 2) . '">' . $line->text_answer . '</font>';
+            $pdf->writeHTMLCell($width_question - ($circle_offset * 2 + $margin), 3, $posx_question + $circle_offset * 2 + $margin, $posy, trim($question_answer), $border, 1, false, true, 'L', true);
+            $posy = $pdf->GetY();
+
+            // Print extrafields of the question
+            $line->fetch_optionals();
+            foreach ($line->extrafields_question as $key) {
+                // Print bullet of the extrafield
+                $pdf->Circle($posx_question_extrafield + $circle_offset, $posy + $circle_offset, $bullet_ray, 0, 360, 'F', array(), array(0, 0, 0));
+
+                // Print label and value of the extrafield
+                $question_bloc_extrafield = '<b><font size="' . ($default_font_size - 1) . '">' . $this->extrafields_question->attribute_label[$key] . '&nbsp;:&nbsp;</font></b><font size="' . ($default_font_size - 2) . '">' . $this->extrafields_question->showOutputField($key, $line->array_options['options_' . $key]) . '</font>';
+                $pdf->writeHTMLCell($width_question_extrafield - ($circle_offset * 2 + $margin), 3, $posx_question_extrafield + $circle_offset * 2 + $margin, $posy, trim($question_bloc_extrafield), $border, 1, false, true, 'L', true);
+                $posy = $pdf->GetY();
+            }
+        }
+
+        if ($addline) {
+            $posy += 1;
+            // Print dash line
+            $pdf->SetLineStyle(array('dash' => '0.5', 'color' => array(0, 0, 0)));
+            $pdf->line($posx, $posy, $posx + $width, $posy);
+            $pdf->SetLineStyle(array('dash' => '0'));
+        }
+
+        $posy += 1;
+
+        return $posy;
     }
 
     /**
@@ -619,35 +864,160 @@ class pdf_soleil_st extends ModelePDFFicheinter
 	 * @param   int			$posy			Position depart
 	 * @param   Translate	$outputlangs	Objet langs
      *
-	 * @return  int							Position pour suite
+	 * @return  int							Height of the area
 	 */
 	function _effective_working_time_area(&$pdf, $object, $posy, $outputlangs)
-	{
-		$default_font_size = pdf_getPDFFontSize($outputlangs);
-		$tab_top = $posy + 4;
-		if($posy > 241 && $posy < 247) {
-			$tab_hl = 6;
-		} else if($posy > 241 && $posy > 247)  {
-			$tab_hl = 5;
-		} else {
-			$tab_hl = 7;
-		}
+    {
+        $default_font_size = pdf_getPDFFontSize($outputlangs);
 
-		$posx = 120;
-		$largcol = ($this->page_largeur - $this->marge_droite - $posx);
-		$useborder=0;
-		$index = 0;
-		// Total HT
-		$pdf->SetFillColor(255,255,255);
-		$pdf->SetXY($posx, $tab_top + 0);
-		$pdf->SetFont('','', $default_font_size - 2);
-		$pdf->MultiCell($largcol, $tab_hl, $outputlangs->transnoentities("ProposalCustomerSignature"), 0, 'L', 1);
+        $table_padding_x = 0.5;
+        $table_padding_y = 1;
 
-		$pdf->SetXY($posx, $tab_top + $tab_hl);
-		$pdf->MultiCell($largcol, $tab_hl*3, '', 1, 'R');
+        $top_posy = $posy;
+        $w = ($this->page_largeur - $this->marge_gauche - $this->marge_droite - 4) / 2;
+        $column_w_from = 30;
+        $column_w_to = 15;
+        $column_w_duration = 15;
+        $column_w_involved_user = $w - $column_w_duration - $column_w_to - $column_w_from;
 
-		return ($tab_hl*7);
-	}
+        $column_posx_involved_user = $this->marge_gauche;
+        $column_posx_from = $column_posx_involved_user + $column_w_involved_user;
+        $column_posx_to = $column_posx_from + $column_w_from;
+        $column_posx_duration = $column_posx_to + $column_w_to;
+        $column_posx_end_table = $column_posx_duration + $column_w_duration;
+
+        // Define colors and font size
+        $pdf->SetFont('', 'B', $default_font_size);
+        call_user_func_array(array($pdf, 'SetFillColor'), $this->main_color);
+        call_user_func_array(array($pdf, 'SetDrawColor'), $this->main_color);
+        $pdf->SetTextColor(255, 255, 255);
+
+        // Print title of the table
+        $pdf->SetXY($column_posx_involved_user, $posy);
+        $pdf->MultiCell($w, 3, $outputlangs->transnoentities("SynergiesTechPDFInterventionEffectiveWorkingTimeTitle"), 1, 'C', 1);
+
+        // Define positions, colors and font size
+        $posy = $top_table = $pdf->GetY();
+        $max_posy = $posy;
+        $pdf->SetFont('', 'B', $default_font_size - 1);
+        $pdf->SetFillColor(255, 255, 255);
+        $pdf->SetTextColor(0, 0, 0);
+
+        // Print involved user header of the table
+        $pdf->SetXY($column_posx_involved_user + $table_padding_x, $posy + $table_padding_y);
+        $pdf->MultiCell($column_w_involved_user - ($table_padding_x * 2), 3, $outputlangs->transnoentities("SynergiesTechPDFInterventionEffectiveWorkingTimeInvolvedUser"), 0, 'C', 0);
+        $max_posy = max($pdf->GetY(), $max_posy);
+
+        // Print from header of the table
+        $pdf->SetXY($column_posx_from + $table_padding_x, $posy + $table_padding_y);
+        $pdf->MultiCell($column_w_from - ($table_padding_x * 2), 3, $outputlangs->transnoentities("SynergiesTechPDFInterventionEffectiveWorkingTimeFrom"), 0, 'C', 0);
+        $max_posy = max($pdf->GetY(), $max_posy);
+
+        // Print to header of the table
+        $pdf->SetXY($column_posx_to + $table_padding_x, $posy + $table_padding_y);
+        $pdf->MultiCell($column_w_to - ($table_padding_x * 2), 3, $outputlangs->transnoentities("SynergiesTechPDFInterventionEffectiveWorkingTimeTo"), 0, 'C', 0);
+        $max_posy = max($pdf->GetY(), $max_posy);
+
+        // Print duration header of the table
+        $pdf->SetXY($column_posx_duration + $table_padding_x, $posy + $table_padding_y);
+        $pdf->MultiCell($column_w_duration - ($table_padding_x * 2), 3, $outputlangs->transnoentities("SynergiesTechPDFInterventionEffectiveWorkingTimeDuration"), 0, 'C', 0);
+        $max_posy = max($pdf->GetY(), $max_posy);
+
+        // Print bottom line
+        $posy = $max_posy + $table_padding_y;
+        $pdf->line($column_posx_involved_user, $posy, $column_posx_end_table, $posy);
+
+        // Define positions, colors and font size
+        $pdf->SetFont('', '', $default_font_size - 1);
+
+        $total_duration = 0;
+
+        // Print effective working time
+        //-------------------------------------
+        foreach ($this->effective_working_time as $user) {
+            $max_user_posy = $posy;
+            if (is_array($user['times'])) {
+                $idx = 0;
+                $nb_times = count($user['times']);
+                $last_date = '';
+                $top_cell = $posy;
+
+                foreach ($user['times'] as $time) {
+                    $idx++;
+                    $date = dol_print_date($time['begin'], 'day');
+                    if ($last_date == $date) {
+                        $date = '';
+                    } else {
+                        $last_date = $date;
+                        $date .= ' ';
+                    }
+                    $date .= dol_print_date($time['begin'], 'hour');
+
+                    // Print from value
+                    $pdf->SetXY($column_posx_from + $table_padding_x, $posy + $table_padding_y);
+                    $pdf->MultiCell($column_w_from - ($table_padding_x * 2), 3, $date, 0, 'R', 0);
+                    $max_user_posy = max($pdf->GetY(), $max_user_posy);
+
+                    // Print to value
+                    $pdf->SetXY($column_posx_to + $table_padding_x, $posy + $table_padding_y);
+                    $pdf->MultiCell($column_w_to - ($table_padding_x * 2), 3, dol_print_date($time['end'], 'hour'), 0, 'C', 0);
+                    $max_user_posy = max($pdf->GetY(), $max_user_posy);
+
+                    // Print duration value
+                    $pdf->SetXY($column_posx_duration + $table_padding_x, $posy + $table_padding_y);
+                    $pdf->MultiCell($column_w_duration - ($table_padding_x * 2), 3, $this->_print_duration($time['duration']), 0, 'C', 0);
+                    $max_user_posy = max($pdf->GetY(), $max_user_posy);
+                    $total_duration += $time['duration'];
+
+                    $posy = $max_user_posy + $table_padding_y;
+                    if ($idx != $nb_times) {
+                        // Print bottom line
+                        $pdf->line($column_posx_from, $posy, $column_posx_end_table, $posy);
+                    }
+                }
+
+                // Print user name
+                $pdf->SetXY($column_posx_involved_user + $table_padding_x, $top_cell + $table_padding_y);
+                $pdf->MultiCell($column_w_involved_user - ($table_padding_x * 2), $max_user_posy - $top_cell - ($table_padding_y * 2), $user['name'], 0, 'C', 0, 1, '', '', true, 0, false, true, 0, 'M');
+                $max_user_posy = max($pdf->GetY(), $max_user_posy);
+
+                // Print bottom line
+                $posy = $max_user_posy + $table_padding_y;
+                $pdf->line($column_posx_involved_user, $posy, $column_posx_end_table, $posy);
+            }
+        }
+
+        // Print involved user left line
+        $pdf->line($column_posx_involved_user, $top_table, $column_posx_involved_user, $posy);
+        // Print from left line
+        $pdf->line($column_posx_from, $top_table, $column_posx_from, $posy);
+
+        // Define positions, colors and font size
+        $pdf->SetFont('', 'B', $default_font_size);
+
+        // Print total label
+        $pdf->SetXY($column_posx_to + $table_padding_x, $posy + $table_padding_y);
+        $pdf->MultiCell($column_w_to - ($table_padding_x * 2), 3, $outputlangs->transnoentities("SynergiesTechPDFInterventionEffectiveWorkingTimeTotal"), 0, 'C', 0);
+        $max_posy = max($pdf->GetY(), $max_posy);
+
+        // Print total value
+        $pdf->SetXY($column_posx_duration + $table_padding_x, $posy + $table_padding_y);
+        $pdf->MultiCell($column_w_duration - ($table_padding_x * 2), 3, $this->_print_duration($total_duration), 0, 'C', 0);
+        $max_posy = max($pdf->GetY(), $max_posy);
+
+        $posy = $max_posy + $table_padding_y;
+
+        // Print to left line
+        $pdf->line($column_posx_to, $top_table, $column_posx_to, $posy);
+        // Print duration left line
+        $pdf->line($column_posx_duration, $top_table, $column_posx_duration, $posy);
+        // Print duration right line
+        $pdf->line($column_posx_end_table, $top_table, $column_posx_end_table, $posy);
+        // Print bottom line
+        $pdf->line($column_posx_to, $posy, $column_posx_end_table, $posy);
+
+        return $posy - $top_posy;
+    }
 
     /**
 	 *	Show area for the technician and customer to sign
@@ -657,50 +1027,124 @@ class pdf_soleil_st extends ModelePDFFicheinter
 	 * @param   int         $posy			Position depart
 	 * @param   Translate   $outputlangs	Objet langs
      *
-	 * @return  int							Position pour suite
+	 * @return  int							Height of the area
 	 */
 	function _signature_area(&$pdf, $object, $posy, $outputlangs)
 	{
-		$default_font_size = pdf_getPDFFontSize($outputlangs);
-		$tab_top = $posy + 4;
-		if($posy > 241 && $posy < 247) {
-			$tab_hl = 6;
-		} else if($posy > 241 && $posy > 247)  {
-			$tab_hl = 5;
-		} else {
-			$tab_hl = 7;
-		}
+//        $default_font_size = pdf_getPDFFontSize($outputlangs);
+//
+//        $w = ((($this->page_largeur - $this->marge_gauche - $this->marge_droite - 4) / 2) - 4) / 2;
+//        $involved_user_posx = ($this->page_largeur - $this->marge_gauche - $this->marge_droite - 4) / 2;
+//        $involved_user_posx_end = $involved_user_posx = $w;
+//
+//        // Print Involved User Signature
+//
+//
+//        $pdf->MultiCell($column_w_to - ($table_padding_x * 2), 3, $outputlangs->transnoentities("SynergiesTechPDFInterventionEffectiveWorkingTimeTotal"), 0, 'C', 0);
+//
+//
 
-        // Output Rect
-        $this->printRect($pdf, $this->marge_gauche, $tab_top, $this->page_largeur - $this->marge_gauche - $this->marge_droite, $tab_height + 1, 0, 0);    // Rect prend une longueur en 3eme param et 4eme param
 
-        if (empty($hidebottom)) {
-            $pdf->SetXY(20, 230);
-            $pdf->MultiCell(66, 5, $outputlangs->transnoentities("NameAndSignatureOfInternalContact"), 0, 'L', 0);
+//   		$default_font_size = pdf_getPDFFontSize($outputlangs);
+//   		$tab_top = $posy + 4;
+//   		if($posy > 241 && $posy < 247) {
+//   			$tab_hl = 6;
+//   		} else if($posy > 241 && $posy > 247)  {
+//   			$tab_hl = 5;
+//   		} else {
+//   			$tab_hl = 7;
+//   		}
+//
+//        // Output Rect
+//        $this->printRect($pdf, $this->marge_gauche, $tab_top, $this->page_largeur - $this->marge_gauche - $this->marge_droite, $tab_height + 1, 0, 0);    // Rect prend une longueur en 3eme param et 4eme param
+//
+//        if (empty($hidebottom)) {
+//            $pdf->SetXY(20, 230);
+//            $pdf->MultiCell(66, 5, $outputlangs->transnoentities("NameAndSignatureOfInternalContact"), 0, 'L', 0);
+//
+//            $pdf->SetXY(20, 235);
+//            $pdf->MultiCell(80, 25, '', 1);
+//
+//            $pdf->SetXY(110, 230);
+//            $pdf->MultiCell(80, 5, $outputlangs->transnoentities("NameAndSignatureOfExternalContact"), 0, 'L', 0);
+//
+//            $pdf->SetXY(110, 235);
+//            $pdf->MultiCell(80, 25, '', 1);
+//        }
+//
+//   		$posx = 120;
+//   		$largcol = ($this->page_largeur - $this->marge_droite - $posx);
+//   		$useborder=0;
+//   		$index = 0;
+//   		// Total HT
+//   		$pdf->SetFillColor(255,255,255);
+//   		$pdf->SetXY($posx, $tab_top + 0);
+//   		$pdf->SetFont('','', $default_font_size - 2);
+//   		$pdf->MultiCell($largcol, $tab_hl, $outputlangs->transnoentities("ProposalCustomerSignature"), 0, 'L', 1);
+//
+//   		$pdf->SetXY($posx, $tab_top + $tab_hl);
+//   		$pdf->MultiCell($largcol, $tab_hl*3, '', 1, 'R');
 
-            $pdf->SetXY(20, 235);
-            $pdf->MultiCell(80, 25, '', 1);
+		return 0;
+	}
 
-            $pdf->SetXY(110, 230);
-            $pdf->MultiCell(80, 5, $outputlangs->transnoentities("NameAndSignatureOfExternalContact"), 0, 'L', 0);
+    /**
+     * Return the duration information array('days', 'hours', 'minutes', 'seconds')
+     *
+     * @param	int	    $timestamp		Duration in second
+     * @param	int	    $day			Get days
+     * @param   int     $hour_minute    Get hours / minutes
+     * @param   int     $second         Get seconds
+     *
+     * @return	array                  array informations
+     */
+    function _get_duration($timestamp, $day = 1, $hour_minute = 1, $second = 0)
+    {
+        $days = $hours = $minutes = $seconds = 0;
 
-            $pdf->SetXY(110, 235);
-            $pdf->MultiCell(80, 25, '', 1);
+        if (!empty($timestamp)) {
+            if ($day) {
+                $days = floor($timestamp / 86400);
+                $timestamp -= $days * 86400;
+            }
+
+            if ($hour_minute) {
+                $hours = floor($timestamp / 3600);
+                $timestamp -= $hours * 3600;
+
+                $minutes = floor($timestamp / 60);
+                $timestamp -= $minutes * 60;
+            }
+
+            if ($second) {
+                $seconds = $timestamp;
+            }
         }
 
-		$posx = 120;
-		$largcol = ($this->page_largeur - $this->marge_droite - $posx);
-		$useborder=0;
-		$index = 0;
-		// Total HT
-		$pdf->SetFillColor(255,255,255);
-		$pdf->SetXY($posx, $tab_top + 0);
-		$pdf->SetFont('','', $default_font_size - 2);
-		$pdf->MultiCell($largcol, $tab_hl, $outputlangs->transnoentities("ProposalCustomerSignature"), 0, 'L', 1);
+        return array('days' => $days, 'hours' => $hours, 'minutes' => $minutes, 'seconds' => $seconds);
+    }
 
-		$pdf->SetXY($posx, $tab_top + $tab_hl);
-		$pdf->MultiCell($largcol, $tab_hl*3, '', 1, 'R');
+    /**
+     * Return a formatted duration (x days x hours x minutes x seconds)
+     *
+     * @param	int	    $timestamp		Duration in second
+     * @param	int	    $day			Show days
+     * @param   int     $hour_minute    Show hours / minutes
+     * @param   int     $second         Show seconds
+     *
+     * @return	string                  Formated duration
+     */
+    function _print_duration($timestamp, $day = 1, $hour_minute = 1, $second = 0)
+    {
+        $duration_infos = $this->_get_duration($timestamp, $day, $hour_minute, $second);
 
-		return ($tab_hl*7);
-	}
+        $text = '';
+        if ($duration_infos['days'] > 0) $text .= $duration_infos['days'] . 'j';
+        if ($duration_infos['hours'] > 0) $text .= $duration_infos['hours'] . 'h';
+        if ($duration_infos['minutes'] > 0) $text .= $duration_infos['minutes'] . 'm';
+        if ($duration_infos['seconds'] > 0) $text .= $duration_infos['seconds'] . 's';
+
+        return trim($text);
+    }
 }
+
