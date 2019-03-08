@@ -732,9 +732,11 @@ class RequestManagerStatusDictionaryLine extends DictionaryLine
         }
 
         dol_include_once('/requestmanager/class/requestmanager.class.php');
-        if ($fieldsValue['type'] == RequestManager::STATUS_TYPE_INITIAL ||
-            $fieldsValue['type'] == RequestManager::STATUS_TYPE_RESOLVED ||
-            $fieldsValue['type'] == RequestManager::STATUS_TYPE_CLOSED) {
+        if ($fieldsValue['type'] == RequestManager::STATUS_TYPE_INITIAL
+		    // ||
+            //$fieldsValue['type'] == RequestManager::STATUS_TYPE_RESOLVED ||
+            //$fieldsValue['type'] == RequestManager::STATUS_TYPE_CLOSED
+			) {
             $status = $this->dictionary->getCodeFromFilter('{{rowid}}', array('type' => array($fieldsValue['type']), 'request_type'=> explode(',', $fieldsValue['request_type'])));
             if (($status > 0 && $status != $this->id) || $status == -1) {
                 $this->errors[] = $langs->trans('RequestManagerErrorOnlyOneStatusForThisTypeForEachRequestType');
