@@ -268,15 +268,7 @@ class RequestManagerStatusDictionary extends Dictionary
                 'positionLine' => 2,
             ),
         ),
-		'do_not_bloc_process' => array(
-            'name'       => 'do_not_bloc_process',
-            'label'      => 'RequestManagerStatusDictionaryDoNotBlocProcess',
-            'help'       => 'RequestManagerStatusDictionaryDoNotBlocProcessHelp',
-            'type'       => 'boolean',
-            'td_input' => array(
-                'positionLine' => 2,
-            ),
-        ),
+
         'assigned_user' => array(),
         'assigned_user_replaced' => array(
             'name'       => 'assigned_user_replaced',
@@ -314,6 +306,15 @@ class RequestManagerStatusDictionary extends Dictionary
             'name'       => 'new_request_type_auto',
             'label'      => 'RequestManagerStatusDictionaryNewRequestTypeAuto',
             'help'       => 'RequestManagerStatusDictionaryNewRequestTypeAutoHelp',
+            'type'       => 'boolean',
+            'td_input' => array(
+                'positionLine' => 3,
+            ),
+        ),
+		'do_not_bloc_process' => array(
+            'name'       => 'do_not_bloc_process',
+            'label'      => 'RequestManagerStatusDictionaryDoNotBlocProcess',
+            'help'       => 'RequestManagerStatusDictionaryDoNotBlocProcessHelp',
             'type'       => 'boolean',
             'td_input' => array(
                 'positionLine' => 3,
@@ -528,7 +529,6 @@ class RequestManagerStatusDictionary extends Dictionary
             ),
             'is_require' => true,
         );
-
         $this->fields['request_type'] = array(
             'name' => 'request_type',
             'label' => 'RequestManagerRequestType',
@@ -635,6 +635,20 @@ class RequestManagerStatusDictionary extends Dictionary
             ),
         );
 
+		$this->fields['do_not_bloc_process'] = array(
+            'name' => 'do_not_bloc_process',
+            'label' => 'RequestManagerStatusDictionaryDoNotBlocProcess',
+            'type' => 'boolean',
+            'td_output' => array(
+                'moreAttributes' => 'width="10%"',
+            ),
+			'td_input' => array(
+                'positionLine' => 3,
+                'colspan' => 1,
+				'moreAttributes' => 'width="10%"',
+            ),
+        );
+
         $this->fields['next_status'] = array(
             'name' => 'next_status',
             'label' => 'RequestManagerStatusDictionaryNextStatus',
@@ -647,7 +661,7 @@ class RequestManagerStatusDictionary extends Dictionary
             'td_input' => array(
                 'moreAttributes' => 'width="25%"',
                 'positionLine' => 3,
-                'colspan' => 2,
+                'colspan' => 1,
             ),
         );
 

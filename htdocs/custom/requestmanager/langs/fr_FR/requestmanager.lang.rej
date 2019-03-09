@@ -1,8 +1,10 @@
 diff a/htdocs/custom/requestmanager/langs/fr_FR/requestmanager.lang b/htdocs/custom/requestmanager/langs/fr_FR/requestmanager.lang	(rejected hunks)
-@@ -585,4 +585,5 @@ RequestManagerIPBXTalkers           = Numéro des interlocuteurs : %s,%s
+@@ -500,6 +500,8 @@ RequestManagerStatusDictionaryNewRequestTypeNextStatusAutoHelp              = Pa
+ RequestManagerUrgencyDictionaryColorHelp                                    = La couleur doit être au format HTML (Ex: #FF0000)
+ RequestManagerStatusDictionaryAssignedUserCurrent                           = Assigner l'utilisateur courant
+ RequestManagerStatusDictionaryAssignedUserCurrentHelp                       = Assigner l'utilisateur courant ayant effectué le passage à ce statut.
++RequestManagerStatusDictionaryDoNotBlocProcess                              = Ne pas bloquer le flux
++RequestManagerStatusDictionaryDoNotBlocProcessHelp                          = Ce statut ne bloque pas le flux si des demandes filles ne sont pas clôturées - les statuts suivants ne sont donc pas accessible si cette case est décochée et qu'une ou plusieurs demandes filles ne sont pas clôturées
+ 
  ############################################################
- ### Intervention planning
- ############################################################
--RequestManagerPlanningUserGroupsInChargeLabel    = Groupe(s) utilisateur(s) en charge pour les demandes de type "%s"
-+RequestManagerPlanningUserGroupsInChargeLabel   = Groupe(s) utilisateur(s) en charge pour les demandes de type "%s"
-+RequestManagerForceCreateIntervention           = Créer une intervention même si une au statut brouillon existe déjà
+ ### Form request manager
