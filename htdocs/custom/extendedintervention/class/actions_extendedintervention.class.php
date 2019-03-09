@@ -501,10 +501,15 @@ SCRIPT;
                         if ($conf->requestmanager->enabled && !empty($conf->global->REQUESTMANAGER_PLANNING_ACTIVATE)) {
                             $htmlname = 'ei_planning_times_type_' . $line->fields['code'];
                             $label = $langs->trans('ExtendedInterventionPlanningForInterventionType', $line->fields['label']);
+
+							if(!empty($formextendedintervention->multiselect_planning_times($line->id, $htmlname)))
+							{
+								print $numberOfPossibleRequestType;
                             print '<tr id="ei_count_intervention_block"><td>' . $label . '</td>';
                             print '<td>';
                             print $formextendedintervention->multiselect_planning_times($line->id, $htmlname);
                             print '</td></tr>';
+							}
                         }
 
                         $htmlname = 'ei_count_type_' . $line->fields['code'];
@@ -531,10 +536,14 @@ SCRIPT;
                         $count_label = $langs->trans('ExtendedInterventionQuotaFor', $line->fields['label']);
 
                         if ($conf->requestmanager->enabled && !empty($conf->global->REQUESTMANAGER_PLANNING_ACTIVATE)) {
-                            $can_edit = !empty($count_value) && $count_value > 0;
+                            //$can_edit = !empty($count_value) && $count_value > 0;
+							$can_edit = true;
                             $htmlname = 'ei_planning_times_type_' . $line->fields['code'];
                             $label = $langs->trans('ExtendedInterventionPlanningForInterventionType', $line->fields['label']);
 
+							if(!empty($formextendedintervention->multiselect_planning_times($line->id, $htmlname)))
+							{
+							print $numberOfPossibleRequestType;
                             print '<tr id="ei_count_intervention_block">';
                             print '<td class="titlefield">';
                             print $form->editfieldkey($label, $htmlname, '', $object, $user->rights->contrat->creer && $can_edit);
@@ -542,6 +551,7 @@ SCRIPT;
                             print $formextendedintervention->form_planning_times($object, $line->id, $htmlname, isset($info[$line->id]['planning_times']) ? $info[$line->id]['planning_times'] : array(), $can_edit);
                             print '</td>';
                             print '</tr>';
+							}
                         }
 
                         print '<tr id="ei_count_intervention_block">';
