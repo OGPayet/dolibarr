@@ -1,5 +1,6 @@
 <?php
 /* Copyright (C) 2018  Open-Dsi <support@open-dsi.fr>
+ * Copyright (C) 2019      Alexis LAURIER        <alexis@alexislaurier.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,7 +32,7 @@ class RequestManagerStatusDictionary extends Dictionary
     /**
      * @var int         Version of this dictionary
      */
-    public $version = 11;
+    public $version = 12;
 
     /**
      * @var array       List of languages to load
@@ -267,6 +268,15 @@ class RequestManagerStatusDictionary extends Dictionary
                 'positionLine' => 2,
             ),
         ),
+		'do_not_bloc_process' => array(
+            'name'       => 'do_not_bloc_process',
+            'label'      => 'RequestManagerStatusDictionaryDoNotBlocProcess',
+            'help'       => 'RequestManagerStatusDictionaryDoNotBlocProcessHelp',
+            'type'       => 'boolean',
+            'td_input' => array(
+                'positionLine' => 2,
+            ),
+        ),
         'assigned_user' => array(),
         'assigned_user_replaced' => array(
             'name'       => 'assigned_user_replaced',
@@ -433,6 +443,11 @@ class RequestManagerStatusDictionary extends Dictionary
         11 => array(
             'fields' => array(
                 'assigned_user_current' => 'a',
+            )
+        ),
+		12 => array(
+            'fields' => array(
+                'do_not_bloc_process' => 'a',
             )
         ),
     );

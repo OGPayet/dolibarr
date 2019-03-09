@@ -433,7 +433,7 @@ SCRIPT;
                 foreach ($company_counts['types'][$line->id] as $period_idx => $period) {
                     // Set label - we display the line only if the quota due is >0 or if some interventions have been done ($max >0)
 
-					if($period['max'] > 0 || max > 0)
+					if($period['max'] > 0 || $max > 0)
 					{
 					if($first) $out .= '<tr><td class="titlefield">' . $line->fields['label'] . '</td>';
 					$first=false;

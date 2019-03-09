@@ -1,10 +1,13 @@
 diff a/htdocs/custom/requestmanager/ChangeLog.md b/htdocs/custom/requestmanager/ChangeLog.md	(rejected hunks)
-@@ -5,7 +5,7 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
+@@ -3,6 +3,11 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
  
+ ## [Non Distribué]
+ 
++## [4.0.24] - 09-03-2019
++- Allègement des vérification sur les modifications des données d'en-tête
++- Allègement des blocages informatiques sur le choix des statut possible, rendant possible le croisement de statut de demande de type différent
++- Ajout d'une option permettant de retirer le blocage de la demande parente en cas de création d'une ou plusieur demande fille. Ce paramétrage sur chaque statut permet de définir un point d'entrée et un point de sortie différent au niveau de la demande mère entre la création et la clôture de la demande fille.
++
  ## [4.0.22] - 31-01-2019
  - Ajout de la planification des demandes
--- Peut changer le texte des 'Utilisateur(s) en charge pour les demandes de type "xxx"'  en définisant la traduction sur la balise "RequestManagerPlanningUsersInChargeLabel_(Code du type de demande)"
-+- Peut changer le texte des 'Utilisateur(s) en charge pour les demandes de type "xxx"'  en définisant la traduction sur la balise "RequestManagerPlanningUserGroupsInChargeLabel_(Code du type de demande)"
- 
- ## [4.0.21] - 29-01-2019
- - Correction "error 500" sur l'écran de création rapide des demandes si type de demande non renseigné
+ - Peut changer le texte des 'Utilisateur(s) en charge pour les demandes de type "xxx"'  en définisant la traduction sur la balise "RequestManagerPlanningUserGroupsInChargeLabel_(Code du type de demande)"
