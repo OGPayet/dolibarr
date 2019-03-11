@@ -229,3 +229,5 @@ SynergiesTechPDFInterventionEffectiveWorkingTimeDuration        = Total
 SynergiesTechPDFInterventionEffectiveWorkingTimeTotal           = Total
 SynergiesTechPDFInterventionSurveyBlocTitle                     = Description de l’intervention pour l'équipement "%s" (Ref produit: "%s", N° série: "%s")
 SynergiesTechPDFInterventionSurveyBlocGeneralTitle              = Description de l’intervention générale
+SynergiesTechPDFInterventionSignatureStakeholderTitle           = Signature Technicien - Le %s à %s
+SynergiesTechPDFInterventionSignatureCustomerTitle              = Signature Client - Le %s à %s
