@@ -1246,7 +1246,7 @@ SCRIPT;
             elseif ($action == 'rm_reset_data_in_session' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS
             ) {
                 dol_include_once('/requestmanager/class/html.formrequestmanagermessage.class.php');
-                $formrequestmanagermessage = new FormRequestManagerMessage($db, $object);
+                $formrequestmanagermessage = new FormRequestManagerMessage($this->db, $object);
                 $formrequestmanagermessage->clear_datas_in_session();
 
                 header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=stpremessage&messagemode=init#formmessagebeforetitle');
@@ -1520,7 +1520,7 @@ SCRIPT;
                     $date_creation = $object->date_creation;
                     if ($selectedActionCommId > 0) {
                         require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
-                        $actioncomm = new ActionComm($db);
+                        $actioncomm = new ActionComm($this->db);
                         $actioncomm->fetch($selectedActionCommId);
                         $date_creation = $actioncomm->datep;
                     }

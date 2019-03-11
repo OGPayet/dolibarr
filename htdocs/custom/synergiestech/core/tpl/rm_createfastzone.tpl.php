@@ -62,6 +62,7 @@ if ($zone === 1) {
         $actionComm = new ActionComm($db);
         $actionComm->fetch($selectedActionCommId);
         $selectedSocIdOrigin = $actionComm->socid;
+        $selectedActionJs = 'change_socid_origin';
 
         dol_include_once('/advancedictionaries/class/dictionary.class.php');
         $source_dictionary = Dictionary::getDictionary($db, 'requestmanager', 'requestmanagersource');
