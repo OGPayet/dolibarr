@@ -174,7 +174,6 @@ class pdf_ouvrage_supplier_order_st extends ModelePDFSuppliersOrders
         $nblignes = count($object->lines);
 
         // Loop on each lines to detect if there is at least one image to show
-        $conf->global->MAIN_GENERATE_SUPPLIER_ORDERS_WITH_PICTURE = true;
         $realpatharray=array();
         if (! empty($conf->global->MAIN_GENERATE_SUPPLIER_ORDERS_WITH_PICTURE))
         {
@@ -266,7 +265,6 @@ class pdf_ouvrage_supplier_order_st extends ModelePDFSuppliersOrders
 					$this->error=$langs->transnoentities("ErrorCanNotCreateDir",$dir);
 					return 0;
 				}
-
 			}
 
 			if (file_exists($dir))
@@ -456,7 +454,7 @@ class pdf_ouvrage_supplier_order_st extends ModelePDFSuppliersOrders
 					$showpricebeforepagebreak=1;
 
 					$pdf->startTransaction();
-					pdf_writelinedesc($pdf,$object,$i,$outputlangs,$this->posxtva-$curX,3,$curX,$curY,$hideref,$hidedesc,1);
+					pdf_writelinedesc($pdf,$object,$i,$outputlangs,$this->posxpicture-$curX,3,$curX,$curY,$hideref,$hidedesc,1);
 					$pageposafter=$pdf->getPage();
 					if ($pageposafter > $pageposbefore)	// There is a pagebreak
 					{
@@ -464,7 +462,7 @@ class pdf_ouvrage_supplier_order_st extends ModelePDFSuppliersOrders
 						$pageposafter=$pageposbefore;
 						//print $pageposafter.'-'.$pageposbefore;exit;
 						$pdf->setPageOrientation('', 1, $heightforfooter);	// The only function to edit the bottom margin of current page to set it.
-						pdf_writelinedesc($pdf,$object,$i,$outputlangs,$this->posxtva-$curX,3,$curX,$curY,$hideref,$hidedesc,1);
+						pdf_writelinedesc($pdf,$object,$i,$outputlangs,$this->posxpicture-$curX,3,$curX,$curY,$hideref,$hidedesc,1);
 
                         $pageposafter=$pdf->getPage();
 						$posyafter=$pdf->GetY();
