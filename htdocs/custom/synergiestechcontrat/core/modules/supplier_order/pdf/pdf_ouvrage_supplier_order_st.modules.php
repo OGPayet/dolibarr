@@ -174,6 +174,7 @@ class pdf_ouvrage_supplier_order_st extends ModelePDFSuppliersOrders
         $nblignes = count($object->lines);
 
         // Loop on each lines to detect if there is at least one image to show
+        $conf->global->MAIN_GENERATE_SUPPLIER_ORDERS_WITH_PICTURE = true;
         $realpatharray=array();
         if (! empty($conf->global->MAIN_GENERATE_SUPPLIER_ORDERS_WITH_PICTURE))
         {
@@ -1224,7 +1225,15 @@ class pdf_ouvrage_supplier_order_st extends ModelePDFSuppliersOrders
             $bulletSize      = 1;
             $bulletWidth     = 6;
             $multiCellBorder = 0;
-            $showBenefactor  = FALSE;
+
+            // Open DSI - use contact delivery address -- Begin
+            $use_contact_delivery = false;
+            $array_idcontact_delivery = $object->getIdContact('external', 'SHIPPING');
+            if (count($array_idcontact_delivery) > 0) {
+                $use_contact_delivery = true;
+                $w = intval(($this->page_largeur - ($this->marge_gauche + 7) - $this->marge_droite) / 3);
+            }
+            // Open DSI - use contact delivery address -- End
 
             $posx = $this->marge_gauche;
             $posy = $this->marge_haute;
@@ -1283,6 +1292,39 @@ class pdf_ouvrage_supplier_order_st extends ModelePDFSuppliersOrders
             // Show list of linked objects
             // $posy = pdf_writeLinkedObjects($pdf, $object, $outputlangs, $posx, $posy, 100, 3, 'R', $default_font_size);
 
+            // Open DSI - use contact delivery address -- Begin
+            if ($use_contact_delivery === true) {
+                $result = $object->fetch_contact($array_idcontact_delivery[0]);
+                // pour recuperer l'adresse de la societe du client (si
+                $object->contact->fetch_thirdparty();
+                $carac_client_name = $outputlangs->convToOutputCharset($object->contact->socname);
+                $carac_destinataire = pdf_build_address($outputlangs, $this->emetteur, $object->contact->thirdparty, $object->contact, $use_contact_delivery, 'target');
+
+                $posy = $this->marge_haute;
+                $posx = $this->page_largeur - $this->marge_droite - 2*$w - 3.5;
+                call_user_func_array(array($pdf, 'SetTextColor'), $this->main_color);
+                $pdf->SetFont('', 'B', $default_font_size);
+                $pdf->SetXY($posx, $posy);
+                $pdf->MultiCell($w, 5, $outputlangs->transnoentities("RecipientAdress"), $multiCellBorder, 'L');
+                $pdf->SetTextColor(0, 0, 0);
+
+                $posy = $pdf->getY();
+
+                // Show recipient name
+                $pdf->SetXY($posx, $posy + 1);
+                $pdf->SetFont('', 'B', $default_font_size-2);
+                $pdf->MultiCell($w, 2, $carac_client_name, $multiCellBorder, 'L');
+
+                $posy = $pdf->getY();
+
+                // Show recipient information
+                $pdf->SetFont('', '', $default_font_size-2);
+                $pdf->SetXY($posx+$bulletWidth, $posy + 1);
+                $this->addBullet($pdf, $bulletSize);
+                $pdf->MultiCell($w-$bulletWidth, 4, $carac_destinataire, $multiCellBorder, 'L');
+            }
+            // Open DSI - use contact delivery address -- End
+
 			// If BILLING contact defined on order, we use it
 			$usecontact=false;
 			$arrayidcontact=$object->getIdContact('external','BILLING');
@@ -1304,10 +1346,10 @@ class pdf_ouvrage_supplier_order_st extends ModelePDFSuppliersOrders
                 $carac_client_name=$outputlangs->convToOutputCharset($object->thirdparty->name);
             }
 
-			$carac_client=pdf_build_address($outputlangs,$this->emetteur,$object->thirdparty,($usecontact?$object->contact:''),$usecontact,'target');
+			$carac_client = pdf_build_address($outputlangs,$this->emetteur,$object->thirdparty,($usecontact?$object->contact:''),$usecontact,'target');
 
             // Show recipient
-            if ($showBenefactor === FALSE) {
+            if ($use_contact_delivery === FALSE) {
                 $widthrecbox = !empty($conf->global->MAIN_PDF_USE_ISO_LOCATION) ? 92 : 100;
                 if ($this->page_largeur < 210) $widthrecbox = 84; // To work with US executive format
                 $widthrecbox -= 20;
@@ -1349,48 +1391,6 @@ class pdf_ouvrage_supplier_order_st extends ModelePDFSuppliersOrders
             $pdf->SetXY($posx+$bulletWidth, $posy);
             $this->addBullet($pdf, $bulletSize);
             $pdf->MultiCell($widthrecbox-$bulletWidth, 4, (($usecontact) ? $object->contact->email : $object->thirdparty->email), $multiCellBorder, 'L');
-
-            // adresse du client final destinataire
-//            $posy=42;
-//            $posx=75;
-//            $hautcadre=40;
-//
-//            $usecontact=false;
-//            $arrayidcontact=$object->getIdContact('external', 'SHIPPING');
-//
-//            if (count($arrayidcontact) > 0) {
-//                $usecontact=true;
-//                $result=$object->fetch_contact($arrayidcontact[0]);
-//                // pour recuperer l'adresse de la societe du client (si
-//                $object->contact->fetch_thirdparty();
-//                $carac_client_name=$outputlangs->convToOutputCharset($object->contact->socname);
-//                $carac_destinataire=pdf_build_address(
-//                    $outputlangs, $this->emetteur,
-//                    $object->contact->thirdparty, $object->contact,
-//                    $usecontact, 'target'
-//                );
-//
-//                // Show RECEPT frame
-//                $pdf->SetTextColor(0, 0, 0);
-//                $pdf->SetFont('', '', $default_font_size - 2);
-//                $pdf->SetXY($posx, $posy-5);
-//                $pdf->MultiCell(66, 5, $outputlangs->transnoentities("RecipientAdress").":", 0, 'L');
-//                $pdf->SetXY($posx, $posy);
-//                $pdf->SetFillColor(200, 200, 200);
-//                $pdf->MultiCell(62, $hautcadre, "", 0, 'R', 1);
-//                $pdf->SetTextColor(0, 0, 60);
-//
-//                // Show RECEPT name
-//                $pdf->SetXY($posx+2, $posy+3);
-//                $pdf->SetFont('', 'B', $default_font_size);
-//                $pdf->MultiCell(60, 4, $outputlangs->convToOutputCharset($carac_client_name), 0, 'L');
-//                $posy=$pdf->getY();
-//
-//                // Show RECEPT information
-//                $pdf->SetXY($posx+2, $posy);
-//                $pdf->SetFont('', '', $default_font_size - 1);
-//                $pdf->MultiCell(60, 4, $carac_destinataire, 0, 'L');
-//            }
 		}
 
         $pdf->SetFont('', '', $default_font_size - 1);
