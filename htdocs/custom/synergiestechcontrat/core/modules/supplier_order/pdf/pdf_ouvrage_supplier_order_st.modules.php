@@ -725,7 +725,7 @@ class pdf_ouvrage_supplier_order_st extends ModelePDFSuppliersOrders
 	 */
 	function _tableau_info(&$pdf, $object, $posy, $outputlangs)
 	{
-	    global $conf;
+	    //global $conf;
 	    $default_font_size = pdf_getPDFFontSize($outputlangs);
 
         $posyinit = $posy;
@@ -740,8 +740,7 @@ class pdf_ouvrage_supplier_order_st extends ModelePDFSuppliersOrders
         $pdf->SetFont('','', $default_font_size - 1);
 
         // If France, show VAT mention if not applicable
-		if ($this->emetteur->country_code == 'FR' && $this->franchise == 1)
-		{
+		if ($this->emetteur->country_code == 'FR' && $this->franchise == 1) {
 			$pdf->SetFont('','B', $default_font_size - 2);
 			$pdf->SetXY($this->marge_gauche, $posy);
 			$pdf->MultiCell(100, 3, $outputlangs->transnoentities("VATIsNotUsedForInvoice"), 0, 'L', 0);
@@ -752,8 +751,7 @@ class pdf_ouvrage_supplier_order_st extends ModelePDFSuppliersOrders
 		$posxval=52;
 
 	    // Show payments conditions
-	    if (!empty($object->cond_reglement_code) || $object->cond_reglement)
-	    {
+	    if (!empty($object->cond_reglement_code) || $object->cond_reglement) {
 	        $pdf->SetFont('','B', $default_font_size - 2);
 	        $pdf->SetXY($this->marge_gauche, $posy);
 	        $titre = $outputlangs->transnoentities("PaymentConditions").':';
@@ -761,7 +759,11 @@ class pdf_ouvrage_supplier_order_st extends ModelePDFSuppliersOrders
 
 			$pdf->SetFont('','', $default_font_size - 2);
 			$pdf->SetXY($posxval, $posy);
-			$lib_condition_paiement=$outputlangs->transnoentities("PaymentCondition".$object->cond_reglement_code)!=('PaymentCondition'.$object->cond_reglement_code)?$outputlangs->transnoentities("PaymentCondition".$object->cond_reglement_code):$outputlangs->convToOutputCharset($object->cond_reglement);
+            $testpayementcondition="PaymentCondition".$object->cond_reglement_code;
+            if ($outputlangs->transnoentities($testpayementcondition)!=$testpayementcondition)
+                $lib_condition_paiement = $outputlangs->transnoentities($testpayementcondition);
+            else
+                $lib_condition_paiement = $outputlangs->convToOutputCharset($object->cond_reglement);
 			$lib_condition_paiement=str_replace('\n',"\n",$lib_condition_paiement);
 			$pdf->MultiCell(80, 4, $lib_condition_paiement,0,'L');
 
@@ -778,7 +780,11 @@ class pdf_ouvrage_supplier_order_st extends ModelePDFSuppliersOrders
 
 		$pdf->SetFont('','', $default_font_size - 2);
 		$pdf->SetXY($posxval, $posy);
-		$lib_mode_reg=$outputlangs->transnoentities("PaymentType".$object->mode_reglement_code)!=('PaymentType'.$object->mode_reglement_code)?$outputlangs->transnoentities("PaymentType".$object->mode_reglement_code):$outputlangs->convToOutputCharset($object->mode_reglement);
+            $testpayementtype="PaymentType".$object->mode_reglement_code;
+            if ($outputlangs->transnoentities($testpayementtype)!=$testpayementtype)
+                $lib_mode_reg = $outputlangs->transnoentities($testpayementtype);
+            else
+                $lib_mode_reg = $outputlangs->convToOutputCharset($object->mode_reglement);
 		$pdf->MultiCell(80, 5, $lib_mode_reg,0,'L');
 
 		$posy=$pdf->GetY()+2;
@@ -1252,15 +1258,6 @@ class pdf_ouvrage_supplier_order_st extends ModelePDFSuppliersOrders
             $this->addBullet($pdf, $bulletSize);
             $pdf->MultiCell($w-$bulletWidth, 4, $outputlangs->transnoentities("Ref")." : ".$outputlangs->convToOutputCharset($object->ref), $multiCellBorder, 'L');
 
-            $posy += 1;
-            if ($object->ref_supplier) {
-                $posy += 4;
-                $pdf->SetXY($posx+$bulletWidth,$posy);
-                $pdf->SetTextColor(0, 0, 60);
-                $this->addBullet($pdf, $bulletSize);
-                $pdf->MultiCell($w-$bulletWidth, 3, $outputlangs->transnoentities("RefSupplier")." : " . $outputlangs->convToOutputCharset($object->ref_supplier), $multiCellBorder, 'L');
-            }
-
             if (! empty($object->date_commande))
             {
                 $posy += 5;
@@ -1285,6 +1282,15 @@ class pdf_ouvrage_supplier_order_st extends ModelePDFSuppliersOrders
                 $pdf->SetTextColor(0, 0, 60);
                 $this->addBullet($pdf, $bulletSize);
                 $pdf->MultiCell($w-$bulletWidth, 3, $outputlangs->transnoentities("DateDeliveryPlanned")." : " . dol_print_date($object->date_livraison, "day",false, $outputlangs, true), $multiCellBorder, 'L');
+            }
+
+            $posy += 1;
+            if ($object->ref_supplier) {
+                $posy += 4;
+                $pdf->SetXY($posx+$bulletWidth,$posy);
+                $pdf->SetTextColor(0, 0, 60);
+                $this->addBullet($pdf, $bulletSize);
+                $pdf->MultiCell($w-$bulletWidth, 3, $outputlangs->transnoentities("RefSupplier")." : " . $outputlangs->convToOutputCharset($object->ref_supplier), $multiCellBorder, 'L');
             }
 
             $posy+=1;
