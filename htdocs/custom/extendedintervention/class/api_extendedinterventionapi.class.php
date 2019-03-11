@@ -1128,8 +1128,9 @@ class ExtendedInterventionApi extends DolibarrApi {
             // Save survey bloc
             //-------------------------
             foreach ($survey as $id_equipment => $survey_bloc) {
+                $current_equipment_id = isset($survey_bloc['fk_equipment']) ? $survey_bloc['fk_equipment'] : $id_equipment;
                 // Get handler of the survey bloc (if exist in the current survey) or create it
-                $current_survey_bloc = isset($current_survey[$id_equipment]) ? $current_survey[$id_equipment] : new EISurveyBloc(self::$db, $extendedintervention);
+                $current_survey_bloc = isset($current_survey[$current_equipment_id]) ? $current_survey[$current_equipment_id] : new EISurveyBloc(self::$db, $extendedintervention);
 
                 // Test if is read only
 //                if ($current_survey_bloc->read_only) {
@@ -1139,7 +1140,7 @@ class ExtendedInterventionApi extends DolibarrApi {
 
                 // Set Values
                 $current_survey_bloc->fk_fichinter = $id_intervention;
-                $current_survey_bloc->fk_equipment = isset($survey_bloc['fk_equipment']) ? $survey_bloc['fk_equipment'] : $id_equipment;
+                $current_survey_bloc->fk_equipment = $current_equipment_id;
                 $current_survey_bloc->fk_product = isset($survey_bloc['fk_product']) ? $survey_bloc['fk_product'] : null;
                 $current_survey_bloc->equipment_ref = isset($survey_bloc['equipment_ref']) ? $survey_bloc['equipment_ref'] : null;
                 $current_survey_bloc->product_ref = isset($survey_bloc['product_ref']) ? $survey_bloc['product_ref'] : null;
@@ -1161,8 +1162,9 @@ class ExtendedInterventionApi extends DolibarrApi {
                 // Save question bloc
                 //-------------------------
                 foreach ($survey_bloc['survey'] as $id_c_question_bloc => $question_bloc) {
+                    $current_c_question_bloc_id = isset($question_bloc['fk_c_question_bloc']) ? $question_bloc['fk_c_question_bloc'] : $id_c_question_bloc;
                     // Get handler of the question bloc (if exist in the current survey) or create it
-                    $current_question_bloc = isset($current_survey_bloc->survey[$id_c_question_bloc]) ? $current_survey_bloc->survey[$id_c_question_bloc] : new EIQuestionBloc(self::$db, $current_survey_bloc);
+                    $current_question_bloc = isset($current_survey_bloc->survey[$current_c_question_bloc_id]) ? $current_survey_bloc->survey[$current_c_question_bloc_id] : new EIQuestionBloc(self::$db, $current_survey_bloc);
 
                     // Test if is read only
 //                    if ($current_question_bloc->read_only) {
@@ -1172,7 +1174,7 @@ class ExtendedInterventionApi extends DolibarrApi {
 
                     // Set Values
                     $current_question_bloc->fk_survey_bloc = $current_survey_bloc->id;
-                    $current_question_bloc->fk_c_question_bloc = isset($question_bloc['fk_c_question_bloc']) ? $question_bloc['fk_c_question_bloc'] : $id_c_question_bloc;
+                    $current_question_bloc->fk_c_question_bloc = $current_c_question_bloc_id;
                     $current_question_bloc->position_question_bloc = isset($question_bloc['position_question_bloc']) ? $question_bloc['position_question_bloc'] : null;
                     $current_question_bloc->code_question_bloc = isset($question_bloc['code_question_bloc']) ? $question_bloc['code_question_bloc'] : null;
                     $current_question_bloc->label_question_bloc = isset($question_bloc['label_question_bloc']) ? $question_bloc['label_question_bloc'] : null;
@@ -1211,8 +1213,9 @@ class ExtendedInterventionApi extends DolibarrApi {
                     // Save question
                     //-------------------------
                     foreach ($question_bloc['lines'] as $id_c_question => $question) {
+                        $current_c_question_id = isset($question['fk_c_question']) ? $question['fk_c_question'] : $id_c_question;
                         // Get handler of the question (if exist in the current survey) or create it
-                        $current_question = isset($current_question_bloc->lines[$id_c_question]) ? $current_question_bloc->lines[$id_c_question] : new EIQuestionBlocLine(self::$db);
+                        $current_question = isset($current_question_bloc->lines[$current_c_question_id]) ? $current_question_bloc->lines[$current_c_question_id] : new EIQuestionBlocLine(self::$db);
 
                         // Test if is read only
 //                        if ($current_question->read_only) {
@@ -1222,7 +1225,7 @@ class ExtendedInterventionApi extends DolibarrApi {
 
                         // Set Values
                         $current_question->fk_question_bloc = $current_question_bloc->id;
-                        $current_question->fk_c_question = isset($question['fk_c_question']) ? $question['fk_c_question'] : $id_c_question;
+                        $current_question->fk_c_question = $current_c_question_id;
                         $current_question->position_question = isset($question['position_question']) ? $question['position_question'] : null;
                         $current_question->code_question = isset($question['code_question']) ? $question['code_question'] : null;
                         $current_question->label_question = isset($question['label_question']) ? $question['label_question'] : null;

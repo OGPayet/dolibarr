@@ -68,7 +68,7 @@ class EIQuestionBloc extends CommonObject
      */
     static public $API_WHITELIST_OF_PROPERTIES = array(
         /*"id" => '', */"fk_fichinter" => '', "fk_equipment" => '',
-        "fk_c_question_bloc" => '', "position_question_bloc" => '', "code_question_bloc" => '', "label_question_bloc" => '', "complementary_question_bloc" => '', "extrafields_question_bloc" => '',
+        "fk_c_question_bloc" => '', "position_question_bloc" => '', "code_question_bloc" => '', "label_question_bloc" => '', "color_status" => '', "complementary_question_bloc" => '', "extrafields_question_bloc" => '',
         "fk_c_question_bloc_status" => '', "code_status" => '', "label_status" => '', "mandatory_status" => '', "icone" => '',"title_editable" => '',"bloc_complementary_editable" => '', "deletable" => '',
         "attached_files" => '', "private_bloc" => '', "desactivated_bloc" => '',"desactivate_bloc_status"=>'',
 		"justificatory_status" => '', "array_options" => '',
@@ -82,7 +82,7 @@ class EIQuestionBloc extends CommonObject
             ),
         ),
         "warning_code_question_bloc" => '', "warning_label_question_bloc" => '', "warning_extrafields_question_bloc" => '',
-        "warning_code_status" => '', "warning_label_status" => '', "warning_mandatory_status" => '',
+        "warning_code_status" => '', "warning_label_status" => '', "warning_color_status" => '', "warning_mandatory_status" => '',
         "read_only" => '', "entity" => '', "date_creation" => '', "date_modification" => '', "user_creation_id" => '', "user_creation" => '',
         "user_modification_id" => '', "user_modification" => '', "import_key" => '', "lines" => '',
     );
@@ -1773,7 +1773,7 @@ class EIQuestionBlocLine extends CommonObjectLine
     static public $API_WHITELIST_OF_PROPERTIES = array(
 //        "id" => '', "fk_question_bloc" => '',
         "fk_fichinter" => '', "fk_equipment" => '', "fk_c_question_bloc" => '',
-        "fk_c_question" => '', "position_question" => '', "code_question" => '', "label_question" => '',"extrafields_question" => '',
+        "fk_c_question" => '', "position_question" => '', "code_question" => '', "label_question" => '', "color_answer" => '', "extrafields_question" => '',
         "fk_c_answer" => '', "code_answer" => '', "label_answer" => '', "mandatory_answer" => '', "text_answer" => '', "array_options" => '',
         "answer_list" => array(
             '' => array(
@@ -1785,7 +1785,7 @@ class EIQuestionBlocLine extends CommonObjectLine
             ),
         ),
         "warning_code_question" => '', "warning_label_question" => '', "warning_extrafields_question" => '',
-        "warning_code_answer" => '', "warning_label_answer" => '', "warning_mandatory_answer" => '',
+        "warning_code_answer" => '', "warning_label_answer" => '', "warning_color_answer" => '', "warning_mandatory_answer" => '',
         "read_only" => '', "date_creation" => '', "date_modification" => '', "user_creation_id" => '', "user_creation" => '',
         "user_modification_id" => '', "user_modification" => '', "import_key" => '',
     );
