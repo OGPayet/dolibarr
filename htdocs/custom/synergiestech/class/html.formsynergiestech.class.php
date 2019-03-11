@@ -1755,13 +1755,23 @@ class FormSynergiesTech
     {
         global $conf, $langs, $user;
 
+		$langs->load('requestmanager@requestmanager');
+
         $out = '';
+
+		$moreparam = 'style="width: 95%"';
 
         // search actioncomm
         $sql  = "SELECT";
-        $sql .= " ac.id";
-        $sql .= ", ac.label";
+        $sql .= " ac.id as id";
+        $sql .= ", ac.label as label";
+		$sql .= ", ac.datep as datep";
+		$sql .= ", ac.datep2 as datep2";
+		$sql .= ", user.lastname as name";
+		$sql .= ", user.firstname as firstname";
         $sql .= " FROM " . MAIN_DB_PREFIX . "actioncomm as ac";
+		$sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "user as user ON user.rowid=ac.fk_user_action";
+
         $sql .= " WHERE ac.entity IN (" . getEntity('agenda') . ")";
         if (count($actionCommCodeList) > 0) {
             $sql .= " AND ac.code IN (";
@@ -1788,6 +1798,7 @@ class FormSynergiesTech
 
 		$sql .= " AND ( (  DATEDIFF(NOW(), ac.datep) >= 1 ";
 		$sql .= " AND (ac.fk_user_action = '1632' OR ac.fk_user_action = " . $user->id . ")) OR  DATEDIFF(NOW(), ac.datep) = 0 ) ";
+		$sql .= " AND  DATEDIFF(NOW(), ac.datep) <= 15 ";
 
 		///END
 
@@ -1795,6 +1806,7 @@ class FormSynergiesTech
 
         dol_syslog(__METHOD__, LOG_DEBUG);
         $resql = $this->db->query($sql);
+
         if ($resql)
         {
             if ($conf->use_javascript_ajax && ! $forcecombo && ! $options_only)
@@ -1817,15 +1829,62 @@ class FormSynergiesTech
 
             $num = $this->db->num_rows($resql);
             $i = 0;
+			require_once DOL_DOCUMENT_ROOT . '/core/lib/date.lib.php';
+			require_once DOL_DOCUMENT_ROOT.'/user/class/user.class.php';
             if ($num)
             {
                 while ($i < $num)
                 {
                     $obj = $this->db->fetch_object($resql);
+					//We build a special label for displayed action comm
+
+					$label=$obj->label;
+					//Dispalying begin date event
+					if(num_between_day(dol_stringtotime($obj->datep), dol_now(), 0) >=1) $label=dol_print_date($obj->datep,' %A %d/%m') . " - " . $label;
+					//Displaying user owner event
+					$label = $label . " - " . $obj->firstname . " " . $obj->name;
+
+					//Different color between different call;
+					$color="#999999";
+					//incomming call
+					if(strpos($obj->label, $langs->trans('RequestManagerIncomingCall')) !== false)
+					{
+						//We are in an incoming call
+						//We check date to determine duration
+						$duration = $obj->datep2 - $obj->datep;
+						if($duration > 6)
+						{
+							//call has been answered
+							$color="#008000";
+						}
+						else{
+							//Call has not been answered
+							$color="#000099";
+						}
+					}
+
+					//outgoing call
+					if(strpos($obj->label, $langs->trans('RequestManagerOutgoingCall')) !== false)
+					{
+						//We are in an outgoing call
+						$color="#999999";
+					}
+
+					//transfered call
+					if(strpos($obj->label, $langs->trans('RequestManagerTransferedCall')) !== false)
+					{
+						//We are in an transfered call
+						$color="#999999";
+					}
+
+
                     $out.= '<option value="' . $obj->id . '"';
                     if ($selected && $selected == $obj->id) $out .= ' selected';
+					$out .=" style='color: " . $color . "' ";
                     $out .= '>';
-                    $out .= $obj->label;
+                    $out .= $label;
+
+
                     $out .= '</option>';
                     $i++;
                 }
