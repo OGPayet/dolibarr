@@ -598,7 +598,11 @@ SCRIPT;
 			//requestmanager_menu_div.after('<li class="tmenu" id="mainmenutd_requestmanager_my_request_updated"><div class="tmenucenter"><a class="tmenu" href="$my_request_updated_url" title="$my_request_updated_text"><span class="mainmenuaspan">$nbRequests</span></a></div></li>');
 			requestmanager_menu_div.after('<li class="tmenu" id="mainmenutd_requestmanager_my_request_updated"><a class="tmenuimage" href="$my_request_updated_url" title="$my_request_updated_text"><div class="mainmenuaspan">$nbRequests</div></a></li>');
 
-			// Add create request button
+			// Add create request button in same tab
+			//requestmanager_menu_div.after('<li class="tmenu" id="mainmenutd_requestmanager_create"><div class="tmenucenter"><a class="tmenuimage" tabindex="-1" href="$create_request_url" target="_blank" title="$create_request_text"><div class="mainmenu topmenuimage"><span class="mainmenu tmenuimage">$create_request_img</span></div></a></div></li>');
+			requestmanager_menu_div.after('<li class="tmenu" id="mainmenutd_requestmanager_create"><a class="tmenuimage" href="$create_request_url" target="_blank" title="$create_request_text">$create_request_img</a></li>');
+
+					// Add create request button in same tab
 			//requestmanager_menu_div.after('<li class="tmenu" id="mainmenutd_requestmanager_create"><div class="tmenucenter"><a class="tmenuimage" tabindex="-1" href="$create_request_url" title="$create_request_text"><div class="mainmenu topmenuimage"><span class="mainmenu tmenuimage">$create_request_img</span></div></a></div></li>');
 			requestmanager_menu_div.after('<li class="tmenu" id="mainmenutd_requestmanager_create"><a class="tmenuimage" href="$create_request_url" title="$create_request_text">$create_request_img</a></li>');
 

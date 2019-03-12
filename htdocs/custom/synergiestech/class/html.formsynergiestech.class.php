@@ -1815,39 +1815,49 @@ class FormSynergiesTech
                     $color = "#999999";
                     $color_class = 'st_color_default';
                     //incomming call
-                    if (strpos($obj->label, $langs->trans('RequestManagerIncomingCall')) !== false) {
+					if (strpos($obj->label, $langs->trans('RequestManagerAnswerPhone')) !== false)
+							{
+								//It is a voice mail
+								$color_class = 'st_color_voicemail';
+							}
+
+                    else if (strpos($obj->label, $langs->trans('RequestManagerIncomingCall')) !== false) {
                         //We are in an incoming call
                         //We check date to determine duration
                         $duration = $obj->datep2 - $obj->datep;
+
                         if ($duration > 6) {
                             //call has been answered
-                            $color = "#008000";
+							//We may check if it was not a voice mail
+
+							//It is a normal incoming call
+                            //$color = "#008000";
                             $color_class = 'st_color_call_has_been_answered';
                         } else {
                             //Call has not been answered
-                            $color = "#000099";
+                            //$color = "#000099";
                             $color_class = 'st_color_call_has_not_been_answered';
                         }
                     }
 
                     //outgoing call
-                    if (strpos($obj->label, $langs->trans('RequestManagerOutgoingCall')) !== false) {
+                    else if (strpos($obj->label, $langs->trans('RequestManagerOutgoingCall')) !== false) {
                         //We are in an outgoing call
-                        $color = "#999999";
+                        //$color = "#999999";
                         $color_class = 'st_color_outgoing_call';
                     }
 
                     //transfered call
-                    if (strpos($obj->label, $langs->trans('RequestManagerTransferedCall')) !== false) {
+                    else if (strpos($obj->label, $langs->trans('RequestManagerTransferedCall')) !== false) {
                         //We are in an transfered call
-                        $color = "#999999";
+                        //$color = "#999999";
                         $color_class = 'st_color_transfered_call';
                     }
 
 
                     $out .= '<option class="'.$color_class.'" value="' . $obj->id . '"';
                     if ($selected && $selected == $obj->id) $out .= ' selected';
-                    $out .= " style='color: " . $color . "' ";
+                    //$out .= " style='color: " . $color . "' ";
                     $out .= '>';
                     $out .= $label;
 
@@ -1871,13 +1881,16 @@ class FormSynergiesTech
                              color: #008000;
                            }
                            .select2-result.st_color_call_has_not_been_answered {
-                             color: #000099;
+                             color: #ff0000;
                            }
                            .select2-result.st_color_outgoing_call {
                              color: #000099;
                            }
                            .select2-result.st_color_transfered_call {
-                             color: #000099;
+                             color: #808080;
+                           }
+						   .select2-result.st_color_voicemail {
+                             color: #d759fe;
                            }
                          </style>';
             }
