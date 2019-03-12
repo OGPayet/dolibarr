@@ -1213,6 +1213,7 @@ SCRIPT;
                     $this->db->rollback();
                     $action = 'stpremessage';
                 } else {
+                    $formrequestmanagermessage->clear_datas_in_session();
                     $formrequestmanagermessage->remove_all_attached_files();
                     $this->db->commit();
                     header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);

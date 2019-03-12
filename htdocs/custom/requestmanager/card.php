@@ -1206,6 +1206,7 @@ if (empty($reshook)) {
             setEventMessages($requestmanagermessage->error, $requestmanagermessage->errors, 'errors');
             $action = 'premessage';
         } else {
+            $formrequestmanagermessage->clear_datas_in_session();
             $formrequestmanagermessage->remove_all_attached_files();
             header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
             exit();
