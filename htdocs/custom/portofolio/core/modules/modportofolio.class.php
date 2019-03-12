@@ -121,7 +121,7 @@ class modportofolio extends DolibarrModules
 						'url'=>'/portofolio/core/patastools.php?mainmenu=patastools&leftmenu=myfield',
 						'langs'=>'portofolio@portofolio',
 						'position'=>100, 'enabled'=>'1',
-						'perms'=>'1', 'target'=>'',
+						'perms'=>'admin', 'target'=>'',
 						'user'=>0);
 			$r++; //1
 		}

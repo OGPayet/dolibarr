@@ -2563,7 +2563,7 @@ SCRIPT;
 			        print '</td>';
         print '</tr>';
         print '</table>';
-
+        /*
 		print '<table class="border" width="100%">';
         print '<tr>';
 		print '<td>';
@@ -2599,6 +2599,7 @@ SCRIPT;
 		print '</td>';
         print '</tr>';
         print '</table>';
+		*/
         }
 
         return 0;

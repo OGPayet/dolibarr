@@ -158,7 +158,7 @@ class modmyfield extends DolibarrModules
 						'url'=>'/myfield/core/patastools.php?mainmenu=patastools&leftmenu=myfield',
 						'langs'=>'myfield@myfield',
 						'position'=>100, 'enabled'=>'1',
-						'perms'=>'1', 'target'=>'', 'user'=>0);
+						'perms'=>'$user->admin', 'target'=>'', 'user'=>0);
 			$r++; //1
 		}
 

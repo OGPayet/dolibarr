@@ -130,7 +130,7 @@ class modmylist extends DolibarrModules
 						'url'=>'/mylist/core/patastools.php?mainmenu=patastools&leftmenu=mylist',
 						'langs'=>'mylist@mylist',
 						'position'=>100, 'enabled'=>'1',
-						'perms'=>'',
+						'perms'=>'$user->admin',
 						'target'=>'', 'user'=>0);
 			$r++; //1
 		}

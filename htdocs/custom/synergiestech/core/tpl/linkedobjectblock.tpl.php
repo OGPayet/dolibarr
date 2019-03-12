@@ -71,7 +71,7 @@ if ($objecttype == 'equipement') {
         </td>
         <td><?php echo $productlink->label; ?></td>
         <td align="center"></td>
-        <td align="center"><?php echo $productlink->getNomUrl(1); ?></td>
+		<td align="center"><?php if(!empty($objectlink->array_options['options_machineclient'])&&!empty($objectlink->array_options['options_idtelem'])) {echo $objectlink->array_options['options_idtelem'];} else {echo $productlink->getNomUrl(1);} ?></td>
         <td align="right"><?php echo $objectlink->getLibStatut(3); ?></td>
         <td align="right"><a href="<?php echo $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=dellink&dellinkid=' . $key; ?>"><?php echo img_delete($langs->transnoentitiesnoconv("RemoveLink")); ?></a>
         </td>

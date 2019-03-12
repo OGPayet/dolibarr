@@ -139,7 +139,7 @@ class modcustomlink extends DolibarrModules
 						'langs'=>'customlink@customlink',
 						'position'=>100,
 						'enabled'=>'1',
-						'perms'=>'$user->rights->customlink->lire',
+						'perms'=>'$user->admin',
 						'target'=>'',
 						'user'=>0);
 			$r++; //1
