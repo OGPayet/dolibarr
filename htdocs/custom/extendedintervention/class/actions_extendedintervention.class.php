@@ -116,7 +116,7 @@ class ActionsExtendedIntervention
                         dol_include_once('/extendedintervention/class/extendedinterventionquota.class.php');
                         $extendedinterventionquota = new ExtendedInterventionQuota($this->db);
 
-                        $res = $extendedinterventionquota->isCreatedOutOfQuota($contract, array($contract->socid), $array_options['options_ei_type']);
+                        $res = $extendedinterventionquota->isCreatedOutOfQuota($contract, $array_options['options_ei_type']);
                         if ($res) {
                             $object->force_out_of_quota = true;
                             $action = 'create';

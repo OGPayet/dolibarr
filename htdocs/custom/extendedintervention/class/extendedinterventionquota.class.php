@@ -182,20 +182,20 @@ class ExtendedInterventionQuota
      *  Get list of count (free, in progress, forced) by type intervention for a company and a contract
      *
      * @param   Contrat         $contract       Contract handler
-     * @param   array           $soc_ids        List of company ID
      * @return  int|array                       <0 if KO, List of count (free, in progress, forced) by type intervention for a company and a contract if OK
      */
-    public function getCountInterventionInfoOfCompany(&$contract, $soc_ids)
+    public function getCountInterventionInfoOfCompany(&$contract)
     {
+        global $conf;
+
         $periods = $this->getPeriodOfContract($contract);
         $info = $this->getInfoInterventionOfContract($contract->id);
-        $contract_counts = $info['count'];
         $result = array('periods' => $periods, 'types' => array());
 
         $idx = 1;
         foreach ($periods as $period) {
-            foreach ($contract_counts as $fk_c_intervention_type => $max) {
-                $result['types'][$fk_c_intervention_type][$idx] = array('current' => 0, 'max' => $max, 'free' => 0, 'forced' => 0);
+            foreach ($info as $fk_c_intervention_type => $values) {
+                $result['types'][$fk_c_intervention_type][$idx] = array('current' => 0, 'max' => $values['count'], 'free' => 0, 'forced' => 0);
             }
 
             // Get forced intervention
@@ -203,8 +203,12 @@ class ExtendedInterventionQuota
                 " FROM " . MAIN_DB_PREFIX . "fichinter AS fi" .
                 " LEFT JOIN " . MAIN_DB_PREFIX . "fichinter_extrafields AS fief ON fief.fk_object = fi.rowid" .
                 " LEFT JOIN " . MAIN_DB_PREFIX . "actioncomm AS ac ON ac.elementtype = 'fichinter' AND ac.fk_element = fi.rowid AND ac.code = 'AC_EI_FCI'" .
-                " WHERE fi.entity IN (" . getEntity('intervention') . ")" .
-                " AND fi.fk_soc IN (" . implode(',', $soc_ids) . ")" .
+                " WHERE fi.entity IN (" . getEntity('intervention') . ")";
+            if ($conf->companyrelationships->enabled) {
+                $contract->fetch_optionals();
+                $sql .= " AND fief.companyrelationships_fk_soc_benefactor = " . $contract->array_options['options_companyrelationships_fk_soc_benefactor'];
+            }
+            $sql .= " AND fi.fk_soc = " . $contract->socid .
                 " AND '" . $this->db->idate($period['begin']) . "' <= fi.datec" .
                 " AND fi.datec <= '" . $this->db->idate($period['end']) . "'".
                 " GROUP BY fief.ei_type";
@@ -212,8 +216,10 @@ class ExtendedInterventionQuota
             $resql = $this->db->query($sql);
             if ($resql) {
                 while ($obj = $this->db->fetch_object($resql)) {
+                    $contract_counts = isset($info[$obj->fk_c_intervention_type]['count']) ? $info[$obj->fk_c_intervention_type]['count'] : 0;
+
                     $result['types'][$obj->fk_c_intervention_type][$idx]['current'] = $obj->nb_current;
-                    $result['types'][$obj->fk_c_intervention_type][$idx]['free'] = max(0, $obj->nb_current - $contract_counts[$obj->fk_c_intervention_type] - $obj->nb_forced);
+                    $result['types'][$obj->fk_c_intervention_type][$idx]['free'] = max(0, $obj->nb_current - $contract_counts - $obj->nb_forced);
                     $result['types'][$obj->fk_c_intervention_type][$idx]['forced'] = $obj->nb_forced;
                 }
             } else {
@@ -317,7 +323,7 @@ class ExtendedInterventionQuota
             // Get block of table
             $block = array();
             foreach ($contract_list as $contract) {
-                $table = $this->showTableCountInterventionOfContract($contract, array($contract->socid), $fk_c_intervention_type);
+                $table = $this->showTableCountInterventionOfContract($contract, $fk_c_intervention_type);
 
                 if (!empty($table)) {
                     if ($nb_contract > 0) { //modif par Alexis Laurier - on affiche toujours le titre de chaque sous tableau - on y indique également la formule (la valeur de l'extrafield donc)
@@ -382,11 +388,10 @@ SCRIPT;
      *  Show HTML table list of count by type of intervention for a contract of a company
      *
      * @param   Contrat     $contract                   Contract handler
-     * @param   array       $soc_ids                    List of company ID
      * @param   int         $fk_c_intervention_type     Show only this intervention type (if defined)
      * @return  string                                  HTML table list of count by type of intervention for a contract of a company
      */
-    public function showTableCountInterventionOfContract(&$contract, $soc_ids, $fk_c_intervention_type=0)
+    public function showTableCountInterventionOfContract(&$contract, $fk_c_intervention_type=0)
     {
         global $conf, $langs;
 
@@ -404,7 +409,7 @@ SCRIPT;
         $inter_type_dictionary->fetch_lines(1, $filter, array('label' => 'ASC'));
 
         // Get count of current stats for each intervention type for a company and a contract
-        $company_counts = $this->getCountInterventionInfoOfCompany($contract, $soc_ids);
+        $company_counts = $this->getCountInterventionInfoOfCompany($contract);
 
         if (count($inter_type_dictionary->lines) > 0 && count($company_counts['periods']) > 0) {
             $out .= '<table class="border" width="100%">';
@@ -465,19 +470,19 @@ SCRIPT;
      *  Is the intervention created out of quota
      *
      * @param   Contrat     $contract                   Contract handler
-     * @param   array       $soc_ids                    List of company ID
      * @param   int         $fk_c_intervention_type     Show only this intervention type (if defined)
      * @return  boolean
      */
-    public function isCreatedOutOfQuota(&$contract, $soc_ids, $fk_c_intervention_type)
+    public function isCreatedOutOfQuota(&$contract, $fk_c_intervention_type)
     {
+        global $conf;
         $now = dol_now();
 
         if (!($fk_c_intervention_type > 0)) return false;
 
         $periods = $this->getPeriodOfContract($contract);
         $info = $this->getInfoInterventionOfContract($contract->id);
-        $contract_counts = $info['count'];
+        $contract_counts = isset($info[$fk_c_intervention_type]['count']) ? $info[$fk_c_intervention_type]['count'] : 0;
 
         foreach ($periods as $period) {
             if ($now < $period['begin'] || $period['end'] < $now) continue;
@@ -486,8 +491,12 @@ SCRIPT;
             $sql = "SELECT COUNT(*) AS nb_current" .
                 " FROM " . MAIN_DB_PREFIX . "fichinter AS fi" .
                 " LEFT JOIN " . MAIN_DB_PREFIX . "fichinter_extrafields AS fief ON fief.fk_object = fi.rowid" .
-                " WHERE fi.entity IN (" . getEntity('intervention') . ")" .
-                " AND fi.fk_soc IN (" . implode(',', $soc_ids) . ")" .
+                " WHERE fi.entity IN (" . getEntity('intervention') . ")";
+            if ($conf->companyrelationships->enabled) {
+                $contract->fetch_optionals();
+                $sql .= " AND fief.companyrelationships_fk_soc_benefactor = " . $contract->array_options['options_companyrelationships_fk_soc_benefactor'];
+            }
+            $sql .= " AND fi.fk_soc = " . $contract->socid .
                 " AND fief.ei_type = " . $fk_c_intervention_type .
                 " AND '" . $this->db->idate($period['begin']) . "' <= fi.datec" .
                 " AND fi.datec <= '" . $this->db->idate($period['end']) . "'" .
@@ -496,7 +505,7 @@ SCRIPT;
             $resql = $this->db->query($sql);
             if ($resql) {
                 if ($obj = $this->db->fetch_object($resql)) {
-                    return $contract_counts[$fk_c_intervention_type] <= $obj->nb_current;
+                    return $contract_counts <= $obj->nb_current;
                 }
             }
         }

@@ -1,68 +1,46 @@
 diff a/htdocs/custom/extendedintervention/class/extendedinterventionquota.class.php b/htdocs/custom/extendedintervention/class/extendedinterventionquota.class.php	(rejected hunks)
-@@ -421,37 +421,35 @@ SCRIPT;
-             $out .= '</tr>';
- 
+@@ -423,18 +428,20 @@ SCRIPT;
              foreach ($inter_type_dictionary->lines as $line) {
--				//We try to find the max number of intervention of each type done per period
--                $max=0;
--				if(!empty($company_counts['types'][$line->id]))
--				foreach ($company_counts['types'][$line->id] as $period_idx => $period)
--				{
--					$max = ($period['current'] > $max ? $period['current'] : $max);
--				}
--				$first=true; //we output only one time <tr>
--				if(!empty($company_counts['types'][$line->id]))
--                foreach ($company_counts['types'][$line->id] as $period_idx => $period) {
--                    // Set label - we display the line only if the quota due is >0 or if some interventions have been done ($max >0)
--					
--					if($period['max'] > 0 || max > 0)
--					{
--					if($first) $out .= '<tr><td class="titlefield">' . $line->fields['label'] . '</td>';
--					$first=false;
--                    $label = $period['current'] . ' / ' . $period['max'];
--                    if ($period['current'] < $period['max']) $label = '<span style="color: green;">' . $label . '</span>';
--                    elseif ($period['current'] > $period['max'] + $period['free']) $label = '<span style="color: red;">' . $label . '</span>';
+                 //We try to find the max number of intervention of each type done per period
+                 $max = 0;
+-                if (!empty($company_counts['types'][$line->id]))
++                if (!empty($company_counts['types'][$line->id])) {
+                     foreach ($company_counts['types'][$line->id] as $period_idx => $period) {
+                         $max = ($period['current'] > $max ? $period['current'] : $max);
+                     }
+-                $first = true; //we output only one time <tr>
+-                if (!empty($company_counts['types'][$line->id]))
++                }
++
++                if (!empty($company_counts['types'][$line->id])) {
++                    $founded = false;
++
++                    $subout = '<tr><td class="titlefield">' . $line->fields['label'] . '</td>';
+                     foreach ($company_counts['types'][$line->id] as $period_idx => $period) {
+                         // Set label - we display the line only if the quota due is >0 or if some interventions have been done ($max >0)
 -
--                    // Set more info
--                    $more_info = '';
--                    $toprint = array();
--                    if (!empty($period['free'])) $toprint[] = $langs->trans('ExtendedInterventionFree') . ' : ' . $period['free'];
--                    if (!empty($period['forced'])) $toprint[] = $langs->trans('ExtendedInterventionForced') . ' : ' . $period['forced'];
--                    if (!empty($toprint)) $more_info = '&nbsp;' . $this->form->textwithpicto('', implode('<br>', $toprint), 1, 'warning');
--
--                    $out .= '<td align="center"' . (!empty($company_counts['periods'][$period_idx]['in_period']) ? ' style="background-color: lightblue;"' : '') . '>' . $label . $more_info . '</td>';
--					}
--                }
--				
-+                //We try to find the max number of intervention of each type done per period
-+                $max = 0;
-+                if (!empty($company_counts['types'][$line->id]))
-+                    foreach ($company_counts['types'][$line->id] as $period_idx => $period) {
-+                        $max = ($period['current'] > $max ? $period['current'] : $max);
-+                    }
-+                $first = true; //we output only one time <tr>
-+                if (!empty($company_counts['types'][$line->id]))
-+                    foreach ($company_counts['types'][$line->id] as $period_idx => $period) {
-+                        // Set label - we display the line only if the quota due is >0 or if some interventions have been done ($max >0)
-+
-+                        if ($period['max'] > 0 || $max > 0) {
-+                            if ($first) $out .= '<tr><td class="titlefield">' . $line->fields['label'] . '</td>';
-+                            $first = false;
-+                            $label = $period['current'] . ' / ' . $period['max'];
-+                            if ($period['current'] < $period['max']) $label = '<span style="color: green;">' . $label . '</span>';
-+                            elseif ($period['current'] > $period['max'] + $period['free']) $label = '<span style="color: red;">' . $label . '</span>';
-+
-+                            // Set more info
-+                            $more_info = '';
-+                            $toprint = array();
-+                            if (!empty($period['free'])) $toprint[] = $langs->trans('ExtendedInterventionFree') . ' : ' . $period['free'];
-+                            if (!empty($period['forced'])) $toprint[] = $langs->trans('ExtendedInterventionForced') . ' : ' . $period['forced'];
-+                            if (!empty($toprint)) $more_info = '&nbsp;' . $this->form->textwithpicto('', implode('<br>', $toprint), 1, 'warning');
-+
-+                            $out .= '<td align="center"' . (!empty($company_counts['periods'][$period_idx]['in_period']) ? ' style="background-color: lightblue;"' : '') . '>' . $label . $more_info . '</td>';
-+                        }
-+                    }
-+
-                 $out .= '</tr>';
+                         if ($period['max'] > 0 || $max > 0) {
+-                            if ($first) $out .= '<tr><td class="titlefield">' . $line->fields['label'] . '</td>';
+-                            $first = false;
++                            $founded = true;
+                             $label = $period['current'] . ' / ' . $period['max'];
+                             if ($period['current'] < $period['max']) $label = '<span style="color: green;">' . $label . '</span>';
+                             elseif ($period['current'] > $period['max'] + $period['free']) $label = '<span style="color: red;">' . $label . '</span>';
+@@ -446,11 +453,15 @@ SCRIPT;
+                             if (!empty($period['forced'])) $toprint[] = $langs->trans('ExtendedInterventionForced') . ' : ' . $period['forced'];
+                             if (!empty($toprint)) $more_info = '&nbsp;' . $this->form->textwithpicto('', implode('<br>', $toprint), 1, 'warning');
+ 
+-                            $out .= '<td align="center"' . (!empty($company_counts['periods'][$period_idx]['in_period']) ? ' style="background-color: lightblue;"' : '') . '>' . $label . $more_info . '</td>';
++                            $subout .= '<td align="center"' . (!empty($company_counts['periods'][$period_idx]['in_period']) ? ' style="background-color: lightblue;"' : '') . '>' . $label . $more_info . '</td>';
++                        } else {
++                            $subout .= '<td align="center"' . (!empty($company_counts['periods'][$period_idx]['in_period']) ? ' style="background-color: lightblue;"' : '') . '></td>';
+                         }
+                     }
++                    $subout .= '</tr>';
+ 
+-                $out .= '</tr>';
++                    if ($founded) $out .= $subout;
++                }
              }
  
+             $out .= '</table>';
