@@ -2504,6 +2504,8 @@ SCRIPT;
             require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
             $extrafields_contract = new ExtraFields($this->db);
             $extralabels_contract = $extrafields_contract->fetch_name_optionals_label('contrat');
+			$extrafields_equipement = new ExtraFields($this->db);
+            $extralabels_equipement = $extrafields_contract->fetch_name_optionals_label('equipement');
 
 			$to_print = array();
     $msg_error = '';
@@ -2535,7 +2537,8 @@ SCRIPT;
         print '</tr>';
         print '</table>';
     }
-			        print '<table class="border" width="100%">';
+
+		print '<table class="border" width="100%">';
         print '<tr>';
         print '<td>';
 
@@ -2560,9 +2563,46 @@ SCRIPT;
 			        print '</td>';
         print '</tr>';
         print '</table>';
+
+		print '<table class="border" width="100%">';
+        print '<tr>';
+		print '<td>';
+
+
+            $object->fetchObjectLinked();
+            $list_equipement = is_array($object->linkedObjects['equipement']) ? $object->linkedObjects['equipement'] : array();
+            $to_print = array();
+            if (!empty($list_equipement)) {
+				dol_include_once('/synergiestech/class/html.formsynergiestech.class.php');
+				$formsynergiestech = new FormSynergiesTech($this->db);
+                foreach ($list_equipement  as $equipement) {
+                        $equipement->fetch_optionals();
+						if(!empty($equipement->array_options['options_idtelem']))
+						{
+                        $to_print[] =
+						"<a href='" . DOL_URL_ROOT . "/custom/equipement/card.php?id=" . $equipement->id . "'> " .
+						$equipement->ref .
+						$formsynergiestech->picto_equipment_has_contract($equipement->id) .
+						(!empty($objectlink->array_options['options_machineclient']) ? ' (M)' : '') .
+						" : " .
+						$extrafields_equipement->showOutputField('idtelem', $equipement->array_options['options_idtelem']) .
+						"</a> ";
+						}
+                }
+            }
+            if (count($to_print) > 0) {
+                print '<h1 style="color:green;text-align:center;font-size: 4em;">' . implode('<br>', $to_print) . '</h1>';
+            } else {
+                //print '<h1 style="color:red;text-align:center;font-size: 4em;">Demande sans contrat</h1>';
+            }
+
+		print '</td>';
+        print '</tr>';
+        print '</table>';
         }
 
         return 0;
+
     }
 
     /**
