@@ -68,7 +68,7 @@ class FormSynergiesTech
     /**
      * Constructor
      *
-     * @param   DoliDB    $db     Database handler
+     * @param   DoliDB $db Database handler
      */
     public function __construct($db)
     {
@@ -110,34 +110,34 @@ class FormSynergiesTech
     /**
      *  Return list of products for customer in Ajax if Ajax activated or go to select_produits_list
      *
-     * @param   int     $selected                           Preselected products
-     * @param   string  $htmlname                           Name of HTML select field (must be unique in page)
-     * @param   int     $filtertype                         Filter on product type (''=nofilter, 0=product, 1=service)
-     * @param   array   $include_into_contract_categories   If not null only products include into categories
-     * @param   int     $free_into_categories               1=The products include into categories is free
-     * @param   array   $include_into_tag_categories  Bold lines of product include into the tag categories
-     * @param   int     $show_mode                          Show mode of the options (0=for orders, 1=for request manager: bold/into equipment; normal/not into equipment; black/into contract; gray/not into contract)
-     * @param   array   $only_in_categories       Show only product in the categories (all if none founded)
-     * @param   int     $limit                              Limit on number of returned lines
-     * @param   int     $price_level                        Level of price to show
-     * @param   int     $status                             -1=Return all products, 0=Products not on sell, 1=Products on sell
-     * @param   int     $finished                           2=all, 1=finished, 0=raw material
-     * @param   string  $selected_input_value               Value of preselected input text (for use with ajax)
-     * @param   int     $hidelabel                          Hide label (0=no, 1=yes, 2=show search icon (before) and placeholder, 3 search icon after)
-     * @param   array   $ajaxoptions                        Options for synergiestech_ajax_autocompleter
-     * @param   int     $socid                              Thirdparty Id (to get also price dedicated to this customer)
-     * @param   string  $showempty                          '' to not show empty line. Translation key to show an empty line. '1' show empty line with no text.
-     * @param   int     $forcecombo                         Force to use combo box
-     * @param   string  $morecss                            Add more css on select
-     * @param   int     $hidepriceinlabel                   1=Hide prices in label
-     * @param   string  $warehouseStatus                    warehouse status filter, following comma separated filter options can be used
+     * @param   int $selected Preselected products
+     * @param   string $htmlname Name of HTML select field (must be unique in page)
+     * @param   int $filtertype Filter on product type (''=nofilter, 0=product, 1=service)
+     * @param   array $include_into_contract_categories If not null only products include into categories
+     * @param   int $free_into_categories 1=The products include into categories is free
+     * @param   array $include_into_tag_categories Bold lines of product include into the tag categories
+     * @param   int $show_mode Show mode of the options (0=for orders, 1=for request manager: bold/into equipment; normal/not into equipment; black/into contract; gray/not into contract)
+     * @param   array $only_in_categories Show only product in the categories (all if none founded)
+     * @param   int $limit Limit on number of returned lines
+     * @param   int $price_level Level of price to show
+     * @param   int $status -1=Return all products, 0=Products not on sell, 1=Products on sell
+     * @param   int $finished 2=all, 1=finished, 0=raw material
+     * @param   string $selected_input_value Value of preselected input text (for use with ajax)
+     * @param   int $hidelabel Hide label (0=no, 1=yes, 2=show search icon (before) and placeholder, 3 search icon after)
+     * @param   array $ajaxoptions Options for synergiestech_ajax_autocompleter
+     * @param   int $socid Thirdparty Id (to get also price dedicated to this customer)
+     * @param   string $showempty '' to not show empty line. Translation key to show an empty line. '1' show empty line with no text.
+     * @param   int $forcecombo Force to use combo box
+     * @param   string $morecss Add more css on select
+     * @param   int $hidepriceinlabel 1=Hide prices in label
+     * @param   string $warehouseStatus warehouse status filter, following comma separated filter options can be used
      *                                                        'warehouseopen' = select products from open warehouses,
      *                                                        'warehouseclosed' = select products from closed warehouses,
      *                                                        'warehouseinternal' = select products from warehouses for internal correct/transfer only
-     * @param   array   $selected_combinations              Selected combinations. Format: array([attrid] => attrval, [...])
+     * @param   array $selected_combinations Selected combinations. Format: array([attrid] => attrval, [...])
      * @return  void
      */
-    function select_produits($selected = '', $htmlname = 'productid', $filtertype = '', $include_into_contract_categories = array(), $free_into_categories = 0, $include_into_tag_categories=array(), $show_mode=0, $only_in_categories=array(), $limit = 20, $price_level = 0, $status = 1, $finished = 2, $selected_input_value = '', $hidelabel = 0, $ajaxoptions = array(), $socid = 0, $showempty = '1', $forcecombo = 0, $morecss = '', $hidepriceinlabel = 0, $warehouseStatus = '', $selected_combinations = array())
+    function select_produits($selected = '', $htmlname = 'productid', $filtertype = '', $include_into_contract_categories = array(), $free_into_categories = 0, $include_into_tag_categories = array(), $show_mode = 0, $only_in_categories = array(), $limit = 20, $price_level = 0, $status = 1, $finished = 2, $selected_input_value = '', $hidelabel = 0, $ajaxoptions = array(), $socid = 0, $showempty = '1', $forcecombo = 0, $morecss = '', $hidepriceinlabel = 0, $warehouseStatus = '', $selected_combinations = array())
     {
         global $langs, $conf;
 
@@ -156,8 +156,8 @@ class FormSynergiesTech
                 unset($producttmpselect);
             }
             // mode=1 means customers products
-            $urloptioncat = http_build_query(array('include_contract_categories'=>$include_into_contract_categories,'include_tag_categories'=>$include_into_tag_categories,'show_mode'=>$show_mode,'only_in_categories'=>$only_in_categories));
-            $urloption = 'htmlname=' . $htmlname . '&outjson=1&price_level=' . $price_level . '&type=' . $filtertype . '&mode=1&status=' . $status . '&finished=' . $finished . '&warehousestatus=' . $warehouseStatus."&".$urloptioncat;
+            $urloptioncat = http_build_query(array('include_contract_categories' => $include_into_contract_categories, 'include_tag_categories' => $include_into_tag_categories, 'show_mode' => $show_mode, 'only_in_categories' => $only_in_categories));
+            $urloption = 'htmlname=' . $htmlname . '&outjson=1&price_level=' . $price_level . '&type=' . $filtertype . '&mode=1&status=' . $status . '&finished=' . $finished . '&warehousestatus=' . $warehouseStatus . "&" . $urloptioncat;
             //Price by customer
             if (!empty($conf->global->PRODUIT_CUSTOMER_PRICES) && !empty($socid)) {
                 $urloption .= '&socid=' . $socid;
@@ -258,32 +258,32 @@ class FormSynergiesTech
     /**
      *  Return list of products for a customer
      *
-     * @param   int     $selected                 Preselected product
-     * @param   string  $htmlname                 Name of select html
-     * @param   string  $filtertype               Filter on product type (''=nofilter, 0=product, 1=service)
-     * @param   array   $include_into_contract_categories  If not null only products include into categories
-     * @param   int     $free_into_categories     1=The products include into categories is free
-     * @param   array   $include_into_tag_categories     Bold lines of product include into the tag categories
-     * @param   int     $show_mode                Show mode of the options (0=for orders, 1=for request manager: bold/into equipment; normal/not into equipment; black/into contract; gray/not into contract)
-     * @param   array   $only_in_categories       Show only product in the categories (all if none founded)
-     * @param   int     $limit                    Limit on number of returned lines
-     * @param   int     $price_level              Level of price to show
-     * @param   string  $filterkey                Filter on product
-     * @param   int     $status                   -1=Return all products, 0=Products not on sell, 1=Products on sell
-     * @param   int     $finished                 Filter on finished field: 2=No filter
-     * @param   int     $outputmode               0=HTML select string, 1=Array
-     * @param   int     $socid                    Thirdparty Id (to get also price dedicated to this customer)
-     * @param   string  $showempty                '' to not show empty line. Translation key to show an empty line. '1' show empty line with no text.
-     * @param   int     $forcecombo               Force to use combo box
-     * @param   string  $morecss                  Add more css on select
-     * @param   int     $hidepriceinlabel         1=Hide prices in label
-     * @param   string  $warehouseStatus          warehouse status filter, following comma separated filter options can be used
+     * @param   int $selected Preselected product
+     * @param   string $htmlname Name of select html
+     * @param   string $filtertype Filter on product type (''=nofilter, 0=product, 1=service)
+     * @param   array $include_into_contract_categories If not null only products include into categories
+     * @param   int $free_into_categories 1=The products include into categories is free
+     * @param   array $include_into_tag_categories Bold lines of product include into the tag categories
+     * @param   int $show_mode Show mode of the options (0=for orders, 1=for request manager: bold/into equipment; normal/not into equipment; black/into contract; gray/not into contract)
+     * @param   array $only_in_categories Show only product in the categories (all if none founded)
+     * @param   int $limit Limit on number of returned lines
+     * @param   int $price_level Level of price to show
+     * @param   string $filterkey Filter on product
+     * @param   int $status -1=Return all products, 0=Products not on sell, 1=Products on sell
+     * @param   int $finished Filter on finished field: 2=No filter
+     * @param   int $outputmode 0=HTML select string, 1=Array
+     * @param   int $socid Thirdparty Id (to get also price dedicated to this customer)
+     * @param   string $showempty '' to not show empty line. Translation key to show an empty line. '1' show empty line with no text.
+     * @param   int $forcecombo Force to use combo box
+     * @param   string $morecss Add more css on select
+     * @param   int $hidepriceinlabel 1=Hide prices in label
+     * @param   string $warehouseStatus warehouse status filter, following comma separated filter options can be used
      *                                              'warehouseopen' = select products from open warehouses,
      *                                              'warehouseclosed' = select products from closed warehouses,
      *                                              'warehouseinternal' = select products from warehouses for internal correct/transfer only
      * @return  array                             Array of keys for json
      */
-    function select_produits_list($selected = '', $htmlname = 'productid', $filtertype = '', $include_into_contract_categories = array(), $free_into_categories = 0, $include_into_tag_categories=array(), $show_mode=0, $only_in_categories=array(), $limit = 20, $price_level = 0, $filterkey = '', $status = 1, $finished = 2, $outputmode = 0, $socid = 0, $showempty = '1', $forcecombo = 0, $morecss = '', $hidepriceinlabel = 0, $warehouseStatus = '')
+    function select_produits_list($selected = '', $htmlname = 'productid', $filtertype = '', $include_into_contract_categories = array(), $free_into_categories = 0, $include_into_tag_categories = array(), $show_mode = 0, $only_in_categories = array(), $limit = 20, $price_level = 0, $filterkey = '', $status = 1, $finished = 2, $outputmode = 0, $socid = 0, $showempty = '1', $forcecombo = 0, $morecss = '', $hidepriceinlabel = 0, $warehouseStatus = '')
     {
         global $langs, $conf, $user, $db;
 
@@ -442,7 +442,8 @@ class FormSynergiesTech
         }
         if (count($warehouseStatusArray) || (is_array($include_into_contract_categories) && count($include_into_contract_categories) > 0) ||
             ($show_mode == 1 && is_array($include_into_tag_categories) && count($include_into_tag_categories) > 0) ||
-            (is_array($only_in_categories) && count($only_in_categories) > 0)) {
+            (is_array($only_in_categories) && count($only_in_categories) > 0)
+        ) {
             $sql .= ' GROUP BY ' . $selectFields;
         }
         $sql .= $db->order("is_into_tag_categories, is_into_contract_categories, p.ref", "DESC, DESC, ASC");
@@ -511,7 +512,7 @@ class FormSynergiesTech
                             // "label" value of json key array is used by jQuery automatically as text for combo box
                             $out .= $opt;
                             //if (!isset($objp->is_into_contract_categories) || $objp->is_into_contract_categories == 1) {
-                                array_push($outarray, $optJson);
+                            array_push($outarray, $optJson);
                             //}
                         }
                     }
@@ -536,7 +537,7 @@ class FormSynergiesTech
                     // "label" value of json key array is used by jQuery automatically as text for combo box
                     $out .= $opt;
                     //if (!isset($objp->is_into_contract_categories) || $objp->is_into_contract_categories == 1) {
-                        array_push($outarray, $optJson);
+                    array_push($outarray, $optJson);
                     //}
                 }
 
@@ -557,17 +558,17 @@ class FormSynergiesTech
     /**
      * constructProductListOption
      *
-     * @param   resultset   $objp               Resultset of fetch
-     * @param   string      $opt                Option (var used for returned value in string option format)
-     * @param   string      $optJson            Option (var used for returned value in json format)
-     * @param   int         $price_level        Price level
-     * @param   string      $selected           Preselected value
-     * @param   int         $hidepriceinlabel   Hide price in label
-     * @param   int         $forceDiscount      Force discount pourcent
-     * @param   int         $show_mode          Show mode of the options (0=for orders, 1=for request manager: bold/into equipment; normal/not into equipment; black/into contract; gray/not into contract)
+     * @param   resultset $objp Resultset of fetch
+     * @param   string $opt Option (var used for returned value in string option format)
+     * @param   string $optJson Option (var used for returned value in json format)
+     * @param   int $price_level Price level
+     * @param   string $selected Preselected value
+     * @param   int $hidepriceinlabel Hide price in label
+     * @param   int $forceDiscount Force discount pourcent
+     * @param   int $show_mode Show mode of the options (0=for orders, 1=for request manager: bold/into equipment; normal/not into equipment; black/into contract; gray/not into contract)
      * @return  void
      */
-    private function constructProductListOption(&$objp, &$opt, &$optJson, $price_level, $selected, $hidepriceinlabel = 0, $forceDiscount=null, $show_mode=0)
+    private function constructProductListOption(&$objp, &$opt, &$optJson, $price_level, $selected, $hidepriceinlabel = 0, $forceDiscount = null, $show_mode = 0)
     {
         global $langs, $conf, $user, $db;
 
@@ -748,7 +749,7 @@ class FormSynergiesTech
         $opt .= "</option>\n";
 
         $style = (empty($objp->is_into_tag_categories) ? '' : 'font-weight:bolder;') . (empty($objp->is_into_contract_categories) ? 'color:red;' : 'color:green;');
-        $optJson = array('key' => $outkey, 'value' => $outref, 'label' => (!empty($style) ? '<span style="'.$style.'">' : '') . $outval . (!empty($style) ? '</span>' : ''), 'label2' => $outlabel, 'desc' => $outdesc, 'type' => $outtype, 'price_ht' => $outprice_ht, 'price_ttc' => $outprice_ttc, 'pricebasetype' => $outpricebasetype, 'tva_tx' => $outtva_tx, 'qty' => $outqty, 'discount' => $outdiscount, 'duration_value' => $outdurationvalue, 'duration_unit' => $outdurationunit);
+        $optJson = array('key' => $outkey, 'value' => $outref, 'label' => (!empty($style) ? '<span style="' . $style . '">' : '') . $outval . (!empty($style) ? '</span>' : ''), 'label2' => $outlabel, 'desc' => $outdesc, 'type' => $outtype, 'price_ht' => $outprice_ht, 'price_ttc' => $outprice_ttc, 'pricebasetype' => $outpricebasetype, 'tva_tx' => $outtva_tx, 'qty' => $outqty, 'discount' => $outdiscount, 'duration_value' => $outdurationvalue, 'duration_unit' => $outdurationunit);
         /*if ($isNotIntoCategories) {
             $optJson['opt_disabled'] = true;
         }*/
@@ -757,11 +758,11 @@ class FormSynergiesTech
     /**
      *  Get HTML picto of the state of contract for the equipment
      *
-     * @param   int     $equipment_id     Equipment ID
-     * @param   int     $reload           Reload cache of contract ref list
+     * @param   int $equipment_id Equipment ID
+     * @param   int $reload Reload cache of contract ref list
      * @return  string                    HTML picto of the state of contract for the equipment
      */
-    function picto_equipment_has_contract($equipment_id=0, $reload=0)
+    function picto_equipment_has_contract($equipment_id = 0, $reload = 0)
     {
         global $langs;
         $langs->load("synergiestech@synergiestech");
@@ -771,9 +772,9 @@ class FormSynergiesTech
 
             require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
 
-            $sql = "SELECT DISTINCT IF(sourcetype = 'equipement', fk_target, fk_source) AS fk_contrat FROM " . MAIN_DB_PREFIX . "element_element".
-                " WHERE (sourcetype = 'equipement' AND fk_source = ".$equipment_id." AND targettype = 'contrat')" .
-                " OR (sourcetype = 'contrat' AND targettype = 'equipement' AND fk_target = ".$equipment_id.")";
+            $sql = "SELECT DISTINCT IF(sourcetype = 'equipement', fk_target, fk_source) AS fk_contrat FROM " . MAIN_DB_PREFIX . "element_element" .
+                " WHERE (sourcetype = 'equipement' AND fk_source = " . $equipment_id . " AND targettype = 'contrat')" .
+                " OR (sourcetype = 'contrat' AND targettype = 'equipement' AND fk_target = " . $equipment_id . ")";
 
             $resql = $this->db->query($sql);
             if ($resql) {
@@ -802,8 +803,8 @@ class FormSynergiesTech
     /**
      *  Load colored product label info for a object
      *
-     * @param  	CommonObject		  $object				    Object instance.
-     * @return 	array
+     * @param    CommonObject $object Object instance.
+     * @return  array
      */
     function loadColoredProductLabelInfo($object)
     {
@@ -927,8 +928,8 @@ class FormSynergiesTech
     /**
      *  Load product categories list of a product
      *
-     * @param  	int		  $fk_product				    Product ID.
-     * @return 	array
+     * @param    int $fk_product Product ID.
+     * @return  array
      */
     function loadProductCategoriesList($fk_product)
     {
@@ -947,14 +948,14 @@ class FormSynergiesTech
     /**
      *  Get colored product label for the objectline_view.tpl.php file
      *
-     * @param  	CommonObject		  $_this				    Object who launch the printObjectLine function.
-     * @param   Product           $product_static		Product object
-     * @param   CommonObjectLine  $line		          Selected object line to output
-     * @return 	string      	    			            Return colored product label
+     * @param    CommonObject $_this Object who launch the printObjectLine function.
+     * @param   Product $product_static Product object
+     * @param   CommonObjectLine $line Selected object line to output
+     * @return  string                              Return colored product label
      */
     function getObjectLineViewColoredProductLabel($_this, $product_static, $line)
     {
-        global $conf,$langs,$user,$object,$hookmanager;
+        global $conf, $langs, $user, $object, $hookmanager;
         $text = '';
 
         if ($line->fk_product > 0) {
@@ -1012,9 +1013,9 @@ class FormSynergiesTech
     /**
      *  Get colored product label for the originproductline.tpl.php file
      *
-     * @param  	CommonObject		  $object				    Object instance.
-     * @param   CommonObjectLine  $line		          Selected object line to output
-     * @return 	string      	    			            Return colored product label
+     * @param    CommonObject $object Object instance.
+     * @param   CommonObjectLine $line Selected object line to output
+     * @return  string                              Return colored product label
      */
     function getOriginProductLineViewColoredProductLabel($object, $line)
     {
@@ -1078,19 +1079,19 @@ class FormSynergiesTech
      *       print '});'."\n";
      *       print '</script>'."\n";
      *
-     *     @param  	string		$page        	   	Url of page to call if confirmation is OK
-     *     @param	string		$title       	   	Title
-     *     @param	string		$question    	   	Question
-     *     @param 	string		$action      	   	Action
-     *	   @param  	array		$formquestion	   	An array with complementary inputs to add into forms: array(array('label'=> ,'type'=> , ))
-     * 	   @param  	string		$selectedchoice  	"" or "no" or "yes"
-     * 	   @param  	int			$useajax		   	0=No, 1=Yes, 2=Yes but submit page with &confirm=no if choice is No, 'xxx'=Yes and preoutput confirm box with div id=dialog-confirm-xxx
-     *     @param  	int			$height          	Force height of box
-     *     @param	int			$width				Force width of box ('999' or '90%'). Ignored and forced to 90% on smartphones.
-     *     @param	int			$post				Send by form POST if =1,  if string send from existed form name.
-     *     @return 	string      	    			HTML ajax code if a confirm ajax popup is required, Pure HTML code if it's an html form
+     * @param    string $page Url of page to call if confirmation is OK
+     * @param  string $title Title
+     * @param  string $question Question
+     * @param  string $action Action
+     * @param    array $formquestion An array with complementary inputs to add into forms: array(array('label'=> ,'type'=> , ))
+     * @param    string $selectedchoice "" or "no" or "yes"
+     * @param    int $useajax 0=No, 1=Yes, 2=Yes but submit page with &confirm=no if choice is No, 'xxx'=Yes and preoutput confirm box with div id=dialog-confirm-xxx
+     * @param    int $height Force height of box
+     * @param  int $width Force width of box ('999' or '90%'). Ignored and forced to 90% on smartphones.
+     * @param  int $post Send by form POST if =1,  if string send from existed form name.
+     * @return  string                  HTML ajax code if a confirm ajax popup is required, Pure HTML code if it's an html form
      */
-    function formconfirm($page, $title, $question, $action, $formquestion=array(), $selectedchoice="", $useajax=0, $height=200, $width=500, $post=0)
+    function formconfirm($page, $title, $question, $action, $formquestion = array(), $selectedchoice = "", $useajax = 0, $height = 200, $width = 500, $post = 0)
     {
         global $langs, $conf, $form;
         global $useglobalvars;
@@ -1288,8 +1289,8 @@ class FormSynergiesTech
                         buttons: {
                             "' . dol_escape_js($langs->transnoentities("Yes")) . '": function() {
                                 var dialog_div = $("#' . $dialogconfirm . '");
-                                var form = $("form#'.$post.'");
-                                if (form.length == 0) form = $(\'form[name="'.$post.'"]\');
+                                var form = $("form#' . $post . '");
+                                if (form.length == 0) form = $(\'form[name="' . $post . '"]\');
 
                                 var inputok = ' . json_encode($inputok) . ';
                                 if (inputok.length>0) {
@@ -1309,7 +1310,7 @@ class FormSynergiesTech
 
                                 var form_action_input = find_form_input(form, "action");
                                 var form_confirm_input = find_form_input(form, "confirm");
-                                form_action_input.val("'.$action.'");
+                                form_action_input.val("' . $action . '");
                                 form_confirm_input.val("yes");
                                 form.submit();
                                 $(this).dialog("close");
@@ -1317,8 +1318,8 @@ class FormSynergiesTech
                             "' . dol_escape_js($langs->transnoentities("No")) . '": function() {
                                 if (' . ($useajax == 2 ? '1' : '0') . ' == 1) {
                                   var dialog_div = $("#' . $dialogconfirm . '");
-                                  var form = $("form#'.$post.'");
-                                  if (form.length == 0) form = $(\'form[name="'.$post.'"]\');
+                                  var form = $("form#' . $post . '");
+                                  if (form.length == 0) form = $(\'form[name="' . $post . '"]\');
 
 				    var inputko = ' . json_encode($inputko) . ';
                                   if (inputko.length>0) {
@@ -1338,7 +1339,7 @@ class FormSynergiesTech
 
                                   var form_action_input = find_form_input(form, "action");
                                   var form_confirm_input = find_form_input(form, "confirm");
-                                  form_action_input.val("'.$action.'");
+                                  form_action_input.val("' . $action . '");
                                   form_confirm_input.val("no");
                                   form.submit();
                                 }
@@ -1350,7 +1351,7 @@ class FormSynergiesTech
 
                     function find_form_input(form, inputname) {
                       var form_input = form.find("#" + inputname);
-                      if (form_input.length == 0) form_input = form.find(\'[name="'.$post.'"]\');
+                      if (form_input.length == 0) form_input = form.find(\'[name="' . $post . '"]\');
                       if (form_input.length == 0) {
                         form.append(\'<input type="hidden" id="\' + inputname + \'" name="\' + inputname + \'" value="">\');
                         form_input = form.find("#" + inputname);
@@ -1477,185 +1478,158 @@ class FormSynergiesTech
      *       print '});'."\n";
      *       print '</script>'."\n";
      *
-     *     @param  	string		$page        	   	Url of page to call if confirmation is OK
-     *     @param	string		$title       	   	Title
-     *     @param	string		$question    	   	Question
-     *     @param 	string		$action      	   	Action
-     *	   @param  	array		$formquestion	   	An array with complementary inputs to add into forms: array(array('label'=> ,'type'=> , ))
-     * 	   @param  	string		$selectedchoice  	"" or "no" or "yes"
-     * 	   @param  	int			$useajax		   	0=No, 1=Yes, 2=Yes but submit page with &confirm=no if choice is No, 'xxx'=Yes and preoutput confirm box with div id=dialog-confirm-xxx
-     *     @param  	int			$height          	Force height of box
-     *     @param	int			$width				Force width of box ('999' or '90%'). Ignored and forced to 90% on smartphones.
-     *     @return 	string      	    			HTML ajax code if a confirm ajax popup is required, Pure HTML code if it's an html form
+     * @param    string $page Url of page to call if confirmation is OK
+     * @param  string $title Title
+     * @param  string $question Question
+     * @param  string $action Action
+     * @param    array $formquestion An array with complementary inputs to add into forms: array(array('label'=> ,'type'=> , ))
+     * @param    string $selectedchoice "" or "no" or "yes"
+     * @param    int $useajax 0=No, 1=Yes, 2=Yes but submit page with &confirm=no if choice is No, 'xxx'=Yes and preoutput confirm box with div id=dialog-confirm-xxx
+     * @param    int $height Force height of box
+     * @param  int $width Force width of box ('999' or '90%'). Ignored and forced to 90% on smartphones.
+     * @return  string                  HTML ajax code if a confirm ajax popup is required, Pure HTML code if it's an html form
      */
-    function formconfirmfile($page, $title, $question, $action, $formquestion='', $selectedchoice="", $useajax=0, $height=200, $width=500)
+    function formconfirmfile($page, $title, $question, $action, $formquestion = '', $selectedchoice = "", $useajax = 0, $height = 200, $width = 500)
     {
-        global $langs,$conf;
+        global $langs, $conf;
         global $useglobalvars;
 
-        $more='';
-        $formconfirm='';
-        $inputok=array();
-        $inputko=array();
+        $more = '';
+        $formconfirm = '';
+        $inputok = array();
+        $inputko = array();
 
         // Clean parameters
-        $newselectedchoice=empty($selectedchoice)?"no":$selectedchoice;
-        if ($conf->browser->layout == 'phone') $width='95%';
+        $newselectedchoice = empty($selectedchoice) ? "no" : $selectedchoice;
+        if ($conf->browser->layout == 'phone') $width = '95%';
 
-        if (is_array($formquestion) && ! empty($formquestion))
-        {
+        if (is_array($formquestion) && !empty($formquestion)) {
             // First add hidden fields and value
-            foreach ($formquestion as $key => $input)
-            {
-                if (is_array($input) && ! empty($input))
-                {
-                    if ($input['type'] == 'hidden')
-                    {
-                        $more.='<input type="hidden" id="'.$input['name'].'" name="'.$input['name'].'" value="'.dol_escape_htmltag($input['value']).'">'."\n";
+            foreach ($formquestion as $key => $input) {
+                if (is_array($input) && !empty($input)) {
+                    if ($input['type'] == 'hidden') {
+                        $more .= '<input type="hidden" id="' . $input['name'] . '" name="' . $input['name'] . '" value="' . dol_escape_htmltag($input['value']) . '">' . "\n";
                     }
                 }
             }
 
             // Now add questions
-            $more.='<table class="paddingtopbottomonly" width="100%">'."\n";
-            $more.='<tr><td colspan="3">'.(! empty($formquestion['text'])?$formquestion['text']:'').'</td></tr>'."\n";
-            foreach ($formquestion as $key => $input)
-            {
-                if (is_array($input) && ! empty($input))
-                {
-                    $size=(! empty($input['size'])?' size="'.$input['size'].'"':'');
+            $more .= '<table class="paddingtopbottomonly" width="100%">' . "\n";
+            $more .= '<tr><td colspan="3">' . (!empty($formquestion['text']) ? $formquestion['text'] : '') . '</td></tr>' . "\n";
+            foreach ($formquestion as $key => $input) {
+                if (is_array($input) && !empty($input)) {
+                    $size = (!empty($input['size']) ? ' size="' . $input['size'] . '"' : '');
 
-                    if ($input['type'] == 'text')
-                    {
-                        $more.='<tr><td>'.$input['label'].'</td><td colspan="2" align="left"><input type="text" class="flat" id="'.$input['name'].'" name="'.$input['name'].'"'.$size.' value="'.$input['value'].'" /></td></tr>'."\n";
-                    }
-                    else if ($input['type'] == 'password')
-                    {
-                        $more.='<tr><td>'.$input['label'].'</td><td colspan="2" align="left"><input type="password" class="flat" id="'.$input['name'].'" name="'.$input['name'].'"'.$size.' value="'.$input['value'].'" /></td></tr>'."\n";
-                    }
-                    else if ($input['type'] == 'select')
-                    {
-                        $more.='<tr><td>';
-                        if (! empty($input['label'])) $more.=$input['label'].'</td><td valign="top" colspan="2" align="left">';
-                        $more.=$this->form->selectarray($input['name'],$input['values'],$input['default'],1);
-                        $more.='</td></tr>'."\n";
-                    }
-                    else if ($input['type'] == 'checkbox')
-                    {
-                        $more.='<tr>';
-                        $more.='<td>'.$input['label'].' </td><td align="left">';
-                        $more.='<input type="checkbox" class="flat" id="'.$input['name'].'" name="'.$input['name'].'"';
-                        if (! is_bool($input['value']) && $input['value'] != 'false') $more.=' checked';
-                        if (is_bool($input['value']) && $input['value']) $more.=' checked';
-                        if (isset($input['disabled'])) $more.=' disabled';
-                        $more.=' /></td>';
-                        $more.='<td align="left">&nbsp;</td>';
-                        $more.='</tr>'."\n";
-                    }
-                    else if ($input['type'] == 'radio')
-                    {
-                        $i=0;
-                        foreach($input['values'] as $selkey => $selval)
-                        {
-                            $more.='<tr>';
-                            if ($i==0) $more.='<td class="tdtop">'.$input['label'].'</td>';
-                            else $more.='<td>&nbsp;</td>';
-                            $more.='<td width="20"><input type="radio" class="flat" id="'.$input['name'].'" name="'.$input['name'].'" value="'.$selkey.'"';
-                            if ($input['disabled']) $more.=' disabled';
-                            $more.=' /></td>';
-                            $more.='<td align="left">';
-                            $more.=$selval;
-                            $more.='</td></tr>'."\n";
+                    if ($input['type'] == 'text') {
+                        $more .= '<tr><td>' . $input['label'] . '</td><td colspan="2" align="left"><input type="text" class="flat" id="' . $input['name'] . '" name="' . $input['name'] . '"' . $size . ' value="' . $input['value'] . '" /></td></tr>' . "\n";
+                    } else if ($input['type'] == 'password') {
+                        $more .= '<tr><td>' . $input['label'] . '</td><td colspan="2" align="left"><input type="password" class="flat" id="' . $input['name'] . '" name="' . $input['name'] . '"' . $size . ' value="' . $input['value'] . '" /></td></tr>' . "\n";
+                    } else if ($input['type'] == 'select') {
+                        $more .= '<tr><td>';
+                        if (!empty($input['label'])) $more .= $input['label'] . '</td><td valign="top" colspan="2" align="left">';
+                        $more .= $this->form->selectarray($input['name'], $input['values'], $input['default'], 1);
+                        $more .= '</td></tr>' . "\n";
+                    } else if ($input['type'] == 'checkbox') {
+                        $more .= '<tr>';
+                        $more .= '<td>' . $input['label'] . ' </td><td align="left">';
+                        $more .= '<input type="checkbox" class="flat" id="' . $input['name'] . '" name="' . $input['name'] . '"';
+                        if (!is_bool($input['value']) && $input['value'] != 'false') $more .= ' checked';
+                        if (is_bool($input['value']) && $input['value']) $more .= ' checked';
+                        if (isset($input['disabled'])) $more .= ' disabled';
+                        $more .= ' /></td>';
+                        $more .= '<td align="left">&nbsp;</td>';
+                        $more .= '</tr>' . "\n";
+                    } else if ($input['type'] == 'radio') {
+                        $i = 0;
+                        foreach ($input['values'] as $selkey => $selval) {
+                            $more .= '<tr>';
+                            if ($i == 0) $more .= '<td class="tdtop">' . $input['label'] . '</td>';
+                            else $more .= '<td>&nbsp;</td>';
+                            $more .= '<td width="20"><input type="radio" class="flat" id="' . $input['name'] . '" name="' . $input['name'] . '" value="' . $selkey . '"';
+                            if ($input['disabled']) $more .= ' disabled';
+                            $more .= ' /></td>';
+                            $more .= '<td align="left">';
+                            $more .= $selval;
+                            $more .= '</td></tr>' . "\n";
                             $i++;
                         }
-                    }
-                    else if ($input['type'] == 'date')
-                    {
-                        $more.='<tr><td>'.$input['label'].'</td>';
-                        $more.='<td colspan="2" align="left">';
-                        $more.=$this->form->select_date($input['value'],$input['name'],0,0,0,'',1,0,1);
-                        $more.='</td></tr>'."\n";
-                        $formquestion[] = array('name'=>$input['name'].'day');
-                        $formquestion[] = array('name'=>$input['name'].'month');
-                        $formquestion[] = array('name'=>$input['name'].'year');
-                        $formquestion[] = array('name'=>$input['name'].'hour');
-                        $formquestion[] = array('name'=>$input['name'].'min');
-                    }
-                    else if ($input['type'] == 'other')
-                    {
-                        $more.='<tr><td>';
-                        if (! empty($input['label'])) $more.=$input['label'].'</td><td colspan="2" align="left">';
-                        $more.=$input['value'];
-                        $more.='</td></tr>'."\n";
-                    }
-                    else if ($input['type'] == 'onecolumn')
-                    {
-                        $more.='<tr><td colspan="3" align="left">';
-                        $more.=$input['value'];
-                        $more.='</td></tr>'."\n";
+                    } else if ($input['type'] == 'date') {
+                        $more .= '<tr><td>' . $input['label'] . '</td>';
+                        $more .= '<td colspan="2" align="left">';
+                        $more .= $this->form->select_date($input['value'], $input['name'], 0, 0, 0, '', 1, 0, 1);
+                        $more .= '</td></tr>' . "\n";
+                        $formquestion[] = array('name' => $input['name'] . 'day');
+                        $formquestion[] = array('name' => $input['name'] . 'month');
+                        $formquestion[] = array('name' => $input['name'] . 'year');
+                        $formquestion[] = array('name' => $input['name'] . 'hour');
+                        $formquestion[] = array('name' => $input['name'] . 'min');
+                    } else if ($input['type'] == 'other') {
+                        $more .= '<tr><td>';
+                        if (!empty($input['label'])) $more .= $input['label'] . '</td><td colspan="2" align="left">';
+                        $more .= $input['value'];
+                        $more .= '</td></tr>' . "\n";
+                    } else if ($input['type'] == 'onecolumn') {
+                        $more .= '<tr><td colspan="3" align="left">';
+                        $more .= $input['value'];
+                        $more .= '</td></tr>' . "\n";
                     }
                 }
             }
-            $more.='</table>'."\n";
+            $more .= '</table>' . "\n";
         }
 
         // JQUI method dialog is broken with jmobile, we use standard HTML.
         // Note: When using dol_use_jmobile or no js, you must also check code for button use a GET url with action=xxx and check that you also output the confirm code when action=xxx
         // See page product/card.php for example
-        if (! empty($conf->dol_use_jmobile)) $useajax=0;
-        if (empty($conf->use_javascript_ajax)) $useajax=0;
+        if (!empty($conf->dol_use_jmobile)) $useajax = 0;
+        if (empty($conf->use_javascript_ajax)) $useajax = 0;
 
-        if ($useajax)
-        {
-            $autoOpen=true;
-            $dialogconfirm='dialog-confirm';
-            $button='';
-            if (! is_numeric($useajax))
-            {
-                $button=$useajax;
-                $useajax=1;
-                $autoOpen=false;
-                $dialogconfirm.='-'.$button;
+        if ($useajax) {
+            $autoOpen = true;
+            $dialogconfirm = 'dialog-confirm';
+            $button = '';
+            if (!is_numeric($useajax)) {
+                $button = $useajax;
+                $useajax = 1;
+                $autoOpen = false;
+                $dialogconfirm .= '-' . $button;
             }
-            $pageyes=$page.(preg_match('/\?/',$page)?'&':'?').'action='.$action.'&confirm=yes';
+            $pageyes = $page . (preg_match('/\?/', $page) ? '&' : '?') . 'action=' . $action . '&confirm=yes';
             //$pageno=($useajax == 2 ? $page.(preg_match('/\?/',$page)?'&':'?').'confirm=no':'');
             // Add input fields into list of fields to read during submit (inputok and inputko)
-            if (is_array($formquestion))
-            {
-                foreach ($formquestion as $key => $input)
-                {
+            if (is_array($formquestion)) {
+                foreach ($formquestion as $key => $input) {
                     //print "xx ".$key." rr ".is_array($input)."<br>\n";
                     if (is_array($input) && isset($input['name'])) {
                         // Modification Open-DSI - Begin
                         if (is_array($input['name'])) $inputok = array_merge($inputok, $input['name']);
-                        else array_push($inputok,$input['name']);
+                        else array_push($inputok, $input['name']);
                         // Modification Open-DSI - End
                     }
-                    if (isset($input['inputko']) && $input['inputko'] == 1) array_push($inputko,$input['name']);
+                    if (isset($input['inputko']) && $input['inputko'] == 1) array_push($inputko, $input['name']);
                 }
             }
             // Show JQuery confirm box. Note that global var $useglobalvars is used inside this template
-            $formconfirm.= '<div id="'.$dialogconfirm.'" class="dialog-confirmfile" title="'.dol_escape_htmltag($title).'" style="display: none;">';
-            if (! empty($more)) {
-                $inputToken   = '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '" />';
+            $formconfirm .= '<div id="' . $dialogconfirm . '" class="dialog-confirmfile" title="' . dol_escape_htmltag($title) . '" style="display: none;">';
+            if (!empty($more)) {
+                $inputToken = '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '" />';
                 //$inputAction  = '<input type="hidden" name="action" value="' . $action .'" />';
                 //$inputConfirm = '<input type="hidden" name="confirm" value="yes" />';
                 $more = '<form action="' . $pageyes . '" id="synergiestech_formconfirmfile" name="synergiestech_formconfirmfile" enctype="multipart/form-data" method="post">' . $inputToken . $more . '</form>';
-                $formconfirm.= '<div class="confirmquestions">'.$more.'</div>';
+                $formconfirm .= '<div class="confirmquestions">' . $more . '</div>';
             }
-            $formconfirm.= ($question ? '<div class="confirmmessage">'.img_help('','').' '.$question . '</div>': '');
-            $formconfirm.= '</div>'."\n";
+            $formconfirm .= ($question ? '<div class="confirmmessage">' . img_help('', '') . ' ' . $question . '</div>' : '');
+            $formconfirm .= '</div>' . "\n";
 
-            $formconfirm.= "\n<!-- begin ajax form_confirm page=".$page." -->\n";
-            $formconfirm.= '<script type="text/javascript">'."\n";
-            $formconfirm.= 'jQuery(document).ready(function() {
+            $formconfirm .= "\n<!-- begin ajax form_confirm page=" . $page . " -->\n";
+            $formconfirm .= '<script type="text/javascript">' . "\n";
+            $formconfirm .= 'jQuery(document).ready(function() {
             $(function() {
-		$( "#'.$dialogconfirm.'" ).dialog(
+		$( "#' . $dialogconfirm . '" ).dialog(
 		{
-                    autoOpen: '.($autoOpen ? "true" : "false").',';
-            if ($newselectedchoice == 'no')
-            {
-                $formconfirm.='
+                    autoOpen: ' . ($autoOpen ? "true" : "false") . ',';
+            if ($newselectedchoice == 'no') {
+                $formconfirm .= '
 						open: function() {
 						    var dialog_confirm = $("#dialog-confirm:not([class*=\'dialog-confirmfile\'])");
 						    if (dialog_confirm.length > 0) {
@@ -1664,71 +1638,68 @@ class FormSynergiesTech
 					$(this).parent().find("button.ui-button:eq(2)").focus();
 						},';
             }
-            $formconfirm.='
+            $formconfirm .= '
                     resizable: false,
-                    height: "'.$height.'",
-                    width: "'.$width.'",
+                    height: "' . $height . '",
+                    width: "' . $width . '",
                     modal: true,
                     closeOnEscape: false,
                     buttons: {
-                        "'.dol_escape_js($langs->transnoentities("Yes")).'": function() {
+                        "' . dol_escape_js($langs->transnoentities("Yes")) . '": function() {
 				$("#synergiestech_formconfirmfile").submit();
                             $(this).dialog("close");
                         },
-                        "'.dol_escape_js($langs->transnoentities("No")).'": function() {
+                        "' . dol_escape_js($langs->transnoentities("No")) . '": function() {
                             $(this).dialog("close");
                         }
                     }
                 }
                 );
 
-		var button = "'.$button.'";
+		var button = "' . $button . '";
 		if (button.length > 0) {
 			$( "#" + button ).click(function() {
-				$("#'.$dialogconfirm.'").dialog("open");
+				$("#' . $dialogconfirm . '").dialog("open");
 				});
                 }
             });
             });
             </script>';
-            $formconfirm.= "<!-- end ajax form_confirm -->\n";
-        }
-        else
-        {
-            $formconfirm.= "\n<!-- begin form_confirm page=".$page." -->\n";
+            $formconfirm .= "<!-- end ajax form_confirm -->\n";
+        } else {
+            $formconfirm .= "\n<!-- begin form_confirm page=" . $page . " -->\n";
 
-            $formconfirm.= '<form method="POST" action="'.$page.'" class="notoptoleftroright">'."\n";
-            $formconfirm.= '<input type="hidden" name="action" value="'.$action.'">'."\n";
-            $formconfirm.= '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">'."\n";
+            $formconfirm .= '<form method="POST" action="' . $page . '" class="notoptoleftroright">' . "\n";
+            $formconfirm .= '<input type="hidden" name="action" value="' . $action . '">' . "\n";
+            $formconfirm .= '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '">' . "\n";
 
-            $formconfirm.= '<table width="100%" class="valid">'."\n";
+            $formconfirm .= '<table width="100%" class="valid">' . "\n";
 
             // Line title
-            $formconfirm.= '<tr class="validtitre"><td class="validtitre" colspan="3">'.img_picto('','recent').' '.$title.'</td></tr>'."\n";
+            $formconfirm .= '<tr class="validtitre"><td class="validtitre" colspan="3">' . img_picto('', 'recent') . ' ' . $title . '</td></tr>' . "\n";
 
             // Line form fields
-            if ($more)
-            {
-                $formconfirm.='<tr class="valid"><td class="valid" colspan="3">'."\n";
-                $formconfirm.=$more;
-                $formconfirm.='</td></tr>'."\n";
+            if ($more) {
+                $formconfirm .= '<tr class="valid"><td class="valid" colspan="3">' . "\n";
+                $formconfirm .= $more;
+                $formconfirm .= '</td></tr>' . "\n";
             }
 
             // Line with question
-            $formconfirm.= '<tr class="valid">';
-            $formconfirm.= '<td class="valid">'.$question.'</td>';
-            $formconfirm.= '<td class="valid">';
-            $formconfirm.= $this->form->selectyesno("confirm",$newselectedchoice);
-            $formconfirm.= '</td>';
-            $formconfirm.= '<td class="valid" align="center"><input class="button valignmiddle" type="submit" value="'.$langs->trans("Validate").'"></td>';
-            $formconfirm.= '</tr>'."\n";
+            $formconfirm .= '<tr class="valid">';
+            $formconfirm .= '<td class="valid">' . $question . '</td>';
+            $formconfirm .= '<td class="valid">';
+            $formconfirm .= $this->form->selectyesno("confirm", $newselectedchoice);
+            $formconfirm .= '</td>';
+            $formconfirm .= '<td class="valid" align="center"><input class="button valignmiddle" type="submit" value="' . $langs->trans("Validate") . '"></td>';
+            $formconfirm .= '</tr>' . "\n";
 
-            $formconfirm.= '</table>'."\n";
+            $formconfirm .= '</table>' . "\n";
 
-            $formconfirm.= "</form>\n";
-            $formconfirm.= '<br>';
+            $formconfirm .= "</form>\n";
+            $formconfirm .= '<br>';
 
-            $formconfirm.= "<!-- end form_confirm -->\n";
+            $formconfirm .= "<!-- end form_confirm -->\n";
         }
 
         return $formconfirm;
@@ -1738,46 +1709,46 @@ class FormSynergiesTech
     /**
      *  Output html form to select a actioncomm
      *
-     * @param   int         $idActionComm           Id of the actioncomm
-     * @param   array       $actionCommCodeList     [=array] List of actioncomm code
-     * @param   string      $selected               Preselected actioncomm
-     * @param   string      $htmlname               Name of field in form
-     * @param   string      $showempty              Add an empty field (Can be '1' or text key to use on empty line like 'SelectThirdParty')
-     * @param   int         $forcecombo             Force to use combo box
-     * @param   array       $events                 Ajax event options to run on change. Example: array(array('method'=>'getContacts', 'url'=>dol_buildpath('/core/ajax/contacts.php',1), 'htmlname'=>'contactid', 'params'=>array('add-customer-contact'=>'disabled')))
-     * @param  	int		    $usesearchtoselect	    Minimum length of input string to start autocomplete
-     * @param   string      $morecss                Add more css styles to the SELECT component
-     * @param   string      $moreparam              Add more parameters onto the select tag. For example 'style="width: 95%"' to avoid select2 component to go over parent container
-     * @param   bool        $options_only           Return options only (for ajax treatment)
+     * @param   int $idActionComm Id of the actioncomm
+     * @param   array $actionCommCodeList [=array] List of actioncomm code
+     * @param   string $selected Preselected actioncomm
+     * @param   string $htmlname Name of field in form
+     * @param   string $showempty Add an empty field (Can be '1' or text key to use on empty line like 'SelectThirdParty')
+     * @param   int $forcecombo Force to use combo box
+     * @param   array $events Ajax event options to run on change. Example: array(array('method'=>'getContacts', 'url'=>dol_buildpath('/core/ajax/contacts.php',1), 'htmlname'=>'contactid', 'params'=>array('add-customer-contact'=>'disabled')))
+     * @param    int $usesearchtoselect Minimum length of input string to start autocomplete
+     * @param   string $morecss Add more css styles to the SELECT component
+     * @param   string $moreparam Add more parameters onto the select tag. For example 'style="width: 95%"' to avoid select2 component to go over parent container
+     * @param   bool $options_only Return options only (for ajax treatment)
      * @return  string                              HTML string with select box for status.
      */
-    function select_actioncomm($idActionComm, $actionCommCodeList=array(), $selected='', $htmlname='actioncomm_id', $showempty=0, $forcecombo=0, $events=array(), $usesearchtoselect=0, $morecss='minwidth100', $moreparam='', $options_only=false)
+    function select_actioncomm($idActionComm, $actionCommCodeList = array(), $selected = '', $htmlname = 'actioncomm_id', $showempty = 0, $forcecombo = 0, $events = array(), $usesearchtoselect = 0, $morecss = 'minwidth100', $moreparam = '', $options_only = false)
     {
         global $conf, $langs, $user;
 
-		$langs->load('requestmanager@requestmanager');
+        $langs->load('requestmanager@requestmanager');
 
         $out = '';
 
-		$moreparam = 'style="width: 95%"';
+        $moreparam = 'style="width: 95%"';
 
         // search actioncomm
-        $sql  = "SELECT";
+        $sql = "SELECT";
         $sql .= " ac.id as id";
         $sql .= ", ac.label as label";
-		$sql .= ", ac.datep as datep";
-		$sql .= ", ac.datep2 as datep2";
-		$sql .= ", user.lastname as name";
-		$sql .= ", user.firstname as firstname";
+        $sql .= ", ac.datep as datep";
+        $sql .= ", ac.datep2 as datep2";
+        $sql .= ", user.lastname as name";
+        $sql .= ", user.firstname as firstname";
         $sql .= " FROM " . MAIN_DB_PREFIX . "actioncomm as ac";
-		$sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "user as user ON user.rowid=ac.fk_user_action";
+        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "user as user ON user.rowid=ac.fk_user_action";
 
         $sql .= " WHERE ac.entity IN (" . getEntity('agenda') . ")";
         if (count($actionCommCodeList) > 0) {
             $sql .= " AND ac.code IN (";
             $sqlCodeIn = '';
             $i = 0;
-            foreach($actionCommCodeList as $actionCommCode) {
+            foreach ($actionCommCodeList as $actionCommCode) {
                 if ($i > 0) {
                     $sqlCodeIn .= ", ";
                 }
@@ -1792,25 +1763,23 @@ class FormSynergiesTech
         if ($idActionComm > 0) {
             $sql .= " AND ac.id = " . $idActionComm;
         }
-		//ADD By Alexis LAURIER - 07/03/2019
-		//We remove view of calls not assigned to the current user or wildix user (id 1632) when call was yesterday
-		//Display all today calls
+        //ADD By Alexis LAURIER - 07/03/2019
+        //We remove view of calls not assigned to the current user or wildix user (id 1632) when call was yesterday
+        //Display all today calls
 
-		$sql .= " AND ( (  DATEDIFF(NOW(), ac.datep) >= 1 ";
-		$sql .= " AND (ac.fk_user_action = '1632' OR ac.fk_user_action = " . $user->id . ")) OR  DATEDIFF(NOW(), ac.datep) = 0 ) ";
-		$sql .= " AND  DATEDIFF(NOW(), ac.datep) <= 15 ";
+        $sql .= " AND ( (  DATEDIFF(NOW(), ac.datep) >= 1 ";
+        $sql .= " AND (ac.fk_user_action = '1632' OR ac.fk_user_action = " . $user->id . ")) OR  DATEDIFF(NOW(), ac.datep) = 0 ) ";
+        $sql .= " AND  DATEDIFF(NOW(), ac.datep) <= 15 ";
 
-		///END
+        ///END
 
         $sql .= " ORDER BY ac.fk_user_action = " . $user->id . ", ac.datep DESC";
 
         dol_syslog(__METHOD__, LOG_DEBUG);
         $resql = $this->db->query($sql);
 
-        if ($resql)
-        {
-            if ($conf->use_javascript_ajax && ! $forcecombo && ! $options_only)
-            {
+        if ($resql) {
+            if ($conf->use_javascript_ajax && !$forcecombo && !$options_only) {
                 include_once DOL_DOCUMENT_ROOT . '/core/lib/ajax.lib.php';
                 $comboenhancement = ajax_combobox($htmlname, $events, $usesearchtoselect);
                 $out .= $comboenhancement;
@@ -1829,81 +1798,93 @@ class FormSynergiesTech
 
             $num = $this->db->num_rows($resql);
             $i = 0;
-			require_once DOL_DOCUMENT_ROOT . '/core/lib/date.lib.php';
-			require_once DOL_DOCUMENT_ROOT.'/user/class/user.class.php';
-            if ($num)
-            {
-                while ($i < $num)
-                {
+            require_once DOL_DOCUMENT_ROOT . '/core/lib/date.lib.php';
+            require_once DOL_DOCUMENT_ROOT . '/user/class/user.class.php';
+            if ($num) {
+                while ($i < $num) {
                     $obj = $this->db->fetch_object($resql);
-					//We build a special label for displayed action comm
+                    //We build a special label for displayed action comm
 
-					$label=$obj->label;
-					//Dispalying begin date event
-					if(num_between_day(dol_stringtotime($obj->datep), dol_now(), 0) >=1) $label=dol_print_date($obj->datep,' %A %d/%m') . " - " . $label;
-					//Displaying user owner event
-					$label = $label . " - " . $obj->firstname . " " . $obj->name;
+                    $label = $obj->label;
+                    //Dispalying begin date event
+                    if (num_between_day(dol_stringtotime($obj->datep), dol_now(), 0) >= 1) $label = dol_print_date($obj->datep, ' %A %d/%m') . " - " . $label;
+                    //Displaying user owner event
+                    $label = $label . " - " . $obj->firstname . " " . $obj->name;
 
-					//Different color between different call;
-					$color="#999999";
-					//incomming call
-					if(strpos($obj->label, $langs->trans('RequestManagerIncomingCall')) !== false)
-					{
-						//We are in an incoming call
-						//We check date to determine duration
-						$duration = $obj->datep2 - $obj->datep;
-						if($duration > 6)
-						{
-							//call has been answered
-							$color="#008000";
-						}
-						else{
-							//Call has not been answered
-							$color="#000099";
-						}
-					}
+                    //Different color between different call;
+                    $color = "#999999";
+                    $color_class = 'st_color_default';
+                    //incomming call
+                    if (strpos($obj->label, $langs->trans('RequestManagerIncomingCall')) !== false) {
+                        //We are in an incoming call
+                        //We check date to determine duration
+                        $duration = $obj->datep2 - $obj->datep;
+                        if ($duration > 6) {
+                            //call has been answered
+                            $color = "#008000";
+                            $color_class = 'st_color_call_has_been_answered';
+                        } else {
+                            //Call has not been answered
+                            $color = "#000099";
+                            $color_class = 'st_color_call_has_not_been_answered';
+                        }
+                    }
 
-					//outgoing call
-					if(strpos($obj->label, $langs->trans('RequestManagerOutgoingCall')) !== false)
-					{
-						//We are in an outgoing call
-						$color="#999999";
-					}
+                    //outgoing call
+                    if (strpos($obj->label, $langs->trans('RequestManagerOutgoingCall')) !== false) {
+                        //We are in an outgoing call
+                        $color = "#999999";
+                        $color_class = 'st_color_outgoing_call';
+                    }
 
-					//transfered call
-					if(strpos($obj->label, $langs->trans('RequestManagerTransferedCall')) !== false)
-					{
-						//We are in an transfered call
-						$color="#999999";
-					}
+                    //transfered call
+                    if (strpos($obj->label, $langs->trans('RequestManagerTransferedCall')) !== false) {
+                        //We are in an transfered call
+                        $color = "#999999";
+                        $color_class = 'st_color_transfered_call';
+                    }
 
 
-                    $out.= '<option value="' . $obj->id . '"';
+                    $out .= '<option class="'.$color_class.'" value="' . $obj->id . '"';
                     if ($selected && $selected == $obj->id) $out .= ' selected';
-					$out .=" style='color: " . $color . "' ";
+                    $out .= " style='color: " . $color . "' ";
                     $out .= '>';
                     $out .= $label;
-
 
                     $out .= '</option>';
                     $i++;
                 }
-            }
-            else
-            {
+            } else {
                 $out .= '<option value="-1" disabled>' . $langs->trans("RequestManagerNoActionComm") . '</option>';
             }
 
-            if (!$options_only)
-            {
+            if (!$options_only) {
                 $out .= '</select>';
+            }
+
+            if ($conf->use_javascript_ajax && !$forcecombo && !$options_only) {
+                $out .= '<style>
+                           .select2-result.st_color_default {
+                             color: #999999;
+                           }
+                           .select2-result.st_color_call_has_been_answered {
+                             color: #008000;
+                           }
+                           .select2-result.st_color_call_has_not_been_answered {
+                             color: #000099;
+                           }
+                           .select2-result.st_color_outgoing_call {
+                             color: #000099;
+                           }
+                           .select2-result.st_color_transfered_call {
+                             color: #000099;
+                           }
+                         </style>';
             }
 
             $this->num = $num;
             return $out;
-        }
-        else
-        {
+        } else {
             dol_print_error($this->db);
             return -1;
         }
