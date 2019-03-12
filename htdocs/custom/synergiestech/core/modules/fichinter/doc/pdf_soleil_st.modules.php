@@ -780,7 +780,8 @@ class pdf_soleil_st extends ModelePDFFicheinter
         }
 
         // Save for the calculation of the position Y origin
-        $last_page = $pdf->getPage();
+        $page_origin = $pdf->getPage();
+        $last_page_margins = $pdf->getMargins();
         $posy_origin = $posy;
 
         // Print label (+ complementary text and status justificatory) of the question bloc
@@ -788,15 +789,23 @@ class pdf_soleil_st extends ModelePDFFicheinter
         $question_bloc_title = '<b><font size="' . $default_font_size . '">' . $question_bloc->label_question_bloc . (!empty($question_bloc_complementary_text) ? '&nbsp;->&nbsp;</font><font size="' . ($default_font_size - 1) . '">' . $question_bloc_complementary_text : '') . '</font></b>';
         $pdf->writeHTMLCell($width - ($circle_offset * 2 + $margin), 3, $posx + $circle_offset * 2 + $margin, $posy, trim($question_bloc_title), $border, 1, false, true, 'L', true);
         $posy = $pdf->GetY();
+        $page = $pdf->getPage();
 
         // Position Y origin
-        if ($last_page != $pdf->getPage()) {
-            $page_margins = $pdf->getMargins();
-            $posy_origin = $page_margins['top'];
+        if ($page_origin != $page) {
+            $text_height = $pdf->getStringHeight(100, '<b><font size="' . $default_font_size . '">pP</font></b>', true);
+            $last_page_text_height = $last_page_margins['bottom'] - $posy_origin;
+            if ($text_height > $last_page_text_height) {
+                $page_margins = $pdf->getMargins();
+                $posy_origin = $page_margins['top'];
+                $page_origin = $page;
+            }
         }
 
         // Print status of the question bloc
+        $pdf->setPage($page_origin);
         $pdf->Circle($posx + $circle_offset, $posy_origin + $circle_offset, $circle_ray, 0, 360, $circle_style, array(), $circle_fill_color);
+        $pdf->setPage($page);
 
         $posx_question = $posx + $circle_offset * 2 + $padding;
         $width_question = $width - ($circle_offset * 2 + $padding);
@@ -811,22 +820,31 @@ class pdf_soleil_st extends ModelePDFFicheinter
         $question_bloc->fetch_optionals();
         foreach ($question_bloc->extrafields_question_bloc as $key) {
             // Save for the calculation of the position Y origin
-            $last_page = $pdf->getPage();
+            $page_origin = $pdf->getPage();
+            $last_page_margins = $pdf->getMargins();
             $posy_origin = $posy;
 
             // Print label and value of the extrafield
             $question_bloc_extrafield = '<b><font size="' . ($default_font_size - 1) . '">' . $this->extrafields_question_bloc->attribute_label[$key] . '&nbsp;:&nbsp;</font></b><font size="' . ($default_font_size - 2) . '">' . $this->extrafields_question_bloc->showOutputField($key, $question_bloc->array_options['options_' . $key]) . '</font>';
             $pdf->writeHTMLCell($width_question - ($circle_offset * 2 + $margin), 3, $posx_question + $circle_offset * 2 + $margin, $posy, trim($question_bloc_extrafield), $border, 1, false, true, 'L', true);
             $posy = $pdf->GetY();
+            $page = $pdf->getPage();
 
             // Position Y origin
-            if ($last_page != $pdf->getPage()) {
-                $page_margins = $pdf->getMargins();
-                $posy_origin = $page_margins['top'];
+            if ($page_origin != $page) {
+                $text_height = $pdf->getStringHeight(100, '<b><font size="' . ($default_font_size - 1) . '">pP</font></b>', true);
+                $last_page_text_height = $last_page_margins['bottom'] - $posy_origin;
+                if ($text_height > $last_page_text_height) {
+                    $page_margins = $pdf->getMargins();
+                    $posy_origin = $page_margins['top'];
+                    $page_origin = $page;
+                }
             }
 
             // Print bullet of the extrafield
+            $pdf->setPage($page_origin);
             $pdf->Circle($posx_question + $circle_offset, $posy_origin + $circle_offset, $bullet_ray, 0, 360, 'F', array(), array(0, 0, 0));
+            $pdf->setPage($page);
         }
 
         // Print questions
@@ -841,43 +859,61 @@ class pdf_soleil_st extends ModelePDFFicheinter
             }
 
             // Save for the calculation of the position Y origin
-            $last_page = $pdf->getPage();
+            $page_origin = $pdf->getPage();
+            $last_page_margins = $pdf->getMargins();
             $posy_origin = $posy;
 
             // Print label (+ answer justificatory) of the question
             $question_answer = '<b><font size="' . ($default_font_size - 1) . '">' . $line->label_question . '&nbsp;:&nbsp;</font></b><font size="' . ($default_font_size - 2) . '">' . $line->text_answer . '</font>';
             $pdf->writeHTMLCell($width_question - ($circle_offset * 2 + $margin), 3, $posx_question + $circle_offset * 2 + $margin, $posy, trim($question_answer), $border, 1, false, true, 'L', true);
             $posy = $pdf->GetY();
+            $page = $pdf->getPage();
 
             // Position Y origin
-            if ($last_page != $pdf->getPage()) {
-                $page_margins = $pdf->getMargins();
-                $posy_origin = $page_margins['top'];
+            if ($page_origin != $page) {
+                $text_height = $pdf->getStringHeight(100, '<b><font size="' . ($default_font_size - 1) . '">pP</font></b>', true);
+                $last_page_text_height = $this->page_hauteur - $last_page_margins['bottom'] - $posy_origin;
+                if ($text_height > $last_page_text_height) {
+                    $page_margins = $pdf->getMargins();
+                    $posy_origin = $page_margins['top'];
+                    $page_origin = $page;
+                }
             }
 
             // Print color answer of the question
+            $pdf->setPage($page_origin);
             $pdf->Circle($posx_question + $circle_offset, $posy_origin + $circle_offset, $circle_ray, 0, 360, $circle_style, array(), $circle_fill_color);
+            $pdf->setPage($page);
 
             // Print extrafields of the question
             $line->fetch_optionals();
             foreach ($line->extrafields_question as $key) {
                 // Save for the calculation of the position Y origin
-                $last_page = $pdf->getPage();
+                $page_origin = $pdf->getPage();
+                $last_page_margins = $pdf->getMargins();
                 $posy_origin = $posy;
 
                 // Print label and value of the extrafield
                 $question_bloc_extrafield = '<b><font size="' . ($default_font_size - 1) . '">' . $this->extrafields_question->attribute_label[$key] . '&nbsp;:&nbsp;</font></b><font size="' . ($default_font_size - 2) . '">' . $this->extrafields_question->showOutputField($key, $line->array_options['options_' . $key]) . '</font>';
                 $pdf->writeHTMLCell($width_question_extrafield - ($circle_offset * 2 + $margin), 3, $posx_question_extrafield + $circle_offset * 2 + $margin, $posy, trim($question_bloc_extrafield), $border, 1, false, true, 'L', true);
                 $posy = $pdf->GetY();
+                $page = $pdf->getPage();
 
                 // Position Y origin
-                if ($last_page != $pdf->getPage()) {
-                    $page_margins = $pdf->getMargins();
-                    $posy_origin = $page_margins['top'];
+                if ($page_origin != $page) {
+                    $text_height = $pdf->getStringHeight(100, '<b><font size="' . ($default_font_size - 1) . '">pP</font></b>', true);
+                    $last_page_text_height = $last_page_margins['bottom'] - $posy_origin;
+                    if ($text_height > $last_page_text_height) {
+                        $page_margins = $pdf->getMargins();
+                        $posy_origin = $page_margins['top'];
+                        $page_origin = $page;
+                    }
                 }
 
                 // Print bullet of the extrafield
+                $pdf->setPage($page_origin);
                 $pdf->Circle($posx_question_extrafield + $circle_offset, $posy_origin + $circle_offset, $bullet_ray, 0, 360, 'F', array(), array(0, 0, 0));
+                $pdf->setPage($page);
             }
         }
 

@@ -1135,7 +1135,7 @@ class ExtendedInterventionApi extends DolibarrApi {
                 // Test if is read only
 //                if ($current_survey_bloc->read_only) {
 //                    self::$db->rollback();
-//                    throw new RestException(405, "Read only", ['id_intervention' => $id_intervention, 'id_equipment' => $id_equipment]);
+//                    throw new RestException(405, "Read only", ['id_intervention' => $id_intervention, 'id_equipment' => $current_equipment_id]);
 //                }
 
                 // Set Values
@@ -1156,7 +1156,7 @@ class ExtendedInterventionApi extends DolibarrApi {
 
                 if ($result < 0) {
                     self::$db->rollback();
-                    throw new RestException(500, "Error while saving the survey bloc", [ 'id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'details' => $this->_getErrors($current_survey_bloc) ]);
+                    throw new RestException(500, "Error while saving the survey bloc", [ 'id_intervention' => $id_intervention, 'id_equipment' => $current_equipment_id, 'details' => $this->_getErrors($current_survey_bloc) ]);
                 }
 
                 // Save question bloc
@@ -1169,7 +1169,7 @@ class ExtendedInterventionApi extends DolibarrApi {
                     // Test if is read only
 //                    if ($current_question_bloc->read_only) {
 //                        self::$db->rollback();
-//                        throw new RestException(405, "Read only", ['id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc]);
+//                        throw new RestException(405, "Read only", ['id_intervention' => $id_intervention, 'id_equipment' => $current_equipment_id, 'id_c_question_bloc' => $current_c_question_bloc_id]);
 //                    }
 
                     // Set Values
@@ -1207,7 +1207,7 @@ class ExtendedInterventionApi extends DolibarrApi {
 
                     if ($result < 0) {
                         self::$db->rollback();
-                        throw new RestException(500, "Error while saving the question bloc", ['id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc, 'details' => $this->_getErrors($current_question_bloc)]);
+                        throw new RestException(500, "Error while saving the question bloc", ['id_intervention' => $id_intervention, 'id_equipment' => $current_equipment_id, 'id_c_question_bloc' => $current_c_question_bloc_id, 'details' => $this->_getErrors($current_question_bloc)]);
                     }
 
                     // Save question
@@ -1220,7 +1220,7 @@ class ExtendedInterventionApi extends DolibarrApi {
                         // Test if is read only
 //                        if ($current_question->read_only) {
 //                            self::$db->rollback();
-//                            throw new RestException(405, "Read only", ['id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc, 'id_c_question' => $id_c_question]);
+//                            throw new RestException(405, "Read only", ['id_intervention' => $id_intervention, 'id_equipment' => $current_equipment_id, 'id_c_question_bloc' => $current_c_question_bloc_id, 'id_c_question' => $current_c_question_id]);
 //                        }
 
                         // Set Values
@@ -1248,7 +1248,7 @@ class ExtendedInterventionApi extends DolibarrApi {
 
                         if ($result < 0) {
                             self::$db->rollback();
-                            throw new RestException(500, "Error while saving the question", ['id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc, 'id_c_question' => $id_c_question, 'details' => $this->_getErrors($current_question)]);
+                            throw new RestException(500, "Error while saving the question", ['id_intervention' => $id_intervention, 'id_equipment' => $current_equipment_id, 'id_c_question_bloc' => $current_c_question_bloc_id, 'id_c_question' => $current_c_question_id, 'details' => $this->_getErrors($current_question)]);
                         }
                     }
                 }
