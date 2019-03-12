@@ -2504,6 +2504,42 @@ SCRIPT;
             require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
             $extrafields_contract = new ExtraFields($this->db);
             $extralabels_contract = $extrafields_contract->fetch_name_optionals_label('contrat');
+
+			$to_print = array();
+    $msg_error = '';
+    dol_include_once('/synergiestech/lib/synergiestech.lib.php');
+    $contractList = synergiestech_fetch_contract($object->socid, $object->socid_benefactor,$msg_error);
+    if (!empty($contractList) || empty($msg_error)) {
+        if (!empty($contractList)) {
+
+            foreach ($contractList as $contract) {
+                if (($contract->nbofserviceswait + $contract->nbofservicesopened) > 0 && $contract->statut != 2) {
+                    $contract->fetch_optionals();
+                    $to_print[] = "<a href='" . DOL_URL_ROOT . "/contrat/card.php?id=" . $contract->id . "'> " . $extrafields_contract->showOutputField('formule', $contract->array_options['options_formule']) . " - " . $contract->ref . "</a> ";
+                }
+            }
+        }
+        print '<table class="border" width="100%">';
+        print '<tr>';
+        print '<td>';
+        if (empty($msg_error)) {
+            if (count($to_print) > 0) {
+                print '<h1 style="color:green;text-align:center;font-size: 4em;">Client avec contrat : ' . implode(', ', $to_print) . '</h1>';
+            } else {
+                print '<h1 style="color:red;text-align:center;font-size: 4em;">Client sans contrat</h1>';
+            }
+        } else {
+            print $msg_error;
+        }
+        print '</td>';
+        print '</tr>';
+        print '</table>';
+    }
+			        print '<table class="border" width="100%">';
+        print '<tr>';
+        print '<td>';
+
+
             $object->fetchObjectLinked();
             $list_contract = is_array($object->linkedObjects['contrat']) ? $object->linkedObjects['contrat'] : array();
             $to_print = array();
@@ -2516,10 +2552,14 @@ SCRIPT;
                 }
             }
             if (count($to_print) > 0) {
-                print '<h1 style="color:green;text-align:center;font-size: 4em;">Avec contrat : ' . implode(', ', $to_print) . '</h1>';
+                print '<h1 style="color:green;text-align:center;font-size: 4em;">Demande sous contrat : ' . implode(', ', $to_print) . '</h1>';
             } else {
-                print '<h1 style="color:red;text-align:center;font-size: 4em;">Sans contrat</h1>';
+                print '<h1 style="color:red;text-align:center;font-size: 4em;">Demande sans contrat</h1>';
             }
+
+			        print '</td>';
+        print '</tr>';
+        print '</table>';
         }
 
         return 0;
