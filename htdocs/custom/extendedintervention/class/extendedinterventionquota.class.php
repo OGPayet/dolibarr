@@ -410,7 +410,7 @@ SCRIPT;
             $out .= '<table class="border" width="100%">';
             $out .= '<tr><td class="titlefield" align="right">' . $langs->trans('ExtendedInterventionPeriod') . ' : </td>';
             foreach ($company_counts['periods'] as $period) {
-                $out .= '<td align="center"' . (!empty($period['last_period']) || !empty($period['in_period']) ? ' style="background-color: '.(!empty($period['last_period']) ? 'indianred' : 'lightblue').';"' : '') . '>' .
+                $out .= '<td align="center"' . (!empty($period['last_period']) || !empty($period['in_period']) ? ' style="background-color: ' . (!empty($period['last_period']) ? 'indianred' : 'lightblue') . ';"' : '') . '>' .
                     $langs->trans('DateFromTo', dol_print_date($period['begin'], 'day'), dol_print_date($period['end'], 'day')) .
                     (!empty($period['last_period']) || !empty($period['in_period']) ? '&nbsp;' . $this->form->textwithpicto('',
                             (!empty($period['in_period']) ? $langs->trans('ExtendedInterventionCurrentPeriod') : '') .
@@ -483,14 +483,14 @@ SCRIPT;
             if ($now < $period['begin'] || $period['end'] < $now) continue;
 
             // Get forced intervention
-            $sql = "SELECT COUNT(*) AS nb_current".
+            $sql = "SELECT COUNT(*) AS nb_current" .
                 " FROM " . MAIN_DB_PREFIX . "fichinter AS fi" .
                 " LEFT JOIN " . MAIN_DB_PREFIX . "fichinter_extrafields AS fief ON fief.fk_object = fi.rowid" .
                 " WHERE fi.entity IN (" . getEntity('intervention') . ")" .
                 " AND fi.fk_soc IN (" . implode(',', $soc_ids) . ")" .
                 " AND fief.ei_type = " . $fk_c_intervention_type .
                 " AND '" . $this->db->idate($period['begin']) . "' <= fi.datec" .
-                " AND fi.datec <= '" . $this->db->idate($period['end']) . "'".
+                " AND fi.datec <= '" . $this->db->idate($period['end']) . "'" .
                 " GROUP BY fief.ei_type";
 
             $resql = $this->db->query($sql);
