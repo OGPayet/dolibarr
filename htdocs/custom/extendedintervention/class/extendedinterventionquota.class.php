@@ -209,6 +209,7 @@ class ExtendedInterventionQuota
                 $sql .= " AND fief.companyrelationships_fk_soc_benefactor = " . $contract->array_options['options_companyrelationships_fk_soc_benefactor'];
             }
             $sql .= " AND fi.fk_soc = " . $contract->socid .
+                " AND fi.fk_contrat = " . $contract->id .
                 " AND '" . $this->db->idate($period['begin']) . "' <= fi.datec" .
                 " AND fi.datec <= '" . $this->db->idate($period['end']) . "'".
                 " GROUP BY fief.ei_type";
@@ -497,6 +498,7 @@ SCRIPT;
                 $sql .= " AND fief.companyrelationships_fk_soc_benefactor = " . $contract->array_options['options_companyrelationships_fk_soc_benefactor'];
             }
             $sql .= " AND fi.fk_soc = " . $contract->socid .
+                " AND fi.fk_contrat = " . $contract->id .
                 " AND fief.ei_type = " . $fk_c_intervention_type .
                 " AND '" . $this->db->idate($period['begin']) . "' <= fi.datec" .
                 " AND fi.datec <= '" . $this->db->idate($period['end']) . "'" .
