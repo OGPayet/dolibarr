@@ -1773,7 +1773,7 @@ class FormSynergiesTech
 
         ///END
 
-        $sql .= " ORDER BY ac.fk_user_action = " . $user->id . ", ac.datep DESC";
+        $sql .= " ORDER BY ac.datep DESC";
 
         dol_syslog(__METHOD__, LOG_DEBUG);
         $resql = $this->db->query($sql);
@@ -1815,6 +1815,7 @@ class FormSynergiesTech
                     $color = "#999999";
                     $color_class = 'st_color_default';
                     //incomming call
+					$duration="";
 					if (strpos($obj->label, $langs->trans('RequestManagerAnswerPhone')) !== false)
 							{
 								//It is a voice mail
@@ -1824,7 +1825,7 @@ class FormSynergiesTech
                     else if (strpos($obj->label, $langs->trans('RequestManagerIncomingCall')) !== false) {
                         //We are in an incoming call
                         //We check date to determine duration
-                        $duration = $obj->datep2 - $obj->datep;
+                        $duration = dol_stringtotime($obj->datep2) - dol_stringtotime($obj->datep);
 
                         if ($duration > 6) {
                             //call has been answered
