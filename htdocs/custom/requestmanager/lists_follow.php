@@ -234,7 +234,7 @@ if (is_string($lists_follow_last_date)) $lists_follow_last_date = strtotime($lis
 
 // save last view date of this page
 $user->array_options['options_rm_last_check_follow_list_date'] = $now;
-$user->updateExtraField('rm_last_check_follow_list_date');
+$user->insertExtraFields();
 
 llxHeader('',$langs->trans('RequestManagerListsFollowTitle'));
 

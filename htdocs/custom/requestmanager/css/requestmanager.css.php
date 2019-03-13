@@ -49,7 +49,7 @@ $chronometerBlinkColor = !empty($conf->global->REQUESTMANAGER_CHRONOMETER_BLINK_
 
 ?>
 
-div.mainmenu.requestmanager {
+.mainmenu.requestmanager {
 	background-image: url('../img/requestmanager.png' );
 }
 
@@ -58,15 +58,19 @@ div.mainmenu.requestmanager {
 }
 
 .tabsStatusAction {
-  margin-top: 10px;
+  margin: 20px 0em 0em 0em;
 }
 
 .tabsStatusActionPrevious {
-  float: left;
+  width: 50%;
+  display: inline-block;
+  text-align: left;
 }
 
 .tabsStatusActionNext {
-  float: right;
+  width: 50%;
+  display: inline-block;
+  text-align: right;
 }
 
 .rm_my_request_updated_blink_color {

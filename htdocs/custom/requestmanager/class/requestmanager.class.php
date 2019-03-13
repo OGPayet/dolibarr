@@ -1851,9 +1851,7 @@ class RequestManager extends CommonObject
 
         // Check if standard properties modified
         dol_include_once('/requestmanager/lib/opendsi_tools.lib.php');
-        if (opendsi_is_updated_property($this, 'fk_type') ||
-            opendsi_is_updated_property($this, 'fk_category') ||
-            opendsi_is_updated_property($this, 'label') ||
+        if (opendsi_is_updated_property($this, 'fk_parent') ||
             opendsi_is_updated_property($this, 'socid_origin') ||
             opendsi_is_updated_property($this, 'socid') ||
             opendsi_is_updated_property($this, 'socid_benefactor') ||
@@ -1861,23 +1859,22 @@ class RequestManager extends CommonObject
             opendsi_is_updated_property($this, 'availability_for_thirdparty_principal') ||
             opendsi_is_updated_property($this, 'availability_for_thirdparty_benefactor') ||
             opendsi_is_updated_property($this, 'availability_for_thirdparty_watcher') ||
+            opendsi_is_updated_property($this, 'label') ||
+            opendsi_is_updated_property($this, 'description') ||
+            opendsi_is_updated_property($this, 'fk_type') ||
+            opendsi_is_updated_property($this, 'fk_category') ||
             opendsi_is_updated_property($this, 'fk_source') ||
             opendsi_is_updated_property($this, 'fk_urgency') ||
             opendsi_is_updated_property($this, 'fk_impact') ||
             opendsi_is_updated_property($this, 'fk_priority') ||
+            opendsi_is_updated_property($this, 'notify_requester_by_email') ||
+            opendsi_is_updated_property($this, 'notify_watcher_by_email') ||
+            opendsi_is_updated_property($this, 'notify_assigned_by_email') ||
             opendsi_is_updated_property($this, 'duration') ||
             opendsi_is_updated_property($this, 'date_creation') ||
             opendsi_is_updated_property($this, 'date_operation') ||
             opendsi_is_updated_property($this, 'date_deadline') ||
-            opendsi_is_updated_property($this, 'notify_assigned_by_email') ||
-            opendsi_is_updated_property($this, 'dd') ||// Request tags TODO a faire
-            opendsi_is_updated_property($this, 'description') ||
-            opendsi_is_updated_property($this, 'dd') ||// Request origin contacts  TODO a faire
-            opendsi_is_updated_property($this, 'notify_requester_by_email') ||
-            opendsi_is_updated_property($this, 'dd') ||// Request watcher contacts  TODO a faire
-            opendsi_is_updated_property($this, 'notify_watcher_by_email') ||
-            opendsi_is_updated_property($this, 'dd') ||// Request linked objects  TODO a faire
-            opendsi_is_updated_property($this, 'dd') ||// Request product lines TODO a faire
+            opendsi_is_updated_property($this, 'user_modification_id') ||
             opendsi_is_updated_property($this, 'array_options')
         ) {
             $this->context['has_properties_updated'] = true; // Can be modified by triggers
@@ -1944,7 +1941,7 @@ class RequestManager extends CommonObject
         }
 
         // Set assigned
-        if (!$error && (!empty($this->assigned_user_ids) || !empty($this->assigned_usergroup_ids))) {
+        if (!$error) {
             $result = $this->set_assigned($user, $this->assigned_user_ids, $this->assigned_usergroup_ids);
             if ($result < 0) {
                 $error++;

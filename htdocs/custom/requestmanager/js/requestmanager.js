@@ -111,7 +111,7 @@ class RequestManagerLoader {
                     me.loadAutoForCreateFast(idZone, actionJs);
                 }
             },
-            error: function() {
+            error: function(jqXHR, textStatus) {
                 jQuery('#' + me.zoneName + idZone).html('Error');
             }
         });

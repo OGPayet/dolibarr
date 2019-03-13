@@ -1,10 +1,24 @@
 diff a/htdocs/custom/requestmanager/langs/fr_FR/requestmanager.lang b/htdocs/custom/requestmanager/langs/fr_FR/requestmanager.lang	(rejected hunks)
-@@ -500,6 +500,8 @@ RequestManagerStatusDictionaryNewRequestTypeNextStatusAutoHelp              = Pa
- RequestManagerUrgencyDictionaryColorHelp                                    = La couleur doit être au format HTML (Ex: #FF0000)
- RequestManagerStatusDictionaryAssignedUserCurrent                           = Assigner l'utilisateur courant
- RequestManagerStatusDictionaryAssignedUserCurrentHelp                       = Assigner l'utilisateur courant ayant effectué le passage à ce statut.
-+RequestManagerStatusDictionaryDoNotBlocProcess                              = Ne pas bloquer le flux
-+RequestManagerStatusDictionaryDoNotBlocProcessHelp                          = Ce statut ne bloque pas le flux si des demandes filles ne sont pas clôturées - les statuts suivants ne sont donc pas accessible si cette case est décochée et qu'une ou plusieurs demandes filles ne sont pas clôturées
+@@ -32,14 +32,14 @@ RequestManagerTimeSlotsActivateDesc                         = Active la gestion
+ RequestManagerTimeSlotsPeriodsName                          = Plages horaires
+ RequestManagerTimeSlotsPeriodsDesc                          = Le paramètrage des plages est sous la forme suivante :<br><br>- Formatage date: "[2018Y][05M][06D|1W] 08h00"<br>-- Y: Spécifier une année (Optionnel)<br>-- M: Spécifier un mois de l'année (1-12, Optionnel)<br>-- D: Spécifier un jour du mois (1-31, Optionnel)<br>-- W: Spécifier un jour de la semaine (0-6, 0=>Dimanche, Optionnel)<br>-- h: Spécifier l'heure de la journée<br><br>- Formatage des plages: "date début - date fin, date début - date fin, ..."<br>-- La date de début et de fin doit être sous le même format (ex: 05M01D 08h30 - 06M30D 18h00 => de 8h30 à 18h du 1 mai au 30 juin de chaque année)
  
- ############################################################
- ### Form request manager
+-RequestManagerPlanningOptions                           = Paramètres des planifications
+-RequestManagerPlanningActivateName                      = Activation
+-RequestManagerPlanningActivateDesc                      = Active la planification des demandes
+-RequestManagerPlanningRequestTypesName                  = Types de demandes
+-RequestManagerPlanningRequestTypesDesc                  = Sélection des types de demandes planifiées
+-RequestManagerPlanningRequestStatusName                 = Type de demande "%s"
+-RequestManagerPlanningRequestStatusToPlanDesc           = Sélection du statut de la demande "à planifier"
+-RequestManagerPlanningRequestStatusPlannedDesc          = Sélection du statut de la demande "planifié"
++RequestManagerPlanningOptions                               = Paramètres des planifications
++RequestManagerPlanningActivateName                          = Activation
++RequestManagerPlanningActivateDesc                          = Active la planification des demandes
++RequestManagerPlanningRequestTypesName                      = Types de demandes
++RequestManagerPlanningRequestTypesDesc                      = Sélection des types de demandes planifiées
++RequestManagerPlanningRequestStatusName                     = Type de demande "%s"
++RequestManagerPlanningRequestStatusToPlanDesc               = Sélection du statut de la demande "à planifier"
++RequestManagerPlanningRequestStatusPlannedDesc              = Sélection du statut de la demande "planifié"
+ 
+ RequestManagerChronometerOptions                        = Paramètres du chronomètre
+ RequestManagerChronometerActivateName                   = Activation

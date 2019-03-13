@@ -19,27 +19,27 @@ Permission163055 = Gère la planification des demandes
 ############################################################
 ### Admin setup
 ############################################################
-RequestManagerSetup                                     = Configuration du module Request Manager
-RequestManagerExtraFields                               = Attributs supplémentaires (Demande)
-RequestManagerMessageExtraFields                        = Attributs supplémentaires (Message)
+RequestManagerSetup                                         = Configuration du module Request Manager
+RequestManagerExtraFields                                   = Attributs supplémentaires (Demande)
+RequestManagerMessageExtraFields                            = Attributs supplémentaires (Message)
 
-RequestManagerRefNumberingModules                       = Modèles de numérotation des références interne des demandes
-RequestManagerExternalRefNumberingModules               = Modèles de numérotation des références externe des demandes
+RequestManagerRefNumberingModules                           = Modèles de numérotation des références interne des demandes
+RequestManagerExternalRefNumberingModules                   = Modèles de numérotation des références externe des demandes
 
-RequestManagerTimeSlotsOptions                          = Paramètres des plages horaires
-RequestManagerTimeSlotsActivateName                     = Activation
-RequestManagerTimeSlotsActivateDesc                     = Active la gestion des plages horaires lors de la création d'une demande
-RequestManagerTimeSlotsPeriodsName                      = Plages horaires
-RequestManagerTimeSlotsPeriodsDesc                      = Le paramètrage des plages est sous la forme suivante :<br><br>- Formatage date: "[2018Y][05M][06D|1W] 08h00"<br>-- Y: Spécifier une année (Optionnel)<br>-- M: Spécifier un mois de l'année (1-12, Optionnel)<br>-- D: Spécifier un jour du mois (1-31, Optionnel)<br>-- W: Spécifier un jour de la semaine (0-6, 0=>Dimanche, Optionnel)<br>-- h: Spécifier l'heure de la journée<br><br>- Formatage des plages: "date début - date fin, date début - date fin, ..."<br>-- La date de début et de fin doit être sous le même format (ex: 05M01D 08h30 - 06M30D 18h00 => de 8h30 à 18h du 1 mai au 30 juin de chaque année)
+RequestManagerTimeSlotsOptions                              = Paramètres des plages horaires
+RequestManagerTimeSlotsActivateName                         = Activation
+RequestManagerTimeSlotsActivateDesc                         = Active la gestion des plages horaires lors de la création d'une demande
+RequestManagerTimeSlotsPeriodsName                          = Plages horaires
+RequestManagerTimeSlotsPeriodsDesc                          = Le paramètrage des plages est sous la forme suivante :<br><br>- Formatage date: "[2018Y][05M][06D|1W] 08h00"<br>-- Y: Spécifier une année (Optionnel)<br>-- M: Spécifier un mois de l'année (1-12, Optionnel)<br>-- D: Spécifier un jour du mois (1-31, Optionnel)<br>-- W: Spécifier un jour de la semaine (0-6, 0=>Dimanche, Optionnel)<br>-- h: Spécifier l'heure de la journée<br><br>- Formatage des plages: "date début - date fin, date début - date fin, ..."<br>-- La date de début et de fin doit être sous le même format (ex: 05M01D 08h30 - 06M30D 18h00 => de 8h30 à 18h du 1 mai au 30 juin de chaque année)
 
-RequestManagerPlanningOptions                           = Paramètres des planifications
-RequestManagerPlanningActivateName                      = Activation
-RequestManagerPlanningActivateDesc                      = Active la planification des demandes
-RequestManagerPlanningRequestTypesName                  = Types de demandes
-RequestManagerPlanningRequestTypesDesc                  = Sélection des types de demandes planifiées
-RequestManagerPlanningRequestStatusName                 = Type de demande "%s"
-RequestManagerPlanningRequestStatusToPlanDesc           = Sélection du statut de la demande "à planifier"
-RequestManagerPlanningRequestStatusPlannedDesc          = Sélection du statut de la demande "planifié"
+RequestManagerPlanningOptions                               = Paramètres des planifications
+RequestManagerPlanningActivateName                          = Activation
+RequestManagerPlanningActivateDesc                          = Active la planification des demandes
+RequestManagerPlanningRequestTypesName                      = Types de demandes
+RequestManagerPlanningRequestTypesDesc                      = Sélection des types de demandes planifiées
+RequestManagerPlanningRequestStatusName                     = Type de demande "%s"
+RequestManagerPlanningRequestStatusToPlanDesc               = Sélection du statut de la demande "à planifier"
+RequestManagerPlanningRequestStatusPlannedDesc              = Sélection du statut de la demande "planifié"
 
 RequestManagerChronometerOptions                        = Paramètres du chronomètre
 RequestManagerChronometerActivateName                   = Activation
@@ -51,68 +51,68 @@ RequestManagerChronometerColorDesc                      = Couleur du clignotemen
 RequestManagerChronometerSoundName                      = Son d'alerte
 RequestManagerChronometerSoundDesc                      = Adresse URL du fichier son d'aletre une fois la limite de temps atteinte ou dépassée
 
-RequestManagerNotificationOptions                       = Paramètres généraux des notifications
-RequestManagerCreateNotifyName                          = Notification lors de la création d'une demande
-RequestManagerCreateNotifyDesc                          = Active la notification global lors de la création d'une demande
-RequestManagerSetAssignedNotifyName                     = Notification lors du changement d'assignation
-RequestManagerSetAssignedNotifyDesc                     = Active la notification global lors du changement d'assignation d'une demande
-RequestManagerStatusModifyNotifyName                    = Notification lors du changement de statut
-RequestManagerStatusModifyNotifyDesc                    = Active la notification global lors du changement de statut d'une demande
-RequestManagerMessageCreateNotifyName                   = Notification lors de la création d'un message
-RequestManagerMessageCreateNotifyDesc                   = Active la notification global lors de la création d'un message d'une demande
+RequestManagerNotificationOptions                           = Paramètres généraux des notifications
+RequestManagerCreateNotifyName                              = Notification lors de la création d'une demande
+RequestManagerCreateNotifyDesc                              = Active la notification global lors de la création d'une demande
+RequestManagerSetAssignedNotifyName                         = Notification lors du changement d'assignation
+RequestManagerSetAssignedNotifyDesc                         = Active la notification global lors du changement d'assignation d'une demande
+RequestManagerStatusModifyNotifyName                        = Notification lors du changement de statut
+RequestManagerStatusModifyNotifyDesc                        = Active la notification global lors du changement de statut d'une demande
+RequestManagerMessageCreateNotifyName                       = Notification lors de la création d'un message
+RequestManagerMessageCreateNotifyDesc                       = Active la notification global lors de la création d'un message d'une demande
 
-RequestManagerNotificationAssignedOptions               = Paramètres des notifications aux assignés
-RequestManagerNotificationAssignedByEmailName           = Notification par courriel
-RequestManagerNotificationAssignedByEmailDesc           = Notifier les assignés d'une demande par courriel
-RequestManagerNotificationAssignedByWebSiteName         = Notification par le navigateur
-RequestManagerNotificationAssignedByWebSiteDesc         = Notifier les assignés d'une demande par le navigateur
-RequestManagerAssignedNotificationSendFromName          = Adresse courriel de l'émetteur
-RequestManagerAssignedNotificationSendFromDesc          = Adresse courriel de l'émetteur pour l'envoi des courriels de notification vers les assignés (Courriel de l'utilisateur à l'origine de la notification si vide)
-RequestManagerSplitAssignedNotificationName             = Séparation des envois
-RequestManagerSplitAssignedNotificationDesc             = Envois des notification séparément à tous les assignés
-RequestManagerAssignedNotificationSignatureName         = Signature
-RequestManagerAssignedNotificationSignatureDesc         = Ajouter cette signature après le corps du message des courriels de notification vers les assignés si la signature du modèle de notification est vide
-RequestManagerAssignedNotificationUserSignatureName     = Signature utilisateur
-RequestManagerAssignedNotificationUserSignatureDesc     = Ajouter la signature de l'utilisateur après le corps du message des courriels de notification vers les assignés si aucune signature n'a été trouvée
+RequestManagerNotificationAssignedOptions                   = Paramètres des notifications aux assignés
+RequestManagerNotificationAssignedByEmailName               = Notification par courriel
+RequestManagerNotificationAssignedByEmailDesc               = Notifier les assignés d'une demande par courriel
+RequestManagerNotificationAssignedByWebSiteName             = Notification par le navigateur
+RequestManagerNotificationAssignedByWebSiteDesc             = Notifier les assignés d'une demande par le navigateur
+RequestManagerAssignedNotificationSendFromName              = Adresse courriel de l'émetteur
+RequestManagerAssignedNotificationSendFromDesc              = Adresse courriel de l'émetteur pour l'envoi des courriels de notification vers les assignés (Courriel de l'utilisateur à l'origine de la notification si vide)
+RequestManagerSplitAssignedNotificationName                 = Séparation des envois
+RequestManagerSplitAssignedNotificationDesc                 = Envois des notification séparément à tous les assignés
+RequestManagerAssignedNotificationSignatureName             = Signature
+RequestManagerAssignedNotificationSignatureDesc             = Ajouter cette signature après le corps du message des courriels de notification vers les assignés si la signature du modèle de notification est vide
+RequestManagerAssignedNotificationUserSignatureName         = Signature utilisateur
+RequestManagerAssignedNotificationUserSignatureDesc         = Ajouter la signature de l'utilisateur après le corps du message des courriels de notification vers les assignés si aucune signature n'a été trouvée
 
-RequestManagerNotificationRequesterOptions              = Paramètres des notifications aux contacts d'origine
-RequestManagerRequesterNotificationSendFromName         = Adresse courriel de l'émetteur
-RequestManagerRequesterNotificationSendFromDesc         = Adresse courriel de l'émetteur pour l'envoi des courriels de notification vers les contacts d'origine (Courriel de l'utilisateur à l'origine de la notification si vide)
-RequestManagerSplitRequesterNotificationName            = Séparation des envois
-RequestManagerSplitRequesterNotificationDesc            = Envois des notification séparément à tous les contacts d'origine
-RequestManagerRequesterNotificationSignatureName        = Signature
-RequestManagerRequesterNotificationSignatureDesc        = Ajouter cette signature après le corps du message des courriels de notification vers les contacts d'origine si la signature du modèle de notification est vide
-RequestManagerRequesterNotificationUserSignatureName    = Signature utilisateur
-RequestManagerRequesterNotificationUserSignatureDesc    = Ajouter la signature de l'utilisateur après le corps du message des courriels de notification vers les contacts d'origine si aucune signature n'a été trouvée
+RequestManagerNotificationRequesterOptions                  = Paramètres des notifications aux contacts d'origine
+RequestManagerRequesterNotificationSendFromName             = Adresse courriel de l'émetteur
+RequestManagerRequesterNotificationSendFromDesc             = Adresse courriel de l'émetteur pour l'envoi des courriels de notification vers les contacts d'origine (Courriel de l'utilisateur à l'origine de la notification si vide)
+RequestManagerSplitRequesterNotificationName                = Séparation des envois
+RequestManagerSplitRequesterNotificationDesc                = Envois des notification séparément à tous les contacts d'origine
+RequestManagerRequesterNotificationSignatureName            = Signature
+RequestManagerRequesterNotificationSignatureDesc            = Ajouter cette signature après le corps du message des courriels de notification vers les contacts d'origine si la signature du modèle de notification est vide
+RequestManagerRequesterNotificationUserSignatureName        = Signature utilisateur
+RequestManagerRequesterNotificationUserSignatureDesc        = Ajouter la signature de l'utilisateur après le corps du message des courriels de notification vers les contacts d'origine si aucune signature n'a été trouvée
 
-RequestManagerNotificationWatchersOptions               = Paramètres des notifications aux contacts observateur
-RequestManagerWatchersNotificationSendFromName          = Adresse courriel de l'émetteur
-RequestManagerWatchersNotificationSendFromDesc          = Adresse courriel de l'émetteur pour l'envoi des courriels de notification vers les contacts observateur (Courriel de l'utilisateur à l'origine de la notification si vide)
-RequestManagerSplitWatchersNotificationName             = Séparation des envois
-RequestManagerSplitWatchersNotificationDesc             = Envois des notification séparément à tous les contacts observateur
-RequestManagerWatchersNotificationSignatureName         = Signature
-RequestManagerWatchersNotificationSignatureDesc         = Ajouter cette signature après le corps du message des courriels de notification vers les contacts observateur si la signature du modèle de notification est vide
-RequestManagerWatchersNotificationUserSignatureName     = Signature utilisateur
-RequestManagerWatchersNotificationUserSignatureDesc     = Ajouter la signature de l'utilisateur après le corps du message des courriels de notification vers les contacts observateur si aucune signature n'a été trouvée
+RequestManagerNotificationWatchersOptions                   = Paramètres des notifications aux contacts observateur
+RequestManagerWatchersNotificationSendFromName              = Adresse courriel de l'émetteur
+RequestManagerWatchersNotificationSendFromDesc              = Adresse courriel de l'émetteur pour l'envoi des courriels de notification vers les contacts observateur (Courriel de l'utilisateur à l'origine de la notification si vide)
+RequestManagerSplitWatchersNotificationName                 = Séparation des envois
+RequestManagerSplitWatchersNotificationDesc                 = Envois des notification séparément à tous les contacts observateur
+RequestManagerWatchersNotificationSignatureName             = Signature
+RequestManagerWatchersNotificationSignatureDesc             = Ajouter cette signature après le corps du message des courriels de notification vers les contacts observateur si la signature du modèle de notification est vide
+RequestManagerWatchersNotificationUserSignatureName         = Signature utilisateur
+RequestManagerWatchersNotificationUserSignatureDesc         = Ajouter la signature de l'utilisateur après le corps du message des courriels de notification vers les contacts observateur si aucune signature n'a été trouvée
 
-RequestManagerAutoAddContractOfPrincipalCompanyName     = Contrats du donneur d'ordre
-RequestManagerAutoAddContractOfPrincipalCompanyDesc     = Lier automatiquement les contrats du donneur d'ordre à la création de la demande
-RequestManagerAutoAddContractOfBeneficialCompanyName    = Contrats du bénéficiaire
-RequestManagerAutoAddContractOfBeneficialCompanyDesc    = Lier automatiquement les contrats du bénéficiaire à la création de la demande
-RequestManagerContractSearchInParentCompanyName         = Rechercher les contrats de la maison mère
-RequestManagerContractSearchInParentCompanyDesc         = Rechercher les contrats liés au tiers de la demande dans la maison mère
-RequestManagerOperationTimeDefaultName                  = Décalage de temps pour date d'opération
-RequestManagerOperationTimeDefaultDesc                  = Décalage de temps depuis la création d'une demande pour la date d'opération par défaut (en minutes)
-RequestManagerDeadlineTimeDefaultName                   = Décalage de temps pour date d'échéance
-RequestManagerDeadlineTimeDefaultDesc                   = Décalage de temps depuis la date d'opération lors de la création d'une demande pour la date d'échéance par défaut (en minutes)
-RequestManagerRootProductCategoriesName                 = Racine des catégories de produits
-RequestManagerRootProductCategoriesDesc                 = Racine des catégories de produits accessiblent sur la demande
-RequestManagerRootProductCategoryIncludeName            = Inclure la racine
-RequestManagerRootProductCategoryIncludeDesc            = Inclure la racine dans la liste des catégories de produits
-RequestManagerPositionBlocObjectLinkedName              = Position des Objets Liés
-RequestManagerPositionBlocObjectLinkedDesc              = Position du bloc de la liste des objets liés
-RequestManagerPositionLinkNewObjectLinkedName           = Position du lien 'Lier à ...'
-RequestManagerPositionLinkNewObjectLinkedDesc           = Position du lien 'Lier à ...' des objets liés (si Position des Objets Liés est sur 'Haut' ce paramètre est inutile)
+RequestManagerAutoAddContractOfPrincipalCompanyName         = Contrats du donneur d'ordre
+RequestManagerAutoAddContractOfPrincipalCompanyDesc         = Lier automatiquement les contrats du donneur d'ordre à la création de la demande
+RequestManagerAutoAddContractOfBeneficialCompanyName        = Contrats du bénéficiaire
+RequestManagerAutoAddContractOfBeneficialCompanyDesc        = Lier automatiquement les contrats du bénéficiaire à la création de la demande
+RequestManagerContractSearchInParentCompanyName             = Rechercher les contrats de la maison mère
+RequestManagerContractSearchInParentCompanyDesc             = Rechercher les contrats liés au tiers de la demande dans la maison mère
+RequestManagerOperationTimeDefaultName                      = Décalage de temps pour date d'opération
+RequestManagerOperationTimeDefaultDesc                      = Décalage de temps depuis la création d'une demande pour la date d'opération par défaut (en minutes)
+RequestManagerDeadlineTimeDefaultName                       = Décalage de temps pour date d'échéance
+RequestManagerDeadlineTimeDefaultDesc                       = Décalage de temps depuis la date d'opération lors de la création d'une demande pour la date d'échéance par défaut (en minutes)
+RequestManagerRootProductCategoriesName                     = Racine des catégories de produits
+RequestManagerRootProductCategoriesDesc                     = Racine des catégories de produits accessiblent sur la demande
+RequestManagerRootProductCategoryIncludeName                = Inclure la racine
+RequestManagerRootProductCategoryIncludeDesc                = Inclure la racine dans la liste des catégories de produits
+RequestManagerPositionBlocObjectLinkedName                  = Position des Objets Liés
+RequestManagerPositionBlocObjectLinkedDesc                  = Position du bloc de la liste des objets liés
+RequestManagerPositionLinkNewObjectLinkedName               = Position du lien 'Lier à ...'
+RequestManagerPositionLinkNewObjectLinkedDesc               = Position du lien 'Lier à ...' des objets liés (si Position des Objets Liés est sur 'Haut' ce paramètre est inutile)
 RequestManagerTitleToRafCustomerWhenCreateOtherElementName  = Propagation du titre vers la Ref client
 RequestManagerTitleToRafCustomerWhenCreateOtherElementDesc  = Propagation du titre vers la Ref client (ou fournisseur) lors de la création d'une proposition commerciale, d'une commande, d'une facture ou d'un contrat depuis une demande
 RequestManagerShowChildrenRequestStatusInListName           = Affiche les statuts des demandes enfants dans les listes
@@ -157,19 +157,19 @@ RequestManagerSearchIntoRequests    = Demandes
 ############################################################
 ### Menu
 ############################################################
-RequestManagerMenuTop                      = Demandes
-RequestManagerMenuLeftTitle                = Demandes
-RequestManagerMenuLeftNewRequest           = Nouvelle demande
-RequestManagerMenuLeftList                 = Liste
-RequestManagerMenuLeftMyList               = Mes demandes
-RequestManagerMenuLeftListNotAssigned      = Demandes non attribuées
-RequestManagerMenuLeftListNotResolved      = Demandes non résolues
-RequestManagerMenuLeftListClosed           = Demandes clôturées
-RequestManagerMenuLeftPlanningList         = Planification des demandes
-RequestManagerMenuLeftPlanningListInCharge = Dont je suis en charge
-RequestManagerMenuTopRequestsFollow        = Suivi des demandes
-RequestManagerMenuTopDateLastView          = Date du dernier accès
-RequestManagerMenuTopCreateFast            = Création de demande rapide
+RequestManagerMenuTop                               = Demandes
+RequestManagerMenuLeftTitle                         = Demandes
+RequestManagerMenuLeftNewRequest                    = Nouvelle demande
+RequestManagerMenuLeftList                          = Liste
+RequestManagerMenuLeftMyList                        = Mes demandes
+RequestManagerMenuLeftListNotAssigned               = Demandes non attribuées
+RequestManagerMenuLeftListNotResolved               = Demandes non résolues
+RequestManagerMenuLeftListClosed                    = Demandes clôturées
+RequestManagerMenuLeftPlanningList                  = Planification des demandes
+RequestManagerMenuLeftPlanningListInCharge          = Dont je suis en charge
+RequestManagerMenuTopRequestsFollow                 = Suivi des demandes
+RequestManagerMenuTopDateLastView                   = Date du dernier accès
+RequestManagerMenuTopCreateFast                     = Création de demande rapide
 
 ############################################################
 ### Tabulation
@@ -500,6 +500,8 @@ RequestManagerStatusDictionaryNewRequestTypeNextStatusAutoHelp              = Pa
 RequestManagerUrgencyDictionaryColorHelp                                    = La couleur doit être au format HTML (Ex: #FF0000)
 RequestManagerStatusDictionaryAssignedUserCurrent                           = Assigner l'utilisateur courant
 RequestManagerStatusDictionaryAssignedUserCurrentHelp                       = Assigner l'utilisateur courant ayant effectué le passage à ce statut.
+RequestManagerStatusDictionaryDoNotBlocProcess                              = Ne pas bloquer le flux
+RequestManagerStatusDictionaryDoNotBlocProcessHelp                          = Ce statut ne bloque pas le flux si des demandes filles ne sont pas clôturées - les statuts suivants ne sont donc pas accessible si cette case est décochée et qu'une ou plusieurs demandes filles ne sont pas clôturées
 
 ############################################################
 ### Form request manager
@@ -586,5 +588,5 @@ RequestManagerIPBXTalkers           = Numéro des interlocuteurs : %s,%s
 ############################################################
 ### Intervention planning
 ############################################################
-RequestManagerPlanningUserGroupsInChargeLabel    = Groupe(s) utilisateur(s) en charge pour les demandes de type "%s"
+RequestManagerPlanningUserGroupsInChargeLabel   = Groupe(s) utilisateur(s) en charge pour les demandes de type "%s"
 RequestManagerForceCreateIntervention           = Créer une intervention même si une au statut brouillon existe déjà
