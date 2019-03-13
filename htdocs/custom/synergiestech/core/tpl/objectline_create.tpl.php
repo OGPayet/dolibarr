@@ -215,16 +215,39 @@ else {
               // Get products categories of the contracts list
               //------------------------------------------------------------
               $mode = 0; // Show mode for orders lines
+              if ($object->element == 'requestmanager') {
+                  $mode = 1; // Show mode for request manager lines
+
+                  $object->fetchObjectLinked();
+              }
 
               // Gat all contracts of the thirdparty
-              require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
-              $contract_static = new Contrat($this->db);
-              $contract_static->socid = $object->socid;
-              $list_contract = $contract_static->getListOfContracts();
+              if ($conf->companyrelationships->enabled) {
+                  $object->fetch_optionals();
+                  dol_include_once('/synergiestech/lib/synergiestech.lib.php');
+                  $list_contract = synergiestech_fetch_contract($object->socid, $object->array_options['options_companyrelationships_fk_soc_benefactor'], $msg_error);
+              } else {
+                  require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
+                  $contract_static = new Contrat($this->db);
+                  $contract_static->socid = $object->socid;
+                  $list_contract = $contract_static->getListOfContracts();
+              }
+
+              if ($object->element == 'requestmanager') {
+                  $tmp_list = array();
+                  if (isset($object->linkedObjectsIds['contrat']) && is_array($object->linkedObjectsIds['contrat'])) {
+                      foreach ($list_contract as $contract) {
+                          if (in_array($contract->id, $object->linkedObjectsIds['contrat'])) {
+                              $tmp_list[] = $contract;
+                          }
+                      }
+                  }
+                  $list_contract = $tmp_list;
+              }
 
               // Get extrafields of the contract
               $contract_extrafields = new ExtraFields($this->db);
-              $contract_extralabels = $contract_extrafields->fetch_name_optionals_label($contract_static->table_element);
+              $contract_extralabels = $contract_extrafields->fetch_name_optionals_label('contrat');
 
               // Get categories who has the contract formule category in the full path (exclude the contract formule category)
               require_once DOL_DOCUMENT_ROOT . '/categories/class/categorie.class.php';
@@ -249,7 +272,7 @@ else {
               $formules_not_found_list = array();
               if (!empty($list_contract)) {
                   foreach ($list_contract as $contract) {
-                      if (($contract->nbofserviceswait + $contract->nbofservicesopened) > 0 && $contract->statut != 2) {
+                      if ($contract->nbofservicesopened > 0 && $contract->statut != 2) {
                           $contract->fetch_optionals();
                           $formule_id = $contract->array_options['options_formule'];
                           $formule_label = $contract_extrafields->attribute_param['formule']['options'][$formule_id];
@@ -272,10 +295,6 @@ else {
               $tag_categories = array();
               $equipment_categories = array();
               if ($object->element == 'requestmanager') {
-                  $mode = 1; // Show mode for request manager lines
-
-                  $object->fetchObjectLinked();
-
                   if (isset($object->linkedObjects['equipement']) && is_array($object->linkedObjects['equipement'])) {
                       foreach ($object->linkedObjects['equipement'] as $equipment) {
                           if ($equipment->fk_product > 0) {

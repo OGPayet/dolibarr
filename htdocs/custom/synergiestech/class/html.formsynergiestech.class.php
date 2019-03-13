@@ -610,9 +610,9 @@ class FormSynergiesTech
         $opt .= ($objp->rowid == $selected) ? ' selected' : '';
         $opt .= (isset($objp->is_into_contract_categories) && $objp->is_into_contract_categories == 0) ? ' disabled' : '';
         $opt .= (!empty($objp->price_by_qty_rowid) && $objp->price_by_qty_rowid > 0) ? ' pbq="' . $objp->price_by_qty_rowid . '"' : '';
-        if (!empty($conf->stock->enabled) && $objp->fk_product_type == 0 && isset($objp->stock)) {
+        if (!empty($conf->stock->enabled) && $objp->fk_product_type == 0) {
             if ($objp->stock > 0) $opt .= ' class="product_line_stock_ok"';
-            else if ($objp->stock <= 0) $opt .= ' class="product_line_stock_too_low"';
+            else $opt .= ' class="product_line_stock_too_low"';
         }
         $opt .= '>';
         $opt .= $objp->ref;
@@ -727,13 +727,13 @@ class FormSynergiesTech
             $outtva_tx = $objp->tva_tx;
         }
 
-        if (!empty($conf->stock->enabled) && isset($objp->stock) && $objp->fk_product_type == 0) {
+        if (!empty($conf->stock->enabled) && $objp->fk_product_type == 0) {
             $opt .= ' - ' . $langs->trans("Stock") . ':' . $objp->stock;
 
             if ($objp->stock > 0) {
                 $outval .= ' - <span class="product_line_stock_ok">' . $langs->transnoentities("Stock") . ':' . $objp->stock . '</span>';
-            } elseif ($objp->stock <= 0) {
-                $outval .= ' - <span class="product_line_stock_too_low">' . $langs->transnoentities("Stock") . ':' . $objp->stock . '</span>';
+            } else {
+                $outval .= ' - <span class="product_line_stock_too_low">' . $langs->transnoentities("Stock") . ':' . (isset($objp->stock) ? $objp->stock : 0) . '</span>';
             }
         }
 

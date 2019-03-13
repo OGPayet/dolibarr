@@ -1284,14 +1284,20 @@ SCRIPT;
                 if (GETPOST('prod_entry_mode') != 'free' && $product_id > 0) {
                     $langs->load('synergiestech@synergiestech');
                     // Gat all contracts of the thirdparty
-                    require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
-                    $contract_static = new Contrat($this->db);
-                    $contract_static->socid = $object->socid;
-                    $list_contract = $contract_static->getListOfContracts();
+                    if ($conf->companyrelationships->enabled) {
+                        $object->fetch_optionals();
+                        dol_include_once('/synergiestech/lib/synergiestech.lib.php');
+                        $list_contract = synergiestech_fetch_contract($object->socid, $object->array_options['options_companyrelationships_fk_soc_benefactor'], $msg_error);
+                    } else {
+                        require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
+                        $contract_static = new Contrat($this->db);
+                        $contract_static->socid = $object->socid;
+                        $list_contract = $contract_static->getListOfContracts();
+                    }
 
                     // Get extrafields of the contract
                     $contract_extrafields = new ExtraFields($this->db);
-                    $contract_extralabels = $contract_extrafields->fetch_name_optionals_label($contract_static->table_element);
+                    $contract_extralabels = $contract_extrafields->fetch_name_optionals_label('contrat');
 
                     // Get categories who has the contract formule category in the full path (exclude the contract formule category)
                     require_once DOL_DOCUMENT_ROOT . '/categories/class/categorie.class.php';
