@@ -295,14 +295,14 @@ if (empty($reshook)) {
                     // calculate deadline date with operation date or now and the offset deadline time in minutes
                     dol_include_once('/advancedictionaries/class/dictionary.class.php');
                     $requestManagerStatusDictionaryLine = Dictionary::getDictionaryLine($db, 'requestmanager', 'requestmanagerstatus');
-                    $res = $requestManagerStatusDictionaryLine->fetch($object->statut);
+                    $res = $requestManagerStatusDictionaryLine->fetch($request_static->statut);
                     if ($res > 0) {
                         $deadline_offset = $requestManagerStatusDictionaryLine->fields['deadline'];
                         $now = dol_now();
                         if (isset($deadline_offset) && $deadline_offset > 0) {
-                            $object->date_deadline = ($object->date_operation > 0 ? $object->date_operation : $now) + ($deadline_offset * 60);
+                            $request_static->date_deadline = ($request_static->date_operation > 0 ? $request_static->date_operation : $now) + ($deadline_offset * 60);
 //                        } elseif (intval($conf->global->REQUESTMANAGER_DEADLINE_TIME_DEFAULT) > 0) {
-//                            $object->date_deadline = ($object->date_operation > 0 ? $object->date_operation : $now) + (intval($conf->global->REQUESTMANAGER_DEADLINE_TIME_DEFAULT) * 60);
+//                            $request_static->date_deadline = ($request_static->date_operation > 0 ? $request_static->date_operation : $now) + (intval($conf->global->REQUESTMANAGER_DEADLINE_TIME_DEFAULT) * 60);
                         }
                     } else {
                         setEventMessages($requestManagerStatusDictionaryLine->error, $requestManagerStatusDictionaryLine->errors, 'errors');
