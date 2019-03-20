@@ -532,6 +532,7 @@ SCRIPT;
     $sql .= ' rm.fk_user_resolved, ur.firstname as userresolvedfirstname, ur.lastname as userresolvedlastname, ur.email as userresolvedemail,';
     $sql .= ' rm.fk_user_closed, uc.firstname as userclosedfirstname, uc.lastname as userclosedlastname, uc.email as userclosedemail,';
     $sql .= ' rm.fk_status,';
+	$sql .= ' crmst.type as status_type,';
     $sql .= ' rm.datec, rm.tms,';
     $sql .= ' rm.fk_user_author, ua.firstname as userauthorfirstname, ua.lastname as userauthorlastname, ua.email as userauthoremail,';
     $sql .= ' rm.fk_user_modif, um.firstname as usermodiffirstname, um.lastname as usermodiflastname, um.email as usermodifemail,';
@@ -1196,7 +1197,7 @@ SCRIPT;
             $pictoWarning = '';
             if ($obj->date_deadline) {
                 $tmsDeadLine = strtotime($obj->date_deadline);
-                if ($tmsDeadLine < $now) {
+                if ($tmsDeadLine < $now && $obj->status_type != RequestManager::STATUS_TYPE_CLOSED) {
                     // alert time is up
                     $pictoWarning = ' ' . img_warning($langs->trans("Late"));
                 }
