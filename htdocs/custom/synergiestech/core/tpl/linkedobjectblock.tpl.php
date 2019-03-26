@@ -114,6 +114,36 @@ if ($objecttype == 'equipement') {
       </tr>
         <?php
     }
+} elseif ($objecttype == 'fichinter') {
+    global $user;
+    global $noMoreLinkedObjectBlockAfter;
+
+    $langs = $GLOBALS['langs'];
+    $linkedObjectBlock = $GLOBALS['linkedObjectBlock'];
+
+    $langs->load("interventions");
+
+    $ilink = 0;
+    $var = true;
+    foreach ($linkedObjectBlock as $key => $objectlink) {
+        $ilink++;
+
+        $trclass = ($var ? 'pair' : 'impair');
+        if ($ilink == count($linkedObjectBlock) && empty($noMoreLinkedObjectBlockAfter) && count($linkedObjectBlock) <= 1) $trclass .= ' liste_sub_total';
+        ?>
+      <tr class="<?php echo $trclass; ?>">
+        <td><?php echo $langs->trans("Intervention"); ?></td>
+        <td><?php echo $objectlink->getNomUrl(1); ?></td>
+        <td><?php echo $objectlink->description; ?></td>
+        <td align="center"><?php echo dol_print_date($objectlink->datev, 'day'); ?></td>
+        <td></td>
+        <td align="right"><?php echo $objectlink->getLibStatut(3); ?></td>
+        <td align="right"><a
+              href="<?php echo $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=dellink&dellinkid=' . $key; ?>"><?php echo img_delete($langs->transnoentitiesnoconv("RemoveLink")); ?></a>
+        </td>
+      </tr>
+        <?php
+    }
 } else {
   return 0;
 }

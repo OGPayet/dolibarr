@@ -2224,6 +2224,19 @@ SCRIPT;
             $langs->load('equipement@equipement');
 
             $possiblelinks = array(
+                'fichinter' => array(
+                    'enabled' => $conf->ficheinter->enabled,
+                    'perms' => 1,
+                    'label' => 'LinkToIntervention',
+                    'sql' => "SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref, t.description AS ref_client FROM " . MAIN_DB_PREFIX . "societe as s" .
+                        " INNER JOIN  " . MAIN_DB_PREFIX . "fichinter as t ON t.fk_soc = s.rowid" .
+                        " LEFT JOIN  " . MAIN_DB_PREFIX . "element_element as ee" .
+                        "   ON (ee.sourcetype = 'fichinter' AND ee.fk_source = t.rowid AND ee.targettype = '" . $object->element . "' AND ee.fk_target = " . $object->id . ")" .
+                        "   OR (ee.targettype = 'fichinter' AND ee.fk_target = t.rowid AND ee.sourcetype = '" . $object->element . "' AND ee.fk_source = " . $object->id . ")" .
+                        " WHERE t.fk_soc IN (" . $listofidcompanytoscan . ') AND t.entity IN (' . getEntity('intervention') . ')' .
+                        ' AND ee.rowid IS NULL' .
+                        ' GROUP BY t.rowid, s.rowid',
+                ),
                 'equipement' => array(
                     'enabled' => $conf->equipement->enabled,
                     'perms' => 1,
