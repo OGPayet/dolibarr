@@ -3299,6 +3299,7 @@ class RequestManager extends CommonObject
         if ($mode == 10) $out[] = img_picto($statuttypetext, $statuttypepicto) . ' ' . $label;
         if ($mode == 11) $out[] = img_picto($statuttypetext, $statuttypepicto) . ' ' . $statuttypetext;
         if ($mode == 12) $out[] = $statuttypetext;
+        if ($mode == 13) $out[] = $label . ' ('.$statuttypetext.')';
 
         if ($submode >= 0) {
             $this->fetch_children_request(null, 1);

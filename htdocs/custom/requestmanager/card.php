@@ -598,7 +598,8 @@ if (empty($reshook)) {
         }
     } // Set Not Resolved
     elseif ($action == 'confirm_notresolved' && $confirm == 'yes' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_RESOLVED) {
-        $result = $object->set_status(0, RequestManager::STATUS_TYPE_IN_PROGRESS, $user);
+        $selected_status = GETPOST('new_status', 'int');
+        $result = $object->set_status($selected_status, -1, $user);
         if ($result < 0) {
             setEventMessages($object->error, $object->errors, 'errors');
         } else {
@@ -607,7 +608,8 @@ if (empty($reshook)) {
         }
     } // Re Open
     elseif ($action == 'confirm_reopen' && $confirm == 'yes' && $user->rights->requestmanager->cloturer && $object->statut_type == RequestManager::STATUS_TYPE_CLOSED) {
-        $result = $object->set_status(0, RequestManager::STATUS_TYPE_IN_PROGRESS, $user);
+        $selected_status = GETPOST('new_status', 'int');
+        $result = $object->set_status($selected_status, -1, $user);
         if ($result < 0) {
             setEventMessages($object->error, $object->errors, 'errors');
         } else {
@@ -1280,13 +1282,95 @@ if ($object->id > 0) {
 
     // Confirm not resolved
 	if ($action == 'notresolved') {
-		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('RequestManagerNotResolvedRequest'), $langs->trans('RequestManagerConfirmNotResolvedRequest', $object->ref), 'confirm_notresolved', '', 0, 1);
+        // Get group of user
+        $user_groups = $usergroup_static->listGroupsForUser($user->id);
+        $user_groups = is_array($user_groups) ? array_keys($user_groups) : array();
+
+        // Get all status of the request type
+        $requestManagerStatusDictionary = Dictionary::getDictionary($db, 'requestmanager', 'requestmanagerstatus');
+        $requestManagerStatusDictionary->fetch_lines(1, array('request_type' => array($object->fk_type)));
+
+        $status_list = array();
+        foreach ($requestManagerStatusDictionary->lines as $s) {
+            $not_authorized_user = !empty($s->fields['authorized_user']) ? !in_array($user->id, explode(',', $s->fields['authorized_user'])) : false;
+            $not_authorized_usergroup = false;
+            if (!empty($s->fields['authorized_usergroup'])) {
+                $not_authorized_usergroup = true;
+                $authorized_usergroup = explode(',', $s->fields['authorized_usergroup']);
+                foreach ($authorized_usergroup as $group_id) {
+                    if (in_array($group_id, $user_groups)) {
+                        $not_authorized_usergroup = false;
+                        break;
+                    }
+                }
+            }
+            if ($not_authorized_user || $not_authorized_usergroup) continue;
+            if ($s->fields['type'] == RequestManager::STATUS_TYPE_RESOLVED || $s->fields['type'] == RequestManager::STATUS_TYPE_CLOSED) continue;
+
+            $sort_key = $s->fields['type'] . '_' . $s->id;
+            $status_list[$sort_key] = array($s->id, $object->LibStatut($s->id, 13));
+        }
+        ksort($status_list);
+
+        $status_array = array();
+        foreach ($status_list as $s) {
+            $status_array[$s[0]] = $s[1];
+        }
+
+        $selected_status = GETPOST('new_status', 'int');
+
+        $formquestion = array(
+            array('type' => 'other', 'name' => 'new_status', 'label' => $langs->trans('RequestManagerStatus'), 'value' => $form->selectarray('new_status', $status_array, $selected_status)),
+        );
+
+		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('RequestManagerNotResolvedRequest'), $langs->trans('RequestManagerConfirmNotResolvedRequest', $object->ref), 'confirm_notresolved', $formquestion, 0, 1);
 	}
 
     // Confirm re open
 	if ($action == 'reopen') {
-		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('RequestManagerReOpenRequest'), $langs->trans('RequestManagerConfirmReOpenRequest', $object->ref), 'confirm_reopen', '', 0, 1);
-	}
+        // Get group of user
+        $user_groups = $usergroup_static->listGroupsForUser($user->id);
+        $user_groups = is_array($user_groups) ? array_keys($user_groups) : array();
+
+        // Get all status of the request type
+        $requestManagerStatusDictionary = Dictionary::getDictionary($db, 'requestmanager', 'requestmanagerstatus');
+        $requestManagerStatusDictionary->fetch_lines(1, array('request_type' => array($object->fk_type)));
+
+        $status_list = array();
+        foreach ($requestManagerStatusDictionary->lines as $s) {
+            $not_authorized_user = !empty($s->fields['authorized_user']) ? !in_array($user->id, explode(',', $s->fields['authorized_user'])) : false;
+            $not_authorized_usergroup = false;
+            if (!empty($s->fields['authorized_usergroup'])) {
+                $not_authorized_usergroup = true;
+                $authorized_usergroup = explode(',', $s->fields['authorized_usergroup']);
+                foreach ($authorized_usergroup as $group_id) {
+                    if (in_array($group_id, $user_groups)) {
+                        $not_authorized_usergroup = false;
+                        break;
+                    }
+                }
+            }
+            if ($not_authorized_user || $not_authorized_usergroup) continue;
+            if ($s->fields['type'] == RequestManager::STATUS_TYPE_RESOLVED || $s->fields['type'] == RequestManager::STATUS_TYPE_CLOSED) continue;
+
+            $sort_key = $s->fields['type'] . '_' . $s->id;
+            $status_list[$sort_key] = array($s->id, $object->LibStatut($s->id, 13));
+        }
+        ksort($status_list);
+
+        $status_array = array();
+        foreach ($status_list as $s) {
+            $status_array[$s[0]] = $s[1];
+        }
+
+        $selected_status = GETPOST('new_status', 'int');
+
+        $formquestion = array(
+            array('type' => 'other', 'name' => 'new_status', 'label' => $langs->trans('RequestManagerStatus'), 'value' => $form->selectarray('new_status', $status_array, $selected_status)),
+        );
+
+        $formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('RequestManagerReOpenRequest'), $langs->trans('RequestManagerConfirmReOpenRequest', $object->ref), 'confirm_reopen', $formquestion, 0, 1);
+    }
 
     // Confirm delete
 	if ($action == 'delete') {
