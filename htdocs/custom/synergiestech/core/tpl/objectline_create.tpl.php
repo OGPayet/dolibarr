@@ -418,7 +418,7 @@ else {
 	?>
 	</td>
 
-	<?php if ($object->element == 'supplier_proposal') { ?>
+	<?php if ($object->element == 'supplier_proposal' || $object->element == 'order_supplier' || $object->element == 'invoice_supplier') { ?>
 		<td class="nobottom linecolresupplier" align="right"><input id="fourn_ref" name="fourn_ref" class="flat" size="10" value=""></td>
 	<?php } ?>
 

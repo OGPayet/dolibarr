@@ -113,7 +113,7 @@ $coldisplay=-1; // We remove first td
 	?>
 	</td>
 
-	<?php if ($object->element == 'supplier_proposal') { ?>
+	<?php if ($object->element == 'supplier_proposal' || $object->element == 'order_supplier' || $object->element == 'invoice_supplier') { ?>
 		<td align="right"><input id="fourn_ref" name="fourn_ref" class="flat" value="<?php echo $line->ref_fourn; ?>" size="12"></td>
 	<?php } ?>
 
