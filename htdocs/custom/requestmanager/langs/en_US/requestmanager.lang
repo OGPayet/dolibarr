@@ -301,6 +301,7 @@ RequestManagerAssignMySelf                  = M'assigner à la demande
 RequestManagerConfirmAssignMySelf           = Une ou des personnes sont déja assignées à cette demande.<br>Êtes-vous sûr de vouloir vous assigner à cette demande ?
 RequestManagerPlanningRequest               = Planification de la ou des demande(s)
 RequestManagerConfirmPlanningRequest        = Êtes-vous sûr de vouloir planifier cette ou ces demande(s) ?
+RequestManagerToNewStatus                   = Statut à affecter
 
 ############################################################
 ### Events list on card

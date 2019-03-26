@@ -1320,7 +1320,7 @@ if ($object->id > 0) {
         $selected_status = GETPOST('new_status', 'int');
 
         $formquestion = array(
-            array('type' => 'other', 'name' => 'new_status', 'label' => $langs->trans('RequestManagerStatus'), 'value' => $form->selectarray('new_status', $status_array, $selected_status)),
+            array('type' => 'other', 'name' => 'new_status', 'label' => $langs->trans('RequestManagerToNewStatus'), 'value' => $form->selectarray('new_status', $status_array, $selected_status)),
         );
 
 		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('RequestManagerNotResolvedRequest'), $langs->trans('RequestManagerConfirmNotResolvedRequest', $object->ref), 'confirm_notresolved', $formquestion, 0, 1);
@@ -1366,7 +1366,7 @@ if ($object->id > 0) {
         $selected_status = GETPOST('new_status', 'int');
 
         $formquestion = array(
-            array('type' => 'other', 'name' => 'new_status', 'label' => $langs->trans('RequestManagerStatus'), 'value' => $form->selectarray('new_status', $status_array, $selected_status)),
+            array('type' => 'other', 'name' => 'new_status', 'label' => $langs->trans('RequestManagerToNewStatus'), 'value' => $form->selectarray('new_status', $status_array, $selected_status)),
         );
 
         $formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('RequestManagerReOpenRequest'), $langs->trans('RequestManagerConfirmReOpenRequest', $object->ref), 'confirm_reopen', $formquestion, 0, 1);
