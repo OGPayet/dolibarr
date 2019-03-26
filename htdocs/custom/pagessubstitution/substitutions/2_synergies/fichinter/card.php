@@ -1697,7 +1697,11 @@ else if ($id > 0 || ! empty($ref))
 		{
             if ($action != 'editdescription' && ($action != 'presend')) {
                 // Validate
-                if ($object->statut == 0 && (count($object->lines) > 0 || !empty($conf->global->FICHINTER_DISABLE_DETAILS))) {
+                //------------------------------------------------
+                // Modification - Open-Dsi - Begin
+                if ($object->statut == 0/* && (count($object->lines) > 0 || !empty($conf->global->FICHINTER_DISABLE_DETAILS))*/) {
+                // Modification - Open-Dsi - End
+                //------------------------------------------------
                     if ((empty($conf->global->MAIN_USE_ADVANCED_PERMS) && $user->rights->ficheinter->creer) || (!empty($conf->global->MAIN_USE_ADVANCED_PERMS) && $user->rights->ficheinter->ficheinter_advance->validate)) {
                         print '<div class="inline-block divButAction"><a class="butAction" href="card.php?id=' . $object->id . '&action=validate"';
                         print '>' . $langs->trans("Validate") . '</a></div>';
