@@ -78,10 +78,12 @@ class InterfaceSynergiesTech extends DolibarrTriggers
                     }
                 }
 
-                // Set the availability of the request at no by default
-                $object->availability_for_thirdparty_principal = 0;
-                $object->availability_for_thirdparty_benefactor = 0;
-                $object->availability_for_thirdparty_watcher = 0;
+                // Set the availability of the request at no by default if not created by API
+                if (empty($object->context['created_by_api'])) {
+                    $object->availability_for_thirdparty_principal = 0;
+                    $object->availability_for_thirdparty_benefactor = 0;
+                    $object->availability_for_thirdparty_watcher = 0;
+                }
                 $result = $object->update($user, 1);
                 if ($result < 0) {
                     array_merge($this->errors, $object->errors);
