@@ -252,6 +252,51 @@ if (empty($reshook))
 	$permtodelete = $user->rights->facture->supprimer;
 	$uploaddir = $conf->facture->dir_output;
 	include DOL_DOCUMENT_ROOT.'/core/actions_massactions.inc.php';
+
+    //---------------------------------------------------------------
+    // Modification - Open-Dsi - Begin
+    // Generate documents
+    if (! $error && $massaction == 'generate_documents' && $permtoread)
+    {
+        $langs->load('synergiestech@synergiestech');
+        $nbok = 0;
+        foreach($toselect as $toselectid) {
+            $objecttmp = new $objectclass($db);
+            $result = $objecttmp->fetch($toselectid);
+            if ($result > 0) {
+                $objecttmp->fetch_thirdparty();
+
+                $outputlangs = $langs;
+                $newlang = '';
+                if ($conf->global->MAIN_MULTILANGS && empty($newlang) && GETPOST('lang_id', 'aZ09')) $newlang = GETPOST('lang_id', 'aZ09');
+                if ($conf->global->MAIN_MULTILANGS && empty($newlang)) $newlang = $objecttmp->thirdparty->default_lang;
+                if (!empty($newlang)) {
+                    $outputlangs = new Translate("", $conf);
+                    $outputlangs->setDefaultLang($newlang);
+                    $outputlangs->load('products');
+                }
+                $model = /*GETPOST('default_model_forced') ? $conf->global->FACTURE_ADDON_PDF :*/ $objecttmp->modelpdf;
+
+                $result = $objecttmp->generateDocument($model, $outputlangs, $hidedetails, $hidedesc, $hideref);
+                if ($result < 0) {
+                    setEventMessage($langs->trans('SynergiesTechGenerateDocumentForFailed', $objecttmp->ref), 'errors');
+                    setEventMessages($objecttmp->error, $objecttmp->errors, 'errors');
+                } else {
+                    $nbok++;
+                }
+            } else {
+                setEventMessages($objecttmp->error, $objecttmp->errors, 'errors');
+                $error++;
+                break;
+            }
+        }
+
+        if ($nbok > 0) {
+            setEventMessage($langs->trans('SynergiesTechGenerateDocumentSuccess', $nbok));
+        }
+    }
+    // Modification - Open-Dsi - End
+    //---------------------------------------------------------------
 }
 
 if ($massaction == 'withdrawrequest')
@@ -614,10 +659,16 @@ if ($resql)
 	// Add $param from extra fields
 	include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_search_param.tpl.php';
 
+    //---------------------------------------------------------------
+    // Modification - Open-Dsi - Begin
+    $langs->load('synergiestech@synergiestech');
 	$arrayofmassactions=array(
 	    'presend'=>$langs->trans("SendByMail"),
 	    'builddoc'=>$langs->trans("PDFMerge"),
+        'generate_documents'=>$langs->trans("SynergiesTechGenerateDocuments"),
 	);
+    // Modification - Open-Dsi - End
+    //---------------------------------------------------------------
 	if ($conf->prelevement->enabled)
 	{
 	   $langs->load("withdrawals");

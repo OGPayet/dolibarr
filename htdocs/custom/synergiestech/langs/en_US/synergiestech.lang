@@ -231,3 +231,10 @@ SynergiesTechPDFInterventionSurveyBlocTitle                     = Description de
 SynergiesTechPDFInterventionSurveyBlocGeneralTitle              = Description de l’intervention générale
 SynergiesTechPDFInterventionSignatureStakeholderTitle           = Signature Technicien - Le %s à %s
 SynergiesTechPDFInterventionSignatureCustomerTitle              = Signature Client - Le %s à %s
+
+###########################################################
+### Invoices list
+###########################################################
+SynergiesTechGenerateDocuments          = Générer les documents
+SynergiesTechGenerateDocumentSuccess    = Nombre de génération de document réussies : %s
+SynergiesTechGenerateDocumentForFailed  = Génération du document pour %s échouée
