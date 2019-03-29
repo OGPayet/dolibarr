@@ -173,9 +173,9 @@ class modOuvrage extends DolibarrModules
 		);
 
 
-        dolibarr_set_const($this->db, "PROPALE_ADDON_PDF",'ouvrage');
-        dolibarr_set_const($this->db, "COMMANDE_ADDON_PDF",'ouvrage_com');
-        dolibarr_set_const($this->db, "FACTURE_ADDON_PDF",'ouvrage_fact');
+//        dolibarr_set_const($this->db, "PROPALE_ADDON_PDF",'ouvrage');
+//        dolibarr_set_const($this->db, "COMMANDE_ADDON_PDF",'ouvrage_com');
+//        dolibarr_set_const($this->db, "FACTURE_ADDON_PDF",'ouvrage_fact');
 
         return $this->_init($sql, $options);
     }
