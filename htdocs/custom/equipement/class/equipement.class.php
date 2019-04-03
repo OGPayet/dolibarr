@@ -373,10 +373,10 @@ class Equipement extends CommonObject
 				$sql.= ", ".($this->dateo?"'".$this->db->idate($this->dateo)."'":"null");
 				$sql.= ", '" . $this->db->escape($numpr) . "'";
 				$sql.= ", '".$this->numversion."'";
-				$sql.= ", ".$this->quantity;
+				$sql.= ", ".($this->quantity > 0 ? $this->quantity : 1);
 				$sql.= ", ".($this->unitweight?$this->unitweight:"null");
 				$sql.= ", ".$conf->entity;
-				$sql.= ", ".$this->author;
+				$sql.= ", ".($user->id > 0 ? "'".$user->id."'" : "null");
 				$sql.= ", ".($this->fk_entrepot?$this->db->escape($this->fk_entrepot):"null");
 				$sql.= ", ".($this->fk_product_batch?$this->db->escape($this->fk_product_batch):"null");
 				$sql.= ", ".($this->description?"'".$this->db->escape($this->description)."'":"null");
@@ -686,11 +686,14 @@ class Equipement extends CommonObject
 	 *	Set status to draft
 	 *
 	 *	@param		User	$user	User that set draft
-	 *	@return		int			<0 if KO, >0 if OK
+     *  @param		int		$notrigger	1=Does not execute triggers, 0= execute triggers
+	 *	@return		int		<0 if KO, >0 if OK
 	 */
-	function setDraft($user)
+	function setDraft($user, $notrigger=0)
 	{
-		global $langs, $conf;
+		global $conf;
+
+        $error=0;
 
 		if ($this->statut != 0) {
 			$this->db->begin();
@@ -700,18 +703,30 @@ class Equipement extends CommonObject
 			$sql.= " WHERE rowid = ".$this->id;
 			$sql.= " AND entity = ".$conf->entity;
 
-			dol_syslog(get_class($this)."::setDraft sql=".$sql);
+			dol_syslog(__METHOD__.' sql='.$sql);
 			$resql=$this->db->query($sql);
-			if ($resql)
-				$this->db->commit();
-			else {
-				$this->db->rollback();
-				$this->error=$this->db->lasterror();
-				dol_syslog(get_class($this)."::setDraft ".$this->error, LOG_ERR);
-				return -1;
-			}
-			return 1;
+			if (!$resql) {
+                $error++;
+			    $this->error = $this->db->lasterror();
+                $this->errors[] = $this->error;
+            }
+
+            if (! $error && ! $notrigger) {
+                $result=$this->call_trigger('EQUIPEMENT_MODIFY', $user);
+                if ($result < 0) { $error++; }
+            }
+
+            if ($error) {
+                $this->db->rollback();
+                dol_syslog(__METHOD__.' Error: '.$this->error, LOG_ERR);
+                return -1;
+            } else {
+                $this->db->commit();
+                return 1;
+            }
 		}
+
+		return 1;
 	}
 
 	/**
@@ -840,12 +855,12 @@ class Equipement extends CommonObject
 	 *	Validate a Equipement
 	 *
 	 *	@param		User		$user		User that validate
-	 *	@param		string		$outputdir	Output directory
+     *  @param	    int		    $notrigger	1=Does not execute triggers, 0=execute triggers
 	 *	@return		int			<0 if KO, >0 if OK
 	 */
-	function setValid($user, $outputdir)
+	function setValid($user, $notrigger=0)
 	{
-		global $langs, $conf;
+		global $conf;
 
 		$error=0;
 
@@ -862,33 +877,30 @@ class Equipement extends CommonObject
 
 			dol_syslog(get_class($this)."::setValid sql=".$sql);
 			$resql=$this->db->query($sql);
-			if ($resql) {
-				// Appel des triggers
-				include_once(DOL_DOCUMENT_ROOT . "/core/class/interfaces.class.php");
-				$interface=new Interfaces($this->db);
-				$result=$interface->run_triggers('EQUIPEMENT_VALIDATE', $this, $user, $langs, $conf);
-				if ($result < 0) {
-					$error++;
-					$this->errors=$interface->errors;
-				}
-				// Fin appel triggers
-
-				if (! $error) {
-					$this->db->commit();
-					return 1;
-				} else {
-					$this->db->rollback();
-					$this->error=join(',', $this->errors);
-					dol_syslog(get_class($this)."::setValid ".$this->error, LOG_ERR);
-					return -1;
-				}
-			} else {
-				$this->db->rollback();
-				$this->error=$this->db->lasterror();
-				dol_syslog(get_class($this)."::setValid ".$this->error, LOG_ERR);
-				return -1;
+			if (!$resql) {
+			    $error++;
+                $this->error = $this->db->lasterror();
+                $this->errors[] = $this->error;
 			}
+
+            // Appel des triggers
+            if (! $error && ! $notrigger) {
+                $result=$this->call_trigger('EQUIPEMENT_VALIDATE',$user);
+                if ($result < 0) { $error++; }
+            }
+            // Fin appel triggers
+
+            if ($error) {
+                $this->db->rollback();
+                dol_syslog(__METHOD__.' Error: '.$this->error, LOG_ERR);
+                return -1;
+            } else {
+                $this->db->commit();
+                return 1;
+            }
 		}
+
+        return 1;
 	}
 
 

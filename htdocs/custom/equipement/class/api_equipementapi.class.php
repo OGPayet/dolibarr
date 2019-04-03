@@ -35,6 +35,8 @@ class EquipementApi extends DolibarrApi {
      */
     static $FIELDS = array(
         'fk_product',
+        'SerialMethod',
+        'nbAddEquipement',
     );
 
     /**
@@ -133,6 +135,9 @@ class EquipementApi extends DolibarrApi {
 
         $user = DolibarrApiAccess::$user;
         self::$db = $db;
+
+        dol_include_once('/equipement/core/modules/equipement/mod_atlantic.php');
+        dol_include_once("/equipement/core/modules/equipement/mod_arctic.php");
     }
 
     /**
@@ -346,7 +351,7 @@ class EquipementApi extends DolibarrApi {
      * @url	PUT {id}/update_quantity
      *
      * @param   int         $id             ID of the equipment
-     * @param   double      $quantity       Quantity
+     * @param   int         $quantity       Quantity
      *
      * @return  object                      Equipment data updated
      *
@@ -847,6 +852,7 @@ class EquipementApi extends DolibarrApi {
      * @url	PUT {id}/validate
      *
      * @param   int         $id             ID of the equipment
+     * @param   int         $notrigger      1=Does not execute triggers, 0= execute triggers
      *
      * @return  object                      Equipment data updated
      *
@@ -855,10 +861,8 @@ class EquipementApi extends DolibarrApi {
      * @throws  500         RestException   Error when retrieve equipment
      * @throws  500         RestException   Error while updating the equipment
      */
-    function validate($id)
+    function validate($id, $notrigger=0)
     {
-        global $conf;
-
         if (!DolibarrApiAccess::$user->rights->equipement->creer) {
             throw new RestException(401, "Insufficient rights");
         }
@@ -866,7 +870,7 @@ class EquipementApi extends DolibarrApi {
         // Get equipment object
         $equipment = $this->_getEquipmentObject($id);
 
-        if ($equipment->setValid(DolibarrApiAccess::$user, $conf->equipement->outputdir) > 0) {
+        if ($equipment->setValid(DolibarrApiAccess::$user, $notrigger) > 0) {
             return $this->get($id);
         } else {
             throw new RestException(500, "Error while validate the equipment", [ 'details' => $this->_getErrors($equipment) ]);
@@ -879,6 +883,7 @@ class EquipementApi extends DolibarrApi {
      * @url	PUT {id}/set_to_draft
      *
      * @param   int         $id             ID of the equipment
+     * @param   int         $notrigger      1=Does not execute triggers, 0= execute triggers
      *
      * @return  object                      Equipment data updated
      *
@@ -887,7 +892,7 @@ class EquipementApi extends DolibarrApi {
      * @throws  500         RestException   Error when retrieve equipment
      * @throws  500         RestException   Error while updating the equipment
      */
-    function setToDraft($id)
+    function setToDraft($id, $notrigger=0)
     {
         if (!DolibarrApiAccess::$user->rights->equipement->creer) {
             throw new RestException(401, "Insufficient rights");
@@ -896,7 +901,7 @@ class EquipementApi extends DolibarrApi {
         // Get equipment object
         $equipment = $this->_getEquipmentObject($id);
 
-        if ($equipment->setDraft(DolibarrApiAccess::$user) > 0) {
+        if ($equipment->setDraft(DolibarrApiAccess::$user, $notrigger) > 0) {
             return $this->get($id);
         } else {
             throw new RestException(500, "Error while set to draft the equipment", [ 'details' => $this->_getErrors($equipment) ]);

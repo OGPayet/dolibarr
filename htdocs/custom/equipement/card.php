@@ -164,7 +164,7 @@ if (empty($reshook)) {
     ) {
         $object->fetch_thirdparty();
 
-        $result = $object->setValid($user, $conf->equipement->outputdir);
+        $result = $object->setValid($user);
         if ($result >= 0) {
             // Define output language
             $outputlangs = $langs;
