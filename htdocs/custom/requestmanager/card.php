@@ -202,7 +202,7 @@ if (empty($reshook)) {
     //elseif ($action == 'set_label' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS) {
 	  elseif ($action == 'set_label' && $user->rights->requestmanager->creer) {
         $object->oldcopy = clone $object;
-        $object->label = GETPOST('label', 'alpha');
+        $object->label = GETPOST('label');
         $result = $object->update($user);
         if ($result < 0) {
             setEventMessages($object->error, $object->errors, 'errors');

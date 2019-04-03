@@ -1477,7 +1477,7 @@ SCRIPT;
                 $selectedContacts = GETPOST('contact_ids', 'array') ? GETPOST('contact_ids', 'array') : (GETPOST('contact_ids', 'alpha') ? explode(',', GETPOST('contact_ids', 'alpha')) : array());
 
                 $object->fk_type = GETPOST('type', 'int');
-                $object->label = GETPOST('label', 'alpha');
+                $object->label = GETPOST('label');
                 $object->socid_origin = GETPOST('socid_origin', 'int');
                 $object->socid = GETPOST('socid', 'int');
                 $object->socid_benefactor = GETPOST('socid_benefactor', 'int');
