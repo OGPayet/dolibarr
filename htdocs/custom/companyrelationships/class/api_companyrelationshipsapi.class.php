@@ -85,9 +85,9 @@ class CompanyRelationshipsApi extends DolibarrApi {
      */
     static $FIELDSLINE_INTERVENTION = array(
         // Specific for Synergies-Tech: Description not mandatory
-        //'description',
-        'date',
-        'duree'
+        //'desc',
+        'datei',
+        'duration'
     );
 
     /**
@@ -3063,7 +3063,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
         }
 
         if ($this->fichinter->update(DolibarrApiAccess::$user) > 0)	{
-            return $this->get($id);
+            return $this->getIntervention($id);
         } else {
             throw new RestException(500, $this->fichinter->error);
         }
@@ -3087,33 +3087,26 @@ class CompanyRelationshipsApi extends DolibarrApi {
             throw new RestException(401, "Insufficient rights");
         }
 
+        // Check mandatory fields
+        $result = $this->_validateLineIntervention($request_data);
+
         $result = $this->fichinter->fetch($id);
         if (! $result) {
             return [];
         }
 
-        // Check mandatory fields
-        $result = $this->_validateLineIntervention($request_data);
-
-        foreach($request_data as $field => $value) {
-            $this->fichinter->$field = $value;
-        }
-
-        if( ! $result ) {
-            return [];
-        }
-
-        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->fichinter);
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->propal);
         if (! $hasPerm) {
             throw new RestException(401, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
         }
 
+        $request_data = (object) $request_data;
         $updateRes = $this->fichinter->addLine(
             DolibarrApiAccess::$user,
             $id,
-            $this->fichinter->desc,
-            $this->fichinter->datei,
-            $this->fichinter->duration
+            $request_data->desc,
+            $request_data->datei,
+            $request_data->duration
         );
 
         if ($updateRes > 0) {
@@ -3208,11 +3201,37 @@ class CompanyRelationshipsApi extends DolibarrApi {
 
         // TODO Check the lineid $lineid is a line of ojbect
 
-        $updateRes = $this->ficheinter->deleteline($lineid);
+        //$updateRes = $this->fichinter->deleteline($lineid, DolibarrApiAccess::$user);
+        if ($this->fichinter->statut == 0)
+        {
+            $this->db->begin();
+
+            $line=new FichinterLigne($this->db);
+
+            $line->fetch($lineid);
+
+            if ($line->deleteline(DolibarrApiAccess::$user) < 0)
+            {
+                $this->db->rollback();
+                $updateRes = -1;
+                $this->fichinter->error = $this->db->lasterror();
+            }
+            else
+            {
+                $this->db->commit();
+                $updateRes = 1;
+            }
+        }
+        else
+        {
+            $this->fichinter->error='ErrorDeleteLineNotAllowedByObjectStatus';
+            $updateRes = -2;
+        }
+
         if ($updateRes > 0) {
             return $this->getIntervention($id);
         } else {
-            throw new RestException(405, $this->propal->error);
+            throw new RestException(405, $this->fichinter->error);
         }
     }
 
