@@ -249,7 +249,7 @@ class QuickList extends CommonObject
         $usergroup = new UserGroup($this->db);
         $groupslist = $usergroup->listGroupsForUser($user->id);
         foreach ($groupslist as $group) {
-            if ($group->entity == $conf->entity) {
+            if ($group->entity == $conf->entity|| (is_array($group->usergroup_entity) && in_array($conf->entity, $group->usergroup_entity))) {
                 $usergroup_ids[] = $group->id;
             }
         }
@@ -455,7 +455,7 @@ class QuickList extends CommonObject
         $usergroup = new UserGroup($this->db);
         $groupslist = $usergroup->listGroupsForUser($user->id);
         foreach ($groupslist as $group) {
-            if ($group->entity == $conf->entity) {
+            if ($group->entity == $conf->entity|| (is_array($group->usergroup_entity) && in_array($conf->entity, $group->usergroup_entity))) {
                 $usergroup_ids[] = $group->id;
             }
         }

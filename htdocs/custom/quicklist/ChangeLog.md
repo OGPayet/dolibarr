@@ -3,6 +3,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.7] - 04-04-2019
+- Correction support multicompanie avec les groupes d'utilisateurs.
+
 ## [4.0.6] - 28-02-2019
 - Prise en compte du hashtag lors de l'édition / Suppression.
 - Ajout de l'option filtre par défaut.
@@ -36,7 +39,8 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 06-11-2017
 - Version initial.
 
-[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/quicklist/compare/v4.0.6...HEAD
+[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/quicklist/compare/v4.0.7...HEAD
+[4.0.7]: http://git.open-dsi.fr/dolibarr-extension/quicklist/commits/v4.0.7
 [4.0.6]: http://git.open-dsi.fr/dolibarr-extension/quicklist/commits/v4.0.6
 [4.0.5]: http://git.open-dsi.fr/dolibarr-extension/quicklist/commits/v4.0.5
 [4.0.4]: http://git.open-dsi.fr/dolibarr-extension/quicklist/commits/v4.0.4
