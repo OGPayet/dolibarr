@@ -942,24 +942,30 @@ class pdf_soleil_st extends ModelePDFFicheinter
 	function _fetch_effective_working_time($object, $outputlangs)
     {
         $this->effective_working_time = array();
+        $user_cached = array();
 
         if (is_array($object->lines) && count($object->lines)) {
             foreach ($object->lines as $line) {
                 // Get involved user id
                 $line->fetch_optionals();
-                $user_id = $line->array_options['options_st_involved_users'] > 0 ? $line->array_options['options_st_involved_users'] : 0;
+                $user_ids = !empty($line->array_options['options_st_involved_users']) ? explode(',', $line->array_options['options_st_involved_users']) : array('');
 
-                if (!isset($this->effective_working_time[$user_id])) {
-                    $user_name = '';
-                    if ($user_id > 0) {
-                        $user = new User($this->db);
-                        $user->fetch($user_id);
-                        $user_name = $user->getFullName($outputlangs);
+                foreach ($user_ids as $user_id) {
+                    if (!isset($this->effective_working_time[$user_id])) {
+                        if (!isset($user_cached[$user_id])) {
+                            $user_name = '';
+                            if ($user_id > 0) {
+                                $user = new User($this->db);
+                                $user->fetch($user_id);
+                                $user_name = $user->getFullName($outputlangs);
+                            }
+                            $user_cached[$user_id] = $user_name;
+                        }
+                        $this->effective_working_time[$user_id] = array('name' => $user_cached[$user_id], 'times' => array());
                     }
-                    $this->effective_working_time[$user_id] = array('name' => $user_name, 'times' => array());
-                }
 
-                $this->effective_working_time[$user_id]['times'][] = array('begin' => $line->datei, 'end' => $line->datei + $line->duration, 'duration' => $line->duration);
+                    $this->effective_working_time[$user_id]['times'][] = array('begin' => $line->datei, 'end' => $line->datei + $line->duration, 'duration' => $line->duration);
+                }
             }
 
             // Sort times of each involved users
