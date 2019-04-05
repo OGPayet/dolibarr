@@ -116,3 +116,14 @@ $search_img_url = img_picto('', 'searchicon.png@quicklist', '', false, 1);
   margin: 0 0 0 4px;
   vertical-align: middle;
 }
+
+.quicklist-filter-list {
+  display: inline-block;
+  margin: 0;
+  padding: 0 0 10px 0;
+  text-align: left;
+}
+.quicklist-filter-list .button {
+  margin-left: 5px !important;
+  margin-right: 0 !important;
+}

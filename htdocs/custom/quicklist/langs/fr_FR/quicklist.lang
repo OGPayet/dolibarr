@@ -5,12 +5,17 @@ Module163011Desc=Module pour gérer des filtres personalisés sur les listes
 
 QuickListSetup=Configuration du module "Quick List"
 
+QuickListShowFiltersListAboveTableName=Affiche filtres
+QuickListShowFiltersListAboveTableDesc=Affiche la liste des filtres clickables au dessus du tableau
+
 QuickListHelp=Options complémentaires
 QuickListAddFilter=Ajouter un filtre
 QuickListSearch=Rechercher...
 QuickListEditFilter=Modifier le filtre
 QuickListDeleteFilter=Supprimer le filtre
 QuickListDefault=Défaut
+
+QuickListFilters=Filtres
 
 QuickListScopePrivate=Privé
 QuickListScopeUserGroup=Groupes d\'utilisateurs

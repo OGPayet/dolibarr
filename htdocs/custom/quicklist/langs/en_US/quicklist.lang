@@ -5,12 +5,17 @@ Module163011Desc=Module to manage custom filters on lists
 
 QuickListSetup=Configuration of the module "Quick List"
 
+QuickListShowFiltersListAboveTableName=Show filters
+QuickListShowFiltersListAboveTableDesc=Show clickable filters list above the table
+
 QuickListHelp=Additional options
 QuickListAddFilter=Add a filter
 QuickListSearch=Search...
 QuickListEditFilter=Edit filter
 QuickListDeleteFilter=Remove filter
 QuickListDefault=Default
+
+QuickListFilters=Filters
 
 QuickListScopePrivate=Private
 QuickListScopeUserGroup=User Groups

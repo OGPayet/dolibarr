@@ -73,7 +73,7 @@ class modQuickList extends DolibarrModules
         $this->editor_url = 'http://www.open-dsi.fr';
 
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-        $this->version = '4.0.6';
+        $this->version = '4.0.7';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Name of image file used for this module.
@@ -111,7 +111,7 @@ class modQuickList extends DolibarrModules
 		$this->dirs = array();
 
 		// Config pages. Put here list of php page, stored into mymodule/admin directory, to use to setup module.
-		$this->config_page_url = array("about.php@quicklist");
+		$this->config_page_url = array("setup.php@quicklist");
 
 		// Dependencies
 		$this->hidden = false;			// A condition to hide module

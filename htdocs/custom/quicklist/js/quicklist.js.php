@@ -65,6 +65,8 @@ $scope_public_title = dol_escape_htmltag($langs->trans('QuickListScopePublic'));
 $edit_img = img_picto($langs->trans('QuickListEditFilter'), 'edit.png', ' id="quicklist_editfilter"');
 $delete_img = img_picto($langs->trans('QuickListDeleteFilter'), 'delete.png', ' id="quicklist_deletefilter"');
 
+$filters_label = dol_escape_htmltag($langs->trans('QuickListFilters'));
+
 $module_owntheme_activated = !empty($conf->owntheme->enabled) ? 1 : 0;
 
 ?>
@@ -158,6 +160,31 @@ function quicklist_replace_button_removefilter(base_url, filters) {
   }
 }
 
+function quicklist_show_filters_list_button(filters) {
+  var button_search = $('td.liste_titre [name="button_search"]');
+
+  if (button_search.length > 0 && (filters.private.length > 0 || filters.usergroup.length > 0 || filters.public.length > 0)) {
+    var table = button_search.closest('form').find('table:first');
+    table.after('<div class="quicklist-filter-list centpercent"><?php echo $filters_label ?> :</div>');
+    var quicklistFiltersList = $('div.quicklist-filter-list');
+
+    // Add private filter
+    if (filters.private.length) {
+      quicklistAddFilterButton(quicklistFiltersList, filters.private);
+    }
+
+    // Add usergroup filter
+    if (filters.usergroup.length) {
+      quicklistAddFilterButton(quicklistFiltersList, filters.usergroup);
+    }
+
+    // Add public filter
+    if (filters.public.length) {
+      quicklistAddFilterButton(quicklistFiltersList, filters.public);
+    }
+  }
+}
+
 function quicklistFilterFunction() {
   var filter = $('input#quicklistInput').val().toUpperCase();
   var items = $('div#quicklistElements a.item.filter');
@@ -196,4 +223,10 @@ function quicklistClickFilterButton(_this) {
   form.append('<input type="hidden" name="filter_id" value="'+filterID+'">');
 
   form.submit();
+}
+
+function quicklistAddFilterButton(quicklistFiltersList, filterList) {
+  $.map(filterList, function (filter) {
+    quicklistFiltersList.append('<a id="' + filter.id + '" class="button" href="' + filter.url + (filter.hash_tag ? filter.hash_tag : '') + '">' + filter.name + '</a>');
+  });
 }

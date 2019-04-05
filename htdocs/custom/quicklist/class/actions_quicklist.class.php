@@ -230,7 +230,7 @@ class ActionsQuickList
      */
     function printFieldListOption($parameters, &$object, &$action, $hookmanager)
     {
-        global $langs, $user;
+        global $conf, $langs, $user;
 
         $context = quicklist_get_context($parameters['context']);
         if (empty($context))
@@ -421,6 +421,9 @@ class ActionsQuickList
         print '<script type="text/javascript" language="javascript">' . "\n";
         print '$(document).ready(function () {' . "\n";
         print 'quicklist_replace_button_removefilter("' . str_replace('"', '\\"', $base_url) . '",' . json_encode($filters) . ');' . "\n";
+        if (!empty($conf->global->QUICKLIST_SHOW_FILTERS_LIST_ABOVE_TABLE)) {
+            print 'quicklist_show_filters_list_button(' . json_encode($filters) . ');' . "\n";
+        }
         print '});';
         print '</script>' . "\n";
 

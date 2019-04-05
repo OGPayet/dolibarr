@@ -5,6 +5,7 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [4.0.7] - 04-04-2019
 - Correction support multicompanie avec les groupes d'utilisateurs.
+- Ajout de l'option d'affichage de la liste des filtres au dessus du tableau.
 
 ## [4.0.6] - 28-02-2019
 - Prise en compte du hashtag lors de l'édition / Suppression.

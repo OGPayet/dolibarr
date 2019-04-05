@@ -26,11 +26,22 @@
  *
  * @return  array				Array of tabs to show
  */
-function quicklist_prepare_head()
+function quicklist_admin_prepare_head()
 {
     global $langs, $conf, $user;
     $h = 0;
     $head = array();
+
+    $head[$h][0] = dol_buildpath("/quicklist/admin/setup.php", 1);
+    $head[$h][1] = $langs->trans("Parameters");
+    $head[$h][2] = 'settings';
+    $h++;
+
+    // Show more tabs from modules
+    // Entries must be declared in modules descriptor with line
+    // $this->tabs = array('entity:+tabname:Title:@mymodule:/mymodule/mypage.php?id=__ID__');   to add new tab
+    // $this->tabs = array('entity:-tabname:Title:@mymodule:/mymodule/mypage.php?id=__ID__');   to remove a tab
+    complete_head_from_modules($conf, $langs, null, $head, $h, 'quicklist_admin');
 
     $head[$h][0] = dol_buildpath("/quicklist/admin/about.php", 1);
     $head[$h][1] = $langs->trans("About");
@@ -42,7 +53,7 @@ function quicklist_prepare_head()
     $head[$h][2] = 'changelog';
     $h++;
 
-    complete_head_from_modules($conf,$langs,null,$head,$h,'quicklist_admin');
+    complete_head_from_modules($conf, $langs, null, $head, $h, 'quicklist_admin', 'remove');
 
     return $head;
 }
