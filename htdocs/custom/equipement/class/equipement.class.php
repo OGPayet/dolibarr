@@ -260,9 +260,13 @@ class Equipement extends CommonObject
             }
 
             if (!empty($equipementRefList)) {
+                $tmplist = array();
+                foreach($equipementRefList as $v) {
+                    $tmplist[] = $this->db->escape($v);
+                }
                 $sql = "SELECT DISTINCT ref";
                 $sql .= " FROM " . MAIN_DB_PREFIX . "equipement";
-                $sql .= " WHERE ref IN ('" . implode("','", $equipementRefList) . "')";
+                $sql .= " WHERE ref IN ('" . implode("','", $tmplist) . "')";
                 $sql .= " AND fk_product = " . $this->fk_product;
                 $sql .= " AND entity = " . $conf->entity;
 
@@ -1177,7 +1181,7 @@ class Equipement extends CommonObject
 			$sql.= " SET fk_entrepot = ".($fk_entrepot!=-1? $fk_entrepot:"null");
 			$sql.= " WHERE rowid = ".$this->id;
 			$sql.= " AND entity = ".$conf->entity;
-//print "===".$sql."<br>";
+            //print "===".$sql."<br>";
 			if ($this->db->query($sql)) {
 				$this->fk_entrepot = $fk_entrepot;
 				// si on a chang� d'entrepot et on veut faire un mouvement
