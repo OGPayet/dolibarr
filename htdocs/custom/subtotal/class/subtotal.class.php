@@ -26,10 +26,14 @@ class TSubtotal {
 		}
 		else {
 			$desc = '';
-			if ((float) DOL_VERSION < 6) {
+			//-----------------------------------------------
+			// Modification spécifique Synergies-Tech - Open-Dsi - Begin
+			if ((float) DOL_VERSION < 6  || $qty==50) {
 				$desc = $label;
 				$label = '';
 			}
+            // Modification spécifique Synergies-Tech - Open-Dsi - End
+            //-----------------------------------------------
 
 			/**
 			 * @var $object Facture
