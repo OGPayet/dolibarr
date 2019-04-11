@@ -733,6 +733,7 @@ if ($action == 'create') {
 
 			// Etat de l'�quipement
 			print '<tr><td>'.$langs->trans("EtatEquip").'</td>';
+            print '<td colspan="2">';
 			print select_equipement_etat("", 'fk_etatequipement', 1, 1);
 			print "</td></tr>";
 
