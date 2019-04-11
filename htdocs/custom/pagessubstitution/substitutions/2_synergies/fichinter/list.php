@@ -312,11 +312,11 @@ if ($resql)
 	{
 		$soc = new Societe($db);
 		$soc->fetch($socid);
-		$title = $langs->trans('ListOfContracts') . ' - '.$soc->name;
+		$title = $langs->trans('ListOfInterventions') . ' - '.$soc->name;
 	}
 	else
 	{
-	    $title = $langs->trans('ListOfContracts');
+	    $title = $langs->trans('ListOfInterventions');
 	}
     // Modification - Open-DSI - End
     //-------------------------------------------------------------------------------
