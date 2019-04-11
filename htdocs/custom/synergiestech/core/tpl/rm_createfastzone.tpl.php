@@ -100,7 +100,7 @@ if ($zone === 1) {
         if ($selectedSocId > 0) {
             $benefactor_companies_ids = $companyrelationships->getRelationshipsThirdparty($selectedSocId, CompanyRelationships::RELATION_TYPE_BENEFACTOR, 1);
             $benefactor_companies_ids = is_array($benefactor_companies_ids) ? array_values($benefactor_companies_ids) : array();
-            $selectedSocIdBenefactor = $selectedSocIdBenefactor < 0 || $force_set ? (count($benefactor_companies_ids) > 0 ? $benefactor_companies_ids[0] : $selectedSocId) : $selectedSocIdBenefactor;
+            $selectedSocIdBenefactor = $selectedSocIdBenefactor < 0 || $force_set ? (count($benefactor_companies_ids) == 0 ? $selectedSocId : (count($benefactor_companies_ids) == 1 ? $benefactor_companies_ids[0] : '')) : $selectedSocIdBenefactor;
         }
         if ($selectedSocIdBenefactor > 0) {
             $principal_companies_ids = $companyrelationships->getRelationshipsThirdparty($selectedSocIdBenefactor, CompanyRelationships::RELATION_TYPE_BENEFACTOR, 0);
