@@ -315,6 +315,31 @@ class InterfaceSynergiesTech extends DolibarrTriggers
 
                 dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
                 return 0;
+            case 'FICHINTER_CLASSIFY_DONE':
+                if (empty($conf->global->MAIN_DISABLE_PDF_AUTOUPDATE)) {
+                    // Define output language
+                    $outputlangs = $langs;
+                    $newlang = '';
+                    if ($conf->global->MAIN_MULTILANGS && empty($newlang) && GETPOST('lang_id', 'aZ09')) $newlang = GETPOST('lang_id', 'aZ09');
+                    if ($conf->global->MAIN_MULTILANGS && empty($newlang)) $newlang = $object->thirdparty->default_lang;
+                    if (!empty($newlang)) {
+                        $outputlangs = new Translate("", $conf);
+                        $outputlangs->setDefaultLang($newlang);
+                    }
+
+                    require_once DOL_DOCUMENT_ROOT . '/core/modules/fichinter/modules_fichinter.php';
+                    ob_start();
+                    $result = fichinter_create($this->db, $object, $object->modelpdf, $outputlangs);
+                    $result_txt = ob_get_contents();
+                    ob_end_clean();
+                    if (!($result > 0)) {
+                        $this->errors[] = $result_txt;
+                        return -1;
+                    }
+                }
+
+                dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
+                return 0;
         }
 
         return 0;

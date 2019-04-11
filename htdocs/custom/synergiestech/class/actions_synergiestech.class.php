@@ -975,7 +975,7 @@ SCRIPT;
             // Confirm reopen
             if ($action == 'reopen') {
                 $langs->load('synergiestech@synergiestech');
-                $this->resprints = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('ReOpen'), $langs->trans('SynergiesTechConfirmReOpenIntervention'),
+                /*$this->resprints =*/print $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('ReOpen'), $langs->trans('SynergiesTechConfirmReOpenIntervention'),
                     'confirm_reopen', '', 0, 1);
                 return 1;
             }
