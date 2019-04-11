@@ -2196,8 +2196,10 @@ SCRIPT;
         $contexts = explode(':', $parameters['context']);
 
         $thirdparty = null;
-        if (in_array('requestmanagercard', $contexts) && !is_object($object->thirdparty_benefactor) && method_exists($object, "fetch_thirdparty_benefactor")) {
-            $object->fetch_thirdparty_benefactor();
+        if (in_array('requestmanagercard', $contexts)) {
+            if (!is_object($object->thirdparty_benefactor) && method_exists($object, "fetch_thirdparty_benefactor")) {
+                $object->fetch_thirdparty_benefactor();
+            }
             $thirdparty = $object->thirdparty_benefactor;
         } elseif ($conf->companyrelationships->enabled) {
             if (empty($object->array_options) && method_exists($object, "fetch_optionals")) {
