@@ -84,7 +84,7 @@ $pagenext = $page + 1;
 if (! $sortorder) $sortorder="DESC";
 if (! $sortfield)
 {
-	if (empty($conf->global->FICHINTER_DISABLE_DETAILS)) $sortfield="fd.date";
+	if (empty($conf->global->FICHINTER_DISABLE_DETAILS) && empty($conf->global->FICHINTER_DISABLE_DETAILS_LIST)) $sortfield="fd.date";
 	else $sortfield="f.ref";
 }
 
@@ -120,7 +120,7 @@ $fieldstosearchall = array(
     'f.note_public'=>'NotePublic',
 );
 if (empty($user->socid)) $fieldstosearchall["f.note_private"]="NotePrivate";
-if (! empty($conf->global->FICHINTER_DISABLE_DETAILS)) unset($fieldstosearchall['f.description']);
+if (! empty($conf->global->FICHINTER_DISABLE_DETAILS) || !empty($conf->global->FICHINTER_DISABLE_DETAILS_LIST)) unset($fieldstosearchall['f.description']);
 
 // Definition of fields for list
 $arrayfields=array(
@@ -129,9 +129,9 @@ $arrayfields=array(
 	'f.fk_project'=>array('label'=>$langs->trans("Project"), 'checked'=>1),
     'f.fk_contrat'=>array('label'=>$langs->trans("Contract"), 'checked'=>1),
     'f.description'=>array('label'=>$langs->trans("Description"), 'checked'=>1),
-    'fd.description'=>array('label'=>"xx", 'checked'=>1, 'enabled'=>empty($conf->global->FICHINTER_DISABLE_DETAILS)?1:0),
-    'fd.date'=>array('label'=>$langs->trans("Date"), 'checked'=>1, 'enabled'=>empty($conf->global->FICHINTER_DISABLE_DETAILS)?1:0),
-    'fd.duree'=>array('label'=>$langs->trans("Duration"), 'checked'=>1, 'enabled'=>empty($conf->global->FICHINTER_DISABLE_DETAILS)?1:0),
+    'fd.description'=>array('label'=>"xx", 'checked'=>1, 'enabled'=>empty($conf->global->FICHINTER_DISABLE_DETAILS) && empty($conf->global->FICHINTER_DISABLE_DETAILS_LIST)?1:0),
+    'fd.date'=>array('label'=>$langs->trans("Date"), 'checked'=>1, 'enabled'=>empty($conf->global->FICHINTER_DISABLE_DETAILS) && empty($conf->global->FICHINTER_DISABLE_DETAILS_LIST)?1:0),
+    'fd.duree'=>array('label'=>$langs->trans("Duration"), 'checked'=>1, 'enabled'=>empty($conf->global->FICHINTER_DISABLE_DETAILS) && empty($conf->global->FICHINTER_DISABLE_DETAILS_LIST)?1:0),
 	'f.datec'=>array('label'=>$langs->trans("DateCreation"), 'checked'=>0, 'position'=>500),
     'f.tms'=>array('label'=>$langs->trans("DateModificationShort"), 'checked'=>0, 'position'=>500),
     'f.fk_statut'=>array('label'=>$langs->trans("Status"), 'checked'=>1, 'position'=>1000),
@@ -218,7 +218,7 @@ $sql.= " p.rowid AS project_id, p.ref AS project_ref, p.title AS project_title, 
 $sql.= " c.rowid AS contract_id, c.ref AS contract_ref, c.ref_customer AS contract_ref_customer, c.ref_supplier AS contract_ref_supplier,";
 // Modification - Open-DSI - End
 //-------------------------------------------------------------------------------
-if (empty($conf->global->FICHINTER_DISABLE_DETAILS)) $sql.= " fd.description as descriptiondetail, fd.date as dp, fd.duree,";
+if (empty($conf->global->FICHINTER_DISABLE_DETAILS) && empty($conf->global->FICHINTER_DISABLE_DETAILS_LIST)) $sql.= " fd.description as descriptiondetail, fd.date as dp, fd.duree,";
 $sql.= " s.nom as name, s.rowid as socid, s.client";
 // Add fields from extrafields
 foreach ($extrafields->attribute_label as $key => $val) $sql.=($extrafields->attribute_type[$key] != 'separate' ? ",ef.".$key.' as options_'.$key : '');
@@ -234,7 +234,7 @@ $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."contrat as c ON c.rowid = f.fk_contrat";
 // Modification - Open-DSI - End
 //-------------------------------------------------------------------------------
 if (is_array($extrafields->attribute_label) && count($extrafields->attribute_label)) $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fichinter_extrafields as ef on (f.rowid = ef.fk_object)";
-if (empty($conf->global->FICHINTER_DISABLE_DETAILS)) $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fichinterdet as fd ON fd.fk_fichinter = f.rowid";
+if (empty($conf->global->FICHINTER_DISABLE_DETAILS) && empty($conf->global->FICHINTER_DISABLE_DETAILS_LIST)) $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fichinterdet as fd ON fd.fk_fichinter = f.rowid";
 if (! $user->rights->societe->client->voir && empty($socid)) $sql.= ", ".MAIN_DB_PREFIX."societe_commerciaux as sc";
 $sql.= ", ".MAIN_DB_PREFIX."societe as s";
 $sql.= " WHERE f.fk_soc = s.rowid ";
@@ -256,7 +256,7 @@ if ($search_contract) {
 // Modification - Open-DSI - End
 //-------------------------------------------------------------------------------
 if ($search_desc) {
-    if (empty($conf->global->FICHINTER_DISABLE_DETAILS)) $sql .= natural_search(array('f.description', 'fd.description'), $search_desc);
+    if (empty($conf->global->FICHINTER_DISABLE_DETAILS) && empty($conf->global->FICHINTER_DISABLE_DETAILS_LIST)) $sql .= natural_search(array('f.description', 'fd.description'), $search_desc);
     else $sql .= natural_search(array('f.description'), $search_desc);
 }
 if ($search_status != '' && $search_status >= 0) {
