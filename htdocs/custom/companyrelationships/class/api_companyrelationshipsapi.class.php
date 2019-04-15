@@ -3202,7 +3202,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
         // TODO Check the lineid $lineid is a line of ojbect
 
         //$updateRes = $this->fichinter->deleteline($lineid, DolibarrApiAccess::$user);
-        if ($this->fichinter->statut == 0)
+        if ($this->fichinter->statut <= 1)
         {
             $this->db->begin();
 
