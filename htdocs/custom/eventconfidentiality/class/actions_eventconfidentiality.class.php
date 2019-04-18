@@ -423,12 +423,13 @@ SCRIPT;
 //                    );
 
             if ($object->element == 'action' || $object->element == 'requestmanager_requestmanagermessage') {
-                $user_f = $user->id > 0 ? $user : DolibarrApiAccess::$user;
+//                $user_f = $user->id > 0 ? $user : DolibarrApiAccess::$user;
+                $user_f = isset(DolibarrApiAccess::$user) && DolibarrApiAccess::$user->id > 0 ? DolibarrApiAccess::$user : $user;
 
-                $parameters['whitelist_of_properties']['action']['ec_save_values'] = '';
+                $parameters['whitelist_of_properties']['ec_save_values'] = '';
                 if ($user_f->rights->eventconfidentiality->manage) {
-                    $parameters['whitelist_of_properties']['action']['ec_mode_tags'] = '';
-                    $parameters['whitelist_of_properties']['action']['ec_tags'] = '';
+                    $parameters['whitelist_of_properties']['ec_mode_tags'] = '';
+                    $parameters['whitelist_of_properties']['ec_tags'] = '';
                 }
             }
         }
