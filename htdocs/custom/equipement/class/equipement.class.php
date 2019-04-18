@@ -287,6 +287,7 @@ class Equipement extends CommonObject
                         }
 
                         // get product
+                        require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
                         $productStatic = new Product($this->db);
                         $productStatic->fetch($this->fk_product);
 

@@ -269,7 +269,11 @@ class EquipementApi extends DolibarrApi {
 
         $equipment = new Equipement(self::$db);
         foreach ($equipment_data as $field => $value) {
-            $equipment->$field = $value;
+            if ($field == 'ref') {
+                $equipment->SerialFourn = $value;
+            } else {
+                $equipment->$field = $value;
+            }
         }
 
         $save_user = $user;

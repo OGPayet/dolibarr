@@ -3095,25 +3095,34 @@ class CompanyRelationshipsApi extends DolibarrApi {
             return [];
         }
 
-        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->propal);
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->fichinter);
         if (! $hasPerm) {
             throw new RestException(401, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
         }
 
-        $request_data = (object) $request_data;
-        $updateRes = $this->fichinter->addLine(
-            DolibarrApiAccess::$user,
-            $id,
-            $request_data->desc,
-            $request_data->datei,
-            $request_data->duration
-        );
+        if ($this->fichinter->statut == 0 ||  $this->fichinter->statut == 1) {
+            $fichinterStatut = $this->fichinter->statut;
+            $this->fichinter->statut = 0;
 
-        if ($updateRes > 0) {
-            return $updateRes;
-        }
-        else {
-            throw new RestException(400, $this->fichinter->error);
+            $request_data = (object) $request_data;
+            $updateRes = $this->fichinter->addLine(
+                DolibarrApiAccess::$user,
+                $id,
+                $request_data->desc,
+                $request_data->datei,
+                $request_data->duration
+            );
+
+            $this->fichinter->statut = $fichinterStatut;
+
+            if ($updateRes > 0) {
+                return $updateRes;
+            }
+            else {
+                throw new RestException(400, $this->fichinter->error);
+            }
+        } else {
+            throw new RestException(500, 'Error when adding Intervention line: Bad status='.$this->fichinter->statut);
         }
     }
 
@@ -3154,20 +3163,29 @@ class CompanyRelationshipsApi extends DolibarrApi {
             return [];
         }
 
-        $updateRes = $this->fichinter->updateline(
-            $lineid,
-            $id,
-            isset($request_data->desc)?$request_data->desc:$ficheinterline->desc,
-            isset($request_data->datei)?$request_data->datei:$ficheinterline->datei,
-            isset($request_data->duration)?$request_data->duration:$ficheinterline->duration
-        );
+        if ($this->fichinter->statut == 0 ||  $this->fichinter->statut == 1) {
+            $fichinterStatut = $this->fichinter->statut;
+            $this->fichinter->statut = 0;
 
-        if ($updateRes > 0) {
-            $result = $this->getIntervention($id);
-            unset($result->line);
-            return $this->_cleanObjectData($result);
+            $updateRes = $this->fichinter->updateline(
+                $lineid,
+                $id,
+                isset($request_data->desc) ? $request_data->desc : $ficheinterline->desc,
+                isset($request_data->datei) ? $request_data->datei : $ficheinterline->datei,
+                isset($request_data->duration) ? $request_data->duration : $ficheinterline->duration
+            );
+
+            $this->fichinter->statut = $fichinterStatut;
+
+            if ($updateRes > 0) {
+                $result = $this->getIntervention($id);
+                unset($result->line);
+                return $this->_cleanObjectData($result);
+            } else {
+                throw new RestException(400, $this->fichinter->error);
+            }
         } else {
-            throw new RestException(400, $this->fichinter->error);
+            throw new RestException(500, 'Error when updating Intervention line: Bad status='.$this->fichinter->statut);
         }
     }
 
