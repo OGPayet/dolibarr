@@ -64,6 +64,7 @@ $scope_public_title = dol_escape_htmltag($langs->trans('QuickListScopePublic'));
 
 $edit_img = img_picto($langs->trans('QuickListEditFilter'), 'edit.png', ' id="quicklist_editfilter"');
 $delete_img = img_picto($langs->trans('QuickListDeleteFilter'), 'delete.png', ' id="quicklist_deletefilter"');
+$delete_img_src = img_picto($langs->trans("RemoveFilter"),'searchclear.png','','',1);
 
 $filters_label = dol_escape_htmltag($langs->trans('QuickListFilters'));
 
@@ -168,6 +169,9 @@ function quicklist_show_filters_list_button(filters) {
     table.after('<div class="quicklist-filter-list centpercent"><?php echo $filters_label ?> :</div>');
     var quicklistFiltersList = $('div.quicklist-filter-list');
 
+    // Remove filter button
+    quicklistFiltersList.append('<input type="image" class="button" name="button_removefilter" src="<?php echo $delete_img_src ?>" title="<?php echo $button_delete_filter_text ?>" value="<?php echo $button_delete_filter_text ?>">');
+
     // Add private filter
     if (filters.private.length) {
       quicklistAddFilterButton(quicklistFiltersList, filters.private);
@@ -182,6 +186,9 @@ function quicklist_show_filters_list_button(filters) {
     if (filters.public.length) {
       quicklistAddFilterButton(quicklistFiltersList, filters.public);
     }
+
+    // Add new filter button
+    quicklistFiltersList.append('<input type="submit" class="button" name="button_quicklist_addfilter" title="<?php echo $button_add_filter_text ?>" value="+">');
   }
 }
 

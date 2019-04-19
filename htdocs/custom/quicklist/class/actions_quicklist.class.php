@@ -60,8 +60,13 @@ class ActionsQuickList
         'action', 'massaction', 'confirmmassaction', 'checkallactions', 'toselect[]',
         'button_quicklist_addfilter_x', 'button_quicklist_addfilter.x', 'button_quicklist_addfilter',
         'filter_name', 'filter_scope', 'filter_scope_usergroup', 'filter_update_url', 'filter_menu', 'filter_id',
-        'filter_hashtag', 'filter_default',
+        'filter_hashtag', 'filter_default', 'id', 'socid', 'ref', 'lineid',
     ];
+
+    /**
+     * @var array
+     */
+    private $ids_params = [ 'id', 'socid', 'ref', 'lineid' ];
 
     /**
      * Constructor
@@ -115,6 +120,17 @@ class ActionsQuickList
             }
         }
         $params_url = count($params) ? http_build_query($params, '', '&') : '';
+
+        //--------------------------------------------------------------------
+        // params of ids for the url (cards case)
+        //--------------------------------------------------------------------
+        $ids_params = array();
+        foreach (array_merge($_POST, $_GET) as $key => $value) {
+            if (in_array($key, $this->ids_params) && $value != '') {
+                $ids_params[$key] = $value;
+            }
+        }
+        $ids_params_url = count($ids_params) ? http_build_query($ids_params, '', '&') : '';
 
         //--------------------------------------------------------------------
         // Add filter
@@ -184,7 +200,7 @@ class ActionsQuickList
                 $quicklist->set_usergroup($usergroup_ids);
 
                 setEventMessages($langs->trans('QuickListFilterSaved'), null);
-                header('Location: ' . $_SERVER["PHP_SELF"] . (!empty($params_url) ? '?' . $params_url : '') . $quicklist->hash_tag);
+                header('Location: ' . $_SERVER["PHP_SELF"] . (!empty($params_url) ? '?' . $params_url : '') . (!empty($ids_params_url) ? (!empty($params_url) ? '&' : '?') . $ids_params_url : '') . $quicklist->hash_tag);
                 exit;
             }
         }
@@ -203,7 +219,7 @@ class ActionsQuickList
 
             if ($result) {
                 setEventMessages($langs->trans('QuickListFilterDeleted'), null);
-                header('Location: ' . $_SERVER["PHP_SELF"] . (!empty($params_url) ? '?' . $params_url : '') . $quicklist->hash_tag);
+                header('Location: ' . $_SERVER["PHP_SELF"] . (!empty($params_url) ? '?' . $params_url : '') . (!empty($ids_params_url) ? (!empty($params_url) ? '&' : '?') . $ids_params_url : '') . $quicklist->hash_tag);
                 exit;
             }
         }
@@ -212,7 +228,7 @@ class ActionsQuickList
         //--------------------------------------------------------------------
         elseif (!isset($_SESSION['quicklist_current_filter'][$context])) {
             $_SESSION['quicklist_current_filter'][$context] = $quicklist->id;
-            header('Location: ' . $_SERVER["PHP_SELF"] . (!empty($quicklist->params) ? '?' . $quicklist->params : ''));
+            header('Location: ' . $_SERVER["PHP_SELF"] . (!empty($quicklist->params) ? '?' . $quicklist->params : '') . (!empty($ids_params_url) ? (!empty($quicklist->params) ? '&' : '?') . $ids_params_url : ''));
             exit;
         }
 
@@ -242,6 +258,17 @@ class ActionsQuickList
         $addfilter = GETPOST("button_quicklist_addfilter_x") || GETPOST("button_quicklist_addfilter.x") || GETPOST("button_quicklist_addfilter");
 
         //--------------------------------------------------------------------
+        // params of ids for the url (cards case)
+        //--------------------------------------------------------------------
+        $ids_params = array();
+        foreach (array_merge($_POST, $_GET) as $key => $value) {
+            if (in_array($key, $this->ids_params) && $value != '') {
+                $ids_params[$key] = $value;
+            }
+        }
+        $ids_params_url = count($ids_params) ? http_build_query($ids_params, '', '&') : '';
+
+        //--------------------------------------------------------------------
         // Base url
         //--------------------------------------------------------------------
         $params = array();
@@ -251,7 +278,7 @@ class ActionsQuickList
             }
         }
         $params_url = count($params) ? http_build_query($params, '', '&') : '';
-        $base_url = $_SERVER["PHP_SELF"] . (!empty($params_url) ? "?" . $params_url : '');
+        $base_url = $_SERVER["PHP_SELF"] . (!empty($ids_params_url) ? "?" . $ids_params_url : '') . (!empty($params_url) ? (!empty($ids_params_url) ? '&' : '?') . $params_url : '');
 
         //--------------------------------------------------------------------
         // Formulaire de Ajout / modification / confirmation de suppression
@@ -399,8 +426,11 @@ class ActionsQuickList
         if (is_array($filters_list)) {
             foreach ($filters_list as $filter) {
                 $has_selected_fields = strpos($filter->params, '&selectedfields=') != -1 || strpos($filter->params, '?selectedfields=') != -1;
-                $url = $_SERVER["PHP_SELF"] . (!empty($filter->params) || $has_selected_fields ? '?' : '') . $filter->params .
-                    ($has_selected_fields ?  (!empty($filter->params) && $has_selected_fields ? '&' : '') . 'formfilteraction=listafterchangingselectedfields' : '');
+                $tmp = array();
+                if (!empty($ids_params_url)) $tmp[] = $ids_params_url;
+                if (!empty($filter->params)) $tmp[] = $filter->params;
+                if ($has_selected_fields) $tmp[] = 'formfilteraction=listafterchangingselectedfields';
+                $url = $_SERVER["PHP_SELF"] . (!empty($tmp) ? "?" . implode('&', $tmp) : '');
                 $value = ['id' => $filter->id, 'name' => $filter->name,
                     'url' => $url,
                     'hash_tag' => $filter->hash_tag, 'author' => $filter->fk_user_author == $user->id, 'default' => !empty($filter->default)];

@@ -3,6 +3,11 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.8] - 19-04-2019
+- Ajout d'un bouton "Supprimer filtre" dans la liste des filtres au dessus du tableau.
+- Ajout d'un bouton "nouveau filtre" dans la liste des filtres au dessus du tableau.
+- Fix la gestion des paramètres id, ref, socid et lineid dans les fiches comportant une liste.
+
 ## [4.0.7] - 04-04-2019
 - Correction support multicompanie avec les groupes d'utilisateurs.
 - Ajout de l'option d'affichage de la liste des filtres au dessus du tableau.
