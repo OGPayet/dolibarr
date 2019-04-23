@@ -3169,25 +3169,20 @@ class CompanyRelationshipsApi extends DolibarrApi {
         }
 
         if ($this->fichinter->statut == 0 || $this->fichinter->statut == 1) {
-            $fichinterStatut = $this->fichinter->statut;
-            $this->fichinter->statut = 0;
+            if (isset($request_data->desc))             $ficheinterline->desc = $request_data->desc;
+            if (isset($request_data->datei))            $ficheinterline->datei = $request_data->datei;
+            if (isset($request_data->duration))         $ficheinterline->duration = $request_data->duration;
+            if (isset($request_data->array_options) && is_array($request_data->array_options) && count($request_data->array_options)) {
+                $ficheinterline->array_options = $request_data->array_options;
+            }
+            $updateRes = $ficheinterline->update(DolibarrApiAccess::$user);
 
-            $updateRes = $this->fichinter->updateline(
-                $lineid,
-                $id,
-                isset($request_data->desc) ? $request_data->desc : $ficheinterline->desc,
-                isset($request_data->datei) ? $request_data->datei : $ficheinterline->datei,
-                isset($request_data->duration) ? $request_data->duration : $ficheinterline->duration
-            );
-
-            $this->fichinter->statut = $fichinterStatut;
-
-            if ($updateRes > 0) {
+            if ($updateRes < 0) {
+                throw new RestException(400, $this->fichinter->error);
+            } else {
                 $result = $this->getIntervention($id);
                 unset($result->line);
                 return $this->_cleanObjectData($result);
-            } else {
-                throw new RestException(400, $this->fichinter->error);
             }
         } else {
             throw new RestException(500, 'Error when updating Intervention line: Bad status='.$this->fichinter->statut);
