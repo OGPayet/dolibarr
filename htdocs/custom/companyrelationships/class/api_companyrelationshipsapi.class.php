@@ -3138,6 +3138,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
      *
      * @throws  400     RestException   Error while updating intervention line
      * @throws  401     RestException   Insufficient rights
+     * @throws  500     RestException   Error while updating the intervention line
      */
     function putLineIntervention($id, $lineid, $request_data = null)
     {
@@ -3163,7 +3164,11 @@ class CompanyRelationshipsApi extends DolibarrApi {
             return [];
         }
 
-        if ($this->fichinter->statut == 0 ||  $this->fichinter->statut == 1) {
+        if ($ficheinterline->id != $lineid) {
+            throw new RestException(500, 'Error when updating Intervention line: line id='.$lineid.' not found');
+        }
+
+        if ($this->fichinter->statut == 0 || $this->fichinter->statut == 1) {
             $fichinterStatut = $this->fichinter->statut;
             $this->fichinter->statut = 0;
 
