@@ -3254,10 +3254,22 @@ class RequestManager extends CommonObject
             return $langs->trans('RequestManagerErrorStatusNotFound');
         }
 
+		if (empty(self::$type_list) || $forcereload) {
+            dol_include_once('/advancedictionaries/class/dictionary.class.php');
+            $dictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagertype');
+            $dictionary->fetch_lines(1, array(), array('type' => 'ASC', 'position' => 'ASC'));
+            self::$type_list = $dictionary->lines;
+        }
+
+        if (!isset(self::$type_list[$this->fk_type])) {
+            return $langs->trans('RequestManagerErrorRequestTypeNotFound');
+        }
+
         $statutInfos = self::$status_list[$statut];
+		$requestTypeInfos = self::$type_list[$this->fk_type];
 
         $type = $statutInfos->fields['type'];
-        $label_short = $label = $statutInfos->fields['label'];
+		$label_short = $label = $statutInfos->fields['label'];
         $picto = $statutInfos->fields['picto'];
 
         $statuttypepicto = '';
@@ -3289,9 +3301,9 @@ class RequestManager extends CommonObject
         if ($mode == 0) $out[] = $label;
         if ($mode == 1) $out[] = $label_short;
         if ($mode == 2) $out[] = (!empty($picto) ? img_picto($label_short, $picto) . ' ' : '') . $label_short;
-        if ($mode == 3) $out[] = img_picto($label, $statuttypepicto);
+        if ($mode == 3) $out[] = img_picto($label. " (" .$requestTypeInfos->fields['label'].")", $statuttypepicto);
         if ($mode == 4) $out[] = (!empty($picto) ? img_picto($label, $picto) . ' ' : '') . $label;
-        if ($mode == 5) $out[] = (!empty($picto) ? img_picto($label, $picto) . ' ' : '') . '<span class="hideonsmartphone">' . $label_short . ' </span>' . img_picto($langs->trans($statuttypetext), $statuttypepicto);
+        if ($mode == 5) $out[] = (!empty($picto) ? img_picto($label, $picto) . ' ' : '') . '<span class="hideonsmartphone">' . $label_short . ' </span>' . img_picto($langs->trans($statuttypetext) . " (" .$requestTypeInfos->fields['label'].")", $statuttypepicto);
         if ($mode == 6) $out[] = (!empty($picto) ? img_picto($label, $picto) . ' ' : '') . '<span class="hideonsmartphone">' . $label . ' </span>' . img_picto($langs->trans($statuttypetext), $statuttypepicto);
         if ($mode == 7) $out[] = img_picto($label, $statuttypepicto) . ' ' . '<span class="hideonsmartphone">' . $label_short . ' </span>';
         if ($mode == 8) $out[] = img_picto($label, $statuttypepicto) . ' ' . '<span class="hideonsmartphone">' . $label . ' </span>';

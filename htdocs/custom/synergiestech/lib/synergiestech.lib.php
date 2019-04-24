@@ -900,6 +900,8 @@ function synergiestech_fetch_request_of_benefactor($socBenefactorId, $statusType
         if (!empty($equipments)) {
             $sql .= " AND ee.fk_source IN (" . implode(',', $equipments) . ")";
         }
+		//We limit date based on date_creation
+		$sql .= " AND DATEDIFF(NOW(), rm.datec) <= 30 ";
 
         dol_syslog(__METHOD__, LOG_DEBUG);
         $resql = $db->query($sql);

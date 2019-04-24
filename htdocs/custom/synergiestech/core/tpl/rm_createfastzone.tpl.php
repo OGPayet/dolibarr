@@ -406,7 +406,9 @@ if ($zone === 2) {
         dol_include_once('/synergiestech/lib/synergiestech.lib.php');
 
         $msg_error = '';
-        $requestManagerList = synergiestech_fetch_request_of_benefactor($selectedSocIdBenefactor, array(RequestManager::STATUS_TYPE_INITIAL, RequestManager::STATUS_TYPE_IN_PROGRESS), array(), array(), $msg_error);
+        //$requestManagerList = synergiestech_fetch_request_of_benefactor($selectedSocIdBenefactor, array(RequestManager::STATUS_TYPE_INITIAL, RequestManager::STATUS_TYPE_IN_PROGRESS), array(), array(), $msg_error);
+		$requestManagerList = synergiestech_fetch_request_of_benefactor($selectedSocIdBenefactor, array(), array(), array(), $msg_error);
+
         if (count($requestManagerList) > 0 || !empty($msg_error)) {
             print '<br />';
             print load_fiche_titre($langs->trans('RequestManagerListOfRequests'), '', '');
