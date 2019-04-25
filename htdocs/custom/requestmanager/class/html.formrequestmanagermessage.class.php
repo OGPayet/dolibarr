@@ -371,13 +371,13 @@ class FormRequestManagerMessage
         $out .= '<tr>';
         $out .= '<td class="fieldrequired" width="180">' . $langs->trans("RequestManagerMessageType") . '</td>';
         $out .= '<td>';
-        $out .= '<input type="radio" id="message_type_out" name="message_type" value="' . RequestManagerMessage::MESSAGE_TYPE_OUT . '"' . ($message_type != RequestManagerMessage::MESSAGE_TYPE_PRIVATE && $message_type != RequestManagerMessage::MESSAGE_TYPE_IN ? ' checked="checked"' : '') . '/>';
+        $out .= '<input type="radio" id="message_type_out" name="message_type" value="' . RequestManagerMessage::MESSAGE_TYPE_OUT . '"' . ($message_type !== RequestManagerMessage::MESSAGE_TYPE_PRIVATE && $message_type !== RequestManagerMessage::MESSAGE_TYPE_IN ? ' checked="checked"' : '') . '/>';
         $out .= '&nbsp;<label for="message_type_out">' . $langs->trans("RequestManagerMessageTypeOut") . '&nbsp;' . img_help(0, $langs->trans("RequestManagerMessageTypeOutHelp")) . '</label>';
         $out .= ' &nbsp; ';
-        $out .= '<input type="radio" id="message_type_private" name="message_type" value="' . RequestManagerMessage::MESSAGE_TYPE_PRIVATE . '"' . ($message_type == RequestManagerMessage::MESSAGE_TYPE_PRIVATE ? ' checked="checked"' : '') . '/>';
+        $out .= '<input type="radio" id="message_type_private" name="message_type" value="' . RequestManagerMessage::MESSAGE_TYPE_PRIVATE . '"' . ($message_type === RequestManagerMessage::MESSAGE_TYPE_PRIVATE ? ' checked="checked"' : '') . '/>';
         $out .= '&nbsp;<label for="message_type_private">' . $langs->trans("RequestManagerMessageTypePrivate") . '&nbsp;' . img_help(0, $langs->trans("RequestManagerMessageTypePrivateHelp")) . '</label>';
         $out .= ' &nbsp; ';
-        $out .= '<input type="radio" id="message_type_in" name="message_type" value="' . RequestManagerMessage::MESSAGE_TYPE_IN . '"' . ($message_type == RequestManagerMessage::MESSAGE_TYPE_IN ? ' checked="checked"' : '') . '/>';
+        $out .= '<input type="radio" id="message_type_in" name="message_type" value="' . RequestManagerMessage::MESSAGE_TYPE_IN . '"' . ($message_type === RequestManagerMessage::MESSAGE_TYPE_IN ? ' checked="checked"' : '') . '/>';
         $out .= '&nbsp;<label for="message_type_in">' . $langs->trans("RequestManagerMessageTypeIn") . '&nbsp;' . img_help(0, $langs->trans("RequestManagerMessageTypeInHelp")) . '</label>';
         $out .= "</td></tr>\n";
         $out .= <<<SCRIPT
@@ -477,7 +477,7 @@ SCRIPT;
             // Get tags set or default tags
             dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
             $eventconfidentiality = new EventConfidentiality($this->db);
-            $default_tags = $eventconfidentiality->getDefaultTags($object->elementtype);
+            $default_tags = $eventconfidentiality->getDefaultTags($this->requestmanager->element);
             if (!is_array($default_tags)) {
                 $this->error = $eventconfidentiality->error;
                 $this->errors = $eventconfidentiality->errors;
