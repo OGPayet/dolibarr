@@ -281,7 +281,7 @@ if ($zone === 1) {
     print '</table>';
 
     dol_include_once('/synergiestech/lib/synergiestech.lib.php');
-    $requestManagerList = synergiestech_fetch_request_of_benefactor($selectedSocIdBenefactor, array(RequestManager::STATUS_TYPE_INITIAL, RequestManager::STATUS_TYPE_IN_PROGRESS), array(), array(), $msg_error_request);
+    $requestManagerList = synergiestech_fetch_request_of_benefactor($selectedSocIdBenefactor, array(), array(), array(), $msg_error_request);
     $nbRequest = count($requestManagerList);
 
     $to_print = array();
@@ -314,7 +314,7 @@ if ($zone === 1) {
         }
         if (empty($msg_error_request)) {
             if ($nbRequest > 0) {
-                print '<h1 style="color:red;text-align:center;font-size: 4em;">Attention, il y a ' . $nbRequest . ' demande(s) en cours (voir ci-dessous)</h1>';
+                print '<h1 style="color:red;text-align:center;font-size: 4em;">Attention, il y a ' . $nbRequest . ' demande(s) (voir ci-dessous)</h1>';
             }
         } else {
             print '<br>' . $msg_error_request;
