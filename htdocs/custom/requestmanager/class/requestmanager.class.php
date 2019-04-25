@@ -3256,13 +3256,9 @@ class RequestManager extends CommonObject
 
 		if (empty(self::$type_list) || $forcereload) {
             dol_include_once('/advancedictionaries/class/dictionary.class.php');
-            $dictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagertype');
+            $dictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'RequestManagerRequestType');
             $dictionary->fetch_lines(1, array(), array('type' => 'ASC', 'position' => 'ASC'));
             self::$type_list = $dictionary->lines;
-        }
-
-        if (!isset(self::$type_list[$this->fk_type])) {
-            return $langs->trans('RequestManagerErrorRequestTypeNotFound');
         }
 
         $statutInfos = self::$status_list[$statut];
