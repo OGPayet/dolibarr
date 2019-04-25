@@ -254,6 +254,7 @@ RequestManagerReasonResolutionDetails                   = Détails du motif de r
 RequestManagerChildrenRequestLinkedObjects              = Objets liées des demandes enfants
 RequestManagerList                                      = Liste
 RequestManagerProductLines                              = Lignes de produits
+RequestManagerInfos                                     = Informations
 
 ############################################################
 ### Message form

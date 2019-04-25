@@ -2525,43 +2525,43 @@ SCRIPT;
             require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
             $extrafields_contract = new ExtraFields($this->db);
             $extralabels_contract = $extrafields_contract->fetch_name_optionals_label('contrat');
-			$extrafields_equipement = new ExtraFields($this->db);
+            $extrafields_equipement = new ExtraFields($this->db);
             $extralabels_equipement = $extrafields_contract->fetch_name_optionals_label('equipement');
 
-			$to_print = array();
-    $msg_error = '';
-    dol_include_once('/synergiestech/lib/synergiestech.lib.php');
-    $contractList = synergiestech_fetch_contract($object->socid, $object->socid_benefactor,$msg_error);
-    if (!empty($contractList) || empty($msg_error)) {
-        if (!empty($contractList)) {
+            $to_print = array();
+            $msg_error = '';
+            dol_include_once('/synergiestech/lib/synergiestech.lib.php');
+            $contractList = synergiestech_fetch_contract($object->socid, $object->socid_benefactor, $msg_error);
+            if (!empty($contractList) || empty($msg_error)) {
+                if (!empty($contractList)) {
 
-            foreach ($contractList as $contract) {
-                if (($contract->nbofserviceswait + $contract->nbofservicesopened) > 0 && $contract->statut != 2) {
-                    $contract->fetch_optionals();
-                    $to_print[] = "<a href='" . DOL_URL_ROOT . "/contrat/card.php?id=" . $contract->id . "'> " . $extrafields_contract->showOutputField('formule', $contract->array_options['options_formule']) . " - " . $contract->ref . "</a> ";
+                    foreach ($contractList as $contract) {
+                        if (($contract->nbofserviceswait + $contract->nbofservicesopened) > 0 && $contract->statut != 2) {
+                            $contract->fetch_optionals();
+                            $to_print[] = "<a href='" . DOL_URL_ROOT . "/contrat/card.php?id=" . $contract->id . "'> " . $extrafields_contract->showOutputField('formule', $contract->array_options['options_formule']) . " - " . $contract->ref . "</a> ";
+                        }
+                    }
                 }
+                print '<table class="border" width="100%">';
+                print '<tr>';
+                print '<td>';
+                if (empty($msg_error)) {
+                    if (count($to_print) > 0) {
+                        print '<h1 style="color:green;text-align:center;font-size: 4em;">Client avec contrat : ' . implode(', ', $to_print) . '</h1>';
+                    } else {
+                        print '<h1 style="color:red;text-align:center;font-size: 4em;">Client sans contrat</h1>';
+                    }
+                } else {
+                    print $msg_error;
+                }
+                print '</td>';
+                print '</tr>';
+                print '</table>';
             }
-        }
-        print '<table class="border" width="100%">';
-        print '<tr>';
-        print '<td>';
-        if (empty($msg_error)) {
-            if (count($to_print) > 0) {
-                print '<h1 style="color:green;text-align:center;font-size: 4em;">Client avec contrat : ' . implode(', ', $to_print) . '</h1>';
-            } else {
-                print '<h1 style="color:red;text-align:center;font-size: 4em;">Client sans contrat</h1>';
-            }
-        } else {
-            print $msg_error;
-        }
-        print '</td>';
-        print '</tr>';
-        print '</table>';
-    }
 
-		print '<table class="border" width="100%">';
-        print '<tr>';
-        print '<td>';
+            print '<table class="border" width="100%">';
+            print '<tr>';
+            print '<td>';
 
 
             $object->fetchObjectLinked();
@@ -2581,50 +2581,123 @@ SCRIPT;
                 print '<h1 style="color:red;text-align:center;font-size: 4em;">Demande sans contrat</h1>';
             }
 
-			        print '</td>';
-        print '</tr>';
-        print '</table>';
-        /*
-		print '<table class="border" width="100%">';
-        print '<tr>';
-		print '<td>';
+            print '</td>';
+            print '</tr>';
+            print '</table>';
+
+            // Informations
+            print '<table class="border" width="100%">';
+
+            print '<tr>';
+            print '<td class="titlefield">';
+            print $langs->trans('RequestManagerType');
+            print '</td><td>';
+            print $object->getLibType();
+            print '</td>';
+            print '<td class="titlefield">';
+            print $langs->trans('RequestManagerThirdPartyOrigin');
+            print '</td><td>';
+            print $object->thirdparty_origin->getNomUrl(1);
+            print '</td>';
+            print '</tr>';
+
+            if (!empty($conf->companyrelationships->enabled)) {
+                print '<tr>';
+                print '<td class="titlefield">';
+                print $langs->trans('RequestManagerThirdPartyPrincipal');
+                print '</td><td>';
+                print $object->thirdparty->getNomUrl(1);
+                print '</td>';
+                print '<td class="titlefield">';
+                print $langs->trans('RequestManagerThirdPartyBenefactor');
+                print '</td><td>';
+                print $object->thirdparty_benefactor->getNomUrl(1);
+                print '</td>';
+                print '</tr>';
+            }
+
+            dol_include_once('/requestmanager/class/requestmanager.class.php');
+            require_once DOL_DOCUMENT_ROOT . '/user/class/user.class.php';
+            require_once DOL_DOCUMENT_ROOT . '/user/class/usergroup.class.php';
+            $user_static = new User($this->db);
+            $usergroup_static = new UserGroup($this->db);
+
+            print '<tr>';
+            print '<td class="titlefield">';
+            print $langs->trans('RequestManagerAssignedUsers');
+            print '</td><td>';
+            $toprint = array();
+            foreach ($object->assigned_user_ids as $assigned_user_id) {
+                $user_static->fetch($assigned_user_id);
+                $toprint[] = $user_static->getNomUrl(1);
+            }
+            print implode(', ', $toprint);
+            if (!in_array($user->id, $object->assigned_user_ids) && $user->rights->requestmanager->creer && $object->statut_type != RequestManager::STATUS_TYPE_CLOSED) {
+                print '&nbsp;&nbsp;<a href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=set_myself_assigned_user" class="button" style="color: #3c3c3c;" title="' . $langs->trans("RequestManagerAssignToMe") . '">' . $langs->trans("RequestManagerAssignToMe") . '</a>';
+            }
+            print '</td>';
+            print '<td class="titlefield">';
+            print $langs->trans('RequestManagerAssignedUserGroups');
+            print '</td><td>';
+            $toprint = array();
+            foreach ($object->assigned_usergroup_ids as $assigned_usergroup_id) {
+                $usergroup_static->fetch($assigned_usergroup_id);
+                $toprint[] = $usergroup_static->getFullName($langs);
+            }
+            print implode(', ', $toprint);
+            print '</td>';
+            print '</tr>';
+
+            print '<tr>';
+            print '<td class="titlefield">';
+            print $langs->trans('RequestManagerDescription');
+            print '</td><td colspan="3">';
+            print $object->description;
+            print '</td>';
+            print '</tr>';
+
+            print '</table>';
+
+            /*
+            print '<table class="border" width="100%">';
+            print '<tr>';
+            print '<td>';
 
 
-            $object->fetchObjectLinked();
-            $list_equipement = is_array($object->linkedObjects['equipement']) ? $object->linkedObjects['equipement'] : array();
-            $to_print = array();
-            if (!empty($list_equipement)) {
-				dol_include_once('/synergiestech/class/html.formsynergiestech.class.php');
-				$formsynergiestech = new FormSynergiesTech($this->db);
-                foreach ($list_equipement  as $equipement) {
-                        $equipement->fetch_optionals();
-						if(!empty($equipement->array_options['options_idtelem']))
-						{
-                        $to_print[] =
-						"<a href='" . DOL_URL_ROOT . "/custom/equipement/card.php?id=" . $equipement->id . "'> " .
-						$equipement->ref .
-						$formsynergiestech->picto_equipment_has_contract($equipement->id) .
-						(!empty($objectlink->array_options['options_machineclient']) ? ' (M)' : '') .
-						" : " .
-						$extrafields_equipement->showOutputField('idtelem', $equipement->array_options['options_idtelem']) .
-						"</a> ";
-						}
+                $object->fetchObjectLinked();
+                $list_equipement = is_array($object->linkedObjects['equipement']) ? $object->linkedObjects['equipement'] : array();
+                $to_print = array();
+                if (!empty($list_equipement)) {
+                    dol_include_once('/synergiestech/class/html.formsynergiestech.class.php');
+                    $formsynergiestech = new FormSynergiesTech($this->db);
+                    foreach ($list_equipement  as $equipement) {
+                            $equipement->fetch_optionals();
+                            if(!empty($equipement->array_options['options_idtelem']))
+                            {
+                            $to_print[] =
+                            "<a href='" . DOL_URL_ROOT . "/custom/equipement/card.php?id=" . $equipement->id . "'> " .
+                            $equipement->ref .
+                            $formsynergiestech->picto_equipment_has_contract($equipement->id) .
+                            (!empty($objectlink->array_options['options_machineclient']) ? ' (M)' : '') .
+                            " : " .
+                            $extrafields_equipement->showOutputField('idtelem', $equipement->array_options['options_idtelem']) .
+                            "</a> ";
+                            }
+                    }
                 }
-            }
-            if (count($to_print) > 0) {
-                print '<h1 style="color:green;text-align:center;font-size: 4em;">' . implode('<br>', $to_print) . '</h1>';
-            } else {
-                //print '<h1 style="color:red;text-align:center;font-size: 4em;">Demande sans contrat</h1>';
-            }
+                if (count($to_print) > 0) {
+                    print '<h1 style="color:green;text-align:center;font-size: 4em;">' . implode('<br>', $to_print) . '</h1>';
+                } else {
+                    //print '<h1 style="color:red;text-align:center;font-size: 4em;">Demande sans contrat</h1>';
+                }
 
-		print '</td>';
-        print '</tr>';
-        print '</table>';
-		*/
+            print '</td>';
+            print '</tr>';
+            print '</table>';
+            */
         }
 
         return 0;
-
     }
 
     /**

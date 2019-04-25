@@ -1433,6 +1433,10 @@ if ($object->id > 0) {
     $reshook = $hookmanager->executeHooks('addNextBannerTab', $parameters, $object, $action); // Note that $action and $object may have been modified by hook
 
     print '<div class="fichecenter">';
+
+    print load_fiche_titre('<span class="rm_infos_block_title_label" style="font-weight: bolder !important; font-size: medium !important;">' . $langs->trans("RequestManagerInfos") . '&nbsp;<img class="rm_infos_block_title_icon" src=""></img></span>', '', '', 0, 'rm_infos_block_title');
+    print '<div id="rm_infos_block_content"' . (empty($numlines) ? ' style="display: none;"' : '') . '>';
+
     print '<div class="fichehalfleft">';
     print '<div class="underbanner clearboth"></div>';
 
@@ -2103,6 +2107,41 @@ if ($object->id > 0) {
 
     print '</div>';
     print '</div></div>';
+
+    $show_label = json_encode($langs->trans('Show'));
+    $hide_label = json_encode($langs->trans('Hide'));
+    $arrow_up = json_encode(img_picto('', 'sort_asc', '', false, 1));
+    $arrow_down = json_encode(img_picto('', 'sort_desc', '', false, 1));
+    print <<<SCRIPT
+    <script type="text/javascript" language="javascript">
+        $(document).ready(function () {
+            var rm_infos_block_title = $("#rm_infos_block_title");
+            var rm_infos_block_title_div = $('#rm_infos_block_title div.titre');
+            var rm_infos_block_title_icon = $(".rm_infos_block_title_icon");
+            var rm_infos_block_content = $("#rm_infos_block_content");
+
+            rm_infos_block_title_div.css('cursor', 'pointer');
+            rm_infos_update_title_icon();
+            rm_infos_block_title.on('click', function() {
+                rm_infos_block_content.toggle();
+                rm_infos_update_title_icon();
+            });
+
+            function rm_infos_update_title_icon() {
+                if (rm_infos_block_content.is(':visible')) {
+                    rm_infos_block_title_div.attr('title', $hide_label)
+                    rm_infos_block_title_icon.attr('src', $arrow_down);
+                } else {
+                    rm_infos_block_title_div.attr('title', $show_label)
+                    rm_infos_block_title_icon.attr('src', $arrow_up);
+                }
+            }
+        });
+    </script>
+SCRIPT;
+
+    print '</div>';
+
     print '<div class="clearboth"></div>';
 
 	// Specifics Information
@@ -2168,10 +2207,6 @@ if ($object->id > 0) {
 
     print '</div>';
 
-    $show_label = json_encode($langs->trans('Show'));
-    $hide_label = json_encode($langs->trans('Hide'));
-    $arrow_up = json_encode(img_picto('', 'sort_asc', '', false, 1));
-    $arrow_down = json_encode(img_picto('', 'sort_desc', '', false, 1));
     print <<<SCRIPT
     <script type="text/javascript" language="javascript">
         $(document).ready(function () {
