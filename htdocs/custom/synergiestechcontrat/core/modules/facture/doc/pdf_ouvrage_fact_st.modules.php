@@ -83,7 +83,7 @@ class pdf_ouvrage_fact_st extends ModelePDFFactures
         $langs->load("bills");
 
         $this->db          = $db;
-        $this->name        = "crabe_st";
+        $this->name        = "ouvrage_fact_st";
         $this->description = $langs->trans('PDFCrabeDescription');
 
         $this->type         = 'pdf';

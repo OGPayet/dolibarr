@@ -77,7 +77,7 @@ class pdf_ouvrage_supplier_order_st extends ModelePDFSuppliersOrders
 		$langs->load("bills");
 
 		$this->db = $db;
-		$this->name = "muscadet_st";
+		$this->name = "ouvrage_supplier_order_st";
 		$this->description = $langs->trans('SuppliersCommandModel');
 
 		// Dimension page pour format A4

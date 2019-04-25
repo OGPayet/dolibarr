@@ -76,7 +76,7 @@ class pdf_ouvrage_expedition_st extends ModelePdfExpedition
 		$langs->load("bills");
 
 		$this->db = $db;
-		$this->name = "rouget_st";
+		$this->name = "ouvrage_expedition_st";
 		$this->description = $langs->trans('DocModelAzurDescription');
 
 		// Dimension page pour format A4

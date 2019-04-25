@@ -77,7 +77,7 @@ class pdf_ouvrage_devis_st extends ModelePDFPropales
 		$langs->load("bills");
 
 		$this->db = $db;
-		$this->name = "azur_st";
+		$this->name = "ouvrage_devis_st";
 		$this->description = $langs->trans('DocModelAzurDescription');
 
 		// Dimension page pour format A4

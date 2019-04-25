@@ -103,7 +103,7 @@ class pdf_ouvrage_com_st extends ModelePDFCommandes
 		$langs->load("products");
 
 		$this->db = $db;
-		$this->name = "einstein_st";
+		$this->name = "ouvrage_com_st";
 		$this->description = $langs->trans('PDFEinsteinDescription');
 
 		// Dimension page pour format A4
