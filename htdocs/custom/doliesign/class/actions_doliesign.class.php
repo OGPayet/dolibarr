@@ -269,7 +269,7 @@ class ActionsDoliEsign
 
 
 		if (! $error) {
-			$this->resprints = $formconfirm;
+            print $formconfirm;
 			return 0;                                    // or return 1 to replace standard code
 		} else {
 			$this->errors[] = $errors;

@@ -773,7 +773,7 @@ SCRIPT;
                 // Create the confirm form
                 $out.= $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('CreateReturnProducts'), $langs->trans('SelectProductsToReturn'), 'synergiestech_create_returnproducts', $formquestion, 'yes', 1, 400, 700);
 
-                $this->resprints = $out;
+                print $out;
 
                 return 1;
             }
@@ -782,7 +782,7 @@ SCRIPT;
                 $langs->load('synergiestech@synergiestech');
 
                 // Create the confirm form
-                $this->resprints = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('SynergiesTechProductOffFormula'), $langs->trans('SynergiesTechConfirmProductOffFormula'), 'confirm_synergiestech_addline', '', 0, 1);
+                print $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('SynergiesTechProductOffFormula'), $langs->trans('SynergiesTechConfirmProductOffFormula'), 'confirm_synergiestech_addline', '', 0, 1);
 
                 return 1;
             }
@@ -837,7 +837,7 @@ SCRIPT;
 </script>
 SCRIPT;
 
-                $this->resprints = $out;
+                print $out;
 
                 return 1;
             }
@@ -969,7 +969,7 @@ SCRIPT;
                 $formconfirm = $formsynergiestech->formconfirm($_SERVER["PHP_SELF"], $langs->trans('SynergiesTechCreateAndTakeInCharge'), $langs->trans('SynergiesTechConfirmCreateAndTakeInCharge'), 'confirm_create_take_charge', $formquestion, 0, 1, 200, 500, 1);
             }
 
-            $this->resprints = $formconfirm;
+            print $formconfirm;
             return 1;
         } elseif (in_array('interventioncard', $contexts)) {
             // Confirm reopen
