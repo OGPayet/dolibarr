@@ -3101,24 +3101,24 @@ class CompanyRelationshipsApi extends DolibarrApi {
         }
 
         if ($this->fichinter->statut == 0 ||  $this->fichinter->statut == 1) {
-            $fichinterStatut = $this->fichinter->statut;
-            $this->fichinter->statut = 0;
-
             $request_data = (object) $request_data;
-            $updateRes = $this->fichinter->addLine(
-                DolibarrApiAccess::$user,
-                $id,
-                $request_data->desc,
-                $request_data->datei,
-                $request_data->duration
-            );
 
-            $this->fichinter->statut = $fichinterStatut;
+            // insert line
+            $line = new FichinterLigne($this->db);
+            $line->fk_fichinter = $id;
+            $line->desc         = $request_data->desc;
+            $line->datei        = $request_data->datei;
+            $line->duration     = $request_data->duration;
 
-            if ($updateRes > 0) {
-                return $updateRes;
+            if (is_array($request_data->array_options) && count($request_data->array_options)>0) {
+                $line->array_options = $request_data->array_options;
             }
-            else {
+
+            $updateRes = $line->insert(DolibarrApiAccess::$user);
+
+            if ($updateRes >= 0) {
+                return $line->rowid;
+            } else {
                 throw new RestException(400, $this->fichinter->error);
             }
         } else {
