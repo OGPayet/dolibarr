@@ -288,6 +288,39 @@ class EquipementApi extends DolibarrApi {
     }
 
     /**
+     * Update equipement
+     *
+     * @url PUT {id}
+     *
+     * @param   int         $id             Id of equipement to update
+     * @param   array       $request_data   Datas
+     * @return  bool|array
+     *
+     * @throws  401         RestException   Insufficient rights
+     * @throws  500         RestException   Error while updating the equipment
+     */
+    function put($id, $request_data = NULL)
+    {
+        if(! DolibarrApiAccess::$user->rights->equipement->creer) {
+            throw new RestException(401, "Insufficient rights");
+        }
+
+        // Get equipment object
+        $equipment = $this->_getEquipmentObject($id);
+
+        foreach ($request_data as $field => $value) {
+            if ($field == 'id') continue;
+            $equipment->$field = $value;
+        }
+
+        if ($equipment->update(DolibarrApiAccess::$user) < 0) {
+            throw new RestException(500, "Error while updating the equipment", [ 'details' => $this->_getErrors($equipment) ]);
+        } else {
+            return $this->get($id);
+        }
+    }
+
+    /**
      *  Update the reference of a equipment
      *
      * @url	PUT {id}/update_reference

@@ -1641,6 +1641,84 @@ class Equipement extends CommonObject
         }
     }
 
+    /**
+     * Update database
+     *
+     * @param   User    $user           User that modify
+     * @param   int     $notrigger      0=launch triggers after, 1=disable triggers
+     * @return  int     <0 if KO, >0 if OK or O if nothing done
+     *
+     * @throws  Exception
+     */
+    function update($user, $notrigger=0)
+    {
+        global $conf;
+
+        $error = 0;
+
+        // Clean parameters
+        if (isset($this->ref))              $this->ref = trim($this->ref);
+        if (isset($this->numversion))       $this->numversion = trim($this->numversion);
+        if (isset($this->numimmocompta))    $this->numimmocompta = trim($this->numimmocompta);
+
+        // Update request
+        $sqlUpdateFields = '';
+
+        if (isset($this->ref))                  $sqlUpdateFields .= ", ref='".$this->db->escape($this->ref)."'";
+        if (isset($this->numversion))           $sqlUpdateFields .= ", numversion = '".$this->db->escape($this->numversion)."'";
+        if (isset($this->numimmocompta))        $sqlUpdateFields .= ", numimmocompta = '".$this->db->escape($this->numimmocompta)."'";
+        if (isset($this->description))          $sqlUpdateFields .= ", description = '".$this->db->escape($this->description)."'";
+        if (isset($this->fk_etatequipement))    $sqlUpdateFields .= ", fk_etatequipement= ".($this->fk_etatequipement!=-1 ? $this->fk_etatequipement : "null");
+        if (isset($this->fk_commande_fourn))    $sqlUpdateFields .= ", fk_commande_fourn = ".($this->fk_commande_fourn>0 ? $this->fk_commande_fourn : "null");
+        if (isset($this->fk_fact_fourn))        $sqlUpdateFields .= ", fk_facture_fourn = ".($this->fk_fact_fourn!=-1 ? $this->fk_fact_fourn : "null");
+        if (isset($this->fk_soc_client))        $sqlUpdateFields .= ", fk_soc_client = ".($this->fk_soc_client!=-1 ? $this->fk_soc_client : "null");
+        if (isset($this->fk_fact_client))       $sqlUpdateFields .= ", fk_facture = ".($this->fk_fact_client!=-1 ? $this->fk_fact_client : "null");
+        if (isset($this->unitweight))           $sqlUpdateFields .= ", unitweight = ".price2num($this->unitweight);
+        if (isset($this->dated))                $sqlUpdateFields .= ", dated = ".(strval($this->dated)!='' ? "'".$this->db->idate($this->dated)."'" : 'null');
+        if (isset($this->datee))                $sqlUpdateFields .= ", dated = ".(strval($this->datee)!='' ? "'".$this->db->idate($this->datee)."'" : 'null');
+        if (isset($this->dateo))                $sqlUpdateFields .= ", dated = ".(strval($this->dateo)!='' ? "'".$this->db->idate($this->dateo)."'" : 'null');
+
+        if (!empty($sqlUpdateFields)) {
+            $sql  = "UPDATE ".MAIN_DB_PREFIX.$this->table_element." SET";
+            $sql .= substr($sqlUpdateFields, 1);
+            $sql .= " WHERE rowid=".$this->id;
+
+            $this->db->begin();
+
+            dol_syslog(__METHOD__, LOG_DEBUG);
+            $resql = $this->db->query($sql);
+            if (! $resql) {
+                $error++;
+                $this->errors[] = "Error ".$this->db->lasterror();
+            }
+
+            if (! $error) {
+                if (empty($conf->global->MAIN_EXTRAFIELDS_DISABLED)) // For avoid conflicts if trigger used
+                {
+                    $result = $this->insertExtraFields();
+                    if ($result < 0) $error++;
+                }
+
+                if (! $notrigger) {
+                    // Call trigger
+                    $result = $this->call_trigger('EQUIPEMENT_MODIFY',$user);
+                    if ($result < 0) $error++;
+                    // End call triggers
+                }
+            }
+
+            // Commit or rollback
+            if ($error) {
+                $this->db->rollback();
+                return -1*$error;
+            } else {
+                $this->db->commit();
+                return 1;
+            }
+        }
+
+        return 0;
+    }
 
     /**
      * Adding a line of event into data base
