@@ -3,6 +3,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.9] - 30-04-2019
+- Recharge la page après ajout d'un filtre (sans l'action d'ajout) pour eviter d'en ajouter plusieurs par l'utilisateiur si il recharge la page en boucle.
+
 ## [4.0.8] - 19-04-2019
 - Ajout d'un bouton "Supprimer filtre" dans la liste des filtres au dessus du tableau.
 - Ajout d'un bouton "nouveau filtre" dans la liste des filtres au dessus du tableau.
@@ -45,7 +48,9 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.0] - 06-11-2017
 - Version initial.
 
-[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/quicklist/compare/v4.0.7...HEAD
+[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/quicklist/compare/v4.0.9...HEAD
+[4.0.9]: http://git.open-dsi.fr/dolibarr-extension/quicklist/commits/v4.0.9
+[4.0.8]: http://git.open-dsi.fr/dolibarr-extension/quicklist/commits/v4.0.8
 [4.0.7]: http://git.open-dsi.fr/dolibarr-extension/quicklist/commits/v4.0.7
 [4.0.6]: http://git.open-dsi.fr/dolibarr-extension/quicklist/commits/v4.0.6
 [4.0.5]: http://git.open-dsi.fr/dolibarr-extension/quicklist/commits/v4.0.5

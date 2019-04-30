@@ -162,6 +162,8 @@ class ActionsQuickList
                 $quicklist->set_usergroup($usergroup_ids);
 
                 setEventMessages($langs->trans('QuickListFilterSaved'), null);
+                header('Location: ' . $_SERVER["PHP_SELF"] . (!empty($params_url) ? '?' . $params_url : '') . (!empty($ids_params_url) ? (!empty($params_url) ? '&' : '?') . $ids_params_url : '') . $quicklist->hash_tag);
+                exit;
             }
         }
         //--------------------------------------------------------------------
