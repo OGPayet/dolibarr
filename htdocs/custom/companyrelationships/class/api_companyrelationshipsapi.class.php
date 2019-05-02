@@ -5563,6 +5563,10 @@ class CompanyRelationshipsApi extends DolibarrApi {
     {
         global $db, $conf;
 
+        if (empty(DolibarrApiAccess::$user->entity)) {
+            DolibarrApiAccess::$user->entity = $conf->entity;
+        }
+
         if (!DolibarrApiAccess::$user->rights->companyrelationships->api_documents->upload) {
             throw new RestException(401, "Insufficient rights");
         }
@@ -5592,7 +5596,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
         $object = null;
         $entity = DolibarrApiAccess::$user->entity;
         if (empty($entity)) {
-            throw new RestException(400, 'Wrong user entity='.$entity);
+            throw new RestException(400, 'Wrong user entity=' . $entity);
         }
         if ($id>0 || $ref) {
             $tmpreldir = '';
