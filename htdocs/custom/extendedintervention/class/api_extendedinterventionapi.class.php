@@ -439,7 +439,7 @@ class ExtendedInterventionApi extends DolibarrApi {
         }
 
         // Save survey
-        $this->_saveSurvey($id_intervention, $survey);
+        $this->_saveSurvey($id_intervention, $survey, true);
 
         return $this->getSurvey($id_intervention);
     }
@@ -1093,6 +1093,7 @@ class ExtendedInterventionApi extends DolibarrApi {
      *
      * @param   int     $id_intervention        ID of the intervention
      * @param   array   $survey                 Survey answers for this survey
+     * @param   bool    $delete_question_bloc   Delete question bloc who is deletable and is no longer present
      *
      * @return  void
      *
@@ -1103,7 +1104,7 @@ class ExtendedInterventionApi extends DolibarrApi {
      * @throws  500     RestException           Error when retrieve intervention
      * @throws  500     RestException           Error while saving the survey
      */
-    function _saveSurvey($id_intervention, $survey=null)
+    function _saveSurvey($id_intervention, $survey=null, $delete_question_bloc=false)
     {
         self::$db->begin();
 
@@ -1158,6 +1159,8 @@ class ExtendedInterventionApi extends DolibarrApi {
                     self::$db->rollback();
                     throw new RestException(500, "Error while saving the survey bloc", [ 'id_intervention' => $id_intervention, 'id_equipment' => $current_equipment_id, 'details' => $this->_getErrors($current_survey_bloc) ]);
                 }
+
+                $question_bloc_saved = array();
 
                 // Save question bloc
                 //-------------------------
@@ -1249,6 +1252,20 @@ class ExtendedInterventionApi extends DolibarrApi {
                         if ($result < 0) {
                             self::$db->rollback();
                             throw new RestException(500, "Error while saving the question", ['id_intervention' => $id_intervention, 'id_equipment' => $current_equipment_id, 'id_c_question_bloc' => $current_c_question_bloc_id, 'id_c_question' => $current_c_question_id, 'details' => $this->_getErrors($current_question)]);
+                        }
+                    }
+
+                    $question_bloc_saved[$current_c_question_bloc_id] = $current_c_question_bloc_id;
+                }
+
+                // Delete question bloc
+                //-------------------------
+                if ($delete_question_bloc) {
+                    foreach ($current_survey_bloc->survey as $qb) {
+                        if (!isset($question_bloc_saved[$qb->id]) && !empty($qb->deletable)) {
+                            if ($qb->delete(DolibarrApiAccess::$user) < 0) {
+                                throw new RestException(500, "Error while deleting the question bloc", ['id_intervention' => $id_intervention, 'id_equipment' => $current_equipment_id, 'id_c_question_bloc' => $qb->id, 'details' => $this->_getErrors($qb)]);
+                            }
                         }
                     }
                 }
