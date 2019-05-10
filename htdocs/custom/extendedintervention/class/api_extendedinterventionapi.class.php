@@ -1122,6 +1122,7 @@ class ExtendedInterventionApi extends DolibarrApi {
         if (is_array($survey) && count($survey) > 0) {
             // Get survey
             if ($extendedintervention->fetch_survey(1) < 0) {
+                self::$db->rollback();
                 throw new RestException(500, "Error when retrieve the survey with all info", [ 'id_intervention' => $id_intervention, 'details' => [ $this->_getErrors($extendedintervention) ]]);
             }
             $current_survey = $extendedintervention->survey;
@@ -1264,6 +1265,7 @@ class ExtendedInterventionApi extends DolibarrApi {
                     foreach ($current_survey_bloc->survey as $qb) {
                         if (!isset($question_bloc_saved[$qb->id]) && !empty($qb->deletable)) {
                             if ($qb->delete(DolibarrApiAccess::$user) < 0) {
+                                self::$db->rollback();
                                 throw new RestException(500, "Error while deleting the question bloc", ['id_intervention' => $id_intervention, 'id_equipment' => $current_equipment_id, 'id_c_question_bloc' => $qb->id, 'details' => $this->_getErrors($qb)]);
                             }
                         }

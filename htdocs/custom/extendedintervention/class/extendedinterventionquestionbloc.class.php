@@ -1051,7 +1051,7 @@ class EIQuestionBloc extends CommonObject
                 $this->errors[] = $langs->trans("ErrorBadParameters") . ': ' . $langs->trans("ExtendedInterventionInterventionId");
                 $error++;
             }
-            if (!($this->fk_c_question_bloc > 0)) {
+            if ($this->fk_c_question_bloc == 0) {
                 $this->errors[] = $langs->trans("ErrorBadParameters") . ': ' . $langs->trans("ExtendedInterventionQuestionBlocDictionaryId");
                 $error++;
             }
@@ -1132,7 +1132,7 @@ class EIQuestionBloc extends CommonObject
 
         // Removed the question blocs
         if (!$error) {
-            $sql = "DELETE FROM " . MAIN_DB_PREFIX . $this->table_element .
+            $sql = "DELETE " . MAIN_DB_PREFIX . $this->table_element . " FROM " . MAIN_DB_PREFIX . $this->table_element .
                 " LEFT JOIN " . MAIN_DB_PREFIX . $this->table_element_parent . " as p ON " . MAIN_DB_PREFIX . $this->table_element . ".fk_survey_bloc = p.rowid" .
                 " WHERE " . MAIN_DB_PREFIX . $this->table_element . ".entity IN (" . getEntity('ei_question_bloc') . ")";
             if ($this->fk_fichinter > 0 && $this->fk_c_question_bloc != 0)
