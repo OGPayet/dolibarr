@@ -225,6 +225,12 @@ class InterfaceSynergiesTech extends DolibarrTriggers
                         dol_syslog(__METHOD__ . " Error : " . $error_msg, LOG_ERR);
                         //header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=statut&' . http_build_query($_POST));
                         //exit(0);
+                        $this->error = $error_msg;
+                        $this->errors[] = $error_msg;
+                        $object->statut = $object->oldcopy->statut;
+                        $object->date_cloture = $object->oldcopy->date_cloture;
+                        $object->note_private = $object->oldcopy->note_private;
+                        return -1;
                     }
 
                     // upload file
@@ -239,6 +245,10 @@ class InterfaceSynergiesTech extends DolibarrTriggers
                             dol_syslog(__METHOD__ . " Error dol_add_file_process : filedir=" . $filedir, LOG_ERR);
                             //header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=statut&' . http_build_query($_POST));
                             //exit(0);
+                            $object->statut = $object->oldcopy->statut;
+                            $object->date_cloture = $object->oldcopy->date_cloture;
+                            $object->note_private = $object->oldcopy->note_private;
+                            return -1;
                         }
                     }
                 }
