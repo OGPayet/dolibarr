@@ -5167,7 +5167,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
             //--------------------------------------------------------------
             // Open-DSI - Modification - Begin
             //
-            $output_dir = $conf->societe->multidir_output[$object->entity] . "/";
+            $output_dir = $conf->societe->multidir_output[$object->entity] . "/contact/";
             //
             // Open-DSI - Modification - End
             //--------------------------------------------------------------
