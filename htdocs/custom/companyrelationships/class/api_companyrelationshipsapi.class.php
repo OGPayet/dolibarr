@@ -5943,10 +5943,13 @@ class CompanyRelationshipsApi extends DolibarrApi {
         //
         //Modif par Alexis LAURIER - we try to merge elementtype return by agenda module to elementtype accepted by document
 
-        switch ($module_part) {
+switch ($module_part) {
             case 'shipping':
                 $module_part = 'expedition';
                 break;
+				case 'intervention':
+				$module_part = 'ficheinter';
+				break;
 
             default:
         }
