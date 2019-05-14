@@ -4902,6 +4902,9 @@ class CompanyRelationshipsApi extends DolibarrApi {
             case 'shipping':
                 $module_part = 'expedition';
                 break;
+				case 'intervention':
+				$module_part = 'ficheinter';
+				break;
 
             default:
         }
@@ -5154,7 +5157,6 @@ class CompanyRelationshipsApi extends DolibarrApi {
                 return [];
             }
             $object->entity = 1;
-
             if ($showlogo == false) {
                 $upload_dir = $conf->societe->multidir_output[$object->entity] . "/contact/" . $object->id;
             } else if ($showlogo == true) {
@@ -5514,6 +5516,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
             }
             $filearray[] = $filearraylogo;
         }
+
         if (empty($filearray)) {
             return [];
         }
