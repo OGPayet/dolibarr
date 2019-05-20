@@ -28,7 +28,10 @@ Permission500118    = Voir les montants des commandes clientes
 Permission500119    = Accéder les fichiers jointes des propositions commerciales client
 Permission500120    = Accéder les fichiers jointes des commandes clients
 Permission500121    = Autoriser l'upload de fichier (uniquement) sans contrôle précis des accès aux pièces via l'api document (CORE)
-Permission500122    = Réouvrir les interventions
+Permission500122    = Autoriser la récupération du message du jour via l'API Status
+Permission500123    = Réouvrir les interventions
+Permission500124    = Voir/Modifier les attributs complémentaires restraint
+Permission500125    = Accéder à une liste d'utilisateur interne restreinte via l'api (sélection de collègue dans l'application technicien)
 
 #######################################################################
 # Configuration admin
