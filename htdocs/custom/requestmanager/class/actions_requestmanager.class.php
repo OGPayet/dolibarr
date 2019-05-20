@@ -803,7 +803,7 @@ SCRIPT;
             'enabled' => $conf->requestmanager->enabled,
             'perms' => 1,
             'label' => 'LinkToRequestManager',
-            'sql' => "SELECT s.rowid AS socid, s.nom AS name, s.client, t.rowid, t.ref, crmrt.label AS ref_client FROM " . MAIN_DB_PREFIX . "societe as s" .
+            'sql' => "SELECT s.rowid AS socid, GROUP_CONCAT(s.nom SEPARATOR ', ') AS `name`, s.client, t.rowid, t.ref, CONCAT(crmrt.label, ' - ', t.label) AS ref_client FROM " . MAIN_DB_PREFIX . "societe as s" .
                 " INNER JOIN  " . MAIN_DB_PREFIX . "requestmanager as t ON (t.fk_soc = s.rowid OR t.fk_soc_benefactor = s.rowid)" .
                 " LEFT JOIN  " . MAIN_DB_PREFIX . "element_element as ee" .
                 "   ON (ee.sourcetype = 'requestmanager' AND ee.fk_source = t.rowid AND ee.targettype = '" . $object->element . "' AND ee.fk_target = " . $object->id . ")" .
@@ -811,7 +811,7 @@ SCRIPT;
                 " LEFT JOIN  " . MAIN_DB_PREFIX . "c_requestmanager_request_type as crmrt ON crmrt.rowid = t.fk_type" .
                 ' WHERE (t.fk_soc IN (' . $listofidcompanytoscan . ') OR t.fk_soc_benefactor IN (' . $listofidcompanytoscan . ')) AND t.entity IN (' . getEntity('requestmanager') . ')' .
                 ' AND ee.rowid IS NULL' .
-                ' GROUP BY t.rowid, s.rowid',
+                ' GROUP BY t.rowid',
         );
 
         if (in_array('requestmanagercard', $contexts) && empty($conf->global->REQUESTMANAGER_DISABLE_SHOW_LINK_TO_OBJECT_BLOCK)) {
