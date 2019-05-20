@@ -3381,6 +3381,65 @@ class CompanyRelationshipsApi extends DolibarrApi {
     }
 
     /**
+     * Tag the intervention as validated (opened)
+     *
+     * Function used when intervention is reopened after being closed.
+     *
+     * @url POST interventions/{id}/reopen
+     *
+     * @param  int   $id       Id of the intervention
+     * @return int|array
+     *
+     * @throws  304     RestException   Nothing done
+     * @throws  400     RestException   Field missing
+     * @throws  401     RestException   Insufficient rights
+     * @throws  405     RestException   Error while opening again the intervention
+     */
+    function reopenIntervention($id)
+    {
+        global $conf, $db, $langs;
+
+        // module not active
+        if (empty($conf->synergiestech->enabled)) {
+           throw new RestException(500, 'Error when re-opening Intervention : Module SynergiesTech disabled');
+        }
+
+        if(! DolibarrApiAccess::$user->rights->synergiestech->fichinter->reopen) {
+            throw new RestException(401, "Insufficient rights");
+        }
+        if(empty($id)) {
+            throw new RestException(400, 'Intervention ID is mandatory');
+        }
+        $result = $this->fichinter->fetch($id);
+        if( ! $result) {
+            return [];
+        }
+
+        if ($this->fichinter->statut != 2 /* invoiced */ && $this->fichinter->statut != 3 /* done */) {
+            throw new RestException(500, 'Error when re-opening Intervention : Bad status='.$this->fichinter->statut);
+        }
+
+        $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->fichinter);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
+        }
+
+        dol_include_once('/synergiestech/lib/synergiestech.lib.php');
+        $langs->load('synergiestech@synergiestech');
+
+        $msg_error = '';
+        $result = synergiestech_reopen_intervention($db, $this->fichinter, DolibarrApiAccess::$user, $msg_error);
+
+        if ($result <= 0) {
+            throw new RestException(405, $this->fichinter->error);
+        } elseif($result == 0) {
+            throw new RestException(304);
+        }
+
+        return $result;
+    }
+
+    /**
      * Validate fields before create or update object
      *
      * @param   array $data   Data to validate
