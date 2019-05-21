@@ -3372,7 +3372,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
             throw new RestException(304, 'Error nothing done. May be object is already closed');
         }
         if ($result < 0) {
-            throw new RestException(500, 'Error when closing Intervention: '.$this->fichinter->error);
+            throw new RestException(500, 'Error when closing Intervention: '.$this->fichinter->errorsToString());
         }
 
         $this->fichinter->fetchObjectLinked();

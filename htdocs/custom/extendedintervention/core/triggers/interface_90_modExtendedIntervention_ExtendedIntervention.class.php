@@ -85,7 +85,7 @@ class InterfaceExtendedIntervention extends DolibarrTriggers
                                 if ($result < 0) {
                                     dol_syslog(__METHOD__ . " Error when creating the survey bloc (fk_fichinter:{$survey_bloc->fk_fichinter} fk_equipment:{$survey_bloc->fk_equipment}) when the intervention is validate; Error: " . $survey_bloc->errorsToString(), LOG_ERR);
                                     $this->error = $survey_bloc->error;
-                                    $this->errors[] = $survey_bloc->errors;
+                                    $this->errors = $survey_bloc->errors;
                                     return -1;
                                 }
                             }
@@ -97,7 +97,7 @@ class InterfaceExtendedIntervention extends DolibarrTriggers
                                     if ($result < 0) {
                                         dol_syslog(__METHOD__ . " Error when creating the question bloc (fk_fichinter:{$survey_bloc->fk_fichinter} fk_equipment:{$survey_bloc->fk_equipment} fk_c_question_bloc:{$question_bloc->fk_c_question_bloc}) when the intervention is validate; Error: " . $question_bloc->errorsToString(), LOG_ERR);
                                         $this->error = $question_bloc->error;
-                                        $this->errors[] = $question_bloc->errors;
+                                        $this->errors = $question_bloc->errors;
                                         return -1;
                                     }
                                 }
@@ -110,7 +110,7 @@ class InterfaceExtendedIntervention extends DolibarrTriggers
                                         if ($result < 0) {
                                             dol_syslog(__METHOD__ . " Error when inserting the question (fk_fichinter:{$survey_bloc->fk_fichinter} fk_equipment:{$survey_bloc->fk_equipment} fk_c_question_bloc:{$question_bloc->fk_c_question_bloc} fk_c_question:{$question->fk_c_question}) when the intervention is validate; Error: " . $question->errorsToString(), LOG_ERR);
                                             $this->error = $question->error;
-                                            $this->errors[] = $question->errors;
+                                            $this->errors = $question->errors;
                                             return -1;
                                         }
                                     }
@@ -120,13 +120,13 @@ class InterfaceExtendedIntervention extends DolibarrTriggers
                     } else {
                         dol_syslog(__METHOD__ . " Error when fetching the survey when the intervention is validate; Error: " . $extendedintervention->errorsToString(), LOG_ERR);
                         $this->error = $extendedintervention->error;
-                        $this->errors[] = $extendedintervention->errors;
+                        $this->errors = $extendedintervention->errors;
                         return -1;
                     }
                 } else {
                     dol_syslog(__METHOD__ . " Error when fetching the intervention for auto save survey; Error: " . $extendedintervention->errorsToString(), LOG_ERR);
                     $this->error = $extendedintervention->error;
-                    $this->errors[] = $extendedintervention->errors;
+                    $this->errors = $extendedintervention->errors;
                     return -1;
                 }
 
