@@ -112,14 +112,14 @@ class FormSynergiesTechMessage extends FormRequestManagerMessage
         //-----------------
         $message_type_out = RequestManagerMessage::MESSAGE_TYPE_OUT;
         $message_type_private = RequestManagerMessage::MESSAGE_TYPE_PRIVATE;
-        $message_type = GETPOST('message_type', 'alpha', 2);
+        $message_type = GETPOST('message_type', 'int');
         $out .= '<tr>';
         $out .= '<td class="fieldrequired" width="180">' . $langs->trans("RequestManagerMessageType") . '</td>';
         $out .= '<td>';
-        $out .= '<input type="radio" id="message_type_out" name="message_type" value="' . RequestManagerMessage::MESSAGE_TYPE_OUT . '"' . ($message_type === RequestManagerMessage::MESSAGE_TYPE_OUT ? ' checked="checked"' : '') . '/>';
+        $out .= '<input type="radio" id="message_type_out" name="message_type" value="' . RequestManagerMessage::MESSAGE_TYPE_OUT . '"' . ($message_type !== '' && $message_type == RequestManagerMessage::MESSAGE_TYPE_OUT ? ' checked="checked"' : '') . '/>';
         $out .= '&nbsp;<label for="message_type_out">' . $langs->trans("RequestManagerMessageTypeOut") . '&nbsp;' . img_help(0, $langs->trans("RequestManagerMessageTypeOutHelp")) . '</label>';
         $out .= ' &nbsp; ';
-        $out .= '<input type="radio" id="message_type_private" name="message_type" value="' . RequestManagerMessage::MESSAGE_TYPE_PRIVATE . '"' . ($message_type !== RequestManagerMessage::MESSAGE_TYPE_OUT && $message_type !== RequestManagerMessage::MESSAGE_TYPE_IN ? ' checked="checked"' : '') . '/>';
+        $out .= '<input type="radio" id="message_type_private" name="message_type" value="' . RequestManagerMessage::MESSAGE_TYPE_PRIVATE . '"' . ($message_type === '' || ($message_type != RequestManagerMessage::MESSAGE_TYPE_OUT && $message_type != RequestManagerMessage::MESSAGE_TYPE_IN) ? ' checked="checked"' : '') . '/>';
         $out .= '&nbsp;<label for="message_type_private">' . $langs->trans("RequestManagerMessageTypePrivate") . '&nbsp;' . img_help(0, $langs->trans("RequestManagerMessageTypePrivateHelp")) . '</label>';
         $out .= "</td></tr>\n";
         $out .= <<<SCRIPT
