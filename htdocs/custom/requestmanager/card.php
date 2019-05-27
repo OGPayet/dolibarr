@@ -162,10 +162,20 @@ if (empty($reshook)) {
 
         $db->begin();
 
-        $result = $object->set_status(0, RequestManager::STATUS_TYPE_INITIAL, $user, 0, 1);
-        if ($result < 0) {
-            setEventMessages($object->error, $object->errors, 'errors');
-            $error++;
+        if (!$error) {
+            $result = $object->update($user);
+            if ($result < 0) {
+                setEventMessages($object->error, $object->errors, 'errors');
+                $error++;
+            }
+        }
+
+        if (!$error) {
+            $result = $object->set_status(0, RequestManager::STATUS_TYPE_INITIAL, $user, 0, 1);
+            if ($result < 0) {
+                setEventMessages($object->error, $object->errors, 'errors');
+                $error++;
+            }
         }
 
         if (!$error) {
@@ -1435,7 +1445,7 @@ if ($object->id > 0) {
     print '<div class="fichecenter">';
 
     print load_fiche_titre('<span class="rm_infos_block_title_label" style="font-weight: bolder !important; font-size: medium !important;">' . $langs->trans("RequestManagerInfos") . '&nbsp;<img class="rm_infos_block_title_icon" src=""></img></span>', '', '', 0, 'rm_infos_block_title');
-    print '<div id="rm_infos_block_content"' . (empty($numlines) ? ' style="display: none;"' : '') . '>';
+    print '<div id="rm_infos_block_content"' . (substr($action, 0, 5) != 'edit_' ? ' style="display: none;"' : '') . '>';
 
     print '<div class="fichehalfleft">';
     print '<div class="underbanner clearboth"></div>';
