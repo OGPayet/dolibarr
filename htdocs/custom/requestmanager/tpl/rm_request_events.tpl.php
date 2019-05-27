@@ -248,11 +248,13 @@ if ($list_mode == 0 || $list_mode == 1) {
         } else {
             $sql .= ' AND (cect.external IS NULL OR cect.external = 0)';
         }
-        $sql .= ' AND (ecm.fk_c_eventconfidentiality_tag IN (' . (count($tags_list) > 0 ? implode(',', $tags_list) : -1) . ')';
-        if ($user->socid == 0) {
-            $sql .= ' OR ecm.rowid IS NULL';
+        if (!$user->rights->eventconfidentiality->manage) {
+            $sql .= ' AND (ecm.fk_c_eventconfidentiality_tag IN (' . (count($tags_list) > 0 ? implode(',', $tags_list) : -1) . ')';
+            if ($user->socid == 0) {
+                $sql .= ' OR ecm.rowid IS NULL';
+            }
+            $sql .= ')';
         }
-        $sql .= ')';
     }
     // Add where from hooks
     $parameters = array();
@@ -261,7 +263,7 @@ if ($list_mode == 0 || $list_mode == 1) {
 
     $sql .= " GROUP BY ac.id";
     // Event confidentiality support
-    if ($conf->eventconfidentiality->enabled && $user->socid > 0) {
+    if ($conf->eventconfidentiality->enabled && !$user->rights->eventconfidentiality->manage && $user->socid > 0) {
         $sql .= ' HAVING ec_mode != ' . EventConfidentiality::MODE_HIDDEN;
     }
     $sql .= $db->order($sortfield . ', ac.id', $sortorder . ',' . $sortorder);
@@ -1559,11 +1561,13 @@ SCRIPT;
         } else {
             $sql .= ' AND (cect.external IS NULL OR cect.external = 0)';
         }
-        $sql .= ' AND (ecm.fk_c_eventconfidentiality_tag IN (' . (count($tags_list) > 0 ? implode(',', $tags_list) : -1) . ')';
-        if ($user->socid == 0) {
-            $sql .= ' OR ecm.rowid IS NULL';
+        if (!$user->rights->eventconfidentiality->manage) {
+            $sql .= ' AND (ecm.fk_c_eventconfidentiality_tag IN (' . (count($tags_list) > 0 ? implode(',', $tags_list) : -1) . ')';
+            if ($user->socid == 0) {
+                $sql .= ' OR ecm.rowid IS NULL';
+            }
+            $sql .= ')';
         }
-        $sql .= ')';
     }
     // Add where from hooks
     $parameters = array('rm_show_event' => true);
@@ -1572,7 +1576,7 @@ SCRIPT;
 
     $sql .= " GROUP BY ac.id";
     // Event confidentiality support
-    if ($conf->eventconfidentiality->enabled && $user->socid > 0) {
+    if ($conf->eventconfidentiality->enabled && !$user->rights->eventconfidentiality->manage && $user->socid > 0) {
         $sql .= ' HAVING ec_mode != ' . EventConfidentiality::MODE_HIDDEN;
     }
     $sql .= $db->order($sortfield, $sortorder);

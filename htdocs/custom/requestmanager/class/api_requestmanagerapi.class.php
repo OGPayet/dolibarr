@@ -915,11 +915,13 @@ class RequestManagerApi extends DolibarrApi {
             } else {
                 $sql .= ' AND (cect.external IS NULL OR cect.external = 0)';
             }
-            $sql .= ' AND (ecm.fk_c_eventconfidentiality_tag IN (' . (count($tags_list) > 0 ? implode(',', $tags_list) : -1) . ')';
-            if (DolibarrApiAccess::$user->socid == 0) {
-                $sql .= ' OR ecm.rowid IS NULL';
+            if (!DolibarrApiAccess::$user->rights->eventconfidentiality->manage) {
+                $sql .= ' AND (ecm.fk_c_eventconfidentiality_tag IN (' . (count($tags_list) > 0 ? implode(',', $tags_list) : -1) . ')';
+                if (DolibarrApiAccess::$user->socid == 0) {
+                    $sql .= ' OR ecm.rowid IS NULL';
+                }
+                $sql .= ')';
             }
-            $sql .= ')';
         }
         // Add sql filters
         if ($sql_filters) {
