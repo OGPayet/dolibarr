@@ -207,6 +207,30 @@ class FormProduct extends \FormProduct
 				$this->cache_warehouses[$obj_rowid]['full_label'] = $this->get_parent_path($tab);
 			}
 
+            // Open DSI -- Tri par libelle complet -- Begin
+            if (!empty($fk_product)) {
+                uasort($this->cache_warehouses, function ($a, $b) {
+                    if ($a['entrepot_fav'] == $b['entrepot_fav']) {
+                        if ($a['stock'] == $b['stock']) {
+                            if ($a['full_label'] == $b['full_label']) {
+                                return 0;
+                            }
+                            return ($a['full_label'] < $b['full_label']) ? -1 : 1;
+                        }
+                        return ($a['stock'] < $b['stock']) ? 1 : -1;
+                    }
+                    return ($a['entrepot_fav'] < $b['entrepot_fav']) ? 1 : -1;
+                });
+            } else {
+                uasort($this->cache_warehouses, function ($a, $b) {
+                    if ($a['full_label'] == $b['full_label']) {
+                        return 0;
+                    }
+                    return ($a['full_label'] < $b['full_label']) ? -1 : 1;
+                });
+            }
+            // Open DSI -- Tri par libelle complet -- End
+
 			return $num;
 		}
 		else
