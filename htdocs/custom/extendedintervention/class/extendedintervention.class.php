@@ -126,7 +126,7 @@ class ExtendedIntervention extends Fichinter
 
         if ($this->id > 0 && $this->statut != self::STATUS_DRAFT) {
             dol_include_once('/extendedintervention/class/extendedinterventionsurveybloc.class.php');
-            if ($this->statut != self::STATUS_VALIDATED) $all_data = 0;
+            //if ($this->statut != self::STATUS_VALIDATED) $all_data = 0;
 
             $sql = "SELECT t.fk_equipment";
             $sql .= " FROM " . MAIN_DB_PREFIX . "extendedintervention_survey_bloc AS t";

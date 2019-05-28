@@ -1417,7 +1417,7 @@ class EIQuestionBloc extends CommonObject
         }
 
         $this->fetch_fichinter();
-        if ($this->fichinter->statut != ExtendedIntervention::STATUS_VALIDATED) $all_data = 0;
+        //if ($this->fichinter->statut != ExtendedIntervention::STATUS_VALIDATED) $all_data = 0;
 
         $sql = "SELECT p.fk_fichinter, p.fk_equipment, t.fk_c_question_bloc, d.fk_question_bloc, d.fk_c_question".
             " FROM " . MAIN_DB_PREFIX . $this->table_element_line . " AS d" .

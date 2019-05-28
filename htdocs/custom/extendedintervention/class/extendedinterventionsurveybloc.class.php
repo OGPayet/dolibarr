@@ -887,7 +887,7 @@ class EISurveyBloc extends CommonObject
 
         if (isset($this->fichinter) && $this->fk_fichinter > 0 && ($this->id > 0 || $this->fk_equipment != 0) && $this->fichinter->statut != ExtendedIntervention::STATUS_DRAFT) {
             dol_include_once('/extendedintervention/class/extendedinterventionquestionbloc.class.php');
-            if ($this->fichinter->statut != ExtendedIntervention::STATUS_VALIDATED) $all_data = 0;
+            //if ($this->fichinter->statut != ExtendedIntervention::STATUS_VALIDATED) $all_data = 0;
 
             $sql = "SELECT t.fk_fichinter, t.fk_equipment, c.fk_survey_bloc, c.fk_c_question_bloc";
             $sql .= " FROM " . MAIN_DB_PREFIX . $this->table_element_child . " AS c" .
