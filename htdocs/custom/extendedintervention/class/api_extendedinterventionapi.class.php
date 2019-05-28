@@ -422,6 +422,7 @@ class ExtendedInterventionApi extends DolibarrApi {
      *
      * @param   int     $id_intervention        ID of the intervention
      * @param   array   $survey                 Survey answers for this survey
+	 * @param	int		$all_data				If equal 1 then get all the data for the modification (all answers, status and predefined texts)
      *
      * @return  object|array                    Survey data without useless information
      *
@@ -432,7 +433,7 @@ class ExtendedInterventionApi extends DolibarrApi {
      * @throws  500     RestException           Error when retrieve intervention
      * @throws  500     RestException           Error while saving the survey
      */
-    function saveSurvey($id_intervention, $survey=null)
+    function saveSurvey($id_intervention, $survey=null,$all_data=0)
     {
         if (!DolibarrApiAccess::$user->rights->extendedintervention->questionnaireIntervention->creer) {
             throw new RestException(401, "Insufficient rights", [ 'id_intervention' => $id_intervention ]);
@@ -441,7 +442,7 @@ class ExtendedInterventionApi extends DolibarrApi {
         // Save survey
         $this->_saveSurvey($id_intervention, $survey, true);
 
-        return $this->getSurvey($id_intervention);
+        return $this->getSurvey($id_intervention,$all_data);
     }
 
 //    /**
@@ -531,6 +532,7 @@ class ExtendedInterventionApi extends DolibarrApi {
      * @param   int     $id_intervention        ID of the intervention
      * @param   int     $id_equipment           ID of the equipment
      * @param   array   $survey                 Survey answers for this survey bloc
+	 * @param	int		$all_data				If equal 1 then get all the data for the modification (all answers, status and predefined texts)
      *
      * @return  object|array                    Survey bloc data without useless information
      *
@@ -543,7 +545,7 @@ class ExtendedInterventionApi extends DolibarrApi {
      * @throws  500     RestException           Error when retrieve survey bloc
      * @throws  500     RestException           Error while saving the survey bloc
      */
-    function saveSurveyBloc($id_intervention, $id_equipment, $survey=null)
+    function saveSurveyBloc($id_intervention, $id_equipment, $survey=null,$all_data=0)
     {
         if (!DolibarrApiAccess::$user->rights->extendedintervention->questionnaireIntervention->creer) {
             throw new RestException(401, "Insufficient rights", ['id_intervention' => $id_intervention, 'id_equipment' => $id_equipment]);
@@ -555,7 +557,7 @@ class ExtendedInterventionApi extends DolibarrApi {
         // Save survey
         $this->_saveSurvey($id_intervention, $survey);
 
-        return $this->getSurveyBloc($id_intervention, $id_equipment);
+        return $this->getSurveyBloc($id_intervention, $id_equipment,$all_data);
     }
 
 //    /**
@@ -697,6 +699,7 @@ class ExtendedInterventionApi extends DolibarrApi {
      * @param   array   $array_options                  Extra fields data
      * @param   array   $lines                          Question answers for this question bloc
      * @param   array   $attached_files                 List of filename attached for this question bloc
+	 * @param	int		$all_data						If equal 1 then get all the data for the modification (all answers, status and predefined texts)
      *
      * @return  object|array                            Question bloc data without useless information
      *
@@ -709,7 +712,7 @@ class ExtendedInterventionApi extends DolibarrApi {
      * @throws  500     RestException                   Error when retrieve question bloc
      * @throws  500     RestException                   Error while saving the question bloc
      */
-    function saveQuestionBloc($id_intervention, $id_equipment, $id_c_question_bloc, $complementary_question_bloc = null, $fk_c_question_bloc_status = null, $justificatory_status = null, $array_options = null, $lines=null, $attached_files=null)
+    function saveQuestionBloc($id_intervention, $id_equipment, $id_c_question_bloc, $complementary_question_bloc = null, $fk_c_question_bloc_status = null, $justificatory_status = null, $array_options = null, $lines=null, $attached_files=null,$all_data=0)
     {
         if (!DolibarrApiAccess::$user->rights->extendedintervention->questionnaireIntervention->creer) {
             throw new RestException(401, "Insufficient rights", ['id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc]);
@@ -734,7 +737,7 @@ class ExtendedInterventionApi extends DolibarrApi {
         // Save survey
         $this->_saveSurvey($id_intervention, $survey);
 
-        return $this->getQuestionBloc($id_intervention, $id_equipment, $id_c_question_bloc);
+        return $this->getQuestionBloc($id_intervention, $id_equipment, $id_c_question_bloc,$all_data);
     }
 
 //    /**
@@ -877,6 +880,7 @@ class ExtendedInterventionApi extends DolibarrApi {
      * @param   int     $fk_c_answer            ID of the answer (in dictionary)
      * @param   string  $text_answer            Justificatory of the answer
      * @param   array   $array_options          Extra fields data
+	 * @param	int		$all_data				If equal 1 then get all the data for the modification (all answers, status and predefined texts)
      *
      * @return  object|array                    Question data without useless information
      *
@@ -889,7 +893,7 @@ class ExtendedInterventionApi extends DolibarrApi {
      * @throws  500     RestException           Error when retrieve question
      * @throws  500     RestException           Error while saving the question
      */
-    function saveQuestion($id_intervention, $id_equipment, $id_c_question_bloc, $id_c_question, $fk_c_answer = null, $text_answer = null, $array_options = null)
+    function saveQuestion($id_intervention, $id_equipment, $id_c_question_bloc, $id_c_question, $fk_c_answer = null, $text_answer = null, $array_options = null,$all_data=0)
     {
         if (!DolibarrApiAccess::$user->rights->extendedintervention->questionnaireIntervention->creer) {
             throw new RestException(401, "Insufficient rights", ['id_intervention' => $id_intervention, 'id_equipment' => $id_equipment, 'id_c_question_bloc' => $id_c_question_bloc, 'id_c_question' => $id_c_question]);
@@ -913,7 +917,7 @@ class ExtendedInterventionApi extends DolibarrApi {
         // Save survey
         $this->_saveSurvey($id_intervention, $survey);
 
-        return $this->getQuestion($id_intervention, $id_equipment, $id_c_question_bloc, $id_c_question);
+        return $this->getQuestion($id_intervention, $id_equipment, $id_c_question_bloc, $id_c_question,$all_data=0);
     }
 
 //    /**
