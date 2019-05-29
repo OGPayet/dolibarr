@@ -699,7 +699,7 @@ class EIQuestionBloc extends CommonObject
         }
         $error_in_questionbloc = $error > 0;
         if ($this->fk_c_question_bloc_status > 0) {
-            if (!$this->is_status_in_survey()) {
+            if ($this->fk_c_question_bloc > 0 && !$this->is_status_in_survey()) {
                 $this->errors[] = $langs->trans("ExtendedInterventionErrorQuestionBlocStatusNotInSurvey", $this->fk_c_question_bloc);
                 $error++;
             } elseif ($this->fetchQuestionBlocStatusInfo() < 0) {
@@ -915,7 +915,7 @@ class EIQuestionBloc extends CommonObject
         }
         $error_in_questionbloc = $error > 0;
         if ($this->fk_c_question_bloc_status > 0) {
-            if (!$this->is_status_in_survey()) {
+            if ($this->fk_c_question_bloc > 0 && !$this->is_status_in_survey()) {
                 $this->errors[] = $langs->trans("ExtendedInterventionErrorQuestionBlocStatusNotInSurvey", $this->fk_c_question_bloc);
                 $error++;
             } elseif ($this->fetchQuestionBlocStatusInfo() < 0) {
@@ -2175,7 +2175,7 @@ class EIQuestionBlocLine extends CommonObjectLine
             $error++;
         }
         if ($this->fk_c_answer > 0) {
-            if (!$this->is_answer_in_survey()) {
+            if ($this->fk_c_question > 0 && !$this->is_answer_in_survey()) {
                 $this->errors[] = $langs->trans("ExtendedInterventionErrorQuestionAnswerNotInSurvey", $this->fk_c_question);
                 $error++;
             } elseif ($this->fetchAnswerInfo() < 0) {
@@ -2341,7 +2341,7 @@ class EIQuestionBlocLine extends CommonObjectLine
             $error++;
         }
         if ($this->fk_c_answer > 0) {
-            if (!$this->is_answer_in_survey()) {
+            if ($this->fk_c_question > 0 && !$this->is_answer_in_survey()) {
                 $this->errors[] = $langs->trans("ExtendedInterventionErrorQuestionAnswerNotInSurvey", $this->fk_c_question);
                 $error++;
             } elseif ($this->fetchAnswerInfo() < 0) {

@@ -115,7 +115,7 @@ class ExtendedInterventionQuota
     {
         $result = array();
 
-        $sql = "SELECT fk_c_intervention_type, count, planning_times FROM ".MAIN_DB_PREFIX."extendedintervention_contract_type_info".
+        $sql = "SELECT fk_c_intervention_type, `count`, planning_times FROM ".MAIN_DB_PREFIX."extendedintervention_contract_type_info".
             " WHERE fk_contrat = " . $contract_id;
 
         $resql = $this->db->query($sql);
@@ -149,10 +149,10 @@ class ExtendedInterventionQuota
                 $planning_times = !empty($values['planning_times']) ? json_encode($values['planning_times']) : 'NULL';
 
                 $sql = "INSERT INTO " . MAIN_DB_PREFIX . "extendedintervention_contract_type_info (fk_contrat, fk_c_intervention_type" .
-                    (isset($values['count']) ? ", count" : "") . (isset($values['planning_times']) ? ", planning_times" : "") . ")" .
+                    (isset($values['count']) ? ", `count`" : "") . (isset($values['planning_times']) ? ", planning_times" : "") . ")" .
                     " VALUES (" . $contract_id . ", " . $id . (isset($values['count']) ? ", " . $count : "") .
                     (isset($values['planning_times']) ? ", '" . $this->db->escape($planning_times) . "'" : "") . ")" .
-                    " ON DUPLICATE KEY UPDATE ". (isset($values['count']) ? "count = " . $count : "") .
+                    " ON DUPLICATE KEY UPDATE ". (isset($values['count']) ? "`count` = " . $count : "") .
                     (isset($values['count']) && isset($values['planning_times']) ? ", " : "") .
                     (isset($values['planning_times']) ? "planning_times = '" . $this->db->escape($planning_times) . "'" : "");
 
