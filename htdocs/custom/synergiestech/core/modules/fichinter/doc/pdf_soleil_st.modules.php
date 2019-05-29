@@ -1193,12 +1193,11 @@ class pdf_soleil_st extends ModelePDFFicheinter
 
         // Print image
         if (!empty($signature_info_image)) {
-            $img_src = $temp_dir_signature.'/signature';
+            $img_src1 = $temp_dir_signature.'/signature1';
             $imageContent = @file_get_contents($signature_info_image);
-            @file_put_contents($img_src, $imageContent);
+            @file_put_contents($img_src1, $imageContent);
 
-            $pdf->writeHTMLCell($signature_left_w, 1, $signature_left_posx, $posy, '<img src="' . $img_src . '"/>', $border, 1);
-            @unlink($img_src);
+            $pdf->writeHTMLCell($signature_left_w, 1, $signature_left_posx, $posy, '<img src="' . $img_src1 . '"/>', $border, 1);
             $posy = $pdf->GetY();
         }
 
@@ -1226,12 +1225,11 @@ class pdf_soleil_st extends ModelePDFFicheinter
 
         // Print image
         if (!empty($signature_info_image)) {
-            $img_src = $temp_dir_signature.'/signature';
+            $img_src2 = $temp_dir_signature.'/signature2';
             $imageContent = @file_get_contents($signature_info_image);
-            @file_put_contents($img_src, $imageContent);
+            @file_put_contents($img_src2, $imageContent);
 
-            $pdf->writeHTMLCell($signature_right_w, 1, $signature_right_posx, $posy, '<img src="' . $img_src . '"/>', $border, 1);
-            @unlink($img_src);
+            $pdf->writeHTMLCell($signature_right_w, 1, $signature_right_posx, $posy, '<img src="' . $img_src2 . '"/>', $border, 1);
             $posy = $pdf->GetY();
         }
 
@@ -1245,6 +1243,8 @@ class pdf_soleil_st extends ModelePDFFicheinter
         $pdf->writeHTMLCell($signature_right_w, 1, $signature_right_posx, $posy, trim($signature_text), $border, 1, false, true, 'C', true);
         $end_y = max($end_y, $pdf->GetY());
 
+        if(!empty($img_src1) && file_exists($img_src1)) @unlink($img_src1);
+        if(!empty($img_src2) && file_exists($img_src2)) @unlink($img_src2);
         @unlink($temp_dir_signature);
 
         // Draw frame
