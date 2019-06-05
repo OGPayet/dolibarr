@@ -2666,7 +2666,7 @@ class RequestManager extends CommonObject
                 $this->fk_reason_resolution = $reason_resolution;
                 $this->reason_resolution_details = $reason_resolution_details;
                 $sql .= ", fk_reason_resolution = " . ($this->fk_reason_resolution > 0 ? $this->fk_reason_resolution : 'NULL');
-                $sql .= ", reason_resolution_details = " . ($this->reason_resolution_details > 0 && !empty($this->reason_resolution_details) ? "'" . $this->db->escape($this->reason_resolution_details) . "'" : 'NULL');
+                $sql .= ", reason_resolution_details = " . (!empty($this->reason_resolution_details) ? "'" . $this->db->escape($this->reason_resolution_details) . "'" : 'NULL');
             }
             $sql .= ' WHERE rowid = ' . $this->id;
 
