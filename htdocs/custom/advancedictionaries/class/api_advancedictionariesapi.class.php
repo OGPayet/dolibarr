@@ -71,7 +71,7 @@ class AdvanceDictionariesApi extends DolibarrApi {
      */
     function get($id, $module, $name, $old_id=0)
     {
-        if (!DolibarrApiAccess::$user->rights->advancedictionaries->read) {
+        if (!DolibarrApiAccess::$user->rights->advancedictionaries->read && !DolibarrApiAccess::$user->admin) {
             throw new RestException(401, "Insufficient rights");
         }
 
@@ -105,7 +105,7 @@ class AdvanceDictionariesApi extends DolibarrApi {
     {
         $obj_ret = array();
 
-        if (!DolibarrApiAccess::$user->rights->advancedictionaries->read) {
+        if (!DolibarrApiAccess::$user->rights->advancedictionaries->read && !DolibarrApiAccess::$user->admin) {
             throw new RestException(401, "Insufficient rights");
         }
 
@@ -155,7 +155,7 @@ class AdvanceDictionariesApi extends DolibarrApi {
      */
     function post($line_data, $module, $name, $old_id=0)
     {
-        if (!DolibarrApiAccess::$user->rights->advancedictionaries->create) {
+        if (!DolibarrApiAccess::$user->rights->advancedictionaries->create && !DolibarrApiAccess::$user->admin) {
             throw new RestException(401, "Insufficient rights");
         }
 
@@ -198,7 +198,7 @@ class AdvanceDictionariesApi extends DolibarrApi {
      */
     function put($id, $line_data, $module, $name, $old_id=0)
     {
-        if (!DolibarrApiAccess::$user->rights->advancedictionaries->create) {
+        if (!DolibarrApiAccess::$user->rights->advancedictionaries->create && !DolibarrApiAccess::$user->admin) {
             throw new RestException(401, "Insufficient rights");
         }
 
@@ -242,7 +242,7 @@ class AdvanceDictionariesApi extends DolibarrApi {
      */
     function delete($id, $module, $name, $old_id=0)
     {
-        if (!DolibarrApiAccess::$user->rights->advancedictionaries->delete) {
+        if (!DolibarrApiAccess::$user->rights->advancedictionaries->delete && !DolibarrApiAccess::$user->admin) {
             throw new RestException(401, "Insufficient rights");
         }
 
@@ -288,7 +288,7 @@ class AdvanceDictionariesApi extends DolibarrApi {
      */
     function activate($id, $module, $name, $old_id=0)
     {
-        if (!DolibarrApiAccess::$user->rights->advancedictionaries->disable) {
+        if (!DolibarrApiAccess::$user->rights->advancedictionaries->disable && !DolibarrApiAccess::$user->admin) {
             throw new RestException(401, "Insufficient rights");
         }
 
@@ -334,7 +334,7 @@ class AdvanceDictionariesApi extends DolibarrApi {
      */
     function deactivate($id, $module, $name, $old_id=0)
     {
-        if (!DolibarrApiAccess::$user->rights->advancedictionaries->disable) {
+        if (!DolibarrApiAccess::$user->rights->advancedictionaries->disable && !DolibarrApiAccess::$user->admin) {
             throw new RestException(401, "Insufficient rights");
         }
 
@@ -376,7 +376,7 @@ class AdvanceDictionariesApi extends DolibarrApi {
      */
     function indexDictionaries($module='', $family='', $enabled=1, $hidden=-1)
     {
-        if (!DolibarrApiAccess::$user->rights->advancedictionaries->read) {
+        if (!DolibarrApiAccess::$user->rights->advancedictionaries->read && !DolibarrApiAccess::$user->admin) {
             throw new RestException(401, "Insufficient rights");
         }
 
