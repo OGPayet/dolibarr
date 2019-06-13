@@ -238,14 +238,14 @@ class RequestManagerNotify
 
         $emails = array();
         foreach($requestmanager->assigned_user_list as $user_f) {
-            if (!isset($emails[$user_f->id]) && $user->id != $user_f->id) {
+            if (!isset($emails[$user_f->id]) && $user->id != $user_f->id && !empty($user_f->statut)) {
                 $emails[$user_f->id] = $this->_formatEmail($user_f->getFullName($langs), $user_f->email);
             }
         }
 
         foreach($requestmanager->assigned_usergroup_list as $usergroup) {
             foreach($usergroup->members as $user_f) {
-                if (!isset($emails[$user_f->id]) && $user->id != $user_f->id) {
+                if (!isset($emails[$user_f->id]) && $user->id != $user_f->id && !empty($user_f->statut)) {
                     $emails[$user_f->id] = $this->_formatEmail($user_f->getFullName($langs), $user_f->email);
                 }
             }
@@ -267,7 +267,7 @@ class RequestManagerNotify
 
         $emails = array();
         foreach($requestmanager->requester_list as $contact) {
-            if (!isset($emails[$contact->id])) {
+            if (!isset($emails[$contact->id]) && !empty($contact->statut)) {
                 $emails[$contact->id] = $this->_formatEmail($contact->getFullName($langs), $contact->email);
             }
         }
@@ -288,7 +288,7 @@ class RequestManagerNotify
 
         $emails = array();
         foreach($requestmanager->watcher_list as $contact) {
-            if (!isset($emails[$contact->id])) {
+            if (!isset($emails[$contact->id]) && !empty($contact->statut)) {
                 $emails[$contact->id] = $this->_formatEmail($contact->getFullName($langs), $contact->email);
             }
         }
