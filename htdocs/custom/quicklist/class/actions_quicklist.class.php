@@ -170,7 +170,7 @@ class ActionsQuickList
         // Edit filter
         //--------------------------------------------------------------------
         //elseif ($act == 'quicklist_editfilter_confirm' && $quicklist->fk_user_author == $user->id) {
-			elseif ($act == 'quicklist_editfilter_confirm' && $quicklist->fk_user_author == $user->id) {
+			elseif ($act == 'quicklist_editfilter_confirm') {
             $result = true;
             $fk_menu = null;
             if (!empty(GETPOST("filter_menu", 'alpha'))) {
@@ -210,7 +210,7 @@ class ActionsQuickList
         //--------------------------------------------------------------------
         // Delete filter
         //--------------------------------------------------------------------
-        elseif ($act == 'quicklist_deletefilter_confirm' && $quicklist->fk_user_author == $user->id) {
+        elseif ($act == 'quicklist_deletefilter_confirm') {
             $result = true;
             // TODO delete menu
             if ($result) {
@@ -436,7 +436,7 @@ class ActionsQuickList
                 $url = $_SERVER["PHP_SELF"] . (!empty($tmp) ? "?" . implode('&', $tmp) : '');
                 $value = ['id' => $filter->id, 'name' => $filter->name,
                     'url' => $url,
-                    'hash_tag' => $filter->hash_tag, 'author' => $filter->fk_user_author == $user->id, 'default' => !empty($filter->default)];
+                    'hash_tag' => $filter->hash_tag, 'author' => $filter->fk_user_author, 'default' => !empty($filter->default)];
                 switch ($filter->scope) {
                     case QuickList::QUICKLIST_SCOPE_PRIVATE:
                         $filters['private'][] = $value;
