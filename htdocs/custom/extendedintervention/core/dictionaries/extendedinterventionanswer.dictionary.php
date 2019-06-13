@@ -181,7 +181,7 @@ class ExtendedInterventionAnswerDictionary extends Dictionary
         ),
         'mandatory' => array(
             'name'       => 'mandatory',
-            'label'      => 'Mandatory',
+            'label'      => 'ExtendedInterventionAnswerJustificatoryMandatory',
             'type'       => 'boolean',
         ),
         'predefined_texts' => array(),

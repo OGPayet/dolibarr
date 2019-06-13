@@ -182,7 +182,7 @@ class ExtendedInterventionQuestionBlocStatusDictionary extends Dictionary
         ),
         'mandatory' => array(
             'name'       => 'mandatory',
-            'label'      => 'Mandatory',
+            'label'      => 'ExtendedInterventionQuestionBlocStatusJustificatoryMandatory',
             'type'       => 'boolean',
         ),
         'desactivate_bloc' => array(

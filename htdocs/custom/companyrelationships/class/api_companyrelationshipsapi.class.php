@@ -3369,7 +3369,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
         $result = $this->fichinter->setStatut(3);
 
         if ($result == 0) {
-            throw new RestException(304, 'Error nothing done. May be object is already closed');
+            //throw new RestException(304, 'Error nothing done. May be object is already closed');
         }
         if ($result < 0) {
             throw new RestException(500, 'Error when closing Intervention: '.$this->fichinter->errorsToString());
@@ -3415,9 +3415,9 @@ class CompanyRelationshipsApi extends DolibarrApi {
             return [];
         }
 
-        if ($this->fichinter->statut != 2 /* invoiced */ && $this->fichinter->statut != 3 /* done */) {
-            throw new RestException(500, 'Error when re-opening Intervention : Bad status='.$this->fichinter->statut);
-        }
+        //if ($this->fichinter->statut != 2 /* invoiced */ && $this->fichinter->statut != 3 /* done */) {
+        //    throw new RestException(500, 'Error when re-opening Intervention : Bad status='.$this->fichinter->statut);
+        //}
 
         $hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($this->fichinter);
         if (! $hasPerm) {

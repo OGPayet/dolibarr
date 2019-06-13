@@ -169,7 +169,8 @@ class ActionsQuickList
         //--------------------------------------------------------------------
         // Edit filter
         //--------------------------------------------------------------------
-        elseif ($act == 'quicklist_editfilter_confirm' && $quicklist->fk_user_author == $user->id) {
+        //elseif ($act == 'quicklist_editfilter_confirm' && $quicklist->fk_user_author == $user->id) {
+			elseif ($act == 'quicklist_editfilter_confirm' && $quicklist->fk_user_author == $user->id) {
             $result = true;
             $fk_menu = null;
             if (!empty(GETPOST("filter_menu", 'alpha'))) {
