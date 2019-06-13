@@ -1445,7 +1445,7 @@ if ($object->id > 0) {
     print '<div class="fichecenter">';
 
     print load_fiche_titre('<span class="rm_infos_block_title_label" style="font-weight: bolder !important; font-size: medium !important;">' . $langs->trans("RequestManagerInfos") . '&nbsp;<img class="rm_infos_block_title_icon" src=""></img></span>', '', '', 0, 'rm_infos_block_title');
-    print '<div id="rm_infos_block_content"' . (substr($action, 0, 5) != 'edit_' ? ' style="display: none;"' : '') . '>';
+    print '<div id="rm_infos_block_content"' . (substr($action, 0, 5) != 'edit_' && !GETPOST('show_block_infos', 'int') ? ' style="display: none;"' : '') . '>';
 
     print '<div class="fichehalfleft">';
     print '<div class="underbanner clearboth"></div>';

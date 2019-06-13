@@ -933,7 +933,7 @@ class FormRequestManager
         if ($formCompany !== NULL) {
             $selectCompaniesHtmlName = $contactTypeCodeHtmlName . '_newcompany';
             $newCompanyId = intval(GETPOST($selectCompaniesHtmlName, 'int')?GETPOST($selectCompaniesHtmlName, 'int'):$requestManager->socid);
-            $formCompany->selectCompaniesForNewContact($requestManager,'id', $newCompanyId, $selectCompaniesHtmlName, '', 0, 'minwidth300');
+            $formCompany->selectCompaniesForNewContact($requestManager,'id', $newCompanyId, $selectCompaniesHtmlName, '', 0, '&minwidth300&show_block_infos=1');
         }
         $this->form->select_contacts($newCompanyId, '', $contactTypeCodeHtmlName . '_fk_socpeople', 1, $excludes_contact, '', 0, 'minwidth300');
         print '&nbsp;<input type="submit" class="button" value="' . $langs->trans('Add') . '">';
