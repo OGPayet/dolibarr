@@ -445,8 +445,7 @@ SCRIPT;
 
                 print $out;
             }
-        }
-        elseif (in_array('interventioncard', $contexts)) {
+        } elseif (in_array('interventioncard', $contexts)) {
             if (!empty($conf->global->EXTENDEDINTERVENTION_QUOTA_ACTIVATE)) {
                 if ($object->fk_contrat > 0) {
                     require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
@@ -484,8 +483,7 @@ SCRIPT;
                     print $out;
                 }
             }
-        }
-        elseif (in_array('contractcard', $contexts)) {
+        } elseif (in_array('contractcard', $contexts)) {
             if (!empty($conf->global->EXTENDEDINTERVENTION_QUOTA_ACTIVATE)) {
                 if ($conf->requestmanager->enabled && !empty($conf->global->REQUESTMANAGER_PLANNING_ACTIVATE)) {
                     dol_include_once('/extendedintervention/class/html.formextendedintervention.class.php');
@@ -502,14 +500,10 @@ SCRIPT;
                             $htmlname = 'ei_planning_times_type_' . $line->fields['code'];
                             $label = $langs->trans('ExtendedInterventionPlanningForInterventionType', $line->fields['label']);
 
-							if(!empty($formextendedintervention->multiselect_planning_times($line->id, $htmlname)))
-							{
-								print $numberOfPossibleRequestType;
                             print '<tr id="ei_count_intervention_block"><td>' . $label . '</td>';
                             print '<td>';
                             print $formextendedintervention->multiselect_planning_times($line->id, $htmlname);
                             print '</td></tr>';
-							}
                         }
 
                         $htmlname = 'ei_count_type_' . $line->fields['code'];
@@ -536,22 +530,19 @@ SCRIPT;
                         $count_label = $langs->trans('ExtendedInterventionQuotaFor', $line->fields['label']);
 
                         if ($conf->requestmanager->enabled && !empty($conf->global->REQUESTMANAGER_PLANNING_ACTIVATE)) {
-                            //$can_edit = !empty($count_value) && $count_value > 0;
-							$can_edit = true;
+                            $can_edit = !empty($count_value) && $count_value > 0;
                             $htmlname = 'ei_planning_times_type_' . $line->fields['code'];
                             $label = $langs->trans('ExtendedInterventionPlanningForInterventionType', $line->fields['label']);
 
-							if(!empty($formextendedintervention->multiselect_planning_times($line->id, $htmlname)))
-							{
-							print $numberOfPossibleRequestType;
-                            print '<tr id="ei_count_intervention_block">';
-                            print '<td class="titlefield">';
-                            print $form->editfieldkey($label, $htmlname, '', $object, $user->rights->contrat->creer && $can_edit);
-                            print '</td><td>';
-                            print $formextendedintervention->form_planning_times($object, $line->id, $htmlname, isset($info[$line->id]['planning_times']) ? $info[$line->id]['planning_times'] : array(), $can_edit);
-                            print '</td>';
-                            print '</tr>';
-							}
+                            if ($can_edit) {
+                                print '<tr id="ei_count_intervention_block">';
+                                print '<td class="titlefield">';
+                                print $form->editfieldkey($label, $htmlname, '', $object, $user->rights->contrat->creer && $can_edit);
+                                print '</td><td>';
+                                print $formextendedintervention->form_planning_times($object, $line->id, $htmlname, isset($info[$line->id]['planning_times']) ? $info[$line->id]['planning_times'] : array(), $can_edit);
+                                print '</td>';
+                                print '</tr>';
+                            }
                         }
 
                         print '<tr id="ei_count_intervention_block">';

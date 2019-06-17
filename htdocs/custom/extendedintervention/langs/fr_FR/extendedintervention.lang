@@ -167,9 +167,10 @@ ExtendedInterventionEndOfTheContract            = Fin du contrat
 ############################################################
 ### Planning
 ############################################################
-ExtendedInterventionPlanningForInterventionType = Générer les demandes planifiées pour les interventions de type %s
-ExtendedInterventionPlanningForRequestType      = et les demandes de type %s, les :
-ExtendedInterventionPlanningRequestTitle        = Demande d'intervention récurente de type %s
+ExtendedInterventionPlanningForInterventionType                     = Générer les demandes planifiées pour les interventions de type %s
+ExtendedInterventionPlanningForRequestType                          = et les demandes de type %s, les :
+ExtendedInterventionPlanningRequestTitle                            = Demande d'intervention récurente de type %s
+ExtendedInterventionPlanningNoTypeInterventionPlannedInDictionaries = Aucuns "Type de demande planifiable" paramétrés dans le dictionnaire "Types d'interventions" du module "Extended Intervention" (%s)
 
 ############################################################
 ### Events : Force create intervention out of quota

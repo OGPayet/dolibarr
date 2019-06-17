@@ -253,21 +253,26 @@ class FormExtendedIntervention
         global $conf, $langs;
 
         if ($perm && GETPOST('action', 'aZ09') == 'edit' . $htmlname) {
-            $out = "\n";
-            $out .= '<form method="post" action="' . $_SERVER["PHP_SELF"] . '">';
-            $out .= '<input type="hidden" name="action" value="set' . $htmlname . '">';
-            $out .= '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '">';
-            $out .= '<input type="hidden" name="id" value="' . $object->id . '">';
-            $out .= '<table class="nobordernopadding centpercent" cellpadding="0" cellspacing="0">';
-            $out .= '<tr><td>';
-            $out .= $this->multiselect_planning_times($intervention_type_id, $htmlname, $values);
-            $out .= '</td>';
-            $out .= '<td align="left">';
-            $out .= '<input type="submit" class="button" name="modify" value="' . $langs->trans("Modify") . '">';
-            $out .= '<input type="submit" class="button" name="cancel" value="' . $langs->trans("Cancel") . '">';
-            $out .= '</td>';
-            $out .= '</tr></table>' . "\n";
-            $out .= '</form>' . "\n";
+            $multiselect = $this->multiselect_planning_times($intervention_type_id, $htmlname, $values);
+            if (!empty($multiselect)) {
+                $out = "\n";
+                $out .= '<form method="post" action="' . $_SERVER["PHP_SELF"] . '">';
+                $out .= '<input type="hidden" name="action" value="set' . $htmlname . '">';
+                $out .= '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '">';
+                $out .= '<input type="hidden" name="id" value="' . $object->id . '">';
+                $out .= '<table class="nobordernopadding centpercent" cellpadding="0" cellspacing="0">';
+                $out .= '<tr><td>';
+                $out .= $multiselect;
+                $out .= '</td>';
+                $out .= '<td align="left">';
+                $out .= '<input type="submit" class="button" name="modify" value="' . $langs->trans("Modify") . '">';
+                $out .= '<input type="submit" class="button" name="cancel" value="' . $langs->trans("Cancel") . '">';
+                $out .= '</td>';
+                $out .= '</tr></table>' . "\n";
+                $out .= '</form>' . "\n";
+            } else {
+                $out .= $langs->trans('ExtendedInterventionPlanningNoTypeInterventionPlannedInDictionaries', '<a href="' . dol_buildpath('/extendedintervention/admin/dictionaries.php', 1) . '?module=extendedintervention&name=extendedinterventiontype">'.$langs->trans('Dictionary').'</a>');
+            }
         } else {
             dol_include_once('/extendedintervention/class/extendedinterventionquota.class.php');
             $this->load_request_type();
