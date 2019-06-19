@@ -277,9 +277,15 @@ class ExtendedInterventionQuota
             $now = Carbon::now();
             $begin_date = $effective_date;
             $end_date = null;
+            $last_end_date = null;
             if (empty($tacit_renewal)) $end_date = $begin_date->copy()->addMonths($duration)->subDay();
             if (isset($termination_date) && (!isset($end_date) || $termination_date < $end_date)) $end_date = $termination_date;
             if (isset($contract_closed_date) && (!isset($end_date) || $contract_closed_date < $end_date)) $end_date = $contract_closed_date;
+            $begin_date->setTime(0,0);
+            if (isset($end_date)) {
+                $end_date->setTime(0,0);
+                $last_end_date = $end_date->copy()->subDay();
+            }
 
             if ($begin_date <= $now) {
                 $idx = 1;
@@ -288,7 +294,7 @@ class ExtendedInterventionQuota
                 do {
                     $b_date = $begin_date->timestamp;
                     $e_date = $begin_date->addMonths($period_size)->copy()->subDay()->timestamp;
-                    $last_period = isset($end_date) && $b_date <= $end_date->timestamp && $end_date->timestamp <= $e_date;
+                    $last_period = isset($end_date) && (($b_date <= $end_date->timestamp && $end_date->timestamp <= $e_date) || $e_date == $last_end_date->timestamp);
                     $in_period = $b_date <= $now->timestamp && $now->timestamp <= ($last_period ? $end_date->timestamp : $e_date);
                     $periods[$idx] = array('begin' => $b_date, 'end' => $last_period ? $end_date->timestamp : $e_date, 'in_period' => $in_period, 'last_period' => $last_period);
                     $idx++;
