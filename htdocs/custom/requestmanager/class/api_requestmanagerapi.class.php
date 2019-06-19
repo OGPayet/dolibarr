@@ -1297,7 +1297,7 @@ class RequestManagerApi extends DolibarrApi {
         $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "socpeople AS sc ON sc.fk_soc = s.rowid";
         $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "socpeople_extrafields AS scef ON scef.fk_object = sc.rowid";
         $sql .= " WHERE s.entity IN (" . getEntity('societe') . ")";
-		$sql .= " AND sc.statut = 1";
+        $sql .= " AND sc.statut = 1";
         $sql .= " AND (" . implode(' OR ', $phones) . ")";
 
         $resql = self::$db->query($sql);
@@ -1382,7 +1382,6 @@ class RequestManagerApi extends DolibarrApi {
         // Create event
         //--------------------------------------------------
         $langs->load('commercial');
-        $langs->load('requestmanager@requestmanager');
         $actioncomm->type_code = "AC_TEL";
         $actioncomm->location = $channel;
         $actioncomm->datep = $begin_date;
@@ -1397,46 +1396,44 @@ class RequestManagerApi extends DolibarrApi {
         //--------------------------------------------------
 
 
+        switch ($direction) {
+            case 'incoming':
 
-		switch ($direction)
-		{
-			case incoming:
+                //Society displayed Name
+                $displayName = $caller_id_num;
+                if ($socid > 0) $displayName = empty($societe->name_alias) ? $societe->getFullName($langs) : $societe->name_alias;
+                $actioncomm->label = $langs->trans('RequestManagerIncomingCall') . ' - ' . $displayName . ' - ' . dol_print_date($begin_date, ' %H:%M:%S') . ' - ' . $langs->trans('RequestManagerInProgressCall');
+                break;
 
-			//Society displayed Name
-			$displayName = $caller_id_num;
-			if($socid >0) $displayName = empty($societe->name_alias) ? $societe->getFullName($langs) : $societe->name_alias;
-			$actioncomm->label = $langs->trans('RequestManagerIncomingCall') . ' - ' . $displayName . ' - ' .  dol_print_date($begin_date,' %H:%M:%S') . ' - ' . $langs->trans('RequestManagerInProgressCall');
-			break;
+            case 'outgoing':
+                //Society displayed Name
+                $displayName = $called_num;
+                if ($socid > 0) $displayName = empty($societe->name_alias) ? $societe->getFullName($langs) : $societe->name_alias;
+                $actioncomm->label = $langs->trans('RequestManagerOutgoingCall') . ' - ' . $displayName . ' - ' . dol_print_date($begin_date, ' %H:%M:%S') . ' - ' . $langs->trans('RequestManagerInProgressCall');
+                break;
 
-			case outgoing:
-			//Society displayed Name
-			$displayName = $called_num;
-			if($socid >0) $displayName = empty($societe->name_alias) ? $societe->getFullName($langs) : $societe->name_alias;
-			$actioncomm->label = $langs->trans('RequestManagerOutgoingCall') . ' - ' . $displayName . ' - ' .  dol_print_date($begin_date,' %H:%M:%S') . ' - ' . $langs->trans('RequestManagerInProgressCall');
-			break;
+            case 'transfered':
+                //Society displayed Name
+                $displayName = $caller_id_num . ' ' . $langs->trans('RequestManagerToward') . ' ' . $called_num;
+                if ($socid > 0) $displayName = empty($societe->name_alias) ? $societe->getFullName($langs) : $societe->name_alias;
+                $actioncomm->label = $langs->trans('RequestManagerTransferedCall') . ' - ' . $displayName . ' - ' . dol_print_date($begin_date, ' %H:%M:%S') . ' - ' . $langs->trans('RequestManagerInProgressCall');
+                break;
 
-			case transfered:
-			//Society displayed Name
-			$displayName = $caller_id_num . ' ' . $langs->trans('RequestManagerToward') . ' ' . $called_num;
-			if($socid >0) $displayName = empty($societe->name_alias) ? $societe->getFullName($langs) : $societe->name_alias;
-			$actioncomm->label = $langs->trans('RequestManagerTransferedCall') . ' - ' . $displayName . ' - ' .  dol_print_date($begin_date,' %H:%M:%S') . ' - ' . $langs->trans('RequestManagerInProgressCall');
-			break;
-
-			default:
-			$displayName = $caller_id_num . ' ' . $langs->trans('RequestManagerToward') . ' ' . $called_num;
-			if($socid >0) $displayName = empty($societe->name_alias) ? $societe->getFullName($langs) : $societe->name_alias;
-			$actioncomm->label = $langs->trans('RequestManagerTransferedCall') . ' - ' . $displayName . ' - ' .  dol_print_date($begin_date,' %H:%M:%S') . ' - ' . $langs->trans('RequestManagerInProgressCall');
-			break;
-		}
+            default:
+                $displayName = $caller_id_num . ' ' . $langs->trans('RequestManagerToward') . ' ' . $called_num;
+                if ($socid > 0) $displayName = empty($societe->name_alias) ? $societe->getFullName($langs) : $societe->name_alias;
+                $actioncomm->label = $langs->trans('RequestManagerTransferedCall') . ' - ' . $displayName . ' - ' . dol_print_date($begin_date, ' %H:%M:%S') . ' - ' . $langs->trans('RequestManagerInProgressCall');
+                break;
+        }
 
         // Message
         //--------------------------------------------------
         $message = '';
         $message .= $langs->trans('RequestManagerIPBXCallerIDNum', $caller_id_num) . '<br>';
-		$message .= $langs->trans('RequestManagerIPBXCalledNum', $called_num) . '<br>';
+        $message .= $langs->trans('RequestManagerIPBXCalledNum', $called_num) . '<br>';
         if (!empty($context)) $message .= $langs->trans('RequestManagerIPBXContext', $context) . '<br>';
         if (!empty($extension)) $message .= $langs->trans('RequestManagerIPBXExtension', $extension) . '<br>';
-        if (!empty($begin_ask_hour)) $message .= $langs->trans('RequestManagerIPBXBeginAskHour' , dol_print_date($begin_date,'%d/%m/%Y %H:%M:%S'));
+        if (!empty($begin_ask_hour)) $message .= $langs->trans('RequestManagerIPBXBeginAskHour', dol_print_date($begin_date, '%d/%m/%Y %H:%M:%S'));
         $actioncomm->note = $message;
 
         if ($actioncomm->create(DolibarrApiAccess::$user) < 0) {
@@ -1503,7 +1500,7 @@ class RequestManagerApi extends DolibarrApi {
                         $channel_state_desc='', $priority='', $seconds='', $id='', $from='', $from_channel='', $to='', $to_channel='', $type='', $class='', $dest_type='',
                         $direction_id='', $date_call='', $duration='', $bill_sec='', $cost='', $tags='', $pbx='', $user_field='', $fax_data='')
     {
-        global $langs;
+        global $conf, $langs;
 
         if (!DolibarrApiAccess::$user->rights->agenda->myactions->create) {
             throw new RestException(401, "Insufficient rights");
@@ -1514,16 +1511,16 @@ class RequestManagerApi extends DolibarrApi {
         $nb_number = !empty($conf->global->REQUESTMANAGER_NB_NUMBER_FOR_COMPARE_PHONE) ? $conf->global->REQUESTMANAGER_NB_NUMBER_FOR_COMPARE_PHONE : 9;
         $now = dol_now();
 
-		// Clean parameters
+        // Clean parameters
         $from_num = preg_replace("/\D/", "", $caller_id_num);
         $from_num = substr($from_num, -$nb_number);
         $target_num = preg_replace("/\D/", "", $called_num);
         $target_num = substr($target_num, -$nb_number);
-		$from_formatted = substr(preg_replace("/\D/", "", $from), -$nb_number);
-		$to_formatted = substr(preg_replace("/\D/", "", $from), -$nb_number);
-		$connected_line_num_formatted = substr(preg_replace("/\D/", "", $connected_line_num),-$nb_number);
+        $from_formatted = substr(preg_replace("/\D/", "", $from), -$nb_number);
+        $to_formatted = substr(preg_replace("/\D/", "", $from), -$nb_number);
+        $connected_line_num_formatted = substr(preg_replace("/\D/", "", $connected_line_num), -$nb_number);
 
-         // Search internal user
+        // Search internal user
         //---------------------------------------
         $userid = DolibarrApiAccess::$user->id;
         //$userassigned = array();
@@ -1533,21 +1530,21 @@ class RequestManagerApi extends DolibarrApi {
         // u.office_phone
         $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.office_phone, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$from_num'";
         $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.office_phone, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$target_num'";
-		if (!empty($connected_line_num)) $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.office_phone, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$connected_line_num_formatted'";
+        if (!empty($connected_line_num)) $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.office_phone, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$connected_line_num_formatted'";
         if (!empty($from)) $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.office_phone, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$from_formatted'";
-		if (!empty($to)) $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.office_phone, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$to_formatted'";
+        if (!empty($to)) $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.office_phone, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$to_formatted'";
         // u.office_fax
         $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.office_fax, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$from_num'";
         $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.office_fax, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$target_num'";
-		if (!empty($connected_line_num)) $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.office_fax, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$connected_line_num_formatted'";
+        if (!empty($connected_line_num)) $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.office_fax, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$connected_line_num_formatted'";
         if (!empty($from)) $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.office_fax, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$from_formatted'";
-		if (!empty($to)) $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.office_fax, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$to_formatted'";
+        if (!empty($to)) $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.office_fax, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$to_formatted'";
         // u.user_mobile
         $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.user_mobile, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$from_num'";
         $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.user_mobile, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$target_num'";
-		if (!empty($connected_line_num)) $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.user_mobile, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$connected_line_num_formatted'";
+        if (!empty($connected_line_num)) $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.user_mobile, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$connected_line_num_formatted'";
         if (!empty($from)) $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.user_mobile, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$from_formatted'";
-		if (!empty($to)) $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.user_mobile, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$to_formatted'";
+        if (!empty($to)) $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.user_mobile, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$to_formatted'";
 
         // Set filters for phones into extra fields
         $extrafields = new ExtraFields(self::$db);
@@ -1556,9 +1553,9 @@ class RequestManagerApi extends DolibarrApi {
             if ($type == '') {
                 $phones[] = "RIGHT(RM_GLOBAL_TRIM(uef.$key, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$from_num'";
                 $phones[] = "RIGHT(RM_GLOBAL_TRIM(uef.$key, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$target_num'";
-				if (!empty($connected_line_num)) $phones[] = "RIGHT(RM_GLOBAL_TRIM(uef.$key, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$connected_line_num_formatted'";
-				if (!empty($from)) $phones[] = "RIGHT(RM_GLOBAL_TRIM(uef.$key, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$from_formatted'";
-				if (!empty($to)) $phones[] = "RIGHT(RM_GLOBAL_TRIM(uef.$key, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$to_formatted'";
+                if (!empty($connected_line_num)) $phones[] = "RIGHT(RM_GLOBAL_TRIM(uef.$key, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$connected_line_num_formatted'";
+                if (!empty($from)) $phones[] = "RIGHT(RM_GLOBAL_TRIM(uef.$key, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$from_formatted'";
+                if (!empty($to)) $phones[] = "RIGHT(RM_GLOBAL_TRIM(uef.$key, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$to_formatted'";
             }
         }
 
@@ -1566,7 +1563,7 @@ class RequestManagerApi extends DolibarrApi {
         $sql .= " FROM " . MAIN_DB_PREFIX . "user AS u";
         $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "user_extrafields AS uef ON uef.fk_object = u.rowid";
         $sql .= " WHERE u.entity IN (" . getEntity('user') . ")";
-		$sql .= " AND u.statut = 1";
+        $sql .= " AND u.statut = 1";
         $sql .= " AND (u.fk_soc = 0 OR u.fk_soc IS NULL)";
         $sql .= " AND (" . implode(' OR ', $phones) . ")";
 
@@ -1582,10 +1579,7 @@ class RequestManagerApi extends DolibarrApi {
         }
 
 
-
-
-
-		// Search calling event
+        // Search calling event
         //--------------------------------------------------
         $actioncommid = 0;
 
@@ -1611,7 +1605,7 @@ class RequestManagerApi extends DolibarrApi {
         $actioncomm = new ActionComm(self::$db);
         $result = $actioncomm->fetch($actioncommid);
         if ($result < 0) {
-            throw new RestException(500, "Error when retrieve calling event", [ 'details' => $this->_getErrors($actioncomm) ]);
+            throw new RestException(500, "Error when retrieve calling event", ['details' => $this->_getErrors($actioncomm)]);
         } elseif (!($actioncomm->id > 0)) {
             throw new RestException(403, "Access unauthorized");
         }
@@ -1623,12 +1617,12 @@ class RequestManagerApi extends DolibarrApi {
             $societe = new Societe(self::$db);
             $result = $societe->fetch($actioncomm->socid);
             if ($result < 0) {
-                throw new RestException(500, "Error when retrieve company information", [ 'details' => $this->_getErrors($requestmanager) ]);
+                throw new RestException(500, "Error when retrieve company information", ['details' => $this->_getErrors($requestmanager)]);
             }
         }
-		$socid = isset($actioncomm->socid) ? $actioncomm->socid : 0 ; //To get same var name as begin call formatting event
+        $socid = isset($actioncomm->socid) ? $actioncomm->socid : 0; //To get same var name as begin call formatting event
 
-		 // Begin date
+        // Begin date
         //--------------------------------------------------
         $begin_date = !empty($begin_ask_hour) ? new DateTime($begin_ask_hour) : null;
         if (isset($begin_date)) {
@@ -1638,14 +1632,14 @@ class RequestManagerApi extends DolibarrApi {
         }
 
 
-		// Call Property calculation
+        // Call Property calculation
         //--------------------------------------------------
 
-		//waiting time
-		$waitingTime = $duration - $bill_sec;
+        //waiting time
+        $waitingTime = $duration - $bill_sec;
 
-		//Date when the operator has taken the call - except for outgoing call
-		if($direction != "outgoing") $begin_date = $begin_date + $waitingTime;
+        //Date when the operator has taken the call - except for outgoing call
+        if ($direction != "outgoing") $begin_date = $begin_date + $waitingTime;
 
 
         // End date
@@ -1662,145 +1656,143 @@ class RequestManagerApi extends DolibarrApi {
         // Update event
         //--------------------------------------------------
         $langs->load('commercial');
-        $langs->load('requestmanager@requestmanager');
         $actioncomm->percentage = 100;
         $actioncomm->datep = $begin_date;
         $actioncomm->datef = $end_date;
         $actioncomm->durationp = $end_date - $begin_date;
-		$actioncomm->userownerid = $userid;
+        $actioncomm->userownerid = $userid;
 
         // Title and Message
         //--------------------------------------------------
 
-		dol_include_once('/requestmanager/includes/php-duration/Duration.php');
-		$duration_fomatted = new Duration($bill_sec);
-		$duration_fomatted = $duration_fomatted->humanize();
-		$waitingTime_formatted = new Duration($waitingTime);
-		$waitingTime_formatted = $waitingTime_formatted->humanize();
+        dol_include_once('/requestmanager/includes/php-duration/Duration.php');
+        $duration_fomatted = new Duration($bill_sec);
+        $duration_fomatted = $duration_fomatted->humanize();
+        $waitingTime_formatted = new Duration($waitingTime);
+        $waitingTime_formatted = $waitingTime_formatted->humanize();
 
-		$totaltime_formatted = new Duration($duration);
-		$totaltime_formatted = $totaltime_formatted->humanize();
+        $totaltime_formatted = new Duration($duration);
+        $totaltime_formatted = $totaltime_formatted->humanize();
 
-		$message = '';
-				switch ($direction)
-		{
-			case incoming:
+        $message = '';
+        switch ($direction) {
+            case 'incoming':
 
-			//Society displayed Name
-			$displayName = $caller_id_num;
-			if($socid >0) $displayName = (empty($societe->name_alias) ? $societe->getFullName($langs) : $societe->name_alias);
-			//Title
-			$actioncomm->label = $langs->trans('RequestManagerIncomingCall') . ' - ' . $displayName . ' - ' .  dol_print_date($begin_date,' %H:%M:%S') . ' - ' . $duration_fomatted .  ' (' . $langs->trans('RequestManagerWaitingTime',$waitingTime_formatted) .  ')';
-			//Message
-			$message.= $langs->trans('RequestManagerIPBXCallerIDNum', $caller_id_num) . '<br>';
-			$message.= $langs->trans('RequestManagerIPBXCalledNum', $called_num) . '<br>';
-            if (!empty($connected_line_num)) $message.= $langs->trans('RequestManagerIPBXPosteNumber', $connected_line_num) . '<br>';
-			if (!empty($context)) $message.= $langs->trans('RequestManagerIPBXContext', $context) . '<br>';
-			if (!empty($begin_ask_hour)) $message.= $langs->trans('RequestManagerIPBXBeginAskHour', $begin_ask_hour) . '<br>';
-            if (isset($bill_sec)) $message.= $langs->trans('RequestManagerIPBXTalkingTime', $duration_fomatted) . '<br>';
-			if (isset($answered)) $message.= $langs->trans('RequestManagerIPBXAnswered') . ($answered ? $langs->trans('RequestManagerIPBXAnsweredYes') : $langs->trans('RequestManagerIPBXAnsweredNo')) . '<br>';
-			if (isset($waitingTime) || $waitingTime==0 ) $message.= $langs->trans('RequestManagerWaitingTime', $waitingTime_formatted) . '<br>';
-			if (isset($duration) || $duration==0) $message.= $langs->trans('RequestManagerIPBXTotalTime', $totaltime_formatted) . '<br>';
-            if (!empty($user_field)) $message.= $langs->trans('RequestManagerIPBXUserField') . '<br>' . $user_field . '';
-			break;
+                //Society displayed Name
+                $displayName = $caller_id_num;
+                if ($socid > 0) $displayName = (empty($societe->name_alias) ? $societe->getFullName($langs) : $societe->name_alias);
+                //Title
+                $actioncomm->label = $langs->trans('RequestManagerIncomingCall') . ' - ' . $displayName . ' - ' . dol_print_date($begin_date, ' %H:%M:%S') . ' - ' . $duration_fomatted . ' (' . $langs->trans('RequestManagerWaitingTime', $waitingTime_formatted) . ')';
+                //Message
+                $message .= $langs->trans('RequestManagerIPBXCallerIDNum', $caller_id_num) . '<br>';
+                $message .= $langs->trans('RequestManagerIPBXCalledNum', $called_num) . '<br>';
+                if (!empty($connected_line_num)) $message .= $langs->trans('RequestManagerIPBXPosteNumber', $connected_line_num) . '<br>';
+                if (!empty($context)) $message .= $langs->trans('RequestManagerIPBXContext', $context) . '<br>';
+                if (!empty($begin_ask_hour)) $message .= $langs->trans('RequestManagerIPBXBeginAskHour', $begin_ask_hour) . '<br>';
+                if (isset($bill_sec)) $message .= $langs->trans('RequestManagerIPBXTalkingTime', $duration_fomatted) . '<br>';
+                if (isset($answered)) $message .= $langs->trans('RequestManagerIPBXAnswered') . ($answered ? $langs->trans('RequestManagerIPBXAnsweredYes') : $langs->trans('RequestManagerIPBXAnsweredNo')) . '<br>';
+                if (isset($waitingTime) || $waitingTime == 0) $message .= $langs->trans('RequestManagerWaitingTime', $waitingTime_formatted) . '<br>';
+                if (isset($duration) || $duration == 0) $message .= $langs->trans('RequestManagerIPBXTotalTime', $totaltime_formatted) . '<br>';
+                if (!empty($user_field)) $message .= $langs->trans('RequestManagerIPBXUserField') . '<br>' . $user_field . '';
+                break;
 
-			case outgoing:
-			//Society displayed Name
-			$displayName = $called_num;
-			if($socid >0) $displayName = (empty($societe->name_alias) ? $societe->getFullName($langs) : $societe->name_alias);
-			//Title
-			$actioncomm->label = $langs->trans('RequestManagerOutgoingCall') . ' - ' . $displayName . ' - ' .  dol_print_date($begin_date,' %H:%M:%S') . ' - ' . $duration_fomatted .   ' (' . $langs->trans('RequestManagerWaitingTime',$waitingTime_formatted) .  ')';
-			//Message
-			$message.= $langs->trans('RequestManagerIPBXCallerIDNum', $connected_line_num) . '<br>';
-			$message.= $langs->trans('RequestManagerIPBXCalledNum', $called_num) . '<br>';
-            if (!empty($connected_line_num)) $message.= $langs->trans('RequestManagerIPBXPosteNumber', $caller_id_num) . '<br>';
-			if (!empty($context)) $message.= $langs->trans('RequestManagerIPBXContext', $context) . '<br>';
-			if (!empty($begin_ask_hour)) $message.= $langs->trans('RequestManagerIPBXBeginAskHour', $begin_ask_hour) . '<br>';
-            if (isset($bill_sec)) $message.= $langs->trans('RequestManagerIPBXTalkingTime', $duration_fomatted) . '<br>';
-			if (isset($answered)) $message.= $langs->trans('RequestManagerIPBXAnswered') . ($answered ? $langs->trans('RequestManagerIPBXAnsweredYes') : $langs->trans('RequestManagerIPBXAnsweredNo')) . '<br>';
-			if (isset($waitingTime) || $waitingTime==0 ) $message.= $langs->trans('RequestManagerWaitingTime', $waitingTime_formatted) . '<br>';
-			if (isset($duration) || $duration==0) $message.= $langs->trans('RequestManagerIPBXTotalTime', $totaltime_formatted) . '<br>';
-			break;
+            case 'outgoing':
+                //Society displayed Name
+                $displayName = $called_num;
+                if ($socid > 0) $displayName = (empty($societe->name_alias) ? $societe->getFullName($langs) : $societe->name_alias);
+                //Title
+                $actioncomm->label = $langs->trans('RequestManagerOutgoingCall') . ' - ' . $displayName . ' - ' . dol_print_date($begin_date, ' %H:%M:%S') . ' - ' . $duration_fomatted . ' (' . $langs->trans('RequestManagerWaitingTime', $waitingTime_formatted) . ')';
+                //Message
+                $message .= $langs->trans('RequestManagerIPBXCallerIDNum', $connected_line_num) . '<br>';
+                $message .= $langs->trans('RequestManagerIPBXCalledNum', $called_num) . '<br>';
+                if (!empty($connected_line_num)) $message .= $langs->trans('RequestManagerIPBXPosteNumber', $caller_id_num) . '<br>';
+                if (!empty($context)) $message .= $langs->trans('RequestManagerIPBXContext', $context) . '<br>';
+                if (!empty($begin_ask_hour)) $message .= $langs->trans('RequestManagerIPBXBeginAskHour', $begin_ask_hour) . '<br>';
+                if (isset($bill_sec)) $message .= $langs->trans('RequestManagerIPBXTalkingTime', $duration_fomatted) . '<br>';
+                if (isset($answered)) $message .= $langs->trans('RequestManagerIPBXAnswered') . ($answered ? $langs->trans('RequestManagerIPBXAnsweredYes') : $langs->trans('RequestManagerIPBXAnsweredNo')) . '<br>';
+                if (isset($waitingTime) || $waitingTime == 0) $message .= $langs->trans('RequestManagerWaitingTime', $waitingTime_formatted) . '<br>';
+                if (isset($duration) || $duration == 0) $message .= $langs->trans('RequestManagerIPBXTotalTime', $totaltime_formatted) . '<br>';
+                break;
 
-			case transfered:
-			//Society displayed Name
-			$displayName = $caller_id_num . ' ' . $langs->trans('RequestManagerToward') . ' ' . $called_num;
-			if($socid >0) $displayName = (empty($societe->name_alias) ? $societe->getFullName($langs) : $societe->name_alias);
-			//Title
-			$actioncomm->label = $langs->trans('RequestManagerTransferedCall') . ' - ' . $displayName . ' - ' .  dol_print_date($begin_date,' %H:%M:%S') . ' - ' . $duration_fomatted .   ' (' . $langs->trans('RequestManagerWaitingTime',$waitingTime_formatted) .  ')';
-			//Message
-			$message.= $langs->trans('RequestManagerIPBXTalkers', $caller_id_num,$called_num) . '<br>';
+            case 'transfered':
+                //Society displayed Name
+                $displayName = $caller_id_num . ' ' . $langs->trans('RequestManagerToward') . ' ' . $called_num;
+                if ($socid > 0) $displayName = (empty($societe->name_alias) ? $societe->getFullName($langs) : $societe->name_alias);
+                //Title
+                $actioncomm->label = $langs->trans('RequestManagerTransferedCall') . ' - ' . $displayName . ' - ' . dol_print_date($begin_date, ' %H:%M:%S') . ' - ' . $duration_fomatted . ' (' . $langs->trans('RequestManagerWaitingTime', $waitingTime_formatted) . ')';
+                //Message
+                $message .= $langs->trans('RequestManagerIPBXTalkers', $caller_id_num, $called_num) . '<br>';
 
 
-			$whereUserNumberCanBeFound = array($from,$to,$connected_line_num);
-			$posteUtilisateur = array_filter($whereUserNumberCanBeFound,
-			function($n){
-			return($n <= 10000 && $n >0 );
-						});
-			$posteUtilisateur = min($posteUtilisateur);
-            if (!empty($posteUtilisateur)) $message.= $langs->trans('RequestManagerIPBXPosteNumber', $posteUtilisateur) . '<br>';
-			if (!empty($context)) $message.= $langs->trans('RequestManagerIPBXContext', $context) . '<br>';
-			if (!empty($begin_ask_hour)) $message.= $langs->trans('RequestManagerIPBXBeginAskHour', $begin_ask_hour) . '<br>';
-            if (isset($bill_sec)) $message.= $langs->trans('RequestManagerIPBXTalkingTime', $duration_fomatted) . '<br>';
-			if (isset($waitingTime) || $waitingTime==0 ) $message.= $langs->trans('RequestManagerWaitingTime', $waitingTime_formatted) . '<br>';
-			if (isset($duration) || $duration==0) $message.= $langs->trans('RequestManagerIPBXTotalTime', $totaltime_formatted) . '<br>';
-			break;
+                $whereUserNumberCanBeFound = array($from, $to, $connected_line_num);
+                $posteUtilisateur = array_filter($whereUserNumberCanBeFound,
+                    function ($n) {
+                        return ($n <= 10000 && $n > 0);
+                    });
+                $posteUtilisateur = min($posteUtilisateur);
+                if (!empty($posteUtilisateur)) $message .= $langs->trans('RequestManagerIPBXPosteNumber', $posteUtilisateur) . '<br>';
+                if (!empty($context)) $message .= $langs->trans('RequestManagerIPBXContext', $context) . '<br>';
+                if (!empty($begin_ask_hour)) $message .= $langs->trans('RequestManagerIPBXBeginAskHour', $begin_ask_hour) . '<br>';
+                if (isset($bill_sec)) $message .= $langs->trans('RequestManagerIPBXTalkingTime', $duration_fomatted) . '<br>';
+                if (isset($waitingTime) || $waitingTime == 0) $message .= $langs->trans('RequestManagerWaitingTime', $waitingTime_formatted) . '<br>';
+                if (isset($duration) || $duration == 0) $message .= $langs->trans('RequestManagerIPBXTotalTime', $totaltime_formatted) . '<br>';
+                break;
 
-			default:
-			//Society displayed Name
-			$displayName = $caller_id_num . ' ' . $langs->trans('RequestManagerToward') . ' ' . $called_num;
-			if($socid >0) $displayName = (empty($societe->name_alias) ? $societe->getFullName($langs) : $societe->name_alias);
-			//Title
-			$actioncomm->label = $langs->trans('RequestManagerDefaultCall') . ' - ' . $displayName . ' - ' .  dol_print_date($begin_date,' %H:%M:%S') . ' - ' . $duration_fomatted .   ' (' . $langs->trans('RequestManagerWaitingTime',$waitingTime_formatted) .  ')';
-			//Message
-			$message.= $langs->trans('RequestManagerIPBXCallerIDNum', $caller_id_num) . '<br>';
-        if (!empty($caller_id_name)) $message.= $langs->trans('RequestManagerIPBXCallerIDName', $caller_id_name) . '<br>';
-        $message.= $langs->trans('RequestManagerIPBXCalledNum', $called_num) . '<br>';
-        $message.= $langs->trans('RequestManagerIPBXDirection', $direction) . '<br>';
-        if (!empty($context)) $message.= $langs->trans('RequestManagerIPBXContext', $context) . '<br>';
-        if (!empty($extension)) $message.= $langs->trans('RequestManagerIPBXExtension', $extension) . '<br>';
-        if (!empty($begin_ask_hour)) $message.= $langs->trans('RequestManagerIPBXBeginAskHour', $begin_ask_hour) . '<br>';
-        if (!empty($transfer_suffix)) $message.= $langs->trans('RequestManagerIPBXTransferSuffix', $transfer_suffix) . '<br>';
-        if (!empty($end_hour)) $message.= $langs->trans('RequestManagerIPBXEndHour', $end_hour) . '<br>';
-        if (isset($answered)) $message.= $langs->trans('RequestManagerIPBXAnswered', yn($answered)) . '<br>';
-        if (!empty($privilege)) $message.= $langs->trans('RequestManagerIPBXPrivilege', $privilege) . '<br>';
-        if (!empty($connected_line_num)) $message.= $langs->trans('RequestManagerIPBXConnectedLineNum', $connected_line_num) . '<br>';
-        if (!empty($connected_line_name)) $message.= $langs->trans('RequestManagerIPBXConnectedLineName', $connected_line_name) . '<br>';
-        if (!empty($account_code)) $message.= $langs->trans('RequestManagerIPBXAccountCode', yn($account_code)) . '<br>';
-        if (!empty($channel_state)) $message.= $langs->trans('RequestManagerIPBXChannelState', $channel_state) . '<br>';
-        if (!empty($channel_state_desc)) $message.= $langs->trans('RequestManagerIPBXChannelStateDesc', $channel_state_desc) . '<br>';
-        if (!empty($priority)) $message.= $langs->trans('RequestManagerIPBXPriority', $priority) . '<br>';
-        if (!empty($seconds)) $message.= $langs->trans('RequestManagerIPBXSeconds', $seconds) . '<br>';
-        if (!empty($id)) $message.= $langs->trans('RequestManagerIPBXId', $id) . '<br>';
-        if (!empty($from)) $message.= $langs->trans('RequestManagerIPBXFrom', $from) . '<br>';
-        if (!empty($from_channel)) $message.= $langs->trans('RequestManagerIPBXFromChannel', $from_channel) . '<br>';
-        if (!empty($to)) $message.= $langs->trans('RequestManagerIPBXTo', $to) . '<br>';
-        if (!empty($to_channel)) $message.= $langs->trans('RequestManagerIPBXToChannel', $to_channel) . '<br>';
-        if (!empty($type)) $message.= $langs->trans('RequestManagerIPBXType', $type) . '<br>';
-        if (!empty($class)) $message.= $langs->trans('RequestManagerIPBXClass', $class) . '<br>';
-        if (!empty($dest_type)) $message.= $langs->trans('RequestManagerIPBXDestinationType', $dest_type) . '<br>';
-        if (isset($direction_id)) $message.= $langs->trans('RequestManagerIPBXDirectionId', $direction_id) . '<br>';
-        if (isset($date_call)) $message.= $langs->trans('RequestManagerIPBXDate', $date_call) . '<br>';
-        if (isset($duration)) $message.= $langs->trans('RequestManagerIPBXDuration', $duration) . '<br>';
-        if (isset($bill_sec)) $message.= $langs->trans('RequestManagerIPBXBillSec', $bill_sec) . '<br>';
-        if (!empty($cost)) $message.= $langs->trans('RequestManagerIPBXCost', $cost) . '<br>';
-        if (!empty($tags)) $message.= $langs->trans('RequestManagerIPBXTags', $tags) . '<br>';
-        if (!empty($pbx)) $message.= $langs->trans('RequestManagerIPBXPbx', $pbx) . '<br>';
-        if (!empty($user_field)) $message.= $langs->trans('RequestManagerIPBXUserField') . '<br>' . $user_field . '';
-        if (!empty($fax_data)) $message.= $langs->trans('RequestManagerIPBXFaxData') . '<br>' . $fax_data . '';
+            default:
+                //Society displayed Name
+                $displayName = $caller_id_num . ' ' . $langs->trans('RequestManagerToward') . ' ' . $called_num;
+                if ($socid > 0) $displayName = (empty($societe->name_alias) ? $societe->getFullName($langs) : $societe->name_alias);
+                //Title
+                $actioncomm->label = $langs->trans('RequestManagerDefaultCall') . ' - ' . $displayName . ' - ' . dol_print_date($begin_date, ' %H:%M:%S') . ' - ' . $duration_fomatted . ' (' . $langs->trans('RequestManagerWaitingTime', $waitingTime_formatted) . ')';
+                //Message
+                $message .= $langs->trans('RequestManagerIPBXCallerIDNum', $caller_id_num) . '<br>';
+                if (!empty($caller_id_name)) $message .= $langs->trans('RequestManagerIPBXCallerIDName', $caller_id_name) . '<br>';
+                $message .= $langs->trans('RequestManagerIPBXCalledNum', $called_num) . '<br>';
+                $message .= $langs->trans('RequestManagerIPBXDirection', $direction) . '<br>';
+                if (!empty($context)) $message .= $langs->trans('RequestManagerIPBXContext', $context) . '<br>';
+                if (!empty($extension)) $message .= $langs->trans('RequestManagerIPBXExtension', $extension) . '<br>';
+                if (!empty($begin_ask_hour)) $message .= $langs->trans('RequestManagerIPBXBeginAskHour', $begin_ask_hour) . '<br>';
+                if (!empty($transfer_suffix)) $message .= $langs->trans('RequestManagerIPBXTransferSuffix', $transfer_suffix) . '<br>';
+                if (!empty($end_hour)) $message .= $langs->trans('RequestManagerIPBXEndHour', $end_hour) . '<br>';
+                if (isset($answered)) $message .= $langs->trans('RequestManagerIPBXAnswered', yn($answered)) . '<br>';
+                if (!empty($privilege)) $message .= $langs->trans('RequestManagerIPBXPrivilege', $privilege) . '<br>';
+                if (!empty($connected_line_num)) $message .= $langs->trans('RequestManagerIPBXConnectedLineNum', $connected_line_num) . '<br>';
+                if (!empty($connected_line_name)) $message .= $langs->trans('RequestManagerIPBXConnectedLineName', $connected_line_name) . '<br>';
+                if (!empty($account_code)) $message .= $langs->trans('RequestManagerIPBXAccountCode', yn($account_code)) . '<br>';
+                if (!empty($channel_state)) $message .= $langs->trans('RequestManagerIPBXChannelState', $channel_state) . '<br>';
+                if (!empty($channel_state_desc)) $message .= $langs->trans('RequestManagerIPBXChannelStateDesc', $channel_state_desc) . '<br>';
+                if (!empty($priority)) $message .= $langs->trans('RequestManagerIPBXPriority', $priority) . '<br>';
+                if (!empty($seconds)) $message .= $langs->trans('RequestManagerIPBXSeconds', $seconds) . '<br>';
+                if (!empty($id)) $message .= $langs->trans('RequestManagerIPBXId', $id) . '<br>';
+                if (!empty($from)) $message .= $langs->trans('RequestManagerIPBXFrom', $from) . '<br>';
+                if (!empty($from_channel)) $message .= $langs->trans('RequestManagerIPBXFromChannel', $from_channel) . '<br>';
+                if (!empty($to)) $message .= $langs->trans('RequestManagerIPBXTo', $to) . '<br>';
+                if (!empty($to_channel)) $message .= $langs->trans('RequestManagerIPBXToChannel', $to_channel) . '<br>';
+                if (!empty($type)) $message .= $langs->trans('RequestManagerIPBXType', $type) . '<br>';
+                if (!empty($class)) $message .= $langs->trans('RequestManagerIPBXClass', $class) . '<br>';
+                if (!empty($dest_type)) $message .= $langs->trans('RequestManagerIPBXDestinationType', $dest_type) . '<br>';
+                if (isset($direction_id)) $message .= $langs->trans('RequestManagerIPBXDirectionId', $direction_id) . '<br>';
+                if (isset($date_call)) $message .= $langs->trans('RequestManagerIPBXDate', $date_call) . '<br>';
+                if (isset($duration)) $message .= $langs->trans('RequestManagerIPBXDuration', $duration) . '<br>';
+                if (isset($bill_sec)) $message .= $langs->trans('RequestManagerIPBXBillSec', $bill_sec) . '<br>';
+                if (!empty($cost)) $message .= $langs->trans('RequestManagerIPBXCost', $cost) . '<br>';
+                if (!empty($tags)) $message .= $langs->trans('RequestManagerIPBXTags', $tags) . '<br>';
+                if (!empty($pbx)) $message .= $langs->trans('RequestManagerIPBXPbx', $pbx) . '<br>';
+                if (!empty($user_field)) $message .= $langs->trans('RequestManagerIPBXUserField') . '<br>' . $user_field . '';
+                if (!empty($fax_data)) $message .= $langs->trans('RequestManagerIPBXFaxData') . '<br>' . $fax_data . '';
 
-			break;
+                break;
 
-		}
-		//Title for message let on the answerPhone
-		if (!empty($user_field)) $actioncomm->label = $langs->trans('RequestManagerAnswerPhone') . ' - ' . $displayName . ' - ' .  dol_print_date($begin_date,' %H:%M:%S') . ' - ' . $duration_fomatted .   ' (' . $langs->trans('RequestManagerWaitingTime',$waitingTime_formatted) .  ')';
+        }
+        //Title for message let on the answerPhone
+        if (!empty($user_field)) $actioncomm->label = $langs->trans('RequestManagerAnswerPhone') . ' - ' . $displayName . ' - ' . dol_print_date($begin_date, ' %H:%M:%S') . ' - ' . $duration_fomatted . ' (' . $langs->trans('RequestManagerWaitingTime', $waitingTime_formatted) . ')';
 
-		$actioncomm->note = $message;
+        $actioncomm->note = $message;
 
         if ($actioncomm->update(DolibarrApiAccess::$user) > 0) {
             return $actioncomm->id;
         } else {
-            throw new RestException(500, "Error while closing the calling event", [ 'details' => $this->_getErrors($actioncomm) ]);
+            throw new RestException(500, "Error while closing the calling event", ['details' => $this->_getErrors($actioncomm)]);
         }
     }
 
