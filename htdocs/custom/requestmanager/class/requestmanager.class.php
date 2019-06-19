@@ -2873,7 +2873,7 @@ class RequestManager extends CommonObject
         if (empty(self::$type_list) || $forcereload) {
             dol_include_once('/advancedictionaries/class/dictionary.class.php');
             $dictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagerrequesttype');
-            $dictionary->fetch_lines(0, array(), array('label' => 'ASC'));
+            $dictionary->fetch_lines(-1, array(), array('label' => 'ASC'));
             self::$type_list = $dictionary->lines;
         }
 
@@ -2919,7 +2919,7 @@ class RequestManager extends CommonObject
         if (empty(self::$category_list) || $forcereload) {
             dol_include_once('/advancedictionaries/class/dictionary.class.php');
             $dictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagercategory');
-            $dictionary->fetch_lines(0, array(), array('label' => 'ASC'));
+            $dictionary->fetch_lines(-1, array(), array('label' => 'ASC'));
             self::$category_list = $dictionary->lines;
         }
 
@@ -2965,7 +2965,7 @@ class RequestManager extends CommonObject
         if (empty(self::$source_list) || $forcereload) {
             dol_include_once('/advancedictionaries/class/dictionary.class.php');
             $dictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagersource');
-            $dictionary->fetch_lines(0, array(), array('label' => 'ASC'));
+            $dictionary->fetch_lines(-1, array(), array('label' => 'ASC'));
             self::$source_list = $dictionary->lines;
         }
 
@@ -3011,7 +3011,7 @@ class RequestManager extends CommonObject
         if (empty(self::$urgency_list) || $forcereload) {
             dol_include_once('/advancedictionaries/class/dictionary.class.php');
             $dictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagerurgency');
-            $dictionary->fetch_lines(0, array(), array('label' => 'ASC'));
+            $dictionary->fetch_lines(-1, array(), array('label' => 'ASC'));
             self::$urgency_list = $dictionary->lines;
         }
 
@@ -3055,7 +3055,7 @@ class RequestManager extends CommonObject
         if (empty(self::$urgency_list) || $forcereload) {
             dol_include_once('/advancedictionaries/class/dictionary.class.php');
             $dictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagerurgency');
-            $dictionary->fetch_lines(0, array(), array('label' => 'ASC'));
+            $dictionary->fetch_lines(-1, array(), array('label' => 'ASC'));
             self::$urgency_list = $dictionary->lines;
         }
 
@@ -3099,7 +3099,7 @@ class RequestManager extends CommonObject
         if (empty(self::$impact_list) || $forcereload) {
             dol_include_once('/advancedictionaries/class/dictionary.class.php');
             $dictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagerimpact');
-            $dictionary->fetch_lines(0, array(), array('label' => 'ASC'));
+            $dictionary->fetch_lines(-1, array(), array('label' => 'ASC'));
             self::$impact_list = $dictionary->lines;
         }
 
@@ -3145,7 +3145,7 @@ class RequestManager extends CommonObject
         if (empty(self::$priority_list) || $forcereload) {
             dol_include_once('/advancedictionaries/class/dictionary.class.php');
             $dictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagerpriority');
-            $dictionary->fetch_lines(0, array(), array('label' => 'ASC'));
+            $dictionary->fetch_lines(-1, array(), array('label' => 'ASC'));
             self::$priority_list = $dictionary->lines;
         }
 
@@ -3191,7 +3191,7 @@ class RequestManager extends CommonObject
         if (empty(self::$reason_resolution_list) || $forcereload) {
             dol_include_once('/advancedictionaries/class/dictionary.class.php');
             $dictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagerreasonresolution');
-            $dictionary->fetch_lines(0, array(), array('label' => 'ASC'));
+            $dictionary->fetch_lines(-1, array(), array('label' => 'ASC'));
             self::$reason_resolution_list = $dictionary->lines;
         }
 
@@ -3246,7 +3246,7 @@ class RequestManager extends CommonObject
         if (empty(self::$status_list) || $forcereload) {
             dol_include_once('/advancedictionaries/class/dictionary.class.php');
             $dictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagerstatus');
-            $dictionary->fetch_lines(0, array(), array('type' => 'ASC', 'position' => 'ASC'));
+            $dictionary->fetch_lines(-1, array(), array('type' => 'ASC', 'position' => 'ASC'));
             self::$status_list = $dictionary->lines;
         }
 
@@ -3257,7 +3257,7 @@ class RequestManager extends CommonObject
 		if (empty(self::$type_list) || $forcereload) {
             dol_include_once('/advancedictionaries/class/dictionary.class.php');
             $dictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'RequestManagerRequestType');
-            $dictionary->fetch_lines(0, array(), array('type' => 'ASC', 'position' => 'ASC'));
+            $dictionary->fetch_lines(-1, array(), array('type' => 'ASC', 'position' => 'ASC'));
             self::$type_list = $dictionary->lines;
         }
 
