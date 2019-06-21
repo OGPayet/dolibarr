@@ -570,7 +570,7 @@ if ($id > 0)
 	$boxstat.='<table summary="'.dol_escape_htmltag($langs->trans("DolibarrStateBoard")).'" class="noborder boxtable boxtablenobottom" width="100%">';
 	$boxstat.='<tr class="impair"><td colspan="2" class="tdboxstats nohover">';
 
-	if (! empty($conf->propal->enabled))
+	if (! empty($conf->propal->enabled)&& $user->rights->propal->lire)
 	{
 		// Box proposals
 		$tmp = $object->getOutstandingProposals();
@@ -596,7 +596,7 @@ if ($id > 0)
 		if ($link) $boxstat.='</a>';
 	}
 
-	if (! empty($conf->commande->enabled))
+	if (! empty($conf->commande->enabled) && $user->rights->commande->lire)
 	{
 		// Box proposals
 		$tmp = $object->getOutstandingOrders();
@@ -622,7 +622,7 @@ if ($id > 0)
 		if ($link) $boxstat.='</a>';
 	}
 
-	if (! empty($conf->facture->enabled))
+	if (! empty($conf->facture->enabled)&& $user->rights->facture->lire)
 	{
 		$tmp = $object->getOutstandingBills();
 		$outstandingOpened=$tmp['opened'];

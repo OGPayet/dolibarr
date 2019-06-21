@@ -1,0 +1,147 @@
+Cet algorithme ne parle pas de la gestion de l'intégralité des erreurs à afficher à l'utilisateur.
+Je ne traite pas les différents type de facturation (à un donneur d'ordre, à un apporteur d'affaire, ou une facturation classique). Cette fonctionnalité se limite à modifier le destinataire de la facture et/ou à générer des factures fournisseurs.
+
+Le paramètre suivant sera renseigné
+
+	* Date où je me place virtuellement pour facturer les contrats : $date_where_i_am
+
+Les paramètres de facturation suivant seront paramétrables :
+
+	* Condition de règlement (choix : renseigné sur la fiche tiers + liste choix standard à la création d'une facture). Par défaut, sélectionner "renseigné sur la fiche tiers". Si rien n'est renseigné sur la fiche tiers dans le script, prendre le mode de règlement qui a l'ordre de tri le plus faible
+
+	* Date limite de règlement : si non renseigné, la date est déterminée selon la condition de règlement. Sinon, force la date renseigné
+
+	* Reférence client : permet de renseigner une référence de pièce à utiliser. Il n'est pas nécessaire de reprendre le système avec les variables de substitution
+
+	* Case à cocher : Utiliser les remises du client (cela inclu ses remises fixes et ses avoirs disponibles) ?
+
+A voir où nous renseignons ces paramètres : sur le traitment de masse de la facturation des contrats ou sur le traitement de masse des factures ? Le second choix permet une amélioration fonctionnelle dans la gestion des factures et est suffisant pour le flux de facturation des contrats.
+
+Cette rédaction du script permet aisément d'implémenter le retour en arrière dans le temps en modifiant $date_where_i_am et avec quelques adaptation de faire des projection de revenu futur (il faut alors simplement désactiver la revalorisation étant donné l'indisponibilité des indices).
+
+----DEBUT SCRIPT ----
+
+
+Je choisi une date où je me place pour facturer. Elle s'appelle $date_where_i_am. Aujourd'hui on prend la date du jour pour cette variable.
+
+Je prend un contrat.
+
+Je regarde son type de facturation.
+
+Si facturation à échoir :
+
+		Je regarde sa périodicité de facturation
+		Je m'interesse désormais à la période civile suivante correspondant à cette périodicité de facturation, en regard de $date_where_i_am. Je note cette période $period_i_watch = [$begin_i_watch; $end_i_watch]
+
+
+Si facturation échue alors :
+
+		Je regarde sa périodicité de facturation
+		Je m'interesse désormais à la période civile précédente correspondant à cette périodicité de facturation, en regard de $date_where_i_am. Je note cette période $period_i_watch = [$begin_i_watch; $end_i_watch]
+
+On va donc désormais s'interesser au croisement de $period_i_watch et des données du contrat et des factures préalablement émises.
+
+Je créé une période tampon $period_i_bill = [$begin_i_bill ; $end_i_bill]
+
+Je regarde la date d'effet du contrat.
+Plusieurs cas :
+	Si la date d'effet est antérieur à $begin_i_watch, alors $begin_i_bill = $begin_i_watch
+	Si la date d'effet est dans $period_i_watch, alors $being_i_bill = date d'effet du contrat
+	Si la date d'effet du contrat est postérieur à $period_i_watch, je quitte le script COMPLET pour ce contrat
+
+Je vais désormais calculer la date de fin de ce contrat $end_of_contract.
+	Si la date de résiliation effective de ce contrat est renseigné, je retourne cette valeur
+	Sinon, je regarde si le contrat est en reconduction tacite.
+		Si c'est le cas, je retourne une date infini
+		Sinon, je calcule la date de fin de ce contrat en fonction de la durée contractuelle et de la date d'effet.
+
+Plusieurs cas se présente alors :
+	Si la date de fin de ce contrat est antérieur à $begin_i_watch, je quitte le script COMPLET pour ce contrat.
+	Si la date de fin de ce contrat est dans $period_i_watch, $end_i_bill = $end_of_contract
+	Si la date de fin de ce contrat est postérieur à $period_i_watch, $end_i_bill = $end_i_watch
+
+Je calcule désormais la date de première revalorisation absolue de ce contrat : $absolute_first_revalorisation_date
+	Si jours/mois d'effet du contrat >= jours/mois de revalorisation alors $absolute_first_revalorisation_date = jour revalorisation/mois revalorisation/(année date d'effet +1)
+	Sinon $absolute_first_revalorisation_date = jour revalorisation/mois revalorisation/(année date d'effet)
+
+On note alors $montant = 0
+
+// On va désormais vérifier si la période que l'on facture ne l'a pas déjà été
+
+On charge l'ensemble des factures liées à ce contrat.
+Pour chaque facture, on charge les dates de début et de fin écrites sur chaque contrat (champs supplémentaire caché).
+Si une des 2 dates est comprises dans $period_i_bill, signaler une erreur à l'utilisateur et la détailler.
+
+// NOTE : Le process que j'imagine pour résoudre ce problème est le suivant : création d'une facture manuelle du montant désiré. Rattachement à l'objet lié contrat. A voir comment modifier datedeb et datefin sur la facture pour permettre un flux manuel complet. La fourniture d'informations précise à l'utilisateur permettra donc une résolution manuelle.
+
+Je regarde désormais s'il est succeptible d'y avoir une revalorisation dans $period_i_bill
+Si la revalorisation est activé sur ce contrat
+	Alors, à l'aide de la date de revalorisation (qui pour rappelle n'est qu'une info jour/mois), je regarde s'il est possible qu'une telle date tombe dans $period_i_bill
+	Si une telle date peux tomber dans $period_i_bill (tester plusieurs années) alors :
+		Je note la date ainsi calculée $date_of_potential_revalorisation (l'année en lien avec ce jour/mois a été calculée)
+		Si $date_of_potential_revalorisation >= $absolute_first_revalorisation_date ET $date_of_potential_revalorisation >= "Activer la possibilité de revaloriser à partir du" alors:
+
+			* On peux revaloriser tout ou partie du montant facturé pour cette période
+
+			On note les 2 périodes : $first_period_i_bill = [$begin_i_bill , $date_of_potential_revalorisation]
+												$second_period_i_bill = [$date_of_potential_revalorisation, $end_i_bill]
+
+			On note $first_period_i_bill_length et $second_period_i_bill_length le nombre de jour de $first_period_i_bill et $second_period_i_bill_length.
+			On note $period_i_watch_length le nombre de jour de $period_i_watch
+
+
+			* Première opération, calcul de la valeur du montant sur la première période.
+
+			$montant = ($first_period_i_bill_length / $period_i_watch_length) * montant du contrat / nombre de période annuel de facturation
+
+			//Vérification importante à effectuer ici par l'utilisateur. Pour pouvoir gérer le cas où une facture brouillon a été supprimée, et où la revalorisation intervenait en milieu de période $ period_i_bill, il faut déclecher un warning et la réalisation d'une facture manuelle. En effet, comme la facturation aura été réalisée, le montant annuel renseigné sur le contrat est désormais le nouveau montant et nous ne pouvons plus calculer le prorata en nombre de jour de l'ancien tarif. Et accéder à l'ancien tarif via les factures passées est trop dangeureux (en cas d'édition manuelle). Une évolution du module pourrait être le stockage d'une historisation de ces montants avec les périodes conçernées (et donc également la possibilité de montant du contrat en fonction de la période considérée). Les informations peuvent être retrouvées via les évènements de revalorisation.
+
+			Si le nombre de jour de période $first_period_i_bill est n'est pas égal à zéro (c'est à dire $begin_i_bill = $date_of_potential_revalorisation), lancer un avertissement à l'utilisateur de vérifier le montant de cette facture et lui indiquer que le montant calculé peut être incorrect si une facture brouillon a été supprimé par le passé pour cette période $period_i_bill
+
+			// Ce warning sera donc systématique si la revalorisation intervient en milieu de période mais nécessaire pour gérer les erreurs avec cette version du module.
+
+			* Deuxième opération, revalorisation potentielle du contrat
+			On récupère les indices du contrat à utiliser. Pour cela on croise l'institution émettant l'indice et le couple mois/année associé.
+			L'ancien indice est récupéré des propriétés du contrat (champs "1er indice à utiliser (ou dernier indice utilisé dans un calcul)" ).
+			Le nouvel indice est retrouvé en croisant l'information "Revalorisation à l’aide de l’indice de" et $date_of_potential_revalorisation. On récupère l'indice antérieurement le plus proche de $date_of_potential_revalorisation (dans la limite d'une remonté de 12 mois)
+			Attention, si cette valeur est à zero ou non trouvé, mettre le script en erreur.
+
+			On vérifie désormais le facteur déflation.
+			Si !(nouvel indice < ancien indice et "Déflation non autorisée" est coché) alors
+				On calcule alors le nouveau montant du contrat
+				montant du contrat = montant du contrat * nouvel indice / ancien indice
+				"1er indice à utiliser (ou dernier indice utilisé dans un calcul)" = nouvel indice
+				"Valeur actuelle de l’installation" = "Valeur actuelle de l’installation" * nouvel indice /ancien indice
+
+				Cette opération créé un évènement historisant tout les informations modifiées et les données d'entrées ayant permis ces modifications
+
+			On calcule alors le montant final de cette période :
+			$montant = $montant + ("montant du contrat"/ nombre de période annuel de facturation) * ($second_period_i_bill_length/$period_i_watch_length)
+
+
+Sinon
+		$montant = 	($period_i_bill_length / period_i_watch_length ) * "montant du contrat" / nombre de période annuel de facturation
+
+Si $montant > 0 alors :
+	je créé une facture brouillon du montant $montant  pour la période $period_i_bill
+	Si l'option de création direct d'une facture est activé je valide directement cette facture.
+Si $montant < 0 alors :
+	j'envoi un message d'erreur à l'utilisateur (et au developpeur ;-) )
+
+
+/// Gestion des renouvellements/reconduction et remise à zéro des crédits technique.
+
+//Renouvellement
+
+A l'aide de la date d'effet du contrat, je regarde s'il est possible qu'un renouvellement tombe dans $period_i_bill. Si c'est le cas, je créé l'évènement et déclenche ce qui doit l'être
+
+//Reconduciton
+
+A l'aide de la date d'effet du contrat et de la durée contractuelle, je regarde s'il est possible qu'une reconduction tombe dans $period_i_bill. Si c'est le cas, je créé l'évènement et met à jour le champs "fin d'engagement contractuel"
+
+----FIN SCRIPT ----
+
+
+
+
+
