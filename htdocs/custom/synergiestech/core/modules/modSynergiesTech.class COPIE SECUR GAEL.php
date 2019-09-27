@@ -342,7 +342,6 @@ class modSynergiesTech extends DolibarrModules
         $this->rights[$r][5] = 'customerorder';
         $r++;
 
-
 		$this->rights[$r][0] = 500121;
         $this->rights[$r][1] = "Autoriser l'upload de fichier (uniquement) sans contrôle précis des accès aux pièces via l'api document (CORE)";
         $this->rights[$r][3] = 0;
@@ -356,6 +355,34 @@ class modSynergiesTech extends DolibarrModules
         $this->rights[$r][4] = 'api';
         $this->rights[$r][5] = 'welcomeMessage';
         $r++;
+
+        $this->rights[$r][0] = 500123;
+        $this->rights[$r][1] = 'Réouvrir les interventions';
+        $this->rights[$r][3] = 0;
+        $this->rights[$r][4] = 'fichinter';
+        $this->rights[$r][5] = 'reopen';
+        $r++;
+
+        $this->rights[$r][0] = 500124;
+        $this->rights[$r][1] = 'Voir/Modifier les attributs complémentaires restraint';
+        $this->rights[$r][3] = 0;
+        $this->rights[$r][4] = 'extrafields';
+        $r++;
+
+		$this->rights[$r][0] = 500125;
+        $this->rights[$r][1] = "Accéder à une liste d'utilisateur interne restreinte via l'api (sélection de collègue dans l'application technicien)";
+        $this->rights[$r][3] = 0;
+        $this->rights[$r][4] = 'user';
+        $this->rights[$r][5] = 'lirerestreint';
+        $r++;
+
+		$this->rights[$r][0] = 500126;
+        $this->rights[$r][1] = "Permettre la création de demande de type Intervention depuis l'espace Client";
+        $this->rights[$r][3] = 0;
+        $this->rights[$r][4] = 'requestmanager';
+        $this->rights[$r][5] = 'creerIntervention';
+        $r++;
+
 		// Add here list of permission defined by an id, a label, a boolean and two constant strings.
 		// Example:
 		// $this->rights[$r][0] = $this->numero + $r;	// Permission id (must not be already used)
@@ -419,15 +446,6 @@ class modSynergiesTech extends DolibarrModules
 		// $this->export_sql_end[$r] .=' WHERE f.fk_soc = s.rowid AND f.rowid = fd.fk_facture';
 		// $this->export_sql_order[$r] .=' ORDER BY s.nom';
 		// $r++;
-
-		//modification Gael: ajout tab direct link fiche inter tiers
-		$this->tabs = array(
-			'thirdparty:+tab2gael:DEVIS:synergiestech@synergiestech:true:/custom/pagessubstitution/substitutions/1_synergies-tech/comm/propal/list.php?socid=__ID__',
-			'thirdparty:+tab3gael:COMMANDE:synergiestech@synergiestech:true:/custom/pagessubstitution/substitutions/1_synergies-tech/commande/list.php?socid=__ID__',
-			'thirdparty:+tab1gael:INTERVENTION:synergiestech@synergiestech:true:/custom/pagessubstitution/substitutions/1_synergies-tech/fichinter/list.php?socid=__ID__',
-			'thirdparty:+tab4gael:FACTURE:synergiestech@synergiestech:true:/custom/pagessubstitution/substitutions/1_synergies-tech/compta/facture/list.php?socid=__ID__',
-			'thirdparty:+tab5gael:CONTRAT:synergiestech@synergiestech:true:/custom/pagessubstitution/substitutions/1_synergies-tech/contrat/list.php?socid=__ID__',
-			);
 
 		if (! empty($conf->fournisseur->enabled))
 		{
