@@ -1,0 +1,6 @@
+CREATE TABLE `llx_infoextranet_device_ip` (
+  rowid integer AUTO_INCREMENT PRIMARY KEY NOT NULL,
+  fk_device INTEGER,
+  fk_ip INTEGER,
+  tms timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;

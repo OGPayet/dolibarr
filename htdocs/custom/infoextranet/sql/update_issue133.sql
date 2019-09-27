@@ -1,0 +1,1 @@
+ALTER TABLE llx_infoextranet_application CHANGE owner owner INT

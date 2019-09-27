@@ -1,0 +1,1 @@
+ALTER TABLE llx_infoextranet_application MODIFY COLUMN environment INT

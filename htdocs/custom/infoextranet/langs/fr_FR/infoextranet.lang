@@ -1,0 +1,269 @@
+# Copyright (C) 2018 SuperAdmin
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#
+# Générique
+#
+
+# Module label 'ModuleInfoExtranetName'
+ModuleInfoExtranetName = Info Extranet
+# Module description 'ModuleInfoExtranetDesc'
+ModuleInfoExtranetDesc = Description de InfoExtranet
+InfoExtranetTabname = <i class="fa fa-wrench"></i> État de Parc
+InfoExtranetTabnameApp = <i class="fa fa-mobile"></i> Applications
+InfoExtranetTabnameDevice = <i class="fa fa-cube"></i> Équipements
+ListRole = Liste
+NewRole = <i class="fa fa-plus-square-o" aria-hidden="true"></i> Nouveau
+ListApplication = Liste
+NewApplication = <i class="fa fa-plus-square-o" aria-hidden="true"></i> Nouvelle
+ListDevice = Liste
+NewDevice = <i class="fa fa-plus-square-o" aria-hidden="true"></i> Nouvel
+ListAddress = Liste
+NewAddress = <i class="fa fa-plus-square-o" aria-hidden="true"></i> Nouvelle
+ListNetworkDevice = Liste
+NewNetworkDevice = <i class="fa fa-plus-square-o" aria-hidden="true"></i> Nouvel
+Dictionnary = <i class="fa fa-book" aria-hidden="true"></i> Dictionnaires
+Application = <i class="fa fa-mobile"></i> Applications
+Device =  <i class="fa fa-cube"></i> Équipements
+Addresses = <i class="fa fa-code-fork" aria-hidden="true"></i> Adresses
+Role = <i class="fa fa-sticky-note-o" aria-hidden="true"></i> Rôles
+Configuration = <i class="fa fa-cog" aria-hidden="true"></i> Configuration
+Documentation = <i class="fa fa-info"></i>  Documentation
+
+
+
+#
+# Page d'administration
+#
+InfoExtranetSetup = Configuration du module InfoExtranet
+Settings = Réglages
+InfoExtranetSetupPage = Page de configuration du module InfoExtranet
+InfoExtranet = Info Extranet
+
+#
+# Page À propos
+#
+About = À propos
+InfoExtranetAbout = À propos de InfoExtranet
+InfoExtranetAboutPage = Page à propos de InfoExtranet
+
+#
+# Page d'exemple
+#
+MyPageName = Nom de ma page
+
+#
+# Box d'exemple
+#
+MyWidget = Mon widget
+MyWidgetDescription = Description de mon widget
+Last5Modified = Les 5 derniers Tiers dont les infos Extranet ont été mises à jour
+InfoExtranetBoxDescription = Les 5 derniers tiers dont les informations Extranet ont été mises à jour
+Last5WithoutInfo = Les 5 premiers Tiers en cours de saisie
+
+#
+# index.php
+#
+TitleM = État Parc / Maintenance
+TitleR = Infrastructure Réseau
+TitleP = Infrastructure poste(s) / serveur(s)
+TitleH = Hébergement Web (DNS, Web, Mail)
+TitleSI = Hébergement S.I (Code 42 & externes)
+TitleO = Outils Externes
+CustomersCategoriesShort = Tags/catégories de clients
+SuppliersCategoriesShort = Tags/catégories de fournisseurs
+ContactDefault = Contacts/Adresses par défaut
+UserContact = Utilisateurs/Contacts
+TypeContact = Type de contact
+TiersNumCli = Numéro client (CLIxxx)
+
+#
+# Extrafield
+#
+ExtranetContract = N° Contrat
+
+ExtranetMaintenance = Numéro de maintenance
+ExtranetServerContract = Nombre de serveurs sous contrats
+ExtranetServerNoContract = Nombre de serveurs hors contrats
+ExtranetPostContract = Nombre de postes sous contrats
+ExtranetPostNoContract = Nombre de postes hors contrats
+ExtranetPublicNoteM = Note Publique Maintenance
+
+ExtranetNbDomain = Nombre de domaines
+ExtranetNbExchange = Code 42 - BAL Exchange
+ExtranetNbPop = Code 42 - BAL POP
+ExtranetWebsitepanlUrlH = Lien admin mail
+ExtranetMailHost = Hébergeur Mail
+ExtranetDnsHost = Hébergeur DNS
+ExtranetPublicNoteH = Note Publique Hébergement Web
+ExtranetAdminDnsUrl = Lien admin DNS
+ExtranetWebHost = Hébergeur Web
+ExtranetAdminWebUrl = Lien admin Web
+
+ExtranetNbServer = Nombre de serveurs
+ExtranetNbPost =  Nombre de postes
+ExtranetVolumeBackupExt = Sauvegarde externalisée - Volume
+ExtranetSoftBackupExt = Sauvegarde externalisée - Logiciel de sauvegarde
+ExtranetDirBackupExt = Sauvegarde externalisée - Dossiers sauvegardés
+ExtranetSoftBackup = Sauvegarde interne - Logiciel de sauvegarde
+ExtranetDirBackup = Sauvegarde interne - Dossiers sauvegardés
+ExtranetDestBackup = Sauvegarde interne - Destination
+ExtranetPublicNoteP = Note Publique Infra. Poste
+
+ExtranetDedicatedVlan = VLAN dédié
+ExtranetPublicNoteSI = Note Publique Hébergement S.I
+ExtranetWebsitepanlUrlSI = Lien admin S.I
+ExtranetHebergeurSi = Hébergeur S.I
+
+ExtranetContractSite = Contrat site
+ExtranetMultipleWan = Multiple WAN
+ExtranetVpnSslCli = VPN SSL CLI
+ExtranetVpnSslRoc = VPN SSL ROC
+ExtranetWifiSite = Wifi sur site
+ExtranetWifiGuest = Wifi invité
+ExtranetVlanManagment = Gestion VLAN
+ExtranetVpnIpsecBuro = VPN IPSEC BURO
+ExtranetVpnIpsecRoc = VPN IPSEC ROC
+ExtranetVoipOperator = VOIP - Opérateur
+ExtranetVoipDetails = VOIP - Détails
+ExtranetWanOperator = WAN - Opérateur
+ExtranetWan1Operator = WAN 1 - Opérateur
+ExtranetWan1Ip = WAN 1 - IP
+ExtranetWan2Operator = WAN 2 - Opérateur
+ExtranetWan2Ip = WAN 2 - IP
+ExtranetFirewall = Firewall
+ExtranetFirewall1 = Firewall 1
+ExtranetFirewall2 = Firewall 2
+ExtranetAccessPoint1 = Point d'accès 1
+ExtranetAccessPoint2 = Point d'accès 2
+ExtranetSwitch = Switch
+ExtranetSwitch1 = Switch 1
+ExtranetSwitch2 = Switch 2
+ExtranetPublicNoteR = Note Publique Infra. Réseau
+ExtranetModel = Modèle de l'équipement
+ExtranetAddressType = Type d'adresse réseau
+ExtranetDeviceType = Type d'équipement
+ExtranetLabel = Marque
+ExtranetAddressTypes = Types d'adresses
+ExtranetDeviceTypes = Types d'équipements
+ExtranetDeviceModels = Models des équipements
+ExtranetDeviceLabels = Marques des équipements
+ExtranetOsFirmwareTypes = Types d'OS ou Firmware
+
+ExtranetRoleType = Type
+ExtranetEnvironment = Environement
+
+ExtranetEvernoteCli = Evernote Client
+ExtranetZendeskOrga = Zendesk Orga.
+ExtranetZendeskWiki = Zendesk Client Wiki
+ExtranetOCS = OCS
+
+#
+# application_card.php
+#
+RoleAdded = Rôle ajouté
+RoleNotAdded = Rôle non ajouté
+RoleAlreadyExist = Rôle déjà existant
+AddRole = Ajouter le rôle
+RoleDeleted = Rôle supprimé
+RoleDonotExist = Rôle non existant
+RoleNotDeleted = Rôle non supprimé
+Roles = Rôles
+
+#
+# application.php
+#
+Role = Rôle
+UnderContract = Sous contrat
+ContactMaintenance = Contact du tiers de maintenance
+TiersMaintenance = Tiers de maintenance
+ThirdPartyMaintenance = Tiers de maintenance
+AppAdded = Application ajoutée
+AppAlreadyExist = Application déjà existante
+AppNotAdded = Application non ajoutée
+AppDeleted = Application supprimée
+AppDonotExist = Application non existante
+AppNotDeleted = Application non supprimée
+AddApp = Ajouter l'application
+ApplicationsOwned = Applications possédées
+ApplicationsMaintain = maintient les applications suivantes
+
+#
+# device.php
+#
+UnderContract = Sous contrat
+DevicesOnContract = Équipements sous contrat
+DeviceAdded = Équipement ajouté
+DeviceAlreadyExist = Équipement déjà existant
+DeviceNotAdded = Équipement non ajouté
+DeviceDeleted = Équipement supprimé
+DeviceDonotExist = Équipement non existant
+DeviceNotDeleted = Équipement non supprimé
+AddDevice = Ajouter l'équipement
+DevicesOwned = Autres équipement
+DevicesMaintain = maintient les équipements suivants
+
+#
+# address.php
+#
+AddressAdded = Adresse ajoutée
+AddressAlreadyExist = Adresse déjà existant
+AddressNotAdded = Adresse non ajouté
+AddressDeleted = Adresse supprimé
+AddressDonotExist = Adresse non existant
+AddressNotDeleted = Adresse non supprimé
+AddAddresse = Ajouter l'adresse
+AddresssOwned = Adresses possédés
+AddresssMaintain = Adresses maintenus
+
+#
+# address_list.php
+#
+ListOfAddress = Liste des Adresses
+
+#
+# device_list.php
+#
+ListOfDevices = Liste des Équipements
+
+#
+# role_list.php
+#
+ListOfRoles = Liste des Rôles
+
+#
+# application_list.php
+#
+ListOfApplications = Liste des Applications
+
+#
+# networkdevice.php
+#
+UnderContract = Sous contrat
+NetworkDeviceAdded = Équipement d'interconnexion ajouté
+NetworkDeviceAlreadyExist = Équipement d'interconnexion déjà existant
+NetworkDeviceNotAdded = Équipement d'interconnexion non ajouté
+NetworkDeviceDeleted = Équipement d'interconnexion supprimé
+NetworkDeviceDonotExist = Équipement d'interconnexion non existant
+NetworkDeviceNotDeleted = Équipement d'interconnexion non supprimé
+AddNetworkDevice = Ajouter l'Équipement d'interconnexion
+NetworkDevicesOwned = Équipement d'interconnexion possédés
+NetworkDevicesMaintain = Équipement d'interconnexion maintenus
+
+#
+# dict.php
+#
+
+DictionaryDescExtra = Editez ici les dictionnaires de référence. Vous pouvez compléter/modifier les dictionnaires présents du module Info Extranet.

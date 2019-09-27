@@ -1,15 +1,13 @@
 diff a/htdocs/custom/synergiestech/core/modules/modSynergiesTech.class.php b/htdocs/custom/synergiestech/core/modules/modSynergiesTech.class.php	(rejected hunks)
-@@ -374,6 +374,13 @@ class modSynergiesTech extends DolibarrModules
-         $this->rights[$r][3] = 0;
-         $this->rights[$r][4] = 'user';
-         $this->rights[$r][5] = 'lirerestreint';
-+        $r++;
+@@ -447,6 +448,11 @@ class modSynergiesTech extends DolibarrModules
+ 		// $this->export_sql_order[$r] .=' ORDER BY s.nom';
+ 		// $r++;
+ 		
++		$this->tabs = array(
++            'thirdparty:+tab1gael:TEST:synergiestech@synergiestech:true:/custom/pagessubstitution/substitutions/1_synergies-tech/fichinter/list.php?socid=__ID__',
++        );
 +		
-+		$this->rights[$r][0] = 500126;
-+        $this->rights[$r][1] = "Permettre la création de demande de type Intervention depuis l'espace Client";
-+        $this->rights[$r][3] = 0;
-+        $this->rights[$r][4] = 'requestmanager';
-+        $this->rights[$r][5] = 'creerIntervention';
-         $r++;
- 
- 		// Add here list of permission defined by an id, a label, a boolean and two constant strings.
++		
+ 		if (! empty($conf->fournisseur->enabled))
+ 		{
+ 			// Import suppliers prices (note: this code is duplicated into module service)

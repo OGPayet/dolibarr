@@ -400,6 +400,7 @@ class modSynergiesTech extends DolibarrModules
 		//							'target'=>'',
 		//							'user'=>2);				                // 0=Menu for internal users, 1=external users, 2=both
 
+
 		// Exports
 		$r=1;
 
