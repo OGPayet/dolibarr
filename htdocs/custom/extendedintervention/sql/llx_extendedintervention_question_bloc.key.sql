@@ -15,7 +15,6 @@
 -- along with this program. If not, see <http://www.gnu.org/licenses/>.
 -- ===========================================================================
 
-ALTER TABLE llx_extendedintervention_question_bloc ADD UNIQUE INDEX idx_ei_qb_unique (fk_survey_bloc, fk_c_question_bloc);
 ALTER TABLE llx_extendedintervention_question_bloc ADD INDEX idx_ei_qb_fk_survey_bloc (fk_survey_bloc);
 ALTER TABLE llx_extendedintervention_question_bloc ADD INDEX idx_ei_qb_fk_c_question_bloc (fk_c_question_bloc);
 ALTER TABLE llx_extendedintervention_question_bloc ADD INDEX idx_ei_qb_fk_c_question_bloc_status (fk_c_question_bloc_status);

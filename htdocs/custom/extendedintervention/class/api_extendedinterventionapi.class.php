@@ -1131,7 +1131,22 @@ class ExtendedInterventionApi extends DolibarrApi {
             }
             $current_survey = $extendedintervention->survey;
 
-            // Save survey bloc
+
+			//Delete empty survey bloc
+
+			if ($delete_question_bloc) {
+                    foreach ($current_survey as $id_equipment => $survey_bloc) {
+                        if (!isset($survey[$id_equipment])) {
+                            if ($survey_bloc->delete(DolibarrApiAccess::$user) < 0) {
+                                self::$db->rollback();
+                                throw new RestException(500, "Error while deleting the equipement question bloc", ['id_intervention' => $id_intervention, 'id_equipment' => $current_equipment_id, 'details' => $this->_getErrors($qb)]);
+                            }
+                        }
+                    }
+                }
+
+
+			// Save survey bloc
             //-------------------------
             foreach ($survey as $id_equipment => $survey_bloc) {
                 $current_equipment_id = isset($survey_bloc['fk_equipment']) ? $survey_bloc['fk_equipment'] : $id_equipment;
@@ -1168,11 +1183,11 @@ class ExtendedInterventionApi extends DolibarrApi {
                 $question_bloc_saved = array();
 
                 // Save question bloc
-                //-------------------------
-                foreach ($survey_bloc['survey'] as $id_c_question_bloc => $question_bloc) {
-                    $current_c_question_bloc_id = isset($question_bloc['fk_c_question_bloc']) ? $question_bloc['fk_c_question_bloc'] : $id_c_question_bloc;
+                //-------------------------$id_c_question_bloc
+                foreach ($survey_bloc['survey'] as $id => $question_bloc) {
+                    $current_id = isset($question_bloc['id']) ? $question_bloc['id'] : $id;
                     // Get handler of the question bloc (if exist in the current survey) or create it
-                    $current_question_bloc = isset($current_survey_bloc->survey[$current_c_question_bloc_id]) ? $current_survey_bloc->survey[$current_c_question_bloc_id] : new EIQuestionBloc(self::$db, $current_survey_bloc);
+                    $current_question_bloc = isset($current_survey_bloc->survey[$current_id]) ? $current_survey_bloc->survey[$current_id] : new EIQuestionBloc(self::$db, $current_survey_bloc);
 
                     // Test if is read only
 //                    if ($current_question_bloc->read_only) {
@@ -1182,7 +1197,7 @@ class ExtendedInterventionApi extends DolibarrApi {
 
                     // Set Values
                     $current_question_bloc->fk_survey_bloc = $current_survey_bloc->id;
-                    $current_question_bloc->fk_c_question_bloc = $current_c_question_bloc_id;
+                    $current_question_bloc->fk_c_question_bloc = $question_bloc['fk_c_question_bloc'];
                     $current_question_bloc->position_question_bloc = isset($question_bloc['position_question_bloc']) ? $question_bloc['position_question_bloc'] : null;
                     $current_question_bloc->code_question_bloc = isset($question_bloc['code_question_bloc']) ? $question_bloc['code_question_bloc'] : null;
                     $current_question_bloc->label_question_bloc = isset($question_bloc['label_question_bloc']) ? $question_bloc['label_question_bloc'] : null;
@@ -1215,15 +1230,15 @@ class ExtendedInterventionApi extends DolibarrApi {
 
                     if ($result < 0) {
                         self::$db->rollback();
-                        throw new RestException(500, "Error while saving the question bloc", ['id_intervention' => $id_intervention, 'id_equipment' => $current_equipment_id, 'id_c_question_bloc' => $current_c_question_bloc_id, 'details' => $this->_getErrors($current_question_bloc)]);
+                        throw new RestException(500, "Error while saving the question bloc", ['id_intervention' => $id_intervention, 'id_equipment' => $current_equipment_id, 'id_c_question_bloc' => $current_question_bloc->fk_c_question_bloc, 'details' => $this->_getErrors($current_question_bloc)]);
                     }
 
                     // Save question
                     //-------------------------
-                    foreach ($question_bloc['lines'] as $id_c_question => $question) {
-                        $current_c_question_id = isset($question['fk_c_question']) ? $question['fk_c_question'] : $id_c_question;
+                    foreach ($question_bloc['lines'] as $id_question => $question) {
+                        //$current_question_id = isset($question['id']) ? $question['id'] : $id_question;
                         // Get handler of the question (if exist in the current survey) or create it
-                        $current_question = isset($current_question_bloc->lines[$current_c_question_id]) ? $current_question_bloc->lines[$current_c_question_id] : new EIQuestionBlocLine(self::$db);
+                        $current_question = isset($current_question_bloc->lines[$question['id']]) ? $current_question_bloc->lines[$question['id']] : new EIQuestionBlocLine(self::$db);
 
                         // Test if is read only
 //                        if ($current_question->read_only) {
@@ -1233,7 +1248,7 @@ class ExtendedInterventionApi extends DolibarrApi {
 
                         // Set Values
                         $current_question->fk_question_bloc = $current_question_bloc->id;
-                        $current_question->fk_c_question = $current_c_question_id;
+                        $current_question->fk_c_question = $question['fk_c_question'];
                         $current_question->position_question = isset($question['position_question']) ? $question['position_question'] : null;
                         $current_question->code_question = isset($question['code_question']) ? $question['code_question'] : null;
                         $current_question->label_question = isset($question['label_question']) ? $question['label_question'] : null;
@@ -1247,7 +1262,7 @@ class ExtendedInterventionApi extends DolibarrApi {
                         $current_question->text_answer = isset($question['text_answer']) ? $question['text_answer'] : $current_question->text_answer;
 
                         if ($current_question->id > 0) {
-                            // Update
+                             //Update
                             $result = $current_question->update(DolibarrApiAccess::$user);
                         } else {
                             // Create
@@ -1267,7 +1282,7 @@ class ExtendedInterventionApi extends DolibarrApi {
                 //-------------------------
                 if ($delete_question_bloc) {
                     foreach ($current_survey_bloc->survey as $qb) {
-                        if (!isset($question_bloc_saved[$qb->fk_c_question_bloc]) && !empty($qb->deletable)) {
+                        if (!isset($question_bloc_saved[$qb->id]) && !empty($qb->deletable)) {
                             if ($qb->delete(DolibarrApiAccess::$user) < 0) {
                                 self::$db->rollback();
                                 throw new RestException(500, "Error while deleting the question bloc", ['id_intervention' => $id_intervention, 'id_equipment' => $current_equipment_id, 'id_c_question_bloc' => $qb->id, 'details' => $this->_getErrors($qb)]);

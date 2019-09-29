@@ -1570,11 +1570,11 @@ class EIQuestionBloc extends CommonObject
 
         $this->fetch_fichinter();
         if (isset($this->fichinter)) {
-            if (!is_array($this->fichinter->survey[$this->fk_equipment]->survey[$this->fk_c_question_bloc]->status_list) || count($this->fichinter->survey[$this->fk_equipment]->survey[$this->fk_c_question_bloc]->status_list) == 0) {
+            if (!is_array($this->fichinter->survey[$this->fk_equipment]->survey[$this->id]->status_list) || count($this->fichinter->survey[$this->fk_equipment]->survey[$this->id]->status_list) == 0) {
                 $this->fichinter->fetch_survey(1);
             }
 
-            if (isset($this->fichinter->survey[$this->fk_equipment]->survey[$this->fk_c_question_bloc]->status_list[$this->fk_c_question_bloc_status])) {
+            if (isset($this->fichinter->survey[$this->fk_equipment]->survey[$this->id]->status_list[$this->fk_c_question_bloc_status])) {
                 return 1;
             }
         }

@@ -889,7 +889,7 @@ class EISurveyBloc extends CommonObject
             dol_include_once('/extendedintervention/class/extendedinterventionquestionbloc.class.php');
             //if ($this->fichinter->statut != ExtendedIntervention::STATUS_VALIDATED) $all_data = 0;
 
-            $sql = "SELECT t.fk_fichinter, t.fk_equipment, c.fk_survey_bloc, c.fk_c_question_bloc";
+            $sql = "SELECT c.rowid, t.fk_fichinter, t.fk_equipment, c.fk_survey_bloc, c.fk_c_question_bloc";
             $sql .= " FROM " . MAIN_DB_PREFIX . $this->table_element_child . " AS c" .
                 " LEFT JOIN " . MAIN_DB_PREFIX . $this->table_element . " as t ON c.fk_survey_bloc = t.rowid" .
                 " WHERE t.entity IN (" . getEntity('ei_survey_bloc') . ")";
@@ -903,13 +903,13 @@ class EISurveyBloc extends CommonObject
             if ($resql) {
                 while ($obj = $this->db->fetch_object($resql)) {
                     $bloc = new EIQuestionBloc($this->db, $this);
-                    if ($bloc->fetch(0, $obj->fk_fichinter, $obj->fk_equipment, $obj->fk_survey_bloc, $obj->fk_c_question_bloc, $all_data, 0) < 0) {
+                    if ($bloc->fetch($obj->rowid, 0, 0, 0, 0, $all_data, 0) < 0) {
                         $this->error = $bloc->error;
                         $this->errors = $bloc->errors;
                         return -1;
                     }
                     $bloc->read_only = 1;
-                    $this->survey[$obj->fk_c_question_bloc] = $bloc;
+                    $this->survey[$obj->rowid] = $bloc;
                 }
             } else {
                 $this->error = $this->db->lasterror();
