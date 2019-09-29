@@ -126,9 +126,8 @@ class ExtendedIntervention extends Fichinter
 
         if ($this->id > 0 && $this->statut != self::STATUS_DRAFT) {
             dol_include_once('/extendedintervention/class/extendedinterventionsurveybloc.class.php');
-            //if ($this->statut != self::STATUS_VALIDATED) $all_data = 0;
 
-            $sql = "SELECT t.fk_equipment";
+            $sql = "SELECT t.rowid,t.fk_equipment";
             $sql .= " FROM " . MAIN_DB_PREFIX . "extendedintervention_survey_bloc AS t";
             $sql .= " WHERE t.fk_fichinter=" . $this->id;
 
@@ -137,13 +136,13 @@ class ExtendedIntervention extends Fichinter
             if ($resql) {
                 while ($obj = $this->db->fetch_object($resql)) {
                     $survey_bloc = new EISurveyBloc($this->db, $this);
-                    if ($survey_bloc->fetch(0, $this->id, $obj->fk_equipment, $all_data, 0) < 0) {
+                    if ($survey_bloc->fetch($obj->rowid, 0,0, $all_data, 0) < 0) {
                         $this->error = $survey_bloc->error;
                         $this->errors = $survey_bloc->errors;
                         return -1;
                     }
                     $survey_bloc->read_only = 1;
-                    $this->survey[$obj->fk_equipment] = $survey_bloc;
+                    $this->survey[$obj->fk_equipment]=$survey_bloc;
                 }
             } else {
                 $this->error = $this->db->lasterror();
@@ -155,8 +154,11 @@ class ExtendedIntervention extends Fichinter
                 return -1;
             $linked_equipments = is_array($this->linkedObjectsIds['equipement']) ? $this->linkedObjectsIds['equipement'] : array();
 
+            //To manage General Bloc, we add id 0 inside $linked equipments
+            $linked_equipments[]=0;
+
             foreach ($linked_equipments as $equipment_id) {
-                if (!isset($this->survey[$equipment_id])) {
+                if (isset($this->survey[$equipment_id])) {
                     $survey_bloc = new EISurveyBloc($this->db, $this);
                     if ($survey_bloc->fetch(0, $this->id, $equipment_id, $all_data, 0) < 0) {
                         $this->error = $survey_bloc->error;
@@ -165,23 +167,13 @@ class ExtendedIntervention extends Fichinter
                     }
                     $this->survey[$equipment_id] = $survey_bloc;
                 }
-                if (isset($this->survey[$equipment_id])) $this->survey[$equipment_id]->read_only = $this->statut == self::STATUS_VALIDATED ? 0 : 1;
-                if (isset($this->survey[$equipment_id]) && empty($this->survey[$equipment_id]->survey)) unset($this->survey[$equipment_id]);
             }
 
-            // General bloc
-            $equipment_id = 0;
-            if (!isset($this->survey[$equipment_id])) {
-                $survey_bloc = new EISurveyBloc($this->db, $this);
-                if ($survey_bloc->fetch(0, $this->id, $equipment_id, $all_data, 0) < 0) {
-                    $this->error = $survey_bloc->error;
-                    $this->errors = $survey_bloc->errors;
-                    return -1;
-                }
-                $this->survey[$equipment_id] = $survey_bloc;
+            foreach($this->survey as $index=>$surveyBloc)
+            {
+                $surveyBloc->read_only = $this->statut == self::STATUS_VALIDATED ? 0 : 1;
+                if(empty($surveyBloc->survey)) unset($this->survey[$index]);
             }
-            if (isset($this->survey[$equipment_id])) $this->survey[$equipment_id]->read_only = $this->statut == self::STATUS_VALIDATED ? 0 : 1;
-            if (isset($this->survey[$equipment_id]) && empty($this->survey[$equipment_id]->survey)) unset($this->survey[$equipment_id]);
 
             // Sort by product label
             uasort($this->survey, 'ei_sort_survey_bloc_product_label');

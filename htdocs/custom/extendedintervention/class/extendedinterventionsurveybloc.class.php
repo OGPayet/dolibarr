@@ -635,6 +635,10 @@ class EISurveyBloc extends CommonObject
      */
     function fetch($rowid=0, $fk_fichinter=0, $fk_equipment=0, $all_data=0, $test_exist=1)
     {
+
+        //If we have rowid, this bloc already exist. //So we have to find this bloc inside bdd
+        //However we have to create it from dictionnary
+
         global $langs;
 
         // Clean parameters
@@ -909,7 +913,7 @@ class EISurveyBloc extends CommonObject
                         return -1;
                     }
                     $bloc->read_only = 1;
-                    $this->survey[$obj->rowid] = $bloc;
+                    $this->survey[] = $bloc;
                 }
             } else {
                 $this->error = $this->db->lasterror();
@@ -957,16 +961,17 @@ class EISurveyBloc extends CommonObject
                         if ((empty($question_bloc->fields['unique_bloc']) || empty($this->fk_equipment)) &&
                             (empty($question_bloc->fields['categories']) || count(array_diff($equipement_categories, explode(',', $question_bloc->fields['categories']))) != $equipement_nb_categories)
                         ) {
-                            if (!isset($this->survey[$question_bloc->id])) {
+                            $questionBlocFromDictionnaryThatShouldBeInThisSurveyIndex = array_search($question_bloc_id, array_column($this->survey, 'fk_c_question_bloc'));
+                            if ($questionBlocFromDictionnaryThatShouldBeInThisSurveyIndex!==false) {
                                 $bloc = new EIQuestionBloc($this->db, $this);
                                 if ($bloc->fetch(0, $this->fk_fichinter, $this->fk_equipment, 0, $question_bloc->id, $all_data, 0) < 0) {
                                     $this->error = $bloc->error;
                                     $this->errors = $bloc->errors;
                                     return -1;
                                 }
-                                $this->survey[$question_bloc->id] = $bloc;
+                                $this->survey[] = $bloc;
                             }
-                            if (isset($this->survey[$question_bloc->id])) $this->survey[$question_bloc->id]->read_only = 0;
+/*                            if (isset($this->survey[$question_bloc->id])) $this->survey[$question_bloc->id]->read_only = 0;*/
                         }
                     }
                 }
