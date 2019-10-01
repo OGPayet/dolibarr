@@ -135,51 +135,83 @@ class ExtendedIntervention extends Fichinter
             $resql = $this->db->query($sql);
             if ($resql) {
                 while ($obj = $this->db->fetch_object($resql)) {
-                    $survey_bloc = new EISurveyBloc($this->db, $this);
-                    if ($survey_bloc->fetch($obj->rowid, 0,0, $all_data, 0) < 0) {
-                        $this->error = $survey_bloc->error;
+                    $survey_bloc = new EISurveyBloc($this->db, $obj->rowid, $this->id, $obj->fk_equipment);
+                    if ($survey_bloc->fetch() < 0) {
                         $this->errors = $survey_bloc->errors;
                         return -1;
                     }
                     $survey_bloc->read_only = 1;
-                    $this->survey[$obj->fk_equipment]=$survey_bloc;
+                    $this->survey[]=$survey_bloc;
                 }
             } else {
-                $this->error = $this->db->lasterror();
                 dol_syslog(__METHOD__ . " SQL: " . $sql . '; Errors: ' . $this->errorsToString(), LOG_ERR);
                 return -1;
             }
 
-            if ($this->fetchObjectLinked() < 0)
-                return -1;
-            $linked_equipments = is_array($this->linkedObjectsIds['equipement']) ? $this->linkedObjectsIds['equipement'] : array();
-
-            //To manage General Bloc, we add id 0 inside $linked equipments
-            $linked_equipments[]=0;
-
-            foreach ($linked_equipments as $equipment_id) {
-                if (isset($this->survey[$equipment_id])) {
-                    $survey_bloc = new EISurveyBloc($this->db, $this);
-                    if ($survey_bloc->fetch(0, $this->id, $equipment_id, $all_data, 0) < 0) {
-                        $this->error = $survey_bloc->error;
-                        $this->errors = $survey_bloc->errors;
-                        return -1;
-                    }
-                    $this->survey[$equipment_id] = $survey_bloc;
-                }
-            }
-
-            foreach($this->survey as $index=>$surveyBloc)
-            {
-                $surveyBloc->read_only = $this->statut == self::STATUS_VALIDATED ? 0 : 1;
-                if(empty($surveyBloc->survey)) unset($this->survey[$index]);
-            }
-
-            // Sort by product label
-            uasort($this->survey, 'ei_sort_survey_bloc_product_label');
         }
 
+        $this->arrange_survey();
+
         return 1;
+    }
+
+    public function add_missing_equipment()
+    {
+
+        if ($this->fetchObjectLinked() < 0)
+            return -1;
+        $linked_equipments = is_array($this->linkedObjectsIds['equipement']) ? $this->linkedObjectsIds['equipement'] : array();
+
+        //To manage General Bloc, we add id 0 inéside $linked equipments
+        $linked_equipments[]=0;
+
+        foreach ($linked_equipments as $equipment_id) {
+            //We add EISurveyBloc for missing equipment
+            if(array_search($this->survey,array_column($equipment_id,"fk_equipment"))!==false) continue;
+            $survey_bloc = new EISurveyBloc($this->db, 0, $this->id, $equipment_id);
+            if ($survey_bloc->fetch()<0) {
+                $this->errors = $survey_bloc->errors;
+                return -1;
+            }
+            $this->survey[] = $survey_bloc;
+        }
+        $this->arrange_survey();
+
+    }
+
+    public function save()
+    {
+        foreach($this->survey as $survey_bloc)
+        {
+            if ($survey_bloc->save()<0) {
+                $this->errors = $survey_bloc->errors;
+                return -1;
+            }
+        }
+    }
+
+    public function validate()
+    {
+        foreach($this->survey as $survey_bloc)
+        {
+            if ($survey_bloc->validate()<0) {
+                $this->errors = $survey_bloc->errors;
+                return -1;
+            }
+        }
+    }
+
+    public function arrange_survey()
+    {
+
+        foreach($this->survey as $index=>$surveyBloc)
+        {
+            $surveyBloc->read_only = $this->statut == self::STATUS_VALIDATED ? 0 : 1;
+            if(empty($surveyBloc->survey)) unset($this->survey[$index]);
+        }
+
+        // Sort by product label
+        uasort($this->survey, 'ei_sort_survey_bloc_product_label');
     }
 
     /**

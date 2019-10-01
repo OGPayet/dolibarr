@@ -244,16 +244,47 @@ class EISurveyBloc extends CommonObject
      * @param   DoliDB                  $db             Database handler
      * @param   ExtendedIntervention    $fichinter      Intervention handler
      */
-    function __construct($db, $fichinter=null)
+    function __construct($db, $rowid, $fk_fichinter=0, $fk_equipment=0)
     {
         global $langs;
 
         $this->db = $db;
-        $this->fichinter = $fichinter;
+        $this->fk_fichinter=$fk_fichinter;
+        $this->fk_equipment=$fk_equipment;
+        $this->id=$rowid;
 
         $langs->load("extendedintervention@extendedintervention");
         $langs->load("errors");
     }
+
+    public function save($user,$notrigger=0)
+    {
+        if($this->id)
+        {
+            $result = $this->update($user,$notrigger);
+        }
+        else
+            {
+            $result = $this->update($user,$notrigger);
+        }
+        if($result<0)
+        {
+            return -1;
+        }
+        return 1;
+    }
+
+    public function validate()
+    {
+        foreach($this->survey as $question_bloc)
+        {
+            if($question_bloc->validate()<0){
+                $this->errors = $question_bloc->errors;
+                return -1;
+            }
+        }
+    }
+
 
     /**
      *  Create survey bloc into database
@@ -633,11 +664,10 @@ class EISurveyBloc extends CommonObject
      * @param   int     $test_exist             1=Test if the survey bloc exist in the survey of the intervention
      * @return  int                             <0 if KO, >=0 if OK
      */
-    function fetch($rowid=0, $fk_fichinter=0, $fk_equipment=0, $all_data=0, $test_exist=1)
+    function fetch()
     {
 
         //If we have rowid, this bloc already exist. //So we have to find this bloc inside bdd
-        //However we have to create it from dictionnary
 
         global $langs;
 
