@@ -186,8 +186,6 @@ class InvoicesContractTools
     {
         global $conf, $langs;
 
-		ini_set('max_execution_time', 1800);
-
         $langs->load('synergiestechcontrat@synergiestechcontrat');
         $this->db = $db;
         $this->csv_separator = !empty($conf->global->SYNERGIESTECHCONTRAT_CSV_SEPARATOR_TO_USE) ? $conf->global->SYNERGIESTECHCONTRAT_CSV_SEPARATOR_TO_USE : $this->csv_separator;

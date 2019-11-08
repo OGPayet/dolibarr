@@ -1,0 +1,38 @@
+diff a/htdocs/custom/extendedintervention/class/extendedinterventionsurveybloc.class.php b/htdocs/custom/extendedintervention/class/extendedinterventionsurveybloc.class.php	(rejected hunks)
+@@ -903,13 +903,13 @@ class EISurveyBloc extends CommonObject
+             if ($resql) {
+                 while ($obj = $this->db->fetch_object($resql)) {
+                     $bloc = new EIQuestionBloc($this->db, $this);
+-                    if ($bloc->fetch($obj->rowid, 0, 0, 0, 0, $all_data, 0) < 0) {
++                    if ($bloc->fetch(0, $obj->fk_fichinter, $obj->fk_equipment, $obj->fk_survey_bloc, $obj->fk_c_question_bloc, $all_data, 0) < 0) {
+                         $this->error = $bloc->error;
+                         $this->errors = $bloc->errors;
+                         return -1;
+                     }
+                     $bloc->read_only = 1;
+-                    $this->survey[$obj->rowid] = $bloc;
++                    $this->survey[] = $bloc;
+                 }
+             } else {
+                 $this->error = $this->db->lasterror();
+@@ -957,16 +957,17 @@ class EISurveyBloc extends CommonObject
+                         if ((empty($question_bloc->fields['unique_bloc']) || empty($this->fk_equipment)) &&
+                             (empty($question_bloc->fields['categories']) || count(array_diff($equipement_categories, explode(',', $question_bloc->fields['categories']))) != $equipement_nb_categories)
+                         ) {
+-                            if (!isset($this->survey[$question_bloc->id])) {
++                            $indexOfThisQuestionFromDictionnaryInSurvey = array_search($this->survey,array_column($question_bloc->id,'fk_c_question_bloc'));
++                            if ($indexOfThisQuestionFromDictionnaryInSurvey===false) {
+                                 $bloc = new EIQuestionBloc($this->db, $this);
+                                 if ($bloc->fetch(0, $this->fk_fichinter, $this->fk_equipment, 0, $question_bloc->id, $all_data, 0) < 0) {
+                                     $this->error = $bloc->error;
+                                     $this->errors = $bloc->errors;
+                                     return -1;
+                                 }
+-                                $this->survey[$question_bloc->id] = $bloc;
++                                $this->survey[] = $bloc;
+                             }
+-                            if (isset($this->survey[$question_bloc->id])) $this->survey[$question_bloc->id]->read_only = 0;
++/*                            if (isset($this->survey[$question_bloc->id])) $this->survey[$question_bloc->id]->read_only = 0;*/
+                         }
+                     }
+                 }

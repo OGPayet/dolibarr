@@ -923,7 +923,7 @@ class EISurveyBloc extends CommonObject
             dol_include_once('/extendedintervention/class/extendedinterventionquestionbloc.class.php');
             //if ($this->fichinter->statut != ExtendedIntervention::STATUS_VALIDATED) $all_data = 0;
 
-            $sql = "SELECT c.rowid, t.fk_fichinter, t.fk_equipment, c.fk_survey_bloc, c.fk_c_question_bloc";
+            $sql = "SELECT t.fk_fichinter, t.fk_equipment, c.fk_survey_bloc, c.fk_c_question_bloc";
             $sql .= " FROM " . MAIN_DB_PREFIX . $this->table_element_child . " AS c" .
                 " LEFT JOIN " . MAIN_DB_PREFIX . $this->table_element . " as t ON c.fk_survey_bloc = t.rowid" .
                 " WHERE t.entity IN (" . getEntity('ei_survey_bloc') . ")";

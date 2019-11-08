@@ -421,15 +421,6 @@ class modSynergiesTech extends DolibarrModules
 		// $this->export_sql_order[$r] .=' ORDER BY s.nom';
 		// $r++;
 
-		//modification Gael: ajout tab direct link fiche inter tiers
-		$this->tabs = array(
-			'thirdparty:+tab2gael:DEVIS:synergiestech@synergiestech:true:/custom/pagessubstitution/substitutions/1_synergies-tech/comm/propal/list.php?socid=__ID__',
-			'thirdparty:+tab3gael:COMMANDE:synergiestech@synergiestech:true:/custom/pagessubstitution/substitutions/1_synergies-tech/commande/list.php?socid=__ID__',
-			'thirdparty:+tab1gael:INTERVENTION:synergiestech@synergiestech:true:/custom/pagessubstitution/substitutions/1_synergies-tech/fichinter/list.php?socid=__ID__',
-			'thirdparty:+tab4gael:FACTURE:synergiestech@synergiestech:true:/custom/pagessubstitution/substitutions/1_synergies-tech/compta/facture/list.php?socid=__ID__',
-			'thirdparty:+tab5gael:CONTRAT:synergiestech@synergiestech:true:/custom/pagessubstitution/substitutions/1_synergies-tech/contrat/list.php?socid=__ID__',
-			);
-
 		if (! empty($conf->fournisseur->enabled))
 		{
 			// Import suppliers prices (note: this code is duplicated into module service)

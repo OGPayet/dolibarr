@@ -156,7 +156,7 @@ class DolModExts extends DolibarrModules
 			// Permissions
 			$this->rights = array();  // Permission array used by this module
 			$this->rights_class = $this->code;
-			$this->rights_admin_allowed = 1;  // Admin is always granted of permission (even when module is disabled)
+			$this->rights_admin_allowed = 0;  // Admin is always granted of permission (even when module is disabled)
 
 
 
