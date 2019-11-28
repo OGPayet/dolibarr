@@ -210,7 +210,7 @@ class ActionsExtendedIntervention
 
         // Auto save survey when the equipment link with the intervention is deleted
         //----------------------------------------------------------------------------
-        if (in_array('interventioncard', $contexts) || in_array('equipementcard', $contexts)) {
+       /*  if (in_array('interventioncard', $contexts) || in_array('equipementcard', $contexts)) {
             // Get intervention ID and equipment ID
             $intervention_id = 0;
             $equipment_id = 0;
@@ -289,7 +289,7 @@ class ActionsExtendedIntervention
                     }
                 }
             }
-        }
+        } */
 
         return 0;
     }
