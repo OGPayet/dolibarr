@@ -324,7 +324,7 @@ class L_chronopost extends shipping_class
 		$skybillValue['objectType']='MAR';
 		$skybillValue['portCurrency']='EUR';
 		$skybillValue['portValue']="0";
-		$skybillValue['productCode']="44";
+		$skybillValue['productCode']="02";
 		$skybillValue['service']="0";
 	    $skybillValue['shipDate']=$date['year'].'-'.$date['mon'].'-'.$date['mday'].'T'.$date['hours'].':'.$date['minutes'].':0Z';
 	    $skybillValue['shipHour']=$date['hours'];
