@@ -528,7 +528,7 @@ class InvoicesContractTools
 
                 // Get length periods
                 $first_billing_period_lenght = $first_billing_period_begin->diffInDays($first_billing_period_end) + ($first_billing_period_begin->year != $first_billing_period_end->year && $first_billing_period_begin->month != $first_billing_period_end->month && $first_billing_period_begin->day != $first_billing_period_end->day ? 1 : 0);
-                $second_billing_period_lenght = $second_billing_period_begin->diffInDays($second_billing_period_end) + 1;
+                $second_billing_period_lenght = $second_billing_period_begin->copy()->diffInDays($second_billing_period_end->copy()->addMinutes(1)) + 1;
 
                 // Set info into the report CSV
                 $this->setCurrentReportLineValue(self::RLH_FIRST_BILLING_PERIOD_BEGIN, $first_billing_period_begin->toDateString());
