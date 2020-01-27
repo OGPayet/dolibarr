@@ -699,7 +699,10 @@ class EIQuestionBloc extends CommonObject
         }
         $error_in_questionbloc = $error > 0;
         if ($this->fk_c_question_bloc_status > 0) {
-            if ($this->fetchQuestionBlocStatusInfo() < 0) {
+            if ($this->fk_c_question_bloc > 0 && !$this->is_status_in_survey()) {
+                $this->errors[] = $langs->trans("ExtendedInterventionErrorQuestionBlocStatusNotInSurvey", $this->fk_c_question_bloc);
+                $error++;
+            } elseif ($this->fetchQuestionBlocStatusInfo() < 0) {
                 $error++;
             } elseif (isset(self::$question_bloc_status_cached[$this->fk_c_question_bloc_status])) {
                 $question_bloc_status = self::$question_bloc_status_cached[$this->fk_c_question_bloc_status];
@@ -912,7 +915,10 @@ class EIQuestionBloc extends CommonObject
         }
         $error_in_questionbloc = $error > 0;
         if ($this->fk_c_question_bloc_status > 0) {
-             if ($this->fetchQuestionBlocStatusInfo() < 0) {
+            if ($this->fk_c_question_bloc > 0 && !$this->is_status_in_survey()) {
+                $this->errors[] = $langs->trans("ExtendedInterventionErrorQuestionBlocStatusNotInSurvey", $this->fk_c_question_bloc);
+                $error++;
+            } elseif ($this->fetchQuestionBlocStatusInfo() < 0) {
                 $error++;
             } elseif (isset(self::$question_bloc_status_cached[$this->fk_c_question_bloc_status])) {
                 $question_bloc_status = self::$question_bloc_status_cached[$this->fk_c_question_bloc_status];
@@ -1432,7 +1438,7 @@ class EIQuestionBloc extends CommonObject
                 $question = new EIQuestionBlocLine($this->db);
                 $question->fetch(0, $obj->fk_fichinter, $obj->fk_equipment, $obj->fk_c_question_bloc, $obj->fk_question_bloc, $obj->fk_c_question, $all_data, 0);
                 $question->read_only = 1;
-                $this->lines[]=$question;
+                $this->lines[$obj->fk_c_question] = $question;
             }
         } else {
             $this->error = $this->db->lasterror();
@@ -1446,13 +1452,12 @@ class EIQuestionBloc extends CommonObject
             $question_list = !empty(self::$question_bloc_cached[$this->fk_c_question_bloc]->fields['questions']) ? explode(',', self::$question_bloc_cached[$this->fk_c_question_bloc]->fields['questions']) : array();
 
             foreach ($question_list as $question_id) {
-                $questionIdThatIsInDictionnaryAndShouldBeInThisBlocOfQuestionIndex = array_search($question_id, array_column($this->lines, 'fk_c_question'));
-                if ($questionIdThatIsInDictionnaryAndShouldBeInThisBlocOfQuestionIndex !==false) {
+                if (!isset($this->lines[$question_id])) {
                     $question = new EIQuestionBlocLine($this->db);
                     $question->fetch(0, $this->fk_fichinter, $this->fk_equipment, $this->fk_c_question_bloc, $this->id, $question_id, $all_data, 0);
-                    $this->lines = $question;
+                    $this->lines[$question_id] = $question;
                 }
-/*                if (isset($this->lines[$question_id])) $this->lines[$question_id]->read_only = 0;*/
+                if (isset($this->lines[$question_id])) $this->lines[$question_id]->read_only = 0;
             }
         }
 
@@ -1565,12 +1570,11 @@ class EIQuestionBloc extends CommonObject
 
         $this->fetch_fichinter();
         if (isset($this->fichinter)) {
-            $currentBlocIndex =  array_search($this->id, array_column($this->fichinter->survey[$this->fk_equipment]->survey, 'id'));
-            if ($currentBlocIndex!==false&&!is_array($this->fichinter->survey[$this->fk_equipment]->survey[$currentBlocIndex]->status_list) || $currentBlocIndex!==false&&count($this->fichinter->survey[$this->fk_equipment]->survey[$currentBlocIndex]->status_list) == 0) {
+            if (!is_array($this->fichinter->survey[$this->fk_equipment]->survey[$this->fk_c_question_bloc]->status_list) || count($this->fichinter->survey[$this->fk_equipment]->survey[$this->fk_c_question_bloc]->status_list) == 0) {
                 $this->fichinter->fetch_survey(1);
             }
 
-            if ($currentBlocIndex!==false&&isset($this->fichinter->survey[$this->fk_equipment]->survey[$currentBlocIndex]->status_list[$this->fk_c_question_bloc_status])) {
+            if (isset($this->fichinter->survey[$this->fk_equipment]->survey[$this->fk_c_question_bloc]->status_list[$this->fk_c_question_bloc_status])) {
                 return 1;
             }
         }
@@ -2171,7 +2175,10 @@ class EIQuestionBlocLine extends CommonObjectLine
             $error++;
         }
         if ($this->fk_c_answer > 0) {
-            if ($this->fetchAnswerInfo() < 0) {
+            if ($this->fk_c_question > 0 && !$this->is_answer_in_survey()) {
+                $this->errors[] = $langs->trans("ExtendedInterventionErrorQuestionAnswerNotInSurvey", $this->fk_c_question);
+                $error++;
+            } elseif ($this->fetchAnswerInfo() < 0) {
                 $error++;
             } elseif (isset(self::$answer_cached[$this->fk_c_answer])) {
                 $answer = self::$answer_cached[$this->fk_c_answer];
@@ -2334,7 +2341,10 @@ class EIQuestionBlocLine extends CommonObjectLine
             $error++;
         }
         if ($this->fk_c_answer > 0) {
-            if ($this->fetchAnswerInfo() < 0) {
+            if ($this->fk_c_question > 0 && !$this->is_answer_in_survey()) {
+                $this->errors[] = $langs->trans("ExtendedInterventionErrorQuestionAnswerNotInSurvey", $this->fk_c_question);
+                $error++;
+            } elseif ($this->fetchAnswerInfo() < 0) {
                 $error++;
             } elseif (isset(self::$answer_cached[$this->fk_c_answer])) {
                 $answer = self::$answer_cached[$this->fk_c_answer];

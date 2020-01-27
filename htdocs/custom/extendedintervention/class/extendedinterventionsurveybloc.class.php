@@ -244,47 +244,16 @@ class EISurveyBloc extends CommonObject
      * @param   DoliDB                  $db             Database handler
      * @param   ExtendedIntervention    $fichinter      Intervention handler
      */
-    function __construct($db, $rowid, $fk_fichinter=0, $fk_equipment=0)
+    function __construct($db, $fichinter=null)
     {
         global $langs;
 
         $this->db = $db;
-        $this->fk_fichinter=$fk_fichinter;
-        $this->fk_equipment=$fk_equipment;
-        $this->id=$rowid;
+        $this->fichinter = $fichinter;
 
         $langs->load("extendedintervention@extendedintervention");
         $langs->load("errors");
     }
-
-    public function save($user,$notrigger=0)
-    {
-        if($this->id)
-        {
-            $result = $this->update($user,$notrigger);
-        }
-        else
-            {
-            $result = $this->update($user,$notrigger);
-        }
-        if($result<0)
-        {
-            return -1;
-        }
-        return 1;
-    }
-
-    public function validate()
-    {
-        foreach($this->survey as $question_bloc)
-        {
-            if($question_bloc->validate()<0){
-                $this->errors = $question_bloc->errors;
-                return -1;
-            }
-        }
-    }
-
 
     /**
      *  Create survey bloc into database
@@ -664,11 +633,8 @@ class EISurveyBloc extends CommonObject
      * @param   int     $test_exist             1=Test if the survey bloc exist in the survey of the intervention
      * @return  int                             <0 if KO, >=0 if OK
      */
-    function fetch()
+    function fetch($rowid=0, $fk_fichinter=0, $fk_equipment=0, $all_data=0, $test_exist=1)
     {
-
-        //If we have rowid, this bloc already exist. //So we have to find this bloc inside bdd
-
         global $langs;
 
         // Clean parameters
@@ -943,7 +909,7 @@ class EISurveyBloc extends CommonObject
                         return -1;
                     }
                     $bloc->read_only = 1;
-                    $this->survey[] = $bloc;
+                    $this->survey[$obj->fk_c_question_bloc] = $bloc;
                 }
             } else {
                 $this->error = $this->db->lasterror();
@@ -991,17 +957,16 @@ class EISurveyBloc extends CommonObject
                         if ((empty($question_bloc->fields['unique_bloc']) || empty($this->fk_equipment)) &&
                             (empty($question_bloc->fields['categories']) || count(array_diff($equipement_categories, explode(',', $question_bloc->fields['categories']))) != $equipement_nb_categories)
                         ) {
-                            $questionBlocFromDictionnaryThatShouldBeInThisSurveyIndex = array_search($question_bloc_id, array_column($this->survey, 'fk_c_question_bloc'));
-                            if ($questionBlocFromDictionnaryThatShouldBeInThisSurveyIndex!==false) {
+                            if (!isset($this->survey[$question_bloc->id])) {
                                 $bloc = new EIQuestionBloc($this->db, $this);
                                 if ($bloc->fetch(0, $this->fk_fichinter, $this->fk_equipment, 0, $question_bloc->id, $all_data, 0) < 0) {
                                     $this->error = $bloc->error;
                                     $this->errors = $bloc->errors;
                                     return -1;
                                 }
-                                $this->survey[] = $bloc;
+                                $this->survey[$question_bloc->id] = $bloc;
                             }
-/*                            if (isset($this->survey[$question_bloc->id])) $this->survey[$question_bloc->id]->read_only = 0;*/
+                            if (isset($this->survey[$question_bloc->id])) $this->survey[$question_bloc->id]->read_only = 0;
                         }
                     }
                 }
