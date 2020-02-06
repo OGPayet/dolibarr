@@ -125,7 +125,11 @@ class ActionsExtendedIntervention
                     }
                 } elseif ($action == 'confirm_force_out_of_quota' && $confirm == "yes" && $user->rights->ficheinter->creer) {
                     $ei_free = GETPOST('ei_free', "alpha");
+                    //Ugly fix to manage double dom input with name contratid on force interventionc creation which lost chosen contract
+                    $_GET['contratid'] = $_GET['contratId_sav'];
                     if (empty($ei_free)) $object->ei_created_out_of_quota = true;
+                    //Ugly fix - otherwise extrafields which are now set in $_GET and not in $_POST are not retrieved
+                    $_POST = $_GET;
                     $action = "add";
                 }
             }
@@ -326,6 +330,9 @@ class ActionsExtendedIntervention
                             $formquestion[] = array('type' => 'hidden', 'name' => $k, 'value' => $v);
                         }
                     }
+                    $contratid = GETPOST('contratid', "int");
+                    $formquestion[] = array('type' => 'hidden', 'name' => 'contratId_sav', 'value' => $contratid);
+
 
                     $ei_free = GETPOST('ei_free', "alpha");
                     $ei_reason = GETPOST('ei_reason', "alpha");
