@@ -1,0 +1,136 @@
+# Copyright (C) 2020 Alexis LAURIER
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+#
+# Générique
+#
+
+# Module label 'ModuleInterventionSurveyName'
+ModuleInterventionSurveyName = InterventionSurvey
+# Module description 'ModuleInterventionSurveyDesc'
+ModuleInterventionSurveyDesc = Gestion des questionnaires et d'un système de templating sur les interventions
+
+#
+# Page d'administration
+#
+InterventionSurveySetup = Configuration du module InterventionSurvey
+InterventionSurveySettings = Réglages Généraux
+InterventionSurveySetupPage = Page de configuration du module InterventionSurvey
+InterventionSurveyProductCategoriesName = Racine des catégories de produits à considérer
+InterventionSurveyProductCategoriesDesc = N'utiliser que les catégories enfantes à la catégorie choisie dans le paramétrage des blocs de question
+InterventionSurveyRootProductFieldName = Include la catégorie renseigné ci-dessus
+InterventionSurveyRootProductFieldDesc = Inclure la catégorie parente dans le paramétrage des blocs de question
+InterventionSurveySetupModifyButton = Sauvegarder
+
+#
+# Dictionnaire
+#
+
+# Textes prédéfinis sur les réponses aux questions
+InterventionSurveyAnswerPredefinedTextDictionaryTabTitle = 1 - Textes prédéfinis sur les réponses aux questions
+InterventionSurveyAnswerPredefinedTextDictionaryName = Textes prédéfinis sur les réponses aux questions
+InterventionSurveyAnswerPredefinedTextOrderDictionaryField = Position dans les listes de saisie des interventions
+InterventionSurveyAnswerPredefinedTextLabelDictionaryField = Phrase
+InterventionSurveyAnswerPredefinedTextUsedInTheseQuestionDictionaryField = Utilisé dans les réponses aux questions suivantes
+InterventionSurveyAnswerPredefinedTextIdentifierFieldLabel = Identifiant
+InterventionSurveyAnswerPredefinedTextIdentifierFieldHelp = Valeur non nécessairement unique permettant d'identifier l'element sur les autres écrans de paramétrages et à des fins statistique
+
+# Réponses aux questions
+InterventionSurveyAnswerDictionaryTabTitle = 2 - Réponses aux questions
+InterventionSurveyAnswerDictionaryName = Réponses aux questions
+InterventionSurveyOrderDictionaryField = Position dans les listes de saisies des réponses aux questions
+InterventionSurveyLabelDictionaryField = Réponse
+InterventionSurveyColorDictionaryField = Couleur de cette réponse sur le pdf
+InterventionSurveyColorlDictionaryFieldHelp = La couleur doit être au format HTML (Ex: #FF0000)
+InterventionSurveyAnswerMandatoryJustificationDictionaryField = Obligation de fournir une justification si cette réponse est choisie
+InterventionSurveyAnswerPredefinedTextDictionaryInAnswer = Textes prédéfinis pour cette réponse
+InterventionSurveyAnswerIsUsedInTheseQuestionDictionary = Utilisé dans les questions suivantes
+InterventionSurveyAnswerIdentifierFieldLabel = Identifiant
+InterventionSurveyAnswerIdentifierFieldHelp = Valeur non nécessairement unique permettant d'identifier l'element sur les autres écrans de paramétrages et à des fins statistique
+
+
+# Question
+InterventionSurveyQuestionDictionaryTabTitle = 4 - Questions
+InterventionSurveyQuestionDictionaryName = Questions
+InterventionSurveyQuestionTextOrderFieldLabel = Position de la question dans un bloc de questions
+InterventionSurveyQuestionLabelFieldLabel = Intitulé de la question
+InterventionSurveyAnswerDictionaryLabel = Liste des réponses possibles à cette question
+InterventionSurveyQuestionExtrafieldDictionary = Liste des extrafields à joindre à cette question
+InterventionSurveyQuestionIsUsedInTheseBlocQuestionDictionary = Utilisé dans les blocs de questions suivants
+InterventionSurveyQuestionIdentifierFieldLabel = Identifiant
+InterventionSurveyQuestionIdentifierFieldHelp = Valeur non nécessairement unique permettant d'identifier l'element sur les autres écrans de paramétrages et à des fins statistique
+
+
+# Question extrafields
+InterventionSurveyQuestionExtrafields = 3 - Extrafields sur les Questions
+InterventionSurveyQuestion = Question des questionnaires
+
+# Textes prédéfinis sur les status des blocs de questions
+InterventionSurveyBlocStatusPredefinedTextDictionaryTabTitle = 5 - Textes prédéfinis sur les status des blocs de questions
+InterventionSurveyBlocStatusPredefinedTextDictionaryName = Textes prédéfinis sur les status des blocs de question
+InterventionSurveyBlocStatusPredefinedTextOrderFieldLabel = Position dans les listes de saisie des interventions
+InterventionSurveyBlocStatusPredefinedTextLabelFieldLabel = Phrase
+InterventionSurveyStatusPredefinedTextUsedInTheseBlocStatusDictionaryField = Utilisé sur les status de bloc suivants
+InterventionSurveyBlocStatusPredefinedTextIdentifierFieldLabel = Identifiant
+InterventionSurveyBlocStatusPredefinedTextIdentifierFieldHelp = Valeur non nécessairement unique permettant d'identifier l'element sur les autres écrans de paramétrages et à des fins statistique
+
+
+# Status des blocs de question
+InterventionSurveyBlocStatusDictionaryTabTitle = 6 - Status des blocs de questions
+InterventionSurveyBlocStatusDictionaryName = Status des blocs de questions
+InterventionSurveyBlocStatusOrderDictionaryFieldLabel = Position dans les listes de saisie des status des blocs de question
+InterventionSurveyBlocStatusLabelDictionaryFieldLabel = Intitulé
+InterventionSurveyBlocStatusColorDictionaryFieldLabel = Couleur sur le pdf
+InterventionSurveyBlocStatusColorDictionaryFieldHelp = La couleur doit être au format HTML (Ex: #FF0000)
+InterventionSurveyBlocStatusMandatoryJustificationDictionaryFieldLabel = Obligation de fournir une justification si cette réponse est choisie
+InterventionSurveyBlocStatusDeactivateBlocDictionaryFieldLabel = Désactive le bloc si ce status est saisie
+InterventionSurveyBlocStatusPredefinedTextDictionaryLabel = Liste des textes prédéfinis pour ce status
+InterventionSurveyStatusIsUsedInTheseBlocQuestionDictionary = Utilisé sur les blocs de question suivant
+InterventionSurveyBlocStatusIdentifierFieldLabel = Identifiant
+InterventionSurveyBlocStatusIdentifierFieldHelp = Valeur non nécessairement unique permettant d'identifier l'element sur les autres écrans de paramétrages et à des fins statistique
+
+
+# Bloc de questions extrafields
+InterventionSurveyBlocQuestionExtrafield = 7 - extrafield sur les blocs de questions
+InterventionSurveyBlocQuestion = blocs de questions
+
+# Blocs de questions
+InterventionSurveyBlocQuestionDictionaryTabTitle = 8 - Blocs de questions
+InterventionSurveyBlocDictionaryName = Blocs de question
+InterventionSurveyBlocQuestionOrderDictionaryField = Position dans le questionnaire
+InterventionSurveyBlocQuestionLabelDictionaryField = Intitulé
+InterventionSurveyBlocQuestionIconDictionaryField = Icone
+InterventionSurveyBlocQuestionIconDictionaryHelp = Nom de l'icone material / fontawesome
+InterventionSurveyBlocQuestionLabelEditableDictionaryField = Titre du bloc editable ?
+InterventionSurveyBlocQuestionDescriptionEditableDictionaryField = Description du bloc editable ?
+InterventionSurveyBlocQuestionDeletableBlocDictionaryField = Bloc supprimable ?
+InterventionSurveyBlocQuestionPrivateBlocDictionaryField = Bloc privé par défaut ?
+InterventionSurveyQuestionBlocBlocInGeneralPartDictionary = Bloc à placer dans la partie générale
+InterventionSurveyQuestionBlocUniqueBlocDictionary = Bloc à générer une seule fois dans le questionnaire
+InterventionSurveyTagCategoriesInQuestionBlocDictionnary = Tags/Categories possédé par le produit de l'équipement lié à l'intervention pour généré ce bloc
+InterventionSurveyBlocStatusInQuestionBlocDictionnary = Status de ce bloc de question
+InterventionSurveyQuestionsInQuestionBlocDictionnary = Question de ce bloc de questions
+InterventionSurveyBlocQuestionExtrafieldDictionary = Extrafields de ce bloc de question
+InterventionSurveyFilterOnlyForBlocQuestionDictionary = Utilisé uniquement dans le cadres des blocs de question (laisser vide pour ne pas filter)
+InterventionSurveyFilterOnlyForProductCategoriesDictionary = Utilisé uniquement dans le cadres des catégories (laisser vide pour ne pas filter)
+InterventionSurveyBlocQuestionIdentifierFieldLabel = Identifiant
+InterventionSurveyBlocQuestionIdentifierFieldHelp = Valeur non nécessairement unique permettant d'identifier l'element sur les autres écrans de paramétrages et à des fins statistique
+InterventionSurveyBlocQuestionInterventionTypeField = Utilisé uniquement dans le cadre des interventions de type (laisser vide pour ne pas filter)
+
+# Page À propos
+#
+InterventionSurveyAbout = À propos
+InterventionSurveyAbout = À propos de Intervention Survey
+InterventionSurveyAboutPage = Page à propos de Intervention Survey

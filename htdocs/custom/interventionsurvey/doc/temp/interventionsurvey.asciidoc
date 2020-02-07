@@ -1,0 +1,86 @@
+= INTERVENTIONSURVEY =
+:subtitle: INTERVENTIONSURVEY DOCUMENTATION
+:source-highlighter: rouge
+:companyname:
+:corpname:
+:orgname:
+:creator: Alexis LAURIER
+:title: Documentation of module InterventionSurvey
+:subject: This document is the document of module InterventionSurvey.
+:keywords: InterventionSurvey
+// Date du document :
+:docdate: 2020-02-04
+:toc: manual
+:toc-placement: preamble
+
+
+== TOPIC OF DOCUMENT
+
+This is the documentation of module InterventionSurvey
+
+
+*Log of versions of document*
+
+[options="header",format="csv"]
+|===
+Author, Date, Version
+--- Alexis LAURIER   ---, 2020-02-04, Version 1.0
+|===
+
+
+[NOTE]
+==============
+This document was generated using Dolibarr ERP CRM process
+==============
+
+
+:toc: manual
+:toc-placement: preamble
+
+<<<
+
+== INTRODUCTION
+
+//include::README.md[]
+
+
+### Features
+
+Add ability to create survey on intervention thanks to a templating system. It creates survey parts and fill them according to what have been set
+
+
+
+Other modules are available on [Dolistore.com](https://www.dolistore.com>).
+
+### Translations
+
+Translations can be define manually by editing files into directories *langs*.
+
+
+
+
+
+### Licenses
+
+#### Main code
+
+GPLv3 or (at your option) any later version. See file COPYING for more information.
+
+#### Documentation
+
+All texts and readmes are licensed under GFDL.
+
+
+== DATA SPECIFICATIONS
+
+Not yet available
+
+
+== CHANGELOG
+
+//include::ChangeLog.md[]
+
+
+### 1.0
+
+Initial version

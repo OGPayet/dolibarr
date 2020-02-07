@@ -24,6 +24,61 @@
 require_once DOL_DOCUMENT_ROOT . '/core/class/commonobject.class.php';
 require_once DOL_DOCUMENT_ROOT . '/core/class/commonobjectline.class.php';
 
+
+function getAssociationTableOptionsForChkbxlstFieldType($field, $table_name) {
+
+	$result = array(MAIN_DB_PREFIX . $table_name . '_cbl_' . $field['name'], 'fk_line', 'fk_target' );
+	// if(isset($field['options'])){
+	// 	$temp = explode(":", (string)$field['options']);
+	// 	if(isset($temp[0])){
+	// 		$result[0] = MAIN_DB_PREFIX . $temp[0];
+	// 	}
+	// 	if(isset($temp[1])){
+	// 		$result[1] = $temp[1];
+	// 	}
+	// 	if(isset($temp[2])){
+	// 		$result[2] = $temp[2];
+	// 	}
+	// }
+
+	if(isset($field['association_table'])){
+		$temp = explode(":", (string)$field['association_table']);
+		if(isset($temp[0])){
+			$result[0] = MAIN_DB_PREFIX . $temp[0];
+		}
+		if(isset($temp[1])){
+			$result[1] = $temp[1];
+		}
+		if(isset($temp[2])){
+			$result[2] = $temp[2];
+		}
+	}
+	return $result;
+ }
+
+ function getInfoFieldArrayFromOptionsForChkbxlstFieldType($field) {
+	// 0 : tableName
+	// 1 : label field name
+	   // 2 : key fields name (if differ of rowid)
+	   // 3 : key field parent (for dependent lists)
+	// 4 : where clause filter on column or table extrafield, syntax field='value' or extra.field=value
+$InfoFieldList = explode(":", (string)$field['options']);
+return $InfoFieldList;
+}
+
+function getAssociationTableNameForChkbxlstFieldType($field, $table_name) {
+	return getAssociationTableOptionsForChkbxlstFieldType($field, $table_name)[0];
+ }
+
+ function getForeignKeyOfThisDictionnaryInAssociationTableForChkbxlstFieldType($field, $table_name) {
+	return getAssociationTableOptionsForChkbxlstFieldType($field, $table_name)[1];
+ }
+
+ function getForeignKeyOfDestinationTableInAssociationTableForChkbxlstFieldType($field) {
+	return getAssociationTableOptionsForChkbxlstFieldType($field, $table_name)[2];
+ }
+
+
 /**
  * Class for Dictionary
  */
@@ -111,7 +166,8 @@ class Dictionary extends CommonObject
      *   'label'             => string,         // Label of the field, translated if key found
      *   'type'              => string,         // Type of the field (varchar, text, int, double, date, datetime, boolean, price, phone, mail, url,
      *                                                                password, select, sellist, radio, checkbox, chkbxlst, link, custom)
-     *   'database'          => array(          // Description of the field in the database always rewrite default value if set
+     *  'association_table' => 'c_intervention_survey_answer_cbl_predefined_texts:fk_target:fk_line' // first element is name of the association table, second is the name of the foreign key of this dictionnary, third is the foreign key of the destination table
+	 *  'database'          => array(          // Description of the field in the database always rewrite default value if set
      *     'type'            => string,         // Data type
      *     'length'          => string,         // Length of the data type (require)
      *     'default'         => string,         // Default value in the database
@@ -383,7 +439,7 @@ class Dictionary extends CommonObject
 	 */
     protected function definitionTableCustomFieldInstructionSQL($field) {
         return '';
-    }
+	}
 
     /**
 	 * Create dictionary table
@@ -549,8 +605,8 @@ class Dictionary extends CommonObject
             switch ($field['type']) {
                 case 'chkbxlst':
                     // Create association table for the multi-select list
-                    $sql = 'CREATE TABLE ' . MAIN_DB_PREFIX . $this->table_name . '_cbl_' . $field['name'] .
-                        ' (fk_line INTEGER NOT NULL, fk_target INTEGER NOT NULL) ENGINE=innodb;';
+                    $sql = 'CREATE TABLE ' . getAssociationTableNameForChkbxlstFieldType($field, $this->table_name) .
+                        ' (' . getForeignKeyOfThisDictionnaryInAssociationTableForChkbxlstFieldType($field, $this->table_name) . ' INTEGER NOT NULL, ' . getForeignKeyOfDestinationTableInAssociationTableForChkbxlstFieldType($field, $this->table_name) . ' INTEGER NOT NULL) ENGINE=innodb;';
 
                     $resql = $this->db->query($sql);
                     if (!$resql) {
@@ -617,8 +673,8 @@ class Dictionary extends CommonObject
 //                        return -1;
 //                    } else {
 //                        if (!$this->db->num_rows($resql)) {
-                            $sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . '_cbl_' . $field['name'] .
-                                ' ADD CONSTRAINT fk_' . $initial . '_cbl_' . $field['name'] . '_a FOREIGN KEY (fk_line) REFERENCES ' . MAIN_DB_PREFIX . $this->table_name . ' (' . $this->rowid_field . ');';
+                            $sql = 'ALTER TABLE ' . getAssociationTableNameForChkbxlstFieldType($field, $this->table_name) .
+                                ' ADD CONSTRAINT fk_' . $initial . '_cbl_' . $field['name'] . '_a FOREIGN KEY (' . getForeignKeyOfThisDictionnaryInAssociationTableForChkbxlstFieldType($field, $this->table_name) . ') REFERENCES ' . MAIN_DB_PREFIX . $this->table_name . ' (' . $this->rowid_field . ');';
 
                             $resql = $this->db->query($sql);
                             if (!$resql) {
@@ -639,20 +695,15 @@ class Dictionary extends CommonObject
 //                    } else {
 //                        if (!$this->db->num_rows($resql)) {
 
-                            // 0 : tableName
-                            // 1 : label field name
-                            // 2 : key fields name (if differ of rowid)
-                            // 3 : key field parent (for dependent lists)
-                            // 4 : where clause filter on column or table extrafield, syntax field='value' or extra.field=value
-                            $InfoFieldList = explode(":", (string)$field['options']);
+                            $InfoFieldList = getInfoFieldArrayFromOptionsForChkbxlstFieldType($field, $this->table_name);
 
                             $keyList = 'rowid';
                             if (count($InfoFieldList) >= 3) {
                                 $keyList = $InfoFieldList[2];
                             }
 
-                            $sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . '_cbl_' . $field['name'] .
-                                ' ADD CONSTRAINT fk_' . $initial . '_cbl_' . $field['name'] . '_b FOREIGN KEY (fk_target) REFERENCES ' . MAIN_DB_PREFIX . $InfoFieldList[0] . ' (' . $keyList . ');';
+                            $sql = 'ALTER TABLE ' . getAssociationTableNameForChkbxlstFieldType($field, $this->table_name) .
+                                ' ADD CONSTRAINT fk_' . $initial . '_cbl_' . $field['name'] . '_b FOREIGN KEY (' . getForeignKeyOfDestinationTableInAssociationTableForChkbxlstFieldType($field, $this->table_name) . ') REFERENCES ' . MAIN_DB_PREFIX . $InfoFieldList[0] . ' (' . $keyList . ');';
 
                             $resql = $this->db->query($sql);
                             if (!$resql) {
@@ -863,7 +914,7 @@ class Dictionary extends CommonObject
             switch ($field['type']) {
                 case 'chkbxlst':
                     // Delete association table for the multi-select list
-                    $sql = 'DROP TABLE ' . MAIN_DB_PREFIX . $this->table_name . '_cbl_' . $field['name'];
+                    $sql = 'DROP TABLE ' . getAssociationTableNameForChkbxlstFieldType($field, $this->table_name);
                     $resql = $this->db->query($sql);
                     if (!$resql) {
                         $this->error = $this->db->lasterror();
@@ -1400,7 +1451,7 @@ class Dictionary extends CommonObject
         if (!empty($field)) {
             switch ($field['type']) {
                 case 'chkbxlst':
-                    return 'GROUP_CONCAT(DISTINCT cbl_' . $field['name'] . '.fk_target SEPARATOR \',\') AS ' . $field['name'];
+                    return 'GROUP_CONCAT(DISTINCT cbl_' . $field['name'] . '.' . getForeignKeyOfDestinationTableInAssociationTableForChkbxlstFieldType($field, $this->table_name) . ' SEPARATOR \',\') AS ' . $field['name'];
                 case 'custom':
                     return $this->selectCustomFieldSqlStatement($field);
                 default: // varchar, text, int, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
@@ -1435,16 +1486,10 @@ class Dictionary extends CommonObject
                 case 'chkbxlst':
                     $sqlStatement = "";
                     if ($field['type'] == 'chkbxlst') {
-                        $sqlStatement .= ' LEFT JOIN ' . MAIN_DB_PREFIX . $this->table_name . '_cbl_' . $field['name'] . ' AS cbl_' . $field['name'] .
-                            ' ON (cbl_' . $field['name'] . '.fk_line = d.' . $this->rowid_field . ')';
+                        $sqlStatement .= ' LEFT JOIN ' . getAssociationTableNameForChkbxlstFieldType($field,$this->table_name) . ' AS cbl_' . $field['name'] .
+                            ' ON (cbl_' . $field['name'] . '.' . getForeignKeyOfThisDictionnaryInAssociationTableForChkbxlstFieldType($field,$this->table_name) . ' = d.' . $this->rowid_field . ')';
                     }
-
-                    // 0 : tableName
-                    // 1 : label field name
-                    // 2 : key fields name (if differ of rowid)
-                    // 3 : key field parent (for dependent lists)
-                    // 4 : where clause filter on column or table extrafield, syntax field='value' or extra.field=value
-                    $InfoFieldList = explode(":", (string)$field['options']);
+                    $InfoFieldList = getInfoFieldArrayFromOptionsForChkbxlstFieldType($field,$this->table_name);
 
                     $keyList = 'rowid';
                     if (count($InfoFieldList) >= 3) {
@@ -1458,7 +1503,7 @@ class Dictionary extends CommonObject
                     if (strpos($InfoFieldList[4], 'extra') !== false) {
                         $sqlStatement .= ' as main';
                     }
-                    $sqlStatement .= ') AS cbl_val_' . $field['name'] . ' ON (cbl_val_' . $field['name'] . '.rowid = '.($field['type'] == 'chkbxlst' ? 'cbl_' . $field['name'] . '.fk_target' : 'd.' . $field['name']).')';
+                    $sqlStatement .= ') AS cbl_val_' . $field['name'] . ' ON (cbl_val_' . $field['name'] . '.rowid = '.($field['type'] == 'chkbxlst' ? 'cbl_' . $field['name'] . '.' . getForeignKeyOfDestinationTableInAssociationTableForChkbxlstFieldType($field,$this->dictionary->table_name) : 'd.' . $field['name']).')';
 
                     return $sqlStatement;
                 case 'custom':
@@ -1494,12 +1539,7 @@ class Dictionary extends CommonObject
             switch ($field['type']) {
                 case 'chkbxlst':
                     if (!is_array($value)) {
-                        // 0 : tableName
-                        // 1 : label field name
-                        // 2 : key fields name (if differ of rowid)
-                        // 3 : key field parent (for dependent lists)
-                        // 4 : where clause filter on column or table extrafield, syntax field='value' or extra.field=value
-                        $InfoFieldList = explode(":", (string)$field['options']);
+                        $InfoFieldList = getInfoFieldArrayFromOptionsForChkbxlstFieldType($field,$this->dictionary->table_name);
 
                         $keyList = 'rowid';
                         if (count($InfoFieldList) >= 3) {
@@ -1512,14 +1552,14 @@ class Dictionary extends CommonObject
                         }
 
                         $sqlStatement  = ' INNER JOIN (';
-                        $sqlStatement .= '   SELECT DISTINCT l.fk_line';
-                        $sqlStatement .= '   FROM ' . MAIN_DB_PREFIX . $this->table_name . '_cbl_' . $field['name'] . ' AS l';
+                        $sqlStatement .= '   SELECT DISTINCT l.' . getForeignKeyOfThisDictionnaryInAssociationTableForChkbxlstFieldType($field,$this->table_name);
+                        $sqlStatement .= '   FROM ' . getAssociationTableNameForChkbxlstFieldType($field,$this->table_name) . ' AS l';
                         $sqlStatement .= '   INNER JOIN (';
                         $sqlStatement .= '     SELECT ' . $keyList;
                         $sqlStatement .= '     FROM ' . MAIN_DB_PREFIX . $InfoFieldList[0] . (strpos($InfoFieldList[4], 'extra') !== false ? ' as main' : '');
                         $sqlStatement .= '     WHERE ' . natural_search($fields_label, $value, 0, 1);
-                        $sqlStatement .= '   ) AS v ON (l.fk_target = v.rowid)';
-                        $sqlStatement .= ') AS search_cbl_' . $field['name'] . ' ON (search_cbl_' . $field['name'] . '.fk_line = d.' . $this->rowid_field . ')';
+                        $sqlStatement .= '   ) AS v ON (l.' . getForeignKeyOfDestinationTableInAssociationTableForChkbxlstFieldType($field,$this->table_name) . ' = v.rowid)';
+                        $sqlStatement .= ') AS search_cbl_' . $field['name'] . ' ON (search_cbl_' . $field['name'] . '.' . getForeignKeyOfThisDictionnaryInAssociationTableForChkbxlstFieldType($field,$this->table_name) . ' = d.' . $this->rowid_field . ')';
 
                         return $sqlStatement;
                     } else {
@@ -1591,12 +1631,7 @@ class Dictionary extends CommonObject
                             return '';
                         }
                     } else {
-                        // 0 : tableName
-                        // 1 : label field name
-                        // 2 : key fields name (if differ of rowid)
-                        // 3 : key field parent (for dependent lists)
-                        // 4 : where clause filter on column or table extrafield, syntax field='value' or extra.field=value
-                        $InfoFieldList = explode(":", (string)$field['options']);
+                        $InfoFieldList = getInfoFieldArrayFromOptionsForChkbxlstFieldType($field,$this->dictionary->table_name);
 
                         $fields_label = explode('|', $InfoFieldList[1]);
                         $fields = array();
@@ -1610,7 +1645,7 @@ class Dictionary extends CommonObject
                 case 'chkbxlst':
                     if (is_array($value)) {
                         if (count($value) > 0) {
-                            return natural_search('cbl_' . $field['name'] . '.fk_target', implode(',', $value), 2, 1);
+                            return natural_search('cbl_' . $field['name'] . '.' . getForeignKeyOfDestinationTableInAssociationTableForChkbxlstFieldType($field,$this->dictionary->table_name) . '', implode(',', $value), 2, 1);
                         } else {
                             return '';
                         }
@@ -2830,7 +2865,7 @@ class DictionaryLine extends CommonObjectLine
                     switch ($field['type']) {
                         case 'chkbxlst':
                             // Delete association line for the multi-select list
-                            $sql = 'DELETE FROM ' . MAIN_DB_PREFIX . $this->dictionary->table_name . '_cbl_' . $fieldName . ' WHERE fk_line = ' . $this->id;
+                            $sql = 'DELETE FROM ' .  getAssociationTableNameForChkbxlstFieldType($field,$this->dictionary->table_name) . ' WHERE ' . getForeignKeyOfThisDictionnaryInAssociationTableForChkbxlstFieldType($field,$this->dictionary->table_name) . ' = ' . $this->id;
                             $resql = $this->db->query($sql);
                             if (!$resql) {
                                 dol_syslog(__METHOD__ . ' SQL: ' . $sql . '; Errors: ' . $this->db->lasterror(), LOG_ERR);
@@ -2850,7 +2885,7 @@ class DictionaryLine extends CommonObjectLine
                                 }
 
                                 if (count($insert_values) > 0) {
-                                    $sql = 'INSERT INTO ' . MAIN_DB_PREFIX . $this->dictionary->table_name . '_cbl_' . $fieldName . '(fk_line, fk_target) VALUES' . implode(',', $insert_values);
+                                    $sql = 'INSERT INTO ' . getAssociationTableNameForChkbxlstFieldType($field,$this->dictionary->table_name) . '(' . getForeignKeyOfThisDictionnaryInAssociationTableForChkbxlstFieldType($field,$this->dictionary->table_name) . ', ' . getForeignKeyOfDestinationTableInAssociationTableForChkbxlstFieldType($field,$this->dictionary->table_name) . ') VALUES' . implode(',', $insert_values);
                                     $resql = $this->db->query($sql);
                                     if (!$resql) {
                                         dol_syslog(__METHOD__ . ' SQL: ' . $sql . '; Errors: ' . $this->db->lasterror(), LOG_ERR);
@@ -2954,15 +2989,15 @@ class DictionaryLine extends CommonObjectLine
                 foreach ($this->fields as $fieldName => $value) {
                     $field = $this->dictionary->fields[$fieldName];
                     switch ($field['type']) {
-                        case 'chkbxlst':
+						case 'chkbxlst':
                             // Delete association line for the multi-select list
-                            $sql = 'DELETE FROM ' . MAIN_DB_PREFIX . $this->dictionary->table_name . '_cbl_' . $fieldName . ' WHERE fk_line = ' . $this->id;
+                            $sql = 'DELETE FROM ' .  getAssociationTableNameForChkbxlstFieldType($field,$this->dictionary->table_name) . ' WHERE ' . getForeignKeyOfThisDictionnaryInAssociationTableForChkbxlstFieldType($field,$this->dictionary->table_name) . ' = ' . $this->id;
                             $resql = $this->db->query($sql);
                             if (!$resql) {
                                 dol_syslog(__METHOD__ . ' SQL: ' . $sql . '; Errors: ' . $this->db->lasterror(), LOG_ERR);
                                 $error++;
                                 $errors[] = $this->db->lasterror();
-                            } elseif(!empty($value)) {
+                            } else {
                                 // Insert association line for the multi-select list
                                 $insert_values = array();
                                 $value_arr = array();
@@ -2974,8 +3009,9 @@ class DictionaryLine extends CommonObjectLine
                                 foreach ($value_arr as $value_id) {
                                     $insert_values[] = '(' . $this->id . ', ' . $value_id . ')';
                                 }
+
                                 if (count($insert_values) > 0) {
-                                    $sql = 'INSERT INTO ' . MAIN_DB_PREFIX . $this->dictionary->table_name . '_cbl_' . $fieldName . '(fk_line, fk_target) VALUES' . implode(',', $insert_values);
+                                    $sql = 'INSERT INTO ' . getAssociationTableNameForChkbxlstFieldType($field,$this->dictionary->table_name) . '(' . getForeignKeyOfThisDictionnaryInAssociationTableForChkbxlstFieldType($field,$this->dictionary->table_name) . ', ' . getForeignKeyOfDestinationTableInAssociationTableForChkbxlstFieldType($field,$this->dictionary->table_name) . ') VALUES' . implode(',', $insert_values);
                                     $resql = $this->db->query($sql);
                                     if (!$resql) {
                                         dol_syslog(__METHOD__ . ' SQL: ' . $sql . '; Errors: ' . $this->db->lasterror(), LOG_ERR);
@@ -3064,7 +3100,7 @@ class DictionaryLine extends CommonObjectLine
             switch ($field['type']) {
                 case 'chkbxlst':
                     // Delete association line for the multi-select list
-                    $sql = 'DELETE FROM ' . MAIN_DB_PREFIX . $this->dictionary->table_name . '_cbl_' . $fieldName . ' WHERE fk_line = ' . $this->id;
+                    $sql = 'DELETE FROM ' . getAssociationTableNameForChkbxlstFieldType($field,$this->dictionary->table_name) . ' WHERE ' . getForeignKeyOfThisDictionnaryInAssociationTableForChkbxlstFieldType($field,$this->dictionary->table_name) . ' = ' . $this->id;
                     $resql = $this->db->query($sql);
                     if (!$resql) {
                         $error++;
@@ -3246,7 +3282,7 @@ class DictionaryLine extends CommonObjectLine
         if (!empty($field)) {
             switch ($field['type']) {
                 case 'chkbxlst':
-                    return 'GROUP_CONCAT(DISTINCT cbl_' . $field['name'] . '.fk_target SEPARATOR \',\') AS ' . $field['name'];
+                    return 'GROUP_CONCAT(DISTINCT cbl_' . $field['name'] . '.' . getForeignKeyOfDestinationTableInAssociationTableForChkbxlstFieldType($field,$this->dictionary->table_name) .' SEPARATOR \',\') AS ' . $field['name'];
                 case 'custom':
                     return $this->selectCustomFieldSqlStatement($field);
                 default: // varchar, text, int, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
@@ -3278,8 +3314,8 @@ class DictionaryLine extends CommonObjectLine
         if (!empty($field)) {
             switch ($field['type']) {
                 case 'chkbxlst':
-                    return ' LEFT JOIN ' . MAIN_DB_PREFIX . $this->dictionary->table_name . '_cbl_' . $field['name'] . ' AS cbl_' . $field['name'] .
-                        ' ON (cbl_' . $field['name'] . '.fk_line = d.' . $this->dictionary->rowid_field . ')';
+                    return ' LEFT JOIN ' . getAssociationTableNameForChkbxlstFieldType($field,$this->dictionary->table_name) . ' AS cbl_' . $field['name'] .
+                        ' ON (cbl_' . $field['name'] . '.' . getForeignKeyOfThisDictionnaryInAssociationTableForChkbxlstFieldType($field,$this->dictionary->table_name) . ' = d.' . $this->dictionary->rowid_field . ')';
                 case 'custom':
                     return $this->fromCustomFieldSqlStatement($field);
                 default: // varchar, text, int, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
@@ -3436,12 +3472,7 @@ class DictionaryLine extends CommonObjectLine
                     $value = $field['options'][$value];
                     break;
                 case 'sellist':
-                    // 0 : tableName
-                    // 1 : label field name
-                    // 2 : key fields name (if differ of rowid)
-                    // 3 : key field parent (for dependent lists)
-                    // 4 : where clause filter on column or table extrafield, syntax field='value' or extra.field=value
-                    $InfoFieldList = explode(":", (string)$field['options']);
+                    $InfoFieldList = getInfoFieldArrayFromOptionsForChkbxlstFieldType($field,$this->dictionary->table_name);
 
                     $selectkey = "rowid";
                     $keyList = 'rowid';
@@ -3493,7 +3524,8 @@ class DictionaryLine extends CommonObjectLine
                                 } else {
                                     $labelstoshow[] = $obj->$field_toshow;
                                 }
-                            }
+							}
+							$labelstoshow = array_filter($labelstoshow,function($k){return isset($k);});
                             $value .= implode($label_separator, $labelstoshow);
                         } else {
                             $translabel = '';
@@ -3535,13 +3567,7 @@ class DictionaryLine extends CommonObjectLine
                             $value_arr = array_filter(explode(',', (string)$value), 'strlen');
                         }
                     }
-
-                    // 0 : tableName
-                    // 1 : label field name
-                    // 2 : key fields name (if differ of rowid)
-                    // 3 : key field parent (for dependent lists)
-                    // 4 : where clause filter on column or table extrafield, syntax field='value' or extra.field=value
-                    $InfoFieldList = explode(":", (string)$field['options']);
+                    $InfoFieldList = getInfoFieldArrayFromOptionsForChkbxlstFieldType($field,$this->dictionary->table_name);
 
                     $selectkey = "rowid";
                     $keyList = 'rowid';
@@ -3584,7 +3610,8 @@ class DictionaryLine extends CommonObjectLine
                                         } else {
                                             $labelstoshow[] = dol_trunc($obj->$field_toshow, 18);
                                         }
-                                    }
+									}
+									$labelstoshow = array_filter($labelstoshow,function($k){return isset($k);});
                                     $toprint[] = '<li class="select2-search-choice-dolibarr noborderoncategories" style="background: #aaa">' . implode($label_separator, $labelstoshow) . '</li>';
                                 } else {
                                     $translabel = '';
@@ -3619,7 +3646,7 @@ class DictionaryLine extends CommonObjectLine
                         $out = '';
                         // 0 : ObjectName
                         // 1 : classPath
-                        $InfoFieldList = explode(":", (string)$field['options']);
+                        $InfoFieldList = getInfoFieldArrayFromOptionsForChkbxlstFieldType($field,$this->dictionary->table_name);
                         dol_include_once($InfoFieldList[1]);
                         if ($InfoFieldList[0] && class_exists($InfoFieldList[0], false)) {
                             $object = new $InfoFieldList[0]($this->db);
@@ -3760,12 +3787,7 @@ class DictionaryLine extends CommonObjectLine
                         }
 
                         $out .= '<select class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" id="' . $fieldHtmlName . '"' . $moreAttributes . '>';
-                        $InfoFieldList = explode(":", (string)$field['options']);
-                        // 0 : tableName
-                        // 1 : label field name
-                        // 2 : key fields name (if differ of rowid)
-                        // 3 : key field parent (for dependent lists)
-                        // 4 : where clause filter on column or table extrafield, syntax field='value' or extra.field=value
+                        $InfoFieldList = getInfoFieldArrayFromOptionsForChkbxlstFieldType($field,$this->dictionary->table_name);
                         $keyList = (empty($InfoFieldList[2]) ? 'rowid' : $InfoFieldList[2] . ' as rowid');
 
                         if (count($InfoFieldList) > 4 && !empty($InfoFieldList[4])) {
@@ -3839,7 +3861,8 @@ class DictionaryLine extends CommonObjectLine
                                     $labelstoshow = array();
                                     foreach ($fields_label as $field_toshow) {
                                         $labelstoshow[] = $obj->$field_toshow;
-                                    }
+									}
+									$labelstoshow = array_filter($labelstoshow,function($k){return isset($k);});
                                     $labeltoshow = implode($label_separator, $labelstoshow);
                                 } else {
                                     $labeltoshow = $obj->{$InfoFieldList[1]};
@@ -3855,7 +3878,8 @@ class DictionaryLine extends CommonObjectLine
                                         } else {
                                             $labelstoshow[] = dol_trunc($obj->$field_toshow, 18);
                                         }
-                                    }
+									}
+									$labelstoshow = array_filter($labelstoshow,function($k){return isset($k);});
                                     $labeltoshow = implode($label_separator, $labelstoshow);
                                     $out .= '<option value="' . $obj->rowid . '" selected>' . $labeltoshow . '</option>';
                                 } else {
@@ -3919,7 +3943,7 @@ class DictionaryLine extends CommonObjectLine
                             $value_arr = array_filter(explode(',', (string)$value), 'strlen');
                         }
 
-                        $InfoFieldList = explode(":", (string)$field['options']);
+                        $InfoFieldList = getInfoFieldArrayFromOptionsForChkbxlstFieldType($field,$this->dictionary->table_name);
                         // 0 : tableName
                         // 1 : label field name
                         // 2 : key fields name (if differ of rowid)
@@ -4001,7 +4025,8 @@ class DictionaryLine extends CommonObjectLine
                                     $labelstoshow = array();
                                     foreach ($fields_label as $field_toshow) {
                                         $labelstoshow[] = $obj->$field_toshow;
-                                    }
+									}
+									$labelstoshow = array_filter($labelstoshow,function($k){return isset($k);});
                                     $labeltoshow = implode($label_separator, $labelstoshow);
                                 } else {
                                     $labeltoshow = $obj->{$InfoFieldList[1]};
@@ -4017,7 +4042,8 @@ class DictionaryLine extends CommonObjectLine
                                         } else {
                                             $labelstoshow[] = dol_trunc($obj->$field_toshow, 18);
                                         }
-                                    }
+									}
+									$labelstoshow = array_filter($labelstoshow,function($k){return isset($k);});
                                     $labeltoshow = implode($label_separator, $labelstoshow);
 
                                     $data[$obj->rowid] = $labeltoshow;
@@ -4078,7 +4104,7 @@ class DictionaryLine extends CommonObjectLine
                     case 'link':
                         // 0 : ObjectName
                         // 1 : classPath
-                        $InfoFieldList = explode(":", (string)$field['options']);
+                        $InfoFieldList = getInfoFieldArrayFromOptionsForChkbxlstFieldType($field,$this->dictionary->table_name);
                         dol_include_once($InfoFieldList[1]);
                         if ($InfoFieldList[0] && class_exists($InfoFieldList[0], false)) {
                             $valuetoshow = $value;
@@ -4149,16 +4175,17 @@ class DictionaryLine extends CommonObjectLine
      * @param   string  $label          Label pattern for the label of the line (replace {{FieldName}} by this value)
 	 * @return  string
 	 */
-    public function getLabel($label)
-    {
-        $l = $label;
-        foreach ($this->fields as $fieldName => $fieldValue) {
-            $l = str_replace('{{' . $fieldName . '}}', $fieldValue, $l);
-        }
-        $l = str_replace('{{' . $this->dictionary->rowid_field . '}}', $this->id, $l);
-        $l = str_replace('{{' . $this->dictionary->active_field . '}}', $this->active, $l);
-        $l = str_replace('{{' . $this->dictionary->entity_field . '}}', $this->entity, $l);
+		public function getLabel($label)
+		{
+			$l = $label;
+			foreach ($this->fields as $fieldName => $fieldValue) {
+				$l = str_replace('{{' . $fieldName . '}}', $fieldValue, $l);
+			}
+			$l = str_replace('{{' . $this->dictionary->rowid_field . '}}', $this->id, $l);
+			$l = str_replace('{{' . $this->dictionary->active_field . '}}', $this->active, $l);
+			$l = str_replace('{{' . $this->dictionary->entity_field . '}}', $this->entity, $l);
 
-        return $l;
-    }
+			return $l;
+		}
+
 }
