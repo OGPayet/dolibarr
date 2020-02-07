@@ -55,7 +55,7 @@ function interventionsurveyAdminPrepareHead()
 	$head[$h][2] = 'about';
     $h++;
 
-    complete_head_from_modules($conf, $langs, null, $head, $h, 'extendedintervention_admin', 'remove');
+    complete_head_from_modules($conf, $langs, null, $head, $h, 'interventionsurvey', 'remove');
 	return $head;
 }
 
@@ -72,30 +72,3 @@ function checkPermissionForAdminPages()
 
 	return $result;
 }
-
-/**
-     *	Return list of product categories
-     *
-     *	@return	array					List of product categories
-     */
-    function get_categories_array()
-    {
-        global $conf;
-
-        include_once DOL_DOCUMENT_ROOT . '/categories/class/categorie.class.php';
-
-        $cat = new Categorie($this->db);
-        $cate_arbo = $cat->get_full_arbo(Categorie::TYPE_PRODUCT);
-
-        $list = array();
-        foreach ($cate_arbo as $k => $cat) {
-            if (((preg_match('/^'.$conf->global->INTERVENTIONSURVEY_ROOT_PRODUCT_CATEGORIES.'$/', $cat['fullpath']) ||
-                preg_match('/_'.$conf->global->INTERVENTIONSURVEY_ROOT_PRODUCT_CATEGORIES.'$/', $cat['fullpath'])) && $conf->global->INTERVENTIONSURVEY_ROOT_PRODUCT_CATEGORY_INCLUDE) ||
-                preg_match('/^'.$conf->global->INTERVENTIONSURVEY_ROOT_PRODUCT_CATEGORIES.'_/', $cat['fullpath']) ||
-                preg_match('/_'.$conf->global->INTERVENTIONSURVEY_ROOT_PRODUCT_CATEGORIES.'_/', $cat['fullpath'])) {
-                $list[$cat['id']] = $cat['fulllabel'];
-            }
-        }
-
-        return $list;
-    }

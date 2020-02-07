@@ -17,15 +17,15 @@
  */
 
 /**
- * \file        core/dictionaries/extendedinterventionquestion.dictionary.php
- * \ingroup     extendedintervention
+ * \file        core/dictionaries/surveyquestion.dictionary.php
+ * \ingroup     interventionsurvey
  * \brief       Class of the dictionary Question
  */
 
 dol_include_once('/advancedictionaries/class/dictionary.class.php');
 
 /**
- * Class for ExtendedInterventionQuestionDictionary
+ * Class for SurveyQuestionDictionary
  */
 class SurveyQuestionDictionary extends Dictionary
 {

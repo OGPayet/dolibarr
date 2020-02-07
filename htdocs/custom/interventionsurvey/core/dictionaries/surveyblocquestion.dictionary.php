@@ -17,8 +17,8 @@
  */
 
 /**
- * \file        core/dictionaries/extendedinterventionquestionbloc.dictionary.php
- * \ingroup     extendedintervention
+ * \file        core/dictionaries/surveyblocquestion.dictionary.php
+ * \ingroup     interventionsurvey
  * \brief       Class of the dictionary Question Block
  */
 
@@ -26,7 +26,7 @@ require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
 dol_include_once('/advancedictionaries/class/dictionary.class.php');
 
 /**
- * Class for ExtendedInterventionQuestionBlocDictionary
+ * Class for SurveyBlocQuestionDictionary
  */
 class SurveyBlocQuestionDictionary extends Dictionary
 {
@@ -234,7 +234,6 @@ class SurveyBlocQuestionDictionary extends Dictionary
                 'positionLine' => 1,
             ),
         ),
-        'types_intervention' => array(),
         'categories' => array(),
         'status' => array(),
         'questions' => array(),
@@ -285,7 +284,7 @@ class SurveyBlocQuestionDictionary extends Dictionary
     public function load_categories()
     {
         if (!isset($this->categories_cache)) {
-            $this->categories_cache = get_categories_array();
+            $this->categories_cache = get_categories_array($this->db);
         }
     }
 
@@ -307,31 +306,92 @@ class SurveyBlocQuestionDictionary extends Dictionary
 	 *
      * @return  void
 	 */
-	protected function initialize()
-    {
+        protected function initialize()
+        {
+            $this->fields['types_intervention'] = array(
+                'name' => 'types_intervention',
+                'label' => 'InterventionSurveyBlocQuestionInterventionTypeField',
+                'type' => 'chkbxlst',
+                'options' => 'c_extendedintervention_type:label:rowid::active=1 and entity IN (' . getEntity('dictionary', 1) . ')',
+                'td_output' => array(
+                    'moreAttributes' => 'width="50%"',
+                ),
+                'td_input' => array(
+                    'moreAttributes' => 'width="50%"',
+                    'positionLine' => 2,
+                    'colspan' => 3,
+                ),
+                'is_require' => false,
+            );
 
-        $table_element = 'interventionsurvey_surveyblocquestion';
-        $extrafields = new ExtraFields($this->db);
-        $extralabels = $extrafields->fetch_name_optionals_label($table_element);
+            $this->fields['categories'] = array(
+                'name' => 'categories',
+                'label' => 'InterventionSurveyTagCategoriesInQuestionBlocDictionnary',
+                'type' => 'chkbxlst',
+                'options' => 'categorie:label:rowid::type=0 and entity IN (' . getEntity( 'category', 1 ) . ')',
+                'td_output' => array(
+                    'moreAttributes' => 'width="50%"'
+                ),
+                'td_input' => array(
+                    'moreAttributes' => 'width="50%"',
+                    'positionLine' => 2,
+                ),
+            );
 
-        $this->fields['extra_fields'] = array(
-            'name' => 'extra_fields',
-            'label' => 'InterventionSurveyBlocQuestionExtrafieldDictionary',
-            'type' => 'checkbox',
-            'options' => $extrafields->attributes[$table_element]['label'],
-            'td_output' => array(
-                'moreAttributes' => 'width="100%"',
-            ),
-            'td_input' => array(
-                'moreAttributes' => 'width="100%"',
-                'positionLine' => 5,
-            ),
-        );
+            $this->fields['status'] = array(
+                'name' => 'status',
+                'label' => 'InterventionSurveyBlocStatusInQuestionBlocDictionnary',
+                'type' => 'chkbxlst',
+                'options' => 'c_intervention_survey_bloc_status:identifier|label:rowid::active=1 and entity IN (' . getEntity('dictionary', 1) . ')',
+                'label_separator' => ' - ',
+                'td_output' => array(
+                    'moreAttributes' => 'width="100%"',
+                ),
+                'td_input' => array(
+                    'moreAttributes' => 'width="100%"',
+                    'positionLine' => 3,
+                ),
+                'is_require' => false,
+            );
+
+            $this->fields['questions'] = array(
+                'name' => 'questions',
+                'label' => 'InterventionSurveyQuestionsInQuestionBlocDictionnary',
+                'type' => 'chkbxlst',
+                'options' => 'c_intervention_survey_question:identifier|label:rowid::active=1 and entity IN (' . getEntity('dictionary', 1) . ')',
+                'label_separator' => ' - ',
+                'td_output' => array(
+                    'moreAttributes' => 'width="100%"',
+                ),
+                'td_input' => array(
+                    'moreAttributes' => 'width="100%"',
+                    'positionLine' => 4,
+                ),
+                'is_require' => true,
+            );
+
+            $table_element = 'interventionsurvey_surveyblocquestion';
+            $extrafields = new ExtraFields($this->db);
+            $extralabels = $extrafields->fetch_name_optionals_label($table_element);
+
+            $this->fields['extra_fields'] = array(
+                'name' => 'extra_fields',
+                'label' => 'InterventionSurveyBlocQuestionExtrafieldDictionary',
+                'type' => 'checkbox',
+                'options' => $extrafields->attributes[$table_element]['label'],
+                'td_output' => array(
+                    'moreAttributes' => 'width="100%"',
+                ),
+                'td_input' => array(
+                    'moreAttributes' => 'width="100%"',
+                    'positionLine' => 5,
+                ),
+            );
+        }
     }
-}
 
 
-class ExtendedInterventionQuestionBlocDictionaryLine extends DictionaryLine
+class SurveyBlocQuestionDictionaryLine extends DictionaryLine
 {
     public function checkFieldsValues($fieldsValue)
     {
@@ -413,8 +473,8 @@ class ExtendedInterventionQuestionBlocDictionaryLine extends DictionaryLine
                 $value_arr = array_filter(explode(',', (string)$value), 'strlen');
             }
 
-            $this->dictionary->load_form_extended_intervention();
-            return $this->dictionary->form_extended_intervention->multiselect_categories($fieldHtmlName, $value_arr, '', 0, $moreClasses, 0, '100%', $moreAttributes);
+            $this->dictionary->load_form_intervention_survey();
+            return $this->dictionary->form_intervention_survey->multiselect_categories($fieldHtmlName, $value_arr, '', 0, $moreClasses, 0, '100%', $moreAttributes);
         }
 
         return parent::showInputField($fieldName, $value, $keyprefix, $keysuffix, $objectid);

@@ -17,15 +17,15 @@
  */
 
 /**
- * \file        core/dictionaries/extendedinterventionquestionblocstatus.dictionary.php
- * \ingroup     extendedintervention
+ * \file        core/dictionaries/surveyblocstatus.dictionary.php
+ * \ingroup     interventionsurvey
  * \brief       Class of the dictionary Question Bloc Status
  */
 
 dol_include_once('/advancedictionaries/class/dictionary.class.php');
 
 /**
- * Class for ExtendedInterventionQuestionBlocStatusDictionary
+ * Class for SurveyBlocStatusDictionary
  */
 class SurveyBlocStatusDictionary extends Dictionary
 {
@@ -264,7 +264,7 @@ class SurveyBlocStatusDictionary extends Dictionary
     }
 }
 
-class ExtendedInterventionQuestionBlocStatusDictionaryLine extends DictionaryLine
+class SurveyBlocStatusDictionaryLine extends DictionaryLine
 {
     public function checkFieldsValues($fieldsValue)
     {

@@ -55,8 +55,8 @@ $action = GETPOST('action', 'alpha');
 $backtopage = GETPOST('backtopage', 'alpha');
 
 $arrayofparameters = array(
-	'INTERVENTIONSURVEY_MYPARAM1'=>array('css'=>'minwidth200', 'enabled'=>1),
-	'INTERVENTIONSURVEY_MYPARAM2'=>array('css'=>'minwidth500', 'enabled'=>1)
+	'INTERVENTIONSURVEY_ROOT_PRODUCT_CATEGORIES'=>array('enabled'=>1),
+	'INTERVENTIONSURVEY_ROOT_PRODUCT_CATEGORY_INCLUDE'=>array('enabled'=>1)
 );
 
 
@@ -96,7 +96,7 @@ print load_fiche_titre($langs->trans("Other"),'','');
 
 print '<form method="post" action="'.$_SERVER["PHP_SELF"].'">';
 print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-print '<input type="hidden" name="action" value="set">';
+print '<input type="hidden" name="action" value="update">';
 
 $var=true;
 

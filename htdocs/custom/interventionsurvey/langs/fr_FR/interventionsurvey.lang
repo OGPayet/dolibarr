@@ -18,9 +18,11 @@
 #
 
 # Module label 'ModuleInterventionSurveyName'
-ModuleInterventionSurveyName = InterventionSurvey
+ModuleInterventionSurveyName = Intervention Survey
+Module468400Name = Intervention Survey
 # Module description 'ModuleInterventionSurveyDesc'
 ModuleInterventionSurveyDesc = Gestion des questionnaires et d'un système de templating sur les interventions
+Module468400Desc = Gestion des questionnaires et d'un système de templating sur les interventions
 
 #
 # Page d'administration

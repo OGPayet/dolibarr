@@ -87,6 +87,33 @@ class FormInterventionSurvey
     }
 
     /**
+     *	Return list of product categories
+     *
+     *	@return	array					List of product categories
+     */
+    function get_categories_array()
+    {
+        global $conf;
+
+        include_once DOL_DOCUMENT_ROOT . '/categories/class/categorie.class.php';
+
+        $cat = new Categorie($this->db);
+        $cate_arbo = $cat->get_full_arbo(Categorie::TYPE_PRODUCT);
+
+        $list = array();
+        foreach ($cate_arbo as $k => $cat) {
+            if (((preg_match('/^'.$conf->global->INTERVENTIONSURVEY_ROOT_PRODUCT_CATEGORIES.'$/', $cat['fullpath']) ||
+                preg_match('/_'.$conf->global->INTERVENTIONSURVEY_ROOT_PRODUCT_CATEGORIES.'$/', $cat['fullpath'])) && $conf->global->INTERVENTIONSURVEY_ROOT_PRODUCT_CATEGORY_INCLUDE) ||
+                preg_match('/^'.$conf->global->INTERVENTIONSURVEY_ROOT_PRODUCT_CATEGORIES.'_/', $cat['fullpath']) ||
+                preg_match('/_'.$conf->global->INTERVENTIONSURVEY_ROOT_PRODUCT_CATEGORIES.'_/', $cat['fullpath'])) {
+                $list[$cat['id']] = $cat['fulllabel'];
+            }
+        }
+
+        return $list;
+    }
+
+    /**
      *	Return multiselect list of product categories
      *
      *	@param	string	$htmlname		Name of select
@@ -103,7 +130,7 @@ class FormInterventionSurvey
     function multiselect_categories($htmlname='categories', $selected=array(), $key_in_label=0, $value_as_key=0, $morecss='', $translate=0, $width=0, $moreattrib='')
     {
         dol_include_once('/advancedictionaries/class/dictionary.class.php');
-        $list = get_categories_array();
+        $list = $this->get_categories_array();
 
         $out = $this->form->multiselectarray($htmlname, $list, $selected, $key_in_label, $value_as_key, $morecss, $translate, $width, $moreattrib, 'category');
 
