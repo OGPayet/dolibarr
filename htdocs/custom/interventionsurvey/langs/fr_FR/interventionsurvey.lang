@@ -36,6 +36,12 @@ InterventionSurveyRootProductFieldName = Include la catégorie renseigné ci-des
 InterventionSurveyRootProductFieldDesc = Inclure la catégorie parente dans le paramétrage des blocs de question
 InterventionSurveySetupModifyButton = Sauvegarder
 
+# Page À propos
+#
+InterventionSurveyAbout = À propos
+InterventionSurveyAbout = À propos de Intervention Survey
+InterventionSurveyAboutPage = Page à propos de Intervention Survey
+
 #
 # Dictionnaire
 #
@@ -131,8 +137,8 @@ InterventionSurveyBlocQuestionIdentifierFieldLabel = Identifiant
 InterventionSurveyBlocQuestionIdentifierFieldHelp = Valeur non nécessairement unique permettant d'identifier l'element sur les autres écrans de paramétrages et à des fins statistique
 InterventionSurveyBlocQuestionInterventionTypeField = Utilisé uniquement dans le cadre des interventions de type (laisser vide pour ne pas filter)
 
-# Page À propos
-#
-InterventionSurveyAbout = À propos
-InterventionSurveyAbout = À propos de Intervention Survey
-InterventionSurveyAboutPage = Page à propos de Intervention Survey
+# Ecran de visualisation et saisie des questionnaires
+InterventionSurveyTabTitle = Questionnaire
+
+# Gestion des fichiers joints sur les interventions avec hooks
+InterventionSurveyDocuments = Documents

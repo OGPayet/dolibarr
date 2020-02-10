@@ -256,7 +256,7 @@ class SurveyAnswerDictionary extends Dictionary
     }
 }
 
-class SurveyAnswerDictionaryAnswerDictionaryLine extends DictionaryLine
+class SurveyAnswerDictionaryLine extends DictionaryLine
 {
     public function checkFieldsValues($fieldsValue)
     {

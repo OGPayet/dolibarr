@@ -3604,11 +3604,14 @@ class DictionaryLine extends CommonObjectLine
                                     $label_separator = isset($field['label_separator']) ? $field['label_separator'] : ' ';
                                     $labelstoshow = array();
                                     foreach ($fields_label as $field_toshow) {
-                                        $translabel = $langs->trans($obj->$field_toshow);
-                                        if ($translabel != $obj->$field_toshow) {
-                                            $labelstoshow[] = dol_trunc($translabel, 18);
-                                        } else {
-                                            $labelstoshow[] = dol_trunc($obj->$field_toshow, 18);
+                                        if(isset($obj->$field_toshow))
+                                        {
+                                            $translabel = $langs->trans($obj->$field_toshow);
+                                            if ($translabel != $obj->$field_toshow) {
+                                                $labelstoshow[] = dol_trunc($translabel, 18);
+                                            } else {
+                                                $labelstoshow[] = dol_trunc($obj->$field_toshow, 18);
+                                            }
                                         }
 									}
 									$labelstoshow = array_filter($labelstoshow,function($k){return isset($k);});
@@ -4036,11 +4039,14 @@ class DictionaryLine extends CommonObjectLine
                                 if (is_array($value_arr) && in_array($obj->rowid, $value_arr)) {
                                     $labelstoshow = array();
                                     foreach ($fields_label as $field_toshow) {
-                                        $translabel = $langs->trans($obj->$field_toshow);
-                                        if ($translabel != $obj->$field_toshow) {
-                                            $labelstoshow[] = dol_trunc($translabel, 18);
-                                        } else {
-                                            $labelstoshow[] = dol_trunc($obj->$field_toshow, 18);
+                                        if(isset($obj->$field_toshow))
+                                        {
+                                            $translabel = $langs->trans($obj->$field_toshow);
+                                            if ($translabel != $obj->$field_toshow) {
+                                                $labelstoshow[] = dol_trunc($translabel, 18);
+                                            } else {
+                                                $labelstoshow[] = dol_trunc($obj->$field_toshow, 18);
+                                            }
                                         }
 									}
 									$labelstoshow = array_filter($labelstoshow,function($k){return isset($k);});

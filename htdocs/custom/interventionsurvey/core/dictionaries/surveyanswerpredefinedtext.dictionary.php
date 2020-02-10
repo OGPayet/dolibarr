@@ -184,6 +184,42 @@ class SurveyAnswerPredefinedTextDictionary extends Dictionary
      */
     public $is_multi_entity = true;
 
+
+    /**
+     * @var array    Cache of the list of the categories for categorie show output
+     */
+    public $categories_cache = null;
+    /**
+     * @var FormInterventionSurvey    Instance of the FormInterventionSurvey
+     */
+    public $form_intervention_survey = null;
+
+    /**
+	 * Load the cache of the list of the categories for categories show output
+	 *
+     * @return  void
+	 */
+    public function load_categories()
+    {
+        if (!isset($this->categories_cache)) {
+            $this->load_form_intervention_survey();
+            $this->categories_cache = $this->form_intervention_survey->get_categories_array();
+        }
+    }
+
+    /**
+	 * Load the FormInterventionSurvey object for categories show input
+	 *
+     * @return  void
+	 */
+    public function load_form_intervention_survey()
+    {
+        if (!isset($this->form_intervention_survey)) {
+            dol_include_once('/interventionsurvey/class/html.forminterventionsurvey.class.php');
+            $this->form_intervention_survey = new FormInterventionSurvey($this->db);
+        }
+    }
+
     /**
 	 * Initialize the dictionary
 	 *
@@ -259,7 +295,7 @@ class SurveyAnswerPredefinedTextDictionaryLine extends DictionaryLine
      */
     function showOutputField($fieldName, $value = null)
     {
-        if ($fieldName == 'categories') {
+        if ($fieldName == 'cat_filter') {
             if (isset($this->dictionary->fields[$fieldName])) {
                 if ($value === null) $value = $this->fields[$fieldName];
                 if (is_array($value)) {
@@ -295,7 +331,7 @@ class SurveyAnswerPredefinedTextDictionaryLine extends DictionaryLine
 	 */
 	function showInputField($fieldName, $value=null, $keyprefix='', $keysuffix='', $objectid=0)
     {
-        if ($fieldName == 'categories') {
+        if ($fieldName == 'cat_filter') {
             $field = $this->dictionary->fields[$fieldName];
 
             if ($value === null) $value = $this->fields[$fieldName];
@@ -318,8 +354,8 @@ class SurveyAnswerPredefinedTextDictionaryLine extends DictionaryLine
                 $value_arr = array_filter(explode(',', (string)$value), 'strlen');
             }
 
-            $this->dictionary->load_form_extended_intervention();
-            return $this->dictionary->form_extended_intervention->multiselect_categories($fieldHtmlName, $value_arr, '', 0, $moreClasses, 0, '100%', $moreAttributes);
+            $this->dictionary->load_form_intervention_survey();
+            return $this->dictionary->form_intervention_survey->multiselect_categories($fieldHtmlName, $value_arr, '', 0, $moreClasses, 0, '100%', $moreAttributes);
         }
 
         return parent::showInputField($fieldName, $value, $keyprefix, $keysuffix, $objectid);

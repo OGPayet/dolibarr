@@ -284,7 +284,8 @@ class SurveyBlocQuestionDictionary extends Dictionary
     public function load_categories()
     {
         if (!isset($this->categories_cache)) {
-            $this->categories_cache = get_categories_array($this->db);
+            $this->load_form_intervention_survey();
+            $this->categories_cache = $this->form_intervention_survey->get_categories_array();
         }
     }
 

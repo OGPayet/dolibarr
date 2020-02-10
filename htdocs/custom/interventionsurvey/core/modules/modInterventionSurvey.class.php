@@ -152,9 +152,9 @@ class modInterventionSurvey extends DolibarrModules
 
         // Array to add new pages in new tabs
         $this->tabs = array(
-            'intervention:+interventionSurvey:InterventionSurvey:interventionsurvey@interventionSurvey:$user->rights->interventionSurvey->survey->read:/interventionsurvey/survey.php?id=__ID__',
+            'intervention:+interventionsurvey:InterventionSurveyTabTitle:interventionsurvey@interventionsurvey:$user->rights->interventionsurvey->survey->read:/custom/interventionsurvey/survey.php?id=__ID__',
             'intervention:-documents',
-            'intervention:+interventionSurvey_documents:Documents:fichinter:1:/interventionsurvey/document.php?id=__ID__',
+            'intervention:+interventionsurvey_documents:InterventionSurveyDocuments:interventionsurvey@interventionsurvey:1:/custom/interventionsurvey/document.php?id=__ID__',
             'interventionsurvey:+dictionary_surveyanswerpredefinedtext:InterventionSurveyAnswerPredefinedTextDictionaryTabTitle:interventionsurvey@interventionSurvey:$user->rights->interventionsurvey->settings->manage:/interventionsurvey/admin/dictionaries.php?name=surveyanswerpredefinedtext',
             'interventionsurvey:+dictionary_surveyanswer:InterventionSurveyAnswerDictionaryTabTitle:interventionsurvey@interventionSurvey:$user->rights->interventionsurvey->settings->manage:/interventionsurvey/admin/dictionaries.php?name=surveyanswer',
             'interventionsurvey:+interventionSurvey_question_extrafields:InterventionSurveyQuestionExtrafields:interventionsurvey@interventionSurvey:$user->rights->interventionsurvey->settings->manage:/interventionsurvey/admin/interventionsurvey_question_extrafields.php',
