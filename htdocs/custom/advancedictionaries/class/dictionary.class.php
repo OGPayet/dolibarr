@@ -1052,6 +1052,24 @@ class Dictionary extends CommonObject
     }
 
     /**
+     * Get JSON dictionary
+     *
+     * @param   DoliDb              $db         Database handler
+     * @param   string              $module     Name of the module containing the dictionary
+     * @param   string              $name       Name of dictionary
+     * @return  Array                 List of dictionary line in Json Format
+     */
+    static function getJSONDictionary($db,$moduleName,$dictionaryName){
+        $dictionary = Dictionary::getDictionary($db, $moduleName, $dictionaryName);
+        $dictionary->fetch_lines(1,$filters);
+        $result=array();
+        foreach ($dictionary->lines as $line) {
+            $result[$line->id] = $line->fields;
+        }
+        return $result;
+    }
+
+    /**
      * Get dictionary line
      *
      * @param   DoliDb                  $db         Database handler
@@ -1417,8 +1435,13 @@ class Dictionary extends CommonObject
                         $line->entity = $obj[$this->entity_field];
                         unset($obj[$this->entity_field]);
                     }
-                    $line->fields = $obj;
 
+                    $resultObject = array();
+                    foreach ($this->fields as $field) {
+                        $fieldName = $field['name'];
+                        $resultObject[$fieldName] = $obj[$fieldName];
+                    }
+                    $line->fields = $resultObject;
                     $lines[$line->id] = $line;
                 }
                 $result = 1;
