@@ -28,10 +28,10 @@ require_once DOL_DOCUMENT_ROOT . '/fichinter/class/fichinter.class.php';
  */
 
 function intervention_survey_cmp($a, $b) {
-    if (!isset($a) || !isset($a->position)) {return -1;}
-    if (!isset($b) || !isset($b->position)) {return 1;}
-    if ($a->position == $b->position) {return 0;}
-    return $a->position < $b->position ? -1 : 1;
+    if (!isset($a) || !isset($a["position"])) {return 1;}
+    if (!isset($b) || !isset($b["position"])) {return -1;}
+    if ($a["position"] == $b["position"]) {return 0;}
+    return $a["position"] < $b["position"] ? -1 : 1;
 }
 /**
  * Class InterventionSurvey
@@ -144,6 +144,16 @@ class InterventionSurvey extends Fichinter
     public $cache_survey_answer_predefined_text;
 
     /**
+     * Cache Available Product Category array
+     */
+    public $cache_product_categories;
+
+    /**
+     * Dictionary survey - survey if only data from dictionary were used
+     */
+    public $survey_taken_from_dictionary = array();
+
+    /**
      *  Fill dictionary caches
      *
      */
@@ -185,6 +195,12 @@ class InterventionSurvey extends Fichinter
             array("identifier", "label", "bloc_filter",  "cat_filter"),
             array("bloc_filter","cat_filter"));
         }
+        if(!isset($this->cache_product_categories)){
+            dol_include_once('/interventionsurvey/class/html.forminterventionsurvey.class.php');
+            $formextendedintervention = new FormInterventionSurvey($this->db);
+            $this->cache_product_categories = $formextendedintervention->get_categories_array();
+        }
+
         }
 
 /**
@@ -237,7 +253,7 @@ class InterventionSurvey extends Fichinter
     }
 
     /**
-     *  Get blank intervention list of blocs from dictionary according to intervention type and equipment product type
+     *  Get list of blocs from dictionary according to intervention type and equipment product category
      *
      */
 
@@ -254,9 +270,138 @@ class InterventionSurvey extends Fichinter
     }
 
     /**
-     *  Get raw list of bloc intervention list of blocs from dictionary according to intervention type and equipment product type
+     *
+     * Generate Survey from dictionary according to this intervention data
      *
      */
+
+     public function generateSurveyFromDictionary() {
+        if ($this->fetchObjectLinked() < 0){
+            return -1;
+        }
+        if (empty($this->array_options['options_ei_type'])) {
+            $this->fetch_optionals();
+        }
+        $this->survey_taken_from_dictionary = $this->generateInterventionSurveyPartsWithFollowingSettings($this->array_options['options_ei_type'],$this->linkedObjectsIds);
+        return 1;
+     }
+
+    /**
+     *  Get intervention parts according to intervention type and list of equipement product categories
+     *
+     */
+
+    public function generateInterventionSurveyPartsWithFollowingSettings($interventionTypeId, $arrayOfModuleNameAndItemId) {
+        $this->fillCaches();
+        $surveyParts = array();
+        $generalSurveyBlocParts = array();
+        foreach($arrayOfModuleNameAndItemId as $moduleName=>$listOfId) {
+            switch($moduleName) {
+                case "equipement":
+                    foreach($listOfId as $equipementId)
+                    {
+                        $listOfGeneratedBlocsForThisEquipement = array();
+                        $categoriesOfProductForThisEquipement = $this->getArrayOfProductCategoriesAssociatedToEquipementId($equipementId);
+                        $crudeListOfBlocsForThisEquipementInThisSurvey = array();
+                        //We create list of blocs needed to be added to this survey
+                        foreach($categoriesOfProductForThisEquipement as $categoryId){
+                            $crudeListOfBlocsForThisEquipementInThisSurvey = array_merge(
+                                $crudeListOfBlocsForThisEquipementInThisSurvey,
+                                $this->generateBlocsWithFollowingSettings($interventionTypeId, $categoryId));
+                        }
+                        //We put these blocs into survey parts
+                        $equipementBlocParts = array();
+                        foreach($crudeListOfBlocsForThisEquipementInThisSurvey as $bloc){
+                            if(empty($bloc["bloc_in_general_part"])){
+                                $listOfGeneratedBlocsForThisEquipement[$bloc->c_rowid] = $bloc;
+                            }
+                            else
+                            {
+                                $generalSurveyBlocParts[$bloc->c_rowid] = $bloc;
+                            }
+                        }
+                        $listOfGeneratedBlocsForThisEquipement = self::sortArrayOfObjectByPositionObjectProperty($listOfGeneratedBlocsForThisEquipement);
+                        $surveyParts[] = $this->generateEquipementSurveyPart($listOfGeneratedBlocsForThisEquipement,$equipementId, count($surveyParts)+1);
+                    }
+                break;
+
+            //Put here code to generate survey parts according to another classes
+            }
+        }
+
+        $generalSurveyBlocParts = self::sortArrayOfObjectByPositionObjectProperty($generalSurveyBlocParts);
+        $surveyParts[] = $this->generateGeneralSurveyPart($generalSurveyBlocParts);
+        $data = self::sortArrayOfObjectByPositionObjectProperty($surveyParts);
+        //We have final data, we unset useless data
+        foreach($data as $index=>$part){
+            unset($data[$index]["position"]);
+        }
+        return $data;
+    }
+
+/**
+ *
+ * Generate information for general Survey Parts
+ *
+ */
+
+function generateGeneralSurveyPart($listOfGeneralBlocs) {
+    $part = array(
+        'label'=>"General Parts",
+        'position'=>null,
+        'fk_identifier_type'=>null,
+        'fk_identifier_value'=>null,
+        'blocs'=>$listOfGeneralBlocs,
+    );
+    return $part;
+}
+
+ /**
+ *
+ * Generate information for each specific parts linked to equipement
+ *
+ */
+
+function generateEquipementSurveyPart($listOfEquipementBlocs, $equipementId, $position=null) {
+    dol_include_once('/equipement/class/equipement.class.php');
+    $equipment_static = new Equipement($this->db);
+    $equipment_static->fetch($equipementId);
+    $equipment_static->fetch_product();
+
+    $part = array(
+        'label'=> $equipment_static->ref . " - " . $equipment_static->product->label,
+        'position'=>$position,
+        'fk_identifier_type'=>"equipement",
+        'fk_identifier_value'=>$equipementId,
+        'blocs'=>$listOfEquipementBlocs,
+    );
+    return $part;
+}
+
+
+
+
+    /**
+     *  Get product categories associated to an equipment id, according only to accessible categories
+     *
+     */
+
+     public function getArrayOfProductCategoriesAssociatedToEquipementId($equipementId) {
+        dol_include_once('/equipement/class/equipement.class.php');
+        require_once DOL_DOCUMENT_ROOT . '/categories/class/categorie.class.php';
+        $category_static = new Categorie($this->db);
+        $equipment_static = new Equipement($this->db);
+        $categories = array();
+        if ($equipment_static->fetch($equipementId) > 0 && $equipment_static->fk_product > 0) {
+                $categories = $category_static->containing($equipment_static->fk_product, 'product', 'id');
+        }
+        foreach($categories as $index=>$categoryId) {
+            if(!isset($this->cache_product_categories[$categoryId])){
+                unset($categories[$index]);
+            }
+        }
+        return $categories;
+     }
 
 
      /**

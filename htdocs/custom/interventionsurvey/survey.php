@@ -80,6 +80,7 @@ llxHeader('',$langs->trans("Intervention"));
 
 dol_include_once('/interventionsurvey/class/interventionsurvey.class.php');
 $interventionsurvey = new InterventionSurvey($db);
+$interventionsurvey->fetch($id);
 $interventionsurvey->fillCaches();
 
 $cache_survey_bloc_question_dictionary = $interventionsurvey->cache_survey_bloc_question_dictionary;
@@ -115,7 +116,8 @@ echo '<br>';
 
 echo '<h3>generated</h3>';
 echo "<pre>";
-echo json_encode($interventionsurvey->generateBlocsWithFollowingSettings(null,"8"), JSON_PRETTY_PRINT);
+$interventionsurvey->generateSurveyFromDictionary();
+echo json_encode($interventionsurvey->survey_taken_from_dictionary, JSON_PRETTY_PRINT);
 echo "</pre>";
 echo '<br>';
 
