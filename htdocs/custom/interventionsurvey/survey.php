@@ -114,7 +114,9 @@ echo json_encode($cache_survey_answer_predefined_text);
 echo '<br>';
 
 echo '<h3>generated</h3>';
-echo json_encode($interventionsurvey->generateBlocsWithFollowingSettings(null,null));
+echo "<pre>";
+echo json_encode($interventionsurvey->generateBlocsWithFollowingSettings(null,"8"), JSON_PRETTY_PRINT);
+echo "</pre>";
 echo '<br>';
 
 dol_fiche_end();

@@ -1059,12 +1059,15 @@ class Dictionary extends CommonObject
      * @param   string              $name       Name of dictionary
      * @return  Array                 List of dictionary line in Json Format
      */
-    static function getJSONDictionary($db,$moduleName,$dictionaryName){
+    static function getJSONDictionary($db,$moduleName,$dictionaryName, $filters = array()){
         $dictionary = Dictionary::getDictionary($db, $moduleName, $dictionaryName);
         $dictionary->fetch_lines(1,$filters);
         $result=array();
         foreach ($dictionary->lines as $line) {
-            $result[$line->id] = $line->fields;
+            $temp = $line->fields;
+            $temp["rowid"] = $line->id;
+            $temp["id"] = $line->id;
+            $result[$line->id] = $temp;
         }
         return $result;
     }
@@ -2999,7 +3002,6 @@ class DictionaryLine extends CommonObjectLine
             $sql .= implode(', ', $set_statement);
             $sql .= ' WHERE ' . $this->dictionary->rowid_field . ' = ' . $this->id;
 
-            dol_syslog(__METHOD__ . "::update", LOG_DEBUG);
             $resql = $this->db->query($sql);
             if (!$resql) {
                 dol_syslog(__METHOD__ . ' SQL: ' . $sql . '; Errors: ' . $this->db->lasterror(), LOG_ERR);
@@ -3386,7 +3388,7 @@ class DictionaryLine extends CommonObjectLine
                 case 'double':
                 case 'price':
                 case 'link':
-                    return $field['is_require'] || !empty($value) ? "'" . $this->db->escape($value) . "'" : 'NULL';
+                    return $field['is_require'] || !empty($value) || $value === 0 || $value === "0" ? "'" . $this->db->escape($value) . "'" : 'NULL';
                 case 'chkbxlst':
                     return null;
                 case 'date':

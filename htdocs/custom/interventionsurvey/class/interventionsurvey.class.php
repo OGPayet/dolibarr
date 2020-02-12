@@ -22,7 +22,17 @@
  */
 
 require_once DOL_DOCUMENT_ROOT . '/fichinter/class/fichinter.class.php';
+/**
+ *
+ * Function to sort intervention survey element on fetch and generation
+ */
 
+function intervention_survey_cmp($a, $b) {
+    if (!isset($a) || !isset($a->position)) {return -1;}
+    if (!isset($b) || !isset($b->position)) {return 1;}
+    if ($a->position == $b->position) {return 0;}
+    return $a->position < $b->position ? -1 : 1;
+}
 /**
  * Class InterventionSurvey
  *
@@ -86,7 +96,7 @@ class InterventionSurvey extends Fichinter
     );
 
     /**
-	 * @var EISurveyBloc[]
+	 * @var SurveyPart[]
 	 */
     public $survey = array();
 
@@ -138,28 +148,92 @@ class InterventionSurvey extends Fichinter
      *
      */
     public function fillCaches(){
-        dol_include_once('/advancedictionaries/class/dictionary.class.php');
-        if(!isset($this->cache_survey_bloc_question_dictionary)) $this->cache_survey_bloc_question_dictionary = Dictionary::getJSONDictionary($this->db, 'interventionsurvey', 'SurveyBlocQuestion');
-        if(!isset($this->cache_survey_bloc_status_dictionary)) $this->cache_survey_bloc_status_dictionary = Dictionary::getJSONDictionary($this->db, 'interventionsurvey', 'SurveyBlocStatus');
-        if(!isset($this->cache_survey_bloc_status_predefined_text_dictionary)) $this->cache_survey_bloc_status_predefined_text_dictionary = Dictionary::getJSONDictionary($this->db, 'interventionsurvey', 'SurveyBlocStatusPredefinedText');
-        if(!isset($this->cache_survey_question_dictionary)) $this->cache_survey_question_dictionary = Dictionary::getJSONDictionary($this->db, 'interventionsurvey', 'SurveyQuestion');
-        if(!isset($this->cache_survey_answer_dictionary)) $this->cache_survey_answer_dictionary = Dictionary::getJSONDictionary($this->db, 'interventionsurvey', 'SurveyAnswer');
-        if(!isset($this->cache_survey_answer_predefined_text)) $this->cache_survey_answer_predefined_text = Dictionary::getJSONDictionary($this->db, 'interventionsurvey', 'SurveyAnswerPredefinedText');
+        if(!isset($this->cache_survey_bloc_question_dictionary)) {
+            $this->cache_survey_bloc_question_dictionary = self::fetchProperDataFromDictionary(
+                $this->db, 'interventionsurvey', 'SurveyBlocQuestion',
+            array("position","identifier", "label", "icon",  "label_editable", "description_editable", "deletable",
+            "private", "bloc_in_general_part", "categories", "status", "questions", "extra_fields", "types_intervention"),
+        array("categories","extra_fields","types_intervention"));
         }
+
+        if(!isset($this->cache_survey_bloc_status_dictionary)) {
+            $this->cache_survey_bloc_status_dictionary = self::fetchProperDataFromDictionary(
+                $this->db, 'interventionsurvey', 'SurveyBlocStatus',
+            array("identifier", "label", "icon",  "color", "mandatory_justification", "deactivate_bloc", "predefined_texts"));
+        }
+
+        if(!isset($this->cache_survey_bloc_status_predefined_text_dictionary)) {
+            $this->cache_survey_bloc_status_predefined_text_dictionary = self::fetchProperDataFromDictionary(
+                $this->db, 'interventionsurvey', 'SurveyBlocStatusPredefinedText',
+            array("identifier", "label", "blkLim",  "catLim"),
+            array("blkLim","catLim"));
+        }
+        if(!isset($this->cache_survey_question_dictionary)) {
+            $this->cache_survey_question_dictionary = self::fetchProperDataFromDictionary(
+                $this->db, 'interventionsurvey', 'SurveyQuestion',
+            array("identifier", "label", "answers",  "extra_fields"),
+            array("extra_fields"));
+        }
+        if(!isset($this->cache_survey_answer_dictionary)) {
+            $this->cache_survey_answer_dictionary = self::fetchProperDataFromDictionary(
+                $this->db, 'interventionsurvey', 'SurveyAnswer',
+            array("identifier", "label", "color",  "mandatory", "predefined_texts"));
+        }
+        if(!isset($this->cache_survey_answer_predefined_text)) {
+            $this->cache_survey_answer_predefined_text = self::fetchProperDataFromDictionary(
+                $this->db, 'interventionsurvey', 'SurveyAnswerPredefinedText',
+            array("identifier", "label", "bloc_filter",  "cat_filter"),
+            array("bloc_filter","cat_filter"));
+        }
+        }
+
+/**
+ *
+ * Prepare data fetched from dictionary in order to have simple and proper object
+ *
+ */
+
+ public static function fetchProperDataFromDictionary($db, $moduleName, $dictionaryName, $fieldToKeep = array(), $fieldsToTransformInArray = array()) {
+    dol_include_once('/advancedictionaries/class/dictionary.class.php');
+    $data = Dictionary::getJSONDictionary($db, $moduleName, $dictionaryName);
+    $data = self::sortArrayOfObjectByPositionObjectProperty($data);
+    $result = array();
+    foreach($data as $position=>$value){
+        $temp = array();
+        $temp["c_rowid"] = $value["rowid"];
+        foreach($fieldsToTransformInArray as $field)
+        {
+            $value[$field] = array_filter(explode(",",$value[$field]));
+        }
+        foreach($fieldToKeep as $field)
+        {
+            $temp[$field] = $value[$field];
+        }
+        $result[$position] = $temp;
+    }
+    return $result;
+ }
 
      /**
      * Fill object from one array with index value taken from object initial property value
      *
      */
 
-    static function fillDataFromJSONDictionnary($JSONDictionaryLine,$field,$JSONDataDictionary) {
-        $listOfIds = explode(",", $JSONDictionaryLine[$field]);
+    static function fillDataFromJSONDictionary($JSONDictionaryLine,$field,$JSONDataDictionary) {
+        $listOfIds = array_filter(explode(",", $JSONDictionaryLine[$field]));
         $JSONDictionaryLine[$field] = array();
         foreach($listOfIds as $id) {
-            $obj = $JSONDataDictionary[$id];
             $JSONDictionaryLine[$field][] = $JSONDataDictionary[$id];
         }
         return $JSONDictionaryLine;
+    }
+
+    /**
+   *	Sort by position field value an array
+      */
+    static function sortArrayOfObjectByPositionObjectProperty($array) {
+        usort($array, 'intervention_survey_cmp');
+        return $array;
     }
 
     /**
@@ -172,12 +246,17 @@ class InterventionSurvey extends Fichinter
         $listOfGeneratedBloc = array();
         foreach($this->cache_survey_bloc_question_dictionary as $blocDictionary)
         {
-            if(true) {
-            $listOfGeneratedBloc[] = $this->fillQuestionBlocData($blocDictionary,$interventionTypeId, $productCategory);
+            if(self::shouldThisBlocOfQuestionBeIntoThisSurvey($blocDictionary, $interventionTypeId, $productCategory)) {
+            $listOfGeneratedBloc[] = $this->fillStatusAndQuestionInQuestionBloc($blocDictionary, $productCategory);
             }
         }
         return $listOfGeneratedBloc;
     }
+
+    /**
+     *  Get raw list of bloc intervention list of blocs from dictionary according to intervention type and equipment product type
+     *
+     */
 
 
      /**
@@ -185,39 +264,130 @@ class InterventionSurvey extends Fichinter
      *
      */
 
-    private function fillQuestionBlocData($blocDictionary,$interventionTypeId, $productCategory)
+    private function fillStatusAndQuestionInQuestionBloc($questionBloc, $productCategory)
     {
         //We fill status field
-        $blocDictionary = InterventionSurvey::fillDataFromJSONDictionnary($blocDictionary, "status", $this->cache_survey_bloc_status_dictionary);
-        $statusList = array();
-        foreach($blocDictionary["status"] as $index => $status){
-            $statusList[$index] = $this->fillStatus($status,$interventionTypeId, $productCategory);
-        }
-        $blocDictionary["status"] = $statusList;
+        $questionBloc = $this->fillStatusInQuestionBloc($questionBloc, $productCategory);
+
         //We fill question field
-        $blocDictionary = InterventionSurvey::fillDataFromJSONDictionnary($blocDictionary, "questions", $this->cache_survey_question_dictionary);
-        $questions = array();
-        foreach($blocDictionary["questions"] as $index => $question){
-            $questions[$index] = $this->fillAnswer($question,$interventionTypeId, $productCategory);
+        $questionBloc = $this->fillQuestionInQuestionBloc($questionBloc, $productCategory);
+        return $questionBloc;
+
+    }
+     /**
+     *  Fill question in question blocs according to intervention type and equipment product type
+     *
+     */
+    function fillQuestionInQuestionBloc($questionBloc, $productCategory){
+        $data = self::fillDataFromJSONDictionary($questionBloc, "questions", $this->cache_survey_question_dictionary);
+        $questionList = array();
+        foreach($data["questions"] as $index=>$answer){
+            $questionList[$index] = $this->fillAnswerInQuestion($answer,$questionBloc["c_rowid"], $productCategory);
         }
-        $blocDictionary["questions"] = $questions;
-        return $blocDictionary;
+        $data["questions"] = $questionList;
+        return $data;
+    }
+    /**
+     *  Fill answer in question according to intervention type and equipment product type
+     *
+     */
+    function fillAnswerInQuestion($question, $blocDictionaryId, $productCategory){
+        $data = self::fillDataFromJSONDictionary($question, "answers", $this->cache_survey_answer_dictionary);
+        $answerList = array();
+        foreach($data["answers"] as $index=>$answer){
+            $answerList[$index] = $this->fillAnswerPredefinedTextInAnswer($answer,$blocDictionaryId, $productCategory);
+        }
+        $data["answers"] = $answerList;
+        return $data;
     }
 
      /**
-     *  Fill answer data according to intervention type and equipment product type
+     *  Fill answer predefined text in answer according to intervention type and equipment product type
      *
      */
-    function fillAnswer($answer, $interventionTypeId, $productCategory){
-        return InterventionSurvey::fillDataFromJSONDictionnary($answer, "predefined_texts", $this->cache_survey_answer_predefined_text);
+    function fillAnswerPredefinedTextInAnswer($answer, $blocDictionaryId, $productCategory){
+        $data = self::fillDataFromJSONDictionary($answer, "predefined_texts", $this->cache_survey_answer_predefined_text);
+        $data["predefined_texts"] = array_filter($data["predefined_texts"], function($value) use ($blocDictionaryId,$productCategory) {
+            return self::shouldThisAnswerPredefinedTextBeIntoThisStatus($value,$blocDictionaryId, $productCategory);
+        });
+        foreach($data["predefined_texts"] as &$predefined_text){
+            unset($predefined_text["bloc_filter"]);
+            unset($predefined_text["cat_filter"]);
+        }
+        return $data;
     }
 
      /**
-     *  Fill status data according to intervention type and equipment product type
+     *  Fill status in question bloc data according to intervention type and equipment product type
      *
      */
-    function fillStatus($status,$interventionTypeId, $productCategory){
-        return InterventionSurvey::fillDataFromJSONDictionnary($status, "predefined_texts", $this->cache_survey_bloc_status_predefined_text_dictionary);
+    function fillStatusInQuestionBloc($questionBloc, $productCategory){
+        $data = self::fillDataFromJSONDictionary($questionBloc, "status", $this->cache_survey_bloc_status_dictionary);
+        $statusList = array();
+        foreach($data["status"] as $index=>$status) {
+            $statusList[$index] = $this->fillStatusPredefinedTextInQuestionBlocStatus($status,$questionBloc["c_rowid"], $productCategory);
+        }
+        $data["status"] = $statusList;
+        return $data;
+    }
+
+     /**
+     *  Fill status predefined text in status bloc data according to intervention type and equipment product type
+     *
+     */
+    function fillStatusPredefinedTextInQuestionBlocStatus($status,$blocDictionaryId, $productCategory){
+        $data = self::fillDataFromJSONDictionary($status, "predefined_texts", $this->cache_survey_bloc_status_predefined_text_dictionary);
+        $data["predefined_texts"] = array_filter($data["predefined_texts"], function($value) use ($blocDictionaryId,$productCategory) {
+            return self::shouldThisStatusPredefinedTextBeIntoThisStatus($value,$blocDictionaryId, $productCategory);
+        });
+        foreach($data["predefined_texts"] as &$predefined_text){
+            unset($predefined_text["blkLim"]);
+            unset($predefined_text["catLim"]);
+        }
+        return $data;
+    }
+    /**
+     * Generic method to check if an item must be include in parts of this survey
+     */
+
+     public static function shouldThisItemBeIntoThisSurvey($item,$listOfSearchedValue) {
+         if(!isset($item)) {
+             return false;
+         }
+         $result = true;
+         foreach($listOfSearchedValue as $field=>$searchValue) {
+             if(!isset($item[$field]) || empty($item[$field])) {
+                 continue;
+             }
+             if( !isset($searchValue) || array_search($searchValue,$item[$field]) === false ){
+                 $result=false;
+             }
+         }
+         return $result;
+     }
+
+    /**
+     * Method to check if a bloc should be into this survey according to dictionary data
+     */
+
+    public static function shouldThisBlocOfQuestionBeIntoThisSurvey($blocOfQuestion, $interventionTypeId, $productCategory){
+        return self::shouldThisItemBeIntoThisSurvey($blocOfQuestion,array("categories"=>$productCategory, "types_intervention"=>$interventionTypeId));
+    }
+
+    /**
+     * Method to check if a status predefined Text should be into this survey according to dictionary data
+     */
+
+    public static function shouldThisStatusPredefinedTextBeIntoThisStatus($statusPredefinedText, $blocDictionaryId, $productCategory){
+        return self::shouldThisItemBeIntoThisSurvey($statusPredefinedText,array("catLim"=>$productCategory, "blkLim"=>$blocDictionaryId));
+    }
+
+    /**
+     * Method to check if an answer predefined Text should be into this survey according to dictionary data
+     */
+
+    public static function shouldThisAnswerPredefinedTextBeIntoThisStatus($answerPredefinedText, $blocDictionaryId, $productCategory){
+        return self::shouldThisItemBeIntoThisSurvey($answerPredefinedText,array("cat_filter"=>$productCategory, "bloc_filter"=>$blocDictionaryId));
     }
 
     /**

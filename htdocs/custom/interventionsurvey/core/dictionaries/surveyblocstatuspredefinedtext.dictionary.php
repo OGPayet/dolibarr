@@ -161,7 +161,10 @@ class SurveyBlocStatusPredefinedTextDictionary extends Dictionary
         'label' => array(
             'name'       => 'label',
             'label'      => 'InterventionSurveyBlocStatusPredefinedTextLabelFieldLabel',
-            'type'       => 'text',
+            'type'       => 'varchar',
+            'database'   => array(
+              'length'   => 255,
+            ),
             'is_require' => true,
         ),
         'status' => array(),

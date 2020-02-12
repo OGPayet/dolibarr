@@ -161,7 +161,10 @@ class SurveyAnswerPredefinedTextDictionary extends Dictionary
         'label' => array(
             'name'       => 'label',
             'label'      => 'InterventionSurveyAnswerPredefinedTextLabelDictionaryField',
-            'type'       => 'text',
+            'type'       => 'varchar',
+            'database'   => array(
+              'length'   => 255,
+            ),
             'is_require' => true,
         ),
         'answers' => array(),

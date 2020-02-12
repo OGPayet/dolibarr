@@ -226,14 +226,6 @@ class SurveyBlocQuestionDictionary extends Dictionary
                 'positionLine' => 1,
             ),
         ),
-        'unique_bloc' => array(
-            'name'       => 'unique_bloc',
-            'label'      => "InterventionSurveyQuestionBlocUniqueBlocDictionary",
-            'type'       => 'boolean',
-            'td_input' => array(
-                'positionLine' => 1,
-            ),
-        ),
         'categories' => array(),
         'status' => array(),
         'questions' => array(),
