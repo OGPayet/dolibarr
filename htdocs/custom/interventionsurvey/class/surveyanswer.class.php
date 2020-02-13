@@ -24,6 +24,7 @@
 
 // Put here all includes required by your class file
 require_once DOL_DOCUMENT_ROOT.'/core/class/commonobject.class.php';
+dol_include_once('/interventionsurvey/class/surveyanswerpredefinedtext.class.php');
 //require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
 //require_once DOL_DOCUMENT_ROOT . '/product/class/product.class.php';
 
@@ -94,7 +95,7 @@ class SurveyAnswer extends CommonObject
 	public $fields=array(
 		'rowid' => array('type'=>'integer', 'label'=>'TechnicalID', 'enabled'=>1, 'position'=>1, 'notnull'=>1, 'visible'=>-1, 'noteditable'=>'1', 'index'=>1, 'comment'=>"Id"),
 		'fk_c_survey_answer' => array('type'=>'integer:SurveyAnswerPredefinedTextDictionary:interventionsurvey/core/dictionaries/surveyanswer.dictionary.php', 'label'=>'Link to the answer in the dictionnary', 'enabled'=>1, 'position'=>5, 'notnull'=>0, 'visible'=>-1,),
-		'fk_question' => array('type'=>'integer:SurveyQuestion:interventionsurvey/class/surveyquestion.class.php', 'label'=>'Link to the Question', 'enabled'=>1, 'position'=>10, 'notnull'=>0, 'visible'=>3,),
+		'fk_surveyquestion' => array('type'=>'integer:SurveyQuestion:interventionsurvey/class/surveyquestion.class.php', 'label'=>'Link to the Question', 'enabled'=>1, 'position'=>10, 'notnull'=>0, 'visible'=>3,),
 		'label' => array('type'=>'text', 'label'=>'Texte de la réponse', 'enabled'=>1, 'position'=>30, 'notnull'=>0, 'visible'=>3,),
 		'position' => array('type'=>'integer', 'label'=>'Ordre', 'enabled'=>1, 'position'=>15, 'notnull'=>0, 'visible'=>3,),
 		'color' => array('type'=>'varchar(10)', 'label'=>'Couleur', 'enabled'=>1, 'position'=>35, 'notnull'=>0, 'visible'=>3,),
@@ -102,11 +103,12 @@ class SurveyAnswer extends CommonObject
 	);
 	public $rowid;
 	public $fk_c_survey_answer;
-	public $fk_question;
+	public $fk_surveyquestion;
 	public $label;
 	public $position;
 	public $color;
-	public $mandatory_justification;
+    public $mandatory_justification;
+    public $predefined_texts;
 	// END MODULEBUILDER PROPERTIES
 
 
@@ -314,10 +316,10 @@ class SurveyAnswer extends CommonObject
 	 */
 	public function fetchLines()
 	{
-		$this->lines = array();
+        $this->predefined_texts = array();
 
-		$result = $this->fetchLinesCommon();
-		return $result;
+        $this->interventionSurveyFetchLinesCommon(null, "SurveyAnswerPredefinedText",$this->predefined_texts);
+        return 1;
 	}
 
 
@@ -966,14 +968,56 @@ class SurveyAnswer extends CommonObject
 		$this->db->commit();
 
 		return $error;
-	}
-}
+    }
+     /**
+    * Load object in memory from the database
+    *
+    * @param	string	$morewhere		More SQL filters (' AND ...')
+    * @return 	int         			<0 if KO, 0 if not found, >0 if OK
+    */
+    public function interventionSurveyFetchLinesCommon($morewhere = '', $objectlineclassname = null, &$resultValue)
+    {
 
-/**
- * Class surveyAnswerLine. You can also remove this and generate a CRUD class for lines objects.
- */
-class surveyAnswerLine
-{
-	// To complete with content of an object surveyAnswerLine
-	// We should have a field rowid, fk_surveyanswer and position
+        if (!class_exists($objectlineclassname))
+        {
+            $this->error = 'Error, class '.$objectlineclassname.' not found during call of fetchLinesCommon';
+            return -1;
+        }
+
+        $objectline = new $objectlineclassname($this->db);
+
+        $sql = 'SELECT '.$objectline->getFieldList();
+        $sql .= ' FROM '.MAIN_DB_PREFIX.$objectline->table_element;
+        $sql .= ' WHERE fk_'.$this->element.' = '.$this->id;
+        if ($morewhere)   $sql .= $morewhere;
+
+        $resql = $this->db->query($sql);
+        if ($resql)
+        {
+            $num_rows = $this->db->num_rows($resql);
+            $i = 0;
+            while ($i < $num_rows)
+            {
+                $obj = $this->db->fetch_object($resql);
+                if ($obj)
+                {
+                    $newline = new $objectlineclassname($this->db);
+                    $newline->setVarsFromFetchObj($obj);
+                    if(method_exists($newline, "fetchLines")){
+                     $newline->fetchLines();
+                    }
+                    $resultValue[] = $newline;
+                    $this->errors = array_merge($this->errors, $newline->errors);
+                }
+                $i++;
+            }
+        }
+        else
+        {
+            $this->error = $this->db->lasterror();
+            $this->errors[] = $this->error;
+            return -1;
+        }
+        return empty($this->errors) ? 1 : -1;
+    }
 }

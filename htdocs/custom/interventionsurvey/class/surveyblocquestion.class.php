@@ -25,6 +25,8 @@
 // Put here all includes required by your class file
 require_once DOL_DOCUMENT_ROOT.'/core/class/commonobject.class.php';
 dol_include_once('/interventionsurvey/lib/interventionsurvey.lib.php');
+dol_include_once('/interventionsurvey/class/surveyblocstatus.class.php');
+dol_include_once('/interventionsurvey/class/surveyquestion.class.php');
 
 //require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
 //require_once DOL_DOCUMENT_ROOT . '/product/class/product.class.php';
@@ -104,7 +106,7 @@ class SurveyBlocQuestion extends CommonObject
 		'justification_text' => array('type'=>'text', 'label'=>'Justification regarding status', 'enabled'=>1, 'position'=>35, 'notnull'=>0, 'visible'=>3,),
 		'description' => array('type'=>'text', 'label'=>'Description of this bloc', 'enabled'=>1, 'position'=>32, 'notnull'=>0, 'visible'=>3,),
 		'position' => array('type'=>'integer', 'label'=>'order', 'enabled'=>1, 'position'=>10, 'notnull'=>0, 'visible'=>3,),
-		'fk_survey_part' => array('type'=>'integer:SurveyPart:interventionsurvey/class/surveypart.class.php', 'label'=>'Link the the current survey part', 'enabled'=>1, 'position'=>15, 'notnull'=>1, 'visible'=>-1,),
+		'fk_surveypart' => array('type'=>'integer:SurveyPart:interventionsurvey/class/surveypart.class.php', 'label'=>'Link the the current survey part', 'enabled'=>1, 'position'=>15, 'notnull'=>1, 'visible'=>-1,),
 		'fk_c_survey_bloc_question' => array('type'=>'integer:SurveyBlocQuestionDictionary:interventionsurvey/core/dictionaries/surveyblocquestion.dictionary.php', 'label'=>'Link to the corresponding dictionnary item', 'enabled'=>1, 'position'=>20, 'notnull'=>0, 'visible'=>-1,),
 		'fk_chosen_status' => array('type'=>'integer:SurveyBlocStatus:interventionsurvey/class/surveyblocstatus.class.php', 'label'=>'Link to the choosen status', 'enabled'=>1, 'position'=>34, 'notnull'=>0, 'visible'=>3,),
 	);
@@ -118,9 +120,12 @@ class SurveyBlocQuestion extends CommonObject
 	public $justification_text;
 	public $description;
 	public $position;
-	public $fk_survey_part;
+	public $fk_surveypart;
 	public $fk_c_survey_bloc_question;
-	public $fk_chosen_status;
+    public $fk_chosen_status;
+    public $chosen_status;
+    public $questions;
+    public $status;
 	// END MODULEBUILDER PROPERTIES
 
 
@@ -321,19 +326,24 @@ class SurveyBlocQuestion extends CommonObject
 		return $result;
 	}
 
-	/**
+    /**
 	 * Load object lines in memory from the database
 	 *
 	 * @return int         <0 if KO, 0 if not found, >0 if OK
 	 */
 	public function fetchLines()
 	{
-		$this->lines = array();
+        $this->status = array();
+        $this->chosen_status = null;
+        $this->questions = array();
 
-		$result = $this->fetchLinesCommon();
-		return $result;
+        $this->interventionSurveyFetchLinesCommon(null, "SurveyQuestion",$this->questions);
+        $this->interventionSurveyFetchLinesCommon(null, "SurveyBlocStatus",$this->status);
+        if(isset($this->fk_chosen_status)){
+            $this->chosen_status = $this->status[$this->fk_chosen_status];
+        }
+        return 1;
 	}
-
 
 	/**
 	 * Load list of objects in memory from the database.
@@ -980,14 +990,57 @@ class SurveyBlocQuestion extends CommonObject
 		$this->db->commit();
 
 		return $error;
-	}
-}
+    }
 
-/**
- * Class surveyBlocQuestionLine. You can also remove this and generate a CRUD class for lines objects.
- */
-class surveyBlocQuestionLine
-{
-	// To complete with content of an object surveyBlocQuestionLine
-	// We should have a field rowid, fk_surveyblocquestion and position
+    /**
+    * Load object in memory from the database
+    *
+    * @param	string	$morewhere		More SQL filters (' AND ...')
+    * @return 	int         			<0 if KO, 0 if not found, >0 if OK
+    */
+    public function interventionSurveyFetchLinesCommon($morewhere = '', $objectlineclassname = null, &$resultValue)
+    {
+
+        if (!class_exists($objectlineclassname))
+        {
+            $this->error = 'Error, class '.$objectlineclassname.' not found during call of fetchLinesCommon';
+            return -1;
+        }
+
+        $objectline = new $objectlineclassname($this->db);
+
+        $sql = 'SELECT '.$objectline->getFieldList();
+        $sql .= ' FROM '.MAIN_DB_PREFIX.$objectline->table_element;
+        $sql .= ' WHERE fk_'.$this->element.' = '.$this->id;
+        if ($morewhere)   $sql .= $morewhere;
+
+        $resql = $this->db->query($sql);
+        if ($resql)
+        {
+            $num_rows = $this->db->num_rows($resql);
+            $i = 0;
+            while ($i < $num_rows)
+            {
+                $obj = $this->db->fetch_object($resql);
+                if ($obj)
+                {
+                    $newline = new $objectlineclassname($this->db);
+                    $newline->setVarsFromFetchObj($obj);
+                    if(method_exists($newline, "fetchLines")){
+                     $newline->fetchLines();
+                    }
+                    $resultValue[] = $newline;
+                    $this->errors = array_merge($this->errors, $newline->errors);
+                }
+                $i++;
+            }
+        }
+        else
+        {
+            $this->error = $this->db->lasterror();
+            $this->errors[] = $this->error;
+            return -1;
+        }
+        return empty($this->errors) ? 1 : -1;
+    }
 }

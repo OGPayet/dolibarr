@@ -22,6 +22,8 @@
  */
 
 require_once DOL_DOCUMENT_ROOT . '/fichinter/class/fichinter.class.php';
+dol_include_once('/interventionsurvey/class/surveypart.class.php');
+
 /**
  *
  * Function to sort intervention survey element on fetch and generation
@@ -535,6 +537,23 @@ function generateEquipementSurveyPart($listOfEquipementBlocs, $equipementId, $po
         return self::shouldThisItemBeIntoThisSurvey($answerPredefinedText,array("cat_filter"=>$productCategory, "bloc_filter"=>$blocDictionaryId));
     }
 
+/**
+ *
+ * Fetch Survey with backported dolibarr v11 functions
+ *
+ *
+ */
+
+public function fetchSurvey()
+{
+    $this->survey = array();
+    $result = $this->interventionSurveyFetchLinesCommon(null,"SurveyPart",$this->survey);
+    //return $result;
+    return 1;
+}
+
+
+
     /**
      *  Get all attached files of the intervention
      *
@@ -626,4 +645,57 @@ function generateEquipementSurveyPart($listOfEquipementBlocs, $equipementId, $po
         $this->db->commit();
         return 1;
     }
+
+
+    /**
+    * Load object in memory from the database
+    *
+    * @param	string	$morewhere		More SQL filters (' AND ...')
+    * @return 	int         			<0 if KO, 0 if not found, >0 if OK
+    */
+   public function interventionSurveyFetchLinesCommon($morewhere = '', $objectlineclassname = null, &$resultValue)
+   {
+
+       if (!class_exists($objectlineclassname))
+       {
+           $this->error = 'Error, class '.$objectlineclassname.' not found during call of fetchLinesCommon';
+           return -1;
+       }
+
+       $objectline = new $objectlineclassname($this->db);
+
+       $sql = 'SELECT '.$objectline->getFieldList();
+       $sql .= ' FROM '.MAIN_DB_PREFIX.$objectline->table_element;
+       $sql .= ' WHERE fk_'.$this->element.' = '.$this->id;
+       if ($morewhere)   $sql .= $morewhere;
+
+       $resql = $this->db->query($sql);
+       if ($resql)
+       {
+           $num_rows = $this->db->num_rows($resql);
+           $i = 0;
+           while ($i < $num_rows)
+           {
+               $obj = $this->db->fetch_object($resql);
+               if ($obj)
+               {
+                   $newline = new $objectlineclassname($this->db);
+                   $newline->setVarsFromFetchObj($obj);
+                   if(method_exists($newline, "fetchLines")){
+                    $newline->fetchLines();
+                   }
+                   $resultValue[] = $newline;
+                   $this->errors = array_merge($this->errors, $newline->errors);
+               }
+               $i++;
+           }
+       }
+       else
+       {
+           $this->error = $this->db->lasterror();
+           $this->errors[] = $this->error;
+           return -1;
+       }
+       return empty($this->errors) ? 1 : -1;
+   }
 }

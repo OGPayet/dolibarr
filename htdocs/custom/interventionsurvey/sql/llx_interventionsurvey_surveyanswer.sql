@@ -18,7 +18,7 @@ CREATE TABLE llx_interventionsurvey_surveyanswer(
 	-- BEGIN MODULEBUILDER FIELDS
 	rowid integer AUTO_INCREMENT PRIMARY KEY NOT NULL,
 	fk_c_survey_answer integer,
-	fk_question integer,
+	fk_surveyquestion integer,
 	label text,
 	position integer,
 	color varchar(10),

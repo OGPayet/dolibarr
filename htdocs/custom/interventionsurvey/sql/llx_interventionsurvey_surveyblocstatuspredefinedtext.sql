@@ -18,7 +18,7 @@ CREATE TABLE llx_interventionsurvey_surveyblocstatuspredefinedtext(
 	-- BEGIN MODULEBUILDER FIELDS
 	rowid integer AUTO_INCREMENT PRIMARY KEY NOT NULL,
 	fk_c_survey_bloc_status_predefined_text integer,
-	fk_bloc_status integer NOT NULL,
+	fk_surveyblocstatus integer NOT NULL,
 	position integer,
 	label text NOT NULL
 	-- END MODULEBUILDER FIELDS

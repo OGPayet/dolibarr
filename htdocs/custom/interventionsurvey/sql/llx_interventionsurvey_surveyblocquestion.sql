@@ -26,7 +26,7 @@ CREATE TABLE llx_interventionsurvey_surveyblocquestion(
 	justification_text text,
 	description text,
 	position integer,
-	fk_survey_part integer NOT NULL,
+	fk_surveypart integer NOT NULL,
 	fk_c_survey_bloc_question integer,
 	fk_chosen_status integer
 	-- END MODULEBUILDER FIELDS

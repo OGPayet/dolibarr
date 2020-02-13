@@ -24,6 +24,8 @@
 
 // Put here all includes required by your class file
 require_once DOL_DOCUMENT_ROOT.'/core/class/commonobject.class.php';
+dol_include_once('/interventionsurvey/class/surveyblocstatuspredefinedtext.class.php');
+
 //require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
 //require_once DOL_DOCUMENT_ROOT . '/product/class/product.class.php';
 
@@ -94,7 +96,7 @@ class SurveyBlocStatus extends CommonObject
 	public $fields=array(
 		'rowid' => array('type'=>'integer', 'label'=>'TechnicalID', 'enabled'=>1, 'position'=>1, 'notnull'=>1, 'visible'=>-1, 'noteditable'=>'1', 'index'=>1, 'comment'=>"Id"),
 		'fk_c_survey_bloc_status' => array('type'=>'integer:SurveyBlocStatusDictionary:interventionsurvey/core/dictionaries/surveyblocstatus.dictionary.php', 'label'=>'Link to the dictionnary', 'enabled'=>1, 'position'=>5, 'notnull'=>0, 'visible'=>-1,),
-		'fk_bloc_question' => array('type'=>'integer:SurveyBlocQuestion:interventionsurvey/class/surveyblocquestion.class.php', 'label'=>'link to the relative survey bloc question', 'enabled'=>1, 'position'=>10, 'notnull'=>1, 'visible'=>3,),
+		'fk_surveyblocquestion' => array('type'=>'integer:SurveyBlocQuestion:interventionsurvey/class/surveyblocquestion.class.php', 'label'=>'link to the relative survey bloc question', 'enabled'=>1, 'position'=>10, 'notnull'=>1, 'visible'=>3,),
 		'position' => array('type'=>'integer', 'label'=>'order', 'enabled'=>1, 'position'=>15, 'notnull'=>0, 'visible'=>3,),
 		'label' => array('type'=>'text', 'label'=>'Texte du status', 'enabled'=>1, 'position'=>30, 'notnull'=>0, 'visible'=>3,),
 		'color' => array('type'=>'varchar(10)', 'label'=>'Couleur sur le pdf', 'enabled'=>1, 'position'=>35, 'notnull'=>0, 'visible'=>3,),
@@ -103,12 +105,13 @@ class SurveyBlocStatus extends CommonObject
 	);
 	public $rowid;
 	public $fk_c_survey_bloc_status;
-	public $fk_bloc_question;
+	public $fk_surveyblocquestion;
 	public $position;
 	public $label;
 	public $color;
 	public $mandatory_justification;
-	public $desactivate_bloc;
+    public $desactivate_bloc;
+    public $predefined_texts;
 	// END MODULEBUILDER PROPERTIES
 
 
@@ -295,7 +298,7 @@ class SurveyBlocStatus extends CommonObject
 	    }
 	}
 
-	/**
+    /**
 	 * Load object in memory from the database
 	 *
 	 * @param int    $id   Id object
@@ -316,9 +319,8 @@ class SurveyBlocStatus extends CommonObject
 	 */
 	public function fetchLines()
 	{
-		$this->lines = array();
-
-		$result = $this->fetchLinesCommon();
+		$this->predefined_texts = array();
+		$result = $this->interventionSurveyFetchLinesCommon(null,"SurveyBlocStatusPredefinedText",$this->predefined_texts);
 		return $result;
 	}
 
@@ -968,14 +970,57 @@ class SurveyBlocStatus extends CommonObject
 		$this->db->commit();
 
 		return $error;
-	}
-}
+    }
 
-/**
- * Class surveyBlocStatusLine. You can also remove this and generate a CRUD class for lines objects.
- */
-class surveyBlocStatusLine
-{
-	// To complete with content of an object surveyBlocStatusLine
-	// We should have a field rowid, fk_surveyblocstatus and position
+    /**
+    * Load object in memory from the database
+    *
+    * @param	string	$morewhere		More SQL filters (' AND ...')
+    * @return 	int         			<0 if KO, 0 if not found, >0 if OK
+    */
+    public function interventionSurveyFetchLinesCommon($morewhere = '', $objectlineclassname = null, &$resultValue)
+    {
+
+        if (!class_exists($objectlineclassname))
+        {
+            $this->error = 'Error, class '.$objectlineclassname.' not found during call of fetchLinesCommon';
+            return -1;
+        }
+
+        $objectline = new $objectlineclassname($this->db);
+
+        $sql = 'SELECT '.$objectline->getFieldList();
+        $sql .= ' FROM '.MAIN_DB_PREFIX.$objectline->table_element;
+        $sql .= ' WHERE fk_'.$this->element.' = '.$this->id;
+        if ($morewhere)   $sql .= $morewhere;
+
+        $resql = $this->db->query($sql);
+        if ($resql)
+        {
+            $num_rows = $this->db->num_rows($resql);
+            $i = 0;
+            while ($i < $num_rows)
+            {
+                $obj = $this->db->fetch_object($resql);
+                if ($obj)
+                {
+                    $newline = new $objectlineclassname($this->db);
+                    $newline->setVarsFromFetchObj($obj);
+                    if(method_exists($newline, "fetchLines")){
+                     $newline->fetchLines();
+                    }
+                    $resultValue[] = $newline;
+                    $this->errors = array_merge($this->errors, $newline->errors);
+                }
+                $i++;
+            }
+        }
+        else
+        {
+            $this->error = $this->db->lasterror();
+            $this->errors[] = $this->error;
+            return -1;
+        }
+        return empty($this->errors) ? 1 : -1;
+    }
 }

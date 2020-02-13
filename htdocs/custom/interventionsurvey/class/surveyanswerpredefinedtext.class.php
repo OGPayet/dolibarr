@@ -90,13 +90,13 @@ class SurveyAnswerPredefinedText extends CommonObject
 		'rowid' => array('type'=>'integer', 'label'=>'TechnicalID', 'enabled'=>1, 'position'=>1, 'notnull'=>1, 'visible'=>-1, 'noteditable'=>'1', 'index'=>1, 'comment'=>"Id"),
 		'label' => array('type'=>'text', 'label'=>'Predefined Text', 'enabled'=>1, 'position'=>30, 'notnull'=>1, 'visible'=>3,),
 		'position' => array('type'=>'integer', 'label'=>'Ordre', 'enabled'=>1, 'position'=>15, 'notnull'=>0, 'visible'=>3,),
-		'fk_answer' => array('type'=>'integer:surveyAnswer:interventionsurvey/class/surveyanswer.class.php', 'label'=>'Answer Foreign key', 'enabled'=>1, 'position'=>10, 'notnull'=>1, 'visible'=>-1,),
+		'fk_surveyanswer' => array('type'=>'integer:surveyAnswer:interventionsurvey/class/surveyanswer.class.php', 'label'=>'Answer Foreign key', 'enabled'=>1, 'position'=>10, 'notnull'=>1, 'visible'=>-1,),
 		'fk_c_survey_answer_predefined_text' => array('type'=>'integer:SurveyAnswerPredefinedTextDictionary:interventionsurvey/core/dictionaries/surveyanswerpredefinedtext.dictionary.php', 'label'=>'Link to the answer predefined text dictionnary', 'enabled'=>1, 'position'=>5, 'notnull'=>0, 'visible'=>-1,),
 	);
 	public $rowid;
 	public $label;
 	public $position;
-	public $fk_answer;
+	public $fk_surveyanswer;
 	public $fk_c_survey_answer_predefined_text;
 	// END MODULEBUILDER PROPERTIES
 
@@ -212,7 +212,6 @@ class SurveyAnswerPredefinedText extends CommonObject
 
 	    // Load source object
 	    $result = $object->fetchCommon($fromid);
-	    if ($result > 0 && !empty($object->table_element_line)) $object->fetchLines();
 
 	    // get lines so they will be clone
 	    //foreach($this->lines as $line)
@@ -294,20 +293,6 @@ class SurveyAnswerPredefinedText extends CommonObject
 	public function fetch($id, $ref = null)
 	{
 		$result = $this->fetchCommon($id, $ref);
-		if ($result > 0 && !empty($this->table_element_line)) $this->fetchLines();
-		return $result;
-	}
-
-	/**
-	 * Load object lines in memory from the database
-	 *
-	 * @return int         <0 if KO, 0 if not found, >0 if OK
-	 */
-	public function fetchLines()
-	{
-		$this->lines = array();
-
-		$result = $this->fetchLinesCommon();
 		return $result;
 	}
 
@@ -958,13 +943,4 @@ class SurveyAnswerPredefinedText extends CommonObject
 
 		return $error;
 	}
-}
-
-/**
- * Class surveyAnswerPredefinedTextLine. You can also remove this and generate a CRUD class for lines objects.
- */
-class surveyAnswerPredefinedTextLine
-{
-	// To complete with content of an object surveyAnswerPredefinedTextLine
-	// We should have a field rowid, fk_surveyanswerpredefinedtext and position
 }

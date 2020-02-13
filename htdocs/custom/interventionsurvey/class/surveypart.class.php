@@ -24,6 +24,8 @@
 
 // Put here all includes required by your class file
 require_once DOL_DOCUMENT_ROOT.'/core/class/commonobject.class.php';
+dol_include_once('/interventionsurvey/class/interventionsurvey.class.php');
+dol_include_once('/interventionsurvey/class/surveyblocquestion.class.php');
 //require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
 //require_once DOL_DOCUMENT_ROOT . '/product/class/product.class.php';
 
@@ -99,8 +101,8 @@ class SurveyPart extends CommonObject
 		'fk_user_modif' => array('type'=>'integer:User:user/class/user.class.php', 'label'=>'UserModif', 'enabled'=>1, 'position'=>511, 'notnull'=>-1, 'visible'=>-2,),
 		'import_key' => array('type'=>'varchar(14)', 'label'=>'ImportId', 'enabled'=>1, 'position'=>1000, 'notnull'=>-1, 'visible'=>-2,),
 		'fk_fichinter' => array('type'=>'integer:Fichinter:fichinter/class/fichinter.class.php', 'label'=>'FichInterLinked', 'enabled'=>1, 'position'=>50, 'notnull'=>1, 'visible'=>-1, 'index'=>1,),
-		'fk_identifier_type' => array('type'=>'varchar(50)', 'label'=>'PolymorphicIdentifierType', 'enabled'=>1, 'position'=>60, 'notnull'=>1, 'visible'=>-2, 'index'=>1,),
-		'fk_identifier_value' => array('type'=>'integer', 'label'=>'PolymorphicIdentifierId', 'enabled'=>1, 'position'=>60, 'notnull'=>1, 'visible'=>-2, 'index'=>1,),
+		'fk_identifier_type' => array('type'=>'varchar(50)', 'label'=>'PolymorphicIdentifierType', 'enabled'=>1, 'position'=>60, 'notnull'=>0, 'visible'=>-2, 'index'=>1,),
+		'fk_identifier_value' => array('type'=>'integer', 'label'=>'PolymorphicIdentifierId', 'enabled'=>1, 'position'=>60, 'notnull'=>0, 'visible'=>-2, 'index'=>1,),
 		'label' => array('type'=>'text', 'label'=>'Part title', 'enabled'=>1, 'position'=>70, 'notnull'=>0, 'visible'=>1, 'searchall'=>1,),
 		'position' => array('type'=>'integer', 'label'=>'Order inside survey', 'enabled'=>1, 'position'=>80, 'notnull'=>0, 'visible'=>-2,),
 	);
@@ -123,17 +125,17 @@ class SurveyPart extends CommonObject
 	/**
 	 * @var int    Name of subtable line
 	 */
-	//public $table_element_line = 'interventionsurvey_surveypartline';
+	public $table_element_line = 'interventionsurvey_surveyblocquestion';
 
 	/**
 	 * @var int    Field with ID of parent key if this field has a parent
 	 */
-	//public $fk_element = 'fk_surveypart';
+	public $fk_element = 'fk_survey_part';
 
 	/**
 	 * @var int    Name of subtable class that manage subtable lines
 	 */
-	//public $class_element_line = 'surveyPartline';
+	public $class_element_line = 'SurveyBlocQuestion';
 
 	/**
 	 * @var array	List of child tables. To test if we can delete object.
@@ -148,7 +150,7 @@ class SurveyPart extends CommonObject
 	/**
 	 * @var surveyPartLine[]     Array of subtable lines
 	 */
-	//public $lines = array();
+	public $lines = array();
 
 
 
@@ -322,10 +324,9 @@ class SurveyPart extends CommonObject
 	 */
 	public function fetchLines()
 	{
-		$this->lines = array();
-
-		$result = $this->fetchLinesCommon();
-		return $result;
+        $this->blocs = array();
+        $result = $this->interventionSurveyFetchLinesCommon(null, "SurveyBlocQuestion",$this->blocs);
+        return $result;
 	}
 
 
@@ -974,14 +975,56 @@ class SurveyPart extends CommonObject
 		$this->db->commit();
 
 		return $error;
-	}
-}
+    }
+    /**
+    * Load object in memory from the database
+    *
+    * @param	string	$morewhere		More SQL filters (' AND ...')
+    * @return 	int         			<0 if KO, 0 if not found, >0 if OK
+    */
+    public function interventionSurveyFetchLinesCommon($morewhere = '', $objectlineclassname = null, &$resultValue)
+    {
 
-/**
- * Class surveyPartLine. You can also remove this and generate a CRUD class for lines objects.
- */
-class surveyPartLine
-{
-	// To complete with content of an object surveyPartLine
-	// We should have a field rowid, fk_surveypart and position
+        if (!class_exists($objectlineclassname))
+        {
+            $this->error = 'Error, class '.$objectlineclassname.' not found during call of fetchLinesCommon';
+            return -1;
+        }
+
+        $objectline = new $objectlineclassname($this->db);
+
+        $sql = 'SELECT '.$objectline->getFieldList();
+        $sql .= ' FROM '.MAIN_DB_PREFIX.$objectline->table_element;
+        $sql .= ' WHERE fk_'.$this->element.' = '.$this->id;
+        if ($morewhere)   $sql .= $morewhere;
+
+        $resql = $this->db->query($sql);
+        if ($resql)
+        {
+            $num_rows = $this->db->num_rows($resql);
+            $i = 0;
+            while ($i < $num_rows)
+            {
+                $obj = $this->db->fetch_object($resql);
+                if ($obj)
+                {
+                    $newline = new $objectlineclassname($this->db);
+                    $newline->setVarsFromFetchObj($obj);
+                    if(method_exists($newline, "fetchLines")){
+                     $newline->fetchLines();
+                    }
+                    $resultValue[] = $newline;
+                    $this->errors = array_merge($this->errors, $newline->errors);
+                }
+                $i++;
+            }
+        }
+        else
+        {
+            $this->error = $this->db->lasterror();
+            $this->errors[] = $this->error;
+            return -1;
+        }
+        return empty($this->errors) ? 1 : -1;
+    }
 }

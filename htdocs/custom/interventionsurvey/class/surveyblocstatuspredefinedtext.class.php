@@ -94,13 +94,13 @@ class SurveyBlocStatusPredefinedText extends CommonObject
 	public $fields=array(
 		'rowid' => array('type'=>'integer', 'label'=>'TechnicalID', 'enabled'=>1, 'position'=>1, 'notnull'=>1, 'visible'=>-1, 'noteditable'=>'1', 'index'=>1, 'comment'=>"Id"),
 		'fk_c_survey_bloc_status_predefined_text' => array('type'=>'integer:SurveyBlocStatusPredefinedTextDictionary:interventionsurvey/core/dictionaries/surveyblocstatuspredefinedtext.dictionary.php', 'label'=>'Link to the dictionnary data', 'enabled'=>1, 'position'=>5, 'notnull'=>0, 'visible'=>-1,),
-		'fk_bloc_status' => array('type'=>'integer:SurveyBlocStatus:interventionsurvey/class/surveyblocstatus.class.php', 'label'=>'Bloc status foreign key', 'enabled'=>1, 'position'=>10, 'notnull'=>1, 'visible'=>-1,),
+		'fk_surveyblocstatus' => array('type'=>'integer:SurveyBlocStatus:interventionsurvey/class/surveyblocstatus.class.php', 'label'=>'Bloc status foreign key', 'enabled'=>1, 'position'=>10, 'notnull'=>1, 'visible'=>-1,),
 		'position' => array('type'=>'integer', 'label'=>'order', 'enabled'=>1, 'position'=>15, 'notnull'=>0, 'visible'=>3,),
 		'label' => array('type'=>'text', 'label'=>'predefined text', 'enabled'=>1, 'position'=>30, 'notnull'=>1, 'visible'=>3,),
 	);
 	public $rowid;
 	public $fk_c_survey_bloc_status_predefined_text;
-	public $fk_bloc_status;
+	public $fk_surveyblocstatus;
 	public $position;
 	public $label;
 	// END MODULEBUILDER PROPERTIES
@@ -217,7 +217,6 @@ class SurveyBlocStatusPredefinedText extends CommonObject
 
 	    // Load source object
 	    $result = $object->fetchCommon($fromid);
-	    if ($result > 0 && !empty($object->table_element_line)) $object->fetchLines();
 
 	    // get lines so they will be clone
 	    //foreach($this->lines as $line)
@@ -299,25 +298,10 @@ class SurveyBlocStatusPredefinedText extends CommonObject
 	public function fetch($id, $ref = null)
 	{
 		$result = $this->fetchCommon($id, $ref);
-		if ($result > 0 && !empty($this->table_element_line)) $this->fetchLines();
 		return $result;
 	}
 
-	/**
-	 * Load object lines in memory from the database
-	 *
-	 * @return int         <0 if KO, 0 if not found, >0 if OK
-	 */
-	public function fetchLines()
-	{
-		$this->lines = array();
-
-		$result = $this->fetchLinesCommon();
-		return $result;
-	}
-
-
-	/**
+    /**
 	 * Load list of objects in memory from the database.
 	 *
 	 * @param  string      $sortorder    Sort Order

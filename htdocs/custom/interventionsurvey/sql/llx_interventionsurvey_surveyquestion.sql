@@ -22,7 +22,7 @@ CREATE TABLE llx_interventionsurvey_surveyquestion(
 	tms timestamp,
 	fk_user_creat integer NOT NULL,
 	fk_user_modif integer,
-	fk_survey_bloc_question integer NOT NULL,
+	fk_surveyblocquestion integer NOT NULL,
 	fk_c_survey_question integer,
 	position integer,
 	fk_chosen_answer integer,

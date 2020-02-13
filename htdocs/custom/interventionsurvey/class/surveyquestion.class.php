@@ -24,6 +24,7 @@
 
 // Put here all includes required by your class file
 require_once DOL_DOCUMENT_ROOT.'/core/class/commonobject.class.php';
+dol_include_once('/interventionsurvey/class/surveyanswer.class.php');
 //require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
 //require_once DOL_DOCUMENT_ROOT . '/product/class/product.class.php';
 
@@ -98,7 +99,7 @@ class SurveyQuestion extends CommonObject
 		'tms' => array('type'=>'timestamp', 'label'=>'DateModification', 'enabled'=>1, 'position'=>501, 'notnull'=>0, 'visible'=>-2,),
 		'fk_user_creat' => array('type'=>'integer:User:user/class/user.class.php', 'label'=>'UserAuthor', 'enabled'=>1, 'position'=>510, 'notnull'=>1, 'visible'=>-2, 'foreignkey'=>'user.rowid',),
 		'fk_user_modif' => array('type'=>'integer:User:user/class/user.class.php', 'label'=>'UserModif', 'enabled'=>1, 'position'=>511, 'notnull'=>-1, 'visible'=>-2,),
-		'fk_survey_bloc_question' => array('type'=>'integer:SurveyQuestion:interventionsurvey/class/surveyblocquestion.class.php', 'label'=>'Id of the parent bloc Question', 'enabled'=>1, 'position'=>10, 'notnull'=>1, 'visible'=>-1,),
+		'fk_surveyblocquestion' => array('type'=>'integer:SurveyQuestion:interventionsurvey/class/surveyblocquestion.class.php', 'label'=>'Id of the parent bloc Question', 'enabled'=>1, 'position'=>10, 'notnull'=>1, 'visible'=>-1,),
 		'fk_c_survey_question' => array('type'=>'integer:SurveyQuestionDictionary:interventionsurvey/core/dictionaries/surveyquestion.dictionary.php', 'label'=>'Link to the corresponding question inside dictionnary', 'enabled'=>1, 'position'=>15, 'notnull'=>0, 'visible'=>-1,),
 		'position' => array('type'=>'integer', 'label'=>'order', 'enabled'=>1, 'position'=>20, 'notnull'=>0, 'visible'=>-1,),
 		'fk_chosen_answer' => array('type'=>'integer:SurveyAnswer:interventionsurvey/class/surveyanswer.class.php', 'label'=>'Chosen answer for this question', 'enabled'=>1, 'position'=>35, 'notnull'=>0, 'visible'=>3,),
@@ -112,13 +113,15 @@ class SurveyQuestion extends CommonObject
 	public $tms;
 	public $fk_user_creat;
 	public $fk_user_modif;
-	public $fk_survey_bloc_question;
+	public $fk_surveyblocquestion;
 	public $fk_c_survey_question;
 	public $position;
 	public $fk_chosen_answer;
 	public $mandatory_answer;
 	public $fk_chosen_answer_predefined_text;
-	public $justification_text;
+    public $justification_text;
+    public $chosen_answer;
+    public $answers;
 	// END MODULEBUILDER PROPERTIES
 
 
@@ -318,18 +321,22 @@ class SurveyQuestion extends CommonObject
 		if ($result > 0 && !empty($this->table_element_line)) $this->fetchLines();
 		return $result;
 	}
-
-	/**
+/**
 	 * Load object lines in memory from the database
 	 *
 	 * @return int         <0 if KO, 0 if not found, >0 if OK
 	 */
 	public function fetchLines()
 	{
-		$this->lines = array();
+        $this->answers = array();
+        $this->chosen_answer = null;
 
-		$result = $this->fetchLinesCommon();
-		return $result;
+        $this->interventionSurveyFetchLinesCommon(null, "SurveyAnswer",$this->answers);
+
+        if(isset($this->fk_chosen_answer)){
+            $this->chosen_answer = $this->answers[$this->fk_chosen_answer];
+        }
+        return 1;
 	}
 
 
@@ -978,14 +985,57 @@ class SurveyQuestion extends CommonObject
 		$this->db->commit();
 
 		return $error;
-	}
-}
+    }
 
-/**
- * Class surveyQuestionLine. You can also remove this and generate a CRUD class for lines objects.
- */
-class surveyQuestionLine
-{
-	// To complete with content of an object surveyQuestionLine
-	// We should have a field rowid, fk_surveyquestion and position
+    /**
+    * Load object in memory from the database
+    *
+    * @param	string	$morewhere		More SQL filters (' AND ...')
+    * @return 	int         			<0 if KO, 0 if not found, >0 if OK
+    */
+    public function interventionSurveyFetchLinesCommon($morewhere = '', $objectlineclassname = null, &$resultValue)
+    {
+
+        if (!class_exists($objectlineclassname))
+        {
+            $this->error = 'Error, class '.$objectlineclassname.' not found during call of fetchLinesCommon';
+            return -1;
+        }
+
+        $objectline = new $objectlineclassname($this->db);
+
+        $sql = 'SELECT '.$objectline->getFieldList();
+        $sql .= ' FROM '.MAIN_DB_PREFIX.$objectline->table_element;
+        $sql .= ' WHERE fk_'.$this->element.' = '.$this->id;
+        if ($morewhere)   $sql .= $morewhere;
+
+        $resql = $this->db->query($sql);
+        if ($resql)
+        {
+            $num_rows = $this->db->num_rows($resql);
+            $i = 0;
+            while ($i < $num_rows)
+            {
+                $obj = $this->db->fetch_object($resql);
+                if ($obj)
+                {
+                    $newline = new $objectlineclassname($this->db);
+                    $newline->setVarsFromFetchObj($obj);
+                    if(method_exists($newline, "fetchLines")){
+                     $newline->fetchLines();
+                    }
+                    $resultValue[] = $newline;
+                    $this->errors = array_merge($this->errors, $newline->errors);
+                }
+                $i++;
+            }
+        }
+        else
+        {
+            $this->error = $this->db->lasterror();
+            $this->errors[] = $this->error;
+            return -1;
+        }
+        return empty($this->errors) ? 1 : -1;
+    }
 }

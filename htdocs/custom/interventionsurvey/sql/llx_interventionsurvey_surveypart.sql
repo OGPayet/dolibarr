@@ -23,8 +23,8 @@ CREATE TABLE llx_interventionsurvey_surveypart(
 	fk_user_modif integer,
 	import_key varchar(14),
 	fk_fichinter integer NOT NULL,
-	fk_identifier_type varchar(50) NOT NULL,
-	fk_identifier_value integer NOT NULL,
+	fk_identifier_type varchar(50),
+	fk_identifier_value integer,
 	label text,
 	position integer
 	-- END MODULEBUILDER FIELDS

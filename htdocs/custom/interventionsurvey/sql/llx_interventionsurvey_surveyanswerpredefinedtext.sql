@@ -19,7 +19,7 @@ CREATE TABLE llx_interventionsurvey_surveyanswerpredefinedtext(
 	rowid integer AUTO_INCREMENT PRIMARY KEY NOT NULL,
 	label text NOT NULL,
 	position integer,
-	fk_answer integer NOT NULL,
+	fk_surveyanswer integer NOT NULL,
 	fk_c_survey_answer_predefined_text integer
 	-- END MODULEBUILDER FIELDS
 ) ENGINE=innodb;
