@@ -366,14 +366,16 @@ public function setVarsFromFetchObj($obj){
     $objectValues = is_array($obj) ? $obj["status"] : $obj->status;
     foreach($objectValues as $statusObj){
         $status = new SurveyBlocStatus($this->db);
-        $status->setVarsFromFetchObj($questionObj);
+        $status->setVarsFromFetchObj($statusObj);
         $status->fk_surveyblocquestion = $this->id;
         $this->status[] = $status;
     }
     $objectValues = is_array($obj) ? $obj["chosen_status"] : $obj->chosen_status;
-    $chosen_status = new SurveyBlocStatus($this->db);
-    $chosen_status->setVarsFromFetchObj($objectValues);
-    $this->chosen_status = $chosen_status;
+    if(isset($objectValues)){
+        $chosen_status = new SurveyBlocStatus($this->db);
+        $chosen_status->setVarsFromFetchObj($objectValues);
+        $this->chosen_status = $chosen_status;
+    }
 }
 
 	/**

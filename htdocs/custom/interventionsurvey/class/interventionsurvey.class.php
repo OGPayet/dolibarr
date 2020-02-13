@@ -214,7 +214,6 @@ class InterventionSurvey extends Fichinter
  public static function fetchProperDataFromDictionary($db, $moduleName, $dictionaryName, $fieldToKeep = array(), $fieldsToTransformInArray = array()) {
     dol_include_once('/advancedictionaries/class/dictionary.class.php');
     $data = Dictionary::getJSONDictionary($db, $moduleName, $dictionaryName);
-    $data = self::sortArrayOfObjectByPositionObjectProperty($data);
     $result = array();
     foreach($data as $position=>$value){
         $temp = array();
@@ -653,6 +652,7 @@ public function fetchSurvey()
  */
 
  public function setSurveyFromFetchObj($arrayOfSurveyParts){
+    $arrayOfSurveyParts = json_decode(json_encode($arrayOfSurveyParts));
      $this->survey = array();
      foreach($arrayOfSurveyParts as $surveyPartObj){
          $surveyPart = new SurveyPart($this->db);

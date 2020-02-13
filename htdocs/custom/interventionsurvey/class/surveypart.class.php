@@ -984,8 +984,8 @@ class SurveyPart extends CommonObject
  */
 
  public function setVarsFromFetchObj($obj){
-    $this->blocs = array();
     parent::setVarsFromFetchObj($obj);
+    $this->blocs = array();
     $objectValues = is_array($obj) ? $obj["blocs"] : $obj->blocs;
     foreach($objectValues as $blocObj){
         $bloc = new SurveyBlocQuestion($this->db);

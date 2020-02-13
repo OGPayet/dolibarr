@@ -351,14 +351,16 @@ class SurveyQuestion extends CommonObject
         $objectValues = is_array($obj) ? $obj["answers"] : $obj->answers;
         foreach($objectValues as $answerObj){
             $answer = new SurveyAnswer($this->db);
-            $answer->setVarsFromFetchObj($questionObj);
+            $answer->setVarsFromFetchObj($answerObj);
             $answer->fk_surveyquestion = $this->id;
             $this->answers[] = $answer;
         }
-        $chosen_answer = new SurveyAnswer($this->db);
         $objectValues = is_array($obj) ? $obj["chosen_answer"] : $obj->chosen_answer;
-        $chosen_answer->setVarsFromFetchObj($objectValues);
-        $this->chosen_answer = $chosen_answer;
+        if(isset($objectValues)){
+            $chosen_answer = new SurveyAnswer($this->db);
+            $chosen_answer->setVarsFromFetchObj($objectValues);
+            $this->chosen_answer = $chosen_answer;
+        }
     }
 
 	/**
