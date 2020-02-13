@@ -324,6 +324,23 @@ class SurveyBlocStatus extends CommonObject
 		return $result;
 	}
 
+ /**
+ *
+ * Load survey in memory from the given array of survey parts
+ *
+ */
+
+public function setVarsFromFetchObj($obj){
+    $this->predefined_texts = array();
+    parent::setVarsFromFetchObj($obj);
+    $objectValues = is_array($obj) ? $obj["predefined_texts"] : $obj->predefined_texts;
+    foreach($objectValues as $predefined_textObj){
+        $predefined_text = new SurveyBlocStatusPredefinedText($this->db);
+        $predefined_text->setVarsFromFetchObj($predefined_textObj);
+        $predefined_text->fk_surveyblocstatus = $this->id;
+        $this->predefined_texts[] = $predefined_text;
+    }
+}
 
 	/**
 	 * Load list of objects in memory from the database.
@@ -972,7 +989,7 @@ class SurveyBlocStatus extends CommonObject
 		return $error;
     }
 
-    /**
+/**
     * Load object in memory from the database
     *
     * @param	string	$morewhere		More SQL filters (' AND ...')
@@ -984,6 +1001,7 @@ class SurveyBlocStatus extends CommonObject
         if (!class_exists($objectlineclassname))
         {
             $this->error = 'Error, class '.$objectlineclassname.' not found during call of fetchLinesCommon';
+            $this->errors[] = $this->error;
             return -1;
         }
 

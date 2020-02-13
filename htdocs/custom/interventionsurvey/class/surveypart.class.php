@@ -976,7 +976,27 @@ class SurveyPart extends CommonObject
 
 		return $error;
     }
-    /**
+
+ /**
+ *
+ * Load survey in memory from the given array of survey parts
+ *
+ */
+
+ public function setVarsFromFetchObj($obj){
+    $this->blocs = array();
+    parent::setVarsFromFetchObj($obj);
+    $objectValues = is_array($obj) ? $obj["blocs"] : $obj->blocs;
+    foreach($objectValues as $blocObj){
+        $bloc = new SurveyBlocQuestion($this->db);
+        $bloc->setVarsFromFetchObj($blocObj);
+        $bloc->fk_surveypart = $this->id;
+        $this->blocs[] = $bloc;
+    }
+}
+
+
+/**
     * Load object in memory from the database
     *
     * @param	string	$morewhere		More SQL filters (' AND ...')
@@ -988,6 +1008,7 @@ class SurveyPart extends CommonObject
         if (!class_exists($objectlineclassname))
         {
             $this->error = 'Error, class '.$objectlineclassname.' not found during call of fetchLinesCommon';
+            $this->errors[] = $this->error;
             return -1;
         }
 

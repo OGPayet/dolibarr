@@ -646,56 +646,74 @@ public function fetchSurvey()
         return 1;
     }
 
+/**
+ *
+ * Load survey in memory from the given array of survey parts
+ *
+ */
 
-    /**
+ public function setSurveyFromFetchObj($arrayOfSurveyParts){
+     $this->survey = array();
+     foreach($arrayOfSurveyParts as $surveyPartObj){
+         $surveyPart = new SurveyPart($this->db);
+         $surveyPart->setVarsFromFetchObj($surveyPartObj);
+         $surveyPart->fk_fichinter = $this->id;
+         $this->survey[] = $surveyPart;
+     }
+ }
+
+
+
+/**
     * Load object in memory from the database
     *
     * @param	string	$morewhere		More SQL filters (' AND ...')
     * @return 	int         			<0 if KO, 0 if not found, >0 if OK
     */
-   public function interventionSurveyFetchLinesCommon($morewhere = '', $objectlineclassname = null, &$resultValue)
-   {
+    public function interventionSurveyFetchLinesCommon($morewhere = '', $objectlineclassname = null, &$resultValue)
+    {
 
-       if (!class_exists($objectlineclassname))
-       {
-           $this->error = 'Error, class '.$objectlineclassname.' not found during call of fetchLinesCommon';
-           return -1;
-       }
+        if (!class_exists($objectlineclassname))
+        {
+            $this->error = 'Error, class '.$objectlineclassname.' not found during call of fetchLinesCommon';
+            $this->errors[] = $this->error;
+            return -1;
+        }
 
-       $objectline = new $objectlineclassname($this->db);
+        $objectline = new $objectlineclassname($this->db);
 
-       $sql = 'SELECT '.$objectline->getFieldList();
-       $sql .= ' FROM '.MAIN_DB_PREFIX.$objectline->table_element;
-       $sql .= ' WHERE fk_'.$this->element.' = '.$this->id;
-       if ($morewhere)   $sql .= $morewhere;
+        $sql = 'SELECT '.$objectline->getFieldList();
+        $sql .= ' FROM '.MAIN_DB_PREFIX.$objectline->table_element;
+        $sql .= ' WHERE fk_'.$this->element.' = '.$this->id;
+        if ($morewhere)   $sql .= $morewhere;
 
-       $resql = $this->db->query($sql);
-       if ($resql)
-       {
-           $num_rows = $this->db->num_rows($resql);
-           $i = 0;
-           while ($i < $num_rows)
-           {
-               $obj = $this->db->fetch_object($resql);
-               if ($obj)
-               {
-                   $newline = new $objectlineclassname($this->db);
-                   $newline->setVarsFromFetchObj($obj);
-                   if(method_exists($newline, "fetchLines")){
-                    $newline->fetchLines();
-                   }
-                   $resultValue[] = $newline;
-                   $this->errors = array_merge($this->errors, $newline->errors);
-               }
-               $i++;
-           }
-       }
-       else
-       {
-           $this->error = $this->db->lasterror();
-           $this->errors[] = $this->error;
-           return -1;
-       }
-       return empty($this->errors) ? 1 : -1;
-   }
+        $resql = $this->db->query($sql);
+        if ($resql)
+        {
+            $num_rows = $this->db->num_rows($resql);
+            $i = 0;
+            while ($i < $num_rows)
+            {
+                $obj = $this->db->fetch_object($resql);
+                if ($obj)
+                {
+                    $newline = new $objectlineclassname($this->db);
+                    $newline->setVarsFromFetchObj($obj);
+                    if(method_exists($newline, "fetchLines")){
+                     $newline->fetchLines();
+                    }
+                    $resultValue[] = $newline;
+                    $this->errors = array_merge($this->errors, $newline->errors);
+                }
+                $i++;
+            }
+        }
+        else
+        {
+            $this->error = $this->db->lasterror();
+            $this->errors[] = $this->error;
+            return -1;
+        }
+        return empty($this->errors) ? 1 : -1;
+    }
 }

@@ -343,7 +343,38 @@ class SurveyBlocQuestion extends CommonObject
             $this->chosen_status = $this->status[$this->fk_chosen_status];
         }
         return 1;
-	}
+    }
+
+/**
+ *
+ * Load survey in memory from the given array of survey parts
+ *
+ */
+
+public function setVarsFromFetchObj($obj){
+    $this->status = array();
+    $this->chosen_status = null;
+    $this->questions = array();
+    parent::setVarsFromFetchObj($obj);
+    $objectValues = is_array($obj) ? $obj["questions"] : $obj->questions;
+    foreach($objectValues as $questionObj){
+        $question = new SurveyQuestion($this->db);
+        $question->setVarsFromFetchObj($questionObj);
+        $question->fk_surveyblocquestion = $this->id;
+        $this->questions[] = $question;
+    }
+    $objectValues = is_array($obj) ? $obj["status"] : $obj->status;
+    foreach($objectValues as $statusObj){
+        $status = new SurveyBlocStatus($this->db);
+        $status->setVarsFromFetchObj($questionObj);
+        $status->fk_surveyblocquestion = $this->id;
+        $this->status[] = $status;
+    }
+    $objectValues = is_array($obj) ? $obj["chosen_status"] : $obj->chosen_status;
+    $chosen_status = new SurveyBlocStatus($this->db);
+    $chosen_status->setVarsFromFetchObj($objectValues);
+    $this->chosen_status = $chosen_status;
+}
 
 	/**
 	 * Load list of objects in memory from the database.
@@ -992,7 +1023,9 @@ class SurveyBlocQuestion extends CommonObject
 		return $error;
     }
 
-    /**
+
+
+/**
     * Load object in memory from the database
     *
     * @param	string	$morewhere		More SQL filters (' AND ...')
@@ -1004,6 +1037,7 @@ class SurveyBlocQuestion extends CommonObject
         if (!class_exists($objectlineclassname))
         {
             $this->error = 'Error, class '.$objectlineclassname.' not found during call of fetchLinesCommon';
+            $this->errors[] = $this->error;
             return -1;
         }
 

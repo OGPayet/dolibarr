@@ -117,7 +117,8 @@ echo '<br>';
 echo '<h3>generated</h3>';
 echo "<pre>";
 $interventionsurvey->generateSurveyFromDictionary();
-//echo json_encode($interventionsurvey->survey_taken_from_dictionary, JSON_PRETTY_PRINT);
+$interventionsurvey->setSurveyFromFetchObj($interventionsurvey->survey_taken_from_dictionary);
+echo json_encode($interventionsurvey->survey, JSON_PRETTY_PRINT);
 echo "</pre>";
 echo '<br>';
 

@@ -337,8 +337,29 @@ class SurveyQuestion extends CommonObject
             $this->chosen_answer = $this->answers[$this->fk_chosen_answer];
         }
         return 1;
-	}
+    }
 
+    /**
+ *
+ * Load survey in memory from the given array of survey parts
+ *
+ */
+
+    public function setVarsFromFetchObj($obj){
+        $this->answers = array();
+        parent::setVarsFromFetchObj($obj);
+        $objectValues = is_array($obj) ? $obj["answers"] : $obj->answers;
+        foreach($objectValues as $answerObj){
+            $answer = new SurveyAnswer($this->db);
+            $answer->setVarsFromFetchObj($questionObj);
+            $answer->fk_surveyquestion = $this->id;
+            $this->answers[] = $answer;
+        }
+        $chosen_answer = new SurveyAnswer($this->db);
+        $objectValues = is_array($obj) ? $obj["chosen_answer"] : $obj->chosen_answer;
+        $chosen_answer->setVarsFromFetchObj($objectValues);
+        $this->chosen_answer = $chosen_answer;
+    }
 
 	/**
 	 * Load list of objects in memory from the database.
@@ -987,7 +1008,7 @@ class SurveyQuestion extends CommonObject
 		return $error;
     }
 
-    /**
+/**
     * Load object in memory from the database
     *
     * @param	string	$morewhere		More SQL filters (' AND ...')
@@ -999,6 +1020,7 @@ class SurveyQuestion extends CommonObject
         if (!class_exists($objectlineclassname))
         {
             $this->error = 'Error, class '.$objectlineclassname.' not found during call of fetchLinesCommon';
+            $this->errors[] = $this->error;
             return -1;
         }
 
