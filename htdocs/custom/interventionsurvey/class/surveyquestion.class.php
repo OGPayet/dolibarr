@@ -1064,4 +1064,42 @@ class SurveyQuestion extends CommonObject
         }
         return empty($this->errors) ? 1 : -1;
     }
+/**
+ *
+ * Save
+ *
+ *
+ */
+
+public function save($user, $fk_surveyblocquestion)
+{
+    $this->db->begin();
+    if(isset($fk_surveyblocquestion)){
+        $this->fk_surveyblocquestion = $fk_surveyblocquestion;
+    }
+    $errors = array();
+
+    if($this->id){
+        $this->update($user);
+    }
+    else{
+        $this->create($user);
+    }
+    if(empty($errors)){
+        foreach($this->answers as $position=>$answer){
+            $answer->position = $position;
+            $answer->save($user, $this->id);
+            $errors = array_merge($errors, $answer->errors);
+        }
+    }
+    if(empty($errors)){
+        $this->db->commit();
+        return 1;
+    }
+    else{
+        $this->db->rollback();
+        $this->errors = $errors;
+        return -1;
+    }
+}
 }

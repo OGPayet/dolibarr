@@ -104,7 +104,8 @@ class SurveyBlocQuestion extends CommonObject
 		'fk_user_modif' => array('type'=>'integer:User:user/class/user.class.php', 'label'=>'UserModif', 'enabled'=>1, 'position'=>511, 'notnull'=>-1, 'visible'=>-2,),
 		'mandatory_status' => array('type'=>'boolean', 'label'=>'A status must be set', 'enabled'=>1, 'position'=>50, 'notnull'=>0, 'visible'=>-1,),
 		'justification_text' => array('type'=>'text', 'label'=>'Justification regarding status', 'enabled'=>1, 'position'=>35, 'notnull'=>0, 'visible'=>3,),
-		'description' => array('type'=>'text', 'label'=>'Description of this bloc', 'enabled'=>1, 'position'=>32, 'notnull'=>0, 'visible'=>3,),
+        'description' => array('type'=>'text', 'label'=>'Description of this bloc', 'enabled'=>1, 'position'=>32, 'notnull'=>0, 'visible'=>3,),
+        'attached_files' => array('type'=>'array', 'label'=>'List of attached files on this bloc', 'enabled'=>1, 'position'=>32, 'notnull'=>0, 'visible'=>3,),
 		'position' => array('type'=>'integer', 'label'=>'order', 'enabled'=>1, 'position'=>10, 'notnull'=>0, 'visible'=>3,),
 		'fk_surveypart' => array('type'=>'integer:SurveyPart:interventionsurvey/class/surveypart.class.php', 'label'=>'Link the the current survey part', 'enabled'=>1, 'position'=>15, 'notnull'=>1, 'visible'=>-1,),
 		'fk_c_survey_bloc_question' => array('type'=>'integer:SurveyBlocQuestionDictionary:interventionsurvey/core/dictionaries/surveyblocquestion.dictionary.php', 'label'=>'Link to the corresponding dictionnary item', 'enabled'=>1, 'position'=>20, 'notnull'=>0, 'visible'=>-1,),
@@ -1081,4 +1082,47 @@ public function setVarsFromFetchObj($obj){
         }
         return empty($this->errors) ? 1 : -1;
     }
+/**
+ *
+ * Save
+ *
+ *
+ */
+
+public function save($user, $fk_surveypart)
+{
+    $this->db->begin();
+    if(isset($fk_surveypart)){
+        $this->fk_surveypart = $fk_surveypart;
+    }
+    $errors = array();
+
+    if($this->id){
+        $this->update($user);
+    }
+    else{
+        $this->create($user);
+    }
+    if(empty($errors)){
+        foreach($this->questions as $position=>$question){
+            $question->position = $position;
+            $question->save($user, $this->id);
+            $errors = array_merge($errors, $question->errors);
+        }
+        foreach($this->status as $position=>$status){
+            $status->position = $position;
+            $status->save($user, $this->id);
+            $errors = array_merge($errors, $status->errors);
+        }
+    }
+    if(empty($errors)){
+        $this->db->commit();
+        return 1;
+    }
+    else{
+        $this->db->rollback();
+        $this->errors = $errors;
+        return -1;
+    }
+}
 }

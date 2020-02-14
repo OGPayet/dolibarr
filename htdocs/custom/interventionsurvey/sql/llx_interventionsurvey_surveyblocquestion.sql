@@ -25,6 +25,7 @@ CREATE TABLE llx_interventionsurvey_surveyblocquestion(
 	mandatory_status boolean,
 	justification_text text,
 	description text,
+	attached_files text,
 	position integer,
 	fk_surveypart integer NOT NULL,
 	fk_c_survey_bloc_question integer,

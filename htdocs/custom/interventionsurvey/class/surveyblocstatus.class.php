@@ -1043,4 +1043,43 @@ public function setVarsFromFetchObj($obj){
         }
         return empty($this->errors) ? 1 : -1;
     }
+
+ /**
+ *
+ * Save
+ *
+ *
+ */
+
+public function save($user, $fk_surveyblocquestion)
+{
+    $this->db->begin();
+    if(isset($fk_surveyblocquestion)){
+        $this->fk_surveyblocquestion = $fk_surveyblocquestion;
+    }
+    $errors = array();
+
+    if($this->id){
+        $this->update($user);
+    }
+    else{
+        $this->create($user);
+    }
+    if(empty($errors)){
+        foreach($this->predefined_texts as $position=>$predefined_text){
+            $predefined_text->position = $position;
+            $predefined_text->save($user, $this->id);
+            $errors = array_merge($errors, $predefined_text->errors);
+        }
+    }
+    if(empty($errors)){
+        $this->db->commit();
+        return 1;
+    }
+    else{
+        $this->db->rollback();
+        $this->errors = $errors;
+        return -1;
+    }
+}
 }

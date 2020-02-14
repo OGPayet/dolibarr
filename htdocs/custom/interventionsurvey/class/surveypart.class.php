@@ -1048,4 +1048,43 @@ class SurveyPart extends CommonObject
         }
         return empty($this->errors) ? 1 : -1;
     }
+
+    /**
+ *
+ * Save
+ *
+ *
+ */
+
+public function save($user, $fk_fichinter)
+{
+    $this->db->begin();
+    if(isset($fk_fichinter)){
+        $this->fk_fichinter = $fk_fichinter;
+    }
+    $errors = array();
+
+    if($this->id){
+        $this->update($user);
+    }
+    else{
+        $this->create($user);
+    }
+    if(empty($errors)){
+        foreach($this->blocs as $position=>$bloc){
+            $bloc->position = $position;
+            $bloc->save($user, $this->id);
+            $errors = array_merge($errors, $bloc->errors);
+        }
+    }
+    if(empty($errors)){
+        $this->db->commit();
+        return 1;
+    }
+    else{
+        $this->db->rollback();
+        $this->errors = $errors;
+        return -1;
+    }
+}
 }

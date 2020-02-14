@@ -116,6 +116,12 @@ class InterventionSurvey extends Fichinter
     const STATUS_DONE = 3;
 
     /**
+     * Errors
+     */
+    public $errors = array();
+
+
+    /**
      * Cache Dictionary data of bloc question
      */
     public $cache_survey_bloc_question_dictionary;
@@ -553,9 +559,36 @@ function generateEquipementSurveyPart($listOfEquipementBlocs, $equipementId, $po
 public function fetchSurvey()
 {
     $this->survey = array();
-    $result = $this->interventionSurveyFetchLinesCommon(null,"SurveyPart",$this->survey);
-    //return $result;
-    return 1;
+    $data = $this->interventionSurveyFetchLinesCommon(null,"SurveyPart",$this->survey);
+    return $data;
+}
+
+/**
+ *
+ * Save Survey
+ *
+ *
+ */
+
+public function saveSurvey($user)
+{
+    $this->db->begin();
+    $errors = array();
+    foreach($this->survey as $position=>$surveyPart){
+        $surveyPart->position = $position;
+        $surveyPart->save($user, $this->id);
+        $errors = array_merge($errors, $surveyPart->errors);
+    }
+
+    if(empty($errors)){
+        $this->db->commit();
+        return 1;
+    }
+    else{
+        $this->db->rollback();
+        $this->errors = $errors;
+        return -1;
+    }
 }
 
 
@@ -723,4 +756,15 @@ public function fetchSurvey()
         }
         return empty($this->errors) ? 1 : -1;
     }
+
+    /**
+     *  Is the survey read only
+     *
+     * @return  int                 =0 if No, >0 if Yes
+     */
+    function is_survey_read_only()
+    {
+        return $this->id > 0 && $this->statut == self::STATUS_VALIDATED ? 0 : 1;
+    }
+
 }

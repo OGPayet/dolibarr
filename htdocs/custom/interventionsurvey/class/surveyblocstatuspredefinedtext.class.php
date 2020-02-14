@@ -959,4 +959,37 @@ public function setVarsFromFetchObj($obj){
     $dictionaryRowId = is_array($obj) ? $obj["c_rowid"] : $obj->c_rowid;
     $this->fk_c_survey_bloc_status_predefined_text = $dictionaryRowId;
 }
+
+/**
+ *
+ * Save
+ *
+ *
+ */
+
+public function save($user, $fk_surveyblocstatus)
+{
+    $this->db->begin();
+    if(isset($fk_surveyblocstatus)){
+        $this->fk_surveyblocstatus = $fk_surveyblocstatus;
+    }
+    $errors = array();
+
+    if($this->id){
+        $this->update($user);
+    }
+    else{
+        $this->create($user);
+    }
+
+    if(empty($errors)){
+        $this->db->commit();
+        return 1;
+    }
+    else{
+        $this->db->rollback();
+        $this->errors = $errors;
+        return -1;
+    }
+}
 }
