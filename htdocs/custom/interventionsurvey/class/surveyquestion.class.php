@@ -349,6 +349,8 @@ class SurveyQuestion extends CommonObject
         $this->answers = array();
         parent::setVarsFromFetchObj($obj);
         $objectValues = is_array($obj) ? $obj["answers"] : $obj->answers;
+        $dictionaryRowId = is_array($obj) ? $obj["c_rowid"] : $obj->c_rowid;
+        $this->fk_c_survey_question = $dictionaryRowId;
         foreach($objectValues as $answerObj){
             $answer = new SurveyAnswer($this->db);
             $answer->setVarsFromFetchObj($answerObj);

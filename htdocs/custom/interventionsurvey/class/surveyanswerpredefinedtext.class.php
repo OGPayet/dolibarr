@@ -942,5 +942,16 @@ class SurveyAnswerPredefinedText extends CommonObject
 		$this->db->commit();
 
 		return $error;
-	}
+    }
+        /**
+ *
+ * Load survey in memory from the given array of survey parts
+ *
+ */
+
+public function setVarsFromFetchObj($obj){
+    parent::setVarsFromFetchObj($obj);
+    $dictionaryRowId = is_array($obj) ? $obj["c_rowid"] : $obj->c_rowid;
+    $this->fk_c_survey_answer_predefined_text = $dictionaryRowId;
+}
 }

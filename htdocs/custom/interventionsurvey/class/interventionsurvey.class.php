@@ -430,6 +430,7 @@ function generateEquipementSurveyPart($listOfEquipementBlocs, $equipementId, $po
         foreach($data["questions"] as $index=>$answer){
             $questionList[$index] = $this->fillAnswerInQuestion($answer,$questionBloc["c_rowid"], $productCategory);
         }
+        $questionList = self::sortArrayOfObjectByPositionObjectProperty($questionList);
         $data["questions"] = $questionList;
         return $data;
     }
@@ -443,6 +444,7 @@ function generateEquipementSurveyPart($listOfEquipementBlocs, $equipementId, $po
         foreach($data["answers"] as $index=>$answer){
             $answerList[$index] = $this->fillAnswerPredefinedTextInAnswer($answer,$blocDictionaryId, $productCategory);
         }
+        $answerList = self::sortArrayOfObjectByPositionObjectProperty($answerList);
         $data["answers"] = $answerList;
         return $data;
     }
@@ -456,6 +458,7 @@ function generateEquipementSurveyPart($listOfEquipementBlocs, $equipementId, $po
         $data["predefined_texts"] = array_filter($data["predefined_texts"], function($value) use ($blocDictionaryId,$productCategory) {
             return self::shouldThisAnswerPredefinedTextBeIntoThisStatus($value,$blocDictionaryId, $productCategory);
         });
+        $data["predefined_texts"] = self::sortArrayOfObjectByPositionObjectProperty($data["predefined_texts"]);
         foreach($data["predefined_texts"] as &$predefined_text){
             unset($predefined_text["bloc_filter"]);
             unset($predefined_text["cat_filter"]);
@@ -470,8 +473,10 @@ function generateEquipementSurveyPart($listOfEquipementBlocs, $equipementId, $po
     function fillStatusInQuestionBloc($questionBloc, $productCategory){
         $data = self::fillDataFromJSONDictionary($questionBloc, "status", $this->cache_survey_bloc_status_dictionary);
         $statusList = array();
+        $statusList = self::sortArrayOfObjectByPositionObjectProperty($statusList);
         foreach($data["status"] as $index=>$status) {
             $statusList[$index] = $this->fillStatusPredefinedTextInQuestionBlocStatus($status,$questionBloc["c_rowid"], $productCategory);
+            unset($statusList[$index]["position"]);
         }
         $data["status"] = $statusList;
         return $data;
@@ -486,9 +491,11 @@ function generateEquipementSurveyPart($listOfEquipementBlocs, $equipementId, $po
         $data["predefined_texts"] = array_filter($data["predefined_texts"], function($value) use ($blocDictionaryId,$productCategory) {
             return self::shouldThisStatusPredefinedTextBeIntoThisStatus($value,$blocDictionaryId, $productCategory);
         });
+        $data["predefined_texts"] = self::sortArrayOfObjectByPositionObjectProperty($data["predefined_texts"]);
         foreach($data["predefined_texts"] as &$predefined_text){
             unset($predefined_text["blkLim"]);
             unset($predefined_text["catLim"]);
+            unset($predefined_text["position"]);
         }
         return $data;
     }

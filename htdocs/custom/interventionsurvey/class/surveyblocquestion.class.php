@@ -356,6 +356,8 @@ public function setVarsFromFetchObj($obj){
     $this->chosen_status = null;
     $this->questions = array();
     parent::setVarsFromFetchObj($obj);
+    $dictionaryRowId = is_array($obj) ? $obj["c_rowid"] : $obj->c_rowid;
+    $this->fk_c_survey_bloc_question = $dictionaryRowId;
     $objectValues = is_array($obj) ? $obj["questions"] : $obj->questions;
     foreach($objectValues as $questionObj){
         $question = new SurveyQuestion($this->db);

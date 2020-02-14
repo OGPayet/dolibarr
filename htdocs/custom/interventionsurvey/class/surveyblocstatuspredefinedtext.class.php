@@ -946,14 +946,17 @@ class SurveyBlocStatusPredefinedText extends CommonObject
 		$this->db->commit();
 
 		return $error;
-	}
-}
+    }
 
-/**
- * Class SurveyBlocStatusPredefinedTextLine. You can also remove this and generate a CRUD class for lines objects.
+    /**
+ *
+ * Load survey in memory from the given array of survey parts
+ *
  */
-class SurveyBlocStatusPredefinedTextLine
-{
-	// To complete with content of an object SurveyBlocStatusPredefinedTextLine
-	// We should have a field rowid, fk_surveyblocstatuspredefinedtext and position
+
+public function setVarsFromFetchObj($obj){
+    parent::setVarsFromFetchObj($obj);
+    $dictionaryRowId = is_array($obj) ? $obj["c_rowid"] : $obj->c_rowid;
+    $this->fk_c_survey_bloc_status_predefined_text = $dictionaryRowId;
+}
 }

@@ -114,9 +114,15 @@ echo '<h3>cache_survey_answer_predefined_text</h3>';
 echo json_encode($cache_survey_answer_predefined_text);
 echo '<br>';
 
-echo '<h3>generated</h3>';
+echo '<h3>crude generated</h3>';
 echo "<pre>";
 $interventionsurvey->generateSurveyFromDictionary();
+echo json_encode($interventionsurvey->survey_taken_from_dictionary, JSON_PRETTY_PRINT);
+echo "</pre>";
+echo '<br>';
+
+echo '<h3>generated</h3>';
+echo "<pre>";
 $interventionsurvey->setSurveyFromFetchObj($interventionsurvey->survey_taken_from_dictionary);
 echo json_encode($interventionsurvey->survey, JSON_PRETTY_PRINT);
 echo "</pre>";
