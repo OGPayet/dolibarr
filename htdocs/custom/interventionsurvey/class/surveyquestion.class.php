@@ -104,7 +104,7 @@ class SurveyQuestion extends CommonObject
 		'position' => array('type'=>'integer', 'label'=>'order', 'enabled'=>1, 'position'=>20, 'notnull'=>0, 'visible'=>-1,),
 		'fk_chosen_answer' => array('type'=>'integer:SurveyAnswer:interventionsurvey/class/surveyanswer.class.php', 'label'=>'Chosen answer for this question', 'enabled'=>1, 'position'=>35, 'notnull'=>0, 'visible'=>3,),
 		'mandatory_answer' => array('type'=>'boolean', 'label'=>'Is an answer mandatory', 'enabled'=>1, 'position'=>31, 'notnull'=>0, 'visible'=>3,),
-		'fk_chosen_answer_predefined_text' => array('type'=>'text', 'label'=>'Stringify array (split by comma) of predefined used text id', 'enabled'=>1, 'position'=>40, 'notnull'=>0, 'visible'=>-1,),
+		'fk_chosen_answer_predefined_text' => array('type'=>'array', 'label'=>'Stringify array (split by comma) of predefined used text id', 'enabled'=>1, 'position'=>40, 'notnull'=>0, 'visible'=>-1,),
 		'justification_text' => array('type'=>'text', 'label'=>'Justification text', 'enabled'=>1, 'position'=>38, 'notnull'=>0, 'visible'=>3,),
 	);
 	public $rowid;
@@ -1102,4 +1102,15 @@ public function save($user, $fk_surveyblocquestion)
         return -1;
     }
 }
+/**
+     * Get chosen status or an empty object
+     */
+
+    public function getChosenAnswer(){
+        $result = $this->chosen_answer;
+        if(!isset($result)) {
+            $result = new stdClass();
+        }
+        return $result;
+    }
 }

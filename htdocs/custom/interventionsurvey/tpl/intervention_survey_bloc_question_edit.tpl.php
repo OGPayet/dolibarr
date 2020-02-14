@@ -1,5 +1,6 @@
 <?php
 /* Copyright (C) 2018   Open-DSI            <support@open-dsi.fr>
+/* Copyright (C) 2020   Alexis LAURIER      <contact@alexislaurier.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,116 +17,93 @@
  */
 
 // Need to have following variables defined:
-// $conf
+// $user
 // $langs
 // $hookmanager
 // $action
-// $backtopage
 // $form
-// $object
-// $survey_bloc
-// $question_bloc
-// $extrafields_question_bloc
-// $extrafields_question
+// $bloc
+// $object - must be an interventionsurvey object, which extends fichinter
+// $extrafields_interventionsurvey_surveyblocquestion
+// $extrafields_interventionsurvey_surveyquestion
 
 // Protection to avoid direct call of template
-if (empty($question_bloc) || !is_object($question_bloc)) {
+if (empty($bloc)) {
     print "Error, template page can't be called as URL";
     dol_syslog("Error, template page can't be called as URL : " . $_SERVER["PHP_SELF"] . "?" . $_SERVER["QUERY_STRING"], LOG_ERR);
     exit;
 }
 ?>
 
-<!-- BEGIN PHP TEMPLATE ei_survey_edit.tpl.php -->
-<div id="ei_anchor_sb_<?php print $survey_bloc->fk_equipment ?>_qb_<?php print $question_bloc->fk_c_question_bloc ?>"></div>
+<!-- BEGIN PHP TEMPLATE intervention_survey_bloc_question_edit.tpl -->
+<div id="interventionsurvey_anchor_surveyblocquestion_<?php print $bloc->id ?>"></div>
 <?php
-  if ($idx % 2 == 0) {
+if ($idx % 2 == 0) {
     print '<div class="fichehalfright"><div class="ficheaddleft">';
-  } else {
+} else {
     print '<div class="fichehalfleft">';
-  }
-  $predefined_texts = array();
+}
 ?>
-  <div class="underbanner clearboth"></div>
-  <div id="ei_question_bloc_<?php print $question_bloc->fk_c_question_bloc ?>">
-    <form name="ei_survey" action="<?php print $_SERVER['PHP_SELF'].'?id='.$object->id.'#ei_anchor_sb_'.$survey_bloc->fk_equipment.'_qb_'.$question_bloc->fk_c_question_bloc ?>" method="POST">
+<div class="underbanner clearboth"></div>
+<div id="interventionsurvey_surveyblocquestion_<?php print $bloc->id ?>">
+    <form name="ei_survey" action="<?php print $_SERVER['PHP_SELF'].'?id='.$object->id.'#interventionsurvey_anchor_surveyblocquestion_'.$bloc->id ?>" method="POST">
       <input type="hidden" name="token" value="<?php print $_SESSION['newtoken'] ?>">
-      <input type="hidden" name="equipment_id" value="<?php print $survey_bloc->fk_equipment ?>">
-      <input type="hidden" name="question_bloc_id" value="<?php print $question_bloc->fk_c_question_bloc ?>">
+      <input type="hidden" name="question_bloc_id" value="<?php print $bloc->id ?>">
       <input type="hidden" name="action" value="save_question_bloc">
-      <input type="hidden" name="ei_qb_status" value="<?php print isset($_POST['ei_qb_status']) ? GETPOST('ei_qb_status', "int") : $question_bloc->fk_c_question_bloc_status ?>">
-      <input type="hidden" name="ei_qb_justificatory_status" value="<?php print isset($_POST['ei_qb_justificatory_status']) ? GETPOST('ei_qb_justificatory_status', "alpha") : $question_bloc->justificatory_status ?>">
       <input type="hidden" name="backtopage" value="<?php print dol_string_nohtmltag($backtopage) ?>">
 
       <?php
-      $warning = '';
-      if ($question_bloc->warning_code_question_bloc) $warning .= '<br> - ' . $langs->trans('ExtendedInterventionQuestionBlocCode');
-      if ($question_bloc->warning_label_question_bloc) $warning .= '<br> - ' . $langs->trans('ExtendedInterventionQuestionBlocTitle');
-      if ($question_bloc->warning_extrafields_question_bloc) $warning .= '<br> - ' . $langs->trans('ExtendedInterventionQuestionBlocExtraFields');
-      if (!empty($warning)) $warning = ' ' . $form->textwithpicto('', '<b>' . $langs->trans('ExtendedInterventionSurveyConfigurationChanged') . ' :</b>' . $warning, 1, 'warning', '', 0, 2);
       // Print question title and status
-      print load_fiche_titre($question_bloc->label_question_bloc . $warning, $question_bloc->label_status . (!empty($question_bloc->justificatory_status) ? ' ' . $form->textwithpicto('', '<b>' . $langs->trans('ExtendedInterventionJustificatory') . ' :</b><br>' . $question_bloc->justificatory_status, 1, 'object_tip.png@extendedintervention', '', 0, 2) : ''),'');
-      ?>
+      print load_fiche_titre(
+        $bloc->label,
+        $bloc->getChosenStatus()->label . (!empty($bloc->justification_text)
+            ?  ' ' . $form->textwithpicto('', '<b>' . $langs->trans('InterventionSurveyJustificationStatusText') . ' :</b><br>' . $bloc->justification_text, 1, 'object_tip.png@interventionsurvey', '', 0, 2) :
+            ''),
+        ''
+    );
+    ?>
       <table class="border" width="100%">
       <?php
     // Print question
-    if (is_array($question_bloc->lines) && count($question_bloc->lines)) {
-      foreach ($question_bloc->lines as $line_id => $line) {
-        if (!$line->read_only) {
-            foreach ($line->answer_list as $answer_id => $answer) {
-                $predefined_texts[$line->fk_c_question][$answer_id] = array(
-                    'predefined_texts' => array(),
-                    'mandatory' => !empty($answer['mandatory'])
-                );
-                foreach ($answer['predefined_texts'] as $predefined_text_id => $predefined_text) {
-                    $predefined_texts[$line->fk_c_question][$answer_id]['predefined_texts'][$predefined_text['position'] . '_' . $predefined_text_id] = [
-                        'option' => dol_string_nohtmltag($predefined_text['predefined_text']),
-                        'text' => $predefined_text['predefined_text']
-                    ];
-                }
-            }
+      foreach ($bloc->questions as $question) {
             ?>
           <tr>
-            <td><?php
-                print $line->label_question;
-                $warning = '';
-                if ($line->warning_code_question) $warning .= '<br> - ' . $langs->trans('ExtendedInterventionQuestionCode');
-                if ($line->warning_label_question) $warning .= '<br> - ' . $langs->trans('ExtendedInterventionQuestionLabel');
-                if ($line->warning_extrafields_question) $warning .= '<br> - ' . $langs->trans('ExtendedInterventionQuestionExtraFields');
-                if ($line->warning_code_answer) $warning .= '<br> - ' . $langs->trans('ExtendedInterventionAnswerCode');
-                if ($line->warning_label_answer) $warning .= '<br> - ' . $langs->trans('ExtendedInterventionAnswerLabel');
-                if ($line->warning_mandatory_answer) $warning .= '<br> - ' . $langs->trans('ExtendedInterventionAnswerJustificatoryMandatory');
-                if (!empty($warning)) print ' ' . $form->textwithpicto('', '<b>' . $langs->trans('ExtendedInterventionSurveyConfigurationChanged') . ' :</b>' . $warning, 1, 'warning', '', 0, 2);
-            ?></td>
+            <td><?php print $question->label; ?></td>
             <td>
                 <?php
                 $answers = array();
-                foreach ($line->answer_list as $answer_id => $answer) {
-                    $answers[$answer_id] = $answer['label'];
+                foreach ($question->answers as $answer) {
+                    $answers[$answer->id] = $answer->label;
                 }
-                print $form->selectarray('ei_q_' . $line->fk_c_question . '_answer', $answers, isset($_POST['ei_q_' . $line->fk_c_question . '_answer']) ? GETPOST('ei_q_' . $line->fk_c_question . '_answer', "alpha") : $line->fk_c_answer, 1, 0, 0, '', 0, 0, 0, '', 'centpercent ei_q_answer');
+                $already_chosen_answer = GETPOST('interventionsurvey_chosen_answer_for_' . $question->id, "int") ?? $question->fk_chosen_answer;
+                print $form->selectarray('interventionsurvey_chosen_answer_for_' . $question->id, $answers, $already_chosen_answer, 1, 0, 0, '', 0, 0, 0, '', 'centpercent interventionsurvey_answer');
                 ?>
             </td>
           </tr>
           <tr>
-            <td class="ei_ef_question"
-                id="ei_q_<?php print $line->fk_c_question ?>_justificatory_label"><?php print $langs->trans('ExtendedInterventionJustificatory') ?></td>
+            <td class="interventionsurvey_question_justification_title">
+                <?php print $langs->trans('InterventionSurveyAnswerJustificationTitle') ?>
+            </td>
             <td>
               <table class="nobordernopadding" width="100%">
                 <tr>
                   <td>
-                      <?php print $form->selectarray('ei_q_' . $line->fk_c_question . '_predefined_texts', array(), isset($_POST['ei_q_' . $line->fk_c_question . '_predefined_texts']) ? GETPOST('ei_q_' . $line->fk_c_question . '_predefined_texts', "alpha") : '', 1, 0, 0, '', 0, 0, 0, '', 'centpercent') ?>
+                      <?php
+                      $already_used_predefined_text = GETPOST('interventionsurvey_used_predefined_text_for_' . $question->id, "array") ?? $question->fk_chosen_answer;
+                      print $form->selectarray('interventionsurvey_used_predefined_text_for_' . $question->id, array(), $already_used_predefined_text, 1, 0, 0, '', 0, 0, 0, '', 'centpercent') ?>
                   </td>
                   <td>
                     <input type="button" class="button ei_predefined_texts"
-                           question_id="<?php print $line->fk_c_question ?>"
-                           value="<?php print $langs->trans("ExtendedInterventionUse") ?>">
+                           question_id="<?php print $question->id ?>"
+                           value="<?php print $langs->trans("InterventionSurveyUseButton") ?>">
                   </td>
                 </tr>
                 <tr>
                   <td colspan="2">
                       <?php
-                      $doleditor = new DolEditor('ei_q_' . $line->fk_c_question . '_justificatory', isset($_POST['ei_q_' . $line->fk_c_question . '_justificatory']) ? GETPOST('ei_q_' . $line->fk_c_question . '_justificatory') : $line->text_answer,
+                    $already_written_justification_text = GETPOST('interventionsurvey_justification_text_for_' . $question->id, "text") ?? $question->justification_text;
+
+                      $doleditor = new DolEditor('interventionsurvey_justification_text_for_' . $question->id, $already_written_justification_text,
                           '', 150, 'dolibarr_notes', 'In', false, false, !empty($conf->fckeditor->enabled), ROWS_5, '90%');
                       print $doleditor->Create(1);
                       ?>

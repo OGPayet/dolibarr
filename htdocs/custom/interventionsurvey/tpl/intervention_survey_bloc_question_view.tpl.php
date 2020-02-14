@@ -1,5 +1,6 @@
 <?php
 /* Copyright (C) 2018   Open-DSI            <support@open-dsi.fr>
+/* Copyright (C) 2020   Alexis LAURIER      <contact@alexislaurier.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,119 +22,109 @@
 // $hookmanager
 // $action
 // $form
-// $survey_bloc
-// $question_bloc
-// $extrafields_question_bloc
-// $extrafields_question
+// $bloc
+// $object - must be an interventionsurvey object, which extends fichinter
+// $extrafields_interventionsurvey_surveyblocquestion
+// $extrafields_interventionsurvey_surveyquestion
 
 // Protection to avoid direct call of template
-if (empty($question_bloc) || !is_object($question_bloc)) {
+if (empty($bloc)) {
     print "Error, template page can't be called as URL";
     dol_syslog("Error, template page can't be called as URL : " . $_SERVER["PHP_SELF"] . "?" . $_SERVER["QUERY_STRING"], LOG_ERR);
     exit;
 }
 ?>
 
-<!-- BEGIN PHP TEMPLATE ei_survey_view.tpl.php -->
-<div id="ei_anchor_sb_<?php print $survey_bloc->fk_equipment ?>_qb_<?php print $question_bloc->fk_c_question_bloc ?>"></div>
+<!-- BEGIN PHP TEMPLATE intervention_survey_bloc_question_view.tpl -->
+<div id="interventionsurvey_anchor_surveyblocquestion_<?php print $bloc->id ?>"></div>
 <?php
-   if ($idx % 2 == 0) {
-       print '<div class="fichehalfright"><div class="ficheaddleft">';
-   } else {
-       print '<div class="fichehalfleft">';
-   }
+if ($idx % 2 == 0) {
+    print '<div class="fichehalfright"><div class="ficheaddleft">';
+} else {
+    print '<div class="fichehalfleft">';
+}
 ?>
-  <div class="underbanner clearboth"></div>
-  <div id="ei_question_bloc_<?php print $question_bloc->fk_c_question_bloc ?>">
+<div class="underbanner clearboth"></div>
+<div id="interventionsurvey_surveyblocquestion_<?php print $bloc->id ?>">
     <?php
     // Print question title and status
-    print load_fiche_titre($question_bloc->label_question_bloc, $question_bloc->label_status . (!empty($question_bloc->justificatory_status) ? ' ' . $form->textwithpicto('', '<b>' . $langs->trans('ExtendedInterventionJustificatory') . ' :</b><br>' . $question_bloc->justificatory_status, 1, 'object_tip.png@extendedintervention', '', 0, 2) : ''), '');
+    print load_fiche_titre(
+        $bloc->label,
+        $bloc->getChosenStatus()->label . (!empty($bloc->justification_text)
+            ?  ' ' . $form->textwithpicto('', '<b>' . $langs->trans('InterventionSurveyJustificationStatusText') . ' :</b><br>' . $bloc->justification_text, 1, 'object_tip.png@interventionsurvey', '', 0, 2) :
+            ''),
+        ''
+    );
+    if (!empty($bloc->description)) {
     ?>
-    <table class="border" width="100%">
-      <?php
-      // Print question
-      if (is_array($question_bloc->lines) && count($question_bloc->lines)) {
-        foreach ($question_bloc->lines as $line_id => $line) {
-      ?>
-      <tr>
-        <td><?php print $line->label_question ?></td>
-        <td width="50%"><?php print $line->label_answer . (!empty($line->text_answer) ? ' ' . $form->textwithpicto('', '<b>' . $langs->trans('ExtendedInterventionJustificatory') . ' :</b><br>' . $line->text_answer, 1, 'object_tip.png@extendedintervention', '', 0, 2) : '') ?></td>
-      </tr>
-      <?php
-          // Other attributes of the question
-          $parameters = array();
-          $reshook = $hookmanager->executeHooks('formObjectOptions', $parameters, $line, $action);    // Note that $action and $object may have been modified by hook
-          print $hookmanager->resPrint;
-          if (empty($reshook) && ! empty($extrafields_question->attribute_label)) {
-              print $line->showOptionals($extrafields_question, 'view', array());
-          }
-        }
-      }
-      // Other attributes of the question bloc
-      $parameters = array();
-      $reshook = $hookmanager->executeHooks('formObjectOptions', $parameters, $question_bloc, $action);    // Note that $action and $object may have been modified by hook
-      print $hookmanager->resPrint;
-      if (empty($reshook) && ! empty($extrafields_question_bloc->attribute_label)) {
-          print $question_bloc->showOptionals($extrafields_question_bloc, 'view', array());
-      }
-      // Complementary text of the question bloc
-      if (!empty($question_bloc->complementary_question_bloc)) {
-      ?>
-      <tr>
-        <td><?php print $langs->trans('ExtendedInterventionSurveyComplementaryText') ?></td>
-        <td><?php print $question_bloc->complementary_question_bloc ?></td>
-      </tr>
-      <?php
-      }
-      // Attached files of the question bloc
-      if (!empty($question_bloc->attached_files)) {
-        $attached_files = array();
-        foreach ($question_bloc->attached_files as $filename) {
-            $attached_files[] = isset($object->attached_files[$filename]) ? $object->attached_files[$filename] : $langs->trans('ExtendedInterventionErrorFileNotFound', $filename);
-        }
-      ?>
-      <tr>
-        <td><?php print $langs->trans('Documents') ?></td>
-        <td><?php print implode(' , ', $attached_files) ?></td>
-      </tr>
-      <?php
-      }
-      ?>
-    </table>
-
-    <?php
-    if ($object->statut < ExtendedIntervention::STATUS_DONE && !$survey_bloc->read_only && !$question_bloc->read_only) {
-    ?>
-    <br>
-    <div class="right">
-      <?php
-      if ($user->rights->extendedintervention->questionnaireIntervention->creer) {
-          //if ($question_bloc->fk_c_question_bloc_status > 0) {
-      ?>
-      <div class="inline-block divButAction"><a class="butAction" href="<?php print $_SERVER["PHP_SELF"].'?id='.$object->id.'&equipment_id='.$survey_bloc->fk_equipment.'&question_bloc_id='.$question_bloc->fk_c_question_bloc.'&action=edit_question_bloc#ei_anchor_sb_'.$survey_bloc->fk_equipment.'_qb_'.$question_bloc->fk_c_question_bloc ?>"><?php print $langs->trans("Modify") ?></a></div>
-      <?php
-          /*} else {
-      ?>
-      <div class="inline-block divButAction"><a class="butActionRefused" href="#" title="<?php print $langs->trans("ExtendedInterventionSurveyInterventionMustBeValidated") ?>"><?php print $langs->trans("Modify") ?></a></div>
-      <?php
-          }*/
-      } else {
-      ?>
-      <div class="inline-block divButAction"><a class="butActionRefused" href="#" title="<?php print $langs->trans("NotAllowed") ?>"><?php print $langs->trans("Modify") ?></a></div>
-      <?php
-      }
-      ?>
-    </div>
+        <tr>
+            <td><?php print $langs->trans('InterventionSurveyBlocQuestionDescriptionTitle') ?></td>
+            <td><?php print $bloc->description ?></td>
+        </tr>
     <?php
     }
     ?>
-  </div>
-  <br>
+    <table class="border" width="100%">
+        <?php
+        // Print question
+        foreach ($bloc->questions as $question) {
+        ?>
+            <tr>
+                <td><?php print $question->label ?></td>
+                <td width="50%"><?php print $question->getChosenAnswer()->label . (!empty($question->justification_text) ? ' ' . $form->textwithpicto('', '<b>' . $langs->trans('InterventionSurveyAnswerJustificationText') . ' :</b><br>' . $question->justification_text, 1, 'object_tip.png@extendedintervention', '', 0, 2) : '') ?></td>
+            </tr>
+            <?php
+            // Other attributes of the question
+            $parameters = array();
+            $reshook = $hookmanager->executeHooks('formObjectOptions', $parameters, $line, $action);    // Note that $action and $object may have been modified by hook
+            print $hookmanager->resPrint;
+            if (empty($reshook) && !empty($extrafields_interventionsurvey_surveyquestion->attribute_label)) {
+                print $question->showOptionals($extrafields_interventionsurvey_surveyquestion, 'view', array());
+            }
+        }
+        // Other attributes of the question bloc
+        $parameters = array();
+        $reshook = $hookmanager->executeHooks('formObjectOptions', $parameters, $bloc, $action);    // Note that $action and $object may have been modified by hook
+        print $hookmanager->resPrint;
+        if (empty($reshook) && !empty($extrafields_interventionsurvey_surveyblocquestion->attribute_label)) {
+            print $bloc->showOptionals($extrafields_interventionsurvey_surveyblocquestion, 'view', array());
+        }
+
+        // Attached files of the question bloc
+            $attached_files = array();
+            foreach ($bloc->attached_files as $filename) {
+                $attached_files[] = isset($object->attached_files[$filename]) ? $object->attached_files[$filename] : $langs->trans('InterventionSurveyErrorFileNotFound', $filename);
+            }
+            ?>
+            <tr>
+                <td><?php print $langs->trans('Documents') ?></td>
+                <td><?php print implode(' , ', $attached_files) ?></td>
+            </tr>
+    </table>
+    <br>
+    <div class="right">
+        <?php
+        if ($user->rights->interventionsurvey->survey->write && !$readOnlySurvey) {
+        ?>
+            <div class="inline-block divButAction">
+                <a class="butAction" href="<?php print $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&survey_bloc_question_id=' . $bloc->id . '&action=edit_question_bloc#interventionsurvey_anchor_surveyblocquestion_' . $bloc->id ?>"> <?php print $langs->trans("Modify") ?>
+                </a>
+            </div>
+        <?php
+        } else {
+        ?>
+            <div class="inline-block divButAction"><a class="butActionRefused" href="#" title="<?php print $langs->trans("NotAllowed") ?>"><?php print $langs->trans("Modify") ?></a></div>
+        <?php
+        }
+        ?>
+    </div>
+</div>
+<br>
 <?php
-   if ($idx % 2 == 0) {
-       print '</div></div>';
-   } else {
-       print '</div>';
-   }
+if ($idx % 2 == 0) {
+    print '</div></div>';
+} else {
+    print '</div>';
+}
 ?>
-<!-- END PHP TEMPLATE ei_survey_view.tpl.php -->
+<!-- END PHP TEMPLATE intervention_survey_bloc_question_view.tpl.php -->

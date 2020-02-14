@@ -1,5 +1,6 @@
 <?php
 /* Copyright (C) 2018  Open-Dsi <support@open-dsi.fr>
+ * Copyright (C) 2018  Alexis LAURIER <contact@alexislaurier.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -211,7 +212,7 @@ if ($object->id > 0) {
                         if ($user->rights->interventionsurvey->survey->write && $action == 'edit_question_bloc' && $bloc->id == $survey_bloc_question_id && !$readOnlySurvey) {
                             //@include dol_buildpath($reldir . '/ei_survey_edit.tpl.php');
                         } else {
-                            //@include dol_buildpath($reldir . '/ei_survey_view.tpl.php');
+                            @include dol_buildpath('interventionsurvey/tpl/intervention_survey_bloc_question_view.tpl.php');
                         }
                         if ($idx % 2 == 0) {
                             print '</div>';
