@@ -29,6 +29,11 @@ CREATE TABLE llx_interventionsurvey_surveyblocquestion(
 	position integer,
 	fk_surveypart integer NOT NULL,
 	fk_c_survey_bloc_question integer,
-	fk_chosen_status integer
+	fk_chosen_status integer,
+	fk_chosen_answer_predefined_text text,
+	label_editable boolean,
+	description_editable boolean,
+	deletable boolean,
+	private boolean
 	-- END MODULEBUILDER FIELDS
 ) ENGINE=innodb;

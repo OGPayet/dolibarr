@@ -63,6 +63,23 @@ if ($idx % 2 == 0) {
     );
     ?>
       <table class="border" width="100%">
+
+      <tr>
+          <td><?php print $langs->trans('InterventionSurveyDescriptionBloc') ?></td>
+          <td>
+          <?php
+          $doleditor = new DolEditor('ei_qb_complementary', isset($_POST['ei_qb_complementary']) ? GETPOST('ei_qb_complementary') : $question_bloc->complementary_question_bloc,
+              '', 150, 'dolibarr_notes', 'In', false, false, !empty($conf->fckeditor->enabled), ROWS_5, '100%');
+          print $doleditor->Create(1);
+          ?>
+          </td>
+        </tr>
+        <tr>
+          <td><?php print $langs->trans('Documents') ?></td>
+          <td><?php print $formextendedintervention->multiselect_attached_files($object->ref, 'ei_qb_attached_files',
+                  isset($_POST['ei_qb_attached_files']) ? GETPOST('ei_qb_attached_files') : $question_bloc->attached_files) ?></td>
+        </tr>
+
       <?php
     // Print question
       foreach ($bloc->questions as $question) {
@@ -115,58 +132,23 @@ if ($idx % 2 == 0) {
             <?php
             // Other attributes of the question
             $parameters = array();
-            $reshook = $hookmanager->executeHooks('formObjectOptions', $parameters, $line, $action);    // Note that $action and $object may have been modified by hook
+            $reshook = $hookmanager->executeHooks('formObjectOptions', $parameters, $question, $action);    // Note that $action and $object may have been modified by hook
             print $hookmanager->resPrint;
-            if (empty($reshook) && !empty($extrafields_question->attribute_label)) {
-                if (isset($_POST['ei_qb_complementary'])) {
-                    $line->array_options = $extrafields_question->getOptionalsFromPost($extralabels_question, '_ei_q_' . $line->fk_c_question);
-                }
-                print $line->showOptionals($extrafields_question, 'edit', array(), '_ei_q_' . $line->fk_c_question);
-            }
-        } else {
-          ?>
-          <tr>
-            <td><?php print $line->label_question ?></td>
-            <td width="50%"><?php print $line->label_answer . (!empty($line->text_answer) ? $form->textwithtooltip($line->text_answer, 'text_answer_' . $line->fk_c_question, 1, 0, 'object_tip.png@extendedintervention') : '') ?></td>
-          </tr>
-          <?php
-          // Other attributes of the question
-          $parameters = array();
-          $reshook = $hookmanager->executeHooks('formObjectOptions', $parameters, $line, $action);    // Note that $action and $object may have been modified by hook
-          print $hookmanager->resPrint;
-          if (empty($reshook) && ! empty($extrafields_question->attribute_label)) {
-              print $line->showOptionals($extrafields_question, 'view', array());
-          }
+            if (empty($reshook) && !empty($extrafields_interventionsurvey_surveyquestion->attribute_label)) {
+                $question->array_options = $extrafields_interventionsurvey_surveyquestion->getOptionalsFromPost($extralabels_question, '_intervention_survey_question' . $line->fk_c_question);
+                print $question->showOptionals($extrafields_interventionsurvey_surveyquestion, 'edit', array(), '_intervention_survey_question' . $question->id);
         }
-      }
-    }
+}
     // Other attributes of the question bloc
     $parameters = array();
-    $reshook = $hookmanager->executeHooks('formObjectOptions', $parameters, $question_bloc, $action);    // Note that $action and $object may have been modified by hook
+    $reshook = $hookmanager->executeHooks('formObjectOptions', $parameters, $bloc, $action);    // Note that $action and $object may have been modified by hook
     print $hookmanager->resPrint;
-    if (empty($reshook) && ! empty($extrafields_question_bloc->attribute_label)) {
-        if (isset($_POST['ei_qb_complementary'])) {
-            $question_bloc->array_options = $extrafields_question_bloc->getOptionalsFromPost($extralabels_question_bloc, '_ei_qb');
-        }
-        print $question_bloc->showOptionals($extrafields_question_bloc, 'edit',  array(), '_ei_qb');
+    if (empty($reshook) && ! empty($extrafields_interventionsurvey_surveyblocquestion->attribute_label)) {
+        $bloc->array_options = $extrafields_interventionsurvey_surveyblocquestion->getOptionalsFromPost($extralabels_interventionsurvey_surveyblocquestion, '_intervention_survey_question_bloc');
+        print $bloc->showOptionals($extrafields_interventionsurvey_surveyblocquestion, 'edit',  array(), '_intervention_survey_question_bloc');
     }
-        // Complementary text of the question bloc
         ?>
-        <tr>
-          <td><?php print $langs->trans('ExtendedInterventionSurveyComplementaryText') ?></td>
-          <td>
-          <?php
-          $doleditor = new DolEditor('ei_qb_complementary', isset($_POST['ei_qb_complementary']) ? GETPOST('ei_qb_complementary') : $question_bloc->complementary_question_bloc,
-              '', 150, 'dolibarr_notes', 'In', false, false, !empty($conf->fckeditor->enabled), ROWS_5, '100%');
-          print $doleditor->Create(1);
-          ?>
-          </td>
-        </tr>
-        <tr>
-          <td><?php print $langs->trans('Documents') ?></td>
-          <td><?php print $formextendedintervention->multiselect_attached_files($object->ref, 'ei_qb_attached_files',
-                  isset($_POST['ei_qb_attached_files']) ? GETPOST('ei_qb_attached_files') : $question_bloc->attached_files) ?></td>
-        </tr>
+
       </table>
 
       <br>

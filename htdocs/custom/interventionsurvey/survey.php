@@ -96,9 +96,9 @@ $reshook=$hookmanager->executeHooks('doActions',$parameters,$object,$action); //
 if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
 
 if (empty($reshook) && !$readOnlySurvey && $user->rights->interventionsurvey->survey->write && $object->id > 0) {
-    if ($action == 'confirm_save_question_bloc' ) {
-        $survey_bloc_question = new InterventionSurveyBloc($db);
-        if ($confirm == "yes" && $survey_bloc_question->fetch($survey_bloc_question_id) > 0) {
+    if ($action == 'save_question_bloc' ) {
+        $survey_bloc_question = new SurveyBlocQuestion($db);
+        if ($survey_bloc_question->fetch($survey_bloc_question_id) > 0) {
             $survey_bloc_question->complementary_question_bloc = GETPOST('interventionsurvey_question_bloc_description');
             $survey_bloc_question->fk_c_question_bloc_status = GETPOST('interventionsurvey_question_bloc_status', 'int');
             $survey_bloc_question->justification_text = GETPOST('interventionsurvey_question_bloc_justification_text');
@@ -108,7 +108,7 @@ if (empty($reshook) && !$readOnlySurvey && $user->rights->interventionsurvey->su
             foreach ($survey_bloc_question->questions as $question) {
                 $line->fk_c_answer = GETPOST('ei_q_' . $line->fk_c_question . '_answer', 'int');
                 $line->text_answer = GETPOST('ei_q_' . $line->fk_c_question . '_justificatory');
-                $line->array_options = $extrafields_question->getOptionalsFromPost($extralabels_question, '_ei_q_' . $line->fk_c_question);
+                $line->array_options = $extrafields_question->getOptionalsFromPost($extralabels_question, '_intervention_survey_question' . $line->fk_c_question);
             }
             $result = $survey_bloc_question->save();
             if ($result < 0) {
@@ -210,7 +210,7 @@ if ($object->id > 0) {
                             print '<div class="fichecenter">';
                         }
                         if ($user->rights->interventionsurvey->survey->write && $action == 'edit_question_bloc' && $bloc->id == $survey_bloc_question_id && !$readOnlySurvey) {
-                            //@include dol_buildpath($reldir . '/ei_survey_edit.tpl.php');
+                            @include dol_buildpath('interventionsurvey/tpl/intervention_survey_bloc_question_edit.tpl.php');
                         } else {
                             @include dol_buildpath('interventionsurvey/tpl/intervention_survey_bloc_question_view.tpl.php');
                         }
