@@ -181,7 +181,7 @@ class FormInterventionSurvey
             $attached_files[$file["name"]] = $file["name"];
         }
 
-        $out = $this->form->multiselectarray($htmlname, $attached_files, $selected, $key_in_label, $value_as_key, $morecss, $translate, $width, $moreattrib);
+        $out = $this->form->multiselectarray($htmlname, $attached_files, $selected, $key_in_label, $value_as_key, $morecss, $translate, "100%", $moreattrib);
 
         return $out;
     }
@@ -194,7 +194,7 @@ class FormInterventionSurvey
      *	@param	SurveyBlocQuestion	$bloc		    Bloc object question
      */
 
-     function displayStatus($readonly, $bloc){
+     function displayStatus($readonly, $bloc, $form){
         global $conf,$langs, $hookmanager;
         $bloc = $readonly ? $bloc : $this->mergeNotNullDataFromFirstIntoSecondParameter($this->blocs_post[$bloc->id],$bloc);
         @include dol_buildpath('interventionsurvey/tpl/intervention_survey_bloc_status.tpl.php');
@@ -227,40 +227,51 @@ class FormInterventionSurvey
     }
 
     /**
-     *	Return html to display question, manage answer and justification text with predefined text
-     *
-     *	@param	boolean		$readonly   Should we be in readonly mode
-     *	@param	Extrafields	$question_extrafields		    question extrafields object
-     */
-
-    function displayQuestionExtrafields($readonly, $question_extrafields){
-        global $conf,$langs, $hookmanager;
-        @include dol_buildpath('interventionsurvey/tpl/intervention_survey_question_extrafields.tpl.php');
-    }
-
-    /**
-     *	Return html to display bloc extrafields
-     *
-     *	@param	boolean		$readonly   Should we be in readonly mode
-     *	@param	Extrafields	$bloc_extrafields	    question object
-     */
-
-    function displayBlocExtrafields($readonly, $bloc){
-        global $conf,$langs, $hookmanager;
-        @include dol_buildpath('interventionsurvey/tpl/intervention_survey_bloc_extrafields.tpl.php');
-    }
-
-    /**
      *	Return html to display bloc files
      *
      *	@param	boolean		$readonly   Should status be in readonly mode
      *	@param	SurveyBlocQuestion	$bloc		    question object
      */
 
-    function displayBlocFiles($readonly, $bloc){
+    function displayBlocFiles($readonly, $bloc, $intervention_ref, $listOfAvailableFiles = array()){
         global $conf,$langs, $hookmanager;
         $bloc = $readonly ? $bloc : $this->mergeNotNullDataFromFirstIntoSecondParameter($this->blocs_post[$bloc->id],$bloc);
         @include dol_buildpath('interventionsurvey/tpl/intervention_survey_bloc_files.tpl.php');
+    }
+    /**
+     *	Return html to display Extrafields
+     *
+     *	@param	boolean		$readonly   Should status be in readonly mode
+     *	@param	SurveyBlocQuestion	$bloc		    question object
+     */
+
+    function displayExtrafields($readonly,$extrafield_object,$extrafield_label, $object, $prefix) {
+        global $conf,$langs, $hookmanager;
+        @include dol_buildpath('interventionsurvey/tpl/intervention_survey_extrafields.tpl.php');
+    }
+
+    /**
+     *	Return html to display bloc title
+     *
+     *	@param	boolean		$readonly   Should status be in readonly mode
+     *	@param	SurveyBlocQuestion	$bloc		    question object
+     */
+
+    function displayBlocTitle($readonly, $bloc) {
+        global $conf,$langs, $hookmanager;
+        @include dol_buildpath('interventionsurvey/tpl/intervention_survey_bloc_title.tpl.php');
+    }
+
+    /**
+     *	Return html to display bloc action button
+     *
+     *	@param	boolean		$readonly   Should status be in readonly mode
+     *	@param	SurveyBlocQuestion	$bloc		    question object
+     */
+
+    function displayBlocActionButton($readonly, $bloc) {
+        global $conf,$langs, $hookmanager, $user;
+        @include dol_buildpath('interventionsurvey/tpl/intervention_survey_action_button.tpl.php');
     }
 
     /**

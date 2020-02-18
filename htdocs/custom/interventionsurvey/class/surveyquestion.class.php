@@ -345,17 +345,19 @@ class SurveyQuestion extends CommonObject
  *
  */
 
-    public function setVarsFromFetchObj($obj){
+    public function setVarsFromFetchObj(&$obj){
         $this->answers = array();
         parent::setVarsFromFetchObj($obj);
         $objectValues = is_array($obj) ? $obj["answers"] : $obj->answers;
         $dictionaryRowId = is_array($obj) ? $obj["c_rowid"] : $obj->c_rowid;
         $this->fk_c_survey_question = $dictionaryRowId;
-        foreach($objectValues as $answerObj){
-            $answer = new SurveyAnswer($this->db);
-            $answer->setVarsFromFetchObj($answerObj);
-            $answer->fk_surveyquestion = $this->id;
-            $this->answers[] = $answer;
+        if(isset($objectValues)){
+            foreach($objectValues as $answerObj){
+                $answer = new SurveyAnswer($this->db);
+                $answer->setVarsFromFetchObj($answerObj);
+                $answer->fk_surveyquestion = $this->id;
+                $this->answers[] = $answer;
+            }
         }
         $objectValues = is_array($obj) ? $obj["chosen_answer"] : $obj->chosen_answer;
         if(isset($objectValues)){

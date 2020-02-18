@@ -18,7 +18,9 @@
 
 // Need to have following variables defined:
 // $bloc
-// $form
+// $langs
+// $readonly
+
 
 // Protection to avoid direct call of template
 if (empty($bloc)) {
@@ -33,11 +35,7 @@ if (empty($bloc)) {
 if (isset($readonly)) {
     // Print question title and status
     print load_fiche_titre(
-        $bloc->label,
-        $bloc->getChosenStatus()->label . (!empty($bloc->justification_text)
-            ?  ' ' . $form->textwithpicto('', '<b>' . $langs->trans('InterventionSurveyJustificationStatusText') . ' :</b><br>' . $bloc->justification_text, 1, 'object_tip.png@interventionsurvey', '', 0, 2) :
-            ''),
-        ''
+        $bloc->label
     );
 } else {
     if (isset($bloc->label_editable)) {
@@ -47,7 +45,7 @@ if (isset($readonly)) {
                 <?php print $langs->trans('InterventionSurveyBlocLabel'); ?>
             </td>
             <td>
-                <input type="text" class="flat" name="<?php print 'bloc[' . $bloc->id . ']["label"]'; ?>" value="<?php print $bloc->label; ?>" />
+                <input type="text" style="width: 100%;" class="flat" name="<?php print 'bloc[' . $bloc->id . ']["label"]'; ?>" value="<?php print $bloc->label; ?>" />
             </td>
         </tr>
 <?php

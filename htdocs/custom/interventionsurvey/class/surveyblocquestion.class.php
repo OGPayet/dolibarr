@@ -350,7 +350,7 @@ class SurveyBlocQuestion extends CommonObject
      *
      */
 
-    public function setVarsFromFetchObj($obj)
+    public function setVarsFromFetchObj(&$obj)
     {
         $this->status = array();
         $this->chosen_status = null;
@@ -359,18 +359,22 @@ class SurveyBlocQuestion extends CommonObject
         $dictionaryRowId = is_array($obj) ? $obj["c_rowid"] : $obj->c_rowid;
         $this->fk_c_survey_bloc_question = $dictionaryRowId;
         $objectValues = is_array($obj) ? $obj["questions"] : $obj->questions;
-        foreach ($objectValues as $questionObj) {
-            $question = new SurveyQuestion($this->db);
-            $question->setVarsFromFetchObj($questionObj);
-            $question->fk_surveyblocquestion = $this->id;
-            $this->questions[] = $question;
+        if(isset($objectValues)){
+            foreach ($objectValues as $questionObj) {
+                $question = new SurveyQuestion($this->db);
+                $question->setVarsFromFetchObj($questionObj);
+                $question->fk_surveyblocquestion = $this->id;
+                $this->questions[] = $question;
+            }
         }
         $objectValues = is_array($obj) ? $obj["status"] : $obj->status;
-        foreach ($objectValues as $statusObj) {
-            $status = new SurveyBlocStatus($this->db);
-            $status->setVarsFromFetchObj($statusObj);
-            $status->fk_surveyblocquestion = $this->id;
-            $this->status[] = $status;
+        if(isset($objectValues)){
+            foreach ($objectValues as $statusObj) {
+                $status = new SurveyBlocStatus($this->db);
+                $status->setVarsFromFetchObj($statusObj);
+                $status->fk_surveyblocquestion = $this->id;
+                $this->status[] = $status;
+            }
         }
         $objectValues = is_array($obj) ? $obj["chosen_status"] : $obj->chosen_status;
         if (isset($objectValues)) {

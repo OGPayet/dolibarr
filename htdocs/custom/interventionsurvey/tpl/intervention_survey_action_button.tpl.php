@@ -29,28 +29,28 @@ if (empty($bloc)) {
 }
 ?>
 
-<?php
-
-if (isset($readonly) || !isset($bloc->description_editable)) {
-    ?>
-    <tr>
-            <td><?php print $langs->trans('InterventionSurveyBlocQuestionDescriptionTitle') ?></td>
-            <td><?php print $bloc->description ?></td>
-        </tr>
-    <?php
-} else {
-    $doleditor = new DolEditor('bloc[' . $bloc->id .']["description"]',
-                $bloc->description, '', 150, 'dolibarr_notes', 'In', false, false, !empty($conf->fckeditor->enabled), ROWS_5, '90%');
-
-?>
-        <tr>
-            <td>
-                <?php print $langs->trans('InterventionSurveyBlocQuestionDescriptionTitle'); ?>
-            </td>
-            <td>
-                <?php $doleditor->Create(); ?>
-            </td>
-        </tr>
-<?php
-}
-?>
+<div class="right">
+<div class="inline-block divButAction">
+        <?php
+        if (!$user->rights->interventionsurvey->survey->write) {
+        ?>
+                <a class="butActionRefused" href="#" title="<?php print $langs->trans("NotAllowed") ?>">
+                <?php print $langs->trans("Modify") ?>
+                </a>
+        <?php
+        } else if($readonly) {
+        ?>
+                        <a class="butAction" href="<?php print $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&survey_bloc_question_id=' . $bloc->id . '&action=edit_question_bloc#interventionsurvey_anchor_surveyblocquestion_' . $bloc->id ?>"> <?php print $langs->trans("Modify") ?>
+        <?php
+        }
+        else
+        {
+        ?>
+                <input type="submit" class="button" value="<?php print $langs->trans("Save") ?>">
+                &nbsp;&nbsp;&nbsp;
+                <input type="button" class="button" value="<?php print $langs->trans("Cancel") ?>">
+        <?php
+        }
+        ?>
+    </div>
+ </div>

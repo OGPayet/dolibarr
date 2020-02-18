@@ -36,12 +36,25 @@ if (empty($bloc)) {
 ?>
 
 <?php
-$attached_files = array();
+if($readonly){
+    $attached_files = array();
 foreach ($bloc->attached_files as $filename) {
-    $attached_files[] = isset($object->attached_files[$filename]) ? $object->attached_files[$filename] : $langs->trans('InterventionSurveyErrorFileNotFound', $filename);
+    $attached_files[] = isset($listOfAvailableFiles[$filename]) ? $filename : $langs->trans('InterventionSurveyErrorFileNotFound', $filename);
 }
 ?>
 <tr>
     <td><?php print $langs->trans('Documents') ?></td>
     <td><?php print implode(' , ', $attached_files) ?></td>
 </tr>
+<?php
+}
+
+else {
+?>
+    <tr>
+    <td><?php print $langs->trans('Documents') ?></td>
+    <td><?php print $this->multiselect_attached_files($intervention_ref, 'bloc_' . $bloc->id . '_attached_files', $bloc->attached_files) ?></td>
+  </tr>
+<?php
+}
+?>

@@ -691,14 +691,16 @@ public function saveSurvey($user)
  *
  */
 
- public function setSurveyFromFetchObj($arrayOfSurveyParts){
+ public function setSurveyFromFetchObj(&$arrayOfSurveyParts){
     $arrayOfSurveyParts = json_decode(json_encode($arrayOfSurveyParts));
      $this->survey = array();
-     foreach($arrayOfSurveyParts as $surveyPartObj){
-         $surveyPart = new SurveyPart($this->db);
-         $surveyPart->setVarsFromFetchObj($surveyPartObj);
-         $surveyPart->fk_fichinter = $this->id;
-         $this->survey[] = $surveyPart;
+     if(isset($arrayOfSurveyParts)){
+        foreach($arrayOfSurveyParts as $surveyPartObj){
+            $surveyPart = new SurveyPart($this->db);
+            $surveyPart->setVarsFromFetchObj($surveyPartObj);
+            $surveyPart->fk_fichinter = $this->id;
+            $this->survey[] = $surveyPart;
+        }
      }
  }
 

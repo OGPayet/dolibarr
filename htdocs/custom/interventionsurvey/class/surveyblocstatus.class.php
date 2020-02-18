@@ -330,17 +330,19 @@ class SurveyBlocStatus extends CommonObject
  *
  */
 
-public function setVarsFromFetchObj($obj){
+public function setVarsFromFetchObj(&$obj){
     $this->predefined_texts = array();
     parent::setVarsFromFetchObj($obj);
     $dictionaryRowId = is_array($obj) ? $obj["c_rowid"] : $obj->c_rowid;
     $this->fk_c_survey_bloc_status = $dictionaryRowId;
     $objectValues = is_array($obj) ? $obj["predefined_texts"] : $obj->predefined_texts;
-    foreach($objectValues as $predefined_textObj){
-        $predefined_text = new SurveyBlocStatusPredefinedText($this->db);
-        $predefined_text->setVarsFromFetchObj($predefined_textObj);
-        $predefined_text->fk_surveyblocstatus = $this->id;
-        $this->predefined_texts[] = $predefined_text;
+    if(isset($objectValues)){
+        foreach($objectValues as $predefined_textObj){
+            $predefined_text = new SurveyBlocStatusPredefinedText($this->db);
+            $predefined_text->setVarsFromFetchObj($predefined_textObj);
+            $predefined_text->fk_surveyblocstatus = $this->id;
+            $this->predefined_texts[] = $predefined_text;
+        }
     }
 }
 

@@ -19,6 +19,7 @@
 // Need to have following variables defined:
 // $bloc
 // $form
+// $readonly
 
 // Protection to avoid direct call of template
 if (empty($bloc)) {
@@ -31,7 +32,19 @@ if (empty($bloc)) {
 <?php
 
 if(isset($readonly)){
-        // We print nothing as chosen status et justification text are displayed into title part
+?>
+
+<tr>
+            <td><?php print $langs->trans('InterventionSurveyBlocQuestionStatusTitle'); ?></td>
+            <td><?php print $bloc->getChosenStatus()->label; ?></td>
+</tr>
+
+<tr>
+            <td><?php print $langs->trans('InterventionSurveyBlocQuestionJustificationStatusTitle'); ?></td>
+            <td><?php print $bloc->justification_text; ?></td>
+</tr>
+
+<?php
 
 }
 else
@@ -69,8 +82,10 @@ else
 
 <tr>
     <td>
-        <label id="<?php print 'bloc[' . $bloc->id .']["justification_title"]"'; ?>></label>
-        <?php $langs->trans('InterventionSurveyBlocStatusLabel'); ?>
+        <label id="<?php print 'bloc[' . $bloc->id .'][justification_title]'; ?>">
+        <?php print $langs->trans('InterventionSurveyBlocStatusLabel'); ?>
+    </label>
+
     </td>
     <td>
         <?php print $selectStatus;?>
@@ -83,22 +98,23 @@ else
 
 <tr>
     <td>
-    <?php $langs->trans('InterventionSurveyJustificationText'); ?>
+    <?php print $langs->trans('InterventionSurveyJustificationText'); ?>
     </td>
     <td>
     <table class="noborderpadding" width="100%">
     <tr>
-                <td>
-                  <input type="hidden" id="<?php print 'bloc[' . $bloc->id .']["fk_chosen_answer_predefined_text"]'; ?>" name="<?php print 'bloc[' . $bloc->id .']["fk_chosen_answer_predefined_text"]'; ?>" value="<?php print $bloc[' . $bloc->id .']['fk_chosen_answer_predefined_text']; ?>"></input>
+        <td>
+                  <input type="hidden" id="<?php print 'bloc[' . $bloc->id .']["fk_chosen_answer_predefined_text"]'; ?>" name="<?php print 'bloc[' . $bloc->id .']["fk_chosen_answer_predefined_text"]'; ?>" value="<?php print $bloc->fk_chosen_answer_predefined_text; ?>"></input>
                   <?php print $selectPredefinedText; ?>
-                </td>
-                <td>
-                  <input type="button" class="button status_predefined_text_<?php print $bloc->id?>"><?php $langs->trans('InterventionSurveyPredefinedTextUseButton');?></input>
-                </td>
-              </tr>
-              <tr>
-                <td colspan="2">' . $doleditor_static->Create(1) . '</td>
-            </tr>
+                  <button class="butAction" class="button status_predefined_text_<?php print $bloc->id?>">
+                  <?php print($langs->trans('InterventionSurveyPredefinedTextUseButton'));?>
+                  </button>
+        </td>
+</tr>
+<tr>
+
+                <td colspan="2"><?php $doleditor->Create(); ?></td>
+                </tr>
     </table>
     </td>
 </tr>

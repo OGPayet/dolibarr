@@ -17,12 +17,14 @@
  */
 
 // Need to have following variables defined:
-// $bloc
-// $form
-
+// $readonly
+// $extrafield_object
+// $extrafield_label
+// $object
+// $prefix
 
 // Protection to avoid direct call of template
-if (empty($bloc)) {
+if (empty($object)) {
     print "Error, template page can't be called as URL";
     dol_syslog("Error, template page can't be called as URL : " . $_SERVER["PHP_SELF"] . "?" . $_SERVER["QUERY_STRING"], LOG_ERR);
     exit;
@@ -30,27 +32,23 @@ if (empty($bloc)) {
 ?>
 
 <?php
-
-if (isset($readonly) || !isset($bloc->description_editable)) {
-    ?>
-    <tr>
-            <td><?php print $langs->trans('InterventionSurveyBlocQuestionDescriptionTitle') ?></td>
-            <td><?php print $bloc->description ?></td>
-        </tr>
-    <?php
-} else {
-    $doleditor = new DolEditor('bloc[' . $bloc->id .']["description"]',
-                $bloc->description, '', 150, 'dolibarr_notes', 'In', false, false, !empty($conf->fckeditor->enabled), ROWS_5, '90%');
-
-?>
-        <tr>
-            <td>
-                <?php print $langs->trans('InterventionSurveyBlocQuestionDescriptionTitle'); ?>
-            </td>
-            <td>
-                <?php $doleditor->Create(); ?>
-            </td>
-        </tr>
-<?php
+if($readonly){
+    $parameters = array();
+    $reshook = $hookmanager->executeHooks('formObjectOptions', $parameters, $object, $action);    // Note that $action and $object may have been modified by hook
+    print $hookmanager->resPrint;
+    if (empty($reshook) && !empty($extrafield_object->attribute_label)) {
+        print $object->showOptionals($extrafield_object, 'view', array());
+    }
 }
+else
+{
+    $parameters = array();
+    $reshook = $hookmanager->executeHooks('formObjectOptions', $parameters, $object, $action);    // Note that $action and $object may have been modified by hook
+    print $hookmanager->resPrint;
+    if (empty($reshook) && ! empty($extrafield_object->attribute_label)) {
+        $object->array_options = $extrafield_object->getOptionalsFromPost($extrafield_label, $prefix . $object->id);
+        print $object->showOptionals($extrafield_object, 'edit',  array(), $prefix . $object->id);
+    }
+}
+
 ?>

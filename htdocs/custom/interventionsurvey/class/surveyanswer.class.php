@@ -328,17 +328,19 @@ class SurveyAnswer extends CommonObject
  *
  */
 
-public function setVarsFromFetchObj($obj){
+public function setVarsFromFetchObj(&$obj){
     $this->predefined_texts = array();
     parent::setVarsFromFetchObj($obj);
     $dictionaryRowId = is_array($obj) ? $obj["c_rowid"] : $obj->c_rowid;
     $this->fk_c_survey_answer = $dictionaryRowId;
     $objectValues = is_array($obj) ? $obj["predefined_texts"] : $obj->predefined_texts;
-    foreach($objectValues as $predefinedTextObj){
-        $predefined_text = new SurveyAnswerPredefinedText($this->db);
-        $predefined_text->setVarsFromFetchObj($predefinedTextObj);
-        $predefined_text->fk_surveyanswer = $this->id;
-        $this->predefined_texts[] = $predefined_text;
+    if(isset($objectValues)){
+        foreach($objectValues as $predefinedTextObj){
+            $predefined_text = new SurveyAnswerPredefinedText($this->db);
+            $predefined_text->setVarsFromFetchObj($predefinedTextObj);
+            $predefined_text->fk_surveyanswer = $this->id;
+            $this->predefined_texts[] = $predefined_text;
+        }
     }
 }
 
