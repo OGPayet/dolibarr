@@ -115,7 +115,8 @@ class SurveyQuestion extends CommonObject
 	public $fk_user_modif;
 	public $fk_surveyblocquestion;
 	public $fk_c_survey_question;
-	public $position;
+    public $position;
+    public $array_options;
 	public $fk_chosen_answer;
 	public $mandatory_answer;
 	public $fk_chosen_answer_predefined_text;
@@ -318,7 +319,10 @@ class SurveyQuestion extends CommonObject
 	public function fetch($id, $ref = null)
 	{
 		$result = $this->fetchCommon($id, $ref);
-		if ($result > 0 && !empty($this->table_element_line)) $this->fetchLines();
+		if ($result > 0) {
+            $this->fetch_optionals();
+            $this->fetchLines();
+        }
 		return $result;
 	}
 /**
@@ -331,7 +335,7 @@ class SurveyQuestion extends CommonObject
         $this->answers = array();
         $this->chosen_answer = null;
 
-        $this->interventionSurveyFetchLinesCommon(null, "SurveyAnswer",$this->answers);
+        $this->interventionSurveyFetchLinesCommon(" ORDER BY position ASC", "SurveyAnswer",$this->answers);
 
         if(isset($this->fk_chosen_answer)){
             $this->chosen_answer = $this->answers[$this->fk_chosen_answer];
@@ -1073,7 +1077,7 @@ class SurveyQuestion extends CommonObject
  *
  */
 
-public function save($user, $fk_surveyblocquestion)
+public function save($user, $fk_surveyblocquestion=NULL)
 {
     $this->db->begin();
     if(isset($fk_surveyblocquestion)){
@@ -1093,6 +1097,9 @@ public function save($user, $fk_surveyblocquestion)
             $answer->save($user, $this->id);
             $errors = array_merge($errors, $answer->errors);
         }
+    }
+    if (empty($conf->global->MAIN_EXTRAFIELDS_DISABLED)) { // For avoid conflicts if trigger used
+        $this->insertExtraFields();
     }
     if(empty($errors)){
         $this->db->commit();

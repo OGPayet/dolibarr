@@ -307,9 +307,11 @@ class SurveyBlocStatus extends CommonObject
 	 */
 	public function fetch($id, $ref = null)
 	{
-		$result = $this->fetchCommon($id, $ref);
-		if ($result > 0 && !empty($this->table_element_line)) $this->fetchLines();
-		return $result;
+        $result = $this->fetchCommon($id, $ref);
+        if ($result > 0) {
+            $this->fetchLines();
+        }
+        return $result;
 	}
 
 	/**
@@ -320,7 +322,7 @@ class SurveyBlocStatus extends CommonObject
 	public function fetchLines()
 	{
 		$this->predefined_texts = array();
-		$result = $this->interventionSurveyFetchLinesCommon(null,"SurveyBlocStatusPredefinedText",$this->predefined_texts);
+		$result = $this->interventionSurveyFetchLinesCommon(" ORDER BY position ASC","SurveyBlocStatusPredefinedText",$this->predefined_texts);
 		return $result;
 	}
 
@@ -1053,7 +1055,7 @@ public function setVarsFromFetchObj(&$obj){
  *
  */
 
-public function save($user, $fk_surveyblocquestion)
+public function save($user, $fk_surveyblocquestion=NULL)
 {
     $this->db->begin();
     if(isset($fk_surveyblocquestion)){

@@ -116,7 +116,8 @@ class SurveyPart extends CommonObject
 	public $fk_identifier_type;
 	public $fk_identifier_value;
 	public $label;
-	public $position;
+    public $position;
+    public $blocs;
 	// END MODULEBUILDER PROPERTIES
 
 
@@ -313,8 +314,10 @@ class SurveyPart extends CommonObject
 	public function fetch($id, $ref = null)
 	{
 		$result = $this->fetchCommon($id, $ref);
-		if ($result > 0 && !empty($this->table_element_line)) $this->fetchLines();
-		return $result;
+        if ($result > 0) {
+            $this->fetchLines();
+        }
+        return $result;
 	}
 
 	/**
@@ -325,7 +328,10 @@ class SurveyPart extends CommonObject
 	public function fetchLines()
 	{
         $this->blocs = array();
-        $result = $this->interventionSurveyFetchLinesCommon(null, "SurveyBlocQuestion",$this->blocs);
+        $result = $this->interventionSurveyFetchLinesCommon(" ORDER BY position ASC", "SurveyBlocQuestion",$this->blocs);
+        foreach($this->blocs as $bloc){
+            $bloc->fetch_optionals();
+        }
         return $result;
 	}
 
@@ -1058,7 +1064,7 @@ class SurveyPart extends CommonObject
  *
  */
 
-public function save($user, $fk_fichinter)
+public function save($user, $fk_fichinter=NULL)
 {
     $this->db->begin();
     if(isset($fk_fichinter)){

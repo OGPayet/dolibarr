@@ -118,6 +118,7 @@ class SurveyBlocQuestion extends CommonObject
 
     );
     public $rowid;
+    public $array_options;
     public $label;
     public $date_creation;
     public $tms;
@@ -126,6 +127,7 @@ class SurveyBlocQuestion extends CommonObject
     public $mandatory_status;
     public $justification_text;
     public $description;
+    public $attached_files;
     public $position;
     public $fk_surveypart;
     public $fk_c_survey_bloc_question;
@@ -321,7 +323,10 @@ class SurveyBlocQuestion extends CommonObject
     public function fetch($id, $ref = null)
     {
         $result = $this->fetchCommon($id, $ref);
-        if ($result > 0 && !empty($this->table_element_line)) $this->fetchLines();
+        if ($result > 0) {
+            $this->fetch_optionals();
+            $this->fetchLines();
+        }
         return $result;
     }
 
@@ -336,8 +341,11 @@ class SurveyBlocQuestion extends CommonObject
         $this->chosen_status = null;
         $this->questions = array();
 
-        $this->interventionSurveyFetchLinesCommon(null, "SurveyQuestion", $this->questions);
-        $this->interventionSurveyFetchLinesCommon(null, "SurveyBlocStatus", $this->status);
+        $this->interventionSurveyFetchLinesCommon(" ORDER BY position ASC", "SurveyQuestion", $this->questions);
+        foreach($this->questions as $question){
+            $question->fetch_optionals();
+        }
+        $this->interventionSurveyFetchLinesCommon(" ORDER BY position ASC", "SurveyBlocStatus", $this->status);
         if (isset($this->fk_chosen_status)) {
             $this->chosen_status = $this->status[$this->fk_chosen_status];
         }
@@ -1044,7 +1052,7 @@ class SurveyBlocQuestion extends CommonObject
      *
      */
 
-    public function save($user, $fk_surveypart)
+    public function save($user, $fk_surveypart=NULL)
     {
         $this->db->begin();
         if (isset($fk_surveypart)) {
@@ -1068,6 +1076,9 @@ class SurveyBlocQuestion extends CommonObject
                 $status->save($user, $this->id);
                 $errors = array_merge($errors, $status->errors);
             }
+        }
+        if (empty($conf->global->MAIN_EXTRAFIELDS_DISABLED)) { // For avoid conflicts if trigger used
+            $this->insertExtraFields();
         }
         if (empty($errors)) {
             $this->db->commit();

@@ -960,7 +960,7 @@ public function setVarsFromFetchObj(&$obj){
  *
  *
  */
-public function save($user, $fk_surveyanswer)
+public function save($user, $fk_surveyanswer=NULL)
 {
     $this->db->begin();
     if(isset($fk_surveyanswer)){

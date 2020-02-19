@@ -199,28 +199,41 @@ class FormInterventionSurvey
          if($bloc){
 
              if($bloc->label_editable){
-                 $bloc->label = GETPOST(self::BLOC_FORM_PREFIX . $bloc->id . "_label") ?? $bloc->label;
+                 $bloc->label = self::updateFieldFromGETPOST($bloc,"label",self::BLOC_FORM_PREFIX);
              }
 
              if($bloc->description_editable){
-                $bloc->description = GETPOST(self::BLOC_FORM_PREFIX . $bloc->id . "_description") ?? $bloc->description;
+                $bloc->description = self::updateFieldFromGETPOST($bloc,"description",self::BLOC_FORM_PREFIX);
              }
 
-            $bloc->fk_chosen_status = GETPOST(self::BLOC_FORM_PREFIX . $bloc->id . "_fk_chosen_status") ?? $bloc->fk_chosen_status;
-            $bloc->description = GETPOST(self::BLOC_FORM_PREFIX . $bloc->id . "_description") ?? $bloc->description;
-            $bloc->attached_files = GETPOST(self::BLOC_FORM_PREFIX . $bloc->id . "_attached_files") ?? $bloc->attached_files;
-            $bloc->fk_chosen_answer_predefined_text = GETPOST(self::BLOC_FORM_PREFIX . $bloc->id . "_fk_chosen_answer_predefined_text") ?? $bloc->fk_chosen_answer_predefined_text;
-            $bloc->private = GETPOST(self::BLOC_FORM_PREFIX . $bloc->id . "_private") ?? $bloc->private;
+            $bloc->fk_chosen_status = self::updateFieldFromGETPOST($bloc,"fk_chosen_status",self::BLOC_FORM_PREFIX);
+            $bloc->description = self::updateFieldFromGETPOST($bloc,"description",self::BLOC_FORM_PREFIX);
+            $bloc->attached_files = self::updateFieldFromGETPOST($bloc,"attached_files",self::BLOC_FORM_PREFIX);
+            $bloc->justification_text = self::updateFieldFromGETPOST($bloc,"justification_text",self::BLOC_FORM_PREFIX);
+            $bloc->fk_chosen_status_predefined_text = self::updateFieldFromGETPOST($bloc,"fk_chosen_status_predefined_text",self::BLOC_FORM_PREFIX);
+            $bloc->private = self::updateFieldFromGETPOST($bloc,"private",self::BLOC_FORM_PREFIX);
             if(isset($bloc->questions)){
                 foreach($bloc->questions as $question){
-                    $question->fk_chosen_answer = GETPOST(self::QUESTION_FORM_PREFIX . $question->id . "_fk_chosen_answer") ?? $question->fk_chosen_answer;
-                    $question->justification_text = GETPOST(self::QUESTION_FORM_PREFIX . $question->id . "_justification_text") ?? $question->justification_text;
-                    $question->fk_chosen_answer_predefined_text = GETPOST(self::QUESTION_FORM_PREFIX . $question->id . "_fk_chosen_answer_predefined_text") ?? $question->fk_chosen_answer_predefined_text;
+                    $question->fk_chosen_answer = self::updateFieldFromGETPOST($question,"fk_chosen_answer",self::QUESTION_FORM_PREFIX);
+                    $question->justification_text = self::updateFieldFromGETPOST($question,"justification_text",self::QUESTION_FORM_PREFIX);
+                    $question->fk_chosen_answer_predefined_text = self::updateFieldFromGETPOST($question,"fk_chosen_answer_predefined_text",self::QUESTION_FORM_PREFIX);
                 }
             }
          }
          return $bloc;
      }
+
+     /***
+      *
+      *  update field from POST data if such field was set into GETPOST
+      *
+      */
+
+      public static function updateFieldFromGETPOST(&$object,$fieldName,$postPrefixName, $fallbackValue = NULL){
+          $paramname = $postPrefixName . $object->id . "_" .$fieldName;
+          $valueFromPost = isset($_GET[$paramname])?$_GET[$paramname]:(isset($_POST[$paramname])?$_POST[$paramname]:$fallbackValue);
+          return $valueFromPost ?? $object->$fieldName;
+      }
 
 
 

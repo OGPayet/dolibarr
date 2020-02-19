@@ -86,6 +86,9 @@ if ($id > 0 || !empty($ref)) {
 }
 
 $readOnlySurvey = $object->is_survey_read_only();
+$form = new Form($db);
+$formextendedintervention = new FormInterventionSurvey($db);
+$formproject=new FormProjets($db);
 
 /*
  * Actions
@@ -99,18 +102,14 @@ if (empty($reshook) && !$readOnlySurvey && $user->rights->interventionsurvey->su
     if ($action == 'save_question_bloc' ) {
         $survey_bloc_question = new SurveyBlocQuestion($db);
         if ($survey_bloc_question->fetch($survey_bloc_question_id) > 0) {
-            $survey_bloc_question->complementary_question_bloc = GETPOST('interventionsurvey_question_bloc_description');
-            $survey_bloc_question->fk_c_question_bloc_status = GETPOST('interventionsurvey_question_bloc_status', 'int');
-            $survey_bloc_question->justification_text = GETPOST('interventionsurvey_question_bloc_justification_text');
-            $survey_bloc_question->description = GETPOST('interventionsurvey_question_bloc_description');
-            $survey_bloc_question->array_options = $extrafields_interventionsurvey_surveyblocquestion->getOptionalsFromPost($extralabels_question_bloc, '_intervention_survey_question_bloc');
-            $survey_bloc_question->attached_files = GETPOST('interventionsurvey_question_bloc_attached_files', 'array');
-            foreach ($survey_bloc_question->questions as $question) {
-                $line->fk_c_answer = GETPOST('ei_q_' . $line->fk_c_question . '_answer', 'int');
-                $line->text_answer = GETPOST('ei_q_' . $line->fk_c_question . '_justificatory');
-                $line->array_options = $extrafields_question->getOptionalsFromPost($extralabels_question, '_intervention_survey_question' . $line->fk_c_question);
+            $survey_bloc_question = $formextendedintervention->updateBlocObjectFromPOST($survey_bloc_question);
+            $survey_bloc_question->attached_files = $formextendedintervention->updateFieldFromGETPOST($survey_bloc_question,"attached_files",$formextendedintervention::BLOC_FORM_PREFIX, array());
+            //We set extrafields
+            $survey_bloc_question->array_options = $extrafields_interventionsurvey_surveyblocquestion->getOptionalsFromPost($extralabels_interventionsurvey_surveyblocquestion, '_intervention_survey_question_bloc_' . $survey_bloc_question->id . '_');
+            foreach($survey_bloc_question->questions as $question){
+                $question->array_options = $extrafields_interventionsurvey_surveyquestion->getOptionalsFromPost($extralabels_interventionsurvey_surveyquestion, '_intervention_survey_question_' . $question->id . '_');
             }
-            $result = $survey_bloc_question->save();
+            $result = $survey_bloc_question->save($user);
             if ($result < 0) {
                 setEventMessages("",$survey_bloc_question->errors, 'errors');
                 $action = "save_question_bloc";
@@ -123,10 +122,6 @@ if (empty($reshook) && !$readOnlySurvey && $user->rights->interventionsurvey->su
 /*
  * View
  */
-
-$form = new Form($db);
-$formextendedintervention = new FormInterventionSurvey($db);
-$formproject=new FormProjets($db);
 
 llxHeader('',$langs->trans("Intervention"));
 

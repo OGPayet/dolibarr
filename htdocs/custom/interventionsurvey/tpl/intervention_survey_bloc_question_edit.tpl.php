@@ -50,7 +50,7 @@ if ($idx % 2 == 0) {
 <div id="<?php print $blocPrefix . $bloc->id ?>">
     <form name="<?php print $blocPrefix . $bloc->id ?>" action="<?php print $_SERVER['PHP_SELF'].'?id='.$object->id. '#' . $blocPrefix . $bloc->id . '_anchor' ?>" method="POST">
       <input type="hidden" name="token" value="<?php print $_SESSION['newtoken'] ?>">
-      <input type="hidden" name="question_bloc_id" value="<?php print $bloc->id ?>">
+      <input type="hidden" name="survey_bloc_question_id" value="<?php print $bloc->id ?>">
       <input type="hidden" name="action" value="save_question_bloc">
       <input type="hidden" name="backtopage" value="<?php print dol_string_nohtmltag($backtopage) ?>">
 
@@ -183,8 +183,8 @@ if ($idx % 2 == 0) {
             $reshook = $hookmanager->executeHooks('formObjectOptions', $parameters, $question, $action);    // Note that $action and $object may have been modified by hook
             print $hookmanager->resPrint;
             if (empty($reshook) && !empty($extrafields_interventionsurvey_surveyquestion->attribute_label)) {
-                $question->array_options = $extrafields_interventionsurvey_surveyquestion->getOptionalsFromPost($extralabels_question, '_intervention_survey_question' . $line->fk_c_question);
-                print $question->showOptionals($extrafields_interventionsurvey_surveyquestion, 'edit', array(), '_intervention_survey_question' . $question->id);
+                $question->array_options = $extrafields_interventionsurvey_surveyquestion->getOptionalsFromPost($extralabels_question, '_intervention_survey_question_' . $question->id . '_');
+                print $question->showOptionals($extrafields_interventionsurvey_surveyquestion, 'edit', array(), '_intervention_survey_question_' . $question->id . '_');
         }
 }
     // Other attributes of the question bloc
@@ -192,8 +192,8 @@ if ($idx % 2 == 0) {
     $reshook = $hookmanager->executeHooks('formObjectOptions', $parameters, $bloc, $action);    // Note that $action and $object may have been modified by hook
     print $hookmanager->resPrint;
     if (empty($reshook) && ! empty($extrafields_interventionsurvey_surveyblocquestion->attribute_label)) {
-        $bloc->array_options = $extrafields_interventionsurvey_surveyblocquestion->getOptionalsFromPost($extralabels_interventionsurvey_surveyblocquestion, '_intervention_survey_question_bloc');
-        print $bloc->showOptionals($extrafields_interventionsurvey_surveyblocquestion, 'edit',  array(), '_intervention_survey_question_bloc');
+        $bloc->array_options = $extrafields_interventionsurvey_surveyblocquestion->getOptionalsFromPost($extralabels_interventionsurvey_surveyblocquestion, '_intervention_survey_question_bloc_' . $bloc->id . '_');
+        print $bloc->showOptionals($extrafields_interventionsurvey_surveyblocquestion, 'edit',  array(), '_intervention_survey_question_bloc_' . $bloc->id . '_');
     }
         ?>
        <tr>

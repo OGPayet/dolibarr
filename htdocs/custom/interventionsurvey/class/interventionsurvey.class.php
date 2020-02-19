@@ -559,7 +559,7 @@ function generateEquipementSurveyPart($listOfEquipementBlocs, $equipementId, $po
 public function fetchSurvey()
 {
     $this->survey = array();
-    $data = $this->interventionSurveyFetchLinesCommon(null,"SurveyPart",$this->survey);
+    $data = $this->interventionSurveyFetchLinesCommon(" ORDER BY position ASC","SurveyPart",$this->survey);
     return $data;
 }
 

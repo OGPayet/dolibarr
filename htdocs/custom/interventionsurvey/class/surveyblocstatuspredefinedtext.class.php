@@ -967,7 +967,7 @@ public function setVarsFromFetchObj(&$obj){
  *
  */
 
-public function save($user, $fk_surveyblocstatus)
+public function save($user, $fk_surveyblocstatus=NULL)
 {
     $this->db->begin();
     if(isset($fk_surveyblocstatus)){

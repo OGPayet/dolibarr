@@ -305,8 +305,10 @@ class SurveyAnswer extends CommonObject
 	public function fetch($id, $ref = null)
 	{
 		$result = $this->fetchCommon($id, $ref);
-		if ($result > 0 && !empty($this->table_element_line)) $this->fetchLines();
-		return $result;
+		if ($result > 0) {
+            $this->fetchLines();
+        }
+        return $result;
 	}
 
 	/**
@@ -318,7 +320,7 @@ class SurveyAnswer extends CommonObject
 	{
         $this->predefined_texts = array();
 
-        $this->interventionSurveyFetchLinesCommon(null, "SurveyAnswerPredefinedText",$this->predefined_texts);
+        $this->interventionSurveyFetchLinesCommon(" ORDER BY position ASC", "SurveyAnswerPredefinedText",$this->predefined_texts);
         return 1;
 	}
 
@@ -1050,7 +1052,7 @@ public function setVarsFromFetchObj(&$obj){
  *
  *
  */
-public function save($user, $fk_surveyquestion)
+public function save($user, $fk_surveyquestion=NULL)
 {
     $this->db->begin();
     if(isset($fk_surveyquestion)){
