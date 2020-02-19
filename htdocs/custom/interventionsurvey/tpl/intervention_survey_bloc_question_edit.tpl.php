@@ -26,6 +26,8 @@
 // $object - must be an interventionsurvey object, which extends fichinter
 // $extrafields_interventionsurvey_surveyblocquestion
 // $extrafields_interventionsurvey_surveyquestion
+// $blocPrefix
+// $questionPrefix
 
 // Protection to avoid direct call of template
 if (empty($bloc)) {
@@ -36,7 +38,7 @@ if (empty($bloc)) {
 ?>
 
 <!-- BEGIN PHP TEMPLATE intervention_survey_bloc_question_edit.tpl -->
-<div id="interventionsurvey_anchor_surveyblocquestion_<?php print $bloc->id ?>"></div>
+<div id="<?php print $blocPrefix . $bloc->id ?>_anchor"></div>
 <?php
 if ($idx % 2 == 0) {
     print '<div class="fichehalfright"><div class="ficheaddleft">';
@@ -45,8 +47,8 @@ if ($idx % 2 == 0) {
 }
 ?>
 <div class="underbanner clearboth"></div>
-<div id="interventionsurvey_surveyblocquestion_<?php print $bloc->id ?>">
-    <form name="ei_survey" action="<?php print $_SERVER['PHP_SELF'].'?id='.$object->id.'#interventionsurvey_anchor_surveyblocquestion_'.$bloc->id ?>" method="POST">
+<div id="<?php print $blocPrefix . $bloc->id ?>">
+    <form name="<?php print $blocPrefix . $bloc->id ?>" action="<?php print $_SERVER['PHP_SELF'].'?id='.$object->id. '#' . $blocPrefix . $bloc->id . '_anchor' ?>" method="POST">
       <input type="hidden" name="token" value="<?php print $_SESSION['newtoken'] ?>">
       <input type="hidden" name="question_bloc_id" value="<?php print $bloc->id ?>">
       <input type="hidden" name="action" value="save_question_bloc">
@@ -55,33 +57,75 @@ if ($idx % 2 == 0) {
       <?php
       // Print question title and status
       print load_fiche_titre(
-        $bloc->label,
-        $bloc->getChosenStatus()->label . (!empty($bloc->justification_text)
-            ?  ' ' . $form->textwithpicto('', '<b>' . $langs->trans('InterventionSurveyJustificationStatusText') . ' :</b><br>' . $bloc->justification_text, 1, 'object_tip.png@interventionsurvey', '', 0, 2) :
-            ''),
-        ''
+        $bloc->label,'',''
     );
+    $status_predefined_text = array();
+    $status_predefined_text[$status->id]=array();
+        $statusList = array();
+        foreach ($bloc->status as $status) {
+            $statusList[$status->id] = $status->label;
+            $status_predefined_text[$status->id]["label"] = $status->label;
+            $status_predefined_text[$status->id]["mandatory_justification"] = $status->mandatory_justification;
+            $predefined_texts = array();
+                    foreach($status->predefined_texts as $predefined_text){
+                        $predefined_texts[$predefined_text->id]=$predefined_text->label;
+                    }
+            $status_predefined_text[$status->id]["predefined_texts"]=$predefined_texts;
+        }
+
     ?>
       <table class="border" width="100%">
 
       <tr>
+    <td>
+        <?php print $langs->trans('InterventionSurveyBlocStatusLabel'); ?>
+    </td>
+    <td>
+        <?php print $form->selectarray($blocPrefix . $bloc->id . "_fk_chosen_status", $statusList, $bloc->fk_chosen_status, 1, 0, 0, '', 0, 0, 0, '', 'centpercent intervention_survey_status_select');?>
+    </td>
+</tr>
+<tr>
+<td id="<?php print $blocPrefix . $bloc->id . "_justification_text_title" ?>" class="interventionsurvey_bloc_justification_title">
+                <?php print $langs->trans('InterventionSurveyStatusJustificationTitle') ?>
+            </td>
+            <td>
+              <table class="nobordernopadding" width="100%">
+                <tr>
+                  <td>
+                      <?php
+                      print $form->selectarray($blocPrefix . $bloc->id . "_fk_chosen_status_predefined_text", array(), $bloc->fk_chosen_status_predefined_text, 1, 0, 0, '', 0, 0, 0, '', 'centpercent') ?>
+                  </td>
+                  <td>
+                    <input type="button" class="button intervention_survey_status_predefined_texts"
+                    element_prefix="<?php print $blocPrefix . $bloc->id ?>"
+                           value="<?php print $langs->trans("InterventionSurveyUseButton") ?>">
+                  </td>
+                </tr>
+                <tr>
+                  <td colspan="2">
+                      <?php
+                      $doleditor = new DolEditor($blocPrefix . $bloc->id . "_justification_text", $bloc->justification_text,
+                          '', 150, 'dolibarr_notes', 'In', false, false, !empty($conf->fckeditor->enabled), ROWS_5, '90%');
+                      $doleditor->Create();
+                      ?>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+      <tr>
           <td><?php print $langs->trans('InterventionSurveyDescriptionBloc') ?></td>
           <td>
           <?php
-          $doleditor = new DolEditor('ei_qb_complementary', isset($_POST['ei_qb_complementary']) ? GETPOST('ei_qb_complementary') : $question_bloc->complementary_question_bloc,
-              '', 150, 'dolibarr_notes', 'In', false, false, !empty($conf->fckeditor->enabled), ROWS_5, '100%');
-          print $doleditor->Create(1);
+          $doleditor = new DolEditor($blocPrefix . $bloc->id .'_description', $bloc->description, '', 150, 'dolibarr_notes', 'In', false, false, !empty($conf->fckeditor->enabled), ROWS_5, '90%');
+          $doleditor->Create();
           ?>
           </td>
         </tr>
-        <tr>
-          <td><?php print $langs->trans('Documents') ?></td>
-          <td><?php print $formextendedintervention->multiselect_attached_files($object->ref, 'ei_qb_attached_files',
-                  isset($_POST['ei_qb_attached_files']) ? GETPOST('ei_qb_attached_files') : $question_bloc->attached_files) ?></td>
-        </tr>
 
       <?php
-    // Print question
+    // Print question and prepare data for jquery
+    $answers_predefined_text = array();
       foreach ($bloc->questions as $question) {
             ?>
           <tr>
@@ -91,14 +135,21 @@ if ($idx % 2 == 0) {
                 $answers = array();
                 foreach ($question->answers as $answer) {
                     $answers[$answer->id] = $answer->label;
+                    $answers_predefined_text[$answer->id] = array();
+                    $predefined_texts = array();
+                    foreach($answer->predefined_texts as $predefined_text){
+                        $predefined_texts[$predefined_text->id]=$predefined_text->label;
+                    }
+                    $answers_predefined_text[$answer->id]["label"] = $answer->label;
+                    $answers_predefined_text[$answer->id]["mandatory_justification"] = $answer->mandatory_justification;
+                    $answers_predefined_text[$answer->id]["predefined_texts"]=$predefined_texts;
                 }
-                $already_chosen_answer = GETPOST('interventionsurvey_chosen_answer_for_' . $question->id, "int") ?? $question->fk_chosen_answer;
-                print $form->selectarray('interventionsurvey_chosen_answer_for_' . $question->id, $answers, $already_chosen_answer, 1, 0, 0, '', 0, 0, 0, '', 'centpercent interventionsurvey_answer');
+                print $form->selectarray($questionPrefix . $question->id . "_fk_chosen_answer", $answers, $question->fk_chosen_answer, 1, 0, 0, '', 0, 0, 0, '', 'centpercent intervention_survey_answer_select');
                 ?>
             </td>
           </tr>
           <tr>
-            <td class="interventionsurvey_question_justification_title">
+            <td id="<?php print $questionPrefix . $question->id . "_justification_text_title" ?>" class="interventionsurvey_question_justification_title">
                 <?php print $langs->trans('InterventionSurveyAnswerJustificationTitle') ?>
             </td>
             <td>
@@ -106,23 +157,20 @@ if ($idx % 2 == 0) {
                 <tr>
                   <td>
                       <?php
-                      $already_used_predefined_text = GETPOST('interventionsurvey_used_predefined_text_for_' . $question->id, "array") ?? $question->fk_chosen_answer;
-                      print $form->selectarray('interventionsurvey_used_predefined_text_for_' . $question->id, array(), $already_used_predefined_text, 1, 0, 0, '', 0, 0, 0, '', 'centpercent') ?>
+                      print $form->selectarray($questionPrefix . $question->id . "_fk_chosen_answer_predefined_text", array(), $question->fk_chosen_answer_predefined_text, 1, 0, 0, '', 0, 0, 0, '', 'centpercent') ?>
                   </td>
                   <td>
-                    <input type="button" class="button ei_predefined_texts"
-                           question_id="<?php print $question->id ?>"
+                    <input type="button" class="button intervention_survey_answer_predefined_texts"
+                           element_prefix="<?php print $questionPrefix . $question->id ?>"
                            value="<?php print $langs->trans("InterventionSurveyUseButton") ?>">
                   </td>
                 </tr>
                 <tr>
                   <td colspan="2">
                       <?php
-                    $already_written_justification_text = GETPOST('interventionsurvey_justification_text_for_' . $question->id, "text") ?? $question->justification_text;
-
-                      $doleditor = new DolEditor('interventionsurvey_justification_text_for_' . $question->id, $already_written_justification_text,
+                      $doleditor = new DolEditor($questionPrefix . $question->id . "_justification_text", $question->justification_text,
                           '', 150, 'dolibarr_notes', 'In', false, false, !empty($conf->fckeditor->enabled), ROWS_5, '90%');
-                      print $doleditor->Create(1);
+                      $doleditor->Create();
                       ?>
                   </td>
                 </tr>
@@ -148,7 +196,11 @@ if ($idx % 2 == 0) {
         print $bloc->showOptionals($extrafields_interventionsurvey_surveyblocquestion, 'edit',  array(), '_intervention_survey_question_bloc');
     }
         ?>
-
+       <tr>
+          <td><?php print $langs->trans('Documents') ?></td>
+          <td><?php print $formextendedintervention->multiselect_attached_files($object->ref, $blocPrefix . $bloc->id .'_attached_files',
+                  $bloc->attached_files) ?></td>
+        </tr>
       </table>
 
       <br>
@@ -160,71 +212,91 @@ if ($idx % 2 == 0) {
   </div>
   <br>
   <script type="text/javascript" language="javascript">
-    $(document).ready(function () {
-      var predefined_texts = <?php print json_encode($predefined_texts) ?>;
+     $(document).ready(function() {
+        const answer_predefined_texts = <?php print json_encode($answers_predefined_text) ?> ;
+        const status_predefined_texts = <?php print json_encode($status_predefined_text) ?>;
 
-      function ei_update_predefined_texts(select_answer) {
-        var id = select_answer.attr('id');
-        var question_id = id.substr(5, id.indexOf('_answer') - 5);
-        var select_predefined_texts = $('#ei_q_' + question_id + '_predefined_texts');
-        var answer_id = select_answer.val();
-
-        select_predefined_texts.empty();
-        if (question_id in predefined_texts && answer_id in predefined_texts[question_id]) {
-          $.map(predefined_texts[question_id][answer_id].predefined_texts, function (val, i) {
-            select_predefined_texts.append($('<option>', {value: i, text: val.option}));
-          });
-        }
-      }
-
-      function ei_update_mandatory(select_answer) {
-        var id = select_answer.attr('id');
-        var question_id = id.substr(5, id.indexOf('_answer') - 5);
-        var answer_id = select_answer.val();
-
-        if (question_id in predefined_texts && answer_id in predefined_texts[question_id] && predefined_texts[question_id][answer_id].mandatory) {
-          $('#ei_q_'+question_id+'_justificatory_label').addClass('fieldrequired');
-        } else {
-          $('#ei_q_'+question_id+'_justificatory_label').removeClass('fieldrequired');
-        }
-      }
-
-      $('select.ei_q_answer').on('change', function(e) {
-        ei_update_mandatory($(this));
-        ei_update_predefined_texts($(this));
-      });
-
-      $('select.ei_q_answer').map(function(e) {
-        ei_update_mandatory($(this));
-        ei_update_predefined_texts($(this));
-      });
-
-      $('input.button.ei_predefined_texts').on('click', function (e) {
-        var _this = $(this);
-        var question_id = _this.attr('question_id');
-        var answer_id = $('#ei_q_'+question_id+'_answer').val();
-        var predefined_text_id = $('#ei_q_'+question_id+'_predefined_texts').val();
-
-        if (question_id in predefined_texts && answer_id in predefined_texts[question_id] && predefined_text_id in predefined_texts[question_id][answer_id].predefined_texts) {
-          var justificatory_id = 'ei_q_' + question_id + '_justificatory';
-
-          if (typeof CKEDITOR == "object" && typeof CKEDITOR.instances != "undefined" && justificatory_id in CKEDITOR.instances) {
-            var justificatory_textarea = CKEDITOR.instances[justificatory_id];
-            var last_text = justificatory_textarea.getData();
-
-            justificatory_textarea.setData((last_text.length > 0 ? last_text + '<br>' : '') + predefined_texts[question_id][answer_id].predefined_texts[predefined_text_id].text);
-          } else {
-            var justificatory_textarea = $('#'+justificatory_id);
-            var last_text = justificatory_textarea.val();
-
-            justificatory_textarea.val((last_text.length > 0 ? last_text + "\n" : '') + predefined_texts[question_id][answer_id].predefined_texts[predefined_text_id].text);
-          }
+        function intervention_survey_update_predefined_texts(select_answer, listOfPredefinedText, chosenAnswerSuffix, predefinedTextSuffix) {
+            const temp = select_answer.attr('id').substring(0, select_answer.attr('id').lastIndexOf(chosenAnswerSuffix));
+            const select_predefined_texts = $('#' + temp + predefinedTextSuffix);
+            const answer_id = select_answer.val();
+            select_predefined_texts.empty();
+            if (answer_id in listOfPredefinedText) {
+                for (let id in listOfPredefinedText[answer_id]['predefined_texts']) {
+                    select_predefined_texts.append($('<option>', {
+                        value: id,
+                        text: listOfPredefinedText[answer_id]['predefined_texts'][id]
+                    }));
+                }
+            }
         }
 
-        e.stopPropagation();
-        e.preventDefault();
-        return false;
-      });
+        function intervention_survey_update_mandatory_justification(select_answer,listOfPredefinedText, chosenAnswerSuffix) {
+            const temp = select_answer.attr('id').substring(0, select_answer.attr('id').lastIndexOf(chosenAnswerSuffix));
+            const answer_id = select_answer.val();
+
+            if (answer_id && listOfPredefinedText[answer_id] && listOfPredefinedText[answer_id]['mandatory_justification']) {
+                $('#' + temp + '_justification_text_title').addClass('fieldrequired');
+            } else {
+                $('#' + temp + '_justification_text_title').removeClass('fieldrequired');
+            }
+        }
+
+        function append_predefined_text_to_justification_area(add_to_justification_button,listOfPredefinedText, answerSuffix, predefinedTextSuffix){
+            const temp = add_to_justification_button.attr('element_prefix');
+            var answer_id = $('#' + temp + answerSuffix).val();
+            var predefined_text_id = $('#' + temp + predefinedTextSuffix).val();
+            var justificatory_text_area_id = temp + '_justification_text';
+
+            if (!answer_id || !predefined_text_id) {
+                return;
+            }
+            if (typeof CKEDITOR == "object" && typeof CKEDITOR.instances != "undefined" && justificatory_text_area_id in CKEDITOR.instances) {
+                var justificatory_textarea = CKEDITOR.instances[justificatory_text_area_id];
+                var last_text = justificatory_textarea.getData();
+
+                justificatory_textarea.setData((last_text.length > 0 ? last_text + '<br>' : '') + listOfPredefinedText[answer_id]["predefined_texts"][predefined_text_id]);
+            } else {
+                var justificatory_textarea = $('#' + justificatory_text_area_id);
+                var last_text = justificatory_textarea.val();
+
+                justificatory_textarea.val((last_text.length > 0 ? last_text + "\n" : '') + listOfPredefinedText[answer_id]["predefined_texts"][predefined_text_id]);
+            }
+        }
+
+        $('select.intervention_survey_answer_select').on('change', function(e) {
+            intervention_survey_update_mandatory_justification($(this),answer_predefined_texts, "_fk_chosen_answer");
+            intervention_survey_update_predefined_texts($(this),answer_predefined_texts, "_fk_chosen_answer", "_fk_chosen_answer_predefined_text");
+        });
+
+        $('select.intervention_survey_answer_select').map(function(e) {
+            intervention_survey_update_mandatory_justification($(this),answer_predefined_texts, "_fk_chosen_answer");
+            intervention_survey_update_predefined_texts($(this),answer_predefined_texts, "_fk_chosen_answer", "_fk_chosen_answer_predefined_text");
+        });
+
+        $('input.button.intervention_survey_answer_predefined_texts').on('click', function(e) {
+            append_predefined_text_to_justification_area($(this),answer_predefined_texts,"_fk_chosen_answer", "_fk_chosen_answer_predefined_text");
+            e.stopPropagation();
+            e.preventDefault();
+            return false;
+        });
+
+        $('select.intervention_survey_status_select').on('change', function(e) {
+            intervention_survey_update_mandatory_justification($(this),status_predefined_texts, "_fk_chosen_status");
+            intervention_survey_update_predefined_texts($(this),status_predefined_texts, "_fk_chosen_status", "_fk_chosen_status_predefined_text");
+        });
+
+        $('select.intervention_survey_status_select').map(function(e) {
+            intervention_survey_update_mandatory_justification($(this),status_predefined_texts, "_fk_chosen_status");
+            intervention_survey_update_predefined_texts($(this),status_predefined_texts, "_fk_chosen_status", "_fk_chosen_status_predefined_text");
+        });
+
+        $('input.button.intervention_survey_status_predefined_texts').on('click', function(e) {
+            append_predefined_text_to_justification_area($(this),status_predefined_texts,"_fk_chosen_status", "_fk_chosen_status_predefined_text");
+            e.stopPropagation();
+            e.preventDefault();
+            return false;
+        });
     });
   </script>
 <?php

@@ -181,8 +181,8 @@ class SurveyAnswerDictionary extends Dictionary
             ),
             'is_require' => true
         ),
-        'mandatory' => array(
-            'name'       => 'mandatory',
+        'mandatory_justification' => array(
+            'name'       => 'mandatory_justification',
             'label'      => 'InterventionSurveyAnswerMandatoryJustificationDictionaryField',
             'type'       => 'boolean',
         ),

@@ -64,6 +64,8 @@ class FormInterventionSurvey
      */
     public $questions_post;
 
+    const BLOC_FORM_PREFIX = "intervention_survey_bloc_";
+    const QUESTION_FORM_PREFIX = "intervention_survey_question_";
 
     /**
      * Constructor
@@ -185,6 +187,42 @@ class FormInterventionSurvey
 
         return $out;
     }
+
+    /**
+     *
+     * Update blocQuestionSurvey object from post data
+     * @param bloc SurveyBlocQuestion
+     * @return bloc SurveyBlocQuestion
+     */
+
+     function updateBlocObjectFromPOST($bloc){
+         if($bloc){
+
+             if($bloc->label_editable){
+                 $bloc->label = GETPOST(self::BLOC_FORM_PREFIX . $bloc->id . "_label") ?? $bloc->label;
+             }
+
+             if($bloc->description_editable){
+                $bloc->description = GETPOST(self::BLOC_FORM_PREFIX . $bloc->id . "_description") ?? $bloc->description;
+             }
+
+            $bloc->fk_chosen_status = GETPOST(self::BLOC_FORM_PREFIX . $bloc->id . "_fk_chosen_status") ?? $bloc->fk_chosen_status;
+            $bloc->description = GETPOST(self::BLOC_FORM_PREFIX . $bloc->id . "_description") ?? $bloc->description;
+            $bloc->attached_files = GETPOST(self::BLOC_FORM_PREFIX . $bloc->id . "_attached_files") ?? $bloc->attached_files;
+            $bloc->fk_chosen_answer_predefined_text = GETPOST(self::BLOC_FORM_PREFIX . $bloc->id . "_fk_chosen_answer_predefined_text") ?? $bloc->fk_chosen_answer_predefined_text;
+            $bloc->private = GETPOST(self::BLOC_FORM_PREFIX . $bloc->id . "_private") ?? $bloc->private;
+            if(isset($bloc->questions)){
+                foreach($bloc->questions as $question){
+                    $question->fk_chosen_answer = GETPOST(self::QUESTION_FORM_PREFIX . $question->id . "_fk_chosen_answer") ?? $question->fk_chosen_answer;
+                    $question->justification_text = GETPOST(self::QUESTION_FORM_PREFIX . $question->id . "_justification_text") ?? $question->justification_text;
+                    $question->fk_chosen_answer_predefined_text = GETPOST(self::QUESTION_FORM_PREFIX . $question->id . "_fk_chosen_answer_predefined_text") ?? $question->fk_chosen_answer_predefined_text;
+                }
+            }
+         }
+         return $bloc;
+     }
+
+
 
 
     /**

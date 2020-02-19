@@ -202,22 +202,12 @@ if ($object->id > 0) {
                             print '<div class="fichecenter border">';
                         }
                         if ($user->rights->interventionsurvey->survey->write && $action == 'edit_question_bloc' && $bloc->id == $survey_bloc_question_id && !$readOnlySurvey) {
-                            //@include dol_buildpath('interventionsurvey/tpl/intervention_survey_bloc_question_edit.tpl.php');
-                        } else {
                             $bloc = $formextendedintervention->updateBlocObjectFromPOST($bloc);
+                            $blocPrefix = $formextendedintervention::BLOC_FORM_PREFIX;
+                            $questionPrefix = $formextendedintervention::QUESTION_FORM_PREFIX;
+                            @include dol_buildpath('interventionsurvey/tpl/intervention_survey_bloc_question_edit.tpl.php');
+                        } else {
                             @include dol_buildpath('interventionsurvey/tpl/intervention_survey_bloc_question_view.tpl.php');
-                            //print '<table class="border" width="100%">';
-                           // $formextendedintervention->displayBlocTitle(null,$bloc);
-                            //$formextendedintervention->displayStatus(null,$bloc,$form);
-                            //$formextendedintervention->displayBlocDescription(null,$bloc);
-                            //foreach($bloc->questions as $question){
-                            //    $formextendedintervention->displayQuestion(null,$question);
-                            //    $formextendedintervention->displayExtrafields(null,$extrafields_interventionsurvey_surveyquestion,$extralabels_interventionsurvey_surveyquestion, $question, "intervention_survey_question_" . $question->id);
-                            //}
-                            //$formextendedintervention->displayExtrafields(null,$extrafields_interventionsurvey_surveyblocquestion,$extralabels_interventionsurvey_surveyblocquestion, $bloc, "intervention_survey_bloc_question_" . $bloc->id);
-                            //$formextendedintervention->displayBlocFiles(null,$bloc,$object->ref,$object->attached_files);
-                            //print '</table>';
-                            //$formextendedintervention->displayBlocActionButton(null,$bloc);
                         }
                         if ($idx % 2 == 0) {
                             print '</div>';
