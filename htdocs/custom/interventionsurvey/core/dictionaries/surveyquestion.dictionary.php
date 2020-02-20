@@ -167,6 +167,14 @@ class SurveyQuestionDictionary extends Dictionary
             ),
             'is_require' => true,
         ),
+        'mandatory_answer' => array(
+            'name'       => 'mandatory_answer',
+            'label'      => 'InterventionSurveyQuestionMandatoryAnswerDictionaryField',
+            'type'       => 'boolean',
+            'td_input' => array(
+                'positionLine' => 0,
+            ),
+        ),
         'answers' => array(),
         'extrafields' => array(),
         'bloc_question' => array(),

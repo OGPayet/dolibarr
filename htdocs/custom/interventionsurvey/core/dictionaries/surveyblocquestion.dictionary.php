@@ -186,6 +186,14 @@ class SurveyBlocQuestionDictionary extends Dictionary
                 'positionLine' => 1,
             ),
         ),
+        'mandatory_status' => array(
+            'name'       => 'mandatory_status',
+            'label'      => 'InterventionSurveyBlocQuestionMandatoryStatusDictionaryField',
+            'type'       => 'boolean',
+            'td_input' => array(
+                'positionLine' => 1,
+            ),
+        ),
         'label_editable' => array(
             'name'       => 'label_editable',
             'label'      => 'InterventionSurveyBlocQuestionLabelEditableDictionaryField',

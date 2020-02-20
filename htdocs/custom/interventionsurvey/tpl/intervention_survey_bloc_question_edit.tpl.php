@@ -77,7 +77,7 @@ if ($idx % 2 == 0) {
       <table class="border" width="100%">
 
       <tr>
-    <td>
+    <td class="<?php if($bloc->mandatory_status) {print "fieldrequired";} ?>">
         <?php print $langs->trans('InterventionSurveyBlocStatusLabel'); ?>
     </td>
     <td>
@@ -117,8 +117,14 @@ if ($idx % 2 == 0) {
           <td><?php print $langs->trans('InterventionSurveyDescriptionBloc') ?></td>
           <td>
           <?php
-          $doleditor = new DolEditor($blocPrefix . $bloc->id .'_description', $bloc->description, '', 150, 'dolibarr_notes', 'In', false, false, !empty($conf->fckeditor->enabled), ROWS_5, '90%');
-          $doleditor->Create();
+          if($bloc->description_editable){
+            $doleditor = new DolEditor($blocPrefix . $bloc->id .'_description', $bloc->description, '', 150, 'dolibarr_notes', 'In', false, false, !empty($conf->fckeditor->enabled), ROWS_5, '90%');
+            $doleditor->Create();
+          }
+          else {
+              print $bloc->description;
+          }
+
           ?>
           </td>
         </tr>
@@ -129,7 +135,7 @@ if ($idx % 2 == 0) {
       foreach ($bloc->questions as $question) {
             ?>
           <tr>
-            <td><?php print $question->label; ?></td>
+            <td class="<?php if($question->mandatory_answer) {print "fieldrequired";} ?>"><?php print $question->label; ?></td>
             <td>
                 <?php
                 $answers = array();

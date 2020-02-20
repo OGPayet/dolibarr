@@ -79,7 +79,7 @@ InterventionSurveyQuestionExtrafieldDictionary = Liste des extrafields à joindr
 InterventionSurveyQuestionIsUsedInTheseBlocQuestionDictionary = Utilisé dans les blocs de questions suivants
 InterventionSurveyQuestionIdentifierFieldLabel = Identifiant
 InterventionSurveyQuestionIdentifierFieldHelp = Valeur non nécessairement unique permettant d'identifier l'element sur les autres écrans de paramétrages et à des fins statistique
-
+InterventionSurveyQuestionMandatoryAnswerDictionaryField = Réponse obligatoire ?
 
 # Question extrafields
 InterventionSurveyQuestionExtrafields = 3 - Extrafields sur les Questions
@@ -136,6 +136,7 @@ InterventionSurveyFilterOnlyForProductCategoriesDictionary = Utilisé uniquement
 InterventionSurveyBlocQuestionIdentifierFieldLabel = Identifiant
 InterventionSurveyBlocQuestionIdentifierFieldHelp = Valeur non nécessairement unique permettant d'identifier l'element sur les autres écrans de paramétrages et à des fins statistique
 InterventionSurveyBlocQuestionInterventionTypeField = Utilisé uniquement dans le cadre des interventions de type (laisser vide pour ne pas filter)
+InterventionSurveyBlocQuestionMandatoryStatusDictionaryField = Choisir obligatoirement un status ?
 
 # Ecran de visualisation et saisie des questionnaires
 InterventionSurveyTabTitle = Questionnaire

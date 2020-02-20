@@ -170,7 +170,7 @@ class InterventionSurvey extends Fichinter
             $this->cache_survey_bloc_question_dictionary = self::fetchProperDataFromDictionary(
                 $this->db, 'interventionsurvey', 'SurveyBlocQuestion',
             array("position","identifier", "label", "icon",  "label_editable", "description_editable", "deletable",
-            "private", "bloc_in_general_part", "categories", "status", "questions", "extrafields", "types_intervention"),
+            "private", "bloc_in_general_part", "categories", "status", "questions", "extrafields", "types_intervention","mandatory_status"),
         array("categories","extrafields","types_intervention"));
         }
 
@@ -189,7 +189,7 @@ class InterventionSurvey extends Fichinter
         if(!isset($this->cache_survey_question_dictionary)) {
             $this->cache_survey_question_dictionary = self::fetchProperDataFromDictionary(
                 $this->db, 'interventionsurvey', 'SurveyQuestion',
-            array("position","identifier", "label", "answers",  "extrafields"),
+            array("position","identifier", "mandatory_answer", "label", "answers",  "extrafields"),
             array("extrafields"));
         }
         if(!isset($this->cache_survey_answer_dictionary)) {
@@ -317,14 +317,14 @@ class InterventionSurvey extends Fichinter
                                 $this->generateBlocsWithFollowingSettings($interventionTypeId, $categoryId));
                         }
                         //We put these blocs into survey parts
-                        $equipementBlocParts = array();
                         foreach($crudeListOfBlocsForThisEquipementInThisSurvey as $bloc){
+                            $bloc_id= $bloc["c_rowid"];
                             if(empty($bloc["bloc_in_general_part"])){
-                                $listOfGeneratedBlocsForThisEquipement[$bloc->c_rowid] = $bloc;
+                                $listOfGeneratedBlocsForThisEquipement[$bloc_id] = $bloc;
                             }
                             else
                             {
-                                $generalSurveyBlocParts[$bloc->c_rowid] = $bloc;
+                                $generalSurveyBlocParts[$bloc_id] = $bloc;
                             }
                         }
                         $listOfGeneratedBlocsForThisEquipement = self::sortArrayOfObjectByPositionObjectProperty($listOfGeneratedBlocsForThisEquipement);
