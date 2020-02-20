@@ -168,7 +168,7 @@ class SurveyQuestionDictionary extends Dictionary
             'is_require' => true,
         ),
         'answers' => array(),
-        'extra_fields' => array(),
+        'extrafields' => array(),
         'bloc_question' => array(),
     );
 
@@ -214,8 +214,8 @@ class SurveyQuestionDictionary extends Dictionary
         $extrafields = new ExtraFields($this->db);
         $extralabels = $extrafields->fetch_name_optionals_label($element_type);
 
-        $this->fields['extra_fields'] = array(
-            'name' => 'extra_fields',
+        $this->fields['extrafields'] = array(
+            'name' => 'extrafields',
             'label' => 'InterventionSurveyQuestionExtrafieldDictionary',
             'type' => 'checkbox',
             'options' => $extrafields->attributes[$element_type]['label'],

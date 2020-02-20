@@ -58,13 +58,6 @@ $hookmanager->initHooks(array('interventionsurvey'));
 
 $object = new InterventionSurvey($db);
 
-// Optionals attributes and labels for question bloc
-$extrafields_interventionsurvey_surveyblocquestion = new ExtraFields($db);
-$extralabels_interventionsurvey_surveyblocquestion = $extrafields_interventionsurvey_surveyblocquestion->fetch_name_optionals_label('interventionsurvey_surveyblocquestion');
-// Optionals attributes and labels for question
-$extrafields_interventionsurvey_surveyquestion = new ExtraFields($db);
-$extralabels_interventionsurvey_surveyquestion = $extrafields_interventionsurvey_surveyquestion->fetch_name_optionals_label('interventionsurvey_surveyquestion');
-
 //Readonly survey mode
 $readOnlySurvey = true;
 
@@ -72,8 +65,6 @@ $readOnlySurvey = true;
 // Load object
 if ($id > 0 || !empty($ref)) {
     $ret = $object->fetch($id, $ref);
-    $object->fetch_thirdparty();
-    $object->fetchSurvey();
     $object->fetch_thirdparty();
     if (!empty($object->errors)) {
         setEventMessages("", $object->errors, 'errors');
@@ -105,12 +96,12 @@ if (empty($reshook) && !$readOnlySurvey && $user->rights->interventionsurvey->su
             $survey_bloc_question = $formextendedintervention->updateBlocObjectFromPOST($survey_bloc_question);
             $survey_bloc_question->attached_files = $formextendedintervention->updateFieldFromGETPOST($survey_bloc_question,"attached_files",$formextendedintervention::BLOC_FORM_PREFIX, array());
             //We set extrafields
-            $survey_bloc_question->array_options = $extrafields_interventionsurvey_surveyblocquestion->getOptionalsFromPost($extralabels_interventionsurvey_surveyblocquestion, '_intervention_survey_question_bloc_' . $survey_bloc_question->id . '_');
+            $survey_bloc_question->array_options = $survey_bloc_question::$extrafields_cache->getOptionalsFromPost($survey_bloc_question::$extrafields_label_cache, '_intervention_survey_question_bloc_' . $survey_bloc_question->id . '_');
             foreach($survey_bloc_question->questions as $question){
-                $question->array_options = $extrafields_interventionsurvey_surveyquestion->getOptionalsFromPost($extralabels_interventionsurvey_surveyquestion, '_intervention_survey_question_' . $question->id . '_');
+                $question->array_options = $question::$extrafields_cache->getOptionalsFromPost($question::$extrafields_label_cache, '_intervention_survey_question_' . $question->id . '_');
             }
             $result = $survey_bloc_question->save($user);
-            if ($result < 0) {
+            if ($result < 0 || $survey_bloc_question->errors) {
                 setEventMessages("",$survey_bloc_question->errors, 'errors');
                 $action = "save_question_bloc";
             }
@@ -178,8 +169,7 @@ if ($object->id > 0) {
     if ($readOnlySurvey) {
         print $langs->trans('InterventionSurveyReadOnlyMode');
     }
-        $parameters = array();
-        $reshook = $hookmanager->executeHooks('formConfirm', $parameters, $object, $action); // Note that $action and $object may have been modified by hook
+        $reshook = $hookmanager->executeHooks('formConfirm', array(), $object, $action); // Note that $action and $object may have been modified by hook
         if (empty($reshook)) $formconfirm.=$hookmanager->resPrint;
         elseif ($reshook > 0) $formconfirm=$hookmanager->resPrint;
 
@@ -187,6 +177,7 @@ if ($object->id > 0) {
           print $formconfirm;
         //Prepare needed data for following form
           $object->fetch_attached_files();
+          $object->fetchSurvey();
         // Print left question bloc of the survey
         if (!empty($object->survey)) {
                 foreach ($object->survey as $survey_part) {

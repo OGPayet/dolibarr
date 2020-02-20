@@ -78,16 +78,16 @@ if ($idx % 2 == 0) {
             $parameters = array();
             $reshook = $hookmanager->executeHooks('formObjectOptions', $parameters, $line, $action);    // Note that $action and $object may have been modified by hook
             print $hookmanager->resPrint;
-            if (empty($reshook) && !empty($extrafields_interventionsurvey_surveyquestion->attribute_label)) {
-                print $question->showOptionals($extrafields_interventionsurvey_surveyquestion, 'view', array());
+            if (empty($reshook) && !empty($question::$extrafields_cache->attribute_label)) {
+                print $question->showOptionals($question::$extrafields_cache, 'view', array());
             }
         }
         // Other attributes of the question bloc
         $parameters = array();
         $reshook = $hookmanager->executeHooks('formObjectOptions', $parameters, $bloc, $action);    // Note that $action and $object may have been modified by hook
         print $hookmanager->resPrint;
-        if (empty($reshook) && !empty($extrafields_interventionsurvey_surveyblocquestion->attribute_label)) {
-            print $bloc->showOptionals($extrafields_interventionsurvey_surveyblocquestion, 'view', array());
+        if (empty($reshook) && !empty($bloc::$extrafields_cache->attribute_label)) {
+            print $bloc->showOptionals($bloc::$extrafields_cache, 'view', array());
         }
 
         // Attached files of the question bloc

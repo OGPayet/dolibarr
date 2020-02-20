@@ -24,6 +24,7 @@ CREATE TABLE llx_interventionsurvey_surveyquestion(
 	fk_user_modif integer,
 	fk_surveyblocquestion integer NOT NULL,
 	fk_c_survey_question integer,
+	extrafields text,
 	position integer,
 	fk_chosen_answer integer,
 	mandatory_answer boolean,

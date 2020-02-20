@@ -106,6 +106,7 @@ class SurveyBlocQuestion extends CommonObject
         'justification_text' => array('type' => 'text', 'label' => 'Justification regarding status', 'enabled' => 1, 'position' => 35, 'notnull' => 0, 'visible' => 3,),
         'description' => array('type' => 'text', 'label' => 'Description of this bloc', 'enabled' => 1, 'position' => 32, 'notnull' => 0, 'visible' => 3,),
         'attached_files' => array('type' => 'array', 'label' => 'List of attached files on this bloc', 'enabled' => 1, 'position' => 32, 'notnull' => 0, 'visible' => 3,),
+        'extrafields' => array('type' => 'array', 'label' => 'List of extrafields for this bloc', 'enabled' => 1, 'position' => 33, 'notnull' => 0, 'visible' => 3,),
         'position' => array('type' => 'integer', 'label' => 'order', 'enabled' => 1, 'position' => 10, 'notnull' => 0, 'visible' => 3,),
         'fk_surveypart' => array('type' => 'integer:SurveyPart:interventionsurvey/class/surveypart.class.php', 'label' => 'Link the the current survey part', 'enabled' => 1, 'position' => 15, 'notnull' => 1, 'visible' => -1,),
         'fk_c_survey_bloc_question' => array('type' => 'integer:SurveyBlocQuestionDictionary:interventionsurvey/core/dictionaries/surveyblocquestion.dictionary.php', 'label' => 'Link to the corresponding dictionnary item', 'enabled' => 1, 'position' => 20, 'notnull' => 0, 'visible' => -1,),
@@ -128,6 +129,7 @@ class SurveyBlocQuestion extends CommonObject
     public $justification_text;
     public $description;
     public $attached_files;
+    public $extrafields;
     public $position;
     public $fk_surveypart;
     public $fk_c_survey_bloc_question;
@@ -142,6 +144,8 @@ class SurveyBlocQuestion extends CommonObject
     public $fk_chosen_status_predefined_text;
     // END MODULEBUILDER PROPERTIES
 
+    public static $extrafields_cache;
+    public static $extrafields_label_cache;
 
     // If this object has a subtable with lines
 
@@ -214,6 +218,7 @@ class SurveyBlocQuestion extends CommonObject
                 }
             }
         }
+        $this->fetchExtraFieldsInfo();
     }
 
     /**
@@ -363,7 +368,12 @@ class SurveyBlocQuestion extends CommonObject
         $this->status = array();
         $this->chosen_status = null;
         $this->questions = array();
+        $this->extrafields = array();
         parent::setVarsFromFetchObj($obj);
+        $tmp = is_array($obj) ? $obj["extrafields"] : $obj->extrafields;
+        if(is_array($tmp)) {
+            $this->extrafields = $tmp;
+        }
         $dictionaryRowId = is_array($obj) ? $obj["c_rowid"] : $obj->c_rowid;
         $this->fk_c_survey_bloc_question = $dictionaryRowId;
         $objectValues = is_array($obj) ? $obj["questions"] : $obj->questions;
@@ -1095,10 +1105,144 @@ class SurveyBlocQuestion extends CommonObject
      */
 
      public function getChosenStatus(){
-         $result = $this->chosen_status;
-         if(!isset($result)) {
-             $result = new stdClass();
-         }
+        $result = new stdClass();
+        if(is_array($this->status) && $this->fk_chosen_status) {
+            foreach($this->status as $status){
+                if($status->id == $this->fk_chosen_status){
+                $result = $status;
+                break;
+                }
+            }
+        }
+         $this->chosen_status = $result;
          return $result;
      }
+
+     /**
+     *	{@inheritdoc}
+     */
+    function fetch_optionals($rowid = null, $optionsArray = null)
+    {
+        $result = parent::fetch_optionals($rowid, $optionsArray);
+        if ($result > 0) {
+            $tmp = array();
+            foreach ($this->array_options as $key => $val) {
+                if (in_array(substr($key,8), $this->extrafields)) {
+                    $tmp[$key] = $val;
+                }
+            }
+            $this->array_options = $tmp;
+        }
+
+        return $result;
+    }
+
+    /**
+     *
+     * Function to fetch and update $extrafields_cache property to save all extrafields for this object
+     * There might be a more elegant way of doing it
+     *
+     */
+
+    protected function fetchExtraFieldsInfo() {
+        if (!isset(self::$extrafields_cache)) {
+            require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
+            self::$extrafields_cache = new ExtraFields($this->db);
+            self::$extrafields_label_cache = self::$extrafields_cache->fetch_name_optionals_label($this->table_element);
+        }
+    }
+
+    /**
+     *	{@inheritdoc}
+     */
+    function insertExtraFields()
+    {
+        // Clean extra fields
+        if (count($this->extrafields) == 0) {
+            $this->array_options = array();
+        } elseif (is_array($this->array_options)) {
+            $tmp = array();
+            foreach ($this->array_options as $key => $val) {
+                if (in_array(substr($key,8), $this->extrafields)) {
+                    $tmp[$key] = $val;
+                }
+            }
+            $this->array_options = $tmp;
+        }
+
+        // Manage require fields but not selected
+        $this->fetchExtraFieldsInfo();
+        foreach (self::$extrafields_cache->attributes[$this->table_element]['required'] as $key => $val) {
+            if (!empty($val) && !in_array($key, $this->extrafields)) {
+                $this->array_options[$key] = '0';
+            }
+        }
+
+        $result = parent::insertExtraFields();
+
+        return $result;
+    }
+
+    /**
+     *	{@inheritdoc}
+     * Taken from extended intervention module, may be outdated way of implement informations
+     */
+    function updateExtraField($key)
+    {
+        if (in_array($key, $this->extrafields)) {
+            return parent::updateExtraField($key);
+        } else {
+            return 0;
+        }
+    }
+
+    /**
+     *	{@inheritdoc}
+     * Taken from extended intervention module, may be outdated way of implement informations
+     */
+    function showOptionals($extrafields, $mode = 'view', $params = null, $keyprefix = '')
+    {
+
+        $extrafields_question_bloc = clone $extrafields;
+        $tmp = array();
+        foreach ($extrafields_question_bloc->attribute_label as $key => $val) {
+            if (!in_array($key, $this->extrafields)) {
+                // Old usage
+                unset($extrafields_question_bloc->attribute_type[$key]);
+                unset($extrafields_question_bloc->attribute_size[$key]);
+                unset($extrafields_question_bloc->attribute_elementtype[$key]);
+                unset($extrafields_question_bloc->attribute_default[$key]);
+                unset($extrafields_question_bloc->attribute_computed[$key]);
+                unset($extrafields_question_bloc->attribute_unique[$key]);
+                unset($extrafields_question_bloc->attribute_required[$key]);
+                unset($extrafields_question_bloc->attribute_param[$key]);
+                unset($extrafields_question_bloc->attribute_pos[$key]);
+                unset($extrafields_question_bloc->attribute_alwayseditable[$key]);
+                unset($extrafields_question_bloc->attribute_perms[$key]);
+                unset($extrafields_question_bloc->attribute_list[$key]);
+                unset($extrafields_question_bloc->attribute_hidden[$key]);
+
+                // New usage
+                unset($extrafields_question_bloc->attributes[$this->table_element]['type'][$key]);
+                unset($extrafields_question_bloc->attributes[$this->table_element]['label'][$key]);
+                unset($extrafields_question_bloc->attributes[$this->table_element]['size'][$key]);
+                unset($extrafields_question_bloc->attributes[$this->table_element]['elementtype'][$key]);
+                unset($extrafields_question_bloc->attributes[$this->table_element]['default'][$key]);
+                unset($extrafields_question_bloc->attributes[$this->table_element]['computed'][$key]);
+                unset($extrafields_question_bloc->attributes[$this->table_element]['unique'][$key]);
+                unset($extrafields_question_bloc->attributes[$this->table_element]['required'][$key]);
+                unset($extrafields_question_bloc->attributes[$this->table_element]['param'][$key]);
+                unset($extrafields_question_bloc->attributes[$this->table_element]['pos'][$key]);
+                unset($extrafields_question_bloc->attributes[$this->table_element]['alwayseditable'][$key]);
+                unset($extrafields_question_bloc->attributes[$this->table_element]['perms'][$key]);
+                unset($extrafields_question_bloc->attributes[$this->table_element]['list'][$key]);
+                unset($extrafields_question_bloc->attributes[$this->table_element]['ishidden'][$key]);
+            } else {
+                $tmp[$key] = $val;
+            }
+        }
+        $extrafields_question_bloc->attribute_label = $tmp;
+
+        return parent::showOptionals($extrafields_question_bloc, $mode, $params, $keyprefix);
+    }
 }

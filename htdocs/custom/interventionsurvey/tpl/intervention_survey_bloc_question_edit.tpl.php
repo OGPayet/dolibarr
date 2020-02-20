@@ -179,21 +179,17 @@ if ($idx % 2 == 0) {
           </tr>
             <?php
             // Other attributes of the question
-            $parameters = array();
-            $reshook = $hookmanager->executeHooks('formObjectOptions', $parameters, $question, $action);    // Note that $action and $object may have been modified by hook
+            $reshook = $hookmanager->executeHooks('formObjectOptions', array(), $question, $action);    // Note that $action and $object may have been modified by hook
             print $hookmanager->resPrint;
-            if (empty($reshook) && !empty($extrafields_interventionsurvey_surveyquestion->attribute_label)) {
-                $question->array_options = $extrafields_interventionsurvey_surveyquestion->getOptionalsFromPost($extralabels_question, '_intervention_survey_question_' . $question->id . '_');
-                print $question->showOptionals($extrafields_interventionsurvey_surveyquestion, 'edit', array(), '_intervention_survey_question_' . $question->id . '_');
+            if (empty($reshook) && !empty($question::$extrafields_cache->attribute_label)) {
+                print $question->showOptionals($question::$extrafields_cache, 'edit', array(), '_intervention_survey_question_' . $question->id . '_');
         }
 }
     // Other attributes of the question bloc
-    $parameters = array();
-    $reshook = $hookmanager->executeHooks('formObjectOptions', $parameters, $bloc, $action);    // Note that $action and $object may have been modified by hook
+    $reshook = $hookmanager->executeHooks('formObjectOptions', array(), $bloc, $action);    // Note that $action and $object may have been modified by hook
     print $hookmanager->resPrint;
-    if (empty($reshook) && ! empty($extrafields_interventionsurvey_surveyblocquestion->attribute_label)) {
-        $bloc->array_options = $extrafields_interventionsurvey_surveyblocquestion->getOptionalsFromPost($extralabels_interventionsurvey_surveyblocquestion, '_intervention_survey_question_bloc_' . $bloc->id . '_');
-        print $bloc->showOptionals($extrafields_interventionsurvey_surveyblocquestion, 'edit',  array(), '_intervention_survey_question_bloc_' . $bloc->id . '_');
+    if (empty($reshook) && ! empty($bloc::$extrafields_cache->attribute_label)) {
+        print $bloc->showOptionals($bloc::$extrafields_cache, 'edit',  array(), '_intervention_survey_question_bloc_' . $bloc->id . '_');
     }
         ?>
        <tr>

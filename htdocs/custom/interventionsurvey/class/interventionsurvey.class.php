@@ -170,37 +170,37 @@ class InterventionSurvey extends Fichinter
             $this->cache_survey_bloc_question_dictionary = self::fetchProperDataFromDictionary(
                 $this->db, 'interventionsurvey', 'SurveyBlocQuestion',
             array("position","identifier", "label", "icon",  "label_editable", "description_editable", "deletable",
-            "private", "bloc_in_general_part", "categories", "status", "questions", "extra_fields", "types_intervention"),
-        array("categories","extra_fields","types_intervention"));
+            "private", "bloc_in_general_part", "categories", "status", "questions", "extrafields", "types_intervention"),
+        array("categories","extrafields","types_intervention"));
         }
 
         if(!isset($this->cache_survey_bloc_status_dictionary)) {
             $this->cache_survey_bloc_status_dictionary = self::fetchProperDataFromDictionary(
                 $this->db, 'interventionsurvey', 'SurveyBlocStatus',
-            array("identifier", "label", "icon",  "color", "mandatory_justification", "deactivate_bloc", "predefined_texts"));
+            array("position","identifier", "label", "icon",  "color", "mandatory_justification", "deactivate_bloc", "predefined_texts"));
         }
 
         if(!isset($this->cache_survey_bloc_status_predefined_text_dictionary)) {
             $this->cache_survey_bloc_status_predefined_text_dictionary = self::fetchProperDataFromDictionary(
                 $this->db, 'interventionsurvey', 'SurveyBlocStatusPredefinedText',
-            array("identifier", "label", "blkLim",  "catLim"),
+            array("position","identifier", "label", "blkLim",  "catLim"),
             array("blkLim","catLim"));
         }
         if(!isset($this->cache_survey_question_dictionary)) {
             $this->cache_survey_question_dictionary = self::fetchProperDataFromDictionary(
                 $this->db, 'interventionsurvey', 'SurveyQuestion',
-            array("identifier", "label", "answers",  "extra_fields"),
-            array("extra_fields"));
+            array("position","identifier", "label", "answers",  "extrafields"),
+            array("extrafields"));
         }
         if(!isset($this->cache_survey_answer_dictionary)) {
             $this->cache_survey_answer_dictionary = self::fetchProperDataFromDictionary(
                 $this->db, 'interventionsurvey', 'SurveyAnswer',
-            array("identifier", "label", "color",  "mandatory", "predefined_texts"));
+            array("position","identifier", "label", "color",  "mandatory", "predefined_texts"));
         }
         if(!isset($this->cache_survey_answer_predefined_text)) {
             $this->cache_survey_answer_predefined_text = self::fetchProperDataFromDictionary(
                 $this->db, 'interventionsurvey', 'SurveyAnswerPredefinedText',
-            array("identifier", "label", "bloc_filter",  "cat_filter"),
+            array("position","identifier", "label", "bloc_filter",  "cat_filter"),
             array("bloc_filter","cat_filter"));
         }
         if(!isset($this->cache_product_categories)){
