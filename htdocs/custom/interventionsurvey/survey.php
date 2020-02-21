@@ -103,7 +103,7 @@ if (empty($reshook) && !$readOnlySurvey && $user->rights->interventionsurvey->su
             $result = $survey_bloc_question->save($user);
             if ($result < 0 || $survey_bloc_question->errors) {
                 setEventMessages("",$survey_bloc_question->errors, 'errors');
-                $action = "save_question_bloc";
+                $action = "edit_question_bloc";
             }
         }
     }
@@ -119,7 +119,7 @@ llxHeader('',$langs->trans("Intervention"));
 // Mode vue et edition
 if ($object->id > 0) {
     $head = fichinter_prepare_head($object);
-    dol_fiche_head($head, 'survey', $langs->trans("InterventionCard"), -1, 'intervention');
+    dol_fiche_head($head, 'interventionsurvey', $langs->trans("InterventionCard"), -1, 'intervention');
 
     // Intervention card
     $linkback = '<a href="' . DOL_URL_ROOT . '/fichinter/list.php' . (!empty($socid) ? '?socid=' . $socid : '') . '">' . $langs->trans("BackToList") . '</a>';
@@ -187,10 +187,10 @@ if ($object->id > 0) {
                         if ($idx % 2 == 1) {
                             print '<div class="fichecenter border">';
                         }
+                        $blocPrefix = $formextendedintervention::BLOC_FORM_PREFIX;
+                        $questionPrefix = $formextendedintervention::QUESTION_FORM_PREFIX;
                         if ($user->rights->interventionsurvey->survey->write && $action == 'edit_question_bloc' && $bloc->id == $survey_bloc_question_id && !$readOnlySurvey) {
                             $bloc = $formextendedintervention->updateBlocObjectFromPOST($bloc);
-                            $blocPrefix = $formextendedintervention::BLOC_FORM_PREFIX;
-                            $questionPrefix = $formextendedintervention::QUESTION_FORM_PREFIX;
                             @include dol_buildpath('interventionsurvey/tpl/intervention_survey_bloc_question_edit.tpl.php');
                         } else {
                             @include dol_buildpath('interventionsurvey/tpl/intervention_survey_bloc_question_view.tpl.php');

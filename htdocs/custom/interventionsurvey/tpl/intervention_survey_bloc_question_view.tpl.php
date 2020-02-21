@@ -36,7 +36,7 @@ if (empty($bloc)) {
 ?>
 
 <!-- BEGIN PHP TEMPLATE intervention_survey_bloc_question_view.tpl -->
-<div id="interventionsurvey_anchor_surveyblocquestion_<?php print $bloc->id ?>"></div>
+<div id="<?php print $blocPrefix . $bloc->id ?>_anchor"></div>
 <?php
 if ($idx % 2 == 0) {
     print '<div class="fichehalfright"><div class="ficheaddleft">';
@@ -45,32 +45,54 @@ if ($idx % 2 == 0) {
 }
 ?>
 <div class="underbanner clearboth"></div>
-<div id="interventionsurvey_surveyblocquestion_<?php print $bloc->id ?>">
+<div>
     <?php
     // Print question title and status
+    $rightTitle = $bloc->getChosenStatus()->label;
+    $rightTitle .= $bloc->justification_text ?
+    $form->textwithpicto('', '<b>' . $langs->trans('InterventionSurveyJustificationStatusText') . ' :</b><br>' . $bloc->justification_text, 1, 'object_tip.png@interventionsurvey', '', 0, 2) :
+    '';
+
+    $leftTitle = $bloc->label;
+    if(!$bloc->areDataValid()){
+        $warningText = implode($bloc->errors, "<br>");
+        $leftTitle .= '<span style="color:#000000">' . $form->textwithpicto('', $warningText, 1, 'warning', '', 0, 2) . '</span>';
+    }
+
     print load_fiche_titre(
-        $bloc->label,
-        $bloc->getChosenStatus()->label . (!empty($bloc->justification_text)
-            ?  ' ' . $form->textwithpicto('', '<b>' . $langs->trans('InterventionSurveyJustificationStatusText') . ' :</b><br>' . $bloc->justification_text, 1, 'object_tip.png@interventionsurvey', '', 0, 2) :
-            ''),
+        $leftTitle,
+        $rightTitle,
         ''
     );
-    if (!empty($bloc->description)) {
-    ?>
-        <tr>
-            <td><?php print $langs->trans('InterventionSurveyBlocQuestionDescriptionTitle') ?></td>
-            <td><?php print $bloc->description ?></td>
-        </tr>
-    <?php
-    }
+
     ?>
     <table class="border" width="100%">
         <?php
+        //Print description
+        if (!empty($bloc->description)) {
+            ?>
+                <tr>
+                    <td><?php print $langs->trans('InterventionSurveyDescriptionBloc') ?></td>
+                    <td><?php print $bloc->description ?></td>
+                </tr>
+            <?php
+            }
+
         // Print question
         foreach ($bloc->questions as $question) {
         ?>
             <tr>
-                <td><?php print $question->label ?></td>
+                <td>
+                <?php
+                //We print question label
+                print $question->label;
+                //We print warning if some information are missing
+                if(!$question->areDataValid()){
+                    $warningText = implode($question->errors, "<br>");
+                    print $form->textwithpicto('', $warningText, 1, 'warning', '', 0, 2);
+                }
+                ?>
+            </td>
                 <td width="50%"><?php print $question->getChosenAnswer()->label . (!empty($question->justification_text) ? ' ' . $form->textwithpicto('', '<b>' . $langs->trans('InterventionSurveyAnswerJustificationText') . ' :</b><br>' . $question->justification_text, 1, 'object_tip.png@extendedintervention', '', 0, 2) : '') ?></td>
             </tr>
             <?php
@@ -107,7 +129,7 @@ if ($idx % 2 == 0) {
         if ($user->rights->interventionsurvey->survey->write && !$readOnlySurvey) {
         ?>
             <div class="inline-block divButAction">
-                <a class="butAction" href="<?php print $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&survey_bloc_question_id=' . $bloc->id . '&action=edit_question_bloc#interventionsurvey_anchor_surveyblocquestion_' . $bloc->id ?>"> <?php print $langs->trans("Modify") ?>
+                <a class="butAction" href="<?php print $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&survey_bloc_question_id=' . $bloc->id . '&action=edit_question_bloc#'. $blocPrefix . $bloc->id. "_anchor" ?>" > <?php print $langs->trans("Modify") ?>
                 </a>
             </div>
         <?php

@@ -173,6 +173,18 @@ class SurveyBlocQuestionDictionary extends Dictionary
             ),
             'is_require' => true,
         ),
+        'description' => array(
+            'name'       => 'description',
+            'label'      => 'InterventionSurveyBlocQuestionDescriptionDictionaryField',
+            'type'       => 'text',
+            'database'   => array(
+              'length'   => 255,
+            ),
+            'is_require' => false,
+            'td_input' => array(
+                'positionLine' => 2,
+            ),
+        ),
         'icon' => array(
             'name'       => 'icon',
             'label'      => 'InterventionSurveyBlocQuestionIconDictionaryField',
@@ -183,7 +195,7 @@ class SurveyBlocQuestionDictionary extends Dictionary
             ),
             'is_require' => true,
             'td_input' => array(
-                'positionLine' => 1,
+                'positionLine' => 3,
             ),
         ),
         'mandatory_status' => array(
@@ -191,7 +203,7 @@ class SurveyBlocQuestionDictionary extends Dictionary
             'label'      => 'InterventionSurveyBlocQuestionMandatoryStatusDictionaryField',
             'type'       => 'boolean',
             'td_input' => array(
-                'positionLine' => 1,
+                'positionLine' => 3,
             ),
         ),
         'label_editable' => array(
@@ -199,7 +211,7 @@ class SurveyBlocQuestionDictionary extends Dictionary
             'label'      => 'InterventionSurveyBlocQuestionLabelEditableDictionaryField',
             'type'       => 'boolean',
             'td_input' => array(
-                'positionLine' => 1,
+                'positionLine' => 3,
             ),
         ),
         'description_editable' => array(
@@ -207,7 +219,7 @@ class SurveyBlocQuestionDictionary extends Dictionary
             'label'      => 'InterventionSurveyBlocQuestionDescriptionEditableDictionaryField',
             'type'       => 'boolean',
             'td_input' => array(
-                'positionLine' => 1,
+                'positionLine' => 3,
             ),
         ),
         'deletable' => array(
@@ -215,7 +227,7 @@ class SurveyBlocQuestionDictionary extends Dictionary
             'label'      => 'InterventionSurveyBlocQuestionDeletableBlocDictionaryField',
             'type'       => 'boolean',
             'td_input' => array(
-                'positionLine' => 1,
+                'positionLine' => 3,
             ),
         ),
         'private' => array(
@@ -223,7 +235,7 @@ class SurveyBlocQuestionDictionary extends Dictionary
             'label'      => 'InterventionSurveyBlocQuestionPrivateBlocDictionaryField',
             'type'       => 'boolean',
             'td_input' => array(
-                'positionLine' => 1,
+                'positionLine' => 3,
             ),
         ),
         'bloc_in_general_part' => array(
@@ -231,7 +243,7 @@ class SurveyBlocQuestionDictionary extends Dictionary
             'label'      => "InterventionSurveyQuestionBlocBlocInGeneralPartDictionary",
             'type'       => 'boolean',
             'td_input' => array(
-                'positionLine' => 1,
+                'positionLine' => 3,
             ),
         ),
         'categories' => array(),
@@ -319,7 +331,7 @@ class SurveyBlocQuestionDictionary extends Dictionary
                 ),
                 'td_input' => array(
                     'moreAttributes' => 'width="50%"',
-                    'positionLine' => 2,
+                    'positionLine' => 4,
                     'colspan' => 3,
                 ),
                 'is_require' => false,
@@ -335,7 +347,7 @@ class SurveyBlocQuestionDictionary extends Dictionary
                 ),
                 'td_input' => array(
                     'moreAttributes' => 'width="50%"',
-                    'positionLine' => 2,
+                    'positionLine' => 3,
                 ),
             );
 
@@ -350,7 +362,7 @@ class SurveyBlocQuestionDictionary extends Dictionary
                 ),
                 'td_input' => array(
                     'moreAttributes' => 'width="100%"',
-                    'positionLine' => 3,
+                    'positionLine' => 4,
                 ),
                 'is_require' => false,
             );
@@ -366,7 +378,7 @@ class SurveyBlocQuestionDictionary extends Dictionary
                 ),
                 'td_input' => array(
                     'moreAttributes' => 'width="100%"',
-                    'positionLine' => 4,
+                    'positionLine' => 5,
                 ),
                 'is_require' => true,
             );
@@ -385,7 +397,7 @@ class SurveyBlocQuestionDictionary extends Dictionary
                 ),
                 'td_input' => array(
                     'moreAttributes' => 'width="100%"',
-                    'positionLine' => 5,
+                    'positionLine' => 6,
                 ),
             );
         }

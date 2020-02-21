@@ -81,6 +81,11 @@ InterventionSurveyQuestionIdentifierFieldLabel = Identifiant
 InterventionSurveyQuestionIdentifierFieldHelp = Valeur non nécessairement unique permettant d'identifier l'element sur les autres écrans de paramétrages et à des fins statistique
 InterventionSurveyQuestionMandatoryAnswerDictionaryField = Réponse obligatoire ?
 
+# Erreurs
+InterventionSurveyMissingAnswer = La réponse obligatoire pour la question %s (ID : %s) est manquante
+InterventionSurveyMissingJustificationAnswer = La justification obligatoire pour la question %s (ID : %s) est manquante
+InterventionSurveyQuestionMissingExtrafield = La valeur pour l'extrafield obligatoire %s dans la question %s (ID : %s) est manquante
+
 # Question extrafields
 InterventionSurveyQuestionExtrafields = 3 - Extrafields sur les Questions
 InterventionSurveyQuestion = Question des questionnaires
@@ -137,9 +142,21 @@ InterventionSurveyBlocQuestionIdentifierFieldLabel = Identifiant
 InterventionSurveyBlocQuestionIdentifierFieldHelp = Valeur non nécessairement unique permettant d'identifier l'element sur les autres écrans de paramétrages et à des fins statistique
 InterventionSurveyBlocQuestionInterventionTypeField = Utilisé uniquement dans le cadre des interventions de type (laisser vide pour ne pas filter)
 InterventionSurveyBlocQuestionMandatoryStatusDictionaryField = Choisir obligatoirement un status ?
+InterventionSurveyBlocQuestionDescriptionDictionaryField = Description du bloc
+
+#Erreurs
+InterventionSurveyBlocMissingLabel = Le titre du bloc (ID : %s) est vide
+InterventionSurveyMissingStatus = Le status obligatoire pour le bloc %s (ID : %s) est manquant
+InterventionSurveyMissingJustificationStatus = La justification du status du bloc %s (ID : %s) est manquante
+InterventionSurveyBlocMissingExtrafield = La valeur de l'extrafield obligatoire %s dans le bloc de question %s (ID : %s) est manquante
 
 # Ecran de visualisation et saisie des questionnaires
 InterventionSurveyTabTitle = Questionnaire
+InterventionSurveyDescriptionBloc = Description
+InterventionSurveyBlocStatusLabel = Status
+InterventionSurveyStatusJustificationTitle = Justification de ce status
+InterventionSurveyAnswerJustificationTitle = Justification de cette réponse
+InterventionSurveyLabelBloc = Titre de ce bloc
 
 # Gestion des fichiers joints sur les interventions avec hooks
 InterventionSurveyDocuments = Documents

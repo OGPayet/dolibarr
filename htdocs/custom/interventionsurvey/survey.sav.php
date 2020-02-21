@@ -88,7 +88,7 @@ $interventionsurvey->generateSurveyFromDictionary();
 //echo json_encode($interventionsurvey->survey_taken_from_dictionary, JSON_PRETTY_PRINT);
 $interventionsurvey->setSurveyFromFetchObj($interventionsurvey->survey_taken_from_dictionary);
 $interventionsurvey->saveSurvey($user);
-echo $interventionsurvey->fetchSurvey();
+//echo $interventionsurvey->fetchSurvey();
 echo json_encode($interventionsurvey->survey, JSON_PRETTY_PRINT);
 echo json_encode($interventionsurvey->errors, JSON_PRETTY_PRINT);
 echo "</pre>";

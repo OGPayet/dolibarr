@@ -55,10 +55,6 @@ if ($idx % 2 == 0) {
       <input type="hidden" name="backtopage" value="<?php print dol_string_nohtmltag($backtopage) ?>">
 
       <?php
-      // Print question title and status
-      print load_fiche_titre(
-        $bloc->label,'',''
-    );
     $status_predefined_text = array();
     $status_predefined_text[$status->id]=array();
         $statusList = array();
@@ -73,10 +69,42 @@ if ($idx % 2 == 0) {
             $status_predefined_text[$status->id]["predefined_texts"]=$predefined_texts;
         }
 
+        // Print question title and status
+      print load_fiche_titre(
+        $bloc->label,'',''
+    );
+
     ?>
       <table class="border" width="100%">
+<?php
+      if($bloc->label_editable){
 
+?>
+<tr>
+    <td class="fieldrequired"><?php print $langs->trans('InterventionSurveyLabelBloc') ?></td>
+    <td><input type="text" name="<?php print $blocPrefix . $bloc->id .'_label';?>" value="<?php print $bloc->label; ?>"></td>
+</tr>
+<?php
+    }
+?>
+      <?php if($bloc->description_editable || $bloc->description){ ?>
       <tr>
+          <td><?php print $langs->trans('InterventionSurveyDescriptionBloc') ?></td>
+          <td>
+          <?php
+          if($bloc->description_editable){
+            $doleditor = new DolEditor($blocPrefix . $bloc->id .'_description', $bloc->description, '', 150, 'dolibarr_notes', 'In', false, false, !empty($conf->fckeditor->enabled), ROWS_5, '90%');
+            $doleditor->Create();
+          }
+          else {
+                print $bloc->description;
+          }
+
+          ?>
+          </td>
+        </tr>
+      <tr>
+        <?php } ?>
     <td class="<?php if($bloc->mandatory_status) {print "fieldrequired";} ?>">
         <?php print $langs->trans('InterventionSurveyBlocStatusLabel'); ?>
     </td>
@@ -113,21 +141,6 @@ if ($idx % 2 == 0) {
               </table>
             </td>
           </tr>
-      <tr>
-          <td><?php print $langs->trans('InterventionSurveyDescriptionBloc') ?></td>
-          <td>
-          <?php
-          if($bloc->description_editable){
-            $doleditor = new DolEditor($blocPrefix . $bloc->id .'_description', $bloc->description, '', 150, 'dolibarr_notes', 'In', false, false, !empty($conf->fckeditor->enabled), ROWS_5, '90%');
-            $doleditor->Create();
-          }
-          else {
-              print $bloc->description;
-          }
-
-          ?>
-          </td>
-        </tr>
 
       <?php
     // Print question and prepare data for jquery
@@ -207,7 +220,9 @@ if ($idx % 2 == 0) {
 
       <br>
       <div class="right">
-        <input type="submit" class="button" value="<?php print $langs->trans("Save") ?>">&nbsp;&nbsp;&nbsp;<input type="button" class="button" value="<?php print $langs->trans("Cancel") ?>">
+        <input type="submit" class="button" value="<?php print $langs->trans("Save") ?>">
+        &nbsp;&nbsp;&nbsp;
+        <input type="button" class="button" value="<?php print $langs->trans("Cancel") ?>" onClick="window.location='<?php print $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&survey_bloc_question_id=' . $bloc->id . '#'. $blocPrefix . $bloc->id. "_anchor" ?>'">
       </div>
 
     </form>

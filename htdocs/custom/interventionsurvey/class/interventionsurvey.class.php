@@ -195,7 +195,7 @@ class InterventionSurvey extends Fichinter
         if(!isset($this->cache_survey_answer_dictionary)) {
             $this->cache_survey_answer_dictionary = self::fetchProperDataFromDictionary(
                 $this->db, 'interventionsurvey', 'SurveyAnswer',
-            array("position","identifier", "label", "color",  "mandatory", "predefined_texts"));
+            array("position","identifier", "label", "color",  "mandatory_justification", "predefined_texts"));
         }
         if(!isset($this->cache_survey_answer_predefined_text)) {
             $this->cache_survey_answer_predefined_text = self::fetchProperDataFromDictionary(

@@ -208,6 +208,7 @@ class SurveyQuestion extends CommonObject
 			}
         }
         $this->fetchExtraFieldsInfo();
+        $this->errors = array();
 	}
 
 	/**
@@ -373,6 +374,10 @@ class SurveyQuestion extends CommonObject
             $chosen_answer = new SurveyAnswer($this->db);
             $chosen_answer->setVarsFromFetchObj($objectValues);
             $this->chosen_answer = $chosen_answer;
+        }
+        $tmp = is_array($obj) ? $obj["extrafields"] : $obj->extrafields;
+        if(is_array($tmp)) {
+            $this->extrafields = $tmp;
         }
     }
 
@@ -1121,9 +1126,12 @@ public function save($user, $fk_surveyblocquestion=NULL)
      */
 
     public function getChosenAnswer(){
+        if($this->chosen_answer){
+            return $this->chosen_answer;
+        }
         $result = new stdClass();
-        if(is_array($this->answer) && $this->fk_chosen_answer) {
-            foreach($this->answer as $answer){
+        if(is_array($this->answers) && $this->fk_chosen_answer > 0) {
+            foreach($this->answers as $answer){
                 if($answer->id == $this->fk_chosen_answer){
                 $result = $answer;
                 break;
@@ -1133,6 +1141,65 @@ public function save($user, $fk_surveyblocquestion=NULL)
          $this->chosen_answer = $result;
          return $result;
      }
+
+
+     /**
+     * Is answer properly chosen ?
+     */
+
+    public function IsAnswerChosen(){
+        return !!(!$this->mandatory_answer || $this->fk_chosen_answer > 0);
+     }
+
+      /**
+     * Is justification text for answer properly set ?
+     */
+
+    public function IsJustificationTextProperlySet(){
+        $answer = $this->getChosenAnswer();
+        return !!(!$answer->mandatory_justification || $this->justification_text);
+     }
+
+     /**
+      *
+      * Check that extrafields are properly set
+      */
+
+      public function checkExtrafieldProperlySet(){
+        global $langs;
+        $errors = array();
+        foreach (self::$extrafields_cache->attributes[$this->table_element]['required'] as $key => $val) {
+          if (!empty($val) && !in_array(substr($key,8), $this->extrafields) && empty($this->array_options[$key])) {
+                  $errors[] = $langs->trans('InterventionSurveyQuestionMissingExtrafield',
+                  self::$extrafields_cache->attributes[$this->table_element]['label'][$key],
+                  $this->label,
+                  $this->id);
+          }
+      }
+      $this->errors = array_merge($this->errors,$errors);
+      return empty($errors);
+    }
+
+
+    /**
+      * Are some information missing ?
+      */
+
+      public function areDataValid(){
+        global $langs;
+        $errors = array();
+        if(!$this->IsAnswerChosen()){
+            $errors[] = $langs->trans('InterventionSurveyMissingAnswer', $this->label, $this->id);
+        }
+        if(!$this->IsJustificationTextProperlySet()){
+            $errors[] = $langs->trans('InterventionSurveyMissingJustificationAnswer', $this->label, $this->id);
+        }
+        if(!$this->errors){
+            $this->errors = array();
+        }
+        $this->errors = array_merge($this->errors, $errors);
+        return $this->checkExtrafieldProperlySet() && empty($errors);
+    }
 
     /**
      *
@@ -1152,7 +1219,7 @@ public function save($user, $fk_surveyblocquestion=NULL)
     /**
      *	{@inheritdoc}
      */
-    function insertExtraFields()
+    function insertExtraFields($trigger = '', $userused = NULL)
     {
         // Clean extra fields
         if (count($this->extrafields) == 0) {
@@ -1160,7 +1227,7 @@ public function save($user, $fk_surveyblocquestion=NULL)
         } elseif (is_array($this->array_options)) {
             $tmp = array();
             foreach ($this->array_options as $key => $val) {
-                if (in_array(substr($key,8), $this->extrafields)) {
+                if (in_array($key, $this->extrafields)) {
                     $tmp[$key] = $val;
                 }
             }
@@ -1175,7 +1242,7 @@ public function save($user, $fk_surveyblocquestion=NULL)
             }
         }
 
-        $result = parent::insertExtraFields();
+        $result = parent::insertExtraFields($trigger = '', $userused = NULL);
 
         return $result;
     }
@@ -1197,49 +1264,54 @@ public function save($user, $fk_surveyblocquestion=NULL)
      *	{@inheritdoc}
      * Taken from extended intervention module, may be outdated way of implement informations
      */
-    function showOptionals($extrafields, $mode = 'view', $params = null, $keyprefix = '')
+    function showOptionals($extrafields, $mode = 'view', $params = NULL, $keysuffix = '', $keyprefix = '', $onetrtd = 0)
     {
 
-        $extrafields_question_bloc = clone $extrafields;
+        $extrafields_question = clone $extrafields;
         $tmp = array();
-        foreach ($extrafields_question_bloc->attribute_label as $key => $val) {
+        foreach ($extrafields_question->attribute_label as $key => $val) {
             if (!in_array($key, $this->extrafields)) {
-                // Old usage
-                unset($extrafields_question_bloc->attribute_type[$key]);
-                unset($extrafields_question_bloc->attribute_size[$key]);
-                unset($extrafields_question_bloc->attribute_elementtype[$key]);
-                unset($extrafields_question_bloc->attribute_default[$key]);
-                unset($extrafields_question_bloc->attribute_computed[$key]);
-                unset($extrafields_question_bloc->attribute_unique[$key]);
-                unset($extrafields_question_bloc->attribute_required[$key]);
-                unset($extrafields_question_bloc->attribute_param[$key]);
-                unset($extrafields_question_bloc->attribute_pos[$key]);
-                unset($extrafields_question_bloc->attribute_alwayseditable[$key]);
-                unset($extrafields_question_bloc->attribute_perms[$key]);
-                unset($extrafields_question_bloc->attribute_list[$key]);
-                unset($extrafields_question_bloc->attribute_hidden[$key]);
+                // Old extrafields_question
+                unset($extrafields_question->attribute_type[$key]);
+                unset($extrafields_question->attribute_size[$key]);
+                unset($extrafields_question->attribute_elementtype[$key]);
+                unset($extrafields_question->attribute_default[$key]);
+                unset($extrafields_question->attribute_computed[$key]);
+                unset($extrafields_question->attribute_unique[$key]);
+                unset($extrafields_question->attribute_required[$key]);
+                unset($extrafields_question->attribute_param[$key]);
+                unset($extrafields_question->attribute_pos[$key]);
+                unset($extrafields_question->attribute_alwayseditable[$key]);
+                unset($extrafields_question->attribute_perms[$key]);
+                unset($extrafields_question->attribute_list[$key]);
+                unset($extrafields_question->attribute_hidden[$key]);
+                unset($extrafields_question->attribute_langfile[$key]);
+                unset($extrafields_question->attribute_entityid[$key]);
+                unset($extrafields_question->attribute_entitylabel[$key]);
 
                 // New usage
-                unset($extrafields_question_bloc->attributes[$this->table_element]['type'][$key]);
-                unset($extrafields_question_bloc->attributes[$this->table_element]['label'][$key]);
-                unset($extrafields_question_bloc->attributes[$this->table_element]['size'][$key]);
-                unset($extrafields_question_bloc->attributes[$this->table_element]['elementtype'][$key]);
-                unset($extrafields_question_bloc->attributes[$this->table_element]['default'][$key]);
-                unset($extrafields_question_bloc->attributes[$this->table_element]['computed'][$key]);
-                unset($extrafields_question_bloc->attributes[$this->table_element]['unique'][$key]);
-                unset($extrafields_question_bloc->attributes[$this->table_element]['required'][$key]);
-                unset($extrafields_question_bloc->attributes[$this->table_element]['param'][$key]);
-                unset($extrafields_question_bloc->attributes[$this->table_element]['pos'][$key]);
-                unset($extrafields_question_bloc->attributes[$this->table_element]['alwayseditable'][$key]);
-                unset($extrafields_question_bloc->attributes[$this->table_element]['perms'][$key]);
-                unset($extrafields_question_bloc->attributes[$this->table_element]['list'][$key]);
-                unset($extrafields_question_bloc->attributes[$this->table_element]['ishidden'][$key]);
+                unset($extrafields_question->attributes[$this->table_element]['type'][$key]);
+                unset($extrafields_question->attributes[$this->table_element]['label'][$key]);
+                unset($extrafields_question->attributes[$this->table_element]['size'][$key]);
+                unset($extrafields_question->attributes[$this->table_element]['elementtype'][$key]);
+                unset($extrafields_question->attributes[$this->table_element]['default'][$key]);
+                unset($extrafields_question->attributes[$this->table_element]['computed'][$key]);
+                unset($extrafields_question->attributes[$this->table_element]['unique'][$key]);
+                unset($extrafields_question->attributes[$this->table_element]['required'][$key]);
+                unset($extrafields_question->attributes[$this->table_element]['param'][$key]);
+                unset($extrafields_question->attributes[$this->table_element]['pos'][$key]);
+                unset($extrafields_question->attributes[$this->table_element]['alwayseditable'][$key]);
+                unset($extrafields_question->attributes[$this->table_element]['perms'][$key]);
+                unset($extrafields_question->attributes[$this->table_element]['list'][$key]);
+                unset($extrafields_question->attributes[$this->table_element]['ishidden'][$key]);
+                unset($extrafields_question->attributes[$this->table_element]['entityid'][$key]);
+                unset($extrafields_question->attributes[$this->table_element]['entitylabel'][$key]);
             } else {
                 $tmp[$key] = $val;
             }
         }
-        $extrafields_question_bloc->attribute_label = $tmp;
+        $extrafields_question->attribute_label = $tmp;
 
-        return parent::showOptionals($extrafields_question_bloc, $mode, $params, $keyprefix);
+        return parent::showOptionals($extrafields_question, $mode, $params, $keysuffix, $keyprefix, $onetrtd);
     }
 }

@@ -219,6 +219,7 @@ class SurveyBlocQuestion extends CommonObject
             }
         }
         $this->fetchExtraFieldsInfo();
+        $this->errors = array();
     }
 
     /**
@@ -1106,7 +1107,7 @@ class SurveyBlocQuestion extends CommonObject
 
      public function getChosenStatus(){
         $result = new stdClass();
-        if(is_array($this->status) && $this->fk_chosen_status) {
+        if(is_array($this->status) && $this->fk_chosen_status > 0) {
             foreach($this->status as $status){
                 if($status->id == $this->fk_chosen_status){
                 $result = $status;
@@ -1117,6 +1118,76 @@ class SurveyBlocQuestion extends CommonObject
          $this->chosen_status = $result;
          return $result;
      }
+
+     /**
+     * Is answer properly chosen ?
+     */
+
+    public function IsStatusChosen(){
+        return !!(!$this->mandatory_status || $this->fk_chosen_status > 0);
+     }
+
+     /**
+     * Is justification text for answer properly set ?
+     */
+
+    public function IsJustificationTextProperlySet(){
+        $chosenStatus = $this->getChosenStatus();
+        return !!(!$chosenStatus->mandatory_justification || $this->justification_text);
+     }
+
+     /**
+     * Is label of this bloc properly set ?
+     */
+
+    public function IsBlocLabelProperlySet(){
+        return !!$this->label;
+     }
+
+
+     /**
+      *
+      * Check that extrafields are properly set
+      */
+
+     public function checkExtrafieldProperlySet(){
+          global $langs;
+          $errors = array();
+          foreach (self::$extrafields_cache->attributes[$this->table_element]['required'] as $key => $val) {
+            if (!empty($val) && !in_array(substr($key,8), $this->extrafields) && empty($this->array_options['options_' . $key])) {
+                    $errors[] = $langs->trans('InterventionSurveyBlocMissingExtrafield',
+                    self::$extrafields_cache->attributes[$this->table_element]['label'][$key],
+                    $this->label,
+                    $this->id);
+            }
+        }
+        $this->errors = array_merge($this->errors,$errors);
+        return empty($errors);
+      }
+
+
+      /**
+      * Are some information missing ?
+      */
+
+    public function areDataValid(){
+        global $langs;
+        $errors = array();
+        if(!$this->IsStatusChosen()){
+            $errors[] = $langs->trans('InterventionSurveyMissingStatus', $this->label, $this->id);
+        }
+        if(!$this->IsJustificationTextProperlySet()){
+            $errors[] = $langs->trans('InterventionSurveyMissingJustificationStatus', $this->label, $this->id);
+        }
+        if(!$this->IsBlocLabelProperlySet()){
+            $errors[] = $langs->trans('InterventionSurveyMissingLabel', $this->id);
+        }
+        if(!$this->errors){
+            $this->errors = array();
+        }
+        $this->errors = array_merge($this->errors, $errors);
+        return $this->checkExtrafieldProperlySet() && empty($errors);
+    }
 
      /**
      *	{@inheritdoc}
@@ -1155,7 +1226,7 @@ class SurveyBlocQuestion extends CommonObject
     /**
      *	{@inheritdoc}
      */
-    function insertExtraFields()
+    function insertExtraFields($trigger = '', $userused = NULL)
     {
         // Clean extra fields
         if (count($this->extrafields) == 0) {
@@ -1173,12 +1244,12 @@ class SurveyBlocQuestion extends CommonObject
         // Manage require fields but not selected
         $this->fetchExtraFieldsInfo();
         foreach (self::$extrafields_cache->attributes[$this->table_element]['required'] as $key => $val) {
-            if (!empty($val) && !in_array($key, $this->extrafields)) {
+            if (!empty($val) && !in_array(substr($key,8), $this->extrafields)) {
                 $this->array_options[$key] = '0';
             }
         }
 
-        $result = parent::insertExtraFields();
+        $result = parent::insertExtraFields($trigger = '', $userused = NULL);
 
         return $result;
     }
@@ -1200,7 +1271,7 @@ class SurveyBlocQuestion extends CommonObject
      *	{@inheritdoc}
      * Taken from extended intervention module, may be outdated way of implement informations
      */
-    function showOptionals($extrafields, $mode = 'view', $params = null, $keyprefix = '')
+    function showOptionals($extrafields, $mode = 'view', $params = NULL, $keysuffix = '', $keyprefix = '', $onetrtd = 0)
     {
 
         $extrafields_question_bloc = clone $extrafields;
@@ -1243,6 +1314,6 @@ class SurveyBlocQuestion extends CommonObject
         }
         $extrafields_question_bloc->attribute_label = $tmp;
 
-        return parent::showOptionals($extrafields_question_bloc, $mode, $params, $keyprefix);
+        return parent::showOptionals($extrafields_question_bloc, $mode, $params, $keysuffix, $keyprefix, $onetrtd);
     }
 }
