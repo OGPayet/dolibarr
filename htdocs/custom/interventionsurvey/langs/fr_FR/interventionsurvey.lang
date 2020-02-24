@@ -160,3 +160,27 @@ InterventionSurveyLabelBloc = Titre de ce bloc
 
 # Gestion des fichiers joints sur les interventions avec hooks
 InterventionSurveyDocuments = Documents
+
+#Attribut supplémentaires géré par ce module
+InterventionSurveyCustomerSignatureLabel = Objet contenant la signature du Client
+InterventionSurveyStakeholderSignatureLabel = Objet contenant la signature du Technicien
+InterventionSurveyInvolvedUserLabel = Utilisateur(s) intervenu(s)
+
+#PDF Jupiter
+InterventionSurveyJupiterPDFName                                  = Modèle PDF pour les interventions avec questionnaires
+InterventionSurveyInterventionTitle                               = FICHE D’INTERVENTION
+InterventionSurveyInterventionRef                                 = Intervention n°
+InterventionSurveyInterventionType                                = Type
+InterventionSurveyEstimatedStartDate                              = Programmée le
+InterventionSurveyPdfBenefactorCompany                            = BENEFICIAIRE
+InterventionSurveyPdfPrincipalCompany                             = DONNEUR D’ORDRE
+InterventionSurveyPdfBenefactorCompanyRef                         = Code Client Bénéficiaire
+InterventionSurveyPdfPrincipalCompanyRef                          = Code Client DO
+InterventionSurveyEffectiveWorkingTimeTitle                       = Date et Heure de travail effectif de l’intervention
+InterventionSurveyEffectiveWorkingTimeInvolvedUser                = Intervenant
+InterventionSurveyEffectiveWorkingTimeFrom                        = De
+InterventionSurveyEffectiveWorkingTimeTo                          = A
+InterventionSurveyEffectiveWorkingTimeDuration                    = Total
+InterventionSurveyEffectiveWorkingTimeTotal                       = Total
+InterventionSurveyPdfStakeholderSignature                         = Signature Technicien - Le %s à %s
+InterventionSurveyPdfCustomerSignature                            = Signature Client - Le %s à %s

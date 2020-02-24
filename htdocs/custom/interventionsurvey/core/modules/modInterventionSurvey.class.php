@@ -90,7 +90,7 @@ class modInterventionSurvey extends DolibarrModules
             // Set this to 1 if module has its own barcode directory (core/modules/barcode)
             'barcode' => 0,
             // Set this to 1 if module has its own models directory (core/modules/xxx)
-            'models' => 0,
+            'models' => 1,
             // Set this to 1 if module has its own theme directory (theme)
             'theme' => 0,
             // Set this to relative path of css file if module has its own css file
@@ -410,14 +410,12 @@ class modInterventionSurvey extends DolibarrModules
         if ($result < 0) return -1; // Do not activate module if error 'not allowed' returned when loading module SQL queries (the _load_table run sql with run_sql with the error allowed parameter set to 'default')
 
         // Create extrafields during init
-        //include_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
-        //$extrafields = new ExtraFields($this->db);
-        //$result1=$extrafields->addExtraField('myattr1', "New Attr 1 label", 'boolean', 1,  3, 'thirdparty',   0, 0, '', '', 1, '', 0, 0, '', '', 'interventionsurvey@interventionsurvey', '$conf->interventionsurvey->enabled');
-        //$result2=$extrafields->addExtraField('myattr2', "New Attr 2 label", 'varchar', 1, 10, 'project',      0, 0, '', '', 1, '', 0, 0, '', '', 'interventionsurvey@interventionsurvey', '$conf->interventionsurvey->enabled');
-        //$result3=$extrafields->addExtraField('myattr3', "New Attr 3 label", 'varchar', 1, 10, 'bank_account', 0, 0, '', '', 1, '', 0, 0, '', '', 'interventionsurvey@interventionsurvey', '$conf->interventionsurvey->enabled');
-        //$result4=$extrafields->addExtraField('myattr4', "New Attr 4 label", 'select',  1,  3, 'thirdparty',   0, 1, '', array('options'=>array('code1'=>'Val1','code2'=>'Val2','code3'=>'Val3')), 1,'', 0, 0, '', '', 'interventionsurvey@interventionsurvey', '$conf->interventionsurvey->enabled');
-        //$result5=$extrafields->addExtraField('myattr5', "New Attr 5 label", 'text',    1, 10, 'user',         0, 0, '', '', 1, '', 0, 0, '', '', 'interventionsurvey@interventionsurvey', '$conf->interventionsurvey->enabled');
-
+        $langs->load("interventionsurvey@interventionsurvey");
+        include_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
+        $extrafields = new ExtraFields($this->db);
+        $result1=$extrafields->addExtraField('involved_users', $langs->trans('InterventionSurveyInvolvedUserLabel'), 'chkbxlst', 1000,  NULL, 'fichinterdet',   0, 1, NULL, array('options'=>array('user:firstname|lastname:rowid::statut = 1 AND fk_soc IS NULL'=>null)), 0, '', 1, 0, '', '', 'interventionsurvey@interventionsurvey', '$conf->interventionsurvey->enabled');
+        $result2=$extrafields->addExtraField('stakeholder_signature', $langs->trans('InterventionSurveyStakeholderSignatureLabel'), 'text', 1000,  NULL, 'fichinter',   0, 0, NULL, NULL, 0, '', 0, 0, '', '', 'interventionsurvey@interventionsurvey', '$conf->interventionsurvey->enabled');
+        $result3=$extrafields->addExtraField('customer_signature', $langs->trans('InterventionSurveyCustomerSignatureLabel'), 'text', 1000,  NULL, 'fichinter',   0, 0, NULL, NULL, 0, '', 0, 0, '', '', 'interventionsurvey@interventionsurvey', '$conf->interventionsurvey->enabled');
         // Permissions
         $this->remove($options);
 

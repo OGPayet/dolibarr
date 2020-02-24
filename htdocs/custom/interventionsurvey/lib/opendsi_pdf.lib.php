@@ -8,7 +8,7 @@
 *      @param  string		$pagetype       'P' or 'l'
 *      @return TCPDF						PDF object
 */
-function opendsi_pdf_getInstance($format='',$metric='mm',$pagetype='P')
+function opendsi_interventionsurvey_pdf_getInstance($format='',$metric='mm',$pagetype='P')
 {
     global $conf;
 

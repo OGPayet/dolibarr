@@ -16,7 +16,7 @@
  * or see http://www.gnu.org/
  */
 
-trait libPDFST {
+trait lib_interventionsurvey_PDFST {
 
     var $debug = false;
 

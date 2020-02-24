@@ -33,7 +33,6 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
-
 dol_include_once('/interventionsurvey/lib/libPDFST.trait.php');
 dol_include_once('/interventionsurvey/lib/opendsi_pdf.lib.php');
 dol_include_once('/interventionsurvey/class/interventionsurvey.class.php');
@@ -41,9 +40,9 @@ dol_include_once('/interventionsurvey/class/interventionsurvey.class.php');
 /**
  *	Class to build interventions documents with model Soleil with company relationships
  */
-class pdf_jupiter_st extends ModelePDFFicheinter
+class pdf_jupiter extends ModelePDFFicheinter
 {
-    use libPDFST;
+    use lib_interventionsurvey_PDFST;
     var $db;
     var $name;
     var $description;
@@ -79,8 +78,9 @@ class pdf_jupiter_st extends ModelePDFFicheinter
         global $conf, $langs, $mysoc;
 
         $this->db = $db;
-        $this->name = 'jupiter_st';
-        $this->description = $langs->trans("DocumentModelStandardPDF");
+        $this->name = 'jupiter';
+        $langs->load("interventionsurvey@interventionsurvey");
+        $this->description = $langs->trans("InterventionSurveyJupiterPDFName");
 
         // Dimension page pour format A4
         $this->type = 'pdf';
@@ -131,7 +131,7 @@ class pdf_jupiter_st extends ModelePDFFicheinter
         $outputlangs->load("main");
         $outputlangs->load("dict");
         $outputlangs->load("companies");
-        $outputlangs->load("synergiestech@synergiestech");
+        $outputlangs->load("interventionsurvey@interventionsurvey");
         $outputlangs->load("interventions");
 
         if ($conf->ficheinter->dir_output) {
@@ -166,7 +166,7 @@ class pdf_jupiter_st extends ModelePDFFicheinter
                 $new_object->fetch($object->id);
                 $object = $new_object;
 
-                $object->fetch_survey();
+                $object->fetchSurvey();
                 $object->fetch_thirdparty();
                 $object->fetch_optionals();
                 $this->_fetch_effective_working_time($object, $outputlangs);
@@ -183,7 +183,7 @@ class pdf_jupiter_st extends ModelePDFFicheinter
                 $reshook = $hookmanager->executeHooks('beforePDFCreation', $parameters, $object, $action);    // Note that $action and $object may have been modified by some hooks
 
                 // Create pdf instance
-                $pdf = opendsi_pdf_getInstance($this->format);
+                $pdf = opendsi_interventionsurvey_pdf_getInstance($this->format);
                 $pdf->backgroundImagePath = dol_buildpath('/synergiestechcontrat/img/fond_6.jpg');
 
                 $default_font_size = pdf_getPDFFontSize($outputlangs);    // Must be after pdf_getInstance
@@ -474,14 +474,14 @@ class pdf_jupiter_st extends ModelePDFFicheinter
             $pdf->SetXY($posx + $bulletWidth, $posy);
             $pdf->SetTextColor(0, 0, 60);
             $this->addBullet($pdf, $bulletSize);
-            $pdf->MultiCell($w - $bulletWidth, 3, $outputlangs->transnoentities("InterventionSurveyPdfPrincipalCompany") . " : " . $principal_company->code_client, $multiCellBorder, 'L');
+            $pdf->MultiCell($w - $bulletWidth, 3, $outputlangs->transnoentities("InterventionSurveyPdfPrincipalCompanyRef") . " : " . $principal_company->code_client, $multiCellBorder, 'L');
 
             // Ref benefactor company
             $posy += 5;
             $pdf->SetXY($posx + $bulletWidth, $posy);
             $pdf->SetTextColor(0, 0, 60);
             $this->addBullet($pdf, $bulletSize);
-            $pdf->MultiCell($w - $bulletWidth, 3, $outputlangs->transnoentities("InterventionSurveyPdfBenefactorCompany") . " : " . $benefactor_company->code_client, $multiCellBorder, 'L');
+            $pdf->MultiCell($w - $bulletWidth, 3, $outputlangs->transnoentities("InterventionSurveyPdfBenefactorCompanyRef") . " : " . $benefactor_company->code_client, $multiCellBorder, 'L');
 
             $max_y = max($max_y, $pdf->GetY());
 
@@ -818,7 +818,8 @@ class pdf_jupiter_st extends ModelePDFFicheinter
             $posy_origin = $posy;
 
             // Print label and value of the extrafield
-            $question_bloc_extrafield = '<b><font size="' . ($default_font_size - 1) . '">' . $question_bloc->extrafields_cache->attribute_label[$key] . '&nbsp;:&nbsp;</font></b><font size="' . ($default_font_size - 2) . '">' . $question_bloc->extrafields_cache->showOutputField($key, $question_bloc->array_options['options_' . $key]) . '</font>';
+            $question_bloc->fetchExtraFieldsInfo();
+            $question_bloc_extrafield = '<b><font size="' . ($default_font_size - 1) . '">' . $question_bloc::$extrafields_cache->attribute_label[$key] . '&nbsp;:&nbsp;</font></b><font size="' . ($default_font_size - 2) . '">' . $question_bloc::$extrafields_cache->showOutputField($key, $question_bloc->array_options['options_' . $key]) . '</font>';
             $pdf->writeHTMLCell($width_question - ($circle_offset * 2 + $margin), 3, $posx_question + $circle_offset * 2 + $margin, $posy, trim($question_bloc_extrafield), $border, 1, false, true, 'L', true);
             $posy = $pdf->GetY();
             $page = $pdf->getPage();
@@ -858,7 +859,8 @@ class pdf_jupiter_st extends ModelePDFFicheinter
             $posy_origin = $posy;
 
             // Print label (+ answer justificatory) of the question
-            $question_answer = '<b><font size="' . ($default_font_size - 1) . '">' . $question->label . '&nbsp;:&nbsp;</font></b><font size="' . ($default_font_size - 2) . '">' . $question->justification_text . '</font>';
+            $question_label = $question->label . (!empty($question->justification_text) ? '&nbsp;:&nbsp;':'');
+            $question_answer = '<b><font size="' . ($default_font_size - 1) . '">' . $question_label . '</font></b><font size="' . ($default_font_size - 2) . '">' . $question->justification_text . '</font>';
             $pdf->writeHTMLCell($width_question - ($circle_offset * 2 + $margin), 3, $posx_question + $circle_offset * 2 + $margin, $posy, trim($question_answer), $border, 1, false, true, 'L', true);
             $posy = $pdf->GetY();
             $page = $pdf->getPage();
@@ -880,6 +882,7 @@ class pdf_jupiter_st extends ModelePDFFicheinter
             $pdf->setPage($page);
 
             // Print extrafields of the question
+            $question->fetchExtraFieldsInfo();
             $question->fetch_optionals();
             foreach ($question->extrafields as $key) {
                 // Save for the calculation of the position Y origin
@@ -888,7 +891,7 @@ class pdf_jupiter_st extends ModelePDFFicheinter
                 $posy_origin = $posy;
 
                 // Print label and value of the extrafield
-                $question_bloc_extrafield = '<b><font size="' . ($default_font_size - 1) . '">' . $question->extrafields_cache->attribute_label[$key] . '&nbsp;:&nbsp;</font></b><font size="' . ($default_font_size - 2) . '">' . $question->extrafields_cache->showOutputField($key, $line->array_options['options_' . $key]) . '</font>';
+                $question_bloc_extrafield = '<b><font size="' . ($default_font_size - 1) . '">' . $question::$extrafields_cache->attribute_label[$key] . '&nbsp;:&nbsp;</font></b><font size="' . ($default_font_size - 2) . '">' . $question::$extrafields_cache->showOutputField($key, $question->array_options['options_' . $key]) . '</font>';
                 $pdf->writeHTMLCell($width_question_extrafield - ($circle_offset * 2 + $margin), 3, $posx_question_extrafield + $circle_offset * 2 + $margin, $posy, trim($question_bloc_extrafield), $border, 1, false, true, 'L', true);
                 $posy = $pdf->GetY();
                 $page = $pdf->getPage();
@@ -942,7 +945,7 @@ class pdf_jupiter_st extends ModelePDFFicheinter
             foreach ($object->lines as $line) {
                 // Get involved user id
                 $line->fetch_optionals();
-                $user_ids = !empty($line->array_options['options_st_involved_users']) ? explode(',', $line->array_options['options_st_involved_users']) : array('');
+                $user_ids = !empty($line->array_options['options_involved_users']) ? explode(',', $line->array_options['options_involved_users']) : array('');
 
                 foreach ($user_ids as $user_id) {
                     if (!isset($this->effective_working_time[$user_id])) {
@@ -1025,7 +1028,7 @@ class pdf_jupiter_st extends ModelePDFFicheinter
 
         // Print title of the table
         $pdf->SetXY($column_posx_involved_user, $posy);
-        $pdf->MultiCell($w, 3, $outputlangs->transnoentities("SynergiesTechPDFInterventionEffectiveWorkingTimeTitle"), 1, 'C', 1);
+        $pdf->MultiCell($w, 3, $outputlangs->transnoentities("InterventionSurveyEffectiveWorkingTimeTitle"), 1, 'C', 1);
 
         // Define positions, colors and font size
         $posy = $top_table = $pdf->GetY();
@@ -1036,22 +1039,22 @@ class pdf_jupiter_st extends ModelePDFFicheinter
 
         // Print involved user header of the table
         $pdf->SetXY($column_posx_involved_user + $table_padding_x, $posy + $table_padding_y);
-        $pdf->MultiCell($column_w_involved_user - ($table_padding_x * 2), 3, $outputlangs->transnoentities("SynergiesTechPDFInterventionEffectiveWorkingTimeInvolvedUser"), 0, 'C', 0);
+        $pdf->MultiCell($column_w_involved_user - ($table_padding_x * 2), 3, $outputlangs->transnoentities("InterventionSurveyEffectiveWorkingTimeInvolvedUser"), 0, 'C', 0);
         $max_posy = max($pdf->GetY(), $max_posy);
 
         // Print from header of the table
         $pdf->SetXY($column_posx_from + $table_padding_x, $posy + $table_padding_y);
-        $pdf->MultiCell($column_w_from - ($table_padding_x * 2), 3, $outputlangs->transnoentities("SynergiesTechPDFInterventionEffectiveWorkingTimeFrom"), 0, 'C', 0);
+        $pdf->MultiCell($column_w_from - ($table_padding_x * 2), 3, $outputlangs->transnoentities("InterventionSurveyEffectiveWorkingTimeFrom"), 0, 'C', 0);
         $max_posy = max($pdf->GetY(), $max_posy);
 
         // Print to header of the table
         $pdf->SetXY($column_posx_to + $table_padding_x, $posy + $table_padding_y);
-        $pdf->MultiCell($column_w_to - ($table_padding_x * 2), 3, $outputlangs->transnoentities("SynergiesTechPDFInterventionEffectiveWorkingTimeTo"), 0, 'C', 0);
+        $pdf->MultiCell($column_w_to - ($table_padding_x * 2), 3, $outputlangs->transnoentities("InterventionSurveyEffectiveWorkingTimeTo"), 0, 'C', 0);
         $max_posy = max($pdf->GetY(), $max_posy);
 
         // Print duration header of the table
         $pdf->SetXY($column_posx_duration + $table_padding_x, $posy + $table_padding_y);
-        $pdf->MultiCell($column_w_duration - ($table_padding_x * 2), 3, $outputlangs->transnoentities("SynergiesTechPDFInterventionEffectiveWorkingTimeDuration"), 0, 'C', 0);
+        $pdf->MultiCell($column_w_duration - ($table_padding_x * 2), 3, $outputlangs->transnoentities("InterventionSurveyEffectiveWorkingTimeDuration"), 0, 'C', 0);
         $max_posy = max($pdf->GetY(), $max_posy);
 
         // Print bottom line
@@ -1128,7 +1131,7 @@ class pdf_jupiter_st extends ModelePDFFicheinter
 
         // Print total label
         $pdf->SetXY($column_posx_to + $table_padding_x, $posy + $table_padding_y);
-        $pdf->MultiCell($column_w_to - ($table_padding_x * 2), 3, $outputlangs->transnoentities("SynergiesTechPDFInterventionEffectiveWorkingTimeTotal"), 0, 'C', 0);
+        $pdf->MultiCell($column_w_to - ($table_padding_x * 2), 3, $outputlangs->transnoentities("InterventionSurveyEffectiveWorkingTimeTotal"), 0, 'C', 0);
         $max_posy = max($pdf->GetY(), $max_posy);
 
         // Print total value
@@ -1177,7 +1180,7 @@ class pdf_jupiter_st extends ModelePDFFicheinter
 
         // Stakeholder signature
         //----------------------------------
-        $signature_info = !empty($object->array_options['options_st_stakeholder_signature']) ? json_decode($object->array_options['options_st_stakeholder_signature'], true) : array();
+        $signature_info = !empty($object->array_options['options_stakeholder_signature']) ? json_decode($object->array_options['options_stakeholder_signature'], true) : array();
         $signature_info_day = dol_print_date($signature_info['date'], 'day', false, $outputlangs);
         $signature_info_day = !empty($signature_info_day) ? $signature_info_day : '...';
         $signature_info_hour = dol_print_date($signature_info['date'], 'hour', false, $outputlangs);
@@ -1209,7 +1212,7 @@ class pdf_jupiter_st extends ModelePDFFicheinter
 
         // Customer signature
         //----------------------------------
-        $signature_info = !empty($object->array_options['options_st_customer_signature']) ? json_decode($object->array_options['options_st_customer_signature'], true) : array();
+        $signature_info = !empty($object->array_options['options_customer_signature']) ? json_decode($object->array_options['options_customer_signature'], true) : array();
         $signature_info_day = dol_print_date($signature_info['date'], 'day', false, $outputlangs);
         $signature_info_day = !empty($signature_info_day) ? $signature_info_day : '...';
         $signature_info_hour = dol_print_date($signature_info['date'], 'hour', false, $outputlangs);
