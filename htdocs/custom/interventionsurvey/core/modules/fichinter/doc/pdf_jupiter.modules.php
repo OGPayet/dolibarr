@@ -63,11 +63,6 @@ class pdf_jupiter_st extends ModelePDFFicheinter
 
     var $emetteur;    // Objet societe qui emet
 
-    var $extrafields_question_bloc;
-    var $extralabels_question_bloc;
-    var $extrafields_question;
-    var $extralabels_question;
-
     /**
      *  List of effective working time by technician
      * @var array
@@ -157,7 +152,7 @@ class pdf_jupiter_st extends ModelePDFFicheinter
                 }
             }
 
-            $temp_dir_signature = DOL_DATA_ROOT . '/synergiestech/temp/'.$object->element.'_'.$object->id;
+            $temp_dir_signature = DOL_DATA_ROOT . '/interventionsurvey/temp/'.$object->element.'_'.$object->id;
             if (file_exists($temp_dir_signature)) {
                 unlink($temp_dir_signature);
             }
@@ -167,7 +162,7 @@ class pdf_jupiter_st extends ModelePDFFicheinter
             }
 
             if (file_exists($dir) && file_exists($temp_dir_signature)) {
-                $new_object = new ExtendedIntervention($this->db);
+                $new_object = new InterventionSurvey($this->db);
                 $new_object->fetch($object->id);
                 $object = $new_object;
 
@@ -262,8 +257,8 @@ class pdf_jupiter_st extends ModelePDFFicheinter
                 $iniY = $curY = $nexY = $tab_top;
 
                 // Print survey
-                foreach ($object->survey as $survey_bloc) {
-                    $curY = $this->_survey_bloc_area($pdf, $object, $survey_bloc, $curY, $outputlangs, $heightforfooter) + 2;
+                foreach ($object->survey as $survey_part) {
+                    $curY = $this->_survey_bloc_part($pdf, $object, $survey_part, $curY, $outputlangs, $heightforfooter) + 2;
                 }
 
                 $bottomlasttab = $this->page_hauteur - $heightforinfotot - $heightforsignature - $heightforfreetext - $heightforfooter + 3;
@@ -327,7 +322,7 @@ class pdf_jupiter_st extends ModelePDFFicheinter
         $outputlangs->load("dict");
         $outputlangs->load("companies");
         $outputlangs->load("interventions");
-        $outputlangs->load("synergiestech@synergiestech");
+        $outputlangs->load("interventionsurvey@interventionsurvey");
         if ($conf->companyrelationships->enabled) {
             $outputlangs->load("companyrelationships@companyrelationships");
         }
@@ -449,7 +444,7 @@ class pdf_jupiter_st extends ModelePDFFicheinter
             $pdf->SetFont('', 'B', $default_font_size + 3);
             $pdf->SetXY($posx, $posy);
             call_user_func_array(array($pdf, 'SetTextColor'), $this->main_color);
-            $title = $outputlangs->transnoentities("SynergiesTechPDFInterventionTitle");
+            $title = $outputlangs->transnoentities("InterventionSurveyInterventionTitle");
             $pdf->MultiCell($w, 5, $title, $multiCellBorder, 'L');
             $pdf->SetFont('', '', $default_font_size - 2);
 
@@ -458,35 +453,35 @@ class pdf_jupiter_st extends ModelePDFFicheinter
             $pdf->SetXY($posx + $bulletWidth, $posy);
             $pdf->SetTextColor(0, 0, 60);
             $this->addBullet($pdf, $bulletSize);
-            $pdf->MultiCell($w - $bulletWidth, 4, $outputlangs->transnoentities("SynergiesTechPDFInterventionRef") . " : " . $outputlangs->convToOutputCharset($object->ref), $multiCellBorder, 'L');
+            $pdf->MultiCell($w - $bulletWidth, 4, $outputlangs->transnoentities("InterventionSurveyInterventionRef") . " : " . $outputlangs->convToOutputCharset($object->ref), $multiCellBorder, 'L');
 
             // Type
             $posy += 5;
             $pdf->SetXY($posx + $bulletWidth, $posy);
             $pdf->SetTextColor(0, 0, 60);
             $this->addBullet($pdf, $bulletSize);
-            $pdf->MultiCell($w - $bulletWidth, 3, $outputlangs->transnoentities("SynergiesTechPDFInterventionType") . " : " . $extrafields->showOutputField('ei_type', $object->array_options['options_ei_type']), $multiCellBorder, 'L');
+            $pdf->MultiCell($w - $bulletWidth, 3, $outputlangs->transnoentities("InterventionSurveyInterventionType") . " : " . $extrafields->showOutputField('ei_type', $object->array_options['options_ei_type']), $multiCellBorder, 'L');
 
             // Estimated date
             $posy += 5;
             $pdf->SetXY($posx + $bulletWidth, $posy);
             $pdf->SetTextColor(0, 0, 60);
             $this->addBullet($pdf, $bulletSize);
-            $pdf->MultiCell($w - $bulletWidth, 3, $outputlangs->transnoentities("SynergiesTechPDFInterventionEstimatedDate") . " : " . dol_print_date($object->array_options['options_st_estimated_begin_date'], "day", false, $outputlangs), $multiCellBorder, 'L');
+            $pdf->MultiCell($w - $bulletWidth, 3, $outputlangs->transnoentities("InterventionSurveyEstimatedStartDate") . " : " . dol_print_date($object->array_options['options_st_estimated_begin_date'], "day", false, $outputlangs), $multiCellBorder, 'L');
 
             // Ref principal company
             $posy += 5;
             $pdf->SetXY($posx + $bulletWidth, $posy);
             $pdf->SetTextColor(0, 0, 60);
             $this->addBullet($pdf, $bulletSize);
-            $pdf->MultiCell($w - $bulletWidth, 3, $outputlangs->transnoentities("SynergiesTechPDFInterventionRefPrincipalCompany") . " : " . $principal_company->code_client, $multiCellBorder, 'L');
+            $pdf->MultiCell($w - $bulletWidth, 3, $outputlangs->transnoentities("InterventionSurveyPdfPrincipalCompany") . " : " . $principal_company->code_client, $multiCellBorder, 'L');
 
             // Ref benefactor company
             $posy += 5;
             $pdf->SetXY($posx + $bulletWidth, $posy);
             $pdf->SetTextColor(0, 0, 60);
             $this->addBullet($pdf, $bulletSize);
-            $pdf->MultiCell($w - $bulletWidth, 3, $outputlangs->transnoentities("SynergiesTechPDFInterventionRefBenefactorCompany") . " : " . $benefactor_company->code_client, $multiCellBorder, 'L');
+            $pdf->MultiCell($w - $bulletWidth, 3, $outputlangs->transnoentities("InterventionSurveyPdfBenefactorCompany") . " : " . $benefactor_company->code_client, $multiCellBorder, 'L');
 
             $max_y = max($max_y, $pdf->GetY());
 
@@ -502,7 +497,7 @@ class pdf_jupiter_st extends ModelePDFFicheinter
             call_user_func_array(array($pdf, 'SetTextColor'), $this->main_color);
             $pdf->SetFont('', 'B', $default_font_size);
             $pdf->SetXY($posx, $posy);
-            $pdf->MultiCell($widthrecbox, 5, mb_strtoupper($outputlangs->transnoentities("SynergiesTechPDFInterventionBenefactorCompany"), 'UTF-8'), $multiCellBorder, 'L');
+            $pdf->MultiCell($widthrecbox, 5, mb_strtoupper($outputlangs->transnoentities("InterventionSurveyPdfBenefactorCompany"), 'UTF-8'), $multiCellBorder, 'L');
             $pdf->SetTextColor(0, 0, 0);
             $posy = $pdf->getY();
 
@@ -540,7 +535,7 @@ class pdf_jupiter_st extends ModelePDFFicheinter
             call_user_func_array(array($pdf, 'SetTextColor'), $this->main_color);
             $pdf->SetFont('', 'B', $default_font_size);
             $pdf->SetXY($posx, $posy);
-            $pdf->MultiCell($widthrecbox, 5, $outputlangs->transnoentities("SynergiesTechPDFInterventionPrincipalCompany"), $multiCellBorder, 'L');
+            $pdf->MultiCell($widthrecbox, 5, $outputlangs->transnoentities("InterventionSurveyPdfPrincipalCompany"), $multiCellBorder, 'L');
             $pdf->SetTextColor(0, 0, 0);
             $posy = $pdf->getY();
 
@@ -589,18 +584,18 @@ class pdf_jupiter_st extends ModelePDFFicheinter
     }
 
     /**
-	 *	Show area for the survey bloc
+	 *	Show area for the survey part
 	 *
 	 * @param   PDF			    $pdf                Object PDF
      * @param   Fichinter       $object             Object intervention
-     * @param   EISurveyBloc    $survey_bloc        Object survey block
+     * @param   SurveyPart    $survey_part         Object survey part
      * @param   int			    $posy			    Position Y of the bloc
 	 * @param   Translate	    $outputlangs	    Objet langs
      * @param   int			    $heightforfooter	Height for footer
      *
 	 * @return  int							        Position pour suite
 	 */
-	function _survey_bloc_area(&$pdf, $object, $survey_bloc, $posy, $outputlangs, $heightforfooter)
+	function _survey_bloc_part(&$pdf, $object, $survey_part, $posy, $outputlangs, $heightforfooter)
     {
         global $conf;
 
@@ -620,9 +615,9 @@ class pdf_jupiter_st extends ModelePDFFicheinter
         $pdf->SetTextColor(255, 255, 255);
 
         // Print title of the table
-        $survey_bloc_title = $survey_bloc->fk_equipment != 0 ? $outputlangs->transnoentities('SynergiesTechPDFInterventionSurveyBlocTitle', $survey_bloc->product_label, $survey_bloc->product_ref, $survey_bloc->equipment_ref) : $outputlangs->transnoentities('SynergiesTechPDFInterventionSurveyBlocGeneralTitle');
+        $survey_part_title = $survey_part->label;
         $pdf->SetXY($posx, $posy);
-        $pdf->MultiCell($w, 3, $survey_bloc_title, 1, 'C', 1);
+        $pdf->MultiCell($w, 3, $survey_part_title, 1, 'C', 1);
 
         $pdf->SetFillColor(255, 255, 255);
         $pdf->SetDrawColor(0, 0, 0);
@@ -631,12 +626,12 @@ class pdf_jupiter_st extends ModelePDFFicheinter
         $start_y = $pdf->GetY();
         $start_page = $pdf->GetPage();
 
-        $nb_question_bloc = count($survey_bloc->survey);
+        $nb_question_bloc = count($survey_part->blocs);
 
         // Print left column
         $cur_Y = $start_y;
         $idx = 0;
-        foreach ($survey_bloc->survey as $question_bloc) {
+        foreach ($survey_part->blocs as $question_bloc) {
             $idx++;
             if ($idx % 2 == 0) continue;
 
@@ -652,7 +647,7 @@ class pdf_jupiter_st extends ModelePDFFicheinter
         // Print right column
         $cur_Y = $start_y;
         $idx = 0;
-        foreach ($survey_bloc->survey as $question_bloc) {
+        foreach ($survey_part->blocs as $question_bloc) {
             $idx++;
             if ($idx % 2 == 1) continue;
 
@@ -741,7 +736,7 @@ class pdf_jupiter_st extends ModelePDFFicheinter
 	 *	Show area for the question bloc
 	 *
 	 * @param   PDF			    $pdf            Object PDF
-     * @param   EIQuestionBloc  $question_bloc  Object question block
+     * @param   SurveyBlocQuestion  $question_bloc  Object question block
      * @param   int			    $posx			Position X of the bloc
      * @param   int			    $posy			Position Y of the bloc
      * @param   int			    $width			Width of the bloc
@@ -765,9 +760,10 @@ class pdf_jupiter_st extends ModelePDFFicheinter
         $circle_offset = $circle_ray + 1;
         $circle_style = '';
         $circle_fill_color = array();
-        if (!empty($question_bloc->color_status)) {
+        $chosenStatus = $question_bloc->getChosenStatus();
+        if (!empty($chosenStatus->color)) {
             $circle_style = 'F';
-            list($r, $g, $b) = sscanf($question_bloc->color_status, "#%02x%02x%02x");
+            list($r, $g, $b) = sscanf($chosenStatus->color, "#%02x%02x%02x");
             $circle_fill_color = array($r, $g, $b);
         }
 
@@ -776,9 +772,14 @@ class pdf_jupiter_st extends ModelePDFFicheinter
         $last_page_margins = $pdf->getMargins();
         $posy_origin = $posy;
 
-        // Print label (+ complementary text and status justificatory) of the question bloc
-        $question_bloc_complementary_text = $question_bloc->complementary_question_bloc . (!empty($question_bloc->complementary_question_bloc) && !empty($question_bloc->justificatory_status) ? ' - ' : '') . $question_bloc->justificatory_status;
-        $question_bloc_title = '<b><font size="' . $default_font_size . '">' . $question_bloc->label_question_bloc . (!empty($question_bloc_complementary_text) ? '&nbsp;->&nbsp;</font><font size="' . ($default_font_size - 1) . '">' . $question_bloc_complementary_text : '') . '</font></b>';
+        // Print label (+ description and status justificatory) of the question bloc
+        $question_bloc_sub_label = $question_bloc->desription .
+        (!empty($question_bloc->desription) && !empty($question_bloc->justification_text) ? ' - ' : '')
+        . $question_bloc->justification_text;
+        $question_bloc_title = '<b><font size="' .
+        $default_font_size . '">' . $question_bloc->label
+        . (!empty($question_bloc_sub_label) ? '&nbsp;->&nbsp;</font><font size="'
+        . ($default_font_size - 1) . '">' . $question_bloc_sub_label : '') . '</font></b>';
         $pdf->writeHTMLCell($width - ($circle_offset * 2 + $margin), 3, $posx + $circle_offset * 2 + $margin, $posy, trim($question_bloc_title), $border, 1, false, true, 'L', true);
         $posy = $pdf->GetY();
         $page = $pdf->getPage();
@@ -810,14 +811,14 @@ class pdf_jupiter_st extends ModelePDFFicheinter
 
         // Print extrafields of the question bloc
         $question_bloc->fetch_optionals();
-        foreach ($question_bloc->extrafields_question_bloc as $key) {
+        foreach ($question_bloc->extrafields as $key) {
             // Save for the calculation of the position Y origin
             $page_origin = $pdf->getPage();
             $last_page_margins = $pdf->getMargins();
             $posy_origin = $posy;
 
             // Print label and value of the extrafield
-            $question_bloc_extrafield = '<b><font size="' . ($default_font_size - 1) . '">' . $this->extrafields_question_bloc->attribute_label[$key] . '&nbsp;:&nbsp;</font></b><font size="' . ($default_font_size - 2) . '">' . $this->extrafields_question_bloc->showOutputField($key, $question_bloc->array_options['options_' . $key]) . '</font>';
+            $question_bloc_extrafield = '<b><font size="' . ($default_font_size - 1) . '">' . $question_bloc->extrafields_cache->attribute_label[$key] . '&nbsp;:&nbsp;</font></b><font size="' . ($default_font_size - 2) . '">' . $question_bloc->extrafields_cache->showOutputField($key, $question_bloc->array_options['options_' . $key]) . '</font>';
             $pdf->writeHTMLCell($width_question - ($circle_offset * 2 + $margin), 3, $posx_question + $circle_offset * 2 + $margin, $posy, trim($question_bloc_extrafield), $border, 1, false, true, 'L', true);
             $posy = $pdf->GetY();
             $page = $pdf->getPage();
@@ -840,13 +841,14 @@ class pdf_jupiter_st extends ModelePDFFicheinter
         }
 
         // Print questions
-        foreach ($question_bloc->lines as $line) {
+        foreach ($question_bloc->questions as $question) {
+            $answer=$question->getChosenAnswer();
             // Define info for color answer of the question
             $circle_style = '';
             $circle_fill_color = array();
-            if (!empty($line->color_answer)) {
+            if (!empty($answer->color)) {
                 $circle_style = 'F';
-                list($r, $g, $b) = sscanf($line->color_answer, "#%02x%02x%02x");
+                list($r, $g, $b) = sscanf($answer->color, "#%02x%02x%02x");
                 $circle_fill_color = array($r, $g, $b);
             }
 
@@ -856,7 +858,7 @@ class pdf_jupiter_st extends ModelePDFFicheinter
             $posy_origin = $posy;
 
             // Print label (+ answer justificatory) of the question
-            $question_answer = '<b><font size="' . ($default_font_size - 1) . '">' . $line->label_question . '&nbsp;:&nbsp;</font></b><font size="' . ($default_font_size - 2) . '">' . $line->text_answer . '</font>';
+            $question_answer = '<b><font size="' . ($default_font_size - 1) . '">' . $question->label . '&nbsp;:&nbsp;</font></b><font size="' . ($default_font_size - 2) . '">' . $question->justification_text . '</font>';
             $pdf->writeHTMLCell($width_question - ($circle_offset * 2 + $margin), 3, $posx_question + $circle_offset * 2 + $margin, $posy, trim($question_answer), $border, 1, false, true, 'L', true);
             $posy = $pdf->GetY();
             $page = $pdf->getPage();
@@ -878,15 +880,15 @@ class pdf_jupiter_st extends ModelePDFFicheinter
             $pdf->setPage($page);
 
             // Print extrafields of the question
-            $line->fetch_optionals();
-            foreach ($line->extrafields_question as $key) {
+            $question->fetch_optionals();
+            foreach ($question->extrafields as $key) {
                 // Save for the calculation of the position Y origin
                 $page_origin = $pdf->getPage();
                 $last_page_margins = $pdf->getMargins();
                 $posy_origin = $posy;
 
                 // Print label and value of the extrafield
-                $question_bloc_extrafield = '<b><font size="' . ($default_font_size - 1) . '">' . $this->extrafields_question->attribute_label[$key] . '&nbsp;:&nbsp;</font></b><font size="' . ($default_font_size - 2) . '">' . $this->extrafields_question->showOutputField($key, $line->array_options['options_' . $key]) . '</font>';
+                $question_bloc_extrafield = '<b><font size="' . ($default_font_size - 1) . '">' . $question->extrafields_cache->attribute_label[$key] . '&nbsp;:&nbsp;</font></b><font size="' . ($default_font_size - 2) . '">' . $question->extrafields_cache->showOutputField($key, $line->array_options['options_' . $key]) . '</font>';
                 $pdf->writeHTMLCell($width_question_extrafield - ($circle_offset * 2 + $margin), 3, $posx_question_extrafield + $circle_offset * 2 + $margin, $posy, trim($question_bloc_extrafield), $border, 1, false, true, 'L', true);
                 $posy = $pdf->GetY();
                 $page = $pdf->getPage();
@@ -1165,7 +1167,7 @@ class pdf_jupiter_st extends ModelePDFFicheinter
 
         $border = 0;
         $w = ($this->page_largeur - $this->marge_gauche - $this->marge_droite - 4) / 2;
-        $temp_dir_signature = DOL_DATA_ROOT . '/synergiestech/temp/' . $object->element . '_' . $object->id;
+        $temp_dir_signature = DOL_DATA_ROOT . '/interventionsurvey/temp/' . $object->element . '_' . $object->id;
 
         $start_y = $end_y = $posy;
         $signature_left_posx = $this->marge_droite + $w + 4;
@@ -1194,7 +1196,7 @@ class pdf_jupiter_st extends ModelePDFFicheinter
         }
 
         // Print texte
-        $signature_title = $outputlangs->transnoentities('SynergiesTechPDFInterventionSignatureStakeholderTitle', $signature_info_day, $signature_info_hour);
+        $signature_title = $outputlangs->transnoentities('InterventionSurveyPdfStakeholderSignature', $signature_info_day, $signature_info_hour);
         $signature_people = array();
         foreach ($signature_info_people as $person) {
             $signature_people[] = $person['name'];
@@ -1226,7 +1228,7 @@ class pdf_jupiter_st extends ModelePDFFicheinter
         }
 
         // Print texte
-        $signature_title = $outputlangs->transnoentities('SynergiesTechPDFInterventionSignatureCustomerTitle', $signature_info_day, $signature_info_hour);
+        $signature_title = $outputlangs->transnoentities('InterventionSurveyPdfCustomerSignature', $signature_info_day, $signature_info_hour);
         $signature_people = array();
         foreach ($signature_info_people as $person) {
             $signature_people[] = $person['name'];
