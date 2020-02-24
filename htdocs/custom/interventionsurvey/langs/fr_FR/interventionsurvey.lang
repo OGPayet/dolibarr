@@ -163,6 +163,7 @@ InterventionSurveyLabelBloc = Titre de ce bloc
 InterventionSurveyJustificationStatusText = Justification fournie
 InterventionSurveyAnswerJustificationText = Justification fournie
 InterventionSurveyPrivateBloc = Bloc privé
+InterventionSurveyEmptySurvey = Le questionnaire est vide
 
 
 # Gestion des fichiers joints sur les interventions avec hooks

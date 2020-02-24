@@ -164,24 +164,26 @@ if ($object->id > 0) {
 
     print '<br>';
 
-    if ($object->statut == InterventionSurvey::STATUS_DRAFT) {
-        print $langs->trans('InterventionSurveyMustBeValidated');
-        print '<br>';
-    }
-    if ($readOnlySurvey) {
-        print $langs->trans('InterventionSurveyReadOnlyMode');
-    }
-        $reshook = $hookmanager->executeHooks('formConfirm', array(), $object, $action); // Note that $action and $object may have been modified by hook
-        if (empty($reshook)) $formconfirm.=$hookmanager->resPrint;
-        elseif ($reshook > 0) $formconfirm=$hookmanager->resPrint;
 
-	// Print form confirm
-          print $formconfirm;
-        //Prepare needed data for following form
-          $object->fetch_attached_files();
-          $object->fetchSurvey();
+    //Prepare needed data for following form
+    $object->fetch_attached_files();
+    $object->fetchSurvey();
+
+       if ($object->statut == InterventionSurvey::STATUS_DRAFT) {
+            print $langs->trans('InterventionSurveyMustBeValidated');
+            print '<br>';
+        }
+
+        if ($readOnlySurvey) {
+            print $langs->trans('InterventionSurveyReadOnlyMode');
+        }
+
+        if(empty($object->survey)){
+            print $langs->trans('InterventionSurveyEmptySurvey');
+            print '<br>';
+        }
         // Print left question bloc of the survey
-        if (!empty($object->survey)) {
+        else {
                 foreach ($object->survey as $survey_part) {
                     print load_fiche_titre('<b>'. $survey_part->label .'</b>', '', '');
                     $idx = 1;

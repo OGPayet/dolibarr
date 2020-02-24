@@ -606,6 +606,35 @@ public function saveSurvey($user)
     }
 }
 
+/**
+ *
+ * Delete Survey
+ *
+ *
+ */
+
+public function deleteSurvey($user, $notrigger = false)
+{
+    global $langs;
+    $this->db->begin();
+    $errors = array();
+
+    foreach($this->survey as $position=>$surveyPart){
+        $surveyPart->delete($user, $notrigger);
+        $errors = array_merge($errors, $surveyPart->errors ?? array());
+    }
+
+    if(empty($errors)){
+        $this->db->commit();
+        return 1;
+    }
+    else{
+        $this->db->rollback();
+        $this->errors = $errors;
+        return -1;
+    }
+}
+
 
 
     /**

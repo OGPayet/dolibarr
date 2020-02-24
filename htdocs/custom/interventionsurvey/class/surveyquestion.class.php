@@ -491,8 +491,25 @@ class SurveyQuestion extends CommonObject
 	 */
 	public function delete(User $user, $notrigger = false)
 	{
-		return $this->deleteCommon($user, $notrigger);
-		//return $this->deleteCommon($user, $notrigger, 1);
+        $this->db->begin();
+        $this->deleteCommon($user, $notrigger);
+        $errors = array();
+        $errors = array_merge($errors, $this->errors);
+        if(empty($errors)){
+            foreach($this->answers as $answer){
+                $answer->delete($user, $notrigger);
+                $errors = array_merge($errors, $answer->errors ?? array());
+            }
+        }
+        if(empty($errors)){
+            $this->db->commit();
+            return 1;
+        }
+        else{
+            $this->db->rollback();
+            $this->errors = $errors;
+            return -1;
+        }
 	}
 
 	/**

@@ -956,7 +956,7 @@ class SurveyAnswerPredefinedText extends CommonObject
 public function setVarsFromFetchObj(&$obj, $parent = null){
     parent::setVarsFromFetchObj($obj);
     if(isset($parent)){
-        $this->surveyPart = $parent;
+        $this->surveyAnswer = $parent;
     }
     $dictionaryRowId = is_array($obj) ? $obj["c_rowid"] : $obj->c_rowid;
     $this->fk_c_survey_answer_predefined_text = $dictionaryRowId;
