@@ -105,6 +105,7 @@ class SurveyBlocStatusPredefinedText extends CommonObject
 	public $label;
 	// END MODULEBUILDER PROPERTIES
 
+    public $surveyBlocStatus;
 
 	// If this object has a subtable with lines
 
@@ -295,8 +296,11 @@ class SurveyBlocStatusPredefinedText extends CommonObject
 	 * @param string $ref  Ref
 	 * @return int         <0 if KO, 0 if not found, >0 if OK
 	 */
-	public function fetch($id, $ref = null)
+	public function fetch($id, $ref = null, $parent = null)
 	{
+        if(isset($parent)){
+            $this->surveyBlocStatus = $parent;
+        }
 		$result = $this->fetchCommon($id, $ref);
 		return $result;
 	}
@@ -954,8 +958,11 @@ class SurveyBlocStatusPredefinedText extends CommonObject
  *
  */
 
-public function setVarsFromFetchObj(&$obj){
+public function setVarsFromFetchObj(&$obj, $parent = null){
     parent::setVarsFromFetchObj($obj);
+    if(isset($parent)){
+        $this->surveyPart = $parent;
+    }
     $dictionaryRowId = is_array($obj) ? $obj["c_rowid"] : $obj->c_rowid;
     $this->fk_c_survey_bloc_status_predefined_text = $dictionaryRowId;
 }
@@ -969,12 +976,19 @@ public function setVarsFromFetchObj(&$obj){
 
 public function save($user, $fk_surveyblocstatus=NULL)
 {
+    global $langs;
+
     $this->db->begin();
     if(isset($fk_surveyblocstatus)){
         $this->fk_surveyblocstatus = $fk_surveyblocstatus;
     }
     $errors = array();
-
+    if($this->is_survey_read_only()){
+        $errors[] = $langs->trans('InterventionSurveyReadOnlyMode');
+        $this->db->rollback();
+        $this->errors = $errors;
+        return -1;
+    }
     if($this->id){
         $this->update($user);
     }
@@ -992,4 +1006,37 @@ public function save($user, $fk_surveyblocstatus=NULL)
         return -1;
     }
 }
+
+    /**
+     * Fetch parent object common
+     */
+
+    public function fetchParentCommon($classname, $id, &$field){
+        if(!isset($field)){
+            $parent = new $classname($this->db);
+            if($parent->fetch($id) > 0 ){
+                $field = $parent;
+            }
+        }
+        if(method_exists($field, "fetchParent")){
+            $field->fetchParent();
+        }
+    }
+
+    /**
+     * Fetch Parent object
+     */
+
+    public function fetchParent(){
+        $this->fetchParentCommon("SurveyBlocStatus", $this->fk_surveyblocstatus, $this->surveyBlocStatus);
+    }
+
+    /**
+      * Check if we are not in readonly mode
+      *
+      */
+      public function is_survey_read_only(){
+        $this->fetchParent();
+        return $this->surveyBlocStatus->is_survey_read_only();
+    }
 }

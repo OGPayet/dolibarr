@@ -278,6 +278,14 @@ class InterventionSurvey extends Fichinter
 
     /**
      *
+     * Synchronise survey according to dictionary data
+     *
+     */
+
+
+
+    /**
+     *
      * Generate Survey from dictionary according to this intervention data
      *
      */
@@ -286,7 +294,7 @@ class InterventionSurvey extends Fichinter
         if ($this->fetchObjectLinked() < 0){
             return -1;
         }
-        if (empty($this->array_options['options_ei_type'])) {
+        if (empty($this->array_options)) {
             $this->fetch_optionals();
         }
         $this->survey_taken_from_dictionary = $this->generateInterventionSurveyPartsWithFollowingSettings($this->array_options['options_ei_type'],$this->linkedObjectsIds);
@@ -572,8 +580,15 @@ public function fetchSurvey()
 
 public function saveSurvey($user)
 {
+    global $langs;
     $this->db->begin();
     $errors = array();
+    if($this->is_survey_read_only()){
+        $errors[] = $langs->trans('InterventionSurveyReadOnlyMode');
+        $this->db->rollback();
+        $this->errors = $errors;
+        return -1;
+    }
     foreach($this->survey as $position=>$surveyPart){
         $surveyPart->position = $position;
         $surveyPart->save($user, $this->id);
@@ -697,7 +712,7 @@ public function saveSurvey($user)
      if(isset($arrayOfSurveyParts)){
         foreach($arrayOfSurveyParts as $surveyPartObj){
             $surveyPart = new SurveyPart($this->db);
-            $surveyPart->setVarsFromFetchObj($surveyPartObj);
+            $surveyPart->setVarsFromFetchObj($surveyPartObj, $this);
             $surveyPart->fk_fichinter = $this->id;
             $this->survey[] = $surveyPart;
         }
@@ -742,7 +757,7 @@ public function saveSurvey($user)
                     $newline = new $objectlineclassname($this->db);
                     $newline->setVarsFromFetchObj($obj);
                     if(method_exists($newline, "fetchLines")){
-                     $newline->fetchLines();
+                     $newline->fetchLines($this);
                     }
                     $resultValue[] = $newline;
                     $this->errors = array_merge($this->errors, $newline->errors);

@@ -216,6 +216,10 @@ if ($idx % 2 == 0) {
           <td><?php print $formextendedintervention->multiselect_attached_files($object->ref, $blocPrefix . $bloc->id .'_attached_files',
                   $bloc->attached_files) ?></td>
         </tr>
+        <tr>
+                <td><?php print $langs->trans('InterventionSurveyPrivateBloc') ?></td>
+                <td><?php print $bloc->showInputField($bloc->fields['private'], "_private",$bloc->private, null,null, $blocPrefix . $bloc->id) ?></td>
+            </tr>
       </table>
 
       <br>

@@ -89,12 +89,13 @@ $parameters=array();
 $reshook=$hookmanager->executeHooks('doActions',$parameters,$object,$action); // Note that $action and $object may have been modified by some hooks
 if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
 
-if (empty($reshook) && !$readOnlySurvey && $user->rights->interventionsurvey->survey->write && $object->id > 0) {
+if (empty($reshook) && $user->rights->interventionsurvey->survey->write && $object->id > 0) {
     if ($action == 'save_question_bloc' ) {
         $survey_bloc_question = new SurveyBlocQuestion($db);
         if ($survey_bloc_question->fetch($survey_bloc_question_id) > 0) {
             $survey_bloc_question = $formextendedintervention->updateBlocObjectFromPOST($survey_bloc_question);
             $survey_bloc_question->attached_files = $formextendedintervention->updateFieldFromGETPOST($survey_bloc_question,"attached_files",$formextendedintervention::BLOC_FORM_PREFIX, array());
+            $survey_bloc_question->private = $formextendedintervention->updateFieldFromGETPOST($survey_bloc_question,"private",$formextendedintervention::BLOC_FORM_PREFIX, 0);
             //We set extrafields
             $survey_bloc_question->array_options = $survey_bloc_question::$extrafields_cache->getOptionalsFromPost($survey_bloc_question::$extrafields_label_cache, '_intervention_survey_question_bloc_' . $survey_bloc_question->id . '_');
             foreach($survey_bloc_question->questions as $question){
@@ -165,6 +166,7 @@ if ($object->id > 0) {
 
     if ($object->statut == InterventionSurvey::STATUS_DRAFT) {
         print $langs->trans('InterventionSurveyMustBeValidated');
+        print '<br>';
     }
     if ($readOnlySurvey) {
         print $langs->trans('InterventionSurveyReadOnlyMode');

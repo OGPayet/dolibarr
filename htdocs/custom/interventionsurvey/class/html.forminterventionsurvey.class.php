@@ -54,16 +54,6 @@ class FormInterventionSurvey
      */
     public $intervention_types_list;
 
-    /**
-     * @var Array of blocs from post data, with index equal to bloc id
-     */
-    public $blocs_post;
-
-    /**
-     * @var Array of questions from post data, with index equal to question id
-     */
-    public $questions_post;
-
     const BLOC_FORM_PREFIX = "intervention_survey_bloc_";
     const QUESTION_FORM_PREFIX = "intervention_survey_question_";
 
@@ -77,8 +67,6 @@ class FormInterventionSurvey
         $this->db = $db;
         $this->form = new Form($this->db);
         $this->formdictionary = new FormDictionary($this->db);
-        $this->blocs_post = GETPOST("blocs");
-        $this->questions_post = GETPOST("questions");
     }
 
     /**

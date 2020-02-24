@@ -129,6 +129,7 @@ class SurveyQuestion extends CommonObject
 
     public static $extrafields_cache;
     public static $extrafields_label_cache;
+    public $surveyBlocQuestion;
 
 	// If this object has a subtable with lines
 
@@ -322,9 +323,12 @@ class SurveyQuestion extends CommonObject
 	 * @param string $ref  Ref
 	 * @return int         <0 if KO, 0 if not found, >0 if OK
 	 */
-	public function fetch($id, $ref = null)
+	public function fetch($id, $ref = null, $parent = null)
 	{
-		$result = $this->fetchCommon($id, $ref);
+        $result = $this->fetchCommon($id, $ref);
+        if(isset($parent)){
+            $this->bloc = $parent;
+        }
 		if ($result > 0) {
             $this->fetch_optionals();
             $this->fetchLines();
@@ -336,8 +340,11 @@ class SurveyQuestion extends CommonObject
 	 *
 	 * @return int         <0 if KO, 0 if not found, >0 if OK
 	 */
-	public function fetchLines()
+	public function fetchLines($parent = null)
 	{
+        if(isset($parent)){
+            $this->bloc = $parent;
+        }
         $this->answers = array();
         $this->chosen_answer = null;
 
@@ -355,8 +362,11 @@ class SurveyQuestion extends CommonObject
  *
  */
 
-    public function setVarsFromFetchObj(&$obj){
+    public function setVarsFromFetchObj(&$obj, $parent = null){
         $this->answers = array();
+        if(isset($parent)){
+            $this->surveyPart = $parent;
+        }
         parent::setVarsFromFetchObj($obj);
         $objectValues = is_array($obj) ? $obj["answers"] : $obj->answers;
         $dictionaryRowId = is_array($obj) ? $obj["c_rowid"] : $obj->c_rowid;
@@ -364,7 +374,7 @@ class SurveyQuestion extends CommonObject
         if(isset($objectValues)){
             foreach($objectValues as $answerObj){
                 $answer = new SurveyAnswer($this->db);
-                $answer->setVarsFromFetchObj($answerObj);
+                $answer->setVarsFromFetchObj($answerObj,$this);
                 $answer->fk_surveyquestion = $this->id;
                 $this->answers[] = $answer;
             }
@@ -372,7 +382,7 @@ class SurveyQuestion extends CommonObject
         $objectValues = is_array($obj) ? $obj["chosen_answer"] : $obj->chosen_answer;
         if(isset($objectValues)){
             $chosen_answer = new SurveyAnswer($this->db);
-            $chosen_answer->setVarsFromFetchObj($objectValues);
+            $chosen_answer->setVarsFromFetchObj($objectValues,$this);
             $this->chosen_answer = $chosen_answer;
         }
         $tmp = is_array($obj) ? $obj["extrafields"] : $obj->extrafields;
@@ -1064,7 +1074,7 @@ class SurveyQuestion extends CommonObject
                     $newline = new $objectlineclassname($this->db);
                     $newline->setVarsFromFetchObj($obj);
                     if(method_exists($newline, "fetchLines")){
-                     $newline->fetchLines();
+                     $newline->fetchLines($this);
                     }
                     $resultValue[] = $newline;
                     $this->errors = array_merge($this->errors, $newline->errors);
@@ -1080,6 +1090,31 @@ class SurveyQuestion extends CommonObject
         }
         return empty($this->errors) ? 1 : -1;
     }
+
+    /**
+     * Fetch parent object common
+     */
+
+    public function fetchParentCommon($classname, $id, &$field){
+        if(!isset($field)){
+            $parent = new $classname($this->db);
+            if($parent->fetch($id) > 0 ){
+                $field = $parent;
+            }
+        }
+        if(method_exists($field, "fetchParent")){
+            $field->fetchParent();
+        }
+    }
+
+    /**
+     * Fetch Parent object
+     */
+
+    public function fetchParent(){
+        $this->fetchParentCommon("SurveyBlocQuestion", $this->fk_surveyblocquestion, $this->surveyBlocQuestion);
+    }
+
 /**
  *
  * Save
@@ -1089,11 +1124,19 @@ class SurveyQuestion extends CommonObject
 
 public function save($user, $fk_surveyblocquestion=NULL)
 {
+    global $langs;
     $this->db->begin();
     if(isset($fk_surveyblocquestion)){
         $this->fk_surveyblocquestion = $fk_surveyblocquestion;
     }
     $errors = array();
+
+    if($this->is_survey_read_only()){
+        $errors[] = $langs->trans('InterventionSurveyReadOnlyMode');
+        $this->db->rollback();
+        $this->errors = $errors;
+        return -1;
+    }
 
     if($this->id){
         $this->update($user);
@@ -1182,12 +1225,25 @@ public function save($user, $fk_surveyblocquestion=NULL)
 
 
     /**
+     *
+     * Is Bloc desactivated ?
+     */
+
+     public function isBlocDesactivated(){
+         return isset($this->bloc) ? $this->bloc->isBlocDesactivated() : false;
+     }
+
+
+    /**
       * Are some information missing ?
       */
 
       public function areDataValid(){
         global $langs;
         $errors = array();
+        if($this->isBlocDesactivated()){
+            return true;
+        }
         if(!$this->IsAnswerChosen()){
             $errors[] = $langs->trans('InterventionSurveyMissingAnswer', $this->label, $this->id);
         }
@@ -1237,12 +1293,12 @@ public function save($user, $fk_surveyblocquestion=NULL)
         // Manage require fields but not selected
         $this->fetchExtraFieldsInfo();
         foreach (self::$extrafields_cache->attributes[$this->table_element]['required'] as $key => $val) {
-            if (!empty($val) && !in_array($key, $this->extrafields)) {
-                $this->array_options[$key] = '0';
+            if (!empty($val) && empty($this->array_options["options_" . $key]) && ( !in_array(substr($key,8), $this->extrafields) || $this->isBlocDesactivated() ) ) {
+                $this->array_options["options_" . $key] = '0';
             }
         }
 
-        $result = parent::insertExtraFields($trigger = '', $userused = NULL);
+        $result = parent::insertExtraFields($trigger, $userused);
 
         return $result;
     }
@@ -1313,5 +1369,14 @@ public function save($user, $fk_surveyblocquestion=NULL)
         $extrafields_question->attribute_label = $tmp;
 
         return parent::showOptionals($extrafields_question, $mode, $params, $keysuffix, $keyprefix, $onetrtd);
+    }
+
+    /**
+      * Check if we are not in readonly mode
+      *
+      */
+      public function is_survey_read_only(){
+        $this->fetchParent();
+        return $this->surveyBlocQuestion->is_survey_read_only();
     }
 }

@@ -23,6 +23,6 @@ CREATE TABLE llx_interventionsurvey_surveyblocstatus(
 	label text,
 	color varchar(10),
 	mandatory_justification boolean,
-	desactivate_bloc boolean
+	deactivate_bloc boolean
 	-- END MODULEBUILDER FIELDS
 ) ENGINE=innodb;

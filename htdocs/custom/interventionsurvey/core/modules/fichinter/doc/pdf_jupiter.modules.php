@@ -632,10 +632,12 @@ class pdf_jupiter extends ModelePDFFicheinter
         $cur_Y = $start_y;
         $idx = 0;
         foreach ($survey_part->blocs as $question_bloc) {
-            $idx++;
-            if ($idx % 2 == 0) continue;
+            if(!$question_bloc->private){
+                $idx++;
+                if ($idx % 2 == 0) continue;
 
-            $cur_Y = $this->_question_bloc_area($pdf, $question_bloc, $posx, $cur_Y, $column_left_w, $outputlangs, $idx < $nb_question_bloc - 1);
+                $cur_Y = $this->_question_bloc_area($pdf, $question_bloc, $posx, $cur_Y, $column_left_w, $outputlangs, $idx < $nb_question_bloc - 1);
+            }
         }
 
         $end_y = $pdf->GetY();

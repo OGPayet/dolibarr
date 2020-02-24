@@ -118,7 +118,9 @@ class SurveyPart extends CommonObject
 	public $label;
     public $position;
     public $blocs;
-	// END MODULEBUILDER PROPERTIES
+    // END MODULEBUILDER PROPERTIES
+
+    public $fichinter;
 
 
 	// If this object has a subtable with lines
@@ -152,8 +154,6 @@ class SurveyPart extends CommonObject
 	 * @var surveyPartLine[]     Array of subtable lines
 	 */
 	public $lines = array();
-
-
 
 	/**
 	 * Constructor
@@ -311,8 +311,11 @@ class SurveyPart extends CommonObject
 	 * @param string $ref  Ref
 	 * @return int         <0 if KO, 0 if not found, >0 if OK
 	 */
-	public function fetch($id, $ref = null)
+	public function fetch($id, $ref = null, $parent = null)
 	{
+        if(isset($parent)){
+            $this->interventionSurvey = $parent;
+        }
 		$result = $this->fetchCommon($id, $ref);
         if ($result > 0) {
             $this->fetchLines();
@@ -325,8 +328,11 @@ class SurveyPart extends CommonObject
 	 *
 	 * @return int         <0 if KO, 0 if not found, >0 if OK
 	 */
-	public function fetchLines()
+	public function fetchLines($parent = null)
 	{
+        if(isset($parent)){
+            $this->interventionSurvey = $parent;
+        }
         $this->blocs = array();
         $result = $this->interventionSurveyFetchLinesCommon(" ORDER BY position ASC", "SurveyBlocQuestion",$this->blocs);
         foreach($this->blocs as $bloc){
@@ -989,14 +995,17 @@ class SurveyPart extends CommonObject
  *
  */
 
- public function setVarsFromFetchObj(&$obj){
+ public function setVarsFromFetchObj(&$obj, $parent = null){
     parent::setVarsFromFetchObj($obj);
+    if(isset($parent)){
+        $this->fichinter = $parent;
+    }
     $this->blocs = array();
     $objectValues = is_array($obj) ? $obj["blocs"] : $obj->blocs;
     if(isset($objectValues)){
         foreach($objectValues as $blocObj){
             $bloc = new SurveyBlocQuestion($this->db);
-            $bloc->setVarsFromFetchObj($blocObj);
+            $bloc->setVarsFromFetchObj($blocObj,$this);
             $bloc->fk_surveypart = $this->id;
             $this->blocs[] = $bloc;
         }
@@ -1058,6 +1067,31 @@ class SurveyPart extends CommonObject
     }
 
     /**
+     * Fetch parent object common
+     */
+
+    public function fetchParentCommon($classname, $id, &$field){
+        if(!isset($field)){
+            $parent = new $classname($this->db);
+            if($parent->fetch($id) > 0 ){
+                $field = $parent;
+            }
+        }
+        if(method_exists($field, "fetchParent")){
+            $field->fetchParent();
+        }
+    }
+
+        /**
+     * Fetch Parent object
+     */
+
+    public function fetchParent(){
+        $this->fetchParentCommon("InterventionSurvey", $this->fk_fichinter, $this->fichinter);
+
+    }
+
+    /**
  *
  * Save
  *
@@ -1066,12 +1100,19 @@ class SurveyPart extends CommonObject
 
 public function save($user, $fk_fichinter=NULL)
 {
+    global $langs;
+
     $this->db->begin();
     if(isset($fk_fichinter)){
         $this->fk_fichinter = $fk_fichinter;
     }
     $errors = array();
-
+    if($this->is_survey_read_only()){
+        $errors[] = $langs->trans('InterventionSurveyReadOnlyMode');
+        $this->db->rollback();
+        $this->errors = $errors;
+        return -1;
+    }
     if($this->id){
         $this->update($user);
     }
@@ -1095,4 +1136,13 @@ public function save($user, $fk_fichinter=NULL)
         return -1;
     }
 }
+
+/**
+      * Check if we are not in readonly mode
+      *
+      */
+      public function is_survey_read_only(){
+        $this->fetchParent();
+        return $this->fichinter->is_survey_read_only();
+    }
 }

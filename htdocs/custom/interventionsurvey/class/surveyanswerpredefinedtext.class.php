@@ -100,6 +100,7 @@ class SurveyAnswerPredefinedText extends CommonObject
 	public $fk_c_survey_answer_predefined_text;
 	// END MODULEBUILDER PROPERTIES
 
+    public $surveyAnswer;
 
 	// If this object has a subtable with lines
 
@@ -290,8 +291,11 @@ class SurveyAnswerPredefinedText extends CommonObject
 	 * @param string $ref  Ref
 	 * @return int         <0 if KO, 0 if not found, >0 if OK
 	 */
-	public function fetch($id, $ref = null)
+	public function fetch($id, $ref = null, $parent = null)
 	{
+        if(isset($parent)){
+            $this->surveyAnswer = $parent;
+        }
 		$result = $this->fetchCommon($id, $ref);
 		return $result;
 	}
@@ -949,8 +953,11 @@ class SurveyAnswerPredefinedText extends CommonObject
  *
  */
 
-public function setVarsFromFetchObj(&$obj){
+public function setVarsFromFetchObj(&$obj, $parent = null){
     parent::setVarsFromFetchObj($obj);
+    if(isset($parent)){
+        $this->surveyPart = $parent;
+    }
     $dictionaryRowId = is_array($obj) ? $obj["c_rowid"] : $obj->c_rowid;
     $this->fk_c_survey_answer_predefined_text = $dictionaryRowId;
 }
@@ -962,11 +969,19 @@ public function setVarsFromFetchObj(&$obj){
  */
 public function save($user, $fk_surveyanswer=NULL)
 {
+    global $langs;
+
     $this->db->begin();
     if(isset($fk_surveyanswer)){
         $this->fk_surveyanswer = $fk_surveyanswer;
     }
     $errors = array();
+    if($this->is_survey_read_only()){
+        $errors[] = $langs->trans('InterventionSurveyReadOnlyMode');
+        $this->db->rollback();
+        $this->errors = $errors;
+        return -1;
+    }
 
     if($this->id){
         $this->update($user);
@@ -985,4 +1000,35 @@ public function save($user, $fk_surveyanswer=NULL)
         return -1;
     }
 }
+    /**
+     * Fetch parent object common
+     */
+
+    public function fetchParentCommon($classname, $id, &$field){
+        if(!isset($field)){
+            $parent = new $classname($this->db);
+            if($parent->fetch($id) > 0 ){
+                $field = $parent;
+            }
+        }
+        if(method_exists($field, "fetchParent")){
+            $field->fetchParent();
+        }
+    }
+    /**
+     * Fetch Parent object
+     */
+
+    public function fetchParent(){
+        $this->fetchParentCommon("SurveyAnswer", $this->fk_surveyanswer, $this->surveyAnswer);
+     }
+
+     /**
+      * Check if we are not in readonly mode
+      *
+      */
+      public function is_survey_read_only(){
+        $this->fetchParent();
+        return $this->surveyAnswer->is_survey_read_only();
+    }
 }

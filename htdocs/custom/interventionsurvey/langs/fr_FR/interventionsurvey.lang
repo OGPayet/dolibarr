@@ -151,12 +151,19 @@ InterventionSurveyMissingJustificationStatus = La justification du status du blo
 InterventionSurveyBlocMissingExtrafield = La valeur de l'extrafield obligatoire %s dans le bloc de question %s (ID : %s) est manquante
 
 # Ecran de visualisation et saisie des questionnaires
+InterventionSurveyMustBeValidated = L'intervention doit être au status Validé afin de pouvoir modifier le questionnaire
+InterventionSurveyReadOnlyMode = Vous êtes en mode lecture seule
 InterventionSurveyTabTitle = Questionnaire
 InterventionSurveyDescriptionBloc = Description
 InterventionSurveyBlocStatusLabel = Status
+InterventionSurveyDesactivatedBloc = Bloc désactivé à cause de son status
 InterventionSurveyStatusJustificationTitle = Justification de ce status
 InterventionSurveyAnswerJustificationTitle = Justification de cette réponse
 InterventionSurveyLabelBloc = Titre de ce bloc
+InterventionSurveyJustificationStatusText = Justification fournie
+InterventionSurveyAnswerJustificationText = Justification fournie
+InterventionSurveyPrivateBloc = Bloc privé
+
 
 # Gestion des fichiers joints sur les interventions avec hooks
 InterventionSurveyDocuments = Documents

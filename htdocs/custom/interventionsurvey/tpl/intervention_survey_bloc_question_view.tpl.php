@@ -56,14 +56,24 @@ if ($idx % 2 == 0) {
     $leftTitle = $bloc->label;
     if(!$bloc->areDataValid()){
         $warningText = implode($bloc->errors, "<br>");
-        $leftTitle .= '<span style="color:#000000">' . $form->textwithpicto('', $warningText, 1, 'warning', '', 0, 2) . '</span>';
+        $leftTitle .= ' <span style="color:#000000">' . $form->textwithpicto('', $warningText, 1, 'warning', '', 0, 2) . '</span>';
+    }
+    if($bloc->isBlocDesactivated()){
+        $disabledText = $langs->trans('InterventionSurveyDesactivatedBloc');
+        $leftTitle .= ' <span style="color:#000000">' . $form->textwithpicto('', $disabledText, 1, 'info', '', 0, 2) . '</span>';
     }
 
+    ?>
+<div style="<?php print $bloc->isBlocDesactivated() ? 'background-color: lightgrey;':'' ?>">
+<?php
     print load_fiche_titre(
         $leftTitle,
         $rightTitle,
         ''
     );
+    ?>
+</div>
+    <?php
 
     ?>
     <table class="border" width="100%">
@@ -122,6 +132,11 @@ if ($idx % 2 == 0) {
                 <td><?php print $langs->trans('Documents') ?></td>
                 <td><?php print implode(' , ', $attached_files) ?></td>
             </tr>
+            <tr>
+                <td><?php print $langs->trans('InterventionSurveyPrivateBloc') ?></td>
+                <td><?php print $bloc->showOutputField($bloc->fields['private'], null,$bloc->private) ?></td>
+            </tr>
+
     </table>
     <br>
     <div class="right">

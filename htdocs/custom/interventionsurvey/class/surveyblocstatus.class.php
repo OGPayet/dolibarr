@@ -101,7 +101,7 @@ class SurveyBlocStatus extends CommonObject
 		'label' => array('type'=>'text', 'label'=>'Texte du status', 'enabled'=>1, 'position'=>30, 'notnull'=>0, 'visible'=>3,),
 		'color' => array('type'=>'varchar(10)', 'label'=>'Couleur sur le pdf', 'enabled'=>1, 'position'=>35, 'notnull'=>0, 'visible'=>3,),
 		'mandatory_justification' => array('type'=>'boolean', 'label'=>'Indicate if the related bloc must contains a justification', 'enabled'=>1, 'position'=>40, 'notnull'=>0, 'visible'=>-1,),
-		'desactivate_bloc' => array('type'=>'boolean', 'label'=>'Indicate if choosing this status desactives current bloc', 'enabled'=>1, 'position'=>50, 'notnull'=>0, 'visible'=>-1,),
+		'deactivate_bloc' => array('type'=>'boolean', 'label'=>'Indicate if choosing this status desactives current bloc', 'enabled'=>1, 'position'=>50, 'notnull'=>0, 'visible'=>-1,),
 	);
 	public $rowid;
 	public $fk_c_survey_bloc_status;
@@ -110,10 +110,11 @@ class SurveyBlocStatus extends CommonObject
 	public $label;
 	public $color;
 	public $mandatory_justification;
-    public $desactivate_bloc;
+    public $deactivate_bloc;
     public $predefined_texts;
 	// END MODULEBUILDER PROPERTIES
 
+    public $surveyBlocQuestion;
 
 	// If this object has a subtable with lines
 
@@ -305,8 +306,11 @@ class SurveyBlocStatus extends CommonObject
 	 * @param string $ref  Ref
 	 * @return int         <0 if KO, 0 if not found, >0 if OK
 	 */
-	public function fetch($id, $ref = null)
+	public function fetch($id, $ref = null, $parent)
 	{
+        if(isset($parent)){
+            $this->bloc = $parent;
+        }
         $result = $this->fetchCommon($id, $ref);
         if ($result > 0) {
             $this->fetchLines();
@@ -319,10 +323,16 @@ class SurveyBlocStatus extends CommonObject
 	 *
 	 * @return int         <0 if KO, 0 if not found, >0 if OK
 	 */
-	public function fetchLines()
+	public function fetchLines($parent = null)
 	{
+        if(isset($parent)){
+            $this->bloc = $parent;
+        }
 		$this->predefined_texts = array();
-		$result = $this->interventionSurveyFetchLinesCommon(" ORDER BY position ASC","SurveyBlocStatusPredefinedText",$this->predefined_texts);
+        $result = $this->interventionSurveyFetchLinesCommon(" ORDER BY position ASC","SurveyBlocStatusPredefinedText",$this->predefined_texts);
+        foreach($this->predefined_texts as $predefined_text){
+            $predefined_text->surveyBlocStatus = $this;
+        }
 		return $result;
 	}
 
@@ -332,16 +342,19 @@ class SurveyBlocStatus extends CommonObject
  *
  */
 
-public function setVarsFromFetchObj(&$obj){
+public function setVarsFromFetchObj(&$obj, $parent = null){
     $this->predefined_texts = array();
     parent::setVarsFromFetchObj($obj);
+    if(isset($parent)){
+        $this->surveyPart = $parent;
+    }
     $dictionaryRowId = is_array($obj) ? $obj["c_rowid"] : $obj->c_rowid;
     $this->fk_c_survey_bloc_status = $dictionaryRowId;
     $objectValues = is_array($obj) ? $obj["predefined_texts"] : $obj->predefined_texts;
     if(isset($objectValues)){
         foreach($objectValues as $predefined_textObj){
             $predefined_text = new SurveyBlocStatusPredefinedText($this->db);
-            $predefined_text->setVarsFromFetchObj($predefined_textObj);
+            $predefined_text->setVarsFromFetchObj($predefined_textObj,$this);
             $predefined_text->fk_surveyblocstatus = $this->id;
             $this->predefined_texts[] = $predefined_text;
         }
@@ -1057,11 +1070,19 @@ public function setVarsFromFetchObj(&$obj){
 
 public function save($user, $fk_surveyblocquestion=NULL)
 {
+    global $langs;
+
     $this->db->begin();
     if(isset($fk_surveyblocquestion)){
         $this->fk_surveyblocquestion = $fk_surveyblocquestion;
     }
     $errors = array();
+    if($this->is_survey_read_only()){
+        $errors[] = $langs->trans('InterventionSurveyReadOnlyMode');
+        $this->db->rollback();
+        $this->errors = $errors;
+        return -1;
+    }
 
     if($this->id){
         $this->update($user);
@@ -1086,4 +1107,36 @@ public function save($user, $fk_surveyblocquestion=NULL)
         return -1;
     }
 }
+
+    /**
+     * Fetch parent object common
+     */
+
+    public function fetchParentCommon($classname, $id, &$field){
+        if(!isset($field)){
+            $parent = new $classname($this->db);
+            if($parent->fetch($id) > 0 ){
+                $field = $parent;
+            }
+        }
+        if(method_exists($field, "fetchParent")){
+            $field->fetchParent();
+        }
+    }
+    /**
+     * Fetch Parent object
+     */
+
+    public function fetchParent(){
+        $this->fetchParentCommon("SurveyBlocQuestion", $this->fk_surveyblocquestion, $this->surveyBlocQuestion);
+    }
+
+    /**
+      * Check if we are not in readonly mode
+      *
+      */
+      public function is_survey_read_only(){
+        $this->fetchParent();
+        return $this->surveyBlocQuestion->is_survey_read_only();
+    }
 }
