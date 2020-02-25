@@ -193,7 +193,6 @@ class SurveyBlocQuestionDictionary extends Dictionary
             'database'   => array(
                 'length'   => 255,
             ),
-            'is_require' => true,
             'td_input' => array(
                 'positionLine' => 3,
             ),
@@ -380,7 +379,6 @@ class SurveyBlocQuestionDictionary extends Dictionary
                     'moreAttributes' => 'width="100%"',
                     'positionLine' => 5,
                 ),
-                'is_require' => true,
             );
 
             $table_element = 'interventionsurvey_surveyblocquestion';

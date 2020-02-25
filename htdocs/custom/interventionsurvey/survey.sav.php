@@ -89,7 +89,7 @@ $interventionsurvey->generateSurveyFromDictionary();
 $interventionsurvey->setSurveyFromFetchObj($interventionsurvey->survey_taken_from_dictionary);
 //$interventionsurvey->fetchSurvey($user);
 $interventionsurvey->saveSurvey($user);
-echo $interventionsurvey->deleteSurvey($user);
+//echo $interventionsurvey->deleteSurvey($user);
 echo json_encode($interventionsurvey->errors, JSON_PRETTY_PRINT);
 echo "</pre>";
 echo '<br>';

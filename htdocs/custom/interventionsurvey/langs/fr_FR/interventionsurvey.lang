@@ -149,6 +149,7 @@ InterventionSurveyBlocMissingLabel = Le titre du bloc (ID : %s) est vide
 InterventionSurveyMissingStatus = Le status obligatoire pour le bloc %s (ID : %s) est manquant
 InterventionSurveyMissingJustificationStatus = La justification du status du bloc %s (ID : %s) est manquante
 InterventionSurveyBlocMissingExtrafield = La valeur de l'extrafield obligatoire %s dans le bloc de question %s (ID : %s) est manquante
+InterventionSurveyCantDeleteBloc = Impossible de supprimer le bloc ID : %s
 
 # Ecran de visualisation et saisie des questionnaires
 InterventionSurveyMustBeValidated = L'intervention doit être au status Validé afin de pouvoir modifier le questionnaire

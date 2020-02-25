@@ -224,11 +224,12 @@ if ($idx % 2 == 0) {
 
       <br>
       <div class="right">
-        <input type="submit" class="button" value="<?php print $langs->trans("Save") ?>">
-        &nbsp;&nbsp;&nbsp;
-        <input type="button" class="button" value="<?php print $langs->trans("Cancel") ?>" onClick="window.location='<?php print $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&survey_bloc_question_id=' . $bloc->id . '#'. $blocPrefix . $bloc->id. "_anchor" ?>'">
+      <div class="inline-block divButAction">
+        <input type="submit" class="butAction" value="<?php print $langs->trans("Save") ?>">
+        <a class="butAction" href="<?php print $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&survey_bloc_question_id=' . $bloc->id . '#'. $blocPrefix . $bloc->id. "_anchor" ?>"><?php print $langs->trans("Cancel") ?></a>
+        <a class="butAction"  href="<?php print $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&survey_bloc_question_id=' . $bloc->id . '&action=delete_bloc' ?>"><?php print $langs->trans("Delete") ?></a>
       </div>
-
+      </div>
     </form>
   </div>
   <br>

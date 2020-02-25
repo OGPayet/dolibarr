@@ -278,14 +278,6 @@ class InterventionSurvey extends Fichinter
 
     /**
      *
-     * Synchronise survey according to dictionary data
-     *
-     */
-
-
-
-    /**
-     *
      * Generate Survey from dictionary according to this intervention data
      *
      */
@@ -635,6 +627,13 @@ public function deleteSurvey($user, $notrigger = false)
     }
 }
 
+/**
+ *
+ * Merge two survey according to rowid fields or dictionary field
+ * There is an option to keep
+ *
+ */
+
 
 
     /**
@@ -811,6 +810,32 @@ public function deleteSurvey($user, $notrigger = false)
     function is_survey_read_only()
     {
         return $this->id > 0 && $this->statut == self::STATUS_VALIDATED ? 0 : 1;
+    }
+
+    /**
+     * Clean survey - we remove empty survey Part from memory into bdd
+     */
+    function cleanSurvey($user) {
+        $errors = array();
+        $this->db->begin();
+        if($this->fetchSurvey() > 0){
+            foreach($this->survey as $surveyPart){
+                if(empty($surveyPart->blocs)){
+                    $surveyPart->delete($user);
+                    $errors = array_merge($errors, $surveyPart->errors);
+                }
+            }
+        }
+        $this->fetchSurvey();
+        $errors = array_merge($errors, $this->errors);
+        if(empty($errors)){
+            $this->db->commit();
+            return 1;
+        }
+        else {
+            $this->db->rollback();
+            return -1;
+        }
     }
 
 }

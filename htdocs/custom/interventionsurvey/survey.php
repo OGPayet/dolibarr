@@ -89,10 +89,12 @@ $parameters=array();
 $reshook=$hookmanager->executeHooks('doActions',$parameters,$object,$action); // Note that $action and $object may have been modified by some hooks
 if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
 
-if (empty($reshook) && $user->rights->interventionsurvey->survey->write && $object->id > 0) {
+if (empty($reshook) && $user->rights->interventionsurvey->survey->write && $object->id > 0 && $action) {
+    $survey_bloc_question = new SurveyBlocQuestion($db);
+    $survey_bloc_question->errors = array();
+    $result = $survey_bloc_question->fetch($survey_bloc_question_id) > 0;
     if ($action == 'save_question_bloc' ) {
-        $survey_bloc_question = new SurveyBlocQuestion($db);
-        if ($survey_bloc_question->fetch($survey_bloc_question_id) > 0) {
+        if ($result > 0) {
             $survey_bloc_question = $formextendedintervention->updateBlocObjectFromPOST($survey_bloc_question);
             $survey_bloc_question->attached_files = $formextendedintervention->updateFieldFromGETPOST($survey_bloc_question,"attached_files",$formextendedintervention::BLOC_FORM_PREFIX, array());
             $survey_bloc_question->private = $formextendedintervention->updateFieldFromGETPOST($survey_bloc_question,"private",$formextendedintervention::BLOC_FORM_PREFIX, 0);
@@ -108,6 +110,19 @@ if (empty($reshook) && $user->rights->interventionsurvey->survey->write && $obje
             }
         }
     }
+
+    if($action == 'confirm_delete_bloc' && $confirm=='yes'){
+        if($result > 0){
+            $result = $survey_bloc_question->delete($user);
+            if($result>0){
+                $object->cleanSurvey($user);
+            }
+        }
+        if ($result < 0 || $survey_bloc_question->errors) {
+            $survey_bloc_question->errors[] = $langs->trans('InterventionSurveyCantDeleteBloc', $survey_bloc_question_id);
+            setEventMessages("",$survey_bloc_question->errors, 'errors');
+        }
+    }
 }
 
 
@@ -116,6 +131,22 @@ if (empty($reshook) && $user->rights->interventionsurvey->survey->write && $obje
  */
 
 llxHeader('',$langs->trans("Intervention"));
+
+// Confirmation to delete
+if ($action == 'delete_bloc') {
+    $formquestion = array();
+    $formquestion[] = array('type' => 'hidden', 'name' => 'id', 'value' => $object->id);
+    $formquestion[] = array('type' => 'hidden', 'name' => 'survey_bloc_question_id', 'value' => $survey_bloc_question_id);
+    $formconfirm = $form->formconfirm($_SERVER["PHP_SELF"], $langs->trans('InterventionSurveyConfirmDeleteBlocTitle'), $langs->trans('InterventionSurveyConfirmDeleteBlocDescription'), 'confirm_delete_bloc', $formquestion, 'yes', 2);
+}
+// Call Hook formConfirm
+$parameters = array('formConfirm' => $formconfirm);
+$reshook = $hookmanager->executeHooks('formConfirm', $parameters, $object, $action); // Note that $action and $object may have been modified by hook
+if (empty($reshook)) $formconfirm .= $hookmanager->resPrint;
+elseif ($reshook > 0) $formconfirm = $hookmanager->resPrint;
+
+// Print form confirm
+print $formconfirm;
 
 // Mode vue et edition
 if ($object->id > 0) {

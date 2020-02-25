@@ -146,6 +146,8 @@ if ($idx % 2 == 0) {
             <div class="inline-block divButAction">
                 <a class="butAction" href="<?php print $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&survey_bloc_question_id=' . $bloc->id . '&action=edit_question_bloc#'. $blocPrefix . $bloc->id. "_anchor" ?>" > <?php print $langs->trans("Modify") ?>
                 </a>
+        <a class="butAction"  href="<?php print $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&survey_bloc_question_id=' . $bloc->id . '&action=delete_bloc' ?>"><?php print $langs->trans("Delete") ?></a>
+
             </div>
         <?php
         } else {
