@@ -493,6 +493,7 @@ class SurveyQuestion extends CommonObject
 	{
         $this->db->begin();
         $this->deleteCommon($user, $notrigger);
+        $this->deleteExtraFields($user);
         $errors = array();
         $errors = array_merge($errors, $this->errors);
         if(empty($errors)){

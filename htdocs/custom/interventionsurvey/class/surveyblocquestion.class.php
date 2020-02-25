@@ -529,8 +529,10 @@ class SurveyBlocQuestion extends CommonObject
     {
         $this->db->begin();
         $this->deleteCommon($user, $notrigger);
+        $this->deleteExtraFields($user);
         $errors = array();
         $errors = array_merge($errors, $this->errors);
+
         if(empty($errors)){
             foreach($this->questions as $question){
                 $question->delete($user, $notrigger);
@@ -1326,8 +1328,13 @@ class SurveyBlocQuestion extends CommonObject
 
         // Manage require fields but not selected
         $this->fetchExtraFieldsInfo();
+        $isBlocDeactivated = $this->isBlocDesactivated();
         foreach (self::$extrafields_cache->attributes[$this->table_element]['required'] as $key => $val) {
-            if (!empty($val) && empty($this->array_options["options_" . $key]) && ( !in_array(substr($key,8), $this->extrafields) || $this->isBlocDesactivated() ) ) {
+            if(empty($val) || !empty($this->array_options["options_" . $key])){
+                continue;
+            }
+            $isThisExtrafieldSetOnThisObject = in_array($key, $this->extrafields);
+            if (!$isThisExtrafieldSetOnThisObject || $isBlocDeactivated) {
                 $this->array_options["options_" . $key] = '0';
             }
         }
