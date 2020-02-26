@@ -1230,7 +1230,7 @@ public function save($user, $fk_surveyblocquestion=NULL)
         global $langs;
         $errors = array();
         foreach (self::$extrafields_cache->attributes[$this->table_element]['required'] as $key => $val) {
-          if (!empty($val) && !in_array(substr($key,8), $this->extrafields) && empty($this->array_options[$key])) {
+          if (!empty($val) && in_array($key, $this->extrafields) && empty($this->array_options['options_' . $key])) {
                   $errors[] = $langs->trans('InterventionSurveyQuestionMissingExtrafield',
                   self::$extrafields_cache->attributes[$this->table_element]['label'][$key],
                   $this->label,

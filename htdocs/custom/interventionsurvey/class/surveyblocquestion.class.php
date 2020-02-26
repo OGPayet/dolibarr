@@ -1229,7 +1229,7 @@ class SurveyBlocQuestion extends CommonObject
           global $langs;
           $errors = array();
           foreach (self::$extrafields_cache->attributes[$this->table_element]['required'] as $key => $val) {
-            if (!empty($val) && !in_array(substr($key,8), $this->extrafields) && empty($this->array_options['options_' . $key])) {
+            if (!empty($val) && in_array($key, $this->extrafields) && empty($this->array_options['options_' . $key])) {
                     $errors[] = $langs->trans('InterventionSurveyBlocMissingExtrafield',
                     self::$extrafields_cache->attributes[$this->table_element]['label'][$key],
                     $this->label,
@@ -1406,5 +1406,13 @@ class SurveyBlocQuestion extends CommonObject
         $extrafields_question_bloc->attribute_label = $tmp;
 
         return parent::showOptionals($extrafields_question_bloc, $mode, $params, $keysuffix, $keyprefix, $onetrtd);
+    }
+
+    /**
+      * Check if we this bloc is empty, with no new data provided
+      *
+      */
+      public function is_empty(){
+        return true;
     }
 }

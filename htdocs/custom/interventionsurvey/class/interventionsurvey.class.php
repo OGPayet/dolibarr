@@ -958,9 +958,8 @@ public function deleteSurvey($user, $notrigger = false)
  * In hard mode we delete everything set from dictionary that are not anymore needed
  *
  */
-     public function mergeCurrentSurveyWithDictionaryData($user, $dataFromDictionary, $hardDeleteMode = null){
+     public function mergeCurrentSurveyWithDictionaryData($user, $dataFromDictionary, $deleteEmptyStaledBloc = false, $deleteStaledBloc = false, $addMissingPart = true, $addMissingBlocIntoGeneralPart = true, $addMissingBlocInOtherPart = false){
 
-       $partToDelete = array();
        $blocToDelete = array();
 
        $partToAdd = array();
@@ -968,22 +967,14 @@ public function deleteSurvey($user, $notrigger = false)
 
        $oldData = $this->survey;
 
-        //we try to find survey part and bloc to delete
+        //we try to find bloc to delete
         foreach($oldData as $index=>$oldSurveyPart){
             $surveyPartIntoNewData =
             self::getItemFromThisArray($dataFromDictionary, array('fk_identifier_type'=>$oldSurveyPart->fk_identifier_type,'fk_identifier_value'=>$oldSurveyPart->fk_identifier_value));
-             if(empty($surveyPartIntoNewData))
-            {
-                //oldSurveyPart has been deleted, we delete it
-                $partToDelete[] = $oldSurveyPart;
-            }
-            else
-            {
-                foreach($oldSurveyPart->blocs as $indexBloc=>$oldBloc){
-                    $blocIntoNewData =
-                    self::getItemFromThisArray($surveyPartIntoNewData->blocs, array('fk_c_survey_bloc_question'=>$oldBloc->fk_c_survey_bloc_question));
-                    if(empty($blocIntoNewData)){
-                        //oldBloc has been deleted
+
+            foreach($oldSurveyPart->blocs as $oldBloc){
+                if(empty($surveyPartIntoNewData) || empty(self::getItemFromThisArray($surveyPartIntoNewData->blocs, array('fk_c_survey_bloc_question'=>$oldBloc->fk_c_survey_bloc_question)))){
+                    if($deleteStaledBloc || ($deleteEmptyStaledBloc && $oldBloc->is_empty())){
                         $blocToDelete[] = $oldBloc;
                     }
                 }
@@ -996,7 +987,9 @@ public function deleteSurvey($user, $notrigger = false)
             $itemInOldData = self::getItemFromThisArray($oldData, array('fk_identifier_type'=>$newSurveyPart->fk_identifier_type,'fk_identifier_value'=>$newSurveyPart->fk_identifier_value));
             if(!$itemInOldData){
                 //it is a new part
-                $partToAdd[] = $newSurveyPart;
+                if($addMissingPart = true){
+                    $partToAdd[] = $newSurveyPart;
+                }
             }
             else
             {
@@ -1007,20 +1000,17 @@ public function deleteSurvey($user, $notrigger = false)
                     if(!$oldBloc){
                         //It is a new bloc
                         $newBloc->fk_surveypart = $itemInOldData->id;
-                        $blocToAdd[] = $newBloc;
+                        $isCurrentPartGeneralPart = $newSurveyPart->fk_identifier_type == null && $newSurveyPart->fk_identifier_value == null;
+                        if(($addMissingBlocInOtherPart && !$isCurrentPartGeneralPart) || ($isCurrentPartGeneralPart && $addMissingBlocIntoGeneralPart)){
+                            $blocToAdd[] = $newBloc;
+                        }
                     }
                 }
             }
        }
-        foreach($partToDelete as $part){
-               if(true || $hardDeleteMode){
-                   $part->delete($user);
-               }
-           }
+
         foreach($blocToDelete as $bloc){
-               if(true || $hardDeleteMode){
                $bloc->delete($user);
-               }
            }
         foreach($partToAdd as $part){
                 $part->save($user);
@@ -1030,7 +1020,7 @@ public function deleteSurvey($user, $notrigger = false)
         }
 
         //finally we clean the survey
-        //$this->cleanSurvey($user);
+        $this->cleanSurvey($user);
     }
 
      /**
@@ -1055,5 +1045,21 @@ public function deleteSurvey($user, $notrigger = false)
         }
         return $result;
     }
+
+    /**
+     *
+     * Soft update of the survey with data from dictionary
+     * We add missing survey part
+     * We add missing bloc only in General part
+     * We delete only empty staled bloc. Thus linked survey part are only deleted if there is no more part inside
+     *
+     */
+
+     public function softUpdateOfSurveyFromDictionary($user){
+         $this->generateSurveyFromDictionary();
+         $interventionSurveyFromDictionary = new InterventionSurvey($this->db);
+         $interventionSurveyFromDictionary->setSurveyFromFetchObj($this->survey_taken_from_dictionary);
+         $this->mergeCurrentSurveyWithDictionaryData($user, $interventionSurveyFromDictionary->survey, true, false,true,true,false);
+     }
 
 }
