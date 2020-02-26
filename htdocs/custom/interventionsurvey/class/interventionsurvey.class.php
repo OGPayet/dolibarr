@@ -813,7 +813,7 @@ public function deleteSurvey($user, $notrigger = false)
     }
 
     /**
-     * Clean survey - we remove empty survey Part from memory into bdd
+     * Clean survey - we remove empty survey Part into bdd
      */
     function cleanSurvey($user) {
         $errors = array();
@@ -836,6 +836,224 @@ public function deleteSurvey($user, $notrigger = false)
             $this->db->rollback();
             return -1;
         }
+    }
+
+    /**
+     *
+     * Merge current survey with a given object
+     * This object may be data from the api
+     * There is a soft and hard mode deleting when merging. Missing bloc are always removed in hard mode and only if empty in soft mode
+     * Update of existing bloc may be enabled or disabled (disabled with dictionary generation, enable in other case)
+     * We only delete or add entire survey part and surveyBlocQuestion
+     * We only merge data that may have been given by the user into surveyBlocQuestion and surveyQuestion from new data
+     * This is the place to work and add operations if you want to be able to manage during merge of data (from dictionary or api) :
+     *  - crud operations on surveyQuestion directly (not from its parent item)
+     *  - crud operations on surveyBlocStatus directly (not from its parent item)
+     *  - crud operations on surveyAnswer directly (not from its parent item)
+     *  - crud operations on surveyBlocStatusPredefinedText directly (not from its parent item)
+     *  - crud operations on surveyAnswerPredefinedText directly (not from its parent item)
+     */
+
+     public function mergeCurrentSurveyWithGivenObject($user, $newData, $hardDeleteMode = null, $updateMode = null){
+         //this algorithm only :
+         // - add surveyBlocQuestion (with all sub data in the same operations)
+         // - delete surveyBlocQuestion
+         // - add surveyPart (with all sub data in the same operations)
+         // - delete full surveyPart
+         // - update surveyPart data (editable by user - subdata excluded)
+         // - update surveyBlocQuestion data (editable by user - subdata excluded)
+         // - update surveyQuestion data (editable by user - subdata excluded)
+
+        $partToDelete = array();
+        $blocToDelete = array();
+
+        $oldData = &$this->survey;
+
+         //we try to find survey part and bloc to delete
+         foreach($oldData as $index=>$oldSurveyPart){
+             $surveyPartIntoNewData =
+             self::getItemFromThisArray($newData, array('id'=>$oldSurveyPart->id));
+              if(empty($surveyPartIntoNewData))
+             {
+                 //oldSurveyPart has been deleted, we delete it
+                 $partToDelete[] = $oldSurveyPart;
+                 unset($oldData[$index]);
+             }
+             else
+             {
+                 foreach($oldSurveyPart->blocs as $indexBloc=>$oldBloc){
+                     $blocIntoNewData =
+                     self::getItemFromThisArray($surveyPartIntoNewData->blocs, array('id'=>$oldBloc->id));
+                     if(empty($blocIntoNewData)){
+                         //oldBloc has been deleted
+                         $blocToDelete[] = $oldBloc;
+                         unset($oldSurveyPart->blocs[$indexBloc]);
+                     }
+                 }
+             }
+         }
+
+         //Now we have a copy of items to delete into $partToDelete and blocToDelete and these items have been unset from oldData
+         //Now we add new surveyPart to oldData
+         foreach($newData as $position=>$newSurveyPart){
+             $itemInOldData = self::getItemFromThisArray($oldData, array('id'=>$newSurveyPart->id));
+             if(!$itemInOldData){
+                 //it is a new part
+                array_splice($oldData, $position,0, array($newSurveyPart));
+             }
+             else
+             {
+                 //It is a known part
+                 if($updateMode){
+                 //We update user data
+
+                 }
+
+                 //we look for new blocs
+                 foreach($newSurveyPart->blocs as $positionBloc=>$newBloc){
+                     $oldBloc = array();
+                     if(!$newBloc->id){
+                         $oldBloc = self::getItemFromThisArray($itemInOldData, array('fk_c_survey_bloc_question'=>$newBloc->fk_c_survey_bloc_question));
+                     }
+                     else if($newBloc->id < 0){
+                         //this is a new bloc, we do nothing
+                     }
+                     else {
+                        $oldBloc = self::getItemFromThisArray($itemInOldData, array('id'=>$newBloc->id));
+                     }
+
+                     if(!$oldBloc){
+                         //this is a new bloc, we add it to oldData
+                         array_splice($itemInOldData, $positionBloc, 0, array($newBloc));
+                     }
+                     else if($updateMode){
+                         $oldBloc = $newBloc;
+                     }
+                 }
+             }
+        }
+            foreach($partToDelete as $part){
+                if(true){
+                    $part->delete($user);
+                }
+            }
+            foreach($blocToDelete as $bloc){
+                if(true){
+                $bloc->delete($user);
+                }
+            }
+
+         $this->saveSurvey($user);
+
+         //finally we clean the survey
+         $this->cleanSurvey();
+     }
+
+/**
+ *
+ * This is a simple merge function with dictionary data
+ * It only remove all survey part and blocs set from dictionary that are no more existing
+ * Deletion is made according two mode : soft and hard
+ * In soft mode we only delete empty element (no user information have been set)
+ * In hard mode we delete everything set from dictionary that are not anymore needed
+ *
+ */
+     public function mergeCurrentSurveyWithDictionaryData($user, $dataFromDictionary, $hardDeleteMode = null){
+
+       $partToDelete = array();
+       $blocToDelete = array();
+
+       $partToAdd = array();
+       $blocToAdd = array();
+
+       $oldData = $this->survey;
+
+        //we try to find survey part and bloc to delete
+        foreach($oldData as $index=>$oldSurveyPart){
+            $surveyPartIntoNewData =
+            self::getItemFromThisArray($dataFromDictionary, array('fk_identifier_type'=>$oldSurveyPart->fk_identifier_type,'fk_identifier_value'=>$oldSurveyPart->fk_identifier_value));
+             if(empty($surveyPartIntoNewData))
+            {
+                //oldSurveyPart has been deleted, we delete it
+                $partToDelete[] = $oldSurveyPart;
+            }
+            else
+            {
+                foreach($oldSurveyPart->blocs as $indexBloc=>$oldBloc){
+                    $blocIntoNewData =
+                    self::getItemFromThisArray($surveyPartIntoNewData->blocs, array('fk_c_survey_bloc_question'=>$oldBloc->fk_c_survey_bloc_question));
+                    if(empty($blocIntoNewData)){
+                        //oldBloc has been deleted
+                        $blocToDelete[] = $oldBloc;
+                    }
+                }
+            }
+        }
+
+        //Now we have a copy of items to delete into $partToDelete and blocToDelete and these items have been unset from oldData
+        //Now we add new surveyPart to oldData
+        foreach($dataFromDictionary as $newSurveyPart){
+            $itemInOldData = self::getItemFromThisArray($oldData, array('fk_identifier_type'=>$newSurveyPart->fk_identifier_type,'fk_identifier_value'=>$newSurveyPart->fk_identifier_value));
+            if(!$itemInOldData){
+                //it is a new part
+                $partToAdd[] = $newSurveyPart;
+            }
+            else
+            {
+
+                //we look for new blocs
+                foreach($newSurveyPart->blocs as $newBloc){
+                    $oldBloc = self::getItemFromThisArray($itemInOldData->blocs, array('fk_c_survey_bloc_question'=>$newBloc->fk_c_survey_bloc_question));
+                    if(!$oldBloc){
+                        //It is a new bloc
+                        $newBloc->fk_surveypart = $itemInOldData->id;
+                        $blocToAdd[] = $newBloc;
+                    }
+                }
+            }
+       }
+        foreach($partToDelete as $part){
+               if(true || $hardDeleteMode){
+                   $part->delete($user);
+               }
+           }
+        foreach($blocToDelete as $bloc){
+               if(true || $hardDeleteMode){
+               $bloc->delete($user);
+               }
+           }
+        foreach($partToAdd as $part){
+                $part->save($user);
+        }
+        foreach($blocToAdd as $bloc){
+            $bloc->save($user);
+        }
+
+        //finally we clean the survey
+        //$this->cleanSurvey($user);
+    }
+
+     /**
+      * Get a survey part according to an array with "fieldName"=>valueToMatch
+      */
+
+    public static function getItemFromThisArray(&$array, $arrayOfParameters = array()){
+        $result = null;
+        foreach($array as $item){
+            $test = true;
+            foreach($arrayOfParameters as $fieldName=>$searchValue)
+            {
+                if(!($item->$fieldName == $searchValue)){
+                    $test = false;
+                break;
+                }
+            }
+            if($test){
+            $result = &$item;
+            break;
+            }
+        }
+        return $result;
     }
 
 }

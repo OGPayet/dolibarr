@@ -109,7 +109,7 @@ class SurveyBlocQuestion extends CommonObject
         'extrafields' => array('type' => 'array', 'label' => 'List of extrafields for this bloc', 'enabled' => 1, 'position' => 33, 'notnull' => 0, 'visible' => 3,),
         'position' => array('type' => 'integer', 'label' => 'order', 'enabled' => 1, 'position' => 10, 'notnull' => 0, 'visible' => 3,),
         'fk_surveypart' => array('type' => 'integer:SurveyPart:interventionsurvey/class/surveypart.class.php', 'label' => 'Link the the current survey part', 'enabled' => 1, 'position' => 15, 'notnull' => 1, 'visible' => -1,),
-        'fk_c_survey_bloc_question' => array('type' => 'integer:SurveyBlocQuestionDictionary:interventionsurvey/core/dictionaries/surveyblocquestion.dictionary.php', 'label' => 'Link to the corresponding dictionnary item', 'enabled' => 1, 'position' => 20, 'notnull' => 0, 'visible' => -1,),
+        'fk_c_survey_bloc_question' => array('type' => 'integer', 'label' => 'Link to the corresponding dictionnary item', 'enabled' => 1, 'position' => 20, 'notnull' => 0, 'visible' => -1,),
         'fk_chosen_status' => array('type' => 'integer:SurveyBlocStatus:interventionsurvey/class/surveyblocstatus.class.php', 'label' => 'Link to the choosen status', 'enabled' => 1, 'position' => 34, 'notnull' => 0, 'visible' => 3,),
         'fk_chosen_status_predefined_text' => array('type'=>'array', 'label'=>'Stringify array (split by comma) of predefined used text id', 'enabled'=>1, 'position'=>40, 'notnull'=>0, 'visible'=>-1,),
         'label_editable' => array('type' => 'boolean', 'label' => 'Label can be edited', 'enabled' => 1, 'position' => 50, 'notnull' => 0, 'visible' => -1,),
@@ -395,6 +395,8 @@ class SurveyBlocQuestion extends CommonObject
         $this->chosen_status = null;
         $this->questions = array();
         $this->extrafields = array();
+        $obj = (object) $obj;
+        $obj->fk_c_survey_bloc_question = $obj->c_rowid ?: $obj->fk_c_survey_bloc_question;
         parent::setVarsFromFetchObj($obj);
         if(isset($parent)){
             $this->surveyPart = $parent;
@@ -403,8 +405,7 @@ class SurveyBlocQuestion extends CommonObject
         if(is_array($tmp)) {
             $this->extrafields = $tmp;
         }
-        $dictionaryRowId = is_array($obj) ? $obj["c_rowid"] : $obj->c_rowid;
-        $this->fk_c_survey_bloc_question = $dictionaryRowId;
+
         $objectValues = is_array($obj) ? $obj["questions"] : $obj->questions;
         if(isset($objectValues)){
             foreach ($objectValues as $questionObj) {
@@ -1145,7 +1146,7 @@ class SurveyBlocQuestion extends CommonObject
             return -1;
         }
 
-        if ($this->id) {
+        if ($this->id && $this->id > 0) {
             $this->update($user);
         } else {
             $this->create($user);

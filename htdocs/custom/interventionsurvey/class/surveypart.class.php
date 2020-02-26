@@ -1130,7 +1130,7 @@ public function save($user, $fk_fichinter=NULL)
         $this->errors = $errors;
         return -1;
     }
-    if($this->id){
+    if($this->id && $this->id > 0){
         $this->update($user);
     }
     else{

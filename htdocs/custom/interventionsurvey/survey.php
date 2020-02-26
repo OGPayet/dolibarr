@@ -200,6 +200,11 @@ if ($object->id > 0) {
     $object->fetch_attached_files();
     $object->fetchSurvey();
 
+    $interventionSurveyFromDictionary = clone $object;
+    $interventionSurveyFromDictionary->generateSurveyFromDictionary();
+$interventionSurveyFromDictionary->setSurveyFromFetchObj($interventionSurveyFromDictionary->survey_taken_from_dictionary);
+$object->mergeCurrentSurveyWithDictionaryData($user, $interventionSurveyFromDictionary->survey, true, true);
+
        if ($object->statut == InterventionSurvey::STATUS_DRAFT) {
             print $langs->trans('InterventionSurveyMustBeValidated');
             print '<br>';
