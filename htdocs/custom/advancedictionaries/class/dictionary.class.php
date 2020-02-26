@@ -1071,6 +1071,23 @@ class Dictionary extends CommonObject
         }
         return $result;
     }
+    /**
+     * Get a dictionary Line according to a give id
+     *
+     * @param   DoliDb              $db         Database handler
+     * @param   string              $module     Name of the module containing the dictionary
+     * @param   string              $name       Name of dictionary
+     * @param   int                 $lineId     Id of the searched line
+     * @return  DictionaryLine|null             Dictionary Line Object
+     */
+    static function getDictionaryLineObject($db,$moduleName,$dictionaryName,$lineId){
+        if($lineId){
+           $dictionary = Dictionary::getDictionary($db, $moduleName, $dictionaryName);
+           $item = $dictionary->getNewDictionaryLine();
+           $item->fetch($lineId);
+        }
+        return $item;
+    }
 
     /**
      * Get dictionary line

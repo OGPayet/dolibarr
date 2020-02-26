@@ -165,7 +165,32 @@ InterventionSurveyJustificationStatusText = Justification fournie
 InterventionSurveyAnswerJustificationText = Justification fournie
 InterventionSurveyPrivateBloc = Bloc privé
 InterventionSurveyEmptySurvey = Le questionnaire est vide
+InterventionSurveyConfirmDeleteBlocTitle = Confirmation de la suppression d'un bloc de question
+InterventionSurveyConfirmDeleteBlocDescription = Confirmez-vous la suppresion du bloc de question "%s" ?
 
+#Operations de regénérations du Dictionnaire
+
+InterventionSurveyConfirmSoftRegenerationTitle = Confirmation de la regénération sécurisé du questionnaire
+InterventionSurveyConfirmSoftRegenerationDescription = Cette opération va, en fonction des paramétrages renseignés dans les dictionnaires et des objets liés à cette intervention, uniquement : <br> - ajouter les parties et blocs de question manquants <br> - supprimer les blocs de questions obsolète s'ils sont vides de données
+InterventionSurveyConfirmSoftRegenerationButton = Regénération sécurisé
+InterventionSurveyConfirmHardRegenerationTitle = Confirmation de la regéneration non sécurisée du questionnaire
+InterventionSurveyConfirmHardRegenerationDescription = Cette opération va, en fonction des paramétrages renseignés dans les dictionnaires et des objets liés à cette intervention, uniquement : <br> - ajouter les parties et blocs de question manquants <br> - supprimer les blocs de questions obsolète <strong>même s'ils contiennent des données </strong> <br> - supprimer les parties de questionnaires qui seront alors vide
+InterventionSurveyConfirmHardRegenerationButton = Regéneration non sécurisée du questionnaire
+InterventionSurveyConfirmResetTitle = Confirmation de la regéneration complète du questionnaire
+InterventionSurveyConfirmResetDescription = Cette opération va <strong>supprimer entièrement</strong> ce questionnaire et le regénérer
+InterventionSurveyConfirmResetButton = Regéneration complète du questionnaire (nouveau questionnaire)
+InterventionSurveyConfirmAddMissingPartTitle = Confirmation de l'ajout des parties de questionnaires manquantes
+InterventionSurveyConfirmAddMissingPartDescription = Cette opération va, en fonction des paramétrages renseignés dans les dictionnaires et des objets liés à cette intervention, uniquement : <br> - ajouter les parties de questionnaires manquantes
+InterventionSurveyConfirmAddMissingPartButton = Ajouter les parties de questionnaires manquantes
+InterventionSurveyConfirmAddMissingBlocInGeneralPartTitle = Confirmation de l'ajout des blocs manquant dans la partie générale
+InterventionSurveyConfirmAddMissingBlocInGeneralPartDescription = Cette opération va, en fonction des paramétrages renseignés dans les dictionnaires et des objets liés à cette intervention, uniquement : <br> - ajouter les blocs manquants dans la partie générale du questionnaire (si cette partie est déjà présente)
+InterventionSurveyConfirmAddMissingBlocInGeneralPartButton = Ajout des blocs manquant dans la partie générale
+InterventionSurveyConfirmAddMissingBlocInOtherPartTitle = Confirmation de l'ajout des blocs manquant dans les parties non générales
+InterventionSurveyConfirmAddMissingBlocInOtherPartDescription = Cette opération va, en fonction des paramétrages renseignés dans les dictionnaires et des objets liés à cette intervention, uniquement : <br> - ajouter les blocs manquants dans les parties autre que la partie générale du questionnaire
+InterventionSurveyConfirmAddMissingBlocInOtherPartButton = Ajout des blocs manquant dans les parties non générales
+InterventionSurveyConfirmAddMissingBlocTitle = Confirmation de l'ajout des blocs manquants
+InterventionSurveyConfirmAddMissingBlocDescription = Cette opération va, en fonction des paramétrages renseignés dans les dictionnaires et des objets liés à cette intervention, uniquement : <br> - ajouter les blocs manquants dans la partie générale du questionnaire (si cette partie est déjà présente) <br> - ajouter les blocs manquants dans les parties autre que la partie générale du questionnaire
+InterventionSurveyConfirmAddMissingBlocButton = Ajout des blocs manquants
 
 # Gestion des fichiers joints sur les interventions avec hooks
 InterventionSurveyDocuments = Documents

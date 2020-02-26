@@ -1409,10 +1409,58 @@ class SurveyBlocQuestion extends CommonObject
     }
 
     /**
+     *
+     * get linked dictionary object
+     *
+     */
+
+     public function getDictionaryItem(){
+        dol_include_once('/advancedictionaries/class/dictionary.class.php');
+        return Dictionary::getDictionaryLineObject($this->db, 'interventionsurvey', 'SurveyBlocQuestion', $this->fk_c_survey_bloc_question);
+     }
+
+    /**
       * Check if we this bloc is empty, with no new data provided
       *
       */
       public function is_empty(){
-        return true;
+          $isEmpty = true;
+        $listOfPropertyWhereWeMayFindData = array(
+            "justification_text",
+            "attached_files",
+            "fk_chosen_status",
+            "fk_chosen_status_predefined_text");
+        foreach($listOfPropertyWhereWeMayFindData as $property){
+            if(!empty($this->$property)){
+                $isEmpty = false;
+            break;
+            }
+        }
+        if($isEmpty){
+            $c_item = $this->getDictionaryItem();
+            if($c_item && $c_item->description != $this->description){
+                $isEmpty = false;
+            }
+        }
+        //Now we check extrafields
+        if($isEmpty){
+            foreach($this->array_options as $value){
+                if(!empty($value)){
+                    $isEmpty = false;
+                break;
+                }
+            }
+        }
+        //Finally we check each question
+        if($isEmpty){
+            foreach($this->qestions as $question){
+                if(!$question->is_empty()){
+                    $isEmpty = false;
+                break;
+                }
+            }
+        }
+
+        return $isEmpty;
     }
 }

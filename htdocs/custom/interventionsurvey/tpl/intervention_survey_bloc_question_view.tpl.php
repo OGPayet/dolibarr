@@ -144,9 +144,12 @@ if ($idx % 2 == 0) {
         if ($user->rights->interventionsurvey->survey->write && !$readOnlySurvey) {
         ?>
             <div class="inline-block divButAction">
-                <a class="butAction" href="<?php print $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&survey_bloc_question_id=' . $bloc->id . '&action=edit_question_bloc#'. $blocPrefix . $bloc->id. "_anchor" ?>" > <?php print $langs->trans("Modify") ?>
-                </a>
-        <a class="butAction"  href="<?php print $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&survey_bloc_question_id=' . $bloc->id . '&action=delete_bloc' ?>"><?php print $langs->trans("Delete") ?></a>
+                <a class="butAction" href="<?php print $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&survey_bloc_question_id=' . $bloc->id . '&action=edit_question_bloc#'. $blocPrefix . $bloc->id. "_anchor" ?>" > <?php print $langs->trans("Modify") ?></a>
+                <?php if($bloc->deletable){ ?>
+                <a class="butAction"  href="<?php print $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&survey_bloc_question_id=' . $bloc->id . '&action=delete_bloc' ?>"><?php print $langs->trans("Delete") ?></a>
+                <?php } else { ?>
+                    <a class="butActionRefused"  href="#"><?php print $langs->trans("Delete") ?></a>
+                <?php } ?>
 
             </div>
         <?php

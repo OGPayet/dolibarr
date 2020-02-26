@@ -79,7 +79,7 @@ class ActionsInterventionSurvey
      */
     public function getNomUrl($parameters, &$object, &$action)
     {
-        global $db,$langs,$conf,$user;
+        global $db, $langs, $conf, $user;
         $this->resprints = '';
         return 0;
     }
@@ -97,147 +97,84 @@ class ActionsInterventionSurvey
     {
         global $conf, $user, $langs;
 
-        $error = 0; // Error counter
+        $errors = array(); // Error array result
 
-        /* print_r($parameters); print_r($object); echo "action: " . $action; */
-        if (in_array($parameters['currentcontext'], array('somecontext1','somecontext2')))	    // do something only for the context 'somecontext1' or 'somecontext2'
-        {
-            // Do what you want here...
-            // You can for example call global vars like $fieldstosearchall to overwrite them, or update database depending on $action and $_POST values.
-        }
+        // Goal : do a soft regeneration when linked item to a fichinter is added/removed
 
-        if (! $error) {
-            $this->results = array('myreturn' => 999);
-            $this->resprints = 'A text to show';
-            return 0; // or return 1 to replace standard code
-        } else {
-            $this->errors[] = 'Error message';
-            return -1;
-        }
-    }
+        // To do that two case :
+        // - we are removing a link ($action == 'dellink') --> so we fetch link before deleting to get intervention id if concerned
+        // - we are add a link ($action == 'addlink') --> we look after $object->elementtype,
+        //   GETPOST('addlink', 'alpha') and GETPOST('idtolinkto', 'int') to have source and destination element type and id
 
+        //According to these fetched data, if we have to do something, we execute database operations in order to have proper data for soft regeneration
+        //Then we delete $_POST["action"] and $_GET["action"] in order to avoid any further action from DOL_DOCUMENT_ROOT.'/core/actions_dellink.inc.php'
 
-    /**
-     * Overloading the doActions function : replacing the parent's function with the one below
-     *
-     * @param   array           $parameters     Hook metadatas (context, etc...)
-     * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-     * @param   string          $action         Current action (if set). Generally create or edit or null
-     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
-     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
-     */
-    public function doMassActions($parameters, &$object, &$action, $hookmanager)
-    {
-        global $conf, $user, $langs;
+        $interventionId = null;
+        $otherLinkedElementType = null; //if one item is fichinter, this is the type of the other item
+        if ($action == "addlink") {
+            $sourceElementType = $object->element;
+            $destinationElementType = GETPOST('addlink', 'alpha');
+            if ($sourceElementType == "fichinter") {
+                $interventionId = $object->id;
+                $otherLinkedElementType = $destinationElementType;
+            } else if ($destinationElementType == "fichinter") {
+                $interventionId = GETPOST('idtolinkto', 'int');
+                $otherLinkedElementType = $sourceElementType;
+            }
+        } else if ($action == "dellink") {
 
-        $error = 0; // Error counter
+            $sql = "SELECT fk_source, sourcetype, targettype, fk_target FROM " . MAIN_DB_PREFIX . "element_element WHERE rowid = " . GETPOST('dellinkid', 'int');
 
-        /* print_r($parameters); print_r($object); echo "action: " . $action; */
-        if (in_array($parameters['currentcontext'], array('somecontext1','somecontext2')))		// do something only for the context 'somecontext1' or 'somecontext2'
-        {
-            foreach($parameters['toselect'] as $objectid)
-            {
-                // Do action on each object id
+            $resql = $this->db->query($sql);
+            if ($resql) {
+                if ($obj = $this->db->fetch_object($resql)) {
+                    if ($obj->sourcetype == "fichinter") {
+                        $interventionId = $obj->fk_source;
+                        $otherLinkedElementType = $obj->fk_target;
+                    } else if ($obj->targettype == "fichinter") {
+                        $interventionId = $obj->fk_target;
+                        $otherLinkedElementType = $obj->fk_source;
+                    }
+                }
+            } else {
+                $errors[] = $this->db->lasterror();
             }
         }
 
-        if (! $error) {
-            $this->results = array('myreturn' => 999);
-            $this->resprints = 'A text to show';
+        //If action was relating to an intervention, we have $interventionId which is now not null
+        if ($interventionId && empty($errors) && $otherLinkedElementType == "equipement") {
+            //We do actions in order to have database updated
+            global $users;
+            //We add value needed for the include, as we don't fetch it from hookmanager
+            if($object->element == "fichinter"){
+                $permissiondellink = $user->rights->ficheinter->creer;
+            }
+            else if($object->element == "equipement"){
+                $permissiondellink = $user->rights->equipement->creer;
+            }
+            include DOL_DOCUMENT_ROOT . '/core/actions_dellink.inc.php';
+            //We launch update of the intervention
+            dol_include_once('/interventionsurvey/class/interventionsurvey.class.php');
+            $interventionSurvey = new InterventionSurvey($this->db);
+            if (
+                $interventionSurvey->fetch($interventionId) > 0
+                && $interventionSurvey->fetchSurvey() > 0
+                && !$interventionSurvey->is_survey_read_only()
+            ) {
+                $interventionSurvey->softUpdateOfSurveyFromDictionary($user);
+                $errors = array_merge($errors, $interventionSurvey->errors);
+            }
+            //As we have already launched the dellink or addlink actions, we change action value
+            $action = null;
+        }
+
+        if (empty($errors)) {
+            $this->results = array('Intervention survey' => 999);
+            $this->resprints = 'Actions from Intervention survey ended';
             return 0; // or return 1 to replace standard code
         } else {
-            $this->errors[] = 'Error message';
+            $this->errors = array_merge($errors, $interventionSurvey->errors);
             return -1;
         }
     }
-
-
-    /**
-     * Overloading the addMoreMassActions function : replacing the parent's function with the one below
-     *
-     * @param   array           $parameters     Hook metadatas (context, etc...)
-     * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-     * @param   string          $action         Current action (if set). Generally create or edit or null
-     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
-     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
-     */
-    public function addMoreMassActions($parameters, &$object, &$action, $hookmanager)
-    {
-        global $conf, $user, $langs;
-
-        $error = 0; // Error counter
-
-        /* print_r($parameters); print_r($object); echo "action: " . $action; */
-        if (in_array($parameters['currentcontext'], array('somecontext1','somecontext2')))		// do something only for the context 'somecontext1' or 'somecontext2'
-        {
-            $this->resprints = '<option value="0"'.($disabled?' disabled="disabled"':'').'>'.$langs->trans("InterventionSurveyMassAction").'</option>';
-        }
-
-        if (! $error) {
-            return 0; // or return 1 to replace standard code
-        } else {
-            $this->errors[] = 'Error message';
-            return -1;
-        }
-    }
-
-
-
-    /**
-     * Execute action
-     *
-     * @param	array	$parameters     Array of parameters
-     * @param   Object	$object		   	Object output on PDF
-     * @param   string	$action     	'add', 'update', 'view'
-     * @return  int 		        	<0 if KO,
-     *                          		=0 if OK but we want to process standard actions too,
-     *  	                            >0 if OK and we want to replace standard actions.
-     */
-    public function beforePDFCreation($parameters, &$object, &$action)
-    {
-        global $conf, $user, $langs;
-        global $hookmanager;
-
-        $outputlangs=$langs;
-
-        $ret=0; $deltemp=array();
-        dol_syslog(get_class($this).'::executeHooks action='.$action);
-
-        /* print_r($parameters); print_r($object); echo "action: " . $action; */
-        if (in_array($parameters['currentcontext'], array('somecontext1','somecontext2')))		// do something only for the context 'somecontext1' or 'somecontext2'
-        {
-        }
-
-        return $ret;
-    }
-
-    /**
-     * Execute action
-     *
-     * @param	array	$parameters     Array of parameters
-     * @param   Object	$pdfhandler     PDF builder handler
-     * @param   string	$action         'add', 'update', 'view'
-     * @return  int 		            <0 if KO,
-     *                                  =0 if OK but we want to process standard actions too,
-     *                                  >0 if OK and we want to replace standard actions.
-     */
-    public function afterPDFCreation($parameters, &$pdfhandler, &$action)
-    {
-        global $conf, $user, $langs;
-        global $hookmanager;
-
-        $outputlangs=$langs;
-
-        $ret=0; $deltemp=array();
-        dol_syslog(get_class($this).'::executeHooks action='.$action);
-
-        /* print_r($parameters); print_r($object); echo "action: " . $action; */
-        if (in_array($parameters['currentcontext'], array('somecontext1','somecontext2')))		// do something only for the context 'somecontext1' or 'somecontext2'
-        {
-        }
-
-        return $ret;
-    }
-
-    /* Add here any other hooked methods... */
 }

@@ -1397,4 +1397,33 @@ public function save($user, $fk_surveyblocquestion=NULL)
         $this->fetchParent();
         return $this->surveyBlocQuestion->is_survey_read_only();
     }
+
+    /**
+      * Check if we this bloc is empty, with no new data provided
+      *
+      */
+      public function is_empty(){
+        $isEmpty = true;
+      $listOfPropertyWhereWeMayFindData = array(
+          "justification_text",
+          "fk_chosen_answer",
+          "fk_chosen_answer_predefined_text");
+      foreach($listOfPropertyWhereWeMayFindData as $property){
+          if(!empty($this->$property)){
+              $isEmpty = false;
+          break;
+          }
+      }
+
+      //Now we check extrafields
+      if($isEmpty){
+          foreach($this->array_options as $value){
+              if(!empty($value)){
+                  $isEmpty = false;
+              break;
+              }
+          }
+      }
+      return $isEmpty;
+  }
 }

@@ -51,7 +51,7 @@ $backtopage = GETPOST('backtopage','alpha');
 if ($user->societe_id) $socid=$user->societe_id;
 $result = restrictedArea($user, 'ficheinter', $id, 'fichinter');
 
-if(empty($user->rights->interventionsurvey->survey->read)) accessforbidden();
+if(empty($user->rights->interventionsurvey->survey->read) || !$id) accessforbidden();
 
 // Initialize technical object to manage hooks of page. Note that conf->hooks_modules contains array of hook context
 $hookmanager->initHooks(array('interventionsurvey'));
@@ -66,10 +66,6 @@ $readOnlySurvey = true;
 if ($id > 0 || !empty($ref)) {
     $ret = $object->fetch($id, $ref);
     $object->fetch_thirdparty();
-    if (!empty($object->errors)) {
-        setEventMessages("", $object->errors, 'errors');
-        $ret = -1;
-    }
     if ($ret == 0) {
         print $langs->trans('NoRecordFound');
         exit();
@@ -89,11 +85,17 @@ $parameters=array();
 $reshook=$hookmanager->executeHooks('doActions',$parameters,$object,$action); // Note that $action and $object may have been modified by some hooks
 if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
 
-if (empty($reshook) && $user->rights->interventionsurvey->survey->write && $object->id > 0 && $action) {
+//$survey_bloc_question is the object used to perform actions on bloc and display some informations in confirm action
+
+if($survey_bloc_question_id){
     $survey_bloc_question = new SurveyBlocQuestion($db);
     $survey_bloc_question->errors = array();
     $result = $survey_bloc_question->fetch($survey_bloc_question_id) > 0;
-    if ($action == 'save_question_bloc' ) {
+}
+
+if (empty($reshook) && $object->id > 0 && $action && !$readOnlySurvey) {
+
+    if ($user->rights->interventionsurvey->survey->write && $action == 'save_question_bloc') {
         if ($result > 0) {
             $survey_bloc_question = $formextendedintervention->updateBlocObjectFromPOST($survey_bloc_question);
             $survey_bloc_question->attached_files = $formextendedintervention->updateFieldFromGETPOST($survey_bloc_question,"attached_files",$formextendedintervention::BLOC_FORM_PREFIX, array());
@@ -110,9 +112,8 @@ if (empty($reshook) && $user->rights->interventionsurvey->survey->write && $obje
             }
         }
     }
-
-    if($action == 'confirm_delete_bloc' && $confirm=='yes'){
-        if($result > 0){
+    else if($user->rights->interventionsurvey->survey->write && ($action == 'confirm_delete_bloc' && $confirm=='yes')){
+        if($result > 0 && $survey_bloc_question->deletable){
             $result = $survey_bloc_question->delete($user);
             if($result>0){
                 $object->cleanSurvey($user);
@@ -120,6 +121,59 @@ if (empty($reshook) && $user->rights->interventionsurvey->survey->write && $obje
         }
         if ($result < 0 || $survey_bloc_question->errors) {
             $survey_bloc_question->errors[] = $langs->trans('InterventionSurveyCantDeleteBloc', $survey_bloc_question_id);
+            setEventMessages("",$survey_bloc_question->errors, 'errors');
+        }
+    }
+    else if($action == 'confirm_soft_regeneration' && $confirm=='yes'){
+        $object->fetchSurvey();
+        $result = $object->softUpdateOfSurveyFromDictionary($user);
+        if ($result < 0 || $survey_bloc_question->errors) {
+            setEventMessages("",$survey_bloc_question->errors, 'errors');
+        }
+    }
+    else if($action == 'confirm_add_missing_part_only' && $confirm=='yes'){
+        $object->fetchSurvey();
+        $result = $object->mergeCurrentSurveyWithDictionaryData($user, false, false, true, false, false);
+        if ($result < 0 || $survey_bloc_question->errors) {
+            setEventMessages("",$survey_bloc_question->errors, 'errors');
+        }
+    }
+    else if($action == 'confirm_add_missing_bloc_in_general_part' && $confirm=='yes'){
+        $object->fetchSurvey();
+        $result = $object->mergeCurrentSurveyWithDictionaryData($user, false, false, false, true, false);
+        if ($result < 0 || $survey_bloc_question->errors) {
+            setEventMessages("",$survey_bloc_question->errors, 'errors');
+        }
+    }
+    else if($action == 'confirm_add_missing_bloc_in_other_part' && $confirm=='yes'){
+        $object->fetchSurvey();
+        $result = $object->mergeCurrentSurveyWithDictionaryData($user, false, false, false, false, true);
+        if ($result < 0 || $survey_bloc_question->errors) {
+            setEventMessages("",$survey_bloc_question->errors, 'errors');
+        }
+    }
+    else if($action == 'confirm_add_missing_bloc' && $confirm=='yes'){
+        $object->fetchSurvey();
+        $result = $object->mergeCurrentSurveyWithDictionaryData($user, false, false, false, true, true);
+        if ($result < 0 || $survey_bloc_question->errors) {
+            setEventMessages("",$survey_bloc_question->errors, 'errors');
+        }
+    }
+    else if($action == 'confirm_hard_regeneration' && $confirm=='yes'){
+        $object->fetchSurvey();
+        $result = $object->mergeCurrentSurveyWithDictionaryData($user, true, true, true, true, true);
+        if ($result < 0 || $survey_bloc_question->errors) {
+            setEventMessages("",$survey_bloc_question->errors, 'errors');
+        }
+    }
+    else if($action == 'confirm_reset_survey' && $confirm=='yes'){
+        $object->fetchSurvey();
+        $result = $object->deleteSurvey($user);
+        if($result > 0) {
+            $object->survey = array();
+            $result = $object->mergeCurrentSurveyWithDictionaryData($user, true, true, true, true, true);
+        }
+        if ($result < 0 || $survey_bloc_question->errors) {
             setEventMessages("",$survey_bloc_question->errors, 'errors');
         }
     }
@@ -132,13 +186,62 @@ if (empty($reshook) && $user->rights->interventionsurvey->survey->write && $obje
 
 llxHeader('',$langs->trans("Intervention"));
 
-// Confirmation to delete
+// Confirmation to delete bloc
 if ($action == 'delete_bloc') {
     $formquestion = array();
     $formquestion[] = array('type' => 'hidden', 'name' => 'id', 'value' => $object->id);
     $formquestion[] = array('type' => 'hidden', 'name' => 'survey_bloc_question_id', 'value' => $survey_bloc_question_id);
-    $formconfirm = $form->formconfirm($_SERVER["PHP_SELF"], $langs->trans('InterventionSurveyConfirmDeleteBlocTitle'), $langs->trans('InterventionSurveyConfirmDeleteBlocDescription'), 'confirm_delete_bloc', $formquestion, 'yes', 2);
+    $formconfirm = $form->formconfirm($_SERVER["PHP_SELF"], $langs->trans('InterventionSurveyConfirmDeleteBlocTitle'), $langs->trans('InterventionSurveyConfirmDeleteBlocDescription', $survey_bloc_question->label), 'confirm_delete_bloc', $formquestion, 'yes', 1);
 }
+// Confirmation to soft regeneration
+else if ($action == 'soft_regeneration') {
+    $formquestion = array();
+    $formquestion[] = array('type' => 'hidden', 'name' => 'id', 'value' => $object->id);
+    $formconfirm = $form->formconfirm($_SERVER["PHP_SELF"], $langs->trans('InterventionSurveyConfirmSoftRegenerationTitle'), $langs->trans('InterventionSurveyConfirmSoftRegenerationDescription'), 'confirm_soft_regeneration', $formquestion, 'yes', 1);
+}
+
+// Confirmation to hard regeneration
+else if ($action == 'hard_regeneration') {
+    $formquestion = array();
+    $formquestion[] = array('type' => 'hidden', 'name' => 'id', 'value' => $object->id);
+    $formconfirm = $form->formconfirm($_SERVER["PHP_SELF"], $langs->trans('InterventionSurveyConfirmHardRegenerationTitle'), $langs->trans('InterventionSurveyConfirmHardRegenerationDescription'), 'confirm_hard_regeneration', $formquestion, 'yes', 1);
+}
+
+// Confirmation to reset survey
+else if ($action == 'reset_survey') {
+    $formquestion = array();
+    $formquestion[] = array('type' => 'hidden', 'name' => 'id', 'value' => $object->id);
+    $formconfirm = $form->formconfirm($_SERVER["PHP_SELF"], $langs->trans('InterventionSurveyConfirmResetTitle'), $langs->trans('InterventionSurveyConfirmResetDescription'), 'confirm_reset_survey', $formquestion, 'yes', 1);
+}
+
+// Confirmation add only missing part
+else if ($action == 'add_missing_part_only') {
+    $formquestion = array();
+    $formquestion[] = array('type' => 'hidden', 'name' => 'id', 'value' => $object->id);
+    $formconfirm = $form->formconfirm($_SERVER["PHP_SELF"], $langs->trans('InterventionSurveyConfirmAddMissingPartTitle'), $langs->trans('InterventionSurveyConfirmAddMissingPartDescription'), 'confirm_add_missing_part_only', $formquestion, 'yes', 1);
+}
+
+// Confirmation add missing bloc only in general part
+else if ($action == 'add_missing_bloc_in_general_part') {
+    $formquestion = array();
+    $formquestion[] = array('type' => 'hidden', 'name' => 'id', 'value' => $object->id);
+    $formconfirm = $form->formconfirm($_SERVER["PHP_SELF"], $langs->trans('InterventionSurveyConfirmAddMissingBlocInGeneralPartTitle'), $langs->trans('InterventionSurveyConfirmAddMissingBlocInGeneralPartDescription'), 'confirm_add_missing_bloc_in_general_part', $formquestion, 'yes', 1);
+}
+
+// Confirmation add missing bloc in all parts excepting general part
+else if ($action == 'add_missing_bloc_in_other_part') {
+    $formquestion = array();
+    $formquestion[] = array('type' => 'hidden', 'name' => 'id', 'value' => $object->id);
+    $formconfirm = $form->formconfirm($_SERVER["PHP_SELF"], $langs->trans('InterventionSurveyConfirmAddMissingBlocInOtherPartTitle'), $langs->trans('InterventionSurveyConfirmAddMissingBlocInOtherPartDescription'), 'confirm_add_missing_bloc_in_other_part', $formquestion, 'yes', 1);
+}
+
+// Confirmation add missing bloc in all parts
+else if ($action == 'add_missing_bloc') {
+    $formquestion = array();
+    $formquestion[] = array('type' => 'hidden', 'name' => 'id', 'value' => $object->id);
+    $formconfirm = $form->formconfirm($_SERVER["PHP_SELF"], $langs->trans('InterventionSurveyConfirmAddMissingBlocTitle'), $langs->trans('InterventionSurveyConfirmAddMissingBlocDescription'), 'confirm_add_missing_bloc', $formquestion, 'yes', 1);
+}
+
 // Call Hook formConfirm
 $parameters = array('formConfirm' => $formconfirm);
 $reshook = $hookmanager->executeHooks('formConfirm', $parameters, $object, $action); // Note that $action and $object may have been modified by hook
@@ -200,6 +303,11 @@ if ($object->id > 0) {
     $object->fetch_attached_files();
     $object->fetchSurvey();
 
+    if (!empty($object->errors)) {
+        setEventMessages("", $object->errors, 'errors');
+        $ret = -1;
+    }
+
        if ($object->statut == InterventionSurvey::STATUS_DRAFT) {
             print $langs->trans('InterventionSurveyMustBeValidated');
             print '<br>';
@@ -241,6 +349,64 @@ if ($object->id > 0) {
                 }
     dol_fiche_end();
 }
+
+
+	/*
+	 * Actions buttons
+	 */
+
+	print '<div class="tabsAction">';
+
+	$parameters = array();
+	$reshook = $hookmanager->executeHooks('addMoreActionsButtons', $parameters, $object, $action); // Note that $action and $object may have been
+		                                                                                          // modified by hook
+	if (empty($reshook) &&  ($user->rights->interventionsurvey->survey->manage || $user->rights->interventionsurvey->survey->manage_more) && !$readOnlySurvey)
+	{
+            print '<div class="inline-block divButAction">';
+
+            if($user->rights->interventionsurvey->survey->manage){
+                print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=soft_regeneration">'
+                .$langs->trans("InterventionSurveyConfirmSoftRegenerationButton"). ' ' .
+                $form->textwithpicto('', $langs->trans('InterventionSurveyConfirmSoftRegenerationDescription'), 1, 'info', '', 0, 2) .
+                '</a>';
+                print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=add_missing_part_only">'
+                .$langs->trans("InterventionSurveyConfirmAddMissingPartButton"). ' ' .
+                $form->textwithpicto('', $langs->trans('InterventionSurveyConfirmAddMissingPartDescription'), 1, 'info', '', 0, 2) .
+                '</a>';
+                print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=add_missing_bloc_in_general_part">'
+                .$langs->trans("InterventionSurveyConfirmAddMissingBlocInGeneralPartButton"). ' ' .
+                $form->textwithpicto('', $langs->trans('InterventionSurveyConfirmAddMissingBlocInGeneralPartDescription'), 1, 'info', '', 0, 2) .
+                '</a>';
+                print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=add_missing_bloc_in_other_part">'
+                .$langs->trans("InterventionSurveyConfirmAddMissingBlocInOtherPartButton"). ' ' .
+                $form->textwithpicto('', $langs->trans('InterventionSurveyConfirmAddMissingBlocInOtherPartDescription'), 1, 'info', '', 0, 2) .
+                '</a>';
+                print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=add_missing_bloc">'
+                .$langs->trans("InterventionSurveyConfirmAddMissingBlocButton"). ' ' .
+                $form->textwithpicto('', $langs->trans('InterventionSurveyConfirmAddMissingBlocDescription'), 1, 'info', '', 0, 2) .
+                '</a>';
+            }
+
+            if($user->rights->interventionsurvey->survey->manageMore){
+                print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=hard_regeneration">'
+                .$langs->trans("InterventionSurveyConfirmHardRegenerationButton"). ' ' .
+                $form->textwithpicto('', $langs->trans('InterventionSurveyConfirmHardRegenerationDescription'), 1, 'info', '', 0, 2) .
+                '</a>';
+
+                print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=reset_survey">'
+                .$langs->trans("InterventionSurveyConfirmResetButton"). ' ' .
+                $form->textwithpicto('', $langs->trans('InterventionSurveyConfirmResetDescription'), 1, 'info', '', 0, 2) .
+                '</a>';
+            }
+
+
+
+
+            print '</div>';
+        }
+
+	print '</div>';
+
 }
 
 llxFooter();

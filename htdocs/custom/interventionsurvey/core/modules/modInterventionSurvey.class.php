@@ -280,6 +280,16 @@ class modInterventionSurvey extends DolibarrModules
         $this->rights[$r][4] = 'settings'; // In php code, permission will be checked by test if ($user->rights->interventionsurvey->level1->level2)
         $this->rights[$r][5] = 'manage'; // In php code, permission will be checked by test if ($user->rights->interventionsurvey->level1->level2)
         $r++;
+        $this->rights[$r][0] = $this->numero + $r; // Permission id (must not be already used)
+        $this->rights[$r][1] = 'Manage simple regeneration operations'; // Permission label
+        $this->rights[$r][4] = 'survey'; // In php code, permission will be checked by test if ($user->rights->interventionsurvey->level1->level2)
+        $this->rights[$r][5] = 'manage'; // In php code, permission will be checked by test if ($user->rights->interventionsurvey->level1->level2)
+        $r++;
+        $this->rights[$r][0] = $this->numero + $r; // Permission id (must not be already used)
+        $this->rights[$r][1] = 'Manage advanced regeneration operations'; // Permission label
+        $this->rights[$r][4] = 'survey'; // In php code, permission will be checked by test if ($user->rights->interventionsurvey->level1->level2)
+        $this->rights[$r][5] = 'manageMore'; // In php code, permission will be checked by test if ($user->rights->interventionsurvey->level1->level2)
+        $r++;
         /* END MODULEBUILDER PERMISSIONS */
 
         // Main menu entries to add

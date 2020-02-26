@@ -227,8 +227,13 @@ if ($idx % 2 == 0) {
       <div class="inline-block divButAction">
         <input type="submit" class="butAction" value="<?php print $langs->trans("Save") ?>">
         <a class="butAction" href="<?php print $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&survey_bloc_question_id=' . $bloc->id . '#'. $blocPrefix . $bloc->id. "_anchor" ?>"><?php print $langs->trans("Cancel") ?></a>
+        <?php if($bloc->deletable){ ?>
         <a class="butAction"  href="<?php print $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&survey_bloc_question_id=' . $bloc->id . '&action=delete_bloc' ?>"><?php print $langs->trans("Delete") ?></a>
-      </div>
+    <?php
+    } else { ?>
+                    <a class="butActionRefused"  href="#"><?php print $langs->trans("Delete") ?></a>
+                <?php } ?>
+    </div>
       </div>
     </form>
   </div>

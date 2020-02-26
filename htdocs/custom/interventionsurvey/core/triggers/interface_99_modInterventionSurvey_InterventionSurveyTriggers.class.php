@@ -56,10 +56,10 @@ class InterfaceInterventionSurveyTriggers extends DolibarrTriggers
         $this->db = $db;
 
         $this->name = preg_replace('/^Interface/i', '', get_class($this));
-        $this->family = "demo";
+        $this->family = "crm";
         $this->description = "InterventionSurvey triggers.";
         // 'development', 'experimental', 'dolibarr' or version
-        $this->version = 'development';
+        $this->version = '1.0';
         $this->picto = 'interventionsurvey@interventionsurvey';
     }
 
@@ -255,7 +255,7 @@ class InterfaceInterventionSurveyTriggers extends DolibarrTriggers
             //case 'DON_DELETE':
 
             // Interventions
-            //case 'FICHINTER_CREATE':
+            case 'FICHINTER_CREATE':
             //case 'FICHINTER_MODIFY':
             //case 'FICHINTER_VALIDATE':
             //case 'FICHINTER_DELETE':

@@ -611,7 +611,7 @@ public function deleteSurvey($user, $notrigger = false)
     $this->db->begin();
     $errors = array();
 
-    foreach($this->survey as $position=>$surveyPart){
+    foreach($this->survey as $surveyPart){
         $surveyPart->delete($user, $notrigger);
         $errors = array_merge($errors, $surveyPart->errors ?? array());
     }
@@ -958,14 +958,20 @@ public function deleteSurvey($user, $notrigger = false)
  * In hard mode we delete everything set from dictionary that are not anymore needed
  *
  */
-     public function mergeCurrentSurveyWithDictionaryData($user, $dataFromDictionary, $deleteEmptyStaledBloc = false, $deleteStaledBloc = false, $addMissingPart = true, $addMissingBlocIntoGeneralPart = true, $addMissingBlocInOtherPart = false){
+     public function mergeCurrentSurveyWithDictionaryData($user, $deleteEmptyStaledBloc = false, $deleteStaledBloc = false, $addMissingPart = true, $addMissingBlocIntoGeneralPart = true, $addMissingBlocInOtherPart = false){
 
+    $this->db->begin();
        $blocToDelete = array();
 
        $partToAdd = array();
        $blocToAdd = array();
 
        $oldData = $this->survey;
+
+       $interventionSurveyFromDictionary = clone $this;
+       $this->generateSurveyFromDictionary();
+       $interventionSurveyFromDictionary->setSurveyFromFetchObj($this->survey_taken_from_dictionary);
+       $dataFromDictionary = $interventionSurveyFromDictionary->survey;
 
         //we try to find bloc to delete
         foreach($oldData as $index=>$oldSurveyPart){
@@ -987,7 +993,7 @@ public function deleteSurvey($user, $notrigger = false)
             $itemInOldData = self::getItemFromThisArray($oldData, array('fk_identifier_type'=>$newSurveyPart->fk_identifier_type,'fk_identifier_value'=>$newSurveyPart->fk_identifier_value));
             if(!$itemInOldData){
                 //it is a new part
-                if($addMissingPart = true){
+                if($addMissingPart){
                     $partToAdd[] = $newSurveyPart;
                 }
             }
@@ -1011,16 +1017,30 @@ public function deleteSurvey($user, $notrigger = false)
 
         foreach($blocToDelete as $bloc){
                $bloc->delete($user);
+               $this->errors = array_merge($this->errors,$bloc->errors);
            }
         foreach($partToAdd as $part){
                 $part->save($user);
+                $test = $this->errors;
+                $test = $part->errors;
+                $this->errors = array_merge($this->errors,$part->errors);
         }
         foreach($blocToAdd as $bloc){
             $bloc->save($user);
+            $this->errors = array_merge($this->errors,$bloc->errors);
         }
 
         //finally we clean the survey
         $this->cleanSurvey($user);
+        if(empty($this->errors)){
+            $this->db->commit();
+            return 1;
+        }
+        else
+        {
+            $this->db->rollback();
+            return -1;
+        }
     }
 
      /**
@@ -1056,10 +1076,7 @@ public function deleteSurvey($user, $notrigger = false)
      */
 
      public function softUpdateOfSurveyFromDictionary($user){
-         $this->generateSurveyFromDictionary();
-         $interventionSurveyFromDictionary = new InterventionSurvey($this->db);
-         $interventionSurveyFromDictionary->setSurveyFromFetchObj($this->survey_taken_from_dictionary);
-         $this->mergeCurrentSurveyWithDictionaryData($user, $interventionSurveyFromDictionary->survey, true, false,true,true,false);
+         return $this->mergeCurrentSurveyWithDictionaryData($user, true, false,true,true,true);
      }
 
 }
