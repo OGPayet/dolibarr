@@ -50,29 +50,29 @@ if ($idx % 2 == 0) {
     // Print question title and status
     $rightTitle = $bloc->getChosenStatus()->label;
     $rightTitle .= $bloc->justification_text ?
-    $form->textwithpicto('', '<b>' . $langs->trans('InterventionSurveyJustificationStatusText') . ' :</b><br>' . $bloc->justification_text, 1, 'object_tip.png@interventionsurvey', '', 0, 2) :
-    '';
+        $form->textwithpicto('', '<b>' . $langs->trans('InterventionSurveyJustificationStatusText') . ' :</b><br>' . $bloc->justification_text, 1, 'object_tip.png@interventionsurvey', '', 0, 2) :
+        '';
 
     $leftTitle = $bloc->label;
-    if(!$bloc->areDataValid()){
+    if (!$bloc->areDataValid()) {
         $warningText = implode($bloc->errors, "<br>");
         $leftTitle .= ' <span style="color:#000000">' . $form->textwithpicto('', $warningText, 1, 'warning', '', 0, 2) . '</span>';
     }
-    if($bloc->isBlocDesactivated()){
+    if ($bloc->isBlocDesactivated()) {
         $disabledText = $langs->trans('InterventionSurveyDesactivatedBloc');
         $leftTitle .= ' <span style="color:#000000">' . $form->textwithpicto('', $disabledText, 1, 'info', '', 0, 2) . '</span>';
     }
 
     ?>
-<div style="<?php print $bloc->isBlocDesactivated() ? 'background-color: lightgrey;':'' ?>">
-<?php
-    print load_fiche_titre(
-        $leftTitle,
-        $rightTitle,
-        ''
-    );
-    ?>
-</div>
+    <div style="<?php print $bloc->isBlocDesactivated() ? 'background-color: lightgrey;' : '' ?>">
+        <?php
+        print load_fiche_titre(
+            $leftTitle,
+            $rightTitle,
+            ''
+        );
+        ?>
+    </div>
     <?php
 
     ?>
@@ -80,32 +80,32 @@ if ($idx % 2 == 0) {
         <?php
         //Print description
         if (!empty($bloc->description)) {
-            ?>
-                <tr>
-                    <td><?php print $langs->trans('InterventionSurveyDescriptionBloc') ?></td>
-                    <td><?php print $bloc->description ?></td>
-                </tr>
-            <?php
-            }
+        ?>
+            <tr>
+                <td><?php print $langs->trans('InterventionSurveyDescriptionBloc') ?></td>
+                <td><?php print $bloc->description ?></td>
+            </tr>
+        <?php
+        }
 
         // Print question
         foreach ($bloc->questions as $question) {
         ?>
             <tr>
                 <td>
-                <?php
-                //We print question label
-                print $question->label;
-                //We print warning if some information are missing
-                if(!$question->areDataValid()){
-                    $warningText = implode($question->errors, "<br>");
-                    print $form->textwithpicto('', $warningText, 1, 'warning', '', 0, 2);
-                }
-                ?>
-            </td>
+                    <?php
+                    //We print question label
+                    print $question->label;
+                    //We print warning if some information are missing
+                    if (!$question->areDataValid()) {
+                        $warningText = implode($question->errors, "<br>");
+                        print $form->textwithpicto('', $warningText, 1, 'warning', '', 0, 2);
+                    }
+                    ?>
+                </td>
                 <td width="50%"><?php print $question->getChosenAnswer()->label . (!empty($question->justification_text) ? ' ' . $form->textwithpicto('', '<b>' . $langs->trans('InterventionSurveyAnswerJustificationText') . ' :</b><br>' . $question->justification_text, 1, 'object_tip.png@extendedintervention', '', 0, 2) : '') ?></td>
             </tr>
-            <?php
+        <?php
             // Other attributes of the question
             $parameters = array();
             $reshook = $hookmanager->executeHooks('formObjectOptions', $parameters, $line, $action);    // Note that $action and $object may have been modified by hook
@@ -123,19 +123,19 @@ if ($idx % 2 == 0) {
         }
 
         // Attached files of the question bloc
-            $attached_files = array();
-            foreach ($bloc->attached_files as $filename) {
-                $attached_files[] = isset($object->attached_files[$filename]) ? $object->attached_files[$filename] : $langs->trans('InterventionSurveyErrorFileNotFound', $filename);
-            }
-            ?>
-            <tr>
-                <td><?php print $langs->trans('Documents') ?></td>
-                <td><?php print implode(' , ', $attached_files) ?></td>
-            </tr>
-            <tr>
-                <td><?php print $langs->trans('InterventionSurveyPrivateBloc') ?></td>
-                <td><?php print $bloc->showOutputField($bloc->fields['private'], null,$bloc->private) ?></td>
-            </tr>
+        $attached_files = array();
+        foreach ($bloc->attached_files as $filename) {
+            $attached_files[] = isset($object->attached_files[$filename]) ? $object->attached_files[$filename] : $langs->trans('InterventionSurveyErrorFileNotFound', $filename);
+        }
+        ?>
+        <tr>
+            <td><?php print $langs->trans('Documents') ?></td>
+            <td><?php print implode(' , ', $attached_files) ?></td>
+        </tr>
+        <tr>
+            <td><?php print $langs->trans('InterventionSurveyPrivateBloc') ?></td>
+            <td><?php print $bloc->showOutputField($bloc->fields['private'], null, $bloc->private) ?></td>
+        </tr>
 
     </table>
     <br>
@@ -144,11 +144,11 @@ if ($idx % 2 == 0) {
         if ($user->rights->interventionsurvey->survey->write && !$readOnlySurvey) {
         ?>
             <div class="inline-block divButAction">
-                <a class="butAction" href="<?php print $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&survey_bloc_question_id=' . $bloc->id . '&action=edit_question_bloc#'. $blocPrefix . $bloc->id. "_anchor" ?>" > <?php print $langs->trans("Modify") ?></a>
-                <?php if($bloc->deletable){ ?>
-                <a class="butAction"  href="<?php print $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&survey_bloc_question_id=' . $bloc->id . '&action=delete_bloc' ?>"><?php print $langs->trans("Delete") ?></a>
+                <a class="butAction" href="<?php print $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&survey_bloc_question_id=' . $bloc->id . '&action=edit_question_bloc#' . $blocPrefix . $bloc->id . "_anchor" ?>"> <?php print $langs->trans("Modify") ?></a>
+                <?php if ($bloc->deletable) { ?>
+                    <a class="butAction" href="<?php print $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&survey_bloc_question_id=' . $bloc->id . '&action=delete_bloc' ?>"><?php print $langs->trans("Delete") ?></a>
                 <?php } else { ?>
-                    <a class="butActionRefused"  href="#"><?php print $langs->trans("Delete") ?></a>
+                    <a class="butActionRefused" href="#"><?php print $langs->trans("Delete") ?></a>
                 <?php } ?>
 
             </div>

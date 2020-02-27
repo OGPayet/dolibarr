@@ -80,7 +80,7 @@ class ActionsInterventionSurvey
         //Be careful with hook context declared in this module (core/modules/modInterventionSurvey.class.php) - this file is not always executed
         global $user, $langs, $conf;
 
-        if($action == "addlink" || $action == "dellink"){
+        if ($action == "addlink" || $action == "dellink") {
             $errors = array(); // Error array result
 
             // Goal : do a soft regeneration when linked item to a fichinter is added/removed
@@ -130,10 +130,9 @@ class ActionsInterventionSurvey
             //If action was relating to an intervention, we have $interventionId which is now not null
             if ($interventionId && empty($errors) && $otherLinkedElementType == "equipement") {
                 //We add value needed for the include, as we don't fetch it from hookmanager
-                if($object->element == "fichinter"){
+                if ($object->element == "fichinter") {
                     $permissiondellink = $user->rights->ficheinter->creer; //used for /core/actions_dellink.inc.php
-                }
-                else if($object->element == "equipement"){
+                } else if ($object->element == "equipement") {
                     $permissiondellink = $user->rights->equipement->creer; //used for /core/actions_dellink.inc.php
                 }
                 //We do actions in order to have database updated
@@ -144,9 +143,7 @@ class ActionsInterventionSurvey
                 if (
                     $interventionSurvey->fetch($interventionId) > 0
                     && $interventionSurvey->fetchSurvey() > 0
-                    && (
-                        !$interventionSurvey->is_survey_read_only() || $interventionSurvey->statut == InterventionSurvey::STATUS_DRAFT
-                        )
+                    && (!$interventionSurvey->is_survey_read_only() || $interventionSurvey->statut == InterventionSurvey::STATUS_DRAFT)
                 ) {
                     $interventionSurvey->softUpdateOfSurveyFromDictionary($user);
                     $errors = array_merge($errors, $interventionSurvey->errors);
@@ -163,61 +160,58 @@ class ActionsInterventionSurvey
                 $this->errors = array_merge($errors, $interventionSurvey->errors);
                 return -1;
             }
-        }
-        else if($action == 'classifyDoneWithoutDataCheck'){
-            if($user->rights->interventionsurvey->survey->noCheck){
+        } else if ($action == 'classifyDoneWithoutDataCheck') {
+            if ($user->rights->interventionsurvey->survey->noCheck) {
                 $object->noSurveyDataCheck = true;
             }
             $action = 'classifydone';
         }
 
 
-        if($action == 'classifydone' && !$object->noSurveyDataCheck && !empty($conf->global->INTERVENTIONSURVEY_STRICT_DATA_CHECK_ON_CLOTURED)) {
+        if ($action == 'classifydone' && !$object->noSurveyDataCheck && !empty($conf->global->INTERVENTIONSURVEY_STRICT_DATA_CHECK_ON_CLOTURED)) {
             //We emit an error in order to avoid fichinter to be classify done if some required data are missing
             dol_include_once('/interventionsurvey/class/interventionsurvey.class.php');
-                $interventionSurvey = new InterventionSurvey($this->db);
-                if (
-                    $interventionSurvey->fetch($object->id) > 0
-                    && $interventionSurvey->fetchSurvey() > 0
-                ) {
-                    if(!$interventionSurvey->areDataValid()){
-                        $hookmanager->errors[] = $langs->trans('InterventionSurveyMissingRequiredFieldInSurvey');
-                        $hookmanager->errors = array_merge($hookmanager->errors, $interventionSurvey->errors);
-                        return -1;
-                    }
+            $interventionSurvey = new InterventionSurvey($this->db);
+            if (
+                $interventionSurvey->fetch($object->id) > 0
+                && $interventionSurvey->fetchSurvey() > 0
+            ) {
+                if (!$interventionSurvey->areDataValid()) {
+                    $hookmanager->errors[] = $langs->trans('InterventionSurveyMissingRequiredFieldInSurvey');
+                    $hookmanager->errors = array_merge($hookmanager->errors, $interventionSurvey->errors);
+                    return -1;
                 }
+            }
         }
 
         //Now we manage update of filename into bloc in case we are renaming or removing them
-        if(($action == 'confirm_deletefile' && $parameters["confirm"] == 'yes') || ($action == 'renamefile' && GETPOST('renamefilesave'))){
-            global $conf,$user;
-            if($action == 'confirm_deletefile'){
+        if (($action == 'confirm_deletefile' && $parameters["confirm"] == 'yes') || ($action == 'renamefile' && GETPOST('renamefilesave'))) {
+            global $conf, $user;
+            if ($action == 'confirm_deletefile') {
                 $urlfile = GETPOST('urlfile', 'alpha', 0, null, null, 1);
                 $filename = basename($urlfile);
-            } else if($action == 'renamefile'){
-            $filename=dol_sanitizeFileName(GETPOST('renamefilefrom','alpha'));
-            $newfilename=dol_sanitizeFileName(GETPOST('renamefileto','alpha'));
+            } else if ($action == 'renamefile') {
+                $filename = dol_sanitizeFileName(GETPOST('renamefilefrom', 'alpha'));
+                $newfilename = dol_sanitizeFileName(GETPOST('renamefileto', 'alpha'));
 
-            // Security:
-            // Disallow file with some extensions. We rename them.
-            // Because if we put the documents directory into a directory inside web root (very bad), this allows to execute on demand arbitrary code.
-            if (preg_match('/\.htm|\.html|\.php|\.pl|\.cgi$/i',$newfilename) && empty($conf->global->MAIN_DOCUMENT_IS_OUTSIDE_WEBROOT_SO_NOEXE_NOT_REQUIRED))
-            {
-                $newfilename.= '.noexe';
-            }
+                // Security:
+                // Disallow file with some extensions. We rename them.
+                // Because if we put the documents directory into a directory inside web root (very bad), this allows to execute on demand arbitrary code.
+                if (preg_match('/\.htm|\.html|\.php|\.pl|\.cgi$/i', $newfilename) && empty($conf->global->MAIN_DOCUMENT_IS_OUTSIDE_WEBROOT_SO_NOEXE_NOT_REQUIRED)) {
+                    $newfilename .= '.noexe';
+                }
             }
 
             //Now we have the filename of the file on which we work in $filename
             //File is renamed to $newfilename or deleted if this value is null
 
-            foreach($object->survey as $surveyPart){
-                foreach($surveyPart->blocs as $bloc){
-                    foreach($bloc->attached_files as $index=>$file){
-                        if($file == $filename){
-                            if($newfilename){
+            foreach ($object->survey as $surveyPart) {
+                foreach ($surveyPart->blocs as $bloc) {
+                    foreach ($bloc->attached_files as $index => $file) {
+                        if ($file == $filename) {
+                            if ($newfilename) {
                                 $bloc->attached_files[$index] = $newfilename;
-                            }
-                            else {
+                            } else {
                                 unset($bloc->attached_files[$index]);
                             }
                         }
@@ -232,7 +226,7 @@ class ActionsInterventionSurvey
         return 0;
     }
 
-     /**
+    /**
      * Overloading the addMoreActionsButtons function : replacing the parent's function with the one below
      *
      * @param   array           $parameters     Hook metadatas (context, etc...)
@@ -242,13 +236,13 @@ class ActionsInterventionSurvey
      * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
      */
 
-		function addMoreActionsButtons($parameters=array(), &$object, &$action='', $hookmanager) {
-			global $conf,$user,$langs;
+    function addMoreActionsButtons($parameters = array(), &$object, &$action = '', $hookmanager)
+    {
+        global $conf, $user, $langs;
 
-			if ($user->rights->interventionsurvey->survey->noCheck && empty($conf->global->FICHINTER_CLASSIFY_BILLED) && $object->statut > 0 && $object->statut < 3 && !empty($conf->global->INTERVENTIONSURVEY_STRICT_DATA_CHECK_ON_CLOTURED))
-            {
-                print '<div class="inline-block divButAction"><a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=classifyDoneWithoutDataCheck">'.$langs->trans("InterventionSurveyClassifyDoneWithoutDataCheck").'</a></div>';
-            }
-			return 0;
-		}
+        if ($user->rights->interventionsurvey->survey->noCheck && empty($conf->global->FICHINTER_CLASSIFY_BILLED) && $object->statut > 0 && $object->statut < 3 && !empty($conf->global->INTERVENTIONSURVEY_STRICT_DATA_CHECK_ON_CLOTURED)) {
+            print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=classifyDoneWithoutDataCheck">' . $langs->trans("InterventionSurveyClassifyDoneWithoutDataCheck") . '</a></div>';
+        }
+        return 0;
+    }
 }

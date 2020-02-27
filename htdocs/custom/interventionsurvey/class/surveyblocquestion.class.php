@@ -111,7 +111,7 @@ class SurveyBlocQuestion extends CommonObject
         'fk_surveypart' => array('type' => 'integer:SurveyPart:interventionsurvey/class/surveypart.class.php', 'label' => 'Link the the current survey part', 'enabled' => 1, 'position' => 15, 'notnull' => 1, 'visible' => -1,),
         'fk_c_survey_bloc_question' => array('type' => 'integer', 'label' => 'Link to the corresponding dictionnary item', 'enabled' => 1, 'position' => 20, 'notnull' => 0, 'visible' => -1,),
         'fk_chosen_status' => array('type' => 'integer:SurveyBlocStatus:interventionsurvey/class/surveyblocstatus.class.php', 'label' => 'Link to the choosen status', 'enabled' => 1, 'position' => 34, 'notnull' => 0, 'visible' => 3,),
-        'fk_chosen_status_predefined_text' => array('type'=>'array', 'label'=>'Stringify array (split by comma) of predefined used text id', 'enabled'=>1, 'position'=>40, 'notnull'=>0, 'visible'=>-1,),
+        'fk_chosen_status_predefined_text' => array('type' => 'array', 'label' => 'Stringify array (split by comma) of predefined used text id', 'enabled' => 1, 'position' => 40, 'notnull' => 0, 'visible' => -1,),
         'label_editable' => array('type' => 'boolean', 'label' => 'Label can be edited', 'enabled' => 1, 'position' => 50, 'notnull' => 0, 'visible' => -1,),
         'description_editable' => array('type' => 'boolean', 'label' => 'Description can be edited', 'enabled' => 1, 'position' => 50, 'notnull' => 0, 'visible' => -1,),
         'deletable' => array('type' => 'boolean', 'label' => 'Bloc can be deleted', 'enabled' => 1, 'position' => 50, 'notnull' => 0, 'visible' => -1,),
@@ -330,7 +330,7 @@ class SurveyBlocQuestion extends CommonObject
     public function fetch($id, $ref = null, $parent = null)
     {
         $result = $this->fetchCommon($id, $ref);
-        if(isset($parent)){
+        if (isset($parent)) {
             $this->surveyPart = $parent;
         }
         if ($result > 0) {
@@ -350,12 +350,12 @@ class SurveyBlocQuestion extends CommonObject
         $this->status = array();
         $this->chosen_status = null;
         $this->questions = array();
-        if(isset($parent)){
+        if (isset($parent)) {
             $this->surveyPart = $parent;
         }
 
         $this->interventionSurveyFetchLinesCommon(" ORDER BY position ASC", "SurveyQuestion", $this->questions);
-        foreach($this->questions as $question){
+        foreach ($this->questions as $question) {
             $question->fetch_optionals();
         }
         $this->interventionSurveyFetchLinesCommon(" ORDER BY position ASC", "SurveyBlocStatus", $this->status);
@@ -369,19 +369,21 @@ class SurveyBlocQuestion extends CommonObject
      * Fetch Parent object
      */
 
-     public function fetchParent(){
+    public function fetchParent()
+    {
         $this->fetchParentCommon("SurveyPart", $this->fk_surveypart, $this->surveyPart);
-     }
+    }
 
-     /**
-      * Check if we are not in readonly mode
-      *
-      */
-      public function is_survey_read_only(){
-          $this->fetchParent();
-          $temp = $this->surveyPart;
-          return $temp ->is_survey_read_only();
-      }
+    /**
+     * Check if we are not in readonly mode
+     *
+     */
+    public function is_survey_read_only()
+    {
+        $this->fetchParent();
+        $temp = $this->surveyPart;
+        return $temp->is_survey_read_only();
+    }
 
     /**
      *
@@ -398,28 +400,28 @@ class SurveyBlocQuestion extends CommonObject
         $obj = (object) $obj;
         $obj->fk_c_survey_bloc_question = $obj->c_rowid ?: $obj->fk_c_survey_bloc_question;
         parent::setVarsFromFetchObj($obj);
-        if(isset($parent)){
+        if (isset($parent)) {
             $this->surveyPart = $parent;
         }
         $tmp = is_array($obj) ? $obj["extrafields"] : $obj->extrafields;
-        if(is_array($tmp)) {
+        if (is_array($tmp)) {
             $this->extrafields = $tmp;
         }
 
         $objectValues = is_array($obj) ? $obj["questions"] : $obj->questions;
-        if(isset($objectValues)){
+        if (isset($objectValues)) {
             foreach ($objectValues as $questionObj) {
                 $question = new SurveyQuestion($this->db);
-                $question->setVarsFromFetchObj($questionObj,$this);
+                $question->setVarsFromFetchObj($questionObj, $this);
                 $question->fk_surveyblocquestion = $this->id;
                 $this->questions[] = $question;
             }
         }
         $objectValues = is_array($obj) ? $obj["status"] : $obj->status;
-        if(isset($objectValues)){
+        if (isset($objectValues)) {
             foreach ($objectValues as $statusObj) {
                 $status = new SurveyBlocStatus($this->db);
-                $status->setVarsFromFetchObj($statusObj,$this);
+                $status->setVarsFromFetchObj($statusObj, $this);
                 $status->fk_surveyblocquestion = $this->id;
                 $this->status[] = $status;
             }
@@ -534,21 +536,20 @@ class SurveyBlocQuestion extends CommonObject
         $errors = array();
         $errors = array_merge($errors, $this->errors);
 
-        if(empty($errors)){
-            foreach($this->questions as $question){
+        if (empty($errors)) {
+            foreach ($this->questions as $question) {
                 $question->delete($user, $notrigger);
                 $errors = array_merge($errors, $question->errors ?? array());
             }
-            foreach($this->status as $status){
+            foreach ($this->status as $status) {
                 $status->delete($user, $notrigger);
                 $errors = array_merge($errors, $status->errors ?? array());
             }
         }
-        if(empty($errors)){
+        if (empty($errors)) {
             $this->db->commit();
             return 1;
-        }
-        else{
+        } else {
             $this->db->rollback();
             $this->errors = $errors;
             return -1;
@@ -1064,14 +1065,15 @@ class SurveyBlocQuestion extends CommonObject
      * Fetch parent object common
      */
 
-    public function fetchParentCommon($classname, $id, &$field){
-        if(!isset($field)){
+    public function fetchParentCommon($classname, $id, &$field)
+    {
+        if (!isset($field)) {
             $parent = new $classname($this->db);
-            if($parent->fetch($id) > 0 ){
+            if ($parent->fetch($id) > 0) {
                 $field = $parent;
             }
         }
-        if(method_exists($field, "fetchParent")){
+        if (method_exists($field, "fetchParent")) {
             $field->fetchParent();
         }
     }
@@ -1130,7 +1132,7 @@ class SurveyBlocQuestion extends CommonObject
      *
      */
 
-    public function save($user, $fk_surveypart=NULL, $noSurveyReadOnlyCheck = false)
+    public function save($user, $fk_surveypart = NULL, $noSurveyReadOnlyCheck = false)
     {
         global $langs, $conf;
 
@@ -1139,7 +1141,7 @@ class SurveyBlocQuestion extends CommonObject
             $this->fk_surveypart = $fk_surveypart;
         }
         $errors = array();
-        if($this->is_survey_read_only() && !$noSurveyReadOnlyCheck){
+        if ($this->is_survey_read_only() && !$noSurveyReadOnlyCheck) {
             $errors[] = $langs->trans('InterventionSurveyReadOnlyMode');
             $this->db->rollback();
             $this->errors = $errors;
@@ -1180,87 +1182,95 @@ class SurveyBlocQuestion extends CommonObject
      * Get chosen status or an empty object
      */
 
-     public function getChosenStatus(){
+    public function getChosenStatus()
+    {
         $result = new stdClass();
-        if(is_array($this->status) && $this->fk_chosen_status > 0) {
-            foreach($this->status as $status){
-                if($status->id == $this->fk_chosen_status){
-                $result = $status;
-                break;
+        if (is_array($this->status) && $this->fk_chosen_status > 0) {
+            foreach ($this->status as $status) {
+                if ($status->id == $this->fk_chosen_status) {
+                    $result = $status;
+                    break;
                 }
             }
         }
-         $this->chosen_status = $result;
-         return $result;
-     }
+        $this->chosen_status = $result;
+        return $result;
+    }
 
-     /**
+    /**
      * Is answer properly chosen ?
      */
 
-    public function IsStatusChosen(){
+    public function IsStatusChosen()
+    {
         return !!(!$this->mandatory_status || $this->fk_chosen_status > 0);
-     }
+    }
 
-     /**
+    /**
      * Is justification text for answer properly set ?
      */
 
-    public function IsJustificationTextProperlySet(){
+    public function IsJustificationTextProperlySet()
+    {
         $chosenStatus = $this->getChosenStatus();
         return !!(!$chosenStatus->mandatory_justification || $this->justification_text);
-     }
+    }
 
-     /**
+    /**
      * Is label of this bloc properly set ?
      */
 
-    public function IsBlocLabelProperlySet(){
+    public function IsBlocLabelProperlySet()
+    {
         return !!$this->label;
-     }
+    }
 
 
-     /**
-      *
-      * Check that extrafields are properly set
-      */
+    /**
+     *
+     * Check that extrafields are properly set
+     */
 
-     public function checkExtrafieldProperlySet(){
-          global $langs;
-          $errors = array();
-          foreach (self::$extrafields_cache->attributes[$this->table_element]['required'] as $key => $val) {
-            if (!empty($val) && in_array($key, $this->extrafields) && empty($this->array_options['options_' . $key])) {
-                    $errors[] = $langs->trans('InterventionSurveyBlocMissingExtrafield',
-                    self::$extrafields_cache->attributes[$this->table_element]['label'][$key],
-                    $this->label,
-                    $this->id);
-            }
-        }
-        $this->errors = array_merge($this->errors,$errors);
-        return empty($errors);
-      }
-
-
-      /**
-      * Are some information missing ?
-      */
-
-    public function areDataValid(){
+    public function checkExtrafieldProperlySet()
+    {
         global $langs;
         $errors = array();
-        if($this->isBlocDesactivated()){
+        foreach (self::$extrafields_cache->attributes[$this->table_element]['required'] as $key => $val) {
+            if (!empty($val) && in_array($key, $this->extrafields) && empty($this->array_options['options_' . $key])) {
+                $errors[] = $langs->trans(
+                    'InterventionSurveyBlocMissingExtrafield',
+                    self::$extrafields_cache->attributes[$this->table_element]['label'][$key],
+                    $this->label,
+                    $this->id
+                );
+            }
+        }
+        $this->errors = array_merge($this->errors, $errors);
+        return empty($errors);
+    }
+
+
+    /**
+     * Are some information missing ?
+     */
+
+    public function areDataValid()
+    {
+        global $langs;
+        $errors = array();
+        if ($this->isBlocDesactivated()) {
             return true;
         }
-        if(!$this->IsStatusChosen()){
+        if (!$this->IsStatusChosen()) {
             $errors[] = $langs->trans('InterventionSurveyMissingStatus', $this->label, $this->id);
         }
-        if(!$this->IsJustificationTextProperlySet()){
+        if (!$this->IsJustificationTextProperlySet()) {
             $errors[] = $langs->trans('InterventionSurveyMissingJustificationStatus', $this->label, $this->id);
         }
-        if(!$this->IsBlocLabelProperlySet()){
+        if (!$this->IsBlocLabelProperlySet()) {
             $errors[] = $langs->trans('InterventionSurveyMissingLabel', $this->id);
         }
-        if(!$this->errors){
+        if (!$this->errors) {
             $this->errors = array();
         }
         $this->errors = array_merge($this->errors, $errors);
@@ -1271,11 +1281,12 @@ class SurveyBlocQuestion extends CommonObject
      * Is Bloc desactivated ?
      */
 
-     public function isBlocDesactivated(){
-        return $this->getChosenStatus()->deactivate_bloc ? true:false;
-     }
+    public function isBlocDesactivated()
+    {
+        return $this->getChosenStatus()->deactivate_bloc ? true : false;
+    }
 
-     /**
+    /**
      *	{@inheritdoc}
      */
     function fetch_optionals($rowid = null, $optionsArray = null)
@@ -1284,7 +1295,7 @@ class SurveyBlocQuestion extends CommonObject
         if ($result > 0) {
             $tmp = array();
             foreach ($this->array_options as $key => $val) {
-                if (in_array(substr($key,8), $this->extrafields)) {
+                if (in_array(substr($key, 8), $this->extrafields)) {
                     $tmp[$key] = $val;
                 }
             }
@@ -1301,7 +1312,8 @@ class SurveyBlocQuestion extends CommonObject
      *
      */
 
-    public function fetchExtraFieldsInfo() {
+    public function fetchExtraFieldsInfo()
+    {
         if (!isset(self::$extrafields_cache)) {
             require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
             self::$extrafields_cache = new ExtraFields($this->db);
@@ -1320,7 +1332,7 @@ class SurveyBlocQuestion extends CommonObject
         } elseif (is_array($this->array_options)) {
             $tmp = array();
             foreach ($this->array_options as $key => $val) {
-                if (in_array(substr($key,8), $this->extrafields)) {
+                if (in_array(substr($key, 8), $this->extrafields)) {
                     $tmp[$key] = $val;
                 }
             }
@@ -1331,7 +1343,7 @@ class SurveyBlocQuestion extends CommonObject
         $this->fetchExtraFieldsInfo();
         $isBlocDeactivated = $this->isBlocDesactivated();
         foreach (self::$extrafields_cache->attributes[$this->table_element]['required'] as $key => $val) {
-            if(empty($val) || !empty($this->array_options["options_" . $key])){
+            if (empty($val) || !empty($this->array_options["options_" . $key])) {
                 continue;
             }
             $isThisExtrafieldSetOnThisObject = in_array($key, $this->extrafields);
@@ -1414,49 +1426,52 @@ class SurveyBlocQuestion extends CommonObject
      *
      */
 
-     public function getDictionaryItem(){
+    public function getDictionaryItem()
+    {
         dol_include_once('/advancedictionaries/class/dictionary.class.php');
         return Dictionary::getDictionaryLineObject($this->db, 'interventionsurvey', 'SurveyBlocQuestion', $this->fk_c_survey_bloc_question);
-     }
+    }
 
     /**
-      * Check if we this bloc is empty, with no new data provided
-      *
-      */
-      public function is_empty(){
-          $isEmpty = true;
+     * Check if we this bloc is empty, with no new data provided
+     *
+     */
+    public function is_empty()
+    {
+        $isEmpty = true;
         $listOfPropertyWhereWeMayFindData = array(
             "justification_text",
             "attached_files",
             "fk_chosen_status",
-            "fk_chosen_status_predefined_text");
-        foreach($listOfPropertyWhereWeMayFindData as $property){
-            if(!empty($this->$property)){
+            "fk_chosen_status_predefined_text"
+        );
+        foreach ($listOfPropertyWhereWeMayFindData as $property) {
+            if (!empty($this->$property)) {
                 $isEmpty = false;
-            break;
+                break;
             }
         }
-        if($isEmpty){
+        if ($isEmpty) {
             $c_item = $this->getDictionaryItem();
-            if($c_item && $c_item->description != $this->description){
+            if ($c_item && $c_item->description != $this->description) {
                 $isEmpty = false;
             }
         }
         //Now we check extrafields
-        if($isEmpty){
-            foreach($this->array_options as $value){
-                if(!empty($value)){
+        if ($isEmpty) {
+            foreach ($this->array_options as $value) {
+                if (!empty($value)) {
                     $isEmpty = false;
-                break;
+                    break;
                 }
             }
         }
         //Finally we check each question
-        if($isEmpty){
-            foreach($this->qestions as $question){
-                if(!$question->is_empty()){
+        if ($isEmpty) {
+            foreach ($this->qestions as $question) {
+                if (!$question->is_empty()) {
                     $isEmpty = false;
-                break;
+                    break;
                 }
             }
         }

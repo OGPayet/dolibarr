@@ -29,10 +29,17 @@ dol_include_once('/interventionsurvey/class/surveypart.class.php');
  * Function to sort intervention survey element on fetch and generation
  */
 
-function intervention_survey_cmp($a, $b) {
-    if (!isset($a) || !isset($a["position"])) {return 1;}
-    if (!isset($b) || !isset($b["position"])) {return -1;}
-    if ($a["position"] == $b["position"]) {return 0;}
+function intervention_survey_cmp($a, $b)
+{
+    if (!isset($a) || !isset($a["position"])) {
+        return 1;
+    }
+    if (!isset($b) || !isset($b["position"])) {
+        return -1;
+    }
+    if ($a["position"] == $b["position"]) {
+        return 0;
+    }
     return $a["position"] < $b["position"] ? -1 : 1;
 }
 /**
@@ -70,8 +77,7 @@ class InterventionSurvey extends Fichinter
      *      if property is a array and this properties_name value is not a array then get all values
      *      if property is a array and this properties_name value is a array then get whitelist set in the array
      */
-    static public $API_WHITELIST_OF_PROPERTIES_LINKED_OBJECT = array(
-    );
+    static public $API_WHITELIST_OF_PROPERTIES_LINKED_OBJECT = array();
 
     /**
      * Array of blacklist of properties keys for this object used for the API
@@ -82,8 +88,7 @@ class InterventionSurvey extends Fichinter
      *      if property is a array and this properties_name value is not a array then get all values
      *      if property is a array and this properties_name value is a array then get blacklist set in the array
      */
-    static protected $API_BLACKLIST_OF_PROPERTIES = array(
-    );
+    static protected $API_BLACKLIST_OF_PROPERTIES = array();
 
     /**
      * Array of blacklist of properties keys for this object when is a linked object used for the API
@@ -94,17 +99,16 @@ class InterventionSurvey extends Fichinter
      *      if property is a array and this properties_name value is not a array then get all values
      *      if property is a array and this properties_name value is a array then get blacklist set in the array
      */
-    static protected $API_BLACKLIST_OF_PROPERTIES_LINKED_OBJECT = array(
-    );
+    static protected $API_BLACKLIST_OF_PROPERTIES_LINKED_OBJECT = array();
 
     /**
-	 * @var SurveyPart[]
-	 */
+     * @var SurveyPart[]
+     */
     public $survey = array();
 
     /**
-	 * @var array List of attached files of the intervention
-	 */
+     * @var array List of attached files of the intervention
+     */
     public $attached_files = array();
 
     /**
@@ -126,27 +130,27 @@ class InterventionSurvey extends Fichinter
      */
     public $cache_survey_bloc_question_dictionary;
 
-     /**
+    /**
      * Cache Dictionary data of status
      */
     public $cache_survey_bloc_status_dictionary;
 
-     /**
+    /**
      * Cache Dictionary data of status_predefined_text
      */
     public $cache_survey_bloc_status_predefined_text_dictionary;
 
-     /**
+    /**
      * Cache Dictionary data of question
      */
     public $cache_survey_question_dictionary;
 
-     /**
+    /**
      * Cache Dictionary data of answer
      */
     public $cache_survey_answer_dictionary;
 
-     /**
+    /**
      * Cache Dictionary data of answer_predefined_text
      */
     public $cache_survey_answer_predefined_text;
@@ -165,96 +169,117 @@ class InterventionSurvey extends Fichinter
      *  Fill dictionary caches
      *
      */
-    public function fillCaches(){
-        if(!isset($this->cache_survey_bloc_question_dictionary)) {
+    public function fillCaches()
+    {
+        if (!isset($this->cache_survey_bloc_question_dictionary)) {
             $this->cache_survey_bloc_question_dictionary = self::fetchProperDataFromDictionary(
-                $this->db, 'interventionsurvey', 'SurveyBlocQuestion',
-            array("position","identifier", "label", "icon",  "label_editable", "description_editable", "deletable",
-            "private", "bloc_in_general_part", "categories", "status", "questions", "extrafields", "types_intervention","mandatory_status"),
-        array("categories","extrafields","types_intervention"));
+                $this->db,
+                'interventionsurvey',
+                'SurveyBlocQuestion',
+                array(
+                    "position", "identifier", "label", "icon",  "label_editable", "description_editable", "deletable",
+                    "private", "bloc_in_general_part", "categories", "status", "questions", "extrafields", "types_intervention", "mandatory_status"
+                ),
+                array("categories", "extrafields", "types_intervention")
+            );
         }
 
-        if(!isset($this->cache_survey_bloc_status_dictionary)) {
+        if (!isset($this->cache_survey_bloc_status_dictionary)) {
             $this->cache_survey_bloc_status_dictionary = self::fetchProperDataFromDictionary(
-                $this->db, 'interventionsurvey', 'SurveyBlocStatus',
-            array("position","identifier", "label", "icon",  "color", "mandatory_justification", "deactivate_bloc", "predefined_texts"));
+                $this->db,
+                'interventionsurvey',
+                'SurveyBlocStatus',
+                array("position", "identifier", "label", "icon",  "color", "mandatory_justification", "deactivate_bloc", "predefined_texts")
+            );
         }
 
-        if(!isset($this->cache_survey_bloc_status_predefined_text_dictionary)) {
+        if (!isset($this->cache_survey_bloc_status_predefined_text_dictionary)) {
             $this->cache_survey_bloc_status_predefined_text_dictionary = self::fetchProperDataFromDictionary(
-                $this->db, 'interventionsurvey', 'SurveyBlocStatusPredefinedText',
-            array("position","identifier", "label", "blkLim",  "catLim"),
-            array("blkLim","catLim"));
+                $this->db,
+                'interventionsurvey',
+                'SurveyBlocStatusPredefinedText',
+                array("position", "identifier", "label", "blkLim",  "catLim"),
+                array("blkLim", "catLim")
+            );
         }
-        if(!isset($this->cache_survey_question_dictionary)) {
+        if (!isset($this->cache_survey_question_dictionary)) {
             $this->cache_survey_question_dictionary = self::fetchProperDataFromDictionary(
-                $this->db, 'interventionsurvey', 'SurveyQuestion',
-            array("position","identifier", "mandatory_answer", "label", "answers",  "extrafields"),
-            array("extrafields"));
+                $this->db,
+                'interventionsurvey',
+                'SurveyQuestion',
+                array("position", "identifier", "mandatory_answer", "label", "answers",  "extrafields"),
+                array("extrafields")
+            );
         }
-        if(!isset($this->cache_survey_answer_dictionary)) {
+        if (!isset($this->cache_survey_answer_dictionary)) {
             $this->cache_survey_answer_dictionary = self::fetchProperDataFromDictionary(
-                $this->db, 'interventionsurvey', 'SurveyAnswer',
-            array("position","identifier", "label", "color",  "mandatory_justification", "predefined_texts"));
+                $this->db,
+                'interventionsurvey',
+                'SurveyAnswer',
+                array("position", "identifier", "label", "color",  "mandatory_justification", "predefined_texts")
+            );
         }
-        if(!isset($this->cache_survey_answer_predefined_text)) {
+        if (!isset($this->cache_survey_answer_predefined_text)) {
             $this->cache_survey_answer_predefined_text = self::fetchProperDataFromDictionary(
-                $this->db, 'interventionsurvey', 'SurveyAnswerPredefinedText',
-            array("position","identifier", "label", "bloc_filter",  "cat_filter"),
-            array("bloc_filter","cat_filter"));
+                $this->db,
+                'interventionsurvey',
+                'SurveyAnswerPredefinedText',
+                array("position", "identifier", "label", "bloc_filter",  "cat_filter"),
+                array("bloc_filter", "cat_filter")
+            );
         }
-        if(!isset($this->cache_product_categories)){
+        if (!isset($this->cache_product_categories)) {
             dol_include_once('/interventionsurvey/class/html.forminterventionsurvey.class.php');
             $formextendedintervention = new FormInterventionSurvey($this->db);
             $this->cache_product_categories = $formextendedintervention->get_categories_array();
         }
-
-        }
-
-/**
- *
- * Prepare data fetched from dictionary in order to have simple and proper object
- *
- */
-
- public static function fetchProperDataFromDictionary($db, $moduleName, $dictionaryName, $fieldToKeep = array(), $fieldsToTransformInArray = array()) {
-    dol_include_once('/advancedictionaries/class/dictionary.class.php');
-    $data = Dictionary::getJSONDictionary($db, $moduleName, $dictionaryName);
-    $result = array();
-    foreach($data as $position=>$value){
-        $temp = array();
-        $temp["c_rowid"] = $value["rowid"];
-        foreach($fieldsToTransformInArray as $field)
-        {
-            $value[$field] = array_filter(explode(",",$value[$field]));
-        }
-        foreach($fieldToKeep as $field)
-        {
-            $temp[$field] = $value[$field];
-        }
-        $result[$position] = $temp;
     }
-    return $result;
- }
 
-     /**
+    /**
+     *
+     * Prepare data fetched from dictionary in order to have simple and proper object
+     *
+     */
+
+    public static function fetchProperDataFromDictionary($db, $moduleName, $dictionaryName, $fieldToKeep = array(), $fieldsToTransformInArray = array())
+    {
+        dol_include_once('/advancedictionaries/class/dictionary.class.php');
+        $data = Dictionary::getJSONDictionary($db, $moduleName, $dictionaryName);
+        $result = array();
+        foreach ($data as $position => $value) {
+            $temp = array();
+            $temp["c_rowid"] = $value["rowid"];
+            foreach ($fieldsToTransformInArray as $field) {
+                $value[$field] = array_filter(explode(",", $value[$field]));
+            }
+            foreach ($fieldToKeep as $field) {
+                $temp[$field] = $value[$field];
+            }
+            $result[$position] = $temp;
+        }
+        return $result;
+    }
+
+    /**
      * Fill object from one array with index value taken from object initial property value
      *
      */
 
-    static function fillDataFromJSONDictionary($JSONDictionaryLine,$field,$JSONDataDictionary) {
+    static function fillDataFromJSONDictionary($JSONDictionaryLine, $field, $JSONDataDictionary)
+    {
         $listOfIds = array_filter(explode(",", $JSONDictionaryLine[$field]));
         $JSONDictionaryLine[$field] = array();
-        foreach($listOfIds as $id) {
+        foreach ($listOfIds as $id) {
             $JSONDictionaryLine[$field][] = $JSONDataDictionary[$id];
         }
         return $JSONDictionaryLine;
     }
 
     /**
-   *	Sort by position field value an array
-      */
-    static function sortArrayOfObjectByPositionObjectProperty($array) {
+     *	Sort by position field value an array
+     */
+    static function sortArrayOfObjectByPositionObjectProperty($array)
+    {
         usort($array, 'intervention_survey_cmp');
         return $array;
     }
@@ -264,13 +289,13 @@ class InterventionSurvey extends Fichinter
      *
      */
 
-    public function generateBlocsWithFollowingSettings($interventionTypeId, $productCategory) {
+    public function generateBlocsWithFollowingSettings($interventionTypeId, $productCategory)
+    {
         $this->fillCaches();
         $listOfGeneratedBloc = array();
-        foreach($this->cache_survey_bloc_question_dictionary as $blocDictionary)
-        {
-            if(self::shouldThisBlocOfQuestionBeIntoThisSurvey($blocDictionary, $interventionTypeId, $productCategory)) {
-            $listOfGeneratedBloc[] = $this->fillStatusAndQuestionInQuestionBloc($blocDictionary, $productCategory);
+        foreach ($this->cache_survey_bloc_question_dictionary as $blocDictionary) {
+            if (self::shouldThisBlocOfQuestionBeIntoThisSurvey($blocDictionary, $interventionTypeId, $productCategory)) {
+                $listOfGeneratedBloc[] = $this->fillStatusAndQuestionInQuestionBloc($blocDictionary, $productCategory);
             }
         }
         return $listOfGeneratedBloc;
@@ -282,57 +307,57 @@ class InterventionSurvey extends Fichinter
      *
      */
 
-     public function generateSurveyFromDictionary() {
-        if ($this->fetchObjectLinked() < 0){
+    public function generateSurveyFromDictionary()
+    {
+        if ($this->fetchObjectLinked() < 0) {
             return -1;
         }
         if (empty($this->array_options)) {
             $this->fetch_optionals();
         }
-        $this->survey_taken_from_dictionary = $this->generateInterventionSurveyPartsWithFollowingSettings($this->array_options['options_ei_type'],$this->linkedObjectsIds);
+        $this->survey_taken_from_dictionary = $this->generateInterventionSurveyPartsWithFollowingSettings($this->array_options['options_ei_type'], $this->linkedObjectsIds);
         return 1;
-     }
+    }
 
     /**
      *  Get intervention parts according to intervention type and list of equipement product categories
      *
      */
 
-    public function generateInterventionSurveyPartsWithFollowingSettings($interventionTypeId, $arrayOfModuleNameAndItemId) {
+    public function generateInterventionSurveyPartsWithFollowingSettings($interventionTypeId, $arrayOfModuleNameAndItemId)
+    {
         $this->fillCaches();
         $surveyParts = array();
         $generalSurveyBlocParts = array();
-        foreach($arrayOfModuleNameAndItemId as $moduleName=>$listOfId) {
-            switch($moduleName) {
+        foreach ($arrayOfModuleNameAndItemId as $moduleName => $listOfId) {
+            switch ($moduleName) {
                 case "equipement":
-                    foreach($listOfId as $equipementId)
-                    {
+                    foreach ($listOfId as $equipementId) {
                         $listOfGeneratedBlocsForThisEquipement = array();
                         $categoriesOfProductForThisEquipement = $this->getArrayOfProductCategoriesAssociatedToEquipementId($equipementId);
                         $crudeListOfBlocsForThisEquipementInThisSurvey = array();
                         //We create list of blocs needed to be added to this survey
-                        foreach($categoriesOfProductForThisEquipement as $categoryId){
+                        foreach ($categoriesOfProductForThisEquipement as $categoryId) {
                             $crudeListOfBlocsForThisEquipementInThisSurvey = array_merge(
                                 $crudeListOfBlocsForThisEquipementInThisSurvey,
-                                $this->generateBlocsWithFollowingSettings($interventionTypeId, $categoryId));
+                                $this->generateBlocsWithFollowingSettings($interventionTypeId, $categoryId)
+                            );
                         }
                         //We put these blocs into survey parts
-                        foreach($crudeListOfBlocsForThisEquipementInThisSurvey as $bloc){
-                            $bloc_id= $bloc["c_rowid"];
-                            if(empty($bloc["bloc_in_general_part"])){
+                        foreach ($crudeListOfBlocsForThisEquipementInThisSurvey as $bloc) {
+                            $bloc_id = $bloc["c_rowid"];
+                            if (empty($bloc["bloc_in_general_part"])) {
                                 $listOfGeneratedBlocsForThisEquipement[$bloc_id] = $bloc;
-                            }
-                            else
-                            {
+                            } else {
                                 $generalSurveyBlocParts[$bloc_id] = $bloc;
                             }
                         }
                         $listOfGeneratedBlocsForThisEquipement = self::sortArrayOfObjectByPositionObjectProperty($listOfGeneratedBlocsForThisEquipement);
-                        $surveyParts[] = $this->generateEquipementSurveyPart($listOfGeneratedBlocsForThisEquipement,$equipementId, count($surveyParts)+1);
+                        $surveyParts[] = $this->generateEquipementSurveyPart($listOfGeneratedBlocsForThisEquipement, $equipementId, count($surveyParts) + 1);
                     }
-                break;
+                    break;
 
-            //Put here code to generate survey parts according to another classes
+                    //Put here code to generate survey parts according to another classes
             }
         }
 
@@ -340,50 +365,52 @@ class InterventionSurvey extends Fichinter
         $surveyParts[] = $this->generateGeneralSurveyPart($generalSurveyBlocParts);
         $data = self::sortArrayOfObjectByPositionObjectProperty($surveyParts);
         //We have final data, we unset useless data
-        foreach($data as $index=>$part){
+        foreach ($data as $index => $part) {
             unset($data[$index]["position"]);
         }
         return $data;
     }
 
-/**
- *
- * Generate information for general Survey Parts
- *
- */
+    /**
+     *
+     * Generate information for general Survey Parts
+     *
+     */
 
-function generateGeneralSurveyPart($listOfGeneralBlocs) {
-    $part = array(
-        'label'=>"General Parts",
-        'position'=>null,
-        'fk_identifier_type'=>null,
-        'fk_identifier_value'=>null,
-        'blocs'=>$listOfGeneralBlocs,
-    );
-    return $part;
-}
+    function generateGeneralSurveyPart($listOfGeneralBlocs)
+    {
+        $part = array(
+            'label' => "General Parts",
+            'position' => null,
+            'fk_identifier_type' => null,
+            'fk_identifier_value' => null,
+            'blocs' => $listOfGeneralBlocs,
+        );
+        return $part;
+    }
 
- /**
- *
- * Generate information for each specific parts linked to equipement
- *
- */
+    /**
+     *
+     * Generate information for each specific parts linked to equipement
+     *
+     */
 
-function generateEquipementSurveyPart($listOfEquipementBlocs, $equipementId, $position=null) {
-    dol_include_once('/equipement/class/equipement.class.php');
-    $equipment_static = new Equipement($this->db);
-    $equipment_static->fetch($equipementId);
-    $equipment_static->fetch_product();
+    function generateEquipementSurveyPart($listOfEquipementBlocs, $equipementId, $position = null)
+    {
+        dol_include_once('/equipement/class/equipement.class.php');
+        $equipment_static = new Equipement($this->db);
+        $equipment_static->fetch($equipementId);
+        $equipment_static->fetch_product();
 
-    $part = array(
-        'label'=> $equipment_static->ref . " - " . $equipment_static->product->label,
-        'position'=>$position,
-        'fk_identifier_type'=>"equipement",
-        'fk_identifier_value'=>$equipementId,
-        'blocs'=>$listOfEquipementBlocs,
-    );
-    return $part;
-}
+        $part = array(
+            'label' => $equipment_static->ref . " - " . $equipment_static->product->label,
+            'position' => $position,
+            'fk_identifier_type' => "equipement",
+            'fk_identifier_value' => $equipementId,
+            'blocs' => $listOfEquipementBlocs,
+        );
+        return $part;
+    }
 
 
 
@@ -393,25 +420,26 @@ function generateEquipementSurveyPart($listOfEquipementBlocs, $equipementId, $po
      *
      */
 
-     public function getArrayOfProductCategoriesAssociatedToEquipementId($equipementId) {
+    public function getArrayOfProductCategoriesAssociatedToEquipementId($equipementId)
+    {
         dol_include_once('/equipement/class/equipement.class.php');
         require_once DOL_DOCUMENT_ROOT . '/categories/class/categorie.class.php';
         $category_static = new Categorie($this->db);
         $equipment_static = new Equipement($this->db);
         $categories = array();
         if ($equipment_static->fetch($equipementId) > 0 && $equipment_static->fk_product > 0) {
-                $categories = $category_static->containing($equipment_static->fk_product, 'product', 'id');
+            $categories = $category_static->containing($equipment_static->fk_product, 'product', 'id');
         }
-        foreach($categories as $index=>$categoryId) {
-            if(!isset($this->cache_product_categories[$categoryId])){
+        foreach ($categories as $index => $categoryId) {
+            if (!isset($this->cache_product_categories[$categoryId])) {
                 unset($categories[$index]);
             }
         }
         return $categories;
-     }
+    }
 
 
-     /**
+    /**
      *  Fill bloc question data according to intervention type and equipment product type
      *
      */
@@ -424,17 +452,17 @@ function generateEquipementSurveyPart($listOfEquipementBlocs, $equipementId, $po
         //We fill question field
         $questionBloc = $this->fillQuestionInQuestionBloc($questionBloc, $productCategory);
         return $questionBloc;
-
     }
-     /**
+    /**
      *  Fill question in question blocs according to intervention type and equipment product type
      *
      */
-    function fillQuestionInQuestionBloc($questionBloc, $productCategory){
+    function fillQuestionInQuestionBloc($questionBloc, $productCategory)
+    {
         $data = self::fillDataFromJSONDictionary($questionBloc, "questions", $this->cache_survey_question_dictionary);
         $questionList = array();
-        foreach($data["questions"] as $index=>$answer){
-            $questionList[$index] = $this->fillAnswerInQuestion($answer,$questionBloc["c_rowid"], $productCategory);
+        foreach ($data["questions"] as $index => $answer) {
+            $questionList[$index] = $this->fillAnswerInQuestion($answer, $questionBloc["c_rowid"], $productCategory);
         }
         $questionList = self::sortArrayOfObjectByPositionObjectProperty($questionList);
         $data["questions"] = $questionList;
@@ -444,61 +472,65 @@ function generateEquipementSurveyPart($listOfEquipementBlocs, $equipementId, $po
      *  Fill answer in question according to intervention type and equipment product type
      *
      */
-    function fillAnswerInQuestion($question, $blocDictionaryId, $productCategory){
+    function fillAnswerInQuestion($question, $blocDictionaryId, $productCategory)
+    {
         $data = self::fillDataFromJSONDictionary($question, "answers", $this->cache_survey_answer_dictionary);
         $answerList = array();
-        foreach($data["answers"] as $index=>$answer){
-            $answerList[$index] = $this->fillAnswerPredefinedTextInAnswer($answer,$blocDictionaryId, $productCategory);
+        foreach ($data["answers"] as $index => $answer) {
+            $answerList[$index] = $this->fillAnswerPredefinedTextInAnswer($answer, $blocDictionaryId, $productCategory);
         }
         $answerList = self::sortArrayOfObjectByPositionObjectProperty($answerList);
         $data["answers"] = $answerList;
         return $data;
     }
 
-     /**
+    /**
      *  Fill answer predefined text in answer according to intervention type and equipment product type
      *
      */
-    function fillAnswerPredefinedTextInAnswer($answer, $blocDictionaryId, $productCategory){
+    function fillAnswerPredefinedTextInAnswer($answer, $blocDictionaryId, $productCategory)
+    {
         $data = self::fillDataFromJSONDictionary($answer, "predefined_texts", $this->cache_survey_answer_predefined_text);
-        $data["predefined_texts"] = array_filter($data["predefined_texts"], function($value) use ($blocDictionaryId,$productCategory) {
-            return self::shouldThisAnswerPredefinedTextBeIntoThisStatus($value,$blocDictionaryId, $productCategory);
+        $data["predefined_texts"] = array_filter($data["predefined_texts"], function ($value) use ($blocDictionaryId, $productCategory) {
+            return self::shouldThisAnswerPredefinedTextBeIntoThisStatus($value, $blocDictionaryId, $productCategory);
         });
         $data["predefined_texts"] = self::sortArrayOfObjectByPositionObjectProperty($data["predefined_texts"]);
-        foreach($data["predefined_texts"] as &$predefined_text){
+        foreach ($data["predefined_texts"] as &$predefined_text) {
             unset($predefined_text["bloc_filter"]);
             unset($predefined_text["cat_filter"]);
         }
         return $data;
     }
 
-     /**
+    /**
      *  Fill status in question bloc data according to intervention type and equipment product type
      *
      */
-    function fillStatusInQuestionBloc($questionBloc, $productCategory){
+    function fillStatusInQuestionBloc($questionBloc, $productCategory)
+    {
         $data = self::fillDataFromJSONDictionary($questionBloc, "status", $this->cache_survey_bloc_status_dictionary);
         $statusList = array();
         $statusList = self::sortArrayOfObjectByPositionObjectProperty($statusList);
-        foreach($data["status"] as $index=>$status) {
-            $statusList[$index] = $this->fillStatusPredefinedTextInQuestionBlocStatus($status,$questionBloc["c_rowid"], $productCategory);
+        foreach ($data["status"] as $index => $status) {
+            $statusList[$index] = $this->fillStatusPredefinedTextInQuestionBlocStatus($status, $questionBloc["c_rowid"], $productCategory);
             unset($statusList[$index]["position"]);
         }
         $data["status"] = $statusList;
         return $data;
     }
 
-     /**
+    /**
      *  Fill status predefined text in status bloc data according to intervention type and equipment product type
      *
      */
-    function fillStatusPredefinedTextInQuestionBlocStatus($status,$blocDictionaryId, $productCategory){
+    function fillStatusPredefinedTextInQuestionBlocStatus($status, $blocDictionaryId, $productCategory)
+    {
         $data = self::fillDataFromJSONDictionary($status, "predefined_texts", $this->cache_survey_bloc_status_predefined_text_dictionary);
-        $data["predefined_texts"] = array_filter($data["predefined_texts"], function($value) use ($blocDictionaryId,$productCategory) {
-            return self::shouldThisStatusPredefinedTextBeIntoThisStatus($value,$blocDictionaryId, $productCategory);
+        $data["predefined_texts"] = array_filter($data["predefined_texts"], function ($value) use ($blocDictionaryId, $productCategory) {
+            return self::shouldThisStatusPredefinedTextBeIntoThisStatus($value, $blocDictionaryId, $productCategory);
         });
         $data["predefined_texts"] = self::sortArrayOfObjectByPositionObjectProperty($data["predefined_texts"]);
-        foreach($data["predefined_texts"] as &$predefined_text){
+        foreach ($data["predefined_texts"] as &$predefined_text) {
             unset($predefined_text["blkLim"]);
             unset($predefined_text["catLim"]);
             unset($predefined_text["position"]);
@@ -509,130 +541,132 @@ function generateEquipementSurveyPart($listOfEquipementBlocs, $equipementId, $po
      * Generic method to check if an item must be include in parts of this survey
      */
 
-     public static function shouldThisItemBeIntoThisSurvey($item,$listOfSearchedValue) {
-         if(!isset($item)) {
-             return false;
-         }
-         $result = true;
-         foreach($listOfSearchedValue as $field=>$searchValue) {
-             if(!isset($item[$field]) || empty($item[$field])) {
-                 continue;
-             }
-             if( !isset($searchValue) || array_search($searchValue,$item[$field]) === false ){
-                 $result=false;
-             }
-         }
-         return $result;
-     }
+    public static function shouldThisItemBeIntoThisSurvey($item, $listOfSearchedValue)
+    {
+        if (!isset($item)) {
+            return false;
+        }
+        $result = true;
+        foreach ($listOfSearchedValue as $field => $searchValue) {
+            if (!isset($item[$field]) || empty($item[$field])) {
+                continue;
+            }
+            if (!isset($searchValue) || array_search($searchValue, $item[$field]) === false) {
+                $result = false;
+            }
+        }
+        return $result;
+    }
 
     /**
      * Method to check if a bloc should be into this survey according to dictionary data
      */
 
-    public static function shouldThisBlocOfQuestionBeIntoThisSurvey($blocOfQuestion, $interventionTypeId, $productCategory){
-        return self::shouldThisItemBeIntoThisSurvey($blocOfQuestion,array("categories"=>$productCategory, "types_intervention"=>$interventionTypeId));
+    public static function shouldThisBlocOfQuestionBeIntoThisSurvey($blocOfQuestion, $interventionTypeId, $productCategory)
+    {
+        return self::shouldThisItemBeIntoThisSurvey($blocOfQuestion, array("categories" => $productCategory, "types_intervention" => $interventionTypeId));
     }
 
     /**
      * Method to check if a status predefined Text should be into this survey according to dictionary data
      */
 
-    public static function shouldThisStatusPredefinedTextBeIntoThisStatus($statusPredefinedText, $blocDictionaryId, $productCategory){
-        return self::shouldThisItemBeIntoThisSurvey($statusPredefinedText,array("catLim"=>$productCategory, "blkLim"=>$blocDictionaryId));
+    public static function shouldThisStatusPredefinedTextBeIntoThisStatus($statusPredefinedText, $blocDictionaryId, $productCategory)
+    {
+        return self::shouldThisItemBeIntoThisSurvey($statusPredefinedText, array("catLim" => $productCategory, "blkLim" => $blocDictionaryId));
     }
 
     /**
      * Method to check if an answer predefined Text should be into this survey according to dictionary data
      */
 
-    public static function shouldThisAnswerPredefinedTextBeIntoThisStatus($answerPredefinedText, $blocDictionaryId, $productCategory){
-        return self::shouldThisItemBeIntoThisSurvey($answerPredefinedText,array("cat_filter"=>$productCategory, "bloc_filter"=>$blocDictionaryId));
+    public static function shouldThisAnswerPredefinedTextBeIntoThisStatus($answerPredefinedText, $blocDictionaryId, $productCategory)
+    {
+        return self::shouldThisItemBeIntoThisSurvey($answerPredefinedText, array("cat_filter" => $productCategory, "bloc_filter" => $blocDictionaryId));
     }
 
-/**
- *
- * Fetch Survey with backported dolibarr v11 functions
- *
- *
- */
+    /**
+     *
+     * Fetch Survey with backported dolibarr v11 functions
+     *
+     *
+     */
 
-public function fetchSurvey()
-{
-    $this->survey = array();
-    $data = $this->interventionSurveyFetchLinesCommon(" ORDER BY position ASC","SurveyPart",$this->survey);
-    return $data;
-}
-
-/**
- *
- * Save Survey
- *
- *
- */
-
-public function saveSurvey($user, $noSurveyReadOnlyCheck = false)
-{
-    global $langs;
-    $this->db->begin();
-    $errors = array();
-    if($this->is_survey_read_only() && !$noSurveyReadOnlyCheck){
-        $errors[] = $langs->trans('InterventionSurveyReadOnlyMode');
-        $this->db->rollback();
-        $this->errors = $errors;
-        return -1;
-    }
-    foreach($this->survey as $position=>$surveyPart){
-        $surveyPart->position = $position;
-        $surveyPart->save($user, $this->id, $noSurveyReadOnlyCheck);
-        $errors = array_merge($errors, $surveyPart->errors);
+    public function fetchSurvey()
+    {
+        $this->survey = array();
+        $data = $this->interventionSurveyFetchLinesCommon(" ORDER BY position ASC", "SurveyPart", $this->survey);
+        return $data;
     }
 
-    if(empty($errors)){
-        $this->db->commit();
-        return 1;
-    }
-    else{
-        $this->db->rollback();
-        $this->errors = $errors;
-        return -1;
-    }
-}
+    /**
+     *
+     * Save Survey
+     *
+     *
+     */
 
-/**
- *
- * Delete Survey
- *
- *
- */
+    public function saveSurvey($user, $noSurveyReadOnlyCheck = false)
+    {
+        global $langs;
+        $this->db->begin();
+        $errors = array();
+        if ($this->is_survey_read_only() && !$noSurveyReadOnlyCheck) {
+            $errors[] = $langs->trans('InterventionSurveyReadOnlyMode');
+            $this->db->rollback();
+            $this->errors = $errors;
+            return -1;
+        }
+        foreach ($this->survey as $position => $surveyPart) {
+            $surveyPart->position = $position;
+            $surveyPart->save($user, $this->id, $noSurveyReadOnlyCheck);
+            $errors = array_merge($errors, $surveyPart->errors);
+        }
 
-public function deleteSurvey($user, $notrigger = false)
-{
-    global $langs;
-    $this->db->begin();
-    $errors = array();
-
-    foreach($this->survey as $surveyPart){
-        $surveyPart->delete($user, $notrigger);
-        $errors = array_merge($errors, $surveyPart->errors ?? array());
+        if (empty($errors)) {
+            $this->db->commit();
+            return 1;
+        } else {
+            $this->db->rollback();
+            $this->errors = $errors;
+            return -1;
+        }
     }
 
-    if(empty($errors)){
-        $this->db->commit();
-        return 1;
-    }
-    else{
-        $this->db->rollback();
-        $this->errors = $errors;
-        return -1;
-    }
-}
+    /**
+     *
+     * Delete Survey
+     *
+     *
+     */
 
-/**
- *
- * Merge two survey according to rowid fields or dictionary field
- * There is an option to keep
- *
- */
+    public function deleteSurvey($user, $notrigger = false)
+    {
+        global $langs;
+        $this->db->begin();
+        $errors = array();
+
+        foreach ($this->survey as $surveyPart) {
+            $surveyPart->delete($user, $notrigger);
+            $errors = array_merge($errors, $surveyPart->errors ?? array());
+        }
+
+        if (empty($errors)) {
+            $this->db->commit();
+            return 1;
+        } else {
+            $this->db->rollback();
+            $this->errors = $errors;
+            return -1;
+        }
+    }
+
+    /**
+     *
+     * Merge two survey according to rowid fields or dictionary field
+     * There is an option to keep
+     *
+     */
 
 
 
@@ -652,7 +686,7 @@ public function deleteSurvey($user, $notrigger = false)
         }
 
         $this->attached_files = array();
-        $upload_dir = $conf->ficheinter->dir_output.'/'.dol_sanitizeFileName($this->ref);
+        $upload_dir = $conf->ficheinter->dir_output . '/' . dol_sanitizeFileName($this->ref);
         $filearray = dol_dir_list($upload_dir, "files", 0, '', '(\.meta|_preview.*\.png)$');
         foreach ($filearray as $file) {
             $relativepath = dol_sanitizeFileName($this->ref) . '/' . $file["name"];
@@ -706,7 +740,7 @@ public function deleteSurvey($user, $notrigger = false)
                     // Update into database
                     $sql2 = "UPDATE " . MAIN_DB_PREFIX . "extendedintervention_question_bloc";
                     $sql2 .= " SET attached_files = " . (!empty($attached_files) ? "'" . $this->db->escape(serialize($attached_files)) . "'" : "NULL");
-			$sql2 .= " WHERE rowid = " . $obj->rowid;
+                    $sql2 .= " WHERE rowid = " . $obj->rowid;
 
                     $resql2 = $this->db->query($sql2);
                     if (!$resql2) {
@@ -728,73 +762,68 @@ public function deleteSurvey($user, $notrigger = false)
         return 1;
     }
 
-/**
- *
- * Load survey in memory from the given array of survey parts
- *
- */
+    /**
+     *
+     * Load survey in memory from the given array of survey parts
+     *
+     */
 
- public function setSurveyFromFetchObj(&$arrayOfSurveyParts){
-    $arrayOfSurveyParts = json_decode(json_encode($arrayOfSurveyParts));
-     $this->survey = array();
-     if(isset($arrayOfSurveyParts)){
-        foreach($arrayOfSurveyParts as $surveyPartObj){
-            $surveyPart = new SurveyPart($this->db);
-            $surveyPart->setVarsFromFetchObj($surveyPartObj, $this);
-            $surveyPart->fk_fichinter = $this->id;
-            $this->survey[] = $surveyPart;
+    public function setSurveyFromFetchObj(&$arrayOfSurveyParts)
+    {
+        $arrayOfSurveyParts = json_decode(json_encode($arrayOfSurveyParts));
+        $this->survey = array();
+        if (isset($arrayOfSurveyParts)) {
+            foreach ($arrayOfSurveyParts as $surveyPartObj) {
+                $surveyPart = new SurveyPart($this->db);
+                $surveyPart->setVarsFromFetchObj($surveyPartObj, $this);
+                $surveyPart->fk_fichinter = $this->id;
+                $this->survey[] = $surveyPart;
+            }
         }
-     }
- }
+    }
 
 
 
-/**
-    * Load object in memory from the database
-    *
-    * @param	string	$morewhere		More SQL filters (' AND ...')
-    * @return 	int         			<0 if KO, 0 if not found, >0 if OK
-    */
+    /**
+     * Load object in memory from the database
+     *
+     * @param	string	$morewhere		More SQL filters (' AND ...')
+     * @return 	int         			<0 if KO, 0 if not found, >0 if OK
+     */
     public function interventionSurveyFetchLinesCommon($morewhere = '', $objectlineclassname = null, &$resultValue)
     {
 
-        if (!class_exists($objectlineclassname))
-        {
-            $this->error = 'Error, class '.$objectlineclassname.' not found during call of fetchLinesCommon';
+        if (!class_exists($objectlineclassname)) {
+            $this->error = 'Error, class ' . $objectlineclassname . ' not found during call of fetchLinesCommon';
             $this->errors[] = $this->error;
             return -1;
         }
 
         $objectline = new $objectlineclassname($this->db);
 
-        $sql = 'SELECT '.$objectline->getFieldList();
-        $sql .= ' FROM '.MAIN_DB_PREFIX.$objectline->table_element;
-        $sql .= ' WHERE fk_'.$this->element.' = '.$this->id;
+        $sql = 'SELECT ' . $objectline->getFieldList();
+        $sql .= ' FROM ' . MAIN_DB_PREFIX . $objectline->table_element;
+        $sql .= ' WHERE fk_' . $this->element . ' = ' . $this->id;
         if ($morewhere)   $sql .= $morewhere;
 
         $resql = $this->db->query($sql);
-        if ($resql)
-        {
+        if ($resql) {
             $num_rows = $this->db->num_rows($resql);
             $i = 0;
-            while ($i < $num_rows)
-            {
+            while ($i < $num_rows) {
                 $obj = $this->db->fetch_object($resql);
-                if ($obj)
-                {
+                if ($obj) {
                     $newline = new $objectlineclassname($this->db);
                     $newline->setVarsFromFetchObj($obj);
-                    if(method_exists($newline, "fetchLines")){
-                     $newline->fetchLines($this);
+                    if (method_exists($newline, "fetchLines")) {
+                        $newline->fetchLines($this);
                     }
                     $resultValue[] = $newline;
                     $this->errors = array_merge($this->errors, $newline->errors);
                 }
                 $i++;
             }
-        }
-        else
-        {
+        } else {
             $this->error = $this->db->lasterror();
             $this->errors[] = $this->error;
             return -1;
@@ -815,12 +844,13 @@ public function deleteSurvey($user, $notrigger = false)
     /**
      * Clean survey - we remove empty survey Part into bdd
      */
-    function cleanSurvey($user) {
+    function cleanSurvey($user)
+    {
         $errors = array();
         $this->db->begin();
-        if($this->fetchSurvey() > 0){
-            foreach($this->survey as $surveyPart){
-                if(empty($surveyPart->blocs)){
+        if ($this->fetchSurvey() > 0) {
+            foreach ($this->survey as $surveyPart) {
+                if (empty($surveyPart->blocs)) {
                     $surveyPart->delete($user);
                     $errors = array_merge($errors, $surveyPart->errors);
                 }
@@ -828,11 +858,10 @@ public function deleteSurvey($user, $notrigger = false)
         }
         $this->fetchSurvey();
         $errors = array_merge($errors, $this->errors);
-        if(empty($errors)){
+        if (empty($errors)) {
             $this->db->commit();
             return 1;
-        }
-        else {
+        } else {
             $this->db->rollback();
             return -1;
         }
@@ -949,38 +978,39 @@ public function deleteSurvey($user, $notrigger = false)
     //      $this->cleanSurvey();
     //  }
 
-/**
- *
- * This is a simple merge function with dictionary data
- * It only remove all survey part and blocs set from dictionary that are no more existing
- * Deletion is made according two mode : soft and hard
- * In soft mode we only delete empty element (no user information have been set)
- * In hard mode we delete everything set from dictionary that are not anymore needed
- *
- */
-     public function mergeCurrentSurveyWithDictionaryData($user, $deleteEmptyStaledBloc = false, $deleteStaledBloc = false, $addMissingPart = true, $addMissingBlocIntoGeneralPart = true, $addMissingBlocInOtherPart = false){
+    /**
+     *
+     * This is a simple merge function with dictionary data
+     * It only remove all survey part and blocs set from dictionary that are no more existing
+     * Deletion is made according two mode : soft and hard
+     * In soft mode we only delete empty element (no user information have been set)
+     * In hard mode we delete everything set from dictionary that are not anymore needed
+     *
+     */
+    public function mergeCurrentSurveyWithDictionaryData($user, $deleteEmptyStaledBloc = false, $deleteStaledBloc = false, $addMissingPart = true, $addMissingBlocIntoGeneralPart = true, $addMissingBlocInOtherPart = false)
+    {
 
-    $this->db->begin();
-       $blocToDelete = array();
+        $this->db->begin();
+        $blocToDelete = array();
 
-       $partToAdd = array();
-       $blocToAdd = array();
+        $partToAdd = array();
+        $blocToAdd = array();
 
-       $oldData = $this->survey;
+        $oldData = $this->survey;
 
-       $interventionSurveyFromDictionary = clone $this;
-       $this->generateSurveyFromDictionary();
-       $interventionSurveyFromDictionary->setSurveyFromFetchObj($this->survey_taken_from_dictionary);
-       $dataFromDictionary = $interventionSurveyFromDictionary->survey;
+        $interventionSurveyFromDictionary = clone $this;
+        $this->generateSurveyFromDictionary();
+        $interventionSurveyFromDictionary->setSurveyFromFetchObj($this->survey_taken_from_dictionary);
+        $dataFromDictionary = $interventionSurveyFromDictionary->survey;
 
         //we try to find bloc to delete
-        foreach($oldData as $index=>$oldSurveyPart){
+        foreach ($oldData as $index => $oldSurveyPart) {
             $surveyPartIntoNewData =
-            self::getItemFromThisArray($dataFromDictionary, array('fk_identifier_type'=>$oldSurveyPart->fk_identifier_type,'fk_identifier_value'=>$oldSurveyPart->fk_identifier_value));
+                self::getItemFromThisArray($dataFromDictionary, array('fk_identifier_type' => $oldSurveyPart->fk_identifier_type, 'fk_identifier_value' => $oldSurveyPart->fk_identifier_value));
 
-            foreach($oldSurveyPart->blocs as $oldBloc){
-                if(empty($surveyPartIntoNewData) || empty(self::getItemFromThisArray($surveyPartIntoNewData->blocs, array('fk_c_survey_bloc_question'=>$oldBloc->fk_c_survey_bloc_question)))){
-                    if($deleteStaledBloc || ($deleteEmptyStaledBloc && $oldBloc->is_empty())){
+            foreach ($oldSurveyPart->blocs as $oldBloc) {
+                if (empty($surveyPartIntoNewData) || empty(self::getItemFromThisArray($surveyPartIntoNewData->blocs, array('fk_c_survey_bloc_question' => $oldBloc->fk_c_survey_bloc_question)))) {
+                    if ($deleteStaledBloc || ($deleteEmptyStaledBloc && $oldBloc->is_empty())) {
                         $blocToDelete[] = $oldBloc;
                     }
                 }
@@ -989,76 +1019,72 @@ public function deleteSurvey($user, $notrigger = false)
 
         //Now we have a copy of items to delete into $partToDelete and blocToDelete and these items have been unset from oldData
         //Now we add new surveyPart to oldData
-        foreach($dataFromDictionary as $newSurveyPart){
-            $itemInOldData = self::getItemFromThisArray($oldData, array('fk_identifier_type'=>$newSurveyPart->fk_identifier_type,'fk_identifier_value'=>$newSurveyPart->fk_identifier_value));
-            if(!$itemInOldData){
+        foreach ($dataFromDictionary as $newSurveyPart) {
+            $itemInOldData = self::getItemFromThisArray($oldData, array('fk_identifier_type' => $newSurveyPart->fk_identifier_type, 'fk_identifier_value' => $newSurveyPart->fk_identifier_value));
+            if (!$itemInOldData) {
                 //it is a new part
-                if($addMissingPart){
+                if ($addMissingPart) {
                     $partToAdd[] = $newSurveyPart;
                 }
-            }
-            else
-            {
+            } else {
 
                 //we look for new blocs
-                foreach($newSurveyPart->blocs as $newBloc){
-                    $oldBloc = self::getItemFromThisArray($itemInOldData->blocs, array('fk_c_survey_bloc_question'=>$newBloc->fk_c_survey_bloc_question));
-                    if(!$oldBloc){
+                foreach ($newSurveyPart->blocs as $newBloc) {
+                    $oldBloc = self::getItemFromThisArray($itemInOldData->blocs, array('fk_c_survey_bloc_question' => $newBloc->fk_c_survey_bloc_question));
+                    if (!$oldBloc) {
                         //It is a new bloc
                         $newBloc->fk_surveypart = $itemInOldData->id;
                         $isCurrentPartGeneralPart = $newSurveyPart->fk_identifier_type == null && $newSurveyPart->fk_identifier_value == null;
-                        if(($addMissingBlocInOtherPart && !$isCurrentPartGeneralPart) || ($isCurrentPartGeneralPart && $addMissingBlocIntoGeneralPart)){
+                        if (($addMissingBlocInOtherPart && !$isCurrentPartGeneralPart) || ($isCurrentPartGeneralPart && $addMissingBlocIntoGeneralPart)) {
                             $blocToAdd[] = $newBloc;
                         }
                     }
                 }
             }
-       }
-
-        foreach($blocToDelete as $bloc){
-               $bloc->delete($user);
-               $this->errors = array_merge($this->errors,$bloc->errors);
-           }
-        foreach($partToAdd as $part){
-                $part->save($user,null,true);
-                $this->errors = array_merge($this->errors,$part->errors);
         }
-        foreach($blocToAdd as $bloc){
-            $bloc->save($user,null,true);
-            $this->errors = array_merge($this->errors,$bloc->errors);
+
+        foreach ($blocToDelete as $bloc) {
+            $bloc->delete($user);
+            $this->errors = array_merge($this->errors, $bloc->errors);
+        }
+        foreach ($partToAdd as $part) {
+            $part->save($user, null, true);
+            $this->errors = array_merge($this->errors, $part->errors);
+        }
+        foreach ($blocToAdd as $bloc) {
+            $bloc->save($user, null, true);
+            $this->errors = array_merge($this->errors, $bloc->errors);
         }
 
         //finally we clean the survey
         $this->cleanSurvey($user);
-        if(empty($this->errors)){
+        if (empty($this->errors)) {
             $this->db->commit();
             return 1;
-        }
-        else
-        {
+        } else {
             $this->db->rollback();
             return -1;
         }
     }
 
-     /**
-      * Get a survey part according to an array with "fieldName"=>valueToMatch
-      */
+    /**
+     * Get a survey part according to an array with "fieldName"=>valueToMatch
+     */
 
-    public static function getItemFromThisArray(&$array, $arrayOfParameters = array()){
+    public static function getItemFromThisArray(&$array, $arrayOfParameters = array())
+    {
         $result = null;
-        foreach($array as $item){
+        foreach ($array as $item) {
             $test = true;
-            foreach($arrayOfParameters as $fieldName=>$searchValue)
-            {
-                if(!($item->$fieldName == $searchValue)){
+            foreach ($arrayOfParameters as $fieldName => $searchValue) {
+                if (!($item->$fieldName == $searchValue)) {
                     $test = false;
-                break;
+                    break;
                 }
             }
-            if($test){
-            $result = &$item;
-            break;
+            if ($test) {
+                $result = &$item;
+                break;
             }
         }
         return $result;
@@ -1073,24 +1099,26 @@ public function deleteSurvey($user, $notrigger = false)
      *
      */
 
-     public function softUpdateOfSurveyFromDictionary($user){
-         return $this->mergeCurrentSurveyWithDictionaryData($user, true, false,true,true,true);
-     }
+    public function softUpdateOfSurveyFromDictionary($user)
+    {
+        return $this->mergeCurrentSurveyWithDictionaryData($user, true, false, true, true, true);
+    }
 
-     /**
-      *
-      * Method to check if there are missing data on the survey
-      *
-      */
+    /**
+     *
+     * Method to check if there are missing data on the survey
+     *
+     */
 
-      public function areDataValid(){
-          $result = true;
-          foreach($this->survey as $surveyPart){
-              if(!$surveyPart->areDataValid()){
-                  $result = false;
-              break;
-              }
-          }
-          return $result;
-      }
+    public function areDataValid()
+    {
+        $result = true;
+        foreach ($this->survey as $surveyPart) {
+            if (!$surveyPart->areDataValid()) {
+                $result = false;
+                break;
+            }
+        }
+        return $result;
+    }
 }

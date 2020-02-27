@@ -23,7 +23,7 @@
  */
 
 // Put here all includes required by your class file
-require_once DOL_DOCUMENT_ROOT.'/core/class/commonobject.class.php';
+require_once DOL_DOCUMENT_ROOT . '/core/class/commonobject.class.php';
 dol_include_once('/interventionsurvey/class/surveyanswerpredefinedtext.class.php');
 //require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
 //require_once DOL_DOCUMENT_ROOT . '/product/class/product.class.php';
@@ -33,497 +33,478 @@ dol_include_once('/interventionsurvey/class/surveyanswerpredefinedtext.class.php
  */
 class SurveyAnswer extends CommonObject
 {
-	/**
-	 * @var string ID to identify managed object
-	 */
-	public $element = 'surveyanswer';
+    /**
+     * @var string ID to identify managed object
+     */
+    public $element = 'surveyanswer';
 
-	/**
-	 * @var string Name of table without prefix where object is stored
-	 */
-	public $table_element = 'interventionsurvey_surveyanswer';
+    /**
+     * @var string Name of table without prefix where object is stored
+     */
+    public $table_element = 'interventionsurvey_surveyanswer';
 
-	/**
-	 * @var int  Does surveyanswer support multicompany module ? 0=No test on entity, 1=Test with field entity, 2=Test with link by societe
-	 */
-	public $ismultientitymanaged = 0;
+    /**
+     * @var int  Does surveyanswer support multicompany module ? 0=No test on entity, 1=Test with field entity, 2=Test with link by societe
+     */
+    public $ismultientitymanaged = 0;
 
-	/**
-	 * @var int  Does object support extrafields ? 0=No, 1=Yes
-	 */
-	public $isextrafieldmanaged = 1;
+    /**
+     * @var int  Does object support extrafields ? 0=No, 1=Yes
+     */
+    public $isextrafieldmanaged = 1;
 
-	/**
-	 * @var string String with name of icon for surveyanswer. Must be the part after the 'object_' into object_surveyanswer.png
-	 */
-	public $picto = 'surveyanswer@interventionsurvey';
-
-
-	const STATUS_DRAFT = 0;
-	const STATUS_VALIDATED = 1;
-	const STATUS_CANCELED = 9;
+    /**
+     * @var string String with name of icon for surveyanswer. Must be the part after the 'object_' into object_surveyanswer.png
+     */
+    public $picto = 'surveyanswer@interventionsurvey';
 
 
-	/**
-	 *  'type' if the field format ('integer', 'integer:ObjectClass:PathToClass[:AddCreateButtonOrNot[:Filter]]', 'varchar(x)', 'double(24,8)', 'real', 'price', 'text', 'html', 'date', 'datetime', 'timestamp', 'duration', 'mail', 'phone', 'url', 'password')
-	 *         Note: Filter can be a string like "(t.ref:like:'SO-%') or (t.date_creation:<:'20160101') or (t.nature:is:NULL)"
-	 *  'label' the translation key.
-	 *  'enabled' is a condition when the field must be managed.
-	 *  'position' is the sort order of field.
-	 *  'notnull' is set to 1 if not null in database. Set to -1 if we must set data to null if empty ('' or 0).
-	 *  'visible' says if field is visible in list (Examples: 0=Not visible, 1=Visible on list and create/update/view forms, 2=Visible on list only, 3=Visible on create/update/view form only (not list), 4=Visible on list and update/view form only (not create). 5=Visible on list and view only (not create/not update). Using a negative value means field is not shown by default on list but can be selected for viewing)
-	 *  'noteditable' says if field is not editable (1 or 0)
-	 *  'default' is a default value for creation (can still be overwrote by the Setup of Default Values if field is editable in creation form). Note: If default is set to '(PROV)' and field is 'ref', the default value will be set to '(PROVid)' where id is rowid when a new record is created.
-	 *  'index' if we want an index in database.
-	 *  'foreignkey'=>'tablename.field' if the field is a foreign key (it is recommanded to name the field fk_...).
-	 *  'searchall' is 1 if we want to search in this field when making a search from the quick search button.
-	 *  'isameasure' must be set to 1 if you want to have a total on list for this field. Field type must be summable like integer or double(24,8).
-	 *  'css' is the CSS style to use on field. For example: 'maxwidth200'
-	 *  'help' is a string visible as a tooltip on field
-	 *  'showoncombobox' if value of the field must be visible into the label of the combobox that list record
-	 *  'disabled' is 1 if we want to have the field locked by a 'disabled' attribute. In most cases, this is never set into the definition of $fields into class, but is set dynamically by some part of code.
-	 *  'arraykeyval' to set list of value if type is a list of predefined values. For example: array("0"=>"Draft","1"=>"Active","-1"=>"Cancel")
-	 *  'comment' is not used. You can store here any text of your choice. It is not used by application.
-	 *
-	 *  Note: To have value dynamic, you can set value to 0 in definition and edit the value on the fly into the constructor.
-	 */
+    const STATUS_DRAFT = 0;
+    const STATUS_VALIDATED = 1;
+    const STATUS_CANCELED = 9;
 
-	// BEGIN MODULEBUILDER PROPERTIES
-	/**
-	 * @var array  Array with all fields and their property. Do not use it as a static var. It may be modified by constructor.
-	 */
-	public $fields=array(
-		'rowid' => array('type'=>'integer', 'label'=>'TechnicalID', 'enabled'=>1, 'position'=>1, 'notnull'=>1, 'visible'=>-1, 'noteditable'=>'1', 'index'=>1, 'comment'=>"Id"),
-		'fk_c_survey_answer' => array('type'=>'integer:SurveyAnswerPredefinedTextDictionary:interventionsurvey/core/dictionaries/surveyanswer.dictionary.php', 'label'=>'Link to the answer in the dictionnary', 'enabled'=>1, 'position'=>5, 'notnull'=>0, 'visible'=>-1,),
-		'fk_surveyquestion' => array('type'=>'integer:SurveyQuestion:interventionsurvey/class/surveyquestion.class.php', 'label'=>'Link to the Question', 'enabled'=>1, 'position'=>10, 'notnull'=>0, 'visible'=>3,),
-		'label' => array('type'=>'text', 'label'=>'Texte de la réponse', 'enabled'=>1, 'position'=>30, 'notnull'=>0, 'visible'=>3,),
-		'position' => array('type'=>'integer', 'label'=>'Ordre', 'enabled'=>1, 'position'=>15, 'notnull'=>0, 'visible'=>3,),
-		'color' => array('type'=>'varchar(10)', 'label'=>'Couleur', 'enabled'=>1, 'position'=>35, 'notnull'=>0, 'visible'=>3,),
-		'mandatory_justification' => array('type'=>'boolean', 'label'=>'Indicate if the related question needs justification', 'enabled'=>1, 'position'=>40, 'notnull'=>0, 'visible'=>-1,),
-	);
-	public $rowid;
-	public $fk_c_survey_answer;
-	public $fk_surveyquestion;
-	public $label;
-	public $position;
-	public $color;
+
+    /**
+     *  'type' if the field format ('integer', 'integer:ObjectClass:PathToClass[:AddCreateButtonOrNot[:Filter]]', 'varchar(x)', 'double(24,8)', 'real', 'price', 'text', 'html', 'date', 'datetime', 'timestamp', 'duration', 'mail', 'phone', 'url', 'password')
+     *         Note: Filter can be a string like "(t.ref:like:'SO-%') or (t.date_creation:<:'20160101') or (t.nature:is:NULL)"
+     *  'label' the translation key.
+     *  'enabled' is a condition when the field must be managed.
+     *  'position' is the sort order of field.
+     *  'notnull' is set to 1 if not null in database. Set to -1 if we must set data to null if empty ('' or 0).
+     *  'visible' says if field is visible in list (Examples: 0=Not visible, 1=Visible on list and create/update/view forms, 2=Visible on list only, 3=Visible on create/update/view form only (not list), 4=Visible on list and update/view form only (not create). 5=Visible on list and view only (not create/not update). Using a negative value means field is not shown by default on list but can be selected for viewing)
+     *  'noteditable' says if field is not editable (1 or 0)
+     *  'default' is a default value for creation (can still be overwrote by the Setup of Default Values if field is editable in creation form). Note: If default is set to '(PROV)' and field is 'ref', the default value will be set to '(PROVid)' where id is rowid when a new record is created.
+     *  'index' if we want an index in database.
+     *  'foreignkey'=>'tablename.field' if the field is a foreign key (it is recommanded to name the field fk_...).
+     *  'searchall' is 1 if we want to search in this field when making a search from the quick search button.
+     *  'isameasure' must be set to 1 if you want to have a total on list for this field. Field type must be summable like integer or double(24,8).
+     *  'css' is the CSS style to use on field. For example: 'maxwidth200'
+     *  'help' is a string visible as a tooltip on field
+     *  'showoncombobox' if value of the field must be visible into the label of the combobox that list record
+     *  'disabled' is 1 if we want to have the field locked by a 'disabled' attribute. In most cases, this is never set into the definition of $fields into class, but is set dynamically by some part of code.
+     *  'arraykeyval' to set list of value if type is a list of predefined values. For example: array("0"=>"Draft","1"=>"Active","-1"=>"Cancel")
+     *  'comment' is not used. You can store here any text of your choice. It is not used by application.
+     *
+     *  Note: To have value dynamic, you can set value to 0 in definition and edit the value on the fly into the constructor.
+     */
+
+    // BEGIN MODULEBUILDER PROPERTIES
+    /**
+     * @var array  Array with all fields and their property. Do not use it as a static var. It may be modified by constructor.
+     */
+    public $fields = array(
+        'rowid' => array('type' => 'integer', 'label' => 'TechnicalID', 'enabled' => 1, 'position' => 1, 'notnull' => 1, 'visible' => -1, 'noteditable' => '1', 'index' => 1, 'comment' => "Id"),
+        'fk_c_survey_answer' => array('type' => 'integer:SurveyAnswerPredefinedTextDictionary:interventionsurvey/core/dictionaries/surveyanswer.dictionary.php', 'label' => 'Link to the answer in the dictionnary', 'enabled' => 1, 'position' => 5, 'notnull' => 0, 'visible' => -1,),
+        'fk_surveyquestion' => array('type' => 'integer:SurveyQuestion:interventionsurvey/class/surveyquestion.class.php', 'label' => 'Link to the Question', 'enabled' => 1, 'position' => 10, 'notnull' => 0, 'visible' => 3,),
+        'label' => array('type' => 'text', 'label' => 'Texte de la réponse', 'enabled' => 1, 'position' => 30, 'notnull' => 0, 'visible' => 3,),
+        'position' => array('type' => 'integer', 'label' => 'Ordre', 'enabled' => 1, 'position' => 15, 'notnull' => 0, 'visible' => 3,),
+        'color' => array('type' => 'varchar(10)', 'label' => 'Couleur', 'enabled' => 1, 'position' => 35, 'notnull' => 0, 'visible' => 3,),
+        'mandatory_justification' => array('type' => 'boolean', 'label' => 'Indicate if the related question needs justification', 'enabled' => 1, 'position' => 40, 'notnull' => 0, 'visible' => -1,),
+    );
+    public $rowid;
+    public $fk_c_survey_answer;
+    public $fk_surveyquestion;
+    public $label;
+    public $position;
+    public $color;
     public $mandatory_justification;
     public $predefined_texts;
-	// END MODULEBUILDER PROPERTIES
+    // END MODULEBUILDER PROPERTIES
 
     public $surveyQuestion;
 
-	// If this object has a subtable with lines
+    // If this object has a subtable with lines
 
-	/**
-	 * @var int    Name of subtable line
-	 */
-	//public $table_element_line = 'interventionsurvey_surveyanswerline';
+    /**
+     * @var int    Name of subtable line
+     */
+    //public $table_element_line = 'interventionsurvey_surveyanswerline';
 
-	/**
-	 * @var int    Field with ID of parent key if this field has a parent
-	 */
-	//public $fk_element = 'fk_surveyanswer';
+    /**
+     * @var int    Field with ID of parent key if this field has a parent
+     */
+    //public $fk_element = 'fk_surveyanswer';
 
-	/**
-	 * @var int    Name of subtable class that manage subtable lines
-	 */
-	//public $class_element_line = 'surveyAnswerline';
+    /**
+     * @var int    Name of subtable class that manage subtable lines
+     */
+    //public $class_element_line = 'surveyAnswerline';
 
-	/**
-	 * @var array	List of child tables. To test if we can delete object.
-	 */
-	//protected $childtables=array();
+    /**
+     * @var array	List of child tables. To test if we can delete object.
+     */
+    //protected $childtables=array();
 
-	/**
-	 * @var array	List of child tables. To know object to delete on cascade.
-	 */
-	//protected $childtablesoncascade=array('interventionsurvey_surveyanswerdet');
+    /**
+     * @var array	List of child tables. To know object to delete on cascade.
+     */
+    //protected $childtablesoncascade=array('interventionsurvey_surveyanswerdet');
 
-	/**
-	 * @var surveyAnswerLine[]     Array of subtable lines
-	 */
-	//public $lines = array();
+    /**
+     * @var surveyAnswerLine[]     Array of subtable lines
+     */
+    //public $lines = array();
 
 
 
-	/**
-	 * Constructor
-	 *
-	 * @param DoliDb $db Database handler
-	 */
-	public function __construct(DoliDB $db)
-	{
-		global $conf, $langs;
+    /**
+     * Constructor
+     *
+     * @param DoliDb $db Database handler
+     */
+    public function __construct(DoliDB $db)
+    {
+        global $conf, $langs;
 
-		$this->db = $db;
+        $this->db = $db;
 
-		if (empty($conf->global->MAIN_SHOW_TECHNICAL_ID) && isset($this->fields['rowid'])) $this->fields['rowid']['visible'] = 0;
-		if (empty($conf->multicompany->enabled) && isset($this->fields['entity'])) $this->fields['entity']['enabled'] = 0;
+        if (empty($conf->global->MAIN_SHOW_TECHNICAL_ID) && isset($this->fields['rowid'])) $this->fields['rowid']['visible'] = 0;
+        if (empty($conf->multicompany->enabled) && isset($this->fields['entity'])) $this->fields['entity']['enabled'] = 0;
 
-		// Example to show how to set values of fields definition dynamically
-		/*if ($user->rights->interventionsurvey->surveyanswer->read) {
+        // Example to show how to set values of fields definition dynamically
+        /*if ($user->rights->interventionsurvey->surveyanswer->read) {
 			$this->fields['myfield']['visible'] = 1;
 			$this->fields['myfield']['noteditable'] = 0;
 		}*/
 
-		// Unset fields that are disabled
-		foreach ($this->fields as $key => $val)
-		{
-			if (isset($val['enabled']) && empty($val['enabled']))
-			{
-				unset($this->fields[$key]);
-			}
-		}
+        // Unset fields that are disabled
+        foreach ($this->fields as $key => $val) {
+            if (isset($val['enabled']) && empty($val['enabled'])) {
+                unset($this->fields[$key]);
+            }
+        }
 
-		// Translate some data of arrayofkeyval
-		if (is_object($langs))
-		{
-			foreach($this->fields as $key => $val)
-			{
-				if (is_array($val['arrayofkeyval']))
-				{
-					foreach($val['arrayofkeyval'] as $key2 => $val2)
-					{
-						$this->fields[$key]['arrayofkeyval'][$key2]=$langs->trans($val2);
-					}
-				}
-			}
-		}
-	}
+        // Translate some data of arrayofkeyval
+        if (is_object($langs)) {
+            foreach ($this->fields as $key => $val) {
+                if (is_array($val['arrayofkeyval'])) {
+                    foreach ($val['arrayofkeyval'] as $key2 => $val2) {
+                        $this->fields[$key]['arrayofkeyval'][$key2] = $langs->trans($val2);
+                    }
+                }
+            }
+        }
+    }
 
-	/**
-	 * Create object into database
-	 *
-	 * @param  User $user      User that creates
-	 * @param  bool $notrigger false=launch triggers after, true=disable triggers
-	 * @return int             <0 if KO, Id of created object if OK
-	 */
-	public function create(User $user, $notrigger = false)
-	{
-		return $this->createCommon($user, $notrigger);
-	}
+    /**
+     * Create object into database
+     *
+     * @param  User $user      User that creates
+     * @param  bool $notrigger false=launch triggers after, true=disable triggers
+     * @return int             <0 if KO, Id of created object if OK
+     */
+    public function create(User $user, $notrigger = false)
+    {
+        return $this->createCommon($user, $notrigger);
+    }
 
-	/**
-	 * Clone an object into another one
-	 *
-	 * @param  	User 	$user      	User that creates
-	 * @param  	int 	$fromid     Id of object to clone
-	 * @return 	mixed 				New object created, <0 if KO
-	 */
-	public function createFromClone(User $user, $fromid)
-	{
-		global $langs, $extrafields;
-	    $error = 0;
+    /**
+     * Clone an object into another one
+     *
+     * @param  	User 	$user      	User that creates
+     * @param  	int 	$fromid     Id of object to clone
+     * @return 	mixed 				New object created, <0 if KO
+     */
+    public function createFromClone(User $user, $fromid)
+    {
+        global $langs, $extrafields;
+        $error = 0;
 
-	    dol_syslog(__METHOD__, LOG_DEBUG);
+        dol_syslog(__METHOD__, LOG_DEBUG);
 
-	    $object = new self($this->db);
+        $object = new self($this->db);
 
-	    $this->db->begin();
+        $this->db->begin();
 
-	    // Load source object
-	    $result = $object->fetchCommon($fromid);
-	    if ($result > 0 && !empty($object->table_element_line)) $object->fetchLines();
+        // Load source object
+        $result = $object->fetchCommon($fromid);
+        if ($result > 0 && !empty($object->table_element_line)) $object->fetchLines();
 
-	    // get lines so they will be clone
-	    //foreach($this->lines as $line)
-	    //	$line->fetch_optionals();
+        // get lines so they will be clone
+        //foreach($this->lines as $line)
+        //	$line->fetch_optionals();
 
-	    // Reset some properties
-	    unset($object->id);
-	    unset($object->fk_user_creat);
-	    unset($object->import_key);
+        // Reset some properties
+        unset($object->id);
+        unset($object->fk_user_creat);
+        unset($object->import_key);
 
 
-	    // Clear fields
-	    $object->ref = empty($this->fields['ref']['default']) ? "copy_of_".$object->ref : $this->fields['ref']['default'];
-	    $object->label = empty($this->fields['label']['default']) ? $langs->trans("CopyOf")." ".$object->label : $this->fields['label']['default'];
-	    $object->status = self::STATUS_DRAFT;
-	    // ...
-	    // Clear extrafields that are unique
-	    if (is_array($object->array_options) && count($object->array_options) > 0)
-	    {
-		$extrafields->fetch_name_optionals_label($this->table_element);
-		foreach ($object->array_options as $key => $option)
-		{
-			$shortkey = preg_replace('/options_/', '', $key);
-			if (!empty($extrafields->attributes[$this->element]['unique'][$shortkey]))
-			{
-				//var_dump($key); var_dump($clonedObj->array_options[$key]); exit;
-				unset($object->array_options[$key]);
-			}
-		}
-	    }
+        // Clear fields
+        $object->ref = empty($this->fields['ref']['default']) ? "copy_of_" . $object->ref : $this->fields['ref']['default'];
+        $object->label = empty($this->fields['label']['default']) ? $langs->trans("CopyOf") . " " . $object->label : $this->fields['label']['default'];
+        $object->status = self::STATUS_DRAFT;
+        // ...
+        // Clear extrafields that are unique
+        if (is_array($object->array_options) && count($object->array_options) > 0) {
+            $extrafields->fetch_name_optionals_label($this->table_element);
+            foreach ($object->array_options as $key => $option) {
+                $shortkey = preg_replace('/options_/', '', $key);
+                if (!empty($extrafields->attributes[$this->element]['unique'][$shortkey])) {
+                    //var_dump($key); var_dump($clonedObj->array_options[$key]); exit;
+                    unset($object->array_options[$key]);
+                }
+            }
+        }
 
-	    // Create clone
-		$object->context['createfromclone'] = 'createfromclone';
-	    $result = $object->createCommon($user);
-	    if ($result < 0) {
-	        $error++;
-	        $this->error = $object->error;
-	        $this->errors = $object->errors;
-	    }
+        // Create clone
+        $object->context['createfromclone'] = 'createfromclone';
+        $result = $object->createCommon($user);
+        if ($result < 0) {
+            $error++;
+            $this->error = $object->error;
+            $this->errors = $object->errors;
+        }
 
-	    if (!$error)
-	    {
-		// copy internal contacts
-		if ($this->copy_linked_contact($object, 'internal') < 0)
-		{
-			$error++;
-		}
-	    }
+        if (!$error) {
+            // copy internal contacts
+            if ($this->copy_linked_contact($object, 'internal') < 0) {
+                $error++;
+            }
+        }
 
-	    if (!$error)
-	    {
-		// copy external contacts if same company
-		if (property_exists($this, 'socid') && $this->socid == $object->socid)
-		{
-			if ($this->copy_linked_contact($object, 'external') < 0)
-				$error++;
-		}
-	    }
+        if (!$error) {
+            // copy external contacts if same company
+            if (property_exists($this, 'socid') && $this->socid == $object->socid) {
+                if ($this->copy_linked_contact($object, 'external') < 0)
+                    $error++;
+            }
+        }
 
-	    unset($object->context['createfromclone']);
+        unset($object->context['createfromclone']);
 
-	    // End
-	    if (!$error) {
-	        $this->db->commit();
-	        return $object;
-	    } else {
-	        $this->db->rollback();
-	        return -1;
-	    }
-	}
+        // End
+        if (!$error) {
+            $this->db->commit();
+            return $object;
+        } else {
+            $this->db->rollback();
+            return -1;
+        }
+    }
 
-	/**
-	 * Load object in memory from the database
-	 *
-	 * @param int    $id   Id object
-	 * @param string $ref  Ref
-	 * @return int         <0 if KO, 0 if not found, >0 if OK
-	 */
-	public function fetch($id, $ref = null, $parent=null)
-	{
-        if(isset($parent)){
+    /**
+     * Load object in memory from the database
+     *
+     * @param int    $id   Id object
+     * @param string $ref  Ref
+     * @return int         <0 if KO, 0 if not found, >0 if OK
+     */
+    public function fetch($id, $ref = null, $parent = null)
+    {
+        if (isset($parent)) {
             $this->bloc = $parent;
         }
-		$result = $this->fetchCommon($id, $ref);
-		if ($result > 0) {
+        $result = $this->fetchCommon($id, $ref);
+        if ($result > 0) {
             $this->fetchLines();
         }
         return $result;
-	}
+    }
 
-	/**
-	 * Load object lines in memory from the database
-	 *
-	 * @return int         <0 if KO, 0 if not found, >0 if OK
-	 */
-	public function fetchLines($parent)
-	{
+    /**
+     * Load object lines in memory from the database
+     *
+     * @return int         <0 if KO, 0 if not found, >0 if OK
+     */
+    public function fetchLines($parent)
+    {
         $this->predefined_texts = array();
 
-        if(isset($parent)){
+        if (isset($parent)) {
             $this->bloc = $parent;
         }
-        $this->interventionSurveyFetchLinesCommon(" ORDER BY position ASC", "SurveyAnswerPredefinedText",$this->predefined_texts);
-        foreach($this->predefined_texts as $predefined_text){
+        $this->interventionSurveyFetchLinesCommon(" ORDER BY position ASC", "SurveyAnswerPredefinedText", $this->predefined_texts);
+        foreach ($this->predefined_texts as $predefined_text) {
             $predefined_text->surveyAnswer = $this;
         }
         return 1;
-	}
-
-/**
- *
- * Load survey in memory from the given array of survey parts
- *
- */
-
-public function setVarsFromFetchObj(&$obj, $parent = null){
-    $this->predefined_texts = array();
-    parent::setVarsFromFetchObj($obj);
-    if(isset($parent)){
-        $this->surveyPart = $parent;
     }
-    $dictionaryRowId = is_array($obj) ? $obj["c_rowid"] : $obj->c_rowid;
-    $this->fk_c_survey_answer = $dictionaryRowId;
-    $objectValues = is_array($obj) ? $obj["predefined_texts"] : $obj->predefined_texts;
-    if(isset($objectValues)){
-        foreach($objectValues as $predefinedTextObj){
-            $predefined_text = new SurveyAnswerPredefinedText($this->db);
-            $predefined_text->setVarsFromFetchObj($predefinedTextObj, $this);
-            $predefined_text->fk_surveyanswer = $this->id;
-            $this->predefined_texts[] = $predefined_text;
+
+    /**
+     *
+     * Load survey in memory from the given array of survey parts
+     *
+     */
+
+    public function setVarsFromFetchObj(&$obj, $parent = null)
+    {
+        $this->predefined_texts = array();
+        parent::setVarsFromFetchObj($obj);
+        if (isset($parent)) {
+            $this->surveyPart = $parent;
+        }
+        $dictionaryRowId = is_array($obj) ? $obj["c_rowid"] : $obj->c_rowid;
+        $this->fk_c_survey_answer = $dictionaryRowId;
+        $objectValues = is_array($obj) ? $obj["predefined_texts"] : $obj->predefined_texts;
+        if (isset($objectValues)) {
+            foreach ($objectValues as $predefinedTextObj) {
+                $predefined_text = new SurveyAnswerPredefinedText($this->db);
+                $predefined_text->setVarsFromFetchObj($predefinedTextObj, $this);
+                $predefined_text->fk_surveyanswer = $this->id;
+                $this->predefined_texts[] = $predefined_text;
+            }
         }
     }
-}
 
 
-	/**
-	 * Load list of objects in memory from the database.
-	 *
-	 * @param  string      $sortorder    Sort Order
-	 * @param  string      $sortfield    Sort field
-	 * @param  int         $limit        limit
-	 * @param  int         $offset       Offset
-	 * @param  array       $filter       Filter array. Example array('field'=>'valueforlike', 'customurl'=>...)
-	 * @param  string      $filtermode   Filter mode (AND or OR)
-	 * @return array|int                 int <0 if KO, array of pages if OK
-	 */
-	public function fetchAll($sortorder = '', $sortfield = '', $limit = 0, $offset = 0, array $filter = array(), $filtermode = 'AND')
-	{
-		global $conf;
+    /**
+     * Load list of objects in memory from the database.
+     *
+     * @param  string      $sortorder    Sort Order
+     * @param  string      $sortfield    Sort field
+     * @param  int         $limit        limit
+     * @param  int         $offset       Offset
+     * @param  array       $filter       Filter array. Example array('field'=>'valueforlike', 'customurl'=>...)
+     * @param  string      $filtermode   Filter mode (AND or OR)
+     * @return array|int                 int <0 if KO, array of pages if OK
+     */
+    public function fetchAll($sortorder = '', $sortfield = '', $limit = 0, $offset = 0, array $filter = array(), $filtermode = 'AND')
+    {
+        global $conf;
 
-		dol_syslog(__METHOD__, LOG_DEBUG);
+        dol_syslog(__METHOD__, LOG_DEBUG);
 
-		$records = array();
+        $records = array();
 
-		$sql = 'SELECT ';
-		$sql .= $this->getFieldList();
-		$sql .= ' FROM '.MAIN_DB_PREFIX.$this->table_element.' as t';
-		if (isset($this->ismultientitymanaged) && $this->ismultientitymanaged == 1) $sql .= ' WHERE t.entity IN ('.getEntity($this->table_element).')';
-		else $sql .= ' WHERE 1 = 1';
-		// Manage filter
-		$sqlwhere = array();
-		if (count($filter) > 0) {
-			foreach ($filter as $key => $value) {
-				if ($key == 't.rowid') {
-					$sqlwhere[] = $key.'='.$value;
-				}
-				elseif (strpos($key, 'date') !== false) {
-					$sqlwhere[] = $key.' = \''.$this->db->idate($value).'\'';
-				}
-				elseif ($key == 'customsql') {
-					$sqlwhere[] = $value;
-				}
-				else {
-					$sqlwhere[] = $key.' LIKE \'%'.$this->db->escape($value).'%\'';
-				}
-			}
-		}
-		if (count($sqlwhere) > 0) {
-			$sql .= ' AND ('.implode(' '.$filtermode.' ', $sqlwhere).')';
-		}
+        $sql = 'SELECT ';
+        $sql .= $this->getFieldList();
+        $sql .= ' FROM ' . MAIN_DB_PREFIX . $this->table_element . ' as t';
+        if (isset($this->ismultientitymanaged) && $this->ismultientitymanaged == 1) $sql .= ' WHERE t.entity IN (' . getEntity($this->table_element) . ')';
+        else $sql .= ' WHERE 1 = 1';
+        // Manage filter
+        $sqlwhere = array();
+        if (count($filter) > 0) {
+            foreach ($filter as $key => $value) {
+                if ($key == 't.rowid') {
+                    $sqlwhere[] = $key . '=' . $value;
+                } elseif (strpos($key, 'date') !== false) {
+                    $sqlwhere[] = $key . ' = \'' . $this->db->idate($value) . '\'';
+                } elseif ($key == 'customsql') {
+                    $sqlwhere[] = $value;
+                } else {
+                    $sqlwhere[] = $key . ' LIKE \'%' . $this->db->escape($value) . '%\'';
+                }
+            }
+        }
+        if (count($sqlwhere) > 0) {
+            $sql .= ' AND (' . implode(' ' . $filtermode . ' ', $sqlwhere) . ')';
+        }
 
-		if (!empty($sortfield)) {
-			$sql .= $this->db->order($sortfield, $sortorder);
-		}
-		if (!empty($limit)) {
-			$sql .= ' '.$this->db->plimit($limit, $offset);
-		}
+        if (!empty($sortfield)) {
+            $sql .= $this->db->order($sortfield, $sortorder);
+        }
+        if (!empty($limit)) {
+            $sql .= ' ' . $this->db->plimit($limit, $offset);
+        }
 
-		$resql = $this->db->query($sql);
-		if ($resql) {
-			$num = $this->db->num_rows($resql);
+        $resql = $this->db->query($sql);
+        if ($resql) {
+            $num = $this->db->num_rows($resql);
             $i = 0;
-			while ($i < min($limit, $num))
-			{
-			    $obj = $this->db->fetch_object($resql);
+            while ($i < min($limit, $num)) {
+                $obj = $this->db->fetch_object($resql);
 
-				$record = new self($this->db);
-				$record->setVarsFromFetchObj($obj);
+                $record = new self($this->db);
+                $record->setVarsFromFetchObj($obj);
 
-				$records[$record->id] = $record;
+                $records[$record->id] = $record;
 
-				$i++;
-			}
-			$this->db->free($resql);
+                $i++;
+            }
+            $this->db->free($resql);
 
-			return $records;
-		} else {
-			$this->errors[] = 'Error '.$this->db->lasterror();
-			dol_syslog(__METHOD__.' '.join(',', $this->errors), LOG_ERR);
+            return $records;
+        } else {
+            $this->errors[] = 'Error ' . $this->db->lasterror();
+            dol_syslog(__METHOD__ . ' ' . join(',', $this->errors), LOG_ERR);
 
-			return -1;
-		}
-	}
+            return -1;
+        }
+    }
 
-	/**
-	 * Update object into database
-	 *
-	 * @param  User $user      User that modifies
-	 * @param  bool $notrigger false=launch triggers after, true=disable triggers
-	 * @return int             <0 if KO, >0 if OK
-	 */
-	public function update(User $user, $notrigger = false)
-	{
-		return $this->updateCommon($user, $notrigger);
-	}
+    /**
+     * Update object into database
+     *
+     * @param  User $user      User that modifies
+     * @param  bool $notrigger false=launch triggers after, true=disable triggers
+     * @return int             <0 if KO, >0 if OK
+     */
+    public function update(User $user, $notrigger = false)
+    {
+        return $this->updateCommon($user, $notrigger);
+    }
 
-	/**
-	 * Delete object in database
-	 *
-	 * @param User $user       User that deletes
-	 * @param bool $notrigger  false=launch triggers after, true=disable triggers
-	 * @return int             <0 if KO, >0 if OK
-	 */
-	public function delete(User $user, $notrigger = false)
-	{
+    /**
+     * Delete object in database
+     *
+     * @param User $user       User that deletes
+     * @param bool $notrigger  false=launch triggers after, true=disable triggers
+     * @return int             <0 if KO, >0 if OK
+     */
+    public function delete(User $user, $notrigger = false)
+    {
         $this->db->begin();
         $this->deleteCommon($user, $notrigger);
         $errors = array();
         $errors = array_merge($errors, $this->errors);
-        if(empty($errors)){
-            foreach($this->predefined_texts as $predefined_text){
+        if (empty($errors)) {
+            foreach ($this->predefined_texts as $predefined_text) {
                 $predefined_text->delete($user, $notrigger);
                 $errors = array_merge($errors, $predefined_text->errors ?? array());
             }
         }
-        if(empty($errors)){
+        if (empty($errors)) {
             $this->db->commit();
             return 1;
-        }
-        else{
+        } else {
             $this->db->rollback();
             $this->errors = $errors;
             return -1;
         }
-	}
+    }
 
-	/**
-	 *  Delete a line of object in database
-	 *
-	 *	@param  User	$user       User that delete
-	 *  @param	int		$idline		Id of line to delete
-	 *  @param 	bool 	$notrigger  false=launch triggers after, true=disable triggers
-	 *  @return int         		>0 if OK, <0 if KO
-	 */
-	public function deleteLine(User $user, $idline, $notrigger = false)
-	{
-		if ($this->status < 0)
-		{
-			$this->error = 'ErrorDeleteLineNotAllowedByObjectStatus';
-			return -2;
-		}
+    /**
+     *  Delete a line of object in database
+     *
+     *	@param  User	$user       User that delete
+     *  @param	int		$idline		Id of line to delete
+     *  @param 	bool 	$notrigger  false=launch triggers after, true=disable triggers
+     *  @return int         		>0 if OK, <0 if KO
+     */
+    public function deleteLine(User $user, $idline, $notrigger = false)
+    {
+        if ($this->status < 0) {
+            $this->error = 'ErrorDeleteLineNotAllowedByObjectStatus';
+            return -2;
+        }
 
-		return $this->deleteLineCommon($user, $idline, $notrigger);
-	}
+        return $this->deleteLineCommon($user, $idline, $notrigger);
+    }
 
 
-	/**
-	 *	Validate object
-	 *
-	 *	@param		User	$user     		User making status change
-	 *  @param		int		$notrigger		1=Does not execute triggers, 0= execute triggers
-	 *	@return  	int						<=0 if OK, 0=Nothing done, >0 if KO
-	 */
-	public function validate($user, $notrigger = 0)
-	{
-		global $conf, $langs;
+    /**
+     *	Validate object
+     *
+     *	@param		User	$user     		User making status change
+     *  @param		int		$notrigger		1=Does not execute triggers, 0= execute triggers
+     *	@return  	int						<=0 if OK, 0=Nothing done, >0 if KO
+     */
+    public function validate($user, $notrigger = 0)
+    {
+        global $conf, $langs;
 
-		require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
+        require_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
 
-		$error = 0;
+        $error = 0;
 
-		// Protection
-		if ($this->status == self::STATUS_VALIDATED)
-		{
-			dol_syslog(get_class($this)."::validate action abandonned: already validated", LOG_WARNING);
-			return 0;
-		}
+        // Protection
+        if ($this->status == self::STATUS_VALIDATED) {
+            dol_syslog(get_class($this) . "::validate action abandonned: already validated", LOG_WARNING);
+            return 0;
+        }
 
-		/*if (! ((empty($conf->global->MAIN_USE_ADVANCED_PERMS) && ! empty($user->rights->surveyanswer->create))
+        /*if (! ((empty($conf->global->MAIN_USE_ADVANCED_PERMS) && ! empty($user->rights->surveyanswer->create))
 		 || (! empty($conf->global->MAIN_USE_ADVANCED_PERMS) && ! empty($user->rights->surveyanswer->surveyanswer_advance->validate))))
 		 {
 		 $this->error='NotEnoughPermissions';
@@ -531,180 +512,167 @@ public function setVarsFromFetchObj(&$obj, $parent = null){
 		 return -1;
 		 }*/
 
-		$now = dol_now();
+        $now = dol_now();
 
-		$this->db->begin();
+        $this->db->begin();
 
-		// Define new ref
-		if (!$error && (preg_match('/^[\(]?PROV/i', $this->ref) || empty($this->ref))) // empty should not happened, but when it occurs, the test save life
-		{
-			$num = $this->getNextNumRef();
-		}
-		else
-		{
-			$num = $this->ref;
-		}
-		$this->newref = $num;
+        // Define new ref
+        if (!$error && (preg_match('/^[\(]?PROV/i', $this->ref) || empty($this->ref))) // empty should not happened, but when it occurs, the test save life
+        {
+            $num = $this->getNextNumRef();
+        } else {
+            $num = $this->ref;
+        }
+        $this->newref = $num;
 
-		// Validate
-		$sql = "UPDATE ".MAIN_DB_PREFIX.$this->table_element;
-		$sql .= " SET ref = '".$this->db->escape($num)."',";
-		$sql .= " status = ".self::STATUS_VALIDATED.",";
-		$sql .= " date_validation = '".$this->db->idate($now)."',";
-		$sql .= " fk_user_valid = ".$user->id;
-		$sql .= " WHERE rowid = ".$this->id;
+        // Validate
+        $sql = "UPDATE " . MAIN_DB_PREFIX . $this->table_element;
+        $sql .= " SET ref = '" . $this->db->escape($num) . "',";
+        $sql .= " status = " . self::STATUS_VALIDATED . ",";
+        $sql .= " date_validation = '" . $this->db->idate($now) . "',";
+        $sql .= " fk_user_valid = " . $user->id;
+        $sql .= " WHERE rowid = " . $this->id;
 
-		dol_syslog(get_class($this)."::validate()", LOG_DEBUG);
-		$resql = $this->db->query($sql);
-		if (!$resql)
-		{
-			dol_print_error($this->db);
-			$this->error = $this->db->lasterror();
-			$error++;
-		}
+        dol_syslog(get_class($this) . "::validate()", LOG_DEBUG);
+        $resql = $this->db->query($sql);
+        if (!$resql) {
+            dol_print_error($this->db);
+            $this->error = $this->db->lasterror();
+            $error++;
+        }
 
-		if (!$error && !$notrigger)
-		{
-			// Call trigger
-			$result = $this->call_trigger('SURVEYANSWER_VALIDATE', $user);
-			if ($result < 0) $error++;
-			// End call triggers
-		}
+        if (!$error && !$notrigger) {
+            // Call trigger
+            $result = $this->call_trigger('SURVEYANSWER_VALIDATE', $user);
+            if ($result < 0) $error++;
+            // End call triggers
+        }
 
-		if (!$error)
-		{
-			$this->oldref = $this->ref;
+        if (!$error) {
+            $this->oldref = $this->ref;
 
-			// Rename directory if dir was a temporary ref
-			if (preg_match('/^[\(]?PROV/i', $this->ref))
-			{
-				// Now we rename also files into index
-				$sql = 'UPDATE '.MAIN_DB_PREFIX."ecm_files set filename = CONCAT('".$this->db->escape($this->newref)."', SUBSTR(filename, ".(strlen($this->ref) + 1).")), filepath = 'surveyanswer/".$this->db->escape($this->newref)."'";
-				$sql .= " WHERE filename LIKE '".$this->db->escape($this->ref)."%' AND filepath = 'surveyanswer/".$this->db->escape($this->ref)."' and entity = ".$conf->entity;
-				$resql = $this->db->query($sql);
-				if (!$resql) { $error++; $this->error = $this->db->lasterror(); }
+            // Rename directory if dir was a temporary ref
+            if (preg_match('/^[\(]?PROV/i', $this->ref)) {
+                // Now we rename also files into index
+                $sql = 'UPDATE ' . MAIN_DB_PREFIX . "ecm_files set filename = CONCAT('" . $this->db->escape($this->newref) . "', SUBSTR(filename, " . (strlen($this->ref) + 1) . ")), filepath = 'surveyanswer/" . $this->db->escape($this->newref) . "'";
+                $sql .= " WHERE filename LIKE '" . $this->db->escape($this->ref) . "%' AND filepath = 'surveyanswer/" . $this->db->escape($this->ref) . "' and entity = " . $conf->entity;
+                $resql = $this->db->query($sql);
+                if (!$resql) {
+                    $error++;
+                    $this->error = $this->db->lasterror();
+                }
 
-				// We rename directory ($this->ref = old ref, $num = new ref) in order not to lose the attachments
-				$oldref = dol_sanitizeFileName($this->ref);
-				$newref = dol_sanitizeFileName($num);
-				$dirsource = $conf->interventionsurvey->dir_output.'/surveyanswer/'.$oldref;
-				$dirdest = $conf->interventionsurvey->dir_output.'/surveyanswer/'.$newref;
-				if (!$error && file_exists($dirsource))
-				{
-					dol_syslog(get_class($this)."::validate() rename dir ".$dirsource." into ".$dirdest);
+                // We rename directory ($this->ref = old ref, $num = new ref) in order not to lose the attachments
+                $oldref = dol_sanitizeFileName($this->ref);
+                $newref = dol_sanitizeFileName($num);
+                $dirsource = $conf->interventionsurvey->dir_output . '/surveyanswer/' . $oldref;
+                $dirdest = $conf->interventionsurvey->dir_output . '/surveyanswer/' . $newref;
+                if (!$error && file_exists($dirsource)) {
+                    dol_syslog(get_class($this) . "::validate() rename dir " . $dirsource . " into " . $dirdest);
 
-					if (@rename($dirsource, $dirdest))
-					{
-						dol_syslog("Rename ok");
-						// Rename docs starting with $oldref with $newref
-						$listoffiles = dol_dir_list($conf->interventionsurvey->dir_output.'/surveyanswer/'.$newref, 'files', 1, '^'.preg_quote($oldref, '/'));
-						foreach ($listoffiles as $fileentry)
-						{
-							$dirsource = $fileentry['name'];
-							$dirdest = preg_replace('/^'.preg_quote($oldref, '/').'/', $newref, $dirsource);
-							$dirsource = $fileentry['path'].'/'.$dirsource;
-							$dirdest = $fileentry['path'].'/'.$dirdest;
-							@rename($dirsource, $dirdest);
-						}
-					}
-				}
-			}
-		}
+                    if (@rename($dirsource, $dirdest)) {
+                        dol_syslog("Rename ok");
+                        // Rename docs starting with $oldref with $newref
+                        $listoffiles = dol_dir_list($conf->interventionsurvey->dir_output . '/surveyanswer/' . $newref, 'files', 1, '^' . preg_quote($oldref, '/'));
+                        foreach ($listoffiles as $fileentry) {
+                            $dirsource = $fileentry['name'];
+                            $dirdest = preg_replace('/^' . preg_quote($oldref, '/') . '/', $newref, $dirsource);
+                            $dirsource = $fileentry['path'] . '/' . $dirsource;
+                            $dirdest = $fileentry['path'] . '/' . $dirdest;
+                            @rename($dirsource, $dirdest);
+                        }
+                    }
+                }
+            }
+        }
 
-		// Set new ref and current status
-		if (!$error)
-		{
-			$this->ref = $num;
-			$this->status = self::STATUS_VALIDATED;
-		}
+        // Set new ref and current status
+        if (!$error) {
+            $this->ref = $num;
+            $this->status = self::STATUS_VALIDATED;
+        }
 
-		if (!$error)
-		{
-			$this->db->commit();
-			return 1;
-		}
-		else
-		{
-			$this->db->rollback();
-			return -1;
-		}
-	}
+        if (!$error) {
+            $this->db->commit();
+            return 1;
+        } else {
+            $this->db->rollback();
+            return -1;
+        }
+    }
 
 
-	/**
-	 *	Set draft status
-	 *
-	 *	@param	User	$user			Object user that modify
-	 *  @param	int		$notrigger		1=Does not execute triggers, 0=Execute triggers
-	 *	@return	int						<0 if KO, >0 if OK
-	 */
-	public function setDraft($user, $notrigger = 0)
-	{
-		// Protection
-		if ($this->status <= self::STATUS_DRAFT)
-		{
-			return 0;
-		}
+    /**
+     *	Set draft status
+     *
+     *	@param	User	$user			Object user that modify
+     *  @param	int		$notrigger		1=Does not execute triggers, 0=Execute triggers
+     *	@return	int						<0 if KO, >0 if OK
+     */
+    public function setDraft($user, $notrigger = 0)
+    {
+        // Protection
+        if ($this->status <= self::STATUS_DRAFT) {
+            return 0;
+        }
 
-		/*if (! ((empty($conf->global->MAIN_USE_ADVANCED_PERMS) && ! empty($user->rights->interventionsurvey->write))
+        /*if (! ((empty($conf->global->MAIN_USE_ADVANCED_PERMS) && ! empty($user->rights->interventionsurvey->write))
 		 || (! empty($conf->global->MAIN_USE_ADVANCED_PERMS) && ! empty($user->rights->interventionsurvey->interventionsurvey_advance->validate))))
 		 {
 		 $this->error='Permission denied';
 		 return -1;
 		 }*/
 
-		return $this->setStatusCommon($user, self::STATUS_DRAFT, $notrigger, 'SURVEYANSWER_UNVALIDATE');
-	}
+        return $this->setStatusCommon($user, self::STATUS_DRAFT, $notrigger, 'SURVEYANSWER_UNVALIDATE');
+    }
 
-	/**
-	 *	Set cancel status
-	 *
-	 *	@param	User	$user			Object user that modify
-	 *  @param	int		$notrigger		1=Does not execute triggers, 0=Execute triggers
-	 *	@return	int						<0 if KO, 0=Nothing done, >0 if OK
-	 */
-	public function cancel($user, $notrigger = 0)
-	{
-		// Protection
-		if ($this->status != self::STATUS_VALIDATED)
-		{
-			return 0;
-		}
+    /**
+     *	Set cancel status
+     *
+     *	@param	User	$user			Object user that modify
+     *  @param	int		$notrigger		1=Does not execute triggers, 0=Execute triggers
+     *	@return	int						<0 if KO, 0=Nothing done, >0 if OK
+     */
+    public function cancel($user, $notrigger = 0)
+    {
+        // Protection
+        if ($this->status != self::STATUS_VALIDATED) {
+            return 0;
+        }
 
-		/*if (! ((empty($conf->global->MAIN_USE_ADVANCED_PERMS) && ! empty($user->rights->interventionsurvey->write))
+        /*if (! ((empty($conf->global->MAIN_USE_ADVANCED_PERMS) && ! empty($user->rights->interventionsurvey->write))
 		 || (! empty($conf->global->MAIN_USE_ADVANCED_PERMS) && ! empty($user->rights->interventionsurvey->interventionsurvey_advance->validate))))
 		 {
 		 $this->error='Permission denied';
 		 return -1;
 		 }*/
 
-		return $this->setStatusCommon($user, self::STATUS_CANCELED, $notrigger, 'SURVEYANSWER_CLOSE');
-	}
+        return $this->setStatusCommon($user, self::STATUS_CANCELED, $notrigger, 'SURVEYANSWER_CLOSE');
+    }
 
-	/**
-	 *	Set back to validated status
-	 *
-	 *	@param	User	$user			Object user that modify
-	 *  @param	int		$notrigger		1=Does not execute triggers, 0=Execute triggers
-	 *	@return	int						<0 if KO, 0=Nothing done, >0 if OK
-	 */
-	public function reopen($user, $notrigger = 0)
-	{
-		// Protection
-		if ($this->status != self::STATUS_CANCELED)
-		{
-			return 0;
-		}
+    /**
+     *	Set back to validated status
+     *
+     *	@param	User	$user			Object user that modify
+     *  @param	int		$notrigger		1=Does not execute triggers, 0=Execute triggers
+     *	@return	int						<0 if KO, 0=Nothing done, >0 if OK
+     */
+    public function reopen($user, $notrigger = 0)
+    {
+        // Protection
+        if ($this->status != self::STATUS_CANCELED) {
+            return 0;
+        }
 
-		/*if (! ((empty($conf->global->MAIN_USE_ADVANCED_PERMS) && ! empty($user->rights->interventionsurvey->write))
+        /*if (! ((empty($conf->global->MAIN_USE_ADVANCED_PERMS) && ! empty($user->rights->interventionsurvey->write))
 		 || (! empty($conf->global->MAIN_USE_ADVANCED_PERMS) && ! empty($user->rights->interventionsurvey->interventionsurvey_advance->validate))))
 		 {
 		 $this->error='Permission denied';
 		 return -1;
 		 }*/
 
-		return $this->setStatusCommon($user, self::STATUS_VALIDATED, $notrigger, 'SURVEYANSWER_REOPEN');
-	}
+        return $this->setStatusCommon($user, self::STATUS_VALIDATED, $notrigger, 'SURVEYANSWER_REOPEN');
+    }
 
     /**
      *  Return a link to the object card (with optionaly the picto)
@@ -724,17 +692,16 @@ public function setVarsFromFetchObj(&$obj, $parent = null){
 
         $result = '';
 
-        $label = '<u>'.$langs->trans("surveyAnswer").'</u>';
+        $label = '<u>' . $langs->trans("surveyAnswer") . '</u>';
         $label .= '<br>';
-        $label .= '<b>'.$langs->trans('Ref').':</b> '.$this->ref;
+        $label .= '<b>' . $langs->trans('Ref') . ':</b> ' . $this->ref;
         if (isset($this->status)) {
-		$label.= '<br><b>' . $langs->trans("Status").":</b> ".$this->getLibStatut(5);
+            $label .= '<br><b>' . $langs->trans("Status") . ":</b> " . $this->getLibStatut(5);
         }
 
-        $url = dol_buildpath('/interventionsurvey/surveyanswer_card.php', 1).'?id='.$this->id;
+        $url = dol_buildpath('/interventionsurvey/surveyanswer_card.php', 1) . '?id=' . $this->id;
 
-        if ($option != 'nolink')
-        {
+        if ($option != 'nolink') {
             // Add param to save lastsearch_values or not
             $add_save_lastsearch_values = ($save_lastsearch_value == 1 ? 1 : 0);
             if ($save_lastsearch_value == -1 && preg_match('/list\.php/', $_SERVER["PHP_SELF"])) $add_save_lastsearch_values = 1;
@@ -742,333 +709,305 @@ public function setVarsFromFetchObj(&$obj, $parent = null){
         }
 
         $linkclose = '';
-        if (empty($notooltip))
-        {
-            if (!empty($conf->global->MAIN_OPTIMIZEFORTEXTBROWSER))
-            {
+        if (empty($notooltip)) {
+            if (!empty($conf->global->MAIN_OPTIMIZEFORTEXTBROWSER)) {
                 $label = $langs->trans("ShowsurveyAnswer");
-                $linkclose .= ' alt="'.dol_escape_htmltag($label, 1).'"';
+                $linkclose .= ' alt="' . dol_escape_htmltag($label, 1) . '"';
             }
-            $linkclose .= ' title="'.dol_escape_htmltag($label, 1).'"';
-            $linkclose .= ' class="classfortooltip'.($morecss ? ' '.$morecss : '').'"';
-        }
-        else $linkclose = ($morecss ? ' class="'.$morecss.'"' : '');
+            $linkclose .= ' title="' . dol_escape_htmltag($label, 1) . '"';
+            $linkclose .= ' class="classfortooltip' . ($morecss ? ' ' . $morecss : '') . '"';
+        } else $linkclose = ($morecss ? ' class="' . $morecss . '"' : '');
 
-		$linkstart = '<a href="'.$url.'"';
-		$linkstart .= $linkclose.'>';
-		$linkend = '</a>';
+        $linkstart = '<a href="' . $url . '"';
+        $linkstart .= $linkclose . '>';
+        $linkend = '</a>';
 
-		$result .= $linkstart;
-		if ($withpicto) $result .= img_object(($notooltip ? '' : $label), ($this->picto ? $this->picto : 'generic'), ($notooltip ? (($withpicto != 2) ? 'class="paddingright"' : '') : 'class="'.(($withpicto != 2) ? 'paddingright ' : '').'classfortooltip"'), 0, 0, $notooltip ? 0 : 1);
-		if ($withpicto != 2) $result .= $this->ref;
-		$result .= $linkend;
-		//if ($withpicto != 2) $result.=(($addlabel && $this->label) ? $sep . dol_trunc($this->label, ($addlabel > 1 ? $addlabel : 0)) : '');
+        $result .= $linkstart;
+        if ($withpicto) $result .= img_object(($notooltip ? '' : $label), ($this->picto ? $this->picto : 'generic'), ($notooltip ? (($withpicto != 2) ? 'class="paddingright"' : '') : 'class="' . (($withpicto != 2) ? 'paddingright ' : '') . 'classfortooltip"'), 0, 0, $notooltip ? 0 : 1);
+        if ($withpicto != 2) $result .= $this->ref;
+        $result .= $linkend;
+        //if ($withpicto != 2) $result.=(($addlabel && $this->label) ? $sep . dol_trunc($this->label, ($addlabel > 1 ? $addlabel : 0)) : '');
 
-		global $action, $hookmanager;
-		$hookmanager->initHooks(array('surveyanswerdao'));
-		$parameters = array('id'=>$this->id, 'getnomurl'=>$result);
-		$reshook = $hookmanager->executeHooks('getNomUrl', $parameters, $this, $action); // Note that $action and $object may have been modified by some hooks
-		if ($reshook > 0) $result = $hookmanager->resPrint;
-		else $result .= $hookmanager->resPrint;
+        global $action, $hookmanager;
+        $hookmanager->initHooks(array('surveyanswerdao'));
+        $parameters = array('id' => $this->id, 'getnomurl' => $result);
+        $reshook = $hookmanager->executeHooks('getNomUrl', $parameters, $this, $action); // Note that $action and $object may have been modified by some hooks
+        if ($reshook > 0) $result = $hookmanager->resPrint;
+        else $result .= $hookmanager->resPrint;
 
-		return $result;
+        return $result;
     }
 
-	/**
-	 *  Return label of the status
-	 *
-	 *  @param  int		$mode          0=long label, 1=short label, 2=Picto + short label, 3=Picto, 4=Picto + long label, 5=Short label + Picto, 6=Long label + Picto
-	 *  @return	string 			       Label of status
-	 */
-	public function getLibStatut($mode = 0)
-	{
-		return $this->LibStatut($this->status, $mode);
-	}
+    /**
+     *  Return label of the status
+     *
+     *  @param  int		$mode          0=long label, 1=short label, 2=Picto + short label, 3=Picto, 4=Picto + long label, 5=Short label + Picto, 6=Long label + Picto
+     *  @return	string 			       Label of status
+     */
+    public function getLibStatut($mode = 0)
+    {
+        return $this->LibStatut($this->status, $mode);
+    }
 
     // phpcs:disable PEAR.NamingConventions.ValidFunctionName.ScopeNotCamelCaps
-	/**
-	 *  Return the status
-	 *
-	 *  @param	int		$status        Id status
-	 *  @param  int		$mode          0=long label, 1=short label, 2=Picto + short label, 3=Picto, 4=Picto + long label, 5=Short label + Picto, 6=Long label + Picto
-	 *  @return string 			       Label of status
-	 */
-	public function LibStatut($status, $mode = 0)
-	{
-		// phpcs:enable
-		if (empty($this->labelStatus) || empty($this->labelStatusShort))
-		{
-			global $langs;
-			//$langs->load("interventionsurvey");
-			$this->labelStatus[self::STATUS_DRAFT] = $langs->trans('Draft');
-			$this->labelStatus[self::STATUS_VALIDATED] = $langs->trans('Enabled');
-			$this->labelStatus[self::STATUS_CANCELED] = $langs->trans('Disabled');
-			$this->labelStatusShort[self::STATUS_DRAFT] = $langs->trans('Draft');
-			$this->labelStatusShort[self::STATUS_VALIDATED] = $langs->trans('Enabled');
-			$this->labelStatusShort[self::STATUS_CANCELED] = $langs->trans('Disabled');
-		}
+    /**
+     *  Return the status
+     *
+     *  @param	int		$status        Id status
+     *  @param  int		$mode          0=long label, 1=short label, 2=Picto + short label, 3=Picto, 4=Picto + long label, 5=Short label + Picto, 6=Long label + Picto
+     *  @return string 			       Label of status
+     */
+    public function LibStatut($status, $mode = 0)
+    {
+        // phpcs:enable
+        if (empty($this->labelStatus) || empty($this->labelStatusShort)) {
+            global $langs;
+            //$langs->load("interventionsurvey");
+            $this->labelStatus[self::STATUS_DRAFT] = $langs->trans('Draft');
+            $this->labelStatus[self::STATUS_VALIDATED] = $langs->trans('Enabled');
+            $this->labelStatus[self::STATUS_CANCELED] = $langs->trans('Disabled');
+            $this->labelStatusShort[self::STATUS_DRAFT] = $langs->trans('Draft');
+            $this->labelStatusShort[self::STATUS_VALIDATED] = $langs->trans('Enabled');
+            $this->labelStatusShort[self::STATUS_CANCELED] = $langs->trans('Disabled');
+        }
 
-		$statusType = 'status'.$status;
-		//if ($status == self::STATUS_VALIDATED) $statusType = 'status1';
-		if ($status == self::STATUS_CANCELED) $statusType = 'status6';
+        $statusType = 'status' . $status;
+        //if ($status == self::STATUS_VALIDATED) $statusType = 'status1';
+        if ($status == self::STATUS_CANCELED) $statusType = 'status6';
 
-		return dolGetStatus($this->labelStatus[$status], $this->labelStatusShort[$status], '', $statusType, $mode);
-	}
-
-	/**
-	 *	Load the info information in the object
-	 *
-	 *	@param  int		$id       Id of object
-	 *	@return	void
-	 */
-	public function info($id)
-	{
-		$sql = 'SELECT rowid, date_creation as datec, tms as datem,';
-		$sql .= ' fk_user_creat, fk_user_modif';
-		$sql .= ' FROM '.MAIN_DB_PREFIX.$this->table_element.' as t';
-		$sql .= ' WHERE t.rowid = '.$id;
-		$result = $this->db->query($sql);
-		if ($result)
-		{
-			if ($this->db->num_rows($result))
-			{
-				$obj = $this->db->fetch_object($result);
-				$this->id = $obj->rowid;
-				if ($obj->fk_user_author)
-				{
-					$cuser = new User($this->db);
-					$cuser->fetch($obj->fk_user_author);
-					$this->user_creation = $cuser;
-				}
-
-				if ($obj->fk_user_valid)
-				{
-					$vuser = new User($this->db);
-					$vuser->fetch($obj->fk_user_valid);
-					$this->user_validation = $vuser;
-				}
-
-				if ($obj->fk_user_cloture)
-				{
-					$cluser = new User($this->db);
-					$cluser->fetch($obj->fk_user_cloture);
-					$this->user_cloture = $cluser;
-				}
-
-				$this->date_creation     = $this->db->jdate($obj->datec);
-				$this->date_modification = $this->db->jdate($obj->datem);
-				$this->date_validation   = $this->db->jdate($obj->datev);
-			}
-
-			$this->db->free($result);
-		}
-		else
-		{
-			dol_print_error($this->db);
-		}
-	}
-
-	/**
-	 * Initialise object with example values
-	 * Id must be 0 if object instance is a specimen
-	 *
-	 * @return void
-	 */
-	public function initAsSpecimen()
-	{
-		$this->initAsSpecimenCommon();
-	}
-
-	/**
-	 * 	Create an array of lines
-	 *
-	 * 	@return array|int		array of lines if OK, <0 if KO
-	 */
-	public function getLinesArray()
-	{
-	    $this->lines = array();
-
-	    $objectline = new surveyAnswerLine($this->db);
-	    $result = $objectline->fetchAll('ASC', 'position', 0, 0, array('customsql'=>'fk_surveyanswer = '.$this->id));
-
-	    if (is_numeric($result))
-	    {
-	        $this->error = $this->error;
-	        $this->errors = $this->errors;
-	        return $result;
-	    }
-	    else
-	    {
-	        $this->lines = $result;
-	        return $this->lines;
-	    }
-	}
-
-	/**
-	 *  Returns the reference to the following non used object depending on the active numbering module.
-	 *
-	 *  @return string      		Object free reference
-	 */
-	public function getNextNumRef()
-	{
-		global $langs, $conf;
-		$langs->load("interventionsurvey@surveyanswer");
-
-		if (empty($conf->global->INTERVENTIONSURVEY_SURVEYANSWER_ADDON)) {
-			$conf->global->INTERVENTIONSURVEY_SURVEYANSWER_ADDON = 'mod_mymobject_standard';
-		}
-
-		if (!empty($conf->global->INTERVENTIONSURVEY_SURVEYANSWER_ADDON))
-		{
-			$mybool = false;
-
-			$file = $conf->global->INTERVENTIONSURVEY_SURVEYANSWER_ADDON.".php";
-			$classname = $conf->global->INTERVENTIONSURVEY_SURVEYANSWER_ADDON;
-
-			// Include file with class
-			$dirmodels = array_merge(array('/'), (array) $conf->modules_parts['models']);
-			foreach ($dirmodels as $reldir)
-			{
-				$dir = dol_buildpath($reldir."core/modules/interventionsurvey/");
-
-				// Load file with numbering class (if found)
-				$mybool |= @include_once $dir.$file;
-			}
-
-			if ($mybool === false)
-			{
-				dol_print_error('', "Failed to include file ".$file);
-				return '';
-			}
-
-			$obj = new $classname();
-			$numref = $obj->getNextValue($this);
-
-			if ($numref != "")
-			{
-				return $numref;
-			}
-			else
-			{
-				$this->error = $obj->error;
-				//dol_print_error($this->db,get_class($this)."::getNextNumRef ".$obj->error);
-				return "";
-			}
-		}
-		else
-		{
-			print $langs->trans("Error")." ".$langs->trans("Error_INTERVENTIONSURVEY_SURVEYANSWER_ADDON_NotDefined");
-			return "";
-		}
-	}
-
-	/**
-	 *  Create a document onto disk according to template module.
-	 *
-	 *  @param	    string		$modele			Force template to use ('' to not force)
-	 *  @param		Translate	$outputlangs	objet lang a utiliser pour traduction
-	 *  @param      int			$hidedetails    Hide details of lines
-	 *  @param      int			$hidedesc       Hide description
-	 *  @param      int			$hideref        Hide ref
-	 *  @param      null|array  $moreparams     Array to provide more information
-	 *  @return     int         				0 if KO, 1 if OK
-	 */
-	public function generateDocument($modele, $outputlangs, $hidedetails = 0, $hidedesc = 0, $hideref = 0, $moreparams = null)
-	{
-		global $conf, $langs;
-
-		$langs->load("interventionsurvey@interventionsurvey");
-
-		if (!dol_strlen($modele)) {
-			$modele = 'standard';
-
-			if ($this->modelpdf) {
-				$modele = $this->modelpdf;
-			} elseif (!empty($conf->global->SURVEYANSWER_ADDON_PDF)) {
-				$modele = $conf->global->SURVEYANSWER_ADDON_PDF;
-			}
-		}
-
-		$modelpath = "core/modules/interventionsurvey/doc/";
-
-		return $this->commonGenerateDocument($modelpath, $modele, $outputlangs, $hidedetails, $hidedesc, $hideref, $moreparams);
-	}
-
-	/**
-	 * Action executed by scheduler
-	 * CAN BE A CRON TASK. In such a case, parameters come from the schedule job setup field 'Parameters'
-	 *
-	 * @return	int			0 if OK, <>0 if KO (this function is used also by cron so only 0 is OK)
-	 */
-	//public function doScheduledJob($param1, $param2, ...)
-	public function doScheduledJob()
-	{
-		global $conf, $langs;
-
-		//$conf->global->SYSLOG_FILE = 'DOL_DATA_ROOT/dolibarr_mydedicatedlofile.log';
-
-		$error = 0;
-		$this->output = '';
-		$this->error = '';
-
-		dol_syslog(__METHOD__, LOG_DEBUG);
-
-		$now = dol_now();
-
-		$this->db->begin();
-
-		// ...
-
-		$this->db->commit();
-
-		return $error;
+        return dolGetStatus($this->labelStatus[$status], $this->labelStatusShort[$status], '', $statusType, $mode);
     }
-/**
-    * Load object in memory from the database
-    *
-    * @param	string	$morewhere		More SQL filters (' AND ...')
-    * @return 	int         			<0 if KO, 0 if not found, >0 if OK
-    */
+
+    /**
+     *	Load the info information in the object
+     *
+     *	@param  int		$id       Id of object
+     *	@return	void
+     */
+    public function info($id)
+    {
+        $sql = 'SELECT rowid, date_creation as datec, tms as datem,';
+        $sql .= ' fk_user_creat, fk_user_modif';
+        $sql .= ' FROM ' . MAIN_DB_PREFIX . $this->table_element . ' as t';
+        $sql .= ' WHERE t.rowid = ' . $id;
+        $result = $this->db->query($sql);
+        if ($result) {
+            if ($this->db->num_rows($result)) {
+                $obj = $this->db->fetch_object($result);
+                $this->id = $obj->rowid;
+                if ($obj->fk_user_author) {
+                    $cuser = new User($this->db);
+                    $cuser->fetch($obj->fk_user_author);
+                    $this->user_creation = $cuser;
+                }
+
+                if ($obj->fk_user_valid) {
+                    $vuser = new User($this->db);
+                    $vuser->fetch($obj->fk_user_valid);
+                    $this->user_validation = $vuser;
+                }
+
+                if ($obj->fk_user_cloture) {
+                    $cluser = new User($this->db);
+                    $cluser->fetch($obj->fk_user_cloture);
+                    $this->user_cloture = $cluser;
+                }
+
+                $this->date_creation     = $this->db->jdate($obj->datec);
+                $this->date_modification = $this->db->jdate($obj->datem);
+                $this->date_validation   = $this->db->jdate($obj->datev);
+            }
+
+            $this->db->free($result);
+        } else {
+            dol_print_error($this->db);
+        }
+    }
+
+    /**
+     * Initialise object with example values
+     * Id must be 0 if object instance is a specimen
+     *
+     * @return void
+     */
+    public function initAsSpecimen()
+    {
+        $this->initAsSpecimenCommon();
+    }
+
+    /**
+     * 	Create an array of lines
+     *
+     * 	@return array|int		array of lines if OK, <0 if KO
+     */
+    public function getLinesArray()
+    {
+        $this->lines = array();
+
+        $objectline = new surveyAnswerLine($this->db);
+        $result = $objectline->fetchAll('ASC', 'position', 0, 0, array('customsql' => 'fk_surveyanswer = ' . $this->id));
+
+        if (is_numeric($result)) {
+            $this->error = $this->error;
+            $this->errors = $this->errors;
+            return $result;
+        } else {
+            $this->lines = $result;
+            return $this->lines;
+        }
+    }
+
+    /**
+     *  Returns the reference to the following non used object depending on the active numbering module.
+     *
+     *  @return string      		Object free reference
+     */
+    public function getNextNumRef()
+    {
+        global $langs, $conf;
+        $langs->load("interventionsurvey@surveyanswer");
+
+        if (empty($conf->global->INTERVENTIONSURVEY_SURVEYANSWER_ADDON)) {
+            $conf->global->INTERVENTIONSURVEY_SURVEYANSWER_ADDON = 'mod_mymobject_standard';
+        }
+
+        if (!empty($conf->global->INTERVENTIONSURVEY_SURVEYANSWER_ADDON)) {
+            $mybool = false;
+
+            $file = $conf->global->INTERVENTIONSURVEY_SURVEYANSWER_ADDON . ".php";
+            $classname = $conf->global->INTERVENTIONSURVEY_SURVEYANSWER_ADDON;
+
+            // Include file with class
+            $dirmodels = array_merge(array('/'), (array) $conf->modules_parts['models']);
+            foreach ($dirmodels as $reldir) {
+                $dir = dol_buildpath($reldir . "core/modules/interventionsurvey/");
+
+                // Load file with numbering class (if found)
+                $mybool |= @include_once $dir . $file;
+            }
+
+            if ($mybool === false) {
+                dol_print_error('', "Failed to include file " . $file);
+                return '';
+            }
+
+            $obj = new $classname();
+            $numref = $obj->getNextValue($this);
+
+            if ($numref != "") {
+                return $numref;
+            } else {
+                $this->error = $obj->error;
+                //dol_print_error($this->db,get_class($this)."::getNextNumRef ".$obj->error);
+                return "";
+            }
+        } else {
+            print $langs->trans("Error") . " " . $langs->trans("Error_INTERVENTIONSURVEY_SURVEYANSWER_ADDON_NotDefined");
+            return "";
+        }
+    }
+
+    /**
+     *  Create a document onto disk according to template module.
+     *
+     *  @param	    string		$modele			Force template to use ('' to not force)
+     *  @param		Translate	$outputlangs	objet lang a utiliser pour traduction
+     *  @param      int			$hidedetails    Hide details of lines
+     *  @param      int			$hidedesc       Hide description
+     *  @param      int			$hideref        Hide ref
+     *  @param      null|array  $moreparams     Array to provide more information
+     *  @return     int         				0 if KO, 1 if OK
+     */
+    public function generateDocument($modele, $outputlangs, $hidedetails = 0, $hidedesc = 0, $hideref = 0, $moreparams = null)
+    {
+        global $conf, $langs;
+
+        $langs->load("interventionsurvey@interventionsurvey");
+
+        if (!dol_strlen($modele)) {
+            $modele = 'standard';
+
+            if ($this->modelpdf) {
+                $modele = $this->modelpdf;
+            } elseif (!empty($conf->global->SURVEYANSWER_ADDON_PDF)) {
+                $modele = $conf->global->SURVEYANSWER_ADDON_PDF;
+            }
+        }
+
+        $modelpath = "core/modules/interventionsurvey/doc/";
+
+        return $this->commonGenerateDocument($modelpath, $modele, $outputlangs, $hidedetails, $hidedesc, $hideref, $moreparams);
+    }
+
+    /**
+     * Action executed by scheduler
+     * CAN BE A CRON TASK. In such a case, parameters come from the schedule job setup field 'Parameters'
+     *
+     * @return	int			0 if OK, <>0 if KO (this function is used also by cron so only 0 is OK)
+     */
+    //public function doScheduledJob($param1, $param2, ...)
+    public function doScheduledJob()
+    {
+        global $conf, $langs;
+
+        //$conf->global->SYSLOG_FILE = 'DOL_DATA_ROOT/dolibarr_mydedicatedlofile.log';
+
+        $error = 0;
+        $this->output = '';
+        $this->error = '';
+
+        dol_syslog(__METHOD__, LOG_DEBUG);
+
+        $now = dol_now();
+
+        $this->db->begin();
+
+        // ...
+
+        $this->db->commit();
+
+        return $error;
+    }
+    /**
+     * Load object in memory from the database
+     *
+     * @param	string	$morewhere		More SQL filters (' AND ...')
+     * @return 	int         			<0 if KO, 0 if not found, >0 if OK
+     */
     public function interventionSurveyFetchLinesCommon($morewhere = '', $objectlineclassname = null, &$resultValue)
     {
 
-        if (!class_exists($objectlineclassname))
-        {
-            $this->error = 'Error, class '.$objectlineclassname.' not found during call of fetchLinesCommon';
+        if (!class_exists($objectlineclassname)) {
+            $this->error = 'Error, class ' . $objectlineclassname . ' not found during call of fetchLinesCommon';
             $this->errors[] = $this->error;
             return -1;
         }
 
         $objectline = new $objectlineclassname($this->db);
 
-        $sql = 'SELECT '.$objectline->getFieldList();
-        $sql .= ' FROM '.MAIN_DB_PREFIX.$objectline->table_element;
-        $sql .= ' WHERE fk_'.$this->element.' = '.$this->id;
+        $sql = 'SELECT ' . $objectline->getFieldList();
+        $sql .= ' FROM ' . MAIN_DB_PREFIX . $objectline->table_element;
+        $sql .= ' WHERE fk_' . $this->element . ' = ' . $this->id;
         if ($morewhere)   $sql .= $morewhere;
 
         $resql = $this->db->query($sql);
-        if ($resql)
-        {
+        if ($resql) {
             $num_rows = $this->db->num_rows($resql);
             $i = 0;
-            while ($i < $num_rows)
-            {
+            while ($i < $num_rows) {
                 $obj = $this->db->fetch_object($resql);
-                if ($obj)
-                {
+                if ($obj) {
                     $newline = new $objectlineclassname($this->db);
                     $newline->setVarsFromFetchObj($obj);
-                    if(method_exists($newline, "fetchLines")){
-                     $newline->fetchLines($this);
+                    if (method_exists($newline, "fetchLines")) {
+                        $newline->fetchLines($this);
                     }
                     $resultValue[] = $newline;
                     $this->errors = array_merge($this->errors, $newline->errors);
                 }
                 $i++;
             }
-        }
-        else
-        {
+        } else {
             $this->error = $this->db->lasterror();
             $this->errors[] = $this->error;
             return -1;
@@ -1077,62 +1016,61 @@ public function setVarsFromFetchObj(&$obj, $parent = null){
     }
 
     /**
- *
- * Save
- *
- *
- */
-public function save($user, $fk_surveyquestion=NULL, $noSurveyReadOnlyCheck = false)
-{
-    global $langs;
+     *
+     * Save
+     *
+     *
+     */
+    public function save($user, $fk_surveyquestion = NULL, $noSurveyReadOnlyCheck = false)
+    {
+        global $langs;
 
-    $this->db->begin();
-    if(isset($fk_surveyquestion)){
-        $this->fk_surveyquestion = $fk_surveyquestion;
-    }
-    $errors = array();
-    if($this->is_survey_read_only()&&!$noSurveyReadOnlyCheck){
-        $errors[] = $langs->trans('InterventionSurveyReadOnlyMode');
-        $this->db->rollback();
-        $this->errors = $errors;
-        return -1;
-    }
+        $this->db->begin();
+        if (isset($fk_surveyquestion)) {
+            $this->fk_surveyquestion = $fk_surveyquestion;
+        }
+        $errors = array();
+        if ($this->is_survey_read_only() && !$noSurveyReadOnlyCheck) {
+            $errors[] = $langs->trans('InterventionSurveyReadOnlyMode');
+            $this->db->rollback();
+            $this->errors = $errors;
+            return -1;
+        }
 
-    if($this->id){
-        $this->update($user);
-    }
-    else{
-        $this->create($user);
-    }
-    if(empty($errors)){
-        foreach($this->predefined_texts as $position=>$predefined_text){
-            $predefined_text->position = $position;
-            $predefined_text->save($user, $this->id, $noSurveyReadOnlyCheck);
-            $errors = array_merge($errors, $predefined_text->errors);
+        if ($this->id) {
+            $this->update($user);
+        } else {
+            $this->create($user);
+        }
+        if (empty($errors)) {
+            foreach ($this->predefined_texts as $position => $predefined_text) {
+                $predefined_text->position = $position;
+                $predefined_text->save($user, $this->id, $noSurveyReadOnlyCheck);
+                $errors = array_merge($errors, $predefined_text->errors);
+            }
+        }
+        if (empty($errors)) {
+            $this->db->commit();
+            return 1;
+        } else {
+            $this->db->rollback();
+            $this->errors = $errors;
+            return -1;
         }
     }
-    if(empty($errors)){
-        $this->db->commit();
-        return 1;
-    }
-    else{
-        $this->db->rollback();
-        $this->errors = $errors;
-        return -1;
-    }
-}
     /**
      * Fetch parent object common
      */
 
-    public function fetchParentCommon($classname, $id, &$field){
-        if(!isset($field)){
+    public function fetchParentCommon($classname, $id, &$field)
+    {
+        if (!isset($field)) {
             $parent = new $classname($this->db);
-            if($parent->fetch($id) > 0 ){
+            if ($parent->fetch($id) > 0) {
                 $field = $parent;
             }
         }
-        if(method_exists($field, "fetchParent")){
+        if (method_exists($field, "fetchParent")) {
             $field->fetchParent();
         }
     }
@@ -1140,15 +1078,17 @@ public function save($user, $fk_surveyquestion=NULL, $noSurveyReadOnlyCheck = fa
      * Fetch Parent object
      */
 
-    public function fetchParent(){
+    public function fetchParent()
+    {
         $this->fetchParentCommon("SurveyQuestion", $this->fk_surveyquestion, $this->surveyQuestion);
-     }
+    }
 
-     /**
-      * Check if we are not in readonly mode
-      *
-      */
-      public function is_survey_read_only(){
+    /**
+     * Check if we are not in readonly mode
+     *
+     */
+    public function is_survey_read_only()
+    {
         $this->fetchParent();
         return $this->surveyQuestion->is_survey_read_only();
     }

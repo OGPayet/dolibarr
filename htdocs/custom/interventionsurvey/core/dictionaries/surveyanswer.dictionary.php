@@ -138,18 +138,18 @@ class SurveyAnswerDictionary extends Dictionary
             'label'      => 'InterventionSurveyOrderDictionaryField',
             'type'       => 'int',
             'database'   => array(
-              'length'   => 10,
+                'length'   => 10,
             ),
-            'td_title'  => array (
+            'td_title'  => array(
                 'align'  => 'left',
             ),
-            'td_output'  => array (
+            'td_output'  => array(
                 'align'  => 'left',
             ),
-            'td_search'  => array (
+            'td_search'  => array(
                 'align'  => 'left',
             ),
-            'td_input'  => array (
+            'td_input'  => array(
                 'align'  => 'left',
             ),
         ),
@@ -158,7 +158,7 @@ class SurveyAnswerDictionary extends Dictionary
             'label'      => 'InterventionSurveyAnswerIdentifierFieldLabel',
             'type'       => 'varchar',
             'database'   => array(
-              'length'   => 255,
+                'length'   => 255,
             ),
             'is_require' => false,
             'help'       => 'InterventionSurveyAnswerIdentifierFieldHelp'
@@ -167,8 +167,7 @@ class SurveyAnswerDictionary extends Dictionary
             'name'       => 'label',
             'label'      => 'InterventionSurveyLabelDictionaryField',
             'type'       => 'varchar',
-            'database'   => array(
-            ),
+            'database'   => array(),
             'is_require' => true,
         ),
         'color' => array(
@@ -197,8 +196,7 @@ class SurveyAnswerDictionary extends Dictionary
      *   'is_unique' => bool,         // Set at true if this index is unique
      * )
      */
-    public $indexes = array(
-    );
+    public $indexes = array();
 
     /**
      * @var array  List of fields/indexes added, updated or deleted for a version
@@ -209,8 +207,7 @@ class SurveyAnswerDictionary extends Dictionary
      *   ),
      * )
      */
-    public $updates = array(
-    );
+    public $updates = array();
 
     /**
      * @var bool    Is multi entity (false = partaged, true = by entity)
@@ -218,11 +215,11 @@ class SurveyAnswerDictionary extends Dictionary
     public $is_multi_entity = true;
 
     /**
-	 * Initialize the dictionary
-	 *
+     * Initialize the dictionary
+     *
      * @return  void
-	 */
-	protected function initialize()
+     */
+    protected function initialize()
     {
         $this->fields['predefined_texts'] = array(
             'name' => 'predefined_texts',
@@ -269,7 +266,7 @@ class SurveyAnswerDictionaryLine extends DictionaryLine
 
         if (!empty($fieldsValue['color']) && !preg_match('/#[A-F0-9]{1,8}/', $fieldsValue['color'])) {
             $langs->load('errors');
-            $this->errors[] = $langs->trans('ErrorBadParameters') . ' : ' . $langs->trans('Color') ;
+            $this->errors[] = $langs->trans('ErrorBadParameters') . ' : ' . $langs->trans('Color');
             return -1;
         }
 

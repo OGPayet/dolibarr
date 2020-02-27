@@ -70,10 +70,10 @@ class FormInterventionSurvey
     }
 
     /**
-	 * Load the list of intervention type
-	 *
+     * Load the list of intervention type
+     *
      * @return  void
-	 */
+     */
     public function load_intervention_type()
     {
         if (!isset($this->intervention_types_list)) {
@@ -104,10 +104,11 @@ class FormInterventionSurvey
 
         $list = array();
         foreach ($cate_arbo as $k => $cat) {
-            if (((preg_match('/^'.$conf->global->INTERVENTIONSURVEY_ROOT_PRODUCT_CATEGORIES.'$/', $cat['fullpath']) ||
-                preg_match('/_'.$conf->global->INTERVENTIONSURVEY_ROOT_PRODUCT_CATEGORIES.'$/', $cat['fullpath'])) && $conf->global->INTERVENTIONSURVEY_ROOT_PRODUCT_CATEGORY_INCLUDE) ||
-                preg_match('/^'.$conf->global->INTERVENTIONSURVEY_ROOT_PRODUCT_CATEGORIES.'_/', $cat['fullpath']) ||
-                preg_match('/_'.$conf->global->INTERVENTIONSURVEY_ROOT_PRODUCT_CATEGORIES.'_/', $cat['fullpath'])) {
+            if (((preg_match('/^' . $conf->global->INTERVENTIONSURVEY_ROOT_PRODUCT_CATEGORIES . '$/', $cat['fullpath']) ||
+                    preg_match('/_' . $conf->global->INTERVENTIONSURVEY_ROOT_PRODUCT_CATEGORIES . '$/', $cat['fullpath'])) && $conf->global->INTERVENTIONSURVEY_ROOT_PRODUCT_CATEGORY_INCLUDE) ||
+                preg_match('/^' . $conf->global->INTERVENTIONSURVEY_ROOT_PRODUCT_CATEGORIES . '_/', $cat['fullpath']) ||
+                preg_match('/_' . $conf->global->INTERVENTIONSURVEY_ROOT_PRODUCT_CATEGORIES . '_/', $cat['fullpath'])
+            ) {
                 $list[$cat['id']] = $cat['fulllabel'];
             }
         }
@@ -129,7 +130,7 @@ class FormInterventionSurvey
      *	@return	string					HTML multiselect string
      *  @see selectarray
      */
-    function multiselect_categories($htmlname='categories', $selected=array(), $key_in_label=0, $value_as_key=0, $morecss='', $translate=0, $width=0, $moreattrib='')
+    function multiselect_categories($htmlname = 'categories', $selected = array(), $key_in_label = 0, $value_as_key = 0, $morecss = '', $translate = 0, $width = 0, $moreattrib = '')
     {
         dol_include_once('/advancedictionaries/class/dictionary.class.php');
         $list = $this->get_categories_array();
@@ -154,7 +155,7 @@ class FormInterventionSurvey
      *	@return	string					    HTML multiselect string
      *  @see selectarray
      */
-    function multiselect_attached_files($ref_intervention, $htmlname='attached_files', $selected=array(), $key_in_label=0, $value_as_key=0, $morecss='minwidth300', $translate=0, $width=0, $moreattrib='')
+    function multiselect_attached_files($ref_intervention, $htmlname = 'attached_files', $selected = array(), $key_in_label = 0, $value_as_key = 0, $morecss = 'minwidth300', $translate = 0, $width = 0, $moreattrib = '')
     {
         global $conf, $formfile;
         require_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
@@ -165,7 +166,7 @@ class FormInterventionSurvey
         }
 
         $attached_files = array();
-        $upload_dir = $conf->ficheinter->dir_output.'/'.dol_sanitizeFileName($ref_intervention);
+        $upload_dir = $conf->ficheinter->dir_output . '/' . dol_sanitizeFileName($ref_intervention);
         $filearray = dol_dir_list($upload_dir, "files", 0, '', '(\.meta|_preview.*\.png)$');
         foreach ($filearray as $file) {
             $attached_files[$file["name"]] = $file["name"];
@@ -183,45 +184,47 @@ class FormInterventionSurvey
      * @return bloc SurveyBlocQuestion
      */
 
-     function updateBlocObjectFromPOST($bloc){
-         if($bloc){
+    function updateBlocObjectFromPOST($bloc)
+    {
+        if ($bloc) {
 
-             if($bloc->label_editable){
-                 $bloc->label = self::updateFieldFromGETPOST($bloc,"label",self::BLOC_FORM_PREFIX);
-             }
+            if ($bloc->label_editable) {
+                $bloc->label = self::updateFieldFromGETPOST($bloc, "label", self::BLOC_FORM_PREFIX);
+            }
 
-             if($bloc->description_editable){
-                $bloc->description = self::updateFieldFromGETPOST($bloc,"description",self::BLOC_FORM_PREFIX);
-             }
+            if ($bloc->description_editable) {
+                $bloc->description = self::updateFieldFromGETPOST($bloc, "description", self::BLOC_FORM_PREFIX);
+            }
 
-            $bloc->fk_chosen_status = self::updateFieldFromGETPOST($bloc,"fk_chosen_status",self::BLOC_FORM_PREFIX);
-            $bloc->description = self::updateFieldFromGETPOST($bloc,"description",self::BLOC_FORM_PREFIX);
-            $bloc->attached_files = self::updateFieldFromGETPOST($bloc,"attached_files",self::BLOC_FORM_PREFIX);
-            $bloc->justification_text = self::updateFieldFromGETPOST($bloc,"justification_text",self::BLOC_FORM_PREFIX);
-            $bloc->fk_chosen_status_predefined_text = self::updateFieldFromGETPOST($bloc,"fk_chosen_status_predefined_text",self::BLOC_FORM_PREFIX);
-            $bloc->private = self::updateFieldFromGETPOST($bloc,"private",self::BLOC_FORM_PREFIX);
-            if(isset($bloc->questions)){
-                foreach($bloc->questions as $question){
-                    $question->fk_chosen_answer = self::updateFieldFromGETPOST($question,"fk_chosen_answer",self::QUESTION_FORM_PREFIX);
-                    $question->justification_text = self::updateFieldFromGETPOST($question,"justification_text",self::QUESTION_FORM_PREFIX);
-                    $question->fk_chosen_answer_predefined_text = self::updateFieldFromGETPOST($question,"fk_chosen_answer_predefined_text",self::QUESTION_FORM_PREFIX);
+            $bloc->fk_chosen_status = self::updateFieldFromGETPOST($bloc, "fk_chosen_status", self::BLOC_FORM_PREFIX);
+            $bloc->description = self::updateFieldFromGETPOST($bloc, "description", self::BLOC_FORM_PREFIX);
+            $bloc->attached_files = self::updateFieldFromGETPOST($bloc, "attached_files", self::BLOC_FORM_PREFIX);
+            $bloc->justification_text = self::updateFieldFromGETPOST($bloc, "justification_text", self::BLOC_FORM_PREFIX);
+            $bloc->fk_chosen_status_predefined_text = self::updateFieldFromGETPOST($bloc, "fk_chosen_status_predefined_text", self::BLOC_FORM_PREFIX);
+            $bloc->private = self::updateFieldFromGETPOST($bloc, "private", self::BLOC_FORM_PREFIX);
+            if (isset($bloc->questions)) {
+                foreach ($bloc->questions as $question) {
+                    $question->fk_chosen_answer = self::updateFieldFromGETPOST($question, "fk_chosen_answer", self::QUESTION_FORM_PREFIX);
+                    $question->justification_text = self::updateFieldFromGETPOST($question, "justification_text", self::QUESTION_FORM_PREFIX);
+                    $question->fk_chosen_answer_predefined_text = self::updateFieldFromGETPOST($question, "fk_chosen_answer_predefined_text", self::QUESTION_FORM_PREFIX);
                 }
             }
-         }
-         return $bloc;
-     }
+        }
+        return $bloc;
+    }
 
-     /***
-      *
-      *  update field from POST data if such field was set into GETPOST
-      *
-      */
+    /***
+     *
+     *  update field from POST data if such field was set into GETPOST
+     *
+     */
 
-      public static function updateFieldFromGETPOST(&$object,$fieldName,$postPrefixName, $fallbackValue = NULL){
-          $paramname = $postPrefixName . $object->id . "_" .$fieldName;
-          $valueFromPost = isset($_GET[$paramname])?$_GET[$paramname]:(isset($_POST[$paramname])?$_POST[$paramname]:$fallbackValue);
-          return $valueFromPost ?? $object->$fieldName;
-      }
+    public static function updateFieldFromGETPOST(&$object, $fieldName, $postPrefixName, $fallbackValue = NULL)
+    {
+        $paramname = $postPrefixName . $object->id . "_" . $fieldName;
+        $valueFromPost = isset($_GET[$paramname]) ? $_GET[$paramname] : (isset($_POST[$paramname]) ? $_POST[$paramname] : $fallbackValue);
+        return $valueFromPost ?? $object->$fieldName;
+    }
 
 
 
@@ -233,35 +236,38 @@ class FormInterventionSurvey
      *	@param	SurveyBlocQuestion	$bloc		    Bloc object question
      */
 
-     function displayStatus($readonly, $bloc, $form){
-        global $conf,$langs, $hookmanager;
-        $bloc = $readonly ? $bloc : $this->mergeNotNullDataFromFirstIntoSecondParameter($this->blocs_post[$bloc->id],$bloc);
+    function displayStatus($readonly, $bloc, $form)
+    {
+        global $conf, $langs, $hookmanager;
+        $bloc = $readonly ? $bloc : $this->mergeNotNullDataFromFirstIntoSecondParameter($this->blocs_post[$bloc->id], $bloc);
         @include dol_buildpath('interventionsurvey/tpl/intervention_survey_bloc_status.tpl.php');
-     }
+    }
 
-     /**
+    /**
      *	Return html to display bloc description
      *
      *	@param	boolean		$readonly   Should we be in readonly mode
      *	@param	SurveyBlocQuestion	$bloc		    Bloc object question
      */
 
-    function displayBlocDescription($readonly, $bloc){
-        global $conf,$langs, $hookmanager;
-        $bloc = $readonly ? $bloc : $this->mergeNotNullDataFromFirstIntoSecondParameter($this->blocs_post[$bloc->id],$bloc);
+    function displayBlocDescription($readonly, $bloc)
+    {
+        global $conf, $langs, $hookmanager;
+        $bloc = $readonly ? $bloc : $this->mergeNotNullDataFromFirstIntoSecondParameter($this->blocs_post[$bloc->id], $bloc);
         @include dol_buildpath('interventionsurvey/tpl/intervention_survey_bloc_description.tpl.php');
-     }
+    }
 
-     /**
+    /**
      *	Return html to display question, manage answer and justification text with predefined text
      *
      *	@param	boolean		$readonly   Should we be in readonly mode
      *	@param	SurveyQuestion	$question		    question object
      */
 
-    function displayQuestion($readonly, $question){
-        global $conf,$langs, $hookmanager;
-        $question = $readonly ? $question : $this->mergeNotNullDataFromFirstIntoSecondParameter($this->questions_post[$question->id],$question);
+    function displayQuestion($readonly, $question)
+    {
+        global $conf, $langs, $hookmanager;
+        $question = $readonly ? $question : $this->mergeNotNullDataFromFirstIntoSecondParameter($this->questions_post[$question->id], $question);
         @include dol_buildpath('interventionsurvey/tpl/intervention_survey_question.tpl.php');
     }
 
@@ -272,9 +278,10 @@ class FormInterventionSurvey
      *	@param	SurveyBlocQuestion	$bloc		    question object
      */
 
-    function displayBlocFiles($readonly, $bloc, $intervention_ref, $listOfAvailableFiles = array()){
-        global $conf,$langs, $hookmanager;
-        $bloc = $readonly ? $bloc : $this->mergeNotNullDataFromFirstIntoSecondParameter($this->blocs_post[$bloc->id],$bloc);
+    function displayBlocFiles($readonly, $bloc, $intervention_ref, $listOfAvailableFiles = array())
+    {
+        global $conf, $langs, $hookmanager;
+        $bloc = $readonly ? $bloc : $this->mergeNotNullDataFromFirstIntoSecondParameter($this->blocs_post[$bloc->id], $bloc);
         @include dol_buildpath('interventionsurvey/tpl/intervention_survey_bloc_files.tpl.php');
     }
     /**
@@ -284,8 +291,9 @@ class FormInterventionSurvey
      *	@param	SurveyBlocQuestion	$bloc		    question object
      */
 
-    function displayExtrafields($readonly,$extrafield_object,$extrafield_label, $object, $prefix) {
-        global $conf,$langs, $hookmanager;
+    function displayExtrafields($readonly, $extrafield_object, $extrafield_label, $object, $prefix)
+    {
+        global $conf, $langs, $hookmanager;
         @include dol_buildpath('interventionsurvey/tpl/intervention_survey_extrafields.tpl.php');
     }
 
@@ -296,8 +304,9 @@ class FormInterventionSurvey
      *	@param	SurveyBlocQuestion	$bloc		    question object
      */
 
-    function displayBlocTitle($readonly, $bloc) {
-        global $conf,$langs, $hookmanager;
+    function displayBlocTitle($readonly, $bloc)
+    {
+        global $conf, $langs, $hookmanager;
         @include dol_buildpath('interventionsurvey/tpl/intervention_survey_bloc_title.tpl.php');
     }
 
@@ -308,8 +317,9 @@ class FormInterventionSurvey
      *	@param	SurveyBlocQuestion	$bloc		    question object
      */
 
-    function displayBlocActionButton($readonly, $bloc) {
-        global $conf,$langs, $hookmanager, $user;
+    function displayBlocActionButton($readonly, $bloc)
+    {
+        global $conf, $langs, $hookmanager, $user;
         @include dol_buildpath('interventionsurvey/tpl/intervention_survey_action_button.tpl.php');
     }
 
@@ -320,13 +330,13 @@ class FormInterventionSurvey
      * @param object $master
      *
      */
-    private function mergeNotNullDataFromFirstIntoSecondParameter($slave,$master) {
-        if(is_array($slave)){
-            foreach($slave as $field=>$value){
+    private function mergeNotNullDataFromFirstIntoSecondParameter($slave, $master)
+    {
+        if (is_array($slave)) {
+            foreach ($slave as $field => $value) {
                 $master->$field = $value;
             }
         }
         return $master;
-        }
+    }
 }
-

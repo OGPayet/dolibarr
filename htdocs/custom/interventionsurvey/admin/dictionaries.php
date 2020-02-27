@@ -23,11 +23,11 @@
  */
 
 // Change this following line to use the correct relative path (../, ../../, etc)
-$res=0;
-if (! $res && file_exists("../../main.inc.php")) $res=@include '../../main.inc.php';			// to work if your module directory is into a subdir of root htdocs directory
-if (! $res && file_exists("../../../main.inc.php")) $res=@include '../../../main.inc.php';		// to work if your module directory is into a subdir of root htdocs directory
-if (! $res) die("Include of main fails");
-require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
+$res = 0;
+if (!$res && file_exists("../../main.inc.php")) $res = @include '../../main.inc.php';            // to work if your module directory is into a subdir of root htdocs directory
+if (!$res && file_exists("../../../main.inc.php")) $res = @include '../../../main.inc.php';        // to work if your module directory is into a subdir of root htdocs directory
+if (!$res) die("Include of main fails");
+require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
 dol_include_once('/interventionsurvey/lib/interventionsurvey.lib.php');
 
 if (!checkPermissionForAdminPages()) accessforbidden();
@@ -61,18 +61,18 @@ $page_name = "InterventionSurveySetup";
 llxHeader('', $langs->trans($page_name));
 
 // Subheader
-$linkback = '<a href="'.($backtopage ? $backtopage : DOL_URL_ROOT.'/admin/modules.php?restore_lastsearch_values=1').'">'.$langs->trans("BackToModuleList").'</a>';
+$linkback = '<a href="' . ($backtopage ? $backtopage : DOL_URL_ROOT . '/admin/modules.php?restore_lastsearch_values=1') . '">' . $langs->trans("BackToModuleList") . '</a>';
 
 print load_fiche_titre($langs->trans($page_name), $linkback, 'object_interventionsurvey@interventionsurvey');
 
 // Configuration header
 $head = interventionsurveyAdminPrepareHead();
-dol_fiche_head($head, 'dictionary_' . $name , '', -1, "interventionsurvey@interventionsurvey");
+dol_fiche_head($head, 'dictionary_' . $name, '', -1, "interventionsurvey@interventionsurvey");
 
 $moduleFilter = ''; // array or string to set the dictionaries of witch modules to show in dictionaries list
 $familyFilter = 'interventionsurvey'; // array or string to set the dictionaries of witch family to show in dictionaries list
 
-if(isset($dictionary)) {
+if (isset($dictionary)) {
     $dictionary->customLinkBack = "<a></a>";
 }
 include dol_buildpath('/advancedictionaries/core/tpl/dictionaries.tpl.php');

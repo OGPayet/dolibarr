@@ -133,18 +133,18 @@ class SurveyAnswerPredefinedTextDictionary extends Dictionary
             'label'      => 'InterventionSurveyAnswerPredefinedTextOrderDictionaryField',
             'type'       => 'int',
             'database'   => array(
-              'length'   => 10,
+                'length'   => 10,
             ),
-            'td_title'  => array (
+            'td_title'  => array(
                 'align'  => 'left',
             ),
-            'td_output'  => array (
+            'td_output'  => array(
                 'align'  => 'left',
             ),
-            'td_search'  => array (
+            'td_search'  => array(
                 'align'  => 'left',
             ),
-            'td_input'  => array (
+            'td_input'  => array(
                 'align'  => 'left',
             ),
         ),
@@ -153,7 +153,7 @@ class SurveyAnswerPredefinedTextDictionary extends Dictionary
             'label'      => 'InterventionSurveyAnswerPredefinedTextIdentifierFieldLabel',
             'type'       => 'varchar',
             'database'   => array(
-              'length'   => 255,
+                'length'   => 255,
             ),
             'is_require' => false,
             'help'       => 'InterventionSurveyAnswerPredefinedTextIdentifierFieldHelp'
@@ -163,7 +163,7 @@ class SurveyAnswerPredefinedTextDictionary extends Dictionary
             'label'      => 'InterventionSurveyAnswerPredefinedTextLabelDictionaryField',
             'type'       => 'varchar',
             'database'   => array(
-              'length'   => 255,
+                'length'   => 255,
             ),
             'is_require' => true,
         ),
@@ -179,8 +179,7 @@ class SurveyAnswerPredefinedTextDictionary extends Dictionary
      *   'is_unique' => bool,         // Set at true if this index is unique
      * )
      */
-    public $indexes = array(
-    );
+    public $indexes = array();
 
     /**
      * @var bool    Is multi entity (false = partaged, true = by entity)
@@ -198,10 +197,10 @@ class SurveyAnswerPredefinedTextDictionary extends Dictionary
     public $form_intervention_survey = null;
 
     /**
-	 * Load the cache of the list of the categories for categories show output
-	 *
+     * Load the cache of the list of the categories for categories show output
+     *
      * @return  void
-	 */
+     */
     public function load_categories()
     {
         if (!isset($this->categories_cache)) {
@@ -211,10 +210,10 @@ class SurveyAnswerPredefinedTextDictionary extends Dictionary
     }
 
     /**
-	 * Load the FormInterventionSurvey object for categories show input
-	 *
+     * Load the FormInterventionSurvey object for categories show input
+     *
      * @return  void
-	 */
+     */
     public function load_form_intervention_survey()
     {
         if (!isset($this->form_intervention_survey)) {
@@ -224,56 +223,56 @@ class SurveyAnswerPredefinedTextDictionary extends Dictionary
     }
 
     /**
-	 * Initialize the dictionary
-	 *
+     * Initialize the dictionary
+     *
      * @return  void
-	 */
-        protected function initialize()
-        {
-            $this->fields['answers'] = array(
-                'name' => 'answers',
-                'label' => 'InterventionSurveyAnswerPredefinedTextUsedInTheseQuestionDictionaryField',
-                'type' => 'chkbxlst',
-                'association_table' => 'c_intervention_survey_answer_cbl_predefined_texts:fk_target:fk_line',
-                'options' => 'c_intervention_survey_answer:identifier|label:rowid::active=1 and entity IN (' . getEntity('dictionary', 1) . ')',
-                'label_separator' => ' - ',
-                'td_output' => array(
-                    'moreAttributes' => 'width="100%"',
-                ),
-                'td_input' => array(
-                    'moreAttributes' => 'width="100%"',
-                    'positionLine' => 1,
-                ),
-            );
-            $this->fields['bloc_filter'] = array(
-                'name' => 'bloc_filter',
-                'label' => 'InterventionSurveyFilterOnlyForBlocQuestionDictionary',
-                'type' => 'chkbxlst',
-                'options' => 'c_intervention_survey_bloc_question:identifier|label:rowid::active=1 and entity IN (' . getEntity('dictionary', 1) . ')',
-                'label_separator' => ' - ',
-                'td_output' => array(
-                    'moreAttributes' => 'width="100%"',
-                ),
-                'td_input' => array(
-                    'moreAttributes' => 'width="100%"',
-                    'positionLine' => 2,
-                ),
-            );
-            $this->fields['cat_filter'] = array(
-                'name' => 'cat_filter',
-                'label' => 'InterventionSurveyFilterOnlyForProductCategoriesDictionary',
-                'type' => 'chkbxlst',
-                'options' => 'categorie:label:rowid::type=0 and entity IN (' . getEntity( 'category', 1 ) . ')',
-                'label_separator' => ' - ',
-                'td_output' => array(
-                    'moreAttributes' => 'width="100%"',
-                ),
-                'td_input' => array(
-                    'moreAttributes' => 'width="100%"',
-                    'positionLine' => 3,
-                ),
-            );
-        }
+     */
+    protected function initialize()
+    {
+        $this->fields['answers'] = array(
+            'name' => 'answers',
+            'label' => 'InterventionSurveyAnswerPredefinedTextUsedInTheseQuestionDictionaryField',
+            'type' => 'chkbxlst',
+            'association_table' => 'c_intervention_survey_answer_cbl_predefined_texts:fk_target:fk_line',
+            'options' => 'c_intervention_survey_answer:identifier|label:rowid::active=1 and entity IN (' . getEntity('dictionary', 1) . ')',
+            'label_separator' => ' - ',
+            'td_output' => array(
+                'moreAttributes' => 'width="100%"',
+            ),
+            'td_input' => array(
+                'moreAttributes' => 'width="100%"',
+                'positionLine' => 1,
+            ),
+        );
+        $this->fields['bloc_filter'] = array(
+            'name' => 'bloc_filter',
+            'label' => 'InterventionSurveyFilterOnlyForBlocQuestionDictionary',
+            'type' => 'chkbxlst',
+            'options' => 'c_intervention_survey_bloc_question:identifier|label:rowid::active=1 and entity IN (' . getEntity('dictionary', 1) . ')',
+            'label_separator' => ' - ',
+            'td_output' => array(
+                'moreAttributes' => 'width="100%"',
+            ),
+            'td_input' => array(
+                'moreAttributes' => 'width="100%"',
+                'positionLine' => 2,
+            ),
+        );
+        $this->fields['cat_filter'] = array(
+            'name' => 'cat_filter',
+            'label' => 'InterventionSurveyFilterOnlyForProductCategoriesDictionary',
+            'type' => 'chkbxlst',
+            'options' => 'categorie:label:rowid::type=0 and entity IN (' . getEntity('category', 1) . ')',
+            'label_separator' => ' - ',
+            'td_output' => array(
+                'moreAttributes' => 'width="100%"',
+            ),
+            'td_input' => array(
+                'moreAttributes' => 'width="100%"',
+                'positionLine' => 3,
+            ),
+        );
+    }
 }
 class SurveyAnswerPredefinedTextDictionaryLine extends DictionaryLine
 {
@@ -304,7 +303,7 @@ class SurveyAnswerPredefinedTextDictionaryLine extends DictionaryLine
                 if (is_array($value)) {
                     $value_arr = $value;
                 } else {
-                    $value_arr = array_filter(explode(',', (string)$value), 'strlen');
+                    $value_arr = array_filter(explode(',', (string) $value), 'strlen');
                 }
 
                 $toprint = array();
@@ -323,16 +322,16 @@ class SurveyAnswerPredefinedTextDictionaryLine extends DictionaryLine
     }
 
     /**
-	 * Return HTML string to put an input field into a page
-	 *
-	 * @param  string  $fieldName      Name of the field
-	 * @param  string  $value          Preselected value to show (for date type it must be in timestamp format, for amount or price it must be a php numeric value)
-	 * @param  string  $keyprefix      Prefix string to add into name and id of field (can be used to avoid duplicate names)
-	 * @param  string  $keysuffix      Suffix string to add into name and id of field (can be used to avoid duplicate names)
-	 * @param  int     $objectid       Current object id
-	 * @return string
-	 */
-	function showInputField($fieldName, $value=null, $keyprefix='', $keysuffix='', $objectid=0)
+     * Return HTML string to put an input field into a page
+     *
+     * @param  string  $fieldName      Name of the field
+     * @param  string  $value          Preselected value to show (for date type it must be in timestamp format, for amount or price it must be a php numeric value)
+     * @param  string  $keyprefix      Prefix string to add into name and id of field (can be used to avoid duplicate names)
+     * @param  string  $keysuffix      Suffix string to add into name and id of field (can be used to avoid duplicate names)
+     * @param  int     $objectid       Current object id
+     * @return string
+     */
+    function showInputField($fieldName, $value = null, $keyprefix = '', $keysuffix = '', $objectid = 0)
     {
         if ($fieldName == 'cat_filter') {
             $field = $this->dictionary->fields[$fieldName];
@@ -354,7 +353,7 @@ class SurveyAnswerPredefinedTextDictionaryLine extends DictionaryLine
             if (is_array($value)) {
                 $value_arr = $value;
             } else {
-                $value_arr = array_filter(explode(',', (string)$value), 'strlen');
+                $value_arr = array_filter(explode(',', (string) $value), 'strlen');
             }
 
             $this->dictionary->load_form_intervention_survey();

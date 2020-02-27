@@ -139,18 +139,18 @@ class SurveyBlocQuestionDictionary extends Dictionary
             'label'      => 'InterventionSurveyBlocQuestionOrderDictionaryField',
             'type'       => 'int',
             'database'   => array(
-              'length'   => 10,
+                'length'   => 10,
             ),
-            'td_title'  => array (
+            'td_title'  => array(
                 'align'  => 'left',
             ),
-            'td_output'  => array (
+            'td_output'  => array(
                 'align'  => 'left',
             ),
-            'td_search'  => array (
+            'td_search'  => array(
                 'align'  => 'left',
             ),
-            'td_input'  => array (
+            'td_input'  => array(
                 'align'  => 'left',
             ),
         ),
@@ -159,7 +159,7 @@ class SurveyBlocQuestionDictionary extends Dictionary
             'label'      => 'InterventionSurveyBlocQuestionIdentifierFieldLabel',
             'type'       => 'varchar',
             'database'   => array(
-              'length'   => 255,
+                'length'   => 255,
             ),
             'is_require' => false,
             'help'       => 'InterventionSurveyBlocQuestionIdentifierFieldHelp'
@@ -169,7 +169,7 @@ class SurveyBlocQuestionDictionary extends Dictionary
             'label'      => 'InterventionSurveyBlocQuestionLabelDictionaryField',
             'type'       => 'varchar',
             'database'   => array(
-              'length'   => 255,
+                'length'   => 255,
             ),
             'is_require' => true,
         ),
@@ -178,7 +178,7 @@ class SurveyBlocQuestionDictionary extends Dictionary
             'label'      => 'InterventionSurveyBlocQuestionDescriptionDictionaryField',
             'type'       => 'text',
             'database'   => array(
-              'length'   => 255,
+                'length'   => 255,
             ),
             'is_require' => false,
             'td_input' => array(
@@ -258,8 +258,7 @@ class SurveyBlocQuestionDictionary extends Dictionary
      *   'is_unique' => bool,         // Set at true if this index is unique
      * )
      */
-    public $indexes = array(
-    );
+    public $indexes = array();
 
     /**
      * @var array  List of fields/indexes added, updated or deleted for a version
@@ -270,8 +269,7 @@ class SurveyBlocQuestionDictionary extends Dictionary
      *   ),
      * )
      */
-    public $updates = array(
-    );
+    public $updates = array();
 
     /**
      * @var bool    Is multi entity (false = partaged, true = by entity)
@@ -288,10 +286,10 @@ class SurveyBlocQuestionDictionary extends Dictionary
     public $form_intervention_survey = null;
 
     /**
-	 * Load the cache of the list of the categories for categories show output
-	 *
+     * Load the cache of the list of the categories for categories show output
+     *
      * @return  void
-	 */
+     */
     public function load_categories()
     {
         if (!isset($this->categories_cache)) {
@@ -301,10 +299,10 @@ class SurveyBlocQuestionDictionary extends Dictionary
     }
 
     /**
-	 * Load the FormInterventionSurvey object for categories show input
-	 *
+     * Load the FormInterventionSurvey object for categories show input
+     *
      * @return  void
-	 */
+     */
     public function load_form_intervention_survey()
     {
         if (!isset($this->form_intervention_survey)) {
@@ -314,92 +312,92 @@ class SurveyBlocQuestionDictionary extends Dictionary
     }
 
     /**
-	 * Initialize the dictionary
-	 *
+     * Initialize the dictionary
+     *
      * @return  void
-	 */
-        protected function initialize()
-        {
-            $this->fields['types_intervention'] = array(
-                'name' => 'types_intervention',
-                'label' => 'InterventionSurveyBlocQuestionInterventionTypeField',
-                'type' => 'chkbxlst',
-                'options' => 'c_extendedintervention_type:label:rowid::active=1 and entity IN (' . getEntity('dictionary', 1) . ')',
-                'td_output' => array(
-                    'moreAttributes' => 'width="50%"',
-                ),
-                'td_input' => array(
-                    'moreAttributes' => 'width="50%"',
-                    'positionLine' => 4,
-                    'colspan' => 3,
-                ),
-                'is_require' => false,
-            );
+     */
+    protected function initialize()
+    {
+        $this->fields['types_intervention'] = array(
+            'name' => 'types_intervention',
+            'label' => 'InterventionSurveyBlocQuestionInterventionTypeField',
+            'type' => 'chkbxlst',
+            'options' => 'c_extendedintervention_type:label:rowid::active=1 and entity IN (' . getEntity('dictionary', 1) . ')',
+            'td_output' => array(
+                'moreAttributes' => 'width="50%"',
+            ),
+            'td_input' => array(
+                'moreAttributes' => 'width="50%"',
+                'positionLine' => 4,
+                'colspan' => 3,
+            ),
+            'is_require' => false,
+        );
 
-            $this->fields['categories'] = array(
-                'name' => 'categories',
-                'label' => 'InterventionSurveyTagCategoriesInQuestionBlocDictionnary',
-                'type' => 'chkbxlst',
-                'options' => 'categorie:label:rowid::type=0 and entity IN (' . getEntity( 'category', 1 ) . ')',
-                'td_output' => array(
-                    'moreAttributes' => 'width="50%"'
-                ),
-                'td_input' => array(
-                    'moreAttributes' => 'width="50%"',
-                    'positionLine' => 3,
-                ),
-            );
+        $this->fields['categories'] = array(
+            'name' => 'categories',
+            'label' => 'InterventionSurveyTagCategoriesInQuestionBlocDictionnary',
+            'type' => 'chkbxlst',
+            'options' => 'categorie:label:rowid::type=0 and entity IN (' . getEntity('category', 1) . ')',
+            'td_output' => array(
+                'moreAttributes' => 'width="50%"'
+            ),
+            'td_input' => array(
+                'moreAttributes' => 'width="50%"',
+                'positionLine' => 3,
+            ),
+        );
 
-            $this->fields['status'] = array(
-                'name' => 'status',
-                'label' => 'InterventionSurveyBlocStatusInQuestionBlocDictionnary',
-                'type' => 'chkbxlst',
-                'options' => 'c_intervention_survey_bloc_status:identifier|label:rowid::active=1 and entity IN (' . getEntity('dictionary', 1) . ')',
-                'label_separator' => ' - ',
-                'td_output' => array(
-                    'moreAttributes' => 'width="100%"',
-                ),
-                'td_input' => array(
-                    'moreAttributes' => 'width="100%"',
-                    'positionLine' => 4,
-                ),
-                'is_require' => false,
-            );
+        $this->fields['status'] = array(
+            'name' => 'status',
+            'label' => 'InterventionSurveyBlocStatusInQuestionBlocDictionnary',
+            'type' => 'chkbxlst',
+            'options' => 'c_intervention_survey_bloc_status:identifier|label:rowid::active=1 and entity IN (' . getEntity('dictionary', 1) . ')',
+            'label_separator' => ' - ',
+            'td_output' => array(
+                'moreAttributes' => 'width="100%"',
+            ),
+            'td_input' => array(
+                'moreAttributes' => 'width="100%"',
+                'positionLine' => 4,
+            ),
+            'is_require' => false,
+        );
 
-            $this->fields['questions'] = array(
-                'name' => 'questions',
-                'label' => 'InterventionSurveyQuestionsInQuestionBlocDictionnary',
-                'type' => 'chkbxlst',
-                'options' => 'c_intervention_survey_question:identifier|label:rowid::active=1 and entity IN (' . getEntity('dictionary', 1) . ')',
-                'label_separator' => ' - ',
-                'td_output' => array(
-                    'moreAttributes' => 'width="100%"',
-                ),
-                'td_input' => array(
-                    'moreAttributes' => 'width="100%"',
-                    'positionLine' => 5,
-                ),
-            );
+        $this->fields['questions'] = array(
+            'name' => 'questions',
+            'label' => 'InterventionSurveyQuestionsInQuestionBlocDictionnary',
+            'type' => 'chkbxlst',
+            'options' => 'c_intervention_survey_question:identifier|label:rowid::active=1 and entity IN (' . getEntity('dictionary', 1) . ')',
+            'label_separator' => ' - ',
+            'td_output' => array(
+                'moreAttributes' => 'width="100%"',
+            ),
+            'td_input' => array(
+                'moreAttributes' => 'width="100%"',
+                'positionLine' => 5,
+            ),
+        );
 
-            $table_element = 'interventionsurvey_surveyblocquestion';
-            $extrafields = new ExtraFields($this->db);
-            $extralabels = $extrafields->fetch_name_optionals_label($table_element);
+        $table_element = 'interventionsurvey_surveyblocquestion';
+        $extrafields = new ExtraFields($this->db);
+        $extralabels = $extrafields->fetch_name_optionals_label($table_element);
 
-            $this->fields['extrafields'] = array(
-                'name' => 'extrafields',
-                'label' => 'InterventionSurveyBlocQuestionExtrafieldDictionary',
-                'type' => 'checkbox',
-                'options' => $extrafields->attributes[$table_element]['label'],
-                'td_output' => array(
-                    'moreAttributes' => 'width="100%"',
-                ),
-                'td_input' => array(
-                    'moreAttributes' => 'width="100%"',
-                    'positionLine' => 6,
-                ),
-            );
-        }
+        $this->fields['extrafields'] = array(
+            'name' => 'extrafields',
+            'label' => 'InterventionSurveyBlocQuestionExtrafieldDictionary',
+            'type' => 'checkbox',
+            'options' => $extrafields->attributes[$table_element]['label'],
+            'td_output' => array(
+                'moreAttributes' => 'width="100%"',
+            ),
+            'td_input' => array(
+                'moreAttributes' => 'width="100%"',
+                'positionLine' => 6,
+            ),
+        );
     }
+}
 
 
 class SurveyBlocQuestionDictionaryLine extends DictionaryLine
@@ -431,7 +429,7 @@ class SurveyBlocQuestionDictionaryLine extends DictionaryLine
                 if (is_array($value)) {
                     $value_arr = $value;
                 } else {
-                    $value_arr = array_filter(explode(',', (string)$value), 'strlen');
+                    $value_arr = array_filter(explode(',', (string) $value), 'strlen');
                 }
 
                 $toprint = array();
@@ -450,16 +448,16 @@ class SurveyBlocQuestionDictionaryLine extends DictionaryLine
     }
 
     /**
-	 * Return HTML string to put an input field into a page
-	 *
-	 * @param  string  $fieldName      Name of the field
-	 * @param  string  $value          Preselected value to show (for date type it must be in timestamp format, for amount or price it must be a php numeric value)
-	 * @param  string  $keyprefix      Prefix string to add into name and id of field (can be used to avoid duplicate names)
-	 * @param  string  $keysuffix      Suffix string to add into name and id of field (can be used to avoid duplicate names)
-	 * @param  int     $objectid       Current object id
-	 * @return string
-	 */
-	function showInputField($fieldName, $value=null, $keyprefix='', $keysuffix='', $objectid=0)
+     * Return HTML string to put an input field into a page
+     *
+     * @param  string  $fieldName      Name of the field
+     * @param  string  $value          Preselected value to show (for date type it must be in timestamp format, for amount or price it must be a php numeric value)
+     * @param  string  $keyprefix      Prefix string to add into name and id of field (can be used to avoid duplicate names)
+     * @param  string  $keysuffix      Suffix string to add into name and id of field (can be used to avoid duplicate names)
+     * @param  int     $objectid       Current object id
+     * @return string
+     */
+    function showInputField($fieldName, $value = null, $keyprefix = '', $keysuffix = '', $objectid = 0)
     {
         if ($fieldName == 'categories') {
             $field = $this->dictionary->fields[$fieldName];
@@ -481,7 +479,7 @@ class SurveyBlocQuestionDictionaryLine extends DictionaryLine
             if (is_array($value)) {
                 $value_arr = $value;
             } else {
-                $value_arr = array_filter(explode(',', (string)$value), 'strlen');
+                $value_arr = array_filter(explode(',', (string) $value), 'strlen');
             }
 
             $this->dictionary->load_form_intervention_survey();
