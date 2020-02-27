@@ -256,9 +256,31 @@ class InterfaceInterventionSurveyTriggers extends DolibarrTriggers
 
             // Interventions
             case 'FICHINTER_CREATE':
+                //We launch update of the intervention
+            dol_include_once('/interventionsurvey/class/interventionsurvey.class.php');
+            $interventionSurvey = new InterventionSurvey($this->db);
+            if (
+                $interventionSurvey->fetch($object->id) > 0
+                && $interventionSurvey->fetchSurvey() > 0
+            ) {
+                $interventionSurvey->softUpdateOfSurveyFromDictionary($user);
+                $object->errors = array_merge($object->errors, $interventionSurvey->errors);
+            }
+        break;
             //case 'FICHINTER_MODIFY':
             //case 'FICHINTER_VALIDATE':
-            //case 'FICHINTER_DELETE':
+            case 'FICHINTER_DELETE':
+                //We launch deletion of the survey
+                dol_include_once('/interventionsurvey/class/interventionsurvey.class.php');
+            $interventionSurvey = new InterventionSurvey($this->db);
+            if (
+                $interventionSurvey->fetch($object->id) > 0
+                && $interventionSurvey->fetchSurvey() > 0
+            ) {
+                $interventionSurvey->deleteSurvey($user);
+                $object->errors = array_merge($object->errors, $interventionSurvey->errors);
+            }
+        break;
             //case 'LINEFICHINTER_CREATE':
             //case 'LINEFICHINTER_UPDATE':
             //case 'LINEFICHINTER_DELETE':

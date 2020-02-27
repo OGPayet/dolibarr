@@ -974,7 +974,7 @@ public function setVarsFromFetchObj(&$obj, $parent = null){
  *
  */
 
-public function save($user, $fk_surveyblocstatus=NULL)
+public function save($user, $fk_surveyblocstatus=NULL, $noSurveyReadOnlyCheck)
 {
     global $langs;
 
@@ -983,7 +983,7 @@ public function save($user, $fk_surveyblocstatus=NULL)
         $this->fk_surveyblocstatus = $fk_surveyblocstatus;
     }
     $errors = array();
-    if($this->is_survey_read_only()){
+    if($this->is_survey_read_only() && !$noSurveyReadOnlyCheck){
         $errors[] = $langs->trans('InterventionSurveyReadOnlyMode');
         $this->db->rollback();
         $this->errors = $errors;

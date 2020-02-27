@@ -56,7 +56,8 @@ $backtopage = GETPOST('backtopage', 'alpha');
 
 $arrayofparameters = array(
 	'INTERVENTIONSURVEY_ROOT_PRODUCT_CATEGORIES'=>array('enabled'=>1),
-	'INTERVENTIONSURVEY_ROOT_PRODUCT_CATEGORY_INCLUDE'=>array('enabled'=>1)
+    'INTERVENTIONSURVEY_ROOT_PRODUCT_CATEGORY_INCLUDE'=>array('enabled'=>1),
+    'INTERVENTIONSURVEY_STRICT_DATA_CHECK_ON_CLOTURED'=>array('enabled'=>1)
 );
 
 
@@ -129,6 +130,23 @@ if (!empty($conf->use_javascript_ajax)) {
         print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_INTERVENTIONSURVEY_ROOT_PRODUCT_CATEGORY_INCLUDE">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
     } else {
         print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_INTERVENTIONSURVEY_ROOT_PRODUCT_CATEGORY_INCLUDE">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+    }
+}
+print '</td></tr>' . "\n";
+
+//INTERVENTIONSURVEY_STRICT_DATA_CHECK_ON_CLOTURED
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>'.$langs->trans("InterventionSurveyStricDataCheckOnCloturedName").'</td>'."\n";
+print '<td>'.$langs->trans("InterventionSurveyStricDataCheckOnCloturedDesc").'</td>'."\n";
+print '<td align="right">' . "\n";
+if (!empty($conf->use_javascript_ajax)) {
+    print ajax_constantonoff('INTERVENTIONSURVEY_STRICT_DATA_CHECK_ON_CLOTURED');
+} else {
+    if (empty($conf->global->INTERVENTIONSURVEY_STRICT_DATA_CHECK_ON_CLOTURED)) {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_INTERVENTIONSURVEY_STRICT_DATA_CHECK_ON_CLOTURED">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+    } else {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_INTERVENTIONSURVEY_STRICT_DATA_CHECK_ON_CLOTURED">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
     }
 }
 print '</td></tr>' . "\n";

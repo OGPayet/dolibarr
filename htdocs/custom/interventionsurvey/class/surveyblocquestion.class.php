@@ -1130,16 +1130,16 @@ class SurveyBlocQuestion extends CommonObject
      *
      */
 
-    public function save($user, $fk_surveypart=NULL)
+    public function save($user, $fk_surveypart=NULL, $noSurveyReadOnlyCheck = false)
     {
-        global $langs;
+        global $langs, $conf;
 
         $this->db->begin();
         if (isset($fk_surveypart)) {
             $this->fk_surveypart = $fk_surveypart;
         }
         $errors = array();
-        if($this->is_survey_read_only()){
+        if($this->is_survey_read_only() && !$noSurveyReadOnlyCheck){
             $errors[] = $langs->trans('InterventionSurveyReadOnlyMode');
             $this->db->rollback();
             $this->errors = $errors;
@@ -1154,12 +1154,12 @@ class SurveyBlocQuestion extends CommonObject
         if (empty($errors)) {
             foreach ($this->questions as $position => $question) {
                 $question->position = $position;
-                $question->save($user, $this->id);
+                $question->save($user, $this->id, $noSurveyReadOnlyCheck);
                 $errors = array_merge($errors, $question->errors);
             }
             foreach ($this->status as $position => $status) {
                 $status->position = $position;
-                $status->save($user, $this->id);
+                $status->save($user, $this->id, $noSurveyReadOnlyCheck);
                 $errors = array_merge($errors, $status->errors);
             }
         }

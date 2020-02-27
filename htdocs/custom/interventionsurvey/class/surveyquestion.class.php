@@ -1140,16 +1140,16 @@ class SurveyQuestion extends CommonObject
  *
  */
 
-public function save($user, $fk_surveyblocquestion=NULL)
+public function save($user, $fk_surveyblocquestion=NULL, $noSurveyReadOnlyCheck)
 {
-    global $langs;
+    global $langs, $conf;
     $this->db->begin();
     if(isset($fk_surveyblocquestion)){
         $this->fk_surveyblocquestion = $fk_surveyblocquestion;
     }
     $errors = array();
 
-    if($this->is_survey_read_only()){
+    if($this->is_survey_read_only() && !$noSurveyReadOnlyCheck){
         $errors[] = $langs->trans('InterventionSurveyReadOnlyMode');
         $this->db->rollback();
         $this->errors = $errors;
@@ -1165,7 +1165,7 @@ public function save($user, $fk_surveyblocquestion=NULL)
     if(empty($errors)){
         foreach($this->answers as $position=>$answer){
             $answer->position = $position;
-            $answer->save($user, $this->id);
+            $answer->save($user, $this->id, $noSurveyReadOnlyCheck);
             $errors = array_merge($errors, $answer->errors);
         }
     }
@@ -1176,7 +1176,7 @@ public function save($user, $fk_surveyblocquestion=NULL)
         $this->db->commit();
         return 1;
     }
-    else{
+    else {
         $this->db->rollback();
         $this->errors = $errors;
         return -1;

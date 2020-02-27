@@ -570,12 +570,12 @@ public function fetchSurvey()
  *
  */
 
-public function saveSurvey($user)
+public function saveSurvey($user, $noSurveyReadOnlyCheck = false)
 {
     global $langs;
     $this->db->begin();
     $errors = array();
-    if($this->is_survey_read_only()){
+    if($this->is_survey_read_only() && !$noSurveyReadOnlyCheck){
         $errors[] = $langs->trans('InterventionSurveyReadOnlyMode');
         $this->db->rollback();
         $this->errors = $errors;
@@ -583,7 +583,7 @@ public function saveSurvey($user)
     }
     foreach($this->survey as $position=>$surveyPart){
         $surveyPart->position = $position;
-        $surveyPart->save($user, $this->id);
+        $surveyPart->save($user, $this->id, $noSurveyReadOnlyCheck);
         $errors = array_merge($errors, $surveyPart->errors);
     }
 
@@ -854,100 +854,100 @@ public function deleteSurvey($user, $notrigger = false)
      *  - crud operations on surveyAnswerPredefinedText directly (not from its parent item)
      */
 
-     public function mergeCurrentSurveyWithGivenObject($user, $newData, $hardDeleteMode = null, $updateMode = null){
-         //this algorithm only :
-         // - add surveyBlocQuestion (with all sub data in the same operations)
-         // - delete surveyBlocQuestion
-         // - add surveyPart (with all sub data in the same operations)
-         // - delete full surveyPart
-         // - update surveyPart data (editable by user - subdata excluded)
-         // - update surveyBlocQuestion data (editable by user - subdata excluded)
-         // - update surveyQuestion data (editable by user - subdata excluded)
+    //  public function mergeCurrentSurveyWithGivenObject($user, $newData, $hardDeleteMode = null, $updateMode = null){
+    //      //this algorithm only :
+    //      // - add surveyBlocQuestion (with all sub data in the same operations)
+    //      // - delete surveyBlocQuestion
+    //      // - add surveyPart (with all sub data in the same operations)
+    //      // - delete full surveyPart
+    //      // - update surveyPart data (editable by user - subdata excluded)
+    //      // - update surveyBlocQuestion data (editable by user - subdata excluded)
+    //      // - update surveyQuestion data (editable by user - subdata excluded)
 
-        $partToDelete = array();
-        $blocToDelete = array();
+    //     $partToDelete = array();
+    //     $blocToDelete = array();
 
-        $oldData = &$this->survey;
+    //     $oldData = &$this->survey;
 
-         //we try to find survey part and bloc to delete
-         foreach($oldData as $index=>$oldSurveyPart){
-             $surveyPartIntoNewData =
-             self::getItemFromThisArray($newData, array('id'=>$oldSurveyPart->id));
-              if(empty($surveyPartIntoNewData))
-             {
-                 //oldSurveyPart has been deleted, we delete it
-                 $partToDelete[] = $oldSurveyPart;
-                 unset($oldData[$index]);
-             }
-             else
-             {
-                 foreach($oldSurveyPart->blocs as $indexBloc=>$oldBloc){
-                     $blocIntoNewData =
-                     self::getItemFromThisArray($surveyPartIntoNewData->blocs, array('id'=>$oldBloc->id));
-                     if(empty($blocIntoNewData)){
-                         //oldBloc has been deleted
-                         $blocToDelete[] = $oldBloc;
-                         unset($oldSurveyPart->blocs[$indexBloc]);
-                     }
-                 }
-             }
-         }
+    //      //we try to find survey part and bloc to delete
+    //      foreach($oldData as $index=>$oldSurveyPart){
+    //          $surveyPartIntoNewData =
+    //          self::getItemFromThisArray($newData, array('id'=>$oldSurveyPart->id));
+    //           if(empty($surveyPartIntoNewData))
+    //          {
+    //              //oldSurveyPart has been deleted, we delete it
+    //              $partToDelete[] = $oldSurveyPart;
+    //              unset($oldData[$index]);
+    //          }
+    //          else
+    //          {
+    //              foreach($oldSurveyPart->blocs as $indexBloc=>$oldBloc){
+    //                  $blocIntoNewData =
+    //                  self::getItemFromThisArray($surveyPartIntoNewData->blocs, array('id'=>$oldBloc->id));
+    //                  if(empty($blocIntoNewData)){
+    //                      //oldBloc has been deleted
+    //                      $blocToDelete[] = $oldBloc;
+    //                      unset($oldSurveyPart->blocs[$indexBloc]);
+    //                  }
+    //              }
+    //          }
+    //      }
 
-         //Now we have a copy of items to delete into $partToDelete and blocToDelete and these items have been unset from oldData
-         //Now we add new surveyPart to oldData
-         foreach($newData as $position=>$newSurveyPart){
-             $itemInOldData = self::getItemFromThisArray($oldData, array('id'=>$newSurveyPart->id));
-             if(!$itemInOldData){
-                 //it is a new part
-                array_splice($oldData, $position,0, array($newSurveyPart));
-             }
-             else
-             {
-                 //It is a known part
-                 if($updateMode){
-                 //We update user data
+    //      //Now we have a copy of items to delete into $partToDelete and blocToDelete and these items have been unset from oldData
+    //      //Now we add new surveyPart to oldData
+    //      foreach($newData as $position=>$newSurveyPart){
+    //          $itemInOldData = self::getItemFromThisArray($oldData, array('id'=>$newSurveyPart->id));
+    //          if(!$itemInOldData){
+    //              //it is a new part
+    //             array_splice($oldData, $position,0, array($newSurveyPart));
+    //          }
+    //          else
+    //          {
+    //              //It is a known part
+    //              if($updateMode){
+    //              //We update user data
 
-                 }
+    //              }
 
-                 //we look for new blocs
-                 foreach($newSurveyPart->blocs as $positionBloc=>$newBloc){
-                     $oldBloc = array();
-                     if(!$newBloc->id){
-                         $oldBloc = self::getItemFromThisArray($itemInOldData, array('fk_c_survey_bloc_question'=>$newBloc->fk_c_survey_bloc_question));
-                     }
-                     else if($newBloc->id < 0){
-                         //this is a new bloc, we do nothing
-                     }
-                     else {
-                        $oldBloc = self::getItemFromThisArray($itemInOldData, array('id'=>$newBloc->id));
-                     }
+    //              //we look for new blocs
+    //              foreach($newSurveyPart->blocs as $positionBloc=>$newBloc){
+    //                  $oldBloc = array();
+    //                  if(!$newBloc->id){
+    //                      $oldBloc = self::getItemFromThisArray($itemInOldData, array('fk_c_survey_bloc_question'=>$newBloc->fk_c_survey_bloc_question));
+    //                  }
+    //                  else if($newBloc->id < 0){
+    //                      //this is a new bloc, we do nothing
+    //                  }
+    //                  else {
+    //                     $oldBloc = self::getItemFromThisArray($itemInOldData, array('id'=>$newBloc->id));
+    //                  }
 
-                     if(!$oldBloc){
-                         //this is a new bloc, we add it to oldData
-                         array_splice($itemInOldData, $positionBloc, 0, array($newBloc));
-                     }
-                     else if($updateMode){
-                         $oldBloc = $newBloc;
-                     }
-                 }
-             }
-        }
-            foreach($partToDelete as $part){
-                if(true){
-                    $part->delete($user);
-                }
-            }
-            foreach($blocToDelete as $bloc){
-                if(true){
-                $bloc->delete($user);
-                }
-            }
+    //                  if(!$oldBloc){
+    //                      //this is a new bloc, we add it to oldData
+    //                      array_splice($itemInOldData, $positionBloc, 0, array($newBloc));
+    //                  }
+    //                  else if($updateMode){
+    //                      $oldBloc = $newBloc;
+    //                  }
+    //              }
+    //          }
+    //     }
+    //         foreach($partToDelete as $part){
+    //             if(true){
+    //                 $part->delete($user);
+    //             }
+    //         }
+    //         foreach($blocToDelete as $bloc){
+    //             if(true){
+    //             $bloc->delete($user);
+    //             }
+    //         }
 
-         $this->saveSurvey($user);
+    //      $this->saveSurvey($user);
 
-         //finally we clean the survey
-         $this->cleanSurvey();
-     }
+    //      //finally we clean the survey
+    //      $this->cleanSurvey();
+    //  }
 
 /**
  *
@@ -1020,13 +1020,11 @@ public function deleteSurvey($user, $notrigger = false)
                $this->errors = array_merge($this->errors,$bloc->errors);
            }
         foreach($partToAdd as $part){
-                $part->save($user);
-                $test = $this->errors;
-                $test = $part->errors;
+                $part->save($user,null,true);
                 $this->errors = array_merge($this->errors,$part->errors);
         }
         foreach($blocToAdd as $bloc){
-            $bloc->save($user);
+            $bloc->save($user,null,true);
             $this->errors = array_merge($this->errors,$bloc->errors);
         }
 
@@ -1079,4 +1077,20 @@ public function deleteSurvey($user, $notrigger = false)
          return $this->mergeCurrentSurveyWithDictionaryData($user, true, false,true,true,true);
      }
 
+     /**
+      *
+      * Method to check if there are missing data on the survey
+      *
+      */
+
+      public function areDataValid(){
+          $result = true;
+          foreach($this->survey as $surveyPart){
+              if(!$surveyPart->areDataValid()){
+                  $result = false;
+              break;
+              }
+          }
+          return $result;
+      }
 }

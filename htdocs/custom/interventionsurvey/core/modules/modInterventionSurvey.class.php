@@ -290,6 +290,11 @@ class modInterventionSurvey extends DolibarrModules
         $this->rights[$r][4] = 'survey'; // In php code, permission will be checked by test if ($user->rights->interventionsurvey->level1->level2)
         $this->rights[$r][5] = 'manageMore'; // In php code, permission will be checked by test if ($user->rights->interventionsurvey->level1->level2)
         $r++;
+        $this->rights[$r][0] = $this->numero + $r; // Permission id (must not be already used)
+        $this->rights[$r][1] = 'Ability to choose to no check survey data when cloturing intervention'; // Permission label
+        $this->rights[$r][4] = 'survey'; // In php code, permission will be checked by test if ($user->rights->interventionsurvey->level1->level2)
+        $this->rights[$r][5] = 'noCheck'; // In php code, permission will be checked by test if ($user->rights->interventionsurvey->level1->level2)
+        $r++;
         /* END MODULEBUILDER PERMISSIONS */
 
         // Main menu entries to add

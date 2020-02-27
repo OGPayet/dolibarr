@@ -315,6 +315,7 @@ if ($object->id > 0) {
 
         if ($readOnlySurvey) {
             print $langs->trans('InterventionSurveyReadOnlyMode');
+            print '<br>';
         }
 
         if(empty($object->survey)){

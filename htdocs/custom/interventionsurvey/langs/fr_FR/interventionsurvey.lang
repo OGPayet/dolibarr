@@ -25,6 +25,18 @@ ModuleInterventionSurveyDesc = Gestion des questionnaires et d'un système de te
 Module468400Desc = Gestion des questionnaires et d'un système de templating sur les interventions
 
 #
+# Permissions
+#
+Permission468400 = Lire les questionnaires
+Permission468401 = Créer/modifier les questionnaires
+Permission468402 = Lire les questionnaires depuis l'API
+Permission468403 = Créer/modifier les questionnaires depuis l'API
+Permission468404 = Gérer le paramétrage de ce module
+Permission468405 = Accès aux opérations standard de regénération manuel du questionnaire
+Permission468406 = Accès aux opérations avancées de regénération manuel du questionnaire
+Permission468407 = Accès à la possibilité de choisir de clôturer une intervention avec des données manquantes
+
+#
 # Page d'administration
 #
 InterventionSurveySetup = Configuration du module InterventionSurvey
@@ -34,6 +46,8 @@ InterventionSurveyProductCategoriesName = Racine des catégories de produits à 
 InterventionSurveyProductCategoriesDesc = N'utiliser que les catégories enfantes à la catégorie choisie dans le paramétrage des blocs de question
 InterventionSurveyRootProductFieldName = Include la catégorie renseigné ci-dessus
 InterventionSurveyRootProductFieldDesc = Inclure la catégorie parente dans le paramétrage des blocs de question
+InterventionSurveyStricDataCheckOnCloturedName = Verifier les données du questionnaire lors de la cloture de l'intervention
+InterventionSurveyStricDataCheckOnCloturedDesc = Empêcher la cloture de l'intervention si des données obligatoires sont manquantes
 InterventionSurveySetupModifyButton = Sauvegarder
 
 # Page À propos
@@ -80,11 +94,6 @@ InterventionSurveyQuestionIsUsedInTheseBlocQuestionDictionary = Utilisé dans le
 InterventionSurveyQuestionIdentifierFieldLabel = Identifiant
 InterventionSurveyQuestionIdentifierFieldHelp = Valeur non nécessairement unique permettant d'identifier l'element sur les autres écrans de paramétrages et à des fins statistique
 InterventionSurveyQuestionMandatoryAnswerDictionaryField = Réponse obligatoire ?
-
-# Erreurs
-InterventionSurveyMissingAnswer = La réponse obligatoire pour la question %s (ID : %s) est manquante
-InterventionSurveyMissingJustificationAnswer = La justification obligatoire pour la question %s (ID : %s) est manquante
-InterventionSurveyQuestionMissingExtrafield = La valeur pour l'extrafield obligatoire %s dans la question %s (ID : %s) est manquante
 
 # Question extrafields
 InterventionSurveyQuestionExtrafields = 3 - Extrafields sur les Questions
@@ -150,6 +159,11 @@ InterventionSurveyMissingStatus = Le status obligatoire pour le bloc %s (ID : %s
 InterventionSurveyMissingJustificationStatus = La justification du status du bloc %s (ID : %s) est manquante
 InterventionSurveyBlocMissingExtrafield = La valeur de l'extrafield obligatoire %s dans le bloc de question %s (ID : %s) est manquante
 InterventionSurveyCantDeleteBloc = Impossible de supprimer le bloc ID : %s
+InterventionSurveyMissingRequiredFieldInSurvey = Des éléments obligatoires dans le questionnaire sont manquants
+InterventionSurveyClassifyDoneWithoutDataCheck = Passer l'intervention en terminé sans verification du questionnaire
+InterventionSurveyMissingAnswer = La réponse obligatoire pour la question %s (ID : %s) est manquante
+InterventionSurveyMissingJustificationAnswer = La justification obligatoire pour la question %s (ID : %s) est manquante
+InterventionSurveyQuestionMissingExtrafield = La valeur pour l'extrafield obligatoire %s dans la question %s (ID : %s) est manquante
 
 # Ecran de visualisation et saisie des questionnaires
 InterventionSurveyMustBeValidated = L'intervention doit être au status Validé afin de pouvoir modifier le questionnaire

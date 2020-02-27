@@ -66,24 +66,6 @@ class ActionsInterventionSurvey
         $this->db = $db;
     }
 
-
-    /**
-     * Execute action
-     *
-     * @param	array			$parameters		Array of parameters
-     * @param	CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-     * @param	string			$action      	'add', 'update', 'view'
-     * @return	int         					<0 if KO,
-     *                           				=0 if OK but we want to process standard actions too,
-     *                            				>0 if OK and we want to replace standard actions.
-     */
-    public function getNomUrl($parameters, &$object, &$action)
-    {
-        global $db, $langs, $conf, $user;
-        $this->resprints = '';
-        return 0;
-    }
-
     /**
      * Overloading the doActions function : replacing the parent's function with the one below
      *
@@ -95,86 +77,136 @@ class ActionsInterventionSurvey
      */
     public function doActions($parameters, &$object, &$action, $hookmanager)
     {
-        global $conf, $user, $langs;
+        //Be careful with hook context declared in this module (core/modules/modInterventionSurvey.class.php) - this file is not always executed
+        global $user, $langs, $conf;
 
-        $errors = array(); // Error array result
+        if($action == "addlink" || $action == "dellink"){
+            $errors = array(); // Error array result
 
-        // Goal : do a soft regeneration when linked item to a fichinter is added/removed
+            // Goal : do a soft regeneration when linked item to a fichinter is added/removed
 
-        // To do that two case :
-        // - we are removing a link ($action == 'dellink') --> so we fetch link before deleting to get intervention id if concerned
-        // - we are add a link ($action == 'addlink') --> we look after $object->elementtype,
-        //   GETPOST('addlink', 'alpha') and GETPOST('idtolinkto', 'int') to have source and destination element type and id
+            // To do that two case :
+            // - we are removing a link ($action == 'dellink') --> so we fetch link before deleting to get intervention id if concerned
+            // - we are add a link ($action == 'addlink') --> we look after $object->elementtype,
+            //   GETPOST('addlink', 'alpha') and GETPOST('idtolinkto', 'int') to have source and destination element type and id
 
-        //According to these fetched data, if we have to do something, we execute database operations in order to have proper data for soft regeneration
-        //Then we delete $_POST["action"] and $_GET["action"] in order to avoid any further action from DOL_DOCUMENT_ROOT.'/core/actions_dellink.inc.php'
+            //According to these fetched data, if we have to do something, we execute database operations in order to have proper data for soft regeneration
+            //Then we delete $_POST["action"] and $_GET["action"] in order to avoid any further action from DOL_DOCUMENT_ROOT.'/core/actions_dellink.inc.php'
 
-        $interventionId = null;
-        $otherLinkedElementType = null; //if one item is fichinter, this is the type of the other item
-        if ($action == "addlink") {
-            $sourceElementType = $object->element;
-            $destinationElementType = GETPOST('addlink', 'alpha');
-            if ($sourceElementType == "fichinter") {
-                $interventionId = $object->id;
-                $otherLinkedElementType = $destinationElementType;
-            } else if ($destinationElementType == "fichinter") {
-                $interventionId = GETPOST('idtolinkto', 'int');
-                $otherLinkedElementType = $sourceElementType;
+            $interventionId = null;
+            $otherLinkedElementType = null; //if one item is fichinter, this is the type of the other item
+            if ($action == "addlink") {
+                $sourceElementType = $object->element;
+                $destinationElementType = GETPOST('addlink', 'alpha');
+                if ($sourceElementType == "fichinter") {
+                    $interventionId = $object->id;
+                    $otherLinkedElementType = $destinationElementType;
+                } else if ($destinationElementType == "fichinter") {
+                    $interventionId = GETPOST('idtolinkto', 'int');
+                    $otherLinkedElementType = $sourceElementType;
+                }
+                $id = $object->id; //used for /core/actions_dellink.inc.php
+            } else {
+                //here $action == "dellink"
+
+                $sql = "SELECT fk_source, sourcetype, targettype, fk_target FROM " . MAIN_DB_PREFIX . "element_element WHERE rowid = " . GETPOST('dellinkid', 'int');
+
+                $resql = $this->db->query($sql);
+                if ($resql) {
+                    if ($obj = $this->db->fetch_object($resql)) {
+                        if ($obj->sourcetype == "fichinter") {
+                            $interventionId = $obj->fk_source;
+                            $otherLinkedElementType = $obj->targettype;
+                        } else if ($obj->targettype == "fichinter") {
+                            $interventionId = $obj->fk_target;
+                            $otherLinkedElementType = $obj->sourcetype;
+                        }
+                    }
+                } else {
+                    $errors[] = $this->db->lasterror();
+                }
             }
-        } else if ($action == "dellink") {
 
-            $sql = "SELECT fk_source, sourcetype, targettype, fk_target FROM " . MAIN_DB_PREFIX . "element_element WHERE rowid = " . GETPOST('dellinkid', 'int');
+            //If action was relating to an intervention, we have $interventionId which is now not null
+            if ($interventionId && empty($errors) && $otherLinkedElementType == "equipement") {
+                //We add value needed for the include, as we don't fetch it from hookmanager
+                if($object->element == "fichinter"){
+                    $permissiondellink = $user->rights->ficheinter->creer; //used for /core/actions_dellink.inc.php
+                }
+                else if($object->element == "equipement"){
+                    $permissiondellink = $user->rights->equipement->creer; //used for /core/actions_dellink.inc.php
+                }
+                //We do actions in order to have database updated
+                include DOL_DOCUMENT_ROOT . '/core/actions_dellink.inc.php';
+                //We launch update of the intervention
+                dol_include_once('/interventionsurvey/class/interventionsurvey.class.php');
+                $interventionSurvey = new InterventionSurvey($this->db);
+                if (
+                    $interventionSurvey->fetch($interventionId) > 0
+                    && $interventionSurvey->fetchSurvey() > 0
+                    && (
+                        !$interventionSurvey->is_survey_read_only() || $interventionSurvey->statut == InterventionSurvey::STATUS_DRAFT
+                        )
+                ) {
+                    $interventionSurvey->softUpdateOfSurveyFromDictionary($user);
+                    $errors = array_merge($errors, $interventionSurvey->errors);
+                }
+                //As we have already launched the dellink or addlink actions, we change action value
+                $action = null;
+            }
 
-            $resql = $this->db->query($sql);
-            if ($resql) {
-                if ($obj = $this->db->fetch_object($resql)) {
-                    if ($obj->sourcetype == "fichinter") {
-                        $interventionId = $obj->fk_source;
-                        $otherLinkedElementType = $obj->fk_target;
-                    } else if ($obj->targettype == "fichinter") {
-                        $interventionId = $obj->fk_target;
-                        $otherLinkedElementType = $obj->fk_source;
+            if (empty($errors)) {
+                $this->results = array('Intervention survey' => 999);
+                $this->resprints = 'Actions from Intervention survey ended';
+                return 0; // or return 1 to replace standard code
+            } else {
+                $this->errors = array_merge($errors, $interventionSurvey->errors);
+                return -1;
+            }
+        }
+        else if($action == 'classifyDoneWithoutDataCheck'){
+            if($user->rights->interventionsurvey->survey->noCheck){
+                $object->noSurveyDataCheck = true;
+            }
+            $action = 'classifydone';
+        }
+
+
+        if($action == 'classifydone' && !$object->noSurveyDataCheck && !empty($conf->global->INTERVENTIONSURVEY_STRICT_DATA_CHECK_ON_CLOTURED)) {
+            //We emit an error in order to avoid fichinter to be classify done if some required data are missing
+            dol_include_once('/interventionsurvey/class/interventionsurvey.class.php');
+                $interventionSurvey = new InterventionSurvey($this->db);
+                if (
+                    $interventionSurvey->fetch($object->id) > 0
+                    && $interventionSurvey->fetchSurvey() > 0
+                ) {
+                    if(!$interventionSurvey->areDataValid()){
+                        $hookmanager->errors[] = $langs->trans('InterventionSurveyMissingRequiredFieldInSurvey');
+                        $hookmanager->errors = array_merge($hookmanager->errors, $interventionSurvey->errors);
+                        return -1;
                     }
                 }
-            } else {
-                $errors[] = $this->db->lasterror();
-            }
         }
-
-        //If action was relating to an intervention, we have $interventionId which is now not null
-        if ($interventionId && empty($errors) && $otherLinkedElementType == "equipement") {
-            //We do actions in order to have database updated
-            global $users;
-            //We add value needed for the include, as we don't fetch it from hookmanager
-            if($object->element == "fichinter"){
-                $permissiondellink = $user->rights->ficheinter->creer;
-            }
-            else if($object->element == "equipement"){
-                $permissiondellink = $user->rights->equipement->creer;
-            }
-            include DOL_DOCUMENT_ROOT . '/core/actions_dellink.inc.php';
-            //We launch update of the intervention
-            dol_include_once('/interventionsurvey/class/interventionsurvey.class.php');
-            $interventionSurvey = new InterventionSurvey($this->db);
-            if (
-                $interventionSurvey->fetch($interventionId) > 0
-                && $interventionSurvey->fetchSurvey() > 0
-                && !$interventionSurvey->is_survey_read_only()
-            ) {
-                $interventionSurvey->softUpdateOfSurveyFromDictionary($user);
-                $errors = array_merge($errors, $interventionSurvey->errors);
-            }
-            //As we have already launched the dellink or addlink actions, we change action value
-            $action = null;
-        }
-
-        if (empty($errors)) {
-            $this->results = array('Intervention survey' => 999);
-            $this->resprints = 'Actions from Intervention survey ended';
-            return 0; // or return 1 to replace standard code
-        } else {
-            $this->errors = array_merge($errors, $interventionSurvey->errors);
-            return -1;
-        }
+        return 0;
     }
+
+     /**
+     * Overloading the addMoreActionsButtons function : replacing the parent's function with the one below
+     *
+     * @param   array           $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          $action         Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+
+		function addMoreActionsButtons($parameters=array(), &$object, &$action='', $hookmanager) {
+			global $conf,$user,$langs;
+
+			if ($user->rights->interventionsurvey->survey->noCheck && empty($conf->global->FICHINTER_CLASSIFY_BILLED) && $object->statut > 0 && $object->statut < 3 && !empty($conf->global->INTERVENTIONSURVEY_STRICT_DATA_CHECK_ON_CLOTURED))
+            {
+                print '<div class="inline-block divButAction"><a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=classifyDoneWithoutDataCheck">'.$langs->trans("InterventionSurveyClassifyDoneWithoutDataCheck").'</a></div>';
+            }
+			return 0;
+		}
 }

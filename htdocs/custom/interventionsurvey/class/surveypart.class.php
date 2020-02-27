@@ -1115,7 +1115,7 @@ class SurveyPart extends CommonObject
  *
  */
 
-public function save($user, $fk_fichinter=NULL)
+public function save($user, $fk_fichinter=NULL, $noSurveyReadOnlyCheck = false)
 {
     global $langs;
 
@@ -1124,7 +1124,7 @@ public function save($user, $fk_fichinter=NULL)
         $this->fk_fichinter = $fk_fichinter;
     }
     $errors = array();
-    if($this->is_survey_read_only()){
+    if($this->is_survey_read_only() && !$noSurveyReadOnlyCheck){
         $errors[] = $langs->trans('InterventionSurveyReadOnlyMode');
         $this->db->rollback();
         $this->errors = $errors;
@@ -1139,7 +1139,7 @@ public function save($user, $fk_fichinter=NULL)
     if(empty($errors)){
         foreach($this->blocs as $position=>$bloc){
             $bloc->position = $position;
-            $bloc->save($user, $this->id);
+            $bloc->save($user, $this->id, $noSurveyReadOnlyCheck);
             $errors = array_merge($errors, $bloc->errors);
         }
     }
@@ -1161,5 +1161,22 @@ public function save($user, $fk_fichinter=NULL)
       public function is_survey_read_only(){
         $this->fetchParent();
         return $this->fichinter->is_survey_read_only();
+    }
+
+         /**
+      *
+      * Method to check if there are missing data on the survey
+      *
+      */
+
+      public function areDataValid(){
+        $result = true;
+        foreach($this->blocs as $bloc){
+            if(!$bloc->areDataValid()){
+                $result = false;
+            break;
+            }
+        }
+        return $result;
     }
 }
