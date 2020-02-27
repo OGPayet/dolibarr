@@ -1,5 +1,6 @@
 <?php
 /* Copyright (C) 2018      Open-DSI             <support@open-dsi.fr>
+ * Copyright (C) 2020      Alexis LAURIER       <contact@alexislaurier.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,16 +41,6 @@ function extendedintervention_admin_prepare_head()
     $head[$h][0] = dol_buildpath("/extendedintervention/admin/dictionaries.php", 1);
     $head[$h][1] = $langs->trans("Dictionary");
     $head[$h][2] = 'dictionaries';
-    $h++;
-
-    $head[$h][0] = dol_buildpath("/extendedintervention/admin/extendedinterventionquestionbloc_extrafields.php", 1);
-    $head[$h][1] = $langs->trans("ExtendedInterventionQuestionBlocExtraFields");
-    $head[$h][2] = 'extendedintervention_question_block_attributes';
-    $h++;
-
-    $head[$h][0] = dol_buildpath("/extendedintervention/admin/extendedinterventionquestion_extrafields.php", 1);
-    $head[$h][1] = $langs->trans("ExtendedInterventionQuestionExtraFields");
-    $head[$h][2] = 'extendedintervention_question_attributes';
     $h++;
 
     // Show more tabs from modules

@@ -1,12 +1,12 @@
 diff a/htdocs/custom/extendedintervention/langs/fr_FR/extendedintervention.lang b/htdocs/custom/extendedintervention/langs/fr_FR/extendedintervention.lang	(rejected hunks)
-@@ -18,6 +18,10 @@ ExtendedInterventionQuotaShowOnlyTypeOfInterventionDesc = N'afficher que le déc
+@@ -20,10 +18,6 @@ ExtendedInterventionQuotaShowOnlyTypeOfInterventionDesc = N'afficher que le déc
  ExtendedInterventionQuotaShowXPeriodName                = Nombre de période affichée dans le tableau
  ExtendedInterventionQuotaShowXPeriodDesc                = Affiche les X périodes ou les X dernières périodes si il y a plus de X périodes antérieures à la période actuelle (s'arrête dans tout les cas à la fin du contract)
  
-+ExtendedInterventionPlanningCategory                    = Paramètres des planifications
-+ExtendedInterventionPlanningAutoValidateName            = Auto validation
-+ExtendedInterventionPlanningAutoValidateDesc            = Valide automatiquement l'intervention si elle est en brouillon lors de la planification de sa demande liée
-+
- ############################################################
- ### Actions
- ############################################################
+-ExtendedInterventionRootProductCategoriesName           = Racine des catégories de produits
+-ExtendedInterventionRootProductCategoriesDesc           = Racine des catégories de produits accessiblent sur les blocs de questions
+-ExtendedInterventionRootProductCategoryIncludeName      = Inclure la racine
+-ExtendedInterventionRootProductCategoryIncludeDesc      = Inclure la racine dans la liste des catégories de produits
+ 
+ ExtendedInterventionPlanningCategory                    = Paramètres des planifications
+ ExtendedInterventionPlanningAutoValidateName            = Auto validation

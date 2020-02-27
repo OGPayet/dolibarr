@@ -1,18 +1,12 @@
 diff a/htdocs/custom/extendedintervention/ChangeLog.md b/htdocs/custom/extendedintervention/ChangeLog.md	(rejected hunks)
-@@ -3,7 +3,15 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
+@@ -3,6 +3,10 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
  
  ## [Non Distribué]
  
--## [4.0.8] - 07-02-2019
-+## [4.0.11] - 06-03-2019
-+- Ajout d'un champ 'color' sur les dictionnaires des réponses et des status des blocs de questions
-+- Répercution du champ dans l'API, classes et les tables d'enregistrement du questionaire
-+- Refonte de l'API et classes pour permettre l'enregistrement de blocs de questions personalisés (avec ID négatifs)
++## [4.0.12] - 27-02-2019 - Alexis LAURIER
++- Retrait de l'ensemble des fonctionnalités en lien avec la gestion des questionnaires
++- Retrait des apis
 +
-+## [4.0.10] - 
-+- 
-+
-+## [4.0.9] - 07-02-2019
- - Ajout d'un champ 'icon' sur le dictionnaire des types d'intervention
- 
- ## [4.0.8] - 21-02-2019
+ ## [4.0.11] - 06-03-2019
+ - Ajout d'un champ 'color' sur les dictionnaires des réponses et des status des blocs de questions
+ - Répercution du champ dans l'API, classes et les tables d'enregistrement du questionaire

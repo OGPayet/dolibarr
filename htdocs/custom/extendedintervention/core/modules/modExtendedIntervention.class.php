@@ -3,7 +3,7 @@
  * Copyright (C) 2004-2015 Laurent Destailleur  <eldy@users.sourceforge.net>
  * Copyright (C) 2005-2016 Regis Houssin        <regis.houssin@capnetworks.com>
  * Copyright (C) 2018      Open-DSI             <support@open-dsi.fr>
- /* Copyright (C) 2019   Alexis LAURIER      <alexis@alexislaurier.fr>
+ * Copyright (C) 2019   Alexis LAURIER      <alexis@alexislaurier.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -99,7 +99,7 @@ class modExtendedIntervention extends DolibarrModules
         $this->module_parts = array(
             'dictionaries' => 1,
             'tpl' => 1,
-            'hooks' => array('interventiondocument', 'interventioncard', 'equipementcard', 'contractcard', 'requestmanagercard', 'contractlist'),
+            'hooks' => array('interventioncard', 'equipementcard', 'contractcard', 'requestmanagercard', 'contractlist'),
             'triggers' => 1
         );
 
@@ -157,9 +157,6 @@ class modExtendedIntervention extends DolibarrModules
         // 'thirdparty'       to add a tab in third party view
         // 'user'             to add a tab in user view
         $this->tabs = array(
-            'intervention:+ei_survey:ExtendedInterventionSurvey:fichinter:1:/extendedintervention/survey.php?id=__ID__',
-            'intervention:-documents',
-            'intervention:+ei_documents:Documents:fichinter:1:/extendedintervention/document.php?id=__ID__',
         );
 
         if (!isset($conf->extendedintervention) || !isset($conf->extendedintervention->enabled)) {
@@ -203,20 +200,6 @@ class modExtendedIntervention extends DolibarrModules
         // Permissions
         $this->rights = array();        // Permission array used by this module
         $r = 0;
-
-        $this->rights[$r][0] = 163023;
-	$this->rights[$r][1] = 'Voir les questionnaires';
-	$this->rights[$r][3] = 0;
-	$this->rights[$r][4] = 'questionnaireIntervention';
-	$this->rights[$r][5] = 'lire';
-	$r++;
-
-		$this->rights[$r][0] = 163024;
-	$this->rights[$r][1] = 'Répondre aux questionnaires';
-	$this->rights[$r][3] = 0;
-	$this->rights[$r][4] = 'questionnaireIntervention';
-	$this->rights[$r][5] = 'creer';
-	$r++;
 
         // Main menu entries
         $this->menu = array();            // List of menus to add

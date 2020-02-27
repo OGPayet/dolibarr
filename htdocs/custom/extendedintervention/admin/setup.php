@@ -1,5 +1,6 @@
 <?php
 /* Copyright (C) 2018      Open-DSI             <support@open-dsi.fr>
+ * Copyright (C) 2020      Alexis LAURIER       <contact@alexislaurier.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -183,59 +184,6 @@ print '<td>'.$langs->trans("ExtendedInterventionQuotaShowXPeriodDesc").'</td>'."
 print '<td align="right">'."\n";
 print '<input type="number" name="EXTENDEDINTERVENTION_QUOTA_SHOW_X_PERIOD" value="'.dol_escape_htmltag($conf->global->EXTENDEDINTERVENTION_QUOTA_SHOW_X_PERIOD).'">';
 print '</td></tr>'."\n";
-
-print '</table>';
-
-print '<br>';
-print '<div align="center">';
-print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
-print '</div>';
-
-print '</form>';
-
-/********************************************************
- *  General options
- ********************************************************/
-print load_fiche_titre($langs->trans("Other"),'','');
-
-print '<form method="post" action="'.$_SERVER["PHP_SELF"].'">';
-print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-print '<input type="hidden" name="action" value="set">';
-
-$var=true;
-
-print '<table class="noborder" width="100%">';
-print '<tr class="liste_titre">';
-print '<td width="20%">'.$langs->trans("Name").'</td>'."\n";
-print '<td>'.$langs->trans("Description").'</td>'."\n";
-print '<td align="right">'.$langs->trans("Value").'</td>'."\n";
-print "</tr>\n";
-
-// EXTENDEDINTERVENTION_ROOT_PRODUCT_CATEGORIES
-$var=!$var;
-print '<tr '.$bc[$var].'>'."\n";
-print '<td>' . $langs->trans("ExtendedInterventionRootProductCategoriesName") . '</td>'."\n";
-print '<td>' . $langs->trans("ExtendedInterventionRootProductCategoriesDesc") . '</td>'."\n";
-print '<td align="right">'."\n";
-print $form->select_all_categories('product', $conf->global->EXTENDEDINTERVENTION_ROOT_PRODUCT_CATEGORIES, "EXTENDEDINTERVENTION_ROOT_PRODUCT_CATEGORIES");
-print '</td></tr>'."\n";
-
-// EXTENDEDINTERVENTION_ROOT_PRODUCT_CATEGORY_INCLUDE
-$var = !$var;
-print '<tr ' . $bc[$var] . '>' . "\n";
-print '<td>'.$langs->trans("ExtendedInterventionRootProductCategoryIncludeName").'</td>'."\n";
-print '<td>'.$langs->trans("ExtendedInterventionRootProductCategoryIncludeDesc").'</td>'."\n";
-print '<td align="right">' . "\n";
-if (!empty($conf->use_javascript_ajax)) {
-    print ajax_constantonoff('EXTENDEDINTERVENTION_ROOT_PRODUCT_CATEGORY_INCLUDE');
-} else {
-    if (empty($conf->global->EXTENDEDINTERVENTION_ROOT_PRODUCT_CATEGORY_INCLUDE)) {
-        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_EXTENDEDINTERVENTION_ROOT_PRODUCT_CATEGORY_INCLUDE">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
-    } else {
-        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_EXTENDEDINTERVENTION_ROOT_PRODUCT_CATEGORY_INCLUDE">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
-    }
-}
-print '</td></tr>' . "\n";
 
 print '</table>';
 

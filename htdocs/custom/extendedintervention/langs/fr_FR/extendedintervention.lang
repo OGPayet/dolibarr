@@ -7,8 +7,6 @@ Module163023Desc = Gestion étendue des interventions
 ### Admin setup
 ############################################################
 ExtendedInterventionSetup                               = Configuration du module Extended Intervention
-ExtendedInterventionQuestionBlocExtraFields             = Attributs supplémentaires (Bloc de questions) - Etape 7
-ExtendedInterventionQuestionExtraFields                 = Attributs supplémentaires (Questions) - Etape 3
 
 ExtendedInterventionQuotaCategory                       = Paramètres des quotas
 ExtendedInterventionQuotaActivateName                   = Activation
@@ -51,100 +49,6 @@ ExtendedInterventionTypeDictionaryLabel                                         
 ExtendedInterventionTypeDictionaryCount                                         = Décompté
 ExtendedInterventionTypeDictionaryPlanningRequestType                           = Type de demande planifiable
 
-ExtendedInterventionQuestionBlocDictionaryLabel                                 = Blocs de questions (Etape 8)
-ExtendedInterventionQuestionBlocDictionaryTitle                                 = Titre
-ExtendedInterventionQuestionBlocDictionaryType                                  = Type d'intervention
-ExtendedInterventionQuestionBlocDictionaryStatus                                = Status
-ExtendedInterventionQuestionBlocDictionaryQuestions                             = Questions
-ExtendedInterventionQuestionBlocDictionaryExtraFields                           = Attributs Supplémentaires
-ExtendedInterventionQuestionBlocDictionaryEditableTitle                         = Libellé du Bloc Editable ?
-ExtendedInterventionQuestionBlocDictionaryEditableComplementaryBloc             = Texte complémentaire du Libellé du bloc Editable ?
-ExtendedInterventionQuestionBlocDictionaryDeletable                             = Bloc supprimable ?
-ExtendedInterventionQuestionBlocDictionaryPrivateBloc                           = Bloc privé par défaut ?
-ExtendedInterventionQuestionBlocDictionaryUniqueBloc                            = Ne générer ce bloc qu'une seule fois (non rattaché à un équipement)
-
-ExtendedInterventionQuestionBlocStatusDictionaryLabel                           = Status des blocs de questions (Etape 6)
-ExtendedInterventionQuestionBlocStatusDictionaryStatus                          = Libellé du status
-ExtendedInterventionQuestionBlocStatusDictionaryPredefinedText                  = Justificatifs prédéfinies
-ExtendedInterventionQuestionBlocStatusDictionaryDisableBloc                     = Désactive le bloc si sélectionné
-ExtendedInterventionQuestionBlocStatusDictionaryColorHelp                       = La couleur doit être au format HTML (Ex: #FF0000)
-
-ExtendedInterventionQuestionBlocStatusPredefinedTextDictionaryLabel             = Justificatifs prédéfinies des status des blocs de questions (Etape 5)
-ExtendedInterventionQuestionBlocStatusPredefinedTextDictionaryPredefinedText    = Texte
-
-ExtendedInterventionQuestionDictionaryLabel                                     = Questions (Etape 4)
-ExtendedInterventionQuestionDictionaryQuestion                                  = Libellé de la question
-ExtendedInterventionQuestionDictionaryAnswer                                    = Réponses
-ExtendedInterventionQuestionDictionaryExtraFields                               = Attributs Supplémentaires
-
-ExtendedInterventionAnswerDictionaryLabel                                       = Réponses des questions (Etape 2)
-ExtendedInterventionAnswerDictionaryAnswer                                      = Libellé de la réponse
-ExtendedInterventionAnswerDictionaryPredefinedText                              = Justificatifs prédéfinies
-ExtendedInterventionAnswerDictionaryColorHelp                                   = La couleur doit être au format HTML (Ex: #FF0000)
-
-ExtendedInterventionAnswerPredefinedTextDictionaryLabel                         = Justificatifs prédéfinies des réponses des questions (Etape 1)
-ExtendedInterventionAnswerPredefinedTextDictionaryPredefinedText                = Texte
-
-############################################################
-### Survey
-############################################################
-ExtendedInterventionSurvey                      = Questionnaire
-ExtendedInterventionMustBeValidate              = L'intervention doit être validée pour afficher le questionnaire.
-ExtendedInterventionJustificatory               = Justification
-ExtendedInterventionSurveyComplementaryText     = Texte complémentaire
-ExtendedInterventionUse                         = Utiliser
-ExtendedInterventionSurveyConfigurationChanged  = Il y a eu des changement dans le(s) dictionnaire(s) pour le(s) élément(s) suivant(s) :
-ExtendedInterventionWarningEquipmentInfoChanged = Il y a eu des changement dans l'équipement pour le(s) élément(s) suivant(s) :
-ExtendedInterventionProductId                   = Id du produit
-ExtendedInterventionEquipmentRef                = Ref de l'équipement
-ExtendedInterventionProductRef                  = Ref du produit
-ExtendedInterventionProductLabel                = Label du produit
-
-############################################################
-### Survey Block
-############################################################
-ExtendedInterventionSurveyBlocTitle             = Questionnaire pour l'équipement "%s" (Ref produit: "%s", N° série: "%s")
-ExtendedInterventionSurveyBlocGeneralTitle      = Questionnaire général
-ExtendedInterventionSurveyBlocId                = ID du bloc des questionnaires de l'equipment
-ExtendedInterventionEquipmentId                 = ID de l'équipement
-
-############################################################
-### Question Block
-############################################################
-ExtendedInterventionQuestionBloc                                = Bloc de questions
-ExtendedInterventionInterventionId                              = ID de l'intervention
-ExtendedInterventionQuestionBlocId                              = ID du bloc de question
-ExtendedInterventionQuestionBlocDictionaryId                    = ID du bloc de question (du dictionnaire)
-ExtendedInterventionQuestionBlocPosition                        = Position du bloc de question
-ExtendedInterventionQuestionBlocCode                            = Code du bloc de question
-ExtendedInterventionQuestionBlocTitle                           = Libellé du bloc de question
-ExtendedInterventionQuestionBlocStatusId                        = ID du status
-ExtendedInterventionQuestionBlocStatusCode                      = Code du status
-ExtendedInterventionQuestionBlocStatusLabel                     = Libellé du status
-ExtendedInterventionQuestionBlocStatusJustificatory             = Justification du status
-ExtendedInterventionQuestionBlocStatusJustificatoryMandatory    = Justification Obligatoire ?
-
-############################################################
-### Question
-############################################################
-ExtendedInterventionQuestion                        = Question
-ExtendedInterventionQuestionId                      = ID de la question
-ExtendedInterventionQuestionDictionaryId            = ID de la question (du dictionnaire)
-ExtendedInterventionQuestionPosition                = Position de la question
-ExtendedInterventionQuestionCode                    = Code de la question
-ExtendedInterventionQuestionLabel                   = Libellé de la question
-ExtendedInterventionAnswerId                        = ID de la réponse
-ExtendedInterventionAnswerCode                      = Code de la réponse
-ExtendedInterventionAnswerLabel                     = Libellé de la réponse
-ExtendedInterventionAnswerJustificatory             = Justification de la réponse
-ExtendedInterventionAnswerJustificatoryMandatory    = Justification Obligatoire ?
-
-############################################################
-### Confirm Box : Save question bloc
-############################################################
-ExtendedInterventionSaveQuestionBloc           = Enregistrement du bloc de questions
-ExtendedInterventionConfirmSaveQuestionBloc    = Êtes-vous sûr de vouloir enregistrer ce bloc de questions ?
-
 ############################################################
 ### Confirm Box : Force create intervention out of quota
 ############################################################
@@ -181,12 +85,4 @@ ExtendedInterventionForcedCreatedOutOfQuotaActionReason     = La création de ce
 ############################################################
 ### Errors
 ############################################################
-ExtendedInterventionErrorTypeWithCategoryDuplicated                 = Vous ne pouvez pas avoir un type d'intervention associé avec une catégorie déjà associé avec celle-ci
-ExtendedInterventionErrorQuestionBlocDictionaryInfoNotFound         = Le bloc de question (ID: %s) est introuvable dans le dictionnaire du module
-ExtendedInterventionErrorQuestionBlocStatusDictionaryInfoNotFound   = Le statut du bloc de question (ID: %s) est introuvable dans le dictionnaire du module
-ExtendedInterventionErrorQuestionDictionaryInfoNotFound             = La question (ID: %s) est introuvable dans le dictionnaire du module
-ExtendedInterventionErrorAnswerDictionaryInfoNotFound               = La réponse de la question (ID: %s) est introuvable dans le dictionnaire du module
-ExtendedInterventionErrorQuestionBlocStatusNotInSurvey              = Le statut du bloc de question (ID: %s) n'est pas inclus dans le questionnaire
-ExtendedInterventionErrorQuestionAnswerNotInSurvey                  = Le réponse de la question (ID: %s) n'est pas inclus dans le questionnaire
-ExtendedInterventionErrorFileNotFound                               = Le fichier "%s" n'a pas été trouvé
 ExtendedInterventionErrorPlanningTimesPlannedMismatchedWithQuota    = Vous avez selectionnée(s) %s planification(s) pour les interventions de type "%s" alors que vous devez en sélectionnée(s) %s
