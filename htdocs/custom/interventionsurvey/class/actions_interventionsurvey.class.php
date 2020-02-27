@@ -187,6 +187,48 @@ class ActionsInterventionSurvey
                     }
                 }
         }
+
+        //Now we manage update of filename into bloc in case we are renaming or removing them
+        if(($action == 'confirm_deletefile' && $parameters["confirm"] == 'yes') || ($action == 'renamefile' && GETPOST('renamefilesave'))){
+            global $conf,$user;
+            if($action == 'confirm_deletefile'){
+                $urlfile = GETPOST('urlfile', 'alpha', 0, null, null, 1);
+                $filename = basename($urlfile);
+            } else if($action == 'renamefile'){
+            $filename=dol_sanitizeFileName(GETPOST('renamefilefrom','alpha'));
+            $newfilename=dol_sanitizeFileName(GETPOST('renamefileto','alpha'));
+
+            // Security:
+            // Disallow file with some extensions. We rename them.
+            // Because if we put the documents directory into a directory inside web root (very bad), this allows to execute on demand arbitrary code.
+            if (preg_match('/\.htm|\.html|\.php|\.pl|\.cgi$/i',$newfilename) && empty($conf->global->MAIN_DOCUMENT_IS_OUTSIDE_WEBROOT_SO_NOEXE_NOT_REQUIRED))
+            {
+                $newfilename.= '.noexe';
+            }
+            }
+
+            //Now we have the filename of the file on which we work in $filename
+            //File is renamed to $newfilename or deleted if this value is null
+
+            foreach($object->survey as $surveyPart){
+                foreach($surveyPart->blocs as $bloc){
+                    foreach($bloc->attached_files as $index=>$file){
+                        if($file == $filename){
+                            if($newfilename){
+                                $bloc->attached_files[$index] = $newfilename;
+                            }
+                            else {
+                                unset($bloc->attached_files[$index]);
+                            }
+                        }
+                    }
+                }
+            }
+            $object->saveSurvey($user, true);
+        }
+
+
+
         return 0;
     }
 

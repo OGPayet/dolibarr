@@ -164,6 +164,7 @@ InterventionSurveyClassifyDoneWithoutDataCheck = Passer l'intervention en termin
 InterventionSurveyMissingAnswer = La réponse obligatoire pour la question %s (ID : %s) est manquante
 InterventionSurveyMissingJustificationAnswer = La justification obligatoire pour la question %s (ID : %s) est manquante
 InterventionSurveyQuestionMissingExtrafield = La valeur pour l'extrafield obligatoire %s dans la question %s (ID : %s) est manquante
+InterventionSurveyFileNotFound = Fichier introuvable
 
 # Ecran de visualisation et saisie des questionnaires
 InterventionSurveyMustBeValidated = L'intervention doit être au status Validé afin de pouvoir modifier le questionnaire

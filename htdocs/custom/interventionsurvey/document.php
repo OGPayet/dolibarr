@@ -42,7 +42,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
 if (! empty($conf->projet->enabled)) {
 	require_once DOL_DOCUMENT_ROOT . '/projet/class/project.class.php';
 }
-dol_include_once('/extendedintervention/class/extendedintervention.class.php');
+dol_include_once('/interventionsurvey/class/interventionsurvey.class.php');
 
 $langs->load("other");
 $langs->load("fichinter");
@@ -74,8 +74,10 @@ if (! $sortorder) $sortorder="ASC";
 if (! $sortfield) $sortfield="name";
 
 
-$object = new ExtendedIntervention($db);
+$object = new InterventionSurvey($db);
 $object->fetch($id, $ref);
+$object->fetchSurvey($id);
+
 
 $upload_dir = $conf->ficheinter->dir_output.'/'.dol_sanitizeFileName($object->ref);
 $modulepart='fichinter';
@@ -86,7 +88,7 @@ $modulepart='fichinter';
  */
 
 
-$parameters=array('upload_dir' => $upload_dir);
+$parameters=array('upload_dir' => $upload_dir, 'confirm'=> $confirm);
 $reshook =$hookmanager->executeHooks('doActions', $parameters, $object, $action);    // Note that $action and $object may have been modified by some hooks
 if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
 
