@@ -883,7 +883,7 @@ class InterventionSurvey extends Fichinter
      *  - crud operations on surveyAnswerPredefinedText directly (not from its parent item)
      */
 
-    //  public function mergeCurrentSurveyWithGivenObject($user, $newData, $hardDeleteMode = null, $updateMode = null){
+    //  public function mergeCurrentSurveyWithGivenObject($user, $newData){
     //      //this algorithm only :
     //      // - add surveyBlocQuestion (with all sub data in the same operations)
     //      // - delete surveyBlocQuestion
@@ -893,10 +893,11 @@ class InterventionSurvey extends Fichinter
     //      // - update surveyBlocQuestion data (editable by user - subdata excluded)
     //      // - update surveyQuestion data (editable by user - subdata excluded)
 
-    //     $partToDelete = array();
     //     $blocToDelete = array();
+    //     $blocToAdd = array();
+    //     $partToAdd = array();
 
-    //     $oldData = &$this->survey;
+    //     $oldData = $this->survey;
 
     //      //we try to find survey part and bloc to delete
     //      foreach($oldData as $index=>$oldSurveyPart){
@@ -904,9 +905,8 @@ class InterventionSurvey extends Fichinter
     //          self::getItemFromThisArray($newData, array('id'=>$oldSurveyPart->id));
     //           if(empty($surveyPartIntoNewData))
     //          {
-    //              //oldSurveyPart has been deleted, we delete it
-    //              $partToDelete[] = $oldSurveyPart;
-    //              unset($oldData[$index]);
+    //              //oldSurveyPart has been deleted, we all linked bloc that was inside
+    //              $blocToDelete = array_merge($blocToDelete, $oldSurveyPart->blocs);
     //          }
     //          else
     //          {
@@ -916,7 +916,6 @@ class InterventionSurvey extends Fichinter
     //                  if(empty($blocIntoNewData)){
     //                      //oldBloc has been deleted
     //                      $blocToDelete[] = $oldBloc;
-    //                      unset($oldSurveyPart->blocs[$indexBloc]);
     //                  }
     //              }
     //          }
@@ -928,16 +927,11 @@ class InterventionSurvey extends Fichinter
     //          $itemInOldData = self::getItemFromThisArray($oldData, array('id'=>$newSurveyPart->id));
     //          if(!$itemInOldData){
     //              //it is a new part
-    //             array_splice($oldData, $position,0, array($newSurveyPart));
+    //              $newSurveyPart->position = $position;
+    //              $partToAdd[] = $newSurveyPart;
     //          }
     //          else
     //          {
-    //              //It is a known part
-    //              if($updateMode){
-    //              //We update user data
-
-    //              }
-
     //              //we look for new blocs
     //              foreach($newSurveyPart->blocs as $positionBloc=>$newBloc){
     //                  $oldBloc = array();

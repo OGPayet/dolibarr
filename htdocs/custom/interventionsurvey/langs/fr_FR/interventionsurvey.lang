@@ -182,6 +182,7 @@ InterventionSurveyPrivateBloc = Bloc privé
 InterventionSurveyEmptySurvey = Le questionnaire est vide
 InterventionSurveyConfirmDeleteBlocTitle = Confirmation de la suppression d'un bloc de question
 InterventionSurveyConfirmDeleteBlocDescription = Confirmez-vous la suppresion du bloc de question "%s" ?
+InterventionSurveyUseButton = Utiliser
 
 #Operations de regénérations du Dictionnaire
 
