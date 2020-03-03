@@ -119,6 +119,10 @@ class SurveyPart extends CommonObject
     public $blocs;
     // END MODULEBUILDER PROPERTIES
 
+    /**
+     * @var object  parent interventionsurvey object
+     */
+
     public $fichinter;
 
 
@@ -138,21 +142,6 @@ class SurveyPart extends CommonObject
      * @var int    Name of subtable class that manage subtable lines
      */
     public $class_element_line = 'SurveyBlocQuestion';
-
-    /**
-     * @var array	List of child tables. To test if we can delete object.
-     */
-    //protected $childtables=array();
-
-    /**
-     * @var array	List of child tables. To know object to delete on cascade.
-     */
-    //protected $childtablesoncascade=array('interventionsurvey_surveypartdet');
-
-    /**
-     * @var surveyPartLine[]     Array of subtable lines
-     */
-    public $lines = array();
 
     /**
      * Array of whitelist of properties keys for this object used for the API
@@ -207,7 +196,7 @@ class SurveyPart extends CommonObject
      *
      * @param DoliDb $db Database handler
      */
-    public function __construct(DoliDB $db)
+    public function __construct(DoliDB $db = null)
     {
         global $conf, $langs;
 
@@ -272,7 +261,7 @@ class SurveyPart extends CommonObject
     public function fetch($id, $ref = null, $parent = null)
     {
         if (isset($parent)) {
-            $this->interventionSurvey = $parent;
+            $this->fichinter = $parent;
         }
         $result = $this->fetchCommon($id, $ref);
         if ($result > 0) {
@@ -289,7 +278,7 @@ class SurveyPart extends CommonObject
     public function fetchLines($parent = null)
     {
         if (isset($parent)) {
-            $this->interventionSurvey = $parent;
+            $this->fichinter = $parent;
         }
         $this->blocs = array();
         $result = interventionSurveyFetchLinesCommon(" ORDER BY position ASC", "SurveyBlocQuestion", $this->blocs, $this);
@@ -451,11 +440,14 @@ class SurveyPart extends CommonObject
      *
      */
 
-    public function setVarsFromFetchObj(&$obj, $parent = null)
+    public function setVarsFromFetchObj(&$obj, $parent = null, bool $forceId = false)
     {
         parent::setVarsFromFetchObj($obj);
         if (isset($parent)) {
             $this->fichinter = $parent;
+        }
+        if($forceId && $obj->id){
+            $this->id = $obj->id;
         }
         $this->blocs = array();
         $objectValues = is_array($obj) ? $obj["blocs"] : $obj->blocs;

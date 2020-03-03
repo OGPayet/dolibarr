@@ -112,6 +112,7 @@ class InterventionSurveyApi extends DolibarrApi
     public function __construct()
     {
         global $conf, $db, $langs, $user;
+        $langs->load("interventionsurvey@interventionsurvey");
         $this->db = $db;
         $this->interventionSurvey = new InterventionSurvey($this->db);
     }
@@ -122,7 +123,7 @@ class InterventionSurveyApi extends DolibarrApi
      * Return an array with InterventionSurvey informations
      *
      * @param 	int 	$id ID of surveyanswer
-     * @return 	InterventionSurvey data without useless information
+     * @return 	object data without useless information
      *
      * @url	GET {id_intervention}
      * @throws 	RestException
@@ -161,7 +162,7 @@ class InterventionSurveyApi extends DolibarrApi
      * @param   int             $limit		        Limit for list
      * @param   int             $page		        Page number
      * @param   string          $sqlfilters         Other criteria to filter answers separated by a comma. Syntax example "(t.ref:like:'SO-%') and (t.date_creation:<:'20160101')"
-     * @return  InterventionSurvey[]           Array of order objects
+     * @return  object[]           Array of order objects
      *
      * @throws  401     RestException   Insufficient rights
      * @throws  503     RestException   Error when retrieve intervention list
@@ -279,20 +280,21 @@ class InterventionSurveyApi extends DolibarrApi
     /**
      * Update interventionsurvey based on id field of request data
      *
-     * @param object $request_data   Datas
      * @return object
      *
      * @url PUT /
      */
     public function put($request_data = null)
     {
+        global $db;
         if (!$request_data) {
             throw new RestException(400, "You must provide data");
         }
 
-        if (! DolibarrApiAccess::$user->rights->interventionsurvey->writeApi) {
+        if (! DolibarrApiAccess::$user->rights->interventionsurvey->survey->writeApi) {
             throw new RestException(401);
         }
+        $request_data = json_decode(json_encode($request_data));
         $id = $request_data->id;
         if (!$id) {
             throw new RestException(400, "You must provide id field of the intervention to update");
@@ -310,16 +312,16 @@ class InterventionSurveyApi extends DolibarrApi
             throw new RestException(401, 'Intervention survey with id='.$this->interventionSurvey->id.'is in readonly mode');
         }
 
-        //$request = new InterventionSurvey($this->interventionsurvey->db);
-        //$request->setVarsFromFetchedObject(json_decode(json_encode($request_data)));
-
-        if ($this->interventionsurvey->mergeWithFollowingData(DolibarrApiAccess::$user,$request) > 0)
+        $request = clone $this->interventionSurvey;
+        $request->setSurveyFromFetchObj($request_data->survey, false);
+        $result = $this->interventionSurvey->mergeWithFollowingData(DolibarrApiAccess::$user,$request, false);
+        if ($result > 0)
         {
             return $this->get($id);
         }
         else
         {
-            throw new RestException(500, $this->interventionsurvey->errors);
+            throw new RestException(500, "Error when saving the survey", [ 'id_intervention' => $this->interventionSurvey->id, 'details' => $this->_getErrors($this->interventionSurvey) ]);
         }
     }
 

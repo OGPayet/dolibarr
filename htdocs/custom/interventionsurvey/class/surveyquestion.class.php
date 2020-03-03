@@ -216,7 +216,7 @@ class SurveyQuestion extends CommonObject
      *
      * @param DoliDb $db Database handler
      */
-    public function __construct(DoliDB $db)
+    public function __construct(DoliDB $db = null)
     {
         global $conf, $langs;
 
@@ -319,13 +319,16 @@ class SurveyQuestion extends CommonObject
      *
      */
 
-    public function setVarsFromFetchObj(&$obj, $parent = null)
+    public function setVarsFromFetchObj(&$obj, $parent = null, bool $forceId = false)
     {
         $this->answers = array();
         if (isset($parent)) {
             $this->surveyPart = $parent;
         }
         parent::setVarsFromFetchObj($obj);
+        if($forceId && $obj->id){
+            $this->id = $obj->id;
+        }
         $objectValues = is_array($obj) ? $obj["answers"] : $obj->answers;
         $dictionaryRowId = is_array($obj) ? $obj["c_rowid"] : $obj->c_rowid;
         $this->fk_c_survey_question = $dictionaryRowId;

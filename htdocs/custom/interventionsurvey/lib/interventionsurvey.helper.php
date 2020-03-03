@@ -25,10 +25,10 @@
 /**
  * * Get element from an array according to an array of parameters set with "fieldName"=>valueToMatch
 */
-function getItemFromThisArray(array &$array, array $arrayOfParameters = array())
+function getItemFromThisArray(array &$array, array $arrayOfParameters = array(), bool $returnPosition = false)
     {
         $result = null;
-        foreach ($array as $item) {
+        foreach ($array as $index => $item) {
             $test = true;
             foreach ($arrayOfParameters as $fieldName => $searchValue) {
                 if (!($item->$fieldName == $searchValue)) {
@@ -37,21 +37,21 @@ function getItemFromThisArray(array &$array, array $arrayOfParameters = array())
                 }
             }
             if ($test) {
-                $result = &$item;
+                $result = $index;
                 break;
             }
         }
-        return $result;
+        return $returnPosition ? $result : $array[$result];
     }
 
 
 //Function to get object from an array having the same id field than the given parameter
-function getItemWithSameFieldsValue(array &$array, $object, array $fieldName = array('id')){
+function getItemWithSameFieldsValue(array &$array, $object, array $fieldName = array('id'), $returnPosition = false){
     $parameters = array();
     foreach($fieldName as $name){
         $parameters[$name] = $object->$name;
     }
-    return getItemFromThisArray($array,$parameters);
+    return getItemFromThisArray($array,$parameters, $returnPosition);
 }
 
 
@@ -72,10 +72,11 @@ function getMissingItem(array &$oldData, array &$newData, array $arrayOfIdentifi
 function getCommonItem(array &$oldData, array &$newData, array $arrayOfIdentifierField = array('id')){
     $commonItem = array();
     foreach($oldData as $index=>&$oldObject){
-        $newObject = getItemWithSameFieldsValue($newData, $oldObject,$arrayOfIdentifierField);
+        $newObjectItemPosition = getItemWithSameFieldsValue($newData, $oldObject,$arrayOfIdentifierField, true);
         if($newObject){
             //Item is common
-            $commonItem[$index] = $oldObject;
+            $commonItem[$newObjectItemPosition]["oldObject"] = $oldObject;
+            $commonItem[$newObjectItemPosition]["newObject"] = $newData[$newObjectItemPosition];
         }
     }
     return $commonItem;
@@ -107,10 +108,10 @@ function getItemToUpdate(array &$oldData,array &$newData, array $arrayOfIdentifi
 function mergeSubItemFromObject($user, &$oldObject, &$newObject, array $arrayOfParameters, bool $saveUpdatedItemToBdd = true){
     $errors = array();
     foreach($arrayOfParameters as $propertyContainingArrayOfObjectInBothObject=>$parameters){
-        $subObjectIdentifiersField = $parameters["identifierPropertyName"];
-        $itemToUpdate = getItemToUpdate($oldObject->$propertyContainingArrayOfObjectInBothObject, $newObject->$parameters, $subObjectIdentifiersField);
-        $itemToDelete = getDeletedItem($oldObject->$propertyContainingArrayOfObjectInBothObject, $newObject->$parameters, $subObjectIdentifiersField);
-        $itemToAdd = getAddedItem($oldObject->$propertyContainingArrayOfObjectInBothObject, $newObject->$parameters, $subObjectIdentifiersField);
+        $subObjectIdentifiersField = $parameters["identifierPropertiesName"];
+        $itemToUpdate = getItemToUpdate($oldObject->$propertyContainingArrayOfObjectInBothObject, $newObject->$propertyContainingArrayOfObjectInBothObject, $subObjectIdentifiersField);
+        $itemToDelete = getDeletedItem($oldObject->$propertyContainingArrayOfObjectInBothObject, $newObject->$propertyContainingArrayOfObjectInBothObject, $subObjectIdentifiersField);
+        $itemToAdd = getAddedItem($oldObject->$propertyContainingArrayOfObjectInBothObject, $newObject->$propertyContainingArrayOfObjectInBothObject, $subObjectIdentifiersField);
 
         foreach($itemToUpdate as $position => $coupleOfItem){
             $oldItem = $coupleOfItem["oldObject"];

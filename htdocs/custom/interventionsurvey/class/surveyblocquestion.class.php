@@ -148,6 +148,9 @@ class SurveyBlocQuestion extends CommonObject
 
     public static $extrafields_cache;
     public static $extrafields_label_cache;
+    /**
+     * @var object  parent intervention survey part object
+     */
     public $surveyPart;
 
     // If this object has a subtable with lines
@@ -238,7 +241,7 @@ class SurveyBlocQuestion extends CommonObject
      *
      * @param DoliDb $db Database handler
      */
-    public function __construct(DoliDB $db)
+    public function __construct(DoliDB $db = null)
     {
         global $conf, $langs;
 
@@ -366,7 +369,7 @@ class SurveyBlocQuestion extends CommonObject
      *
      */
 
-    public function setVarsFromFetchObj(&$obj, $parent = null)
+    public function setVarsFromFetchObj(&$obj, $parent = null, bool $forceId = false)
     {
         $this->status = array();
         $this->chosen_status = null;
@@ -375,6 +378,9 @@ class SurveyBlocQuestion extends CommonObject
         $obj = (object) $obj;
         $obj->fk_c_survey_bloc_question = $obj->c_rowid ?: $obj->fk_c_survey_bloc_question;
         parent::setVarsFromFetchObj($obj);
+        if($forceId && $obj->id){
+            $this->id = $obj->id;
+        }
         if (isset($parent)) {
             $this->surveyPart = $parent;
         }

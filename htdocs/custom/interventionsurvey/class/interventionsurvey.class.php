@@ -116,12 +116,12 @@ class InterventionSurvey extends Fichinter
     public $attached_files = array();
 
     /**
-     * @var Societe Benefactor of this intervention
+     * @var object Benefactor of this intervention
      */
     public $benefactor;
 
     /**
-     * @var Societe Watcher of this intervention
+     * @var object Watcher of this intervention
      */
     public $watcher;
 
@@ -802,14 +802,14 @@ class InterventionSurvey extends Fichinter
      *
      */
 
-    public function setSurveyFromFetchObj(&$arrayOfSurveyParts)
+    public function setSurveyFromFetchObj(&$arrayOfSurveyParts, bool $forceId = false)
     {
         $arrayOfSurveyParts = json_decode(json_encode($arrayOfSurveyParts));
         $this->survey = array();
         if (isset($arrayOfSurveyParts)) {
             foreach ($arrayOfSurveyParts as $surveyPartObj) {
                 $surveyPart = new SurveyPart($this->db);
-                $surveyPart->setVarsFromFetchObj($surveyPartObj, $this);
+                $surveyPart->setVarsFromFetchObj($surveyPartObj, $this, $forceId);
                 $surveyPart->fk_fichinter = $this->id;
                 $this->survey[] = $surveyPart;
             }

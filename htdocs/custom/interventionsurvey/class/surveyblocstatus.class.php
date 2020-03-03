@@ -113,6 +113,9 @@ class SurveyBlocStatus extends CommonObject
     public $predefined_texts;
     // END MODULEBUILDER PROPERTIES
 
+    /**
+     * @var object  parent intervention survey bloc question object
+     */
     public $surveyBlocQuestion;
 
     // If this object has a subtable with lines
@@ -201,7 +204,7 @@ class SurveyBlocStatus extends CommonObject
      *
      * @param DoliDb $db Database handler
      */
-    public function __construct(DoliDB $db)
+    public function __construct(DoliDB $db = null)
     {
         global $conf, $langs;
 
@@ -299,12 +302,15 @@ class SurveyBlocStatus extends CommonObject
      *
      */
 
-    public function setVarsFromFetchObj(&$obj, $parent = null)
+    public function setVarsFromFetchObj(&$obj, $parent = null, bool $forceId = false)
     {
         $this->predefined_texts = array();
         parent::setVarsFromFetchObj($obj);
         if (isset($parent)) {
             $this->surveyPart = $parent;
+        }
+        if($forceId && $obj->id){
+            $this->id = $obj->id;
         }
         $dictionaryRowId = is_array($obj) ? $obj["c_rowid"] : $obj->c_rowid;
         $this->fk_c_survey_bloc_status = $dictionaryRowId;

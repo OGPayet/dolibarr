@@ -100,6 +100,9 @@ class SurveyAnswerPredefinedText extends CommonObject
     public $fk_c_survey_answer_predefined_text;
     // END MODULEBUILDER PROPERTIES
 
+    /**
+     * @var object  parent intervention survey answer object
+     */
     public $surveyAnswer;
 
     // If this object has a subtable with lines
@@ -188,7 +191,7 @@ class SurveyAnswerPredefinedText extends CommonObject
      *
      * @param DoliDb $db Database handler
      */
-    public function __construct(DoliDB $db)
+    public function __construct(DoliDB $db = null)
     {
         global $conf, $langs;
 
@@ -395,11 +398,14 @@ class SurveyAnswerPredefinedText extends CommonObject
      *
      */
 
-    public function setVarsFromFetchObj(&$obj, $parent = null)
+    public function setVarsFromFetchObj(&$obj, $parent = null, bool $forceId = false)
     {
         parent::setVarsFromFetchObj($obj);
         if (isset($parent)) {
             $this->surveyAnswer = $parent;
+        }
+        if($forceId && $obj->id){
+            $this->id = $obj->id;
         }
         $dictionaryRowId = is_array($obj) ? $obj["c_rowid"] : $obj->c_rowid;
         $this->fk_c_survey_answer_predefined_text = $dictionaryRowId;
