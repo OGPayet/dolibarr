@@ -49,7 +49,6 @@ $backtopage = GETPOST('backtopage','alpha');
 
 // Security check
 if ($user->societe_id) $socid=$user->societe_id;
-$result = restrictedArea($user, 'ficheinter', $id, 'fichinter');
 
 if(empty($user->rights->interventionsurvey->survey->read) || !$id) accessforbidden();
 
@@ -66,9 +65,11 @@ $readOnlySurvey = true;
 if ($id > 0 || !empty($ref)) {
     $ret = $object->fetch($id, $ref);
     $object->fetch_thirdparty();
-    if ($ret == 0) {
-        print $langs->trans('NoRecordFound');
-        exit();
+    if(!$object->checkUserAccess($user)){
+        accessforbidden();
+    }
+    if ($ret == -1) {
+        setEventMessages($langs->trans('NoRecordFound'), array(), 'errors');
     }
 }
 
@@ -125,49 +126,42 @@ if (empty($reshook) && $object->id > 0 && $action && !$readOnlySurvey) {
         }
     }
     else if($action == 'confirm_soft_regeneration' && $confirm=='yes'){
-        $object->fetchSurvey();
         $result = $object->softUpdateOfSurveyFromDictionary($user);
         if ($result < 0 || $survey_bloc_question->errors) {
             setEventMessages("",$survey_bloc_question->errors, 'errors');
         }
     }
     else if($action == 'confirm_add_missing_part_only' && $confirm=='yes'){
-        $object->fetchSurvey();
         $result = $object->mergeCurrentSurveyWithDictionaryData($user, false, false, true, false, false);
         if ($result < 0 || $survey_bloc_question->errors) {
             setEventMessages("",$survey_bloc_question->errors, 'errors');
         }
     }
     else if($action == 'confirm_add_missing_bloc_in_general_part' && $confirm=='yes'){
-        $object->fetchSurvey();
         $result = $object->mergeCurrentSurveyWithDictionaryData($user, false, false, false, true, false);
         if ($result < 0 || $survey_bloc_question->errors) {
             setEventMessages("",$survey_bloc_question->errors, 'errors');
         }
     }
     else if($action == 'confirm_add_missing_bloc_in_other_part' && $confirm=='yes'){
-        $object->fetchSurvey();
         $result = $object->mergeCurrentSurveyWithDictionaryData($user, false, false, false, false, true);
         if ($result < 0 || $survey_bloc_question->errors) {
             setEventMessages("",$survey_bloc_question->errors, 'errors');
         }
     }
     else if($action == 'confirm_add_missing_bloc' && $confirm=='yes'){
-        $object->fetchSurvey();
         $result = $object->mergeCurrentSurveyWithDictionaryData($user, false, false, false, true, true);
         if ($result < 0 || $survey_bloc_question->errors) {
             setEventMessages("",$survey_bloc_question->errors, 'errors');
         }
     }
     else if($action == 'confirm_hard_regeneration' && $confirm=='yes'){
-        $object->fetchSurvey();
         $result = $object->mergeCurrentSurveyWithDictionaryData($user, true, true, true, true, true);
         if ($result < 0 || $survey_bloc_question->errors) {
             setEventMessages("",$survey_bloc_question->errors, 'errors');
         }
     }
     else if($action == 'confirm_reset_survey' && $confirm=='yes'){
-        $object->fetchSurvey();
         $result = $object->deleteSurvey($user);
         if($result > 0) {
             $object->survey = array();
@@ -301,7 +295,6 @@ if ($object->id > 0) {
 
     //Prepare needed data for following form
     $object->fetch_attached_files();
-    $object->fetchSurvey();
 
     if (!empty($object->errors)) {
         setEventMessages("", $object->errors, 'errors');

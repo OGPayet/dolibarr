@@ -23,6 +23,10 @@
 
 require_once DOL_DOCUMENT_ROOT . '/fichinter/class/fichinter.class.php';
 dol_include_once('/interventionsurvey/class/surveypart.class.php');
+dol_include_once('/interventionsurvey/lib/interventionsurvey.helper.php');
+dol_include_once('/societe/class/societe.helper.php');
+
+
 
 /**
  *
@@ -62,9 +66,8 @@ class InterventionSurvey extends Fichinter
     static public $API_WHITELIST_OF_PROPERTIES = array(
         "id" => '', "ref" => '', "description" => '', "socid" => '', "statut" => '', "duration" => '', "datec" => '',
         "datee" => '', "dateo" => '', "datet" => '', "datev" => '', "datem" => '', "fk_project" => '', "note_public" => '',
-        "trueWidth" => '', "width_units" => '', "trueHeight" => '', "height_units" => '', "trueDepth" => '', "depth_units" => '',
-        "fk_contrat" => '', "user_creation" => '', "brouillon" => '', "thirdparty" => '', "array_options" => '',
-        "cr_thirdparty_benefactor" => '', "lines" => '', "linkedObjectsIds" => '', "survey" => '',
+        "fk_contrat" => '', "thirdparty" => '', "array_options" => '', "survey" => '',
+        'lines'=>'','thirdparty'=>'','benefactor'=>'','watcher'=>''
     );
 
     /**
@@ -77,7 +80,8 @@ class InterventionSurvey extends Fichinter
      *      if property is a array and this properties_name value is not a array then get all values
      *      if property is a array and this properties_name value is a array then get whitelist set in the array
      */
-    static public $API_WHITELIST_OF_PROPERTIES_LINKED_OBJECT = array();
+    static public $API_WHITELIST_OF_PROPERTIES_LINKED_OBJECT = array(
+    );
 
     /**
      * Array of blacklist of properties keys for this object used for the API
@@ -112,6 +116,16 @@ class InterventionSurvey extends Fichinter
     public $attached_files = array();
 
     /**
+     * @var Societe Benefactor of this intervention
+     */
+    public $benefactor;
+
+    /**
+     * @var Societe Watcher of this intervention
+     */
+    public $watcher;
+
+    /**
      * Status
      */
     const STATUS_DRAFT = 0;
@@ -128,42 +142,64 @@ class InterventionSurvey extends Fichinter
     /**
      * Cache Dictionary data of bloc question
      */
-    public $cache_survey_bloc_question_dictionary;
+    public static $cache_survey_bloc_question_dictionary;
 
     /**
      * Cache Dictionary data of status
      */
-    public $cache_survey_bloc_status_dictionary;
+    public static $cache_survey_bloc_status_dictionary;
 
     /**
      * Cache Dictionary data of status_predefined_text
      */
-    public $cache_survey_bloc_status_predefined_text_dictionary;
+    public static $cache_survey_bloc_status_predefined_text_dictionary;
 
     /**
      * Cache Dictionary data of question
      */
-    public $cache_survey_question_dictionary;
+    public static $cache_survey_question_dictionary;
 
     /**
      * Cache Dictionary data of answer
      */
-    public $cache_survey_answer_dictionary;
+    public static $cache_survey_answer_dictionary;
 
     /**
      * Cache Dictionary data of answer_predefined_text
      */
-    public $cache_survey_answer_predefined_text;
+    public static $cache_survey_answer_predefined_text;
 
     /**
      * Cache Available Product Category array
      */
-    public $cache_product_categories;
+    public static $cache_product_categories;
 
     /**
      * Dictionary survey - survey if only data from dictionary were used
      */
-    public $survey_taken_from_dictionary = array();
+    public $survey_taken_from_dictionary;
+
+
+    /**
+     * Constructor
+     *
+     * @param DoliDb $db Database handler
+     */
+    public function __construct(DoliDB $db)
+    {
+        parent::__construct($db);
+        $this->benefactor = new Societe($db);
+        $this->watcher = new Societe($db);
+    }
+
+    /**
+     *
+     * Override getFieldList to change method accessibility
+     *
+     */
+    public function getFieldList(){
+        return parent::getFieldList();
+    }
 
     /**
      *  Fill dictionary caches
@@ -171,8 +207,8 @@ class InterventionSurvey extends Fichinter
      */
     public function fillCaches()
     {
-        if (!isset($this->cache_survey_bloc_question_dictionary)) {
-            $this->cache_survey_bloc_question_dictionary = self::fetchProperDataFromDictionary(
+        if (!self::$cache_survey_bloc_question_dictionary) {
+            self::$cache_survey_bloc_question_dictionary = self::fetchProperDataFromDictionary(
                 $this->db,
                 'interventionsurvey',
                 'SurveyBlocQuestion',
@@ -184,8 +220,8 @@ class InterventionSurvey extends Fichinter
             );
         }
 
-        if (!isset($this->cache_survey_bloc_status_dictionary)) {
-            $this->cache_survey_bloc_status_dictionary = self::fetchProperDataFromDictionary(
+        if (!self::$cache_survey_bloc_status_dictionary) {
+            self::$cache_survey_bloc_status_dictionary = self::fetchProperDataFromDictionary(
                 $this->db,
                 'interventionsurvey',
                 'SurveyBlocStatus',
@@ -193,8 +229,8 @@ class InterventionSurvey extends Fichinter
             );
         }
 
-        if (!isset($this->cache_survey_bloc_status_predefined_text_dictionary)) {
-            $this->cache_survey_bloc_status_predefined_text_dictionary = self::fetchProperDataFromDictionary(
+        if (!self::$cache_survey_bloc_status_predefined_text_dictionary) {
+            self::$cache_survey_bloc_status_predefined_text_dictionary = self::fetchProperDataFromDictionary(
                 $this->db,
                 'interventionsurvey',
                 'SurveyBlocStatusPredefinedText',
@@ -202,8 +238,8 @@ class InterventionSurvey extends Fichinter
                 array("blkLim", "catLim")
             );
         }
-        if (!isset($this->cache_survey_question_dictionary)) {
-            $this->cache_survey_question_dictionary = self::fetchProperDataFromDictionary(
+        if (!self::$cache_survey_question_dictionary) {
+            self::$cache_survey_question_dictionary = self::fetchProperDataFromDictionary(
                 $this->db,
                 'interventionsurvey',
                 'SurveyQuestion',
@@ -211,16 +247,16 @@ class InterventionSurvey extends Fichinter
                 array("extrafields")
             );
         }
-        if (!isset($this->cache_survey_answer_dictionary)) {
-            $this->cache_survey_answer_dictionary = self::fetchProperDataFromDictionary(
+        if (!self::$cache_survey_answer_dictionary) {
+            self::$cache_survey_answer_dictionary = self::fetchProperDataFromDictionary(
                 $this->db,
                 'interventionsurvey',
                 'SurveyAnswer',
                 array("position", "identifier", "label", "color",  "mandatory_justification", "predefined_texts")
             );
         }
-        if (!isset($this->cache_survey_answer_predefined_text)) {
-            $this->cache_survey_answer_predefined_text = self::fetchProperDataFromDictionary(
+        if (!self::$cache_survey_answer_predefined_text) {
+            self::$cache_survey_answer_predefined_text = self::fetchProperDataFromDictionary(
                 $this->db,
                 'interventionsurvey',
                 'SurveyAnswerPredefinedText',
@@ -228,10 +264,10 @@ class InterventionSurvey extends Fichinter
                 array("bloc_filter", "cat_filter")
             );
         }
-        if (!isset($this->cache_product_categories)) {
+        if (!self::$cache_product_categories) {
             dol_include_once('/interventionsurvey/class/html.forminterventionsurvey.class.php');
             $formextendedintervention = new FormInterventionSurvey($this->db);
-            $this->cache_product_categories = $formextendedintervention->get_categories_array();
+            self::$cache_product_categories = $formextendedintervention->get_categories_array();
         }
     }
 
@@ -293,7 +329,7 @@ class InterventionSurvey extends Fichinter
     {
         $this->fillCaches();
         $listOfGeneratedBloc = array();
-        foreach ($this->cache_survey_bloc_question_dictionary as $blocDictionary) {
+        foreach (self::$cache_survey_bloc_question_dictionary as $blocDictionary) {
             if (self::shouldThisBlocOfQuestionBeIntoThisSurvey($blocDictionary, $interventionTypeId, $productCategory)) {
                 $listOfGeneratedBloc[] = $this->fillStatusAndQuestionInQuestionBloc($blocDictionary, $productCategory);
             }
@@ -431,7 +467,7 @@ class InterventionSurvey extends Fichinter
             $categories = $category_static->containing($equipment_static->fk_product, 'product', 'id');
         }
         foreach ($categories as $index => $categoryId) {
-            if (!isset($this->cache_product_categories[$categoryId])) {
+            if (!isset(self::$cache_product_categories[$categoryId])) {
                 unset($categories[$index]);
             }
         }
@@ -459,7 +495,7 @@ class InterventionSurvey extends Fichinter
      */
     function fillQuestionInQuestionBloc($questionBloc, $productCategory)
     {
-        $data = self::fillDataFromJSONDictionary($questionBloc, "questions", $this->cache_survey_question_dictionary);
+        $data = self::fillDataFromJSONDictionary($questionBloc, "questions", self::$cache_survey_question_dictionary);
         $questionList = array();
         foreach ($data["questions"] as $index => $answer) {
             $questionList[$index] = $this->fillAnswerInQuestion($answer, $questionBloc["c_rowid"], $productCategory);
@@ -474,7 +510,7 @@ class InterventionSurvey extends Fichinter
      */
     function fillAnswerInQuestion($question, $blocDictionaryId, $productCategory)
     {
-        $data = self::fillDataFromJSONDictionary($question, "answers", $this->cache_survey_answer_dictionary);
+        $data = self::fillDataFromJSONDictionary($question, "answers", self::$cache_survey_answer_dictionary);
         $answerList = array();
         foreach ($data["answers"] as $index => $answer) {
             $answerList[$index] = $this->fillAnswerPredefinedTextInAnswer($answer, $blocDictionaryId, $productCategory);
@@ -490,7 +526,7 @@ class InterventionSurvey extends Fichinter
      */
     function fillAnswerPredefinedTextInAnswer($answer, $blocDictionaryId, $productCategory)
     {
-        $data = self::fillDataFromJSONDictionary($answer, "predefined_texts", $this->cache_survey_answer_predefined_text);
+        $data = self::fillDataFromJSONDictionary($answer, "predefined_texts", self::$cache_survey_answer_predefined_text);
         $data["predefined_texts"] = array_filter($data["predefined_texts"], function ($value) use ($blocDictionaryId, $productCategory) {
             return self::shouldThisAnswerPredefinedTextBeIntoThisStatus($value, $blocDictionaryId, $productCategory);
         });
@@ -508,7 +544,7 @@ class InterventionSurvey extends Fichinter
      */
     function fillStatusInQuestionBloc($questionBloc, $productCategory)
     {
-        $data = self::fillDataFromJSONDictionary($questionBloc, "status", $this->cache_survey_bloc_status_dictionary);
+        $data = self::fillDataFromJSONDictionary($questionBloc, "status", self::$cache_survey_bloc_status_dictionary);
         $statusList = array();
         $statusList = self::sortArrayOfObjectByPositionObjectProperty($statusList);
         foreach ($data["status"] as $index => $status) {
@@ -525,7 +561,7 @@ class InterventionSurvey extends Fichinter
      */
     function fillStatusPredefinedTextInQuestionBlocStatus($status, $blocDictionaryId, $productCategory)
     {
-        $data = self::fillDataFromJSONDictionary($status, "predefined_texts", $this->cache_survey_bloc_status_predefined_text_dictionary);
+        $data = self::fillDataFromJSONDictionary($status, "predefined_texts", self::$cache_survey_bloc_status_predefined_text_dictionary);
         $data["predefined_texts"] = array_filter($data["predefined_texts"], function ($value) use ($blocDictionaryId, $productCategory) {
             return self::shouldThisStatusPredefinedTextBeIntoThisStatus($value, $blocDictionaryId, $productCategory);
         });
@@ -595,7 +631,7 @@ class InterventionSurvey extends Fichinter
     public function fetchSurvey()
     {
         $this->survey = array();
-        $data = $this->interventionSurveyFetchLinesCommon(" ORDER BY position ASC", "SurveyPart", $this->survey);
+        $data = interventionSurveyFetchLinesCommon(" ORDER BY position ASC", "SurveyPart", $this->survey, $this);
         return $data;
     }
 
@@ -642,7 +678,6 @@ class InterventionSurvey extends Fichinter
 
     public function deleteSurvey($user, $notrigger = false)
     {
-        global $langs;
         $this->db->begin();
         $errors = array();
 
@@ -662,13 +697,14 @@ class InterventionSurvey extends Fichinter
     }
 
     /**
-     *
-     * Merge two survey according to rowid fields or dictionary field
-     * There is an option to keep
-     *
+     * Override fichinter fetch in order to fetch survey in the same time
      */
-
-
+    public function fetch($rowid,$ref=''){
+        $result = parent::fetch($rowid,$ref);
+        if($result > 0 ) $result = $this->fetch_optionals();
+        if($result > 0 ) $result = $this->fetchSurvey();
+        return $result;
+    }
 
     /**
      *  Get all attached files of the intervention
@@ -782,55 +818,6 @@ class InterventionSurvey extends Fichinter
         }
     }
 
-
-
-    /**
-     * Load object in memory from the database
-     *
-     * @param	string	$morewhere		More SQL filters (' AND ...')
-     * @return 	int         			<0 if KO, 0 if not found, >0 if OK
-     */
-    public function interventionSurveyFetchLinesCommon($morewhere = '', $objectlineclassname = null, &$resultValue)
-    {
-
-        if (!class_exists($objectlineclassname)) {
-            $this->error = 'Error, class ' . $objectlineclassname . ' not found during call of fetchLinesCommon';
-            $this->errors[] = $this->error;
-            return -1;
-        }
-
-        $objectline = new $objectlineclassname($this->db);
-
-        $sql = 'SELECT ' . $objectline->getFieldList();
-        $sql .= ' FROM ' . MAIN_DB_PREFIX . $objectline->table_element;
-        $sql .= ' WHERE fk_' . $this->element . ' = ' . $this->id;
-        if ($morewhere)   $sql .= $morewhere;
-
-        $resql = $this->db->query($sql);
-        if ($resql) {
-            $num_rows = $this->db->num_rows($resql);
-            $i = 0;
-            while ($i < $num_rows) {
-                $obj = $this->db->fetch_object($resql);
-                if ($obj) {
-                    $newline = new $objectlineclassname($this->db);
-                    $newline->setVarsFromFetchObj($obj);
-                    if (method_exists($newline, "fetchLines")) {
-                        $newline->fetchLines($this);
-                    }
-                    $resultValue[] = $newline;
-                    $this->errors = array_merge($this->errors, $newline->errors);
-                }
-                $i++;
-            }
-        } else {
-            $this->error = $this->db->lasterror();
-            $this->errors[] = $this->error;
-            return -1;
-        }
-        return empty($this->errors) ? 1 : -1;
-    }
-
     /**
      *  Is the survey read only
      *
@@ -869,108 +856,42 @@ class InterventionSurvey extends Fichinter
 
     /**
      *
-     * Merge current survey with a given object
-     * This object may be data from the api
-     * There is a soft and hard mode deleting when merging. Missing bloc are always removed in hard mode and only if empty in soft mode
-     * Update of existing bloc may be enabled or disabled (disabled with dictionary generation, enable in other case)
-     * We only delete or add entire survey part and surveyBlocQuestion
-     * We only merge data that may have been given by the user into surveyBlocQuestion and surveyQuestion from new data
-     * This is the place to work and add operations if you want to be able to manage during merge of data (from dictionary or api) :
-     *  - crud operations on surveyQuestion directly (not from its parent item)
-     *  - crud operations on surveyBlocStatus directly (not from its parent item)
-     *  - crud operations on surveyAnswer directly (not from its parent item)
-     *  - crud operations on surveyBlocStatusPredefinedText directly (not from its parent item)
-     *  - crud operations on surveyAnswerPredefinedText directly (not from its parent item)
+     * Merge current InterventionSurvey with a given InterventionSurvey
+     *
      */
 
-    //  public function mergeCurrentSurveyWithGivenObject($user, $newData){
-    //      //this algorithm only :
-    //      // - add surveyBlocQuestion (with all sub data in the same operations)
-    //      // - delete surveyBlocQuestion
-    //      // - add surveyPart (with all sub data in the same operations)
-    //      // - delete full surveyPart
-    //      // - update surveyPart data (editable by user - subdata excluded)
-    //      // - update surveyBlocQuestion data (editable by user - subdata excluded)
-    //      // - update surveyQuestion data (editable by user - subdata excluded)
+     public function mergeWithFollowingData(User $user, self $newInterventionSurvey, bool $saveWholeObjectToBdd = true){
 
-    //     $blocToDelete = array();
-    //     $blocToAdd = array();
-    //     $partToAdd = array();
+        $this->db->begin();
+        //We update property for this object
+        //BEGIN
+        //END
 
-    //     $oldData = $this->survey;
+        //We begin property update for subobject
+        $parameters = array(
+            "survey"=>array(
+                "identifierPropertiesName" => array("id"),
+                "mergeSubItemNameMethod" => "mergeWithFollowingData"),//We may add here fichinter lines
+        );
 
-    //      //we try to find survey part and bloc to delete
-    //      foreach($oldData as $index=>$oldSurveyPart){
-    //          $surveyPartIntoNewData =
-    //          self::getItemFromThisArray($newData, array('id'=>$oldSurveyPart->id));
-    //           if(empty($surveyPartIntoNewData))
-    //          {
-    //              //oldSurveyPart has been deleted, we all linked bloc that was inside
-    //              $blocToDelete = array_merge($blocToDelete, $oldSurveyPart->blocs);
-    //          }
-    //          else
-    //          {
-    //              foreach($oldSurveyPart->blocs as $indexBloc=>$oldBloc){
-    //                  $blocIntoNewData =
-    //                  self::getItemFromThisArray($surveyPartIntoNewData->blocs, array('id'=>$oldBloc->id));
-    //                  if(empty($blocIntoNewData)){
-    //                      //oldBloc has been deleted
-    //                      $blocToDelete[] = $oldBloc;
-    //                  }
-    //              }
-    //          }
-    //      }
+        $errors = mergeSubItemFromObject($user, $this, $newInterventionSurvey, $parameters, false);
+        $this->errors = array_merge($this->errors, $errors);
 
-    //      //Now we have a copy of items to delete into $partToDelete and blocToDelete and these items have been unset from oldData
-    //      //Now we add new surveyPart to oldData
-    //      foreach($newData as $position=>$newSurveyPart){
-    //          $itemInOldData = self::getItemFromThisArray($oldData, array('id'=>$newSurveyPart->id));
-    //          if(!$itemInOldData){
-    //              //it is a new part
-    //              $newSurveyPart->position = $position;
-    //              $partToAdd[] = $newSurveyPart;
-    //          }
-    //          else
-    //          {
-    //              //we look for new blocs
-    //              foreach($newSurveyPart->blocs as $positionBloc=>$newBloc){
-    //                  $oldBloc = array();
-    //                  if(!$newBloc->id){
-    //                      $oldBloc = self::getItemFromThisArray($itemInOldData, array('fk_c_survey_bloc_question'=>$newBloc->fk_c_survey_bloc_question));
-    //                  }
-    //                  else if($newBloc->id < 0){
-    //                      //this is a new bloc, we do nothing
-    //                  }
-    //                  else {
-    //                     $oldBloc = self::getItemFromThisArray($itemInOldData, array('id'=>$newBloc->id));
-    //                  }
+        if($saveWholeObjectToBdd) {
+            //$this->save($user); //We may add here fichinter lines saving
+            $this->saveSurvey($user);
+        }
 
-    //                  if(!$oldBloc){
-    //                      //this is a new bloc, we add it to oldData
-    //                      array_splice($itemInOldData, $positionBloc, 0, array($newBloc));
-    //                  }
-    //                  else if($updateMode){
-    //                      $oldBloc = $newBloc;
-    //                  }
-    //              }
-    //          }
-    //     }
-    //         foreach($partToDelete as $part){
-    //             if(true){
-    //                 $part->delete($user);
-    //             }
-    //         }
-    //         foreach($blocToDelete as $bloc){
-    //             if(true){
-    //             $bloc->delete($user);
-    //             }
-    //         }
-
-    //      $this->saveSurvey($user);
-
-    //      //finally we clean the survey
-    //      $this->cleanSurvey();
-    //  }
+         //finally we clean the survey
+         $this->cleanSurvey($user);
+         if (empty($this->errors)) {
+            $this->db->commit();
+            return 1;
+        } else {
+            $this->db->rollback();
+            return -1;
+        }
+    }
 
     /**
      *
@@ -979,6 +900,7 @@ class InterventionSurvey extends Fichinter
      * Deletion is made according two mode : soft and hard
      * In soft mode we only delete empty element (no user information have been set)
      * In hard mode we delete everything set from dictionary that are not anymore needed
+     * Not the best way of doing, we do not respect Single Responsibility principle from SOLID but it think to simple way of maintain it
      *
      */
     public function mergeCurrentSurveyWithDictionaryData($user, $deleteEmptyStaledBloc = false, $deleteStaledBloc = false, $addMissingPart = true, $addMissingBlocIntoGeneralPart = true, $addMissingBlocInOtherPart = false)
@@ -986,7 +908,6 @@ class InterventionSurvey extends Fichinter
 
         $this->db->begin();
         $blocToDelete = array();
-
         $partToAdd = array();
         $blocToAdd = array();
 
@@ -1000,10 +921,10 @@ class InterventionSurvey extends Fichinter
         //we try to find bloc to delete
         foreach ($oldData as $index => $oldSurveyPart) {
             $surveyPartIntoNewData =
-                self::getItemFromThisArray($dataFromDictionary, array('fk_identifier_type' => $oldSurveyPart->fk_identifier_type, 'fk_identifier_value' => $oldSurveyPart->fk_identifier_value));
+                getItemFromThisArray($dataFromDictionary, array('fk_identifier_type' => $oldSurveyPart->fk_identifier_type, 'fk_identifier_value' => $oldSurveyPart->fk_identifier_value));
 
             foreach ($oldSurveyPart->blocs as $oldBloc) {
-                if (empty($surveyPartIntoNewData) || empty(self::getItemFromThisArray($surveyPartIntoNewData->blocs, array('fk_c_survey_bloc_question' => $oldBloc->fk_c_survey_bloc_question)))) {
+                if (empty($surveyPartIntoNewData) || empty(getItemFromThisArray($surveyPartIntoNewData->blocs, array('fk_c_survey_bloc_question' => $oldBloc->fk_c_survey_bloc_question)))) {
                     if ($deleteStaledBloc || ($deleteEmptyStaledBloc && $oldBloc->is_empty())) {
                         $blocToDelete[] = $oldBloc;
                     }
@@ -1014,7 +935,7 @@ class InterventionSurvey extends Fichinter
         //Now we have a copy of items to delete into $partToDelete and blocToDelete and these items have been unset from oldData
         //Now we add new surveyPart to oldData
         foreach ($dataFromDictionary as $newSurveyPart) {
-            $itemInOldData = self::getItemFromThisArray($oldData, array('fk_identifier_type' => $newSurveyPart->fk_identifier_type, 'fk_identifier_value' => $newSurveyPart->fk_identifier_value));
+            $itemInOldData = getItemFromThisArray($oldData, array('fk_identifier_type' => $newSurveyPart->fk_identifier_type, 'fk_identifier_value' => $newSurveyPart->fk_identifier_value));
             if (!$itemInOldData) {
                 //it is a new part
                 if ($addMissingPart) {
@@ -1024,7 +945,7 @@ class InterventionSurvey extends Fichinter
 
                 //we look for new blocs
                 foreach ($newSurveyPart->blocs as $newBloc) {
-                    $oldBloc = self::getItemFromThisArray($itemInOldData->blocs, array('fk_c_survey_bloc_question' => $newBloc->fk_c_survey_bloc_question));
+                    $oldBloc = getItemFromThisArray($itemInOldData->blocs, array('fk_c_survey_bloc_question' => $newBloc->fk_c_survey_bloc_question));
                     if (!$oldBloc) {
                         //It is a new bloc
                         $newBloc->fk_surveypart = $itemInOldData->id;
@@ -1062,29 +983,6 @@ class InterventionSurvey extends Fichinter
     }
 
     /**
-     * Get a survey part according to an array with "fieldName"=>valueToMatch
-     */
-
-    public static function getItemFromThisArray(&$array, $arrayOfParameters = array())
-    {
-        $result = null;
-        foreach ($array as $item) {
-            $test = true;
-            foreach ($arrayOfParameters as $fieldName => $searchValue) {
-                if (!($item->$fieldName == $searchValue)) {
-                    $test = false;
-                    break;
-                }
-            }
-            if ($test) {
-                $result = &$item;
-                break;
-            }
-        }
-        return $result;
-    }
-
-    /**
      *
      * Soft update of the survey with data from dictionary
      * We add missing survey part
@@ -1114,5 +1012,97 @@ class InterventionSurvey extends Fichinter
             }
         }
         return $result;
+    }
+    /**
+     * Check perms for user on an interventionSurvey object
+     *
+     * @param   InterventionSurvey      $object         Object (propal, commande, invoice, fichinter)
+     * @return  bool        FALSE to deny user access, TRUE to authorize
+     * @throws  Exception
+     */
+    public function checkUserAccess(User $user)
+    {
+        global $conf;
+        //First we check entity of this object is the same than the current entity
+        $sql = "SELECT COUNT(fichinter.rowid) as nb";
+        $sql.= " FROM " . MAIN_DB_PREFIX . $this->table_element . " as fichinter";
+        $sql.= " WHERE fichinter.rowid = " . $this->id;
+        $sql.= " AND fichinter.entity IN (". getEntity($this->table_element, 1) . ")";
+
+        $resql = $this->db->query($sql);
+        if ($resql) {
+            $nbResult = $this->db->fetch_object($resql);
+            if(!$nbResult){
+                //Item does not exist or is not accessible from this entity
+                return false;
+            }
+        }
+
+
+        if($user->rights->societe->client->voir){
+           return true;
+        }
+        else {
+            // we have to check if $user->socid is the id of the thirdparty of a sales representative of this company
+                $listOfSalesRepresentative = array();
+                if(!$this->thirdparty && !$this->fk_soc == $user->socid){
+                    $this->fetch_thirdparty();
+                    $listOfSalesRepresentative = $this->thirdparty->getSalesRepresentatives($user);
+                }
+                $userLinkedToCompany = $this->fk_soc == $user->socid || in_array($user->id, $listOfSalesRepresentative);
+                if (!$conf->companyrelationships->enabled) {
+                    return $userLinkedToCompany;
+                } else {
+                    //Company relationships is activated, we have more check to do
+                    $principalAvailability = !!$this->array_options['options_companyrelationships_availability_principal'];
+                    $benefactorId = $this->array_options['options_companyrelationships_fk_soc_benefactor'];
+                    $benefactorAvailability = !!$this->array_options['options_companyrelationships_availability_principal'];
+                    $watcherId = $this->array_options['options_companyrelationships_fk_soc_watcher'];
+                    $watcherAvailability = !!$this->array_options['options_companyrelationships_availability_watcher'];
+
+                    if($userLinkedToCompany && $principalAvailability){
+                        return true;
+                    }
+                    //We may check for benefactor now
+                    if($benefactorAvailability) {
+                        $result = isUserLinkedToThisCompanyDirectlyOrBySalesRepresentative($user, $this->benefactor, $benefactorId);
+                        if($result){
+                            return $result;
+                        }
+                    }
+                    //We may check for watcher now
+                    if($watcherAvailability) {
+                        $result = isUserLinkedToThisCompanyDirectlyOrBySalesRepresentative($user, $this->watcher, $watcherId);
+                        if($result){
+                            return $result;
+                        }
+                    }
+                }
+        }
+        return false;
+    }
+
+    /**
+     * Fill the benefactor field with a Society object
+     */
+
+    public function fetch_benefactor(bool $forceRefreshFromBdd = null){
+        if(!$this->benefactor->id || $forceRefreshFromBdd){
+            if(!$this->array_options) {
+                $this->fetch_optionals();
+            }
+            $this->benefactor = fetchACompanyObjectById($this->array_options['options_companyrelationships_fk_soc_benefactor'], $this->db);
+        }
+    }
+    /**
+     * Fill the watcher field with a Society object
+     */
+    public function fetch_watcher(bool $forceRefreshFromBdd = null){
+        if(!$this->watcher->id || $forceRefreshFromBdd){
+            if(!$this->array_options){
+                $this->fetch_optionals();
+            }
+            $this->watcher = fetchACompanyObjectById($this->array_options['options_companyrelationships_fk_soc_watcher'], $this->db);
+        }
     }
 }

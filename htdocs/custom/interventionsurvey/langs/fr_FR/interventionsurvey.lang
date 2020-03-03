@@ -209,7 +209,7 @@ InterventionSurveyConfirmAddMissingBlocDescription = Cette opération va, en fon
 InterventionSurveyConfirmAddMissingBlocButton = Ajout des blocs manquants
 
 # Gestion des fichiers joints sur les interventions avec hooks
-InterventionSurveyDocuments = Documents
+InterventionSurveyDocuments = Fichier(s) joint(s)
 
 #Attribut supplémentaires géré par ce module
 InterventionSurveyCustomerSignatureLabel = Objet contenant la signature du Client
