@@ -675,7 +675,7 @@ class SurveyQuestion extends CommonObject
         } elseif (is_array($this->array_options)) {
             $tmp = array();
             foreach ($this->array_options as $key => $val) {
-                if (in_array($key, $this->extrafields)) {
+                if (in_array(substr($key, 8), $this->extrafields)) {
                     $tmp[$key] = $val;
                 }
             }

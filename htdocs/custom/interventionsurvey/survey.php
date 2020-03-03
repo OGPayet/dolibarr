@@ -295,6 +295,7 @@ if ($object->id > 0) {
 
     //Prepare needed data for following form
     $object->fetch_attached_files();
+    $object->fetchSurvey();
 
     if (!empty($object->errors)) {
         setEventMessages("", $object->errors, 'errors');

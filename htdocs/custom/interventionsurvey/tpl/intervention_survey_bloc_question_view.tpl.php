@@ -103,7 +103,7 @@ if ($idx % 2 == 0) {
                     }
                     ?>
                 </td>
-                <td width="50%"><?php print $question->getChosenAnswer()->label . (!empty($question->justification_text) ? ' ' . $form->textwithpicto('', '<b>' . $langs->trans('InterventionSurveyAnswerJustificationText') . ' :</b><br>' . $question->justification_text, 1, 'object_tip.png@extendedintervention', '', 0, 2) : '') ?></td>
+                <td width="50%"><?php print $question->getChosenAnswer()->label . (!empty($question->justification_text) ? ' ' . $form->textwithpicto('', '<b>' . $langs->trans('InterventionSurveyAnswerJustificationText') . ' :</b><br>' . $question->justification_text, 1, 'object_tip.png@interventionsurvey', '', 0, 2) : '') ?></td>
             </tr>
         <?php
             // Other attributes of the question
