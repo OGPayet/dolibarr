@@ -122,7 +122,7 @@ class InterventionSurveyApi extends DolibarrApi
      * Return an array with InterventionSurvey informations
      *
      * @param 	int 	$id ID of surveyanswer
-     * @return 	array|mixed data without useless information
+     * @return 	InterventionSurvey data without useless information
      *
      * @url	GET {id_intervention}
      * @throws 	RestException
@@ -149,72 +149,95 @@ class InterventionSurveyApi extends DolibarrApi
     }
 
 
-    /**
-     * List interventionsurvey
+/**
+     * List of interventions
      *
-     * Get a list of interventionsurvey
+     * Return a list of interventions
      *
-     * @param string	       $sortfield	        Sort field
-     * @param string	       $sortorder	        Sort order
-     * @param int		       $limit		        Limit for list
-     * @param int		       $page		        Page number
-     * @param string           $sqlfilters          Other criteria to filter answers separated by a comma. Syntax example "(t.ref:like:'SO-%') and (t.date_creation:<:'20160101')"
-     * @return  array                               Array of order objects
+     * @url GET /
      *
-     * @throws RestException
+     * @param   string          $sortfield          Sort field
+     * @param   string          $sortorder          Sort order
+     * @param   int             $limit		        Limit for list
+     * @param   int             $page		        Page number
+     * @param   string          $sqlfilters         Other criteria to filter answers separated by a comma. Syntax example "(t.ref:like:'SO-%') and (t.date_creation:<:'20160101')"
+     * @return  InterventionSurvey[]           Array of order objects
      *
-     * @url	GET /
+     * @throws  401     RestException   Insufficient rights
+     * @throws  503     RestException   Error when retrieve intervention list
      */
-    public function index($sortfield = "t.rowid", $sortorder = 'ASC', $limit = 100, $page = 0, $sqlfilters = '')
+    function indexIntervention($sortfield = "t.rowid", $sortorder = 'ASC', $limit = 100, $page = 0, $sqlfilters = '')
     {
-        global $db;
+        global $db, $conf;
 
         $obj_ret = array();
-        $tmpobject = new InterventionSurvey($db);
 
-        if(! DolibarrApiAccess::$user->rights->interventionsurvey->survey->readApi) {
-            throw new RestException(401);
+        if(! DolibarrApiAccess::$user->rights->ficheinter->lire) {
+            throw new RestException(401, "Insufficient rights");
         }
 
-        $socid = DolibarrApiAccess::$user->socid;
-
-        $restrictonsocid = 0;	// Set to 1 if there is a field socid in table of object
+        // get API user
+        $userSocId = DolibarrApiAccess::$user->societe_id;
 
         // If the internal user must only see his customers, force searching by him
         $search_sale = 0;
-        if ($restrictonsocid && ! DolibarrApiAccess::$user->rights->societe->client->voir && !$socid) $search_sale = DolibarrApiAccess::$user->id;
+        if (! DolibarrApiAccess::$user->rights->societe->client->voir) $search_sale = DolibarrApiAccess::$user->id;
 
         $sql = "SELECT t.rowid";
-        if ($restrictonsocid && (!DolibarrApiAccess::$user->rights->societe->client->voir && !$socid) || $search_sale > 0) $sql .= ", sc.fk_soc, sc.fk_user"; // We need these fields in order to filter by sale (including the case where the user can only see his prospects)
-        $sql.= " FROM ".MAIN_DB_PREFIX.$tmpobject->table_element." as t";
+        $sql.= " FROM ".MAIN_DB_PREFIX."fichinter as t";
 
-        if ($restrictonsocid && (!DolibarrApiAccess::$user->rights->societe->client->voir && !$socid) || $search_sale > 0) $sql.= ", ".MAIN_DB_PREFIX."societe_commerciaux as sc"; // We need this table joined to the select in order to filter by sale
-        $sql.= " WHERE 1 = 1";
-
-        // Example of use $mode
-        //if ($mode == 1) $sql.= " AND s.client IN (1, 3)";
-        //if ($mode == 2) $sql.= " AND s.client IN (2, 3)";
-
-        if ($tmpobject->ismultientitymanaged) $sql.= ' AND t.entity IN ('.getEntity('surveyanswer').')';
-        if ($restrictonsocid && (!DolibarrApiAccess::$user->rights->societe->client->voir && !$socid) || $search_sale > 0) $sql.= " AND t.fk_soc = sc.fk_soc";
-        if ($restrictonsocid && $socid) $sql.= " AND t.fk_soc = ".$socid;
-        if ($restrictonsocid && $search_sale > 0) $sql.= " AND t.rowid = sc.fk_soc";		// Join for the needed table to filter by sale
-        // Insert sale filter
-        if ($restrictonsocid && $search_sale > 0) {
-            $sql .= " AND sc.fk_user = ".$search_sale;
-        }
-        if ($sqlfilters)
-        {
-            if (! DolibarrApi::_checkFilters($sqlfilters)) {
-                throw new RestException(503, 'Error when validating parameter sqlfilters '.$sqlfilters);
+        // external
+        if ($userSocId > 0) {
+            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "fichinter_extrafields as ef ON ef.fk_object = t.rowid";
+            $sql .= self::_sqlElementListForExternalUser($userSocId, $search_sale);
+            $sql .= " AND t.entity IN (" . getEntity('fichinter') . ")";
+			// Add sql filters
+        if ($sqlfilters) {
+            if (!DolibarrApi::_checkFilters($sqlfilters)) {
+                throw new RestException(503, 'Error when validating parameter sqlfilters ' . $sqlfilters);
             }
-            $regexstring='\(([^:\'\(\)]+:[^:\'\(\)]+:[^:\(\)]+)\)';
-            $sql.=" AND (".preg_replace_callback('/'.$regexstring.'/', 'DolibarrApi::_forge_criteria_callback', $sqlfilters).")";
+            $regexstring = '\(([^:\'\(\)]+:[^:\'\(\)]+:[^:\(\)]+)\)';
+            $sql .= " AND (" . preg_replace_callback('/' . $regexstring . '/', 'DolibarrApi::_forge_criteria_callback', $sqlfilters) . ")";
         }
+        }
+        // internal
+        else {
+            if ((!DolibarrApiAccess::$user->rights->societe->client->voir) || $search_sale > 0) $sql .= ", " . MAIN_DB_PREFIX . "societe_commerciaux as sc"; // We need this table joined to the select in order to filter by sale
+
+            $sql .= ' WHERE (t.entity IN (' . getEntity('intervention') . ')';
+
+			        // Add sql filters
+        if ($sqlfilters) {
+            if (!DolibarrApi::_checkFilters($sqlfilters)) {
+                throw new RestException(503, 'Error when validating parameter sqlfilters ' . $sqlfilters);
+            }
+            $regexstring = '\(([^:\'\(\)]+:[^:\'\(\)]+:[^:\(\)]+)\)';
+            $sql .= " AND (" . preg_replace_callback('/' . $regexstring . '/', 'DolibarrApi::_forge_criteria_callback', $sqlfilters) . ")";
+        }
+
+            if ((!DolibarrApiAccess::$user->rights->societe->client->voir) || $search_sale > 0) $sql .= " AND t.fk_soc = sc.fk_soc";
+            if ($search_sale > 0) $sql .= " AND t.fk_soc = sc.fk_soc";        // Join for the needed table to filter by sale
+            // Insert sale filter
+            if ($search_sale > 0) {
+                $sql .= " AND sc.fk_user = " . $search_sale;
+            }
+            $sql .= ")";
+
+            // case of external user, $thirdparty_ids param is ignored and replaced by user's socid
+            $socids = DolibarrApiAccess::$user->socid;
+            if ($socids) {
+                $sql .= ' OR (t.entity IN (' . getEntity('intervention') . ')';
+                $sql .= " AND t.fk_soc IN (" . $socids . "))";
+            }
+            $sql .= " GROUP BY rowid";
+        }
+
+
 
         $sql.= $db->order($sortfield, $sortorder);
         if ($limit)	{
-            if ($page < 0) {
+            if ($page < 0)
+            {
                 $page = 0;
             }
             $offset = $limit * $page;
@@ -222,40 +245,51 @@ class InterventionSurveyApi extends DolibarrApi
             $sql.= $db->plimit($limit + 1, $offset);
         }
 
+        dol_syslog("API Rest request");
         $result = $db->query($sql);
+
         if ($result)
         {
             $num = $db->num_rows($result);
-            while ($i < $num)
+            $min = min($num, ($limit <= 0 ? $num : $limit));
+            $i = 0;
+            while ($i < $min)
             {
                 $obj = $db->fetch_object($result);
-                $surveyanswer_static = new SurveyAnswer($db);
-                if($surveyanswer_static->fetch($obj->rowid)) {
-                    $obj_ret[] = $this->_cleanObjectDatas($surveyanswer_static);
+                $fichinter_static = new InterventionSurvey($db);
+                if($fichinter_static->fetch($obj->rowid)) {
+                    $fichinter_static->fetchObjectLinked();
+                    $fichinter_static->fetch_optionals();
+                    $obj_ret[] = $this->_cleanObjectData($fichinter_static);
                 }
                 $i++;
             }
         }
         else {
-            throw new RestException(503, 'Error when retrieving surveyanswer list: '.$db->lasterror());
+            throw new RestException(503, 'Error when retrieve fichinter list : '.$db->lasterror());
         }
         if( ! count($obj_ret)) {
-            throw new RestException(404, 'No surveyanswer found');
+            return $obj_ret;
         }
+
         return $obj_ret;
     }
+
 
     /**
      * Update interventionsurvey based on id field of request data
      *
-     * @param int   $id             Id of surveyanswer to update
-     * @param array $request_data   Datas
-     * @return int
+     * @param object $request_data   Datas
+     * @return object
      *
-     * @url	PUT interventionsurvey/
+     * @url PUT /
      */
     public function put($request_data = null)
     {
+        if (!$request_data) {
+            throw new RestException(400, "You must provide data");
+        }
+
         if (! DolibarrApiAccess::$user->rights->interventionsurvey->writeApi) {
             throw new RestException(401);
         }
@@ -272,24 +306,76 @@ class InterventionSurveyApi extends DolibarrApi
             throw new RestException(401, 'Access to instance id='.$this->interventionSurvey->id.' of object not allowed for login '.DolibarrApiAccess::$user->login);
         }
 
-        foreach($request_data as $field => $value) {
-            if ($field == 'id') continue;
-            $this->surveyanswer->$field = $value;
+        if($this->interventionSurvey->is_survey_read_only()) {
+            throw new RestException(401, 'Intervention survey with id='.$this->interventionSurvey->id.'is in readonly mode');
         }
 
-        if ($this->surveyanswer->update($id, DolibarrApiAccess::$user) > 0)
+        //$request = new InterventionSurvey($this->interventionsurvey->db);
+        //$request->setVarsFromFetchedObject(json_decode(json_encode($request_data)));
+
+        if ($this->interventionsurvey->mergeWithFollowingData(DolibarrApiAccess::$user,$request) > 0)
         {
             return $this->get($id);
         }
         else
         {
-            throw new RestException(500, $this->surveyanswer->error);
+            throw new RestException(500, $this->interventionsurvey->errors);
         }
     }
 
     /******************************************** */
     //                    TOOLS                   //
     /******************************************** */
+    /**
+     *  Prepare SQL request for element list (propal, commande, invoice, fichinter, contract) for external user
+     * @see in CompanyRelationshipsApi class
+     *
+     * @param       int     $userSocId      Id of user company (external user)
+     * @param       int     $search_sale    Id of commercial user
+     * @return      string  SQL request
+     */
+    private static function _sqlElementListForExternalUser($userSocId, $search_sale=0)
+    {
+        $sql = '';
+
+        if ($search_sale > 0) $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe_commerciaux as scp ON scp.fk_soc = t.fk_soc AND scp.fk_user = " . $search_sale; // We need this table joined to the select in order to filter by sale
+        if ($search_sale > 0) $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe_commerciaux as scb ON scb.fk_soc = ef.companyrelationships_fk_soc_benefactor AND scb.fk_user = " . $search_sale; // We need this table joined to the select in order to filter by sale
+        if ($search_sale > 0) $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe_commerciaux as scw ON scw.fk_soc = ef.companyrelationships_fk_soc_watcher AND scw.fk_user = " . $search_sale; // We need this table joined to the select in order to filter by sale
+
+        // search principal company
+        $sqlPrincipal = "(";
+        $sqlPrincipal .= "(t.fk_soc = " . $userSocId;
+        if ($search_sale > 0) {
+            $sqlPrincipal .= " OR scp.fk_user = " . $search_sale;
+        }
+        $sqlPrincipal .= ")";
+        $sqlPrincipal .= " AND ef.companyrelationships_availability_principal = 1";
+        $sqlPrincipal .= ")";
+
+        // search benefactor company
+        $sqlBenefactor = "(";
+        $sqlBenefactor .= "(ef.companyrelationships_fk_soc_benefactor = " . $userSocId;
+        if ($search_sale > 0) {
+            $sqlBenefactor .= " OR scb.fk_user = " . $search_sale;
+        }
+        $sqlBenefactor .= ")";
+        $sqlBenefactor .= " AND ef.companyrelationships_availability_benefactor = 1";
+        $sqlBenefactor .= ")";
+
+        // search watcher company
+        $sqlWatcher = "(";
+        $sqlWatcher .= "(ef.companyrelationships_fk_soc_watcher = " . $userSocId;
+        if ($search_sale > 0) {
+            $sqlWatcher .= " OR scw.fk_user = " . $search_sale;
+        }
+        $sqlWatcher .= ")";
+        $sqlWatcher .= " AND ef.companyrelationships_availability_watcher = 1";
+        $sqlWatcher .= ")";
+
+        $sql .= " WHERE (" . $sqlPrincipal . " OR " . $sqlBenefactor . " OR " . $sqlWatcher . ")";
+
+        return $sql;
+    }
 
     /**
      *  Clean sensible object data

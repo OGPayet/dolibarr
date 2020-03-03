@@ -188,8 +188,6 @@ class InterventionSurvey extends Fichinter
     public function __construct(DoliDB $db)
     {
         parent::__construct($db);
-        $this->benefactor = new Societe($db);
-        $this->watcher = new Societe($db);
     }
 
     /**
