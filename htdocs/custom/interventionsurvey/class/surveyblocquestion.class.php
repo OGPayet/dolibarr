@@ -371,47 +371,44 @@ class SurveyBlocQuestion extends CommonObject
 
     public function setVarsFromFetchObj(&$obj, $parent = null, bool $forceId = false)
     {
+        $obj = json_decode(json_encode($obj)); //To get a php stdClass obj
         $this->status = array();
         $this->chosen_status = null;
         $this->questions = array();
         $this->extrafields = array();
-        $obj = (object) $obj;
-        $obj->fk_c_survey_bloc_question = $obj->c_rowid ?: $obj->fk_c_survey_bloc_question;
+
+        if($obj->c_rowid){
+            $this->fk_c_survey_bloc_question = $obj->c_rowid;
+        }
         parent::setVarsFromFetchObj($obj);
         if($forceId && $obj->id){
             $this->id = $obj->id;
         }
+
         if (isset($parent)) {
             $this->surveyPart = $parent;
         }
-        $tmp = is_array($obj) ? $obj["extrafields"] : $obj->extrafields;
-        if (is_array($tmp)) {
-            $this->extrafields = $tmp;
-        }
 
-        $objectValues = is_array($obj) ? $obj["questions"] : $obj->questions;
-        if (isset($objectValues)) {
-            foreach ($objectValues as $questionObj) {
+        if (isset($obj->questions)) {
+            foreach ($obj->questions as $questionObj) {
                 $question = new SurveyQuestion($this->db);
                 $question->setVarsFromFetchObj($questionObj, $this);
                 $question->fk_surveyblocquestion = $this->id;
                 $this->questions[] = $question;
             }
         }
-        $objectValues = is_array($obj) ? $obj["status"] : $obj->status;
-        if (isset($objectValues)) {
-            foreach ($objectValues as $statusObj) {
+
+        if (isset($obj->status)) {
+            foreach ($obj->status as $statusObj) {
                 $status = new SurveyBlocStatus($this->db);
                 $status->setVarsFromFetchObj($statusObj, $this);
                 $status->fk_surveyblocquestion = $this->id;
                 $this->status[] = $status;
             }
         }
-        $objectValues = is_array($obj) ? $obj["chosen_status"] : $obj->chosen_status;
-        if (isset($objectValues)) {
-            $chosen_status = new SurveyBlocStatus($this->db);
-            $chosen_status->setVarsFromFetchObj($objectValues);
-            $this->chosen_status = $chosen_status;
+
+        if (isset($obj->chosen_status)) {
+            $this->fk_chosen_status = $obj->chosen_status->id;
         }
     }
 

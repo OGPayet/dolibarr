@@ -137,7 +137,7 @@ class SurveyAnswerPredefinedText extends CommonObject
      */
     //public $lines = array();
 
-/**
+    /**
      * Array of whitelist of properties keys for this object used for the API
      * @var  array
      *      array('properties_name'=> '' or array('properties_name'=> '' or array(...), ...)
@@ -147,7 +147,7 @@ class SurveyAnswerPredefinedText extends CommonObject
      *      if property is a array and this properties_name value is a array then get whitelist set in the array
      */
     static public $API_WHITELIST_OF_PROPERTIES = array(
-        'id'=>'','label'=>''
+        'id' => '', 'label' => ''
     );
 
     /**
@@ -230,7 +230,8 @@ class SurveyAnswerPredefinedText extends CommonObject
      * Override getFieldList to change method accessibility
      *
      */
-    public function getFieldList(){
+    public function getFieldList()
+    {
         return parent::getFieldList();
     }
 
@@ -400,15 +401,20 @@ class SurveyAnswerPredefinedText extends CommonObject
 
     public function setVarsFromFetchObj(&$obj, $parent = null, bool $forceId = false)
     {
+        $obj = json_decode(json_encode($obj)); //To get a php stdClass obj
+
         parent::setVarsFromFetchObj($obj);
         if (isset($parent)) {
             $this->surveyAnswer = $parent;
         }
-        if($forceId && $obj->id){
+
+        if ($forceId && $obj->id) {
             $this->id = $obj->id;
         }
-        $dictionaryRowId = is_array($obj) ? $obj["c_rowid"] : $obj->c_rowid;
-        $this->fk_c_survey_answer_predefined_text = $dictionaryRowId;
+
+        if ($obj->c_rowid) {
+            $this->fk_c_survey_answer_predefined_text = $obj->c_rowid;
+        }
     }
     /**
      *
@@ -454,7 +460,7 @@ class SurveyAnswerPredefinedText extends CommonObject
 
     public function fetchParent()
     {
-        fetchParentCommon("SurveyAnswer", $this->fk_surveyanswer, $this->surveyAnswer,$this->db);
+        fetchParentCommon("SurveyAnswer", $this->fk_surveyanswer, $this->surveyAnswer, $this->db);
     }
 
     /**
@@ -473,7 +479,8 @@ class SurveyAnswerPredefinedText extends CommonObject
      *
      */
 
-    public function mergeWithFollowingData(User $user, self $newAnswerPredefinedText, bool $saveWholeObjectToBdd = true, int $position = null){
+    public function mergeWithFollowingData(User $user, self $newAnswerPredefinedText, bool $saveWholeObjectToBdd = true, int $position = null)
+    {
 
         $this->db->begin();
         //We update property for this object
@@ -482,12 +489,12 @@ class SurveyAnswerPredefinedText extends CommonObject
 
         //We begin property update for subobject
 
-        if($saveWholeObjectToBdd) {
+        if ($saveWholeObjectToBdd) {
             $this->save($user);
         }
 
-         //finally we clean the survey
-         if (empty($this->errors)) {
+        //finally we clean the survey
+        if (empty($this->errors)) {
             $this->db->commit();
             return 1;
         } else {

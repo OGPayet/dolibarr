@@ -304,7 +304,8 @@ class SurveyBlocStatus extends CommonObject
 
     public function setVarsFromFetchObj(&$obj, $parent = null, bool $forceId = false)
     {
-        $this->predefined_texts = array();
+        $obj = json_decode(json_encode($obj)); //To get a php stdClass obj
+
         parent::setVarsFromFetchObj($obj);
         if (isset($parent)) {
             $this->surveyPart = $parent;
@@ -312,11 +313,13 @@ class SurveyBlocStatus extends CommonObject
         if($forceId && $obj->id){
             $this->id = $obj->id;
         }
-        $dictionaryRowId = is_array($obj) ? $obj["c_rowid"] : $obj->c_rowid;
-        $this->fk_c_survey_bloc_status = $dictionaryRowId;
-        $objectValues = is_array($obj) ? $obj["predefined_texts"] : $obj->predefined_texts;
-        if (isset($objectValues)) {
-            foreach ($objectValues as $predefined_textObj) {
+
+        if($obj->c_rowid){
+            $this->fk_c_survey_bloc_status = $obj->c_rowid;
+        }
+        $this->predefined_texts = array();
+        if (isset($obj->predefined_texts)) {
+            foreach ($obj->predefined_texts as $predefined_textObj) {
                 $predefined_text = new SurveyBlocStatusPredefinedText($this->db);
                 $predefined_text->setVarsFromFetchObj($predefined_textObj, $this);
                 $predefined_text->fk_surveyblocstatus = $this->id;

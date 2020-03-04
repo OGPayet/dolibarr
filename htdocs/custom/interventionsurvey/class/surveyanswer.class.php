@@ -109,7 +109,7 @@ class SurveyAnswer extends CommonObject
     public $mandatory_justification;
     public $predefined_texts;
     // END MODULEBUILDER PROPERTIES
-/**
+    /**
      * @var object  parent intervention survey question object
      */
     public $surveyQuestion;
@@ -146,7 +146,7 @@ class SurveyAnswer extends CommonObject
      */
     //public $lines = array();
 
-/**
+    /**
      * Array of whitelist of properties keys for this object used for the API
      * @var  array
      *      array('properties_name'=> '' or array('properties_name'=> '' or array(...), ...)
@@ -156,7 +156,7 @@ class SurveyAnswer extends CommonObject
      *      if property is a array and this properties_name value is a array then get whitelist set in the array
      */
     static public $API_WHITELIST_OF_PROPERTIES = array(
-        'id'=>'','label'=>'','predefined_texts'=>'','fk_chosen_predefined_texts'=>'','color'=>''
+        'id' => '', 'label' => '', 'predefined_texts' => '', 'fk_chosen_predefined_texts' => '', 'color' => ''
     );
 
     /**
@@ -237,7 +237,8 @@ class SurveyAnswer extends CommonObject
      * Override getFieldList to change method accessibility
      *
      */
-    public function getFieldList(){
+    public function getFieldList()
+    {
         return parent::getFieldList();
     }
 
@@ -299,19 +300,23 @@ class SurveyAnswer extends CommonObject
 
     public function setVarsFromFetchObj(&$obj, $parent = null, bool $forceId = false)
     {
-        $this->predefined_texts = array();
+        $obj = json_decode(json_encode($obj)); //To get a php stdClass obj
+
         parent::setVarsFromFetchObj($obj);
+        $this->predefined_texts = array();
+
         if (isset($parent)) {
             $this->surveyPart = $parent;
         }
-        if($forceId && $obj->id){
+        if ($forceId && $obj->id) {
             $this->id = $obj->id;
         }
-        $dictionaryRowId = is_array($obj) ? $obj["c_rowid"] : $obj->c_rowid;
-        $this->fk_c_survey_answer = $dictionaryRowId;
-        $objectValues = is_array($obj) ? $obj["predefined_texts"] : $obj->predefined_texts;
-        if (isset($objectValues)) {
-            foreach ($objectValues as $predefinedTextObj) {
+
+        if ($obj->c_rowid) {
+            $this->fk_c_survey_answer = $obj->c_rowid;
+        }
+        if ($obj->predefined_texts) {
+            foreach ($obj->predefined_texts as $predefinedTextObj) {
                 $predefined_text = new SurveyAnswerPredefinedText($this->db);
                 $predefined_text->setVarsFromFetchObj($predefinedTextObj, $this);
                 $predefined_text->fk_surveyanswer = $this->id;
@@ -516,7 +521,7 @@ class SurveyAnswer extends CommonObject
 
     public function fetchParent()
     {
-        fetchParentCommon("SurveyQuestion", $this->fk_surveyquestion, $this->surveyQuestion,$this->db);
+        fetchParentCommon("SurveyQuestion", $this->fk_surveyquestion, $this->surveyQuestion, $this->db);
     }
 
     /**
@@ -534,7 +539,8 @@ class SurveyAnswer extends CommonObject
      *
      */
 
-    public function mergeWithFollowingData(User $user, self $newSurveyAnswer, bool $saveWholeObjectToBdd = true, int $position = null){
+    public function mergeWithFollowingData(User $user, self $newSurveyAnswer, bool $saveWholeObjectToBdd = true, int $position = null)
+    {
 
         $this->db->begin();
         //We update property for this object
@@ -544,9 +550,10 @@ class SurveyAnswer extends CommonObject
         //We begin property update for subobject
 
         $parameters = array(
-            "predefined_texts"=>array(
+            "predefined_texts" => array(
                 "identifierPropertiesName" => array("id"),
-                "mergeSubItemNameMethod" => "mergeWithFollowingData"),
+                "mergeSubItemNameMethod" => "mergeWithFollowingData"
+            ),
         );
 
         $parameters = array();
@@ -554,11 +561,11 @@ class SurveyAnswer extends CommonObject
         $errors = mergeSubItemFromObject($user, $this, $newSurveyAnswer, $parameters, false);
         $this->errors = array_merge($this->errors, $errors);
 
-        if($saveWholeObjectToBdd) {
+        if ($saveWholeObjectToBdd) {
             $this->save($user);
         }
 
-         if (empty($this->errors)) {
+        if (empty($this->errors)) {
             $this->db->commit();
             return 1;
         } else {

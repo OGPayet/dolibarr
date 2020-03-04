@@ -321,34 +321,32 @@ class SurveyQuestion extends CommonObject
 
     public function setVarsFromFetchObj(&$obj, $parent = null, bool $forceId = false)
     {
+        $obj = json_decode(json_encode($obj)); //To get a php stdClass obj
         $this->answers = array();
         if (isset($parent)) {
             $this->surveyPart = $parent;
         }
         parent::setVarsFromFetchObj($obj);
+
         if($forceId && $obj->id){
             $this->id = $obj->id;
         }
-        $objectValues = is_array($obj) ? $obj["answers"] : $obj->answers;
-        $dictionaryRowId = is_array($obj) ? $obj["c_rowid"] : $obj->c_rowid;
-        $this->fk_c_survey_question = $dictionaryRowId;
-        if (isset($objectValues)) {
-            foreach ($objectValues as $answerObj) {
+
+        if($obj->c_rowid){
+            $this->fk_c_survey_question = $obj->c_rowid;
+        }
+
+        if (isset($obj->answers)) {
+            foreach ($obj->answers as $answerObj) {
                 $answer = new SurveyAnswer($this->db);
                 $answer->setVarsFromFetchObj($answerObj, $this);
                 $answer->fk_surveyquestion = $this->id;
                 $this->answers[] = $answer;
             }
         }
-        $objectValues = is_array($obj) ? $obj["chosen_answer"] : $obj->chosen_answer;
-        if (isset($objectValues)) {
-            $chosen_answer = new SurveyAnswer($this->db);
-            $chosen_answer->setVarsFromFetchObj($objectValues, $this);
-            $this->chosen_answer = $chosen_answer;
-        }
-        $tmp = is_array($obj) ? $obj["extrafields"] : $obj->extrafields;
-        if (is_array($tmp)) {
-            $this->extrafields = $tmp;
+
+        if (isset($obj->chosen_answer)) {
+            $this->fk_chosen_answer = $obj->chosen_answer->id;
         }
     }
 

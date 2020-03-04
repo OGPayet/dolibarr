@@ -442,17 +442,19 @@ class SurveyPart extends CommonObject
 
     public function setVarsFromFetchObj(&$obj, $parent = null, bool $forceId = false)
     {
+        $obj = json_decode(json_encode($obj)); //To get a php stdClass obj
         parent::setVarsFromFetchObj($obj);
         if (isset($parent)) {
             $this->fichinter = $parent;
         }
+
         if($forceId && $obj->id){
             $this->id = $obj->id;
         }
+
         $this->blocs = array();
-        $objectValues = is_array($obj) ? $obj["blocs"] : $obj->blocs;
-        if (isset($objectValues)) {
-            foreach ($objectValues as $blocObj) {
+        if (isset($obj->blocs)) {
+            foreach ($obj->blocs as $blocObj) {
                 $bloc = new SurveyBlocQuestion($this->db);
                 $bloc->setVarsFromFetchObj($blocObj, $this);
                 $bloc->fk_surveypart = $this->id;

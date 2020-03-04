@@ -806,7 +806,7 @@ class InterventionSurvey extends Fichinter
     {
         $arrayOfSurveyParts = json_decode(json_encode($arrayOfSurveyParts));
         $this->survey = array();
-        if (isset($arrayOfSurveyParts)) {
+        if ($arrayOfSurveyParts) {
             foreach ($arrayOfSurveyParts as $surveyPartObj) {
                 $surveyPart = new SurveyPart($this->db);
                 $surveyPart->setVarsFromFetchObj($surveyPartObj, $this, $forceId);
