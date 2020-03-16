@@ -707,7 +707,7 @@ class InterventionSurvey extends Fichinter
         }
         if($result > 0 ) {
             if($this->lines){
-                foreach($lines as $line){
+                foreach($this->lines as $line){
                     $result = $line->fetch_optionals();
                     $this->errors = array_merge($this->errors, $line->errors);
                 }
