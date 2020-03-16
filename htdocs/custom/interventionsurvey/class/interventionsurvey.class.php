@@ -699,8 +699,20 @@ class InterventionSurvey extends Fichinter
      */
     public function fetch($rowid,$ref=''){
         $result = parent::fetch($rowid,$ref);
-        if($result > 0 ) $result = $this->fetch_optionals();
-        if($result > 0 ) $result = $this->fetchSurvey();
+        if($result > 0 ) {
+            $result = $this->fetch_optionals();
+        }
+        if($result > 0 ) {
+            $result = $this->fetchSurvey();
+        }
+        if($result > 0 ) {
+            if($this->lines){
+                foreach($lines as $line){
+                    $result = $line->fetch_optionals();
+                    $this->errors = array_merge($this->errors, $line->errors);
+                }
+            }
+        }
         return $result;
     }
 
