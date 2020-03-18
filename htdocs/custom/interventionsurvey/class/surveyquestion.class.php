@@ -172,7 +172,7 @@ class SurveyQuestion extends CommonObject
      */
     static public $API_WHITELIST_OF_PROPERTIES = array(
         'id'=>'','label'=>'','fk_chosen_answer'=>'','justification_text'=>'','array_options'=>'','answers'=>'',
-        'fk_chosen_answer_predefined_text'=>'','chosen_answer'=>'','mandatory_answer'=>''
+        'fk_chosen_answer_predefined_text'=>'','chosen_answer'=>'','mandatory_answer'=>'', 'extrafields'=>''
     );
 
     /**
