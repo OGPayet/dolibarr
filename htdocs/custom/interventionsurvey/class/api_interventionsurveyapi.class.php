@@ -314,7 +314,7 @@ class InterventionSurveyApi extends DolibarrApi
 
         $request = clone $this->interventionSurvey;
         $request->setSurveyFromFetchObj($request_data->survey, false);
-        $result = $this->interventionSurvey->mergeWithFollowingData(DolibarrApiAccess::$user,$request, false);
+        $result = $this->interventionSurvey->mergeWithFollowingData(DolibarrApiAccess::$user,$request, true);
         if ($result > 0)
         {
             return $this->get($id);
