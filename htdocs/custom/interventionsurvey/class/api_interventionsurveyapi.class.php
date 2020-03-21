@@ -571,10 +571,7 @@ class InterventionSurveyApi extends DolibarrApi
      */
     function _cleanString($string, $pagecodeto='UTF-8')
     {
-        $ret = dol_html_entity_decode($string, ENT_QUOTES, $pagecodeto);
-        $ret = preg_replace('/<br(\s[\sa-zA-Z_="]*)?\/?>/i', "<br />", $ret);
-        $ret = preg_replace('/(\r\n|\r|\n)/i', preg_match('/<br \/>/i', $ret) ? "" : "<br />", $ret);
-        return $ret;
+        return dol_htmlentitiesbr_decode($string);
     }
 
     /**

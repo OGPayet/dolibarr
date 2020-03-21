@@ -382,6 +382,7 @@ class SurveyBlocQuestion extends CommonObject
             $this->fk_c_survey_bloc_question = $obj->c_rowid;
         }
         parent::setVarsFromFetchObj($obj);
+
         if($forceId && $obj->id){
             $this->id = $obj->id;
         }
@@ -590,6 +591,12 @@ class SurveyBlocQuestion extends CommonObject
         global $langs, $conf;
 
         $this->db->begin();
+        if ($this->is_survey_read_only() && !$noSurveyReadOnlyCheck) {
+            $this->errors[] = $langs->trans('InterventionSurveyReadOnlyMode');
+            $this->db->rollback();
+            return -1;
+        }
+
         if (isset($fk_surveypart)) {
             $this->fk_surveypart = $fk_surveypart;
         }
@@ -599,12 +606,6 @@ class SurveyBlocQuestion extends CommonObject
             if(!$this->chosen_status){
                 $this->fk_chosen_status = null;
             }
-        }
-
-        if ($this->is_survey_read_only() && !$noSurveyReadOnlyCheck) {
-            $this->errors[] = $langs->trans('InterventionSurveyReadOnlyMode');
-            $this->db->rollback();
-            return -1;
         }
 
         if ($this->id && $this->id > 0) {
