@@ -113,8 +113,7 @@ class InterventionSurveyApi extends DolibarrApi
     {
         global $conf, $db, $langs, $user;
         $langs->load("interventionsurvey@interventionsurvey");
-        $this->db = $db;
-        $this->interventionSurvey = new InterventionSurvey($this->db);
+        $this->interventionSurvey = new InterventionSurvey($db);
     }
 
     /**
@@ -135,16 +134,13 @@ class InterventionSurveyApi extends DolibarrApi
         }
 
         $result = $this->interventionSurvey->fetch($id);
-        if ($result < 0) {
+        if (!($result > 0)) {
             throw new RestException(404, 'Intervention not found');
         }
 
         if (!$this->interventionSurvey->checkUserAccess(DolibarrApiAccess::$user)) {
             throw new RestException(401, 'Access to instance id='.$this->interventionSurvey->id.' of object not allowed for login '.DolibarrApiAccess::$user->login);
         }
-        $this->interventionSurvey->fetch_optionals();
-        $this->interventionSurvey->fetch_benefactor();
-        $this->interventionSurvey->fetch_watcher();
         $result = $this->_cleanObjectData($this->interventionSurvey);
         return $result;
     }
@@ -284,7 +280,7 @@ class InterventionSurveyApi extends DolibarrApi
      *
      * @url PUT /
      */
-    public function put($request_data = null)
+    function put($request_data = null)
     {
         global $db;
         if (!$request_data) {
@@ -300,7 +296,7 @@ class InterventionSurveyApi extends DolibarrApi
             throw new RestException(400, "You must provide id field of the intervention to update");
         }
         $result = $this->interventionSurvey->fetch($id);
-        if ($result < 0) {
+        if (!($result > 0)) {
             throw new RestException(404, 'Intervention not found');
         }
 
@@ -313,7 +309,7 @@ class InterventionSurveyApi extends DolibarrApi
         }
 
         $request = clone $this->interventionSurvey;
-        $request->setSurveyFromFetchObj($request_data->survey, false);
+        $request->setSurveyFromFetchObj($request_data->survey, true);
         $result = $this->interventionSurvey->mergeWithFollowingData(DolibarrApiAccess::$user,$request, true);
         if ($result > 0)
         {

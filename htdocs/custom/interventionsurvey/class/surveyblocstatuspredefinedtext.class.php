@@ -434,7 +434,14 @@ class SurveyBlocStatusPredefinedText extends CommonObject
      */
     public function update(User $user, $notrigger = false)
     {
-        return $this->updateCommon($user, $notrigger);
+        $fieldsToRemove = array('date_creation', 'fk_user_creat');
+        $saveFields = $this->fields;
+        foreach($fieldsToRemove as $field){
+            unset($this->fields[$field]);
+        }
+        $result = $this->updateCommon($user, $notrigger);
+        $this->fields = $saveFields;
+        return $result;
     }
 
     /**
@@ -487,11 +494,17 @@ class SurveyBlocStatusPredefinedText extends CommonObject
 
     public function setVarsFromFetchObj(&$obj, $parent = null, bool $forceId = false)
     {
-        $obj = json_decode(json_encode($obj)); //To get a php stdClass obj
+        if(!is_object($obj)){
+            $obj = json_decode(json_encode($obj));
+        }
         parent::setVarsFromFetchObj($obj);
 
         if (isset($parent)) {
             $this->surveyBlocStatus = $parent;
+        }
+
+        if(!$this->fk_surveyblocstatus && $this->surveyBlocStatus){
+            $this->fk_surveyblocstatus = $this->surveyBlocStatus->id;
         }
 
         if($forceId && $obj->id){
@@ -499,7 +512,7 @@ class SurveyBlocStatusPredefinedText extends CommonObject
         }
 
         if($obj->c_rowid){
-            $this->fk_c_survey_bloc_status_predefined_text = $dictionaryRowId;
+            $this->fk_c_survey_bloc_status_predefined_text = $obj->c_rowid;
         }
     }
 
@@ -510,7 +523,7 @@ class SurveyBlocStatusPredefinedText extends CommonObject
      *
      */
 
-    public function save($user, $fk_surveyblocstatus = NULL, $noSurveyReadOnlyCheck)
+    public function save($user, $fk_surveyblocstatus = NULL, $noSurveyReadOnlyCheck = false)
     {
         global $langs;
 
@@ -518,11 +531,10 @@ class SurveyBlocStatusPredefinedText extends CommonObject
         if (isset($fk_surveyblocstatus)) {
             $this->fk_surveyblocstatus = $fk_surveyblocstatus;
         }
-        $errors = array();
+
         if ($this->is_survey_read_only() && !$noSurveyReadOnlyCheck) {
-            $errors[] = $langs->trans('InterventionSurveyReadOnlyMode');
+            $this->errors[] = $langs->trans('InterventionSurveyReadOnlyMode');
             $this->db->rollback();
-            $this->errors = $errors;
             return -1;
         }
         if ($this->id) {
@@ -531,12 +543,11 @@ class SurveyBlocStatusPredefinedText extends CommonObject
             $this->create($user);
         }
 
-        if (empty($errors)) {
+        if (empty($this->errors)) {
             $this->db->commit();
             return 1;
         } else {
             $this->db->rollback();
-            $this->errors = $errors;
             return -1;
         }
     }
@@ -566,7 +577,7 @@ class SurveyBlocStatusPredefinedText extends CommonObject
      *
      */
 
-    public function mergeWithFollowingData(User $user, self $newBlocStatusPredefinedText, bool $saveWholeObjectToBdd = true, int $position = null){
+    public function mergeWithFollowingData(User $user, self $newBlocStatusPredefinedText, bool $saveWholeObjectToBdd = false, int $position = null){
 
         $this->db->begin();
         //We update property for this object

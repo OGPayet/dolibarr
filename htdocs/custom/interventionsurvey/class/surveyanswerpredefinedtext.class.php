@@ -348,7 +348,14 @@ class SurveyAnswerPredefinedText extends CommonObject
      */
     public function update(User $user, $notrigger = false)
     {
-        return $this->updateCommon($user, $notrigger);
+        $fieldsToRemove = array('date_creation', 'fk_user_creat');
+        $saveFields = $this->fields;
+        foreach($fieldsToRemove as $field){
+            unset($this->fields[$field]);
+        }
+        $result = $this->updateCommon($user, $notrigger);
+        $this->fields = $saveFields;
+        return $result;
     }
 
     /**
@@ -401,11 +408,18 @@ class SurveyAnswerPredefinedText extends CommonObject
 
     public function setVarsFromFetchObj(&$obj, $parent = null, bool $forceId = false)
     {
-        $obj = json_decode(json_encode($obj)); //To get a php stdClass obj
+        if(!is_object($obj)){
+            $obj = json_decode(json_encode($obj));
+        }
 
         parent::setVarsFromFetchObj($obj);
         if (isset($parent)) {
             $this->surveyAnswer = $parent;
+        }
+
+
+        if(!$this->fk_surveyanswer && $this->surveyAnswer){
+            $this->fk_surveyanswer = $this->surveyAnswer->id;
         }
 
         if ($forceId && $obj->id) {
@@ -430,11 +444,10 @@ class SurveyAnswerPredefinedText extends CommonObject
         if (isset($fk_surveyanswer)) {
             $this->fk_surveyanswer = $fk_surveyanswer;
         }
-        $errors = array();
+
         if ($this->is_survey_read_only() && !$noSurveyReadOnlyCheck) {
-            $errors[] = $langs->trans('InterventionSurveyReadOnlyMode');
+            $this->errors[] = $langs->trans('InterventionSurveyReadOnlyMode');
             $this->db->rollback();
-            $this->errors = $errors;
             return -1;
         }
 
@@ -444,12 +457,11 @@ class SurveyAnswerPredefinedText extends CommonObject
             $this->create($user);
         }
 
-        if (empty($errors)) {
+        if (empty($this->errors)) {
             $this->db->commit();
             return 1;
         } else {
             $this->db->rollback();
-            $this->errors = $errors;
             return -1;
         }
     }
@@ -479,7 +491,7 @@ class SurveyAnswerPredefinedText extends CommonObject
      *
      */
 
-    public function mergeWithFollowingData(User $user, self $newAnswerPredefinedText, bool $saveWholeObjectToBdd = true, int $position = null)
+    public function mergeWithFollowingData(User $user, self $newAnswerPredefinedText, bool $saveWholeObjectToBdd = false, int $position = null)
     {
 
         $this->db->begin();

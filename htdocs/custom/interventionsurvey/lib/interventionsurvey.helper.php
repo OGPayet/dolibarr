@@ -71,12 +71,12 @@ function getMissingItem(array &$oldData, array &$newData, array $arrayOfIdentifi
 //Function to get missing item into the second array according to the first array identified by an array of field
 function getCommonItem(array &$oldData, array &$newData, array $arrayOfIdentifierField = array('id')){
     $commonItem = array();
-    foreach($oldData as $index=>&$oldObject){
-        $newObjectItemPosition = getItemWithSameFieldsValue($newData, $oldObject,$arrayOfIdentifierField, true);
-        if($newObject){
+    foreach($oldData as &$oldObject){
+        $newObjectPosition = getItemWithSameFieldsValue($newData, $oldObject,$arrayOfIdentifierField, true);
+        if($newObjectPosition !== null){
             //Item is common
-            $commonItem[$newObjectItemPosition]["oldObject"] = $oldObject;
-            $commonItem[$newObjectItemPosition]["newObject"] = $newData[$newObjectItemPosition];
+            $commonItem[$newObjectPosition]["oldObject"] = $oldObject;
+            $commonItem[$newObjectPosition]["newObject"] = $newData[$newObjectPosition];
         }
     }
     return $commonItem;
@@ -96,7 +96,7 @@ function getAddedItem(array &$oldData,array &$newData, array $arrayOfIdentifierF
 //Function to get a list of item that are in both array based on their field name. Return an array of array("oldObject"=>oldObject, "newObject"=>newObject)
 
 function getItemToUpdate(array &$oldData,array &$newData, array $arrayOfIdentifierField){
-    return getCommonItem($newData, $oldData, $arrayOfIdentifierField);
+    return getCommonItem($oldData, $newData, $arrayOfIdentifierField);
 }
 
 //generic function to merge two object and launch merge options on sub object
@@ -105,20 +105,19 @@ function getItemToUpdate(array &$oldData,array &$newData, array $arrayOfIdentifi
 //       "identifierPropertiesName"=>array(nameOfThePropertyToIdentifySubItem1,nameOfThePropertyToIdentifySubItem2),
 //       "mergeSubItemNameMethod"=>nameOfTheMethodToUpdateSubObject))
 
-function mergeSubItemFromObject($user, &$oldObject, &$newObject, array $arrayOfParameters, bool $saveUpdatedItemToBdd = true){
+function mergeSubItemFromObject($user, &$oldObject, &$newObject, array $arrayOfParameters, bool $saveUpdatedItemToBdd = false, $noTrigger = false){
     $errors = array();
     foreach($arrayOfParameters as $propertyContainingArrayOfObjectInBothObject=>$parameters){
         $subObjectIdentifiersField = $parameters["identifierPropertiesName"];
         $itemToUpdate = getItemToUpdate($oldObject->$propertyContainingArrayOfObjectInBothObject, $newObject->$propertyContainingArrayOfObjectInBothObject, $subObjectIdentifiersField);
         $itemToDelete = getDeletedItem($oldObject->$propertyContainingArrayOfObjectInBothObject, $newObject->$propertyContainingArrayOfObjectInBothObject, $subObjectIdentifiersField);
         $itemToAdd = getAddedItem($oldObject->$propertyContainingArrayOfObjectInBothObject, $newObject->$propertyContainingArrayOfObjectInBothObject, $subObjectIdentifiersField);
-
         foreach($itemToUpdate as $position => $coupleOfItem){
             $oldItem = $coupleOfItem["oldObject"];
             $newItem = $coupleOfItem["newObject"];
-            $nameOfTheMergeMethodOfTheseObject = $parameters["nameOfTheMethodToUpdateSubObject"];
+            $nameOfTheMergeMethodOfTheseObject = $parameters["mergeSubItemNameMethod"];
             if(method_exists($oldItem, $nameOfTheMergeMethodOfTheseObject)){
-                $oldItem->{$nameOfTheMergeMethodOfTheseObject}($user, $newItem, $saveUpdatedItemToBdd, $position);
+                $oldItem->{$nameOfTheMergeMethodOfTheseObject}($user, $newItem, $saveUpdatedItemToBdd, $position, $noTrigger);
                 $errors = array_merge($errors,$oldItem->errors);
             }
         }
@@ -167,7 +166,7 @@ function mergeSubItemFromObject($user, &$oldObject, &$newObject, array $arrayOfP
 
     function fetchParentCommon($classname, $id, &$field, &$db)
     {
-        if (!isset($field)) {
+        if (!$field) {
             $parent = new $classname($db);
             if ($parent->fetch($id) > 0) {
                 $field = $parent;

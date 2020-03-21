@@ -644,25 +644,22 @@ class InterventionSurvey extends Fichinter
     {
         global $langs;
         $this->db->begin();
-        $errors = array();
         if ($this->is_survey_read_only() && !$noSurveyReadOnlyCheck) {
-            $errors[] = $langs->trans('InterventionSurveyReadOnlyMode');
+            $this->errors[] = $langs->trans('InterventionSurveyReadOnlyMode');
             $this->db->rollback();
-            $this->errors = $errors;
             return -1;
         }
         foreach ($this->survey as $position => $surveyPart) {
             $surveyPart->position = $position;
             $surveyPart->save($user, $this->id, $noSurveyReadOnlyCheck);
-            $errors = array_merge($errors, $surveyPart->errors);
+            $this->errors = array_merge($this->errors, $surveyPart->errors);
         }
 
-        if (empty($errors)) {
+        if (empty($this->errors)) {
             $this->db->commit();
             return 1;
         } else {
             $this->db->rollback();
-            $this->errors = $errors;
             return -1;
         }
     }
@@ -870,7 +867,7 @@ class InterventionSurvey extends Fichinter
      *
      */
 
-     public function mergeWithFollowingData(User $user, self $newInterventionSurvey, bool $saveWholeObjectToBdd = true){
+     public function mergeWithFollowingData(User $user, self $newInterventionSurvey, bool $saveWholeObjectToBdd = false){
 
         $this->db->begin();
         //We update property for this object

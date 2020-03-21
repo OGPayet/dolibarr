@@ -307,7 +307,7 @@ class SurveyQuestion extends CommonObject
 
         interventionSurveyFetchLinesCommon(" ORDER BY position ASC", "SurveyAnswer", $this->answers, $this);
 
-        if (isset($this->fk_chosen_answer)) {
+        if ($this->fk_chosen_answer) {
             $this->getChosenAnswer();
         }
         return 1;
@@ -321,11 +321,19 @@ class SurveyQuestion extends CommonObject
 
     public function setVarsFromFetchObj(&$obj, $parent = null, bool $forceId = false)
     {
-        $obj = json_decode(json_encode($obj)); //To get a php stdClass obj
+         //To get a php stdClass obj
+        if(!is_object($obj)){
+            $obj = json_decode(json_encode($obj));
+        }
         $this->answers = array();
         if (isset($parent)) {
-            $this->surveyPart = $parent;
+            $this->surveyBlocQuestion = $parent;
         }
+
+        if(!$this->fk_surveyblocquestion && $this->surveyBlocQuestion){
+            $this->fk_surveyblocquestion = $this->surveyBlocQuestion->id;
+        }
+
         parent::setVarsFromFetchObj($obj);
 
         if($forceId && $obj->id){
@@ -339,14 +347,10 @@ class SurveyQuestion extends CommonObject
         if (isset($obj->answers)) {
             foreach ($obj->answers as $answerObj) {
                 $answer = new SurveyAnswer($this->db);
-                $answer->setVarsFromFetchObj($answerObj, $this);
+                $answer->setVarsFromFetchObj($answerObj, $this, $forceId);
                 $answer->fk_surveyquestion = $this->id;
                 $this->answers[] = $answer;
             }
-        }
-
-        if (isset($obj->chosen_answer)) {
-            $this->fk_chosen_answer = $obj->chosen_answer->id;
         }
     }
 
@@ -434,7 +438,14 @@ class SurveyQuestion extends CommonObject
      */
     public function update(User $user, $notrigger = false)
     {
-        return $this->updateCommon($user, $notrigger);
+        $fieldsToRemove = array('date_creation', 'fk_user_creat');
+        $saveFields = $this->fields;
+        foreach($fieldsToRemove as $field){
+            unset($this->fields[$field]);
+        }
+        $result = $this->updateCommon($user, $notrigger);
+        $this->fields = $saveFields;
+        return $result;
     }
 
     /**
@@ -513,19 +524,25 @@ class SurveyQuestion extends CommonObject
      *
      */
 
-    public function save($user, $fk_surveyblocquestion = NULL, $noSurveyReadOnlyCheck)
+    public function save($user, $fk_surveyblocquestion = NULL, $noSurveyReadOnlyCheck = false)
     {
         global $langs, $conf;
         $this->db->begin();
+
         if (isset($fk_surveyblocquestion)) {
             $this->fk_surveyblocquestion = $fk_surveyblocquestion;
         }
-        $errors = array();
+
+        if($this->fk_chosen_answer){
+            $this->getChosenAnswer();
+            if(!$this->chosen_answer){
+                $this->fk_chosen_answer = null;
+            }
+        }
 
         if ($this->is_survey_read_only() && !$noSurveyReadOnlyCheck) {
-            $errors[] = $langs->trans('InterventionSurveyReadOnlyMode');
+            $this->errors[] = $langs->trans('InterventionSurveyReadOnlyMode');
             $this->db->rollback();
-            $this->errors = $errors;
             return -1;
         }
 
@@ -534,22 +551,21 @@ class SurveyQuestion extends CommonObject
         } else {
             $this->create($user);
         }
-        if (empty($errors)) {
+        if (empty($this->errors)) {
             foreach ($this->answers as $position => $answer) {
                 $answer->position = $position;
                 $answer->save($user, $this->id, $noSurveyReadOnlyCheck);
-                $errors = array_merge($errors, $answer->errors);
+                $this->errors = array_merge($this->errors, $answer->errors);
             }
         }
         if (empty($conf->global->MAIN_EXTRAFIELDS_DISABLED)) { // For avoid conflicts if trigger used
             $this->insertExtraFields();
         }
-        if (empty($errors)) {
+        if (empty($this->errors)) {
             $this->db->commit();
             return 1;
         } else {
             $this->db->rollback();
-            $this->errors = $errors;
             return -1;
         }
     }
@@ -808,14 +824,14 @@ class SurveyQuestion extends CommonObject
      *
      */
 
-    public function mergeWithFollowingData(User $user, self $newSurveyQuestion, int $position = null, bool $saveWholeObjectToBdd = true){
+    public function mergeWithFollowingData(User $user, self $newSurveyQuestion, int $position = null, bool $saveWholeObjectToBdd = false){
 
         $this->db->begin();
         //We update property for this object
         //BEGIN
         $this->array_options = $newSurveyQuestion->array_options;
         $this->fk_chosen_answer = $newSurveyQuestion->fk_chosen_answer;
-        $this->fk_chosen_answer_predefined_text = $newSurveyQuestion->$this->fk_chosen_answer_predefined_text;
+        $this->fk_chosen_answer_predefined_text = $newSurveyQuestion->fk_chosen_answer_predefined_text;
         $this->justification_text = $newSurveyQuestion->justification_text;
         //END
 

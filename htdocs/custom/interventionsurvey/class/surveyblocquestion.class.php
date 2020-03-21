@@ -328,7 +328,7 @@ class SurveyBlocQuestion extends CommonObject
         $this->status = array();
         $this->chosen_status = null;
         $this->questions = array();
-        if (isset($parent)) {
+        if ($parent) {
             $this->surveyPart = $parent;
         }
 
@@ -337,7 +337,7 @@ class SurveyBlocQuestion extends CommonObject
             $question->fetch_optionals();
         }
         interventionSurveyFetchLinesCommon(" ORDER BY position ASC", "SurveyBlocStatus", $this->status, $this);
-        if (isset($this->fk_chosen_status)) {
+        if ($this->fk_chosen_status) {
             $this->getChosenStatus();
                 }
         return 1;
@@ -359,8 +359,7 @@ class SurveyBlocQuestion extends CommonObject
     public function is_survey_read_only()
     {
         $this->fetchParent();
-        $temp = $this->surveyPart;
-        return $temp->is_survey_read_only();
+        return $this->surveyPart->is_survey_read_only();
     }
 
     /**
@@ -371,8 +370,10 @@ class SurveyBlocQuestion extends CommonObject
 
     public function setVarsFromFetchObj(&$obj, $parent = null, bool $forceId = false)
     {
-        $obj = json_decode(json_encode($obj)); //To get a php stdClass obj
-        $this->status = array();
+        if(!is_object($obj)){
+            $obj = json_decode(json_encode($obj));
+        }
+                $this->status = array();
         $this->chosen_status = null;
         $this->questions = array();
         $this->extrafields = array();
@@ -389,10 +390,14 @@ class SurveyBlocQuestion extends CommonObject
             $this->surveyPart = $parent;
         }
 
+        if(!$this->fk_surveypart && $this->surveyPart){
+            $this->fk_surveypart = $this->surveyPart->id;
+        }
+
         if (isset($obj->questions)) {
             foreach ($obj->questions as $questionObj) {
                 $question = new SurveyQuestion($this->db);
-                $question->setVarsFromFetchObj($questionObj, $this);
+                $question->setVarsFromFetchObj($questionObj, $this, $forceId);
                 $question->fk_surveyblocquestion = $this->id;
                 $this->questions[] = $question;
             }
@@ -401,14 +406,10 @@ class SurveyBlocQuestion extends CommonObject
         if (isset($obj->status)) {
             foreach ($obj->status as $statusObj) {
                 $status = new SurveyBlocStatus($this->db);
-                $status->setVarsFromFetchObj($statusObj, $this);
+                $status->setVarsFromFetchObj($statusObj, $this, $forceId);
                 $status->fk_surveyblocquestion = $this->id;
                 $this->status[] = $status;
             }
-        }
-
-        if (isset($obj->chosen_status)) {
-            $this->fk_chosen_status = $obj->chosen_status->id;
         }
     }
 
@@ -496,7 +497,14 @@ class SurveyBlocQuestion extends CommonObject
      */
     public function update(User $user, $notrigger = false)
     {
-        return $this->updateCommon($user, $notrigger);
+        $fieldsToRemove = array('date_creation', 'fk_user_creat');
+        $saveFields = $this->fields;
+        foreach($fieldsToRemove as $field){
+            unset($this->fields[$field]);
+        }
+        $result = $this->updateCommon($user, $notrigger);
+        $this->fields = $saveFields;
+        return $result;
     }
 
     /**
@@ -506,32 +514,39 @@ class SurveyBlocQuestion extends CommonObject
      * @param bool $notrigger  false=launch triggers after, true=disable triggers
      * @return int             <0 if KO, >0 if OK
      */
-    public function delete(User $user, $notrigger = false)
+    public function delete(User $user, $notrigger = false, bool $disableDeletableBlocCheck = false)
     {
-        $this->db->begin();
-        $this->deleteCommon($user, $notrigger);
-        $this->deleteExtraFields($user);
-        $errors = array();
-        $errors = array_merge($errors, $this->errors);
+        if($disableDeletableBlocCheck || $this->deletable){
+            $this->db->begin();
+            $this->deleteCommon($user, $notrigger);
+            $this->deleteExtraFields($user);
+            $errors = array();
+            $errors = array_merge($errors, $this->errors);
 
-        if (empty($errors)) {
-            foreach ($this->questions as $question) {
-                $question->delete($user, $notrigger);
-                $errors = array_merge($errors, $question->errors ?? array());
+            if (empty($errors)) {
+                foreach ($this->questions as $question) {
+                    $question->delete($user, $notrigger);
+                    $errors = array_merge($errors, $question->errors ?? array());
+                }
+                foreach ($this->status as $status) {
+                    $status->delete($user, $notrigger);
+                    $errors = array_merge($errors, $status->errors ?? array());
+                }
             }
-            foreach ($this->status as $status) {
-                $status->delete($user, $notrigger);
-                $errors = array_merge($errors, $status->errors ?? array());
+            if (empty($errors)) {
+                $this->db->commit();
+                return 1;
+            } else {
+                $this->db->rollback();
+                $this->errors = $errors;
+                return -1;
             }
         }
-        if (empty($errors)) {
-            $this->db->commit();
-            return 1;
-        } else {
-            $this->db->rollback();
-            $this->errors = $errors;
-            return -1;
+        else
+        {
+            return 0;
         }
+
     }
 
     /**
@@ -578,11 +593,17 @@ class SurveyBlocQuestion extends CommonObject
         if (isset($fk_surveypart)) {
             $this->fk_surveypart = $fk_surveypart;
         }
-        $errors = array();
+
+        if($this->fk_chosen_status){
+            $this->getChosenStatus();
+            if(!$this->chosen_status){
+                $this->fk_chosen_status = null;
+            }
+        }
+
         if ($this->is_survey_read_only() && !$noSurveyReadOnlyCheck) {
-            $errors[] = $langs->trans('InterventionSurveyReadOnlyMode');
+            $this->errors[] = $langs->trans('InterventionSurveyReadOnlyMode');
             $this->db->rollback();
-            $this->errors = $errors;
             return -1;
         }
 
@@ -591,27 +612,26 @@ class SurveyBlocQuestion extends CommonObject
         } else {
             $this->create($user);
         }
-        if (empty($errors)) {
+        if (empty($this->errors)) {
             foreach ($this->questions as $position => $question) {
                 $question->position = $position;
                 $question->save($user, $this->id, $noSurveyReadOnlyCheck);
-                $errors = array_merge($errors, $question->errors);
+                $this->errors = array_merge($this->errors, $question->errors);
             }
             foreach ($this->status as $position => $status) {
                 $status->position = $position;
                 $status->save($user, $this->id, $noSurveyReadOnlyCheck);
-                $errors = array_merge($errors, $status->errors);
+                $this->errors = array_merge($this->errors, $status->errors);
             }
         }
         if (empty($conf->global->MAIN_EXTRAFIELDS_DISABLED)) { // For avoid conflicts if trigger used
             $this->insertExtraFields();
         }
-        if (empty($errors)) {
+        if (empty($this->errors)) {
             $this->db->commit();
             return 1;
         } else {
             $this->db->rollback();
-            $this->errors = $errors;
             return -1;
         }
     }
@@ -917,7 +937,7 @@ class SurveyBlocQuestion extends CommonObject
      *
      */
 
-    public function mergeWithFollowingData(User $user, self $newSurveyBlocQuestion, bool $saveWholeObjectToBdd = true, int $position = null){
+    public function mergeWithFollowingData(User $user, self $newSurveyBlocQuestion, bool $saveWholeObjectToBdd = false, int $position = null){
 
         $this->db->begin();
         //We update property for this object
@@ -932,7 +952,6 @@ class SurveyBlocQuestion extends CommonObject
         $this->attached_files = $newSurveyBlocQuestion->attached_files;
         $this->position = $position;
         $this->fk_chosen_status = $newSurveyBlocQuestion->fk_chosen_status;
-        $this->fk_chosen_status_predefined_text = $newSurveyBlocQuestion->fk_chosen_status_predefined_text;
         $this->fk_chosen_status_predefined_text = $newSurveyBlocQuestion->fk_chosen_status_predefined_text;
         //END
 

@@ -373,7 +373,14 @@ class SurveyPart extends CommonObject
      */
     public function update(User $user, $notrigger = false)
     {
-        return $this->updateCommon($user, $notrigger);
+        $fieldsToRemove = array('date_creation', 'fk_user_creat');
+        $saveFields = $this->fields;
+        foreach($fieldsToRemove as $field){
+            unset($this->fields[$field]);
+        }
+        $result = $this->updateCommon($user, $notrigger);
+        $this->fields = $saveFields;
+        return $result;
     }
 
     /**
@@ -383,17 +390,22 @@ class SurveyPart extends CommonObject
      * @param bool $notrigger  false=launch triggers after, true=disable triggers
      * @return int             <0 if KO, >0 if OK
      */
-    public function delete(User $user, $notrigger = false)
+    public function delete(User $user, $notrigger = false, bool $disableDeletableBlocCheck = false)
     {
         $this->db->begin();
-        $this->deleteCommon($user, $notrigger);
+        $atLeastOneBlocHasNotBeenDeleted = false;
         $errors = array();
         $errors = array_merge($errors, $this->errors);
         if (empty($errors)) {
             foreach ($this->blocs as $bloc) {
-                $bloc->delete($user, $notrigger);
+                if($bloc->delete($user, $notrigger, $disableDeletableBlocCheck) <= 0){
+                    $atLeastOneBlocHasNotBeenDeleted = true;
+                };
                 $errors = array_merge($errors, $bloc->errors ?? array());
             }
+        }
+        if(!$atLeastOneBlocHasNotBeenDeleted){
+            $this->deleteCommon($user, $notrigger);
         }
         if (empty($errors)) {
             $this->db->commit();
@@ -442,10 +454,16 @@ class SurveyPart extends CommonObject
 
     public function setVarsFromFetchObj(&$obj, $parent = null, bool $forceId = false)
     {
-        $obj = json_decode(json_encode($obj)); //To get a php stdClass obj
+        if(!is_object($obj)){
+            $obj = json_decode(json_encode($obj));
+        }
         parent::setVarsFromFetchObj($obj);
         if (isset($parent)) {
             $this->fichinter = $parent;
+        }
+
+        if(!$this->fk_fichinter && $this->fichinter){
+            $this->fk_fichinter = $this->fichinter->id;
         }
 
         if($forceId && $obj->id){
@@ -456,7 +474,7 @@ class SurveyPart extends CommonObject
         if (isset($obj->blocs)) {
             foreach ($obj->blocs as $blocObj) {
                 $bloc = new SurveyBlocQuestion($this->db);
-                $bloc->setVarsFromFetchObj($blocObj, $this);
+                $bloc->setVarsFromFetchObj($blocObj, $this, $forceId);
                 $bloc->fk_surveypart = $this->id;
                 $this->blocs[] = $bloc;
             }
@@ -482,16 +500,15 @@ class SurveyPart extends CommonObject
     public function save($user, $fk_fichinter = NULL, $noSurveyReadOnlyCheck = false)
     {
         global $langs;
-
         $this->db->begin();
+
         if (isset($fk_fichinter)) {
             $this->fk_fichinter = $fk_fichinter;
         }
-        $errors = array();
+
         if ($this->is_survey_read_only() && !$noSurveyReadOnlyCheck) {
-            $errors[] = $langs->trans('InterventionSurveyReadOnlyMode');
+            $this->errors[] = $langs->trans('InterventionSurveyReadOnlyMode');
             $this->db->rollback();
-            $this->errors = $errors;
             return -1;
         }
         if ($this->id && $this->id > 0) {
@@ -499,19 +516,19 @@ class SurveyPart extends CommonObject
         } else {
             $this->create($user);
         }
-        if (empty($errors)) {
+
+        if (empty($this->errors)) {
             foreach ($this->blocs as $position => $bloc) {
                 $bloc->position = $position;
                 $bloc->save($user, $this->id, $noSurveyReadOnlyCheck);
-                $errors = array_merge($errors, $bloc->errors);
+                $this->errors = array_merge($this->errors, $bloc->errors);
             }
         }
-        if (empty($errors)) {
+        if (empty($this->errors)) {
             $this->db->commit();
             return 1;
         } else {
             $this->db->rollback();
-            $this->errors = $errors;
             return -1;
         }
     }
@@ -550,7 +567,7 @@ class SurveyPart extends CommonObject
      *
      */
 
-    public function mergeWithFollowingData(User $user, self $newSurveyPart, bool $saveWholeObjectToBdd = true, int $position = null){
+    public function mergeWithFollowingData(User $user, self $newSurveyPart, bool $saveWholeObjectToBdd = false, int $position = null){
 
         $this->db->begin();
         //We update property for this object
