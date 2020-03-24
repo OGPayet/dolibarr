@@ -185,7 +185,7 @@ class InterventionSurvey extends Fichinter
      *
      * @param DoliDb $db Database handler
      */
-    public function __construct(DoliDB $db)
+    public function __construct(DoliDB &$db)
     {
         parent::__construct($db);
     }

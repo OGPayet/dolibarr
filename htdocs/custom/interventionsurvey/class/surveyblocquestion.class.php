@@ -241,7 +241,7 @@ class SurveyBlocQuestion extends CommonObject
      *
      * @param DoliDb $db Database handler
      */
-    public function __construct(DoliDB $db = null)
+    public function __construct(DoliDB &$db = null)
     {
         global $conf, $langs;
 

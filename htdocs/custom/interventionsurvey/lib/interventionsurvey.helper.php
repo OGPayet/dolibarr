@@ -28,7 +28,7 @@
 function getItemFromThisArray(array &$array, array $arrayOfParameters = array(), bool $returnPosition = false)
     {
         $result = null;
-        foreach ($array as $index => $item) {
+        foreach ($array as $index => &$item) {
             $test = true;
             foreach ($arrayOfParameters as $fieldName => $searchValue) {
                 if (!($item->$fieldName == $searchValue)) {
@@ -112,29 +112,31 @@ function mergeSubItemFromObject(&$user, &$oldObject, &$newObject, array &$arrayO
         $itemToUpdate = getItemToUpdate($oldObject->$propertyContainingArrayOfObjectInBothObject, $newObject->$propertyContainingArrayOfObjectInBothObject, $subObjectIdentifiersField);
         $itemToDelete = getDeletedItem($oldObject->$propertyContainingArrayOfObjectInBothObject, $newObject->$propertyContainingArrayOfObjectInBothObject, $subObjectIdentifiersField);
         $itemToAdd = getAddedItem($oldObject->$propertyContainingArrayOfObjectInBothObject, $newObject->$propertyContainingArrayOfObjectInBothObject, $subObjectIdentifiersField);
-        foreach($itemToUpdate as $position => $coupleOfItem){
-            $oldItem = $coupleOfItem["oldObject"];
-            $newItem = $coupleOfItem["newObject"];
+        foreach($itemToDelete as $index=>&$item){
+            $item->delete($user, $noTrigger);//We delete item in bdd
+            unset($oldObject->{$propertyContainingArrayOfObjectInBothObject}[$index]);//We remove item from memory
+            $errors = array_merge($errors,$item->errors);
+        }
+        foreach($itemToAdd as &$item){
+            $item->save($user);
+            $errors = array_merge($errors,$item->errors);
+        }
+        unset($itemToDelete);
+        unset($itemToAdd);
+        foreach($itemToUpdate as $position => &$coupleOfItem){
+            $oldItem = &$coupleOfItem["oldObject"];
+            $newItem = &$coupleOfItem["newObject"];
             $nameOfTheMergeMethodOfTheseObject = $parameters["mergeSubItemNameMethod"];
             if(method_exists($oldItem, $nameOfTheMergeMethodOfTheseObject)){
                 $oldItem->{$nameOfTheMergeMethodOfTheseObject}($user, $newItem, $saveUpdatedItemToBdd, $position, $noTrigger);
                 $errors = array_merge($errors,$oldItem->errors);
             }
         }
-        foreach($itemToDelete as $index=>$item){
-            $item->delete($user, $noTrigger);//We delete item in bdd
-            unset($oldObject->{$propertyContainingArrayOfObjectInBothObject}[$index]);//We remove item from memory
-            $errors = array_merge($errors,$item->errors);
-        }
-        foreach($itemToAdd as $item){
-            $item->save($user);
-            $errors = array_merge($errors,$item->errors);
-        }
     }
     return $errors;
 }
 
-    function isUserLinkedToThisCompanyDirectlyOrBySalesRepresentative(User $user, Societe $company, int $id = null){
+    function isUserLinkedToThisCompanyDirectlyOrBySalesRepresentative(User &$user, Societe &$company, int $id = null){
         if(!$id){
             $id = $company->id ?? -1;
         }
