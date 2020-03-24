@@ -551,7 +551,7 @@ class SurveyAnswer extends CommonObject
      *
      */
 
-    public function mergeWithFollowingData(User $user, self $newSurveyAnswer, bool $saveWholeObjectToBdd = false, int $position = null)
+    public function mergeWithFollowingData(User $user, self $newSurveyAnswer, bool $saveWholeObjectToBdd = false, int $position = null, $noTrigger = false)
     {
 
         $this->db->begin();
@@ -568,12 +568,10 @@ class SurveyAnswer extends CommonObject
             ),
         );
 
-        $parameters = array();
-
-        $errors = mergeSubItemFromObject($user, $this, $newSurveyAnswer, $parameters, false);
+        $errors = mergeSubItemFromObject($user, $this, $newSurveyAnswer, $parameters, false, $noTrigger);
         $this->errors = array_merge($this->errors, $errors);
 
-        if ($saveWholeObjectToBdd) {
+        if ($saveWholeObjectToBdd === true) {
             $this->save($user);
         }
 

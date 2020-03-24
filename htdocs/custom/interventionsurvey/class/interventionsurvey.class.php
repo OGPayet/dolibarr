@@ -867,7 +867,7 @@ class InterventionSurvey extends Fichinter
      *
      */
 
-     public function mergeWithFollowingData(User $user, self $newInterventionSurvey, bool $saveWholeObjectToBdd = false){
+     public function mergeWithFollowingData(User $user, self $newInterventionSurvey, bool $saveWholeObjectToBdd = false, $noTrigger = false){
 
         $this->db->begin();
         //We update property for this object
@@ -881,10 +881,10 @@ class InterventionSurvey extends Fichinter
                 "mergeSubItemNameMethod" => "mergeWithFollowingData"),//We may add here fichinter lines
         );
 
-        $errors = mergeSubItemFromObject($user, $this, $newInterventionSurvey, $parameters, false);
+        $errors = mergeSubItemFromObject($user, $this, $newInterventionSurvey, $parameters, false, $noTrigger);
         $this->errors = array_merge($this->errors, $errors);
 
-        if($saveWholeObjectToBdd) {
+        if($saveWholeObjectToBdd === true) {
             //$this->save($user); //We may add here fichinter lines saving
             $this->saveSurvey($user);
         }

@@ -105,7 +105,7 @@ function getItemToUpdate(array &$oldData,array &$newData, array $arrayOfIdentifi
 //       "identifierPropertiesName"=>array(nameOfThePropertyToIdentifySubItem1,nameOfThePropertyToIdentifySubItem2),
 //       "mergeSubItemNameMethod"=>nameOfTheMethodToUpdateSubObject))
 
-function mergeSubItemFromObject($user, &$oldObject, &$newObject, array $arrayOfParameters, bool $saveUpdatedItemToBdd = false, $noTrigger = false){
+function mergeSubItemFromObject($user, &$oldObject, &$newObject, array $arrayOfParameters, bool $saveUpdatedItemToBdd = false, bool $noTrigger = false){
     $errors = array();
     foreach($arrayOfParameters as $propertyContainingArrayOfObjectInBothObject=>$parameters){
         $subObjectIdentifiersField = $parameters["identifierPropertiesName"];
@@ -122,7 +122,7 @@ function mergeSubItemFromObject($user, &$oldObject, &$newObject, array $arrayOfP
             }
         }
         foreach($itemToDelete as $index=>$item){
-            $item->delete($user);//We delete item in bdd
+            $item->delete($user, $noTrigger);//We delete item in bdd
             unset($oldObject->{$propertyContainingArrayOfObjectInBothObject}[$index]);//We remove item from memory
             $errors = array_merge($errors,$item->errors);
         }

@@ -491,7 +491,7 @@ class SurveyAnswerPredefinedText extends CommonObject
      *
      */
 
-    public function mergeWithFollowingData(User $user, self $newAnswerPredefinedText, bool $saveWholeObjectToBdd = false, int $position = null)
+    public function mergeWithFollowingData(User $user, self $newAnswerPredefinedText, bool $saveWholeObjectToBdd = false, int $position = null, $noTrigger = false)
     {
 
         $this->db->begin();
@@ -501,7 +501,7 @@ class SurveyAnswerPredefinedText extends CommonObject
 
         //We begin property update for subobject
 
-        if ($saveWholeObjectToBdd) {
+        if ($saveWholeObjectToBdd === true) {
             $this->save($user);
         }
 

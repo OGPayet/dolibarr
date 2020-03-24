@@ -824,7 +824,7 @@ class SurveyQuestion extends CommonObject
      *
      */
 
-    public function mergeWithFollowingData(User $user, self $newSurveyQuestion, int $position = null, bool $saveWholeObjectToBdd = false){
+    public function mergeWithFollowingData(User $user, self $newSurveyQuestion, int $position = null, bool $saveWholeObjectToBdd = false, $noTrigger = false){
 
         $this->db->begin();
         //We update property for this object
@@ -846,7 +846,7 @@ class SurveyQuestion extends CommonObject
         $errors = mergeSubItemFromObject($user, $this, $newSurveyQuestion, $parameters, false);
         $this->errors = array_merge($this->errors, $errors);
 
-        if($saveWholeObjectToBdd) {
+        if($saveWholeObjectToBdd === true) {
             $this->save($user);
         }
 

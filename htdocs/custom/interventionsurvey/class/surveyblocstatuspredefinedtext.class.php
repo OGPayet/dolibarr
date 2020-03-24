@@ -577,7 +577,7 @@ class SurveyBlocStatusPredefinedText extends CommonObject
      *
      */
 
-    public function mergeWithFollowingData(User $user, self $newBlocStatusPredefinedText, bool $saveWholeObjectToBdd = false, int $position = null){
+    public function mergeWithFollowingData(User $user, self $newBlocStatusPredefinedText, bool $saveWholeObjectToBdd = false, int $position = null, $noTrigger = false){
 
         $this->db->begin();
         //We update property for this object
@@ -586,7 +586,7 @@ class SurveyBlocStatusPredefinedText extends CommonObject
 
         //We begin property update for subobject
 
-        if($saveWholeObjectToBdd) {
+        if($saveWholeObjectToBdd === true) {
             $this->save($user);
         }
 

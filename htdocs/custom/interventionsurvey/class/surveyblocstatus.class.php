@@ -555,7 +555,7 @@ class SurveyBlocStatus extends CommonObject
      *
      */
 
-    public function mergeWithFollowingData(User $user, self $newSurveyBlocStatus, bool $saveWholeObjectToBdd = false, int $position = null){
+    public function mergeWithFollowingData(User $user, self $newSurveyBlocStatus, bool $saveWholeObjectToBdd = false, int $position = null, $noTrigger = false){
 
         $this->db->begin();
         //We update property for this object
@@ -570,10 +570,10 @@ class SurveyBlocStatus extends CommonObject
                 "mergeSubItemNameMethod" => "mergeWithFollowingData"),
         );
 
-        $errors = mergeSubItemFromObject($user, $this, $newSurveyBlocStatus, $parameters, false);
+        $errors = mergeSubItemFromObject($user, $this, $newSurveyBlocStatus, $parameters, false, $noTrigger);
         $this->errors = array_merge($this->errors, $errors);
 
-        if($saveWholeObjectToBdd) {
+        if($saveWholeObjectToBdd === true) {
             $this->save($user);
         }
 
