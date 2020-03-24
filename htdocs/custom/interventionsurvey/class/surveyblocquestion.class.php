@@ -391,6 +391,10 @@ class SurveyBlocQuestion extends CommonObject
             $this->attached_files = $obj->attached_files;
         }
 
+        if($obj->array_options){
+            $this->array_options = $obj->array_options;
+        }
+
         if($forceId && $obj->id){
             $this->id = $obj->id;
         }

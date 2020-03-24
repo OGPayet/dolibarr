@@ -340,6 +340,10 @@ class SurveyQuestion extends CommonObject
             $this->extrafields = $obj->extrafields;
         }
 
+        if($obj->array_options){
+            $this->array_options = $obj->array_options;
+        }
+
         if($forceId && $obj->id){
             $this->id = $obj->id;
         }
