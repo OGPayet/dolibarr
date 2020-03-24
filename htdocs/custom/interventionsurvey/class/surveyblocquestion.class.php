@@ -293,7 +293,7 @@ class SurveyBlocQuestion extends CommonObject
      * @param  bool $notrigger false=launch triggers after, true=disable triggers
      * @return int             <0 if KO, Id of created object if OK
      */
-    public function create(User $user, $notrigger = false)
+    public function create(User &$user, $notrigger = false)
     {
         return $this->createCommon($user, $notrigger);
     }
@@ -305,7 +305,7 @@ class SurveyBlocQuestion extends CommonObject
      * @param string $ref  Ref
      * @return int         <0 if KO, 0 if not found, >0 if OK
      */
-    public function fetch($id, $ref = null, $parent = null)
+    public function fetch($id, $ref = null, &$parent = null)
     {
         $result = $this->fetchCommon($id, $ref);
         if (isset($parent)) {
@@ -323,7 +323,7 @@ class SurveyBlocQuestion extends CommonObject
      *
      * @return int         <0 if KO, 0 if not found, >0 if OK
      */
-    public function fetchLines($parent = null)
+    public function fetchLines(&$parent = null)
     {
         $this->status = array();
         $this->chosen_status = null;
@@ -368,7 +368,7 @@ class SurveyBlocQuestion extends CommonObject
      *
      */
 
-    public function setVarsFromFetchObj(&$obj, $parent = null, bool $forceId = false)
+    public function setVarsFromFetchObj(&$obj, &$parent = null, bool $forceId = false)
     {
         if(!is_object($obj)){
             $obj = json_decode(json_encode($obj));
@@ -508,7 +508,7 @@ class SurveyBlocQuestion extends CommonObject
      * @param  bool $notrigger false=launch triggers after, true=disable triggers
      * @return int             <0 if KO, >0 if OK
      */
-    public function update(User $user, $notrigger = false)
+    public function update(User &$user, $notrigger = false)
     {
         $fieldsToRemove = array('date_creation', 'fk_user_creat');
         $saveFields = $this->fields;
@@ -527,7 +527,7 @@ class SurveyBlocQuestion extends CommonObject
      * @param bool $notrigger  false=launch triggers after, true=disable triggers
      * @return int             <0 if KO, >0 if OK
      */
-    public function delete(User $user, $notrigger = false, bool $disableDeletableBlocCheck = false)
+    public function delete(User &$user, $notrigger = false, bool $disableDeletableBlocCheck = false)
     {
         if($disableDeletableBlocCheck || $this->deletable){
             $this->db->begin();
@@ -598,7 +598,7 @@ class SurveyBlocQuestion extends CommonObject
      *
      */
 
-    public function save($user, $fk_surveypart = NULL, $noSurveyReadOnlyCheck = false)
+    public function save(&$user, $fk_surveypart = NULL, $noSurveyReadOnlyCheck = false)
     {
         global $langs, $conf;
 

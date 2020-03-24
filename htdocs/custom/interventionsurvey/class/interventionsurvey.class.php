@@ -640,7 +640,7 @@ class InterventionSurvey extends Fichinter
      *
      */
 
-    public function saveSurvey($user, $noSurveyReadOnlyCheck = false)
+    public function saveSurvey(&$user, $noSurveyReadOnlyCheck = false)
     {
         global $langs;
         $this->db->begin();
@@ -671,7 +671,7 @@ class InterventionSurvey extends Fichinter
      *
      */
 
-    public function deleteSurvey($user, $notrigger = false)
+    public function deleteSurvey(&$user, $notrigger = false)
     {
         $this->db->begin();
         $errors = array();
@@ -842,14 +842,12 @@ class InterventionSurvey extends Fichinter
     {
         $errors = array();
         $this->db->begin();
-        if ($this->fetchSurvey() > 0) {
             foreach ($this->survey as $surveyPart) {
                 if (empty($surveyPart->blocs)) {
                     $surveyPart->delete($user,false,true);
                     $errors = array_merge($errors, $surveyPart->errors);
                 }
             }
-        }
         $this->fetchSurvey();
         $errors = array_merge($errors, $this->errors);
         if (empty($errors)) {
@@ -888,7 +886,6 @@ class InterventionSurvey extends Fichinter
             //$this->save($user); //We may add here fichinter lines saving
             $this->saveSurvey($user);
         }
-
          //finally we clean the survey
          $this->cleanSurvey($user);
          if (empty($this->errors)) {

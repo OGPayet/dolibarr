@@ -245,7 +245,7 @@ class SurveyBlocStatusPredefinedText extends CommonObject
      * @param  bool $notrigger false=launch triggers after, true=disable triggers
      * @return int             <0 if KO, Id of created object if OK
      */
-    public function create(User $user, $notrigger = false)
+    public function create(User &$user, $notrigger = false)
     {
         return $this->createCommon($user, $notrigger);
     }
@@ -341,7 +341,7 @@ class SurveyBlocStatusPredefinedText extends CommonObject
      * @param string $ref  Ref
      * @return int         <0 if KO, 0 if not found, >0 if OK
      */
-    public function fetch($id, $ref = null, $parent = null)
+    public function fetch($id, $ref = null, &$parent = null)
     {
         if (isset($parent)) {
             $this->surveyBlocStatus = $parent;
@@ -432,7 +432,7 @@ class SurveyBlocStatusPredefinedText extends CommonObject
      * @param  bool $notrigger false=launch triggers after, true=disable triggers
      * @return int             <0 if KO, >0 if OK
      */
-    public function update(User $user, $notrigger = false)
+    public function update(User &$user, $notrigger = false)
     {
         $fieldsToRemove = array('date_creation', 'fk_user_creat');
         $saveFields = $this->fields;
@@ -451,7 +451,7 @@ class SurveyBlocStatusPredefinedText extends CommonObject
      * @param bool $notrigger  false=launch triggers after, true=disable triggers
      * @return int             <0 if KO, >0 if OK
      */
-    public function delete(User $user, $notrigger = false)
+    public function delete(User &$user, $notrigger = false)
     {
         return $this->deleteCommon($user, $notrigger);
         //return $this->deleteCommon($user, $notrigger, 1);
@@ -492,7 +492,7 @@ class SurveyBlocStatusPredefinedText extends CommonObject
      *
      */
 
-    public function setVarsFromFetchObj(&$obj, $parent = null, bool $forceId = false)
+    public function setVarsFromFetchObj(&$obj, &$parent = null, bool $forceId = false)
     {
         if(!is_object($obj)){
             $obj = json_decode(json_encode($obj));
@@ -523,7 +523,7 @@ class SurveyBlocStatusPredefinedText extends CommonObject
      *
      */
 
-    public function save($user, $fk_surveyblocstatus = NULL, $noSurveyReadOnlyCheck = false)
+    public function save(&$user, $fk_surveyblocstatus = NULL, $noSurveyReadOnlyCheck = false)
     {
         global $langs;
 
