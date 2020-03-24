@@ -57,15 +57,15 @@ function getItemWithSameFieldsValue(array &$array, $object, array $fieldName = a
 
 //Function to get missing item into the second array according to the first array identified by an array of field
 function getMissingItem(array &$oldData, array &$newData, array $arrayOfIdentifierField = array('id')){
-    $missingItem = array();
+    $missingItems = array();
     foreach($oldData as $index=>&$oldObject){
         $newObject = getItemWithSameFieldsValue($newData, $oldObject,$arrayOfIdentifierField);
         if(!$newObject){
             //Item is missing
-            $missingItem[$index] = $oldObject;
+            $missingItems[$index] = $oldObject;
         }
     }
-    return $missingItem;
+    return $missingItems;
 }
 
 //Function to get missing item into the second array according to the first array identified by an array of field
