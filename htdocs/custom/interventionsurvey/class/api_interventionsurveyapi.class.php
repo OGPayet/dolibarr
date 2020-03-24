@@ -298,38 +298,30 @@ class InterventionSurveyApi extends DolibarrApi
         if (!$id) {
             throw new RestException(400, "You must provide id field of the intervention to update");
         }
-        $memory = memory_get_usage()/(1024*1024);
 
         $result = $this->interventionSurvey->fetch($id);
         if (!($result > 0)) {
             throw new RestException(404, 'Intervention not found');
         }
-        $memory = memory_get_usage()/(1024*1024);
 
         if (!$this->interventionSurvey->checkUserAccess(DolibarrApiAccess::$user)) {
             throw new RestException(401, 'Access to instance id='.$this->interventionSurvey->id.' of object not allowed for login '.DolibarrApiAccess::$user->login);
         }
-        $memory = memory_get_usage()/(1024*1024);
 
         if($this->interventionSurvey->is_survey_read_only()) {
             throw new RestException(401, 'Intervention survey with id='.$this->interventionSurvey->id.'is in readonly mode');
         }
-        $memory = memory_get_usage()/(1024*1024);
 
         $request = clone $this->interventionSurvey;
-        $memory = memory_get_usage()/(1024*1024);
 
         $request->setSurveyFromFetchObj($request_data->survey, true);
-        $memory = memory_get_usage()/(1024*1024);
 
         $result = $this->interventionSurvey->mergeWithFollowingData(DolibarrApiAccess::$user,$request, true);
-        $memory = memory_get_usage()/(1024*1024);
 
         if ($result > 0)
         {
             $result = $this->_cleanObjectData($this->interventionSurvey);
-            $mem_peak = memory_get_peak_usage();
-            $memory = memory_get_usage();
+            $result->memory_peak_usage = memory_get_peak_usage();
             return $result;
             return $this->_cleanObjectData($this->interventionSurvey);
         }
