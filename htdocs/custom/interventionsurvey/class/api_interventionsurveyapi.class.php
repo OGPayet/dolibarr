@@ -313,7 +313,7 @@ class InterventionSurveyApi extends DolibarrApi
         $result = $this->interventionSurvey->mergeWithFollowingData(DolibarrApiAccess::$user,$request, true);
         if ($result > 0)
         {
-            return $this->get($id);
+            return $this->_cleanObjectData($this->interventionSurvey);
         }
         else
         {
