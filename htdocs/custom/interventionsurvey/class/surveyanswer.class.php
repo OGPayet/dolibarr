@@ -551,7 +551,7 @@ class SurveyAnswer extends CommonObject
      *
      */
 
-    public function mergeWithFollowingData(User $user, self $newSurveyAnswer, bool $saveWholeObjectToBdd = false, int $position = null, $noTrigger = false)
+    public function mergeWithFollowingData(User &$user, self &$newSurveyAnswer, bool &$saveWholeObjectToBdd = false, int &$position = null, &$noTrigger = false)
     {
 
         $this->db->begin();

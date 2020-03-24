@@ -25,7 +25,7 @@
 /**
  * * Get element from an array according to an array of parameters set with "fieldName"=>valueToMatch
 */
-function getItemFromThisArray(array &$array, array $arrayOfParameters = array(), bool $returnPosition = false)
+function getItemFromThisArray(array &$array, array &$arrayOfParameters = array(), bool &$returnPosition = false)
     {
         $result = null;
         foreach ($array as $index => $item) {
@@ -46,7 +46,7 @@ function getItemFromThisArray(array &$array, array $arrayOfParameters = array(),
 
 
 //Function to get object from an array having the same id field than the given parameter
-function getItemWithSameFieldsValue(array &$array, $object, array $fieldName = array('id'), $returnPosition = false){
+function getItemWithSameFieldsValue(array &$array, &$object, array &$fieldName = array('id'), &$returnPosition = false){
     $parameters = array();
     foreach($fieldName as $name){
         $parameters[$name] = $object->$name;
@@ -56,7 +56,7 @@ function getItemWithSameFieldsValue(array &$array, $object, array $fieldName = a
 
 
 //Function to get missing item into the second array according to the first array identified by an array of field
-function getMissingItem(array &$oldData, array &$newData, array $arrayOfIdentifierField = array('id')){
+function getMissingItem(array &$oldData, array &$newData, array &$arrayOfIdentifierField = array('id')){
     $missingItems = array();
     foreach($oldData as $index=>&$oldObject){
         $newObject = getItemWithSameFieldsValue($newData, $oldObject,$arrayOfIdentifierField);
@@ -84,18 +84,18 @@ function getCommonItem(array &$oldData, array &$newData, array $arrayOfIdentifie
 
 
 //Function to get a list of item that have been deleted between oldData and newData based on their field name. Both parameters are array
-function getDeletedItem(array &$oldData,array &$newData, array $arrayOfIdentifierField){
+function getDeletedItem(array &$oldData,array &$newData, array &$arrayOfIdentifierField){
     return getMissingItem($oldData, $newData, $arrayOfIdentifierField);
 }
 
 //Function to get a list of item that have been added between oldData and newData based on their field name. Both parameters are array
-function getAddedItem(array &$oldData,array &$newData, array $arrayOfIdentifierField){
+function getAddedItem(array &$oldData,array &$newData, array &$arrayOfIdentifierField){
     return getMissingItem($newData, $oldData, $arrayOfIdentifierField);
 }
 
 //Function to get a list of item that are in both array based on their field name. Return an array of array("oldObject"=>oldObject, "newObject"=>newObject)
 
-function getItemToUpdate(array &$oldData,array &$newData, array $arrayOfIdentifierField){
+function getItemToUpdate(array &$oldData,array &$newData, array &$arrayOfIdentifierField){
     return getCommonItem($oldData, $newData, $arrayOfIdentifierField);
 }
 
@@ -105,7 +105,7 @@ function getItemToUpdate(array &$oldData,array &$newData, array $arrayOfIdentifi
 //       "identifierPropertiesName"=>array(nameOfThePropertyToIdentifySubItem1,nameOfThePropertyToIdentifySubItem2),
 //       "mergeSubItemNameMethod"=>nameOfTheMethodToUpdateSubObject))
 
-function mergeSubItemFromObject($user, &$oldObject, &$newObject, array $arrayOfParameters, bool $saveUpdatedItemToBdd = false, bool $noTrigger = false){
+function mergeSubItemFromObject(&$user, &$oldObject, &$newObject, array &$arrayOfParameters, bool $saveUpdatedItemToBdd = false, bool $noTrigger = false){
     $errors = array();
     foreach($arrayOfParameters as $propertyContainingArrayOfObjectInBothObject=>$parameters){
         $subObjectIdentifiersField = $parameters["identifierPropertiesName"];

@@ -567,7 +567,7 @@ class SurveyPart extends CommonObject
      *
      */
 
-    public function mergeWithFollowingData(User $user, self $newSurveyPart, bool $saveWholeObjectToBdd = false, int $position = null, $noTrigger = false){
+    public function mergeWithFollowingData(User &$user, self &$newSurveyPart, bool &$saveWholeObjectToBdd = false, int &$position = null, &$noTrigger = false){
 
         $this->db->begin();
         //We update property for this object
