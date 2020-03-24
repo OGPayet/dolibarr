@@ -317,7 +317,7 @@ class InterventionSurveyApi extends DolibarrApi
         }
         else
         {
-            throw new RestException(500, "Error when saving the survey", [ 'id_intervention' => $this->interventionSurvey->id, 'details' => $this->_getErrors($this->interventionSurvey) ]);
+            throw new RestException(422, "Error when saving the survey", [ 'id_intervention' => $this->interventionSurvey->id, 'details' => $this->_getErrors($this->interventionSurvey) ]);
         }
     }
 
