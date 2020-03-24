@@ -845,7 +845,7 @@ class InterventionSurvey extends Fichinter
         if ($this->fetchSurvey() > 0) {
             foreach ($this->survey as $surveyPart) {
                 if (empty($surveyPart->blocs)) {
-                    $surveyPart->delete($user);
+                    $surveyPart->delete($user,false,true);
                     $errors = array_merge($errors, $surveyPart->errors);
                 }
             }
@@ -966,7 +966,7 @@ class InterventionSurvey extends Fichinter
         }
 
         foreach ($blocToDelete as $bloc) {
-            $bloc->delete($user);
+            $bloc->delete($user,false,true);
             $this->errors = array_merge($this->errors, $bloc->errors);
         }
         foreach ($partToAdd as $part) {
