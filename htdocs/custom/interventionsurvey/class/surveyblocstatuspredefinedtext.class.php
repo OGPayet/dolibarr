@@ -537,7 +537,7 @@ class SurveyBlocStatusPredefinedText extends CommonObject
             $this->db->rollback();
             return -1;
         }
-        if ($this->id) {
+        if ($this->id && $this->id>0) {
             $this->update($user);
         } else {
             $this->create($user);
