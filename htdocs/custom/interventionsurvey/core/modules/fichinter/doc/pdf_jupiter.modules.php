@@ -1183,9 +1183,16 @@ class pdf_jupiter extends ModelePDFFicheinter
         // Stakeholder signature
         //----------------------------------
         $signature_info = !empty($object->array_options['options_stakeholder_signature']) ? json_decode($object->array_options['options_stakeholder_signature'], true) : array();
-        $signature_info_day = dol_print_date($signature_info['date'], 'day', false, $outputlangs);
+
+        $signature_date_list = array();
+        foreach($signature_info['people'] as $people){
+            $signature_date_list[] = $people['date'];
+        }
+        $signature_date = max($signature_date_list);
+
+        $signature_info_day = dol_print_date($signature_date, 'day', false, $outputlangs);
         $signature_info_day = !empty($signature_info_day) ? $signature_info_day : '...';
-        $signature_info_hour = dol_print_date($signature_info['date'], 'hour', false, $outputlangs);
+        $signature_info_hour = dol_print_date($signature_date, 'hour', false, $outputlangs);
         $signature_info_hour = !empty($signature_info_hour) ? $signature_info_hour : '...';
         $signature_info_people = $signature_info['people'];
         $signature_info_image = $signature_info['value'];
@@ -1214,10 +1221,17 @@ class pdf_jupiter extends ModelePDFFicheinter
 
         // Customer signature
         //----------------------------------
+
+        $signature_date_list = array();
+        foreach($signature_info['people'] as $people){
+            $signature_date_list[] = $people['date'];
+        }
+        $signature_date = max($signature_date_list);
+
         $signature_info = !empty($object->array_options['options_customer_signature']) ? json_decode($object->array_options['options_customer_signature'], true) : array();
-        $signature_info_day = dol_print_date($signature_info['date'], 'day', false, $outputlangs);
+        $signature_info_day = dol_print_date($signature_date, 'day', false, $outputlangs);
         $signature_info_day = !empty($signature_info_day) ? $signature_info_day : '...';
-        $signature_info_hour = dol_print_date($signature_info['date'], 'hour', false, $outputlangs);
+        $signature_info_hour = dol_print_date($signature_date, 'hour', false, $outputlangs);
         $signature_info_hour = !empty($signature_info_hour) ? $signature_info_hour : '...';
         $signature_info_people = $signature_info['people'];
         $signature_info_image = $signature_info['value'];
