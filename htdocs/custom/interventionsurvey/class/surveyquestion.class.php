@@ -336,6 +336,10 @@ class SurveyQuestion extends CommonObject
 
         parent::setVarsFromFetchObj($obj);
 
+        if(is_array($obj->extrafields)){
+            $this->extrafields = $obj->extrafields;
+        }
+
         if($forceId && $obj->id){
             $this->id = $obj->id;
         }

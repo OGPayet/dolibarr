@@ -383,6 +383,14 @@ class SurveyBlocQuestion extends CommonObject
         }
         parent::setVarsFromFetchObj($obj);
 
+        if(is_array($obj->extrafields)){
+            $this->extrafields = $obj->extrafields;
+        }
+
+        if(is_array($obj->attached_files)){
+            $this->attached_files = $obj->attached_files;
+        }
+
         if($forceId && $obj->id){
             $this->id = $obj->id;
         }
