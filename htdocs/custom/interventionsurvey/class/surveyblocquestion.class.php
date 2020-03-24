@@ -779,7 +779,7 @@ class SurveyBlocQuestion extends CommonObject
 
     public function fetchExtraFieldsInfo()
     {
-        if (!isset(self::$extrafields_cache)) {
+        if (!self::$extrafields_cache) {
             require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
             self::$extrafields_cache = new ExtraFields($this->db);
             self::$extrafields_label_cache = self::$extrafields_cache->fetch_name_optionals_label($this->table_element);
