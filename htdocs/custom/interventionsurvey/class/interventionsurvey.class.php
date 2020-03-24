@@ -677,7 +677,7 @@ class InterventionSurvey extends Fichinter
         $errors = array();
 
         foreach ($this->survey as $surveyPart) {
-            $surveyPart->delete($user, $notrigger);
+            $surveyPart->delete($user, $notrigger, true);
             $errors = array_merge($errors, $surveyPart->errors ?? array());
         }
 
