@@ -491,7 +491,7 @@ class SurveyAnswerPredefinedText extends CommonObject
      *
      */
 
-    public function mergeWithFollowingData(User &$user, self &$newAnswerPredefinedText, bool &$saveWholeObjectToBdd = false, int &$position = null, &$noTrigger = false)
+    public function mergeWithFollowingData(User &$user, self &$newAnswerPredefinedText, bool $saveWholeObjectToBdd = false, int $position = null, $noTrigger = false)
     {
 
         $this->db->begin();

@@ -834,7 +834,7 @@ class SurveyQuestion extends CommonObject
      *
      */
 
-    public function mergeWithFollowingData(User &$user, self &$newSurveyQuestion, int &$position = null, bool &$saveWholeObjectToBdd = false, &$noTrigger = false){
+    public function mergeWithFollowingData(User &$user, self &$newSurveyQuestion, int $position = null, bool $saveWholeObjectToBdd = false, $noTrigger = false){
 
         $this->db->begin();
         //We update property for this object

@@ -867,7 +867,7 @@ class InterventionSurvey extends Fichinter
      *
      */
 
-     public function mergeWithFollowingData(User &$user, self &$newInterventionSurvey, bool &$saveWholeObjectToBdd = false, &$noTrigger = false){
+     public function mergeWithFollowingData(User &$user, self &$newInterventionSurvey, bool $saveWholeObjectToBdd = false, $noTrigger = false){
 
         $this->db->begin();
         //We update property for this object

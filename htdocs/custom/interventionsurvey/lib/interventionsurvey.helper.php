@@ -25,7 +25,7 @@
 /**
  * * Get element from an array according to an array of parameters set with "fieldName"=>valueToMatch
 */
-function getItemFromThisArray(array &$array, array &$arrayOfParameters = array(), bool &$returnPosition = false)
+function getItemFromThisArray(array &$array, array $arrayOfParameters = array(), bool $returnPosition = false)
     {
         $result = null;
         foreach ($array as $index => $item) {
@@ -46,7 +46,7 @@ function getItemFromThisArray(array &$array, array &$arrayOfParameters = array()
 
 
 //Function to get object from an array having the same id field than the given parameter
-function getItemWithSameFieldsValue(array &$array, &$object, array &$fieldName = array('id'), &$returnPosition = false){
+function getItemWithSameFieldsValue(array &$array, &$object, array &$fieldName = array('id'), $returnPosition = false){
     $parameters = array();
     foreach($fieldName as $name){
         $parameters[$name] = $object->$name;
