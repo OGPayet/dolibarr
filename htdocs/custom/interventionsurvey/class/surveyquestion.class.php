@@ -707,10 +707,12 @@ class SurveyQuestion extends CommonObject
         // Manage require fields but not selected
         $this->fetchExtraFieldsInfo();
         foreach (self::$extrafields_cache->attributes[$this->table_element]['required'] as $key => $val) {
-            if (!empty($val) && empty($this->array_options["options_" . $key]) && (!in_array(substr($key, 8), $this->extrafields) || $this->isBlocDesactivated())) {
-                $this->array_options["options_" . $key] = '0';
+            if (empty($val) || !empty($this->array_options["options_" . $key])) {
+                continue;
             }
-        }
+
+            $this->array_options["options_" . $key] = '0'; //We set not required set value
+                    }
 
         $result = parent::insertExtraFields($trigger, $userused);
 

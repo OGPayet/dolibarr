@@ -811,10 +811,7 @@ class SurveyBlocQuestion extends CommonObject
             if (empty($val) || !empty($this->array_options["options_" . $key])) {
                 continue;
             }
-            $isThisExtrafieldSetOnThisObject = in_array($key, $this->extrafields);
-            if (!$isThisExtrafieldSetOnThisObject || $isBlocDeactivated) {
-                $this->array_options["options_" . $key] = '0';
-            }
+               $this->array_options["options_" . $key] = '0'; //We set not required set value
         }
 
         $result = parent::insertExtraFields($trigger, $userused);
