@@ -566,6 +566,14 @@ class SurveyQuestion extends CommonObject
                 $this->errors = array_merge($this->errors, $answer->errors);
             }
         }
+
+        if($this->chosen_answer){
+            if($this->fk_chosen_answer !=$this->chosen_answer->id){
+                $this->fk_chosen_answer = $this->chosen_answer->id;
+                $this->update($user);
+            }
+        }
+
         if (empty($conf->global->MAIN_EXTRAFIELDS_DISABLED)) { // For avoid conflicts if trigger used
             $this->insertExtraFields();
         }

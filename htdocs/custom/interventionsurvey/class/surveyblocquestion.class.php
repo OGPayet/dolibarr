@@ -625,6 +625,7 @@ class SurveyBlocQuestion extends CommonObject
         } else {
             $this->create($user);
         }
+
         if (empty($this->errors)) {
             foreach ($this->questions as $position => $question) {
                 $question->position = $position;
@@ -637,6 +638,14 @@ class SurveyBlocQuestion extends CommonObject
                 $this->errors = array_merge($this->errors, $status->errors);
             }
         }
+
+        if($this->chosen_status){
+            if($this->fk_chosen_status !=$this->chosen_status->id){
+                $this->fk_chosen_status = $this->chosen_status->id;
+                $this->update($user);
+            }
+        }
+
         if (empty($conf->global->MAIN_EXTRAFIELDS_DISABLED)) { // For avoid conflicts if trigger used
             $this->insertExtraFields();
         }
@@ -658,7 +667,7 @@ class SurveyBlocQuestion extends CommonObject
         if ($this->chosen_status && $this->chosen_status->id == $this->fk_chosen_status) {
             return $this->chosen_status;
         }
-        $this->chosen_status = getItemFromThisArray($this->status, array('id' => $this->fk_chosen_status));
+        $this->chosen_status = &getItemFromThisArray($this->status, array('id' => $this->fk_chosen_status));
         return $this->chosen_status;
     }
 
