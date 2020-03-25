@@ -1230,6 +1230,7 @@ class pdf_jupiter extends ModelePDFFicheinter
 
         // Customer signature
         //----------------------------------
+        $signature_info = !empty($object->array_options['options_customer_signature']) ? json_decode($object->array_options['options_customer_signature'], true) : array();
 
         $signature_date_list = array();
         foreach($signature_info['people'] as $people){
