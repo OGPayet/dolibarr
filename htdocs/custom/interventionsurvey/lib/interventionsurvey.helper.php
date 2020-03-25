@@ -109,9 +109,9 @@ function mergeSubItemFromObject(&$user, &$oldObject, &$newObject, array &$arrayO
     $errors = array();
     foreach($arrayOfParameters as $propertyContainingArrayOfObjectInBothObject=>$parameters){
         $subObjectIdentifiersField = $parameters["identifierPropertiesName"];
-        $itemToUpdate = getItemToUpdate($oldObject->$propertyContainingArrayOfObjectInBothObject, $newObject->$propertyContainingArrayOfObjectInBothObject, $subObjectIdentifiersField);
-        $itemToDelete = getDeletedItem($oldObject->$propertyContainingArrayOfObjectInBothObject, $newObject->$propertyContainingArrayOfObjectInBothObject, $subObjectIdentifiersField);
-        $itemToAdd = getAddedItem($oldObject->$propertyContainingArrayOfObjectInBothObject, $newObject->$propertyContainingArrayOfObjectInBothObject, $subObjectIdentifiersField);
+        $itemToUpdate = getItemToUpdate($oldObject->{$propertyContainingArrayOfObjectInBothObject}, $newObject->{$propertyContainingArrayOfObjectInBothObject}, $subObjectIdentifiersField);
+        $itemToDelete = getDeletedItem($oldObject->{$propertyContainingArrayOfObjectInBothObject}, $newObject->{$propertyContainingArrayOfObjectInBothObject}, $subObjectIdentifiersField);
+        $itemToAdd = getAddedItem($oldObject->{$propertyContainingArrayOfObjectInBothObject}, $newObject->{$propertyContainingArrayOfObjectInBothObject}, $subObjectIdentifiersField);
         foreach($itemToDelete as $index=>&$item){
             $item->delete($user, $noTrigger);//We delete item in bdd
             unset($oldObject->{$propertyContainingArrayOfObjectInBothObject}[$index]);//We remove item from memory

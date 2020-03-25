@@ -1184,11 +1184,20 @@ class pdf_jupiter extends ModelePDFFicheinter
         //----------------------------------
         $signature_info = !empty($object->array_options['options_stakeholder_signature']) ? json_decode($object->array_options['options_stakeholder_signature'], true) : array();
 
+
         $signature_date_list = array();
         foreach($signature_info['people'] as $people){
-            $signature_date_list[] = $people['date'];
+            if($people['date']){
+                $signature_date_list[] = $people['date'];
+            }
         }
-        $signature_date = max($signature_date_list);
+        if(count($signature_date_list)>0){
+            $signature_date = max($signature_date_list);
+        }
+        else
+        {
+            $signature_date_list=null;
+        }
 
         $signature_info_day = dol_print_date($signature_date, 'day', false, $outputlangs);
         $signature_info_day = !empty($signature_info_day) ? $signature_info_day : '...';
@@ -1224,9 +1233,17 @@ class pdf_jupiter extends ModelePDFFicheinter
 
         $signature_date_list = array();
         foreach($signature_info['people'] as $people){
-            $signature_date_list[] = $people['date'];
+            if($people['date']){
+                $signature_date_list[] = $people['date'];
+            }
         }
-        $signature_date = max($signature_date_list);
+        if(count($signature_date_list)>0){
+            $signature_date = max($signature_date_list);
+        }
+        else
+        {
+            $signature_date_list=null;
+        }
 
         $signature_info = !empty($object->array_options['options_customer_signature']) ? json_decode($object->array_options['options_customer_signature'], true) : array();
         $signature_info_day = dol_print_date($signature_date, 'day', false, $outputlangs);

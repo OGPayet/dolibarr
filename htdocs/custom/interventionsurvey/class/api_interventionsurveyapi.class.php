@@ -283,15 +283,14 @@ class InterventionSurveyApi extends DolibarrApi
     function put($request_data = null)
     {
         global $db;
+
         if (!$request_data) {
             throw new RestException(400, "You must provide data");
         }
-        $memory = memory_get_usage()/(1024*1024);
 
         if (! DolibarrApiAccess::$user->rights->interventionsurvey->survey->writeApi) {
             throw new RestException(401);
         }
-        $memory = memory_get_usage()/(1024*1024);
 
         $request_data = json_decode(json_encode($request_data));
         $id = $request_data->id;
@@ -304,25 +303,25 @@ class InterventionSurveyApi extends DolibarrApi
             throw new RestException(404, 'Intervention not found');
         }
 
+
         if (!$this->interventionSurvey->checkUserAccess(DolibarrApiAccess::$user)) {
             throw new RestException(401, 'Access to instance id='.$this->interventionSurvey->id.' of object not allowed for login '.DolibarrApiAccess::$user->login);
         }
 
+
+
         if($this->interventionSurvey->is_survey_read_only()) {
             throw new RestException(401, 'Intervention survey with id='.$this->interventionSurvey->id.'is in readonly mode');
         }
+
 
         $request = clone $this->interventionSurvey;
 
         $request->setSurveyFromFetchObj($request_data->survey, true);
 
         $result = $this->interventionSurvey->mergeWithFollowingData(DolibarrApiAccess::$user,$request, true);
-
         if ($result > 0)
         {
-            $result = $this->_cleanObjectData($this->interventionSurvey);
-            $result->memory_peak_usage = memory_get_peak_usage();
-            return $result;
             return $this->_cleanObjectData($this->interventionSurvey);
         }
         else
