@@ -1196,7 +1196,7 @@ class pdf_jupiter extends ModelePDFFicheinter
         }
         else
         {
-            $signature_date_list=null;
+            $signature_date="";
         }
 
         $signature_info_day = dol_print_date($signature_date, 'day', false, $outputlangs);
@@ -1242,7 +1242,7 @@ class pdf_jupiter extends ModelePDFFicheinter
         }
         else
         {
-            $signature_date_list=null;
+            $signature_date="";
         }
 
         $signature_info = !empty($object->array_options['options_customer_signature']) ? json_decode($object->array_options['options_customer_signature'], true) : array();
