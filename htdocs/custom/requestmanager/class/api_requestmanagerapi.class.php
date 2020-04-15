@@ -388,6 +388,10 @@ class RequestManagerApi extends DolibarrApi {
             $requestmanager->$field = $value;
         }
 
+        if(!$requestmanager->context){
+            $requestmanager->context = array();
+        }
+
         $requestmanager->context['created_by_api'] = true;
         if ($requestmanager->create(DolibarrApiAccess::$user) < 0) {
             throw new RestException(500, "Error while creating the request", [ 'details' => $this->_getErrors($requestmanager) ]);
