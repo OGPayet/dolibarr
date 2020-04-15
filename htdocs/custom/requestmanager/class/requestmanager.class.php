@@ -774,7 +774,8 @@ class RequestManager extends CommonObject
                                 $error++;
                             } else {
                                 // Call trigger
-                                $this->context = array('addlink' => $origin, 'addlinkid' => $origin_id);
+                                $this->updateContext("addlink",$origin);
+                                $this->updateContext("addlinkid", $origin_id);
                                 $result = $this->call_trigger('REQUESTMANAGER_ADD_LINK', $user);
                                 if ($result < 0) $error++;
                                 // End call trigger
@@ -788,7 +789,8 @@ class RequestManager extends CommonObject
                             $error++;
                         } else {
                             // Call trigger
-                            $this->context = array('addlink' => $origin, 'addlinkid' => $origin_id);
+                            $this->updateContext("addlink",$origin);
+                            $this->updateContext("addlinkid", $origin_id);
                             $result = $this->call_trigger('REQUESTMANAGER_ADD_LINK', $user);
                             if ($result < 0) $error++;
                             // End call trigger
@@ -1237,7 +1239,11 @@ class RequestManager extends CommonObject
             return -1;
         } else {
             // Call trigger
-            $this->context = array('addlink' => 'contrat', 'addlinkid' => $contractId);
+            if(!$this->context){
+                $this->context = array();
+            }
+            $this->context['addlink'] =  "contrat";
+            $this->context['addlinkid'] = $contractId;
             $result = $this->call_trigger('REQUESTMANAGER_ADD_LINK', $user);
             if ($result < 0) return -1;
             // End call trigger
@@ -1329,7 +1335,8 @@ class RequestManager extends CommonObject
                         return -1;
                     } else {
                         // Call trigger
-                        $this->context = array('addlink' => 'equipement', 'addlinkid' => $obj->rowid);
+                        $this->updateContext("addlink","equipement");
+                        $this->updateContext("addlinkid", $obj->rowid);
                         $result = $this->call_trigger('REQUESTMANAGER_ADD_LINK', $user);
                         if ($result < 0) return -1;
                         // End call trigger
@@ -5826,6 +5833,18 @@ class RequestManagerLine extends CommonObjectLine
         }
     }
 
+    /**
+     *	Update current context object
+     *
+     *	@param      string		$propertyName
+     *	@param		any		    $propertyValue
+     */
+    function updateContext($propertyName, $propertyValue){
+        if(!$this->context){
+            $this->context = array();
+        }
+        $this->context[$propertyName] = $propertyValue;
+    }
 
     /**
      *	Update totals of requestmanager into database
