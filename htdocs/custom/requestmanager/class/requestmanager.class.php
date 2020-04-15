@@ -5219,6 +5219,19 @@ class RequestManager extends CommonObject
 			return 1;
 		}
     }
+
+    /**
+     *	Update current context object
+     *
+     *	@param      string		$propertyName
+     *	@param		any		    $propertyValue
+     */
+    private function updateContext($propertyName, $propertyValue){
+        if(!$this->context){
+            $this->context = array();
+        }
+        $this->context[$propertyName] = $propertyValue;
+    }
 }
 
 
@@ -5831,19 +5844,6 @@ class RequestManagerLine extends CommonObjectLine
             $this->db->rollback();
             return -2;
         }
-    }
-
-    /**
-     *	Update current context object
-     *
-     *	@param      string		$propertyName
-     *	@param		any		    $propertyValue
-     */
-    function updateContext($propertyName, $propertyValue){
-        if(!$this->context){
-            $this->context = array();
-        }
-        $this->context[$propertyName] = $propertyValue;
     }
 
     /**
