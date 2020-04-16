@@ -1251,6 +1251,14 @@ class RequestManagerApi extends DolibarrApi {
         $target_num = preg_replace("/\D/", "", $called_num);
         $target_num = substr($target_num, -$nb_number);
 
+        if(empty($from_num) || $caller_id_num == "anonymous"){
+            $from_num = $caller_id_num;
+        }
+
+        if(empty($target_num)|| $called_num == "anonymous"){
+            $target_num = $called_num;
+        }
+
         // Search contact / company
         //---------------------------------------
         $socid = 0;
