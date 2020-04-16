@@ -1386,9 +1386,9 @@ SCRIPT;
                         if (isset($conf->global->DOL_URL_ROOT_DOCUMENT_PHP)) $documenturl = $conf->global->DOL_URL_ROOT_DOCUMENT_PHP;    // To use another wrapper
 
                         // Show file name with link to download
-                        $tmp = $formfile->showPreview($file, 'agenda', $relativepath, 0, '');
+                        $tmp = $formfile->showPreview($file, 'actions', $relativepath, 0, '');
                         $out = ($tmp ? $tmp . ' ' : '');
-                        $out .= '<a class="documentdownload" href="' . $documenturl . '?modulepart=agenda&amp;file=' . urlencode($relativepath) . '"';
+                        $out .= '<a class="documentdownload" href="' . $documenturl . '?modulepart=actions&amp;file=' . urlencode($relativepath) . '"';
                         $mime = dol_mimetype($relativepath, '', 0);
                         if (preg_match('/text/', $mime)) $out .= ' target="_blank"';
                         $out .= ' target="_blank">';
@@ -1783,9 +1783,9 @@ SCRIPT;
                     if (isset($conf->global->DOL_URL_ROOT_DOCUMENT_PHP)) $documenturl = $conf->global->DOL_URL_ROOT_DOCUMENT_PHP;    // To use another wrapper
 
                     // Show file name with link to download
-                    $tmp = $formfile->showPreview($file, 'agenda', $relativepath, 0, '');
+                    $tmp = $formfile->showPreview($file, 'actions', $relativepath, 0, '');
                     $out = ($tmp ? $tmp . ' ' : '');
-                    $out .= '<a class="documentdownload" href="' . $documenturl . '?modulepart=agenda&amp;file=' . urlencode($relativepath) . '"';
+                    $out .= '<a class="documentdownload" href="' . $documenturl . '?modulepart=actions&amp;file=' . urlencode($relativepath) . '"';
                     $mime = dol_mimetype($relativepath, '', 0);
                     if (preg_match('/text/', $mime)) $out .= ' target="_blank"';
                     $out .= ' target="_blank">';
