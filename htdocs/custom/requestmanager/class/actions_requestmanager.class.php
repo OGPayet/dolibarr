@@ -702,7 +702,7 @@ SCRIPT;
                 $requestmanagerplanning = new RequestManagerPlanning($this->db);
 
                 foreach ($requestmanagerrequesttype->lines as $request_type) {
-                    if (!in_array($request_type->id, $request_types_planned) || !isset($_POST['usergroups_in_charge_' . $request_type->id])) continue;
+                    if (!in_array($request_type->id, $request_types_planned)) continue;
 
                     $usergroups_in_charge = GETPOST('usergroups_in_charge_' . $request_type->id, 'array');
 
