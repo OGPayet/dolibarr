@@ -878,7 +878,7 @@ function synergiestech_fetch_request_of_benefactor($socBenefactorId, $statusType
     $result = array();
 
     if ($socBenefactorId > 0) {
-        $sql = "SELECT DISTINCT rm.rowid";
+        $sql = "SELECT DISTINCT rm.rowid, rm.datec";
         $sql .= " FROM " . MAIN_DB_PREFIX . "requestmanager as rm";
         if (!empty($statusTypes)) {
             $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_requestmanager_status as crms ON crms.rowid = rm.fk_status";
@@ -901,7 +901,10 @@ function synergiestech_fetch_request_of_benefactor($socBenefactorId, $statusType
             $sql .= " AND ee.fk_source IN (" . implode(',', $equipments) . ")";
         }
 		//We limit date based on date_creation
-		$sql .= " AND DATEDIFF(NOW(), rm.datec) <= 30 ";
+        //$sql .= " AND DATEDIFF(NOW(), rm.datec) <= 30 ";
+
+        //We limit number of request to 10
+        $sql .= " ORDER BY rm.datec DESC LIMIT 20";
 
         dol_syslog(__METHOD__, LOG_DEBUG);
         $resql = $db->query($sql);
