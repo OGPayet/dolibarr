@@ -426,7 +426,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
 
                 // get watchers ids
                 $companyrelationships = new CompanyRelationships($db);
-                $watcher_ids = $companyrelationships->getRelationshipsThirdparty($userSocId, CompanyRelationships::RELATION_TYPE_WATCHER, 1);
+                $watcher_ids = $companyrelationships->getRelationshipsThirdparty($userSocId, CompanyRelationships::RELATION_TYPE_WATCHER, 0);
                 if (is_array($watcher_ids)) {
                     $this->watcher_ids = $watcher_ids;
                 }
