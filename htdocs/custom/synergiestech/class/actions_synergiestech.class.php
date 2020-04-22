@@ -2505,6 +2505,102 @@ SCRIPT;
        return " AND c.total_ttc > 0 ";
     }
 
+
+
+    /**
+	 * Overloading the printFieldListWhereCustomerOrderToBill function : replacing the parent's function with the one below
+	 *
+	 * @param   array() $parameters Hook metadatas (context, etc...)
+	 * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+	 * @param   string &$action Current action (if set). Generally create or edit or null
+	 * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
+	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+	 */
+	function setHtmlTitle($parameters, &$object, &$action, $hookmanager)
+    {
+        global $object, $conf;
+        $prefix = null;
+        $weHaveToUseBenefactorId = false;
+        $field = "fk_soc";
+        $title = $parameters["title"];
+        if(!$object){
+            return 0;
+        }
+        $element = $object->element;
+        if($element == "invoice_supplier"){
+            $prefix = "FF";
+        }
+        elseif($element == "facture"){
+            $prefix = "F";
+            $weHaveToUseBenefactorId = !empty($conf->companyrelationships->enabled);
+        }
+        elseif($element == "propal"){
+            $prefix = "P";
+            $weHaveToUseBenefactorId = !empty($conf->companyrelationships->enabled);
+        }
+        elseif($element == "commande"){
+            $prefix = "C";
+            $weHaveToUseBenefactorId = !empty($conf->companyrelationships->enabled);
+        }
+        elseif($element == "order_supplier"){
+            $prefix = "BCF";
+            $field = "socid";
+        }
+        elseif($object->element == "shipping"){
+            $prefix = "E";
+            $weHaveToUseBenefactorId = !empty($conf->companyrelationships->enabled);
+        }
+        elseif($element == "contrat"){
+            $prefix = "Co";
+            $weHaveToUseBenefactorId = !empty($conf->companyrelationships->enabled);
+        }
+        elseif($element == "fichinter" || $element == "interventionsurvey"){
+            $prefix = "I";
+            $weHaveToUseBenefactorId = !empty($conf->companyrelationships->enabled);
+        }
+        elseif($element == "requestmanager"){
+            $prefix = "D";
+            $field = !empty($conf->companyrelationships->enabled) ? "socid_benefactor" : "socid";
+        }
+        elseif($element == "societe"){
+            $prefix = "S";
+            $field = "id";
+        }
+        elseif($element == "action"){
+            $prefix = "Ev";
+            $field = "socid";
+        }
+        $socId = $object->$field;
+        if($weHaveToUseBenefactorId){
+            $object->fetch_optionals();
+            $socId = $object->array_options["options_companyrelationships_fk_soc_benefactor"];
+        }
+        if($socId && $socId > 0){
+            require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
+            $societe = new Societe($this->db);
+            $societe->fetch($socId);
+            if($societe->id>0){
+                $thirdpartyName = empty($societe->name_alias) ? $societe->name : $societe->name_alias;
+                $listOfPatternToRemove = array(
+                    "Pharmacie de ",
+                    "pharmacie de ",
+                    "Pharmacie De ",
+                    "pharmacie De ",
+                    "Pharmacie ",
+                    "pharmacie ");
+                foreach($listOfPatternToRemove as $text){
+                    $thirdpartyName = str_replace($text, "",$thirdpartyName);
+                }
+                $prefix = $prefix . " - " . $thirdpartyName;
+            }
+        }
+        if($prefix){
+            $hookmanager->resPrint = $prefix . " | " .$title;
+            return 1;
+        }
+        return 0;
+    }
+
     /**
 	 * Overloading the addNextBannerTab function : replacing the parent's function with the one below
 	 *
