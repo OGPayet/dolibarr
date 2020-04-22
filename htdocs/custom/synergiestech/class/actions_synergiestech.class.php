@@ -2571,7 +2571,7 @@ SCRIPT;
             $field = "socid";
         }
         $socId = $object->$field;
-        if($weHaveToUseBenefactorId){
+        if($weHaveToUseBenefactorId && $object->id > 0){
             $object->fetch_optionals();
             $socId = $object->array_options["options_companyrelationships_fk_soc_benefactor"];
         }
