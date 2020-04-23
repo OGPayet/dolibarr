@@ -1011,11 +1011,17 @@ SCRIPT;
                 exit;
             } elseif ($action == 'addlink') {
                 $addlink = GETPOST('addlink', 'alpha');
-                $idtolinkto = GETPOST('idtolinkto', 'int');
-                if ($addlink == 'equipement' && $idtolinkto > 0) {
-                    if ($object->addContractsOfEquipment($idtolinkto) < 0) {
-                        array_merge($this->errors, $object->errors);
-                        return -1;
+                $idtolinkto = GETPOST('idtolinkto', 'array');
+                if(empty($idtolinkto)){
+                    $idtolinkto = GETPOST('idtolinkto', 'int');
+                }
+                $idtolinkto = array_filter($idtolinkto);
+                if ($addlink == 'equipement' && !empty($idtolinkto)) {
+                    foreach($idtolinkto as $linkto){
+                        if ($object->addContractsOfEquipment($linkto) < 0) {
+                            array_merge($this->errors, $object->errors);
+                            return -1;
+                        }
                     }
                 }
             } elseif ($action == 'synergiestech_create_returnproducts' && $confirm == 'yes') {

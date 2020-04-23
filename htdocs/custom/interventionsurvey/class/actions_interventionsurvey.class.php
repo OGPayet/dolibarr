@@ -93,20 +93,23 @@ class ActionsInterventionSurvey
             //According to these fetched data, if we have to do something, we execute database operations in order to have proper data for soft regeneration
             //Then we delete $_POST["action"] and $_GET["action"] in order to avoid any further action from DOL_DOCUMENT_ROOT.'/core/actions_dellink.inc.php'
 
-            $interventionId = null;
+            $interventionId = array();
             $otherLinkedElementType = null; //if one item is fichinter, this is the type of the other item
             if ($action == "addlink") {
                 $sourceElementType = $object->element;
                 $destinationElementType = GETPOST('addlink', 'alpha');
                 if ($sourceElementType == "fichinter") {
-                    $interventionId = $object->id;
+                    $interventionId = array($object->id);
                     $otherLinkedElementType = $destinationElementType;
                 } else if ($destinationElementType == "fichinter") {
-                    $interventionId = GETPOST('idtolinkto', 'int');
+                    $interventionId = GETPOST('idtolinkto', 'array');
+                    if(empty($interventionId)){
+                        $interventionId = array(GETPOST('idtolinkto', 'int'));
+                    }
                     $otherLinkedElementType = $sourceElementType;
                 }
                 $id = $object->id; //used for /core/actions_dellink.inc.php
-            } else {
+            } elseif($action == "dellink") {
                 //here $action == "dellink"
 
                 $sql = "SELECT fk_source, sourcetype, targettype, fk_target FROM " . MAIN_DB_PREFIX . "element_element WHERE rowid = " . GETPOST('dellinkid', 'int');
@@ -115,10 +118,10 @@ class ActionsInterventionSurvey
                 if ($resql) {
                     if ($obj = $this->db->fetch_object($resql)) {
                         if ($obj->sourcetype == "fichinter") {
-                            $interventionId = $obj->fk_source;
+                            $interventionId = array($obj->fk_source);
                             $otherLinkedElementType = $obj->targettype;
                         } else if ($obj->targettype == "fichinter") {
-                            $interventionId = $obj->fk_target;
+                            $interventionId = array($obj->fk_target);
                             $otherLinkedElementType = $obj->sourcetype;
                         }
                     }
@@ -127,8 +130,10 @@ class ActionsInterventionSurvey
                 }
             }
 
+            $interventionId = array_filter($interventionId);
+
             //If action was relating to an intervention, we have $interventionId which is now not null
-            if ($interventionId && empty($errors) && $otherLinkedElementType == "equipement") {
+            if (!empty($interventionId) && empty($errors) && $otherLinkedElementType == "equipement") {
                 //We add value needed for the include, as we don't fetch it from hookmanager
                 if ($object->element == "fichinter") {
                     $permissiondellink = $user->rights->ficheinter->creer; //used for /core/actions_dellink.inc.php
@@ -137,19 +142,24 @@ class ActionsInterventionSurvey
                 }
                 //We do actions in order to have database updated
                 include DOL_DOCUMENT_ROOT . '/core/actions_dellink.inc.php';
-                //We launch update of the intervention
-                dol_include_once('/interventionsurvey/class/interventionsurvey.class.php');
-                $interventionSurvey = new InterventionSurvey($this->db);
-                if (
-                    $interventionSurvey->fetch($interventionId) > 0
-                    && $interventionSurvey->fetchSurvey() > 0
-                    && (!$interventionSurvey->is_survey_read_only() || $interventionSurvey->statut == InterventionSurvey::STATUS_DRAFT)
-                ) {
-                    $interventionSurvey->softUpdateOfSurveyFromDictionary($user);
-                    $errors = array_merge($errors, $interventionSurvey->errors);
-                }
-                //As we have already launched the dellink or addlink actions, we change action value
+                 //As we have already launched the dellink or addlink actions, we change action value
                 $action = null;
+            }
+
+            foreach($interventionId as $interId){
+                if ($interId > 0 && empty($errors) && $otherLinkedElementType == "equipement") {
+                    //We launch update of the intervention
+                    dol_include_once('/interventionsurvey/class/interventionsurvey.class.php');
+                    $interventionSurvey = new InterventionSurvey($this->db);
+                    if (
+                        $interventionSurvey->fetch($interId) > 0
+                        && $interventionSurvey->fetchSurvey() > 0
+                        && (!$interventionSurvey->is_survey_read_only() || $interventionSurvey->statut == InterventionSurvey::STATUS_DRAFT)
+                    ) {
+                        $interventionSurvey->softUpdateOfSurveyFromDictionary($user);
+                        $errors = array_merge($errors, $interventionSurvey->errors);
+                    }
+                }
             }
 
             if (empty($errors)) {

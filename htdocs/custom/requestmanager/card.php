@@ -66,7 +66,11 @@ $confirm = GETPOST('confirm', 'alpha');
 $lineid = GETPOST('lineid', 'int');
 //links
 $addlink = GETPOST('addlink', 'alpha');
-$addlinkid = GETPOST('idtolinkto', 'int');
+$addlinkid = GETPOST('idtolinkto', 'array');
+if(empty($addlinkid)){
+    $addlinkid = array(GETPOST('idtolinkto', 'int'));
+}
+$addlinkid = array_filter($addlinkid);
 $dellinkid = GETPOST('dellinkid', 'int');
 
 // Security check
@@ -1126,18 +1130,24 @@ if (empty($reshook)) {
      * Links management
      *********************************************************/
     // Add link
-    elseif ($action == 'addlink' && !empty($permissiondellink) && !GETPOST('cancel', 'alpha') && $object->id > 0 && $addlinkid > 0 && $result > 0) {
+    elseif ($action == 'addlink' && !empty($permissiondellink) && !GETPOST('cancel', 'alpha') && $object->id > 0 && !empty($addlinkid) && $result > 0) {
         $object->oldcopy = clone $object;
-        $result = $object->add_object_linked($addlink, $addlinkid);
-        if ($result < 0) {
-            setEventMessages($object->error, $object->errors, 'errors');
-            $error++;
-        } else {
-            // Call trigger
-            $object->context = array('addlink' => $addlink, 'addlinkid' => $addlinkid);
-            $result = $object->call_trigger('REQUESTMANAGER_ADD_LINK', $user);
-            if ($result < 0) $error++;
-            // End call trigger
+        foreach($addlinkid as $linkId){
+            if($linkId > 0){
+                $result = $object->add_object_linked($addlink, $linkId);
+            }
+            if ($result < 0) {
+                setEventMessages($object->error, $object->errors, 'errors');
+                $error++;
+            } else {
+                // Call trigger
+                $object->context = array('addlink' => $addlink, 'addlinkid' => $addlinkid);
+                $result = $object->call_trigger('REQUESTMANAGER_ADD_LINK', $user);
+                if ($result < 0) {
+                    $error++;
+                }
+                // End call trigger
+            }
         }
     }
     // Delete link
