@@ -2541,11 +2541,11 @@ SCRIPT;
             $weHaveToUseBenefactorId = !empty($conf->companyrelationships->enabled);
         }
         elseif($element == "propal"){
-            $prefix = "P";
+            $prefix = "D";
             $weHaveToUseBenefactorId = !empty($conf->companyrelationships->enabled);
         }
         elseif($element == "commande"){
-            $prefix = "C";
+            $prefix = "BC";
             $weHaveToUseBenefactorId = !empty($conf->companyrelationships->enabled);
         }
         elseif($element == "order_supplier"){
@@ -2553,7 +2553,7 @@ SCRIPT;
             $field = "socid";
         }
         elseif($object->element == "shipping"){
-            $prefix = "E";
+            $prefix = "BL";
             $weHaveToUseBenefactorId = !empty($conf->companyrelationships->enabled);
         }
         elseif($element == "contrat"){
@@ -2565,11 +2565,11 @@ SCRIPT;
             $weHaveToUseBenefactorId = !empty($conf->companyrelationships->enabled);
         }
         elseif($element == "requestmanager"){
-            $prefix = "D";
+            $prefix = "R";
             $field = !empty($conf->companyrelationships->enabled) ? "socid_benefactor" : "socid";
         }
         elseif($element == "societe"){
-            $prefix = "S";
+            $prefix = "T";
             $field = "id";
         }
         elseif($element == "action"){
