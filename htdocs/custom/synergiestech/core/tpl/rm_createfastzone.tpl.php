@@ -284,45 +284,97 @@ if ($zone === 1) {
     $requestManagerList = synergiestech_fetch_request_of_benefactor($selectedSocIdBenefactor, array(), array(), array(), $msg_error_request);
     $nbRequest = count($requestManagerList);
 
-    $to_print = array();
-    $msg_error = '';
-    dol_include_once('/synergiestech/lib/synergiestech.lib.php');
     $contractList = synergiestech_fetch_contract($selectedSocId, $selectedSocIdBenefactor, $msg_error);
-    if (!empty($contractList) || empty($msg_error)) {
-        if (!empty($contractList)) {
-            require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
-            $extrafields_contract = new ExtraFields($db);
-            $extralabels_contract = $extrafields_contract->fetch_name_optionals_label('contrat');
-            foreach ($contractList as $contract) {
-                if (($contract->nbofserviceswait + $contract->nbofservicesopened) > 0 && $contract->statut != 2) {
-                    $contract->fetch_optionals();
-                    $to_print[] = "<a href='" . DOL_URL_ROOT . "/contrat/card.php?id=" . $contract->id . "'> " . $extrafields_contract->showOutputField('formule', $contract->array_options['options_formule']) . " - " . $contract->ref . "</a> ";
+    $contractList = array_filter($contractList, function($value) {
+        return $value->nbofservicesopened > 0 && $value->statut != 2;
+    });
+
+    require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
+    $extrafields_contract = new ExtraFields($db);
+    $extralabels_contract = $extrafields_contract->fetch_name_optionals_label('contrat');
+    $to_print_contract = array();
+    foreach($contractList as $contract){
+        $contract->fetch_optionals();
+        $to_print_contract[] = "<a href='" . DOL_URL_ROOT . "/contrat/card.php?id=" . $contract->id . "'> " . $extrafields_contract->showOutputField('formule', $contract->array_options['options_formule']) . " - " . $contract->ref . "</a> ";
+    }
+
+    $equipementListWithConcernedContract = array();
+    $equipementList = $requestManager->loadAllBenefactorEquipments($selectedSocId, $selectedSocIdBenefactor);
+    foreach($equipementList as $equipement){
+        $equipement->fetchObjectLinked();
+        $equipement->fetch_product();
+        $contractForThisEq = array();
+        if($equipement->linkedObjectsIds && !empty($equipement->linkedObjectsIds['contrat'])){
+            foreach($equipement->linkedObjectsIds['contrat'] as $contractId){
+                $contract = array_filter(
+                    $contractList,
+                    function ($e) use (&$contractId) {
+                        return $e->id == $contractId;
+                    }
+                );
+                $contractForThisEq = array_merge($contractForThisEq,$contract);
+            }
+        }
+        $equipementListWithConcernedContract[] = array("equipement"=>$equipement, "contract"=>$contractForThisEq);
+    }
+
+    $allEqHaveAnActiveContractLinked = true;
+    $to_print_equipement = array();
+    foreach($equipementListWithConcernedContract as $equipementContract){
+        $output = "";
+        $color = "green";
+        $output = $equipementContract['equipement']->product->label . ' - ' . $equipementContract['equipement']->ref . ' : ';
+        if(empty($equipementContract['contract'])){
+            $output = $output . 'Sans Contrat';
+            $color = "red";
+            $allEqHaveAnActiveContractLinked = false;
+        }
+        else {
+            foreach($equipementContract['contract'] as $contract){
+                $output = $output . "<a href='" . DOL_URL_ROOT . "/contrat/card.php?id=" . $contract->id . "'> " . $extrafields_contract->showOutputField('formule', $contract->array_options['options_formule']) . " - " . $contract->ref . "</a> ";
+            }
+        }
+        $to_print_equipement[] = '<h1 style="text-align:center;font-size: 4em;background-color:' . $color .'">' . $output . '</h1>';
+    }
+        if(empty($contractList)){
+            $backgroundColor = "red";
+        }
+        else if(!empty($equipementListWithConcernedContract) && $allEqHaveAnActiveContractLinked){
+            $backgroundColor = "green";
+        }
+        else {
+            $backgroundColor = "orange";
+        }
+
+        if($selectedSocId > 0 && $selectedSocIdBenefactor > 0){
+            print '<table class="border" width="100%">';
+            print '<tr style="background-color :' . $backgroundColor . '">';
+            print '<td>';
+            if (empty($msg_error)) {
+                if (count($to_print_equipement) > 0) {
+                    print '<h1 style="text-align:center;font-size: 4em;">Liste des équipements et contrats par équipement : </h1>';
+                    print implode('', $to_print_equipement);
+                } else if(count($to_print_contract) > 0){
+                    print '<h1 style="text-align:center;font-size: 4em;">Pas d\'équipements renseigné sur ce bénéficiaire, liste des contrats de ce bénéficiaire :' . implode('', $to_print_contract) . '</h1>';
+                }
+                else {
+                    print '<h1 style="color:red;text-align:center;font-size: 4em;">Sans contrat ni equipement</h1>';
                 }
             }
-        }
-        print '<table class="border" width="100%">';
-        print '<tr>';
-        print '<td>';
-        if (empty($msg_error)) {
-            if (count($to_print) > 0) {
-                print '<h1 style="color:green;text-align:center;font-size: 4em;">Avec contrat : ' . implode(', ', $to_print) . '</h1>';
             } else {
-                print '<h1 style="color:red;text-align:center;font-size: 4em;">Sans contrat</h1>';
+                print $msg_error;
             }
-        } else {
-            print $msg_error;
-        }
-        if (empty($msg_error_request)) {
-            if ($nbRequest > 0) {
-                print '<h1 style="color:red;text-align:center;font-size: 4em;">Attention, il y a ' . $nbRequest . ' demande(s) (voir ci-dessous)</h1>';
+            if (empty($msg_error_request)) {
+                if ($nbRequest > 0) {
+                    print '<h1 style="color:red;text-align:center;font-size: 4em;">Attention, il y a ' . $nbRequest . ' demande(s) (voir ci-dessous)</h1>';
+                }
+            } else {
+                print '<br>' . $msg_error_request;
             }
-        } else {
-            print '<br>' . $msg_error_request;
+            print '</td>';
+            print '</tr>';
+            print '</table>';
         }
-        print '</td>';
-        print '</tr>';
-        print '</table>';
-    }
 
     print '<table class="border" width="100%">';
     // Label
@@ -405,7 +457,6 @@ if ($zone === 1) {
             });
           </script>' . "\n";
     }
-}
 ?>
 <?php
 

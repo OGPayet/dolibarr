@@ -2190,6 +2190,7 @@ SCRIPT;
             //$sql .= ' AND cp.fk_categorie IN (' . (count($product_categories) > 0 ? implode(',', $product_categories) : '0') . ')';
             $sql .= " AND e.fk_soc_client = " . $fkSocBenefactor;
             $sql .= " AND eef.machineclient = 1";
+            $sql .= " AND e.fk_statut = 1";
 
             $this->resprints = $sql;
             return 1;
