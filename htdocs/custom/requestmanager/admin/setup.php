@@ -1185,19 +1185,19 @@ if (!empty($conf->use_javascript_ajax)) {
 }
 print '</td></tr>' . "\n";
 
-// REQUESTMANAGER_AUTO_ADD_CONTRACT_OF_BENEFICIAL_COMPANY
+// REQUESTMANAGER_AUTO_ADD_CONTRACT_OF_BENEFACTOR_COMPANY
 $var = !$var;
 print '<tr ' . $bc[$var] . '>' . "\n";
 print '<td>'.$langs->trans("RequestManagerAutoAddContractOfBeneficialCompanyName").'</td>'."\n";
 print '<td>'.$langs->trans("RequestManagerAutoAddContractOfBeneficialCompanyDesc").'</td>'."\n";
 print '<td align="right">' . "\n";
 if (!empty($conf->use_javascript_ajax)) {
-    print ajax_constantonoff('REQUESTMANAGER_AUTO_ADD_CONTRACT_OF_BENEFICIAL_COMPANY');
+    print ajax_constantonoff('REQUESTMANAGER_AUTO_ADD_CONTRACT_OF_BENEFACTOR_COMPANY');
 } else {
-    if (empty($conf->global->REQUESTMANAGER_AUTO_ADD_CONTRACT_OF_BENEFICIAL_COMPANY)) {
-        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_REQUESTMANAGER_AUTO_ADD_CONTRACT_OF_BENEFICIAL_COMPANY">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+    if (empty($conf->global->REQUESTMANAGER_AUTO_ADD_CONTRACT_OF_BENEFACTOR_COMPANY)) {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_REQUESTMANAGER_AUTO_ADD_CONTRACT_OF_BENEFACTOR_COMPANY">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
     } else {
-        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_REQUESTMANAGER_AUTO_ADD_CONTRACT_OF_BENEFICIAL_COMPANY">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_REQUESTMANAGER_AUTO_ADD_CONTRACT_OF_BENEFACTOR_COMPANY">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
     }
 }
 print '</td></tr>' . "\n";

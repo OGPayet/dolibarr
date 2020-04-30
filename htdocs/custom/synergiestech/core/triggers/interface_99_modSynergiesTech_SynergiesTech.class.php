@@ -77,6 +77,21 @@ class InterfaceSynergiesTech extends DolibarrTriggers
                         }
                     }
                 }
+                $object->fetchObjectLinked();
+                if (!isset($object->linkedObjectsIds['contrat']) && $conf->global->SYNERGIESTECH_AUTO_ADD_CONTRACT_IF_MISSING) {
+                    require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
+
+        $contrat = new Contrat($this->db);
+        $contrat->socid = $object->socid;
+        $listOfContract = $contrat->getListOfContracts();
+        foreach($listOfContract as $potentialContract){
+            if($potentialContract->array_options && $potentialContract->array_options['options_companyrelationships_fk_soc_benefactor'] == $object->socid_benefactor){
+                if($potentialContract->nbofservicesopened > 0 && $potentialContract->statut == Contrat::STATUS_VALIDATED){
+                    $object->setContract($potentialContract->id);
+                }
+            }
+        }
+                }
 
                 // Set the availability of the request at no by default if not created by API
                 if (!$object->context['created_by_api']) {

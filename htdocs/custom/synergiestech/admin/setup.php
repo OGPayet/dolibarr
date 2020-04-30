@@ -284,6 +284,23 @@ print '<td align="right">' . "\n";
 print $formdictionary->select_dictionary('requestmanager', 'requestmanagerrequesttype', $conf->global->SYNERGIESTECH_DEFAULT_REQUEST_TYPE_WHEN_CREATE, 'SYNERGIESTECH_DEFAULT_REQUEST_TYPE_WHEN_CREATE', 1, 'rowid', '{{label}}', array(), array('label'=>'ASC'), 0, array(), 0, 0, 'minwidth300');
 print '</td></tr>' . "\n";
 
+// SYNERGIESTECH_AUTO_ADD_CONTRACT_IF_MISSING
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>' . $langs->trans("SynergiesTechAddContractOnRequestCreation") . '</td>' . "\n";
+print '<td align="center">&nbsp;</td>' . "\n";
+print '<td align="right">' . "\n";
+if (!empty($conf->use_javascript_ajax)) {
+    print ajax_constantonoff('SYNERGIESTECH_AUTO_ADD_CONTRACT_IF_MISSING');
+} else {
+if (empty($conf->global->SYNERGIESTECH_AUTO_ADD_CONTRACT_IF_MISSING)) {
+    print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_SYNERGIESTECH_AUTO_ADD_CONTRACT_IF_MISSING">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+} else {
+    print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_SYNERGIESTECH_AUTO_ADD_CONTRACT_IF_MISSING">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+}
+}
+print '</td></tr>' . "\n";
+
 print '</table>';
 
 print '<br>';
