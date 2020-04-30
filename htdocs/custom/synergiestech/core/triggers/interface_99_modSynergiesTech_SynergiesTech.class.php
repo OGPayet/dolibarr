@@ -86,7 +86,7 @@ class InterfaceSynergiesTech extends DolibarrTriggers
         $listOfContract = $contrat->getListOfContracts();
         foreach($listOfContract as $potentialContract){
             if($potentialContract->array_options && $potentialContract->array_options['options_companyrelationships_fk_soc_benefactor'] == $object->socid_benefactor){
-                if($potentialContract->nbofservicesopened > 0 && $potentialContract->statut == Contrat::STATUS_VALIDATED){
+                if($potentialContract->nbofservicesopened > 0 && $potentialContract->statut == 1){
                     $object->setContract($potentialContract->id);
                 }
             }
