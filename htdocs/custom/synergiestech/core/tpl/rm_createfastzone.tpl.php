@@ -318,28 +318,26 @@ if ($zone === 1) {
         $equipementListWithConcernedContract[] = array("equipement"=>$equipement, "contract"=>$contractForThisEq);
     }
 
-    $allEqHaveAnActiveContractLinked = true;
-    $to_print_equipement = array();
+    $to_print_equipement_with_contract = array();
+    $to_print_equipement_without_contract = array();
+
     foreach($equipementListWithConcernedContract as $equipementContract){
-        $output = "";
-        $color = "green";
-        $output = $equipementContract['equipement']->product->label . ' - ' . $equipementContract['equipement']->ref . ' : ';
+        $output = $equipementContract['equipement']->product->label . ' - ' . $equipementContract['equipement']->ref;
         if(empty($equipementContract['contract'])){
-            $output = $output . 'Sans Contrat';
-            $color = "red";
-            $allEqHaveAnActiveContractLinked = false;
+            $to_print_equipement_without_contract[] = '<h1 style="text-align:center;font-size: 4em;">' . $output . '</h1>';
         }
         else {
+            $output = $output . ' : ';
             foreach($equipementContract['contract'] as $contract){
                 $output = $output . "<a href='" . DOL_URL_ROOT . "/contrat/card.php?id=" . $contract->id . "'> " . $extrafields_contract->showOutputField('formule', $contract->array_options['options_formule']) . " - " . $contract->ref . "</a> ";
             }
+            $to_print_equipement_with_contract[] = '<h1 style="text-align:center;font-size: 4em;">'  . $output . '</h1>';
         }
-        $to_print_equipement[] = '<h1 style="text-align:center;font-size: 4em;background-color:' . $color .'">' . $output . '</h1>';
     }
         if(empty($contractList)){
-            $backgroundColor = "red";
+            $backgroundColor = "";
         }
-        else if(!empty($equipementListWithConcernedContract) && $allEqHaveAnActiveContractLinked){
+        else if(!empty($equipementListWithConcernedContract) && empty($to_print_equipement_without_contract)){
             $backgroundColor = "green";
         }
         else {
@@ -351,10 +349,20 @@ if ($zone === 1) {
             print '<tr style="background-color :' . $backgroundColor . '">';
             print '<td>';
             if (empty($msg_error)) {
-                if (count($to_print_equipement) > 0) {
-                    print '<h1 style="text-align:center;font-size: 4em;">Liste des équipements et contrats par équipement : </h1>';
-                    print implode('', $to_print_equipement);
-                } else if(count($to_print_contract) > 0){
+                if (!empty($to_print_equipement_with_contract) || !empty($to_print_equipement_without_contract)) {
+                    if(!empty($to_print_equipement_with_contract)){
+                        print '<div style="background-color:green;">';
+                        print '<h1 style="text-align:center;font-size: 4em;">Liste des équipements sous contrat : </h1>';
+                        print implode('', $to_print_equipement_with_contract);
+                        print '</div>';
+                    }
+                    if(!empty($to_print_equipement_without_contract)){
+                        print '<div style="background-color:red;">';
+                        print '<h1 style="background-color:red;text-align:center;font-size: 4em;">Liste des équipements HORS contrat : </h1>';
+                        print implode('', $to_print_equipement_without_contract);
+                        print '</div>';
+                    }
+                } else if(!empty($to_print_contract)){
                     print '<h1 style="text-align:center;font-size: 4em;">Pas d\'équipements renseigné sur ce bénéficiaire, liste des contrats de ce bénéficiaire :' . implode('', $to_print_contract) . '</h1>';
                 }
                 else {
