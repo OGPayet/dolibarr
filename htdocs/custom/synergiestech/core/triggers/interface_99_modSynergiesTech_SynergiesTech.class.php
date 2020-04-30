@@ -30,7 +30,7 @@
  *              - Le nom de la classe doit etre InterfaceMytrigger
  *              - Le nom de la propriete name doit etre Mytrigger
  */
-require_once DOL_DOCUMENT_ROOT.'/core/triggers/dolibarrtriggers.class.php';
+require_once DOL_DOCUMENT_ROOT . '/core/triggers/dolibarrtriggers.class.php';
 
 
 /**
@@ -39,14 +39,14 @@ require_once DOL_DOCUMENT_ROOT.'/core/triggers/dolibarrtriggers.class.php';
 class InterfaceSynergiesTech extends DolibarrTriggers
 {
 
-	public $family = 'synergiestech';
-	public $picto = 'technic';
-	public $description = "Triggers of the module Synergies-Tech.";
-	public $version = self::VERSION_DOLIBARR;
+    public $family = 'synergiestech';
+    public $picto = 'technic';
+    public $description = "Triggers of the module Synergies-Tech.";
+    public $version = self::VERSION_DOLIBARR;
 
-	/**
+    /**
      * Function called when a Dolibarrr business event is done.
-	 * All functions "runTrigger" are triggered if file is inside directory htdocs/core/triggers or htdocs/module/code/triggers (and declared)
+     * All functions "runTrigger" are triggered if file is inside directory htdocs/core/triggers or htdocs/module/code/triggers (and declared)
      *
      * @param string		$action		Event action code
      * @param Object		$object     Object concerned. Some context information may also be provided into array property object->context.
@@ -59,7 +59,7 @@ class InterfaceSynergiesTech extends DolibarrTriggers
     {
         if (empty($conf->synergiestech->enabled)) return 0;     // Module not active, we do nothing
 
-	    switch ($action) {
+        switch ($action) {
             case 'REQUESTMANAGER_CREATE':
                 if (isset($object->linkedObjectsIds['equipement'])) {
                     if (is_array($object->linkedObjectsIds['equipement'])) {
@@ -78,19 +78,21 @@ class InterfaceSynergiesTech extends DolibarrTriggers
                     }
                 }
                 $object->fetchObjectLinked();
-                if (!isset($object->linkedObjectsIds['contrat']) && $conf->global->SYNERGIESTECH_AUTO_ADD_CONTRACT_IF_MISSING) {
+                $request_types_add_contract = !empty($conf->global->SYNERGIESTECH_AUTO_ADD_CONTRACT_IF_MISSING) ? explode(',', $conf->global->SYNERGIESTECH_AUTO_ADD_CONTRACT_IF_MISSING) : array();
+                if (!isset($object->linkedObjectsIds['equipement'])
+                && !isset($object->linkedObjectsIds['contrat'])
+                && in_array($object->fk_type, $request_types_add_contract)) {
                     require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
-
-        $contrat = new Contrat($this->db);
-        $contrat->socid = $object->socid;
-        $listOfContract = $contrat->getListOfContracts();
-        foreach($listOfContract as $potentialContract){
-            if($potentialContract->array_options && $potentialContract->array_options['options_companyrelationships_fk_soc_benefactor'] == $object->socid_benefactor){
-                if($potentialContract->nbofservicesopened > 0 && $potentialContract->statut == 1){
-                    $object->setContract($potentialContract->id);
-                }
-            }
-        }
+                    $contrat = new Contrat($this->db);
+                    $contrat->socid = $object->socid;
+                    $listOfContract = $contrat->getListOfContracts();
+                    foreach ($listOfContract as $potentialContract) {
+                        if ($potentialContract->array_options && $potentialContract->array_options['options_companyrelationships_fk_soc_benefactor'] == $object->socid_benefactor) {
+                            if ($potentialContract->nbofservicesopened > 0 && $potentialContract->statut == 1) {
+                                $object->setContract($potentialContract->id);
+                            }
+                        }
+                    }
                 }
 
                 // Set the availability of the request at no by default if not created by API
@@ -177,8 +179,13 @@ class InterfaceSynergiesTech extends DolibarrTriggers
                     $actioncomm->type_code = 'AC_SYN_FPHCC';
                     $actioncomm->code = 'AC_SYN_FPHCC';
                     $actioncomm->label = $langs->trans('SynergiesTechProductOffFormulaEventTitle');
-                    $actioncomm->note = $langs->trans('SynergiesTechProductOffFormulaEventMessage',
-                        $user->getNomUrl(1), $product->getNomUrl(1), $object->context['synergiestech_addline_not_into_formula'], $order->getNomUrl(1));
+                    $actioncomm->note = $langs->trans(
+                        'SynergiesTechProductOffFormulaEventMessage',
+                        $user->getNomUrl(1),
+                        $product->getNomUrl(1),
+                        $object->context['synergiestech_addline_not_into_formula'],
+                        $order->getNomUrl(1)
+                    );
                     $actioncomm->datep = $now;
                     $actioncomm->datef = $now;
                     $actioncomm->percentage = -1;   // Not applicable
@@ -200,8 +207,6 @@ class InterfaceSynergiesTech extends DolibarrTriggers
                         dol_syslog("interface_99_modSynergiesTech_SynergiesTech.class.php: " . $error, LOG_ERR);
                         return -1;
                     }
-
-
                 }
 
                 dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
@@ -287,8 +292,11 @@ class InterfaceSynergiesTech extends DolibarrTriggers
                     $actioncomm->type_code = 'AC_SYN_FPHCC';
                     $actioncomm->code = 'AC_SYN_FPHCC';
                     $actioncomm->label = $langs->trans('SynergiesTechProductsOffFormulaEventTitle');
-                    $actioncomm->note = $langs->trans('SynergiesTechProductsOffFormulaEventMessage',
-                        $user->getNomUrl(1), $order->getNomUrl(1));
+                    $actioncomm->note = $langs->trans(
+                        'SynergiesTechProductsOffFormulaEventMessage',
+                        $user->getNomUrl(1),
+                        $order->getNomUrl(1)
+                    );
                     $actioncomm->datep = $now;
                     $actioncomm->datef = $now;
                     $actioncomm->percentage = -1;   // Not applicable
@@ -368,6 +376,5 @@ class InterfaceSynergiesTech extends DolibarrTriggers
         }
 
         return 0;
-	}
-
+    }
 }

@@ -33,6 +33,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formactions.class.php';
 dol_include_once('/synergiestech/lib/synergiestech.lib.php');
 dol_include_once('/advancedictionaries/class/html.formdictionary.class.php');
+dol_include_once('/advancedictionaries/class/dictionary.class.php');
 
 $langs->load("admin");
 $langs->load("synergiestech@synergiestech");
@@ -42,6 +43,13 @@ if (!$user->admin) accessforbidden();
 
 $action = GETPOST('action','alpha');
 
+// Get request types list
+$requestmanagerrequesttype = Dictionary::getDictionary($db, 'requestmanager', 'requestmanagerrequesttype');
+$request_types = $requestmanagerrequesttype->fetch_lines(1, array(), array(), 0, 0, false, true);
+$request_types_array = array();
+foreach ($request_types as $request_type) {
+    $request_types_array[$request_type->id] = $request_type->fields['label'];
+}
 
 /*
  *	Actions
@@ -62,7 +70,6 @@ if (preg_match('/set_(.*)/',$action,$reg))
             $error++;
         }
     }
-
 
     if (! $error) {
         if (dolibarr_set_const($db, $code, $value, 'chaine', 0, '', $conf->entity) <= 0) {
@@ -134,6 +141,11 @@ if (preg_match('/set_(.*)/',$action,$reg))
     if (dolibarr_set_const($db, 'SYNERGIESTECH_DEFAULT_REQUEST_TYPE_WHEN_CREATE', GETPOST('SYNERGIESTECH_DEFAULT_REQUEST_TYPE_WHEN_CREATE', 'int'), 'chaine', 0, '', $conf->entity) <= 0) {
         $error++;
     }
+    $request_types_selected = !empty(GETPOST('SYNERGIESTECH_AUTO_ADD_CONTRACT_IF_MISSING', 'array')) ? implode(',', GETPOST('SYNERGIESTECH_AUTO_ADD_CONTRACT_IF_MISSING', 'array')) : "";
+
+    if (dolibarr_set_const($db, 'SYNERGIESTECH_AUTO_ADD_CONTRACT_IF_MISSING', $request_types_selected, 'chaine', 0, '', $conf->entity) <= 0) {
+        $error++;
+    }
 
     if (!$error) {
         Header("Location: " . $_SERVER["PHP_SELF"]);
@@ -151,6 +163,7 @@ $formproduct = new FormProduct($db);
 $formother = new FormOther($db);
 $formactions = new FormActions($db);
 $formdictionary = new FormDictionary($db);
+$form = new Form($db);
 
 llxHeader();
 
@@ -285,21 +298,15 @@ print $formdictionary->select_dictionary('requestmanager', 'requestmanagerreques
 print '</td></tr>' . "\n";
 
 // SYNERGIESTECH_AUTO_ADD_CONTRACT_IF_MISSING
+$request_types_selected = !empty($conf->global->SYNERGIESTECH_AUTO_ADD_CONTRACT_IF_MISSING) ? explode(',', $conf->global->SYNERGIESTECH_AUTO_ADD_CONTRACT_IF_MISSING) : array();
+
 $var = !$var;
 print '<tr ' . $bc[$var] . '>' . "\n";
 print '<td>' . $langs->trans("SynergiesTechAddContractOnRequestCreation") . '</td>' . "\n";
 print '<td align="center">&nbsp;</td>' . "\n";
-print '<td align="right">' . "\n";
-if (!empty($conf->use_javascript_ajax)) {
-    print ajax_constantonoff('SYNERGIESTECH_AUTO_ADD_CONTRACT_IF_MISSING');
-} else {
-if (empty($conf->global->SYNERGIESTECH_AUTO_ADD_CONTRACT_IF_MISSING)) {
-    print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_SYNERGIESTECH_AUTO_ADD_CONTRACT_IF_MISSING">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
-} else {
-    print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_SYNERGIESTECH_AUTO_ADD_CONTRACT_IF_MISSING">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
-}
-}
-print '</td></tr>' . "\n";
+print '<td align="right">'."\n";
+print $form->multiselectarray("SYNERGIESTECH_AUTO_ADD_CONTRACT_IF_MISSING", $request_types_array, $request_types_selected, 0, 0, 'minwidth300');
+print '</td></tr>'."\n";
 
 print '</table>';
 
