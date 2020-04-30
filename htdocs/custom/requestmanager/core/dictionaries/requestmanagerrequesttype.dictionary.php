@@ -147,6 +147,7 @@ class RequestManagerRequestTypeDictionary extends Dictionary
         ),
         'user_group' => array(),
         'category' => array(),
+        'statusWhenTakingInCharge'=>array()
     );
 
     /**
@@ -160,6 +161,23 @@ class RequestManagerRequestTypeDictionary extends Dictionary
         0 => array(
             'fields'    => array('code'),
             'is_unique' => true,
+        ),
+    );
+
+    /**
+     * @var array  List of fields/indexes added, updated or deleted for a version
+     * array(
+     *   'version' => array(
+     *     'fields' => array('field_name'=>'a', 'field_name'=>'u', 'field_name'=>'d', ...), // List of field name who is added(a) or updated(u) or deleted(d) for a version
+     *     'indexes' => array('idx_number'=>'a', 'idx_number'=>'u', 'idx_number'=>'d', ...), // List of indexes number who is added(a) or updated(u) or deleted(d) for a version
+     *   ),
+     * )
+     */
+    public $updates = array(
+        1 => array(
+            'fields' => array(
+                'statusWhenTakingInCharge' => 'a',
+            )
         ),
     );
 
@@ -219,5 +237,13 @@ class RequestManagerRequestTypeDictionary extends Dictionary
                 'moreAttributes' => 'width="20%"',
             ),
         );
+
+        $this->fields['statusWhenTakingInCharge'] = array(
+            'name' => 'statusWhenTakingInCharge',
+            'label' => 'RequestManagerStatusWhenTakingInCharge',
+            'type' => 'sellist',
+            'options' => 'c_requestmanager_status:code|label:rowid::active=1 and entity IN (' . getEntity('dictionary', 1) . ')',
+        );
     }
 }
+

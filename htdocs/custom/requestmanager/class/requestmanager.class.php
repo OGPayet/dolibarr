@@ -2860,6 +2860,15 @@ class RequestManager extends CommonObject
         return $this->LibType($this->fk_type, $mode);
     }
 
+    function fill_request_type_cache($forceReload = false){
+        if (empty(self::$type_list) || $forceReload) {
+            dol_include_once('/advancedictionaries/class/dictionary.class.php');
+            $dictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagerrequesttype');
+            $dictionary->fetch_lines(-1, array(), array('label' => 'ASC'));
+            self::$type_list = $dictionary->lines;
+        }
+    }
+
     /**
      *  Return label of type provides
      *
@@ -2877,12 +2886,7 @@ class RequestManager extends CommonObject
 
         $langs->load("requestmanager@requestmanager");
 
-        if (empty(self::$type_list) || $forcereload) {
-            dol_include_once('/advancedictionaries/class/dictionary.class.php');
-            $dictionary = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagerrequesttype');
-            $dictionary->fetch_lines(-1, array(), array('label' => 'ASC'));
-            self::$type_list = $dictionary->lines;
-        }
+        $this->fill_request_type_cache($forcereload);
 
         if (!isset(self::$type_list[$id])) {
             return $langs->trans('RequestManagerErrorNotFound');

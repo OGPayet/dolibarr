@@ -74,7 +74,7 @@ function getAssociationTableNameForChkbxlstFieldType($field, $table_name) {
 	return getAssociationTableOptionsForChkbxlstFieldType($field, $table_name)[1];
  }
 
- function getForeignKeyOfDestinationTableInAssociationTableForChkbxlstFieldType($field) {
+ function getForeignKeyOfDestinationTableInAssociationTableForChkbxlstFieldType($field, $table_name) {
 	return getAssociationTableOptionsForChkbxlstFieldType($field, $table_name)[2];
  }
 

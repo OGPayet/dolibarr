@@ -1467,6 +1467,10 @@ SCRIPT;
             if ($action == 'addfast' && GETPOST('btn_create_take_charge')) {
                 $action = 'create_take_charge';
             }
+            if ($action == 'addfast' && GETPOST('btn_create_take_really_in_charge')){
+                $create_and_take_in_charge_confirmed = true;
+                $action = "addfast";
+            }
             if ($action == 'confirm_force_principal_company' && $confirm == "yes" && $user->rights->requestmanager->creer) {
                 $force_principal_company_confirmed = true;
                 $action = "addfast";
@@ -1596,10 +1600,18 @@ SCRIPT;
 
                         if ($create_and_take_in_charge_confirmed) {
                             $next_status = GETPOST('next_status', 'int');
-                            $result = $object->set_status($next_status, -1, $user);
-                            if ($result < 0) {
-                                setEventMessages($object->error, $object->errors, 'errors');
-                                $error++;
+                            if(!$next_status){
+                                //We have to set status from dictionary according to request type
+                                $object->fill_request_type_cache();
+                                $request_type_list = $object::$type_list;
+                                $next_status = $request_type_list[$object->fk_type]->fields['statusWhenTakingInCharge'];
+                            }
+                            if($next_status){
+                                $result = $object->set_status($next_status, -1, $user);
+                                if ($result < 0) {
+                                    setEventMessages($object->error, $object->errors, 'errors');
+                                    $error++;
+                                }
                             }
                         }
 

@@ -347,6 +347,8 @@ if ($zone === 1) {
     print '<div align="right">';
     print '<input type="submit" class="button" name="btn_create" value="' . $langs->trans('RequestManagerCreateFastBtnCreateLabel') . '"/>';
     print '&nbsp;<input type="submit" class="button" name="btn_create_take_charge" value="' . $langs->trans('SynergiesTechButtonCreateAndTakeCharge') . '"/>';
+    print '&nbsp;<input type="submit" class="button" name="btn_create_take_really_in_charge" value="' . $langs->trans('SynergiesTechButtonCreateAndTakeReallyCharge') . '"/>';
+
     print '</div>';
 
     ?>
