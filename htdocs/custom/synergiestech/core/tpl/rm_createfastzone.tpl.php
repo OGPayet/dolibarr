@@ -620,20 +620,30 @@ if ($zone === 3) {
             print '<tr class="liste_titre">';
             print '<td>' . $langs->trans("Product") . '</td>';
             print '<td>' . $langs->trans("Ref") . '</td>';
-            print '<td></td>';
+            print '<td>' . $langs->trans("SynergiesTechEquipementTeamViewerIdAndCredential") . '</td>';
             print '</tr>';
             print '</tr>';
             if (count($equipementList) > 0) {
                 dol_include_once('/synergiestech/class/html.formsynergiestech.class.php');
                 $formsynergiestech = new FormSynergiesTech($db);
+                $eqExtraFields = new ExtraFields($db);
+                $eqExtraLabels = $eqExtraFields->fetch_name_optionals_label('equipement');
 
                 foreach ($equipementList as $equipement) {
                     $productStatic = new Product($db);
                     $productStatic->fetch($equipement->fk_product);
+                    $equipement->fetch_optionals();
                     print '<tr class="liste">';
                     print '<td align="left"><a href="' . DOL_URL_ROOT . '/product/card.php?id=' . $equipement->fk_product . '" target="_blank">' . $productStatic->label . '</a></td>';
                     print '<td align="left"><a href="' . dol_buildpath('/equipement/card.php', 1) . '?id=' . $equipement->id . '" target="_blank">' . $equipement->ref . '</a> ' . $formsynergiestech->picto_equipment_has_contract($equipement->id) . '</td>';
-                    print '<td align="left"></td>';
+                    $idTelemText = array();
+                    if($equipement->array_options['options_idtelem']){
+                        $idTelemText[] = $eqExtraFields->showOutputField('idtelem', $equipement->array_options['options_idtelem']);
+                    }
+                    if($equipement->array_options['options_mdpmachineclient']){
+                        $idTelemText[] = $eqExtraFields->showOutputField('mdpmachineclient', $equipement->array_options['options_mdpmachineclient']);
+                    }
+                    print '<td align="left">' . implode(' - ', $idTelemText) .'</td>';
                     print '<tr>';
                 }
             }

@@ -218,6 +218,8 @@ SynergiesTechButtonCreateAndTakeReallyCharge = Créer la demande et prendre en c
 SynergiesTechButtonCreateAndTakeChargeWithMessage = Créer la demande, créer le message, s'assigner, choisir le status
 SynergiesTechButtonCreateAndTakeReallyChargeWithMessage = Créer la demande, créer le message, prendre en charge
 SynergiesTechButtonCreateWithMessageAndClosed = Créer la demande, créer le message, s'assigner, clôturer la demande
+
+SynergiesTechEquipementTeamViewerIdAndCredential = Identifiants de télémaintenance
 ###########################################################
 ### Intervention PDF
 ###########################################################
