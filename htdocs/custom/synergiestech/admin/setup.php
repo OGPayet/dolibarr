@@ -308,6 +308,19 @@ print '<td align="right">'."\n";
 print $form->multiselectarray("SYNERGIESTECH_AUTO_ADD_CONTRACT_IF_MISSING", $request_types_array, $request_types_selected, 0, 0, 'minwidth300');
 print '</td></tr>'."\n";
 
+// SYNERGIESTECH_DO_NOT_KEEP_LINKED_OBJECT_WHEN_CLONING_SUPPLIER_ORDER
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>' . $langs->trans("SynergiesTechDoNotKeepLinkedObjectWhenCloningSupplierOrder") . '</td>' . "\n";
+print '<td align="center">&nbsp;</td>' . "\n";
+print '<td align="right">' . "\n";
+if (empty($conf->global->SYNERGIESTECH_DO_NOT_KEEP_LINKED_OBJECT_WHEN_CLONING_SUPPLIER_ORDER)) {
+    print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_SYNERGIESTECH_DO_NOT_KEEP_LINKED_OBJECT_WHEN_CLONING_SUPPLIER_ORDER">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+} else {
+    print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_SYNERGIESTECH_DO_NOT_KEEP_LINKED_OBJECT_WHEN_CLONING_SUPPLIER_ORDER">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+}
+print '</td></tr>' . "\n";
+
 print '</table>';
 
 print '<br>';
