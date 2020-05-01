@@ -29,7 +29,7 @@ $langs->load('companies');
 $langs->load('agenda');
 $langs->load('requestmanager@requestmanager');
 
-$zone  = intval(GETPOST('zone' , 'int'));
+$zone  = intval(GETPOST('zone', 'int'));
 ?>
 <?php
 
@@ -285,7 +285,7 @@ if ($zone === 1) {
     $nbRequest = count($requestManagerList);
 
     $contractList = synergiestech_fetch_contract($selectedSocId, $selectedSocIdBenefactor, $msg_error);
-    $contractList = array_filter($contractList, function($value) {
+    $contractList = array_filter($contractList, function ($value) {
         return $value->nbofservicesopened > 0 && $value->statut != 2;
     });
 
@@ -293,96 +293,91 @@ if ($zone === 1) {
     $extrafields_contract = new ExtraFields($db);
     $extralabels_contract = $extrafields_contract->fetch_name_optionals_label('contrat');
     $to_print_contract = array();
-    foreach($contractList as $contract){
+    foreach ($contractList as $contract) {
         $contract->fetch_optionals();
         $to_print_contract[] = "<a href='" . DOL_URL_ROOT . "/contrat/card.php?id=" . $contract->id . "'> " . $extrafields_contract->showOutputField('formule', $contract->array_options['options_formule']) . " - " . $contract->ref . "</a> ";
     }
 
     $equipementListWithConcernedContract = array();
     $equipementList = $requestManager->loadAllBenefactorEquipments($selectedSocId, $selectedSocIdBenefactor);
-    foreach($equipementList as $equipement){
+    foreach ($equipementList as $equipement) {
         $equipement->fetchObjectLinked();
         $equipement->fetch_product();
         $contractForThisEq = array();
-        if($equipement->linkedObjectsIds && !empty($equipement->linkedObjectsIds['contrat'])){
-            foreach($equipement->linkedObjectsIds['contrat'] as $contractId){
+        if ($equipement->linkedObjectsIds && !empty($equipement->linkedObjectsIds['contrat'])) {
+            foreach ($equipement->linkedObjectsIds['contrat'] as $contractId) {
                 $contract = array_filter(
                     $contractList,
                     function ($e) use (&$contractId) {
                         return $e->id == $contractId;
                     }
                 );
-                $contractForThisEq = array_merge($contractForThisEq,$contract);
+                $contractForThisEq = array_merge($contractForThisEq, $contract);
             }
         }
-        $equipementListWithConcernedContract[] = array("equipement"=>$equipement, "contract"=>$contractForThisEq);
+        $equipementListWithConcernedContract[] = array("equipement" => $equipement, "contract" => $contractForThisEq);
     }
 
     $to_print_equipement_with_contract = array();
     $to_print_equipement_without_contract = array();
 
-    foreach($equipementListWithConcernedContract as $equipementContract){
+    foreach ($equipementListWithConcernedContract as $equipementContract) {
         $output = $equipementContract['equipement']->product->label . ' - ' . $equipementContract['equipement']->ref;
-        if(empty($equipementContract['contract'])){
+        if (empty($equipementContract['contract'])) {
             $to_print_equipement_without_contract[] = '<h1 style="text-align:center;font-size: 4em;">' . $output . '</h1>';
-        }
-        else {
+        } else {
             $output = $output . ' : ';
-            foreach($equipementContract['contract'] as $contract){
+            foreach ($equipementContract['contract'] as $contract) {
                 $output = $output . "<a href='" . DOL_URL_ROOT . "/contrat/card.php?id=" . $contract->id . "'> " . $extrafields_contract->showOutputField('formule', $contract->array_options['options_formule']) . " - " . $contract->ref . "</a> ";
             }
             $to_print_equipement_with_contract[] = '<h1 style="text-align:center;font-size: 4em;">'  . $output . '</h1>';
         }
     }
-        if(empty($contractList)){
-            $backgroundColor = "";
-        }
-        else if(!empty($equipementListWithConcernedContract) && empty($to_print_equipement_without_contract)){
-            $backgroundColor = "green";
-        }
-        else {
-            $backgroundColor = "orange";
-        }
+    if (empty($contractList)) {
+        $backgroundColor = "";
+    } else if (!empty($equipementListWithConcernedContract) && empty($to_print_equipement_without_contract)) {
+        $backgroundColor = "green";
+    } else {
+        $backgroundColor = "orange";
+    }
 
-        if($selectedSocId > 0 && $selectedSocIdBenefactor > 0){
-            print '<table class="border" width="100%">';
-            print '<tr style="background-color :' . $backgroundColor . '">';
-            print '<td>';
-            if (empty($msg_error)) {
-                if (!empty($to_print_equipement_with_contract) || !empty($to_print_equipement_without_contract)) {
-                    if(!empty($to_print_equipement_with_contract)){
-                        print '<div style="background-color:green;">';
-                        print '<h1 style="text-align:center;font-size: 4em;">Liste des équipements sous contrat : </h1>';
-                        print implode('', $to_print_equipement_with_contract);
-                        print '</div>';
-                    }
-                    if(!empty($to_print_equipement_without_contract)){
-                        print '<div style="background-color:red;">';
-                        print '<h1 style="background-color:red;text-align:center;font-size: 4em;">Liste des équipements HORS contrat : </h1>';
-                        print implode('', $to_print_equipement_without_contract);
-                        print '</div>';
-                    }
-                } else if(!empty($to_print_contract)){
-                    print '<h1 style="text-align:center;font-size: 4em;">Pas d\'équipements renseigné sur ce bénéficiaire, liste des contrats de ce bénéficiaire :' . implode('', $to_print_contract) . '</h1>';
+    if ($selectedSocId > 0 && $selectedSocIdBenefactor > 0) {
+        print '<table class="border" width="100%">';
+        print '<tr style="background-color :' . $backgroundColor . '">';
+        print '<td>';
+        if (empty($msg_error)) {
+            if (!empty($to_print_equipement_with_contract) || !empty($to_print_equipement_without_contract)) {
+                if (!empty($to_print_equipement_with_contract)) {
+                    print '<div style="background-color:green;">';
+                    print '<h1 style="text-align:center;font-size: 4em;">Liste des équipements sous contrat : </h1>';
+                    print implode('', $to_print_equipement_with_contract);
+                    print '</div>';
                 }
-                else {
-                    print '<h1 style="color:red;text-align:center;font-size: 4em;">Sans contrat ni equipement</h1>';
+                if (!empty($to_print_equipement_without_contract)) {
+                    print '<div style="background-color:red;">';
+                    print '<h1 style="background-color:red;text-align:center;font-size: 4em;">Liste des équipements HORS contrat : </h1>';
+                    print implode('', $to_print_equipement_without_contract);
+                    print '</div>';
                 }
-            }
+            } else if (!empty($to_print_contract)) {
+                print '<h1 style="text-align:center;font-size: 4em;">Pas d\'équipements renseigné sur ce bénéficiaire, liste des contrats de ce bénéficiaire :' . implode('', $to_print_contract) . '</h1>';
             } else {
-                print $msg_error;
+                print '<h1 style="color:red;text-align:center;font-size: 4em;">Sans contrat ni equipement</h1>';
             }
-            if (empty($msg_error_request)) {
-                if ($nbRequest > 0) {
-                    print '<h1 style="color:red;text-align:center;font-size: 4em;">Attention, il y a ' . $nbRequest . ' demande(s) (voir ci-dessous)</h1>';
-                }
-            } else {
-                print '<br>' . $msg_error_request;
-            }
-            print '</td>';
-            print '</tr>';
-            print '</table>';
         }
+    } else {
+        print $msg_error;
+    }
+    if (empty($msg_error_request)) {
+        if ($nbRequest > 0) {
+            print '<h1 style="color:red;text-align:center;font-size: 4em;">Attention, il y a ' . $nbRequest . ' demande(s) (voir ci-dessous)</h1>';
+        }
+    } else {
+        print '<br>' . $msg_error_request;
+    }
+    print '</td>';
+    print '</tr>';
+    print '</table>';
 
     print '<table class="border" width="100%">';
     // Label
@@ -411,41 +406,41 @@ if ($zone === 1) {
 
     print '</div>';
 
-    ?>
-  <script type="text/javascript">
-    jQuery(document).ready(function () {
-      var requestManagerLoader = new RequestManagerLoader(1, 'create_fast_zone', '<?php echo $_SERVER["PHP_SELF"]; ?>', {});
+?>
+    <script type="text/javascript">
+        jQuery(document).ready(function() {
+            var requestManagerLoader = new RequestManagerLoader(1, 'create_fast_zone', '<?php echo $_SERVER["PHP_SELF"]; ?>', {});
 
-      jQuery('#actioncomm_id').change(function () {
-        requestManagerLoader.loadZone(1, 'change_actioncomm_id');
-      });
+            jQuery('#actioncomm_id').change(function() {
+                requestManagerLoader.loadZone(1, 'change_actioncomm_id');
+            });
 
-//            jQuery('#categories').change(function(){
-//                requestManagerLoader.loadZone(1, 'change_categories');
-//            });
+            //            jQuery('#categories').change(function(){
+            //                requestManagerLoader.loadZone(1, 'change_categories');
+            //            });
 
-//      jQuery('#equipement_id').change(function () {
-//        requestManagerLoader.loadZone(1, 'change_equipement_id');
-//      });
+            //      jQuery('#equipement_id').change(function () {
+            //        requestManagerLoader.loadZone(1, 'change_equipement_id');
+            //      });
 
-      jQuery('#socid_origin').change(function () {
-        requestManagerLoader.loadZone(1, 'change_socid_origin');
-      });
+            jQuery('#socid_origin').change(function() {
+                requestManagerLoader.loadZone(1, 'change_socid_origin');
+            });
 
-      jQuery('#socid').change(function () {
-        requestManagerLoader.loadZone(1, 'change_socid');
-      });
+            jQuery('#socid').change(function() {
+                requestManagerLoader.loadZone(1, 'change_socid');
+            });
 
-      jQuery('#socid_benefactor').change(function () {
-        requestManagerLoader.loadZone(1, 'change_socid_benefactor');
-      });
-//
-//      jQuery('#socid_watcher').change(function () {
-//        requestManagerLoader.loadZone(1, 'change_socid_watcher');
-//      });
-    });
-  </script>
-    <?php
+            jQuery('#socid_benefactor').change(function() {
+                requestManagerLoader.loadZone(1, 'change_socid_benefactor');
+            });
+            //
+            //      jQuery('#socid_watcher').change(function () {
+            //        requestManagerLoader.loadZone(1, 'change_socid_watcher');
+            //      });
+        });
+    </script>
+<?php
 
     // Wrapper to show tooltips (html or onclick popup)
     if (!empty($conf->use_javascript_ajax) && empty($conf->dol_no_mouse_hover)) {
@@ -465,6 +460,7 @@ if ($zone === 1) {
             });
           </script>' . "\n";
     }
+}
 ?>
 <?php
 
@@ -479,7 +475,7 @@ if ($zone === 2) {
 
         $msg_error = '';
         //$requestManagerList = synergiestech_fetch_request_of_benefactor($selectedSocIdBenefactor, array(RequestManager::STATUS_TYPE_INITIAL, RequestManager::STATUS_TYPE_IN_PROGRESS), array(), array(), $msg_error);
-		$requestManagerList = synergiestech_fetch_request_of_benefactor($selectedSocIdBenefactor, array(), array(), array(), $msg_error);
+        $requestManagerList = synergiestech_fetch_request_of_benefactor($selectedSocIdBenefactor, array(), array(), array(), $msg_error);
 
         if (count($requestManagerList) > 0 || !empty($msg_error)) {
             print '<br />';
@@ -548,8 +544,8 @@ if ($zone === 2) {
 if ($zone === 3) {
     $langs->load('contracts');
 
-    $selectedSocId            = GETPOST('socid', 'int')?intval(GETPOST('socid', 'int')):-1;
-    $selectedSocIdBenefactor  = GETPOST('socid_benefactor', 'int')?intval(GETPOST('socid_benefactor', 'int')):-1;
+    $selectedSocId            = GETPOST('socid', 'int') ? intval(GETPOST('socid', 'int')) : -1;
+    $selectedSocIdBenefactor  = GETPOST('socid_benefactor', 'int') ? intval(GETPOST('socid_benefactor', 'int')) : -1;
 
     $requestManager = new RequestManager($db);
 
@@ -616,12 +612,12 @@ if ($zone === 3) {
                 dol_include_once('/synergiestech/class/html.formsynergiestech.class.php');
                 $formsynergiestech = new FormSynergiesTech($db);
 
-                foreach($equipementList as $equipement) {
+                foreach ($equipementList as $equipement) {
                     $productStatic = new Product($db);
                     $productStatic->fetch($equipement->fk_product);
                     print '<tr class="liste">';
                     print '<td align="left"><a href="' . DOL_URL_ROOT . '/product/card.php?id=' . $equipement->fk_product . '" target="_blank">' . $productStatic->label . '</a></td>';
-                    print '<td align="left"><a href="' . dol_buildpath('/equipement/card.php', 1) . '?id=' . $equipement->id . '" target="_blank">' . $equipement->ref . '</a> '. $formsynergiestech->picto_equipment_has_contract($equipement->id) . '</td>';
+                    print '<td align="left"><a href="' . dol_buildpath('/equipement/card.php', 1) . '?id=' . $equipement->id . '" target="_blank">' . $equipement->ref . '</a> ' . $formsynergiestech->picto_equipment_has_contract($equipement->id) . '</td>';
                     print '<td align="left"></td>';
                     print '<tr>';
                 }
@@ -710,12 +706,11 @@ if ($zone === 3) {
         }
 
         // Wrapper to show tooltips (html or onclick popup)
-        if (! empty($conf->use_javascript_ajax) && empty($conf->dol_no_mouse_hover))
-        {
+        if (!empty($conf->use_javascript_ajax) && empty($conf->dol_no_mouse_hover)) {
             print "\n<!-- JS CODE TO ENABLE tipTip on all object with class classfortooltip -->\n";
             print '<script type="text/javascript">
                 jQuery(document).ready(function () {
-                  jQuery(".classfortooltip").tipTip({maxWidth: "'.dol_size(($conf->browser->layout == 'phone' ? 400 : 700),'width').'px", edgeOffset: 10, delay: 50, fadeIn: 50, fadeOut: 50});
+                  jQuery(".classfortooltip").tipTip({maxWidth: "' . dol_size(($conf->browser->layout == 'phone' ? 400 : 700), 'width') . 'px", edgeOffset: 10, delay: 50, fadeIn: 50, fadeOut: 50});
                   jQuery(".classfortooltiponclicktext").dialog({ width: 500, autoOpen: false });
                   jQuery(".classfortooltiponclick").click(function () {
                     console.log("We click on tooltip for element with dolid="+$(this).attr(\'dolid\'));
