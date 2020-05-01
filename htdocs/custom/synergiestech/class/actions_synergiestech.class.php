@@ -95,6 +95,30 @@ class ActionsSynergiesTech
     {
         return $this->_redirection($parameters, $object, $action, $hookmanager);
     }
+
+        /**
+     * Overloading the listeVersion_customOptions function : replacing the parent's function with the one below
+     *
+     * @param   array() $parameters Hook metadatas (context, etc...)
+     * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string &$action Current action (if set). Generally create or edit or null
+     * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+    function listeVersion_customOptions($parameters, &$object, &$action, $hookmanager)
+    {
+        global $langs, $conf, $user;
+        if(!$user->rights->synergiestech->product_line_price->lire){
+            $row = $parameters['row'];
+            $selected = $parameters['selected'];
+            $versionNumber = $parameters['versionNumber'];
+            $this->resprints = '<option id="'.$row->rowid.'" value="'.$row->rowid.'" '.$selected.'>Version n° ' . $versionNumber . ' - '.dol_print_date($this->db->jdate($row->date_cre), "dayhour").'</option>';
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    }
 /**
      * Overloading the afterLogin function : replacing the parent's function with the one below
      *
