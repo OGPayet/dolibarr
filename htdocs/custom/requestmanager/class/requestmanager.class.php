@@ -3471,7 +3471,7 @@ class RequestManager extends CommonObject
      * @param   int         $save_lastsearch_value      -1=Auto, 0=No save of lastsearch_values when clicking, 1=Save lastsearch_values whenclicking
      * @return  string                                  String with URL
      */
-    function getNomUrl($withpicto=0, $option='', $maxlen=0, $notooltip=0, $save_lastsearch_value=-1)
+    function getNomUrl($withpicto=0, $option='', $maxlen=0, $notooltip=0, $save_lastsearch_value=-1, $target = null)
     {
         global $langs, $conf, $user;
 
@@ -3512,6 +3512,9 @@ class RequestManager extends CommonObject
         }
 
         $linkstart = '<a href="' . $url . '"';
+        if($target){
+            $linkstart = $linkstart . 'target=' . $linkstart;
+        }
         $linkstart .= $linkclose . '>';
         $linkend = '</a>';
 
@@ -3525,7 +3528,7 @@ class RequestManager extends CommonObject
             }
             if (!isset($stop_parent_id) || $stop_parent_id != $this->parent->id) {
                 $this->fetch_parent();
-                $result = $this->parent->getNomUrl($withpicto, $option, $maxlen, $notooltip, $save_lastsearch_value) . ' >> ' . $result;
+                $result = $this->parent->getNomUrl($withpicto, $option, $maxlen, $notooltip, $save_lastsearch_value,$target) . ' >> ' . $result;
             }
         }
 

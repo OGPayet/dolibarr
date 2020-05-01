@@ -509,7 +509,7 @@ if ($zone === 2) {
                 foreach ($requestManagerList as $requestManager) {
                     print '<tr class="liste">';
                     print '<td align="left">' . $requestManager->getLibType() . '</td>';
-                    print '<td align="left"><a href="' . dol_buildpath('/requestmanager/card.php', 1) . '?id=' . $requestManager->id . '" target="_blank">' . $requestManager->ref . '</a></td>';
+                    print '<td align="left">' . $requestManager->getLibStatut(3)  . $requestManager->getNomUrl(0,'parent_path',20,1,-1,'_blank') . '</td>';
                     print '<td align="left">' . $requestManager->label . '</td>';
                     print '<td align="left">' . dol_print_date($requestManager->date_creation, 'dayhour') . '</td>';
                     print '<td align="center">';
