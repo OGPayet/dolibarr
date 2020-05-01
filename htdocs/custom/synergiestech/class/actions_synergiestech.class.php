@@ -1768,6 +1768,11 @@ $btn_create_take_really_in_charge_with_message_and_clotured = GETPOST('btn_creat
                 }
             }
         }
+        elseif(in_array('productpricecard', $contexts)){
+            if(!$user->rights->synergiestech->product_line_price->lire){
+                accessforbidden();
+            }
+        }
 
         return 0;
     }
