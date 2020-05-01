@@ -166,6 +166,7 @@ class modSynergiesTech extends DolibarrModules
         $this->tabs = array(
 			'intervention:-equipement:Equipements:@equipement:/equipement/tabs/fichinter.php?id=__ID__',
 			'intervention:-eventadd:EventsAdd:@equipement:/equipement/tabs/fichinterAdd.php?id=__ID__',
+			'product:-price::!$user->rights->synergiestech->product_line_price->lire:'
 		);
 
 		if (! isset($conf->synergiestech) || ! isset($conf->synergiestech->enabled))
