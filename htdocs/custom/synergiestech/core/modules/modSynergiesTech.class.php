@@ -163,7 +163,10 @@ class modSynergiesTech extends DolibarrModules
 		// 'stock'            to add a tab in stock view
 		// 'thirdparty'       to add a tab in third party view
 		// 'user'             to add a tab in user view
-        $this->tabs = array();
+        $this->tabs = array(
+			'intervention:-equipement:Equipements:@equipement:/equipement/tabs/fichinter.php?id=__ID__',
+			'intervention:-eventadd:EventsAdd:@equipement:/equipement/tabs/fichinterAdd.php?id=__ID__',
+		);
 
 		if (! isset($conf->synergiestech) || ! isset($conf->synergiestech->enabled))
         {
