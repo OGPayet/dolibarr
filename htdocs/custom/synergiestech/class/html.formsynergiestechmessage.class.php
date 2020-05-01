@@ -588,4 +588,311 @@ SCRIPT;
 
         return $out;
     }
+        /**
+     *  Output html form to send a message
+     *
+     * @param   string      $addfileaction      Name of action when posting file attachments
+     * @param   string      $removefileaction   Name of action when removing file attachments
+     * @return  string                          HTML string with form to send a message
+     */
+    function get_message_area_for_create_fast()
+    {
+        global $conf, $langs, $user, $hookmanager, $form, $formrequestmanager;
+
+        dol_include_once('/requestmanager/class/requestmanagermessage.class.php');
+
+        if (!is_object($form)) {
+            require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
+            $form = new Form($this->db);
+        }
+
+        if (!is_object($formrequestmanager)) {
+            dol_include_once('/requestmanager/class/html.formrequestmanager.class.php');
+            $formrequestmanager = new FormRequestManager($this->db);
+        }
+
+        $langs->loadLangs(array("other", "requestmanager@requestmanager", "requestmanager@synergiestechsynergiestech"));
+
+        $hookmanager->initHooks(array('requestmanagerformmessage'));
+
+        $parameters = array(
+            'addfileaction' => &$addfileaction,
+            'removefileaction' => &$removefileaction,
+        );
+        $reshook = $hookmanager->executeHooks('getRequestManagerMessageForm', $parameters, $this);
+        if (!empty($reshook)) {
+            return $hookmanager->resPrint;
+        }
+
+        // Make
+        $out = '';
+
+
+        // Define output language
+        $outputlangs = $langs;
+        $newlang = '';
+        if ($conf->global->MAIN_MULTILANGS && empty($newlang)) $newlang = $this->param['langsmodels'];
+        if (!empty($newlang)) {
+            $outputlangs = new Translate("", $conf);
+            $outputlangs->setDefaultLang($newlang);
+            $outputlangs->load('other');
+        }
+
+        $out .= '<table class="border" width="100%">' . "\n";
+
+        // Message type
+        //-----------------
+        $message_type_out = RequestManagerMessage::MESSAGE_TYPE_OUT;
+        $message_type_private = RequestManagerMessage::MESSAGE_TYPE_PRIVATE;
+        $message_type = GETPOST('message_type', 'int');
+        $out .= '<tr>';
+        $out .= '<td class="fieldrequired" width="180">' . $langs->trans("RequestManagerMessageType") . '</td>';
+        $out .= '<td>';
+        $out .= '<input type="radio" id="message_type_out" name="message_type" value="' . RequestManagerMessage::MESSAGE_TYPE_OUT . '"' . ($message_type !== '' && $message_type == RequestManagerMessage::MESSAGE_TYPE_OUT ? ' checked="checked"' : '') . '/>';
+        $out .= '&nbsp;<label for="message_type_out">' . $langs->trans("RequestManagerMessageTypeOut") . '&nbsp;' . img_help(0, $langs->trans("RequestManagerMessageTypeOutHelp")) . '</label>';
+        $out .= ' &nbsp; ';
+        $out .= '<input type="radio" id="message_type_private" name="message_type" value="' . RequestManagerMessage::MESSAGE_TYPE_PRIVATE . '"' . ($message_type === '' || ($message_type != RequestManagerMessage::MESSAGE_TYPE_OUT && $message_type != RequestManagerMessage::MESSAGE_TYPE_IN) ? ' checked="checked"' : '') . '/>';
+        $out .= '&nbsp;<label for="message_type_private">' . $langs->trans("RequestManagerMessageTypePrivate") . '&nbsp;' . img_help(0, $langs->trans("RequestManagerMessageTypePrivateHelp")) . '</label>';
+        $out .= "</td></tr>\n";
+        $out .= <<<SCRIPT
+             <script type="text/javascript" language="javascript">
+                 jQuery(document).ready(function () {
+                     rm_update_message_type_options($('input[type=radio][name="message_type"]:checked').val());
+
+                     // Change message type
+                     $('input[type="radio"][name="message_type"]').on("change", function () {
+                         rm_update_message_type_options(this.value);
+                     });
+
+                     // Update html element for a message type
+                     function rm_update_message_type_options(value) {
+                         value = parseInt(value);
+                         switch (value) {
+                             case $message_type_out:
+                                 $('input#notify_requesters').prop('disabled', false);
+                                 $('input#notify_watchers').prop('disabled', false);
+                                 $('#subject_label').addClass('fieldrequired');
+                                 $('input#subject').prop('disabled', false);
+                                 break;
+                             case $message_type_private:
+                                 $('input#notify_requesters').prop('disabled', true);
+                                 $('input#notify_watchers').prop('disabled', true);
+                                 $('#subject_label').removeClass('fieldrequired');
+                                 $('input#subject').prop('disabled', true);
+                                 break;
+                         }
+                     }
+                 });
+             </script>
+SCRIPT;
+
+        // Notify
+        //-----------------
+        $notify_assigned = GETPOST('notify_assigned', 'int', 2);
+        $notify_requester = GETPOST('notify_requesters', 'int', 2);
+        $notify_watcher = GETPOST('notify_watchers', 'int', 2);
+//        if (!isset($_POST['message_type'])) {
+//            $notify_assigned = $this->requestmanager->notify_assigned_by_email;
+//            $notify_requester = $this->requestmanager->notify_requester_by_email;
+//            $notify_watcher = $this->requestmanager->notify_watcher_by_email;
+//        }
+        $out .= '<tr>';
+        $out .= '<td width="180">' . $langs->trans("RequestManagerMessageNotify") . '</td>';
+        $out .= '<td>';
+        if (!empty($conf->global->REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_EMAIL)) {
+            $out .= '<input type="checkbox" id="notify_assigned" name="notify_assigned" value="1"' . (!empty($notify_assigned) ? ' checked="checked"' : '') . ' />';
+            $out .= '&nbsp;<label for="notify_assigned">' . $langs->trans("RequestManagerAssigned") . '</label>';
+            $out .= ' &nbsp; ';
+        }
+        $out .= '<input type="checkbox" id="notify_requesters" name="notify_requesters" value="1"' . (!empty($notify_requester) ? ' checked="checked"' : '') . ' />';
+        $out .= '&nbsp;<label for="notify_requesters">' . $langs->trans("RequestManagerRequesterContacts") . '</label>';
+        $out .= ' &nbsp; ';
+        $out .= '<input type="checkbox" id="notify_watchers" name="notify_watchers" value="1"' . (!empty($notify_watcher) ? ' checked="checked"' : '') . ' />';
+        $out .= '&nbsp;<label for="notify_watchers">' . $langs->trans("RequestManagerWatcherContacts") . '</label>';
+        $out .= "</td></tr>\n";
+
+        // Other attributes
+        //----------------------
+        require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
+        $extrafields = new ExtraFields($this->db);
+        $requestmanagermessage = new RequestManagerMessage($this->db);
+        $extralabels = $extrafields->fetch_name_optionals_label($requestmanagermessage->table_element);
+        $ret = $extrafields->setOptionalsFromPost($extralabels, $requestmanagermessage);
+        $parameters = array(
+            'messageform' => &$this,
+            'addfileaction' => &$addfileaction,
+            'removefileaction' => &$removefileaction,
+        );
+        $reshook = $hookmanager->executeHooks('formObjectOptions', $parameters, $requestmanagermessage); // Note that $action and $this may have been modified by hook
+        $out .= $hookmanager->resPrint;
+        if (empty($reshook) && !empty($extrafields->attribute_label)) {
+            $out .= $requestmanagermessage->showOptionals($extrafields, 'edit');
+        }
+
+        // Event confidentiality
+        //--------------------------------------
+        if ($conf->eventconfidentiality->enabled && $user->rights->eventconfidentiality->manage) {
+            $langs->load('eventconfidentiality@eventconfidentiality');
+
+            // Get all tags
+            dol_include_once('/advancedictionaries/class/dictionary.class.php');
+            $dictionary = Dictionary::getDictionary($this->db, 'eventconfidentiality', 'eventconfidentialitytag');
+            $result = $dictionary->fetch_lines(1, array(), array('label' => 'ASC'));
+            if ($result < 0) {
+                $this->error = $dictionary->error;
+                $this->errors = $dictionary->errors;
+                return -1;
+            }
+
+            // Get tags set or default tags
+            dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
+            $eventconfidentiality = new EventConfidentiality($this->db);
+            $default_tags = $eventconfidentiality->getDefaultTags($this->requestmanager->element);
+            if (!is_array($default_tags)) {
+                $this->error = $eventconfidentiality->error;
+                $this->errors = $eventconfidentiality->errors;
+                return -1;
+            }
+
+            // Format out tags lines
+            $internal_tags = '';
+            $external_tags = '';
+            $initialize_tags = 1;
+            foreach ($dictionary->lines as $line) {
+                if (isset($_POST['ec_mode_' . $line->id])) $initialize_tags = 0;
+                $mode = isset($_POST['ec_mode_' . $line->id]) ? GETPOST('ec_mode_' . $line->id, 'int') : EventConfidentiality::MODE_HIDDEN;
+                if (empty($line->fields['external']) && !$user->rights->eventconfidentiality->internal->lire) {
+                    $tmp = '<input type="hidden" name="ec_mode_' . $line->id . '" value="' . ($mode == EventConfidentiality::MODE_VISIBLE ? 0 : ($mode == EventConfidentiality::MODE_BLURRED ? 1 : 2)) . '">';
+                } else {
+                    $tmp = '<tr id="' . $line->id . '">';
+                    $tmp .= '<td>' . $line->fields['label'] . '</td>';
+                    $tmp .= '<td>';
+                    $tmp .= '<input type="radio" id="ec_mode_' . $line->id . '_' . EventConfidentiality::MODE_VISIBLE . '" name="ec_mode_' . $line->id . '" value="0"' . ($mode == EventConfidentiality::MODE_VISIBLE ? ' checked="checked"' : "") . '><label for="ec_mode_' . $line->id . '_' . EventConfidentiality::MODE_VISIBLE . '">' . $langs->trans('EventConfidentialityModeVisible') . '</label>';
+                    $tmp .= '&nbsp;<input type="radio" id="ec_mode_' . $line->id . '_' . EventConfidentiality::MODE_BLURRED . '" name="ec_mode_' . $line->id . '" value="1"' . ($mode == EventConfidentiality::MODE_BLURRED ? ' checked="checked"' : "") . '><label for="ec_mode_' . $line->id . '_' . EventConfidentiality::MODE_BLURRED . '">' . $langs->trans('EventConfidentialityModeBlurred') . '</label>';
+                    $tmp .= '&nbsp;<input type="radio" id="ec_mode_' . $line->id . '_' . EventConfidentiality::MODE_HIDDEN . '" name="ec_mode_' . $line->id . '" value="2"' . ($mode == EventConfidentiality::MODE_HIDDEN ? ' checked="checked"' : "") . '><label for="ec_mode_' . $line->id . '_' . EventConfidentiality::MODE_HIDDEN . '">' . $langs->trans('EventConfidentialityModeHidden') . '</label>';
+                    $tmp .= '</td>';
+                    $tmp .= '</tr>';
+                }
+                if (empty($line->fields['external'])) {
+                    $internal_tags .= $tmp;
+                } else {
+                    $external_tags .= $tmp;
+                }
+            }
+            if ($user->rights->eventconfidentiality->internal->lire) {
+                // Internal tags
+                $out .= '<tr>';
+                $out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityTagInterneLabel") . '</td>';
+                $out .= '<td colspan="3"><table class="noborder margintable centpercent">';
+                $out .= '<tr><th class="liste_titre" width="40%">Tags</th><th class="liste_titre">Mode</th></tr>';
+                $out .= $internal_tags;
+                $out .= '</table></td>';
+                $out .= '</tr>';
+            } else {
+                $out .= $internal_tags;
+            }
+            // External tags
+            $out .= '<tr>';
+            $out .= '<td class="nowrap" class="titlefield">' . $langs->trans("EventConfidentialityTagExterneLabel") . '</td>';
+            $out .= '<td colspan="3"><table class="noborder margintable centpercent">';
+            $out .= '<tr><th class="liste_titre" width="40%">Tags</th><th class="liste_titre">Mode</th></tr>';
+            $out .= $external_tags;
+            $out .= '</table></td>';
+            $out .= '</tr>';
+
+            $default_tags = json_encode($default_tags);
+            $message_type_list = json_encode(array(
+                RequestManagerMessage::MESSAGE_TYPE_OUT => 'AC_RM_OUT',
+                RequestManagerMessage::MESSAGE_TYPE_PRIVATE => 'AC_RM_PRIV',
+            ));
+            $hidden_mode = EventConfidentiality::MODE_HIDDEN;
+            $out .= <<<SCRIPT
+     <script type="text/javascript" language="javascript">
+         $(document).ready(function () {
+             var rm_default_tags = $default_tags;
+             var rm_message_type_list = $message_type_list;
+
+             if ($initialize_tags) rm_update_tags();
+             $('input[name="message_type"]').on('change', function() {
+                 rm_update_tags();
+             });
+
+             function rm_update_tags() {
+                 var message_type = $('input[name="message_type"]:checked').val();
+                 var action_code = rm_message_type_list[message_type];
+
+                 if (action_code in rm_default_tags) {
+                     $.map(rm_default_tags[action_code], function(val, idx) {
+                         $('#ec_mode_' + idx + '_' + val['mode']).prop('checked', true);
+                         $('input[type="hidden"][name="ec_mode_' + idx + '"]').val(val['mode']);
+                     })
+                 } else {
+                     $.map($('[id^="ec_mode_"][id$="_$hidden_mode"]'), function(val, idx) {
+                         $(val).prop('checked', true);
+                     });
+                     $.map($('input[type="hidden"][name^="ec_mode_"]'), function(val, idx) {
+                         $(val).val($hidden_mode);
+                     });
+                 }
+             }
+         });
+     </script>
+SCRIPT;
+        }
+
+        // Subject
+        //-----------------
+        $subject = GETPOST('message_subject', 'alpha', 2);
+
+        $out .= '<td id="subject_label" width="150px">' . $langs->trans("RequestManagerSubject");
+        $out .= '&nbsp;' . $form->textwithpicto('', $helpSubstitution, 1, 'help', '', 0, 2, 'substitution');
+        $out .= '</td><td>' . "\n";
+        $out .= '<input type="text" id="message_subject" name="message_subject" style="width: 95%;" max="255" value="' . dol_escape_htmltag($subject) . '">';
+        $out .= "</td>\n";
+
+        $out .= '</tr></td></tr>' . "\n";
+
+        // Message
+        //-----------------
+        $message = GETPOST('message', 'alpha', 2);
+        // Clean first \n and br (to avoid empty line when CONTACTCIVNAME is empty)
+        //$message = preg_replace("/^(<br>)+/", "", $message);
+        //$message = preg_replace("/^\n+/", "", $message);
+
+        $out .= '<tr>';
+        $out .= '<td class="fieldrequired" width="180" valign="top">' . $langs->trans("RequestManagerMessage");
+        $out .= '</td>';
+        $out .= '<td>';
+        // Editor wysiwyg
+        require_once DOL_DOCUMENT_ROOT . '/core/class/doleditor.class.php';
+        $doleditor = new DolEditor('message', $message, '', 280, 'dolibarr_notes', 'In', true, true, 1, 8, '95%');
+        $out .= $doleditor->Create(1);
+        $out .= "</td></tr>\n";
+
+        $out .= <<<SCRIPT
+            <script type="text/javascript" language="javascript">
+                jQuery(document).ready(function () {
+                    // Disabled return keypress
+                    $(document).on("keypress", '#requestmanagermessageform', function (e) {
+                        var code = e.keyCode || e.which;
+                        if (code == 13) {
+                            e.preventDefault();
+                            return false;
+                        }
+                    });
+
+                    // Resize tooltip box
+                    $(".classfortooltiponclick").click(function () {
+                        if ($(this).attr('dolid'))
+                        {
+                            jQuery(".classfortooltiponclicktext").dialog({ width: 'auto', autoOpen: false });
+                            obj=$("#idfortooltiponclick_"+$(this).attr('dolid'));
+                            obj.dialog("open");
+                        }
+                    });
+                });
+             </script>
+SCRIPT;
+        return $out;
+    }
 }

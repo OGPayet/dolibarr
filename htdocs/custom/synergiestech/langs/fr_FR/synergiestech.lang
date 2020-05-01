@@ -208,12 +208,14 @@ SynergiesTechMessageKnowledgeBaseSelected   = Base de connaissance sélectionné
 ### Create request
 ###########################################################
 SynergiesTechLastFilteredEvents             = Liste des %s derniers évènements filtrés
-SynergiesTechButtonCreateAndTakeCharge      = Créer, prendre en charge, choisir le status
+SynergiesTechButtonCreateAndTakeCharge      = Créer la demande, s'assigner, choisir le status
 SynergiesTechNextStatus                     = Statut
-SynergiesTechCreateAndTakeInCharge          = Créer, prendre en charge, choisir le status
+SynergiesTechCreateAndTakeInCharge          = Créer la demande, s'assigner, choisir le status
 SynergiesTechConfirmCreateAndTakeInCharge   = Êtes-vous sûr de vouloir créer et prendre en charger cette demande ?
-SynergiesTechButtonCreateAndTakeReallyCharge = Créer et prendre en charge
-
+SynergiesTechButtonCreateAndTakeReallyCharge = Créer la demande et prendre en charge
+SynergiesTechButtonCreateAndTakeChargeWithMessage = Créer la demande, créer le message, s'assigner, choisir le status
+SynergiesTechButtonCreateAndTakeReallyChargeWithMessage = Créer la demande, créer le message, prendre en charge
+SynergiesTechButtonCreateWithMessageAndClosed = Créer la demande, créer le message, s'assigner, clôturer la demande
 ###########################################################
 ### Intervention PDF
 ###########################################################

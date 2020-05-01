@@ -132,7 +132,7 @@ class RequestManagerRequestTypeDictionary extends Dictionary
             'label'      => 'Code',
             'type'       => 'varchar',
             'database'   => array(
-              'length'   => 16,
+                'length'   => 16,
             ),
             'is_require' => true,
         ),
@@ -141,13 +141,14 @@ class RequestManagerRequestTypeDictionary extends Dictionary
             'label'      => 'Label',
             'type'       => 'varchar',
             'database'   => array(
-              'length'   => 255,
+                'length'   => 255,
             ),
             'is_require' => true,
         ),
         'user_group' => array(),
         'category' => array(),
-        'statusWhenTakingInCharge'=>array()
+        'statusWhenTakingInCharge' => array(),
+        'statusWhenClotured' => array()
     );
 
     /**
@@ -176,7 +177,12 @@ class RequestManagerRequestTypeDictionary extends Dictionary
     public $updates = array(
         1 => array(
             'fields' => array(
-                'statusWhenTakingInCharge' => 'a',
+               // 'statusWhenTakingInCharge' => 'a',
+            )
+        ),
+        2 => array(
+            'fields' => array(
+                'statusWhenClotured' => 'a',
             )
         ),
     );
@@ -187,11 +193,11 @@ class RequestManagerRequestTypeDictionary extends Dictionary
     public $is_multi_entity = true;
 
     /**
-	 * Initialize the dictionary
-	 *
+     * Initialize the dictionary
+     *
      * @return  void
-	 */
-	protected function initialize()
+     */
+    protected function initialize()
     {
         global $conf, $user;
 
@@ -244,6 +250,12 @@ class RequestManagerRequestTypeDictionary extends Dictionary
             'type' => 'sellist',
             'options' => 'c_requestmanager_status:code|label:rowid::active=1 and entity IN (' . getEntity('dictionary', 1) . ')',
         );
+
+        $this->fields['statusWhenClotured'] = array(
+            'name' => 'statusWhenClotured',
+            'label' => 'RequestManagerStatusWhenTakingInChargeAndClotured',
+            'type' => 'sellist',
+            'options' => 'c_requestmanager_status:code|label:rowid::active=1 and entity IN (' . getEntity('dictionary', 1) . ')',
+        );
     }
 }
-

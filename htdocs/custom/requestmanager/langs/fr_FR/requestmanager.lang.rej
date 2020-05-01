@@ -1,10 +1,11 @@
 diff a/htdocs/custom/requestmanager/langs/fr_FR/requestmanager.lang b/htdocs/custom/requestmanager/langs/fr_FR/requestmanager.lang	(rejected hunks)
-@@ -504,7 +504,7 @@ RequestManagerStatusDictionaryAssignedUserCurrent                           = As
+@@ -504,7 +504,8 @@ RequestManagerStatusDictionaryAssignedUserCurrent                           = As
  RequestManagerStatusDictionaryAssignedUserCurrentHelp                       = Assigner l'utilisateur courant ayant effectué le passage à ce statut.
  RequestManagerStatusDictionaryDoNotBlocProcess                              = Ne pas bloquer le flux
  RequestManagerStatusDictionaryDoNotBlocProcessHelp                          = Ce statut ne bloque pas le flux si des demandes filles ne sont pas clôturées - les statuts suivants ne sont donc pas accessible si cette case est décochée et qu'une ou plusieurs demandes filles ne sont pas clôturées
--
-+RequestManagerStatusWhenTakingInCharge                                                    = Status à utiliser lors d'une prise en charge
+-RequestManagerStatusWhenTakingInCharge                                                    = Status à utiliser lors d'une prise en charge
++RequestManagerStatusWhenTakingInCharge                                      = Status à utiliser lors d'une prise en charge
++RequestManagerStatusWhenTakingInChargeAndClotured                           = Status à utiliser pour cloturer par défaut
  ############################################################
  ### Form request manager
  ############################################################

@@ -79,6 +79,8 @@ if ($zone === 1) {
     $requestManager = new RequestManager($db);
     dol_include_once('/synergiestech/class/html.formsynergiestech.class.php');
     $formsynergiestech = new FormSynergiesTech($db);
+    dol_include_once('/synergiestech/class/html.formsynergiestechmessage.class.php');
+    $formrequestmanagermessage = new FormSynergiesTechMessage($db, new RequestManager($db));
 
     if (!empty($conf->companyrelationships->enabled)) {
         dol_include_once('/companyrelationships/class/companyrelationships.class.php');
@@ -405,6 +407,19 @@ if ($zone === 1) {
     print '&nbsp;<input type="submit" class="button" name="btn_create_take_really_in_charge" value="' . $langs->trans('SynergiesTechButtonCreateAndTakeReallyCharge') . '"/>';
 
     print '</div>';
+
+   // Show message form
+   print '<table class="border" width="100%">';
+   print $formrequestmanagermessage->get_message_area_for_create_fast();
+   print '</table>';
+
+   // btn create with a message
+   print '<div align="right">';
+   print '&nbsp;<input type="submit" class="button" name="btn_create_take_charge_with_message" value="' . $langs->trans('SynergiesTechButtonCreateAndTakeChargeWithMessage') . '"/>';
+   print '&nbsp;<input type="submit" class="button" name="btn_create_take_really_in_charge_with_message" value="' . $langs->trans('SynergiesTechButtonCreateAndTakeReallyChargeWithMessage') . '"/>';
+   print '&nbsp;<input type="submit" class="button" name="btn_create_take_really_in_charge_with_message_and_clotured" value="' . $langs->trans('SynergiesTechButtonCreateWithMessageAndClosed') . '"/>';
+
+   print '</div>';
 
 ?>
     <script type="text/javascript">

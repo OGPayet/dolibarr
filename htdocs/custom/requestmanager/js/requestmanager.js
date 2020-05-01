@@ -59,6 +59,13 @@ class RequestManagerLoader {
             ajaxData.contact_ids   = jQuery('#contact_ids').val();
             ajaxData.categories    = jQuery('#categories').val();
             ajaxData.equipement_id = jQuery('#equipement_id').val();
+            ajaxData.notify_assigned = jQuery('#notify_assigned').val();
+            ajaxData.notify_requesters = jQuery('#notify_requesters').val();
+            ajaxData.notify_watchers = jQuery('#notify_watchers').val();
+            ajaxData.message_type = jQuery('input[name=message_type]:checked').val();
+            ajaxData.message_subject = jQuery('#message_subject').val();
+            ajaxData.message = typeof CKEDITOR == "object" && typeof CKEDITOR.instances != "undefined" && "message" in CKEDITOR.instances ? CKEDITOR.instances["message"].getData() : jQuery('#message').val();
+
         }
 
         return ajaxData;

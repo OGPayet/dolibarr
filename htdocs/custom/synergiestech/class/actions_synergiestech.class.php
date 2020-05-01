@@ -861,6 +861,17 @@ SCRIPT;
             $origin = GETPOST('origin', 'alpha');
             $originid = GETPOST('originid', 'int');
             $next_status = GETPOST('next_status', 'int');
+            $notify_assigned = GETPOST('notify_assigned','int');
+$notify_requesters = GETPOST('notify_requesters','int');
+$notify_watchers = GETPOST('notify_watchers','int');
+$message_type = GETPOST('message_type','int');
+$message_subject = GETPOST('message_subject','alpha');
+$message = GETPOST('message','alpha');
+$btn_create_take_charge = GETPOST('btn_create_take_charge');
+$btn_create_take_really_in_charge = GETPOST('btn_create_take_really_in_charge');
+$btn_create_take_charge_with_message = GETPOST('btn_create_take_charge_with_message');
+$btn_create_take_really_in_charge_with_message = GETPOST('btn_create_take_really_in_charge_with_message');
+$btn_create_take_really_in_charge_with_message_and_clotured = GETPOST('btn_create_take_really_in_charge_with_message_and_clotured');
 
             if ($selectedSocIdOrigin === '' && $selectedSocId > 0) {
                 $selectedSocIdOrigin = $selectedSocId;
@@ -928,6 +939,17 @@ SCRIPT;
             if (!empty($force_out_of_time_confirmed)) $formquestion[] = array('type' => 'hidden', 'name' => 'force_out_of_time_confirmed', 'value' => $force_out_of_time_confirmed ? 1 : 0);
             if (!empty($next_status)) $formquestion[] = array('type' => 'hidden', 'name' => 'next_status', 'value' => $next_status);
             if (!empty($create_and_take_in_charge_confirmed)) $formquestion[] = array('type' => 'hidden', 'name' => 'create_and_take_in_charge_confirmed', 'value' => $create_and_take_in_charge_confirmed ? 1 : 0);
+            if (!empty($notify_assigned)) $formquestion[] = array('type' => 'hidden', 'name' => 'notify_assigned', 'value' => $notify_assigned);
+            if (!empty($notify_requesters)) $formquestion[] = array('type' => 'hidden', 'name' => 'notify_requesters', 'value' => $notify_requesters);
+            if (!empty($notify_watchers)) $formquestion[] = array('type' => 'hidden', 'name' => 'notify_watchers', 'value' => $notify_watchers);
+            if (!empty($message_type)) $formquestion[] = array('type' => 'hidden', 'name' => 'message_type', 'value' => $message_type);
+            if (!empty($message_subject)) $formquestion[] = array('type' => 'hidden', 'name' => 'message_subject', 'value' => $message_subject);
+            if (!empty($message)) $formquestion[] = array('type' => 'hidden', 'name' => 'message', 'value' => $message);
+            if (!empty($btn_create_take_charge)) $formquestion[] = array('type' => 'hidden', 'name' => 'btn_create_take_charge', 'value' => $btn_create_take_charge);
+            if (!empty($btn_create_take_really_in_charge)) $formquestion[] = array('type' => 'hidden', 'name' => 'btn_create_take_really_in_charge', 'value' => $btn_create_take_really_in_charge);
+            if (!empty($btn_create_take_charge_with_message)) $formquestion[] = array('type' => 'hidden', 'name' => 'btn_create_take_charge_with_message', 'value' => $btn_create_take_charge_with_message);
+            if (!empty($btn_create_take_really_in_charge_with_message)) $formquestion[] = array('type' => 'hidden', 'name' => 'btn_create_take_really_in_charge_with_message', 'value' => $btn_create_take_really_in_charge_with_message);
+            if (!empty($btn_create_take_really_in_charge_with_message_and_clotured)) $formquestion[] = array('type' => 'hidden', 'name' => 'btn_create_take_really_in_charge_with_message_and_clotured', 'value' => $btn_create_take_really_in_charge_with_message_and_clotured);
 
             dol_include_once('/synergiestech/class/html.formsynergiestech.class.php');
             $formsynergiestech = new FormSynergiesTech($this->db);
@@ -1464,10 +1486,19 @@ SCRIPT;
             }
 
             if ($cancel) $action = '';
-            if ($action == 'addfast' && GETPOST('btn_create_take_charge')) {
+            $shouldCreateARequestMessage = false;
+            $shouldCloturedRequest = false;
+            if(GETPOST('btn_create_take_charge_with_message') || GETPOST('btn_create_take_really_in_charge_with_message') || GETPOST('btn_create_take_really_in_charge_with_message_and_clotured')){
+                $shouldCreateARequestMessage = true;
+            }
+            if(GETPOST('btn_create_take_really_in_charge_with_message_and_clotured')){
+                $shouldCloturedRequest =true;
+            }
+
+            if ($action == 'addfast' && (GETPOST('btn_create_take_charge') || GETPOST('btn_create_take_charge_with_message'))) {
                 $action = 'create_take_charge';
             }
-            if ($action == 'addfast' && GETPOST('btn_create_take_really_in_charge')){
+            if ($action == 'addfast' && (GETPOST('btn_create_take_really_in_charge') || GETPOST('btn_create_take_really_in_charge_with_message'))){
                 $create_and_take_in_charge_confirmed = true;
                 $action = "addfast";
             }
@@ -1598,7 +1629,31 @@ SCRIPT;
                             }
                         }
 
-                        if ($create_and_take_in_charge_confirmed) {
+                        if(!$error && $shouldCreateARequestMessage){
+                            $requestmanagermessage = new RequestManagerMessage($this->db);
+                            $requestmanagermessage->message_type = GETPOST('message_type', 'int');
+                            $requestmanagermessage->notify_assigned = GETPOST('notify_assigned', 'int');
+                            $requestmanagermessage->notify_requesters = GETPOST('notify_requesters', 'int');
+                            $requestmanagermessage->notify_watchers = GETPOST('notify_watchers', 'int');
+                            $requestmanagermessage->knowledge_base_ids = GETPOST('knowledgebaseselected', 'array');
+                            $requestmanagermessage->label = GETPOST('subject', 'alpha');
+                            $requestmanagermessage->note = GETPOST('message');
+                            $requestmanagermessage->requestmanager = $object;
+
+                            // Get extra fields of the message
+                            $message_extrafields = new ExtraFields($this->db);
+                            $message_extralabels = $message_extrafields->fetch_name_optionals_label($requestmanagermessage->table_element);
+                            $ret = $message_extrafields->setOptionalsFromPost($message_extralabels, $requestmanagermessage);
+
+                            // create
+                            $result = $requestmanagermessage->create($user);
+                            if ($result < 0) {
+                                setEventMessages($requestmanagermessage->error, $requestmanagermessage->errors, 'errors');
+                                $error++;
+                            }
+                        }
+
+                        if (!$error && $create_and_take_in_charge_confirmed) {
                             $next_status = GETPOST('next_status', 'int');
                             if(!$next_status){
                                 //We have to set status from dictionary according to request type
@@ -1608,6 +1663,19 @@ SCRIPT;
                             }
                             if($next_status){
                                 $result = $object->set_status($next_status, -1, $user);
+                                if ($result < 0) {
+                                    setEventMessages($object->error, $object->errors, 'errors');
+                                    $error++;
+                                }
+                            }
+                        }
+
+                        if(!$error && $shouldCloturedRequest){
+                            $object->fill_request_type_cache();
+                                $request_type_list = $object::$type_list;
+                                $clotured_status = $request_type_list[$object->fk_type]->fields['statusWhenClotured'];
+                                if($clotured_status){
+                                    $result = $object->set_status($clotured_status, -1, $user);
                                 if ($result < 0) {
                                     setEventMessages($object->error, $object->errors, 'errors');
                                     $error++;
