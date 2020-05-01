@@ -129,7 +129,7 @@ $arrayfields=array(
 	'f.fk_project'=>array('label'=>$langs->trans("Project"), 'checked'=>1),
     'f.fk_contrat'=>array('label'=>$langs->trans("Contract"), 'checked'=>1),
     'f.description'=>array('label'=>$langs->trans("Description"), 'checked'=>1),
-    'fd.description'=>array('label'=>"xx", 'checked'=>1, 'enabled'=>empty($conf->global->FICHINTER_DISABLE_DETAILS) && empty($conf->global->FICHINTER_DISABLE_DETAILS_LIST)?1:0),
+	'fd.description'=>array('label'=>"DescriptionOfLine", 'checked'=>1, 'enabled'=>empty($conf->global->FICHINTER_DISABLE_DETAILS_LIST) ? 1 : 0),
     'fd.date'=>array('label'=>$langs->trans("Date"), 'checked'=>1, 'enabled'=>empty($conf->global->FICHINTER_DISABLE_DETAILS) && empty($conf->global->FICHINTER_DISABLE_DETAILS_LIST)?1:0),
     'fd.duree'=>array('label'=>$langs->trans("Duration"), 'checked'=>1, 'enabled'=>empty($conf->global->FICHINTER_DISABLE_DETAILS) && empty($conf->global->FICHINTER_DISABLE_DETAILS_LIST)?1:0),
 	'f.datec'=>array('label'=>$langs->trans("DateCreation"), 'checked'=>0, 'position'=>500),
