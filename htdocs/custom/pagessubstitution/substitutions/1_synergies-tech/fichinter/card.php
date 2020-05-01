@@ -460,7 +460,7 @@ if (empty($reshook))
 	}
 
 	// Set into a contract
-	else if ($action == 'setcontract' && $user->rights->contrat->creer)
+	else if ($action == 'setcontract' && $user->rights->ficheinter->creer)
 	{
 		$result=$object->set_contrat($user,GETPOST('contratid','int'));
 		if ($result < 0) dol_print_error($db,$object->error);
