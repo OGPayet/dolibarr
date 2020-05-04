@@ -339,10 +339,10 @@ if ($zone === 1) {
         $backgroundColor = "orange";
     }
 
-    if($backgroundColor == "red"){
+    if($backgroundColor == "red" || $backgroundColor == "green"){
         $textColor = "white";
     }
-    else if($backgroundColor == "green" || $backgroundColor == "orange"){
+    else if( $backgroundColor == "orange"){
         $textColor = "black";
     }
     else {
