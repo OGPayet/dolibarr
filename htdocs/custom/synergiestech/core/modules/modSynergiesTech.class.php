@@ -482,9 +482,6 @@ class modSynergiesTech extends DolibarrModules
         $result=$extrafields->addExtraField('synergiestech_warranty', $langs->trans("SynergiesTechWarranty"), 'int', 20,  '', 'product',   0, 0, '', '', 1, '', 1, 0, ''); // For >= v7: ", '', 'synergiestech@synergiestech', '$conf->synergiestech->enabled');"
         $result=$extrafields->addExtraField('st_estimated_begin_date', $langs->trans('SynergiesTechEstimatedBeginDate'), 'datetime', 100,  '', 'fichinter',   0, 0, '', null, 1, '', 1, 0, '');
         $result=$extrafields->addExtraField('st_estimated_end_date', $langs->trans('SynergiesTechEstimatedEndDate'), 'datetime', 101,  '', 'fichinter',   0, 0, '', null, 1, '', 1, 0, '');
-        $result=$extrafields->addExtraField('st_customer_signature', $langs->trans('SynergiesTechCustomerSignature'), 'text', 102,  '', 'fichinter',   0, 0, '', null, 1, '', 0, 1, '');
-        $result=$extrafields->addExtraField('st_stakeholder_signature', $langs->trans('SynergiesTechStakeholderSignature'), 'text', 103,  '', 'fichinter',   0, 0, '', null, 1, '', 0, 1, '');
-        $result=$extrafields->addExtraField('st_involved_users', $langs->trans('SynergiesTechInvolvedUsers'), 'checkbox', 100,  '', 'fichinterdet',   0, 1, '', array('options'=>array('user:firstname|lastname:rowid::statut = 1 AND fk_soc IS NULL'=>null)), 1, '', 1, 0, '');
 
         // Create tables of all dictionaries
         dol_include_once('/advancedictionaries/class/dictionary.class.php');
