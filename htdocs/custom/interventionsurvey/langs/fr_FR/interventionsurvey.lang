@@ -99,26 +99,26 @@ InterventionSurveyQuestionMandatoryAnswerDictionaryField = Réponse obligatoire 
 InterventionSurveyQuestionExtrafields = 3 - Extrafields sur les Questions
 InterventionSurveyQuestion = Question des questionnaires
 
-# Textes prédéfinis sur les status des blocs de questions
-InterventionSurveyBlocStatusPredefinedTextDictionaryTabTitle = 5 - Textes prédéfinis sur les status des blocs de questions
-InterventionSurveyBlocStatusPredefinedTextDictionaryName = Textes prédéfinis sur les status des blocs de question
+# Textes prédéfinis sur les statut des blocs de questions
+InterventionSurveyBlocStatusPredefinedTextDictionaryTabTitle = 5 - Textes prédéfinis sur les statut des blocs de questions
+InterventionSurveyBlocStatusPredefinedTextDictionaryName = Textes prédéfinis sur les statut des blocs de question
 InterventionSurveyBlocStatusPredefinedTextOrderFieldLabel = Position dans les listes de saisie des interventions
 InterventionSurveyBlocStatusPredefinedTextLabelFieldLabel = Phrase
-InterventionSurveyStatusPredefinedTextUsedInTheseBlocStatusDictionaryField = Utilisé sur les status de bloc suivants
+InterventionSurveyStatusPredefinedTextUsedInTheseBlocStatusDictionaryField = Utilisé sur les statut de bloc suivants
 InterventionSurveyBlocStatusPredefinedTextIdentifierFieldLabel = Identifiant
 InterventionSurveyBlocStatusPredefinedTextIdentifierFieldHelp = Valeur non nécessairement unique permettant d'identifier l'element sur les autres écrans de paramétrages et à des fins statistique
 
 
 # Status des blocs de question
-InterventionSurveyBlocStatusDictionaryTabTitle = 6 - Status des blocs de questions
-InterventionSurveyBlocStatusDictionaryName = Status des blocs de questions
-InterventionSurveyBlocStatusOrderDictionaryFieldLabel = Position dans les listes de saisie des status des blocs de question
+InterventionSurveyBlocStatusDictionaryTabTitle = 6 - Statut des blocs de questions
+InterventionSurveyBlocStatusDictionaryName = Statut des blocs de questions
+InterventionSurveyBlocStatusOrderDictionaryFieldLabel = Position dans les listes de saisie des statut des blocs de question
 InterventionSurveyBlocStatusLabelDictionaryFieldLabel = Intitulé
 InterventionSurveyBlocStatusColorDictionaryFieldLabel = Couleur sur le pdf
 InterventionSurveyBlocStatusColorDictionaryFieldHelp = La couleur doit être au format HTML (Ex: #FF0000)
 InterventionSurveyBlocStatusMandatoryJustificationDictionaryFieldLabel = Obligation de fournir une justification si cette réponse est choisie
-InterventionSurveyBlocStatusDeactivateBlocDictionaryFieldLabel = Désactive le bloc si ce status est saisie
-InterventionSurveyBlocStatusPredefinedTextDictionaryLabel = Liste des textes prédéfinis pour ce status
+InterventionSurveyBlocStatusDeactivateBlocDictionaryFieldLabel = Désactive le bloc si ce statut est saisie
+InterventionSurveyBlocStatusPredefinedTextDictionaryLabel = Liste des textes prédéfinis pour ce statut
 InterventionSurveyStatusIsUsedInTheseBlocQuestionDictionary = Utilisé sur les blocs de question suivant
 InterventionSurveyBlocStatusIdentifierFieldLabel = Identifiant
 InterventionSurveyBlocStatusIdentifierFieldHelp = Valeur non nécessairement unique permettant d'identifier l'element sur les autres écrans de paramétrages et à des fins statistique
@@ -142,7 +142,7 @@ InterventionSurveyBlocQuestionPrivateBlocDictionaryField = Bloc privé par défa
 InterventionSurveyQuestionBlocBlocInGeneralPartDictionary = Bloc à placer dans la partie générale
 InterventionSurveyQuestionBlocUniqueBlocDictionary = Bloc à générer une seule fois dans le questionnaire
 InterventionSurveyTagCategoriesInQuestionBlocDictionnary = Utilisé uniquement sur les équipement dont le produit associé possède un de ces Tags/Categories (laisser vide pour ne pas filter)
-InterventionSurveyBlocStatusInQuestionBlocDictionnary = Status de ce bloc de question
+InterventionSurveyBlocStatusInQuestionBlocDictionnary = Statut de ce bloc de question
 InterventionSurveyQuestionsInQuestionBlocDictionnary = Question de ce bloc de questions
 InterventionSurveyBlocQuestionExtrafieldDictionary = Extrafields de ce bloc de question
 InterventionSurveyFilterOnlyForBlocQuestionDictionary = Utilisé uniquement dans le cadres des blocs de question (laisser vide pour ne pas filter)
@@ -150,13 +150,13 @@ InterventionSurveyFilterOnlyForProductCategoriesDictionary = Utilisé uniquement
 InterventionSurveyBlocQuestionIdentifierFieldLabel = Identifiant
 InterventionSurveyBlocQuestionIdentifierFieldHelp = Valeur non nécessairement unique permettant d'identifier l'element sur les autres écrans de paramétrages et à des fins statistique
 InterventionSurveyBlocQuestionInterventionTypeField = Utilisé uniquement dans le cadre des interventions de type (laisser vide pour ne pas filter)
-InterventionSurveyBlocQuestionMandatoryStatusDictionaryField = Choisir obligatoirement un status ?
+InterventionSurveyBlocQuestionMandatoryStatusDictionaryField = Choisir obligatoirement un statut ?
 InterventionSurveyBlocQuestionDescriptionDictionaryField = Description du bloc
 
 #Erreurs
 InterventionSurveyBlocMissingLabel = Le titre du bloc (ID : %s) est vide
-InterventionSurveyMissingStatus = Le status obligatoire pour le bloc %s (ID : %s) est manquant
-InterventionSurveyMissingJustificationStatus = La justification du status du bloc %s (ID : %s) est manquante
+InterventionSurveyMissingStatus = Le statut obligatoire pour le bloc %s (ID : %s) est manquant
+InterventionSurveyMissingJustificationStatus = La justification du statut du bloc %s (ID : %s) est manquante
 InterventionSurveyBlocMissingExtrafield = La valeur de l'extrafield obligatoire %s dans le bloc de question %s (ID : %s) est manquante
 InterventionSurveyCantDeleteBloc = Impossible de supprimer le bloc ID : %s
 InterventionSurveyMissingRequiredFieldInSurvey = Des éléments obligatoires dans le questionnaire sont manquants
@@ -167,13 +167,13 @@ InterventionSurveyQuestionMissingExtrafield = La valeur pour l'extrafield obliga
 InterventionSurveyFileNotFound = Fichier introuvable
 
 # Ecran de visualisation et saisie des questionnaires
-InterventionSurveyMustBeValidated = L'intervention doit être au status Validé afin de pouvoir modifier le questionnaire
+InterventionSurveyMustBeValidated = L'intervention doit être au statut Validé afin de pouvoir modifier le questionnaire
 InterventionSurveyReadOnlyMode = Vous êtes en mode lecture seule
 InterventionSurveyTabTitle = Questionnaire
 InterventionSurveyDescriptionBloc = Description
-InterventionSurveyBlocStatusLabel = Status
-InterventionSurveyDesactivatedBloc = Bloc désactivé à cause de son status
-InterventionSurveyStatusJustificationTitle = Justification de ce status
+InterventionSurveyBlocStatusLabel = Statut
+InterventionSurveyDesactivatedBloc = Bloc désactivé à cause de son statut
+InterventionSurveyStatusJustificationTitle = Justification de ce statut
 InterventionSurveyAnswerJustificationTitle = Justification de cette réponse
 InterventionSurveyLabelBloc = Titre de ce bloc
 InterventionSurveyJustificationStatusText = Justification fournie
