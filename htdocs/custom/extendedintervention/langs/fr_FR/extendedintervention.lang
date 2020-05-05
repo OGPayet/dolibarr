@@ -32,6 +32,8 @@ ActionAC_EI_FCI         = Forçage de la création d'une intervention (Auto)
 ### Extra fields : Intervention
 ############################################################
 ExtendedInterventionType        = Type d'intervention
+ExtendedInterventionInterventionTypeColor = Couleur de l'intervention sur la liste des interventions dans l'application
+ExtendedInterventionInterventionTypeColorHelp = Renseigner un code Couleur Html - Ex : #CFD8DC
 
 ############################################################
 ### Extra fields : Contract
