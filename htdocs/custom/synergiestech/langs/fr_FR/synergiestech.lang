@@ -102,7 +102,7 @@ SynergiesTechOnlyProductIncludeIntoContractAndEquipment     = Produits faisant p
 #######################################################################
 # Equipment lines into the Request (RequestManager)
 #######################################################################
-SynergiesTechDontHaveContract   = N'as pas de contrats
+SynergiesTechDontHaveContract   = Equipement sans contrat
 
 #######################################################################
 # Dictionaries
