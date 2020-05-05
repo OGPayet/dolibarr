@@ -19,7 +19,7 @@
 /**
  *	\file	   equipement/core/modules/equipement/doc/pdf_messine.modules.php
  *	\ingroup	equipement
- *	\brief	  Fichier de la classe permettant de generer les fiches d'équipement au modele Soleil
+ *	\brief	  Fichier de la classe permettant de generer les fiches d'ï¿½quipement au modele Soleil
  */
 dol_include_once("/equipement/core/modules/equipement/modules_equipement.php");
 
@@ -36,7 +36,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
 /**
  *	Class to build equipement documents with model Soleil
  */
-class pdf_soleil extends ModeleEquipement
+class pdf_soleil extends ModelePDFEquipement
 {
 	var $db;
 	var $name;
@@ -121,10 +121,11 @@ class pdf_soleil extends ModeleEquipement
 		if ($conf->equipement->dir_output) {
 			$object->fetch_thirdparty();
 
-			$objectref = dol_sanitizeFileName($object->ref);
+			$objectId = dol_sanitizeFileName($object->id);
+			$objectRef = dol_sanitizeFileName($object->ref);
 			$dir = $conf->equipement->dir_output;
-			if (! preg_match('/specimen/i', $objectref)) $dir.= "/" . $objectref;
-			$file = $dir . "/" . $objectref . ".pdf";
+			if (! preg_match('/specimen/i', $objectId)) $dir.= "/" . $objectId;
+			$file = $dir . "/" . $objectRef . ".pdf";
 
             if (! file_exists($dir)) {
                 if (dol_mkdir($dir) < 0) {
@@ -219,14 +220,14 @@ class pdf_soleil extends ModeleEquipement
                     if ($valide > 0 || $object->specimen) {
                         $curY = $nexY;
 
-                        // type d'évènement
+                        // type d'ï¿½vï¿½nement
                         if ($objectligne->equipeventlib) {
                             $pdf->SetFont('', 'B', $default_font_size - 1);
                             $pdf->SetXY($this->marge_gauche, $curY);
                             $txt=dol_htmlentitiesbr($outputlangs->transnoentities($objectligne->equipeventlib));
                             $pdf->writeHTMLCell(0, 3, $this->marge_gauche, $curY, $txt, 0, 1, 0);
                         }
-                        // date de début et de fin de l'évènement
+                        // date de dï¿½but et de fin de l'ï¿½vï¿½nement
                         $pdf->SetFont('', '', $default_font_size - 1);
                         if ($objectligne->fulldayevent)
                             $fullday='day';
@@ -239,14 +240,14 @@ class pdf_soleil extends ModeleEquipement
 
                         $pdf->writeHTMLCell(0, 3, $this->marge_gauche+25, $curY, $txt, 0, 1, 0);
 
-                        // on affiche le contrat, l'intervention et l'expédition si elles sont renseignées
+                        // on affiche le contrat, l'intervention et l'expï¿½dition si elles sont renseignï¿½es
                         $pdf->SetXY($this->marge_gauche, $curY);
                         $txt=dol_htmlentitiesbr(
                                         $objectligne->ref_fichinter."  ".$objectligne->ref_contrat."  ".$objectligne->ref_expedition
                         );
                         $pdf->writeHTMLCell(0, 3, $this->marge_gauche+90, $curY, $txt, 0, 1, 0);
 
-                        // prix associé à la ligne de l'évènement
+                        // prix associï¿½ ï¿½ la ligne de l'ï¿½vï¿½nement
                         $pdf->writeHTMLCell(
                                         0, 3, $this->marge_gauche+150, $curY,
                                         price($objectligne->total_ht), 0, 1, 0, true, "R"
@@ -259,7 +260,7 @@ class pdf_soleil extends ModeleEquipement
                         $curY = $pdf->GetY();
                         $nexY+=3;
 
-                        // la description de l'évènement sur une seconde ligne
+                        // la description de l'ï¿½vï¿½nement sur une seconde ligne
                         $pdf->SetFont('', '', $default_font_size - 1);
                         $pdf->SetXY($this->marge_gauche, $nexY);
                         //$desc = dol_htmlentitiesbr($objectligne->desc, 1);
@@ -460,7 +461,7 @@ class pdf_soleil extends ModeleEquipement
 			$pdf->MultiCell(100, 4, $outputlangs->convToOutputCharset($text), 0, 'L');
 		}
 
-        // ref de l'équipement + num immocompta si saisie
+        // ref de l'ï¿½quipement + num immocompta si saisie
         $posy+=10;
         //$posx=100;
         if (intval($height) > 0) {
@@ -523,9 +524,9 @@ class pdf_soleil extends ModeleEquipement
         $datec=dol_print_date($object->datec, "day", false, $outputlangs, true);
         $pdf->MultiCell(100, 3, $outputlangs->transnoentities("Date")." : " . $datec, '', 'R');
 
-		// le reste seulement sur la première page
+		// le reste seulement sur la premiï¿½re page
 		if ($nbpage == 1) {
-			// dates de l'équipement si renseigné
+			// dates de l'ï¿½quipement si renseignï¿½
 			$posy+=10;
 			$posx=100;
 			$pdf->SetXY($posx, $posy);
@@ -611,7 +612,7 @@ class pdf_soleil extends ModeleEquipement
 			$txtToPrint.=$outputlangs->transnoentities($object->statuts[$object->statut]);
 			$pdf->MultiCell(100, 3, $txtToPrint, '', 'R');
 
-			// la description du produit à la gauche dans une zone rectangulaire
+			// la description du produit ï¿½ la gauche dans une zone rectangulaire
 			if ($object->description) {
 				// Show description
 				$posy=42;

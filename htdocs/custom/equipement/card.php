@@ -1386,7 +1386,7 @@ if ($action == 'create') {
          * Built documents
          */
         $filename=dol_sanitizeFileName($object->ref);
-        $filedir=$conf->equipement->dir_output . "/".$object->ref;
+        $filedir=$conf->equipement->dir_output . "/".$object->id;
         $urlsource=$_SERVER["PHP_SELF"]."?id=".$object->id;
         $genallowed=$user->rights->equipement->creer;
         $delallowed=$user->rights->equipement->supprimer;
@@ -1394,11 +1394,8 @@ if ($action == 'create') {
         $var=true;
 
         print "<br>\n";
-        $somethingshown=$formfile->show_documents(
-            'equipement', $filename, $filedir, $urlsource,
-            $genallowed, $delallowed, $object->model_pdf,
-            1, 0, 0, 28, 0, '', '', '', $soc->default_lang
-        );
+        print $formfile->showdocuments('equipement',$object->id,$filedir,$urlsource,$genallowed,$delallowed,'',0,0,0,0,0,'','','',$object->default_lang);
+
 
         if (strcmp(DOL_VERSION, "6.0.0") >= 0) {
             // Show links to link elements

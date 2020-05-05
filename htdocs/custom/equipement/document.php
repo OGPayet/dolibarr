@@ -72,7 +72,7 @@ if (! $sortfield) $sortfield="name";
 $object = new Equipement($db);
 $object->fetch($id, $ref);
 
-$upload_dir = $conf->equipement->dir_output.'/'.dol_sanitizeFileName($object->ref);
+$upload_dir = $conf->equipement->dir_output.'/'.dol_sanitizeFileName($object->id);
 $modulepart='equipement';
 
 
@@ -107,7 +107,7 @@ if ($object->id) {
 		dol_include_once("/ultimateqrcode/lib/ultimateqrcode.lib.php");
 		dol_include_once("/ultimateqrcode/includes/phpqrcode/qrlib.php");
 
-		$tempDir=$conf->equipement->dir_output.DIRECTORY_SEPARATOR.$object->ref.DIRECTORY_SEPARATOR;
+		$tempDir=$conf->equipement->dir_output.DIRECTORY_SEPARATOR.$object->id.DIRECTORY_SEPARATOR;
 
 		if (!file_exists($tempDir))
 			mkdir($tempDir);
@@ -117,8 +117,8 @@ if ($object->id) {
 		$codeContents = '<a href="fiche.php?id='.$object->id.'">';
 
 		// generating
-		QRcode::png($codeContents, $tempDir.'/'.$object->ref.'.png', QR_ECLEVEL_L, 2);
-		QRcode::png($codeContents, $tempDir.'/thumbs/'.$object->ref.'_mini.png', QR_ECLEVEL_L, 2);
+		QRcode::png($codeContents, $tempDir.'/'.$object->id.'.png', QR_ECLEVEL_L, 2);
+		QRcode::png($codeContents, $tempDir.'/thumbs/'.$object->id.'_mini.png', QR_ECLEVEL_L, 2);
 	}
 
 	// Construit liste des fichiers
@@ -198,7 +198,7 @@ if ($object->id) {
 
 	// List of document
 	$param='&id='.$object->id;
-	$formfile->list_of_documents($filearray, $object, 'equipement', $param);
+	$formfile->list_of_documents($filearray, $object, 'equipement', $param, 0, $object->id.DIRECTORY_SEPARATOR);
 
 } else
 	print $langs->trans("UnkownError");
