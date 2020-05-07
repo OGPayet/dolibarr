@@ -308,7 +308,7 @@ class SurveyBlocQuestion extends CommonObject
     public function fetch($id, $ref = null, &$parent = null)
     {
         $result = $this->fetchCommon($id, $ref);
-        if (isset($parent)) {
+        if ($parent) {
             $this->surveyPart = $parent;
         }
         if ($result > 0) {
@@ -323,24 +323,21 @@ class SurveyBlocQuestion extends CommonObject
      *
      * @return int         <0 if KO, 0 if not found, >0 if OK
      */
-    public function fetchLines(&$parent = null)
+    public function fetchLines()
     {
         $this->status = array();
         $this->chosen_status = null;
         $this->questions = array();
-        if ($parent) {
-            $this->surveyPart = $parent;
-        }
 
-        interventionSurveyFetchLinesCommon(" ORDER BY position ASC", "SurveyQuestion", $this->questions, $this);
+        $result1 = interventionSurveyFetchLinesCommon(" ORDER BY position ASC", "SurveyQuestion", $this->questions, $this);
         foreach ($this->questions as $question) {
             $question->fetch_optionals();
         }
-        interventionSurveyFetchLinesCommon(" ORDER BY position ASC", "SurveyBlocStatus", $this->status, $this);
+        $result2 = interventionSurveyFetchLinesCommon(" ORDER BY position ASC", "SurveyBlocStatus", $this->status, $this);
         if ($this->fk_chosen_status) {
             $this->getChosenStatus();
                 }
-        return 1;
+        return min($result1,$result2);
     }
 
     /**
@@ -399,7 +396,7 @@ class SurveyBlocQuestion extends CommonObject
             $this->id = $obj->id;
         }
 
-        if (isset($parent)) {
+        if ($parent) {
             $this->surveyPart = $parent;
         }
 
@@ -603,11 +600,13 @@ class SurveyBlocQuestion extends CommonObject
         global $langs, $conf;
 
         $this->db->begin();
-        if ($this->is_survey_read_only() && !$noSurveyReadOnlyCheck) {
+        if (!$noSurveyReadOnlyCheck && $this->is_survey_read_only()) {
             $this->errors[] = $langs->trans('InterventionSurveyReadOnlyMode');
             $this->db->rollback();
             return -1;
         }
+        $temp = round(memory_get_usage(true)/1048576,2)." megabytes";
+        $temp = $temp;
 
         if (isset($fk_surveypart)) {
             $this->fk_surveypart = $fk_surveypart;

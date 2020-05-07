@@ -209,7 +209,7 @@ function mergeSubItemFromObject(&$user, &$oldObject, &$newObject, array &$arrayO
                 $obj = $context->db->fetch_object($resql);
                 if ($obj) {
                     $newline = new $objectlineclassname($context->db);
-                    $newline->setVarsFromFetchObj($obj);
+                    $newline->setVarsFromFetchObj($obj, $context);
                     if (method_exists($newline, "fetchLines")) {
                         $newline->fetchLines($context);
                     }

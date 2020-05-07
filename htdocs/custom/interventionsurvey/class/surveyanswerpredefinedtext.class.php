@@ -254,9 +254,9 @@ class SurveyAnswerPredefinedText extends CommonObject
      * @param string $ref  Ref
      * @return int         <0 if KO, 0 if not found, >0 if OK
      */
-    public function fetch($id, $ref = null, &$parent = null)
+    public function fetch($id, $ref = null, &$parent)
     {
-        if (isset($parent)) {
+        if ($parent) {
             $this->surveyAnswer = $parent;
         }
         $result = $this->fetchCommon($id, $ref);
@@ -413,10 +413,10 @@ class SurveyAnswerPredefinedText extends CommonObject
         }
 
         parent::setVarsFromFetchObj($obj);
-        if (isset($parent)) {
+
+        if ($parent) {
             $this->surveyAnswer = $parent;
         }
-
 
         if(!$this->fk_surveyanswer && $this->surveyAnswer){
             $this->fk_surveyanswer = $this->surveyAnswer->id;
@@ -445,7 +445,7 @@ class SurveyAnswerPredefinedText extends CommonObject
             $this->fk_surveyanswer = $fk_surveyanswer;
         }
 
-        if ($this->is_survey_read_only() && !$noSurveyReadOnlyCheck) {
+        if (!$noSurveyReadOnlyCheck && $this->is_survey_read_only()) {
             $this->errors[] = $langs->trans('InterventionSurveyReadOnlyMode');
             $this->db->rollback();
             return -1;

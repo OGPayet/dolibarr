@@ -644,7 +644,7 @@ class InterventionSurvey extends Fichinter
     {
         global $langs;
         $this->db->begin();
-        if ($this->is_survey_read_only() && !$noSurveyReadOnlyCheck) {
+        if (!$noSurveyReadOnlyCheck && $this->is_survey_read_only()) {
             $this->errors[] = $langs->trans('InterventionSurveyReadOnlyMode');
             $this->db->rollback();
             return -1;
@@ -888,6 +888,7 @@ class InterventionSurvey extends Fichinter
         }
          //finally we clean the survey
          $this->cleanSurvey($user);
+
          if (empty($this->errors)) {
             $this->db->commit();
             return 1;

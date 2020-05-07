@@ -314,13 +314,12 @@ class InterventionSurveyApi extends DolibarrApi
             throw new RestException(401, 'Intervention survey with id='.$this->interventionSurvey->id.'is in readonly mode');
         }
 
-
         $request = clone $this->interventionSurvey;
-
         $request->setSurveyFromFetchObj($request_data->survey, true);
 
         $result = $this->interventionSurvey->mergeWithFollowingData(DolibarrApiAccess::$user,$request, true);
         $this->interventionSurvey->fetchObjectLinked();
+
         if ($result > 0)
         {
             return $this->_cleanObjectData($this->interventionSurvey);

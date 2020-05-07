@@ -283,7 +283,7 @@ class SurveyQuestion extends CommonObject
     public function fetch($id, $ref = null, &$parent = null)
     {
         $result = $this->fetchCommon($id, $ref);
-        if (isset($parent)) {
+        if ($parent) {
             $this->bloc = $parent;
         }
         if ($result > 0) {
@@ -297,20 +297,17 @@ class SurveyQuestion extends CommonObject
      *
      * @return int         <0 if KO, 0 if not found, >0 if OK
      */
-    public function fetchLines(&$parent = null)
+    public function fetchLines()
     {
-        if (isset($parent)) {
-            $this->bloc = $parent;
-        }
         $this->answers = array();
         $this->chosen_answer = null;
 
-        interventionSurveyFetchLinesCommon(" ORDER BY position ASC", "SurveyAnswer", $this->answers, $this);
+        $result = interventionSurveyFetchLinesCommon(" ORDER BY position ASC", "SurveyAnswer", $this->answers, $this);
 
         if ($this->fk_chosen_answer) {
             $this->getChosenAnswer();
         }
-        return 1;
+        return $result;
     }
 
     /**
@@ -326,7 +323,7 @@ class SurveyQuestion extends CommonObject
             $obj = json_decode(json_encode($obj));
         }
         $this->answers = array();
-        if (isset($parent)) {
+        if ($parent) {
             $this->surveyBlocQuestion = $parent;
         }
 
@@ -548,7 +545,7 @@ class SurveyQuestion extends CommonObject
             }
         }
 
-        if ($this->is_survey_read_only() && !$noSurveyReadOnlyCheck) {
+        if (!$noSurveyReadOnlyCheck && $this->is_survey_read_only()) {
             $this->errors[] = $langs->trans('InterventionSurveyReadOnlyMode');
             $this->db->rollback();
             return -1;

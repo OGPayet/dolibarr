@@ -343,7 +343,7 @@ class SurveyBlocStatusPredefinedText extends CommonObject
      */
     public function fetch($id, $ref = null, &$parent = null)
     {
-        if (isset($parent)) {
+        if ($parent) {
             $this->surveyBlocStatus = $parent;
         }
         $result = $this->fetchCommon($id, $ref);
@@ -499,7 +499,7 @@ class SurveyBlocStatusPredefinedText extends CommonObject
         }
         parent::setVarsFromFetchObj($obj);
 
-        if (isset($parent)) {
+        if ($parent) {
             $this->surveyBlocStatus = $parent;
         }
 
@@ -532,7 +532,7 @@ class SurveyBlocStatusPredefinedText extends CommonObject
             $this->fk_surveyblocstatus = $fk_surveyblocstatus;
         }
 
-        if ($this->is_survey_read_only() && !$noSurveyReadOnlyCheck) {
+        if (!$noSurveyReadOnlyCheck && $this->is_survey_read_only()) {
             $this->errors[] = $langs->trans('InterventionSurveyReadOnlyMode');
             $this->db->rollback();
             return -1;

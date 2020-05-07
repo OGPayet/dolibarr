@@ -260,7 +260,7 @@ class SurveyPart extends CommonObject
      */
     public function fetch($id, $ref = null, &$parent = null)
     {
-        if (isset($parent)) {
+        if ($parent) {
             $this->fichinter = $parent;
         }
         $result = $this->fetchCommon($id, $ref);
@@ -275,11 +275,8 @@ class SurveyPart extends CommonObject
      *
      * @return int         <0 if KO, 0 if not found, >0 if OK
      */
-    public function fetchLines(&$parent = null)
+    public function fetchLines()
     {
-        if (isset($parent)) {
-            $this->fichinter = $parent;
-        }
         unset($this->blocs);
         $this->blocs = array();
         $result = interventionSurveyFetchLinesCommon(" ORDER BY position ASC", "SurveyBlocQuestion", $this->blocs, $this);
@@ -459,7 +456,7 @@ class SurveyPart extends CommonObject
             $obj = json_decode(json_encode($obj));
         }
         parent::setVarsFromFetchObj($obj);
-        if (isset($parent)) {
+        if ($parent) {
             $this->fichinter = $parent;
         }
 
@@ -507,7 +504,7 @@ class SurveyPart extends CommonObject
             $this->fk_fichinter = $fk_fichinter;
         }
 
-        if ($this->is_survey_read_only() && !$noSurveyReadOnlyCheck) {
+        if ($noSurveyReadOnlyCheck && $this->is_survey_read_only()) {
             $this->errors[] = $langs->trans('InterventionSurveyReadOnlyMode');
             $this->db->rollback();
             return -1;
@@ -521,6 +518,8 @@ class SurveyPart extends CommonObject
         if (empty($this->errors)) {
             foreach ($this->blocs as $position => $bloc) {
                 $bloc->position = $position;
+                $temp = round(memory_get_usage(true)/1048576,2)." megabytes";
+                $temp = $temp;
                 $bloc->save($user, $this->id, $noSurveyReadOnlyCheck);
                 $this->errors = array_merge($this->errors, $bloc->errors);
             }

@@ -263,7 +263,7 @@ class SurveyAnswer extends CommonObject
      */
     public function fetch($id, $ref = null, &$parent = null)
     {
-        if (isset($parent)) {
+        if ($parent) {
             $this->bloc = $parent;
         }
         $result = $this->fetchCommon($id, $ref);
@@ -278,18 +278,15 @@ class SurveyAnswer extends CommonObject
      *
      * @return int         <0 if KO, 0 if not found, >0 if OK
      */
-    public function fetchLines(&$parent)
+    public function fetchLines()
     {
         $this->predefined_texts = array();
 
-        if (isset($parent)) {
-            $this->bloc = $parent;
-        }
-        interventionSurveyFetchLinesCommon(" ORDER BY position ASC", "SurveyAnswerPredefinedText", $this->predefined_texts, $this);
+        $result = interventionSurveyFetchLinesCommon(" ORDER BY position ASC", "SurveyAnswerPredefinedText", $this->predefined_texts, $this);
         foreach ($this->predefined_texts as $predefined_text) {
             $predefined_text->surveyAnswer = $this;
         }
-        return 1;
+        return $result;
     }
 
     /**
@@ -307,7 +304,7 @@ class SurveyAnswer extends CommonObject
         parent::setVarsFromFetchObj($obj);
         $this->predefined_texts = array();
 
-        if (isset($parent)) {
+        if ($parent) {
             $this->surveyQuestion = $parent;
         }
 
@@ -500,7 +497,7 @@ class SurveyAnswer extends CommonObject
             $this->fk_surveyquestion = $fk_surveyquestion;
         }
 
-        if ($this->is_survey_read_only() && !$noSurveyReadOnlyCheck) {
+        if (!$noSurveyReadOnlyCheck && $this->is_survey_read_only()) {
             $this->errors[] = $langs->trans('InterventionSurveyReadOnlyMode');
             $this->db->rollback();
             return -1;
