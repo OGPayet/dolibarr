@@ -67,7 +67,7 @@ class InterventionSurvey extends Fichinter
         "id" => '', "ref" => '', "description" => '', "socid" => '', "statut" => '', "duration" => '', "datec" => '',
         "datee" => '', "dateo" => '', "datet" => '', "datev" => '', "datem" => '', "fk_project" => '', "note_public" => '',
         "fk_contrat" => '', "thirdparty" => '', "array_options" => '', "survey" => '',
-        'lines'=>'','thirdparty'=>'','benefactor'=>'','watcher'=>''
+        'lines'=>'','thirdparty'=>'','benefactor'=>'','watcher'=>'', 'linkedObjectsIds'=>''
     );
 
     /**
