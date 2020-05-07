@@ -696,8 +696,8 @@ class SurveyQuestion extends CommonObject
      */
     function insertExtraFields($trigger = '', $userused = NULL)
     {
-        if(is_object($this->extrafields)){
-            $this->extrafields = json_decode(json_encode($this->extrafields), true);
+        if(is_object($this->array_options)){
+            $this->array_options = json_decode(json_encode($this->array_options), true);
         }
 
         // Clean extra fields
