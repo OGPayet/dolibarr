@@ -170,6 +170,16 @@ class ExtendedInterventionTypeDictionary extends Dictionary
             ),
             'is_require' => true,
         ),
+        'color_end' => array(
+            'name'       => 'color',
+            'label'      => 'ExtendedInterventionInterventionTypeColorEnd',
+            'help'       => 'ExtendedInterventionInterventionTypeColorHelp',
+            'type'       => 'varchar',
+            'database'   => array(
+              'length'   => 255,
+            ),
+            'is_require' => true,
+        ),
         'count' => array(
             'name'       => 'count',
             'label'      => 'ExtendedInterventionTypeDictionaryCount',
@@ -214,6 +224,11 @@ class ExtendedInterventionTypeDictionary extends Dictionary
         3 => array(
             'fields' => array(
                 'color' => 'a',
+            )
+        ),
+        4 => array(
+            'fields' => array(
+                'color_end' => 'a',
             )
         ),
     );
