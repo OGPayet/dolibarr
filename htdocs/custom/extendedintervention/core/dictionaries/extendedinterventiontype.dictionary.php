@@ -171,7 +171,7 @@ class ExtendedInterventionTypeDictionary extends Dictionary
             'is_require' => true,
         ),
         'color_end' => array(
-            'name'       => 'color',
+            'name'       => 'color_end',
             'label'      => 'ExtendedInterventionInterventionTypeColorEnd',
             'help'       => 'ExtendedInterventionInterventionTypeColorHelp',
             'type'       => 'varchar',
