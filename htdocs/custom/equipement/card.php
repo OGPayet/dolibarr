@@ -727,7 +727,7 @@ if ($action == 'create') {
 			print '<tr>';
 			print '<td>'.$langs->trans("DefaultModel").'</td>';
 			print '<td colspan="2">';
-			$liste=ModeleEquipement::liste_modeles($db);
+			$liste=ModelePDFEquipement::liste_modeles($db);
 			print $form->selectarray('model', $liste, $conf->global->EQUIPEMENT_ADDON_PDF);
 			print "</td></tr>";
 
