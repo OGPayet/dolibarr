@@ -780,7 +780,7 @@ class FormSynergiesTech
             if ($resql) {
                 while ($obj = $this->db->fetch_object($resql)) {
                     $contract = new Contrat($this->db);
-                    if ($contract->fetch($obj->fk_contrat) > 0 && $contract->statut == 2 && $contract->nbofservicesopened > 0) {
+                    if ($contract->fetch($obj->fk_contrat) > 0 && $contract->statut == 1 && $contract->nbofservicesopened > 0) {
                         $this->cache_equipment_contracts[$equipment_id][$obj->fk_contrat] = $contract;
                     }
                 }
