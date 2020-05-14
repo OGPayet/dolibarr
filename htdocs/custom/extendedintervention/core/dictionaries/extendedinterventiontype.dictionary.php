@@ -32,7 +32,7 @@ class ExtendedInterventionTypeDictionary extends Dictionary
     /**
      * @var int         Version of this dictionary
      */
-    public $version = 2;
+    public $version = 4;
 
     /**
      * @var array       List of languages to load
