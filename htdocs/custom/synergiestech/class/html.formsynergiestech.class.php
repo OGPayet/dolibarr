@@ -2253,7 +2253,7 @@ class FormSynergiesTech
      * @return  string
      */
 
-    public static function display_contract_without_equipement($arrayOfContract, $textColor)
+    public function display_contract_without_equipement($arrayOfContract, $textColor)
     {
         return '<h1 style="color:' . $textColor . '!important;text-align:center;font-size: 2em!important;">Liste des contrats de ce bénéficiaire non rattachés à un équipement:' . $this->display_contracts($arrayOfContract, $textColor) . '</h1>';
     }
@@ -2372,7 +2372,7 @@ class FormSynergiesTech
             $result .= $this->display_equipements_without_contract($equipementWithoutContract, $textColor);
         }
         if (!empty($listOfContractOfThisBenefactorWithoutEquipement)) {
-            $result .= self::display_contract_without_equipement($listOfContractOfThisBenefactorWithoutEquipement, $textColor);
+            $result .= $this->display_contract_without_equipement($listOfContractOfThisBenefactorWithoutEquipement, $textColor);
         }
 
         if (!empty($listOfContractWhereThisSocIdIsOnlyRequesterAndNotBenefactor)) {
