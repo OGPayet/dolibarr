@@ -2085,7 +2085,7 @@ class FormSynergiesTech
                     if(empty($equipement->array_options)){
                         $equipement->fetch_optionals();
                     }
-                    if($equipement->array_options['options_machineclient'] != 1){
+                    if($equipement->array_options['options_machineclient'] != 1 && $equipement->statut == 1){
                         $test = true;
                         break;
                     }
