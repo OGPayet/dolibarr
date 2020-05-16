@@ -96,7 +96,7 @@ class ActionsSynergiesTech
         return $this->_redirection($parameters, $object, $action, $hookmanager);
     }
 
-        /**
+    /**
      * Overloading the listeVersion_customOptions function : replacing the parent's function with the one below
      *
      * @param   array() $parameters Hook metadatas (context, etc...)
@@ -108,18 +108,17 @@ class ActionsSynergiesTech
     function listeVersion_customOptions($parameters, &$object, &$action, $hookmanager)
     {
         global $langs, $conf, $user;
-        if(!$user->rights->synergiestech->product_line_price->lire){
+        if (!$user->rights->synergiestech->product_line_price->lire) {
             $row = $parameters['row'];
             $selected = $parameters['selected'];
             $versionNumber = $parameters['versionNumber'];
-            $this->resprints = '<option id="'.$row->rowid.'" value="'.$row->rowid.'" '.$selected.'>Version n° ' . $versionNumber . ' - '.dol_print_date($this->db->jdate($row->date_cre), "dayhour").'</option>';
+            $this->resprints = '<option id="' . $row->rowid . '" value="' . $row->rowid . '" ' . $selected . '>Version n° ' . $versionNumber . ' - ' . dol_print_date($this->db->jdate($row->date_cre), "dayhour") . '</option>';
             return 1;
-        }
-        else {
+        } else {
             return 0;
         }
     }
-/**
+    /**
      * Overloading the afterLogin function : replacing the parent's function with the one below
      *
      * @param   array() $parameters Hook metadatas (context, etc...)
@@ -132,9 +131,11 @@ class ActionsSynergiesTech
     function createFrom($parameters, &$object, &$action, $hookmanager)
     {
         global $conf;
-        if($object->element == "order_supplier" &&
-        $conf->global->SYNERGIESTECH_DO_NOT_KEEP_LINKED_OBJECT_WHEN_CLONING_SUPPLIER_ORDER &&
-        !empty($object->context['createfromclone'])){
+        if (
+            $object->element == "order_supplier" &&
+            $conf->global->SYNERGIESTECH_DO_NOT_KEEP_LINKED_OBJECT_WHEN_CLONING_SUPPLIER_ORDER &&
+            !empty($object->context['createfromclone'])
+        ) {
             $object->deleteObjectLinked();
         }
         return 1;
@@ -168,19 +169,19 @@ class ActionsSynergiesTech
     }*/
 
     /**
-	 * Overloading the sqlLinesToSerialize function : replacing the parent's function with the one below
-	 *
-	 * @param   array() $parameters Hook metadatas (context, etc...)
-	 * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-	 * @param   string &$action Current action (if set). Generally create or edit or null
-	 * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
-	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
-	 */
-	function sqlLinesToSerialize($parameters, &$object, &$action, $hookmanager)
+     * Overloading the sqlLinesToSerialize function : replacing the parent's function with the one below
+     *
+     * @param   array() $parameters Hook metadatas (context, etc...)
+     * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string &$action Current action (if set). Generally create or edit or null
+     * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+    function sqlLinesToSerialize($parameters, &$object, &$action, $hookmanager)
     {
         global $conf, $user, $langs;
 
-        $contexts = explode(':',$parameters['context']);
+        $contexts = explode(':', $parameters['context']);
 
         if (in_array('tab_supplier_order', $contexts)) {
             // List of lines to serialize
@@ -205,19 +206,19 @@ class ActionsSynergiesTech
     }
 
     /**
-	 * Overloading the sqlLinesToAttach function : replacing the parent's function with the one below
-	 *
-	 * @param   array() $parameters Hook metadatas (context, etc...)
-	 * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-	 * @param   string &$action Current action (if set). Generally create or edit or null
-	 * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
-	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
-	 */
-	function sqlLinesToAttach($parameters, &$object, &$action, $hookmanager)
+     * Overloading the sqlLinesToAttach function : replacing the parent's function with the one below
+     *
+     * @param   array() $parameters Hook metadatas (context, etc...)
+     * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string &$action Current action (if set). Generally create or edit or null
+     * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+    function sqlLinesToAttach($parameters, &$object, &$action, $hookmanager)
     {
         global $conf, $user, $langs;
 
-        $contexts = explode(':',$parameters['context']);
+        $contexts = explode(':', $parameters['context']);
 
         if (in_array('tab_expedition_add', $contexts)) {
             // List of lines to attach
@@ -243,19 +244,19 @@ class ActionsSynergiesTech
     }
 
     /**
-	 * Overloading the addRequestManagerAuthorizedButton function : replacing the parent's function with the one below
-	 *
-	 * @param   array() $parameters Hook metadatas (context, etc...)
-	 * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-	 * @param   string &$action Current action (if set). Generally create or edit or null
-	 * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
-	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
-	 */
-	function addRequestManagerAuthorizedButton($parameters, &$object, &$action, $hookmanager)
+     * Overloading the addRequestManagerAuthorizedButton function : replacing the parent's function with the one below
+     *
+     * @param   array() $parameters Hook metadatas (context, etc...)
+     * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string &$action Current action (if set). Generally create or edit or null
+     * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+    function addRequestManagerAuthorizedButton($parameters, &$object, &$action, $hookmanager)
     {
         global $conf, $user, $langs;
 
-        $contexts = explode(':',$parameters['context']);
+        $contexts = explode(':', $parameters['context']);
 
         if (in_array('requestmanagerdao', $contexts)) {
             $langs->load("retourproduits@retourproduits");
@@ -273,19 +274,19 @@ class ActionsSynergiesTech
     }
 
     /**
-	 * Overloading the addMoreActionsButtons function : replacing the parent's function with the one below
-	 *
-	 * @param   array() $parameters Hook metadatas (context, etc...)
-	 * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-	 * @param   string &$action Current action (if set). Generally create or edit or null
-	 * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
-	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
-	 */
-	function addMoreActionsButtons($parameters, &$object, &$action, $hookmanager)
+     * Overloading the addMoreActionsButtons function : replacing the parent's function with the one below
+     *
+     * @param   array() $parameters Hook metadatas (context, etc...)
+     * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string &$action Current action (if set). Generally create or edit or null
+     * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+    function addMoreActionsButtons($parameters, &$object, &$action, $hookmanager)
     {
         global $conf, $user, $langs;
 
-        $contexts = explode(':',$parameters['context']);
+        $contexts = explode(':', $parameters['context']);
 
         if (in_array('requestmanagercard', $contexts)) {
             $langs->load('synergiestech@synergiestech');
@@ -591,24 +592,24 @@ class ActionsSynergiesTech
 
                 $formquestion = array(array(
                     'type' => 'other',
-                    'label' => $form->selectarray('synergiestech_product', $products_list,'', 1, 0, 0, '', 0, 0, 0, '', ' minwidth200', 1),
+                    'label' => $form->selectarray('synergiestech_product', $products_list, '', 1, 0, 0, '', 0, 0, 0, '', ' minwidth200', 1),
                     'value' =>
-                        '<table width="100%">'.
-                        '<tr>'.
-                        '<td>'.
-                        $langs->trans('Order') . ' * : '.$form->selectarray('synergiestech_order', array(),'', 1, 0, 0, '', 0, 0, 0, '', ' minwidth200', 1).'<br>' .
+                    '<table width="100%">' .
+                        '<tr>' .
+                        '<td>' .
+                        $langs->trans('Order') . ' * : ' . $form->selectarray('synergiestech_order', array(), '', 1, 0, 0, '', 0, 0, 0, '', ' minwidth200', 1) . '<br>' .
                         $langs->trans('Qty') . ' * : <input type="number" id="synergiestech_qty" min="0" max="0"> ' .
                         ' ' . $langs->trans('Warehouse') . ' * : ' . $formproduct->selectWarehouses('', 'synergiestech_warehouse', 'warehouseopen,warehouseinternal', 1) .
                         '<br>' . $langs->trans('Equipements') . ' : ' . $form->multiselectarray('synergiestech_equipments', array(), array(), 0, 0, '', 0, 0, 'style="min-width:300px"') .
-                        '</td>'.
-                        '<td style="vertical-align: middle;" align="center" width="24px"><a href="#" id="synergiestech_add">'.img_edit_add($langs->trans('Add')).'</a></td>'.
-                        '</tr>'.
+                        '</td>' .
+                        '<td style="vertical-align: middle;" align="center" width="24px"><a href="#" id="synergiestech_add">' . img_edit_add($langs->trans('Add')) . '</a></td>' .
+                        '</tr>' .
                         '<table>'
                 ));
                 $selected_lines = array();
                 foreach ($lines as $product_id => $line) {
                     foreach ($line['orders'] as $line_id => $order_line) {
-                        if( GETPOST('s-' . $line_id, 'int') == $line_id) {
+                        if (GETPOST('s-' . $line_id, 'int') == $line_id) {
                             $selected_lines[$line_id] = array(
                                 'p' => GETPOST('p-' . $line_id, 'int'),
                                 'q' => GETPOST('q-' . $line_id, 'int'),
@@ -624,11 +625,11 @@ class ActionsSynergiesTech
                 }
 
                 $useAjax = $conf->use_javascript_ajax ? 'true' : 'false';
-                $orderText = str_replace("'", "\\'",$langs->trans('Order') . ': ');
-                $qtyText = str_replace("'", "\\'",$langs->trans('Qty') . ': ');
-                $yesText = str_replace("'", "\\'",$langs->transnoentities("Yes"));
-                $warehouseText = str_replace("'", "\\'",$langs->trans('Warehouse') . ': ');
-                $equipmentsText = str_replace("'", "\\'",$langs->trans('Equipements') . ': ');
+                $orderText = str_replace("'", "\\'", $langs->trans('Order') . ': ');
+                $qtyText = str_replace("'", "\\'", $langs->trans('Qty') . ': ');
+                $yesText = str_replace("'", "\\'", $langs->transnoentities("Yes"));
+                $warehouseText = str_replace("'", "\\'", $langs->trans('Warehouse') . ': ');
+                $equipmentsText = str_replace("'", "\\'", $langs->trans('Equipements') . ': ');
                 $del_img = str_replace("'", "\\'", img_edit_remove($langs->trans('Delete')));
                 $lines = json_encode(empty($lines) ? new stdClass() : $lines);
                 $selected_lines = json_encode(empty($selected_lines) ? new stdClass() : $selected_lines);
@@ -815,7 +816,7 @@ class ActionsSynergiesTech
     </script>
 SCRIPT;
                 // Create the confirm form
-                $out.= $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('CreateReturnProducts'), $langs->trans('SelectProductsToReturn'), 'synergiestech_create_returnproducts', $formquestion, 'yes', 1, 400, 700);
+                $out .= $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('CreateReturnProducts'), $langs->trans('SelectProductsToReturn'), 'synergiestech_create_returnproducts', $formquestion, 'yes', 1, 400, 700);
 
                 print $out;
 
@@ -843,8 +844,8 @@ SCRIPT;
 
                 //Form to close proposal (signed or not)
                 $formquestion = array(
-                    array('type' => 'select','name' => 'statut','label' => $langs->trans("CloseAs"),'values' => array(2=>$object->LibStatut(Propal::STATUS_SIGNED), 3=>$object->LibStatut(Propal::STATUS_NOTSIGNED)), 'default' => (GETPOST('statut', 'int') ? GETPOST('statut', 'int') : '')),
-                    array('type' => 'text', 'name' => 'note_private', 'label' => $langs->trans("Note"),'value' => (GETPOST('note_private', 'alpha') ? GETPOST('note_private', 'alpha') : ''))				// Field to complete private note (not replace)
+                    array('type' => 'select', 'name' => 'statut', 'label' => $langs->trans("CloseAs"), 'values' => array(2 => $object->LibStatut(Propal::STATUS_SIGNED), 3 => $object->LibStatut(Propal::STATUS_NOTSIGNED)), 'default' => (GETPOST('statut', 'int') ? GETPOST('statut', 'int') : '')),
+                    array('type' => 'text', 'name' => 'note_private', 'label' => $langs->trans("Note"), 'value' => (GETPOST('note_private', 'alpha') ? GETPOST('note_private', 'alpha') : ''))                // Field to complete private note (not replace)
                 );
 
                 // add file
@@ -905,17 +906,17 @@ SCRIPT;
             $origin = GETPOST('origin', 'alpha');
             $originid = GETPOST('originid', 'int');
             $next_status = GETPOST('next_status', 'int');
-            $notify_assigned = GETPOST('notify_assigned','int');
-$notify_requesters = GETPOST('notify_requesters','int');
-$notify_watchers = GETPOST('notify_watchers','int');
-$message_type = GETPOST('message_type','int');
-$message_subject = GETPOST('message_subject','alpha');
-$message = GETPOST('message','alpha');
-$btn_create_take_charge = GETPOST('btn_create_take_charge');
-$btn_create_take_really_in_charge = GETPOST('btn_create_take_really_in_charge');
-$btn_create_take_charge_with_message = GETPOST('btn_create_take_charge_with_message');
-$btn_create_take_really_in_charge_with_message = GETPOST('btn_create_take_really_in_charge_with_message');
-$btn_create_take_really_in_charge_with_message_and_clotured = GETPOST('btn_create_take_really_in_charge_with_message_and_clotured');
+            $notify_assigned = GETPOST('notify_assigned', 'int');
+            $notify_requesters = GETPOST('notify_requesters', 'int');
+            $notify_watchers = GETPOST('notify_watchers', 'int');
+            $message_type = GETPOST('message_type', 'int');
+            $message_subject = GETPOST('message_subject', 'alpha');
+            $message = GETPOST('message', 'alpha');
+            $btn_create_take_charge = GETPOST('btn_create_take_charge');
+            $btn_create_take_really_in_charge = GETPOST('btn_create_take_really_in_charge');
+            $btn_create_take_charge_with_message = GETPOST('btn_create_take_charge_with_message');
+            $btn_create_take_really_in_charge_with_message = GETPOST('btn_create_take_really_in_charge_with_message');
+            $btn_create_take_really_in_charge_with_message_and_clotured = GETPOST('btn_create_take_really_in_charge_with_message_and_clotured');
 
             if ($selectedSocIdOrigin === '' && $selectedSocId > 0) {
                 $selectedSocIdOrigin = $selectedSocId;
@@ -944,7 +945,7 @@ $btn_create_take_really_in_charge_with_message_and_clotured = GETPOST('btn_creat
                     $selectedSocIdBenefactor = $selectedSocIdBenefactor < 0 || $force_set ? (count($benefactor_companies_ids) > 0 ? $benefactor_companies_ids[0] : $selectedSocId) : $selectedSocIdBenefactor;
                 }
                 if ($selectedSocIdBenefactor > 0) {
-                    $principal_companies_ids = $companyrelationships->getRelationshipsThirdparty($selectedSocIdBenefactor, CompanyRelationships::RELATION_TYPE_BENEFACTOR,0);
+                    $principal_companies_ids = $companyrelationships->getRelationshipsThirdparty($selectedSocIdBenefactor, CompanyRelationships::RELATION_TYPE_BENEFACTOR, 0);
                     $principal_companies_ids = is_array($principal_companies_ids) ? array_values($principal_companies_ids) : array();
                     $selectedSocId = $selectedSocId < 0 || $force_set ? (count($principal_companies_ids) > 0 ? $principal_companies_ids[0] : $selectedSocIdBenefactor) : $selectedSocId;
                 }
@@ -1041,8 +1042,16 @@ $btn_create_take_really_in_charge_with_message_and_clotured = GETPOST('btn_creat
             // Confirm reopen
             if ($action == 'reopen') {
                 $langs->load('synergiestech@synergiestech');
-                /*$this->resprints =*/print $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('ReOpen'), $langs->trans('SynergiesTechConfirmReOpenIntervention'),
-                    'confirm_reopen', '', 0, 1);
+                /*$this->resprints =*/
+                print $form->formconfirm(
+                    $_SERVER["PHP_SELF"] . '?id=' . $object->id,
+                    $langs->trans('ReOpen'),
+                    $langs->trans('SynergiesTechConfirmReOpenIntervention'),
+                    'confirm_reopen',
+                    '',
+                    0,
+                    1
+                );
                 return 1;
             }
         }
@@ -1078,12 +1087,12 @@ $btn_create_take_really_in_charge_with_message_and_clotured = GETPOST('btn_creat
             } elseif ($action == 'addlink') {
                 $addlink = GETPOST('addlink', 'alpha');
                 $idtolinkto = GETPOST('idtolinkto', 'array');
-                if(empty($idtolinkto)){
+                if (empty($idtolinkto)) {
                     $idtolinkto = GETPOST('idtolinkto', 'int');
                 }
                 $idtolinkto = array_filter($idtolinkto);
                 if ($addlink == 'equipement' && !empty($idtolinkto)) {
-                    foreach($idtolinkto as $linkto){
+                    foreach ($idtolinkto as $linkto) {
                         if ($object->addContractsOfEquipment($linkto) < 0) {
                             array_merge($this->errors, $object->errors);
                             return -1;
@@ -1210,7 +1219,8 @@ $btn_create_take_really_in_charge_with_message_and_clotured = GETPOST('btn_creat
                     $action = "synergiestech_returnproducts";
                 }
             } // Add message
-            elseif ($action == 'stpremessage' && GETPOST('addmessage', 'alpha') && !$_POST['addfile'] && !$_POST['removAll'] && !$_POST['removedfile'] && !$_POST['modelselected'] &&
+            elseif (
+                $action == 'stpremessage' && GETPOST('addmessage', 'alpha') && !$_POST['addfile'] && !$_POST['removAll'] && !$_POST['removedfile'] && !$_POST['modelselected'] &&
                 $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS
             ) {
                 $error = 0;
@@ -1316,7 +1326,8 @@ $btn_create_take_really_in_charge_with_message_and_clotured = GETPOST('btn_creat
                 $action = 'stpremessage';
                 return 1;
             } // Clear message
-            elseif ($action == 'rm_reset_data_in_session' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS
+            elseif (
+                $action == 'rm_reset_data_in_session' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS
             ) {
                 dol_include_once('/requestmanager/class/html.formrequestmanagermessage.class.php');
                 $formrequestmanagermessage = new FormRequestManagerMessage($this->db, $object);
@@ -1327,11 +1338,11 @@ $btn_create_take_really_in_charge_with_message_and_clotured = GETPOST('btn_creat
             }
 
             if ($action == 'premessage') $action == 'stpremessage';
-        }
-        elseif (in_array('contractcard', $contexts)) {
+        } elseif (in_array('contractcard', $contexts)) {
             $langs->load('synergiestech@synergiestech');
             if ($user->rights->synergiestech->generate->ticket_report && $action == 'synergiestech_generate_ticket_report_confirm' && $confirm == 'yes') {
-                if (GETPOST('synergiestech_generate_ticket_report_date_startmonth') && GETPOST('synergiestech_generate_ticket_report_date_startday') && GETPOST('synergiestech_generate_ticket_report_date_startyear') &&
+                if (
+                    GETPOST('synergiestech_generate_ticket_report_date_startmonth') && GETPOST('synergiestech_generate_ticket_report_date_startday') && GETPOST('synergiestech_generate_ticket_report_date_startyear') &&
                     GETPOST('synergiestech_generate_ticket_report_date_endmonth') && GETPOST('synergiestech_generate_ticket_report_date_endday') && GETPOST('synergiestech_generate_ticket_report_date_endyear')
                 ) {
                     $synergiestech_generate_ticket_report_date_start = dol_mktime(0, 0, 0, GETPOST('synergiestech_generate_ticket_report_date_startmonth'), GETPOST('synergiestech_generate_ticket_report_date_startday'), GETPOST('synergiestech_generate_ticket_report_date_startyear'));
@@ -1348,8 +1359,7 @@ $btn_create_take_really_in_charge_with_message_and_clotured = GETPOST('btn_creat
                     return -1;
                 }
             }
-        }
-        elseif (in_array('ordercard', $contexts)) {
+        } elseif (in_array('ordercard', $contexts)) {
             if ($action == 'addline' && $user->rights->commande->creer) {
                 $product_id = GETPOST('idprod', 'int');
 
@@ -1380,8 +1390,7 @@ $btn_create_take_really_in_charge_with_message_and_clotured = GETPOST('btn_creat
                         if ((preg_match('/^' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '$/', $cat['fullpath']) ||
                                 preg_match('/_' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '$/', $cat['fullpath']) ||
                                 preg_match('/^' . $conf->global->lSYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '_/', $cat['fullpath']) ||
-                                preg_match('/_' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '_/', $cat['fullpath'])
-                            ) && $cat['id'] != $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE
+                                preg_match('/_' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '_/', $cat['fullpath'])) && $cat['id'] != $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE
                         ) {
                             $contract_formule_categories[$cat['label']] = $cat['id'];
                         }
@@ -1442,8 +1451,8 @@ $btn_create_take_really_in_charge_with_message_and_clotured = GETPOST('btn_creat
                     // Parse element/subelement (ex: project_task)
                     $element = $subelement = $origin;
                     if (preg_match('/^([^_]+)_([^_]+)/i', $origin, $regs)) {
-                        $element = $regs [1];
-                        $subelement = $regs [2];
+                        $element = $regs[1];
+                        $subelement = $regs[2];
                     }
 
                     // For compatibility
@@ -1509,15 +1518,13 @@ $btn_create_take_really_in_charge_with_message_and_clotured = GETPOST('btn_creat
                 $object->context['synergiestech_create_order_with_products_not_into_contract'] = true;
                 $action = 'add';
             }
-        }
-        elseif (in_array('propalcard', $contexts)) {
+        } elseif (in_array('propalcard', $contexts)) {
             if ($object->id > 0) {
                 $object->fetch_optionals();
                 if (!$user->rights->synergiestech->propal->installation_value && !empty($object->array_options['options_sitevalue']))
                     accessforbidden();
             }
-        }
-        elseif (in_array('requestmanagerfastcard', $contexts)) {
+        } elseif (in_array('requestmanagerfastcard', $contexts)) {
             global $force_principal_company_confirmed, $force_out_of_time_confirmed, $create_and_take_in_charge_confirmed;
             $error = 0;
 
@@ -1532,17 +1539,17 @@ $btn_create_take_really_in_charge_with_message_and_clotured = GETPOST('btn_creat
             if ($cancel) $action = '';
             $shouldCreateARequestMessage = false;
             $shouldCloturedRequest = false;
-            if(GETPOST('btn_create_take_charge_with_message') || GETPOST('btn_create_take_really_in_charge_with_message') || GETPOST('btn_create_take_really_in_charge_with_message_and_clotured')){
+            if (GETPOST('btn_create_take_charge_with_message') || GETPOST('btn_create_take_really_in_charge_with_message') || GETPOST('btn_create_take_really_in_charge_with_message_and_clotured')) {
                 $shouldCreateARequestMessage = true;
             }
-            if(GETPOST('btn_create_take_really_in_charge_with_message_and_clotured')){
-                $shouldCloturedRequest =true;
+            if (GETPOST('btn_create_take_really_in_charge_with_message_and_clotured')) {
+                $shouldCloturedRequest = true;
             }
 
             if ($action == 'addfast' && (GETPOST('btn_create_take_charge') || GETPOST('btn_create_take_charge_with_message'))) {
                 $action = 'create_take_charge';
             }
-            if ($action == 'addfast' && (GETPOST('btn_create_take_really_in_charge') || GETPOST('btn_create_take_really_in_charge_with_message'))){
+            if ($action == 'addfast' && (GETPOST('btn_create_take_really_in_charge') || GETPOST('btn_create_take_really_in_charge_with_message'))) {
                 $create_and_take_in_charge_confirmed = true;
                 $action = "addfast";
             }
@@ -1673,7 +1680,7 @@ $btn_create_take_really_in_charge_with_message_and_clotured = GETPOST('btn_creat
                             }
                         }
 
-                        if(!$error && $shouldCreateARequestMessage){
+                        if (!$error && $shouldCreateARequestMessage) {
                             $requestmanagermessage = new RequestManagerMessage($this->db);
                             $requestmanagermessage->message_type = GETPOST('message_type', 'int');
                             $requestmanagermessage->notify_assigned = GETPOST('notify_assigned', 'int');
@@ -1699,13 +1706,13 @@ $btn_create_take_really_in_charge_with_message_and_clotured = GETPOST('btn_creat
 
                         if (!$error && $create_and_take_in_charge_confirmed) {
                             $next_status = GETPOST('next_status', 'int');
-                            if(!$next_status){
+                            if (!$next_status) {
                                 //We have to set status from dictionary according to request type
                                 $object->fill_request_type_cache();
                                 $request_type_list = $object::$type_list;
                                 $next_status = $request_type_list[$object->fk_type]->fields['statusWhenTakingInCharge'];
                             }
-                            if($next_status){
+                            if ($next_status) {
                                 $result = $object->set_status($next_status, -1, $user);
                                 if ($result < 0) {
                                     setEventMessages($object->error, $object->errors, 'errors');
@@ -1714,12 +1721,12 @@ $btn_create_take_really_in_charge_with_message_and_clotured = GETPOST('btn_creat
                             }
                         }
 
-                        if(!$error && $shouldCloturedRequest){
+                        if (!$error && $shouldCloturedRequest) {
                             $object->fill_request_type_cache();
-                                $request_type_list = $object::$type_list;
-                                $clotured_status = $request_type_list[$object->fk_type]->fields['statusWhenClotured'];
-                                if($clotured_status){
-                                    $result = $object->set_status($clotured_status, -1, $user);
+                            $request_type_list = $object::$type_list;
+                            $clotured_status = $request_type_list[$object->fk_type]->fields['statusWhenClotured'];
+                            if ($clotured_status) {
+                                $result = $object->set_status($clotured_status, -1, $user);
                                 if ($result < 0) {
                                     setEventMessages($object->error, $object->errors, 'errors');
                                     $error++;
@@ -1775,8 +1782,7 @@ $btn_create_take_really_in_charge_with_message_and_clotured = GETPOST('btn_creat
             }
 
             return 1;
-        }
-        elseif (in_array('interventioncard', $contexts)) {
+        } elseif (in_array('interventioncard', $contexts)) {
             // Reopen intervention
             if ($action == 'confirm_reopen' && $confirm == 'yes' && ($object->statut == 2 /* invoiced */ || $object->statut == 3 /* done */) && $user->rights->synergiestech->fichinter->reopen && !GETPOST('cancel')) {
                 dol_include_once('/synergiestech/lib/synergiestech.lib.php');
@@ -1791,9 +1797,8 @@ $btn_create_take_really_in_charge_with_message_and_clotured = GETPOST('btn_creat
                     setEventMessage($msg_error, 'errors');
                 }
             }
-        }
-        elseif(in_array('productpricecard', $contexts)){
-            if(!$user->rights->synergiestech->product_line_price->lire){
+        } elseif (in_array('productpricecard', $contexts)) {
+            if (!$user->rights->synergiestech->product_line_price->lire) {
                 accessforbidden();
             }
         }
@@ -1802,15 +1807,15 @@ $btn_create_take_really_in_charge_with_message_and_clotured = GETPOST('btn_creat
     }
 
     /**
-	 * Overloading the addMoreMassActions function : replacing the parent's function with the one below
-	 *
-	 * @param   array() $parameters Hook metadatas (context, etc...)
-	 * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-	 * @param   string &$action Current action (if set). Generally create or edit or null
-	 * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
-	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
-	 */
-	function addMoreMassActions($parameters, &$object, &$action, $hookmanager)
+     * Overloading the addMoreMassActions function : replacing the parent's function with the one below
+     *
+     * @param   array() $parameters Hook metadatas (context, etc...)
+     * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string &$action Current action (if set). Generally create or edit or null
+     * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+    function addMoreMassActions($parameters, &$object, &$action, $hookmanager)
     {
         global $conf, $user, $langs;
 
@@ -1850,12 +1855,13 @@ $btn_create_take_really_in_charge_with_message_and_clotured = GETPOST('btn_creat
         $contexts = explode(':', $parameters['context']);
 
         if (in_array('contractlist', $contexts)) {
-            $massaction=GETPOST('massaction','alpha');
+            $massaction = GETPOST('massaction', 'alpha');
             if ($user->rights->synergiestech->generate->ticket_report && $massaction == 'synergiestech_generate_ticket_report') {
                 require_once DOL_DOCUMENT_ROOT . '/core/lib/date.lib.php';
                 $langs->load('synergiestech@synergiestech');
                 $params = array();
-                $invalid_params = [ 'token', 'confirm', 'formfilteraction', 'selectedfields',
+                $invalid_params = [
+                    'token', 'confirm', 'formfilteraction', 'selectedfields',
                     'button_search_y', 'button_search.y', 'button_search',
                     'button_removefilte_x', 'button_removefilter.x', 'button_removefilter',
                     'action', 'massaction', 'confirmmassaction', 'checkallactions',
@@ -1897,16 +1903,16 @@ $btn_create_take_really_in_charge_with_message_and_clotured = GETPOST('btn_creat
         return 0;
     }
 
-	/**
-	 * Overloading the doMassActions function : replacing the parent's function with the one below
-	 *
-	 * @param   array()         $parameters     Hook metadatas (context, etc...)
-	 * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-	 * @param   string          &$action        Current action (if set). Generally create or edit or null
-	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
-	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
-	 */
-	function doMassActions($parameters, &$object, &$action, $hookmanager)
+    /**
+     * Overloading the doMassActions function : replacing the parent's function with the one below
+     *
+     * @param   array()         $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          &$action        Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+    function doMassActions($parameters, &$object, &$action, $hookmanager)
     {
         global $conf, $user, $langs, $mysoc, $hidedetails, $hidedesc, $hideref;
 
@@ -1916,7 +1922,8 @@ $btn_create_take_really_in_charge_with_message_and_clotured = GETPOST('btn_creat
         if (in_array('invoicelist', $contexts)) {
             $massaction = GETPOST('massaction', 'alpha');
 
-            if ($massaction == 'synergiestech_valid' &&
+            if (
+                $massaction == 'synergiestech_valid' &&
                 ((empty($conf->global->MAIN_USE_ADVANCED_PERMS) && !empty($user->rights->facture->creer)) ||
                     (!empty($conf->global->MAIN_USE_ADVANCED_PERMS) && !empty($user->rights->facture->invoice_advance->validate)))
             ) {
@@ -1932,10 +1939,11 @@ $btn_create_take_really_in_charge_with_message_and_clotured = GETPOST('btn_creat
                     $invoice = new Facture($this->db);
                     if ($invoice->fetch($invoice_id) > 0) {
                         // Classify to validated
-                        if ($invoice->statut == 0 && count($invoice->lines) > 0 &&
+                        if (
+                            $invoice->statut == 0 && count($invoice->lines) > 0 &&
                             ((($invoice->type == Facture::TYPE_STANDARD || $invoice->type == Facture::TYPE_REPLACEMENT ||
-                                        $invoice->type == Facture::TYPE_DEPOSIT || $invoice->type == Facture::TYPE_PROFORMA || $invoice->type == Facture::TYPE_SITUATION) &&
-                                    (!empty($conf->global->FACTURE_ENABLE_NEGATIVE) || $invoice->total_ttc >= 0)) || ($invoice->type == Facture::TYPE_CREDIT_NOTE && $invoice->total_ttc <= 0))
+                                $invoice->type == Facture::TYPE_DEPOSIT || $invoice->type == Facture::TYPE_PROFORMA || $invoice->type == Facture::TYPE_SITUATION) &&
+                                (!empty($conf->global->FACTURE_ENABLE_NEGATIVE) || $invoice->total_ttc >= 0)) || ($invoice->type == Facture::TYPE_CREDIT_NOTE && $invoice->total_ttc <= 0))
                         ) {
                             $error = 0;
                             $invoice->fetch_thirdparty();
@@ -1963,8 +1971,10 @@ $btn_create_take_really_in_charge_with_message_and_clotured = GETPOST('btn_creat
                                         $idprof = 'idprof' . $i;
                                         if (!$invoice->thirdparty->$idprof && !empty($conf->global->$idprof_mandatory)) {
                                             $error++;
-                                            $errors[] = $invoice->ref . ' - ' . $langs->trans('ErrorProdIdIsMandatory',
-                                                    $langs->transcountry('ProfId' . $i, $invoice->thirdparty->country_code));
+                                            $errors[] = $invoice->ref . ' - ' . $langs->trans(
+                                                'ErrorProdIdIsMandatory',
+                                                $langs->transcountry('ProfId' . $i, $invoice->thirdparty->country_code)
+                                            );
                                         }
                                     }
                                 }
@@ -2037,8 +2047,10 @@ $btn_create_take_really_in_charge_with_message_and_clotured = GETPOST('btn_creat
         } elseif (in_array('contractlist', $contexts)) {
             $langs->load('synergiestech@synergiestech');
             if ($user->rights->synergiestech->generate->ticket_report && $action == 'synergiestech_generate_ticket_report_confirm' && $confirm == 'yes') {
-                if (GETPOST('synergiestech_generate_ticket_report_date_startmonth') && GETPOST('synergiestech_generate_ticket_report_date_startday') && GETPOST('synergiestech_generate_ticket_report_date_startyear') &&
-                    GETPOST('synergiestech_generate_ticket_report_date_endmonth') && GETPOST('synergiestech_generate_ticket_report_date_endday') && GETPOST('synergiestech_generate_ticket_report_date_endyear')) {
+                if (
+                    GETPOST('synergiestech_generate_ticket_report_date_startmonth') && GETPOST('synergiestech_generate_ticket_report_date_startday') && GETPOST('synergiestech_generate_ticket_report_date_startyear') &&
+                    GETPOST('synergiestech_generate_ticket_report_date_endmonth') && GETPOST('synergiestech_generate_ticket_report_date_endday') && GETPOST('synergiestech_generate_ticket_report_date_endyear')
+                ) {
                     $synergiestech_generate_ticket_report_date_start = dol_mktime(0, 0, 0, GETPOST('synergiestech_generate_ticket_report_date_startmonth'), GETPOST('synergiestech_generate_ticket_report_date_startday'), GETPOST('synergiestech_generate_ticket_report_date_startyear'));
                     $synergiestech_generate_ticket_report_date_end = dol_mktime(23, 59, 59, GETPOST('synergiestech_generate_ticket_report_date_endmonth'), GETPOST('synergiestech_generate_ticket_report_date_endday'), GETPOST('synergiestech_generate_ticket_report_date_endyear'));
                     $error = 0;
@@ -2063,15 +2075,15 @@ $btn_create_take_really_in_charge_with_message_and_clotured = GETPOST('btn_creat
     }
 
     /**
-	 * Overloading the formObjectOptions function : replacing the parent's function with the one below
-	 *
-	 * @param   array()         $parameters     Hook metadatas (context, etc...)
-	 * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-	 * @param   string          &$action        Current action (if set). Generally create or edit or null
-	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
-	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
-	 */
-	function formObjectOptions($parameters, &$object, &$action, $hookmanager)
+     * Overloading the formObjectOptions function : replacing the parent's function with the one below
+     *
+     * @param   array()         $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          &$action        Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+    function formObjectOptions($parameters, &$object, &$action, $hookmanager)
     {
         global $user, $langs;
 
@@ -2083,8 +2095,8 @@ $btn_create_take_really_in_charge_with_message_and_clotured = GETPOST('btn_creat
             // Parse element/subelement (ex: project_task)
             $element = $subelement = $origin;
             if (preg_match('/^([^_]+)_([^_]+)/i', $origin, $regs)) {
-                $element = $regs [1];
-                $subelement = $regs [2];
+                $element = $regs[1];
+                $subelement = $regs[2];
             }
 
             // For compatibility
@@ -2141,26 +2153,31 @@ SCRIPT;
      * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
      * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
      */
-    private function _redirection($parameters, &$object, &$action, $hookmanager) {
+    private function _redirection($parameters, &$object, &$action, $hookmanager)
+    {
         global $conf, $langs;
 
         // Force attach equipment
         if (!empty($conf->global->SYNERGIESTECH_FORCE_ATTACH_EQUIPMENTS_AFTER_SHIPPING_CREATED)) {
-            if (!preg_match('/\/equipement\/tabs\/expeditionAdd\.php/i', $_SERVER["PHP_SELF"]) &&
+            if (
+                !preg_match('/\/equipement\/tabs\/expeditionAdd\.php/i', $_SERVER["PHP_SELF"]) &&
                 preg_match('/\/equipement\/tabs\/expeditionAdd\.php/i', $_SERVER["HTTP_REFERER"])
             ) {
                 dol_include_once('/synergiestech/lib/synergiestech.lib.php');
                 $query = parse_url($_SERVER["HTTP_REFERER"], PHP_URL_QUERY);
                 parse_str($query, $params);
 
-                if (isset($params['id']) && $params['id'] > 0 && !synergiestech_has_shipping_equipment_to_validate($this->db, $params['id']) &&
-                    synergiestech_has_shipping_equipment_to_serialize($this->db, $params['id'])) {
+                if (
+                    isset($params['id']) && $params['id'] > 0 && !synergiestech_has_shipping_equipment_to_validate($this->db, $params['id']) &&
+                    synergiestech_has_shipping_equipment_to_serialize($this->db, $params['id'])
+                ) {
                     $langs->load('synergiestech@synergiestech');
                     setEventMessage($langs->trans('SynergiesTechShippingHasEquipmentToSerialize'), 'errors');
                     header("Location: " . $_SERVER["HTTP_REFERER"]);
                     exit;
                 }
-            } elseif (!preg_match('/\/equipement\/tabs\/expedition\.php/i', $_SERVER["PHP_SELF"]) &&
+            } elseif (
+                !preg_match('/\/equipement\/tabs\/expedition\.php/i', $_SERVER["PHP_SELF"]) &&
                 preg_match('/\/equipement\/tabs\/expedition\.php/i', $_SERVER["HTTP_REFERER"])
             ) {
                 dol_include_once('/synergiestech/lib/synergiestech.lib.php');
@@ -2177,8 +2194,10 @@ SCRIPT;
                 dol_include_once('/synergiestech/lib/synergiestech.lib.php');
                 $shipping_id = GETPOST('id');
 
-                if ($shipping_id > 0 && !synergiestech_has_shipping_equipment_to_validate($this->db, $shipping_id) &&
-                    synergiestech_has_shipping_equipment_to_serialize($this->db, $shipping_id)) {
+                if (
+                    $shipping_id > 0 && !synergiestech_has_shipping_equipment_to_validate($this->db, $shipping_id) &&
+                    synergiestech_has_shipping_equipment_to_serialize($this->db, $shipping_id)
+                ) {
                     header("Location: " . dol_buildpath('/equipement/tabs/expeditionAdd.php', 2) . '?id=' . $shipping_id);
                     exit;
                 }
@@ -2187,20 +2206,21 @@ SCRIPT;
 
         // Force set equipment
         if (!empty($conf->global->SYNERGIESTECH_FORCE_SET_EQUIPMENTS_AFTER_ORDER_SUPPLIER_DISPATCH)) {
-           if (!preg_match('/\/equipement\/tabs\/supplier_order\.php/i', $_SERVER["PHP_SELF"]) &&
-               preg_match('/\/equipement\/tabs\/supplier_order\.php/i', $_SERVER["HTTP_REFERER"])
-           ) {
-               dol_include_once('/synergiestech/lib/synergiestech.lib.php');
-               $query = parse_url($_SERVER["HTTP_REFERER"], PHP_URL_QUERY);
-               parse_str($query, $params);
+            if (
+                !preg_match('/\/equipement\/tabs\/supplier_order\.php/i', $_SERVER["PHP_SELF"]) &&
+                preg_match('/\/equipement\/tabs\/supplier_order\.php/i', $_SERVER["HTTP_REFERER"])
+            ) {
+                dol_include_once('/synergiestech/lib/synergiestech.lib.php');
+                $query = parse_url($_SERVER["HTTP_REFERER"], PHP_URL_QUERY);
+                parse_str($query, $params);
 
-               if (isset($params['id']) && $params['id'] > 0 && synergiestech_has_dispatching_equipment_to_serialize($this->db, $params['id'])) {
-                   $langs->load('synergiestech@synergiestech');
-                   setEventMessage($langs->trans('SynergiesTechOrderSupplierHasEquipmentToSerialize'), 'errors');
-                   header("Location: " . $_SERVER["HTTP_REFERER"]);
-                   exit;
-               }
-           }
+                if (isset($params['id']) && $params['id'] > 0 && synergiestech_has_dispatching_equipment_to_serialize($this->db, $params['id'])) {
+                    $langs->load('synergiestech@synergiestech');
+                    setEventMessage($langs->trans('SynergiesTechOrderSupplierHasEquipmentToSerialize'), 'errors');
+                    header("Location: " . $_SERVER["HTTP_REFERER"]);
+                    exit;
+                }
+            }
         }
 
         // Redirect to tab equipment when equipement is attached to a shipping
@@ -2240,15 +2260,15 @@ SCRIPT;
     }
 
     /**
-	 * Overloading the findAllBenefactorEquipmentsSQL function : replacing the parent's function with the one below
-	 *
-	 * @param   array() $parameters Hook metadatas (context, etc...)
-	 * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-	 * @param   string &$action Current action (if set). Generally create or edit or null
-	 * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
-	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
-	 */
-	function findAllBenefactorEquipmentsSQL($parameters, &$object, &$action, $hookmanager)
+     * Overloading the findAllBenefactorEquipmentsSQL function : replacing the parent's function with the one below
+     *
+     * @param   array() $parameters Hook metadatas (context, etc...)
+     * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string &$action Current action (if set). Generally create or edit or null
+     * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+    function findAllBenefactorEquipmentsSQL($parameters, &$object, &$action, $hookmanager)
     {
         global $conf, $langs;
 
@@ -2317,15 +2337,15 @@ SCRIPT;
     }
 
     /**
-	 * Overloading the showLinkToObjectBlock function : replacing the parent's function with the one below
-	 *
-	 * @param   array() $parameters Hook metadatas (context, etc...)
-	 * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-	 * @param   string &$action Current action (if set). Generally create or edit or null
-	 * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
-	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
-	 */
-	function showLinkToObjectBlock($parameters, &$object, &$action, $hookmanager)
+     * Overloading the showLinkToObjectBlock function : replacing the parent's function with the one below
+     *
+     * @param   array() $parameters Hook metadatas (context, etc...)
+     * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string &$action Current action (if set). Generally create or edit or null
+     * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+    function showLinkToObjectBlock($parameters, &$object, &$action, $hookmanager)
     {
         global $conf, $langs;
 
@@ -2403,36 +2423,36 @@ SCRIPT;
     }
 
     /**
-	 * Overloading the getBlackWhitelistOfProperties function : replacing the parent's function with the one below
-	 *
-	 * @param   array() $parameters Hook metadatas (context, etc...)
-	 * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-	 * @param   string &$action Current action (if set). Generally create or edit or null
-	 * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
-	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
-	 */
-	function getBlackWhitelistOfProperties($parameters, &$object, &$action, $hookmanager)
+     * Overloading the getBlackWhitelistOfProperties function : replacing the parent's function with the one below
+     *
+     * @param   array() $parameters Hook metadatas (context, etc...)
+     * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string &$action Current action (if set). Generally create or edit or null
+     * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+    function getBlackWhitelistOfProperties($parameters, &$object, &$action, $hookmanager)
     {
         $contexts = explode(':', $parameters['context']);
 
         if (in_array('globalapi', $contexts)) {
-//                    // Overwrite the whitelist for the object
-//                    $parameters['whitelist_of_properties'] = array(
-//                    );
-//                    // Overwrite the whitelist for the object if is a linked object
-//                    $parameters['whitelist_of_properties_linked_object'] = array(
-//                    );
-//                    // Overwrite the blacklist for the object
-//                    $parameters['blacklist_of_properties'] = array(
-//                    );
-//                    // Overwrite the blacklist for the object if is a linked object
-//                    $parameters['blacklist_of_properties_linked_object'] = array(
-//                    );
+            //                    // Overwrite the whitelist for the object
+            //                    $parameters['whitelist_of_properties'] = array(
+            //                    );
+            //                    // Overwrite the whitelist for the object if is a linked object
+            //                    $parameters['whitelist_of_properties_linked_object'] = array(
+            //                    );
+            //                    // Overwrite the blacklist for the object
+            //                    $parameters['blacklist_of_properties'] = array(
+            //                    );
+            //                    // Overwrite the blacklist for the object if is a linked object
+            //                    $parameters['blacklist_of_properties_linked_object'] = array(
+            //                    );
 
             switch ($object->element) {
-//                case 'contrat':
-//                    unset($parameters['whitelist_of_properties']['ref_customer']);
-//                    break;
+                    //                case 'contrat':
+                    //                    unset($parameters['whitelist_of_properties']['ref_customer']);
+                    //                    break;
                 case 'product':
                     $parameters['whitelist_of_properties_linked_object'] = array(
                         "description" => '', "ref" => '', "id" => '', "array_options" => array('options_publiclabel' => ''), "label" => '',
@@ -2451,7 +2471,7 @@ SCRIPT;
                         "lastname" => '', "firstname" => '',
                     );
                     $parameters['whitelist_of_properties'] = array(
-                        "lastname" => '', "firstname" => '', "id" => '', "gender" => '', "email" => '', "signature" => '', "address" => '', "zip" => '', "town" => '', "office_phone" => '', "office_fax" => '', "user_mobile" => '', "socid" => '', "contactid" => '', "photo" => '', "lang" => '', "rights" => '', "array_options" => '', "thirdparty" => '',"login"=>''
+                        "lastname" => '', "firstname" => '', "id" => '', "gender" => '', "email" => '', "signature" => '', "address" => '', "zip" => '', "town" => '', "office_phone" => '', "office_fax" => '', "user_mobile" => '', "socid" => '', "contactid" => '', "photo" => '', "lang" => '', "rights" => '', "array_options" => '', "thirdparty" => '', "login" => ''
                     );
                     break;
                 case 'usergroup':
@@ -2526,7 +2546,6 @@ SCRIPT;
                             "note_public" => '', "fk_project" => '', "socid" => '', "thirdparty" => '',
                             "cr_thirdparty_benefactor" => '', "lines" => '', "linkedObjectsIds" => '', "array_options" => array("options_companyrelationships_fk_soc_benefactor" => '', "options_formule" => '', "options_signaturedate" => '', "options_startdate" => '', "options_duration" => ''),
                         );
-
                     }
                     break;
                 case 'contratdet':
@@ -2566,15 +2585,15 @@ SCRIPT;
     }
 
     /**
-	 * Overloading the addMoreSpecificsInformation function : replacing the parent's function with the one below
-	 *
-	 * @param   array() $parameters Hook metadatas (context, etc...)
-	 * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-	 * @param   string &$action Current action (if set). Generally create or edit or null
-	 * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
-	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
-	 */
-	function addMoreSpecificsInformation($parameters, &$object, &$action, $hookmanager)
+     * Overloading the addMoreSpecificsInformation function : replacing the parent's function with the one below
+     *
+     * @param   array() $parameters Hook metadatas (context, etc...)
+     * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string &$action Current action (if set). Generally create or edit or null
+     * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+    function addMoreSpecificsInformation($parameters, &$object, &$action, $hookmanager)
     {
         $contexts = explode(':', $parameters['context']);
 
@@ -2612,7 +2631,7 @@ SCRIPT;
                 // Init list of files
                 if (!$loaded && GETPOST("messagemode") == 'init') {
                     $formsynergiestechmessage->clear_attached_files();
-//                    $formsynergiestechmessage->add_attached_files($file, basename($file), dol_mimetype($file));
+                    //                    $formsynergiestechmessage->add_attached_files($file, basename($file), dol_mimetype($file));
                 }
 
                 // Show form
@@ -2628,94 +2647,84 @@ SCRIPT;
     }
 
     /**
-	 * Overloading the printFieldListWhereCustomerOrderToBill function : replacing the parent's function with the one below
-	 *
-	 * @param   array() $parameters Hook metadatas (context, etc...)
-	 * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-	 * @param   string &$action Current action (if set). Generally create or edit or null
-	 * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
-	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
-	 */
-	function printFieldListWhereCustomerOrderToBill($parameters, &$object, &$action, $hookmanager)
+     * Overloading the printFieldListWhereCustomerOrderToBill function : replacing the parent's function with the one below
+     *
+     * @param   array() $parameters Hook metadatas (context, etc...)
+     * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string &$action Current action (if set). Generally create or edit or null
+     * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+    function printFieldListWhereCustomerOrderToBill($parameters, &$object, &$action, $hookmanager)
     {
-       return " AND c.total_ttc > 0 ";
+        return " AND c.total_ttc > 0 ";
     }
 
 
 
     /**
-	 * Overloading the printFieldListWhereCustomerOrderToBill function : replacing the parent's function with the one below
-	 *
-	 * @param   array() $parameters Hook metadatas (context, etc...)
-	 * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-	 * @param   string &$action Current action (if set). Generally create or edit or null
-	 * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
-	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
-	 */
-	function setHtmlTitle($parameters, &$object, &$action, $hookmanager)
+     * Overloading the printFieldListWhereCustomerOrderToBill function : replacing the parent's function with the one below
+     *
+     * @param   array() $parameters Hook metadatas (context, etc...)
+     * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string &$action Current action (if set). Generally create or edit or null
+     * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+    function setHtmlTitle($parameters, &$object, &$action, $hookmanager)
     {
         global $object, $conf;
         $prefix = null;
         $weHaveToUseBenefactorId = false;
         $field = "fk_soc";
         $title = $parameters["title"];
-        if(!$object){
+        if (!$object) {
             return 0;
         }
         $element = $object->element;
-        if($element == "invoice_supplier"){
+        if ($element == "invoice_supplier") {
             $prefix = "FF";
-        }
-        elseif($element == "facture"){
+        } elseif ($element == "facture") {
             $prefix = "F";
             $weHaveToUseBenefactorId = !empty($conf->companyrelationships->enabled);
-        }
-        elseif($element == "propal"){
+        } elseif ($element == "propal") {
             $prefix = "D";
             $weHaveToUseBenefactorId = !empty($conf->companyrelationships->enabled);
-        }
-        elseif($element == "commande"){
+        } elseif ($element == "commande") {
             $prefix = "BC";
             $weHaveToUseBenefactorId = !empty($conf->companyrelationships->enabled);
-        }
-        elseif($element == "order_supplier"){
+        } elseif ($element == "order_supplier") {
             $prefix = "BCF";
             $field = "socid";
-        }
-        elseif($object->element == "shipping"){
+        } elseif ($object->element == "shipping") {
             $prefix = "BL";
             $weHaveToUseBenefactorId = !empty($conf->companyrelationships->enabled);
-        }
-        elseif($element == "contrat"){
+        } elseif ($element == "contrat") {
             $prefix = "Co";
             $weHaveToUseBenefactorId = !empty($conf->companyrelationships->enabled);
-        }
-        elseif($element == "fichinter" || $element == "interventionsurvey"){
+        } elseif ($element == "fichinter" || $element == "interventionsurvey") {
             $prefix = "I";
             $weHaveToUseBenefactorId = !empty($conf->companyrelationships->enabled);
-        }
-        elseif($element == "requestmanager"){
+        } elseif ($element == "requestmanager") {
             $prefix = "R";
             $field = !empty($conf->companyrelationships->enabled) ? "socid_benefactor" : "socid";
-        }
-        elseif($element == "societe"){
+        } elseif ($element == "societe") {
             $prefix = "T";
             $field = "id";
-        }
-        elseif($element == "action"){
+        } elseif ($element == "action") {
             $prefix = "Ev";
             $field = "socid";
         }
         $socId = $object->$field;
-        if($weHaveToUseBenefactorId && $object->id > 0){
+        if ($weHaveToUseBenefactorId && $object->id > 0) {
             $object->fetch_optionals();
             $socId = $object->array_options["options_companyrelationships_fk_soc_benefactor"];
         }
-        if($socId && $socId > 0){
+        if ($socId && $socId > 0) {
             require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
             $societe = new Societe($this->db);
             $societe->fetch($socId);
-            if($societe->id>0){
+            if ($societe->id > 0) {
                 $thirdpartyName = empty($societe->name_alias) ? $societe->name : $societe->name_alias;
                 $listOfPatternToRemove = array(
                     "Pharmacie de ",
@@ -2723,36 +2732,66 @@ SCRIPT;
                     "Pharmacie De ",
                     "pharmacie De ",
                     "Pharmacie ",
-                    "pharmacie ");
-                foreach($listOfPatternToRemove as $text){
-                    $thirdpartyName = str_replace($text, "",$thirdpartyName);
+                    "pharmacie "
+                );
+                foreach ($listOfPatternToRemove as $text) {
+                    $thirdpartyName = str_replace($text, "", $thirdpartyName);
                 }
                 $prefix = $prefix . " - " . $thirdpartyName;
             }
         }
-        if($prefix){
-            $hookmanager->resPrint = $prefix . " | " .$title;
+        if ($prefix) {
+            $hookmanager->resPrint = $prefix . " | " . $title;
             return 1;
         }
         return 0;
     }
 
+
     /**
-	 * Overloading the addNextBannerTab function : replacing the parent's function with the one below
-	 *
-	 * @param   array() $parameters Hook metadatas (context, etc...)
-	 * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-	 * @param   string &$action Current action (if set). Generally create or edit or null
-	 * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
-	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
-	 */
-	function addNextBannerTab($parameters, &$object, &$action, $hookmanager)
+     * Overloading the addBannerTab function : replacing the parent's function with the one below
+     *
+     * @param   array() $parameters Hook metadatas (context, etc...)
+     * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string &$action Current action (if set). Generally create or edit or null
+     * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+    function addBannerTab($parameters, &$object, &$action, $hookmanager)
+    {
+        global $db;
+
+        $contexts = explode(':', $parameters['context']);
+        $contextWhenDisplayBannerTab = array('thirdpartycard','commcard');
+        $contextsThatShouldActivateThisHook = array_intersect($contexts, $contextWhenDisplayBannerTab);
+
+        if (count($contextsThatShouldActivateThisHook) > 0) {
+            $socId = $object->id;
+            dol_include_once('/synergiestech/class/html.formsynergiestech.class.php');
+            $htmlsynergiestechform = new FormSynergiesTech($this->db);
+            print $htmlsynergiestechform->bannerTab($socId);
+        }
+        return 0;
+    }
+
+    /**
+     * Overloading the addNextBannerTab function : replacing the parent's function with the one below
+     *
+     * @param   array() $parameters Hook metadatas (context, etc...)
+     * @param   CommonObject &$object The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string &$action Current action (if set). Generally create or edit or null
+     * @param   HookManager $hookmanager Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+    function addNextBannerTab($parameters, &$object, &$action, $hookmanager)
     {
         global $conf, $user, $langs;
 
         $contexts = explode(':', $parameters['context']);
+        $contextWhenDisplayBannerTab = array('requestmanagercard');
+        $contextsThatShouldActivateThisHook = array_intersect($contexts, $contextWhenDisplayBannerTab);
 
-        if (in_array('requestmanagercard', $contexts)) {
+        if (count($contextsThatShouldActivateThisHook) > 0) {
             require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
             require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
             $extrafields_contract = new ExtraFields($this->db);

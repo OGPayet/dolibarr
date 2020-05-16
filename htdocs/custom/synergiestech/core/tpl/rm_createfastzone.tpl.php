@@ -376,14 +376,14 @@ if ($zone === 1) {
         if (empty($msg_error)) {
             if (!empty($to_print_equipement_with_contract) || !empty($to_print_equipement_without_contract)) {
                 if (!empty($to_print_equipement_with_contract)) {
-                    print '<div style="background-color:green;">';
+                    print '<div style="background-color:'. $backgroundColor .';">';
                     print '<h1 style="'. $textColor . 'text-align:center;font-size: 4em;">Liste des équipements sous contrat : </h1>';
                     print implode('', $to_print_equipement_with_contract);
                     print '</div>';
                 }
                 if (!empty($to_print_equipement_without_contract)) {
-                    print '<div style="background-color:red;">';
-                    print '<h1 style="'. $textColor . 'background-color:red;text-align:center;font-size: 4em;">Liste des équipements HORS contrat : </h1>';
+                    print '<div style="background-color:'. $backgroundColor .';">';
+                    print '<h1 style="'. $textColor . 'text-align:center;font-size: 4em;">Liste des équipements HORS contrat : </h1>';
                     print implode('', $to_print_equipement_without_contract);
                     print '</div>';
                 }

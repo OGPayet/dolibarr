@@ -66,6 +66,26 @@ class FormSynergiesTech
     public static $cache_product_categories_list = null;
 
     /**
+     * @var array
+     */
+    public static $cache_contract_list = array();
+    /**
+     * @var array
+     */
+    public static $cache_equipement_list = array();
+
+    /**
+     * @var array
+     */
+    public static $cache_extrafields_contract = null;
+
+
+    /**
+     * @var array
+     */
+    public static $errors = array();
+
+    /**
      * Constructor
      *
      * @param   DoliDB $db Database handler
@@ -166,77 +186,76 @@ class FormSynergiesTech
             print synergiestech_ajax_autocompleter($selected, $htmlname, dol_buildpath('/synergiestech/ajax/products.php', 1), $urloption, $conf->global->PRODUIT_USE_SEARCH_TO_SELECT, 0, $ajaxoptions);
 
             if (!empty($conf->variants->enabled)) {
-                ?>
-              <script>
+?>
+                <script>
+                    selected = <?php echo json_encode($selected_combinations) ?>;
+                    combvalues = {};
 
-                selected = <?php echo json_encode($selected_combinations) ?>;
-                combvalues = {};
+                    jQuery(document).ready(function() {
 
-                jQuery(document).ready(function () {
-
-                  jQuery("input[name='prod_entry_mode']").change(function () {
-                    if (jQuery(this).val() == 'free') {
-                      jQuery('div#attributes_box').empty();
-                    }
-                  });
-
-                  jQuery("input#<?php echo $htmlname ?>").change(function () {
-
-                    if (!jQuery(this).val()) {
-                      jQuery('div#attributes_box').empty();
-                      return;
-                    }
-
-                    jQuery.getJSON("<?php echo dol_buildpath('/variants/ajax/getCombinations.php', 2) ?>", {
-                      id: jQuery(this).val()
-                    }, function (data) {
-                      jQuery('div#attributes_box').empty();
-
-                      jQuery.each(data, function (key, val) {
-
-                        combvalues[val.id] = val.values;
-
-                        var span = jQuery(document.createElement('div')).css({
-                          'display': 'table-row'
+                        jQuery("input[name='prod_entry_mode']").change(function() {
+                            if (jQuery(this).val() == 'free') {
+                                jQuery('div#attributes_box').empty();
+                            }
                         });
 
-                        span.append(
-                          jQuery(document.createElement('div')).text(val.label).css({
-                            'font-weight': 'bold',
-                            'display': 'table-cell',
-                            'text-align': 'right'
-                          })
-                        );
+                        jQuery("input#<?php echo $htmlname ?>").change(function() {
 
-                        var html = jQuery(document.createElement('select')).attr('name', 'combinations[' + val.id + ']').css({
-                          'margin-left': '15px',
-                          'white-space': 'pre'
-                        }).append(
-                          jQuery(document.createElement('option')).val('')
-                        );
+                            if (!jQuery(this).val()) {
+                                jQuery('div#attributes_box').empty();
+                                return;
+                            }
 
-                        jQuery.each(combvalues[val.id], function (key, val) {
-                          var tag = jQuery(document.createElement('option')).val(val.id).html(val.value);
+                            jQuery.getJSON("<?php echo dol_buildpath('/variants/ajax/getCombinations.php', 2) ?>", {
+                                id: jQuery(this).val()
+                            }, function(data) {
+                                jQuery('div#attributes_box').empty();
 
-                          if (selected[val.fk_product_attribute] == val.id) {
-                            tag.attr('selected', 'selected');
-                          }
+                                jQuery.each(data, function(key, val) {
 
-                          html.append(tag);
+                                    combvalues[val.id] = val.values;
+
+                                    var span = jQuery(document.createElement('div')).css({
+                                        'display': 'table-row'
+                                    });
+
+                                    span.append(
+                                        jQuery(document.createElement('div')).text(val.label).css({
+                                            'font-weight': 'bold',
+                                            'display': 'table-cell',
+                                            'text-align': 'right'
+                                        })
+                                    );
+
+                                    var html = jQuery(document.createElement('select')).attr('name', 'combinations[' + val.id + ']').css({
+                                        'margin-left': '15px',
+                                        'white-space': 'pre'
+                                    }).append(
+                                        jQuery(document.createElement('option')).val('')
+                                    );
+
+                                    jQuery.each(combvalues[val.id], function(key, val) {
+                                        var tag = jQuery(document.createElement('option')).val(val.id).html(val.value);
+
+                                        if (selected[val.fk_product_attribute] == val.id) {
+                                            tag.attr('selected', 'selected');
+                                        }
+
+                                        html.append(tag);
+                                    });
+
+                                    span.append(html);
+                                    jQuery('div#attributes_box').append(span);
+                                });
+                            })
                         });
 
-                        span.append(html);
-                        jQuery('div#attributes_box').append(span);
-                      });
-                    })
-                  });
-
-                    <?php if ($selected): ?>
-                  jQuery("input#<?php echo $htmlname ?>").change();
-                    <?php endif ?>
-                });
-              </script>
-                <?php
+                        <?php if ($selected) : ?>
+                            jQuery("input#<?php echo $htmlname ?>").change();
+                        <?php endif ?>
+                    });
+                </script>
+<?php
             }
             if (empty($hidelabel)) print $langs->trans("RefOrLabel") . ' : ';
             else if ($hidelabel > 1) {
@@ -440,7 +459,8 @@ class FormSynergiesTech
             if (!empty($conf->barcode->enabled)) $sql .= " OR p.barcode LIKE '" . $db->escape($prefix . $filterkey) . "%'";
             $sql .= ')';
         }
-        if (count($warehouseStatusArray) || (is_array($include_into_contract_categories) && count($include_into_contract_categories) > 0) ||
+        if (
+            count($warehouseStatusArray) || (is_array($include_into_contract_categories) && count($include_into_contract_categories) > 0) ||
             ($show_mode == 1 && is_array($include_into_tag_categories) && count($include_into_tag_categories) > 0) ||
             (is_array($only_in_categories) && count($only_in_categories) > 0)
         ) {
@@ -835,8 +855,7 @@ class FormSynergiesTech
                 if ((preg_match('/^' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '$/', $cat['fullpath']) ||
                         preg_match('/_' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '$/', $cat['fullpath']) ||
                         preg_match('/^' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '_/', $cat['fullpath']) ||
-                        preg_match('/_' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '_/', $cat['fullpath'])
-                    ) && $cat['id'] != $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE
+                        preg_match('/_' . $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE . '_/', $cat['fullpath'])) && $cat['id'] != $conf->global->SYNERGIESTECH_PRODUCT_CATEGORY_FOR_CONTRACT_FORMULE
                 ) {
                     $contract_formule_categories[$cat['label']] = $cat['id'];
                 }
@@ -907,7 +926,8 @@ class FormSynergiesTech
                     if (!isset($tag_categories[$category_id])) {
                         // Get all sub categories of the categories founded
                         foreach ($all_categories as $cat) {
-                            if (preg_match('/^' . $category_id . '$/', $cat['fullpath']) ||
+                            if (
+                                preg_match('/^' . $category_id . '$/', $cat['fullpath']) ||
                                 preg_match('/_' . $category_id . '$/', $cat['fullpath']) ||
                                 preg_match('/^' . $category_id . '_/', $cat['fullpath']) ||
                                 preg_match('/_' . $category_id . '_/', $cat['fullpath'])
@@ -1815,23 +1835,20 @@ class FormSynergiesTech
                     $color = "#999999";
                     $color_class = 'st_color_default';
                     //incomming call
-					$duration="";
-					if (strpos($obj->label, $langs->trans('RequestManagerAnswerPhone')) !== false)
-							{
-								//It is a voice mail
-								$color_class = 'st_color_voicemail';
-							}
-
-                    else if (strpos($obj->label, $langs->trans('RequestManagerIncomingCall')) !== false) {
+                    $duration = "";
+                    if (strpos($obj->label, $langs->trans('RequestManagerAnswerPhone')) !== false) {
+                        //It is a voice mail
+                        $color_class = 'st_color_voicemail';
+                    } else if (strpos($obj->label, $langs->trans('RequestManagerIncomingCall')) !== false) {
                         //We are in an incoming call
                         //We check date to determine duration
                         $duration = dol_stringtotime($obj->datep2) - dol_stringtotime($obj->datep);
 
                         if ($duration > 6) {
                             //call has been answered
-							//We may check if it was not a voice mail
+                            //We may check if it was not a voice mail
 
-							//It is a normal incoming call
+                            //It is a normal incoming call
                             //$color = "#008000";
                             $color_class = 'st_color_call_has_been_answered';
                         } else {
@@ -1856,7 +1873,7 @@ class FormSynergiesTech
                     }
 
 
-                    $out .= '<option class="'.$color_class.'" value="' . $obj->id . '"';
+                    $out .= '<option class="' . $color_class . '" value="' . $obj->id . '"';
                     if ($selected && $selected == $obj->id) $out .= ' selected';
                     //$out .= " style='color: " . $color . "' ";
                     $out .= '>';
@@ -1903,5 +1920,365 @@ class FormSynergiesTech
             return -1;
         }
     }
-}
 
+    /**
+     *  load in cache contract related to a requestor or a benefactor
+     *
+     * @param   int $socId Id of the thirdparty
+     * @return  Contract[] List of contract
+     */
+
+    function fetch_all_contract_for_these_company($socId, $benefactorId)
+    {
+        //We saved in memory all contract related to this company : were it is a benefactor and/or a requester
+        global $conf;
+
+        $result = array();
+
+        if (!empty($conf->contrat->enabled) && ($socId > 0 || (!empty($conf->companyrelationships->enabled) && $benefactorId > 0))) {
+            $sql = "SELECT DISTINCT c.rowid";
+            $sql .= " FROM " . MAIN_DB_PREFIX . "contrat as c";
+            if (!empty($conf->companyrelationships->enabled) && $benefactorId > 0) {
+                $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "contrat_extrafields as cf ON c.rowid = cf.fk_object";
+            }
+            $sql .= " WHERE c.entity IN (" . getEntity('contrat') . ")";
+            if ($socId > 0 && !empty($conf->companyrelationships->enabled) && $benefactorId > 0) {
+                $separator = 'OR';
+            } else {
+                $separator = '';
+            }
+            $sql .= ' AND (';
+            if ($socId > 0) {
+                $sql .= " c.fk_soc = " . $socId;
+            }
+            $sql .= $separator;
+            if (!empty($conf->companyrelationships->enabled) && $benefactorId > 0) {
+                $sql .= " cf.companyrelationships_fk_soc_benefactor = " . $benefactorId;
+            }
+            $sql .= ')';
+
+            dol_syslog(__METHOD__, LOG_DEBUG);
+            $resql = $this->db->query($sql);
+            if ($resql) {
+                if ($this->db->num_rows($resql) > 0) {
+                    dol_include_once('/contrat/class/contrat.class.php');
+                    while ($obj = $this->db->fetch_object($resql)) {
+                        if (!self::$cache_contract_list[$obj->rowid]) {
+                            $contrat = new Contrat($this->db);
+                            $contrat->fetch($obj->rowid);
+                            $contrat->fetchObjectLinked();
+                            self::$cache_contract_list[$obj->rowid] = $contrat;
+                        }
+                        $result[$obj->rowid] = self::$cache_contract_list[$obj->rowid];
+                    }
+                }
+            } else {
+                $msg_error = $this->db->lasterror();
+                dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $msg_error, LOG_DEBUG);
+                $this->errors[] = $msg_error;
+            }
+        }
+        return $result;
+    }
+
+    /**
+     *  load in cache equipements related to a socid
+     *
+     * @param   int $socId Id of the thirdparty
+     * @return  Contract[] List of contract
+     */
+
+    function fetch_all_equipement_for_these_company($socId)
+    {
+        //We saved in memory all equipement related to this company
+        global $conf;
+
+        $result = array();
+
+        $sql = "SELECT e.rowid";
+        $sql .= " FROM " . MAIN_DB_PREFIX . "equipement as e";
+        $sql .= " LEFT JOIN  " . MAIN_DB_PREFIX . "equipement_extrafields as eef ON eef.fk_object = e.rowid";
+        $sql .= " WHERE e.entity IN (" . getEntity('equipement') . ")";
+        $sql .= " AND e.fk_soc_client = " . $socId;
+        $sql .= " AND eef.machineclient = 1";
+        $sql .= " AND e.fk_statut = 1";
+        $resql = $this->db->query($sql);
+        if ($resql) {
+            if ($this->db->num_rows($resql) > 0) {
+                dol_include_once('/equipement/class/equipement.class.php');
+                while ($obj = $this->db->fetch_object($resql)) {
+                    if (!self::$cache_equipement_list[$obj->rowid]) {
+                        $equipement = new Equipement($this->db);
+                        $equipement->fetch($obj->rowid);
+                        $equipement->fetchObjectLinked();
+                        $equipement->fetch_product();
+                        self::$cache_equipement_list[$obj->rowid] = $equipement;
+                    }
+                    $result[$obj->rowid] = self::$cache_equipement_list[$obj->rowid];
+                }
+            }
+        } else {
+            $msg_error = $this->db->lasterror();
+            dol_syslog(__METHOD__ . " SQL: " . $sql . "; Error: " . $msg_error, LOG_DEBUG);
+            $this->errors[] = $msg_error;
+        }
+        return $result;
+    }
+
+    /**
+     *  Display equipement not under contract
+     *
+     * @param   Equipement[]
+     * @return  string
+     */
+
+    public function display_equipements_without_contract($arrayOfEquipement, $textColor)
+    {
+        $result = "";
+        $result = '<h1 style="color:' . $textColor . '!important;text-align:center;font-size: 2em!important;">Liste des équipements HORS contrat : </h1>';
+        foreach ($arrayOfEquipement as $equipement) {
+            $result .= '<p style="font-size: 1.5em!important;">' . $this->display_equipement($equipement, $textColor) . '</p>';
+        }
+        return $result;
+    }
+
+    /**
+     *   get_contract_without_equipement_for_these_company acording to socId and benefactorId
+     *
+     * @param   int $socId
+     * @param   int $benefactorId
+     * @return  string
+     */
+
+    public function filter_contract_without_equipement_for_these_company($arrayOfContract)
+    {
+        return array_filter($arrayOfContract, function ($value) {
+            return empty($value->linkedObjectsIds) || empty($value->linkedObjectsIds['equipement']);
+        });
+    }
+
+    /**
+     *  Display equipement under contract
+     *
+     * @param   Equipement[]
+     * @return  string
+     */
+
+    public function display_equipements_with_contracts($arrayOfEquipement, $textColor)
+    {
+        $result = '<h1 style="color:' . $textColor . '!important;text-align:center;font-size: 2em!important;">Liste des équipements sous contrat : </h1>';
+        foreach ($arrayOfEquipement as $equipement) {
+            $result .= '<p style="color:' . $textColor . '!important;font-size: 1.5em!important;">' . $this->display_equipement($equipement, $textColor) . ' : ' . $this->display_contracts_from_equipement($equipement, $textColor) . '</p>';
+        }
+        return $result;
+    }
+
+    /***
+     *
+     * Get Equipement with contract
+     */
+
+    public function filter_equipement_with_contract($arrayOfEquipement)
+    {
+        return array_filter($arrayOfEquipement, function ($value) {
+            return !empty($value->linkedObjectsIds) && !empty($value->linkedObjectsIds['contrat']);
+        });
+    }
+
+    /***
+     *
+     * Get Equipement without contract
+     */
+
+    public function filter_equipement_without_contract($arrayOfEquipement)
+    {
+        return array_filter($arrayOfEquipement, function ($value) {
+            return empty($value->linkedObjectsIds) || empty($value->linkedObjectsIds['contrat']);
+        });
+    }
+
+    /***
+     * Display contracts linked to an equipement, written with given text color
+     */
+    public function display_contracts_from_equipement($equipement, $textColor)
+    {
+        $arrayOfContractIds = $equipement->linkedObjectsIds ? $equipement->linkedObjectsIds['contrat'] : array();
+        $arrayOfContracts = array();
+        foreach ($arrayOfContractIds as $id) {
+            $arrayOfContracts[] = self::$cache_contract_list[$id];
+        }
+        return $this->display_contracts($arrayOfContracts, $textColor);
+    }
+
+
+    /**
+     *  Display contract in one line
+     *
+     * @param   Contract[]
+     * @return  string
+     */
+
+    public function display_contracts($arrayOfContracts, $textColor)
+    {
+        $toPrint = array();
+        if ($arrayOfContracts) {
+            foreach ($arrayOfContracts as $contract) {
+                $toPrint[] = $this->display_contract($contract, $textColor);
+            }
+        }
+        return implode(' - ', $toPrint);
+    }
+
+
+    /**
+     *  Display contract
+     *
+     * @param   Contract
+     * @return  string
+     */
+
+    public function display_contract($contract, $textColor)
+    {
+        global $user;
+        $this->load_cache_extrafields_contract();
+        $result = "";
+
+        if ($contract) {
+
+            if(empty($contract->array_options)){
+                $contract->fetch_optionals();
+            }
+
+            $result = '<a href="' . DOL_URL_ROOT . '/contrat/card.php?id=' . $contract->id . '" ';
+            if (!$user->rights->contrat->lire) {
+                $result .= 'onclick="return false"';
+            }
+            if ($textColor) {
+                $result .= 'style="color:' . $textColor . ';"';
+            }
+            $result .= '> ' . self::$cache_extrafields_contract->showOutputField('formule', $contract->array_options['options_formule']) . " - " . $contract->ref . "</a> ";
+        }
+        return $result;
+    }
+
+    /**
+     *  Display contract without equipement
+     *
+     * @param   Contract
+     * @return  string
+     */
+
+    public function display_contract_without_equipement($arrayOfContract, $textColor)
+    {
+        return '<h1 style="color:' . $textColor . '!important;text-align:center;font-size: 4em;">Liste des contrats de ce bénéficiaire non rattachés à un équipement:' . $this->display_contracts($arrayOfContract, $textColor) . '</h1>';
+    }
+
+    public function load_cache_extrafields_contract()
+    {
+        if (!self::$cache_extrafields_contract) {
+            require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
+            self::$cache_extrafields_contract = new ExtraFields($this->db);
+            self::$cache_extrafields_contract->fetch_name_optionals_label('contrat');
+        }
+    }
+    /**
+     *  Display Equipement
+     *
+     * @param   Contract
+     * @return  string
+     */
+
+    public function display_equipement($equipement, $textColor)
+    {
+        global $user;
+        $result = "";
+        if ($equipement) {
+            $result .= $equipement->product->label . ' - ' . $equipement->ref;
+
+            if ($user->rights->equipement->lire) {
+                $result = '<a ' . 'style="color:' . $textColor . '!important;"' . ' href="' . DOL_URL_ROOT . '/custom/equipement/card.php?id=' . $equipement->id . '" >' . $result . '</a>';
+            } else {
+                $result = '<h1 ' . 'style="color:' . $textColor . '!important;">' . $result . '</h1>';
+            }
+        }
+        return $result;
+    }
+
+    public static function displayNoContractAndNoEquipement($textColor)
+    {
+        return '<h2 style="color:' . $textColor . '!important">Pas de contrats ni d\'équipement</h2>';
+    }
+
+    public static function displayContractAsRequesterOnly($socId, $numberOfContract, $textColor)
+    {
+        global $user;
+        $result = '<h2 style="color:' . $textColor . '!important">';
+        $result .= $numberOfContract . ' contrats en tant que donneur d\'ordre';
+
+        if (!empty($user->rights->contrat->lire)) {
+            $result .= ' : ';
+            $result .= '<a href="' . DOL_URL_ROOT . '/contrat/list.php?socid=' . $socId . '">';
+            $result .= 'Liste des contrats';
+            $result .= '</a>';
+        }
+
+        $result .= '</h2>';
+        return $result;
+    }
+
+    /***
+     * Display custom banner Tab
+     */
+    public function bannerTab($socId)
+    {
+        $result = "";
+        $listOfEquipementOfThisCustomer = $this->fetch_all_equipement_for_these_company($socId);
+        $equipementUnderContract = $this->filter_equipement_with_contract($listOfEquipementOfThisCustomer);
+        $equipementWithoutContract = $this->filter_equipement_without_contract($listOfEquipementOfThisCustomer);
+        $listOfContractOfThisBenefactor = $this->fetch_all_contract_for_these_company(null, $socId);
+        $listOfContractOfThisBenefactorWithoutEquipement = $this->filter_contract_without_equipement_for_these_company($listOfContractOfThisBenefactor);
+        $listOfCOntractAsRequester = $this->fetch_all_contract_for_these_company($socId, null);
+        $listOfContractWhereThisSocIdIsOnlyRequesterAndNotBenefactor = array_diff_key(
+            $listOfCOntractAsRequester,
+            $listOfContractOfThisBenefactor
+        );
+        if (empty($listOfContractOfThisBenefactor) && empty($listOfContractWhereThisSocIdIsOnlyRequesterAndNotBenefactor)) {
+            $backgroundColor = "red";
+            $textColor = "white";
+        } else if (!empty($equipementUnderContract) && empty($equipementWithoutContract)) {
+            $backgroundColor = "green";
+            $textColor = "white";
+        } else {
+            $backgroundColor = "orange";
+            $textColor = "black";
+        }
+
+        $result .= '<table class="border" width="100%">';
+        $result .= '<tr style="background-color :' . $backgroundColor . ';text-align:center">';
+        $result .= '<td>';
+
+        if (!empty($equipementUnderContract)) {
+            $result .= $this->display_equipements_with_contracts($equipementUnderContract, $textColor);
+        }
+
+        if (!empty($equipementWithoutContract)) {
+            $result .= $this->display_equipements_without_contract($equipementWithoutContract, $textColor);
+        }
+        if (!empty($listOfContractOfThisBenefactorWithoutEquipement)) {
+            $result .= $this->display_contract_without_equipement($listOfContractOfThisBenefactorWithoutEquipement, $textColor);
+        }
+
+        if (!empty($listOfContractWhereThisSocIdIsOnlyRequesterAndNotBenefactor)) {
+            $result .= $this->displayContractAsRequesterOnly($socId, count($listOfContractWhereThisSocIdIsOnlyRequesterAndNotBenefactor), $textColor);
+        }
+
+        if (empty($listOfContractOfThisBenefactor) && empty($listOfContractWhereThisSocIdIsOnlyRequesterAndNotBenefactor) && empty($listOfEquipementOfThisCustomer)) {
+            $result .= self::displayNoContractAndNoEquipement($textColor);
+        }
+
+        $result .= '</td>';
+        $result .= '</tr>';
+        $result .= '</table>';
+        return $result;
+    }
+}
