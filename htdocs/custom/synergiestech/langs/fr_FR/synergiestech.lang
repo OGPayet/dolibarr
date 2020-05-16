@@ -248,3 +248,13 @@ SynergiesTechPDFInterventionSignatureCustomerTitle              = Signature Clie
 SynergiesTechGenerateDocuments          = Générer les documents
 SynergiesTechGenerateDocumentSuccess    = Nombre de génération de document réussies : %s
 SynergiesTechGenerateDocumentForFailed  = Génération du document pour %s échouée
+
+
+###########################################################
+### BannerTab
+###########################################################
+SynergiesTechBannerTabEquipementListWithoutContract = Liste des équipements HORS contrat :
+SynergiesTechBannerTabEquipementListWithContract = Liste des équipements sous contrat :
+SynergiesTechBannerTabContractWithoutEquipement = Liste des contrats de ce bénéficiaire non rattachés à un équipement :
+SynergiesTechBannerTabNoEqNoContract = Pas de contrats ni d'équipements
+SynergiesTechBannerTabContractAsRequesterOnly = %s contrats actifs en tant que donneur d'ordre

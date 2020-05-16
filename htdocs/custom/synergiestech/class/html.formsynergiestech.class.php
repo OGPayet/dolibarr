@@ -2042,8 +2042,9 @@ class FormSynergiesTech
 
     public function display_equipements_without_contract($arrayOfEquipement, $textColor)
     {
+        global $langs;
         $result = "";
-        $result = '<h1 style="color:' . $textColor . '!important;text-align:center;font-size: 2em!important;">Liste des équipements HORS contrat : </h1>';
+        $result = '<h1 style="color:' . $textColor . '!important;text-align:center;font-size: 2em!important;">' . $langs->trans('SynergiesTechBannerTabEquipementListWithoutContract') . '</h1>';
         foreach ($arrayOfEquipement as $equipement) {
             $result .= '<p style="font-size: 1.5em!important;">' . self::display_equipement($equipement, $textColor) . '</p>';
         }
@@ -2059,7 +2060,8 @@ class FormSynergiesTech
 
     public function display_equipements_with_contracts($arrayOfEquipement, $textColor)
     {
-        $result = '<h1 style="color:' . $textColor . '!important;text-align:center;font-size: 2em!important;">Liste des équipements sous contrat : </h1>';
+        global $langs;
+        $result = '<h1 style="color:' . $textColor . '!important;text-align:center;font-size: 2em!important;">'. $langs->trans('SynergiesTechBannerTabEquipementListWithContract') . ' </h1>';
         foreach ($arrayOfEquipement as $equipement) {
             $result .= '<p style="color:' . $textColor . '!important;font-size: 1.5em!important;">' . self::display_equipement($equipement, $textColor) . ' : ' . $this->display_contracts_from_equipement($equipement, $textColor) . '</p>';
         }
@@ -2255,7 +2257,8 @@ class FormSynergiesTech
 
     public function display_contract_without_equipement($arrayOfContract, $textColor)
     {
-        return '<h1 style="color:' . $textColor . '!important;text-align:center;font-size: 2em!important;">Liste des contrats de ce bénéficiaire non rattachés à un équipement:' . $this->display_contracts($arrayOfContract, $textColor) . '</h1>';
+        global $langs;
+        return '<h1 style="color:' . $textColor . '!important;text-align:center;font-size: 2em!important;">' . $langs->trans('SynergiesTechBannerTabContractWithoutEquipement') . $this->display_contracts($arrayOfContract, $textColor) . '</h1>';
     }
 
     /**
@@ -2303,7 +2306,8 @@ class FormSynergiesTech
 
     public static function displayNoContractAndNoEquipement($textColor)
     {
-        return '<h2 style="color:' . $textColor . '!important">Pas de contrats ni d\'équipement</h2>';
+        global $langs;
+        return '<h2 style="color:' . $textColor . '!important">' . $langs->trans('SynergiesTechBannerTabNoEqNoContract') . '</h2>';
     }
 
      /**
@@ -2316,9 +2320,9 @@ class FormSynergiesTech
      */
     public static function displayContractAsRequesterOnly($socId, $numberOfContract, $textColor)
     {
-        global $user;
+        global $user, $langs;
         $result = '<h2 style="color:' . $textColor . '!important">';
-        $result .= $numberOfContract . ' contrats actifs en tant que donneur d\'ordre';
+        $result .= $langs->trans('SynergiesTechBannerTabContractAsRequesterOnly', $numberOfContract);
 
         if (!empty($user->rights->contrat->lire)) {
             $result .= ' : ';
