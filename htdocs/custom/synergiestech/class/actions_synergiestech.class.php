@@ -2765,7 +2765,7 @@ SCRIPT;
         $contextWhenDisplayBannerTab = array('thirdpartycard','commcard');
         $contextsThatShouldActivateThisHook = array_intersect($contexts, $contextWhenDisplayBannerTab);
 
-        if (count($contextsThatShouldActivateThisHook) > 0) {
+        if (count($contextsThatShouldActivateThisHook) > 0 && $object->client > 0) {
             $socId = $object->id;
             dol_include_once('/synergiestech/class/html.formsynergiestech.class.php');
             $htmlsynergiestechform = new FormSynergiesTech($this->db);

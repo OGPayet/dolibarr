@@ -1923,8 +1923,11 @@ class FormSynergiesTech
 
     /**
      *  load in cache contract related to a requestor or a benefactor
+     *  return result according to selected param with value taken from existing cache or db if not available
+     * Cache is filled with all parsed data into db, so only from new item
      *
-     * @param   int $socId Id of the thirdparty
+     * @param   int $socId Id of the principal thirdparty
+     * @param   int $benefactorId Id of the benefactor thirdparty
      * @return  Contract[] List of contract
      */
 
@@ -1963,13 +1966,16 @@ class FormSynergiesTech
                 if ($this->db->num_rows($resql) > 0) {
                     dol_include_once('/contrat/class/contrat.class.php');
                     while ($obj = $this->db->fetch_object($resql)) {
-                        if (!self::$cache_contract_list[$obj->rowid]) {
+                        $contrat = self::$cache_contract_list[$obj->rowid];
+                        if (!$contrat) {
                             $contrat = new Contrat($this->db);
                             $contrat->fetch($obj->rowid);
                             $contrat->fetchObjectLinked();
                             self::$cache_contract_list[$obj->rowid] = $contrat;
                         }
-                        $result[$obj->rowid] = self::$cache_contract_list[$obj->rowid];
+                        if($contrat->nbofservicesopened > 0 && $contrat->statut == 1){
+                            $result[$obj->rowid] = $contrat;
+                        }
                     }
                 }
             } else {
@@ -1983,9 +1989,11 @@ class FormSynergiesTech
 
     /**
      *  load in cache equipements related to a socid
+     *  return result according to selected param with value taken from existing cache or db if not available
+     * Cache is filled with all parsed data into db, so only from new item
      *
-     * @param   int $socId Id of the thirdparty
-     * @return  Contract[] List of contract
+     * @param   int $socId Id of the principal thirdparty
+     * @return  Equipement[] List of contract
      */
 
     function fetch_all_equipement_for_these_company($socId)
@@ -2028,7 +2036,7 @@ class FormSynergiesTech
     /**
      *  Display equipement not under contract
      *
-     * @param   Equipement[]
+     * @param   Equipement[] containing an array of equipement to display
      * @return  string
      */
 
@@ -2037,24 +2045,9 @@ class FormSynergiesTech
         $result = "";
         $result = '<h1 style="color:' . $textColor . '!important;text-align:center;font-size: 2em!important;">Liste des équipements HORS contrat : </h1>';
         foreach ($arrayOfEquipement as $equipement) {
-            $result .= '<p style="font-size: 1.5em!important;">' . $this->display_equipement($equipement, $textColor) . '</p>';
+            $result .= '<p style="font-size: 1.5em!important;">' . self::display_equipement($equipement, $textColor) . '</p>';
         }
         return $result;
-    }
-
-    /**
-     *   get_contract_without_equipement_for_these_company acording to socId and benefactorId
-     *
-     * @param   int $socId
-     * @param   int $benefactorId
-     * @return  string
-     */
-
-    public function filter_contract_without_equipement_for_these_company($arrayOfContract)
-    {
-        return array_filter($arrayOfContract, function ($value) {
-            return empty($value->linkedObjectsIds) || empty($value->linkedObjectsIds['equipement']);
-        });
     }
 
     /**
@@ -2068,44 +2061,133 @@ class FormSynergiesTech
     {
         $result = '<h1 style="color:' . $textColor . '!important;text-align:center;font-size: 2em!important;">Liste des équipements sous contrat : </h1>';
         foreach ($arrayOfEquipement as $equipement) {
-            $result .= '<p style="color:' . $textColor . '!important;font-size: 1.5em!important;">' . $this->display_equipement($equipement, $textColor) . ' : ' . $this->display_contracts_from_equipement($equipement, $textColor) . '</p>';
+            $result .= '<p style="color:' . $textColor . '!important;font-size: 1.5em!important;">' . self::display_equipement($equipement, $textColor) . ' : ' . $this->display_contracts_from_equipement($equipement, $textColor) . '</p>';
         }
         return $result;
     }
 
-    /***
+    /**
+     *   Filter an array of contract to keep only active contract linked to equipement which is a machine and not a serialised product
      *
-     * Get Equipement with contract
+     * @param   Contrat[] $arrayOfContract
+     * @return  Contrat[]
      */
 
-    public function filter_equipement_with_contract($arrayOfEquipement)
+    public static function filter_contract_without_equipement_for_these_company($arrayOfContract)
     {
-        return array_filter($arrayOfEquipement, function ($value) {
-            return !empty($value->linkedObjectsIds) && !empty($value->linkedObjectsIds['contrat']);
+        return array_filter($arrayOfContract, function ($value) {
+            $test = empty($value->linkedObjectsIds) || empty($value->linkedObjectsIds['equipement']);
+            if(!$test){
+                //We may check that equipement is a machine equipement type
+                foreach($value->linkedObjects['equipement'] as $equipement){
+                    if(empty($equipement->array_options)){
+                        $equipement->fetch_optionals();
+                    }
+                    if($equipement->array_options['options_machineclient'] != 1){
+                        $test = true;
+                        break;
+                    }
+                }
+            }
+            return $test;
         });
     }
 
-    /***
+    /**
+     *   Helper static function to know if a contract is active
      *
-     * Get Equipement without contract
+     * @param   Contrat $contract
+     * @return  boolean
      */
 
-    public function filter_equipement_without_contract($arrayOfEquipement)
+    public static function isContractActive($contract){
+        return $contract->nbofservicesopened > 0 && $contract->statut == 1;
+    }
+
+     /**
+     *   Helper function to know if a contract is active by id
+     *
+     * @param   int $contractId
+     * @return  boolean
+     */
+
+    public function isContractActiveById($contractId){
+        $contract = self::$cache_contract_list[$contractId];
+        if(!$contract){
+            dol_include_once('/contrat/class/contrat.class.php');
+            $contract = new Contrat($this->db);
+            $contract->fetch($contractId);
+            $contract->fetchObjectLinked();
+        }
+        return self::isContractActive($contract);
+    }
+
+
+     /**
+     *  Helper static function to filter an array of equipement and return only equipement linked to an active contract
+     *
+     * @param   Equipement[] $arrayOfEquipement
+     * @return  Equipement[]
+     */
+
+    public static function filter_equipement_with_contract($arrayOfEquipement)
     {
         return array_filter($arrayOfEquipement, function ($value) {
-            return empty($value->linkedObjectsIds) || empty($value->linkedObjectsIds['contrat']);
+            $hasEquipementNoLinkedContract = empty($value->linkedObjects) || empty($value->linkedObjects['contrat']);
+            $hasEquipementAtLeastOneActiveContract = false;
+            if(!$hasEquipementNoLinkedContract){
+                foreach($value->linkedObjects['contrat'] as $contrat){
+                    if(self::isContractActive($contrat)){
+                    $hasEquipementAtLeastOneActiveContract = true;
+                    break;
+                    }
+                }
+            }
+            return  !$hasEquipementNoLinkedContract && $hasEquipementAtLeastOneActiveContract;
         });
     }
 
-    /***
-     * Display contracts linked to an equipement, written with given text color
+     /**
+     *  Helper static function to filter an array of equipement and return only equipement not linked to at least one active contract
+     *
+     * @param   Equipement[] $arrayOfEquipement
+     * @return  Equipement[]
      */
+
+    public static function filter_equipement_without_contract($arrayOfEquipement)
+    {
+        return array_filter($arrayOfEquipement, function ($value) {
+            $hasEquipementNoLinkedContract = empty($value->linkedObjects) || empty($value->linkedObjects['contrat']);
+            $hasEquipementAtLeastOneActiveContract = false;
+            if(!$hasEquipementNoLinkedContract){
+                foreach($value->linkedObjects['contrat'] as $contrat){
+                    if(self::isContractActive($contrat)){
+                    $hasEquipementAtLeastOneActiveContract = true;
+                    break;
+                    }
+                }
+            }
+            return  $hasEquipementNoLinkedContract && !$hasEquipementAtLeastOneActiveContract;
+        });
+    }
+
+     /**
+     *  Static function to display active contracts linked to an equipement
+     *
+     * @param   Equipement[] $arrayOfEquipement
+     * @param   string $textColor
+     * @return  Equipement[]
+     */
+
     public function display_contracts_from_equipement($equipement, $textColor)
     {
         $arrayOfContractIds = $equipement->linkedObjectsIds ? $equipement->linkedObjectsIds['contrat'] : array();
         $arrayOfContracts = array();
         foreach ($arrayOfContractIds as $id) {
-            $arrayOfContracts[] = self::$cache_contract_list[$id];
+            $contract = self::$cache_contract_list[$id];
+            if(self::isContractActive($contract)){
+                $arrayOfContracts[] = $contract;
+            }
         }
         return $this->display_contracts($arrayOfContracts, $textColor);
     }
@@ -2114,7 +2196,8 @@ class FormSynergiesTech
     /**
      *  Display contract in one line
      *
-     * @param   Contract[]
+     * @param   Contract[] $arrayOfContracts
+     * @param   string $textColor
      * @return  string
      */
 
@@ -2133,7 +2216,8 @@ class FormSynergiesTech
     /**
      *  Display contract
      *
-     * @param   Contract
+     * @param   Contract $contract
+     * @param   string $textColor
      * @return  string
      */
 
@@ -2165,14 +2249,19 @@ class FormSynergiesTech
      *  Display contract without equipement
      *
      * @param   Contract
+     * @param   string $textColor
      * @return  string
      */
 
-    public function display_contract_without_equipement($arrayOfContract, $textColor)
+    public static function display_contract_without_equipement($arrayOfContract, $textColor)
     {
-        return '<h1 style="color:' . $textColor . '!important;text-align:center;font-size: 4em;">Liste des contrats de ce bénéficiaire non rattachés à un équipement:' . $this->display_contracts($arrayOfContract, $textColor) . '</h1>';
+        return '<h1 style="color:' . $textColor . '!important;text-align:center;font-size: 2em!important;">Liste des contrats de ce bénéficiaire non rattachés à un équipement:' . $this->display_contracts($arrayOfContract, $textColor) . '</h1>';
     }
 
+    /**
+     *  Load Contract extrafields label informations into cache
+     *
+     */
     public function load_cache_extrafields_contract()
     {
         if (!self::$cache_extrafields_contract) {
@@ -2185,10 +2274,11 @@ class FormSynergiesTech
      *  Display Equipement
      *
      * @param   Contract
+     * @param   string $textColor
      * @return  string
      */
 
-    public function display_equipement($equipement, $textColor)
+    public static function display_equipement($equipement, $textColor)
     {
         global $user;
         $result = "";
@@ -2204,16 +2294,31 @@ class FormSynergiesTech
         return $result;
     }
 
+    /**
+     *  Display Text when NoContractAndEquipement found
+     *
+     * @param   string $textColor
+     * @return  string
+     */
+
     public static function displayNoContractAndNoEquipement($textColor)
     {
         return '<h2 style="color:' . $textColor . '!important">Pas de contrats ni d\'équipement</h2>';
     }
 
+     /**
+     *  Display Text about contract where thirdparty is only requester
+     *
+     * @param   string $socId
+     * @param   string $numberOfContract
+     * @param   string $textColor
+     * @return  string
+     */
     public static function displayContractAsRequesterOnly($socId, $numberOfContract, $textColor)
     {
         global $user;
         $result = '<h2 style="color:' . $textColor . '!important">';
-        $result .= $numberOfContract . ' contrats en tant que donneur d\'ordre';
+        $result .= $numberOfContract . ' contrats actifs en tant que donneur d\'ordre';
 
         if (!empty($user->rights->contrat->lire)) {
             $result .= ' : ';
@@ -2225,18 +2330,20 @@ class FormSynergiesTech
         $result .= '</h2>';
         return $result;
     }
-
-    /***
-     * Display custom banner Tab
+     /**
+     *  Display BannerTab containing equipement and contracts informations
+     *
+     * @param   string $socId
+     * @return  string
      */
     public function bannerTab($socId)
     {
         $result = "";
         $listOfEquipementOfThisCustomer = $this->fetch_all_equipement_for_these_company($socId);
-        $equipementUnderContract = $this->filter_equipement_with_contract($listOfEquipementOfThisCustomer);
-        $equipementWithoutContract = $this->filter_equipement_without_contract($listOfEquipementOfThisCustomer);
+        $equipementUnderContract = self::filter_equipement_with_contract($listOfEquipementOfThisCustomer);
+        $equipementWithoutContract = self::filter_equipement_without_contract($listOfEquipementOfThisCustomer);
         $listOfContractOfThisBenefactor = $this->fetch_all_contract_for_these_company(null, $socId);
-        $listOfContractOfThisBenefactorWithoutEquipement = $this->filter_contract_without_equipement_for_these_company($listOfContractOfThisBenefactor);
+        $listOfContractOfThisBenefactorWithoutEquipement = self::filter_contract_without_equipement_for_these_company($listOfContractOfThisBenefactor);
         $listOfCOntractAsRequester = $this->fetch_all_contract_for_these_company($socId, null);
         $listOfContractWhereThisSocIdIsOnlyRequesterAndNotBenefactor = array_diff_key(
             $listOfCOntractAsRequester,
@@ -2265,7 +2372,7 @@ class FormSynergiesTech
             $result .= $this->display_equipements_without_contract($equipementWithoutContract, $textColor);
         }
         if (!empty($listOfContractOfThisBenefactorWithoutEquipement)) {
-            $result .= $this->display_contract_without_equipement($listOfContractOfThisBenefactorWithoutEquipement, $textColor);
+            $result .= self::display_contract_without_equipement($listOfContractOfThisBenefactorWithoutEquipement, $textColor);
         }
 
         if (!empty($listOfContractWhereThisSocIdIsOnlyRequesterAndNotBenefactor)) {
