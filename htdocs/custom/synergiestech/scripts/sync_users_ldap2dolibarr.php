@@ -255,6 +255,10 @@ if ($result >= 0) {
 
             //Status Managment
             if (!empty($conf->global->SYNERGIESTECH_USERACCESSCONTROL_LDAPFIELDNAME)) {
+                print $ldapuser[$conf->global->SYNERGIESTECH_USERACCESSCONTROL_LDAPFIELDNAME];
+                print $arrayOfAccountActivatedValue;
+                print $arrayOfAccountDisabledValue;
+
                 if ($fuser->statut == 0 && in_array($ldapuser[$conf->global->SYNERGIESTECH_USERACCESSCONTROL_LDAPFIELDNAME], $arrayOfAccountActivatedValue)) {
                     $fuser->setstatus(1);
                     print ' --> Enable user id=' . $fuser->id . ' login=' . $fuser->login;
