@@ -285,6 +285,7 @@ if ($result >= 0) {
         $sql .= " AND ldap_sid IS NOT NULL ";
         $sql .= ' AND ldap_sid IS NOT LIKE "" ';
         $sql .= " AND rowid NOT IN (" . implode(",", $listOfUserIdInLdap) . ")";
+        print $sql;
         $resql = $db->query($sql);
         if ($resql) {
             $num = $db->num_rows($resql);
