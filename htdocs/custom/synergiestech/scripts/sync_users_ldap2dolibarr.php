@@ -285,7 +285,6 @@ if ($result >= 0) {
         $sql .= " AND ldap_sid IS NOT NULL";
         $sql .= " AND ldap_sid != ''";
         $sql .= " AND rowid NOT IN (" . implode(",", $listOfUserIdInLdap) . ")";
-        print($sql);
         $resql = $db->query($sql);
         if ($resql) {
             $num = $db->num_rows($resql);
@@ -298,7 +297,9 @@ if ($result >= 0) {
                         $fuser->fetch($obj->rowid);
                         if ($fuser->setstatus(0) < 0) {
                             $error++;
-                            print ' Error when disabling an user not found in ldap : ' . implode(",", $fuser->errors);
+                            print ' #Error when disabling user id=' . $fuser->id . ' login=' . $fuser->login . ' as not anymore existing into AD ' . implode(",", $fuser->errors);
+                        } else {
+                            print ' #Disable user id=' . $fuser->id . ' login=' . $fuser->login . ' as not anymore existing into AD ';
                         };
                     }
                     $i++;
