@@ -282,10 +282,9 @@ if ($result >= 0) {
         $sql = "SELECT rowid";
         $sql .= " FROM " . MAIN_DB_PREFIX . "user";
         $sql .= " WHERE statut = 1";
-        $sql .= " AND ldap_sid IS NOT NULL ";
-        $sql .= ' AND ldap_sid IS NOT LIKE "" ';
+        $sql .= " AND ldap_sid IS NOT NULL";
+        $sql .= " AND ldap_sid != ''";
         $sql .= " AND rowid NOT IN (" . implode(",", $listOfUserIdInLdap) . ")";
-        print $sql;
         $resql = $db->query($sql);
         if ($resql) {
             $num = $db->num_rows($resql);
