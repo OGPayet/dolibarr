@@ -257,10 +257,12 @@ if ($result >= 0) {
             if (!empty($conf->global->SYNERGIESTECH_USERACCESSCONTROL_LDAPFIELDNAME)) {
                 if ($fuser->statut == 0 && in_array($ldapuser[$conf->global->SYNERGIESTECH_USERACCESSCONTROL_LDAPFIELDNAME], $arrayOfAccountActivatedValue)) {
                     $fuser->setstatus(1);
+                    print ' --> Enable user id=' . $fuser->id . ' login=' . $fuser->login;
                 }
 
                 if ($fuser->statut == 1 && in_array($ldapuser[$conf->global->SYNERGIESTECH_USERACCESSCONTROL_LDAPFIELDNAME], $arrayOfAccountDisabledValue)) {
                     $fuser->setstatus(0);
+                    print ' --> Disable user id=' . $fuser->id . ' login=' . $fuser->login;
                 }
             }
 
