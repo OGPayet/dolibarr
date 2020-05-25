@@ -147,6 +147,18 @@ if (preg_match('/set_(.*)/',$action,$reg))
         $error++;
     }
 
+    if (dolibarr_set_const($db, 'SYNERGIESTECH_USERACCESSCONTROL_ACCOUNTENABLE', GETPOST('SYNERGIESTECH_USERACCESSCONTROL_ACCOUNTENABLE', 'alpha'), 'chaine', 0, '', 0) <= 0) {//No entity
+        $error++;
+    }
+
+    if (dolibarr_set_const($db, 'SYNERGIESTECH_USERACCESSCONTROL_ACCOUNTDISABLE', GETPOST('SYNERGIESTECH_USERACCESSCONTROL_ACCOUNTDISABLE', 'alpha'), 'chaine', 0, '', 0) <= 0) {//No entity
+        $error++;
+    }
+
+    if (dolibarr_set_const($db, 'SYNERGIESTECH_USERACCESSCONTROL_LDAPFIELDNAME', GETPOST('SYNERGIESTECH_USERACCESSCONTROL_LDAPFIELDNAME', 'alpha'), 'chaine', 0, '', 0) <= 0) {//No entity
+        $error++;
+    }
+
     if (!$error) {
         Header("Location: " . $_SERVER["PHP_SELF"]);
         exit;
@@ -320,6 +332,45 @@ if (empty($conf->global->SYNERGIESTECH_DO_NOT_KEEP_LINKED_OBJECT_WHEN_CLONING_SU
     print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_SYNERGIESTECH_DO_NOT_KEEP_LINKED_OBJECT_WHEN_CLONING_SUPPLIER_ORDER">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
 }
 print '</td></tr>' . "\n";
+
+
+
+print '<tr class="liste_titre">';
+print '<td>'.$langs->trans("SynergiesTechADSynchro").'</td>'."\n";
+print '<td align="center">&nbsp;</td>'."\n";
+print '<td align="right">'.$langs->trans("Value").'</td>'."\n";
+print "</tr>\n";
+
+// SYNERGIESTECH_USERACCESSCONTROL_LDAPFIELDNAME
+$var=!$var;
+print '<tr '.$bc[$var].'>'."\n";
+print '<td>'.$langs->trans("SynergiesTechUserAccessControlAccountFieldName").'</td>'."\n";
+print '<td align="center">&nbsp;</td>' . "\n";
+print '<td align="right">'."\n";
+print '<input name="SYNERGIESTECH_USERACCESSCONTROL_LDAPFIELDNAME" value="'.$conf->global->SYNERGIESTECH_USERACCESSCONTROL_LDAPFIELDNAME.'">';
+print '</td></tr>'."\n";
+
+
+// SYNERGIESTECH_USERACCESSCONTROL_ACCOUNTENABLE
+$var=!$var;
+print '<tr '.$bc[$var].'>'."\n";
+print '<td>'.$langs->trans("SynergiesTechUserAccessControlAccountEnableValue").'</td>'."\n";
+print '<td align="center">&nbsp;</td>' . "\n";
+print '<td align="right">'."\n";
+print '<input name="SYNERGIESTECH_USERACCESSCONTROL_ACCOUNTENABLE" value="'.$conf->global->SYNERGIESTECH_USERACCESSCONTROL_ACCOUNTENABLE.'">';
+print '</td></tr>'."\n";
+
+
+// SYNERGIESTECH_USERACCESSCONTROL_ACCOUNTDISABLE
+$var=!$var;
+print '<tr '.$bc[$var].'>'."\n";
+print '<td>'.$langs->trans("SynergiesTechUserAccessControlAccountDisableValue").'</td>'."\n";
+print '<td align="center">&nbsp;</td>' . "\n";
+print '<td align="right">'."\n";
+print '<input name="SYNERGIESTECH_USERACCESSCONTROL_ACCOUNTDISABLE" value="'.$conf->global->SYNERGIESTECH_USERACCESSCONTROL_ACCOUNTDISABLE.'">';
+print '</td></tr>'."\n";
+
+
 
 print '</table>';
 

@@ -27,7 +27,7 @@
  *  \ingroup    synergiestech
  *  \brief      Description and activation file for module Synergies-Tech
  */
-include_once DOL_DOCUMENT_ROOT .'/core/modules/DolibarrModules.class.php';
+include_once DOL_DOCUMENT_ROOT . '/core/modules/DolibarrModules.class.php';
 
 
 /**
@@ -35,22 +35,22 @@ include_once DOL_DOCUMENT_ROOT .'/core/modules/DolibarrModules.class.php';
  */
 class modSynergiesTech extends DolibarrModules
 {
-    /**
-     * @var array Module extrafiels entries
-     */
-    public $extrafields;
+	/**
+	 * @var array Module extrafiels entries
+	 */
+	public $extrafields;
 
-    /**
+	/**
 	 * Constructor. Define names, constants, directories, boxes, permissions
 	 *
 	 * @param DoliDB $db Database handler
 	 */
 	public function __construct($db)
 	{
-        global $langs,$conf;
+		global $langs, $conf;
 
-        $this->db = $db;
-        $langs->load('opendsi@synergiestech');
+		$this->db = $db;
+		$langs->load('opendsi@synergiestech');
 
 		// Id for module (must be unique).
 		// Use here a free id (See in Home -> System information -> Dolibarr for list of used modules id).
@@ -58,16 +58,16 @@ class modSynergiesTech extends DolibarrModules
 		// Key text used to identify module (for permissions, menus, etc...)
 		$this->rights_class = 'synergiestech';
 
-        // Family can be 'crm','financial','hr','projects','products','ecm','technic','interface','other'
-        // It is used to group modules by family in module setup page
-        $this->family = "opendsi";
-        // Module position in the family
-        $this->module_position = 500;
-        // Gives the possibility to the module, to provide his own family info and position of this family (Overwrite $this->family and $this->module_position. Avoid this)
-        $this->familyinfo = array('opendsi' => array('position' => '001', 'label' => $langs->trans("OpenDsiFamily")));
+		// Family can be 'crm','financial','hr','projects','products','ecm','technic','interface','other'
+		// It is used to group modules by family in module setup page
+		$this->family = "opendsi";
+		// Module position in the family
+		$this->module_position = 500;
+		// Gives the possibility to the module, to provide his own family info and position of this family (Overwrite $this->family and $this->module_position. Avoid this)
+		$this->familyinfo = array('opendsi' => array('position' => '001', 'label' => $langs->trans("OpenDsiFamily")));
 
 		// Module label (no space allowed), used if translation string 'ModuleXXXName' not found (where XXX is value of numeric property 'numero' of module)
-		$this->name = preg_replace('/^mod/i','',get_class($this));
+		$this->name = preg_replace('/^mod/i', '', get_class($this));
 		// Module description, used if translation string 'ModuleXXXDesc' not found (where XXX is value of numeric property 'numero' of module)
 		$this->description = "Description of module Synergies-Tech";
 		$this->descriptionlong = "";
@@ -77,11 +77,11 @@ class modSynergiesTech extends DolibarrModules
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
 		$this->version = '1.0.9';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
-		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
+		$this->const_name = 'MAIN_MODULE_' . strtoupper($this->name);
 		// Name of image file used for this module.
 		// If file is in theme/yourtheme/img directory under name object_pictovalue.png, use this->picto='pictovalue'
 		// If file is in module/img directory under name object_pictovalue.png, use this->picto='pictovalue@module'
-		$this->picto='opendsi@synergiestech';
+		$this->picto = 'opendsi@synergiestech';
 
 		// Defined all module parts (triggers, login, substitutions, menus, css, etc...)
 		// for default path (eg: /mymodule/core/xxxxx) (0=disable, 1=enable)
@@ -103,27 +103,27 @@ class modSynergiesTech extends DolibarrModules
 		//							'workflow' => array('WORKFLOW_MODULE1_YOURACTIONTYPE_MODULE2'=>array('enabled'=>'! empty($conf->module1->enabled) && ! empty($conf->module2->enabled)', 'picto'=>'yourpicto@mymodule')) // Set here all workflow context managed by module
 		//                        );
 		$this->module_parts = array(
-            'dictionaries' => 1,
-            'tpl' => 1,
-            'models' => 1,
-            'triggers' => 1,
-            'hooks' => array('globalapi', 'requestmanagercard', 'requestmanagerdao', 'propalcard', 'ordercard', 'contractcard', 'tab_supplier_order', 'tab_expedition_add', 'invoicelist', 'commonobject', 'main'),
-        );
+			'dictionaries' => 1,
+			'tpl' => 1,
+			'models' => 1,
+			'triggers' => 1,
+			'hooks' => array('globalapi', 'requestmanagercard', 'requestmanagerdao', 'propalcard', 'ordercard', 'contractcard', 'tab_supplier_order', 'tab_expedition_add', 'invoicelist', 'commonobject', 'main'),
+		);
 
 		// Data directories to create when module is enabled.
 		// Example: this->dirs = array("/mymodule/temp");
 		$this->dirs = array('/synergiestech/temp');
 
 		// Config pages. Put here list of php page, stored into mymodule/admin directory, to use to setup module.
-        $this->config_page_url = array("setup.php@synergiestech");
+		$this->config_page_url = array("setup.php@synergiestech");
 
 		// Dependencies
 		$this->hidden = false;			// A condition to hide module
 		$this->depends = array();		// List of modules id that must be enabled if this module is enabled
 		$this->requiredby = array();	// List of modules id to disable if this one is disabled
 		$this->conflictwith = array();	// List of modules id this module is in conflict with
-		$this->phpmin = array(5,0);					// Minimum version of PHP required by module
-		$this->need_dolibarr_version = array(4,0);	// Minimum version of Dolibarr required by module
+		$this->phpmin = array(5, 0);					// Minimum version of PHP required by module
+		$this->need_dolibarr_version = array(4, 0);	// Minimum version of Dolibarr required by module
 		$this->langfiles = array("synergiestech@synergiestech", "opendsi@synergiestech");
 
 		// Constants
@@ -131,18 +131,18 @@ class modSynergiesTech extends DolibarrModules
 		// Example: $this->const=array(0=>array('MYMODULE_MYNEWCONST1','chaine','myvalue','This is a constant to add',1),
 		//                             1=>array('MYMODULE_MYNEWCONST2','chaine','myvalue','This is another constant to add',0, 'current', 1)
 		// );
-        $this->const = array(
-            0 => array('SYNERGIESTECH_ENABLED_WORKFLOW_SHIPPING_CREATED_TO_ATTACH_EQUIPMENTS', 'chaine', '1', '', 0, 'current'),
-            1 => array('SYNERGIESTECH_FORCE_ATTACH_EQUIPMENTS_AFTER_SHIPPING_CREATED', 'chaine', '1', '', 0, 'current'),
-            2 => array('SYNERGIESTECH_ENABLED_WORKFLOW_ORDER_SUPPLIER_DISPATCH_TO_SET_EQUIPMENTS', 'chaine', '1', '', 0, 'current'),
-            3 => array('SYNERGIESTECH_FORCE_SET_EQUIPMENTS_AFTER_ORDER_SUPPLIER_DISPATCH', 'chaine', '1', '', 0, 'current'),
-            4 => array('SYNERGIESTECH_PRINCIPAL_WAREHOUSE_NB_SHOWED', 'chaine', '10', '', 0, 'current'),
-        );
+		$this->const = array(
+			0 => array('SYNERGIESTECH_ENABLED_WORKFLOW_SHIPPING_CREATED_TO_ATTACH_EQUIPMENTS', 'chaine', '1', '', 0, 'current'),
+			1 => array('SYNERGIESTECH_FORCE_ATTACH_EQUIPMENTS_AFTER_SHIPPING_CREATED', 'chaine', '1', '', 0, 'current'),
+			2 => array('SYNERGIESTECH_ENABLED_WORKFLOW_ORDER_SUPPLIER_DISPATCH_TO_SET_EQUIPMENTS', 'chaine', '1', '', 0, 'current'),
+			3 => array('SYNERGIESTECH_FORCE_SET_EQUIPMENTS_AFTER_ORDER_SUPPLIER_DISPATCH', 'chaine', '1', '', 0, 'current'),
+			4 => array('SYNERGIESTECH_PRINCIPAL_WAREHOUSE_NB_SHOWED', 'chaine', '10', '', 0, 'current'),
+		);
 
 		// Array to add new pages in new tabs
 		// Example: $this->tabs = array('objecttype:+tabname1:Title1:mylangfile@mymodule:$user->rights->mymodule->read:/mymodule/mynewtab1.php?id=__ID__',  					// To add a new tab identified by code tabname1
-        //                              'objecttype:+tabname2:SUBSTITUTION_Title2:mylangfile@mymodule:$user->rights->othermodule->read:/mymodule/mynewtab2.php?id=__ID__',  	// To add another new tab identified by code tabname2. Label will be result of calling all substitution functions on 'Title2' key.
-        //                              'objecttype:-tabname:NU:conditiontoremove');                                                     										// To remove an existing tab identified by code tabname
+		//                              'objecttype:+tabname2:SUBSTITUTION_Title2:mylangfile@mymodule:$user->rights->othermodule->read:/mymodule/mynewtab2.php?id=__ID__',  	// To add another new tab identified by code tabname2. Label will be result of calling all substitution functions on 'Title2' key.
+		//                              'objecttype:-tabname:NU:conditiontoremove');                                                     										// To remove an existing tab identified by code tabname
 		// where objecttype can be
 		// 'categories_x'	  to add a tab in category view (replace 'x' by type of category (0=product, 1=supplier, 2=customer, 3=member)
 		// 'contact'          to add a tab in contact view
@@ -163,21 +163,20 @@ class modSynergiesTech extends DolibarrModules
 		// 'stock'            to add a tab in stock view
 		// 'thirdparty'       to add a tab in third party view
 		// 'user'             to add a tab in user view
-        $this->tabs = array(
+		$this->tabs = array(
 			'intervention:-equipement:Equipements:@equipement:/equipement/tabs/fichinter.php?id=__ID__',
 			'intervention:-eventadd:EventsAdd:@equipement:/equipement/tabs/fichinterAdd.php?id=__ID__',
 			'product:-price::!$user->rights->synergiestech->product_line_price->lire:'
 		);
 
-		if (! isset($conf->synergiestech) || ! isset($conf->synergiestech->enabled))
-        {
-		$conf->synergiestech=new stdClass();
-		$conf->synergiestech->enabled=0;
-        }
+		if (!isset($conf->synergiestech) || !isset($conf->synergiestech->enabled)) {
+			$conf->synergiestech = new stdClass();
+			$conf->synergiestech->enabled = 0;
+		}
 
-        // Dictionaries
-		$this->dictionaries=array();
-        /* Example:
+		// Dictionaries
+		$this->dictionaries = array();
+		/* Example:
         $this->dictionaries=array(
             'langs'=>'mylangfile@mymodule',
             'tabname'=>array(MAIN_DB_PREFIX."table1",MAIN_DB_PREFIX."table2",MAIN_DB_PREFIX."table3"),		// List of tables we want to see into dictonnary editor
@@ -192,9 +191,9 @@ class modSynergiesTech extends DolibarrModules
         );
         */
 
-        // Boxes
+		// Boxes
 		// Add here list of php file(s) stored in core/boxes that contains class to show a box.
-        $this->boxes = array();			// List of boxes
+		$this->boxes = array();			// List of boxes
 		// Example:
 		//$this->boxes=array(
 		//    0=>array('file'=>'myboxa.php@mymodule','note'=>'','enabledbydefaulton'=>'Home'),
@@ -371,7 +370,7 @@ class modSynergiesTech extends DolibarrModules
 
 		// Main menu entries
 		$this->menu = array();			// List of menus to add
-		$r=0;
+		$r = 0;
 
 		// Add here entries to declare new menus
 		//
@@ -406,13 +405,13 @@ class modSynergiesTech extends DolibarrModules
 
 
 		// Exports
-		$r=1;
+		$r = 1;
 
-        // Example:
+		// Example:
 		// $this->export_code[$r]=$this->rights_class.'_'.$r;
 		// $this->export_label[$r]='MyModule';	// Translation key (used only if key ExportDataset_xxx_z not found)
-        // $this->export_enabled[$r]='1';                               // Condition to show export in list (ie: '$user->id==3'). Set to 1 to always show when module is enabled.
-        // $this->export_icon[$r]='generic:MyModule';					// Put here code of icon then string for translation key of module name
+		// $this->export_enabled[$r]='1';                               // Condition to show export in list (ie: '$user->id==3'). Set to 1 to always show when module is enabled.
+		// $this->export_icon[$r]='generic:MyModule';					// Put here code of icon then string for translation key of module name
 		// $this->export_permission[$r]=array(array("mymodule","level1","level2"));
 		// $this->export_fields_array[$r]=array('s.rowid'=>"IdCompany",'s.nom'=>'CompanyName','s.address'=>'Address','s.zip'=>'Zip','s.town'=>'Town','s.fk_pays'=>'Country','s.phone'=>'Phone','s.siren'=>'ProfId1','s.siret'=>'ProfId2','s.ape'=>'ProfId3','s.idprof4'=>'ProfId4','s.code_compta'=>'CustomerAccountancyCode','s.code_compta_fournisseur'=>'SupplierAccountancyCode','f.rowid'=>"InvoiceId",'f.facnumber'=>"InvoiceRef",'f.datec'=>"InvoiceDateCreation",'f.datef'=>"DateInvoice",'f.total'=>"TotalHT",'f.total_ttc'=>"TotalTTC",'f.tva'=>"TotalVAT",'f.paye'=>"InvoicePaid",'f.fk_statut'=>'InvoiceStatus','f.note'=>"InvoiceNote",'fd.rowid'=>'LineId','fd.description'=>"LineDescription",'fd.price'=>"LineUnitPrice",'fd.tva_tx'=>"LineVATRate",'fd.qty'=>"LineQty",'fd.total_ht'=>"LineTotalHT",'fd.total_tva'=>"LineTotalTVA",'fd.total_ttc'=>"LineTotalTTC",'fd.date_start'=>"DateStart",'fd.date_end'=>"DateEnd",'fd.fk_product'=>'ProductId','p.ref'=>'ProductRef');
 		// $this->export_TypeFields_array[$r]=array('t.date'=>'Date', 't.qte'=>'Numeric', 't.poids'=>'Numeric', 't.fad'=>'Numeric', 't.paq'=>'Numeric', 't.stockage'=>'Numeric', 't.fadparliv'=>'Numeric', 't.livau100'=>'Numeric', 't.forfait'=>'Numeric', 's.nom'=>'Text','s.address'=>'Text','s.zip'=>'Text','s.town'=>'Text','c.code'=>'Text','s.phone'=>'Text','s.siren'=>'Text','s.siret'=>'Text','s.ape'=>'Text','s.idprof4'=>'Text','s.code_compta'=>'Text','s.code_compta_fournisseur'=>'Text','s.tva_intra'=>'Text','f.facnumber'=>"Text",'f.datec'=>"Date",'f.datef'=>"Date",'f.date_lim_reglement'=>"Date",'f.total'=>"Numeric",'f.total_ttc'=>"Numeric",'f.tva'=>"Numeric",'f.paye'=>"Boolean",'f.fk_statut'=>'Status','f.note_private'=>"Text",'f.note_public'=>"Text",'fd.description'=>"Text",'fd.subprice'=>"Numeric",'fd.tva_tx'=>"Numeric",'fd.qty'=>"Numeric",'fd.total_ht'=>"Numeric",'fd.total_tva'=>"Numeric",'fd.total_ttc'=>"Numeric",'fd.date_start'=>"Date",'fd.date_end'=>"Date",'fd.special_code'=>'Numeric','fd.product_type'=>"Numeric",'fd.fk_product'=>'List:product:label','p.ref'=>'Text','p.label'=>'Text','p.accountancy_code_sell'=>'Text');
@@ -425,74 +424,74 @@ class modSynergiesTech extends DolibarrModules
 		// $this->export_sql_order[$r] .=' ORDER BY s.nom';
 		// $r++;
 
-		if (! empty($conf->fournisseur->enabled))
-		{
+		if (!empty($conf->fournisseur->enabled)) {
 			// Import suppliers prices (note: this code is duplicated into module service)
 			$r++;
-			$this->import_code[$r]=$this->rights_class.'_supplierprices';
-			$this->import_label[$r]="SuppliersPricesOfProductsOrServicesUpgraded";	// Translation key
-			$this->import_icon[$r]='product';
-			$this->import_entities_array[$r]=array();		// We define here only fields that use another icon that the one defined into import_icon
-			$this->import_tables_array[$r]=array('sp'=>MAIN_DB_PREFIX.'product_fournisseur_price');
-			$this->import_tables_creator_array[$r]=array('sp'=>'fk_user');
-			$this->import_fields_array[$r]=array('sp.fk_product'=>"ProductOrService*",
-					'sp.fk_soc'=>"Supplier*", 'sp.ref_fourn'=>'SupplierRef', 'sp.quantity'=>"QtyMin*", 'sp.tva_tx'=>'VATRate',
-					'sp.price'=>"PriceQtyMinHT*",
-					'sp.unitprice'=>'UnitPriceHT*',	// TODO Make this file not required and calculate it from price and qty
-					'sp.remise_percent'=>'DiscountQtyMin'
+			$this->import_code[$r] = $this->rights_class . '_supplierprices';
+			$this->import_label[$r] = "SuppliersPricesOfProductsOrServicesUpgraded";	// Translation key
+			$this->import_icon[$r] = 'product';
+			$this->import_entities_array[$r] = array();		// We define here only fields that use another icon that the one defined into import_icon
+			$this->import_tables_array[$r] = array('sp' => MAIN_DB_PREFIX . 'product_fournisseur_price');
+			$this->import_tables_creator_array[$r] = array('sp' => 'fk_user');
+			$this->import_fields_array[$r] = array(
+				'sp.fk_product' => "ProductOrService*",
+				'sp.fk_soc' => "Supplier*", 'sp.ref_fourn' => 'SupplierRef', 'sp.quantity' => "QtyMin*", 'sp.tva_tx' => 'VATRate',
+				'sp.price' => "PriceQtyMinHT*",
+				'sp.unitprice' => 'UnitPriceHT*',	// TODO Make this file not required and calculate it from price and qty
+				'sp.remise_percent' => 'DiscountQtyMin'
 			);
 
-			$this->import_convertvalue_array[$r]=array(
-					'sp.fk_soc'=>array('rule'=>'fetchidfromref','classfile'=>'/societe/class/societe.class.php','class'=>'Societe','method'=>'fetch','element'=>'ThirdParty'),
-					'sp.fk_product'=>array('rule'=>'fetchidfromref','classfile'=>'/product/class/product.class.php','class'=>'Product','method'=>'fetch','element'=>'Product')
+			$this->import_convertvalue_array[$r] = array(
+				'sp.fk_soc' => array('rule' => 'fetchidfromref', 'classfile' => '/societe/class/societe.class.php', 'class' => 'Societe', 'method' => 'fetch', 'element' => 'ThirdParty'),
+				'sp.fk_product' => array('rule' => 'fetchidfromref', 'classfile' => '/product/class/product.class.php', 'class' => 'Product', 'method' => 'fetch', 'element' => 'Product')
 			);
-			$this->import_examplevalues_array[$r]=array('sp.fk_product'=>"PREF123456",
-					'sp.fk_soc'=>"My Supplier",'sp.ref_fourn'=>"SupplierRef", 'sp.quantity'=>"1", 'sp.tva_tx'=>'21',
-					'sp.price'=>"50",
-					'sp.unitprice'=>'50',
-					'sp.remise_percent'=>'0'
+			$this->import_examplevalues_array[$r] = array(
+				'sp.fk_product' => "PREF123456",
+				'sp.fk_soc' => "My Supplier", 'sp.ref_fourn' => "SupplierRef", 'sp.quantity' => "1", 'sp.tva_tx' => '21',
+				'sp.price' => "50",
+				'sp.unitprice' => '50',
+				'sp.remise_percent' => '0'
 			);
-			$this->import_updatekeys_array[$r]=array('sp.fk_product'=>'ProductOrService','sp.ref_fourn'=>'SupplierRef','sp.fk_soc'=>'Supplier');
+			$this->import_updatekeys_array[$r] = array('sp.fk_product' => 'ProductOrService', 'sp.ref_fourn' => 'SupplierRef', 'sp.fk_soc' => 'Supplier');
 		}
-
-    }
+	}
 
 	/**
 	 *		Function called when module is enabled.
 	 *		The init function add constants, boxes, permissions and menus (defined in constructor) into Dolibarr database.
 	 *		It also creates data directories
 	 *
-     *      @param      string	$options    Options when enabling module ('', 'noboxes')
+	 *      @param      string	$options    Options when enabling module ('', 'noboxes')
 	 *      @return     int             	1 if OK, 0 if KO
 	 */
-	public function init($options='')
+	public function init($options = '')
 	{
-	    global $langs;
-	    $langs->load("synergiestech@synergiestech");
+		global $langs;
+		$langs->load("synergiestech@synergiestech");
 
-        $sql = array();
+		$sql = array();
 
-        $this->_load_tables('/synergiestech/sql/');
+		$this->_load_tables('/synergiestech/sql/');
 
-        // Create extrafields
-        include_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
-        $extrafields = new ExtraFields($this->db);
-        // Product
-        $result=$extrafields->addExtraField('synergiestech_to_serialize', $langs->trans("SynergiesTechSerializable"), 'boolean', 10,  '', 'product',   0, 0, '', '', 1, '', 1, 0, ''); // For >= v7: ", '', 'synergiestech@synergiestech', '$conf->synergiestech->enabled');"
-        $result=$extrafields->addExtraField('synergiestech_warranty', $langs->trans("SynergiesTechWarranty"), 'int', 20,  '', 'product',   0, 0, '', '', 1, '', 1, 0, ''); // For >= v7: ", '', 'synergiestech@synergiestech', '$conf->synergiestech->enabled');"
-        $result=$extrafields->addExtraField('st_estimated_begin_date', $langs->trans('SynergiesTechEstimatedBeginDate'), 'datetime', 100,  '', 'fichinter',   0, 0, '', null, 1, '', 1, 0, '');
-        $result=$extrafields->addExtraField('st_estimated_end_date', $langs->trans('SynergiesTechEstimatedEndDate'), 'datetime', 101,  '', 'fichinter',   0, 0, '', null, 1, '', 1, 0, '');
+		// Create extrafields
+		include_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
+		$extrafields = new ExtraFields($this->db);
+		// Product
+		$result = $extrafields->addExtraField('synergiestech_to_serialize', $langs->trans("SynergiesTechSerializable"), 'boolean', 10,  '', 'product',   0, 0, '', '', 1, '', 1, 0, ''); // For >= v7: ", '', 'synergiestech@synergiestech', '$conf->synergiestech->enabled');"
+		$result = $extrafields->addExtraField('synergiestech_warranty', $langs->trans("SynergiesTechWarranty"), 'int', 20,  '', 'product',   0, 0, '', '', 1, '', 1, 0, ''); // For >= v7: ", '', 'synergiestech@synergiestech', '$conf->synergiestech->enabled');"
+		$result = $extrafields->addExtraField('st_estimated_begin_date', $langs->trans('SynergiesTechEstimatedBeginDate'), 'datetime', 100,  '', 'fichinter',   0, 0, '', null, 1, '', 1, 0, '');
+		$result = $extrafields->addExtraField('st_estimated_end_date', $langs->trans('SynergiesTechEstimatedEndDate'), 'datetime', 101,  '', 'fichinter',   0, 0, '', null, 1, '', 1, 0, '');
 
-        // Create tables of all dictionaries
-        dol_include_once('/advancedictionaries/class/dictionary.class.php');
-        $dictionaries = Dictionary::fetchAllDictionaries($this->db, 'synergiestech');
-        foreach ($dictionaries as $dictionary) {
-            if ($dictionary->createTables() < 0) {
-                setEventMessage('Error create dictionary table: ' . $dictionary->errorsToString(), 'errors');
-            }
-        }
+		// Create tables of all dictionaries
+		dol_include_once('/advancedictionaries/class/dictionary.class.php');
+		$dictionaries = Dictionary::fetchAllDictionaries($this->db, 'synergiestech');
+		foreach ($dictionaries as $dictionary) {
+			if ($dictionary->createTables() < 0) {
+				setEventMessage('Error create dictionary table: ' . $dictionary->errorsToString(), 'errors');
+			}
+		}
 
-        return $this->_init($sql, $options);
+		return $this->_init($sql, $options);
 	}
 
 	/**
@@ -509,5 +508,4 @@ class modSynergiesTech extends DolibarrModules
 
 		return $this->_remove($sql, $options);
 	}
-
 }

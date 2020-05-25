@@ -53,6 +53,11 @@ SynergiesTechDefaultRequestTypeWhenCreate                           = Type de de
 SynergiesTechAddContractOnRequestCreation                           = Ajouter les contrats respectant le couple donneur d'ordre/beneficiaire à la création d'une demande si aucuns équipements ou contrat n'a été lié sur les types de demande suivant :
 SynergiesTechDoNotKeepLinkedObjectWhenCloningSupplierOrder          = Ne pas faire suivre les objets liés lors d'un clone d'une commande fournisseur
 
+SynergiesTechADSynchro = Paramètre de synchronisation avec l'Active Directory
+SynergiesTechUserAccessControlAccountFieldName = Nom du champs LDAP contenant l'information de l'état du compte utilisateur
+SynergiesTechUserAccessControlAccountEnableValue = Valeur de userAccountControl considérant l'utilisateur comme ayant un compte ldap lié actif (séparé par des virgules)
+SynergiesTechUserAccessControlAccountDisableValue = Valeur de userAccountControl considérant l'utilisateur comme ayant un compte ldap lié inactif (séparé par des virgules)
+
 #######################################################################
 # Extrafields
 #######################################################################
