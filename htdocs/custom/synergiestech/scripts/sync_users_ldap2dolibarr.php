@@ -78,6 +78,10 @@ $required_fields = array(
     $conf->global->LDAP_FIELD_SID
 );
 
+if (!empty($conf->global->SYNERGIESTECH_USERACCESSCONTROL_LDAPFIELDNAME)) {
+    $required_fields[] = $conf->global->SYNERGIESTECH_USERACCESSCONTROL_LDAPFIELDNAME;
+}
+
 $arrayOfAccountActivatedValue = explode(",", $conf->global->SYNERGIESTECH_USERACCESSCONTROL_ACCOUNTENABLE);
 $arrayOfAccountDisabledValue = explode(",", $conf->global->SYNERGIESTECH_USERACCESSCONTROL_ACCOUNTDISABLE);
 
