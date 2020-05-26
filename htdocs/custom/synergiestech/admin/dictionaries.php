@@ -36,6 +36,7 @@ dol_include_once('/synergiestech/lib/opendsi_common.lib.php');
 
 $langs->load("admin");
 $langs->load("synergiestech@synergiestech");
+$langs->load("opendsi@synergiestech");
 
 $action      = GETPOST('action', 'alpha');
 $confirm     = GETPOST('confirm', 'alpha');
