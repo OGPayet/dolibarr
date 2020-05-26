@@ -180,7 +180,7 @@ class ActiveDirectoryGroupMappingDictionary extends Dictionary
             $required_fields = array_unique(array_values(array_filter($required_fields, "dolValidElement")));
 
             if ($conf->global->LDAP_SERVER_TYPE == 'activedirectory') {
-                $ldapRecords = $ldap->getRecords('*', $conf->global->LDAP_GROUP_DN, $required_fields, "*");
+                $ldapRecords = $ldap->getRecords('*', $conf->global->LDAP_GROUP_DN, 'cn', $required_fields, "*");
             } else {
                 $ldapRecords = $ldap->getRecords('*', $conf->global->LDAP_GROUP_DN, $conf->global->LDAP_KEY_GROUPS, $required_fields);
             }
