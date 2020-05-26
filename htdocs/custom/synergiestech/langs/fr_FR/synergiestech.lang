@@ -57,6 +57,10 @@ SynergiesTechADSynchro = Paramètre de synchronisation avec l'Active Directory
 SynergiesTechUserAccessControlAccountFieldName = Nom du champs LDAP contenant l'information de l'état du compte utilisateur
 SynergiesTechUserAccessControlAccountEnableValue = Valeur de userAccountControl considérant l'utilisateur comme ayant un compte ldap lié actif (séparé par des virgules)
 SynergiesTechUserAccessControlAccountDisableValue = Valeur de userAccountControl considérant l'utilisateur comme ayant un compte ldap lié inactif (séparé par des virgules)
+SynergiesTechActiveDirectoryGroupMappingTabName = Liaison groupe Active Directory/Groupes locaux
+SynergiesTechGroupDictionaryLabel = Groupe dans opsy
+SynergiesTechGroupEntityLabel = Entité à lier
+SynergiesTechActiveDirectoryGroupLabel = Groupe dans Active Directory
 
 #######################################################################
 # Extrafields

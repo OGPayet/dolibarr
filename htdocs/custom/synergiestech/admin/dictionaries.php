@@ -1,6 +1,6 @@
 <?php
-/* Copyright (C) 2007-2015 Laurent Destailleur  <eldy@users.sourceforge.net>
- * Copyright (C) 2017      Open-DSI             <support@open-dsi.fr>
+/* Copyright (C) 2018      Open-DSI             <support@open-dsi.fr>
+ * Copyright (C) 2020 Alexis LAURIER <contact@alexislaurier.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,24 +23,26 @@
  */
 
 // Change this following line to use the correct relative path (../, ../../, etc)
-$res=0;
-if (! $res && file_exists("../../main.inc.php")) $res=@include '../../main.inc.php';			// to work if your module directory is into a subdir of root htdocs directory
-if (! $res && file_exists("../../../main.inc.php")) $res=@include '../../../main.inc.php';		// to work if your module directory is into a subdir of root htdocs directory
-if (! $res) die("Include of main fails");
-require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
+$res = 0;
+if (!$res && file_exists("../../main.inc.php")) $res = @include '../../main.inc.php';            // to work if your module directory is into a subdir of root htdocs directory
+if (!$res && file_exists("../../../main.inc.php")) $res = @include '../../../main.inc.php';        // to work if your module directory is into a subdir of root htdocs directory
+if (!$res) die("Include of main fails");
+require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
 dol_include_once('/synergiestech/lib/synergiestech.lib.php');
 dol_include_once('/synergiestech/lib/opendsi_common.lib.php');
 
+
+
+
 $langs->load("admin");
 $langs->load("synergiestech@synergiestech");
-$langs->load("opendsi@synergiestech");
 
 $action      = GETPOST('action', 'alpha');
 $confirm     = GETPOST('confirm', 'alpha');
 $id          = GETPOST('id', 'int');
 $rowid       = GETPOST('rowid', 'int');
 $prevrowid   = GETPOST('prevrowid', 'int');
-$module      = GETPOST('module', 'alpha');
+$module      = 'synergiestech';
 $name        = GETPOST('name', 'alpha');
 
 $canRead = $user->rights->advancedictionaries->read || $user->admin;
@@ -51,7 +53,7 @@ $canDisable = $user->rights->advancedictionaries->disable || $user->admin;
 
 include dol_buildpath('/advancedictionaries/core/actions_dictionaries.inc.php');
 
-/**
+/*
  * View
  */
 
@@ -64,11 +66,14 @@ print "<br>\n";
 
 $head=synergiestech_prepare_head();
 
-dol_fiche_head($head, 'dictionaries', $langs->trans("Module500100Name"), 0, 'opendsi@synergiestech');
+dol_fiche_head($head, 'dictionary_' . $name, $langs->trans("Module500100Name"), 0, 'opendsi@synergiestech');
 
 $moduleFilter = ''; // array or string to set the dictionaries of witch modules to show in dictionaries list
 $familyFilter = 'synergiestech'; // array or string to set the dictionaries of witch family to show in dictionaries list
 
+if (isset($dictionary)) {
+    $dictionary->customLinkBack = "<a></a>";
+}
 include dol_buildpath('/advancedictionaries/core/tpl/dictionaries.tpl.php');
 
 dol_fiche_end();
