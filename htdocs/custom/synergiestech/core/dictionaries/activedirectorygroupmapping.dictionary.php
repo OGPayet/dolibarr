@@ -184,6 +184,7 @@ class ActiveDirectoryGroupMappingDictionary extends Dictionary
             } else {
                 $ldapRecords = $ldap->getRecords('*', $conf->global->LDAP_GROUP_DN, $conf->global->LDAP_KEY_GROUPS, $required_fields, array($conf->global->LDAP_GROUP_FIELD_GROUPMEMBERS)); // Fiter on 'user' filter param
             }
+            print_r($ldap->error);
             print_r($ldapRecords);
             if (is_array($ldapRecords)) {
                 print_r($ldapRecords);
