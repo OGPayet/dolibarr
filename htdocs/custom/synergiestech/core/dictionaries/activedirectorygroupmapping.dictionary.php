@@ -184,7 +184,9 @@ class ActiveDirectoryGroupMappingDictionary extends Dictionary
                 $ldapRecords = $ldap->getRecords('*', $conf->global->LDAP_GROUP_DN, $conf->global->LDAP_KEY_GROUPS, $required_fields);
             }
             if (is_array($ldapRecords)) {
-                $availableGroupList = $ldapRecords;
+                foreach($ldapRecords as $cn=>$ldapObject){
+                    $availableGroupList[$cn] = $ldapObject['cn'];
+                }
             }
         }
 
