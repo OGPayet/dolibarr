@@ -173,7 +173,6 @@ class ActiveDirectoryGroupMappingDictionary extends Dictionary
                 $conf->global->LDAP_GROUP_FIELD_FULLNAME,
                 $conf->global->LDAP_GROUP_FIELD_DESCRIPTION,
                 $conf->global->LDAP_GROUP_FIELD_GROUPMEMBERS,
-                'distinguishedName'
             );
 
             // Remove from required_fields all entries not configured in LDAP (empty) and duplicated
@@ -184,11 +183,8 @@ class ActiveDirectoryGroupMappingDictionary extends Dictionary
             } else {
                 $ldapRecords = $ldap->getRecords('*', $conf->global->LDAP_GROUP_DN, $conf->global->LDAP_KEY_GROUPS, $required_fields);
             }
-            print_r($ldap->error);
-            print_r($ldapRecords);
             if (is_array($ldapRecords)) {
-                print_r($ldapRecords);
-                //$availableGroupList = $ldapRecords;
+                $availableGroupList = $ldapRecords;
             }
         }
 
