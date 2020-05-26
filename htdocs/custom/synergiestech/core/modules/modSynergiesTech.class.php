@@ -167,6 +167,7 @@ class modSynergiesTech extends DolibarrModules
 			'intervention:-equipement:Equipements:@equipement:/equipement/tabs/fichinter.php?id=__ID__',
 			'intervention:-eventadd:EventsAdd:@equipement:/equipement/tabs/fichinterAdd.php?id=__ID__',
 			'product:-price::!$user->rights->synergiestech->product_line_price->lire:',
+			'group:-ldap::true',
 			'synergiestech_admin:+dictionary_defaulttimeslot:SynergiesTechTimeSlotDictionaryLabel:synergiestech@synergiestech:true:/synergiestech/admin/dictionaries.php?module=synergiestech&name=synergiestechtimeslot',
 			'synergiestech_admin:+dictionary_activedirectorygroupmapping:SynergiesTechActiveDirectoryGroupMappingTabName:synergiestech@synergiestech:true:/synergiestech/admin/dictionaries.php?module=synergiestech&name=activedirectorygroupmapping',
 		);
