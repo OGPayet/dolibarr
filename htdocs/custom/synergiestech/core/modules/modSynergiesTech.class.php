@@ -488,6 +488,14 @@ class modSynergiesTech extends DolibarrModules
 		// Create tables of all dictionaries
 		dol_include_once('/advancedictionaries/class/dictionary.class.php');
 		$dictionaries = Dictionary::fetchAllDictionaries($this->db, 'synergiestech');
+
+		if (! function_exists("ldap_connect"))
+		{
+			$this->error='LDAPFunctionsNotAvailableOnPHP';
+			dol_syslog(get_class($this)."::connect_bind ".$this->error, LOG_WARNING);
+			return -1;
+		}
+
 		foreach ($dictionaries as $dictionary) {
 			if ($dictionary->createTables() < 0) {
 				setEventMessage('Error create dictionary table: ' . $dictionary->errorsToString(), 'errors');

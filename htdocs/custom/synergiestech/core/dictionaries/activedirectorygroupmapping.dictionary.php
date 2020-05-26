@@ -147,12 +147,16 @@ class ActiveDirectoryGroupMappingDictionary extends Dictionary
     {
         global $conf;
 
+
         $this->fields['dolibarrGroup'] = array(
             'name' => 'dolibarrGroup',
             'label' => 'SynergiesTechGroupDictionaryLabel',
             'type' => 'chkbxlst',
             'options' => 'usergroup:nom:rowid::entity IN (' . getEntity('usergroup') . ')',
             'is_require' => true,
+            'td_input' => array(
+                'moreAttributes' => 'width="33.33%"',
+            ),
         );
         $this->fields['linkEntity'] = array(
             'name' => 'linkEntity',
@@ -160,9 +164,19 @@ class ActiveDirectoryGroupMappingDictionary extends Dictionary
             'type' => 'chkbxlst',
             'options' => 'entity:label:rowid::active = 1',
             'is_require' => true,
+            'td_input' => array(
+                'moreAttributes' => 'width="33.33%"',
+            ),
         );
 
         $availableGroupList = array();
+
+        if (! function_exists("ldap_connect"))
+		{
+			$this->error='LDAPFunctionsNotAvailableOnPHP';
+			dol_syslog(get_class($this)."::connect_bind ".$this->error, LOG_WARNING);
+			return -1;
+		}
         $ldap = new Ldap();
         $result = $ldap->connect_bind();
 
@@ -196,6 +210,9 @@ class ActiveDirectoryGroupMappingDictionary extends Dictionary
             'type' => 'checkbox',
             'options' => $availableGroupList,
             'is_require' => true,
+            'td_input' => array(
+                'moreAttributes' => 'width="33.33%"',
+            ),
         );
     }
 }
