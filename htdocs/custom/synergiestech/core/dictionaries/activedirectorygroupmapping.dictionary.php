@@ -173,13 +173,14 @@ class ActiveDirectoryGroupMappingDictionary extends Dictionary
                 $conf->global->LDAP_GROUP_FIELD_FULLNAME,
                 $conf->global->LDAP_GROUP_FIELD_DESCRIPTION,
                 $conf->global->LDAP_GROUP_FIELD_GROUPMEMBERS,
+                'distinguishedName'
             );
 
             // Remove from required_fields all entries not configured in LDAP (empty) and duplicated
             $required_fields = array_unique(array_values(array_filter($required_fields, "dolValidElement")));
 
             if ($conf->global->LDAP_SERVER_TYPE == 'activedirectory') {
-                $ldapRecords = $ldap->getRecords('*', $conf->global->LDAP_GROUP_DN, 'cn', "*", array($conf->global->LDAP_GROUP_FIELD_GROUPMEMBERS)); // Fiter on 'user' filter param
+                $ldapRecords = $ldap->getRecords('*', $conf->global->LDAP_GROUP_DN, $required_fields, "*", array($conf->global->LDAP_GROUP_FIELD_GROUPMEMBERS)); // Fiter on 'user' filter param
             } else {
                 $ldapRecords = $ldap->getRecords('*', $conf->global->LDAP_GROUP_DN, $conf->global->LDAP_KEY_GROUPS, $required_fields, array($conf->global->LDAP_GROUP_FIELD_GROUPMEMBERS)); // Fiter on 'user' filter param
             }
