@@ -42,10 +42,7 @@ function synergiestech_prepare_head()
     $head[$h][2] = 'settings';
     $h++;
 
-    $head[$h][0] = dol_buildpath("/synergiestech/admin/dictionaries.php", 1);
-    $head[$h][1] = $langs->trans("Dictionary");
-    $head[$h][2] = 'dictionaries';
-    $h++;
+    complete_head_from_modules($conf,$langs,null,$head,$h,'synergiestech_admin');
 
     $head[$h][0] = dol_buildpath("/synergiestech/admin/about.php", 1);
     $head[$h][1] = $langs->trans("About");
@@ -57,7 +54,6 @@ function synergiestech_prepare_head()
     $head[$h][2] = 'changelog';
     $h++;
 
-    complete_head_from_modules($conf,$langs,null,$head,$h,'synergiestech_admin');
 
     return $head;
 }

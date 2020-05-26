@@ -119,11 +119,11 @@ class modSynergiesTech extends DolibarrModules
 
 		// Dependencies
 		$this->hidden = false;			// A condition to hide module
-		$this->depends = array('modLdap');		// List of modules id that must be enabled if this module is enabled
+		$this->depends = array('modLdap','modAdvanceDictionaries');		// List of modules id that must be enabled if this module is enabled
 		$this->requiredby = array();	// List of modules id to disable if this one is disabled
 		$this->conflictwith = array();	// List of modules id this module is in conflict with
-		$this->phpmin = array(5, 0);					// Minimum version of PHP required by module
-		$this->need_dolibarr_version = array(4, 0);	// Minimum version of Dolibarr required by module
+		$this->phpmin = array(7, 0);					// Minimum version of PHP required by module
+		$this->need_dolibarr_version = array(6, 0);	// Minimum version of Dolibarr required by module
 		$this->langfiles = array("synergiestech@synergiestech", "opendsi@synergiestech");
 
 		// Constants
@@ -166,7 +166,9 @@ class modSynergiesTech extends DolibarrModules
 		$this->tabs = array(
 			'intervention:-equipement:Equipements:@equipement:/equipement/tabs/fichinter.php?id=__ID__',
 			'intervention:-eventadd:EventsAdd:@equipement:/equipement/tabs/fichinterAdd.php?id=__ID__',
-			'product:-price::!$user->rights->synergiestech->product_line_price->lire:'
+			'product:-price::!$user->rights->synergiestech->product_line_price->lire:',
+			'synergiestech_admin:+dictionary_defaulttimeslot:SynergiesTechTimeSlotDictionaryLabel:synergiestech@synergiestech:true:/synergiestech/admin/dictionaries.php?module=synergiestech&name=synergiestechtimeslot',
+			'synergiestech_admin:+dictionary_activedirectorygroupmapping:SynergiesTechActiveDirectoryGroupMappingTabName:synergiestech@synergiestech:true:/synergiestech/admin/dictionaries.php?module=synergiestech&name=activedirectorygroupmapping',
 		);
 
 		if (!isset($conf->synergiestech) || !isset($conf->synergiestech->enabled)) {
