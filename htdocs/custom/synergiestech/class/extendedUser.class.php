@@ -167,14 +167,14 @@ class ExtendedUser extends User
         $this->loadCacheDictionary();
         $result = array();
         foreach (self::$cache_group_mapping_dictionnary as $dictionaryLine) {
-            $activeDirectoryGroup = $dictionaryLine["activeDirectoryGroup"];//List of group based on $conf->global->LDAP_GROUP_DN, which may contain cn property
+            $activeDirectoryGroup = explode(",", $dictionaryLine["activeDirectoryGroup"]);//List of group based on $conf->global->LDAP_GROUP_DN, which may contain cn property
             $cn=explode(",",$dn);
             $cn = $cn[0];
             $cn = explode("=", $cn);
             $cn = $cn[1];
             if (in_array($cn, $activeDirectoryGroup)) {
-                $dolibarrGroupList = $dictionaryLine["dolibarrGroup"];
-                $entityList = $dictionaryLine["linkEntity"];
+                $dolibarrGroupList = explode(",", $dictionaryLine["dolibarrGroup"]);
+                $entityList = explode(",", $dictionaryLine["linkEntity"]);
                 foreach ($entityList as $entity) {
                     if (!$result[$entity]) {
                         $result[$entity] = array();
