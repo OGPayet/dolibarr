@@ -45,66 +45,62 @@ class ExtendedUser extends User
      * Load group mapping cache dictionary
      */
 
-    function loadCacheDictionary(){
-         if(empty(self::$cache_group_mapping_dictionnary)){
+    function loadCacheDictionary()
+    {
+        if (empty(self::$cache_group_mapping_dictionnary)) {
             dol_include_once('/advancedictionaries/class/dictionary.class.php');
             self::$cache_group_mapping_dictionnary = Dictionary::getJSONDictionary($this->db, "synergiestech", "ActiveDirectoryGroupMapping");
-         }
-     }
+        }
+    }
 
-     /**
-	 *  Add user into a group
-	 *
-	 *  @param	int	$group      Id of group
-	 *  @param  int		$entity     Entity
-	 *  @param  int		$notrigger  Disable triggers
-	 *  @return int  				<0 if KO, >0 if OK
-	 */
+    /**
+     *  Add user into a group
+     *
+     *  @param	int	$group      Id of group
+     *  @param  int		$entity     Entity
+     *  @param  int		$notrigger  Disable triggers
+     *  @return int  				<0 if KO, >0 if OK
+     */
 
-     function SetInGroup($group, $entity, $notrigger=0)
-	{
-		global $conf, $langs, $user;
+    function SetInGroup($group, $entity, $notrigger = 0)
+    {
+        global $conf, $langs, $user;
 
-		$error=0;
+        $error = 0;
 
-		$this->db->begin();
+        $this->db->begin();
 
-		$sql = "INSERT INTO ".MAIN_DB_PREFIX."usergroup_user (entity, fk_user, fk_usergroup, setFromLdap)";
-		$sql.= " VALUES (".$entity.",".$this->id.",".$group.", 1)";
+        $sql = "INSERT INTO " . MAIN_DB_PREFIX . "usergroup_user (entity, fk_user, fk_usergroup, setFromLdap)";
+        $sql .= " VALUES (" . $entity . "," . $this->id . "," . $group . ", 1)";
 
-		$result = $this->db->query($sql);
-		if ($result)
-		{
-			if (! $error && ! $notrigger)
-			{
-			    $this->newgroupid=$group;    // deprecated. Remove this.
-			    $this->context = array('audit'=>$langs->trans("UserSetInGroup"), 'newgroupid'=>$group);
+        $result = $this->db->query($sql);
+        if ($result) {
+            if (!$error && !$notrigger) {
+                $this->newgroupid = $group;    // deprecated. Remove this.
+                $this->context = array('audit' => $langs->trans("UserSetInGroup"), 'newgroupid' => $group);
 
-			    // Call trigger
-                $result=$this->call_trigger('USER_MODIFY',$user);
-	            if ($result < 0) { $error++; }
+                // Call trigger
+                $result = $this->call_trigger('USER_MODIFY', $user);
+                if ($result < 0) {
+                    $error++;
+                }
                 // End call triggers
-			}
+            }
 
-			if (! $error)
-			{
-				$this->db->commit();
-				return 1;
-			}
-			else
-			{
-				dol_syslog(get_class($this)."::SetInGroup ".$this->error, LOG_ERR);
-				$this->db->rollback();
-				return -2;
-			}
-		}
-		else
-		{
-			$this->error=$this->db->lasterror();
-			$this->db->rollback();
-			return -1;
-		}
-	}
+            if (!$error) {
+                $this->db->commit();
+                return 1;
+            } else {
+                dol_syslog(get_class($this) . "::SetInGroup " . $this->error, LOG_ERR);
+                $this->db->rollback();
+                return -2;
+            }
+        } else {
+            $this->error = $this->db->lasterror();
+            $this->db->rollback();
+            return -1;
+        }
+    }
 
     /**
      * Clean all user relation set from ldap
@@ -146,41 +142,49 @@ class ExtendedUser extends User
      *
      */
 
-     function addUserToGroupWithLdapDn($dn, $notrigger){
-         $groupAndEntity = $this->getGroupIdAndEntityIdFromLdapGroupDn($dn);
-         foreach($groupAndEntity as $entity=>$arrayOfGroupId){
-             foreach($arrayOfGroupId as $groupId=>$isEnabled){
-                 if($isEnabled){
-                     $this->SetInGroup($groupId,$entity,$notrigger);
-                 }
-             }
-         }
-     }
+    function addUserToGroupWithLdapDn($dn, $notrigger)
+    {
+        global $conf;
+        $userFilter = explode(',', $dn);
+        $groupAndEntity = $this->getGroupIdAndEntityIdFromLdapGroupDn($dn);
+        foreach ($groupAndEntity as $entity => $arrayOfGroupId) {
+            foreach ($arrayOfGroupId as $groupId => $isEnabled) {
+                if ($isEnabled) {
+                    $this->SetInGroup($groupId, $entity, $notrigger);
+                }
+            }
+        }
+    }
 
-     /**
-      * Get User Groups and entity linked to a group dn
-      * @param string $dn
-      * @return array $groupAndEntity
-      */
+    /**
+     * Get User Groups and entity linked to a group dn
+     * @param string $dn
+     * @return array $groupAndEntity
+     */
 
-      function getGroupIdAndEntityIdFromLdapGroupDn($dn){
-          $this->loadCacheDictionary();
-          $result = array();
-          foreach(self::$cache_group_mapping_dictionnary as $dictionaryLine){
-              $activeDirectoryGroup = $dictionaryLine["activeDirectoryGroup"];
-              if(in_array($dn,$activeDirectoryGroup)){
+    function getGroupIdAndEntityIdFromLdapGroupDn($dn)
+    {
+        $this->loadCacheDictionary();
+        $result = array();
+        foreach (self::$cache_group_mapping_dictionnary as $dictionaryLine) {
+            $activeDirectoryGroup = $dictionaryLine["activeDirectoryGroup"];//List of group based on $conf->global->LDAP_GROUP_DN, which may contain cn property
+            $cn=explode(",",$dn);
+            $cn = $cn[0];
+            $cn = explode("=", $cn);
+            $cn = $cn[1];
+            if (in_array($cn, $activeDirectoryGroup)) {
                 $dolibarrGroupList = $dictionaryLine["dolibarrGroup"];
                 $entityList = $dictionaryLine["linkEntity"];
-                foreach($entityList as $entity){
-                    if(!$result[$entity]){
+                foreach ($entityList as $entity) {
+                    if (!$result[$entity]) {
                         $result[$entity] = array();
                     }
-                    foreach($dolibarrGroupList as $dolibarrGroupId){
+                    foreach ($dolibarrGroupList as $dolibarrGroupId) {
                         $result[$entity][$dolibarrGroupId] = true;
                     }
                 }
-              }
-          }
-          return $result;
-      }
+            }
+        }
+        return $result;
+    }
 }
