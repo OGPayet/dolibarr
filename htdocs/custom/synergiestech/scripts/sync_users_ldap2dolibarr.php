@@ -187,7 +187,7 @@ if ($result >= 0) {
         $db->begin();
 
         $fuser = new ExtendedUser($db);
-        if($fuser->deleteAllRelationSetFromLdap() < 0){
+        if ($fuser->deleteAllRelationSetFromLdap() < 0) {
             $error++;
             print $fuser->error;
         }
@@ -199,7 +199,6 @@ if ($result >= 0) {
                 print $langs->transnoentities("UserDiscarded") . ' # ' . $key . ': login=' . $ldapuser[$conf->global->LDAP_FIELD_LOGIN] . ' --> Discarded' . "\n";
                 continue;
             }
-            print_r($ldapuser);
             $fuser = new ExtendedUser($db);
 
             if ($conf->global->LDAP_KEY_USERS == $conf->global->LDAP_FIELD_SID) {
@@ -280,12 +279,12 @@ if ($result >= 0) {
             }
 
             $memberOf = $ldapuser[$conf->global->SYNERGIESTECH_USERMEMBEROF_LDAPFIELD];
-            if(!is_array($memberOf)){
+            if (!is_array($memberOf)) {
                 $memberOf = array($memberOf);
             }
             //Now we update user mapping for this user
-            foreach($memberOf as $key=>$groupDn){
-                $fuser->addUserToGroupWithLdapDn($groupDn,$notrigger);
+            foreach ($memberOf as $key => $groupDn) {
+                $fuser->addUserToGroupWithLdapDn($groupDn, $notrigger);
             }
             print "\n";
         }
@@ -321,10 +320,9 @@ if ($result >= 0) {
         }
 
         if (!$error || $forcecommit) {
-            if (!$error){
+            if (!$error) {
                 print $langs->transnoentities("NoErrorCommitIsDone") . "\n";
-            }
-            else {
+            } else {
                 print $langs->transnoentities("ErrorButCommitIsDone") . "\n";
             }
             $db->commit();
