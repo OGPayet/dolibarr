@@ -279,7 +279,7 @@ if ($result >= 0) {
             }
 
             $memberOf = $ldapuser[$conf->global->SYNERGIESTECH_USERMEMBEROF_LDAPFIELD];
-            print_r($memberOf);
+            print_r($ldapuser);
             if (!is_array($memberOf)) {
                 $memberOf = array($memberOf);
             }
