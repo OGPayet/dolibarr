@@ -199,7 +199,7 @@ class ActiveDirectoryGroupMappingDictionary extends Dictionary
             }
             if (is_array($ldapRecords)) {
                 foreach($ldapRecords as $cn=>$ldapObject){
-                    $availableGroupList[$cn] = $ldapObject[$conf->global->LDAP_GROUP_DN];
+                    $availableGroupList[$cn] = $ldapObject[$conf->global->LDAP_GROUP_FIELD_FULLNAME];
                 }
             }
         }
