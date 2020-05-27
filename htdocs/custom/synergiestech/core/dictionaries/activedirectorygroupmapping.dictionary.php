@@ -169,7 +169,7 @@ class ActiveDirectoryGroupMappingDictionary extends Dictionary
             ),
         );
 
-        $availableGroupList = array();
+        $availableGroupList = array("test","test2");
 
         if (! function_exists("ldap_connect"))
 		{

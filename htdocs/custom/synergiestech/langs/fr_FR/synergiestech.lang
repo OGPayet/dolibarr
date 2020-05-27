@@ -61,6 +61,7 @@ SynergiesTechActiveDirectoryGroupMappingTabName = Liaison groupe Active Director
 SynergiesTechGroupDictionaryLabel = Groupe dans opsy
 SynergiesTechGroupEntityLabel = Entité à lier
 SynergiesTechActiveDirectoryGroupLabel = Groupe dans Active Directory
+SynergiesTechUserMemberOfLdapField = Nom du champs contenant la liste des groupes de l'utilisateur
 
 #######################################################################
 # Extrafields

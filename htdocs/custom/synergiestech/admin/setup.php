@@ -159,6 +159,10 @@ if (preg_match('/set_(.*)/',$action,$reg))
         $error++;
     }
 
+    if (dolibarr_set_const($db, 'SYNERGIESTECH_USERMEMBEROF_LDAPFIELD', GETPOST('SYNERGIESTECH_USERMEMBEROF_LDAPFIELD', 'alpha'), 'chaine', 0, '', 0) <= 0) {//No entity
+        $error++;
+    }
+
     if (!$error) {
         Header("Location: " . $_SERVER["PHP_SELF"]);
         exit;
@@ -368,6 +372,15 @@ print '<td>'.$langs->trans("SynergiesTechUserAccessControlAccountDisableValue").
 print '<td align="center">&nbsp;</td>' . "\n";
 print '<td align="right">'."\n";
 print '<input name="SYNERGIESTECH_USERACCESSCONTROL_ACCOUNTDISABLE" value="'.$conf->global->SYNERGIESTECH_USERACCESSCONTROL_ACCOUNTDISABLE.'">';
+print '</td></tr>'."\n";
+
+// SYNERGIESTECH_USERMEMBEROF_LDAPFIELD
+$var=!$var;
+print '<tr '.$bc[$var].'>'."\n";
+print '<td>'.$langs->trans("SynergiesTechUserMemberOfLdapField").'</td>'."\n";
+print '<td align="center">&nbsp;</td>' . "\n";
+print '<td align="right">'."\n";
+print '<input name="SYNERGIESTECH_USERMEMBEROF_LDAPFIELD" value="'.$conf->global->SYNERGIESTECH_USERMEMBEROF_LDAPFIELD.'">';
 print '</td></tr>'."\n";
 
 

@@ -36,7 +36,7 @@ if (substr($sapi_type, 0, 3) == 'cgi') {
 require_once $path . "../../../master.inc.php";
 require_once DOL_DOCUMENT_ROOT . "/core/lib/date.lib.php";
 require_once DOL_DOCUMENT_ROOT . "/core/class/ldap.class.php";
-require_once DOL_DOCUMENT_ROOT . "/user/class/user.class.php";
+dol_include_once("/synergiestech/class/extendedUser.class.php");
 
 $langs->loadLangs(array("main", "errors"));
 
@@ -187,6 +187,12 @@ if ($result >= 0) {
     if (is_array($ldaprecords)) {
         $db->begin();
 
+        $fuser = new ExtendedUser($db);
+        if($fuser->deleteAllRelationSetFromLdap() < 0){
+            $error++;
+            print $fuser->error;
+        }
+
         // Warning $ldapuser has a key in lowercase
         foreach ($ldaprecords as $key => $ldapuser) {
             // If login into exclude list, we discard record
@@ -195,7 +201,7 @@ if ($result >= 0) {
                 continue;
             }
 
-            $fuser = new User($db);
+            $fuser = new ExtendedUser($db);
 
             if ($conf->global->LDAP_KEY_USERS == $conf->global->LDAP_FIELD_SID) {
                 $fuser->fetch('', '', $ldapuser[$conf->global->LDAP_KEY_USERS]); // Chargement du user concerné par le SID
@@ -274,6 +280,10 @@ if ($result >= 0) {
                 $listOfUserIdInLdap[] = $fuser->id;
             }
 
+            //Now we update user mapping for this user
+            foreach($ldapuser[$conf->global->SYNERGIESTECH_USERMEMBEROF_LDAPFIELD] as $key=>$groupDn){
+                $fuser->addUserToGroupWithLdapDn($groupDn,$notrigger);
+            }
             print "\n";
         }
 
@@ -293,7 +303,7 @@ if ($result >= 0) {
                 while ($i < $num) {
                     $obj = $db->fetch_object($resql);
                     if ($obj) {
-                        $fuser = new User($db);
+                        $fuser = new ExtendedUser($db);
                         $fuser->fetch($obj->rowid);
                         if ($fuser->setstatus(0) < 0) {
                             $error++;
