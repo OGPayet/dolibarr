@@ -168,8 +168,8 @@ class modSynergiesTech extends DolibarrModules
 			'intervention:-eventadd:EventsAdd:@equipement:/equipement/tabs/fichinterAdd.php?id=__ID__',
 			'product:-price::!$user->rights->synergiestech->product_line_price->lire:',
 			'group:-ldap::true',
-			'synergiestech_admin:+dictionary_synergiestechtimeslot:SynergiesTechTimeSlotDictionaryLabel:synergiestech@synergiestech:true:/synergiestech/admin/dictionaries.php?module=synergiestech&name=synergiestechtimeslot',
-			'synergiestech_admin:+dictionary_activedirectorygroupmapping:SynergiesTechActiveDirectoryGroupMappingTabName:synergiestech@synergiestech:true:/synergiestech/admin/dictionaries.php?module=synergiestech&name=activedirectorygroupmapping',
+			'synergiestech_admin:+dictionary_synergiestechtimeslot:SynergiesTechTimeSlotDictionaryLabel:synergiestech@synergiestech:true:/synergiestech/admin/dictionaries.php?name=synergiestechtimeslot',
+			'synergiestech_admin:+dictionary_activedirectorygroupmapping:SynergiesTechActiveDirectoryGroupMappingTabName:synergiestech@synergiestech:true:/synergiestech/admin/dictionaries.php?name=activedirectorygroupmapping',
 		);
 
 		if (!isset($conf->synergiestech) || !isset($conf->synergiestech->enabled)) {
