@@ -279,9 +279,8 @@ if ($result >= 0) {
             }
 
             $memberOf = $ldapuser[$conf->global->SYNERGIESTECH_USERMEMBEROF_LDAPFIELD];
-            print_r($ldapuser);
             if (!is_array($memberOf)) {
-                $memberOf = array($memberOf);
+                $memberOf = array();
             }
             //Now we update user mapping for this user
             foreach ($memberOf as $key => $groupDn) {
