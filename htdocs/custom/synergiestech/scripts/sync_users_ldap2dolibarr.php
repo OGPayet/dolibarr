@@ -75,12 +75,11 @@ $required_fields = array(
     $conf->global->LDAP_FIELD_MAIL,
     $conf->global->LDAP_FIELD_TITLE,
     $conf->global->LDAP_FIELD_DESCRIPTION,
-    $conf->global->LDAP_FIELD_SID
+    $conf->global->LDAP_FIELD_SID,
 );
+$required_fields[] = $conf->global->SYNERGIESTECH_USERACCESSCONTROL_LDAPFIELDNAME;
+$required_fields[] = $conf->global->SYNERGIESTECH_USERMEMBEROF_LDAPFIELD;
 
-if (!empty($conf->global->SYNERGIESTECH_USERACCESSCONTROL_LDAPFIELDNAME)) {
-    $required_fields[] = $conf->global->SYNERGIESTECH_USERACCESSCONTROL_LDAPFIELDNAME;
-}
 
 $arrayOfAccountActivatedValue = explode(",", $conf->global->SYNERGIESTECH_USERACCESSCONTROL_ACCOUNTENABLE);
 $arrayOfAccountDisabledValue = explode(",", $conf->global->SYNERGIESTECH_USERACCESSCONTROL_ACCOUNTDISABLE);
@@ -200,7 +199,7 @@ if ($result >= 0) {
                 print $langs->transnoentities("UserDiscarded") . ' # ' . $key . ': login=' . $ldapuser[$conf->global->LDAP_FIELD_LOGIN] . ' --> Discarded' . "\n";
                 continue;
             }
-
+            print_r($ldapuser);
             $fuser = new ExtendedUser($db);
 
             if ($conf->global->LDAP_KEY_USERS == $conf->global->LDAP_FIELD_SID) {
