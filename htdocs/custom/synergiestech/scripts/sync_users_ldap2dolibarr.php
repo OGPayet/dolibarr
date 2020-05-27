@@ -178,9 +178,9 @@ if ($result >= 0) {
     $conf->global->LDAP_SYNCHRO_ACTIVE = 0;
 
     if ($conf->global->LDAP_SERVER_TYPE == 'activedirectory') {
-        $ldaprecords = $ldap->getRecords('*', $conf->global->LDAP_USER_DN, 'cn', $required_fields, 'user'); // Fiter on 'user' filter param
+        $ldaprecords = $ldap->getRecords('*', $conf->global->LDAP_USER_DN, 'cn', $required_fields,  0, array($conf->global->SYNERGIESTECH_USERMEMBEROF_LDAPFIELD)); // Fiter on 'user' filter param
     } else {
-        $ldaprecords = $ldap->getRecords('*', $conf->global->LDAP_USER_DN, $conf->global->LDAP_KEY_USERS, $required_fields, 'user'); // Fiter on 'user' filter param
+        $ldaprecords = $ldap->getRecords('*', $conf->global->LDAP_USER_DN, $conf->global->LDAP_KEY_USERS, $required_fields,  0, array($conf->global->SYNERGIESTECH_USERMEMBEROF_LDAPFIELD)); // Fiter on 'user' filter param
     }
 
     if (is_array($ldaprecords)) {
