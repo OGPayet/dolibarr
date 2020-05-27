@@ -145,7 +145,6 @@ class ExtendedUser extends User
     function addUserToGroupWithLdapDn($dn, $notrigger)
     {
         global $conf;
-        $userFilter = explode(',', $dn);
         $groupAndEntity = $this->getGroupIdAndEntityIdFromLdapGroupDn($dn);
         foreach ($groupAndEntity as $entity => $arrayOfGroupId) {
             foreach ($arrayOfGroupId as $groupId => $isEnabled) {
