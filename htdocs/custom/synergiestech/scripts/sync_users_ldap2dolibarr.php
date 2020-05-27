@@ -279,8 +279,12 @@ if ($result >= 0) {
                 $listOfUserIdInLdap[] = $fuser->id;
             }
 
+            $memberOf = $ldapuser[$conf->global->SYNERGIESTECH_USERMEMBEROF_LDAPFIELD];
+            if(!is_array($memberOf)){
+                $memberOf = array($memberOf);
+            }
             //Now we update user mapping for this user
-            foreach($ldapuser[$conf->global->SYNERGIESTECH_USERMEMBEROF_LDAPFIELD] as $key=>$groupDn){
+            foreach($memberOf as $key=>$groupDn){
                 $fuser->addUserToGroupWithLdapDn($groupDn,$notrigger);
             }
             print "\n";
