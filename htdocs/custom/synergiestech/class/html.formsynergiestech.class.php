@@ -2082,7 +2082,7 @@ class FormSynergiesTech
             if(!$test){
                 //We may check that equipement is a machine equipement type
                 foreach($value->linkedObjects['equipement'] as $equipement){
-                    if(empty($equipement->array_options)){
+                    if(!empty($equipement->id) && empty($equipement->array_options)){
                         $equipement->fetch_optionals();
                     }
                     if($equipement->array_options['options_machineclient'] != 1 && $equipement->statut == 1){
