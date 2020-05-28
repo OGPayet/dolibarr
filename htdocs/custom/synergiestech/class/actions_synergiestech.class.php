@@ -539,7 +539,7 @@ class ActionsSynergiesTech
                     print '<div class="inline-block divButAction"><a class="butActionRefused" href="#" title="' . $langs->trans("NotEnoughPermissions") . '">' . $langs->trans("ReOpen") . '</a></div>';
                 }
             }
-        } elseif (in_array('ordersuppliercard', $contexts)){
+        } elseif (in_array('ordersuppliercard', $contexts) && !empty($conf->global->SYNERGIESTECH_DISABLEDCLASSIFIEDBILLED_SUPPLIERORDER)){
 
             // Validate
             if ($object->statut == 0 && $num > 0)
@@ -3259,7 +3259,8 @@ SCRIPT;
      */
     function printFieldPreListTitle(&$parameters, &$object, &$action, $hookmanager){
         $contexts = explode(':', $parameters['context']);
-        if(in_array('supplierorderlist', $contexts)){
+        global $conf;
+        if(in_array('supplierorderlist', $contexts) && !empty($conf->global->SYNERGIESTECH_DISABLEDCLASSIFIEDBILLED_SUPPLIERORDER)){
             global $arrayfields;
             $arrayfields['cf.billed']['checked'] = 0;
             $arrayfields['cf.billed']['enabled'] = 0;

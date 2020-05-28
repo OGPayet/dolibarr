@@ -1,0 +1,9 @@
+diff a/htdocs/custom/synergiestech/langs/fr_FR/synergiestech.lang b/htdocs/custom/synergiestech/langs/fr_FR/synergiestech.lang	(rejected hunks)
+@@ -52,6 +52,7 @@ SynergiesTechCreateRequestEvent                                     = Choix des
+ SynergiesTechDefaultRequestTypeWhenCreate                           = Type de demande par défaut lors de la création d'une demande
+ SynergiesTechAddContractOnRequestCreation                           = Ajouter les contrats respectant le couple donneur d'ordre/beneficiaire à la création d'une demande si aucuns équipements ou contrat n'a été lié sur les types de demande suivant :
+ SynergiesTechDoNotKeepLinkedObjectWhenCloningSupplierOrder          = Ne pas faire suivre les objets liés lors d'un clone d'une commande fournisseur
++SynergiesTechDisabledClassifyBilledOnSupplierOrder                  = Désactiver les fonctionnalités en lien avec le statut facturé sur les commandes fournisseurs
+ 
+ #######################################################################
+ # Extrafields
