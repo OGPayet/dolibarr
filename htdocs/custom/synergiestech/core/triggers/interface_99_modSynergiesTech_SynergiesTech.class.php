@@ -79,9 +79,11 @@ class InterfaceSynergiesTech extends DolibarrTriggers
                 }
                 $object->fetchObjectLinked();
                 $request_types_add_contract = !empty($conf->global->SYNERGIESTECH_AUTO_ADD_CONTRACT_IF_MISSING) ? explode(',', $conf->global->SYNERGIESTECH_AUTO_ADD_CONTRACT_IF_MISSING) : array();
-                if (!isset($object->linkedObjectsIds['equipement'])
-                && !isset($object->linkedObjectsIds['contrat'])
-                && in_array($object->fk_type, $request_types_add_contract)) {
+                if (
+                    !isset($object->linkedObjectsIds['equipement'])
+                    && !isset($object->linkedObjectsIds['contrat'])
+                    && in_array($object->fk_type, $request_types_add_contract)
+                ) {
                     require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
                     $contrat = new Contrat($this->db);
                     $contrat->socid = $object->socid;
@@ -372,6 +374,101 @@ class InterfaceSynergiesTech extends DolibarrTriggers
                 }
 
                 dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
+                return 0;
+            case 'ORDER_SUPPLIER_SUBMIT':
+                if (!empty($conf->global->SYNERGIESTECH_ORDER_SUPPLIER_SUBMIT_CUSTOM_EVENT)) {
+                    $langs->load("agenda");
+                    $langs->load("other");
+                    $langs->load("orders");
+
+                    if (empty($object->actiontypecode)) $object->actiontypecode='AC_OTH_AUTO';
+
+                    $msg = $langs->transnoentities("SupplierOrderSubmitedInDolibarr", ($object->newref ? $object->newref : $object->ref));
+                    $msg .= "<br>" . $langs->trans("SynergiesTechSupplierOrderSubmitCustomEventDate",dol_print_date($object->date_commande,"dayhourtext"));
+                    if ($object->methode_commande){
+                        $msg .= "<br>" . $langs->trans("SynergiesTechSupplierOrderSubmitCustomEventMethod",dol_htmlentitiesbr_decode($object->getInputMethod()));
+                    }
+                    if(!empty($object->context['comments'])){
+                        $msg .= "<br>" . $langs->trans("SynergiesTechSupplierOrderSubmitCustomEventComment",$object->context['comments']);
+                    }
+
+                    if (empty($object->actionmsg2)) {
+                        $object->actionmsg2 = $langs->transnoentities("SupplierOrderSubmitedInDolibarr", ($object->newref ? $object->newref : $object->ref));;
+                    }
+                    $object->actionmsg = $msg;
+
+                    $object->sendtoid = 0;
+                    $object->actionmsg .= "<br>" . $langs->transnoentities("Author") . ': ' . $user->login;
+
+                    dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
+
+                    // Add entry in event table
+                    $now = dol_now();
+
+                    if (isset($_SESSION['listofnames-' . $object->trackid])) {
+                        $attachs = $_SESSION['listofnames-' . $object->trackid];
+                        if ($attachs && strpos($action, 'SENTBYMAIL')) {
+                            $object->actionmsg = dol_concatdesc($object->actionmsg, "\n" . $langs->transnoentities("AttachedFiles") . ': ' . $attachs);
+                        }
+                    }
+
+                    require_once DOL_DOCUMENT_ROOT . '/contact/class/contact.class.php';
+                    require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
+                    $contactforaction = new Contact($this->db);
+                    $societeforaction = new Societe($this->db);
+                    // Set contactforaction if there is only 1 contact.
+                    if (is_array($object->sendtoid)) {
+                        if (count($object->sendtoid) == 1) $contactforaction->fetch(reset($object->sendtoid));
+                    } else {
+                        if ($object->sendtoid > 0) $contactforaction->fetch($object->sendtoid);
+                    }
+                    // Set societeforaction.
+                    if ($object->socid > 0)    $societeforaction->fetch($object->socid);
+
+                    $projectid = isset($object->fk_project) ? $object->fk_project : 0;
+                    if ($object->element == 'project') $projectid = $object->id;
+
+                    // Insertion action
+                    require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
+                    $actioncomm = new ActionComm($this->db);
+                    $actioncomm->type_code   = $object->actiontypecode;        // Type of event ('AC_OTH', 'AC_OTH_AUTO', 'AC_XXX'...)
+                    $actioncomm->code        = 'AC_' . $action;
+                    $actioncomm->label       = $object->actionmsg2;
+                    $actioncomm->note        = $object->actionmsg;          // TODO Replace with $actioncomm->email_msgid ? $object->email_content : $object->actionmsg
+                    $actioncomm->fk_project  = $projectid;
+                    $actioncomm->datep       = $now;
+                    $actioncomm->datef       = $now;
+                    $actioncomm->durationp   = 0;
+                    $actioncomm->punctual    = 1;
+                    $actioncomm->percentage  = -1;   // Not applicable
+                    $actioncomm->societe     = $societeforaction;
+                    $actioncomm->contact     = $contactforaction;
+                    $actioncomm->socid       = $societeforaction->id;
+                    $actioncomm->contactid   = $contactforaction->id;
+                    $actioncomm->authorid    = $user->id;   // User saving action
+                    $actioncomm->userownerid = $user->id;    // Owner of action
+
+                    $actioncomm->fk_element  = $object->id;
+                    $actioncomm->elementtype = $object->element;
+
+                    $ret = $actioncomm->create($user);       // User creating action
+                    unset($object->actionmsg); unset($object->actionmsg2); unset($object->actiontypecode);	// When several action are called on same object, we must be sure to not reuse value of first action.
+
+                    if ($ret > 0)
+                    {
+                        $_SESSION['LAST_ACTION_CREATED'] = $ret;
+                        return 1;
+                    }
+                    else
+                    {
+                        $error ="Failed to insert event : ".$actioncomm->error." ".join(',',$actioncomm->errors);
+                        $this->error=$error;
+                        $this->errors=$actioncomm->errors;
+
+                        dol_syslog("interface_99_modSynergiesTech_SynergiesTech: ".$this->error, LOG_ERR);
+                        return -1;
+                    }
+                }
                 return 0;
         }
 

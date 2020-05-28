@@ -63,7 +63,10 @@ SynergiesTechGroupEntityLabel = Entité à lier
 SynergiesTechActiveDirectoryGroupLabel = Groupe dans Active Directory
 SynergiesTechUserMemberOfLdapField = Nom du champs contenant la liste des groupes de l'utilisateur
 SynergiesTechUserCronJob = Import des utilisateurs et des mappages dans les groupes depuis l'active Directory
-
+SynergiesTechCustomSupplierOrderSubmitEvent = Créer un évènement automatique personnalisé lors de la soumission d'une commande fournisseur
+SynergiesTechSupplierOrderSubmitCustomEventDate = Date de soumission : %s
+SynergiesTechSupplierOrderSubmitCustomEventMethod = Methode de soumission de la commande : %s
+SynergiesTechSupplierOrderSubmitCustomEventComment = Commentaire : %s
 #######################################################################
 # Extrafields
 #######################################################################
