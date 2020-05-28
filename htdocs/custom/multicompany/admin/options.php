@@ -404,6 +404,19 @@ if (! empty($conf->equipement->enabled))
 	print '</td></tr>';
 }
 
+// Share contract
+if (! empty($conf->contrat->enabled))
+{
+	$var=!$var;
+	print '<tr id="sharemember" '.$bc[$var].(empty($conf->global->MULTICOMPANY_SHARINGS_ENABLED) ? ' style="display:none;"' : '').'>';
+	print '<td>'.$langs->trans("SharedContrat").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+
+	print '<td align="center" width="100">';
+	print ajax_constantonoff('MULTICOMPANY_CONTRACT_SHARING_ENABLED', '', 0);
+	print '</td></tr>';
+}
+
 // Dictionnaries
 if (1 == 2 && ! empty($object->sharingdicts)) // TODO wait Dolibarr 7.0 ?
 {

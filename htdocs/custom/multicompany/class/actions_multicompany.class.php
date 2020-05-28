@@ -90,7 +90,8 @@ class ActionsMulticompany
 				'expensereport',
 				'project',
 				'member',
-				'equipement'
+				'equipement',
+				'contract'
 		);
 
 		$this->sharingdicts = array(
@@ -956,6 +957,7 @@ class ActionsMulticompany
 		if ($element == 'facture')		$elementkey = 'invoicenumber';
 		if ($element == 'adherent')		$elementkey = 'member';
 		if ($element == 'bank_account')	$elementkey = 'bankaccount';
+		if ($element == 'contrat')      $elementkey= 'contract';
 
 		if (! empty($element) && ! empty($this->entities[$elementkey]))
 		{
@@ -986,6 +988,7 @@ class ActionsMulticompany
 			{
 				if ($element == 'thirdparty')	$element = 'societe';
 				if ($element == 'member')		$element = 'adherent';
+				if($element == 'contract')      $element = 'contrat';
 
 				if (!empty($conf->$element->enabled) && isset($conf->$element->multidir_output) && isset($conf->$element->multidir_temp))
 				{
@@ -1171,6 +1174,8 @@ class ActionsMulticompany
 					$module = 'projet';
 				} else if ($element == 'member') {
 					$module = 'adherent';
+				} else if ($element == 'contract') {
+					$module = 'contrat';
 				}
 
 				if (! empty($conf->$module->enabled) && ! empty($conf->global->$moduleSharingEnabled))
