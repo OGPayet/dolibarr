@@ -347,6 +347,20 @@ if (empty($conf->global->SYNERGIESTECH_ORDER_SUPPLIER_SUBMIT_CUSTOM_EVENT)) {
     print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_SYNERGIESTECH_ORDER_SUPPLIER_SUBMIT_CUSTOM_EVENT">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
 } else {
     print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_SYNERGIESTECH_ORDER_SUPPLIER_SUBMIT_CUSTOM_EVENT">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+<<<<<<< HEAD
+=======
+}
+
+// SYNERGIESTECH_DISABLEDCLASSIFIEDBILLED_SUPPLIERORDER
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>' . $langs->trans("SynergiesTechDisabledClassifyBilledOnSupplierOrder") . '</td>' . "\n";
+print '<td align="center">&nbsp;</td>' . "\n";
+print '<td align="right">' . "\n";
+if (empty($conf->global->SYNERGIESTECH_DISABLEDCLASSIFIEDBILLED_SUPPLIERORDER)) {
+    print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_SYNERGIESTECH_DISABLEDCLASSIFIEDBILLED_SUPPLIERORDER">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+} else {
+    print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_SYNERGIESTECH_DISABLEDCLASSIFIEDBILLED_SUPPLIERORDER">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+>>>>>>> fix merge issue
 }
 print '</td></tr>' . "\n";
 

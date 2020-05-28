@@ -1,20 +1,10 @@
 diff a/htdocs/custom/synergiestech/admin/setup.php b/htdocs/custom/synergiestech/admin/setup.php	(rejected hunks)
-@@ -321,6 +321,18 @@ if (empty($conf->global->SYNERGIESTECH_DO_NOT_KEEP_LINKED_OBJECT_WHEN_CLONING_SU
- }
- print '</td></tr>' . "\n";
- 
-+// SYNERGIESTECH_DISABLEDCLASSIFIEDBILLED_SUPPLIERORDER
-+print '<tr ' . $bc[$var] . '>' . "\n";
-+print '<td>' . $langs->trans("SynergiesTechDisabledClassifyBilledOnSupplierOrder") . '</td>' . "\n";
-+print '<td align="center">&nbsp;</td>' . "\n";
-+print '<td align="right">' . "\n";
-+if (empty($conf->global->SYNERGIESTECH_DISABLEDCLASSIFIEDBILLED_SUPPLIERORDER)) {
-+    print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_SYNERGIESTECH_DISABLEDCLASSIFIEDBILLED_SUPPLIERORDER">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
-+} else {
-+    print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_SYNERGIESTECH_DISABLEDCLASSIFIEDBILLED_SUPPLIERORDER">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+@@ -347,6 +347,8 @@ if (empty($conf->global->SYNERGIESTECH_ORDER_SUPPLIER_SUBMIT_CUSTOM_EVENT)) {
+     print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_SYNERGIESTECH_ORDER_SUPPLIER_SUBMIT_CUSTOM_EVENT">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+ } else {
+     print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_SYNERGIESTECH_ORDER_SUPPLIER_SUBMIT_CUSTOM_EVENT">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
 +}
-+print '</td></tr>' . "\n";
 +
- print '</table>';
- 
- print '<br>';
+ // SYNERGIESTECH_DISABLEDCLASSIFIEDBILLED_SUPPLIERORDER
+ print '<tr ' . $bc[$var] . '>' . "\n";
+ print '<td>' . $langs->trans("SynergiesTechDisabledClassifyBilledOnSupplierOrder") . '</td>' . "\n";
