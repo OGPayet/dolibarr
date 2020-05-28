@@ -89,7 +89,8 @@ class ActionsMulticompany
 				'bankaccount',
 				'expensereport',
 				'project',
-				'member'
+				'member',
+				'equipement'
 		);
 
 		$this->sharingdicts = array(

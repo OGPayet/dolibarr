@@ -49,6 +49,8 @@ PROJECTSharing=Partage des projets
 PROJECTSharingDescription=Sélection des entités qui partagerons leur projects avec cette entité.
 MEMBERSharing=Partage des adhérents
 MEMBERSharingDescription=Sélection des entités qui partagerons leur adhérents avec cette entité.
+EQUIPEMENTSharing=Partage des Equipements
+EQUIPEMENTSharingDescription=Sélection des entités qui partagerons leur equipements avec cette entité
 
 # Admin options tab
 Options=Options
@@ -70,6 +72,7 @@ ShareInvoicesNumber=Activer le partage de la numérotation des factures
 ShareExpenseReport=Activer le partage des notes de frais
 ShareProject=Activer le partage des projects
 ShareMembers=Activer le partage des adhérents
+SharedEquipements=Activer le partage des équipements
 GlobalSharings=Fonctionnalités de partages
 GlobalSharingsInfo=Une fois les options de partages activées, il sera nécessaire de configurer chaque entité<br>dans l'onglet "Environnements" pour autoriser les partages entre entités.
 ActivatingDictsShares=Personnalisation des dictionnaires

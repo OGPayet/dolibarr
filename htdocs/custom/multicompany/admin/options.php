@@ -391,6 +391,19 @@ if (! empty($conf->adherent->enabled))
 	print '</td></tr>';
 }
 
+// Share equipements
+if (! empty($conf->equipement->enabled))
+{
+	$var=!$var;
+	print '<tr id="sharemember" '.$bc[$var].(empty($conf->global->MULTICOMPANY_SHARINGS_ENABLED) ? ' style="display:none;"' : '').'>';
+	print '<td>'.$langs->trans("SharedEquipements").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+
+	print '<td align="center" width="100">';
+	print ajax_constantonoff('MULTICOMPANY_EQUIPEMENT_SHARING_ENABLED', '', 0);
+	print '</td></tr>';
+}
+
 // Dictionnaries
 if (1 == 2 && ! empty($object->sharingdicts)) // TODO wait Dolibarr 7.0 ?
 {
