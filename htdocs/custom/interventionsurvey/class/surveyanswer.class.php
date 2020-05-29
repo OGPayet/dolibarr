@@ -431,7 +431,7 @@ class SurveyAnswer extends CommonObject
      * @param bool $notrigger  false=launch triggers after, true=disable triggers
      * @return int             <0 if KO, >0 if OK
      */
-    public function delete(User &$user, $notrigger = false)
+    public function delete(User &$user, $notrigger = true)
     {
         $this->db->begin();
         $this->deleteCommon($user, $notrigger);
@@ -488,7 +488,7 @@ class SurveyAnswer extends CommonObject
      *
      *
      */
-    public function save(&$user, $fk_surveyquestion = NULL, $noSurveyReadOnlyCheck = false)
+    public function save(&$user, $fk_surveyquestion = NULL, $noSurveyReadOnlyCheck = false, $notrigger = true)
     {
         global $langs;
 
@@ -504,14 +504,14 @@ class SurveyAnswer extends CommonObject
         }
 
         if ($this->id && $this->id>0) {
-            $this->update($user);
+            $this->update($user, $notrigger);
         } else {
-            $this->create($user);
+            $this->create($user, $notrigger);
         }
         if (empty($this->errors)) {
             foreach ($this->predefined_texts as $position => $predefined_text) {
                 $predefined_text->position = $position;
-                $predefined_text->save($user, $this->id, $noSurveyReadOnlyCheck);
+                $predefined_text->save($user, $this->id, $noSurveyReadOnlyCheck, $notrigger);
                 $this->errors = array_merge($this->errors, $predefined_text->errors);
             }
         }

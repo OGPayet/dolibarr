@@ -388,7 +388,7 @@ class SurveyPart extends CommonObject
      * @param bool $notrigger  false=launch triggers after, true=disable triggers
      * @return int             <0 if KO, >0 if OK
      */
-    public function delete(User &$user, $notrigger = false, bool $disableDeletableBlocCheck = false)
+    public function delete(User &$user, $notrigger = true, bool $disableDeletableBlocCheck = false)
     {
         $this->db->begin();
         $atLeastOneBlocHasNotBeenDeleted = false;
@@ -495,7 +495,7 @@ class SurveyPart extends CommonObject
      *
      */
 
-    public function save(&$user, $fk_fichinter = NULL, $noSurveyReadOnlyCheck = false)
+    public function save(&$user, $fk_fichinter = NULL, $noSurveyReadOnlyCheck = false, $notrigger = true)
     {
         global $langs;
         $this->db->begin();
@@ -510,17 +510,15 @@ class SurveyPart extends CommonObject
             return -1;
         }
         if ($this->id && $this->id > 0) {
-            $this->update($user);
+            $this->update($user, $notrigger);
         } else {
-            $this->create($user);
+            $this->create($user, $notrigger);
         }
 
         if (empty($this->errors)) {
             foreach ($this->blocs as $position => $bloc) {
                 $bloc->position = $position;
-                $temp = round(memory_get_usage(true)/1048576,2)." megabytes";
-                $temp = $temp;
-                $bloc->save($user, $this->id, $noSurveyReadOnlyCheck);
+                $bloc->save($user, $this->id, $noSurveyReadOnlyCheck, $notrigger);
                 $this->errors = array_merge($this->errors, $bloc->errors);
             }
         }

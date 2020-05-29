@@ -524,7 +524,7 @@ class SurveyBlocQuestion extends CommonObject
      * @param bool $notrigger  false=launch triggers after, true=disable triggers
      * @return int             <0 if KO, >0 if OK
      */
-    public function delete(User &$user, $notrigger = false, bool $disableDeletableBlocCheck = false)
+    public function delete(User &$user, $notrigger = true, bool $disableDeletableBlocCheck = false)
     {
         if($disableDeletableBlocCheck || $this->deletable){
             $this->db->begin();
@@ -595,7 +595,7 @@ class SurveyBlocQuestion extends CommonObject
      *
      */
 
-    public function save(&$user, $fk_surveypart = NULL, $noSurveyReadOnlyCheck = false)
+    public function save(&$user, $fk_surveypart = NULL, $noSurveyReadOnlyCheck = false, $notrigger = true)
     {
         global $langs, $conf;
 
@@ -620,20 +620,20 @@ class SurveyBlocQuestion extends CommonObject
         }
 
         if ($this->id && $this->id > 0) {
-            $this->update($user);
+            $this->update($user, $notrigger);
         } else {
-            $this->create($user);
+            $this->create($user, $notrigger);
         }
 
         if (empty($this->errors)) {
             foreach ($this->questions as $position => $question) {
                 $question->position = $position;
-                $question->save($user, $this->id, $noSurveyReadOnlyCheck);
+                $question->save($user, $this->id, $noSurveyReadOnlyCheck, $notrigger);
                 $this->errors = array_merge($this->errors, $question->errors);
             }
             foreach ($this->status as $position => $status) {
                 $status->position = $position;
-                $status->save($user, $this->id, $noSurveyReadOnlyCheck);
+                $status->save($user, $this->id, $noSurveyReadOnlyCheck, $notrigger);
                 $this->errors = array_merge($this->errors, $status->errors);
             }
         }
@@ -641,7 +641,7 @@ class SurveyBlocQuestion extends CommonObject
         if($this->chosen_status){
             if($this->fk_chosen_status !=$this->chosen_status->id){
                 $this->fk_chosen_status = $this->chosen_status->id;
-                $this->update($user);
+                $this->update($user, $notrigger);
             }
         }
 
