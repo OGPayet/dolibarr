@@ -3292,7 +3292,7 @@ SCRIPT;
                 $out .= '<input type="submit" class="button valignmiddle" value="' . $langs->trans("Modify") . '">';
                 $out .= '</form>';
             } else {
-                if (!empty($object->fk_contrat)) {
+                if (!empty($object->fk_contrat) && $object->fk_contrat != -1) {
                     $contratstatic = new Contrat($this->db);
                     $contratstatic->fetch($object->fk_contrat);
                     dol_include_once("/custom/synergiestech/class/html.formsynergiestech.class.php");
