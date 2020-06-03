@@ -364,6 +364,18 @@ if (empty($conf->global->SYNERGIESTECH_DISABLEDCLASSIFIEDBILLED_SUPPLIERORDER)) 
 }
 print '</td></tr>' . "\n";
 
+// SYNERGIESTECH_FICHINTER_CUSTOMSELECTCONTRACT
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>' . $langs->trans("SynergiesTechCustomSelectContractOnInterventionCard") . '</td>' . "\n";
+print '<td align="center">&nbsp;</td>' . "\n";
+print '<td align="right">' . "\n";
+if (empty($conf->global->SYNERGIESTECH_FICHINTER_CUSTOMSELECTCONTRACT)) {
+    print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_SYNERGIESTECH_FICHINTER_CUSTOMSELECTCONTRACT">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+} else {
+    print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_SYNERGIESTECH_FICHINTER_CUSTOMSELECTCONTRACT">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+}
+print '</td></tr>' . "\n";
+
 
 print '<tr class="liste_titre">';
 print '<td>'.$langs->trans("SynergiesTechADSynchro").'</td>'."\n";

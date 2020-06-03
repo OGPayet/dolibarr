@@ -3266,4 +3266,46 @@ SCRIPT;
             $arrayfields['cf.billed']['enabled'] = 0;
         }
     }
+
+    /**
+     * Overloading the modifyFieldView function : replacing the parent's function with the one below
+     *
+     * @param   array()         $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          &$action        Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+    function modifyFieldView(&$parameters, &$object, &$action, $hookmanager){
+        $contexts = explode(':', $parameters['context']);
+        global $conf, $langs;
+        if(in_array('interventioncard', $contexts) && !empty($conf->global->SYNERGIESTECH_FICHINTER_CUSTOMSELECTCONTRACT)){
+            dol_include_once("/custom/synergiestech/class/html.formsynergiestech.class.php");
+            $formSynergiesTech = new FormSynergiesTech($this->db);
+            $out = "";
+            if ($action == 'contrat') {
+                $out .= "\n";
+                $out .= '<form method="post" action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '">';
+                $out .= '<input type="hidden" name="action" value="setcontract">';
+                $out .= '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '">';
+                $out .= $formSynergiesTech->selectContract($object->socid, $object->array_options['options_companyrelationships_fk_soc_benefactor'], $object->fk_contrat);
+                $out .= '<input type="submit" class="button valignmiddle" value="' . $langs->trans("Modify") . '">';
+                $out .= '</form>';
+            } else {
+                if ($object->fk_contrat) {
+                    $contratstatic = new Contrat($this->db);
+                    $contratstatic->fetch($object->fk_contrat);
+                    dol_include_once("/custom/synergiestech/class/html.formsynergiestech.class.php");
+                    $out .= $formSynergiesTech->display_contract($contratstatic, null, array("ref", "formule", "status", " - "));
+                } else {
+                    $out .= "&nbsp;";
+                }
+            }
+            $this->resprints = $out;
+            return 1;
+        }
+        return 0;
+    }
+
+
 }

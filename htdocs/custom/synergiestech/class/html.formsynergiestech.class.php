@@ -75,7 +75,7 @@ class FormSynergiesTech
     public static $cache_equipement_list = array();
 
     /**
-     * @var array
+     * @var object
      */
     public static $cache_extrafields_contract = null;
 
@@ -1928,10 +1928,12 @@ class FormSynergiesTech
      *
      * @param   int $socId Id of the principal thirdparty
      * @param   int $benefactorId Id of the benefactor thirdparty
+     * @param   Boolean $onlyActiveContract Should we filter to get only active contract
+     * @param   Boolean $strictMode Should we return contract with socid and benefactor or contract with socId OR benefactor
      * @return  Contract[] List of contract
      */
 
-    function fetch_all_contract_for_these_company($socId, $benefactorId)
+    function fetch_all_contract_for_these_company($socId, $benefactorId, $onlyActiveContract = true, $strictMode = false)
     {
         //We saved in memory all contract related to this company : were it is a benefactor and/or a requester
         global $conf;
@@ -1945,16 +1947,19 @@ class FormSynergiesTech
                 $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "contrat_extrafields as cf ON c.rowid = cf.fk_object";
             }
             $sql .= " WHERE c.entity IN (" . getEntity('contrat') . ")";
-            if ($socId > 0 && !empty($conf->companyrelationships->enabled) && $benefactorId > 0) {
-                $separator = 'OR';
-            } else {
-                $separator = '';
-            }
             $sql .= ' AND (';
+            if ($strictMode) {
+                $separator = ' OR ';
+            } else {
+                $separator = ' AND ';
+            }
+
             if ($socId > 0) {
                 $sql .= " c.fk_soc = " . $socId;
             }
-            $sql .= $separator;
+            if($socId > 0 && !empty($conf->companyrelationships->enabled) && $benefactorId > 0){
+                $sql .= $separator;
+            }
             if (!empty($conf->companyrelationships->enabled) && $benefactorId > 0) {
                 $sql .= " cf.companyrelationships_fk_soc_benefactor = " . $benefactorId;
             }
@@ -1973,7 +1978,7 @@ class FormSynergiesTech
                             $contrat->fetchObjectLinked();
                             self::$cache_contract_list[$obj->rowid] = $contrat;
                         }
-                        if($contrat->nbofservicesopened > 0 && $contrat->statut == 1){
+                        if(!$onlyActiveContract || ($contrat->nbofservicesopened > 0 && $contrat->statut == 1)){
                             $result[$obj->rowid] = $contrat;
                         }
                     }
@@ -2223,10 +2228,9 @@ class FormSynergiesTech
      * @return  string
      */
 
-    public function display_contract($contract, $textColor)
+    public function display_contract($contract, $textColor, $fields = array("formule", "ref"), $separator = " - ")
     {
         global $user;
-        $this->load_cache_extrafields_contract();
         $result = "";
 
         if ($contract) {
@@ -2242,10 +2246,35 @@ class FormSynergiesTech
             if ($textColor) {
                 $result .= 'style="color:' . $textColor . ';"';
             }
-            $result .= '> ' . self::$cache_extrafields_contract->showOutputField('formule', $contract->array_options['options_formule']) . " - " . $contract->ref . "</a> ";
+            $result .= '> ' . $this->getContractLabel($contract, $fields, $separator) . "</a> ";
         }
         return $result;
     }
+
+    /**
+     *
+     * Get contract Label according to following options
+     * @param Contrat $contract Object with extrafields fetched
+     * @param array $listOfField
+     * @param string $separator
+     * @return string
+     */
+
+     public function getContractLabel($contract, $listOfFields, $separator = " - "){
+         $result = array();
+         $this->load_cache_extrafields_contract();
+         foreach($listOfFields as $field){
+             if($field == "ref"){
+                 $result[] = $contract->ref;
+             }
+             else if($field == "formule"){
+                $result[] = self::$cache_extrafields_contract->showOutputField('formule', $contract->array_options['options_formule']);
+             } else if($field == "status"){
+                 $result[] = self::isContractActive($contract) ? "actif" : "inactif";
+             }
+         }
+         return implode($separator, $result);
+     }
 
     /**
      *  Display contract without equipement
@@ -2392,4 +2421,20 @@ class FormSynergiesTech
         $result .= '</table>';
         return $result;
     }
+    /**
+     *   Select Contract for fichinter card
+     *
+     * @param   int $socId
+     * @param   int $benefactorId
+     * @return  String
+     */
+
+     public function selectContract($socId, $benefactorId, $selectedContractId){
+         $listofContract = $this->fetch_all_contract_for_these_company($socId, $benefactorId, false, true);
+         $toPrint = array();
+         foreach($listofContract as $contract){
+            $toPrint[$contract->id] = $this->getContractLabel($contract, array("ref","formule","status", " - "));
+         }
+         return $this->form->selectarray('contratid', $toPrint, $selectedContractId, 1);
+     }
 }

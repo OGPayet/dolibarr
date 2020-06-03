@@ -1,9 +1,10 @@
 diff a/htdocs/custom/synergiestech/langs/fr_FR/synergiestech.lang b/htdocs/custom/synergiestech/langs/fr_FR/synergiestech.lang	(rejected hunks)
-@@ -52,6 +52,7 @@ SynergiesTechCreateRequestEvent                                     = Choix des
- SynergiesTechDefaultRequestTypeWhenCreate                           = Type de demande par défaut lors de la création d'une demande
+@@ -53,7 +53,7 @@ SynergiesTechDefaultRequestTypeWhenCreate                           = Type de de
  SynergiesTechAddContractOnRequestCreation                           = Ajouter les contrats respectant le couple donneur d'ordre/beneficiaire à la création d'une demande si aucuns équipements ou contrat n'a été lié sur les types de demande suivant :
  SynergiesTechDoNotKeepLinkedObjectWhenCloningSupplierOrder          = Ne pas faire suivre les objets liés lors d'un clone d'une commande fournisseur
-+SynergiesTechDisabledClassifyBilledOnSupplierOrder                  = Désactiver les fonctionnalités en lien avec le statut facturé sur les commandes fournisseurs
- 
- #######################################################################
- # Extrafields
+ SynergiesTechDisabledClassifyBilledOnSupplierOrder                  = Désactiver les fonctionnalités en lien avec le statut facturé sur les commandes fournisseurs
+-
++SynergiesTechCustomSelectContractOnInterventionCard                 = Activer la vue personnalisé permettant de lier un contrat sur une intervention
+ SynergiesTechADSynchro = Paramètre de synchronisation avec l'Active Directory
+ SynergiesTechUserAccessControlAccountFieldName = Nom du champs LDAP contenant l'information de l'état du compte utilisateur
+ SynergiesTechUserAccessControlAccountEnableValue = Valeur de userAccountControl considérant l'utilisateur comme ayant un compte ldap lié actif (séparé par des virgules)
