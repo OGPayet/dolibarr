@@ -2261,6 +2261,7 @@ class FormSynergiesTech
      */
 
      public function getContractLabel($contract, $listOfFields, $separator = " - "){
+         global $langs;
          $result = array();
          $this->load_cache_extrafields_contract();
          foreach($listOfFields as $field){
@@ -2270,7 +2271,7 @@ class FormSynergiesTech
              else if($field == "formule"){
                 $result[] = self::$cache_extrafields_contract->showOutputField('formule', $contract->array_options['options_formule']);
              } else if($field == "status"){
-                 $result[] = self::isContractActive($contract) ? "actif" : "inactif";
+                 $result[] = self::isContractActive($contract) ? $langs->Trans("SynergiesTechContractFieldInterventionCardActivated") : $langs->Trans("SynergiesTechContractFieldInterventionCardDeactivated");
              }
          }
          return implode($separator, $result);

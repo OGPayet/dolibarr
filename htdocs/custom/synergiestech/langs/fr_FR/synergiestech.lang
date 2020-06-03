@@ -272,3 +272,9 @@ SynergiesTechBannerTabEquipementListWithContract = Liste des équipements sous c
 SynergiesTechBannerTabContractWithoutEquipement = Liste des contrats de ce bénéficiaire non rattachés à un équipement :
 SynergiesTechBannerTabNoEqNoContract = Pas de contrats ni d'équipements
 SynergiesTechBannerTabContractAsRequesterOnly = %s contrats actifs en tant que donneur d'ordre
+
+#############################################################
+### Contract status on intervention card
+#############################################################
+SynergiesTechContractFieldInterventionCardActivated = actif
+SynergiesTechContractFieldInterventionCardDeactivated = inactif
