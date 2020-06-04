@@ -2150,7 +2150,7 @@ class FormSynergiesTech
                     }
                 }
             }
-            return  !$hasEquipementNoLinkedContract && $hasEquipementAtLeastOneActiveContract;
+            return  $hasEquipementNoLinkedContract && $hasEquipementAtLeastOneActiveContract;
         });
     }
 
