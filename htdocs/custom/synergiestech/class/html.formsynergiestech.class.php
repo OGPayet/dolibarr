@@ -2150,7 +2150,7 @@ class FormSynergiesTech
                     }
                 }
             }
-            return  $hasEquipementNoLinkedContract && $hasEquipementAtLeastOneActiveContract;
+            return  !$hasEquipementNoLinkedContract && $hasEquipementAtLeastOneActiveContract;
         });
     }
 
@@ -2174,7 +2174,7 @@ class FormSynergiesTech
                     }
                 }
             }
-            return  !$hasEquipementNoLinkedContract || !$hasEquipementAtLeastOneActiveContract;
+            return  $hasEquipementNoLinkedContract || !$hasEquipementAtLeastOneActiveContract;
         });
     }
 
