@@ -1978,7 +1978,7 @@ class FormSynergiesTech
                             $contrat->fetchObjectLinked();
                             self::$cache_contract_list[$obj->rowid] = $contrat;
                         }
-                        if(!$onlyActiveContract || ($contrat->nbofservicesopened > 0 && $contrat->statut == 1)){
+                        if(!$onlyActiveContract || self::isContractActive($contrat)){
                             $result[$obj->rowid] = $contrat;
                         }
                     }
