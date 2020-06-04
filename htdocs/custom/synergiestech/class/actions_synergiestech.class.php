@@ -542,7 +542,7 @@ class ActionsSynergiesTech
         } elseif (in_array('ordersuppliercard', $contexts) && !empty($conf->global->SYNERGIESTECH_DISABLEDCLASSIFIEDBILLED_SUPPLIERORDER)){
 
             // Validate
-            if ($object->statut == 0 && $num > 0)
+            if ($object->statut == 0 && $object->ref > 0)
             {
                 if ((empty($conf->global->MAIN_USE_ADVANCED_PERMS) && ! empty($user->rights->fournisseur->commande->creer))
                    || (! empty($conf->global->MAIN_USE_ADVANCED_PERMS) && ! empty($user->rights->fournisseur->supplier_order_advance->validate)))
