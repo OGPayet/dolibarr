@@ -1948,7 +1948,7 @@ class FormSynergiesTech
             }
             $sql .= " WHERE c.entity IN (" . getEntity('contrat') . ")";
             $sql .= ' AND (';
-            if ($strictMode) {
+            if (!$strictMode) {
                 $separator = ' OR ';
             } else {
                 $separator = ' AND ';
