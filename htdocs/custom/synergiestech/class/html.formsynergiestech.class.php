@@ -2131,15 +2131,16 @@ class FormSynergiesTech
 
 
      /**
-     *  Helper static function to filter an array of equipement and return only equipement linked to an active contract
+     *  Helper static function to filter an array of equipement and return only equipement linked to a contract status
      *
      * @param   Equipement[] $arrayOfEquipement
+     * @param   Boolean $atLeastOneActiveContract
      * @return  Equipement[]
      */
 
-    public static function filter_equipement_with_contract($arrayOfEquipement)
+    public static function filter_equipement_according_to_linked_contracts_status($arrayOfEquipement, $atLeastOneActiveContract)
     {
-        return array_filter($arrayOfEquipement, function ($value) {
+        return array_filter($arrayOfEquipement, function ($value) use ($atLeastOneActiveContract) {
             $hasEquipementNoLinkedContract = empty($value->linkedObjects) || empty($value->linkedObjects['contrat']);
             $hasEquipementAtLeastOneActiveContract = false;
             if(!$hasEquipementNoLinkedContract){
@@ -2150,31 +2151,8 @@ class FormSynergiesTech
                     }
                 }
             }
-            return  !$hasEquipementNoLinkedContract && $hasEquipementAtLeastOneActiveContract;
-        });
-    }
-
-     /**
-     *  Helper static function to filter an array of equipement and return only equipement not linked to at least one active contract
-     *
-     * @param   Equipement[] $arrayOfEquipement
-     * @return  Equipement[]
-     */
-
-    public static function filter_equipement_without_contract($arrayOfEquipement)
-    {
-        return array_filter($arrayOfEquipement, function ($value) {
-            $hasEquipementNoLinkedContract = empty($value->linkedObjects) || empty($value->linkedObjects['contrat']);
-            $hasEquipementAtLeastOneActiveContract = false;
-            if(!$hasEquipementNoLinkedContract){
-                foreach($value->linkedObjects['contrat'] as $contrat){
-                    if(self::isContractActive($contrat)){
-                    $hasEquipementAtLeastOneActiveContract = true;
-                    break;
-                    }
-                }
-            }
-            return  $hasEquipementNoLinkedContract || !$hasEquipementAtLeastOneActiveContract;
+            $result = !$hasEquipementNoLinkedContract && $hasEquipementAtLeastOneActiveContract;
+            return  $atLeastOneActiveContract ? $result : !$result;
         });
     }
 
@@ -2374,8 +2352,8 @@ class FormSynergiesTech
     {
         $result = "";
         $listOfEquipementOfThisCustomer = $this->fetch_all_equipement_for_these_company($socId);
-        $equipementUnderContract = self::filter_equipement_with_contract($listOfEquipementOfThisCustomer);
-        $equipementWithoutContract = self::filter_equipement_without_contract($listOfEquipementOfThisCustomer);
+        $equipementUnderContract = self::filter_equipement_according_to_linked_contracts_status($listOfEquipementOfThisCustomer, true);
+        $equipementWithoutContract = self::filter_equipement_according_to_linked_contracts_status($listOfEquipementOfThisCustomer, false);
         $listOfContractOfThisBenefactor = $this->fetch_all_contract_for_these_company(null, $socId);
         $listOfContractOfThisBenefactorWithoutEquipement = self::filter_contract_without_equipement_for_these_company($listOfContractOfThisBenefactor);
         $listOfCOntractAsRequester = $this->fetch_all_contract_for_these_company($socId, null);
