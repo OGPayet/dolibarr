@@ -341,7 +341,7 @@ class SurveyBlocQuestionDictionary extends Dictionary
                 'positionLine' => 3,
             ),
             'td_output' => array(
-                'moreAttributes' => 'width="100%"',
+                'moreAttributes' => 'width="30%"',
             )
         );
 
@@ -369,7 +369,7 @@ class SurveyBlocQuestionDictionary extends Dictionary
                 'positionLine' => 5,
             ),
             'td_output' => array(
-                'moreAttributes' => 'width="100%"',
+                'moreAttributes' => 'width="30%"',
             )
         );
 
