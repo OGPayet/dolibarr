@@ -413,8 +413,9 @@ class InterventionSurvey extends Fichinter
 
     function generateGeneralSurveyPart($listOfGeneralBlocs)
     {
+        global $langs;
         $part = array(
-            'label' => "General Parts",
+            'label' => $langs->trans('InterventionSurveyGeneralPartsLabel'),
             'position' => null,
             'fk_identifier_type' => null,
             'fk_identifier_value' => null,
@@ -967,15 +968,15 @@ class InterventionSurvey extends Fichinter
         }
 
         foreach ($blocToDelete as $bloc) {
-            $bloc->delete($user,true,true);
+            $bloc->delete($user, true, true);
             $this->errors = array_merge($this->errors, $bloc->errors);
         }
         foreach ($partToAdd as $part) {
-            $part->save($user, true, true);
+            $part->save($user, null, true, true);
             $this->errors = array_merge($this->errors, $part->errors);
         }
         foreach ($blocToAdd as $bloc) {
-            $bloc->save($user, true, true);
+            $bloc->save($user, null, true, true);
             $this->errors = array_merge($this->errors, $bloc->errors);
         }
 

@@ -208,9 +208,6 @@ class SurveyQuestionDictionary extends Dictionary
             'type' => 'chkbxlst',
             'options' => 'c_intervention_survey_answer:identifier|label:rowid::active=1 and entity IN (' . getEntity('dictionary', 1) . ')',
             'label_separator' => ' - ',
-            'td_output' => array(
-                'moreAttributes' => 'width="100%"',
-            ),
             'td_input' => array(
                 'moreAttributes' => 'width="100%"',
                 'positionLine' => 1,
@@ -227,9 +224,6 @@ class SurveyQuestionDictionary extends Dictionary
             'label' => 'InterventionSurveyQuestionExtrafieldDictionary',
             'type' => 'checkbox',
             'options' => $extrafields->attributes[$element_type]['label'],
-            'td_output' => array(
-                'moreAttributes' => 'width="100%"',
-            ),
             'td_input' => array(
                 'moreAttributes' => 'width="100%"',
                 'positionLine' => 2,
@@ -242,9 +236,6 @@ class SurveyQuestionDictionary extends Dictionary
             'type' => 'chkbxlst',
             'options' => 'c_intervention_survey_bloc_question:identifier|label:rowid::active=1 and entity IN (' . getEntity('dictionary', 1) . ')',
             'association_table' => 'c_intervention_survey_bloc_question_cbl_questions:fk_target:fk_line',
-            'td_output' => array(
-                'moreAttributes' => 'width="100%"',
-            ),
             'td_input' => array(
                 'moreAttributes' => 'width="100%"',
                 'positionLine' => 3,

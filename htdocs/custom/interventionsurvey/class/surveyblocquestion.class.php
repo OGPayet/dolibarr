@@ -605,8 +605,6 @@ class SurveyBlocQuestion extends CommonObject
             $this->db->rollback();
             return -1;
         }
-        $temp = round(memory_get_usage(true)/1048576,2)." megabytes";
-        $temp = $temp;
 
         if (isset($fk_surveypart)) {
             $this->fk_surveypart = $fk_surveypart;

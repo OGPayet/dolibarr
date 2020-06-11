@@ -211,6 +211,9 @@ InterventionSurveyConfirmAddMissingBlocButton = Ajout des blocs manquants
 # Gestion des fichiers joints sur les interventions avec hooks
 InterventionSurveyDocuments = Fichier(s) joint(s)
 
+#Génération de la partie générale
+InterventionSurveyGeneralPartsLabel = Observations Générales
+
 #Attribut supplémentaires géré par ce module
 InterventionSurveyCustomerSignatureLabel = Objet contenant la signature du Client
 InterventionSurveyStakeholderSignatureLabel = Objet contenant la signature du Technicien

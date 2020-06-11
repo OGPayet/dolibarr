@@ -238,9 +238,6 @@ class SurveyBlocStatusDictionary extends Dictionary
             'type' => 'chkbxlst',
             'options' => 'c_intervention_survey_bloc_status_predefined_text:identifier|label:rowid::active=1 and entity IN (' . getEntity('dictionary', 1) . ')',
             'label_separator' => ' - ',
-            'td_output' => array(
-                'moreAttributes' => 'width="100%"',
-            ),
             'td_input' => array(
                 'moreAttributes' => 'width="100%"',
                 'positionLine' => 1,
@@ -253,9 +250,6 @@ class SurveyBlocStatusDictionary extends Dictionary
             'options' => 'c_intervention_survey_bloc_question:identifier|label:rowid::active=1 and entity IN (' . getEntity('dictionary', 1) . ')',
             'association_table' => 'c_intervention_survey_bloc_question_cbl_status:fk_target:fk_line',
             'label_separator' => ' - ',
-            'td_output' => array(
-                'moreAttributes' => 'width="100%"',
-            ),
             'td_input' => array(
                 'moreAttributes' => 'width="100%"',
                 'positionLine' => 2,

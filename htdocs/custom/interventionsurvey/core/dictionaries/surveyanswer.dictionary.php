@@ -227,9 +227,6 @@ class SurveyAnswerDictionary extends Dictionary
             'type' => 'chkbxlst',
             'options' => 'c_intervention_survey_answer_predefined_text:identifier|label:rowid::active=1 and entity IN (' . getEntity('dictionary', 1) . ')',
             'label_separator' => ' - ',
-            'td_output' => array(
-                'moreAttributes' => 'width="100%"',
-            ),
             'td_input' => array(
                 'moreAttributes' => 'width="100%"',
                 'positionLine' => 1,
@@ -242,9 +239,6 @@ class SurveyAnswerDictionary extends Dictionary
             'options' => 'c_intervention_survey_question:identifier|label:rowid::active=1 and entity IN (' . getEntity('dictionary', 1) . ')',
             'association_table' => 'c_intervention_survey_question_cbl_answers:fk_target:fk_line',
             'label_separator' => ' - ',
-            'td_output' => array(
-                'moreAttributes' => 'width="100%"',
-            ),
             'td_input' => array(
                 'moreAttributes' => 'width="100%"',
                 'positionLine' => 2,

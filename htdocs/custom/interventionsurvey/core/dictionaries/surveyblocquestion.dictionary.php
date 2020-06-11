@@ -323,9 +323,6 @@ class SurveyBlocQuestionDictionary extends Dictionary
             'label' => 'InterventionSurveyBlocQuestionInterventionTypeField',
             'type' => 'chkbxlst',
             'options' => 'c_extendedintervention_type:label:rowid::active=1 and entity IN (' . getEntity('dictionary', 1) . ')',
-            'td_output' => array(
-                'moreAttributes' => 'width="50%"',
-            ),
             'td_input' => array(
                 'moreAttributes' => 'width="50%"',
                 'positionLine' => 4,
@@ -339,9 +336,6 @@ class SurveyBlocQuestionDictionary extends Dictionary
             'label' => 'InterventionSurveyTagCategoriesInQuestionBlocDictionnary',
             'type' => 'chkbxlst',
             'options' => 'categorie:label:rowid::type=0 and entity IN (' . getEntity('category', 1) . ')',
-            'td_output' => array(
-                'moreAttributes' => 'width="50%"'
-            ),
             'td_input' => array(
                 'moreAttributes' => 'width="50%"',
                 'positionLine' => 3,
@@ -354,9 +348,6 @@ class SurveyBlocQuestionDictionary extends Dictionary
             'type' => 'chkbxlst',
             'options' => 'c_intervention_survey_bloc_status:identifier|label:rowid::active=1 and entity IN (' . getEntity('dictionary', 1) . ')',
             'label_separator' => ' - ',
-            'td_output' => array(
-                'moreAttributes' => 'width="100%"',
-            ),
             'td_input' => array(
                 'moreAttributes' => 'width="100%"',
                 'positionLine' => 4,
@@ -370,9 +361,6 @@ class SurveyBlocQuestionDictionary extends Dictionary
             'type' => 'chkbxlst',
             'options' => 'c_intervention_survey_question:identifier|label:rowid::active=1 and entity IN (' . getEntity('dictionary', 1) . ')',
             'label_separator' => ' - ',
-            'td_output' => array(
-                'moreAttributes' => 'width="100%"',
-            ),
             'td_input' => array(
                 'moreAttributes' => 'width="100%"',
                 'positionLine' => 5,
@@ -388,9 +376,6 @@ class SurveyBlocQuestionDictionary extends Dictionary
             'label' => 'InterventionSurveyBlocQuestionExtrafieldDictionary',
             'type' => 'checkbox',
             'options' => $extrafields->attributes[$table_element]['label'],
-            'td_output' => array(
-                'moreAttributes' => 'width="100%"',
-            ),
             'td_input' => array(
                 'moreAttributes' => 'width="100%"',
                 'positionLine' => 6,

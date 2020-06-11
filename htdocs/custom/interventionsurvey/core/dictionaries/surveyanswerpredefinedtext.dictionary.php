@@ -236,9 +236,6 @@ class SurveyAnswerPredefinedTextDictionary extends Dictionary
             'association_table' => 'c_intervention_survey_answer_cbl_predefined_texts:fk_target:fk_line',
             'options' => 'c_intervention_survey_answer:identifier|label:rowid::active=1 and entity IN (' . getEntity('dictionary', 1) . ')',
             'label_separator' => ' - ',
-            'td_output' => array(
-                'moreAttributes' => 'width="100%"',
-            ),
             'td_input' => array(
                 'moreAttributes' => 'width="100%"',
                 'positionLine' => 1,
@@ -250,9 +247,6 @@ class SurveyAnswerPredefinedTextDictionary extends Dictionary
             'type' => 'chkbxlst',
             'options' => 'c_intervention_survey_bloc_question:identifier|label:rowid::active=1 and entity IN (' . getEntity('dictionary', 1) . ')',
             'label_separator' => ' - ',
-            'td_output' => array(
-                'moreAttributes' => 'width="100%"',
-            ),
             'td_input' => array(
                 'moreAttributes' => 'width="100%"',
                 'positionLine' => 2,
@@ -264,9 +258,6 @@ class SurveyAnswerPredefinedTextDictionary extends Dictionary
             'type' => 'chkbxlst',
             'options' => 'categorie:label:rowid::type=0 and entity IN (' . getEntity('category', 1) . ')',
             'label_separator' => ' - ',
-            'td_output' => array(
-                'moreAttributes' => 'width="100%"',
-            ),
             'td_input' => array(
                 'moreAttributes' => 'width="100%"',
                 'positionLine' => 3,
