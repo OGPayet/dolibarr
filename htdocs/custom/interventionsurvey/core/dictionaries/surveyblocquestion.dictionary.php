@@ -340,6 +340,9 @@ class SurveyBlocQuestionDictionary extends Dictionary
                 'moreAttributes' => 'width="50%"',
                 'positionLine' => 3,
             ),
+            'td_output' => array(
+                'moreAttributes' => 'width="100%"',
+            )
         );
 
         $this->fields['status'] = array(
