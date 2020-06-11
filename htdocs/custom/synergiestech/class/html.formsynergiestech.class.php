@@ -2400,6 +2400,24 @@ class FormSynergiesTech
         $result .= '</table>';
         return $result;
     }
+
+    /**
+     *   Get List of Contract with wishes label
+     *
+     * @param   int $socId
+     * @param   int $benefactorId
+     * @return  array
+     */
+
+    public function getListOfContractLabel($socId, $benefactorId){
+        $listofContract = $this->fetch_all_contract_for_these_company($socId, $benefactorId, false, true);
+        $toPrint = array();
+        foreach($listofContract as $contract){
+           $toPrint[$contract->id] = $this->getContractLabel($contract, array("ref","formule","status", " - "));
+        }
+        return $toPrint;
+    }
+
     /**
      *   Select Contract for fichinter card
      *
@@ -2409,11 +2427,7 @@ class FormSynergiesTech
      */
 
      public function selectContract($socId, $benefactorId, $selectedContractId){
-         $listofContract = $this->fetch_all_contract_for_these_company($socId, $benefactorId, false, true);
-         $toPrint = array();
-         foreach($listofContract as $contract){
-            $toPrint[$contract->id] = $this->getContractLabel($contract, array("ref","formule","status", " - "));
-         }
+         $toPrint = $this->getListOfContractLabel($socId, $benefactorId);
          return $this->form->selectarray('contratid', $toPrint, $selectedContractId, 1);
      }
 }

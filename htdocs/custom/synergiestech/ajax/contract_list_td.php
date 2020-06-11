@@ -19,19 +19,19 @@
  * \file htdocs/product/ajax/contract_list_td.php
  * \brief File to return html select of contract list with benefactor
  */
-if (! defined('NOTOKENRENEWAL')) define('NOTOKENRENEWAL', 1); // Disables token renewal
-if (! defined('NOREQUIREMENU')) define('NOREQUIREMENU', '1');
-if (! defined('NOREQUIREHTML')) define('NOREQUIREHTML', '1');
-if (! defined('NOREQUIREAJAX')) define('NOREQUIREAJAX', '1');
-if (! defined('NOREQUIRESOC')) define('NOREQUIRESOC', '1');
-if (! defined('NOCSRFCHECK')) define('NOCSRFCHECK', '1');
-if (empty($_GET ['keysearch']) && ! defined('NOREQUIREHTML')) define('NOREQUIREHTML', '1');
+if (!defined('NOTOKENRENEWAL')) define('NOTOKENRENEWAL', 1); // Disables token renewal
+if (!defined('NOREQUIREMENU')) define('NOREQUIREMENU', '1');
+if (!defined('NOREQUIREHTML')) define('NOREQUIREHTML', '1');
+if (!defined('NOREQUIREAJAX')) define('NOREQUIREAJAX', '1');
+if (!defined('NOREQUIRESOC')) define('NOREQUIRESOC', '1');
+if (!defined('NOCSRFCHECK')) define('NOCSRFCHECK', '1');
+if (empty($_GET['keysearch']) && !defined('NOREQUIREHTML')) define('NOREQUIREHTML', '1');
 
 // Change this following line to use the correct relative path (../, ../../, etc)
-$res=0;
-if (! $res && file_exists("../../main.inc.php")) $res=@include '../../main.inc.php';			// to work if your module directory is into a subdir of root htdocs directory
-if (! $res && file_exists("../../../main.inc.php")) $res=@include '../../../main.inc.php';		// to work if your module directory is into a subdir of root htdocs directory
-if (! $res) die("Include of main fails");
+$res = 0;
+if (!$res && file_exists("../../main.inc.php")) $res = @include '../../main.inc.php';            // to work if your module directory is into a subdir of root htdocs directory
+if (!$res && file_exists("../../../main.inc.php")) $res = @include '../../../main.inc.php';        // to work if your module directory is into a subdir of root htdocs directory
+if (!$res) die("Include of main fails");
 
 $soc_id = GETPOST('soc_id', 'int');
 $company_benefactor_id = GETPOST('soc_benefactor_id', 'int');
@@ -46,34 +46,21 @@ $contract_ids = GETPOST('contract_ids', 'array');
 $values = '';
 $other = '';
 if ($soc_id > 0) {
-    require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
-    dol_include_once('/synergiestech/lib/synergiestech.lib.php');
-    $form = new Form($db);
-
+    dol_include_once("/synergiestech/class/html.formsynergiestech.class.php");
     $langs->loadLangs(array("contracts", 'synergiestech@synergiestech'));
+    $synergiesTechForm = new FormSynergiesTech($db);
+    $contractList = $synergiesTechForm->getListOfContractLabel($soc_id, $company_benefactor_id);
 
-    $contractList = synergiestech_fetch_contract($soc_id, $company_benefactor_id, $msg_error);
-    if (empty($msg_error)) {
-//        if (!isset($contractList[$contract_id]) && !empty($contractList)) {
-//            $contract_id = array_keys($contractList)[0];
-//        }
-        $contract_ids_match = array_intersect($contract_ids, array_keys($contractList));
-        if (!in_array($contract_id, $contract_ids_match)) {
-            $contract_id = count($contract_ids_match) ? $contract_ids_match[0] : '';
-        }
-        $values .= '<option class="optiongrey" value="-1">&nbsp;</option>';
-        foreach ($contractList as $c) {
-            $values .= '<option value="' . $c->id . '"' . ($contract_id == $c->id ? ' selected="selected"' : '') . '>' . $c->ref . '</option>';
-        }
-        if (count($contractList) == 0) {
-            $other = ' &nbsp; <a href="' . DOL_URL_ROOT . '/contrat/card.php?socid=' . $soc_id . '&options_companyrelationships_fk_soc_benefactor=' . $company_benefactor_id . '&action=create">' . $langs->trans("AddContract") . '</a>';
-        }
-    } else {
-        $other = $msg_error;
+    $contract_ids_match = array_intersect($contract_ids, array_keys($contractList));
+    if (!in_array($contract_id, $contract_ids_match)) {
+        $contract_id = count($contract_ids_match) ? $contract_ids_match[0] : '';
     }
-} else {
-    $langs->load('errors');
-    $other = $langs->transnoentitiesnoconv('ErrorBadParameters') . "\n";
+    $values .= '<option class="optiongrey" value="-1">&nbsp;</option>';
+    foreach ($contractList as $id => $label) {
+        $values .= '<option value="' . $id . '"' . ($contract_id == $id ? ' selected="selected"' : '') . '>' . $label . '</option>';
+    }
+    if (count($contractList) == 0) {
+        $other = ' &nbsp; <a href="' . DOL_URL_ROOT . '/contrat/card.php?socid=' . $soc_id . '&options_companyrelationships_fk_soc_benefactor=' . $company_benefactor_id . '&action=create">' . $langs->trans("AddContract") . '</a>';
+    }
 }
-
-print json_encode(array('values'=>$values, 'other'=>$other));
+print json_encode(array('values' => $values, 'other' => $other));
