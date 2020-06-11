@@ -671,7 +671,7 @@ class InterventionSurvey extends Fichinter
      *
      */
 
-    public function deleteSurvey(&$user, $notrigger = false)
+    public function deleteSurvey(&$user, $notrigger = true)
     {
         $this->db->begin();
         $errors = array();
@@ -847,7 +847,7 @@ class InterventionSurvey extends Fichinter
         }
             foreach ($this->survey as $surveyPart) {
                 if (empty($surveyPart->blocs)) {
-                    $surveyPart->delete($user,false,true);
+                    $surveyPart->delete($user,true,true);
                     $errors = array_merge($errors, $surveyPart->errors);
                 }
             }
@@ -967,15 +967,15 @@ class InterventionSurvey extends Fichinter
         }
 
         foreach ($blocToDelete as $bloc) {
-            $bloc->delete($user,false,true);
+            $bloc->delete($user,true,true);
             $this->errors = array_merge($this->errors, $bloc->errors);
         }
         foreach ($partToAdd as $part) {
-            $part->save($user, null, true);
+            $part->save($user, true, true);
             $this->errors = array_merge($this->errors, $part->errors);
         }
         foreach ($blocToAdd as $bloc) {
-            $bloc->save($user, null, true);
+            $bloc->save($user, true, true);
             $this->errors = array_merge($this->errors, $bloc->errors);
         }
 

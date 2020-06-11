@@ -433,7 +433,7 @@ class SurveyBlocStatus extends CommonObject
      * @param bool $notrigger  false=launch triggers after, true=disable triggers
      * @return int             <0 if KO, >0 if OK
      */
-    public function delete(User &$user, $notrigger = false)
+    public function delete(User &$user, $notrigger = true)
     {
         $this->db->begin();
         $this->deleteCommon($user, $notrigger);
