@@ -365,6 +365,9 @@ class SurveyBlocQuestionDictionary extends Dictionary
                 'moreAttributes' => 'width="100%"',
                 'positionLine' => 5,
             ),
+            'td_output' => array(
+                'moreAttributes' => 'width="100%"',
+            )
         );
 
         $table_element = 'interventionsurvey_surveyblocquestion';
