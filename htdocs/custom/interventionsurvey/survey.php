@@ -73,7 +73,7 @@ if ($id > 0 || !empty($ref)) {
     }
 }
 
-$readOnlySurvey = !!$object->statut == $object::STATUS_CLOSED;
+$readOnlySurvey = !!$object->statut == $object::STATUS_DONE;
 $form = new Form($db);
 $formextendedintervention = new FormInterventionSurvey($db);
 $formproject=new FormProjets($db);
