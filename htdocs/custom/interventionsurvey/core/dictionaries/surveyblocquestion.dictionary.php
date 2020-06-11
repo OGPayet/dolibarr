@@ -369,7 +369,7 @@ class SurveyBlocQuestionDictionary extends Dictionary
 
         $table_element = 'interventionsurvey_surveyblocquestion';
         $extrafields = new ExtraFields($this->db);
-        $extralabels = $extrafields->fetch_name_optionals_label($table_element);
+        $extrafields->fetch_name_optionals_label($table_element);
 
         $this->fields['extrafields'] = array(
             'name' => 'extrafields',

@@ -240,6 +240,9 @@ class SurveyQuestionDictionary extends Dictionary
                 'moreAttributes' => 'width="100%"',
                 'positionLine' => 3,
             ),
+            'td_output' => array(
+                'moreAttributes' => 'width="40%"'
+            )
         );
     }
 }
