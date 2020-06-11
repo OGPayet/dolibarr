@@ -833,7 +833,7 @@ class InterventionSurvey extends Fichinter
      */
     function is_survey_read_only()
     {
-        return $this->id > 0 && $this->statut == self::STATUS_VALIDATED ? false : true;
+        return $this->id > 0 && $this->statut != self::STATUS_CLOSED ? false : true;
     }
 
     /**
