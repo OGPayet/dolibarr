@@ -559,6 +559,22 @@ class SurveyPart extends CommonObject
         return $result;
     }
 
+    /**
+     *
+     * Method to know if at least one bloc of question is public
+     *
+     */
+
+    public function doesThisSurveyPartContainsAtLeastOnePublicBloc()
+    {
+        foreach ($this->blocs as $bloc) {
+            if (!$bloc->private) {
+                return true;
+            }
+        }
+        return false;
+    }
+
      /**
      *
      * Merge current InterventionSurvey with a given InterventionSurvey

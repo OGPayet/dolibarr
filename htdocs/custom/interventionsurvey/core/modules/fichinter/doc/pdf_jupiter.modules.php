@@ -258,7 +258,9 @@ class pdf_jupiter extends ModelePDFFicheinter
 
                 // Print survey
                 foreach ($object->survey as $survey_part) {
-                    $curY = $this->_survey_bloc_part($pdf, $object, $survey_part, $curY, $outputlangs, $heightforfooter) + 2;
+                    if($survey_part->doesThisSurveyPartContainsAtLeastOnePublicBloc()){
+                        $curY = $this->_survey_bloc_part($pdf, $object, $survey_part, $curY, $outputlangs, $heightforfooter) + 2;
+                    }
                 }
 
                 $bottomlasttab = $this->page_hauteur - $heightforinfotot - $heightforsignature - $heightforfreetext - $heightforfooter + 3;

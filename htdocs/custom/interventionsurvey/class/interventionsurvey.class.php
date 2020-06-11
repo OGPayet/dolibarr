@@ -838,10 +838,13 @@ class InterventionSurvey extends Fichinter
     /**
      * Clean survey - we remove empty survey Part into bdd
      */
-    function cleanSurvey($user)
+    function cleanSurvey($user, $forceUpdateFromBdd = false)
     {
         $errors = array();
         $this->db->begin();
+        if($forceUpdateFromBdd){
+            $this->fetchSurvey();
+        }
             foreach ($this->survey as $surveyPart) {
                 if (empty($surveyPart->blocs)) {
                     $surveyPart->delete($user,false,true);
@@ -977,7 +980,7 @@ class InterventionSurvey extends Fichinter
         }
 
         //finally we clean the survey
-        $this->cleanSurvey($user);
+        $this->cleanSurvey($user, true);
         if (empty($this->errors)) {
             $this->db->commit();
             return 1;
