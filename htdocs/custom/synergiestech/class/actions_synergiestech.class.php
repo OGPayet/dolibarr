@@ -3306,6 +3306,43 @@ SCRIPT;
         }
         return 0;
     }
+/**
+     * Overloading the inlineObjectDisplay function : replacing the parent's function with the one below
+     *
+     * @param   array()         $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          &$action        Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+    function inlineObjectDisplay(&$parameters, &$object, &$action, $hookmanager){
+        $contexts = explode(':', $parameters['context']);
+        global $conf, $langs;
+        if(in_array('commcard', $contexts) && !empty($conf->global->SYNERGIESTECH_FICHINTER_CUSTOMSELECTCONTRACT)){
+            dol_include_once("/custom/synergiestech/class/html.formsynergiestech.class.php");
+            $formSynergiesTech = new FormSynergiesTech($this->db);
+            $formSynergiesTech->load_cache_extrafields_contract();
+            $contrat = $parameters['objectStatic'];
+            $objp = $object;
+            $out = "";
+            print '<tr class="oddeven">';
+                print '<td class="nowrap">';
+                $contrat->fetch($objp->id);
+				print $contrat->getNomUrl(1, 12);
+				print "</td>\n";
+				print '<td class="nowrap">' . $formSynergiesTech->getContractLabel($contrat,array("formule")) . "</td>\n";
+                print '<td align="right" width="80px">' . $formSynergiesTech::$cache_extrafields_contract->showOutputField('startdate', $contrat->array_options['options_startdate']) . "</td>\n";
+				print '<td align="right" width="80px">' . $formSynergiesTech::$cache_extrafields_contract->showOutputField('realdate', $contrat->array_options['options_realdate']) . "</td>\n";
+				print '<td width="20">' . "" . '</td>';
+				print '<td align="right" class="nowrap" style="text-transform: capitalize;">';
+                print $formSynergiesTech->getContractLabel($contrat,array("status")) . " ";
+                print $contrat->getLibStatut(3);
+				print "</td>\n";
+                print '</tr>';
 
-
+            $this->resprints = $out;
+            return 1;
+        }
+        return 0;
+    }
 }

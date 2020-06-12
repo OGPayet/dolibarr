@@ -843,6 +843,12 @@ if ($id > 0) {
 
 				$objp = $db->fetch_object($resql);
 
+				$parameters = array('position'=>$i,"objectStatic"=>$contrat);
+				$reshook = $hookmanager->executeHooks('inlineObjectDisplay', $parameters, $objp, $action); // Note that $action and $object may have been
+				if($reshook > 0) {
+					print $hookmanager->resPrint;
+				}
+				else {
 				print '<tr class="oddeven">';
 				print '<td class="nowrap">';
 				$contrat->id = $objp->id;
@@ -858,6 +864,7 @@ if ($id > 0) {
 				print $contrat->getLibStatut(4);
 				print "</td>\n";
 				print '</tr>';
+				}
 				$i++;
 			}
 			$db->free($resql);
