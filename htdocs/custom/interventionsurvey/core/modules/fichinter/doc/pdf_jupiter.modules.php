@@ -1103,7 +1103,7 @@ class pdf_jupiter extends ModelePDFFicheinter
 
                     // Print duration value
                     $pdf->SetXY($column_posx_duration + $table_padding_x, $posy + $table_padding_y);
-                    $pdf->MultiCell($column_w_duration - ($table_padding_x * 2), 3, $this->_print_duration($time['duration']), 0, 'C', 0);
+                    $pdf->MultiCell($column_w_duration - ($table_padding_x * 2), 3, $this->_print_duration($time['duration']), 0, 1, 0);
                     $max_user_posy = max($pdf->GetY(), $max_user_posy);
                     $total_duration += $time['duration'];
 
@@ -1140,7 +1140,7 @@ class pdf_jupiter extends ModelePDFFicheinter
 
         // Print total value
         $pdf->SetXY($column_posx_duration + $table_padding_x, $posy + $table_padding_y);
-        $pdf->MultiCell($column_w_duration - ($table_padding_x * 2), 3, $this->_print_duration($total_duration), 0, 'C', 0);
+        $pdf->MultiCell($column_w_duration - ($table_padding_x * 2), 3, $this->_print_duration($total_duration), 0, 1, 0);
         $max_posy = max($pdf->GetY(), $max_posy);
 
         $posy = $max_posy + $table_padding_y;
@@ -1304,12 +1304,12 @@ class pdf_jupiter extends ModelePDFFicheinter
         $days = $hours = $minutes = $seconds = 0;
 
         if (!empty($timestamp)) {
-            if ($day) {
+            if ($day > 0) {
                 $days = floor($timestamp / 86400);
                 $timestamp -= $days * 86400;
             }
 
-            if ($hour_minute) {
+            if ($hour_minute > 0) {
                 $hours = floor($timestamp / 3600);
                 $timestamp -= $hours * 3600;
 
@@ -1317,7 +1317,7 @@ class pdf_jupiter extends ModelePDFFicheinter
                 $timestamp -= $minutes * 60;
             }
 
-            if ($second) {
+            if ($second > 0) {
                 $seconds = $timestamp;
             }
         }
