@@ -780,10 +780,10 @@ class pdf_jupiter extends ModelePDFFicheinter
         $question_bloc_sub_label = $question_bloc->desription .
         (!empty($question_bloc->desription) && !empty($question_bloc->justification_text) ? ' - ' : '')
         . $question_bloc->justification_text;
-        $question_bloc_title = '<b><font size="' .
+        $question_bloc_title = '<font size="' .
         $default_font_size . '">' . $question_bloc->label
-        . (!empty($question_bloc_sub_label) ? '&nbsp;->&nbsp;</font><font size="'
-        . ($default_font_size - 1) . '">' . $question_bloc_sub_label : '') . '</font></b>';
+        . (!empty($question_bloc_sub_label) ? '&nbsp;->&nbsp;</font><b><font size="'
+        . ($default_font_size - 1) . '">' . $question_bloc_sub_label .'</font></b>' : '</font>');
         $pdf->writeHTMLCell($width - ($circle_offset * 2 + $margin), 3, $posx + $circle_offset * 2 + $margin, $posy, trim($question_bloc_title), $border, 1, false, true, 'L', true);
         $posy = $pdf->GetY();
         $page = $pdf->getPage();
@@ -823,7 +823,7 @@ class pdf_jupiter extends ModelePDFFicheinter
 
             // Print label and value of the extrafield
             $question_bloc->fetchExtraFieldsInfo();
-            $question_bloc_extrafield = '<b><font size="' . ($default_font_size - 1) . '">' . $question_bloc::$extrafields_cache->attribute_label[$key] . '&nbsp;:&nbsp;</font></b><font size="' . ($default_font_size - 2) . '">' . $question_bloc::$extrafields_cache->showOutputField($key, $question_bloc->array_options['options_' . $key]) . '</font>';
+            $question_bloc_extrafield = '<font size="' . ($default_font_size - 1) . '">' . $question_bloc::$extrafields_cache->attribute_label[$key] . '&nbsp;:&nbsp;</font><b><font size="' . ($default_font_size - 2) . '">' . $question_bloc::$extrafields_cache->showOutputField($key, $question_bloc->array_options['options_' . $key]) . '</font></b>';
             $pdf->writeHTMLCell($width_question - ($circle_offset * 2 + $margin), 3, $posx_question + $circle_offset * 2 + $margin, $posy, trim($question_bloc_extrafield), $border, 1, false, true, 'L', true);
             $posy = $pdf->GetY();
             $page = $pdf->getPage();
@@ -864,7 +864,7 @@ class pdf_jupiter extends ModelePDFFicheinter
 
             // Print label (+ answer justificatory) of the question
             $question_label = $question->label . (!empty($question->justification_text) ? '&nbsp;:&nbsp;':'');
-            $question_answer = '<b><font size="' . ($default_font_size - 1) . '">' . $question_label . '</font></b><font size="' . ($default_font_size - 2) . '">' . $question->justification_text . '</font>';
+            $question_answer = '<font size="' . ($default_font_size - 1) . '">' . $question_label . '</font><b><font size="' . ($default_font_size - 2) . '">' . $question->justification_text . '</font></b>';
             $pdf->writeHTMLCell($width_question - ($circle_offset * 2 + $margin), 3, $posx_question + $circle_offset * 2 + $margin, $posy, trim($question_answer), $border, 1, false, true, 'L', true);
             $posy = $pdf->GetY();
             $page = $pdf->getPage();
@@ -895,7 +895,7 @@ class pdf_jupiter extends ModelePDFFicheinter
                 $posy_origin = $posy;
 
                 // Print label and value of the extrafield
-                $question_bloc_extrafield = '<b><font size="' . ($default_font_size - 1) . '">' . $question::$extrafields_cache->attribute_label[$key] . '&nbsp;:&nbsp;</font></b><font size="' . ($default_font_size - 2) . '">' . $question::$extrafields_cache->showOutputField($key, $question->array_options['options_' . $key]) . '</font>';
+                $question_bloc_extrafield = '<font size="' . ($default_font_size - 1) . '">' . $question::$extrafields_cache->attribute_label[$key] . '&nbsp;:&nbsp;</font><b><font size="' . ($default_font_size - 2) . '">' . $question::$extrafields_cache->showOutputField($key, $question->array_options['options_' . $key]) . '</font></b>';
                 $pdf->writeHTMLCell($width_question_extrafield - ($circle_offset * 2 + $margin), 3, $posx_question_extrafield + $circle_offset * 2 + $margin, $posy, trim($question_bloc_extrafield), $border, 1, false, true, 'L', true);
                 $posy = $pdf->GetY();
                 $page = $pdf->getPage();
