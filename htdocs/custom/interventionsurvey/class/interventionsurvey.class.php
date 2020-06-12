@@ -250,7 +250,8 @@ class InterventionSurvey extends Fichinter
                 $this->db,
                 'interventionsurvey',
                 'SurveyAnswer',
-                array("position", "identifier", "label", "color",  "mandatory_justification", "predefined_texts")
+                array("position", "identifier", "label", "color",  "mandatory_justification", "predefined_texts", "bloc_filter"),
+                array("bloc_filter")
             );
         }
         if (!self::$cache_survey_answer_predefined_text) {
@@ -258,8 +259,8 @@ class InterventionSurvey extends Fichinter
                 $this->db,
                 'interventionsurvey',
                 'SurveyAnswerPredefinedText',
-                array("position", "identifier", "label", "bloc_filter",  "cat_filter"),
-                array("bloc_filter", "cat_filter")
+                array("position", "identifier", "label", "bloc_filter",  "cat_filter", "quest_filt"),
+                array("bloc_filter", "cat_filter", "quest_filt")
             );
         }
         if (!self::$cache_product_categories) {
@@ -512,9 +513,14 @@ class InterventionSurvey extends Fichinter
         $data = self::fillDataFromJSONDictionary($question, "answers", self::$cache_survey_answer_dictionary);
         $answerList = array();
         foreach ($data["answers"] as $index => $answer) {
-            $answerList[$index] = $this->fillAnswerPredefinedTextInAnswer($answer, $blocDictionaryId, $productCategory);
+            if(self::shouldThisAnswerBeIntoThisBlocOfQuestion($answer,$blocDictionaryId)){
+                $answerList[$index] = $this->fillAnswerPredefinedTextInAnswer($answer, $blocDictionaryId, $productCategory, $question["c_rowid"]);
+            }
         }
         $answerList = self::sortArrayOfObjectByPositionObjectProperty($answerList);
+        foreach ($answerList as &$answer) {
+            unset($answer["bloc_filter"]);
+        }
         $data["answers"] = $answerList;
         return $data;
     }
@@ -523,16 +529,17 @@ class InterventionSurvey extends Fichinter
      *  Fill answer predefined text in answer according to intervention type and equipment product type
      *
      */
-    function fillAnswerPredefinedTextInAnswer($answer, $blocDictionaryId, $productCategory)
+    function fillAnswerPredefinedTextInAnswer($answer, $blocDictionaryId, $productCategory, $questionId)
     {
         $data = self::fillDataFromJSONDictionary($answer, "predefined_texts", self::$cache_survey_answer_predefined_text);
-        $data["predefined_texts"] = array_filter($data["predefined_texts"], function ($value) use ($blocDictionaryId, $productCategory) {
-            return self::shouldThisAnswerPredefinedTextBeIntoThisStatus($value, $blocDictionaryId, $productCategory);
+        $data["predefined_texts"] = array_filter($data["predefined_texts"], function ($value) use ($blocDictionaryId, $productCategory, $questionId) {
+            return self::shouldThisAnswerPredefinedTextBeIntoThisAnswer($value, $blocDictionaryId, $productCategory, $questionId);
         });
         $data["predefined_texts"] = self::sortArrayOfObjectByPositionObjectProperty($data["predefined_texts"]);
         foreach ($data["predefined_texts"] as &$predefined_text) {
             unset($predefined_text["bloc_filter"]);
             unset($predefined_text["cat_filter"]);
+            unset($predefined_text["quest_filt"]);
         }
         return $data;
     }
@@ -612,12 +619,21 @@ class InterventionSurvey extends Fichinter
     }
 
     /**
+     * Method to check if an answer should be into this question according to dictionary data
+     */
+
+    public static function shouldThisAnswerBeIntoThisBlocOfQuestion($answer, $questionBlocId)
+    {
+        return self::shouldThisItemBeIntoThisSurvey($answer, array("bloc_filter" => $questionBlocId));
+    }
+
+    /**
      * Method to check if an answer predefined Text should be into this survey according to dictionary data
      */
 
-    public static function shouldThisAnswerPredefinedTextBeIntoThisStatus($answerPredefinedText, $blocDictionaryId, $productCategory)
+    public static function shouldThisAnswerPredefinedTextBeIntoThisAnswer($answerPredefinedText, $blocDictionaryId, $productCategory, $questionId)
     {
-        return self::shouldThisItemBeIntoThisSurvey($answerPredefinedText, array("cat_filter" => $productCategory, "bloc_filter" => $blocDictionaryId));
+        return self::shouldThisItemBeIntoThisSurvey($answerPredefinedText, array("cat_filter" => $productCategory, "bloc_filter" => $blocDictionaryId, "quest_filt"=>$questionId));
     }
 
     /**

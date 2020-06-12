@@ -30,6 +30,11 @@ dol_include_once('/advancedictionaries/class/dictionary.class.php');
 class SurveyAnswerPredefinedTextDictionary extends Dictionary
 {
     /**
+     * @var int         Version of this dictionary
+     */
+    public $version = 2;
+
+    /**
      * @var array       List of languages to load
      */
     public $langs = array('interventionsurvey@interventionsurvey');
@@ -170,6 +175,7 @@ class SurveyAnswerPredefinedTextDictionary extends Dictionary
         'answers' => array(),
         'bloc_filter' => array(),
         'cat_filter' => array(),
+        'quest_filt'=> array()
     );
 
     /**
@@ -261,6 +267,17 @@ class SurveyAnswerPredefinedTextDictionary extends Dictionary
             'td_input' => array(
                 'moreAttributes' => 'width="100%"',
                 'positionLine' => 3,
+            ),
+        );
+        $this->fields['quest_filt'] = array(
+            'name' => 'quest_filt',
+            'label' => 'InterventionSurveyFilterOnlyForQuestionDictionary',
+            'type' => 'chkbxlst',
+            'options' => 'c_intervention_survey_question:identifier|label:rowid::active=1 and entity IN (' . getEntity('dictionary', 1) . ')',
+            'label_separator' => ' - ',
+            'td_input' => array(
+                'moreAttributes' => 'width="100%"',
+                'positionLine' => 4,
             ),
         );
     }

@@ -66,6 +66,7 @@ InterventionSurveyAnswerPredefinedTextDictionaryName = Textes prédéfinis sur l
 InterventionSurveyAnswerPredefinedTextOrderDictionaryField = Position dans les listes de saisie des interventions
 InterventionSurveyAnswerPredefinedTextLabelDictionaryField = Phrase
 InterventionSurveyAnswerPredefinedTextUsedInTheseQuestionDictionaryField = Utilisé dans les réponses aux questions suivantes
+InterventionSurveyFilterOnlyForQuestionDictionary = Utilisé uniquement sur les questions suivantes (laisser vide pour ne pas filtrer)
 InterventionSurveyAnswerPredefinedTextIdentifierFieldLabel = Identifiant
 InterventionSurveyAnswerPredefinedTextIdentifierFieldHelp = Valeur non nécessairement unique permettant d'identifier l'element sur les autres écrans de paramétrages et à des fins statistique
 

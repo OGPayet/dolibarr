@@ -187,6 +187,7 @@ class SurveyAnswerDictionary extends Dictionary
         ),
         'predefined_texts' => array(),
         'question'         => array(),
+        'bloc_filter'      => array()
     );
 
     /**
@@ -242,6 +243,17 @@ class SurveyAnswerDictionary extends Dictionary
             'td_input' => array(
                 'moreAttributes' => 'width="100%"',
                 'positionLine' => 2,
+            ),
+        );
+        $this->fields['bloc_filter'] = array(
+            'name' => 'bloc_filter',
+            'label' => 'InterventionSurveyFilterOnlyForBlocQuestionDictionary',
+            'type' => 'chkbxlst',
+            'options' => 'c_intervention_survey_bloc_question:identifier|label:rowid::active=1 and entity IN (' . getEntity('dictionary', 1) . ')',
+            'label_separator' => ' - ',
+            'td_input' => array(
+                'moreAttributes' => 'width="100%"',
+                'positionLine' => 3,
             ),
         );
     }
