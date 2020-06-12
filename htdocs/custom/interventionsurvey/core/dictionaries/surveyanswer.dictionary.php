@@ -75,6 +75,11 @@ class SurveyAnswerDictionary extends Dictionary
     public $table_name = 'c_intervention_survey_answer';
 
     /**
+     * @var bool    Edit in the add form
+     */
+    public $edit_in_add_form = true;
+
+    /**
      * @var array  Fields of the dictionary table
      * 'name' => array(
      *   'name'       => string,         // Name of the field

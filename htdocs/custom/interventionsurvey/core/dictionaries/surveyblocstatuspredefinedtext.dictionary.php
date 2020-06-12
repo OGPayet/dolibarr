@@ -197,6 +197,11 @@ class SurveyBlocStatusPredefinedTextDictionary extends Dictionary
     public $form_intervention_survey = null;
 
     /**
+     * @var bool    Edit in the add form
+     */
+    public $edit_in_add_form = true;
+
+    /**
      * Load the cache of the list of the categories for categories show output
      *
      * @return  void
