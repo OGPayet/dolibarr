@@ -1103,7 +1103,7 @@ class pdf_jupiter extends ModelePDFFicheinter
 
                     // Print duration value
                     $pdf->SetXY($column_posx_duration + $table_padding_x, $posy + $table_padding_y);
-                    $pdf->MultiCell($column_w_duration - ($table_padding_x * 2), 3, $this->_print_duration($time['duration']), 0, 1, 0);
+                    $pdf->MultiCell($column_w_duration - ($table_padding_x * 2), 3, $this->_print_duration($time['duration'],false, true, false), 0, 1, 0);
                     $max_user_posy = max($pdf->GetY(), $max_user_posy);
                     $total_duration += $time['duration'];
 
@@ -1140,7 +1140,7 @@ class pdf_jupiter extends ModelePDFFicheinter
 
         // Print total value
         $pdf->SetXY($column_posx_duration + $table_padding_x, $posy + $table_padding_y);
-        $pdf->MultiCell($column_w_duration - ($table_padding_x * 2), 3, $this->_print_duration($total_duration), 0, 1, 0);
+        $pdf->MultiCell($column_w_duration - ($table_padding_x * 2), 3, $this->_print_duration($total_duration, false, true, false), 0, 1, 0);
         $max_posy = max($pdf->GetY(), $max_posy);
 
         $posy = $max_posy + $table_padding_y;
@@ -1293,13 +1293,13 @@ class pdf_jupiter extends ModelePDFFicheinter
      * Return the duration information array('days', 'hours', 'minutes', 'seconds')
      *
      * @param	int	    $timestamp		Duration in second
-     * @param	int	    $day			Get days
-     * @param   int     $hour_minute    Get hours / minutes
-     * @param   int     $second         Get seconds
+     * @param	bool	    $day			Get days
+     * @param   bool     $hour_minute    Get hours / minutes
+     * @param   bool     $second         Get seconds
      *
      * @return	array                  array informations
      */
-    function _get_duration($timestamp, $day = 1, $hour_minute = 1, $second = 0)
+    function _get_duration($timestamp, $day = true, $hour_minute = true, $second = false)
     {
         $days = $hours = $minutes = $seconds = 0;
 
@@ -1329,13 +1329,13 @@ class pdf_jupiter extends ModelePDFFicheinter
      * Return a formatted duration (x days x hours x minutes x seconds)
      *
      * @param	int	    $timestamp		Duration in second
-     * @param	int	    $day			Show days
-     * @param   int     $hour_minute    Show hours / minutes
-     * @param   int     $second         Show seconds
+     * @param	bool	    $day			Show days
+     * @param   bool     $hour_minute    Show hours / minutes
+     * @param   bool     $second         Show seconds
      *
      * @return	string                  Formated duration
      */
-    function _print_duration($timestamp, $day = 1, $hour_minute = 1, $second = 0)
+    function _print_duration($timestamp, $day = true, $hour_minute = true, $second = false)
     {
         $duration_infos = $this->_get_duration($timestamp, $day, $hour_minute, $second);
 
