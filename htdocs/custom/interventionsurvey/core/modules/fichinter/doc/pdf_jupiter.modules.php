@@ -27,12 +27,12 @@
  *	\ingroup    ficheinter
  *	\brief      Fichier de la classe permettant de generer les fiches d'intervention au modele Soleil
  */
-require_once DOL_DOCUMENT_ROOT.'/core/modules/fichinter/modules_fichinter.php';
-require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
-require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
-require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
-require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
-require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
+require_once DOL_DOCUMENT_ROOT . '/core/modules/fichinter/modules_fichinter.php';
+require_once DOL_DOCUMENT_ROOT . '/core/lib/company.lib.php';
+require_once DOL_DOCUMENT_ROOT . '/core/lib/functions2.lib.php';
+require_once DOL_DOCUMENT_ROOT . '/core/lib/pdf.lib.php';
+require_once DOL_DOCUMENT_ROOT . '/core/lib/date.lib.php';
+require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
 dol_include_once('/interventionsurvey/lib/libPDFST.trait.php');
 dol_include_once('/interventionsurvey/lib/opendsi_pdf.lib.php');
 dol_include_once('/interventionsurvey/class/interventionsurvey.class.php');
@@ -152,7 +152,7 @@ class pdf_jupiter extends ModelePDFFicheinter
                 }
             }
 
-            $temp_dir_signature = DOL_DATA_ROOT . '/interventionsurvey/temp/'.$object->element.'_'.$object->id;
+            $temp_dir_signature = DOL_DATA_ROOT . '/interventionsurvey/temp/' . $object->element . '_' . $object->id;
             if (file_exists($temp_dir_signature)) {
                 unlink($temp_dir_signature);
             }
@@ -235,7 +235,7 @@ class pdf_jupiter extends ModelePDFFicheinter
 
                 $tab_top_newpage = (empty($conf->global->MAIN_PDF_DONOTREPEAT_HEAD) ? $tab_top_without_address : 10);
                 $pdf->setTopMargin($tab_top_newpage + 5);
-                $pdf->setPageOrientation('', 1, $heightforfooter);	// The only function to edit the bottom margin of current page to set it.
+                $pdf->setPageOrientation('', 1, $heightforfooter);    // The only function to edit the bottom margin of current page to set it.
 
                 // Affiche notes
                 $notetoshow = empty($object->note_public) ? '' : $object->note_public;
@@ -258,7 +258,7 @@ class pdf_jupiter extends ModelePDFFicheinter
 
                 // Print survey
                 foreach ($object->survey as $survey_part) {
-                    if($survey_part->doesThisSurveyPartContainsAtLeastOnePublicBloc()){
+                    if ($survey_part->doesThisSurveyPartContainsAtLeastOnePublicBloc()) {
                         $curY = $this->_survey_bloc_part($pdf, $object, $survey_part, $curY, $outputlangs, $heightforfooter) + 2;
                     }
                 }
@@ -266,7 +266,13 @@ class pdf_jupiter extends ModelePDFFicheinter
                 $bottomlasttab = $this->page_hauteur - $heightforinfotot - $heightforsignature - $heightforfreetext - $heightforfooter + 3;
 
                 if ($curY > $bottomlasttab) {
+                    // Print Footer
+                    $pdf->setPageOrientation('', 1, 0);    // The only function to edit the bottom margin of current page to set it.
+                    $this->_pagefoot($pdf, $object, $outputlangs);
+                    $pdf->setPageOrientation('', 1, $heightforfooter);    // The only function to edit the bottom margin of current page to set it.
+                    //Add a new page
                     $pdf->AddPage('', '', true);
+                    //Print head on new page
                     if (empty($conf->global->MAIN_PDF_DONOTREPEAT_HEAD)) $this->_pagehead($pdf, $object, 0, $outputlangs);
                 }
 
@@ -276,7 +282,7 @@ class pdf_jupiter extends ModelePDFFicheinter
                 // Show signature
                 $this->_signature_area($pdf, $object, $bottomlasttab, $outputlangs);
 
-                $pdf->setPageOrientation('', 1, 0);	// The only function to edit the bottom margin of current page to set it.
+                $pdf->setPageOrientation('', 1, 0);    // The only function to edit the bottom margin of current page to set it.
                 $this->_pagefoot($pdf, $object, $outputlangs);
                 if (method_exists($pdf, 'AliasNbPages')) $pdf->AliasNbPages();
 
@@ -586,18 +592,18 @@ class pdf_jupiter extends ModelePDFFicheinter
     }
 
     /**
-	 *	Show area for the survey part
-	 *
-	 * @param   PDF			    $pdf                Object PDF
+     *	Show area for the survey part
+     *
+     * @param   PDF			    $pdf                Object PDF
      * @param   Fichinter       $object             Object intervention
      * @param   SurveyPart    $survey_part         Object survey part
      * @param   int			    $posy			    Position Y of the bloc
-	 * @param   Translate	    $outputlangs	    Objet langs
+     * @param   Translate	    $outputlangs	    Objet langs
      * @param   int			    $heightforfooter	Height for footer
      *
-	 * @return  int							        Position pour suite
-	 */
-	function _survey_bloc_part(&$pdf, $object, $survey_part, $posy, $outputlangs, $heightforfooter)
+     * @return  int							        Position pour suite
+     */
+    function _survey_bloc_part(&$pdf, $object, $survey_part, $posy, $outputlangs, $heightforfooter)
     {
         global $conf;
 
@@ -635,55 +641,52 @@ class pdf_jupiter extends ModelePDFFicheinter
         $right_column_cur_page = $start_page;
         $is_this_bloc_first_of_current_page_into_left_column = true;
         $is_this_bloc_first_of_current_page_into_rigth_column = true;
-        $listOfBlocsToDisplay = array_values(array_filter($survey_part->blocs, function($bloc) {
+        $listOfBlocsToDisplay = array_values(array_filter($survey_part->blocs, function ($bloc) {
             return !$bloc->private;
         }));
 
-        foreach ($listOfBlocsToDisplay as $position=>$question_bloc) {
+        foreach ($listOfBlocsToDisplay as $position => $question_bloc) {
 
-                if(($left_column_cur_Y - 10 <= $right_column_cur_Y && $left_column_cur_page == $right_column_cur_page) || $left_column_cur_page < $right_column_cur_page){
-                    $pdf->setPage($left_column_cur_page);
-                    //We print dot separator if this bloc is not the first printed on this page
-                    if(!$is_this_bloc_first_of_current_page_into_left_column){
+            if (($left_column_cur_Y - 10 <= $right_column_cur_Y && $left_column_cur_page == $right_column_cur_page) || $left_column_cur_page < $right_column_cur_page) {
+                $pdf->setPage($left_column_cur_page);
+                //We print dot separator if this bloc is not the first printed on this page
+                if (!$is_this_bloc_first_of_current_page_into_left_column) {
                     $pdf->SetLineStyle(array('dash' => '0.5', 'color' => array(0, 0, 0)));
                     $pdf->line($posx, $left_column_cur_Y, $posx + $column_left_w, $left_column_cur_Y);
                     $pdf->SetLineStyle(array('dash' => '0'));
                     $left_column_cur_Y += 1;
-                    }
-
-                    //We print bloc on the left
-                    $left_column_cur_Y = $this->_question_bloc_area($pdf, $question_bloc, $posx, $left_column_cur_Y, $column_left_w, $outputlangs, true);
-
-                    //Is end of this bloc end first of bloc of the page where it has been printed ?
-                    $is_this_bloc_first_of_current_page_into_left_column = $left_column_cur_page != $pdf->getPage();
-                    $left_column_cur_page = $pdf->getPage();
                 }
-                else {
-                    $pdf->setPage($right_column_cur_page);
-                    //We print dot separator if this bloc is not the first printed on this page
-                    if(!$is_this_bloc_first_of_current_page_into_rigth_column){
-                        $pdf->SetLineStyle(array('dash' => '0.5', 'color' => array(0, 0, 0)));
-                        $pdf->line($column_right_posx, $right_column_cur_Y, $column_right_posx + $column_right_w, $right_column_cur_Y);
-                        $pdf->SetLineStyle(array('dash' => '0'));
-                        $right_column_cur_Y += 1;
-                        }
 
-                    //We print bloc on the right
-                    $right_column_cur_Y = $this->_question_bloc_area($pdf, $question_bloc, $column_right_posx, $right_column_cur_Y, $column_right_w, $outputlangs, true);
-                    //Is end of this bloc end first of bloc of the page where it has been printed ?
-                    $is_this_bloc_first_of_current_page_into_rigth_column = $right_column_cur_page != $pdf->getPage();
-                    $right_column_cur_page = $pdf->getPage();
+                //We print bloc on the left
+                $left_column_cur_Y = $this->_question_bloc_area($pdf, $question_bloc, $posx, $left_column_cur_Y, $column_left_w, $outputlangs, true);
+
+                //Is end of this bloc end first of bloc of the page where it has been printed ?
+                $is_this_bloc_first_of_current_page_into_left_column = $left_column_cur_page != $pdf->getPage();
+                $left_column_cur_page = $pdf->getPage();
+            } else {
+                $pdf->setPage($right_column_cur_page);
+                //We print dot separator if this bloc is not the first printed on this page
+                if (!$is_this_bloc_first_of_current_page_into_rigth_column) {
+                    $pdf->SetLineStyle(array('dash' => '0.5', 'color' => array(0, 0, 0)));
+                    $pdf->line($column_right_posx, $right_column_cur_Y, $column_right_posx + $column_right_w, $right_column_cur_Y);
+                    $pdf->SetLineStyle(array('dash' => '0'));
+                    $right_column_cur_Y += 1;
                 }
+
+                //We print bloc on the right
+                $right_column_cur_Y = $this->_question_bloc_area($pdf, $question_bloc, $column_right_posx, $right_column_cur_Y, $column_right_w, $outputlangs, true);
+                //Is end of this bloc end first of bloc of the page where it has been printed ?
+                $is_this_bloc_first_of_current_page_into_rigth_column = $right_column_cur_page != $pdf->getPage();
+                $right_column_cur_page = $pdf->getPage();
+            }
         }
 
         $end_page = max($left_column_cur_page, $right_column_cur_page);
-        if($left_column_cur_page == $right_column_cur_page){
+        if ($left_column_cur_page == $right_column_cur_page) {
             $end_y = max($left_column_cur_Y, $right_column_cur_Y);
-        }
-        else if($end_page == $left_column_cur_page){
+        } else if ($end_page == $left_column_cur_page) {
             $end_y = $left_column_cur_Y;
-        }
-        else {
+        } else {
             $end_y = $right_column_cur_Y;
         }
 
@@ -708,7 +711,7 @@ class pdf_jupiter extends ModelePDFFicheinter
                 if ($page == $start_page) {
                     // Print Footer
                     $pdf->setPageOrientation('', 1, 0);    // The only function to edit the bottom margin of current page to set it.
-                    $this->_pagefoot($pdf, $object, $outputlangs, 1);
+                    $this->_pagefoot($pdf, $object, $outputlangs);
                     $pdf->setPageOrientation('', 1, $heightforfooter);    // The only function to edit the bottom margin of current page to set it.
 
                     // Draw frame
@@ -739,14 +742,13 @@ class pdf_jupiter extends ModelePDFFicheinter
                 } // Middle page
                 else {
                     // Print Header
-                    // Print Header
                     $pos_y = $page_margins['top'];
                     if (empty($conf->global->MAIN_PDF_DONOTREPEAT_HEAD)) {
                         $pos_y = $this->_pagehead($pdf, $object, 0, $outputlangs);
                     }
                     // Print Footer
                     $pdf->setPageOrientation('', 1, 0);    // The only function to edit the bottom margin of current page to set it.
-                    $this->_pagefoot($pdf, $object, $outputlangs, 1);
+                    $this->_pagefoot($pdf, $object, $outputlangs);
                     $pdf->setPageOrientation('', 1, $heightforfooter);    // The only function to edit the bottom margin of current page to set it.
 
                     // Draw frame
@@ -770,19 +772,19 @@ class pdf_jupiter extends ModelePDFFicheinter
     }
 
     /**
-	 *	Show area for the question bloc
-	 *
-	 * @param   PDF			    $pdf            Object PDF
+     *	Show area for the question bloc
+     *
+     * @param   PDF			    $pdf            Object PDF
      * @param   SurveyBlocQuestion  $question_bloc  Object question block
      * @param   int			    $posx			Position X of the bloc
      * @param   int			    $posy			Position Y of the bloc
      * @param   int			    $width			Width of the bloc
-	 * @param   Translate	    $outputlangs	Objet langs
+     * @param   Translate	    $outputlangs	Objet langs
      * @param   int	            $addline    	1=Add dash line after the bloc
      *
-	 * @return  int							    Position pour suite
-	 */
-	function _question_bloc_area(&$pdf, $question_bloc, $posx, $posy, $width, $outputlangs, $addline=0)
+     * @return  int							    Position pour suite
+     */
+    function _question_bloc_area(&$pdf, $question_bloc, $posx, $posy, $width, $outputlangs, $addline = 0)
     {
         $default_font_size = pdf_getPDFFontSize($outputlangs);
 
@@ -811,12 +813,12 @@ class pdf_jupiter extends ModelePDFFicheinter
 
         // Print label (+ description and status justificatory) of the question bloc
         $question_bloc_sub_label = $question_bloc->desription .
-        (!empty($question_bloc->desription) && !empty($question_bloc->justification_text) ? ' - ' : '')
-        . $question_bloc->justification_text;
+            (!empty($question_bloc->desription) && !empty($question_bloc->justification_text) ? ' - ' : '')
+            . $question_bloc->justification_text;
         $question_bloc_title = '<font size="' .
-        $default_font_size . '">' . $question_bloc->label
-        . (!empty($question_bloc_sub_label) ? '&nbsp;->&nbsp;</font><b><font size="'
-        . ($default_font_size - 1) . '">' . $question_bloc_sub_label .'</font></b>' : '</font>');
+            $default_font_size . '">' . $question_bloc->label
+            . (!empty($question_bloc_sub_label) ? '&nbsp;->&nbsp;</font><b><font size="'
+                . ($default_font_size - 1) . '">' . $question_bloc_sub_label . '</font></b>' : '</font>');
         $pdf->writeHTMLCell($width - ($circle_offset * 2 + $margin), 3, $posx + $circle_offset * 2 + $margin, $posy, trim($question_bloc_title), $border, 1, false, true, 'L', true);
         $posy = $pdf->GetY();
         $page = $pdf->getPage();
@@ -879,64 +881,34 @@ class pdf_jupiter extends ModelePDFFicheinter
         }
 
         // Print questions
-        foreach ($question_bloc->questions as $question) {
-            $answer=$question->getChosenAnswer();
-            // Define info for color answer of the question
-            $circle_style = '';
-            $circle_fill_color = array();
-            if (!empty($answer->color)) {
-                $circle_style = 'F';
-                list($r, $g, $b) = sscanf($answer->color, "#%02x%02x%02x");
-                $circle_fill_color = array($r, $g, $b);
-            }
-
-            // Save for the calculation of the position Y origin
-            $page_origin = $pdf->getPage();
-            $last_page_margins = $pdf->getMargins();
-            $posy_origin = $posy;
-
-            // Print label (+ answer justificatory) of the question
-            $question_label = $question->label . (!empty($question->justification_text) ? '&nbsp;:&nbsp;':'');
-            $question_answer = '<font size="' . ($default_font_size - 1) . '">' . $question_label . '</font><b><font size="' . ($default_font_size - 2) . '">' . $question->justification_text . '</font></b>';
-            $pdf->writeHTMLCell($width_question - ($circle_offset * 2 + $margin), 3, $posx_question + $circle_offset * 2 + $margin, $posy, trim($question_answer), $border, 1, false, true, 'L', true);
-            $posy = $pdf->GetY();
-            $page = $pdf->getPage();
-
-            // Position Y origin
-            if ($page_origin != $page) {
-                $text_height = $pdf->getStringHeight(100, '<b><font size="' . ($default_font_size - 1) . '">pP</font></b>', true);
-                $last_page_text_height = $this->page_hauteur - $last_page_margins['bottom'] - $posy_origin;
-                if ($text_height > $last_page_text_height) {
-                    $page_margins = $pdf->getMargins();
-                    $posy_origin = $page_margins['top'];
-                    $page_origin = $page;
+        if (!$question_bloc->isBlocDesactivated()) {
+            foreach ($question_bloc->questions as $question) {
+                $answer = $question->getChosenAnswer();
+                // Define info for color answer of the question
+                $circle_style = '';
+                $circle_fill_color = array();
+                if (!empty($answer->color)) {
+                    $circle_style = 'F';
+                    list($r, $g, $b) = sscanf($answer->color, "#%02x%02x%02x");
+                    $circle_fill_color = array($r, $g, $b);
                 }
-            }
 
-            // Print color answer of the question
-            $pdf->setPage($page_origin);
-            $pdf->Circle($posx_question + $circle_offset, $posy_origin + $circle_offset, $circle_ray, 0, 360, $circle_style, array(), $circle_fill_color);
-            $pdf->setPage($page);
-
-            // Print extrafields of the question
-            $question->fetchExtraFieldsInfo();
-            $question->fetch_optionals();
-            foreach ($question->extrafields as $key) {
                 // Save for the calculation of the position Y origin
                 $page_origin = $pdf->getPage();
                 $last_page_margins = $pdf->getMargins();
                 $posy_origin = $posy;
 
-                // Print label and value of the extrafield
-                $question_bloc_extrafield = '<font size="' . ($default_font_size - 1) . '">' . $question::$extrafields_cache->attribute_label[$key] . '&nbsp;:&nbsp;</font><b><font size="' . ($default_font_size - 2) . '">' . $question::$extrafields_cache->showOutputField($key, $question->array_options['options_' . $key]) . '</font></b>';
-                $pdf->writeHTMLCell($width_question_extrafield - ($circle_offset * 2 + $margin), 3, $posx_question_extrafield + $circle_offset * 2 + $margin, $posy, trim($question_bloc_extrafield), $border, 1, false, true, 'L', true);
+                // Print label (+ answer justificatory) of the question
+                $question_label = $question->label . (!empty($question->justification_text) ? '&nbsp;:&nbsp;' : '');
+                $question_answer = '<font size="' . ($default_font_size - 1) . '">' . $question_label . '</font><b><font size="' . ($default_font_size - 2) . '">' . $question->justification_text . '</font></b>';
+                $pdf->writeHTMLCell($width_question - ($circle_offset * 2 + $margin), 3, $posx_question + $circle_offset * 2 + $margin, $posy, trim($question_answer), $border, 1, false, true, 'L', true);
                 $posy = $pdf->GetY();
                 $page = $pdf->getPage();
 
                 // Position Y origin
                 if ($page_origin != $page) {
                     $text_height = $pdf->getStringHeight(100, '<b><font size="' . ($default_font_size - 1) . '">pP</font></b>', true);
-                    $last_page_text_height = $last_page_margins['bottom'] - $posy_origin;
+                    $last_page_text_height = $this->page_hauteur - $last_page_margins['bottom'] - $posy_origin;
                     if ($text_height > $last_page_text_height) {
                         $page_margins = $pdf->getMargins();
                         $posy_origin = $page_margins['top'];
@@ -944,12 +916,45 @@ class pdf_jupiter extends ModelePDFFicheinter
                     }
                 }
 
-                // Print bullet of the extrafield
+                // Print color answer of the question
                 $pdf->setPage($page_origin);
-                $pdf->Circle($posx_question_extrafield + $circle_offset, $posy_origin + $circle_offset, $bullet_ray, 0, 360, 'F', array(), array(0, 0, 0));
+                $pdf->Circle($posx_question + $circle_offset, $posy_origin + $circle_offset, $circle_ray, 0, 360, $circle_style, array(), $circle_fill_color);
                 $pdf->setPage($page);
+
+                // Print extrafields of the question
+                $question->fetchExtraFieldsInfo();
+                $question->fetch_optionals();
+                foreach ($question->extrafields as $key) {
+                    // Save for the calculation of the position Y origin
+                    $page_origin = $pdf->getPage();
+                    $last_page_margins = $pdf->getMargins();
+                    $posy_origin = $posy;
+
+                    // Print label and value of the extrafield
+                    $question_bloc_extrafield = '<font size="' . ($default_font_size - 1) . '">' . $question::$extrafields_cache->attribute_label[$key] . '&nbsp;:&nbsp;</font><b><font size="' . ($default_font_size - 2) . '">' . $question::$extrafields_cache->showOutputField($key, $question->array_options['options_' . $key]) . '</font></b>';
+                    $pdf->writeHTMLCell($width_question_extrafield - ($circle_offset * 2 + $margin), 3, $posx_question_extrafield + $circle_offset * 2 + $margin, $posy, trim($question_bloc_extrafield), $border, 1, false, true, 'L', true);
+                    $posy = $pdf->GetY();
+                    $page = $pdf->getPage();
+
+                    // Position Y origin
+                    if ($page_origin != $page) {
+                        $text_height = $pdf->getStringHeight(100, '<b><font size="' . ($default_font_size - 1) . '">pP</font></b>', true);
+                        $last_page_text_height = $last_page_margins['bottom'] - $posy_origin;
+                        if ($text_height > $last_page_text_height) {
+                            $page_margins = $pdf->getMargins();
+                            $posy_origin = $page_margins['top'];
+                            $page_origin = $page;
+                        }
+                    }
+
+                    // Print bullet of the extrafield
+                    $pdf->setPage($page_origin);
+                    $pdf->Circle($posx_question_extrafield + $circle_offset, $posy_origin + $circle_offset, $bullet_ray, 0, 360, 'F', array(), array(0, 0, 0));
+                    $pdf->setPage($page);
+                }
             }
         }
+
 
         $posy += 1;
 
@@ -957,15 +962,15 @@ class pdf_jupiter extends ModelePDFFicheinter
     }
 
     /**
-	 *  Load the effective working time into a array
+     *  Load the effective working time into a array
      * @see $this->effective_working_time
-	 *
-	 * @param   Fichinter   $object         Object intervention
+     *
+     * @param   Fichinter   $object         Object intervention
      * @param   Translate   $outputlangs    Objet langs
      *
-	 * @return  void
-	 */
-	function _fetch_effective_working_time($object, $outputlangs)
+     * @return  void
+     */
+    function _fetch_effective_working_time($object, $outputlangs)
     {
         $this->effective_working_time = array();
         $user_cached = array();
@@ -1008,28 +1013,28 @@ class pdf_jupiter extends ModelePDFFicheinter
     }
 
     /**
-	 *  Get nb line of effective working time
-	 *
-	 * @param  Fichinter   $object         Object intervention
+     *  Get nb line of effective working time
      *
-	 * @return int                         Return nb line of effective working time
-	 */
-	function _get_nb_effective_working_time($object)
-	{
+     * @param  Fichinter   $object         Object intervention
+     *
+     * @return int                         Return nb line of effective working time
+     */
+    function _get_nb_effective_working_time($object)
+    {
         return is_array($object->lines) ? count($object->lines) : 0;
-	}
+    }
 
     /**
-	 *	Show area for the effective working time
-	 *
-	 * @param   PDF			$pdf            Object PDF
-     * @param   Fichinter   $object         Object intervention
-	 * @param   int			$posy			Position depart
-	 * @param   Translate	$outputlangs	Objet langs
+     *	Show area for the effective working time
      *
-	 * @return  int							Height of the area
-	 */
-	function _effective_working_time_area(&$pdf, $object, $posy, $outputlangs)
+     * @param   PDF			$pdf            Object PDF
+     * @param   Fichinter   $object         Object intervention
+     * @param   int			$posy			Position depart
+     * @param   Translate	$outputlangs	Objet langs
+     *
+     * @return  int							Height of the area
+     */
+    function _effective_working_time_area(&$pdf, $object, $posy, $outputlangs)
     {
         $default_font_size = pdf_getPDFFontSize($outputlangs);
 
@@ -1128,7 +1133,7 @@ class pdf_jupiter extends ModelePDFFicheinter
 
                     // Print duration value
                     $pdf->SetXY($column_posx_duration + $table_padding_x, $posy + $table_padding_y);
-                    $pdf->MultiCell($column_w_duration - ($table_padding_x * 2), 3, $this->_print_duration($time['duration'],false, true, false), 0, 1, 0);
+                    $pdf->MultiCell($column_w_duration - ($table_padding_x * 2), 3, $this->_print_duration($time['duration'], false, true, false), 0, 1, 0);
                     $max_user_posy = max($pdf->GetY(), $max_user_posy);
                     $total_duration += $time['duration'];
 
@@ -1183,16 +1188,16 @@ class pdf_jupiter extends ModelePDFFicheinter
     }
 
     /**
-	 *	Show area for the technician and customer to sign
-	 *
-	 * @param   PDF         $pdf            Object PDF
-     * @param   Fichinter   $object         Object intervention
-	 * @param   int         $posy			Position depart
-	 * @param   Translate   $outputlangs	Objet langs
+     *	Show area for the technician and customer to sign
      *
-	 * @return  int							Height of the area
-	 */
-	function _signature_area(&$pdf, $object, $posy, $outputlangs)
+     * @param   PDF         $pdf            Object PDF
+     * @param   Fichinter   $object         Object intervention
+     * @param   int         $posy			Position depart
+     * @param   Translate   $outputlangs	Objet langs
+     *
+     * @return  int							Height of the area
+     */
+    function _signature_area(&$pdf, $object, $posy, $outputlangs)
     {
         $default_font_size = pdf_getPDFFontSize($outputlangs);
         $signature_font_size = $default_font_size - 6;
@@ -1213,17 +1218,15 @@ class pdf_jupiter extends ModelePDFFicheinter
 
 
         $signature_date_list = array();
-        foreach($signature_info['people'] as $people){
-            if($people['date']){
+        foreach ($signature_info['people'] as $people) {
+            if ($people['date']) {
                 $signature_date_list[] = $people['date'];
             }
         }
-        if(count($signature_date_list)>0){
+        if (count($signature_date_list) > 0) {
             $signature_date = max($signature_date_list);
-        }
-        else
-        {
-            $signature_date="";
+        } else {
+            $signature_date = "";
         }
 
         $signature_info_day = dol_print_date($signature_date, 'day', false, $outputlangs);
@@ -1235,7 +1238,7 @@ class pdf_jupiter extends ModelePDFFicheinter
 
         // Print image
         if (!empty($signature_info_image)) {
-            $img_src1 = $temp_dir_signature.'/signature1';
+            $img_src1 = $temp_dir_signature . '/signature1';
             $imageContent = @file_get_contents($signature_info_image);
             @file_put_contents($img_src1, $imageContent);
 
@@ -1260,17 +1263,15 @@ class pdf_jupiter extends ModelePDFFicheinter
         $signature_info = !empty($object->array_options['options_customer_signature']) ? json_decode($object->array_options['options_customer_signature'], true) : array();
 
         $signature_date_list = array();
-        foreach($signature_info['people'] as $people){
-            if($people['date']){
+        foreach ($signature_info['people'] as $people) {
+            if ($people['date']) {
                 $signature_date_list[] = $people['date'];
             }
         }
-        if(count($signature_date_list)>0){
+        if (count($signature_date_list) > 0) {
             $signature_date = max($signature_date_list);
-        }
-        else
-        {
-            $signature_date="";
+        } else {
+            $signature_date = "";
         }
 
         $signature_info = !empty($object->array_options['options_customer_signature']) ? json_decode($object->array_options['options_customer_signature'], true) : array();
@@ -1283,7 +1284,7 @@ class pdf_jupiter extends ModelePDFFicheinter
 
         // Print image
         if (!empty($signature_info_image)) {
-            $img_src2 = $temp_dir_signature.'/signature2';
+            $img_src2 = $temp_dir_signature . '/signature2';
             $imageContent = @file_get_contents($signature_info_image);
             @file_put_contents($img_src2, $imageContent);
 
@@ -1301,8 +1302,8 @@ class pdf_jupiter extends ModelePDFFicheinter
         $pdf->writeHTMLCell($signature_right_w, 1, $signature_right_posx, $posy, trim($signature_text), $border, 1, false, true, 'C', true);
         $end_y = max($end_y, $pdf->GetY());
 
-        if(!empty($img_src1) && file_exists($img_src1)) @unlink($img_src1);
-        if(!empty($img_src2) && file_exists($img_src2)) @unlink($img_src2);
+        if (!empty($img_src1) && file_exists($img_src1)) @unlink($img_src1);
+        if (!empty($img_src2) && file_exists($img_src2)) @unlink($img_src2);
         @unlink($temp_dir_signature);
 
         // Draw frame

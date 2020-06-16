@@ -754,7 +754,8 @@ class SurveyBlocQuestion extends CommonObject
 
     public function isBlocDesactivated()
     {
-        return $this->getChosenStatus()->deactivate_bloc ? true : false;
+        $value = $this->getChosenStatus();
+        return ($value && $value->deactivate_bloc);
     }
 
     /**
