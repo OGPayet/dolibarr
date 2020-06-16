@@ -188,6 +188,8 @@ class InterventionSurvey extends Fichinter
     public function __construct(DoliDB &$db)
     {
         parent::__construct($db);
+        global $langs;
+        $langs->load("interventionsurvey@interventionsurvey");
     }
 
     /**
