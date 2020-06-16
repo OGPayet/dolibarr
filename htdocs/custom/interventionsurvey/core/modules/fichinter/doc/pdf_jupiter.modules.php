@@ -628,40 +628,66 @@ class pdf_jupiter extends ModelePDFFicheinter
         $start_y = $pdf->GetY();
         $start_page = $pdf->GetPage();
 
-        $nb_question_bloc = count($survey_part->blocs);
-
         // Print left column
-        $cur_Y = $start_y;
-        $idx = 0;
-        foreach ($survey_part->blocs as $question_bloc) {
-            if(!$question_bloc->private){
-                $idx++;
-                if ($idx % 2 == 0) continue;
+        $left_column_cur_Y = $start_y;
+        $left_column_cur_page = $start_page;
+        $right_column_cur_Y = $start_y;
+        $right_column_cur_page = $start_page;
+        $is_this_bloc_first_of_current_page_into_left_column = true;
+        $is_this_bloc_first_of_current_page_into_rigth_column = true;
+        $listOfBlocsToDisplay = array_values(array_filter($survey_part->blocs, function($bloc) {
+            return !$bloc->private;
+        }));
 
-                $cur_Y = $this->_question_bloc_area($pdf, $question_bloc, $posx, $cur_Y, $column_left_w, $outputlangs, $idx < $nb_question_bloc - 1);
-            }
+        foreach ($listOfBlocsToDisplay as $position=>$question_bloc) {
+
+                if($left_column_cur_Y - 10 <= $right_column_cur_Y || $left_column_cur_page < $right_column_cur_page){
+                    //We print dot separator if this bloc is not the first printed on this page
+                    if(!$is_this_bloc_first_of_current_page_into_left_column){
+                    $pdf->SetLineStyle(array('dash' => '0.5', 'color' => array(0, 0, 0)));
+                    $pdf->line($posx, $left_column_cur_Y, $posx + $column_left_w, $left_column_cur_Y);
+                    $pdf->SetLineStyle(array('dash' => '0'));
+                    $left_column_cur_Y += 1;
+                    }
+
+                    //We print bloc on the left
+                    $pdf->setPage($left_column_cur_page);
+                    $left_column_cur_Y = $this->_question_bloc_area($pdf, $question_bloc, $posx, $left_column_cur_Y, $column_left_w, $outputlangs, true);
+
+                    //Is end of this bloc end first of bloc of the page where it has been printed ?
+                    $is_this_bloc_first_of_current_page_into_left_column = $left_column_cur_page != $pdf->getPage();
+                    $left_column_cur_page = $pdf->getPage();
+                }
+                else {
+                    //We print dot separator if this bloc is not the first printed on this page
+                    if(!$is_this_bloc_first_of_current_page_into_rigth_column){
+                        $pdf->SetLineStyle(array('dash' => '0.5', 'color' => array(0, 0, 0)));
+                        $pdf->line($column_right_posx, $right_column_cur_Y, $column_right_posx + $column_right_w, $right_column_cur_Y);
+                        $pdf->SetLineStyle(array('dash' => '0'));
+                        $right_column_cur_Y += 1;
+                        }
+
+                    //We print bloc on the right
+                    $pdf->setPage($right_column_cur_page);
+                    $right_column_cur_Y = $this->_question_bloc_area($pdf, $question_bloc, $column_right_posx, $right_column_cur_Y, $column_right_w, $outputlangs, true);
+                    $is_this_bloc_first_of_current_page_into_rigth_column = $right_column_cur_page != $pdf->getPage();
+                    $right_column_cur_page = $pdf->getPage();
+                }
         }
 
-        $end_y = $pdf->GetY();
-        $end_page = $pdf->getPage();
+        $end_page = max($left_column_cur_page, $right_column_cur_page);
+        if($left_column_cur_page == $right_column_cur_page){
+            $end_y = max($left_column_cur_Y, $right_column_cur_Y);
+        }
+        else if($end_page == $left_column_cur_page){
+            $end_y = $left_column_cur_Y;
+        }
+        else {
+            $end_y = $right_column_cur_Y;
+        }
 
         $pdf->SetPage($start_page);
         $pdf->SetY($start_y);
-
-        // Print right column
-        $cur_Y = $start_y;
-        $idx = 0;
-        foreach ($survey_part->blocs as $question_bloc) {
-            $idx++;
-            if ($idx % 2 == 1) continue;
-
-            $cur_Y = $this->_question_bloc_area($pdf, $question_bloc, $column_right_posx, $cur_Y, $column_right_w, $outputlangs, $idx < $nb_question_bloc);
-        }
-
-        if ($end_y < $pdf->GetY() || $end_page < $pdf->getPage()) {
-            $end_y = $pdf->GetY();
-            $end_page = $pdf->getPage();
-        }
 
         // Print frame
         if ($end_page == $start_page) {
@@ -695,22 +721,28 @@ class pdf_jupiter extends ModelePDFFicheinter
                 } // Last page
                 elseif ($page == $end_page) {
                     // Print Header
-                    if (empty($conf->global->MAIN_PDF_DONOTREPEAT_HEAD)) $this->_pagehead($pdf, $object, 0, $outputlangs);
+                    $pos_y = $page_margins['top'];
+                    if (empty($conf->global->MAIN_PDF_DONOTREPEAT_HEAD)) {
+                        $pos_y = $this->_pagehead($pdf, $object, 0, $outputlangs);
+                    }
 
                     // Draw frame
                     call_user_func_array(array($pdf, 'SetDrawColor'), $this->main_color);
-                    $pdf->line($posx, $page_margins['top'], $posx, $end_y); // Left
-                    $pdf->line($posx + $w, $page_margins['top'], $posx + $w, $end_y); // Right
+                    $pdf->line($posx, $pos_y, $posx, $end_y); // Left
+                    $pdf->line($posx + $w, $pos_y, $posx + $w, $end_y); // Right
                     $pdf->line($posx, $end_y, $posx + $w, $end_y); // Bottom
                     $pdf->SetLineStyle($dash_style);
-                    $pdf->line($posx, $page_margins['top'], $posx + $w, $page_margins['top']); // Top
+                    $pdf->line($posx, $pos_y, $posx + $w, $pos_y); // Top
                     $pdf->SetLineStyle($no_style);
                     $pdf->SetDrawColor(0, 0, 0);
                 } // Middle page
                 else {
                     // Print Header
-                    if (empty($conf->global->MAIN_PDF_DONOTREPEAT_HEAD)) $this->_pagehead($pdf, $object, 0, $outputlangs);
-
+                    // Print Header
+                    $pos_y = $page_margins['top'];
+                    if (empty($conf->global->MAIN_PDF_DONOTREPEAT_HEAD)) {
+                        $pos_y = $this->_pagehead($pdf, $object, 0, $outputlangs);
+                    }
                     // Print Footer
                     $pdf->setPageOrientation('', 1, 0);    // The only function to edit the bottom margin of current page to set it.
                     $this->_pagefoot($pdf, $object, $outputlangs, 1);
@@ -718,11 +750,11 @@ class pdf_jupiter extends ModelePDFFicheinter
 
                     // Draw frame
                     call_user_func_array(array($pdf, 'SetDrawColor'), $this->main_color);
-                    $pdf->line($posx, $page_margins['top'], $posx, $page_margins['bottom']); // Left
-                    $pdf->line($posx + $w, $page_margins['top'], $posx + $w, $page_margins['bottom']); // Right
+                    $pdf->line($posx, $pos_y, $posx, $page_height - $page_margins['bottom']); // Left
+                    $pdf->line($posx + $w, $pos_y, $posx + $w, $page_height - $page_margins['bottom']); // Right
                     $pdf->SetLineStyle($dash_style);
-                    $pdf->line($posx, $page_margins['top'], $posx + $w, $page_margins['top']); // Top
-                    $pdf->line($posx, $page_margins['bottom'], $posx + $w, $page_margins['bottom']); // Bottom
+                    $pdf->line($posx, $pos_y, $posx + $w, $pos_y); // Top
+                    $pdf->line($posx, $page_height - $page_margins['bottom'], $posx + $w, $page_height - $page_margins['bottom']); // Bottom
                     $pdf->SetLineStyle($no_style);
                     $pdf->SetDrawColor(0, 0, 0);
                 }
@@ -916,14 +948,6 @@ class pdf_jupiter extends ModelePDFFicheinter
                 $pdf->Circle($posx_question_extrafield + $circle_offset, $posy_origin + $circle_offset, $bullet_ray, 0, 360, 'F', array(), array(0, 0, 0));
                 $pdf->setPage($page);
             }
-        }
-
-        if ($addline) {
-            $posy += 1;
-            // Print dash line
-            $pdf->SetLineStyle(array('dash' => '0.5', 'color' => array(0, 0, 0)));
-            $pdf->line($posx, $posy, $posx + $width, $posy);
-            $pdf->SetLineStyle(array('dash' => '0'));
         }
 
         $posy += 1;
