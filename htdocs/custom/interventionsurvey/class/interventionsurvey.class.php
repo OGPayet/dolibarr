@@ -418,7 +418,7 @@ class InterventionSurvey extends Fichinter
     {
         global $langs;
         $part = array(
-            'label' => $langs->trans('InterventionSurveyGeneralPartsLabel'),
+            'label' => dol_htmlentitiesbr_decode($langs->trans('InterventionSurveyGeneralPartsLabel')),
             'position' => null,
             'fk_identifier_type' => null,
             'fk_identifier_value' => null,
