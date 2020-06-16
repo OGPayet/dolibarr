@@ -641,7 +641,8 @@ class pdf_jupiter extends ModelePDFFicheinter
 
         foreach ($listOfBlocsToDisplay as $position=>$question_bloc) {
 
-                if($left_column_cur_Y - 10 <= $right_column_cur_Y || $left_column_cur_page < $right_column_cur_page){
+                if(($left_column_cur_Y - 10 <= $right_column_cur_Y && $left_column_cur_page == $right_column_cur_page) || $left_column_cur_page < $right_column_cur_page){
+                    $pdf->setPage($left_column_cur_page);
                     //We print dot separator if this bloc is not the first printed on this page
                     if(!$is_this_bloc_first_of_current_page_into_left_column){
                     $pdf->SetLineStyle(array('dash' => '0.5', 'color' => array(0, 0, 0)));
@@ -651,7 +652,6 @@ class pdf_jupiter extends ModelePDFFicheinter
                     }
 
                     //We print bloc on the left
-                    $pdf->setPage($left_column_cur_page);
                     $left_column_cur_Y = $this->_question_bloc_area($pdf, $question_bloc, $posx, $left_column_cur_Y, $column_left_w, $outputlangs, true);
 
                     //Is end of this bloc end first of bloc of the page where it has been printed ?
@@ -659,6 +659,7 @@ class pdf_jupiter extends ModelePDFFicheinter
                     $left_column_cur_page = $pdf->getPage();
                 }
                 else {
+                    $pdf->setPage($right_column_cur_page);
                     //We print dot separator if this bloc is not the first printed on this page
                     if(!$is_this_bloc_first_of_current_page_into_rigth_column){
                         $pdf->SetLineStyle(array('dash' => '0.5', 'color' => array(0, 0, 0)));
@@ -668,8 +669,8 @@ class pdf_jupiter extends ModelePDFFicheinter
                         }
 
                     //We print bloc on the right
-                    $pdf->setPage($right_column_cur_page);
                     $right_column_cur_Y = $this->_question_bloc_area($pdf, $question_bloc, $column_right_posx, $right_column_cur_Y, $column_right_w, $outputlangs, true);
+                    //Is end of this bloc end first of bloc of the page where it has been printed ?
                     $is_this_bloc_first_of_current_page_into_rigth_column = $right_column_cur_page != $pdf->getPage();
                     $right_column_cur_page = $pdf->getPage();
                 }
