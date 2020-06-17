@@ -101,6 +101,9 @@ if ($idx % 2 == 0) {
                         $warningText = implode($question->errors, "<br>");
                         print $form->textwithpicto('', $warningText, 1, 'warning', '', 0, 2);
                     }
+                    if(!empty($question->helper_text)){
+                        print $form->textwithpicto('', $question->helper_text, 1, 'help', '', 0, 2);
+                    }
                     ?>
                 </td>
                 <td width="50%"><?php print $question->getChosenAnswer()->label . (!empty($question->justification_text) ? ' ' . $form->textwithpicto('', '<b>' . $langs->trans('InterventionSurveyAnswerJustificationText') . ' :</b><br>' . dol_htmlentitiesbr($question->justification_text), 1, 'object_tip.png@interventionsurvey', '', 0, 2) : '') ?></td>

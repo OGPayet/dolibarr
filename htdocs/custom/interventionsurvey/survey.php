@@ -68,9 +68,12 @@ if ($id > 0 || !empty($ref)) {
     if(!$object->checkUserAccess($user)){
         accessforbidden();
     }
-    if ($ret == -1) {
+    if ($ret == -1 && $object->id == 0) {
         setEventMessages($langs->trans('NoRecordFound'), array(), 'errors');
+    } else if($ret < 0) {
+        setEventMessages("", $object->errors, 'errors');
     }
+
 }
 
 $readOnlySurvey = $object->statut == $object::STATUS_DONE;

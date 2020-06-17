@@ -243,7 +243,7 @@ class InterventionSurvey extends Fichinter
                 $this->db,
                 'interventionsurvey',
                 'SurveyQuestion',
-                array("position", "identifier", "mandatory_answer", "label", "answers",  "extrafields"),
+                array("position", "identifier", "mandatory_answer", "label", "helper_text", "answers",  "extrafields"),
                 array("extrafields")
             );
         }

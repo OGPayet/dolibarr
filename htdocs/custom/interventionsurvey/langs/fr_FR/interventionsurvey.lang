@@ -96,6 +96,7 @@ InterventionSurveyQuestionIsUsedInTheseBlocQuestionDictionary = Utilisé dans le
 InterventionSurveyQuestionIdentifierFieldLabel = Identifiant
 InterventionSurveyQuestionIdentifierFieldHelp = Valeur non nécessairement unique permettant d'identifier l'element sur les autres écrans de paramétrages et à des fins statistique
 InterventionSurveyQuestionMandatoryAnswerDictionaryField = Réponse obligatoire ?
+InterventionSurveyQuestionHelperTextDictionaryField = Texte d'aide à la réalisation
 
 # Question extrafields
 InterventionSurveyQuestionExtrafields = 3 - Extrafields sur les Questions

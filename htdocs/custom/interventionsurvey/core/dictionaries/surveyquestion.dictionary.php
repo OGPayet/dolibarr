@@ -30,6 +30,10 @@ dol_include_once('/advancedictionaries/class/dictionary.class.php');
 class SurveyQuestionDictionary extends Dictionary
 {
     /**
+     * @var int         Version of this dictionary
+     */
+    public $version = 2;
+    /**
      * @var array       List of languages to load
      */
     public $langs = array('interventionsurvey@interventionsurvey');
@@ -180,9 +184,32 @@ class SurveyQuestionDictionary extends Dictionary
                 'positionLine' => 0,
             ),
         ),
+        'helper_text' => array(
+            'name'       => 'helper_text',
+            'label'      => 'InterventionSurveyQuestionHelperTextDictionaryField',
+            'type'       => 'text',
+            'td_input' => array(
+                'positionLine' => 5,
+            ),
+        ),
         'answers' => array(),
         'extrafields' => array(),
         'bloc_question' => array(),
+    );
+
+    /**
+     * @var array  List of fields/indexes added, updated or deleted for a version
+     * array(
+     *   'version' => array(
+     *     'fields' => array('field_name'=>'a', 'field_name'=>'u', 'field_name'=>'d', ...), // List of field name who is added(a) or updated(u) or deleted(d) for a version
+     *     'indexes' => array('idx_number'=>'a', 'idx_number'=>'u', 'idx_number'=>'d', ...), // List of indexes number who is added(a) or updated(u) or deleted(d) for a version
+     *   ),
+     * )
+     */
+    public $updates = array(
+        '2' => array(
+            'fields' => array('helper_text' => 'a')
+        )
     );
 
     /**

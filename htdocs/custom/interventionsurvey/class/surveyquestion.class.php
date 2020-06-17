@@ -106,6 +106,7 @@ class SurveyQuestion extends CommonObject
         'mandatory_answer' => array('type' => 'boolean', 'label' => 'Is an answer mandatory', 'enabled' => 1, 'position' => 31, 'notnull' => 0, 'visible' => 3,),
         'fk_chosen_answer_predefined_text' => array('type' => 'array', 'label' => 'Stringify array (split by comma) of predefined used text id', 'enabled' => 1, 'position' => 40, 'notnull' => 0, 'visible' => -1,),
         'justification_text' => array('type' => 'text', 'label' => 'Justification text', 'enabled' => 1, 'position' => 38, 'notnull' => 0, 'visible' => 3,),
+        'helper_text' => array('type' => 'text', 'label' => 'Helper text', 'enabled' => 1, 'position' => 39, 'notnull' => 0, 'visible' => 3,),
     );
     public $rowid;
     public $label;
@@ -123,6 +124,7 @@ class SurveyQuestion extends CommonObject
     public $fk_chosen_answer_predefined_text;
     public $justification_text;
     public $chosen_answer;
+    public $helper_text;
     public $answers;
     // END MODULEBUILDER PROPERTIES
 
@@ -172,7 +174,7 @@ class SurveyQuestion extends CommonObject
      */
     static public $API_WHITELIST_OF_PROPERTIES = array(
         'id'=>'','label'=>'','fk_chosen_answer'=>'','justification_text'=>'','array_options'=>'','answers'=>'',
-        'fk_chosen_answer_predefined_text'=>'','chosen_answer'=>'','mandatory_answer'=>'', 'extrafields'=>''
+        'fk_chosen_answer_predefined_text'=>'','chosen_answer'=>'','mandatory_answer'=>'', 'extrafields'=>'', 'helper_text'=> ''
     );
 
     /**

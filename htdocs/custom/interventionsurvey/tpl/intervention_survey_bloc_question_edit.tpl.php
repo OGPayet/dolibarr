@@ -148,7 +148,12 @@ if ($idx % 2 == 0) {
       foreach ($bloc->questions as $question) {
             ?>
           <tr>
-            <td class="<?php if($question->mandatory_answer) {print "fieldrequired";} ?>"><?php print $question->label; ?></td>
+            <td class="<?php if($question->mandatory_answer) {print "fieldrequired";} ?>"><?php
+            print $question->label;
+            if(!empty($question->helper_text)){
+                print $form->textwithpicto('', $question->helper_text, 1, 'help', '', 0, 2);
+            }
+            ?></td>
             <td>
                 <?php
                 $answers = array();
