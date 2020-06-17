@@ -814,7 +814,7 @@ class pdf_jupiter extends ModelePDFFicheinter
         // Print label (+ description and status justificatory) of the question bloc
         $question_bloc_sub_label = $question_bloc->desription .
             (!empty($question_bloc->desription) && !empty($question_bloc->justification_text) ? ' - ' : '')
-            . $question_bloc->justification_text;
+            . dol_htmlentitiesbr($question_bloc->justification_text);
         $question_bloc_title = '<font size="' .
             $default_font_size . '">' . $question_bloc->label
             . (!empty($question_bloc_sub_label) ? '&nbsp;->&nbsp;</font><b><font size="'
@@ -900,7 +900,7 @@ class pdf_jupiter extends ModelePDFFicheinter
 
                 // Print label (+ answer justificatory) of the question
                 $question_label = $question->label . (!empty($question->justification_text) ? '&nbsp;:&nbsp;' : '');
-                $question_answer = '<font size="' . ($default_font_size - 1) . '">' . $question_label . '</font><b><font size="' . ($default_font_size - 2) . '">' . $question->justification_text . '</font></b>';
+                $question_answer = '<font size="' . ($default_font_size - 1) . '">' . $question_label . '</font><b><font size="' . ($default_font_size - 2) . '">' . dol_htmlentitiesbr($question->justification_text) . '</font></b>';
                 $pdf->writeHTMLCell($width_question - ($circle_offset * 2 + $margin), 3, $posx_question + $circle_offset * 2 + $margin, $posy, trim($question_answer), $border, 1, false, true, 'L', true);
                 $posy = $pdf->GetY();
                 $page = $pdf->getPage();
