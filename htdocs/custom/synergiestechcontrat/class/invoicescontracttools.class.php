@@ -156,24 +156,25 @@ class InvoicesContractTools
     const RLH_INVOICE_ID = 43;
     const RLH_INVOICE_REF = 44;
     const RLH_INVOICE_SOC_ID = 45;
-    const RLH_INVOICE_SOC_NAME = 46;
-    const RLH_INVOICE_REF_CUSTOMER = 47;
-    const RLH_INVOICE_MODEL_PDF = 48;
-    const RLH_INVOICE_COND_REGLEMENT_ID = 49;
-    const RLH_INVOICE_MODE_REGLEMENT_ID = 50;
-    const RLH_INVOICE_ACCOUNT_ID = 51;
-    const RLH_INVOICE_ACCOUNT_NAME = 52;
-    const RLH_INVOICE_AMOUNT_HT = 53;
-    const RLH_INVOICE_AMOUNT_VAT = 54;
-    const RLH_INVOICE_AMOUNT_TTC = 55;
-    const RLH_INVOICE_REMISE_PERCENT = 56;
-    const RLH_INVOICE_REMISE_ABSOLUE = 57;
-    const RLH_INVOICE_INCOTERMS_ID = 58;
-    const RLH_INVOICE_LOCATION_INCOTERMS = 59;
-    const RLH_INVOICE_MULTICURRENCY_CODE = 60;
-    const RLH_INVOICE_BILLING_PERIOD_BEGIN = 61;
-    const RLH_INVOICE_BILLING_PERIOD_END = 62;
-    const RLH_INVOICE_VALIDATED = 63;
+    const RLH_INVOICE_SOC_REF = 46;
+    const RLH_INVOICE_SOC_NAME = 47;
+    const RLH_INVOICE_REF_CUSTOMER = 48;
+    const RLH_INVOICE_MODEL_PDF = 49;
+    const RLH_INVOICE_COND_REGLEMENT_ID = 50;
+    const RLH_INVOICE_MODE_REGLEMENT_ID = 51;
+    const RLH_INVOICE_ACCOUNT_ID = 52;
+    const RLH_INVOICE_ACCOUNT_NAME = 53;
+    const RLH_INVOICE_AMOUNT_HT = 54;
+    const RLH_INVOICE_AMOUNT_VAT = 55;
+    const RLH_INVOICE_AMOUNT_TTC = 56;
+    const RLH_INVOICE_REMISE_PERCENT = 57;
+    const RLH_INVOICE_REMISE_ABSOLUE = 58;
+    const RLH_INVOICE_INCOTERMS_ID = 59;
+    const RLH_INVOICE_LOCATION_INCOTERMS = 60;
+    const RLH_INVOICE_MULTICURRENCY_CODE = 61;
+    const RLH_INVOICE_BILLING_PERIOD_BEGIN = 62;
+    const RLH_INVOICE_BILLING_PERIOD_END = 63;
+    const RLH_INVOICE_VALIDATED = 64;
     const RLH_ERRORS = 100;
 
 
@@ -1708,6 +1709,7 @@ class InvoicesContractTools
                     self::RLH_INVOICE_ID => $langs->transnoentitiesnoconv('STC_RLH_INVOICE_ID'),
                     self::RLH_INVOICE_REF => $langs->transnoentitiesnoconv('STC_RLH_INVOICE_REF'),
                     self::RLH_INVOICE_SOC_ID => $langs->transnoentitiesnoconv('STC_RLH_INVOICE_SOC_ID'),
+                    self::RLH_INVOICE_SOC_REF => $langs->transnoentitiesnoconv('STC_RLH_INVOICE_SOC_REF'),
                     self::RLH_INVOICE_SOC_NAME => $langs->transnoentitiesnoconv('STC_RLH_INVOICE_SOC_NAME'),
                     self::RLH_INVOICE_REF_CUSTOMER => $langs->transnoentitiesnoconv('STC_RLH_INVOICE_REF_CUSTOMER'),
                     self::RLH_INVOICE_MODEL_PDF => $langs->transnoentitiesnoconv('STC_RLH_INVOICE_MODEL_PDF'),
@@ -1787,6 +1789,7 @@ class InvoicesContractTools
             }
 
             $this->current_report_line[self::RLH_INVOICE_SOC_ID] = $invoice->socid;
+            $this->current_report_line[self::RLH_INVOICE_SOC_REF] = $invoice->thirdparty->code_client;
             $this->current_report_line[self::RLH_INVOICE_SOC_NAME] = $invoice->thirdparty->getFullName($langs);
             $this->current_report_line[self::RLH_INVOICE_REF_CUSTOMER] = $invoice->ref_client;
             $this->current_report_line[self::RLH_INVOICE_MODEL_PDF] = $invoice->modelpdf;
@@ -1859,6 +1862,7 @@ class InvoicesContractTools
             self::RLH_INVOICE_ID => '',
             self::RLH_INVOICE_REF => '',
             self::RLH_INVOICE_SOC_ID => '',
+            self::RLH_INVOICE_SOC_REF => '',
             self::RLH_INVOICE_SOC_NAME => '',
             self::RLH_INVOICE_REF_CUSTOMER => '',
             self::RLH_INVOICE_MODEL_PDF => '',

@@ -200,6 +200,7 @@ STC_RLH_BILLING_PERIOD_AMOUNT                       = Montant de la période de 
 STC_RLH_INVOICE_ID                                  = Facture: ID
 STC_RLH_INVOICE_REF                                 = Facture: Référence
 STC_RLH_INVOICE_SOC_ID                              = Facture: Tiers ID
+STC_RLH_INVOICE_SOC_REF                             = Facture: Code Client
 STC_RLH_INVOICE_SOC_NAME                            = Facture: Nom du tiers
 STC_RLH_INVOICE_REF_CUSTOMER                        = Facture: Réf. client
 STC_RLH_INVOICE_MODEL_PDF                           = Facture: Model PDF
