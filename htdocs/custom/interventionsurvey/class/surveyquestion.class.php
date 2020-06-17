@@ -877,4 +877,32 @@ class SurveyQuestion extends CommonObject
             return -1;
         }
     }
+
+    /**
+     * Autocomplete survey - we fill data according to user permissions
+     */
+    function autoComplete()
+    {
+        $this->errors = array();
+        $this->db->begin();
+        global $user;
+        if(!$user->rights->interventionsurvey->survey->autocomplete){
+            return 0;
+        }
+        if($this->fk_chosen_answer == null || $this->fk_chosen_answer == 0){
+            $autocompleteAnswer = &getItemFromThisArray($this->answers, array('consider_as_positive' => 1));
+            if($autocompleteAnswer){
+                $this->fk_chosen_answer = $autocompleteAnswer->id;
+                $this->chosen_answer = $autocompleteAnswer;
+            }
+        }
+        $this->errors = array_merge($this->errors, $this->errors);
+        if (empty($this->errors)) {
+            $this->db->commit();
+            return 1;
+        } else {
+            $this->db->rollback();
+            return -1;
+        }
+    }
 }

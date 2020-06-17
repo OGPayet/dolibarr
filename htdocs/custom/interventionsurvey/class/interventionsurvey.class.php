@@ -225,7 +225,7 @@ class InterventionSurvey extends Fichinter
                 $this->db,
                 'interventionsurvey',
                 'SurveyBlocStatus',
-                array("position", "identifier", "label", "icon",  "color", "mandatory_justification", "deactivate_bloc", "predefined_texts")
+                array("position", "identifier", "label", "icon",  "color", "mandatory_justification", "deactivate_bloc", "consider_as_positive", "predefined_texts")
             );
         }
 
@@ -252,7 +252,7 @@ class InterventionSurvey extends Fichinter
                 $this->db,
                 'interventionsurvey',
                 'SurveyAnswer',
-                array("position", "identifier", "label", "color",  "mandatory_justification", "predefined_texts", "bloc_filter"),
+                array("position", "identifier", "label", "color",  "mandatory_justification", "consider_as_positive", "predefined_texts", "bloc_filter"),
                 array("bloc_filter")
             );
         }
@@ -873,6 +873,31 @@ class InterventionSurvey extends Fichinter
         $this->fetchSurvey();
         $errors = array_merge($errors, $this->errors);
         if (empty($errors)) {
+            $this->db->commit();
+            return 1;
+        } else {
+            $this->db->rollback();
+            return -1;
+        }
+    }
+
+    /**
+     * Autocomplete survey - we fill data according to user permissions
+     */
+    function autoComplete()
+    {
+        $this->errors = array();
+        global $user;
+        if(!$user->rights->interventionsurvey->survey->autocomplete){
+            return 0;
+        }
+        $this->db->begin();
+            foreach ($this->survey as $surveyPart) {
+                    $surveyPart->autocomplete();
+                    $this->errors = array_merge($this->errors, $surveyPart->errors);
+            }
+        $this->saveSurvey($user);
+        if (empty($this->errors)) {
             $this->db->commit();
             return 1;
         } else {

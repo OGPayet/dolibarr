@@ -35,6 +35,7 @@ Permission468404 = Gérer le paramétrage de ce module
 Permission468405 = Accès aux opérations standard de regénération manuel du questionnaire
 Permission468406 = Accès aux opérations avancées de regénération manuel du questionnaire
 Permission468407 = Accès à la possibilité de choisir de clôturer une intervention avec des données manquantes
+Permission468408 = Accès à la fonctionnalité d'autocomplétion d'une intervention
 
 #
 # Page d'administration
@@ -209,6 +210,9 @@ InterventionSurveyConfirmAddMissingBlocInOtherPartButton = Ajout des blocs manqu
 InterventionSurveyConfirmAddMissingBlocTitle = Confirmation de l'ajout des blocs manquants
 InterventionSurveyConfirmAddMissingBlocDescription = Cette opération va, en fonction des paramétrages renseignés dans les dictionnaires et des objets liés à cette intervention, uniquement : <br> - ajouter les blocs manquants dans la partie générale du questionnaire (si cette partie est déjà présente) <br> - ajouter les blocs manquants dans les parties autre que la partie générale du questionnaire
 InterventionSurveyConfirmAddMissingBlocButton = Ajout des blocs manquants
+InterventionSurveyAutoCompleteButton = Lancer l'autocomplétion du questionnaire
+InterventionSurveyConfirmAutoCompleteTitle = Confirmer le lancement de l'operation d'autocomplétion
+InterventionSurveyConfirmAutocompleteDescription = Cette opération va, pour tous les status et réponses aux questions encore non répondu, tenter de choisir l'élement le plus pertinent grâce au paramétrage. Pour cela, le premier élement trouvé ayant une propriété d'autocomplétion active sera choisi.
 
 # Gestion des fichiers joints sur les interventions avec hooks
 InterventionSurveyDocuments = Fichier(s) joint(s)

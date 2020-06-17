@@ -612,4 +612,28 @@ class SurveyPart extends CommonObject
             return -1;
         }
     }
+
+    /**
+     * Autocomplete survey - we fill data according to user permissions
+     */
+    function autoComplete()
+    {
+        $this->errors = array();
+        global $user;
+        if(!$user->rights->interventionsurvey->survey->autocomplete){
+            return 0;
+        }
+        $this->db->begin();
+            foreach ($this->blocs as $bloc) {
+                    $bloc->autocomplete();
+                    $this->errors = array_merge($this->errors, $bloc->errors);
+            }
+        if (empty($this->errors)) {
+            $this->db->commit();
+            return 1;
+        } else {
+            $this->db->rollback();
+            return -1;
+        }
+    }
 }

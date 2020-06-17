@@ -162,7 +162,7 @@ class SurveyBlocStatus extends CommonObject
      *      if property is a array and this properties_name value is a array then get whitelist set in the array
      */
     static public $API_WHITELIST_OF_PROPERTIES = array(
-        'id'=>'','label'=>'','predefined_texts'=>'','color'=>'', 'mandatory_justification'=>'', 'deactivate_bloc'=>''
+        'id'=>'','label'=>'','predefined_texts'=>'','color'=>'', 'mandatory_justification'=>'', 'deactivate_bloc'=>'', 'consider_as_positive'=>''
     );
 
     /**

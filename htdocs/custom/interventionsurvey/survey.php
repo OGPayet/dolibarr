@@ -171,6 +171,12 @@ if (empty($reshook) && $object->id > 0 && $action && !$readOnlySurvey) {
             setEventMessages("",$survey_bloc_question->errors, 'errors');
         }
     }
+    else if($action == 'confirm_autocomplete_survey' && $confirm=='yes'){
+        $result = $object->autoComplete();
+        if ($result < 0 || $survey_bloc_question->errors) {
+            setEventMessages("",$object->errors, 'errors');
+        }
+    }
 }
 
 
@@ -234,6 +240,13 @@ else if ($action == 'add_missing_bloc') {
     $formquestion = array();
     $formquestion[] = array('type' => 'hidden', 'name' => 'id', 'value' => $object->id);
     $formconfirm = $form->formconfirm($_SERVER["PHP_SELF"], $langs->trans('InterventionSurveyConfirmAddMissingBlocTitle'), $langs->trans('InterventionSurveyConfirmAddMissingBlocDescription'), 'confirm_add_missing_bloc', $formquestion, 'yes', 1);
+}
+
+// Confirmation autocomplete
+else if ($action == 'autocomplete_survey') {
+    $formquestion = array();
+    $formquestion[] = array('type' => 'hidden', 'name' => 'id', 'value' => $object->id);
+    $formconfirm = $form->formconfirm($_SERVER["PHP_SELF"], $langs->trans('InterventionSurveyConfirmAutoCompleteTitle'), $langs->trans('InterventionSurveyConfirmAutocompleteDescription'), 'confirm_autocomplete_survey', $formquestion, 'yes', 1);
 }
 
 // Call Hook formConfirm
@@ -358,6 +371,12 @@ if ($object->id > 0) {
 	if (empty($reshook) &&  ($user->rights->interventionsurvey->survey->manage || $user->rights->interventionsurvey->survey->manage_more) && !$readOnlySurvey)
 	{
             print '<div class="inline-block divButAction">';
+            if($user->rights->interventionsurvey->survey->autocomplete){
+                print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=autocomplete_survey">'
+                .$langs->trans("InterventionSurveyAutoCompleteButton"). ' ' .
+                $form->textwithpicto('', $langs->trans('InterventionSurveyConfirmAutocompleteDescription'), 1, 'info', '', 0, 2) .
+                '</a>';
+            }
 
             if($user->rights->interventionsurvey->survey->manage){
                 print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=soft_regeneration">'

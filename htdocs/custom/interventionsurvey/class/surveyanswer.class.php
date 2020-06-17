@@ -158,7 +158,7 @@ class SurveyAnswer extends CommonObject
      *      if property is a array and this properties_name value is a array then get whitelist set in the array
      */
     static public $API_WHITELIST_OF_PROPERTIES = array(
-        'id' => '', 'label' => '', 'predefined_texts' => '', 'fk_chosen_predefined_texts' => '', 'color' => '', 'mandatory_justification' => ''
+        'id' => '', 'label' => '', 'predefined_texts' => '', 'fk_chosen_predefined_texts' => '', 'color' => '', 'mandatory_justification' => '', 'consider_as_positive'=>''
     );
 
     /**

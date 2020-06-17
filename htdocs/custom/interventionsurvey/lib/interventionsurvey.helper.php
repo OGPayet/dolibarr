@@ -21,6 +21,19 @@
  * \brief   Library files with helper functions for InterventionSurvey
  */
 
+/**
+ * Function to compare two values accoring to JS ==
+*/
+
+function compareValues($a, $b){
+    if($a === null || $b === null){
+        return $a === $b;
+    }
+    else {
+        return $a == $b;
+    }
+}
+
 
 /**
  * * Get element from an array according to an array of parameters set with "fieldName"=>valueToMatch
@@ -29,9 +42,12 @@ function getItemFromThisArray(array &$array, array $arrayOfParameters = array(),
     {
         $result = null;
         foreach ($array as $index => &$item) {
-            $test = true;
+            $test = false;
             foreach ($arrayOfParameters as $fieldName => $searchValue) {
-                if (!($item->$fieldName == $searchValue)) {
+                if (compareValues($item->$fieldName, $searchValue)) {
+                    $test = true;
+                }
+                else {
                     $test = false;
                     break;
                 }
