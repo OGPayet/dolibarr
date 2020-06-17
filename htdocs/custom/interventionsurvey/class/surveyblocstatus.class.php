@@ -101,6 +101,7 @@ class SurveyBlocStatus extends CommonObject
         'color' => array('type' => 'varchar(10)', 'label' => 'Couleur sur le pdf', 'enabled' => 1, 'position' => 35, 'notnull' => 0, 'visible' => 3,),
         'mandatory_justification' => array('type' => 'boolean', 'label' => 'Indicate if the related bloc must contains a justification', 'enabled' => 1, 'position' => 40, 'notnull' => 0, 'visible' => -1,),
         'deactivate_bloc' => array('type' => 'boolean', 'label' => 'Indicate if choosing this status desactives current bloc', 'enabled' => 1, 'position' => 50, 'notnull' => 0, 'visible' => -1,),
+        'consider_as_positive' => array('type' => 'boolean', 'label' => 'Indicate if choosing this status should be considered as positive for autocompleting', 'enabled' => 1, 'position' => 51, 'notnull' => 0, 'visible' => -1,),
     );
     public $rowid;
     public $fk_c_survey_bloc_status;
@@ -110,6 +111,7 @@ class SurveyBlocStatus extends CommonObject
     public $color;
     public $mandatory_justification;
     public $deactivate_bloc;
+    public $consider_as_positive;
     public $predefined_texts;
     // END MODULEBUILDER PROPERTIES
 

@@ -99,6 +99,7 @@ class SurveyAnswer extends CommonObject
         'position' => array('type' => 'integer', 'label' => 'Ordre', 'enabled' => 1, 'position' => 15, 'notnull' => 0, 'visible' => 3,),
         'color' => array('type' => 'varchar(10)', 'label' => 'Couleur', 'enabled' => 1, 'position' => 35, 'notnull' => 0, 'visible' => 3,),
         'mandatory_justification' => array('type' => 'boolean', 'label' => 'Indicate if the related question needs justification', 'enabled' => 1, 'position' => 40, 'notnull' => 0, 'visible' => -1,),
+        'consider_as_positive' => array('type' => 'boolean', 'label' => 'Indicate if choosing this status should be considered as positive for autocompleting', 'enabled' => 1, 'position' => 51, 'notnull' => 0, 'visible' => -1,),
     );
     public $rowid;
     public $fk_c_survey_answer;
@@ -107,6 +108,7 @@ class SurveyAnswer extends CommonObject
     public $position;
     public $color;
     public $mandatory_justification;
+    public $consider_as_positive;
     public $predefined_texts;
     // END MODULEBUILDER PROPERTIES
     /**

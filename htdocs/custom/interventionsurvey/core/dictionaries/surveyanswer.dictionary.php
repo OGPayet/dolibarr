@@ -32,7 +32,7 @@ class SurveyAnswerDictionary extends Dictionary
     /**
      * @var int         Version of this dictionary
      */
-    public $version = 1;
+    public $version = 2;
 
     /**
      * @var array       List of languages to load
@@ -190,6 +190,11 @@ class SurveyAnswerDictionary extends Dictionary
             'label'      => 'InterventionSurveyAnswerMandatoryJustificationDictionaryField',
             'type'       => 'boolean',
         ),
+        'consider_as_positive' => array(
+            'name'       => 'consider_as_positive',
+            'label'      => 'InterventionSurveyAnswerConsiderAsPositiveDictionaryField',
+            'type'       => 'boolean',
+        ),
         'predefined_texts' => array(),
         'question'         => array(),
         'bloc_filter'      => array()
@@ -213,7 +218,11 @@ class SurveyAnswerDictionary extends Dictionary
      *   ),
      * )
      */
-    public $updates = array();
+    public $updates = array(
+        '2' => array(
+            'fields' => array('consider_as_positive' => 'a')
+        )
+    );
 
     /**
      * @var bool    Is multi entity (false = partaged, true = by entity)

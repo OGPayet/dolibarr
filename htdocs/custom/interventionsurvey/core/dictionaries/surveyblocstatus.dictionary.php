@@ -32,7 +32,7 @@ class SurveyBlocStatusDictionary extends Dictionary
     /**
      * @var int         Version of this dictionary
      */
-    public $version = 2;
+    public $version = 3;
 
     /**
      * @var array       List of languages to load
@@ -198,6 +198,11 @@ class SurveyBlocStatusDictionary extends Dictionary
             'label'      => 'InterventionSurveyBlocStatusDeactivateBlocDictionaryFieldLabel',
             'type'       => 'boolean',
         ),
+        'consider_as_positive' => array(
+            'name'       => 'consider_as_positive',
+            'label'      => 'InterventionSurveyBlocStatusConsiderAsPositiveDictionaryField',
+            'type'       => 'boolean',
+        ),
         'predefined_texts' => array(),
         'bloc_questions' => array(),
     );
@@ -222,7 +227,9 @@ class SurveyBlocStatusDictionary extends Dictionary
      * )
      */
     public $updates = array(
-
+        '3' => array(
+            'fields' => array('consider_as_positive' => 'a')
+        )
     );
 
     /**

@@ -82,7 +82,7 @@ InterventionSurveyAnswerPredefinedTextDictionaryInAnswer = Textes prédéfinis p
 InterventionSurveyAnswerIsUsedInTheseQuestionDictionary = Utilisé dans les questions suivantes
 InterventionSurveyAnswerIdentifierFieldLabel = Identifiant
 InterventionSurveyAnswerIdentifierFieldHelp = Valeur non nécessairement unique permettant d'identifier l'element sur les autres écrans de paramétrages et à des fins statistique
-
+InterventionSurveyAnswerConsiderAsPositiveDictionaryField = Utiliser cette réponse pour la complétion rapide du questionnaire
 
 # Question
 InterventionSurveyQuestionDictionaryTabTitle = 4 - Questions
@@ -123,6 +123,7 @@ InterventionSurveyBlocStatusPredefinedTextDictionaryLabel = Liste des textes pr�
 InterventionSurveyStatusIsUsedInTheseBlocQuestionDictionary = Utilisé sur les blocs de question suivant
 InterventionSurveyBlocStatusIdentifierFieldLabel = Identifiant
 InterventionSurveyBlocStatusIdentifierFieldHelp = Valeur non nécessairement unique permettant d'identifier l'element sur les autres écrans de paramétrages et à des fins statistique
+InterventionSurveyBlocStatusConsiderAsPositiveDictionaryField = Utiliser ce status pour la complétion rapide du questionnaire
 
 
 # Bloc de questions extrafields
