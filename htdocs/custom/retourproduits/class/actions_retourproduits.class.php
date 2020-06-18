@@ -234,7 +234,7 @@ class ActionsRetourProduits // extends CommonObject
      */
 	function formConfirm($parameters, $object, $action, $hookmanager) {
 		global $conf, $langs, $db, $user;
-		global $form ;
+		$form = new Form($this->db);
 
         if ($object->element == 'commande' && $action == 'returnproducts') {
             $langs->load("retourproduits@retourproduits");
@@ -299,8 +299,8 @@ class ActionsRetourProduits // extends CommonObject
             }
 
             // Create the confirm form
-            print $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('CreateReturnProducts'), $langs->trans('SelectProductsToReturn'), 'create_return', $formquestion, 'yes', 1, 400, 700);
-            //$this->resprints = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('CreateReturnProducts'), $langs->trans('SelectProductsToReturn'), 'create_return', $formquestion, 'yes', 1, 400, 700);
+            //print $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('CreateReturnProducts'), $langs->trans('SelectProductsToReturn'), 'create_return', $formquestion, 'yes', 1, 400, 700);
+            $this->resprints = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('CreateReturnProducts'), $langs->trans('SelectProductsToReturn'), 'create_return', $formquestion, 'yes', 1, 400, 700);
             return 1;
         }
 
