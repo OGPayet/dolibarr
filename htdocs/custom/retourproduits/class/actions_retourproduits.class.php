@@ -299,7 +299,7 @@ class ActionsRetourProduits // extends CommonObject
             }
 
             // Create the confirm form
-            $this->resprints = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('CreateReturnProducts'), $langs->trans('SelectProductsToReturn'), 'create_return', $formquestion, 'yes', 1, 400, 700);
+            $this->resPrint .= $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('CreateReturnProducts'), $langs->trans('SelectProductsToReturn'), 'create_return', $formquestion, 'yes', 1, 400, 700);
 
             return 1;
         }
