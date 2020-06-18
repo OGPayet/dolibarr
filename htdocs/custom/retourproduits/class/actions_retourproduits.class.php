@@ -23,6 +23,45 @@
 
 class ActionsRetourProduits // extends CommonObject
 {
+
+        /**
+     * @var DoliDB Database handler.
+     */
+    public $db;
+    /**
+     * @var string Error
+     */
+    public $error = '';
+    /**
+     * @var array Errors
+     */
+    public $errors = array();
+
+    /**
+     * @var array Hook results. Propagated to $hookmanager->resArray for later reuse
+     */
+    public $results = array();
+
+    /**
+     * @var string String displayed by executeHook() immediately after return
+     */
+    public $resprints;
+
+    /**
+     * Constructor
+     *
+     * @param        DoliDB $db Database handler
+     */
+    public function __construct($db)
+    {
+        global $langs;
+        $this->db = $db;
+
+        if (is_object($langs)) {
+            $langs->load('retourproduits@retourproduits');
+        }
+    }
+
 	/** Overloading the formContactTpl function : replacing the parent's function with the one below
 	 *  @param	  parameters  meta datas of the hook (context, etc...)
 	 *  @param	  object			 the object you want to process (an invoice if you are in invoice module, a propale in propale's module, etc...)

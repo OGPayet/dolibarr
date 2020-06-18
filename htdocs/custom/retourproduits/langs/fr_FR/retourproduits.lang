@@ -3,6 +3,7 @@ CHARSET=UTF-8
 
 returnProducts=Retour Produits
 RetourProduitsSetUp=Configuration du module "Retour Produits"
+BonRetourPDFModules=Masques PDF Fiche Retour
 CreateReturnProducts=Créer un retour produits
 SelectProductsToReturn=Selectionnez le (ou les) produit(s) à retourner
 NewReturnProducts=Nouveau Retour Produits
