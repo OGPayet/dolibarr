@@ -4,7 +4,6 @@ CHARSET=UTF-8
 returnProducts=Retour Produits
 RetourProduitsSetUp=Configuration du module "Retour Produits"
 BonRetourPDFModules=Masques PDF Fiche Retour
-CreateReturnProducts=Créer un retour produits
 SelectProductsToReturn=Selectionnez le (ou les) produit(s) à retourner
 NewReturnProducts=Nouveau Retour Produits
 ListOfReturnProducts=Liste des retours produits
@@ -22,6 +21,7 @@ ExtraFieldsRetProdDet=Attributs supplémentaires (détail)
 RetourProduitsDet=Détail Retour Produits
 RetourProduits=Retour Produits
 QtyOrdered=Qté Commandée
+CreateReturnProducts=Créer un retour de produits
 
 RetourProduitsErrorNoProductSent              = Il n'y a pas de produits à retourner
 RetourProduitsErrorNoProductSelected          = Il n'y a pas de produits selectionnés

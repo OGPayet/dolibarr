@@ -71,7 +71,7 @@ class ActionsRetourProduits // extends CommonObject
 
 	function addMoreActionsButtons($parameters, &$object, &$action)
 	{
-		global $conf, $langs, $db;
+		global $conf, $langs;
 
 		$langs->load("retourproduits@retourproduits");
 
@@ -83,7 +83,7 @@ class ActionsRetourProduits // extends CommonObject
 	}
 
 	function doActions ($parameters, &$object, &$action) {
-		global $langs, $db, $user;
+		global $langs, $user;
 
 		if ($action == 'create_return' ) {
             $id = GETPOST('id', 'int');
@@ -96,7 +96,7 @@ class ActionsRetourProduits // extends CommonObject
                 $langs->load("retourproduits@retourproduits");
 
                 dol_include_once('/retourproduits/lib/retourproduits.lib.php');
-                $lines = retourproduits_get_product_list($db, $object->id);
+                $lines = retourproduits_get_product_list($this->db, $object->id);
 
                 // Get selected lines
                 $selectedLines = array();
@@ -113,11 +113,11 @@ class ActionsRetourProduits // extends CommonObject
                     $langs->load('errors');
                     $langs->load("equipement@equipement");
                     $error = 0;
-                    $db->begin();
+                    $this->db->begin();
 
                     // Create RetourProduits object
                     dol_include_once('/retourproduits/class/retourproduits.class.php');
-                    $rpds = new RetourProduits($db);
+                    $rpds = new RetourProduits($this->db);
 
                     // Set variables
                     $rpds->socid = $object->socid;
@@ -126,7 +126,7 @@ class ActionsRetourProduits // extends CommonObject
 
                     // Add lines
                     $idx = 0;
-                    $productStatic = new Product($db);
+                    $productStatic = new Product($this->db);
                     foreach ($selectedLines as $line_id) {
 
                         $fk_product = GETPOST('p-' . $line_id, 'int');
@@ -174,7 +174,7 @@ class ActionsRetourProduits // extends CommonObject
                         if ($nbEquipments > 0) {
                             foreach ($equipments as $equipment_id) {
                                 if ($equipment_id) {
-                                    $line = new RetourProduitsLigne($db);
+                                    $line = new RetourProduitsLigne($this->db);
                                     $line->fk_product = $fk_product;
                                     $line->qty = 1;
                                     $line->fk_entrepot_dest = $fk_entrepot_dest;
@@ -188,7 +188,7 @@ class ActionsRetourProduits // extends CommonObject
                         }
 
                         if ($qty > 0) {
-                            $line = new RetourProduitsLigne($db);
+                            $line = new RetourProduitsLigne($this->db);
                             $line->fk_product = $fk_product;
                             $line->qty = $qty;
                             $line->fk_entrepot_dest = $fk_entrepot_dest;
@@ -207,11 +207,11 @@ class ActionsRetourProduits // extends CommonObject
                     }
 
                     if (!$error) {
-                        $db->commit();
+                        $this->db->commit();
                         header('Location: ' . dol_buildpath('/retourproduits/card.php', 1) . '?id=' . $retourId);
                         exit;
                     } else {
-                        $db->rollback();
+                        $this->db->rollback();
                         $action = "returnproducts";
                     }
                 } else {
@@ -233,7 +233,7 @@ class ActionsRetourProduits // extends CommonObject
      * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
      */
 	function formConfirm($parameters, $object, $action, $hookmanager) {
-		global $conf, $langs, $db, $user;
+		global $conf, $langs, $user;
 		$form = new Form($this->db);
 
         if ($object->element == 'commande' && $action == 'returnproducts') {
@@ -244,7 +244,7 @@ class ActionsRetourProduits // extends CommonObject
             require_once DOL_DOCUMENT_ROOT . '/product/class/html.formproduct.class.php';
             dol_include_once('/retourproduits/lib/retourproduits.lib.php');
 
-            $lines = retourproduits_get_product_list($db, $object->id);
+            $lines = retourproduits_get_product_list($this->db, $object->id);
 
             if (empty($lines)) {
                 setEventMessage($langs->trans('RetourProduitsErrorNoProductSent'), 'errors');
@@ -254,14 +254,14 @@ class ActionsRetourProduits // extends CommonObject
             // module warehousechild activated
             if ($conf->warehousechild->enabled) {
                 dol_include_once('/warehousechild/class/html.formproduct.class.php');
-                $formproduct = new CORE\WAREHOUSECHILD\FormProduct($db);
+                $formproduct = new CORE\WAREHOUSECHILD\FormProduct($this->db);
                 $selectWarehousesMoreCss = 'maxwidth300';
             } else {
-                $formproduct = new FormProduct($db);
+                $formproduct = new FormProduct($this->db);
                 $selectWarehousesMoreCss = 'minwidth300';
             }
 
-            $productStatic = new Product($db);
+            $productStatic = new Product($this->db);
 
             $formquestion = array();
             foreach ($lines as $line_id => $line) {
@@ -300,7 +300,7 @@ class ActionsRetourProduits // extends CommonObject
 
             // Create the confirm form
             //print $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('CreateReturnProducts'), $langs->trans('SelectProductsToReturn'), 'create_return', $formquestion, 'yes', 1, 400, 700);
-            $this->resprints = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('CreateReturnProducts'), $langs->trans('SelectProductsToReturn'), 'create_return', $formquestion, 'yes', 1, 400, 700);
+            $this->resprints = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, dol_htmlcleanlastbr($langs->trans('CreateReturnProducts')), $langs->trans('SelectProductsToReturn'), 'create_return', $formquestion, 'yes', 1, 400, 700);
             return 1;
         }
 
