@@ -27,3 +27,11 @@ RetourProduitsErrorNoProductSent              = Il n'y a pas de produits à reto
 RetourProduitsErrorNoProductSelected          = Il n'y a pas de produits selectionnés
 RetourProduitsErrorTooManyEquipmentSelected   = Il y a trop d'équipements selectionnés
 RetourProduitsErrorNotEnoughEquipmentSelected = Pas assez d'équipements sélectionnés
+
+
+############ Modèle PDF Rouget ###############
+
+RetourProduitDocumentTitle = Retour Produit
+RetourProduitDocumentRefTitle = Numéro de retour
+RetourProduitQtyReturned = Quantité
+RetourProduitWarehouseReturned = Entrepot

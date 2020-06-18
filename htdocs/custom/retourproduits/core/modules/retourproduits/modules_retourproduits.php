@@ -28,7 +28,7 @@ require_once DOL_DOCUMENT_ROOT."/core/class/commondocgenerator.class.php";
 /**
  *	Parent class of sending receipts models
  */
-abstract class ModeleRetourProduits extends CommonDocGenerator
+abstract class ModelePDFRetourProduits extends CommonDocGenerator
 {
     var $error='';
 

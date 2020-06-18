@@ -2950,7 +2950,7 @@ SCRIPT;
             }
         }
         if ($prefix) {
-            $hookmanager->resPrint = $prefix . " | " . $title;
+            $this->resprints = $prefix . " | " . $title;
             return 1;
         }
         return 0;
