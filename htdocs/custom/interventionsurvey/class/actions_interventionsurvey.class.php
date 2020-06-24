@@ -80,6 +80,9 @@ class ActionsInterventionSurvey
         //Be careful with hook context declared in this module (core/modules/modInterventionSurvey.class.php) - this file is not always executed
         global $user, $langs, $conf;
 
+        $contexts = explode(':', $parameters['context']);
+
+
         if ($action == "addlink" || $action == "dellink") {
             $errors = array(); // Error array result
 
@@ -186,11 +189,22 @@ class ActionsInterventionSurvey
                 $interventionSurvey->fetch($object->id) > 0
                 && $interventionSurvey->fetchSurvey() > 0
             ) {
+                $error = 0;
                 if (!$interventionSurvey->areDataValid()) {
                     $hookmanager->errors[] = $langs->trans('InterventionSurveyMissingRequiredFieldInSurvey');
                     $hookmanager->errors = array_merge($hookmanager->errors, $interventionSurvey->errors);
-                    return -1;
+                    $error++;
                 }
+
+                if($conf->global->INTERVENTIONSURVEY_ATLEASTONINTERVENTIONLINESMUSTEXISTONCLOTURED && count($interventionSurvey->lines) == 0){
+                    $hookmanager->errors[] = $langs->trans('InterventionSurveyMissingInterventionLines');
+                    $error++;
+                }
+                return $error > 0 ? -1 : 0;
+
+            }
+            else {
+                return -1;
             }
         }
 
@@ -230,6 +244,64 @@ class ActionsInterventionSurvey
             }
             $object->saveSurvey($user, true);
         }
+        else if (in_array('interventioncard', $contexts) && $action == "addline" && $user->rights->ficheinter->creer) {
+
+            $mesg = array();
+            if (empty($conf->global->FICHINTER_WITHOUT_DURATION) && !GETPOST('durationhour', 'int') && !GETPOST('durationmin', 'int')) {
+                $mesg[] = '<div class="error">' . $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("Duration")) . '</div>';
+                $error++;
+            }
+            if (empty($conf->global->FICHINTER_WITHOUT_DURATION) && GETPOST('durationhour', 'int') >= 24 && GETPOST('durationmin', 'int') > 0) {
+                $mesg[] = '<div class="error">' . $langs->trans("ErrorValueTooHigh") . '</div>';
+                $error++;
+            }
+            if (!$error) {
+                $this->db->begin();
+
+                $desc = GETPOST('np_desc');
+                $date_intervention = dol_mktime(GETPOST('dihour', 'int'), GETPOST('dimin', 'int'), 0, GETPOST('dimonth', 'int'), GETPOST('diday', 'int'), GETPOST('diyear', 'int'));
+                $duration = empty($conf->global->FICHINTER_WITHOUT_DURATION) ? convertTime2Seconds(GETPOST('durationhour', 'int'), GETPOST('durationmin', 'int')) : 0;
+
+
+                // Extrafields
+                $extrafieldsline = new ExtraFields($this->db);
+                $extralabelsline = $extrafieldsline->fetch_name_optionals_label($object->table_element_line);
+                $array_options = $extrafieldsline->getOptionalsFromPost($extralabelsline);
+
+                $result = $object->addline(
+                    $userd,
+                    $object->id,
+                    $desc,
+                    $date_intervention,
+                    $duration,
+                    $array_options
+                );
+
+                // Define output language
+                $outputlangs = $langs;
+                $newlang = '';
+                if ($conf->global->MAIN_MULTILANGS && empty($newlang) && GETPOST('lang_id', 'aZ09')) $newlang = GETPOST('lang_id', 'aZ09');
+                if ($conf->global->MAIN_MULTILANGS && empty($newlang)) $newlang = $object->thirdparty->default_lang;
+                if (!empty($newlang)) {
+                    $outputlangs = new Translate("", $conf);
+                    $outputlangs->setDefaultLang($newlang);
+                }
+
+                if ($result >= 0) {
+                    $this->db->commit();
+                    if (empty($conf->global->MAIN_DISABLE_PDF_AUTOUPDATE)) fichinter_create($this->db, $object, $object->modelpdf, $outputlangs);
+                    header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
+                    exit;
+                } else {
+                    $mesg[] = $object->error;
+                    $this->db->rollback();
+                }
+            }
+            if(!empty($mesg)){
+                setEventMessages('',$mesg, 'errors');
+            }
+            $action = null;
+        }
 
 
 
@@ -253,6 +325,81 @@ class ActionsInterventionSurvey
         if ($user->rights->interventionsurvey->survey->noCheck && empty($conf->global->FICHINTER_CLASSIFY_BILLED) && $object->statut > 0 && $object->statut < 3 && !empty($conf->global->INTERVENTIONSURVEY_STRICT_DATA_CHECK_ON_CLOTURED)) {
             print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=classifyDoneWithoutDataCheck">' . $langs->trans("InterventionSurveyClassifyDoneWithoutDataCheck") . '</a></div>';
         }
-        return 0;
+        if ($user->societe_id == 0) {
+			if ($action != 'editdescription' && ($action != 'presend')) {
+				// Validate
+				if ($object->statut == 0) {
+					if ((empty($conf->global->MAIN_USE_ADVANCED_PERMS) && $user->rights->ficheinter->creer) || (!empty($conf->global->MAIN_USE_ADVANCED_PERMS) && $user->rights->ficheinter->ficheinter_advance->validate)) {
+						print '<div class="inline-block divButAction"><a class="butAction" href="card.php?id=' . $object->id . '&action=validate"';
+						print '>' . $langs->trans("Validate") . '</a></div>';
+					}
+				}
+
+				// Modify
+				if ($object->statut == 1 && ((empty($conf->global->MAIN_USE_ADVANCED_PERMS) && $user->rights->ficheinter->creer) || (!empty($conf->global->MAIN_USE_ADVANCED_PERMS) && $user->rights->ficheinter->ficheinter_advance->unvalidate))) {
+					print '<div class="inline-block divButAction"><a class="butAction" href="card.php?id=' . $object->id . '&action=modify">';
+					if (empty($conf->global->FICHINTER_DISABLE_DETAILS)) print $langs->trans("Modify");
+					else print $langs->trans("SetToDraft");
+					print '</a></div>';
+				}
+
+				// Send
+				if ($object->statut > 0) {
+					if (empty($conf->global->MAIN_USE_ADVANCED_PERMS) || $user->rights->ficheinter->ficheinter_advance->send) {
+						print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=presend&mode=init#formmailbeforetitle">' . $langs->trans('SendByMail') . '</a></div>';
+					} else print '<div class="inline-block divButAction"><a class="butActionRefused" href="#">' . $langs->trans('SendByMail') . '</a></div>';
+				}
+
+				// Event agenda
+				if (!empty($conf->global->FICHINTER_ADDLINK_TO_EVENT)) {
+					if (!empty($conf->agenda->enabled) && $object->statut > 0) {
+						$langs->load("agenda");
+						if ($object->statut < 2) {
+							if ($user->rights->agenda->myactions->create) print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/comm/action/card.php?action=create&amp;origin=' . $object->element . '&amp;originid=' . $object->id . '&amp;socid=' . $object->socid . '&amp;backtopage=' . urlencode($_SERVER["PHP_SELF"] . '?id=' . $object->id) . '">' . $langs->trans("AddEvent") . '</a></div>';
+							else print '<div class="inline-block divButAction"><a class="butActionRefused" href="#" title="' . $langs->trans("NotEnoughPermissions") . '">' . $langs->trans("AddEvent") . '</a></div>';
+						}
+					}
+				}
+
+				// Proposal
+				if (!empty($conf->propal->enabled) && $object->statut > 0) {
+					$langs->load("propal");
+					if ($object->statut < 2) {
+						if ($user->rights->propal->creer) print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/comm/propal/card.php?action=create&amp;origin=' . $object->element . '&amp;originid=' . $object->id . '&amp;socid=' . $object->socid . '">' . $langs->trans("AddProp") . '</a></div>';
+						else print '<div class="inline-block divButAction"><a class="butActionRefused" href="#" title="' . $langs->trans("NotEnoughPermissions") . '">' . $langs->trans("AddProp") . '</a></div>';
+					}
+				}
+
+				// Invoicing
+				if (!empty($conf->facture->enabled) && $object->statut > 0) {
+					$langs->load("bills");
+					if ($object->statut < 2) {
+						if ($user->rights->facture->creer) print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/compta/facture/card.php?action=create&amp;origin=' . $object->element . '&amp;originid=' . $object->id . '&amp;socid=' . $object->socid . '">' . $langs->trans("AddBill") . '</a></div>';
+						else print '<div class="inline-block divButAction"><a class="butActionRefused" href="#" title="' . $langs->trans("NotEnoughPermissions") . '">' . $langs->trans("AddBill") . '</a></div>';
+					}
+
+					if (!empty($conf->global->FICHINTER_CLASSIFY_BILLED))    // Option deprecated. In a future, billed must be managed with a dedicated field to 0 or 1
+					{
+						if ($object->statut != 2) {
+							print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=classifybilled">' . $langs->trans("InterventionClassifyBilled") . '</a></div>';
+						} else {
+							print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=classifyunbilled">' . $langs->trans("InterventionClassifyUnBilled") . '</a></div>';
+						}
+					}
+				}
+
+				// Done
+				if (empty($conf->global->FICHINTER_CLASSIFY_BILLED) && $object->statut > 0 && $object->statut < 3) {
+					print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=classifydone">' . $langs->trans("InterventionClassifyDoneButton") . '</a></div>';
+				}
+
+				// Delete
+				if (($object->statut == 0 && $user->rights->ficheinter->creer) || $user->rights->ficheinter->supprimer) {
+					print '<div class="inline-block divButAction"><a class="butActionDelete" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=delete"';
+					print '>' . $langs->trans('Delete') . '</a></div>';
+				}
+			}
+		}
+        return 1;
     }
 }

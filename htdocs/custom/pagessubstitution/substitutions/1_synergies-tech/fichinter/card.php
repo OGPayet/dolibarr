@@ -114,10 +114,9 @@ if (empty($reshook)) {
 
 	include DOL_DOCUMENT_ROOT . '/core/actions_dellink.inc.php';		// Must be include, not include_once
 
-	//------------------------------------------------------------
-	// Modification - Open-DSI - Begin
+
 	// Action clone object
-	/*if ($action == 'confirm_clone' && $confirm == 'yes' && $user->rights->ficheinter->creer)
+	if ($action == 'confirm_clone' && $confirm == 'yes' && $user->rights->ficheinter->creer)
 	{
 		if (1==0 && ! GETPOST('clone_content') && ! GETPOST('clone_receivers'))
 		{
@@ -144,9 +143,7 @@ if (empty($reshook)) {
 				}
 			}
 		}
-	}*/
-	// Modification - Open-DSI - End
-	//------------------------------------------------------------
+	}
 
 	if ($action == 'confirm_validate' && $confirm == 'yes' && $user->rights->ficheinter->creer) {
 		$result = $object->setValid($user);
@@ -429,15 +426,12 @@ if (empty($reshook)) {
 
 	// Add line
 	else if ($action == "addline" && $user->rights->ficheinter->creer) {
-		//------------------------------------------------------------
-		// Modification - Open-DSI - Begin
-		/*if (!GETPOST('np_desc') && empty($conf->global->FICHINTER_EMPTY_LINE_DESC) )
+if (!GETPOST('np_desc') && empty($conf->global->FICHINTER_EMPTY_LINE_DESC) )
 		{
 			$mesg='<div class="error">'.$langs->trans("ErrorFieldRequired",$langs->transnoentitiesnoconv("Description")).'</div>';
 			$error++;
-		}*/
-		// Modification - Open-DSI - End
-		//------------------------------------------------------------
+		}
+
 		if (empty($conf->global->FICHINTER_WITHOUT_DURATION) && !GETPOST('durationhour', 'int') && !GETPOST('durationmin', 'int')) {
 			$mesg = '<div class="error">' . $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("Duration")) . '</div>';
 			$error++;
@@ -1080,10 +1074,7 @@ SCRIPT;
 		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id . '&line_id=' . $lineid, $langs->trans('DeleteInterventionLine'), $langs->trans('ConfirmDeleteInterventionLine'), 'confirm_deleteline', '', 0, 1);
 	}
 
-	//------------------------------------------------------------
-	// Modification - Open-DSI - Begin
-	// Clone confirmation
-	/*if ($action == 'clone') {
+	if ($action == 'clone') {
 		// Create an array for form
 		$formquestion = array(
 							// 'text' => $langs->trans("ConfirmClone"),
@@ -1094,9 +1085,7 @@ SCRIPT;
 							array('type' => 'other','name' => 'socid','label' => $langs->trans("SelectThirdParty"),'value' => $form->select_company(GETPOST('socid', 'int'), 'socid', '', '', 0, 0, null, 0, 'minwidth200')));
 		// Paiement incomplet. On demande si motif = escompte ou autre
 		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('CloneIntervention'), $langs->trans('ConfirmCloneIntervention', $object->ref), 'confirm_clone', $formquestion, 'yes', 1);
-	}*/
-	// Modification - Open-DSI - End
-	//------------------------------------------------------------
+	}
 
 	// -- Open DSI -- Possibility to modify confirm form -- Begin
 	//if (!$formconfirm) {
@@ -1517,11 +1506,7 @@ SCRIPT;
 		if ($user->societe_id == 0) {
 			if ($action != 'editdescription' && ($action != 'presend')) {
 				// Validate
-				//------------------------------------------------
-				// Modification - Open-Dsi - Begin
-				if ($object->statut == 0/* && (count($object->lines) > 0 || !empty($conf->global->FICHINTER_DISABLE_DETAILS))*/) {
-					// Modification - Open-Dsi - End
-					//------------------------------------------------
+				if ($object->statut == 0 && (count($object->lines) > 0 || !empty($conf->global->FICHINTER_DISABLE_DETAILS))) {
 					if ((empty($conf->global->MAIN_USE_ADVANCED_PERMS) && $user->rights->ficheinter->creer) || (!empty($conf->global->MAIN_USE_ADVANCED_PERMS) && $user->rights->ficheinter->ficheinter_advance->validate)) {
 						print '<div class="inline-block divButAction"><a class="butAction" href="card.php?id=' . $object->id . '&action=validate"';
 						print '>' . $langs->trans("Validate") . '</a></div>';
@@ -1585,15 +1570,6 @@ SCRIPT;
 				if (empty($conf->global->FICHINTER_CLASSIFY_BILLED) && $object->statut > 0 && $object->statut < 3) {
 					print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=classifydone">' . $langs->trans("InterventionClassifyDoneButton") . '</a></div>';
 				}
-
-				//------------------------------------------------------------
-				// Modification - Open-DSI - Begin
-				// Clone
-				/*if ($user->rights->ficheinter->creer) {
-					print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&amp;socid=' . $object->socid . '&amp;action=clone&amp;object=ficheinter">' . $langs->trans("ToClone") . '</a></div>';
-				}*/
-				// Modification - Open-DSI - End
-				//------------------------------------------------------------
 
 				// Delete
 				if (($object->statut == 0 && $user->rights->ficheinter->creer) || $user->rights->ficheinter->supprimer) {

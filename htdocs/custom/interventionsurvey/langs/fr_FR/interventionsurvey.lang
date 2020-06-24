@@ -49,6 +49,8 @@ InterventionSurveyRootProductFieldName = Include la catégorie renseigné ci-des
 InterventionSurveyRootProductFieldDesc = Inclure la catégorie parente dans le paramétrage des blocs de question
 InterventionSurveyStricDataCheckOnCloturedName = Verifier les données du questionnaire lors de la cloture de l'intervention
 InterventionSurveyStricDataCheckOnCloturedDesc = Empêcher la cloture de l'intervention si des données obligatoires sont manquantes
+InterventionSurveyAtLeastOneListMustHaveBeenCreatedName = Forcer la présence d'une ligne d'intervention pour pouvoir la clôturer
+InterventionSurveyAtLeastOneListMustHaveBeenCreatedDesc = Si cette option est activée, il n'est pas possible de clôturer une intervention si aucune ligne d'intervention n'est crée
 InterventionSurveySetupModifyButton = Sauvegarder
 
 # Page À propos
@@ -165,6 +167,7 @@ InterventionSurveyBlocMissingExtrafield = La valeur de l'extrafield obligatoire 
 InterventionSurveyCantDeleteBloc = Impossible de supprimer le bloc ID : %s
 InterventionSurveyMissingRequiredFieldInSurvey = Des éléments obligatoires dans le questionnaire sont manquants
 InterventionSurveyClassifyDoneWithoutDataCheck = Passer l'intervention en terminé sans verification du questionnaire
+InterventionSurveyMissingInterventionLines = Au moins une ligne d'intervention doit être créée pour pouvoir clôturer l'intervention
 InterventionSurveyMissingAnswer = La réponse obligatoire pour la question %s (ID : %s) est manquante
 InterventionSurveyMissingJustificationAnswer = La justification obligatoire pour la question %s (ID : %s) est manquante
 InterventionSurveyQuestionMissingExtrafield = La valeur pour l'extrafield obligatoire %s dans la question %s (ID : %s) est manquante
