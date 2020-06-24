@@ -1827,7 +1827,11 @@ class FormSynergiesTech
 
                     $label = $obj->label;
                     //Dispalying begin date event
-                    if (num_between_day(dol_stringtotime($obj->datep), dol_now(), 0) >= 1) $label = dol_print_date($obj->datep, ' %A %d/%m') . " - " . $label;
+                    if (date("Ymd",dol_stringtotime($obj->datep)) != date("Ymd"))
+                    {
+                        $label = dol_print_date($obj->datep, ' %A %d/%m') . " - " . $label;
+
+                    }
                     //Displaying user owner event
                     $label = $label . " - " . $obj->firstname . " " . $obj->name;
 
