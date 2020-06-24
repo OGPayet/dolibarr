@@ -422,7 +422,7 @@ SCRIPT;
             $out .= '<table class="border" width="100%">';
             $out .= '<tr><td class="titlefield" align="right">' . $langs->trans('ExtendedInterventionPeriod') . ' : </td>';
             foreach ($company_counts['periods'] as $period) {
-                $out .= '<td align="center"' . (!empty($period['last_period']) || !empty($period['in_period']) ? ' style="background-color: ' . (!empty($period['last_period']) ? 'indianred' : 'lightblue') . ';"' : '') . '>' .
+                $out .= '<td align="center"' . (!empty($period['last_period']) || !empty($period['in_period']) ? ' style="background-color: ' . (!empty($period['last_period']) ? 'orange' : 'lightblue') . ';"' : '') . '>' .
                     $langs->trans('DateFromTo', dol_print_date($period['begin'], 'day'), dol_print_date($period['end'], 'day')) .
                     (!empty($period['last_period']) || !empty($period['in_period']) ? '&nbsp;' . $this->form->textwithpicto('',
                             (!empty($period['in_period']) ? $langs->trans('ExtendedInterventionCurrentPeriod') : '') .
