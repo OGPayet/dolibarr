@@ -2005,10 +2005,77 @@ SCRIPT;
                 } else {
                     setEventMessage($msg_error, 'errors');
                 }
+            } elseif ($action == 'confirm_validate' && $confirm == 'yes'){
+                if($conf->global->SYNERGIESTECH_FICHINTER_PROTECTVALIDATEFICHINTER){
+                    //We check that user can validate this fichinter
+                    dol_include_once('synergiestech/class/extendedInterventionValidation.class.php');
+                    $InterventionValidationCheck = new ExtendedInterventionValidation($object, $this->db);
+                    if(!$InterventionValidationCheck->canUserValidateThisFichInter($user)){
+                        if($user->rights->synergiestech->intervention->validateWithStaleContract){
+                            $this->errors[] = $langs->trans("SynergiesTechInterventionValidationAdvancedError");
+                        }
+                        else
+                        {
+                            $this->errors[] = $langs->trans("SynergiesTechInterventionValidationStandardError");
+                        }
+                        return -1;
+                    }
+                }
+                $object->fetchObjectLinked();
+            }
+            elseif ($action == 'setcontract'){
+                if($conf->global->SYNERGIESTECH_FICHINTER_PROTECTVALIDATEFICHINTER && $object->statut > 0){
+                    //We check that user can validate this fichinter
+                    dol_include_once('synergiestech/class/extendedInterventionValidation.class.php');
+                    $InterventionValidationCheck = new ExtendedInterventionValidation($object, $this->db);
+                    if(!$InterventionValidationCheck->canThisNewContractBeLinkedToThisFichinter($user,GETPOST('contratid', 'int'))){
+                        $this->errors[] = $langs->trans("SynergiesTechNewContractCantBeChoosed");
+                        $action = "contrat";
+                    }
+                }
+                $object->fetchObjectLinked();
             }
         } elseif (in_array('productpricecard', $contexts)) {
             if (!$user->rights->synergiestech->product_line_price->lire) {
                 accessforbidden();
+            }
+        }
+
+        if($action == "dellink") {
+
+            $sql = "SELECT fk_source, sourcetype, targettype, fk_target FROM " . MAIN_DB_PREFIX . "element_element WHERE rowid = " . GETPOST('dellinkid', 'int');
+
+            $resql = $this->db->query($sql);
+            if ($resql) {
+                if ($obj = $this->db->fetch_object($resql)) {
+                    if ($obj->sourcetype == "fichinter" && $obj->targettype == "commande") {
+                        $interventionId = $obj->fk_source;
+                        $orderId = $obj->fk_target;
+                    } else if ($obj->targettype == "fichinter" && $obj->sourcetype == "commande") {
+                        $interventionId = $obj->fk_target;
+                        $orderId = $obj->fk_source;
+                    }
+                    if($interventionId > 0 && $orderId > 0 ){
+                        dol_include_once("fichinter/class/fichinter.class.php");
+                        $fichInter = new Fichinter($this->db);
+                        $fichInter->fetch($interventionId);
+                        dol_include_once("/synergiestech/class/extendedInterventionValidation.class.php");
+                        $InterventionValidationCheck = new ExtendedInterventionValidation($fichInter, $this->db);
+                        if($fichInter->statut > 0 && !$InterventionValidationCheck->canThisOrderBeUnlinkedToThisFichinter($user,$orderId)){
+                            if($user->rights->synergiestech->intervention->validateWithStaleContract){
+                                $this->errors[] = $langs->trans("SynergiesTechOrderCantbeUnlinkedAdvanced");
+                            }
+                            else
+                            {
+                                $this->errors[] = $langs->trans("SynergiesTechOrderCantbeUnlinkedStandard");
+                            }
+                            $action = null;
+                            return -1;
+                        }
+                    }
+                }
+            } else {
+                $this->errors[] = $this->db->lasterror();
             }
         }
 

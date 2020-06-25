@@ -67,6 +67,10 @@ SynergiesTechCustomSupplierOrderSubmitEvent = Créer un évènement automatique 
 SynergiesTechSupplierOrderSubmitCustomEventDate = Date de soumission : %s
 SynergiesTechSupplierOrderSubmitCustomEventMethod = Methode de soumission de la commande : %s
 SynergiesTechSupplierOrderSubmitCustomEventComment = Commentaire : %s
+SynergiesTechInterventionValidateProtection = Paramètre de protection des justification commerciales des interventions
+SynergiesTechProtectValidateFichInter = Activer les protections de validation et la surveillance des liens sur les fiches d'intervention
+SynergiesTechProtectValidateFichInterDesc = Ces protections permettent de s'assurer que toute intervention ayant le statut validé ou cloturé a toujours une justification commerciale lié : contrat lié ou commande concernant au moins un des services paramétrés
+SynergiesTechProtectValidateServiceList = Liste des services permettant de considérer une commande comme étant une commande pour une intervention
 #######################################################################
 # Extrafields
 #######################################################################
@@ -274,7 +278,12 @@ SynergiesTechBannerTabNoEqNoContract = Pas de contrats ni d'équipements
 SynergiesTechBannerTabContractAsRequesterOnly = %s contrats actifs en tant que donneur d'ordre
 
 #############################################################
-### Contract status on intervention card
+### Intervention card
 #############################################################
 SynergiesTechContractFieldInterventionCardActivated = actif
 SynergiesTechContractFieldInterventionCardDeactivated = inactif
+SynergiesTechInterventionValidationAdvancedError = Au moins un contrat ou une commande validé pour une intervention doit être lié à cette intervention pour pouvoir la passer en "A Faire"
+SynergiesTechInterventionValidationStandardError = Au moins un contrat actif ou une commande validé pour une intervention doit être lié à cette intervention pour pouvoir la passer en "A Faire"
+SynergiesTechNewContractCantBeChoosed = Ce choix de contrat ne permet pas d'assurer la justification commerciale de cette intervention et ne peux être choisi. S'il s'agissait d'une commande, merci de lier cette commande avant de supprimer le contrat en lien avec cette intervention
+SynergiesTechOrderCantbeUnlinkedAdvanced = Ce lien commande/intervention assure la justification commerciale de l'intervention concernée. Ce lien ne peux donc pas être supprimé. S'il s'agissait d'une intervention sous contrat, merci de lier un contrat sur l'intervention avant de supprimer ce lien
+SynergiesTechOrderCantbeUnlinkedStandard = Ce lien commande/intervention assure la justification commerciale de l'intervention concernée. Ce lien ne peux donc pas être supprimé. S'il s'agissait d'une intervention sous contrat, merci de lier un contrat ACTIF sur l'intervention avant de supprimer ce lien
