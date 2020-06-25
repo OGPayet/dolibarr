@@ -987,7 +987,7 @@ function synergiestech_fetch_event_of_benefactor($socBenefactorId, $limit=5, $jo
  *  Reopen intervention
  *
  * @param   DoliDB  $db             Database handler
- * @param   int     $object         Intervention object
+ * @param   FichInter     $object         Intervention object
  * @param   User    $user           Object user that close
  * @param   string  $msg_error      Output error message
  * @param   int     $notrigger      1=Does not execute triggers, 0= execute triggers

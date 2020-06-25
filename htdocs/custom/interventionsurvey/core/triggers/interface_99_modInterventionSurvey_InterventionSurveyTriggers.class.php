@@ -281,6 +281,33 @@ class InterfaceInterventionSurveyTriggers extends DolibarrTriggers
                     $object->errors = array_merge($object->errors, $interventionSurvey->errors);
                 }
                 break;
+                case 'FICHINTER_CLASSIFY_DONE':
+                    $error = 0;
+                    if (!$object->noSurveyDataCheck && !empty($conf->global->INTERVENTIONSURVEY_STRICT_DATA_CHECK_ON_CLOTURED)) {
+                        //We emit an error in order to avoid fichinter to be classify done if some required data are missing
+                        dol_include_once('/interventionsurvey/class/interventionsurvey.class.php');
+                        $interventionSurvey = new InterventionSurvey($this->db);
+                        if (
+                            $interventionSurvey->fetch($object->id) > 0
+                            && $interventionSurvey->fetchSurvey() > 0
+                        ) {
+                            if (!$interventionSurvey->areDataValid()) {
+                                $object->errors[] = $langs->trans('InterventionSurveyMissingRequiredFieldInSurvey');
+                                $object->errors = array_merge($object->errors, $interventionSurvey->errors);
+                                $error++;
+                            }
+                        }
+                    }
+                    if($conf->global->INTERVENTIONSURVEY_ATLEASTONINTERVENTIONLINESMUSTEXISTONCLOTURED && count($object->lines) == 0){
+                        $object->errors[] = $langs->trans('InterventionSurveyMissingInterventionLines');
+                        $error++;
+                    }
+                    if($error > 0){
+                        setEventMessages('',$object->errors,'errors');
+                        return -1;
+                    }
+                    return 0;
+                break;
                 //case 'LINEFICHINTER_CREATE':
                 //case 'LINEFICHINTER_UPDATE':
                 //case 'LINEFICHINTER_DELETE':

@@ -2005,25 +2005,7 @@ SCRIPT;
                 } else {
                     setEventMessage($msg_error, 'errors');
                 }
-            } elseif ($action == 'confirm_validate' && $confirm == 'yes'){
-                if($conf->global->SYNERGIESTECH_FICHINTER_PROTECTVALIDATEFICHINTER){
-                    //We check that user can validate this fichinter
-                    dol_include_once('synergiestech/class/extendedInterventionValidation.class.php');
-                    $InterventionValidationCheck = new ExtendedInterventionValidation($object, $this->db);
-                    if(!$InterventionValidationCheck->canUserValidateThisFichInter($user)){
-                        if($user->rights->synergiestech->intervention->validateWithStaleContract){
-                            $this->errors[] = $langs->trans("SynergiesTechInterventionValidationAdvancedError");
-                        }
-                        else
-                        {
-                            $this->errors[] = $langs->trans("SynergiesTechInterventionValidationStandardError");
-                        }
-                        return -1;
-                    }
-                }
-                $object->fetchObjectLinked();
-            }
-            elseif ($action == 'setcontract'){
+            } elseif ($action == 'setcontract'){
                 if($conf->global->SYNERGIESTECH_FICHINTER_PROTECTVALIDATEFICHINTER && $object->statut > 0){
                     //We check that user can validate this fichinter
                     dol_include_once('synergiestech/class/extendedInterventionValidation.class.php');
@@ -2033,7 +2015,6 @@ SCRIPT;
                         $action = "contrat";
                     }
                 }
-                $object->fetchObjectLinked();
             }
         } elseif (in_array('productpricecard', $contexts)) {
             if (!$user->rights->synergiestech->product_line_price->lire) {

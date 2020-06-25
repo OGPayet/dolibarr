@@ -180,34 +180,6 @@ class ActionsInterventionSurvey
             $action = 'classifydone';
         }
 
-
-        if ($action == 'classifydone' && !$object->noSurveyDataCheck && !empty($conf->global->INTERVENTIONSURVEY_STRICT_DATA_CHECK_ON_CLOTURED)) {
-            //We emit an error in order to avoid fichinter to be classify done if some required data are missing
-            dol_include_once('/interventionsurvey/class/interventionsurvey.class.php');
-            $interventionSurvey = new InterventionSurvey($this->db);
-            if (
-                $interventionSurvey->fetch($object->id) > 0
-                && $interventionSurvey->fetchSurvey() > 0
-            ) {
-                $error = 0;
-                if (!$interventionSurvey->areDataValid()) {
-                    $hookmanager->errors[] = $langs->trans('InterventionSurveyMissingRequiredFieldInSurvey');
-                    $hookmanager->errors = array_merge($hookmanager->errors, $interventionSurvey->errors);
-                    $error++;
-                }
-
-                if($conf->global->INTERVENTIONSURVEY_ATLEASTONINTERVENTIONLINESMUSTEXISTONCLOTURED && count($interventionSurvey->lines) == 0){
-                    $hookmanager->errors[] = $langs->trans('InterventionSurveyMissingInterventionLines');
-                    $error++;
-                }
-                return $error > 0 ? -1 : 0;
-
-            }
-            else {
-                return -1;
-            }
-        }
-
         //Now we manage update of filename into bloc in case we are renaming or removing them
         if (($action == 'confirm_deletefile' && $parameters["confirm"] == 'yes') || ($action == 'renamefile' && GETPOST('renamefilesave'))) {
             global $conf, $user;
