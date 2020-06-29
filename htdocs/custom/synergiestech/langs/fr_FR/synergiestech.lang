@@ -74,12 +74,22 @@ SynergiesTechProtectValidateServiceList = Liste des services permettant de consi
 
 SynergiesTechAutoActionsTabName = Evènement automatique créé par ce module
 Notify_PROPAL_CREATE = Créer un évènement lorsqu'une proposition commerciale est créée
+PROPAL_CREATEInDolibarr = Proposition Commerciale %s créé
 Notify_ORDER_CREATE = Créer un évènement lorsqu'une commande client est créée
+ORDER_CREATEInDolibarr = Commande Client %s créé
 Notify_SHIPPING_CREATE = Créer un évènement lorsqu'une expédition est créée
+SHIPPING_CREATEInDolibarr = Expédition %s créé
 Notify_CONTRACT_CREATE = Créer un évènement lorsqu'un contrat est créée
+CONTRACT_CREATEInDolibarr = Contrat %s créé
 Notify_BILL_CREATE = Créer un évènement lorsqu'une facture est créée
-Notify_SUPPLIER_PROPOSAL_CREATE = Créer un évènement lorsqu'une proposition commerciale fournisseur est créée
+BILL_CREATEInDolibarr = Facture %s créé
+Notify_PROPOSAL_SUPPLIER_CREATE = Créer un évènement lorsqu'une proposition commerciale fournisseur est créée
+PROPOSAL_SUPPLIER_CREATEInDolibarr = Proposition commerciale fournisseur %s créée
+Notify_PROPAL_SUPPLIER_CREATE = Créer un évènement lorsqu'une proposition commerciale fournisseur est créée (avant v7)
+PROPAL_SUPPLIER_CREATEInDolibarr = Proposition commerciale fournisseur %s créée
 Notify_BILL_SUPPLIER_CREATE = Créer un évènement lorsuqu'une facture fournisseur est créée
+BILL_SUPPLIER_CREATEInDolibarr = Facture Fournisseur %s créée
+
 
 #######################################################################
 # Extrafields

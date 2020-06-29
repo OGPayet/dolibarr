@@ -21,5 +21,6 @@ insert into llx_c_action_trigger (code,label,description,elementtype,rang) value
 insert into llx_c_action_trigger (code,label,description,elementtype,rang) values ('SHIPPING_CREATE','Shipping created','Executed when a shipping is created','synergiestech',20);
 insert into llx_c_action_trigger (code,label,description,elementtype,rang) values ('CONTRACT_CREATE','Contract created','Executed when a contract is created','synergiestech',18);
 insert into llx_c_action_trigger (code,label,description,elementtype,rang) values ('BILL_CREATE','Bill created','Executed when a bill is created','synergiestech',6);
-insert into llx_c_action_trigger (code,label,description,elementtype,rang) values ('SUPPLIER_PROPOSAL_CREATE','Supplier proposal created','Executed when a supplier proposal is created','synergiestech',250);
+insert into llx_c_action_trigger (code,label,description,elementtype,rang) values ('PROPAL_SUPPLIER_CREATE','Supplier proposal created','Executed when a supplier proposal is created','synergiestech',250);
+insert into llx_c_action_trigger (code,label,description,elementtype,rang) values ('PROPOSAL_SUPPLIER_CREATE','Supplier proposal created','Executed when a supplier proposal is created','synergiestech',250);
 insert into llx_c_action_trigger (code,label,description,elementtype,rang) values ('BILL_SUPPLIER_CREATE','Supplier Bill created','Executed when a supplier bill is created','synergiestech',15);
