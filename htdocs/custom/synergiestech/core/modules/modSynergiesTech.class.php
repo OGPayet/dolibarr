@@ -170,6 +170,8 @@ class modSynergiesTech extends DolibarrModules
 			'group:-ldap::true',
 			'synergiestech_admin:+dictionary_synergiestechtimeslot:SynergiesTechTimeSlotDictionaryLabel:synergiestech@synergiestech:true:/synergiestech/admin/dictionaries.php?name=synergiestechtimeslot',
 			'synergiestech_admin:+dictionary_activedirectorygroupmapping:SynergiesTechActiveDirectoryGroupMappingTabName:synergiestech@synergiestech:true:/synergiestech/admin/dictionaries.php?name=activedirectorygroupmapping',
+			'synergiestech_admin:+autoactions:SynergiesTechAutoActionsTabName:synergiestech@synergiestech:true:/synergiestech/admin/agenda.php',
+
 		);
 
 		if (!isset($conf->synergiestech) || !isset($conf->synergiestech->enabled)) {
