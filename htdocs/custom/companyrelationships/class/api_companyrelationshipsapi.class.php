@@ -5930,13 +5930,17 @@ class CompanyRelationshipsApi extends DolibarrApi {
             throw new RestException(500, "Failed to move file into '" . $destfile . "'");
         }
 
+
+        if($object && method_exists($object,"addThumbs")){
+            $object->addThumbs($destfile);
+        }
+
         //--------------------------------------------------------------
         // Open-DSI - Modification - Begin
         //
         if ($islogo && ($modulepart == 'societe' || $modulepart == 'thirdparty' || $modulepart == 'thirdparties' ||
-                $modulepart == 'contact' || $modulepart == 'adherent' || $modulepart == 'member' || $modulepart == 'user' || $modulepart == 'intervention')) {
+                $modulepart == 'contact' || $modulepart == 'adherent' || $modulepart == 'member' || $modulepart == 'user')) {
             // Create thumbs
-			$object->addThumbs($destfile);
             if ($modulepart == 'societe' || $modulepart == 'thirdparty' || $modulepart == 'thirdparties') {
                 $object->logo = dol_basename($destfile);
                 $object->update($object->id, DolibarrApiAccess::$user);
