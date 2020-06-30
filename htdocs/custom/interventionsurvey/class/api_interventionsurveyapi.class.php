@@ -19,6 +19,7 @@
 use Luracast\Restler\RestException;
 
 dol_include_once('/interventionsurvey/class/interventionsurvey.class.php');
+dol_include_once('/fichinter/class/fichinter.class.php');
 
 
 /**
@@ -104,6 +105,11 @@ class InterventionSurveyApi extends DolibarrApi
     public $interventionSurvey;
 
     /**
+     * @var FichinterLigne $interventionLine {@type FichinterLigne}
+     */
+    public $interventionLine;
+
+    /**
      * Constructor
      *
      * @url     GET /
@@ -111,9 +117,10 @@ class InterventionSurveyApi extends DolibarrApi
      */
     public function __construct()
     {
-        global $conf, $db, $langs, $user;
+        global $db, $langs;
         $langs->load("interventionsurvey@interventionsurvey");
         $this->interventionSurvey = new InterventionSurvey($db);
+        $this->interventionLine = new FichinterLigne($db);
     }
 
     /**
@@ -124,7 +131,7 @@ class InterventionSurveyApi extends DolibarrApi
      * @param 	int 	$id ID of surveyanswer
      * @return 	object data without useless information
      *
-     * @url	GET {id_intervention}
+     * @url	GET {id}
      * @throws 	RestException
      */
     function get($id)
@@ -166,8 +173,7 @@ class InterventionSurveyApi extends DolibarrApi
      */
     function indexIntervention($sortfield = "t.rowid", $sortorder = 'ASC', $limit = 100, $page = 0, $sqlfilters = '')
     {
-        global $db, $conf;
-
+        global $db;
         $obj_ret = array();
 
         if(! DolibarrApiAccess::$user->rights->ficheinter->lire) {
@@ -282,14 +288,13 @@ class InterventionSurveyApi extends DolibarrApi
      */
     function put($request_data = null)
     {
-        global $db;
 
         if (!$request_data) {
             throw new RestException(400, "You must provide data");
         }
 
         if (! DolibarrApiAccess::$user->rights->interventionsurvey->survey->writeApi) {
-            throw new RestException(401);
+            throw new RestException(401, "Insufficient rights");
         }
 
         $request_data = json_decode(json_encode($request_data));
@@ -328,6 +333,125 @@ class InterventionSurveyApi extends DolibarrApi
         {
             throw new RestException(422, "Error when saving the survey", [ 'id_intervention' => $this->interventionSurvey->id, 'details' => $this->_getErrors($this->interventionSurvey) ]);
         }
+    }
+
+    /**
+     * Update or create intervention line based on provided id
+     *
+     * @return object
+     *
+     * @url PUT /line/
+     */
+    function putLine($request_data = null)
+    {
+        global $db;
+
+        if (!$request_data) {
+            throw new RestException(400, "You must provide data");
+        }
+
+        if (! DolibarrApiAccess::$user->rights->interventionsurvey->survey->writeApi) {
+            throw new RestException(401, "Insufficient rights");
+        }
+
+        //We prepare request data object
+        $request_data = json_decode(json_encode($request_data));
+        if(property_exists($request_data, 'datei')){
+            $request_data->datei = $db->jdate($request_data->datei);
+        }
+
+        if(property_exists($request_data, 'array_options') && (!is_array($request_data->array_options) || empty($request_data->array_options))){
+            unset($request_data->array_options);
+        }
+
+        //We do some check
+        if (!$request_data->fk_fichinter || $request_data->fk_fichinter < 0) {
+            throw new RestException(400, "Bad request, you must provide a valid fk_fichinter value");
+        }
+
+        if ($this->interventionSurvey->fetch($request_data->fk_fichinter) < 0) {
+            throw new RestException(422, "Error when fetching the intervention", [ 'id_intervention' => $request_data->fk_fichinter, 'details' => $this->_getErrors($this->interventionSurvey) ]);
+        }
+
+        if (!$this->interventionSurvey->checkUserAccess(DolibarrApiAccess::$user)) {
+            throw new RestException(401, 'Access to instance id='.$this->interventionSurvey->id.' of object not allowed for login '.DolibarrApiAccess::$user->login);
+        }
+
+        if($this->interventionSurvey->is_survey_read_only()) {
+            throw new RestException(401, 'Intervention survey with id='.$this->interventionSurvey->id.'is in readonly mode');
+        }
+
+        $id = $request_data->id;
+        if ($id && $id > 0 && $this->interventionLine->fetch($id) < 0) {
+            $this->interventionLine->id = 0;
+        }
+
+        $fields = array('fk_fichinter', 'datei', 'description', 'duree', 'rang', 'array_options');
+        foreach($fields as $field){
+            if(property_exists($request_data,$field)){
+                $this->interventionLine->{$field} = $request_data->{$field};
+            }
+        }
+
+        if($this->interventionLine->id > 0){
+            $result = $this->interventionLine->update(DolibarrApiAccess::$user);
+        }
+        else {
+            $result = $this->interventionLine->insert(DolibarrApiAccess::$user);
+        }
+
+        if ($result > 0)
+        {
+            return $this->_cleanObjectData($this->interventionLine);
+        }
+        else
+        {
+            throw new RestException(422, "Error when saving the intervention Line", [ 'id_intervention' => $this->interventionSurvey->id, 'details' => $this->_getErrors($this->interventionLine) ]);
+        }
+    }
+
+    /**
+     * Delete a line of given intervention
+     *
+     * @url	DELETE /line/{lineId}
+     *
+     * @param   int   $lineId         Id of line to delete
+     * @return  array
+     *
+     * @throws  401     RestException   Insufficient rights
+     * @throws  405     RestException   Error while deleting the intervention line
+     */
+    function deleteLine($lineId)
+    {
+        if(! DolibarrApiAccess::$user->rights->interventionsurvey->survey->writeApi) {
+            throw new RestException(401, "Insufficient rights");
+        }
+
+        if(!$lineId || $lineId <= 0){
+            throw new RestException(400, "Bad Request");
+        }
+
+        if($this->interventionLine->fetch($lineId) < 0 || ($this->interventionLine->fk_fichinter > 0 && $this->interventionSurvey->fetch($this->interventionLine->fk_fichinter) < 0)){
+            //Intervention or intervention line has already been deleted
+            return true;
+        }
+
+        $hasPerm = $this->interventionSurvey->checkUserAccess(DolibarrApiAccess::$user);
+        if (! $hasPerm) {
+            throw new RestException(401, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
+        }
+
+        if($this->interventionSurvey->is_survey_read_only()) {
+            throw new RestException(403, 'Intervention survey with id='.$this->interventionSurvey->id.'is in readonly mode');
+        }
+
+        if($this->interventionLine->deleteline(DolibarrApiAccess::$user) > 0) {
+            return true;
+        }
+        else {
+            throw new RestException(422, "Error when deleting the intervention line", [ 'id_intervention' => $this->interventionSurvey->id, 'id_line' => $this->interventionLine->id, 'details' => $this->_getErrors($this->interventionLine) ]);
+        }
+
     }
 
     /******************************************** */

@@ -3226,9 +3226,12 @@ class CompanyRelationshipsApi extends DolibarrApi {
 
             $line=new FichinterLigne($this->db);
 
-            $line->fetch($lineid);
-
-            if ($line->deleteline(DolibarrApiAccess::$user) < 0)
+            if($line->fetch($lineid) < 0){
+                //Line has already been deleted
+                $updateRes = 1;
+                $this->db->commit();
+            }
+            else if ($line->deleteline(DolibarrApiAccess::$user) < 0)
             {
                 $this->db->rollback();
                 $updateRes = -1;
@@ -3249,7 +3252,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
         if ($updateRes > 0) {
             return $this->getIntervention($id);
         } else {
-            throw new RestException(405, $this->fichinter->error);
+            throw new RestException(403, $this->fichinter->error);
         }
     }
 
