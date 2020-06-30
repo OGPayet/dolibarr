@@ -674,17 +674,39 @@ SCRIPT;
 
     $sql .= ' GROUP BY rm.rowid';
     //We ajust sort by rm.ref with length of rm.ref
-    $sortfields = explode(",", $sortfield);
-    $sortorders = explode(",",$sortorder);
-    $indexSortField = array_search('rm.ref',$sortfields);
-    $sortOrderOnSortField = $sortorders[$indexSortField] ?? "DESC";
+    $fields = explode(",", $sortfield);
+    $orders = explode(",",$sortorder);
+    $indexSortField = array_search('rm.ref',$fields);
+    $sortOrderOnSortField = $orders[$indexSortField] ?? "DESC";
     if($index !== false) {
-        array_splice($sortfields,$indexSortField,0,"LENGTH(rm.ref)");
-        array_splice($sortorders,$index,0,$sortOrderOnSortField);
-        $sortfield = implode(",", $sortfields);
-        $sortorder = implode(",", $sortorders);
+        array_splice($fields,$indexSortField,0,"LENGTH(rm.ref)");
+        array_splice($orders,$index,0,$sortOrderOnSortField);
+        $return='';
+			$i=0;
+			foreach($fields as $val)
+			{
+				if (! $return) $return.=' ORDER BY ';
+				else $return.=', ';
+
+				$return.=$val;
+
+				$tmpsortorder = trim($orders[$i]);
+
+				// Only ASC and DESC values are valid SQL
+				if (strtoupper($tmpsortorder) === 'ASC') {
+					$return .= ' ASC';
+				} elseif (strtoupper($tmpsortorder) === 'DESC') {
+					$return .= ' DESC';
+				}
+
+				$i++;
+            }
+        $sql .= $return;
     }
-    $sql .= $db->order($sortfield, $sortorder);
+    else
+    {
+        $sql .= $db->order($sortfield, $sortorder);
+    }
 
     // Count total nb of records
     $nbtotalofrecords = '';
