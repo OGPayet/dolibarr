@@ -90,7 +90,7 @@ class FormSynergiesTech
      *
      * @param   DoliDB $db Database handler
      */
-    public function __construct($db)
+    public function __construct(DoliDb $db)
     {
         $this->db = $db;
 
@@ -2434,4 +2434,55 @@ class FormSynergiesTech
          $toPrint = $this->getListOfContractLabel($socId, $benefactorId);
          return $this->form->selectarray('contratid', $toPrint, $selectedContractId, 1);
      }
+
+     /**
+     *   Get list of Entity
+     *
+     * @param   boolean $onlyActiveEntities
+     * @return  array
+     */
+
+    public function getListOfEntities($onlyActiveEntities = true){
+        $resultArray = array();
+        $sql = "SELECT rowid, label, description, options, visible, active";
+        $sql.= " FROM ".MAIN_DB_PREFIX."entity";
+        if($onlyActiveEntities){
+            $sql.= " WHERE active = 1 ";
+        }
+        $result = $this->db->query($sql);
+        if ($result) {
+            $num = $this->db->num_rows($result);
+            $i = 0;
+            while ($i < $num)
+			{
+                $obj = $this->db->fetch_object($result);
+                $item = new stdClass();
+				$item->id			= $obj->rowid;
+				$item->label		= $obj->label;
+				$item->description 	= $obj->description;
+				$item->options		= json_decode($obj->options, true);
+				$item->visible 		= $obj->visible;
+                $item->active		= $obj->active;
+                $resultArray[$item->id] = $item;
+                $i++;
+            }
+        }
+        return $resultArray;
+    }
+
+    /**
+     *   Get list of Entity ready for multiselectarray
+     *
+     * @param   boolean $onlyActiveEntities
+     * @return  array
+     */
+
+    public function getListOfEntitiesByIdAndLabel($onlyActiveEntities = true){
+        $listOfEntries = $this->getListOfEntities($onlyActiveEntities);
+        $result = array();
+        foreach($listOfEntries as $value){
+            $result[$value->id] = $value->label;
+        }
+        return $result;
+    }
 }

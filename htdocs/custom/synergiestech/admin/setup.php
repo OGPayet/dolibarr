@@ -32,6 +32,7 @@ require_once DOL_DOCUMENT_ROOT . '/product/class/html.formproduct.class.php';
 require_once DOL_DOCUMENT_ROOT . '/core/class/html.formother.class.php';
 require_once DOL_DOCUMENT_ROOT . '/core/class/html.formactions.class.php';
 dol_include_once('/synergiestech/lib/synergiestech.lib.php');
+dol_include_once('/synergiestech/class/html.formsynergiestech.class.php');
 dol_include_once('/advancedictionaries/class/html.formdictionary.class.php');
 dol_include_once('/advancedictionaries/class/dictionary.class.php');
 
@@ -157,7 +158,17 @@ if (preg_match('/set_(.*)/', $action, $reg)) {
     }
 
     $listOfSelectedProductIds = implode(',', GETPOST('SYNERGIESTECH_FICHINTER_INTERVENTIONPRODUCT', 'array'));
-    if (dolibarr_set_const($db, 'SYNERGIESTECH_FICHINTER_INTERVENTIONPRODUCT', $listOfSelectedProductIds, 'chaine', 0, '', $conf->entity) <= 0) { //No entity
+    if (dolibarr_set_const($db, 'SYNERGIESTECH_FICHINTER_INTERVENTIONPRODUCT', $listOfSelectedProductIds, 'chaine', 0, '', $conf->entity) <= 0) {
+        $error++;
+    }
+
+    $listOfFichInterContractEntity = implode(',', GETPOST('SYNERGIESTECH_FICHINTER_INTERVENTIONCONTRACTENTITY', 'array'));
+    if (dolibarr_set_const($db, 'SYNERGIESTECH_FICHINTER_INTERVENTIONCONTRACTENTITY', $listOfFichInterContractEntity, 'chaine', 0, '', $conf->entity) <= 0) {
+        $error++;
+    }
+
+    $listOfFichInterOrderEntity = implode(',', GETPOST('SYNERGIESTECH_FICHINTER_INTERVENTIONORDERENTITY', 'array'));
+    if (dolibarr_set_const($db, 'SYNERGIESTECH_FICHINTER_INTERVENTIONORDERENTITY', $listOfFichInterOrderEntity, 'chaine', 0, '', $conf->entity) <= 0) {
         $error++;
     }
 
@@ -178,6 +189,7 @@ $formproduct = new FormProduct($db);
 $formother = new FormOther($db);
 $formactions = new FormActions($db);
 $formdictionary = new FormDictionary($db);
+$formSynergiesTech = new FormSynergiesTech($db);
 $form = new Form($db);
 
 llxHeader();
@@ -282,7 +294,7 @@ print '<tr ' . $bc[$var] . '>' . "\n";
 print '<td>' . $langs->trans("SynergiesTechPrincipalWarehouse") . '</td>' . "\n";
 print '<td align="center">&nbsp;</td>' . "\n";
 print '<td align="right">' . "\n";
-print $formproduct->selectWarehouses($conf->global->SYNERGIESTECH_PRINCIPAL_WAREHOUSE, 'SYNERGIESTECH_PRINCIPAL_WAREHOUSE', 'warehouseopen,warehouseinternal', 1, 0, 0, '', 0, 0, null, 'minwidth300');
+print $formproduct->selectWarehouses($conf->global->SYNERGIESTECH_PRINCIPAL_WAREHOUSE, 'SYNERGIESTECH_PRINCIPAL_WAREHOUSE', 'warehouseopen,warehouseinternal', 1, 0, 0, '', 0, 0, null, 'minwidth100 maxwidth300');
 print '</td></tr>' . "\n";
 
 // SYNERGIESTECH_PRINCIPAL_WAREHOUSE_NB_SHOWED
@@ -309,7 +321,7 @@ print '<tr ' . $bc[$var] . '>' . "\n";
 print '<td>' . $langs->trans("SynergiesTechDefaultRequestTypeWhenCreate") . '</td>' . "\n";
 print '<td align="center">&nbsp;</td>' . "\n";
 print '<td align="right">' . "\n";
-print $formdictionary->select_dictionary('requestmanager', 'requestmanagerrequesttype', $conf->global->SYNERGIESTECH_DEFAULT_REQUEST_TYPE_WHEN_CREATE, 'SYNERGIESTECH_DEFAULT_REQUEST_TYPE_WHEN_CREATE', 1, 'rowid', '{{label}}', array(), array('label' => 'ASC'), 0, array(), 0, 0, 'minwidth300');
+print $formdictionary->select_dictionary('requestmanager', 'requestmanagerrequesttype', $conf->global->SYNERGIESTECH_DEFAULT_REQUEST_TYPE_WHEN_CREATE, 'SYNERGIESTECH_DEFAULT_REQUEST_TYPE_WHEN_CREATE', 1, 'rowid', '{{label}}', array(), array('label' => 'ASC'), 0, array(), 0, 0, 'minwidth100 maxwidth300');
 print '</td></tr>' . "\n";
 
 // SYNERGIESTECH_AUTO_ADD_CONTRACT_IF_MISSING
@@ -320,7 +332,7 @@ print '<tr ' . $bc[$var] . '>' . "\n";
 print '<td>' . $langs->trans("SynergiesTechAddContractOnRequestCreation") . '</td>' . "\n";
 print '<td align="center">&nbsp;</td>' . "\n";
 print '<td align="right">' . "\n";
-print $form->multiselectarray("SYNERGIESTECH_AUTO_ADD_CONTRACT_IF_MISSING", $request_types_array, $request_types_selected, 0, 0, 'minwidth300');
+print $form->multiselectarray("SYNERGIESTECH_AUTO_ADD_CONTRACT_IF_MISSING", $request_types_array, $request_types_selected, 0, 0, 'minwidth100 maxwidth300');
 print '</td></tr>' . "\n";
 
 // SYNERGIESTECH_DO_NOT_KEEP_LINKED_OBJECT_WHEN_CLONING_SUPPLIER_ORDER
@@ -452,7 +464,28 @@ foreach ($listOfProduct as $productArray) {
     $listOfFormatedProduct[$productArray["key"]] = $productArray["label"];
 }
 $selectedProductIds = explode(",", $conf->global->SYNERGIESTECH_FICHINTER_INTERVENTIONPRODUCT);
-print $form->multiselectarray("SYNERGIESTECH_FICHINTER_INTERVENTIONPRODUCT", $listOfFormatedProduct, $selectedProductIds, 0, 0, 'minwidth300');
+print $form->multiselectarray("SYNERGIESTECH_FICHINTER_INTERVENTIONPRODUCT", $listOfFormatedProduct, $selectedProductIds, 0, 0, 'minwidth100 maxwidth300');
+print '</td></tr>' . "\n";
+
+// SYNERGIESTECH_FICHINTER_INTERVENTIONCONTRACTENTITY
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>' . $langs->trans("SynergiesTechProtectContractEntityList") . '</td>' . "\n";
+print '<td align="center">&nbsp;</td>' . "\n";
+print '<td align="right">' . "\n";
+$listOfEntity = $formSynergiesTech->getListOfEntitiesByIdAndLabel();
+$selectedContractEntity = explode(",", $conf->global->SYNERGIESTECH_FICHINTER_INTERVENTIONCONTRACTENTITY);
+print $form->multiselectarray("SYNERGIESTECH_FICHINTER_INTERVENTIONCONTRACTENTITY", $listOfEntity, $selectedContractEntity, 0, 0, 'minwidth100 maxwidth300');
+print '</td></tr>' . "\n";
+
+// SYNERGIESTECH_FICHINTER_INTERVENTIONORDERENTITY
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>' . $langs->trans("SynergiesTechProtectOrderEntityList") . '</td>' . "\n";
+print '<td align="center">&nbsp;</td>' . "\n";
+print '<td align="right">' . "\n";
+$selectedOrderEntity = explode(",", $conf->global->SYNERGIESTECH_FICHINTER_INTERVENTIONORDERENTITY);
+print $form->multiselectarray("SYNERGIESTECH_FICHINTER_INTERVENTIONORDERENTITY", $listOfEntity, $selectedOrderEntity, 0, 0, 'minwidth100 maxwidth300');
 print '</td></tr>' . "\n";
 
 print '</table>';
