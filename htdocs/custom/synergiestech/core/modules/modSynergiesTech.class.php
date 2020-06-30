@@ -171,7 +171,10 @@ class modSynergiesTech extends DolibarrModules
 			'synergiestech_admin:+dictionary_synergiestechtimeslot:SynergiesTechTimeSlotDictionaryLabel:synergiestech@synergiestech:true:/synergiestech/admin/dictionaries.php?name=synergiestechtimeslot',
 			'synergiestech_admin:+dictionary_activedirectorygroupmapping:SynergiesTechActiveDirectoryGroupMappingTabName:synergiestech@synergiestech:true:/synergiestech/admin/dictionaries.php?name=activedirectorygroupmapping',
 			'synergiestech_admin:+autoactions:SynergiesTechAutoActionsTabName:synergiestech@synergiestech:true:/synergiestech/admin/agenda.php',
-
+            'thirdparty:+listOfIntervention:SynergiesTechListOfIntervention:synergiestech@synergiestech:$user->rights->ficheinter->lire:/fichinter/list.php?socid=__ID__',
+			'thirdparty:+listOfProposal:SynergiesTechListOfProposal:synergiestech@synergiestech:$user->rights->propal->lire:/comm/propal/list.php?socid=__ID__',
+			'thirdparty:+listOfOrder:SynergiesTechListOfOrder:synergiestech@synergiestech:$user->rights->commande->lire:/commande/list.php?socid=__ID__',
+			'thirdparty:+listOfInvoice:SynergiesTechListOfInvoice:synergiestech@synergiestech:$user->rights->facture->lire:/compta/facture/list.php?socid=__ID__',
 		);
 
 		if (!isset($conf->synergiestech) || !isset($conf->synergiestech->enabled)) {
