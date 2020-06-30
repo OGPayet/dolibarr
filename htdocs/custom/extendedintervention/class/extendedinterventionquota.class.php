@@ -300,7 +300,7 @@ class ExtendedInterventionQuota
                     $idx++;
                     $nb_period++;
                     if ($in_period) $stop_period = true;
-                } while ((!$stop_period || $nb_period < $conf->global->EXTENDEDINTERVENTION_QUOTA_SHOW_X_PERIOD) && !$last_period);
+                } while (!$stop_period && $nb_period < $conf->global->EXTENDEDINTERVENTION_QUOTA_SHOW_X_PERIOD && !$last_period);
             }
         }
 
