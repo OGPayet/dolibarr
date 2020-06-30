@@ -5934,7 +5934,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
         // Open-DSI - Modification - Begin
         //
         if ($islogo && ($modulepart == 'societe' || $modulepart == 'thirdparty' || $modulepart == 'thirdparties' ||
-                $modulepart == 'contact' || $modulepart == 'adherent' || $modulepart == 'member' || $modulepart == 'user')) {
+                $modulepart == 'contact' || $modulepart == 'adherent' || $modulepart == 'member' || $modulepart == 'user' || $modulepart == 'intervention')) {
             // Create thumbs
 			$object->addThumbs($destfile);
             if ($modulepart == 'societe' || $modulepart == 'thirdparty' || $modulepart == 'thirdparties') {
