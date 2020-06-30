@@ -37,7 +37,7 @@ dol_include_once('/fichinter/class/fichinter.class.php');
 class InterventionSurveyApi extends DolibarrApi
 {
 
-        /**
+    /**
      * Array of whitelist of properties keys to overwrite the white list of each element object used in this API
      * @var  array
      *      array('element_type' => array('properties_name'=> '' or array('properties_name'=> '' or array(...), ...), ...)
@@ -49,14 +49,14 @@ class InterventionSurveyApi extends DolibarrApi
     static protected $WHITELIST_OF_PROPERTIES = array(
         'fichinterdet' => array(
             "id" => '', "desc" => '', "duration" => '', "qty" => '', "date" => '', "datei" => '',
-            "rang" => '', "product_type" => '', "array_options" => '', "fk_fichinter"=>''
+            "rang" => '', "product_type" => '', "array_options" => '', "fk_fichinter" => ''
         ),
         'societe' => array(
             "entity" => '', "nom" => '', "name_alias" => '', "zip" => '', "town" => '', "status" => '',
             "state_code" => '', "state" => '', "pays" => '',
             "phone" => '', "fax" => '', "email" => '', "skype" => '', "url" => '', "code_client" => '',
             "price_level" => '', "outstanding_limit" => '', "parent" => '', "default_lang" => '', "ref" => '', "ref_ext" => '',
-            "logo" => '', "array_options" => '', "id" => '', 'address' => '',"name" => '',
+            "logo" => '', "array_options" => '', "id" => '', 'address' => '', "name" => '',
         )
     );
 
@@ -69,8 +69,7 @@ class InterventionSurveyApi extends DolibarrApi
      *      if property is a array and this properties_name value is not a array then get all values
      *      if property is a array and this properties_name value is a array then get whitelist set in the array
      */
-    static protected $WHITELIST_OF_PROPERTIES_LINKED_OBJECT = array(
-    );
+    static protected $WHITELIST_OF_PROPERTIES_LINKED_OBJECT = array();
 
     /**
      * Array of blacklist of properties keys to overwrite the blacklist of each element object used in this API
@@ -136,11 +135,11 @@ class InterventionSurveyApi extends DolibarrApi
      */
     function get($id)
     {
-        if (! DolibarrApiAccess::$user->rights->interventionsurvey->survey->readApi) {
+        if (!DolibarrApiAccess::$user->rights->interventionsurvey->survey->readApi) {
             throw new RestException(401);
         }
 
-        if(!($id > 0)) {
+        if (!($id > 0)) {
             throw new RestException(400, 'Bad Request : you must provide a valid Intervention Id');
         }
 
@@ -150,7 +149,7 @@ class InterventionSurveyApi extends DolibarrApi
         }
 
         if (!$this->interventionSurvey->checkUserAccess(DolibarrApiAccess::$user)) {
-            throw new RestException(401, 'Access to instance id='.$this->interventionSurvey->id.' of object not allowed for login '.DolibarrApiAccess::$user->login);
+            throw new RestException(401, 'Access to instance id=' . $this->interventionSurvey->id . ' of object not allowed for login ' . DolibarrApiAccess::$user->login);
         }
         $this->interventionSurvey->fetchObjectLinked();
         $result = $this->_cleanObjectData($this->interventionSurvey);
@@ -158,7 +157,7 @@ class InterventionSurveyApi extends DolibarrApi
     }
 
 
-/**
+    /**
      * List of interventions
      *
      * Return a list of interventions
@@ -180,7 +179,7 @@ class InterventionSurveyApi extends DolibarrApi
         global $db;
         $obj_ret = array();
 
-        if(! DolibarrApiAccess::$user->rights->ficheinter->lire) {
+        if (!DolibarrApiAccess::$user->rights->ficheinter->lire) {
             throw new RestException(401, "Insufficient rights");
         }
 
@@ -189,24 +188,24 @@ class InterventionSurveyApi extends DolibarrApi
 
         // If the internal user must only see his customers, force searching by him
         $search_sale = 0;
-        if (! DolibarrApiAccess::$user->rights->societe->client->voir) $search_sale = DolibarrApiAccess::$user->id;
+        if (!DolibarrApiAccess::$user->rights->societe->client->voir) $search_sale = DolibarrApiAccess::$user->id;
 
         $sql = "SELECT t.rowid";
-        $sql.= " FROM ".MAIN_DB_PREFIX."fichinter as t";
+        $sql .= " FROM " . MAIN_DB_PREFIX . "fichinter as t";
 
         // external
         if ($userSocId > 0) {
             $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "fichinter_extrafields as ef ON ef.fk_object = t.rowid";
             $sql .= self::_sqlElementListForExternalUser($userSocId, $search_sale);
             $sql .= " AND t.entity IN (" . getEntity('fichinter') . ")";
-			// Add sql filters
-        if ($sqlfilters) {
-            if (!DolibarrApi::_checkFilters($sqlfilters)) {
-                throw new RestException(503, 'Error when validating parameter sqlfilters ' . $sqlfilters);
+            // Add sql filters
+            if ($sqlfilters) {
+                if (!DolibarrApi::_checkFilters($sqlfilters)) {
+                    throw new RestException(503, 'Error when validating parameter sqlfilters ' . $sqlfilters);
+                }
+                $regexstring = '\(([^:\'\(\)]+:[^:\'\(\)]+:[^:\(\)]+)\)';
+                $sql .= " AND (" . preg_replace_callback('/' . $regexstring . '/', 'DolibarrApi::_forge_criteria_callback', $sqlfilters) . ")";
             }
-            $regexstring = '\(([^:\'\(\)]+:[^:\'\(\)]+:[^:\(\)]+)\)';
-            $sql .= " AND (" . preg_replace_callback('/' . $regexstring . '/', 'DolibarrApi::_forge_criteria_callback', $sqlfilters) . ")";
-        }
         }
         // internal
         else {
@@ -214,14 +213,14 @@ class InterventionSurveyApi extends DolibarrApi
 
             $sql .= ' WHERE (t.entity IN (' . getEntity('intervention') . ')';
 
-			        // Add sql filters
-        if ($sqlfilters) {
-            if (!DolibarrApi::_checkFilters($sqlfilters)) {
-                throw new RestException(503, 'Error when validating parameter sqlfilters ' . $sqlfilters);
+            // Add sql filters
+            if ($sqlfilters) {
+                if (!DolibarrApi::_checkFilters($sqlfilters)) {
+                    throw new RestException(503, 'Error when validating parameter sqlfilters ' . $sqlfilters);
+                }
+                $regexstring = '\(([^:\'\(\)]+:[^:\'\(\)]+:[^:\(\)]+)\)';
+                $sql .= " AND (" . preg_replace_callback('/' . $regexstring . '/', 'DolibarrApi::_forge_criteria_callback', $sqlfilters) . ")";
             }
-            $regexstring = '\(([^:\'\(\)]+:[^:\'\(\)]+:[^:\(\)]+)\)';
-            $sql .= " AND (" . preg_replace_callback('/' . $regexstring . '/', 'DolibarrApi::_forge_criteria_callback', $sqlfilters) . ")";
-        }
 
             if ((!DolibarrApiAccess::$user->rights->societe->client->voir) || $search_sale > 0) $sql .= " AND t.fk_soc = sc.fk_soc";
             if ($search_sale > 0) $sql .= " AND t.fk_soc = sc.fk_soc";        // Join for the needed table to filter by sale
@@ -242,40 +241,36 @@ class InterventionSurveyApi extends DolibarrApi
 
 
 
-        $sql.= $db->order($sortfield, $sortorder);
-        if ($limit)	{
-            if ($page < 0)
-            {
+        $sql .= $db->order($sortfield, $sortorder);
+        if ($limit) {
+            if ($page < 0) {
                 $page = 0;
             }
             $offset = $limit * $page;
 
-            $sql.= $db->plimit($limit + 1, $offset);
+            $sql .= $db->plimit($limit + 1, $offset);
         }
 
         dol_syslog("API Rest request");
         $result = $db->query($sql);
 
-        if ($result)
-        {
+        if ($result) {
             $num = $db->num_rows($result);
             $min = min($num, ($limit <= 0 ? $num : $limit));
             $i = 0;
-            while ($i < $min)
-            {
+            while ($i < $min) {
                 $obj = $db->fetch_object($result);
                 $fichinter_static = new InterventionSurvey($db);
-                if($fichinter_static->fetch($obj->rowid)) {
+                if ($fichinter_static->fetch($obj->rowid)) {
                     $fichinter_static->fetchObjectLinked();
                     $obj_ret[] = $this->_cleanObjectData($fichinter_static);
                 }
                 $i++;
             }
+        } else {
+            throw new RestException(503, 'Error when retrieve fichinter list : ' . $db->lasterror());
         }
-        else {
-            throw new RestException(503, 'Error when retrieve fichinter list : '.$db->lasterror());
-        }
-        if( ! count($obj_ret)) {
+        if (!count($obj_ret)) {
             return $obj_ret;
         }
 
@@ -297,14 +292,14 @@ class InterventionSurveyApi extends DolibarrApi
             throw new RestException(400, "You must provide data");
         }
 
-        if (! DolibarrApiAccess::$user->rights->interventionsurvey->survey->writeApi) {
+        if (!DolibarrApiAccess::$user->rights->interventionsurvey->survey->writeApi) {
             throw new RestException(401, "Insufficient rights");
         }
 
         $request_data = json_decode(json_encode($request_data));
         $id = $request_data->id;
 
-        if(!($id > 0)) {
+        if (!($id > 0)) {
             throw new RestException(400, 'Bad Request : you must provide a valid Intervention Id');
         }
 
@@ -315,34 +310,56 @@ class InterventionSurveyApi extends DolibarrApi
 
 
         if (!$this->interventionSurvey->checkUserAccess(DolibarrApiAccess::$user)) {
-            throw new RestException(401, 'Access to instance id='.$this->interventionSurvey->id.' of object not allowed for login '.DolibarrApiAccess::$user->login);
+            throw new RestException(401, 'Access to instance id=' . $this->interventionSurvey->id . ' of object not allowed for login ' . DolibarrApiAccess::$user->login);
         }
 
 
 
-        if($this->interventionSurvey->is_survey_read_only()) {
-            throw new RestException(401, 'Intervention survey with id='.$this->interventionSurvey->id.'is in readonly mode');
+        if ($this->interventionSurvey->is_survey_read_only()) {
+            throw new RestException(401, 'Intervention survey with id=' . $this->interventionSurvey->id . 'is in readonly mode');
         }
 
         $request = clone $this->interventionSurvey;
         $request->setSurveyFromFetchObj($request_data->survey, true);
 
-        $result = $this->interventionSurvey->mergeWithFollowingData(DolibarrApiAccess::$user,$request, true);
+        //We update general field on intervention
+        $fields = array();
+        foreach ($fields as $field) {
+            if (property_exists($request_data, $field)) {
+                $this->interventionSurvey->{$field} = $request_data->{$field} ?? null;
+            }
+        }
+        //We update too signature contained into array_options
+        $fields = array('options_customer_signature', 'options_stakeholder_signature');
+        if (!$this->interventionSurvey->array_options) {
+            $this->interventionSurvey->array_options = array();
+        }
+        if (!is_array($request_data->array_options)) {
+            $request_data->array_options = (array) $request_data->array_options;
+        }
+        foreach ($fields as $field) {
+            if (array_key_exists($field, $request_data->array_options)) {
+                $this->interventionSurvey->array_options[$field] = $request_data->array_options[$field];
+            }
+        }
 
-        //We update too general field on intervention
+        global $db;
+        $db->begin();
+        //We update too other field on intervention
+        $result = $this->interventionSurvey->update(DolibarrApiAccess::$user);
+
+        //Finally we update survey
         if($result > 0){
-            $fields = array('')
+            $result = $this->interventionSurvey->mergeWithFollowingData(DolibarrApiAccess::$user, $request, true);
         }
 
-        $this->interventionSurvey->fetchObjectLinked();
-
-        if ($result > 0)
-        {
+        if ($result > 0) {
+            $db->commit();
+            $this->interventionSurvey->fetchObjectLinked();
             return $this->_cleanObjectData($this->interventionSurvey);
-        }
-        else
-        {
-            throw new RestException(422, "Error when saving the survey", [ 'id_intervention' => $this->interventionSurvey->id, 'details' => $this->_getErrors($this->interventionSurvey) ]);
+        } else {
+            $db->rollback();
+            throw new RestException(422, "Error when saving the survey", ['id_intervention' => $this->interventionSurvey->id, 'details' => $this->_getErrors($this->interventionSurvey)]);
         }
     }
 
@@ -361,14 +378,14 @@ class InterventionSurveyApi extends DolibarrApi
             throw new RestException(400, "You must provide data");
         }
 
-        if (! DolibarrApiAccess::$user->rights->interventionsurvey->survey->writeApi) {
+        if (!DolibarrApiAccess::$user->rights->interventionsurvey->survey->writeApi) {
             throw new RestException(401, "Insufficient rights");
         }
 
         //We prepare request data object
         $request_data = json_decode(json_encode($request_data));
 
-        if(property_exists($request_data, 'array_options')){
+        if (property_exists($request_data, 'array_options')) {
             $request_data->array_options = (array) $request_data->array_options;
         }
 
@@ -388,39 +405,35 @@ class InterventionSurveyApi extends DolibarrApi
         $this->interventionLine->fk_fichinter = $fichInterId;
 
         if ($this->interventionSurvey->fetch($fichInterId) < 0) {
-            throw new RestException(422, "Error when fetching the intervention", [ 'id_intervention' => $request_data->fk_fichinter, 'details' => $this->_getErrors($this->interventionSurvey) ]);
+            throw new RestException(422, "Error when fetching the intervention", ['id_intervention' => $request_data->fk_fichinter, 'details' => $this->_getErrors($this->interventionSurvey)]);
         }
 
         if (!$this->interventionSurvey->checkUserAccess(DolibarrApiAccess::$user)) {
-            throw new RestException(401, 'Access to instance id='.$this->interventionSurvey->id.' of object not allowed for login '.DolibarrApiAccess::$user->login);
+            throw new RestException(401, 'Access to instance id=' . $this->interventionSurvey->id . ' of object not allowed for login ' . DolibarrApiAccess::$user->login);
         }
 
-        if($this->interventionSurvey->is_survey_read_only()) {
-            throw new RestException(401, 'Intervention survey with id='.$this->interventionSurvey->id.'is in readonly mode');
+        if ($this->interventionSurvey->is_survey_read_only()) {
+            throw new RestException(401, 'Intervention survey with id=' . $this->interventionSurvey->id . 'is in readonly mode');
         }
 
 
         $fields = array('datei', 'desc', 'duration', 'rang', 'array_options');
-        foreach($fields as $field){
-            if(property_exists($request_data,$field)){
+        foreach ($fields as $field) {
+            if (property_exists($request_data, $field)) {
                 $this->interventionLine->{$field} = $request_data->{$field} ?? null;
             }
         }
 
-        if($this->interventionLine->id > 0){
+        if ($this->interventionLine->id > 0) {
             $result = $this->interventionLine->update(DolibarrApiAccess::$user);
-        }
-        else {
+        } else {
             $result = $this->interventionLine->insert(DolibarrApiAccess::$user);
         }
 
-        if ($result >= 0)
-        {
+        if ($result >= 0) {
             return $this->_cleanObjectData($this->interventionLine);
-        }
-        else
-        {
-            throw new RestException(422, "Error when saving the intervention Line", [ 'id_intervention' => $this->interventionSurvey->id, 'details' => $this->_getErrors($this->interventionLine) ]);
+        } else {
+            throw new RestException(422, "Error when saving the intervention Line", ['id_intervention' => $this->interventionSurvey->id, 'details' => $this->_getErrors($this->interventionLine)]);
         }
     }
 
@@ -437,40 +450,38 @@ class InterventionSurveyApi extends DolibarrApi
      */
     function deleteLine($lineId)
     {
-        if(! DolibarrApiAccess::$user->rights->interventionsurvey->survey->writeApi) {
+        if (!DolibarrApiAccess::$user->rights->interventionsurvey->survey->writeApi) {
             throw new RestException(401, "Insufficient rights");
         }
 
-        if(!$lineId){
+        if (!$lineId) {
             throw new RestException(400, "Bad Request");
         }
 
-        if($this->interventionLine->fetch($lineId) < 0 || $this->interventionLine->rowid == null){
+        if ($this->interventionLine->fetch($lineId) < 0 || $this->interventionLine->rowid == null) {
             //Intervention line has already been deleted
             return true;
         }
 
-        if($this->interventionLine->fk_fichinter > 0 && $this->interventionSurvey->fetch($this->interventionLine->fk_fichinter) < 0){
+        if ($this->interventionLine->fk_fichinter > 0 && $this->interventionSurvey->fetch($this->interventionLine->fk_fichinter) < 0) {
             //Intervention has already been deleted
             return true;
         }
 
         $hasPerm = $this->interventionSurvey->checkUserAccess(DolibarrApiAccess::$user);
-        if (! $hasPerm) {
+        if (!$hasPerm) {
             throw new RestException(401, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
         }
 
-        if($this->interventionSurvey->is_survey_read_only()) {
-            throw new RestException(403, 'Intervention survey with id='.$this->interventionSurvey->id.'is in readonly mode');
+        if ($this->interventionSurvey->is_survey_read_only()) {
+            throw new RestException(403, 'Intervention survey with id=' . $this->interventionSurvey->id . 'is in readonly mode');
         }
 
-        if($this->interventionLine->deleteline(DolibarrApiAccess::$user) >= 0) {
+        if ($this->interventionLine->deleteline(DolibarrApiAccess::$user) >= 0) {
             return true;
+        } else {
+            throw new RestException(422, "Error when deleting the intervention line", ['id_intervention' => $this->interventionSurvey->id, 'id_line' => $this->interventionLine->id, 'details' => $this->_getErrors($this->interventionLine)]);
         }
-        else {
-            throw new RestException(422, "Error when deleting the intervention line", [ 'id_intervention' => $this->interventionSurvey->id, 'id_line' => $this->interventionLine->id, 'details' => $this->_getErrors($this->interventionLine) ]);
-        }
-
     }
 
     /**
@@ -484,11 +495,11 @@ class InterventionSurveyApi extends DolibarrApi
      */
     function closeIntervention($id)
     {
-        if(! DolibarrApiAccess::$user->rights->interventionsurvey->survey->writeApi) {
+        if (!DolibarrApiAccess::$user->rights->interventionsurvey->survey->writeApi) {
             throw new RestException(401, "Insufficient rights");
         }
 
-        if(!($id > 0)) {
+        if (!($id > 0)) {
             throw new RestException(400, 'Bad Request : you must provide a valid Intervention Id');
         }
 
@@ -498,17 +509,17 @@ class InterventionSurveyApi extends DolibarrApi
         }
 
         if (!$this->interventionSurvey->checkUserAccess(DolibarrApiAccess::$user)) {
-            throw new RestException(401, 'Access to instance id='.$this->interventionSurvey->id.' of object not allowed for login '.DolibarrApiAccess::$user->login);
+            throw new RestException(401, 'Access to instance id=' . $this->interventionSurvey->id . ' of object not allowed for login ' . DolibarrApiAccess::$user->login);
         }
 
-        if($this->interventionSurvey->is_survey_read_only()) {
-            throw new RestException(401, 'Intervention survey with id='.$this->interventionSurvey->id.'is in readonly mode');
+        if ($this->interventionSurvey->is_survey_read_only()) {
+            throw new RestException(401, 'Intervention survey with id=' . $this->interventionSurvey->id . 'is in readonly mode');
         }
 
         $result = $this->interventionSurvey->setStatut(3);
 
         if ($result < 0) {
-            throw new RestException(403, 'Error when closing Intervention with id='.$this->interventionSurvey->id. ' : '.$this->_getErrors($this->interventionSurvey));
+            throw new RestException(403, 'Error when closing Intervention with id=' . $this->interventionSurvey->id . ' : ' . $this->_getErrors($this->interventionSurvey));
         }
 
         $this->interventionSurvey->fetchObjectLinked();
@@ -533,18 +544,18 @@ class InterventionSurveyApi extends DolibarrApi
 
         // module not active
         if (empty($conf->synergiestech->enabled)) {
-           throw new RestException(500, 'Error when re-opening Intervention : Module SynergiesTech disabled');
+            throw new RestException(500, 'Error when re-opening Intervention : Module SynergiesTech disabled');
         }
 
-        if(! DolibarrApiAccess::$user->rights->synergiestech->fichinter->reopen) {
+        if (!DolibarrApiAccess::$user->rights->synergiestech->fichinter->reopen) {
             throw new RestException(401, "Insufficient rights");
         }
 
-        if(! DolibarrApiAccess::$user->rights->interventionsurvey->survey->writeApi) {
+        if (!DolibarrApiAccess::$user->rights->interventionsurvey->survey->writeApi) {
             throw new RestException(401, "Insufficient rights");
         }
 
-        if(!($id > 0)) {
+        if (!($id > 0)) {
             throw new RestException(400, 'Bad Request : you must provide a valid Intervention Id');
         }
 
@@ -554,7 +565,7 @@ class InterventionSurveyApi extends DolibarrApi
         }
 
         if (!$this->interventionSurvey->checkUserAccess(DolibarrApiAccess::$user)) {
-            throw new RestException(401, 'Access to instance id='.$this->interventionSurvey->id.' of object not allowed for login '.DolibarrApiAccess::$user->login);
+            throw new RestException(401, 'Access to instance id=' . $this->interventionSurvey->id . ' of object not allowed for login ' . DolibarrApiAccess::$user->login);
         }
 
         dol_include_once('/synergiestech/lib/synergiestech.lib.php');
@@ -564,7 +575,7 @@ class InterventionSurveyApi extends DolibarrApi
         $result = synergiestech_reopen_intervention($db, $this->interventionSurvey, DolibarrApiAccess::$user, $msg_error);
 
         if ($result < 0) {
-            throw new RestException(403, 'Error while reopen Intervention with id='.$this->interventionSurvey->id. ' : '.$this->_getErrors($this->interventionSurvey));
+            throw new RestException(403, 'Error while reopen Intervention with id=' . $this->interventionSurvey->id . ' : ' . $this->_getErrors($this->interventionSurvey));
         }
 
         return $this->_cleanObjectData($this->interventionSurvey);
@@ -581,7 +592,7 @@ class InterventionSurveyApi extends DolibarrApi
      * @param       int     $search_sale    Id of commercial user
      * @return      string  SQL request
      */
-    private static function _sqlElementListForExternalUser($userSocId, $search_sale=0)
+    private static function _sqlElementListForExternalUser($userSocId, $search_sale = 0)
     {
         $sql = '';
 
@@ -635,7 +646,7 @@ class InterventionSurveyApi extends DolibarrApi
      *
      * @throws  500             RestException               Error while retrieve the custom whitelist of properties for the object type
      */
-    function _cleanObjectData(&$object, $whitelist_of_properties=array(), $blacklist_of_properties=array())
+    function _cleanObjectData(&$object, $whitelist_of_properties = array(), $blacklist_of_properties = array())
     {
         if (!empty($object->element)) {
             $this->_getBlackWhitelistOfProperties($object, $whitelist_of_properties, $blacklist_of_properties);
@@ -682,7 +693,7 @@ class InterventionSurveyApi extends DolibarrApi
      *
      * @throws  500             RestException               Error while retrieve the custom whitelist of properties for the object type
      */
-	function _cleanSubObjectData(&$object, $whitelist_of_properties=array(), $blacklist_of_properties=array())
+    function _cleanSubObjectData(&$object, $whitelist_of_properties = array(), $blacklist_of_properties = array())
     {
         if (!empty($object->element)) {
             $this->_getBlackWhitelistOfProperties($object, $whitelist_of_properties, $blacklist_of_properties, true);
@@ -740,7 +751,7 @@ class InterventionSurveyApi extends DolibarrApi
      *
      * @throws  500         RestException       Error while retrieve the custom whitelist of properties for the object type
      */
-	function _getBlackWhitelistOfProperties($object, &$whitelist_of_properties, &$blacklist_of_properties, $linked_object=false)
+    function _getBlackWhitelistOfProperties($object, &$whitelist_of_properties, &$blacklist_of_properties, $linked_object = false)
     {
         global $hookmanager;
 
@@ -818,7 +829,7 @@ class InterventionSurveyApi extends DolibarrApi
      *	@param	string	$pagecodeto			Page code for result
      *	@return	string						String cleaned
      */
-    function _cleanString($string, $pagecodeto='UTF-8')
+    function _cleanString($string, $pagecodeto = 'UTF-8')
     {
         return dol_htmlentitiesbr_decode($string);
     }
@@ -830,7 +841,7 @@ class InterventionSurveyApi extends DolibarrApi
      *
      * @return array                Array of errors
      */
-	function _getErrors(&$object)
+    function _getErrors(&$object)
     {
         $errors = is_array($object->errors) ? $object->errors : array();
         $errors = array_merge($errors, (!empty($object->error) ? array($object->error) : array()));
