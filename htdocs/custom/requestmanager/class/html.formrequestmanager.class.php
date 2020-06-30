@@ -1070,7 +1070,40 @@ class FormRequestManager
         $sql .= ' WHERE rm.entity IN (' . getEntity('requestmanager') . ')';
         $sql .= $filter;
         $sql .= ' GROUP BY rm.rowid';
-        $sql .= $db->order($sortfield, $sortorder);
+
+        $fields = explode(",", $sortfield);
+        $orders = explode(",",$sortorder);
+        $indexSortField = array_search('rm.ref',$fields);
+        $sortOrderOnSortField = $orders[$indexSortField] ?? "DESC";
+        if($indexSortField !== false) {
+            array_splice($fields,$indexSortField,0,"LENGTH(rm.ref)");
+            array_splice($orders,$indexSortField,0,$sortOrderOnSortField);
+            $return='';
+                $i=0;
+                foreach($fields as $val)
+                {
+                    if (! $return) $return.=' ORDER BY ';
+                    else $return.=', ';
+
+                    $return.=$val;
+
+                    $tmpsortorder = trim($orders[$i]);
+
+                    // Only ASC and DESC values are valid SQL
+                    if (strtoupper($tmpsortorder) === 'ASC') {
+                        $return .= ' ASC';
+                    } elseif (strtoupper($tmpsortorder) === 'DESC') {
+                        $return .= ' DESC';
+                    }
+
+                    $i++;
+                }
+            $sql .= $return;
+        }
+        else
+        {
+            $sql .= $db->order($sortfield, $sortorder);
+        }
 
         return $sql;
     }
