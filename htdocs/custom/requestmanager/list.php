@@ -673,6 +673,17 @@ SCRIPT;
     $sql .= $hookmanager->resPrint;
 
     $sql .= ' GROUP BY rm.rowid';
+    //We ajust sort by rm.ref with length of rm.ref
+    $sortfields = explode(",", $sortfield);
+    $sortorders = explode(",",$sortorder);
+    $indexSortField = array_search('rm.ref',$sortfields);
+    $sortOrderOnSortField = $sortorders[$indexSortField] ?? "DESC";
+    if($index !== false) {
+        array_splice($sortfields,$indexSortField,0,"LENGTH(rm.ref)");
+        array_splice($sortorders,$index,0,$sortOrderOnSortField);
+        $sortfield = implode(",", $sortfields);
+        $sortorder = implode(",", $sortorders);
+    }
     $sql .= $db->order($sortfield, $sortorder);
 
     // Count total nb of records
