@@ -121,6 +121,34 @@ class InterventionSurveyApi extends DolibarrApi
         $this->interventionSurvey = new InterventionSurvey($db);
         $this->interventionLine = new FichinterLigne($db);
     }
+    /**
+     * Get dictionary of a intervention type
+     *
+     * Return an array with Intervention type
+     *
+     * @param   string	    $sort_field         Sort field (field name)
+     * @param   string	    $sort_order         Sort order (ASC or DESC)
+     * @param   int		    $limit		        Limit for list
+     * @param   int		    $page		        Page number
+     * @return 	array
+     * @url	GET /dictionaryType
+     * @throws 	RestException
+     */
+    function getDictionaryType($sort_field = "", $sort_order = "ASC", $limit  = 100, $page = 0)
+    {
+        if (!DolibarrApiAccess::$user->rights->interventionsurvey->survey->readApi) {
+            throw new RestException(401);
+        }
+        global $user;
+        dol_include_once("/advancedictionaries/class/api_advancedictionariesapi.class.php");
+        $dictionaryApi = new AdvanceDictionariesApi();
+        $oldRight = $user->rights->advancedictionaries->read;
+        $user->rights->advancedictionaries->read = 1;
+        $result = $dictionaryApi->index('extendedintervention', 'extendedinterventiontype','',$sort_field,$sort_order,$limit,$page);
+        $user->rights->advancedictionaries->read = $oldRight;
+        return $result;
+    }
+
 
     /**
      * Get properties of a interventionSurvey object
