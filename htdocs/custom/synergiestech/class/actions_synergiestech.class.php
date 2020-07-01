@@ -2670,6 +2670,26 @@ SCRIPT;
                         ' GROUP BY e.rowid, s.rowid',
                 ),
             );
+            if(in_array('interventioncard', $contexts) && !empty($conf->global->SYNERGIESTECH_FICHINTER_PROTECTVALIDATEFICHINTER)){
+                $principal_thirdparty_id = $thirdparty->id;
+                $object->fetch_optionals();
+                $benefactorId = $object->array_options["options_companyrelationships_fk_soc_benefactor"];
+                $possiblelinks['order'] = array(
+                    'enabled' => $conf->commande->enabled,
+                    'perms' => 1,
+                    'label' => 'LinkToOrder',
+                    'sql' => "SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref, t.ref_client, t.total_ht FROM " . MAIN_DB_PREFIX . "societe as s" .
+                        " INNER JOIN  " . MAIN_DB_PREFIX . "commande as t ON t.fk_soc = s.rowid" .
+                        ( !empty($conf->companyrelationships->enabled) ? " LEFT JOIN " . MAIN_DB_PREFIX . "commande_extrafields as tef ON tef.fk_object = t.rowid " : '') .
+                        " LEFT JOIN  " . MAIN_DB_PREFIX . "element_element as ee" .
+                        "   ON (ee.sourcetype = 'commande' AND ee.fk_source = t.rowid AND ee.targettype = '" . $object->element . "' AND ee.fk_target = " . $object->id . ")" .
+                        "   OR (ee.targettype = 'commande' AND ee.fk_target = t.rowid AND ee.sourcetype = '" . $object->element . "' AND ee.fk_source = " . $object->id . ")" .
+                        " WHERE t.fk_soc IN (" . $principal_thirdparty_id . ') AND t.entity IN (' . $conf->global->SYNERGIESTECH_FICHINTER_INTERVENTIONORDERENTITY . ')' .
+                        ' AND ee.rowid IS NULL' .
+                        ( !empty($conf->companyrelationships->enabled) ? " AND tef.companyrelationships_fk_soc_benefactor IN ( " . $benefactorId . ") " : '') .
+                        ' GROUP BY t.rowid, s.rowid',
+                );
+            }
 
             $conf->global->EQUIPEMENT_DISABLE_SHOW_LINK_TO_OBJECT_BLOCK = 1;
             $conf->global->REQUESTMANAGER_DISABLE_SHOW_LINK_TO_OBJECT_BLOCK = 1;

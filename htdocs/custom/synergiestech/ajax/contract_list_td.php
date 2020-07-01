@@ -49,7 +49,8 @@ if ($soc_id > 0) {
     dol_include_once("/synergiestech/class/html.formsynergiestech.class.php");
     $langs->loadLangs(array("contracts", 'synergiestech@synergiestech'));
     $synergiesTechForm = new FormSynergiesTech($db);
-    $contractList = $synergiesTechForm->getListOfContractLabel($soc_id, $company_benefactor_id);
+    $customListOfEntity = $conf->global->SYNERGIESTECH_FICHINTER_PROTECTVALIDATEFICHINTER ? explode(",",$conf->global->SYNERGIESTECH_FICHINTER_INTERVENTIONCONTRACTENTITY) : null;
+    $contractList = $synergiesTechForm->getListOfContractLabel($soc_id, $company_benefactor_id, $customListOfEntity);
 
     $contract_ids_match = array_intersect($contract_ids, array_keys($contractList));
     if (!in_array($contract_id, $contract_ids_match)) {

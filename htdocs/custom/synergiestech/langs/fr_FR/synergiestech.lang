@@ -71,6 +71,9 @@ SynergiesTechInterventionValidateProtection = Paramètre de protection des justi
 SynergiesTechProtectValidateFichInter = Activer les protections de validation et la surveillance des liens sur les fiches d'intervention
 SynergiesTechProtectValidateFichInterDesc = Ces protections permettent de s'assurer que toute intervention ayant le statut validé ou cloturé a toujours une justification commerciale lié : contrat lié ou commande concernant au moins un des services paramétrés
 SynergiesTechProtectValidateServiceList = Liste des services permettant de considérer une commande comme étant une commande pour une intervention
+SynergiesTechProtectContractEntityList = Liste des entités où chercher les contrats devant être proposés pour justifier l'existence commerciale d'une intervention
+SynergiesTechProtectOrderEntityList = Liste des entités où chercher les commandes devant être proposés pour justifier les commandes clients permettant de justifier l'existence commerciale d'une intervention
+
 
 SynergiesTechAutoActionsTabName = Evènement automatique créé par ce module
 Notify_PROPAL_CREATE = Créer un évènement lorsqu'une proposition commerciale est créée

@@ -1934,10 +1934,11 @@ class FormSynergiesTech
      * @param   int $benefactorId Id of the benefactor thirdparty
      * @param   Boolean $onlyActiveContract Should we filter to get only active contract
      * @param   Boolean $strictMode Should we return contract with socid and benefactor or contract with socId OR benefactor
+     * @param   array $entity list of entity id where to search
      * @return  Contract[] List of contract
      */
 
-    function fetch_all_contract_for_these_company($socId, $benefactorId, $onlyActiveContract = true, $strictMode = false)
+    function fetch_all_contract_for_these_company($socId, $benefactorId, $onlyActiveContract = true, $strictMode = false, $entity = null)
     {
         //We saved in memory all contract related to this company : were it is a benefactor and/or a requester
         global $conf;
@@ -1945,12 +1946,20 @@ class FormSynergiesTech
         $result = array();
 
         if (!empty($conf->contrat->enabled) && ($socId > 0 || (!empty($conf->companyrelationships->enabled) && $benefactorId > 0))) {
+
             $sql = "SELECT DISTINCT c.rowid";
             $sql .= " FROM " . MAIN_DB_PREFIX . "contrat as c";
             if (!empty($conf->companyrelationships->enabled) && $benefactorId > 0) {
                 $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "contrat_extrafields as cf ON c.rowid = cf.fk_object";
             }
-            $sql .= " WHERE c.entity IN (" . getEntity('contrat') . ")";
+            if($entity == null){
+                $entity = getEntity('contrat');
+            }
+            else
+            {
+                $entity = implode(",", $entity);
+            }
+            $sql .= " WHERE c.entity IN (" . $entity . ")";
             $sql .= ' AND (';
             if (!$strictMode) {
                 $separator = ' OR ';
@@ -2410,11 +2419,12 @@ class FormSynergiesTech
      *
      * @param   int $socId
      * @param   int $benefactorId
+     * @param   array $entity list of entity id where to search
      * @return  array
      */
 
-    public function getListOfContractLabel($socId, $benefactorId){
-        $listofContract = $this->fetch_all_contract_for_these_company($socId, $benefactorId, false, true);
+    public function getListOfContractLabel($socId, $benefactorId, $entity = null){
+        $listofContract = $this->fetch_all_contract_for_these_company($socId, $benefactorId, false, true, $entity);
         $toPrint = array();
         foreach($listofContract as $contract){
            $toPrint[$contract->id] = $this->getContractLabel($contract, array("ref","formule","status", " - "));
@@ -2431,7 +2441,9 @@ class FormSynergiesTech
      */
 
      public function selectContract($socId, $benefactorId, $selectedContractId){
-         $toPrint = $this->getListOfContractLabel($socId, $benefactorId);
+         global $conf;
+        $customListOfEntity = $conf->global->SYNERGIESTECH_FICHINTER_PROTECTVALIDATEFICHINTER ? explode(",",$conf->global->SYNERGIESTECH_FICHINTER_INTERVENTIONCONTRACTENTITY) : null;
+         $toPrint = $this->getListOfContractLabel($socId, $benefactorId,$customListOfEntity);
          return $this->form->selectarray('contratid', $toPrint, $selectedContractId, 1);
      }
 
