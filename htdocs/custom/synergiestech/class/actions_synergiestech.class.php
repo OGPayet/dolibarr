@@ -2671,7 +2671,7 @@ SCRIPT;
                 ),
             );
             if(in_array('interventioncard', $contexts) && !empty($conf->global->SYNERGIESTECH_FICHINTER_PROTECTVALIDATEFICHINTER)){
-                $principal_thirdparty_id = $thirdparty->id;
+                $principal_thirdparty_id = $object->socid;
                 $object->fetch_optionals();
                 $benefactorId = $object->array_options["options_companyrelationships_fk_soc_benefactor"];
                 $possiblelinks['order'] = array(
