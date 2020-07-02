@@ -43,11 +43,11 @@ $prevrowid   = GETPOST('prevrowid', 'int');
 $module      = GETPOST('module', 'alpha');
 $name        = GETPOST('name', 'alpha');
 
-$canRead = $user->rights->advancedictionaries->read || $user->admin;
-$canCreate = $user->rights->advancedictionaries->create || $user->admin;
-$canUpdate = $user->rights->advancedictionaries->create || $user->admin;
-$canDelete = $user->rights->advancedictionaries->delete || $user->admin;
-$canDisable = $user->rights->advancedictionaries->disable || $user->admin;
+$canRead = $user->rights->advancedictionaries->read;
+$canCreate = $user->rights->advancedictionaries->create;
+$canUpdate = $user->rights->advancedictionaries->create;
+$canDelete = $user->rights->advancedictionaries->delete;
+$canDisable = $user->rights->advancedictionaries->disable;
 
 require dol_buildpath('/advancedictionaries/core/actions_dictionaries.inc.php');
 

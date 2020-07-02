@@ -1,5 +1,6 @@
 <?php
 /* Copyright (C) 2018  Open-Dsi <support@open-dsi.fr>
+ * Copyright 2020   Alexis LAURIER <contact@alexislaurier.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,58 +26,54 @@ require_once DOL_DOCUMENT_ROOT . '/core/class/commonobject.class.php';
 require_once DOL_DOCUMENT_ROOT . '/core/class/commonobjectline.class.php';
 
 
-function getAssociationTableOptionsForChkbxlstFieldType($field, $table_name) {
+function getAssociationTableOptionsForChkbxlstFieldType($field, $table_name)
+{
 
-	$result = array(MAIN_DB_PREFIX . $table_name . '_cbl_' . $field['name'], 'fk_line', 'fk_target' );
-	// if(isset($field['options'])){
-	// 	$temp = explode(":", (string)$field['options']);
-	// 	if(isset($temp[0])){
-	// 		$result[0] = MAIN_DB_PREFIX . $temp[0];
-	// 	}
-	// 	if(isset($temp[1])){
-	// 		$result[1] = $temp[1];
-	// 	}
-	// 	if(isset($temp[2])){
-	// 		$result[2] = $temp[2];
-	// 	}
-	// }
+    $result = array(MAIN_DB_PREFIX . $table_name . '_cbl_' . $field['name'], 'fk_line', 'fk_target');
 
-	if(isset($field['association_table'])){
-		$temp = explode(":", (string)$field['association_table']);
-		if(isset($temp[0])){
-			$result[0] = MAIN_DB_PREFIX . $temp[0];
-		}
-		if(isset($temp[1])){
-			$result[1] = $temp[1];
-		}
-		if(isset($temp[2])){
-			$result[2] = $temp[2];
-		}
-	}
-	return $result;
- }
-
- function getInfoFieldArrayFromOptionsForChkbxlstFieldType($field) {
-	// 0 : tableName
-	// 1 : label field name
-	   // 2 : key fields name (if differ of rowid)
-	   // 3 : key field parent (for dependent lists)
-	// 4 : where clause filter on column or table extrafield, syntax field='value' or extra.field=value
-$InfoFieldList = explode(":", (string)$field['options']);
-return $InfoFieldList;
+    if (isset($field['association_table'])) {
+        $temp = explode(":", (string) $field['association_table']);
+        if (isset($temp[0])) {
+            $result[0] = MAIN_DB_PREFIX . $temp[0];
+        }
+        if (isset($temp[1])) {
+            $result[1] = $temp[1];
+        }
+        if (isset($temp[2])) {
+            $result[2] = $temp[2];
+        }
+    }
+    return $result;
 }
 
-function getAssociationTableNameForChkbxlstFieldType($field, $table_name) {
-	return getAssociationTableOptionsForChkbxlstFieldType($field, $table_name)[0];
- }
+function getInfoFieldArrayFromOptionsForChkbxlstFieldType($field)
+{
+            // 0 : tableName
+            // 1 : label field name
+            // 2 : key fields name (if differ of rowid)
+            // 3 : key field parent (for dependent lists)
+            // 4 : where clause filter on column or table extrafield, syntax field='value' or extra.field=value
+            // 5 : ObjectName
+            // 6 : classPath
+            // 7 : lang
+    $InfoFieldList = explode(":", (string) $field['options']);
+    return $InfoFieldList;
+}
 
- function getForeignKeyOfThisDictionnaryInAssociationTableForChkbxlstFieldType($field, $table_name) {
-	return getAssociationTableOptionsForChkbxlstFieldType($field, $table_name)[1];
- }
+function getAssociationTableNameForChkbxlstFieldType($field, $table_name)
+{
+    return getAssociationTableOptionsForChkbxlstFieldType($field, $table_name)[0];
+}
 
- function getForeignKeyOfDestinationTableInAssociationTableForChkbxlstFieldType($field, $table_name) {
-	return getAssociationTableOptionsForChkbxlstFieldType($field, $table_name)[2];
- }
+function getForeignKeyOfThisDictionnaryInAssociationTableForChkbxlstFieldType($field, $table_name)
+{
+    return getAssociationTableOptionsForChkbxlstFieldType($field, $table_name)[1];
+}
+
+function getForeignKeyOfDestinationTableInAssociationTableForChkbxlstFieldType($field, $table_name)
+{
+    return getAssociationTableOptionsForChkbxlstFieldType($field, $table_name)[2];
+}
 
 
 /**
@@ -155,6 +152,11 @@ class Dictionary extends CommonObject
     public $customBackLink = '';
 
     /**
+     * @var bool        Hide the custom back link in the values list screen
+     */
+    public $hideCustomBackLink = false;
+
+    /**
      * @var string      Name of the dictionary table without prefix (ex: c_country)
      */
     public $table_name = '';
@@ -162,67 +164,91 @@ class Dictionary extends CommonObject
     /**
      * @var array  Fields of the dictionary table
      * 'name' => array(
-     *   'name'              => string,         // Name of the field
-     *   'label'             => string,         // Label of the field, translated if key found
-     *   'type'              => string,         // Type of the field (varchar, text, int, double, date, datetime, boolean, price, phone, mail, url,
-     *                                                                password, select, sellist, radio, checkbox, chkbxlst, link, custom)
-     *  'association_table' => 'c_intervention_survey_answer_cbl_predefined_texts:fk_target:fk_line' // first element is name of the association table, second is the name of the foreign key of this dictionnary, third is the foreign key of the destination table
-	 *  'database'          => array(          // Description of the field in the database always rewrite default value if set
-     *     'type'            => string,         // Data type
-     *     'length'          => string,         // Length of the data type (require)
-     *     'default'         => string,         // Default value in the database
+     *   'name'                   => string,         			// Name of the field
+     *   'label'                  => string,         			// Label of the field, translated if key found
+     *   'label_in_add_edit'      => string,         			// Label of the field in add/edit box if defined, translated if key found
+     *   'type'                   => string,         			// Type of the field (varchar, text, int, float, double, date, datetime, boolean, price, phone, mail, url,
+     *                                               			                      password, select, sellist, radio, checkbox, chkbxlst, link, custom)
+     *   'database'               => array(          			// Description of the field in the database always rewrite default value if set
+     *     'type'                 => string,         			// Data type
+     *     'length'               => string,         			// Length of the data type (require)
+     *     'default'              => string,         			// Default value in the database
      *   ),
-     *   'is_require'        => bool,           // Set at true if this field is required
-     *   'is_fixed_value'    => bool,           // Set at true if this field is a set automatically
-     *   'options'           => array()|string, // Parameters same as extrafields (ex: 'table:label:rowid::active=1' or array(1=>'value1', 2=>'value2') )
-     *                                             string: sellist, chkbxlst, link | array: select, radio, checkbox
-     *                                             The key of the value must be not contains the character ',' and for chkbxlst it's a rowid
-     *   'label_separator'   => string,         // Separator when use | in the label into the options value
-     *   'td_title'          => array (
-     *      'moreClasses'    => string,  // Add more classes in the title balise td
-     *      'moreAttributes' => string,  // Add more attributes in the title balise td
-     *      'align'          => string,  // Overwrirte the align by default
+     *  'association_table'       => string,                    // Parameters for association table on n-n relations elements
+     *                                                             Parameter :  0:1:2
+     *                                                             Example : tableName:foreignKeyNameOfElementOfThisDictionary:foreignKeyNameOfElementOfIntoDestinationTable
+     *                                                                  0:name of the association table
+     *                                                                  1:name of the column for foreign key of this dictionary
+     *                                                                  2:name of the column for foreign key of the destination table
+     *   'is_require'             => bool,           			// Set at true if this field is required
+     *   'is_fixed_value'         => bool,           			// Set at true if this field is a set automatically
+     *   'update_list_values'     => array(name_field, ...), 	// Update list of values of the specified name_field by AJAX when this field is modified (update field type: select, checkbox, sellist, chkbxlst)
+     *   'options'                => array()|string, 			// Parameters same as extrafields (ex: 'table:label:rowid::active=1' or array(1=>'value1', 2=>'value2') )
+     *                                               			   string: sellist, chkbxlst, link | array: select, radio, checkbox
+     *                                               			   The key of the value must be not contains the character ',' and for chkbxlst it's a rowid
+     * 															   Parameter: 0:1:2:3:4:5:6:7
+     *																	0 : tableName ({{DB_PREFIX}} can be used on case: table AS t1 LEFT JOIN {{DB_PREFIX}}table2 AS t2 ON t2.rowid = t1.fk_table2)
+     *																	1 : label field name (can use | for multiple label field, can use 'AS', example: t1.label AS t1_label|t2.label AS t2_label)
+     *																	2 : key fields name (if differ of rowid)
+     *																	3 : key field parent (for dependent lists)
+     *																	4 : where clause filter on column or table extrafield, syntax field='value' or extra.field=value
+     *																	5 : ObjectName
+     *																	6 : classPath
+     *																	7 : lang (can use | for multiple field with lang file to load, can use 'AS', example: t1.lang AS t1_lang|t2.lang AS t2_lang)
+     *   'truncate'        	  	  => integer,        			// Truncate string in "sellist", "chkbxlst" type
+     *   'no_wysiwyg'        	  => bool,         	 			// Disabled the WYSIWYG for the "text" type (Default = false)
+     *   'label_separator'        => string,         			// Separator when use | in the label into the options value
+     *   'unselected_values'      => array,          			// List of values for unselected values in select and sellist type (=array(-1) if not defined)
+     *   'translate_prefix'       => string,         			// Prefix for translation of the value
+     *   'translate_suffix'       => string,         			// Suffix for translation of the value
+     *   'show_column_by_default' => bool,           			// Show the column by default when show the list (Default = true)
+     *   'position_column'        => integer,        			// Position of the column in the list show
+     *   'enabled_column'         => bool,           			// Enable the column in the list show (Not )
+     *   'td_title'               => array (
+     *      'moreAttributes'      => string,         			// Add more attributes in the title balise td
+     *      'align'               => string,         			// Overwrirte the align by default
      *   ),
-     *   'td_output'         => array (
-     *      'moreClasses'    => string,  // Add more classes in the output balise td
-     *      'moreAttributes' => string,  // Add more attributes in the output balise td
-     *      'align'          => string,  // Overwrirte the align by default
-     *      'positionLine'   => int,     // Move the input into new line in function of the position (only in add form, 0 by default)
-     *      'colspan'        => int,     // TD colspan
+     *   'td_output'              => array (
+     *      'moreClasses'         => string,         			// Add more classes in the output balise td
+     *      'moreAttributes'      => string,         			// Add more attributes in the output balise td
+     *      'align'               => string,         			// Overwrirte the align by default
      *   ),
-     *   'show_output'       => array (
-     *      'moreAttributes' => string,  // Add more attributes in when show output field
+     *   'show_output'            => array (
+     *      'moreAttributes'      => string,         			// Add more attributes in when show output field
      *   ),
-     *   'is_not_show'       => bool,    // Set at true if this field is not show must be set at true if you want to search or edit (don't used if is edited in add form)
-     *   'is_not_searchable' => bool,    // Set at true if this field is not searchable
-     *   'td_search'         => array (
-     *      'moreClasses'    => string,  // Add more classes in the search input balise td
-     *      'moreAttributes' => string,  // Add more attributes in the search input balise td
-     *      'align'          => string,  // Overwrirte the align by default
+     *   'is_not_show'            => bool,           			// Set at true if this field is not show must be set at true if you want to search or edit (don't used if is edited in add form)
+     *   'is_not_searchable'      => bool,           			// Set at true if this field is not searchable
+     *   'td_search'              => array (
+     *      'moreClasses'         => string,         			// Add more classes in the search input balise td
+     *      'moreAttributes'      => string,         			// Add more attributes in the search input balise td
+     *      'align'               => string,         			// Overwrirte the align by default
      *   ),
-     *   'show_search_input' => array (
-     *      'size'           => int,     // Size attribute of the search input field (input text)
-     *      'moreClasses'    => string,  // Add more classes in the search input field
-     *      'moreAttributes' => string,  // Add more attributes in the search input field
+     *   'show_search_input'      => array (
+     *      'size'                => int,            			// Size attribute of the search input field (input text)
+     *      'moreClasses'         => string,         			// Add more classes in the search input field
+     *      'moreAttributes'      => string,         			// Add more attributes in the search input field
      *   ),
-     *   'is_not_addable'    => bool,    // Set at true if this field is not addable
-     *   'is_not_editable'   => bool,    // Set at true if this field is not editable
-     *   'td_input'         => array (
-     *      'moreClasses'    => string,  // Add more classes in the input balise td
-     *      'moreAttributes' => string,  // Add more attributes in the input balise td
-     *      'align'          => string,  // Overwrirte the align by default
-     *      'positionLine'   => int,     // Move the input into new line in function of the position (only in add form, 0 by default)
-     *      'colspan'        => int,     // TD colspan
+     *   'is_not_addable'         => bool,           			// Set at true if this field is not addable
+     *   'is_not_editable'        => bool,           			// Set at true if this field is not editable
+     *   'is_not_show_in_add'     => bool,           			// Set at true if this field is not addable
+     *   'is_not_show_in_edit'    => bool,           			// Set at true if this field is not editable
+     *   'td_input'               => array (
+     *      'moreClasses'         => string,         			// Add more classes in the input balise td
+     *      'moreAttributes'      => string,         			// Add more attributes in the input balise td
+     *      'align'               => string,         			// Overwrirte the align by default
+     *      'positionLine'        => int,            			// Move the input into new line in function of the position (only in add form, 0 by default)
+     *      'colspan'             => int,            			// TD colspan
      *   ),
-     *   'show_input'        => array (
-     *      'moreClasses'    => string,  // Add more classes in the input field
-     *      'moreAttributes' => string,  // Add more attributes in the input field
+     *   'show_input'             => array (
+     *      'moreClasses'         => string,         			// Add more classes in the input field
+     *      'moreAttributes'      => string,         			// Add more attributes in the input field
      *   ),
-     *   'help'              => '',      // Help text for this field or url, translated if key found
-     *   'help_button'       => '',      // Help text for this field access by a click
-     *   'is_not_sortable'   => bool,    // Set at true if this field is not sortable
-     *   'min'               => int,     // Value minimum (include) if type is int, double or price
-     *   'max'               => int,     // Value maximum (include) if type is int, double or price
+     *   'add_params_in_add_edit' => array,          			// List of additional param name in the formconfirm who is send other than who is showed
+     *   'help'                   => '',             			// Help text for this field or url, translated if key found
+     *   'help_button'            => '',             			// Help text for this field access by a click
+     *   'is_not_sortable'        => bool,           			// Set at true if this field is not sortable
+     *   'min'                    => int,            			// Value minimum (include) if type is int, float, double or price
+     *   'max'                    => int,            			// Value maximum (include) if type is int, float, double or price
      * )
      */
     public $fields = array();
@@ -254,9 +280,14 @@ class Dictionary extends CommonObject
     public $rowid_field = 'rowid';
 
     /**
-     * @var bool    Is rowid auto increment (false: rowid = 'last rowid in the table' + 1)
-     */
-    public $is_rowid_auto_increment = true;
+    * @var bool    Is rowid auto increment (false : rowid = defined by the option $is_rowid_defined_by_code)
+    */
+   public $is_rowid_auto_increment = true;
+
+   /**
+    * @var bool    Is rowid defined by code (true: rowid = $this->id of the DictionaryLine; false: rowid = 'last rowid in the table' + 1)
+    */
+   public $is_rowid_defined_by_code = false;
 
     /**
      * @var string  Name of the active field
@@ -274,7 +305,7 @@ class Dictionary extends CommonObject
     public $has_entity = true;
 
     /**
-     * @var bool    Is multi entity (false = partaged, true = by entity)
+     * @var bool    Is multi entity (false = shared, true = by entity)
      */
     public $is_multi_entity = false;
 
@@ -304,6 +335,11 @@ class Dictionary extends CommonObject
     public $lineCanBeDeleted = true;
 
     /**
+     * @var bool    Determine if the rowid must be show in the list
+     */
+    public $showTechnicalID = false;
+
+    /**
      * @var bool    Edit in the add form
      */
     public $edit_in_add_form = false;
@@ -314,16 +350,16 @@ class Dictionary extends CommonObject
     public $listSort = 'rowid ASC';
 
     /**
-	 * @var DictionaryLine[]
-	 */
-	public $lines = array();
+     * @var DictionaryLine[]
+     */
+    public $lines = array();
 
     /**
-	 * Constructor
-	 *
-	 * @param DoliDb $db Database handler
-	 */
-	public function __construct(DoliDB $db)
+     * Constructor
+     *
+     * @param DoliDb $db Database handler
+     */
+    public function __construct(DoliDB $db)
     {
         global $conf;
         $this->db = $db;
@@ -339,21 +375,31 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Initialize the dictionary
-	 *
+     * Initialize the dictionary
+     *
      * @return  void
-	 */
-	protected function initialize()
-	{
-	}
+     */
+    protected function initialize()
+    {
+    }
+
+        /**
+     * Overwrite default actions of the dictionary template page (After the hook "doActions")
+     *
+     * @return  int                 <0 if KO, =0 if do default actions, >0 if don't do default actions
+     */
+    public function doActions()
+    {
+        return 0;
+    }
 
     /**
-	 * Definition table field instruction
-	 *
+     * Definition table field instruction
+     *
      * @param   array   $field      Description of the field
-	 * @return  string              Definition table field instruction
-	 */
-	protected function definitionTableFieldInstructionSQL($field)
+     * @return  string              Definition table field instruction
+     */
+protected function definitionTableFieldInstructionSQL($field)
     {
         if (!empty($field)) {
             $lengthdb = '';
@@ -369,6 +415,9 @@ class Dictionary extends CommonObject
                 case 'int':
                     $typedb='int';
                     $lengthdb='11';
+                    break;
+                case 'float':
+                    $typedb='float';
                     break;
                 case 'double':
                     $typedb='double';
@@ -407,6 +456,9 @@ class Dictionary extends CommonObject
                 case 'select':
                 case 'sellist':
                 case 'radio':
+                    $typedb='varchar';
+                    $lengthdb='255';
+                    break;
                 case 'checkbox':
                     $typedb='text';
                     break;
@@ -432,21 +484,21 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Definition table field instruction
-	 *
+     * Definition table field instruction
+     *
      * @param   array   $field      Description of the field
-	 * @return  string              Definition table field instruction
-	 */
+     * @return  string              Definition table field instruction
+     */
     protected function definitionTableCustomFieldInstructionSQL($field) {
         return '';
-	}
+    }
 
     /**
-	 * Create dictionary table
-	 *
-	 * @return int             <0 if not ok, >0 if ok
-	 */
-	function createTables()
+     * Create dictionary table
+     *
+     * @return int             <0 if not ok, >0 if ok
+     */
+	public function createTables()
     {
         if (!empty($this->table_name) && !empty($this->fields)) {
             $error = 0;
@@ -464,7 +516,7 @@ class Dictionary extends CommonObject
 
             $resql = $this->db->query($sql);
             if (!$resql) {
-                if ($this->db->lasterrno != 'DB_ERROR_TABLE_ALREADY_EXISTS') {
+                if ($this->db->lasterrno() != 'DB_ERROR_TABLE_ALREADY_EXISTS') {
                     $error++;
                     $this->error = $this->db->lasterror();
                 }
@@ -512,6 +564,7 @@ class Dictionary extends CommonObject
                 $this->db->commit();
                 return 1;
             } else {
+		$this->errors[] = 'Error table: ' . $this->table_name;
                 $this->db->rollback();
                 return -1;
             }
@@ -522,11 +575,11 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Create indexes of the table
-	 *
+     * Create indexes of the table
+     *
      * @return  int                 <0 if not ok, >0 if ok
-	 */
-	protected function createIndexesTable()
+     */
+    protected function createIndexesTable()
     {
         // Create indexes of the table
         foreach ($this->indexes as $idx => $index) {
@@ -538,12 +591,12 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Create index of the table
-	 *
+     * Create index of the table
+     *
      * @param   int   $idx_number       Number of the index
      * @return  int                     <0 if not ok, >0 if ok
-	 */
-	protected function createIndexTable($idx_number)
+     */
+    protected function createIndexTable($idx_number)
     {
         global $langs;
 
@@ -565,7 +618,7 @@ class Dictionary extends CommonObject
 
         $resql = $this->db->query($sql);
         if (!$resql) {
-            if ($this->db->lasterrno != 'DB_ERROR_KEY_NAME_ALREADY_EXISTS') {
+            if ($this->db->lasterrno() != 'DB_ERROR_KEY_NAME_ALREADY_EXISTS') {
                 $this->error = $this->db->lasterror();
                 return -1;
             }
@@ -575,12 +628,12 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Delete index of the table
-	 *
+     * Delete index of the table
+     *
      * @param   int   $idx_number       Number of the index
      * @return  int                     <0 if not ok, >0 if ok
-	 */
-	protected function deleteIndexTable($idx_number)
+     */
+    protected function deleteIndexTable($idx_number)
     {
         $sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' DROP INDEX idx_' . $this->table_name . '_' . $idx_number;
 
@@ -594,12 +647,12 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Create sub table for the field
-	 *
+     * Create sub table for the field
+     *
      * @param   array   $field      Description of the field
-	 * @return  int                 <0 if not ok, >0 if ok
-	 */
-	protected function createSubTable($field)
+     * @return  int                 <0 if not ok, >0 if ok
+     */
+    protected function createSubTable($field)
     {
         if (!empty($field)) {
             switch ($field['type']) {
@@ -610,7 +663,7 @@ class Dictionary extends CommonObject
 
                     $resql = $this->db->query($sql);
                     if (!$resql) {
-                        if ($this->db->lasterrno != 'DB_ERROR_TABLE_ALREADY_EXISTS') {
+                        if ($this->db->lasterrno() != 'DB_ERROR_TABLE_ALREADY_EXISTS') {
                             $this->error = $this->db->lasterror();
                             return -1;
                         }
@@ -624,8 +677,8 @@ class Dictionary extends CommonObject
                     }
 
                     break;
-                default: // varchar, text, int, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
-                    break;
+                    default: // varchar, text, int, float, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
+                break;
             }
 
             return 1;
@@ -635,22 +688,22 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Create sub table for custom field
-	 *
+     * Create sub table for custom field
+     *
      * @param   array   $field      Description of the field
-	 * @return  int                 <0 if not ok, >0 if ok
-	 */
+     * @return  int                 <0 if not ok, >0 if ok
+     */
     protected function createCustomSubTable($field) {
         return 1;
     }
 
     /**
-	 * Add foreign key of sub table for the field
-	 *
+     * Add foreign key of sub table for the field
+     *
      * @param   array   $field      Description of the field
-	 * @return  int                 <0 if not ok, >0 if ok
-	 */
-	protected function addSubTableForeignKey($field)
+     * @return  int                 <0 if not ok, >0 if ok
+     */
+    protected function addSubTableForeignKey($field)
     {
         if (!empty($field)) {
             switch ($field['type']) {
@@ -664,54 +717,54 @@ class Dictionary extends CommonObject
                     }
 
                     // Add foreign constraint with association table for the multi-select list
-//                    $sql = 'SELECT 1 FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = DATABASE()' .
-//                        " AND CONSTRAINT_NAME   = 'fk_" . $initial . '_cbl_' . $field['name'] . "_a'" .
-//                        " AND CONSTRAINT_TYPE   = 'FOREIGN KEY'";
-//                    $resql = $this->db->query($sql);
-//                    if (!$resql) {
-//                        $this->error = 'Check foreign key "fk_' . $initial . '_cbl_' . $field['name'] . '_a" : ' . $this->db->lasterror();
-//                        return -1;
-//                    } else {
-//                        if (!$this->db->num_rows($resql)) {
-                            $sql = 'ALTER TABLE ' . getAssociationTableNameForChkbxlstFieldType($field, $this->table_name) .
-                                ' ADD CONSTRAINT fk_' . $initial . '_cbl_' . $field['name'] . '_a FOREIGN KEY (' . getForeignKeyOfThisDictionnaryInAssociationTableForChkbxlstFieldType($field, $this->table_name) . ') REFERENCES ' . MAIN_DB_PREFIX . $this->table_name . ' (' . $this->rowid_field . ');';
+                    //                    $sql = 'SELECT 1 FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = DATABASE()' .
+                    //                        " AND CONSTRAINT_NAME   = 'fk_" . $initial . '_cbl_' . $field['name'] . "_a'" .
+                    //                        " AND CONSTRAINT_TYPE   = 'FOREIGN KEY'";
+                    //                    $resql = $this->db->query($sql);
+                    //                    if (!$resql) {
+                    //                        $this->error = 'Check foreign key "fk_' . $initial . '_cbl_' . $field['name'] . '_a" : ' . $this->db->lasterror();
+                    //                        return -1;
+                    //                    } else {
+                    //                        if (!$this->db->num_rows($resql)) {
+                    $sql = 'ALTER TABLE ' . getAssociationTableNameForChkbxlstFieldType($field, $this->table_name) .
+                        ' ADD CONSTRAINT fk_' . $initial . '_cbl_' . $field['name'] . '_a FOREIGN KEY (' . getForeignKeyOfThisDictionnaryInAssociationTableForChkbxlstFieldType($field, $this->table_name) . ') REFERENCES ' . MAIN_DB_PREFIX . $this->table_name . ' (' . $this->rowid_field . ');';
 
-                            $resql = $this->db->query($sql);
-                            if (!$resql) {
-//                                $this->error = 'Add foreign key "fk_' . $initial . '_cbl_' . $field['name'] . '_a" : ' . $sql . $this->db->lasterror();
-//                                return -1;
-                            }
-//                        }
-//                    }
-//
-//                    // Add foreign constraint with association table for the multi-select list
-//                    $sql = 'SELECT NULL FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = DATABASE()' .
-//                        " AND CONSTRAINT_NAME   = 'fk_" . $initial . '_cbl_' . $field['name'] . "_b'" .
-//                        " AND CONSTRAINT_TYPE   = 'FOREIGN KEY'";
-//                    $resql = $this->db->query($sql);
-//                    if (!$resql) {
-//                        $this->error = 'Check foreign key "fk_' . $initial . '_cbl_' . $field['name'] . '_b" : ' . $this->db->lasterror();
-//                        return -1;
-//                    } else {
-//                        if (!$this->db->num_rows($resql)) {
+                    $resql = $this->db->query($sql);
+                    if (!$resql) {
+                        //                                $this->error = 'Add foreign key "fk_' . $initial . '_cbl_' . $field['name'] . '_a" : ' . $sql . $this->db->lasterror();
+                        //                                return -1;
+                    }
+                    //                        }
+                    //                    }
+                    //
+                    //                    // Add foreign constraint with association table for the multi-select list
+                    //                    $sql = 'SELECT NULL FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = DATABASE()' .
+                    //                        " AND CONSTRAINT_NAME   = 'fk_" . $initial . '_cbl_' . $field['name'] . "_b'" .
+                    //                        " AND CONSTRAINT_TYPE   = 'FOREIGN KEY'";
+                    //                    $resql = $this->db->query($sql);
+                    //                    if (!$resql) {
+                    //                        $this->error = 'Check foreign key "fk_' . $initial . '_cbl_' . $field['name'] . '_b" : ' . $this->db->lasterror();
+                    //                        return -1;
+                    //                    } else {
+                    //                        if (!$this->db->num_rows($resql)) {
 
-                            $InfoFieldList = getInfoFieldArrayFromOptionsForChkbxlstFieldType($field, $this->table_name);
+                    $InfoFieldList = getInfoFieldArrayFromOptionsForChkbxlstFieldType($field, $this->table_name);
 
-                            $keyList = 'rowid';
-                            if (count($InfoFieldList) >= 3) {
-                                $keyList = $InfoFieldList[2];
-                            }
+                    $keyList = 'rowid';
+                    if (count($InfoFieldList) >= 3) {
+                        $keyList = $InfoFieldList[2];
+                    }
 
-                            $sql = 'ALTER TABLE ' . getAssociationTableNameForChkbxlstFieldType($field, $this->table_name) .
-                                ' ADD CONSTRAINT fk_' . $initial . '_cbl_' . $field['name'] . '_b FOREIGN KEY (' . getForeignKeyOfDestinationTableInAssociationTableForChkbxlstFieldType($field, $this->table_name) . ') REFERENCES ' . MAIN_DB_PREFIX . $InfoFieldList[0] . ' (' . $keyList . ');';
+                    $sql = 'ALTER TABLE ' . getAssociationTableNameForChkbxlstFieldType($field, $this->table_name) .
+                        ' ADD CONSTRAINT fk_' . $initial . '_cbl_' . $field['name'] . '_b FOREIGN KEY (' . getForeignKeyOfDestinationTableInAssociationTableForChkbxlstFieldType($field, $this->table_name) . ') REFERENCES ' . MAIN_DB_PREFIX . $InfoFieldList[0] . ' (' . $keyList . ');';
 
-                            $resql = $this->db->query($sql);
-                            if (!$resql) {
-//                                $this->error = 'Add foreign key "fk_' . $initial . '_cbl_' . $field['name'] . '_b" : ' . $this->db->lasterror();
-//                                return -1;
-                            }
-//                        }
-//                    }
+                    $resql = $this->db->query($sql);
+                    if (!$resql) {
+                        //                                $this->error = 'Add foreign key "fk_' . $initial . '_cbl_' . $field['name'] . '_b" : ' . $this->db->lasterror();
+                        //                                return -1;
+                    }
+                    //                        }
+                    //                    }
 
                     break;
                 case 'custom':
@@ -721,8 +774,8 @@ class Dictionary extends CommonObject
                     }
 
                     break;
-                default: // varchar, text, int, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
-                    break;
+                    default: // varchar, text, int, float, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
+                break;
             }
 
             return 1;
@@ -732,20 +785,20 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Add foreign key of sub table for custom field
-	 *
+     * Add foreign key of sub table for custom field
+     *
      * @param   array   $field      Description of the field
-	 * @return  int                 <0 if not ok, >0 if ok
-	 */
+     * @return  int                 <0 if not ok, >0 if ok
+     */
     protected function addCustomSubTableForeignKey($field) {
         return 1;
     }
 
     /**
-	 * Update dictionary table
-	 *
-	 * @return int             <0 if not ok, >0 if ok
-	 */
+     * Update dictionary table
+     *
+     * @return int             <0 if not ok, >0 if ok
+     */
     protected function updateTables()
     {
         global $conf, $langs;
@@ -831,7 +884,7 @@ class Dictionary extends CommonObject
                 if (is_array($datas['indexes'])) {
                     foreach ($datas['indexes'] as $idx_number => $type) {
                         switch ($type) {
-                            //case 'a':
+                                //case 'a':
                                 //// Insert index of dictionary table
                                 //if ($this->createIndexTable($idx_number) < 0)
                                 //    return -1;
@@ -860,11 +913,11 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Delete dictionary table
-	 *
-	 * @return int             <0 if not ok, >0 if ok
-	 */
-	function deleteTables()
+     * Delete dictionary table
+     *
+     * @return int             <0 if not ok, >0 if ok
+     */
+	public function deleteTables()
     {
         if (!empty($this->table_name) && !empty($this->fields)) {
             $error = 0;
@@ -903,12 +956,12 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Delete sub table for the field
-	 *
+     * Delete sub table for the field
+     *
      * @param   array   $field      Description of the field
-	 * @return  int                 <0 if not ok, >0 if ok
-	 */
-	protected function deleteSubTable($field)
+     * @return  int                 <0 if not ok, >0 if ok
+     */
+    protected function deleteSubTable($field)
     {
         if (!empty($field)) {
             switch ($field['type']) {
@@ -929,8 +982,8 @@ class Dictionary extends CommonObject
                     }
 
                     break;
-                default: // varchar, text, int, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
-                    break;
+                    default: // varchar, text, int, float, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
+                break;
             }
 
             return 1;
@@ -940,24 +993,24 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Create sub table for custom field
-	 *
+     * Create sub table for custom field
+     *
      * @param   array   $field      Description of the field
-	 * @return  int                 <0 if not ok, >0 if ok
-	 */
+     * @return  int                 <0 if not ok, >0 if ok
+     */
     protected function deleteCustomSubTable($field) {
-	    return 1;
-    }
+        return 1;
+ }
 
     /**
-	 * Get all dictionaries
-	 *
+     * Get all dictionaries
+     *
      * @param   DoliDb          $db         Database handler
      * @param   string|array    $module     Only dictionary of the module(s) name
      * @param   string|array    $family     Only dictionary of the family(s) name
-	 * @return  Dictionary[]                List of dictionary
-	 */
-	static function fetchAllDictionaries($db, $module='', $family='')
+     * @return  Dictionary[]                List of dictionary
+     */
+    static function fetchAllDictionaries($db, $module='', $family='')
     {
         global $conf;
 
@@ -1057,12 +1110,13 @@ class Dictionary extends CommonObject
      * @param   DoliDb              $db         Database handler
      * @param   string              $module     Name of the module containing the dictionary
      * @param   string              $name       Name of dictionary
-     * @return  Array                 List of dictionary line in Json Format
+     * @return  Array               List of dictionary line in Json Format
      */
-    static function getJSONDictionary($db,$moduleName,$dictionaryName, $filters = array()){
+    static function getJSONDictionary($db, $moduleName, $dictionaryName, $filters = array())
+    {
         $dictionary = Dictionary::getDictionary($db, $moduleName, $dictionaryName);
-        $dictionary->fetch_lines(1,$filters);
-        $result=array();
+        $dictionary->fetch_lines(1, $filters);
+        $result = array();
         foreach ($dictionary->lines as $line) {
             $temp = $line->fields;
             $temp["rowid"] = $line->id;
@@ -1072,7 +1126,7 @@ class Dictionary extends CommonObject
         return $result;
     }
     /**
-     * Get a dictionary Line according to a give id
+     * Get a dictionary Line according to a given id
      *
      * @param   DoliDb              $db         Database handler
      * @param   string              $module     Name of the module containing the dictionary
@@ -1080,11 +1134,12 @@ class Dictionary extends CommonObject
      * @param   int                 $lineId     Id of the searched line
      * @return  DictionaryLine|null             Dictionary Line Object
      */
-    static function getDictionaryLineObject($db,$moduleName,$dictionaryName,$lineId){
-        if($lineId){
-           $dictionary = Dictionary::getDictionary($db, $moduleName, $dictionaryName);
-           $item = $dictionary->getNewDictionaryLine();
-           $item->fetch($lineId);
+    static function getDictionaryLineObject($db, $moduleName, $dictionaryName, $lineId)
+    {
+        if ($lineId) {
+            $dictionary = Dictionary::getDictionary($db, $moduleName, $dictionaryName);
+            $item = $dictionary->getNewDictionaryLine();
+            $item->fetch($lineId);
         }
         return $item;
     }
@@ -1126,7 +1181,7 @@ class Dictionary extends CommonObject
                     $module = '';
                     $name = 'formejuridique';
                     break;
-                // ....
+                    // ....
             }
         }
     }
@@ -1136,7 +1191,7 @@ class Dictionary extends CommonObject
      *
      * @return  DictionaryLine          Dictionary line instance
      */
-    function getNewDictionaryLine()
+	public function getNewDictionaryLine()
     {
         $dictionaryLine = new $this->dictionaryLineClassName($this->db, $this);
 
@@ -1144,14 +1199,14 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Add line
-	 *
+     * Add line
+     *
      * @param   array   $fieldsValues   Values of the fields array(name => value, ...)
      * @param   User    $user           User who add this line
      * @param   int     $noTrigger      1 = Does not execute triggers, 0 = execute triggers
-	 * @return  int                     <0 if not ok, >0 if ok
-	 */
-	function addLine($fieldsValues, $user, $noTrigger=0)
+     * @return  int                     <0 if not ok, >0 if ok
+     */
+	public function addLine($fieldsValues, $user, $noTrigger=0)
     {
         $this->db->begin();
         $error = 0;
@@ -1174,15 +1229,15 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Update line
-	 *
+     * Update line
+     *
      * @param   int     $lineId         Id of the line
      * @param   array   $fieldsValues   Values of the fields array(name => value, ...)
      * @param   User    $user           User who add this line
      * @param   int     $noTrigger      1 = Does not execute triggers, 0 = execute triggers
-	 * @return  int                     <0 if not ok, >0 if ok
-	 */
-	function updateLine($lineId, $fieldsValues, $user, $noTrigger=0)
+     * @return  int                     <0 if not ok, >0 if ok
+     */
+	public function updateLine($lineId, $fieldsValues, $user, $noTrigger=0)
     {
         $this->db->begin();
         $error = 0;
@@ -1211,14 +1266,14 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Delete line
-	 *
+     * Delete line
+     *
      * @param   int     $lineId         Id of the line
      * @param   User    $user           User who add this line
      * @param   int     $noTrigger      1 = Does not execute triggers, 0 = execute triggers
-	 * @return  int                     <0 if not ok, >0 if ok
-	 */
-	function deleteLine($lineId, $user, $noTrigger=0)
+     * @return  int                     <0 if not ok, >0 if ok
+     */
+	public function deleteLine($lineId, $user, $noTrigger=0)
     {
         $this->db->begin();
         $error = 0;
@@ -1247,15 +1302,15 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Active line
-	 *
+     * Active line
+     *
      * @param   int     $lineId         Id of the line
      * @param   int     $status         Status of the line, 0: desactived, 1: actived
      * @param   User    $user           User who add this line
      * @param   int     $noTrigger      1 = Does not execute triggers, 0 = execute triggers
-	 * @return  int                     <0 if not ok, >0 if ok
-	 */
-	function activeLine($lineId, $status, $user, $noTrigger=0)
+     * @return  int                     <0 if not ok, >0 if ok
+     */
+	public function activeLine($lineId, $status, $user, $noTrigger=0)
     {
         $this->db->begin();
         $error = 0;
@@ -1288,13 +1343,13 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 *  Return code for the key/value search
-	 *
+     *  Return code for the key/value search
+     *
      * @param   string          $codePattern    Code pattern (replace {{FieldName}} by this value)
      * @param   array           $filters        List of filters: array(fieldName => value), value is a array search a list of rowid
-	 * @return  int|string                      Return code value, 0 if not found, -1 if found many, -2 if error
-	 */
-	function getCodeFromFilter($codePattern, $filters)
+     * @return  int|string                      Return code value, 0 if not found, -1 if found many, -2 if error
+     */
+	public function getCodeFromFilter($codePattern, $filters)
     {
         $lines = $this->fetch_lines(-1, $filters, array(), 0, 0, false, true);
 
@@ -1322,19 +1377,21 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 *  Load array lines with filters, orders
-	 *
+     *  Load array lines with filters, orders
+     *
      * @param   string  $key            Field name for the key of the line
      * @param   string  $label          Label pattern for the label of the line (replace {{FieldName}} by this value)
      * @param   array   $filters        List of filters: array(fieldName => value), value is a array search a list of rowid
      * @param   array   $orders         Order by: array(fieldName => order, ...)
      * @param   int     $limit          Length of the limit
      * @param   int     $filter_active  Filter on the active field (-1: all, 0: inactive, 1:active)
+     * @param   bool    $return_array   Don't fetch lines in $this->lines
 	 * @return  array                   Lines array(key => label)
 	 */
-	function fetch_array($key, $label, $filters=array(), $orders=array(), $limit=0, $filter_active=1)
-    {
-        $lines = $this->fetch_lines($filter_active, $filters, $orders, 0, $limit, false, true);
+        public function fetch_array($key, $label, $filters=array(), $orders=array(), $limit=0, $filter_active=1, $return_array=true)
+        {
+            $lines = $this->fetch_lines($filter_active, $filters, $orders, 0, $limit, false, $return_array);
+            if (!$return_array) $lines = $this->lines;
 
         $results = array();
         if (is_array($lines)) {
@@ -1356,8 +1413,8 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 *  Load array lines with filters, orders and limit
-	 *
+     *  Load array lines with filters, orders and limit
+     *
      * @param   int                     $filter_active                  Filter on the active field (-1: all, 0: inactive, 1:active)
      * @param   array                   $filters                        List of filters: array(fieldName => value), value is a array search a list of rowid
      * @param   array                   $orders                         Order by: array(fieldName => order, ...)
@@ -1367,9 +1424,9 @@ class Dictionary extends CommonObject
      * @param   bool                    $return_array                   Return a array
      * @param   string                  $additionalWhereStatement       Additionnal lines of statement for where statement, [[fieldName]] replaced by this field name in the request, {{ }} if for the field id of multi-select field
      * @param   string                  $additionalHavingStatement      Additionnal lines of statement for having statement, [[fieldName]] replaced by this field name in the request, {{ }} if for the field id of multi-select field
-	 * @return  int|DictionaryLine[]                                    <0 if KO, >0 if OK
-	 */
-	function fetch_lines($filter_active=-1, $filters=array(), $orders=array(), $offset=0, $limit=0, $nb_lines=false, $return_array=false, $additionalWhereStatement='', $additionalHavingStatement='')
+     * @return  int|DictionaryLine[]                                    <0 if KO, >0 if OK
+     */
+	public function fetch_lines($filter_active=-1, $filters=array(), $orders=array(), $offset=0, $limit=0, $nb_lines=false, $return_array=false, $additionalWhereStatement='', $additionalHavingStatement='')
     {
         // TODO $additionalWhereStatement, $additionalHavingStatement to make
         global $hookmanager;
@@ -1456,12 +1513,12 @@ class Dictionary extends CommonObject
                         unset($obj[$this->entity_field]);
                     }
 
-                    $resultObject = array();
+                    $resultArray = array();
                     foreach ($this->fields as $field) {
                         $fieldName = $field['name'];
-                        $resultObject[$fieldName] = $obj[$fieldName];
+                        $resultArray[$fieldName] = $obj[$fieldName];
                     }
-                    $line->fields = $resultObject;
+                    $line->fields = $resultArray;
                     $lines[$line->id] = $line;
                 }
                 $result = 1;
@@ -1484,20 +1541,20 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Return the sql statement for the field in the select clause
-	 *
+     * Return the sql statement for the field in the select clause
+     *
      * @param   array       $field      Description of the field
      * @return  string                  Return the sql statement for the field in the select clause
-	 */
-	private function selectFieldSqlStatement($field)
+     */
+    private function selectFieldSqlStatement($field)
     {
         if (!empty($field)) {
             switch ($field['type']) {
                 case 'chkbxlst':
-                    return 'GROUP_CONCAT(DISTINCT cbl_' . $field['name'] . '.' . getForeignKeyOfDestinationTableInAssociationTableForChkbxlstFieldType($field, $this->table_name) . ' SEPARATOR \',\') AS ' . $field['name'];
+                    return 'GROUP_CONCAT(DISTINCT cbl_' . $field['name'] . '.fk_target SEPARATOR \',\') AS ' . $field['name'];
                 case 'custom':
                     return $this->selectCustomFieldSqlStatement($field);
-                default: // varchar, text, int, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
+                    default: // varchar, text, int, float, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
                     return 'd.' . $field['name'] . ' AS ' . $field['name'];
             }
         }
@@ -1506,21 +1563,21 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Return the sql statement for the custom field in the select clause
-	 *
+     * Return the sql statement for the custom field in the select clause
+     *
      * @param   array       $field      Description of the field
      * @return  string                  Return the sql statement for the custom field in the select clause
-	 */
+     */
     protected function selectCustomFieldSqlStatement($field) {
-	    return '';
-    }
+        return '';
+ }
 
     /**
-	 * Return the sql statement for the field in the from clause
-	 *
+     * Return the sql statement for the field in the from clause
+     *
      * @param   array       $field      Description of the field
      * @return  string                  Return the sql statement for the field in the from clause
-	 */
+     */
     private function fromFieldSqlStatement($field)
     {
         if (!empty($field)) {
@@ -1529,10 +1586,10 @@ class Dictionary extends CommonObject
                 case 'chkbxlst':
                     $sqlStatement = "";
                     if ($field['type'] == 'chkbxlst') {
-                        $sqlStatement .= ' LEFT JOIN ' . getAssociationTableNameForChkbxlstFieldType($field,$this->table_name) . ' AS cbl_' . $field['name'] .
-                            ' ON (cbl_' . $field['name'] . '.' . getForeignKeyOfThisDictionnaryInAssociationTableForChkbxlstFieldType($field,$this->table_name) . ' = d.' . $this->rowid_field . ')';
+                        $sqlStatement .= ' LEFT JOIN ' . getAssociationTableNameForChkbxlstFieldType($field, $this->table_name) . ' AS cbl_' . $field['name'] .
+                            ' ON (cbl_' . $field['name'] . '.' . getForeignKeyOfThisDictionnaryInAssociationTableForChkbxlstFieldType($field, $this->table_name) . ' = d.' . $this->rowid_field . ')';
                     }
-                    $InfoFieldList = getInfoFieldArrayFromOptionsForChkbxlstFieldType($field,$this->table_name);
+                    $InfoFieldList = getInfoFieldArrayFromOptionsForChkbxlstFieldType($field, $this->table_name);
 
                     $keyList = 'rowid';
                     if (count($InfoFieldList) >= 3) {
@@ -1546,12 +1603,12 @@ class Dictionary extends CommonObject
                     if (strpos($InfoFieldList[4], 'extra') !== false) {
                         $sqlStatement .= ' as main';
                     }
-                    $sqlStatement .= ') AS cbl_val_' . $field['name'] . ' ON (cbl_val_' . $field['name'] . '.rowid = '.($field['type'] == 'chkbxlst' ? 'cbl_' . $field['name'] . '.' . getForeignKeyOfDestinationTableInAssociationTableForChkbxlstFieldType($field,$this->dictionary->table_name) : 'd.' . $field['name']).')';
+                    $sqlStatement .= ') AS cbl_val_' . $field['name'] . ' ON (cbl_val_' . $field['name'] . '.rowid = ' . ($field['type'] == 'chkbxlst' ? 'cbl_' . $field['name'] . '.' . getForeignKeyOfDestinationTableInAssociationTableForChkbxlstFieldType($field, $this->dictionary->table_name) : 'd.' . $field['name']) . ')';
 
                     return $sqlStatement;
                 case 'custom':
                     return $this->fromCustomFieldSqlStatement($field);
-                default: // varchar, text, int, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
+                    default: // varchar, text, int, float, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
                     return '';
             }
         }
@@ -1560,29 +1617,29 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Return the sql statement for the custom field in the from clause
-	 *
+     * Return the sql statement for the custom field in the from clause
+     *
      * @param   array       $field      Description of the field
      * @return  string                  Return the sql statement for the custom field in the from clause
-	 */
+     */
     protected function fromCustomFieldSqlStatement($field) {
-	    return '';
-    }
+        return '';
+ }
 
     /**
-	 * Return the sql filter statement for the field in the from clause
-	 *
+     * Return the sql filter statement for the field in the from clause
+     *
      * @param   array       $field      Description of the field
      * @param   mixed       $value      Value searched
      * @return  string                  Return the sql statement for the field in the having clause
-	 */
+     */
     private function fromFilterFieldSqlStatement($field, $value)
     {
         if (!empty($field)) {
             switch ($field['type']) {
                 case 'chkbxlst':
                     if (!is_array($value)) {
-                        $InfoFieldList = getInfoFieldArrayFromOptionsForChkbxlstFieldType($field,$this->dictionary->table_name);
+                        $InfoFieldList = getInfoFieldArrayFromOptionsForChkbxlstFieldType($field, $this->dictionary->table_name);
 
                         $keyList = 'rowid';
                         if (count($InfoFieldList) >= 3) {
@@ -1595,14 +1652,14 @@ class Dictionary extends CommonObject
                         }
 
                         $sqlStatement  = ' INNER JOIN (';
-                        $sqlStatement .= '   SELECT DISTINCT l.' . getForeignKeyOfThisDictionnaryInAssociationTableForChkbxlstFieldType($field,$this->table_name);
-                        $sqlStatement .= '   FROM ' . getAssociationTableNameForChkbxlstFieldType($field,$this->table_name) . ' AS l';
+                        $sqlStatement .= '   SELECT DISTINCT l.' . getForeignKeyOfThisDictionnaryInAssociationTableForChkbxlstFieldType($field, $this->table_name);
+                        $sqlStatement .= '   FROM ' . getAssociationTableNameForChkbxlstFieldType($field, $this->table_name) . ' AS l';
                         $sqlStatement .= '   INNER JOIN (';
                         $sqlStatement .= '     SELECT ' . $keyList;
                         $sqlStatement .= '     FROM ' . MAIN_DB_PREFIX . $InfoFieldList[0] . (strpos($InfoFieldList[4], 'extra') !== false ? ' as main' : '');
                         $sqlStatement .= '     WHERE ' . natural_search($fields_label, $value, 0, 1);
-                        $sqlStatement .= '   ) AS v ON (l.' . getForeignKeyOfDestinationTableInAssociationTableForChkbxlstFieldType($field,$this->table_name) . ' = v.rowid)';
-                        $sqlStatement .= ') AS search_cbl_' . $field['name'] . ' ON (search_cbl_' . $field['name'] . '.' . getForeignKeyOfThisDictionnaryInAssociationTableForChkbxlstFieldType($field,$this->table_name) . ' = d.' . $this->rowid_field . ')';
+                        $sqlStatement .= '   ) AS v ON (l.' . getForeignKeyOfDestinationTableInAssociationTableForChkbxlstFieldType($field, $this->table_name) . ' = v.rowid)';
+                        $sqlStatement .= ') AS search_cbl_' . $field['name'] . ' ON (search_cbl_' . $field['name'] . '.' . getForeignKeyOfThisDictionnaryInAssociationTableForChkbxlstFieldType($field, $this->table_name) . ' = d.' . $this->rowid_field . ')';
 
                         return $sqlStatement;
                     } else {
@@ -1610,7 +1667,7 @@ class Dictionary extends CommonObject
                     }
                 case 'custom':
                     return $this->fromFilterCustomFieldSqlStatement($field, $value);
-                default: // varchar, text, int, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
+                    default: // varchar, text, int, float, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
                     return '';
             }
         }
@@ -1619,23 +1676,23 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Return the sql filter statement for the custom field in the from clause
-	 *
+     * Return the sql filter statement for the custom field in the from clause
+     *
      * @param   array       $field      Description of the field
      * @param   mixed       $value      Value searched
      * @return  string                  Return the sql statement for the custom field in the having clause
-	 */
+     */
     protected function fromFilterCustomFieldSqlStatement($field, $value) {
-	    return '';
-    }
+        return '';
+ }
 
     /**
-	 * Return the sql statement for the field in the where clause
-	 *
+     * Return the sql statement for the field in the where clause
+     *
      * @param   array       $field      Description of the field
      * @param   mixed       $value      Value searched
      * @return  string                  Return the sql statement for the field in the where clause
-	 */
+     */
     private function whereFieldSqlStatement($field, $value)
     {
         if (!empty($field)) {
@@ -1669,12 +1726,12 @@ class Dictionary extends CommonObject
                 case 'sellist':
                     if (is_array($value)) {
                         if (count($value) > 0) {
-                            return natural_search('cbl_' . $field['name'] . '.fk_target', implode(',', $value), 2, 1);
+                            return natural_search('d.' . $field['name'], implode(',', $value), 2, 1);
                         } else {
                             return '';
                         }
                     } else {
-                        $InfoFieldList = getInfoFieldArrayFromOptionsForChkbxlstFieldType($field,$this->dictionary->table_name);
+                        $InfoFieldList = getInfoFieldArrayFromOptionsForChkbxlstFieldType($field, $this->dictionary->table_name);
 
                         $fields_label = explode('|', $InfoFieldList[1]);
                         $fields = array();
@@ -1688,7 +1745,7 @@ class Dictionary extends CommonObject
                 case 'chkbxlst':
                     if (is_array($value)) {
                         if (count($value) > 0) {
-                            return natural_search('cbl_' . $field['name'] . '.' . getForeignKeyOfDestinationTableInAssociationTableForChkbxlstFieldType($field,$this->dictionary->table_name) . '', implode(',', $value), 2, 1);
+                            return natural_search('cbl_' . $field['name'] . '.' . getForeignKeyOfDestinationTableInAssociationTableForChkbxlstFieldType($field, $this->dictionary->table_name) . '', implode(',', $value), 2, 1);
                         } else {
                             return '';
                         }
@@ -1696,6 +1753,7 @@ class Dictionary extends CommonObject
                         return '';
                     }
                 case 'int':
+                case 'float':
                 case 'double':
                 case 'price':
                     return natural_search('d.' . $field['name'], $value, 1, 1);
@@ -1704,10 +1762,10 @@ class Dictionary extends CommonObject
                     return natural_search('d.' . $field['name'], $value, 1, 1); // TODO check for date and datetime
                 case 'boolean':
                     if (!empty($value)) {
-						return 'd.' . $field['name'] . ' = ' . ($value > 0 ? '1' : '0');
-					} else {
-						return 'd.' . $field['name'] . ' IS NULL';
-					}
+                        return 'd.' . $field['name'] . ' = ' . ($value > 0 ? '1' : '0');
+                    } else {
+                        return 'd.' . $field['name'] . ' IS NULL';
+                    }
                 case 'custom':
                     return $this->whereCustomFieldSqlStatement($field, $value);
                 default: // unknown
@@ -1719,30 +1777,30 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Return the sql statement for the custom field in the where clause
-	 *
+     * Return the sql statement for the custom field in the where clause
+     *
      * @param   array       $field      Description of the field
      * @param   mixed       $value      Value searched
      * @return  string                  Return the sql statement for the custom field in the where clause
-	 */
+     */
     protected function whereCustomFieldSqlStatement($field, $value) {
-	    return '';
-    }
+        return '';
+ }
 
     /**
-	 * Return the sql statement for the field in the having clause
-	 *
+     * Return the sql statement for the field in the having clause
+     *
      * @param   array       $field      Description of the field
      * @param   mixed       $value      Value searched
      * @return  string                  Return the sql statement for the field in the having clause
-	 */
+     */
     private function havingFieldSqlStatement($field, $value)
     {
         if (!empty($field)) {
             switch ($field['type']) {
                 case 'custom':
                     return $this->havingCustomFieldSqlStatement($field, $value);
-                default: // varchar, text, int, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, chkbxlst, radio, checkbox, link, unknown
+                    default: // varchar, text, int, float, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, chkbxlst, radio, checkbox, link, unknown
                     return '';
             }
         }
@@ -1751,24 +1809,25 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Return the sql statement for the custom field in the having clause
-	 *
+     * Return the sql statement for the custom field in the having clause
+     *
      * @param   array       $field      Description of the field
      * @param   mixed       $value      Value searched
      * @return  string                  Return the sql statement for the custom field in the having clause
-	 */
+     */
     protected function havingCustomFieldSqlStatement($field, $value) {
-	    return '';
-    }
+        return '';
+ }
 
-    /**
+/**
      * Return HTML string to put an search input field into a page
      *
-     * @param   string   $fieldName     Name of the field
+     * @param   string   $fieldName         Name of the field
+     * @param   array    $search_filters    List of values searched
      * @return  string
      */
-    function showInputSearchField($fieldName)
-    {
+	public function showInputSearchField($fieldName, $search_filters)
+	{
         if (isset($this->fields[$fieldName])) {
             $field = $this->fields[$fieldName];
             $fieldHtmlName = 'search_' . $fieldName;
@@ -1783,15 +1842,11 @@ class Dictionary extends CommonObject
                     case 'mail':
                     case 'url':
                     case 'password':
-                    case 'select':
-                    case 'sellist':
-                    case 'chkbxlst':
                     case 'link':
-                    case 'radio':
-                    case 'checkbox':
                         $size = 8;
                         break;
                     case 'int':
+                    case 'float':
                     case 'double':
                     case 'price':
                     case 'date':
@@ -1811,6 +1866,8 @@ class Dictionary extends CommonObject
             $moreAttributes = trim($field['show_search_input']['moreAttributes']);
             $moreAttributes = !empty($moreAttributes) ? ' ' . $moreAttributes : '';
 
+            $dictionaryLine = $this->getNewDictionaryLine();
+
             switch ($type) {
                 case 'varchar':
                 case 'text':
@@ -1818,23 +1875,35 @@ class Dictionary extends CommonObject
                 case 'mail':
                 case 'url':
                 case 'password':
-                case 'select':
-                case 'sellist':
-                case 'radio':
-                case 'checkbox':
-                case 'chkbxlst':
                 case 'link':
                 case 'int':
+                case 'float':
                 case 'double':
                 case 'price':
                 case 'date':
-                case 'datetime':
-                    return '<input type="text" class="flat' . $moreClasses . ' maxwidthonsmartphone" name="' . $fieldHtmlName . '"' . $size . ' value="' . dol_escape_htmltag(GETPOST($fieldHtmlName)) . '"' . $moreAttributes . '>';
-                case 'boolean':
+                    case 'datetime':
+                        return '<input type="text" class="flat' . $moreClasses . ' maxwidthonsmartphone" name="' . $fieldHtmlName . '"' . $size .
+                            ' value="' . dol_escape_htmltag($search_filters[$fieldName]) . '"' . $moreAttributes . '>';
+                    case 'radio':
+                    case 'select':
+                    case 'checkbox':
+                        $old_type = $this->fields[$fieldName]['type'];
+                        $this->fields[$fieldName]['type'] = 'select';
+                        $out = $dictionaryLine->showInputFieldAD($fieldName, is_array($search_filters[$fieldName]) ? $search_filters[$fieldName][0] : '', 'search_');
+                        $this->fields[$fieldName]['type'] = $old_type;
+                        return $out;
+                    case 'sellist':
+                    case 'chkbxlst':
+                        $old_type = $this->fields[$fieldName]['type'];
+                        $this->fields[$fieldName]['type'] = 'sellist';
+                        $out = $dictionaryLine->showInputFieldAD($fieldName, is_array($search_filters[$fieldName]) ? $search_filters[$fieldName][0] : '', 'search_');
+                        $this->fields[$fieldName]['type'] = $old_type;
+                        return $out;
+                    case 'boolean':
                     require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
                     global $form;
                     if (!is_object($form)) $form = new Form($this->db);
-                    return $form->selectyesno($fieldHtmlName, GETPOST($fieldHtmlName), 1, false, 1);
+					return $form->selectyesno($fieldHtmlName, $search_filters[$fieldName], 1, false, 1);
                 case 'custom':
                     return $this->showInputSearchCustomField($fieldName);
                 default: // unknown
@@ -1857,12 +1926,12 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Return tag to describe alignment to use for this field
-	 *
+     * Return tag to describe alignment to use for this field
+     *
      * @param   string      $fieldName      Name of the field
-	 * @return	string					    Alignment value
-	 */
-	function getAlignFlagForField($fieldName)
+     * @return	string					    Alignment value
+     */
+	public function getAlignFlagForField($fieldName)
     {
         $align = "left";
 
@@ -1874,9 +1943,10 @@ class Dictionary extends CommonObject
                 case 'date':
                 case 'datetime':
                     $align = "center";
-                break;
-                case 'int':
-                case 'double':
+                    break;
+//                case 'int':
+//                case 'float':
+//                case 'double':
                 case 'price':
                     $align = "right";
                     break;
@@ -1892,25 +1962,25 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Return tag to describe alignment to use for this custom field
-	 *
+     * Return tag to describe alignment to use for this custom field
+     *
      * @param   string      $fieldName      Name of the field
-	 * @return	string					    Alignment value
-	 */
+     * @return	string					    Alignment value
+     */
     protected function getAlignFlagForCustomField($fieldName)
     {
         return 'left';
     }
 
     /**
-	 * Get value for each fields of the dictionary sent by a form
-	 *
-	 * @param  string   $keyprefix      Prefix string to add into name and id of field (can be used to avoid duplicate names)
+     * Get value for each fields of the dictionary sent by a form
+     *
+     * @param  string   $keyprefix      Prefix string to add into name and id of field (can be used to avoid duplicate names)
      * @param  string   $keysuffix      Suffix string to add into name and id of field (can be used to avoid duplicate names)
-     * @param  string   $mode           0: Add, 1: Edit
-	 * @return array                    Values of each field
-	 */
-	function getFieldsValueFromForm($keyprefix='', $keysuffix='', $mode=0)
+     * @param  int      $mode           0: Add, 1: Edit, 2: All
+     * @return array                    Values of each field
+     */
+	public function getFieldsValueFromForm($keyprefix='', $keysuffix='', $mode=0)
     {
         $fields = array();
 
@@ -1918,7 +1988,7 @@ class Dictionary extends CommonObject
         foreach ($this->fields as $fieldName => $field) {
             $fieldHtmlName = $keyprefix . $fieldName . $keysuffix;
 
-            if (($mode == 0 && empty($field['is_not_addable'])) || ($mode == 1 && empty($field['is_not_editable']))) {
+            if (($mode == 0 && empty($field['is_not_addable'])) || ($mode == 1 && empty($field['is_not_editable'])) || $mode == 2) {
                 switch ($field['type']) {
                     case 'varchar':
                     case 'phone':
@@ -1939,11 +2009,14 @@ class Dictionary extends CommonObject
                         $value_key = implode(',', GETPOST($fieldHtmlName, 'array'));
                         break;
                     case 'int':
-                    case 'double':
                     case 'boolean':
-                    case 'price':
                         $value_key = price2num(GETPOST($fieldHtmlName, 'int'));
                         break;
+                        case 'float':
+                        case 'double':
+                        case 'price':
+                            $value_key = price2num(GETPOST($fieldHtmlName, 'alpha'));
+                            break;
                     case 'date':
                     case 'datetime':
                         $value_key = dol_mktime(
@@ -1971,13 +2044,13 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Return value for custom field of the dictionary sent by a form
-	 *
+     * Return value for custom field of the dictionary sent by a form
+     *
      * @param  string   $fieldName      Name of the field
-	 * @param  string   $keyprefix      Prefix string to add into name and id of field (can be used to avoid duplicate names)
-	 * @param  string   $keysuffix      Suffix string to add into name and id of field (can be used to avoid duplicate names)
-	 * @return mixed                    Return value for custom field of the dictionary sent by a form
-	 */
+     * @param  string   $keyprefix      Prefix string to add into name and id of field (can be used to avoid duplicate names)
+     * @param  string   $keysuffix      Suffix string to add into name and id of field (can be used to avoid duplicate names)
+     * @return mixed                    Return value for custom field of the dictionary sent by a form
+     */
     protected function getCustomFieldsValueFromForm($fieldName, $keyprefix='', $keysuffix='')
     {
         return '';
@@ -1985,20 +2058,20 @@ class Dictionary extends CommonObject
 
     /**
      * Get fixed value for each fixed fields of the dictionary
-	 *
-	 * @return array                    Values of each field
-	 */
-    function getFixedFieldsValue()
+     *
+     * @return array                    Values of each field
+     */
+	public function getFixedFieldsValue()
     {
         return array();
     }
 
     /**
-	 * Get search value for each fields of the dictionary sent by a form
-	 *
-	 * @return array                    Values of each field
-	 */
-	function getSearchFieldsValueFromForm()
+     * Get search value for each fields of the dictionary sent by a form
+     *
+     * @return array                    Values of each field
+     */
+	public function getSearchFieldsValueFromForm()
     {
         $fields = array();
 
@@ -2014,23 +2087,28 @@ class Dictionary extends CommonObject
                     case 'mail':
                     case 'url':
                     case 'password':
-                    case 'select':
-                    case 'sellist':
-                    case 'radio':
                     case 'link':
-                    case 'checkbox':
-                    case 'chkbxlst':
                     case 'int':
+                    case 'float':
                     case 'double':
                     case 'price':
                     case 'date':
                     case 'datetime':
                         $value_key = GETPOST($fieldHtmlName, 'alpha');
-                        if (empty($value_key)) $value_key = null;
+						if ($value_key === '') $value_key = null;
                         break;
+                    case 'select':
+                    case 'sellist':
+                    case 'radio':
+                    case 'checkbox':
+                    case 'chkbxlst':
+                        $value_key = GETPOST($fieldHtmlName, 'alpha');
+                        if ($value_key === '') $value_key = null;
+                        else $value_key = array($value_key);
+                    break;
                     case 'boolean':
                         $value_key = GETPOST($fieldHtmlName, 'int');
-                        if ($value_key < 0 || $value_key == '') $value_key = null;
+                        if ($value_key < 0 || $value_key === '') $value_key = null;
                         break;
                     case 'custom':
                         $value_key = $this->getSearchCustomFieldsValueFromForm($fieldName);
@@ -2050,26 +2128,61 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Return search value for custom field of the dictionary sent by a form
-	 *
+     * Return search value for custom field of the dictionary sent by a form
+     *
      * @param  string   $fieldName      Name of the field
-	 * @return mixed                    Return value for custom field of the dictionary sent by a form
-	 */
+     * @return mixed                    Return value for custom field of the dictionary sent by a form
+     */
     protected function getSearchCustomFieldsValueFromForm($fieldName)
     {
         return null;
     }
 
     /**
-	 * Determine if lines can be disabled or not
+	 * Return HTML string to put the script for update the list values of a select input into a page
 	 *
+	 * @param  array  	$default_values    	Default values when the page is reloaded and a select has not the options loaded
+	 * @param  string  	$keyprefix      	Prefix string to add into name and id of field (can be used to avoid duplicate names)
+	 * @param  string  	$keysuffix      	Suffix string to add into name and id of field (can be used to avoid duplicate names)
+	 * @return string
+	 */
+	public function showUpdateListValuesScript($default_values = array(), $keyprefix='', $keysuffix='')
+	{
+		$fields_to_watch = array();
+		foreach ($this->fields as $field_name => $field_info) {
+			if (!empty($field_info['update_list_values'])) $fields_to_watch[] = $field_name;
+		}
+
+		$js_url = dol_escape_js(dol_buildpath('/advancedictionaries/js/advancedictionaries.js.php', 1));
+		$module = dol_escape_js($this->module);
+		$name = dol_escape_js($this->name);
+		$default_values = json_encode($default_values);
+		$fields_to_watch = json_encode($fields_to_watch);
+		$key_prefix = dol_escape_js($keyprefix);
+		$key_suffix = dol_escape_js($keysuffix);
+
+		return <<<SCRIPT
+	<!-- Advanced Dictionaries - Update list values - Begin -->
+	<script type="text/javascript" src="$js_url"></script>
+	<script type="text/javascript">
+		jQuery(document).ready(function () {
+			advanced_dictionaries_watch_input('$module', '$name', $default_values, $fields_to_watch, '$key_prefix', '$key_suffix');
+		});
+	</script>
+	<!-- Advanced Dictionaries - Update list values - End -->
+SCRIPT;
+    }
+
+    /**
+     * Determine if lines can be disabled or not
+     *
      * @param  DictionaryLine   $dictionaryLine     Line instance
-	 * @return mixed                                =null: Show "Always active" text
+     * @return mixed                                =null: Show "Always active" text
      *                                              =true: Show button
      *                                              =string: Show the text returned, translated if key found
      *                                              other: Show disabled button
-	 */
-    function isLineCanBeDisabled(&$dictionaryLine)
+     */
+	public function isLineCanBeDisabled(&$dictionaryLine)
     {
         return true;
     }
@@ -2079,7 +2192,7 @@ class Dictionary extends CommonObject
      *
      * @return  int              Last row ID
      */
-    function getNextRowID()
+	public function getNextRowID()
     {
         $last_rowid = 0;
         $sql = 'SELECT MAX(' . $this->rowid_field . ') AS last_rowid FROM ' . MAIN_DB_PREFIX . $this->table_name;
@@ -2092,6 +2205,7 @@ class Dictionary extends CommonObject
 
         return $last_rowid + 1;
     }
+
     /**
      * Function from wordpress v4.9.6
      *
@@ -2746,6 +2860,11 @@ class DictionaryLine extends CommonObjectLine
     public $fields = array();
 
     /**
+     * @var array           List of object cached
+     */
+    static protected $objects_cached = array();
+
+    /**
      *  Constructor
      *
      * @param   DoliDB      $db             Database handler
@@ -2773,7 +2892,7 @@ class DictionaryLine extends CommonObjectLine
      * @param   array   $fieldsValue    Values of the fields array(name => value, ...)
      * @return  int                     <0 if not ok, >0 if ok
      */
-    function checkFieldsValues($fieldsValue)
+	public function checkFieldsValues($fieldsValue)
     {
         global $langs;
 
@@ -2801,6 +2920,7 @@ class DictionaryLine extends CommonObjectLine
                                 $checkField = false;
                             break;
                         case 'int':
+                        case 'float':
                         case 'double':
                         case 'price':
                             if ($value === '' || (isset($field['min']) && $value < $field['min']) || (isset($field['max']) && $value > $field['max']))
@@ -2863,7 +2983,7 @@ class DictionaryLine extends CommonObjectLine
      * @param   int     $noTrigger      1 = Does not execute triggers, 0 = execute triggers
      * @return  int                     <0 if not ok, >0 if ok
      */
-    function insert($fieldsValue, $user, $noTrigger = 0)
+	public function insert($fieldsValue, $user, $noTrigger = 0)
     {
         global $conf;
         dol_syslog(__METHOD__ . "::insert fieldsValues: " . http_build_query($fieldsValue));
@@ -2888,7 +3008,7 @@ class DictionaryLine extends CommonObjectLine
                 implode(', ', $insert_field) .
                 ', ' . $this->dictionary->active_field . ($this->dictionary->has_entity ? ', ' . $this->dictionary->entity_field : '') .
                 ') VALUES (' .
-                (!$this->dictionary->is_rowid_auto_increment ? $this->dictionary->getNextRowID() . ', ' : '') .
+                (!$this->dictionary->is_rowid_auto_increment ? ($this->dictionary->is_rowid_defined_by_code ? $this->id : $this->dictionary->getNextRowID()) . ', ' : '') .
                 implode(', ', $insert_statement) . ', 1' . ($this->dictionary->has_entity ? ', ' . $conf->entity : '') . ')';
 
             dol_syslog(__METHOD__ . "::insert", LOG_DEBUG);
@@ -2908,7 +3028,7 @@ class DictionaryLine extends CommonObjectLine
                     switch ($field['type']) {
                         case 'chkbxlst':
                             // Delete association line for the multi-select list
-                            $sql = 'DELETE FROM ' .  getAssociationTableNameForChkbxlstFieldType($field,$this->dictionary->table_name) . ' WHERE ' . getForeignKeyOfThisDictionnaryInAssociationTableForChkbxlstFieldType($field,$this->dictionary->table_name) . ' = ' . $this->id;
+                            $sql = 'DELETE FROM ' .  getAssociationTableNameForChkbxlstFieldType($field, $this->dictionary->table_name) . ' WHERE ' . getForeignKeyOfThisDictionnaryInAssociationTableForChkbxlstFieldType($field, $this->dictionary->table_name) . ' = ' . $this->id;
                             $resql = $this->db->query($sql);
                             if (!$resql) {
                                 dol_syslog(__METHOD__ . ' SQL: ' . $sql . '; Errors: ' . $this->db->lasterror(), LOG_ERR);
@@ -2928,7 +3048,7 @@ class DictionaryLine extends CommonObjectLine
                                 }
 
                                 if (count($insert_values) > 0) {
-                                    $sql = 'INSERT INTO ' . getAssociationTableNameForChkbxlstFieldType($field,$this->dictionary->table_name) . '(' . getForeignKeyOfThisDictionnaryInAssociationTableForChkbxlstFieldType($field,$this->dictionary->table_name) . ', ' . getForeignKeyOfDestinationTableInAssociationTableForChkbxlstFieldType($field,$this->dictionary->table_name) . ') VALUES' . implode(',', $insert_values);
+                                    $sql = 'INSERT INTO ' . getAssociationTableNameForChkbxlstFieldType($field, $this->dictionary->table_name) . '(' . getForeignKeyOfThisDictionnaryInAssociationTableForChkbxlstFieldType($field, $this->dictionary->table_name) . ', ' . getForeignKeyOfDestinationTableInAssociationTableForChkbxlstFieldType($field, $this->dictionary->table_name) . ') VALUES' . implode(',', $insert_values);
                                     $resql = $this->db->query($sql);
                                     if (!$resql) {
                                         dol_syslog(__METHOD__ . ' SQL: ' . $sql . '; Errors: ' . $this->db->lasterror(), LOG_ERR);
@@ -2944,8 +3064,8 @@ class DictionaryLine extends CommonObjectLine
                                 $error++;
                             }
                             break;
-                        default: // varchar, text, int, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
-                            break;
+                            default: // varchar, text, int, float, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
+                        break;
                     }
                     if ($error) break;
                 }
@@ -2956,6 +3076,11 @@ class DictionaryLine extends CommonObjectLine
                 $result = $this->call_trigger('LINEDICTIONARY_CREATE', $user);
                 if ($result < 0) $error++;
                 // End call triggers
+            }
+
+            if (!$error) {
+				$result = $this->insertLineSuccess($user);
+				if ($result < 0) $error++;
             }
 
             if (!$error) {
@@ -2997,7 +3122,7 @@ class DictionaryLine extends CommonObjectLine
      * @param   int     $noTrigger      1 = Does not execute triggers, 0 = execute triggers
      * @return  int                     <0 if not ok, >0 if ok
      */
-    function update($fieldsValue, $user, $noTrigger = 0)
+	public function update($fieldsValue, $user, $noTrigger = 0)
     {
         dol_syslog(__METHOD__ . "::update lineId: " . $this->id . "; fieldsValues: " . http_build_query($fieldsValue));
 
@@ -3019,6 +3144,7 @@ class DictionaryLine extends CommonObjectLine
             $sql .= implode(', ', $set_statement);
             $sql .= ' WHERE ' . $this->dictionary->rowid_field . ' = ' . $this->id;
 
+            dol_syslog(__METHOD__ . "::update", LOG_DEBUG);
             $resql = $this->db->query($sql);
             if (!$resql) {
                 dol_syslog(__METHOD__ . ' SQL: ' . $sql . '; Errors: ' . $this->db->lasterror(), LOG_ERR);
@@ -3031,15 +3157,15 @@ class DictionaryLine extends CommonObjectLine
                 foreach ($this->fields as $fieldName => $value) {
                     $field = $this->dictionary->fields[$fieldName];
                     switch ($field['type']) {
-						case 'chkbxlst':
+                        case 'chkbxlst':
                             // Delete association line for the multi-select list
-                            $sql = 'DELETE FROM ' .  getAssociationTableNameForChkbxlstFieldType($field,$this->dictionary->table_name) . ' WHERE ' . getForeignKeyOfThisDictionnaryInAssociationTableForChkbxlstFieldType($field,$this->dictionary->table_name) . ' = ' . $this->id;
+                            $sql = 'DELETE FROM ' .  getAssociationTableNameForChkbxlstFieldType($field, $this->dictionary->table_name) . ' WHERE ' . getForeignKeyOfThisDictionnaryInAssociationTableForChkbxlstFieldType($field, $this->dictionary->table_name) . ' = ' . $this->id;
                             $resql = $this->db->query($sql);
                             if (!$resql) {
                                 dol_syslog(__METHOD__ . ' SQL: ' . $sql . '; Errors: ' . $this->db->lasterror(), LOG_ERR);
                                 $error++;
                                 $errors[] = $this->db->lasterror();
-                            } else {
+                            } elseif(!empty($value)) {
                                 // Insert association line for the multi-select list
                                 $insert_values = array();
                                 $value_arr = array();
@@ -3051,9 +3177,8 @@ class DictionaryLine extends CommonObjectLine
                                 foreach ($value_arr as $value_id) {
                                     $insert_values[] = '(' . $this->id . ', ' . $value_id . ')';
                                 }
-
                                 if (count($insert_values) > 0) {
-                                    $sql = 'INSERT INTO ' . getAssociationTableNameForChkbxlstFieldType($field,$this->dictionary->table_name) . '(' . getForeignKeyOfThisDictionnaryInAssociationTableForChkbxlstFieldType($field,$this->dictionary->table_name) . ', ' . getForeignKeyOfDestinationTableInAssociationTableForChkbxlstFieldType($field,$this->dictionary->table_name) . ') VALUES' . implode(',', $insert_values);
+                                    $sql = 'INSERT INTO ' . getAssociationTableNameForChkbxlstFieldType($field, $this->dictionary->table_name) . '(' . getForeignKeyOfThisDictionnaryInAssociationTableForChkbxlstFieldType($field, $this->dictionary->table_name) . ', ' . getForeignKeyOfDestinationTableInAssociationTableForChkbxlstFieldType($field, $this->dictionary->table_name) . ') VALUES' . implode(',', $insert_values);
                                     $resql = $this->db->query($sql);
                                     if (!$resql) {
                                         dol_syslog(__METHOD__ . ' SQL: ' . $sql . '; Errors: ' . $this->db->lasterror(), LOG_ERR);
@@ -3069,8 +3194,8 @@ class DictionaryLine extends CommonObjectLine
                                 $error++;
                             }
                             break;
-                        default: // varchar, text, int, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
-                            break;
+                            default: // varchar, text, int, float, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
+                        break;
                     }
                     if ($error) break;
                 }
@@ -3082,6 +3207,11 @@ class DictionaryLine extends CommonObjectLine
                 if ($result < 0) $error++;
                 // End call triggers
             }
+
+			if (!$error) {
+				$result = $this->updateLineSuccess($user);
+				if ($result < 0) $error++;
+			}
 
             if (!$error) {
                 $this->db->commit();
@@ -3121,7 +3251,7 @@ class DictionaryLine extends CommonObjectLine
      * @param   int     $noTrigger      1 = Does not execute triggers, 0 = execute triggers
      * @return  int                     <0 if not ok, >0 if ok
      */
-    function delete($user, $noTrigger = 0)
+	public function delete($user, $noTrigger = 0)
     {
         global $langs;
         dol_syslog(__METHOD__ . "::delete lineId: " . $this->id);
@@ -3142,12 +3272,12 @@ class DictionaryLine extends CommonObjectLine
             switch ($field['type']) {
                 case 'chkbxlst':
                     // Delete association line for the multi-select list
-                    $sql = 'DELETE FROM ' . getAssociationTableNameForChkbxlstFieldType($field,$this->dictionary->table_name) . ' WHERE ' . getForeignKeyOfThisDictionnaryInAssociationTableForChkbxlstFieldType($field,$this->dictionary->table_name) . ' = ' . $this->id;
+                    $sql = 'DELETE FROM ' . getAssociationTableNameForChkbxlstFieldType($field, $this->dictionary->table_name) . ' WHERE ' . getForeignKeyOfThisDictionnaryInAssociationTableForChkbxlstFieldType($field, $this->dictionary->table_name) . ' = ' . $this->id;
                     $resql = $this->db->query($sql);
                     if (!$resql) {
                         $error++;
-                        if ($this->db->lasterrno == 'DB_ERROR_CHILD_EXISTS') {
-                            $errors[] = $langs->trans('AdvanceDictionariesErrorValueUsedInDolibarr', $langs->transnoentitiesnoconv($field['label']));
+                        if ($this->db->lasterrno() == 'DB_ERROR_CHILD_EXISTS') {
+                            $errors[] = $langs->trans('AdvanceDictionariesErrorValueUsedInDolibarr', $langs->transnoentitiesnoconv($field['label'])) . ' : ' . $this->db->lasterror();
                         } else {
                             $errors[] = $this->db->lasterror();
                         }
@@ -3159,8 +3289,8 @@ class DictionaryLine extends CommonObjectLine
                         $error++;
                     }
                     break;
-                default: // varchar, text, int, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
-                    break;
+                    default: // varchar, text, int, float, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
+                break;
             }
             if ($error) break;
         }
@@ -3173,12 +3303,17 @@ class DictionaryLine extends CommonObjectLine
             $resql = $this->db->query($sql);
             if (!$resql) {
                 $error++;
-                if ($this->db->lasterrno == 'DB_ERROR_CHILD_EXISTS') {
-                    $errors[] = $langs->trans('AdvanceDictionariesErrorUsedInDolibarr');
+                if ($this->db->lasterrno() == 'DB_ERROR_CHILD_EXISTS') {
+                    $errors[] = $langs->trans('AdvanceDictionariesErrorUsedInDolibarr') . ' : ' . $this->db->lasterror();
                 } else {
                     $errors[] = $this->db->lasterror();
                 }
             }
+        }
+
+        if (!$error) {
+			$result = $this->deleteLineSuccess($user);
+			if ($result < 0) $error++;
         }
 
         if (!$error) {
@@ -3209,14 +3344,14 @@ class DictionaryLine extends CommonObjectLine
     }
 
     /**
-    *  Active line
-    *
-    * @param   int     $status         Status of the line, 0: desactived, 1: actived
-    * @param   User    $user           User who add this line
-    * @param   int     $noTrigger      1 = Does not execute triggers, 0 = execute triggers
-    * @return  int                     <0 if not ok, >0 if ok
-    */
-    function active($status, $user, $noTrigger = 0)
+     *  Active line
+     *
+     * @param   int     $status         Status of the line, 0: desactived, 1: actived
+     * @param   User    $user           User who add this line
+     * @param   int     $noTrigger      1 = Does not execute triggers, 0 = execute triggers
+     * @return  int                     <0 if not ok, >0 if ok
+     */
+	public function active($status, $user, $noTrigger = 0)
     {
         dol_syslog(__METHOD__ . "::active lineId: " . $this->id . "; status: " . $status);
 
@@ -3245,6 +3380,11 @@ class DictionaryLine extends CommonObjectLine
             // End call triggers
         }
 
+		if (!$error) {
+			$result = $this->activeLineSuccess($user);
+			if ($result < 0) $error++;
+		}
+
         if (!$error) {
             $this->db->commit();
             return 1;
@@ -3261,12 +3401,56 @@ class DictionaryLine extends CommonObjectLine
     }
 
     /**
+	 * Execute this function if the insertion of the line in the dictionary is successful
+	 *
+	 * @param   User    $user           User who make this action
+	 * @return  int                     <0 if not ok, >0 if ok
+	 */
+	protected function insertLineSuccess(User $user)
+	{
+		return 1;
+	}
+
+	/**
+	 * Execute this function if the insertion of the line in the dictionary is successful
+	 *
+	 * @param   User    $user           User who make this action
+	 * @return  int                     <0 if not ok, >0 if ok
+	 */
+	protected function updateLineSuccess(User $user)
+	{
+		return 1;
+	}
+
+	/**
+	 * Execute this function if the insertion of the line in the dictionary is successful
+	 *
+	 * @param   User    $user           User who make this action
+	 * @return  int                     <0 if not ok, >0 if ok
+	 */
+	protected function deleteLineSuccess(User $user)
+	{
+		return 1;
+	}
+
+	/**
+	 * Execute this function if the insertion of the line in the dictionary is successful
+	 *
+	 * @param   User    $user           User who make this action
+	 * @return  int                     <0 if not ok, >0 if ok
+	 */
+	protected function activeLineSuccess(User $user)
+	{
+		return 1;
+	}
+
+    /**
      *  Load a line of the dictionary
      *
      * @param   int     $rowid      id of line to load
      * @return  int                 >0 if OK, <0 if KO
      */
-    function fetch($rowid)
+	public function fetch($rowid)
     {
         $select = array();
         $from = "";
@@ -3314,20 +3498,20 @@ class DictionaryLine extends CommonObjectLine
     }
 
     /**
-	 * Return the sql statement for the field in the select clause
-	 *
+     * Return the sql statement for the field in the select clause
+     *
      * @param   array       $field      Description of the field
      * @return  string                  Return the sql statement for the field in the select clause
-	 */
-	protected function selectFieldSqlStatement($field)
+     */
+    protected function selectFieldSqlStatement($field)
     {
         if (!empty($field)) {
             switch ($field['type']) {
                 case 'chkbxlst':
-                    return 'GROUP_CONCAT(DISTINCT cbl_' . $field['name'] . '.' . getForeignKeyOfDestinationTableInAssociationTableForChkbxlstFieldType($field,$this->dictionary->table_name) .' SEPARATOR \',\') AS ' . $field['name'];
+                    return 'GROUP_CONCAT(DISTINCT cbl_' . $field['name'] . '.' . getForeignKeyOfDestinationTableInAssociationTableForChkbxlstFieldType($field, $this->dictionary->table_name) . ' SEPARATOR \',\') AS ' . $field['name'];
                 case 'custom':
                     return $this->selectCustomFieldSqlStatement($field);
-                default: // varchar, text, int, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
+                    default: // varchar, text, int, float, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
                     return 'd.' . $field['name'] . ' AS ' . $field['name'];
             }
         }
@@ -3336,31 +3520,31 @@ class DictionaryLine extends CommonObjectLine
     }
 
     /**
-	 * Return the sql statement for the custom field in the select clause
-	 *
+     * Return the sql statement for the custom field in the select clause
+     *
      * @param   array       $field      Description of the field
      * @return  string                  Return the sql statement for the custom field in the select clause
-	 */
+     */
     protected function selectCustomFieldSqlStatement($field) {
-	    return '';
-    }
+        return '';
+ }
 
     /**
-	 * Return the sql statement for the field in the from clause
-	 *
+     * Return the sql statement for the field in the from clause
+     *
      * @param   array       $field      Description of the field
      * @return  string                  Return the sql statement for the field in the from clause
-	 */
-	protected function fromFieldSqlStatement($field)
+     */
+    protected function fromFieldSqlStatement($field)
     {
         if (!empty($field)) {
             switch ($field['type']) {
                 case 'chkbxlst':
-                    return ' LEFT JOIN ' . getAssociationTableNameForChkbxlstFieldType($field,$this->dictionary->table_name) . ' AS cbl_' . $field['name'] .
-                        ' ON (cbl_' . $field['name'] . '.' . getForeignKeyOfThisDictionnaryInAssociationTableForChkbxlstFieldType($field,$this->dictionary->table_name) . ' = d.' . $this->dictionary->rowid_field . ')';
+                    return ' LEFT JOIN ' . getAssociationTableNameForChkbxlstFieldType($field, $this->dictionary->table_name) . ' AS cbl_' . $field['name'] .
+                        ' ON (cbl_' . $field['name'] . '.' . getForeignKeyOfThisDictionnaryInAssociationTableForChkbxlstFieldType($field, $this->dictionary->table_name) . ' = d.' . $this->dictionary->rowid_field . ')';
                 case 'custom':
                     return $this->fromCustomFieldSqlStatement($field);
-                default: // varchar, text, int, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
+                    default: // varchar, text, int, float, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
                     return '';
             }
         }
@@ -3369,14 +3553,14 @@ class DictionaryLine extends CommonObjectLine
     }
 
     /**
-	 * Return the sql statement for the custom field in the from clause
-	 *
+     * Return the sql statement for the custom field in the from clause
+     *
      * @param   array       $field      Description of the field
      * @return  string                  Return the sql statement for the custom field in the from clause
-	 */
+     */
     protected function fromCustomFieldSqlStatement($field) {
-	    return '';
-    }
+        return '';
+ }
 
     /**
      *  Format the value of the field to the table
@@ -3385,10 +3569,11 @@ class DictionaryLine extends CommonObjectLine
      * @param   mixed       $value      Value of the field
      * @return  string                  Value of the custom field formatted for the table
      */
-    function formatFieldValueForSQL($name, $value)
+	public function formatFieldValueForSQL($name, $value)
     {
         if (isset($this->dictionary->fields[$name])) {
             $field = $this->dictionary->fields[$name];
+            $unselect_values = is_array($field['unselected_values']) ? $field['unselected_values'] : array(-1);
 
             switch ($field['type']) {
                 case 'varchar':
@@ -3397,22 +3582,24 @@ class DictionaryLine extends CommonObjectLine
                 case 'mail':
                 case 'url':
                 case 'password':
-                case 'select':
-                case 'sellist':
                 case 'radio':
                 case 'checkbox':
                 case 'int':
+                case 'float':
                 case 'double':
                 case 'price':
                 case 'link':
-                    return $field['is_require'] || !empty($value) || $value === 0 || $value === "0" ? "'" . $this->db->escape($value) . "'" : 'NULL';
+                    return $field['is_require'] || $value !== '' ? "'" . $this->db->escape($value) . "'" : 'NULL';
+                case 'select':
+                case 'sellist':
+                    return $field['is_require'] || ($value !== '' && !in_array($value, $unselect_values)) ? "'" . $this->db->escape($value) . "'" : 'NULL';
                 case 'chkbxlst':
                     return null;
                 case 'date':
                 case 'datetime':
-                    return $field['is_require'] || !empty($value) ? "'" . $this->db->idate($value) . "'" : 'NULL';
+                    return $field['is_require'] || $value !== '' ? "'" . $this->db->idate($value) . "'" : 'NULL';
                 case 'boolean':
-                    return $field['is_require'] || !empty($value) ? (!empty($value) ? 1 : 0) : 'NULL';
+                    return $field['is_require'] || $value !== '' ? (!empty($value) ? 1 : 0) : 'NULL';
                 case 'custom':
                     return $this->formatCustomFieldValueForSQL($name, $value);
                 default: // unknown
@@ -3441,7 +3628,7 @@ class DictionaryLine extends CommonObjectLine
      * @param   mixed       $value      Value of the field
      * @return  string                  Formatted value of the field from the table
      */
-    function formatFieldValueFromSQL($name, $value)
+	public function formatFieldValueFromSQL($name, $value)
     {
         if (isset($this->dictionary->fields[$name])) {
             $field = $this->dictionary->fields[$name];
@@ -3454,7 +3641,7 @@ class DictionaryLine extends CommonObjectLine
                     return (!empty($value) ? 1 : 0);
                 case 'custom':
                     return $this->formatCustomFieldValueFromSQL($name, $value);
-                default: // varchar, text, int, double, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, chkbxlst, link, unknown
+                    default: // varchar, text, int, float, double, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, chkbxlst, link, unknown
                     return $value;
             }
         }
@@ -3480,7 +3667,7 @@ class DictionaryLine extends CommonObjectLine
      * @param   string	$value          Value to show
      * @return	string					Formatted value
      */
-    function showOutputField($fieldName, $value = null)
+	public function showOutputFieldAD($fieldName, $value = null)
     {
         global $langs, $conf;
 
@@ -3494,7 +3681,8 @@ class DictionaryLine extends CommonObjectLine
 
             switch ($field['type']) {
                 case 'varchar':
-                    break;
+                    $value = $langs->trans($field['translate_prefix'] . $value . $field['translate_suffix']);
+                break;
                 case 'text':
                     $value = dol_htmlentitiesbr($value);
                     break;
@@ -3510,80 +3698,103 @@ class DictionaryLine extends CommonObjectLine
                 case 'password':
                     $value = preg_replace('/./i', '*', $value);
                     break;
+                case 'radio':
                 case 'select':
-                    $value = $field['options'][$value];
+                    $value = $langs->trans($field['translate_prefix'] . $field['options'][$value] . $field['translate_suffix']);
                     break;
                 case 'sellist':
-                    $InfoFieldList = getInfoFieldArrayFromOptionsForChkbxlstFieldType($field,$this->dictionary->table_name);
+                    $InfoFieldList = getInfoFieldArrayFromOptionsForChkbxlstFieldType($field, $this->dictionary->table_name);
+                    if (empty($InfoFieldList[5]) && empty($InfoFieldList[6])) {
+                        $selectkey = "rowid";
+                        $keyList = 'rowid';
 
-                    $selectkey = "rowid";
-                    $keyList = 'rowid';
-
-                    if (count($InfoFieldList) >= 3) {
-                        $selectkey = $InfoFieldList[2];
-                        $keyList = $InfoFieldList[2] . ' as rowid';
-                    }
-
-                    $fields_label = explode('|', $InfoFieldList[1]);
-                    if (is_array($fields_label)) {
-                        $keyList .= ', ';
-                        $keyList .= implode(', ', $fields_label);
-                    }
-
-                    $sql = 'SELECT ' . $keyList;
-                    $sql .= ' FROM ' . MAIN_DB_PREFIX . $InfoFieldList[0];
-                    if (strpos($InfoFieldList[4], 'extra') !== false) {
-                        $sql .= ' as main';
-                    }
-                    if ($selectkey == 'rowid' && empty($value)) {
-                        $sql .= " WHERE " . $selectkey . "=0";
-                    } elseif ($selectkey == 'rowid') {
-                        $sql .= " WHERE " . $selectkey . "=" . $this->db->escape($value);
-                    } else {
-                        $sql .= " WHERE " . $selectkey . "='" . $this->db->escape($value) . "'";
-                    }
-
-                    dol_syslog(__METHOD__ . ':showOutputField:$type=sellist', LOG_DEBUG);
-                    $resql = $this->db->query($sql);
-                    if ($resql) {
-                        $value = '';    // value was used, so now we reste it to use it to build final output
-
-                        $obj = $this->db->fetch_object($resql);
-
-                        // Several field into label (eq table:code|libelle:rowid)
-                        $fields_label = explode('|', $InfoFieldList[1]);
-
-                        if (is_array($fields_label) && count($fields_label) > 1) {
-                            $label_separator = isset($field['label_separator']) ? $field['label_separator'] : ' ';
-                            $labelstoshow = array();
-                            foreach ($fields_label as $field_toshow) {
-                                $translabel = '';
-                                if (!empty($obj->$field_toshow)) {
-                                    $translabel = $langs->trans($obj->$field_toshow);
-                                }
-                                if ($translabel != $field_toshow) {
-                                    $labelstoshow[] = dol_trunc($translabel, 18);
-                                } else {
-                                    $labelstoshow[] = $obj->$field_toshow;
-                                }
-							}
-							$labelstoshow = array_filter($labelstoshow,function($k){return isset($k);});
-                            $value .= implode($label_separator, $labelstoshow);
-                        } else {
-                            $translabel = '';
-                            if (!empty($obj->{$InfoFieldList[1]})) {
-                                $translabel = $langs->trans($obj->{$InfoFieldList[1]});
-                            }
-                            if ($translabel != $obj->{$InfoFieldList[1]}) {
-                                $value = dol_trunc($translabel, 18);
-                            } else {
-                                $value = $obj->{$InfoFieldList[1]};
-                            }
+                        if (count($InfoFieldList) >= 3) {
+                            $selectkey = $InfoFieldList[2];
+                            $keyList = $InfoFieldList[2] . ' as rowid';
                         }
-                    } else dol_syslog(__METHOD__ . '::showOutputField error ' . $this->db->lasterror(), LOG_WARNING);
-                    break;
-                case 'radio':
-                    $value = $field['options'][$value];
+
+						$fields_label = !empty($InfoFieldList[1]) ? explode('|', $InfoFieldList[1]) : null;
+						$fieldList = array();
+						if (is_array($fields_label)) {
+							$keyList .= ', ' . implode(', ', $fields_label);
+							foreach ($fields_label as $l) {
+								if (preg_match('/\s+AS\s+(\S+)\s*$/i', $l, $matches)) {
+									$fieldList[] = $matches[1];
+								} else {
+									$fieldList[] = $l;
+								}
+							}
+						}
+
+						$fields_lang = !empty($InfoFieldList[7]) ? explode('|', $InfoFieldList[7]) : null;
+						$fieldLangList = array();
+						if (is_array($fields_lang)) {
+							$keyList .= ', ' . implode(', ', $fields_lang);
+							foreach ($fields_lang as $l) {
+								if (preg_match('/\s+AS\s+(\S+)\s*$/i', $l, $matches)) {
+									$fieldLangList[] = $matches[1];
+								} else {
+									$fieldLangList[] = $l;
+								}
+							}
+						}
+
+                        $sql = 'SELECT ' . $keyList;
+                        $sql .= ' FROM ' . MAIN_DB_PREFIX . str_replace('{{DB_PREFIX}}', MAIN_DB_PREFIX, $InfoFieldList[0]);
+                        if (strpos($InfoFieldList[4], 'extra') !== false) {
+                            $sql .= ' as main';
+                        }
+                        if ($selectkey == 'rowid' && empty($value)) {
+                            $sql .= " WHERE " . $selectkey . "=0";
+                        } elseif ($selectkey == 'rowid') {
+                            $sql .= " WHERE " . $selectkey . "=" . $this->db->escape($value);
+                        } else {
+                            $sql .= " WHERE " . $selectkey . "='" . $this->db->escape($value) . "'";
+                        }
+
+                        dol_syslog(__METHOD__ . ' type=sellist', LOG_DEBUG);
+                        $resql = $this->db->query($sql);
+                        if ($resql) {
+                            $value = '';    // value was used, so now we reste it to use it to build final output
+
+                            $obj = $this->db->fetch_object($resql);
+
+							if (!empty($fieldLangList)) {
+								foreach ($fieldLangList as $lang) {
+									if (!empty($obj->$lang)) $langs->load($obj->$lang);
+								}
+							}
+							if (is_array($fieldList) && count($fieldList) > 1) {
+								// Several field into label (eq table:code|libelle:rowid)
+								$label_separator = isset($field['label_separator']) ? $field['label_separator'] : ' ';
+                                $labelstoshow = array();
+                                foreach ($fieldList as $field_toshow) {
+                                    $translabel = '';
+                                    if (!empty($obj->$field_toshow)) {
+                                        $translabel = $langs->trans($field['translate_prefix'] . $obj->$field_toshow . $field['translate_suffix']);
+                                    }
+                                    if ($translabel != $field_toshow) {
+                                        $labelstoshow[] = dol_trunc($translabel, isset($field['truncate']) && $field['truncate'] > 0 ? $field['truncate'] : 0);
+                                    } else {
+                                        $labelstoshow[] = $obj->$field_toshow;
+                                    }
+                                }
+                                $value .= implode($label_separator, $labelstoshow);
+                            } else {
+                                $translabel = '';
+                                if (!empty($obj->{$fieldList[0]})) {
+                                    $translabel = $langs->trans($field['translate_prefix'] . $obj->{$fieldList[0]} . $field['translate_suffix']);
+                                }
+                                if ($translabel != $obj->{$fieldList[0]}) {
+                                    $value = dol_trunc($translabel, isset($field['truncate']) && $field['truncate'] > 0 ? $field['truncate'] : 0);
+                                } else {
+                                    $value = $obj->{$fieldList[0]};
+                                }
+                            }
+                        } else dol_syslog(__METHOD__ . ' Error ' . $this->db->lasterror(), LOG_WARNING);
+                    } else {
+                        $value = $this->getObjectNomUrl($fieldName, $InfoFieldList[5], $InfoFieldList[6], $value);
+                    }
                     break;
                 case 'checkbox':
                     if (is_array($value)) {
@@ -3594,7 +3805,7 @@ class DictionaryLine extends CommonObjectLine
                     $toprint = array();
                     if (is_array($value_arr)) {
                         foreach ($value_arr as $keyval => $valueval) {
-                            $toprint[] = '<li class="select2-search-choice-dolibarr noborderoncategories" style="background: #aaa">' . $field['options'][$valueval] . '</li>';
+                            $toprint[] = '<li class="select2-search-choice-dolibarr noborderoncategories" style="background: #aaa">' . $langs->trans($field['translate_prefix'] . $field['options'][$valueval] . $field['translate_suffix']) . '</li>';
                         }
                     }
                     $value = '<div class="select2-container-multi-dolibarr" style="width: 90%;"><ul class="select2-choices-dolibarr">' . implode(' ', $toprint) . '</ul></div>';
@@ -3691,17 +3902,8 @@ class DictionaryLine extends CommonObjectLine
                         $out = '';
                         // 0 : ObjectName
                         // 1 : classPath
-                        $InfoFieldList = getInfoFieldArrayFromOptionsForChkbxlstFieldType($field,$this->dictionary->table_name);
-                        dol_include_once($InfoFieldList[1]);
-                        if ($InfoFieldList[0] && class_exists($InfoFieldList[0], false)) {
-                            $object = new $InfoFieldList[0]($this->db);
-                            $object->fetch($value);
-                            $out = $object->getNomUrl(3);
-                        } else {
-                            dol_syslog('Error bad setup for the field: ' . $fieldName . ' onto the dictionary: ' . $this->dictionary->name, LOG_WARNING);
-                            $out .= 'Error bad setup for the field';
-                        }
-                        $value = $out;
+                        $InfoFieldList = getInfoFieldArrayFromOptionsForChkbxlstFieldType($field, $this->dictionary->table_name);
+                        $value = $this->getObjectNomUrl($fieldName, $InfoFieldList[0], $InfoFieldList[1], $value);
                     }
                     break;
                 case 'date':
@@ -3714,7 +3916,7 @@ class DictionaryLine extends CommonObjectLine
                     $value = '<input type="checkbox" ' . (!empty($value) ? ' checked ' : '') . $moreAttributes . ' readonly disabled>';
                     break;
                 case 'custom':
-                    return $this->showOutputCustomField($fieldName, $value);
+                    return $this->showOutputCustomFieldAD($fieldName, $value);
                 default: // unknown
                     return '';
             }
@@ -3732,22 +3934,23 @@ class DictionaryLine extends CommonObjectLine
      * @param   string	$value          Value to show
      * @return	string					Formatted value
      */
-    protected function showOutputCustomField($fieldName, $value)
+    protected function showOutputCustomFieldAD($fieldName, $value)
     {
         return '';
     }
 
     /**
-	 * Return HTML string to put an input field into a page
-	 *
-	 * @param  string  $fieldName      Name of the field
-	 * @param  string  $value          Preselected value to show (for date type it must be in timestamp format, for amount or price it must be a php numeric value)
-	 * @param  string  $keyprefix      Prefix string to add into name and id of field (can be used to avoid duplicate names)
-	 * @param  string  $keysuffix      Suffix string to add into name and id of field (can be used to avoid duplicate names)
-	 * @param  int     $objectid       Current object id
+     * Return HTML string to put an input field into a page
+     *
+     * @param  string  $fieldName      		Name of the field
+	 * @param  string  $value          		Preselected value to show (for date type it must be in timestamp format, for amount or price it must be a php numeric value)
+	 * @param  string  $keyprefix     	 	Prefix string to add into name and id of field (can be used to avoid duplicate names)
+	 * @param  string  $keysuffix      		Suffix string to add into name and id of field (can be used to avoid duplicate names)
+	 * @param  int     $objectid       		Current object id
+	 * @param  int     $options_only   		1: Return only the html output of the options of the select input
 	 * @return string
 	 */
-	function showInputField($fieldName, $value=null, $keyprefix='', $keysuffix='', $objectid=0)
+	public function showInputFieldAD($fieldName, $value=null, $keyprefix='', $keysuffix='', $objectid=0, $options_only=0)
     {
         global $conf, $langs;
 
@@ -3768,10 +3971,12 @@ class DictionaryLine extends CommonObjectLine
                     $moreClasses = ' minwidth100imp';
                 } elseif ($type == 'datetime') {
                     $moreClasses = ' minwidth200imp';
-                } elseif (in_array($type, array('int', 'double', 'price'))) {
+                } elseif (in_array($type, array('int', 'float', 'double', 'price'))) {
                     $moreClasses = ' maxwidth75';
                 } elseif (in_array($type, array('varchar', 'phone', 'mail', 'url', 'password', 'select', 'sellist', 'radio', 'checkbox', 'link', 'chkbxlst'))) {
                     $moreClasses = ' minwidth200';
+                } elseif (in_array($type, array('checkbox', 'chkbxlst'))) {
+                    $moreClasses = '';
                 } elseif ($type == 'boolean') {
                     $moreClasses = '';
                 } else {
@@ -3782,48 +3987,61 @@ class DictionaryLine extends CommonObjectLine
             }
 
             $moreAttributes = trim($field['show_input']['moreAttributes']);
+	        if (empty($moreAttributes)) {
+		        if (in_array($type, array('checkbox', 'chkbxlst'))) {
+			        $moreAttributes = ' style="width:100%;"';
+		        }
+	        } else {
+		        $moreAttributes = ' ' . $moreAttributes;
+	        }
             $moreAttributes = !empty($moreAttributes) ? ' ' . $moreAttributes : '';
 
             if (!empty($hidden)) {
-                $out = '<input type="hidden" value="' . $value . '" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" id="' . $fieldHtmlName . '"/>';
+                $out = '<input type="hidden" value="' . $value . '" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '"/>';
             } else {
-                switch ($field['type']) {
-                    case 'varchar':
-                        $out = '<input type="text" class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" maxlength="' . $size . '" value="' . dol_escape_htmltag($value) . '"' . $moreAttributes . '>';
-                        break;
-                    case 'text':
-                        require_once DOL_DOCUMENT_ROOT . '/core/class/doleditor.class.php';
-                        $doleditor = new DolEditor($fieldHtmlName, $value, '', 200, 'dolibarr_notes', 'In', false,
-                            false, !empty($conf->fckeditor->enabled), ROWS_5, '90%');
-                        $out = $doleditor->Create(1);
-                        break;
-                    case 'phone':
-                    case 'mail':
-                    case 'url':
-                        $out = '<input type="text" class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" value="' . $value . '"' . $moreAttributes . '>';
-                        break;
-                    case 'password':
-                        $out = '<input type="password" class="flat' . $moreClasses . '" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" value="' . $value . '"' . $moreAttributes . '>';
-                        break;
-                    case 'select':
-                        $out = '';
-                        if (!empty($conf->use_javascript_ajax) && !empty($conf->global->MAIN_DICTIONARY_USE_SELECT2)) {
-                            include_once DOL_DOCUMENT_ROOT . '/core/lib/ajax.lib.php';
-                            $out .= ajax_combobox($fieldHtmlName, array(), 0);
-                        }
+				switch ($field['type']) {
+					case 'varchar':
+						$out = '<input type="text" class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" maxlength="' . $size . '" value="' . dol_escape_htmltag($value) . '"' . $moreAttributes . '>';
+						break;
+					case 'text':
+						if (empty($field['no_wysiwyg'])) {
+							require_once DOL_DOCUMENT_ROOT . '/core/class/doleditor.class.php';
+							$doleditor = new DolEditor($fieldHtmlName, $value, '', 200, 'dolibarr_notes', 'In', false,
+								false, !empty($conf->fckeditor->enabled), ROWS_5, '90%');
+							$out = $doleditor->Create(1);
+						} else {
+							$out = '<textarea id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" rows="' . ROWS_5 . '" style="margin-top: 5px; width: 90%;" class="flat">' . $value . '</textarea>';
+						}
+						break;
+					case 'phone':
+					case 'mail':
+					case 'url':
+						$out = '<input type="text" class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" value="' . $value . '"' . $moreAttributes . '>';
+						break;
+					case 'password':
+						$out = '<input type="password" class="flat' . $moreClasses . '" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" value="' . $value . '"' . $moreAttributes . '>';
+						break;
+					case 'select':
+						$out = '';
+						if (!empty($conf->use_javascript_ajax) && !empty($conf->global->MAIN_DICTIONARY_USE_SELECT2)) {
+							include_once DOL_DOCUMENT_ROOT . '/core/lib/ajax.lib.php';
+							$out .= ajax_combobox($fieldHtmlName, array(), 0);
+						}
 
-                        $out .= '<select class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" id="' . $fieldHtmlName . '"' . $moreAttributes . '>';
-                        $out .= '<option value="-1">&nbsp;</option>';
-                        foreach ($field['options'] as $key => $val) {
-                            if ((string)$key == '') continue;
-                            list($val, $parent) = explode('|', $val);
-                            $out .= '<option value="' . $key . '"';
-                            $out .= (((string)$value == (string)$key) ? ' selected' : '');
-                            $out .= (!empty($parent) ? ' parent="' . $parent . '"' : '');
-                            $out .= '>' . $val . '</option>';
-                        }
-                        $out .= '</select>';
-                        break;
+						if (empty($options_only)) $out .= '<select class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '"' . $moreAttributes . '>';
+						$out .= '<option value="">&nbsp;</option>';
+						if (is_array($field['options'])) {
+							foreach ($field['options'] as $key => $val) {
+								if ((string)$key == '') continue;
+								list($val, $parent) = explode('|', $val);
+								$out .= '<option value="' . $key . '"';
+								$out .= (((string)$value == (string)$key) ? ' selected' : '');
+								$out .= (!empty($parent) ? ' parent="' . $parent . '"' : '');
+								$out .= '>' . $langs->trans($field['translate_prefix'] . $val . $field['translate_suffix']) . '</option>';
+							}
+						}
+						if (empty($options_only)) $out .= '</select>';
+						break;
                     case 'sellist':
                         $out = '';
                         if (!empty($conf->use_javascript_ajax) && !empty($conf->global->MAIN_DICTIONARY_USE_SELECT2)) {
@@ -3831,8 +4049,8 @@ class DictionaryLine extends CommonObjectLine
                             $out .= ajax_combobox($fieldHtmlName, array(), 0);
                         }
 
-                        $out .= '<select class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" id="' . $fieldHtmlName . '"' . $moreAttributes . '>';
-                        $InfoFieldList = getInfoFieldArrayFromOptionsForChkbxlstFieldType($field,$this->dictionary->table_name);
+						if (empty($options_only)) $out .= '<select class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '"' . $moreAttributes . '>';
+                        $InfoFieldList = getInfoFieldArrayFromOptionsForChkbxlstFieldType($field, $this->dictionary->table_name);
                         $keyList = (empty($InfoFieldList[2]) ? 'rowid' : $InfoFieldList[2] . ' as rowid');
 
                         if (count($InfoFieldList) > 4 && !empty($InfoFieldList[4])) {
@@ -3848,286 +4066,310 @@ class DictionaryLine extends CommonObjectLine
                             $keyList .= ', ' . $parentField;
                         }
 
-                        $fields_label = explode('|', $InfoFieldList[1]);
-                        if (is_array($fields_label)) {
-                            $keyList .= ', ';
-                            $keyList .= implode(', ', $fields_label);
-                        }
+						$fields_label = !empty($InfoFieldList[1]) ? explode('|', $InfoFieldList[1]) : null;
+						$fieldList = array();
+						if (is_array($fields_label)) {
+							$keyList .= ', ' . implode(', ', $fields_label);
+							foreach ($fields_label as $l) {
+								if (preg_match('/\s+AS\s+(\S+)\s*$/i', $l, $matches)) {
+									$fieldList[] = $matches[1];
+								} else {
+									$fieldList[] = $l;
+								}
+							}
+						}
 
-                        $sqlwhere = '';
+						$fields_lang = !empty($InfoFieldList[7]) ? explode('|', $InfoFieldList[7]) : null;
+						$fieldLangList = array();
+						if (is_array($fields_lang)) {
+							$keyList .= ', ' . implode(', ', $fields_lang);
+							foreach ($fields_lang as $l) {
+								if (preg_match('/\s+AS\s+(\S+)\s*$/i', $l, $matches)) {
+									$fieldLangList[] = $matches[1];
+								} else {
+									$fieldLangList[] = $l;
+								}
+							}
+						}
+
                         $sql = 'SELECT ' . $keyList;
-                        $sql .= ' FROM ' . MAIN_DB_PREFIX . $InfoFieldList[0];
-                        if (!empty($InfoFieldList[4])) {
-                            // can use SELECT request
-                            if (strpos($InfoFieldList[4], '$SEL$') !== false) {
-                                $InfoFieldList[4] = str_replace('$SEL$', 'SELECT', $InfoFieldList[4]);
-                            }
+						$sql .= ' FROM ' . MAIN_DB_PREFIX . str_replace('{{DB_PREFIX}}', MAIN_DB_PREFIX, $InfoFieldList[0]);
+						$sqlwhere = array();
+						if (!empty($InfoFieldList[4])) {
+							// can use SELECT request
+							if (strpos($InfoFieldList[4], '$SEL$') !== false) {
+								$InfoFieldList[4] = str_replace('$SEL$', 'SELECT', $InfoFieldList[4]);
+							}
 
-                            // current object id can be use into filter
-                            if (strpos($InfoFieldList[4], '$ID$') !== false && !empty($objectid)) {
-                                $InfoFieldList[4] = str_replace('$ID$', $objectid, $InfoFieldList[4]);
-                            } else {
-                                $InfoFieldList[4] = str_replace('$ID$', '0', $InfoFieldList[4]);
-                            }
-                            //We have to join on extrafield table
-                            if (strpos($InfoFieldList[4], 'extra') !== false) {
-                                $sql .= ' as main, ' . MAIN_DB_PREFIX . $InfoFieldList[0] . '_extrafields as extra';
-                                $sqlwhere .= ' WHERE extra.fk_object=main.' . $InfoFieldList[2] . ' AND ' . $InfoFieldList[4];
-                            } else {
-                                $sqlwhere .= ' WHERE ' . $InfoFieldList[4];
-                            }
-                        } else {
-                            $sqlwhere .= ' WHERE 1=1';
-                        }
-                        // Some tables may have field, some other not. For the moment we disable it.
-                        if (in_array($InfoFieldList[0], array('tablewithentity'))) {
-                            $sqlwhere .= ' AND entity = ' . $conf->entity;
-                        }
-                        $sql .= $sqlwhere;
-                        //print $sql;
+							// current object id can be use into filter
+							if (strpos($InfoFieldList[4], '$ID$') !== false && !empty($objectid)) {
+								$InfoFieldList[4] = str_replace('$ID$', $objectid, $InfoFieldList[4]);
+							} else {
+								$InfoFieldList[4] = str_replace('$ID$', '0', $InfoFieldList[4]);
+							}
+							//We have to join on extrafield table
+							if (strpos($InfoFieldList[4], 'extra') !== false) {
+								$sql .= ' as main, ' . MAIN_DB_PREFIX . $InfoFieldList[0] . ' as extra';
+								$sqlwhere[] = 'extra.fk_object=main.' . $InfoFieldList[2] . ' AND ' . $InfoFieldList[4];
+							} else {
+								$sqlwhere[] = $InfoFieldList[4];
+							}
+						}
+						// Some tables may have field, some other not. For the moment we disable it.
+						if (in_array($InfoFieldList[0], array('tablewithentity'))) {
+							$sqlwhere[] = 'entity = ' . $conf->entity;
+						}
+						if (!empty($sqlwhere)) $sql .= ' WHERE ' . implode('AND', $sqlwhere);
+						$sql .= ' ORDER BY ' . implode(', ', $fieldList);
 
-                        $sql .= ' ORDER BY ' . implode(', ', $fields_label);
+						dol_syslog(get_class($this) . ' type=sellist', LOG_DEBUG);
+						$resql = $this->db->query($sql);
+						if ($resql) {
+							$out .= '<option value="">&nbsp;</option>';
+							$num = $this->db->num_rows($resql);
+							$i = 0;
+							while ($i < $num) {
+								$obj = $this->db->fetch_object($resql);
 
-                        dol_syslog(get_class($this) . '::showInputField type=sellist', LOG_DEBUG);
-                        $resql = $this->db->query($sql);
-                        if ($resql) {
-                            $out .= '<option value="-1">&nbsp;</option>';
-                            $num = $this->db->num_rows($resql);
-                            $i = 0;
-                            while ($i < $num) {
-                                $obj = $this->db->fetch_object($resql);
-
-                                // Several field into label (eq table:code|libelle:rowid)
-                                $label_separator = isset($field['label_separator']) ? $field['label_separator'] : ' ';
-                                $fields_label = explode('|', $InfoFieldList[1]);
-                                $notrans = false;
-                                if (is_array($fields_label)) {
-                                    $notrans = true;
-                                    $labelstoshow = array();
-                                    foreach ($fields_label as $field_toshow) {
-                                        $labelstoshow[] = $obj->$field_toshow;
+								if (!empty($fieldLangList)) {
+									foreach ($fieldLangList as $lang) {
+										if (!empty($obj->$lang)) $langs->load($obj->$lang);
 									}
-									$labelstoshow = array_filter($labelstoshow,function($k){return isset($k);});
-                                    $labeltoshow = implode($label_separator, $labelstoshow);
-                                } else {
-                                    $labeltoshow = $obj->{$InfoFieldList[1]};
-                                }
-                                $labeltoshow = dol_trunc($labeltoshow, 45);
-
-                                if ($value == $obj->rowid) {
-                                    $labelstoshow = array();
-                                    foreach ($fields_label as $field_toshow) {
-                                        $translabel = $langs->trans($obj->$field_toshow);
-                                        if ($translabel != $obj->$field_toshow) {
-                                            $labelstoshow[] = dol_trunc($translabel, 18);
-                                        } else {
-                                            $labelstoshow[] = dol_trunc($obj->$field_toshow, 18);
-                                        }
+								}
+								$label_separator = isset($field['label_separator']) ? $field['label_separator'] : ' ';
+								if (is_array($fieldList) && count($fieldList) > 1) {
+									// Several field into label (eq table:code|libelle:rowid)
+									$labelstoshow = array();
+									foreach ($fieldList as $field_toshow) {
+										$translabel = $langs->trans($field['translate_prefix'] . $obj->$field_toshow . $field['translate_suffix']);
+										if ($translabel != $obj->$field_toshow) {
+											$labelstoshow[] = dol_trunc($translabel, isset($field['truncate']) && $field['truncate'] > 0 ? $field['truncate'] : 0);
+										} else {
+											$labelstoshow[] = dol_trunc($obj->$field_toshow, isset($field['truncate']) && $field['truncate'] > 0 ? $field['truncate'] : 0);
+										}
 									}
-									$labelstoshow = array_filter($labelstoshow,function($k){return isset($k);});
-                                    $labeltoshow = implode($label_separator, $labelstoshow);
-                                    $out .= '<option value="' . $obj->rowid . '" selected>' . $labeltoshow . '</option>';
-                                } else {
-                                    if (!$notrans) {
-                                        $translabel = $langs->trans($obj->{$InfoFieldList[1]});
-                                        if ($translabel != $obj->{$InfoFieldList[1]}) {
-                                            $labeltoshow = dol_trunc($translabel, 18);
-                                        } else {
-                                            $labeltoshow = dol_trunc($obj->{$InfoFieldList[1]}, 18);
-                                        }
-                                    }
-                                    if (empty($labeltoshow)) $labeltoshow = '(not defined)';
-                                    if ($value == $obj->rowid) {
-                                        $out .= '<option value="' . $obj->rowid . '" selected>' . $labeltoshow . '</option>';
-                                    }
+									$labeltoshow = implode($label_separator, $labelstoshow);
+								} else {
+									$translabel = $langs->trans($field['translate_prefix'] . $obj->{$fieldList[0]} . $field['translate_suffix']);
+									if ($translabel != $obj->{$fieldList[0]}) {
+										$labeltoshow = dol_trunc($translabel, isset($field['truncate']) && $field['truncate'] > 0 ? $field['truncate'] : 0);
+									} else {
+										$labeltoshow = dol_trunc($obj->{$fieldList[0]}, isset($field['truncate']) && $field['truncate'] > 0 ? $field['truncate'] : 0);
+									}
+								}
+								if (empty($labeltoshow)) $labeltoshow = '(not defined)';
 
-                                    if (!empty($InfoFieldList[3])) {
-                                        $parent = $parentName . ':' . $obj->{$parentField};
-                                    }
+								if (!empty($InfoFieldList[3])) {
+									$parent = $parentName . ':' . $obj->{$parentField};
+								}
 
-                                    $out .= '<option value="' . $obj->rowid . '"';
-                                    $out .= ($value == $obj->rowid ? ' selected' : '');
-                                    $out .= (!empty($parent) ? ' parent="' . $parent . '"' : '');
-                                    $out .= '>' . $labeltoshow . '</option>';
-                                }
+								$out .= '<option value="' . $obj->rowid . '"';
+								$out .= ($value == $obj->rowid ? ' selected' : '');
+								$out .= (!empty($parent) ? ' parent="' . $parent . '"' : '');
+								$out .= '>' . $labeltoshow . '</option>';
 
-                                $i++;
-                            }
-                            $this->db->free($resql);
-                        } else {
-                            print 'Error in request ' . $sql . ' ' . $this->db->lasterror() . '. Check setup of extra parameters.<br>';
-                        }
-                        $out .= '</select>';
-                        break;
-                    case 'radio':
+								$i++;
+							}
+							$this->db->free($resql);
+						} else {
+							print 'Error in request ' . $sql . ' ' . $this->db->lasterror() . '. Check setup of extra parameters.<br>';
+						}
+						if (empty($options_only)) $out .= '</select>';
+						break;
+					case 'radio':
                         $out = '';
-                        foreach ($field['options'] as $keyopt => $val) {
-                            $out .= '<input class="flat' . $moreClasses . '" type="radio" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '"' . $moreAttributes;
-                            $out .= ' value="' . $keyopt . '"';
-                            $out .= ' id="' . $fieldHtmlName . '_' . $keyopt . '"';
-                            $out .= ($value == $keyopt ? 'checked' : '');
-                            $out .= '/><label for="' . $fieldHtmlName . '_' . $keyopt . '">' . $val . '</label><br>';
-                        }
-                        break;
-                    case 'checkbox':
-                        require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
-                        global $form;
-                        if (!is_object($form)) $form = new Form($this->db);
+						if (is_array($field['options'])) {
+							foreach ($field['options'] as $keyopt => $val) {
+								$out .= '<input class="flat' . $moreClasses . '" type="radio" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '"' . $moreAttributes;
+								$out .= ' value="' . $keyopt . '"';
+								$out .= ' id="' . $fieldHtmlName . '_' . $keyopt . '"';
+								$out .= ($value == $keyopt ? 'checked' : '');
+								$out .= '/><label for="' . $fieldHtmlName . '_' . $keyopt . '">' . $langs->trans($field['translate_prefix'] . $val . $field['translate_suffix']) . '</label><br>';
+							}
+						}
+						break;
+					case 'checkbox':
+						require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
+						global $form;
+						if (!is_object($form)) $form = new Form($this->db);
 
-                        if (is_array($value)) {
-                            $value_arr = $value;
-                        } else {
-                            $value_arr = array_filter(explode(',', (string)$value), 'strlen');
-                        }
-                        $out = $form->multiselectarray($fieldHtmlName, (empty($field['options']) ? null : $field['options']), $value_arr, '', 0, '', 0, '100%');
-                        break;
+						if (is_array($value)) {
+							$value_arr = $value;
+						} else {
+							$value_arr = array_filter(explode(',', (string)$value), 'strlen');
+						}
+						$options = array();
+						if (is_array($field['options'])) {
+							foreach ($field['options'] as $option_id => $option) {
+								$options[$option_id] = $langs->trans($field['translate_prefix'] . $option . $field['translate_suffix']);
+							}
+						}
+						if (empty($options_only)) {
+							$out = $form->multiselectarray($fieldHtmlName, (empty($options) ? null : $options), $value_arr, '', 0, $moreClasses, 0, '', $moreAttributes);
+						} else {
+							$out = '';
+							if (is_array($options) && !empty($options)) {
+								foreach ($options as $key => $value) {
+									$out .= '<option value="' . $key . '"';
+									if (is_array($value_arr) && !empty($value_arr) && in_array((string)$key, $value_arr) && ((string)$key != '')) {
+										$out .= ' selected';
+									}
+									$out .= '>';
+									$out .= dol_htmlentitiesbr($value);
+									$out .= '</option>' . "\n";
+								}
+							}
+						}
+						break;
                     case 'chkbxlst':
                         if (is_array($value)) {
                             $value_arr = $value;
                         } else {
-                            $value_arr = array_filter(explode(',', (string)$value), 'strlen');
+							$value_arr = array_filter(explode(',', (string)$value), 'strlen');
                         }
 
-                        $InfoFieldList = getInfoFieldArrayFromOptionsForChkbxlstFieldType($field,$this->dictionary->table_name);
-                        // 0 : tableName
-                        // 1 : label field name
-                        // 2 : key fields name (if differ of rowid)
-                        // 3 : key field parent (for dependent lists)
-                        // 4 : where clause filter on column or table extrafield, syntax field='value' or extra.field=value
+                        $InfoFieldList = getInfoFieldArrayFromOptionsForChkbxlstFieldType($field, $this->dictionary->table_name);
                         $keyList = (empty($InfoFieldList[2]) ? 'rowid' : $InfoFieldList[2] . ' as rowid');
 
-                        if (count($InfoFieldList) > 3 && !empty($InfoFieldList[3])) {
-                            list ($parentName, $parentField) = explode('|', $InfoFieldList[3]);
-                            $keyList .= ', ' . $parentField;
-                        }
-                        if (count($InfoFieldList) > 4 && !empty($InfoFieldList[4])) {
-                            if (strpos($InfoFieldList[4], 'extra.') !== false) {
-                                $keyList = 'main.' . $InfoFieldList[2] . ' as rowid';
-                            } else {
-                                $keyList = $InfoFieldList[2] . ' as rowid';
-                            }
-                        }
+						if (count($InfoFieldList) > 3 && !empty($InfoFieldList[3])) {
+							list ($parentName, $parentField) = explode('|', $InfoFieldList[3]);
+							$keyList .= ', ' . $parentField;
+						}
+						if (count($InfoFieldList) > 4 && !empty($InfoFieldList[4])) {
+							if (strpos($InfoFieldList[4], 'extra.') !== false) {
+								$keyList = 'main.' . $InfoFieldList[2] . ' as rowid';
+							} else {
+								$keyList = $InfoFieldList[2] . ' as rowid';
+							}
+						}
 
-                        $fields_label = explode('|', $InfoFieldList[1]);
-                        if (is_array($fields_label)) {
-                            $keyList .= ', ';
-                            $keyList .= implode(', ', $fields_label);
-                        }
+						$fields_label = !empty($InfoFieldList[1]) ? explode('|', $InfoFieldList[1]) : null;
+						$fieldList = array();
+						if (is_array($fields_label)) {
+							$keyList .= ', ' . implode(', ', $fields_label);
+							foreach ($fields_label as $l) {
+								if (preg_match('/\s+AS\s+(\S+)\s*$/i', $l, $matches)) {
+									$fieldList[] = $matches[1];
+								} else {
+									$fieldList[] = $l;
+								}
+							}
+						}
 
-                        $sqlwhere = '';
-                        $sql = 'SELECT ' . $keyList;
-                        $sql .= ' FROM ' . MAIN_DB_PREFIX . $InfoFieldList[0];
-                        if (!empty($InfoFieldList[4])) {
+						$fields_lang = !empty($InfoFieldList[7]) ? explode('|', $InfoFieldList[7]) : null;
+						$fieldLangList = array();
+						if (is_array($fields_lang)) {
+							$keyList .= ', ' . implode(', ', $fields_lang);
+							foreach ($fields_lang as $l) {
+								if (preg_match('/\s+AS\s+(\S+)\s*$/i', $l, $matches)) {
+									$fieldLangList[] = $matches[1];
+								} else {
+									$fieldLangList[] = $l;
+								}
+							}
+						}
 
-                            // can use SELECT request
-                            if (strpos($InfoFieldList[4], '$SEL$') !== false) {
-                                $InfoFieldList[4] = str_replace('$SEL$', 'SELECT', $InfoFieldList[4]);
-                            }
+						$sqlwhere = array();
+						$sql = 'SELECT ' . $keyList;
+						$sql .= ' FROM ' . MAIN_DB_PREFIX . str_replace('{{DB_PREFIX}}', MAIN_DB_PREFIX, $InfoFieldList[0]);
+						if (!empty($InfoFieldList[4])) {
 
-                            // current object id can be use into filter
-                            if (strpos($InfoFieldList[4], '$ID$') !== false && !empty($objectid)) {
-                                $InfoFieldList[4] = str_replace('$ID$', $objectid, $InfoFieldList[4]);
-                            } else {
-                                $InfoFieldList[4] = str_replace('$ID$', '0', $InfoFieldList[4]);
-                            }
+							// can use SELECT request
+							if (strpos($InfoFieldList[4], '$SEL$') !== false) {
+								$InfoFieldList[4] = str_replace('$SEL$', 'SELECT', $InfoFieldList[4]);
+							}
 
-                            // We have to join on extrafield table
-                            if (strpos($InfoFieldList[4], 'extra') !== false) {
-                                $sql .= ' as main, ' . MAIN_DB_PREFIX . $InfoFieldList[0] . '_extrafields as extra';
-                                $sqlwhere .= ' WHERE extra.fk_object=main.' . $InfoFieldList[2] . ' AND ' . $InfoFieldList[4];
-                            } else {
-                                $sqlwhere .= ' WHERE ' . $InfoFieldList[4];
-                            }
-                        } else {
-                            $sqlwhere .= ' WHERE 1=1';
-                        }
-                        // Some tables may have field, some other not. For the moment we disable it.
-                        if (in_array($InfoFieldList[0], array('tablewithentity'))) {
-                            $sqlwhere .= ' AND entity = ' . $conf->entity;
-                        }
-                        // $sql.=preg_replace('/^ AND /','',$sqlwhere);
-                        // print $sql;
+							// current object id can be use into filter
+							if (strpos($InfoFieldList[4], '$ID$') !== false && !empty($objectid)) {
+								$InfoFieldList[4] = str_replace('$ID$', $objectid, $InfoFieldList[4]);
+							} else {
+								$InfoFieldList[4] = str_replace('$ID$', '0', $InfoFieldList[4]);
+							}
 
-                        $sql .= $sqlwhere;
-                        dol_syslog(get_class($this) . '::showInputField type=chkbxlst', LOG_DEBUG);
-                        $resql = $this->db->query($sql);
-                        if ($resql) {
-                            $num = $this->db->num_rows($resql);
-                            $i = 0;
+							// We have to join on extrafield table
+							if (strpos($InfoFieldList[4], 'extra') !== false) {
+								$sql .= ' as main, ' . MAIN_DB_PREFIX . $InfoFieldList[0] . '_extrafields as extra';
+								$sqlwhere[] = 'extra.fk_object=main.' . $InfoFieldList[2] . ' AND ' . $InfoFieldList[4];
+							} else {
+								$sqlwhere[] = $InfoFieldList[4];
+							}
+						}
+						// Some tables may have field, some other not. For the moment we disable it.
+						if (in_array($InfoFieldList[0], array('tablewithentity'))) {
+							$sqlwhere[] = 'entity = ' . $conf->entity;
+						}
+						if (!empty($sqlwhere)) $sql .= ' WHERE ' . implode('AND', $sqlwhere);
+						$sql .= ' ORDER BY ' . implode(', ', $fieldList);
 
-                            $data = array();
+						dol_syslog(get_class($this) . ' type=chkbxlst', LOG_DEBUG);
+						$resql = $this->db->query($sql);
+						if ($resql) {
+							$num = $this->db->num_rows($resql);
+							$i = 0;
 
-                            while ($i < $num) {
-                                $labeltoshow = '';
-                                $obj = $this->db->fetch_object($resql);
+							$data = array();
 
-                                // Several field into label (eq table:code|libelle:rowid)
-                                $label_separator = isset($field['label_separator']) ? $field['label_separator'] : ' ';
-                                $fields_label = explode('|', $InfoFieldList[1]);
-                                $notrans = false;
-                                if (is_array($fields_label)) {
-                                    $notrans = true;
-                                    $labelstoshow = array();
-                                    foreach ($fields_label as $field_toshow) {
-                                        $labelstoshow[] = $obj->$field_toshow;
+							while ($i < $num) {
+								$obj = $this->db->fetch_object($resql);
+
+								if (!empty($fieldLangList)) {
+									foreach ($fieldLangList as $lang) {
+										if (!empty($obj->$lang)) $langs->load($obj->$lang);
 									}
-									$labelstoshow = array_filter($labelstoshow,function($k){return isset($k);});
-                                    $labeltoshow = implode($label_separator, $labelstoshow);
-                                } else {
-                                    $labeltoshow = $obj->{$InfoFieldList[1]};
-                                }
-                                $labeltoshow = dol_trunc($labeltoshow, 45);
-
-                                if (is_array($value_arr) && in_array($obj->rowid, $value_arr)) {
-                                    $labelstoshow = array();
-                                    foreach ($fields_label as $field_toshow) {
-                                        if(isset($obj->$field_toshow))
-                                        {
-                                            $translabel = $langs->trans($obj->$field_toshow);
-                                            if ($translabel != $obj->$field_toshow) {
-                                                $labelstoshow[] = dol_trunc($translabel, 18);
-                                            } else {
-                                                $labelstoshow[] = dol_trunc($obj->$field_toshow, 18);
-                                            }
-                                        }
+								}
+								$label_separator = isset($field['label_separator']) ? $field['label_separator'] : ' ';
+								if (is_array($fields_label) && count($fields_label) > 1) {
+									// Several field into label (eq table:code|libelle:rowid)
+									$labelstoshow = array();
+									foreach ($fields_label as $field_toshow) {
+										$translabel = $langs->trans($field['translate_prefix'] . $obj->$field_toshow . $field['translate_suffix']);
+										if ($translabel != $obj->$field_toshow) {
+											$labelstoshow[] = dol_trunc($translabel, isset($field['truncate']) && $field['truncate'] > 0 ? $field['truncate'] : 0);
+										} else {
+											$labelstoshow[] = dol_trunc($obj->$field_toshow, isset($field['truncate']) && $field['truncate'] > 0 ? $field['truncate'] : 0);
+										}
 									}
-									$labelstoshow = array_filter($labelstoshow,function($k){return isset($k);});
-                                    $labeltoshow = implode($label_separator, $labelstoshow);
+									$labeltoshow = implode($label_separator, $labelstoshow);
+								} else {
+									$translabel = $langs->trans($field['translate_prefix'] . $obj->{$InfoFieldList[1]} . $field['translate_suffix']);
+									if ($translabel != $obj->{$InfoFieldList[1]}) {
+										$labeltoshow = dol_trunc($translabel, isset($field['truncate']) && $field['truncate'] > 0 ? $field['truncate'] : 0);
+									} else {
+										$labeltoshow = dol_trunc($obj->{$InfoFieldList[1]}, isset($field['truncate']) && $field['truncate'] > 0 ? $field['truncate'] : 0);
+									}
+								}
+								if (empty($labeltoshow)) $labeltoshow = '(not defined)';
 
-                                    $data[$obj->rowid] = $labeltoshow;
+								if (!empty($InfoFieldList[3])) {
+									$parent = $parentName . ':' . $obj->{$parentField};
+								}
 
-                                } else {
-                                    if (!$notrans) {
-                                        $translabel = $langs->trans($obj->{$InfoFieldList[1]});
-                                        if ($translabel != $obj->{$InfoFieldList[1]}) {
-                                            $labeltoshow = dol_trunc($translabel, 18);
-                                        } else {
-                                            $labeltoshow = dol_trunc($obj->{$InfoFieldList[1]}, 18);
-                                        }
-                                    }
-                                    if (empty($labeltoshow))
-                                        $labeltoshow = '(not defined)';
+								$data[$obj->rowid] = $labeltoshow;
 
-                                    if (is_array($value_arr) && in_array($obj->rowid, $value_arr)) {
-                                        $data[$obj->rowid] = $labeltoshow;
-                                    }
-
-                                    if (!empty($InfoFieldList[3])) {
-                                        $parent = $parentName . ':' . $obj->{$parentField};
-                                    }
-
-                                    $data[$obj->rowid] = $labeltoshow;
-                                }
-
-                                $i++;
-                            }
+								$i++;
+							}
                             $this->db->free($resql);
 
                             require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
                             global $form;
                             if (!is_object($form)) $form = new Form($this->db);
 
-                            $out = $form->multiselectarray($fieldHtmlName, $data, $value_arr, '', 0, '', 0, '100%');
+                            if (empty($options_only)) {
+								$out = $form->multiselectarray($fieldHtmlName, $data, $value_arr, '', 0, $moreClasses, 0, '', $moreAttributes);
+							} else {
+								$out = '';
+								if (is_array($data) && !empty($data)) {
+									foreach ($data as $key => $value) {
+										$out .= '<option value="' . $key . '"';
+										if (is_array($value_arr) && !empty($value_arr) && in_array((string)$key, $value_arr) && ((string)$key != '')) {
+											$out .= ' selected';
+										}
+										$out .= '>';
+										$out .= dol_htmlentitiesbr($value);
+										$out .= '</option>' . "\n";
+									}
+								}
+                            }
                         } else {
                             $out = 'Error in request ' . $sql . ' ' . $this->db->lasterror() . '. Check setup of field parameters.';
                         }
@@ -4137,6 +4379,7 @@ class DictionaryLine extends CommonObjectLine
                         $newsize = $tmp[0] + $tmp[1] + 1;
                         $out = '<input type="text" class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" maxlength="' . $newsize . '" value="' . $value . '"' . $moreAttributes . '>';
                         break;
+                    case 'float':
                     case 'double':
                         if (!empty($value)) {        // $value in memory is a php numeric, we format it into user number format.
                             $value = price($value);
@@ -4152,7 +4395,7 @@ class DictionaryLine extends CommonObjectLine
                     case 'link':
                         // 0 : ObjectName
                         // 1 : classPath
-                        $InfoFieldList = getInfoFieldArrayFromOptionsForChkbxlstFieldType($field,$this->dictionary->table_name);
+                        $InfoFieldList = getInfoFieldArrayFromOptionsForChkbxlstFieldType($field, $this->dictionary->table_name);
                         dol_include_once($InfoFieldList[1]);
                         if ($InfoFieldList[0] && class_exists($InfoFieldList[0], false)) {
                             $valuetoshow = $value;
@@ -4188,7 +4431,7 @@ class DictionaryLine extends CommonObjectLine
                         $out = '<input type="checkbox" class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" value="1" ' . (!empty($value) ? 'checked' : '') . $moreAttributes . '>';
                         break;
                     case 'custom':
-                        $out = $this->showInputCustomField($fieldName, $value, $keyprefix, $keysuffix, $objectid);
+						$out = $this->showInputCustomFieldAD($fieldName, $value, $keyprefix, $keysuffix, $objectid);
                         break;
                     default: // unknown
                         $out = '';
@@ -4203,37 +4446,72 @@ class DictionaryLine extends CommonObjectLine
     }
 
     /**
-	 * Return HTML string to put an input custom field into a page
-	 *
-	 * @param  string  $fieldName      Name of the field
-	 * @param  string  $value          Preselected value to show (for date type it must be in timestamp format, for amount or price it must be a php numeric value)
-	 * @param  string  $keyprefix      Prefix string to add into name and id of field (can be used to avoid duplicate names)
-	 * @param  string  $keysuffix      Suffix string to add into name and id of field (can be used to avoid duplicate names)
-	 * @param  int     $objectid       Current object id
-	 * @return string
-	 */
-    protected function showInputCustomField($fieldName, $value, $keyprefix='', $keysuffix='', $objectid=0)
+     * Return HTML string to put an input custom field into a page
+     *
+     * @param  string  $fieldName      Name of the field
+     * @param  string  $value          Preselected value to show (for date type it must be in timestamp format, for amount or price it must be a php numeric value)
+     * @param  string  $keyprefix      Prefix string to add into name and id of field (can be used to avoid duplicate names)
+     * @param  string  $keysuffix      Suffix string to add into name and id of field (can be used to avoid duplicate names)
+	 * @param  int     $objectid       Current object idF
+     * @return string
+     */
+	protected function showInputCustomFieldAD($fieldName, $value, $keyprefix='', $keysuffix='', $objectid=0)
     {
         return '';
     }
 
     /**
-	 * Return label define by the pattern
-	 *
+     * Return label define by the pattern
+     *
      * @param   string  $label          Label pattern for the label of the line (replace {{FieldName}} by this value)
-	 * @return  string
-	 */
-		public function getLabel($label)
-		{
-			$l = $label;
-			foreach ($this->fields as $fieldName => $fieldValue) {
-				$l = str_replace('{{' . $fieldName . '}}', $fieldValue, $l);
-			}
-			$l = str_replace('{{' . $this->dictionary->rowid_field . '}}', $this->id, $l);
-			$l = str_replace('{{' . $this->dictionary->active_field . '}}', $this->active, $l);
-			$l = str_replace('{{' . $this->dictionary->entity_field . '}}', $this->entity, $l);
+     * @return  string
+     */
+    public function getLabel($label)
+    {
+        $l = $label;
+        foreach ($this->fields as $fieldName => $fieldValue) {
+            $l = str_replace('{{' . $fieldName . '}}', $fieldValue, $l);
+        }
+        $l = str_replace('{{' . $this->dictionary->rowid_field . '}}', $this->id, $l);
+        $l = str_replace('{{' . $this->dictionary->active_field . '}}', $this->active, $l);
+        $l = str_replace('{{' . $this->dictionary->entity_field . '}}', $this->entity, $l);
 
-			return $l;
-		}
+        return $l;
+    }
 
+    /**
+     * Return Nom url of the field value
+     *
+     * @param   string      $fieldName      Field name
+     * @param   string      $className      Class name of the object
+     * @param   string      $classPath      Filepath of the class object
+     * @param   int         $id             Id of the object
+     * @return  string
+     */
+    public function getObjectNomUrl($fieldName, $className, $classPath, $id)
+    {
+        $result = dol_include_once($classPath);
+        if (!$result || empty($className) || !class_exists($className, false)) {
+            dol_syslog('Error bad setup for the field: ' . $fieldName . ' onto the dictionary: ' . $this->dictionary->name, LOG_WARNING);
+            return 'Error bad setup for the field';
+        }
+
+        if (!isset(self::$objects_cached[$className][$id])) {
+            $object = new $className($this->db);
+            if (!method_exists($object, 'getNomUrl')) {
+                dol_syslog('Error getNomUrl method not found in the class for the field: ' . $fieldName . ' onto the dictionary: ' . $this->dictionary->name, LOG_WARNING);
+                return 'Error getNomUrl method not found in the class for the field';
+            }
+
+            if (!method_exists($object, 'fetch')) {
+                dol_syslog('Error fetch method not found in the class for the field: ' . $fieldName . ' onto the dictionary: ' . $this->dictionary->name, LOG_WARNING);
+                return 'Error fetch method not found in the class for the field';
+            }
+
+            $object->fetch($id);
+            self::$objects_cached[$className][$id] = $object->getNomUrl(3);
+        }
+
+        return self::$objects_cached[$className][$id];
+    }
 }

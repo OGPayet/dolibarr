@@ -83,9 +83,10 @@ class FormDictionary
      * @param   int         $autofocus              Autofocus the field in form (1 auto focus, 0 not)
      * @param   array       $ajaxoptions            Options for ajax_autocompleter
      * @param   bool        $options_only           Return options only (for ajax treatment)
+     * @param   int         $ismultiselect          0=Not multiselect, 1=Multiselect
      * @return  string                              HTML string with select box for thirdparty.
      */
-    function select_dictionary($module, $name, $selected = '', $htmlname = 'dictionaryid', $showempty = '', $key='rowid', $label='{{label}}', $filters=array(), $orders=array('label'=>'ASC'), $forcecombo = 0, $events = array(), $usesearchtoselect=0, $limit = 0, $morecss = 'minwidth100', $moreparam = '', $selected_input_value = '', $hidelabel = 1, $selectlabel = '', $autofocus=0, $ajaxoptions = array(), $options_only=false)
+	public function select_dictionary($module, $name, $selected = '', $htmlname = 'dictionaryid', $showempty = '', $key='rowid', $label='{{label}}', $filters=array(), $orders=array('label'=>'ASC'), $forcecombo = 0, $events = array(), $usesearchtoselect=0, $limit = 0, $morecss = 'minwidth100', $moreparam = '', $selected_input_value = '', $hidelabel = 1, $selectlabel = '', $autofocus=0, $ajaxoptions = array(), $options_only=false, $ismultiselect=0)
     {
         global $conf, $langs;
 
@@ -103,7 +104,7 @@ class FormDictionary
             }
             // mode 1
             $urloption = 'module=' . $module . '&name=' . $name . '&htmlname=' . $htmlname . '&key=' . $key . '&label=' . $label . '&showempty=' . $showempty . '&outjson=1&' . http_build_query(array('filters' => $filters));
-            $out .= ajax_autocompleter($selected, $htmlname, dol_buildpath('/advancedictionaries/ajax/dictionary.php', 2), $urloption, $usesearchtoselect, 0, $ajaxoptions);
+            $out .= ajax_autocompleter($selected, $htmlname, dol_buildpath('/advancedictionaries/ajax/dictionary.php', 1), $urloption, $usesearchtoselect, 0, $ajaxoptions);
             $out .= '<style type="text/css">
 					.ui-autocomplete {
 						z-index: 250;
@@ -123,7 +124,7 @@ class FormDictionary
             }
         } else {
             // Immediate load of all database
-            $out .= $this->select_dictionary_list($module, $name, $selected, $htmlname, $showempty, $key, $label, $filters, $orders, $forcecombo, $events, $usesearchtoselect, 0, $limit, $morecss, $moreparam, $options_only);
+            $out .= $this->select_dictionary_list($module, $name, $selected, $htmlname, $showempty, $key, $label, $filters, $orders, $forcecombo, $events, $usesearchtoselect, 0, $limit, $morecss, $moreparam, $options_only, $ismultiselect);
         }
 
         return $out;
@@ -133,26 +134,27 @@ class FormDictionary
      *  Output html form to select a dictionary.
      *  Note, you must use the select_dictionary to get the component to select a dictionary. This function must only be called by select_dictionary.
      *
-     * @param   string      $module                 Name of the module containing the dictionary
-     * @param   string      $name                   Name of dictionary
-     * @param	string	    $selected               Preselected type
-     * @param   string	    $htmlname               Name of field in form
-     * @param   string      $key                    Field name for the key of the line
-     * @param   string      $label                  Label pattern for the label of the line (replace {{FieldName}} by this value)
-     * @param   array       $filters                List of filters: array(fieldName => value), value is a array search a list of rowid, if $filters = null then return no lines
-     * @param   array       $orders                 Order by: array(fieldName => order, ...)
-     * @param	string	    $showempty		        Add an empty field (Can be '1' or text to use on empty line like 'SelectThirdParty')
-     * @param	int		    $forcecombo		        Force to use combo box
-     * @param	array	    $events			        Event options. Example: array(array('method'=>'getContacts', 'url'=>dol_buildpath('/core/ajax/contacts.php',1), 'htmlname'=>'contactid', 'params'=>array('add-customer-contact'=>'disabled')))
-     * @param  	int		    $usesearchtoselect	    Minimum length of input string to start autocomplete
-     * @param	int		    $outputmode		        0=HTML select string, 1=Array
-     * @param	int		    $limit			        Limit number of answers
-     * @param	string	    $morecss		        Add more css styles to the SELECT component
-     * @param   string	    $moreparam              Add more parameters onto the select tag. For example 'style="width: 95%"' to avoid select2 component to go over parent container
-     * @param   bool        $options_only           Return options only (for ajax treatment)
-     * @return	string					            HTML string with
+     * @param   string          $module                 Name of the module containing the dictionary
+     * @param   string          $name                   Name of dictionary
+     * @param	string|array	$selected               Preselected values
+     * @param   string	        $htmlname               Name of field in form
+     * @param   string          $key                    Field name for the key of the line
+     * @param   string          $label                  Label pattern for the label of the line (replace {{FieldName}} by this value)
+     * @param   array           $filters                List of filters: array(fieldName => value), value is a array search a list of rowid, if $filters = null then return no lines
+     * @param   array           $orders                 Order by: array(fieldName => order, ...)
+     * @param	string	        $showempty		        Add an empty field (Can be '1' or text to use on empty line like 'SelectThirdParty')
+     * @param	int		        $forcecombo		        Force to use combo box
+     * @param	array	        $events			        Event options. Example: array(array('method'=>'getContacts', 'url'=>dol_buildpath('/core/ajax/contacts.php',1), 'htmlname'=>'contactid', 'params'=>array('add-customer-contact'=>'disabled')))
+     * @param  	int		        $usesearchtoselect	    Minimum length of input string to start autocomplete
+     * @param	int		        $outputmode		        0=HTML select string, 1=Array
+     * @param	int		        $limit			        Limit number of answers
+     * @param	string	        $morecss		        Add more css styles to the SELECT component
+     * @param   string	        $moreparam              Add more parameters onto the select tag. For example 'style="width: 95%"' to avoid select2 component to go over parent container
+     * @param   bool            $options_only           Return options only (for ajax treatment)
+     * @param   int             $ismultiselect          0=Not multiselect, 1=Multiselect
+     * @return	string					                HTML string with
      */
-    function select_dictionary_list($module, $name, $selected='', $htmlname='dictionaryid', $showempty='', $key='rowid', $label='{{label}}', $filters=array(), $orders=array(), $forcecombo=0, $events=array(), $usesearchtoselect=0, $outputmode=0, $limit=0, $morecss='minwidth100', $moreparam='', $options_only=false)
+	public function select_dictionary_list($module, $name, $selected='', $htmlname='dictionaryid', $showempty='', $key='rowid', $label='{{label}}', $filters=array(), $orders=array(), $forcecombo=0, $events=array(), $usesearchtoselect=0, $outputmode=0, $limit=0, $morecss='minwidth100', $moreparam='', $options_only=false, $ismultiselect=0)
     {
         global $conf, $langs;
 
@@ -161,7 +163,7 @@ class FormDictionary
         // Get lines
         dol_include_once('/advancedictionaries/class/dictionary.class.php');
         $dictionary = Dictionary::getDictionary($this->db, $module, $name);
-        $lines = $filters === null ? array() : $dictionary->fetch_array($key, $label, $filters, $orders, $limit);
+        $lines = $filters === null ? array() : $dictionary->fetch_array($key, $label, $filters, $orders, $limit, 1, false);
         if (empty($dictionary->error)) {
             $out = '';
             $outarray = array();
@@ -169,7 +171,12 @@ class FormDictionary
             // Build output string
             if ($conf->use_javascript_ajax && !$forcecombo && !$options_only) {
                 include_once DOL_DOCUMENT_ROOT . '/core/lib/ajax.lib.php';
-                $comboenhancement = ajax_combobox($htmlname, $events, $usesearchtoselect);
+                if ($ismultiselect) {
+                    $comboenhancement = $this->multiselect_javascript_code($selected, $htmlname, $elemtype='');
+                    $comboenhancement .= $this->add_select_events($htmlname, $events);
+                } else {
+                    $comboenhancement = ajax_combobox($htmlname, $events, $usesearchtoselect);
+                }
                 $out .= $comboenhancement;
             }
 
@@ -185,16 +192,21 @@ class FormDictionary
             }
             if ($showempty) $out .= '<option value="-1">' . $textifempty . '</option>' . "\n";
 
+            $selected = !empty($selected) ? (is_array($selected) ? $selected : explode(',', $selected)) : array();
+
             $num = count($lines);
             $i = 0;
             foreach ($lines as $k => $l) {
-                if ($selected > 0 && $selected == $k) {
+                if (in_array($k, $selected)) {
                     $out .= '<option value="' . $k . '" selected>' . $l . '</option>';
                 } else {
                     $out .= '<option value="' . $k . '">' . $l . '</option>';
                 }
 
-                array_push($outarray, array('key' => $k, 'value' => $l, 'label' => $l));
+                $tmp = array('key' => $k, 'value' => $l, 'label' => $l);
+                $tmp2 = array_intersect_key(is_array($dictionary->lines[$k]->fields) ? $dictionary->lines[$k]->fields : array(), is_array($dictionary->fields) ? $dictionary->fields : array());
+                $tmp = array_merge($tmp, $tmp2);
+                array_push($outarray, $tmp);
 
                 if (($i % 10) == 0) $out .= "\n";
                 $i++;
@@ -212,4 +224,481 @@ class FormDictionary
             return -1;
         }
     }
+
+    /**
+	 * Return list of labels (translated) of education
+	 *
+     * @param	string	$htmlname	Name of html select field ('myid' or '.myclass')
+     * @param	array	$events		Event options. Example: array(array('action'=>'getContacts', 'url'=>dol_buildpath('/core/ajax/contacts.php',1), 'htmlname'=>'contactid', 'done_action'=>array('disabled' => array('add-customer-contact'))))
+     *                                  'url':          string,  Url of the Ajax script
+     *                                  'action':       string,  Action name for the Ajax script
+     *                                  'params':       array(), Others parameters send for Ajax script (exclude name: id, action, htmlname), if value = '{{selector}}' get value of the 'selector' input
+     *                                  'htmlname':     string,  Id of the select updated with new options from Ajax script
+     *                                  'done_action':  array(), List of action done when new options get successfully
+     *                                      'empty_select': array(), List of html ID of select to empty
+     *                                      'disabled'    : array(), List of html ID to disable if no options
+	 * @return  string
+	 */
+	public function add_select_events($htmlname, $events)
+    {
+        global $conf;
+
+        $out = '';
+        if (!empty($conf->use_javascript_ajax)) {
+            $out .= '<script type="text/javascript">
+            $(document).ready(function () {
+                jQuery("#'.$htmlname.'").change(function () {
+                    var obj = '.json_encode($events).';
+                    $.each(obj, function(key,values) {
+                        if (values.action.length) {
+                            runJsCodeForEvent'.$htmlname.'(values);
+                        }
+                    });
+                });
+
+                function runJsCodeForEvent'.$htmlname.'(obj) {
+                    console.log("Run runJsCodeForEvent'.$htmlname.'");
+                    var id = $("#'.$htmlname.'").val();
+                    var action = obj.action;
+                    var url = obj.url;
+                    var htmlname = obj.htmlname;
+                    var datas = {
+                        action: action,
+                        id: id,
+                        htmlname: htmlname,
+                    };
+                    var selector_regex = new RegExp("^\\{\\{(.*)\\}\\}$", "i");
+                    $.each(obj.params, function(key, value) {
+                        var match = null;
+                        if ($.type(value) === "string") match = value.match(selector_regex);
+                        if (match) {
+                            datas[key] = $(match[1]).val();
+                        } else {
+                            datas[key] = value;
+                        }
+                    });
+                    var input = $("select#" + htmlname);
+                    var inputautocomplete = $("#inputautocomplete"+htmlname);
+                    $.getJSON(url, datas,
+                        function(response) {
+                            input.html(response.value);
+                            if (response.num) {
+                                var selecthtml_dom = $.parseHTML(response.value);
+                                inputautocomplete.val(selecthtml_dom.innerHTML);
+                            } else {
+                                inputautocomplete.val("");
+                            }
+
+                            var num = response.num;
+                            $.each(obj.done_action, function(key, action) {
+                                switch (key) {
+                                    case "empty_select":
+                                        $.each(action, function(id) {
+                                            $("select#" + id).html("");
+                                        });
+                                        break;
+                                    case "disabled":
+                                        $.each(action, function(id) {
+                                            if (num > 0) {
+                                                $("#" + id).removeAttr("disabled");
+                                            } else {
+                                                $("#" + id).attr("disabled", "disabled");
+                                            }
+                                        });
+                                        break;
+                                }
+                            });
+
+                            input.change();	/* Trigger event change */
+
+                            if (response.num < 0) {
+                                console.error(response.error);
+                            }
+                        }
+                    );
+                }
+            });
+            </script>';
+        }
+
+        return $out;
+    }
+
+    /**
+     *	Return multiselect javascript code
+     *
+     *  @param	array	$selected       Preselected values
+     *  @param  string	$htmlname       Field name in form
+     *  @param	string	$elemtype		Type of element we show ('category', ...)
+     *  @return	string
+     */
+	public function multiselect_javascript_code($selected, $htmlname, $elemtype='')
+    {
+        global $conf;
+
+        $out = '';
+
+        // Add code for jquery to use multiselect
+	if (! empty($conf->global->MAIN_USE_JQUERY_MULTISELECT) || defined('REQUIRE_JQUERY_MULTISELECT'))
+	{
+            $selected = array_values($selected);
+		$tmpplugin=empty($conf->global->MAIN_USE_JQUERY_MULTISELECT)?constant('REQUIRE_JQUERY_MULTISELECT'):$conf->global->MAIN_USE_JQUERY_MULTISELECT;
+			$out.='<!-- JS CODE TO ENABLE '.$tmpplugin.' for id '.$htmlname.' -->
+			<script type="text/javascript">
+				function formatResult(record) {'."\n";
+						if ($elemtype == 'category')
+						{
+							$out.='	//return \'<span><img src="'.DOL_URL_ROOT.'/theme/eldy/img/object_category.png'.'"> <a href="'.DOL_URL_ROOT.'/categories/viewcat.php?type=0&id=\'+record.id+\'">\'+record.text+\'</a></span>\';
+									return \'<span><img src="'.DOL_URL_ROOT.'/theme/eldy/img/object_category.png'.'"> \'+record.text+\'</span>\';';
+						}
+						else
+						{
+							$out.='return record.text;';
+						}
+			$out.= '	};
+				function formatSelection(record) {'."\n";
+						if ($elemtype == 'category')
+						{
+							$out.='	//return \'<span><img src="'.DOL_URL_ROOT.'/theme/eldy/img/object_category.png'.'"> <a href="'.DOL_URL_ROOT.'/categories/viewcat.php?type=0&id=\'+record.id+\'">\'+record.text+\'</a></span>\';
+									return \'<span><img src="'.DOL_URL_ROOT.'/theme/eldy/img/object_category.png'.'"> \'+record.text+\'</span>\';';
+						}
+						else
+						{
+							$out.='return record.text;';
+						}
+			$out.= '	};
+				$(document).ready(function () {
+				    $(\'#'.$htmlname.'\').attr("name", "'.$htmlname.'[]");
+				    $(\'#'.$htmlname.'\').attr("multiple", "multiple");
+				    //$.map('.json_encode($selected).', function(val, i) {
+				        $(\'#'.$htmlname.'\').val('.json_encode($selected).');
+				    //});
+
+					$(\'#'.$htmlname.'\').'.$tmpplugin.'({
+						dir: \'ltr\',
+							// Specify format function for dropdown item
+							formatResult: formatResult,
+						templateResult: formatResult,		/* For 4.0 */
+							// Specify format function for selected item
+							formatSelection: formatSelection,
+						templateResult: formatSelection		/* For 4.0 */
+					});
+				});
+			</script>';
+	}
+
+	return $out;
+    }
+
+    /**
+     *     Show a confirmation HTML form or AJAX popup.
+     *     Easiest way to use this is with useajax=1.
+     *     If you use useajax='xxx', you must also add jquery code to trigger opening of box (with correct parameters)
+     *     just after calling this method. For example:
+     *       print '<script type="text/javascript">'."\n";
+     *       print 'jQuery(document).ready(function() {'."\n";
+     *       print 'jQuery(".xxxlink").click(function(e) { jQuery("#aparamid").val(jQuery(this).attr("rel")); jQuery("#dialog-confirm-xxx").dialog("open"); return false; });'."\n";
+     *       print '});'."\n";
+     *       print '</script>'."\n";
+     *
+     *     @param  	string		$page        	   	Url of page to call if confirmation is OK
+     *     @param	string		$title       	   	Title
+     *     @param	string		$question    	   	Question
+     *     @param 	string		$action      	   	Action
+     *	   @param  	array		$formquestion	   	An array with complementary inputs to add into forms: array(array('label'=> ,'type'=> , ))
+     * 	   @param  	string		$selectedchoice  	"" or "no" or "yes"
+     * 	   @param  	int			$useajax		   	0=No, 1=Yes, 2=Yes but submit page with &confirm=no if choice is No, 'xxx'=Yes and preoutput confirm box with div id=dialog-confirm-xxx
+     *     @param  	int			$height          	Force height of box
+     *     @param	int			$width				Force width of box ('999' or '90%'). Ignored and forced to 90% on smartphones.
+     *     @param	int			$post				Send by form POST.
+     *     @param	int			$post				Resizable box (0=no, 1=yes).
+     *     @return 	string      	    			HTML ajax code if a confirm ajax popup is required, Pure HTML code if it's an html form
+     */
+	public function formconfirm($page, $title, $question, $action, $formquestion=array(), $selectedchoice="", $useajax=0, $height=200, $width=500, $post=0, $resizable=0)
+    {
+        global $langs, $conf, $form;
+        global $useglobalvars;
+
+        if (!is_object($form)) {
+            require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
+            $form = new Form($this->db);
+        }
+
+        $more = '';
+        $formconfirm = '';
+        $inputok = array();
+        $inputko = array();
+
+        // Clean parameters
+        $newselectedchoice = empty($selectedchoice) ? "no" : $selectedchoice;
+        if ($conf->browser->layout == 'phone') $width = '95%';
+
+        if (is_array($formquestion) && !empty($formquestion)) {
+            if ($post) {
+                $more .= '<form id="form_dialog_confirm" name="form_dialog_confirm" action="'.$page.'" method="POST" enctype="multipart/form-data">';
+                $more .= '<input type="hidden" id="confirm" name="confirm" value="yes">' . "\n";
+                $more .= '<input type="hidden" id="action" name="action" value="'.$action.'">' . "\n";
+            }
+            // First add hidden fields and value
+            foreach ($formquestion as $key => $input) {
+                if (is_array($input) && !empty($input)) {
+                    if ($post && ($input['name'] == "confirm" || $input['name'] == "action")) continue;
+                    if ($input['type'] == 'hidden') {
+                        $more .= '<input type="hidden" id="' . $input['name'] . '" name="' . $input['name'] . '" value="' . dol_escape_htmltag($input['value'], 1, 1) . '">' . "\n";
+                    }
+                }
+            }
+
+            // Now add questions
+            $more .= '<table class="paddingtopbottomonly" width="100%">' . "\n";
+            $more .= '<tr><td colspan="3">' . (!empty($formquestion['text']) ? $formquestion['text'] : '') . '</td></tr>' . "\n";
+            foreach ($formquestion as $key => $input) {
+                if (is_array($input) && !empty($input)) {
+                    $size = (!empty($input['size']) ? ' size="' . $input['size'] . '"' : '');
+
+                    if ($input['type'] == 'text') {
+                        $more .= '<tr class="oddeven"><td class="titlefield">' . $input['label'] . '</td><td colspan="2" align="left"><input type="text" class="flat" id="' . $input['name'] . '" name="' . $input['name'] . '"' . $size . ' value="' . $input['value'] . '" /></td></tr>' . "\n";
+                    } else if ($input['type'] == 'password') {
+                        $more .= '<tr class="oddeven"><td class="titlefield">' . $input['label'] . '</td><td colspan="2" align="left"><input type="password" class="flat" id="' . $input['name'] . '" name="' . $input['name'] . '"' . $size . ' value="' . $input['value'] . '" /></td></tr>' . "\n";
+                    } else if ($input['type'] == 'select') {
+                        $more .= '<tr class="oddeven"><td class="titlefield">';
+                        if (!empty($input['label'])) $more .= $input['label'] . '</td><td valign="top" colspan="2" align="left">';
+                        $more .= $form->selectarray($input['name'], $input['values'], $input['default'], 1);
+                        $more .= '</td></tr>' . "\n";
+                    } else if ($input['type'] == 'checkbox') {
+                        $more .= '<tr class="oddeven">';
+                        $more .= '<td class="titlefield">' . $input['label'] . ' </td><td align="left">';
+                        $more .= '<input type="checkbox" class="flat" id="' . $input['name'] . '" name="' . $input['name'] . '"';
+                        if (!is_bool($input['value']) && $input['value'] != 'false') $more .= ' checked';
+                        if (is_bool($input['value']) && $input['value']) $more .= ' checked';
+                        if (isset($input['disabled'])) $more .= ' disabled';
+                        $more .= ' /></td>';
+                        $more .= '<td align="left">&nbsp;</td>';
+                        $more .= '</tr>' . "\n";
+                    } else if ($input['type'] == 'radio') {
+                        $i = 0;
+                        foreach ($input['values'] as $selkey => $selval) {
+                            $more .= '<tr class="oddeven">';
+                            if ($i == 0) $more .= '<td class="tdtop titlefield">' . $input['label'] . '</td>';
+                            else $more .= '<td>&nbsp;</td>';
+                            $more .= '<td width="20"><input type="radio" class="flat" id="' . $input['name'] . '" name="' . $input['name'] . '" value="' . $selkey . '"';
+                            if ($input['disabled']) $more .= ' disabled';
+                            $more .= ' /></td>';
+                            $more .= '<td align="left">';
+                            $more .= $selval;
+                            $more .= '</td></tr>' . "\n";
+                            $i++;
+                        }
+                    } else if ($input['type'] == 'date') {
+                        $more .= '<tr class="oddeven"><td class="titlefield">' . $input['label'] . '</td>';
+                        $more .= '<td colspan="2" align="left">';
+                        $more .= $form->select_date($input['value'], $input['name'], $input['hour'] ? 1 : 0, $input['minute'] ? 1 : 0, 0, '', 1, $input['addnowlink'] ? 1 : 0, 1);
+                        $more .= '</td></tr>' . "\n";
+                        $formquestion[] = array('name' => $input['name'] . 'day');
+                        $formquestion[] = array('name' => $input['name'] . 'month');
+                        $formquestion[] = array('name' => $input['name'] . 'year');
+                        $formquestion[] = array('name' => $input['name'] . 'hour');
+                        $formquestion[] = array('name' => $input['name'] . 'min');
+                    } else if ($input['type'] == 'other') {
+                        $more .= '<tr class="oddeven"><td class="titlefield">';
+                        if (!empty($input['label'])) $more .= $input['label'] . '</td><td colspan="2" align="left">';
+                        $more .= $input['value'];
+                        $more .= '</td></tr>' . "\n";
+                    } else if ($input['type'] == 'onecolumn') {
+                        $more .= '<tr class="oddeven"><td class="titlefield" colspan="3" align="left">';
+                        $more .= $input['value'];
+                        $more .= '</td></tr>' . "\n";
+                    }
+                }
+            }
+            $more .= '</table>' . "\n";
+            if ($post) $more .= '</form>';
+        }
+
+        // JQUI method dialog is broken with jmobile, we use standard HTML.
+        // Note: When using dol_use_jmobile or no js, you must also check code for button use a GET url with action=xxx and check that you also output the confirm code when action=xxx
+        // See page product/card.php for example
+        if (!empty($conf->dol_use_jmobile)) $useajax = 0;
+        if (empty($conf->use_javascript_ajax)) $useajax = 0;
+
+        if ($useajax) {
+            $autoOpen = true;
+            $dialogconfirm = 'dialog-confirm';
+            $button = '';
+            if (!is_numeric($useajax)) {
+                $button = $useajax;
+                $useajax = 1;
+                $autoOpen = false;
+                $dialogconfirm .= '-' . $button;
+            }
+            $pageyes = $page . (preg_match('/\?/', $page) ? '&' : '?') . 'action=' . $action . '&confirm=yes';
+            $pageno = ($useajax == 2 ? $page . (preg_match('/\?/', $page) ? '&' : '?') . 'action=' . $action . '&confirm=no' : '');
+            // Add input fields into list of fields to read during submit (inputok and inputko)
+            if (is_array($formquestion)) {
+                foreach ($formquestion as $key => $input) {
+                    //print "xx ".$key." rr ".is_array($input)."<br>\n";
+                    if (is_array($input) && isset($input['name'])) {
+                        // Modification Open-DSI - Begin
+                        if (is_array($input['name'])) $inputok = array_merge($inputok, $input['name']);
+                        else array_push($inputok, $input['name']);
+                        // Modification Open-DSI - End
+                    }
+                    if (isset($input['inputko']) && $input['inputko'] == 1) array_push($inputko, $input['name']);
+                }
+            }
+            // Show JQuery confirm box. Note that global var $useglobalvars is used inside this template
+            $formconfirm .= '<div id="' . $dialogconfirm . '" title="' . dol_escape_htmltag($title) . '" style="display: none;">';
+            if (!empty($more)) {
+                $formconfirm .= '<div class="confirmquestions">' . $more . '</div>';
+            }
+            $formconfirm .= ($question ? '<div class="confirmmessage">' . img_help('', '') . ' ' . $question . '</div>' : '');
+            $formconfirm .= '</div>' . "\n";
+
+            $formconfirm .= "\n<!-- begin ajax form_confirm page=" . $page . " -->\n";
+            $formconfirm .= '<script type="text/javascript">' . "\n";
+            $formconfirm .= 'jQuery(document).ready(function() {
+            $(function() {
+		$( "#' . $dialogconfirm . '" ).dialog(
+		{
+                    autoOpen: ' . ($autoOpen ? "true" : "false") . ',';
+            if ($newselectedchoice == 'no') {
+                $formconfirm .= '
+						open: function() {
+					$(this).parent().find("button.ui-button:eq(2)").focus();
+						},';
+            }
+            if ($post) {
+                $formconfirm .= '
+                    resizable: ' . ($resizable ? 'true' : 'false') . ',
+                    height: "' . $height . '",
+                    width: "' . $width . '",
+                    modal: true,
+                    closeOnEscape: false,
+                    buttons: {
+                        "' . dol_escape_js($langs->transnoentities("Yes")) . '": function() {
+                            var form_dialog_confirm = $("form#form_dialog_confirm");
+                            form_dialog_confirm.find("input#confirm").val("yes");
+                            form_dialog_confirm.submit();
+                            $(this).dialog("close");
+                        },
+                        "' . dol_escape_js($langs->transnoentities("No")) . '": function() {
+                            if (' . ($useajax == 2 ? '1' : '0') . ' == 1) {
+                                var form_dialog_confirm = $("form#form_dialog_confirm");
+                                form_dialog_confirm.find("input#confirm").val("no");
+                                form_dialog_confirm.submit();
+                            }
+                            $(this).dialog("close");
+                        }
+                    }
+                }
+                );
+
+		var button = "' . $button . '";
+		if (button.length > 0) {
+			$( "#" + button ).click(function() {
+				$("#' . $dialogconfirm . '").dialog("open");
+				});
+                }
+            });
+            });
+            </script>';
+            } else {
+                $formconfirm .= '
+                    resizable: false,
+                    height: "' . $height . '",
+                    width: "' . $width . '",
+                    modal: true,
+                    closeOnEscape: false,
+                    buttons: {
+                        "' . dol_escape_js($langs->transnoentities("Yes")) . '": function() {
+				var options="";
+				var inputok = ' . json_encode($inputok) . ';
+				var pageyes = "' . dol_escape_js(!empty($pageyes) ? $pageyes : '') . '";
+				if (inputok.length>0) {
+					$.each(inputok, function(i, inputname) {
+						var more = "";
+						if ($("#" + inputname).attr("type") == "checkbox") { more = ":checked"; }
+					    if ($("#" + inputname).attr("type") == "radio") { more = ":checked"; }
+						var inputvalue = $("#" + inputname + more).val();
+						if (typeof inputvalue == "undefined") { inputvalue=""; }
+						options += "&" + inputname + "=" + urlencode(inputvalue);
+					});
+				}
+				var urljump = pageyes + (pageyes.indexOf("?") < 0 ? "?" : "") + options;
+				//alert(urljump);
+					if (pageyes.length > 0) { location.href = urljump; }
+                            $(this).dialog("close");
+                        },
+                        "' . dol_escape_js($langs->transnoentities("No")) . '": function() {
+				var options = "";
+				var inputko = ' . json_encode($inputko) . ';
+				var pageno="' . dol_escape_js(!empty($pageno) ? $pageno : '') . '";
+				if (inputko.length>0) {
+					$.each(inputko, function(i, inputname) {
+						var more = "";
+						if ($("#" + inputname).attr("type") == "checkbox") { more = ":checked"; }
+						var inputvalue = $("#" + inputname + more).val();
+						if (typeof inputvalue == "undefined") { inputvalue=""; }
+						options += "&" + inputname + "=" + urlencode(inputvalue);
+					});
+				}
+				var urljump=pageno + (pageno.indexOf("?") < 0 ? "?" : "") + options;
+				//alert(urljump);
+					if (pageno.length > 0) { location.href = urljump; }
+                            $(this).dialog("close");
+                        }
+                    }
+                }
+                );
+
+		var button = "' . $button . '";
+		if (button.length > 0) {
+			$( "#" + button ).click(function() {
+				$("#' . $dialogconfirm . '").dialog("open");
+				});
+                }
+            });
+            });
+            </script>';
+            }
+            $formconfirm .= "<!-- end ajax form_confirm -->\n";
+        } else {
+            $formconfirm .= "\n<!-- begin form_confirm page=" . $page . " -->\n";
+
+            $formconfirm .= '<form method="POST" action="' . $page . '" class="notoptoleftroright">' . "\n";
+            $formconfirm .= '<input type="hidden" name="action" value="' . $action . '">' . "\n";
+            $formconfirm .= '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '">' . "\n";
+
+            $formconfirm .= '<table width="100%" class="valid">' . "\n";
+
+            // Line title
+            $formconfirm .= '<tr class="validtitre"><td class="validtitre" colspan="3">' . img_picto('', 'recent') . ' ' . $title . '</td></tr>' . "\n";
+
+            // Line form fields
+            if ($more) {
+                $formconfirm .= '<tr class="valid"><td class="valid" colspan="3">' . "\n";
+                $formconfirm .= $more;
+                $formconfirm .= '</td></tr>' . "\n";
+            }
+
+            // Line with question
+            $formconfirm .= '<tr class="valid">';
+            $formconfirm .= '<td class="valid">' . $question . '</td>';
+            $formconfirm .= '<td class="valid">';
+            $formconfirm .= $form->selectyesno("confirm", $newselectedchoice);
+            $formconfirm .= '</td>';
+            $formconfirm .= '<td class="valid" align="center"><input class="button valignmiddle" type="submit" value="' . $langs->trans("Validate") . '"></td>';
+            $formconfirm .= '</tr>' . "\n";
+
+            $formconfirm .= '</table>' . "\n";
+
+            $formconfirm .= "</form>\n";
+            $formconfirm .= '<br>';
+
+            $formconfirm .= "<!-- end form_confirm -->\n";
+        }
+
+        return $formconfirm;
+    }
 }
+
