@@ -289,18 +289,20 @@ class ExtendedInterventionQuota
 
             if ($begin_date <= $now) {
                 $idx = 1;
-                $nb_period = 0;
-                $stop_period = false;
                 do {
                     $b_date = $begin_date->timestamp;
-                    $e_date = $begin_date->addMonths($period_size)->copy()->subDay()->timestamp;
+                    //We increase $begin date to compute end date of this period and begin date of next period
+                    $begin_date->addMonths($period_size);
+                    //We compute end date of this period
+                    $e_date = $begin_date->copy()->subDay()->timestamp;
+                    //We check if this period is the last period of this contract (check if contract is terminated or not with tacit renewal)
                     $last_period = isset($end_date) && (($b_date <= $end_date->timestamp && $end_date->timestamp <= $e_date) || $e_date == $last_end_date->timestamp);
+                    //We check if today is in the current period
                     $in_period = $b_date <= $now->timestamp && $now->timestamp <= ($last_period ? $end_date->timestamp : $e_date);
+                    //We save data
                     $periods[$idx] = array('begin' => $b_date, 'end' => $last_period ? $end_date->timestamp : $e_date, 'in_period' => $in_period, 'last_period' => $last_period);
                     $idx++;
-                    $nb_period++;
-                    if ($in_period) $stop_period = true;
-                } while (!$stop_period && $nb_period < $conf->global->EXTENDEDINTERVENTION_QUOTA_SHOW_X_PERIOD && !$last_period);
+                } while (!$in_period && !$last_period);
             }
         }
 
