@@ -254,7 +254,7 @@ class InterfaceSynergiesTechFichInterValidationProtection extends DolibarrTrigge
                     //We check that user can validate this fichinter
                     dol_include_once('synergiestech/class/extendedInterventionValidation.class.php');
                     $InterventionValidationCheck = new ExtendedInterventionValidation($object, $this->db);
-                    if(!$InterventionValidationCheck->canUserValidateThisFichInter($user)){
+                    if(!$object->noValidationCheck && !$InterventionValidationCheck->canUserValidateThisFichInter($user)){
                         if($user->rights->synergiestech->intervention->validateWithStaleContract){
                             $object->errors[] = $langs->trans("SynergiesTechInterventionValidationAdvancedError");
                         }

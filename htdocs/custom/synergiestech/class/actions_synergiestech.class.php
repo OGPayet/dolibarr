@@ -539,6 +539,12 @@ class ActionsSynergiesTech
                     print '<div class="inline-block divButAction"><a class="butActionRefused" href="#" title="' . $langs->trans("NotEnoughPermissions") . '">' . $langs->trans("ReOpen") . '</a></div>';
                 }
             }
+            if($object->statut == 0){ //draft
+                if($user->rights->synergiestech->intervention->validateWithoutCheck){
+                    print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=validateWithoutCheck' . (empty($conf->global->MAIN_JUMP_TAG) ? '' : '#reopen') . '">' .
+                    $langs->trans("SynergiesTechValidateWithoutCheck") . '</a></div>';
+                }
+            }
         } elseif (in_array('ordersuppliercard', $contexts) && !empty($conf->global->SYNERGIESTECH_DISABLEDCLASSIFIEDBILLED_SUPPLIERORDER)){
 
             // Validate
@@ -1259,6 +1265,38 @@ SCRIPT;
                     'confirm_reopen',
                     '',
                     0,
+                    1
+                );
+                return 1;
+            }
+            if($action == 'validateWithoutCheck'){
+                $langs->load('synergiestech@synergiestech');
+
+
+                $ref = substr($object->ref, 1, 4);
+                if ($ref == 'PROV')
+                {
+                    global $soc;
+                    $numref = $object->getNextNumRef($soc);
+                    if (empty($numref))
+                    {
+                        $error++;
+                        setEventMessages($object->error, $object->errors, 'errors');
+                    }
+                }
+                else
+                {
+                    $numref = $object->ref;
+                }
+                $text=$langs->trans('SynergiesTechValidateWithoutCheckConfirmation',$numref);
+
+                print $form->formconfirm(
+                    $_SERVER["PHP_SELF"] . '?id=' . $object->id,
+                    $langs->trans('SynergiesTechValidateWithoutCheck'),
+                    $text,
+                    'confirm_validateWithoutCheck',
+                    '',
+                    1,
                     1
                 );
                 return 1;
@@ -2015,6 +2053,12 @@ SCRIPT;
                         $action = "contrat";
                     }
                 }
+            }
+            elseif ($action == 'confirm_validateWithoutCheck' && $confirm == 'yes'){
+                if($user->rights->synergiestech->intervention->validateWithoutCheck){
+                    $object->noValidationCheck = true;
+                }
+                $action = 'confirm_validate';
             }
         } elseif (in_array('productpricecard', $contexts)) {
             if (!$user->rights->synergiestech->product_line_price->lire) {

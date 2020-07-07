@@ -1,13 +1,13 @@
 diff a/htdocs/custom/synergiestech/core/modules/modSynergiesTech.class.php b/htdocs/custom/synergiestech/core/modules/modSynergiesTech.class.php	(rejected hunks)
-@@ -400,6 +400,13 @@ class modSynergiesTech extends DolibarrModules
- 		$this->rights[$r][5] = 'creerIntervention';
+@@ -416,6 +416,13 @@ class modSynergiesTech extends DolibarrModules
+ 		$this->rights[$r][5] = 'validateWithStaleContract';
  		$r++;
  
-+		$this->rights[$r][0] = 500127;
-+		$this->rights[$r][1] = "Permettre de passer une intervention en A Faire même si le contrat lié est inactif";
++		$this->rights[$r][0] = 500128;
++		$this->rights[$r][1] = "Permettre de passer une intervention en A Faire sans vérifier la justification commerciale de cette intervention";
 +		$this->rights[$r][3] = 0;
 +		$this->rights[$r][4] = 'intervention';
-+		$this->rights[$r][5] = 'validateWithStaleContract';
++		$this->rights[$r][5] = 'validateWithoutCheck';
 +		$r++;
 +
  		// Add here list of permission defined by an id, a label, a boolean and two constant strings.

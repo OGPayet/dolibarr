@@ -310,6 +310,8 @@ SynergiesTechInterventionValidationStandardError = Au moins un contrat actif ou 
 SynergiesTechNewContractCantBeChoosed = Ce choix de contrat ne permet pas d'assurer la justification commerciale de cette intervention et ne peux être choisi. S'il s'agissait d'une commande, merci de lier cette commande avant de supprimer le contrat en lien avec cette intervention
 SynergiesTechOrderCantbeUnlinkedAdvanced = Ce lien commande/intervention assure la justification commerciale de l'intervention concernée. Ce lien ne peux donc pas être supprimé. S'il s'agissait d'une intervention sous contrat, merci de lier un contrat sur l'intervention avant de supprimer ce lien
 SynergiesTechOrderCantbeUnlinkedStandard = Ce lien commande/intervention assure la justification commerciale de l'intervention concernée. Ce lien ne peux donc pas être supprimé. S'il s'agissait d'une intervention sous contrat, merci de lier un contrat ACTIF sur l'intervention avant de supprimer ce lien
+SynergiesTechValidateWithoutCheck = Valider sans vérification d'elements commerciaux
+SynergiesTechValidateWithoutCheckConfirmation = Êtes-vous sûr de vouloir passer cette intervention en 'A faire' sous la référence %s sans vérification des liens permettant sa justification commerciale ?
 
 #############################################################
 ### Thirdparty card
