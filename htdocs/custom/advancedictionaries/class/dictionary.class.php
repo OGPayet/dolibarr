@@ -1551,7 +1551,7 @@ protected function definitionTableFieldInstructionSQL($field)
         if (!empty($field)) {
             switch ($field['type']) {
                 case 'chkbxlst':
-                    return 'GROUP_CONCAT(DISTINCT cbl_' . $field['name'] . '.fk_target SEPARATOR \',\') AS ' . $field['name'];
+                    return 'GROUP_CONCAT(DISTINCT cbl_' . $field['name'] . '.' . getForeignKeyOfDestinationTableInAssociationTableForChkbxlstFieldType($field, $this->table_name) . ' SEPARATOR \',\') AS ' . $field['name'];
                 case 'custom':
                     return $this->selectCustomFieldSqlStatement($field);
                     default: // varchar, text, int, float, double, date, datetime, boolean, price, phone, mail, url, password, select, sellist, radio, checkbox, link, unknown
@@ -3779,6 +3779,7 @@ class DictionaryLine extends CommonObjectLine
                                         $labelstoshow[] = $obj->$field_toshow;
                                     }
                                 }
+                                $labelstoshow = array_filter($labelstoshow);
                                 $value .= implode($label_separator, $labelstoshow);
                             } else {
                                 $translabel = '';
@@ -4147,7 +4148,8 @@ class DictionaryLine extends CommonObjectLine
 										} else {
 											$labelstoshow[] = dol_trunc($obj->$field_toshow, isset($field['truncate']) && $field['truncate'] > 0 ? $field['truncate'] : 0);
 										}
-									}
+                                    }
+                                    $labelstoshow = array_filter($labelstoshow);
 									$labeltoshow = implode($label_separator, $labelstoshow);
 								} else {
 									$translabel = $langs->trans($field['translate_prefix'] . $obj->{$fieldList[0]} . $field['translate_suffix']);
@@ -4328,7 +4330,8 @@ class DictionaryLine extends CommonObjectLine
 										} else {
 											$labelstoshow[] = dol_trunc($obj->$field_toshow, isset($field['truncate']) && $field['truncate'] > 0 ? $field['truncate'] : 0);
 										}
-									}
+                                    }
+                                    $labelstoshow = array_filter($labelstoshow);
 									$labeltoshow = implode($label_separator, $labelstoshow);
 								} else {
 									$translabel = $langs->trans($field['translate_prefix'] . $obj->{$InfoFieldList[1]} . $field['translate_suffix']);
