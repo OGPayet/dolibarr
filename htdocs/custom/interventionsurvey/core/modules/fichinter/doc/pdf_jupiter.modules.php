@@ -1092,7 +1092,7 @@ class pdf_jupiter extends ModelePDFFicheinter
         $w = ($this->page_largeur - $this->marge_gauche - $this->marge_droite - 4) / 2;
         $column_w_from = 30;
         $column_w_to = 15;
-        $column_w_duration = 15;
+        $column_w_duration = 19;
         $column_w_involved_user = $w - $column_w_duration - $column_w_to - $column_w_from;
 
         $column_posx_involved_user = $this->marge_gauche;
@@ -1179,7 +1179,7 @@ class pdf_jupiter extends ModelePDFFicheinter
                     $max_user_posy = max($pdf->GetY(), $max_user_posy);
 
                     // Print duration value
-                    $pdf->SetXY($column_posx_duration + $table_padding_x, $posy + $table_padding_y);
+                    $pdf->SetXY($column_posx_duration + $table_padding_x + 2, $posy + $table_padding_y);
                     $pdf->MultiCell($column_w_duration - ($table_padding_x * 2), 3, $this->_print_duration($time['duration'], false, true, false), 0, 1, 0);
                     $max_user_posy = max($pdf->GetY(), $max_user_posy);
                     $total_duration += $time['duration'];
