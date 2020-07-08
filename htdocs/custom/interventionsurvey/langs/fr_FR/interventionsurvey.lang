@@ -237,6 +237,7 @@ InterventionSurveyInterventionType                                = Type
 InterventionSurveyEstimatedStartDate                              = Programmée le
 InterventionSurveyPdfBenefactorCompany                            = BENEFICIAIRE
 InterventionSurveyPdfPrincipalCompany                             = DONNEUR D’ORDRE
+InterventionSurveyPdfCustomer                                     = Client
 InterventionSurveyPdfBenefactorCompanyRef                         = Code Client Bénéficiaire
 InterventionSurveyPdfPrincipalCompanyRef                          = Code Client DO
 InterventionSurveyEffectiveWorkingTimeTitle                       = Date et Heure de travail effectif de l’intervention

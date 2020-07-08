@@ -80,16 +80,19 @@ class ActionsCompanyRelationships
 
             if (!empty($object->element) && in_array($object->element, CompanyRelationships::$psa_element_list)) {
                 if ($object->element == 'fichinter') {
-                    // get benefactor of this element
-                    $benefactorId = $object->array_options['options_companyrelationships_fk_soc_benefactor'];
+                    $pdfInstance = $parameters["pdfInstance"];
+                    if (isset($pdfInstance) && $pdfInstance->name != "jupiter") {
+                        // get benefactor of this element
+                        $benefactorId = $object->array_options['options_companyrelationships_fk_soc_benefactor'];
 
-                    if ($benefactorId > 0) {
-                        require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
-                        $companyRecipient = new Societe($this->db);
-                        $companyRecipient->fetch($benefactorId);
+                        if ($benefactorId > 0) {
+                            require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
+                            $companyRecipient = new Societe($this->db);
+                            $companyRecipient->fetch($benefactorId);
 
-                        if ($companyRecipient->id > 0) {
-                            $object->thirdparty = $companyRecipient;
+                            if ($companyRecipient->id > 0) {
+                                $object->thirdparty = $companyRecipient;
+                            }
                         }
                     }
                 }
@@ -208,7 +211,7 @@ class ActionsCompanyRelationships
                     $attribute = GETPOST('attribute', 'alpha');
 
                     // update benefactor company
-                    if ($attribute=='companyrelationships_fk_soc_benefactor') {
+                    if ($attribute == 'companyrelationships_fk_soc_benefactor') {
 
                         require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
 
@@ -220,7 +223,7 @@ class ActionsCompanyRelationships
                         $relation_socid = GETPOST('options_companyrelationships_fk_soc_benefactor', 'int');
 
                         // if benefactor company changed
-                        if (!empty($relation_socid) && $relation_socid!=$object->array_options['options_companyrelationships_fk_soc_benefactor']) {
+                        if (!empty($relation_socid) && $relation_socid != $object->array_options['options_companyrelationships_fk_soc_benefactor']) {
                             // save a copy of this object
                             $objectClone = clone $object;
 
@@ -233,7 +236,7 @@ class ActionsCompanyRelationships
                                 $object->errors = $companyRelationships->errors;
                             }
 
-                            if (! $error) {
+                            if (!$error) {
                                 // modify options with company relationships default availability
                                 $objectClone->array_options['options_companyrelationships_fk_soc_benefactor']       = $relation_socid;
                                 $objectClone->array_options['options_companyrelationships_availability_principal']  = $publicSpaceAvailability['principal'];
@@ -257,7 +260,7 @@ class ActionsCompanyRelationships
                         }
                     }
                     // update watcher company
-                    else if ($attribute=='companyrelationships_fk_soc_watcher') {
+                    else if ($attribute == 'companyrelationships_fk_soc_watcher') {
 
                         require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
 
@@ -269,7 +272,7 @@ class ActionsCompanyRelationships
                         $relation_socid = GETPOST('options_companyrelationships_fk_soc_watcher', 'int');
 
                         // if watcher company changed
-                        if (!empty($relation_socid) && $relation_socid!=$object->array_options['options_companyrelationships_fk_soc_watcher']) {
+                        if (!empty($relation_socid) && $relation_socid != $object->array_options['options_companyrelationships_fk_soc_watcher']) {
                             // save a copy of this object
                             $objectClone = clone $object;
 
@@ -282,7 +285,7 @@ class ActionsCompanyRelationships
                                 $object->errors = $companyRelationships->errors;
                             }
 
-                            if (! $error) {
+                            if (!$error) {
                                 // modify options with company relationships default availability
                                 $objectClone->array_options['options_companyrelationships_fk_soc_watcher']       = $relation_socid > 0 ? $relation_socid : null;
                                 $objectClone->array_options['options_companyrelationships_availability_watcher'] = $publicSpaceAvailability['watcher'];
@@ -420,7 +423,7 @@ class ActionsCompanyRelationships
                     );
                     if ($object->element == "propal") {
                         if (!empty($conf->global->PROPAL_CLONE_DATE_DELIVERY) && !empty($object->date_livraison)) {
-                            $formquestion[] = array('type' => 'date','name' => 'date_delivery','label' => $langs->trans("DeliveryDate"),'value' => $object->date_livraison);
+                            $formquestion[] = array('type' => 'date', 'name' => 'date_delivery', 'label' => $langs->trans("DeliveryDate"), 'value' => $object->date_livraison);
                         }
                     }
 
@@ -561,8 +564,8 @@ class ActionsCompanyRelationships
                     $out .= '<div id="companyrelationships_confirm">';
                     // it doesn't work because object is new in create mode
                     //if (!empty($object->cr_must_confirm_socid)) {
-                    if (empty($originid) && intval($socid)>0) {
-                        $principalCompanyList = $companyRelationships->getRelationshipsThirdparty($socid,CompanyRelationships::RELATION_TYPE_BENEFACTOR, 0, 1);
+                    if (empty($originid) && intval($socid) > 0) {
+                        $principalCompanyList = $companyRelationships->getRelationshipsThirdparty($socid, CompanyRelationships::RELATION_TYPE_BENEFACTOR, 0, 1);
                         $principalCompanyList = is_array($principalCompanyList) ? $principalCompanyList : array();
                         if (count($principalCompanyList) > 0) {
                             $principalCompanySelectArray = array();
@@ -723,24 +726,24 @@ class ActionsCompanyRelationships
 
                         // benefactor
                         $comboenhancement = ajax_combobox('options_companyrelationships_fk_soc_benefactor', array(), $conf->global->COMPANY_USE_SEARCH_TO_SELECT);
-                        $out.= $comboenhancement;
+                        $out .= $comboenhancement;
 
                         // watcher
                         $comboenhancement = ajax_combobox('options_companyrelationships_fk_soc_watcher', array(), $conf->global->COMPANY_USE_SEARCH_TO_SELECT);
-                        $out.= $comboenhancement;
+                        $out .= $comboenhancement;
                     }
 
                     print $out;
                 }
                 // edit extrafields
-                else if ($action=='edit_extras' && $userRightsElementCreer) {
+                else if ($action == 'edit_extras' && $userRightsElementCreer) {
 
                     $attribute = GETPOST('attribute', 'alpha');
 
                     // benefactor
-                    if ($attribute=='companyrelationships_fk_soc_benefactor') {
+                    if ($attribute == 'companyrelationships_fk_soc_benefactor') {
                         // company id already posted (an input hidden in this form)
-                        if (intval($object->socid)>0) {
+                        if (intval($object->socid) > 0) {
                             dol_include_once('/companyrelationships/class/html.formcompanyrelationships.class.php');
 
                             $formcompanyrelationships = new FormCompanyRelationships($this->db);
@@ -750,9 +753,9 @@ class ActionsCompanyRelationships
                         }
                     }
                     // watcher
-                    else if ($attribute=='companyrelationships_fk_soc_watcher') {
+                    else if ($attribute == 'companyrelationships_fk_soc_watcher') {
                         // company id already posted (an input hidden in this form)
-                        if (intval($object->socid)>0) {
+                        if (intval($object->socid) > 0) {
                             dol_include_once('/companyrelationships/class/html.formcompanyrelationships.class.php');
 
                             $formcompanyrelationships = new FormCompanyRelationships($this->db);

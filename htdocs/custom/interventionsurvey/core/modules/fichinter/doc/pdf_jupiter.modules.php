@@ -178,9 +178,10 @@ class pdf_jupiter extends ModelePDFFicheinter
                 }
 
                 $hookmanager->initHooks(array('pdfgeneration'));
-                $parameters = array('file' => $file, 'object' => $object, 'outputlangs' => $outputlangs);
+                $parameters = array('file' => $file, 'object' => $object, 'outputlangs' => $outputlangs, 'pdfInstance' => &$this);
                 global $action;
-                $reshook = $hookmanager->executeHooks('beforePDFCreation', $parameters, $object, $action);    // Note that $action and $object may have been modified by some hooks
+                $reshook = $hookmanager->executeHooks('beforePDFCreation', $parameters, $object, $action);
+                   // Note that $action and $object may have been modified by some hooks
 
                 // Create pdf instance
                 $pdf = opendsi_interventionsurvey_pdf_getInstance($this->format);
@@ -254,8 +255,9 @@ class pdf_jupiter extends ModelePDFFicheinter
                     $tab_top = $nexY + 5;
                 }
 
-                $iniY = $curY = $nexY = $tab_top;
-
+                $iniY = $tab_top + 7;
+				$curY = $tab_top + 7;
+				$nexY = $tab_top + 7;
                 // Print survey
                 foreach ($object->survey as $survey_part) {
                     if ($survey_part->doesThisSurveyPartContainsAtLeastOnePublicBloc()) {
@@ -403,26 +405,23 @@ class pdf_jupiter extends ModelePDFFicheinter
 
         if ($showaddress) {
             // Get extrafields
-            require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
-            $extrafields = new ExtraFields($this->db);
-            $extralabels = $extrafields->fetch_name_optionals_label($object->table_element); // fetch optionals attributes and labels
-            $object->fetch_optionals();
-
-            // Set default values
-            $bulletSize = 1;
-            $bulletWidth = 6;
+            $bulletSize      = 1;
+            $bulletWidth     = 6;
             $multiCellBorder = 0;
-            $w = intval(($this->page_largeur - ($this->marge_gauche + 7) - $this->marge_droite) / 3);
-
-            // Set benefactor company
-            $benefactor_company = $object->thirdparty;
+            $showBenefactor  = FALSE;
             if ($conf->companyrelationships->enabled) {
                 $benefactor_id = $object->array_options['options_companyrelationships_fk_soc_benefactor'];
                 if (isset($benefactor_id) && $benefactor_id > 0 && $benefactor_id != $object->thirdparty->id) {
                     $benefactor_company = new Societe($this->db);
                     $benefactor_company->fetch($benefactor_id);
+                    $showBenefactor = TRUE;
                 }
             }
+
+            if ($showBenefactor === TRUE) {
+                $w = intval(($this->page_largeur - ($this->marge_gauche+7) - $this->marge_droite) / 3);
+            }
+
             $use_benefactor_contact = false;
             $arrayidcontact = $object->getIdContact('external', 'CUSTOMER');
             if (count($arrayidcontact) > 0) {
@@ -464,6 +463,9 @@ class pdf_jupiter extends ModelePDFFicheinter
             $pdf->MultiCell($w - $bulletWidth, 4, $outputlangs->transnoentities("InterventionSurveyInterventionRef") . " : " . $outputlangs->convToOutputCharset($object->ref), $multiCellBorder, 'L');
 
             // Type
+            require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
+            $extrafields = new ExtraFields($this->db);
+            $extrafields->fetch_name_optionals_label($object->table_element); // fetch optionals attributes and labels
             $posy += 5;
             $pdf->SetXY($posx + $bulletWidth, $posy);
             $pdf->SetTextColor(0, 0, 60);
@@ -485,15 +487,17 @@ class pdf_jupiter extends ModelePDFFicheinter
             $pdf->MultiCell($w - $bulletWidth, 3, $outputlangs->transnoentities("InterventionSurveyPdfPrincipalCompanyRef") . " : " . $principal_company->code_client, $multiCellBorder, 'L');
 
             // Ref benefactor company
+            if($showBenefactor){
             $posy += 5;
             $pdf->SetXY($posx + $bulletWidth, $posy);
             $pdf->SetTextColor(0, 0, 60);
             $this->addBullet($pdf, $bulletSize);
             $pdf->MultiCell($w - $bulletWidth, 3, $outputlangs->transnoentities("InterventionSurveyPdfBenefactorCompanyRef") . " : " . $benefactor_company->code_client, $multiCellBorder, 'L');
-
+            }
             $max_y = max($max_y, $pdf->GetY());
 
-            // Write Benefactor Company Information
+            if($showBenefactor){
+// Write Benefactor Company Information
             //-------------------------------------
             $widthrecbox = $w;
             $posy = $this->marge_haute;
@@ -529,10 +533,20 @@ class pdf_jupiter extends ModelePDFFicheinter
             $pdf->MultiCell($widthrecbox - $bulletWidth, 4, (($use_benefactor_contact) ? $benefactor_company->contact->email : $benefactor_company->email), $multiCellBorder, 'L');
 
             $max_y = max($max_y, $pdf->GetY());
+            }
+            // Show recipient
+            if ($showBenefactor === FALSE) {
+                $widthrecbox = !empty($conf->global->MAIN_PDF_USE_ISO_LOCATION) ? 92 : 100;
+                if ($this->page_largeur < 210) $widthrecbox = 84; // To work with US executive format
+                $widthrecbox -= 20;
+            } else {
+                $widthrecbox = $w;
+            }
+
 
             // Write Principal Company Information
             //-------------------------------------
-            $widthrecbox = $w;
+
             $posy = $this->marge_haute;
             $posx = $this->page_largeur - $this->marge_droite - $widthrecbox;
             if (!empty($conf->global->MAIN_INVERT_SENDER_RECIPIENT)) $posx = $this->marge_gauche;
@@ -543,7 +557,8 @@ class pdf_jupiter extends ModelePDFFicheinter
             call_user_func_array(array($pdf, 'SetTextColor'), $this->main_color);
             $pdf->SetFont('', 'B', $default_font_size);
             $pdf->SetXY($posx, $posy);
-            $pdf->MultiCell($widthrecbox, 5, $outputlangs->transnoentities("InterventionSurveyPdfPrincipalCompany"), $multiCellBorder, 'L');
+            $principal_company_title = $showBenefactor ? $outputlangs->transnoentities("InterventionSurveyPdfPrincipalCompany") : $outputlangs->transnoentities("InterventionSurveyPdfCustomer");
+            $pdf->MultiCell($widthrecbox, 5, $principal_company_title, $multiCellBorder, 'L');
             $pdf->SetTextColor(0, 0, 0);
             $posy = $pdf->getY();
 
