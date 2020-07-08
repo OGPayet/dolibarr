@@ -33,9 +33,30 @@ require_once DOL_DOCUMENT_ROOT . '/core/lib/functions2.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/pdf.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/date.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
+require_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
+include_once DOL_DOCUMENT_ROOT . '/core/class/hookmanager.class.php';
 dol_include_once('/interventionsurvey/lib/libPDFST.trait.php');
+dol_include_once('/interventionsurvey/lib/interventionsurvey.helper.php');
 dol_include_once('/interventionsurvey/lib/opendsi_pdf.lib.php');
 dol_include_once('/interventionsurvey/class/interventionsurvey.class.php');
+
+function sortImageByPage($a,$b){
+    if($a["startPage"] == $b["startPage"]){
+        return 0;
+    }
+    else {
+        return $a["startPage"] < $b["startPage"] ? 1 : -1;
+    }
+}
+
+function sortImageByHeight($a,$b){
+    if($a["imageHeight"] == $b["imageHeight"]){
+        return 0;
+    }
+    else {
+        return $a["imageHeight"] < $b["imageHeight"] ? 1 : -1;
+    }
+}
 
 /**
  *	Class to build interventions documents with model Soleil with company relationships
@@ -58,6 +79,7 @@ class pdf_jupiter extends ModelePDFFicheinter
     var $marge_droite;
     var $marge_haute;
     var $marge_basse;
+    var $top_margin;
     var $main_color = array(192, 0, 0);
 
     var $emetteur;    // Objet societe qui emet
@@ -173,7 +195,6 @@ class pdf_jupiter extends ModelePDFFicheinter
 
                 // Add pdfgeneration hook
                 if (!is_object($hookmanager)) {
-                    include_once DOL_DOCUMENT_ROOT . '/core/class/hookmanager.class.php';
                     $hookmanager = new HookManager($this->db);
                 }
 
@@ -181,7 +202,7 @@ class pdf_jupiter extends ModelePDFFicheinter
                 $parameters = array('file' => $file, 'object' => $object, 'outputlangs' => $outputlangs, 'pdfInstance' => &$this);
                 global $action;
                 $reshook = $hookmanager->executeHooks('beforePDFCreation', $parameters, $object, $action);
-                   // Note that $action and $object may have been modified by some hooks
+                // Note that $action and $object may have been modified by some hooks
 
                 // Create pdf instance
                 $pdf = opendsi_interventionsurvey_pdf_getInstance($this->format);
@@ -235,7 +256,8 @@ class pdf_jupiter extends ModelePDFFicheinter
                 $heightforfooter = $this->marge_basse + 8;    // Height reserved to output the footer (value include bottom margin)
 
                 $tab_top_newpage = (empty($conf->global->MAIN_PDF_DONOTREPEAT_HEAD) ? $tab_top_without_address : 10);
-                $pdf->setTopMargin($tab_top_newpage + 5);
+                $this->top_margin = $tab_top_newpage + 5;
+                $pdf->setTopMargin($this->top_margin);
                 $pdf->setPageOrientation('', 1, $heightforfooter);    // The only function to edit the bottom margin of current page to set it.
 
                 // Affiche notes
@@ -256,12 +278,15 @@ class pdf_jupiter extends ModelePDFFicheinter
                 }
 
                 $iniY = $tab_top + 7;
-				$curY = $tab_top + 7;
-				$nexY = $tab_top + 7;
+                $curY = $tab_top + 7;
+                $nexY = $tab_top + 7;
+
+                $listOfAttachedFiles = getListOfAttachedFiles($object->ref);
+
                 // Print survey
                 foreach ($object->survey as $survey_part) {
                     if ($survey_part->doesThisSurveyPartContainsAtLeastOnePublicBloc()) {
-                        $curY = $this->_survey_bloc_part($pdf, $object, $survey_part, $curY, $outputlangs, $heightforfooter) + 2;
+                        $curY = $this->_survey_bloc_part($pdf, $object, $survey_part, $curY, $outputlangs, $heightforfooter, $listOfAttachedFiles) + 2;
                     }
                 }
 
@@ -419,7 +444,7 @@ class pdf_jupiter extends ModelePDFFicheinter
             }
 
             if ($showBenefactor === TRUE) {
-                $w = intval(($this->page_largeur - ($this->marge_gauche+7) - $this->marge_droite) / 3);
+                $w = intval(($this->page_largeur - ($this->marge_gauche + 7) - $this->marge_droite) / 3);
             }
 
             $use_benefactor_contact = false;
@@ -463,7 +488,6 @@ class pdf_jupiter extends ModelePDFFicheinter
             $pdf->MultiCell($w - $bulletWidth, 4, $outputlangs->transnoentities("InterventionSurveyInterventionRef") . " : " . $outputlangs->convToOutputCharset($object->ref), $multiCellBorder, 'L');
 
             // Type
-            require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
             $extrafields = new ExtraFields($this->db);
             $extrafields->fetch_name_optionals_label($object->table_element); // fetch optionals attributes and labels
             $posy += 5;
@@ -487,52 +511,52 @@ class pdf_jupiter extends ModelePDFFicheinter
             $pdf->MultiCell($w - $bulletWidth, 3, $outputlangs->transnoentities("InterventionSurveyPdfPrincipalCompanyRef") . " : " . $principal_company->code_client, $multiCellBorder, 'L');
 
             // Ref benefactor company
-            if($showBenefactor){
-            $posy += 5;
-            $pdf->SetXY($posx + $bulletWidth, $posy);
-            $pdf->SetTextColor(0, 0, 60);
-            $this->addBullet($pdf, $bulletSize);
-            $pdf->MultiCell($w - $bulletWidth, 3, $outputlangs->transnoentities("InterventionSurveyPdfBenefactorCompanyRef") . " : " . $benefactor_company->code_client, $multiCellBorder, 'L');
+            if ($showBenefactor) {
+                $posy += 5;
+                $pdf->SetXY($posx + $bulletWidth, $posy);
+                $pdf->SetTextColor(0, 0, 60);
+                $this->addBullet($pdf, $bulletSize);
+                $pdf->MultiCell($w - $bulletWidth, 3, $outputlangs->transnoentities("InterventionSurveyPdfBenefactorCompanyRef") . " : " . $benefactor_company->code_client, $multiCellBorder, 'L');
             }
             $max_y = max($max_y, $pdf->GetY());
 
-            if($showBenefactor){
-// Write Benefactor Company Information
-            //-------------------------------------
-            $widthrecbox = $w;
-            $posy = $this->marge_haute;
-            $posx = $this->marge_gauche + $w + 4;
-            $carac_benefactor_name = pdfBuildThirdpartyName($benefactor_company, $outputlangs, 1);
-            $carac_benefactor = pdf_build_address($outputlangs, $this->emetteur, $benefactor_company, ($use_benefactor_contact ? $benefactor_company->contact : ''), $use_benefactor_contact, 'target', $object);
+            if ($showBenefactor) {
+                // Write Benefactor Company Information
+                //-------------------------------------
+                $widthrecbox = $w;
+                $posy = $this->marge_haute;
+                $posx = $this->marge_gauche + $w + 4;
+                $carac_benefactor_name = pdfBuildThirdpartyName($benefactor_company, $outputlangs, 1);
+                $carac_benefactor = pdf_build_address($outputlangs, $this->emetteur, $benefactor_company, ($use_benefactor_contact ? $benefactor_company->contact : ''), $use_benefactor_contact, 'target', $object);
 
-            // show benefactor frame
-            call_user_func_array(array($pdf, 'SetTextColor'), $this->main_color);
-            $pdf->SetFont('', 'B', $default_font_size);
-            $pdf->SetXY($posx, $posy);
-            $pdf->MultiCell($widthrecbox, 5, mb_strtoupper($outputlangs->transnoentities("InterventionSurveyPdfBenefactorCompany"), 'UTF-8'), $multiCellBorder, 'L');
-            $pdf->SetTextColor(0, 0, 0);
-            $posy = $pdf->getY();
+                // show benefactor frame
+                call_user_func_array(array($pdf, 'SetTextColor'), $this->main_color);
+                $pdf->SetFont('', 'B', $default_font_size);
+                $pdf->SetXY($posx, $posy);
+                $pdf->MultiCell($widthrecbox, 5, mb_strtoupper($outputlangs->transnoentities("InterventionSurveyPdfBenefactorCompany"), 'UTF-8'), $multiCellBorder, 'L');
+                $pdf->SetTextColor(0, 0, 0);
+                $posy = $pdf->getY();
 
-            // show benefactor name
-            $pdf->SetXY($posx, $posy + 1);
-            $pdf->SetFont('', 'B', $default_font_size - 2);
-            $pdf->MultiCell($widthrecbox, 2, $carac_benefactor_name, $multiCellBorder, 'L');
-            $posy = $pdf->getY();
+                // show benefactor name
+                $pdf->SetXY($posx, $posy + 1);
+                $pdf->SetFont('', 'B', $default_font_size - 2);
+                $pdf->MultiCell($widthrecbox, 2, $carac_benefactor_name, $multiCellBorder, 'L');
+                $posy = $pdf->getY();
 
-            // show benefactor information
-            $pdf->SetFont('', '', $default_font_size - 2);
-            $pdf->SetXY($posx + $bulletWidth, $posy + 1);
-            $this->addBullet($pdf, $bulletSize);
-            $pdf->MultiCell($widthrecbox - $bulletWidth, 4, $carac_benefactor, $multiCellBorder, 'L');
-            $posy = $pdf->getY();
+                // show benefactor information
+                $pdf->SetFont('', '', $default_font_size - 2);
+                $pdf->SetXY($posx + $bulletWidth, $posy + 1);
+                $this->addBullet($pdf, $bulletSize);
+                $pdf->MultiCell($widthrecbox - $bulletWidth, 4, $carac_benefactor, $multiCellBorder, 'L');
+                $posy = $pdf->getY();
 
-            // Show recipient email
-            $pdf->SetFont('', '', $default_font_size - 2);
-            $pdf->SetXY($posx + $bulletWidth, $posy);
-            $this->addBullet($pdf, $bulletSize);
-            $pdf->MultiCell($widthrecbox - $bulletWidth, 4, (($use_benefactor_contact) ? $benefactor_company->contact->email : $benefactor_company->email), $multiCellBorder, 'L');
+                // Show recipient email
+                $pdf->SetFont('', '', $default_font_size - 2);
+                $pdf->SetXY($posx + $bulletWidth, $posy);
+                $this->addBullet($pdf, $bulletSize);
+                $pdf->MultiCell($widthrecbox - $bulletWidth, 4, (($use_benefactor_contact) ? $benefactor_company->contact->email : $benefactor_company->email), $multiCellBorder, 'L');
 
-            $max_y = max($max_y, $pdf->GetY());
+                $max_y = max($max_y, $pdf->GetY());
             }
             // Show recipient
             if ($showBenefactor === FALSE) {
@@ -615,10 +639,12 @@ class pdf_jupiter extends ModelePDFFicheinter
      * @param   int			    $posy			    Position Y of the bloc
      * @param   Translate	    $outputlangs	    Objet langs
      * @param   int			    $heightforfooter	Height for footer
+     * @param   array			$listOfAttachedFiles	Informations on attached files on linked fichinter
+
      *
      * @return  int							        Position pour suite
      */
-    function _survey_bloc_part(&$pdf, $object, $survey_part, $posy, $outputlangs, $heightforfooter)
+    function _survey_bloc_part(&$pdf, $object, $survey_part, $posy, $outputlangs, $heightforfooter, $listOfAttachedFiles = array())
     {
         global $conf;
 
@@ -673,7 +699,7 @@ class pdf_jupiter extends ModelePDFFicheinter
                 }
 
                 //We print bloc on the left
-                $left_column_cur_Y = $this->_question_bloc_area($pdf, $question_bloc, $posx, $left_column_cur_Y, $column_left_w, $outputlangs, true);
+                $left_column_cur_Y = $this->_question_bloc_area($pdf, $question_bloc, $posx, $left_column_cur_Y, $column_left_w, $outputlangs, true, $listOfAttachedFiles);
 
                 //Is end of this bloc end first of bloc of the page where it has been printed ?
                 $is_this_bloc_first_of_current_page_into_left_column = $left_column_cur_page != $pdf->getPage();
@@ -689,7 +715,7 @@ class pdf_jupiter extends ModelePDFFicheinter
                 }
 
                 //We print bloc on the right
-                $right_column_cur_Y = $this->_question_bloc_area($pdf, $question_bloc, $column_right_posx, $right_column_cur_Y, $column_right_w, $outputlangs, true);
+                $right_column_cur_Y = $this->_question_bloc_area($pdf, $question_bloc, $column_right_posx, $right_column_cur_Y, $column_right_w, $outputlangs, true, $listOfAttachedFiles);
                 //Is end of this bloc end first of bloc of the page where it has been printed ?
                 $is_this_bloc_first_of_current_page_into_rigth_column = $right_column_cur_page != $pdf->getPage();
                 $right_column_cur_page = $pdf->getPage();
@@ -796,10 +822,12 @@ class pdf_jupiter extends ModelePDFFicheinter
      * @param   int			    $width			Width of the bloc
      * @param   Translate	    $outputlangs	Objet langs
      * @param   int	            $addline    	1=Add dash line after the bloc
+     * @param   array			$listOfAttachedFiles	Informations on attached files on linked fichinter
      *
      * @return  int							    Position pour suite
      */
-    function _question_bloc_area(&$pdf, $question_bloc, $posx, $posy, $width, $outputlangs, $addline = 0)
+
+    function _question_bloc_area(&$pdf, $question_bloc, $posx, $posy, $width, $outputlangs, $addline = 0, $listOfAttachedFiles = array())
     {
         $default_font_size = pdf_getPDFFontSize($outputlangs);
 
@@ -969,7 +997,11 @@ class pdf_jupiter extends ModelePDFFicheinter
                 }
             }
         }
-
+        //We print files of this bloc of question if they are some image files
+        $listOfFilePathToDisplay = getListOfWantedFilesInformation($question_bloc->attached_files, $listOfAttachedFiles, array('image/jpg', 'image/jpeg', 'image/gif', 'image/png'));
+        if(!empty($listOfFilePathToDisplay)){
+            $posy = $this->_display_images($pdf, $listOfFilePathToDisplay, $posx, 30, $width);
+        }
 
         $posy += 1;
 
@@ -1329,6 +1361,155 @@ class pdf_jupiter extends ModelePDFFicheinter
 
         return $end_y;
     }
+
+    /**
+     *
+     * Display an array of image without changing their proportion
+     * @param   PDF         $pdf            Object PDF
+     * @param array $listOfImageInformation     Array of image containing an array of information for each file
+     * @param int $posx                         x coordinate of the gallery
+     * @param int $max_image_width              Max width of each image
+     * @param int $max_gallery_width            Max width of gallery
+     *
+     */
+    function _display_images(&$pdf, &$listOfImageInformation, $posx, $max_image_width, $max_gallery_width){
+        if($max_gallery_width < $max_image_width){
+            $max_image_width = $max_gallery_width;
+        }
+        $numberOfColumn = intdiv($max_gallery_width,$max_image_width);
+        if($numberOfColumn > 1){
+            $spaceBetweenImage = fmod($max_gallery_width,$max_image_width)/($numberOfColumn - 1);
+        }
+        $cur_Y = $pdf->getY() + 1;
+        $image_rows = $this->getImageSortedByHeight($pdf,$listOfImageInformation,$cur_Y,$max_image_width);
+        $image_rows = $this->getImagesInformationsPerRow($image_rows, $numberOfColumn);
+        foreach($image_rows as $index=>$row){
+            $current_page = $pdf->GetPage();
+            $cur_Y = $this->_display_images_row($pdf, $row,$posx, $cur_Y, $max_image_width,$spaceBetweenImage);
+            if($current_page == $pdf->GetPage() && $index + 1 != count($image_rows)){
+                $cur_Y += $spaceBetweenImage; //we add some vertical marging for next row if it is not the last row and if last displayed row didn't pushed us to a new page
+            }
+        }
+        return $cur_Y;
+    }
+
+/**
+     *
+     * Display an array of image without changing their proportion
+     * @param   PDF         $pdf            Object PDF
+     * @param array $row     Array of each image information to display
+     * @param int $posx                         x coordinate of the row
+     * @param int $cur_Y                        y coordinate of the row
+     * @param int $max_image_width              Max width of each image
+     * @param int $horizontalSpace          horizontal space between image
+     *
+     */
+    function _display_images_row(&$pdf, &$row, $posx, $cur_Y, $max_image_width, $horizontalSpace) {
+        $x_offset = $max_image_width + $horizontalSpace;
+        //first we add posx information to each image information
+        foreach($row as $index => &$image){
+            $image['posx'] = $posx + ($index * $x_offset);
+        }
+        //now we compute start page and position of each picture
+        //in order to sort them and start by printing the biggest image (which may create new page)
+        $row = $this->getRowSortedToBePrinted($pdf, $row, $cur_Y, $max_image_width, $horizontalSpace);
+        $effective_start_page = $this->getMaxStartPage($row);
+        $end_Y = 0;
+        $max_page = $pdf->getPage();
+        foreach($row as $index => $imageToDisplay){
+            $end_pos_y = $this->_display_image($pdf,$max_image_width,0,$imageToDisplay["posx"],$cur_Y,$imageToDisplay["fullname"]);
+            $current_page = $pdf->getPage();
+            if($current_page > $max_page){
+                $end_Y = $end_pos_y;
+                $max_page = $current_page;
+                //we are on a new page, we use top_margin as new cur_y to display next image on this row
+                $cur_Y = $this->top_margin;
+            }
+            else if($end_Y < $end_pos_y){
+                $end_Y = $end_pos_y;
+            }
+            if($index + 1 < count($row)){
+                $pdf->setPage($effective_start_page); //to display next picture at the right page
+            }
+        }
+        $pdf->setPage($max_page);
+        return $end_Y;
+    }
+
+    function _display_image(&$pdf, $image_width, $image_heigth, $posx, $pos_y, $imagePath){
+        $pdf->writeHTMLCell($image_width, $image_heigth, $posx, $pos_y, '<img src="' . $imagePath . '"/>', 0, 1);
+        return $pdf->GetY();
+    }
+
+    function getEffectiveInformationsForThisImage(&$pdf, $image_width, $image_heigth, $posx, $pos_y, $imagePath){
+        $result = array('startPage'=>null, 'imageHeight'=>null);
+        $start_page = $pdf->getPage();
+        $pdf->startTransaction();
+        $this->_display_image($pdf, $image_width, $image_heigth, $posx, $pos_y, $imagePath);
+        $new_y = $pdf->getY();
+        $end_page = $pdf->getPage();
+        $pdf->rollbackTransaction(true);
+        $isEndPageSameThanStartPage = $start_page == $end_page;
+        $result['startPage'] = $isEndPageSameThanStartPage ? $start_page : $start_page + 1;
+        $result['imageHeight'] = $isEndPageSameThanStartPage ? $new_y - $pos_y : $new_y - $this->top_margin;
+        return $result;
+    }
+
+    function addEffectiveInformationToImage(&$pdf, &$row, $cur_Y, $max_image_width){
+        foreach($row as &$image){
+            $informationOfThisImage = $this->getEffectiveInformationsForThisImage($pdf, $max_image_width, 0, $image['posx'], $cur_Y, $image['fullname']);
+            $image["startPage"] = $informationOfThisImage["startPage"];
+            $image["imageHeight"] = $informationOfThisImage["imageHeight"];
+        }
+        return $row;
+    }
+
+    function getRowSortedToBePrinted(&$pdf, &$row, $cur_Y, $max_image_width){
+        $row = $this->addEffectiveInformationToImage($pdf, $row, $cur_Y, $max_image_width);
+        usort($row, "sortImageByPage");
+        return $row;
+    }
+
+    function getImageSortedByHeight(&$pdf, &$arrayOfImage, $cur_Y, $max_image_width){
+        $arrayOfImage = $this->addEffectiveInformationToImage($pdf, $arrayOfImage, $cur_Y, $max_image_width);
+        usort($arrayOfImage, "sortImageByHeight");
+        return $arrayOfImage;
+    }
+
+    function getMaxStartPage(&$row){
+        $max_page = 0;
+        foreach($row as &$image){
+            if($image["startPage"] > $max_page){
+                $max_page = $image["startPage"];
+            }
+        }
+        return $max_page;
+    }
+
+
+
+
+    /**
+     * Get a list of image information per row
+     * @param array $listOfImageInformation     Array of image containing an array of information for each file
+     * @param int numberOfImagePerRow
+     * @return array
+     */
+
+     function getImagesInformationsPerRow(&$listOfImageInformation, $numberOfImagePerRow){
+         $result = array();
+         $current_row = 0;
+         foreach($listOfImageInformation as &$image){
+             if(empty($result[$current_row])){
+                $result[$current_row] = array();
+             }
+             $result[$current_row][] = $image;
+             if(count($result[$current_row]) == $numberOfImagePerRow){
+                 $current_row += 1;
+             }
+         }
+         return $result;
+     }
 
     /**
      * Return the duration information array('days', 'hours', 'minutes', 'seconds')

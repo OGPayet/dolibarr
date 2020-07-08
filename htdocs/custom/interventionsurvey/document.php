@@ -111,7 +111,7 @@ if ($object->id) {
 
     $head = fichinter_prepare_head($object);
 
-    dol_fiche_head($head, 'documents',  $langs->trans("InterventionCard"), -1, 'intervention');
+    dol_fiche_head($head, 'interventionsurvey_documents',  $langs->trans("InterventionCard"), -1, 'intervention');
 
 
     // Construit liste des fichiers
