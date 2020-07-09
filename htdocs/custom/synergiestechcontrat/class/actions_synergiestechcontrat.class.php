@@ -178,7 +178,7 @@ class ActionsSynergiestechcontrat
 
 		if (is_array($parameters) && ! empty($parameters)) {
 			foreach($parameters as $key=>$value) {
-				$$key=$value;
+				$key=$value;
 			}
 		}
 
