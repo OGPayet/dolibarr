@@ -98,11 +98,6 @@ class InterventionSurveyApi extends DolibarrApi
      */
     static protected $BLACKWHITELIST_OF_PROPERTIES_LOADED = array();
 
-    /**
-     * @var DoliDB $db
-     *
-     */
-    private $db;
 
     /**
      * @var InterventionSurvey $interventionSurvey {@type InterventionSurvey}
@@ -122,11 +117,10 @@ class InterventionSurveyApi extends DolibarrApi
      */
     public function __construct()
     {
-        global $db, $langs;
-        $this->db = $db;
+        global $langs;
         $langs->load("interventionsurvey@interventionsurvey");
-        $this->interventionSurvey = new InterventionSurvey($this->db);
-        $this->interventionLine = new FichinterLigne($this->db);
+        $this->interventionSurvey = new InterventionSurvey(self::$db);
+        $this->interventionLine = new FichinterLigne(self::$db);
     }
     /**
      * Get dictionary of a intervention type
@@ -274,26 +268,26 @@ class InterventionSurveyApi extends DolibarrApi
 
 
 
-        $sql .= $this->db->order($sortfield, $sortorder);
+        $sql .= self::$db->order($sortfield, $sortorder);
         if ($limit) {
             if ($page < 0) {
                 $page = 0;
             }
             $offset = $limit * $page;
 
-            $sql .= $this->db->plimit($limit + 1, $offset);
+            $sql .= self::$db->plimit($limit + 1, $offset);
         }
 
         dol_syslog("API Rest request");
-        $result = $this->db->query($sql);
+        $result = self::$db->query($sql);
 
         if ($result) {
-            $num = $this->db->num_rows($result);
+            $num = self::$db->num_rows($result);
             $min = min($num, ($limit <= 0 ? $num : $limit));
             $i = 0;
             while ($i < $min) {
-                $obj = $this->db->fetch_object($result);
-                $fichinter_static = new InterventionSurvey($this->db);
+                $obj = self::$db->fetch_object($result);
+                $fichinter_static = new InterventionSurvey(self::$db);
                 if ($fichinter_static->fetch($obj->rowid)) {
                     $fichinter_static->fetchObjectLinked();
                     $obj_ret[] = $this->_cleanObjectData($fichinter_static);
@@ -301,7 +295,7 @@ class InterventionSurveyApi extends DolibarrApi
                 $i++;
             }
         } else {
-            throw new RestException(503, 'Error when retrieve fichinter list : ' . $this->db->lasterror());
+            throw new RestException(503, 'Error when retrieve fichinter list : ' . self::$db->lasterror());
         }
         if (!count($obj_ret)) {
             return $obj_ret;
@@ -376,7 +370,7 @@ class InterventionSurveyApi extends DolibarrApi
             }
         }
 
-        $this->db->begin();
+        self::$db->begin();
         //We update too other field on intervention
         $result = $this->interventionSurvey->update(DolibarrApiAccess::$user);
 
@@ -386,12 +380,12 @@ class InterventionSurveyApi extends DolibarrApi
         }
 
         if ($result > 0) {
-            $this->db->commit();
+            self::$db->commit();
             $this->interventionSurvey->fetchObjectLinked();
             $this->updatePdfFileIfNeeded();
             return $this->_cleanObjectData($this->interventionSurvey);
         } else {
-            $this->db->rollback();
+            self::$db->rollback();
             throw new RestException(422, "Error when saving the survey", ['id_intervention' => $this->interventionSurvey->id, 'details' => $this->_getErrors($this->interventionSurvey)]);
         }
     }
@@ -606,7 +600,7 @@ class InterventionSurveyApi extends DolibarrApi
         $langs->load('synergiestech@synergiestech');
 
         $msg_error = '';
-        $result = synergiestech_reopen_intervention($this->db, $this->interventionSurvey, DolibarrApiAccess::$user, $msg_error);
+        $result = synergiestech_reopen_intervention(self::$db, $this->interventionSurvey, DolibarrApiAccess::$user, $msg_error);
 
         if ($result < 0) {
             throw new RestException(403, 'Error while reopen Intervention with id=' . $this->interventionSurvey->id . ' : ' . $this->_getErrors($this->interventionSurvey));
@@ -624,7 +618,7 @@ class InterventionSurveyApi extends DolibarrApi
         global $langs;
         if (empty($conf->global->MAIN_DISABLE_PDF_AUTOUPDATE)) {
             require_once DOL_DOCUMENT_ROOT . '/core/modules/fichinter/modules_fichinter.php';
-            fichinter_create($this->db, $this->interventionSurvey, $this->interventionSurvey->modelpdf, $langs);
+            fichinter_create(self::$db, $this->interventionSurvey, $this->interventionSurvey->modelpdf, $langs);
         }
     }
 
