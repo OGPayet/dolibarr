@@ -99,6 +99,12 @@ class InterventionSurveyApi extends DolibarrApi
     static protected $BLACKWHITELIST_OF_PROPERTIES_LOADED = array();
 
     /**
+     * @var DoliDB $db
+     *
+     */
+    private $db;
+
+    /**
      * @var InterventionSurvey $interventionSurvey {@type InterventionSurvey}
      */
     public $interventionSurvey;
@@ -117,9 +123,10 @@ class InterventionSurveyApi extends DolibarrApi
     public function __construct()
     {
         global $db, $langs;
+        $this->db = $db;
         $langs->load("interventionsurvey@interventionsurvey");
-        $this->interventionSurvey = new InterventionSurvey($db);
-        $this->interventionLine = new FichinterLigne($db);
+        $this->interventionSurvey = new InterventionSurvey($this->db);
+        $this->interventionLine = new FichinterLigne($this->db);
     }
     /**
      * Get dictionary of a intervention type
@@ -180,8 +187,7 @@ class InterventionSurveyApi extends DolibarrApi
             throw new RestException(401, 'Access to instance id=' . $this->interventionSurvey->id . ' of object not allowed for login ' . DolibarrApiAccess::$user->login);
         }
         $this->interventionSurvey->fetchObjectLinked();
-        $result = $this->_cleanObjectData($this->interventionSurvey);
-        return $result;
+        return $this->_cleanObjectData($this->interventionSurvey);
     }
 
 
@@ -204,7 +210,6 @@ class InterventionSurveyApi extends DolibarrApi
      */
     function indexIntervention($sortfield = "t.rowid", $sortorder = 'ASC', $limit = 100, $page = 0, $sqlfilters = '')
     {
-        global $db;
         $obj_ret = array();
 
         if (!DolibarrApiAccess::$user->rights->ficheinter->lire) {
@@ -269,26 +274,26 @@ class InterventionSurveyApi extends DolibarrApi
 
 
 
-        $sql .= $db->order($sortfield, $sortorder);
+        $sql .= $this->db->order($sortfield, $sortorder);
         if ($limit) {
             if ($page < 0) {
                 $page = 0;
             }
             $offset = $limit * $page;
 
-            $sql .= $db->plimit($limit + 1, $offset);
+            $sql .= $this->db->plimit($limit + 1, $offset);
         }
 
         dol_syslog("API Rest request");
-        $result = $db->query($sql);
+        $result = $this->db->query($sql);
 
         if ($result) {
-            $num = $db->num_rows($result);
+            $num = $this->db->num_rows($result);
             $min = min($num, ($limit <= 0 ? $num : $limit));
             $i = 0;
             while ($i < $min) {
-                $obj = $db->fetch_object($result);
-                $fichinter_static = new InterventionSurvey($db);
+                $obj = $this->db->fetch_object($result);
+                $fichinter_static = new InterventionSurvey($this->db);
                 if ($fichinter_static->fetch($obj->rowid)) {
                     $fichinter_static->fetchObjectLinked();
                     $obj_ret[] = $this->_cleanObjectData($fichinter_static);
@@ -296,7 +301,7 @@ class InterventionSurveyApi extends DolibarrApi
                 $i++;
             }
         } else {
-            throw new RestException(503, 'Error when retrieve fichinter list : ' . $db->lasterror());
+            throw new RestException(503, 'Error when retrieve fichinter list : ' . $this->db->lasterror());
         }
         if (!count($obj_ret)) {
             return $obj_ret;
@@ -371,8 +376,7 @@ class InterventionSurveyApi extends DolibarrApi
             }
         }
 
-        global $db;
-        $db->begin();
+        $this->db->begin();
         //We update too other field on intervention
         $result = $this->interventionSurvey->update(DolibarrApiAccess::$user);
 
@@ -382,12 +386,12 @@ class InterventionSurveyApi extends DolibarrApi
         }
 
         if ($result > 0) {
-            $db->commit();
+            $this->db->commit();
             $this->interventionSurvey->fetchObjectLinked();
             $this->updatePdfFileIfNeeded();
             return $this->_cleanObjectData($this->interventionSurvey);
         } else {
-            $db->rollback();
+            $this->db->rollback();
             throw new RestException(422, "Error when saving the survey", ['id_intervention' => $this->interventionSurvey->id, 'details' => $this->_getErrors($this->interventionSurvey)]);
         }
     }
@@ -401,7 +405,6 @@ class InterventionSurveyApi extends DolibarrApi
      */
     function putLine($request_data = null)
     {
-        global $db;
 
         if (!$request_data) {
             throw new RestException(400, "You must provide data");
@@ -571,7 +574,7 @@ class InterventionSurveyApi extends DolibarrApi
      */
     function reopenIntervention($id)
     {
-        global $conf, $db, $langs;
+        global $conf, $langs;
 
         // module not active
         if (empty($conf->synergiestech->enabled)) {
@@ -603,7 +606,7 @@ class InterventionSurveyApi extends DolibarrApi
         $langs->load('synergiestech@synergiestech');
 
         $msg_error = '';
-        $result = synergiestech_reopen_intervention($db, $this->interventionSurvey, DolibarrApiAccess::$user, $msg_error);
+        $result = synergiestech_reopen_intervention($this->db, $this->interventionSurvey, DolibarrApiAccess::$user, $msg_error);
 
         if ($result < 0) {
             throw new RestException(403, 'Error while reopen Intervention with id=' . $this->interventionSurvey->id . ' : ' . $this->_getErrors($this->interventionSurvey));
