@@ -2096,15 +2096,16 @@ class FormSynergiesTech
     public static function filter_contract_without_equipement_for_these_company($arrayOfContract)
     {
         return array_filter($arrayOfContract, function ($value) {
-            $test = empty($value->linkedObjectsIds) || empty($value->linkedObjectsIds['equipement']);
-            if(!$test){
+            $test = true;
+            $doesThisContractHaveNoLinkedEquipements = empty($value->linkedObjectsIds) || empty($value->linkedObjectsIds['equipement']);
+            if(!$doesThisContractHaveNoLinkedEquipements){
                 //We may check that equipement is a machine equipement type
                 foreach($value->linkedObjects['equipement'] as $equipement){
                     if(!empty($equipement->id) && empty($equipement->array_options)){
                         $equipement->fetch_optionals();
                     }
-                    if($equipement->array_options['options_machineclient'] != 1 && $equipement->statut == 1){
-                        $test = true;
+                    if($equipement->array_options['options_machineclient'] == 1 && $equipement->statut == 1){
+                        $test = false;
                         break;
                     }
                 }
