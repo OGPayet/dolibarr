@@ -620,7 +620,8 @@ class InterventionSurveyApi extends DolibarrApi
         global $conf;
         global $langs;
         if (empty($conf->global->MAIN_DISABLE_PDF_AUTOUPDATE)) {
-            //fichinter_create($this->db, $this->interventionSurvey, $this->interventionSurvey->modelpdf, $langs);
+            require_once DOL_DOCUMENT_ROOT . '/core/modules/fichinter/modules_fichinter.php';
+            fichinter_create($this->db, $this->interventionSurvey, $this->interventionSurvey->modelpdf, $langs);
         }
     }
 
