@@ -256,6 +256,7 @@ class InterfaceInterventionSurveyTriggers extends DolibarrTriggers
 
                 // Interventions
             case 'FICHINTER_CREATE':
+            case 'FICHINTER_VALIDATE':
                 //We launch update of the intervention
                 dol_include_once('/interventionsurvey/class/interventionsurvey.class.php');
                 $interventionSurvey = new InterventionSurvey($this->db);

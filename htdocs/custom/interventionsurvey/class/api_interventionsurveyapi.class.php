@@ -384,6 +384,7 @@ class InterventionSurveyApi extends DolibarrApi
         if ($result > 0) {
             $db->commit();
             $this->interventionSurvey->fetchObjectLinked();
+            $this->updatePdfFileIfNeeded();
             return $this->_cleanObjectData($this->interventionSurvey);
         } else {
             $db->rollback();
@@ -459,6 +460,7 @@ class InterventionSurveyApi extends DolibarrApi
         }
 
         if ($result >= 0) {
+            $this->updatePdfFileIfNeeded();
             return $this->_cleanObjectData($this->interventionLine);
         } else {
             throw new RestException(422, "Error when saving the intervention Line", ['id_intervention' => $this->interventionSurvey->id, 'details' => $this->_getErrors($this->interventionLine)]);
@@ -506,6 +508,7 @@ class InterventionSurveyApi extends DolibarrApi
         }
 
         if ($this->interventionLine->deleteline(DolibarrApiAccess::$user) >= 0) {
+            $this->updatePdfFileIfNeeded();
             return true;
         } else {
             throw new RestException(422, "Error when deleting the intervention line", ['id_intervention' => $this->interventionSurvey->id, 'id_line' => $this->interventionLine->id, 'details' => $this->_getErrors($this->interventionLine)]);
@@ -551,7 +554,7 @@ class InterventionSurveyApi extends DolibarrApi
         }
 
         $this->interventionSurvey->fetchObjectLinked();
-
+        //$this->updatePdfFileIfNeeded(); not needed, already done as intervention statut change
         return $this->_cleanObjectData($this->interventionSurvey);
     }
 
@@ -605,13 +608,25 @@ class InterventionSurveyApi extends DolibarrApi
         if ($result < 0) {
             throw new RestException(403, 'Error while reopen Intervention with id=' . $this->interventionSurvey->id . ' : ' . $this->_getErrors($this->interventionSurvey));
         }
-
+        $this->updatePdfFileIfNeeded();
         return $this->_cleanObjectData($this->interventionSurvey);
     }
 
     /******************************************** */
     //                    TOOLS                   //
     /******************************************** */
+
+    private function updatePdfFileIfNeeded(){
+        global $conf;
+        global $langs;
+        if (empty($conf->global->MAIN_DISABLE_PDF_AUTOUPDATE)) {
+            fichinter_create($this->db, $this->interventionSurvey, $this->interventionSurvey->modelpdf, $langs);
+        }
+    }
+
+
+
+
     /**
      *  Prepare SQL request for element list (propal, commande, invoice, fichinter, contract) for external user
      * @see in CompanyRelationshipsApi class
