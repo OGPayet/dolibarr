@@ -619,9 +619,10 @@ class InterventionSurveyApi extends DolibarrApi
     private function updatePdfFileIfNeeded(){
         global $conf;
         global $langs;
+        global $db;
         if (empty($conf->global->MAIN_DISABLE_PDF_AUTOUPDATE)) {
             require_once DOL_DOCUMENT_ROOT . '/core/modules/fichinter/modules_fichinter.php';
-            fichinter_create($this->db, $this->interventionSurvey, $this->interventionSurvey->modelpdf, $langs);
+            fichinter_create($db, $this->interventionSurvey, $this->interventionSurvey->modelpdf, $langs);
         }
     }
 
