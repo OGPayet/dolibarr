@@ -927,6 +927,9 @@ class pdf_jupiter extends ModelePDFFicheinter
         if (!$question_bloc->isBlocDesactivated()) {
             foreach ($question_bloc->questions as $question) {
                 $answer = $question->getChosenAnswer();
+                if(!$question->mandatory_answer && empty($question->fk_chosen_answer) && empty($question->justification_text)){
+                    continue;
+                }
                 // Define info for color answer of the question
                 $circle_style = '';
                 $circle_fill_color = array();
