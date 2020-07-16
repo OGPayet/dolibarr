@@ -1,10 +1,99 @@
 diff a/htdocs/custom/advancedictionaries/class/dictionary.class.php b/htdocs/custom/advancedictionaries/class/dictionary.class.php	(rejected hunks)
-@@ -3827,7 +3858,7 @@ class DictionaryLine extends CommonObjectLine
+@@ -3858,10 +3827,10 @@ class DictionaryLine extends CommonObjectLine
                      if (is_array($value)) {
                          $value_arr = $value;
                      } else {
--                        if ($value === NULL) {
-+                        if ($value === null) {
+-                        if ($value === null) {
++                        if ($value === NULL) {
                              $value_arr = array('NULL');
                          } else {
-                             $value_arr = array_filter(explode(',', (string) $value), 'strlen');
+-                            $value_arr = array_filter(explode(',', (string) $value), 'strlen');
++                            $value_arr = array_filter(explode(',', (string)$value), 'strlen');
+                         }
+                     }
+                     $InfoFieldList = getInfoFieldArrayFromOptionsForChkbxlstFieldType($field, $this->dictionary->table_name);
+@@ -3874,31 +3843,31 @@ class DictionaryLine extends CommonObjectLine
+                             $keyList = $InfoFieldList[2] . ' as rowid';
+                         }
+ 
+-                        $fields_label = !empty($InfoFieldList[1]) ? explode('|', $InfoFieldList[1]) : null;
+-                        $fieldList = array();
+-                        if (is_array($fields_label)) {
+-                            $keyList .= ', ' . implode(', ', $fields_label);
+-                            foreach ($fields_label as $l) {
+-                                if (preg_match('/\s+AS\s+(\S+)\s*$/i', $l, $matches)) {
+-                                    $fieldList[] = $matches[1];
+-                                } else {
+-                                    $fieldList[] = $l;
+-                                }
+-                            }
+-                        }
+-
+-                        $fields_lang = !empty($InfoFieldList[7]) ? explode('|', $InfoFieldList[7]) : null;
+-                        $fieldLangList = array();
+-                        if (is_array($fields_lang)) {
+-                            $keyList .= ', ' . implode(', ', $fields_lang);
+-                            foreach ($fields_lang as $l) {
+-                                if (preg_match('/\s+AS\s+(\S+)\s*$/i', $l, $matches)) {
+-                                    $fieldLangList[] = $matches[1];
+-                                } else {
+-                                    $fieldLangList[] = $l;
+-                                }
+-                            }
+-                        }
++						$fields_label = !empty($InfoFieldList[1]) ? explode('|', $InfoFieldList[1]) : null;
++						$fieldList = array();
++						if (is_array($fields_label)) {
++							$keyList .= ', ' . implode(', ', $fields_label);
++							foreach ($fields_label as $l) {
++								if (preg_match('/\s+AS\s+(\S+)\s*$/i', $l, $matches)) {
++									$fieldList[] = $matches[1];
++								} else {
++									$fieldList[] = $l;
++								}
++							}
++						}
++
++						$fields_lang = !empty($InfoFieldList[7]) ? explode('|', $InfoFieldList[7]) : null;
++						$fieldLangList = array();
++						if (is_array($fields_lang)) {
++							$keyList .= ', ' . implode(', ', $fields_lang);
++							foreach ($fields_lang as $l) {
++								if (preg_match('/\s+AS\s+(\S+)\s*$/i', $l, $matches)) {
++									$fieldLangList[] = $matches[1];
++								} else {
++									$fieldLangList[] = $l;
++								}
++							}
++						}
+ 
+                         $sql = 'SELECT ' . $keyList;
+                         $sql .= ' FROM ' . MAIN_DB_PREFIX . str_replace('{{DB_PREFIX}}', MAIN_DB_PREFIX, $InfoFieldList[0]);
+@@ -3907,20 +3876,20 @@ class DictionaryLine extends CommonObjectLine
+                         }
+                         $sql .= " WHERE " . $selectkey . " IN (" . implode(',', $value_arr) . ")";
+ 
+-                        $value = ''; // value was used, so now we reste it to use it to build final output
++						$value = ''; // value was used, so now we reste it to use it to build final output
+                         dol_syslog(__METHOD__ . ' type=chkbxlst', LOG_DEBUG);
+                         $resql = $this->db->query($sql);
+                         if ($resql) {
+                             $toprint = array();
+                             while ($obj = $this->db->fetch_object($resql)) {
+                                 if (is_array($value_arr) && in_array($obj->rowid, $value_arr)) {
+-                                    if (!empty($fieldLangList)) {
+-                                        foreach ($fieldLangList as $lang) {
+-                                            if (!empty($obj->$lang)) $langs->load($obj->$lang);
+-                                        }
+-                                    }
++									if (!empty($fieldLangList)) {
++										foreach ($fieldLangList as $lang) {
++											if (!empty($obj->$lang)) $langs->load($obj->$lang);
++										}
++									}
+                                     if (is_array($fieldList) && count($fieldList) > 1) {
+-                                        // Several field into label (eq table:code|libelle:rowid)
++										// Several field into label (eq table:code|libelle:rowid)
+                                         $label_separator = isset($field['label_separator']) ? $field['label_separator'] : ' ';
+                                         $labelstoshow = array();
+                                         foreach ($fieldList as $field_toshow) {
