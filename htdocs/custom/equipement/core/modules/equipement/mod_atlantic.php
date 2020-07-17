@@ -74,7 +74,7 @@ class mod_atlantic extends ModeleNumRefEquipement
 		$sql = "SELECT MAX(SUBSTRING(ref FROM ".$posindice.")) as max";
 		$sql.= " FROM ".MAIN_DB_PREFIX."equipement";
 		$sql.= " WHERE ref like '".$this->prefix."____-%'";
-		$sql.= " and entity = ".$conf->entity;
+		$sql.= ' and entity IN (' . getEntity('equipement') . ')';
 
 		$resql=$db->query($sql);
 		if ($resql) {
@@ -109,7 +109,7 @@ class mod_atlantic extends ModeleNumRefEquipement
 		$sql = "SELECT MAX(SUBSTRING(ref FROM ".$posindice.")) as max";
 		$sql.= " FROM ".MAIN_DB_PREFIX."equipement";
 		$sql.= " WHERE ref LIKE '".$this->prefix."____-%'";
-		$sql.= " AND entity = ".$conf->entity;
+		$sql.= ' AND entity IN (' . getEntity('equipement') . ')';
 
 		$resql=$db->query($sql);
 		if ($resql) {

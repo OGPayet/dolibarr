@@ -176,7 +176,7 @@ $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as scli on e.fk_soc_client = scli.r
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture as f on e.fk_facture = f.rowid";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture_fourn as ff on e.fk_facture_fourn = ff.rowid";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product as p on e.fk_product = p.rowid";
-$sql.= " WHERE e.entity = ".$conf->entity;
+$sql.= ' WHERE IN (' . getEntity('equipement') . ')';
 $sql .= " AND (e.fk_soc_fourn = ".$socid." OR e.fk_soc_client = ".$socid.")";
 
 if ($search_ref)			$sql .= " AND e.ref like '%".$db->escape($search_ref)."%'";
@@ -281,7 +281,7 @@ if ($result) {
 	print '&nbsp;/&nbsp;<input class="flat" type="text" size="1" maxlength="4" name="yeardateo" value="'.$syear.'">';
 	print '</td>';
 
-	// liste des état des équipements
+	// liste des ï¿½tat des ï¿½quipements
 	print '<td class="liste_titre" align="right">';
 	print select_equipement_etat($search_etatequipement, 'search_etatequipement', 1, 1);
 	print '</td>';

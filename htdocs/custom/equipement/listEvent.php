@@ -105,7 +105,7 @@ $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."contrat as co on ee.fk_contrat = co.rowid";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."projet as pro on ee.fk_project = pro.rowid";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."expedition as exp on ee.fk_expedition = exp.rowid";
 
-$sql.= " WHERE e.entity = ".$conf->entity;
+$sql.= " WHERE e.entity = ". getEntity('equipement');
 $sql.= " and e.rowid=ee.fk_equipement";
 
 if ($search_ref)			$sql .= " AND e.ref like '%".$db->escape($search_ref)."%'";
@@ -197,7 +197,7 @@ if ($result) {
 	print '<td class="liste_titre"><input type="text" class="flat" name="search_expedition" value="'.$search_expedition.'" size="10"></td>';
 	print '<td class="liste_titre"><input type="text" class="flat" name="search_projet" value="'.$search_projet.'" size="10"></td>';
 
-	// liste des état des équipements
+	// liste des ï¿½tat des ï¿½quipements
 	print '<td class="liste_titre" align="right">';
 	print select_equipement_etat($search_etatequipement, 'search_etatequipement', 1, 1);
 	print '</td>';

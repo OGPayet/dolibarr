@@ -147,7 +147,7 @@ $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fichinter as fi on ee.fk_fichinter = fi.row
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."contrat as co on ee.fk_contrat = co.rowid";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."expedition as exp on ee.fk_expedition = exp.rowid";
 
-$sql.= " WHERE e.entity = ".$conf->entity;
+$sql.= ' WHERE IN (' . getEntity('equipement') . ')';
 $sql.= " and e.rowid=ee.fk_equipement";
 $sql.= " and ee.fk_project=".$projetid;
 
@@ -229,7 +229,7 @@ if ($result) {
 	print "<tr class='liste_titre'>";
 	print '<td class="liste_titre">';
 	print '<input type="text" class="flat" name="search_ref" value="'.$search_ref.'" size="8"></td>';
-	// on affiche les produits présent dans l'entrepot et leur quantité en stock annoncé
+	// on affiche les produits prï¿½sent dans l'entrepot et leur quantitï¿½ en stock annoncï¿½
 	print '<td class="liste_titre" colspan=2></td>';
 	print '<td class="liste_titre">';
 	print '<input type="text" class="flat" name="search_company_fourn" value="'.$search_company_fourn.'" size="10"></td>';
@@ -250,7 +250,7 @@ if ($result) {
 	print '&nbsp;/&nbsp;<input class="flat" type="text" size="1" maxlength="4" name="yeardateo" value="'.$syear.'">';
 	print '</td>';
 
-	// liste des état des équipements
+	// liste des ï¿½tat des ï¿½quipements
 	print '<td class="liste_titre" align="right">';
 	print select_equipement_etat($search_etatequipement, 'search_etatequipement', 1, 1);
 	print '</td>';

@@ -124,7 +124,7 @@ $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."contrat as co on ee.fk_contrat = co.rowid";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."expedition as exp on ee.fk_expedition = exp.rowid";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."projet as pro on ee.fk_project = pro.rowid";
 
-$sql.= " WHERE e.entity = ".$conf->entity;
+$sql.= " WHERE e.entity IN ( " . getEntity('equipement') . ")";
 $sql.= " and e.rowid=ee.fk_equipement";
 $sql.= " and ee.fk_contrat=".$id;
 

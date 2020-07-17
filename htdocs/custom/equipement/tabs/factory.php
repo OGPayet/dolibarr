@@ -223,16 +223,16 @@ print '</table>';
 print '<br>';
 
 
-// uniquement pour les OF terminées
+// uniquement pour les OF terminï¿½es
 if ($factory->statut == 2) {
-	// bouton de création d'un équipement à partir du produit
+	// bouton de crï¿½ation d'un ï¿½quipement ï¿½ partir du produit
 	print '<form name="equipement" action="../card.php" method="POST">';
 	print '<table >';
 	print '<tr><td >'.$langs->trans("NewEquipementOfProduct").'</td><td>';
 	print '<input type=hidden name=factoryid value="'.$factoryid.'">';
 	print '<input type=hidden name=productid value="'.$factory->fk_product.'">';
 	print '<input type=hidden name=fk_entrepot value="'.$fk_entrepot.'">';
-	// on transfert la référence de l'of en numéro de version
+	// on transfert la rï¿½fï¿½rence de l'of en numï¿½ro de version
 	print '<input type=hidden name=numversion value="'.$refOF.'">';
 	print '<input type=hidden name=qtyEquipement value="'.$qtyequipement .'">';
 	print '<input type=hidden name=dateoday value="'.$factory->date_end_made.'">';
@@ -268,7 +268,7 @@ $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as scli on e.fk_soc_client = scli.r
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture as f on e.fk_facture = f.rowid";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture_fourn as ff on e.fk_facture_fourn = ff.rowid";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product as p on e.fk_product = p.rowid";
-$sql.= " WHERE e.entity = ".$conf->entity;
+$sql.= ' WHERE e.entity IN (' . getEntity('equipement') . ')';
 $sql.= " AND ef.children = 0";
 $sql.= " AND e.fk_product = ".$factory->fk_product;
 $sql.= " AND ef.fk_factory = ".$factoryid;
@@ -381,7 +381,7 @@ if ($result)
 	print '&nbsp;/&nbsp;<input class="flat" type="text" size="1" maxlength="4" name="yeardateo" value="'.$syear.'">';
 	print '</td>';
 
-	// liste des état des équipements
+	// liste des ï¿½tat des ï¿½quipements
 	print '<td class="liste_titre" align="right">';
 	print select_equipement_etat($search_etatequipement, 'search_etatequipement', 1, 1);
 	print '</td>';
@@ -527,7 +527,7 @@ function select_equipement_etat($selected='', $htmlname='fk_etatequipement', $sh
 			}
 			print '</select>';
 		} else {
-			// si pas de liste, on positionne un hidden à vide
+			// si pas de liste, on positionne un hidden ï¿½ vide
 			print '<input type="hidden" name="'.$htmlname.'" value=-1>';
 		}
 	}

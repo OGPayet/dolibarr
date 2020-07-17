@@ -124,7 +124,7 @@ $head = equipement_product_prepare_head($object, $user);
 //dol_fiche_head($head, 'task_task', $langs->trans("Task"),0,'projecttask');
 dol_fiche_head($head, 'societe', $langs->trans("AssociatedEquipement"), 0, "equipement@equipement");
 
-// bouton de création d'un équipement à partir du produit
+// bouton de crï¿½ation d'un ï¿½quipement ï¿½ partir du produit
 
 $sql = "SELECT";
 $sql.= " e.ref, e.rowid, e.fk_statut, e.fk_product, p.ref as refproduit, e.fk_entrepot, ent.label,";
@@ -140,7 +140,7 @@ $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."entrepot as ent on e.fk_entrepot = ent.rowi
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture as f on e.fk_facture = f.rowid";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture_fourn as ff on e.fk_facture_fourn = ff.rowid";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product as p on e.fk_product = p.rowid";
-$sql.= " WHERE e.entity = ".$conf->entity;
+$sql.= ' WHERE IN (' . getEntity('equipement') . ')';
 $sql.= " AND e.fk_soc_client = scli.rowid";
 $sql.= " AND e.fk_product = ".$productid;
 
@@ -258,7 +258,7 @@ if ($result) {
 	print '&nbsp;/&nbsp;<input class="flat" type="text" size="1" maxlength="4" name="yeardateo" value="'.$syear.'">';
 	print '</td>';
 
-	// liste des état des équipements
+	// liste des ï¿½tat des ï¿½quipements
 	print '<td class="liste_titre" align="right">';
 	print select_equipement_etat($search_etatequipement, 'search_etatequipement', 1, 1);
 	print '</td>';

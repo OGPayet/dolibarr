@@ -268,7 +268,7 @@ class Equipement extends CommonObject
                 $sql .= " FROM " . MAIN_DB_PREFIX . "equipement";
                 $sql .= " WHERE ref IN ('" . implode("','", $tmplist) . "')";
                 $sql .= " AND fk_product = " . $this->fk_product;
-                $sql .= " AND entity = " . $conf->entity;
+                $sql .= " AND entity IN (" . getEntity('equipement') . ') ';
 
                 $resql = $this->db->query($sql);
                 if (!$resql) {
@@ -706,7 +706,7 @@ class Equipement extends CommonObject
 			$sql = "UPDATE ".MAIN_DB_PREFIX."equipement";
 			$sql.= " SET fk_statut = 0";
 			$sql.= " WHERE rowid = ".$this->id;
-			$sql.= " AND entity = ".$conf->entity;
+			//$sql.= " AND entity = ".$conf->entity;
 
 			dol_syslog(__METHOD__.' sql='.$sql);
 			$resql=$this->db->query($sql);
@@ -800,7 +800,7 @@ class Equipement extends CommonObject
 		}
 
 		$sql.= " WHERE rowid = ".$this->id;
-		$sql.= " AND entity = ".$conf->entity;
+		//$sql.= " AND entity = ".$conf->entity;
 
 		// si on a fait une mise � jour
 		if ($updtSep != " SET") {
@@ -877,7 +877,7 @@ class Equipement extends CommonObject
 			$sql.= ", datev = '".$this->db->idate(mktime())."'";
 			$sql.= ", fk_user_valid = ".$user->id;
 			$sql.= " WHERE rowid = ".$this->id;
-			$sql.= " AND entity = ".$conf->entity;
+			//$sql.= " AND entity = ".$conf->entity;
 			$sql.= " AND fk_statut = 0";
 
 			dol_syslog(get_class($this)."::setValid sql=".$sql);
@@ -1066,7 +1066,7 @@ class Equipement extends CommonObject
 		$sql.= " fk_user_valid";
 		$sql.= " FROM ".MAIN_DB_PREFIX."equipement as e";
 		$sql.= " WHERE e.rowid = ".$id;
-		$sql.= " AND e.entity = ".$conf->entity;
+		//$sql.= " AND e.entity = ".$conf->entity;
 
 		$result = $this->db->query($sql);
 
@@ -1115,7 +1115,7 @@ class Equipement extends CommonObject
 		if ( $this->db->query($sql) ) {
 			$sql = "DELETE FROM ".MAIN_DB_PREFIX."equipement";
 			$sql.= " WHERE rowid = ".$this->id;
-			$sql.= " AND entity = ".$conf->entity;
+			//$sql.= " AND entity = ".$conf->entity;
 
 			dol_syslog("Equipement::delete sql=".$sql);
 			if ( $this->db->query($sql) ) {
@@ -1181,7 +1181,7 @@ class Equipement extends CommonObject
 			$sql = "UPDATE ".MAIN_DB_PREFIX."equipement";
 			$sql.= " SET fk_entrepot = ".($fk_entrepot!=-1? $fk_entrepot:"null");
 			$sql.= " WHERE rowid = ".$this->id;
-			$sql.= " AND entity = ".$conf->entity;
+			//$sql.= " AND entity = ".$conf->entity;
             //print "===".$sql."<br>";
 			if ($this->db->query($sql)) {
 				$this->fk_entrepot = $fk_entrepot;
@@ -1222,7 +1222,7 @@ class Equipement extends CommonObject
 						$sql = "UPDATE ".MAIN_DB_PREFIX."equipement";
 						$sql.= " SET fk_entrepot = ".($fk_entrepot!=-1? $fk_entrepot:"null");
 						$sql.= " WHERE rowid = ".$objp->fk_equipement_fils;
-						$sql.= " AND entity = ".$conf->entity;
+						//$sql.= " AND entity = ".$conf->entity;
 						if ($this->db->query($sql)) {
 							// si on a chang� d'entrepot et on veut faire un mouvement
 							if ($bmoveentrepot && $oldentrepot != $fk_entrepot) {
@@ -1271,7 +1271,7 @@ class Equipement extends CommonObject
 			$sql = "UPDATE ".MAIN_DB_PREFIX."equipement";
 			$sql.= " SET fk_etatequipement= ".($fk_etatequipement!=-1? $fk_etatequipement:"null");
 			$sql.= " WHERE rowid = ".$this->id;
-			$sql.= " AND entity = ".$conf->entity;
+			//$sql.= " AND entity = ".$conf->entity;
 			if ($noCheckStatus === FALSE) {
                 $sql .= " AND fk_statut = 0";
             }
@@ -1296,7 +1296,7 @@ class Equipement extends CommonObject
 
 			$sql.= " SET datee = ".($datee?"'".$this->db->idate($datee)."'":"null");
 			$sql.= " WHERE rowid = ".$this->id;
-			$sql.= " AND entity = ".$conf->entity;
+			//$sql.= " AND entity = ".$conf->entity;
 			$sql.= " AND fk_statut = 0";
 
 			if ($this->db->query($sql)) {
@@ -1318,7 +1318,7 @@ class Equipement extends CommonObject
 			$sql = "UPDATE ".MAIN_DB_PREFIX."equipement ";
 			$sql.= " SET dated = ".($dated?"'".$this->db->idate($dated)."'":"null");
 			$sql.= " WHERE rowid = ".$this->id;
-			$sql.= " AND entity = ".$conf->entity;
+			//$sql.= " AND entity = ".$conf->entity;
 			$sql.= " AND fk_statut = 0";
 
 			if ($this->db->query($sql)) {
@@ -1340,7 +1340,7 @@ class Equipement extends CommonObject
 			$sql = "UPDATE ".MAIN_DB_PREFIX."equipement ";
 			$sql.= " SET unitweight = ".price2num($unitweight);
 			$sql.= " WHERE rowid = ".$this->id;
-			$sql.= " AND entity = ".$conf->entity;
+			//$sql.= " AND entity = ".$conf->entity;
 
 			if ($this->db->query($sql)) {
 				$this->unitweight= $unitweight;
@@ -1361,7 +1361,7 @@ class Equipement extends CommonObject
 			$sql = "UPDATE ".MAIN_DB_PREFIX."equipement ";
 			$sql.= " SET dateo = ".($dateo?"'".$this->db->idate($dateo)."'":"null");
 			$sql.= " WHERE rowid = ".$this->id;
-			$sql.= " AND entity = ".$conf->entity;
+			//$sql.= " AND entity = ".$conf->entity;
 			$sql.= " AND fk_statut = 0";
 
 			if ($this->db->query($sql)) {
@@ -1385,7 +1385,7 @@ class Equipement extends CommonObject
 			$sql.= " SET fk_soc_client = ".($fk_soc_client!=-1? $fk_soc_client:"null");
 			$sql.= " , fk_facture=null";
 			$sql.= " WHERE rowid = ".$this->id;
-			$sql.= " AND entity = ".$conf->entity;
+			//$sql.= " AND entity = ".$conf->entity;
 
 			if ($this->db->query($sql)) {
 				$this->fk_soc_client = ($fk_soc_client!=-1? $fk_soc_client:"null");
@@ -1414,7 +1414,7 @@ class Equipement extends CommonObject
 			$sql = "UPDATE ".MAIN_DB_PREFIX."equipement ";
 			$sql.= " SET fk_facture = ".($fk_fact_client!=-1 ? $fk_fact_client:"null");
 			$sql.= " WHERE rowid = ".$this->id;
-			$sql.= " AND entity = ".$conf->entity;
+			//$sql.= " AND entity = ".$conf->entity;
 			//$sql.= " AND fk_statut = 0";
 
 			if ($this->db->query($sql)) {
@@ -1436,7 +1436,7 @@ class Equipement extends CommonObject
 			$sql = "UPDATE ".MAIN_DB_PREFIX."equipement ";
 			$sql.= " SET fk_facture_fourn = ".($fk_fact_fourn!=-1? $fk_fact_fourn:"null");
 			$sql.= " WHERE rowid = ".$this->id;
-			$sql.= " AND entity = ".$conf->entity;
+			//$sql.= " AND entity = ".$conf->entity;
 
 			if ($this->db->query($sql)) {
 				$this->fk_fact_fourn = $fk_fact_fourn;
@@ -1457,7 +1457,7 @@ class Equipement extends CommonObject
 			$sql = "UPDATE ".MAIN_DB_PREFIX."equipement ";
 			$sql.= " SET fk_commande_fourn = ".($fk_commande_fourn>0? $fk_commande_fourn:"null");
 			$sql.= " WHERE rowid = ".$this->id;
-			$sql.= " AND entity = ".$conf->entity;
+			//$sql.= " AND entity = ".$conf->entity;
 
 			if ($this->db->query($sql)) {
 				$this->fk_commande_fourn = $fk_commande_fourn;
@@ -1485,7 +1485,7 @@ class Equipement extends CommonObject
 			$sql = "UPDATE ".MAIN_DB_PREFIX."equipement ";
 			$sql.= " SET description = '".$this->db->escape($description)."'";
 			$sql.= " WHERE rowid = ".$this->id;
-			$sql.= " AND entity = ".$conf->entity;
+			//$sql.= " AND entity = ".$conf->entity;
 
 			if ($this->db->query($sql)) {
 				$this->description = $description;
@@ -1513,7 +1513,7 @@ class Equipement extends CommonObject
 			$sql = "UPDATE ".MAIN_DB_PREFIX."equipement ";
 			$sql.= " SET numimmocompta = '".$this->db->escape($numimmocompta)."'";
 			$sql.= " WHERE rowid = ".$this->id;
-			$sql.= " AND entity = ".$conf->entity;
+			//$sql.= " AND entity = ".$conf->entity;
 
 			if ($this->db->query($sql)) {
 				$this->numimmocompta = $numimmocompta;
@@ -1541,7 +1541,7 @@ class Equipement extends CommonObject
 			$sql = "UPDATE ".MAIN_DB_PREFIX."equipement ";
 			$sql.= " SET ref = '".$this->db->escape($numref)."'";
 			$sql.= " WHERE rowid = ".$this->id;
-			$sql.= " AND entity = ".$conf->entity;
+			//$sql.= " AND entity = ".$conf->entity;
 
 			if ($this->db->query($sql)) {
 				$this->ref = $numref;
@@ -1569,7 +1569,7 @@ class Equipement extends CommonObject
 			$sql = "UPDATE ".MAIN_DB_PREFIX."equipement ";
 			$sql.= " SET numversion = '".$this->db->escape($numversion)."'";
 			$sql.= " WHERE rowid = ".$this->id;
-			$sql.= " AND entity = ".$conf->entity;
+			//$sql.= " AND entity = ".$conf->entity;
 
 			if ($this->db->query($sql)) {
 				$this->numversion = $numversion;
@@ -1597,7 +1597,7 @@ class Equipement extends CommonObject
 			$sql = "UPDATE ".MAIN_DB_PREFIX."equipement ";
 			$sql.= " SET quantity = ".$quantity;
 			$sql.= " WHERE rowid = ".$this->id;
-			$sql.= " AND entity = ".$conf->entity;
+			//$sql.= " AND entity = ".$conf->entity;
 
 			if ($this->db->query($sql)) {
 				$this->quantity = $quantity;
@@ -1628,7 +1628,7 @@ class Equipement extends CommonObject
             $sql  = "UPDATE " . MAIN_DB_PREFIX . "equipement";
             $sql .= " SET fk_commande_fournisseur_dispatch = " . ($this->fk_commande_fournisseur_dispatch>0 ? $this->fk_commande_fournisseur_dispatch : "NULL");
             $sql .= " WHERE rowid = " . $this->id;
-            $sql .= " AND entity = " . $conf->entity;
+            //$sql .= " AND entity = " . $conf->entity;
 
             if ($this->db->query($sql)) {
                 return 1;
@@ -2161,7 +2161,7 @@ class Equipement extends CommonObject
         $sql .= " AND e.quantity > 0";
         // not a component linked to another equipement
         $sql .= " AND e.rowid NOT IN (" . $sqlNotInEquipementUsed . ")";
-        $sql .= " AND e.entity = " . $conf->entity;
+        $sql .= " AND e.entity IN ( " . getEntity('equipement') . ')';
 
         dol_syslog(__METHOD__ . " sql=" . $sql, LOG_DEBUG);
 
@@ -2186,7 +2186,7 @@ class Equipement extends CommonObject
         $sql .= ", e.ref";
         $sql .= " FROM " . MAIN_DB_PREFIX . "equipement e";
         $sql .= " WHERE e.fk_statut >= 1";
-        $sql .= " AND e.entity = " . $conf->entity;
+        $sql .= " AND e.entity IN ( " . getEntity('equipement') . ')';
         $sql .= " AND e.fk_product = " . $fkProduct;
         $sql .= " AND e.fk_entrepot = " . $fkEntrepot;
         $sql .= " ORDER BY e.ref DESC";

@@ -130,7 +130,7 @@ $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."contrat as co on ee.fk_contrat = co.rowid";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."expedition as exp on ee.fk_expedition = exp.rowid";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."projet as pro on ee.fk_project = pro.rowid";
 
-$sql.= " WHERE e.entity = ".$conf->entity;
+$sql.= ' WHERE IN (' . getEntity('equipement') . ')';
 $sql.= " and e.rowid=ee.fk_equipement";
 $sql.= " and ee.fk_fichinter=".$id;
 
@@ -214,7 +214,7 @@ if ($result) {
 	print '<td class="liste_titre">';
 	print '<input type="text" class="flat" name="search_refexpedition" value="'.$search_refexpedition.'" size="10"></td>';
 
-	// liste des état des équipements
+	// liste des ï¿½tat des ï¿½quipements
 	print '<td class="liste_titre" align="right">';
 	print select_equipement_etat($search_etatequipement, 'search_etatequipement', 1, 1);
 	print '</td>';
@@ -317,8 +317,8 @@ if ($result) {
 	$db->free($result);
 
 	if ($num > 0) {
-		// ajout bouton transfert des infos équipements sur la fiche inter
-		// Bouton pour ajouter les numéros de série des équipements de la commande dans la facture ' si il existe
+		// ajout bouton transfert des infos ï¿½quipements sur la fiche inter
+		// Bouton pour ajouter les numï¿½ros de sï¿½rie des ï¿½quipements de la commande dans la facture ' si il existe
 		print '<a class="butAction" href="fichinter.php?id='.$id.'&action=FillIntervention">';
 		print $langs->trans("FillInterventionFromEquipment").'</a>';
 	}

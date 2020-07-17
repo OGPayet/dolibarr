@@ -111,10 +111,10 @@ $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as sfou on e.fk_soc_fourn = sfou.ro
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."entrepot as ent on e.fk_entrepot = ent.rowid";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product as p on e.fk_product = p.rowid";
 
-$sql.= " WHERE e.entity = ".$conf->entity;
+$sql.= ' WHERE IN (' . getEntity('equipement') . ')';
 
 
-// on n'affiche que les équipement associé au client
+// on n'affiche que les ï¿½quipement associï¿½ au client
 if ($search_soc_client)
 	$sql .= " and e.fk_soc_client = ".$search_soc_client;
 else {
@@ -208,7 +208,7 @@ if ($result) {
 	print '&nbsp;/&nbsp;<input class="flat" type="text" size="1" maxlength="4" name="yeardateo" value="'.$syear.'">';
 	print '</td>';
 
-	// liste des état des équipements
+	// liste des ï¿½tat des ï¿½quipements
 	print '<td class="liste_titre" align="right">';
 	print select_equipement_etat($search_etatequipement, 'search_etatequipement', 1, 1);
 	print '</td>';
@@ -227,7 +227,7 @@ if ($result) {
 		$var=!$var;
 		print "<tr $bc[$var]>";
 
-		// ici la case à cocher de sélection pour ajouter un évènement sur l'équipement
+		// ici la case ï¿½ cocher de sï¿½lection pour ajouter un ï¿½vï¿½nement sur l'ï¿½quipement
 		print "<td width=15px>";
 		print '<input type=checkbox value=1 name="chk'.$objp->rowid.'">';
 		print "</td>";
@@ -237,7 +237,7 @@ if ($result) {
 		print $equipementstatic->getNomUrl(1);
 		print "</td>";
 
-		// si la case à coché était coché, on crée l'évènement
+		// si la case ï¿½ cochï¿½ ï¿½tait cochï¿½, on crï¿½e l'ï¿½vï¿½nement
 		if (GETPOST('chk'.$objp->rowid)==1) {
 			$ret=$equipementstatic->fetch($objp->rowid);
 			$equipementstatic->fetch_thirdparty();
@@ -312,7 +312,7 @@ if ($result) {
 	print '</table>';
 	print '<br><br>';
 
-	// on permet d'ajouter ssi il y a des équipements ajoutable...
+	// on permet d'ajouter ssi il y a des ï¿½quipements ajoutable...
 	if ($num > 0 ) {
 		print '<table class="noborder" width="100%">';
 		print '<tr class="liste_titre">';
@@ -326,10 +326,10 @@ if ($result) {
 		print '<tr '.$bc[$var].">\n";
 		print '<td width=100px>'.$langs->trans('TypeofEquipementEvent').'</td><td>';
 		print select_equipementevt_type('', 'fk_equipementevt_type', 1, 1);
-		// type d'évènement
+		// type d'ï¿½vï¿½nement
 		print '</td>';
 
-		// Date evenement début
+		// Date evenement dï¿½but
 		print '<td align="center" rowspan=2>';
 		$timearray=dol_getdate(mktime());
 		if (!GETPOST('deoday','int'))
@@ -366,7 +366,7 @@ if ($result) {
 		print '</td></tr>';
 
 		print '<tr '.$bc[$var].">\n";
-				// description de l'évènement de l'équipement
+				// description de l'ï¿½vï¿½nement de l'ï¿½quipement
 		print '<td rowspan=2 colspan=2>';
 		// editeur wysiwyg
 		require_once(DOL_DOCUMENT_ROOT."/core/class/doleditor.class.php");

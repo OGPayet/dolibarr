@@ -76,7 +76,7 @@ $action = GETPOST('action', 'alpha');
 
 
 if ($action=='adjuststock') {
-	// quantité dans l'entrepot
+	// quantitï¿½ dans l'entrepot
 	$sql = "SELECT p.rowid as rowid, p.ref, p.label as produit, ps.reel";
 	$sql.= " FROM ".MAIN_DB_PREFIX."product_stock ps, ".MAIN_DB_PREFIX."product p";
 	$sql.= " WHERE ps.fk_product = p.rowid";
@@ -84,7 +84,7 @@ if ($action=='adjuststock') {
 	$sql.= " AND ps.fk_entrepot = ".$fk_entrepot;
 	$sql.= " ORDER BY p.ref";
 
-	// quantité d'équipement
+	// quantitï¿½ d'ï¿½quipement
 
 
 	// ajout d'un mouvement d'ajustement
@@ -167,7 +167,7 @@ $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as scli on e.fk_soc_client = scli.r
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture as f on e.fk_facture = f.rowid";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture_fourn as ff on e.fk_facture_fourn = ff.rowid";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product as p on e.fk_product = p.rowid";
-$sql.= " WHERE e.entity = ".$conf->entity;
+$sql.= ' WHERE e.entity IN (' . getEntity('equipement') . ')';
 $sql.= " AND e.fk_entrepot =".$db->escape($entrepotid);
 if ($search_ref)			$sql.= " AND e.ref like '%".$db->escape($search_ref)."%'";
 if ($search_refProduct)		$sql.= " AND p.rowid =".$search_refProduct;
@@ -248,7 +248,7 @@ if ($result) {
 	print "<tr class=\"liste_titre\">";
 	print '<td class="liste_titre">';
 	print '<input type="text" class="flat" name="search_ref" value="'.$search_ref.'" size="8"></td>';
-	// on affiche les produits présent dans l'entrepot et leur quantité en stock annoncé
+	// on affiche les produits prï¿½sent dans l'entrepot et leur quantitï¿½ en stock annoncï¿½
 	print '<td class="liste_titre"></td>';
 	print '<td class="liste_titre"></td>';
 	print '<td class="liste_titre">';
@@ -271,7 +271,7 @@ if ($result) {
 	print '&nbsp;/&nbsp;<input class="flat" type="text" size="1" maxlength="4" name="yeardateo" value="'.$syear.'">';
 	print '</td>';
 
-	// liste des état des équipements
+	// liste des ï¿½tat des ï¿½quipements
 	print '<td class="liste_titre" align="right">';
 	print select_equipement_etat($search_etatequipement,'search_etatequipement', 1, 1);
 	print '</td>';

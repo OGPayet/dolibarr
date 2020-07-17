@@ -69,7 +69,7 @@ class box_equipement extends ModeleBoxes
 			$sql.= " FROM ".MAIN_DB_PREFIX."equipement as e";
 			$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."c_equipement_etat as ee on e.fk_etatequipement = ee.rowid";
 			$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product as p on e.fk_product = p.rowid";
-			$sql.= " WHERE e.entity =".$conf->entity;
+			$sql.= " WHERE e.entity IN (" . getEntity('equipement') . ')';
 			$sql.= $db->order("e.tms", "DESC");
 			$sql.= $db->plimit($max, 0);
 

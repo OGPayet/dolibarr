@@ -317,7 +317,7 @@ class modequipement extends DolibarrModules
 //		$this->export_sql_end[$r].=' LEFT JOIN  '.MAIN_DB_PREFIX.'societe as sclient ON (e.fk_soc_client = sclient.rowid)';
 //		$this->export_sql_end[$r].=' LEFT JOIN '.MAIN_DB_PREFIX.'societe as sfourn ON (e.fk_soc_fourn = sfourn.rowid)';
 
-		$this->export_sql_end[$r].=' WHERE e.entity = '.$conf->entity;
+		$this->export_sql_end[$r].=' WHERE e.entity IN (' . getEntity('equipement') . ')';
 		$this->export_sql_end[$r].=' AND e.fk_product = p.rowid';
 
 
@@ -383,7 +383,7 @@ class modequipement extends DolibarrModules
 		// Add extra fields
 		$import_extrafield_sample=array();
 		$sql = "SELECT name, label, fieldrequired FROM ".MAIN_DB_PREFIX."extrafields ";
-		$sql.= " WHERE elementtype = 'equipement' AND entity IN (0, ".$conf->entity.')';
+		$sql.= " WHERE elementtype = 'equipement' AND entity IN (0, ". getEntity('equipement') .')';
 		$resql=$this->db->query($sql);
 		if ($resql) {
 			// This can fail when class is used on old database (during migration for example)
@@ -422,7 +422,7 @@ class modequipement extends DolibarrModules
 		// Add extra fields
 		$import_extrafield_sample=array();
 		$sql="SELECT name, label, fieldrequired FROM ".MAIN_DB_PREFIX."extrafields as extra";
-		$sql.=" WHERE elementtype = 'equipementevt' AND entity IN (0, ".$conf->entity.')';
+		$sql.=" WHERE elementtype = 'equipementevt' AND entity IN (0, " . getEntity('equipement') . ')';
 		$resql=$this->db->query($sql);
 		if ($resql) {
 			// This can fail when class is used on old database (during migration for example)

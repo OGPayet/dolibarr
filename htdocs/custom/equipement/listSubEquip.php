@@ -78,7 +78,7 @@ if ($search_etatequipement=="-1")
 
 llxHeader();
 
-// premiere étape on cherche les id des équipements composants
+// premiere ï¿½tape on cherche les id des ï¿½quipements composants
 $scomposition_ref=GETPOST('scomposition_ref', 'alpha');
 $scomposition_numversion=GETPOST('scomposition_numversion', 'alpha');
 $scomposition_productid=GETPOST('scomposition_productid', 'alpha');
@@ -88,12 +88,12 @@ $scomposition_fk_soc_fourn=GETPOST('scomposition_fk_soc_fourn', 'alpha');
 if ($scomposition_fk_soc_fourn=="-1")
 	$scomposition_fk_soc_fourn="";
 
-// on ne prend que les équipement qui matche et qui rentrent déjà dans une composition
+// on ne prend que les ï¿½quipement qui matche et qui rentrent dï¿½jï¿½ dans une composition
 $sql  = "SELECT ea.fk_equipement_pere";
 $sql .= " FROM "  . MAIN_DB_PREFIX . "equipementassociation as ea";
 $sql .= " INNER JOIN "  . MAIN_DB_PREFIX . "equipement as e ON e.rowid = ea.fk_equipement_fils";
 $sql .= " INNER JOIN "  . MAIN_DB_PREFIX . "equipement as epere ON epere.rowid = ea.fk_equipement_pere";
-$sql .= " WHERE e.entity = " . $conf->entity;
+$sql .= " WHERE e.entity = " . getEntity('equipement');
 if ($scomposition_ref)			$sql .= " AND e.ref like '%".$db->escape($scomposition_ref)."%'";
 if ($scomposition_numversion)	$sql .= " AND e.numversion like '%".$db->escape($scomposition_numversion)."%'";
 if ($scomposition_productid)	$sql .= " AND e.fk_product = ".$scomposition_productid;
@@ -101,10 +101,10 @@ if ($scomposition_fk_soc_fourn)	$sql .= " AND e.fk_soc_fourn =".$scomposition_fk
 
 // si il y a une recherche de faite
 if ($scomposition_ref.$scomposition_numversion.$scomposition_productid.$scomposition_fk_soc_fourn) {
-	// ensuite pour chaque equipements trouvé on cherche les premiers parents
+	// ensuite pour chaque equipements trouvï¿½ on cherche les premiers parents
 	$result=$db->query($sql);
 	if ($result) {
-		// on mémorise les id qui sont parents
+		// on mï¿½morise les id qui sont parents
 		$ListEquipmentParent="";
 
 		$num = $db->num_rows($result);
@@ -114,7 +114,7 @@ if ($scomposition_ref.$scomposition_numversion.$scomposition_productid.$scomposi
             $ListEquipmentParent .= $objp->fk_equipement_pere . ", ";
 			$i++;
 		}
-		// on vire la dernière virgule et l'espace
+		// on vire la derniï¿½re virgule et l'espace
 		$ListEquipmentParent =substr($ListEquipmentParent, 0, -2);
 	}
 }
@@ -133,13 +133,13 @@ $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as scli on e.fk_soc_client = scli.r
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture as f on e.fk_facture = f.rowid";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture_fourn as ff on e.fk_facture_fourn = ff.rowid";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product as p on e.fk_product = p.rowid";
-$sql.= " WHERE e.entity = ".$conf->entity;
+$sql.= " WHERE e.entity = ". getEntity('equipement');
 
-// on ne prend que les équipements dans la liste
+// on ne prend que les ï¿½quipements dans la liste
 if ($ListEquipmentParent)
 	$sql.=" and e.rowid in(".$ListEquipmentParent.")";
 else
-	$sql.=" and 1=2"; // on n'affiche que si il y a des données recherchées
+	$sql.=" and 1=2"; // on n'affiche que si il y a des donnï¿½es recherchï¿½es
 
 if ($search_ref)			$sql .= " AND e.ref like '%".$db->escape($search_ref)."%'";
 if ($search_refProduct)		$sql .= " AND p.ref like '%".$db->escape($search_refProduct)."%'";
@@ -167,7 +167,7 @@ if ($result) {
 
 	print '<form method="get" action="'.$_SERVER["PHP_SELF"].'">';
 
-	// un tableau de saisie des infos du composant recherché
+	// un tableau de saisie des infos du composant recherchï¿½
 	print '<table class="nobordernopadding" >';
 	print "<tr class='liste_titre'>";
 	print '<td colspan="4">'.$langs->trans("SearchInsideEquipement").'</td></tr>';
@@ -276,7 +276,7 @@ if ($result) {
 	print '&nbsp;/&nbsp;<input class="flat" type="text" size="4" maxlength="4" name="yeardateo" value="'.$syear.'">';
 	print '</td>';
 
-	// liste des état des équipements
+	// liste des ï¿½tat des ï¿½quipements
 	print '<td class="liste_titre" align="right">';
 	print select_equipement_etat($search_etatequipement, 'search_etatequipement', 1, 1);
 	print '</td>';
