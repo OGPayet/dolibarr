@@ -111,7 +111,7 @@ $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as sfou on e.fk_soc_fourn = sfou.ro
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."entrepot as ent on e.fk_entrepot = ent.rowid";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product as p on e.fk_product = p.rowid";
 
-$sql.= ' WHERE IN (' . getEntity('equipement') . ')';
+$sql.= ' WHERE e.entity IN (' . getEntity('equipement') . ')';
 
 
 // on n'affiche que les �quipement associ� au client

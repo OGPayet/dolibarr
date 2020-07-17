@@ -240,7 +240,7 @@ $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture as f on e.fk_facture = f.rowid";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."commande_fournisseur as cf on e.fk_commande_fourn = cf.rowid";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture_fourn as ff on e.fk_facture_fourn = ff.rowid";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product as p on e.fk_product = p.rowid";
-$sql.= ' WHERE IN (' . getEntity('equipement') . ')';
+$sql.= ' WHERE e.entity IN (' . getEntity('equipement') . ')';
 $sql.= " AND e.fk_product = ".$productid;
 
 if ($search_ref)			$sql .= " AND e.ref like '%".$db->escape($search_ref)."%'";

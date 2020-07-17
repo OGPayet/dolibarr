@@ -138,7 +138,7 @@ $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as scli on e.fk_soc_client = scli.r
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."entrepot as ent on e.fk_entrepot = ent.rowid";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture as f on e.fk_facture = f.rowid";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product as p on e.fk_product = p.rowid";
-$sql.= ' WHERE IN (' . getEntity('equipement') . ')';
+$sql.= ' WHERE e.entity IN (' . getEntity('equipement') . ')';
 if ($search_ref)			$sql .= " AND e.ref like '%".$db->escape($search_ref)."%'";
 if ($search_refProduct)		$sql .= " AND p.ref like '%".$db->escape($search_refProduct)."%'";
 if ($search_company_client)	$sql .= " AND scli.nom like '%".$db->escape($search_company_client)."%'";

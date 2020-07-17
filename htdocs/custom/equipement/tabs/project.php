@@ -147,7 +147,7 @@ $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fichinter as fi on ee.fk_fichinter = fi.row
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."contrat as co on ee.fk_contrat = co.rowid";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."expedition as exp on ee.fk_expedition = exp.rowid";
 
-$sql.= ' WHERE IN (' . getEntity('equipement') . ')';
+$sql.= ' WHERE e.entity IN (' . getEntity('equipement') . ')';
 $sql.= " and e.rowid=ee.fk_equipement";
 $sql.= " and ee.fk_project=".$projetid;
 

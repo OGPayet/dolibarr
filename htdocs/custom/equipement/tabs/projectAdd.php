@@ -146,7 +146,7 @@ if ($conf->global->MAIN_MODULE_FACTORY) {
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."projet_stock as ps on e.fk_product = ps.fk_product";
 }
 
-$sql.= ' WHERE IN (' . getEntity('equipement') . ')';
+$sql.= ' WHERE e.entity IN (' . getEntity('equipement') . ')';
 // on vire les equipements d�j� affect� au projet
 $sql.= " and e.rowid not in (select fk_equipement from ".MAIN_DB_PREFIX."equipementevt as ee";
 $sql.= " where fk_project =".$id.")";
