@@ -5648,10 +5648,6 @@ class CompanyRelationshipsApi extends DolibarrApi {
             throw new RestException(400, 'Modulepart not provided.');
         }
 
-        if (!DolibarrApiAccess::$user->rights->ecm->upload) {
-            throw new RestException(401);
-        }
-
         $newfilecontent = '';
         if (empty($fileencoding)) $newfilecontent = $filecontent;
         if ($fileencoding == 'base64') $newfilecontent = base64_decode($filecontent);
