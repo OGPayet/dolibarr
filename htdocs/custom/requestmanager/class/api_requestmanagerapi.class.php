@@ -76,7 +76,7 @@ class RequestManagerApi extends DolibarrApi {
             "country_code" => '', "country" => '', "socid" => '', "socname" => '', "poste" => '', "statut" => '', "phone_pro" => '',
             "fax" => '', "phone_perso" => '', "phone_mobile" => '', "email" => '', "jabberid" => '', "skype" => '',
             "photo" => '', "priv" => '', "mail" => '', "birthday" => '', "note_public" => '', "gender" => '', "user_id" => '',
-            "default_lang" => '',
+            "default_lang" => '',"entity" => '',
         ),
         'user' => array(
             "id" => '', "employee" => '', "gender" => '', "email" => '', "skype" => '', "job" => '', "signature" => '',
