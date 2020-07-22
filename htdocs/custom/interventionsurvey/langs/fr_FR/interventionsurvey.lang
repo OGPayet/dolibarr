@@ -220,6 +220,7 @@ InterventionSurveyConfirmAutocompleteDescription = Cette opération va, pour tou
 
 # Gestion des fichiers joints sur les interventions avec hooks
 InterventionSurveyDocuments = Fichier(s) joint(s)
+InterventionSurveyErrorFileNotFound = Fichier introuvable
 
 #Génération de la partie générale
 InterventionSurveyGeneralPartsLabel = Observations Générales
