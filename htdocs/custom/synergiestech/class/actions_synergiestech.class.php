@@ -2861,7 +2861,7 @@ SCRIPT;
                 case 'contrat':
                     if (DolibarrApiAccess::$user->societe_id > 0) {
                         $parameters['whitelist_of_properties'] = array(
-                            "id" => '', "ref" => '', "ref_customer" => '', "ref_supplier" => '', "statut" => '',
+                            "id" => '', 'entity' => '', "ref" => '', "ref_customer" => '', "ref_supplier" => '', "statut" => '',
                             "mise_en_service" => '', "date_contrat" => '', "date_creation" => '', "fin_validite" => '', "date_modification" => '',
                             "date_validation" => '', "user_author_id" => '', "commercial_signature_id" => '', "commercial_suivi_id" => '',
                             "note_public" => '', "fk_project" => '', "socid" => '', "thirdparty" => '',
@@ -2885,7 +2885,7 @@ SCRIPT;
                             "paye" => '', "close_code" => '', "socid" => '', "statut" => '',
                             "date_lim_reglement" => '', "mode_reglement_id" => '', "mode_reglement_code" => '', "mode_reglement" => '',
                             "cond_reglement_id" => '', "cond_reglement_code" => '', "cond_reglement_doc" => '',
-                            "thirdparty" => '', "array_options" => '', "cr_thirdparty_benefactor" => '', "lines" => '', "linkedObjectsIds" => '',
+                            "thirdparty" => '', "array_options" => '', "cr_thirdparty_benefactor" => '', "lines" => '', "linkedObjectsIds" => '', 'entity' => '',
                         );
 
                         $parameters['blacklist_of_properties'] = array("array_options" => array("options_companyrelationships_availability_principal" => '', "options_companyrelationships_availability_benefactor" => ''));
