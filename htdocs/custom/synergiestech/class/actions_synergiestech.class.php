@@ -1339,10 +1339,13 @@ SCRIPT;
                 }
                 $idtolinkto = array_filter($idtolinkto);
                 if ($addlink == 'equipement' && !empty($idtolinkto)) {
+                    dol_include_once('synergiestech/class/html.formsynergiestech.class.php');
                     foreach ($idtolinkto as $linkto) {
-                        if ($object->addContractsOfEquipment($linkto) < 0) {
-                            array_merge($this->errors, $object->errors);
-                            return -1;
+                        $formHtmlSynergiesTech = new FormSynergiesTech($db);
+                        $listOfContractOfThisBenefactorAndRequester = $formHtmlSynergiesTech->fetch_all_contract_for_these_company($object->socid, $object->socid_benefactor, true, true);
+                        $listOfContract = $formHtmlSynergiesTech->getContractLinkedToEquipementId($linkto, true);
+                        foreach($listOfContract as $contract){
+                            $object->setContract($contract->id);
                         }
                     }
                 }

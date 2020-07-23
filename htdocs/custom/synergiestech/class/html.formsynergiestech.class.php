@@ -2169,25 +2169,52 @@ class FormSynergiesTech
             return  $atLeastOneActiveContract ? $result : !$result;
         });
     }
+/**
+     * Function to get Linked Contract from an equipement id
+     * @param int $equipementId
+     * @param boolean $onlyActiveContract
+     * @return Contrat[]
+     */
+
+     public function getContractLinkedToEquipementId($equipementId, $onlyActiveContract = true){
+        dol_include_once('/equipement/class/equipement.class.php');
+        $equipement = new Equipement($this->db);
+        $equipement->fetch($equipementId);
+        $equipement->fetchObjectLinked();
+        return $this->getContractLinkedToEquipement($equipement,$onlyActiveContract);
+     }
+
+
+    /**
+     * Function to get Linked Contracts from an $equipement
+     * @param Equipement $equipement
+     * @param boolean $onlyActiveContract
+     * @return Contrat[]
+     */
+
+     public function getContractLinkedToEquipement($equipement, $onlyActiveContract = true){
+        $arrayOfContractIds = $equipement->linkedObjectsIds ? $equipement->linkedObjectsIds['contrat'] : array();
+        $arrayOfContracts = array();
+        foreach ($arrayOfContractIds as $id) {
+            $contract = self::$cache_contract_list[$id];
+            if(!$onlyActiveContract || self::isContractActive($contract)){
+                $arrayOfContracts[] = $contract;
+            }
+        }
+        return $arrayOfContracts;
+     }
 
      /**
-     *  Static function to display active contracts linked to an equipement
+     *  Function to display active contracts linked to an equipement
      *
-     * @param   Equipement[] $arrayOfEquipement
+     * @param   Equipement $equipement
      * @param   string $textColor
      * @return  Equipement[]
      */
 
     public function display_contracts_from_equipement($equipement, $textColor)
     {
-        $arrayOfContractIds = $equipement->linkedObjectsIds ? $equipement->linkedObjectsIds['contrat'] : array();
-        $arrayOfContracts = array();
-        foreach ($arrayOfContractIds as $id) {
-            $contract = self::$cache_contract_list[$id];
-            if(self::isContractActive($contract)){
-                $arrayOfContracts[] = $contract;
-            }
-        }
+        $arrayOfContracts = $this->getContractLinkedToEquipement($equipement, true);
         return $this->display_contracts($arrayOfContracts, $textColor);
     }
 

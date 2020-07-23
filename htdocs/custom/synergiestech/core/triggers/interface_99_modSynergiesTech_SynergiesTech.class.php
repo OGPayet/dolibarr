@@ -58,42 +58,30 @@ class InterfaceSynergiesTech extends DolibarrTriggers
     public function runTrigger($action, $object, User $user, Translate $langs, Conf $conf)
     {
         if (empty($conf->synergiestech->enabled)) return 0;     // Module not active, we do nothing
-
+        global $db;
         switch ($action) {
             case 'REQUESTMANAGER_CREATE':
+                dol_include_once('synergiestech/class/html.formsynergiestech.class.php');
+                $formHtmlSynergiesTech = new FormSynergiesTech($db);
+                $listOfContractOfThisBenefactorAndRequester = $formHtmlSynergiesTech->fetch_all_contract_for_these_company($object->socid, $object->socid_benefactor, true, true);
+                $object->fetchObjectLinked();
                 if (isset($object->linkedObjectsIds['equipement'])) {
-                    if (is_array($object->linkedObjectsIds['equipement'])) {
-                        foreach ($object->linkedObjectsIds['equipement'] as $equipment_id) {
-                            if ($object->addContractsOfEquipment($equipment_id) < 0) {
-                                array_merge($this->errors, $object->errors);
-                                return -1;
-                            }
-                        }
-                    } else {
-                        $equipment_id = $object->linkedObjectsIds['equipement'];
-                        if ($object->addContractsOfEquipment($equipment_id) < 0) {
-                            array_merge($this->errors, $object->errors);
-                            return -1;
+                    $equipementListOfId = is_array($object->linkedObjectsIds['equipement']) ? $object->linkedObjectsIds['equipement'] : array(is_array($object->linkedObjectsIds['equipement']));
+                    foreach($equipementListOfId as $equipementId){
+                        $listOfContract = $formHtmlSynergiesTech->getContractLinkedToEquipementId($equipementId, true);
+                        foreach($listOfContract as $contract){
+                            $object->setContract($contract->id);
                         }
                     }
                 }
-                $object->fetchObjectLinked();
                 $request_types_add_contract = !empty($conf->global->SYNERGIESTECH_AUTO_ADD_CONTRACT_IF_MISSING) ? explode(',', $conf->global->SYNERGIESTECH_AUTO_ADD_CONTRACT_IF_MISSING) : array();
                 if (
                     !isset($object->linkedObjectsIds['equipement'])
                     && !isset($object->linkedObjectsIds['contrat'])
                     && in_array($object->fk_type, $request_types_add_contract)
                 ) {
-                    require_once DOL_DOCUMENT_ROOT . '/contrat/class/contrat.class.php';
-                    $contrat = new Contrat($this->db);
-                    $contrat->socid = $object->socid;
-                    $listOfContract = $contrat->getListOfContracts();
-                    foreach ($listOfContract as $potentialContract) {
-                        if ($potentialContract->array_options && $potentialContract->array_options['options_companyrelationships_fk_soc_benefactor'] == $object->socid_benefactor) {
-                            if ($potentialContract->nbofservicesopened > 0 && $potentialContract->statut == 1) {
-                                $object->setContract($potentialContract->id);
-                            }
-                        }
+                    foreach ($listOfContractOfThisBenefactorAndRequester as $contractToAdd) {
+                        $object->setContract($contractToAdd->id);
                     }
                 }
 
@@ -139,12 +127,15 @@ class InterfaceSynergiesTech extends DolibarrTriggers
             case 'REQUESTMANAGER_ADD_LINK':
                 $addlink = $object->context['addlink'];
                 $addlinkid = $object->context['addlinkid'];
+                dol_include_once('synergiestech/class/html.formsynergiestech.class.php');
+                $formHtmlSynergiesTech = new FormSynergiesTech($db);
+                $listOfContractOfThisBenefactorAndRequester = $formHtmlSynergiesTech->fetch_all_contract_for_these_company($object->socid, $object->socid_benefactor, true, true);
 
                 if ($addlink == 'equipement' && $addlinkid > 0) {
-                    if ($object->addContractsOfEquipment($addlinkid) < 0) {
-                        array_merge($this->errors, $object->errors);
-                        return -1;
-                    }
+                    $listOfContract = $formHtmlSynergiesTech->getContractLinkedToEquipementId($addlinkid, true);
+                        foreach($listOfContract as $contract){
+                            $object->setContract($contract->id);
+                        }
                 }
 
                 dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
@@ -237,7 +228,6 @@ class InterfaceSynergiesTech extends DolibarrTriggers
             case 'PROPAL_CLOSE_REFUSED':
                 // only for signed propal
                 if ($object->statut == Propal::STATUS_SIGNED) {
-
                     // file is required for signed propal
                     if ($action == "PROPAL_CLOSE_SIGNED" && empty($_FILES['addfile']['name'])) {
                         $error_msg = $langs->trans('ErrorFieldRequired', $langs->transnoentitiesnoconv('File'));
@@ -384,12 +374,12 @@ class InterfaceSynergiesTech extends DolibarrTriggers
                     if (empty($object->actiontypecode)) $object->actiontypecode='AC_OTH_AUTO';
 
                     $msg = $langs->transnoentities("SupplierOrderSubmitedInDolibarr", ($object->newref ? $object->newref : $object->ref));
-                    $msg .= "<br>" . $langs->trans("SynergiesTechSupplierOrderSubmitCustomEventDate",dol_print_date($object->date_commande,"dayhourtext"));
+                    $msg .= "<br>" . $langs->trans("SynergiesTechSupplierOrderSubmitCustomEventDate", dol_print_date($object->date_commande, "dayhourtext"));
                     if ($object->methode_commande){
-                        $msg .= "<br>" . $langs->trans("SynergiesTechSupplierOrderSubmitCustomEventMethod",dol_htmlentitiesbr_decode($object->getInputMethod()));
+                        $msg .= "<br>" . $langs->trans("SynergiesTechSupplierOrderSubmitCustomEventMethod", dol_htmlentitiesbr_decode($object->getInputMethod()));
                     }
                     if(!empty($object->context['comments'])){
-                        $msg .= "<br>" . $langs->trans("SynergiesTechSupplierOrderSubmitCustomEventComment",$object->context['comments']);
+                        $msg .= "<br>" . $langs->trans("SynergiesTechSupplierOrderSubmitCustomEventComment", $object->context['comments']);
                     }
 
                     if (empty($object->actionmsg2)) {
@@ -461,7 +451,7 @@ class InterfaceSynergiesTech extends DolibarrTriggers
                     }
                     else
                     {
-                        $error ="Failed to insert event : ".$actioncomm->error." ".join(',',$actioncomm->errors);
+                        $error ="Failed to insert event : ".$actioncomm->error." ".join(',', $actioncomm->errors);
                         $this->error=$error;
                         $this->errors=$actioncomm->errors;
 
