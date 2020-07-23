@@ -36,6 +36,7 @@ Permission468405 = Accès aux opérations standard de regénération manuel du q
 Permission468406 = Accès aux opérations avancées de regénération manuel du questionnaire
 Permission468407 = Accès à la possibilité de choisir de clôturer une intervention avec des données manquantes
 Permission468408 = Accès à la fonctionnalité d'autocomplétion d'une intervention
+Permission468409 = Réouvrir une intervention depuis l'API
 
 #
 # Page d'administration

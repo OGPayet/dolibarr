@@ -576,7 +576,7 @@ class InterventionSurveyApi extends DolibarrApi
             throw new RestException(500, 'Error when re-opening Intervention : Module SynergiesTech disabled');
         }
 
-        if (!DolibarrApiAccess::$user->rights->synergiestech->fichinter->reopen) {
+        if (!DolibarrApiAccess::$user->rights->synergiestech->fichinter->reopen && !DolibarrApiAccess::$user->rights->interventionsurvey->survey->reopenApi) {
             throw new RestException(401, "Insufficient rights");
         }
 
