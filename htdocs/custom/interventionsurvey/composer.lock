@@ -1,0 +1,127 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "d9ef965af4550015bc7570b6fe39a3ba",
+    "packages": [
+        {
+            "name": "naitsirch/tcpdf-extension",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/naitsirch/tcpdf-extension.git",
+                "reference": "b94e0b5f2f848b7b1469b1744a5b94ac4c63d10c"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/naitsirch/tcpdf-extension/zipball/b94e0b5f2f848b7b1469b1744a5b94ac4c63d10c",
+                "reference": "b94e0b5f2f848b7b1469b1744a5b94ac4c63d10c",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.3",
+                "tecnickcom/tcpdf": "6.2.*"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "Tcpdf\\Extension\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "naitsirch",
+                    "email": "naitsirch@e.mail.de"
+                }
+            ],
+            "description": "This library extends the TCPDF library for example with a smart API for creating tables.",
+            "homepage": "https://github.com/naitsirch/tcpdf-extension",
+            "keywords": [
+                "TCPDF",
+                "generator",
+                "pdf",
+                "php"
+            ],
+            "time": "2018-08-23T12:28:42+00:00"
+        },
+        {
+            "name": "tecnickcom/tcpdf",
+            "version": "6.2.26",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/tecnickcom/TCPDF.git",
+                "reference": "367241059ca166e3a76490f4448c284e0a161f15"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/tecnickcom/TCPDF/zipball/367241059ca166e3a76490f4448c284e0a161f15",
+                "reference": "367241059ca166e3a76490f4448c284e0a161f15",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0"
+            },
+            "type": "library",
+            "autoload": {
+                "classmap": [
+                    "config",
+                    "include",
+                    "tcpdf.php",
+                    "tcpdf_parser.php",
+                    "tcpdf_import.php",
+                    "tcpdf_barcodes_1d.php",
+                    "tcpdf_barcodes_2d.php",
+                    "include/tcpdf_colors.php",
+                    "include/tcpdf_filters.php",
+                    "include/tcpdf_font_data.php",
+                    "include/tcpdf_fonts.php",
+                    "include/tcpdf_images.php",
+                    "include/tcpdf_static.php",
+                    "include/barcodes/datamatrix.php",
+                    "include/barcodes/pdf417.php",
+                    "include/barcodes/qrcode.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "LGPL-3.0"
+            ],
+            "authors": [
+                {
+                    "name": "Nicola Asuni",
+                    "email": "info@tecnick.com",
+                    "role": "lead"
+                }
+            ],
+            "description": "TCPDF is a PHP class for generating PDF documents and barcodes.",
+            "homepage": "http://www.tcpdf.org/",
+            "keywords": [
+                "PDFD32000-2008",
+                "TCPDF",
+                "barcodes",
+                "datamatrix",
+                "pdf",
+                "pdf417",
+                "qrcode"
+            ],
+            "time": "2018-10-16T17:24:05+00:00"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": {
+        "naitsirch/tcpdf-extension": 20
+    },
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": [],
+    "platform-dev": [],
+    "plugin-api-version": "1.1.0"
+}

@@ -1,0 +1,5 @@
+{
+    "require": {
+        "naitsirch/tcpdf-extension": "dev-master"
+    }
+}
