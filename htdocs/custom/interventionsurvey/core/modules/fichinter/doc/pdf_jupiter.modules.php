@@ -64,9 +64,7 @@ function effective_working_time_cmp($a, $b)
     return ($a['begin'] < $b['begin']) ? -1 : 1;
 }
 
-if (!class_exists('ComposerAutoloaderInit378051700fe09afc9ba6b1d6762d90c8', false)) {
-    dol_include_once('/interventionsurvey/vendor/autoload.php');
-}
+require_once __DIR__.'/../../../../vendor/autoload.php';
 
 use Tcpdf\Extension\Table\Table;
 
