@@ -64,7 +64,7 @@ function effective_working_time_cmp($a, $b)
     return ($a['begin'] < $b['begin']) ? -1 : 1;
 }
 
-require_once __DIR__.'/../../../../vendor/autoload.php';
+require_once __DIR__ . '/../../../../vendor/autoload.php';
 
 use Tcpdf\Extension\Table\Table;
 
