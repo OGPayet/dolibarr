@@ -382,7 +382,7 @@ class pdf_jupiter extends ModelePDFFicheinter
                     $pdf->setPageOrientation('', 1, 0);    // The only function to edit the bottom margin of current page to set it.
                     $this->_pagefoot($pdf, $object, $outputlangs);
                     $pdf->setPageOrientation('', 1, $heightforfooter);    // The only function to edit the bottom margin of current page to set it.
-                    //Print head on new page
+                    //Print head on new alexis
                     if (empty($conf->global->MAIN_PDF_DONOTREPEAT_HEAD)) {
                         $this->_pagehead($pdf, $object, 0, $outputlangs);
                     }

@@ -1,15 +1,3 @@
-# Generated binaries
-/build/*.zip
-# Doxygen generated documentation
-/build/doxygen/doxygen_warnings.log
-/doc/code/doxygen
-# Composer managed dependencies
-/dev/bin
-# PHPdocumentor generated files
-/build/phpdoc
-/doc/code/phpdoc
-# Sphinx generated files
-/doc/user/build
 /.settings/
 /.buildpath
 /.project
