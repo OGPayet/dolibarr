@@ -281,11 +281,7 @@ class pdf_jupiter extends ModelePDFFicheinter
 
                     $tab_top = $nexY + 5;
                 }
-
-                $iniY = $tab_top + 7;
                 $curY = $tab_top + 7;
-                $nexY = $tab_top + 7;
-
                 $listOfAttachedFiles = getListOfAttachedFiles($object->ref);
 
                 // Print survey
