@@ -319,7 +319,7 @@ class pdf_jupiter extends ModelePDFFicheinter
                 $useFulAreaEndY = $page_height - $page_margins['bottom'];
 
                 $neededOffsetForWorkingTimeArea = $needeSpaceForWorkingTimeArea['spaceToFooterOnLastPage'];
-                $YtoStartWorkingTimeArea = $curY + $neededOffsetForWorkingTimeArea;
+                $YtoStartWorkingTimeArea = $curY + $neededOffsetForWorkingTimeArea - 1;
 
                 if ($YtoStartWorkingTimeArea >= $useFulAreaEndY) {
                     $offsetManagedOnStartPage = $useFulAreaEndY - $curY;
@@ -335,7 +335,7 @@ class pdf_jupiter extends ModelePDFFicheinter
                 }
 
                 $neededOffsetForSignatoryArea = $neededSpaceForSignatureArea['spaceToFooterOnLastPage'];
-                $YtoStartSignatureArea = $curY + $neededOffsetForSignatoryArea;
+                $YtoStartSignatureArea = $curY + $neededOffsetForSignatoryArea - 1;
 
                 if ($YtoStartSignatureArea >= $useFulAreaEndY) {
                     $offsetManagedOnStartPage = $useFulAreaEndY - $curY;
@@ -384,6 +384,15 @@ class pdf_jupiter extends ModelePDFFicheinter
                     if (empty($conf->global->MAIN_PDF_DONOTREPEAT_HEAD)) {
                         $this->_pagehead($pdf, $object, 0, $outputlangs);
                     }
+                }
+
+                if($endPage == $startPage){
+                    $currentPage = $pdf->getPage();
+                    $pdf->setPage($startPage);
+                    $pdf->setPageOrientation('', 1, 0);    // The only function to edit the bottom margin of current page to set it.
+                    $this->_pagefoot($pdf, $object, $outputlangs);
+                    $pdf->setPageOrientation('', 1, $heightforfooter);    // The only function to edit the bottom margin of current page to set it.
+                    $pdf->setPage($currentPage);
                 }
 
                 if (method_exists($pdf, 'AliasNbPages')) $pdf->AliasNbPages();
@@ -1546,8 +1555,6 @@ class pdf_jupiter extends ModelePDFFicheinter
         $spaceBetweenEndOfPageAndEndOfTab = $page_height - $page_margins['bottom'] - $YForEffectiveWorkingTimeAreaOnLastPage;
         $pdf->rollbackTransaction(true);
         $computedHeightOnLastPage = $current_page == $finalPage ? $YForEffectiveWorkingTimeAreaOnLastPage - $posy : $YForEffectiveWorkingTimeAreaOnLastPage - $this->top_margin;
-        $computedHeightOnLastPage -= 1; //To avoid page break with round
-        $spaceBetweenEndOfPageAndEndOfTab -= 1; //To avoid page break with round
         return array('numberOfPageCreated' => $finalPage - $current_page, 'heightOnLastPage' => $computedHeightOnLastPage, 'spaceToFooterOnLastPage' => $spaceBetweenEndOfPageAndEndOfTab);
     }
 
@@ -1570,8 +1577,6 @@ class pdf_jupiter extends ModelePDFFicheinter
         $spaceBetweenEndOfPageAndEndOfTab = $page_height - $page_margins['bottom'] - $YForSignatoryAreaOnLastPage;
         $pdf->rollbackTransaction(true);
         $computedHeightOnLastPage = $current_page == $finalPage ? $YForSignatoryAreaOnLastPage - $posy : $YForSignatoryAreaOnLastPage - $this->top_margin;
-        $computedHeightOnLastPage -= 1; //To avoid page break with round
-        $spaceBetweenEndOfPageAndEndOfTab -= 1; //To avoid page break with round
         return array('numberOfPageCreated' => $finalPage - $current_page, 'heightOnLastPage' => $computedHeightOnLastPage, 'spaceToFooterOnLastPage' => $spaceBetweenEndOfPageAndEndOfTab);
     }
 
