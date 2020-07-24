@@ -40,23 +40,35 @@ dol_include_once('/interventionsurvey/lib/interventionsurvey.helper.php');
 dol_include_once('/interventionsurvey/lib/opendsi_pdf.lib.php');
 dol_include_once('/interventionsurvey/class/interventionsurvey.class.php');
 
-function sortImageByPage($a,$b){
-    if($a["startPage"] == $b["startPage"]){
+function sortImageByPage($a, $b)
+{
+    if ($a["startPage"] == $b["startPage"]) {
         return 0;
-    }
-    else {
+    } else {
         return $a["startPage"] < $b["startPage"] ? 1 : -1;
     }
 }
 
-function sortImageByHeight($a,$b){
-    if($a["imageHeight"] == $b["imageHeight"]){
+function sortImageByHeight($a, $b)
+{
+    if ($a["imageHeight"] == $b["imageHeight"]) {
         return 0;
-    }
-    else {
+    } else {
         return $a["imageHeight"] < $b["imageHeight"] ? 1 : -1;
     }
 }
+// Sort times of each involved users
+function effective_working_time_cmp($a, $b)
+{
+    if ($a['begin'] == $b['begin']) return 0;
+    return ($a['begin'] < $b['begin']) ? -1 : 1;
+}
+
+if (!class_exists('ComposerAutoloaderInit378051700fe09afc9ba6b1d6762d90c8', false)) {
+    dol_include_once('/interventionsurvey/vendor/autoload.php');
+}
+
+use Tcpdf\Extension\Table\Table;
 
 /**
  *	Class to build interventions documents with model Soleil with company relationships
@@ -83,12 +95,6 @@ class pdf_jupiter extends ModelePDFFicheinter
     var $main_color = array(192, 0, 0);
 
     var $emetteur;    // Objet societe qui emet
-
-    /**
-     *  List of effective working time by technician
-     * @var array
-     */
-    public $effective_working_time;
 
     /**
      *    Constructor
@@ -191,7 +197,7 @@ class pdf_jupiter extends ModelePDFFicheinter
                 $object->fetchSurvey();
                 $object->fetch_thirdparty();
                 $object->fetch_optionals();
-                $this->_fetch_effective_working_time($object, $outputlangs);
+                $effective_working_time = $this->_fetch_effective_working_time($object, $outputlangs);
 
                 // Add pdfgeneration hook
                 if (!is_object($hookmanager)) {
@@ -244,14 +250,15 @@ class pdf_jupiter extends ModelePDFFicheinter
                 $pdf->SetFont('', '', $default_font_size - 1);
                 $pdf->SetTextColor(0, 0, 0);
 
-                $pdf->startTransaction();
-                $heightforeffectiveworkingtime = $this->_effective_working_time_area($pdf, $object, 0, $outputlangs);
-                $heightforsignature = $this->_signature_area($pdf, $object, 0, $outputlangs);
-                $tab_top_without_address = $this->_pagehead($pdf, $object, 0, $outputlangs);
-                $pdf->rollbackTransaction(true);
+                //we measure how many height is needed for page head
+                $neededSpaceForPageHead = $this->getHeightForPageHead($pdf, $object, 0, $outputlangs);
+                if ($neededSpaceForPageHead['numberOfPageCreated'] > 0) {
+                    $conf->global->MAIN_PDF_DONOTREPEAT_HEAD = 1;
+                }
+
+                $tab_top_without_address = $neededSpaceForPageHead['heightOnLastPage'];
 
                 $heightforinfotot = 0;    // Height reserved to output the info and total part
-                $heightforsignature = max($heightforsignature, $heightforeffectiveworkingtime);  // Height reserved to output the effective working time info and signature part
                 $heightforfreetext = (isset($conf->global->MAIN_PDF_FREETEXT_HEIGHT) ? $conf->global->MAIN_PDF_FREETEXT_HEIGHT : 5);    // Height reserved to output the free text on last page
                 $heightforfooter = $this->marge_basse + 8;    // Height reserved to output the footer (value include bottom margin)
 
@@ -290,27 +297,73 @@ class pdf_jupiter extends ModelePDFFicheinter
                     }
                 }
 
-                $bottomlasttab = $this->page_hauteur - $heightforinfotot - $heightforsignature - $heightforfreetext - $heightforfooter + 3;
+                $pdf->setPageOrientation('', 1, $heightforfooter);    // The only function to edit the bottom margin of current page to set it.
 
-                if ($curY > $bottomlasttab) {
-                    // Print Footer
+                //We determine size of working time area and compute starting position and page to generate Working time area
+                $numberOfPageToSkipBeforeStartingWorkingTimeArea = 0;
+                $needeSpaceForWorkingTimeArea = $this->getHeightForWorkingTimeArea($pdf, $effective_working_time, $curY, $outputlangs);
+                if ($needeSpaceForWorkingTimeArea['numberOfPageCreated'] > 0) {
+                    //We update data starting at 0, in order to know if it can fit to a single page
+                    $needeSpaceForWorkingTimeAreaStartingFromATopPage = $this->getHeightForWorkingTimeArea($pdf, $effective_working_time, 0, $outputlangs);
+                    if ($needeSpaceForWorkingTimeAreaStartingFromATopPage['numberOfPageCreated'] == 0) {
+                        $needeSpaceForWorkingTimeArea = $needeSpaceForWorkingTimeAreaStartingFromATopPage;
+                        $needeSpaceForWorkingTimeArea['numberOfPageCreated'] += 1;
+                        $numberOfPageToSkipBeforeStartingWorkingTimeArea += 1;
+                    }
+                }
+                $YtoStartWorkingTimeArea = $this->page_hauteur - $heightforinfotot - $needeSpaceForWorkingTimeArea['heightOnLastPage'] - $heightforfreetext - $heightforfooter;
+
+                //We determine size of signatory area and compute starting position and page to generate signatory area
+                $numberOfPageToSkipBeforeStartingSignatoryArea = 0;
+                $neededSpaceForSignatureArea = $this->getHeightForSignatureArea($pdf, $object, $curY, $outputlangs);
+                if ($neededSpaceForSignatureArea['numberOfPageCreated'] > 0) {
+                    //We update data starting at 0, in order to know if it can fit to a single page
+                    $needeSpaceForSignatoryAreaStartingFromATopPage = $this->getHeightForSignatureArea($pdf, $object, 0, $outputlangs);
+                    if ($needeSpaceForSignatoryAreaStartingFromATopPage['numberOfPageCreated'] == 0) {
+                        $neededSpaceForSignatureArea = $needeSpaceForSignatoryAreaStartingFromATopPage;
+                        $neededSpaceForSignatureArea['numberOfPageCreated'] += 1;
+                        $numberOfPageToSkipBeforeStartingSignatoryArea += 1;
+                    }
+                }
+                $YtoStartSignatureArea = $this->page_hauteur - $heightforinfotot - $neededSpaceForSignatureArea['heightOnLastPage'] - $heightforfreetext - $heightforfooter;
+
+                //We add the needed number of page to display signatory area and working time area
+                $numberOfPageToAdd = max($needeSpaceForWorkingTimeArea['numberOfPageCreated'], $neededSpaceForSignatureArea['numberOfPageCreated']);
+
+                $startPage = $pdf->getPage();
+                $startPageOfWorkingTimeArea = $startPage + $numberOfPageToAdd - ($needeSpaceForWorkingTimeArea['numberOfPageCreated']  - $numberOfPageToSkipBeforeStartingWorkingTimeArea);
+                $startPageOfSignatoryArea = $startPage + $numberOfPageToAdd - ($neededSpaceForSignatureArea['numberOfPageCreated'] - $numberOfPageToSkipBeforeStartingSignatoryArea);
+
+                if ($numberOfPageToSkipBeforeStartingWorkingTimeArea > 0 || $numberOfPageToSkipBeforeStartingSignatoryArea > 0) {
+                    $this->addNewPageWithProperHeadAndFooter($pdf, $object, $outputlangs, true);
+                }
+                if ($startPageOfWorkingTimeArea < $startPageOfSignatoryArea) {
+                    // Show effective working time
+                    $pdf->setPage($startPageOfWorkingTimeArea);
+                    $this->_effective_working_time_area($pdf, $effective_working_time, $YtoStartWorkingTimeArea, $outputlangs);
+
+                    // Show signature
+                    $startPageOfSignatoryArea = $pdf->getPage() - ($neededSpaceForSignatureArea['numberOfPageCreated'] - $numberOfPageToSkipBeforeStartingSignatoryArea);
+                    $pdf->setPage($startPageOfSignatoryArea);
+                    $this->_signature_area($pdf, $object, $YtoStartSignatureArea, $outputlangs);
+                } else {
+                    // Show signature
+                    $pdf->setPage($startPageOfSignatoryArea);
+                    $this->_signature_area($pdf, $object, $YtoStartSignatureArea, $outputlangs);
+
+                    // Show effective working time
+                    $startPageOfWorkingTimeArea = $pdf->getPage() - ($needeSpaceForWorkingTimeArea['numberOfPageCreated']  - $numberOfPageToSkipBeforeStartingWorkingTimeArea);
+                    $pdf->setPage($startPageOfWorkingTimeArea);
+                    $this->_effective_working_time_area($pdf, $effective_working_time, $YtoStartWorkingTimeArea, $outputlangs);
+                }
+
+                if ($numberOfPageToSkipBeforeStartingWorkingTimeArea == 0 && $numberOfPageToSkipBeforeStartingSignatoryArea == 0) {
+                    //page is not already filled with all footer as we dont create it
                     $pdf->setPageOrientation('', 1, 0);    // The only function to edit the bottom margin of current page to set it.
                     $this->_pagefoot($pdf, $object, $outputlangs);
                     $pdf->setPageOrientation('', 1, $heightforfooter);    // The only function to edit the bottom margin of current page to set it.
-                    //Add a new page
-                    $pdf->AddPage('', '', true);
-                    //Print head on new page
-                    if (empty($conf->global->MAIN_PDF_DONOTREPEAT_HEAD)) $this->_pagehead($pdf, $object, 0, $outputlangs);
                 }
 
-                // Show effective working time
-                $this->_effective_working_time_area($pdf, $object, $bottomlasttab, $outputlangs);
-
-                // Show signature
-                $this->_signature_area($pdf, $object, $bottomlasttab, $outputlangs);
-
-                $pdf->setPageOrientation('', 1, 0);    // The only function to edit the bottom margin of current page to set it.
-                $this->_pagefoot($pdf, $object, $outputlangs);
                 if (method_exists($pdf, 'AliasNbPages')) $pdf->AliasNbPages();
 
                 $pdf->Close();
@@ -433,17 +486,17 @@ class pdf_jupiter extends ModelePDFFicheinter
             $bulletSize      = 1;
             $bulletWidth     = 6;
             $multiCellBorder = 0;
-            $showBenefactor  = FALSE;
+            $showBenefactor  = false;
             if ($conf->companyrelationships->enabled) {
                 $benefactor_id = $object->array_options['options_companyrelationships_fk_soc_benefactor'];
                 if (isset($benefactor_id) && $benefactor_id > 0 && $benefactor_id != $object->thirdparty->id) {
                     $benefactor_company = new Societe($this->db);
                     $benefactor_company->fetch($benefactor_id);
-                    $showBenefactor = TRUE;
+                    $showBenefactor = true;
                 }
             }
 
-            if ($showBenefactor === TRUE) {
+            if ($showBenefactor === true) {
                 $w = intval(($this->page_largeur - ($this->marge_gauche + 7) - $this->marge_droite) / 3);
             }
 
@@ -559,7 +612,7 @@ class pdf_jupiter extends ModelePDFFicheinter
                 $max_y = max($max_y, $pdf->GetY());
             }
             // Show recipient
-            if ($showBenefactor === FALSE) {
+            if ($showBenefactor === false) {
                 $widthrecbox = !empty($conf->global->MAIN_PDF_USE_ISO_LOCATION) ? 92 : 100;
                 if ($this->page_largeur < 210) $widthrecbox = 84; // To work with US executive format
                 $widthrecbox -= 20;
@@ -627,7 +680,9 @@ class pdf_jupiter extends ModelePDFFicheinter
     {
         global $conf;
         $showdetails = $conf->global->MAIN_GENERATE_DOCUMENTS_SHOW_FOOT_DETAILS;
-        return $this->pdf_pagefoot($pdf, $outputlangs, 'FICHINTER_FREE_TEXT', $this->emetteur, $this->marge_basse, $this->marge_gauche, $this->page_hauteur, $object, $showdetails, $hidefreetext);
+        $result = $this->pdf_pagefoot($pdf, $outputlangs, 'FICHINTER_FREE_TEXT', $this->emetteur, $this->marge_basse, $this->marge_gauche, $this->page_hauteur, $object, $showdetails, $hidefreetext);
+        $pdf->SetTextColor(0, 0, 0);
+        return $result;
     }
 
     /**
@@ -687,7 +742,6 @@ class pdf_jupiter extends ModelePDFFicheinter
         }));
 
         foreach ($listOfBlocsToDisplay as $position => $question_bloc) {
-
             if (($left_column_cur_Y - 10 <= $right_column_cur_Y && $left_column_cur_page == $right_column_cur_page) || $left_column_cur_page < $right_column_cur_page) {
                 $pdf->setPage($left_column_cur_page);
                 //We print dot separator if this bloc is not the first printed on this page
@@ -725,7 +779,7 @@ class pdf_jupiter extends ModelePDFFicheinter
         $end_page = max($left_column_cur_page, $right_column_cur_page);
         if ($left_column_cur_page == $right_column_cur_page) {
             $end_y = max($left_column_cur_Y, $right_column_cur_Y);
-        } else if ($end_page == $left_column_cur_page) {
+        } elseif ($end_page == $left_column_cur_page) {
             $end_y = $left_column_cur_Y;
         } else {
             $end_y = $right_column_cur_Y;
@@ -927,7 +981,7 @@ class pdf_jupiter extends ModelePDFFicheinter
         if (!$question_bloc->isBlocDesactivated()) {
             foreach ($question_bloc->questions as $question) {
                 $answer = $question->getChosenAnswer();
-                if(!$question->mandatory_answer && empty($question->fk_chosen_answer) && empty($question->justification_text)){
+                if (!$question->mandatory_answer && empty($question->fk_chosen_answer) && empty($question->justification_text)) {
                     continue;
                 }
                 // Define info for color answer of the question
@@ -1002,7 +1056,7 @@ class pdf_jupiter extends ModelePDFFicheinter
         }
         //We print files of this bloc of question if they are some image files
         $listOfFilePathToDisplay = getListOfWantedFilesInformation($question_bloc->attached_files, $listOfAttachedFiles, array('image/jpg', 'image/jpeg', 'image/gif', 'image/png'));
-        if(!empty($listOfFilePathToDisplay)){
+        if (!empty($listOfFilePathToDisplay)) {
             $posy = $this->_display_images($pdf, $listOfFilePathToDisplay, $posx, 30, $width);
         }
 
@@ -1013,16 +1067,15 @@ class pdf_jupiter extends ModelePDFFicheinter
 
     /**
      *  Load the effective working time into a array
-     * @see $this->effective_working_time
      *
      * @param   Fichinter   $object         Object intervention
      * @param   Translate   $outputlangs    Objet langs
      *
-     * @return  void
+     * @return  array array(array('name'=>Nom de l'utilisateur, 'times'=>array(array('begin'=>date, 'end'=>date, 'duration'=>time))))
      */
     function _fetch_effective_working_time($object, $outputlangs)
     {
-        $this->effective_working_time = array();
+        $result = array();
         $user_cached = array();
 
         if (is_array($object->lines) && count($object->lines)) {
@@ -1032,7 +1085,7 @@ class pdf_jupiter extends ModelePDFFicheinter
                 $user_ids = !empty($line->array_options['options_involved_users']) ? explode(',', $line->array_options['options_involved_users']) : array('');
 
                 foreach ($user_ids as $user_id) {
-                    if (!isset($this->effective_working_time[$user_id])) {
+                    if (!isset($result[$user_id])) {
                         if (!isset($user_cached[$user_id])) {
                             $user_name = '';
                             if ($user_id > 0) {
@@ -1042,199 +1095,104 @@ class pdf_jupiter extends ModelePDFFicheinter
                             }
                             $user_cached[$user_id] = $user_name;
                         }
-                        $this->effective_working_time[$user_id] = array('name' => $user_cached[$user_id], 'times' => array());
+                        $result[$user_id] = array('name' => $user_cached[$user_id], 'times' => array());
                     }
 
-                    $this->effective_working_time[$user_id]['times'][] = array('begin' => $line->datei, 'end' => $line->datei + $line->duration, 'duration' => $line->duration);
+                    $result[$user_id]['times'][] = array('begin' => $line->datei, 'end' => $line->datei + $line->duration, 'duration' => $line->duration);
                 }
             }
-
-            // Sort times of each involved users
-            function effective_working_time_cmp($a, $b)
-            {
-                if ($a['begin'] == $b['begin']) return 0;
-                return ($a['begin'] < $b['begin']) ? -1 : 1;
+            foreach ($result as $k => $v) {
+                uasort($result[$k]['times'], 'effective_working_time_cmp');
             }
-
-            foreach ($this->effective_working_time as $k => $v) {
-                uasort($this->effective_working_time[$k]['times'], 'effective_working_time_cmp');
-            }
+            return $result;
         }
     }
-
-    /**
-     *  Get nb line of effective working time
-     *
-     * @param  Fichinter   $object         Object intervention
-     *
-     * @return int                         Return nb line of effective working time
-     */
-    function _get_nb_effective_working_time($object)
-    {
-        return is_array($object->lines) ? count($object->lines) : 0;
-    }
-
     /**
      *	Show area for the effective working time
      *
-     * @param   PDF			$pdf            Object PDF
-     * @param   Fichinter   $object         Object intervention
+     * @param   TCPDF			$pdf            Object PDF
+     * @param   Array   $effective_working_time         Object Containing effective working time
      * @param   int			$posy			Position depart
      * @param   Translate	$outputlangs	Objet langs
      *
      * @return  int							Height of the area
      */
-    function _effective_working_time_area(&$pdf, $object, $posy, $outputlangs)
+    function _effective_working_time_area(&$pdf, $effective_working_time, $posy, $outputlangs)
     {
         $default_font_size = pdf_getPDFFontSize($outputlangs);
 
-        $table_padding_x = 0.5;
-        $table_padding_y = 1;
-
-        $top_posy = $posy;
-        $w = ($this->page_largeur - $this->marge_gauche - $this->marge_droite - 4) / 2;
+        $tableWidth = ($this->page_largeur - $this->marge_gauche - $this->marge_droite - 4) / 2;
         $column_w_from = 30;
         $column_w_to = 15;
         $column_w_duration = 19;
-        $column_w_involved_user = $w - $column_w_duration - $column_w_to - $column_w_from;
+        $column_w_involved_user = $tableWidth - $column_w_duration - $column_w_to - $column_w_from;
 
-        $column_posx_involved_user = $this->marge_gauche;
-        $column_posx_from = $column_posx_involved_user + $column_w_involved_user;
-        $column_posx_to = $column_posx_from + $column_w_from;
-        $column_posx_duration = $column_posx_to + $column_w_to;
-        $column_posx_end_table = $column_posx_duration + $column_w_duration;
+        $rowMinHeight = 3;
 
-        // Define colors and font size
-        $pdf->SetFont('', 'B', $default_font_size);
-        call_user_func_array(array($pdf, 'SetFillColor'), $this->main_color);
+        $pdf->SetXY($this->marge_gauche, $posy);
+
+        //We display headers
         call_user_func_array(array($pdf, 'SetDrawColor'), $this->main_color);
         $pdf->SetTextColor(255, 255, 255);
+        $table = new Table($pdf);
+        $row = $table->newRow();
+        $this->addCellToRow($row, $outputlangs->transnoentities("InterventionSurveyEffectiveWorkingTimeTitle"), 1, 1, 1, $tableWidth, 'C', 'middle', 'bold', $this->main_color, $rowMinHeight, $default_font_size);
+        $row = $row->end(); //This close the row
+        $table->end(); // this prints the table to the PDF. Don't forget!
 
-        // Print title of the table
-        $pdf->SetXY($column_posx_involved_user, $posy);
-        $pdf->MultiCell($w, 3, $outputlangs->transnoentities("InterventionSurveyEffectiveWorkingTimeTitle"), 1, 'C', 1);
-
-        // Define positions, colors and font size
-        $posy = $top_table = $pdf->GetY();
-        $max_posy = $posy;
-        $pdf->SetFont('', 'B', $default_font_size - 1);
-        $pdf->SetFillColor(255, 255, 255);
+        //We display Column Title and content
         $pdf->SetTextColor(0, 0, 0);
+        $table = new Table($pdf);
 
-        // Print involved user header of the table
-        $pdf->SetXY($column_posx_involved_user + $table_padding_x, $posy + $table_padding_y);
-        $pdf->MultiCell($column_w_involved_user - ($table_padding_x * 2), 3, $outputlangs->transnoentities("InterventionSurveyEffectiveWorkingTimeInvolvedUser"), 0, 'C', 0);
-        $max_posy = max($pdf->GetY(), $max_posy);
+        //Row of column title
+        $row = $table->newRow();
+        $this->addCellToRow($row, $outputlangs->transnoentities("InterventionSurveyEffectiveWorkingTimeInvolvedUser"), 1, null, null, $column_w_involved_user, 'C', 'middle', 'bold');
+        $this->addCellToRow($row, $outputlangs->transnoentities("InterventionSurveyEffectiveWorkingTimeFrom"), 1, null, null, $column_w_from, 'C', 'middle', 'bold');
+        $this->addCellToRow($row, $outputlangs->transnoentities("InterventionSurveyEffectiveWorkingTimeTo"), 1, null, null, $column_w_to, 'C', 'middle', 'bold');
+        $this->addCellToRow($row, $outputlangs->transnoentities("InterventionSurveyEffectiveWorkingTimeDuration"), 1, null, null, $column_w_duration, 'C', 'middle', 'bold');
 
-        // Print from header of the table
-        $pdf->SetXY($column_posx_from + $table_padding_x, $posy + $table_padding_y);
-        $pdf->MultiCell($column_w_from - ($table_padding_x * 2), 3, $outputlangs->transnoentities("InterventionSurveyEffectiveWorkingTimeFrom"), 0, 'C', 0);
-        $max_posy = max($pdf->GetY(), $max_posy);
+        $row = $row->end(); //This close the row
 
-        // Print to header of the table
-        $pdf->SetXY($column_posx_to + $table_padding_x, $posy + $table_padding_y);
-        $pdf->MultiCell($column_w_to - ($table_padding_x * 2), 3, $outputlangs->transnoentities("InterventionSurveyEffectiveWorkingTimeTo"), 0, 'C', 0);
-        $max_posy = max($pdf->GetY(), $max_posy);
+        //Rows of content
+        foreach ($effective_working_time as $user) {
+            $row = $row->newRow();
+            $nameToDisplay = $user['name'];
+            $numberOfPeriodRowForThisUser = count($user['times']);
+            if ($numberOfPeriodRowForThisUser == 0) {
+                $numberOfPeriodRowForThisUser = 1;
+            }
+            $singleLineMinHeight = 5;
+            $minHeight = $numberOfPeriodRowForThisUser * $singleLineMinHeight;
+            $this->addCellToRow($row, $nameToDisplay, 1, $numberOfPeriodRowForThisUser, null, null, 'C', 'middle', 'normal', null, $minHeight, $default_font_size - 1);
+            $lastBeginDay = null;
+            foreach ($user['times'] as $index => $dateInformation) {
+                $beginDate = $dateInformation['begin'];
+                $endDate = $dateInformation['end'];
+                $duration = $dateInformation['duration'];
 
-        // Print duration header of the table
-        $pdf->SetXY($column_posx_duration + $table_padding_x, $posy + $table_padding_y);
-        $pdf->MultiCell($column_w_duration - ($table_padding_x * 2), 3, $outputlangs->transnoentities("InterventionSurveyEffectiveWorkingTimeDuration"), 0, 'C', 0);
-        $max_posy = max($pdf->GetY(), $max_posy);
-
-        // Print bottom line
-        $posy = $max_posy + $table_padding_y;
-        $pdf->line($column_posx_involved_user, $posy, $column_posx_end_table, $posy);
-
-        // Define positions, colors and font size
-        $pdf->SetFont('', '', $default_font_size - 1);
-
-        $total_duration = 0;
-
-        // Print effective working time
-        //-------------------------------------
-        foreach ($this->effective_working_time as $user) {
-            $max_user_posy = $posy;
-            if (is_array($user['times'])) {
-                $idx = 0;
-                $nb_times = count($user['times']);
-                $last_date = '';
-                $top_cell = $posy;
-
-                foreach ($user['times'] as $time) {
-                    $idx++;
-                    $date = dol_print_date($time['begin'], 'day');
-                    if ($last_date == $date) {
-                        $date = '';
-                    } else {
-                        $last_date = $date;
-                        $date .= ' ';
-                    }
-                    $date .= dol_print_date($time['begin'], 'hour');
-
-                    // Print from value
-                    $pdf->SetXY($column_posx_from + $table_padding_x, $posy + $table_padding_y);
-                    $pdf->MultiCell($column_w_from - ($table_padding_x * 2), 3, $date, 0, 'R', 0);
-                    $max_user_posy = max($pdf->GetY(), $max_user_posy);
-
-                    // Print to value
-                    $pdf->SetXY($column_posx_to + $table_padding_x, $posy + $table_padding_y);
-                    $pdf->MultiCell($column_w_to - ($table_padding_x * 2), 3, dol_print_date($time['end'], 'hour'), 0, 'C', 0);
-                    $max_user_posy = max($pdf->GetY(), $max_user_posy);
-
-                    // Print duration value
-                    $pdf->SetXY($column_posx_duration + $table_padding_x + 2, $posy + $table_padding_y);
-                    $pdf->MultiCell($column_w_duration - ($table_padding_x * 2), 3, $this->_print_duration($time['duration'], false, true, false), 0, 1, 0);
-                    $max_user_posy = max($pdf->GetY(), $max_user_posy);
-                    $total_duration += $time['duration'];
-
-                    $posy = $max_user_posy + $table_padding_y;
-                    if ($idx != $nb_times) {
-                        // Print bottom line
-                        $pdf->line($column_posx_from, $posy, $column_posx_end_table, $posy);
-                    }
+                $displayedBeginDate = '';
+                $beginDateDay = dol_print_date($beginDate, 'day');
+                if ($lastBeginDay != $beginDateDay) {
+                    $lastBeginDay = $beginDateDay;
+                    $displayedBeginDate = $beginDateDay . ' ';
                 }
 
-                // Print user name
-                $pdf->SetXY($column_posx_involved_user + $table_padding_x, $top_cell + $table_padding_y);
-                $pdf->MultiCell($column_w_involved_user - ($table_padding_x * 2), $max_user_posy - $top_cell - ($table_padding_y * 2), $user['name'], 0, 'C', 0, 1, '', '', true, 0, false, true, 0, 'M');
-                $max_user_posy = max($pdf->GetY(), $max_user_posy);
-
-                // Print bottom line
-                $posy = $max_user_posy + $table_padding_y;
-                $pdf->line($column_posx_involved_user, $posy, $column_posx_end_table, $posy);
+                $displayedBeginDate .= dol_print_date($beginDate, 'hour');
+                $displayedEndDate = dol_print_date($endDate, 'hour');
+                $displayedDuration = $this->_print_duration($duration, false, true, false);
+                $this->addCellToRow($row, $displayedBeginDate, 1, null, null, null, 'C', 'middle', 'normal', null, null, $default_font_size - 1);
+                $this->addCellToRow($row, $displayedEndDate, 1, null, null, null, 'C', 'middle', 'normal', null, null, $default_font_size - 1);
+                $this->addCellToRow($row, $displayedDuration, 1, null, null, null, 'R', 'middle', 'normal', null, null, $default_font_size - 1);
+                $row = $row->end();
+                if ($index + 1 != $numberOfPeriodRowForThisUser) {
+                    $row = $row->newRow();
+                }
             }
         }
-
-        // Print involved user left line
-        $pdf->line($column_posx_involved_user, $top_table, $column_posx_involved_user, $posy);
-        // Print from left line
-        $pdf->line($column_posx_from, $top_table, $column_posx_from, $posy);
-
-        // Define positions, colors and font size
-        $pdf->SetFont('', 'B', $default_font_size);
-
-        // Print total label
-        $pdf->SetXY($column_posx_to + $table_padding_x, $posy + $table_padding_y);
-        $pdf->MultiCell($column_w_to - ($table_padding_x * 2), 3, $outputlangs->transnoentities("InterventionSurveyEffectiveWorkingTimeTotal"), 0, 'C', 0);
-        $max_posy = max($pdf->GetY(), $max_posy);
-
-        // Print total value
-        $pdf->SetXY($column_posx_duration + $table_padding_x, $posy + $table_padding_y);
-        $pdf->MultiCell($column_w_duration - ($table_padding_x * 2), 3, $this->_print_duration($total_duration, false, true, false), 0, 1, 0);
-        $max_posy = max($pdf->GetY(), $max_posy);
-
-        $posy = $max_posy + $table_padding_y;
-
-        // Print to left line
-        $pdf->line($column_posx_to, $top_table, $column_posx_to, $posy);
-        // Print duration left line
-        $pdf->line($column_posx_duration, $top_table, $column_posx_duration, $posy);
-        // Print duration right line
-        $pdf->line($column_posx_end_table, $top_table, $column_posx_end_table, $posy);
-        // Print bottom line
-        $pdf->line($column_posx_to, $posy, $column_posx_end_table, $posy);
-
-        return $posy - $top_posy;
+        //We display Row
+        $table->end();
+        //We display total Rows
+        return $pdf->getY();
     }
 
     /**
@@ -1375,28 +1333,29 @@ class pdf_jupiter extends ModelePDFFicheinter
      * @param int $max_gallery_width            Max width of gallery
      *
      */
-    function _display_images(&$pdf, &$listOfImageInformation, $posx, $max_image_width, $max_gallery_width){
-        if($max_gallery_width < $max_image_width){
+    function _display_images(&$pdf, &$listOfImageInformation, $posx, $max_image_width, $max_gallery_width)
+    {
+        if ($max_gallery_width < $max_image_width) {
             $max_image_width = $max_gallery_width;
         }
-        $numberOfColumn = intdiv($max_gallery_width,$max_image_width);
-        if($numberOfColumn > 1){
-            $spaceBetweenImage = fmod($max_gallery_width,$max_image_width)/($numberOfColumn - 1);
+        $numberOfColumn = intdiv($max_gallery_width, $max_image_width);
+        if ($numberOfColumn > 1) {
+            $spaceBetweenImage = fmod($max_gallery_width, $max_image_width) / ($numberOfColumn - 1);
         }
         $cur_Y = $pdf->getY() + 1;
-        $image_rows = $this->getImageSortedByHeight($pdf,$listOfImageInformation,$cur_Y,$max_image_width);
+        $image_rows = $this->getImageSortedByHeight($pdf, $listOfImageInformation, $cur_Y, $max_image_width);
         $image_rows = $this->getImagesInformationsPerRow($image_rows, $numberOfColumn);
-        foreach($image_rows as $index=>$row){
+        foreach ($image_rows as $index => $row) {
             $current_page = $pdf->GetPage();
-            $cur_Y = $this->_display_images_row($pdf, $row,$posx, $cur_Y, $max_image_width,$spaceBetweenImage);
-            if($current_page == $pdf->GetPage() && $index + 1 != count($image_rows)){
+            $cur_Y = $this->_display_images_row($pdf, $row, $posx, $cur_Y, $max_image_width, $spaceBetweenImage);
+            if ($current_page == $pdf->GetPage() && $index + 1 != count($image_rows)) {
                 $cur_Y += $spaceBetweenImage; //we add some vertical marging for next row if it is not the last row and if last displayed row didn't pushed us to a new page
             }
         }
         return $cur_Y;
     }
 
-/**
+    /**
      *
      * Display an array of image without changing their proportion
      * @param   PDF         $pdf            Object PDF
@@ -1407,10 +1366,11 @@ class pdf_jupiter extends ModelePDFFicheinter
      * @param int $horizontalSpace          horizontal space between image
      *
      */
-    function _display_images_row(&$pdf, &$row, $posx, $cur_Y, $max_image_width, $horizontalSpace) {
+    function _display_images_row(&$pdf, &$row, $posx, $cur_Y, $max_image_width, $horizontalSpace)
+    {
         $x_offset = $max_image_width + $horizontalSpace;
         //first we add posx information to each image information
-        foreach($row as $index => &$image){
+        foreach ($row as $index => &$image) {
             $image['posx'] = $posx + ($index * $x_offset);
         }
         //now we compute start page and position of each picture
@@ -1419,19 +1379,18 @@ class pdf_jupiter extends ModelePDFFicheinter
         $effective_start_page = $this->getMaxStartPage($row);
         $end_Y = 0;
         $max_page = $pdf->getPage();
-        foreach($row as $index => $imageToDisplay){
-            $end_pos_y = $this->_display_image($pdf,$max_image_width,0,$imageToDisplay["posx"],$cur_Y,$imageToDisplay["fullname"]);
+        foreach ($row as $index => $imageToDisplay) {
+            $end_pos_y = $this->_display_image($pdf, $max_image_width, 0, $imageToDisplay["posx"], $cur_Y, $imageToDisplay["fullname"]);
             $current_page = $pdf->getPage();
-            if($current_page > $max_page){
+            if ($current_page > $max_page) {
                 $end_Y = $end_pos_y;
                 $max_page = $current_page;
                 //we are on a new page, we use top_margin as new cur_y to display next image on this row
                 $cur_Y = $this->top_margin;
-            }
-            else if($end_Y < $end_pos_y){
+            } elseif ($end_Y < $end_pos_y) {
                 $end_Y = $end_pos_y;
             }
-            if($index + 1 < count($row)){
+            if ($index + 1 < count($row)) {
                 $pdf->setPage($effective_start_page); //to display next picture at the right page
             }
         }
@@ -1439,13 +1398,15 @@ class pdf_jupiter extends ModelePDFFicheinter
         return $end_Y;
     }
 
-    function _display_image(&$pdf, $image_width, $image_heigth, $posx, $pos_y, $imagePath){
+    function _display_image(&$pdf, $image_width, $image_heigth, $posx, $pos_y, $imagePath)
+    {
         $pdf->writeHTMLCell($image_width, $image_heigth, $posx, $pos_y, '<img src="' . $imagePath . '"/>', 0, 1);
         return $pdf->GetY();
     }
 
-    function getEffectiveInformationsForThisImage(&$pdf, $image_width, $image_heigth, $posx, $pos_y, $imagePath){
-        $result = array('startPage'=>null, 'imageHeight'=>null);
+    function getEffectiveInformationsForThisImage(&$pdf, $image_width, $image_heigth, $posx, $pos_y, $imagePath)
+    {
+        $result = array('startPage' => null, 'imageHeight' => null);
         $start_page = $pdf->getPage();
         $pdf->startTransaction();
         $this->_display_image($pdf, $image_width, $image_heigth, $posx, $pos_y, $imagePath);
@@ -1458,8 +1419,9 @@ class pdf_jupiter extends ModelePDFFicheinter
         return $result;
     }
 
-    function addEffectiveInformationToImage(&$pdf, &$row, $cur_Y, $max_image_width){
-        foreach($row as &$image){
+    function addEffectiveInformationToImage(&$pdf, &$row, $cur_Y, $max_image_width)
+    {
+        foreach ($row as &$image) {
             $informationOfThisImage = $this->getEffectiveInformationsForThisImage($pdf, $max_image_width, 0, $image['posx'], $cur_Y, $image['fullname']);
             $image["startPage"] = $informationOfThisImage["startPage"];
             $image["imageHeight"] = $informationOfThisImage["imageHeight"];
@@ -1467,29 +1429,118 @@ class pdf_jupiter extends ModelePDFFicheinter
         return $row;
     }
 
-    function getRowSortedToBePrinted(&$pdf, &$row, $cur_Y, $max_image_width){
+    function getRowSortedToBePrinted(&$pdf, &$row, $cur_Y, $max_image_width)
+    {
         $row = $this->addEffectiveInformationToImage($pdf, $row, $cur_Y, $max_image_width);
         usort($row, "sortImageByPage");
         return $row;
     }
 
-    function getImageSortedByHeight(&$pdf, &$arrayOfImage, $cur_Y, $max_image_width){
+    function getImageSortedByHeight(&$pdf, &$arrayOfImage, $cur_Y, $max_image_width)
+    {
         $arrayOfImage = $this->addEffectiveInformationToImage($pdf, $arrayOfImage, $cur_Y, $max_image_width);
         usort($arrayOfImage, "sortImageByHeight");
         return $arrayOfImage;
     }
 
-    function getMaxStartPage(&$row){
+    function getMaxStartPage(&$row)
+    {
         $max_page = 0;
-        foreach($row as &$image){
-            if($image["startPage"] > $max_page){
+        foreach ($row as &$image) {
+            if ($image["startPage"] > $max_page) {
                 $max_page = $image["startPage"];
             }
         }
         return $max_page;
     }
 
+    /**
+     *    Add a proper new page with footer and header
+     *
+     * @param    PDF $pdf PDF
+     * @param    Object $object Object to show
+     * @param    Translate $outputlangs Object lang for output
+     * @param    int $heightforfooter Needed reserved height for footer
+     * @param    bool $addFooterForCurrentPage Should we add footer on current pdf page
+     * @return    int return page number created
+     */
+    private function addNewPageWithProperHeadAndFooter(&$pdf, $object, $outputlangs, $heightforfooter, $addFooterForCurrentPage = false)
+    {
+        global $conf;
+        if ($addFooterForCurrentPage) {
+            $pdf->setPageOrientation('', 1, 0);    // The only function to edit the bottom margin of current page to set it.
+            $this->_pagefoot($pdf, $object, $outputlangs);
+            $pdf->setPageOrientation('', 1, $heightforfooter);    // The only function to edit the bottom margin of current page to set it.
+        }
+        //Add a new page
+        $pdf->AddPage('', '', true);
+        //Print head on new page
+        if (empty($conf->global->MAIN_PDF_DONOTREPEAT_HEAD)) {
+            $this->_pagehead($pdf, $object, 0, $outputlangs);
+        }
+        // Print Footer
+        $pdf->setPageOrientation('', 1, 0);    // The only function to edit the bottom margin of current page to set it.
+        $this->_pagefoot($pdf, $object, $outputlangs);
+        $pdf->setPageOrientation('', 1, $heightforfooter);    // The only function to edit the bottom margin of current page to set it.
+        return $pdf->getPage();
+    }
 
+    /**
+     * Function to know, according to current pdf page and given posy, height and number of page needed to display Wording Time Area
+     * @param   PDF			$pdf            Object PDF
+     * @param   Fichinter   $object         Object intervention
+     * @param   int			$posy			Position depart
+     * @param   Translate	$outputlangs	Objet langs
+     * @return array return an array as result - array("numberOfPageCreated"=>0,"finalPosition"=>0)
+     */
+    private function getHeightForWorkingTimeArea(&$pdf, $effective_working_time, $posy, $outputlangs)
+    {
+        $pdf->startTransaction();
+        $current_page = $pdf->getPage();
+        $YForEffectiveWorkingTimeAreaOnLastPage = $this->_effective_working_time_area($pdf, $effective_working_time, $posy, $outputlangs);
+        $finalPage = $pdf->getPage();
+        $pdf->rollbackTransaction(true);
+        $computedHeightOnLastPage = $current_page == $finalPage ? $YForEffectiveWorkingTimeAreaOnLastPage - $posy : $YForEffectiveWorkingTimeAreaOnLastPage - $this->top_margin;
+        return array('numberOfPageCreated' => $finalPage - $current_page, 'heightOnLastPage' => $computedHeightOnLastPage);
+    }
+
+    /**
+     * Function to know, according to current pdf page and given posy, height and number of page needed to display Signature Area
+     * @param   PDF			$pdf            Object PDF
+     * @param   Fichinter   $object         Object intervention
+     * @param   int			$posy			Position depart
+     * @param   Translate	$outputlangs	Objet langs
+     * @return array return an array as result - array("numberOfPageCreated"=>0,"finalPosition"=>0)
+     */
+    private function getHeightForSignatureArea(&$pdf, $object, $posy, $outputlangs)
+    {
+        $pdf->startTransaction();
+        $current_page = $pdf->getPage();
+        $YForSignatoryAreaOnLastPage = $this->_signature_area($pdf, $object, $posy, $outputlangs);
+        $finalPage = $pdf->getPage();
+        $pdf->rollbackTransaction(true);
+        $computedHeightOnLastPage = $current_page == $finalPage ? $YForSignatoryAreaOnLastPage - $posy : $YForSignatoryAreaOnLastPage - $this->top_margin;
+        return array('numberOfPageCreated' => $finalPage - $current_page, 'heightOnLastPage' => $computedHeightOnLastPage);
+    }
+
+    /**
+     * Function to know, according to current pdf page and given posy, height and number of page needed to display top pdf informations
+     * @param   PDF			$pdf            Object PDF
+     * @param   Fichinter   $object         Object intervention
+     * @param   int			$posy			Position depart
+     * @param   Translate	$outputlangs	Objet langs
+     * @return array return an array as result - array("numberOfPageCreated"=>0,"finalPosition"=>0)
+     */
+    private function getHeightForPageHead(&$pdf, $object, $posy, $outputlangs)
+    {
+        $pdf->startTransaction();
+        $current_page = $pdf->getPage();
+        $YForPageHeadOnLastPage = $this->_pagehead($pdf, $object, $posy, $outputlangs);
+        $finalPage = $pdf->getPage();
+        $pdf->rollbackTransaction(true);
+        $computedHeightOnLastPage = $current_page == $finalPage ? $YForPageHeadOnLastPage - $posy : $YForPageHeadOnLastPage - $this->top_margin;
+        return array('numberOfPageCreated' => $finalPage - $current_page, 'heightOnLastPage' => $computedHeightOnLastPage);
+    }
 
 
     /**
@@ -1499,20 +1550,73 @@ class pdf_jupiter extends ModelePDFFicheinter
      * @return array
      */
 
-     function getImagesInformationsPerRow(&$listOfImageInformation, $numberOfImagePerRow){
-         $result = array();
-         $current_row = 0;
-         foreach($listOfImageInformation as &$image){
-             if(empty($result[$current_row])){
+    function getImagesInformationsPerRow(&$listOfImageInformation, $numberOfImagePerRow)
+    {
+        $result = array();
+        $current_row = 0;
+        foreach ($listOfImageInformation as &$image) {
+            if (empty($result[$current_row])) {
                 $result[$current_row] = array();
-             }
-             $result[$current_row][] = $image;
-             if(count($result[$current_row]) == $numberOfImagePerRow){
-                 $current_row += 1;
-             }
-         }
-         return $result;
-     }
+            }
+            $result[$current_row][] = $image;
+            if (count($result[$current_row]) == $numberOfImagePerRow) {
+                $current_row += 1;
+            }
+        }
+        return $result;
+    }
+    /**
+     * @param Row $row row object
+     * @param string $text Texte à afficher
+     * @param string $border border param as used by TCPDF:Multicell (0,1 OR  L B T R in any order)
+     * @param int $rowspan number of row used by this cell, like in HTML
+     * @param int $colspan number of col used by this cell, like in HTML
+     * @param int $width Width of this cell as used by TCPDF
+     * @param string $aligment - horizontal aligment of the text - possible values : L (left), C (center), R (right), J (Justify)
+     * @param string $verticalAlignment - vertical aligment of the text - possible values : top, bottom, middle
+     * @param string $fontWeight - normal or bold
+     * @param string|Array $backgroundColord - hexadecimal RGB color code or decimal RGB color array
+     * @param string $minHeight css cell min height
+     * @param string $fontSize - size to use for font
+     * @return Row
+     */
+    private function addCellToRow(&$row, $text = "", $border = 0, $rowspan = null, $colspan = null, $width = null, $alignment = 'L', $verticalAlign = 'top', $fontWeight = 'normal', $backgroundColor = null, $minHeight = null, $fontSize = null)
+    {
+        $temp = $row->newCell();
+        $temp->setText($text);
+        if (!empty($border)) {
+            $temp->setBorder($border);
+        }
+        if (!empty($rowspan)) {
+            $temp->setRowspan($rowspan);
+        }
+        if (!empty($colspan)) {
+            $temp->setColspan($colspan);
+        }
+        if (!empty($width)) {
+            $temp->setWidth($width);
+        }
+        if (!empty($alignment)) {
+            $temp->setAlign($alignment);
+        }
+        if (!empty($verticalAlign)) {
+            $temp->setVerticalAlign($verticalAlign);
+        }
+        if (!empty($fontWeight)) {
+            $temp->setFontWeight($fontWeight);
+        }
+        if (!empty($backgroundColor)) {
+            $temp->setBackgroundColor($backgroundColor);
+        }
+        if (!empty($minHeight)) {
+            $temp->setMinHeight($minHeight);
+        }
+        if (isset($fontSize)) {
+            $temp->setFontSize($fontSize);
+        }
+        $row = $temp->end();
+        return $row;
+    }
 
     /**
      * Return the duration information array('days', 'hours', 'minutes', 'seconds')
@@ -1534,7 +1638,7 @@ class pdf_jupiter extends ModelePDFFicheinter
                 $timestamp -= $days * 86400;
             }
 
-            if ($hour_minute > 0) {
+            if ($hour_minute) {
                 $hours = floor($timestamp / 3600);
                 $timestamp -= $hours * 3600;
 
@@ -1542,7 +1646,7 @@ class pdf_jupiter extends ModelePDFFicheinter
                 $timestamp -= $minutes * 60;
             }
 
-            if ($second > 0) {
+            if ($second) {
                 $seconds = $timestamp;
             }
         }
@@ -1564,12 +1668,26 @@ class pdf_jupiter extends ModelePDFFicheinter
     {
         $duration_infos = $this->_get_duration($timestamp, $day, $hour_minute, $second);
 
+        $isDurationNull = $duration_infos['days'] == 0 && $duration_infos['hours'] == 0 && $duration_infos['minutes'] == 0 && $duration_infos['seconds'] == 0;
+        $displayedUnit = array(
+            'second' => $second,
+            'hour_minute' => $hour_minute,
+            'day' => $day,
+        );
+        $smallestUsedUnit = array_search(true, $displayedUnit);
         $text = '';
-        if ($duration_infos['days'] > 0) $text .= $duration_infos['days'] . 'j';
-        if ($duration_infos['hours'] > 0) $text .= $duration_infos['hours'] . 'h';
-        if ($duration_infos['minutes'] > 0) $text .= $duration_infos['minutes'] . 'm';
-        if ($duration_infos['seconds'] > 0) $text .= $duration_infos['seconds'] . 's';
-
+        if ($duration_infos['days'] > 0 || ($isDurationNull && $smallestUsedUnit == 'day')) {
+            $text .= $duration_infos['days'] . 'j';
+        }
+        if ($duration_infos['hours'] > 0 ) {
+            $text .= $duration_infos['hours'] . 'h';
+        }
+        if ($duration_infos['minutes'] > 0 || ($isDurationNull && $smallestUsedUnit == 'hour_minute')) {
+            $text .= $duration_infos['minutes'] . 'm';
+        }
+        if ($duration_infos['seconds'] > 0 || ($isDurationNull && $smallestUsedUnit == 'second')) {
+            $text .= $duration_infos['seconds'] . 's';
+        }
         return trim($text);
     }
 }
