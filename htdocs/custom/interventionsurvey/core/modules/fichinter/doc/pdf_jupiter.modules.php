@@ -1337,9 +1337,10 @@ class pdf_jupiter extends ModelePDFFicheinter
         for ($page = $startPage; $page <= $endPage; $page++) {
             $pdf->setPage($page);
 
-            $this->_pageHeadForCreatedPage($pdf, $object, $outputlangs);
-            $this->printFooterOnCurrentPage($pdf, $object, $outputlangs, $heightforfooter);
-
+            if($page < $endPage){
+                $this->_pageHeadForCreatedPage($pdf, $object, $outputlangs);
+                $this->printFooterOnCurrentPage($pdf, $object, $outputlangs, $heightforfooter);
+            }
             $page_height = $pdf->getPageHeight();
             $page_margins = $pdf->getMargins();
             if ($page > $startPage) {
