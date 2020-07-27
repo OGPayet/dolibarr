@@ -783,7 +783,7 @@ class pdf_jupiter extends ModelePDFFicheinter
             return !$bloc->private;
         }));
 
-        foreach ($listOfBlocsToDisplay as $position => $question_bloc) {
+        foreach ($listOfBlocsToDisplay as $question_bloc) {
             if (($left_column_cur_Y - 10 <= $right_column_cur_Y && $left_column_cur_page == $right_column_cur_page) || $left_column_cur_page < $right_column_cur_page) {
                 $pdf->setPage($left_column_cur_page);
                 //We print dot separator if this bloc is not the first printed on this page
@@ -1082,7 +1082,7 @@ class pdf_jupiter extends ModelePDFFicheinter
      *
      * @return  array array(array('name'=>Nom de l'utilisateur, 'times'=>array(array('begin'=>date, 'end'=>date, 'duration'=>time))))
      */
-    function _fetch_effective_working_time($object, $outputlangs)
+    private function _fetch_effective_working_time($object, $outputlangs)
     {
         $result = array();
         $user_cached = array();
@@ -1258,7 +1258,7 @@ class pdf_jupiter extends ModelePDFFicheinter
      *	Show a description line content
      *
      * @param   PDF         $pdf            Object PDF
-     * @param   Fichinter   $Object        Object intervention
+     * @param   Fichinter   $object        Object intervention
      * @param   FichinterDet   $line        Object intervention Line
      * @param   int         $posx           Position depart
      * @param   int         $posy			Position depart
