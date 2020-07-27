@@ -373,21 +373,15 @@ class pdf_jupiter extends ModelePDFFicheinter
                 for ($page = $lastPageNumberWithProperFooterAndHeader + 1; $page <= $endPage; ++$page) {
                     //page is not already filled with all footer as we dont create it
                     $pdf->setPage($page);
-                    $pdf->setPageOrientation('', 1, 0);    // The only function to edit the bottom margin of current page to set it.
-                    $this->_pagefoot($pdf, $object, $outputlangs);
-                    $pdf->setPageOrientation('', 1, $heightforfooter);    // The only function to edit the bottom margin of current page to set it.
-                    //Print head on new alexis
-                    if (empty($conf->global->MAIN_PDF_DONOTREPEAT_HEAD)) {
-                        $this->_pagehead($pdf, $object, 0, $outputlangs);
-                    }
+                    $this->printFooterOnCurrentPage($pdf, $object, $outputlangs, $heightforfooter);
+                    //Print head on new page
+                    $this->_pageHeadForCreatedPage($pdf, $object, $outputlangs);
                 }
 
                 if($endPage == $startPage){
                     $currentPage = $pdf->getPage();
                     $pdf->setPage($startPage);
-                    $pdf->setPageOrientation('', 1, 0);    // The only function to edit the bottom margin of current page to set it.
-                    $this->_pagefoot($pdf, $object, $outputlangs);
-                    $pdf->setPageOrientation('', 1, $heightforfooter);    // The only function to edit the bottom margin of current page to set it.
+                    $this->printFooterOnCurrentPage($pdf, $object, $outputlangs, $heightforfooter);
                     $pdf->setPage($currentPage);
                 }
 
@@ -416,6 +410,20 @@ class pdf_jupiter extends ModelePDFFicheinter
         } else {
             $this->error = $langs->trans("ErrorConstantNotDefined", "FICHEINTER_OUTPUTDIR");
             return 0;
+        }
+    }
+
+    /** Show Top Header on page created after first page
+     * @param  PDF          $pdf            Object PDF
+     * @param  Fichinter    $object         Object intervention
+     * @param  Translate    $outputlangs    Object lang for output
+     * @return int pos_y    position after head has been printed
+    */
+    private function _pageHeadForCreatedPage(&$pdf, $object, $outputlangs)
+    {
+        global $conf;
+        if (empty($conf->global->MAIN_PDF_DONOTREPEAT_HEAD)) {
+            return $this->_pagehead($pdf, $object, 0, $outputlangs);
         }
     }
 
@@ -832,9 +840,7 @@ class pdf_jupiter extends ModelePDFFicheinter
                 // First page
                 if ($page == $start_page) {
                     // Print Footer
-                    $pdf->setPageOrientation('', 1, 0);    // The only function to edit the bottom margin of current page to set it.
-                    $this->_pagefoot($pdf, $object, $outputlangs);
-                    $pdf->setPageOrientation('', 1, $heightforfooter);    // The only function to edit the bottom margin of current page to set it.
+                    $this->printFooterOnCurrentPage($pdf, $object, $outputlangs, $heightforfooter);
 
                     // Draw frame
                     call_user_func_array(array($pdf, 'SetDrawColor'), $this->main_color);
@@ -847,9 +853,9 @@ class pdf_jupiter extends ModelePDFFicheinter
                 } // Last page
                 elseif ($page == $end_page) {
                     // Print Header
-                    $pos_y = $page_margins['top'];
-                    if (empty($conf->global->MAIN_PDF_DONOTREPEAT_HEAD)) {
-                        $pos_y = $this->_pagehead($pdf, $object, 0, $outputlangs);
+                    $pos_y = $this->_pageHeadForCreatedPage($pdf, $object, $outputlangs);
+                    if(empty($pos_y)){
+                        $pos_y = $page_margins['top'];
                     }
 
                     // Draw frame
@@ -864,14 +870,12 @@ class pdf_jupiter extends ModelePDFFicheinter
                 } // Middle page
                 else {
                     // Print Header
-                    $pos_y = $page_margins['top'];
-                    if (empty($conf->global->MAIN_PDF_DONOTREPEAT_HEAD)) {
-                        $pos_y = $this->_pagehead($pdf, $object, 0, $outputlangs);
+                    $pos_y = $this->_pageHeadForCreatedPage($pdf, $object, $outputlangs);
+                    if(empty($pos_y)){
+                        $pos_y = $page_margins['top'];
                     }
                     // Print Footer
-                    $pdf->setPageOrientation('', 1, 0);    // The only function to edit the bottom margin of current page to set it.
-                    $this->_pagefoot($pdf, $object, $outputlangs);
-                    $pdf->setPageOrientation('', 1, $heightforfooter);    // The only function to edit the bottom margin of current page to set it.
+                    $this->printFooterOnCurrentPage($pdf, $object, $outputlangs, $heightforfooter);
 
                     // Draw frame
                     call_user_func_array(array($pdf, 'SetDrawColor'), $this->main_color);
@@ -1515,22 +1519,31 @@ class pdf_jupiter extends ModelePDFFicheinter
     {
         global $conf;
         if ($addFooterForCurrentPage) {
-            $pdf->setPageOrientation('', 1, 0);    // The only function to edit the bottom margin of current page to set it.
-            $this->_pagefoot($pdf, $object, $outputlangs);
-            $pdf->setPageOrientation('', 1, $heightforfooter);    // The only function to edit the bottom margin of current page to set it.
+            $this->printFooterOnCurrentPage($pdf, $object, $outputlangs, $heightforfooter);
         }
         //Add a new page
         $pdf->AddPage('', '', true);
         //Print head on new page
-        if (empty($conf->global->MAIN_PDF_DONOTREPEAT_HEAD)) {
-            $this->_pagehead($pdf, $object, 0, $outputlangs);
-        }
+        $this->_pageHeadForCreatedPage($pdf, $object, $outputlangs);
         // Print Footer
+       $this->printFooterOnCurrentPage($pdf, $object, $outputlangs, $heightforfooter);
+       return $pdf->getPage();
+    }
+
+    /**
+     * Add A footer to current pdf page
+     * @param    PDF $pdf PDF
+     * @param    Object $object Object to show
+     * @param    Translate $outputlangs Object lang for output
+     * @param    int $heightforfooter Needed reserved height for footer
+     * @return    void
+     */
+
+     private function printFooterOnCurrentPage(&$pdf, $object, $outputlangs, $heightforfooter) {
         $pdf->setPageOrientation('', 1, 0);    // The only function to edit the bottom margin of current page to set it.
         $this->_pagefoot($pdf, $object, $outputlangs);
         $pdf->setPageOrientation('', 1, $heightforfooter);    // The only function to edit the bottom margin of current page to set it.
-        return $pdf->getPage();
-    }
+     }
 
     /**
      * Function to know, according to current pdf page and given posy, height and number of page needed to display Wording Time Area
@@ -1580,15 +1593,15 @@ class pdf_jupiter extends ModelePDFFicheinter
      * Function to know, according to current pdf page and given posy, height and number of page needed to display top pdf informations
      * @param   PDF			$pdf            Object PDF
      * @param   Fichinter   $object         Object intervention
-     * @param   int			$posy			Position depart
+     * @param   int			$showAdress		Display address ?
      * @param   Translate	$outputlangs	Objet langs
      * @return array return an array as result - array("numberOfPageCreated"=>0,"finalPosition"=>0)
      */
-    private function getHeightForPageHead(&$pdf, $object, $posy, $outputlangs)
+    private function getHeightForPageHead(&$pdf, $object, $displayAddress, $outputlangs)
     {
         $pdf->startTransaction();
         $current_page = $pdf->getPage();
-        $YForPageHeadOnLastPage = $this->_pagehead($pdf, $object, $posy, $outputlangs);
+        $YForPageHeadOnLastPage = $this->_pagehead($pdf, $object, $displayAddress, $outputlangs);
         $finalPage = $pdf->getPage();
         $pdf->rollbackTransaction(true);
         $computedHeightOnLastPage = $current_page == $finalPage ? $YForPageHeadOnLastPage - $posy : $YForPageHeadOnLastPage - $this->top_margin;
