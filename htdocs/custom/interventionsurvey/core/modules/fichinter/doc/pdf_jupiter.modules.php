@@ -284,12 +284,19 @@ class pdf_jupiter extends ModelePDFFicheinter
                 $curY = $tab_top + 7;
                 $listOfAttachedFiles = getListOfAttachedFiles($object->ref);
 
+                $posx = $this->marge_gauche;
+                $w = $this->page_largeur - $this->marge_gauche - $this->marge_droite;
+
                 // Print survey
                 foreach ($object->survey as $survey_part) {
                     if ($survey_part->doesThisSurveyPartContainsAtLeastOnePublicBloc()) {
-                        $curY = $this->_survey_bloc_part($pdf, $object, $survey_part, $curY, $outputlangs, $heightforfooter, $listOfAttachedFiles) + 2;
+                        $curY = $this->_survey_bloc_part($pdf, $object, $survey_part, $posx, $curY, $w , $outputlangs, $heightforfooter, $listOfAttachedFiles) + 2;
                     }
                 }
+
+                //We display intervention lines informations
+
+                $this-> displayDescriptionContents($pdf, $object, $posx, $curY, $w, $outputlangs, $heightforfooter, $default_font_size);
 
                 //We determine size of working time area and compute starting position and page to generate Working time area
                 $numberOfPageToSkipBeforeStartingWorkingTimeArea = 0;
@@ -378,7 +385,7 @@ class pdf_jupiter extends ModelePDFFicheinter
                     $this->_pageHeadForCreatedPage($pdf, $object, $outputlangs);
                 }
 
-                if($endPage == $startPage){
+                if ($endPage == $startPage) {
                     $currentPage = $pdf->getPage();
                     $pdf->setPage($startPage);
                     $this->printFooterOnCurrentPage($pdf, $object, $outputlangs, $heightforfooter);
@@ -418,7 +425,7 @@ class pdf_jupiter extends ModelePDFFicheinter
      * @param  Fichinter    $object         Object intervention
      * @param  Translate    $outputlangs    Object lang for output
      * @return int pos_y    position after head has been printed
-    */
+     */
     private function _pageHeadForCreatedPage(&$pdf, $object, $outputlangs)
     {
         global $conf;
@@ -726,7 +733,9 @@ class pdf_jupiter extends ModelePDFFicheinter
      * @param   PDF			    $pdf                Object PDF
      * @param   Fichinter       $object             Object intervention
      * @param   SurveyPart    $survey_part         Object survey part
+     * @param   int			    $posx			    Position X of the bloc
      * @param   int			    $posy			    Position Y of the bloc
+     * @param   int			    $w			        Width of the bloc
      * @param   Translate	    $outputlangs	    Objet langs
      * @param   int			    $heightforfooter	Height for footer
      * @param   array			$listOfAttachedFiles	Informations on attached files on linked fichinter
@@ -734,14 +743,11 @@ class pdf_jupiter extends ModelePDFFicheinter
      *
      * @return  int							        Position pour suite
      */
-    function _survey_bloc_part(&$pdf, $object, $survey_part, $posy, $outputlangs, $heightforfooter, $listOfAttachedFiles = array())
+    function _survey_bloc_part(&$pdf, $object, $survey_part, $posx, $posy, $w, $outputlangs, $heightforfooter, $listOfAttachedFiles = array())
     {
         global $conf;
 
         $default_font_size = pdf_getPDFFontSize($outputlangs);
-
-        $posx = $this->marge_droite;
-        $w = $this->page_largeur - $this->marge_gauche - $this->marge_droite;
 
         $column_left_w = ($w - 4) / 2;
         $column_right_w = $column_left_w;
@@ -841,7 +847,6 @@ class pdf_jupiter extends ModelePDFFicheinter
                 if ($page == $start_page) {
                     // Print Footer
                     $this->printFooterOnCurrentPage($pdf, $object, $outputlangs, $heightforfooter);
-
                     // Draw frame
                     call_user_func_array(array($pdf, 'SetDrawColor'), $this->main_color);
                     $pdf->line($posx, $start_y, $posx, $page_height - $page_margins['bottom']); // Left
@@ -854,7 +859,7 @@ class pdf_jupiter extends ModelePDFFicheinter
                 elseif ($page == $end_page) {
                     // Print Header
                     $pos_y = $this->_pageHeadForCreatedPage($pdf, $object, $outputlangs);
-                    if(empty($pos_y)){
+                    if (empty($pos_y)) {
                         $pos_y = $page_margins['top'];
                     }
 
@@ -871,7 +876,7 @@ class pdf_jupiter extends ModelePDFFicheinter
                 else {
                     // Print Header
                     $pos_y = $this->_pageHeadForCreatedPage($pdf, $object, $outputlangs);
-                    if(empty($pos_y)){
+                    if (empty($pos_y)) {
                         $pos_y = $page_margins['top'];
                     }
                     // Print Footer
@@ -1247,6 +1252,111 @@ class pdf_jupiter extends ModelePDFFicheinter
     }
 
     /**
+     *	Show a description lines content
+     *
+     * @param   PDF         $pdf            Object PDF
+     * @param   Fichinter   $Object        Object intervention
+     * @param   int         $posx           Position depart
+     * @param   int         $posy			Position depart
+     * @param   int         $w              Largeur
+     * @param   Translate   $outputlangs	Objet langs
+     * @param   int         $heightforfooter    hauteur footer
+     * @param   int         $default_font_size  Hauteur de base police
+     *
+     * @return  int							Position at the end
+     */
+    private function displayDescriptionContents(&$pdf, $object,$posx, $posy, $w, $outputlangs, $heightforfooter, $default_font_size)
+    {
+        $lines = $object->lines;
+        $linesToDisplay = array_filter($lines, function ($line) {
+            return !empty($line->desc);
+        });
+        $i = 1;
+        $curY = $posy;
+        foreach($linesToDisplay as $line){
+            $curY = $this->displayDescriptionContent($pdf, $object, $line, $posx, $curY, $w, $i, $outputlangs, $heightforfooter, $default_font_size);
+            $curY += 4;
+            $i++;
+        }
+        return $curY;
+    }
+
+    /**
+     *	Show a description line content
+     *
+     * @param   PDF         $pdf            Object PDF
+     * @param   Fichinter   $Object        Object intervention
+     * @param   FichinterDet   $line        Object intervention Line
+     * @param   int         $posx           Position depart
+     * @param   int         $posy			Position depart
+     * @param   int         $w              Largeur
+     * @param   int         $lineNumber     Numéro de la lingne
+     * @param   Translate   $outputlangs	Objet langs
+     * @param   int         $heightforfooter    hauteur footer
+     * @param   int         $default_font_size  Hauteur de base police
+     *
+     * @return  int							Position at the end
+     */
+    private function displayDescriptionContent(&$pdf, $object, $line, $posx, $posy, $w, $lineNumber, $outputlangs, $heightforfooter, $default_font_size)
+    {
+        $textToDisplay = dol_htmlentitiesbr($line->desc);
+        $title = $outputlangs->transnoentities('InterventionSurveyLineDescriptionTitle', $lineNumber);
+        //Display title
+        $startPage = $pdf->GetPage();
+        // Define colors and font size
+        $pdf->SetFont('', 'B', $default_font_size);
+        call_user_func_array(array($pdf, 'SetFillColor'), $this->main_color);
+        call_user_func_array(array($pdf, 'SetDrawColor'), $this->main_color);
+        $pdf->SetTextColor(255, 255, 255);
+
+        // Print title of the table
+        $pdf->SetXY($posx, $posy);
+        $pdf->MultiCell($w, 3, $title, 1, 'C', 1);
+
+        $pdf->SetFont('', '', $default_font_size);
+        $pdf->SetFillColor(255, 255, 255);
+        $pdf->SetTextColor(0, 0, 0);
+
+        $endY = $pdf->GetY();
+        $endPage = $pdf->GetPage();
+        if ($endPage != $startPage) {
+            $this->_pageHeadForCreatedPage($pdf, $object, $outputlangs);
+            $this->printFooterOnCurrentPage($pdf, $object, $outputlangs, $heightforfooter);
+        }
+        //Display content
+        $startPage = $endPage;
+        $startY = $endY;
+        $pdf->writeHTMLCell($w, null, $posx, $startY, $textToDisplay, 'LR', 1, false, true, 'L', true);
+        $endPage = $pdf->getPage();
+        $endY = $pdf->GetY();
+        //Draw top border
+        $dash_style = array('dash' => '10,10', 'color' => $this->main_color);
+        $no_style = array('dash' => 0, 'color' => $this->main_color);
+
+        //Draw intermediate border and add header and footer
+        for ($page = $startPage; $page <= $endPage; $page++) {
+            $pdf->setPage($page);
+
+            $this->_pageHeadForCreatedPage($pdf, $object, $outputlangs);
+            $this->printFooterOnCurrentPage($pdf, $object, $outputlangs, $heightforfooter);
+
+            $page_height = $pdf->getPageHeight();
+            $page_margins = $pdf->getMargins();
+            if ($page > $startPage) {
+                $pdf->line($posx, $page_margins['top'], $posx + $w, $page_margins['top'], $dash_style);
+            }
+            if ($page < $endPage) {
+                $pdf->line($posx, $page_height - $page_margins['bottom'], $posx + $w, $page_height - $page_margins['bottom'], $dash_style);
+            }
+        }
+        $pdf->setPage($endPage);
+        //Draw end border
+        $pdf->line($posx, $endY, $posx + $w, $endY, $no_style);
+        $pdf->SetDrawColor(0, 0, 0);
+        return $endY;
+    }
+
+    /**
      *	Show area for the technician and customer to sign
      *
      * @param   PDF         $pdf            Object PDF
@@ -1526,8 +1636,8 @@ class pdf_jupiter extends ModelePDFFicheinter
         //Print head on new page
         $this->_pageHeadForCreatedPage($pdf, $object, $outputlangs);
         // Print Footer
-       $this->printFooterOnCurrentPage($pdf, $object, $outputlangs, $heightforfooter);
-       return $pdf->getPage();
+        $this->printFooterOnCurrentPage($pdf, $object, $outputlangs, $heightforfooter);
+        return $pdf->getPage();
     }
 
     /**
@@ -1538,12 +1648,12 @@ class pdf_jupiter extends ModelePDFFicheinter
      * @param    int $heightforfooter Needed reserved height for footer
      * @return    void
      */
-
-     private function printFooterOnCurrentPage(&$pdf, $object, $outputlangs, $heightforfooter) {
+    private function printFooterOnCurrentPage(&$pdf, $object, $outputlangs, $heightforfooter)
+    {
         $pdf->setPageOrientation('', 1, 0);    // The only function to edit the bottom margin of current page to set it.
         $this->_pagefoot($pdf, $object, $outputlangs);
         $pdf->setPageOrientation('', 1, $heightforfooter);    // The only function to edit the bottom margin of current page to set it.
-     }
+    }
 
     /**
      * Function to know, according to current pdf page and given posy, height and number of page needed to display Wording Time Area

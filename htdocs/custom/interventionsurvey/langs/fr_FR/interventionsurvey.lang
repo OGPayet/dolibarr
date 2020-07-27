@@ -250,3 +250,4 @@ InterventionSurveyEffectiveWorkingTimeDuration                    = Total
 InterventionSurveyEffectiveWorkingTimeTotal                       = Total
 InterventionSurveyPdfStakeholderSignature                         = Signature Technicien - Le %s à %s
 InterventionSurveyPdfCustomerSignature                            = Signature Client - Le %s à %s
+InterventionSurveyLineDescriptionTitle                            = Détails n°%s
