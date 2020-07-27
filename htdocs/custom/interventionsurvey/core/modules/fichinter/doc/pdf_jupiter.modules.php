@@ -767,20 +767,9 @@ class pdf_jupiter extends ModelePDFFicheinter
         $column_right_w = $column_left_w;
         $column_right_posx = $this->page_largeur - $this->marge_droite - $column_left_w;
 
-        // Define colors and font size
-        $pdf->SetFont('', 'B', $default_font_size);
-        call_user_func_array(array($pdf, 'SetFillColor'), $this->main_color);
-        call_user_func_array(array($pdf, 'SetDrawColor'), $this->main_color);
-        $pdf->SetTextColor(255, 255, 255);
-
-        // Print title of the table
+        //Print survey part title
         $survey_part_title = $survey_part->label;
-        $pdf->SetXY($posx, $posy);
-        $pdf->MultiCell($w, 3, $survey_part_title, 1, 'C', 1);
-
-        $pdf->SetFillColor(255, 255, 255);
-        $pdf->SetDrawColor(0, 0, 0);
-        $pdf->SetTextColor(0, 0, 0);
+        $start_y = $this->printTitleForPdfPart($pdf, $posx, $posy, $w, $survey_part_title, $default_font_size);
 
         $start_y = $pdf->GetY();
         $start_page = $pdf->GetPage();
@@ -844,9 +833,9 @@ class pdf_jupiter extends ModelePDFFicheinter
         $pdf->SetY($start_y);
 
         // Print frame
+        call_user_func_array(array($pdf, 'SetDrawColor'), $this->main_color);
         if ($end_page == $start_page) {
             // Draw frame
-            call_user_func_array(array($pdf, 'SetDrawColor'), $this->main_color);
             $pdf->Rect($posx, $start_y, $w, $end_y - $start_y);
             $pdf->SetDrawColor(0, 0, 0);
         } else {
@@ -856,48 +845,38 @@ class pdf_jupiter extends ModelePDFFicheinter
                 $pdf->setPage($page);
                 $page_height = $pdf->getPageHeight();
                 $page_margins = $pdf->getMargins();
+                $pdf->SetLineStyle($no_style);
 
                 // First page
                 if ($page == $start_page) {
-                    // Draw frame
-                    call_user_func_array(array($pdf, 'SetDrawColor'), $this->main_color);
                     $pdf->line($posx, $start_y, $posx, $page_height - $page_margins['bottom']); // Left
                     $pdf->line($posx + $w, $start_y, $posx + $w, $page_height - $page_margins['bottom']); // Right
                     $pdf->SetLineStyle($dash_style);
                     $pdf->line($posx, $page_height - $page_margins['bottom'], $posx + $w, $page_height - $page_margins['bottom']); // Bottom
-                    $pdf->SetLineStyle($no_style);
-                    $pdf->SetDrawColor(0, 0, 0);
                 } // Last page
                 elseif ($page == $end_page) {
-                    // Draw frame
-                    call_user_func_array(array($pdf, 'SetDrawColor'), $this->main_color);
                     $pdf->line($posx, $page_margins['top'], $posx, $end_y); // Left
                     $pdf->line($posx + $w, $page_margins['top'], $posx + $w, $end_y); // Right
                     $pdf->line($posx, $end_y, $posx + $w, $end_y); // Bottom
                     $pdf->SetLineStyle($dash_style);
                     $pdf->line($posx, $page_margins['top'], $posx + $w, $page_margins['top']); // Top
-                    $pdf->SetLineStyle($no_style);
-                    $pdf->SetDrawColor(0, 0, 0);
                 } // Middle page
                 else {
                     // Draw frame
-                    call_user_func_array(array($pdf, 'SetDrawColor'), $this->main_color);
                     $pdf->line($posx, $page_margins['top'], $posx, $page_height - $page_margins['bottom']); // Left
                     $pdf->line($posx + $w, $page_margins['top'], $posx + $w, $page_height - $page_margins['bottom']); // Right
                     $pdf->SetLineStyle($dash_style);
                     $pdf->line($posx, $page_margins['top'], $posx + $w, $page_margins['top']); // Top
                     $pdf->line($posx, $page_height - $page_margins['bottom'], $posx + $w, $page_height - $page_margins['bottom']); // Bottom
-                    $pdf->SetLineStyle($no_style);
-                    $pdf->SetDrawColor(0, 0, 0);
                 }
             }
+            $pdf->SetLineStyle($no_style);
         }
 
+        $pdf->SetDrawColor(0, 0, 0);
         $pdf->SetPage($end_page);
         $pdf->SetY($end_y);
-        $posy = $end_y;
-
-        return $posy;
+        return $end_y;
     }
 
     /**
@@ -1094,9 +1073,7 @@ class pdf_jupiter extends ModelePDFFicheinter
             $posy = $this->_display_images($pdf, $listOfFilePathToDisplay, $posx, 30, $width);
         }
 
-        $posy += 1;
-
-        return $posy;
+        return $posy + 1;
     }
 
     /**
@@ -1299,23 +1276,9 @@ class pdf_jupiter extends ModelePDFFicheinter
     {
         $textToDisplay = dol_htmlentitiesbr($line->desc);
         $title = $outputlangs->transnoentities('InterventionSurveyLineDescriptionTitle', $lineNumber);
+
         //Display title
-        $startPage = $pdf->GetPage();
-        // Define colors and font size
-        $pdf->SetFont('', 'B', $default_font_size);
-        call_user_func_array(array($pdf, 'SetFillColor'), $this->main_color);
-        call_user_func_array(array($pdf, 'SetDrawColor'), $this->main_color);
-        $pdf->SetTextColor(255, 255, 255);
-
-        // Print title of the table
-        $pdf->SetXY($posx, $posy);
-        $pdf->MultiCell($w, 3, $title, 1, 'C', 1);
-
-        $pdf->SetFont('', '', $default_font_size);
-        $pdf->SetFillColor(255, 255, 255);
-        $pdf->SetTextColor(0, 0, 0);
-
-        $endY = $pdf->GetY();
+        $endY = $this->printTitleForPdfPart($pdf, $posx, $posy, $w, $title, $default_font_size);
         $endPage = $pdf->GetPage();
 
         //Display content
@@ -1345,6 +1308,33 @@ class pdf_jupiter extends ModelePDFFicheinter
         $pdf->line($posx, $endY, $posx + $w, $endY, $no_style);
         $pdf->SetDrawColor(0, 0, 0);
         return $endY;
+    }
+
+    /**
+     * Show Title of a PDF part
+     * @param   PDF         $pdf            Object PDF
+     * @param   int         $posx           Position
+     * @param   int         $posy           Position
+     * @param   int         $w              Width
+     * @param   text        $textToDisplay  Texte à afficher
+     * @param   int         $defaultFontSize    Taille police
+     */
+    private function printTitleForPdfPart(&$pdf, $posx, $posy, $w, $textToDisplay, $defaultFontSize)
+    {
+        // Define colors and font size
+        $pdf->SetFont('', 'B', $defaultFontSize);
+        call_user_func_array(array($pdf, 'SetFillColor'), $this->main_color);
+        call_user_func_array(array($pdf, 'SetDrawColor'), $this->main_color);
+        $pdf->SetTextColor(255, 255, 255);
+
+        // Print title of the table
+        $pdf->SetXY($posx, $posy);
+        $pdf->MultiCell($w, 3, $textToDisplay, 1, 'C', 1);
+
+        $pdf->SetFont('', '', $defaultFontSize);
+        $pdf->SetFillColor(255, 255, 255);
+        $pdf->SetTextColor(0, 0, 0);
+        return $pdf->getY();
     }
 
     /**
