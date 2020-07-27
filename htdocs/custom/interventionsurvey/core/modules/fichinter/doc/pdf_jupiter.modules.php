@@ -770,8 +770,6 @@ class pdf_jupiter extends ModelePDFFicheinter
         //Print survey part title
         $survey_part_title = $survey_part->label;
         $start_y = $this->printTitleForPdfPart($pdf, $posx, $posy, $w, $survey_part_title, $default_font_size);
-
-        $start_y = $pdf->GetY();
         $start_page = $pdf->GetPage();
 
         // Print left column
