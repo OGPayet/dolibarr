@@ -236,7 +236,7 @@ class ExtendedInterventionTypeDictionary extends Dictionary
     /**
      * @var bool    Is multi entity (false = partaged, true = by entity)
      */
-    public $is_multi_entity = true;
+    public $is_multi_entity = false;
 
     /**
 	 * Initialize the dictionary
