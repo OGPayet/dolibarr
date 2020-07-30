@@ -1,0 +1,56 @@
+# Copyright (C) 2020 Alexis LAURIER
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+#
+# Générique
+#
+
+# Module label 'ModuleDigitalSignatureManagerName'
+ModuleDigitalSignatureManagerName = Digital Signature Manager
+# Module description 'ModuleDigitalSignatureManagerDesc'
+ModuleDigitalSignatureManagerDesc = Ce module permet de gérer, depuis dolibarr, la gestion de processus de signature electronique complexe de documents quelconque auprès d'un prestataire tiers (Universign)
+
+#
+# Menu Principal
+#
+ModuleDigitalSignatureManagerTopMenuName = Signature Electronique
+DigitalSignatureRequestLeftMenu = Signature Electronique
+DigitalSignatureRequestList = Liste
+DigitalSignatureRequestCreate = Nouvelle signature
+DigitalSignatureManagerArea = Gestionnaire des signatures électroniques
+DigitalSignatureRequest = Demande de signature electronique
+#
+# Page d'administration
+#
+DigitalSignatureManagerSetup = Configuration du module DigitalSignatureManager
+Settings = Réglages
+DigitalSignatureManagerSetupPage = Page de configuration du module DigitalSignatureManager
+
+#
+# Card
+#
+DigitalSignatureRequestNewObject = Nouvelle demande de signature electronique
+
+#
+# Propriété des champs
+#
+DigitalSignatureManagerLinkToThirparty = Tiers
+
+#
+# Page À propos
+#
+About = À propos
+DigitalSignatureManagerAbout = À propos de DigitalSignatureManager
+DigitalSignatureManagerAboutPage = Page à propos de DigitalSignatureManager

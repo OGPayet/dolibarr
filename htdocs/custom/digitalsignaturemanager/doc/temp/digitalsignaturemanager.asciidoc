@@ -1,0 +1,85 @@
+= DIGITALSIGNATUREMANAGER =
+:subtitle: DIGITALSIGNATUREMANAGER DOCUMENTATION
+:source-highlighter: rouge
+:companyname: test
+:corpname: test
+:orgname: test
+:creator: Alexis LAURIER
+:title: Documentation of module DigitalSignatureManager
+:subject: This document is the document of module DigitalSignatureManager.
+:keywords: DigitalSignatureManager
+// Date du document :
+:docdate: 2020-07-28
+:toc: manual
+:toc-placement: preamble
+
+
+== TOPIC OF DOCUMENT
+
+This is the documentation of module DigitalSignatureManager
+
+
+*Log of versions of document*
+
+[options="header",format="csv"]
+|===
+Author, Date, Version
+--- Alexis LAURIER   ---, 2020-07-28, Version 1.0
+|===
+
+
+[NOTE]
+==============
+This document was generated using Dolibarr ERP CRM process
+==============
+
+
+:toc: manual
+:toc-placement: preamble
+
+<<<
+
+== INTRODUCTION
+
+//include::README.md[]
+
+
+### Features
+
+This module aims at managing signing of documents with thirdparty provider
+
+
+
+
+### Translations
+
+Translations can be define manually by editing files into directories *langs*.
+
+
+
+
+
+### Licenses
+
+#### Main code
+
+GPLv3 or (at your option) any later version. See file COPYING for more information.
+
+#### Documentation
+
+All texts and readmes are licensed under GFDL.
+
+
+== DATA SPECIFICATIONS
+
+Not yet available
+
+
+== CHANGELOG
+
+//include::ChangeLog.md[]
+
+
+### 1.0
+
+Initial version
