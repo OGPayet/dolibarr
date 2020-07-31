@@ -50,7 +50,7 @@ class modDigitalSignatureManager extends DolibarrModules
 		$this->rights_class = 'digitalsignaturemanager';
 		// Family can be 'base' (core modules),'crm','financial','hr','projects','products','ecm','technic' (transverse modules),'interface' (link with external tools),'other','...'
 		// It is used to group modules by family in module setup page
-		$this->family = "other";
+		$this->family = "interface";
 		// Module position in the family on 2 digits ('01', '10', '20', ...)
 		$this->module_position = '90';
 		// Gives the possibility for the module, to provide his own family info and position of this family (Overwrite $this->family and $this->module_position. Avoid this)
@@ -58,7 +58,7 @@ class modDigitalSignatureManager extends DolibarrModules
 		// Module label (no space allowed), used if translation string 'ModuleDigitalSignatureManagerName' not found (DigitalSignatureManager is name of module).
 		$this->name = preg_replace('/^mod/i', '', get_class($this));
 		// Module description, used if translation string 'ModuleDigitalSignatureManagerDesc' not found (DigitalSignatureManager is name of module).
-		$this->description = "DigitalSignatureManagerDescription";
+		$this->description = "ModuleDigitalSignatureManagerDesc";
 		// Used only if file README.md and README-LL.md not found.
 		$this->descriptionlong = "DigitalSignatureManager description (Long)";
 		$this->editor_name = 'Alexis LAURIER';

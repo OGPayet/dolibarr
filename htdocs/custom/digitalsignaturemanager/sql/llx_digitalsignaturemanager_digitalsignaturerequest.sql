@@ -33,6 +33,6 @@ CREATE TABLE llx_digitalsignaturemanager_digitalsignaturerequest(
 	externalId varchar(255),
 	elementtype varchar(128),
 	fk_object integer,
-	listOfFileNameToSign array
+	listOfFileNameToSign text
 	-- END MODULEBUILDER FIELDS
 ) ENGINE=innodb;
