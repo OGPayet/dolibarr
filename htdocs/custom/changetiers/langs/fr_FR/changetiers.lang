@@ -1,0 +1,23 @@
+# Change Tiers
+# Copyright (C) 2018       Inovea-conseil.com     <info@inovea-conseil.com>
+#
+
+#
+# Générique
+#
+Module432446Name = Changement de Tiers
+Module432446Desc = Changement de tiers sur un devis, facture et commande directement depuis la fiche dédiée (et génération de PDF)
+WarningNoteModuleInoveaConseilForFrenchLaw = Attention ce module n'est pas compatible avec la loi de finance 2016. Souhaitez-vous vraiment activer ce module ?
+
+
+#
+# Page d'administration
+#
+changetiersSetup = Configuration du module
+COMMANDE_CHANGE_THIRDPARTY = Changement Tiers depuis la fiche commande
+FACTURE_CHANGE_THIRDPARTY = Changement Tiers depuis la fiche facture
+PROPAL_CHANGE_THIRDPARTY = Changement Tiers depuis la fiche proposition commerciale
+SUPPLIER_PROPOSAL_CHANGE_THIRDPARTY = Changement Tiers depuis la fiche proposition fournisseur
+ORDER_SUPPLIER_CHANGE_THIRDPARTY = Changement Tiers depuis la fiche commande fournisseur
+INVOICE_SUPPLIER_CHANGE_THIRDPARTY = Changement Tiers depuis la fiche facture fournisseur
+EXPEDITION_CHANGE_THIRDPARTY = Changement Tiers depuis la fiche d'expedition

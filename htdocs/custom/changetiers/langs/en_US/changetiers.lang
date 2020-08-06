@@ -1,0 +1,22 @@
+# Change Tiers
+# Copyright (C) 2018       Inovea-conseil.com     <info@inovea-conseil.com>
+#
+
+#
+# Générique
+#
+Module432446Name = Change Third party
+Module432446Desc = Modify the third party concerned by a quote, an invoice and / or an order
+
+
+#
+# Page d'administration
+#
+changetiersSetup = Module Setup
+COMMANDE_CHANGE_THIRDPARTY = Modify thirdparty in an order
+FACTURE_CHANGE_THIRDPARTY = Modify thirdparty in an invoice
+PROPAL_CHANGE_THIRDPARTY = Modify thirdparty in a proposal
+SUPPLIER_PROPOSAL_CHANGE_THIRDPARTY = Modify thirdparty in a supplier proposal
+ORDER_SUPPLIER_CHANGE_THIRDPARTY = Modify thirdparty in a supplier order
+INVOICE_SUPPLIER_CHANGE_THIRDPARTY = Modify thirdparty in an supplier invoice
+EXPEDITION_CHANGE_THIRDPARTY = Modify thirdparty in an expedition

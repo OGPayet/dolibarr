@@ -1,0 +1,3 @@
+INSERT IGNORE INTO llx_const (name, value, type, note, visible, entity) VALUES ('COMMANDE_CHANGE_THIRDPARTY',1,'yesno','Possibilité de changé le tiers sur une fiche commande',0,1);
+INSERT IGNORE INTO llx_const (name, value, type, note, visible, entity) VALUES ('FACTURE_CHANGE_THIRDPARTY',1,'yesno','Possibilité de changé le tiers sur une facture',0,1);
+INSERT IGNORE INTO llx_const (name, value, type, note, visible, entity) VALUES ('PROPAL_CHANGE_THIRDPARTY',1,'yesno','Possibilité de changé le tiers sur une propale',0,1);
