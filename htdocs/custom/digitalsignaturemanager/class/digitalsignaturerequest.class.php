@@ -108,7 +108,7 @@ class DigitalSignatureRequest extends CommonObject
 		'fk_user_modif' => array('type'=>'integer:User:user/class/user.class.php', 'label'=>'UserModif', 'enabled'=>'1', 'position'=>511, 'notnull'=>-1, 'visible'=>-2,),
 		'import_key' => array('type'=>'varchar(14)', 'label'=>'ImportId', 'enabled'=>'1', 'position'=>1000, 'notnull'=>-1, 'visible'=>-2,),
 		'status' => array('type'=>'smallint', 'label'=>'Status', 'enabled'=>'1', 'position'=>1000, 'notnull'=>1, 'visible'=>0, 'noteditable'=>'1', 'default'=>'0', 'index'=>1, 'arrayofkeyval'=>array('0'=>'Brouillon', '1'=>'Processus de signature en cours', '2'=>'Annul&eacute;', '3'=>'Signature termin&eacute;e', '9'=>'Erreur Technique'),),
-		'externalId' => array('type'=>'varchar(255)', 'label'=>'Id of the signature process at external provider', 'enabled'=>'1', 'position'=>1002, 'notnull'=>0, 'visible'=>0, 'index'=>1,),
+		'externalId' => array('type'=>'varchar(255)', 'label'=>'Id of the signature process at external provider', 'enabled'=>'1', 'position'=>1002, 'notnull'=>0, 'visible'=>-5, 'index'=>1,),
 		'elementtype' => array('type'=>'varchar(128)', 'label'=>'Linked Element Type', 'enabled'=>'1', 'position'=>1003, 'notnull'=>0, 'visible'=>0, 'index'=>1,),
 		'fk_object' => array('type'=>'integer', 'label'=>'Id of the dolibarr object we sign', 'enabled'=>'1', 'position'=>1004, 'notnull'=>0, 'visible'=>0, 'index'=>1,),
 		'listOfFileNameToSign' => array('type'=>'array', 'label'=>'Ordered Array of filename to be signed', 'enabled'=>'1', 'position'=>1005, 'notnull'=>0, 'visible'=>0,),
@@ -132,6 +132,12 @@ class DigitalSignatureRequest extends CommonObject
 	public $fk_object;
 	public $listOfFileNameToSign;
 	// END MODULEBUILDER PROPERTIES
+
+	/**
+     * @var DigitalSignaturePeople[]     Array of Signatory people
+     */
+
+	public $people = array();
 
 	/**
 	 * Constructor
@@ -421,22 +427,29 @@ class DigitalSignatureRequest extends CommonObject
 	 *  @param	int		$notrigger		1=Does not execute triggers, 0=Execute triggers
 	 *	@return	int						<0 if KO, >0 if OK
 	 */
-	public function setDraft($user, $notrigger = 0)
+	public function setBackToDraft($user, $notrigger = 0)
 	{
 		// Protection
-		if ($this->status <= self::STATUS_DRAFT)
+		if ($this->status === self::STATUS_DRAFT)
 		{
-			return 0;
+			$result = 0;
 		}
-
-		/*if (! ((empty($conf->global->MAIN_USE_ADVANCED_PERMS) && ! empty($user->rights->digitalsignaturemanager->write))
-		 || (! empty($conf->global->MAIN_USE_ADVANCED_PERMS) && ! empty($user->rights->digitalsignaturemanager->digitalsignaturemanager_advance->validate))))
-		 {
-		 $this->error='Permission denied';
-		 return -1;
-		 }*/
-
-		return $this->setStatusCommon($user, self::STATUS_DRAFT, $notrigger, 'DIGITALSIGNATUREREQUEST_UNVALIDATE');
+		else
+		{
+			//toDo - cancel signature request
+			$isSignatureSuccessfullyCanceled = true;
+			if($isSignatureSuccessfullyCanceled)
+			{
+				$result = $this->setStatusCommon($user, self::STATUS_DRAFT, $notrigger, 'DIGITALSIGNATUREREQUEST_UNVALIDATE');
+			}
+			else
+			{
+				global $langs;
+				$this->errors = $langs->trans('DigitalSignatureManagerCantDeleteThirdpartyRequest');
+				$result = -2;
+			}
+		}
+		return $result;
 	}
 
 	/**
