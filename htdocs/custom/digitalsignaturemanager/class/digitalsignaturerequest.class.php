@@ -65,6 +65,11 @@ class DigitalSignatureRequest extends CommonObject
 	const STATUS_ERROR = 9;
 
 	/**
+	 * Array of status type to manage picto
+	 */
+	public $statusType = array();
+
+	/**
 	 *  'type' if the field format ('integer', 'integer:ObjectClass:PathToClass[:AddCreateButtonOrNot[:Filter]]', 'varchar(x)', 'double(24,8)', 'real', 'price', 'text', 'html', 'date', 'datetime', 'timestamp', 'duration', 'mail', 'phone', 'url', 'password')
 	 *         Note: Filter can be a string like "(t.ref:like:'SO-%') or (t.date_creation:<:'20160101') or (t.nature:is:NULL)"
 	 *  'label' the translation key.
@@ -182,6 +187,30 @@ class DigitalSignatureRequest extends CommonObject
 			}
 		}
 		$this->status = self::STATUS_DRAFT;
+
+			$langs->load("digitalsignaturemanager");
+			$this->labelStatus = array(
+				self::STATUS_DRAFT => $langs->trans('DigitalSignatureDraft'),
+				self::STATUS_IN_PROGRESS => $langs->trans('DigitalSignatureInProgress'),
+				self::STATUS_CANCELED => $langs->trans('DigitalSignatureCanceled'),
+				self::STATUS_SUCCESS => $langs->trans('DigitalSignatureSuccess'),
+				self::STATUS_ERROR => $langs->trans('DigitalSignatureError')
+			);
+			$this->labelStatusShort = array(
+				self::STATUS_DRAFT => $langs->trans('DigitalSignatureDraftShort'),
+				self::STATUS_IN_PROGRESS => $langs->trans('DigitalSignatureInProgressShort'),
+				self::STATUS_CANCELED => $langs->trans('DigitalSignatureCanceledShort'),
+				self::STATUS_SUCCESS => $langs->trans('DigitalSignatureSuccessShort'),
+				self::STATUS_ERROR => $langs->trans('DigitalSignatureErrorShort')
+			);
+
+			$this->statusType = array(
+				self::STATUS_DRAFT => 'status0',
+				self::STATUS_IN_PROGRESS => 'status3',
+				self::STATUS_CANCELED => 'status5',
+				self::STATUS_SUCCESS => 'status4',
+				self::STATUS_ERROR => 'status8'
+			);
 	}
 
 	/**
@@ -442,6 +471,7 @@ class DigitalSignatureRequest extends CommonObject
 		{
 			//toDo - cancel signature request
 			$isSignatureSuccessfullyCanceled = true;
+
 			if($isSignatureSuccessfullyCanceled)
 			{
 				$result = $this->setStatusCommon($user, self::STATUS_DRAFT, $notrigger, 'DIGITALSIGNATUREREQUEST_UNVALIDATE');
@@ -463,9 +493,21 @@ class DigitalSignatureRequest extends CommonObject
 	 *  @param	int		$notrigger		1=Does not execute triggers, 0=Execute triggers
 	 *	@return	int						<0 if KO, 0=Nothing done, >0 if OK
 	 */
+	public function validate($user, $notrigger = 0)
+	{
+		return $this->setStatusCommon($user, self::STATUS_VALIDATED, $notrigger, 'DIGITALSIGNATUREREQUEST_CLOSE');
+	}
+
+	/**
+	 *	Set cancel status
+	 *
+	 *	@param	User	$user			Object user that modify
+	 *  @param	int		$notrigger		1=Does not execute triggers, 0=Execute triggers
+	 *	@return	int						<0 if KO, 0=Nothing done, >0 if OK
+	 */
 	public function cancel($user, $notrigger = 0)
 	{
-		//return $this->setStatusCommon($user, self::STATUS_CANCELED, $notrigger, 'DIGITALSIGNATUREREQUEST_CLOSE');
+		return $this->setStatusCommon($user, self::STATUS_CANCELED, $notrigger, 'DIGITALSIGNATUREREQUEST_CLOSE');
 	}
 
 	/**
@@ -477,7 +519,7 @@ class DigitalSignatureRequest extends CommonObject
 	 */
 	public function reopen($user, $notrigger = 0)
 	{
-		//return $this->setStatusCommon($user, self::STATUS_VALIDATED, $notrigger, 'DIGITALSIGNATUREREQUEST_REOPEN');
+		return $this->setStatusCommon($user, self::STATUS_VALIDATED, $notrigger, 'DIGITALSIGNATUREREQUEST_REOPEN');
 	}
 
 	/**
@@ -599,24 +641,16 @@ class DigitalSignatureRequest extends CommonObject
 	 */
 	public function LibStatut($status, $mode = 0)
 	{
-		// phpcs:enable
-		if (empty($this->labelStatus) || empty($this->labelStatusShort))
-		{
-			global $langs;
-			//$langs->load("digitalsignaturemanager");
-			$this->labelStatus[self::STATUS_DRAFT] = $langs->trans('Draft');
-			//$this->labelStatus[self::STATUS_VALIDATED] = $langs->trans('Enabled');
-			$this->labelStatus[self::STATUS_CANCELED] = $langs->trans('Disabled');
-			$this->labelStatusShort[self::STATUS_DRAFT] = $langs->trans('Draft');
-			//$this->labelStatusShort[self::STATUS_VALIDATED] = $langs->trans('Enabled');
-			$this->labelStatusShort[self::STATUS_CANCELED] = $langs->trans('Disabled');
+		global $langs;
+		$labelStatus = $this->labelStatus[$status];
+		$labelStatusShort = $this->labelStatusShort[$status];
+		if($status == self::STATUS_IN_PROGRESS){
+			$labelStatus .= $langs->trans('DigitalSignatureRequestActionToDoForPeople') . ' ' . $this->getInProgressStatusLabelSuffix();
 		}
-
-		$statusType = 'status'.$status;
-		//if ($status == self::STATUS_VALIDATED) $statusType = 'status1';
-		if ($status == self::STATUS_CANCELED) $statusType = 'status6';
-
-		return dolGetStatus($this->labelStatus[$status], $this->labelStatusShort[$status], '', $statusType, $mode);
+		elseif($status == self::STATUS_CANCELED){
+			$labelStatus .= $langs->trans('DigitalSignatureRequestActionCanceledBy') . ' ' . $this->getCanceledStatusLabelSuffix();
+		}
+		return dolGetStatus($labelStatus, $labelStatusShort, '', $this->statusType[$status], $mode);
 	}
 
 	/**
@@ -828,7 +862,8 @@ class DigitalSignatureRequest extends CommonObject
 	 *  @see dol_dir_list_indatabase
 	 * @return array
 	 */
-	public function getListOfFilesToSign($types="all", $recursive=0, $filter="", $excludefilter="", $sortcriteria="name", $sortorder=SORT_ASC, $mode=0, $nohook=0, $relativename=""){
+	public function getListOfFilesToSign($types = "all", $recursive = 0, $filter = "", $excludefilter = "", $sortcriteria = "name", $sortorder = SORT_ASC, $mode = 1, $nohook = 0, $relativename = "")
+	{
 		return dol_dir_list($this->getUploadDirOfFilesToSign(), $types, $recursive, $filter, $excludefilter, $sortcriteria, $sortorder, $mode, $nohook, $relativename);
 	}
 
@@ -848,8 +883,115 @@ class DigitalSignatureRequest extends CommonObject
 	 *  @see dol_dir_list_indatabase
 	 * @return array
 	 */
-	public function getListOfSignedFiles($types="all", $recursive=0, $filter="", $excludefilter="", $sortcriteria="name", $sortorder=SORT_ASC, $mode=0, $nohook=0, $relativename=""){
+	public function getListOfSignedFiles($types = "all", $recursive = 0, $filter = "", $excludefilter = "", $sortcriteria = "name", $sortorder = SORT_ASC, $mode = 1, $nohook = 0, $relativename = "")
+	{
 		return dol_dir_list($this->getUploadDirOfSignedFiles(), $types, $recursive, $filter, $excludefilter, $sortcriteria, $sortorder, $mode, $nohook, $relativename);
 	}
 
+	/**
+	 * Return digitalsignaturepeople that should do an action
+	 * @return DigitalSignaturePeople|null
+	 */
+	private function getPeopleThatShouldDoAnAction()
+	{
+		$result = null;
+		foreach($this->people as &$people){
+			if($people->status == $people::STATUS_WAITING_TO_SIGN){
+				$result = $people;
+				break;
+			}
+		}
+		return $result;
+	}
+
+	/**
+	 * Return last digitalsignaturepeople that have done an action
+	 * @return DigitalSignaturePeople|null
+	 */
+	private function getLastPeopleThatDidAnAction()
+	{
+		$result = null;
+		foreach(array_reverse($this->people) as &$people){
+			if($people->status == $people::STATUS_SUCCESS || $people->status == $people::STATUS_REFUSED){
+				$result = $people;
+				break;
+			}
+		}
+		return $result;
+	}
+
+	/**
+	 * Return digitalsignaturepeople that canceled progress
+	 * @return DigitalSignaturePeople|null
+	 */
+	private function getPeopleThatCanceledProcess()
+	{
+		$result = null;
+		foreach(array_reverse($this->people) as &$people){
+			if($people->status == $people::STATUS_REFUSED){
+				$result = $people;
+				break;
+			}
+		}
+		return $result;
+	}
+
+	/**
+	 * Get label for in_progress status
+	 * @return string
+	 */
+	private function getInProgressStatusLabelSuffix()
+	{
+		$result = "";
+		$currentSignatory = $this->getPeopleThatShouldDoAnAction();
+		if($currentSignatory){
+			$result = $currentSignatory->displayName();
+		}
+		return $result;
+	}
+
+	/**
+	 * Get label for canceled status
+	 * @return string
+	 */
+	private function getCanceledStatusLabelSuffix()
+	{
+		$result = "";
+		$peopleThatCanceled = $this->getPeopleThatCanceledProcess();
+		if($peopleThatCanceled){
+			$result = $peopleThatCanceled->displayName();
+		}
+		else
+		{
+			global $langs;
+			$result = $langs->trans("DigitalSignatureRequestCanceledFromOpsy");
+		}
+		return $result;
+	}
+
+	/**
+	 * Function to create a request on universign
+	 * @return int >0 if success
+	 */
+	private function createRequestOnUniversign()
+	{
+		return 1;
+	}
+
+	/**
+	 * Function to fetch progress of a request on universign and manage update on local item
+	 * @return int >0 if succcess
+	 */
+	private function fetchProgressOnUniversign()
+	{
+
+	}
+
+	/**
+	 * Cancel progress on universign
+	 * @return int >0 if succcess
+	 */
+	private function cancelRequestOnUniversign(){
+
+	}
 }

@@ -64,7 +64,7 @@ function digitalsignaturerequestPrepareHead($object)
 	if (($nbSignedFiles + $nbFilesToSign + $nbLinks) > 0) {
 		$badgeListOfValue = array($nbFilesToSign, $nbSignedFiles, $nbLinks);
 		$badgeListOfValue = array_filter($badgeListOfValue);
-		$head[$h][1] .= '<span class="badge marginleftonlyshort">'.(implode("|", $badgeListOfValue)).'</span>';
+		$head[$h][1] .= '<span class="badge marginleftonlyshort">|'.(implode("|", $badgeListOfValue)).'</span>';
 	}
 	$head[$h][2] = 'document';
 	$h++;

@@ -60,6 +60,7 @@ class DigitalSignaturePeople extends CommonObject
 	const STATUS_WAITING_TO_SIGN = 1;
 	const STATUS_REFUSED = 2;
 	const STATUS_SUCCESS = 3;
+	const STATUS_PROCESS_STOPPED_BEFORE = 4;
 	const STATUS_ERROR = 9;
 
 
@@ -97,7 +98,7 @@ class DigitalSignaturePeople extends CommonObject
 		'fk_user_creat' => array('type'=>'integer:User:user/class/user.class.php', 'label'=>'UserAuthor', 'enabled'=>'1', 'position'=>510, 'notnull'=>1, 'visible'=>-2, 'foreignkey'=>'user.rowid',),
 		'fk_user_modif' => array('type'=>'integer:User:user/class/user.class.php', 'label'=>'UserModif', 'enabled'=>'1', 'position'=>511, 'notnull'=>-1, 'visible'=>-2,),
 		'import_key' => array('type'=>'varchar(14)', 'label'=>'ImportId', 'enabled'=>'1', 'position'=>1000, 'notnull'=>-1, 'visible'=>-2,),
-		'status' => array('type'=>'smallint', 'label'=>'Status', 'enabled'=>'1', 'position'=>1000, 'notnull'=>1, 'visible'=>1, 'index'=>1, 'arrayofkeyval'=>array('0'=>'Brouillon', '1'=>'En attente de demande de signature', '2'=>'Signature refus&eacute;e', '3'=>'Signature termin&eacute;e', '9'=>'Erreur Technique'),),
+		'status' => array('type'=>'smallint', 'label'=>'Status', 'enabled'=>'1', 'position'=>1000, 'notnull'=>1, 'visible'=>1, 'index'=>1, 'arrayofkeyval'=>array('0'=>'Brouillon', '1'=>'En attente de demande de signature', '2'=>'Signature refus&eacute;e', '3'=>'Signature termin&eacute;e', '4'=>'Processus stopp&eacute;e', '9'=>'Erreur Technique'),),
 		'lastName' => array('type'=>'varchar(255)', 'label'=>'Last name of the signatory person', 'enabled'=>'1', 'position'=>502, 'notnull'=>0, 'visible'=>1,),
 		'firstName' => array('type'=>'varchar(255)', 'label'=>'First name of the signatory person', 'enabled'=>'1', 'position'=>503, 'notnull'=>0, 'visible'=>1,),
 		'phoneNumber' => array('type'=>'varchar(255)', 'label'=>'Phone number of the signatory to identify him', 'enabled'=>'1', 'position'=>504, 'notnull'=>0, 'visible'=>1,),
@@ -471,6 +472,14 @@ class DigitalSignaturePeople extends CommonObject
 		else $result .= $hookmanager->resPrint;
 
 		return $result;
+	}
+
+	/**
+	 * Function to get display Name of this people
+	 * @return string
+	 */
+	public function displayName(){
+		return $this->lastName . " " . $this->firstName;
 	}
 
 	/**
