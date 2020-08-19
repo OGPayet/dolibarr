@@ -24,6 +24,7 @@
 
 // Put here all includes required by your class file
 require_once DOL_DOCUMENT_ROOT.'/core/class/commonobject.class.php';
+require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
 
 /**
  * Class for DigitalSignatureRequest
@@ -62,7 +63,6 @@ class DigitalSignatureRequest extends CommonObject
 	const STATUS_CANCELED = 2;
 	const STATUS_SUCCESS = 3;
 	const STATUS_ERROR = 9;
-
 
 	/**
 	 *  'type' if the field format ('integer', 'integer:ObjectClass:PathToClass[:AddCreateButtonOrNot[:Filter]]', 'varchar(x)', 'double(24,8)', 'real', 'price', 'text', 'html', 'date', 'datetime', 'timestamp', 'duration', 'mail', 'phone', 'url', 'password')
@@ -404,6 +404,10 @@ class DigitalSignatureRequest extends CommonObject
 	 */
 	public function update(User $user, $notrigger = false)
 	{
+		if(empty($this->fk_project)){
+			$this->fk_project = null;
+		}
+
 		return $this->updateCommon($user, $notrigger);
 	}
 
@@ -760,4 +764,92 @@ class DigitalSignatureRequest extends CommonObject
 
 		return $error;
 	}
+
+	/**
+	 * Get base upload dir for object of this module
+	 * @return string local path
+	 */
+	public function getBaseUploadDir()
+	{
+		global $conf;
+		return $conf->digitalsignaturemanager->multidir_output[$this->entity ? $this->entity : $conf->entity];
+	}
+
+	/**
+	 * Get relative upload dir for files to sign
+	 * @return string relative path
+	 */
+	public function getRelativePathForFilesToSign()
+	{
+		return "digitalsignaturerequest/" . dol_sanitizeFileName($this->id) . "/filesToSign";
+	}
+
+	/**
+	 * Get relative upload dir for signed files
+	 * @return string relative path
+	 */
+	public function getRelativePathForSignedFiles()
+	{
+		return "digitalsignaturerequest/" . dol_sanitizeFileName($this->id) . "/signedFiles";
+	}
+
+	/**
+	 * Get upload dir of files to be signed
+	 * @return string local path
+	 */
+	public function getUploadDirOfFilesToSign()
+	{
+		return $this->getBaseUploadDir() . "/" . $this->getRelativePathForFilesToSign();
+	}
+
+	/**
+	 * Get upload dir of signed files
+	 * @return string local path
+	 */
+	public function getUploadDirOfSignedFiles()
+	{
+		return $this->getBaseUploadDir() . "/" .$this->getRelativePathForSignedFiles();
+	}
+
+
+	/**
+	 * Get List Of Files To Sign
+	 *  @param	string		$types        	Can be "directories", "files", or "all"
+	 *  @param	int			$recursive		Determines whether subdirectories are searched
+	 *  @param	string		$filter        	Regex filter to restrict list. This regex value must be escaped for '/' by doing preg_quote($var,'/'), since this char is used for preg_match function,
+	 *                                      but must not contains the start and end '/'. Filter is checked into basename only.
+	 *  @param	array		$excludefilter  Array of Regex for exclude filter (example: array('(\.meta|_preview.*\.png)$','^\.')). Exclude is checked both into fullpath and into basename (So '^xxx' may exclude 'xxx/dirscanned/...' and dirscanned/xxx').
+	 *  @param	string		$sortcriteria	Sort criteria ("","fullname","relativename","name","date","size")
+	 *  @param	string		$sortorder		Sort order (SORT_ASC, SORT_DESC)
+	 *	@param	int			$mode			0=Return array minimum keys loaded (faster), 1=Force all keys like date and size to be loaded (slower), 2=Force load of date only, 3=Force load of size only
+	 *  @param	int			$nohook			Disable all hooks
+	 *  @param	string		$relativename	For recursive purpose only. Must be "" at first call.
+	 *  @return	array						Array of array('name'=>'xxx','fullname'=>'/abc/xxx','date'=>'yyy','size'=>99,'type'=>'dir|file',...)
+	 *  @see dol_dir_list_indatabase
+	 * @return array
+	 */
+	public function getListOfFilesToSign($types="all", $recursive=0, $filter="", $excludefilter="", $sortcriteria="name", $sortorder=SORT_ASC, $mode=0, $nohook=0, $relativename=""){
+		return dol_dir_list($this->getUploadDirOfFilesToSign(), $types, $recursive, $filter, $excludefilter, $sortcriteria, $sortorder, $mode, $nohook, $relativename);
+	}
+
+	/**
+	 * Get List Of Signed Files
+	 *  @param	string		$types        	Can be "directories", "files", or "all"
+	 *  @param	int			$recursive		Determines whether subdirectories are searched
+	 *  @param	string		$filter        	Regex filter to restrict list. This regex value must be escaped for '/' by doing preg_quote($var,'/'), since this char is used for preg_match function,
+	 *                                      but must not contains the start and end '/'. Filter is checked into basename only.
+	 *  @param	array		$excludefilter  Array of Regex for exclude filter (example: array('(\.meta|_preview.*\.png)$','^\.')). Exclude is checked both into fullpath and into basename (So '^xxx' may exclude 'xxx/dirscanned/...' and dirscanned/xxx').
+	 *  @param	string		$sortcriteria	Sort criteria ("","fullname","relativename","name","date","size")
+	 *  @param	string		$sortorder		Sort order (SORT_ASC, SORT_DESC)
+	 *	@param	int			$mode			0=Return array minimum keys loaded (faster), 1=Force all keys like date and size to be loaded (slower), 2=Force load of date only, 3=Force load of size only
+	 *  @param	int			$nohook			Disable all hooks
+	 *  @param	string		$relativename	For recursive purpose only. Must be "" at first call.
+	 *  @return	array						Array of array('name'=>'xxx','fullname'=>'/abc/xxx','date'=>'yyy','size'=>99,'type'=>'dir|file',...)
+	 *  @see dol_dir_list_indatabase
+	 * @return array
+	 */
+	public function getListOfSignedFiles($types="all", $recursive=0, $filter="", $excludefilter="", $sortcriteria="name", $sortorder=SORT_ASC, $mode=0, $nohook=0, $relativename=""){
+		return dol_dir_list($this->getUploadDirOfSignedFiles(), $types, $recursive, $filter, $excludefilter, $sortcriteria, $sortorder, $mode, $nohook, $relativename);
+	}
+
 }

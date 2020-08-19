@@ -113,7 +113,10 @@ $permissiontoedit = $user->rights->digitalsignaturemanager->request->edit;
 $permissiontodelete = $user->rights->digitalsignaturemanager->request->delete || ($permissiontoadd && isset($object->status) && $object->status == $object::STATUS_DRAFT);
 $permissionnote = $user->rights->digitalsignaturemanager->request->edit; // Used by the include of actions_setnotes.inc.php
 $permissiondellink = $user->rights->digitalsignaturemanager->request->edit; // Used by the include of actions_dellink.inc.php
-$upload_dir = $conf->digitalsignaturemanager->multidir_output[isset($object->entity) ? $object->entity : 1];
+$permissioncreate = $permissiontoadd && $object->status == $object::STATUS_DRAFT; //Used by actions_builddoc.inc.php to remove files
+$permissionToAddAndDelFiles = $permissioncreate;
+
+$upload_dir = $object->getBaseUploadDir();
 
 // Security check - Protection if external user
 //if ($user->socid > 0) accessforbidden();
@@ -121,7 +124,7 @@ $upload_dir = $conf->digitalsignaturemanager->multidir_output[isset($object->ent
 //$isdraft = (($object->statut == $object::STATUS_DRAFT) ? 1 : 0);
 //$result = restrictedArea($user, 'digitalsignaturemanager', $object->id, '', '', 'fk_soc', 'rowid', $isdraft);
 
-//if (!$permissiontoread) accessforbidden();
+if (!$permissiontoread) accessforbidden();
 
 
 /*
@@ -175,11 +178,11 @@ if (empty($reshook)) {
         }
     }
 
-	// Actions to send emails
-	$triggersendname = 'DIGITALSIGNATUREREQUEST_SENTBYMAIL';
-	$autocopy = 'MAIN_MAIL_AUTOCOPY_DIGITALSIGNATUREREQUEST_TO';
-	$trackid = 'digitalsignaturerequest' . $object->id;
-	include DOL_DOCUMENT_ROOT . '/core/actions_sendmails.inc.php';
+	// // Actions to send emails
+	// $triggersendname = 'DIGITALSIGNATUREREQUEST_SENTBYMAIL';
+	// $autocopy = 'MAIN_MAIL_AUTOCOPY_DIGITALSIGNATUREREQUEST_TO';
+	// $trackid = 'digitalsignaturerequest' . $object->id;
+	// include DOL_DOCUMENT_ROOT . '/core/actions_sendmails.inc.php';
 }
 
 
@@ -411,10 +414,10 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
 
 		if (empty($reshook)) {
-			// Send
-			if (empty($user->socid)) {
-				print '<a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=presend&mode=init#formmailbeforetitle">' . $langs->trans('SendMail') . '</a>' . "\n";
-			}
+			// // Send
+			// if (empty($user->socid)) {
+			// 	print '<a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=presend&mode=init#formmailbeforetitle">' . $langs->trans('SendMail') . '</a>' . "\n";
+			// }
 
 			// Back to draft
 			// if ($object->status == $object::STATUS_VALIDATED) {
@@ -424,7 +427,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			// }
 
 			// Modify
-			if ($permissiontoadd) {
+			if ($permissiontoedit) {
 				print '<a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=edit">' . $langs->trans("Modify") . '</a>' . "\n";
 			} else {
 				print '<a class="butActionRefused classfortooltip" href="#" title="' . dol_escape_htmltag($langs->trans("NotEnoughPermissions")) . '">' . $langs->trans('Modify') . '</a>' . "\n";
@@ -433,47 +436,17 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			// Validate
 			if ($object->status == $object::STATUS_DRAFT) {
 				if ($permissiontoadd) {
-					if (empty($object->table_element_line) || (is_array($object->lines) && count($object->lines) > 0)) {
-						print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=confirm_validate&confirm=yes">' . $langs->trans("Validate") . '</a>';
-					} else {
-						$langs->load("errors");
-						print '<a class="butActionRefused" href="" title="' . $langs->trans("ErrorAddAtLeastOneLineFirst") . '">' . $langs->trans("Validate") . '</a>';
-					}
+					print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=confirm_validate&confirm=yes">' . $langs->trans("Validate") . '</a>';
 				}
 			}
 
 			// Clone
 			if ($permissiontoadd) {
-				print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&socid=' . $object->socid . '&action=clone&object=digitalsignaturerequest">' . $langs->trans("ToClone") . '</a>' . "\n";
+				// print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&socid=' . $object->socid . '&action=clone&object=digitalsignaturerequest">' . $langs->trans("ToClone") . '</a>' . "\n";
 			}
-
-			/*
-			if ($permissiontoadd)
-			{
-				if ($object->status == $object::STATUS_ENABLED)
-				{
-					print '<a class="butActionDelete" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&action=disable">'.$langs->trans("Disable").'</a>'."\n";
-				}
-				else
-				{
-					print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&action=enable">'.$langs->trans("Enable").'</a>'."\n";
-				}
-			}
-			if ($permissiontoadd)
-			{
-				if ($object->status == $object::STATUS_VALIDATED)
-				{
-					print '<a class="butActionDelete" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&action=close">'.$langs->trans("Cancel").'</a>'."\n";
-				}
-				else
-				{
-					print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&action=reopen">'.$langs->trans("Re-Open").'</a>'."\n";
-				}
-			}
-			*/
 
 			// Delete (need delete permission, or if draft, just need create/modify permission)
-			if ($permissiontodelete || ($object->status == $object::STATUS_DRAFT && $permissiontoadd)) {
+			if ($permissiontodelete || $object->status == $object::STATUS_DRAFT) {
 				print '<a class="butActionDelete" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=delete">' . $langs->trans('Delete') . '</a>' . "\n";
 			} else {
 				print '<a class="butActionRefused classfortooltip" href="#" title="' . dol_escape_htmltag($langs->trans("NotEnoughPermissions")) . '">' . $langs->trans('Delete') . '</a>' . "\n";
@@ -492,18 +465,13 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		print '<div class="fichecenter"><div class="fichehalfleft">';
 		print '<a name="builddoc"></a>'; // ancre
 
-		$includedocgeneration = 0;
 
-		// Documents
-		if ($includedocgeneration) {
-			$objref = dol_sanitizeFileName($object->ref);
-			$relativepath = $objref . '/' . $objref . '.pdf';
-			$filedir = $conf->digitalsignaturemanager->dir_output . '/' . $object->element . '/' . $objref;
-			$urlsource = $_SERVER["PHP_SELF"] . "?id=" . $object->id;
-			$genallowed = $user->rights->digitalsignaturemanager->digitalsignaturerequest->read;	// If you can read, you can build the PDF to read content
-			$delallowed = $user->rights->digitalsignaturemanager->digitalsignaturerequest->write;	// If you can create/edit, you can remove a file on card
-			print $formfile->showdocuments('digitalsignaturemanager:DigitalSignatureRequest', $object->element . '/' . $objref, $filedir, $urlsource, $genallowed, $delallowed, $object->model_pdf, 1, 0, 0, 28, 0, '', '', '', $langs->defaultlang);
-		}
+		$urlsource = $_SERVER["PHP_SELF"] . "?id=" . $object->id;
+		// files to sign
+		print $formfile->showdocuments('digitalsignaturemanager', $object->getRelativePathForFilesToSign(), $object->getUploadDirOfFilesToSign(), $urlsource, 0, $permissionToAddAndDelFiles, $object->model_pdf, 1, 0, 0, 28, 0, '', '', '', $langs->defaultlang, null, $object, 0);
+
+		// signed files
+		print $formfile->showdocuments('digitalsignaturemanager', $object->getRelativePathForSignedFiles(), $object->getUploadDirOfSignedFiles(), $urlsource, 0, 0, $object->model_pdf, 1, 0, 0, 28, 0, '', $langs->trans('DigitalSignatureRequestListOfSignedFiles'), '', $langs->defaultlang, null, $object, 0);
 
 		// Show links to link elements
 		$linktoelem = $form->showLinkToObjectBlock($object, null, array('digitalsignaturerequest'));
@@ -526,16 +494,16 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		print '</div></div></div>';
 	}
 
-	//Select mail models is same action as presend
-	if (GETPOST('modelselected')) $action = 'presend';
+	// //Select mail models is same action as presend
+	// if (GETPOST('modelselected')) $action = 'presend';
 
-	// Presend form
-	$modelmail = 'digitalsignaturerequest';
-	$defaulttopic = 'InformationMessage';
-	$diroutput = $conf->digitalsignaturemanager->dir_output;
-	$trackid = 'digitalsignaturerequest' . $object->id;
+	// // Presend form
+	// $modelmail = 'digitalsignaturerequest';
+	// $defaulttopic = 'InformationMessage';
+	// $diroutput = $conf->digitalsignaturemanager->dir_output;
+	// $trackid = 'digitalsignaturerequest' . $object->id;
 
-	include DOL_DOCUMENT_ROOT . '/core/tpl/card_presend.tpl.php';
+	// include DOL_DOCUMENT_ROOT . '/core/tpl/card_presend.tpl.php';
 }
 
 // End of page

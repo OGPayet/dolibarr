@@ -37,7 +37,7 @@ function digitalsignaturerequestPrepareHead($object)
 	$head = array();
 
 	$head[$h][0] = dol_buildpath("/digitalsignaturemanager/digitalsignaturerequest_card.php", 1).'?id='.$object->id;
-	$head[$h][1] = $langs->trans("Card");
+	$head[$h][1] = $langs->trans("DigitalSignatureCardTitle");
 	$head[$h][2] = 'card';
 	$h++;
 
@@ -47,25 +47,30 @@ function digitalsignaturerequestPrepareHead($object)
 		if (!empty($object->note_private)) $nbNote++;
 		if (!empty($object->note_public)) $nbNote++;
 		$head[$h][0] = dol_buildpath('/digitalsignaturemanager/digitalsignaturerequest_note.php', 1).'?id='.$object->id;
-		$head[$h][1] = $langs->trans('Notes');
+		$head[$h][1] = $langs->trans("DigitalSignatureCardNotes");
 		if ($nbNote > 0) $head[$h][1] .= (empty($conf->global->MAIN_OPTIMIZEFORTEXTBROWSER) ? '<span class="badge marginleftonlyshort">'.$nbNote.'</span>' : '');
 		$head[$h][2] = 'note';
 		$h++;
 	}
 
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
 	require_once DOL_DOCUMENT_ROOT.'/core/class/link.class.php';
-	$upload_dir = $conf->digitalsignaturemanager->dir_output."/digitalsignaturerequest/".dol_sanitizeFileName($object->ref);
-	$nbFiles = count(dol_dir_list($upload_dir, 'files', 0, '', '(\.meta|_preview.*\.png)$'));
+	$listOfSignedFiles = $object->getListOfSignedFiles('files', 0, '', '(\.meta|_preview.*\.png)$');
+	$listOfFilesToSign = $object->getListOfFilesToSign('files', 0, '', '(\.meta|_preview.*\.png)$');
+	$nbSignedFiles = count($listOfSignedFiles);
+	$nbFilesToSign = count($listOfFilesToSign);
 	$nbLinks = Link::count($db, $object->element, $object->id);
 	$head[$h][0] = dol_buildpath("/digitalsignaturemanager/digitalsignaturerequest_document.php", 1).'?id='.$object->id;
-	$head[$h][1] = $langs->trans('Documents');
-	if (($nbFiles + $nbLinks) > 0) $head[$h][1] .= '<span class="badge marginleftonlyshort">'.($nbFiles + $nbLinks).'</span>';
+	$head[$h][1] = $langs->trans("DigitalSignatureCardLinkedFiles");
+	if (($nbSignedFiles + $nbFilesToSign + $nbLinks) > 0) {
+		$badgeListOfValue = array($nbFilesToSign, $nbSignedFiles, $nbLinks);
+		$badgeListOfValue = array_filter($badgeListOfValue);
+		$head[$h][1] .= '<span class="badge marginleftonlyshort">'.(implode("|", $badgeListOfValue)).'</span>';
+	}
 	$head[$h][2] = 'document';
 	$h++;
 
 	$head[$h][0] = dol_buildpath("/digitalsignaturemanager/digitalsignaturerequest_agenda.php", 1).'?id='.$object->id;
-	$head[$h][1] = $langs->trans("Events");
+	$head[$h][1] = $langs->trans("DigitalSignatureCardLinkedEvents");
 	$head[$h][2] = 'agenda';
 	$h++;
 

@@ -69,7 +69,8 @@ if ($id > 0 || !empty($ref)) $upload_dir = $conf->digitalsignaturemanager->multi
 
 $permissiontoadd = $user->rights->digitalsignaturemanager->request->create; // Used by the include of actions_addupdatedelete.inc.php and actions_lineupdown.inc.php
 $permissionnote = $user->rights->digitalsignaturemanager->request->edit; // Used by the include of actions_setnotes.inc.php
-
+$permissiontoread = $user->rights->digitalsignaturemanager->request->read;
+if (!$permissiontoread) accessforbidden();
 
 /*
  * Actions

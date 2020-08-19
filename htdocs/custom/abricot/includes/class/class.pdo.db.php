@@ -329,7 +329,7 @@ function dbinsert($table,$value){
 
         foreach ($value as $k => $v) {
 
-                $fields[] = $k;
+                $fields[] = '`'.$k.'`'; // fix special col like status, rank etc...
                 if(is_null($v)){
 			$values[] = 'NULL';
 				}else{

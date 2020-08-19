@@ -3061,7 +3061,10 @@ SCRIPT;
                 foreach ($listOfPatternToRemove as $text) {
                     $thirdpartyName = str_replace($text, "", $thirdpartyName);
                 }
-                $prefix = $prefix . " - " . $thirdpartyName;
+                if($prefix){
+                    $prefix .= " - ";
+                }
+                $prefix .= $thirdpartyName;
             }
         }
         if ($prefix) {

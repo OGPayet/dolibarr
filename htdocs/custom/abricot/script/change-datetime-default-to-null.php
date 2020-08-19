@@ -1,12 +1,9 @@
 <?php
-
-	if(is_file('../main.inc.php'))$dir = '../';
-	else  if(is_file('../../../main.inc.php'))$dir = '../../../';
-	else  if(is_file('../../../../main.inc.php'))$dir = '../../../../';
-	else $dir = '../../';
-
-
-	include($dir."master.inc.php");
+    if(is_file('../master.inc.php')) include '../master.inc.php';
+    elseif(is_file('../../../master.inc.php')) include '../../../master.inc.php';
+    elseif(is_file('../../../../master.inc.php')) include '../../../../master.inc.php';
+    elseif(is_file('../../../../../master.inc.php')) include '../../../../../master.inc.php';
+    else include '../../master.inc.php';
 
 	$db->query("SET SQL_MODE='ALLOW_INVALID_DATES';");
 

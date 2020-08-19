@@ -33,6 +33,7 @@ class TListviewTBS {
 
 		$this->sql = '';
 
+		$this->line_counter = 0;
 	}
 	private function init(&$TParam) {
 
@@ -178,7 +179,8 @@ class TListviewTBS {
 		{
 			if(isset($TParam['operator'][$key]))
 			{
-				if($TParam['operator'][$key] == '<' || $TParam['operator'][$key] == '>' || $TParam['operator'][$key]=='=' || $TParam['operator'][$key]=='IN')
+				if ($TParam['operator'][$key] === false) { null; }
+				elseif($TParam['operator'][$key] == '<' || $TParam['operator'][$key] == '>' || $TParam['operator'][$key]=='=' || $TParam['operator'][$key]=='IN')
 				{
 					$this->TBind[$sBindKey] = $value;
 				}
@@ -198,7 +200,8 @@ class TListviewTBS {
 
 			if(isset($TParam['operator'][$key]))
 			{
-				if($TParam['operator'][$key] == '<' || $TParam['operator'][$key] == '>' || $TParam['operator'][$key]=='=')
+				if ($TParam['operator'][$key] === false) { null; }
+				elseif ($TParam['operator'][$key] == '<' || $TParam['operator'][$key] == '>' || $TParam['operator'][$key]=='=')
 				{
 					$TSQLMore[] = $sKey . ' ' . $TParam['operator'][$key] . ' "' . $value . '"';
 				}
@@ -242,6 +245,12 @@ class TListviewTBS {
 			}
 
 			if(strpos($sql,'WHERE ')===false)$sql.=' WHERE 1 ';
+
+			$matches = array();
+			if (preg_match('/HAVING .*/', $sql, $matches))
+			{
+				$sql = str_replace($matches[0], ' ', $sql);
+			}
 
 			foreach($_REQUEST['TListTBS'][$this->id]['search'] as $key=>$value)
 			{
@@ -294,6 +303,11 @@ class TListviewTBS {
 
 			}
 
+			if (!empty($matches))
+			{
+				$sql.= ' '.$matches[0];
+			}
+
 			if($sqlGROUPBY!='')	$sql.=' GROUP BY '.$sqlGROUPBY;
 
 		}
@@ -327,7 +341,6 @@ class TListviewTBS {
 		$sql = $this->order_by($sql, $TParam);
 
 		$this->parse_sql($db, $TEntete, $TChamps, $TParam, $sql);
-
 		list($TTotal, $TTotalGroup)=$this->get_total($TChamps, $TParam);
 
 		$view_type = $this->getViewType($TParam);
@@ -434,7 +447,7 @@ class TListviewTBS {
 			else {
 
 				$libelle = !empty($TParam['title'][$key]) ? $TParam['title'][$key] : $key ;
-				$TParam['liste']['head_search'].='<div>'.$libelle.' '.$fsearch.'</div>';
+				if(! in_array($key, $TParam['hide'])) $TParam['liste']['head_search'].='<div>'.$libelle.' '.$fsearch.'</div>';
 			}
 
 		}
@@ -444,11 +457,6 @@ class TListviewTBS {
 		$search_button.= '&nbsp;<a href="#" onclick="TListTBS_submitSearch(this, true);" class="list-reset-link">'.$TParam['liste']['picto_searchclear'].'</a>';
 		$search_button.= '</div>';
 
-		/* TODO remove => fait redondance, un bouton pour lancer la recherche est déjà présent
-		if(!empty($TParam['liste']['head_search'])) {
-			$TParam['liste']['head_search'].='<div align="right">'.$langs->trans('Search').' '.$search_button.'</div>';
-		}*/
-
 		if($nb_search_in_bar>0) {
 			end($TSearch);
 			list($key,$v) = each($TSearch);
@@ -456,6 +464,11 @@ class TListviewTBS {
 		}
 		else{
 			$TSearch=array();
+		}
+
+		if (!empty($TParam['liste']['head_search']) && empty($TSearch)) {
+			//We have filter but no data, we need search button anyway
+			$TParam['liste']['head_search'].=$search_button;
 		}
 
 		return $TSearch;
@@ -484,7 +497,6 @@ class TListviewTBS {
 				else {
 					$targetField = $field;
 				}
-
 				if($typeMath == 'groupsum') {
 					$TTotalGroup[$field] = array('target'=>$targetField, 'values'=> $this->TTotalTmp['@groupsum'][$targetField]);
 
@@ -500,8 +512,15 @@ class TListviewTBS {
 				}
 
 			}
-
-
+			if(!empty($TParam['mathformat'])) {
+                foreach($TParam['mathformat'] as $field => $typeFormat) {
+                    if($typeFormat == 'time') {
+                        $h = floor($TTotal[$field] / 3600);
+                        $m = floor(($TTotal[$field] % 3600) / 60);
+                        $TTotal[$field] = sprintf('%02dh %02dm', $h, $m);
+                    }
+                }
+            }
 		}
 
 		return array($TTotal,$TTotalGroup);
@@ -714,7 +733,7 @@ class TListviewTBS {
 			  google.load("visualization", "1", {"packages":["corechart"]});
 		      google.setOnLoadCallback(drawChart'.$this->id.');
 
-			  function drawChart'.$this->id.'() {
+			  function drawChart'.$this->id.'(forceHeight = null) {
 		        var data = google.visualization.arrayToDataTable([
 		          '.$data.'
 		        ]);
@@ -725,7 +744,7 @@ class TListviewTBS {
 		          ,legend: { position: "bottom" }
 				  ,animation: { "startup": true }
 				  '.(!empty($explorer) ? ',explorer: '.json_encode($explorer) : '').'
-				  ,height : '.$height.'
+				  ,height : forceHeight || '.$height.'
 				  ,hAxis: '.json_encode($hAxis).'
 				  ,vAxis: '.json_encode($vAxis).'
 				  '.( $type == 'PieChart' && !empty($pieHole) ? ',pieHole: '.$pieHole : '').'
@@ -900,9 +919,24 @@ class TListviewTBS {
 		$first = true;
 		//	print_r($TParam['orderBy']);
 		if(!empty($TParam['orderBy'])) {
-
 			if(strpos($sql,'LIMIT ')!==false) {
-				list($sql, $sqlLIMIT) = explode('LIMIT ', $sql);
+				/* On veut récupérer uniquement le dernier LIMIT...
+				sinon ça pête la requête sql en deux mais pas au bon endroit
+				*/
+
+				$TSQLChunks = preg_split('/(\bLIMIT\b)(?!.*\1)/si', $sql);
+				$sql = $TSQLChunks[0]; // la requête sans le dernier LIMIT
+				$sqlLIMIT = $TSQLChunks[1]; // la partie à droite du dernier LIMIT
+
+				//S'il y a plus de parentheses fermantes qu'ouvrantes cela signifie que nous somme dans une sous requete
+				if(!empty($sqlLIMIT)) {
+					$nbOpeningBracket = substr_count($sqlLIMIT, '(');
+					$nbClosingBracket = substr_count($sqlLIMIT, ')');
+					if($nbClosingBracket > $nbOpeningBracket) {
+						$sql .= ' LIMIT ' . $sqlLIMIT;
+						$sqlLIMIT = '';
+					}
+				}
 			}
 
 			$sql.=' ORDER BY ';
@@ -921,7 +955,6 @@ class TListviewTBS {
 			if(!empty($sqlLIMIT))$sql.=' LIMIT '.$sqlLIMIT;
 
 		}
-
 		return $sql;
 	}
 	private function parse_xml(&$db, &$TEntete, &$TChamps, &$TParam, $xmlString) {
@@ -1052,7 +1085,7 @@ class TListviewTBS {
 
 	}
 
-	private function in_view(&$TParam, $line_number) {
+	private function in_view(&$TParam) {
 		global $conf;
 //		var_dump($_REQUEST['get-all-for-export']);
 		if(!empty($_REQUEST['get-all-for-export'])) return true; // doit être dans la vue
@@ -1063,7 +1096,7 @@ class TListviewTBS {
 		$start = ($page_number-1) * $line_per_page;
 		$end = ($page_number* $line_per_page) -1;
 
-		if($line_number>=$start && $line_number<=$end) return true;
+		if($this->line_counter >= $start && $this->line_counter <= $end) return true;
 		else return false;
 	}
 
@@ -1071,9 +1104,7 @@ class TListviewTBS {
 
 			global $conf;
 
-			$line_number = count($TChamps);
-
-			if($this->in_view($TParam,$line_number)) {
+			if($this->in_view($TParam)) {
 
 				$row=array(); $trans = array();
 				foreach($currentLine as $field=>$value) {
@@ -1105,7 +1136,10 @@ class TListviewTBS {
 						$row[$field]=$value;
 
 						if(isset($TParam['eval'][$field]) && in_array($field,array_keys($row))) {
-							$strToEval = 'return '.strtr( $TParam['eval'][$field] ,  array_merge( $trans, array('@val@'=>$row[$field])  )).';';
+							$strToEval = 'return '.strtr(
+								$TParam['eval'][$field],
+								array_merge($trans, array('@val@'=>addslashes($row[$field])))
+								).';';
 							$row[$field] = eval($strToEval);
 						}
 
@@ -1177,7 +1211,9 @@ class TListviewTBS {
 				}
 			}
 			}
+
 			$TChamps[] = $row;
+			$this->line_counter++;
 	}
 
 	private function getBind(&$TParam) {

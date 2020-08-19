@@ -155,15 +155,10 @@ $permissiontodelete = $user->rights->digitalsignaturemanager->request->delete ||
 // Security check
 if (empty($conf->digitalsignaturemanager->enabled)) accessforbidden('Module not enabled');
 $socid = 0;
-if ($user->socid > 0)	// Protection if external user
+if ($user->socid > 0 || !$permissiontoread)	// Protection if external user
 {
-	//$socid = $user->socid;
 	accessforbidden();
 }
-//$result = restrictedArea($user, 'digitalsignaturemanager', $id, '');
-//if (!$permissiontoread) accessforbidden();
-
-
 
 /*
  * Actions
@@ -216,7 +211,7 @@ $now = dol_now();
 
 //$help_url="EN:Module_DigitalSignatureRequest|FR:Module_DigitalSignatureRequest_FR|ES:Módulo_DigitalSignatureRequest";
 $help_url = '';
-$title = $langs->trans('ListOf', $langs->transnoentitiesnoconv("DigitalSignatureRequests"));
+$title = $langs->trans('DigitalSignatureRequestList');
 
 
 // Build and execute select

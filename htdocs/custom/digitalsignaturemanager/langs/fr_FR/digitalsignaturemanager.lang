@@ -26,7 +26,7 @@ ModuleDigitalSignatureManagerDesc = Ce module permet de gérer, depuis dolibarr,
 #
 ModuleDigitalSignatureManagerTopMenuName = Signature Electronique
 DigitalSignatureRequestLeftMenu = Signature Electronique
-DigitalSignatureRequestList = Liste
+DigitalSignatureRequestList = Liste des signatures électroniques
 DigitalSignatureRequestCreate = Nouvelle signature
 DigitalSignatureManagerArea = Gestionnaire des signatures électroniques
 DigitalSignatureRequest = Demande de signature electronique
@@ -41,6 +41,11 @@ DigitalSignatureManagerSetupPage = Page de configuration du module DigitalSignat
 # Card
 #
 DigitalSignatureRequestNewObject = Nouvelle demande de signature electronique
+DigitalSignatureCardTitle = Fiche
+DigitalSignatureCardNotes = Notes
+DigitalSignatureCardLinkedFiles = Fichiers joints
+DigitalSignatureCardLinkedEvents = Evènement liés
+DigitalSignatureRequestListOfSignedFiles = Liste des fichiers signés électroniquement
 
 #
 # Propriété des champs

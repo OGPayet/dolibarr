@@ -446,8 +446,12 @@ class Tools{
 	}
 
 	static function string2num($s) {
-
-		if(is_string($s)) {
+		if(is_numeric($s)){
+			// detect scientific notation before is_string : because 8.0E-6 is detected as numéric but also as string  AND it's a NUMERIC we need to detect first
+			return (float)$s;
+		}
+		elseif(is_string($s))
+		{
 			$r = '';
 			$l=strlen($s);
 
@@ -457,7 +461,6 @@ class Tools{
 				if(ctype_digit($c) || $c == '.' || $c == '-') {
 					$r.=$c;
 				}
-
 			}
 
 			return (float)$r;

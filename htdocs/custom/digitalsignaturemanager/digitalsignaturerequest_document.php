@@ -64,12 +64,10 @@ $pageprev = $page - 1;
 $pagenext = $page + 1;
 if (!$sortorder) $sortorder = "ASC";
 if (!$sortfield) $sortfield = "name";
-//if (! $sortfield) $sortfield="position_name";
 
 // Initialize technical objects
 $object = new DigitalSignatureRequest($db);
 $extrafields = new ExtraFields($db);
-$diroutputmassaction = $conf->digitalsignaturemanager->dir_output.'/temp/massgeneration/'.$user->id;
 $hookmanager->initHooks(array('digitalsignaturerequestdocument', 'globalcard')); // Note that conf->hooks_modules contains array
 // Fetch optionals attributes and labels
 $extrafields->fetch_name_optionals_label($object->table_element);
@@ -77,23 +75,19 @@ $extrafields->fetch_name_optionals_label($object->table_element);
 // Load object
 include DOL_DOCUMENT_ROOT.'/core/actions_fetchobject.inc.php'; // Must be include, not include_once  // Must be include, not include_once. Include fetch and fetch_thirdparty but not fetch_optionals
 
-//if ($id > 0 || ! empty($ref)) $upload_dir = $conf->digitalsignaturemanager->multidir_output[$object->entity?$object->entity:$conf->entity] . "/digitalsignaturerequest/" . dol_sanitizeFileName($object->id);
-if ($id > 0 || !empty($ref)) $upload_dir = $conf->digitalsignaturemanager->multidir_output[$object->entity ? $object->entity : $conf->entity]."/digitalsignaturerequest/".dol_sanitizeFileName($object->ref);
-
-// Security check - Protection if external user
-//if ($user->socid > 0) accessforbidden();
-//if ($user->socid > 0) $socid = $user->socid;
-//$result = restrictedArea($user, 'digitalsignaturemanager', $object->id);
-
 $permissiontoadd = $user->rights->digitalsignaturemanager->request->edit; // Used by the include of actions_addupdatedelete.inc.php and actions_lineupdown.inc.php
+$permissiontoread = $user->rights->digitalsignaturemanager->request->read;
+$upload_dir = $object->getUploadDirOfFilesToSign();
+// Security check - Protection if external user
+if (!$permissiontoread) accessforbidden();
 
+//$upload_dir = $object->getUploadDirOfFilesToSign();
 
 /*
  * Actions
  */
 
 include_once DOL_DOCUMENT_ROOT.'/core/actions_linkedfiles.inc.php';
-
 
 /*
  * View
@@ -129,43 +123,43 @@ if ($object->id)
 	$linkback = '<a href="'.dol_buildpath('/digitalsignaturemanager/digitalsignaturerequest_list.php', 1).'?restore_lastsearch_values=1'.(!empty($socid) ? '&socid='.$socid : '').'">'.$langs->trans("BackToList").'</a>';
 
 	$morehtmlref = '<div class="refidno">';
-	/*
+
 	 // Ref customer
 	 $morehtmlref.=$form->editfieldkey("RefCustomer", 'ref_client', $object->ref_client, $object, 0, 'string', '', 0, 1);
 	 $morehtmlref.=$form->editfieldval("RefCustomer", 'ref_client', $object->ref_client, $object, 0, 'string', '', null, null, '', 1);
 	 // Thirdparty
 	 $morehtmlref.='<br>'.$langs->trans('ThirdParty') . ' : ' . (is_object($object->thirdparty) ? $object->thirdparty->getNomUrl(1) : '');
 	 // Project
-	 if (! empty($conf->projet->enabled))
+	if (! empty($conf->projet->enabled))
 	 {
-	 $langs->load("projects");
-	 $morehtmlref.='<br>'.$langs->trans('Project') . ' ';
-	 if ($permissiontoadd)
-	 {
-	 if ($action != 'classify')
-	 //$morehtmlref.='<a class="editfielda" href="' . $_SERVER['PHP_SELF'] . '?action=classify&amp;id=' . $object->id . '">' . img_edit($langs->transnoentitiesnoconv('SetProject')) . '</a> : ';
-	 $morehtmlref.=' : ';
-	 if ($action == 'classify') {
-	 //$morehtmlref.=$form->form_project($_SERVER['PHP_SELF'] . '?id=' . $object->id, $object->socid, $object->fk_project, 'projectid', 0, 0, 1, 1);
-	 $morehtmlref.='<form method="post" action="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'">';
-	 $morehtmlref.='<input type="hidden" name="action" value="classin">';
-	 $morehtmlref.='<input type="hidden" name="token" value="'.newToken().'">';
-	 $morehtmlref.=$formproject->select_projects($object->socid, $object->fk_project, 'projectid', $maxlength, 0, 1, 0, 1, 0, 0, '', 1);
-	 $morehtmlref.='<input type="submit" class="button valignmiddle" value="'.$langs->trans("Modify").'">';
-	 $morehtmlref.='</form>';
-	 } else {
-	 $morehtmlref.=$form->form_project($_SERVER['PHP_SELF'] . '?id=' . $object->id, $object->socid, $object->fk_project, 'none', 0, 0, 0, 1);
-	 }
-	 } else {
-	 if (! empty($object->fk_project)) {
-	 $proj = new Project($db);
-	 $proj->fetch($object->fk_project);
-	 $morehtmlref .= ': '.$proj->getNomUrl();
-	 } else {
-	 $morehtmlref .= '';
-	 }
-	 }
-	 }*/
+		$langs->load("projects");
+		$morehtmlref.='<br>'.$langs->trans('Project') . ' ';
+		if ($permissiontoadd)
+		{
+			if ($action != 'classify')
+			//$morehtmlref.='<a class="editfielda" href="' . $_SERVER['PHP_SELF'] . '?action=classify&amp;id=' . $object->id . '">' . img_edit($langs->transnoentitiesnoconv('SetProject')) . '</a> : ';
+			$morehtmlref.=' : ';
+			if ($action == 'classify') {
+				//$morehtmlref.=$form->form_project($_SERVER['PHP_SELF'] . '?id=' . $object->id, $object->socid, $object->fk_project, 'projectid', 0, 0, 1, 1);
+				$morehtmlref.='<form method="post" action="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'">';
+				$morehtmlref.='<input type="hidden" name="action" value="classin">';
+				$morehtmlref.='<input type="hidden" name="token" value="'.newToken().'">';
+				$morehtmlref.=$formproject->select_projects($object->socid, $object->fk_project, 'projectid', $maxlength, 0, 1, 0, 1, 0, 0, '', 1);
+				$morehtmlref.='<input type="submit" class="button valignmiddle" value="'.$langs->trans("Modify").'">';
+				$morehtmlref.='</form>';
+			} else {
+				$morehtmlref.=$form->form_project($_SERVER['PHP_SELF'] . '?id=' . $object->id, $object->socid, $object->fk_project, 'none', 0, 0, 0, 1);
+			}
+		} else {
+			if (! empty($object->fk_project)) {
+				$proj = new Project($db);
+				$proj->fetch($object->fk_project);
+				$morehtmlref .= ': '.$proj->getNomUrl();
+			} else {
+				$morehtmlref .= '';
+			}
+		}
+	}
 	$morehtmlref .= '</div>';
 
 	dol_banner_tab($object, 'ref', $linkback, 1, 'ref', 'ref', $morehtmlref);
@@ -187,17 +181,38 @@ if ($object->id)
 
 	dol_fiche_end();
 
-	$modulepart = 'digitalsignaturemanager';
-	//$permission = $user->rights->digitalsignaturemanager->digitalsignaturerequest->write;
-	$permission = 1;
-	//$permtoedit = $user->rights->digitalsignaturemanager->digitalsignaturerequest->write;
-	$permtoedit = 1;
+	//Display files to sign
 	$param = '&id='.$object->id;
+	$modulepart = 'digitalsignaturemanager';
+	$permission = $user->rights->digitalsignaturemanager->request->edit;
+	$permtoedit = $user->rights->digitalsignaturemanager->request->edit && $object->status == $object::STATUS_DRAFT;
+	$relativepathwithnofile = $object->getRelativePathForFilesToSign() . "/";
+	$filearray = $object->getListOfFilesToSign('files');
+	include DOL_DOCUMENT_ROOT.'/core/tpl/document_actions_post_headers.tpl.php';
+	//Display signed files
 
-	//$relativepathwithnofile='digitalsignaturerequest/' . dol_sanitizeFileName($object->id).'/';
-	$relativepathwithnofile = 'digitalsignaturerequest/'.dol_sanitizeFileName($object->ref).'/';
-
-	include_once DOL_DOCUMENT_ROOT.'/core/tpl/document_actions_post_headers.tpl.php';
+	// List of document
+	$formfile=new FormFile($db);
+	$formfile->list_of_documents(
+    $object->getListOfSignedFiles('files'),
+    $object,
+    $modulepart,
+    $param,
+    0,
+    $object->getRelativePathForSignedFiles() . "/",		// relative path with no file. For example "0/1"
+    0,
+    0,
+    '',
+    0,
+    $langs->trans('DigitalSignatureRequestListOfSignedFiles'),
+    '',
+    0,
+    0,
+    $object->getUploadDirOfSignedFiles(),
+    $sortfield,
+    $sortorder,
+    $disablemove
+	);
 }
 else
 {
