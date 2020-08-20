@@ -984,14 +984,15 @@ class DigitalSignatureRequest extends CommonObject
 	 */
 	private function fetchProgressOnUniversign()
 	{
-
+		return 1;
 	}
 
 	/**
 	 * Cancel progress on universign
 	 * @return int >0 if succcess
 	 */
-	private function cancelRequestOnUniversign(){
-
+	private function cancelRequestOnUniversign()
+	{
+		return 1;
 	}
 }
