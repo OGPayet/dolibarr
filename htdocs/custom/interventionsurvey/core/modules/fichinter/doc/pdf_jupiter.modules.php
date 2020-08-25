@@ -1326,7 +1326,7 @@ class pdf_jupiter extends ModelePDFFicheinter
             $pdf->commitTransaction();
         }
         else {
-            $pdf->rollbackTransaction();
+            $pdf->rollbackTransaction(true);
             //We add a new page and display again title
             $pdf->AddPage('', '', true);
             $page_margins = $pdf->getMargins();
