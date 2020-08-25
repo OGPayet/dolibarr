@@ -1318,6 +1318,34 @@ class pdf_jupiter extends ModelePDFFicheinter
      */
     private function printTitleForPdfPart(&$pdf, $posx, $posy, $w, $textToDisplay, $defaultFontSize)
     {
+        $startPage = $pdf->getPage();
+        $pdf->startTransaction();
+        $endY = $this->printTitleForPdfPartWithoutSamePageCheck($pdf, $posx, $posy, $w, $textToDisplay, $defaultFontSize);
+        $endPage = $pdf->getPage();
+        if($startPage == $endPage || $endPage - $startPage > 1){
+            $pdf->commitTransaction();
+        }
+        else {
+            $pdf->rollbackTransaction();
+            //We add a new page and display again title
+            $pdf->AddPage('', '', true);
+            $page_margins = $pdf->getMargins();
+            $endY = $this->printTitleForPdfPartWithoutSamePageCheck($pdf, $page_margins['left'], $page_margins['top'], $w, $textToDisplay, $defaultFontSize);
+        }
+        return $endY;
+    }
+    /**
+     * Show Title of a PDF part without checking it is written on the same page
+     * @param   PDF         $pdf            Object PDF
+     * @param   int         $posx           Position
+     * @param   int         $posy           Position
+     * @param   int         $w              Width
+     * @param   text        $textToDisplay  Texte à afficher
+     * @param   int         $defaultFontSize    Taille police
+     */
+    private function printTitleForPdfPartWithoutSamePageCheck(&$pdf, $posx, $posy, $w, $textToDisplay, $defaultFontSize)
+    {
+        $pdf->startTransaction();
         // Define colors and font size
         $pdf->SetFont('', 'B', $defaultFontSize);
         call_user_func_array(array($pdf, 'SetFillColor'), $this->main_color);
@@ -1653,7 +1681,7 @@ class pdf_jupiter extends ModelePDFFicheinter
     }
 
     /**
-     * Function to know, according to current pdf page and given posy, height and number of page needed to display top pdf informations
+     * Function to know height of page head to be displayed
      * @param   PDF			$pdf            Object PDF
      * @param   Fichinter   $object         Object intervention
      * @param   int			$showAdress		Display address ?
@@ -1667,7 +1695,7 @@ class pdf_jupiter extends ModelePDFFicheinter
         $YForPageHeadOnLastPage = $this->_pagehead($pdf, $object, $displayAddress, $outputlangs);
         $finalPage = $pdf->getPage();
         $pdf->rollbackTransaction(true);
-        $computedHeightOnLastPage = $current_page == $finalPage ? $YForPageHeadOnLastPage - $posy : $YForPageHeadOnLastPage - $this->top_margin;
+        $computedHeightOnLastPage = $current_page == $finalPage ? $YForPageHeadOnLastPage : $YForPageHeadOnLastPage - $this->top_margin;
         return array('numberOfPageCreated' => $finalPage - $current_page, 'heightOnLastPage' => $computedHeightOnLastPage);
     }
 
