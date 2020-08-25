@@ -431,7 +431,7 @@ class pdf_jupiter extends ModelePDFFicheinter
             $pdf->setPage($startPageOfWorkingTimeArea);
             $endYWorkingTime = $this->_effective_working_time_area($pdf, $effective_working_time, $YtoStartWorkingTimeArea, $outputlangs);
         }
-        return max($endYWorkingTime, $endYWorkingTime);
+        return max($endYSignatory, $endYWorkingTime);
     }
 
     /** Show Top Header on page created after first page
@@ -1277,10 +1277,9 @@ class pdf_jupiter extends ModelePDFFicheinter
 
         //Display title
         $endY = $this->printTitleForPdfPart($pdf, $posx, $posy, $w, $title, $default_font_size);
-        $endPage = $pdf->GetPage();
 
         //Display content
-        $startPage = $endPage;
+        $startPage = $pdf->GetPage();
         $startY = $endY;
         $pdf->writeHTMLCell($w, null, $posx, $startY, $textToDisplay, 'LR', 1, false, true, 'L', true);
         $endPage = $pdf->getPage();
