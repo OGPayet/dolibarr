@@ -973,6 +973,7 @@ class SurveyBlocQuestion extends CommonObject
         $this->position = $position;
         $this->fk_chosen_status = $newSurveyBlocQuestion->fk_chosen_status;
         $this->fk_chosen_status_predefined_text = $newSurveyBlocQuestion->fk_chosen_status_predefined_text;
+        $this->private = $newSurveyBlocQuestion->private;
         //END
 
         //We begin property update for subobject
