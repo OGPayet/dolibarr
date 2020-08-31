@@ -230,6 +230,7 @@ InterventionSurveyGeneralPartsLabel = Observations Générales
 InterventionSurveyCustomerSignatureLabel = Objet contenant la signature du Client
 InterventionSurveyStakeholderSignatureLabel = Objet contenant la signature du Technicien
 InterventionSurveyInvolvedUserLabel = Utilisateur(s) intervenu(s)
+InterventionSurveyScheduledUserLabel = Utilisateur(s) prévu(s)
 
 #PDF Jupiter
 InterventionSurveyJupiterPDFName                                  = Modèle PDF pour les interventions avec questionnaires
