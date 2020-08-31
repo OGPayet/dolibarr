@@ -387,7 +387,6 @@ class pdf_jupiter extends ModelePDFFicheinter
         $numberOfPageToSkipBeforeStartingWorkingTimeArea = 0;
         if ($startPage == $startPageOfWorkingTimeArea && $YtoStartWorkingTimeArea <= $curY) {
             //we go on next page to print working time area
-            $needeSpaceForWorkingTimeArea['numberOfPageCreated'] += 1;
             $numberOfPageToSkipBeforeStartingWorkingTimeArea += 1;
             $startPageOfWorkingTimeArea += 1;
         }
@@ -404,7 +403,6 @@ class pdf_jupiter extends ModelePDFFicheinter
         $numberOfPageToSkipBeforeStartingSignatoryArea = 0;
         if ($startPage == $startPageOfSignatoryArea && $YtoStartSignatureArea <= $curY) {
             //we go on next page to print signatory Area
-            $neededSpaceForSignatureArea['numberOfPageCreated'] += 1;
             $numberOfPageToSkipBeforeStartingSignatoryArea += 1;
             $startPageOfSignatoryArea += 1;
         }
@@ -418,7 +416,6 @@ class pdf_jupiter extends ModelePDFFicheinter
             $endYWorkingTime = $this->_effective_working_time_area($pdf, $effective_working_time, $YtoStartWorkingTimeArea, $outputlangs);
 
             // Show signature
-            $startPageOfSignatoryArea = $pdf->getPage() - ($neededSpaceForSignatureArea['numberOfPageCreated'] - $numberOfPageToSkipBeforeStartingSignatoryArea);
             $pdf->setPage($startPageOfSignatoryArea);
             $endYSignatory = $this->_signature_area($pdf, $object, $YtoStartSignatureArea, $outputlangs);
         } else {
@@ -427,7 +424,6 @@ class pdf_jupiter extends ModelePDFFicheinter
             $endYSignatory = $this->_signature_area($pdf, $object, $YtoStartSignatureArea, $outputlangs);
 
             // Show effective working time
-            $startPageOfWorkingTimeArea = $pdf->getPage() - ($needeSpaceForWorkingTimeArea['numberOfPageCreated']  - $numberOfPageToSkipBeforeStartingWorkingTimeArea);
             $pdf->setPage($startPageOfWorkingTimeArea);
             $endYWorkingTime = $this->_effective_working_time_area($pdf, $effective_working_time, $YtoStartWorkingTimeArea, $outputlangs);
         }
