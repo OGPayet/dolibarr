@@ -1185,20 +1185,12 @@ class pdf_jupiter extends ModelePDFFicheinter
             $numberOfPeriodRowForThisUser = count($user['times']);
             $minRowHeight = $numberOfPeriodRowForThisUser * $singleLineMinHeight;
             $this->addCellToRow($row, $nameToDisplay, 1, $numberOfPeriodRowForThisUser, null, null, 'C', 'middle', 'normal', null, $minRowHeight, $default_font_size - 1);
-            $lastBeginDay = null;
             foreach ($user['times'] as $index => $dateInformation) {
                 $beginDate = $dateInformation['begin'];
                 $endDate = $dateInformation['end'];
                 $duration = $dateInformation['duration'];
 
-                $displayedBeginDate = '';
-                $beginDateDay = dol_print_date($beginDate, 'day');
-                if ($lastBeginDay != $beginDateDay) {
-                    $lastBeginDay = $beginDateDay;
-                    $displayedBeginDate = $beginDateDay . ' ';
-                }
-
-                $displayedBeginDate .= dol_print_date($beginDate, 'hour');
+                $displayedBeginDate = dol_print_date($beginDate, 'day') . ' ' . dol_print_date($beginDate, 'hour');
                 $displayedEndDate = dol_print_date($endDate, 'hour');
                 $displayedDuration = $this->_print_duration($duration, false, true, false);
                 $this->addCellToRow($row, $displayedBeginDate, 1, null, null, null, 'C', 'middle', 'normal', null, null, $default_font_size - 1);
