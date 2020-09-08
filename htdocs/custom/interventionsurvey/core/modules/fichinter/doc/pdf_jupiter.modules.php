@@ -367,10 +367,6 @@ class pdf_jupiter extends ModelePDFFicheinter
         //We add the needed number of page to display signatory area and working time area
         $numberOfPageToAdd = max($needeSpaceForWorkingTimeArea['numberOfPageCreated'], $neededSpaceForSignatureArea['numberOfPageCreated']);
 
-        $startPageOfWorkingTimeArea = $startPage + $numberOfPageToAdd - $needeSpaceForWorkingTimeArea['numberOfPageCreated'];
-        $startPageOfSignatoryArea = $startPage + $numberOfPageToAdd - $neededSpaceForSignatureArea['numberOfPageCreated'];
-
-
         $page_height = $pdf->getPageHeight();
         $page_margins = $pdf->getMargins();
 
@@ -386,11 +382,13 @@ class pdf_jupiter extends ModelePDFFicheinter
             $YtoStartWorkingTimeArea = $useFullAreaStartY + $remainingOffset;
         }
 
+        $startPageOfWorkingTimeArea = $startPage + $numberOfPageToAdd - $needeSpaceForWorkingTimeArea['numberOfPageCreated'];
         $numberOfPageToSkipBeforeStartingWorkingTimeArea = 0;
         if ($startPage == $startPageOfWorkingTimeArea && $YtoStartWorkingTimeArea <= $curY) {
             //we go on next page to print working time area
             $numberOfPageToSkipBeforeStartingWorkingTimeArea += 1;
             $startPageOfWorkingTimeArea += 1;
+            $numberOfPageToAdd = max($needeSpaceForWorkingTimeArea['numberOfPageCreated'] + 1, $neededSpaceForSignatureArea['numberOfPageCreated']);
         }
 
         $neededOffsetForSignatoryArea = $neededSpaceForSignatureArea['spaceToFooterOnLastPage'];
@@ -402,11 +400,14 @@ class pdf_jupiter extends ModelePDFFicheinter
             $YtoStartSignatureArea = $useFullAreaStartY + $remainingOffset;
         }
 
+        $startPageOfSignatoryArea = $startPage + $numberOfPageToAdd - $neededSpaceForSignatureArea['numberOfPageCreated'];
+
         $numberOfPageToSkipBeforeStartingSignatoryArea = 0;
         if ($startPage == $startPageOfSignatoryArea && $YtoStartSignatureArea <= $curY) {
             //we go on next page to print signatory Area
             $numberOfPageToSkipBeforeStartingSignatoryArea += 1;
             $startPageOfSignatoryArea += 1;
+            $numberOfPageToAdd = max($needeSpaceForWorkingTimeArea['numberOfPageCreated'], $neededSpaceForSignatureArea['numberOfPageCreated'] + 1);
         }
 
         if ($numberOfPageToSkipBeforeStartingWorkingTimeArea > 0 || $numberOfPageToSkipBeforeStartingSignatoryArea > 0) {
