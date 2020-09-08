@@ -38,7 +38,9 @@ include_once DOL_DOCUMENT_ROOT . '/core/class/hookmanager.class.php';
 dol_include_once('/interventionsurvey/lib/libPDFST.trait.php');
 dol_include_once('/interventionsurvey/lib/interventionsurvey.helper.php');
 dol_include_once('/interventionsurvey/lib/opendsi_pdf.lib.php');
+dol_include_once('/interventionsurvey/lib/interventionsurvey_jupiter.lib.php');
 dol_include_once('/interventionsurvey/class/interventionsurvey.class.php');
+
 
 function sortImageByPage($a, $b)
 {
@@ -1230,7 +1232,7 @@ class pdf_jupiter extends ModelePDFFicheinter
     {
         $lines = $object->lines;
         $linesToDisplay = array_filter($lines, function ($line) {
-            return !empty($line->desc);
+            return isThereInterestingTextContent($line->desc);
         });
         $i = 1;
         $curY = $posy;
