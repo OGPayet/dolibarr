@@ -318,10 +318,10 @@ if ($object->id > 0) {
         $ret = -1;
     }
 
-       if ($object->statut == InterventionSurvey::STATUS_DRAFT) {
-            print $langs->trans('InterventionSurveyMustBeValidated');
-            print '<br>';
-        }
+    //    if ($object->statut == InterventionSurvey::STATUS_DRAFT) {
+    //         print $langs->trans('InterventionSurveyMustBeValidated');
+    //         print '<br>';
+    //     }
 
         if ($readOnlySurvey) {
             print $langs->trans('InterventionSurveyReadOnlyMode');

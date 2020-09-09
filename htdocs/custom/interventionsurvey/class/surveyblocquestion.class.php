@@ -371,15 +371,16 @@ class SurveyBlocQuestion extends CommonObject
         if (!is_object($obj)) {
             $obj = json_decode(json_encode($obj));
         }
+
         $this->status = array();
         $this->chosen_status = null;
         $this->questions = array();
         $this->extrafields = array();
 
+        parent::setVarsFromFetchObj($obj);
         if ($obj->c_rowid) {
             $this->fk_c_survey_bloc_question = $obj->c_rowid;
         }
-        parent::setVarsFromFetchObj($obj);
 
         if (is_array($obj->extrafields)) {
             $this->extrafields = $obj->extrafields;

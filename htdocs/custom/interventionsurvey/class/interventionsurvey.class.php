@@ -35,10 +35,10 @@ dol_include_once('/societe/class/societe.helper.php');
 
 function intervention_survey_cmp($a, $b)
 {
-    if (!isset($a) || !isset($a["position"])) {
+    if (!isset($a) || !isset($a["position"]) || is_null($a["position"])) {
         return 1;
     }
-    if (!isset($b) || !isset($b["position"])) {
+    if (!isset($b) || !isset($b["position"]) || is_null($b["position"])) {
         return -1;
     }
     if ($a["position"] == $b["position"]) {
