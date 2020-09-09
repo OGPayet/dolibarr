@@ -282,32 +282,59 @@ class InterfaceInterventionSurveyTriggers extends DolibarrTriggers
                     $object->errors = array_merge($object->errors, $interventionSurvey->errors);
                 }
                 break;
-                case 'FICHINTER_CLASSIFY_DONE':
-                    $error = 0;
-                    if (!$object->noSurveyDataCheck && !empty($conf->global->INTERVENTIONSURVEY_STRICT_DATA_CHECK_ON_CLOTURED)) {
-                        //We emit an error in order to avoid fichinter to be classify done if some required data are missing
-                        dol_include_once('/interventionsurvey/class/interventionsurvey.class.php');
-                        $interventionSurvey = new InterventionSurvey($this->db);
-                        if (
-                            $interventionSurvey->fetch($object->id) > 0
-                            && $interventionSurvey->fetchSurvey() > 0
-                        ) {
-                            if (!$interventionSurvey->areDataValid()) {
-                                $object->errors[] = $langs->trans('InterventionSurveyMissingRequiredFieldInSurvey');
-                                $object->errors = array_merge($object->errors, $interventionSurvey->errors);
-                                $error++;
-                            }
-                        }
-                    }
-                    if($conf->global->INTERVENTIONSURVEY_ATLEASTONINTERVENTIONLINESMUSTEXISTONCLOTURED && count($object->lines) == 0){
-                        $object->errors[] = $langs->trans('InterventionSurveyMissingInterventionLines');
+            case 'FICHINTER_CLASSIFY_DONE':
+                $error = 0;
+                if (!$object->noSurveyDataCheck && !empty($conf->global->INTERVENTIONSURVEY_STRICT_DATA_CHECK_ON_CLOTURED)) {
+                    //We emit an error in order to avoid fichinter to be classify done if some required data are missing
+                    dol_include_once('/interventionsurvey/class/interventionsurvey.class.php');
+                    $interventionSurvey = new InterventionSurvey($this->db);
+                    if (
+                        $interventionSurvey->fetch($object->id) > 0
+                        && $interventionSurvey->fetchSurvey() > 0
+                        && !$interventionSurvey->areDataValid()
+                    ) {
+                        $object->errors[] = $langs->trans('InterventionSurveyMissingRequiredFieldInSurvey');
+                        $object->errors = array_merge($object->errors, $interventionSurvey->errors);
                         $error++;
                     }
-                    if($error > 0){
-                        setEventMessages('',$object->errors,'errors');
-                        return -1;
+                }
+                if ($conf->global->INTERVENTIONSURVEY_ATLEASTONINTERVENTIONLINESMUSTEXISTONCLOTURED && count($object->lines) == 0) {
+                    $object->errors[] = $langs->trans('InterventionSurveyMissingInterventionLines');
+                    $error++;
+                }
+                if ($error > 0) {
+                    setEventMessages('', $object->errors, 'errors');
+                    return -1;
+                } else {
+                    // Insertion action
+                    if($object->context['createdFromApi']) {
+                        $actionLabel = $langs->trans('InterventionSurveyClassifyDoneOpsyOnSiteLabel', $object->ref);
+                        $actionMessage = $langs->trans('InterventionSurveyClassifyDoneOpsyOnSiteMessage', $object->ref);
+                    } else {
+                        $actionLabel = $langs->trans('InterventionSurveyClassifyDoneOpsyLabel', $object->ref);
+                        $actionMessage = $langs->trans('InterventionSurveyClassifyDoneOpsyMessage', $object->ref);
                     }
-                    return 0;
+                    $actionMessage = dol_concatdesc($actionMessage, $langs->trans('InterventionSurveyAuthor', $user->login));
+                    require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
+                    $now = dol_now();
+                    $actioncomm = new ActionComm($this->db);
+                    $actioncomm->type_code   = 'AC_OTH_AUTO';        // Type of event ('AC_OTH', 'AC_OTH_AUTO', 'AC_XXX'...)
+                    $actioncomm->code        = 'AC_' . $action;
+                    $actioncomm->label       = $actionLabel;
+                    $actioncomm->note        = $actionMessage;          // TODO Replace with $actioncomm->email_msgid ? $object->email_content : $object->actionmsg
+                    $actioncomm->fk_project  = isset($object->fk_project) ? $object->fk_project : 0;
+                    $actioncomm->datep       = $now;
+                    $actioncomm->datef       = $now;
+                    $actioncomm->percentage  = -1;   // Not applicable
+                    $actioncomm->socid       = $object->socid;
+                    $actioncomm->authorid    = $user->id;   // User saving action
+                    $actioncomm->userownerid = $user->id;    // Owner of action
+                    $actioncomm->fk_element  = $object->id;
+                    $actioncomm->elementtype = $object->element;
+
+                    return $actioncomm->create($user);       // User creating action
+                }
+                return 0;
                 break;
                 //case 'LINEFICHINTER_CREATE':
                 //case 'LINEFICHINTER_UPDATE':

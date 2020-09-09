@@ -312,7 +312,9 @@ SynergiesTechOrderCantbeUnlinkedAdvanced = Ce lien commande/intervention assure 
 SynergiesTechOrderCantbeUnlinkedStandard = Ce lien commande/intervention assure la justification commerciale de l'intervention concernée. Ce lien ne peux donc pas être supprimé. S'il s'agissait d'une intervention sous contrat, merci de lier un contrat ACTIF sur l'intervention avant de supprimer ce lien
 SynergiesTechValidateWithoutCheck = Valider sans vérification d'elements commerciaux
 SynergiesTechValidateWithoutCheckConfirmation = Êtes-vous sûr de vouloir passer cette intervention en 'A faire' sous la référence %s sans vérification des liens permettant sa justification commerciale ?
-
+SynergiesTechValidateForcedActionLabel = Intervention %s validée sans élément commercial
+SynergiesTechValidateForcedActionMessage = Intervention %s validée sans contrat actif ou commande validée permettant de justifier son statut commercial
+SynergiesTechAuthor = Auteur : %s
 #############################################################
 ### Thirdparty card
 #############################################################

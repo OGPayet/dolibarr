@@ -252,3 +252,10 @@ InterventionSurveyEffectiveWorkingTimeTotal                       = Total
 InterventionSurveyPdfStakeholderSignature                         = Signature Technicien - Le %s à %s
 InterventionSurveyPdfCustomerSignature                            = Signature Client - Le %s à %s
 InterventionSurveyLineDescriptionTitle                            = Détails n°%s
+
+#Creation d'évènements
+InterventionSurveyClassifyDoneOpsyLabel                           = Intervention %s clôturée depuis Opsy
+InterventionSurveyClassifyDoneOpsyMessage                         = Intervention %s clôturée depuis Opsy
+InterventionSurveyClassifyDoneOpsyOnSiteLabel                     = Intervention %s clôturée depuis Opsy On Site
+InterventionSurveyClassifyDoneOpsyOnSiteMessage                   = Intervention %s clôturée depuis Opsy On Site
+InterventionSurveyAuthor                                          = Auteur : %s

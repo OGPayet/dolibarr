@@ -1814,8 +1814,7 @@ class pdf_jupiter extends ModelePDFFicheinter
 
         $useFullAreaStartY = $page_margins['top'];
         $useFulAreaEndY = $page_height - $page_margins['bottom'];
-        $averageOffsetIfDisplayedOnSeveralPage = $numberOfPage > 0 ? 1 : 0;
-        $computedY = $spaceToFooter + $curYForItemEstimation - $averageOffsetIfDisplayedOnSeveralPage;
+        $computedY = $spaceToFooter + $curYForItemEstimation - 1;
 
 
         if ($computedY >= $useFulAreaEndY) {

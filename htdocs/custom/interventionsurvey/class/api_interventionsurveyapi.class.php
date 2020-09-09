@@ -544,7 +544,7 @@ class InterventionSurveyApi extends DolibarrApi
         if ($this->interventionSurvey->is_survey_read_only()) {
             throw new RestException(401, 'Intervention survey with id=' . $this->interventionSurvey->id . 'is in readonly mode');
         }
-
+        $this->interventionSurvey->context['createdFromApi'] = true;
         $result = $this->interventionSurvey->setStatut(3);
 
         if ($result < 0) {
