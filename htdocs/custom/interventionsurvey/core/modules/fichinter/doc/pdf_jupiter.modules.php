@@ -356,79 +356,45 @@ class pdf_jupiter extends ModelePDFFicheinter
      */
     private function displayWorkingTimeAndSignatoryArea($pdf, $object, $effective_working_time, $curY, $outputlangs)
     {
+        $margin = $pdf->getMargins();
+
         //We determine size of working time area and compute starting position and page to generate Working time area
-        $needeSpaceForWorkingTimeArea = $this->getHeightForWorkingTimeArea($pdf, $effective_working_time, $curY, $outputlangs);
+        $needeSpaceForWorkingTimeArea = $this->getHeightForWorkingTimeArea($pdf, $effective_working_time, $margin['top'], $outputlangs);
 
         //We determine size of signatory area and compute starting position and page to generate signatory area
-        $neededSpaceForSignatureArea = $this->getHeightForSignatureArea($pdf, $object, $curY, $outputlangs);
+        $neededSpaceForSignatureArea = $this->getHeightForSignatureArea($pdf, $object, $margin['top'], $outputlangs);
 
         $startPage = $pdf->getPage();
 
-        //We add the needed number of page to display signatory area and working time area
-        $numberOfPageToAdd = max($needeSpaceForWorkingTimeArea['numberOfPageCreated'], $neededSpaceForSignatureArea['numberOfPageCreated']);
+        $startPageAndYForWorkingTimeArea = self::getStartPageAndYPositionInOrderToItemEndsOnFooterOfAPage($pdf, $startPage, $margin['top'], $needeSpaceForWorkingTimeArea['spaceToFooterOnLastPage'], $needeSpaceForWorkingTimeArea['numberOfPageCreated'], $curY);
+        $startPageAndYForSignatoryArea = self::getStartPageAndYPositionInOrderToItemEndsOnFooterOfAPage($pdf, $startPage, $margin['top'], $neededSpaceForSignatureArea['spaceToFooterOnLastPage'], $neededSpaceForSignatureArea['numberOfPageCreated'],$curY);
 
-        $page_height = $pdf->getPageHeight();
-        $page_margins = $pdf->getMargins();
-
-        $useFullAreaStartY = $page_margins['top'];
-        $useFulAreaEndY = $page_height - $page_margins['bottom'];
-
-        $neededOffsetForWorkingTimeArea = $needeSpaceForWorkingTimeArea['spaceToFooterOnLastPage'];
-        $YtoStartWorkingTimeArea = $curY + $neededOffsetForWorkingTimeArea - 1;
-
-        if ($YtoStartWorkingTimeArea >= $useFulAreaEndY) {
-            $offsetManagedOnStartPage = $useFulAreaEndY - $curY;
-            $remainingOffset = $neededOffsetForWorkingTimeArea - $offsetManagedOnStartPage;
-            $YtoStartWorkingTimeArea = $useFullAreaStartY + $remainingOffset;
+        if($startPageAndYForWorkingTimeArea['lastPage'] < $startPageAndYForSignatoryArea['lastPage']){
+            $startPageAndYForWorkingTimeArea['startPage'] += $startPageAndYForSignatoryArea['lastPage'] - $startPageAndYForWorkingTimeArea['lastPage'];
+            $startPageAndYForWorkingTimeArea['lastPage'] += $startPageAndYForSignatoryArea['lastPage'] - $startPageAndYForWorkingTimeArea['lastPage'];
+        }
+        elseif($startPageAndYForWorkingTimeArea['lastPage'] > $startPageAndYForSignatoryArea['lastPage']) {
+            $startPageAndYForSignatoryArea['startPage'] += $startPageAndYForWorkingTimeArea['lastPage'] - $startPageAndYForSignatoryArea['lastPage'];
+            $startPageAndYForSignatoryArea['lastPage'] += $startPageAndYForWorkingTimeArea['lastPage'] - $startPageAndYForSignatoryArea['lastPage'];
         }
 
-        $startPageOfWorkingTimeArea = $startPage + $numberOfPageToAdd - $needeSpaceForWorkingTimeArea['numberOfPageCreated'];
-        $numberOfPageToSkipBeforeStartingWorkingTimeArea = 0;
-        if ($startPage == $startPageOfWorkingTimeArea && $YtoStartWorkingTimeArea <= $curY) {
-            //we go on next page to print working time area
-            $numberOfPageToSkipBeforeStartingWorkingTimeArea += 1;
-            $startPageOfWorkingTimeArea += 1;
-            $numberOfPageToAdd = max($needeSpaceForWorkingTimeArea['numberOfPageCreated'] + 1, $neededSpaceForSignatureArea['numberOfPageCreated']);
-        }
-
-        $neededOffsetForSignatoryArea = $neededSpaceForSignatureArea['spaceToFooterOnLastPage'];
-        $YtoStartSignatureArea = $curY + $neededOffsetForSignatoryArea - 1;
-
-        if ($YtoStartSignatureArea >= $useFulAreaEndY) {
-            $offsetManagedOnStartPage = $useFulAreaEndY - $curY;
-            $remainingOffset = $neededOffsetForSignatoryArea - $offsetManagedOnStartPage;
-            $YtoStartSignatureArea = $useFullAreaStartY + $remainingOffset;
-        }
-
-        $startPageOfSignatoryArea = $startPage + $numberOfPageToAdd - $neededSpaceForSignatureArea['numberOfPageCreated'];
-
-        $numberOfPageToSkipBeforeStartingSignatoryArea = 0;
-        if ($startPage == $startPageOfSignatoryArea && $YtoStartSignatureArea <= $curY) {
-            //we go on next page to print signatory Area
-            $numberOfPageToSkipBeforeStartingSignatoryArea += 1;
-            $startPageOfSignatoryArea += 1;
-            $numberOfPageToAdd = max($needeSpaceForWorkingTimeArea['numberOfPageCreated'], $neededSpaceForSignatureArea['numberOfPageCreated'] + 1);
-        }
-
-        if ($numberOfPageToSkipBeforeStartingWorkingTimeArea > 0 || $numberOfPageToSkipBeforeStartingSignatoryArea > 0) {
+        if ($startPageAndYForSignatoryArea['startPage'] > $startPage && $startPageAndYForWorkingTimeArea['startPage'] > $startPage) {
             $pdf->AddPage('', '', true);
         }
-        if ($startPageOfWorkingTimeArea < $startPageOfSignatoryArea) {
+        if ($startPageAndYForWorkingTimeArea['startPage'] < $startPageAndYForSignatoryArea['startPage']) {
             // Show effective working time
-            $pdf->setPage($startPageOfWorkingTimeArea);
-            $endYWorkingTime = $this->_effective_working_time_area($pdf, $effective_working_time, $YtoStartWorkingTimeArea, $outputlangs);
-
+            $pdf->setPage($startPageAndYForWorkingTimeArea['startPage']);
+            $endYWorkingTime = $this->_effective_working_time_area($pdf, $effective_working_time, $startPageAndYForWorkingTimeArea['Y'], $outputlangs);
             // Show signature
-            $pdf->setPage($startPageOfSignatoryArea);
-            $endYSignatory = $this->_signature_area($pdf, $object, $YtoStartSignatureArea, $outputlangs);
+            $pdf->setPage($startPageAndYForSignatoryArea['startPage']);
+            $endYSignatory = $this->_signature_area($pdf, $object, $startPageAndYForSignatoryArea['Y'], $outputlangs);
         } else {
             // Show signature
-            $pdf->setPage($startPageOfSignatoryArea);
-            $endYSignatory = $this->_signature_area($pdf, $object, $YtoStartSignatureArea, $outputlangs);
-
+            $pdf->setPage($startPageAndYForSignatoryArea['startPage']);
+            $endYSignatory = $this->_signature_area($pdf, $object, $startPageAndYForSignatoryArea['Y'], $outputlangs);
             // Show effective working time
-            $pdf->setPage($startPageOfWorkingTimeArea);
-            $endYWorkingTime = $this->_effective_working_time_area($pdf, $effective_working_time, $YtoStartWorkingTimeArea, $outputlangs);
+            $pdf->setPage($startPageAndYForWorkingTimeArea['startPage']);
+            $endYWorkingTime = $this->_effective_working_time_area($pdf, $effective_working_time, $startPageAndYForWorkingTimeArea['Y'], $outputlangs);
         }
         return max($endYSignatory, $endYWorkingTime);
     }
@@ -1643,7 +1609,7 @@ class pdf_jupiter extends ModelePDFFicheinter
         $finalPage = $pdf->getPage();
         $page_height = $pdf->getPageHeight();
         $page_margins = $pdf->getMargins();
-        $spaceBetweenEndOfPageAndEndOfTab = $page_height - $page_margins['bottom'] - $YForEffectiveWorkingTimeAreaOnLastPage;
+        $spaceBetweenEndOfPageAndEndOfTab = $page_height - $page_margins['bottom'] - $YForEffectiveWorkingTimeAreaOnLastPage - 2;
         $pdf->rollbackTransaction(true);
         $computedHeightOnLastPage = $current_page == $finalPage ? $YForEffectiveWorkingTimeAreaOnLastPage - $posy : $YForEffectiveWorkingTimeAreaOnLastPage - $this->top_margin;
         return array('numberOfPageCreated' => $finalPage - $current_page, 'heightOnLastPage' => $computedHeightOnLastPage, 'spaceToFooterOnLastPage' => $spaceBetweenEndOfPageAndEndOfTab);
@@ -1837,5 +1803,31 @@ class pdf_jupiter extends ModelePDFFicheinter
             $text .= $duration_infos['seconds'] . 's';
         }
         return trim($text);
+    }
+
+    public static function getStartPageAndYPositionInOrderToItemEndsOnFooterOfAPage($pdf, $curPage, $curYForItemEstimation, $spaceToFooter, $numberOfPage, $curY) {
+
+        $page_height = $pdf->getPageHeight();
+        $page_margins = $pdf->getMargins();
+        $startPage = $curPage;
+
+        $useFullAreaStartY = $page_margins['top'];
+        $useFulAreaEndY = $page_height - $page_margins['bottom'];
+
+        $computedY = $spaceToFooter + $curYForItemEstimation - 1;
+
+
+        if ($computedY >= $useFulAreaEndY) {
+            $offsetManagedOnStartPage = $useFulAreaEndY - $computedY;
+            $remainingOffset = $computedY - $offsetManagedOnStartPage;
+            $computedY = $useFullAreaStartY + $remainingOffset;
+            $curPage += 1;
+        }
+
+        if($curPage == $startPage && $curY + 10 > $computedY){
+            $curPage += 1;
+        }
+
+        return array('startPage'=>$curPage, 'Y'=>$computedY, 'lastPage'=>$numberOfPage + $curPage);
     }
 }
