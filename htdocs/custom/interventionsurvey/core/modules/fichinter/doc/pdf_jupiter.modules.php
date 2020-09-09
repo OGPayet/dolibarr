@@ -1609,7 +1609,8 @@ class pdf_jupiter extends ModelePDFFicheinter
         $finalPage = $pdf->getPage();
         $page_height = $pdf->getPageHeight();
         $page_margins = $pdf->getMargins();
-        $spaceBetweenEndOfPageAndEndOfTab = $page_height - $page_margins['bottom'] - $YForEffectiveWorkingTimeAreaOnLastPage - 2;
+        $averageOffsetIfDisplayedOnSeveralPage = $current_page == $finalPage ? 0 : 2;
+        $spaceBetweenEndOfPageAndEndOfTab = $page_height - $page_margins['bottom'] - $YForEffectiveWorkingTimeAreaOnLastPage - $averageOffsetIfDisplayedOnSeveralPage;
         $pdf->rollbackTransaction(true);
         $computedHeightOnLastPage = $current_page == $finalPage ? $YForEffectiveWorkingTimeAreaOnLastPage - $posy : $YForEffectiveWorkingTimeAreaOnLastPage - $this->top_margin;
         return array('numberOfPageCreated' => $finalPage - $current_page, 'heightOnLastPage' => $computedHeightOnLastPage, 'spaceToFooterOnLastPage' => $spaceBetweenEndOfPageAndEndOfTab);
@@ -1813,8 +1814,8 @@ class pdf_jupiter extends ModelePDFFicheinter
 
         $useFullAreaStartY = $page_margins['top'];
         $useFulAreaEndY = $page_height - $page_margins['bottom'];
-
-        $computedY = $spaceToFooter + $curYForItemEstimation - 1;
+        $averageOffsetIfDisplayedOnSeveralPage = $numberOfPage > 0 ? 1 : 0;
+        $computedY = $spaceToFooter + $curYForItemEstimation - $averageOffsetIfDisplayedOnSeveralPage;
 
 
         if ($computedY >= $useFulAreaEndY) {
