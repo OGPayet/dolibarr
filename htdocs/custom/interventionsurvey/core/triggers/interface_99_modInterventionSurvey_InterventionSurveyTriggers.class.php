@@ -284,6 +284,7 @@ class InterfaceInterventionSurveyTriggers extends DolibarrTriggers
                 break;
             case 'FICHINTER_CLASSIFY_DONE':
                 $error = 0;
+                $langs->load("interventionsurvey@interventionsurvey");
                 if (!$object->noSurveyDataCheck && !empty($conf->global->INTERVENTIONSURVEY_STRICT_DATA_CHECK_ON_CLOTURED)) {
                     //We emit an error in order to avoid fichinter to be classify done if some required data are missing
                     dol_include_once('/interventionsurvey/class/interventionsurvey.class.php');
@@ -307,7 +308,7 @@ class InterfaceInterventionSurveyTriggers extends DolibarrTriggers
                     return -1;
                 } else {
                     // Insertion action
-                    if($object->context['createdFromApi']) {
+                    if($object->context['closedFromApi']) {
                         $actionLabel = $langs->trans('InterventionSurveyClassifyDoneOpsyOnSiteLabel', $object->ref);
                         $actionMessage = $langs->trans('InterventionSurveyClassifyDoneOpsyOnSiteMessage', $object->ref);
                     } else {

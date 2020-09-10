@@ -253,6 +253,7 @@ class InterfaceSynergiesTechFichInterValidationProtection extends DolibarrTrigge
                 if ($conf->global->SYNERGIESTECH_FICHINTER_PROTECTVALIDATEFICHINTER) {
                     //We check that user can validate this fichinter
                     dol_include_once('synergiestech/class/extendedInterventionValidation.class.php');
+                    $langs->load("synergiestech@synergiestech");
                     $InterventionValidationCheck = new ExtendedInterventionValidation($object, $this->db);
                     if (!$object->noValidationCheck) {
                         if (!$InterventionValidationCheck->canUserValidateThisFichInter($user)) {
