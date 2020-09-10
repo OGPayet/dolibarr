@@ -24,7 +24,6 @@
 require_once DOL_DOCUMENT_ROOT . '/fichinter/class/fichinter.class.php';
 dol_include_once('/interventionsurvey/class/surveypart.class.php');
 dol_include_once('/interventionsurvey/lib/interventionsurvey.helper.php');
-dol_include_once('/societe/class/societe.helper.php');
 
 
 

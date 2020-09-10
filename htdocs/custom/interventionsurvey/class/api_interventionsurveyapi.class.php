@@ -524,6 +524,8 @@ class InterventionSurveyApi extends DolibarrApi
      */
     function closeIntervention($id)
     {
+        global $user;
+        $user = DolibarrApiAccess::$user;
         if (!DolibarrApiAccess::$user->rights->interventionsurvey->survey->writeApi) {
             throw new RestException(401, "Insufficient rights");
         }
