@@ -548,7 +548,7 @@ class InterventionSurveyApi extends DolibarrApi
         $result = $this->interventionSurvey->setStatut(3);
 
         if ($result < 0) {
-            throw new RestException(403, 'Error when closing Intervention with id=' . $this->interventionSurvey->id . ' : ' . $this->_getErrors($this->interventionSurvey));
+            throw new RestException(403, 'Error when closing Intervention with id=' . $this->interventionSurvey->id . ' : ' .  $this->_getErrors($this->interventionSurvey));
         }
 
         $this->interventionSurvey->fetchObjectLinked();
@@ -895,7 +895,6 @@ class InterventionSurveyApi extends DolibarrApi
         }
 
         $errors = array_map('convert', $errors);
-
-        return $errors;
+        return implode(", ", $errors);
     }
 }
