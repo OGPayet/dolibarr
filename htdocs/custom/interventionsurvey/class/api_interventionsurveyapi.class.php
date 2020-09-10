@@ -135,7 +135,7 @@ class InterventionSurveyApi extends DolibarrApi
      * @url	GET /dictionaryType
      * @throws 	RestException
      */
-    function getDictionaryType($sort_field = "", $sort_order = "ASC", $limit  = 100, $page = 0)
+    function getDictionaryType($sort_field = "", $sort_order = "ASC", $limit = 100, $page = 0)
     {
         if (!DolibarrApiAccess::$user->rights->interventionsurvey->survey->readApi) {
             throw new RestException(401);
@@ -145,7 +145,7 @@ class InterventionSurveyApi extends DolibarrApi
         $dictionaryApi = new AdvanceDictionariesApi();
         $oldRight = $user->rights->advancedictionaries->read;
         $user->rights->advancedictionaries->read = 1;
-        $result = $dictionaryApi->index('extendedintervention', 'extendedinterventiontype','',$sort_field,$sort_order,$limit,$page);
+        $result = $dictionaryApi->index('extendedintervention', 'extendedinterventiontype', '', $sort_field, $sort_order, $limit, $page);
         $user->rights->advancedictionaries->read = $oldRight;
         return $result;
     }
@@ -543,18 +543,20 @@ class InterventionSurveyApi extends DolibarrApi
             throw new RestException(401, 'Access to instance id=' . $this->interventionSurvey->id . ' of object not allowed for login ' . DolibarrApiAccess::$user->login);
         }
 
-        if ($this->interventionSurvey->is_survey_read_only()) {
-            throw new RestException(401, 'Intervention survey with id=' . $this->interventionSurvey->id . 'is in readonly mode');
+        if ($this->interventionSurvey->is_survey_read_only() && $this->interventionSurvey->statut != $this->interventionSurvey::STATUS_DONE) {
+            throw new RestException(401, 'Intervention survey with id=' . $this->interventionSurvey->id . 'is in readonly mode but not closed');
         }
-        $this->interventionSurvey->context['closedFromApi'] = true;
-        $result = $this->interventionSurvey->setStatut(3);
-
+        if($this->interventionSurvey->statut != $this->interventionSurvey::STATUS_DONE){
+            $this->interventionSurvey->context['closedFromApi'] = true;
+            $result = $this->interventionSurvey->setStatut(3);
+        } else {
+            $result = 1;//intervention is already closed
+        }
         if ($result < 0) {
             throw new RestException(403, 'Error when closing Intervention with id=' . $this->interventionSurvey->id . ' : ' .  $this->_getErrors($this->interventionSurvey));
         }
 
         $this->interventionSurvey->fetchObjectLinked();
-        //$this->updatePdfFileIfNeeded(); not needed, already done as intervention statut change
         return $this->_cleanObjectData($this->interventionSurvey);
     }
 
@@ -616,7 +618,8 @@ class InterventionSurveyApi extends DolibarrApi
     //                    TOOLS                   //
     /******************************************** */
 
-    private function updatePdfFileIfNeeded(){
+    private function updatePdfFileIfNeeded()
+	{
         global $conf;
         global $langs;
         if (empty($conf->global->MAIN_DISABLE_PDF_AUTOUPDATE)) {
@@ -779,17 +782,17 @@ class InterventionSurveyApi extends DolibarrApi
      * @param   object      $object                     Object to clean
      * @param   boolean     $linked_object              This object is a linked object
      * @param   array       $whitelist_of_properties    Array of whitelist of properties keys for this object
-     *                                                      array('properties_name'=> '' or array('properties_name'=> '' or array(...), ...)
-     *                                                      if property is a object and this properties_name value is equal '' then get whitelist of his object element
-     *                                                      if property is a object and this properties_name value is a array then get whitelist set in the array
-     *                                                      if property is a array and this properties_name value is equal '' then get all values
-     *                                                      if property is a array and this properties_name value is a array then get whitelist set in the array
+     *                                                  array('properties_name'=> '' or array('properties_name'=> '' or array(...), ...)
+     *                                                  if property is a object and this properties_name value is equal '' then get whitelist of his object element
+     *                                                  if property is a object and this properties_name value is a array then get whitelist set in the array
+     *                                                  if property is a array and this properties_name value is equal '' then get all values
+     *                                                  if property is a array and this properties_name value is a array then get whitelist set in the array
      * @param   array       $blacklist_of_properties    Array of blacklist of properties keys for this object
-     *                                                      array('properties_name'=> '' or array('properties_name'=> '' or array(...), ...)
-     *                                                      if property is a object and this properties_name value is equal '' then get blacklist of his object element
-     *                                                      if property is a object and this properties_name value is a array then get blacklist set in the array
-     *                                                      if property is a array and this properties_name value is equal '' then get all values
-     *                                                      if property is a array and this properties_name value is a array then get blacklist set in the array
+     *                                                  array('properties_name'=> '' or array('properties_name'=> '' or array(...), ...)
+     *                                                  if property is a object and this properties_name value is equal '' then get blacklist of his object element
+     *                                                  if property is a object and this properties_name value is a array then get blacklist set in the array
+     *                                                  if property is a array and this properties_name value is equal '' then get all values
+     *                                                  if property is a array and this properties_name value is a array then get blacklist set in the array
      *
      * @return void
      *
