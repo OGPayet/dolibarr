@@ -410,7 +410,7 @@ SCRIPT;
                 $extendedinterventionquota = new ExtendedInterventionQuota($this->db);
 
                 $ajaxUrl = dol_buildpath('/extendedintervention/ajax/countinterventions.php', 1);
-                $out_block = $extendedinterventionquota->showBlockCountInterventionOfContract($contract_list, $fk_c_intervention_type);
+                $out_block = $extendedinterventionquota->showBlockCountInterventionOfContract($contract_list, 0);
 
                 $out = '<tr id="ei_count_intervention_block"><td>';
                 $out .= '<div id="ei_count_intervention_ajax_block">';
@@ -470,7 +470,7 @@ SCRIPT;
                 dol_include_once('/extendedintervention/class/extendedinterventionquota.class.php');
                 $extendedinterventionquota = new ExtendedInterventionQuota($this->db);
 
-                $out = $extendedinterventionquota->showBlockCountInterventionOfContract($contract_list, $fk_c_intervention_type);
+                $out = $extendedinterventionquota->showBlockCountInterventionOfContract($contract_list, 0);
                 if (!empty($out)) {
                     // Move out of the table
                     $out = '<tr id="ei_count_intervention_block"><td>' . $out;
