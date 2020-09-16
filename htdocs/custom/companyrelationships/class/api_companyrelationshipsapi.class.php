@@ -5769,8 +5769,12 @@ class CompanyRelationshipsApi extends DolibarrApi {
             if (!($object->id > 0)) {
                 return [];
             }
-
-            $relativefile = $tmpreldir . dol_sanitizeFileName($object->ref);
+            if($modulepart == 'equipement') {
+                $relativefile = $tmpreldir . dol_sanitizeFileName($object->id);
+            }
+            else {
+                $relativefile = $tmpreldir . dol_sanitizeFileName($object->ref);
+            }
 
             //--------------------------------------------------------------
             // Open-DSI - Modification - Begin
