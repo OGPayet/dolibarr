@@ -775,7 +775,7 @@ function insertGContactsEntries($gdata, $gContacts, $objectstatic, $useremail='d
 {
 	global $conf;
 
-	$maxBatchLength = 98; //Google doc says max 100 entries.
+	$maxBatchLength = 48; //Google doc says max 100 entries.
 	$remainingContacts = $gContacts;
 	while (count($remainingContacts) > 0)
 	{
@@ -898,7 +898,7 @@ END;
 			$res=parseResponse($responseXml);
 			if ($res->count != count($firstContacts) || $res->nbOfErrors)
 			{
-				dol_syslog("Failed to batch insert count=".$res->count.", count(firstContacts)=".count($firstContacts).", nb of errors=".$res->nbOfErrors.", lasterror=".$res->lastError, LOG_ERR);
+				dol_syslog("Failed to batch insert count=".$res->count.", count(firstContacts)=".count($firstContacts).", nb of errors=".$res->nbOfErrors.", lasterror=".$res->lastError . $result['content'], LOG_ERR);
 				return sprintf("Google error : Nb of records to insert = %s, nb inserted = %s, error label = %s", count($firstContacts), $res->count, $res->lastError);
 			}
 			else
