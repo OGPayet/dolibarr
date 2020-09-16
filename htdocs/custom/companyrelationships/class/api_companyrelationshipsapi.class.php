@@ -5530,7 +5530,7 @@ class CompanyRelationshipsApi extends DolibarrApi {
                 throw new RestException(401);
             }
 
-            $upload_dir = $conf->equipement->dir_output . '/' . dol_sanitizeFileName($object->ref);
+            $upload_dir = $conf->equipement->dir_output . '/' . dol_sanitizeFileName($object->id);
             $output_dir = $conf->equipement->dir_output . "/";
             $tableandshare = 'equipement';
             $dbt_keyfield = 'fk_soc_client';

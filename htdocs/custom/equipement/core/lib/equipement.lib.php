@@ -126,7 +126,7 @@ function equipement_prepare_head($object)
 	}
 
 	require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
-	$upload_dir = $conf->equipement->dir_output .'/'.dol_sanitizeFileName($object->ref);
+	$upload_dir = $conf->equipement->dir_output .'/'.dol_sanitizeFileName($object->id);
 	$nbFiles = count(dol_dir_list($upload_dir, 'files'));
 	$head[$h][0] = dol_buildpath('/equipement/document.php?id='.$object->id, 1);
 	$head[$h][1] = $langs->trans("Documents");

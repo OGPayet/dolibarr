@@ -823,7 +823,7 @@ class GContact
      */
     public static function insertGContactsEntries($gdata, array $gContacts)
     {
-        $maxBatchLength = 98; //Google doc says max 100 entries.
+        $maxBatchLength = 48; //Google doc says max 100 entries.
         $remainingContacts = $gContacts;
         while (count($remainingContacts) > 0)
         {
