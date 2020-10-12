@@ -32,7 +32,7 @@ class ExtendedInterventionTypeDictionary extends Dictionary
     /**
      * @var int         Version of this dictionary
      */
-    public $version = 4;
+    public $version = 5;
 
     /**
      * @var array       List of languages to load
@@ -151,6 +151,15 @@ class ExtendedInterventionTypeDictionary extends Dictionary
             ),
             'is_require' => true,
         ),
+        'acronym' => array(
+            'name'       => 'acronym',
+            'label'      => 'Acronym',
+            'type'       => 'varchar',
+            'database'   => array(
+                'length'   => 10,
+            ),
+            'is_require' => true,
+        ),
 		'icon' => array(
             'name'       => 'icon',
             'label'      => 'Icone',
@@ -184,7 +193,7 @@ class ExtendedInterventionTypeDictionary extends Dictionary
             'name'       => 'count',
             'label'      => 'ExtendedInterventionTypeDictionaryCount',
             'type'       => 'boolean',
-        ),
+        )
     );
 
     /**
@@ -231,6 +240,11 @@ class ExtendedInterventionTypeDictionary extends Dictionary
                 'color_end' => 'a',
             )
         ),
+        5 => array(
+            'fields' => array(
+                'acronym' => 'a',
+            )
+        )
     );
 
     /**
