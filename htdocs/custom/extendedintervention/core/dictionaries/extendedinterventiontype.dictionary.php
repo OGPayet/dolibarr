@@ -153,7 +153,7 @@ class ExtendedInterventionTypeDictionary extends Dictionary
         ),
         'acronym' => array(
             'name'       => 'acronym',
-            'label'      => 'Acronym',
+            'label'      => 'ExtendedInterventionTypeDictionaryAcronym',
             'type'       => 'varchar',
             'database'   => array(
                 'length'   => 10,
