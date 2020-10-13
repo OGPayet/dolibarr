@@ -644,10 +644,10 @@ class InterventionSurvey extends Fichinter
      *
      */
 
-    public function fetchSurvey()
+    public function fetchSurvey($forceDataFromCache = false)
     {
         $this->survey = array();
-        return interventionSurveyFetchCommonLineWithCache(" ORDER BY position ASC", "SurveyPart", $this->survey, $this, SurveyPart::$DB_CACHE_FROM_FICHINTER, SurveyPart::$DB_CACHE);
+        return interventionSurveyFetchCommonLineWithCache(" ORDER BY position ASC", "SurveyPart", $this->survey, $this, SurveyPart::$DB_CACHE_FROM_FICHINTER, SurveyPart::$DB_CACHE, $forceDataFromCache);
     }
 
     public static function fillSurveyCacheForParentObjectIds($arrayOfFichInterIds) {
@@ -715,13 +715,13 @@ class InterventionSurvey extends Fichinter
     /**
      * Override fichinter fetch in order to fetch survey in the same time
      */
-    public function fetch($rowid,$ref=''){
-        $result = parent::fetch($rowid,$ref);
-        if($result > 0 ) {
-            $result = $this->fetch_optionals();
+    public function fetch($rowid, $ref='', $useCachedData = false, $loadCacheData = false){
+        if($loadCacheData) {
+            InterventionSurvey::fillSurveyCacheForParentObjectIds(array($rowid));
         }
+        $result = parent::fetch($rowid, $ref);
         if($result > 0 ) {
-           $result = $this->fetchSurvey();
+           $result = $this->fetchSurvey($useCachedData);
         }
         if($result > 0 ) {
             if($this->lines){
@@ -1157,6 +1157,121 @@ class InterventionSurvey extends Fichinter
                 $this->fetch_optionals();
             }
             $this->watcher = fetchACompanyObjectById($this->array_options['options_companyrelationships_fk_soc_watcher'], $this->db);
+        }
+    }
+
+        /**
+     *	Fetch array of objects linked to current object. Links are loaded into this->linkedObjects array and this->linkedObjectsIds
+     *  Possible usage for parameters:
+     *  - all parameters empty -> we look all link to current object (current object can be source or target)
+     *  - one couple id+type is provided -> this will set $justsource or $justtarget
+     *  - one couple id+type is provided and other type is provided -> this will set $justsource or $justtarget + criteria on other type
+     *
+     *
+     *	@param	int		$sourceid		Object source id (if not defined, id of object)
+     *	@param  string	$sourcetype		Object source type (if not defined, element name of object)
+     *	@param  int		$targetid		Object target id (if not defined, id of object)
+     *	@param  string	$targettype		Object target type (if not defined, elemennt name of object)
+     *	@param  string	$clause			'OR' or 'AND' clause used when both source id and target id are provided
+     *  @param	int		$alsosametype	0=Return only links to object that differs from source. 1=Include also link to objects of same type.
+     *	@return	void
+     *  @see	add_object_linked, updateObjectLinked, deleteObjectLinked
+     */
+	function fetchObjectLinkedIds($sourceid=null,$sourcetype='',$targetid=null,$targettype='',$clause='OR',$alsosametype=1)
+    {
+        global $conf;
+
+        $this->linkedObjectsIds=array();
+
+        $justsource=false;
+        $justtarget=false;
+        $withtargettype=false;
+        $withsourcetype=false;
+
+        if (! empty($sourceid) && ! empty($sourcetype) && empty($targetid))
+        {
+		$justsource=true;  // the source (id and type) is a search criteria
+		if (! empty($targettype)) $withtargettype=true;
+        }
+        if (! empty($targetid) && ! empty($targettype) && empty($sourceid))
+        {
+		$justtarget=true;  // the target (id and type) is a search criteria
+		if (! empty($sourcetype)) $withsourcetype=true;
+        }
+
+        $sourceid = (! empty($sourceid) ? $sourceid : $this->id);
+        $targetid = (! empty($targetid) ? $targetid : $this->id);
+        $sourcetype = (! empty($sourcetype) ? $sourcetype : $this->element);
+        $targettype = (! empty($targettype) ? $targettype : $this->element);
+
+        /*if (empty($sourceid) && empty($targetid))
+        {
+		dol_syslog('Bad usage of function. No source nor target id defined (nor as parameter nor as object id)', LOG_ERR);
+		return -1;
+        }*/
+
+        // Links between objects are stored in table element_element
+        $sql = 'SELECT rowid, fk_source, sourcetype, fk_target, targettype';
+        $sql.= ' FROM '.MAIN_DB_PREFIX.'element_element';
+        $sql.= " WHERE ";
+        if ($justsource || $justtarget)
+        {
+            if ($justsource)
+            {
+		$sql.= "fk_source = '".$sourceid."' AND sourcetype = '".$sourcetype."'";
+		if ($withtargettype) $sql.= " AND targettype = '".$targettype."'";
+            }
+            else if ($justtarget)
+            {
+		$sql.= "fk_target = '".$targetid."' AND targettype = '".$targettype."'";
+		if ($withsourcetype) $sql.= " AND sourcetype = '".$sourcetype."'";
+            }
+        }
+        else
+		{
+            $sql.= "(fk_source = '".$sourceid."' AND sourcetype = '".$sourcetype."')";
+            $sql.= " ".$clause." (fk_target = '".$targetid."' AND targettype = '".$targettype."')";
+        }
+        $sql .= ' ORDER BY sourcetype';
+        //print $sql;
+
+        dol_syslog(get_class($this)."::fetchObjectLink", LOG_DEBUG);
+        $resql = $this->db->query($sql);
+        if ($resql)
+        {
+            $num = $this->db->num_rows($resql);
+            $i = 0;
+            while ($i < $num)
+            {
+                $obj = $this->db->fetch_object($resql);
+                if ($justsource || $justtarget)
+                {
+                    if ($justsource)
+                    {
+                        $this->linkedObjectsIds[$obj->targettype][$obj->rowid]=$obj->fk_target;
+                    }
+                    else if ($justtarget)
+                    {
+                        $this->linkedObjectsIds[$obj->sourcetype][$obj->rowid]=$obj->fk_source;
+                    }
+                }
+                else
+                {
+                    if ($obj->fk_source == $sourceid && $obj->sourcetype == $sourcetype)
+                    {
+                        $this->linkedObjectsIds[$obj->targettype][$obj->rowid]=$obj->fk_target;
+                    }
+                    if ($obj->fk_target == $targetid && $obj->targettype == $targettype)
+                    {
+                        $this->linkedObjectsIds[$obj->sourcetype][$obj->rowid]=$obj->fk_source;
+                    }
+                }
+                $i++;
+            }
+        }
+        else
+        {
+            dol_print_error($this->db);
         }
     }
 }

@@ -298,11 +298,11 @@ class SurveyAnswer extends CommonObject
      *
      * @return int         <0 if KO, 0 if not found, >0 if OK
      */
-    public function fetchLines()
+    public function fetchLines($forceDataFromCache = false)
     {
         $this->predefined_texts = array();
 
-        $result = interventionSurveyFetchCommonLineWithCache(" ORDER BY position ASC", "SurveyAnswerPredefinedText", $this->predefined_texts, $this, SurveyAnswerPredefinedText::$DB_CACHE_FROM_SURVEYANSWER, SurveyAnswerPredefinedText::$DB_CACHE);
+        $result = interventionSurveyFetchCommonLineWithCache(" ORDER BY position ASC", "SurveyAnswerPredefinedText", $this->predefined_texts, $this, SurveyAnswerPredefinedText::$DB_CACHE_FROM_SURVEYANSWER, SurveyAnswerPredefinedText::$DB_CACHE, $forceDataFromCache);
         foreach ($this->predefined_texts as $predefined_text) {
             $predefined_text->surveyAnswer = $this;
         }

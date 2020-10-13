@@ -180,7 +180,7 @@ class InterventionSurveyApi extends DolibarrApi
         if (!$this->interventionSurvey->checkUserAccess(DolibarrApiAccess::$user)) {
             throw new RestException(401, 'Access to instance id=' . $this->interventionSurvey->id . ' of object not allowed for login ' . DolibarrApiAccess::$user->login);
         }
-        $this->interventionSurvey->fetchObjectLinked();
+        $this->interventionSurvey->fetchObjectLinkedIds();
         $result = $this->_cleanObjectData($this->interventionSurvey);
         return $result;
     }
@@ -295,8 +295,8 @@ class InterventionSurveyApi extends DolibarrApi
             InterventionSurvey::fillSurveyCacheForParentObjectIds($arrayOfInterventionIds);
             foreach($arrayOfInterventionIds as $id) {
                 $fichinter_static = new InterventionSurvey($this->db);
-                if ($fichinter_static->fetch($id)) {
-                    $fichinter_static->fetchObjectLinked();
+                if ($fichinter_static->fetch($id, null, true)) {
+                    $fichinter_static->fetchObjectLinkedIds();
                     $obj_ret[] = $this->_cleanObjectData($fichinter_static);
                 }
             }

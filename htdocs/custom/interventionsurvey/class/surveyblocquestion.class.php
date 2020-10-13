@@ -341,17 +341,17 @@ class SurveyBlocQuestion extends CommonObject
      *
      * @return int         <0 if KO, 0 if not found, >0 if OK
      */
-    public function fetchLines()
+    public function fetchLines($forceDataFromCache = false)
     {
         $this->status = array();
         $this->chosen_status = null;
         $this->questions = array();
 
-        $result1 = interventionSurveyFetchCommonLineWithCache(" ORDER BY position ASC", "SurveyQuestion", $this->questions, $this, SurveyQuestion::$DB_CACHE_FROM_SURVEYBLOCQUESTION, SurveyQuestion::$DB_CACHE);
+        $result1 = interventionSurveyFetchCommonLineWithCache(" ORDER BY position ASC", "SurveyQuestion", $this->questions, $this, SurveyQuestion::$DB_CACHE_FROM_SURVEYBLOCQUESTION, SurveyQuestion::$DB_CACHE, $forceDataFromCache);
         foreach ($this->questions as $question) {
             $question->fetch_optionals();
         }
-        $result2 = interventionSurveyFetchCommonLineWithCache(" ORDER BY position ASC", "SurveyBlocStatus", $this->status, $this, SurveyBlocStatus::$DB_CACHE_FROM_SURVEYBLOCQUESTION, SurveyBlocStatus::$DB_CACHE);
+        $result2 = interventionSurveyFetchCommonLineWithCache(" ORDER BY position ASC", "SurveyBlocStatus", $this->status, $this, SurveyBlocStatus::$DB_CACHE_FROM_SURVEYBLOCQUESTION, SurveyBlocStatus::$DB_CACHE, $forceDataFromCache);
         if ($this->fk_chosen_status) {
             $this->getChosenStatus();
         }

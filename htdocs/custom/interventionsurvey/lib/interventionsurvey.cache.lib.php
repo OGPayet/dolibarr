@@ -164,15 +164,15 @@ function interventionSurveyFetchCommonWithCache($id, $ref, $cacheOfObject, $obje
 /**
  * Function to fetch object lines from cache or from database
  */
-function interventionSurveyFetchCommonLineWithCache($morewhere = '', $objectlineclassname = null, &$resultValue, &$context, $cacheOfLinkedObjectIds, $cacheOfObject)
+function interventionSurveyFetchCommonLineWithCache($morewhere = '', $objectlineclassname = null, &$resultValue, &$context, $cacheOfLinkedObjectIds, $cacheOfObject, $forceDataFromCache = false)
 {
-	$cacheOfLinkedObjectIds = getCachedObjectFromLinkedPropertyValue($context->id, $cacheOfLinkedObjectIds, $cacheOfObject);
-	if(!empty($cacheOfLinkedObjectIds)) {
-		foreach($cacheOfLinkedObjectIds as $obj) {
+    $cacheOfLinkedObject = getCachedObjectFromLinkedPropertyValue($context->id, $cacheOfLinkedObjectIds, $cacheOfObject);
+	if($forceDataFromCache || !empty($cacheOfLinkedObject)) {
+		foreach($cacheOfLinkedObject as $obj) {
             $newline = new $objectlineclassname($context->db);
                 $newline->setVarsFromFetchObj($obj, $context);
 			if (method_exists($newline, "fetchLines")) {
-				$newline->fetchLines($context);
+                $newline->fetchLines($forceDataFromCache);
 			}
                 $resultValue[] = $newline;
                 $context->errors = array_merge($context->errors, $newline->errors);
@@ -215,7 +215,7 @@ function interventionSurveyFetchLinesCommon($morewhere = '', $objectlineclassnam
                 $newline = new $objectlineclassname($context->db);
                 $newline->setVarsFromFetchObj($obj, $context);
                 if (method_exists($newline, "fetchLines")) {
-                    $newline->fetchLines($context);
+                    $newline->fetchLines();
                 }
                 $resultValue[] = $newline;
                 $context->errors = array_merge($context->errors, $newline->errors);

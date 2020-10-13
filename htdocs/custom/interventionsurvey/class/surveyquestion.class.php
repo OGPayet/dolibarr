@@ -315,12 +315,12 @@ class SurveyQuestion extends CommonObject
      *
      * @return int         <0 if KO, 0 if not found, >0 if OK
      */
-    public function fetchLines()
+    public function fetchLines($forceDataFromCache = false)
     {
         $this->answers = array();
         $this->chosen_answer = null;
 
-        $result = interventionSurveyFetchCommonLineWithCache(" ORDER BY position ASC", "SurveyAnswer", $this->answers, $this, SurveyAnswer::$DB_CACHE_FROM_SURVEYQUESTION, SurveyAnswer::$DB_CACHE);
+        $result = interventionSurveyFetchCommonLineWithCache(" ORDER BY position ASC", "SurveyAnswer", $this->answers, $this, SurveyAnswer::$DB_CACHE_FROM_SURVEYQUESTION, SurveyAnswer::$DB_CACHE, $forceDataFromCache);
 
         if ($this->fk_chosen_answer) {
             $this->getChosenAnswer();
