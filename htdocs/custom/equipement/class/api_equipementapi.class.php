@@ -232,7 +232,7 @@ class EquipementApi extends DolibarrApi {
                 if ($equipment->fetch($obj->rowid) > 0) {
                     $equipment->fetch_optionals();
                     $equipment->fetch_product();
-                    $equipment->fetchObjectLinked();
+                    //$equipment->fetchObjectLinked();
                     $obj_ret[] = $this->_cleanObjectData($equipment);
                 }
             }
